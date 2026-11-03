@@ -14,7 +14,13 @@ from pathlib import Path
 from typing import TextIO
 
 from pydantic import BaseModel, ConfigDict, Field
-from vonk_forge_contracts.sweep import SweepEvidenceExit, SweepEvidenceMergeState
+from vonk_forge_contracts.sweep import (
+    SweepCheckConclusion,
+    SweepCheckStatus,
+    SweepCommitStatusState,
+    SweepEvidenceExit,
+    SweepEvidenceMergeState,
+)
 
 from .qualification import (
     backfill,
@@ -22,17 +28,50 @@ from .qualification import (
     merge_evidence,
     prune_withdrawn_evidence,
     read_evidence,
+    read_state_evidence,
     write_evidence,
 )
+from .state import write_atomic
 
 BRANCH = "qualification/evidence"
 TITLE = "qualification evidence"
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 _deadline: float | None = None
+UNPUBLISHED_FILE = "unpublished.json"
+PERSISTENT_BATCHES = 2
 
 
 class EvidencePublicationTimeout(TimeoutError):
     """Only the optional repository transport ends; hardware lanes continue."""
+
+
+_PASSED = (
+    SweepCheckConclusion.SUCCESS,
+    SweepCheckConclusion.NEUTRAL,
+    SweepCheckConclusion.SKIPPED,
+)
+_STATUS_RED = (SweepCommitStatusState.FAILURE, SweepCommitStatusState.ERROR)
+
+
+class CheckResult(BaseModel):
+    """A check run (status, conclusion) or a commit status (state).
+
+    Unknown provider words stay plain strings; only the shapes below are red.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+    status: SweepCheckStatus | str | None = None
+    conclusion: SweepCheckConclusion | str | None = None
+    state: SweepCommitStatusState | str | None = None
+
+    @property
+    def failed(self) -> bool:
+        if self.status is not None:
+            return (
+                self.status == SweepCheckStatus.COMPLETED
+                and self.conclusion not in _PASSED
+            )
+        return self.state in _STATUS_RED
 
 
 class PullRequest(BaseModel):
@@ -42,6 +81,11 @@ class PullRequest(BaseModel):
     merge_state: str = Field(
         default=SweepEvidenceMergeState.UNKNOWN, alias="mergeStateStatus"
     )
+    checks: list[CheckResult] = Field(default_factory=list, alias="statusCheckRollup")
+
+    @property
+    def check_failed(self) -> bool:
+        return any(check.failed for check in self.checks)
 
 
 def command(cwd: Path, *args: str, timeout: int = 60) -> str:
@@ -56,11 +100,16 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     return result.stdout.strip()
 
 
-def sync(history: Path, directory: Path) -> bool:
+def sync(
+    history: Path, directory: Path, state: Path | None = None
+) -> SweepEvidenceExit:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
     global _deadline
     _deadline = time.monotonic() + 240
     directory.mkdir(parents=True, exist_ok=True)
+    (directory / UNPUBLISHED_FILE).unlink(
+        missing_ok=True
+    )  # only a synced batch reports
     opened = json.loads(
         command(
             directory,
@@ -91,13 +140,30 @@ def sync(history: Path, directory: Path) -> bool:
                 "--repo",
                 REPOSITORY,
                 "--json",
-                "number,mergeStateStatus",
+                "number,mergeStateStatus,statusCheckRollup",
             )
         )
-        if details.merge_state not in (
+        # A PR that needs a base update is re-planned from fresh main. So is a
+        # red PR that main has outgrown (the fix may be there); a red PR on
+        # current main waits, visibly.
+        red = details.check_failed
+        replan = details.merge_state in (
             SweepEvidenceMergeState.BEHIND,
             SweepEvidenceMergeState.DIRTY,
-        ):
+        ) or (
+            red
+            and int(
+                command(
+                    directory,
+                    "gh",
+                    "api",
+                    f"repos/{REPOSITORY}/compare/main...{BRANCH}",
+                    "--jq",
+                    ".behind_by",
+                )
+            )
+        )
+        if not replan:
             command(
                 directory,
                 "gh",
@@ -110,10 +176,12 @@ def sync(history: Path, directory: Path) -> bool:
                 "--squash",
             )
             print(
-                f"evidence: PR #{pr.number} awaiting CI/auto-merge; new results remain in history",
+                f"evidence PR #{pr.number} has a failing check; waiting for main to move"
+                if red
+                else f"evidence: PR #{pr.number} awaiting CI/auto-merge; new results remain in history",
                 flush=True,
             )
-            return False
+            return SweepEvidenceExit.FAILING_CHECK if red else SweepEvidenceExit.WAITING
         # Conflicts or required base updates get a fresh clone and a new plan.
     with tempfile.TemporaryDirectory(
         prefix="qualification-", dir=directory
@@ -193,7 +261,12 @@ def sync(history: Path, directory: Path) -> bool:
         paths = sorted(history.parent.glob(history.name + ".*"))
         if history.exists():
             paths.append(history)
-        result = backfill(paths, clone)
+        local = read_state_evidence(state) if state is not None else {}
+        result = backfill(paths, clone, local)
+        # Counted before the merge, on the fresh clone; reported, never a blocker.
+        write_atomic(
+            directory / UNPUBLISHED_FILE, json.dumps({"count": result.unpublished})
+        )
         if result.rejected:
             print(
                 f"evidence: rejected {result.rejected} malformed historical rows",
@@ -204,7 +277,9 @@ def sync(history: Path, directory: Path) -> bool:
         if not command(
             clone, "git", "diff", "origin/main", "--", "qualification/evidence"
         ):
-            return True  # merged evidence or an empty batch never creates an empty PR
+            return (
+                SweepEvidenceExit.SYNCED
+            )  # merged evidence or an empty batch never creates an empty PR
         changed = command(clone, "git", "diff", "--cached", "--name-only")
         merging = (clone / ".git/MERGE_HEAD").exists()
         if changed or merging:
@@ -218,7 +293,7 @@ def sync(history: Path, directory: Path) -> bool:
             )
             command(clone, "git", "push", "origin", f"HEAD:refs/heads/{BRANCH}")
         elif not remote:
-            return True
+            return SweepEvidenceExit.SYNCED
         opened = json.loads(
             command(
                 clone,
@@ -283,14 +358,23 @@ def sync(history: Path, directory: Path) -> bool:
             "--squash",
         )
         print(f"evidence: PR #{pr.number}, auto-merge requested", flush=True)
-        return True
+        return SweepEvidenceExit.SYNCED
 
 
 class EvidencePublisher:
     """Tick-driven child process; never wait on git or GitHub in a sweep lane."""
 
-    def __init__(self, history: Path, directory: Path, script: Path) -> None:
+    def __init__(
+        self,
+        history: Path,
+        directory: Path,
+        script: Path,
+        state: Path | None = None,
+    ) -> None:
         self.history = history
+        self.state = state
+        self.unpublished = 0
+        self.unpublished_batches = 0
         self.directory = directory
         self.script = script
         self.process: subprocess.Popen | None = None
@@ -298,6 +382,28 @@ class EvidencePublisher:
         self.started_at = 0.0
         self.message = "evidence publication pending"
         self._output: TextIO | None = None
+
+    def _read_unpublished(self) -> None:
+        try:
+            count = int(
+                json.loads((self.directory / UNPUBLISHED_FILE).read_text())["count"]
+            )
+        except (OSError, ValueError, KeyError, TypeError):
+            return  # this batch did not reach backfill: neither counted nor reset
+        self.unpublished = count
+        self.unpublished_batches = self.unpublished_batches + 1 if count else 0
+        if count:
+            self.message += f"; {count} resolved sweep records were missing from main"
+
+    @property
+    def alert(self) -> str | None:
+        """Raised only when the same gap persists across batches: the publisher is broken."""
+        if self.unpublished_batches < PERSISTENT_BATCHES:
+            return None
+        return (
+            f"evidence publisher: {self.unpublished} resolved sweep records still "
+            f"missing from main after {self.unpublished_batches} batches"
+        )
 
     def tick(self, now: float) -> None:
         if self.process is not None:
@@ -313,8 +419,11 @@ class EvidencePublisher:
                 if code == SweepEvidenceExit.SYNCED
                 else "evidence PR awaiting CI/auto-merge; new results queued; check in 300s (see publisher.log)"
                 if code == SweepEvidenceExit.WAITING
+                else "evidence PR has a failing check; waiting for main to move (see publisher.log)"
+                if code == SweepEvidenceExit.FAILING_CHECK
                 else f"evidence publisher exited {code}; re-plan in 300s (see publisher.log)"
             )
+            self._read_unpublished()
             if self._output is not None:
                 self._output.close()
             self.process = None
@@ -334,6 +443,7 @@ class EvidencePublisher:
                     str(self.history),
                     "--work-dir",
                     str(self.directory),
+                    *(["--state", str(self.state)] if self.state else []),
                 ],
                 stdout=self._output,
                 stderr=self._output,

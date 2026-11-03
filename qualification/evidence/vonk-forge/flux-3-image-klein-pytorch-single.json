@@ -145,6 +145,56 @@
           "684cacf6ae1daea83b0d0c3caf7da6a528542c71d4f9d2134fedd6f563f44148",
           "ff402e9c8fafdd4f14a151880d41e39691be58e133e911820b617601e10ffbf0"
         ],
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "0a6ed5360a8d5f8cf206681316070315fa8fabc807248134f4ece20124c9fdc3"
+      ],
+      "tested_at": "2026-10-20T14:48:12.167512Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "dc9553f22c2323f84bb93374666dc60d7a836b1c07d74ea1dac3052cb9f6b957",
+        "model_digests": [
+          "998c24794e185c2bb9865f4187b69b92659c1f5fd6bc78ebcbf531332f42ffa7",
+          "9b0c1c8cc6774b567109c0f0e3646aae67a9c1bef0fb7e9e82ed9005a6caa4c4",
+          "f51b5572e467f888bc2c81dc52fc88d7f059d56ea2c030fc3af8e7045396a6e9"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "a8bda403e144c8a48c0351d6fa38486309c7fc6922ab9ad1abb2fa2965f0c373"
+      ],
+      "tested_at": "2026-10-20T14:48:12.912877Z",
+      "platform": {
+        "controller_source_sha": "6109552dc9e08c488c6c3db252d661c2c63156b6",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "ec8eb99d528967d91a5e7ae28e4f017df4df2479ac47ea3e59944febd53aaefb",
+        "model_digests": [
+          "222152847be50e1eb25e422e6d0c78c0704d2f376ea468cdb4914e2f08966801",
+          "684cacf6ae1daea83b0d0c3caf7da6a528542c71d4f9d2134fedd6f563f44148",
+          "ff402e9c8fafdd4f14a151880d41e39691be58e133e911820b617601e10ffbf0"
+        ],
         "required_sparks": 1,
         "models_resolved": true
       },

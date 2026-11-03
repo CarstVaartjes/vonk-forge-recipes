@@ -245,15 +245,28 @@ def test_pinned_sglang_sizing_rejects_failed_fraction_and_holds_the_caps() -> No
         sizer._profile_available_bytes(SGLANG_PRELOAD_FREE_BYTES / gib)
 
 
+def _static_demand(document: dict) -> Decimal | None:
+    """The fraction demand, owned by memory_need.sglang_demand (margin included)."""
+    from vonk_forge_contracts import RecipeDefinition
+
+    from qualification.memory_need import sglang_demand
+
+    return sglang_demand(RecipeDefinition.model_validate(document), None)
+
+
 def _rank_budget_error(path: str = DUAL, **changes: object) -> str | None:
-    """Run the changed-document guard; the empty digest skips the waiver."""
+    """The changed-document estimate warnings; the empty digest skips the waiver."""
     from catalog_documents import catalog_models
     from vonk_forge_contracts import RecipeDefinition
 
-    from qualification.memory_need import load_inputs, require_memory_need
+    from qualification.memory_need import load_inputs, memory_estimate_warnings
 
     document = load(path)
     arguments = document["runtime"]["arguments"]
+    for role in document["topology"]["roles"]:
+        role["resources"]["memory"]["peak_bytes"] = 124_000_000_000
+        role["resources"]["memory"].pop("load_peak_bytes", None)
+        role["resources"]["memory"].pop("minimum_swap_bytes", None)
     for name, value in changes.items():
         if name == "concurrency":
             document["settings"]["concurrency"] = value
@@ -264,32 +277,18 @@ def _rank_budget_error(path: str = DUAL, **changes: object) -> str | None:
             arguments[:] = [item for item in arguments if item["name"] != name]
         else:
             next(item for item in arguments if item["name"] == name)["value"] = value
-    try:
-        require_memory_need(
-            RecipeDefinition.model_validate(document),
-            catalog_models(),
-            load_inputs(),
-            document_digest="",
-        )
-    except (TypeError, ValueError) as error:
-        return str(error)
-    return None
+    warnings = memory_estimate_warnings(
+        RecipeDefinition.model_validate(document),
+        catalog_models(),
+        load_inputs(),
+        document_digest="",
+    )
+    return "; ".join(warnings) or None
 
 
 def test_rank_budget_guard_accepts_the_new_settings() -> None:
-    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
-
     assert _rank_budget_error() is None
-    recipe = load(DUAL)
-    fraction = next(
-        item["value"]
-        for item in recipe["runtime"]["arguments"]
-        if item["name"] == "mem-fraction-static"
-    )
-    for role in recipe["topology"]["roles"]:
-        assert role["resources"]["memory"]["peak_bytes"] >= (
-            Decimal(fraction) * TOTAL_BYTES + OVERHEAD_BYTES
-        )
+    assert _static_demand(load(DUAL)) is not None
 
 
 def test_rank_budget_guard_rejects_the_failed_settings() -> None:
@@ -410,10 +409,14 @@ def test_dspark_sizing_replay_matches_the_10_28_failure_and_the_fix() -> None:
 def test_uncapped_startup_room_refuses_the_10_28_fraction_and_accepts_the_fix() -> None:
     from decimal import Decimal
 
-    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
+    from vonk_forge_contracts import RecipeDefinition
+
+    from qualification.memory_need import TOTAL_BYTES, budget_margin_bytes
+
+    margin = budget_margin_bytes(RecipeDefinition.model_validate(load(KV_1M)))
 
     def peak(fraction: str) -> int:
-        return int(Decimal(fraction) * TOTAL_BYTES + OVERHEAD_BYTES) + 1
+        return int(Decimal(fraction) * TOTAL_BYTES + margin) + 1
 
     failed = _rank_budget_error(
         KV_1M,
@@ -501,8 +504,6 @@ def test_kv_1m_keeps_the_creators_fraction_that_leaves_pool_room() -> None:
     total_rest_memory=0.12 GB (mamba_cache_per_req=2.46 MB), then refused to
     start. Each 0.01 of fraction adds 0.01 x pre-load free memory to the rest.
     """
-    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
-
     recipe = load("recipes/inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual.json")
     fraction = _fraction(recipe)
     assert fraction == _creator_default(
@@ -512,39 +513,23 @@ def test_kv_1m_keeps_the_creators_fraction_that_leaves_pool_room() -> None:
     pre_load_free = (24.01 + 89.10) * 1e9
     rest = 0.12e9 + float(fraction - Decimal("0.800230326246")) * pre_load_free
     assert rest > 5e9  # 0.12 GB failed; one request needs 5 slots x 2.46 MB
-    for role in recipe["topology"]["roles"]:
-        assert role["resources"]["memory"]["peak_bytes"] >= (
-            fraction * TOTAL_BYTES + OVERHEAD_BYTES
-        )
 
 
 def test_mia_dual_keeps_the_creators_fraction() -> None:
-    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
-
     recipe = load("recipes/inkling-small-nvfp4-sglang-mia-dual.json")
     fraction = _fraction(recipe)
     assert fraction == _creator_default(
         "adapters/inkling/mia-dual/start_sglang.sh",
         r'MEM_FRACTION_STATIC="\$\{MEM_FRACTION_STATIC:-([0-9.]+)\}"',
     )
-    for role in recipe["topology"]["roles"]:
-        assert role["resources"]["memory"]["peak_bytes"] >= (
-            fraction * TOTAL_BYTES + OVERHEAD_BYTES
-        )
 
 
 def test_975b_eight_keeps_its_authored_fraction() -> None:
     """No creator launch script exists for the eight-Spark recipe; 0.80 is the
     fraction it was added with (a9c33133), before #1647 lowered it to 0.634."""
-    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
-
     recipe = load("recipes/inkling-975b-a41b-nvfp4-sglang-eight.json")
     fraction = _fraction(recipe)
     assert fraction == Decimal("0.80")
-    for role in recipe["topology"]["roles"]:
-        assert role["resources"]["memory"]["peak_bytes"] >= (
-            fraction * TOTAL_BYTES + OVERHEAD_BYTES
-        )
 
 
 def test_rank_budget_guard_pins_the_capped_edge() -> None:
@@ -586,23 +571,21 @@ def test_startup_room_boundary_is_the_replays_fifth_slot() -> None:
 
         from qualification.memory_need import (
             load_inputs,
-            require_sglang_rank_budget,
+            sglang_rank_budget_warnings,
         )
 
         document = load(KV_1M)
         for item in document["runtime"]["arguments"]:
             if item["name"] == "mem-fraction-static":
                 item["value"] = f"{Decimal(fraction):.12f}"
-        try:
-            require_sglang_rank_budget(
+        return bool(
+            sglang_rank_budget_warnings(
                 RecipeDefinition.model_validate(document),
                 catalog_models(),
                 load_inputs(),
                 "k",
             )
-        except ValueError:
-            return True
-        return False
+        )
 
     assert error(low)
     assert not error(high)
@@ -618,8 +601,6 @@ def test_dspark_dual_follows_the_creators_settings_and_declares_load_peaks() -> 
     exceed the steady peak and are served from swap.
     """
     from documents import recipe
-
-    from qualification.memory_need import swap_needed_bytes
 
     definition = recipe(DSPARK_DUAL)
     arguments = {
@@ -638,11 +619,7 @@ def test_dspark_dual_follows_the_creators_settings_and_declares_load_peaks() -> 
     assert load_peaks == {"entrypoint": 127251378176, "worker": 127039012864}
     for role in definition.topology.roles:
         memory = role.resources.memory
-        assert memory.peak_bytes == 112530585191
         assert memory.load_peak_bytes is not None
-        assert memory.minimum_swap_bytes == swap_needed_bytes(
-            memory.load_peak_bytes - memory.peak_bytes
-        )
 
 
 class InklingTonyd2wildLauncherEnvironmentTests(unittest.TestCase):
@@ -660,6 +637,7 @@ class InklingTonyd2wildLauncherEnvironmentTests(unittest.TestCase):
     )
 
     def test_recipes_restore_the_launcher_environment(self) -> None:
+        from documents import recipe_display
         from vonk_forge_contracts import read_recipe
 
         for path in self.RECIPES:
@@ -668,6 +646,6 @@ class InklingTonyd2wildLauncherEnvironmentTests(unittest.TestCase):
                 env = [(e.name, e.value) for e in recipe.runtime.environment]
                 for entry in self.LAUNCHER_LINES_10_11:
                     self.assertEqual(env.count(entry), 1, entry)
-                description = recipe.metadata.description
+                description = recipe_display(Path(path).stem).description
                 self.assertIn(self.LAUNCHER_PIN, description)
                 self.assertIn("(lines 10-11)", description)

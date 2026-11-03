@@ -1,0 +1,16 @@
+{
+  "description": "DeepSeek-V2-Lite Chat SFT checkpoint for chat completion, with the upstream tokenizer chat template and EOS configuration.",
+  "family_title": "DeepSeek",
+  "identity": {
+    "publisher": "deepseek-ai",
+    "slug": "deepseek-v2-lite-chat-85864749"
+  },
+  "kind": "model-display",
+  "model_title": "DeepSeek-V2-Lite",
+  "tags": [
+    "deepseek-ai",
+    "deepseek",
+    "language",
+    "candidate"
+  ]
+}

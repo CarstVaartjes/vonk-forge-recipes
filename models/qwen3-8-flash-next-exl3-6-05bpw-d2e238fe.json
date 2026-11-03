@@ -301,13 +301,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "turboderp",
-      "slug": "qwen3-8-flash-next-exl3",
-      "title": "Qwen3.8 Flash Next EXL3"
+      "slug": "qwen3-8-flash-next-exl3"
     },
     "publisher": "turboderp",
     "slug": "qwen3-8-flash-next-exl3-6-05bpw-d2e238fe",
@@ -322,15 +320,6 @@
     ],
     "spdx": "LicenseRef-Qwen-Community-1.0",
     "url": "https://huggingface.co/turboderp/Qwen3.8-Flash-Next-exl3/blob/d2e238feca4c1c4d966943117356d8a42c2f4dcb/LICENSE"
-  },
-  "metadata": {
-    "description": "EXL3 checkpoint without a published vision sidecar at this revision.",
-    "tags": [
-      "turboderp",
-      "qwen",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

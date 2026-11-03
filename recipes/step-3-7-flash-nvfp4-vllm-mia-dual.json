@@ -30,24 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate torch-distributed TP2 recipe for StepFun Step 3.7 Flash (198B sparse MoE vision-language model, about 11B active) as the official ModelOpt NVFP4 checkpoint on two Sparks, following MiaAI-Lab's Dual-DGX-Spark-Step-3.7-Flash-NVFP4 kit: the official vllm/vllm-openai:stepfun37 image pinned by digest (no Ray), step3p5 tool-call and reasoning parsers, FP8 KV cache, 256K context and eight sequences. MTP speculative decoding with three drafted tokens is upstream's default and is offered as a choice (off gives upstream's no-MTP baseline); the BF16 MTP layers now ship inside the pinned checkpoint, so upstream's download-time graft is not needed, and its drafter patch is applied at build time. Upstream reports about 31-32 tok/s with MTP 3 on two Sparks (a claim, not measured here). Code: MIT; model: Apache-2.0. Vonk physical two-Spark acceptance is pending.",
-    "tags": [
-      "candidate",
-      "executable",
-      "mia",
-      "mtp",
-      "nvfp4",
-      "reasoning",
-      "spark",
-      "step-3-7-flash",
-      "tool-use",
-      "vision-language",
-      "vllm"
-    ],
-    "title": "Step 3.7 Flash NVFP4 vLLM two Sparks (Mia)"
-  },
   "models": [
     {
       "files": [
@@ -373,7 +355,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f052976a156b7aaf66bc238cb72c889489f337e17be8d0b3311347c44f1911af",
+        "content_sha256": "70fce94ed17df64bc817b9ebb052a57e76c67d3e62122db625e533fca1e03045",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step-3-7-flash-nvfp4-42755324"
@@ -390,12 +372,12 @@
               "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3}"
             }
           ],
-          "default": true,
-          "help": "Upstream default: speculative-config method mtp with 3 speculative tokens.",
+          "help": "Upstream default: speculative-config method mtp with 3 speculative tokens. Named/required tool_choice returns corrupt arguments on this image (vLLM before #44297).",
           "label": "MTP, 3 tokens",
           "value": "mtp3"
         },
         {
+          "default": true,
           "help": "No speculative decoding (upstream's no-mtp mode).",
           "label": "Off (baseline)",
           "value": "off"

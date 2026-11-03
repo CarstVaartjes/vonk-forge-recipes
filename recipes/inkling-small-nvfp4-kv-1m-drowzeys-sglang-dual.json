@@ -30,25 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "standard",
-    "description": "drowzeys' champion two-Spark profile for thinkingmachines/Inkling-Small-NVFP4 (276B total, 12B active MoE) with RadixArk's stock DSpark speculator (block size 7 of the checkpoint's 15) and a first NVFP4-style KV cache on SGLang's triton backend (fp4_mx_block16), giving a 1,048,576-token context. Runs upstream's :kvquant image (lmsysorg/sglang dev-inkling-dspark plus NCCL 2.30 and the KV-quant patches). Defaults follow scripts/nvfp4-kv-boot.sh: fp4_mx_block16 KV, triton attention with fp32 reduction, page size 1, marlin MoE, extra_buffer mamba radix cache, memory fraction 0.85, 16 running requests, 8192-token prefill chunks, decode CUDA graphs for 1 to 16 (piecewise and prefill graphs off). Upstream reports (not measured here): about 33 tok/s decode, accept length about 3.5, KV pool 1,082,627 tokens, byte-exact against the bf16 reference at temperature 0 and needle retrieval to 113K. Text only: upstream does not enable multimodal. Licences: checkpoint Apache-2.0 (Thinking Machines); the RadixArk draft declares none; drowzeys' repository declares none. Not gated.",
-    "tags": [
-      "candidate",
-      "dspark",
-      "executable",
-      "dual",
-      "inkling",
-      "moe",
-      "nvfp4",
-      "nvfp4-kv",
-      "reasoning",
-      "sglang",
-      "spark",
-      "tool-use"
-    ],
-    "title": "Inkling Small NVFP4 DSpark NVFP4-KV 1M SGLang two Sparks (drowzeys)"
-  },
   "models": [
     {
       "files": [
@@ -286,7 +267,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a3026d05251c1fbabb33540cd6decf870b03db69cfa996100f20f3990a37d378",
+        "content_sha256": "cd3e585d66309580758c5ade2a7fa70648f24eeb9193917a274b94edf2cddc91",
         "kind": "model",
         "publisher": "thinkingmachines",
         "slug": "inkling-small-nvfp4"
@@ -363,7 +344,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "3ce296159b8e31da6b2414110f636ee035338844006b7559f64a5d6aa7fc81a5",
+        "content_sha256": "201acba13ae6f33e981aa36aab85e48d3dfe2e7abe815a3c69a48ef9368d6f96",
         "kind": "model",
         "publisher": "radixark",
         "slug": "inkling-small-dspark-preview-fcc210dc"

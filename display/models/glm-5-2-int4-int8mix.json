@@ -1,0 +1,16 @@
+{
+  "description": "Exact public GLM 5.2 Int4 Int8Mix checkpoint.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "quanttrio",
+    "slug": "glm-5-2-int4-int8mix"
+  },
+  "kind": "model-display",
+  "model_title": "GLM 5.2 Int4 Int8Mix",
+  "tags": [
+    "quanttrio",
+    "glm-5-2",
+    "language",
+    "candidate"
+  ]
+}

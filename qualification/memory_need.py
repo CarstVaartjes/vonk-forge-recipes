@@ -9,7 +9,7 @@ The committed content snapshot is not a qualification status list.
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from decimal import ROUND_CEILING, Decimal
 from enum import StrEnum
@@ -44,6 +44,28 @@ SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
 # 35B r0b0tlab single), so host use was at most 4,292,852,407 bytes there.
 ADMISSION_IDLE_USE_BYTES = SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES
 OVERHEAD_BYTES = 8_000_000_000
+# Data-backed use beside the engine budget (p90 of 277 sweep samples, audit
+# 2026-11-01). The single margin below is the only owner; OVERHEAD_BYTES stays
+# the loading floor, the inside-budget check and the SGLang static need.
+VLLM_SINGLE_MARGIN_BYTES = 6_200_000_000
+# Measured on 2-Spark runs only (56 samples, 28 contents); borrowed for 3, 4, 8.
+VLLM_MULTI_MARGIN_BYTES = 10_400_000_000
+SGLANG_SINGLE_MARGIN_BYTES = 8_500_000_000
+
+
+def budget_margin_bytes(recipe: RecipeDefinition) -> int:
+    """Bytes a launch holds beside its engine budget, by engine and topology.
+
+    Applies only where the constant means "beside the budget": the vLLM
+    utilization envelope and the SGLang fraction demand. Multi-Spark SGLang
+    keeps OVERHEAD_BYTES.
+    """
+    single = recipe.topology.node_count == 1
+    if recipe.runtime.engine == "vllm":
+        return VLLM_SINGLE_MARGIN_BYTES if single else VLLM_MULTI_MARGIN_BYTES
+    return SGLANG_SINGLE_MARGIN_BYTES if single else OVERHEAD_BYTES
+
+
 # Offline copy of the swap policy pinned to vonk-forge fc6059e42edb1b26416fd78493138201f427de96
 # (#1936 swap-aware memory guard): rust/crates/vonk-agent-protocol/src/
 # host_memory_guard_policy.rs::SWAP_EXHAUSTED_FREE_FLOOR_BYTES (2 GiB),
@@ -153,6 +175,7 @@ VLLM_UNMODELED_HYBRID = {
     # CircularBufferSpec ring, an MLA compressed-key cache and an MTP QSA
     # layer; its sfxnz dual is proven (9f77f966) on this hand bound.
     "qwen3-8-flash-next-nvfp4-fab0aecb": "Qwen4Exp on vLLM v0.30.0",
+    "qwen3-8-flash-next-nvfp4-lil-6c01ac37": "Qwen4Exp on the eugr b12x vLLM image",
     # Sliding-window plus short-convolution layers on creator images whose
     # vLLM Inkling layout is not pinned; SGLang-measured state.
     "inkling-small-nvfp4": "Inkling short convolution on creator images",
@@ -272,8 +295,44 @@ class MemoryInputs(BaseModel):
     # Engram n-gram table files, by content digest, with their source. Owner
     # rule (2026-10-26): Engram tables are never memory usage.
     engram_files: dict[str, str]
+    # Bytes of a weights file that a launch reading its table from disk on demand
+    # (QWEN4EXP_PLE_MMAP=1, see reads_table_from_disk) never holds resident; the
+    # rest of the file still counts. By content digest.
+    # Qwen3.8 Flash Next: model-fp8-mtp-ple.safetensors carries the 320,001,536 x
+    # 160 B PLE n-gram table (51,200,245,760 B) that tonyd2wild's adapter reads
+    # with preadv; the MTP weights in the same file stay counted.
+    disk_resident_bytes: dict[str, int] = Field(default_factory=dict)
     historical_sources: list[str]
     historical_documents: dict[str, list[str]]
+    # Qwen4Exp PLE table storage dtype by model configuration digest. A
+    # configuration naming none is bfloat16 (b12x getattr default), which b12x
+    # resolves to the io_uring disk table unless VLLM_PLE_TABLE_MEMORY is set.
+    ple_embedding_dtypes: dict[str, str] = Field(default_factory=dict)
+
+
+PLE_DISK_READ_ENVIRONMENT = "QWEN4EXP_PLE_MMAP"
+
+
+def reads_table_from_disk(recipe: RecipeDefinition) -> bool:
+    """Residency is a property of the launch: tonyd2wild's ple_mmap reads the PLE
+    table with preadv only when QWEN4EXP_PLE_MMAP=1 in the merged environment
+    (an option variant may turn it off and keep the table in memory)."""
+    return any(
+        item.name == PLE_DISK_READ_ENVIRONMENT and str(item.value) == "1"
+        for item in recipe.runtime.environment
+    )
+
+
+def resident_weight_bytes(
+    size_bytes: int, sha256: str, recipe: RecipeDefinition, inputs: MemoryInputs
+) -> int:
+    """Bytes of a weights file that sit in memory: none for an Engram file, less
+    the disk-resident part when this launch reads that table from disk."""
+    if sha256 in inputs.engram_files:
+        return 0
+    if reads_table_from_disk(recipe):
+        return size_bytes - inputs.disk_resident_bytes.get(sha256, 0)
+    return size_bytes
 
 
 def unchanged_recipe(
@@ -426,7 +485,7 @@ def calculate_need(
     inputs: MemoryInputs,
 ) -> MemoryNeed:
     """Informative full workload: declared context times engine concurrency,
-    including selected drafts. Warnings only; require_memory_need gates.
+    including selected drafts. Warnings only.
 
     Currently supports single-node ordinary attention and supplied compressed
     geometry. A new topology/automatic scheduler needs explicit inputs rather
@@ -469,11 +528,9 @@ def calculate_need(
         selected = {item.file_id for item in selection.files}
         weights.append(
             sum(
-                item.size_bytes
+                resident_weight_bytes(item.size_bytes, item.sha256, recipe, inputs)
                 for item in model.files
-                if item.id in selected
-                and "weights" in item.roles
-                and item.sha256 not in inputs.engram_files
+                if item.id in selected and "weights" in item.roles
             )
         )
         geometry = pinned_geometry(
@@ -692,15 +749,15 @@ def sglang_demand(recipe: RecipeDefinition, capped_need: int | None) -> Decimal 
         return None
     if capped_need is not None:
         return Decimal(capped_need + OVERHEAD_BYTES)
-    return Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+    return Decimal(str(fraction)) * TOTAL_BYTES + budget_margin_bytes(recipe)
 
 
-def require_sglang_rank_budget(
+def sglang_rank_budget_warnings(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
     inputs: MemoryInputs,
     key: str,
-) -> None:
+) -> list[str]:
     """Multi-Spark SGLang profiles its pools after the weights are resident.
 
     sglang 94602c9c kv_cache_configurator._profile_available_bytes charges
@@ -709,7 +766,7 @@ def require_sglang_rank_budget(
     resident expansion and the capped token and state pools.
 
     The token cap must hold one full-context request
-    (require_absolute_kv_capacity), not context x max-running-requests: SGLang
+    (absolute_kv_warnings), not context x max-running-requests: SGLang
     schedules requests within it. The proven Qwen3.8 Flash Next W4A16 r0b0tlab
     dual caps one 262,144-token context at concurrency 4. The state cap must
     hold five slots per running request: at startup kv_cache_configurator
@@ -720,7 +777,7 @@ def require_sglang_rank_budget(
     """
     fraction = argument_value(recipe, "mem-fraction-static")
     if fraction is None:
-        raise ValueError(f"{key}: declare mem-fraction-static for the static budget")
+        return [f"{key}: declare mem-fraction-static for the static budget"]
     uncapped = argument_value(recipe, "max-total-tokens") is None
     need = sglang_static_need(recipe, models, inputs, key, pinned=not uncapped)
     base = sglang_preload_free_bytes(recipe, models, inputs)
@@ -733,21 +790,26 @@ def require_sglang_rank_budget(
         minimum = sglang_startup_rest(recipe, models, inputs, key)
         rest = static_bytes - need
         if not rest.is_finite() or rest < minimum:
-            raise ValueError(
-                f"{key}: mem-fraction-static {fraction} x SGLang pre-load free "
-                f"{base} leaves {rest:.0f} bytes/rank after "
-                f"sharded weights and resident expansion ({need} bytes), below the "
-                f"{minimum} bytes SGLang needs to start (one request's state slots "
-                "and one KV token); increase mem-fraction-static"
-            )
-        return
+            return [
+                (
+                    f"{key}: mem-fraction-static {fraction} x SGLang pre-load free "
+                    f"{base} leaves {rest:.0f} bytes/rank after "
+                    f"sharded weights and resident expansion ({need} bytes), below the "
+                    f"{minimum} bytes SGLang needs to start (one request's state slots "
+                    "and one KV token); increase mem-fraction-static"
+                )
+            ]
+        return []
     if not static_bytes.is_finite() or static_bytes < need:
-        raise ValueError(
-            f"{key}: static budget {static_bytes:.0f} bytes (mem-fraction-static x "
-            f"SGLang pre-load free {base}) cannot hold sharded weights, "
-            f"resident expansion and capped pools ({need} bytes/rank); increase "
-            "mem-fraction-static while retaining the absolute caps"
-        )
+        return [
+            (
+                f"{key}: static budget {static_bytes:.0f} bytes (mem-fraction-static x "
+                f"SGLang pre-load free {base}) cannot hold sharded weights, "
+                f"resident expansion and capped pools ({need} bytes/rank); increase "
+                "mem-fraction-static while retaining the absolute caps"
+            )
+        ]
+    return []
 
 
 def sglang_preload_free_bytes(
@@ -1123,21 +1185,22 @@ def absolute_kv_need(
     ) * concurrency
 
 
-def require_absolute_kv_capacity(
+def absolute_kv_warnings(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
     inputs: MemoryInputs,
-) -> None:
-    """A fixed pool must hold at least one full-context request, even on TP/PP."""
+) -> list[str]:
+    """A fixed pool should hold at least one full-context request, even on TP/PP."""
+    warnings: list[str] = []
     if recipe.runtime.engine not in {"vllm", "sglang"}:
-        return
+        return warnings
     for variant in memory_variants(recipe):
         if variant.runtime.engine == "sglang":
             tokens = argument_value(variant, "max-total-tokens")
             if tokens is not None and positive_argument(
                 variant, "max-total-tokens"
             ) < positive_argument(variant, "context-length"):
-                raise ValueError(
+                warnings.append(
                     f"{recipe.identity.slug}: absolute KV token pool cannot hold one full-context request"
                 )
         elif variant.runtime.engine == "vllm":
@@ -1147,78 +1210,162 @@ def require_absolute_kv_capacity(
             if pool is not None:
                 need = absolute_kv_need(variant, models, inputs)
                 if cache_bytes(pool) < need:
-                    raise ValueError(
+                    warnings.append(
                         f"{recipe.identity.slug}: absolute KV pool {cache_bytes(pool)} bytes cannot hold one full-context request ({need} bytes/rank required)"
                     )
+    return warnings
 
 
-def require_memory_need(
+class EnvelopeException(BaseModel):
+    """An owner-approved envelope exception for one exact recipe content."""
+
+    model_config = ConfigDict(extra="forbid")
+    content_sha256: str
+    reason: str
+    owner_decision: str
+    date: str
+
+
+@cache
+def envelope_exceptions() -> dict[str, EnvelopeException]:
+    document = json.loads((ROOT / "memory-envelope-exceptions.json").read_text())
+    return {
+        slug: EnvelopeException.model_validate(entry)
+        for slug, entry in document.items()
+    }
+
+
+def envelope_exception(slug: str, document_digest: str) -> bool:
+    """Whether this exact recipe content has a recorded owner-approved exception.
+
+    Bound to the content digest: any edit to the recipe expires the entry.
+    """
+    entry = envelope_exceptions().get(slug)
+    return (
+        entry is not None
+        and bool(document_digest)
+        and (entry.content_sha256 == document_digest)
+    )
+
+
+def estimate_problems(label: str, rule: Callable[[], list[str]]) -> list[str]:
+    """One estimate rule's findings; an estimate that cannot be computed is one too."""
+    try:
+        return rule()
+    except (ValueError, TypeError, KeyError) as error:
+        return [f"{label}: estimate unavailable: {error}"]
+
+
+def memory_estimate_warnings(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
     inputs: MemoryInputs,
     *,
     document_digest: str,
     touched: bool = False,
-) -> None:
-    """Check new/changed documents without retuning historical ones.
+) -> list[str]:
+    """Where the declared memory disagrees with the estimate; none of it blocks.
 
-    Calibrated on the proven set: a fixed pool holds one full-context request,
-    not context x concurrency, and the declared peak covers the loading floor
-    (and on one Spark a vLLM utilization budget with what vLLM holds beside
-    it) and is admissible. ``touched`` marks a recipe file the change under
-    review edits; only those must bound a utilization-sized KV pool.
+    The recipes are estimates until the hardware try measures them, so every
+    finding here is a warning (the contract shape stays validated by
+    RecipeMemoryResources). Calibrated on the proven set: a fixed pool holds one
+    full-context request, not context x concurrency, and the declared peak
+    covers the loading floor (and a vLLM utilization budget, on any Spark count,
+    with the margin vLLM holds beside it) and is admissible. ``touched`` marks a
+    recipe file the change under review edits; only those are asked to bound a
+    utilization-sized KV pool. Recorded content is judged by hardware, so only
+    its unproven multi-Spark SGLang startup room is reported.
     """
-    require_absolute_kv_capacity(recipe, models, inputs)
-    # Recorded content is judged by hardware, not by this offline check.
-    if unchanged_recipe(recipe, document_digest, inputs):
-        return
-    require_admissible_declaration(recipe)
-    if recipe.runtime.engine not in {"vllm", "sglang"}:
-        return
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    warnings = estimate_problems(
+        key, lambda: absolute_kv_warnings(recipe, models, inputs)
+    )
+    multi_sglang = [
+        variant
+        for variant in memory_variants(recipe)
+        if variant.runtime.engine == "sglang" and variant.topology.node_count > 1
+    ]
+    if unchanged_recipe(recipe, document_digest, inputs):
+        if document_digest and not hardware_proven(recipe, document_digest):
+            for variant in multi_sglang:
+                warnings += estimate_problems(
+                    key,
+                    lambda variant=variant: sglang_rank_budget_warnings(
+                        variant, models, inputs, key
+                    ),
+                )
+        return warnings
+    warnings += admissible_declaration_warnings(recipe)
+    if recipe.runtime.engine not in {"vllm", "sglang"}:
+        return warnings
     single = recipe.topology.node_count == 1
     for variant in memory_variants(recipe):
-        need = per_rank_need(variant, models, inputs)
-        # Proven single-Spark documents run below the multi-Spark reserve and
-        # SGLang static-peak declarations; the loading floor, vLLM's budget and
-        # SGLang's weights, expansion and capped pools hold there, because the
-        # Controller reserves the declared peak.
-        vllm = variant.runtime.engine == "vllm"
-        envelope = (
-            None
-            if not single
-            else vllm_utilization_envelope(variant)
-            if vllm
-            else sglang_static_need(variant, models, inputs, key, pinned=False)
-            + OVERHEAD_BYTES
+        warnings += estimate_problems(
+            key,
+            lambda variant=variant: variant_estimate_warnings(
+                variant, recipe, models, inputs, key, document_digest, touched, single
+            ),
         )
-        engine = "vLLM budget" if vllm else "SGLang static need"
-        problems = (
-            [
-                f"{role.name}: peak understates need {need.peak_bytes}"
-                for role in variant.topology.roles
-                if role.resources.memory.peak_bytes < need.peak_bytes
-            ]
-            + [
-                f"{role.name}: peak understates {engine} plus overhead {envelope}"
-                for role in variant.topology.roles
-                if envelope is not None and role.resources.memory.peak_bytes < envelope
-            ]
-            if single
-            else declaration_problems(variant, need)
-        )
-        if problems:
-            raise ValueError(f"{key}: " + "; ".join(problems))
-        if not single and variant.runtime.engine == "sglang":
-            require_sglang_rank_budget(variant, models, inputs, key)
-        elif touched:
-            require_bounded_kv_pool(variant, models, inputs, key)
-        if not single:
-            require_vllm_startup_budget(variant)
+    return warnings
+
+
+def variant_estimate_warnings(
+    variant: RecipeDefinition,
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+    key: str,
+    document_digest: str,
+    touched: bool,
+    single: bool,
+) -> list[str]:
+    need = per_rank_need(variant, models, inputs)
+    # Proven single-Spark documents run below the multi-Spark SGLang
+    # static-peak declaration; the loading floor, vLLM's budget and
+    # SGLang's weights, expansion and capped pools hold there, because the
+    # Controller reserves the declared peak.
+    vllm = variant.runtime.engine == "vllm"
+    envelope = (
+        None
+        if not single or envelope_exception(recipe.identity.slug, document_digest)
+        else vllm_utilization_envelope(variant)
+        if vllm
+        else sglang_static_need(variant, models, inputs, key, pinned=False)
+        + OVERHEAD_BYTES
+    )
+    engine = "vLLM budget" if vllm else "SGLang static need"
+    problems = (
+        [
+            f"{role.name}: peak understates need {need.peak_bytes}"
+            for role in variant.topology.roles
+            if role.resources.memory.peak_bytes < need.peak_bytes
+        ]
+        + [
+            f"{role.name}: peak understates {engine} plus overhead {envelope}"
+            for role in variant.topology.roles
+            if envelope is not None and role.resources.memory.peak_bytes < envelope
+        ]
+        if single
+        else declaration_problems(variant, need)
+        + [
+            f"{role.name}: peak understates vLLM budget plus overhead {multi}"
+            for role in variant.topology.roles
+            if (multi := vllm_utilization_envelope(variant)) is not None
+            and role.resources.memory.peak_bytes < multi
+        ]
+    )
+    warnings = [f"{key}: " + "; ".join(problems)] if problems else []
+    if not single and variant.runtime.engine == "sglang":
+        warnings += sglang_rank_budget_warnings(variant, models, inputs, key)
+    elif touched and not envelope_exception(recipe.identity.slug, document_digest):
+        warnings += bounded_kv_warnings(variant, models, inputs, key)
+    if not single:
+        warnings += startup_budget_warnings(variant)
+    return warnings
 
 
 def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
-    """vLLM's utilization budget plus the 8 GB it holds beside it, if pool-less.
+    """vLLM's utilization budget plus the margin it holds beside it, if pool-less.
 
     A speculative drafter is charged inside the budget, whichever mechanism
     loads it (qualification/vllm_memory_fit.py).
@@ -1230,8 +1377,32 @@ def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
         return None
     fraction = argument_value(recipe, "gpu-memory-utilization")
     share = Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
-    envelope = share * TOTAL_BYTES + OVERHEAD_BYTES
+    envelope = share * TOTAL_BYTES + budget_margin_bytes(recipe)
     return int(envelope.to_integral_value(ROUND_CEILING))
+
+
+def raise_peaks_to_envelope(recipe: RecipeDefinition) -> RecipeDefinition | None:
+    """The recipe with role peaks raised to its vLLM budget envelope, None if none is.
+
+    A document that moves (``tools/refresh-upstream``) is new content and meets the
+    current margins; raising here keeps a refresh from blocking. Peaks are never
+    lowered, and a declared load peak keeps its rise above the peak.
+    """
+    envelope = max(
+        (e for v in memory_variants(recipe) if (e := vllm_utilization_envelope(v))),
+        default=0,
+    )
+    if all(r.resources.memory.peak_bytes >= envelope for r in recipe.topology.roles):
+        return None
+    raised = recipe.model_copy(deep=True)
+    for role in raised.topology.roles:
+        memory = role.resources.memory
+        if memory.peak_bytes >= envelope:
+            continue
+        if memory.load_peak_bytes is not None:
+            memory.load_peak_bytes += envelope - memory.peak_bytes
+        memory.peak_bytes = envelope
+    return raised
 
 
 def applicable_geometry(
@@ -1247,13 +1418,13 @@ def applicable_geometry(
         return None  # Bound to another configuration or image.
 
 
-def require_bounded_kv_pool(
+def bounded_kv_warnings(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
     inputs: MemoryInputs,
     key: str,
-) -> None:
-    """A touched recipe bounds KV, calibrated on the proven set.
+) -> list[str]:
+    """A touched recipe should bound KV; an estimate, calibrated on the proven set.
 
     A touched pool-less vLLM budget, on one Spark or several, must be
     admissible on an idle Spark. The 2026-10-26 Laguna M.1 stop (TP=2, 0.82,
@@ -1281,7 +1452,7 @@ def require_bounded_kv_pool(
     of KV cache memory on 2026-10-27).
 
     An absolute pool must hold one full-context request
-    (require_absolute_kv_capacity), not context x max-num-seqs: vLLM schedules
+    (absolute_kv_warnings), not context x max-num-seqs: vLLM schedules
     sequences within the pool. Proven duals hold fewer: DeepSeek V4 Flash 0731
     r0b0tlab (16.0 GB for 16 x 327,680 tokens), GLM 5.3 Flash NVFP4 Spark eugr
     (14.69 GB for 4 x 500,000) and the EXL3 Mia dual (2.5 GiB, 774,400 tokens
@@ -1290,12 +1461,13 @@ def require_bounded_kv_pool(
     SGLang derives an omitted mem-fraction-static at launch; the proven
     Nemotron 3 Nano NVFP4 NVIDIA SGLang single runs on it, so none is required.
     """
+    warnings: list[str] = []
     vllm = recipe.runtime.engine == "vllm"
     name = "gpu-memory-utilization" if vllm else "mem-fraction-static"
     fraction = argument_value(recipe, name)
     if not vllm and recipe.topology.node_count == 1:
         if fraction is None:
-            return
+            return warnings
         # SGLang profiles after loading: the static budget must hold the
         # weights, their expansion and any capped pools (GLM a0 fa86311a at
         # 0.75 was OOM-killed), and a cap bounds the pools, not the budget the
@@ -1304,15 +1476,13 @@ def require_bounded_kv_pool(
         resident = sglang_static_need(recipe, models, inputs, key, pinned=False)
         base = sglang_preload_free_bytes(recipe, models, inputs)
         if share * base < resident:
-            raise ValueError(
+            warnings.append(
                 f"{key}: mem-fraction-static {fraction} x SGLang pre-load free "
                 f"{base} cannot hold the selected weights, resident "
                 f"expansion and capped pools ({resident} bytes)"
             )
-        demand = sglang_demand(
-            recipe,
-            sglang_capped_static_need(recipe, models, inputs, key),
-        )
+        capped = sglang_capped_static_need(recipe, models, inputs, key)
+        demand = sglang_demand(recipe, capped)
         if (
             demand is None
             or not evaluate_memory_admission(
@@ -1321,18 +1491,19 @@ def require_bounded_kv_pool(
                 occupied_bytes=ADMISSION_IDLE_USE_BYTES,
             ).admissible
         ):
-            raise ValueError(
+            warnings.append(
                 f"{key}: mem-fraction-static {fraction} share of {TOTAL_BYTES} bytes "
-                f"plus {OVERHEAD_BYTES} overhead is not admissible on an idle Spark"
+                f"plus {OVERHEAD_BYTES if capped is not None else budget_margin_bytes(recipe)} "
+                "overhead is not admissible on an idle Spark"
             )
-        return
+        return warnings
     pools = (
         ("kv-cache-memory-bytes", "kv-cache-memory") if vllm else ("max-total-tokens",)
     )
     if any(argument_value(recipe, name) is not None for name in pools):
-        return
+        return warnings
     if fraction is None and not vllm:
-        return  # Multi-Spark SGLang uses require_sglang_rank_budget.
+        return warnings  # Multi-Spark SGLang uses sglang_rank_budget_warnings.
     share = Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
     weights = rank_weight_bytes(recipe, models, inputs) if vllm else 0
     primary = recipe.models[0]
@@ -1347,7 +1518,7 @@ def require_bounded_kv_pool(
         request = (
             f" and one full-context request ({context} bytes/rank)" if context else ""
         )
-        raise ValueError(
+        warnings.append(
             f"{key}: {name} {share} share of {TOTAL_BYTES} bytes cannot hold the "
             f"selected weights ({weights} bytes/rank) plus {OVERHEAD_BYTES} "
             f"overhead{request}, leaving vLLM no memory for KV cache blocks; raise "
@@ -1370,14 +1541,15 @@ def require_bounded_kv_pool(
         budget, SPARK_MEMORY_BYTES, occupied_bytes=ADMISSION_IDLE_USE_BYTES
     ).admissible
     if not bounded:
-        raise ValueError(
+        warnings.append(
             f"{key}: set absolute {pools[0]}, or a {name} whose share of "
-            f"{TOTAL_BYTES} bytes plus {OVERHEAD_BYTES} overhead is admissible on "
+            f"{TOTAL_BYTES} bytes plus {budget_margin_bytes(recipe)} overhead is admissible on "
             "an idle Spark"
         )
+    return warnings
 
 
-def require_vllm_startup_budget(recipe: RecipeDefinition) -> None:
+def startup_budget_warnings(recipe: RecipeDefinition) -> list[str]:
     """Absolute KV overrides cache sizing, not vLLM's earlier startup check.
 
     Beside a fixed pool the fraction sizes nothing; vLLM only requires free
@@ -1395,22 +1567,24 @@ def require_vllm_startup_budget(recipe: RecipeDefinition) -> None:
         argument_value(recipe, "kv-cache-memory-bytes") is None
         and argument_value(recipe, "kv-cache-memory") is None
     ):
-        return
+        return []
     fraction = argument_value(recipe, "gpu-memory-utilization")
     if fraction is None:
-        raise ValueError(
-            f"{recipe.identity.slug}: absolute KV needs an explicit startup "
-            "gpu-memory-utilization budget"
-        )
+        return [
+            (
+                f"{recipe.identity.slug}: absolute KV needs an explicit startup "
+                "gpu-memory-utilization budget"
+            )
+        ]
     utilization = Decimal(str(fraction))
     if not utilization.is_finite() or not 0 < utilization <= 1:
-        raise ValueError(f"{recipe.identity.slug}: invalid vLLM startup budget")
-    for role in recipe.topology.roles:
-        if utilization * TOTAL_BYTES > role.resources.memory.peak_bytes:
-            raise ValueError(
-                f"{recipe.identity.slug}/{role.name}: vLLM startup free-memory "
-                "check (utilization x total) exceeds declared peak"
-            )
+        return [f"{recipe.identity.slug}: invalid vLLM startup budget"]
+    return [
+        f"{recipe.identity.slug}/{role.name}: vLLM startup free-memory "
+        "check (utilization x total) exceeds declared peak"
+        for role in recipe.topology.roles
+        if utilization * TOTAL_BYTES > role.resources.memory.peak_bytes
+    ]
 
 
 def memory_warnings(
@@ -1418,13 +1592,28 @@ def memory_warnings(
     models: Mapping[str, ModelDefinition],
     inputs: MemoryInputs,
     document_digest: str = "",
+    *,
+    touched: bool = False,
 ) -> list[str]:
-    """Informative catalog estimates; these never change hardware qualification.
+    """Catalog estimates and where the declaration disagrees, then the notes.
 
-    A recorded or snapshotted multi-Spark SGLang document that is not
-    hardware-proven is skipped by require_memory_need; its startup room is
-    reported here so a shaved fraction stays visible until the document changes.
+    Neither changes hardware qualification: the try decides, and the measured
+    use replaces the estimate.
     """
+    return [
+        f"WARNING {item}"
+        for item in memory_estimate_warnings(
+            recipe, models, inputs, document_digest=document_digest, touched=touched
+        )
+    ] + memory_notes(recipe, models, inputs)
+
+
+def memory_notes(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+) -> list[str]:
+    """The informational estimate lines: swap, full workload and loading floor."""
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return swap_warnings(recipe)
     missing = {
@@ -1449,26 +1638,15 @@ def memory_warnings(
                 f"{prefix}: estimated workload {need.total_bytes} bytes/rank; "
                 f"planning limit {LIMIT_BYTES}; hardware test required"
             )
-        if (
-            variant.runtime.engine == "sglang"
-            and variant.topology.node_count > 1
-            and document_digest
-            and not hardware_proven(recipe, document_digest)
-        ):
-            try:
-                require_sglang_rank_budget(
-                    variant,
-                    models,
-                    inputs,
-                    f"{recipe.identity.publisher}/{recipe.identity.slug}",
-                )
-            except (ValueError, TypeError) as error:
-                warnings.append(f"{prefix}: {error}")
-        rank = per_rank_need(variant, models, inputs)
-        warnings.append(
-            f"{prefix}: loading floor {rank.peak_bytes} bytes/rank; "
-            f"observed idle capacity {rank.safe_limit_bytes}; no hardware verdict"
-        )
+        try:
+            rank = per_rank_need(variant, models, inputs)
+        except (ValueError, TypeError) as error:
+            warnings.append(f"{prefix}: loading floor unavailable: {error}")
+        else:
+            warnings.append(
+                f"{prefix}: loading floor {rank.peak_bytes} bytes/rank; "
+                f"observed idle capacity {rank.safe_limit_bytes}; no hardware verdict"
+            )
     return warnings
 
 
@@ -1487,12 +1665,10 @@ def rank_weight_bytes(
     for selection in recipe.models:
         selected = {item.file_id for item in selection.files}
         for item in models[selection.model.content_sha256].files:
-            if (
-                item.id in selected
-                and "weights" in item.roles
-                and item.sha256 not in inputs.engram_files
-            ):
-                weights[item.sha256] = item.size_bytes
+            if item.id in selected and "weights" in item.roles:
+                weights[item.sha256] = resident_weight_bytes(
+                    item.size_bytes, item.sha256, recipe, inputs
+                )
     parallel = recipe.topology.parallelism
     shards = parallel.tensor * parallel.pipeline
     cache = 0
@@ -1555,7 +1731,11 @@ def per_rank_need(
 def declaration_problems(
     recipe: RecipeDefinition, need: PerRankMemoryNeed
 ) -> list[str]:
-    """An oversized estimate is valid; hiding demand or headroom is not."""
+    """An oversized estimate is valid; hiding demand is not.
+
+    ``reserve_bytes`` is informational and never charged (admission holds the
+    platform floor itself), so it is not judged here.
+    """
     problems: list[str] = []
     fraction = argument_value(recipe, "mem-fraction-static")
     static_peak = (
@@ -1567,10 +1747,6 @@ def declaration_problems(
         memory = role.resources.memory
         if memory.peak_bytes < need.peak_bytes:
             problems.append(f"{role.name}: peak understates need {need.peak_bytes}")
-        if memory.reserve_bytes < OS_FLOOR_BYTES:
-            problems.append(
-                f"{role.name}: reserve understates host headroom {OS_FLOOR_BYTES}"
-            )
         if static_peak is not None and (
             not static_peak.is_finite() or static_peak > memory.peak_bytes
         ):
@@ -1609,7 +1785,7 @@ def load_overshoot_bytes(memory: RecipeMemoryResources) -> int:
 def swap_warnings(recipe: RecipeDefinition) -> list[str]:
     """Roles whose load needs more swap than the host default.
 
-    An overshoot beyond the usable maximum is refused by require_swap_declaration;
+    An overshoot beyond the usable maximum is reported by swap_declaration_warnings;
     skipping it here keeps swap_needed_bytes bounded for any declared value.
     """
     warnings = []
@@ -1627,8 +1803,9 @@ def swap_warnings(recipe: RecipeDefinition) -> list[str]:
     return warnings
 
 
-def require_swap_declaration(recipe: RecipeDefinition) -> None:
-    """A load that overshoots the steady peak must fit, and name its swap."""
+def swap_declaration_warnings(recipe: RecipeDefinition) -> list[str]:
+    """A load that overshoots the steady peak should fit, and name its swap."""
+    warnings: list[str] = []
     for variant in memory_variants(recipe):
         for role in variant.topology.roles:
             memory = role.resources.memory
@@ -1637,45 +1814,49 @@ def require_swap_declaration(recipe: RecipeDefinition) -> None:
                 continue
             where = f"{recipe.identity.slug}/{role.name}"
             if overshoot > usable_swap_bytes(SWAP_MAXIMUM_BYTES):
-                raise ValueError(
+                warnings.append(
                     f"{where}: load overshoot {overshoot} bytes exceeds the "
                     f"usable part of the {SWAP_MAXIMUM_BYTES}-byte swap maximum "
                     f"({usable_swap_bytes(SWAP_MAXIMUM_BYTES)}); it can never fit"
                 )
+                continue
             needed = swap_needed_bytes(overshoot)
             if memory.minimum_swap_bytes < needed:
-                raise ValueError(
+                warnings.append(
                     f"{where}: minimum_swap_bytes {memory.minimum_swap_bytes} "
                     f"is below the {needed} bytes the {overshoot}-byte load "
                     "overshoot needs"
                 )
             if memory.minimum_swap_bytes > SWAP_MAXIMUM_BYTES:
-                raise ValueError(
+                warnings.append(
                     f"{where}: minimum_swap_bytes {memory.minimum_swap_bytes} "
                     f"exceeds the {SWAP_MAXIMUM_BYTES}-byte swap maximum"
                 )
+    return warnings
 
 
-def require_admissible_declaration(
+def admissible_declaration_warnings(
     recipe: RecipeDefinition, *, pool_bytes: int = SPARK_MEMORY_BYTES
-) -> None:
-    """Every launch variant must fit an idle Spark by the Controller's rule.
+) -> list[str]:
+    """Every launch variant should fit an idle Spark by the Controller's rule.
 
     An idle Spark's host already uses ADMISSION_IDLE_USE_BYTES; a declaration
-    that only fits with no host use can never be admitted (2026-10-21 deferral).
+    that only fits with no host use is an estimate the Controller would not
+    admit (2026-10-21 deferral). The hardware try decides.
     """
-    for variant in memory_variants(recipe):
-        for role in variant.topology.roles:
-            if not evaluate_memory_admission(
-                role.resources.memory.peak_bytes,
-                pool_bytes,
-                occupied_bytes=ADMISSION_IDLE_USE_BYTES,
-            ).admissible:
-                raise ValueError(
-                    f"{recipe.identity.slug}/{role.name}: declared peak "
-                    f"{role.resources.memory.peak_bytes} bytes is not admissible "
-                    f"on an idle Spark (pool {pool_bytes} bytes, host "
-                    f"{ADMISSION_IDLE_USE_BYTES} bytes, floor "
-                    f"{PLATFORM_MEMORY_FLOOR_BYTES} bytes); reserve by need"
-                )
-    require_swap_declaration(recipe)
+    warnings = [
+        f"{recipe.identity.slug}/{role.name}: declared peak "
+        f"{role.resources.memory.peak_bytes} bytes is not admissible "
+        f"on an idle Spark (pool {pool_bytes} bytes, host "
+        f"{ADMISSION_IDLE_USE_BYTES} bytes, floor "
+        f"{PLATFORM_MEMORY_FLOOR_BYTES} bytes); reserve by need"
+        for variant in memory_variants(recipe)
+        for role in variant.topology.roles
+        if not evaluate_memory_admission(
+            role.resources.memory.peak_bytes,
+            pool_bytes,
+            occupied_bytes=ADMISSION_IDLE_USE_BYTES,
+        ).admissible
+    ]
+    warnings.extend(swap_declaration_warnings(recipe))
+    return warnings

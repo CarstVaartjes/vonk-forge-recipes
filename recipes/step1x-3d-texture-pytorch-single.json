@@ -104,23 +104,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Installable single-DGX Spark image-and-mesh texturing Candidate using exact Step1X, SDXL, and fixed-VAE snapshots plus SM121-native rasterizer dependencies. It consumes a GLB up to 240 MiB from vonk-forge/step1x-3d-geometry-pytorch-single or vonk-forge/step1x-3d-label-geometry-pytorch-single together with the same reference image, runs offline, and emits a textured GLB. Physical Spark quality, memory, and latency acceptance is still required.",
-    "tags": [
-      "candidate",
-      "three-d",
-      "pytorch-pipeline",
-      "single",
-      "spark",
-      "executable",
-      "offline",
-      "source-bundled",
-      "stage-texture",
-      "accepts-step1x-geometry"
-    ],
-    "title": "Step1X-3D texture pytorch-pipeline single Spark"
-  },
   "models": [
     {
       "files": [
@@ -137,7 +120,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "99b11ba4e7c31b7ca5efd8304de343d0d801c6e8c2c74d7f352b50c4e9ec8285",
+        "content_sha256": "732544aa24c972e743dfd1378c64a6e05cac4a549509be106447fecae1906efd",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step1x-3d-texture"
@@ -308,7 +291,7 @@
       ],
       "id": "sdxl",
       "model": {
-        "content_sha256": "330050cf2c6c454847e4a4719ff04d83c331e22d5ee1a7ac95978714a0951e1d",
+        "content_sha256": "0435a1b907313b4e9e8966c13b4dd987dd80076f92e21eb9f61549faf76754fb",
         "kind": "model",
         "publisher": "stabilityai",
         "slug": "stable-diffusion-xl-base-1-0"
@@ -339,7 +322,7 @@
       ],
       "id": "sdxl-vae",
       "model": {
-        "content_sha256": "8461ba39b80cb27b8bf7b6409d020b5124b89b0c9c21a05d6519ca7147788eb9",
+        "content_sha256": "92386af9dcb24a758cbceebd219ec9176968d6dec3e0e9990b28e9cfc1da8721",
         "kind": "model",
         "publisher": "madebyollin",
         "slug": "sdxl-vae-fp16-fix"

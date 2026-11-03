@@ -21,13 +21,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen-image",
-      "title": "Qwen Image"
+      "slug": "qwen-image"
     },
     "model": {
       "publisher": "qwen",
-      "slug": "qwen-image-edit",
-      "title": "Qwen Image Edit"
+      "slug": "qwen-image-edit"
     },
     "publisher": "qwen",
     "slug": "qwen-image-edit-2511-comfyui-fp8mixed-f68ace85",
@@ -42,20 +40,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/blob/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact Comfy-Org mixed-precision FP8 Qwen Image Edit 2511 transformer for core ComfyUI MixedPrecisionOps, used with the catalog's immutable scaled-FP8 Qwen-VL encoder and Qwen Image VAE companions.",
-    "tags": [
-      "qwen",
-      "image",
-      "editing",
-      "comfyui",
-      "fp8",
-      "fp8mixed",
-      "mixed-precision",
-      "candidate",
-      "spark"
-    ]
   },
   "modalities": [
     "image"

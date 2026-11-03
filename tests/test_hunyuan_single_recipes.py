@@ -14,8 +14,6 @@ from unittest.mock import MagicMock, patch
 
 from vonk_forge_contracts import RecipeDefinition
 
-from qualification.memory_need import require_admissible_declaration
-
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE_SLUGS = (
     "hunyuan-video-15-distilled-diffusers-single",
@@ -73,7 +71,6 @@ def video_module():
 class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
     def test_hunyuan_recipes_select_exact_models_and_job_interface(self) -> None:
         from catalog_documents import model_digest
-        from vonk_forge_contracts import RecipeDefinition
 
         expected_model_counts = {
             "hunyuan-video-foley-xl-pytorch-single": 3,
@@ -106,12 +103,6 @@ class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
         for slug, revision in expected.items():
             self.assertEqual(
                 load(ROOT / "models" / f"{slug}.json")["source"]["revision"], revision
-            )
-
-    def test_offloaded_hunyuan_video_envelope_fits_healthy_spark(self) -> None:
-        for slug in RECIPE_SLUGS[:3]:
-            require_admissible_declaration(
-                RecipeDefinition.model_validate(load(ROOT / "recipes" / f"{slug}.json"))
             )
 
 

@@ -30,22 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (sglang) for Llama 3.1 8B Instruct NVFP4: lmsysorg/sglang:latest-cu130 as named by the playbook (resolves to v0.5.20, build 94602c9c), pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags. Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "sglang",
-      "openai",
-      "single",
-      "spark",
-      "llama",
-      "nvfp4"
-    ],
-    "title": "Llama 3.1 8B Instruct NVFP4 SGLang single Spark (NVIDIA playbook)"
-  },
   "models": [
     {
       "files": [
@@ -182,7 +166,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "06e87a022cce41677b21499753d9b0b647cb084c89150ed3194ec17a5ef15055",
+        "content_sha256": "13d9335a6b01ffa136ed922c7d5035a42c157cea7217e48faebf9a3ec18308f6",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "llama-3-1-8b-instruct-nvfp4-bdb54e24"

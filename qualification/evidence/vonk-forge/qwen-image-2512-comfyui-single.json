@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen-image-2512-comfyui-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "05acc9128c6c499ff4093c76e40ba9546a0b58f765092a167ed15a6e3ef10760",
+        "source_bundle_sha256": "a9c8b8fc90ff2dcd8ac53659141b90134f0480b14201f3ba06510177a8866626",
+        "runtime_image": {
+          "build_key": "a9b5f43de8a276c7ffa4b1d7d11ab0eb474baf168cdff92c6cd64217eb78694f",
+          "image_digest": "sha256:61af084c2a7a4c23e1df2a52274ed2a99dd1430d8269fcff22011d2f84b0bd39"
+        },
+        "model_digests": [
+          "efb222d33973f73f1b1c1da7dc30b5260bf9e2b5d333459e3e25501aeff8dcd0"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "d497094cdb09020912f630661c218656461d004f9090a0480ce55c02d1fa710d"
+      ],
+      "tested_at": "2026-10-30T22:48:39.187808Z",
+      "platform": {
+        "controller_source_sha": "0e068ef2853084cffe40fab34cd8308e82782510",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "fb33314ca58621a1c241242999cd4a809f68926405073273893988ef5ef15e03",
+        "source_bundle_sha256": "a9c8b8fc90ff2dcd8ac53659141b90134f0480b14201f3ba06510177a8866626",
+        "runtime_image": {
+          "build_key": "a9b5f43de8a276c7ffa4b1d7d11ab0eb474baf168cdff92c6cd64217eb78694f",
+          "image_digest": "sha256:61af084c2a7a4c23e1df2a52274ed2a99dd1430d8269fcff22011d2f84b0bd39"
+        },
+        "model_digests": [
+          "670e2a8010a939ebc86ed90fd7c4c14e402b5a8a4b137f277d9e6cca3fc191d3"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "d497094cdb09020912f630661c218656461d004f9090a0480ce55c02d1fa710d"
+      ],
+      "tested_at": "2026-10-30T22:48:39.187808Z",
+      "platform": {
+        "controller_source_sha": "0e068ef2853084cffe40fab34cd8308e82782510",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    }
+  ]
+}

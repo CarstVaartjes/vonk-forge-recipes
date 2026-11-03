@@ -47,9 +47,11 @@ from urllib.parse import quote
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 sys.path.insert(0, str(ROOT))
-from vonk_forge_contracts import document_sha256
+from vonk_forge_contracts import RecipeDefinition, document_sha256, published_json
 from vonk_forge_contracts.recipe import RecipeRelease
 
+from qualification.documents import model_display
+from qualification.memory_need import raise_peaks_to_envelope
 from spark_sweep.tolerant import InputReason, read_optional
 
 
@@ -77,6 +79,8 @@ APP_AUTH: Any = None
 SHA = re.compile(r"^[0-9a-f]{40}$")
 LABEL_NEEDS_REVIEW = "refresh:needs-review"
 LABEL_MECHANICAL = "refresh:mechanical"
+LABEL_MEMORY_ESTIMATE = "memory:estimate"
+MEMORY_ESTIMATE_TITLE = "Memory estimate mismatches"
 FAILED_CONCLUSIONS = {"FAILURE", "TIMED_OUT", "STARTUP_FAILURE", "ERROR"}
 # Full-suite verification takes minutes per recipe, so a run pushes (prepares) at most
 # this many new or updated PRs; the rest wait for the next run, which the publish
@@ -673,6 +677,15 @@ def resolve(http: Http, provider: str, repo: str) -> Target:
 # ---------------------------------------------------------------------------
 # Catalog view
 # ---------------------------------------------------------------------------
+
+
+def moved_display(root: Path, old_slug: str, new_slug: str) -> bytes:
+    """The Model display of ``old_slug`` for the Model that replaces it as ``new_slug``."""
+    display = model_display(old_slug, root)
+    moved = display.model_copy(
+        update={"identity": display.identity.model_copy(update={"slug": new_slug})}
+    )
+    return canonical(published_json(moved))
 
 
 def canonical(document: object) -> bytes:
@@ -2215,6 +2228,16 @@ class Assessor:
                 new_recipe["release"] = {"version": version, "released_at": date}
                 result.version = (version, date)
             if new_recipe != recipe:
+                if new_recipe.get("runtime", {}).get("engine") == "vllm":
+                    try:  # a moved document meets today's margins (never lowered)
+                        raise_role_peaks(
+                            new_recipe["topology"]["roles"],
+                            RecipeDefinition.model_validate(new_recipe),
+                        )
+                    except (KeyError, TypeError, ValueError) as error:
+                        result.reasons.append(
+                            f"memory envelope: peaks could not be raised: {str(error)[:300]}"
+                        )
                 edits[f"recipes/{recipe_id}.json"] = canonical(new_recipe)
             result.edits = edits
         return result
@@ -2703,6 +2726,9 @@ class Assessor:
                 return
             fresh = refreshed_model(old, new_files, item.target)
             edits[f"models/{fresh['identity']['slug']}.json"] = canonical(fresh)
+            edits[f"display/models/{fresh['identity']['slug']}.json"] = moved_display(
+                self.catalog.root, old["identity"]["slug"], fresh["identity"]["slug"]
+            )
         else:
             if mounted is not None and mounted_unchanged(old, fresh["files"], mounted):
                 self._mounted_noop(item, result)
@@ -2733,6 +2759,7 @@ class Assessor:
         ]
         if not remaining:
             edits[f"models/{old['identity']['slug']}.json"] = None
+            edits[f"display/models/{old['identity']['slug']}.json"] = None
 
     def _curated(
         self, old: dict[str, Any], item: Item, new_files: list[dict[str, Any]]
@@ -2972,6 +2999,15 @@ def verify_steps() -> list[tuple[str, list[str]]]:
             ],
         ),
         (
+            "estimate gates",
+            [
+                sys.executable,
+                "tools/check-estimate-gates",
+                "--base",
+                "origin/main",
+            ],
+        ),
+        (
             "full test suite",
             [
                 sys.executable,
@@ -3024,6 +3060,11 @@ def ensure_labels() -> None:
             LABEL_NEEDS_REVIEW,
             "d93f0b",
             "Upstream moved and a script could not vouch for it",
+        ),
+        (
+            LABEL_MEMORY_ESTIMATE,
+            "fbca04",
+            "Declared memory disagrees with the estimate; the try decides",
         ),
     ):
         gh(
@@ -3385,6 +3426,18 @@ def checks_moved(root: Path, head: str) -> bool:
     return bool(
         git("diff", "--name-only", base, "origin/main", "--", *CHECK_PATHS, cwd=root)
     )
+
+
+def raise_role_peaks(roles: list[dict[str, Any]], recipe: RecipeDefinition) -> None:
+    """Raise a moved vLLM document's role peaks (``roles``, in place) to the envelope."""
+    raised = raise_peaks_to_envelope(recipe)
+    if raised is None:
+        return
+    for role, kept in zip(roles, raised.topology.roles, strict=True):
+        memory = role["resources"]["memory"]
+        memory["peak_bytes"] = kept.resources.memory.peak_bytes
+        if kept.resources.memory.load_peak_bytes is not None:
+            memory["load_peak_bytes"] = kept.resources.memory.load_peak_bytes
 
 
 def follow_proven_bytes(root: Path, edits: dict[str, bytes | None]) -> None:
@@ -3769,13 +3822,15 @@ def close_stale_refresh_prs(
         summary.closed.append(f"{recipe_id}: PR #{pr['number']}")
 
 
-def review_issue(title: str, state: str) -> dict[str, Any] | None:
-    """The newest ``refresh:needs-review`` issue titled ``title`` in ``state``."""
+def review_issue(
+    title: str, state: str, label: str = LABEL_NEEDS_REVIEW
+) -> dict[str, Any] | None:
+    """The newest issue labelled ``label`` (default ``refresh:needs-review``) titled ``title`` in ``state``."""
     issues = gh_json(
         "issue",
         "list",
         "--label",
-        LABEL_NEEDS_REVIEW,
+        label,
         "--state",
         state,
         "--limit",
@@ -3787,36 +3842,64 @@ def review_issue(title: str, state: str) -> dict[str, Any] | None:
     return max(found, key=lambda i: int(i["number"])) if found else None
 
 
-def sync_issue(assessment: Assessment, summary: Summary, create: bool = True) -> None:
-    """Keep the recipe's one review issue showing the current assessment.
+def sync_titled_issue(
+    title: str,
+    render: Callable[[str | None], str],
+    label: str = LABEL_NEEDS_REVIEW,
+    create: bool = True,
+) -> None:
+    """Keep the one issue titled ``title`` showing ``render(previous body)``.
 
-    A recipe has one issue for life: when it needs review again, its closed issue is
-    reopened with the new body rather than a second issue opened. ``create=False``
-    only updates an open issue (a recipe that waits for an unreachable upstream).
+    A subject has one issue for life: when it needs attention again, its closed issue
+    is reopened with the new body rather than a second issue opened. ``create=False``
+    only updates an open issue.
     """
-    title = issue_title(assessment.recipe_id)
-    existing = review_issue(title, "open")
-    if existing is None and create and (closed := review_issue(title, "closed")):
+    existing = review_issue(title, "open", label)
+    if existing is None and create and (closed := review_issue(title, "closed", label)):
         gh("issue", "reopen", str(closed["number"]))
         existing = closed
     if existing is None and not create:
         return
-    body = issue_body(assessment, None if existing is None else existing["body"])
+    body = render(None if existing is None else existing["body"])
     if existing is None:
-        gh(
-            "issue",
-            "create",
-            "--title",
-            title,
-            "--body",
-            body,
-            "--label",
-            LABEL_NEEDS_REVIEW,
-        )
+        gh("issue", "create", "--title", title, "--body", body, "--label", label)
     elif (existing["body"] or "").strip() != body.strip():
         gh("issue", "edit", str(existing["number"]), "--body", body)
+
+
+def sync_issue(assessment: Assessment, summary: Summary, create: bool = True) -> None:
+    """Keep the recipe's one review issue showing the current assessment."""
+    sync_titled_issue(
+        issue_title(assessment.recipe_id),
+        lambda previous: issue_body(assessment, previous),
+        create=create,
+    )
     if assessment.reasons:
         summary.review.append(f"{assessment.recipe_id}: {assessment.reasons[0][:140]}")
+
+
+def command_memory_estimate_issue(report: Path) -> int:
+    """Keep the one memory-estimate issue current from ``check-recipe-memory-need --report``.
+
+    A body with findings opens or refreshes the issue; an empty report closes it.
+    """
+    body = report.read_text(encoding="utf-8")
+    ensure_labels()
+    if body.strip():
+        sync_titled_issue(
+            MEMORY_ESTIMATE_TITLE, lambda _previous: body, LABEL_MEMORY_ESTIMATE
+        )
+    elif open_issue := review_issue(
+        MEMORY_ESTIMATE_TITLE, "open", LABEL_MEMORY_ESTIMATE
+    ):
+        gh(
+            "issue",
+            "close",
+            str(open_issue["number"]),
+            "--comment",
+            "No declared memory disagrees with the estimate any more.",
+        )
+    return 0
 
 
 def close_current_issues(
@@ -3887,6 +3970,7 @@ def recipe_footprint(catalog_: Catalog, recipe_id: str) -> tuple[set[str], list[
     files = {f"recipes/{recipe_id}.json"}
     for reference in recipe["models"]:
         files.add(f"models/{reference['model']['slug']}.json")
+        files.add(f"display/models/{reference['model']['slug']}.json")
     context = recipe["execution"]["build"]["context"]["path"].rstrip("/") + "/"
     return files, [context]
 
@@ -4319,12 +4403,20 @@ def main() -> int:
         action="store_true",
         help="only decide whether a chained refresh should proceed (needs gh, no App)",
     )
+    parser.add_argument(
+        "--memory-estimate-issue",
+        type=Path,
+        metavar="REPORT",
+        help="only keep the one memory-estimate issue current from this report (needs gh, no App)",
+    )
     parser.add_argument("--event", default="schedule")
     parser.add_argument("--run-id", type=int, default=0)
     parser.add_argument("--upstream-conclusion", default="success")
     arguments = parser.parse_args()
     if arguments.guard:
         return command_guard(arguments)
+    if arguments.memory_estimate_issue:
+        return command_memory_estimate_issue(arguments.memory_estimate_issue)
     if arguments.verify_app and not arguments.github_app:
         parser.error("--verify-app requires --github-app")
     global APP_AUTH

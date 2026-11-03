@@ -9,9 +9,6 @@ from pathlib import Path
 from unittest import mock
 
 from documents import recipe_display
-from vonk_forge_contracts import RecipeDefinition
-
-from qualification.memory_need import require_admissible_declaration
 
 ROOT = Path(__file__).resolve().parents[1]
 LTX23_SLUG = "ltx-2-3-22b-distilled-1-1-diffusers-single"
@@ -221,7 +218,7 @@ class LtxSparkFitTests(unittest.TestCase):
                 )
             self.assertEqual(read_text.call_count, 1)
 
-    def test_ltx2_dev_bf16_has_dedicated_disk_offload_and_97gb_admission(self) -> None:
+    def test_ltx2_dev_bf16_has_dedicated_disk_offload_and_89gb_peak(self) -> None:
         adapter_root = ROOT / "adapters/video/ltx23-sync-native-disk"
         namespace = runpy.run_path(str(adapter_root / "run.py"))
         with tempfile.TemporaryDirectory() as temporary:
@@ -264,7 +261,7 @@ class LtxSparkFitTests(unittest.TestCase):
         )
         self.assertIn("disk-offload", recipe_display(recipe["identity"]["slug"]).tags)
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(memory["peak_bytes"] + memory["reserve_bytes"], 97_000_000_000)
+        self.assertEqual(memory["peak_bytes"], 89_000_000_000)
 
         distilled = load(ROOT / "recipes/ltx-2-19b-distilled-diffusers-single.json")
         self.assertEqual(
@@ -280,10 +277,7 @@ class LtxSparkFitTests(unittest.TestCase):
         self.assertNotIn("hardware-blocked", tags)
 
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(
-            memory["peak_bytes"] + memory["reserve_bytes"], 101_000_000_000
-        )
-        require_admissible_declaration(RecipeDefinition.model_validate(recipe))
+        self.assertEqual(memory["peak_bytes"], 93_000_000_000)
         for fact in ("93 GB", "77 GB", "31 GB", "8 GB"):
             self.assertIn(fact, recipe_display(recipe["identity"]["slug"]).description)
         self.assertIn(

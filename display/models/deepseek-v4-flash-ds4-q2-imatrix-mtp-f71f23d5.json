@@ -1,0 +1,20 @@
+{
+  "description": "antirez's DeepSeek-V4-Flash chat-v2 IQ2XXS/Q2K imatrix GGUF (81 GB) with the Q4K/Q8_0/F32 MTP GGUF, at the repository revision that still carries the pre-0731 files. Used by drowzeys' DSpark-style ds4 port.",
+  "family_title": "DeepSeek Flash",
+  "identity": {
+    "publisher": "antirez",
+    "slug": "deepseek-v4-flash-ds4-q2-imatrix-mtp-f71f23d5"
+  },
+  "kind": "model-display",
+  "model_title": "DeepSeek V4 Flash IQ2XXS/Q2K imatrix GGUF with MTP (ds4)",
+  "tags": [
+    "antirez",
+    "candidate",
+    "deepseek-v4-flash-ds4-gguf",
+    "ds4",
+    "gguf",
+    "iq2",
+    "language",
+    "mtp"
+  ]
+}

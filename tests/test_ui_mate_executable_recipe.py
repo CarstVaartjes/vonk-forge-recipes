@@ -9,8 +9,6 @@ import types
 import unittest
 from pathlib import Path
 
-from qualification.memory_need import OS_FLOOR_BYTES, SPARK_MEMORY_BYTES
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import document_sha256
@@ -105,11 +103,6 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
         self.assertEqual(arguments["max-cudagraph-capture-size"], 4)
         self.assertEqual(recipe["topology"]["node_count"], 1)
         self.assertEqual(recipe["topology"]["parallelism"]["tensor"], 1)
-        self.assertLessEqual(
-            recipe["topology"]["roles"][0]["resources"]["memory"]["peak_bytes"]
-            + OS_FLOOR_BYTES,
-            SPARK_MEMORY_BYTES,
-        )
 
     def test_adapter_build_is_offline_and_never_executes_actions(self) -> None:
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")

@@ -828,13 +828,11 @@
   "identity": {
     "family": {
       "publisher": "xiaomimimo",
-      "slug": "mimo",
-      "title": "MiMo"
+      "slug": "mimo"
     },
     "model": {
       "publisher": "xiaomimimo",
-      "slug": "mimo-v2-6-flash-rl",
-      "title": "MiMo V2.6 Flash RL"
+      "slug": "mimo-v2-6-flash-rl"
     },
     "publisher": "xiaomimimo",
     "slug": "mimo-v2-6-flash-rl-3b38d063",
@@ -848,15 +846,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/blob/3b38d063180c3e4aed9691fdc735f3d10b266ee4/README.md"
-  },
-  "metadata": {
-    "description": "Xiaomi MiMo-V2.6-Flash-RL: 309B total / 15B active MoE, fp8 attention with MXFP4 routed experts, 1M native context, text, image, video and audio input, with the MTP head and DFlash drafter.",
-    "tags": [
-      "xiaomimimo",
-      "mimo",
-      "video",
-      "candidate"
-    ]
   },
   "modalities": [
     "video"

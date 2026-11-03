@@ -10,9 +10,9 @@ from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
     OS_FLOOR_BYTES,
-    OVERHEAD_BYTES,
     SPARK_MEMORY_BYTES,
     VLLM_DEFAULT_UTILIZATION,
+    budget_margin_bytes,
     speculative_config,
 )
 
@@ -26,7 +26,7 @@ from qualification.memory_need import (
 # on, envs.py:2109); the KV budget is the requested share less everything
 # consumed since the snapshot (mem_utils.py:312-321, gpu_worker.py:621-625), and
 # the drafter's attention layers draw on that pool. Its weights therefore count
-# inside the budget (memory_need.require_bounded_kv_pool). On hardware the
+# inside the budget (memory_need.bounded_kv_warnings). On hardware the
 # pool-less single-Spark runs with a separate drafter held at most 9.9 GB beside
 # utilization x memory with the OS included, inside the 8 GB overhead plus the
 # 6 GB OS floor (the proven DFlash single Nemotron 3.5 Bolt at 0.7 held 1.4 and
@@ -78,7 +78,7 @@ def assert_memory_fit(recipe: RecipeDefinition) -> None:
         need = calculate_need(recipe, models, load_inputs())
         required_peak = Decimal(need.total_bytes)
     else:
-        required_peak = utilization * SPARK_MEMORY_BYTES + OVERHEAD_BYTES
+        required_peak = utilization * SPARK_MEMORY_BYTES + budget_margin_bytes(recipe)
     for role in recipe.topology.roles:
         memory = role.resources.memory
         label = f"{recipe.identity.slug}/{role.name} at utilization {utilization}"

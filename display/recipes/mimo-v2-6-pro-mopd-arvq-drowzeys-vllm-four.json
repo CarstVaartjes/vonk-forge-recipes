@@ -1,0 +1,26 @@
+{
+  "alignment": "standard",
+  "description": "drowzeys' four-Spark serve of XiaomiMiMo/MiMo-V2.6-Pro-MOPD (MOPD C3, stock) in Jarrelscy's ARVQ / NVFP4 hybrid format (21% NVFP4 hot set): Jarrelscy's vLLM fork built for sm_121a with expert-batched ARVQ prefill, all three MTP heads run non-chain (k=2 default), TP4, 1,048,576-token context, BF16 KV, GPU memory 0.85, 4 sequences, 5120 batched tokens, torch.compile with CUDA graphs, mimo tool-call and reasoning parsers, language-model-only (the live upstream serve is text-only). Server sampling defaults apply only when a client sends none: temperature 0.7, top_p 0.95, max_new_tokens 8192, thinking off. Upstream reports (not measured here): 24.2 tok/s prose and 32.2 tok/s code single stream, 46.3 tok/s at 4 requests, 1.28M-token KV pool, about 83.2 GiB of weights per rank, GSM8K 96.8%, HumanEval 93.9%, MMLU-Pro 77.4% (strict). Jarrelscy marks full-model quality and SM120 / 1M serving as unqualified. Licences: MIT (Xiaomi MiMo weights, Jarrelscy hybrid format, drowzeys checkpoint and serve recipe). Not gated. Needs four Sparks on the 200G RoCE fabric; 363 GB of checkpoint per node. Memory follows the creator's settings: GPU memory utilization 0.85 with no explicit KV pool and a 1,048,576-token context, drowzeys' serve/launch-rank.sh at d8a10997 (lines 27 and 35-36: the fraction is fixed at 0.85). The KV pool and the capped context came from offline memory fits (#1647, #1702, #1715), not from a hardware run. The per-node peak is 0.85 x 130,663,231,488 plus the 10.4 GB multi-Spark margin, an estimate until the run measures it.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "mimo-v2-6-pro-mopd-arvq-drowzeys-vllm-four"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "arvq",
+    "candidate",
+    "distributed",
+    "executable",
+    "mimo",
+    "mopd",
+    "moe",
+    "mtp",
+    "nvfp4",
+    "reasoning",
+    "spark",
+    "tool-use",
+    "tp4",
+    "vllm"
+  ],
+  "title": "MiMo V2.6 Pro MOPD C3 ARVQ NVFP4 hybrid-21 vLLM four Sparks (drowzeys)"
+}

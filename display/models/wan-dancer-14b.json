@@ -1,0 +1,16 @@
+{
+  "description": "Exact public Wan-Dancer 14B checkpoint.",
+  "family_title": "Wan",
+  "identity": {
+    "publisher": "wan-ai",
+    "slug": "wan-dancer-14b"
+  },
+  "kind": "model-display",
+  "model_title": "Wan-Dancer 14B",
+  "tags": [
+    "wan-ai",
+    "wan-dancer",
+    "video",
+    "candidate"
+  ]
+}

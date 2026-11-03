@@ -33,32 +33,12 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Tournierjc TensorFold fork 53ceb126 with the exact turboderp EXL3 4.05bpw checkpoint declared by the kit. The published vision sidecar is converted once by the pinned engine into the managed cache; atomic conversion output is reused on restart. Three streams at the native 262,144-token window follow the kit sample. INT8 KV, MTP and the creator\u2019s EXL3 kernels. Memory is an estimate, not a measured qualification; physical Spark execution remains untested here.",
-    "tags": [
-      "qwen3.8",
-      "tensorfold",
-      "exl3",
-      "mtp",
-      "spark",
-      "vision"
-    ],
-    "title": "Qwen3.8 Flash Next EXL3 4.05bpw TensorFold single Spark (tournierjc)"
-  },
   "models": [
     {
-      "id": "primary",
-      "model": {
-        "kind": "model",
-        "publisher": "turboderp",
-        "slug": "qwen3-8-flash-next-exl3-4-05bpw-55a732e0",
-        "content_sha256": "449928cf85128f1b9c4ddb5ebee6add6ea17b716cb04154788f7cb2076fd90a0"
-      },
       "files": [
         {
-          "id": "metadata-d3b10d515fb2-618cd5b83d",
           "file_id": "metadata-d3b10d515fb2-618cd5b83d",
+          "id": "metadata-d3b10d515fb2-618cd5b83d",
           "mount": {
             "target": "/models"
           },
@@ -67,8 +47,8 @@
           ]
         },
         {
-          "id": "license-a0dc42256084-c693279643",
           "file_id": "license-a0dc42256084-c693279643",
+          "id": "license-a0dc42256084-c693279643",
           "mount": {
             "target": "/models"
           },
@@ -77,8 +57,8 @@
           ]
         },
         {
-          "id": "readme-35ca37ccc366-b335630551",
           "file_id": "readme-35ca37ccc366-b335630551",
+          "id": "readme-35ca37ccc366-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -87,8 +67,8 @@
           ]
         },
         {
-          "id": "chat-template-c3cf9e34abf4-00824420d1",
           "file_id": "chat-template-c3cf9e34abf4-00824420d1",
+          "id": "chat-template-c3cf9e34abf4-00824420d1",
           "mount": {
             "target": "/models"
           },
@@ -97,8 +77,8 @@
           ]
         },
         {
-          "id": "config-2ff43c0d5224-587cb980af",
           "file_id": "config-2ff43c0d5224-587cb980af",
+          "id": "config-2ff43c0d5224-587cb980af",
           "mount": {
             "target": "/models"
           },
@@ -107,8 +87,8 @@
           ]
         },
         {
-          "id": "generation-config-e70c136c1b78-97dd3d578b",
           "file_id": "generation-config-e70c136c1b78-97dd3d578b",
+          "id": "generation-config-e70c136c1b78-97dd3d578b",
           "mount": {
             "target": "/models"
           },
@@ -117,8 +97,8 @@
           ]
         },
         {
-          "id": "merges-a9d356d7bdf1-b0d6dcfed4",
           "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "merges-a9d356d7bdf1-b0d6dcfed4",
           "mount": {
             "target": "/models"
           },
@@ -127,8 +107,8 @@
           ]
         },
         {
-          "id": "model-00001-of-00009-f7aada062016-88587b10f1",
           "file_id": "model-00001-of-00009-f7aada062016-88587b10f1",
+          "id": "model-00001-of-00009-f7aada062016-88587b10f1",
           "mount": {
             "target": "/models"
           },
@@ -137,8 +117,8 @@
           ]
         },
         {
-          "id": "model-00002-of-00009-9b59a1f2aa82-197402693c",
           "file_id": "model-00002-of-00009-9b59a1f2aa82-197402693c",
+          "id": "model-00002-of-00009-9b59a1f2aa82-197402693c",
           "mount": {
             "target": "/models"
           },
@@ -147,8 +127,8 @@
           ]
         },
         {
-          "id": "model-00003-of-00009-afd197293ebf-861ce467d6",
           "file_id": "model-00003-of-00009-afd197293ebf-861ce467d6",
+          "id": "model-00003-of-00009-afd197293ebf-861ce467d6",
           "mount": {
             "target": "/models"
           },
@@ -157,8 +137,8 @@
           ]
         },
         {
-          "id": "model-00004-of-00009-2e307c9bbc15-ef1df50c87",
           "file_id": "model-00004-of-00009-2e307c9bbc15-ef1df50c87",
+          "id": "model-00004-of-00009-2e307c9bbc15-ef1df50c87",
           "mount": {
             "target": "/models"
           },
@@ -167,8 +147,8 @@
           ]
         },
         {
-          "id": "model-00005-of-00009-86117026391a-6efe792e18",
           "file_id": "model-00005-of-00009-86117026391a-6efe792e18",
+          "id": "model-00005-of-00009-86117026391a-6efe792e18",
           "mount": {
             "target": "/models"
           },
@@ -177,8 +157,8 @@
           ]
         },
         {
-          "id": "model-00006-of-00009-f8f64d518e44-6ce9a8a49b",
           "file_id": "model-00006-of-00009-f8f64d518e44-6ce9a8a49b",
+          "id": "model-00006-of-00009-f8f64d518e44-6ce9a8a49b",
           "mount": {
             "target": "/models"
           },
@@ -187,8 +167,8 @@
           ]
         },
         {
-          "id": "model-00007-of-00009-fe71c41078d2-9bf5db00eb",
           "file_id": "model-00007-of-00009-fe71c41078d2-9bf5db00eb",
+          "id": "model-00007-of-00009-fe71c41078d2-9bf5db00eb",
           "mount": {
             "target": "/models"
           },
@@ -197,8 +177,8 @@
           ]
         },
         {
-          "id": "model-00008-of-00009-e46d1886537d-7a39f1d683",
           "file_id": "model-00008-of-00009-e46d1886537d-7a39f1d683",
+          "id": "model-00008-of-00009-e46d1886537d-7a39f1d683",
           "mount": {
             "target": "/models"
           },
@@ -207,8 +187,8 @@
           ]
         },
         {
-          "id": "model-00009-of-00009-15b7fced0492-f25cdaf348",
           "file_id": "model-00009-of-00009-15b7fced0492-f25cdaf348",
+          "id": "model-00009-of-00009-15b7fced0492-f25cdaf348",
           "mount": {
             "target": "/models"
           },
@@ -217,8 +197,8 @@
           ]
         },
         {
-          "id": "model-safetensors-index-3375f7333b96-0a05be8238",
           "file_id": "model-safetensors-index-3375f7333b96-0a05be8238",
+          "id": "model-safetensors-index-3375f7333b96-0a05be8238",
           "mount": {
             "target": "/models"
           },
@@ -227,8 +207,8 @@
           ]
         },
         {
-          "id": "ngram-embedding-c63613666649-651a5f9db3",
           "file_id": "ngram-embedding-c63613666649-651a5f9db3",
+          "id": "ngram-embedding-c63613666649-651a5f9db3",
           "mount": {
             "target": "/models"
           },
@@ -237,8 +217,8 @@
           ]
         },
         {
-          "id": "preprocessor-config-27225450ac9c-36afccab5d",
           "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "preprocessor-config-27225450ac9c-36afccab5d",
           "mount": {
             "target": "/models"
           },
@@ -247,8 +227,8 @@
           ]
         },
         {
-          "id": "qbench-prompts-80b3b8c6d41e-ad1a2ae833",
           "file_id": "qbench-prompts-80b3b8c6d41e-ad1a2ae833",
+          "id": "qbench-prompts-80b3b8c6d41e-ad1a2ae833",
           "mount": {
             "target": "/models"
           },
@@ -257,8 +237,8 @@
           ]
         },
         {
-          "id": "qbench-prompts-f2b3f16d2f92-19411f315b",
           "file_id": "qbench-prompts-f2b3f16d2f92-19411f315b",
+          "id": "qbench-prompts-f2b3f16d2f92-19411f315b",
           "mount": {
             "target": "/models"
           },
@@ -267,8 +247,8 @@
           ]
         },
         {
-          "id": "quantization-config-e5f86a6fa1a1-6f24389fb3",
           "file_id": "quantization-config-e5f86a6fa1a1-6f24389fb3",
+          "id": "quantization-config-e5f86a6fa1a1-6f24389fb3",
           "mount": {
             "target": "/models"
           },
@@ -277,8 +257,8 @@
           ]
         },
         {
-          "id": "tokenizer-0997f410c57a-224931eb13",
           "file_id": "tokenizer-0997f410c57a-224931eb13",
+          "id": "tokenizer-0997f410c57a-224931eb13",
           "mount": {
             "target": "/models"
           },
@@ -287,8 +267,8 @@
           ]
         },
         {
-          "id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
           "file_id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
           "mount": {
             "target": "/models"
           },
@@ -297,8 +277,8 @@
           ]
         },
         {
-          "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
           "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
           "mount": {
             "target": "/models"
           },
@@ -307,8 +287,8 @@
           ]
         },
         {
-          "id": "vision-k6-04a66385d96e-24ecebe9a5",
           "file_id": "vision-k6-04a66385d96e-24ecebe9a5",
+          "id": "vision-k6-04a66385d96e-24ecebe9a5",
           "mount": {
             "target": "/models"
           },
@@ -317,8 +297,8 @@
           ]
         },
         {
-          "id": "vocab-ce99b4cb2983-ba05d8e2e4",
           "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "vocab-ce99b4cb2983-ba05d8e2e4",
           "mount": {
             "target": "/models"
           },
@@ -326,17 +306,24 @@
             "entrypoint"
           ]
         }
-      ]
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "ae95f2629ea69b038c3d2039c8316b39a03a563d224aab05c89cac9dff1d01e3",
+        "kind": "model",
+        "publisher": "turboderp",
+        "slug": "qwen3-8-flash-next-exl3-4-05bpw-55a732e0"
+      }
     }
   ],
   "provenance": {
-    "source_reference": "https://github.com/tournierjc/TensorFold-Single-DGX-Spark/tree/70c561394e6e955e369b135b5edfd70c1dfe9efb",
     "attribution": [
       "tournierjc",
       "Ash Hart (TensorFold)",
       "turboderp",
       "Qwen"
-    ]
+    ],
+    "source_reference": "https://github.com/tournierjc/TensorFold-Single-DGX-Spark/tree/70c561394e6e955e369b135b5edfd70c1dfe9efb"
   },
   "release": {
     "released_at": "2026-10-03",

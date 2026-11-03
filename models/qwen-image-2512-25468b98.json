@@ -282,13 +282,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen-image",
-      "title": "Qwen Image"
+      "slug": "qwen-image"
     },
     "model": {
       "publisher": "qwen",
-      "slug": "qwen-image-2512",
-      "title": "Qwen Image 2512"
+      "slug": "qwen-image-2512"
     },
     "publisher": "qwen",
     "slug": "qwen-image-2512-25468b98",
@@ -302,17 +300,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen-Image-2512/blob/25468b98e3276ca6700de15c6628e51b7de54a26/LICENSE.md"
-  },
-  "metadata": {
-    "description": "Exact official Qwen Image 2512 checkpoint for a candidate single-Spark Diffusers recipe.",
-    "tags": [
-      "qwen",
-      "image",
-      "generation",
-      "text-to-image",
-      "bf16",
-      "spark"
-    ]
   },
   "modalities": [
     "image"

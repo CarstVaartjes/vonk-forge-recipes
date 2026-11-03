@@ -30,25 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate adaptation of MiaAI-Lab's public one-DGX-Spark Ling 3.0 Flash SGLang profile, with the target and external DSpark draft fully hydrated before an offline launch. The pinned upstream full-context profile measures mem-fraction-static 0.80 at 262144 context with a 328898-token KV pool, about 12.5 GB of KV memory, 22.0 GB free GPU-side memory after graphs, and about 20 GB host MemAvailable. Vonk conservatively budgets 119 GB startup, 114 GB steady state, 5 GB runtime growth, and 7 GB system reserve for an exact 126 GB admission envelope; physical Vonk acceptance remains pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "ling",
-      "inclusionai",
-      "int4",
-      "dspark",
-      "sglang",
-      "reasoning",
-      "tool-use",
-      "single",
-      "spark",
-      "speculative-decoding"
-    ],
-    "title": "Ling 3.0 Flash INT4 SGLang DSpark single Spark"
-  },
   "models": [
     {
       "files": [
@@ -405,7 +386,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d9a18e345aabfcfae1c5a3178fb20427e775965e20e7b7b70092af757cef3aa3",
+        "content_sha256": "6e7caf71a1ac7dda5a5e8992efa8a7262efdd4ef712f5cda06ef047dcfae38a9",
         "kind": "model",
         "publisher": "inclusionai",
         "slug": "ling-3-0-flash-int4-7a27e9eb"
@@ -456,7 +437,7 @@
       ],
       "id": "dependency-ling-3-0-flash-dspark-8e5d9988",
       "model": {
-        "content_sha256": "bf36510208b3c1dabdd64058520b91e6fc1b1403843b857ea9ccb4c38ec4a68c",
+        "content_sha256": "1fae54f01ab45412072a6f4242f4aff563de18dff8401da0efd1c05defddf5b8",
         "kind": "model",
         "publisher": "inclusionai",
         "slug": "ling-3-0-flash-dspark-8e5d9988"

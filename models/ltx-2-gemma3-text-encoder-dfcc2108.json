@@ -208,13 +208,11 @@
   "identity": {
     "family": {
       "publisher": "lightricks",
-      "slug": "ltx",
-      "title": "LTX"
+      "slug": "ltx"
     },
     "model": {
       "publisher": "lightricks",
-      "slug": "ltx-2",
-      "title": "LTX-2"
+      "slug": "ltx-2"
     },
     "publisher": "lightricks",
     "slug": "ltx-2-gemma3-text-encoder-dfcc2108",
@@ -229,17 +227,6 @@
     ],
     "spdx": "LTX-2 Community License Agreement",
     "url": "https://huggingface.co/Lightricks/LTX-2/blob/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public Gemma 3 text-encoder and tokenizer closure redistributed with the immutable LTX-2 snapshot.",
-    "tags": [
-      "lightricks",
-      "ltx",
-      "gemma-3",
-      "text-encoder",
-      "companion",
-      "candidate"
-    ]
   },
   "modalities": [
     "audio",

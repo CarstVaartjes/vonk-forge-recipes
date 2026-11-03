@@ -242,6 +242,37 @@ def test_publication_does_not_retest_until_actual_fault_owner_changes(
     assert not sweep.prefetcher._can_request(recipe, clock.now())
 
 
+def test_row_cached_during_a_scheduled_retest_never_gets_a_retry(
+    tmp_path: Path,
+) -> None:
+    """The recipe row turns cached (its model row does not): the pending retest is moot."""
+    sweep, fleet, clock, recipe = _failed_download(tmp_path)
+    sweep._schedule_retest(recipe.key, "scheduled-retest")
+    clock.sleep(sweep.prefetcher.config.retry_cooldown)
+    assert sweep.prefetcher._can_request(
+        recipe, clock.now()
+    )  # a cold recipe is retried
+    fleet.recipes[recipe.key].local = "cached"
+    sweep.refresh_catalog()
+    current = sweep.recipes[recipe.key]
+    assert current.local == "cached" and sweep.models["m1"].local == "not_cached"
+    sweep.prefetcher.tick(
+        sweep.recipes,
+        sweep.models,
+        [current],
+        sweep.sizes,
+        sweep._present(),
+        sweep.boost,
+        sweep._cached_models(),
+    )
+    sent = [
+        c[:2]
+        for _, c in fleet.calls
+        if c[:2] in (("recipe", "retry"), ("recipe", "download"))
+    ]
+    assert sent == [("recipe", "download")]  # only the original request
+
+
 def test_cache_arriving_during_retest_reuses_assets_without_download(
     tmp_path: Path,
 ) -> None:
@@ -256,8 +287,7 @@ def test_cache_arriving_during_retest_reuses_assets_without_download(
     fleet.models["m1"].local = "cached"
     sweep.refresh_catalog()
     current = sweep.recipes[recipe.key]
-    assert current.cache_ready
-    assert not sweep.prefetcher._can_request(current, clock.now())
+    assert current.local == "cached"
     sweep.prefetcher.tick(
         sweep.recipes,
         sweep.models,

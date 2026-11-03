@@ -98,13 +98,11 @@
   "identity": {
     "family": {
       "publisher": "google",
-      "slug": "gemma",
-      "title": "Google Gemma"
+      "slug": "gemma"
     },
     "model": {
       "publisher": "google",
-      "slug": "gemma-4-e2b",
-      "title": "Gemma 4 E2B"
+      "slug": "gemma-4-e2b"
     },
     "publisher": "google",
     "slug": "gemma-4-e2b-it-3e22461f",
@@ -118,16 +116,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
-  },
-  "metadata": {
-    "description": "Exact public Google Gemma 4 E2B instruction-tuned checkpoint.",
-    "tags": [
-      "google",
-      "gemma",
-      "language",
-      "instruction-tuned",
-      "candidate"
-    ]
   },
   "modalities": [
     "audio",

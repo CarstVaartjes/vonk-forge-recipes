@@ -1,0 +1,16 @@
+{
+  "description": "Pinned LAION-CLAP larger-general files required by the HunyuanVideo-Foley offline text encoder.",
+  "family_title": "CLAP",
+  "identity": {
+    "publisher": "laion",
+    "slug": "larger-clap-general-ada0c23a"
+  },
+  "kind": "model-display",
+  "model_title": "LAION CLAP Larger General",
+  "tags": [
+    "laion",
+    "auxiliary",
+    "audio",
+    "offline"
+  ]
+}

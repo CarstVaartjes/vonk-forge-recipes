@@ -140,13 +140,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "sakamakismile",
-      "slug": "qwen3-8-27b-aeon-ultimate-uncensored-nvfp4",
-      "title": "Qwen3.8 27B AEON Ultimate Uncensored NVFP4"
+      "slug": "qwen3-8-27b-aeon-ultimate-uncensored-nvfp4"
     },
     "publisher": "sakamakismile",
     "slug": "qwen3-8-27b-aeon-ultimate-uncensored-nvfp4-8d5a3317",
@@ -162,21 +160,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/sakamakismile/Qwen3.8-27B-AEON-ULTIMATE-UNCENSORED-NVFP4/blob/8d5a3317b4fcb6f278e1cde7fcae5ed88a27443a/README.md"
-  },
-  "metadata": {
-    "description": "sakamakismile's uniform NVFP4 (compressed-tensors) quantization of AEON-7's uncensored Qwen3.8 27B with a BF16 MTP head, vision-language. Apache-2.0.",
-    "tags": [
-      "abliterated",
-      "candidate",
-      "language",
-      "mtp",
-      "multimodal",
-      "nvfp4",
-      "qwen3-8-aeon-uncensored",
-      "qwen3.8",
-      "sakamakismile",
-      "uncensored"
-    ]
   },
   "modalities": [
     "image",

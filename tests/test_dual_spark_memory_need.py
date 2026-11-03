@@ -6,21 +6,23 @@ import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeRuntimeEnvironment
+from warning_asserts import assert_warns, declare_peak
 
 from qualification.memory_need import (
     LIMIT_BYTES,
-    OS_FLOOR_BYTES,
     OVERHEAD_BYTES,
     calculate_need,
     declaration_problems,
     load_inputs,
+    memory_estimate_warnings,
     memory_variants,
     per_rank_need,
-    require_memory_need,
+    rank_weight_bytes,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES = ("glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",)
+POOLED = RECIPES
 
 
 def recipe_for(slug: str) -> RecipeDefinition:
@@ -29,9 +31,10 @@ def recipe_for(slug: str) -> RecipeDefinition:
     )
 
 
-@pytest.mark.parametrize("slug", RECIPES)
+@pytest.mark.parametrize("slug", POOLED)
 def test_capacity_profiles_declare_the_loading_floor(slug: str) -> None:
     recipe = recipe_for(slug)
+    declare_peak(recipe)
     variants = [recipe]
     variants.extend(
         recipe.with_option_choices({option.name: choice.value})
@@ -42,28 +45,39 @@ def test_capacity_profiles_declare_the_loading_floor(slug: str) -> None:
         need = per_rank_need(variant, catalog_models(), load_inputs())
         assert not declaration_problems(variant, need)
         assert (
-            require_memory_need(
+            memory_estimate_warnings(
                 variant, catalog_models(), load_inputs(), document_digest=""
             )
-            is None
+            == []
         )
 
 
-@pytest.mark.parametrize("slug", RECIPES)
+@pytest.mark.parametrize("slug", POOLED)
 @pytest.mark.parametrize("rank", [0, 1])
-def test_guard_rejects_hidden_demand_and_headroom(slug: str, rank: int) -> None:
+def test_guard_rejects_hidden_demand(slug: str, rank: int) -> None:
     recipe = recipe_for(slug)
     need = per_rank_need(recipe, catalog_models(), load_inputs())
+    declare_peak(recipe, need.peak_bytes)
     memory = recipe.topology.roles[rank].resources.memory
     memory.peak_bytes = need.peak_bytes - 1
     assert any("peak understates" in p for p in declaration_problems(recipe, need))
-    with pytest.raises(ValueError, match="peak understates"):
-        require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
+    assert_warns(
+        memory_estimate_warnings(
+            recipe, catalog_models(), load_inputs(), document_digest=""
+        ),
+        "peak understates",
+    )
+    # The reserve is informational: the proven GLM 5.3 Flash EXL3 dual runs
+    # with 2 GB, under the 2 GiB platform floor that admission holds itself.
     memory.peak_bytes = need.peak_bytes
-    memory.reserve_bytes = OS_FLOOR_BYTES - 1
-    assert any("reserve understates" in p for p in declaration_problems(recipe, need))
-    with pytest.raises(ValueError, match="reserve understates"):
-        require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
+    memory.reserve_bytes = 2_000_000_000
+    assert declaration_problems(recipe, need) == []
+    assert (
+        memory_estimate_warnings(
+            recipe, catalog_models(), load_inputs(), document_digest=""
+        )
+        == []
+    )
 
 
 def test_loading_floor_does_not_double_count_the_fraction_draft_term() -> None:
@@ -188,7 +202,6 @@ def test_proven_mia_engram_dual_fits_without_its_engram_shards() -> None:
     )
     assert need.fits
     assert need.peak_bytes == (loaded + 1) // 2 + 2_684_354_560 + OVERHEAD_BYTES
-    assert not declaration_problems(recipe, need)
     # Fault injection: counted as weights, the Engram shards cannot fit.
     assert not per_rank_need(
         recipe, models, inputs.model_copy(update={"engram_files": {}})
@@ -215,3 +228,38 @@ def test_explicit_row_cache_is_charged_per_rank() -> None:
         RecipeRuntimeEnvironment(name="DSV41_CACHE_GIB", value="8")
     )
     assert per_rank_need(recipe, models, inputs).peak_bytes - floor == 8 * 2**30
+
+
+PLE_TABLE_BYTES = 51_200_245_760  # 320,001,536 rows x 160 B in model-fp8-mtp-ple
+
+
+def rank_weights(slug: str, **choices: str) -> int:
+    recipe = recipe_for(slug)
+    if choices:
+        recipe = recipe.with_option_choices(choices)
+    return rank_weight_bytes(recipe, catalog_models(), load_inputs())
+
+
+def without_disk_residency(slug: str) -> int:
+    inputs = load_inputs().model_copy(update={"disk_resident_bytes": {}})
+    return rank_weight_bytes(recipe_for(slug), catalog_models(), inputs)
+
+
+def test_disk_resident_table_leaves_only_the_single_that_reads_it_from_disk() -> None:
+    # Residency is a launch property (QWEN4EXP_PLE_MMAP=1), not a file property.
+    single = "qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-single"
+    assert without_disk_residency(single) - rank_weights(single) == PLE_TABLE_BYTES
+    # The dual's base launch does not read the table from disk: weights unchanged.
+    dual = "qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-dual"
+    assert rank_weights(dual) == without_disk_residency(dual)
+    assert 66.3e9 < rank_weights(dual) < 66.4e9
+    # A recipe selecting the same file under another engine is unchanged.
+    sglang = "qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single"
+    assert rank_weights(sglang) == without_disk_residency(sglang)
+
+
+def test_four_table_option_keeps_the_table_resident() -> None:
+    four = "qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-four"
+    disk = rank_weights(four, table="disk")
+    memory = rank_weights(four, table="memory")
+    assert memory - disk == (PLE_TABLE_BYTES + 3) // 4

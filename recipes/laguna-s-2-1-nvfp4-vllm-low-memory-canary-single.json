@@ -30,30 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Physical-OOM-gated single-Spark canary for the exact Poolside Laguna S 2.1 NVFP4 checkpoint 07614121 (71.9 GB, FP8 KV cache scheme, 262,144 positions; the 99.7 GB 826aacdf export cannot fit one Spark beside its 8 GB overhead). It preserves the OpenAI reasoning and tool surface while bounding the FP8 KV cache to 3 GB, one sequence, 32K context, 4K chunked prefills, and eager execution. The 126 GB admission envelope is a conservative canary hypothesis, not measured acceptance; retain the original 65K profile and use Laguna XS as the default fleet-fit alternative until this exact variant passes physical startup, memory, and output checks. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context, the explicit KV-cache byte limit and other kit flags are retained; the GPU utilization budget is reduced.",
-    "tags": [
-      "executable",
-      "candidate",
-      "canary",
-      "physical-oom-gated",
-      "memory-tight",
-      "low-memory",
-      "not-default",
-      "poolside",
-      "laguna",
-      "nvfp4",
-      "vllm",
-      "reasoning",
-      "agentic",
-      "openai",
-      "single",
-      "spark",
-      "tool-use"
-    ],
-    "title": "Laguna S 2.1 NVFP4 vLLM 32K low-memory canary single Spark"
-  },
   "models": [
     {
       "files": [
@@ -330,7 +306,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "aa43743d4fbc01f3e26976f9abb4ec19ca1a977116c1b4e1cd2d2561c6ef4043",
+        "content_sha256": "92d073f12c6164fc4af416c7c3b6c7b94955026ff522e6b6c8d0612baa310f3a",
         "kind": "model",
         "publisher": "poolside",
         "slug": "laguna-s-2-1-nvfp4-07614121"

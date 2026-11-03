@@ -30,23 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Qwen3 32B NVFP4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "vllm",
-      "openai",
-      "single",
-      "spark",
-      "qwen",
-      "nvfp4",
-      "reasoning"
-    ],
-    "title": "Qwen3 32B NVFP4 vLLM single Spark (NVIDIA playbook)"
-  },
   "models": [
     {
       "files": [
@@ -233,7 +216,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "79bf9d7700ef254a4abe83f89a8127617bde8ac3be4fdc563da3026012ad5262",
+        "content_sha256": "46b31d0793e75fd144deeb3d2ea53843a014cabd8200b3593ee5d28f992c9d85",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen3-32b-nvfp4-16426c6e"

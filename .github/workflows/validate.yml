@@ -32,13 +32,13 @@ jobs:
 
   validate:
     if: ${{ !inputs.producer_only }}
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@040c51b8531523bebe542b5e1f7b9403e0767f72
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@999329d55ba98ed4133d6e3dbdc2a51638134714
     with:
       # Keep the validator and platform checkout on the same reviewed commit.
       # It builds this checkout's index/packages, validates current contract
       # and archive contents, and checks every option choice against Forge's
       # runtime policy.
-      platform_ref: 040c51b8531523bebe542b5e1f7b9403e0767f72
+      platform_ref: 999329d55ba98ed4133d6e3dbdc2a51638134714
 
   # PR catalog checks run inside producer-contracts. Keep this existing
   # required check as the image fan-in, so a failed matrix cannot be merged
@@ -109,7 +109,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Recipe data (recipes, models, adapters, qualification, README,
+          # Recipe data (recipes, models, display, adapters, qualification, README,
           # creators) skips lint, format, type checks and the wheel build; every
           # other change (contracts, tools, tests, workflows) runs them too.
           case "${{ github.event_name }}" in
@@ -123,7 +123,7 @@ jobs:
           if [[ -n "$base" ]] && git cat-file -e "$base^{commit}" 2>/dev/null; then
             # Capture first: grep -q exiting early must not fail the pipeline.
             changed=$(git diff --name-only "$base" HEAD)
-            other=$(grep -Ev '^(recipes/|models/|adapters/|qualification/shared\.json$|qualification/recipes/|README\.md$|creators\.json$)' <<<"$changed" | grep -v '^$' || true)
+            other=$(grep -Ev '^(recipes/|models/|display/|adapters/|qualification/shared\.json$|qualification/recipes/|README\.md$|creators\.json$)' <<<"$changed" | grep -v '^$' || true)
             if [[ -z "$other" ]]; then full=false; else echo "Not recipe data:"; head -20 <<<"$other"; fi
           fi
           echo "full=$full" >> "$GITHUB_OUTPUT"
@@ -138,7 +138,7 @@ jobs:
           uv pip install --python "$test_venv/bin/python" \
             -e contracts \
             'jsonschema>=4.24,<5' \
-            'pytest==9.1.1' 'Pillow==12.0.0' \
+            'pytest==9.1.1' 'pytest-xdist==3.8.0' 'Pillow==12.0.0' \
             'numpy==2.3.5' 'trimesh==4.10.1'
           echo "RECIPE_TEST_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
 
@@ -176,6 +176,32 @@ jobs:
           git fetch --no-tags origin main:refs/remotes/origin/main
           python3 tools/check-recipe-topology --base origin/main
 
+      # One-time display split (contracts 3.0.0): requires the checkout to equal
+      # the split of its base, and exits 0 once the base is already split.
+      # Deleted with the tool in the follow-up that repoints the platform pins.
+      - name: Require the display split to be exactly the tool's result
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/split-display --check --base origin/main
+
+      # A platform pin on a PR branch commit stops resolving when that branch is
+      # deleted after its squash merge, and every recipes workflow then fails to
+      # load. Each pinned SHA must be an ancestor of vonk-forge main.
+      - name: Require every platform pin to be reachable from vonk-forge main
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for ref in $(grep -rhoE 'vonk-forge/\.github/workflows/[a-z-]+\.yml@[0-9a-f]{40}|platform_ref: [0-9a-f]{40}' .github/workflows | grep -oE '[0-9a-f]{40}' | sort -u); do
+            status=$(gh api "repos/CarstVaartjes/vonk-forge/compare/${ref}...main" --jq .status)
+            case "$status" in
+              ahead|identical) echo "platform pin ${ref} is on vonk-forge main ($status)" ;;
+              *) echo "::error::platform pin ${ref} is not an ancestor of vonk-forge main ($status)"; exit 1 ;;
+            esac
+          done
+
       - name: Require touched multi-Spark vLLM recipes to bound KV by need
         shell: bash
         run: |
@@ -186,7 +212,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/check-recipe-model-references
+          "$RECIPE_TEST_PYTHON" tools/check-recipe-model-references
 
       - name: Check that every Model family is one consistent lineage
         shell: bash
@@ -267,17 +293,25 @@ jobs:
           set -euo pipefail
           python3 tools/check-document-reads --base origin/main
 
+      - name: Reject new tests that gate on a real recipe's declared memory
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-estimate-gates --base origin/main
+
       # Every test runs on recipe changes too: the suite takes about as long
       # as any subset, and a subset silently misses recipe-data checks.
       - name: Run the full producer test suite
         shell: bash
         run: |
           set -euo pipefail
-          # Keep the active test visible and dump stacks for a stalled test;
-          # neither option changes production retry or observation deadlines.
+          # Tests run in parallel (xdist worksteal, as vonk-forge does); a
+          # failure prints its own traceback, so -vv's per-test lines are
+          # dropped. Dump stacks for a stalled test; this does not change
+          # production retry or observation deadlines.
           # Only a real stall dumps: a dump racing a slow test's C code once
           # segfaulted the whole suite (exit 139).
-          "$RECIPE_TEST_PYTHON" -m pytest -vv -o faulthandler_timeout=300
+          "$RECIPE_TEST_PYTHON" -m pytest -n auto --dist worksteal -o faulthandler_timeout=300
 
       - name: Lint the repository with pinned Ruff
         if: steps.scope.outputs.full == 'true'

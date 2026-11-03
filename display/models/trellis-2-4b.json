@@ -1,0 +1,15 @@
+{
+  "description": "Immutable public snapshot at af44b45f.",
+  "family_title": "TRELLIS",
+  "identity": {
+    "publisher": "microsoft",
+    "slug": "trellis-2-4b"
+  },
+  "kind": "model-display",
+  "model_title": "TRELLIS.2",
+  "tags": [
+    "microsoft",
+    "three-d",
+    "candidate"
+  ]
+}

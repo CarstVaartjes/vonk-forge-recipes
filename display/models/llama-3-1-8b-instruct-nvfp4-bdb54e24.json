@@ -1,0 +1,17 @@
+{
+  "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Meta Llama 3.1 8B Instruct (governed by the NVIDIA Open Model License and the Llama 3.1 Community License).",
+  "family_title": "Meta Llama",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "llama-3-1-8b-instruct-nvfp4-bdb54e24"
+  },
+  "kind": "model-display",
+  "model_title": "Llama 3.1 8B Instruct",
+  "tags": [
+    "nvidia",
+    "llama",
+    "language",
+    "nvfp4",
+    "candidate"
+  ]
+}

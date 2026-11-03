@@ -29,6 +29,7 @@ from test_kit_pins import (
     refresh,
     upstream,
 )
+from vonk_forge_contracts import read_model
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = json.loads(
@@ -274,6 +275,27 @@ class World:
     def write_model(self, document: dict[str, Any]) -> None:
         path = self.root / "models" / f"{document['identity']['slug']}.json"
         path.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n")
+        identity = read_model(document).identity
+        display = self.root / "display/models" / f"{identity.slug}.json"
+        display.parent.mkdir(parents=True, exist_ok=True)
+        display.write_text(
+            json.dumps(
+                {
+                    "kind": "model-display",
+                    "identity": {
+                        "publisher": identity.publisher,
+                        "slug": identity.slug,
+                    },
+                    "family_title": "Family",
+                    "model_title": "Model",
+                    "description": "A model.",
+                    "tags": [],
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n"
+        )
 
     def check(self, hub: FakeHub | None = None) -> list[str]:
         return kit_pins.check_recipe(

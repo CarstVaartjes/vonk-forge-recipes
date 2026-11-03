@@ -159,13 +159,11 @@
   "identity": {
     "family": {
       "publisher": "r0b0tlab",
-      "slug": "nex-n2",
-      "title": "Nex N2"
+      "slug": "nex-n2"
     },
     "model": {
       "publisher": "r0b0tlab",
-      "slug": "nex-n2-mini",
-      "title": "Nex-N2-mini"
+      "slug": "nex-n2-mini"
     },
     "publisher": "r0b0tlab",
     "slug": "nex-n2-mini-nvfp4-4387675e",
@@ -180,15 +178,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/r0b0tlab/nex-n2-mini-nvfp4/blob/4387675e4dfb5c1aade7a91a6cbcf2f951182bc2/README.md"
-  },
-  "metadata": {
-    "description": "Nex-AGI Nex-N2-mini (Qwen3.5-MoE 35B).",
-    "tags": [
-      "r0b0tlab",
-      "nex-n2",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

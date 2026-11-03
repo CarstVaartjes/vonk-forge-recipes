@@ -1,0 +1,16 @@
+{
+  "description": "Mistral's Leanstral 1.5 (119B total, about 6.5B active, 128-expert MoE, FP8 e4m3 weights, Mistral-format consolidated checkpoint) for Lean 4 agentic proof and code work, with text and image input and up to 256K context. Apache-2.0 per the model card.",
+  "family_title": "Leanstral",
+  "identity": {
+    "publisher": "mistralai",
+    "slug": "leanstral-1-5-119b-a6b-81592da9"
+  },
+  "kind": "model-display",
+  "model_title": "Leanstral 1.5 119B A6B",
+  "tags": [
+    "mistralai",
+    "leanstral",
+    "multimodal",
+    "candidate"
+  ]
+}

@@ -467,13 +467,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-nano-omni-30b-a3b",
-      "title": "Nemotron 3 Nano Omni 30B-A3B"
+      "slug": "nemotron-3-nano-omni-30b-a3b"
     },
     "publisher": "nvidia",
     "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-bf16-e5e99324",
@@ -487,16 +485,6 @@
     ],
     "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/"
-  },
-  "metadata": {
-    "description": "Exact public NVIDIA Nemotron 3 Nano Omni 30B-A3B Reasoning BF16 checkpoint.",
-    "tags": [
-      "nvidia",
-      "nemotron",
-      "language",
-      "reasoning-bf16",
-      "candidate"
-    ]
   },
   "modalities": [
     "audio",

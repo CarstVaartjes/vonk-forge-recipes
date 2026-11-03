@@ -28,6 +28,48 @@
     {
       "identity": {
         "content_sha256": "c42177a4587735670926f0d9704218c0a3ad35ecc4c79bf0955f79707c07c317",
+        "model_digests": [
+          "b90740f0a268263d56254574bd923639febbb7c6c7d8d6ae1165ef01d5cd5bcf"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "8c83affeefa5d425dd4712559a437796606f6796c3063a8a038fbae136d16b33"
+      ],
+      "tested_at": "2026-10-15T14:44:15.696774Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "dd2fb714ea511a04e1edbda47928b2ee83c5346ad37903a5b168634d2181b0a6",
+        "model_digests": [
+          "91fd5753be2e4cada53c253c8bed6be4b3434d977940d7fc12a8d31684ce5277"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "8c83affeefa5d425dd4712559a437796606f6796c3063a8a038fbae136d16b33"
+      ],
+      "tested_at": "2026-10-15T14:44:15.696774Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "c42177a4587735670926f0d9704218c0a3ad35ecc4c79bf0955f79707c07c317",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -46,6 +88,30 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "dd2fb714ea511a04e1edbda47928b2ee83c5346ad37903a5b168634d2181b0a6",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "5c0a06d2e12b000af1d0dcbece31cab620816af818b39786a35d150af2a71477"
+      ],
+      "tested_at": "2026-10-15T14:44:16.639468Z",
+      "platform": {
+        "controller_source_sha": "a47f4856b87c62a0b38637edb4e431381deb4356",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     }
   ]
 }

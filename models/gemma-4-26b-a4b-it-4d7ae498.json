@@ -124,13 +124,11 @@
   "identity": {
     "family": {
       "publisher": "google",
-      "slug": "gemma",
-      "title": "Google Gemma"
+      "slug": "gemma"
     },
     "model": {
       "publisher": "google",
-      "slug": "gemma-4-26b-a4b",
-      "title": "Gemma 4 26B-A4B"
+      "slug": "gemma-4-26b-a4b"
     },
     "publisher": "google",
     "slug": "gemma-4-26b-a4b-it-4d7ae498",
@@ -144,18 +142,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
-  },
-  "metadata": {
-    "description": "Exact public instruction-tuned Gemma 4 26B-A4B checkpoint with Google's canonical chat template.",
-    "tags": [
-      "google",
-      "gemma",
-      "language",
-      "reasoning",
-      "multimodal",
-      "instruction-tuned",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

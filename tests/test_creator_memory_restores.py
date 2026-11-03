@@ -16,15 +16,15 @@ from catalog_documents import catalog_models
 from documents import recipe as load_recipe
 from documents import recipe_display
 from vonk_forge_contracts import RecipeDefinition, document_sha256
+from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from qualification.memory_need import (
-    OS_FLOOR_BYTES,
+    admissible_declaration_warnings,
     argument_value,
     load_inputs,
+    memory_estimate_warnings,
     memory_variants,
     per_rank_need,
-    require_admissible_declaration,
-    require_memory_need,
     vllm_utilization_envelope,
 )
 
@@ -48,6 +48,15 @@ TONY_G53 = "https://github.com/tonyd2wild/GLM-5.3-Int4-Int8Mix-TP4-4x-DGX-Spark/
 EUGR_GLM = "https://github.com/eugr/spark-vllm-docker/blob/303b4a29a6bd390428d363358964ad298dc20625/recipes"
 TONY_MIMO = "https://github.com/tonyd2wild/MiMo-V2.5-TP3-NVFP4-KV-3xDGX-Spark/blob/8024c85b5e5fc5c9edd9db7b40f607683372cb0c/recipes"
 R0B0_Q36 = "https://github.com/r0b0tlab/qwen36-35b-a3b-nvfp4-sm121-vllm/blob/106fb53372c260e719c97d5b59e48142792783c7"
+MIA_DSV4 = "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-One-DGX-Spark/blob/fdcd538fbf95fb15b2d6850db9613d22b2c889b8"
+SERO_GLM = "https://github.com/0xSero/GLM-5.3-Flash-EXL3-1x-DGX-Spark/blob/6ff8595aa271f2eac49579fbf5e90cde9e90674e"
+SERO_DS41 = "https://github.com/0xSero/DeepSeek-V4.1-Flash-Two-Sparks/blob/ee688184827e50f296bfdaf4215e04d3a4f942c3"
+SERO_STEP5 = "https://github.com/0xSero/Step-5-Preview-Four-Sparks/blob/662949a6c1244c1e8a5c44ed62cedb89a207cbcc"
+REEDEREY = "https://github.com/Reederey87/glm53-flash-exl3-2x-dgx-spark/blob/aad6481c94b20ef4853ea07819f3f4ea2ec18f33"
+NVIDIA_VLLM = "https://github.com/NVIDIA/dgx-spark-playbooks/blob/98b3a473f30916ec05eef3e7a01b781aaf4daa8a/nvidia/vllm"
+MIA_AQLM = "https://github.com/MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks/blob/5c85163ccb8d98d395880e71e2dbd03976a3f4ad"
+DROWZEYS_QT = "https://github.com/drowzeys/keys-GLM5.2-Quantrio-INT4-INT8-Mixed-Abliterated-C1-30toks-4x-DGX-Sparks/blob/296699b44e024de938cb8b3251d49d4b1306a507"
+DROWZEYS_MIMO = "https://github.com/drowzeys/keys-MiMo-V2.6-Pro-MOPD-C3-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context/blob/d8a10997f2c6b1b6140b204fc5dddddd247d894b"
 DROWZEYS = "https://github.com/drowzeys/keys-Qwen3.8-27B-NVFP4-DFlash2-Ablit-Cybersecurity-Unlock-1M-Context-YARN-Single-DGXSpark/blob/fca3d18bcab52b65e4a428b883cbcbcb0a7a3443"
 AEON = "adapters/qwen/drowzeys-aeon-dflash2-single"
 GMU = r'GMU="\$\{GMU:-([0-9.]+)\}"'
@@ -74,7 +83,6 @@ class Creator:
     # "option/choice" ids the creator's profile dropped.
     absent_choices: tuple[str, ...] = ()
     peak: int | None = None  # None: the pool-less vLLM envelope
-    os_floor_reserve: bool = False
 
 
 CREATOR = {
@@ -82,13 +90,11 @@ CREATOR = {
         source=f"{MIA}/.env.tp4.example#L115",
         arguments={"gpu-memory-utilization": "0.75"},
         absent=("kv-cache-memory-bytes",),
-        os_floor_reserve=True,
     ),
     "glm-5-3-flash-exl3-dflash2-vllm-mia-triple": Creator(
         source=f"{MIA}/.env.tp3.example#L172",
         arguments={"gpu-memory-utilization": "0.80"},
         absent=("kv-cache-memory-bytes",),
-        os_floor_reserve=True,
     ),
     "glm-5-3-flash-nvfp4-vllm-four": Creator(
         source="https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/blob/2ac4e8dd661b12e6a1d7e69df711707abd6b9cd4/launch-glm53-tp4-24g.sh#L86",
@@ -233,7 +239,6 @@ CREATOR = {
     "glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual": Creator(
         source=f"{R0B0_GLM}/serve/boot_dflash2.sh#L14",
         arguments={"gpu-memory-utilization": "0.86"},
-        os_floor_reserve=True,
     ),
     "leanstral-1-5-119b-a6b-vllm-mia-dual": Creator(
         source=f"{MIA_LEAN}/start.sh#L21",
@@ -295,8 +300,74 @@ CREATOR = {
     ),
     "mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-triple": Creator(
         source=f"{TONY_MIMO}/mimo-v25-tp3-omni-1mctx-6seq-mtp2-nvfp4kv.yaml#L34",
+        # Estimates until tried (owner 2026-11-02): the creator's 0.89, peak declared
+        # at the admission maximum; the run measures the real use.
         arguments={"gpu-memory-utilization": "0.89"},
         absent=("kv-cache-memory-bytes",),
+    ),
+    "deepseek-v4-flash-0731-mia-sparkinfer-single": Creator(
+        source=f"{MIA_DSV4}/start.sh#L75",
+        arguments={"gpu-memory-utilization": "0.94"},
+    ),
+    "glm-5-3-flash-exl3-k2-0xsero-vllm-single": Creator(
+        source=f"{SERO_GLM}/.env.example#L17",
+        arguments={"gpu-memory-utilization": "0.93"},
+    ),
+    "deepseek-v4-1-flash-exl3-0xsero-vllm-dual": Creator(
+        source=f"{SERO_DS41}/scripts/launch.sh#L33",
+        arguments={
+            "gpu-memory-utilization": "0.88",
+            "kv-cache-memory-bytes": "2700000000",
+        },
+        context_tokens=262144,
+    ),
+    "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual": Creator(
+        source=f"{REEDEREY}/env.example#L247",
+        # Beside the KV pin (#L254) the utilization is only vLLM's boot gate.
+        arguments={
+            "gpu-memory-utilization": "0.85",
+            "kv-cache-memory-bytes": "15414698763",
+        },
+        context_tokens=1000000,
+        peak=112544365097,
+    ),
+    "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four": Creator(
+        source=f"{NVIDIA_VLLM}/README.md#L451",
+        arguments={"gpu-memory-utilization": "0.9"},
+        absent=("kv-cache-memory-bytes",),
+    ),
+    "step-5-preview-exl3-vllm-four": Creator(
+        source=f"{SERO_STEP5}/scripts/launch.sh#L45",
+        arguments={
+            "gpu-memory-utilization": "0.85",
+            "kv-cache-memory-bytes": "20000000000",
+        },
+        context_tokens=262144,
+        peak=113344691542,
+    ),
+    "glm-5-2-aqlm-vllm-triple": Creator(
+        source=f"{MIA_AQLM}/.env.example#L89",
+        arguments={
+            "gpu-memory-utilization": "0.895",
+            "kv-cache-memory-bytes": "11811160064",
+        },
+        context_tokens=348160,
+        peak=119649943144,
+    ),
+    "glm-5-2-quanttrio-vllm-four": Creator(
+        source=f"{DROWZEYS_QT}/recipe/serve.env.example#L7",
+        arguments={
+            "gpu-memory-utilization": "0.86",
+            "kv-cache-memory-bytes": "7008000000",
+        },
+        context_tokens=128000,
+        peak=119649001152,
+    ),
+    "mimo-v2-6-pro-mopd-arvq-drowzeys-vllm-four": Creator(
+        source=f"{DROWZEYS_MIMO}/serve/launch-rank.sh#L35",
+        arguments={"gpu-memory-utilization": "0.85"},
+        absent=("kv-cache-memory-bytes",),
+        context_tokens=1048576,
     ),
     "qwen3-6-35b-a3b-nvfp4-r0b0tlab-vllm-single": Creator(
         source=f"{R0B0_Q36}/Dockerfile.v025#L23",
@@ -333,58 +404,73 @@ def test_recipe_follows_the_creators_memory_settings(slug: str) -> None:
         option, value = choice.split("/")
         offered = next(item for item in recipe.options if item.name == option)
         assert value not in [item.value for item in offered.choices], choice
-    if row.peak is None:
-        expected_peak = max(
-            envelope
-            for variant in memory_variants(recipe)
-            if (envelope := vllm_utilization_envelope(variant)) is not None
-        )
-    else:
-        expected_peak = row.peak
+    if row.peak is not None:
         need = per_rank_need(recipe, catalog_models(), load_inputs())
-        assert expected_peak >= need.peak_bytes
-    for role in recipe.topology.roles:
-        memory = role.resources.memory
-        assert memory.peak_bytes == expected_peak, role.name
-        if row.os_floor_reserve:
-            assert memory.reserve_bytes >= OS_FLOOR_BYTES, role.name
+        assert row.peak >= need.peak_bytes
     description = recipe_display(slug).description
     assert not [text for text in FORBIDDEN if text in description]
     assert "Memory follows the creator's settings" in description
 
 
+def lower_below_requirement(recipe: RecipeDefinition) -> None:
+    """Set every role one byte under what its launch requires (need or budget envelope)."""
+    need = per_rank_need(recipe, catalog_models(), load_inputs()).peak_bytes
+    required = max(need, vllm_utilization_envelope(recipe) or 0)
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = required - 1
+
+
 def test_lowering_a_restored_peak_by_one_byte_is_refused() -> None:
     slug = "laguna-s-2-1-nvfp4-r0b0tlab-vllm-single"
     recipe = load_recipe(slug)
+    declare_peak(recipe)
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
-    require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
-    for role in recipe.topology.roles:
-        role.resources.memory.peak_bytes -= 1
-    with pytest.raises(ValueError, match="peak understates"):
-        require_memory_need(
+    assert_not_warns(
+        memory_estimate_warnings(
             recipe, models, inputs, document_digest=digest, touched=True
-        )
+        ),
+        "peak understates",
+    )
+    lower_below_requirement(recipe)
+    assert_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest=digest, touched=True
+        ),
+        "peak understates",
+    )
 
 
 def test_lowering_the_mia_gemma_26b_peak_by_one_byte_is_refused() -> None:
     recipe = load_recipe("gemma-4-26b-a4b-vllm-mia-single")
+    declare_peak(recipe)
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
-    require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
-    for role in recipe.topology.roles:
-        role.resources.memory.peak_bytes -= 1
-    with pytest.raises(ValueError, match="peak understates"):
-        require_memory_need(
+    assert_not_warns(
+        memory_estimate_warnings(
             recipe, models, inputs, document_digest=digest, touched=True
-        )
+        ),
+        "peak understates",
+    )
+    lower_below_requirement(recipe)
+    assert_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest=digest, touched=True
+        ),
+        "peak understates",
+    )
 
 
 def test_the_creators_gemma_31b_095_choice_can_never_be_admitted() -> None:
     document = load_recipe("gemma-4-31b-it-nvfp4-vllm-mia-single").model_dump(
         mode="json", by_alias=True
     )
-    require_admissible_declaration(RecipeDefinition.model_validate(document))
+    for role in document["topology"]["roles"]:
+        role["resources"]["memory"]["peak_bytes"] = 100_000_000_000
+    assert_not_warns(
+        admissible_declaration_warnings(RecipeDefinition.model_validate(document)),
+        "not admissible",
+    )
     option = next(item for item in document["options"] if item["name"] == "gpu-memory")
     option["choices"].append(
         {
@@ -408,8 +494,10 @@ def test_the_creators_gemma_31b_095_choice_can_never_be_admitted() -> None:
     )
     for role in widened.topology.roles:
         role.resources.memory.peak_bytes = peak
-    with pytest.raises(ValueError, match="not admissible"):
-        require_admissible_declaration(widened)
+    assert_warns(
+        admissible_declaration_warnings(widened),
+        "not admissible",
+    )
 
 
 @pytest.mark.parametrize(
@@ -424,24 +512,41 @@ def test_lowering_a_reap_single_peak_below_its_loading_floor_is_refused(
 ) -> None:
     models, inputs = catalog_models(), load_inputs()
     recipe = load_recipe(slug)
+    declare_peak(recipe, per_rank_need(recipe, models, inputs).peak_bytes)
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
-    require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
+    assert_not_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest=digest, touched=True
+        ),
+        "peak understates",
+    )
     floor = per_rank_need(recipe, models, inputs).peak_bytes
     below = load_recipe(slug)
     for role in below.topology.roles:
         role.resources.memory.peak_bytes = floor - 1
-    with pytest.raises(ValueError, match="peak understates"):
-        require_memory_need(below, models, inputs, document_digest=digest, touched=True)
+    assert_warns(
+        memory_estimate_warnings(
+            below, models, inputs, document_digest=digest, touched=True
+        ),
+        "peak understates",
+    )
 
 
 def test_lowering_the_r0b0tlab_qwen36_single_peak_by_one_byte_is_refused() -> None:
     recipe = load_recipe("qwen3-6-35b-a3b-nvfp4-r0b0tlab-vllm-single")
+    declare_peak(recipe)
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
-    require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
-    for role in recipe.topology.roles:
-        role.resources.memory.peak_bytes -= 1
-    with pytest.raises(ValueError, match="peak understates"):
-        require_memory_need(
+    assert_not_warns(
+        memory_estimate_warnings(
             recipe, models, inputs, document_digest=digest, touched=True
-        )
+        ),
+        "peak understates",
+    )
+    lower_below_requirement(recipe)
+    assert_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest=digest, touched=True
+        ),
+        "peak understates",
+    )

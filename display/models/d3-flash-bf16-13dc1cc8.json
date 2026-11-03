@@ -1,0 +1,16 @@
+{
+  "description": "d3-flash typed-decision model with probability outputs and an FP32 answer-code readout.",
+  "family_title": "Decision 3.0",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "d3-flash-bf16-13dc1cc8"
+  },
+  "kind": "model-display",
+  "model_title": "D3-FLASH",
+  "tags": [
+    "vonk-forge",
+    "decision-3",
+    "language",
+    "candidate"
+  ]
+}

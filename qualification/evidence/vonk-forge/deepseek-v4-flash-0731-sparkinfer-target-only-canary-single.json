@@ -4,6 +4,27 @@
   "records": [
     {
       "identity": {
+        "content_sha256": "b7ebcf811fe9b007dc650ca111e02e3f7d0f1b587c363357c98c1ce7b0e6bdf7",
+        "model_digests": [
+          "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "2ff3291b0fc5bf673c332a4b5779996c2f9c98fae5ffed905206970f390eb5a5"
+      ],
+      "tested_at": "1970-01-01T00:00:00Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
         "content_sha256": "9c3e1499efda7f7514da5b96aa472b746c0753410283d2186417f33d1d3c8dae",
         "model_digests": [
           "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
@@ -58,6 +79,27 @@
         "model_digests": [
           "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
         ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "775f0bdb4f2752cff1f34a7a9e9b21cda609b764154a59092311d923037e733d"
+      ],
+      "tested_at": "2026-10-21T10:30:04.955021Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "b7ebcf811fe9b007dc650ca111e02e3f7d0f1b587c363357c98c1ce7b0e6bdf7",
+        "model_digests": [
+          "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
+        ],
         "required_sparks": 1,
         "models_resolved": true
       },
@@ -71,6 +113,156 @@
       "tested_at": "2026-10-21T10:30:05.879796Z",
       "platform": {
         "controller_source_sha": "fe788a24c18de8eefe8b4a6de942673d9f7ca1b9",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "b7ebcf811fe9b007dc650ca111e02e3f7d0f1b587c363357c98c1ce7b0e6bdf7",
+        "source_bundle_sha256": "3abce4033b980add5e50b95c5df4e61e97a42f96a9c89fb36b29ffdf2edd473f",
+        "runtime_image": {
+          "build_key": "89d106ae902a98e963ad505f946a3ba53be35352568ce2db5bff2e425086f4cb",
+          "image_digest": "sha256:696822cd4cea17a2f353ee3118aafb7ac594021a659ece3a6c891e9c7546cb04"
+        },
+        "model_digests": [
+          "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_exit",
+      "cause_summary": "Recipe runtime exited; needs fix",
+      "evidence_refs": [
+        "949cc4b70beddf312148575255eff2cce6f868b37dd6ecd17a4da07265d2a8f4"
+      ],
+      "tested_at": "2026-11-01T15:13:55.102186Z",
+      "platform": {
+        "controller_source_sha": "49e3c5d9f1942c25dc74c3526bbbabff0c7e4b1d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "b7ebcf811fe9b007dc650ca111e02e3f7d0f1b587c363357c98c1ce7b0e6bdf7",
+        "source_bundle_sha256": "3abce4033b980add5e50b95c5df4e61e97a42f96a9c89fb36b29ffdf2edd473f",
+        "runtime_image": {
+          "build_key": "89d106ae902a98e963ad505f946a3ba53be35352568ce2db5bff2e425086f4cb",
+          "image_digest": "sha256:696822cd4cea17a2f353ee3118aafb7ac594021a659ece3a6c891e9c7546cb04"
+        },
+        "model_digests": [
+          "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_exit",
+      "cause_summary": "Recipe runtime exited; needs fix",
+      "evidence_refs": [
+        "a81ea9ed4d910cd342e36ae4fdb2d2d21bfb18ba8cf2ef6590d21eca94de89c2"
+      ],
+      "tested_at": "2026-11-01T18:39:45.176150Z",
+      "platform": {
+        "controller_source_sha": "e83eb1039abe1136bca2fe7783b2d8ddc2dbdc8f",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "b7ebcf811fe9b007dc650ca111e02e3f7d0f1b587c363357c98c1ce7b0e6bdf7",
+        "source_bundle_sha256": "38a408255b175b2011bfb99229688e3d2c9e28024785b7fe365d68e4d4016f7f",
+        "runtime_image": {
+          "build_key": "bbe8c40eb50a2eaf0c34f3fb374056064213b06e33f21170b63fb7fb989f01aa",
+          "image_digest": "sha256:4c94ea5cf502effcdd3caa098fdc564bf5513200f4185a275a4f868bdaf0cb18"
+        },
+        "model_digests": [
+          "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_exit",
+      "cause_summary": "Recipe runtime exited; needs fix",
+      "evidence_refs": [
+        "091173e40f661831b8cdce62c2720dfeab43b6d450283cdda5d1fa6d207bc3d5"
+      ],
+      "tested_at": "2026-11-01T21:38:59.568756Z",
+      "platform": {
+        "controller_source_sha": "d9ae2a2c63e4512a7f60dd9de90e2fdef8147db8",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "051ffaa58caa30927ba60d03ee76e495a9409171e8db336759a1241c68db6eea",
+        "source_bundle_sha256": "38a408255b175b2011bfb99229688e3d2c9e28024785b7fe365d68e4d4016f7f",
+        "runtime_image": {
+          "build_key": "bbe8c40eb50a2eaf0c34f3fb374056064213b06e33f21170b63fb7fb989f01aa",
+          "image_digest": "sha256:4c94ea5cf502effcdd3caa098fdc564bf5513200f4185a275a4f868bdaf0cb18"
+        },
+        "model_digests": [
+          "12fd6a229340fd80f190e82d8c73b0cc6de037f3c73ed7ca95bb795d1a2932c2"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "32cfa7942ba309c2488e11668716e3f59c014fd8f624fef86e13d9c709d36534"
+      ],
+      "tested_at": "2026-11-01T23:47:20.582591Z",
+      "platform": {
+        "controller_source_sha": "58b7ba855a726b7c34f0cf0621b91a0ae0007256",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "e22387b2d8239e1a6fe490d0b20a6170a1743812e908177693d396ce1b8491b8",
+        "source_bundle_sha256": "38a408255b175b2011bfb99229688e3d2c9e28024785b7fe365d68e4d4016f7f",
+        "runtime_image": {
+          "build_key": "bbe8c40eb50a2eaf0c34f3fb374056064213b06e33f21170b63fb7fb989f01aa",
+          "image_digest": "sha256:4c94ea5cf502effcdd3caa098fdc564bf5513200f4185a275a4f868bdaf0cb18"
+        },
+        "model_digests": [
+          "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "32cfa7942ba309c2488e11668716e3f59c014fd8f624fef86e13d9c709d36534"
+      ],
+      "tested_at": "2026-11-01T23:47:20.582591Z",
+      "platform": {
+        "controller_source_sha": "58b7ba855a726b7c34f0cf0621b91a0ae0007256",
         "hardware_class": "GB10",
         "spark_count": 1,
         "topology": "single"

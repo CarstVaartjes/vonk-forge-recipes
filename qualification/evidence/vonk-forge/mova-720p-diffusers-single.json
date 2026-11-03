@@ -4,6 +4,27 @@
   "records": [
     {
       "identity": {
+        "content_sha256": "b4a5b57cecf95e2c647334b05fc47498081aef0cc759550bee1daaef61fa1350",
+        "model_digests": [
+          "e9ee5114179de6c3dafb94c922a0bb118bffcc6af73b8387cc3f2b14cd4ae50b"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "5d692586aa39375ca76402229ba1a6948909be0c9726f94f81796211571e97db"
+      ],
+      "tested_at": "1970-01-01T00:00:00Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
         "content_sha256": "95ac9dd9679cd4e1f1d952a392c093a0b537c8d214ef093b42e1696952209e38",
         "model_digests": [
           "e9ee5114179de6c3dafb94c922a0bb118bffcc6af73b8387cc3f2b14cd4ae50b"
@@ -155,6 +176,36 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "28fcdd81b117078eff49d952a4d332369b0146d784318ea2266284bd7c431094",
+        "runtime_image": {
+          "build_key": "8089df1fd7e9082e84b7b4c295a49494491691f9fd92cf9c14ace0ed48665609",
+          "image_digest": "sha256:fc204b15c1c00bd61b2d1c5426d5c699f1730c787ce0bc17e7bf34a2df136314"
+        },
+        "model_digests": [
+          "bc6c175277b2daf29b5a39f24da829971758d9b37267e872847784281b6de14f"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "002b9ffb0152133801c8d4814b392f0e46f085794ed4a1fa15e0aa745fe41e30"
+      ],
+      "tested_at": "2026-10-21T16:38:50.195921Z",
+      "platform": {
+        "controller_source_sha": "d3da6cc4c0e193f1b194b1fb89610fed3782225c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     },
     {
       "identity": {

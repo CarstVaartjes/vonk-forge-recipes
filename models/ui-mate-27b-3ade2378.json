@@ -211,13 +211,11 @@
   "identity": {
     "family": {
       "publisher": "tencent",
-      "slug": "ui-mate",
-      "title": "UI-Mate"
+      "slug": "ui-mate"
     },
     "model": {
       "publisher": "tencent",
-      "slug": "ui-mate-27b",
-      "title": "UI-Mate 27B"
+      "slug": "ui-mate-27b"
     },
     "publisher": "tencent",
     "slug": "ui-mate-27b-3ade2378",
@@ -232,15 +230,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://github.com/Tencent/UI-Mate/blob/d185dc9d74cfcab3a890d7ffb2bb011ecdd64c64/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public UI-Mate 27B BF16 checkpoint.",
-    "tags": [
-      "tencent",
-      "ui-mate",
-      "multimodal",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

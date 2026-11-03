@@ -2533,13 +2533,11 @@
   "identity": {
     "family": {
       "publisher": "minimax",
-      "slug": "minimax-h3",
-      "title": "MiniMax H3"
+      "slug": "minimax-h3"
     },
     "model": {
       "publisher": "minimax",
-      "slug": "minimax-h3",
-      "title": "MiniMax"
+      "slug": "minimax-h3"
     },
     "publisher": "minimax",
     "slug": "minimax-h3",
@@ -2562,16 +2560,6 @@
       "notice": "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."
     },
     "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
-  },
-  "metadata": {
-    "description": "Immutable official MiniMax H3 BF16 snapshot with FL2VA and Ref2VA checkpoints plus the Modular Diffusers layout at 42ed227e.",
-    "tags": [
-      "minimax",
-      "video",
-      "audio",
-      "multimodal",
-      "candidate"
-    ]
   },
   "modalities": [
     "audio",

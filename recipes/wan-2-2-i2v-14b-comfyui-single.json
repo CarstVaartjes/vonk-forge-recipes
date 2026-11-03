@@ -102,26 +102,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Memory-tight Candidate single-Spark image-to-video recipe using Wan 2.2's scaled-FP8 high/low-noise experts. Its declared 118 GB startup peak plus 8 GB system reserve leaves only 2 GB on a 128 GB Spark, so it is not the default and must pass a physical OOM canary before recommendation.",
-    "tags": [
-      "executable",
-      "candidate",
-      "wan",
-      "video",
-      "image-to-video",
-      "comfyui",
-      "fp8",
-      "14b",
-      "single",
-      "spark",
-      "memory-tight",
-      "physical-oom-gated",
-      "not-default"
-    ],
-    "title": "Wan 2.2 I2V 14B ComfyUI single Spark"
-  },
   "models": [
     {
       "files": [
@@ -168,7 +148,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "b7d7db0ac07252908a6f0cc02b4082e3a2617eca747d73aeb26dff4431cdeb31",
+        "content_sha256": "37e036d8cf2ff55dbc43bc49405db65466d65f3d80bfac4fd48c936e2cd11562",
         "kind": "model",
         "publisher": "wan-ai",
         "slug": "wan-2-2-i2v-14b-comfyui-ee6f4a40"

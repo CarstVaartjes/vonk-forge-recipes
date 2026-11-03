@@ -2149,13 +2149,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "mia-ai-lab",
-      "slug": "glm-5-3-flash-exl3-tr3",
-      "title": "GLM 5.3 Flash EXL3 TR3"
+      "slug": "glm-5-3-flash-exl3-tr3"
     },
     "publisher": "mia-ai-lab",
     "slug": "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-a5fee929",
@@ -2172,17 +2170,6 @@
     ],
     "spdx": "LicenseRef-ShapleyMCG-1.0",
     "url": "https://huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw/blob/1ae6d70430a12d762917786696db06a7b4f9bbae/LICENSE"
-  },
-  "metadata": {
-    "description": "Public brandonmusic copy of the GLM 5.3 Flash EXL3 TR3 4bpw checkpoint at the revision Reederey87's kit names: the weights, configuration, tokenizer, chat template, index and processor files are byte-identical to the Mia-AiLab repository this family was catalogued from (that repository returns HTTP 401 since 2026-10-03). Drafter checkpoints are selected separately by each recipe.",
-    "tags": [
-      "mia-ai-lab",
-      "glm-5-3-mia",
-      "text",
-      "image",
-      "video",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

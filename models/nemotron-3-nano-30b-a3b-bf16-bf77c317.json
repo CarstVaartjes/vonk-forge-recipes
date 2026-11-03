@@ -330,13 +330,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-nano-30b-a3b",
-      "title": "Nemotron 3 Nano 30B-A3B"
+      "slug": "nemotron-3-nano-30b-a3b"
     },
     "publisher": "nvidia",
     "slug": "nemotron-3-nano-30b-a3b-bf16-bf77c317",
@@ -350,16 +348,6 @@
     ],
     "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
-  },
-  "metadata": {
-    "description": "Official NVIDIA Nemotron 3 Nano 30B-A3B BF16 checkpoint.",
-    "tags": [
-      "nvidia",
-      "nemotron",
-      "language",
-      "bf16",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

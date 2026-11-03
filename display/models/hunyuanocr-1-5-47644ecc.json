@@ -1,0 +1,18 @@
+{
+  "description": "Official HunyuanOCR 1.5 BF16 target checkpoint for plain autoregressive OCR serving. Draft and archived 1.0 files are not selected.",
+  "family_title": "HunyuanOCR",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hunyuanocr-1-5-47644ecc"
+  },
+  "kind": "model-display",
+  "model_title": "HunyuanOCR 1.5",
+  "tags": [
+    "tencent",
+    "hunyuan",
+    "ocr",
+    "vision-language",
+    "bf16",
+    "spark"
+  ]
+}

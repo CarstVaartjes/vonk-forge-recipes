@@ -1,0 +1,21 @@
+{
+  "alignment": "unspecified",
+  "description": "Candidate single-Spark core-node ComfyUI binding for the hash-locked Qwen Image 2512 BF16 repack with Qwen's published 50-step, true-CFG 4.0 generation defaults.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-2512-comfyui-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "qwen",
+    "image",
+    "text-to-image",
+    "comfyui",
+    "bf16",
+    "single",
+    "spark"
+  ],
+  "title": "Qwen Image 2512 ComfyUI single Spark"
+}

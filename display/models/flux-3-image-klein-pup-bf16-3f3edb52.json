@@ -1,0 +1,14 @@
+{
+  "description": "FLUX 3 Image Klein Prompt Upsampler immutable upstream checkpoint. Physical Spark qualification pending.",
+  "family_title": "FLUX 3",
+  "identity": {
+    "publisher": "black-forest-labs",
+    "slug": "flux-3-image-klein-pup-bf16-3f3edb52"
+  },
+  "kind": "model-display",
+  "model_title": "FLUX 3 Image Klein Prompt Upsampler",
+  "tags": [
+    "candidate",
+    "flux-3"
+  ]
+}

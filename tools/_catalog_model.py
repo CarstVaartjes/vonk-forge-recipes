@@ -1,7 +1,8 @@
 """The Model document shared by the catalog authoring tools.
 
 One owner for the identity, licence and format flags, the file roles and ids,
-and the validated write of ``models/<version-slug>.json``.
+and the validated write of ``models/<version-slug>.json`` and the
+``display/models/<version-slug>.json`` that carries its titles, description and tags.
 """
 
 from __future__ import annotations
@@ -90,7 +91,13 @@ def write_model(
 
     # Imported here so file_id stays usable without the contracts dependencies
     # (tools/kit-pins runs on a bare interpreter).
-    from vonk_forge_contracts import ModelDefinition, document_sha256
+    from vonk_forge_contracts import (
+        ModelDefinition,
+        ModelDisplay,
+        ModelDisplayIdentity,
+        document_sha256,
+        published_json,
+    )
 
     modality = _MODALITIES.get(args.modality, args.modality)
     if modality not in {"text", "image", "audio", "video", "3d", "embeddings"}:
@@ -103,23 +110,13 @@ def write_model(
             "family": {
                 "publisher": args.publisher,
                 "slug": args.model_group_slug,
-                "title": args.model_group_title,
             },
             "model": {
                 "publisher": args.publisher,
                 "slug": args.model_slug,
-                "title": args.model_title,
             },
             "version": args.version,
             "variant": args.version,
-        },
-        "metadata": {
-            "description": args.model_description,
-            "tags": list(
-                dict.fromkeys(
-                    [args.publisher, args.model_group_slug, args.modality, "candidate"]
-                )
-            ),
         },
         "requires_token": requires_token,
         "dependencies": [],
@@ -138,10 +135,28 @@ def write_model(
         "capabilities": sorted(set(args.capability)),
     }
     ModelDefinition.model_validate(document)
-    model_path = args.root.resolve() / "models" / f"{args.version_slug}.json"
-    model_path.parent.mkdir(parents=True, exist_ok=True)
-    model_path.write_text(
-        json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    display = ModelDisplay(
+        identity=ModelDisplayIdentity(publisher=args.publisher, slug=args.version_slug),
+        family_title=args.model_group_title,
+        model_title=args.model_title,
+        description=args.model_description,
+        tags=list(
+            dict.fromkeys(
+                [args.publisher, args.model_group_slug, args.modality, "candidate"]
+            )
+        ),
     )
+    root = args.root.resolve()
+    for path, payload in (
+        (root / "models" / f"{args.version_slug}.json", document),
+        (
+            root / "display" / "models" / f"{args.version_slug}.json",
+            published_json(display),
+        ),
+    ):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        )
     # Recipes reference this Model by the digest of the document as written.
     return document_sha256(document)

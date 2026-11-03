@@ -734,13 +734,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "qwen",
-      "slug": "qwen3-8-27b",
-      "title": "Qwen3.8 27B"
+      "slug": "qwen3-8-27b"
     },
     "publisher": "qwen",
     "slug": "qwen3-8-27b-fp8-017b9c7a",
@@ -754,14 +752,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen3.8-27B-FP8/blob/017b9c7af6b5689d5dd426a76e0bc077eb5ca20a/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public Qwen3.8 27B FP8 checkpoint.",
-    "tags": [
-      "qwen",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

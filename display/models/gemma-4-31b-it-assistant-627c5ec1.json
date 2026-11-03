@@ -1,0 +1,16 @@
+{
+  "description": "Google's Multi-Token Prediction assistant (draft) model for Gemma 4 31B IT at an exact Hugging Face revision.",
+  "family_title": "Google Gemma",
+  "identity": {
+    "publisher": "google",
+    "slug": "gemma-4-31b-it-assistant-627c5ec1"
+  },
+  "kind": "model-display",
+  "model_title": "Gemma 4 31B IT assistant",
+  "tags": [
+    "google",
+    "gemma-4-31b-assistant",
+    "language",
+    "candidate"
+  ]
+}

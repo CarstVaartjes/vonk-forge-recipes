@@ -29,6 +29,36 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "302c2b082350231aa2ee8ffc7b9bc6c1aa5cedc895834c0ff26496de23876132",
+        "runtime_image": {
+          "build_key": "e9ffe6c3c7483dc6fef1994c1372921f3e2263763a6280c1754c1abc3c80f676",
+          "image_digest": "sha256:15f67e6eab073ed61d6bc91a08c34ef27a38ae832ae63b78b95b9f9270a9484c"
+        },
+        "model_digests": [
+          "7db2268c34e4c28efcfe9749339f22fe8621d97807c8bfed14dbf9c2a622d352"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "c88c37198642ac6f713453c9f711a4c40e5c175a99fc750feeb429e734877355"
+      ],
+      "tested_at": "2026-10-21T13:28:55.322172Z",
+      "platform": {
+        "controller_source_sha": "20aa759b554738c96fddf058a104e2b9f5c1ed2a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     }
   ]
 }

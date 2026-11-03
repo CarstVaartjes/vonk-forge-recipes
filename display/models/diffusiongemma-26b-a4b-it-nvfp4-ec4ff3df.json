@@ -1,0 +1,17 @@
+{
+  "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of DiffusionGemma 26B-A4B IT (diffusion-decoding Gemma).",
+  "family_title": "Google Gemma",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "diffusiongemma-26b-a4b-it-nvfp4-ec4ff3df"
+  },
+  "kind": "model-display",
+  "model_title": "DiffusionGemma 26B-A4B",
+  "tags": [
+    "nvidia",
+    "gemma",
+    "language",
+    "it-nvfp4",
+    "candidate"
+  ]
+}

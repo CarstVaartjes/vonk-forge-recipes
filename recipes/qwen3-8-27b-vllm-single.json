@@ -30,29 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Candidate full-precision alternative for one Spark, binding the exact official Qwen3.8 27B BF16 multimodal checkpoint; FP8 is the preferred dense/default profile. Current qualification proves bounded text chat only; vision serving remains unproven on Spark. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
-    "tags": [
-      "executable",
-      "candidate",
-      "qwen",
-      "qwen3-8",
-      "bf16",
-      "multimodal",
-      "vision",
-      "reasoning",
-      "agentic",
-      "text-qualified",
-      "vision-unproven",
-      "vllm",
-      "openai",
-      "single",
-      "spark",
-      "tool-use"
-    ],
-    "title": "Qwen3.8 27B BF16 vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -379,7 +356,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d98a57fe2e0cd6390c68f9a41aef460f4d2a68cfe11660696b6ff8d425aac460",
+        "content_sha256": "cee67d5e883b54491add9809da918fcdfe8a04976ad98dce50478d6be04d3879",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen3-8-27b-1d4bf0f2"

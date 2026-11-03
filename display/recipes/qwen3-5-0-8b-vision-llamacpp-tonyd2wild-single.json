@@ -1,0 +1,19 @@
+{
+  "alignment": "standard",
+  "description": "tonyd2wild's llm-eyes: Qwen3.5-0.8B (Unsloth Dynamic UD-Q8_K_XL GGUF plus the F16 vision projector) served by llama.cpp CUDA on one Spark as a small OpenAI-compatible image-captioning endpoint, so text-only models can be given a description of an image. Basis: tonyd2wild/2Wild-Vision-Mode (MIT), whose Spark backend runs llama-server with a CUDA build the user compiles; this recipe builds llama.cpp b11243 (commit fc07d781, ggml-org) for GB10 at a pinned commit instead. The default context and slot count (262144 tokens, 4 slots) are llama.cpp's automatic defaults, which upstream leaves unset. Upstream's bridge scripts (see.py, webcam_loop.py) are client-side and not packaged. Vonk physical Spark acceptance is pending and the sm_121 build has not been run.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-5-0-8b-vision-llamacpp-tonyd2wild-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "captioning",
+    "gguf",
+    "llama-cpp",
+    "multimodal",
+    "qwen3.5",
+    "spark",
+    "vision"
+  ],
+  "title": "Qwen3.5 0.8B vision helper llama.cpp one Spark"
+}

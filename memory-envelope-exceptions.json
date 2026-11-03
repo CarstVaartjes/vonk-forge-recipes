@@ -1,1 +1,8 @@
-{}
+{
+  "deepseek-v4-flash-0731-sparkinfer-single": {
+    "content_sha256": "d3088010e99baab55c98e516bc00100ae59a73dc3c9c1cee05e98ac523e69c5c",
+    "date": "2026-11-02",
+    "owner_decision": "One run at the creator budget: gpu-memory-utilization 0.931 = 0xSero's 0.9465 of 119.69 GiB on this Spark's 121.69 GiB view; peak declared at the admission maximum.",
+    "reason": "Single verification run; the measured peak replaces this after the run. Expires on any change to the recipe content."
+  }
+}

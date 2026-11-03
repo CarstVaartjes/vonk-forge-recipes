@@ -1,6 +1,7 @@
 """Hardware proof survives rechecks, reverts and infrastructure faults."""
 
 import json
+import shutil
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -394,7 +395,10 @@ def test_catalog_derives_after_resolving_release_image(
     key = f"{document['identity']['publisher']}/{document['identity']['slug']}"
     recipe_dir = tmp_path / "recipes"
     recipe_dir.mkdir()
-    (recipe_dir / "example.json").write_text(json.dumps(document))
+    slug = document["identity"]["slug"]
+    (recipe_dir / f"{slug}.json").write_text(json.dumps(document))
+    (tmp_path / "display/recipes").mkdir(parents=True)
+    shutil.copy(ROOT / "display/recipes" / f"{slug}.json", tmp_path / "display/recipes")
     image = Image(build_key="b" * 64, image_digest="sha256:" + "c" * 64)
     identity = Identity(
         content_sha256=digest,
@@ -734,7 +738,12 @@ def test_evidence_revalidation_of_newest_cached_pass_is_last_even_with_limit(tmp
     assert pending[-1].slug == "passed"
     plans = [policy.GroupPlan(r.model_set, (r.key,), r.artifact_bytes) for r in pending]
     ordered = policy.order_queue(
-        plans, sweep.recipes, cached=set(A.model_digests), sizes={}
+        plans,
+        sweep.recipes,
+        ready={
+            k for k, r in sweep.recipes.items() if r.model_set <= set(A.model_digests)
+        },
+        sizes={},
     )
     ordered.sort(
         key=lambda key: scheduling_priority(
@@ -1141,6 +1150,7 @@ def test_real_projected_library_and_evidence_restore_requeued_pass(tmp_path):
         for record in proof.records
         if "83d67a9b089b3b92274634e0877cd52257b6845085b085682509abf1f5cd40e0"
         in record.evidence_refs
+        and record.identity.content_sha256 == recipe.content_sha256
     )
     proof = proof.model_copy(update={"records": (passed,)})
     sweep.qualification_evidence[recipe.key] = proof

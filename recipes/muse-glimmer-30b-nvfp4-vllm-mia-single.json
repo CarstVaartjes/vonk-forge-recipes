@@ -30,31 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B NVFP4 (RedHatAI W4A4) with the official Meta DFlash drafter, FP8 KV cache and the muse_glimmer reasoning/tool parsers, following the MiaAI-Lab DGX Spark launch profile on the official vLLM 0.30.0 ARM64 image. Context defaults to the model's native 131072 (upstream's 262144 needs an unmerged RoPE-cache patch on a vLLM fork). Chat, vision, reasoning, tool calling and DFlash speedup remain Candidate capabilities; upstream throughput figures are its own claims. Memory follows the creator's settings: gpu-memory-utilization 0.42, as in MiaAI-Lab's start.sh at 1b71dc01 (line 37). The steady per-node peak is 0.42 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak. Chat template: the checkpoint's own (sha256 114f55eb, revision e83ead54) with one change in render_reasoning: a request that sets enable_thinking or thinking to false renders 'Reasoning strength: low.' (the creator's README: low for simple tasks) instead of the always-high default; without the flag the creator's reasoning_strength / high is unchanged. The unmodified template never reads either flag, so the model reasoned until finish_reason=length with null content (smoke V7, sweeps 2026-10-17 and 2026-10-30).",
-    "tags": [
-      "executable",
-      "candidate",
-      "pending",
-      "meta",
-      "muse-glimmer",
-      "multimodal",
-      "vision",
-      "agentic",
-      "reasoning",
-      "tool-use",
-      "nvfp4",
-      "dflash",
-      "speculative-decoding",
-      "vllm",
-      "openai",
-      "mia",
-      "single",
-      "spark"
-    ],
-    "title": "Muse Glimmer 30B NVFP4 DFlash vLLM Mia single Spark"
-  },
   "models": [
     {
       "files": [
@@ -181,7 +156,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "eb1e4a913292219f2535fb264a839b71903e423c324009b8c663f2278ed91d6f",
+        "content_sha256": "31f85f3b02e83138d33436f612c21e152f3834350e69f15bbf6b9899d1b8f761",
         "kind": "model",
         "publisher": "redhatai",
         "slug": "muse-glimmer-30b-nvfp4-e83ead54"
@@ -252,7 +227,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "e287066a7bb3d0af8b9c495c6a75b13304db5f2c72542fabd86117716aaafaf6",
+        "content_sha256": "e9c25fc788b6e012c4d213c9d8e6d3fadae89db8ef816929982836a17a39f21a",
         "kind": "model",
         "publisher": "meta",
         "slug": "muse-glimmer-30b-assistant-e8192f3a"
@@ -285,28 +260,28 @@
       "name": "kv-cache"
     },
     {
-      "name": "speculative-decoding",
-      "label": "Speculative decoding",
-      "help": "DFlash can speed up decoding but uses memory that could otherwise hold target KV cache.",
       "choices": [
         {
-          "value": "dflash",
-          "label": "DFlash (upstream default)",
           "default": true,
-          "help": "Use the attached Muse Glimmer drafter for speculative decoding."
+          "help": "Use the attached Muse Glimmer drafter for speculative decoding.",
+          "label": "DFlash (upstream default)",
+          "value": "dflash"
         },
         {
-          "value": "off",
-          "label": "Off (more KV-cache capacity)",
-          "help": "Disable DFlash with vLLM's literal None sentinel. The target has more memory available for KV cache, while losing DFlash decode acceleration.",
           "args": [
             {
               "name": "speculative-config",
               "value": "None"
             }
-          ]
+          ],
+          "help": "Disable DFlash with vLLM's literal None sentinel. The target has more memory available for KV cache, while losing DFlash decode acceleration.",
+          "label": "Off (more KV-cache capacity)",
+          "value": "off"
         }
-      ]
+      ],
+      "help": "DFlash can speed up decoding but uses memory that could otherwise hold target KV cache.",
+      "label": "Speculative decoding",
+      "name": "speculative-decoding"
     }
   ],
   "provenance": {

@@ -4,6 +4,27 @@
   "records": [
     {
       "identity": {
+        "content_sha256": "82b410a687dd6e5fcabbd9951a5e4ff1093282116bce33824a7d004e589c829c",
+        "model_digests": [
+          "8533420444efd03b6d5e0bdbc98a16b9fba5f369eec17681c6c3921651b9851b"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "1a3ce9bf1598cd119af0dd9af358908ef5f199ac6acef208cadde4b58195d855"
+      ],
+      "tested_at": "1970-01-01T00:00:00Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
         "content_sha256": "82acb7e6f6735a921d1f1df03ab56742304dd0a41824fc2831fda60ce5b7f64d",
         "model_digests": [
           "8533420444efd03b6d5e0bdbc98a16b9fba5f369eec17681c6c3921651b9851b"
@@ -155,6 +176,37 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "3f4e502aea2279ddebaab6ed3d9d75844b227027dd4016afd8a5cfaba1f60bef",
+        "source_bundle_sha256": "90ac7c1cc2eb4b61a29289b419a9337c057dfa50c11d370e06ff662cd55e5ef9",
+        "runtime_image": {
+          "build_key": "8089df1fd7e9082e84b7b4c295a49494491691f9fd92cf9c14ace0ed48665609",
+          "image_digest": "sha256:fc204b15c1c00bd61b2d1c5426d5c699f1730c787ce0bc17e7bf34a2df136314"
+        },
+        "model_digests": [
+          "bb4d892c29d60f0082c88e480cae87bc1c8d7561a77906f3e2b15be5daee33f8"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "8af4de279429c95419653cfd3356d3bacdece0962ab5fa38661aa3c2b78bb25a"
+      ],
+      "tested_at": "2026-10-27T06:05:40.338249Z",
+      "platform": {
+        "controller_source_sha": "d75bc8bf63d135949769be6c3094a30013f30b50",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     },
     {
       "identity": {

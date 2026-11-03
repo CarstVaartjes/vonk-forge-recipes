@@ -30,24 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's own DGX Spark playbook (trt-llm) for Qwen3 30B-A3B NVFP4: the NGC TensorRT-LLM release image 1.3.0rc13 (pinned by arm64 digest) serving the exact model revision through trtllm-serve with the playbook's LLM API options. Resource envelopes are estimates from the playbook's 0.8-0.9 KV memory fraction, not measurements; physical Spark acceptance is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "tensorrt-llm",
-      "openai",
-      "single",
-      "spark",
-      "qwen",
-      "nvfp4",
-      "moe",
-      "reasoning"
-    ],
-    "title": "Qwen3 30B-A3B NVFP4 TensorRT-LLM single Spark (NVIDIA playbook)"
-  },
   "models": [
     {
       "files": [
@@ -234,7 +216,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "53198e7f714b6e2522a388b57a75f2a3966f0e0e7daa76785f6fb562e396381a",
+        "content_sha256": "9047ac491e1bdec1829ded379bcad1c395e9d8328f4c5106b19349cc42a7b6a0",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen3-30b-a3b-nvfp4-2538ded2"

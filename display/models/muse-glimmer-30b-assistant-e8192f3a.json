@@ -1,0 +1,16 @@
+{
+  "description": "Exact public Muse Glimmer 30B assistant DFlash block-diffusion draft head e8192f3a.",
+  "family_title": "Muse Glimmer",
+  "identity": {
+    "publisher": "meta",
+    "slug": "muse-glimmer-30b-assistant-e8192f3a"
+  },
+  "kind": "model-display",
+  "model_title": "Muse Glimmer 30B Assistant (DFlash drafter)",
+  "tags": [
+    "meta",
+    "muse-glimmer",
+    "language",
+    "candidate"
+  ]
+}

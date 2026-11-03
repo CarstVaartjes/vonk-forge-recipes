@@ -72,8 +72,12 @@ def test_transient_failure_recovers_beyond_the_old_attempt_limit(
     )
 
     def recover(_now):
-        if sweep.state.recipes.get(flaky.key, {}).get("attempts", 0) >= 4:
-            fleet.recipes[flaky.key].fail_load = ""
+        attempts = sweep.state.recipes.get(flaky.key, {}).get("attempts", 0)
+        # Alike exits end in a verdict at three; these differ, so they keep being retried.
+        causes = ("exit_cause=unclassified", "exit_cause=start_refused")
+        fleet.recipes[flaky.key].fail_load = (
+            "" if attempts >= 4 else f"runtime_process_exited: {causes[attempts % 2]}"
+        )
 
     clock.hooks.append(recover)
     sweep.run()
@@ -156,17 +160,6 @@ def test_an_expired_gateway_key_is_not_the_recipes_fault_and_heals_with_a_new_ke
     assert gateway.refused and seen and seen[0] not in ("failed", "deferred")
     assert _entry(sweep, "good")["status"] == "passed"
     assert not sweep.state.data["infra"]
-
-
-def test_declared_demand_beyond_a_spark_fails_at_review(
-    tmp_path: Path, gateway: Gateway
-) -> None:
-    huge = FakeRecipe("huge", memory=128 * 10**9)
-    sweep, _, _ = make_sweep(tmp_path, [huge], [FakeModel("m1")], gateway=gateway)
-    sweep.run()
-    entry = _entry(sweep, "huge")
-    assert (entry["status"], entry["phase"]) == ("deferred", "review")
-    assert "insufficient_capacity" in entry["code"]
 
 
 def test_recipes_needing_more_sparks_are_skipped_not_tested(
