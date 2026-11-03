@@ -116,12 +116,12 @@ data with verified inputs.
 The roots are strict: authoring rejects unknown fields. Do not use lenient
 published-document readers to bypass producer validation (`tests/test_contracts.py`).
 
-| Document | Required structure (read the definitions for typed variants) |
+| Document | Required structure (read the definitions for typed variants); every document also writes its defaulted `kind` (`model`, `recipe`, `recipe-display`, `model-display`) |
 | --- | --- |
-| Model | `kind: "model"`, `identity`, `requires_token`, `dependencies`, `modalities`, `source`, `format`, `license`, `files`, `capabilities`. |
-| Recipe | `kind: "recipe"`, `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
-| Recipe display | `kind: "recipe-display"`, `identity` (the Recipe's), `title`, `description`, `tags`; `alignment` is optional. |
-| Model display | `kind: "model-display"`, `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`. |
+| Model | `identity`, `requires_token`, `dependencies`, `modalities`, `source`, `format`, `license`, `files`, `capabilities`. |
+| Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
+| Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment` is optional. |
+| Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`. |
 
 A document holds execution data only. What a person reads about it lives in
 its display file, `display/recipes/<slug>.json`
