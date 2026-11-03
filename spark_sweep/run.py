@@ -370,6 +370,7 @@ class Sweep:
         )
         self.prefetcher.on_infra = self.note_infra
         self.prefetcher.on_ok = self.clear_infra
+        self.prefetcher.release = lambda: self.release_sha
         self.prefetcher.online_lanes = lambda: (
             len(self.sparks()) if self.fleet.sparks else None  # None: not read yet
         )
@@ -1892,11 +1893,14 @@ class Sweep:
         if op_id:
             proof.setdefault("operation_id", op_id)
             proof["evidence_command"] = f"vonkctl fleet evidence {op_id}"
-        # The release the load started on: a release that flipped mid-load is not the one
-        # this failure was seen on (a slot from before this field falls back to now).
+        # The release the work started on (a load's slot or a download's record), not the
+        # one now deployed; none recorded (platform unreadable then) heals once on the next.
+        started = self.state.downloads.get(key) if from_download else slot
         release = (
-            slot.get("release") if slot is not None else None
-        ) or self.release_sha
+            (started or {}).get("release")
+            if from_download or slot is not None
+            else self.release_sha
+        )
         attributable = failure.klass != verdict.UNATTRIBUTED and (
             failure.code in policy.RECIPE_FAILURE_CODES
             or failure.klass in verdict.FAIL_CLASSES

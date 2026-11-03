@@ -183,6 +183,7 @@ def _loading(tmp_path: Path):
     sweep.refresh_catalog()
     sweep.queue = list(sweep.recipes)
     sweep.cached_models = sweep._cached_models()
+    sweep.observe_platform()  # a load starts on a known Controller release
     sweep.schedule(clock.now())
     return sweep, fleet, clock
 
@@ -469,7 +470,6 @@ def test_watch_keeps_platform_blocked_without_an_observed_fix(tmp_path: Path) ->
     sweep, _, clock = _loading(tmp_path)
     key = next(iter(sweep.state.slots))
     original = sweep.state.slots[key]["request_key"]
-    sweep.observe_platform()  # the failure is recorded against a known release
     sweep._record_failure(
         key, policy.classify("start", "application.failed", "unknown"), None
     )
