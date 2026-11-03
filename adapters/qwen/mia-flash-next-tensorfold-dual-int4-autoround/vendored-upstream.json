@@ -15,6 +15,10 @@
         "datasource": "hf-revision",
         "binds": "primary",
         "file": "scripts/config.sh",
+        "override": {
+          "revision": "8b145d7f6505f71521a73646c268e51f6af532e4",
+          "reason": "the kit's scripts/config.sh still pins 1464274120d36a4d8fcaa934552334a7d83ce0fd, which Hugging Face no longer serves: azampatti squashed the repository's history into 8b145d7f on 2026-11-01. Every weight, configuration and tokenizer file at 8b145d7f is the catalogued bytes (only README.md differs), so the recipe pins the revision that serves them."
+        },
         "pattern": "^\\s*int4ar\\)\\s+_model=(?P<repo>[^;]+); _pin=(?P<version>[0-9a-f]{40})$"
       }
     }
