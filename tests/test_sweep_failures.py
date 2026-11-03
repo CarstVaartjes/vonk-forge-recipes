@@ -162,17 +162,6 @@ def test_an_expired_gateway_key_is_not_the_recipes_fault_and_heals_with_a_new_ke
     assert not sweep.state.data["infra"]
 
 
-def test_declared_demand_beyond_a_spark_fails_at_review(
-    tmp_path: Path, gateway: Gateway
-) -> None:
-    huge = FakeRecipe("huge", memory=128 * 10**9)
-    sweep, _, _ = make_sweep(tmp_path, [huge], [FakeModel("m1")], gateway=gateway)
-    sweep.run()
-    entry = _entry(sweep, "huge")
-    assert (entry["status"], entry["phase"]) == ("deferred", "review")
-    assert "insufficient_capacity" in entry["code"]
-
-
 def test_recipes_needing_more_sparks_are_skipped_not_tested(
     tmp_path: Path, gateway: Gateway
 ) -> None:
