@@ -188,14 +188,13 @@ VLLM_UNMODELED_HYBRID = {
     # CircularBufferSpec ring, an MLA compressed-key cache and an MTP QSA
     # layer; its sfxnz dual is proven (9f77f966) on this hand bound.
     "qwen3-8-flash-next-nvfp4-fab0aecb": "Qwen4Exp on vLLM v0.30.0",
-    "qwen3-8-flash-next-nvfp4-lil-6c01ac37": "Qwen4Exp on the eugr b12x vLLM image",
+    "qwen3-8-flash-next-fp4-local-b9ce18a6": "Qwen4Exp on the eugr b12x vLLM image",
     # Sliding-window plus short-convolution layers on creator images whose
     # vLLM Inkling layout is not pinned; SGLang-measured state.
     "inkling-small-nvfp4": "Inkling short convolution on creator images",
     # KDA linear + DSA layers on creator vLLM forks: not modeled (follow-up).
     "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704": "Glm5Next KDA + DSA not modeled (follow-up)",
     "glm-5-3-flash-nvfp4-caca4e6a": "Glm5Next KDA + DSA not modeled (follow-up)",
-    "glm-5-3-flash-nvfp4-spark-a6082410": "Glm5Next KDA + DSA not modeled (follow-up)",
 }
 
 

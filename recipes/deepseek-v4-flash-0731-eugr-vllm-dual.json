@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595",
+        "digest": "19ab778dd57f019c44caf5df91a671cf688923d1ca9fa8ce92be0c9acb46d215",
         "repository": "docker.io/eugr/spark-vllm-b12x"
       },
       "context": {
@@ -864,10 +864,10 @@
       "local-inference-lab / lukealonso b12x",
       "vLLM contributors (Apache-2.0)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/303b4a29a6bd390428d363358964ad298dc20625"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/b7f6b4cd4d85c655c5102eeb579f6de6a5bfe3d3"
   },
   "release": {
-    "released_at": "2026-10-15",
+    "released_at": "2026-11-02",
     "version": "prebuilt-vllm-current"
   },
   "runtime": {
@@ -985,12 +985,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 28202500096
+        "value": 21072183296
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.854454"
+        "value": "0.8"
       }
     ],
     "engine": "vllm",
@@ -1103,7 +1103,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 119645767764,
+            "peak_bytes": 112515450964,
             "reserve_bytes": 8000000000
           }
         }
@@ -1120,7 +1120,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 119645767764,
+            "peak_bytes": 112515450964,
             "reserve_bytes": 8000000000
           }
         }
