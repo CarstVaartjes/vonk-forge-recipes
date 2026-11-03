@@ -1,16 +1,16 @@
 FROM nvcr.io/nvidia/pytorch@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 LABEL org.opencontainers.image.source="https://github.com/drowzeys/TensorFold" \
-      org.opencontainers.image.revision="6b714531e2d60f91d26e98e414547ad94ad771bf" \
+      org.opencontainers.image.revision="8cd08c8350c02cf3d7d8eee5f1c1d9dfa22fa703" \
       ai.vonkforge.runtime-interface="v1"
-RUN curl -fsSL https://codeload.github.com/drowzeys/TensorFold/tar.gz/6b714531e2d60f91d26e98e414547ad94ad771bf -o /tmp/music.tar.gz \
- && echo 'bc8907842356af439df2b5e71001deae5ff65126ee15306b77936bb0f162dc97  /tmp/music.tar.gz' | sha256sum -c - \
+RUN curl -fsSL https://codeload.github.com/drowzeys/TensorFold/tar.gz/8cd08c8350c02cf3d7d8eee5f1c1d9dfa22fa703 -o /tmp/music.tar.gz \
+ && echo '5065371d4235012ca0fd2ec23d3fc554248f0b4c330f307a2d660f1ba8f0a32b  /tmp/music.tar.gz' | sha256sum -c - \
  && curl -fsSL https://ziglang.org/download/0.17.0/zig-aarch64-linux-0.17.0.tar.xz -o /tmp/zig.tar.xz \
  && echo '9e8d11661d4ae3bd57702a3832781e23ad151dde5798e16a5ccd503f65234ff8  /tmp/zig.tar.xz' | sha256sum -c - \
  && mkdir -p /tmp/music /opt/vonk/bin /opt/tensorfold \
  && tar -xzf /tmp/music.tar.gz --strip-components=1 -C /tmp/music \
  && tar -xJf /tmp/zig.tar.xz -C /tmp \
  && cd /tmp/music \
- && /tmp/zig-aarch64-linux-0.17.0/zig build music3-generate -j2 -Doptimize=ReleaseFast -Dnvcc=/usr/local/cuda/bin/nvcc \
+ && /tmp/zig-aarch64-linux-0.17.0/zig build music3-generate -j2 -Doptimize=ReleaseFast -Dnvcc=/usr/local/cuda/bin/nvcc -Dsm=121 \
  && cp zig-out/bin/music3-generate /opt/tensorfold/music3-generate \
  && cp LICENSE /opt/tensorfold/LICENSE \
  && rm -rf /tmp/music* /tmp/zig* /root/.cache/zig

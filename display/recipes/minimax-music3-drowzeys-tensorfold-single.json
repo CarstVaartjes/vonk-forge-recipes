@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "Native TensorFold Music3 CUDA engine from drowzeys/Wasserman Studio, pinned at 6b714531e2d60f91d26e98e414547ad94ad771bf. Generates a bounded 60-second stereo 44.1 kHz WAV from a caption and optional lyrics. The three Comfy-Org checkpoint files stay immutable; the engine makes int8 autoregressive weights on the GPU at load. 30 DiT steps, AR guidance 1.5, DiT guidance 1.7, seed 0. Upstream measured about 18 GB; 32 GB peak is an unqualified planning estimate including load and workspace. Physical Spark and audio-quality acceptance are pending. MiniMax-Music3 Community License terms are included.",
+  "description": "Native TensorFold Music3 CUDA engine from drowzeys/Imagination Studio, pinned at 8cd08c8350c02cf3d7d8eee5f1c1d9dfa22fa703. Generates a bounded 60-second stereo 44.1 kHz WAV from a caption and optional lyrics. The three Comfy-Org checkpoint files stay immutable; the engine makes int8 autoregressive weights on the GPU at load. 30 DiT steps, AR guidance 1.5, DiT guidance 1.7, seed 0. Upstream measured about 18 GB; 32 GB peak is an unqualified planning estimate including load and workspace. Physical Spark and audio-quality acceptance are pending. MiniMax-Music3 Community License terms are included.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "minimax-music3-drowzeys-tensorfold-single"
