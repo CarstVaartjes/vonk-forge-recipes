@@ -313,8 +313,9 @@ unset is fine for a non-bfloat16 checkpoint, which resolves to the device
 table. The disk table needs io_uring (blocked by the sandbox) or direct GDS
 (needs a real nvidia-fs; `CUFILE_FORCE_COMPAT_MODE` is rejected with cuFile
 error 5027), so set `VLLM_PLE_TABLE_MEMORY=shared`. The table then counts
-inside the vLLM memory budget; keep the creator's utilization and context
-unless a hardware run fails. A disk Engram table (`engram-config`
+inside the vLLM memory budget (an interface fix): keep the creator's context
+and raise utilization by the table's share over the creator's budget, citing
+the sandbox io_uring block. A disk Engram table (`engram-config`
 `table_memory: disk`), or any disk table on an image that is not the b12x
 image, needs an image that installs a tested POSIX reader (see
 `adapters/deepseek/0xsero-exl3-vllm-dual/_ple_reader.c`). The recipe loader test
@@ -423,7 +424,8 @@ An uncapped pool keeps the calibrated fraction × total plus the SGLang margin (
 first run, a pool-less vLLM declaration's peak, on one Spark or several, covers
 its utilization budget plus the margin, since the Controller reserves the
 declared peak (`tools/refresh-upstream` raises a moved document's peaks to that
-envelope); once it has run, the measured peak wins over this formula.
+envelope); once it has run, the measured peak wins over this formula (today
+the refresh still raises measured peaks too; tracked as a follow-up).
 `tests/test_absolute_kv_capacity.py` replays the recorded failures and must
 warn on each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
@@ -712,8 +714,8 @@ required or named tool choice is one call; without it the reasoning wrapper
 defers the grammar past Inkling's first call and forces a second
 (`tests/test_inkling_sglang_forced_tool.py`).
 
-A reasoning recipe serves its chat template as a repository file `COPY`ed into
-the image and named by `chat-template`, so the thinking switch can be checked.
+An SGLang reasoning recipe that names a `chat-template` serves it as a
+repository file `COPY`ed into the image, so the thinking switch can be checked.
 Its `add_generation_prompt` branch must honour `enable_thinking is defined and
 not enable_thinking`: SGLang forces its reasoning parser from that branch, and a
 creator template that always opens `<think>` leaks `</think>` into `content`
