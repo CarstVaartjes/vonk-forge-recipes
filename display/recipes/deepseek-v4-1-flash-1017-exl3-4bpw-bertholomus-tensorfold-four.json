@@ -1,0 +1,19 @@
+{
+  "alignment": "unspecified",
+  "description": "bertholomus's DeepSeek-V4.1-Flash TensorFold TP4 recipe v0.3.5 (deepseek-v4.1-tensorfold-tp4-4xgb10 b88fae26, Apache-2.0) as tonyd2wild's fleet lane runs it since 2026-10-26 (DeepSeek-V4.1-Flash-TP2-and-TP4-DGX-Sparks 74ac0136, runs/2026-10-26-1017-tensorfold-v035-4bpw). Engine: bertholomus/TensorFold deepseek-v41-zig-tp4 at ENGINE_COMMIT 0a0b69a5, built here as RUNNING.md section 1 builds it (Zig 0.17.0, the CUDA toolchain of nvcr.io/nvidia/pytorch:26.07-py3, aarch64 + sm_121; the creator publishes no image) with a build-time sm_121 kernel scan, plus tonyd2wild's two engine patches: TF_RDMA_GID (the RoCE GID index, here the Controller's) and the opt-in TF_SEED_RANDOM / TF_TOP_K_MAX server settings. Weights: bertholomus/DeepSeek-V4.1-Flash-1017-EXL3-4.0bpw at a2f91e27, the revision RUNNING.md checked, readied by the recipe's tools/serving_1017.py (serving-1017.safetensors, digest-checked); the Engram tables are the original checkpoint's shards 47 and 48; the kit's image bias is the kit file RUNNING.md names (the 4.0 bpw quant carries 40 of its 43 tensors). Kit, chat template, run-time inputs and every served setting are bertholomus's (config.env.example, scripts/serve.sh): 1,048,576-token context, 16 streams, 2D parity split, waves, chunked prompt fill, structured output and forced tool calls through libtfgrammar, a 2 GiB kept-prompt cache on rank 0, thinking on by default, temperature 1.0, top_p 0.95, top_k 20 (all per request). The rank caches, token map and kit are derived into /outputs/cache and reused on restart. Memory: the shared position pool is tonyd2wild's dedicated-node value, 29,360,128 positions (bertholomus serves 20,971,520 and suggests 16,777,216 for nodes that need more room); this recipe uses all four Sparks, so nothing else runs beside it. The pool costs about 0.87 GiB per 1M positions on every node. The declared peaks are tonyd2wild's measurement at that pool (run README, results/memmin_under_load.txt): lowest MemAvailable under a 600,000-token needle plus 16 streams x 3 replies and the C1-C16 bench was 7.08 GiB on rank 0 (it also runs the API server and the prompt cache) and 8.43-8.56 GiB on ranks 1-3 (8.9 / 10.4-10.6 GiB free idle after load), so peak = 130,663,231,488 bytes - that free memory - the 4,063,231,488-byte idle host use admission charges: 119.0 GB on the entrypoint, 117.55 GB on the workers. Upstream figures (97.2 tok/s at one stream, 230.7 tok/s aggregate at 16, 2,550 tok/s cold prefill at 93K tokens, on tonyd2wild's Sparks) are claims until measured here. It needs four Sparks; Vonk physical acceptance is pending. Licences are information only: the recipe Apache-2.0, TensorFold and DeepSeek weights MIT.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-1017-exl3-4bpw-bertholomus-tensorfold-four"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "deepseek",
+    "1017",
+    "tensorfold",
+    "exl3",
+    "dspark",
+    "vision",
+    "spark"
+  ],
+  "title": "DeepSeek V4.1 Flash 1017 EXL3 4.0bpw TensorFold TP4 (bertholomus)"
+}
