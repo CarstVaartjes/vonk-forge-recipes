@@ -331,7 +331,7 @@ CREATOR = {
         context_tokens=1000000,
         peak=112544365097,
     ),
-    "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual": Creator(
+    "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four": Creator(
         source=f"{NVIDIA_VLLM}/README.md#L451",
         arguments={"gpu-memory-utilization": "0.9"},
         absent=("kv-cache-memory-bytes",),
