@@ -27,14 +27,17 @@ for name in ("home", "hf", "jit", "xdg", "triton", "torch", "flashinfer", "ple")
     (CACHE / name).mkdir(parents=True, exist_ok=True)
 
 # The upstream entrypoint compiles the profile and locks into the exact server
-# argv, prepares the verified PLE table under /cache/ple, then execs SGLang.
-# It hard-codes the checkpoint at /model, but the platform mounts model files
-# under /models, so rebind that one constant before running its main().
+# argv, prepares the verified PLE table, then execs SGLang. It hard-codes the
+# checkpoint at /model, but the platform mounts model files under /models. It
+# hard-codes the table under /cache/ple, and its preparation walks that path one
+# component at a time without following links, so the image's /cache symlink is
+# refused (ENOTDIR); the table goes to the platform's real cache directory.
 os.chdir("/opt/r0b0tlab")
 sys.path.insert(0, "/opt/r0b0tlab")
 from runtime import entrypoint  # noqa: E402
 
 entrypoint.MODEL_PATH = str(MODEL)
+entrypoint.PLE_DIR_ROOT = str(CACHE / "ple")
 entrypoint.SERVE_HOST = args.host
 entrypoint.SERVE_PORT = args.port
 raise SystemExit(entrypoint.main(profile_args))
