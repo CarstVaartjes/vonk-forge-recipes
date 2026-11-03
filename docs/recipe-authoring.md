@@ -90,9 +90,10 @@ missing input to vendor or replace with evidence, never an assumption. When the
 creator's image is gone, the replacement is the creator's exact engine commit
 built with the creator's build configuration: the same CUDA toolkit version and
 GPU arch list (and the same torch and FlashInfer when installing a published
-wheel). Its evidence is a build-time check that every arch-specific kernel library
-carries sm_121 code (`sm_121a` cubins or `sm_120f` family cubins), then the
-hardware try. Another build of the same commit (a different toolkit or arch list)
+wheel). Its evidence is the hardware try, preceded by a build-time scan that the
+kernel libraries the recipe uses carry code sm_121 can load (sm_121 or sm_121a,
+plain or family sm_120 cubins, or non-arch-specific PTX); sm_120a-only code does
+not load. Another build of the same commit (a different toolkit or arch list)
 ships different GPU kernels: it is a new runtime that needs its own hardware proof.
 
 Compare each previous pin with the proposed pin in the same source repository.
