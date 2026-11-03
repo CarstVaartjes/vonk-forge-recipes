@@ -574,7 +574,9 @@ class NothingRunsTests(unittest.TestCase):
                 ),
                 patch.object(refresh.vendored, "check_adapter", return_value=report),
                 patch.object(refresh.Assessor, "_retarget_adapter"),
-                patch.object(refresh.Assessor, "_follow_vendored", return_value=None),
+                patch.object(
+                    refresh.Assessor, "_review_vendored", return_value="changed"
+                ),
             ]
         for active in patches:
             active.start()
@@ -1188,8 +1190,8 @@ command: |
 
 
 class VendoredCreatorMoveTests(unittest.TestCase):
-    """A vendored file the recipe's own creator changed follows when nothing it
-    references in it is gone (the 15 eugr recipes of refresh run 38469862398)."""
+    """A vendored creator file that changed upstream is always a review: no byte of it
+    is judged harmless, and an unchanged file moves with the pin without a rewrite."""
 
     def assess(
         self,
@@ -1262,25 +1264,6 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             self.addCleanup(active.stop)
         return assessor.assess("recipe")
 
-    def test_a_moved_vllm_document_follows_the_budget_envelope(self) -> None:
-        new_yaml = self.NOTE + OLD_YAML
-        with (
-            patch("refresh_upstream.RecipeDefinition"),
-            patch("refresh_upstream.raise_role_peaks") as raised,
-        ):
-            self.assess(new_yaml, engine="vllm")
-            raised.assert_called_once()
-        with patch("refresh_upstream.raise_role_peaks") as raised:
-            self.assess(new_yaml, engine="sglang")
-            raised.assert_not_called()
-        with (
-            patch("refresh_upstream.RecipeDefinition"),
-            patch("refresh_upstream.raise_role_peaks", side_effect=ValueError("bad")),
-        ):
-            result = self.assess(new_yaml, engine="vllm")
-        self.assertFalse(result.mechanical)
-        self.assertIn("memory envelope", " ".join(result.reasons))
-
     def test_real_proven_dual_is_raised_and_then_passes_the_touched_check(self) -> None:
         import documents
         from catalog_documents import catalog_models
@@ -1315,14 +1298,6 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         )
 
     NOTE = "# creator note\n\n"
-
-    def test_a_comment_only_change_is_mechanical(self) -> None:
-        new_yaml = self.NOTE + OLD_YAML.replace("\n  vllm", "  \n  vllm", 1)
-        result = self.assess(new_yaml)
-        self.assertTrue(result.mechanical, result.reasons)
-        self.assertEqual(result.edits["adapters/x/recipes/r.yaml"], new_yaml.encode())
-        self.assertIn(NEW, result.edits["adapters/x/vendored-upstream.json"].decode())
-        self.assertIn("+# creator note", refresh.pr_body(result))
 
     def test_an_unchanged_vendored_file_moves_with_the_pin(self) -> None:
         # The eugr group that moves the image and pin only (no yaml change): nothing a
@@ -1383,35 +1358,40 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             ),
             "unknown format": ("a b\n", "a  b\n", "launch/run.cfgx"),
             "json": ('{"a": 1}', '{"a": 1} ', "launch/profile.json"),
+            "comment only": (OLD_YAML, self.NOTE + OLD_YAML, "recipes/r.yaml"),
+            "trailing space": (
+                shell,
+                shell.replace("4096", "4096 "),
+                "launch/serve.sh",
+            ),
+            "kernel macro in a raw string": (
+                'SRC = r"""\n#define TILE 16\n"""\n',
+                'SRC = r"""\n#define TILE 32\n"""\n',
+                "mods/k/kernel.py",
+            ),
+            "continuation ends the command": (
+                "vllm serve m \\\n  --a 1\n",
+                "vllm serve m \\ \n  --a 1\n",
+                "launch/serve.sh",
+            ),
+            "continuation in a yaml command": (
+                "command: |\n  vllm serve m \\\n    --a 1\n",
+                "command: |\n  vllm serve m \\ \n    --a 1\n",
+                "recipes/r.yaml",
+            ),
+            "heredoc line": (
+                "cat <<EOF\n# not a comment\nEOF\n",
+                "cat <<EOF\nEOF\n",
+                "launch/serve.sh",
+            ),
         }
         for label, (old, new, name) in cases.items():
             with self.subTest(label):
                 result = self.assess(new, old_yaml=old, name=name)
                 self.assertFalse(result.mechanical)
-                self.assertIn(
-                    "beyond comments and whitespace", " ".join(result.reasons)
-                )
+                self.assertIn("changed", " ".join(result.reasons))
                 self.assertNotIn(f"adapters/x/{name}", result.edits)
                 self.assertIn(f"b/{name}", " ".join(result.evidence))
-
-    def test_comments_blank_lines_and_trailing_space_are_not_changes(self) -> None:
-        shell = "#!/bin/sh\nexec vllm serve m\n"
-        for local, old, new in (
-            ("a.sh", shell, shell.replace("\nexec", "\n# why\n\nexec") + "  \n"),
-            ("a.env", "A=1\n", "# note\nA=1   \n\n"),
-            ("a.yaml", "a:\n  b: 1\n", "a:\n  # c\n  b: 1\n"),
-        ):
-            self.assertFalse(
-                refresh.meaningful_change(local, old.encode(), new.encode()), local
-            )
-        for local, old, new in (
-            ("a.yaml", "a:\n  b: 1\n", "a:\n    b: 1\n"),  # indentation is syntax
-            ("a.json", "{}", "{} "),
-            ("Dockerfile", "FROM x\n", "# c\nFROM x\n"),
-        ):
-            self.assertTrue(
-                refresh.meaningful_change(local, old.encode(), new.encode()), local
-            )
 
     def test_a_patched_or_edited_file_stays_a_review(self) -> None:
         new_yaml = self.NOTE + OLD_YAML
@@ -1436,7 +1416,9 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             self.NOTE + OLD_YAML,
             dockerfile="RUN cd /app && bash ./recipes/r.yaml 2>/dev/null\n",
         )
-        self.assertTrue(result.mechanical, result.reasons)
+        reasons = " ".join(result.reasons)
+        self.assertIn("changed", reasons)
+        self.assertNotIn("not vendored verbatim", reasons)
 
 
 class ModelReExportTests(unittest.TestCase):
@@ -2808,20 +2790,14 @@ class KitScopeTests(unittest.TestCase):
         self.assertTrue(refresh.is_blocking("examples/text/requirements.txt"))
         self.assertTrue(refresh.is_blocking("docker/cuda/Dockerfile"))
 
-    def test_a_mapped_subset_does_not_use_the_whole_repository(self) -> None:
+    def used(self, files: dict[str, str], manifest: dict, trees=None):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         directory = Path(temporary.name)
-        (directory / "Dockerfile").write_text(
-            "RUN git clone https://github.com/example/recipes /src\n"
-        )
-        manifest = {
-            "source": {"repo": "example/recipes", "commit": OLD},
-            "renamed": {"launch.sh": "runs/a/launch/launch.sh"},
-        }
+        for name, text in files.items():
+            (directory / name).parent.mkdir(parents=True, exist_ok=True)
+            (directory / name).write_text(text)
         (directory / "vendored-upstream.json").write_text(json.dumps(manifest))
-        self.assertTrue(refresh.adapter_usage(directory, "example/recipes", OLD)[1])
-        self.assertTrue(refresh.maps_subset(directory))
         item = refresh.Item(
             "source",
             "github",
@@ -2833,11 +2809,45 @@ class KitScopeTests(unittest.TestCase):
         pin = refresh.AdapterPin("example/recipes", OLD, directory)
         assessor = refresh.Assessor(refresh.Catalog(directory), object(), None, {})
         recipe = {"execution": {"build": {"context": {"path": "."}}}}
-        changed = assessor._used_changes(item, recipe, pin, set(), assessment)
-        self.assertEqual(changed, [])  # added files in other run folders are not used
-        manifest.pop("renamed")
-        (directory / "vendored-upstream.json").write_text(json.dumps(manifest))
-        self.assertIsNone(assessor._used_changes(item, recipe, pin, set(), assessment))
+        with patch.object(
+            refresh.vendored,
+            "fetch_tree",
+            side_effect=lambda _repo, commit: (trees or {}).get(
+                commit, refresh.vendored.Tree({}, True)
+            ),
+        ):
+            return assessor._used_changes(item, recipe, pin, set(), assessment)
+
+    MAPPED: ClassVar[dict[str, Any]] = {
+        "source": {"repo": "example/recipes", "commit": OLD},
+        "renamed": {"launch.sh": "runs/a/launch/launch.sh"},
+    }
+
+    def test_a_mapped_subset_does_not_use_the_whole_repository(self) -> None:
+        # A bare git checkout beside a mention of the repository is not a clone of it.
+        text = "# https://github.com/example/recipes\ngit checkout abc\n"
+        self.assertEqual(self.used({"Dockerfile": text}, self.MAPPED), [])
+        unmapped = {"source": self.MAPPED["source"]}
+        self.assertIsNone(self.used({"Dockerfile": text}, unmapped))
+
+    def test_a_genuine_clone_beats_the_mapped_subset(self) -> None:
+        clone = "RUN git clone https://github.com/example/recipes /src\n"
+        self.assertIsNone(self.used({"Dockerfile": clone}, self.MAPPED))
+
+    def test_a_mod_the_creator_yaml_activates_but_the_adapter_lacks_is_used(
+        self,
+    ) -> None:
+        yaml = "name: x\nmods:\n  - mods/nemotron-nano\n  - mods/vendored\ncommand: |\n  x\n"
+        old = refresh.vendored.Tree({"mods/nemotron-nano/run.sh": "a" * 40}, True)
+        new = refresh.vendored.Tree({"mods/nemotron-nano/run.sh": "b" * 40}, True)
+        trees = {OLD: old, NEW: new}
+        files = {"recipes/r.yaml": yaml, "mods/vendored/run.sh": "x"}
+        changed = self.used(files, {"source": self.MAPPED["source"]}, trees)
+        self.assertEqual(changed, ["mods/nemotron-nano/run.sh"])
+        # Unchanged upstream: nothing used changed; a vendored mod is not double counted.
+        same = {OLD: old, NEW: old}
+        self.assertEqual(self.used(files, {"source": self.MAPPED["source"]}, same), [])
+        self.assertEqual(refresh.active_mods(None), set())
 
 
 class RewrittenHistoryTests(unittest.TestCase):
