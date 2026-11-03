@@ -157,3 +157,28 @@ def changed_owner(
     ):
         return None
     return basis
+
+
+def changed_release(
+    entry: Mapping[str, Any], release: str | None
+) -> dict[str, str] | None:
+    """The exit of a deferred (blocked-platform) recipe: the Controller it failed on changed.
+
+    An unclassified fault is not the recipe's; it heals when the platform does. Only a
+    proven difference between the release recorded on the failure and the deployed one
+    reopens it, once per release.
+    """
+    old = entry.get("release")
+    if entry.get("status") != "deferred" or not release or not isinstance(old, str):
+        return None
+    if entry.get("code") in FAULT_OWNERS:
+        return None  # a fault with a named owner is reopened by that owner's change
+    if old == release:
+        return None
+    basis = {"controller_release": release}
+    history = entry.get("recovery_history", [])
+    if not isinstance(history, list) or any(
+        isinstance(item, Mapping) and item.get("basis") == basis for item in history
+    ):
+        return None
+    return basis

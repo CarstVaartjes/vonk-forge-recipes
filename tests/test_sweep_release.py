@@ -92,23 +92,23 @@ def test_accepted_publication_is_not_a_deployed_fix_or_a_retest(
     ]
 
 
-def test_a_new_api_process_does_not_attribute_a_generic_application_fault(
+def test_a_new_api_process_retests_a_generic_application_fault_without_blaming_the_api(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     recipe = FakeRecipe("image-bug", fail_load=IMAGE_BUG)
     sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
     _deployed_api(fleet, OLD)
     sweep.run()
-    previous = dict(_entry(sweep, "image-bug"))
+    assert _entry(sweep, "image-bug")["status"] == "deferred"
     fleet.api_source_sha = NEW
     fleet.recipes[recipe.key].fail_load = None
     again, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
     again.run()
     assert again.release_sha == NEW
-    assert _entry(again, "image-bug")["status"] == "deferred"
-    assert _entry(again, "image-bug")["attempts"] == previous["attempts"]
-    assert _entry(again, "image-bug")["evidence_bundle"] == previous["evidence_bundle"]
-    assert _entry(again, "image-bug").get("recovery_basis") is None
+    entry = _entry(again, "image-bug")
+    assert entry["status"] == "passed"
+    assert entry["recovery_history"][0]["basis"] == {"controller_release": NEW}
+    assert entry.get("recovery_basis") is None  # no fault owner is attributed
 
 
 def _record_local_argument_fault(sweep, fleet, recipe):

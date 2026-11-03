@@ -1437,6 +1437,8 @@ class Sweep:
             ) or not self._selected_key(key):
                 continue
             basis = recovery.changed_owner(entry, observations)
+            if basis is None:
+                basis = recovery.changed_release(entry, self.release_sha)
             if basis is not None:
                 self._schedule_retest(key, RetestReason.OWNER_CHANGED, basis=basis)
 
