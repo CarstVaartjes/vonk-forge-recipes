@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "identity": "drowzeys-fasth3-tensorfold/8step-v2@1",
-  "upstream_template": "https://github.com/drowzeys/keys-Wasserman-Slate-AI-Studio-powered-by-TensorFold-built-with-integrated-Fish-Audio-Drama3/blob/1e8677e7c9151836de375e3cc6306ed6e4170c65/spark/spark_generate.py",
+  "upstream_template": "https://github.com/drowzeys/Imagination-Studio-by-keys-Wasserman/blob/3926471d59bfe8a51a295b7bfdef6cda0b09e1de/spark/spark_generate.py",
   "models": [
     {
       "artifact_id": "target",

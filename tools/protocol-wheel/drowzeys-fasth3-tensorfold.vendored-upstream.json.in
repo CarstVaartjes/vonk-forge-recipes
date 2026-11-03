@@ -1,7 +1,7 @@
 {
   "source": {
-    "repo": "drowzeys/keys-Wasserman-Slate-AI-Studio-powered-by-TensorFold-built-with-integrated-Fish-Audio-Drama3",
-    "commit": "1e8677e7c9151836de375e3cc6306ed6e4170c65"
+    "repo": "drowzeys/Imagination-Studio-by-keys-Wasserman",
+    "commit": "3926471d59bfe8a51a295b7bfdef6cda0b09e1de"
   },
   "renamed": {
     "tensorfold_h3/__init__.py": "spark/tensorfold_h3/__init__.py"
