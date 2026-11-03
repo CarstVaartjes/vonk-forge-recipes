@@ -54,6 +54,7 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence as Evidence,
 )
 
+from spark_sweep.lifecycle import RecipeStatus, RetestReason
 from spark_sweep.qualification import (
     backfill,
     current_identity,
@@ -805,9 +806,9 @@ def test_saved_verdict_adoption_restores_without_rerun_and_survives_interrupted_
     adopted = restart()
     # Loading and deriving neither writes the source state nor submits a load.
     assert sweep.state.path.read_bytes() == before
-    assert adopted.state.status(KEY) == (
-        RecipeStatus.PENDING if active else RecipeStatus.PASSED
-    )
+    # An adopted pass has no image-bound proof: the catalog would not publish it, so it is
+    # asked for again (a run, not a load here) whether or not a lane is active.
+    assert adopted.state.status(KEY) == RecipeStatus.PENDING
     assert not adopted.log.entries()
     interrupted = restart()
     assert interrupted.qualification_evidence == adopted.qualification_evidence
@@ -1112,7 +1113,7 @@ def test_sparse_topology_failure_invalidates_older_public_proof():
 def test_real_projected_library_and_evidence_restore_requeued_pass(tmp_path):
     from sweep_fakes import make_sweep
 
-    from spark_sweep.identity import content_identity, recorded_identity
+    from spark_sweep.identity import content_identity
     from spark_sweep.lifecycle import RecipeStatus, RetestReason
     from spark_sweep.state import State
     from spark_sweep.vonkctl import Reply
@@ -1169,21 +1170,17 @@ def test_real_projected_library_and_evidence_restore_requeued_pass(tmp_path):
     sweep.state = State.load(sweep.state.path)
     entry = sweep.state.entry(recipe.key)
     sweep._reconcile_entry(recipe, 2)
-    assert entry["status"] == RecipeStatus.PASSED
-    assert entry["attempts"] == 0
-    assert entry["revalidate"] is False
-    assert "requeued_because" not in entry
+    # The historical pass has no image-bound proof; the catalog pins an image, so the
+    # catalog would not publish it: it is asked for again rather than restored.
+    assert entry["status"] == RecipeStatus.PENDING
     view = sweep.qualification_view(recipe)
     assert view.status == Status.WORKING
     assert view.last_pass == passed
-    restored = recorded_identity(entry)
-    assert restored is not None and restored.runtime_image is None
     assert (
         published_status(proof, current_identity(recipe)).status
         == Status.NOT_YET_VERIFIED
     )
     assert not fleet.calls  # no inference, loads, downloads or remote reads
-    assert not (tmp_path / "results.jsonl").exists()  # no manufactured measurement
 
 
 @pytest.mark.parametrize(
@@ -1259,30 +1256,89 @@ def test_pass_recorded_before_source_digests_stays_working():
     assert changed.changed == (Change.SOURCE,)
 
 
-def test_a_local_pass_the_catalog_would_not_publish_is_scheduled_like_untested(
-    tmp_path, monkeypatch
-):
-    """Published status ranks the queue: no image digest means no proof, so run it again."""
-    from spark_sweep import qualification
+_NO_CONTROLLER = PLATFORM.model_copy(
+    update={"controller_source_sha": None, "controller_version": None}
+)
 
-    sweep, _, _ = evidence_sweep(tmp_path, ("publishes", "noimage"))
+
+def _passed(sweep, key, *records):
+    sweep.qualification_evidence[key] = evidence(*records)
+    sweep.state.entry(key).update(
+        status=RecipeStatus.PASSED, content_sha256=A.content_sha256
+    )
+
+
+def test_a_local_pass_the_catalog_would_not_publish_is_asked_for_again(tmp_path):
+    """A pass that does not publish (platform unresolved) with a catalog image is re-run."""
+    sweep, _, _ = evidence_sweep(tmp_path)
+    key = next(iter(sweep.recipes))
+    incomplete = record().model_copy(update={"platform": _NO_CONTROLLER})
+    _passed(sweep, key, incomplete)
+    assert sweep.qualification_view(sweep.recipes[key]).status == Status.WORKING
+    sweep.refresh_catalog()  # the catalog pass reconciles every recipe
+    sweep.tick()
+    entry = sweep.state.entry(key)
+    assert entry["requeued_because"] == RetestReason.UNPUBLISHABLE_PASS
+    assert entry["status"] == RecipeStatus.PENDING or key in sweep.state.slots
+    assert key in {r.key for r in sweep.pending()} | set(sweep.state.slots)
+
+
+def test_a_publishing_pass_is_not_requeued(tmp_path):
+    sweep, _, _ = evidence_sweep(tmp_path)
+    key = next(iter(sweep.recipes))
+    _passed(sweep, key, record())
+    sweep.refresh_catalog()  # the catalog pass reconciles every recipe
+    sweep.tick()
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PASSED
+    assert "requeued_because" not in sweep.state.entry(key)
+
+
+def test_without_a_catalog_image_the_pass_is_left_alone(tmp_path, monkeypatch):
+    """A re-run could not publish either: no loop."""
+    from spark_sweep import qualification, run
+
+    sweep, _, _ = evidence_sweep(tmp_path)
+    key = next(iter(sweep.recipes))
     unimaged = A.model_copy(update={"runtime_image": None})
-    identities = {"vonk-forge/publishes": A, "vonk-forge/noimage": unimaged}
-    monkeypatch.setattr(
-        qualification, "current_identity", lambda recipe: identities[recipe.key]
-    )
-    for key, identity in identities.items():
-        sweep.qualification_evidence[key] = Evidence(
-            recipe_key=key, records=(record(identity),)
-        )
-    views = {k: sweep.qualification_view(sweep.recipes[k]) for k in identities}
-    assert all(v is not None and v.status == Status.WORKING for v in views.values())
-    # The local statuses are equal; only the published derivation tells them apart.
-    assert sweep._scheduling_priority(sweep.recipes["vonk-forge/publishes"]) == 4
-    assert (
-        sweep._scheduling_priority(sweep.recipes["vonk-forge/noimage"])
-        == qualification.STATUS_ORDER[Status.UNTESTED]
-    )
-    sweep.queue = ["vonk-forge/publishes", "vonk-forge/noimage"]
-    sweep.queue.sort(key=lambda key: sweep._scheduling_priority(sweep.recipes[key]))
-    assert sweep.queue == ["vonk-forge/noimage", "vonk-forge/publishes"]
+    for module in (qualification, run):
+        monkeypatch.setattr(module, "current_identity", lambda recipe: unimaged)
+    incomplete = record(unimaged).model_copy(update={"platform": _NO_CONTROLLER})
+    _passed(sweep, key, incomplete)
+    sweep.refresh_catalog()  # the catalog pass reconciles every recipe
+    sweep.tick()
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PASSED
+    assert "requeued_because" not in sweep.state.entry(key)
+
+
+def test_once_re_run_with_an_image_and_passing_it_stays_passed(tmp_path):
+    sweep, _, _ = evidence_sweep(tmp_path)
+    key = next(iter(sweep.recipes))
+    incomplete = record().model_copy(update={"platform": _NO_CONTROLLER})
+    _passed(sweep, key, incomplete)
+    sweep.refresh_catalog()  # the catalog pass reconciles every recipe
+    sweep.tick()
+    assert sweep.state.entry(key)["requeued_because"] == RetestReason.UNPUBLISHABLE_PASS
+    sweep.state.slots.pop(key, None)
+    _passed(sweep, key, incomplete, record(day=1))
+    sweep.refresh_catalog()  # the catalog pass reconciles every recipe
+    sweep.tick()
+    entry = sweep.state.entry(key)
+    assert entry["status"] == RecipeStatus.PASSED
+    assert len(entry.get("recovery_history", [])) == 0
+    assert sweep.state.status(key) == RecipeStatus.PASSED
+
+
+def test_a_pass_that_stays_unpublishable_is_asked_for_once_per_catalog_identity(
+    tmp_path,
+):
+    sweep, _, _ = evidence_sweep(tmp_path)
+    key = next(iter(sweep.recipes))
+    incomplete = record().model_copy(update={"platform": _NO_CONTROLLER})
+    _passed(sweep, key, incomplete)
+    sweep.refresh_catalog()  # the catalog pass reconciles every recipe
+    sweep.tick()
+    sweep.state.slots.pop(key, None)
+    _passed(sweep, key, incomplete)  # the re-run again produced an unpublishable pass
+    sweep.refresh_catalog()  # the catalog pass reconciles every recipe
+    sweep.tick()
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PASSED

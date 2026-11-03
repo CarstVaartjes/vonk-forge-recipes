@@ -377,28 +377,7 @@ STATUS_ORDER = {
 }
 
 
-def scheduling_priority(
-    view: QualificationStatusView,
-    evidence: RecipeQualificationEvidence | None = None,
-    recipe: Recipe | None = None,
-) -> int:
-    """Lowest priority is a pass the catalog would publish as Working.
-
-    A local pass the catalog would not publish (no runtime image digest, an unresolved
-    platform) is not proof to anyone: it is scheduled like an untested recipe so it is
-    run again. The published derivation is the contracts package's; there is no second.
-    """
-    if (
-        view.status == QualificationStatus.WORKING
-        and evidence is not None
-        and recipe is not None
-    ):
-        try:
-            published = published_status(evidence, current_identity(recipe))
-        except (ValueError, TypeError):
-            published = None
-        if published is None or published.status != QualificationStatus.WORKING:
-            return STATUS_ORDER[QualificationStatus.UNTESTED]
+def scheduling_priority(view: QualificationStatusView) -> int:
     return STATUS_ORDER.get(view.status, 4)
 
 
@@ -425,3 +404,26 @@ def prune_withdrawn_evidence(root: Path) -> list[Path]:
             path.unlink()
             removed.append(path)
     return removed
+
+
+def unpublishable_pass(
+    view: QualificationStatusView | None,
+    evidence: RecipeQualificationEvidence | None,
+    recipe: Recipe,
+) -> bool:
+    """A local Working pass the catalog would not publish as Working, though a run could fix it.
+
+    The published derivation is the contracts package's (the one the catalog uses). A re-run
+    can publish only when the catalog pins a runtime image for the recipe; without one the
+    pass is left alone, since running again would repeat the same unpublishable proof.
+    """
+    if view is None or evidence is None or view.status != QualificationStatus.WORKING:
+        return False
+    try:
+        current = current_identity(recipe)
+        if current.runtime_image is None:
+            return False
+        published = published_status(evidence, current)
+    except (ValueError, TypeError):
+        return False
+    return published.status != QualificationStatus.WORKING
