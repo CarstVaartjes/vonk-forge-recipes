@@ -496,7 +496,7 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
         self.assertIn(NEW, result.edits["recipes/recipe.json"].decode())
 
 
-def single_recipe_catalog(source_reference: str) -> object:
+def single_recipe_catalog(source_reference: str) -> Any:
     return refresh.Catalog(
         Path(tempfile.gettempdir()),
         recipes={
@@ -554,8 +554,12 @@ class NothingRunsTests(unittest.TestCase):
             )
         )
 
-    def assess(self, comparison_, *, used=None, report=None):
+    def assess(self, comparison_, *, used=None, report=None, engine=None):
         catalog = single_recipe_catalog(f"https://github.com/example/recipe/tree/{OLD}")
+        if engine is not None:
+            recipe = catalog.recipes["recipe"]
+            recipe["runtime"] = {"engine": engine}
+            recipe["topology"] = {"roles": []}
         assessor = refresh.Assessor(catalog, object(), None, {})
         assessor.target = lambda _provider, _repo: self.TARGET
         patches = [
@@ -574,7 +578,9 @@ class NothingRunsTests(unittest.TestCase):
                 ),
                 patch.object(refresh.vendored, "check_adapter", return_value=report),
                 patch.object(refresh.Assessor, "_retarget_adapter"),
-                patch.object(refresh.Assessor, "_follow_vendored", return_value=None),
+                patch.object(
+                    refresh.Assessor, "_review_vendored", return_value="changed"
+                ),
             ]
         for active in patches:
             active.start()
@@ -587,6 +593,29 @@ class NothingRunsTests(unittest.TestCase):
         )
         self.assertFalse(result.drifted)
         self.assertFalse(result.reasons)
+
+    def test_a_moved_vllm_document_meets_the_budget_envelope(self) -> None:
+        moved = comparison(files=("src/engine.py",))
+        with (
+            patch("refresh_upstream.RecipeDefinition"),
+            patch("refresh_upstream.raise_role_peaks") as raised,
+        ):
+            self.assess(moved, engine="vllm")
+            raised.assert_called_once()
+            roles, _recipe, previous, digest = raised.call_args.args
+            self.assertEqual(roles, [])
+            self.assertEqual(len(digest), 64)  # the pre-move authored digest
+            self.assertIsNotNone(previous)  # the keep rule judges the pre-move content
+        with patch("refresh_upstream.raise_role_peaks") as raised:
+            self.assess(moved, engine="sglang")
+            raised.assert_not_called()
+        with (
+            patch("refresh_upstream.RecipeDefinition"),
+            patch("refresh_upstream.raise_role_peaks", side_effect=ValueError("bad")),
+        ):
+            result = self.assess(moved, engine="vllm")
+        self.assertFalse(result.mechanical)
+        self.assertIn("memory envelope", " ".join(result.reasons))
 
     def test_whole_repository_code_move_is_still_a_refresh(self) -> None:
         result = self.assess(comparison(files=("README.md", "src/engine.py")))
@@ -1067,6 +1096,15 @@ class AdapterUsageTests(unittest.TestCase):
         codeload = f"ADD https://codeload.github.com/o/Repo/tar.gz/{OLD} /src.tgz\n"
         self.assertTrue(self.usage({"Dockerfile": codeload})[1])
 
+    def test_another_repositorys_download_does_not_make_this_one_whole(self) -> None:
+        dockerfile = (
+            'LABEL org.opencontainers.image.source="https://github.com/o/Repo"\n'
+            "ADD https://codeload.github.com/other/Tensor/tar.gz/abc /t.tgz\n"
+            "RUN git clone https://github.com/comfy/Comfy /c\n"
+            "RUN pip install https://github.com/other/lib/archive/v1.zip\n"
+        )
+        self.assertEqual(self.usage({"Dockerfile": dockerfile}), (set(), False))
+
 
 class DivergedReleaseTests(unittest.TestCase):
     class FakeHttp:
@@ -1179,24 +1217,32 @@ command: |
 
 
 class VendoredCreatorMoveTests(unittest.TestCase):
-    """A vendored file the recipe's own creator changed follows when nothing it
-    references in it is gone (the 15 eugr recipes of refresh run 38469862398)."""
+    """A vendored creator file that changed upstream is always a review: no byte of it
+    is judged harmless, and an unchanged file moves with the pin without a rewrite."""
 
     def assess(
-        self, new_yaml: str, *, dockerfile: str = "", ours=(), extra=None, engine=None
+        self,
+        new_yaml: str,
+        *,
+        old_yaml: str = OLD_YAML,
+        dockerfile: str = "",
+        ours=(),
+        extra=None,
+        engine=None,
+        name: str = "recipes/r.yaml",
     ):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
         adapter = root / "adapters/x"
-        (adapter / "recipes").mkdir(parents=True)
-        (adapter / "recipes/r.yaml").write_text(OLD_YAML)
+        (adapter / name).parent.mkdir(parents=True)
+        (adapter / name).write_text(old_yaml)
         (adapter / "vllm-wrapper.py").write_text("print('wrapper')\n")
         (adapter / "Dockerfile").write_text(
             "FROM example/engine@sha256:" + "a" * 64 + "\nENTRYPOINT []\n" + dockerfile
         )
-        for name, text in (extra or {}).items():
-            (adapter / name).write_text(text)
+        for extra_name, text in (extra or {}).items():
+            (adapter / extra_name).write_text(text)
         (adapter / "vendored-upstream.json").write_text(
             json.dumps(
                 {
@@ -1232,13 +1278,11 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             "github", "example/recipe", NEW, "2026-10-13", None, None, "u"
         )
         data = new_yaml.encode()
-        tree = refresh.vendored.Tree(
-            {"recipes/r.yaml": refresh.vendored.git_blob_sha(data)}, True
-        )
+        tree = refresh.vendored.Tree({name: refresh.vendored.git_blob_sha(data)}, True)
         for active in (
             patch(
                 "refresh_upstream.compare_commits",
-                return_value=comparison(files=("recipes/r.yaml",)),
+                return_value=comparison(files=(name,)),
             ),
             patch.object(refresh.vendored, "fetch_tree", return_value=tree),
             patch("refresh_upstream.upstream_blob", return_value=data),
@@ -1246,25 +1290,6 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             active.start()
             self.addCleanup(active.stop)
         return assessor.assess("recipe")
-
-    def test_a_moved_vllm_document_follows_the_budget_envelope(self) -> None:
-        new_yaml = OLD_YAML.replace("8192", "4096")
-        with (
-            patch("refresh_upstream.RecipeDefinition"),
-            patch("refresh_upstream.raise_role_peaks") as raised,
-        ):
-            self.assess(new_yaml, engine="vllm")
-            raised.assert_called_once()
-        with patch("refresh_upstream.raise_role_peaks") as raised:
-            self.assess(new_yaml, engine="sglang")
-            raised.assert_not_called()
-        with (
-            patch("refresh_upstream.RecipeDefinition"),
-            patch("refresh_upstream.raise_role_peaks", side_effect=ValueError("bad")),
-        ):
-            result = self.assess(new_yaml, engine="vllm")
-        self.assertFalse(result.mechanical)
-        self.assertIn("memory envelope", " ".join(result.reasons))
 
     def test_real_unproven_dual_is_raised_and_then_passes_the_touched_check(
         self,
@@ -1308,22 +1333,104 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             "vLLM budget plus overhead",
         )
 
-    def test_verbatim_file_with_its_flags_intact_is_mechanical(self) -> None:
-        new_yaml = OLD_YAML.replace("8192", "4096")
-        result = self.assess(new_yaml)
-        self.assertTrue(result.mechanical, result.reasons)
-        self.assertEqual(result.edits["adapters/x/recipes/r.yaml"], new_yaml.encode())
-        self.assertIn(NEW, result.edits["adapters/x/vendored-upstream.json"].decode())
-        body = refresh.pr_body(result)
-        self.assertIn("-  max_num_batched_tokens: 8192", body)
-        self.assertIn("+  max_num_batched_tokens: 4096", body)
-        for checked in ("`--trust-remote-code`", "`VLLM_MARLIN_USE_ATOMIC_ADD`"):
-            self.assertIn(checked, body)
-        # A flag the creator's file never stated is not checked against it.
-        self.assertNotIn("`--served-model-name`", body)
+    NOTE = "# creator note\n\n"
+
+    def test_an_unchanged_vendored_file_moves_with_the_pin(self) -> None:
+        # The eugr group that moves the image and pin only (no yaml change): nothing a
+        # reviewer must judge, and the file itself is never rewritten.
+        result = self.assess(OLD_YAML)
+        self.assertEqual(result.reasons, [])
+        self.assertNotIn("adapters/x/recipes/r.yaml", result.edits)
+
+    def test_any_other_change_to_a_vendored_creator_file_needs_review(self) -> None:
+        quoted = (
+            "model: org/m\ncontainer: vllm-node\ndefaults:\n  gpu_memory_utilization: 0.8\n"
+            'command: "vllm serve org/m --gpu-memory-utilization 0.8"\n'
+        )
+        inline = "mods: [mods/a]\nenv: {A: 1}\ncommand: x\n"
+        shell = "#!/bin/sh\nexec vllm serve m --max-model-len 4096\n"
+        env = "# profile\nGPU_MEMORY_UTILIZATION=0.8\nMODEL=org/m\n"
+        yaml = "container: vllm-node\nbuild_args:\n  - --exp-b12x\nsolo_only: true\n"
+        cases = {
+            "utilization": (
+                OLD_YAML,
+                OLD_YAML.replace("8192", "4096"),
+                "recipes/r.yaml",
+            ),
+            "model line": (
+                "model: org/m\n" + OLD_YAML,
+                "model: org/n\n" + OLD_YAML,
+                "recipes/r.yaml",
+            ),
+            "quoted command": (quoted, quoted.replace("0.8", "0.9"), "recipes/r.yaml"),
+            "inline mods": (
+                inline,
+                inline.replace("mods/a", "mods/b"),
+                "recipes/r.yaml",
+            ),
+            "inline env": (inline, inline.replace("A: 1", "A: 2"), "recipes/r.yaml"),
+            "shell flag": (shell, shell.replace("4096", "8192"), "launch/serve.sh"),
+            "env file": (env, env.replace("0.8", "0.9"), "profiles/p.env"),
+            "container": (
+                yaml,
+                yaml.replace("vllm-node", "vllm-node-b12x"),
+                "recipes/r.yaml",
+            ),
+            "build args": (
+                yaml,
+                yaml.replace("--exp-b12x", "--other"),
+                "recipes/r.yaml",
+            ),
+            "solo only": (yaml, yaml.replace("true", "false"), "recipes/r.yaml"),
+            "shebang": (
+                shell,
+                shell.replace("/bin/sh", "/bin/bash"),
+                "launch/serve.sh",
+            ),
+            "inline comment": (
+                OLD_YAML,
+                OLD_YAML.replace("8192", "8192  # raised"),
+                "recipes/r.yaml",
+            ),
+            "unknown format": ("a b\n", "a  b\n", "launch/run.cfgx"),
+            "json": ('{"a": 1}', '{"a": 1} ', "launch/profile.json"),
+            "comment only": (OLD_YAML, self.NOTE + OLD_YAML, "recipes/r.yaml"),
+            "trailing space": (
+                shell,
+                shell.replace("4096", "4096 "),
+                "launch/serve.sh",
+            ),
+            "kernel macro in a raw string": (
+                'SRC = r"""\n#define TILE 16\n"""\n',
+                'SRC = r"""\n#define TILE 32\n"""\n',
+                "mods/k/kernel.py",
+            ),
+            "continuation ends the command": (
+                "vllm serve m \\\n  --a 1\n",
+                "vllm serve m \\ \n  --a 1\n",
+                "launch/serve.sh",
+            ),
+            "continuation in a yaml command": (
+                "command: |\n  vllm serve m \\\n    --a 1\n",
+                "command: |\n  vllm serve m \\ \n    --a 1\n",
+                "recipes/r.yaml",
+            ),
+            "heredoc line": (
+                "cat <<EOF\n# not a comment\nEOF\n",
+                "cat <<EOF\nEOF\n",
+                "launch/serve.sh",
+            ),
+        }
+        for label, (old, new, name) in cases.items():
+            with self.subTest(label):
+                result = self.assess(new, old_yaml=old, name=name)
+                self.assertFalse(result.mechanical)
+                self.assertIn("changed", " ".join(result.reasons))
+                self.assertNotIn(f"adapters/x/{name}", result.edits)
+                self.assertIn(f"b/{name}", " ".join(result.evidence))
 
     def test_a_patched_or_edited_file_stays_a_review(self) -> None:
-        new_yaml = OLD_YAML.replace("8192", "4096")
+        new_yaml = self.NOTE + OLD_YAML
         cases = {
             "sed": {"dockerfile": "RUN sed -i 's/a/b/' \\\n    /app/recipes/r.yaml\n"},
             "patch": {
@@ -1342,17 +1449,12 @@ class VendoredCreatorMoveTests(unittest.TestCase):
 
     def test_running_the_file_is_not_editing_it(self) -> None:
         result = self.assess(
-            OLD_YAML.replace("8192", "4096"),
+            self.NOTE + OLD_YAML,
             dockerfile="RUN cd /app && bash ./recipes/r.yaml 2>/dev/null\n",
         )
-        self.assertTrue(result.mechanical, result.reasons)
-
-    def test_a_referenced_flag_gone_upstream_stays_a_review_naming_it(self) -> None:
-        result = self.assess(OLD_YAML.replace("    --trust-remote-code \\\n", ""))
-        self.assertFalse(result.mechanical)
         reasons = " ".join(result.reasons)
-        self.assertIn("`--trust-remote-code`", reasons)
-        self.assertIn("no longer has", reasons)
+        self.assertIn("changed", reasons)
+        self.assertNotIn("not vendored verbatim", reasons)
 
 
 class ModelReExportTests(unittest.TestCase):
@@ -2638,3 +2740,210 @@ class StalePullRequestTests(unittest.TestCase):
         closed = self.close(mech, groups={"a": ["a", "b"], "b": ["a", "b"]})
         self.assertEqual(list(closed), ["2"])
         self.assertIn("shares its build context", closed["2"])
+
+
+class KitScopeTests(unittest.TestCase):
+    """A kit is the subdirectory the adapter cites or the files it vendors, not a monorepo."""
+
+    def assess(self, files: tuple[str, ...], *, notice: str = "", dockerfile: str = ""):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        adapter = root / "adapters/x"
+        adapter.mkdir(parents=True)
+        (adapter / "Dockerfile").write_text("FROM scratch\n" + dockerfile)
+        (adapter / "NOTICE").write_text(notice)
+        recipe = {
+            "identity": {"slug": "recipe"},
+            "provenance": {
+                "attribution": ["Example"],
+                "source_reference": f"https://github.com/example/recipes/tree/{OLD}",
+            },
+            "release": {"version": "1.0.0", "released_at": "2026-01-01"},
+            "models": [],
+            "execution": {"build": {"context": {"path": "adapters/x"}}},
+            "runtime": {},
+        }
+        catalog = refresh.Catalog(root, recipes={"recipe": recipe})
+        assessor = refresh.Assessor(catalog, object(), None, {})
+        assessor.target = lambda _provider, _repo: refresh.Target(
+            "github", "example/recipes", NEW, "2026-10-13", None, None, "u"
+        )
+        with patch(
+            "refresh_upstream.compare_commits", return_value=comparison(files=files)
+        ):
+            return assessor.assess("recipe")
+
+    def cite(self, subdirectory: str = "") -> str:
+        return f"Profiles from https://github.com/example/recipes/tree/{OLD}{subdirectory}\n"
+
+    def test_a_citation_scopes_the_kit_to_its_subdirectory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "NOTICE").write_text(self.cite("/models/vllm-sr"))
+            self.assertEqual(
+                refresh.kit_citation_scope(Path(tmp), "example/recipes"),
+                ("models/vllm-sr",),
+            )
+            (Path(tmp) / "NOTICE").write_text(self.cite())
+            self.assertEqual(
+                refresh.kit_citation_scope(Path(tmp), "example/recipes"), ()
+            )
+            (Path(tmp) / "NOTICE").write_text("nothing\n")
+            self.assertIsNone(refresh.kit_citation_scope(Path(tmp), "example/recipes"))
+
+    def test_changes_outside_the_cited_subdirectory_are_not_a_refresh(self) -> None:
+        result = self.assess(
+            ("models/other/serve.yaml", "recipes/x.json"),
+            notice=self.cite("/models/vllm-sr"),
+        )
+        self.assertFalse(result.drifted, result.reasons)
+
+    def test_changes_inside_the_cited_subdirectory_need_review(self) -> None:
+        result = self.assess(
+            ("models/other/serve.yaml", "models/vllm-sr/serve.yaml"),
+            notice=self.cite("/models/vllm-sr"),
+        )
+        self.assertFalse(result.mechanical)
+        reasons = " ".join(result.reasons)
+        self.assertIn("models/vllm-sr/serve.yaml", reasons)
+        self.assertNotIn("models/other", reasons)
+
+    def test_a_citation_of_the_whole_repository_still_judges_everything(self) -> None:
+        result = self.assess(("models/other/serve.yaml",), notice=self.cite())
+        self.assertIn("models/other/serve.yaml", " ".join(result.reasons))
+
+    def test_a_pip_installed_library_ignores_examples_and_its_own_docker(self) -> None:
+        install = (
+            f"RUN pip install \\\n    git+https://github.com/example/recipes@{OLD}\n"
+        )
+        harmless = ("examples/text/requirements.txt", "docker/cuda/Dockerfile")
+        result = self.assess(harmless, dockerfile=install)
+        self.assertFalse(result.drifted, result.reasons)
+        result = self.assess((*harmless, "src/serve.sh"), dockerfile=install)
+        self.assertIn("src/serve.sh", " ".join(result.reasons))
+        self.assertNotIn("examples/", " ".join(result.reasons))
+        # Without a pip install of the library those files stay judged.
+        self.assertTrue(refresh.is_blocking("examples/text/requirements.txt"))
+        self.assertTrue(refresh.is_blocking("docker/cuda/Dockerfile"))
+
+    def used(self, files: dict[str, str], manifest: dict, trees=None):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        directory = Path(temporary.name)
+        for name, text in files.items():
+            (directory / name).parent.mkdir(parents=True, exist_ok=True)
+            (directory / name).write_text(text)
+        (directory / "vendored-upstream.json").write_text(json.dumps(manifest))
+        item = refresh.Item(
+            "source",
+            "github",
+            "example/recipes",
+            OLD,
+            refresh.Target("github", "example/recipes", NEW, "d", None, None, "u"),
+        )
+        assessment = refresh.Assessment("recipe", items=[item])
+        pin = refresh.AdapterPin("example/recipes", OLD, directory)
+        assessor = refresh.Assessor(refresh.Catalog(directory), object(), None, {})
+        recipe = {"execution": {"build": {"context": {"path": "."}}}}
+        with patch.object(
+            refresh.vendored,
+            "fetch_tree",
+            side_effect=lambda _repo, commit: (trees or {}).get(
+                commit, refresh.vendored.Tree({}, True)
+            ),
+        ):
+            return assessor._used_changes(item, recipe, pin, set(), assessment)
+
+    MAPPED: ClassVar[dict[str, Any]] = {
+        "source": {"repo": "example/recipes", "commit": OLD},
+        "renamed": {"launch.sh": "runs/a/launch/launch.sh"},
+    }
+
+    def test_a_mapped_subset_does_not_use_the_whole_repository(self) -> None:
+        # A bare git checkout beside a mention of the repository is not a clone of it.
+        text = "# https://github.com/example/recipes\ngit checkout abc\n"
+        self.assertEqual(self.used({"Dockerfile": text}, self.MAPPED), [])
+        unmapped = {"source": self.MAPPED["source"]}
+        self.assertIsNone(self.used({"Dockerfile": text}, unmapped))
+
+    def test_a_genuine_clone_beats_the_mapped_subset(self) -> None:
+        clone = "RUN git clone https://github.com/example/recipes /src\n"
+        self.assertIsNone(self.used({"Dockerfile": clone}, self.MAPPED))
+
+    def test_a_mod_the_creator_yaml_activates_but_the_adapter_lacks_is_used(
+        self,
+    ) -> None:
+        yaml = "name: x\nmods:\n  - mods/nemotron-nano\n  - mods/vendored\ncommand: |\n  x\n"
+        old = refresh.vendored.Tree({"mods/nemotron-nano/run.sh": "a" * 40}, True)
+        new = refresh.vendored.Tree({"mods/nemotron-nano/run.sh": "b" * 40}, True)
+        trees = {OLD: old, NEW: new}
+        files = {"recipes/r.yaml": yaml, "mods/vendored/run.sh": "x"}
+        changed = self.used(files, {"source": self.MAPPED["source"]}, trees)
+        self.assertEqual(changed, ["mods/nemotron-nano/run.sh"])
+        # Unchanged upstream: nothing used changed; a vendored mod is not double counted.
+        same = {OLD: old, NEW: old}
+        self.assertEqual(self.used(files, {"source": self.MAPPED["source"]}, same), [])
+        self.assertEqual(refresh.active_mods(None), set())
+
+    def test_every_spelling_of_a_mod_list_counts(self) -> None:
+        spellings = {
+            "indented": "mods:\n  - mods/a\n",
+            "column zero": "mods:\n- mods/a\n",
+            "flow": "mods: [mods/a, mods/b]\n",
+            "dot slash": "mods:\n  - ./mods/a\n",
+            "quoted": "mods:\n  - 'mods/a'\n",
+            "commented": "mods:\n  # - mods/a\n",
+            "trailing slash": "mods:\n  - mods/a/\n",
+        }
+        for label, text in spellings.items():
+            with self.subTest(label), tempfile.TemporaryDirectory() as tmp:
+                (Path(tmp) / "r.yaml").write_text(text)
+                self.assertIn("mods/a", refresh.active_mods(Path(tmp)))
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "r.yaml").write_text("mods: []\n")
+            self.assertEqual(refresh.active_mods(Path(tmp)), set())
+
+
+class RewrittenHistoryTests(unittest.TestCase):
+    class Http:
+        def __init__(self, message: str) -> None:
+            self.message = message
+
+        def github(self, _path: str):
+            raise refresh.NotFound("u", self.message)
+
+    def test_no_common_ancestor_is_a_diverged_pin_move(self) -> None:
+        compared = refresh.compare_commits(
+            self.Http("No common ancestor between a and b."), "o/r", OLD, NEW
+        )
+        self.assertEqual(compared.status, "diverged")
+        self.assertEqual(compared.rewritten, NEW)
+        for used in (None, []):
+            reasons = refresh.classify_changes(
+                compared, patched=set(), vendor_problems=[], used_changes=used
+            )
+            self.assertEqual(len(reasons), 1, reasons)
+            self.assertIn("history was rewritten", reasons[0])
+            self.assertIn(NEW, reasons[0])
+
+    def test_any_other_missing_comparison_is_still_unassessable(self) -> None:
+        with self.assertRaises(refresh.NotFound):
+            refresh.compare_commits(self.Http("Not Found"), "o/r", OLD, NEW)
+
+    def test_the_provider_message_is_read_from_the_error_body(self) -> None:
+        import io
+        import urllib.error
+        from email.message import Message
+
+        error = urllib.error.HTTPError(
+            "u",
+            404,
+            "Not Found",
+            Message(),
+            io.BytesIO(b'{"message": "No common ancestor"}'),
+        )
+        self.assertEqual(refresh._error_message(error), "No common ancestor")
+        error = urllib.error.HTTPError(
+            "u", 404, "Not Found", Message(), io.BytesIO(b"<html>")
+        )
+        self.assertEqual(refresh._error_message(error), "")

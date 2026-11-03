@@ -105,7 +105,7 @@ jobs:
           set -euo pipefail
           venv="$RUNNER_TEMP/memory-venv"
           uv venv --python 3.14 "$venv"
-          uv pip install --python "$venv/bin/python" -e contracts 'jsonschema>=4.24,<5'
+          uv pip install --python "$venv/bin/python" -e contracts -r .github/requirements-producer-tests.txt
           "$venv/bin/python" tools/check-recipe-memory-need --report "$RUNNER_TEMP/memory-estimates.md"
           "$venv/bin/python" tools/refresh-upstream --memory-estimate-issue "$RUNNER_TEMP/memory-estimates.md"
 
