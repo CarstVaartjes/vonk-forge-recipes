@@ -1,7 +1,9 @@
 {
   "ours": [
     "verify-runtime.py",
-    "qwen38-tonyd2wild-serve.py"
+    "qwen38-tonyd2wild-serve.py",
+    "requirements.in",
+    "requirements.lock"
   ],
   "renamed": {
     "LICENSE.upstream": "LICENSE",
