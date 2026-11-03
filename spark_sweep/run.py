@@ -62,7 +62,6 @@ from .catalog import (
     Listing,
     Model,
     Recipe,
-    as_int,
     dig,
     fetch_fleet,
     model_listing,
@@ -5067,14 +5066,6 @@ class Sweep:
                 detail,
                 evidence={"reply": policy.excerpt(document, 1000)},
             )
-            beyond_idle = failure.klass == "capacity" and self._beyond_idle_spark(
-                document, self._alias(placement.recipe)
-            )
-            if beyond_idle:
-                failure = replace(
-                    failure,
-                    evidence={**failure.evidence, "demand_exceeds_idle_spark": True},
-                )
             freeing = int(entry.get("review_freeing", 0))
             if (
                 verdict.disposition(failure) is Disposition.OBSERVE
@@ -5101,16 +5092,16 @@ class Sweep:
                     f"again ({freeing + 1}/{MAX_REVIEW_FREEING})"
                 )
                 continue
-            if failure.klass == "capacity" and not beyond_idle:
-                # Not beyond an idle Spark (or unknown): what holds the room (a Controller build, a
-                # workload no clearing stops) is the platform's wait, never a verdict. Review
-                # again later, no attempt spent.
+            if failure.klass == "capacity":
+                # What holds the room (a Controller build, a workload no clearing stops) is the
+                # platform's wait, never a verdict: the Controller decides the fit. Review again
+                # later, no attempt spent.
                 entry["defer_until"] = now + self.cfg.defer_delay
                 self.record_result(
                     key,
                     "review",
                     "waiting",
-                    reason=f"{code}: not beyond an idle Spark; waiting for the room",
+                    reason=f"{code}: waiting for the room",
                     disposition=Disposition.WAIT.value,
                     document=document,
                 )
@@ -5163,22 +5154,6 @@ class Sweep:
         watch = entry.pop("review_watch", None)
         if isinstance(watch, dict) and watch.get("source"):
             self.clear_infra(watch["source"])
-
-    def _beyond_idle_spark(self, document: Mapping[str, Any], alias: str) -> bool:
-        """The Controller's own demand for a node, with its reserve, exceeds that Spark's
-        whole memory: no clearing or wait can make room. Unknown is never beyond."""
-        totals = {s.id: s.memory_total for s in self.enrolled()}
-        for decision in document.get("admission_decisions", []):
-            if not isinstance(decision, dict) or decision.get("alias") != alias:
-                continue
-            for need in decision.get("requirements") or []:
-                if not isinstance(need, dict):
-                    continue
-                total = totals.get(str(need.get("node_id")), 0)
-                demand = as_int(need.get("memory_required_bytes"))
-                if total and demand + as_int(need.get("memory_floor_bytes")) > total:
-                    return True
-        return False
 
     def note_infra(
         self,

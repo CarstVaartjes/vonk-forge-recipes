@@ -89,12 +89,16 @@ def _waits(sweep, key: str) -> list[dict]:
     ]
 
 
-@pytest.mark.parametrize("demand", [40 * 10**9, None], ids=["fits-idle", "unknown"])
-def test_a_capacity_refusal_that_outlasts_clearing_waits_when_it_can_fit(
+@pytest.mark.parametrize(
+    "demand",
+    [40 * 10**9, None, SPARK_MEMORY],
+    ids=["fits-idle", "unknown", "exceeds-idle"],
+)
+def test_a_capacity_refusal_that_outlasts_clearing_waits_whatever_the_declared_demand(
     tmp_path, gateway, demand
 ) -> None:
     # A Controller build (or any holder clearing cannot stop) keeps the room past the
-    # clearings: the recipe fits an idle Spark (or that is unknown), so it waits.
+    # clearings: it waits, whatever the declared demand (the Controller owns the fit).
     sweep, fleet, _ = make_sweep(
         tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
     )
@@ -106,28 +110,6 @@ def test_a_capacity_refusal_that_outlasts_clearing_waits_when_it_can_fit(
     assert len(_waits(sweep, "vonk-forge/a")) >= 3
     rows = [r for r in sweep.log.entries() if r.get("recipe") == "vonk-forge/a"]
     assert not [r for r in rows if r.get("status") in ("deferred", "failed")]
-
-
-def test_a_capacity_refusal_beyond_an_idle_spark_is_deferred_with_evidence(
-    tmp_path, gateway
-) -> None:
-    sweep, fleet, _ = make_sweep(
-        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
-    )
-    refused = _refusing(fleet, times=None, demand=SPARK_MEMORY)
-    sweep.run()
-    entry = _entry(sweep, "a")
-    assert (entry["status"], entry["phase"], entry["failure_class"]) == (
-        "deferred",
-        "review",
-        "capacity",
-    )
-    assert entry["evidence"]["demand_exceeds_idle_spark"] is True
-    assert (
-        len(refused) == 1
-    )  # deterministic demand proof fails fast, without spending counts
-    rows = [r for r in sweep.log.entries() if r.get("status") == "deferred"]
-    assert rows[-1]["controller_document"]["admission_decisions"][0]["requirements"]
 
 
 def test_a_failed_application_the_controller_gave_up_on_is_recorded(
