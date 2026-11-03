@@ -91,8 +91,7 @@ export UV_CACHE_DIR="$(mktemp -d)"
 recipe_test_env="$(mktemp -d)"
 uv venv --python 3.14 "$recipe_test_env"
 uv pip install --python "$recipe_test_env/bin/python" -e contracts \
-  'jsonschema>=4.24,<5' 'pytest==9.1.1' 'Pillow==12.0.0' \
-  'numpy==2.3.5' 'trimesh==4.10.1'
+  -r .github/requirements-producer-tests.txt
 "$recipe_test_env/bin/python" -m pytest -q
 tools/check-python-lint
 tools/check-python-format

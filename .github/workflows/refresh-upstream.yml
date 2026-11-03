@@ -67,7 +67,7 @@ jobs:
           set -euo pipefail
           venv="$RUNNER_TEMP/refresh-venv"
           uv venv --python 3.14 "$venv"
-          uv pip install --python "$venv/bin/python" -e contracts 'jsonschema>=4.24,<5' 'pytest==9.1.1'
+          uv pip install --python "$venv/bin/python" -e contracts -r .github/requirements-producer-tests.txt
           echo "REFRESH_PYTHON=$venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Chain guard

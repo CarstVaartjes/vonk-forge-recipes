@@ -103,3 +103,21 @@ def test_extensionless_entry_points_stay_inside_every_gate() -> None:
         text = (ROOT / name).read_text(encoding="utf-8")
         assert "git ls-files" in text, f"{name} no longer discovers entry points"
         assert "'#!'*python*" in text, f"{name} no longer matches the shebang"
+
+
+def test_producer_test_environment_has_one_owner() -> None:
+    """Every workflow that runs the producer suite installs the shared file.
+
+    The refresh workflow once installed its own shorter list, so the full-suite
+    step died at collection on `import PIL` for every refresh.
+    """
+
+    shared = ROOT / ".github" / "requirements-producer-tests.txt"
+    requirements = shared.read_text(encoding="utf-8")
+    for package in ("Pillow", "numpy", "trimesh", "jsonschema", "pytest"):
+        assert package in requirements
+    for name in ("validate.yml", "refresh-upstream.yml"):
+        text = (ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8")
+        assert "-r .github/requirements-producer-tests.txt" in text, name
+        for copied in ("Pillow==", "trimesh==", "numpy=="):
+            assert copied not in text, f"{name} copies {copied} instead of the file"

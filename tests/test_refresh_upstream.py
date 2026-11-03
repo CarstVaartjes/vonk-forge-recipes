@@ -1067,6 +1067,15 @@ class AdapterUsageTests(unittest.TestCase):
         codeload = f"ADD https://codeload.github.com/o/Repo/tar.gz/{OLD} /src.tgz\n"
         self.assertTrue(self.usage({"Dockerfile": codeload})[1])
 
+    def test_another_repositorys_download_does_not_make_this_one_whole(self) -> None:
+        dockerfile = (
+            'LABEL org.opencontainers.image.source="https://github.com/o/Repo"\n'
+            "ADD https://codeload.github.com/other/Tensor/tar.gz/abc /t.tgz\n"
+            "RUN git clone https://github.com/comfy/Comfy /c\n"
+            "RUN pip install https://github.com/other/lib/archive/v1.zip\n"
+        )
+        self.assertEqual(self.usage({"Dockerfile": dockerfile}), (set(), False))
+
 
 class DivergedReleaseTests(unittest.TestCase):
     class FakeHttp:
@@ -1183,14 +1192,23 @@ class VendoredCreatorMoveTests(unittest.TestCase):
     references in it is gone (the 15 eugr recipes of refresh run 38469862398)."""
 
     def assess(
-        self, new_yaml: str, *, dockerfile: str = "", ours=(), extra=None, engine=None
+        self,
+        new_yaml: str,
+        *,
+        old_yaml: str = OLD_YAML,
+        dockerfile: str = "",
+        ours=(),
+        extra=None,
+        engine=None,
+        declared=(),
+        environment=(),
     ):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
         adapter = root / "adapters/x"
         (adapter / "recipes").mkdir(parents=True)
-        (adapter / "recipes/r.yaml").write_text(OLD_YAML)
+        (adapter / "recipes/r.yaml").write_text(old_yaml)
         (adapter / "vllm-wrapper.py").write_text("print('wrapper')\n")
         (adapter / "Dockerfile").write_text(
             "FROM example/engine@sha256:" + "a" * 64 + "\nENTRYPOINT []\n" + dockerfile
@@ -1218,8 +1236,14 @@ class VendoredCreatorMoveTests(unittest.TestCase):
                 "arguments": [
                     {"name": "trust-remote-code", "setting": None, "value": True},
                     {"name": "served-model-name", "setting": None, "value": "m"},
+                    # The recipe already launches the value the creator moves to.
+                    {"name": "max-num-batched-tokens", "setting": None, "value": 4096},
+                    *declared,
                 ],
-                "environment": [{"name": "VLLM_MARLIN_USE_ATOMIC_ADD", "value": "1"}],
+                "environment": [
+                    {"name": "VLLM_MARLIN_USE_ATOMIC_ADD", "value": "1"},
+                    *environment,
+                ],
                 "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
             },
         }
@@ -1312,6 +1336,79 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             self.assertIn(checked, body)
         # A flag the creator's file never stated is not checked against it.
         self.assertNotIn("`--served-model-name`", body)
+
+    LAUNCH_YAML = """model: org/model
+defaults:
+  gpu_memory_utilization: 0.8
+env:
+  VLLM_MARLIN_USE_ATOMIC_ADD: 1
+command: |
+  vllm serve org/model \\
+    --trust-remote-code \\
+    --max-num-batched-tokens 4096 \\
+    --gpu-memory-utilization {gpu_memory_utilization}
+"""
+
+    def launch_case(self, new_yaml: str, **kwargs):
+        return self.assess(new_yaml, old_yaml=self.LAUNCH_YAML, **kwargs)
+
+    def test_a_changed_utilization_the_recipe_lacks_needs_review(self) -> None:
+        new_yaml = self.LAUNCH_YAML.replace("0.8", "0.9")
+        result = self.launch_case(
+            new_yaml,
+            declared=[
+                {"name": "gpu-memory-utilization", "setting": None, "value": "0.8"}
+            ],
+        )
+        self.assertFalse(result.mechanical)
+        self.assertIn("--gpu-memory-utilization", " ".join(result.reasons))
+        self.assertIn("0.8 -> 0.9", " ".join(result.reasons))
+        self.assertNotIn("adapters/x/recipes/r.yaml", result.edits)
+        self.assertIn("-  gpu_memory_utilization: 0.8", " ".join(result.evidence))
+        # Not declared at all: still the creator's launch value changing.
+        self.assertFalse(self.launch_case(new_yaml).mechanical)
+
+    def test_a_changed_utilization_the_recipe_already_declares_is_mechanical(
+        self,
+    ) -> None:
+        result = self.launch_case(
+            self.LAUNCH_YAML.replace("0.8", "0.9"),
+            declared=[
+                {"name": "gpu-memory-utilization", "setting": None, "value": "0.90"}
+            ],
+        )
+        self.assertTrue(result.mechanical, result.reasons)
+
+    def test_a_changed_model_line_needs_review(self) -> None:
+        new_yaml = self.LAUNCH_YAML.replace("org/model", "org/model-v2")
+        result = self.launch_case(new_yaml)
+        self.assertFalse(result.mechanical)
+        self.assertIn("`model`", " ".join(result.reasons))
+        self.assertNotIn("adapters/x/recipes/r.yaml", result.edits)
+
+    def test_changed_env_and_added_flags_need_review(self) -> None:
+        cases = {
+            "env": self.LAUNCH_YAML.replace("ATOMIC_ADD: 1", "ATOMIC_ADD: 0"),
+            "flag": self.LAUNCH_YAML.replace(
+                "--trust-remote-code \\", "--trust-remote-code --enforce-eager \\"
+            ),
+        }
+        for name, new_yaml in cases.items():
+            with self.subTest(name=name):
+                result = self.launch_case(new_yaml)
+                self.assertFalse(result.mechanical)
+
+    def test_a_description_only_change_stays_mechanical(self) -> None:
+        result = self.launch_case("# creator note\n" + self.LAUNCH_YAML)
+        self.assertTrue(result.mechanical, result.reasons)
+
+    def test_launch_facts_substitute_defaults_and_ignore_placement(self) -> None:
+        facts = refresh.launch_facts(self.LAUNCH_YAML)
+        self.assertEqual(facts["--gpu-memory-utilization"], "0.8")
+        self.assertEqual(facts["--trust-remote-code"], "true")
+        self.assertEqual(facts["command"], "vllm serve org/model")
+        self.assertEqual(facts["env:VLLM_MARLIN_USE_ATOMIC_ADD"], "1")
+        self.assertIsNone(refresh.launch_facts("just: data\n"))
 
     def test_a_patched_or_edited_file_stays_a_review(self) -> None:
         new_yaml = OLD_YAML.replace("8192", "4096")
@@ -2629,3 +2726,198 @@ class StalePullRequestTests(unittest.TestCase):
         closed = self.close(mech, groups={"a": ["a", "b"], "b": ["a", "b"]})
         self.assertEqual(list(closed), ["2"])
         self.assertIn("shares its build context", closed["2"])
+
+
+class KitScopeTests(unittest.TestCase):
+    """A kit is the subdirectory the adapter cites or the files it vendors, not a monorepo."""
+
+    def assess(self, files: tuple[str, ...], *, notice: str = "", dockerfile: str = ""):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        adapter = root / "adapters/x"
+        adapter.mkdir(parents=True)
+        (adapter / "Dockerfile").write_text("FROM scratch\n" + dockerfile)
+        (adapter / "NOTICE").write_text(notice)
+        recipe = {
+            "identity": {"slug": "recipe"},
+            "provenance": {
+                "attribution": ["Example"],
+                "source_reference": f"https://github.com/example/recipes/tree/{OLD}",
+            },
+            "release": {"version": "1.0.0", "released_at": "2026-01-01"},
+            "models": [],
+            "execution": {"build": {"context": {"path": "adapters/x"}}},
+            "runtime": {},
+        }
+        catalog = refresh.Catalog(root, recipes={"recipe": recipe})
+        assessor = refresh.Assessor(catalog, object(), None, {})
+        assessor.target = lambda _provider, _repo: refresh.Target(
+            "github", "example/recipes", NEW, "2026-10-13", None, None, "u"
+        )
+        with patch(
+            "refresh_upstream.compare_commits", return_value=comparison(files=files)
+        ):
+            return assessor.assess("recipe")
+
+    def cite(self, subdirectory: str = "") -> str:
+        return f"Profiles from https://github.com/example/recipes/tree/{OLD}{subdirectory}\n"
+
+    def test_a_citation_scopes_the_kit_to_its_subdirectory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "NOTICE").write_text(self.cite("/models/vllm-sr"))
+            self.assertEqual(
+                refresh.kit_citation_scope(Path(tmp), "example/recipes"),
+                ("models/vllm-sr",),
+            )
+            (Path(tmp) / "NOTICE").write_text(self.cite())
+            self.assertEqual(
+                refresh.kit_citation_scope(Path(tmp), "example/recipes"), ()
+            )
+            (Path(tmp) / "NOTICE").write_text("nothing\n")
+            self.assertIsNone(refresh.kit_citation_scope(Path(tmp), "example/recipes"))
+
+    def test_changes_outside_the_cited_subdirectory_are_not_a_refresh(self) -> None:
+        result = self.assess(
+            ("models/other/serve.yaml", "recipes/x.json"),
+            notice=self.cite("/models/vllm-sr"),
+        )
+        self.assertFalse(result.drifted, result.reasons)
+
+    def test_changes_inside_the_cited_subdirectory_need_review(self) -> None:
+        result = self.assess(
+            ("models/other/serve.yaml", "models/vllm-sr/serve.yaml"),
+            notice=self.cite("/models/vllm-sr"),
+        )
+        self.assertFalse(result.mechanical)
+        reasons = " ".join(result.reasons)
+        self.assertIn("models/vllm-sr/serve.yaml", reasons)
+        self.assertNotIn("models/other", reasons)
+
+    def test_a_citation_of_the_whole_repository_still_judges_everything(self) -> None:
+        result = self.assess(("models/other/serve.yaml",), notice=self.cite())
+        self.assertIn("models/other/serve.yaml", " ".join(result.reasons))
+
+    def test_a_pip_installed_library_ignores_examples_and_its_own_docker(self) -> None:
+        install = (
+            f"RUN pip install \\\n    git+https://github.com/example/recipes@{OLD}\n"
+        )
+        harmless = ("examples/text/requirements.txt", "docker/cuda/Dockerfile")
+        result = self.assess(harmless, dockerfile=install)
+        self.assertFalse(result.drifted, result.reasons)
+        result = self.assess((*harmless, "src/serve.sh"), dockerfile=install)
+        self.assertIn("src/serve.sh", " ".join(result.reasons))
+        self.assertNotIn("examples/", " ".join(result.reasons))
+        # Without a pip install of the library those files stay judged.
+        self.assertTrue(refresh.is_blocking("examples/text/requirements.txt"))
+        self.assertTrue(refresh.is_blocking("docker/cuda/Dockerfile"))
+
+    def test_a_mapped_subset_does_not_use_the_whole_repository(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        directory = Path(temporary.name)
+        (directory / "Dockerfile").write_text(
+            "RUN git clone https://github.com/example/recipes /src\n"
+        )
+        manifest = {
+            "source": {"repo": "example/recipes", "commit": OLD},
+            "renamed": {"launch.sh": "runs/a/launch/launch.sh"},
+        }
+        (directory / "vendored-upstream.json").write_text(json.dumps(manifest))
+        self.assertTrue(refresh.adapter_usage(directory, "example/recipes", OLD)[1])
+        self.assertTrue(refresh.maps_subset(directory))
+        item = refresh.Item(
+            "source",
+            "github",
+            "example/recipes",
+            OLD,
+            refresh.Target("github", "example/recipes", NEW, "d", None, None, "u"),
+        )
+        assessment = refresh.Assessment("recipe", items=[item])
+        pin = refresh.AdapterPin("example/recipes", OLD, directory)
+        assessor = refresh.Assessor(refresh.Catalog(directory), object(), None, {})
+        recipe = {"execution": {"build": {"context": {"path": "."}}}}
+        changed = assessor._used_changes(item, recipe, pin, set(), assessment)
+        self.assertEqual(changed, [])  # added files in other run folders are not used
+        manifest.pop("renamed")
+        (directory / "vendored-upstream.json").write_text(json.dumps(manifest))
+        self.assertIsNone(assessor._used_changes(item, recipe, pin, set(), assessment))
+
+
+class RewrittenHistoryTests(unittest.TestCase):
+    class Http:
+        def __init__(self, message: str) -> None:
+            self.message = message
+
+        def github(self, _path: str):
+            raise refresh.NotFound("u", self.message)
+
+    def test_no_common_ancestor_is_a_diverged_pin_move(self) -> None:
+        compared = refresh.compare_commits(
+            self.Http("No common ancestor between a and b."), "o/r", OLD, NEW
+        )
+        self.assertEqual(compared.status, "diverged")
+        self.assertEqual(compared.rewritten, NEW)
+        for used in (None, []):
+            reasons = refresh.classify_changes(
+                compared, patched=set(), vendor_problems=[], used_changes=used
+            )
+            self.assertEqual(len(reasons), 1, reasons)
+            self.assertIn("history was rewritten", reasons[0])
+            self.assertIn(NEW, reasons[0])
+
+    def test_any_other_missing_comparison_is_still_unassessable(self) -> None:
+        with self.assertRaises(refresh.NotFound):
+            refresh.compare_commits(self.Http("Not Found"), "o/r", OLD, NEW)
+
+    def test_the_provider_message_is_read_from_the_error_body(self) -> None:
+        import io
+        import urllib.error
+        from email.message import Message
+
+        error = urllib.error.HTTPError(
+            "u",
+            404,
+            "Not Found",
+            Message(),
+            io.BytesIO(b'{"message": "No common ancestor"}'),
+        )
+        self.assertEqual(refresh._error_message(error), "No common ancestor")
+        error = urllib.error.HTTPError(
+            "u", 404, "Not Found", Message(), io.BytesIO(b"<html>")
+        )
+        self.assertEqual(refresh._error_message(error), "")
+
+
+class GroupMemberIssueTests(unittest.TestCase):
+    def prepared(self, recipe_id: str):
+        item = refresh.Item(
+            "source",
+            "github",
+            "o/r",
+            OLD,
+            refresh.Target("github", "o/r", NEW, "d", None, None, "u"),
+        )
+        return refresh.Assessment(recipe_id, items=[item])
+
+    def test_a_group_that_did_not_land_explains_itself_to_every_member(self) -> None:
+        lead, single = self.prepared("dual"), self.prepared("single")
+        lead.pull_request = 7
+        assessed = {"dual": lead, "single": single}
+        self.assertTrue(single.mechanical)
+        refresh.explain_members(lead, ["dual", "single"], assessed, ["checks failed"])
+        # Its own turn now syncs an issue instead of skipping a prepared member.
+        self.assertFalse(single.prepared)
+        self.assertTrue(single.reasons)
+        self.assertIn("`dual`", single.reasons[0])
+        self.assertIn("#7", single.reasons[0])
+        self.assertIn("checks failed", single.reasons[0])
+        self.assertEqual(lead.reasons, [])  # the lead reports for itself
+
+    def test_members_with_reasons_of_their_own_are_left_alone(self) -> None:
+        lead, other = self.prepared("dual"), self.prepared("single")
+        other.reasons.append("its own reason")
+        refresh.explain_members(
+            lead, ["dual", "single"], {"dual": lead, "single": other}, ["x"]
+        )
+        self.assertEqual(other.reasons, ["its own reason"])

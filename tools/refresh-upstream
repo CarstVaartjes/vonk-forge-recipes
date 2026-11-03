@@ -38,7 +38,7 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -119,6 +119,9 @@ HARMLESS_DIRS = {
     "bench",
     "benchmarks",
 }
+# A library the adapter pip-installs ships its examples and its own image recipes
+# (docker/) for other users; the adapter runs neither.
+LIBRARY_HARMLESS_DIRS = frozenset({"examples", "example", "docker"})
 BLOCKING_SUFFIXES = {
     ".sh",
     ".bash",
@@ -155,10 +158,10 @@ DOC_NAMES = re.compile(
 )
 
 
-def is_blocking(path: str) -> bool:
+def is_blocking(path: str, harmless: frozenset[str] = frozenset()) -> bool:
     """Whether a changed upstream path can alter what a recipe launches."""
     pure = PurePosixPath(path)
-    if pure.parts and pure.parts[0].lower() in HARMLESS_DIRS:
+    if pure.parts and pure.parts[0].lower() in HARMLESS_DIRS | harmless:
         return False
     name = pure.name
     if name in LOCK_FILES:
@@ -168,6 +171,11 @@ def is_blocking(path: str) -> bool:
         or BLOCKING_NAMES.match(name)
         or LAUNCH_SCRIPT.match(name)
     )
+
+
+def _in_dirs(path: str, directories: frozenset[str]) -> bool:
+    parts = PurePosixPath(path).parts
+    return bool(parts) and parts[0].lower() in directories
 
 
 def runs(path: str) -> bool:
@@ -182,13 +190,18 @@ def runs(path: str) -> bool:
     return not (pure.suffix.lower() in DOC_SUFFIXES or DOC_NAMES.match(pure.name))
 
 
-def nothing_runs(comparison: Comparison, mirrored: set[str] | frozenset[str]) -> bool:
+def nothing_runs(
+    comparison: Comparison,
+    mirrored: set[str] | frozenset[str],
+    harmless: frozenset[str] = frozenset(),
+) -> bool:
     """Whether a complete comparison changed only files no recipe runs."""
     names = {f["filename"] for f in comparison.files} | {
         f["previous_filename"] for f in comparison.files if "previous_filename" in f
     }
     return not comparison.truncated and not any(
-        runs(name) or name in mirrored for name in names
+        (runs(name) and not _in_dirs(name, harmless)) or name in mirrored
+        for name in names
     )
 
 
@@ -198,7 +211,20 @@ def nothing_runs(comparison: Comparison, mirrored: set[str] | frozenset[str]) ->
 
 
 class NotFound(RuntimeError):
-    pass
+    """HTTP 404; ``message`` is the provider's own explanation when it gave one."""
+
+    def __init__(self, url: str, message: str = "") -> None:
+        super().__init__(url)
+        self.message = message
+
+
+def _error_message(error: urllib.error.HTTPError) -> str:
+    """The ``message`` of a provider's JSON error body ('' when there is none)."""
+    try:
+        body = json.loads(error.read())
+        return str(body.get("message", "")) if isinstance(body, dict) else ""
+    except (OSError, ValueError):
+        return ""
 
 
 class AccessRestricted(RuntimeError):
@@ -279,7 +305,7 @@ class Http:
                     value = cached["body"]
                     break
                 if error.code == 404:
-                    raise NotFound(url) from error
+                    raise NotFound(url, _error_message(error)) from error
                 last = error
                 if error.code not in {429, 500, 502, 503, 504}:
                     raise RuntimeError(f"HTTP {error.code} for {url}") from error
@@ -807,22 +833,90 @@ def kit_citation(repo: str) -> re.Pattern[str]:
     )
 
 
-def cites_kit(directory: Path | None, repo: str) -> bool:
-    """Whether the adapter's files record a commit of the repository as their source.
+def kit_citation_scope(directory: Path | None, repo: str) -> tuple[str, ...] | None:
+    """Where the adapter's files cite the repository as their source; None when they do not.
 
     An adapter that records ``github.com/<repo>/tree/<commit>`` (a recipe-patches source
     label, a NOTICE) was built from the repository: its patches and scripts are that
-    repository's, so the repository is a kit, not a model card.
+    repository's, so the repository is a kit, not a model card. A citation that names a
+    subdirectory (``tree/<commit>/models/vllm-sr``) makes only that subdirectory the kit;
+    the empty tuple means the whole repository.
     """
     if directory is None or not directory.is_dir():
-        return False
-    needle = kit_citation(repo)
+        return None
+    needle = re.compile(
+        kit_citation(repo).pattern + r"(/[^\s)\"'`<>]*)?", re.IGNORECASE
+    )
+    found = False
+    scopes: set[str] = set()
     for path in sorted(directory.rglob("*")):
         if not path.is_file() or path.is_symlink() or path.stat().st_size > 1_000_000:
             continue
         if path.suffix in {".gz", ".zip", ".tar", ".patch", ".diff"}:
             continue
-        if needle.search(path.read_text(encoding="utf-8", errors="replace")):
+        for match in needle.finditer(
+            path.read_text(encoding="utf-8", errors="replace")
+        ):
+            found = True
+            subdirectory = (match.group(3) or "").strip("/").rstrip(".,;:")
+            if not subdirectory:
+                return ()
+            scopes.add(subdirectory)
+    return tuple(sorted(scopes)) if found else None
+
+
+def cites_kit(directory: Path | None, repo: str) -> bool:
+    return kit_citation_scope(directory, repo) is not None
+
+
+def in_scope(path: str, scope: tuple[str, ...]) -> bool:
+    """Whether a path lies in one of the kit's subdirectories (all of it when unscoped)."""
+    return not scope or any(path == s or path.startswith(s + "/") for s in scope)
+
+
+def scoped(comparison: Comparison, scope: tuple[str, ...]) -> Comparison:
+    """The comparison restricted to the kit's subdirectories."""
+    if not scope:
+        return comparison
+    files = [
+        f
+        for f in comparison.files
+        if in_scope(f["filename"], scope)
+        or in_scope(f.get("previous_filename", ""), scope)
+    ]
+    return replace(comparison, files=files)
+
+
+def maps_subset(directory: Path | None) -> bool:
+    """Whether the adapter takes a mapped subset of the repository (renamed files).
+
+    Its manifest names which upstream paths its vendored copies come from; mentions of
+    the repository elsewhere in its files do not make the rest of the repository used.
+    """
+    if directory is None:
+        return False
+    manifest = adapter_manifest(directory)
+    return bool(manifest.get("renamed") or manifest.get("renamed_dirs"))
+
+
+def installs_library(directory: Path | None, repo: str) -> bool:
+    """Whether the adapter pip-installs the repository as a library."""
+    if directory is None or not directory.is_dir():
+        return False
+    escaped = re.escape(repo)
+    install = re.compile(
+        rf"\bpip3?\s+install\b[^\n]*(?:git\+https?://github\.com/{escaped}\b"
+        rf"|github\.com/{escaped}/archive/)"
+        rf"|^\s*git\+https?://github\.com/{escaped}\b",
+        re.IGNORECASE | re.MULTILINE,
+    )
+    for path in sorted(directory.rglob("*")):
+        if not path.is_file() or path.is_symlink() or path.stat().st_size > 1_000_000:
+            continue
+        if path.name != "Dockerfile" and not path.name.startswith("requirements"):
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace").replace("\\\n", " ")
+        if install.search(text):
             return True
     return False
 
@@ -1536,6 +1630,7 @@ class Comparison:
     files: list[dict[str, Any]]
     truncated: bool
     url: str
+    rewritten: str = ""  # the new head when GitHub finds no common ancestor
 
 
 def compare_commits(http: Http, repo: str, old: str, new: str) -> Comparison:
@@ -1545,9 +1640,16 @@ def compare_commits(http: Http, repo: str, old: str, new: str) -> Comparison:
     url = f"https://github.com/{repo}/compare/{old[:12]}...{new[:12]}"
     truncated = False
     for page in range(1, 4):
-        document = http.github(
-            f"repos/{repo}/compare/{old}...{new}?per_page=100&page={page}"
-        )
+        try:
+            document = http.github(
+                f"repos/{repo}/compare/{old}...{new}?per_page=100&page={page}"
+            )
+        except NotFound as error:
+            if "no common ancestor" not in error.message.lower():
+                raise
+            # History was rewritten (a force push, a squashed mirror): the pin is not
+            # in the new history. That is a pin move to review, not an unassessable one.
+            return Comparison("diverged", [], [], False, url, rewritten=new)
         status = document.get("status", status)
         commits.extend(document.get("commits", []))
         files.extend(document.get("files", []))
@@ -1585,13 +1687,20 @@ def pin_is_newer_by_date(http: Http, repo: str, pin: str, release: str) -> bool:
 
 # Everything that makes an adapter depend on the whole upstream repository rather than on
 # the individual files it vendors or fetches by URL.
-WHOLE_REPO = (
-    r"git\s+(clone|fetch|checkout)\b",
-    r"git\+https?://",
-    r"/archive/",
-    r"codeload\.github\.com/",
-    r"/releases/download/",
-)
+def whole_repo_patterns(escaped: str) -> tuple[str, ...]:
+    """Ways of fetching one repository whole; each names that repository's own URL.
+
+    A Dockerfile that labels the creator's repository and downloads another repository's
+    tarball (TensorFold, ComfyUI) uses the creator's repository only where it says so.
+    """
+    return (
+        rf"git\s+clone\b[^\n]*github\.com[/:]{escaped}\b",
+        r"git\s+(fetch|checkout)\b",
+        rf"git\+https?://github\.com/{escaped}\b",
+        rf"github\.com/{escaped}/archive/",
+        rf"codeload\.github\.com/{escaped}/",
+        rf"github\.com/{escaped}/releases/download/",
+    )
 
 
 def adapter_usage(
@@ -1625,7 +1734,8 @@ def adapter_usage(
         text = path.read_text(encoding="utf-8", errors="replace")
         paths.update(match for match in urls.findall(text))
         if mentions.search(text) and any(
-            re.search(pattern, text) for pattern in WHOLE_REPO
+            re.search(pattern, text, re.IGNORECASE)
+            for pattern in whole_repo_patterns(escaped)
         ):
             whole = True
     return paths, whole
@@ -1733,6 +1843,139 @@ def recipe_references(recipe: dict[str, Any], directory: Path) -> set[str]:
     return {token for token in tokens if token}
 
 
+# What a creator's recipe file launches. ``recipe_references`` only proves that names the
+# recipe uses still exist; a changed value (utilization, a flag, an env var, the model)
+# launches something else, so the recipe JSON must already say the same.
+FLAG_ALIASES = {"tp": "tensor-parallel-size", "dp": "data-parallel-size"}
+LAUNCH_IGNORED_FLAGS = {"host", "port"}
+PLACEHOLDER = re.compile(r"\{(\w+)\}")
+
+
+def _yaml_block(text: str, key: str) -> dict[str, str]:
+    """``key:`` followed by indented ``name: value`` lines of a creator's recipe file."""
+    values: dict[str, str] = {}
+    inside = False
+    for line in text.splitlines():
+        if re.match(rf"{key}:\s*(#.*)?$", line):
+            inside = True
+        elif inside and line.startswith((" ", "\t")):
+            match = re.match(r"\s+([\w.-]+)\s*:\s*(.*?)\s*(?:#.*)?$", line)
+            if match:
+                values[match.group(1)] = match.group(2).strip("'\"")
+        elif inside and line.strip() and not line.lstrip().startswith("#"):
+            inside = False
+    return values
+
+
+def launch_facts(text: str) -> dict[str, str] | None:
+    """The launch-relevant facts of a creator's recipe file; None when it is no such file.
+
+    Keys: ``model``, ``mods``, ``command`` (the words before the first flag), ``--flag``
+    (its value, ``true`` for a bare flag, defaults substituted) and ``env:NAME``. Host and
+    port are placement, not launch behaviour.
+    """
+    command = re.search(
+        r"^command:\s*[|>][-+]?\s*\n((?:[ \t]+.*\n?|\n)+)", text, re.MULTILINE
+    )
+    if command is None:
+        return None
+    defaults = _yaml_block(text, "defaults")
+    facts: dict[str, str] = {}
+    model = re.search(r"^model:\s*(\S+)", text, re.MULTILINE)
+    if model:
+        facts["model"] = model.group(1).strip("'\"")
+    mods = re.findall(r"^\s+-\s+(mods/\S+)", text, re.MULTILINE)
+    if mods:
+        facts["mods"] = " ".join(mods)
+    for name, value in _yaml_block(text, "env").items():
+        facts[f"env:{name}"] = value
+    words = PLACEHOLDER.sub(
+        lambda m: defaults.get(m.group(1), m.group(0)),
+        command.group(1).replace("\\\n", " "),
+    ).split()
+    index = 0
+    prefix: list[str] = []
+    while index < len(words) and not words[index].startswith("-"):
+        prefix.append(words[index])
+        index += 1
+    facts["command"] = " ".join(prefix)
+    while index < len(words):
+        name, equals, value = words[index].lstrip("-").partition("=")
+        index += 1
+        if not equals:
+            if index < len(words) and not words[index].startswith("-"):
+                value = words[index]
+                index += 1
+            else:
+                value = "true"
+        name = FLAG_ALIASES.get(name, name).replace("_", "-")
+        if name not in LAUNCH_IGNORED_FLAGS:
+            facts[f"--{name}"] = value
+    return facts
+
+
+def _declared_launch_value(recipe: dict[str, Any], key: str) -> str | None:
+    """What the recipe launches for a fact key; None when it does not state it."""
+    runtime = recipe.get("runtime", {})
+    if key.startswith("env:"):
+        for entry in runtime.get("environment", []):
+            if entry.get("name") == key[4:]:
+                return str(entry.get("value"))
+        return None
+    if not key.startswith("--"):
+        return None  # the model, mods and command words are not runtime arguments
+    arguments = list(runtime.get("arguments", []))
+    for option in recipe.get("options", []):
+        for choice in option.get("choices", []):
+            arguments += choice.get("args", [])
+    for argument in arguments:
+        if argument.get("name", "").replace("_", "-") != key[2:]:
+            continue
+        value = argument.get("value")
+        if argument.get("setting"):
+            value = recipe.get("settings", {}).get(argument["setting"], {}).get("value")
+        return "true" if value is True else str(value)
+    return None
+
+
+def _same_value(left: str, right: str) -> bool:
+    if left == right:
+        return True
+    try:
+        return float(left) == float(right)
+    except ValueError:
+        return False
+
+
+def launch_changes(old: str, new: str, recipe: dict[str, Any]) -> list[str]:
+    """Launch values the creator changed that the recipe does not already declare.
+
+    Empty when the files are no creator recipe files, nothing launch-relevant changed, or
+    the recipe JSON (what actually launches) already states every new value. A refresh
+    must never move the image while the recipe keeps the old weights or settings.
+    """
+    before, after = launch_facts(old), launch_facts(new)
+    if before is None or after is None:
+        return []
+    changes: list[str] = []
+    for key in sorted(before.keys() | after.keys()):
+        old_value, new_value = before.get(key), after.get(key)
+        if old_value == new_value:
+            continue
+        declared = _declared_launch_value(recipe, key)
+        if new_value is None:
+            if declared is None:
+                continue
+        elif declared is not None and _same_value(declared, new_value):
+            continue
+        changes.append(
+            f"`{key}`: {old_value if old_value is not None else '(absent)'} -> "
+            f"{new_value if new_value is not None else '(removed)'}"
+            + (f" (the recipe declares {declared})" if declared is not None else "")
+        )
+    return changes
+
+
 def edited_locally(
     directory: Path, local: str, upstream: str, patched: set[str]
 ) -> str | None:
@@ -1775,6 +2018,7 @@ def classify_changes(
     vendor_problems: list[str],
     used_changes: list[str] | None = None,
     mirrored: set[str] | frozenset[str] = frozenset(),
+    harmless: frozenset[str] = frozenset(),
 ) -> list[str]:
     """Why a GitHub pin move is not mechanical; empty means it is.
 
@@ -1787,8 +2031,18 @@ def classify_changes(
     else upstream matters: unrelated changes, a truncated comparison and a diverged
     history (the caller has rejected a pin that is ahead) are not reasons.
     """
+    rewritten = (
+        [
+            (
+                "upstream history was rewritten (GitHub finds no common ancestor): the "
+                f"pinned commit is not in the history of the new head `{comparison.rewritten}`"
+            )
+        ]
+        if comparison.rewritten
+        else []
+    )
     if used_changes is not None:
-        reasons = []
+        reasons = rewritten
         if comparison.status not in {"ahead", "identical", "diverged", "behind"}:
             reasons.append(f"upstream comparison reported '{comparison.status}'")
         if used_changes:
@@ -1802,14 +2056,17 @@ def classify_changes(
                 )
             )
         return reasons + vendor_problems
-    reasons: list[str] = []
+    reasons: list[str] = list(rewritten)
     if comparison.status == "behind":
         reasons.append(
             "the pin is newer than the version the pinning rule selects; "
             "moving to it would be a downgrade"
         )  # unreachable through assess(): such pins are current
     elif comparison.status == "diverged":
-        reasons.append("the selected version is not a descendant of the pinned commit")
+        if not rewritten:
+            reasons.append(
+                "the selected version is not a descendant of the pinned commit"
+            )
     elif comparison.status not in {"ahead", "identical"}:
         reasons.append(f"upstream comparison reported '{comparison.status}'")
     if comparison.truncated:
@@ -1818,7 +2075,9 @@ def classify_changes(
     changed |= {
         f["previous_filename"] for f in comparison.files if "previous_filename" in f
     }
-    blocking = sorted(name for name in changed if is_blocking(name) or name in mirrored)
+    blocking = sorted(
+        name for name in changed if is_blocking(name, harmless) or name in mirrored
+    )
     if blocking:
         reasons.append(
             "launch scripts, configuration, patches or the README changed: "
@@ -2369,33 +2628,51 @@ class Assessor:
                 )
         context = self.catalog.root / recipe["execution"]["build"]["context"]["path"]
         declared_kit = kit_directory(self.catalog.root, recipe)
+        scope: tuple[str, ...] = ()
+        if declared_kit is None and not owns_adapter:
+            cited = kit_citation_scope(context, item.repo)
+            scope = cited or ()
+        else:
+            cited = None
         is_kit = (
             item.kind == "source"
             and not owns_adapter
             and (
-                whole_kit(declared_kit)
-                or (declared_kit is None and cites_kit(context, item.repo))
+                whole_kit(declared_kit) or (declared_kit is None and cited is not None)
             )
         )
         mirrored: set[str] = set()
+        judged = comparison
         if is_kit:
             # The adapter is built from this repository's patches and scripts, so a
             # change to what runs is a reason even though no file is named by URL.
             used_changes = None
             mirrored = adapter_files(context)
+            judged = scoped(comparison, scope)
             result.evidence.append(
-                f"- {item.label}: the adapter is built from this kit; every changed file "
-                "is judged (docs, tests and client-side helper scripts are not runtime; "
+                f"- {item.label}: the adapter is built from this kit"
+                + (
+                    f"'s `{'`, `'.join(scope)}`; only changes there are judged"
+                    if scope
+                    else "; every changed file is judged"
+                )
+                + " (docs, tests and client-side helper scripts are not runtime; "
                 "patches, launch scripts, configuration and files the adapter copies are).\n"
             )
         else:
             used_changes = self._used_changes(item, recipe, pin, patched, result)
+        library = (
+            LIBRARY_HARMLESS_DIRS
+            if installs_library(context, item.repo)
+            else frozenset()
+        )
         reasons = classify_changes(
-            comparison,
+            judged,
             patched=patched,
             vendor_problems=problems,
             used_changes=used_changes,
             mirrored=mirrored,
+            harmless=library,
         )
         result.evidence.append(github_evidence(item, comparison, patched))
         if (
@@ -2404,7 +2681,7 @@ class Assessor:
             and not followed
             and (
                 used_changes == []
-                or (used_changes is None and nothing_runs(comparison, mirrored))
+                or (used_changes is None and nothing_runs(judged, mirrored, library))
             )
         ):
             # Nothing the recipe runs changed (only docs, benchmarks, tests or a vendored
@@ -2463,6 +2740,13 @@ class Assessor:
             else (self.catalog.root / context["path"] if "path" in context else None)
         )
         named, whole = adapter_usage(directory, item.repo, item.current)
+        if whole and maps_subset(directory):
+            whole = False
+            result.evidence.append(
+                f"- {item.label}: the adapter takes a mapped subset of the repository "
+                "(its renamed vendored files, checked byte for byte); other upstream "
+                "paths are not used.\n"
+            )
         if whole:
             result.evidence.append(
                 f"- {item.label}: the adapter uses the whole upstream repository "
@@ -2533,6 +2817,21 @@ class Assessor:
                 f"b/{upstream}",
             )
         )
+        launch = launch_changes(old, new, recipe)
+        if launch:
+            result.evidence.append(
+                f"### Vendored `{local}`: the creator changed what it launches\n\n"
+                "The recipe does not declare these values, so moving the image alone "
+                "would keep the old weights or settings on the new build:\n\n"
+                + "\n".join(f"- {change}" for change in launch)
+                + "\n\n"
+                + fence(clip(diff, 4000), "diff")
+                + "\n"
+            )
+            return (
+                f"the creator's `{upstream}` changes what it launches that the recipe "
+                "does not declare: " + "; ".join(launch)
+            )
         result.evidence.append(
             f"### Vendored `{local}` follows its creator\n\n"
             f"`{upstream}` changed upstream ({item.repo} `{item.current[:12]}` -> "
@@ -3701,6 +4000,32 @@ def publish_group(
     return number
 
 
+def explain_members(
+    lead: Assessment,
+    members: list[str],
+    assessed: dict[str, Assessment],
+    why: list[str],
+) -> None:
+    """Give every prepared member the outcome of a group that did not land.
+
+    The group is refreshed together or not at all, so a member (a single sharing its
+    dual's build context) has no pull request of its own. Its reasons say why and its
+    pull request links the lead's, so its own turn syncs an issue that shows the
+    outcome instead of keeping a stale body.
+    """
+    for member in members:
+        part = assessed.get(member)
+        if member == lead.recipe_id or part is None or not part.prepared:
+            continue  # the lead syncs itself; others have reasons of their own
+        part.pull_request = lead.pull_request
+        part.reasons.extend(
+            f"refreshed together with `{lead.recipe_id}`"
+            + (f" (#{lead.pull_request})" if lead.pull_request else "")
+            + f" or not at all: {text}"
+            for text in why
+        )
+
+
 def supersede_member_prs(
     members: list[str], lead: str, number: int, summary: Summary
 ) -> None:
@@ -4338,6 +4663,10 @@ def command_run(arguments: argparse.Namespace) -> int:
                         combined = f"{', '.join(held)} has an open pull request"
                     if isinstance(combined, str):
                         review_ids.add(result.recipe_id)
+                        result.reasons.append(
+                            f"refreshed together or not at all: {combined}"
+                        )
+                        explain_members(result, members, assessed, [combined])
                         summary.deferred.append(
                             f"{result.recipe_id}: refreshed together with "
                             f"{', '.join(m for m in members if m != result.recipe_id)} "
@@ -4351,6 +4680,17 @@ def command_run(arguments: argparse.Namespace) -> int:
                             handled.update(members)
                             supersede_member_prs(
                                 members, combined.recipe_id, number, summary
+                            )
+                        else:
+                            if not result.reasons:
+                                result.reasons.append(
+                                    "its group pull request was not published"
+                                )
+                            explain_members(
+                                result,
+                                members,
+                                assessed,
+                                combined.reasons or result.reasons,
                             )
             if result.reasons or result.held:
                 review_ids.add(result.recipe_id)
