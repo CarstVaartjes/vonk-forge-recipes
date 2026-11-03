@@ -23,6 +23,7 @@ from qualification.memory_need import (
     TOTAL_BYTES,
     admissible_declaration_warnings,
     argument_value,
+    declarable_vllm_envelope,
     declaration_problems,
     load_inputs,
     memory_estimate_warnings,
@@ -30,7 +31,6 @@ from qualification.memory_need import (
     per_rank_need,
     sglang_demand,
     sglang_rank_budget_warnings,
-    vllm_utilization_envelope,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -81,7 +81,7 @@ def require_repaired_declaration(slug: str, variant: RecipeDefinition) -> None:
         fraction = argument_value(variant, "gpu-memory-utilization")
         assert fraction is not None
         # Pool-less: the envelope; absolute pool: the startup request (utilization x total).
-        budget = vllm_utilization_envelope(variant) or (
+        budget = declarable_vllm_envelope(variant) or (
             Decimal(str(fraction)) * TOTAL_BYTES
         )
         assert all(
