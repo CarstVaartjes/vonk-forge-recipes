@@ -44,8 +44,8 @@
           ]
         },
         {
-          "file_id": "readme-c9fc198e4414-b335630551",
-          "id": "primary-readme-c9fc198e4414-b335630551",
+          "file_id": "readme-8f43225c9036-b335630551",
+          "id": "primary-readme-8f43225c9036-b335630551",
           "mount": {
             "target": "/models/main"
           },
@@ -86,16 +86,6 @@
         {
           "file_id": "chat-template-1369e90b1997-00824420d1",
           "id": "primary-chat-template-1369e90b1997-00824420d1",
-          "mount": {
-            "target": "/models/main"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "chat-template-backup-6521afc75afb-73cabe859e",
-          "id": "primary-chat-template-backup-6521afc75afb-73cabe859e",
           "mount": {
             "target": "/models/main"
           },
@@ -1176,10 +1166,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "389e3411f2207d5be1dc790115d889cbcb580acdfa1e60736c2833bb4bba159b",
+        "content_sha256": "4f47ccad0d919101a84a3a763770625adec0ffd04ff2d629f24a83a31e281859",
         "kind": "model",
         "publisher": "nvidia",
-        "slug": "nemotron-3-5-super-vl-120b-a12b-nvfp4-59b87216"
+        "slug": "nemotron-3-5-super-vl-120b-a12b-nvfp4-da5b2650"
       }
     },
     {
@@ -1249,11 +1239,11 @@
       "nvidia",
       "vLLM contributors"
     ],
-    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/tree/59b8721646c38111a242da18218859fb2b454322"
+    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/tree/da5b2650a835292c678994a1fa3fb653250fb508"
   },
   "release": {
-    "released_at": "2026-10-17",
-    "version": "1.0.0"
+    "released_at": "2026-10-23",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -1402,7 +1392,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 76381299897,
+            "artifact_bytes": 76381287547,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 164762599794
