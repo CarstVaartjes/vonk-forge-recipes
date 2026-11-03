@@ -99,7 +99,9 @@ from .qualification import (
     from_history,
     local_status,
     merge_evidence,
+    pass_marker,
     read_evidence,
+    rerun_settled,
     scheduling_priority,
     unpublishable_pass,
 )
@@ -434,7 +436,10 @@ class Sweep:
             return None
 
     def qualification_view(
-        self, recipe: Recipe, evidence: RecipeQualificationEvidence | None = None
+        self,
+        recipe: Recipe,
+        evidence: RecipeQualificationEvidence | None = None,
+        identity: QualificationIdentity | None = None,
     ) -> QualificationStatusView | None:
         try:
             evidence = evidence or self._recipe_evidence(recipe)
@@ -447,6 +452,7 @@ class Sweep:
                 recipe.key in self.state.slots
                 and self.state.slots[recipe.key].get("phase")
                 != SweepSlotPhase.FINISHED,
+                identity,
             )
         except (ValueError, TypeError, OSError):
             return None  # malformed observed identity cannot certify public proof
@@ -747,19 +753,36 @@ class Sweep:
         if slot is not None and slot.get("phase") != "finished":
             return
         evidence = self._recipe_evidence(recipe)
-        view = self.qualification_view(recipe, evidence)
-        # One read and one derivation per recipe: a local pass the catalog would not
-        # publish is asked for again (once per catalog image identity) instead of kept.
-        marker = ""
-        unpublishable = unpublishable_pass(view, evidence, recipe)
-        if unpublishable:
-            marker = f"{recipe.content_sha256}:{current_identity(recipe).runtime_image}"
-            unpublishable = entry.get("unpublishable_retested") != marker
+        try:
+            identity: QualificationIdentity | None = current_identity(recipe)
+        except (ValueError, TypeError):
+            identity = None  # malformed observed identity cannot certify public proof
+        view = (
+            self.qualification_view(recipe, evidence, identity)
+            if identity is not None
+            else None
+        )
+        # A local pass the catalog would not publish is asked for again, once per content
+        # and catalog image, until the re-run records a verdict (then it stands).
+        marker = pass_marker(recipe, identity) if identity is not None else ""
+        unpublishable = (
+            identity is not None
+            and unpublishable_pass(
+                view, evidence, identity, release_known=self.release_sha is not None
+            )
+            and evidence is not None
+            and not rerun_settled(evidence, entry.get("unpublishable_requeue"), marker)
+        )
+        requeued = (
+            entry.get("status") == RecipeStatus.PENDING
+            and entry.get("requeued_because") == RetestReason.UNPUBLISHABLE_PASS
+        )
         if (
             view is not None
             and view.status == QualificationStatus.WORKING
             and view.last_pass is not None
             and not unpublishable
+            and not requeued  # a pending requeue is not undone by the next catalog pass
             and (slot is None or slot.get("phase") == SweepSlotPhase.FINISHED)
         ):
             entry.update(
@@ -860,13 +883,15 @@ class Sweep:
             self.state.event(f"{recipe.key} is {why}: pending")
         if recipe.node_count > enrolled_sparks:
             return  # a Spark leaving the fleet must not rewrite a recorded result
-        why = retest_reason(view, lambda: current_identity(recipe), unpublishable)
+        why = retest_reason(
+            view, lambda: identity or current_identity(recipe), unpublishable
+        )
         if entry.get("status") == RecipeStatus.PENDING:
             return
         if why is None:
             return
         if why == RetestReason.UNPUBLISHABLE_PASS:
-            entry["unpublishable_retested"] = marker
+            entry["unpublishable_requeue"] = {"at": self.clock.now(), "marker": marker}
         if why == RetestReason.PASSED_OLDER_REVISION and not self.cfg.revalidate_passes:
             return
         entry["previous"] = {

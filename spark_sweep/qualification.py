@@ -363,8 +363,11 @@ def local_status(
     recipe: Recipe,
     fleet_size: int,
     testing_now: bool = False,
+    identity: QualificationIdentity | None = None,
 ) -> QualificationStatusView:
-    return derive_status(evidence, current_identity(recipe), fleet_size, testing_now)
+    return derive_status(
+        evidence, identity or current_identity(recipe), fleet_size, testing_now
+    )
 
 
 STATUS_ORDER = {
@@ -407,21 +410,51 @@ def prune_withdrawn_evidence(root: Path) -> list[Path]:
 def unpublishable_pass(
     view: QualificationStatusView | None,
     evidence: RecipeQualificationEvidence | None,
-    recipe: Recipe,
+    identity: QualificationIdentity,
+    *,
+    release_known: bool,
 ) -> bool:
     """A local Working pass the catalog would not publish as Working, though a run could fix it.
 
-    The published derivation is the contracts package's (the one the catalog uses). A re-run
-    can publish only when the catalog pins a runtime image for the recipe; without one the
-    pass is left alone, since running again would repeat the same unpublishable proof.
+    The published derivation is the contracts package's (the one the catalog uses), asked
+    only for a locally Working recipe. A re-run can publish only when the catalog pins a
+    runtime image and the Controller release is readable (a run recorded now would
+    otherwise lack it); otherwise the pass is left alone.
     """
-    if view is None or evidence is None or view.status != QualificationStatus.WORKING:
+    if (
+        view is None
+        or evidence is None
+        or view.status != QualificationStatus.WORKING
+        or not release_known
+        or identity.runtime_image is None
+    ):
         return False
     try:
-        current = current_identity(recipe)
-        if current.runtime_image is None:
-            return False
-        published = published_status(evidence, current)
+        published = published_status(evidence, identity)
     except (ValueError, TypeError):
         return False
     return published.status != QualificationStatus.WORKING
+
+
+def pass_marker(recipe: Recipe, identity: QualificationIdentity) -> str:
+    image = identity.runtime_image
+    return f"{recipe.content_sha256}:{image.image_digest if image else ''}"
+
+
+def rerun_settled(
+    evidence: RecipeQualificationEvidence, requeue: object, marker: str
+) -> bool:
+    """The re-run asked for under this marker recorded a verdict on a known Controller release.
+
+    Until then the request stands (a pending requeue is never undone); after it, a pass that
+    is still unpublishable is not asked for again for the same content and catalog image.
+    A record without a Controller release does not settle it: the platform was unreadable.
+    """
+    if not isinstance(requeue, Mapping) or requeue.get("marker") != marker:
+        return False
+    asked = datetime.fromtimestamp(float(requeue["at"]), UTC)
+    return any(
+        r.tested_at > asked
+        and (r.platform.controller_source_sha or r.platform.controller_version)
+        for r in evidence.records
+    )
