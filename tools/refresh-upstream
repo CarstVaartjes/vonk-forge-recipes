@@ -887,7 +887,7 @@ def scoped(comparison: Comparison, scope: tuple[str, ...]) -> Comparison:
     return replace(comparison, files=files)
 
 
-MOD_PATH = re.compile(r"(?<![\w./-])(mods/[\w.-]+)")
+MOD_PATH = re.compile(r"(?<![\w-])(mods/[\w.-]+)")
 
 
 def active_mods(directory: Path | None) -> set[str]:

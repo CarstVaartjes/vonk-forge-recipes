@@ -2890,6 +2890,7 @@ class KitScopeTests(unittest.TestCase):
             "indented": "mods:\n  - mods/a\n",
             "column zero": "mods:\n- mods/a\n",
             "flow": "mods: [mods/a, mods/b]\n",
+            "dot slash": "mods:\n  - ./mods/a\n",
             "quoted": "mods:\n  - 'mods/a'\n",
             "commented": "mods:\n  # - mods/a\n",
             "trailing slash": "mods:\n  - mods/a/\n",
