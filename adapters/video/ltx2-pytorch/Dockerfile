@@ -3,10 +3,10 @@ FROM nvcr.io/nvidia/cuda:13.0.2-devel-ubuntu24.04@sha256:5dc1bca23d05bd37b011be6
 LABEL org.opencontainers.image.source="https://huggingface.co/Lightricks/LTX-2" \
       org.opencontainers.image.revision="dfcc2108383fe1aaa0584bdf55d368a4bdadd90c" \
       org.opencontainers.image.licenses="LTX-2 Community License Agreement" \
-      io.vonk.ltx2.source-commit="9ec55f9f22798a3198d9c923856824821bc3317e" \
+      io.vonk.ltx2.source-commit="e98f6d927d83c92ef2be6aec76c8440b19306e39" \
       io.vonk.agent-protocol.source-commit="cee017ae806f0ac4c0842a3652f8ef7ee57388b8" \
       io.vonk.agent-protocol.wheel-sha256="9db7484767d0eaec9a0c20a6f18c1c995570c5588ffed8bee3da4a70022cc625" \
-      io.vonk.ltx2.source-archive-sha256="4010dea65ad0408770b08714834f35eadf32ddb4ce340365d15fc016585b4b43"
+      io.vonk.ltx2.source-archive-sha256="80daf4cd8e3b29de8a0282f9fe11998ef60f9e38cff6534fdc5dc8e6f3cc7ff3"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -46,9 +46,9 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
         /opt/vonk/source/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl \
     && curl --fail --location --silent --show-error \
         --output /tmp/ltx2-source.tar.gz \
-        https://codeload.github.com/Lightricks/LTX-2/tar.gz/9ec55f9f22798a3198d9c923856824821bc3317e \
+        https://codeload.github.com/Lightricks/LTX-2/tar.gz/e98f6d927d83c92ef2be6aec76c8440b19306e39 \
     && printf '%s  %s\n' \
-        4010dea65ad0408770b08714834f35eadf32ddb4ce340365d15fc016585b4b43 \
+        80daf4cd8e3b29de8a0282f9fe11998ef60f9e38cff6534fdc5dc8e6f3cc7ff3 \
         /tmp/ltx2-source.tar.gz \
         | sha256sum --check --strict \
     && mkdir -p /opt/vonk/source/ltx2 \
