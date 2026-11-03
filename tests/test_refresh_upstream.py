@@ -2167,8 +2167,20 @@ class PerRecipeFaultTests(unittest.TestCase):
         return refresh.Assessment(recipe_id, items=[item], **kwargs)
 
     def run_refresh(self, assessments, *, assess_fault=None, **patches):
-        """Run command_run over the assessments; return (exit code, summary)."""
+        """Run command_run over the assessments; return (exit code, summary).
+
+        GitHub is never reached: ``gh`` and ``sync_issue`` are patched unless a test
+        passes its own; ``self.synced`` lists the recipes whose issue was synced.
+        """
         written: list = []
+        self.synced: list[str] = []
+        patches = {
+            "gh": lambda *_arguments, **_keywords: "",
+            "sync_issue": lambda result, *_rest, **_keywords: self.synced.append(
+                result.recipe_id
+            ),
+            **patches,
+        }
 
         class FakeAssessor:
             def __init__(self, *_arguments) -> None:
@@ -2274,6 +2286,8 @@ class PerRecipeFaultTests(unittest.TestCase):
         )
         self.assertEqual(code, 1)
         self.assertEqual(published, ["b"])
+        self.assertEqual(self.synced, [])  # the failed recipe's issue is untouched
+        self.assertEqual(summary.unreachable, [])
         self.assertTrue(
             summary.failures[0].startswith("a: ValueError: Expecting value")
         )
