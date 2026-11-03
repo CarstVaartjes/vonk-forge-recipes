@@ -463,16 +463,12 @@ def test_fp4_mx_block16_costs_what_nvfp4_costs() -> None:
     assert token_bytes == elements * 9 // 16
 
 
-def test_unproven_unchanged_document_reports_its_startup_room(
-    tmp_path, monkeypatch
-) -> None:
+def test_unproven_unchanged_document_reports_its_startup_room() -> None:
     from catalog_documents import catalog_models
-    from test_unproven_memory_need import untested_root
     from vonk_forge_contracts import RecipeDefinition, document_sha256
 
     from qualification.memory_need import load_inputs, memory_warnings
 
-    untested_root(tmp_path, monkeypatch, "inkling-small-nvfp4-sglang-mia-dual")
     document = load("recipes/inkling-small-nvfp4-sglang-mia-dual.json")
     warnings = memory_warnings(
         RecipeDefinition.model_validate(document),
