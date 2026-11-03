@@ -142,11 +142,11 @@
       "drowzeys",
       "TensorFold contributors"
     ],
-    "source_reference": "https://github.com/drowzeys/keys-Wasserman-Slate-AI-Studio-powered-by-TensorFold-built-with-integrated-Fish-Audio-Drama3/tree/1e8677e7c9151836de375e3cc6306ed6e4170c65"
+    "source_reference": "https://github.com/drowzeys/Imagination-Studio-by-keys-Wasserman/tree/3926471d59bfe8a51a295b7bfdef6cda0b09e1de"
   },
   "release": {
-    "released_at": "2026-10-17",
-    "version": "2.9.1"
+    "released_at": "2026-10-30",
+    "version": "4.3.1"
   },
   "runtime": {
     "arguments": [
@@ -156,7 +156,7 @@
       },
       {
         "name": "workflow-sha256",
-        "value": "f2336cca19deedef837c0a389de33e9c5bd4026dd67788b914f36095121fb885"
+        "value": "a5d3593451edba43eb8842c42fec3f4d959cdbf1b103dc0de68ac90eb2afbe34"
       },
       {
         "name": "output-mime",

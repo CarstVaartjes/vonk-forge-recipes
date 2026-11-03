@@ -1,6 +1,6 @@
 FROM nvcr.io/nvidia/pytorch@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
-LABEL org.opencontainers.image.source="https://github.com/drowzeys/keys-Wasserman-Slate-AI-Studio-powered-by-TensorFold-built-with-integrated-Fish-Audio-Drama3" \
-      org.opencontainers.image.revision="1e8677e7c9151836de375e3cc6306ed6e4170c65" \
+LABEL org.opencontainers.image.source="https://github.com/drowzeys/Imagination-Studio-by-keys-Wasserman" \
+      org.opencontainers.image.revision="3926471d59bfe8a51a295b7bfdef6cda0b09e1de" \
       ai.vonkforge.runtime-interface="v1"
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg libgl1 \
  && rm -rf /var/lib/apt/lists/*
@@ -15,8 +15,8 @@ RUN curl -fsSL https://codeload.github.com/drowzeys/TensorFold/tar.gz/1f7ecc75de
  && /tmp/zig-aarch64-linux-0.17.0/zig build tf-h3 -j2 -Doptimize=ReleaseFast -Dnvcc=/usr/local/cuda/bin/nvcc \
  && cp zig-out/lib/libtf_h3.so LICENSE /opt/tensorfold/ \
  && rm -rf /tmp/engine* /tmp/zig* /root/.cache/zig
-RUN curl -fsSL https://codeload.github.com/comfyanonymous/ComfyUI/tar.gz/5a665890ded5020c282f63c4ea2dd9e083e025ff -o /tmp/comfy.tar.gz \
- && echo '0ea1a0522bcd51fa6a48b4944d01cf8eadc7e9115510e682be2d2e772cdbb96f  /tmp/comfy.tar.gz' | sha256sum -c - \
+RUN curl -fsSL https://codeload.github.com/comfyanonymous/ComfyUI/tar.gz/b9b290e43f1eb379946dfeb013faf9bbefa1a618 -o /tmp/comfy.tar.gz \
+ && echo '51a6ccb90c6e2738da5750d1762001ac92502f6b4323f792766d02ab623e6a7e  /tmp/comfy.tar.gz' | sha256sum -c - \
  && mkdir -p /opt/comfyui \
  && tar -xzf /tmp/comfy.tar.gz --strip-components=1 -C /opt/comfyui \
  && rm /tmp/comfy.tar.gz \
