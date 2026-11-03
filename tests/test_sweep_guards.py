@@ -20,7 +20,7 @@ from typing import Any
 import pytest
 
 from spark_sweep import policy, verdict
-from spark_sweep.lifecycle import ACTIVE, STATES, TERMINAL, WAITING
+from spark_sweep.lifecycle import ACTIVE, STATES, TERMINAL, WAITING, RecipeStatus
 from spark_sweep.verdict import Disposition
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -810,14 +810,29 @@ def test_every_evidence_exit_has_its_own_status_message():
 # -- lifecycle words come from the shared vocabulary ---------------------------------------
 
 _LIFECYCLE_WORDS = frozenset(state.value for state in STATES)
+#: The legacy spellings the published vocabulary retired, read from its own description.
+_RETIRED_WORDS = frozenset(
+    re.findall(
+        r"``([a-z-]+)``",
+        json.loads((ROOT / "tests/fixtures/sweep-lifecycle.json").read_text())[
+            "LifecycleState"
+        ]["description"]
+        .split("legacy spellings", 1)[1]
+        .split(")", 1)[0],
+    )
+)
+#: Words only a lifecycle state speaks: ``failed`` is also a recipe status and is judged by
+#: the compare rule, not the collection rule.
+_STATE_ONLY_WORDS = _LIFECYCLE_WORDS - {status.value for status in RecipeStatus}
+_DRIFT_WORDS = _LIFECYCLE_WORDS | _RETIRED_WORDS
 
 
-def _str_words(node: ast.AST) -> set[str]:
+def _words(node: ast.AST, vocabulary: frozenset[str]) -> set[str]:
     return {
         item.value
         for item in ast.walk(node)
         if isinstance(item, ast.Constant) and isinstance(item.value, str)
-    } & _LIFECYCLE_WORDS
+    } & vocabulary
 
 
 def _is_state_read(node: ast.AST) -> bool:
@@ -835,34 +850,82 @@ def _is_state_read(node: ast.AST) -> bool:
     return False
 
 
+def _cli_values(node: ast.AST) -> set[int]:
+    """Ids of strings that follow a ``--state`` flag: a profile CLI value, not a lifecycle state."""
+    skipped: set[int] = set()
+    for item in ast.walk(node):
+        if isinstance(item, (ast.List, ast.Tuple)):
+            for before, value in zip(item.elts, item.elts[1:], strict=False):
+                if isinstance(before, ast.Constant) and before.value == "--state":
+                    skipped.add(id(value))
+    return skipped
+
+
 def _local_lifecycle_literals(tree: ast.AST) -> list[int]:
-    """Lines of a literal set/tuple/list of 2+ lifecycle words, or of a state compared to a bare word."""
-    lines = []
+    """Lines where a lifecycle word is spelled out instead of named through the vocabulary.
+
+    A collection holding a state-only word or a retired spelling, or a ``state`` read compared
+    with a lifecycle word or retired spelling (bare or inside a collection).
+    """
+    skipped = _cli_values(tree)
+    lines = set()
     for node in ast.walk(tree):
         if isinstance(node, (ast.Set, ast.Tuple, ast.List)):
-            if len(_str_words(node)) >= 2:
-                lines.append(node.lineno)
+            held = {
+                item.value
+                for item in node.elts
+                if isinstance(item, ast.Constant)
+                and isinstance(item.value, str)
+                and id(item) not in skipped
+            }
+            if held & (_STATE_ONLY_WORDS | _RETIRED_WORDS):
+                lines.add(node.lineno)
         elif isinstance(node, ast.Compare):
             sides = [node.left, *node.comparators]
             if any(_is_state_read(side) for side in sides) and any(
-                isinstance(side, ast.Constant) and side.value in _LIFECYCLE_WORDS
-                for side in sides
+                _words(side, _DRIFT_WORDS) for side in sides
             ):
-                lines.append(node.lineno)
-    return lines
+                lines.add(node.lineno)
+    return sorted(lines)
 
 
-def test_lifecycle_literal_guard_catches_local_sets_and_bare_compares() -> None:
-    assert _local_lifecycle_literals(
-        ast.parse('ENDED = frozenset({"succeeded", "failed", "cancelled"})')
-    ) == [1]
-    assert _local_lifecycle_literals(ast.parse('x = job["state"] != "failed"')) == [1]
-    assert _local_lifecycle_literals(ast.parse('x = r.get("state") == "failed"')) == [1]
-    assert not _local_lifecycle_literals(ast.parse('x = {"succeeded", "other"}'))
-    assert not _local_lifecycle_literals(ast.parse('x = entry["status"] == "failed"'))
-    assert not _local_lifecycle_literals(
-        ast.parse("x = state != LifecycleState.FAILED")
-    )
+def test_retired_spellings_come_from_the_published_vocabulary() -> None:
+    assert "waiting-for-operator" in _RETIRED_WORDS
+    assert not _RETIRED_WORDS & _LIFECYCLE_WORDS
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        'ENDED = frozenset({"succeeded", "failed", "cancelled"})',
+        'ENDED = frozenset({"needs-operator", "waiting-for-operator"})',
+        'x = job["state"] != "failed"',
+        'x = r.get("state") == "failed"',
+        'x = r.get("state") not in ("failed", "retired")',
+        'x = state in ("needs-operator",)',
+        'x = job["state"] == "waiting-for-operator"',
+        'x = ["cancelled"]',
+    ],
+)
+def test_lifecycle_literal_guard_catches_drifted_spellings(source: str) -> None:
+    assert _local_lifecycle_literals(ast.parse(source)) == [1]
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        'x = {"other", "another"}',
+        'x = entry["status"] == "failed"',
+        'x = status in ("passed", "failed")',
+        "x = state != LifecycleState.FAILED",
+        'x = ["--state", "running"]',
+        'x = state not in (LifecycleState.FAILED, "retired")',
+    ],
+)
+def test_lifecycle_literal_guard_accepts_the_vocabulary_and_other_fields(
+    source: str,
+) -> None:
+    assert not _local_lifecycle_literals(ast.parse(source))
 
 
 @pytest.mark.parametrize("path", SWEEP, ids=lambda p: p.name)

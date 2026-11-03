@@ -92,7 +92,7 @@ from .lifecycle import (
     SkipReasonKind,
 )
 from .owner import OwnerGuard, OwnerStatus
-from .prefetch import SWEEP_LABEL, PrefetchConfig, Prefetcher
+from .prefetch import DOWNLOAD_RETIRED, SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
 from .qualification import (
     current_identity,
@@ -1614,7 +1614,7 @@ class Sweep:
                         "previous": previous,
                     }
             else:
-                record["state"] = "retired"  # genuinely unaccepted failure
+                record["state"] = DOWNLOAD_RETIRED  # genuinely unaccepted failure
         self.state.event(f"requeued {key}: {why}")
 
     def run(self) -> int:
