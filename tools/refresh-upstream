@@ -34,6 +34,7 @@ import re
 import subprocess
 import sys
 import threading
+import traceback
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterable
@@ -4346,6 +4347,12 @@ class AnonymousHeadClient:
         return self.http.json(url, provider, anonymous=True)
 
 
+def record_failure(summary: Summary, recipe_id: str, error: Exception) -> None:
+    """Record one recipe's failure; the full traceback goes to stderr for debugging."""
+    traceback.print_exc()
+    summary.failures.append(f"{recipe_id}: {type(error).__name__}: {str(error)[:300]}")
+
+
 def command_run(arguments: argparse.Namespace) -> int:
     root = ROOT
     cache_dir = arguments.cache_dir
@@ -4380,6 +4387,8 @@ def command_run(arguments: argparse.Namespace) -> int:
     if cache_dir is not None:
         os.environ.setdefault("VONK_UPSTREAM_CACHE", str(cache_dir / "github-trees"))
 
+    failed: set[str] = set()  # recipes whose assessment or processing raised
+
     def assess_catalog():
         catalog_ = Catalog.load(root)
         defaults, overrides = drift.load_manifest(root / "upstream-watch.json")
@@ -4387,8 +4396,19 @@ def command_run(arguments: argparse.Namespace) -> int:
         embedded = drift.embedded_inventory(root, watches)
         drift.observe_embedded_heads(embedded, AnonymousHeadClient(http))
         assessor = Assessor(catalog_, http, cache_dir, embedded)
+
+        def assess_one(recipe_id: str) -> Assessment:
+            try:
+                return assessor.assess(recipe_id)
+            except Exception as error:  # noqa: BLE001 - one recipe's fault must not starve the rest
+                record_failure(summary, recipe_id, error)
+                failed.add(recipe_id)
+                # skipped this run: the loop leaves its issue and PRs untouched and
+                # the close functions skip an unreachable assessment
+                return Assessment(recipe_id, unreachable=["assessment failed"])
+
         with ThreadPoolExecutor(max_workers=8) as pool:
-            results = list(pool.map(assessor.assess, sorted(catalog_.recipes)))
+            results = list(pool.map(assess_one, sorted(catalog_.recipes)))
         return catalog_, results, embedded
 
     assessment = read_optional(
@@ -4430,7 +4450,6 @@ def command_run(arguments: argparse.Namespace) -> int:
     ensure_labels()
     summary.current = sum(1 for r in results if not r.drifted and not r.unreachable)
     review_ids: set[str] = set()
-    failed: set[str] = set()
     open_prs = foreign_open_prs()
     groups = sharing_groups(catalog_)
     grouped: set[str] = set()
@@ -4438,30 +4457,29 @@ def command_run(arguments: argparse.Namespace) -> int:
     handled: set[str] = set()  # recipes (group members too) an open refresh PR covers
     prepared_prs: dict[str, int | None] = {}  # group member -> the group's PR
     for result in results:
-        if result.drifted and (
-            blockers := blocking_prs(
-                recipe_footprint(catalog_, result.recipe_id), open_prs
-            )
-        ):
-            review_ids.add(result.recipe_id)  # leave any existing issue alone
-            summary.deferred.append(
-                f"{result.recipe_id}: skipped: open PR "
-                + ", ".join(f"#{n}" for n in blockers)
-            )
-            continue
-        if result.unreachable:
-            summary.unreachable.append(
-                f"{result.recipe_id}: {'; '.join(result.unreachable)}"
-            )
-            try:
-                sync_issue(result, summary, create=False)
-            except RuntimeError as error:
-                summary.failures.append(f"{result.recipe_id}: {str(error)[:300]}")
-            continue
-        summary.newer_lines += [f"{result.recipe_id}: {n}" for n in result.notes]
-        if not result.drifted:
+        if result.recipe_id in failed:  # its assessment raised; already recorded
             continue
         try:
+            if result.drifted and (
+                blockers := blocking_prs(
+                    recipe_footprint(catalog_, result.recipe_id), open_prs
+                )
+            ):
+                review_ids.add(result.recipe_id)  # leave any existing issue alone
+                summary.deferred.append(
+                    f"{result.recipe_id}: skipped: open PR "
+                    + ", ".join(f"#{n}" for n in blockers)
+                )
+                continue
+            if result.unreachable:
+                summary.unreachable.append(
+                    f"{result.recipe_id}: {'; '.join(result.unreachable)}"
+                )
+                sync_issue(result, summary, create=False)
+                continue
+            summary.newer_lines += [f"{result.recipe_id}: {n}" for n in result.notes]
+            if not result.drifted:
+                continue
             if result.prepared:
                 if summary.prepared >= MAX_MECHANICAL_PER_RUN:
                     summary.deferred.append(
@@ -4517,9 +4535,9 @@ def command_run(arguments: argparse.Namespace) -> int:
             if result.reasons or result.held or result.group_outcome:
                 review_ids.add(result.recipe_id)
                 sync_issue(result, summary)
-        except (RuntimeError, OSError, KeyError) as error:
+        except Exception as error:  # noqa: BLE001 - one recipe's fault must not starve the rest
             failed.add(result.recipe_id)
-            summary.failures.append(f"{result.recipe_id}: {str(error)[:300]}")
+            record_failure(summary, result.recipe_id, error)
     for source, action in (
         (
             "close current issues",
