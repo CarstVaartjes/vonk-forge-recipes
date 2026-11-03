@@ -25,6 +25,7 @@ def test_flash_next_profile_receives_platform_endpoint(
     # memory comes from the profile, so no --mem-fraction-static is sent here.
     entrypoint = types.SimpleNamespace()
     entrypoint.MODEL_PATH = "/model"
+    entrypoint.PLE_DIR_ROOT = "/cache/ple"
     entrypoint.SERVE_HOST = "0.0.0.0"
     entrypoint.SERVE_PORT = 30000
 
@@ -96,6 +97,13 @@ def test_flash_next_profile_receives_platform_endpoint(
     with pytest.raises(SystemExit) as ended:
         runpy.run_path(str(launcher), run_name="__main__")
     assert ended.value.code == 0
+    # Upstream prepares the PLE table by walking this path one component at a
+    # time without following links, so it must be a real directory under the
+    # platform cache, never the image's /cache symlink.
+    ple_root = Path(entrypoint.PLE_DIR_ROOT)
+    assert ple_root == tmp_path / "cache" / "ple"
+    assert ple_root.is_dir()
+    assert ple_root.resolve() == ple_root
     for flag, value in (
         ("--model-path", str(tmp_path)),
         ("--host", "127.0.0.1"),
