@@ -25,13 +25,13 @@
       "size_bytes": 3235
     },
     {
-      "id": "readme-3a81d9ddf728-b335630551",
+      "id": "readme-55024a8f3cfb-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "3a81d9ddf728040142456d71f9de97088deeaf848992ccac97f0e1fafa989429",
-      "size_bytes": 4641
+      "sha256": "55024a8f3cfb79e339d729f2602b9727a2427fc6032e1e093e26e6eb0e520f36",
+      "size_bytes": 4625
     },
     {
       "id": "chat-template-c3cf9e34abf4-00824420d1",
@@ -1128,7 +1128,7 @@
       "slug": "qwen3-8-flash-next"
     },
     "publisher": "azampatti",
-    "slug": "qwen3-8-flash-next-int4-autoround-14642741",
+    "slug": "qwen3-8-flash-next-int4-autoround-8b145d7f",
     "variant": "INT4-AutoRound",
     "version": "3.8"
   },
@@ -1147,6 +1147,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/azampatti/Qwen3.8-Flash-Next-125B-A5B-INT4-AutoRound",
-    "revision": "1464274120d36a4d8fcaa934552334a7d83ce0fd"
+    "revision": "8b145d7f6505f71521a73646c268e51f6af532e4"
   }
 }
