@@ -33,16 +33,17 @@ RUN cd /tensorfold && /opt/zig/zig build -Dnvcc=/usr/local/cuda/bin/nvcc -Dbolt-
  && test -x /opt/tensorfold/native/bin/tensorfold-native \
  && test -f /opt/tensorfold/native/lib/libbolt.so && test -f /opt/tensorfold/native/lib/libtfvideo.so \
  && test -f /opt/tensorfold/native/lib/libturbojpeg.so.0 && test -f /opt/tensorfold/native/lib/libtfgrammar.so
-# Build-time sm_121 kernel scan: libbolt.so must carry code a GB10 loads (sm_121 or sm_121a, plain family sm_120 cubins,
-# or PTX); sm_120a-only code does not load. Any other CUDA binary in the install must pass the same test.
-RUN set -e; ok='sm_121a?\.|sm_120\.'; \
- libbolt=/opt/tensorfold/native/lib/libbolt.so; \
- { cuobjdump --list-elf "$libbolt"; cuobjdump --list-ptx "$libbolt" 2>/dev/null || true; } | grep -qE "$ok|\.ptx" \
-   || { echo "libbolt.so has no sm_121-loadable CUDA code"; cuobjdump --list-elf "$libbolt" || true; exit 1; }; \
- for f in $(find /opt/tensorfold/native -type f \( -name '*.so*' -o -name tensorfold-native \)); do \
-   listing="$(cuobjdump --list-elf "$f" 2>/dev/null || true)"; \
-   if echo "$listing" | grep -q 'sm_'; then echo "$listing" | grep -qE "$ok" || { echo "$f has no sm_121-loadable CUDA code"; echo "$listing"; exit 1; }; fi; \
- done; echo "sm_121 kernel scan passed"
+# Build-time sm_121 kernel scan (scan-sm121.py: cubins sm_121[af] / sm_120[f], PTX not arch-specific and <= 121, or sm_121a;
+# each file's listing is echoed). Covered: libbolt.so and the other shared libraries in the install must load on sm_121 when
+# they carry SM12x code, and tensorfold-native's kernels, which the Zig build embeds as fatbins (zig/build/cuda_runtime.zig),
+# are scanned as the build's own fatbin outputs (`zig build fatbins`, same nvcc and -Dsm default 121, from the build cache);
+# every one of those must carry a loadable image. Not covered: a runtime JIT of kernels the binaries do not embed.
+COPY scan-sm121.py /opt/scan-sm121.py
+RUN cd /tensorfold && /opt/zig/zig build fatbins -Dnvcc=/usr/local/cuda/bin/nvcc -Doptimize=fast --prefix /opt/fatbins -j"$(nproc)" \
+ && ls /opt/fatbins/fatbin/*.fatbin >/dev/null \
+ && python3 /opt/scan-sm121.py $(for f in /opt/fatbins/fatbin/*.fatbin; do echo --require $f; done) \
+      --require /opt/tensorfold/native/lib/libbolt.so \
+      $(find /opt/tensorfold/native -type f \( -name '*.so*' -o -name tensorfold-native \) ! -name libbolt.so)
 RUN mkdir -p /opt/tensorfold/share/doc/tensorfold && cd /tensorfold \
  && for f in LICENSE LICENSE.md LICENSES NOTICE THIRD_PARTY_NOTICES.md; do \
       if [ -e "$f" ]; then cp -a "$f" /opt/tensorfold/share/doc/tensorfold/ || exit 1; fi; done \

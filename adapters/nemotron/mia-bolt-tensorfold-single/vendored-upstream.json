@@ -26,6 +26,7 @@
   },
   "ours": [
     "licenses/",
+    "scan-sm121.py",
     "tensorfold-serve"
   ]
 }
