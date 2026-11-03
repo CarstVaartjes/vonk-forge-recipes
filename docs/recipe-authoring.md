@@ -21,7 +21,7 @@ matching recipe, resolved Models and recorded topology retain local proof unless
 image-bound evidence establishes a different runtime. Restoring that proof must
 retain its measured identity, never fill missing pins from the current library.
 
-The contract 2.4.0 models and `derive_status` are the authority. Evidence lives
+`RecipeQualificationEvidence` and `derive_status` are the authority. Evidence lives
 separately in `qualification/evidence/<publisher>/<recipe-slug>.json`; recording
 it never changes the recipe's content digest. Each record binds recipe
 `content_sha256`, resolved runtime image digest/build key, Model digests, test
@@ -84,6 +84,9 @@ Use primary sources: release notes, model cards, repository commits and diffs,
 Dockerfiles, image manifests, and upstream tests. Resolve tags and branches to
 immutable revisions or image digests. Record the time of the check and the
 exact source URLs. An inaccessible source is unverified, not unchanged.
+Confirm that every artifact the creator's build fetches (wheels, CUDA builds,
+images) is still published at its pin; a build that is no longer published is a
+missing input to vendor or replace with evidence, never an assumption.
 
 Compare each previous pin with the proposed pin in the same source repository.
 Inspect relevant changed files as well as commit subjects. Distinguish actual
@@ -204,8 +207,7 @@ adds one batch request per object to confirm it exists; it transfers no bytes.
 
 An upstream shard may be published only as `<name>.part00`, `<name>.part01`,
 ... (joined by `cat`). The tool recognizes
-such a set and writes one file entry for `<name>` with `parts` (contract
-2.2.0): each part's LFS SHA-256 and size, while the entry's own `sha256` and
+such a set and writes one file entry for `<name>` with `parts`: each part's LFS SHA-256 and size, while the entry's own `sha256` and
 `size_bytes` describe the joined file. Hugging Face cannot know the joined
 file's digest, so give it with `--assembled-sha256 <name>=<sha256>` (repeat per
 file) or let the tool read it from the repository's `sha256-manifest.txt` when
@@ -274,6 +276,12 @@ for files authored in the same change; tooling owns package/source digests.
 Recorded upstream artifact checksums remain valid inputs
 (`tools/build-catalog-index`, `tests/test_recipe_packages.py`).
 
+Mirror the creator's recipe: its utilization, context, flags, loader and
+topology are the starting point, because it should work. Deviate only after an
+observed hardware failure and cite that evidence in the description; an
+estimate is never the reason (`tests/test_creator_memory_restores.py`). A launch
+broken for our interface is fixed instead (see Refresh selection and repair).
+
 Preserve launch behavior: executable, ordered arguments, environment, topology,
 ports, model aliases, resource envelope, and stop timeout. Model targets stay
 under `/models`; every distributed role needs selected model files
@@ -305,8 +313,8 @@ unset is fine for a non-bfloat16 checkpoint, which resolves to the device
 table. The disk table needs io_uring (blocked by the sandbox) or direct GDS
 (needs a real nvidia-fs; `CUFILE_FORCE_COMPAT_MODE` is rejected with cuFile
 error 5027), so set `VLLM_PLE_TABLE_MEMORY=shared`. The table then counts
-inside the vLLM memory budget: raise utilization to the admission maximum;
-change the context only on evidence. A disk Engram table (`engram-config`
+inside the vLLM memory budget; keep the creator's utilization and context
+unless a hardware run fails. A disk Engram table (`engram-config`
 `table_memory: disk`), or any disk table on an image that is not the b12x
 image, needs an image that installs a tested POSIX reader (see
 `adapters/deepseek/0xsero-exl3-vllm-dual/_ple_reader.c`). The recipe loader test
@@ -328,8 +336,8 @@ and [InstantTensor backend selection](https://github.com/scitix/InstantTensor#ba
 
 The shared `vonk_forge_contracts.memory_admission.evaluate_memory_admission` owns
 admission, explanatory headroom and the 2 GiB platform floor. Every recipe and
-option variant, on every role, must pass its empty-target-pool check: peak plus platform floor fits the
-pool. `reserve_bytes` is informational and is never charged. Offline validation
+option variant, on every role, is checked against an empty target pool: peak plus platform floor fits the
+pool (offline a warning; live admission uses real free memory). `reserve_bytes` is informational and is never charged. Offline validation
 (`admissible_declaration_warnings`, `qualification/vllm_memory_fit.py`) charges
 one idle host baseline, `ADMISSION_IDLE_USE_BYTES` (130,663,231,488 −
 126,600,000,000 idle-available bytes), calibrated on the proven set: the live
@@ -354,19 +362,26 @@ estimation (`admissible_declaration_warnings`) warns about a load overshoot abov
 (usable = max(0, min(total − max(2 GiB, 10% of total), 90% of total)), integer
 percent steps), a `minimum_swap_bytes` below what the overshoot needs (the
 smallest whole-GiB total) or above 128 GiB, and warns when the needed swap
-exceeds the 64 GiB default. The constants are copied, with citation, in
+exceeds the 64 GiB default (swap size is a fleet-profile setting; a recipe
+declares only its minimum). The constants are copied, with citation, in
 `qualification/memory_need.py`.
 
-**A.** Preserve the runtime settings of every recipe that passed on real hardware.
-Change them only after a hardware failure, or deliberately with hardware retesting.
+**A.** Use the creator's memory settings and preserve those of every recipe that
+passed on real hardware; change them only after a hardware failure, citing it.
+A creator's fraction is an absolute amount on the creator's machine: convert
+fraction × their total to the same bytes on a Spark (0xSero's 0.9465 of
+119.69 GiB is about 0.931 of a Spark's 121.69 GiB).
 
 **B.** New/failing recipes declare, per role, their honest measured peak
 (owner, 2026-10-27; the recipes are estimates until the hardware try measures them). It covers selected weights (including drafts), any
 absolute KV pool and runtime overhead; that loading floor is a lower bound, and
 where hardware evidence shows a role using more, its peak is that measured use
-(entrypoint and worker may differ). It must be admissible
+(entrypoint and worker may differ). It is checked for admissibility
 on an idle Spark. An honest peak that is not admissible is an estimate; the
-try decides, so it warns and never blocks. Never shave the number. The
+try decides, so it warns and never blocks. Never shave the number. Before the
+first try, compare selected weights per rank plus loading overhead with usable
+memory (`per_rank_need`) and record the predicted outcome, and any creator
+caveat such as "testing only", in the PR and description. The
 estimate rules are calibrated on the proven set. A KV pool holds at least one full-context request,
 not declared context × engine concurrency: engines schedule requests within it.
 GLM DSA (sparse-MLA) pools count the indexer cache inside the same pool: bytes per
@@ -377,7 +392,7 @@ reproduces the creators' logged pools (200,064 tokens in 10.95 GB fp8; 317,312
 nvfp4; 354,496 in 11,811,160,064 for the AQLM recipe, whose
 `index_topk_freq` 8 override leaves 13 indexer layers). The derivation is in the
 `source` of each geometry in `qualification/memory-inputs.json`.
-A single-Spark recipe file a change touches must bound KV: an absolute pool
+The estimate warns unless a touched single-Spark recipe bounds KV: an absolute pool
 (vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens`), or a declared
 `gpu-memory-utilization`/`mem-fraction-static` whose share of physical memory
 plus the margin held beside the engine budget (plus the resident expansion of
@@ -386,20 +401,15 @@ owner, `budget_margin_bytes` in `qualification/memory_need.py`, from the p90 of 
 277 sweep samples (audit 2026-11-01): vLLM 6.2 GB on one Spark and 10.4 GB on
 several (measured on 2-Spark runs; borrowed for 3, 4 and 8), SGLang 8.5 GB on one
 Spark and 8 GB on several. The loading floor, the inside-budget check and the
-SGLang static need keep 8 GB. The highest admissible utilization is 0.9050 on one
-Spark (vLLM's implicit 0.90 fits) and 0.8728 pool-less on several. A touched pool-less vLLM budget (any
-Spark count) must also hold the selected weights per rank plus the 8 GB
-overhead: Laguna S 2.1 r0b0tlab at 0.6 left 4.25 GB beside 74.15 GB of target
-and draft weights, and vLLM found no memory for KV cache blocks. Where the launch
-pins cache geometry, the budget also holds one full-context request, which vLLM
-requires before it starts: Laguna S 2.1 Mia on the 826aacdf checkpoint at 0.85
-left 1.12 GB beside 101.94 GB of weights for a 13.0 GB request. gpt-oss-120b at 0.85 beside its 10 GB
-Marlin repack exhausted host memory. On one Spark a declared SGLang fraction is
-bounded whether or not `max-total-tokens` caps the pools: its share must be
-admissible, and the fraction × the idle available bytes must hold the selected
-weights, their resident expansion and any capped token/state pools (GLM a0 at
-0.75 was OOM-killed; restoring its 262,144-token cap needs 116.8 GB against
-0.85's 106.8 GB). The declared peak covers the same static need plus the 8 GB
+SGLang static need keep 8 GB. The estimate's highest admissible utilization is
+0.9050 on one Spark and 0.8728 pool-less on several; a creator value above it is
+kept and tried, not lowered. It also warns when a touched pool-less vLLM budget
+(any Spark count) cannot hold the selected weights per rank plus the 8 GB
+overhead or, where the launch pins cache geometry, one full-context request,
+which vLLM requires before it starts. On one Spark it checks a declared SGLang
+fraction whether or not `max-total-tokens` caps the pools: its share is
+admissible, and the fraction × the idle available bytes holds the selected
+weights, their resident expansion and any capped token/state pools. The declared peak covers the same static need plus the 8 GB
 overhead (SGLang static need keeps 8 GB). SGLang's base on GB10 is host MemAvailable after CUDA init
 (`utils/common.py` is_integrated path), so the calculator charges the Spark's total
 memory. When `max-total-tokens` (and, for hybrid geometries, `max-mamba-cache-size`)
@@ -409,11 +419,13 @@ This rule is derived from the SGLang source and is uncalibrated: no fully capped
 proven run (graph-less, no speculation) backs it, and capped recipes with CUDA
 graphs or speculation rest on the 8 GB overhead. A hybrid Model without
 `max-mamba-cache-size` is not capped (the Mamba pool grows with the fraction).
-An uncapped pool keeps the calibrated fraction × total plus the SGLang margin (8.5 GB on one Spark, 8 GB on several). SGLang derives an omitted fraction at launch, so none is required. A pool-less vLLM declaration's peak, on one Spark or several,
-must cover its utilization budget plus the margin, since the Controller
-reserves the declared peak. `tools/refresh-upstream` raises a moved vLLM document's
-peaks to that envelope in the same refresh, so a refresh never blocks on it. `tests/test_absolute_kv_capacity.py` replays the recorded
-failures and must reject each. `qualification/memory_need.py`
+An uncapped pool keeps the calibrated fraction × total plus the SGLang margin (8.5 GB on one Spark, 8 GB on several). SGLang derives an omitted fraction at launch, so none is required. Before its
+first run, a pool-less vLLM declaration's peak, on one Spark or several, covers
+its utilization budget plus the margin, since the Controller reserves the
+declared peak (`tools/refresh-upstream` raises a moved document's peaks to that
+envelope); once it has run, the measured peak wins over this formula.
+`tests/test_absolute_kv_capacity.py` replays the recorded failures and must
+warn on each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
 multi-Spark vLLM absolute pool, also set an explicit `gpu-memory-utilization`
 startup budget whose fraction of physical memory fits every role peak: vLLM
@@ -441,30 +453,19 @@ caching, cache dtypes, speculation, block size and TP and ignores any hand
 `state_bytes_per_request`, which other engines keep. A hybrid whose vLLM layout
 the formula cannot express is named, with its reason, in
 `VLLM_UNMODELED_HYBRID`.
-For an unproven failing pool, prefer the creator context and reserve at least
-one request at that context, checking the worst option. If that cannot be
-admitted with selected weights and runtime overhead, cap the explicit engine
-context at what fits and disclose the cap in the recipe description.
+After a pool fails on hardware, keep the creator context if one request at it
+fits beside the selected weights and runtime overhead (check the worst option);
+otherwise cap the engine context at what fits, cite the failure and disclose the
+cap in the recipe description.
 Preserve proven recipe bytes; an estimate is never physical acceptance.
 
 The informative workload estimator (not declaration admission) uses
 **130,663,231,488 total bytes − 17,179,869,184 bytes
 (16 GiB estimator headroom) − 5,012,574,208 measured idle bytes =
-108,470,788,096 bytes**. The 16 GiB headroom is this estimator's own rule: the
-workload limit subtracts it, and a touched multi-Spark utilization-sized pool
-must leave it (below). It began as the host memory guard's per-sample
-MemAvailable bar (vonk-forge `040c51b8531523bebe542b5e1f7b9403e0767f72`,
-`host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES`), which the swap-aware
-guard (vonk-forge #1936, `fc6059e42edb1b26416fd78493138201f427de96`) removed.
-That guard has no per-sample bar; it stops managed workloads on
-R1 MemAvailable < 1 GiB and free swap < max(2 GiB, 10% of swap) for 2 s
-(without swap: MemAvailable < 256 MiB for 3 s); R2 swap > 90% used and still
-filling with MemAvailable < 4 GiB for 3 s; R3 swap-ins plus refaults ≥ 50,000
-pages/s with full PSI avg10 > 60% and MemAvailable + free swap < 8 GiB for
-10 s; R4 full PSI avg10 > 60% for 30 s while serving, or avg60 > 80% and not
-falling for 60 s while loading; R5 an NVRM allocation failure together with
-R1's or R3's condition, or, without swap, MemFree < 1 GiB, held for 2 s
-(`host_memory_guard_policy.rs`, thresholds calibratable). Idle use is from spark-3542
+108,470,788,096 bytes**. The 16 GiB headroom is this estimator's own planning
+rule, a leftover of the host memory guard's removed per-sample MemAvailable bar;
+the runtime backstop is the swap-aware guard (vonk-forge
+`host_memory_guard_policy.rs`, rules R1–R5). Idle use is from spark-3542
 2026-10-15/16 incident telemetry, **125,650,657,280 bytes idle MemAvailable**,
 retained in the calculator's historical source. Runtime
 overhead currently uses an **8,000,000,000-byte estimate**, not a measurement. A vLLM
@@ -473,9 +474,7 @@ worker loads it after its free-memory snapshot and profiles it inside
 `gpu-memory-utilization` (sources in `qualification/vllm_memory_fit.py`), so its
 weights count inside the budget like the target's. Pool-less single-Spark runs
 with a separate drafter held at most 9.9 GB beside utilization × memory, OS
-included. The 2026-10-13 DFlash2 freeze at 0.7 (image 155ce16b) is unexplained
-and 0.7 has not been re-run since; the 0.6 document passed on 431593a0 with
-3.7 GB beside its budget. The estimate over this limit
+included. The estimate over this limit
 is a **WARNING**, not a rejection: proven singles run utilization-sized pools
 above it. Never omit a failing recipe to pass the check.
 
@@ -498,12 +497,12 @@ no second pass/failure list in memory inputs; that file contains numerical
 geometry, source references and the immutable content baseline only. Preserve all
 unrelated recipe bytes.
 
-Repair unproven, unadmittable declarations by calculated need, preserving absolute
-cache requirements and bounding engine allocation (an absolute pool or an
-admissible engine fraction). The peak must fit the owner's idle capacity,
-which already subtracts host use; `reserve_bytes` is never charged. The catalog guard warns about changed
-declarations that exceed capacity despite a fitting need. Preserve proven bytes,
-calibrate against hardware passes, and leave unknown or oversized needs unresolved.
+An unproven declaration the estimate cannot admit keeps the creator's values;
+the try decides. Only after a hardware failure repair it by calculated need,
+preserving absolute cache requirements and bounding engine allocation (an
+absolute pool or an admissible engine fraction), with the failure cited.
+`reserve_bytes` is never charged. Preserve proven bytes, calibrate against
+hardware passes, and leave unknown or oversized needs unresolved.
 
 Proven recipes are the calibration set. Run
 `tools/check-recipe-memory-need --calibrate` without exemptions before changing
@@ -526,7 +525,7 @@ retains its measured overhead and the lower spark-3542 idle-available value abov
 single-node full-workload estimate is
 informative. An absolute vLLM KV pool overrides cache sizing by utilization.
 Changed multi-Spark documents use the per-rank demand declaration below;
-a changed multi-Spark SGLang document must also fit its sharded weights, resident
+a changed multi-Spark SGLang document is also checked to fit its sharded weights, resident
 expansion and capped token/state pools in `mem-fraction-static` × the lowest idle
 available bytes. Its absolute `max-total-tokens` cap must hold one full-context
 request, not context × `max-running-requests`: SGLang schedules requests within
@@ -537,25 +536,21 @@ state slots per running request (`max-running-requests`); at startup SGLang lowe
 concurrency 1 and 20 serve concurrency 4. With speculation the budget also
 charges (min(`max-running-requests`, slots // 5) + 1) ×
 `speculative-num-draft-tokens` intermediate state slots. Geometry that names a
-`runtime_image_digest` applies only to that image. A multi-Spark vLLM recipe file a change touches must bound KV
+`runtime_image_digest` applies only to that image. The estimate likewise warns unless a touched multi-Spark vLLM recipe bounds KV
 (`tools/check-recipe-memory-need --base origin/main`): an absolute
 `kv-cache-memory-bytes` pool that holds one full-context request per rank, or a
 `gpu-memory-utilization` whose share of physical memory plus the margin
 (10.4 GB) is admissible on an idle Spark, as for a single Spark; its declared peak
-covers that envelope. The Laguna M.1 stop at
-0.82 with no pool on 2026-10-26 was the host guard's per-sample 16 GiB bar,
-since removed; the GLM 5.3 Flash NVFP4 DFlash2 dual passed pool-less at the
-creator's 0.86. The
-pool need not hold context × `max-num-seqs`: vLLM schedules sequences within it,
-proven duals hold fewer, and the DSpark vLLM 0.25 dual pool sized for
-16 × 200,000 tokens exhausted host memory on both Sparks.
+covers that envelope. The
+pool need not hold context × `max-num-seqs`: vLLM schedules sequences within it.
 Sharded weights, that pool and the 8 GB overhead are bounded by idle admission,
 not by the 16 GiB planning limit: hardware-proven dual documents run above it.
 Existing documents remain unchanged and receive informative warnings.
 
 SGLang profiles loaded weights before applying `max-total-tokens`. A fraction
 below the resident model size can therefore produce a negative hybrid-cache
-budget even with a short context. For a large hybrid model, cap both the token
+budget even with a short context. For a large hybrid model that fails this way
+on hardware, cap both the token
 pool and `max-mamba-cache-size`, bound concurrency and disable graphs (or state
 in the description why capture stays in the non-static slack), then use a
 fraction that permits profiling. Budget the actual capped allocations,
@@ -564,11 +559,6 @@ overhead; the fraction alone no longer describes that peak. Tie any geometry
 bound to the exact Model identity and test the pinned engine's sizing path with
 the old failing inputs. Label estimated overhead and retain physical testing as
 an outstanding check. Never raise an uncapped fraction to hide a memory failure.
-The a0 GLM EXL3 geometry in `qualification/memory-inputs.json` binds the exact
-model configuration and image: 64 KiB/token, 150 MiB/state including the padding
-slot, and a 14 GB inferred resident expansion beside the default 8 GB overhead.
-The calculator charges the actual absolute token/state pools, rejects graph or
-image drift, and checks the declared peak against the shared limit.
 
 For a named tool choice that must produce one invocation, use a single native
 grammar rather than a repeating triggered tag. Preserve the argument schema's
@@ -587,38 +577,11 @@ its strict DeepSeek V4 tool grammar with a reasoning block even for
 vLLM 8244d1c4 in base `sha256:03a956544e9f...`, pass `reasoning=False` and need
 no setting.
 
-On GB10, CPU and CUDA allocations share physical memory. For unproven
-single-Spark jobs, keep models on CUDA when the complete resident weights,
-startup transients, activations and runtime overhead fit `LIMIT_BYTES` from the
-shared calculator. CPU/model/sequential/group offload adds device transitions
-and can duplicate storage; it is not a second memory pool. Inspect the pinned
-loader as well as steady inference. Retain proven execution settings and real
-disk streaming where residency or loading peaks require it. A smoke estimate is
-not full-length capacity or hardware acceptance.
-
-MOVA at source `1591b2557b42030a3421442c998dd6f5602ed9bd` offers `none`,
-`cpu` (Accelerate model hooks) and `group` (leaf streaming). Its step invokes
-visual/audio/bridge pre-forward hooks for each sequential CFG pass; Accelerate
-1.15.0 skips transfers for already-resident components, so hooks alone do not
-prove the source of all observed latency. Both pinned snapshots contain
-77,672,622,000 weight-file bytes, including both 28.58 GB video DiTs, T5,
-audio DiT, bridge and VAEs. With one frame there are 880/3,600 visual tokens
-at 352x640/720x1280 (latent stride 8, patch stride 2). Estimate 2/8 GB for
-activations and decoding, plus the shared 8 GB runtime estimate and 10 GB
-loading allowance (largest shard rounded up): 97.67/103.67 GB, below the
-108.47 GB safe limit. These are planning estimates, not measured peaks.
-`--remove_video_dit` only deletes the high-noise DiT after the low-noise switch;
-it does not change the initial loading peak or inference mathematics and is
-unnecessary with resident models.
-
-The MOVA smoke keeps one frame and two steps. Budgets are 1,200/3,600 seconds:
-the 2026-10-21 sweep observed 325.32 s/step at 360p with offload, so allow
-650.64 seconds for two steps plus 549 seconds for cold loading and export.
-For 720p, scale denoising by the 3,600/880 token ratio (2,662 seconds) and
-allow 938 seconds for loading/export. This deliberately assumes no offload
-speedup, uses the job's existing one-hour ceiling, and needs hardware validation;
-attention can scale worse than linearly. Each reference-image case gets the
-same bounded job budget.
+On GB10, CPU and CUDA allocations share physical memory: CPU/model/sequential/
+group offload adds device transitions and can duplicate storage; it is not a
+second memory pool. Keep the creator's placement and loader; change them only
+after a hardware failure, inspecting the pinned loader as well as steady
+inference. A smoke estimate is not full-length capacity or hardware acceptance.
 
 ### Multi-Spark memory demand and nonfitting recipes
 
@@ -679,6 +642,11 @@ the runtime UID/GID. Recipes must not duplicate or override those defaults.
 Keep non-root execution, a read-only root, and declared writable volumes. If an
 engine needs an additional invariant, fix the central engine implementation
 and exercise actual writes and cache reuse; do not scatter recipe workarounds.
+
+Model files are mounted read-only and identical files may be hard links to one
+cached copy; a creator launcher that refuses linked or read-only files gets an
+adapter fix, never a per-install copy.
+
 Bind generated rank/vision/model views to their checkpoint and engine inputs,
 reuse complete cached work and rebuild malformed/interrupted output
 (`tests/test_tony_tensorfold_cache.py`,
@@ -744,10 +712,17 @@ required or named tool choice is one call; without it the reasoning wrapper
 defers the grammar past Inkling's first call and forces a second
 (`tests/test_inkling_sglang_forced_tool.py`).
 
+A reasoning recipe serves its chat template as a repository file `COPY`ed into
+the image and named by `chat-template`, so the thinking switch can be checked.
+Its `add_generation_prompt` branch must honour `enable_thinking is defined and
+not enable_thinking`: SGLang forces its reasoning parser from that branch, and a
+creator template that always opens `<think>` leaks `</think>` into `content`
+when a request turns thinking off (`tests/test_sglang_reasoning_template_toggle.py`).
+
 ### Options: user-selectable runtime variants
 
 When users can reasonably choose between ways to run the same weights, declare an
-`options` list instead of publishing near-duplicate recipes (contract 2.1.0).
+`options` list instead of publishing near-duplicate recipes.
 
 | Field | Rule |
 | --- | --- |
@@ -858,8 +833,6 @@ runtime chat template, a selected template file, or a served Model declaring
 `chat`; a drafter's capability and an embedded tokenizer template alone cannot
 make base weights chat-trained (`tests/test_chat_configuration.py`).
 
-`tools/check-upstream-drift` inventories configured watches and embedded inputs;
-unknown/mutable/transitive inputs remain evidence gaps, not proof of freshness.
 The hourly `.github/workflows/refresh-upstream.yml` and `tools/refresh-upstream`
 implement automatic selection (`tests/test_check_upstream_drift.py`,
 `tests/test_refresh_upstream.py`): newest release/tag or head, preserving inferred
@@ -1015,6 +988,10 @@ all referenced fixtures in the package. `tests/test_qualification_index.py`,
 `tests/test_qualification_case_assertions.py`, `tests/test_optional_inputs.py`
 and `tests/test_media_types.py` enforce closure and slot consistency.
 
+A creator's own smoke proves only what it sends: compare its requests with the
+shared cases the recipe selects (A391 turns thinking off per request; MIS_A391
+sends only `reasoning_effort`) and expect uncovered paths to fail first.
+
 A media smoke proves one small, safe output, not full-quality generation. Keep
 native resolution, topology and output codecs; use the smallest frame count the
 model accepts and a few denoising steps (retain required distilled schedules).
@@ -1043,15 +1020,9 @@ Only resolved width/height
 reach consumers. `tests/test_native_dimension_expectations.py` guards the
 source pins, automatic-sizing contexts and wrong-dimension rejection.
 
-MOVA's pinned temporal rule is `4k+1`, including one frame; smoke uses one frame
-and two steps at 640x352 or 1280x720, with synchronized 48 kHz audio at 24 fps.
-The target is a few minutes on one GB10, with a 600-second job budget including
-adapter preparation, generation and ffprobe. The adapter reads the platform's
-`VONK_JOB_TIMEOUT_SECONDS`, shares one monotonic deadline, and kills torchrun's
-process group on expiry with stderr evidence. The read-only 2026-10-21 sweep
-results record the 360p 193-frame/50-step attempt timing out after 3,606 seconds;
-there is no completed 360p timing from which to estimate a measured speedup.
-The few-minute target remains unverified until a separately authorized GPU run.
+A job adapter reads the platform's `VONK_JOB_TIMEOUT_SECONDS`, shares one
+monotonic deadline and kills its process group on expiry with stderr evidence
+(`adapters/video/mova-pytorch/run.py`).
 
 ### What the sweep checks
 
