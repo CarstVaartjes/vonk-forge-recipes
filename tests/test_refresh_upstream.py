@@ -2152,6 +2152,58 @@ class AppCommandBoundaryTests(unittest.TestCase):
         command.assert_not_called()
 
 
+class PerRecipeFaultTests(unittest.TestCase):
+    def test_an_unexpected_error_in_one_recipe_does_not_starve_the_next(self) -> None:
+        item = refresh.Item(
+            "source",
+            "github",
+            "o/r",
+            OLD,
+            refresh.Target("github", "o/r", NEW, "d", None, None, "u"),
+        )
+        results = [
+            refresh.Assessment("a", items=[item]),
+            refresh.Assessment("b", items=[item]),
+        ]
+        published: list[str] = []
+        written: list = []
+
+        def publish(_root, assessment, _summary):
+            if assessment.recipe_id == "a":
+                raise ValueError("Expecting value: line 1 column 1 (char 0)")
+            published.append(assessment.recipe_id)
+            return 7
+
+        def read_optional(source, action, *_arguments, **_keywords):
+            if source == "catalog assessment":
+                return object(), results, {"coverage": {}}
+
+        arguments = refresh.argparse.Namespace(cache_dir=None, dry_run=False)
+        with (
+            patch.object(refresh, "git", return_value="head"),
+            patch.object(refresh, "read_optional", side_effect=read_optional),
+            patch.object(refresh, "ensure_labels"),
+            patch.object(refresh, "foreign_open_prs", return_value={}),
+            patch.object(refresh, "sharing_groups", return_value={}),
+            patch.object(refresh, "recipe_footprint", return_value=(set(), [])),
+            patch.object(refresh, "publish_mechanical", side_effect=publish),
+            patch.object(refresh, "close_current_issues"),
+            patch.object(refresh, "close_stale_refresh_prs"),
+            patch.object(
+                refresh,
+                "write_summary",
+                side_effect=lambda summary, *_rest: written.append(summary),
+            ),
+        ):
+            self.assertEqual(refresh.command_run(arguments), 1)
+        self.assertEqual(published, ["b"])
+        (summary,) = written
+        self.assertEqual(len(summary.failures), 1)
+        self.assertTrue(
+            summary.failures[0].startswith("a: ValueError: Expecting value")
+        )
+
+
 class AppKeyLifetimeTests(unittest.TestCase):
     def test_signing_key_is_removed_before_recipe_subprocesses_and_auth_is_closed(
         self,

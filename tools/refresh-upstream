@@ -4517,9 +4517,11 @@ def command_run(arguments: argparse.Namespace) -> int:
             if result.reasons or result.held or result.group_outcome:
                 review_ids.add(result.recipe_id)
                 sync_issue(result, summary)
-        except (RuntimeError, OSError, KeyError) as error:
+        except Exception as error:  # noqa: BLE001 - one recipe's fault must not starve the rest
             failed.add(result.recipe_id)
-            summary.failures.append(f"{result.recipe_id}: {str(error)[:300]}")
+            summary.failures.append(
+                f"{result.recipe_id}: {type(error).__name__}: {str(error)[:300]}"
+            )
     for source, action in (
         (
             "close current issues",
