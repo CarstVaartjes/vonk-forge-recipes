@@ -41,8 +41,8 @@ RUN rm -rf /opt/tensorfold \
 RUN mkdir -p /opt/tensorfold/share/doc/tensorfold && cd /tensorfold \
  && for f in LICENSE LICENSE.md LICENSES NOTICE THIRD_PARTY_NOTICES.md; do \
       if [ -e "$f" ]; then cp -a "$f" /opt/tensorfold/share/doc/tensorfold/ || exit 1; fi; done
-# Every Triton specialization, compiled for sm_121 without a GPU. flashnext_aot.py fails the build when a kernel's
-# Triton hash, or the cubin sha256 of a kernel the spec captured, differs from the spec's.
+# Every Triton specialization, compiled for sm_121 without a GPU. flashnext_aot.py fails the build when a kernel the
+# spec captured from the creator's reference build gets another Triton hash or cubin sha256 than the capture's.
 RUN cd /tensorfold && python -B -c 'import json, os, sys; t = int(sys.argv[1]); [os.utime(os.path.join("src", f), (t, t)) for f in sorted({k["source"]["file"] for k in json.load(open("zig/tests/cuda/flashnext/kernels.json"))["kernels"]})]' "$(cat /opt/vonk-build/kernel-source-mtime)" \
  && PYTHONPATH=/tensorfold/src python -B tools/zig/flashnext_aot.py build \
       --spec zig/tests/cuda/flashnext/kernels.json --jit zig/tests/cuda/flashnext/jit.json --tp 1,2 \
