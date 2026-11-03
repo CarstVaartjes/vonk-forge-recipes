@@ -232,7 +232,6 @@ def test_an_output_that_misses_its_assertion_fails_the_recipe() -> None:
         ),
         (_job("cancelled"), verdict.Disposition.OBSERVE),
         (_job("needs-operator"), verdict.Disposition.OBSERVE),
-        (_job("superseded"), verdict.Disposition.OBSERVE),
     ],
 )
 def test_a_job_that_ends_unsuccessfully_is_the_recipes_only_without_a_platform_cause(
@@ -425,8 +424,8 @@ def test_a_job_that_never_ends_within_its_own_timeout_is_observed_again() -> Non
     assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
 
 
-@pytest.mark.parametrize("state", ["superseded", "needs-operator"])
-def test_a_superseded_or_waiting_job_ends_the_wait_at_once(state: str) -> None:
+@pytest.mark.parametrize("state", ["needs-operator", "cancelled"])
+def test_a_waiting_or_cancelled_job_ends_the_wait_at_once(state: str) -> None:
     clock = [0.0]
     controller = Controller(
         create=[_job(None, preparation="ready")],

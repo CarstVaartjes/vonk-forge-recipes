@@ -1599,7 +1599,10 @@ class Sweep:
         for digest in recipe.model_digests if recipe else ():
             self.state.data["model_failures"].pop(digest, None)
         record = self.state.downloads.get(key)
-        if record is not None and record.get("state") in ("failed", "cancelled"):
+        if record is not None and record.get("state") in (
+            LifecycleState.FAILED,
+            LifecycleState.CANCELLED,
+        ):
             if record.get("operation_id") or record.get("request_key"):
                 # Explicit operator intent qualifies a retest, not a terminal
                 # receipt. Keep the accepted parent unchanged until fresh exact
@@ -1720,7 +1723,7 @@ class Sweep:
             return False  # the Controller has not answered yet: keep trying
         busy = bool(self.state.slots) or any(
             r.get("state") in ACTIVE_APP
-            or (r.get("retry_at") and r.get("state") == "failed")
+            or (r.get("retry_at") and r.get("state") == LifecycleState.FAILED)
             for r in self.state.downloads.values()
         )
         external = any(
@@ -2559,7 +2562,7 @@ class Sweep:
             if app["state"] == LifecycleState.SUPERSEDED:
                 self.requeue(key, "load superseded by another application")
                 return
-            if app["state"] == "cancelled":
+            if app["state"] == LifecycleState.CANCELLED:
                 # A cancel is an ending somebody requested (the operator, the sweep itself,
                 # a superseding load), never the recipe's outcome. A child the cancel could
                 # not confirm keeps its own lifecycle: the next load's admission waits on it.
@@ -2572,7 +2575,7 @@ class Sweep:
                 )
                 self.state.entry(key)["not_before"] = now + self.cfg.retry_delay
                 return
-            if app["state"] == "succeeded":
+            if app["state"] == LifecycleState.SUCCEEDED:
                 progress = self._observe_readiness(slot, now)
                 if progress is Progress.WAIT_EXPIRED:
                     self._expire_wait(key, slot, slot["ready_watch"])

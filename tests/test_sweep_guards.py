@@ -805,3 +805,73 @@ def test_every_evidence_exit_has_its_own_status_message():
         and node.value.id == "SweepEvidenceExit"
     }
     assert mapped == {member.name for member in SweepEvidenceExit}
+
+
+# -- lifecycle words come from the shared vocabulary ---------------------------------------
+
+_LIFECYCLE_WORDS = frozenset(state.value for state in STATES)
+
+
+def _str_words(node: ast.AST) -> set[str]:
+    return {
+        item.value
+        for item in ast.walk(node)
+        if isinstance(item, ast.Constant) and isinstance(item.value, str)
+    } & _LIFECYCLE_WORDS
+
+
+def _is_state_read(node: ast.AST) -> bool:
+    """``x["state"]``, ``x.get("state")``, ``_text(x, "state")``, ``state`` or ``x.state``."""
+    if isinstance(node, ast.Name):
+        return node.id == "state"
+    if isinstance(node, ast.Attribute):
+        return node.attr == "state"
+    if isinstance(node, ast.Subscript):
+        return isinstance(node.slice, ast.Constant) and node.slice.value == "state"
+    if isinstance(node, ast.Call):
+        return any(
+            isinstance(arg, ast.Constant) and arg.value == "state" for arg in node.args
+        )
+    return False
+
+
+def _local_lifecycle_literals(tree: ast.AST) -> list[int]:
+    """Lines of a literal set/tuple/list of 2+ lifecycle words, or of a state compared to a bare word."""
+    lines = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Set, ast.Tuple, ast.List)):
+            if len(_str_words(node)) >= 2:
+                lines.append(node.lineno)
+        elif isinstance(node, ast.Compare):
+            sides = [node.left, *node.comparators]
+            if any(_is_state_read(side) for side in sides) and any(
+                isinstance(side, ast.Constant) and side.value in _LIFECYCLE_WORDS
+                for side in sides
+            ):
+                lines.append(node.lineno)
+    return lines
+
+
+def test_lifecycle_literal_guard_catches_local_sets_and_bare_compares() -> None:
+    assert _local_lifecycle_literals(
+        ast.parse('ENDED = frozenset({"succeeded", "failed", "cancelled"})')
+    ) == [1]
+    assert _local_lifecycle_literals(ast.parse('x = job["state"] != "failed"')) == [1]
+    assert _local_lifecycle_literals(ast.parse('x = r.get("state") == "failed"')) == [1]
+    assert not _local_lifecycle_literals(ast.parse('x = {"succeeded", "other"}'))
+    assert not _local_lifecycle_literals(ast.parse('x = entry["status"] == "failed"'))
+    assert not _local_lifecycle_literals(
+        ast.parse("x = state != LifecycleState.FAILED")
+    )
+
+
+@pytest.mark.parametrize("path", SWEEP, ids=lambda p: p.name)
+def test_the_sweep_names_lifecycle_states_only_through_the_shared_vocabulary(
+    path: Path,
+) -> None:
+    if path.name == "lifecycle.py" or path.suffix != ".py":
+        return
+    assert not _local_lifecycle_literals(ast.parse(path.read_text())), (
+        f"{path.name}: use LifecycleState / TERMINAL / WAITING / ACTIVE from "
+        "spark_sweep.lifecycle, not literal state words"
+    )

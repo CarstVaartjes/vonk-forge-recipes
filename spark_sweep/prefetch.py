@@ -296,7 +296,7 @@ class Prefetcher:
                 self._retire(key, record, "download.stalled")
             elif active(record["state"]):
                 total_rate += float(speed)
-            elif record["state"] == "failed":
+            elif record["state"] == LifecycleState.FAILED:
                 self._failed(key, record, document)
             elif record["state"] in (
                 LifecycleState.CANCELLED,
@@ -315,7 +315,9 @@ class Prefetcher:
                 )
                 self.state.event(f"download intent ended: {key}")
                 self.state.save()
-            if record["state"] == "succeeded" and not record.get("done_at"):
+            if record["state"] == LifecycleState.SUCCEEDED and not record.get(
+                "done_at"
+            ):
                 record["done_at"] = self.clock()
                 self.on_done(key)
         self.rate.add(total_rate)
@@ -400,7 +402,8 @@ class Prefetcher:
                         if child.get(k) is not None
                     }
                     for child in document.get("children", [])
-                    if isinstance(child, dict) and child.get("state") == "failed"
+                    if isinstance(child, dict)
+                    and child.get("state") == LifecycleState.FAILED
                 ][:8],
                 "failure": excerpt(failure_doc, 1000),
             },
@@ -409,7 +412,8 @@ class Prefetcher:
             self.pressure_until = self.clock() + self.config.pressure_pause
             self.state.event(f"NAS pressure on {key}: new model downloads paused")
         model_child = any(
-            child.get("kind") == "model-cache" and child.get("state") == "failed"
+            child.get("kind") == "model-cache"
+            and child.get("state") == LifecycleState.FAILED
             for child in document.get("children", [])
             if isinstance(child, dict)
         )
@@ -452,7 +456,7 @@ class Prefetcher:
         record = self.state.downloads.get(recipe.key, {})
         attempt = int(record.get("attempt", 0)) + 1
         rerequests = int(record.get("rerequests", 0)) + (
-            1 if record.get("state") == "succeeded" else 0
+            1 if record.get("state") == LifecycleState.SUCCEEDED else 0
         )
         key = request_key(
             "download", self.state.nonce, recipe.key, recipe.content_sha256, attempt
@@ -830,7 +834,7 @@ class Prefetcher:
             if record.get("request_key"):
                 return self._terminal_retest(recipe, record, now)
             return now >= float(record.get("retry_at", 0))
-        if record.get("state") == "succeeded":
+        if record.get("state") == LifecycleState.SUCCEEDED:
             # A finished download stands. Ask again only if a library read made *after*
             # it still says the cache is empty (evicted). Fresh evidence, not a count,
             # authorizes recovery; the cooldown bounds lagging-listing churn.
@@ -840,9 +844,11 @@ class Prefetcher:
                 and now - done_at > 600
                 and self.library_fresh_since > done_at
             )
-        if record.get("state") in ("failed", "cancelled", "superseded") and record.get(
-            "operation_id"
-        ):
+        if record.get("state") in (
+            LifecycleState.FAILED,
+            LifecycleState.CANCELLED,
+            LifecycleState.SUPERSEDED,
+        ) and record.get("operation_id"):
             # Accepted parents always need a fresh exact terminal receipt. An old
             # retry timer must never override an active or unreadable observation.
             return self._terminal_retest(recipe, record, now)
@@ -903,7 +909,7 @@ class Prefetcher:
             or document.get("recipe_content_sha256") != recipe.content_sha256
             or not isinstance(document.get("failure"), Mapping)
             or not isinstance(document.get("request"), Mapping)
-            or document.get("state") != "failed"
+            or document.get("state") != LifecycleState.FAILED
         ):
             return False
         original_intent = record.get("accepted_intent")
