@@ -44,7 +44,7 @@ the installable contracts. Do not add separate guidance files.
 
 ## Sweep evidence workflow
 
-Hardware qualification uses contract 2.4.0 `RecipeQualificationEvidence` and
+Hardware qualification uses `RecipeQualificationEvidence` and
 `derive_status`. Store public evidence in
 `qualification/evidence/<publisher>/<recipe-slug>.json`, separate from recipes.
 Proven recipes are never broken pre-emptively: preserve the last pass during a
