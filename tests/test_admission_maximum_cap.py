@@ -1,6 +1,7 @@
 """The admission maximum caps the vLLM envelope; a measured, unchanged budget keeps its peaks."""
 
 import ast
+import json
 from pathlib import Path
 
 import pytest
@@ -86,8 +87,13 @@ def with_utilization(recipe: RecipeDefinition, value: str) -> RecipeDefinition:
     return moved
 
 
+def authored(slug: str) -> dict:
+    return json.loads((memory_need.ROOT / "recipes" / f"{slug}.json").read_text())
+
+
 def digest_of(recipe: RecipeDefinition) -> str:
-    return document_sha256(recipe.model_dump(mode="json"))
+    """The authored document's digest, as evidence records it (not a re-dump)."""
+    return document_sha256(authored(recipe.identity.slug))
 
 
 def measured(monkeypatch: pytest.MonkeyPatch, proven: bool) -> None:
@@ -246,3 +252,33 @@ def test_the_guard_allows_the_listed_scopes() -> None:
     )
     assert uses(source, "qualification/memory_need.py") == []
     assert uses(source, "tools/other.py")
+
+
+@pytest.mark.live_evidence
+def test_real_evidence_keeps_a_proven_recipe_on_a_same_budget_move() -> None:
+    proven = None
+    for path in sorted((memory_need.ROOT / "recipes").glob("*.json")):
+        raw = json.loads(path.read_text())
+        if raw["runtime"]["engine"] != "vllm":
+            continue
+        recipe = RecipeDefinition.model_validate(raw)
+        digest = document_sha256(raw)
+        if recipe_envelope(recipe) and memory_need.hardware_proven(recipe, digest):
+            proven = (recipe, digest)
+            break
+    assert proven, "no hardware-proven vLLM recipe in the committed evidence"
+    previous, digest = proven
+    moved = previous.model_copy(deep=True)
+    declare_peak(moved, 1_000_000_000)
+    assert raise_peaks_to_envelope(moved, previous, digest) is None
+    warnings = memory_estimate_warnings(
+        moved,
+        catalog_models(),
+        INPUTS,
+        document_digest="",
+        previous=previous,
+        previous_digest=digest,
+    )
+    assert_not_warns(warnings, "peak understates vLLM")
+    # The same move on a digest the evidence does not know heals.
+    assert raise_peaks_to_envelope(moved, previous, "0" * 64) is not None
