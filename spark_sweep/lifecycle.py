@@ -55,6 +55,7 @@ class RetestReason(StrEnum):
     SCHEDULED = "scheduled-retest"
     OWNER_CHANGED = "observed-fault-owner-changed"
     RELEASE_CHANGED = "controller-release-changed"
+    UNPUBLISHABLE_PASS = "pass-cannot-publish"
     PASSED_OLDER_REVISION = "passed-on-older-revision"
     FAILED_OLDER_REVISION = "failed-on-older-revision"
     DEFERRED_OLDER_REVISION = "deferred-on-older-revision"

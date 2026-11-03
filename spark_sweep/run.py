@@ -99,8 +99,11 @@ from .qualification import (
     from_history,
     local_status,
     merge_evidence,
+    pass_marker,
     read_evidence,
+    rerun_settled,
     scheduling_priority,
+    unpublishable_pass,
 )
 from .removal import ModelRemover
 from .removal_contract import RemovalWait
@@ -136,11 +139,15 @@ DOCUMENT_EVIDENCE_LIMIT = 65536
 
 
 def retest_reason(
-    view: QualificationStatusView | None, current: Callable[[], QualificationIdentity]
+    view: QualificationStatusView | None,
+    current: Callable[[], QualificationIdentity],
+    unpublishable: bool = False,
 ) -> RetestReason | None:
     """Why a recorded verdict asks for a new run, from the derived status alone."""
     if view is None:
         return None
+    if unpublishable:
+        return RetestReason.UNPUBLISHABLE_PASS
     if (
         view.status == QualificationStatus.BLOCKED_PLATFORM
         and view.last_failure is not None
@@ -421,11 +428,24 @@ class Sweep:
                 f"qualification evidence unavailable: {type(error).__name__}"
             )
 
-    def qualification_view(self, recipe: Recipe) -> QualificationStatusView | None:
+    def _recipe_evidence(self, recipe: Recipe) -> RecipeQualificationEvidence | None:
         try:
-            evidence = self.qualification_evidence.get(recipe.key) or read_evidence(
+            return self.qualification_evidence.get(recipe.key) or read_evidence(
                 Path(__file__).resolve().parents[1], recipe.key
             )
+        except (ValueError, TypeError, OSError):
+            return None
+
+    def qualification_view(
+        self,
+        recipe: Recipe,
+        evidence: RecipeQualificationEvidence | None = None,
+        identity: QualificationIdentity | None = None,
+    ) -> QualificationStatusView | None:
+        try:
+            evidence = evidence or self._recipe_evidence(recipe)
+            if evidence is None:
+                return None
             return local_status(
                 evidence,
                 recipe,
@@ -433,6 +453,7 @@ class Sweep:
                 recipe.key in self.state.slots
                 and self.state.slots[recipe.key].get("phase")
                 != SweepSlotPhase.FINISHED,
+                identity,
             )
         except (ValueError, TypeError, OSError):
             return None  # malformed observed identity cannot certify public proof
@@ -732,11 +753,39 @@ class Sweep:
         slot = self.state.slots.get(recipe.key)
         if slot is not None and slot.get("phase") != "finished":
             return
-        view = self.qualification_view(recipe)
+        evidence = self._recipe_evidence(recipe)
+        try:
+            identity: QualificationIdentity | None = current_identity(recipe)
+        except (ValueError, TypeError):
+            identity = None  # malformed observed identity cannot certify public proof
+        view = (
+            self.qualification_view(recipe, evidence, identity)
+            if identity is not None
+            else None
+        )
+        # A local pass the catalog would not publish is asked for again, once per content
+        # and catalog image, until the re-run records a verdict (then it stands).
+        marker = pass_marker(recipe, identity) if identity is not None else ""
+        unpublishable = (
+            identity is not None
+            and unpublishable_pass(
+                view, evidence, identity, release_known=self.release_sha is not None
+            )
+            and evidence is not None
+            and not rerun_settled(
+                evidence, entry.get("unpublishable_requeue"), marker, self.release_sha
+            )
+        )
+        requeued = (
+            entry.get("status") == RecipeStatus.PENDING
+            and entry.get("requeued_because") == RetestReason.UNPUBLISHABLE_PASS
+        )
         if (
             view is not None
             and view.status == QualificationStatus.WORKING
             and view.last_pass is not None
+            and not unpublishable
+            and not requeued  # a pending requeue is not undone by the next catalog pass
             and (slot is None or slot.get("phase") == SweepSlotPhase.FINISHED)
         ):
             entry.update(
@@ -837,11 +886,15 @@ class Sweep:
             self.state.event(f"{recipe.key} is {why}: pending")
         if recipe.node_count > enrolled_sparks:
             return  # a Spark leaving the fleet must not rewrite a recorded result
-        why = retest_reason(view, lambda: current_identity(recipe))
+        why = retest_reason(
+            view, lambda: identity or current_identity(recipe), unpublishable
+        )
         if entry.get("status") == RecipeStatus.PENDING:
             return
         if why is None:
             return
+        if why == RetestReason.UNPUBLISHABLE_PASS:
+            entry["unpublishable_requeue"] = {"at": self.clock.now(), "marker": marker}
         if why == RetestReason.PASSED_OLDER_REVISION and not self.cfg.revalidate_passes:
             return
         entry["previous"] = {
