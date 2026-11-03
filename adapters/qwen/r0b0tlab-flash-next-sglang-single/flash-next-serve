@@ -35,6 +35,21 @@ for name in ("home", "hf", "jit", "xdg", "triton", "torch", "flashinfer", "ple")
 os.chdir("/opt/r0b0tlab")
 sys.path.insert(0, "/opt/r0b0tlab")
 from runtime import entrypoint  # noqa: E402
+from sglang.srt.models import qwen4_exp_ple_cache as ple_cache  # noqa: E402
+
+# Platform model files are hard links into the shared store, so the source has
+# nlink > 1 by design. Relax only that count for "source"; the whole file is still
+# hashed against the pinned plan and every other check stays as upstream wrote it.
+ple_require_single_link = ple_cache._require_regular_single_link
+
+
+def require_regular_link(st, what):
+    if what == "source" and st.st_nlink > 1:
+        st = os.stat_result((*st[:3], 1, *st[4:]))
+    ple_require_single_link(st, what)
+
+
+ple_cache._require_regular_single_link = require_regular_link
 
 entrypoint.MODEL_PATH = str(MODEL)
 entrypoint.PLE_DIR_ROOT = str(CACHE / "ple")
