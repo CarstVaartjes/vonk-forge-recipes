@@ -1938,25 +1938,26 @@ class Sweep:
     ) -> policy.Failure:
         """The same content identity exiting the same way three times in a row is its verdict.
 
-        The run of identical platform-exit signatures lives on the recipe's entry; another
-        summary, another outcome class or a changed content identity restarts the count.
+        The run of identical parsed exit facts (cause, trigger) lives on the recipe's entry; another
+        cause, another outcome class or a changed content identity restarts the count.
         """
-        if failure.klass != SweepFailureClass.PLATFORM_EXIT:
+        cause = failure.evidence.get("exit_cause")
+        if failure.klass != SweepFailureClass.PLATFORM_EXIT or not cause:
+            # Only parsed exit facts are compared; free text (a long Controller prefix) is not.
             entry.pop("exit_repeat", None)
             return failure
-        identity = content_identity(recipe).model_dump(mode="json")
-        seen = entry.get("exit_repeat") or {}
-        same = seen.get("identity") == identity and seen.get("signature") == (
-            failure.signature
-        )
-        count = int(seen.get("count", 0)) + 1 if same else 1
-        entry["exit_repeat"] = {
-            "identity": identity,
-            "signature": failure.signature,
-            "count": count,
+        key = {
+            "identity": content_identity(recipe).model_dump(mode="json"),
+            "exit_cause": cause,
+            "exit_trigger": failure.evidence.get("exit_trigger"),
         }
+        seen = entry.get("exit_repeat") or {}
+        count = int(seen.get("count", 0)) + 1 if seen.get("key") == key else 1
         if count < IDENTICAL_EXIT_LIMIT:
+            entry["exit_repeat"] = {"key": key, "count": count}
             return failure
+        # The verdict is written: a retest starts at zero.
+        entry.pop("exit_repeat", None)
         return policy.classify(
             failure.phase,
             QualificationCauseCode.RUNTIME_EXIT,

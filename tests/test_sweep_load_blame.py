@@ -297,7 +297,19 @@ def test_exit_facts_do_not_blame_platform_failures_on_recipes(
         assert disposition(failure) == Disposition.OBSERVE
 
 
-UNCLASSIFIED = "runtime_process_exited: exit_code=1 exit_cause=unclassified"
+# The Controller's real reason shape (copied from a live sweep result): about 110 characters
+# of prefix before the exit facts, longer than the text the signature normaliser keeps.
+REAL_PREFIX = (
+    "1 assignment(s) need reconciliation: run-switch phase operation failed: "
+    "failed: the workload process exited: exit_code=1 oom_killed=false exit_cause="
+)
+
+
+def _exit(cause: str) -> str:
+    return REAL_PREFIX + cause
+
+
+UNCLASSIFIED = _exit("unclassified")
 
 
 def _exit_sweep(tmp_path, gateway, fail_load=UNCLASSIFIED):
@@ -360,7 +372,7 @@ def test_three_identical_unclassified_exits_fail_with_evidence(
 
 def test_different_exit_summary_restarts_the_count(tmp_path, gateway) -> None:
     recipe, sweep, fleet, clock = _exit_sweep(tmp_path, gateway)
-    other = "runtime_process_exited: exit_code=1 exit_cause=start_refused"
+    other = _exit("start_refused")
 
     def vary(_now):
         attempts = _status(sweep, "bad").get("attempts", 0)
@@ -373,6 +385,55 @@ def test_different_exit_summary_restarts_the_count(tmp_path, gateway) -> None:
     # Two identical exits, then a different one, then a pass: never three alike.
     assert _status(sweep, "bad")["status"] == RecipeStatus.PASSED
     assert _status(sweep, "bad")["exit_repeat"] is None
+
+
+def test_three_different_exit_causes_behind_the_real_prefix_do_not_fail(
+    tmp_path, gateway
+) -> None:
+    recipe, sweep, fleet, clock = _exit_sweep(tmp_path, gateway)
+    causes = ("unclassified", "start_refused", "crashed_by_signal")
+
+    def vary(_now):
+        attempts = _status(sweep, "bad").get("attempts", 0)
+        fleet.recipes[recipe.key].fail_load = (
+            None if attempts >= 3 else _exit(causes[attempts])
+        )
+
+    clock.hooks.append(vary)
+    sweep.run()
+    assert _status(sweep, "bad")["status"] == RecipeStatus.PASSED
+
+
+def test_retry_failed_after_the_verdict_gets_three_attempts_again(
+    tmp_path, gateway
+) -> None:
+    recipe, sweep, _, _ = _exit_sweep(tmp_path, gateway)
+    sweep.run()
+    assert _status(sweep, "bad")["status"] == RecipeStatus.FAILED
+    assert "exit_repeat" not in _status(sweep, "bad")
+    sweep._requeue_failed(recipe.key, "operator: --retry-failed")
+    assert _status(sweep, "bad")["attempts"] == 0
+    sweep.run()
+    again = _status(sweep, "bad")
+    assert again["status"] == RecipeStatus.FAILED
+    assert again["attempts"] == 3
+
+
+def test_the_count_survives_a_sweep_restart(tmp_path, gateway) -> None:
+    _, sweep, _, clock = _exit_sweep(tmp_path, gateway)
+    reloaded = []
+
+    def restart(_now):
+        if _status(sweep, "bad").get("attempts", 0) == 2 and not reloaded:
+            reloaded.append(True)
+            sweep.state.save()
+            sweep.state = type(sweep.state).load(sweep.state.path, clock.now)
+
+    clock.hooks.append(restart)
+    sweep.run()
+    assert reloaded
+    assert _status(sweep, "bad")["status"] == RecipeStatus.FAILED
+    assert _status(sweep, "bad")["attempts"] == 3
 
 
 def test_identity_change_restarts_the_count(tmp_path, gateway) -> None:
