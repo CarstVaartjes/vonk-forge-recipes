@@ -559,6 +559,8 @@ class Prefetcher:
                 "attempt": attempt,
                 "observe_failures": int(record.get("observe_failures", 0)),
                 "failure": failure.signature,
+                # The release the request started on (recorded with the persisted request).
+                "release": self.state.downloads[recipe.key].get("release"),
                 "request_intent": {
                     "recipe_key": recipe.key,
                     "content_sha256": recipe.content_sha256,
@@ -596,7 +598,7 @@ class Prefetcher:
                 "revision_id": recipe.revision_id,
             },
             "started_at": self.clock(),
-            "release": self.release(),
+            "release": self.state.downloads[recipe.key].get("release"),
         }
         self.state.event(f"download {kind}: {recipe.key}")
 

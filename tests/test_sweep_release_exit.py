@@ -202,3 +202,38 @@ def test_a_release_that_flips_mid_load_is_recorded_against_the_one_the_load_star
     sweep.requeue_for_changed_owner()
     assert entry["status"] == "pending"
     assert entry["recovery_history"][-1]["basis"] == {"controller_release": "2" * 40}
+
+
+def test_a_download_request_records_the_release_it_started_on(tmp_path):
+    sweep, fleet, _ = make_sweep(
+        tmp_path,
+        [FakeRecipe("a", ("1" * 64,), content="a" * 64)],
+        [FakeModel("1" * 64)],
+    )
+    fleet.api_source_sha = "1" * 40
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep.observe_platform()
+    sweep.prefetcher.release = lambda: sweep.release_sha
+    key = next(iter(sweep.recipes))
+    sweep.prefetcher._request(sweep.recipes[key], "model")
+    assert sweep.state.downloads[key]["release"] == "1" * 40
+    # A request the Controller finally refuses replaces the record: the release it
+    # started on is carried, not the one deployed by the time the refusal is read.
+    sweep.state.downloads.pop(key)
+    sweep.prefetcher._request(sweep.recipes[key], "model")
+    assert sweep.state.downloads[key]["release"] == "1" * 40
+
+    def refuse_after_a_flip(a):
+        fleet.api_source_sha = (
+            "2" * 40
+        )  # the release flips while the request is in flight
+        sweep.observe_platform()
+        return fleet._error(next(iter(policy.RECIPE_FAILURE_CODES)), "refused")
+
+    fleet._download = refuse_after_a_flip
+    sweep.state.downloads.pop(key)
+    sweep.prefetcher._request(sweep.recipes[key], "model")
+    assert sweep.state.downloads[key]["state"] == "failed"
+    assert sweep.state.downloads[key]["release"] == "1" * 40
+    assert sweep.state.entry(key)["release"] == "1" * 40
