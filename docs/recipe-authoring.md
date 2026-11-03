@@ -1156,9 +1156,13 @@ and install with `--require-hashes`. Regenerate with the command recorded in the
 lock header rather than editing resolved hashes. For example,
 `adapters/video/moss-vl-realtime/requirements.lock` records its exact
 `uv pip compile` invocation for Python 3.12/aarch64 and cu130; it is not a macOS
-lock. Resolve Python dependencies from the creator's stated stack (their torch/CUDA versions), never by copying another recipe's lock; when a lock pins torch over a base image, pin the matching torchvision too. Include the lock and any vendored wheels/sources in build closure. Existing
-creator images may already supply dependencies; do not reinstall a different
-engine over them merely to impose a lock format. There is no global lock-format
+lock. Resolve Python dependencies from the creator's stated stack (their
+torch/CUDA versions), never by copying another recipe's lock; when a lock pins
+torch over a base image that already ships torchvision, pin the matching
+torchvision too (`tests/test_torchvision_pinned_with_torch.py`). Include the
+lock and any vendored wheels/sources in build closure. Existing creator images
+may already supply dependencies; do not reinstall a different engine over them
+merely to impose a lock format. There is no global lock-format
 guard: lock/content checks are recipe-specific, including
 `tests/test_remote_code_build_smoke.py` and `tests/test_nemotron_omni_sglang_audio_lock.py`.
 
