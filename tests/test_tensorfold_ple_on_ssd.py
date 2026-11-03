@@ -8,35 +8,32 @@ so drop --ple-on-ssd").  A recipe may pass it, in its arguments or an option
 choice, only when every Model it runs is an MLX checkpoint.
 """
 
-import json
 from pathlib import Path
+
+from documents import model, recipe
+from vonk_forge_contracts.recipe import RecipeDefinition
 
 ROOT = Path(__file__).resolve().parents[1]
 FLAG = "ple-on-ssd"
 
 
-def _passes_flag(recipe: dict) -> bool:
-    arguments = list(recipe["runtime"].get("arguments", []))
-    for option in recipe.get("options", []):
-        for choice in option["choices"]:
-            arguments.extend(choice.get("args", []))
-    return any(argument["name"] == FLAG for argument in arguments)
-
-
-def _quantization(slug: str) -> str:
-    model = json.loads((ROOT / "models" / f"{slug}.json").read_text())
-    return model["format"]["quantization"]
+def _passes_flag(definition: RecipeDefinition) -> bool:
+    names = [argument.name for argument in definition.runtime.arguments]
+    for option in definition.options:
+        for choice in option.choices:
+            names.extend(argument.name for argument in choice.args)
+    return FLAG in names
 
 
 def test_ple_on_ssd_runs_only_mlx_checkpoints() -> None:
     offenders = []
     for path in sorted((ROOT / "recipes").glob("*.json")):
-        recipe = json.loads(path.read_text())
-        if recipe["runtime"].get("engine") != "tensorfold" or not _passes_flag(recipe):
+        definition = recipe(path.stem)
+        if definition.runtime.engine != "tensorfold" or not _passes_flag(definition):
             continue
-        for reference in recipe["models"]:
-            slug = reference["model"]["slug"]
-            quantization = _quantization(slug)
+        for reference in definition.models:
+            slug = reference.model.slug
+            quantization = model(slug).format.quantization
             if not quantization.startswith("mlx"):
                 offenders.append(f"{path.name}: {slug} ({quantization})")
     assert not offenders, offenders
