@@ -297,14 +297,15 @@ def test_exit_facts_do_not_blame_platform_failures_on_recipes(
         assert disposition(failure) == Disposition.OBSERVE
 
 
-def test_unknown_exit_retries_without_recipe_blame_and_recovers(
-    tmp_path, gateway
-) -> None:
+UNCLASSIFIED = "runtime_process_exited: exit_code=1 exit_cause=unclassified"
+
+
+def _exit_sweep(tmp_path, gateway, fail_load=UNCLASSIFIED):
     recipe = FakeRecipe(
         "bad",
         ("a" * 64,),
         content="c" * 64,
-        fail_load="runtime_process_exited: exit_cause=unclassified",
+        fail_load=fail_load,
         fail_phase="start",
     )
     sweep, fleet, clock = make_sweep(
@@ -313,23 +314,83 @@ def test_unknown_exit_retries_without_recipe_blame_and_recovers(
         [FakeModel("a" * 64, local="cached")],
         gateway=gateway,
     )
+    return recipe, sweep, fleet, clock
+
+
+def _observed(sweep):
+    return [
+        row
+        for row in sweep.log.entries()
+        if row.get("disposition") == Disposition.OBSERVE
+    ]
+
+
+def test_identical_unclassified_exit_recovers_without_verdict(
+    tmp_path, gateway
+) -> None:
+    recipe, sweep, fleet, clock = _exit_sweep(tmp_path, gateway)
 
     def recover(_now):
-        if _status(sweep, "bad").get("attempts", 0) >= 2:
+        if _status(sweep, "bad").get("attempts", 0) >= 1:
             fleet.recipes[recipe.key].fail_load = None
 
     clock.hooks.append(recover)
     sweep.run()
     assert _status(sweep, "bad")["status"] == RecipeStatus.PASSED
-    rows = [
-        row
-        for row in sweep.log.entries()
-        if row.get("disposition") == Disposition.OBSERVE
-    ]
-    assert len(rows) == 2
+    rows = _observed(sweep)
+    assert len(rows) == 1
     assert all(row["code"] not in policy.RECIPE_FAILURE_CODES for row in rows)
     # Retry observations are not recipe verdicts or public hardware failures.
     assert all(from_history(row) is None for row in rows)
+
+
+def test_three_identical_unclassified_exits_fail_with_evidence(
+    tmp_path, gateway
+) -> None:
+    _, sweep, _, _ = _exit_sweep(tmp_path, gateway)
+    sweep.run()
+    failed = _status(sweep, "bad")
+    assert failed["status"] == RecipeStatus.FAILED
+    assert failed["attempts"] == 3
+    assert failed["code"] == Code.RUNTIME_EXIT
+    assert failed["evidence"]["identical_exits"] == 3
+    assert "exit_cause=unclassified" in failed["evidence"]["detail"]
+    assert len(_observed(sweep)) == 2
+
+
+def test_different_exit_summary_restarts_the_count(tmp_path, gateway) -> None:
+    recipe, sweep, fleet, clock = _exit_sweep(tmp_path, gateway)
+    other = "runtime_process_exited: exit_code=1 exit_cause=start_refused"
+
+    def vary(_now):
+        attempts = _status(sweep, "bad").get("attempts", 0)
+        fleet.recipes[recipe.key].fail_load = {0: UNCLASSIFIED, 1: UNCLASSIFIED}.get(
+            attempts, other if attempts == 2 else None
+        )
+
+    clock.hooks.append(vary)
+    sweep.run()
+    # Two identical exits, then a different one, then a pass: never three alike.
+    assert _status(sweep, "bad")["status"] == RecipeStatus.PASSED
+    assert _status(sweep, "bad")["exit_repeat"] is None
+
+
+def test_identity_change_restarts_the_count(tmp_path, gateway) -> None:
+    recipe, sweep, fleet, clock = _exit_sweep(tmp_path, gateway)
+    changed = []
+
+    def edit(_now):
+        attempts = _status(sweep, "bad").get("attempts", 0)
+        if attempts == 2 and not changed:
+            changed.append(True)  # the recipe is edited while it still exits alike
+            fleet.recipes[recipe.key].content = "d" * 64
+        if attempts >= 4:
+            fleet.recipes[recipe.key].fail_load = None
+
+    clock.hooks.append(edit)
+    sweep.run()
+    # Two exits before the edit and two after it: never three alike on one identity.
+    assert _status(sweep, "bad")["status"] == RecipeStatus.PASSED
 
 
 @pytest.mark.parametrize(
