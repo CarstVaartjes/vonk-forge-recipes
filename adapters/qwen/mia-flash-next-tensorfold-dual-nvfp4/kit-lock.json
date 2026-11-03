@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "engine": {
+      "commit": "db281878ddb836fd0df510d8771ecb7e0fe47d26",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "db281878ddb836fd0df510d8771ecb7e0fe47d26",
+      "repo": "ashhart/TensorFold"
+    },
     "image": {
       "datasource": "oci-image",
       "digest": "sha256:e188128ddabdc67ac02c05781f5c0c6b348db5f050cac297861d82b7f086e18c",
@@ -16,7 +23,7 @@
     }
   },
   "kit": {
-    "commit": "6730319ed948cc88b525bbbdc9d309451a863834",
+    "commit": "dc05c912342ec19467b3b7b686888de763f2ada1",
     "repo": "MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold"
   }
 }
