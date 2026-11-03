@@ -1257,3 +1257,32 @@ def test_pass_recorded_before_source_digests_stays_working():
     changed = derive_status(evidence(bound), moved, 2, False)
     assert changed.status == Status.RECHECK
     assert changed.changed == (Change.SOURCE,)
+
+
+def test_a_local_pass_the_catalog_would_not_publish_is_scheduled_like_untested(
+    tmp_path, monkeypatch
+):
+    """Published status ranks the queue: no image digest means no proof, so run it again."""
+    from spark_sweep import qualification
+
+    sweep, _, _ = evidence_sweep(tmp_path, ("publishes", "noimage"))
+    unimaged = A.model_copy(update={"runtime_image": None})
+    identities = {"vonk-forge/publishes": A, "vonk-forge/noimage": unimaged}
+    monkeypatch.setattr(
+        qualification, "current_identity", lambda recipe: identities[recipe.key]
+    )
+    for key, identity in identities.items():
+        sweep.qualification_evidence[key] = Evidence(
+            recipe_key=key, records=(record(identity),)
+        )
+    views = {k: sweep.qualification_view(sweep.recipes[k]) for k in identities}
+    assert all(v is not None and v.status == Status.WORKING for v in views.values())
+    # The local statuses are equal; only the published derivation tells them apart.
+    assert sweep._scheduling_priority(sweep.recipes["vonk-forge/publishes"]) == 4
+    assert (
+        sweep._scheduling_priority(sweep.recipes["vonk-forge/noimage"])
+        == qualification.STATUS_ORDER[Status.UNTESTED]
+    )
+    sweep.queue = ["vonk-forge/publishes", "vonk-forge/noimage"]
+    sweep.queue.sort(key=lambda key: sweep._scheduling_priority(sweep.recipes[key]))
+    assert sweep.queue == ["vonk-forge/noimage", "vonk-forge/publishes"]

@@ -420,6 +420,24 @@ class Sweep:
                 f"qualification evidence unavailable: {type(error).__name__}"
             )
 
+    def _scheduling_priority(self, recipe: Recipe) -> int:
+        """The queue rank: by what the catalog would publish, not by the local pass alone."""
+        view = self.qualification_view(recipe)
+        if view is None:
+            return scheduling_priority(
+                QualificationStatusView(
+                    status=QualificationStatus.UNTESTED,
+                    required_sparks=recipe.node_count,
+                )
+            )
+        try:
+            evidence = self.qualification_evidence.get(recipe.key) or read_evidence(
+                Path(__file__).resolve().parents[1], recipe.key
+            )
+        except (ValueError, TypeError, OSError):
+            return scheduling_priority(view)
+        return scheduling_priority(view, evidence, recipe)
+
     def qualification_view(self, recipe: Recipe) -> QualificationStatusView | None:
         try:
             evidence = self.qualification_evidence.get(recipe.key) or read_evidence(
@@ -906,18 +924,7 @@ class Sweep:
             if not self._selected(recipe) or self._platform_cannot_load(recipe):
                 continue
             out.append(recipe)
-        out.sort(
-            key=lambda recipe: (
-                scheduling_priority(view)
-                if (view := self.qualification_view(recipe)) is not None
-                else scheduling_priority(
-                    QualificationStatusView(
-                        status=QualificationStatus.UNTESTED,
-                        required_sparks=recipe.node_count,
-                    )
-                )
-            )
-        )
+        out.sort(key=self._scheduling_priority)
         if self.cfg.limit:
             done = sum(
                 1
@@ -1112,13 +1119,7 @@ class Sweep:
                 )
             },
         )
-        self.queue.sort(
-            key=lambda key: (
-                scheduling_priority(view)
-                if (view := self.qualification_view(self.recipes[key])) is not None
-                else 1
-            )
-        )
+        self.queue.sort(key=lambda key: self._scheduling_priority(self.recipes[key]))
         if self.cfg.publish_evidence and self.qualification_evidence:
             self.evidence_publisher.tick(now)
         if not self.paused:

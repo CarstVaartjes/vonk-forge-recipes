@@ -32,6 +32,7 @@ from vonk_forge_contracts.qualification_status import (
     QUALIFICATION_SUMMARIES,
     QualificationEvidenceStep,
     QualificationSourceFailureClass,
+    published_status,
 )
 
 from .auth_contract import SmokeAuthClass
@@ -376,7 +377,28 @@ STATUS_ORDER = {
 }
 
 
-def scheduling_priority(view: QualificationStatusView) -> int:
+def scheduling_priority(
+    view: QualificationStatusView,
+    evidence: RecipeQualificationEvidence | None = None,
+    recipe: Recipe | None = None,
+) -> int:
+    """Lowest priority is a pass the catalog would publish as Working.
+
+    A local pass the catalog would not publish (no runtime image digest, an unresolved
+    platform) is not proof to anyone: it is scheduled like an untested recipe so it is
+    run again. The published derivation is the contracts package's; there is no second.
+    """
+    if (
+        view.status == QualificationStatus.WORKING
+        and evidence is not None
+        and recipe is not None
+    ):
+        try:
+            published = published_status(evidence, current_identity(recipe))
+        except (ValueError, TypeError):
+            published = None
+        if published is None or published.status != QualificationStatus.WORKING:
+            return STATUS_ORDER[QualificationStatus.UNTESTED]
     return STATUS_ORDER.get(view.status, 4)
 
 
