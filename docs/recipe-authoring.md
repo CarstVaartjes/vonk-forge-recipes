@@ -91,9 +91,10 @@ creator's image is gone, the replacement is the creator's exact engine commit
 built with the creator's build configuration: the same CUDA toolkit version and
 GPU arch list (and the same torch and FlashInfer when installing a published
 wheel). Its evidence is the hardware try, preceded by a build-time scan that the
-kernel libraries the recipe uses carry code sm_121 can load (sm_121 or sm_121a,
-plain or family sm_120 cubins, or non-arch-specific PTX); sm_120a-only code does
-not load. Another build of the same commit (a different toolkit or arch list)
+kernel libraries the recipe uses carry code sm_121 can load (cubins sm_121,
+sm_121a or sm_121f, or plain or family sm_120 or sm_120f; PTX only when it is
+not arch-specific and targets 121 or lower, or sm_121a); sm_120a-only code does
+not load, and every file with device code needs at least one loadable image. Another build of the same commit (a different toolkit or arch list)
 ships different GPU kernels: it is a new runtime that needs its own hardware proof.
 
 Compare each previous pin with the proposed pin in the same source repository.
