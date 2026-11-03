@@ -318,22 +318,6 @@
       },
       "value_dim": 0
     },
-    "glm-5-3-flash-nvfp4-spark-a6082410": {
-      "architecture": "Glm5NextForConditionalGeneration",
-      "configuration_sha256": "e1c0246a44ebefb5fd6383fb57aebbf7ac69ff6e7b23e989c0571b279a0eca23",
-      "key_dim": 512,
-      "kv_heads": 1,
-      "layers": 45,
-      "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/local-inference-lab/GLM-5.3-Flash-NVFP4-Spark/resolve/a608241037e4c2565356bff7ca293f2133888f88/config.json; layer_types: 11 sparse and 34 linear; bound includes index cache on all 45 layers and MTP, rounded to 12288 bytes/token for FP8; BF16 65536-byte bound as in the existing single-Spark calibration.",
-      "tensor_replicated": true,
-      "token_bytes_by_dtype": {
-        "auto": 65536,
-        "fp8": 12288,
-        "fp8_e4m3": 12288
-      },
-      "value_dim": 0
-    },
     "glm-5-3-int4-int8mix-206507bb": {
       "architecture": "GlmMoeDsaForCausalLM",
       "configuration_sha256": "238781b1049848b65be244adda218845c1a63a4aa49c4941eb59a05dec681f3b",
@@ -628,6 +612,18 @@
       },
       "source": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP/blob/df03f976e0f0c06f952dba7034220087f8582f51/config.json text_config: 64 layers, full_attention_interval=4, 4 KV heads, head_dim=256. The other 48 layers have FP32 recurrent state (48 value heads x 128 x 128) and BF16 convolution state (3 x (2 x 16 x 128 + 48 x 128)): 3207168 bytes per layer. vLLM's hybrid allocator pads each recurrent page to the attention page (1568-token blocks x 2048 FP8 bytes, or 784 x 4096 BF16 bytes: 3211264 bytes) and, with prefix caching (mamba_cache_mode align), holds two pages per recurrent layer for one request (vllm/v1/kv_cache_interface.py MambaSpec.max_memory_usage_bytes); rounding the full-attention layers to 1568-token blocks adds at most one page each. vLLM shares each tensor across one layer per group (group size 16: one attention and three recurrent groups), sizes blocks as pool // page // 16 and takes one whole block as the null block (vllm/v1/core/kv_cache_utils.py, block_pool.py), another 16 pages. Bound: (2 x 48 + 16 + 16) x 3211264 = 411041792 bytes per sequence. Hardware: operation c2940bb5 (2026-10-27) needed 34681651200 bytes at 1048576 tokens. No MTP speculation. Typed for vLLM: 48 linear_attention (GDN) layers, conv_dim 2 x 16 x 128 + 48 x 128, linear_conv_kernel_dim 4, temporal state 48 x 128 x 128 in mamba_ssm_dtype float32; Qwen3_5ForConditionalGeneration does not support prefix-caching mode \"all\". vLLM sizes this model by the typed recurrent fields instead of the hand state bound, which other engines keep (qualification/memory_need.py vllm_hybrid_need).",
       "state_bytes_per_request": 411041792,
+      "value_dim": 256
+    },
+    "qwen3-8-flash-next-fp4-local-b9ce18a6": {
+      "architecture": "Qwen4ExpForConditionalGeneration",
+      "configuration_sha256": "b50dbc52a0c83b0cd2a44a372c1fb6b5e0e6827d22f2611c97d4d030f92f6b28",
+      "key_dim": 256,
+      "kv_heads": 2,
+      "layers": 12,
+      "max_context_tokens": 262144,
+      "replicated_token_bytes": 768,
+      "source": "https://huggingface.co/nvidia/Qwen3.8-Flash-Next-FP4-Local/resolve/b9ce18a6887e18c089fdea8509a33e63429a3300/config.json; full-attention layers only: 12 layers x 2 KV heads x head dim 256 (key and value), FP8 KV cache, plus the indexer bound (12 layers x indexer_kv_heads=1 x indexer_head_dim=128 x 2 bytes / indexer_compress_ratio=4 = 768 replicated bytes/token) and the MTP drafter layer. Per-request state bound 160 MiB, the same hand bound as the local-inference-lab entry (same 48 layers, 12 full-attention, same KV and indexer dimensions; Qwen4Exp adds cache types the recurrent formula does not express).",
+      "state_bytes_per_request": 167772160,
       "value_dim": 256
     },
     "qwen3-8-flash-next-nvfp4-fab0aecb": {

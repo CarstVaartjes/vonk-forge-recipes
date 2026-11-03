@@ -1,12 +1,11 @@
-FROM docker.io/eugr/spark-vllm-b12x@sha256:03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595
+FROM docker.io/eugr/spark-vllm-b12x@sha256:19ab778dd57f019c44caf5df91a671cf688923d1ca9fa8ce92be0c9acb46d215
 
 LABEL org.opencontainers.image.source="https://github.com/eugr/spark-vllm-docker" \
-      org.opencontainers.image.revision="303b4a29a6bd390428d363358964ad298dc20625" \
+      org.opencontainers.image.revision="b7f6b4cd4d85c655c5102eeb579f6de6a5bfe3d3" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0"
 
-# eugr's published vllm-node-b12x image (nightly-20260929, `--exp-b12x` lane). Its
-# /workspace/build-metadata.yaml records build_script_commit 42f62e34 (the revision above), the
-# local-inference-lab/vllm dev/karmic-kraken vLLM fork and the lukealonso b12x kernels.
+# eugr's published vllm-node-b12x image (nightly-20261102, `--exp-b12x` lane), built from the
+# revision above; the digest is what runs.
 # Upstream recipes start it with `vllm serve`; the wrapper is the Vonk entrypoint.
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
