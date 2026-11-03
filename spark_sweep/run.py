@@ -1493,7 +1493,12 @@ class Sweep:
                 and (
                     entry.get("failure_class") in verdict.OBSERVE_CLASSES
                     # A review refusal the sweep once ended as a fit verdict: only the
-                    # Controller's final words still do (the rest are its waits).
+                    # Controller's final words still do (the rest are its waits). A
+                    # review capacity refusal is never a verdict (stored rows are stale).
+                    or (
+                        entry.get("phase") == "review"
+                        and entry.get("failure_class") == "capacity"
+                    )
                     or (
                         entry.get("phase") == "review"
                         and entry.get("failure_class") == policy.FIT
