@@ -87,10 +87,13 @@ exact source URLs. An inaccessible source is unverified, not unchanged.
 Confirm that every artifact the creator's build fetches (wheels, CUDA builds,
 images) is still published at its pin; a build that is no longer published is a
 missing input to vendor or replace with evidence, never an assumption. When the
-creator's image is gone, rebuild the creator's exact commit with the same CUDA
-major version (for example from the engine's published wheel for that commit).
-Another build of the same commit with a different CUDA major ships different GPU
-kernels, so it is a new runtime, not a substitute.
+creator's image is gone, the replacement is the creator's exact engine commit
+built with the creator's build configuration: the same CUDA toolkit version and
+GPU arch list (and the same torch and FlashInfer when installing a published
+wheel). Its evidence is a build-time check that every arch-specific kernel library
+carries sm_121 code (`sm_121a` cubins or `sm_120f` family cubins), then the
+hardware try. Another build of the same commit (a different toolkit or arch list)
+ships different GPU kernels: it is a new runtime that needs its own hardware proof.
 
 Compare each previous pin with the proposed pin in the same source repository.
 Inspect relevant changed files as well as commit subjects. Distinguish actual
