@@ -20,7 +20,12 @@ from pathlib import Path
 from typing import Annotated, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+from vonk_forge_contracts import (
+    ModelDefinition,
+    QualificationOutcome,
+    RecipeDefinition,
+    document_sha256,
+)
 from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
     evaluate_memory_admission,
@@ -43,6 +48,10 @@ SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
 # peaks (DeepSeek V4.1 Flash EXL3 Mia dual, Gemma 4 31B Mia single, Qwen3.6
 # 35B r0b0tlab single), so host use was at most 4,292,852,407 bytes there.
 ADMISSION_IDLE_USE_BYTES = SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES
+# The highest peak the Controller admits on an idle Spark: the one owner of the
+# admission maximum. Estimates are capped at it; a bigger need is the hardware
+# try's to measure, never a blocker before it.
+ADMISSION_MAXIMUM_PEAK_BYTES = SPARK_IDLE_AVAILABLE_BYTES - OS_FLOOR_BYTES
 OVERHEAD_BYTES = 8_000_000_000
 # Data-backed use beside the engine budget (p90 of 277 sweep samples, audit
 # 2026-11-01). The single margin below is the only owner; OVERHEAD_BYTES stays
@@ -1331,7 +1340,7 @@ def variant_estimate_warnings(
     envelope = (
         None
         if not single or envelope_exception(recipe.identity.slug, document_digest)
-        else vllm_utilization_envelope(variant)
+        else declarable_vllm_envelope(variant)
         if vllm
         else sglang_static_need(variant, models, inputs, key, pinned=False)
         + OVERHEAD_BYTES
@@ -1353,7 +1362,7 @@ def variant_estimate_warnings(
         + [
             f"{role.name}: peak understates vLLM budget plus overhead {multi}"
             for role in variant.topology.roles
-            if (multi := vllm_utilization_envelope(variant)) is not None
+            if (multi := declarable_vllm_envelope(variant)) is not None
             and role.resources.memory.peak_bytes < multi
         ]
     )
@@ -1384,15 +1393,31 @@ def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
     return int(envelope.to_integral_value(ROUND_CEILING))
 
 
+def declarable_vllm_envelope(recipe: RecipeDefinition) -> int | None:
+    """The vLLM envelope a declared peak is judged and raised against.
+
+    Capped at the admission maximum: a peak above it is never admitted, so no
+    declaration can clear a larger envelope. The uncapped envelope stays the
+    admissibility test's input (a budget above the maximum is reported there).
+    """
+    envelope = vllm_utilization_envelope(recipe)
+    return None if envelope is None else min(envelope, ADMISSION_MAXIMUM_PEAK_BYTES)
+
+
 def raise_peaks_to_envelope(recipe: RecipeDefinition) -> RecipeDefinition | None:
     """The recipe with role peaks raised to its vLLM budget envelope, None if none is.
 
     A document that moves (``tools/refresh-upstream``) is new content and meets the
     current margins; raising here keeps a refresh from blocking. Peaks are never
-    lowered, and a declared load peak keeps its rise above the peak.
+    lowered, and a declared load peak keeps its rise above the peak. The envelope
+    never exceeds the admission maximum, and a recipe with a PASSED hardware record
+    keeps its measured peaks (measured wins; proven recipes are not changed).
     """
+    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    if any(r.outcome == QualificationOutcome.PASSED for r in _evidence(key).records):
+        return None
     envelope = max(
-        (e for v in memory_variants(recipe) if (e := vllm_utilization_envelope(v))),
+        (e for v in memory_variants(recipe) if (e := declarable_vllm_envelope(v))),
         default=0,
     )
     if all(r.resources.memory.peak_bytes >= envelope for r in recipe.topology.roles):
