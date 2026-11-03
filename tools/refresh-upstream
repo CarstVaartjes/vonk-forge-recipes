@@ -2229,10 +2229,14 @@ class Assessor:
                 result.version = (version, date)
             if new_recipe != recipe:
                 if new_recipe.get("runtime", {}).get("engine") == "vllm":
-                    try:  # a moved document meets today's margins (never lowered)
+                    # A moved document meets today's margins (never lowered), unless
+                    # its measured pre-move content did not raise the budget.
+                    try:
                         raise_role_peaks(
                             new_recipe["topology"]["roles"],
                             RecipeDefinition.model_validate(new_recipe),
+                            RecipeDefinition.model_validate(recipe),
+                            document_sha256(recipe),
                         )
                     except (KeyError, TypeError, ValueError) as error:
                         result.reasons.append(
@@ -3428,9 +3432,19 @@ def checks_moved(root: Path, head: str) -> bool:
     )
 
 
-def raise_role_peaks(roles: list[dict[str, Any]], recipe: RecipeDefinition) -> None:
-    """Raise a moved vLLM document's role peaks (``roles``, in place) to the envelope."""
-    raised = raise_peaks_to_envelope(recipe)
+def raise_role_peaks(
+    roles: list[dict[str, Any]],
+    recipe: RecipeDefinition,
+    previous: RecipeDefinition,
+    previous_digest: str,
+) -> None:
+    """Raise a moved vLLM document's role peaks (``roles``, in place) to the envelope.
+
+    The declared peaks stay only when the pre-move content (``previous``, authored
+    digest ``previous_digest``) is hardware-measured and the move did not raise the
+    budget; unmeasured estimates and budget-raising moves are raised.
+    """
+    raised = raise_peaks_to_envelope(recipe, previous, previous_digest)
     if raised is None:
         return
     for role, kept in zip(roles, raised.topology.roles, strict=True):

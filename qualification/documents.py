@@ -16,6 +16,7 @@ from vonk_forge_contracts import (
     ModelDisplay,
     RecipeDefinition,
     RecipeDisplay,
+    document_sha256,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,6 +25,12 @@ ROOT = Path(__file__).resolve().parents[1]
 def recipe(slug: str, root: Path = ROOT) -> RecipeDefinition:
     path = root / "recipes" / f"{slug}.json"
     return RecipeDefinition.model_validate(json.loads(path.read_text(encoding="utf-8")))
+
+
+def recipe_digest(slug: str, root: Path = ROOT) -> str:
+    """The digest of the authored document, as qualification evidence records it."""
+    path = root / "recipes" / f"{slug}.json"
+    return document_sha256(json.loads(path.read_text(encoding="utf-8")))
 
 
 def model(slug: str, root: Path = ROOT) -> ModelDefinition:

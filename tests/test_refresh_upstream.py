@@ -1266,15 +1266,18 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         self.assertFalse(result.mechanical)
         self.assertIn("memory envelope", " ".join(result.reasons))
 
-    def test_real_proven_dual_is_raised_and_then_passes_the_touched_check(self) -> None:
+    def test_real_unproven_dual_is_raised_and_then_passes_the_touched_check(
+        self,
+    ) -> None:
         import documents
         from catalog_documents import catalog_models
         from vonk_forge_contracts import RecipeDefinition
         from warning_asserts import assert_not_warns, assert_warns
 
+        from qualification import documents as qualification_documents
         from qualification.memory_need import load_inputs, memory_estimate_warnings
 
-        slug = "deepseek-v4-flash-eugr-vllm-dual"
+        slug = "muse-spark-open-nvfp4-vllm-eight"
         before = documents.recipe(slug)
         for role in before.topology.roles:
             role.resources.memory.peak_bytes = 100_000_000_000
@@ -1286,7 +1289,13 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             ),
             "vLLM budget plus overhead",
         )
-        refresh.raise_role_peaks(payload["topology"]["roles"], before)
+        previous = documents.recipe(slug)
+        refresh.raise_role_peaks(
+            payload["topology"]["roles"],
+            before,
+            previous,
+            qualification_documents.recipe_digest(slug),
+        )
         after = RecipeDefinition.model_validate(payload)
         self.assertEqual(
             {r.resources.memory.peak_bytes for r in after.topology.roles},

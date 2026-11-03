@@ -301,7 +301,7 @@ CREATOR = {
     "mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-triple": Creator(
         source=f"{TONY_MIMO}/mimo-v25-tp3-omni-1mctx-6seq-mtp2-nvfp4kv.yaml#L34",
         # Estimates until tried (owner 2026-11-02): the creator's 0.89, peak declared
-        # at the admission maximum; the run measures the real use.
+        # at ADMISSION_MAXIMUM_PEAK_BYTES; the run measures the real use.
         arguments={"gpu-memory-utilization": "0.89"},
         absent=("kv-cache-memory-bytes",),
     ),
