@@ -10,7 +10,10 @@
       },
       "dockerfile": "adapters/qwen/mia-flash-next-tensorfold-dual-nvfp4/Dockerfile",
       "network": {
-        "hosts": []
+        "hosts": [
+          "github.com",
+          "ziglang.org"
+        ]
       },
       "patches": []
     }
@@ -325,11 +328,11 @@
       "Qwen",
       "NVIDIA"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold/tree/6730319ed948cc88b525bbbdc9d309451a863834"
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold/tree/dc05c912342ec19467b3b7b686888de763f2ada1"
   },
   "release": {
-    "released_at": "2026-10-18",
-    "version": "1.0.0"
+    "released_at": "2026-11-04",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
