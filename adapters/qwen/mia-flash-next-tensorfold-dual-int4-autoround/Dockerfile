@@ -42,7 +42,7 @@ FROM ghcr.io/miaai-lab/qwen3.8-flash-dual-dgx-sparks-tensorfold@sha256:e188128dd
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold" \
       org.opencontainers.image.revision="dc05c912342ec19467b3b7b686888de763f2ada1" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      org.opencontainers.image.description="Qwen3.8 Flash Next on two DGX Sparks: TensorFold's Zig engine (db281878ddb8) with the kit's patches" \
+      org.opencontainers.image.description="Qwen3.8 Flash Next on two DGX Sparks: TensorFold's Zig engine with the kit's patches, both at the commits in kit-lock.json" \
       ai.vonkforge.runtime-interface="v1" \
       tf.patches=""
 
