@@ -196,7 +196,6 @@ class QualificationPlatform(PublicQualificationModel):
     def resolved(self) -> bool:
         return bool(
             (self.controller_source_sha or self.controller_version)
-            and self.agent_version
             and self.spark_count is not None
             and self.topology is not None
         )

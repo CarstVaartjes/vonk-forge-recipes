@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Literal
 
+from .lifecycle import RecipeStatus
+
 Owner = Literal["client", "api", "worker", "agent"]
 _SOURCE = re.compile(r"[0-9a-f]{40}\Z")
 _CONTRACT = re.compile(r"[0-9a-f]{64}\Z")
@@ -153,6 +155,33 @@ def changed_owner(
     if not isinstance(history, list):
         return None
     if any(
+        isinstance(item, Mapping) and item.get("basis") == basis for item in history
+    ):
+        return None
+    return basis
+
+
+def changed_release(
+    entry: Mapping[str, Any], release: str | None
+) -> dict[str, str] | None:
+    """The exit of a deferred (blocked-platform) recipe: the Controller it failed on changed.
+
+    An unclassified fault is not the recipe's; it heals when the platform does. A failure
+    that recorded no release (the platform could not be read then, or an older entry)
+    differs from any observed release, so it heals once as well. Each release reopens
+    an entry once (``recovery_history``).
+    """
+    if entry.get("status") != RecipeStatus.DEFERRED or not release:
+        return None
+    if entry.get("release") == release:
+        return None
+    if entry.get("code") in FAULT_OWNERS and isinstance(
+        entry.get("recovery_basis"), Mapping
+    ):
+        return None  # a fault with an observed owner is reopened by that owner's change
+    basis = {"controller_release": release}
+    history = entry.get("recovery_history", [])
+    if not isinstance(history, list) or any(
         isinstance(item, Mapping) and item.get("basis") == basis for item in history
     ):
         return None

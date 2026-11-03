@@ -54,6 +54,7 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence as Evidence,
 )
 
+from spark_sweep.lifecycle import RecipeStatus, RetestReason
 from spark_sweep.qualification import (
     backfill,
     current_identity,
@@ -78,6 +79,9 @@ PLATFORM = Platform(
     agent_version="2.0.0",
     spark_count=1,
     topology=Topology.SINGLE,
+)
+NO_CONTROLLER = PLATFORM.model_copy(
+    update={"controller_source_sha": None, "controller_version": None}
 )
 
 
@@ -189,11 +193,21 @@ def test_incomplete_history_is_not_published_as_exact_proof():
     view = published_status(evidence(record(unresolved)), unresolved)
     assert view.status == Status.NOT_YET_VERIFIED
     assert view.reason == Reason.INCOMPLETE_PROVENANCE
-    unknown_agent = record().model_copy(
+    unknown_controller = record().model_copy(update={"platform": NO_CONTROLLER})
+    assert (
+        published_status(evidence(unknown_controller), A).status
+        == Status.NOT_YET_VERIFIED
+    )
+    # The agent version is optional: the Controller does not expose it as evidence.
+    no_agent = record().model_copy(
         update={"platform": PLATFORM.model_copy(update={"agent_version": None})}
     )
+    assert published_status(evidence(no_agent), A).status == Status.WORKING
+    assert published_status(evidence(no_agent), A).last_pass == no_agent
+    unimaged = A.model_copy(update={"runtime_image": None})
     assert (
-        published_status(evidence(unknown_agent), A).status == Status.NOT_YET_VERIFIED
+        published_status(evidence(record(unimaged)), unimaged).status
+        == Status.NOT_YET_VERIFIED
     )
     assert published_status(evidence(record()), A).status == Status.WORKING
     assert published_status(evidence(record()), B).status == Status.RECHECK
@@ -620,9 +634,7 @@ def test_missing_historical_topology_stays_unknown_and_roundtrips():
     ],
 )
 def test_incomplete_later_telemetry_never_erases_complete_working_proof(suffix):
-    incomplete = suffix.model_copy(
-        update={"platform": PLATFORM.model_copy(update={"agent_version": None})}
-    )
+    incomplete = suffix.model_copy(update={"platform": NO_CONTROLLER})
     proven = record()
     view = published_status(evidence(proven, incomplete), A)
     assert view.status == Status.WORKING
@@ -631,9 +643,7 @@ def test_incomplete_later_telemetry_never_erases_complete_working_proof(suffix):
 
 def test_partial_pass_after_recipe_failure_cannot_revive_an_invalidated_public_proof():
     failed = record(A, Outcome.FAILED, Blame.RECIPE, day=1)
-    partial = record(day=2).model_copy(
-        update={"platform": PLATFORM.model_copy(update={"agent_version": None})}
-    )
+    partial = record(day=2).model_copy(update={"platform": NO_CONTROLLER})
     history = evidence(record(), failed, partial)
     assert published_status(history, A).status == Status.NOT_YET_VERIFIED
     assert (
@@ -659,6 +669,7 @@ def evidence_sweep(tmp_path, names=("example",), **kwargs):
         fake.image_build_key = A.runtime_image.build_key
         fake.image_digest = A.runtime_image.image_digest
     sweep.refresh_catalog()
+    sweep.observe_platform()  # the deployed Controller release is readable
     return sweep, fleet, clock
 
 
@@ -805,9 +816,9 @@ def test_saved_verdict_adoption_restores_without_rerun_and_survives_interrupted_
     adopted = restart()
     # Loading and deriving neither writes the source state nor submits a load.
     assert sweep.state.path.read_bytes() == before
-    assert adopted.state.status(KEY) == (
-        RecipeStatus.PENDING if active else RecipeStatus.PASSED
-    )
+    # An adopted pass has no image-bound proof: the catalog would not publish it, so it is
+    # asked for again (a run, not a load here) whether or not a lane is active.
+    assert adopted.state.status(KEY) == RecipeStatus.PENDING
     assert not adopted.log.entries()
     interrupted = restart()
     assert interrupted.qualification_evidence == adopted.qualification_evidence
@@ -1101,9 +1112,7 @@ def test_sparse_topology_failure_invalidates_older_public_proof():
     failed = record(A, Outcome.FAILED, Blame.RECIPE, day=1).model_copy(
         update={"identity": A.model_copy(update={"required_sparks": None})}
     )
-    partial = record(day=2).model_copy(
-        update={"platform": PLATFORM.model_copy(update={"agent_version": None})}
-    )
+    partial = record(day=2).model_copy(update={"platform": NO_CONTROLLER})
     history = evidence(record(), failed, partial)
     assert derive_status(history, A, 2, False).status == Status.WORKING
     assert published_status(history, A).status == Status.NOT_YET_VERIFIED
@@ -1112,7 +1121,7 @@ def test_sparse_topology_failure_invalidates_older_public_proof():
 def test_real_projected_library_and_evidence_restore_requeued_pass(tmp_path):
     from sweep_fakes import make_sweep
 
-    from spark_sweep.identity import content_identity, recorded_identity
+    from spark_sweep.identity import content_identity
     from spark_sweep.lifecycle import RecipeStatus, RetestReason
     from spark_sweep.state import State
     from spark_sweep.vonkctl import Reply
@@ -1123,6 +1132,7 @@ def test_real_projected_library_and_evidence_restore_requeued_pass(tmp_path):
         (ROOT / "tests/fixtures/sweep-projected-library-2026-10-21.json").read_text()
     )
     sweep, fleet, _ = make_sweep(tmp_path, [], [])
+    sweep.observe_platform()
     assert sweep.recipe_list.step(reply=Reply((), 0, page, ""))
     assert sweep.recipe_list.invalid_rows == 0
     for row in page["recipes"]:
@@ -1169,21 +1179,18 @@ def test_real_projected_library_and_evidence_restore_requeued_pass(tmp_path):
     sweep.state = State.load(sweep.state.path)
     entry = sweep.state.entry(recipe.key)
     sweep._reconcile_entry(recipe, 2)
-    assert entry["status"] == RecipeStatus.PASSED
-    assert entry["attempts"] == 0
-    assert entry["revalidate"] is False
-    assert "requeued_because" not in entry
+    # The historical pass has no image-bound proof; the catalog pins an image, so the
+    # catalog would not publish it: it is asked for again rather than restored.
+    assert entry["status"] == RecipeStatus.PENDING
     view = sweep.qualification_view(recipe)
     assert view.status == Status.WORKING
     assert view.last_pass == passed
-    restored = recorded_identity(entry)
-    assert restored is not None and restored.runtime_image is None
     assert (
         published_status(proof, current_identity(recipe)).status
         == Status.NOT_YET_VERIFIED
     )
-    assert not fleet.calls  # no inference, loads, downloads or remote reads
-    assert not (tmp_path / "results.jsonl").exists()  # no manufactured measurement
+    # no inference, loads or downloads: only the platform read that names the release
+    assert not [c for _, c in fleet.calls if c != ("platform",)]
 
 
 @pytest.mark.parametrize(
@@ -1257,3 +1264,176 @@ def test_pass_recorded_before_source_digests_stays_working():
     changed = derive_status(evidence(bound), moved, 2, False)
     assert changed.status == Status.RECHECK
     assert changed.changed == (Change.SOURCE,)
+
+
+def _passed(sweep, key, *records):
+    sweep.qualification_evidence[key] = evidence(*records)
+    sweep.state.entry(key).update(
+        status=RecipeStatus.PASSED, content_sha256=A.content_sha256
+    )
+
+
+def _incomplete_pass():
+    return record().model_copy(update={"platform": NO_CONTROLLER})
+
+
+def _rerun_record(sweep, key, platform):
+    """A pass recorded after the requeue, on the given platform facts."""
+    asked = sweep.state.entry(key)["unpublishable_requeue"]["at"]
+    return record().model_copy(
+        update={
+            "tested_at": datetime.fromtimestamp(asked + 60, UTC),
+            "platform": platform,
+        }
+    )
+
+
+def _requeued(tmp_path):
+    sweep, fleet, clock = evidence_sweep(tmp_path)
+    clock.t = datetime(2026, 11, 1, tzinfo=UTC).timestamp()  # after the fixtures
+    sweep.observe_platform()
+    key = next(iter(sweep.recipes))
+    _passed(sweep, key, _incomplete_pass())
+    assert sweep.qualification_view(sweep.recipes[key]).status == Status.WORKING
+    sweep.refresh_catalog()  # the catalog pass reconciles every recipe
+    sweep.tick()
+    return sweep, fleet, key
+
+
+def test_a_pass_the_catalog_would_not_publish_is_asked_for_again(tmp_path):
+    """Unresolved platform with a catalog image: re-run, and the key reaches pending/slots."""
+    sweep, _, key = _requeued(tmp_path)
+    entry = sweep.state.entry(key)
+    assert entry["requeued_because"] == RetestReason.UNPUBLISHABLE_PASS
+    assert key in {r.key for r in sweep.pending()} | set(sweep.state.slots)
+
+
+def test_later_catalog_passes_and_a_restart_keep_the_requeue(tmp_path):
+    sweep, fleet, key = _requeued(tmp_path)
+    sweep.state.slots.pop(key, None)
+    sweep.state.entry(key)["status"] = RecipeStatus.PENDING  # not yet placed
+    for _ in range(2):
+        sweep.refresh_catalog()
+        assert sweep.state.entry(key)["status"] == RecipeStatus.PENDING
+        assert (
+            sweep.state.entry(key)["requeued_because"]
+            == RetestReason.UNPUBLISHABLE_PASS
+        )
+    sweep.state.save()
+    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+
+    again, _, _ = make_sweep(
+        tmp_path, [FakeRecipe("example")], [FakeModel("m1")], fleet=fleet
+    )
+    again.refresh_catalog()
+    assert again.state.entry(key)["status"] != RecipeStatus.PASSED
+
+
+def test_a_publishing_pass_is_not_requeued(tmp_path):
+    sweep, _, _ = evidence_sweep(tmp_path)
+    key = next(iter(sweep.recipes))
+    _passed(sweep, key, record())
+    sweep.refresh_catalog()
+    sweep.tick()
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PASSED
+    assert "requeued_because" not in sweep.state.entry(key)
+
+
+def test_without_a_catalog_image_the_pass_is_left_alone(tmp_path, monkeypatch):
+    """A re-run could not publish either: no loop."""
+    from spark_sweep import qualification, run
+
+    sweep, _, _ = evidence_sweep(tmp_path)
+    key = next(iter(sweep.recipes))
+    unimaged = A.model_copy(update={"runtime_image": None})
+    for module in (qualification, run):
+        monkeypatch.setattr(module, "current_identity", lambda recipe: unimaged)
+    _passed(sweep, key, record(unimaged).model_copy(update={"platform": NO_CONTROLLER}))
+    sweep.refresh_catalog()
+    sweep.tick()
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PASSED
+    assert "requeued_because" not in sweep.state.entry(key)
+
+
+def test_a_rerun_that_publishes_stays_passed(tmp_path):
+    sweep, _, key = _requeued(tmp_path)
+    ran = _rerun_record(sweep, key, PLATFORM)
+    _passed(sweep, key, _incomplete_pass(), ran)
+    sweep.refresh_catalog()
+    sweep.tick()
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PASSED
+    assert (
+        published_status(sweep.qualification_evidence[key], A).status == Status.WORKING
+    )
+
+
+def test_a_rerun_that_still_cannot_publish_is_not_asked_for_again(tmp_path):
+    sweep, _, key = _requeued(tmp_path)
+    still = PLATFORM.model_copy(update={"spark_count": None, "topology": None})
+    _passed(sweep, key, _incomplete_pass(), _rerun_record(sweep, key, still))
+    sweep.refresh_catalog()
+    sweep.tick()
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PASSED
+
+
+def test_a_rerun_recorded_while_the_platform_was_unreadable_is_asked_for_again(
+    tmp_path,
+):
+    sweep, _, key = _requeued(tmp_path)
+    unread = _rerun_record(sweep, key, NO_CONTROLLER)
+    _passed(sweep, key, _incomplete_pass(), unread)
+    sweep.refresh_catalog()  # the platform is readable now
+    sweep.tick()
+    entry = sweep.state.entry(key)
+    assert entry["requeued_because"] == RetestReason.UNPUBLISHABLE_PASS
+    assert entry["status"] == RecipeStatus.PENDING or key in sweep.state.slots
+
+
+def test_an_unreadable_platform_does_not_request_a_rerun(tmp_path):
+    sweep, fleet, _ = evidence_sweep(tmp_path)
+    key = next(iter(sweep.recipes))
+    fleet.api_source_sha = None
+    sweep.observe_platform()
+    _passed(sweep, key, _incomplete_pass())
+    sweep.refresh_catalog()
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PASSED
+
+
+def test_an_older_record_carrying_a_release_does_not_settle_a_fresh_requeue(tmp_path):
+    sweep, _, clock = evidence_sweep(tmp_path)
+    clock.t = datetime(2026, 11, 1, tzinfo=UTC).timestamp()
+    sweep.observe_platform()
+    key = next(iter(sweep.recipes))
+    # A historical pass that names a Controller release but cannot publish.
+    unresolved = PLATFORM.model_copy(update={"spark_count": None, "topology": None})
+    _passed(sweep, key, record().model_copy(update={"platform": unresolved}))
+    sweep.refresh_catalog()
+    entry = sweep.state.entry(key)
+    assert entry["requeued_because"] == RetestReason.UNPUBLISHABLE_PASS
+    sweep.refresh_catalog()
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PENDING
+
+
+def test_a_rerun_deferred_on_a_platform_fault_is_asked_again_on_a_new_release(tmp_path):
+    sweep, fleet, key = _requeued(tmp_path)
+    release = sweep.release_sha
+    assert release is not None
+    blamed = record(A, Outcome.FAILED, Blame.PLATFORM).model_copy(
+        update={
+            "tested_at": datetime.fromtimestamp(
+                sweep.state.entry(key)["unpublishable_requeue"]["at"] + 60, UTC
+            ),
+            "platform": PLATFORM.model_copy(update={"controller_source_sha": release}),
+        }
+    )
+    _passed(sweep, key, _incomplete_pass(), blamed)
+    sweep.refresh_catalog()  # the same release: the platform fault is not asked again
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PASSED
+    fleet.api_source_sha = "b" * 40
+    sweep.observe_platform()
+    sweep.refresh_catalog()  # a new release: asked again, once
+    entry = sweep.state.entry(key)
+    assert entry["status"] == RecipeStatus.PENDING
+    assert entry["requeued_because"] == RetestReason.UNPUBLISHABLE_PASS
+    sweep.refresh_catalog()
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PENDING
