@@ -1,9 +1,9 @@
-# Native TensorFold with the kit's patches, built on the creator's published image (see kit-lock.json for the commits).
+# Native TensorFold with the kit's patches, rebuilt as the kit's scripts/prepare.sh builds it (commits: kit-lock.json).
 # The creator has published no image of the pinned kit commit (its CHANGELOG: setup builds the image locally until one
-# is published), so this rebuilds the creator's exact engine (P15): the kit's TensorFold commit, patches, Zig, build line
-# and arch list (-Dsm default 121), with the published image's own CUDA toolkit. It replaces only what that build
-# installs (bin/, fatbin/, native/); the published Triton AOT kernel set and vision Python tree are reused, and the
-# build fails if the patched sources they come from differ from the published ones.
+# is published), so this rebuilds the creator's /opt/tensorfold (P15): the engine (zig build ... fatbins install
+# native), its licence notices, the sm121 Triton AOT kernel set and the vision Python tree, from the kit's TensorFold
+# commit, patches, Zig and kernel-source mtime, with the creator's build lines, on the published image (the kit's base
+# and CUDA toolkit). Only the thin Controller wrapper below is ours.
 FROM ghcr.io/miaai-lab/qwen3.8-flash-dual-dgx-sparks-tensorfold@sha256:e188128ddabdc67ac02c05781f5c0c6b348db5f050cac297861d82b7f086e18c AS build
 # The kit and TensorFold commits come from kit-lock.json (tools/kit-pins), checked by commit after the fetch.
 COPY kit-lock.json /opt/vonk-build/kit-lock.json
@@ -11,33 +11,51 @@ RUN set -- $(python3 -c 'import json; d = json.load(open("/opt/vonk-build/kit-lo
  && fetch() { git init -q "$1" && git -C "$1" fetch -q --depth 1 "https://github.com/$2.git" "$3" \
       && git -C "$1" checkout -q --detach FETCH_HEAD && test "$(git -C "$1" rev-parse HEAD)" = "$3"; } \
  && fetch /kit "$1" "$2" && fetch /tensorfold "$3" "$4"
-# Zig: the version and sha256 the kit declares in scripts/config.sh, read as data (never sourced).
-RUN version=$(sed -n 's/^ZIG_VERSION="\${ZIG_VERSION:-\([0-9][0-9.]*\)}".*/\1/p' /kit/scripts/config.sh) \
- && sha=$(sed -n 's/^ZIG_SHA256="\${ZIG_SHA256:-\([0-9a-f]\{64\}\)}".*/\1/p' /kit/scripts/config.sh) \
- && if [ -z "$version" ] || [ -z "$sha" ] || [ "$(echo "$version" | wc -l)" -ne 1 ] || [ "$(echo "$sha" | wc -l)" -ne 1 ]; then \
-      echo "scripts/config.sh declares no single ZIG_VERSION/ZIG_SHA256 (got '$version' '$sha')" >&2; exit 1; fi \
+# Values the kit owns in scripts/config.sh, read as data (never sourced); the build fails unless each is declared once.
+RUN kit() { sed -n "s/^$1=\"\\\${$1:-\\($2\\)}\".*/\\1/p" /kit/scripts/config.sh; } \
+ && version=$(kit ZIG_VERSION '[0-9][0-9.]*') && sha=$(kit ZIG_SHA256 '[0-9a-f]\{64\}') \
+ && mtime=$(kit KERNEL_SOURCE_MTIME '[0-9][0-9]*') \
+ && for value in "$version" "$sha" "$mtime"; do \
+      if [ -z "$value" ] || [ "$(echo "$value" | wc -l)" -ne 1 ]; then \
+        echo "scripts/config.sh does not declare ZIG_VERSION, ZIG_SHA256 and KERNEL_SOURCE_MTIME once each" >&2; exit 1; fi; done \
+ && echo "$mtime" > /opt/vonk-build/kernel-source-mtime \
  && curl -fsSL -o /tmp/zig.tar.xz "https://ziglang.org/download/$version/zig-aarch64-linux-$version.tar.xz" \
  && echo "$sha  /tmp/zig.tar.xz" | sha256sum -c - \
  && mkdir -p /opt/zig && tar -xJf /tmp/zig.tar.xz -C /opt/zig --strip-components=1 && rm /tmp/zig.tar.xz \
  && test "$(/opt/zig/zig version)" = "$version"
-RUN cd /tensorfold \
+# The build lines below are the kit's (its scripts/prepare.sh Dockerfile): fail when the kit no longer has them.
+RUN for line in '/opt/zig/zig build -Dnvcc=/usr/local/cuda/bin/nvcc -Doptimize=fast --prefix /opt/tensorfold' \
+      'fatbins install native' 'for f in LICENSE LICENSE.md LICENSES NOTICE THIRD_PARTY_NOTICES.md; do' \
+      'PYTHONPATH=/tensorfold/src python -B tools/zig/flashnext_aot.py build' \
+      '--spec zig/tests/cuda/flashnext/kernels.json --jit zig/tests/cuda/flashnext/jit.json --tp 1,2' \
+      '--out /opt/tensorfold/share/tensorfold/cuda/sm121' \
+      'COPY --from=build /tensorfold/src/tensorfold /opt/tensorfold/python/tensorfold'; do \
+      grep -qF -- "$line" /kit/scripts/prepare.sh || { echo "the kit's prepare.sh no longer has: $line" >&2; exit 1; }; done \
+ && cd /tensorfold \
  && for p in /kit/patches/*.patch; do echo "applying $p"; git apply --check "$p" && git apply "$p" || exit 1; done
-# Reuse net: the published vision Python tree is the patched src/tensorfold, and every Triton kernel source the
-# published AOT kernel set was compiled from (zig/tests/cuda/flashnext/kernels.json) lies in it, so a kit change to
-# those sources fails the build here.
-RUN python3 -c 'import json, sys; files = {k["source"]["file"] for k in json.load(open(sys.argv[1]))["kernels"]}; bad = sorted(f for f in files if not f.startswith("tensorfold/")); sys.exit(f"kernel sources outside src/tensorfold: {bad}" if bad else 0)' \
-      /tensorfold/zig/tests/cuda/flashnext/kernels.json \
- && diff -r /tensorfold/src/tensorfold /opt/tensorfold/python/tensorfold
-RUN cd /tensorfold && /opt/zig/zig build -Dnvcc=/usr/local/cuda/bin/nvcc -Doptimize=fast --prefix /opt/tf-engine \
+# The creator's /opt/tensorfold is rebuilt from scratch, so nothing of the published one is left in it.
+RUN rm -rf /opt/tensorfold \
+ && cd /tensorfold && /opt/zig/zig build -Dnvcc=/usr/local/cuda/bin/nvcc -Doptimize=fast --prefix /opt/tensorfold \
       -j"$(nproc)" fatbins install native \
- && test -x /opt/tf-engine/native/bin/tensorfold-native \
- && test "$(ls /opt/tf-engine | tr '\n' ' ')" = "bin fatbin native "
-# Build-time sm_121 kernel scan (scan-sm121.py; rules in docs/recipe-authoring.md). Every rebuilt fatbin, the exact
-# images tensorfold-native embeds (@embedFile), must carry a loadable image; the rebuilt binaries are scanned too.
+ && test -x /opt/tensorfold/native/bin/tensorfold-native
+RUN mkdir -p /opt/tensorfold/share/doc/tensorfold && cd /tensorfold \
+ && for f in LICENSE LICENSE.md LICENSES NOTICE THIRD_PARTY_NOTICES.md; do \
+      if [ -e "$f" ]; then cp -a "$f" /opt/tensorfold/share/doc/tensorfold/ || exit 1; fi; done
+# Every Triton specialization, compiled for sm_121 without a GPU. flashnext_aot.py fails the build when a kernel's
+# Triton hash, or the cubin sha256 of a kernel the spec captured, differs from the spec's.
+RUN cd /tensorfold && python -B -c 'import json, os, sys; t = int(sys.argv[1]); [os.utime(os.path.join("src", f), (t, t)) for f in sorted({k["source"]["file"] for k in json.load(open("zig/tests/cuda/flashnext/kernels.json"))["kernels"]})]' "$(cat /opt/vonk-build/kernel-source-mtime)" \
+ && PYTHONPATH=/tensorfold/src python -B tools/zig/flashnext_aot.py build \
+      --spec zig/tests/cuda/flashnext/kernels.json --jit zig/tests/cuda/flashnext/jit.json --tp 1,2 \
+      --out /opt/tensorfold/share/tensorfold/cuda/sm121 \
+ && test -f /opt/tensorfold/share/tensorfold/cuda/sm121/aot.json
+# Build-time sm_121 kernel scan (scan-sm121.py; rules in docs/recipe-authoring.md). Every rebuilt fatbin (the images
+# tensorfold-native embeds with @embedFile) and every cubin of the AOT kernel set must carry a loadable image; the
+# rebuilt binaries are scanned too.
 COPY scan-sm121.py /opt/vonk-build/scan-sm121.py
-RUN ls /opt/tf-engine/fatbin/*.fatbin >/dev/null \
- && python3 /opt/vonk-build/scan-sm121.py $(for f in /opt/tf-engine/fatbin/*.fatbin; do echo --require $f; done) \
-      /opt/tf-engine/native/bin/tensorfold-native /opt/tf-engine/bin/tensorfold /opt/tf-engine/bin/tf-cuda-test
+RUN ls /opt/tensorfold/fatbin/*.fatbin /opt/tensorfold/share/tensorfold/cuda/sm121/cubins/*.cubin >/dev/null \
+ && python3 /opt/vonk-build/scan-sm121.py \
+      $(for f in /opt/tensorfold/fatbin/*.fatbin /opt/tensorfold/share/tensorfold/cuda/sm121/cubins/*.cubin; do echo --require $f; done) \
+      /opt/tensorfold/native/bin/tensorfold-native /opt/tensorfold/bin/tensorfold /opt/tensorfold/bin/tf-cuda-test
 
 FROM ghcr.io/miaai-lab/qwen3.8-flash-dual-dgx-sparks-tensorfold@sha256:e188128ddabdc67ac02c05781f5c0c6b348db5f050cac297861d82b7f086e18c
 
@@ -49,7 +67,10 @@ LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Qwen3.8-Flas
       ai.vonkforge.runtime-interface="v1" \
       tf.patches=""
 
-COPY --from=build /opt/tf-engine/ /opt/tensorfold/
+# The creator's two COPY lines into a fresh /opt/tensorfold (its /usr/local/bin/tensorfold-native link stays valid).
+RUN rm -rf /opt/tensorfold
+COPY --from=build /opt/tensorfold /opt/tensorfold
+COPY --from=build /tensorfold/src/tensorfold /opt/tensorfold/python/tensorfold
 COPY licenses /opt/vonk/licenses
 COPY --chmod=0755 tensorfold-serve /opt/vonk/bin/tensorfold-serve
 RUN test -x "$(command -v tensorfold-native)" \
