@@ -106,20 +106,25 @@ prove that every embedded source, container, or dependency is current.
 ## 3. Author the Model and Recipe
 
 The [Pydantic definitions](../contracts/src/vonk_forge_contracts) are the source
-of truth. Use the [examples](../contracts/src/vonk_forge_contracts/examples) for
-structure only; replace synthetic identities and data with verified inputs.
+of truth; the [generated JSON Schemas](../contracts/src/vonk_forge_contracts/schema)
+(`recipe-definition-v3`, `model-definition-v3`, `recipe-display-v3`,
+`model-display-v3`) state every field's shape, bound, enum and default. Use the
+[examples](../contracts/src/vonk_forge_contracts/examples) (a Recipe, Model and
+display for each shape) for structure only; replace synthetic identities and
+data with verified inputs.
 
 The roots are strict: authoring rejects unknown fields. Do not use lenient
 published-document readers to bypass producer validation (`tests/test_contracts.py`).
 
-| Document | Required structure (read the definitions for typed variants) |
+| Document | Required structure (read the definitions for typed variants); every document also writes its defaulted `kind` (`model`, `recipe`, `recipe-display`, `model-display`) |
 | --- | --- |
 | Model | `identity`, `requires_token`, `dependencies`, `modalities`, `source`, `format`, `license`, `files`, `capabilities`. |
 | Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
+| Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment` is optional. |
+| Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`. |
 
-A document holds execution data only. What a person reads about it (Recipe
-title, description, tags and alignment; Model family and model titles,
-description and tags) lives in its display file, `display/recipes/<slug>.json`
+A document holds execution data only. What a person reads about it lives in
+its display file, `display/recipes/<slug>.json`
 or `display/models/<slug>.json`, one per document and no orphan (`RecipeDisplay`,
 `ModelDisplay`, checked by `validate_library`). A display edit never changes a
 document, its `content_sha256`, its evidence or its proven status; a change that
@@ -238,10 +243,13 @@ credential requirements and report provider access errors accurately.
 ### Recipe: a complete way to run those files
 
 Reference exact validated Model documents by the `document_sha256` of their
-published JSON, and their file IDs; do not duplicate their manifests. Mount
-the selected files for the required topology roles; model mounts are always
-read-only. Every recipe builds its image from a digest-pinned ARM64 base image
-and a recipe-owned build context, Dockerfile and patches. The build reaches
+published JSON (written as `models[].model.content_sha256`), and their file IDs
+(`file_id`); do not duplicate their manifests. Mount the selected files for the
+required topology roles: a selector's `roles` are `topology.roles[].name`
+values, not the Model file's roles. Model mounts are always read-only. Every
+recipe builds its image from a digest-pinned ARM64 base image
+(`base_image.digest` is the bare 64-hex digest, without `sha256:`) and a
+recipe-owned build context, Dockerfile and patches. The build reaches
 only the hosts in `execution.build.network.hosts`; an empty list builds
 offline. Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
@@ -265,12 +273,12 @@ has no Ray, install it from a hash lock as described in
 run summary, why a recipe has no prebuilt image. Every image builds on a hosted
 runner within the build job's 360-minute timeout; there is no exclusion list.
 
-Leave out unused optional fields. For optional fields with a `None` default,
-explicit `null` and omission have the same meaning; required nullable fields
-must still be written, even when their value is `null`. Do not remove false,
-zero, empty values or engine-owned JSON nulls as if they were absent. A
-document's identity is the `document_sha256` of its JSON (key order and
-whitespace aside), so any value change changes it. Keep documents in the
+Leave out unused optional fields in a new document. For optional fields with a
+`None` default, explicit `null` and omission parse the same, but they are
+different bytes: never add or strip a `null` in an existing document. Do not
+remove false, zero, empty values or engine-owned JSON nulls as if they were
+absent. A document's identity is the `document_sha256` of its JSON (key order
+and whitespace aside), so any value change changes it. Keep documents in the
 repository's sorted, two-space-indented form. Do not add hand-maintained digests
 for files authored in the same change; tooling owns package/source digests.
 Recorded upstream artifact checksums remain valid inputs
@@ -293,9 +301,13 @@ Declare per-role
 unified memory as `peak_bytes` (the most the workload uses while serving; a
 higher load-time peak goes in `load_peak_bytes`) plus `reserve_bytes`, and disk as image, artifact,
 working (staging plus caches) and safety-margin bytes. Declare `node_count`,
-roles and their start order. Bind tunable
+roles and their start order: role counts sum to `node_count`, exactly one role
+with count 1 is the `endpoint_owner`, `tensor` × `pipeline` × `data` equals
+`node_count`, and `start_order` names every role once. Bind tunable
 arguments to the corresponding declared settings instead of maintaining two
-copies of a default. Respect the contract's automatic/unspecified settings;
+copies of a default; a `setting` names a non-null `context_tokens`,
+`concurrency` or `max_batch_tokens`, or a `settings.knobs` key. Respect the
+contract's automatic/unspecified settings;
 benchmark request counts are not engine concurrency limits. If a wrapper
 hardcodes a setting, align its implementation with the declared setting.
 
@@ -627,9 +639,9 @@ and the missing Model.
 Runtime arguments are ordered data, not shell text. Repeated names keep their
 order; an empty string remains an argv token; literal `true` emits a flag and
 `false` omits it. `value: null` requires a setting binding. Structured values
-render as deterministic compact JSON. The contract bounds names/values at
-65,536 UTF-8 bytes, rendered argv at 1 MiB and argument count at 128
-(`tests/test_contracts.py`).
+render as deterministic compact JSON. The contract bounds argument names at 64
+characters, values at 65,536 UTF-8 bytes, rendered argv at 1 MiB and argument
+count at 128 (`tests/test_contracts.py`).
 
 Trusted recipe options pass through to the pinned engine even when the
 Controller has no label, enum entry, or specialized validator for them. Known
@@ -699,9 +711,10 @@ launch passes the parser. A recipe follows its playbook or kit: if upstream
 passes the flags, carry them (`--enable-auto-tool-choice` with
 `--tool-call-parser` on vLLM, `--tool-call-parser` on SGLang, `tool_parser` on
 TensorRT-LLM; `--reasoning-parser` or `reasoning_parser` for reasoning); if it
-does not, the recipe must not tag `tool-use` and its `smoke_cases` must hold no
-tool case, because the engine answers HTTP 400 or returns the raw `<tool_call>`
-text in `content`. A reasoning model served without a reasoning parser uses the
+does not, its display must not tag `tool-use` and its qualification
+`smoke_cases` (`qualification/recipes/<slug>.json`) must hold no tool case,
+because the engine answers HTTP 400 or returns the raw `<tool_call>` text in
+`content`. A reasoning model served without a reasoning parser uses the
 `A323_UNPARSED`/`A391_UNPARSED` case; use its actual functional and quality
 assertions rather than assuming that every kind of leaked markup is allowed. Image cases need a
 multimodal recipe. When a kit's entrypoint injects the flags from inside its
@@ -728,10 +741,10 @@ When users can reasonably choose between ways to run the same weights, declare a
 
 | Field | Rule |
 | --- | --- |
-| option `name` | Slug, unique in the recipe. |
+| option `name` | Lowercase identifier starting with a letter (`^[a-z][a-z0-9_-]*$`, so `ctx-128k`, not `128k`), unique in the recipe. |
 | option `label`, `help` | What the user sees in the web select and `vonkctl`; say what changes and the trade-off. |
 | `choices` | 2 to 16 fixed named values. There are no free-form values. |
-| choice `value` | Slug, unique within its option. |
+| choice `value` | Same identifier form, unique within its option. |
 | choice `label`, `help` | Shown next to the value; state measured or upstream-documented effects only. |
 | choice `default` | Exactly one choice per option is `true`. It applies whenever the user does not choose. |
 | choice `args` | Literal runtime arguments (`name` and `value`, never a `setting` binding). |
@@ -1076,7 +1089,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-recipe-model-references`, `tests/test_recipe_model_references.py`, `tests/test_display_split.py` | Every pinned Model/file exists at the exact digest, and every Recipe and Model has exactly one display file and none is orphaned. Catalog the missing immutable Model or update all bindings together; add or remove the display with its document. |
 | `tools/check-model-families`, `tests/test_check_model_families.py` | One consistent upstream lineage. Reuse its family identity instead of republisher/format families. |
 | `tools/check-recipe-topology --base origin/main`, `tests/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
-| `tests/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. Repair the launcher or metadata; do not publish placeholder tags. |
+| `tests/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. Repair the launcher or display; do not publish placeholder tags. |
 | `tests/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
 | `tests/test_recipe_model_mounts.py`, `tests/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
 | `tools/check-build-context-sources`, `tests/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
