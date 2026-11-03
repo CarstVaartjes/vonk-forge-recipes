@@ -2,11 +2,13 @@
 
 import hashlib
 import importlib.util
-import json
 import sys
 from pathlib import Path
 
 import pytest
+from vonk_forge_contracts.recipe import RecipeGenerationSettings
+
+from qualification import documents
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/deepseek/bertholomus-1017-tensorfold-tp4"
@@ -35,16 +37,20 @@ def modules(monkeypatch):
 
 
 def recipe_arguments(rank):
-    recipe = json.loads((ROOT / "recipes" / f"{RECIPE}.json").read_text())
-    settings = recipe["settings"]
+    recipe = documents.recipe(RECIPE)
+    generation = recipe.settings
+    assert isinstance(generation, RecipeGenerationSettings)
+    settings = {
+        "concurrency": generation.concurrency,
+        "context_tokens": generation.context_tokens,
+    }
     arguments = ["--tp", "4", "--rank", str(rank), "--master", "VONK_MASTER_ADDR"]
     arguments += ["--master-port", "VONK_MASTER_PORT"]
-    for item in recipe["runtime"]["arguments"]:
-        value = (
-            settings[item["setting"]]["value"] if "setting" in item else item["value"]
-        )
+    for item in recipe.runtime.arguments:
+        setting = settings[item.setting] if item.setting else None
+        value = item.value if setting is None else setting.value
         if value is not False:
-            arguments.append("--" + item["name"])
+            arguments.append("--" + item.name)
             if value is not True:
                 arguments.append(str(value))
     return recipe, arguments
@@ -55,9 +61,7 @@ def test_every_rank_runs_the_served_settings_on_the_controller_fabric(modules, r
     _, launcher = modules
     recipe, arguments = recipe_arguments(rank)
     _, cache, command, env = launcher.launch(arguments, ENVIRON)
-    pool = next(
-        a["value"] for a in recipe["runtime"]["arguments"] if a["name"] == "pool"
-    )
+    pool = next(a.value for a in recipe.runtime.arguments if a.name == "pool")
     # tonyd2wild's dedicated-node pool (run README at 74ac0136)
     assert pool == 29_360_128
     assert env["TF_DS_WINDOW"] == str(pool) and env["TF_DS_STREAMS"] == "16"
