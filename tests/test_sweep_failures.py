@@ -72,8 +72,12 @@ def test_transient_failure_recovers_beyond_the_old_attempt_limit(
     )
 
     def recover(_now):
-        if sweep.state.recipes.get(flaky.key, {}).get("attempts", 0) >= 4:
-            fleet.recipes[flaky.key].fail_load = ""
+        attempts = sweep.state.recipes.get(flaky.key, {}).get("attempts", 0)
+        # Alike exits end in a verdict at three; these differ, so they keep being retried.
+        causes = ("exit_cause=unclassified", "exit_cause=start_refused")
+        fleet.recipes[flaky.key].fail_load = (
+            "" if attempts >= 4 else f"runtime_process_exited: {causes[attempts % 2]}"
+        )
 
     clock.hooks.append(recover)
     sweep.run()
