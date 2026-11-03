@@ -446,10 +446,6 @@ def disposition(failure: Failure) -> Disposition:
     if failure.klass in WAIT_CLASSES:
         return Disposition.WAIT
     if failure.klass == "capacity":
-        if failure.evidence.get("demand_exceeds_idle_spark") is True:
-            return (
-                Disposition.FAIL
-            )  # deterministic physical demand proof, not retry exhaustion
         # NAS space is a resource prerequisite the collector frees: a wait. A placement
         # refusal may be the recipe not fitting: the fleet is cleared and it is observed.
         return Disposition.WAIT if failure.phase == "download" else Disposition.OBSERVE

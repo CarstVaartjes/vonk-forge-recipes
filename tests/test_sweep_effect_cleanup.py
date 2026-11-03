@@ -110,6 +110,7 @@ def test_fresh_capacity_review_can_refuse_a_locally_cached_free_lane(
     before = len(mutations(fleet))
     # Cached local placement facts are stale; the actual new Controller review owns admission.
     fleet.recipes[recipe.key].memory = 200 * 2**30
+    fleet.runs.append(run("unseen", ["spk_a"]))  # a holder the cached view lacks
     apply_healthy(sweep, clock, recipe)
     assert len(mutations(fleet)) == before
     assert recipe.key not in sweep.state.slots

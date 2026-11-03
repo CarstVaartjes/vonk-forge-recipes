@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import pytest
-from sweep_fakes import SPARK_MEMORY, FakeModel, FakeRecipe, Gateway, make_sweep
-
-from qualification.memory_need import OS_FLOOR_BYTES
+from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 from spark_sweep import verdict
+from spark_sweep.identity import content_identity
 from spark_sweep.run import MAX_REVIEW_FREEING
 
 
@@ -25,11 +24,8 @@ def _entry(sweep, slug: str) -> dict:
     return sweep.state.recipes[f"vonk-forge/{slug}"]
 
 
-def _refusing(fleet, times: int | None, demand: int | None = 40 * 10**9):
-    """Review refuses on capacity ``times`` times (always when None), then reviews as usual.
-
-    ``demand`` is the Controller's own memory requirement for the Spark (None: unknown).
-    """
+def _refusing(fleet, times: int | None):
+    """Review refuses on capacity ``times`` times (always when None), then reviews as usual."""
 
     real = fleet._load
     refused = []
@@ -50,14 +46,6 @@ def _refusing(fleet, times: int | None, demand: int | None = 40 * 10**9):
                                 "code": "run-switch.resource.insufficient_capacity",
                                 "detail": "7603704832 bytes short of the reserve",
                             }
-                        ],
-                        "requirements": [
-                            {
-                                "node_id": node,
-                                "memory_required_bytes": demand,
-                                "memory_floor_bytes": OS_FLOOR_BYTES,
-                            }
-                            for node, *_ in (fleet.sparks if demand is not None else ())
                         ],
                     }
                 ],
@@ -89,16 +77,13 @@ def _waits(sweep, key: str) -> list[dict]:
     ]
 
 
-@pytest.mark.parametrize("demand", [40 * 10**9, None], ids=["fits-idle", "unknown"])
-def test_a_capacity_refusal_that_outlasts_clearing_waits_when_it_can_fit(
-    tmp_path, gateway, demand
-) -> None:
+def test_a_capacity_refusal_that_outlasts_clearing_waits(tmp_path, gateway) -> None:
     # A Controller build (or any holder clearing cannot stop) keeps the room past the
-    # clearings: the recipe fits an idle Spark (or that is unknown), so it waits.
+    # clearings: it waits and is reviewed again (the Controller owns the fit).
     sweep, fleet, _ = make_sweep(
         tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
     )
-    refused = _refusing(fleet, times=MAX_REVIEW_FREEING + 3, demand=demand)
+    refused = _refusing(fleet, times=MAX_REVIEW_FREEING + 3)
     assert sweep.run() == 0
     entry = _entry(sweep, "a")
     assert entry["status"] == "passed"
@@ -108,26 +93,37 @@ def test_a_capacity_refusal_that_outlasts_clearing_waits_when_it_can_fit(
     assert not [r for r in rows if r.get("status") in ("deferred", "failed")]
 
 
-def test_a_capacity_refusal_beyond_an_idle_spark_is_deferred_with_evidence(
+def test_a_recipe_declaring_more_than_an_idle_spark_is_placed_and_passes(
     tmp_path, gateway
 ) -> None:
-    sweep, fleet, _ = make_sweep(
-        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+    # The Controller tries one oversized estimate on a Spark that holds nothing.
+    huge = FakeRecipe("huge", memory=128 * 10**9)
+    sweep, _, _ = make_sweep(tmp_path, [huge], [FakeModel("m1")], gateway=gateway)
+    assert sweep.run() == 0
+    assert _entry(sweep, "huge")["status"] == "passed"
+
+
+def test_a_stored_review_capacity_deferral_is_reopened_and_passes(
+    tmp_path, gateway
+) -> None:
+    recipe = FakeRecipe("a")
+    first, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
+    first.refresh_catalog()
+    first.state.entry(recipe.key).update(
+        status="deferred",
+        phase="review",
+        failure_class="capacity",
+        code="run-switch.resource.insufficient_capacity",
+        attempts=1,
+        evidence={"demand_exceeds_idle_spark": True},
+        verdict_identity=content_identity(first.recipes[recipe.key]).model_dump(
+            mode="json"
+        ),
     )
-    refused = _refusing(fleet, times=None, demand=SPARK_MEMORY)
-    sweep.run()
-    entry = _entry(sweep, "a")
-    assert (entry["status"], entry["phase"], entry["failure_class"]) == (
-        "deferred",
-        "review",
-        "capacity",
-    )
-    assert entry["evidence"]["demand_exceeds_idle_spark"] is True
-    assert (
-        len(refused) == 1
-    )  # deterministic demand proof fails fast, without spending counts
-    rows = [r for r in sweep.log.entries() if r.get("status") == "deferred"]
-    assert rows[-1]["controller_document"]["admission_decisions"][0]["requirements"]
+    first.state.save()
+    resumed, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
+    assert resumed.run() == 0
+    assert resumed.state.recipes[recipe.key]["status"] == "passed"
 
 
 def test_a_failed_application_the_controller_gave_up_on_is_recorded(
