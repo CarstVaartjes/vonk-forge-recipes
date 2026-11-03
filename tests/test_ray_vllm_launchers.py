@@ -18,7 +18,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-NVIDIA_405B = "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual"
+NVIDIA_405B = "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four"
 
 
 def ray_vllm_recipes() -> list[tuple[str, dict]]:
