@@ -7,6 +7,8 @@
     "licenses/",
     "tensorfold-serve",
     "vendor/",
-    "requirements.lock"
+    "requirements.in",
+    "requirements.lock",
+    "constraints.txt"
   ]
 }
