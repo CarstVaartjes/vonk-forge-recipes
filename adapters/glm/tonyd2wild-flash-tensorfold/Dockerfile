@@ -10,6 +10,8 @@ LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/GLM-5.3-Fla
 # engine-multi/pyproject.toml's package-data for tensorfold.cuda lists *.cu, *.cuh and *.cpp but not *.c, so the
 # install drops roce_proxy.c, which TF_GLM_COMM=roce compiles at start; the creator runs from the source tree.
 # Copy it in and build the proxy once here to prove the source, gcc and libibverbs are all in the image.
+# torch and torchvision follow the creator's torch 2.13 / CUDA 13.0 stack from pip, installed over the base's torch;
+# the torchvision op check proves the pair matches (a torchvision left from the base would not register its ops).
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONUNBUFFERED=1
 
 COPY vendor/creator-1758bc2dab8ae56bf9592b74b312b398577850cc.tar.gz /tmp/tensorfold.tar.gz
@@ -22,6 +24,7 @@ RUN echo "15e417b5f06136f86c53455214455bdda5d17e9147b0f19a40fb9c8da2c276ca  /tmp
     && PIP_CONSTRAINT= python -m pip install --no-cache-dir --no-deps --no-build-isolation /tmp/tensorfold-src/engine-multi \
     && cp /tmp/tensorfold-src/engine-multi/src/tensorfold/cuda/roce_proxy.c "$(python -c 'import os, tensorfold.cuda as m; print(os.path.dirname(m.__file__))')/" \
     && python -c "import tensorfold.cuda.server, tensorfold.families.glm5_next.cuda.engine" \
+    && python -c "import torch, torchvision; from torchvision.transforms.v2 import functional; torchvision.ops.nms(torch.zeros(1, 4), torch.zeros(1), 0.5)" \
     && TORCH_EXTENSIONS_DIR=/tmp/roce-smoke python -c "from tensorfold.cuda.roce import proxy_library; proxy_library()" \
     && rm -rf /tmp/roce-smoke \
     && tensorfold --version \
