@@ -9,7 +9,7 @@
     }
   },
   "kit": {
-    "commit": "ca3326c375f77ab60301898a83f3094ee72b0884",
+    "commit": "7b2ee453234617f58e1e100c195ac3be7f79e233",
     "repo": "NVIDIA/local-ai-inference-recipes"
   }
 }
