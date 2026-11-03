@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Literal
 
+from .lifecycle import RecipeStatus
+
 Owner = Literal["client", "api", "worker", "agent"]
 _SOURCE = re.compile(r"[0-9a-f]{40}\Z")
 _CONTRACT = re.compile(r"[0-9a-f]{64}\Z")
@@ -164,17 +166,19 @@ def changed_release(
 ) -> dict[str, str] | None:
     """The exit of a deferred (blocked-platform) recipe: the Controller it failed on changed.
 
-    An unclassified fault is not the recipe's; it heals when the platform does. Only a
-    proven difference between the release recorded on the failure and the deployed one
-    reopens it, once per release.
+    An unclassified fault is not the recipe's; it heals when the platform does. A failure
+    that recorded no release (the platform could not be read then, or an older entry)
+    differs from any observed release, so it heals once as well. Each release reopens
+    an entry once (``recovery_history``).
     """
-    old = entry.get("release")
-    if entry.get("status") != "deferred" or not release or not isinstance(old, str):
+    if entry.get("status") != RecipeStatus.DEFERRED or not release:
         return None
-    if entry.get("code") in FAULT_OWNERS:
-        return None  # a fault with a named owner is reopened by that owner's change
-    if old == release:
+    if entry.get("release") == release:
         return None
+    if entry.get("code") in FAULT_OWNERS and isinstance(
+        entry.get("recovery_basis"), Mapping
+    ):
+        return None  # a fault with an observed owner is reopened by that owner's change
     basis = {"controller_release": release}
     history = entry.get("recovery_history", [])
     if not isinstance(history, list) or any(

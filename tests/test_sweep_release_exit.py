@@ -8,19 +8,19 @@ import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep import policy, recovery, verdict
-from spark_sweep.run import Sweep
 
 
-def _deferred(tmp_path: Path, monkeypatch, release: str):
-    monkeypatch.setattr(Sweep, "release_sha", property(lambda self: release_box[0]))
-    release_box[0] = release
-    sweep, _, _ = make_sweep(
+def _deferred(tmp_path: Path, _monkeypatch, release: str):
+    sweep, fleet, _ = make_sweep(
         tmp_path,
         [FakeRecipe("a", ("1" * 64,), content="a" * 64)],
         [FakeModel("1" * 64)],
     )
+    fleet.api_source_sha = release
+    release_box[:] = [fleet]
     sweep.preflight()
     sweep.refresh_catalog()
+    sweep.observe_platform()
     key = next(iter(sweep.recipes))
     entry = sweep.state.entry(key)
     entry.update(
@@ -32,11 +32,16 @@ def _deferred(tmp_path: Path, monkeypatch, release: str):
     return sweep, key, entry
 
 
-release_box = ["rel-1"]
+release_box: list = []
+
+
+def _deploy(sweep, release: str) -> None:
+    release_box[0].api_source_sha = release
+    sweep.observe_platform()
 
 
 def test_a_deferred_recipe_is_not_retried_on_the_same_release(tmp_path, monkeypatch):
-    sweep, _key, entry = _deferred(tmp_path, monkeypatch, "rel-1")
+    sweep, _key, entry = _deferred(tmp_path, monkeypatch, "1" * 40)
     sweep.requeue_for_changed_owner()
     assert entry["status"] == "deferred" and not entry.get("recovery_history")
 
@@ -44,21 +49,21 @@ def test_a_deferred_recipe_is_not_retried_on_the_same_release(tmp_path, monkeypa
 def test_a_deferred_recipe_is_requeued_once_when_the_release_changes(
     tmp_path, monkeypatch
 ):
-    sweep, _key, entry = _deferred(tmp_path, monkeypatch, "rel-1")
-    release_box[0] = "rel-2"
+    sweep, _key, entry = _deferred(tmp_path, monkeypatch, "1" * 40)
+    _deploy(sweep, "2" * 40)
     sweep.requeue_for_changed_owner()
     assert entry["status"] == "pending"
-    assert entry["recovery_history"][-1]["basis"] == {"controller_release": "rel-2"}
+    assert entry["recovery_history"][-1]["basis"] == {"controller_release": "2" * 40}
     # Failing again on rel-2 records rel-2; the same release never reopens it twice.
-    entry.update(status="deferred", release="rel-2")
+    entry.update(status="deferred", release="2" * 40)
     sweep.requeue_for_changed_owner()
     assert entry["status"] == "deferred"
 
 
 def test_a_failed_recipe_is_unaffected_by_a_release_change(tmp_path, monkeypatch):
-    sweep, _key, entry = _deferred(tmp_path, monkeypatch, "rel-1")
+    sweep, _key, entry = _deferred(tmp_path, monkeypatch, "1" * 40)
     entry["status"] = "failed"
-    release_box[0] = "rel-2"
+    _deploy(sweep, "2" * 40)
     sweep.requeue_for_changed_owner()
     assert entry["status"] == "failed" and not entry.get("recovery_history")
 
@@ -67,15 +72,69 @@ def test_a_failed_recipe_is_unaffected_by_a_release_change(tmp_path, monkeypatch
     "klass", ["start", "timeout", "smoke", "download", *sorted(verdict.OBSERVE_CLASSES)]
 )
 def test_every_deferred_state_has_a_named_exit_when_the_platform_changes(klass):
-    deferred = {"status": "deferred", "failure_class": klass, "release": "rel-1"}
-    assert recovery.changed_release(deferred, "rel-1") is None
+    deferred = {"status": "deferred", "failure_class": klass, "release": "1" * 40}
+    assert recovery.changed_release(deferred, "1" * 40) is None
     assert recovery.changed_release(deferred, None) is None
-    assert recovery.changed_release(deferred, "rel-2") == {
-        "controller_release": "rel-2"
-    }
-    assert recovery.changed_release({**deferred, "status": "failed"}, "rel-2") is None
+    expected = {"controller_release": "2" * 40}
+    assert recovery.changed_release(deferred, "2" * 40) == expected
+    # A failure that recorded no release (platform unreadable then, or an older entry).
+    assert recovery.changed_release({**deferred, "release": None}, "2" * 40) == expected
+    absent = {k: v for k, v in deferred.items() if k != "release"}
+    assert recovery.changed_release(absent, "2" * 40) == expected
+    assert recovery.changed_release({**deferred, "status": "failed"}, "2" * 40) is None
 
 
 def test_an_unclassified_class_still_defers_without_recipe_blame():
     failure = policy.classify("start", "application.failed", "unknown")
     assert verdict.disposition(failure) is verdict.Disposition.FAIL
+
+
+def test_a_named_owner_fault_without_an_observed_basis_still_has_an_exit():
+    fault = {"status": "deferred", "code": "arguments", "release": "1" * 40}
+    assert recovery.changed_release(fault, "2" * 40) == {"controller_release": "2" * 40}
+    owned = {**fault, "recovery_basis": {"owner": "client", "source_sha": "x"}}
+    assert recovery.changed_release(owned, "2" * 40) is None
+
+
+def test_a_release_retest_has_its_own_reason_and_download_retests_honour_it(
+    tmp_path, monkeypatch
+):
+    from spark_sweep.lifecycle import RetestReason
+
+    sweep, _key, entry = _deferred(tmp_path, monkeypatch, "1" * 40)
+    _deploy(sweep, "2" * 40)
+    sweep.requeue_for_changed_owner()
+    assert entry["retest"]["reason"] == RetestReason.RELEASE_CHANGED
+    source = Path(__file__).parents[1].joinpath("spark_sweep/prefetch.py").read_text()
+    assert (
+        "RetestReason.RELEASE_CHANGED" in source.split("def _terminal_retest")[1][:1500]
+    )
+
+
+def test_a_release_that_flips_mid_load_is_recorded_against_the_one_the_load_started_on(
+    tmp_path,
+):
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [FakeRecipe("a", ("1" * 64,), content="a" * 64, local="cached")],
+        [FakeModel("1" * 64, local="cached")],
+    )
+    fleet.api_source_sha = "1" * 40
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep.queue = list(sweep.recipes)
+    sweep.cached_models = sweep._cached_models()
+    sweep.observe_platform()
+    sweep.schedule(clock.now())
+    key = next(iter(sweep.state.slots))
+    fleet.api_source_sha = "2" * 40
+    sweep.observe_platform()
+    assert sweep.release_sha == "2" * 40
+    sweep._record_failure(
+        key, policy.classify("start", "application.failed", "unknown"), None
+    )
+    entry = sweep.state.entry(key)
+    assert entry["status"] == "deferred" and entry["release"] == "1" * 40
+    sweep.requeue_for_changed_owner()
+    assert entry["status"] == "pending"
+    assert entry["recovery_history"][-1]["basis"] == {"controller_release": "2" * 40}

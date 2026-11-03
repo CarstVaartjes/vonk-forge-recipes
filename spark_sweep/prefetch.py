@@ -862,6 +862,7 @@ class Prefetcher:
             in (
                 RetestReason.SCHEDULED,
                 RetestReason.OWNER_CHANGED,
+                RetestReason.RELEASE_CHANGED,
                 RetestReason.OPERATOR,
             )
             and verdict_matches(entry, recipe)

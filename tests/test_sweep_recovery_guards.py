@@ -469,6 +469,7 @@ def test_watch_keeps_platform_blocked_without_an_observed_fix(tmp_path: Path) ->
     sweep, _, clock = _loading(tmp_path)
     key = next(iter(sweep.state.slots))
     original = sweep.state.slots[key]["request_key"]
+    sweep.observe_platform()  # the failure is recorded against a known release
     sweep._record_failure(
         key, policy.classify("start", "application.failed", "unknown"), None
     )
