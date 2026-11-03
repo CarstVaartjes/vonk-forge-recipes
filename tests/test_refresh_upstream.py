@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import importlib.machinery
 import importlib.util
@@ -2153,7 +2154,9 @@ class AppCommandBoundaryTests(unittest.TestCase):
 
 
 class PerRecipeFaultTests(unittest.TestCase):
-    def test_an_unexpected_error_in_one_recipe_does_not_starve_the_next(self) -> None:
+    """One recipe's unexpected error is that recipe's failure; the others still run."""
+
+    def drifted(self, recipe_id: str, **kwargs):
         item = refresh.Item(
             "source",
             "github",
@@ -2161,32 +2164,43 @@ class PerRecipeFaultTests(unittest.TestCase):
             OLD,
             refresh.Target("github", "o/r", NEW, "d", None, None, "u"),
         )
-        results = [
-            refresh.Assessment("a", items=[item]),
-            refresh.Assessment("b", items=[item]),
-        ]
-        published: list[str] = []
+        return refresh.Assessment(recipe_id, items=[item], **kwargs)
+
+    def run_refresh(self, assessments, *, assess_fault=None, **patches):
+        """Run command_run over the assessments; return (exit code, summary)."""
         written: list = []
 
-        def publish(_root, assessment, _summary):
-            if assessment.recipe_id == "a":
-                raise ValueError("Expecting value: line 1 column 1 (char 0)")
-            published.append(assessment.recipe_id)
-            return 7
+        class FakeAssessor:
+            def __init__(self, *_arguments) -> None:
+                pass
+
+            def assess(self, recipe_id: str):
+                if recipe_id == assess_fault:
+                    raise ValueError("Expecting value: line 1 column 1 (char 0)")
+                return assessments[recipe_id]
 
         def read_optional(source, action, *_arguments, **_keywords):
             if source == "catalog assessment":
-                return object(), results, {"coverage": {}}
+                return action()
 
+        catalog = types.SimpleNamespace(recipes=dict.fromkeys(assessments))
         arguments = refresh.argparse.Namespace(cache_dir=None, dry_run=False)
         with (
+            contextlib.ExitStack() as stack,
             patch.object(refresh, "git", return_value="head"),
             patch.object(refresh, "read_optional", side_effect=read_optional),
+            patch.object(refresh.Catalog, "load", return_value=catalog),
+            patch.object(refresh.drift, "load_manifest", return_value=({}, {})),
+            patch.object(refresh.drift, "discover_watches"),
+            patch.object(
+                refresh.drift, "embedded_inventory", return_value={"coverage": {}}
+            ),
+            patch.object(refresh.drift, "observe_embedded_heads"),
+            patch.object(refresh, "Assessor", FakeAssessor),
             patch.object(refresh, "ensure_labels"),
             patch.object(refresh, "foreign_open_prs", return_value={}),
             patch.object(refresh, "sharing_groups", return_value={}),
             patch.object(refresh, "recipe_footprint", return_value=(set(), [])),
-            patch.object(refresh, "publish_mechanical", side_effect=publish),
             patch.object(refresh, "close_current_issues"),
             patch.object(refresh, "close_stale_refresh_prs"),
             patch.object(
@@ -2194,11 +2208,72 @@ class PerRecipeFaultTests(unittest.TestCase):
                 "write_summary",
                 side_effect=lambda summary, *_rest: written.append(summary),
             ),
+            patch("traceback.print_exc"),
         ):
-            self.assertEqual(refresh.command_run(arguments), 1)
-        self.assertEqual(published, ["b"])
+            for name, fn in patches.items():
+                stack.enter_context(patch.object(refresh, name, side_effect=fn))
+            code = refresh.command_run(arguments)
         (summary,) = written
+        return code, summary
+
+    def test_an_error_in_a_recipe_step_does_not_starve_the_next(self) -> None:
+        published: list[str] = []
+
+        def publish(_root, assessment, _summary):
+            if assessment.recipe_id == "a":
+                raise ValueError("Expecting value: line 1 column 1 (char 0)")
+            published.append(assessment.recipe_id)
+            return 7
+
+        code, summary = self.run_refresh(
+            {"a": self.drifted("a"), "b": self.drifted("b")},
+            publish_mechanical=publish,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(published, ["b"])
         self.assertEqual(len(summary.failures), 1)
+        self.assertTrue(
+            summary.failures[0].startswith("a: ValueError: Expecting value")
+        )
+
+    def test_an_error_syncing_an_unreachable_recipe_does_not_starve_the_next(
+        self,
+    ) -> None:
+        published: list[str] = []
+
+        def sync(assessment, _summary, **_keywords):
+            raise ValueError("Expecting value: line 1 column 1 (char 0)")
+
+        def publish(_root, assessment, _summary):
+            published.append(assessment.recipe_id)
+            return 7
+
+        code, summary = self.run_refresh(
+            {
+                "a": refresh.Assessment("a", unreachable=["x not found"]),
+                "b": self.drifted("b"),
+            },
+            sync_issue=sync,
+            publish_mechanical=publish,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(published, ["b"])
+        self.assertTrue(summary.failures[0].startswith("a: ValueError:"))
+
+    def test_an_error_assessing_one_recipe_does_not_stop_the_others(self) -> None:
+        published: list[str] = []
+
+        def publish(_root, assessment, _summary):
+            published.append(assessment.recipe_id)
+            return 7
+
+        code, summary = self.run_refresh(
+            {"a": self.drifted("a"), "b": self.drifted("b")},
+            assess_fault="a",
+            publish_mechanical=publish,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(published, ["b"])
         self.assertTrue(
             summary.failures[0].startswith("a: ValueError: Expecting value")
         )
