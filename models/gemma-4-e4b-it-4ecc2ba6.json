@@ -73,13 +73,13 @@
       "size_bytes": 1689
     },
     {
-      "id": "tokenizer-cc8d3a0ce364-224931eb13",
+      "id": "tokenizer-91d9cf86906f-224931eb13",
       "path": "tokenizer.json",
       "roles": [
         "tokenizer"
       ],
-      "sha256": "cc8d3a0ce36466ccc1278bf987df5f71db1719b9ca6b4118264f45cb627bfe0f",
-      "size_bytes": 32169626
+      "sha256": "91d9cf86906f78e197021fda88214d448e5c120665d0243a8e776e046986c6bc",
+      "size_bytes": 32156428
     },
     {
       "id": "tokenizer-config-9f4fec4b1dc6-94d5c6ba8f",
@@ -105,9 +105,9 @@
       "slug": "gemma-4-e4b"
     },
     "publisher": "google",
-    "slug": "gemma-4-e4b-it-ee0ef602",
-    "variant": "IT ee0ef602",
-    "version": "IT ee0ef602"
+    "slug": "gemma-4-e4b-it-4ecc2ba6",
+    "variant": "IT 4ecc2ba6",
+    "version": "IT 4ecc2ba6"
   },
   "kind": "model",
   "license": {
@@ -125,6 +125,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/google/gemma-4-E4B-it",
-    "revision": "ee0ef6023621cff504d758262d4e04895a5af4a2"
+    "revision": "4ecc2ba63bcac23ba4a767fc87025b1450f84c9c"
   }
 }
