@@ -889,6 +889,11 @@ def classify_application_failure(
         exit_facts = None
     recipe_code = None
     if exit_facts is not None:
+        evidence = {
+            **(evidence or {}),
+            "exit_cause": str(exit_facts.exit_cause),
+            "exit_trigger": str(exit_facts.trigger) if exit_facts.trigger else None,
+        }
         if exit_facts.exit_cause in {
             WorkloadExitCause.BAD_ARGUMENTS,
             WorkloadExitCause.PYTHON_EXCEPTION,

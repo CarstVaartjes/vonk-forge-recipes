@@ -32,6 +32,7 @@ from typing import Any, Protocol
 from pydantic import ValidationError
 from vonk_forge_contracts import (
     QualificationBlame,
+    QualificationCauseCode,
     QualificationIdentity,
     QualificationStatus,
     QualificationStatusView,
@@ -45,6 +46,7 @@ from vonk_forge_contracts.sweep import (
     FleetOnlineState,
     InfrastructureIncident,
     ReviewInfrastructureSource,
+    SweepFailureClass,
     SweepSlotPhase,
     SweepStorageReview,
     SweepStorageWait,
@@ -125,6 +127,8 @@ INFRA_BASE = 30.0
 INFRA_CAP = 600.0
 # Ceiling of the growing re-plan delay after a wait receipt ended without a successor.
 ENDED_RECEIPT_REPLAN_CAP = 3600.0
+# Identical platform-exit failures of one content identity that end the retrying (a FAIL).
+IDENTICAL_EXIT_LIMIT = 3
 RETEST_SECONDS = 24 * 3600.0
 ENDPOINT_RECHECK_SECONDS = 20.0
 # A results row carries the Controller document it ended on, bounded.
@@ -1840,6 +1844,9 @@ class Sweep:
             )
             self.state.event(f"skipped {key}: {failure.describe()[:160]}")
             return
+        if outcome is Disposition.OBSERVE and recipe is not None:
+            failure = self._bound_identical_exit(entry, failure, recipe)
+            outcome = verdict.disposition(failure)
         entry["attempts"] = int(entry.get("attempts", 0)) + 1
         if outcome is Disposition.OBSERVE:
             entry.update(
@@ -1929,6 +1936,38 @@ class Sweep:
         )
         self.state.event(f"{status.upper()} {key}: {failure.phase}/{failure.klass}")
         self._reconcile_completed(key)
+
+    def _bound_identical_exit(
+        self, entry: dict[str, Any], failure: policy.Failure, recipe: Recipe
+    ) -> policy.Failure:
+        """The same content identity exiting the same way three times in a row is its verdict.
+
+        The run of identical parsed exit facts (cause, trigger) lives on the recipe's entry; another
+        cause, another outcome class or a changed content identity restarts the count.
+        """
+        cause = failure.evidence.get("exit_cause")
+        if failure.klass != SweepFailureClass.PLATFORM_EXIT or not cause:
+            # Only parsed exit facts are compared; free text (a long Controller prefix) is not.
+            entry.pop("exit_repeat", None)
+            return failure
+        key = {
+            "identity": content_identity(recipe).model_dump(mode="json"),
+            "exit_cause": cause,
+            "exit_trigger": failure.evidence.get("exit_trigger"),
+        }
+        seen = entry.get("exit_repeat") or {}
+        count = int(seen.get("count", 0)) + 1 if seen.get("key") == key else 1
+        if count < IDENTICAL_EXIT_LIMIT:
+            entry["exit_repeat"] = {"key": key, "count": count}
+            return failure
+        # The verdict is written: a retest starts at zero.
+        entry.pop("exit_repeat", None)
+        return policy.classify(
+            failure.phase,
+            QualificationCauseCode.RUNTIME_EXIT,
+            failure.detail,
+            evidence={**failure.evidence, "identical_exits": count},
+        )
 
     def _reconcile_completed(self, key: str) -> None:
         # Re-plan now: a one-shot sweep may exit before another catalog tick.
@@ -2063,6 +2102,7 @@ class Sweep:
         }
         entry.update(
             status="passed",
+            exit_repeat=None,
             attempts=int(entry.get("attempts", 0)) + 1,
             finished_at=now,
             release=self.release_sha,
