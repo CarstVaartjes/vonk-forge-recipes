@@ -25,6 +25,9 @@ RECIPES = (
     "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual",
     "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",
 )
+# Pinned-pool duals declare exactly their loading floor. The 405B dual runs the
+# creator's pool-less 0.9, whose vLLM budget envelope is an estimate above admission.
+POOLED = RECIPES[1:]
 
 
 def recipe_for(slug: str) -> RecipeDefinition:
@@ -33,7 +36,7 @@ def recipe_for(slug: str) -> RecipeDefinition:
     )
 
 
-@pytest.mark.parametrize("slug", RECIPES)
+@pytest.mark.parametrize("slug", POOLED)
 def test_capacity_profiles_declare_the_loading_floor(slug: str) -> None:
     recipe = recipe_for(slug)
     declare_peak(recipe)
@@ -54,7 +57,7 @@ def test_capacity_profiles_declare_the_loading_floor(slug: str) -> None:
         )
 
 
-@pytest.mark.parametrize("slug", RECIPES)
+@pytest.mark.parametrize("slug", POOLED)
 @pytest.mark.parametrize("rank", [0, 1])
 def test_guard_rejects_hidden_demand(slug: str, rank: int) -> None:
     recipe = recipe_for(slug)

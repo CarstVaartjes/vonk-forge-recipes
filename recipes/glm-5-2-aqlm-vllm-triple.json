@@ -1732,7 +1732,7 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 14152454784
+        "value": 11811160064
       },
       {
         "name": "max-model-len",
@@ -1797,7 +1797,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.854486"
+        "value": "0.895"
       }
     ],
     "engine": "vllm",
@@ -1935,7 +1935,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 230256
+      "value": 348160
     },
     "kind": "generation",
     "knobs": {},
