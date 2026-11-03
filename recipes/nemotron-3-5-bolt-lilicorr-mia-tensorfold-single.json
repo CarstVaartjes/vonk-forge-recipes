@@ -1300,11 +1300,11 @@
       "Ash Hart (TensorFold)",
       "NVIDIA"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark/tree/6f61d7727ae3fac010f30e240799cc884d295f6e"
+    "source_reference": "https://github.com/MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark/tree/6b064a31dd47e4f959e9041d6129eb2bad830481"
   },
   "release": {
-    "released_at": "2026-10-18",
-    "version": "1.0.12"
+    "released_at": "2026-11-03",
+    "version": "1.0.13"
   },
   "runtime": {
     "arguments": [
