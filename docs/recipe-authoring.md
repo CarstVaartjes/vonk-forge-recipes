@@ -752,11 +752,13 @@ When users can reasonably choose between ways to run the same weights, declare a
 
 **Deployment choices only.** An option must be a real deployment choice: it changes
 what is loaded or how the server runs (drafter, vision on or off, quantization or
-projection, context size when it changes memory, server flags a request cannot
-set). Anything a client chooses per API call (thinking or reasoning on or off,
-reasoning effort, sampling parameters such as temperature, chat template kwargs)
-is not an option; leave the engine's default in `runtime.arguments` and make sure
-requests can still override it.
+projection, context size when it changes memory, the chat-template file, server
+flags a request cannot set). Anything a client chooses per API call (thinking or
+reasoning on or off, reasoning effort, sampling parameters such as temperature,
+chat template kwargs) is not an option; leave the engine's default in
+`runtime.arguments` and make sure requests can still override it. The exception is
+a server default the engine build does not let a request override: say so in the
+option's `help`, so the choice is the only way to reach the other behaviour.
 
 **The default is the recipe as it runs today.** The recipe's own `runtime.arguments`
 and `runtime.environment` hold the upstream defaults, so the default choice
