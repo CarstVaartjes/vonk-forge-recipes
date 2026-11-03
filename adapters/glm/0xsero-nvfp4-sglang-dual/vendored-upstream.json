@@ -16,7 +16,8 @@
     "whole": false
   },
   "ours": [
-    "sglang-serve"
+    "sglang-serve",
+    "vonk-glm53-chat-template-mm.jinja"
   ],
   "source": {
     "commit": "dfb1bb7e45c20058d37df7a39cceda45a9d216a8",

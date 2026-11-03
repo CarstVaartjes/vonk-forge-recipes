@@ -1484,7 +1484,7 @@
   },
   "release": {
     "released_at": "2026-09-30",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -1616,7 +1616,7 @@
       {
         "name": "chat-template",
         "setting": null,
-        "value": "/opt/glm53/chat-template-mm.jinja"
+        "value": "/opt/vonk/glm53-chat-template-mm.jinja"
       },
       {
         "name": "reasoning-parser",
