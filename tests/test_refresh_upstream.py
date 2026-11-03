@@ -1200,21 +1200,20 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         ours=(),
         extra=None,
         engine=None,
-        declared=(),
-        environment=(),
+        name: str = "recipes/r.yaml",
     ):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
         adapter = root / "adapters/x"
-        (adapter / "recipes").mkdir(parents=True)
-        (adapter / "recipes/r.yaml").write_text(old_yaml)
+        (adapter / name).parent.mkdir(parents=True)
+        (adapter / name).write_text(old_yaml)
         (adapter / "vllm-wrapper.py").write_text("print('wrapper')\n")
         (adapter / "Dockerfile").write_text(
             "FROM example/engine@sha256:" + "a" * 64 + "\nENTRYPOINT []\n" + dockerfile
         )
-        for name, text in (extra or {}).items():
-            (adapter / name).write_text(text)
+        for extra_name, text in (extra or {}).items():
+            (adapter / extra_name).write_text(text)
         (adapter / "vendored-upstream.json").write_text(
             json.dumps(
                 {
@@ -1236,14 +1235,8 @@ class VendoredCreatorMoveTests(unittest.TestCase):
                 "arguments": [
                     {"name": "trust-remote-code", "setting": None, "value": True},
                     {"name": "served-model-name", "setting": None, "value": "m"},
-                    # The recipe already launches the value the creator moves to.
-                    {"name": "max-num-batched-tokens", "setting": None, "value": 4096},
-                    *declared,
                 ],
-                "environment": [
-                    {"name": "VLLM_MARLIN_USE_ATOMIC_ADD", "value": "1"},
-                    *environment,
-                ],
+                "environment": [{"name": "VLLM_MARLIN_USE_ATOMIC_ADD", "value": "1"}],
                 "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
             },
         }
@@ -1256,13 +1249,11 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             "github", "example/recipe", NEW, "2026-10-13", None, None, "u"
         )
         data = new_yaml.encode()
-        tree = refresh.vendored.Tree(
-            {"recipes/r.yaml": refresh.vendored.git_blob_sha(data)}, True
-        )
+        tree = refresh.vendored.Tree({name: refresh.vendored.git_blob_sha(data)}, True)
         for active in (
             patch(
                 "refresh_upstream.compare_commits",
-                return_value=comparison(files=("recipes/r.yaml",)),
+                return_value=comparison(files=(name,)),
             ),
             patch.object(refresh.vendored, "fetch_tree", return_value=tree),
             patch("refresh_upstream.upstream_blob", return_value=data),
@@ -1272,7 +1263,7 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         return assessor.assess("recipe")
 
     def test_a_moved_vllm_document_follows_the_budget_envelope(self) -> None:
-        new_yaml = OLD_YAML.replace("8192", "4096")
+        new_yaml = self.NOTE + OLD_YAML
         with (
             patch("refresh_upstream.RecipeDefinition"),
             patch("refresh_upstream.raise_role_peaks") as raised,
@@ -1323,95 +1314,107 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             "vLLM budget plus overhead",
         )
 
-    def test_verbatim_file_with_its_flags_intact_is_mechanical(self) -> None:
-        new_yaml = OLD_YAML.replace("8192", "4096")
+    NOTE = "# creator note\n\n"
+
+    def test_a_comment_only_change_is_mechanical(self) -> None:
+        new_yaml = self.NOTE + OLD_YAML.replace("\n  vllm", "  \n  vllm", 1)
         result = self.assess(new_yaml)
         self.assertTrue(result.mechanical, result.reasons)
         self.assertEqual(result.edits["adapters/x/recipes/r.yaml"], new_yaml.encode())
         self.assertIn(NEW, result.edits["adapters/x/vendored-upstream.json"].decode())
-        body = refresh.pr_body(result)
-        self.assertIn("-  max_num_batched_tokens: 8192", body)
-        self.assertIn("+  max_num_batched_tokens: 4096", body)
-        for checked in ("`--trust-remote-code`", "`VLLM_MARLIN_USE_ATOMIC_ADD`"):
-            self.assertIn(checked, body)
-        # A flag the creator's file never stated is not checked against it.
-        self.assertNotIn("`--served-model-name`", body)
+        self.assertIn("+# creator note", refresh.pr_body(result))
 
-    LAUNCH_YAML = """model: org/model
-defaults:
-  gpu_memory_utilization: 0.8
-env:
-  VLLM_MARLIN_USE_ATOMIC_ADD: 1
-command: |
-  vllm serve org/model \\
-    --trust-remote-code \\
-    --max-num-batched-tokens 4096 \\
-    --gpu-memory-utilization {gpu_memory_utilization}
-"""
-
-    def launch_case(self, new_yaml: str, **kwargs):
-        return self.assess(new_yaml, old_yaml=self.LAUNCH_YAML, **kwargs)
-
-    def test_a_changed_utilization_the_recipe_lacks_needs_review(self) -> None:
-        new_yaml = self.LAUNCH_YAML.replace("0.8", "0.9")
-        result = self.launch_case(
-            new_yaml,
-            declared=[
-                {"name": "gpu-memory-utilization", "setting": None, "value": "0.8"}
-            ],
-        )
-        self.assertFalse(result.mechanical)
-        self.assertIn("--gpu-memory-utilization", " ".join(result.reasons))
-        self.assertIn("0.8 -> 0.9", " ".join(result.reasons))
-        self.assertNotIn("adapters/x/recipes/r.yaml", result.edits)
-        self.assertIn("-  gpu_memory_utilization: 0.8", " ".join(result.evidence))
-        # Not declared at all: still the creator's launch value changing.
-        self.assertFalse(self.launch_case(new_yaml).mechanical)
-
-    def test_a_changed_utilization_the_recipe_already_declares_is_mechanical(
-        self,
-    ) -> None:
-        result = self.launch_case(
-            self.LAUNCH_YAML.replace("0.8", "0.9"),
-            declared=[
-                {"name": "gpu-memory-utilization", "setting": None, "value": "0.90"}
-            ],
-        )
-        self.assertTrue(result.mechanical, result.reasons)
-
-    def test_a_changed_model_line_needs_review(self) -> None:
-        new_yaml = self.LAUNCH_YAML.replace("org/model", "org/model-v2")
-        result = self.launch_case(new_yaml)
-        self.assertFalse(result.mechanical)
-        self.assertIn("`model`", " ".join(result.reasons))
+    def test_an_unchanged_vendored_file_moves_with_the_pin(self) -> None:
+        # The eugr group that moves the image and pin only (no yaml change): nothing a
+        # reviewer must judge, and the file itself is never rewritten.
+        result = self.assess(OLD_YAML)
+        self.assertEqual(result.reasons, [])
         self.assertNotIn("adapters/x/recipes/r.yaml", result.edits)
 
-    def test_changed_env_and_added_flags_need_review(self) -> None:
+    def test_any_other_change_to_a_vendored_creator_file_needs_review(self) -> None:
+        quoted = (
+            "model: org/m\ncontainer: vllm-node\ndefaults:\n  gpu_memory_utilization: 0.8\n"
+            'command: "vllm serve org/m --gpu-memory-utilization 0.8"\n'
+        )
+        inline = "mods: [mods/a]\nenv: {A: 1}\ncommand: x\n"
+        shell = "#!/bin/sh\nexec vllm serve m --max-model-len 4096\n"
+        env = "# profile\nGPU_MEMORY_UTILIZATION=0.8\nMODEL=org/m\n"
+        yaml = "container: vllm-node\nbuild_args:\n  - --exp-b12x\nsolo_only: true\n"
         cases = {
-            "env": self.LAUNCH_YAML.replace("ATOMIC_ADD: 1", "ATOMIC_ADD: 0"),
-            "flag": self.LAUNCH_YAML.replace(
-                "--trust-remote-code \\", "--trust-remote-code --enforce-eager \\"
+            "utilization": (
+                OLD_YAML,
+                OLD_YAML.replace("8192", "4096"),
+                "recipes/r.yaml",
             ),
+            "model line": (
+                "model: org/m\n" + OLD_YAML,
+                "model: org/n\n" + OLD_YAML,
+                "recipes/r.yaml",
+            ),
+            "quoted command": (quoted, quoted.replace("0.8", "0.9"), "recipes/r.yaml"),
+            "inline mods": (
+                inline,
+                inline.replace("mods/a", "mods/b"),
+                "recipes/r.yaml",
+            ),
+            "inline env": (inline, inline.replace("A: 1", "A: 2"), "recipes/r.yaml"),
+            "shell flag": (shell, shell.replace("4096", "8192"), "launch/serve.sh"),
+            "env file": (env, env.replace("0.8", "0.9"), "profiles/p.env"),
+            "container": (
+                yaml,
+                yaml.replace("vllm-node", "vllm-node-b12x"),
+                "recipes/r.yaml",
+            ),
+            "build args": (
+                yaml,
+                yaml.replace("--exp-b12x", "--other"),
+                "recipes/r.yaml",
+            ),
+            "solo only": (yaml, yaml.replace("true", "false"), "recipes/r.yaml"),
+            "shebang": (
+                shell,
+                shell.replace("/bin/sh", "/bin/bash"),
+                "launch/serve.sh",
+            ),
+            "inline comment": (
+                OLD_YAML,
+                OLD_YAML.replace("8192", "8192  # raised"),
+                "recipes/r.yaml",
+            ),
+            "unknown format": ("a b\n", "a  b\n", "launch/run.cfgx"),
+            "json": ('{"a": 1}', '{"a": 1} ', "launch/profile.json"),
         }
-        for name, new_yaml in cases.items():
-            with self.subTest(name=name):
-                result = self.launch_case(new_yaml)
+        for label, (old, new, name) in cases.items():
+            with self.subTest(label):
+                result = self.assess(new, old_yaml=old, name=name)
                 self.assertFalse(result.mechanical)
+                self.assertIn(
+                    "beyond comments and whitespace", " ".join(result.reasons)
+                )
+                self.assertNotIn(f"adapters/x/{name}", result.edits)
+                self.assertIn(f"b/{name}", " ".join(result.evidence))
 
-    def test_a_description_only_change_stays_mechanical(self) -> None:
-        result = self.launch_case("# creator note\n" + self.LAUNCH_YAML)
-        self.assertTrue(result.mechanical, result.reasons)
-
-    def test_launch_facts_substitute_defaults_and_ignore_placement(self) -> None:
-        facts = refresh.launch_facts(self.LAUNCH_YAML)
-        self.assertEqual(facts["--gpu-memory-utilization"], "0.8")
-        self.assertEqual(facts["--trust-remote-code"], "true")
-        self.assertEqual(facts["command"], "vllm serve org/model")
-        self.assertEqual(facts["env:VLLM_MARLIN_USE_ATOMIC_ADD"], "1")
-        self.assertIsNone(refresh.launch_facts("just: data\n"))
+    def test_comments_blank_lines_and_trailing_space_are_not_changes(self) -> None:
+        shell = "#!/bin/sh\nexec vllm serve m\n"
+        for local, old, new in (
+            ("a.sh", shell, shell.replace("\nexec", "\n# why\n\nexec") + "  \n"),
+            ("a.env", "A=1\n", "# note\nA=1   \n\n"),
+            ("a.yaml", "a:\n  b: 1\n", "a:\n  # c\n  b: 1\n"),
+        ):
+            self.assertFalse(
+                refresh.meaningful_change(local, old.encode(), new.encode()), local
+            )
+        for local, old, new in (
+            ("a.yaml", "a:\n  b: 1\n", "a:\n    b: 1\n"),  # indentation is syntax
+            ("a.json", "{}", "{} "),
+            ("Dockerfile", "FROM x\n", "# c\nFROM x\n"),
+        ):
+            self.assertTrue(
+                refresh.meaningful_change(local, old.encode(), new.encode()), local
+            )
 
     def test_a_patched_or_edited_file_stays_a_review(self) -> None:
-        new_yaml = OLD_YAML.replace("8192", "4096")
+        new_yaml = self.NOTE + OLD_YAML
         cases = {
             "sed": {"dockerfile": "RUN sed -i 's/a/b/' \\\n    /app/recipes/r.yaml\n"},
             "patch": {
@@ -1430,17 +1433,10 @@ command: |
 
     def test_running_the_file_is_not_editing_it(self) -> None:
         result = self.assess(
-            OLD_YAML.replace("8192", "4096"),
+            self.NOTE + OLD_YAML,
             dockerfile="RUN cd /app && bash ./recipes/r.yaml 2>/dev/null\n",
         )
         self.assertTrue(result.mechanical, result.reasons)
-
-    def test_a_referenced_flag_gone_upstream_stays_a_review_naming_it(self) -> None:
-        result = self.assess(OLD_YAML.replace("    --trust-remote-code \\\n", ""))
-        self.assertFalse(result.mechanical)
-        reasons = " ".join(result.reasons)
-        self.assertIn("`--trust-remote-code`", reasons)
-        self.assertIn("no longer has", reasons)
 
 
 class ModelReExportTests(unittest.TestCase):
@@ -2887,37 +2883,3 @@ class RewrittenHistoryTests(unittest.TestCase):
             "u", 404, "Not Found", Message(), io.BytesIO(b"<html>")
         )
         self.assertEqual(refresh._error_message(error), "")
-
-
-class GroupMemberIssueTests(unittest.TestCase):
-    def prepared(self, recipe_id: str):
-        item = refresh.Item(
-            "source",
-            "github",
-            "o/r",
-            OLD,
-            refresh.Target("github", "o/r", NEW, "d", None, None, "u"),
-        )
-        return refresh.Assessment(recipe_id, items=[item])
-
-    def test_a_group_that_did_not_land_explains_itself_to_every_member(self) -> None:
-        lead, single = self.prepared("dual"), self.prepared("single")
-        lead.pull_request = 7
-        assessed = {"dual": lead, "single": single}
-        self.assertTrue(single.mechanical)
-        refresh.explain_members(lead, ["dual", "single"], assessed, ["checks failed"])
-        # Its own turn now syncs an issue instead of skipping a prepared member.
-        self.assertFalse(single.prepared)
-        self.assertTrue(single.reasons)
-        self.assertIn("`dual`", single.reasons[0])
-        self.assertIn("#7", single.reasons[0])
-        self.assertIn("checks failed", single.reasons[0])
-        self.assertEqual(lead.reasons, [])  # the lead reports for itself
-
-    def test_members_with_reasons_of_their_own_are_left_alone(self) -> None:
-        lead, other = self.prepared("dual"), self.prepared("single")
-        other.reasons.append("its own reason")
-        refresh.explain_members(
-            lead, ["dual", "single"], {"dual": lead, "single": other}, ["x"]
-        )
-        self.assertEqual(other.reasons, ["its own reason"])

@@ -106,18 +106,21 @@ def test_extensionless_entry_points_stay_inside_every_gate() -> None:
 
 
 def test_producer_test_environment_has_one_owner() -> None:
-    """Every workflow that runs the producer suite installs the shared file.
+    """No workflow pins a producer test dependency itself.
 
-    The refresh workflow once installed its own shorter list, so the full-suite
-    step died at collection on `import PIL` for every refresh.
+    The refresh workflow once installed its own shorter list, so the full-suite step
+    died at collection on `import PIL` for every refresh. The one list lives in
+    `.github/requirements-producer-tests.txt`; a workflow installs it with `-r`.
     """
 
     shared = ROOT / ".github" / "requirements-producer-tests.txt"
     requirements = shared.read_text(encoding="utf-8")
     for package in ("Pillow", "numpy", "trimesh", "jsonschema", "pytest"):
         assert package in requirements
-    for name in ("validate.yml", "refresh-upstream.yml"):
+    for path in WORKFLOWS:
+        text = path.read_text(encoding="utf-8")
+        for copied in ("pytest==", "jsonschema>=", "Pillow==", "trimesh==", "numpy=="):
+            assert copied not in text, f"{path.name} pins {copied} instead of the file"
+    for name in ("validate.yml", "refresh-upstream.yml", "publish.yml"):
         text = (ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8")
         assert "-r .github/requirements-producer-tests.txt" in text, name
-        for copied in ("Pillow==", "trimesh==", "numpy=="):
-            assert copied not in text, f"{name} copies {copied} instead of the file"

@@ -985,6 +985,9 @@ class Assessment:
     items: list[Item] = field(default_factory=list)
     unreachable: list[str] = field(default_factory=list)
     reasons: list[str] = field(default_factory=list)
+    # Why a prepared move waits with its build-context group (shown in the issue, never a
+    # reason: it leaves prepared/mechanical, and so the group's open pull request, alone).
+    group_outcome: list[str] = field(default_factory=list)
     evidence: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)  # newer release lines: never a move
     # Why a prepared move still needs a person (an image whose build commit GitHub does
@@ -1796,12 +1799,10 @@ def patch_targets(adapter: Path) -> set[str]:
     return targets
 
 
-# A creator's own vendored file that changed upstream is followed mechanically when the
-# adapter carries it verbatim and nothing the recipe references in it disappeared; the
-# sweep proves on hardware that the recipe still runs.
+# A creator's own vendored file that changed upstream is followed mechanically only when
+# the adapter carries it verbatim and the change is comments or whitespace; any other
+# change to what a creator launches is a review.
 EDIT_COMMAND = re.compile(r"\b(sed|perl|awk|patch)\b|\bgit\s+apply\b")
-DOCKERFILE_ENV = re.compile(r"\b([A-Z][A-Z0-9_]*)=")
-DOCKERFILE_ENTRY = re.compile(r"^\s*(?:ENTRYPOINT|CMD)\s+(.*)$", re.IGNORECASE)
 
 
 def mentions(text: str, token: str) -> bool:
@@ -1809,171 +1810,42 @@ def mentions(text: str, token: str) -> bool:
     return re.search(rf"(?<![\w-]){re.escape(token)}(?![\w-])", text) is not None
 
 
-def recipe_references(recipe: dict[str, Any], directory: Path) -> set[str]:
-    """Every flag, env var and entrypoint name the recipe and its adapter rely on.
+COMMENT_SUFFIXES = {
+    ".yaml",
+    ".yml",
+    ".sh",
+    ".bash",
+    ".env",
+    ".py",
+    ".toml",
+    ".ini",
+    ".cfg",
+}
 
-    Launch flags (``--name`` of the runtime arguments and of every option choice), env
-    var names (the recipe's and those the Dockerfile sets), entrypoint words (the
-    recipe's and the Dockerfile's ENTRYPOINT/CMD) and the file names of path-valued
-    arguments (a chat template a mod writes).
+
+def meaningful_change(local: str, old: bytes, new: bytes) -> bool:
+    """Whether a vendored creator file changed in more than comments and whitespace.
+
+    Any difference is meaningful unless the format is known to take full-line ``#``
+    comments (yaml, shell, env, python, toml, ini): there, whole-line comments, blank
+    lines and trailing whitespace are ignored. A shebang, an inline comment, a docstring
+    and every unknown format count as a change, so what a creator's file launches is
+    never judged by parsing it.
     """
-    runtime = recipe.get("runtime", {})
-    arguments = list(runtime.get("arguments", []))
-    for option in recipe.get("options", []):
-        for choice in option.get("choices", []):
-            arguments += choice.get("args", [])
-    tokens = {f"--{argument['name']}" for argument in arguments}
-    tokens |= {entry["name"] for entry in runtime.get("environment", [])}
-    words = [str(word) for word in runtime.get("entrypoint", [])]
-    words += [
-        argument["value"]
-        for argument in arguments
-        if isinstance(argument.get("value"), str) and argument["value"].startswith("/")
-    ]
-    dockerfile = directory / "Dockerfile"
-    if dockerfile.is_file():
-        for line in dockerfile.read_text(encoding="utf-8").splitlines():
-            if line.lstrip().startswith("#"):
-                continue
-            tokens |= set(DOCKERFILE_ENV.findall(line))
-            entry = DOCKERFILE_ENTRY.match(line)
-            if entry:
-                words += re.findall(r"[\w./-]+", entry.group(1))
-    tokens |= {PurePosixPath(word).name for word in words}
-    return {token for token in tokens if token}
-
-
-# What a creator's recipe file launches. ``recipe_references`` only proves that names the
-# recipe uses still exist; a changed value (utilization, a flag, an env var, the model)
-# launches something else, so the recipe JSON must already say the same.
-FLAG_ALIASES = {"tp": "tensor-parallel-size", "dp": "data-parallel-size"}
-LAUNCH_IGNORED_FLAGS = {"host", "port"}
-PLACEHOLDER = re.compile(r"\{(\w+)\}")
-
-
-def _yaml_block(text: str, key: str) -> dict[str, str]:
-    """``key:`` followed by indented ``name: value`` lines of a creator's recipe file."""
-    values: dict[str, str] = {}
-    inside = False
-    for line in text.splitlines():
-        if re.match(rf"{key}:\s*(#.*)?$", line):
-            inside = True
-        elif inside and line.startswith((" ", "\t")):
-            match = re.match(r"\s+([\w.-]+)\s*:\s*(.*?)\s*(?:#.*)?$", line)
-            if match:
-                values[match.group(1)] = match.group(2).strip("'\"")
-        elif inside and line.strip() and not line.lstrip().startswith("#"):
-            inside = False
-    return values
-
-
-def launch_facts(text: str) -> dict[str, str] | None:
-    """The launch-relevant facts of a creator's recipe file; None when it is no such file.
-
-    Keys: ``model``, ``mods``, ``command`` (the words before the first flag), ``--flag``
-    (its value, ``true`` for a bare flag, defaults substituted) and ``env:NAME``. Host and
-    port are placement, not launch behaviour.
-    """
-    command = re.search(
-        r"^command:\s*[|>][-+]?\s*\n((?:[ \t]+.*\n?|\n)+)", text, re.MULTILINE
-    )
-    if command is None:
-        return None
-    defaults = _yaml_block(text, "defaults")
-    facts: dict[str, str] = {}
-    model = re.search(r"^model:\s*(\S+)", text, re.MULTILINE)
-    if model:
-        facts["model"] = model.group(1).strip("'\"")
-    mods = re.findall(r"^\s+-\s+(mods/\S+)", text, re.MULTILINE)
-    if mods:
-        facts["mods"] = " ".join(mods)
-    for name, value in _yaml_block(text, "env").items():
-        facts[f"env:{name}"] = value
-    words = PLACEHOLDER.sub(
-        lambda m: defaults.get(m.group(1), m.group(0)),
-        command.group(1).replace("\\\n", " "),
-    ).split()
-    index = 0
-    prefix: list[str] = []
-    while index < len(words) and not words[index].startswith("-"):
-        prefix.append(words[index])
-        index += 1
-    facts["command"] = " ".join(prefix)
-    while index < len(words):
-        name, equals, value = words[index].lstrip("-").partition("=")
-        index += 1
-        if not equals:
-            if index < len(words) and not words[index].startswith("-"):
-                value = words[index]
-                index += 1
-            else:
-                value = "true"
-        name = FLAG_ALIASES.get(name, name).replace("_", "-")
-        if name not in LAUNCH_IGNORED_FLAGS:
-            facts[f"--{name}"] = value
-    return facts
-
-
-def _declared_launch_value(recipe: dict[str, Any], key: str) -> str | None:
-    """What the recipe launches for a fact key; None when it does not state it."""
-    runtime = recipe.get("runtime", {})
-    if key.startswith("env:"):
-        for entry in runtime.get("environment", []):
-            if entry.get("name") == key[4:]:
-                return str(entry.get("value"))
-        return None
-    if not key.startswith("--"):
-        return None  # the model, mods and command words are not runtime arguments
-    arguments = list(runtime.get("arguments", []))
-    for option in recipe.get("options", []):
-        for choice in option.get("choices", []):
-            arguments += choice.get("args", [])
-    for argument in arguments:
-        if argument.get("name", "").replace("_", "-") != key[2:]:
-            continue
-        value = argument.get("value")
-        if argument.get("setting"):
-            value = recipe.get("settings", {}).get(argument["setting"], {}).get("value")
-        return "true" if value is True else str(value)
-    return None
-
-
-def _same_value(left: str, right: str) -> bool:
-    if left == right:
-        return True
-    try:
-        return float(left) == float(right)
-    except ValueError:
+    if old == new:
         return False
+    if PurePosixPath(local).suffix.lower() not in COMMENT_SUFFIXES:
+        return True
 
+    def code(data: bytes) -> list[str]:
+        lines = (line.rstrip() for line in data.decode("utf-8", "replace").splitlines())
+        return [
+            line
+            for line in lines
+            if line and (line.startswith("#!") or not line.lstrip().startswith("#"))
+        ]
 
-def launch_changes(old: str, new: str, recipe: dict[str, Any]) -> list[str]:
-    """Launch values the creator changed that the recipe does not already declare.
-
-    Empty when the files are no creator recipe files, nothing launch-relevant changed, or
-    the recipe JSON (what actually launches) already states every new value. A refresh
-    must never move the image while the recipe keeps the old weights or settings.
-    """
-    before, after = launch_facts(old), launch_facts(new)
-    if before is None or after is None:
-        return []
-    changes: list[str] = []
-    for key in sorted(before.keys() | after.keys()):
-        old_value, new_value = before.get(key), after.get(key)
-        if old_value == new_value:
-            continue
-        declared = _declared_launch_value(recipe, key)
-        if new_value is None:
-            if declared is None:
-                continue
-        elif declared is not None and _same_value(declared, new_value):
-            continue
-        changes.append(
-            f"`{key}`: {old_value if old_value is not None else '(absent)'} -> "
-            f"{new_value if new_value is not None else '(removed)'}"
-            + (f" (the recipe declares {declared})" if declared is not None else "")
-        )
-    return changes
+    return code(old) != code(new)
 
 
 def edited_locally(
@@ -2608,7 +2480,6 @@ class Assessor:
                     why = self._follow_vendored(
                         pin,
                         item,
-                        recipe,
                         local,
                         upstream,
                         tree.blobs[upstream],
@@ -2775,7 +2646,6 @@ class Assessor:
         self,
         pin: AdapterPin,
         item: Item,
-        recipe: dict[str, Any],
         local: str,
         upstream: str,
         blob: str,
@@ -2785,68 +2655,47 @@ class Assessor:
     ) -> str | None:
         """Carry the creator's new version of a vendored file; why not, when it cannot be.
 
-        Mechanical when the adapter vendors the file verbatim (no patch, overlay or sed
-        over it) and every flag, env var and entrypoint name the recipe references that
-        the old file states is still in the new one. The diff and the names checked go
-        into the evidence.
+        Mechanical only when the adapter vendors the file verbatim (no patch, overlay or
+        sed over it) and the creator changed nothing but comments and whitespace. Any
+        other change, in any format, is a review: a launch value, flag, environment or
+        model the recipe does not state must never ride along with a new image. The
+        diff goes into the evidence either way.
         """
         edited = edited_locally(pin.directory, local, upstream, patched)
         if edited is not None:
             return f"not vendored verbatim: {edited}"
         path = pin.directory / local
-        old = path.read_text(encoding="utf-8", errors="replace")
+        old = path.read_bytes()
         data = upstream_blob(self.http, item.repo, blob)
-        new = data.decode("utf-8", errors="replace")
-        checked = sorted(
-            token
-            for token in recipe_references(recipe, pin.directory)
-            if mentions(old, token)
-        )
-        missing = [token for token in checked if not mentions(new, token)]
-        if missing:
-            return (
-                "the recipe references "
-                + ", ".join(f"`{token}`" for token in missing)
-                + f", which upstream `{upstream}` no longer has"
-            )
         diff = "".join(
             difflib.unified_diff(
-                old.splitlines(keepends=True),
-                new.splitlines(keepends=True),
+                old.decode("utf-8", "replace").splitlines(keepends=True),
+                data.decode("utf-8", "replace").splitlines(keepends=True),
                 f"a/{upstream}",
                 f"b/{upstream}",
             )
         )
-        launch = launch_changes(old, new, recipe)
-        if launch:
-            result.evidence.append(
-                f"### Vendored `{local}`: the creator changed what it launches\n\n"
-                "The recipe does not declare these values, so moving the image alone "
-                "would keep the old weights or settings on the new build:\n\n"
-                + "\n".join(f"- {change}" for change in launch)
-                + "\n\n"
-                + fence(clip(diff, 4000), "diff")
-                + "\n"
-            )
-            return (
-                f"the creator's `{upstream}` changes what it launches that the recipe "
-                "does not declare: " + "; ".join(launch)
-            )
+        changed = meaningful_change(local, old, data)
         result.evidence.append(
-            f"### Vendored `{local}` follows its creator\n\n"
-            f"`{upstream}` changed upstream ({item.repo} `{item.current[:12]}` -> "
-            f"`{item.target.sha[:12]}`). The adapter carries it verbatim (no patch, "
-            "overlay or sed over it); the recipe references "
+            f"### Vendored `{local}` "
             + (
-                ", ".join(f"`{token}`" for token in checked)
-                + " in it, all still present"
-                if checked
-                else "no flag, env var or entrypoint name in it"
+                "changed beyond comments and whitespace"
+                if changed
+                else "follows its creator"
             )
-            + ". The sweep proves the recipe runs.\n\n"
+            + f"\n\n`{upstream}` changed upstream ({item.repo} `{item.current[:12]}` -> "
+            f"`{item.target.sha[:12]}`)."
+            + (
+                " A reviewer judges what it now launches."
+                if changed
+                else " Only comments or whitespace differ; the adapter carries it verbatim."
+            )
+            + "\n\n"
             + fence(clip(diff, 4000), "diff")
             + "\n"
         )
+        if changed:
+            return f"the creator's `{upstream}` changed beyond comments and whitespace"
         edits[path.relative_to(self.catalog.root).as_posix()] = data
         return None
 
@@ -3502,7 +3351,10 @@ def issue_body(assessment: Assessment, previous: str | None = None) -> str:
         "",
         *[
             f"- {reason}"
-            for reason in assessment.unreachable + assessment.reasons + assessment.held
+            for reason in assessment.unreachable
+            + assessment.reasons
+            + assessment.held
+            + assessment.group_outcome
         ],
         "",
         *[f"> {note}\n" for note in assessment.notes],
@@ -4001,29 +3853,23 @@ def publish_group(
 
 
 def explain_members(
-    lead: Assessment,
-    members: list[str],
-    assessed: dict[str, Assessment],
-    why: list[str],
+    members: list[str], assessed: dict[str, Assessment], why: list[str]
 ) -> None:
-    """Give every prepared member the outcome of a group that did not land.
+    """Show every prepared member of a group that did not land why it waits.
 
     The group is refreshed together or not at all, so a member (a single sharing its
-    dual's build context) has no pull request of its own. Its reasons say why and its
-    pull request links the lead's, so its own turn syncs an issue that shows the
-    outcome instead of keeping a stale body.
+    dual's build context) has no pull request of its own and its issue would keep a
+    stale body. The outcome rides in ``group_outcome`` for the issue to render; the
+    member stays prepared, so the group's pull request is not judged stale by it.
     """
     for member in members:
         part = assessed.get(member)
-        if member == lead.recipe_id or part is None or not part.prepared:
-            continue  # the lead syncs itself; others have reasons of their own
-        part.pull_request = lead.pull_request
-        part.reasons.extend(
-            f"refreshed together with `{lead.recipe_id}`"
-            + (f" (#{lead.pull_request})" if lead.pull_request else "")
-            + f" or not at all: {text}"
-            for text in why
-        )
+        if part is None or not part.prepared:
+            continue  # members with reasons of their own report those
+        others = ", ".join(f"`{m}`" for m in members if m != member)
+        part.group_outcome = [
+            f"refreshed together with {others} or not at all: {text}" for text in why
+        ]
 
 
 def supersede_member_prs(
@@ -4199,8 +4045,8 @@ def sync_issue(assessment: Assessment, summary: Summary, create: bool = True) ->
         lambda previous: issue_body(assessment, previous),
         create=create,
     )
-    if assessment.reasons:
-        summary.review.append(f"{assessment.recipe_id}: {assessment.reasons[0][:140]}")
+    if shown := assessment.reasons or assessment.group_outcome:
+        summary.review.append(f"{assessment.recipe_id}: {shown[0][:140]}")
 
 
 def command_memory_estimate_issue(report: Path) -> int:
@@ -4646,8 +4492,9 @@ def command_run(arguments: argparse.Namespace) -> int:
                         published.add(result.recipe_id)
                         handled.add(result.recipe_id)
                 elif result.recipe_id in grouped:
-                    if result.held:  # its own issue says where the move is
-                        result.pull_request = prepared_prs.get(result.recipe_id)
+                    if result.held or result.group_outcome:  # its own issue says why
+                        if result.held:
+                            result.pull_request = prepared_prs.get(result.recipe_id)
                         review_ids.add(result.recipe_id)
                         sync_issue(result, summary)
                     continue
@@ -4663,10 +4510,7 @@ def command_run(arguments: argparse.Namespace) -> int:
                         combined = f"{', '.join(held)} has an open pull request"
                     if isinstance(combined, str):
                         review_ids.add(result.recipe_id)
-                        result.reasons.append(
-                            f"refreshed together or not at all: {combined}"
-                        )
-                        explain_members(result, members, assessed, [combined])
+                        explain_members(members, assessed, [combined])
                         summary.deferred.append(
                             f"{result.recipe_id}: refreshed together with "
                             f"{', '.join(m for m in members if m != result.recipe_id)} "
@@ -4682,17 +4526,13 @@ def command_run(arguments: argparse.Namespace) -> int:
                                 members, combined.recipe_id, number, summary
                             )
                         else:
-                            if not result.reasons:
-                                result.reasons.append(
-                                    "its group pull request was not published"
-                                )
                             explain_members(
-                                result,
                                 members,
                                 assessed,
-                                combined.reasons or result.reasons,
+                                combined.reasons
+                                or ["its group pull request was not published"],
                             )
-            if result.reasons or result.held:
+            if result.reasons or result.held or result.group_outcome:
                 review_ids.add(result.recipe_id)
                 sync_issue(result, summary)
         except (RuntimeError, OSError, KeyError) as error:
