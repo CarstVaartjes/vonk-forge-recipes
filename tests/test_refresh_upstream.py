@@ -1269,7 +1269,7 @@ class VendoredCreatorMoveTests(unittest.TestCase):
     def test_real_proven_dual_is_raised_and_then_passes_the_touched_check(self) -> None:
         import documents
         from catalog_documents import catalog_models
-        from vonk_forge_contracts import RecipeDefinition
+        from vonk_forge_contracts import RecipeDefinition, document_sha256
         from warning_asserts import assert_not_warns, assert_warns
 
         from qualification.memory_need import load_inputs, memory_estimate_warnings
@@ -1286,11 +1286,13 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             ),
             "vLLM budget plus overhead",
         )
-        smaller = before.model_copy(deep=True)
-        for item in smaller.runtime.arguments:
-            if item.name == "gpu-memory-utilization":
-                item.value = "0.50"
-        refresh.raise_role_peaks(payload["topology"]["roles"], before, smaller)
+        previous = documents.recipe(slug)
+        refresh.raise_role_peaks(
+            payload["topology"]["roles"],
+            before,
+            previous,
+            document_sha256(previous.model_dump(mode="json")),
+        )
         after = RecipeDefinition.model_validate(payload)
         self.assertEqual(
             {r.resources.memory.peak_bytes for r in after.topology.roles},

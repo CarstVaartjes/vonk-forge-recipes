@@ -1279,6 +1279,8 @@ def memory_estimate_warnings(
     *,
     document_digest: str,
     touched: bool = False,
+    previous: RecipeDefinition | None = None,
+    previous_digest: str = "",
 ) -> list[str]:
     """Where the declared memory disagrees with the estimate; none of it blocks.
 
@@ -1315,11 +1317,20 @@ def memory_estimate_warnings(
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return warnings
     single = recipe.topology.node_count == 1
+    keep = keeps_measured_peaks(recipe, previous, previous_digest)
     for variant in memory_variants(recipe):
         warnings += estimate_problems(
             key,
             lambda variant=variant: variant_estimate_warnings(
-                variant, recipe, models, inputs, key, document_digest, touched, single
+                variant,
+                recipe,
+                models,
+                inputs,
+                key,
+                document_digest,
+                touched,
+                single,
+                keep,
             ),
         )
     return warnings
@@ -1334,6 +1345,7 @@ def variant_estimate_warnings(
     document_digest: str,
     touched: bool,
     single: bool,
+    keep: bool = False,
 ) -> list[str]:
     need = per_rank_need(variant, models, inputs)
     # Proven single-Spark documents run below the multi-Spark SGLang
@@ -1343,7 +1355,9 @@ def variant_estimate_warnings(
     vllm = variant.runtime.engine == "vllm"
     envelope = (
         None
-        if not single or envelope_exception(recipe.identity.slug, document_digest)
+        if not single
+        or envelope_exception(recipe.identity.slug, document_digest)
+        or (keep and vllm)
         else declarable_vllm_envelope(variant)
         if vllm
         else min(
@@ -1369,7 +1383,8 @@ def variant_estimate_warnings(
         + [
             f"{role.name}: peak understates vLLM budget plus overhead {multi}"
             for role in variant.topology.roles
-            if (multi := declarable_vllm_envelope(variant)) is not None
+            if not keep
+            and (multi := declarable_vllm_envelope(variant)) is not None
             and role.resources.memory.peak_bytes < multi
         ]
     )
@@ -1420,19 +1435,42 @@ def recipe_envelope(recipe: RecipeDefinition) -> int:
     )
 
 
+def keeps_measured_peaks(
+    recipe: RecipeDefinition,
+    previous: RecipeDefinition | None,
+    previous_digest: str,
+) -> bool:
+    """Whether a moved document keeps its declared peaks: measured and not out-grown.
+
+    The one rule for the raise and for the "peak understates" warning: the
+    pre-move content (``previous``, authored digest ``previous_digest``) has hardware
+    evidence AND the move did not raise the budget. Unmeasured estimates heal.
+    """
+    return (
+        previous is not None
+        and bool(previous_digest)
+        and recipe_envelope(recipe) <= recipe_envelope(previous)
+        and hardware_proven(previous, previous_digest)
+    )
+
+
 def raise_peaks_to_envelope(
-    recipe: RecipeDefinition, previous: RecipeDefinition | None = None
+    recipe: RecipeDefinition,
+    previous: RecipeDefinition | None = None,
+    previous_digest: str = "",
 ) -> RecipeDefinition | None:
     """The recipe with role peaks raised to its vLLM budget envelope, None if none is.
 
     A document that moves (``tools/refresh-upstream``) is new content and meets the
     current margins; raising here keeps a refresh from blocking. Peaks are never
     lowered, and a declared load peak keeps its rise above the peak. The envelope
-    is capped at the admission maximum. Given the pre-move recipe, a move that did
-    not raise the budget keeps the declared (measured) peaks.
+    is capped at the admission maximum. A move whose pre-move content is
+    hardware-measured and did not raise the budget keeps its declared peaks
+    (``keeps_measured_peaks``); every other move, including a measured one that
+    raises the budget, is raised to the capped envelope.
     """
     envelope = recipe_envelope(recipe)
-    if previous is not None and envelope <= recipe_envelope(previous):
+    if keeps_measured_peaks(recipe, previous, previous_digest):
         return None
     if all(r.resources.memory.peak_bytes >= envelope for r in recipe.topology.roles):
         return None
