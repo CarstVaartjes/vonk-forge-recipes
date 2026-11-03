@@ -2,15 +2,22 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "9d39df6d1526ede3d0afb983d122643284ae4a92f50c07ee544c47e2b7befa1e",
-        "repository": "ghcr.io/miaai-lab/nemotron-3.5-bolt-tensorfold-dgx-spark"
+        "digest": "7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3",
+        "repository": "nvcr.io/nvidia/pytorch"
       },
       "context": {
         "path": "adapters/nemotron/mia-bolt-tensorfold-single"
       },
       "dockerfile": "adapters/nemotron/mia-bolt-tensorfold-single/Dockerfile",
       "network": {
-        "hosts": []
+        "hosts": [
+          "ziglang.org",
+          "ffmpeg.org",
+          "github.com",
+          "codeload.github.com",
+          "objects.githubusercontent.com",
+          "release-assets.githubusercontent.com"
+        ]
       },
       "patches": []
     }
@@ -1303,7 +1310,7 @@
     "source_reference": "https://github.com/MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark/tree/6b064a31dd47e4f959e9041d6129eb2bad830481"
   },
   "release": {
-    "released_at": "2026-11-03",
+    "released_at": "2026-11-01",
     "version": "1.0.13"
   },
   "runtime": {
@@ -1401,6 +1408,18 @@
       {
         "name": "BOLT_KV_PIN",
         "value": "0"
+      },
+      {
+        "name": "BOLT_SSM_LAZY",
+        "value": "1"
+      },
+      {
+        "name": "BOLT_DRAFT_Q8",
+        "value": "1"
+      },
+      {
+        "name": "BOLT_NV4_FP4",
+        "value": "1"
       }
     ],
     "lifecycle": {

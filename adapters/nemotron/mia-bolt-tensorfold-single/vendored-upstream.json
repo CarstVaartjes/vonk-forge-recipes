@@ -1,35 +1,28 @@
 {
-  "source": {
-    "repo": "MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark",
-    "commit": "6b064a31dd47e4f959e9041d6129eb2bad830481"
-  },
   "kit": {
     "dependencies": {
-      "image": {
-        "datasource": "oci-image",
-        "file": "scripts/config.sh",
-        "pattern": "^TF_REF=\"\\$\\{TF_REF:-(?P<version>[0-9a-f]{40})\\}\"",
-        "repo_pattern": "^GHCR_IMAGE=\"\\$\\{GHCR_IMAGE:-(?P<repo>[^}\"]+)\\}\"",
-        "override": {
-          "ref": "zig-46a08c1-5e11cf1ed295",
-          "reason": "The kit now names TensorFold v1.1.6 (TF_REF eea9dc9c), whose image tag by the kit's image_hash is zig-eea9dc9-4425be0c2259, and that tag is not published (GHCR tags checked 2026-11-01: latest and zig-46a08c1-5e11cf1ed295 share digest 9d39df6d, plus zig-46a08c1-* and zig-c7137bb-*). This recipe keeps running the published image of the previous engine (TensorFold 46a08c18 with patch set 5e11cf1ed295; matching tf.gate=bolt and tf.patches labels verified) until the creator publishes the new one."
-        }
-      },
-      "model": {
-        "datasource": "hf-revision",
-        "binds": "primary",
-        "file": "scripts/config.sh",
-        "pattern": "^MODEL_REVISION=\"\\$\\{MODEL_REVISION:-(?P<version>[0-9a-f]{40})\\}\"",
-        "repo_pattern": "^MODEL_ID=\"\\$\\{MODEL_ID:-(?P<repo>[^}\"]+)\\}\""
-      },
       "drafter": {
-        "datasource": "hf-revision",
         "binds": "drafter",
+        "datasource": "hf-revision",
         "file": "scripts/config.sh",
         "pattern": "^DRAFT_REVISION=\"\\$\\{DRAFT_REVISION:-(?P<version>[0-9a-f]{40})\\}\"",
         "repo_pattern": "^DRAFT_ID=\"\\$\\{DRAFT_ID:-(?P<repo>[^}\"]+)\\}\""
+      },
+      "engine": {
+        "datasource": "git-ref",
+        "file": "scripts/config.sh",
+        "pattern": "^TF_REF=\"\\$\\{TF_REF:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo": "ashhart/TensorFold"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "scripts/config.sh",
+        "pattern": "^MODEL_REVISION=\"\\$\\{MODEL_REVISION:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^MODEL_ID=\"\\$\\{MODEL_ID:-(?P<repo>[^}\"]+)\\}\""
       }
-    }
+    },
+    "whole": true
   },
   "ours": [
     "licenses/",
