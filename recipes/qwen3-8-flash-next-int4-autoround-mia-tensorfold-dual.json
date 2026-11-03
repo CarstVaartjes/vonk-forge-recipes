@@ -10,7 +10,10 @@
       },
       "dockerfile": "adapters/qwen/mia-flash-next-tensorfold-dual-int4-autoround/Dockerfile",
       "network": {
-        "hosts": []
+        "hosts": [
+          "github.com",
+          "ziglang.org"
+        ]
       },
       "patches": []
     }
@@ -1403,11 +1406,11 @@
       "Qwen",
       "azampatti"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold/tree/6730319ed948cc88b525bbbdc9d309451a863834"
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold/tree/dc05c912342ec19467b3b7b686888de763f2ada1"
   },
   "release": {
-    "released_at": "2026-11-01",
-    "version": "1.0.1"
+    "released_at": "2026-11-03",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
