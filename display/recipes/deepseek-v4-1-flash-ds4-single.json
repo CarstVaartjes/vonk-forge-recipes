@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "Candidate one-DGX Spark DeepSeek V4.1 Flash text profile on antirez/ds4 with the Q2 GGUF streamed from local SSD (341 GiB file, including 189 GiB of disk-only Engram tables; keep it on a fast SSD). Vision and DSpark are not supported on CUDA for V4.1; one resident session; physical Spark acceptance is still required.",
+  "description": "Candidate one-DGX Spark DeepSeek V4.1 Flash text profile on antirez/ds4 with the 1017 checkpoint Q2 GGUF streamed from local SSD (341 GiB file, including 189 GiB of disk-only Engram tables; keep it on a fast SSD). Vision and DSpark are not supported on CUDA for V4.1; one resident session; physical Spark acceptance is still required.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-1-flash-ds4-single"
@@ -19,5 +19,5 @@
     "single",
     "spark"
   ],
-  "title": "DeepSeek V4.1 Flash DS4 single Spark"
+  "title": "DeepSeek V4.1 Flash 1017 DS4 single Spark"
 }

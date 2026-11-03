@@ -8,11 +8,11 @@
   "files": [
     {
       "id": "target",
-      "path": "DeepSeek-V4.1-Flash-Q2.gguf",
+      "path": "DeepSeek-V4.1-Flash-1017-IQ2_XXS-Q2_K-imatrix.gguf",
       "roles": [
         "target"
       ],
-      "sha256": "1ce6a8f8806205c13330d7ca287bd198331dc5ca35ccc5d8a9a92a188a6f6f42",
+      "sha256": "5296e85ff64b42ecb62c8d0c0c54e1caa07e3df8e93112f2365ebbaed62ce93a",
       "size_bytes": 365713686528
     },
     {
@@ -39,9 +39,9 @@
       "slug": "deepseek-v4-1-flash"
     },
     "publisher": "antirez",
-    "slug": "deepseek-v4-1-flash-ds4-q2-dd8a266f",
-    "variant": "DeepSeek V4.1 Flash DS4 Q2 (imatrix)",
-    "version": "ds4-q2-dd8a266f"
+    "slug": "deepseek-v4-1-flash-1017-ds4-q2-9dcee516",
+    "variant": "DeepSeek V4.1 Flash 1017 DS4 Q2 (imatrix)",
+    "version": "ds4-1017-q2-9dcee516"
   },
   "kind": "model",
   "license": {
@@ -50,7 +50,7 @@
       "Salvatore Sanfilippo (antirez)"
     ],
     "spdx": "MIT",
-    "url": "https://huggingface.co/antirez/deepseek-v4.1-flash-gguf/blob/dd8a266f7145edc19e2334b46e19b6821f221dc7/LICENSE"
+    "url": "https://huggingface.co/antirez/deepseek-v4.1-flash-gguf/blob/9dcee51692e6540f697141fc98b097e3c96492a3/LICENSE"
   },
   "modalities": [
     "text"
@@ -58,6 +58,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/antirez/deepseek-v4.1-flash-gguf",
-    "revision": "dd8a266f7145edc19e2334b46e19b6821f221dc7"
+    "revision": "9dcee51692e6540f697141fc98b097e3c96492a3"
   }
 }

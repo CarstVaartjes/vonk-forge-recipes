@@ -2,20 +2,20 @@ FROM nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380
 
 WORKDIR /opt/src
 # Upstream commit archive with gguf-tools/imatrix, gguf-tools/quality-testing/data and speed-bench removed (unused by make cuda-spark; keeps the bundle small).
-COPY vendor/ds4-5379c1c9ac315f1540371b06a3db88491d4059ff.tar.gz /tmp/ds4.tar.gz
+COPY vendor/ds4-b3f50180ec2c7324892be1f50bc83555ccb8d5e7.tar.gz /tmp/ds4.tar.gz
 RUN test "$(uname -m)" = aarch64 \
-    && echo "d8a7e449e5eaf7abc7e42b1e7b7b91764f9fbbdef5e034eeeaca2ccf196084b4  /tmp/ds4.tar.gz" | sha256sum -c - \
+    && echo "93e93dd013ee2ec95b87ac588a8a5907d7e237c0c35b805ee89c4f6b68bec6f2  /tmp/ds4.tar.gz" | sha256sum -c - \
     && tar -xzf /tmp/ds4.tar.gz \
-    && mv "ds4-5379c1c9ac315f1540371b06a3db88491d4059ff" ds4 \
+    && mv "ds4-b3f50180ec2c7324892be1f50bc83555ccb8d5e7" ds4 \
     && make -C ds4 cuda-spark \
     && test -x ds4/ds4-server
 
 FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
 
 LABEL org.opencontainers.image.source="https://github.com/antirez/ds4" \
-      org.opencontainers.image.revision="5379c1c9ac315f1540371b06a3db88491d4059ff" \
+      org.opencontainers.image.revision="b3f50180ec2c7324892be1f50bc83555ccb8d5e7" \
       org.opencontainers.image.licenses="MIT" \
-      io.vonk.source-archive-sha256="d8a7e449e5eaf7abc7e42b1e7b7b91764f9fbbdef5e034eeeaca2ccf196084b4"
+      io.vonk.source-archive-sha256="93e93dd013ee2ec95b87ac588a8a5907d7e237c0c35b805ee89c4f6b68bec6f2"
 
 RUN groupadd --gid 10001 vonk \
     && useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home \
