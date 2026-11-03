@@ -1461,7 +1461,7 @@ class FakeFleet:
                 len(items) > 1
                 or any(names[spark] in r["node_ids"] for r in self.runs)
                 or any(
-                    e["state"] == "pending"
+                    e["state"] == "pending" and names[spark] in e["node_ids"]
                     for app in self.apps.values()
                     for e in app.get("effects", [])
                 )
