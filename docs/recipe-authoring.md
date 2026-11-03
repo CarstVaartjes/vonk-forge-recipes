@@ -425,7 +425,7 @@ first run, a pool-less vLLM declaration's peak, on one Spark or several, covers
 its utilization budget plus the margin, since the Controller reserves the
 declared peak (`tools/refresh-upstream` raises a moved document's peaks to that
 envelope); once it has run, the measured peak wins over this formula (today
-the refresh still raises measured peaks too; tracked as a follow-up).
+the refresh still raises measured peaks too; issue #2055).
 `tests/test_absolute_kv_capacity.py` replays the recorded failures and must
 warn on each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
