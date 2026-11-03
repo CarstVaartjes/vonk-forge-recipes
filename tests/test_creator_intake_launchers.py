@@ -4,6 +4,7 @@ import importlib.util
 import json
 import os
 import runpy
+import stat
 import subprocess
 import sys
 import types
@@ -63,13 +64,19 @@ def test_flash_next_profile_receives_platform_endpoint(
     runtime.__dict__["entrypoint"] = entrypoint
     monkeypatch.setitem(sys.modules, "runtime", runtime)
 
-    # Stand-in for the creator's check in the pinned image: single link only.
+    # The creator's check, copied from patches/sglang.patch at 1dc3c2f0.
     class PleCacheError(Exception):
         pass
 
     def require_single(st, what):
+        if stat.S_ISLNK(st.st_mode):
+            raise PleCacheError(f"{what} is a symlink")
+        if not stat.S_ISREG(st.st_mode):
+            raise PleCacheError(f"{what} is not a regular file")
         if st.st_nlink != 1:
-            raise PleCacheError(what)
+            raise PleCacheError(
+                f"{what} must have exactly one hard link (got {st.st_nlink})"
+            )
 
     ple_cache = types.ModuleType("sglang.srt.models.qwen4_exp_ple_cache")
     ple_cache.__dict__["_require_regular_single_link"] = require_single
@@ -133,6 +140,9 @@ def test_flash_next_profile_receives_platform_endpoint(
     ple_cache._require_regular_single_link(shared, "source")
     with pytest.raises(PleCacheError):
         ple_cache._require_regular_single_link(shared, "cached table")
+    not_regular = os.stat_result((stat.S_IFDIR | 0o755, *tuple(shared)[1:]))
+    with pytest.raises(PleCacheError, match="not a regular file"):
+        ple_cache._require_regular_single_link(not_regular, "source")
     for flag, value in (
         ("--model-path", str(tmp_path)),
         ("--host", "127.0.0.1"),
