@@ -1,7 +1,7 @@
 {
   "source": {
     "repo": "drowzeys/TensorFold",
-    "commit": "6b714531e2d60f91d26e98e414547ad94ad771bf"
+    "commit": "8cd08c8350c02cf3d7d8eee5f1c1d9dfa22fa703"
   },
   "ours": [
     "job.py",
