@@ -32,6 +32,7 @@ from vonk_forge_contracts.qualification_status import (
     QUALIFICATION_SUMMARIES,
     QualificationEvidenceStep,
     QualificationSourceFailureClass,
+    published_status,
 )
 
 from .auth_contract import SmokeAuthClass
@@ -70,7 +71,6 @@ class HistoricalResult(BaseModel):
     model_digests: tuple[str, ...] | None = None
     controller_release: str | None = None
     controller_version: str | None = None
-    agent_version: str | None = None
     node_count: int | None = Field(default=None, ge=1)
     node_ids: tuple[str, ...] = ()
     quality: tuple[HistoricalQualityCheck, ...] = ()
@@ -204,7 +204,6 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         platform=QualificationPlatform(
             controller_source_sha=row.controller_release,
             controller_version=row.controller_version,
-            agent_version=row.agent_version,
             spark_count=identity.required_sparks,
             topology=(
                 QualificationTopology.SINGLE
@@ -364,8 +363,11 @@ def local_status(
     recipe: Recipe,
     fleet_size: int,
     testing_now: bool = False,
+    identity: QualificationIdentity | None = None,
 ) -> QualificationStatusView:
-    return derive_status(evidence, current_identity(recipe), fleet_size, testing_now)
+    return derive_status(
+        evidence, identity or current_identity(recipe), fleet_size, testing_now
+    )
 
 
 STATUS_ORDER = {
@@ -403,3 +405,63 @@ def prune_withdrawn_evidence(root: Path) -> list[Path]:
             path.unlink()
             removed.append(path)
     return removed
+
+
+def unpublishable_pass(
+    view: QualificationStatusView | None,
+    evidence: RecipeQualificationEvidence | None,
+    identity: QualificationIdentity,
+    *,
+    release_known: bool,
+) -> bool:
+    """A local Working pass the catalog would not publish as Working, though a run could fix it.
+
+    The published derivation is the contracts package's (the one the catalog uses), asked
+    only for a locally Working recipe. A re-run can publish only when the catalog pins a
+    runtime image and the Controller release is readable (a run recorded now would
+    otherwise lack it); otherwise the pass is left alone.
+    """
+    if (
+        view is None
+        or evidence is None
+        or view.status != QualificationStatus.WORKING
+        or not release_known
+        or identity.runtime_image is None
+    ):
+        return False
+    try:
+        published = published_status(evidence, identity)
+    except (ValueError, TypeError):
+        return False
+    return published.status != QualificationStatus.WORKING
+
+
+def pass_marker(recipe: Recipe, identity: QualificationIdentity) -> str:
+    image = identity.runtime_image
+    return f"{recipe.content_sha256}:{image.image_digest if image else ''}"
+
+
+def rerun_settled(
+    evidence: RecipeQualificationEvidence,
+    requeue: object,
+    marker: str,
+    release: str | None,
+) -> bool:
+    """The re-run asked for under this marker recorded a verdict that stands.
+
+    Until then the request stands (a pending requeue is never undone). A behavioural record
+    (a pass, or a failure blamed on the recipe) made after the request on a known Controller
+    release settles it. A record blamed on the platform says nothing about the recipe: it
+    settles the request only for the Controller release it carries, so the recipe is asked
+    again once a different release is deployed. A record without a release does not settle it.
+    """
+    if not isinstance(requeue, Mapping) or requeue.get("marker") != marker:
+        return False
+    asked = datetime.fromtimestamp(float(requeue["at"]), UTC)
+    for r in evidence.records:
+        carried = r.platform.controller_source_sha or r.platform.controller_version
+        if r.tested_at <= asked or not carried:
+            continue
+        if r.blame != QualificationBlame.PLATFORM or carried == release:
+            return True
+    return False

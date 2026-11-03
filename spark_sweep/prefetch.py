@@ -118,6 +118,8 @@ class Prefetcher:
         self.on_ok: Callable[[str], None] = lambda _source: None
         # Set by the sweep: how many lanes are online now (None: unknown, all count).
         self.online_lanes: Callable[[], int | None] = lambda: None
+        # Set by the sweep: the deployed Controller release a download starts on.
+        self.release: Callable[[], str | None] = lambda: None
         self.pause_until = 0.0
         self.library_fresh_since = 0.0  # start of the newest complete library pass
         self.pressure_until = 0.0
@@ -500,6 +502,7 @@ class Prefetcher:
             "requested_intent": requested_intent,
             "retry_of_operation_id": retry_of,
             "started_at": self.clock(),
+            "release": self.release(),
             "request_intent": {
                 "recipe_key": recipe.key,
                 "content_sha256": recipe.content_sha256,
@@ -556,6 +559,8 @@ class Prefetcher:
                 "attempt": attempt,
                 "observe_failures": int(record.get("observe_failures", 0)),
                 "failure": failure.signature,
+                # The release the request started on (recorded with the persisted request).
+                "release": self.state.downloads[recipe.key].get("release"),
                 "request_intent": {
                     "recipe_key": recipe.key,
                     "content_sha256": recipe.content_sha256,
@@ -593,6 +598,7 @@ class Prefetcher:
                 "revision_id": recipe.revision_id,
             },
             "started_at": self.clock(),
+            "release": self.state.downloads[recipe.key].get("release"),
         }
         self.state.event(f"download {kind}: {recipe.key}")
 
@@ -874,6 +880,7 @@ class Prefetcher:
             in (
                 RetestReason.SCHEDULED,
                 RetestReason.OWNER_CHANGED,
+                RetestReason.RELEASE_CHANGED,
                 RetestReason.OPERATOR,
             )
             and verdict_matches(entry, recipe)
