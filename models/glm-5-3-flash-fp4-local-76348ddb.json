@@ -504,6 +504,7 @@
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "requires_token": false,

@@ -5,11 +5,13 @@
     "publisher": "nvidia",
     "slug": "glm-5-3-flash-fp4-local-76348ddb"
   },
+  "kind": "model-display",
   "model_title": "GLM 5.3 Flash",
   "tags": [
     "nvidia",
     "glm",
     "language",
+    "image",
     "candidate"
   ]
 }
