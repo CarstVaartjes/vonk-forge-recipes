@@ -1,0 +1,24 @@
+{
+  "alignment": "unspecified",
+  "description": "Executable Candidate reproduction of MiaAI-Lab's physically tested one-DGX-Spark DeepSeek V4 Flash profile: native compact NVFP4 KV, 384K single-request context, DSpark K5, CUDA graphs through 24 rows, and 0.94 memory utilization. Memory follows the creator's settings: GPU memory utilization 0.94, MiaAI-Lab's start.sh default at fdcd538f (line 75: 256K needs the extra ~1.2 GiB over 0.93, and the launch needs at least 0.94 × 121.63 = 114.3 GiB free host RAM). Mia's 121.63 GiB total matches this Spark's 121.69 GiB vLLM view, so the fraction carries over unchanged. The earlier 0.83 came from the 2026-10-11 offline memory fit (#1176), not from a hardware run. The declared peak is the admission maximum, an estimate until the run measures it.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-flash-0731-mia-sparkinfer-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "deepseek",
+    "dspark",
+    "exl3",
+    "openai-compatible",
+    "reap",
+    "single",
+    "sparkinfer",
+    "spark",
+    "speculative-decoding",
+    "tool-use"
+  ],
+  "title": "DeepSeek V4 Flash 0731 Mia SparkInfer single Spark"
+}

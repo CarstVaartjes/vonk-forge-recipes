@@ -7,6 +7,11 @@ LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/GLM-5.3-Fla
       io.vonk.recipe.source="https://github.com/tonyd2wild/GLM-5.3-Flash-TensorFold-DGX-Spark/tree/1758bc2dab8ae56bf9592b74b312b398577850cc"
 
 # Install the exact bundled engine and hash-locked Python dependencies on the pinned CUDA base.
+# engine-multi/pyproject.toml's package-data for tensorfold.cuda lists *.cu, *.cuh and *.cpp but not *.c, so the
+# install drops roce_proxy.c, which TF_GLM_COMM=roce compiles at start; the creator runs from the source tree.
+# Copy it in and build the proxy once here to prove the source, gcc and libibverbs are all in the image.
+# torch and torchvision follow the creator's torch 2.13 / CUDA 13.0 stack from pip, installed over the base's torch;
+# the torchvision op check proves the pair matches (a torchvision left from the base would not register its ops).
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONUNBUFFERED=1
 
 COPY vendor/creator-1758bc2dab8ae56bf9592b74b312b398577850cc.tar.gz /tmp/tensorfold.tar.gz
@@ -17,7 +22,11 @@ RUN echo "15e417b5f06136f86c53455214455bdda5d17e9147b0f19a40fb9c8da2c276ca  /tmp
     && PIP_CONSTRAINT= python -m pip install --ignore-installed --no-deps --no-cache-dir --require-hashes --requirement /tmp/requirements.lock \
     && python -c "import setuptools; assert int(setuptools.__version__.split('.')[0]) >= 69, setuptools.__version__" \
     && PIP_CONSTRAINT= python -m pip install --no-cache-dir --no-deps --no-build-isolation /tmp/tensorfold-src/engine-multi \
+    && cp /tmp/tensorfold-src/engine-multi/src/tensorfold/cuda/roce_proxy.c "$(python -c 'import os, tensorfold.cuda as m; print(os.path.dirname(m.__file__))')/" \
     && python -c "import tensorfold.cuda.server, tensorfold.families.glm5_next.cuda.engine" \
+    && python -c "import torch, torchvision; from torchvision.transforms.v2 import functional; torchvision.ops.nms(torch.zeros(1, 4), torch.zeros(1), 0.5)" \
+    && TORCH_EXTENSIONS_DIR=/tmp/roce-smoke python -c "from tensorfold.cuda.roce import proxy_library; proxy_library()" \
+    && rm -rf /tmp/roce-smoke \
     && tensorfold --version \
     && rm -rf /tmp/tensorfold.tar.gz /tmp/tensorfold-src
 
@@ -26,7 +35,7 @@ COPY --chmod=0755 tensorfold-serve /opt/vonk/bin/tensorfold-serve
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /outputs/cache/home --no-create-home --shell /usr/sbin/nologin vonk; fi
 
-# First start JIT-compiles the CUDA kernels for GB10 into the platform's writable /outputs/cache.
+# First start JIT-compiles the CUDA kernels for GB10 (and the RoCE all-gather) into the platform's writable /outputs/cache.
 # TORCH_CUDA_ARCH_LIST=12.1 is taussoe's docker/tensorfold-spark/Dockerfile.local: the container's default list also
 # builds for GPUs without the FP8 MMA the prompt kernels need, and takes longer.
 ENV TORCH_CUDA_ARCH_LIST=12.1 \

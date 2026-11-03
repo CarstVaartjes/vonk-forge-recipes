@@ -1,0 +1,26 @@
+{
+  "alignment": "unspecified",
+  "description": "Executable Candidate thin adaptation of SGLang's verified two-DGX-Spark Inkling Small NVFP4 TP2 profile, rebased from its dedicated dev image onto the stable SGLang v0.5.20 release image. It serves text, image, and 16 kHz audio inputs through an offline OpenAI-compatible API with bounded 64K context and four concurrent requests. Decode CUDA graphs stay on as upstream ships them: capture runs after SGLang sizes its capped pools, is clamped to the four-request pool and fits the non-static slack (upstream's 0.85 fraction started and served with them). Candidate status is retained only for Vonk's physical canary.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-small-nvfp4-sglang-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "thinkingmachines",
+    "inkling",
+    "multimodal",
+    "text",
+    "vision",
+    "audio",
+    "reasoning",
+    "tool-use",
+    "nvfp4",
+    "sglang",
+    "distributed",
+    "spark"
+  ],
+  "title": "Inkling Small NVFP4 SGLang two Sparks"
+}

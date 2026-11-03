@@ -1,0 +1,21 @@
+{
+  "description": "Exact official MiniMax H3 root Modular Diffusers closure for text-to-video-and-audio and optional first/last-keyframe generation. It excludes the Ref2VA transformer, duplicate original-checkpoint trees, examples, and documentation while retaining every component the pinned FL2VA loader requires.",
+  "family_title": "MiniMax H3",
+  "identity": {
+    "publisher": "minimax",
+    "slug": "minimax-h3-fl2va-42ed227e"
+  },
+  "kind": "model-display",
+  "model_title": "MiniMax",
+  "tags": [
+    "minimax",
+    "video",
+    "audio",
+    "multimodal",
+    "fl2va",
+    "t2va",
+    "keyframe",
+    "artifact-slim",
+    "candidate"
+  ]
+}

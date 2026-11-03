@@ -328,13 +328,11 @@
   "identity": {
     "family": {
       "publisher": "inclusionai",
-      "slug": "ling",
-      "title": "Ling"
+      "slug": "ling"
     },
     "model": {
       "publisher": "inclusionai",
-      "slug": "ling-3-0-flash",
-      "title": "Ling 3.0 Flash"
+      "slug": "ling-3-0-flash"
     },
     "publisher": "inclusionai",
     "slug": "ling-3-0-flash-int4-7a27e9eb",
@@ -348,15 +346,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4/blob/7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public Ling 3.0 Flash INT4 7a27e9eb checkpoint.",
-    "tags": [
-      "inclusionai",
-      "ling-3-0",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

@@ -21,7 +21,7 @@ matching recipe, resolved Models and recorded topology retain local proof unless
 image-bound evidence establishes a different runtime. Restoring that proof must
 retain its measured identity, never fill missing pins from the current library.
 
-The contract 2.4.0 models and `derive_status` are the authority. Evidence lives
+`RecipeQualificationEvidence` and `derive_status` are the authority. Evidence lives
 separately in `qualification/evidence/<publisher>/<recipe-slug>.json`; recording
 it never changes the recipe's content digest. Each record binds recipe
 `content_sha256`, resolved runtime image digest/build key, Model digests, test
@@ -84,6 +84,17 @@ Use primary sources: release notes, model cards, repository commits and diffs,
 Dockerfiles, image manifests, and upstream tests. Resolve tags and branches to
 immutable revisions or image digests. Record the time of the check and the
 exact source URLs. An inaccessible source is unverified, not unchanged.
+Confirm that every artifact the creator's build fetches (wheels, CUDA builds,
+images) is still published at its pin; a build that is no longer published is a
+missing input to vendor or replace with evidence, never an assumption. When the
+creator's image is gone, the replacement is the creator's exact engine commit
+built with the creator's build configuration: the same CUDA toolkit version and
+GPU arch list (and the same torch and FlashInfer when installing a published
+wheel). Its evidence is the hardware try, preceded by a build-time scan that the
+kernel libraries the recipe uses carry code sm_121 can load (sm_121 or sm_121a,
+plain or family sm_120 cubins, or non-arch-specific PTX); sm_120a-only code does
+not load. Another build of the same commit (a different toolkit or arch list)
+ships different GPU kernels: it is a new runtime that needs its own hardware proof.
 
 Compare each previous pin with the proposed pin in the same source repository.
 Inspect relevant changed files as well as commit subjects. Distinguish actual
@@ -103,16 +114,30 @@ prove that every embedded source, container, or dependency is current.
 ## 3. Author the Model and Recipe
 
 The [Pydantic definitions](../contracts/src/vonk_forge_contracts) are the source
-of truth. Use the [examples](../contracts/src/vonk_forge_contracts/examples) for
-structure only; replace synthetic identities and data with verified inputs.
+of truth; the [generated JSON Schemas](../contracts/src/vonk_forge_contracts/schema)
+(`recipe-definition-v3`, `model-definition-v3`, `recipe-display-v3`,
+`model-display-v3`) state every field's shape, bound, enum and default. Use the
+[examples](../contracts/src/vonk_forge_contracts/examples) (a Recipe, Model and
+display for each shape) for structure only; replace synthetic identities and
+data with verified inputs.
 
 The roots are strict: authoring rejects unknown fields. Do not use lenient
 published-document readers to bypass producer validation (`tests/test_contracts.py`).
 
-| Document | Required structure (read the definitions for typed variants) |
+| Document | Required structure (read the definitions for typed variants); every document also writes its defaulted `kind` (`model`, `recipe`, `recipe-display`, `model-display`) |
 | --- | --- |
-| Model | `identity`, `metadata`, `requires_token`, `dependencies`, `modalities`, `source`, `format`, `license`, `files`, `capabilities`. |
-| Recipe | `identity`, `metadata`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
+| Model | `identity`, `requires_token`, `dependencies`, `modalities`, `source`, `format`, `license`, `files`, `capabilities`. |
+| Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
+| Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment` is optional. |
+| Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`. |
+
+A document holds execution data only. What a person reads about it lives in
+its display file, `display/recipes/<slug>.json`
+or `display/models/<slug>.json`, one per document and no orphan (`RecipeDisplay`,
+`ModelDisplay`, checked by `validate_library`). A display edit never changes a
+document, its `content_sha256`, its evidence or its proven status; a change that
+alters what runs edits the document. Read display through `qualification/documents.py`
+(`recipe_display`, `model_display`), never off a document.
 
 `settings.kind` selects the typed generation, embedding, job or decision shape;
 never invent an LLM context length for an artifact job. `interfaces` contains one
@@ -122,7 +147,7 @@ OpenAI-compatible HTTP or filesystem job interface. Native decision models use
 extensions (`tests/test_systemone_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v2.3.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v3.0.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -133,7 +158,7 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`:
   `read_recipe`, which ignore fields they do not know, and identifies each
   document by the `document_sha256` of its published JSON, so an older
   Controller keeps working and picks the field up when vonk-forge upgrades.
-- **Breaking (major, `3.0.0`):** remove or rename a field, make one required,
+- **Breaking (major, for example `3.0.0`, which moved display text out of the documents):** remove or rename a field, make one required,
   or change a field's meaning. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
   unknown fields does not let an old reader accept a missing required field.
@@ -148,8 +173,8 @@ new versions are data; they do not require new Python classes.
 
 `identity.family` is the upstream lineage, not the checkpoint you are adding:
 every quantization, fine-tune and republished checkpoint of Qwen carries
-`{"publisher": "qwen", "slug": "qwen", "title": "Qwen"}`, whoever published
-it; the republisher is the Model's own `identity.publisher`, and the weight
+`{"publisher": "qwen", "slug": "qwen"}` (its title, "Qwen", is the Model
+display's `family_title`), whoever published it; the republisher is the Model's own `identity.publisher`, and the weight
 format belongs in `version`, `variant` and `format`. Reuse the family an
 existing Model of that lineage already declares
 (`rg -l '"slug": "glm"' models/`); invent a new one only for a new lineage,
@@ -195,8 +220,7 @@ adds one batch request per object to confirm it exists; it transfers no bytes.
 
 An upstream shard may be published only as `<name>.part00`, `<name>.part01`,
 ... (joined by `cat`). The tool recognizes
-such a set and writes one file entry for `<name>` with `parts` (contract
-2.2.0): each part's LFS SHA-256 and size, while the entry's own `sha256` and
+such a set and writes one file entry for `<name>` with `parts`: each part's LFS SHA-256 and size, while the entry's own `sha256` and
 `size_bytes` describe the joined file. Hugging Face cannot know the joined
 file's digest, so give it with `--assembled-sha256 <name>=<sha256>` (repeat per
 file) or let the tool read it from the repository's `sha256-manifest.txt` when
@@ -227,10 +251,13 @@ credential requirements and report provider access errors accurately.
 ### Recipe: a complete way to run those files
 
 Reference exact validated Model documents by the `document_sha256` of their
-published JSON, and their file IDs; do not duplicate their manifests. Mount
-the selected files for the required topology roles; model mounts are always
-read-only. Every recipe builds its image from a digest-pinned ARM64 base image
-and a recipe-owned build context, Dockerfile and patches. The build reaches
+published JSON (written as `models[].model.content_sha256`), and their file IDs
+(`file_id`); do not duplicate their manifests. Mount the selected files for the
+required topology roles: a selector's `roles` are `topology.roles[].name`
+values, not the Model file's roles. Model mounts are always read-only. Every
+recipe builds its image from a digest-pinned ARM64 base image
+(`base_image.digest` is the bare 64-hex digest, without `sha256:`) and a
+recipe-owned build context, Dockerfile and patches. The build reaches
 only the hosts in `execution.build.network.hosts`; an empty list builds
 offline. Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
@@ -254,16 +281,22 @@ has no Ray, install it from a hash lock as described in
 run summary, why a recipe has no prebuilt image. Every image builds on a hosted
 runner within the build job's 360-minute timeout; there is no exclusion list.
 
-Leave out unused optional fields. For optional fields with a `None` default,
-explicit `null` and omission have the same meaning; required nullable fields
-must still be written, even when their value is `null`. Do not remove false,
-zero, empty values or engine-owned JSON nulls as if they were absent. A
-document's identity is the `document_sha256` of its JSON (key order and
-whitespace aside), so any value change changes it. Keep documents in the
+Leave out unused optional fields in a new document. For optional fields with a
+`None` default, explicit `null` and omission parse the same, but they are
+different bytes: never add or strip a `null` in an existing document. Do not
+remove false, zero, empty values or engine-owned JSON nulls as if they were
+absent. A document's identity is the `document_sha256` of its JSON (key order
+and whitespace aside), so any value change changes it. Keep documents in the
 repository's sorted, two-space-indented form. Do not add hand-maintained digests
 for files authored in the same change; tooling owns package/source digests.
 Recorded upstream artifact checksums remain valid inputs
 (`tools/build-catalog-index`, `tests/test_recipe_packages.py`).
+
+Mirror the creator's recipe: its utilization, context, flags, loader and
+topology are the starting point, because it should work. Deviate only after an
+observed hardware failure and cite that evidence in the description; an
+estimate is never the reason (`tests/test_creator_memory_restores.py`). A launch
+broken for our interface is fixed instead (see Refresh selection and repair).
 
 Preserve launch behavior: executable, ordered arguments, environment, topology,
 ports, model aliases, resource envelope, and stop timeout. Model targets stay
@@ -276,9 +309,13 @@ Declare per-role
 unified memory as `peak_bytes` (the most the workload uses while serving; a
 higher load-time peak goes in `load_peak_bytes`) plus `reserve_bytes`, and disk as image, artifact,
 working (staging plus caches) and safety-margin bytes. Declare `node_count`,
-roles and their start order. Bind tunable
+roles and their start order: role counts sum to `node_count`, exactly one role
+with count 1 is the `endpoint_owner`, `tensor` × `pipeline` × `data` equals
+`node_count`, and `start_order` names every role once. Bind tunable
 arguments to the corresponding declared settings instead of maintaining two
-copies of a default. Respect the contract's automatic/unspecified settings;
+copies of a default; a `setting` names a non-null `context_tokens`,
+`concurrency` or `max_batch_tokens`, or a `settings.knobs` key. Respect the
+contract's automatic/unspecified settings;
 benchmark request counts are not engine concurrency limits. If a wrapper
 hardcodes a setting, align its implementation with the declared setting.
 
@@ -287,12 +324,26 @@ hardcodes a setting, align its implementation with the declared setting.
 The workload sandbox deliberately blocks io_uring. Recipes, option choices and
 image launchers must use a loader with a verified non-io_uring path: standard
 safetensors, InstantTensor automatic/AIO or BUFFERED/MMAP selection (never
-URING-only), or b12x disk PLE/Engram with `B12X_DISK_BACKEND=gds` and
-`CUFILE_FORCE_COMPAT_MODE=true` (requires cuFile >= 1.14 development files).
-Older b12x images without that backend need a tested POSIX reader replacement;
-never request relaxed seccomp. Enforce image-owned transport policy in the
-launcher before exec, including when a kit declares an unsafe backend. b12x
-defaults PLE BF16 tables and disk Engram to io_uring even when no backend is specified.
+URING-only), or the b12x image's PLE table in RAM. On the b12x image
+(`eugr/spark-vllm-b12x`) the Qwen PLE table is `disk` (io_uring) when
+`VLLM_PLE_TABLE_MEMORY=disk` and also when the variable is unset for a
+bfloat16 PLE checkpoint (`qualification/memory-inputs.json`
+`ple_embedding_dtypes`, keyed by the config digest; absent means bfloat16);
+unset is fine for a non-bfloat16 checkpoint, which resolves to the device
+table. The disk table needs io_uring (blocked by the sandbox) or direct GDS
+(needs a real nvidia-fs; `CUFILE_FORCE_COMPAT_MODE` is rejected with cuFile
+error 5027), so set `VLLM_PLE_TABLE_MEMORY=shared`. The table then counts
+inside the vLLM memory budget (an interface fix): keep the creator's context
+and raise utilization by the table's share over the creator's budget, citing
+the sandbox io_uring block. A disk Engram table (`engram-config`
+`table_memory: disk`), or any disk table on an image that is not the b12x
+image, needs an image that installs a tested POSIX reader (see
+`adapters/deepseek/0xsero-exl3-vllm-dual/_ple_reader.c`). The recipe loader test
+(`tests/test_recipe_sandbox_loaders.py`) enforces both by the recipe's base
+image. Never request relaxed seccomp. Enforce image-owned transport policy in
+the launcher before exec, including when a kit declares an unsafe backend. b12x
+defaults a bfloat16 PLE table and a disk Engram table to io_uring even when no
+backend is specified.
 The separate `--load-format b12x` checkpoint reader also selects io_uring bounce
 I/O on GB10; `B12X_DISK_BACKEND` does not control it. Use `--load-format safetensors`
 at the image launcher handoff for checkpoint loading while retaining the B12X
@@ -306,13 +357,13 @@ and [InstantTensor backend selection](https://github.com/scitix/InstantTensor#ba
 
 The shared `vonk_forge_contracts.memory_admission.evaluate_memory_admission` owns
 admission, explanatory headroom and the 2 GiB platform floor. Every recipe and
-option variant, on every role, must pass its empty-target-pool check: peak plus platform floor fits the
-pool. `reserve_bytes` is informational and is never charged. Offline validation
-(`require_admissible_declaration`, `qualification/vllm_memory_fit.py`) charges
+option variant, on every role, is checked against an empty target pool: peak plus platform floor fits the
+pool (offline a warning; live admission uses real free memory). `reserve_bytes` is informational and is never charged. Offline validation
+(`admissible_declaration_warnings`, `qualification/vllm_memory_fit.py`) charges
 one idle host baseline, `ADMISSION_IDLE_USE_BYTES` (130,663,231,488 −
 126,600,000,000 idle-available bytes), calibrated on the proven set: the live
 Controller admitted proven 120,370,379,081-byte peaks on both Sparks of a dual.
-It proves declaration admissibility, not live fit.
+It estimates declaration admissibility; it does not prove live fit, and a mismatch is a warning.
 
 The Controller supplies observed host use, exact commitments, unmaterialized
 claims and unknown resident upper bounds to this same function. It does not
@@ -326,26 +377,33 @@ documents and digests do not change. Honest numbers only: `load_peak_bytes` is a
 measured peak with its citation, or source-backed; a measurement from a killed
 run is a lower bound and the recipe says so. `minimum_swap_bytes` is the
 creator's stated prerequisite, or the measured swap peak plus the guard margin,
-and is never lowered to fit. Offline validation (`require_admissible_declaration`)
-refuses a load overshoot above the usable part of the 128 GiB swap maximum
+and is never lowered to fit. The contract requires only its shape (`peak_bytes` at
+least 1, `load_peak_bytes` above `peak_bytes`, swap only with a load peak). Offline
+estimation (`admissible_declaration_warnings`) warns about a load overshoot above the usable part of the 128 GiB swap maximum
 (usable = max(0, min(total − max(2 GiB, 10% of total), 90% of total)), integer
 percent steps), a `minimum_swap_bytes` below what the overshoot needs (the
 smallest whole-GiB total) or above 128 GiB, and warns when the needed swap
-exceeds the 64 GiB default. The constants are copied, with citation, in
+exceeds the 64 GiB default (swap size is a fleet-profile setting; a recipe
+declares only its minimum). The constants are copied, with citation, in
 `qualification/memory_need.py`.
 
-**A.** Preserve the runtime settings of every recipe that passed on real hardware.
-Change them only after a hardware failure, or deliberately with hardware retesting.
+**A.** Use the creator's memory settings and preserve those of every recipe that
+passed on real hardware; change them only after a hardware failure, citing it.
+A creator's fraction is an absolute amount on the creator's machine: convert
+fraction × their total to the same bytes on a Spark (0xSero's 0.9465 of
+119.69 GiB is about 0.931 of a Spark's 121.69 GiB).
 
 **B.** New/failing recipes declare, per role, their honest measured peak
-(owner, 2026-10-27). It covers selected weights (including drafts), any
+(owner, 2026-10-27; the recipes are estimates until the hardware try measures them). It covers selected weights (including drafts), any
 absolute KV pool and runtime overhead; that loading floor is a lower bound, and
 where hardware evidence shows a role using more, its peak is that measured use
-(entrypoint and worker may differ). It must be admissible
-on an idle Spark. An honest peak that is not admissible means the recipe can
-never fit: report it; never shave the number. The guard is calibrated on the proven set, which
-`tests/test_absolute_kv_capacity.py` replays through the touched path for every
-proven vLLM/SGLang document. A KV pool holds at least one full-context request,
+(entrypoint and worker may differ). It is checked for admissibility
+on an idle Spark. An honest peak that is not admissible is an estimate; the
+try decides, so it warns and never blocks. Never shave the number. Before the
+first try, compare selected weights per rank plus loading overhead with usable
+memory (`per_rank_need`) and record the predicted outcome, and any creator
+caveat such as "testing only", in the PR and description. The
+estimate rules are calibrated on the proven set. A KV pool holds at least one full-context request,
 not declared context × engine concurrency: engines schedule requests within it.
 GLM DSA (sparse-MLA) pools count the indexer cache inside the same pool: bytes per
 token are (backbone + MTP layers) × the main record (656 fp8_ds_mla, 400
@@ -355,25 +413,25 @@ reproduces the creators' logged pools (200,064 tokens in 10.95 GB fp8; 317,312
 nvfp4; 354,496 in 11,811,160,064 for the AQLM recipe, whose
 `index_topk_freq` 8 override leaves 13 indexer layers). The derivation is in the
 `source` of each geometry in `qualification/memory-inputs.json`.
-A single-Spark recipe file a change touches must bound KV: an absolute pool
+The estimate warns unless a touched single-Spark recipe bounds KV: an absolute pool
 (vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens`), or a declared
 `gpu-memory-utilization`/`mem-fraction-static` whose share of physical memory
-plus the 8 GB overhead (plus the resident expansion of geometry pinned to the
-launch) is admissible on an idle Spark. Proven singles run up to 0.86, exactly the largest admitted peak;
-vLLM's implicit 0.90 is not admissible. A touched pool-less vLLM budget (any
-Spark count) must also hold the selected weights per rank plus the 8 GB
-overhead: Laguna S 2.1 r0b0tlab at 0.6 left 4.25 GB beside 74.15 GB of target
-and draft weights, and vLLM found no memory for KV cache blocks. Where the launch
-pins cache geometry, the budget also holds one full-context request, which vLLM
-requires before it starts: Laguna S 2.1 Mia on the 826aacdf checkpoint at 0.85
-left 1.12 GB beside 101.94 GB of weights for a 13.0 GB request. gpt-oss-120b at 0.85 beside its 10 GB
-Marlin repack exhausted host memory. On one Spark a declared SGLang fraction is
-bounded whether or not `max-total-tokens` caps the pools: its share must be
-admissible, and the fraction × the idle available bytes must hold the selected
-weights, their resident expansion and any capped token/state pools (GLM a0 at
-0.75 was OOM-killed; restoring its 262,144-token cap needs 116.8 GB against
-0.85's 106.8 GB). The declared peak covers the same static need plus the 8 GB
-overhead. SGLang's base on GB10 is host MemAvailable after CUDA init
+plus the margin held beside the engine budget (plus the resident expansion of
+geometry pinned to the launch) is admissible on an idle Spark. That margin has one
+owner, `budget_margin_bytes` in `qualification/memory_need.py`, from the p90 of the
+277 sweep samples (audit 2026-11-01): vLLM 6.2 GB on one Spark and 10.4 GB on
+several (measured on 2-Spark runs; borrowed for 3, 4 and 8), SGLang 8.5 GB on one
+Spark and 8 GB on several. The loading floor, the inside-budget check and the
+SGLang static need keep 8 GB. The estimate's highest admissible utilization is
+0.9050 on one Spark and 0.8728 pool-less on several; a creator value above it is
+kept and tried, not lowered. It also warns when a touched pool-less vLLM budget
+(any Spark count) cannot hold the selected weights per rank plus the 8 GB
+overhead or, where the launch pins cache geometry, one full-context request,
+which vLLM requires before it starts. On one Spark it checks a declared SGLang
+fraction whether or not `max-total-tokens` caps the pools: its share is
+admissible, and the fraction × the idle available bytes holds the selected
+weights, their resident expansion and any capped token/state pools. The declared peak covers the same static need plus the 8 GB
+overhead (SGLang static need keeps 8 GB). SGLang's base on GB10 is host MemAvailable after CUDA init
 (`utils/common.py` is_integrated path), so the calculator charges the Spark's total
 memory. When `max-total-tokens` (and, for hybrid geometries, `max-mamba-cache-size`)
 caps every pool, SGLang allocates only those pools and the fraction merely gates
@@ -382,10 +440,14 @@ This rule is derived from the SGLang source and is uncalibrated: no fully capped
 proven run (graph-less, no speculation) backs it, and capped recipes with CUDA
 graphs or speculation rest on the 8 GB overhead. A hybrid Model without
 `max-mamba-cache-size` is not capped (the Mamba pool grows with the fraction).
-An uncapped pool keeps the calibrated fraction × total + 8 GB. SGLang derives an omitted fraction at launch, so none is required. A pool-less single-Spark vLLM declaration's peak must cover its
-utilization budget plus the overhead, since the Controller
-reserves the declared peak. `tests/test_absolute_kv_capacity.py` replays the recorded
-failures and must reject each. `qualification/memory_need.py`
+An uncapped pool keeps the calibrated fraction × total plus the SGLang margin (8.5 GB on one Spark, 8 GB on several). SGLang derives an omitted fraction at launch, so none is required. Before its
+first run, a pool-less vLLM declaration's peak, on one Spark or several, covers
+its utilization budget plus the margin, since the Controller reserves the
+declared peak (`tools/refresh-upstream` raises a moved document's peaks to that
+envelope); once it has run, the measured peak wins over this formula (today
+the refresh still raises measured peaks too; issue #2055).
+`tests/test_absolute_kv_capacity.py` replays the recorded failures and must
+warn on each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
 multi-Spark vLLM absolute pool, also set an explicit `gpu-memory-utilization`
 startup budget whose fraction of physical memory fits every role peak: vLLM
@@ -394,7 +456,7 @@ checks free memory ≥ utilization × total before loading weights.
 An absolute pool must also hold one request at the declared context (or the
 pinned model default when the engine context is omitted/automatic), including block rounding, packed scales
 and per-rank cache layout. Tensor parallelism shards GQA heads but does not
-halve replicated MLA latents. `require_absolute_kv_capacity` checks every option
+halve replicated MLA latents. `absolute_kv_warnings` checks every option
 combination; the multi-Spark startup invariant precedes the historical-content
 waiver. SGLang absolute token pools must hold one context too. TRT-LLM fractional
 pools are outside this absolute-pool check. Cache geometry binds configuration
@@ -413,30 +475,19 @@ caching, cache dtypes, speculation, block size and TP and ignores any hand
 `state_bytes_per_request`, which other engines keep. A hybrid whose vLLM layout
 the formula cannot express is named, with its reason, in
 `VLLM_UNMODELED_HYBRID`.
-For an unproven failing pool, prefer the creator context and reserve at least
-one request at that context, checking the worst option. If that cannot be
-admitted with selected weights and runtime overhead, cap the explicit engine
-context at what fits and disclose the cap in the recipe description.
+After a pool fails on hardware, keep the creator context if one request at it
+fits beside the selected weights and runtime overhead (check the worst option);
+otherwise cap the engine context at what fits, cite the failure and disclose the
+cap in the recipe description.
 Preserve proven recipe bytes; an estimate is never physical acceptance.
 
 The informative workload estimator (not declaration admission) uses
 **130,663,231,488 total bytes − 17,179,869,184 bytes
 (16 GiB estimator headroom) − 5,012,574,208 measured idle bytes =
-108,470,788,096 bytes**. The 16 GiB headroom is this estimator's own rule: the
-workload limit subtracts it, and a touched multi-Spark utilization-sized pool
-must leave it (below). It began as the host memory guard's per-sample
-MemAvailable bar (vonk-forge `040c51b8531523bebe542b5e1f7b9403e0767f72`,
-`host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES`), which the swap-aware
-guard (vonk-forge #1936, `fc6059e42edb1b26416fd78493138201f427de96`) removed.
-That guard has no per-sample bar; it stops managed workloads on
-R1 MemAvailable < 1 GiB and free swap < max(2 GiB, 10% of swap) for 2 s
-(without swap: MemAvailable < 256 MiB for 3 s); R2 swap > 90% used and still
-filling with MemAvailable < 4 GiB for 3 s; R3 swap-ins plus refaults ≥ 50,000
-pages/s with full PSI avg10 > 60% and MemAvailable + free swap < 8 GiB for
-10 s; R4 full PSI avg10 > 60% for 30 s while serving, or avg60 > 80% and not
-falling for 60 s while loading; R5 an NVRM allocation failure together with
-R1's or R3's condition, or, without swap, MemFree < 1 GiB, held for 2 s
-(`host_memory_guard_policy.rs`, thresholds calibratable). Idle use is from spark-3542
+108,470,788,096 bytes**. The 16 GiB headroom is this estimator's own planning
+rule, a leftover of the host memory guard's removed per-sample MemAvailable bar;
+the runtime backstop is the swap-aware guard (vonk-forge
+`host_memory_guard_policy.rs`, rules R1–R5). Idle use is from spark-3542
 2026-10-15/16 incident telemetry, **125,650,657,280 bytes idle MemAvailable**,
 retained in the calculator's historical source. Runtime
 overhead currently uses an **8,000,000,000-byte estimate**, not a measurement. A vLLM
@@ -445,9 +496,7 @@ worker loads it after its free-memory snapshot and profiles it inside
 `gpu-memory-utilization` (sources in `qualification/vllm_memory_fit.py`), so its
 weights count inside the budget like the target's. Pool-less single-Spark runs
 with a separate drafter held at most 9.9 GB beside utilization × memory, OS
-included. The 2026-10-13 DFlash2 freeze at 0.7 (image 155ce16b) is unexplained
-and 0.7 has not been re-run since; the 0.6 document passed on 431593a0 with
-3.7 GB beside its budget. The estimate over this limit
+included. The estimate over this limit
 is a **WARNING**, not a rejection: proven singles run utilization-sized pools
 above it. Never omit a failing recipe to pass the check.
 
@@ -458,26 +507,28 @@ Only new or changed recipe documents are subject to the need guard. An exact
 identifies existing content, regardless of its qualification outcome. The snapshot's
 `historical_sources` records its source commits; it is a content baseline, never
 hardware proof. Validation reads these committed identities without Git or remote
-refs. Changed content and new ids must satisfy the need guard; supplying an old
-digest cannot exempt modified recipe bytes or a modified parsed launch. Existing
-untested recipes produce informative **WARNING** lines in
-`tools/build-catalog-index` and `tools/check-recipe-memory-need`; estimates never
-rewrite them or assign a “does not fit” verdict. Qualification status comes only
+refs. Changed content and new ids are checked by the estimate rules (warnings); supplying an old
+digest cannot exempt modified recipe bytes or a modified parsed launch. Memory
+estimates (the envelope, loading floor, KV pool, startup budget, admissibility and
+swap rules) produce **WARNING** lines in `tools/build-catalog-index` and
+`tools/check-recipe-memory-need`, in the PR step summary, and on `main` in one
+“Memory estimate mismatches” issue; they never fail a build or a PR, rewrite a recipe
+or assign a “does not fit” verdict. Qualification status comes only
 from `qualification/evidence/` and the shared `derive_status` reducer. There is
 no second pass/failure list in memory inputs; that file contains numerical
 geometry, source references and the immutable content baseline only. Preserve all
 unrelated recipe bytes.
 
-Repair unproven, unadmittable declarations by calculated need, preserving absolute
-cache requirements and bounding engine allocation (an absolute pool or an
-admissible engine fraction). Peak plus reserve must fit the owner's
-idle capacity, which already subtracts host use. The catalog guard rejects changed
-declarations that exceed capacity despite a fitting need. Preserve proven bytes,
-calibrate against hardware passes, and leave unknown or oversized needs unresolved.
+An unproven declaration the estimate cannot admit keeps the creator's values;
+the try decides. Only after a hardware failure repair it by calculated need,
+preserving absolute cache requirements and bounding engine allocation (an
+absolute pool or an admissible engine fraction), with the failure cited.
+`reserve_bytes` is never charged. Preserve proven bytes, calibrate against
+hardware passes, and leave unknown or oversized needs unresolved.
 
 Proven recipes are the calibration set. Run
 `tools/check-recipe-memory-need --calibrate` without exemptions before changing
-an estimator. The catalog loading floor must reject no proven recipe; engines
+an estimator. The catalog loading floor should flag no proven recipe; engines
 outside its vLLM/SGLang scope are reported explicitly. A loading floor does not
 prove full-context capacity, graph peaks, or runtime fit. Missing full-workload
 geometry is an unknown warning, never a hardware failure.
@@ -496,7 +547,7 @@ retains its measured overhead and the lower spark-3542 idle-available value abov
 single-node full-workload estimate is
 informative. An absolute vLLM KV pool overrides cache sizing by utilization.
 Changed multi-Spark documents use the per-rank demand declaration below;
-a changed multi-Spark SGLang document must also fit its sharded weights, resident
+a changed multi-Spark SGLang document is also checked to fit its sharded weights, resident
 expansion and capped token/state pools in `mem-fraction-static` × the lowest idle
 available bytes. Its absolute `max-total-tokens` cap must hold one full-context
 request, not context × `max-running-requests`: SGLang schedules requests within
@@ -507,24 +558,21 @@ state slots per running request (`max-running-requests`); at startup SGLang lowe
 concurrency 1 and 20 serve concurrency 4. With speculation the budget also
 charges (min(`max-running-requests`, slots // 5) + 1) ×
 `speculative-num-draft-tokens` intermediate state slots. Geometry that names a
-`runtime_image_digest` applies only to that image. A multi-Spark vLLM recipe file a change touches must bound KV
+`runtime_image_digest` applies only to that image. The estimate likewise warns unless a touched multi-Spark vLLM recipe bounds KV
 (`tools/check-recipe-memory-need --base origin/main`): an absolute
 `kv-cache-memory-bytes` pool that holds one full-context request per rank, or a
-`gpu-memory-utilization` whose share of physical memory plus the 8 GB overhead
-is admissible on an idle Spark, as for a single Spark. The Laguna M.1 stop at
-0.82 with no pool on 2026-10-26 was the host guard's per-sample 16 GiB bar,
-since removed; the GLM 5.3 Flash NVFP4 DFlash2 dual passed pool-less at the
-creator's 0.86. The
-pool need not hold context × `max-num-seqs`: vLLM schedules sequences within it,
-proven duals hold fewer, and the DSpark vLLM 0.25 dual pool sized for
-16 × 200,000 tokens exhausted host memory on both Sparks.
+`gpu-memory-utilization` whose share of physical memory plus the margin
+(10.4 GB) is admissible on an idle Spark, as for a single Spark; its declared peak
+covers that envelope. The
+pool need not hold context × `max-num-seqs`: vLLM schedules sequences within it.
 Sharded weights, that pool and the 8 GB overhead are bounded by idle admission,
 not by the 16 GiB planning limit: hardware-proven dual documents run above it.
 Existing documents remain unchanged and receive informative warnings.
 
 SGLang profiles loaded weights before applying `max-total-tokens`. A fraction
 below the resident model size can therefore produce a negative hybrid-cache
-budget even with a short context. For a large hybrid model, cap both the token
+budget even with a short context. For a large hybrid model that fails this way
+on hardware, cap both the token
 pool and `max-mamba-cache-size`, bound concurrency and disable graphs (or state
 in the description why capture stays in the non-static slack), then use a
 fraction that permits profiling. Budget the actual capped allocations,
@@ -533,11 +581,6 @@ overhead; the fraction alone no longer describes that peak. Tie any geometry
 bound to the exact Model identity and test the pinned engine's sizing path with
 the old failing inputs. Label estimated overhead and retain physical testing as
 an outstanding check. Never raise an uncapped fraction to hide a memory failure.
-The a0 GLM EXL3 geometry in `qualification/memory-inputs.json` binds the exact
-model configuration and image: 64 KiB/token, 150 MiB/state including the padding
-slot, and a 14 GB inferred resident expansion beside the default 8 GB overhead.
-The calculator charges the actual absolute token/state pools, rejects graph or
-image drift, and checks the declared peak against the shared limit.
 
 For a named tool choice that must produce one invocation, use a single native
 grammar rather than a repeating triggered tag. Preserve the argument schema's
@@ -556,38 +599,11 @@ its strict DeepSeek V4 tool grammar with a reasoning block even for
 vLLM 8244d1c4 in base `sha256:03a956544e9f...`, pass `reasoning=False` and need
 no setting.
 
-On GB10, CPU and CUDA allocations share physical memory. For unproven
-single-Spark jobs, keep models on CUDA when the complete resident weights,
-startup transients, activations and runtime overhead fit `LIMIT_BYTES` from the
-shared calculator. CPU/model/sequential/group offload adds device transitions
-and can duplicate storage; it is not a second memory pool. Inspect the pinned
-loader as well as steady inference. Retain proven execution settings and real
-disk streaming where residency or loading peaks require it. A smoke estimate is
-not full-length capacity or hardware acceptance.
-
-MOVA at source `1591b2557b42030a3421442c998dd6f5602ed9bd` offers `none`,
-`cpu` (Accelerate model hooks) and `group` (leaf streaming). Its step invokes
-visual/audio/bridge pre-forward hooks for each sequential CFG pass; Accelerate
-1.15.0 skips transfers for already-resident components, so hooks alone do not
-prove the source of all observed latency. Both pinned snapshots contain
-77,672,622,000 weight-file bytes, including both 28.58 GB video DiTs, T5,
-audio DiT, bridge and VAEs. With one frame there are 880/3,600 visual tokens
-at 352x640/720x1280 (latent stride 8, patch stride 2). Estimate 2/8 GB for
-activations and decoding, plus the shared 8 GB runtime estimate and 10 GB
-loading allowance (largest shard rounded up): 97.67/103.67 GB, below the
-108.47 GB safe limit. These are planning estimates, not measured peaks.
-`--remove_video_dit` only deletes the high-noise DiT after the low-noise switch;
-it does not change the initial loading peak or inference mathematics and is
-unnecessary with resident models.
-
-The MOVA smoke keeps one frame and two steps. Budgets are 1,200/3,600 seconds:
-the 2026-10-21 sweep observed 325.32 s/step at 360p with offload, so allow
-650.64 seconds for two steps plus 549 seconds for cold loading and export.
-For 720p, scale denoising by the 3,600/880 token ratio (2,662 seconds) and
-allow 938 seconds for loading/export. This deliberately assumes no offload
-speedup, uses the job's existing one-hour ceiling, and needs hardware validation;
-attention can scale worse than linearly. Each reference-image case gets the
-same bounded job budget.
+On GB10, CPU and CUDA allocations share physical memory: CPU/model/sequential/
+group offload adds device transitions and can duplicate storage; it is not a
+second memory pool. Keep the creator's placement and loader; change them only
+after a hardware failure, inspecting the pinned loader as well as steady
+inference. A smoke estimate is not full-length capacity or hardware acceptance.
 
 ### Multi-Spark memory demand and nonfitting recipes
 
@@ -631,9 +647,9 @@ and the missing Model.
 Runtime arguments are ordered data, not shell text. Repeated names keep their
 order; an empty string remains an argv token; literal `true` emits a flag and
 `false` omits it. `value: null` requires a setting binding. Structured values
-render as deterministic compact JSON. The contract bounds names/values at
-65,536 UTF-8 bytes, rendered argv at 1 MiB and argument count at 128
-(`tests/test_contracts.py`).
+render as deterministic compact JSON. The contract bounds argument names at 64
+characters, values at 65,536 UTF-8 bytes, rendered argv at 1 MiB and argument
+count at 128 (`tests/test_contracts.py`).
 
 Trusted recipe options pass through to the pinned engine even when the
 Controller has no label, enum entry, or specialized validator for them. Known
@@ -648,6 +664,11 @@ the runtime UID/GID. Recipes must not duplicate or override those defaults.
 Keep non-root execution, a read-only root, and declared writable volumes. If an
 engine needs an additional invariant, fix the central engine implementation
 and exercise actual writes and cache reuse; do not scatter recipe workarounds.
+
+Model files are mounted read-only and identical files may be hard links to one
+cached copy; a creator launcher that refuses linked or read-only files gets an
+adapter fix, never a per-install copy.
+
 Bind generated rank/vision/model views to their checkpoint and engine inputs,
 reuse complete cached work and rebuild malformed/interrupted output
 (`tests/test_tony_tensorfold_cache.py`,
@@ -698,9 +719,10 @@ launch passes the parser. A recipe follows its playbook or kit: if upstream
 passes the flags, carry them (`--enable-auto-tool-choice` with
 `--tool-call-parser` on vLLM, `--tool-call-parser` on SGLang, `tool_parser` on
 TensorRT-LLM; `--reasoning-parser` or `reasoning_parser` for reasoning); if it
-does not, the recipe must not tag `tool-use` and its `smoke_cases` must hold no
-tool case, because the engine answers HTTP 400 or returns the raw `<tool_call>`
-text in `content`. A reasoning model served without a reasoning parser uses the
+does not, its display must not tag `tool-use` and its qualification
+`smoke_cases` (`qualification/recipes/<slug>.json`) must hold no tool case,
+because the engine answers HTTP 400 or returns the raw `<tool_call>` text in
+`content`. A reasoning model served without a reasoning parser uses the
 `A323_UNPARSED`/`A391_UNPARSED` case; use its actual functional and quality
 assertions rather than assuming that every kind of leaked markup is allowed. Image cases need a
 multimodal recipe. When a kit's entrypoint injects the flags from inside its
@@ -713,17 +735,24 @@ required or named tool choice is one call; without it the reasoning wrapper
 defers the grammar past Inkling's first call and forces a second
 (`tests/test_inkling_sglang_forced_tool.py`).
 
+An SGLang reasoning recipe that names a `chat-template` serves it as a
+repository file `COPY`ed into the image, so the thinking switch can be checked.
+Its `add_generation_prompt` branch must honour `enable_thinking is defined and
+not enable_thinking`: SGLang forces its reasoning parser from that branch, and a
+creator template that always opens `<think>` leaks `</think>` into `content`
+when a request turns thinking off (`tests/test_sglang_reasoning_template_toggle.py`).
+
 ### Options: user-selectable runtime variants
 
 When users can reasonably choose between ways to run the same weights, declare an
-`options` list instead of publishing near-duplicate recipes (contract 2.1.0).
+`options` list instead of publishing near-duplicate recipes.
 
 | Field | Rule |
 | --- | --- |
-| option `name` | Slug, unique in the recipe. |
+| option `name` | Lowercase identifier starting with a letter (`^[a-z][a-z0-9_-]*$`, so `ctx-128k`, not `128k`), unique in the recipe. |
 | option `label`, `help` | What the user sees in the web select and `vonkctl`; say what changes and the trade-off. |
 | `choices` | 2 to 16 fixed named values. There are no free-form values. |
-| choice `value` | Slug, unique within its option. |
+| choice `value` | Same identifier form, unique within its option. |
 | choice `label`, `help` | Shown next to the value; state measured or upstream-documented effects only. |
 | choice `default` | Exactly one choice per option is `true`. It applies whenever the user does not choose. |
 | choice `args` | Literal runtime arguments (`name` and `value`, never a `setting` binding). |
@@ -731,11 +760,14 @@ When users can reasonably choose between ways to run the same weights, declare a
 
 **Deployment choices only.** An option must be a real deployment choice: it changes
 what is loaded or how the server runs (drafter, vision on or off, quantization or
-projection, context size when it changes memory, server flags a request cannot
-set). Anything a client chooses per API call (thinking or reasoning on or off,
-reasoning effort, sampling parameters such as temperature, chat template kwargs)
-is not an option; leave the engine's default in `runtime.arguments` and make sure
-requests can still override it.
+projection, context size when it changes memory, the chat-template file, server
+flags a request cannot set). Anything a client chooses per API call (thinking or
+reasoning on or off, reasoning effort, sampling parameters such as temperature,
+chat template kwargs) is not an option; leave the engine's default in
+`runtime.arguments` and make sure requests can still override it. The exception is
+a server default the engine build does not let a request override: say so in the
+option's `help` and cite the creator's report or a measured failed override, so the
+choice is the only way to reach the other behaviour.
 
 **The default is the recipe as it runs today.** The recipe's own `runtime.arguments`
 and `runtime.environment` hold the upstream defaults, so the default choice
@@ -827,8 +859,6 @@ runtime chat template, a selected template file, or a served Model declaring
 `chat`; a drafter's capability and an embedded tokenizer template alone cannot
 make base weights chat-trained (`tests/test_chat_configuration.py`).
 
-`tools/check-upstream-drift` inventories configured watches and embedded inputs;
-unknown/mutable/transitive inputs remain evidence gaps, not proof of freshness.
 The hourly `.github/workflows/refresh-upstream.yml` and `tools/refresh-upstream`
 implement automatic selection (`tests/test_check_upstream_drift.py`,
 `tests/test_refresh_upstream.py`): newest release/tag or head, preserving inferred
@@ -984,6 +1014,10 @@ all referenced fixtures in the package. `tests/test_qualification_index.py`,
 `tests/test_qualification_case_assertions.py`, `tests/test_optional_inputs.py`
 and `tests/test_media_types.py` enforce closure and slot consistency.
 
+A creator's own smoke proves only what it sends: compare its requests with the
+shared cases the recipe selects (A391 turns thinking off per request; MIS_A391
+sends only `reasoning_effort`) and expect uncovered paths to fail first.
+
 A media smoke proves one small, safe output, not full-quality generation. Keep
 native resolution, topology and output codecs; use the smallest frame count the
 model accepts and a few denoising steps (retain required distilled schedules).
@@ -1012,15 +1046,9 @@ Only resolved width/height
 reach consumers. `tests/test_native_dimension_expectations.py` guards the
 source pins, automatic-sizing contexts and wrong-dimension rejection.
 
-MOVA's pinned temporal rule is `4k+1`, including one frame; smoke uses one frame
-and two steps at 640x352 or 1280x720, with synchronized 48 kHz audio at 24 fps.
-The target is a few minutes on one GB10, with a 600-second job budget including
-adapter preparation, generation and ffprobe. The adapter reads the platform's
-`VONK_JOB_TIMEOUT_SECONDS`, shares one monotonic deadline, and kills torchrun's
-process group on expiry with stderr evidence. The read-only 2026-10-21 sweep
-results record the 360p 193-frame/50-step attempt timing out after 3,606 seconds;
-there is no completed 360p timing from which to estimate a measured speedup.
-The few-minute target remains unverified until a separately authorized GPU run.
+A job adapter reads the platform's `VONK_JOB_TIMEOUT_SECONDS`, shares one
+monotonic deadline and kills its process group on expiry with stderr evidence
+(`adapters/video/mova-pytorch/run.py`).
 
 ### What the sweep checks
 
@@ -1069,10 +1097,10 @@ review policies; no static guard can prove upstream completeness or honesty.
 | Guard/test | Required invariant and repair |
 | --- | --- |
 | `tests/test_contracts.py`, `tests/test_contract_examples.py` | Strict root/field/relationship validation, bounded paths/argv, source/file identities. Correct data to the current definitions; regenerate examples/schemas after a contract change. |
-| `tools/check-recipe-model-references`, `tests/test_recipe_model_references.py` | Every pinned Model/file exists at the exact digest. Catalog the missing immutable Model or update all bindings together. |
+| `tools/check-recipe-model-references`, `tests/test_recipe_model_references.py`, `tests/test_display_split.py` | Every pinned Model/file exists at the exact digest, and every Recipe and Model has exactly one display file and none is orphaned. Catalog the missing immutable Model or update all bindings together; add or remove the display with its document. |
 | `tools/check-model-families`, `tests/test_check_model_families.py` | One consistent upstream lineage. Reuse its family identity instead of republisher/format families. |
 | `tools/check-recipe-topology --base origin/main`, `tests/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
-| `tests/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. Repair the launcher or metadata; do not publish placeholder tags. |
+| `tests/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. Repair the launcher or display; do not publish placeholder tags. |
 | `tests/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
 | `tests/test_recipe_model_mounts.py`, `tests/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
 | `tools/check-build-context-sources`, `tests/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
@@ -1139,9 +1167,13 @@ and install with `--require-hashes`. Regenerate with the command recorded in the
 lock header rather than editing resolved hashes. For example,
 `adapters/video/moss-vl-realtime/requirements.lock` records its exact
 `uv pip compile` invocation for Python 3.12/aarch64 and cu130; it is not a macOS
-lock. Include the lock and any vendored wheels/sources in build closure. Existing
-creator images may already supply dependencies; do not reinstall a different
-engine over them merely to impose a lock format. There is no global lock-format
+lock. Resolve Python dependencies from the creator's stated stack (their
+torch/CUDA versions), never by copying another recipe's lock; when a lock pins
+torch over a base image that already ships torchvision, pin the matching
+torchvision too (`tests/test_torchvision_pinned_with_torch.py`). Include the
+lock and any vendored wheels/sources in build closure. Existing creator images
+may already supply dependencies; do not reinstall a different engine over them
+merely to impose a lock format. There is no global lock-format
 guard: lock/content checks are recipe-specific, including
 `tests/test_remote_code_build_smoke.py` and `tests/test_nemotron_omni_sglang_audio_lock.py`.
 

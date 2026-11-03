@@ -14,6 +14,7 @@ pytestmark = pytest.mark.usefixtures("bounded_clock")
 from vonk_forge_contracts.sweep import WorkloadFailureCode
 
 from spark_sweep.cli import main
+from spark_sweep.lifecycle import RetestReason
 
 OLD, NEW = "1" * 40, "2" * 40
 IMAGE_BUG = "runtime image no longer matches the approved recipe"
@@ -92,23 +93,23 @@ def test_accepted_publication_is_not_a_deployed_fix_or_a_retest(
     ]
 
 
-def test_a_new_api_process_does_not_attribute_a_generic_application_fault(
+def test_a_new_api_process_retests_a_generic_application_fault_without_blaming_the_api(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     recipe = FakeRecipe("image-bug", fail_load=IMAGE_BUG)
     sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
     _deployed_api(fleet, OLD)
     sweep.run()
-    previous = dict(_entry(sweep, "image-bug"))
+    assert _entry(sweep, "image-bug")["status"] == "deferred"
     fleet.api_source_sha = NEW
     fleet.recipes[recipe.key].fail_load = None
     again, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
     again.run()
     assert again.release_sha == NEW
-    assert _entry(again, "image-bug")["status"] == "deferred"
-    assert _entry(again, "image-bug")["attempts"] == previous["attempts"]
-    assert _entry(again, "image-bug")["evidence_bundle"] == previous["evidence_bundle"]
-    assert _entry(again, "image-bug").get("recovery_basis") is None
+    entry = _entry(again, "image-bug")
+    assert entry["status"] == "passed"
+    assert entry["recovery_history"][0]["basis"] == {"controller_release": NEW}
+    assert entry.get("recovery_basis") is None  # no fault owner is attributed
 
 
 def _record_local_argument_fault(sweep, fleet, recipe):
@@ -183,7 +184,7 @@ def test_stale_or_contract_mismatched_observation_cannot_trigger_a_retest(
     assert entry["status"] == "pending" and entry["attempts"] == 3
 
 
-def test_historical_publication_only_failure_is_not_retried_as_a_known_owner(
+def test_historical_publication_only_failure_without_an_observed_owner_heals_on_the_release(
     tmp_path: Path,
 ) -> None:
     recipe = FakeRecipe("historic")
@@ -195,8 +196,9 @@ def test_historical_publication_only_failure_is_not_retried_as_a_known_owner(
     fleet.api_source_sha = fleet.release_sha = NEW
     fleet.client_build["source_sha"] = NEW
     sweep.check_client()
-    assert entry["status"] == "deferred" and entry["attempts"] == 7
-    assert not entry.get("recovery_history")
+    # No observed owner basis: the release change is the entry's only exit.
+    assert entry["status"] == "pending" and entry["attempts"] == 7
+    assert entry["retest"]["reason"] == RetestReason.RELEASE_CHANGED
 
 
 # -- --retry-failed ------------------------------------------------------------------------------
@@ -312,7 +314,6 @@ def test_watch_retests_platform_fault_only_after_its_observed_owner_fix(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     from spark_sweep.identity import content_identity
-    from spark_sweep.lifecycle import RetestReason
     from spark_sweep.run import RETEST_SECONDS
 
     recipe = FakeRecipe("recovering")
@@ -523,3 +524,21 @@ def test_smoke_submission_uses_the_accepted_adapter_and_checks(
     )
     sweep._submit_smoke(fake.key, slot)
     assert submitted == [accepted]
+
+
+def test_a_failure_seen_while_the_platform_was_unreadable_heals_on_the_next_release(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    recipe = FakeRecipe("image-bug", fail_load=IMAGE_BUG)
+    sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
+    fleet.api_source_sha = None  # the platform reply names no API release
+    sweep.run()
+    assert _entry(sweep, "image-bug")["status"] == "deferred"
+    assert _entry(sweep, "image-bug")["release"] is None
+    fleet.api_source_sha = NEW
+    fleet.recipes[recipe.key].fail_load = None
+    again, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
+    again.run()
+    entry = _entry(again, "image-bug")
+    assert entry["status"] == "passed"
+    assert entry["recovery_history"][0]["basis"] == {"controller_release": NEW}

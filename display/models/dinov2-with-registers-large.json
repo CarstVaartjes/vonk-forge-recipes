@@ -1,0 +1,16 @@
+{
+  "description": "Exact Step1X offline dependency closure for DINOv2 configuration and image preprocessing. No external DINOv2 weights are selected or required.",
+  "family_title": "DINOv2",
+  "identity": {
+    "publisher": "facebook",
+    "slug": "dinov2-with-registers-large"
+  },
+  "kind": "model-display",
+  "model_title": "DINOv2 with Registers Large",
+  "tags": [
+    "facebook",
+    "vision",
+    "metadata-only",
+    "step1x"
+  ]
+}

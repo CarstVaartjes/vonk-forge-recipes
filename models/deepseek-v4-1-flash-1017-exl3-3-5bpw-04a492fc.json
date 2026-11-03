@@ -627,13 +627,11 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek",
-      "title": "DeepSeek"
+      "slug": "deepseek"
     },
     "model": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-v4-1-flash-1017",
-      "title": "DeepSeek V4.1 Flash 1017"
+      "slug": "deepseek-v4-1-flash-1017"
     },
     "publisher": "libertaidai",
     "slug": "deepseek-v4-1-flash-1017-exl3-3-5bpw-04a492fc",
@@ -647,14 +645,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/LibertAIDAI/DeepSeek-V4.1-Flash-1017-EXL3-3.5bpw/blob/cc6a7ef5bdf61d64417806edfd49a48b3d9fda35/LICENSE"
-  },
-  "metadata": {
-    "description": "LibertAIDAI/DeepSeek-V4.1-Flash-1017-EXL3-3.5bpw at immutable revision cc6a7ef5bdf61d64417806edfd49a48b3d9fda35. Source model inputs for the creator runtime; physical Spark acceptance is unmeasured.",
-    "tags": [
-      "deepseek",
-      "1017",
-      "exl3"
-    ]
   },
   "modalities": [
     "text",

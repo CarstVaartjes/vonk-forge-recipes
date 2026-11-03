@@ -1,0 +1,15 @@
+{
+  "description": "Exact public 1M-context NVFP4 64734b3a checkpoint.",
+  "family_title": "Laguna",
+  "identity": {
+    "publisher": "poolside",
+    "slug": "laguna-s-2-1-nvfp4-826aacdf"
+  },
+  "kind": "model-display",
+  "model_title": "Laguna S 2.1",
+  "tags": [
+    "poolside",
+    "language",
+    "candidate"
+  ]
+}

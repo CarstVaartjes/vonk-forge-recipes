@@ -30,28 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Mia's (MiaAI-Lab) single-Spark vLLM profile for Ornith 1.5 35B-A3B NVFP4 (ornith-ai checkpoint 94e431d9) with the GB10-native b12x MoE backend, in-checkpoint MTP (one speculative token, upstream's only setting), 262,144-token context, fp8 KV cache default, 24 concurrent sequences, prefix caching and qwen3 reasoning / qwen3_xml tool parsing. Runs on eugr's spark-vllm-b12x image, pinned to nightly-20260815 (upstream names the mutable :latest tag, which has since moved to a newer b12x), with upstream's two patched b12x W4A16 files baked in (they make the b12x MoE path CUDA-graph safe with MTP). Upstream claims about 86 tok/s single stream and about 440 tok/s at 24 streams; those are claims, not measured here. Notes: upstream sizes gpu-memory-utilization from free device memory at launch (up to 0.85); this recipe fixes 0.85, so nothing else may hold GPU memory. Whether the patched files match the pinned nightly is untested. Licences: repository MIT; checkpoint MIT. Not gated. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
-    "tags": [
-      "executable",
-      "candidate",
-      "ornith",
-      "ornith-1.5",
-      "nvfp4",
-      "b12x",
-      "vllm",
-      "mtp",
-      "reasoning",
-      "agentic",
-      "openai",
-      "single",
-      "spark",
-      "mia",
-      "tool-use"
-    ],
-    "title": "Ornith 1.5 35B-A3B NVFP4 vLLM b12x (Mia) single Spark"
-  },
   "models": [
     {
       "files": [
@@ -268,7 +246,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "06ed43d41ee814b5606f1e5df24210e55efa8b6e3c18e9dfec12b36d395418b8",
+        "content_sha256": "4199fee7d99030da1ba789880f9252d456c71498473275d424d9517b67587ea1",
         "kind": "model",
         "publisher": "ornith-ai",
         "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9"

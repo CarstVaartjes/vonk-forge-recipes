@@ -28,13 +28,11 @@
   "identity": {
     "family": {
       "publisher": "facebook",
-      "slug": "dinov2",
-      "title": "DINOv2"
+      "slug": "dinov2"
     },
     "model": {
       "publisher": "facebook",
-      "slug": "dinov2-with-registers-large",
-      "title": "DINOv2 with Registers Large"
+      "slug": "dinov2-with-registers-large"
     },
     "publisher": "facebook",
     "slug": "dinov2-with-registers-large",
@@ -48,15 +46,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/facebook/dinov2-with-registers-large/blob/e4c89a4e05589de9b3e188688a303d0f3c04d0f3/README.md"
-  },
-  "metadata": {
-    "description": "Exact Step1X offline dependency closure for DINOv2 configuration and image preprocessing. No external DINOv2 weights are selected or required.",
-    "tags": [
-      "facebook",
-      "vision",
-      "metadata-only",
-      "step1x"
-    ]
   },
   "modalities": [
     "image"

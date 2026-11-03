@@ -1,0 +1,16 @@
+{
+  "description": "DSpark speculative drafter for GLM 5.3.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "redhatai",
+    "slug": "glm-5-3-dspark-b374b956"
+  },
+  "kind": "model-display",
+  "model_title": "GLM 5.3 DSpark",
+  "tags": [
+    "redhatai",
+    "glm",
+    "language",
+    "candidate"
+  ]
+}

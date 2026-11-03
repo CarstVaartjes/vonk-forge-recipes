@@ -30,7 +30,12 @@ from . import policy, verdict
 from .evidence_contract import read_result
 from .identity import recorded_identity
 from .lifecycle import ACTIVE
-from .qualification import current_identity, from_history, merge_evidence, read_evidence
+from .qualification import (
+    current_identity,
+    from_history,
+    merge_evidence,
+    read_evidence,
+)
 from .removal_contract import RecipeVerdict, RemovalWait
 from .state import write_atomic
 
@@ -250,6 +255,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         ),
         "alerts": list(data.get("alerts") or [])
         + ([sweep.stall_reason] if sweep.stall_reason else [])
+        + ([sweep.evidence_publisher.alert] if sweep.evidence_publisher.alert else [])
         + [
             f"ESCALATION: {source} has not recovered since {item['since']}; "
             f"{item['dependency']}"
@@ -390,7 +396,12 @@ def render_status(status: Mapping[str, Any]) -> str:
     lines.append("## Lanes")
     for spark, items in status["lanes"].items():
         text = ", ".join(
-            f"{i['recipe']} [{i['phase']} {_duration(i['elapsed_s'])}/{_duration(i['limit_s'])}]"
+            f"{i['recipe']} [{i['phase']} "
+            + (
+                f"window suspended, last progress {_duration(i['silent_s'])} ago]"
+                if i.get("held_receipt")
+                else f"{_duration(i['elapsed_s'])}/{_duration(i['limit_s'])}]"
+            )
             + (
                 f" OVER BUDGET by {_duration(i['over_budget_s'])}"
                 + ("; re-plan due" if i.get("waiting_on") else "")

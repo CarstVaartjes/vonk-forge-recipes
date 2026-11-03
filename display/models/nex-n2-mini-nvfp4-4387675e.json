@@ -1,0 +1,16 @@
+{
+  "description": "Nex-AGI Nex-N2-mini (Qwen3.5-MoE 35B).",
+  "family_title": "Nex N2",
+  "identity": {
+    "publisher": "r0b0tlab",
+    "slug": "nex-n2-mini-nvfp4-4387675e"
+  },
+  "kind": "model-display",
+  "model_title": "Nex-N2-mini",
+  "tags": [
+    "r0b0tlab",
+    "nex-n2",
+    "language",
+    "candidate"
+  ]
+}

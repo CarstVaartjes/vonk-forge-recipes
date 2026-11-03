@@ -1041,13 +1041,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-5-super-vl",
-      "title": "NVIDIA Nemotron 3.5 Super VL"
+      "slug": "nemotron-3-5-super-vl"
     },
     "publisher": "nvidia",
     "slug": "nemotron-3-5-super-vl-nvfp4-82d93699",
@@ -1061,15 +1059,6 @@
     ],
     "spdx": "LicenseRef-NVIDIA-Open-Model-License",
     "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/blob/82d93699acd3be9e4617c53360fe5b3f5dbeb1b3/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact NVFP4 checkpoint for sfxnz\u2019s interactive profile.",
-    "tags": [
-      "nvidia",
-      "nemotron",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

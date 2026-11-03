@@ -7,7 +7,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "contracts/src")]
-from vonk_forge_contracts.sweep import SweepEvidenceExit
 
 from spark_sweep.evidence_publisher import sync
 
@@ -16,9 +15,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--history", type=Path, required=True)
     parser.add_argument("--work-dir", type=Path, required=True)
+    parser.add_argument("--state", type=Path, default=None)
     args = parser.parse_args()
-    synced = sync(args.history, args.work_dir)
-    raise SystemExit(SweepEvidenceExit.SYNCED if synced else SweepEvidenceExit.WAITING)
+    raise SystemExit(sync(args.history, args.work_dir, args.state))
 
 
 if __name__ == "__main__":

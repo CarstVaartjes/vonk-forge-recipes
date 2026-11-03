@@ -14,8 +14,17 @@ from typing import Any
 from pydantic import ValidationError
 from vonk_forge_contracts.sweep import ReviewedCleanupStop
 
+from .lifecycle import LifecycleState
+
 STATES = frozenset(
-    {"not-issued", "pending", "succeeded", "failed", "cancelled", "unknown"}
+    {
+        "not-issued",
+        "pending",
+        LifecycleState.SUCCEEDED,
+        LifecycleState.FAILED,
+        LifecycleState.CANCELLED,
+        "unknown",
+    }
 )
 
 
@@ -96,7 +105,7 @@ def same_effect(previous: Mapping[str, Any], current: Mapping[str, Any]) -> bool
 
 def stopped(row: Mapping[str, Any]) -> bool:
     """Only the canonical successful exact-run stop receipt releases occupancy."""
-    if row.get("state") != "succeeded" or not row.get("operation_id"):
+    if row.get("state") != LifecycleState.SUCCEEDED or not row.get("operation_id"):
         return False
     result = row.get("result")
     operation = result.get("run_switch") if isinstance(result, Mapping) else None

@@ -1,0 +1,16 @@
+{
+  "description": "MiniMax M2.7 mixture-of-experts language model.",
+  "family_title": "MiniMax",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "minimax-m2-7-nvfp4-e79701cb"
+  },
+  "kind": "model-display",
+  "model_title": "MiniMax M2.7",
+  "tags": [
+    "nvidia",
+    "minimax",
+    "language",
+    "candidate"
+  ]
+}

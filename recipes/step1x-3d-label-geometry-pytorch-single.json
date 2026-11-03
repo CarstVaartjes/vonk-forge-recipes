@@ -88,23 +88,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Installable single-DGX Spark controlled image-to-geometry Candidate using the exact Step1X label pipeline and declared DINOv2/CLIP configuration inputs, an SM121-native CUDA 13 runtime, deterministic offline input handling, and GLB output. For generated GLBs up to 240 MiB, the linked next step is vonk-forge/step1x-3d-texture-pytorch-single with the same reference image. Physical Spark quality, memory, and latency acceptance is still required.",
-    "tags": [
-      "candidate",
-      "three-d",
-      "pytorch-pipeline",
-      "single",
-      "spark",
-      "executable",
-      "offline",
-      "source-bundled",
-      "stage-geometry",
-      "next-step-texture"
-    ],
-    "title": "Step1X-3D label-geometry pytorch-pipeline single Spark"
-  },
   "models": [
     {
       "files": [
@@ -221,7 +204,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f9e4708f79600fc6baa09f3c20b2e12e2198ab32ba96a5f7f07efa52e40a5b33",
+        "content_sha256": "f176f8eadd20a2bda1e56066102fc59fd446497a1a596cdd0a89b88da1e35985",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step1x-3d-label-geometry"
@@ -252,7 +235,7 @@
       ],
       "id": "dinov2-registers",
       "model": {
-        "content_sha256": "1dc231dc891334a8fca97099e5e734ff679370849c4794c0923caba34d987900",
+        "content_sha256": "ab5ae5fdcdf6e4e976cb56a1d9cb58efe152cbba6d74347dfcfdd1afa61e9ff4",
         "kind": "model",
         "publisher": "facebook",
         "slug": "dinov2-with-registers-large"
@@ -273,7 +256,7 @@
       ],
       "id": "clip",
       "model": {
-        "content_sha256": "2e00aa423d5c92120d39b3d2da0b7d7053aae2d834c373b2706ce544a030e3fa",
+        "content_sha256": "c858dbb69df14112730e9df44829f041a8cecee1a2bfd3df4193c5d31a92ca70",
         "kind": "model",
         "publisher": "openai",
         "slug": "clip-vit-large-patch14"

@@ -1,0 +1,26 @@
+{
+  "alignment": "unspecified",
+  "description": "Executable Candidate adaptation of MiaAI-Lab's two-DGX-Spark Inkling Small NVFP4 profile: SGLang TP2 over RoCE with RadixArk's DSpark Preview draft (block size 7), the fp4_mx_block16 KV cache and a 1M-token context, on drowzeys' prebuilt KV-quant GB10 SGLang image pinned by digest. Launch flags are upstream's text-only set (no --enable-multimodal); throughput figures in upstream's README are its own claims.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-small-nvfp4-sglang-mia-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "thinkingmachines",
+    "inkling",
+    "text",
+    "reasoning",
+    "tool-use",
+    "nvfp4",
+    "dspark",
+    "sglang",
+    "speculative-decoding",
+    "long-context",
+    "distributed",
+    "spark"
+  ],
+  "title": "Inkling Small NVFP4 SGLang DSpark two Sparks (Mia)"
+}

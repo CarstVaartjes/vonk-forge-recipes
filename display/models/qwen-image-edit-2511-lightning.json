@@ -1,0 +1,20 @@
+{
+  "description": "Exact ModelTC/lightx2v four-step BF16 distilled LoRA for the official Qwen Image Edit 2511 base checkpoint.",
+  "family_title": "Qwen Image",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-edit-2511-lightning"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen Image Edit 2511",
+  "tags": [
+    "qwen",
+    "image",
+    "editing",
+    "image-to-image",
+    "lightning",
+    "lora",
+    "bf16",
+    "candidate"
+  ]
+}

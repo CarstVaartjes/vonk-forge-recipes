@@ -1,0 +1,16 @@
+{
+  "description": "Exact public Unsloth Dynamic V3.0 NVFP4 (compressed-tensors) Qwen3.8 27B checkpoint with MTP weights.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "unsloth",
+    "slug": "qwen3-8-27b-nvfp4-f0b7c9e7"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 27B NVFP4",
+  "tags": [
+    "unsloth",
+    "qwen3-8-unsloth",
+    "text",
+    "candidate"
+  ]
+}

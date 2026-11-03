@@ -293,6 +293,7 @@ class SweepProgress(StrEnum):
 class SweepEvidenceExit(IntEnum):
     SYNCED = 0
     WAITING = 10
+    FAILING_CHECK = 11
 
 
 class SweepEvidenceMergeState(StrEnum):
@@ -304,6 +305,39 @@ class SweepEvidenceMergeState(StrEnum):
     HAS_HOOKS = "HAS_HOOKS"
     UNKNOWN = "UNKNOWN"
     UNSTABLE = "UNSTABLE"
+
+
+class SweepCheckStatus(StrEnum):
+    """GitHub check-run lifecycle words in a pull request's status rollup."""
+
+    COMPLETED = "COMPLETED"
+    IN_PROGRESS = "IN_PROGRESS"
+    PENDING = "PENDING"
+    QUEUED = "QUEUED"
+    REQUESTED = "REQUESTED"
+    WAITING = "WAITING"
+
+
+class SweepCheckConclusion(StrEnum):
+    ACTION_REQUIRED = "ACTION_REQUIRED"
+    CANCELLED = "CANCELLED"
+    FAILURE = "FAILURE"
+    NEUTRAL = "NEUTRAL"
+    SKIPPED = "SKIPPED"
+    STALE = "STALE"
+    STARTUP_FAILURE = "STARTUP_FAILURE"
+    SUCCESS = "SUCCESS"
+    TIMED_OUT = "TIMED_OUT"
+
+
+class SweepCommitStatusState(StrEnum):
+    """State of a commit status (as opposed to a check run) in the rollup."""
+
+    ERROR = "ERROR"
+    EXPECTED = "EXPECTED"
+    FAILURE = "FAILURE"
+    PENDING = "PENDING"
+    SUCCESS = "SUCCESS"
 
 
 class SweepAdoptionReason(StrEnum):

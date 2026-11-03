@@ -24,7 +24,7 @@ from pydantic import (
     model_validator,
 )
 
-from .model import Description, ModelReference, Title
+from .model import ModelReference
 
 
 class _RecipeContract(BaseModel):
@@ -170,13 +170,6 @@ RecipeTags = Annotated[list[StrictStr], Field(max_length=20)]
 Alignment = Literal[
     "standard", "abliterated", "derisked", "other-modified", "unspecified"
 ]
-
-
-class RecipeMetadata(_RecipeContract):
-    title: Title
-    description: Description
-    tags: RecipeTags
-    alignment: Alignment | None = None
 
 
 class RecipeMount(_RecipeContract):
@@ -847,7 +840,6 @@ class RecipeDefinition(_RecipeContract):
 
     kind: Literal["recipe"] = "recipe"
     identity: RecipeIdentity
-    metadata: RecipeMetadata
     models: list[RecipeModelSelection] = Field(min_length=1, max_length=32)
     execution: RecipeExecution
     runtime: RecipeRuntime

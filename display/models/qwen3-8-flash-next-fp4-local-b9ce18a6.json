@@ -1,0 +1,16 @@
+{
+  "description": "FP4-Local checkpoint for b12x on DGX Spark.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "qwen3-8-flash-next-fp4-local-b9ce18a6"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 Flash Next",
+  "tags": [
+    "nvidia",
+    "qwen",
+    "language",
+    "candidate"
+  ]
+}

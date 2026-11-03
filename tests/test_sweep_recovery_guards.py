@@ -183,6 +183,7 @@ def _loading(tmp_path: Path):
     sweep.refresh_catalog()
     sweep.queue = list(sweep.recipes)
     sweep.cached_models = sweep._cached_models()
+    sweep.observe_platform()  # a load starts on a known Controller release
     sweep.schedule(clock.now())
     return sweep, fleet, clock
 

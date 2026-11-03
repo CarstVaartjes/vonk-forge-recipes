@@ -1,0 +1,17 @@
+{
+  "description": "Exact public Google Gemma 4 31B instruction-tuned checkpoint.",
+  "family_title": "Google Gemma",
+  "identity": {
+    "publisher": "google",
+    "slug": "gemma-4-31b-it-842da379"
+  },
+  "kind": "model-display",
+  "model_title": "Gemma 4 31B",
+  "tags": [
+    "google",
+    "gemma",
+    "language",
+    "instruction-tuned",
+    "candidate"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "description": "ggml-org GGUF conversion of Gemma 4 E2B IT at Q8_0, plus the Q8_0 vision projector.",
+  "family_title": "Google Gemma",
+  "identity": {
+    "publisher": "ggml-org",
+    "slug": "gemma-4-e2b-it-q8-0-6938c58e"
+  },
+  "kind": "model-display",
+  "model_title": "Gemma 4 E2B",
+  "tags": [
+    "ggml-org",
+    "gemma",
+    "language",
+    "gguf",
+    "candidate"
+  ]
+}

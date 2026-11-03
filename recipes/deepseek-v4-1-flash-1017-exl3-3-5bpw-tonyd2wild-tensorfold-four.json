@@ -35,20 +35,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Tony's native Zig TensorFold TP4 lane at 9fa230d3eb119f588e690bf9b87ce41ed902db60, with the pinned bertholomus engine/kit and the creator's sampling, Triton/indexer and rank-cache patches. Full 1M context, 16 streams, built-in DSpark, image input and byte-checked chat template. Engram shards stay on local NVMe. Read-only source weights derive a per-rank cache and verified RoPE/vision kit under /outputs/cache; restart reuses valid completed work and rebuilds incomplete or malformed derived inputs. The 100 GB head peak estimate allows the creator's 71.87 GiB resident model plus serving overhead (28-29 GiB available on the head). Upstream measurements are not physical qualification on this fleet.",
-    "tags": [
-      "deepseek",
-      "1017",
-      "tensorfold",
-      "exl3",
-      "dspark",
-      "vision",
-      "spark"
-    ],
-    "title": "DeepSeek V4.1 Flash 1017 EXL3 3.5bpw TensorFold TP4 (tonyd2wild)"
-  },
   "models": [
     {
       "files": [
@@ -803,7 +789,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "64f20a86d9bee3bcd1c42edc8dbf55ed7b0b50ff49ebbc5415ff01a44729b6b2",
+        "content_sha256": "3adb5ae5e41278f0fe75f44c1be912f446a421231880b8b813b409883acda259",
         "kind": "model",
         "publisher": "libertaidai",
         "slug": "deepseek-v4-1-flash-1017-exl3-3-5bpw-04a492fc"
@@ -847,7 +833,7 @@
       ],
       "id": "engram",
       "model": {
-        "content_sha256": "12ed67e42c35dc08489bacb4d87ebd581bfd7360f404e879622f8cdcae9c3ca7",
+        "content_sha256": "d0d4352886a3cba94ad6233c93b594e770d0d8deeeda2331671fbd9deb5d7e1b",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-1017-native-1bae0e10"

@@ -178,7 +178,7 @@ def test_launcher_uses_available_loopback_port_without_hostname_lookup(
 
 
 PLACEMENT = ("VONK_MASTER_ADDR", "VONK_MASTER_PORT")
-LLAMA_405B = "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual"
+LLAMA_405B = "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four"
 
 
 def _binds_placement(slug: str) -> bool:

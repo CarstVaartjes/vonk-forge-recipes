@@ -25,6 +25,10 @@ the installable contracts. Do not add separate guidance files.
   deterministic errors fail with evidence. Fail closed at security and effect
   ownership edges. Decide by content identity and observed behaviour. Fix the
   class with a guard and fault-injection or behaviour regression tests.
+- A Recipe or Model document holds execution data only; its titles, description,
+  tags and alignment live in `display/recipes/<slug>.json` /
+  `display/models/<slug>.json`. A display edit never changes a digest, evidence
+  or a proven status. Add or remove a display together with its document.
 - Use contract models and enums for structures, states, reasons and codes we
   control. External wire extensions are distinct from locally owned structures.
   Platform wire consumers use the Pydantic → JSON Schema → typify Rust chain
@@ -40,7 +44,7 @@ the installable contracts. Do not add separate guidance files.
 
 ## Sweep evidence workflow
 
-Hardware qualification uses contract 2.4.0 `RecipeQualificationEvidence` and
+Hardware qualification uses `RecipeQualificationEvidence` and
 `derive_status`. Store public evidence in
 `qualification/evidence/<publisher>/<recipe-slug>.json`, separate from recipes.
 Proven recipes are never broken pre-emptively: preserve the last pass during a

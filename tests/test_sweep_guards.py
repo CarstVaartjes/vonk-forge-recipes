@@ -20,7 +20,7 @@ from typing import Any
 import pytest
 
 from spark_sweep import policy, verdict
-from spark_sweep.lifecycle import ACTIVE, STATES, TERMINAL, WAITING
+from spark_sweep.lifecycle import ACTIVE, STATES, TERMINAL, WAITING, RecipeStatus
 from spark_sweep.verdict import Disposition
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -784,4 +784,157 @@ def test_assignment_failures_are_read_only_through_the_typed_resolver() -> None:
                 offenders.append(f"{path.name}:{node.lineno}")
     assert not offenders, (
         f"read through policy.assignment_failures instead: {offenders}"
+    )
+
+
+def test_every_evidence_exit_has_its_own_status_message():
+    """A new SweepEvidenceExit member must not fall into the generic 'exited N'."""
+    from spark_sweep.evidence_publisher import SweepEvidenceExit
+
+    tree = ast.parse((ROOT / "spark_sweep/evidence_publisher.py").read_text())
+    tick = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef) and node.name == "tick"
+    )
+    mapped = {
+        node.attr
+        for node in ast.walk(tick)
+        if isinstance(node, ast.Attribute)
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "SweepEvidenceExit"
+    }
+    assert mapped == {member.name for member in SweepEvidenceExit}
+
+
+# -- lifecycle words come from the shared vocabulary ---------------------------------------
+
+_LIFECYCLE_WORDS = frozenset(state.value for state in STATES)
+#: The legacy spellings the published vocabulary retired, read from its own description.
+_RETIRED_WORDS = frozenset(
+    re.findall(
+        r"``([a-z-]+)``",
+        json.loads((ROOT / "tests/fixtures/sweep-lifecycle.json").read_text())[
+            "LifecycleState"
+        ]["description"]
+        .split("legacy spellings", 1)[1]
+        .split(")", 1)[0],
+    )
+)
+#: Words only a lifecycle state speaks: ``failed`` is also a recipe status and is judged by
+#: the compare rule, not the collection rule.
+_STATE_ONLY_WORDS = _LIFECYCLE_WORDS - {status.value for status in RecipeStatus}
+_DRIFT_WORDS = _LIFECYCLE_WORDS | _RETIRED_WORDS
+
+
+def _words(node: ast.AST, vocabulary: frozenset[str]) -> set[str]:
+    return {
+        item.value
+        for item in ast.walk(node)
+        if isinstance(item, ast.Constant) and isinstance(item.value, str)
+    } & vocabulary
+
+
+def _is_state_read(node: ast.AST) -> bool:
+    """``x["state"]``, ``x.get("state")``, ``_text(x, "state")``, ``state`` or ``x.state``."""
+    if isinstance(node, ast.Name):
+        return node.id == "state"
+    if isinstance(node, ast.Attribute):
+        return node.attr == "state"
+    if isinstance(node, ast.Subscript):
+        return isinstance(node.slice, ast.Constant) and node.slice.value == "state"
+    if isinstance(node, ast.Call):
+        return any(
+            isinstance(arg, ast.Constant) and arg.value == "state" for arg in node.args
+        )
+    return False
+
+
+def _cli_values(node: ast.AST) -> set[int]:
+    """Ids of strings that follow a ``--state`` flag: a profile CLI value, not a lifecycle state."""
+    skipped: set[int] = set()
+    for item in ast.walk(node):
+        if isinstance(item, (ast.List, ast.Tuple)):
+            for before, value in zip(item.elts, item.elts[1:], strict=False):
+                if isinstance(before, ast.Constant) and before.value == "--state":
+                    skipped.add(id(value))
+    return skipped
+
+
+def _local_lifecycle_literals(tree: ast.AST) -> list[int]:
+    """Lines where a lifecycle word is spelled out instead of named through the vocabulary.
+
+    A collection holding a state-only word or a retired spelling, or a ``state`` read compared
+    with a lifecycle word or retired spelling (bare or inside a collection).
+    """
+    skipped = _cli_values(tree)
+    lines = set()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Set, ast.Tuple, ast.List)):
+            held = {
+                item.value
+                for item in node.elts
+                if isinstance(item, ast.Constant)
+                and isinstance(item.value, str)
+                and id(item) not in skipped
+            }
+            if held & (_STATE_ONLY_WORDS | _RETIRED_WORDS):
+                lines.add(node.lineno)
+        elif isinstance(node, ast.Compare):
+            sides = [node.left, *node.comparators]
+            if any(_is_state_read(side) for side in sides) and any(
+                _words(side, _DRIFT_WORDS) for side in sides
+            ):
+                lines.add(node.lineno)
+    return sorted(lines)
+
+
+def test_retired_spellings_come_from_the_published_vocabulary() -> None:
+    assert "waiting-for-operator" in _RETIRED_WORDS
+    assert not _RETIRED_WORDS & _LIFECYCLE_WORDS
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        'ENDED = frozenset({"succeeded", "failed", "cancelled"})',
+        'ENDED = frozenset({"needs-operator", "waiting-for-operator"})',
+        'x = job["state"] != "failed"',
+        'x = r.get("state") == "failed"',
+        'x = r.get("state") not in ("failed", "retired")',
+        'x = state in ("needs-operator",)',
+        'x = job["state"] == "waiting-for-operator"',
+        'x = ["cancelled"]',
+    ],
+)
+def test_lifecycle_literal_guard_catches_drifted_spellings(source: str) -> None:
+    assert _local_lifecycle_literals(ast.parse(source)) == [1]
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        'x = {"other", "another"}',
+        'x = entry["status"] == "failed"',
+        'x = status in ("passed", "failed")',
+        "x = state != LifecycleState.FAILED",
+        'x = ["--state", "running"]',
+        'x = state not in (LifecycleState.FAILED, "retired")',
+    ],
+)
+def test_lifecycle_literal_guard_accepts_the_vocabulary_and_other_fields(
+    source: str,
+) -> None:
+    assert not _local_lifecycle_literals(ast.parse(source))
+
+
+@pytest.mark.parametrize("path", SWEEP, ids=lambda p: p.name)
+def test_the_sweep_names_lifecycle_states_only_through_the_shared_vocabulary(
+    path: Path,
+) -> None:
+    if path.name == "lifecycle.py" or path.suffix != ".py":
+        return
+    assert not _local_lifecycle_literals(ast.parse(path.read_text())), (
+        f"{path.name}: use LifecycleState / TERMINAL / WAITING / ACTIVE from "
+        "spark_sweep.lifecycle, not literal state words"
     )

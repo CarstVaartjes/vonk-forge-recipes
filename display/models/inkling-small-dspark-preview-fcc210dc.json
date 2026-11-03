@@ -1,0 +1,16 @@
+{
+  "description": "RadixArk DSpark speculator (5-layer Qwen3-style draft with Markov and confidence heads, BF16) for thinkingmachines/Inkling-Small-NVFP4. Research preview; the repository declares no licence.",
+  "family_title": "Inkling",
+  "identity": {
+    "publisher": "radixark",
+    "slug": "inkling-small-dspark-preview-fcc210dc"
+  },
+  "kind": "model-display",
+  "model_title": "Inkling Small DSpark Preview",
+  "tags": [
+    "radixark",
+    "inkling",
+    "language",
+    "candidate"
+  ]
+}

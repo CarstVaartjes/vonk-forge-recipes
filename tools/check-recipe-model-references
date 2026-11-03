@@ -16,8 +16,17 @@ import json
 import sys
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from vonk_forge_contracts import (
+    ModelDefinition,
+    ModelDisplay,
+    RecipeDefinition,
+    RecipeDisplay,
+)
+from vonk_forge_contracts.resolver import validate_library
 
 
 def document_sha256(document: object) -> str:
@@ -111,7 +120,31 @@ def check(root: Path) -> list[str]:
                 problems.append(
                     f"{path.name}: model {key[0]}/{key[1]} has no file {file_id}"
                 )
+    problems.extend(_display_problems(root))
     return problems
+
+
+def _display_problems(root: Path) -> list[str]:
+    """Exactly one display per Recipe and Model document, and no orphan display."""
+
+    def load(directory: str, contract: type) -> dict[str, Any]:
+        return {
+            path.stem: contract.model_validate(json.loads(path.read_text("utf-8")))
+            for path in sorted((root / directory).glob("*.json"))
+        }
+
+    try:
+        recipes = load("recipes", RecipeDefinition)
+        models = load("models", ModelDefinition)
+        validate_library(
+            recipes.values(),
+            models.values(),
+            load("display/recipes", RecipeDisplay),
+            load("display/models", ModelDisplay),
+        )
+    except ValueError as error:
+        return [str(error)]
+    return []
 
 
 def main(argv: list[str] | None = None) -> int:

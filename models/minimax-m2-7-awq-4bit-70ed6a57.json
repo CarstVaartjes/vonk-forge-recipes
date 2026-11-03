@@ -518,13 +518,11 @@
   "identity": {
     "family": {
       "publisher": "minimax",
-      "slug": "minimax",
-      "title": "MiniMax"
+      "slug": "minimax"
     },
     "model": {
       "publisher": "cyankiwi",
-      "slug": "minimax-m2-7-awq-4bit",
-      "title": "MiniMax M2.7 AWQ 4bit"
+      "slug": "minimax-m2-7-awq-4bit"
     },
     "publisher": "cyankiwi",
     "slug": "minimax-m2-7-awq-4bit-70ed6a57",
@@ -539,15 +537,6 @@
     ],
     "spdx": "LicenseRef-MiniMax-Modified-MIT",
     "url": "https://github.com/MiniMax-AI/MiniMax-M2.7/blob/main/LICENSE"
-  },
-  "metadata": {
-    "description": "cyankiwi AWQ 4-bit (compressed-tensors) quantization of MiniMax M2.7.",
-    "tags": [
-      "cyankiwi",
-      "minimax-cyankiwi",
-      "text",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

@@ -419,13 +419,11 @@
   "identity": {
     "family": {
       "publisher": "thinkingmachines",
-      "slug": "inkling",
-      "title": "Inkling"
+      "slug": "inkling"
     },
     "model": {
       "publisher": "thinkingmachines",
-      "slug": "inkling-975b-a41b",
-      "title": "Inkling 975B-A41B"
+      "slug": "inkling-975b-a41b"
     },
     "publisher": "thinkingmachines",
     "slug": "inkling-975b-a41b-nvfp4",
@@ -439,15 +437,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://www.apache.org/licenses/LICENSE-2.0"
-  },
-  "metadata": {
-    "description": "Exact public NVFP4 42a75a99 checkpoint.",
-    "tags": [
-      "thinkingmachines",
-      "inkling",
-      "multimodal",
-      "candidate"
-    ]
   },
   "modalities": [
     "audio",

@@ -229,13 +229,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "intel",
-      "slug": "qwen3-coder-next-int4-autoround",
-      "title": "Qwen3-Coder-Next INT4 AutoRound (Intel)"
+      "slug": "qwen3-coder-next-int4-autoround"
     },
     "publisher": "intel",
     "slug": "qwen3-coder-next-int4-autoround-79c8a6bb",
@@ -250,15 +248,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Intel/Qwen3-Coder-Next-int4-AutoRound/blob/79c8a6bb73b7946095d7ece1f8fc68535f7c9ab8/README.md"
-  },
-  "metadata": {
-    "description": "Exact Intel AutoRound INT4 quantization of Qwen3-Coder-Next; Intel states to follow the licence of the original model.",
-    "tags": [
-      "intel",
-      "qwen3-coder-next-intel",
-      "text",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

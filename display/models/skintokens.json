@@ -1,0 +1,15 @@
+{
+  "description": "Immutable public snapshot at 79736cad.",
+  "family_title": "SkinTokens",
+  "identity": {
+    "publisher": "vast-ai",
+    "slug": "skintokens"
+  },
+  "kind": "model-display",
+  "model_title": "SkinTokens",
+  "tags": [
+    "vast-ai",
+    "three-d",
+    "candidate"
+  ]
+}

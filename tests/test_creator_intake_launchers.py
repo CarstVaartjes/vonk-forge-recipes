@@ -15,15 +15,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize("profile", ["c2", "c4", "c2-vit-off"])
-def test_flash_next_profile_receives_platform_endpoint_and_memory(
+def test_flash_next_profile_receives_platform_endpoint(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, profile: str
 ) -> None:
     import argparse
 
     # The pinned upstream parser accepts only profile, sources and print. The
-    # platform also appends endpoint and memory arguments to every SGLang load.
+    # platform appends only --host and --port to every SGLang load (canonical.py);
+    # memory comes from the profile, so no --mem-fraction-static is sent here.
     entrypoint = types.SimpleNamespace()
     entrypoint.MODEL_PATH = "/model"
+    entrypoint.PLE_DIR_ROOT = "/cache/ple"
     entrypoint.SERVE_HOST = "0.0.0.0"
     entrypoint.SERVE_PORT = 30000
 
@@ -71,8 +73,6 @@ def test_flash_next_profile_receives_platform_endpoint_and_memory(
             profile,
             "--sources",
             "sources.json",
-            "--mem-fraction-static",
-            "0.75",
             "--host",
             "127.0.0.1",
             "--port",
@@ -97,42 +97,22 @@ def test_flash_next_profile_receives_platform_endpoint_and_memory(
     with pytest.raises(SystemExit) as ended:
         runpy.run_path(str(launcher), run_name="__main__")
     assert ended.value.code == 0
+    # Upstream prepares the PLE table by walking this path one component at a
+    # time without following links, so it must be a real directory under the
+    # platform cache, never the image's /cache symlink.
+    ple_root = Path(entrypoint.PLE_DIR_ROOT)
+    assert ple_root == tmp_path / "cache" / "ple"
+    assert ple_root.is_dir()
+    assert ple_root.resolve() == ple_root
     for flag, value in (
         ("--model-path", str(tmp_path)),
         ("--host", "127.0.0.1"),
         ("--port", "31000"),
-        ("--mem-fraction-static", "0.75"),
+        ("--mem-fraction-static", "0.9"),
         ("--speculative-num-steps", "3"),
     ):
         assert captured.count(flag) == 1
         assert captured[captured.index(flag) + 1] == value
-
-
-@pytest.mark.parametrize("memory", ["nan", "inf", "0", "1", "-0.5"])
-def test_flash_next_rejects_invalid_platform_memory(memory: str) -> None:
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(
-                ROOT
-                / "adapters/qwen/r0b0tlab-flash-next-sglang-single/flash-next-serve"
-            ),
-            "--profile",
-            "unused",
-            "--host",
-            "0.0.0.0",
-            "--port",
-            "30000",
-            "--mem-fraction-static",
-            memory,
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-        timeout=10,
-    )
-    assert result.returncode == 2
-    assert "mem-fraction-static must be finite and between 0 and 1" in result.stderr
 
 
 @pytest.mark.parametrize(

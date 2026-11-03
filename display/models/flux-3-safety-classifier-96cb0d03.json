@@ -1,0 +1,14 @@
+{
+  "description": "FLUX reference image classifier immutable upstream checkpoint. Physical Spark qualification pending.",
+  "family_title": "NSFW Image Detection",
+  "identity": {
+    "publisher": "falconsai",
+    "slug": "flux-3-safety-classifier-96cb0d03"
+  },
+  "kind": "model-display",
+  "model_title": "FLUX reference image classifier",
+  "tags": [
+    "candidate",
+    "nsfw-image-detection"
+  ]
+}

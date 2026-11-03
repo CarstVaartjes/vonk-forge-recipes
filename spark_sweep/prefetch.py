@@ -40,6 +40,7 @@ from .policy import (
     Failure,
     GroupPlan,
     RateTracker,
+    assets_cached,
     classify,
     excerpt,
     plan_groups,
@@ -83,6 +84,9 @@ PIN_PROFILE_MAX_ASSIGNMENTS = 64
 PIN_RETRY_MAX_SECONDS = 3600.0
 
 
+#: A download record the sweep gave up on without a Controller state: a local disposition, not a
+#: ``LifecycleState`` (download records mix both; separating them is a follow-up).
+DOWNLOAD_RETIRED = "retired"
 SWEEP_LABEL = ("purpose", "hardware-sweep")
 PIN_ALIAS_PREFIX = "pin-"
 
@@ -114,6 +118,8 @@ class Prefetcher:
         self.on_ok: Callable[[str], None] = lambda _source: None
         # Set by the sweep: how many lanes are online now (None: unknown, all count).
         self.online_lanes: Callable[[], int | None] = lambda: None
+        # Set by the sweep: the deployed Controller release a download starts on.
+        self.release: Callable[[], str | None] = lambda: None
         self.pause_until = 0.0
         self.library_fresh_since = 0.0  # start of the newest complete library pass
         self.pressure_until = 0.0
@@ -135,7 +141,10 @@ class Prefetcher:
         for key, record in list(self.state.downloads.items()):
             if (
                 record.get("state") == "external"
-                or (record.get("state") == "retired" and not record.get("request_key"))
+                or (
+                    record.get("state") == DOWNLOAD_RETIRED
+                    and not record.get("request_key")
+                )
                 or (
                     record.get("state") in TERMINAL
                     and record.get("state")
@@ -295,7 +304,7 @@ class Prefetcher:
                 self._retire(key, record, "download.stalled")
             elif active(record["state"]):
                 total_rate += float(speed)
-            elif record["state"] == "failed":
+            elif record["state"] == LifecycleState.FAILED:
                 self._failed(key, record, document)
             elif record["state"] in (
                 LifecycleState.CANCELLED,
@@ -314,7 +323,9 @@ class Prefetcher:
                 )
                 self.state.event(f"download intent ended: {key}")
                 self.state.save()
-            if record["state"] == "succeeded" and not record.get("done_at"):
+            if record["state"] == LifecycleState.SUCCEEDED and not record.get(
+                "done_at"
+            ):
                 record["done_at"] = self.clock()
                 self.on_done(key)
         self.rate.add(total_rate)
@@ -333,7 +344,7 @@ class Prefetcher:
             self.state.event(f"download observation deferred: {key}: {reason}")
             return
         record.update(
-            state="retired",
+            state=DOWNLOAD_RETIRED,
             reason=reason,
             retry_at=self.clock() + self.config.retry_cooldown,
         )
@@ -399,7 +410,8 @@ class Prefetcher:
                         if child.get(k) is not None
                     }
                     for child in document.get("children", [])
-                    if isinstance(child, dict) and child.get("state") == "failed"
+                    if isinstance(child, dict)
+                    and child.get("state") == LifecycleState.FAILED
                 ][:8],
                 "failure": excerpt(failure_doc, 1000),
             },
@@ -408,7 +420,8 @@ class Prefetcher:
             self.pressure_until = self.clock() + self.config.pressure_pause
             self.state.event(f"NAS pressure on {key}: new model downloads paused")
         model_child = any(
-            child.get("kind") == "model-cache" and child.get("state") == "failed"
+            child.get("kind") == "model-cache"
+            and child.get("state") == LifecycleState.FAILED
             for child in document.get("children", [])
             if isinstance(child, dict)
         )
@@ -451,7 +464,7 @@ class Prefetcher:
         record = self.state.downloads.get(recipe.key, {})
         attempt = int(record.get("attempt", 0)) + 1
         rerequests = int(record.get("rerequests", 0)) + (
-            1 if record.get("state") == "succeeded" else 0
+            1 if record.get("state") == LifecycleState.SUCCEEDED else 0
         )
         key = request_key(
             "download", self.state.nonce, recipe.key, recipe.content_sha256, attempt
@@ -489,6 +502,7 @@ class Prefetcher:
             "requested_intent": requested_intent,
             "retry_of_operation_id": retry_of,
             "started_at": self.clock(),
+            "release": self.release(),
             "request_intent": {
                 "recipe_key": recipe.key,
                 "content_sha256": recipe.content_sha256,
@@ -545,6 +559,8 @@ class Prefetcher:
                 "attempt": attempt,
                 "observe_failures": int(record.get("observe_failures", 0)),
                 "failure": failure.signature,
+                # The release the request started on (recorded with the persisted request).
+                "release": self.state.downloads[recipe.key].get("release"),
                 "request_intent": {
                     "recipe_key": recipe.key,
                     "content_sha256": recipe.content_sha256,
@@ -582,6 +598,7 @@ class Prefetcher:
                 "revision_id": recipe.revision_id,
             },
             "started_at": self.clock(),
+            "release": self.state.downloads[recipe.key].get("release"),
         }
         self.state.event(f"download {kind}: {recipe.key}")
 
@@ -594,7 +611,7 @@ class Prefetcher:
         counted: set[str] = set()
         downloading: set[str] = set()
         for key, record in self.state.downloads.items():
-            if record.get("state") not in ("retired", "external") and active(
+            if record.get("state") not in (DOWNLOAD_RETIRED, "external") and active(
                 record.get("state")
             ):
                 counted.add(key)
@@ -612,7 +629,7 @@ class Prefetcher:
             if (
                 recipe.local == "preparing"
                 and key not in counted
-                and self.state.downloads.get(key, {}).get("state") != "retired"
+                and self.state.downloads.get(key, {}).get("state") != DOWNLOAD_RETIRED
             ):
                 missing = {
                     d
@@ -686,19 +703,26 @@ class Prefetcher:
 
         if cached is None:
             cached = {d for d, model in models.items() if model.local == "cached"}
-        needs_model = [plan for plan in plans if plan.digests - cached]
-        model_ready = [plan for plan in plans if not plan.digests - cached]
+
+        def needs_fetch(plan: Any) -> bool:
+            # A recipe whose own assets are cached never fetches, whatever its models say.
+            return bool(plan.digests - cached) and any(
+                not assets_cached(by_key[k]) for k in plan.recipes if k in by_key
+            )
+
+        needs_model = [plan for plan in plans if needs_fetch(plan)]
+        model_ready = [plan for plan in plans if not needs_fetch(plan)]
         window = self.config.group_window
         for plan in needs_model[:window] + model_ready[:window]:
             leads = [by_key[k] for k in plan.recipes if k in by_key]
-            if plan.digests - cached:
+            if needs_fetch(plan):
                 # The model is not on the NAS yet: one lead recipe fetches it; siblings wait for it.
                 if any(
                     self._active(r.key)
                     or (
                         r.local == "preparing"
                         and self.state.downloads.get(r.key, {}).get("state")
-                        != "retired"
+                        != DOWNLOAD_RETIRED
                     )
                     for r in leads
                 ):
@@ -709,7 +733,9 @@ class Prefetcher:
                     (
                         r
                         for r in leads
-                        if placeable(r.key) and self._can_request(r, now)
+                        if not assets_cached(r)
+                        and placeable(r.key)
+                        and self._can_request(r, now)
                     ),
                     None,
                 )
@@ -728,12 +754,12 @@ class Prefetcher:
                 continue
             for recipe in leads:  # model cached: only the runtime image is missing
                 if (
-                    (
-                        recipe.local not in ("cached", "preparing")
+                    not assets_cached(recipe)
+                    and (
+                        recipe.local != "preparing"
                         or self.state.downloads.get(recipe.key, {}).get("state")
-                        == "retired"
+                        == DOWNLOAD_RETIRED
                     )
-                    and not recipe.cache_ready
                     and image_ops < self.config.max_image_pulls
                     and self._can_request(recipe, now)
                 ):
@@ -757,7 +783,7 @@ class Prefetcher:
         record = self.state.downloads.get(key)
         return (
             record is not None
-            and record.get("state") != "retired"
+            and record.get("state") != DOWNLOAD_RETIRED
             and active(record.get("state"))
         )
 
@@ -789,9 +815,7 @@ class Prefetcher:
                     )
                 )
             )
-        if active(record.get("state")) and record.get("state") != "retired":
-            return False
-        if recipe.cache_ready:
+        if active(record.get("state")) and record.get("state") != DOWNLOAD_RETIRED:
             return False
         accepted = AcceptedRequest.read(record)
         if accepted is not None and content_identity(
@@ -818,11 +842,11 @@ class Prefetcher:
                     record["terminal_verified_at"] = now
                     return True
             return False
-        if record.get("state") == "retired":
+        if record.get("state") == DOWNLOAD_RETIRED:
             if record.get("request_key"):
                 return self._terminal_retest(recipe, record, now)
             return now >= float(record.get("retry_at", 0))
-        if record.get("state") == "succeeded":
+        if record.get("state") == LifecycleState.SUCCEEDED:
             # A finished download stands. Ask again only if a library read made *after*
             # it still says the cache is empty (evicted). Fresh evidence, not a count,
             # authorizes recovery; the cooldown bounds lagging-listing churn.
@@ -832,9 +856,11 @@ class Prefetcher:
                 and now - done_at > 600
                 and self.library_fresh_since > done_at
             )
-        if record.get("state") in ("failed", "cancelled", "superseded") and record.get(
-            "operation_id"
-        ):
+        if record.get("state") in (
+            LifecycleState.FAILED,
+            LifecycleState.CANCELLED,
+            LifecycleState.SUPERSEDED,
+        ) and record.get("operation_id"):
             # Accepted parents always need a fresh exact terminal receipt. An old
             # retry timer must never override an active or unreadable observation.
             return self._terminal_retest(recipe, record, now)
@@ -854,6 +880,7 @@ class Prefetcher:
             in (
                 RetestReason.SCHEDULED,
                 RetestReason.OWNER_CHANGED,
+                RetestReason.RELEASE_CHANGED,
                 RetestReason.OPERATOR,
             )
             and verdict_matches(entry, recipe)
@@ -865,7 +892,7 @@ class Prefetcher:
         )
         if (
             not (scheduled or bounded_retry)
-            or record.get("state") not in ("failed", "retired")
+            or record.get("state") not in (LifecycleState.FAILED, DOWNLOAD_RETIRED)
             or not record.get("operation_id")
             or not record.get("request_key")
             or now < float(record.get("retry_at", 0))
@@ -895,7 +922,7 @@ class Prefetcher:
             or document.get("recipe_content_sha256") != recipe.content_sha256
             or not isinstance(document.get("failure"), Mapping)
             or not isinstance(document.get("request"), Mapping)
-            or document.get("state") != "failed"
+            or document.get("state") != LifecycleState.FAILED
         ):
             return False
         original_intent = record.get("accepted_intent")
@@ -1001,8 +1028,12 @@ class Prefetcher:
             frozenset(slot.get("digests", ())) for slot in self.state.slots.values()
         }
         for plan in plans:
-            if plan.digests - present and not any(
-                self._active(k) for k in plan.recipes
+            if (
+                plan.digests - present
+                and not any(self._active(k) for k in plan.recipes)
+                and not any(
+                    assets_cached(by_key[k]) for k in plan.recipes if k in by_key
+                )
             ):
                 continue  # not downloaded, not requested: nothing to protect
             # The model is what needs protecting: one recipe per model set, plus any recipe

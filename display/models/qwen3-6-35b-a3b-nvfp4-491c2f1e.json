@@ -1,0 +1,16 @@
+{
+  "description": "Exact public NVIDIA Qwen3.6 35B-A3B NVFP4 (ModelOpt) at 491c2f1e, the revision r0b0tlab's SM121 vLLM v0.25 evidence binds to.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "qwen3-6-35b-a3b-nvfp4-491c2f1e"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.6 35B-A3B NVFP4",
+  "tags": [
+    "nvidia",
+    "qwen3-6-nvidia",
+    "language",
+    "candidate"
+  ]
+}

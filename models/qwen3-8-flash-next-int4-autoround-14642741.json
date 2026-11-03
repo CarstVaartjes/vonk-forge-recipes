@@ -1121,13 +1121,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "azampatti",
-      "slug": "qwen3-8-flash-next",
-      "title": "Qwen3.8 Flash Next"
+      "slug": "qwen3-8-flash-next"
     },
     "publisher": "azampatti",
     "slug": "qwen3-8-flash-next-int4-autoround-14642741",
@@ -1142,15 +1140,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/azampatti/Qwen3.8-Flash-Next-125B-A5B-INT4-AutoRound/blob/1464274120d36a4d8fcaa934552334a7d83ce0fd/LICENSE"
-  },
-  "metadata": {
-    "description": "AutoRound INT4 checkpoint with healed shared expert and top-5 routing.",
-    "tags": [
-      "azampatti",
-      "qwen",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

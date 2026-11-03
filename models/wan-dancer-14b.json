@@ -221,13 +221,11 @@
   "identity": {
     "family": {
       "publisher": "wan-ai",
-      "slug": "wan",
-      "title": "Wan"
+      "slug": "wan"
     },
     "model": {
       "publisher": "wan-ai",
-      "slug": "wan-dancer-14b",
-      "title": "Wan-Dancer 14B"
+      "slug": "wan-dancer-14b"
     },
     "publisher": "wan-ai",
     "slug": "wan-dancer-14b",
@@ -242,15 +240,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://github.com/Wan-Video/Wan-Dancer/blob/e6c87a94ec733230dac15b924c015f6e6501e618/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public Wan-Dancer 14B checkpoint.",
-    "tags": [
-      "wan-ai",
-      "wan-dancer",
-      "video",
-      "candidate"
-    ]
   },
   "modalities": [
     "audio",

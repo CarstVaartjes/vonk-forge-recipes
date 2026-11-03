@@ -299,3 +299,15 @@ def test_an_old_wait_only_row_alarms_at_its_first_re_check(
         view = StallAlarm(fleet).view(document, app)  # the upgraded Controller
         codes = [b["code"] for b in view["wait"]["blockers"]]
         assert (codes[-1] == STALLED) is alarmed
+
+
+def test_status_shows_a_suspended_window_while_the_receipt_is_held(
+    tmp_path, monkeypatch
+) -> None:
+    sweep, _, clock, a, b, application, _, _ = held_lane(tmp_path, monkeypatch)
+    expire_window_and_place_b(sweep, clock, a, b)
+    write_status(sweep)
+    status = (tmp_path / "status.md").read_text()
+    assert "window suspended, last progress" in status
+    assert f"held on Controller receipt {application}" in status
+    assert f"[loading {WINDOW // 60:.0f}m/" not in status

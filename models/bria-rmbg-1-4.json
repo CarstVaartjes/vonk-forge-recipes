@@ -192,13 +192,11 @@
   "identity": {
     "family": {
       "publisher": "bria-ai",
-      "slug": "bria-rmbg",
-      "title": "BRIA RMBG"
+      "slug": "bria-rmbg"
     },
     "model": {
       "publisher": "bria-ai",
-      "slug": "bria-rmbg",
-      "title": "BRIA RMBG"
+      "slug": "bria-rmbg"
     },
     "publisher": "bria-ai",
     "slug": "bria-rmbg-1-4",
@@ -213,14 +211,6 @@
     "spdx": "other",
     "territorial_restrictions": null,
     "url": "https://bria.ai/bria-huggingface-model-license-agreement/"
-  },
-  "metadata": {
-    "description": "Official BRIA RMBG v1.4 image-segmentation model at its immutable public revision. The model card labels its license source-available for non-commercial use and requires a separate commercial agreement.",
-    "tags": [
-      "bria-ai",
-      "image",
-      "candidate"
-    ]
   },
   "modalities": [
     "image"

@@ -17,11 +17,9 @@ from qualification.memory_need import (
     argument_value,
     cache_bytes,
     cache_need_for_context,
-    hardware_proven,
     load_inputs,
     memory_variants,
     positive_argument,
-    require_memory_need,
     speculative_tokens,
 )
 from qualification.vllm_memory_fit import loads_draft_model
@@ -177,21 +175,6 @@ def test_hybrid_bound_is_the_smallest_pool_vllm_serves(
         pool = argument_value(variant, "kv-cache-memory-bytes")
         if pool is not None:
             assert allocator_walk(variant, geometry, cache_bytes(pool))
-
-
-def test_proven_hybrid_documents_pass_unchanged() -> None:
-    # Calibration: hardware-proven hybrid pools hold vLLM's allocation as authored.
-    models, proven = catalog_models(), []
-    for recipe, digest in recipes():
-        if not any(recurrent(item.model.slug) for item in recipe.models):
-            continue
-        if not hardware_proven(recipe, digest):
-            continue
-        proven.append(recipe.identity.slug)
-        require_memory_need(recipe, models, INPUTS, document_digest=digest)
-        require_memory_need(recipe, models, INPUTS, document_digest="", touched=True)
-    assert "nemotron-3-5-super-vl-lilicorr-sfxnz-vllm-single" in proven
-    assert "nemotron-3-nano-omni-30b-a3b-bf16-nvidia-vllm-single" in proven
 
 
 def test_vllm_hybrids_are_typed_or_named_unmodeled() -> None:

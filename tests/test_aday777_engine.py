@@ -70,6 +70,7 @@ def test_aday777_avoids_failed_cuda_paths(monkeypatch: pytest.MonkeyPatch) -> No
     assert eval(expression, namespace) is True
 
 
+@pytest.mark.live_evidence
 def test_proven_drowzeys_siblings_remain_at_hardware_identity() -> None:
     # The AEON recipe left this list when it was restored to the creator's
     # memory values (2026-10-29): the sweep re-proves it at its new digest.

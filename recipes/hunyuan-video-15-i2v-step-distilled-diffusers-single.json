@@ -101,21 +101,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Installable Candidate for 480p eight-step image-to-video with a complete immutable step-distilled Diffusers snapshot, isolated image input, and offline ARM64 runtime; physical Spark acceptance remains pending. Keeps models on CUDA without CPU offload on GB10 unified memory; smoke fit is estimated, and physical memory and latency qualification remain pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "video",
-      "image-to-video",
-      "step-distilled",
-      "diffusers",
-      "single",
-      "spark"
-    ],
-    "title": "HunyuanVideo 1.5 I2V 480p step-distilled diffusers single Spark"
-  },
   "models": [
     {
       "files": [
@@ -432,11 +417,37 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c665cdc7df4402b933e201b860b0a11025f5ae1926d5070a2f9cffa669e1b420",
+        "content_sha256": "bb8b5105ceaaef56692058477f61b8de963528ba8e7f30412a0cad25454f232a",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan-video-15-i2v-step-distilled"
       }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Current eight-step default for this step-distilled checkpoint.",
+          "label": "8 steps",
+          "value": "eight-step"
+        },
+        {
+          "args": [
+            {
+              "name": "num-inference-steps",
+              "value": 12
+            }
+          ],
+          "help": "Upstream documents twelve-step inference for this checkpoint; it takes longer.",
+          "label": "12 steps",
+          "value": "twelve-step"
+        }
+      ],
+      "help": "Select one of the checkpoint-supported step counts. The current eight-step setting is the default; twelve steps take longer.",
+      "label": "Inference steps",
+      "name": "inference-steps"
     }
   ],
   "provenance": {
@@ -510,8 +521,8 @@
     "kind": "job",
     "knobs": {
       "num-frames": {
-        "value": 121,
-        "change_effect": "none"
+        "change_effect": "none",
+        "value": 121
       }
     }
   },
@@ -570,31 +581,5 @@
       ],
       "interface": "video-job"
     }
-  },
-  "options": [
-    {
-      "name": "inference-steps",
-      "label": "Inference steps",
-      "help": "Select one of the checkpoint-supported step counts. The current eight-step setting is the default; twelve steps take longer.",
-      "choices": [
-        {
-          "value": "eight-step",
-          "label": "8 steps",
-          "help": "Current eight-step default for this step-distilled checkpoint.",
-          "default": true
-        },
-        {
-          "value": "twelve-step",
-          "label": "12 steps",
-          "help": "Upstream documents twelve-step inference for this checkpoint; it takes longer.",
-          "args": [
-            {
-              "name": "num-inference-steps",
-              "value": 12
-            }
-          ]
-        }
-      ]
-    }
-  ]
+  }
 }

@@ -2644,13 +2644,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "tech2wild",
-      "slug": "glm-5-3-int4-int8mix",
-      "title": "GLM 5.3 Int4 Int8Mix"
+      "slug": "glm-5-3-int4-int8mix"
     },
     "publisher": "tech2wild",
     "slug": "glm-5-3-int4-int8mix-206507bb",
@@ -2665,15 +2663,6 @@
     ],
     "spdx": "LicenseRef-GLM-5.3",
     "url": "https://huggingface.co/Tech2wild/GLM-5.3-Int4-Int8Mix/blob/206507bbb047d8223964a0414cd83230c59428f9/LICENSE"
-  },
-  "metadata": {
-    "description": "tonyd2wild's data-free Int4/Int8 mixed-precision (compressed-tensors W4A16 experts, W8A16 attention and dense MLP, MTP layer kept) quantization of the full zai-org/GLM-5.3 BF16 checkpoint, 377 GiB in 282 shards. The quality evaluation has not been run upstream.",
-    "tags": [
-      "tech2wild",
-      "glm-5-3",
-      "text",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

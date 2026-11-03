@@ -57,13 +57,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "incoai",
-      "slug": "qwen3-8-27b-dflash2",
-      "title": "Qwen3.8 27B DFlash2 draft (IncoAI)"
+      "slug": "qwen3-8-27b-dflash2"
     },
     "publisher": "incoai",
     "slug": "qwen3-8-27b-dflash2-incoai-015e7956",
@@ -78,17 +76,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/incoai/Qwen3.8-27B-DFlash2/blob/015e795645c74b1a0eeef3b570031fb62e769bc5/README.md"
-  },
-  "metadata": {
-    "description": "IncoAI's DFlash2 block-diffusion speculative-decoding draft for Qwen3.8 27B (BF16). Apache-2.0 per the model card.",
-    "tags": [
-      "candidate",
-      "dflash2",
-      "incoai",
-      "language",
-      "qwen3-8-dflash2-incoai",
-      "speculator"
-    ]
   },
   "modalities": [
     "text"

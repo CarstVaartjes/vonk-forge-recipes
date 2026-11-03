@@ -1,0 +1,24 @@
+{
+  "alignment": "standard",
+  "description": "r0b0tlab's SGLang profile for NVIDIA Nemotron-3-Super-120B-A12B NVFP4 (ModelOpt FP4) with the checkpoint's built-in MTP layer (NEXTN, 1 step, top-1, 2 draft tokens, FP4 draft) on one Spark, from r0b0tlab/nemotron3-super-120b-a12b-nvfp4-gb10-native-mtp at 19ab5365 (no licence file in the repository). Runs upstream's lmsysorg/sglang dev-cu13-nemotronh-nano-omni-reasoning-v3 image, pinned by the digest the tag resolved to on 2026-09-29 (the tag was last pushed 2026-04-27, before upstream's 2026-05-19 evidence, so it matches what upstream ran; upstream itself records no digest). Conservative GB10 profile: FlashInfer CUTLASS FP4 GEMM and MoE, radix cache off, memory fraction 0.72, one running request, 8,192-token context, piecewise CUDA graph off. Upstream warns not to pass the 120B model as a separate draft (it double-loads the weights). Upstream claims (not measured here): about 14.84 tok/s without MTP and about 21.64 tok/s with native MTP (+45.8%), accept rates 0.93 to 0.99, no new NVRM/Xid faults in the tuned run. Shares the NVIDIA checkpoint already in the catalog. Physical Spark acceptance is pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-super-120b-a12b-nvfp4-r0b0tlab-sglang-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "executable",
+    "mtp",
+    "nemotron",
+    "nvfp4",
+    "r0b0tlab",
+    "reasoning",
+    "sglang",
+    "single",
+    "spark",
+    "speculative-decoding",
+    "tool-use"
+  ],
+  "title": "Nemotron 3 Super 120B NVFP4 native MTP SGLang single Spark (r0b0tlab)"
+}

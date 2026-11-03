@@ -33,31 +33,12 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "sfxnz's default two-Spark TensorFold 0.6.2 configuration at 56e2e3ec, with the exact MLX 4-bit MTP checkpoint and xgrammar 0.2.8 on both ranks. One stream, a 262,144-token native window, BF16 KV, MTP depth fifteen and confidence 0.70; thinking off. The optional concurrency patch is not enabled in this default configuration. Text only. Memory peak is a conservative per-node estimate inherited from the existing single-node MLX runtime, not a physical measurement.",
-    "tags": [
-      "qwen3.8",
-      "tensorfold",
-      "mtp",
-      "spark",
-      "text-only"
-    ],
-    "title": "Qwen3.8 Flash Next MLX TensorFold dual Spark (sfxnz)"
-  },
   "models": [
     {
-      "id": "primary",
-      "model": {
-        "kind": "model",
-        "publisher": "tensorfold",
-        "slug": "qwen3-8-flash-next-mlx-4bit-mtp-2b170fa6",
-        "content_sha256": "49d3f5518e98b41b91d72778f85018b5cc9949463ac46bae3b3e02a4ed2bf5a1"
-      },
       "files": [
         {
-          "id": "metadata-34448b82c17d-618cd5b83d",
           "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "metadata-34448b82c17d-618cd5b83d",
           "mount": {
             "target": "/models/target"
           },
@@ -67,8 +48,8 @@
           ]
         },
         {
-          "id": "license-a0dc42256084-c693279643",
           "file_id": "license-a0dc42256084-c693279643",
+          "id": "license-a0dc42256084-c693279643",
           "mount": {
             "target": "/models/target"
           },
@@ -78,8 +59,8 @@
           ]
         },
         {
-          "id": "readme-06b1d4dea22a-b335630551",
           "file_id": "readme-06b1d4dea22a-b335630551",
+          "id": "readme-06b1d4dea22a-b335630551",
           "mount": {
             "target": "/models/target"
           },
@@ -89,8 +70,8 @@
           ]
         },
         {
-          "id": "chat-template-c3cf9e34abf4-00824420d1",
           "file_id": "chat-template-c3cf9e34abf4-00824420d1",
+          "id": "chat-template-c3cf9e34abf4-00824420d1",
           "mount": {
             "target": "/models/target"
           },
@@ -100,8 +81,8 @@
           ]
         },
         {
-          "id": "config-4efd5f41c47e-587cb980af",
           "file_id": "config-4efd5f41c47e-587cb980af",
+          "id": "config-4efd5f41c47e-587cb980af",
           "mount": {
             "target": "/models/target"
           },
@@ -111,8 +92,8 @@
           ]
         },
         {
-          "id": "generation-config-e70c136c1b78-97dd3d578b",
           "file_id": "generation-config-e70c136c1b78-97dd3d578b",
+          "id": "generation-config-e70c136c1b78-97dd3d578b",
           "mount": {
             "target": "/models/target"
           },
@@ -122,8 +103,8 @@
           ]
         },
         {
-          "id": "merges-a9d356d7bdf1-b0d6dcfed4",
           "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "merges-a9d356d7bdf1-b0d6dcfed4",
           "mount": {
             "target": "/models/target"
           },
@@ -133,8 +114,8 @@
           ]
         },
         {
-          "id": "model-00001-of-00022-308f20b7e35a-66c3c434ad",
           "file_id": "model-00001-of-00022-308f20b7e35a-66c3c434ad",
+          "id": "model-00001-of-00022-308f20b7e35a-66c3c434ad",
           "mount": {
             "target": "/models/target"
           },
@@ -144,8 +125,8 @@
           ]
         },
         {
-          "id": "model-00002-of-00022-8af1a616f2f3-6047bb79c0",
           "file_id": "model-00002-of-00022-8af1a616f2f3-6047bb79c0",
+          "id": "model-00002-of-00022-8af1a616f2f3-6047bb79c0",
           "mount": {
             "target": "/models/target"
           },
@@ -155,8 +136,8 @@
           ]
         },
         {
-          "id": "model-00003-of-00022-519a0472252a-428e9f10de",
           "file_id": "model-00003-of-00022-519a0472252a-428e9f10de",
+          "id": "model-00003-of-00022-519a0472252a-428e9f10de",
           "mount": {
             "target": "/models/target"
           },
@@ -166,8 +147,8 @@
           ]
         },
         {
-          "id": "model-00004-of-00022-b1ad7e951969-d176f7bfba",
           "file_id": "model-00004-of-00022-b1ad7e951969-d176f7bfba",
+          "id": "model-00004-of-00022-b1ad7e951969-d176f7bfba",
           "mount": {
             "target": "/models/target"
           },
@@ -177,8 +158,8 @@
           ]
         },
         {
-          "id": "model-00005-of-00022-9ca797304c56-3f054a7098",
           "file_id": "model-00005-of-00022-9ca797304c56-3f054a7098",
+          "id": "model-00005-of-00022-9ca797304c56-3f054a7098",
           "mount": {
             "target": "/models/target"
           },
@@ -188,8 +169,8 @@
           ]
         },
         {
-          "id": "model-00006-of-00022-8aab4c1dce7d-82589b5654",
           "file_id": "model-00006-of-00022-8aab4c1dce7d-82589b5654",
+          "id": "model-00006-of-00022-8aab4c1dce7d-82589b5654",
           "mount": {
             "target": "/models/target"
           },
@@ -199,8 +180,8 @@
           ]
         },
         {
-          "id": "model-00007-of-00022-7908da37b2e3-3a5d7cdc74",
           "file_id": "model-00007-of-00022-7908da37b2e3-3a5d7cdc74",
+          "id": "model-00007-of-00022-7908da37b2e3-3a5d7cdc74",
           "mount": {
             "target": "/models/target"
           },
@@ -210,8 +191,8 @@
           ]
         },
         {
-          "id": "model-00008-of-00022-85beff20f250-cf64932166",
           "file_id": "model-00008-of-00022-85beff20f250-cf64932166",
+          "id": "model-00008-of-00022-85beff20f250-cf64932166",
           "mount": {
             "target": "/models/target"
           },
@@ -221,8 +202,8 @@
           ]
         },
         {
-          "id": "model-00009-of-00022-f7c03ae640e9-e7ee8ef226",
           "file_id": "model-00009-of-00022-f7c03ae640e9-e7ee8ef226",
+          "id": "model-00009-of-00022-f7c03ae640e9-e7ee8ef226",
           "mount": {
             "target": "/models/target"
           },
@@ -232,8 +213,8 @@
           ]
         },
         {
-          "id": "model-00010-of-00022-6897f5222753-009e26e857",
           "file_id": "model-00010-of-00022-6897f5222753-009e26e857",
+          "id": "model-00010-of-00022-6897f5222753-009e26e857",
           "mount": {
             "target": "/models/target"
           },
@@ -243,8 +224,8 @@
           ]
         },
         {
-          "id": "model-00011-of-00022-905d27f9db88-8252ea3d5e",
           "file_id": "model-00011-of-00022-905d27f9db88-8252ea3d5e",
+          "id": "model-00011-of-00022-905d27f9db88-8252ea3d5e",
           "mount": {
             "target": "/models/target"
           },
@@ -254,8 +235,8 @@
           ]
         },
         {
-          "id": "model-00012-of-00022-c4d2bb76fa46-f85bce0fc3",
           "file_id": "model-00012-of-00022-c4d2bb76fa46-f85bce0fc3",
+          "id": "model-00012-of-00022-c4d2bb76fa46-f85bce0fc3",
           "mount": {
             "target": "/models/target"
           },
@@ -265,8 +246,8 @@
           ]
         },
         {
-          "id": "model-00013-of-00022-1f20a5e1f225-4aafe282da",
           "file_id": "model-00013-of-00022-1f20a5e1f225-4aafe282da",
+          "id": "model-00013-of-00022-1f20a5e1f225-4aafe282da",
           "mount": {
             "target": "/models/target"
           },
@@ -276,8 +257,8 @@
           ]
         },
         {
-          "id": "model-00014-of-00022-860d12691792-78ace24cf5",
           "file_id": "model-00014-of-00022-860d12691792-78ace24cf5",
+          "id": "model-00014-of-00022-860d12691792-78ace24cf5",
           "mount": {
             "target": "/models/target"
           },
@@ -287,8 +268,8 @@
           ]
         },
         {
-          "id": "model-00015-of-00022-259fb7577b82-e4e6781df6",
           "file_id": "model-00015-of-00022-259fb7577b82-e4e6781df6",
+          "id": "model-00015-of-00022-259fb7577b82-e4e6781df6",
           "mount": {
             "target": "/models/target"
           },
@@ -298,8 +279,8 @@
           ]
         },
         {
-          "id": "model-00016-of-00022-e931785f9ff4-26e60725af",
           "file_id": "model-00016-of-00022-e931785f9ff4-26e60725af",
+          "id": "model-00016-of-00022-e931785f9ff4-26e60725af",
           "mount": {
             "target": "/models/target"
           },
@@ -309,8 +290,8 @@
           ]
         },
         {
-          "id": "model-00017-of-00022-4f4610dc4a86-1f2305b0c8",
           "file_id": "model-00017-of-00022-4f4610dc4a86-1f2305b0c8",
+          "id": "model-00017-of-00022-4f4610dc4a86-1f2305b0c8",
           "mount": {
             "target": "/models/target"
           },
@@ -320,8 +301,8 @@
           ]
         },
         {
-          "id": "model-00018-of-00022-afdb48289201-9e10e62c45",
           "file_id": "model-00018-of-00022-afdb48289201-9e10e62c45",
+          "id": "model-00018-of-00022-afdb48289201-9e10e62c45",
           "mount": {
             "target": "/models/target"
           },
@@ -331,8 +312,8 @@
           ]
         },
         {
-          "id": "model-00019-of-00022-869d34c6e8f7-76f78b32fa",
           "file_id": "model-00019-of-00022-869d34c6e8f7-76f78b32fa",
+          "id": "model-00019-of-00022-869d34c6e8f7-76f78b32fa",
           "mount": {
             "target": "/models/target"
           },
@@ -342,8 +323,8 @@
           ]
         },
         {
-          "id": "model-00020-of-00022-5ca2f994fec1-7587bc0e46",
           "file_id": "model-00020-of-00022-5ca2f994fec1-7587bc0e46",
+          "id": "model-00020-of-00022-5ca2f994fec1-7587bc0e46",
           "mount": {
             "target": "/models/target"
           },
@@ -353,8 +334,8 @@
           ]
         },
         {
-          "id": "model-00021-of-00022-58def6762f29-b95975f319",
           "file_id": "model-00021-of-00022-58def6762f29-b95975f319",
+          "id": "model-00021-of-00022-58def6762f29-b95975f319",
           "mount": {
             "target": "/models/target"
           },
@@ -364,8 +345,8 @@
           ]
         },
         {
-          "id": "model-00022-of-00022-30a3c82b573d-317de6275d",
           "file_id": "model-00022-of-00022-30a3c82b573d-317de6275d",
+          "id": "model-00022-of-00022-30a3c82b573d-317de6275d",
           "mount": {
             "target": "/models/target"
           },
@@ -375,8 +356,8 @@
           ]
         },
         {
-          "id": "model-safetensors-index-8848503860c7-0a05be8238",
           "file_id": "model-safetensors-index-8848503860c7-0a05be8238",
+          "id": "model-safetensors-index-8848503860c7-0a05be8238",
           "mount": {
             "target": "/models/target"
           },
@@ -386,8 +367,8 @@
           ]
         },
         {
-          "id": "preprocessor-config-27225450ac9c-36afccab5d",
           "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "preprocessor-config-27225450ac9c-36afccab5d",
           "mount": {
             "target": "/models/target"
           },
@@ -397,8 +378,8 @@
           ]
         },
         {
-          "id": "qwen-logo-e56f3a62991f-f86d0c6523",
           "file_id": "qwen-logo-e56f3a62991f-f86d0c6523",
+          "id": "qwen-logo-e56f3a62991f-f86d0c6523",
           "mount": {
             "target": "/models/target"
           },
@@ -408,8 +389,8 @@
           ]
         },
         {
-          "id": "tokenizer-0997f410c57a-224931eb13",
           "file_id": "tokenizer-0997f410c57a-224931eb13",
+          "id": "tokenizer-0997f410c57a-224931eb13",
           "mount": {
             "target": "/models/target"
           },
@@ -419,8 +400,8 @@
           ]
         },
         {
-          "id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
           "file_id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
           "mount": {
             "target": "/models/target"
           },
@@ -430,8 +411,8 @@
           ]
         },
         {
-          "id": "vocab-ce99b4cb2983-ba05d8e2e4",
           "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "vocab-ce99b4cb2983-ba05d8e2e4",
           "mount": {
             "target": "/models/target"
           },
@@ -440,20 +421,27 @@
             "worker"
           ]
         }
-      ]
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "a47ec3f03172a8de0ca5bec9c0a18a624aa2bcf567b5ae5e7fff96bd1071c71f",
+        "kind": "model",
+        "publisher": "tensorfold",
+        "slug": "qwen3-8-flash-next-mlx-4bit-mtp-2b170fa6"
+      }
     }
   ],
   "provenance": {
-    "source_reference": "https://github.com/sfxnz/Qwen3.8-Flash-Next-TensorFold-2x-DGX-Spark/tree/9d9fe19e80ac1f978821431ffd7635592f8b4c61",
     "attribution": [
       "sfxnz",
       "Ash Hart (TensorFold)",
       "Qwen"
-    ]
+    ],
+    "source_reference": "https://github.com/sfxnz/Qwen3.8-Flash-Next-TensorFold-2x-DGX-Spark/tree/9d9fe19e80ac1f978821431ffd7635592f8b4c61"
   },
   "release": {
-    "version": "0.6.2",
-    "released_at": "2026-10-18"
+    "released_at": "2026-10-18",
+    "version": "0.6.2"
   },
   "runtime": {
     "arguments": [

@@ -16,7 +16,12 @@ runs:
       with:
         version: "0.13.5"
         python-version: "3.14"
-        enable-cache: false
+        enable-cache: true
+        cache-dependency-glob: |
+          uv.lock
+          .github/requirements-tooling.txt
+        # Pull requests restore the cache main last saved; only main writes it.
+        save-cache: ${{ github.ref == 'refs/heads/main' }}
 
     - name: Prepare the advisory-pinned Python trust bundle
       shell: bash

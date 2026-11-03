@@ -10,10 +10,10 @@
     ],
     "higher_tiers": {
       "stress": [
-        "Bounded 5-stream concurrency and long-context canaries, with the first-run kernel compile time recorded separately"
+        "Bounded 5-stream concurrency and long-context canaries, with the first-start model load time recorded separately"
       ],
       "recovery": [
-        "Controller stop/start with warm kernel-cache restart"
+        "Controller stop/start with warm restart"
       ]
     }
   }

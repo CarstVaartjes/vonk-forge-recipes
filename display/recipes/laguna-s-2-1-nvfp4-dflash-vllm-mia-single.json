@@ -1,0 +1,27 @@
+{
+  "alignment": "unspecified",
+  "description": "Candidate single-Spark vLLM profile from MiaAI-Lab's Laguna-S-2.1-DGX-Spark-RTX-6000-PRO at 750a52ea: the exact 07614121 Laguna S 2.1 NVFP4 checkpoint with the exact b3b5921a Laguna S 2.1 DFlash NVFP4 speculative draft (7 tokens), vLLM 0.25.1 with FlashInfer attention, 256K context, 4 sequences, reasoning and tool parsing. Upstream ships no container: the image is the digest-pinned official vLLM v0.25.1 image with upstream's FlashInfer 0.6.15.dev20260712 nightly wheels baked in at build time instead of installed at every start. Upstream code has no licence file; the target model is OpenMDW-1.1 and the draft repository declares no licence. Upstream claims (not measured here) a ~15 minute first start and its own decode-throughput chart. Physical Spark acceptance is pending. Upstream's RTX 6000 PRO variant is not covered. Reasoning by default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: enable_thinking true. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Checkpoint correction (2026-10-27): upstream measured 32.44 GiB of KV cache at 0.85 on the July checkpoint its script downloaded (about 71 GB, FP8 KV scheme). The later 826aacdf export keeps the experts of layers 40-47 in BF16 (99.7 GB) and drops the FP8 KV scheme; at 0.85 vLLM reported -23.95 GiB of KV cache memory and refused to start on hardware, and no admissible utilization holds it with one 262,144-token request. This recipe therefore pins 07614121, the newest revision with upstream's weight footprint. The b3b5921a draft has the same weights as 4cdcc6e9, the draft adapted to 07614121's rotation-free weights, and differs from it only in its 1,048,576-token position limit.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "laguna-s-2-1-nvfp4-dflash-vllm-mia-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "pending",
+    "poolside",
+    "laguna",
+    "nvfp4",
+    "vllm",
+    "dflash",
+    "speculative-decoding",
+    "reasoning",
+    "agentic",
+    "openai",
+    "single",
+    "spark",
+    "tool-use"
+  ],
+  "title": "Laguna S 2.1 NVFP4 DFlash vLLM single Spark (Mia)"
+}

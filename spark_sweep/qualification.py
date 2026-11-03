@@ -32,6 +32,7 @@ from vonk_forge_contracts.qualification_status import (
     QUALIFICATION_SUMMARIES,
     QualificationEvidenceStep,
     QualificationSourceFailureClass,
+    published_status,
 )
 
 from .auth_contract import SmokeAuthClass
@@ -70,7 +71,6 @@ class HistoricalResult(BaseModel):
     model_digests: tuple[str, ...] | None = None
     controller_release: str | None = None
     controller_version: str | None = None
-    agent_version: str | None = None
     node_count: int | None = Field(default=None, ge=1)
     node_ids: tuple[str, ...] = ()
     quality: tuple[HistoricalQualityCheck, ...] = ()
@@ -204,7 +204,6 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         platform=QualificationPlatform(
             controller_source_sha=row.controller_release,
             controller_version=row.controller_version,
-            agent_version=row.agent_version,
             spark_count=identity.required_sparks,
             topology=(
                 QualificationTopology.SINGLE
@@ -276,11 +275,65 @@ class BackfillResult(BaseModel):
     imported: int = 0
     rejected: int = 0
     changed_files: int = 0
+    unpublished: int = 0  # resolved sweep records the repo lacked before this batch
 
 
-def backfill(paths: Iterable[Path], root: Path) -> BackfillResult:
+def read_state_evidence(path: Path) -> dict[str, RecipeQualificationEvidence]:
+    """The sweep's merged evidence from its saved state, read only.
+
+    State.load already adopted the saved verdicts, so only the persisted
+    `qualification_evidence` is read. Never use State.load here (its recovery
+    path mutates source state). An entry that does not validate is skipped; an
+    unreadable file prints its cause and publishes history as before.
+    """
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8")).get(
+            "qualification_evidence", {}
+        )
+    except (OSError, ValueError, AttributeError) as error:
+        print(f"evidence: sweep state unreadable: {type(error).__name__}", flush=True)
+        return {}
+    found = {}
+    for key, value in raw.items():
+        try:
+            found[key] = RecipeQualificationEvidence.model_validate(value)
+        except ValueError:
+            continue
+    return found
+
+
+def resolved_missing(
+    local: RecipeQualificationEvidence, repo: RecipeQualificationEvidence
+) -> tuple[QualificationEvidenceRecord, ...]:
+    """The one rule: resolved local records (same identity and outcome) the repo lacks."""
+    known = {(r.identity.model_dump_json(), r.outcome) for r in repo.records}
+    return tuple(
+        r
+        for r in local.records
+        if r.identity.models_resolved
+        and (r.identity.model_dump_json(), r.outcome) not in known
+    )
+
+
+def backfill(
+    paths: Iterable[Path],
+    root: Path,
+    extra: Mapping[str, RecipeQualificationEvidence] | None = None,
+) -> BackfillResult:
+    """Append history rows and the sweep's merged evidence (`extra`) to the repo."""
     result = BackfillResult()
     grouped: dict[str, RecipeQualificationEvidence] = {}
+    catalog = catalog_recipe_keys(root) if extra else set()
+    for key, evidence in (extra or {}).items():
+        if key not in catalog:
+            continue  # withdrawn recipes are pruned, never counted
+        previous = read_evidence(root, key)
+        lacking = resolved_missing(evidence, previous)
+        result.unpublished += len(lacking)
+        if lacking:  # resolved records only; nothing is rewritten, only appended
+            grouped[key] = merge_evidence(
+                previous, evidence.model_copy(update={"records": lacking})
+            )
     for path in paths:
         # Read only. Never use State.load: its recovery path mutates source state.
         for line in path.read_text().splitlines():
@@ -310,8 +363,11 @@ def local_status(
     recipe: Recipe,
     fleet_size: int,
     testing_now: bool = False,
+    identity: QualificationIdentity | None = None,
 ) -> QualificationStatusView:
-    return derive_status(evidence, current_identity(recipe), fleet_size, testing_now)
+    return derive_status(
+        evidence, identity or current_identity(recipe), fleet_size, testing_now
+    )
 
 
 STATUS_ORDER = {
@@ -349,3 +405,63 @@ def prune_withdrawn_evidence(root: Path) -> list[Path]:
             path.unlink()
             removed.append(path)
     return removed
+
+
+def unpublishable_pass(
+    view: QualificationStatusView | None,
+    evidence: RecipeQualificationEvidence | None,
+    identity: QualificationIdentity,
+    *,
+    release_known: bool,
+) -> bool:
+    """A local Working pass the catalog would not publish as Working, though a run could fix it.
+
+    The published derivation is the contracts package's (the one the catalog uses), asked
+    only for a locally Working recipe. A re-run can publish only when the catalog pins a
+    runtime image and the Controller release is readable (a run recorded now would
+    otherwise lack it); otherwise the pass is left alone.
+    """
+    if (
+        view is None
+        or evidence is None
+        or view.status != QualificationStatus.WORKING
+        or not release_known
+        or identity.runtime_image is None
+    ):
+        return False
+    try:
+        published = published_status(evidence, identity)
+    except (ValueError, TypeError):
+        return False
+    return published.status != QualificationStatus.WORKING
+
+
+def pass_marker(recipe: Recipe, identity: QualificationIdentity) -> str:
+    image = identity.runtime_image
+    return f"{recipe.content_sha256}:{image.image_digest if image else ''}"
+
+
+def rerun_settled(
+    evidence: RecipeQualificationEvidence,
+    requeue: object,
+    marker: str,
+    release: str | None,
+) -> bool:
+    """The re-run asked for under this marker recorded a verdict that stands.
+
+    Until then the request stands (a pending requeue is never undone). A behavioural record
+    (a pass, or a failure blamed on the recipe) made after the request on a known Controller
+    release settles it. A record blamed on the platform says nothing about the recipe: it
+    settles the request only for the Controller release it carries, so the recipe is asked
+    again once a different release is deployed. A record without a release does not settle it.
+    """
+    if not isinstance(requeue, Mapping) or requeue.get("marker") != marker:
+        return False
+    asked = datetime.fromtimestamp(float(requeue["at"]), UTC)
+    for r in evidence.records:
+        carried = r.platform.controller_source_sha or r.platform.controller_version
+        if r.tested_at <= asked or not carried:
+            continue
+        if r.blame != QualificationBlame.PLATFORM or carried == release:
+            return True
+    return False

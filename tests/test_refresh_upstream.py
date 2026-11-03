@@ -6,6 +6,7 @@ import importlib.util
 import json
 import os
 import re
+import shutil
 import sys
 import tempfile
 import types
@@ -14,6 +15,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, ClassVar
 from unittest.mock import patch
+
+from vonk_forge_contracts import ModelDisplay
 
 from tools._catalog_model import roles_for
 
@@ -951,12 +954,17 @@ class ReleaseTests(unittest.TestCase):
 
 class OpenPullRequestTests(unittest.TestCase):
     footprint = (
-        {"recipes/a.json", "models/m-1.json"},
+        {"recipes/a.json", "models/m-1.json", "display/models/m-1.json"},
         ["adapters/llm/a/"],
     )
 
     def test_foreign_pr_touching_recipe_model_or_adapter_blocks(self) -> None:
-        for name in ("recipes/a.json", "models/m-1.json", "adapters/llm/a/Dockerfile"):
+        for name in (
+            "recipes/a.json",
+            "models/m-1.json",
+            "display/models/m-1.json",
+            "adapters/llm/a/Dockerfile",
+        ):
             with self.subTest(name=name):
                 self.assertEqual(
                     refresh.blocking_prs(self.footprint, {7: {name, "README.md"}}), [7]
@@ -1174,7 +1182,9 @@ class VendoredCreatorMoveTests(unittest.TestCase):
     """A vendored file the recipe's own creator changed follows when nothing it
     references in it is gone (the 15 eugr recipes of refresh run 38469862398)."""
 
-    def assess(self, new_yaml: str, *, dockerfile: str = "", ours=(), extra=None):
+    def assess(
+        self, new_yaml: str, *, dockerfile: str = "", ours=(), extra=None, engine=None
+    ):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
@@ -1213,6 +1223,9 @@ class VendoredCreatorMoveTests(unittest.TestCase):
                 "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
             },
         }
+        if engine is not None:
+            recipe["runtime"]["engine"] = engine
+            recipe["topology"] = {"roles": []}
         catalog = refresh.Catalog(root, recipes={"recipe": recipe})
         assessor = refresh.Assessor(catalog, object(), None, {})
         assessor.target = lambda _provider, _repo: refresh.Target(
@@ -1233,6 +1246,58 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             active.start()
             self.addCleanup(active.stop)
         return assessor.assess("recipe")
+
+    def test_a_moved_vllm_document_follows_the_budget_envelope(self) -> None:
+        new_yaml = OLD_YAML.replace("8192", "4096")
+        with (
+            patch("refresh_upstream.RecipeDefinition"),
+            patch("refresh_upstream.raise_role_peaks") as raised,
+        ):
+            self.assess(new_yaml, engine="vllm")
+            raised.assert_called_once()
+        with patch("refresh_upstream.raise_role_peaks") as raised:
+            self.assess(new_yaml, engine="sglang")
+            raised.assert_not_called()
+        with (
+            patch("refresh_upstream.RecipeDefinition"),
+            patch("refresh_upstream.raise_role_peaks", side_effect=ValueError("bad")),
+        ):
+            result = self.assess(new_yaml, engine="vllm")
+        self.assertFalse(result.mechanical)
+        self.assertIn("memory envelope", " ".join(result.reasons))
+
+    def test_real_proven_dual_is_raised_and_then_passes_the_touched_check(self) -> None:
+        import documents
+        from catalog_documents import catalog_models
+        from vonk_forge_contracts import RecipeDefinition
+        from warning_asserts import assert_not_warns, assert_warns
+
+        from qualification.memory_need import load_inputs, memory_estimate_warnings
+
+        slug = "deepseek-v4-flash-eugr-vllm-dual"
+        before = documents.recipe(slug)
+        for role in before.topology.roles:
+            role.resources.memory.peak_bytes = 100_000_000_000
+        payload = before.model_dump(mode="json", by_alias=True)
+        models, inputs = catalog_models(), load_inputs()
+        assert_warns(
+            memory_estimate_warnings(
+                before, models, inputs, document_digest="", touched=True
+            ),
+            "vLLM budget plus overhead",
+        )
+        refresh.raise_role_peaks(payload["topology"]["roles"], before)
+        after = RecipeDefinition.model_validate(payload)
+        self.assertEqual(
+            {r.resources.memory.peak_bytes for r in after.topology.roles},
+            {114_930_585_191},
+        )
+        assert_not_warns(
+            memory_estimate_warnings(
+                after, models, inputs, document_digest="", touched=True
+            ),
+            "vLLM budget plus overhead",
+        )
 
     def test_verbatim_file_with_its_flags_intact_is_mechanical(self) -> None:
         new_yaml = OLD_YAML.replace("8192", "4096")
@@ -1317,8 +1382,26 @@ class ModelReExportTests(unittest.TestCase):
                 "roles": [{"resources": {"disk": {"artifact_bytes": 1_000_000}}}]
             },
         }
+        root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        (root / "display/models").mkdir(parents=True)
+        (root / "display/models" / f"{old['identity']['slug']}.json").write_text(
+            json.dumps(
+                {
+                    "kind": "model-display",
+                    "identity": {
+                        "publisher": old["identity"]["publisher"],
+                        "slug": old["identity"]["slug"],
+                    },
+                    "family_title": "Demo family",
+                    "model_title": "Demo",
+                    "description": "A demo model.",
+                    "tags": ["demo"],
+                }
+            )
+        )
         catalog = refresh.Catalog(
-            Path("."),
+            root,
             recipes={"recipe": recipe},
             models={old["identity"]["slug"]: old},
         )
@@ -1356,6 +1439,17 @@ class ModelReExportTests(unittest.TestCase):
         self.assertNotIn("model-00036-of-00036.safetensors", paths)
         mounted = {s["file_id"] for s in new_recipe["models"][0]["files"]}
         self.assertEqual(mounted, {f["id"] for f in moved["files"]})
+
+    def test_the_models_display_moves_with_it(self) -> None:
+        _, _, edits = self.move(None)
+        # The Model's display moves with it: same text, the new Model's identity.
+        written_displays = dict(edits)
+        shown = written_displays.pop(f"display/models/demo-{NEW[:8]}.json")
+        assert shown is not None
+        moved_display = ModelDisplay.model_validate_json(shown)
+        self.assertEqual(moved_display.identity.slug, f"demo-{NEW[:8]}")
+        self.assertEqual(moved_display.description, "A demo model.")
+        self.assertIsNone(written_displays[f"display/models/demo-{OLD[:8]}.json"])
 
     def test_a_named_mounted_file_gone_stays_a_review_naming_it(self) -> None:
         result, _, edits = self.move(
@@ -2439,6 +2533,39 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
         self.assertIn("waits for an upstream", body)
         self.assertIn("## Why it waits", body)
         self.assertIn("- commit not on GitHub", body)
+
+    def test_memory_estimate_report_keeps_one_issue_current(self) -> None:
+        title = refresh.MEMORY_ESTIMATE_TITLE
+        with tempfile.TemporaryDirectory() as directory:
+            report = Path(directory) / "report.md"
+            report.write_text("- recipe: peak understates need 1\n")
+            created = self.run_gh(
+                {"open": [], "closed": []},
+                refresh.command_memory_estimate_issue,
+                report,
+            )
+            reopened = self.run_gh(
+                {"open": [], "closed": [{"number": 5, "title": title, "body": ""}]},
+                refresh.command_memory_estimate_issue,
+                report,
+            )
+            report.write_text("")
+            closed = self.run_gh(
+                {"open": [{"number": 5, "title": title, "body": "old"}]},
+                refresh.command_memory_estimate_issue,
+                report,
+            )
+        self.assertEqual(
+            [c[:2] for c in created if c[0] == "issue"], [("issue", "create")]
+        )
+        self.assertIn(refresh.LABEL_MEMORY_ESTIMATE, created[-1])
+        self.assertEqual(
+            [c[:3] for c in reopened if c[0] == "issue"],
+            [("issue", "reopen", "5"), ("issue", "edit", "5")],
+        )
+        self.assertEqual(
+            [c[:3] for c in closed if c[0] == "issue"], [("issue", "close", "5")]
+        )
 
 
 class StalePullRequestTests(unittest.TestCase):

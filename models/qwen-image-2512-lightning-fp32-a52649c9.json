@@ -21,13 +21,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen-image",
-      "title": "Qwen Image"
+      "slug": "qwen-image"
     },
     "model": {
       "publisher": "qwen",
-      "slug": "qwen-image-2512-lightning",
-      "title": "Qwen Image 2512 Lightning"
+      "slug": "qwen-image-2512-lightning"
     },
     "publisher": "qwen",
     "slug": "qwen-image-2512-lightning-fp32-a52649c9",
@@ -43,21 +41,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://github.com/ModelTC/Qwen-Image-Lightning/blob/25d1e9935ba97e1f60503f8c000201e08b1fe8f4/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact ModelTC/lightx2v four-step FP32 distilled LoRA selected by the pinned official ComfyUI Qwen Image 2512 blueprint.",
-    "tags": [
-      "qwen",
-      "image",
-      "generation",
-      "text-to-image",
-      "comfyui",
-      "lightning",
-      "lora",
-      "fp32",
-      "candidate",
-      "spark"
-    ]
   },
   "modalities": [
     "image"

@@ -183,13 +183,11 @@
   "identity": {
     "family": {
       "publisher": "tencentarc",
-      "slug": "pixal3d",
-      "title": "Pixal3D"
+      "slug": "pixal3d"
     },
     "model": {
       "publisher": "tencentarc",
-      "slug": "pixal3d",
-      "title": "Pixal3D"
+      "slug": "pixal3d"
     },
     "publisher": "tencentarc",
     "slug": "pixal3d-b0cb2e1b",
@@ -203,14 +201,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/TencentARC/Pixal3D/blob/b0cb2e1b794cab9aa0ac38a95d794a4d9337437f/LICENSE"
-  },
-  "metadata": {
-    "description": "Immutable public snapshot of TencentARC/Pixal3D at b0cb2e1b: the single-view checkpoint set (the multi-view *_mv files are not used by this recipe).",
-    "tags": [
-      "tencentarc",
-      "three-d",
-      "candidate"
-    ]
   },
   "modalities": [
     "3d"

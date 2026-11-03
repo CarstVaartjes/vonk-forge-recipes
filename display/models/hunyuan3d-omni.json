@@ -1,0 +1,15 @@
+{
+  "description": "Immutable public snapshot at 70e803bf.",
+  "family_title": "Hunyuan3D",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hunyuan3d-omni"
+  },
+  "kind": "model-display",
+  "model_title": "Hunyuan3D-Omni",
+  "tags": [
+    "tencent",
+    "three-d",
+    "candidate"
+  ]
+}

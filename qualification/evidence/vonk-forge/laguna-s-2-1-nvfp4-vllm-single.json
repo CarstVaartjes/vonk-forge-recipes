@@ -60,6 +60,66 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "7fce5b4f3d1db360b6fc82a405f32ef800ebaaf5c850ae796a83d5a957c6ec60",
+        "source_bundle_sha256": "835a814eda13ff4a385de5d560424a50f855daf6c3d533d438a7af6b2cdfe401",
+        "runtime_image": {
+          "build_key": "79b54e29122995b6b309c796d90e24c884e32d537d5268226306297f63ae3420",
+          "image_digest": "sha256:543d2a6d9782ba4054d058971eab90676b71327b184d9de85576df6bd1949f3a"
+        },
+        "model_digests": [
+          "aa43743d4fbc01f3e26976f9abb4ec19ca1a977116c1b4e1cd2d2561c6ef4043"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "247ec9b7818fd351a6c5f8d632f47fe27bbbc311c81bb08d096a0bd63e151342"
+      ],
+      "tested_at": "2026-10-30T16:34:19.701418Z",
+      "platform": {
+        "controller_source_sha": "5f0452a9cf6c7449b1c566e7fba0d1a238d0ea92",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "c0cde1ceffc85efc09af0f97c7e39339b8031279a535285fee026db4948fc807",
+        "source_bundle_sha256": "835a814eda13ff4a385de5d560424a50f855daf6c3d533d438a7af6b2cdfe401",
+        "runtime_image": {
+          "build_key": "79b54e29122995b6b309c796d90e24c884e32d537d5268226306297f63ae3420",
+          "image_digest": "sha256:543d2a6d9782ba4054d058971eab90676b71327b184d9de85576df6bd1949f3a"
+        },
+        "model_digests": [
+          "92d073f12c6164fc4af416c7c3b6c7b94955026ff522e6b6c8d0612baa310f3a"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "247ec9b7818fd351a6c5f8d632f47fe27bbbc311c81bb08d096a0bd63e151342"
+      ],
+      "tested_at": "2026-10-30T16:34:19.701418Z",
+      "platform": {
+        "controller_source_sha": "5f0452a9cf6c7449b1c566e7fba0d1a238d0ea92",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     }
   ]
 }
