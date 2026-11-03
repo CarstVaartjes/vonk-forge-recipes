@@ -1,12 +1,11 @@
 """The admission maximum caps the vLLM envelope; a measured, unchanged budget keeps its peaks."""
 
 import ast
-import json
 from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
-from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
@@ -87,13 +86,9 @@ def with_utilization(recipe: RecipeDefinition, value: str) -> RecipeDefinition:
     return moved
 
 
-def authored(slug: str) -> dict:
-    return json.loads((memory_need.ROOT / "recipes" / f"{slug}.json").read_text())
-
-
 def digest_of(recipe: RecipeDefinition) -> str:
     """The authored document's digest, as evidence records it (not a re-dump)."""
-    return document_sha256(authored(recipe.identity.slug))
+    return documents.recipe_digest(recipe.identity.slug)
 
 
 def measured(monkeypatch: pytest.MonkeyPatch, proven: bool) -> None:
@@ -258,12 +253,13 @@ def test_the_guard_allows_the_listed_scopes() -> None:
 def test_real_evidence_keeps_a_proven_recipe_on_a_same_budget_move() -> None:
     proven = None
     for path in sorted((memory_need.ROOT / "recipes").glob("*.json")):
-        raw = json.loads(path.read_text())
-        if raw["runtime"]["engine"] != "vllm":
-            continue
-        recipe = RecipeDefinition.model_validate(raw)
-        digest = document_sha256(raw)
-        if recipe_envelope(recipe) and memory_need.hardware_proven(recipe, digest):
+        recipe = documents.recipe(path.stem)
+        digest = documents.recipe_digest(path.stem)
+        if (
+            recipe.runtime.engine == "vllm"
+            and recipe_envelope(recipe)
+            and memory_need.hardware_proven(recipe, digest)
+        ):
             proven = (recipe, digest)
             break
     assert proven, "no hardware-proven vLLM recipe in the committed evidence"

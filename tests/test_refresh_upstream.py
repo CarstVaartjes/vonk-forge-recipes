@@ -1271,9 +1271,10 @@ class VendoredCreatorMoveTests(unittest.TestCase):
     ) -> None:
         import documents
         from catalog_documents import catalog_models
-        from vonk_forge_contracts import RecipeDefinition, document_sha256
+        from vonk_forge_contracts import RecipeDefinition
         from warning_asserts import assert_not_warns, assert_warns
 
+        from qualification import documents as qualification_documents
         from qualification.memory_need import load_inputs, memory_estimate_warnings
 
         slug = "muse-spark-open-nvfp4-vllm-eight"
@@ -1293,9 +1294,7 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             payload["topology"]["roles"],
             before,
             previous,
-            document_sha256(
-                json.loads((ROOT / f"recipes/{slug}.json").read_text(encoding="utf-8"))
-            ),
+            qualification_documents.recipe_digest(slug),
         )
         after = RecipeDefinition.model_validate(payload)
         self.assertEqual(
