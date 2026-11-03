@@ -84,6 +84,9 @@ PIN_PROFILE_MAX_ASSIGNMENTS = 64
 PIN_RETRY_MAX_SECONDS = 3600.0
 
 
+#: A download record the sweep gave up on without a Controller state: a local disposition, not a
+#: ``LifecycleState`` (download records mix both; separating them is a follow-up).
+DOWNLOAD_RETIRED = "retired"
 SWEEP_LABEL = ("purpose", "hardware-sweep")
 PIN_ALIAS_PREFIX = "pin-"
 
@@ -136,7 +139,10 @@ class Prefetcher:
         for key, record in list(self.state.downloads.items()):
             if (
                 record.get("state") == "external"
-                or (record.get("state") == "retired" and not record.get("request_key"))
+                or (
+                    record.get("state") == DOWNLOAD_RETIRED
+                    and not record.get("request_key")
+                )
                 or (
                     record.get("state") in TERMINAL
                     and record.get("state")
@@ -296,7 +302,7 @@ class Prefetcher:
                 self._retire(key, record, "download.stalled")
             elif active(record["state"]):
                 total_rate += float(speed)
-            elif record["state"] == "failed":
+            elif record["state"] == LifecycleState.FAILED:
                 self._failed(key, record, document)
             elif record["state"] in (
                 LifecycleState.CANCELLED,
@@ -315,7 +321,9 @@ class Prefetcher:
                 )
                 self.state.event(f"download intent ended: {key}")
                 self.state.save()
-            if record["state"] == "succeeded" and not record.get("done_at"):
+            if record["state"] == LifecycleState.SUCCEEDED and not record.get(
+                "done_at"
+            ):
                 record["done_at"] = self.clock()
                 self.on_done(key)
         self.rate.add(total_rate)
@@ -334,7 +342,7 @@ class Prefetcher:
             self.state.event(f"download observation deferred: {key}: {reason}")
             return
         record.update(
-            state="retired",
+            state=DOWNLOAD_RETIRED,
             reason=reason,
             retry_at=self.clock() + self.config.retry_cooldown,
         )
@@ -400,7 +408,8 @@ class Prefetcher:
                         if child.get(k) is not None
                     }
                     for child in document.get("children", [])
-                    if isinstance(child, dict) and child.get("state") == "failed"
+                    if isinstance(child, dict)
+                    and child.get("state") == LifecycleState.FAILED
                 ][:8],
                 "failure": excerpt(failure_doc, 1000),
             },
@@ -409,7 +418,8 @@ class Prefetcher:
             self.pressure_until = self.clock() + self.config.pressure_pause
             self.state.event(f"NAS pressure on {key}: new model downloads paused")
         model_child = any(
-            child.get("kind") == "model-cache" and child.get("state") == "failed"
+            child.get("kind") == "model-cache"
+            and child.get("state") == LifecycleState.FAILED
             for child in document.get("children", [])
             if isinstance(child, dict)
         )
@@ -452,7 +462,7 @@ class Prefetcher:
         record = self.state.downloads.get(recipe.key, {})
         attempt = int(record.get("attempt", 0)) + 1
         rerequests = int(record.get("rerequests", 0)) + (
-            1 if record.get("state") == "succeeded" else 0
+            1 if record.get("state") == LifecycleState.SUCCEEDED else 0
         )
         key = request_key(
             "download", self.state.nonce, recipe.key, recipe.content_sha256, attempt
@@ -595,7 +605,7 @@ class Prefetcher:
         counted: set[str] = set()
         downloading: set[str] = set()
         for key, record in self.state.downloads.items():
-            if record.get("state") not in ("retired", "external") and active(
+            if record.get("state") not in (DOWNLOAD_RETIRED, "external") and active(
                 record.get("state")
             ):
                 counted.add(key)
@@ -613,7 +623,7 @@ class Prefetcher:
             if (
                 recipe.local == "preparing"
                 and key not in counted
-                and self.state.downloads.get(key, {}).get("state") != "retired"
+                and self.state.downloads.get(key, {}).get("state") != DOWNLOAD_RETIRED
             ):
                 missing = {
                     d
@@ -706,7 +716,7 @@ class Prefetcher:
                     or (
                         r.local == "preparing"
                         and self.state.downloads.get(r.key, {}).get("state")
-                        != "retired"
+                        != DOWNLOAD_RETIRED
                     )
                     for r in leads
                 ):
@@ -742,7 +752,7 @@ class Prefetcher:
                     and (
                         recipe.local != "preparing"
                         or self.state.downloads.get(recipe.key, {}).get("state")
-                        == "retired"
+                        == DOWNLOAD_RETIRED
                     )
                     and image_ops < self.config.max_image_pulls
                     and self._can_request(recipe, now)
@@ -767,7 +777,7 @@ class Prefetcher:
         record = self.state.downloads.get(key)
         return (
             record is not None
-            and record.get("state") != "retired"
+            and record.get("state") != DOWNLOAD_RETIRED
             and active(record.get("state"))
         )
 
@@ -799,7 +809,7 @@ class Prefetcher:
                     )
                 )
             )
-        if active(record.get("state")) and record.get("state") != "retired":
+        if active(record.get("state")) and record.get("state") != DOWNLOAD_RETIRED:
             return False
         accepted = AcceptedRequest.read(record)
         if accepted is not None and content_identity(
@@ -826,11 +836,11 @@ class Prefetcher:
                     record["terminal_verified_at"] = now
                     return True
             return False
-        if record.get("state") == "retired":
+        if record.get("state") == DOWNLOAD_RETIRED:
             if record.get("request_key"):
                 return self._terminal_retest(recipe, record, now)
             return now >= float(record.get("retry_at", 0))
-        if record.get("state") == "succeeded":
+        if record.get("state") == LifecycleState.SUCCEEDED:
             # A finished download stands. Ask again only if a library read made *after*
             # it still says the cache is empty (evicted). Fresh evidence, not a count,
             # authorizes recovery; the cooldown bounds lagging-listing churn.
@@ -840,9 +850,11 @@ class Prefetcher:
                 and now - done_at > 600
                 and self.library_fresh_since > done_at
             )
-        if record.get("state") in ("failed", "cancelled", "superseded") and record.get(
-            "operation_id"
-        ):
+        if record.get("state") in (
+            LifecycleState.FAILED,
+            LifecycleState.CANCELLED,
+            LifecycleState.SUPERSEDED,
+        ) and record.get("operation_id"):
             # Accepted parents always need a fresh exact terminal receipt. An old
             # retry timer must never override an active or unreadable observation.
             return self._terminal_retest(recipe, record, now)
@@ -873,7 +885,7 @@ class Prefetcher:
         )
         if (
             not (scheduled or bounded_retry)
-            or record.get("state") not in ("failed", "retired")
+            or record.get("state") not in (LifecycleState.FAILED, DOWNLOAD_RETIRED)
             or not record.get("operation_id")
             or not record.get("request_key")
             or now < float(record.get("retry_at", 0))
@@ -903,7 +915,7 @@ class Prefetcher:
             or document.get("recipe_content_sha256") != recipe.content_sha256
             or not isinstance(document.get("failure"), Mapping)
             or not isinstance(document.get("request"), Mapping)
-            or document.get("state") != "failed"
+            or document.get("state") != LifecycleState.FAILED
         ):
             return False
         original_intent = record.get("accepted_intent")

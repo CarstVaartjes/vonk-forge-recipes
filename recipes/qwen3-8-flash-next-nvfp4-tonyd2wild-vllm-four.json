@@ -2,15 +2,28 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "c4a8820479f1c012dcb350300220eb82845a484937c9fc635cb2c5489dd3b74f",
-        "repository": "docker.io/vllm/vllm-openai"
+        "digest": "5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6",
+        "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
         "path": "adapters/qwen/flash-next-tonyd2wild-vllm"
       },
       "dockerfile": "adapters/qwen/flash-next-tonyd2wild-vllm/Dockerfile",
       "network": {
-        "hosts": []
+        "hosts": [
+          "ports.ubuntu.com",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.nvidia.com",
+          "wheels.vllm.ai",
+          "flashinfer.ai",
+          "github.com",
+          "release-assets.githubusercontent.com"
+        ]
       },
       "patches": []
     }
@@ -521,8 +534,8 @@
     "source_reference": "https://github.com/tonyd2wild/Qwen3.8-Flash-Next-NVFP4-DGX-Spark/tree/6ad1c8f15cbab1ababd2048e8e5f94094dbfc4a0"
   },
   "release": {
-    "released_at": "2026-09-06",
-    "version": "1.0.1"
+    "released_at": "2026-11-03",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [

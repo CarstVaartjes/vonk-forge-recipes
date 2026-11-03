@@ -771,7 +771,7 @@ def assignment_failures(document: Mapping[str, Any]) -> list[AssignmentFailure]:
         if (
             not isinstance(effect, Mapping)
             or effect.get("kind") != "run"
-            or effect.get("state") != "failed"
+            or effect.get("state") != LifecycleState.FAILED
             or effect.get("application_id") == document.get("id")
             or effect.get("target_id")
             not in owners  # a run effect's target is its assignment
