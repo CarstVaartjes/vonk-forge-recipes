@@ -23,14 +23,19 @@ RUN kit() { sed -n "s/^$1=\"\\\${$1:-\\($2\\)}\".*/\\1/p" /kit/scripts/config.sh
  && echo "$sha  /tmp/zig.tar.xz" | sha256sum -c - \
  && mkdir -p /opt/zig && tar -xJf /tmp/zig.tar.xz -C /opt/zig --strip-components=1 && rm /tmp/zig.tar.xz \
  && test "$(/opt/zig/zig version)" = "$version"
-# The build lines below are the kit's (its scripts/prepare.sh Dockerfile): fail when the kit no longer has them.
+# The build lines below are the kit's (its scripts/prepare.sh Dockerfile, config.sh): fail when the kit no longer has
+# them. The kit's BASE_IMAGE and its pip line are what the published image was built on; this image keeps that base
+# and its pip packages, so a kit bump of either, with no published image, must fail here.
 RUN for line in '/opt/zig/zig build -Dnvcc=/usr/local/cuda/bin/nvcc -Doptimize=fast --prefix /opt/tensorfold' \
-      'fatbins install native' 'for f in LICENSE LICENSE.md LICENSES NOTICE THIRD_PARTY_NOTICES.md; do' \
+      '-j"$(nproc)" fatbins install native' 'for f in LICENSE LICENSE.md LICENSES NOTICE THIRD_PARTY_NOTICES.md; do' \
       'PYTHONPATH=/tensorfold/src python -B tools/zig/flashnext_aot.py build' \
       '--spec zig/tests/cuda/flashnext/kernels.json --jit zig/tests/cuda/flashnext/jit.json --tp 1,2' \
       '--out /opt/tensorfold/share/tensorfold/cuda/sm121' \
-      'COPY --from=build /tensorfold/src/tensorfold /opt/tensorfold/python/tensorfold'; do \
+      'COPY --from=build /tensorfold/src/tensorfold /opt/tensorfold/python/tensorfold' \
+      'pip install --no-cache-dir --no-deps "transformers==5.17.0" "av==19.0.1"'; do \
       grep -qF -- "$line" /kit/scripts/prepare.sh || { echo "the kit's prepare.sh no longer has: $line" >&2; exit 1; }; done \
+ && grep -qF -- 'BASE_IMAGE="${BASE_IMAGE:-nvcr.io/nvidia/pytorch:26.07-py3}"' /kit/scripts/config.sh \
+    || { echo "the kit's config.sh no longer has its BASE_IMAGE line" >&2; exit 1; } \
  && cd /tensorfold \
  && for p in /kit/patches/*.patch; do echo "applying $p"; git apply --check "$p" && git apply "$p" || exit 1; done
 # The creator's /opt/tensorfold is rebuilt from scratch, so nothing of the published one is left in it.
