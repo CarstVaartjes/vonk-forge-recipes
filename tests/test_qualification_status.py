@@ -1289,7 +1289,9 @@ def _rerun_record(sweep, key, platform):
 
 
 def _requeued(tmp_path):
-    sweep, fleet, _ = evidence_sweep(tmp_path)
+    sweep, fleet, clock = evidence_sweep(tmp_path)
+    clock.t = datetime(2026, 11, 1, tzinfo=UTC).timestamp()  # after the fixtures
+    sweep.observe_platform()
     key = next(iter(sweep.recipes))
     _passed(sweep, key, _incomplete_pass())
     assert sweep.qualification_view(sweep.recipes[key]).status == Status.WORKING
@@ -1395,3 +1397,43 @@ def test_an_unreadable_platform_does_not_request_a_rerun(tmp_path):
     _passed(sweep, key, _incomplete_pass())
     sweep.refresh_catalog()
     assert sweep.state.entry(key)["status"] == RecipeStatus.PASSED
+
+
+def test_an_older_record_carrying_a_release_does_not_settle_a_fresh_requeue(tmp_path):
+    sweep, _, clock = evidence_sweep(tmp_path)
+    clock.t = datetime(2026, 11, 1, tzinfo=UTC).timestamp()
+    sweep.observe_platform()
+    key = next(iter(sweep.recipes))
+    # A historical pass that names a Controller release but cannot publish.
+    unresolved = PLATFORM.model_copy(update={"spark_count": None, "topology": None})
+    _passed(sweep, key, record().model_copy(update={"platform": unresolved}))
+    sweep.refresh_catalog()
+    entry = sweep.state.entry(key)
+    assert entry["requeued_because"] == RetestReason.UNPUBLISHABLE_PASS
+    sweep.refresh_catalog()
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PENDING
+
+
+def test_a_rerun_deferred_on_a_platform_fault_is_asked_again_on_a_new_release(tmp_path):
+    sweep, fleet, key = _requeued(tmp_path)
+    release = sweep.release_sha
+    assert release is not None
+    blamed = record(A, Outcome.FAILED, Blame.PLATFORM).model_copy(
+        update={
+            "tested_at": datetime.fromtimestamp(
+                sweep.state.entry(key)["unpublishable_requeue"]["at"] + 60, UTC
+            ),
+            "platform": PLATFORM.model_copy(update={"controller_source_sha": release}),
+        }
+    )
+    _passed(sweep, key, _incomplete_pass(), blamed)
+    sweep.refresh_catalog()  # the same release: the platform fault is not asked again
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PASSED
+    fleet.api_source_sha = "b" * 40
+    sweep.observe_platform()
+    sweep.refresh_catalog()  # a new release: asked again, once
+    entry = sweep.state.entry(key)
+    assert entry["status"] == RecipeStatus.PENDING
+    assert entry["requeued_because"] == RetestReason.UNPUBLISHABLE_PASS
+    sweep.refresh_catalog()
+    assert sweep.state.entry(key)["status"] == RecipeStatus.PENDING

@@ -442,19 +442,26 @@ def pass_marker(recipe: Recipe, identity: QualificationIdentity) -> str:
 
 
 def rerun_settled(
-    evidence: RecipeQualificationEvidence, requeue: object, marker: str
+    evidence: RecipeQualificationEvidence,
+    requeue: object,
+    marker: str,
+    release: str | None,
 ) -> bool:
-    """The re-run asked for under this marker recorded a verdict on a known Controller release.
+    """The re-run asked for under this marker recorded a verdict that stands.
 
-    Until then the request stands (a pending requeue is never undone); after it, a pass that
-    is still unpublishable is not asked for again for the same content and catalog image.
-    A record without a Controller release does not settle it: the platform was unreadable.
+    Until then the request stands (a pending requeue is never undone). A behavioural record
+    (a pass, or a failure blamed on the recipe) made after the request on a known Controller
+    release settles it. A record blamed on the platform says nothing about the recipe: it
+    settles the request only for the Controller release it carries, so the recipe is asked
+    again once a different release is deployed. A record without a release does not settle it.
     """
     if not isinstance(requeue, Mapping) or requeue.get("marker") != marker:
         return False
     asked = datetime.fromtimestamp(float(requeue["at"]), UTC)
-    return any(
-        r.tested_at > asked
-        and (r.platform.controller_source_sha or r.platform.controller_version)
-        for r in evidence.records
-    )
+    for r in evidence.records:
+        carried = r.platform.controller_source_sha or r.platform.controller_version
+        if r.tested_at <= asked or not carried:
+            continue
+        if r.blame != QualificationBlame.PLATFORM or carried == release:
+            return True
+    return False

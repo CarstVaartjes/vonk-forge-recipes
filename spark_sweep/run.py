@@ -771,7 +771,9 @@ class Sweep:
                 view, evidence, identity, release_known=self.release_sha is not None
             )
             and evidence is not None
-            and not rerun_settled(evidence, entry.get("unpublishable_requeue"), marker)
+            and not rerun_settled(
+                evidence, entry.get("unpublishable_requeue"), marker, self.release_sha
+            )
         )
         requeued = (
             entry.get("status") == RecipeStatus.PENDING
