@@ -137,9 +137,7 @@ jobs:
           uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" \
             -e contracts \
-            'jsonschema>=4.24,<5' \
-            'pytest==9.1.1' 'pytest-xdist==3.8.0' 'Pillow==12.0.0' \
-            'numpy==2.3.5' 'trimesh==4.10.1'
+            -r .github/requirements-producer-tests.txt
           echo "RECIPE_TEST_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Verify generated contract examples are current
@@ -387,7 +385,7 @@ jobs:
           test_venv="$RUNNER_TEMP/contracts-test-venv"
           uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" \
-            'pydantic>=2.13,<3' 'jsonschema>=4.24,<5' 'pytest==9.1.1'
+            'pydantic>=2.13,<3' -r .github/requirements-producer-tests.txt
           "$test_venv/bin/pytest" -q tests/test_contracts.py
           "$test_venv/bin/python" tools/generate-contract-schemas --check
           "$test_venv/bin/python" tools/generate-contract-examples

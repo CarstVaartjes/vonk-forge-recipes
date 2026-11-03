@@ -7,6 +7,7 @@ import ast
 import copy
 import json
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -391,3 +392,93 @@ def test_bad_image_entry_preserves_valid_sibling_and_release_bytes() -> None:
         {"content_sha256": "d" * 64},
     ]
     assert INDEX["canonical"]({"recipes": rows})
+
+
+def _group_assessment(recipe_id: str, edit: bytes):
+    item = refresh.Item(
+        "source",
+        "github",
+        "o/r",
+        "0" * 40,
+        refresh.Target("github", "o/r", "f" * 40, "d", None, None, "u"),
+    )
+    return refresh.Assessment(recipe_id, items=[item], edits={"shared": edit})
+
+
+@pytest.mark.parametrize("outcome", ["publish fails", "members disagree"])
+def test_a_group_that_does_not_land_reports_to_every_member_and_keeps_its_pr(
+    outcome: str,
+) -> None:
+    """Dual and single share a build context; the group's open PR must survive."""
+    from contextlib import ExitStack
+
+    disagree = outcome == "members disagree"
+    assessed = {
+        "dual": _group_assessment("dual", b"1"),
+        "single": _group_assessment("single", b"2" if disagree else b"1"),
+    }
+    group = {"dual": ["dual", "single"], "single": ["dual", "single"]}
+    synced: dict[str, list[str]] = {}
+
+    def record(assessment, _summary, create=True):
+        synced[assessment.recipe_id] = list(
+            assessment.reasons + assessment.group_outcome
+        )
+
+    closed: list[tuple] = []
+
+    def listing(*arguments):
+        if arguments[0] == "pr" and "needs-review" not in arguments:
+            return [{"number": 9, "headRefName": "refresh/dual", "body": ""}]
+        return []
+
+    with ExitStack() as stack:
+        patches: list[tuple[Any, str, dict[str, Any]]] = [
+            (refresh, "git", {"return_value": "head"}),
+            (refresh.Http, "save", {}),
+            (refresh, "arm_open_mechanical_prs", {}),
+            (refresh, "ensure_labels", {}),
+            (refresh, "foreign_open_prs", {"return_value": {}}),
+            (refresh, "sharing_groups", {"return_value": group}),
+            (refresh, "blocking_prs", {"return_value": []}),
+            (refresh, "recipe_footprint", {"return_value": (set(), [])}),
+            (refresh, "publish_if_stale", {}),
+            (refresh, "write_summary", {}),
+            (refresh, "close_current_issues", {}),
+            (refresh, "publish_group", {"return_value": None}),
+            (refresh, "sync_issue", {"side_effect": record}),
+            (refresh, "gh_json", {"side_effect": listing}),
+            (refresh, "gh", {"side_effect": lambda *a, **k: closed.append(a)}),
+        ]
+        for target, attribute, kwargs in patches:
+            stack.enter_context(patch.object(target, attribute, **kwargs))
+        stack.enter_context(
+            patch.object(
+                refresh.Catalog,
+                "load",
+                return_value=Mock(recipes={"dual": {}, "single": {}}),
+            )
+        )
+        stack.enter_context(
+            patch.object(refresh.drift, "load_manifest", return_value=({}, {}))
+        )
+        for name in (
+            "discover_watches",
+            "embedded_inventory",
+            "observe_embedded_heads",
+        ):
+            stack.enter_context(
+                patch.object(refresh.drift, name, return_value={"coverage": {}})
+            )
+        stack.enter_context(
+            patch.object(
+                refresh.Assessor, "assess", side_effect=lambda rid: assessed[rid]
+            )
+        )
+        refresh.command_run(argparse.Namespace(cache_dir=None, dry_run=False))
+    assert set(synced) == {"dual", "single"}
+    assert "dual" in " ".join(synced["single"])
+    assert all(synced[member] for member in synced)
+    # The members stay prepared: the group's open refresh PR is not judged stale.
+    assert assessed["single"].prepared and assessed["dual"].prepared
+    assert not [call for call in closed if call[:2] == ("pr", "close")], closed
