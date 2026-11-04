@@ -2033,18 +2033,19 @@ class Sweep:
         if count < IDENTICAL_EXIT_LIMIT:
             entry["exit_repeat"] = {"key": key, "count": count}
             return failure
-        # The verdict is written: a retest starts at zero.
+        # The outcome is written: a retest starts at zero.
         entry.pop("exit_repeat", None)
+        if "exit_cause" not in facts:
+            # An unnamed class keeps its own class and code (no recipe cause is invented): it is
+            # recorded as the platform's, deferred, and reopened by a release change.
+            return replace(
+                failure, evidence={**failure.evidence, "identical_exits": count}
+            )
         return policy.classify(
             failure.phase,
             QualificationCauseCode.RUNTIME_EXIT,
             failure.detail,
-            evidence={
-                **failure.evidence,
-                "identical_exits": count,
-                "observed_class": failure.klass,
-                "observed_code": failure.code,
-            },
+            evidence={**failure.evidence, "identical_exits": count},
         )
 
     def _reconcile_completed(self, key: str) -> None:

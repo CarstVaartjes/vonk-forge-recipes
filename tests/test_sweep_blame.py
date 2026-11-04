@@ -24,18 +24,33 @@ CALLS = {"classify", "classify_application_failure"}
 UNNAMED = "a-class-nobody-named"
 
 
-def _call_site_classes() -> set[str]:
-    """The literal ``klass`` of every classify call in the sweep's producers (AST scan)."""
+def _values(expr: ast.expr, scope: dict, name: str) -> set[str]:
+    """The string classes an expression can evaluate to (both arms of a conditional)."""
+    if isinstance(expr, ast.IfExp):
+        return _values(expr.body, scope, name) | _values(expr.orelse, scope, name)
+    value = None
+    # A name that cannot be resolved here (a variable, an attribute of a runtime value) is
+    # skipped; the scan only counts classes it can read from the source.
+    with contextlib.suppress(Exception):
+        value = eval(compile(ast.Expression(expr), name, "eval"), scope)
+    return {str(value)} if isinstance(value, str) and value else set()
+
+
+def _call_site_classes(texts: dict[str, str] | None = None) -> set[str]:
+    """Every class a classify call or a local ``klass`` in the producers can name (AST scan).
+
+    A call without ``klass`` takes the class ``policy.classify`` gives its literal phase.
+    """
     root = Path(policy.__file__).parent
+    texts = texts or {name: (root / name).read_text() for name in SOURCES}
+    scope = {**vars(policy), **vars(verdict), "SmokeAuthClass": SmokeAuthClass}
     found: set[str] = set()
-    for name in SOURCES:
-        module = ast.parse((root / name).read_text())
-        scope = {
-            **vars(policy),
-            **vars(verdict),
-            "SmokeAuthClass": SmokeAuthClass,
-        }
-        for node in ast.walk(module):
+    for name, text in texts.items():
+        for node in ast.walk(ast.parse(text)):
+            if isinstance(node, ast.Assign) and any(
+                isinstance(t, ast.Name) and t.id == "klass" for t in node.targets
+            ):
+                found |= _values(node.value, scope, name)
             if not isinstance(node, ast.Call):
                 continue
             func = node.func
@@ -46,13 +61,10 @@ def _call_site_classes() -> set[str]:
             if not args and called == "classify" and len(node.args) >= 4:
                 args = [node.args[3]]
             for arg in args:
-                value = None
-                with contextlib.suppress(
-                    Exception
-                ):  # a computed class: its enum covers it
-                    value = eval(compile(ast.Expression(arg), name, "eval"), scope)
-                if isinstance(value, str) and value:
-                    found.add(str(value))
+                found |= _values(arg, scope, name)
+            if not args and node.args:
+                for phase in _values(node.args[0], scope, name):
+                    found.add(policy.classify(phase, "", "").klass)
     return found
 
 
@@ -89,6 +101,16 @@ def test_the_producer_scan_finds_the_known_call_sites():
 
 def test_every_class_a_producer_emits_is_declared():
     assert _unnamed() == []
+
+
+def test_the_guard_fails_for_a_new_classify_call_site():
+    source = {"new.py": "policy.classify('warmup', '', detail)"}
+    assert "warmup" in _call_site_classes(source) - verdict.DECLARED_CLASSES
+
+
+def test_the_scan_reads_the_local_klass_variable_and_the_phase_fallback():
+    found = _call_site_classes()
+    assert {"smoke-request", "download", "readiness"} <= found
 
 
 def test_the_guard_fails_for_a_new_phase_nobody_declared(monkeypatch):
@@ -184,7 +206,10 @@ def test_an_unnamed_class_on_one_identity_ends_after_three_identical_outcomes(tm
     sweep._record_failure(key, failure, None)
     (row,) = _verdict_rows(sweep, key)
     assert row["evidence"]["identical_exits"] == IDENTICAL_EXIT_LIMIT
-    assert row["evidence"]["observed_class"] == UNNAMED
+    assert row["failure_class"] == UNNAMED and row["code"] == "x.code"
+    assert row["status"] == "deferred"  # the platform's, reopened by a release change
+    imported = from_history({**historical(), **row, "recipe": historical()["recipe"]})
+    assert imported is not None and imported.blame == PublishedBlame.PLATFORM
 
 
 def test_a_different_unnamed_class_restarts_the_count(tmp_path):
