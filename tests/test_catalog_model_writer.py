@@ -4,6 +4,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -44,10 +45,17 @@ def _written(tmp_path: Path, *extra: str) -> tuple[dict, dict]:
         }
     ]
     source = {"repository": "https://example.com/o/m", "revision": "a" * 40}
-    write_model(args, source=source, files=files, requires_token=False)
-    model = json.loads((tmp_path / "models/lineage-bf16.json").read_text())
-    display = json.loads((tmp_path / "display/models/lineage-bf16.json").read_text())
-    return model, display
+    # The written text is the point: the typed readers would default a missing kind.
+    texts: list[str] = []
+
+    def record(path: Path, text: str, **_: object) -> int:
+        texts.append(text)  # the Model is written first, then its display
+        return len(text)
+
+    with patch.object(Path, "write_text", autospec=True, side_effect=record):
+        write_model(args, source=source, files=files, requires_token=False)
+    first, second = texts
+    return json.loads(first), json.loads(second)
 
 
 def test_display_carries_its_kind(tmp_path: Path) -> None:
