@@ -100,19 +100,18 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     return result.stdout.strip()
 
 
-def sync(
-    history: Path, directory: Path, state: Path | None = None
-) -> SweepEvidenceExit:
-    """One batch, one branch, one open PR; every subprocess has a deadline."""
-    global _deadline
-    _deadline = time.monotonic() + 240
-    directory.mkdir(parents=True, exist_ok=True)
-    (directory / UNPUBLISHED_FILE).unlink(
-        missing_ok=True
-    )  # only a synced batch reports
-    opened = json.loads(
+OWNER = REPOSITORY.split("/")[0]
+
+
+def own_open_prs(cwd: Path) -> list[dict]:
+    """Open PRs on the evidence branch that come from this repository.
+
+    The repository is public: a fork can open a PR from a branch of the same name.
+    Those are never ours to merge, close or count.
+    """
+    listed = json.loads(
         command(
-            directory,
+            cwd,
             "gh",
             "pr",
             "list",
@@ -123,11 +122,31 @@ def sync(
             "--state",
             "open",
             "--json",
-            "number",
+            "number,isCrossRepository,headRepositoryOwner",
         )
     )
-    if len(opened) > 1:
+    own = [
+        pr
+        for pr in listed
+        if pr.get("isCrossRepository") is False
+        and (pr.get("headRepositoryOwner") or {}).get("login") == OWNER
+    ]
+    if len(own) > 1:
         raise RuntimeError("multiple qualification evidence PRs; needs repair")
+    return own
+
+
+def sync(
+    history: Path, directory: Path, state: Path | None = None
+) -> SweepEvidenceExit:
+    """One batch, one branch, one open PR; every subprocess has a deadline."""
+    global _deadline
+    _deadline = time.monotonic() + 240
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / UNPUBLISHED_FILE).unlink(
+        missing_ok=True
+    )  # only a synced batch reports
+    opened = own_open_prs(directory)
     if opened:
         pr = PullRequest.model_validate(opened[0])
         details = PullRequest.model_validate_json(
@@ -294,24 +313,7 @@ def sync(
             command(clone, "git", "push", "origin", f"HEAD:refs/heads/{BRANCH}")
         elif not remote:
             return SweepEvidenceExit.SYNCED
-        opened = json.loads(
-            command(
-                clone,
-                "gh",
-                "pr",
-                "list",
-                "--repo",
-                REPOSITORY,
-                "--head",
-                BRANCH,
-                "--state",
-                "open",
-                "--json",
-                "number",
-            )
-        )
-        if len(opened) > 1:
-            raise RuntimeError("multiple qualification evidence PRs; needs repair")
+        opened = own_open_prs(clone)
         if not opened:
             command(
                 clone,
@@ -329,22 +331,7 @@ def sync(
                 "--body",
                 "Sanitized hardware evidence from the maintainer sweep. Status is derived at library publication.",
             )
-            opened = json.loads(
-                command(
-                    clone,
-                    "gh",
-                    "pr",
-                    "list",
-                    "--repo",
-                    REPOSITORY,
-                    "--head",
-                    BRANCH,
-                    "--state",
-                    "open",
-                    "--json",
-                    "number",
-                )
-            )
+            opened = own_open_prs(clone)
         pr = PullRequest.model_validate(opened[0])
         command(
             clone,
