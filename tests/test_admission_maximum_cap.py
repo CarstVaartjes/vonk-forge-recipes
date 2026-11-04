@@ -264,8 +264,24 @@ def test_a_proven_replaced_document_without_rows_keeps_its_peaks(
     lower = previous.model_copy(deep=True)
     declare_peak(lower, 999_999_999)
     assert raise_peaks_to_envelope(lower, replaced) is not None
-    # Rows of the replaced content decide over the fallback.
+    # A measured overrun of the replaced content decides over the fallback.
     measured(monkeypatch, previous, 2 * 1_000_000_000 + PLATFORM_MEMORY_FLOOR_BYTES)
+    assert raise_peaks_to_envelope(same, replaced) is not None
+
+
+def test_partial_rows_of_a_proven_replaced_dual_keep_its_peaks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A pass that measured one role only (the other Spark not alone) costs nothing."""
+    previous = documents.recipe(LLAMA)
+    declare_peak(previous, 1_000_000_000)
+    replaced = (previous, "a" * 64)
+    same = previous.model_copy(deep=True)
+    measured(monkeypatch, previous, 1, roles=("entrypoint",))
+    assert raise_peaks_to_envelope(same) is not None  # rows alone: not measured
+    assert raise_peaks_to_envelope(same, replaced) is None
+    over = 1_000_000_000 + PLATFORM_MEMORY_FLOOR_BYTES + 1
+    measured(monkeypatch, previous, over, roles=("entrypoint",))
     assert raise_peaks_to_envelope(same, replaced) is not None
 
 
@@ -408,9 +424,6 @@ def test_a_real_proven_content_keeps_peaks_once_it_is_measured(
     unmeasured = real.model_copy(update={"measured_memory": ()})
     monkeypatch.setattr(memory_need, "_evidence", lambda _key: unmeasured)
     assert raise_peaks_to_envelope(moved) is not None  # not measured: raised
-    # The refresh hands the proven document it replaces: its peaks stay.
-    kept = previous.model_copy(deep=True)
-    assert raise_peaks_to_envelope(kept, (previous, digest)) is None
     rows = tuple(
         QualificationMeasuredRoleMemory(
             content_sha256=digest,
@@ -427,3 +440,27 @@ def test_a_real_proven_content_keeps_peaks_once_it_is_measured(
         moved, catalog_models(), INPUTS, document_digest=""
     )
     assert_not_warns(warnings, "peak understates vLLM")
+
+
+@pytest.mark.live_evidence
+def test_a_refresh_keeps_every_real_unmeasured_proven_vllm_recipes_peaks() -> None:
+    """Proven content without rows: the replaced document keeps what main kept.
+
+    Content the sweep has measured is judged by its rows instead, so evidence
+    batches that add rows never turn this red.
+    """
+    for path in sorted((memory_need.ROOT / "recipes").glob("*.json")):
+        recipe = documents.recipe(path.stem)
+        digest = documents.recipe_digest(path.stem)
+        key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+        if (
+            recipe.runtime.engine != "vllm"
+            or any(
+                row.content_sha256 == digest
+                for row in memory_need._evidence(key).measured_memory
+            )
+            or not memory_need.hardware_proven(recipe, digest)
+        ):
+            continue
+        same = recipe.model_copy(deep=True)
+        assert raise_peaks_to_envelope(same, (recipe, digest)) is None, path.stem
