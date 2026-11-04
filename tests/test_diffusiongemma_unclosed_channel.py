@@ -6,6 +6,7 @@ import runpy
 from pathlib import Path
 
 import pytest
+from documents import recipe as load_recipe
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/llm/r0b0tlab-diffusiongemma-vllm-single"
@@ -93,10 +94,8 @@ def test_dockerfile_applies_the_patch_and_the_recipe_declares_it() -> None:
     dockerfile = (ADAPTER / "Dockerfile").read_text()
     assert "python3 /tmp/patch-gemma4-unclosed-channel.py" in dockerfile
     assert "gemma4_reasoning_parser.py" in dockerfile
-    recipe = (
-        ROOT / "recipes/diffusiongemma-26b-nvfp4-r0b0tlab-vllm-single.json"
-    ).read_text()
-    assert (
+    recipe = load_recipe("diffusiongemma-26b-nvfp4-r0b0tlab-vllm-single")
+    assert recipe.execution.build is not None
+    assert [patch.path for patch in recipe.execution.build.patches] == [
         "adapters/llm/r0b0tlab-diffusiongemma-vllm-single/patch-gemma4-unclosed-channel.py"
-        in recipe
-    )
+    ]
