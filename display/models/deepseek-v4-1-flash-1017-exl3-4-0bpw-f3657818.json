@@ -1,0 +1,15 @@
+{
+  "description": "bertholomus/DeepSeek-V4.1-Flash-1017-EXL3-4.0bpw at immutable revision f3657818ca522b38aad5449b16aa1991c96a3e83 (the repository head; it differs from a2f91e27, the revision bertholomus's RUNNING.md checked, only in the model card): DeepSeek V4.1 Flash 1017 quantized to EXL3 at 4.0 bpw, with the MTP head and the vision tower. Physical Spark acceptance is unmeasured.",
+  "family_title": "DeepSeek",
+  "identity": {
+    "publisher": "bertholomus",
+    "slug": "deepseek-v4-1-flash-1017-exl3-4-0bpw-f3657818"
+  },
+  "kind": "model-display",
+  "model_title": "DeepSeek V4.1 Flash 1017",
+  "tags": [
+    "deepseek",
+    "1017",
+    "exl3"
+  ]
+}
