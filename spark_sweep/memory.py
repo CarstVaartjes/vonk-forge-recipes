@@ -15,7 +15,7 @@ from vonk_forge_contracts import (
     RecipeDefinition,
 )
 
-from qualification.memory_need import OS_FLOOR_BYTES, vllm_budget_bytes
+from qualification.memory_need import OS_FLOOR_BYTES, holds_within, vllm_budget_bytes
 
 
 class _Sample(BaseModel):
@@ -127,7 +127,7 @@ def notes(memory: Mapping[str, Any] | None) -> list[dict[str, Any]]:
         }
         for node in memory["nodes"]
         if node["alone"]
-        and node["used_bytes"] > memory["declared_bytes"] + OS_FLOOR_BYTES
+        and not holds_within(memory["declared_bytes"], node["used_bytes"])
     ]
 
 
