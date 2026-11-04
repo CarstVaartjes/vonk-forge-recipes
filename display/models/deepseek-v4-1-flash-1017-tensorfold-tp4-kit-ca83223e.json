@@ -1,0 +1,16 @@
+{
+  "description": "The image-span routing bias of DeepSeek V4.1 Flash 1017 (the 43 ffn.gate.bias_vl f32 vectors, byte copies of deepseek-ai/DeepSeek-V4.1-Flash-1017, MIT) from the kit/ folder of bertholomus/DeepSeek-V4.1-Flash-TensorFold-TP4-4xGB10 at revision ca83223e341febd35244176b2f5340cc090f7c0f (the v0.3.6 card; the selected file is unchanged since v0.3.0), sha256 4745da4b..., as listed in the kit MANIFEST. bertholomus RUNNING.md names this file as the source when the original checkpoint is not at hand: the EXL3 4.0 bpw quant carries only 40 of the 43 tensors. Only that file and its licence are selected.",
+  "family_title": "DeepSeek",
+  "identity": {
+    "publisher": "bertholomus",
+    "slug": "deepseek-v4-1-flash-1017-tensorfold-tp4-kit-ca83223e"
+  },
+  "kind": "model-display",
+  "model_title": "DeepSeek V4.1 Flash 1017",
+  "tags": [
+    "deepseek",
+    "1017",
+    "tensorfold",
+    "vision"
+  ]
+}
