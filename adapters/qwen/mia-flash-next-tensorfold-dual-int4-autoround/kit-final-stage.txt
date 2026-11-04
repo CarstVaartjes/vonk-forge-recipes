@@ -1,0 +1,14 @@
+FROM ${BASE_IMAGE}
+COPY --from=build /opt/tensorfold /opt/tensorfold
+# TensorFold's Python tree for the vision helper (python3 -m tensorfold.vision.native_helper, started by --vision)
+COPY --from=build /tensorfold/src/tensorfold /opt/tensorfold/python/tensorfold
+RUN ln -s /opt/tensorfold/native/bin/tensorfold-native /usr/local/bin/tensorfold-native && \
+    pip install --no-cache-dir "huggingface_hub>=1.0" && \
+    pip install --no-cache-dir --no-deps "transformers==5.17.0" "av==19.0.1"
+ARG PATCHES_HASH
+ARG KERNELS
+LABEL tf.patches=${PATCHES_HASH} tf.kernels=${KERNELS}
+ENV HF_HOME=/root/.cache/huggingface TENSORFOLD_CUDA_KERNELS=/opt/tensorfold/share/tensorfold/cuda/sm121 \
+    CUDA_CACHE_PATH=/cache/nv TENSORFOLD_VISION_PYTHONPATH=/opt/tensorfold/python
+WORKDIR /workspace
+DOCKERFILE
