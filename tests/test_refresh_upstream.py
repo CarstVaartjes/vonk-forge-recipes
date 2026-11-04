@@ -603,10 +603,10 @@ class NothingRunsTests(unittest.TestCase):
         ):
             self.assess(moved, engine="vllm")
             raised.assert_called_once()
-            roles, _recipe, previous, digest = raised.call_args.args
+            roles, _recipe = (
+                raised.call_args.args
+            )  # no pre-move document: evidence decides
             self.assertEqual(roles, [])
-            self.assertEqual(len(digest), 64)  # the pre-move authored digest
-            self.assertIsNotNone(previous)  # the keep rule judges the pre-move content
         with patch("refresh_upstream.raise_role_peaks") as raised:
             self.assess(moved, engine="sglang")
             raised.assert_not_called()
@@ -1357,7 +1357,6 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         from vonk_forge_contracts import RecipeDefinition
         from warning_asserts import assert_not_warns, assert_warns
 
-        from qualification import documents as qualification_documents
         from qualification.memory_need import load_inputs, memory_estimate_warnings
 
         slug = "muse-spark-open-nvfp4-vllm-eight"
@@ -1372,13 +1371,7 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             ),
             "vLLM budget plus overhead",
         )
-        previous = documents.recipe(slug)
-        refresh.raise_role_peaks(
-            payload["topology"]["roles"],
-            before,
-            previous,
-            qualification_documents.recipe_digest(slug),
-        )
+        refresh.raise_role_peaks(payload["topology"]["roles"], before)
         after = RecipeDefinition.model_validate(payload)
         self.assertEqual(
             {r.resources.memory.peak_bytes for r in after.topology.roles},

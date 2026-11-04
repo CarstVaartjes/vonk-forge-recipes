@@ -22,7 +22,9 @@ from typing import Annotated, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from vonk_forge_contracts import (
     ModelDefinition,
+    QualificationEvidenceRecord,
     RecipeDefinition,
+    RecipeQualificationEvidence,
     document_sha256,
 )
 from vonk_forge_contracts.memory_admission import (
@@ -378,24 +380,38 @@ def unchanged_recipe(
     )
 
 
-def hardware_proven(recipe: RecipeDefinition, document_digest: str) -> bool:
-    """Use the qualification reducer, including later failures and exact reverts."""
+def _working(
+    evidence: RecipeQualificationEvidence,
+    record: QualificationEvidenceRecord,
+    sparks: int,
+) -> bool:
+    """Whether the record's own content is Working: later failures and reverts count."""
     from vonk_forge_contracts import QualificationStatus, derive_status
 
+    identity = record.identity.model_copy(update={"required_sparks": sparks})
+    return (
+        derive_status(evidence, identity, sparks, False).status
+        == QualificationStatus.WORKING
+    )
+
+
+def hardware_proven(recipe: RecipeDefinition, document_digest: str) -> bool:
+    """Use the qualification reducer, including later failures and exact reverts."""
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
     evidence = _evidence(key)
-    for record in evidence.records:
-        if record.identity.content_sha256 != document_digest:
-            continue
-        identity = record.identity.model_copy(
-            update={"required_sparks": recipe.topology.node_count}
-        )
-        if (
-            derive_status(evidence, identity, recipe.topology.node_count, False).status
-            == QualificationStatus.WORKING
-        ):
-            return True
-    return False
+    return any(
+        record.identity.content_sha256 == document_digest
+        and _working(evidence, record, recipe.topology.node_count)
+        for record in evidence.records
+    )
+
+
+def holds_within(declared_bytes: int, used_bytes: int) -> bool:
+    """Whether a Spark's observed use (OS included) fits a role's declared peak.
+
+    The one rule for the sweep's memory-envelope note and for measured peaks.
+    """
+    return used_bytes <= declared_bytes + OS_FLOOR_BYTES
 
 
 def load_inputs(root: Path = ROOT) -> MemoryInputs:
@@ -1278,8 +1294,6 @@ def memory_estimate_warnings(
     *,
     document_digest: str,
     touched: bool = False,
-    previous: RecipeDefinition | None = None,
-    previous_digest: str = "",
 ) -> list[str]:
     """Where the declared memory disagrees with the estimate; none of it blocks.
 
@@ -1316,7 +1330,7 @@ def memory_estimate_warnings(
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return warnings
     single = recipe.topology.node_count == 1
-    keep = keeps_measured_peaks(recipe, previous, previous_digest)
+    keep = keeps_measured_peaks(recipe)
     for variant in memory_variants(recipe):
         warnings += estimate_problems(
             key,
@@ -1443,42 +1457,55 @@ def recipe_envelope(recipe: RecipeDefinition) -> int:
     )
 
 
-def keeps_measured_peaks(
-    recipe: RecipeDefinition,
-    previous: RecipeDefinition | None,
-    previous_digest: str,
-) -> bool:
-    """Whether a moved document keeps its declared peaks: measured and not out-grown.
+def recipe_budget(recipe: RecipeDefinition) -> int | None:
+    """The largest vLLM utilization budget over the recipe's launch variants, if any."""
+    budgets = [b for v in memory_variants(recipe) if (b := vllm_budget_bytes(v))]
+    return max(budgets, default=None)
 
-    The one rule for the raise and for the "peak understates" warning: the
-    pre-move content (``previous``, authored digest ``previous_digest``) has hardware
-    evidence AND the move did not raise the budget. Unmeasured estimates heal.
+
+def keeps_measured_peaks(recipe: RecipeDefinition) -> bool:
+    """Whether the declared peaks are measured: hardware evidence covers them.
+
+    The one rule for the refresh's raise and for the "peak understates" warning,
+    read from this recipe's qualification evidence only (never a previous
+    document): a pass record that is still Working on its own content measured
+    every role at no more than its declared peak allows (``holds_within``), under
+    a budget at least the current one. Unmeasured estimates heal.
     """
-    return (
-        previous is not None
-        and bool(previous_digest)
-        and recipe_envelope(recipe) <= recipe_envelope(previous)
-        and hardware_proven(previous, previous_digest)
-    )
+    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    evidence = _evidence(key)
+    budget = recipe_budget(recipe)
+    sparks = recipe.topology.node_count
+    for record in evidence.records:
+        measured = record.memory
+        if measured is None or (
+            budget is not None
+            and (measured.budget_bytes is None or budget > measured.budget_bytes)
+        ):
+            continue
+        steady = {item.role: item.steady_bytes for item in measured.roles}
+        if all(
+            role.name in steady
+            and holds_within(role.resources.memory.peak_bytes, steady[role.name])
+            for role in recipe.topology.roles
+        ) and _working(evidence, record, sparks):
+            return True
+    return False
 
 
-def raise_peaks_to_envelope(
-    recipe: RecipeDefinition,
-    previous: RecipeDefinition | None = None,
-    previous_digest: str = "",
-) -> RecipeDefinition | None:
+def raise_peaks_to_envelope(recipe: RecipeDefinition) -> RecipeDefinition | None:
     """The recipe with role peaks raised to its vLLM budget envelope, None if none is.
 
     A document that moves (``tools/refresh-upstream``) is new content and meets the
     current margins; raising here keeps a refresh from blocking. Peaks are never
     lowered, and a declared load peak keeps its rise above the peak. The envelope
-    is capped at the admission maximum. A move whose pre-move content is
-    hardware-measured and did not raise the budget keeps its declared peaks
-    (``keeps_measured_peaks``); every other move, including a measured one that
-    raises the budget, is raised to the capped envelope.
+    is capped at the admission maximum. Peaks that hardware evidence measured,
+    under a budget the move did not raise, are kept (``keeps_measured_peaks``);
+    every other move, including a measured one that raises the budget, is raised
+    to the capped envelope.
     """
     envelope = recipe_envelope(recipe)
-    if keeps_measured_peaks(recipe, previous, previous_digest):
+    if keeps_measured_peaks(recipe):
         return None
     if all(r.resources.memory.peak_bytes >= envelope for r in recipe.topology.roles):
         return None

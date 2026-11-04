@@ -1,11 +1,25 @@
-"""The admission maximum caps the vLLM envelope; a measured, unchanged budget keeps its peaks."""
+"""The admission maximum caps the vLLM envelope; peaks measured under no smaller budget stay."""
 
 import ast
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
-from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts import (
+    QualificationBlame,
+    QualificationCauseCode,
+    QualificationEvidenceRecord,
+    QualificationIdentity,
+    QualificationMeasuredMemory,
+    QualificationOutcome,
+    QualificationPlatform,
+    QualificationRoleMemory,
+    QualificationSummary,
+    QualificationTopology,
+    RecipeDefinition,
+    RecipeQualificationEvidence,
+)
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
@@ -86,23 +100,75 @@ def with_utilization(recipe: RecipeDefinition, value: str) -> RecipeDefinition:
     return moved
 
 
-def digest_of(recipe: RecipeDefinition) -> str:
-    """The authored document's digest, as evidence records it (not a re-dump)."""
-    return documents.recipe_digest(recipe.identity.slug)
+NOW = datetime(2026, 11, 4, tzinfo=UTC)
 
 
-def measured(monkeypatch: pytest.MonkeyPatch, proven: bool) -> None:
-    monkeypatch.setattr(memory_need, "hardware_proven", lambda *_: proven)
+def passed(
+    recipe: RecipeDefinition,
+    steady_bytes: int | None,
+    *,
+    budget_bytes: int | None = None,
+    content: str = "a" * 64,
+    roles: tuple[str, ...] | None = None,
+    outcome: QualificationOutcome = QualificationOutcome.PASSED,
+    day: int = 0,
+) -> QualificationEvidenceRecord:
+    """A hardware record of earlier content of ``recipe``; it measured ``steady_bytes``."""
+    sparks = recipe.topology.node_count
+    failed = outcome == QualificationOutcome.FAILED
+    return QualificationEvidenceRecord(
+        identity=QualificationIdentity(content_sha256=content, required_sparks=sparks),
+        outcome=outcome,
+        blame=QualificationBlame.RECIPE if failed else None,
+        cause_code=QualificationCauseCode.RUNTIME_OOM
+        if failed
+        else QualificationCauseCode.HARDWARE_PASS,
+        cause_summary=QualificationSummary.RUNTIME_OOM
+        if failed
+        else QualificationSummary.PASSED,
+        tested_at=NOW + timedelta(days=day),
+        platform=QualificationPlatform(
+            controller_version="2.0.0",
+            spark_count=sparks,
+            topology=QualificationTopology.SINGLE
+            if sparks == 1
+            else QualificationTopology.MULTI,
+        ),
+        memory=None
+        if steady_bytes is None or failed
+        else QualificationMeasuredMemory(
+            budget_bytes=budget_bytes
+            if budget_bytes is not None
+            else memory_need.recipe_budget(recipe),
+            roles=tuple(
+                QualificationRoleMemory(role=name, steady_bytes=steady_bytes)
+                for name in sorted(roles or {r.name for r in recipe.topology.roles})
+            ),
+        ),
+    )
+
+
+def evidence(
+    monkeypatch: pytest.MonkeyPatch,
+    recipe: RecipeDefinition,
+    *records: QualificationEvidenceRecord,
+) -> None:
+    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    monkeypatch.setattr(
+        memory_need,
+        "_evidence",
+        lambda _key: RecipeQualificationEvidence(recipe_key=key, records=records),
+    )
 
 
 def test_measured_move_that_raises_the_budget_raises_to_the_capped_envelope(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Real identity: util 0.80 declared, upstream moves it to 0.92.
-    measured(monkeypatch, True)
+    # Real identity: util 0.80 measured, upstream moves it to 0.92.
     previous = documents.recipe(PROVEN)
+    evidence(monkeypatch, previous, passed(previous, 1))
     moved = with_utilization(previous, "0.92")
-    raised = raise_peaks_to_envelope(moved, previous, digest_of(previous))
+    raised = raise_peaks_to_envelope(moved)
     assert raised is not None
     assert {r.resources.memory.peak_bytes for r in raised.topology.roles} == {
         declarable_vllm_envelope(moved)
@@ -116,23 +182,48 @@ def test_measured_move_that_raises_the_budget_raises_to_the_capped_envelope(
 def test_measured_move_that_keeps_the_budget_keeps_the_peaks(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    measured(monkeypatch, True)
     previous = documents.recipe(PROVEN)
     declare_peak(previous, 1_000_000_000)
     same = previous.model_copy(deep=True)
-    digest = digest_of(previous)
-    assert raise_peaks_to_envelope(same, previous, digest) is None
-    assert raise_peaks_to_envelope(same) is not None  # no pre-move recipe
-    lower = with_utilization(previous, "0.5")
-    assert raise_peaks_to_envelope(lower, previous, digest) is None
+    assert raise_peaks_to_envelope(same) is not None  # not measured
+    evidence(monkeypatch, previous, passed(previous, 2_000_000_000))
+    assert raise_peaks_to_envelope(same) is None
+    assert raise_peaks_to_envelope(with_utilization(previous, "0.5")) is None
+
+
+@pytest.mark.parametrize(
+    "records",
+    [
+        # Old evidence: a pass with no measurement is "not measured".
+        lambda r: (passed(r, None),),
+        # Hardware used more than the declaration allows.
+        lambda r: (passed(r, 1_000_000_000 + PLATFORM_MEMORY_FLOOR_BYTES + 1),),
+        # Measured under a smaller budget than the launch has now.
+        lambda r: (passed(r, 1, budget_bytes=(memory_need.recipe_budget(r) or 0) - 1),),
+        # The measured content failed afterwards: it is no longer proven.
+        lambda r: (
+            passed(r, 1),
+            passed(r, None, outcome=QualificationOutcome.FAILED, day=1),
+        ),
+        # A role the run did not measure.
+        lambda r: (passed(r, 1, roles=("other",)),),
+    ],
+)
+def test_peaks_not_covered_by_measured_evidence_are_raised(
+    monkeypatch: pytest.MonkeyPatch, records
+) -> None:
+    previous = documents.recipe(PROVEN)
+    declare_peak(previous, 1_000_000_000)
+    evidence(monkeypatch, previous, *records(previous))
+    assert not memory_need.keeps_measured_peaks(previous)
+    assert raise_peaks_to_envelope(previous.model_copy(deep=True)) is not None
 
 
 def test_unmeasured_estimate_heals_on_a_same_budget_move() -> None:
     # muse-spark declares 2.4 GB/rank below today's envelope and has no evidence.
     previous = documents.recipe(UNPROVEN)
-    assert not memory_need.hardware_proven(previous, digest_of(previous))
     same = previous.model_copy(deep=True)
-    raised = raise_peaks_to_envelope(same, previous, digest_of(previous))
+    raised = raise_peaks_to_envelope(same)
     assert raised is not None
     assert {r.resources.memory.peak_bytes for r in raised.topology.roles} == {
         recipe_envelope(same)
@@ -144,24 +235,16 @@ def test_warning_follows_the_keep_rule(monkeypatch: pytest.MonkeyPatch) -> None:
     moved = previous.model_copy(deep=True)
     declare_peak(moved, 100_000_000_000)
 
-    def warns(
-        previous: RecipeDefinition | None = None, previous_digest: str = ""
-    ) -> list[str]:
+    def warns() -> list[str]:
         return memory_estimate_warnings(
-            moved,
-            catalog_models(),
-            INPUTS,
-            document_digest="",
-            previous=previous,
-            previous_digest=previous_digest,
+            moved, catalog_models(), INPUTS, document_digest=""
         )
 
-    digest = digest_of(previous)
-    measured(monkeypatch, True)
-    assert_not_warns(warns(previous, digest), "peak understates vLLM")
     assert_warns(warns(), "peak understates vLLM")
-    measured(monkeypatch, False)
-    assert_warns(warns(previous, digest), "peak understates vLLM")
+    evidence(monkeypatch, previous, passed(previous, 99_000_000_000))
+    assert_not_warns(warns(), "peak understates vLLM")
+    evidence(monkeypatch, previous, passed(previous, 103_000_000_000))
+    assert_warns(warns(), "peak understates vLLM")
 
 
 ALLOWED = {
@@ -250,7 +333,10 @@ def test_the_guard_allows_the_listed_scopes() -> None:
 
 
 @pytest.mark.live_evidence
-def test_real_evidence_keeps_a_proven_recipe_on_a_same_budget_move() -> None:
+def test_a_real_proven_record_keeps_peaks_once_it_carries_a_measurement(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The committed pass records shapes as the sweep writes them; measured, they keep."""
     proven = None
     for path in sorted((memory_need.ROOT / "recipes").glob("*.json")):
         recipe = documents.recipe(path.stem)
@@ -264,17 +350,32 @@ def test_real_evidence_keeps_a_proven_recipe_on_a_same_budget_move() -> None:
             break
     assert proven, "no hardware-proven vLLM recipe in the committed evidence"
     previous, digest = proven
+    key = f"{previous.identity.publisher}/{previous.identity.slug}"
+    real = memory_need._evidence(key)
     moved = previous.model_copy(deep=True)
     declare_peak(moved, 1_000_000_000)
-    assert raise_peaks_to_envelope(moved, previous, digest) is None
+    measurement = passed(previous, 1).memory
+    records = tuple(
+        record.model_copy(update={"memory": measurement})
+        if record.identity.content_sha256 == digest
+        and record.outcome == QualificationOutcome.PASSED
+        else record
+        for record in real.records
+    )
+    unmeasured = [r for r in real.records if r.memory is None]
+    monkeypatch.setattr(
+        memory_need,
+        "_evidence",
+        lambda _key: real.model_copy(update={"records": tuple(unmeasured)}),
+    )
+    assert raise_peaks_to_envelope(moved) is not None  # not measured: raised
+    monkeypatch.setattr(
+        memory_need,
+        "_evidence",
+        lambda _key: real.model_copy(update={"records": records}),
+    )
+    assert raise_peaks_to_envelope(moved) is None
     warnings = memory_estimate_warnings(
-        moved,
-        catalog_models(),
-        INPUTS,
-        document_digest="",
-        previous=previous,
-        previous_digest=digest,
+        moved, catalog_models(), INPUTS, document_digest=""
     )
     assert_not_warns(warnings, "peak understates vLLM")
-    # The same move on a digest the evidence does not know heals.
-    assert raise_peaks_to_envelope(moved, previous, "0" * 64) is not None
