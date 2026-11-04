@@ -269,6 +269,29 @@ def test_a_proven_replaced_document_without_rows_keeps_its_peaks(
     assert raise_peaks_to_envelope(same, replaced) is not None
 
 
+def test_complete_rows_retire_the_replaced_document_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Measured content is judged by its rows per launch variant, refresh or not."""
+    recipe = documents.recipe(GEMMA)
+    declare_peak(recipe, 90_000_000_000)
+    measured(monkeypatch, recipe, 90_000_000_000)  # every role, in peak, default launch
+    larger = recipe.with_option_choices({"gpu-memory": "util-085"})
+    envelope = {declarable_vllm_envelope(larger)}
+    for replaced in (None, (recipe, "a" * 64)):
+        raised = raise_peaks_to_envelope(recipe.model_copy(deep=True), replaced)
+        assert raised is not None
+        assert {
+            r.resources.memory.peak_bytes for r in raised.topology.roles
+        } == envelope
+    warnings = memory_estimate_warnings(
+        recipe, catalog_models(), INPUTS, document_digest=""
+    )
+    assert_warns(
+        warnings, f"vLLM budget plus overhead {declarable_vllm_envelope(larger)}"
+    )
+
+
 def test_partial_rows_of_a_proven_replaced_dual_keep_its_peaks(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

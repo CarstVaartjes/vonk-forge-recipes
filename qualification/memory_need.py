@@ -1478,10 +1478,12 @@ def measured_budget(
     still Working (``hardware_proven``) whose rows measure every declared role
     within its declared peak (``holds_within``); a content's budget is the
     smallest over its rows. ``replaced`` is the document (and digest) a refresh
-    is replacing, in hand: proven content ran under its own declared peaks, so
-    it vouches for peaks no smaller than those, under its largest budget, unless
-    a row of it shows a role using more than declared (partial rows are "not
-    measured", never a loss of that proof). ``None`` when nothing qualifies.
+    is replacing, in hand: while its content has no complete rows, proven
+    content vouches for peaks no smaller than its own declared ones, under its
+    largest budget, unless a row shows a role using more than declared (partial
+    rows are "not measured", never a loss of that proof). Once every role of it
+    has a row, the rows alone decide, per launch variant. ``None`` when nothing
+    qualifies.
     """
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
     evidence = _evidence(key)
@@ -1506,12 +1508,14 @@ def measured_budget(
     if replaced is not None:
         old, digest = replaced
         before = {r.name: r.resources.memory.peak_bytes for r in old.topology.roles}
+        rows = by_content.get(digest, {})
         overrun = any(
             role in before and not holds_within(before[role], row.steady_bytes)
-            for role, row in by_content.get(digest, {}).items()
+            for role, row in rows.items()
         )
         if (
             not overrun
+            and not set(before) <= set(rows)  # complete rows retire the fallback
             and all(
                 role.resources.memory.peak_bytes >= before.get(role.name, 2**63)
                 for role in recipe.topology.roles
