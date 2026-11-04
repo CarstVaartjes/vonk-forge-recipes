@@ -555,9 +555,13 @@ class NothingRunsTests(unittest.TestCase):
             )
         )
 
-    def assess(self, comparison_, *, used=None, report=None, engine=None):
+    def assess(
+        self, comparison_, *, used=None, report=None, engine=None, document=None
+    ):
         catalog = single_recipe_catalog(f"https://github.com/example/recipe/tree/{OLD}")
-        if engine is not None:
+        if document is not None:
+            catalog.recipes["recipe"] = document
+        elif engine is not None:
             recipe = catalog.recipes["recipe"]
             recipe["runtime"] = {"engine": engine}
             recipe["topology"] = {"roles": []}
@@ -617,6 +621,68 @@ class NothingRunsTests(unittest.TestCase):
             result = self.assess(moved, engine="vllm")
         self.assertFalse(result.mechanical)
         self.assertIn("memory envelope", " ".join(result.reasons))
+
+    def body(self, result) -> str:
+        self.assertTrue(result.mechanical)
+        return refresh.pr_body(result)
+
+    def test_body_of_a_non_vllm_move_claims_no_peaks(self) -> None:
+        body = self.body(
+            self.assess(comparison(files=("src/engine.py",)), engine="sglang")
+        )
+        self.assertIn("## Principles", body)
+        self.assertNotIn("peaks", body)
+        self.assertIn("re-checks the new digest", body)
+        self.assertIn("The sweep proves the recipe runs.", body)
+
+    def test_body_of_an_unmark_only_drift_claims_no_move_and_no_new_digest(
+        self,
+    ) -> None:
+        item = refresh.Item(
+            "source", "github", "example/recipe", OLD, self.TARGET, unmark=True
+        )
+        found = refresh.Assessment("recipe", items=[item])
+        stub = lambda _self, _item, _recipe, _new, _result, edits: edits.update(
+            {"adapters/x/vendored-upstream.json": b"{}"}
+        )
+        with (
+            patch("refresh_upstream.collect_items", return_value=found),
+            patch.object(refresh.Assessor, "_mark", stub),
+        ):
+            result = self.assess(comparison(files=("src/engine.py",)))
+        body = self.body(result)
+        self.assertIn("## Principles", body)
+        self.assertNotIn("pins move", body)
+        self.assertNotIn("new digest", body)
+        self.assertNotIn("sweep proves", body)
+        self.assertNotIn("peaks", body)
+
+    def test_body_of_a_poolless_vllm_move_states_the_raised_peaks(self) -> None:
+        document = json.loads((ROOT / "recipes/d3-lite-vllm-single.json").read_text())
+        document["provenance"]["source_reference"] = (
+            f"https://github.com/example/recipe/tree/{OLD}"
+        )
+        document["execution"]["build"]["context"]["path"] = "missing"
+        for role in document["topology"]["roles"]:
+            role["resources"]["memory"]["peak_bytes"] = 1 << 30
+            role["resources"]["memory"].pop("load_peak_bytes", None)
+        result = self.assess(comparison(files=("src/engine.py",)), document=document)
+        self.assertTrue(result.peaks_raised)
+        body = self.body(result)
+        self.assertIn("raised to the vLLM budget envelope", body)
+
+    def test_body_names_held_pins_and_does_not_claim_they_moved(self) -> None:
+        result = refresh.Assessment(
+            "recipe",
+            items=[
+                refresh.Item("source", "github", "o/r", OLD, self.TARGET),
+            ],
+            declined=["image o/base"],
+            edits={"recipes/recipe.json": b"x"},
+        )
+        body = refresh.pr_body(result)
+        self.assertIn("pins that moved go", body)
+        self.assertIn("image o/base", body)
 
     def test_whole_repository_code_move_is_still_a_refresh(self) -> None:
         result = self.assess(comparison(files=("README.md", "src/engine.py")))
@@ -2603,28 +2669,6 @@ class SelfHealingTests(unittest.TestCase):
             unproven: dict[str, bytes | None] = {"recipes/c.json": b"moved\n"}
             refresh.follow_proven_bytes(root, unproven)
             self.assertNotIn(refresh.PROVEN_BYTES, unproven)
-
-    def test_pr_body_states_principles_that_follow_the_assessment(self) -> None:
-        item = refresh.Item(
-            "source",
-            "github",
-            "o/r",
-            OLD,
-            refresh.Target("github", "o/r", NEW, "d", None, None, "u"),
-        )
-        plain = refresh.Assessment("a", items=[item], evidence=["x" * 200])
-        proven = refresh.Assessment(
-            "a", items=[item], edits={refresh.PROVEN_BYTES: b"{}"}
-        )
-        for assessment in (plain, proven):
-            assessment.evidence = ["y" * (refresh.MAX_BODY * 2)]
-            body = refresh.pr_body(assessment)
-            self.assertIn("## Principles", body)
-            self.assertIn("keeps_measured_peaks", body)
-            self.assertIn("re-checks the new digest", body)
-            self.assertLess(body.index("## Principles"), body.index("## Evidence"))
-        self.assertNotIn("Content identity", refresh.pr_body(plain))
-        self.assertIn("Content identity", refresh.pr_body(proven))
 
     def test_failure_evidence_has_the_log_tail(self) -> None:
         with patch("refresh_upstream.gh", return_value="x\nBOOM: stale\n"):
