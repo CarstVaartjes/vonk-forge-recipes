@@ -1,13 +1,12 @@
 """The catalog report applies the keep rule a move was checked by: its pre-move content."""
 
-import json
 import runpy
 import subprocess
 from pathlib import Path
 
 import pytest
 
-from qualification import memory_need
+from qualification import documents, memory_need
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four"
@@ -24,11 +23,11 @@ def git(root: Path, *args: str) -> None:
 
 def write_recipe(root: Path, peak_bytes: int | None = None) -> None:
     """The real recipe, its peaks lowered below the envelope when given (a move)."""
-    document = json.loads((ROOT / "recipes" / f"{SLUG}.json").read_text())
+    recipe = documents.recipe(SLUG)
     if peak_bytes is not None:
-        for role in document["topology"]["roles"]:
-            role["resources"]["memory"]["peak_bytes"] = peak_bytes
-    (root / "recipes" / f"{SLUG}.json").write_text(json.dumps(document))
+        for role in recipe.topology.roles:
+            role.resources.memory.peak_bytes = peak_bytes
+    (root / "recipes" / f"{SLUG}.json").write_text(recipe.model_dump_json())
 
 
 def catalog(tmp_path: Path, *, history: bool) -> Path:
