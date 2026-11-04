@@ -1,4 +1,4 @@
-"""Bind one rank of bertholomus's v0.3.5 TP4 launch (scripts/serve.sh, config.env.example) to the Controller's model, cache and fabric."""
+"""Bind one rank of bertholomus's v0.3.6 TP4 launch (scripts/serve.sh, config.env.example) to the Controller's model, cache and fabric."""
 import argparse
 import fcntl
 from ipaddress import ip_address
@@ -10,16 +10,14 @@ from prepare_cache import prepare
 
 ENGINE = Path("/opt/tensorfold")
 RDMA_KERNELS = ENGINE / "fatbin/dsv41_rdma.fatbin"
-# config.env.example ENGINE_ENV at b88fae26: every rank's environment, apart from TF_DS_STREAMS and TF_DS_WINDOW
+# config.env.example ENGINE_ENV at 16f65a98 (v0.3.6): every rank's environment, apart from TF_DS_STREAMS and TF_DS_WINDOW
 # (bound to --parallel and --pool) and TENSORFOLD_GRAMMAR_LIB (the cache's kit).
-ROUND_MS = "14.5,17.4,19.9,22.3,24.0,25.9,27.2,28.5,29.9,31.2,32.5,33.8,35.2,36.5,37.8,39.2,40.5,41.8,43.2,44.5,45.8,47.1,48.5,49.8,51.1,52.5,53.8,55.1,56.5,57.8,59.1,60.4,61.8,63.1,64.4,65.8,67.1,68.4,69.8,71.1,72.4,73.7,75.1,76.4,77.7,79.1,80.4,81.7"
+ROUND_MS = "14.5,17.4,19.9,22.3,24.0,25.9,27.5,29.2,30.8,32.5,34.1,35.7,37.4,39.0,40.7,42.3,43.9,45.6,47.2,48.9,50.5,52.1,53.8,55.4,57.1,58.7,60.3,62.0,63.6,65.3,66.9,68.5,70.2,71.8,73.5,75.1,76.7,78.4,80.0,81.7,83.3,84.9,86.6,88.2,89.9,91.5,93.1,94.8"
 ENGINE_ENV = {
     "TF_DS_2D_GU": "parity", "TF_DS_ROUND_ROWS": "48", "TF_DS_SERVED_K": "solo", "TF_DS_ROUND_MS": ROUND_MS,
-    "TF_DS_IDX_SPLIT": "1", "TENSORFOLD_PLAIN_SPECIALS": "1", "TENSORFOLD_SSE_KEEPALIVE": "15",
+    "TF_DS_IDX_SPLIT": "8192", "TENSORFOLD_PLAIN_SPECIALS": "1", "TENSORFOLD_SSE_KEEPALIVE": "15",
     "TENSORFOLD_STATS_EVERY": "60", "TF_FILL_CHUNKS": "1", "TF_FILL_MANY": "1", "TF_DS_2D_YX": "1", "TF_DS_WAVES": "1",
     "NCCL_MAX_NCHANNELS": "4",
-    # tonyd2wild's patch 0002 (runs/2026-10-26-1017-tensorfold-v035-4bpw ENGINE_ENV)
-    "TF_SEED_RANDOM": "1", "TF_TOP_K_MAX": "56",
 }
 
 
@@ -64,7 +62,8 @@ def launch(arguments, environ):
     kit, rank_cache, token_map, model = cache / "kit", cache / "rank-cache", cache / "dsv41_token_map.json", cache / "model"
     env = dict(environ)
     env.update(ENGINE_ENV)
-    # serve.sh LINK: the Controller's rails and RoCE GID (tonyd2wild's patch 0001 reads TF_RDMA_GID).
+    # serve.sh LINK with the Controller's rails (both RoCE halves when both are authorized) and its RoCE GID index:
+    # the engine's v0.3.6 opt-in TF_RDMA_GID, which bertholomus leaves at its default 5.
     env.update(TF_RDMA_DEVICES=rails, TF_RDMA_GID=gid, TF_DS_STREAMS=str(args.parallel), TF_DS_WINDOW=str(args.pool),
                TENSORFOLD_GRAMMAR_LIB=str(kit / "grammar/libtfgrammar.so"))
     if args.rank == 0:

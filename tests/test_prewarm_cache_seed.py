@@ -146,6 +146,7 @@ def test_native_kit_replacement_keeps_verified_cache_on_failure(
     if copied:
         (tmp_path / "bias.safetensors").write_bytes(bias)
         extra = [tmp_path / "bias.safetensors"]
+        monkeypatch.setattr(module, "BIAS_SIZE", len(bias))
 
     def generate(command, check):
         assert check

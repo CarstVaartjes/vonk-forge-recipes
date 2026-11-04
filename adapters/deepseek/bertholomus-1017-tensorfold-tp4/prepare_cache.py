@@ -1,4 +1,4 @@
-"""Derive the v0.3.5 TensorFold run-time inputs (RUNNING.md section 2) from immutable checkpoints into the managed cache."""
+"""Derive the v0.3.6 TensorFold run-time inputs (RUNNING.md section 2) from immutable checkpoints into the managed cache."""
 
 import hashlib
 import json
@@ -10,8 +10,10 @@ import subprocess
 import sys
 import tempfile
 
+# The kit Model's declared vision/gate_bias_vl.safetensors (verified by the Controller at ingress).
 BIAS_SHA256 = "4745da4b5f24c67170ee24e2c95652e45ba13c0ca0abc2be3cc7a2a3545792d0"
-# results/served-1017/inputs.txt at b88fae26: what tools/serving_1017.py writes on the a2f91e27 quant.
+BIAS_SIZE = 67192
+# results/served-1017/inputs.txt at 16f65a98: what tools/serving_1017.py writes on the quant.
 SERVING_FILE = "serving-1017.safetensors"
 SERVING_SHA256 = "d88fe41f756f96693475f8c9fc113ae20442e78712a890c93c068e527e708d1f"
 
@@ -38,14 +40,6 @@ def atomic_bytes(path, data):
         Path(name).unlink(missing_ok=True)
 
 
-def file_sha256(path):
-    try:
-        with path.open("rb") as stream:
-            return hashlib.file_digest(stream, "sha256").hexdigest()
-    except OSError:
-        return None
-
-
 def model_view(source, destination, template):
     destination.mkdir(parents=True, exist_ok=True)
     for item in source.iterdir():
@@ -62,17 +56,27 @@ def model_view(source, destination, template):
     sync_dir(destination)
 
 
-def serving_file(view, tool):
-    """RUNNING.md section 2: the readied checkpoint carries serving-1017.safetensors beside the downloaded shards."""
+def serving_file(view, tool, receipt):
+    """RUNNING.md section 2: the readied checkpoint carries serving-1017.safetensors beside the downloaded shards.
+
+    The file is hashed once, when the tool has written it; a start reuses it by its receipt and size."""
     path = view / SERVING_FILE
-    if file_sha256(path) == SERVING_SHA256:
-        return path
+    try:
+        record = json.loads(receipt.read_text())
+        if record == {"sha256": SERVING_SHA256, "size": path.stat().st_size}:
+            return path
+    except (OSError, ValueError):
+        pass
+    receipt.unlink(missing_ok=True)
     # The tool writes a .partial and renames it; the template it would copy is the view's own file.
     subprocess.run([sys.executable, str(tool), str(view), "--template", str(view / "chat_template.jinja")], check=True)
-    if file_sha256(path) != SERVING_SHA256:
+    with path.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    if digest != SERVING_SHA256:
         path.unlink(missing_ok=True)
         raise ValueError("serving-1017.safetensors differs from the creator's recorded digest")
     sync_dir(view)
+    atomic_bytes(receipt, json.dumps({"sha256": digest, "size": path.stat().st_size}).encode())
     return path
 
 
@@ -117,7 +121,11 @@ def prepare_rank(model, cache, rank, world, binary):
 
 
 def prepare_kit(model, destination, source, tools, bias):
-    """The kit with its four RoPE tables made from the model and the image bias copied from the creator's kit file."""
+    """The kit with its four RoPE tables made from the model and the image bias copied from the creator's kit file.
+
+    Nothing stored is hashed again: make_rope.py checks each table against rope.json as it computes it (exit 1 if one
+    differs), and the bias is the Controller-verified Model file, checked by size. The receipt records the declared
+    digests and sizes; a start reuses the kit by its receipt and the files' sizes."""
     expected = json.loads((source / "rope.json").read_text())
     hashes = {name: value for name, value in expected.items() if name.endswith(".f32")}
     hashes["vision/gate_bias_vl.safetensors"] = BIAS_SHA256
@@ -137,12 +145,12 @@ def prepare_kit(model, destination, source, tools, bias):
     subprocess.run([sys.executable, str(tools / "make_rope.py"), str(model), str(temporary)], check=True)
     (temporary / "vision").mkdir(exist_ok=True)
     shutil.copyfile(bias, temporary / "vision/gate_bias_vl.safetensors")
+    if (temporary / "vision/gate_bias_vl.safetensors").stat().st_size != BIAS_SIZE:
+        raise ValueError("copied TensorFold kit file has the wrong size: vision/gate_bias_vl.safetensors")
     records = {"source": (source / "VONK_SOURCE_SHA256").read_text()}
     for name, digest in hashes.items():
         path = temporary / name
         with path.open("rb") as stream:
-            if hashlib.file_digest(stream, "sha256").hexdigest() != digest:
-                raise ValueError(f"generated TensorFold kit digest differs: {name}")
             os.fsync(stream.fileno())
         records[name] = {"sha256": digest, "size": path.stat().st_size}
     atomic_bytes(temporary / "vonk-generated.json", json.dumps(records).encode())
@@ -157,7 +165,7 @@ def prepare(model, bias, cache, rank, world, engine=Path("/opt/tensorfold"), tem
     cache.mkdir(parents=True, exist_ok=True)
     view = cache / "model"
     model_view(model, view, template)
-    serving_file(view, engine / "tools/serving_1017.py")
+    serving_file(view, engine / "tools/serving_1017.py", cache / "vonk-serving.json")
     # The weight file is made from the readied checkpoint, serving-1017.safetensors included.
     prepare_rank(view, cache / "rank-cache", rank, world, engine / "bin/tf-dsv41-rank-cache")
     token_map = cache / "dsv41_token_map.json"

@@ -1,23 +1,21 @@
-# bertholomus's DeepSeek-V4.1-Flash TensorFold TP4 recipe v0.3.5 (deepseek-v4.1-tensorfold-tp4-4xgb10 b88fae26) as
-# tonyd2wild's fleet lane runs it (runs/2026-10-26-1017-tensorfold-v035-4bpw at 74ac0136). The creator publishes no
-# image: RUNNING.md section 1 builds the engine (bertholomus/TensorFold deepseek-v41-zig-tp4 at ENGINE_COMMIT 0a0b69a5)
-# with Zig 0.17.0 and the CUDA toolchain of nvcr.io/nvidia/pytorch:26.07-py3 for aarch64 + sm_121, which is what this
-# image does, with tonyd2wild's two engine patches applied first and a build-time sm_121 kernel scan after.
+# bertholomus's DeepSeek-V4.1-Flash TensorFold TP4 recipe v0.3.6 (deepseek-v4.1-tensorfold-tp4-4xgb10 16f65a98). The
+# creator publishes no image: RUNNING.md section 1 builds the engine (bertholomus/TensorFold deepseek-v41-zig-tp4 at the
+# kit's ENGINE_COMMIT 953bd6fd, locked in kit-lock.json) with Zig 0.17.0 and the CUDA toolchain of
+# nvcr.io/nvidia/pytorch:26.07-py3 for aarch64 + sm_121, which is what this image does, with a build-time sm_121
+# kernel scan after. tonyd2wild's TF_RDMA_GID and TF_SEED_RANDOM/TF_TOP_K_MAX changes are upstream in this engine.
 FROM nvcr.io/nvidia/pytorch@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
-LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/DeepSeek-V4.1-Flash-TP2-and-TP4-DGX-Sparks" \
-      org.opencontainers.image.revision="74ac01362e96c1dc72df96737354ce408dceb272" \
+LABEL org.opencontainers.image.source="https://github.com/bertholomus/deepseek-v4.1-tensorfold-tp4-4xgb10" \
+      org.opencontainers.image.revision="16f65a98c6ff1c628e49ef29a8037fe2feb034c6" \
       org.opencontainers.image.licenses="Apache-2.0 AND MIT" \
       ai.vonkforge.runtime-interface="v1"
-COPY patches /tmp/patches
-RUN curl -fsSL https://codeload.github.com/bertholomus/TensorFold/tar.gz/0a0b69a504f2509c5b12f918712a1605c586b9ab -o /tmp/engine.tar.gz \
- && curl -fsSL https://codeload.github.com/bertholomus/deepseek-v4.1-tensorfold-tp4-4xgb10/tar.gz/b88fae26b08ae14eae91362eb15bfaac50af1768 -o /tmp/kit.tar.gz \
- && echo "431a42282833def2816a5b4d883e914ba7c312e41c207a7824e4a36aea548824  /tmp/engine.tar.gz" | sha256sum -c - \
- && echo "14846b33166b301282f9ee57a6f9d786922a1fd7d52844463c7e85d5b76c4d0c  /tmp/kit.tar.gz" | sha256sum -c - \
+RUN curl -fsSL https://codeload.github.com/bertholomus/TensorFold/tar.gz/953bd6fd50149041bceaa5abd0971de81e2cbbd0 -o /tmp/engine.tar.gz \
+ && curl -fsSL https://codeload.github.com/bertholomus/deepseek-v4.1-tensorfold-tp4-4xgb10/tar.gz/16f65a98c6ff1c628e49ef29a8037fe2feb034c6 -o /tmp/kit.tar.gz \
+ && echo "e43272277d9b23a9ced020cf87b8ee23a226b50df0d18c0cb01ffe0bccd37500  /tmp/engine.tar.gz" | sha256sum -c - \
+ && echo "c68c794a84ccb348d711aadc96ca03d0f740eb51967a613a175a2891f6424ad0  /tmp/kit.tar.gz" | sha256sum -c - \
  && mkdir -p /tmp/engine /tmp/recipe /opt/tensorfold/bin /opt/tensorfold/fatbin /opt/tensorfold/tools /opt/vonk/bin \
  && tar -xzf /tmp/engine.tar.gz --strip-components=1 -C /tmp/engine \
  && tar -xzf /tmp/kit.tar.gz --strip-components=1 -C /tmp/recipe \
- && test "$(cat /tmp/recipe/ENGINE_COMMIT)" = 0a0b69a504f2509c5b12f918712a1605c586b9ab \
- && cd /tmp/engine && for p in /tmp/patches/*.patch; do patch -p1 --batch --fuzz=0 < "$p" || exit 1; done
+ && test "$(cat /tmp/recipe/ENGINE_COMMIT)" = 953bd6fd50149041bceaa5abd0971de81e2cbbd0
 # RUNNING.md section 1's build; the `fatbins` step of the same build installs the kernel images it embeds, among them
 # dsv41_rdma.fatbin (zig/kernels/cuda/dsv41/rdma_gather.cu for sm_121), the served launch's rdma_gather.fatbin.
 RUN curl -fsSL https://ziglang.org/download/0.17.0/zig-aarch64-linux-0.17.0.tar.xz -o /tmp/zig.tar.xz \
@@ -29,11 +27,11 @@ RUN curl -fsSL https://ziglang.org/download/0.17.0/zig-aarch64-linux-0.17.0.tar.
  && cp zig-out/fatbin/*.fatbin /opt/tensorfold/fatbin/ \
  && cp tools/dsv41-zig/inputs/make_token_map.py /opt/tensorfold/tools/ \
  && cp -a /tmp/recipe/kit /opt/tensorfold/kit \
- && echo '14846b33166b301282f9ee57a6f9d786922a1fd7d52844463c7e85d5b76c4d0c' > /opt/tensorfold/kit/VONK_SOURCE_SHA256 \
+ && echo 'c68c794a84ccb348d711aadc96ca03d0f740eb51967a613a175a2891f6424ad0' > /opt/tensorfold/kit/VONK_SOURCE_SHA256 \
  && cp /tmp/recipe/kit/tools/make_rope.py /tmp/recipe/tools/serving_1017.py /opt/tensorfold/tools/ \
  && cp /tmp/recipe/chat/chat_template.jinja /opt/vonk/bin/chat_template.jinja \
  && cp LICENSE /opt/tensorfold/LICENSE && cp /tmp/recipe/LICENSE /opt/tensorfold/RECIPE-LICENSE && cp /tmp/recipe/NOTICE /opt/tensorfold/RECIPE-NOTICE \
- && rm -rf /tmp/engine /tmp/recipe /tmp/patches /tmp/*.tar.gz /tmp/zig* /root/.cache/zig
+ && rm -rf /tmp/engine /tmp/recipe /tmp/*.tar.gz /tmp/zig* /root/.cache/zig
 # Build-time sm_121 kernel scan (scan-sm121.py: cubins sm_121[af] / sm_120[f], PTX not arch-specific and <= 121, or
 # sm_121a; every file with device code needs a loadable image; each file's listing is echoed). Covered: every kernel
 # image the engine embeds, through the `fatbins` install of the same build (each required to carry a loadable image):

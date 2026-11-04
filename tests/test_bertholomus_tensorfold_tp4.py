@@ -1,7 +1,8 @@
-"""bertholomus's v0.3.5 TP4 lane: the launch serve.sh runs, bound to the Controller, and its readied checkpoint."""
+"""bertholomus's v0.3.6 TP4 lane: the launch serve.sh runs, bound to the Controller, and its readied checkpoint."""
 
 import hashlib
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -62,13 +63,15 @@ def test_every_rank_runs_the_served_settings_on_the_controller_fabric(modules, r
     recipe, arguments = recipe_arguments(rank)
     _, cache, command, env = launcher.launch(arguments, ENVIRON)
     pool = next(a.value for a in recipe.runtime.arguments if a.name == "pool")
-    # tonyd2wild's dedicated-node pool (run README at 74ac0136)
+    # tonyd2wild's dedicated-node pool (run README at 74ac0136), the owner's rule
     assert pool == 29_360_128
     assert env["TF_DS_WINDOW"] == str(pool) and env["TF_DS_STREAMS"] == "16"
     assert env["TF_RDMA_DEVICES"] == "rocep1s0f0,roceP2p1s0f0"
     assert env["TF_RDMA_GID"] == "3" and env["NCCL_IB_HCA"] == ENVIRON["NCCL_IB_HCA"]
     assert env["TF_DS_WAVES"] == env["TF_DS_2D_YX"] == env["TF_FILL_MANY"] == "1"
-    assert env["NCCL_MAX_NCHANNELS"] == "4" and env["TF_DS_IDX_SPLIT"] == "1"
+    assert env["NCCL_MAX_NCHANNELS"] == "4" and env["TF_DS_IDX_SPLIT"] == "8192"
+    # v0.3.6 serves with its sampling opt-ins unset
+    assert "TF_SEED_RANDOM" not in env and "TF_TOP_K_MAX" not in env
     assert env["TENSORFOLD_GRAMMAR_LIB"] == str(cache / "kit/grammar/libtfgrammar.so")
     if rank == 0:
         assert command[1:3] == ["serve", str(cache / "model")]
@@ -107,33 +110,79 @@ def test_unauthorized_fabric_and_a_pool_below_one_context_refuse(modules):
         launcher.launch(small, ENVIRON)
 
 
-def test_serving_file_is_reused_by_digest_and_rejected_when_it_differs(
+def test_serving_file_is_hashed_once_and_reused_by_receipt(
     modules, tmp_path, monkeypatch
 ):
     cache, _ = modules
     view = tmp_path / "view"
     view.mkdir()
     (view / "chat_template.jinja").write_bytes(b"template")
+    receipt = tmp_path / "vonk-serving.json"
     good = b"serving tensors"
     monkeypatch.setattr(cache, "SERVING_SHA256", hashlib.sha256(good).hexdigest())
     calls = []
+    payload = good
 
     def tool(command, check):
+        # tools/serving_1017.py writes <file>.partial and renames it into place
         assert check and command[2] == str(view)
         assert command[3:] == ["--template", str(view / "chat_template.jinja")]
         calls.append(command)
-        (view / cache.SERVING_FILE).write_bytes(payload)
+        partial = view / (cache.SERVING_FILE + ".partial")
+        partial.write_bytes(payload)
+        partial.replace(view / cache.SERVING_FILE)
 
     monkeypatch.setattr(cache.subprocess, "run", tool)
-    payload = good
-    cache.serving_file(view, Path("serving_1017.py"))
-    cache.serving_file(view, Path("serving_1017.py"))
+    cache.serving_file(view, Path("serving_1017.py"), receipt)
     assert len(calls) == 1
-    (view / cache.SERVING_FILE).write_bytes(b"interrupted")
+    assert json.loads(receipt.read_text())["size"] == len(good)
+
+    def no_hash(*_):
+        raise AssertionError("a start re-hashed the stored serving file")
+
+    with monkeypatch.context() as patched:
+        patched.setattr(cache.hashlib, "file_digest", no_hash)
+        cache.serving_file(view, Path("serving_1017.py"), receipt)
+    assert len(calls) == 1
+    # a file whose size no longer matches its receipt is made again
+    (view / cache.SERVING_FILE).write_bytes(good + b"!")
+    cache.serving_file(view, Path("serving_1017.py"), receipt)
+    assert len(calls) == 2 and (view / cache.SERVING_FILE).read_bytes() == good
+    receipt.unlink()
     payload = b"other bytes"
     with pytest.raises(ValueError, match="recorded digest"):
-        cache.serving_file(view, Path("serving_1017.py"))
-    assert not (view / cache.SERVING_FILE).exists()
+        cache.serving_file(view, Path("serving_1017.py"), receipt)
+    assert not (view / cache.SERVING_FILE).exists() and not receipt.exists()
+
+
+def test_kit_bias_copy_is_checked_by_size_not_hashed(modules, tmp_path, monkeypatch):
+    cache, _ = modules
+    source = tmp_path / "kit-source"
+    (source / "vision").mkdir(parents=True)
+    (source / "VONK_SOURCE_SHA256").write_text("kit")
+    (source / "rope.json").write_text(json.dumps({"rope.f32": "0" * 64}))
+    bias = tmp_path / "bias.safetensors"
+    bias.write_bytes(b"x" * cache.BIAS_SIZE)
+
+    def make_rope(command, check):
+        (Path(command[-1]) / "rope.f32").write_bytes(b"rope")
+
+    def no_hash(*_):
+        raise AssertionError("prepare_kit hashed a stored file")
+
+    monkeypatch.setattr(cache.subprocess, "run", make_rope)
+    monkeypatch.setattr(cache.hashlib, "file_digest", no_hash)
+    destination = tmp_path / "kit"
+    cache.prepare_kit(tmp_path, destination, source, tmp_path, bias)
+    records = json.loads((destination / "vonk-generated.json").read_text())
+    assert records["vision/gate_bias_vl.safetensors"] == {
+        "sha256": cache.BIAS_SHA256,
+        "size": cache.BIAS_SIZE,
+    }
+    bias.write_bytes(b"short")
+    (destination / "vonk-generated.json").unlink()
+    with pytest.raises(ValueError, match="wrong size"):
+        cache.prepare_kit(tmp_path, destination, source, tmp_path, bias)
 
 
 def test_rank_cache_is_made_from_the_readied_view(modules, tmp_path, monkeypatch):
@@ -146,7 +195,9 @@ def test_rank_cache_is_made_from_the_readied_view(modules, tmp_path, monkeypatch
     template.write_text("recipe template")
     seen = {}
     monkeypatch.setattr(
-        cache, "serving_file", lambda view, tool: seen.setdefault("serving", view)
+        cache,
+        "serving_file",
+        lambda view, tool, receipt: seen.setdefault("serving", view),
     )
     monkeypatch.setattr(
         cache, "prepare_rank", lambda model, *rest: seen.setdefault("rank", model)
@@ -173,6 +224,15 @@ def test_rank_cache_is_made_from_the_readied_view(modules, tmp_path, monkeypatch
     }
     assert (view / "chat_template.jinja").read_text() == "recipe template"
     assert (source / "chat_template.jinja").read_text() == "checkpoint template"
+
+
+def test_image_builds_the_engine_the_kit_lock_names():
+    lock = json.loads((ADAPTER / "kit-lock.json").read_text())
+    commit = lock["dependencies"]["engine"]["commit"]
+    dockerfile = (ADAPTER / "Dockerfile").read_text()
+    assert f"TensorFold/tar.gz/{commit}" in dockerfile
+    assert f'ENGINE_COMMIT)" = {commit}' in dockerfile
+    assert lock["kit"]["commit"] in dockerfile
 
 
 def test_kernel_scan_is_the_shared_scan():

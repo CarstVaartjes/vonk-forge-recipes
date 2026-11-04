@@ -26,13 +26,13 @@
       "size_bytes": 1084
     },
     {
-      "id": "readme-b6d08c45453a-b335630551",
+      "id": "readme-8e497b0d67c5-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "b6d08c45453aa360c26fa794373a08de48bbea56d6c4c21110f5c0d5cb62d874",
-      "size_bytes": 1863
+      "sha256": "8e497b0d67c5f4ab6f4f8e7eba67b27a3c1d596fd8d6c4db172b591995245585",
+      "size_bytes": 2299
     },
     {
       "id": "config-2336d09c2e6d-587cb980af",
@@ -463,9 +463,9 @@
       "slug": "deepseek-v4-1-flash-1017"
     },
     "publisher": "bertholomus",
-    "slug": "deepseek-v4-1-flash-1017-exl3-4-0bpw-a2f91e27",
+    "slug": "deepseek-v4-1-flash-1017-exl3-4-0bpw-f3657818",
     "variant": "1017 exl3",
-    "version": "1017-a2f91e27"
+    "version": "1017-f3657818"
   },
   "kind": "model",
   "license": {
@@ -473,7 +473,7 @@
       "DeepSeek-AI; bertholomus for the EXL3 quantization."
     ],
     "spdx": "MIT",
-    "url": "https://huggingface.co/bertholomus/DeepSeek-V4.1-Flash-1017-EXL3-4.0bpw/blob/a2f91e2794923d0beebebe0d267fb3468eaf0b65/LICENSE"
+    "url": "https://huggingface.co/bertholomus/DeepSeek-V4.1-Flash-1017-EXL3-4.0bpw/blob/f3657818ca522b38aad5449b16aa1991c96a3e83/LICENSE"
   },
   "modalities": [
     "text",
@@ -482,6 +482,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/bertholomus/DeepSeek-V4.1-Flash-1017-EXL3-4.0bpw",
-    "revision": "a2f91e2794923d0beebebe0d267fb3468eaf0b65"
+    "revision": "f3657818ca522b38aad5449b16aa1991c96a3e83"
   }
 }

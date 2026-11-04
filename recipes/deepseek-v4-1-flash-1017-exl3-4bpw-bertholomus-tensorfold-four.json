@@ -61,8 +61,8 @@
           ]
         },
         {
-          "file_id": "readme-b6d08c45453a-b335630551",
-          "id": "primary-readme-b6d08c45453a-b335630551",
+          "file_id": "readme-8e497b0d67c5-b335630551",
+          "id": "primary-readme-8e497b0d67c5-b335630551",
           "mount": {
             "target": "/models/target"
           },
@@ -580,10 +580,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "0324e124510b3d1f1dc85b3a8258f88bd424eab3283c6947ce0e410e79dfe66f",
+        "content_sha256": "1525cca1ab435e924e06d984c106f3ce553b36d4f56cd51f18f8c8d74520eb39",
         "kind": "model",
         "publisher": "bertholomus",
-        "slug": "deepseek-v4-1-flash-1017-exl3-4-0bpw-a2f91e27"
+        "slug": "deepseek-v4-1-flash-1017-exl3-4-0bpw-f3657818"
       }
     },
     {
@@ -657,10 +657,10 @@
       ],
       "id": "kit-bias",
       "model": {
-        "content_sha256": "537fc1466e26111baca5f8f9433ec8e2f5c47cb9e26eeba03a3eeb19dd8bb45c",
+        "content_sha256": "d3b3e70116d098d2279e188009d5a9508d85e5ac7eeba800f0392e52e7f56fe9",
         "kind": "model",
         "publisher": "bertholomus",
-        "slug": "deepseek-v4-1-flash-1017-tensorfold-tp4-kit-279aa680"
+        "slug": "deepseek-v4-1-flash-1017-tensorfold-tp4-kit-ca83223e"
       }
     }
   ],
@@ -672,11 +672,11 @@
       "Ash Hart / TensorFold",
       "DeepSeek-AI"
     ],
-    "source_reference": "https://github.com/tonyd2wild/DeepSeek-V4.1-Flash-TP2-and-TP4-DGX-Sparks/tree/74ac01362e96c1dc72df96737354ce408dceb272"
+    "source_reference": "https://github.com/bertholomus/deepseek-v4.1-tensorfold-tp4-4xgb10/tree/16f65a98c6ff1c628e49ef29a8037fe2feb034c6"
   },
   "release": {
-    "released_at": "2026-11-03",
-    "version": "1.0.0"
+    "released_at": "2026-11-02",
+    "version": "0.3.6"
   },
   "runtime": {
     "arguments": [
@@ -748,7 +748,7 @@
       },
       {
         "name": "VONK_MODEL_REVISION",
-        "value": "a2f91e2794923d0beebebe0d267fb3468eaf0b65"
+        "value": "f3657818ca522b38aad5449b16aa1991c96a3e83"
       }
     ],
     "lifecycle": {
@@ -783,7 +783,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 491507445366,
+            "artifact_bytes": 491507445802,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 20000000000,
             "working_bytes": 80000000000
@@ -800,7 +800,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 491507445366,
+            "artifact_bytes": 491507445802,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 20000000000,
             "working_bytes": 80000000000

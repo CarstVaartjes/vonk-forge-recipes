@@ -1,7 +1,14 @@
 {
-  "source": {
-    "repo": "tonyd2wild/DeepSeek-V4.1-Flash-TP2-and-TP4-DGX-Sparks",
-    "commit": "74ac01362e96c1dc72df96737354ce408dceb272"
+  "kit": {
+    "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "ENGINE_COMMIT",
+        "pattern": "^(?P<version>[0-9a-f]{40})$",
+        "repo": "bertholomus/TensorFold"
+      }
+    },
+    "whole": true
   },
   "ours": [
     "requirements.lock",
@@ -9,9 +16,5 @@
     "tensorfold-serve",
     "prepare_cache.py",
     "launcher.py"
-  ],
-  "renamed": {
-    "patches/0001-dsv41-TF_RDMA_GID-sets-the-RDMA-rings-source-GID-ind.patch": "runs/2026-10-26-1017-tensorfold-v035-4bpw/patches/0001-dsv41-TF_RDMA_GID-sets-the-RDMA-rings-source-GID-ind.patch",
-    "patches/0002-server-opt-in-random-sampling-seed-per-request-and-t.patch": "runs/2026-10-26-1017-tensorfold-v035-4bpw/patches/0002-server-opt-in-random-sampling-seed-per-request-and-t.patch"
-  }
+  ]
 }
