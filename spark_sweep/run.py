@@ -1957,9 +1957,8 @@ class Sweep:
             if from_download or slot is not None
             else self.release_sha
         )
-        attributable = failure.klass != verdict.UNATTRIBUTED and (
-            failure.code in policy.RECIPE_FAILURE_CODES
-            or failure.klass in verdict.FAIL_CLASSES
+        attributable = (
+            verdict.blame(failure.klass, failure.code) is verdict.Blame.RECIPE
         )
         status = "failed" if attributable else "deferred"
         entry.update(
