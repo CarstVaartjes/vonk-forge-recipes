@@ -12,20 +12,18 @@ from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 from vonk_forge_contracts import (
     QualificationMeasuredMemory,
     QualificationRoleMemory,
-    RecipeDefinition,
 )
 
+from qualification import documents
 from qualification.memory_need import TOTAL_BYTES, vllm_budget_bytes
 from spark_sweep import memory
 from spark_sweep.qualification import from_history
 
 pytest_plugins = ["sweep_bounds"]
 
-ROOT = Path(__file__).resolve().parents[1]
-DOCUMENT = json.loads(
-    (ROOT / "recipes/agents-a1-nvfp4-r0b0tlab-vllm-single.json").read_text()
-)
-RECIPE = RecipeDefinition.model_validate(DOCUMENT)
+RECIPE = documents.recipe("agents-a1-nvfp4-r0b0tlab-vllm-single")
+# As the Controller's technical detail shows it: the canonical definition.
+DOCUMENT = RECIPE.model_dump(mode="json", by_alias=True)
 BUDGET = vllm_budget_bytes(RECIPE)
 ALIAS = "served"
 
