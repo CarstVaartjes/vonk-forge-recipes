@@ -247,6 +247,28 @@ def test_only_the_measured_launch_variant_keeps_its_peaks(
     assert raise_peaks_to_envelope(recipe) is None
 
 
+def test_a_proven_replaced_document_without_rows_keeps_its_peaks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A refresh hands the document it replaces (never git): proven, it vouches."""
+    previous = documents.recipe(PROVEN)
+    declare_peak(previous, 1_000_000_000)
+    measured(monkeypatch, previous, None)  # Working, but no measured rows
+    replaced = (previous, "a" * 64)
+    same = previous.model_copy(deep=True)
+    assert raise_peaks_to_envelope(same) is not None
+    assert raise_peaks_to_envelope(same, replaced) is None
+    assert raise_peaks_to_envelope(with_utilization(previous, "0.5"), replaced) is None
+    # A move that raises the budget, or lowers a peak, is not vouched for.
+    assert raise_peaks_to_envelope(with_utilization(previous, "0.92"), replaced)
+    lower = previous.model_copy(deep=True)
+    declare_peak(lower, 999_999_999)
+    assert raise_peaks_to_envelope(lower, replaced) is not None
+    # Rows of the replaced content decide over the fallback.
+    measured(monkeypatch, previous, 2 * 1_000_000_000 + PLATFORM_MEMORY_FLOOR_BYTES)
+    assert raise_peaks_to_envelope(same, replaced) is not None
+
+
 def test_unmeasured_estimate_heals_on_a_same_budget_move() -> None:
     # muse-spark declares 2.4 GB/rank below today's envelope and has no evidence.
     previous = documents.recipe(UNPROVEN)
@@ -386,6 +408,9 @@ def test_a_real_proven_content_keeps_peaks_once_it_is_measured(
     unmeasured = real.model_copy(update={"measured_memory": ()})
     monkeypatch.setattr(memory_need, "_evidence", lambda _key: unmeasured)
     assert raise_peaks_to_envelope(moved) is not None  # not measured: raised
+    # The refresh hands the proven document it replaces: its peaks stay.
+    kept = previous.model_copy(deep=True)
+    assert raise_peaks_to_envelope(kept, (previous, digest)) is None
     rows = tuple(
         QualificationMeasuredRoleMemory(
             content_sha256=digest,

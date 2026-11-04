@@ -19,6 +19,7 @@ from unittest.mock import patch
 
 from vonk_forge_contracts import ModelDisplay
 
+from qualification import documents
 from tools._catalog_model import roles_for
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -555,9 +556,13 @@ class NothingRunsTests(unittest.TestCase):
             )
         )
 
-    def assess(self, comparison_, *, used=None, report=None, engine=None):
+    def assess(
+        self, comparison_, *, used=None, report=None, engine=None, document=None
+    ):
         catalog = single_recipe_catalog(f"https://github.com/example/recipe/tree/{OLD}")
-        if engine is not None:
+        if document is not None:
+            catalog.recipes["recipe"] = document
+        elif engine is not None:
             recipe = catalog.recipes["recipe"]
             recipe["runtime"] = {"engine": engine}
             recipe["topology"] = {"roles": []}
@@ -603,10 +608,10 @@ class NothingRunsTests(unittest.TestCase):
         ):
             self.assess(moved, engine="vllm")
             raised.assert_called_once()
-            roles, _recipe = (
-                raised.call_args.args
-            )  # no pre-move document: evidence decides
+            roles, _recipe, replaced, digest = raised.call_args.args
             self.assertEqual(roles, [])
+            self.assertEqual(len(digest), 64)  # the replaced document, in hand
+            self.assertIsNotNone(replaced)
         with patch("refresh_upstream.raise_role_peaks") as raised:
             self.assess(moved, engine="sglang")
             raised.assert_not_called()
@@ -617,6 +622,69 @@ class NothingRunsTests(unittest.TestCase):
             result = self.assess(moved, engine="vllm")
         self.assertFalse(result.mechanical)
         self.assertIn("memory envelope", " ".join(result.reasons))
+
+    def body(self, result) -> str:
+        self.assertTrue(result.mechanical)
+        return refresh.pr_body(result)
+
+    def test_body_of_a_non_vllm_move_claims_no_peaks(self) -> None:
+        body = self.body(
+            self.assess(comparison(files=("src/engine.py",)), engine="sglang")
+        )
+        self.assertIn("## Principles", body)
+        self.assertNotIn("peaks", body)
+        self.assertIn("re-checks the new digest", body)
+        self.assertIn("The sweep proves the recipe runs.", body)
+
+    def test_body_of_an_unmark_only_drift_claims_no_move_and_no_new_digest(
+        self,
+    ) -> None:
+        item = refresh.Item(
+            "source", "github", "example/recipe", OLD, self.TARGET, unmark=True
+        )
+        found = refresh.Assessment("recipe", items=[item])
+        stub = lambda _self, _item, _recipe, _new, _result, edits: edits.update(
+            {"adapters/x/vendored-upstream.json": b"{}"}
+        )
+        with (
+            patch("refresh_upstream.collect_items", return_value=found),
+            patch.object(refresh.Assessor, "_mark", stub),
+        ):
+            result = self.assess(comparison(files=("src/engine.py",)))
+        body = self.body(result)
+        self.assertIn("## Principles", body)
+        self.assertNotIn("pins move", body)
+        self.assertNotIn("new digest", body)
+        self.assertNotIn("sweep proves", body)
+        self.assertNotIn("peaks", body)
+
+    def test_body_of_a_poolless_vllm_move_states_the_raised_peaks(self) -> None:
+        recipe = documents.recipe("d3-lite-vllm-single", ROOT).model_copy(deep=True)
+        recipe.provenance.source_reference = (
+            f"https://github.com/example/recipe/tree/{OLD}"
+        )
+        recipe.execution.build.context.path = "missing"
+        for role in recipe.topology.roles:
+            role.resources.memory.peak_bytes = 1 << 30
+            role.resources.memory.load_peak_bytes = None
+        document = recipe.model_dump(mode="json", exclude_none=True)
+        result = self.assess(comparison(files=("src/engine.py",)), document=document)
+        self.assertTrue(result.peaks_raised)
+        body = self.body(result)
+        self.assertIn("raised to the vLLM budget envelope", body)
+
+    def test_body_names_held_pins_and_does_not_claim_they_moved(self) -> None:
+        result = refresh.Assessment(
+            "recipe",
+            items=[
+                refresh.Item("source", "github", "o/r", OLD, self.TARGET),
+            ],
+            declined=["image o/base"],
+            edits={"recipes/recipe.json": b"x"},
+        )
+        body = refresh.pr_body(result)
+        self.assertIn("pins that moved go", body)
+        self.assertIn("image o/base", body)
 
     def test_whole_repository_code_move_is_still_a_refresh(self) -> None:
         result = self.assess(comparison(files=("README.md", "src/engine.py")))
@@ -1357,6 +1425,7 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         from vonk_forge_contracts import RecipeDefinition
         from warning_asserts import assert_not_warns, assert_warns
 
+        from qualification import documents as qualification_documents
         from qualification.memory_need import load_inputs, memory_estimate_warnings
 
         slug = "muse-spark-open-nvfp4-vllm-eight"
@@ -1371,7 +1440,13 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             ),
             "vLLM budget plus overhead",
         )
-        refresh.raise_role_peaks(payload["topology"]["roles"], before)
+        replaced = documents.recipe(slug)
+        refresh.raise_role_peaks(
+            payload["topology"]["roles"],
+            before,
+            replaced,
+            qualification_documents.recipe_digest(slug),
+        )
         after = RecipeDefinition.model_validate(payload)
         self.assertEqual(
             {r.resources.memory.peak_bytes for r in after.topology.roles},

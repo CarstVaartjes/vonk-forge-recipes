@@ -20,7 +20,6 @@ HISTORY = ("show", "log", "archive", "cat-file", "blame", "rev-list", "restore")
 # list, a starred prefix, a shell string or a helper's arguments.
 VERBS = "|".join(map(re.escape, HISTORY))
 HISTORY_LINE = re.compile(rf"""\bgit\b[^#\n]*?["'\s(,](?:{VERBS})["'\s,)]""")
-GIT_HELPERS = re.compile(r"(?:^|_)git(?:$|_)")
 ALLOWED = {
     # A change must not re-topologize a recipe: a rule on the change under review.
     (
@@ -57,7 +56,11 @@ def _ast_lines(tree: ast.AST) -> set[int]:
             items, git = node.elts, False
         elif isinstance(node, ast.Call):
             name = getattr(node.func, "id", getattr(node.func, "attr", ""))
-            items, git = node.args, bool(GIT_HELPERS.search(name))
+            items, git = node.args, "git" in name.lower()
+        elif isinstance(node, ast.BinOp) and isinstance(node.right, ast.List):
+            # ``GIT + ["show", ref]``: a git argv prefix joined to the verb.
+            items = node.right.elts
+            git = "git" in ast.unparse(node.left).lower()
         else:
             continue
         for item in items:
@@ -131,6 +134,8 @@ def test_every_allowance_is_still_needed() -> None:
         'command(clone, "git", "log", "--format=%H")',
         '("git", "archive", revision)',
         'subprocess.run([*GIT, "show", ref])',
+        'subprocess.run(GIT + ["show", ref])',
+        'gitcmd("show", ref)',
         'subprocess.run(f"git show {base}:{path}", shell=True)',
         'shlex.split("git log -p --follow x")',
         'subprocess.run(["git", "restore", "--source", base, path])',

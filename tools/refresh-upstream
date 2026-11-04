@@ -1021,6 +1021,10 @@ class Assessment:
     edits: dict[str, bytes | None] = field(default_factory=dict)
     version: tuple[str, str] | None = None  # (version, released_at) after refresh
     members: list[str] = field(default_factory=list)  # recipes refreshed together
+    # Pins a hold or a declined revision keeps where they are (labels), and whether the
+    # move raised any role peak: the PR body claims only what happened.
+    declined: list[str] = field(default_factory=list)
+    peaks_raised: bool = False
 
     @property
     def label(self) -> str:
@@ -2305,6 +2309,7 @@ class Assessor:
             ):
                 # A held base image stays (base-image-holds.json): no move, no review.
                 item.noop = True
+                result.declined.append(item.label)
                 result.evidence.append(
                     f"### {item.label}\n\n- newest `{item.target.sha}` is not followed: "
                     f"{base_holds.describe(hold)}\n"
@@ -2316,6 +2321,7 @@ class Assessor:
                 # The declined revision stays declined (model-revision-holds.json); a
                 # newer one is assessed again.
                 item.noop = True
+                result.declined.append(item.label)
                 result.evidence.append(
                     f"### {item.label}\n\n- newest `{item.target.sha}` is not followed: "
                     f"{model_holds.describe(model_hold)}\n"
@@ -2354,11 +2360,14 @@ class Assessor:
             if new_recipe != recipe:
                 if new_recipe.get("runtime", {}).get("engine") == "vllm":
                     # A moved document meets today's margins (never lowered), unless
-                    # hardware evidence measured its peaks under no smaller budget.
+                    # hardware measured its peaks under no smaller budget: evidence
+                    # rows, or the proven document it replaces.
                     try:
-                        raise_role_peaks(
+                        result.peaks_raised = raise_role_peaks(
                             new_recipe["topology"]["roles"],
                             RecipeDefinition.model_validate(new_recipe),
+                            RecipeDefinition.model_validate(recipe),
+                            document_sha256(recipe),
                         )
                     except (KeyError, TypeError, ValueError) as error:
                         result.reasons.append(
@@ -3206,6 +3215,58 @@ def render_pins(assessment: Assessment) -> str:
     return "\n".join(rows)
 
 
+def changes_recipe(assessment: Assessment) -> bool:
+    """Whether the move edits a recipe document (so its digest changes)."""
+    return any(
+        name.startswith("recipes/") and name.endswith(".json")
+        for name in assessment.edits
+    )
+
+
+def principles_section(assessment: Assessment) -> list[str]:
+    """The ``## Principles`` section: only what this move did.
+
+    Placed before the evidence so ``clip`` never drops it. Every claim follows the
+    assessment: pins moved, a recipe document changed (a new digest), proven bytes
+    followed, peaks raised.
+    """
+    lines = ["## Principles", ""]
+    if any(not item.unmark for item in assessment.items):
+        held = bool(assessment.declined)
+        lines.append(
+            "- Follow the creator, newest only: "
+            + ("the pins that moved go " if held else "the pins move in place ")
+            + "to the creator's newest published versions; no variant or history is added."
+        )
+    else:
+        lines.append(
+            "- No pin moves: only the `source.unverified` mark goes; the image is unchanged."
+        )
+    if assessment.declined:
+        lines.append(
+            "- Held, not followed (a hold or declined revision): "
+            + ", ".join(assessment.declined)
+            + "."
+        )
+    if PROVEN_BYTES in assessment.edits:
+        lines.append(
+            "- Content identity: the recipe is proven, so its entry in "
+            f"`{PROVEN_BYTES}` follows the new bytes; its evidence no longer matches the "
+            "new digest."
+        )
+    if assessment.peaks_raised:
+        lines.append(
+            "- Declared role peaks were raised to the vLLM budget envelope and never "
+            "lowered; hardware-measured peaks are kept (`keeps_measured_peaks`)."
+        )
+    if changes_recipe(assessment):
+        lines.append(
+            "- The sweep re-checks the new digest on hardware; nothing here claims it runs."
+        )
+    lines.append("")
+    return lines
+
+
 def pr_body(assessment: Assessment) -> str:
     version = assessment.version
     body = [
@@ -3225,12 +3286,18 @@ def pr_body(assessment: Assessment) -> str:
             "entrypoint the recipe references still in it (its diff is below); no launch script, "
             "configuration or patch target the recipe uses changed otherwise; every Model file "
             "the recipe mounts by name is still there; the full test suite and "
-            "`tools/check-vendored-upstream` passed. The sweep proves the recipe runs."
+            "`tools/check-vendored-upstream` passed."
+            + (
+                " The sweep proves the recipe runs."
+                if changes_recipe(assessment)
+                else ""
+            )
             if not assessment.held
             else "Needs review, not merged automatically:\n\n"
             + "\n".join(f"- {text}" for text in assessment.held)
         ),
         "",
+        *principles_section(assessment),
         *[f"> {note}\n" for note in assessment.notes],
         "## Evidence",
         "",
@@ -3547,21 +3614,30 @@ def checks_moved(root: Path, head: str) -> bool:
     )
 
 
-def raise_role_peaks(roles: list[dict[str, Any]], recipe: RecipeDefinition) -> None:
+def raise_role_peaks(
+    roles: list[dict[str, Any]],
+    recipe: RecipeDefinition,
+    replaced: RecipeDefinition,
+    replaced_digest: str,
+) -> bool:
     """Raise a moved vLLM document's role peaks (``roles``, in place) to the envelope.
 
-    The declared peaks stay only when the recipe's hardware evidence measured them
-    under a budget the move did not raise (``keeps_measured_peaks``); unmeasured
-    estimates and budget-raising moves are raised.
+    Returns whether any peak was raised.
+
+    The declared peaks stay where hardware evidence measured them under no smaller
+    budget (``keeps_measured_peaks``). ``replaced`` is the document this refresh
+    replaces, in hand (never git history): proven content without measured rows
+    vouches for its own declared peaks under its own budget.
     """
-    raised = raise_peaks_to_envelope(recipe)
+    raised = raise_peaks_to_envelope(recipe, (replaced, replaced_digest))
     if raised is None:
-        return
+        return False
     for role, kept in zip(roles, raised.topology.roles, strict=True):
         memory = role["resources"]["memory"]
         memory["peak_bytes"] = kept.resources.memory.peak_bytes
         if kept.resources.memory.load_peak_bytes is not None:
             memory["load_peak_bytes"] = kept.resources.memory.load_peak_bytes
+    return True
 
 
 def follow_proven_bytes(root: Path, edits: dict[str, bytes | None]) -> None:
@@ -3806,6 +3882,8 @@ def combine_group(
         evidence=[text for part in parts for text in part.evidence],
         notes=list(dict.fromkeys(note for part in parts for note in part.notes)),
         held=list(dict.fromkeys(text for part in parts for text in part.held)),
+        declined=list(dict.fromkeys(text for part in parts for text in part.declined)),
+        peaks_raised=any(part.peaks_raised for part in parts),
         edits=edits,
         version=lead.version,
         members=[part.recipe_id for part in parts],  # the recipes that move
