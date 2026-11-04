@@ -19,6 +19,7 @@ from unittest.mock import patch
 
 from vonk_forge_contracts import ModelDisplay
 
+from qualification import documents
 from tools._catalog_model import roles_for
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -658,14 +659,15 @@ class NothingRunsTests(unittest.TestCase):
         self.assertNotIn("peaks", body)
 
     def test_body_of_a_poolless_vllm_move_states_the_raised_peaks(self) -> None:
-        document = json.loads((ROOT / "recipes/d3-lite-vllm-single.json").read_text())
-        document["provenance"]["source_reference"] = (
+        recipe = documents.recipe("d3-lite-vllm-single", ROOT).model_copy(deep=True)
+        recipe.provenance.source_reference = (
             f"https://github.com/example/recipe/tree/{OLD}"
         )
-        document["execution"]["build"]["context"]["path"] = "missing"
-        for role in document["topology"]["roles"]:
-            role["resources"]["memory"]["peak_bytes"] = 1 << 30
-            role["resources"]["memory"].pop("load_peak_bytes", None)
+        recipe.execution.build.context.path = "missing"
+        for role in recipe.topology.roles:
+            role.resources.memory.peak_bytes = 1 << 30
+            role.resources.memory.load_peak_bytes = None
+        document = recipe.model_dump(mode="json", exclude_none=True)
         result = self.assess(comparison(files=("src/engine.py",)), document=document)
         self.assertTrue(result.peaks_raised)
         body = self.body(result)
