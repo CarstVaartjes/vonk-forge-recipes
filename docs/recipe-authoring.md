@@ -446,10 +446,12 @@ first run, a pool-less vLLM declaration's peak, on one Spark or several, covers
 its utilization budget plus the margin, since the Controller reserves the
 declared peak (`tools/refresh-upstream` raises a moved document's peaks to that
 envelope); once it has run, the measured peak wins over this formula. A
-hardware pass records each role's measured steady use and the launch's vLLM
-budget in its qualification evidence; peaks that a still-Working measurement
-fits, under a budget no smaller than now, are neither flagged nor raised
-(`keeps_measured_peaks`). Evidence without a measurement means not measured.
+hardware pass records each role's steady use and the launch's vLLM budget in
+the evidence's `measured_memory` table, keyed (content, role). A launch variant
+whose budget is no larger than one a still-Working content was measured under,
+with every role within its declared peak, is neither flagged nor raised
+(`keeps_measured_peaks`); the sweep measures the default launch. No row means
+not measured.
 `tests/test_absolute_kv_capacity.py` replays the recorded failures and must
 warn on each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
