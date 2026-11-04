@@ -77,3 +77,11 @@ def test_every_adapter_copy_of_the_scan_is_this_one() -> None:
     assert SCRIPT in copies
     for copy in copies:
         assert copy.read_bytes() == SCRIPT.read_bytes(), copy
+
+
+def test_the_two_mia_tensorfold_dual_adapters_are_byte_identical() -> None:
+    root = SCRIPT.parents[2] / "qwen"
+    first = root / "mia-flash-next-tensorfold-dual-int4-autoround"
+    second = root / "mia-flash-next-tensorfold-dual-nvfp4"
+    for name in ("Dockerfile", "kit-final-stage.txt", "scan-sm121.py"):
+        assert (first / name).read_bytes() == (second / name).read_bytes(), name
