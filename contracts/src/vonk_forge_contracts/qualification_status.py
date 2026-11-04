@@ -11,6 +11,7 @@ from typing import Annotated, Literal, Self
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
 from ._schema_version import QualificationEvidenceSchemaVersion
+from .recipe import Identifier
 
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 SourceSHA = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
@@ -258,10 +259,42 @@ class QualificationEvidenceRecord(PublicQualificationModel):
         return self
 
 
+class QualificationMeasuredRoleMemory(PublicQualificationModel):
+    """What one role of one content held on hardware: a row keyed (content, role).
+
+    ``steady_bytes`` is the role's Spark host memory in use (total less available,
+    the OS included) sampled after a smoke passed, the run alone on that Spark: an
+    observation, never the recipe's declaration. ``budget_bytes`` is the vLLM
+    utilization budget of the launch that ran (gpu-memory-utilization x Spark
+    memory); ``None`` when it had none (an absolute KV pool, or another engine).
+    """
+
+    content_sha256: Digest
+    role: Identifier
+    steady_bytes: int = Field(ge=0)
+    budget_bytes: int | None = Field(default=None, ge=0)
+
+    @property
+    def key(self) -> tuple[str, str]:
+        return (self.content_sha256, self.role)
+
+
 class RecipeQualificationEvidence(PublicQualificationModel):
     schema_version: QualificationEvidenceSchemaVersion = 1
     recipe_key: RecipeKey
     records: tuple[QualificationEvidenceRecord, ...] = ()
+    # Its own table, keyed (content_sha256, role); empty means "not measured" and
+    # is left out of the file, so evidence written before it keeps its bytes.
+    measured_memory: tuple[QualificationMeasuredRoleMemory, ...] = Field(
+        default=(), exclude_if=lambda rows: not rows
+    )
+
+    @model_validator(mode="after")
+    def keyed_measurements(self) -> Self:
+        keys = [row.key for row in self.measured_memory]
+        if keys != sorted(set(keys)):
+            raise ValueError("measured memory rows must be sorted and unique by key")
+        return self
 
 
 class QualificationDerivationInput(PublicQualificationModel):

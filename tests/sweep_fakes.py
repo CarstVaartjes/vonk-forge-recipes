@@ -107,6 +107,9 @@ class FakeRecipe:
     )
     fail_load: str | None = None  # status reason of a failed load
     load_peak: int | None = None  # the role's declared load peak
+    # The canonical document ``vonkctl recipe detail --technical`` reports for this
+    # content (None: the Controller cannot show it).
+    detail: dict[str, Any] | None = None
     minimum_swap: int = 0  # the role's declared minimum swap
     fail_phase: str = "runtime-install"
     fail_download: str | None = None
@@ -901,6 +904,14 @@ class FakeFleet:
             return self._op_progress(a)
         if noun == "recipe" and verb == "job":
             return self._recipe_job(a[2:])
+        if noun == "recipe" and verb == "detail":
+            shown = self.recipes.get(a[2])
+            if shown is None or shown.detail is None:
+                return self._error("recipe.not_found", a[2])
+            return 0, {
+                "identity": {"content_sha256": shown.content},
+                "document": shown.detail,
+            }
         if noun == "profile":
             return self._profile(profile, verb, a[2:])
         return self._error("unsupported", " ".join(a))
@@ -1926,7 +1937,11 @@ class FakeFleet:
                             "id": item["assignment_ids"][0],
                             "alias": item["alias"],
                             "nodes": [
-                                {"node_id": node, "rank": rank}
+                                {
+                                    "node_id": node,
+                                    "rank": rank,
+                                    "role": "entrypoint" if rank == 0 else "worker",
+                                }
                                 for rank, node in enumerate(item["node_ids"])
                             ],
                         }
