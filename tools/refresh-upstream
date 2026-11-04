@@ -3208,6 +3208,37 @@ def render_pins(assessment: Assessment) -> str:
     return "\n".join(rows)
 
 
+def principles_section(assessment: Assessment) -> list[str]:
+    """The ``## Principles`` section: only what a mechanical refresh guarantees.
+
+    Placed before the evidence so ``clip`` never drops it. The proven-bytes claim is made
+    only when ``follow_proven_bytes`` actually put the fixture in this move's edits.
+    """
+    lines = [
+        "## Principles",
+        "",
+        (
+            "- Follow the creator, newest only: the pins move in place to the creator's "
+            "newest published versions; no variant or history is added."
+        ),
+    ]
+    if PROVEN_BYTES in assessment.edits:
+        lines.append(
+            "- Content identity: the recipe is proven, so its entry in "
+            f"`{PROVEN_BYTES}` follows the new bytes; its evidence no longer matches the "
+            "new digest."
+        )
+    lines += [
+        (
+            "- Declared peaks are kept only where hardware-measured and the budget did "
+            "not rise (`keeps_measured_peaks`); other peaks are raised to the envelope."
+        ),
+        "- The sweep re-checks the new digest on hardware; nothing here claims it runs.",
+        "",
+    ]
+    return lines
+
+
 def pr_body(assessment: Assessment) -> str:
     version = assessment.version
     body = [
@@ -3233,6 +3264,7 @@ def pr_body(assessment: Assessment) -> str:
             + "\n".join(f"- {text}" for text in assessment.held)
         ),
         "",
+        *principles_section(assessment),
         *[f"> {note}\n" for note in assessment.notes],
         "## Evidence",
         "",

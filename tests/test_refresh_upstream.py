@@ -2604,6 +2604,28 @@ class SelfHealingTests(unittest.TestCase):
             refresh.follow_proven_bytes(root, unproven)
             self.assertNotIn(refresh.PROVEN_BYTES, unproven)
 
+    def test_pr_body_states_principles_that_follow_the_assessment(self) -> None:
+        item = refresh.Item(
+            "source",
+            "github",
+            "o/r",
+            OLD,
+            refresh.Target("github", "o/r", NEW, "d", None, None, "u"),
+        )
+        plain = refresh.Assessment("a", items=[item], evidence=["x" * 200])
+        proven = refresh.Assessment(
+            "a", items=[item], edits={refresh.PROVEN_BYTES: b"{}"}
+        )
+        for assessment in (plain, proven):
+            assessment.evidence = ["y" * (refresh.MAX_BODY * 2)]
+            body = refresh.pr_body(assessment)
+            self.assertIn("## Principles", body)
+            self.assertIn("keeps_measured_peaks", body)
+            self.assertIn("re-checks the new digest", body)
+            self.assertLess(body.index("## Principles"), body.index("## Evidence"))
+        self.assertNotIn("Content identity", refresh.pr_body(plain))
+        self.assertIn("Content identity", refresh.pr_body(proven))
+
     def test_failure_evidence_has_the_log_tail(self) -> None:
         with patch("refresh_upstream.gh", return_value="x\nBOOM: stale\n"):
             text = refresh.failed_check_evidence(failing())
