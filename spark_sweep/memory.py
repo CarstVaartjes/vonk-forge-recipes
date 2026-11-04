@@ -9,11 +9,7 @@ from collections.abc import Iterable, Mapping
 from typing import Any
 
 from pydantic import BaseModel, ValidationError
-from vonk_forge_contracts import (
-    QualificationMeasuredMemory,
-    QualificationRoleMemory,
-    RecipeDefinition,
-)
+from vonk_forge_contracts import QualificationMeasuredRoleMemory, RecipeDefinition
 
 from qualification.memory_need import OS_FLOOR_BYTES, vllm_budget_bytes
 
@@ -137,7 +133,7 @@ class _Placement(BaseModel):
 
 
 class _Assignment(BaseModel):
-    alias: str
+    alias: str | None = None
     nodes: list[_Placement]
     option_choices: dict[str, str] = {}
 
@@ -182,39 +178,44 @@ def measurement(
     application: Any,
     alias: str,
     recipe: RecipeDefinition | None,
-) -> QualificationMeasuredMemory | None:
-    """What the pass measured per role, or ``None`` when that cannot be told apart.
+    content_sha256: str,
+) -> tuple[QualificationMeasuredRoleMemory, ...]:
+    """The evidence rows this pass measured, keyed (content, role); none when unclear.
 
     ``observed`` is :func:`observe`'s sample; the Controller ``application`` document
     places each Spark in a role for the run's ``alias`` and names its option
     choices, so the budget is the one of the launch that ran. Only Sparks the run
-    had to itself count; a role keeps the largest use over its Sparks.
+    had to itself count, only roles the recipe declares; a role keeps the largest
+    use over its Sparks. Measuring never costs a verdict: anything it cannot tell
+    apart or compute is "not measured".
     """
     if not observed or recipe is None:
-        return None
+        return ()
     try:
         assignments = _Application.model_validate(
             application
         ).progress.intended_profile.assignments
         assignment = next(item for item in assignments if item.alias == alias)
         launch = recipe.with_option_choices(assignment.option_choices)
-    except (StopIteration, ValueError):
-        return None
+        budget = vllm_budget_bytes(launch)
+    except (StopIteration, ValueError, TypeError, ArithmeticError):
+        return ()
+    declared = {role.name for role in launch.topology.roles}
     role_of = {item.node_id: item.role for item in assignment.nodes}
     steady: dict[str, int] = {}
     for node in observed["nodes"]:
         role = role_of.get(node["node_id"])
-        if role is not None and node["alone"]:
+        if role in declared and node["alone"]:
             steady[role] = max(steady.get(role, 0), node["used_bytes"])
-    if not steady:
-        return None
     try:
-        return QualificationMeasuredMemory(
-            budget_bytes=vllm_budget_bytes(launch),
-            roles=tuple(
-                QualificationRoleMemory(role=role, steady_bytes=used)
-                for role, used in sorted(steady.items())
-            ),
+        return tuple(
+            QualificationMeasuredRoleMemory(
+                content_sha256=content_sha256,
+                role=role,
+                steady_bytes=used,
+                budget_bytes=budget,
+            )
+            for role, used in sorted(steady.items())
         )
-    except ValidationError:
-        return None
+    except ValueError:
+        return ()
