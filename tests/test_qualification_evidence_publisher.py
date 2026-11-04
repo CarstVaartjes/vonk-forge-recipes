@@ -3,6 +3,7 @@
 import json
 import subprocess
 from pathlib import Path
+from typing import ClassVar
 
 import pytest
 from test_qualification_status import historical
@@ -621,95 +622,181 @@ def _evidence_json(rows):
     ).model_dump_json()
 
 
-def test_the_same_red_checks_twice_close_the_pr_and_a_fresh_pr_leaves_them_out(
+class World:
+    """A fake GitHub for the real sequence: red on head A, main moves, re-plan push
+    makes head B, B's checks run, B is red with the same names."""
+
+    LINT: ClassVar = [{"name": "lint", "status": "COMPLETED", "conclusion": "FAILURE"}]
+
+    def __init__(self, tmp_path, monkeypatch, *, close_fails=False, branch=None):
+        from spark_sweep.qualification import read_evidence
+
+        self.refused_row, self.new_row = _row(21), _row(22)
+        self.history = tmp_path / "results.jsonl"
+        self.history.write_text(
+            "\n".join(json.dumps(r) for r in (self.refused_row, self.new_row)) + "\n"
+        )
+        self.work = tmp_path / "work"
+        self.calls = []
+        self.open_prs = [123]
+        self.head = "A"
+        self.rollup = self.LINT
+        self.behind = 0
+        self.created = []
+        self.close_fails = close_fails
+        self.branch = branch or _evidence_json([self.refused_row])
+        self.pushes = 0
+
+        def command(cwd, *args, **kwargs):
+            from test_qualification_status import KEY
+
+            self.calls.append(args)
+            if args[:3] == ("gh", "pr", "list"):
+                return json.dumps(
+                    [
+                        {
+                            "number": n,
+                            "isCrossRepository": False,
+                            "headRepositoryOwner": {"login": "CarstVaartjes"},
+                        }
+                        for n in self.open_prs
+                    ]
+                )
+            if args[:3] == ("gh", "pr", "view"):
+                return json.dumps(
+                    {
+                        "number": 123,
+                        "mergeStateStatus": "BLOCKED",
+                        "headRefOid": self.head,
+                        "statusCheckRollup": self.rollup,
+                    }
+                )
+            if args[:2] == ("gh", "api"):
+                return str(self.behind)
+            if args[:3] == ("gh", "pr", "close"):
+                if self.close_fails:
+                    raise subprocess.CalledProcessError(1, args, stderr="boom")
+                self.open_prs.clear()
+            if args[:3] == ("gh", "pr", "create"):
+                self.open_prs.append(124)
+                self.created.append(read_evidence(cwd, KEY).records)
+            if args[:2] == ("git", "clone"):
+                (Path(args[-1]) / ".git").mkdir()
+                seed_catalog(Path(args[-1]))
+            if args[:2] == ("git", "ls-remote"):
+                return "sha refs/heads/x" if self.open_prs else ""
+            if args[:2] == ("git", "push"):
+                self.head = "B"
+                self.pushes += 1
+            if args[:2] == ("git", "show"):
+                if args[2].startswith("origin/qualification"):
+                    return self.branch
+                raise subprocess.CalledProcessError(128, args)  # not on main
+            if args[:2] == ("git", "diff") and "--name-only" in args:
+                return "qualification/evidence/vonk-forge/example.json"
+            if args[:3] == ("git", "diff", "origin/main"):
+                return "evidence diff"
+            if args[:3] == ("git", "diff", "--cached"):
+                return "qualification/evidence/vonk-forge/example.json"
+            return ""
+
+        monkeypatch.setattr(publisher, "command", command)
+        # the merge of main into the evidence branch is a plain subprocess call
+        monkeypatch.setattr(
+            publisher.subprocess,
+            "run",
+            lambda *a, **k: subprocess.CompletedProcess(a[0], 0, "", ""),
+        )
+
+    def tick(self):
+        return publisher.sync(self.history, self.work)
+
+    def closed(self):
+        return [c for c in self.calls if c[:3] == ("gh", "pr", "close")]
+
+
+def test_the_real_red_sequence_ends_refused_with_a_fresh_pr_and_an_alert(
     tmp_path, monkeypatch
 ):
-    from test_qualification_status import KEY
-
-    from spark_sweep.qualification import read_evidence
-
-    refused_row, new_row = _row(21), _row(22)
-    history = tmp_path / "results.jsonl"
-    history.write_text("\n".join(json.dumps(r) for r in (refused_row, new_row)) + "\n")
-    work = tmp_path / "work"
-    calls = []
-    open_prs = [123]
-    created = []
-    heads = iter(
-        ["aaa", "bbb"]
-    )  # the head moves between batches; the signature must not
-
-    def command(cwd, *args, **kwargs):
-        calls.append(args)
-        if args[:3] == ("gh", "pr", "list"):
-            return json.dumps([{"number": n} for n in open_prs])
-        if args[:3] == ("gh", "pr", "view"):
-            return json.dumps(
-                {
-                    "number": 123,
-                    "mergeStateStatus": "BLOCKED",
-                    "headRefOid": next(heads),
-                    "statusCheckRollup": [
-                        {"name": "lint", "status": "COMPLETED", "conclusion": "FAILURE"}
-                    ],
-                }
-            )
-        if args[:2] == ("gh", "api"):
-            return "0"  # main has not moved: waiting would block forever
-        if args[:3] == ("gh", "pr", "close"):
-            open_prs.clear()
-        if args[:3] == ("gh", "pr", "create"):
-            open_prs.append(124)
-            created.append(read_evidence(cwd, KEY).records)
-        if args[:2] == ("git", "clone"):
-            (Path(args[-1]) / ".git").mkdir()
-            seed_catalog(Path(args[-1]))
-        if args[:2] == ("git", "ls-remote"):
-            return "" if not open_prs else "sha refs/heads/x"
-        if args[:2] == ("git", "show"):
-            if args[2].startswith("origin/qualification"):
-                return _evidence_json([refused_row])
-            raise subprocess.CalledProcessError(128, args)  # not on main
-        if (
-            args[:2] == ("git", "diff")
-            and "--name-only" in args
-            and "--cached" not in args
-        ):
-            return "qualification/evidence/vonk-forge/example.json"
-        if args[:3] == ("git", "diff", "origin/main"):
-            return "evidence diff"
-        if args[:3] == ("git", "diff", "--cached"):
-            return "qualification/evidence/vonk-forge/example.json"
-        return ""
-
-    monkeypatch.setattr(publisher, "command", command)
-    assert publisher.sync(history, work) == publisher.SweepEvidenceExit.FAILING_CHECK
-    assert not any(c[:3] == ("gh", "pr", "close") for c in calls)
-    assert publisher.sync(history, work) == publisher.SweepEvidenceExit.REFUSED
-    close = next(c for c in calls if c[:3] == ("gh", "pr", "close"))
+    exits = publisher.SweepEvidenceExit
+    world = World(tmp_path, monkeypatch)
+    # 1. red on head A while main has not moved: RED, waits
+    assert world.tick() == exits.FAILING_CHECK
+    assert world.pushes == 0 and not world.closed()
+    assert publisher.load_state(world.work).state == publisher.PublisherState.RED
+    # 2. the same head on the next tick is the same run: still RED, still waiting
+    assert world.tick() == exits.FAILING_CHECK
+    assert publisher.load_state(world.work).state == publisher.PublisherState.RED
+    # 3. main moves: the re-plan pushes head B
+    world.behind = 3
+    world.tick()
+    assert world.pushes == 1 and world.head == "B" and not world.closed()
+    # 4. B's checks are still running: nothing observed, the record is unchanged
+    before = publisher.load_state(world.work)
+    world.rollup = [{"status": "IN_PROGRESS", "conclusion": ""}]
+    world.behind = 0
+    assert world.tick() == exits.WAITING
+    assert publisher.load_state(world.work) == before
+    # 5. B is red with the same names: a second run, so REFUSED
+    world.rollup = world.LINT
+    assert world.tick() == exits.REFUSED
+    close = world.closed()[0]
     assert close[3] == "123" and "lint" in close[-1] and "--delete-branch" in close
-    assert open_prs == [124]  # a fresh PR from main
-    (records,) = created
-    assert [r.tested_at.day for r in records] == [
-        22
-    ]  # only evidence the refused PR lacked
-    record = publisher.load_state(work)
+    assert world.open_prs == [124]
+    (records,) = world.created
+    assert [r.tested_at.day for r in records] == [22]  # the refused PR's record is out
+    record = publisher.load_state(world.work)
     assert record.state == publisher.PublisherState.REFUSED
     assert record.signature == "lint" and len(record.refused) == 1
 
     class Done:
         def poll(self):
-            return publisher.SweepEvidenceExit.REFUSED
+            return exits.REFUSED
 
         def wait(self, timeout):
             return 0
 
-    worker = publisher.EvidencePublisher(history, work, Path("worker"))
+    worker = publisher.EvidencePublisher(world.history, world.work, Path("worker"))
     monkeypatch.setattr(worker, "process", Done())
     worker.next_attempt = 1e18
     worker.tick(0)
     assert worker.alert and "1 records refused" in worker.alert
     assert "refused (red twice: lint)" in worker.message
+
+
+def test_a_slow_red_is_not_reset_by_a_pending_tick(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch)
+    world.tick()  # red on A
+    world.rollup = [{"status": "IN_PROGRESS", "conclusion": ""}]
+    for _ in range(3):
+        world.tick()
+        assert publisher.load_state(world.work).state == publisher.PublisherState.RED
+
+
+def test_refused_ids_are_recorded_only_after_the_close_succeeded(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch, close_fails=True)
+    world.tick()  # red on A
+    world.head = "B"  # the next red run
+    assert world.tick() == publisher.SweepEvidenceExit.COMMAND_FAILED
+    record = publisher.load_state(world.work)
+    assert record.refused == () and record.state == publisher.PublisherState.RED
+    assert world.open_prs == [123] and not world.created
+    world.close_fails = False  # next tick retries the close from the persisted state
+    assert world.tick() == publisher.SweepEvidenceExit.REFUSED
+    assert world.open_prs == [124]
+    assert len(publisher.load_state(world.work).refused) == 1
+
+
+def test_malformed_branch_evidence_is_a_command_failure_not_an_escape(
+    tmp_path, monkeypatch
+):
+    world = World(tmp_path, monkeypatch, branch='{"recipe_key": 7')
+    world.tick()
+    world.head = "B"
+    assert world.tick() == publisher.SweepEvidenceExit.COMMAND_FAILED
+    record = publisher.load_state(world.work)
+    assert record.command and record.signature == "validate evidence exit invalid"
+    assert not world.closed()
 
 
 def test_refused_records_stay_out_until_their_content_changes(tmp_path, monkeypatch):
@@ -930,10 +1017,14 @@ def test_every_tool_that_opens_pull_requests_declares_its_refused_outcome():
     import re
 
     root = Path(__file__).resolve().parents[1]
-    opens = re.compile(r'"pr",\s*"create"')
+    opens = re.compile(r'"pr",\s*"create"|\bgh\s+pr\s+create\b')
     found = {
         str(path.relative_to(root))
-        for path in [*(root / "tools").glob("*"), *(root / "spark_sweep").glob("*.py")]
+        for path in [
+            *(root / "tools").glob("*"),
+            *(root / "spark_sweep").glob("*.py"),
+            *(root / ".github/workflows").glob("*.yml"),
+        ]
         if path.is_file() and opens.search(path.read_text(errors="ignore"))
     }
     assert found == set(PR_OPENING_TOOLS), (
