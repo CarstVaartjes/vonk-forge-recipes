@@ -24,6 +24,7 @@ from vonk_forge_contracts import (
     ModelDefinition,
     QualificationMeasuredRoleMemory,
     RecipeDefinition,
+    RecipeQualificationEvidence,
     document_sha256,
 )
 from vonk_forge_contracts.memory_admission import (
@@ -265,12 +266,21 @@ class CacheGeometry(BaseModel):
     # SGLang HybridSWAPoolConfigurator pools these sliding layers, outside
     # `layers`, at swa-full-tokens-ratio of max-total-tokens.
     sglang_swa_layers: int = Field(default=0, ge=0)
+    # Their KV heads (config swa_num_key_value_heads, sglang ModelConfig
+    # get_swa_num_kv_heads) when they differ from `kv_heads`.
+    sglang_swa_kv_heads: int | None = Field(default=None, gt=0)
     # SGLang per-rank hybrid state per max-mamba-cache-size slot (+1 padding).
     sglang_state_bytes_per_slot: int = Field(default=0, ge=0)
     # SGLang's pre-load free memory measured on this runtime image, when known;
     # otherwise SGLANG_PRELOAD_FREE_BYTES.
     sglang_preload_free_bytes: int | None = Field(default=None, gt=0)
     runtime_image_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+
+    @model_validator(mode="after")
+    def swa_heads_with_swa_layers(self) -> Self:
+        if self.sglang_swa_kv_heads is not None and not self.sglang_swa_layers:
+            raise ValueError("sglang_swa_kv_heads needs sglang_swa_layers")
+        return self
 
     @model_validator(mode="after")
     def classified_recurrent_bound(self) -> Self:
@@ -379,12 +389,19 @@ def unchanged_recipe(
     )
 
 
-def hardware_proven(recipe: RecipeDefinition, document_digest: str) -> bool:
-    """Use the qualification reducer, including later failures and exact reverts."""
+def hardware_proven(
+    recipe: RecipeDefinition,
+    document_digest: str,
+    evidence: RecipeQualificationEvidence | None = None,
+) -> bool:
+    """Use the qualification reducer, including later failures and exact reverts.
+
+    ``evidence`` is the recipe's evidence when the caller already read it.
+    """
     from vonk_forge_contracts import QualificationStatus, derive_status
 
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-    evidence = _evidence(key)
+    evidence = evidence if evidence is not None else _evidence(key)
     for record in evidence.records:
         if record.identity.content_sha256 != document_digest:
             continue
@@ -634,6 +651,7 @@ def sglang_token_pools(
         swa = geometry.model_copy(
             update={
                 "layers": geometry.sglang_swa_layers,
+                "kv_heads": geometry.sglang_swa_kv_heads or geometry.kv_heads,
                 "sliding_layers": 0,
                 "token_bytes": None,
                 "token_bytes_by_dtype": {},
@@ -1450,17 +1468,24 @@ def recipe_envelope(recipe: RecipeDefinition) -> int:
     )
 
 
-def measured_budget(recipe: RecipeDefinition) -> int | None:
+def measured_budget(
+    recipe: RecipeDefinition,
+    replaced: tuple[RecipeDefinition, str] | None = None,
+) -> int | None:
     """The largest vLLM budget under which hardware measured these declared peaks.
 
-    Read from the recipe's evidence table only (never a previous document): a
-    content that is still Working (``hardware_proven``) whose rows measure every
-    declared role within its declared peak (``holds_within``). A content's budget
-    is the smallest over its rows; ``None`` when no content qualifies with one.
+    Read from the recipe's evidence table (never git history): a content that is
+    still Working (``hardware_proven``) whose rows measure every declared role
+    within its declared peak (``holds_within``); a content's budget is the
+    smallest over its rows. ``replaced`` is the document (and digest) a refresh
+    is replacing, in hand: proven content without rows ran under its own
+    declared peaks, so it vouches for peaks no smaller than those, under its
+    largest budget. ``None`` when nothing qualifies.
     """
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    evidence = _evidence(key)
     by_content: dict[str, dict[str, QualificationMeasuredRoleMemory]] = {}
-    for row in _evidence(key).measured_memory:
+    for row in evidence.measured_memory:
         by_content.setdefault(row.content_sha256, {})[row.role] = row
     budgets: list[int] = []
     for content, rows in by_content.items():
@@ -1474,9 +1499,21 @@ def measured_budget(recipe: RecipeDefinition) -> int | None:
                 )
                 for role in recipe.topology.roles
             )
-            and hardware_proven(recipe, content)
+            and hardware_proven(recipe, content, evidence)
         ):
             budgets.append(min(b for b in ran if b is not None))
+    if replaced is not None:
+        old, digest = replaced
+        before = {r.name: r.resources.memory.peak_bytes for r in old.topology.roles}
+        if (
+            digest not in by_content
+            and all(
+                role.resources.memory.peak_bytes >= before.get(role.name, 2**63)
+                for role in recipe.topology.roles
+            )
+            and hardware_proven(old, digest, evidence)
+        ):
+            budgets += [b for v in memory_variants(old) if (b := vllm_budget_bytes(v))]
     return max(budgets, default=None)
 
 
@@ -1491,7 +1528,9 @@ def keeps_measured_peaks(launch: RecipeDefinition, measured: int | None) -> bool
     return budget is not None and measured is not None and budget <= measured
 
 
-def raise_peaks_to_envelope(recipe: RecipeDefinition) -> RecipeDefinition | None:
+def raise_peaks_to_envelope(
+    recipe: RecipeDefinition, replaced: tuple[RecipeDefinition, str] | None = None
+) -> RecipeDefinition | None:
     """The recipe with role peaks raised to its vLLM budget envelope, None if none is.
 
     A document that moves (``tools/refresh-upstream``) is new content and meets the
@@ -1502,7 +1541,7 @@ def raise_peaks_to_envelope(recipe: RecipeDefinition) -> RecipeDefinition | None
     the peaks rise to the largest capped envelope of the variants that are not,
     including a measured launch whose budget the move raised.
     """
-    measured = measured_budget(recipe)
+    measured = measured_budget(recipe, replaced)
     envelope = max(
         (
             e

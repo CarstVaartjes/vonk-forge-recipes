@@ -451,7 +451,8 @@ the evidence's `measured_memory` table, keyed (content, role). A launch variant
 whose budget is no larger than one a still-Working content was measured under,
 with every role within its declared peak, is neither flagged nor raised
 (`keeps_measured_peaks`); the sweep measures the default launch. No row means
-not measured.
+not measured, except that a refresh keeps the peaks of the proven document it
+replaces when the move raises no budget and lowers no peak.
 `tests/test_absolute_kv_capacity.py` replays the recorded failures and must
 warn on each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
@@ -879,6 +880,9 @@ A proven recipe moves too: the refresh rewrites its entry in
 branch only moves forward (never force-pushed); a PR whose checks failed on an
 unchanged refresh is reported in the recipe's review issue and moves forward again
 only when upstream or main's checks (`tools/`, `tests/`, `.github/`) change.
+Every refresh PR body carries a `## Principles` section that states only what the
+move did: pins moved (and any held), proven bytes followed when the fixture changed,
+peaks raised when they were, and the sweep re-check only when a recipe document changed.
 
 Respect `base-image-holds.json`: a held base and Dockerfile must agree until the
 hold is updated/removed with working evidence (`tools/check-base-image-holds`,

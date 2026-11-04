@@ -25,14 +25,27 @@ def add_model_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--root", type=Path, default=Path(__file__).resolve().parents[1]
     )
-    parser.add_argument("--publisher", required=True)
+    parser.add_argument(
+        "--publisher",
+        required=True,
+        help="who publishes this checkpoint (the identity and display publisher)",
+    )
+    parser.add_argument(
+        "--family-publisher",
+        help="the original publisher of the model lineage (default: --publisher); "
+        "set it when --publisher republished or quantized another creator's model",
+    )
     parser.add_argument("--model-group-slug", required=True)
     parser.add_argument("--model-group-title", required=True)
     parser.add_argument("--model-group-description", required=True)
     parser.add_argument("--model-slug", required=True)
     parser.add_argument("--model-title", required=True)
     parser.add_argument("--model-description", required=True)
-    parser.add_argument("--modality", default="language")
+    parser.add_argument(
+        "--modality",
+        action="append",
+        help="a modality the model handles (repeatable, default: language)",
+    )
     parser.add_argument("--version-slug", required=True)
     parser.add_argument("--version", required=True)
     parser.add_argument("--precision", required=True)
@@ -99,20 +112,26 @@ def write_model(
         published_json,
     )
 
-    modality = _MODALITIES.get(args.modality, args.modality)
-    if modality not in {"text", "image", "audio", "video", "3d", "embeddings"}:
-        raise SystemExit(f"unsupported model modality: {args.modality}")
+    modalities = list(
+        dict.fromkeys(
+            _MODALITIES.get(name, name) for name in args.modality or ["language"]
+        )
+    )
+    for modality in modalities:
+        if modality not in {"text", "image", "audio", "video", "3d", "embeddings"}:
+            raise SystemExit(f"unsupported model modality: {modality}")
+    lineage_publisher = args.family_publisher or args.publisher
     document = {
         "kind": "model",
         "identity": {
             "publisher": args.publisher,
             "slug": args.version_slug,
             "family": {
-                "publisher": args.publisher,
+                "publisher": lineage_publisher,
                 "slug": args.model_group_slug,
             },
             "model": {
-                "publisher": args.publisher,
+                "publisher": lineage_publisher,
                 "slug": args.model_slug,
             },
             "version": args.version,
@@ -120,7 +139,7 @@ def write_model(
         },
         "requires_token": requires_token,
         "dependencies": [],
-        "modalities": [modality],
+        "modalities": modalities,
         "source": source,
         "format": {
             "precision": args.precision,
@@ -136,15 +155,12 @@ def write_model(
     }
     ModelDefinition.model_validate(document)
     display = ModelDisplay(
+        kind="model-display",
         identity=ModelDisplayIdentity(publisher=args.publisher, slug=args.version_slug),
         family_title=args.model_group_title,
         model_title=args.model_title,
         description=args.model_description,
-        tags=list(
-            dict.fromkeys(
-                [args.publisher, args.model_group_slug, args.modality, "candidate"]
-            )
-        ),
+        tags=list(dict.fromkeys([lineage_publisher, args.model_group_slug])),
     )
     root = args.root.resolve()
     for path, payload in (
