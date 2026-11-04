@@ -874,9 +874,9 @@ A proven recipe moves too: the refresh rewrites its entry in
 branch only moves forward (never force-pushed); a PR whose checks failed on an
 unchanged refresh is reported in the recipe's review issue and moves forward again
 only when upstream or main's checks (`tools/`, `tests/`, `.github/`) change.
-Every refresh PR body carries a `## Principles` section stating only what the move
-did (newest pins in place; proven bytes followed when proven; peaks kept per
-`keeps_measured_peaks`; the sweep re-checks the digest).
+Every refresh PR body carries a `## Principles` section that states only what the
+move did: pins moved (and any held), proven bytes followed when the fixture changed,
+peaks raised when they were, and the sweep re-check only when a recipe document changed.
 
 Respect `base-image-holds.json`: a held base and Dockerfile must agree until the
 hold is updated/removed with working evidence (`tools/check-base-image-holds`,
