@@ -364,6 +364,20 @@
       "source": "https://huggingface.co/LibertAIDAI/Hy3-NVFP4/resolve/8a805d687c4bf02b364af15db5ee85e43ed998bf/config.json",
       "value_dim": 128
     },
+    "inkling-975b-a41b-nvfp4": {
+      "architecture": "InklingForConditionalGeneration",
+      "configuration_sha256": "58720f145bcecef9a7ab2b419ab346e7c634af8d2f3e7362e900d00f789ea46c",
+      "key_dim": 128,
+      "kv_heads": 8,
+      "layers": 11,
+      "max_context_tokens": 1048576,
+      "sglang_state_bytes_per_slot": 5170176,
+      "sglang_swa_kv_heads": 16,
+      "sglang_swa_layers": 55,
+      "source": "https://huggingface.co/thinkingmachines/Inkling-NVFP4/resolve/42a75a99a40eb2ba1e0717db6357a0bf15205044/config.json (HF API revision 42a75a99a40eb2ba1e0717db6357a0bf15205044): 66 layers, 55 local_layer_ids (sliding window 512, swa_num_key_value_heads 16, swa_head_dim 128) and 11 full-attention layers (num_key_value_heads 8, head_dim 128), use_sconv with sconv_kernel_size 4, hidden_size 6144, model_max_length 1048576. SGLang terms from the image's labelled revision sglang 94602c9c (image b0d8718a): the 55 sliding layers are pooled with get_swa_num_kv_heads = max(1, 16 // tp) heads (https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/python/sglang/srt/configs/model_config.py). Per-slot state is configs/inkling.py mamba2_cache_params (https://github.com/sgl-project/sglang/blob/94602c9c2b7cbdb8efd5c52802dac6a1c180089e/python/sglang/srt/configs/inkling.py): every one of the 66 conv layers holds six bf16 conv tensors of (kernel - 1) rows, two of max(1, 8 // tp) x 128, two of max(1, 16 // tp) x 128 and two of hidden_size (enable_scattered_sconv defaults False in arg_groups/fields/exec_.py and the recipe does not set it). At TP8: 66 x 3 x (128 + 128 + 256 + 256 + 6144 + 6144) x 2 = 5,170,176 bytes per rank. The same rule on the Inkling-Small configuration at TP2 gives 2,580,480 bytes, which SGLang prints as the 2.46 MiB the inkling-small-nvfp4 entry measured. Sliding state bounded like that entry: BF16 K/V at window + 256 tokens per layer without TP savings, 55 x 768 x 16 x 256 x 2 = 346,030,080 bytes. Resident expansion and SGLang pre-load free memory are unmeasured for this model (no hardware log), so they are not set. Allocation estimate, not hardware proof.",
+      "state_bytes_per_request": 346030080,
+      "value_dim": 128
+    },
     "inkling-small-nvfp4": {
       "architecture": "InklingForConditionalGeneration",
       "configuration_sha256": "dcb5b1d587bce2f1e6b29833d739a724d05b4bfaa2dc1164fbe679330478ba53",
