@@ -264,12 +264,21 @@ class CacheGeometry(BaseModel):
     # SGLang HybridSWAPoolConfigurator pools these sliding layers, outside
     # `layers`, at swa-full-tokens-ratio of max-total-tokens.
     sglang_swa_layers: int = Field(default=0, ge=0)
+    # Their KV heads (config swa_num_key_value_heads, sglang ModelConfig
+    # get_swa_num_kv_heads) when they differ from `kv_heads`.
+    sglang_swa_kv_heads: int | None = Field(default=None, gt=0)
     # SGLang per-rank hybrid state per max-mamba-cache-size slot (+1 padding).
     sglang_state_bytes_per_slot: int = Field(default=0, ge=0)
     # SGLang's pre-load free memory measured on this runtime image, when known;
     # otherwise SGLANG_PRELOAD_FREE_BYTES.
     sglang_preload_free_bytes: int | None = Field(default=None, gt=0)
     runtime_image_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+
+    @model_validator(mode="after")
+    def swa_heads_with_swa_layers(self) -> Self:
+        if self.sglang_swa_kv_heads is not None and not self.sglang_swa_layers:
+            raise ValueError("sglang_swa_kv_heads needs sglang_swa_layers")
+        return self
 
     @model_validator(mode="after")
     def classified_recurrent_bound(self) -> Self:
@@ -625,6 +634,7 @@ def sglang_token_pools(
         swa = geometry.model_copy(
             update={
                 "layers": geometry.sglang_swa_layers,
+                "kv_heads": geometry.sglang_swa_kv_heads or geometry.kv_heads,
                 "sliding_layers": 0,
                 "token_bytes": None,
                 "token_bytes_by_dtype": {},

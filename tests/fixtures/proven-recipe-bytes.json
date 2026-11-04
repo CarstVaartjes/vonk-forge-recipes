@@ -6,7 +6,7 @@
   "vonk-forge/d3-nano-vllm-single": "19954b00b1b510446c4c64823fedcc0071bf5faabfc8439c9a6a359bad3dbd5c",
   "vonk-forge/d3-vllm-single": "8b5990637991b5dd6695f1b284fb2e7aebeca39e1b6a382a23e02af64e02a5f1",
   "vonk-forge/deepseek-v2-lite-nvidia-sglang-single": "8a46646072ecc9815eac0e352174f7acabb6a6bda61a59206a95c24e81591a32",
-  "vonk-forge/diffusiongemma-26b-a4b-it-nvfp4-eugr-vllm-single": "3bb4e2cf99a4940eb47aa7ea6a45b1b922b3c6b9136627be1fefc5cf9297a58d",
+  "vonk-forge/diffusiongemma-26b-a4b-it-nvfp4-eugr-vllm-single": "59e819b28e9323905519ee5915718ad329ac1d22dad2f6c7003d6c2946be435d",
   "vonk-forge/diffusiongemma-26b-a4b-it-nvfp4-nvidia-vllm-single": "05598a94a3f3fb209ddb076e396f3e87f9a9987e84430682c10f82d5d24c049c",
   "vonk-forge/diffusiongemma-26b-a4b-it-nvidia-vllm-single": "a6a2895a4e157d4d3ecf85159cd09044882999f056380709ada317da8220e7a5",
   "vonk-forge/diffusiongemma-26b-nvfp4-r0b0tlab-vllm-single": "3744657ea73fe937f563163908e6c0a8d0086078c3bf7a20505a052d583bf87c",
