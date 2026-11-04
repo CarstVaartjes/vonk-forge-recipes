@@ -14,6 +14,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from pydantic import ValidationError
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
@@ -52,16 +54,46 @@ def touched_recipes(root: Path, base: str) -> list[Path]:
     return sorted({root / name for name in names})
 
 
-def previous_document(root: Path, base: str, path: Path) -> dict | None:
-    """The recipe as of the merge base, None when it is new."""
-    point = subprocess.run(
-        ["git", "-C", str(root), "merge-base", base, "HEAD"],
-        capture_output=True,
-        text=True,
-        check=False,
-    ).stdout.strip()
+def previous_recipe(
+    root: Path, base: str | None, path: Path
+) -> tuple[RecipeDefinition | None, str]:
+    """The recipe before the change under review and its digest; (None, "") when
+    it is new, its history is unavailable or it predates the current contract.
+
+    With ``base`` that is the merge base; without it, the parent of the last
+    commit that changed the file (main squash-merges, so that is the merge base
+    the PR was checked against).
+    """
+    document = previous_document(root, base, path)
+    if document is None:
+        return None, ""
+    try:
+        return RecipeDefinition.model_validate(document), document_sha256(document)
+    except ValidationError:
+        return None, ""
+
+
+def previous_document(root: Path, base: str | None, path: Path) -> dict | None:
+    """The recipe's JSON at the point ``previous_recipe`` names, None if absent."""
+
+    def git(*args: str) -> str:
+        return subprocess.run(
+            ["git", "-C", str(root), *args],
+            capture_output=True,
+            text=True,
+            check=False,
+        ).stdout.strip()
+
+    relative = path.relative_to(root)
+    if base:
+        point = git("merge-base", base, "HEAD") or base
+    else:
+        changed = git("log", "-1", "--format=%H", "--", str(relative))
+        if not changed:
+            return None
+        point = f"{changed}^"
     shown = subprocess.run(
-        ["git", "-C", str(root), "show", f"{point or base}:{path.relative_to(root)}"],
+        ["git", "-C", str(root), "show", f"{point}:{relative}"],
         capture_output=True,
         check=False,
         text=True,
@@ -134,15 +166,15 @@ def main() -> int:
                 f"{key}: maximum loading floor {max(n.peak_bytes for n in needs)} bytes/rank"
             )
             continue
-        old = previous_document(ROOT, args.base, path) if args.base else None
+        previous, previous_digest = previous_recipe(ROOT, args.base, path)
         found = memory_estimate_warnings(
             recipe,
             models,
             inputs,
             document_digest=digest,
             touched=bool(args.base),
-            previous=RecipeDefinition.model_validate(old) if old else None,
-            previous_digest=document_sha256(old) if old else "",
+            previous=previous,
+            previous_digest=previous_digest,
         )
         mismatches += found
         for warning in found:
