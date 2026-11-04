@@ -12,7 +12,11 @@
       "network": {
         "hosts": []
       },
-      "patches": []
+      "patches": [
+        {
+          "path": "adapters/llm/r0b0tlab-diffusiongemma-vllm-single/patch-gemma4-unclosed-channel.py"
+        }
+      ]
     }
   },
   "identity": {
