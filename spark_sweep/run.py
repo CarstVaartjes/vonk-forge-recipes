@@ -36,6 +36,7 @@ from vonk_forge_contracts import (
     QualificationIdentity,
     QualificationStatus,
     QualificationStatusView,
+    RecipeDefinition,
     RecipeQualificationEvidence,
 )
 from vonk_forge_contracts.sweep import (
@@ -2143,6 +2144,15 @@ class Sweep:
             raise ValueError(reply.error_text)
         return str(target)
 
+    def _ran_recipe(self, recipe: Recipe) -> RecipeDefinition | None:
+        """The document of exactly the content that ran, for its budget; None if unreadable."""
+        reply = self.vk.run("recipe", "detail", recipe.key, "--technical", timeout=60)
+        return (
+            memory.ran_recipe(reply.document, recipe.content_sha256)
+            if reply.ok
+            else None
+        )
+
     def _record_pass(self, key: str, slot: dict[str, Any], result: SmokeResult) -> None:
         now = self.clock.now()
         entry = self.state.entry(key)
@@ -2194,6 +2204,12 @@ class Sweep:
             recipe.load_peak_bytes,
             recipe.minimum_swap_bytes,
         )
+        measured = memory.measurement(
+            observed,
+            self.documents.get(str(slot.get("request_key", ""))),
+            str(slot["alias"]),
+            self._ran_recipe(recipe) if observed else None,
+        )
         quality = result.quality_notes + memory.notes(observed)
         if quality:
             entry["quality"] = quality
@@ -2217,6 +2233,7 @@ class Sweep:
             "passed",
             result={"endpoint_alias": slot["alias"], **result.record()},
             memory=observed,
+            measured_memory=measured.model_dump(mode="json") if measured else None,
             slot=slot,
         )
         notes = len(quality)
