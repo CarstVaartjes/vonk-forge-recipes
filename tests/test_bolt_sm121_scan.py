@@ -80,7 +80,7 @@ def test_every_adapter_copy_of_the_scan_is_this_one() -> None:
 
 
 def test_the_two_mia_tensorfold_dual_adapters_are_byte_identical() -> None:
-    root = SCRIPT.parents[2] / "adapters/qwen"
+    root = SCRIPT.parents[2] / "qwen"
     first = root / "mia-flash-next-tensorfold-dual-int4-autoround"
     second = root / "mia-flash-next-tensorfold-dual-nvfp4"
     for name in ("Dockerfile", "kit-final-stage.txt", "scan-sm121.py"):
