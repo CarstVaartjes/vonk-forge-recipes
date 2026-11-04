@@ -40,7 +40,9 @@ def test_sync_batches_one_pr_requests_auto_merge_and_replans_after_push_race(
             return "qualification/evidence/vonk-forge/example.json"
         if args[:2] == ("git", "push") and fail_push:
             fail_push = False
-            raise subprocess.CalledProcessError(1, args, stderr="push raced")
+            raise subprocess.CalledProcessError(
+                1, args, stderr="! [rejected] HEAD -> x (fetch first)"
+            )
         if args[:2] == ("git", "push"):
             pushed = True
         if args[:3] == ("gh", "pr", "list"):
@@ -48,8 +50,8 @@ def test_sync_batches_one_pr_requests_auto_merge_and_replans_after_push_race(
         return ""
 
     monkeypatch.setattr(publisher, "command", command)
-    with pytest.raises(subprocess.CalledProcessError):
-        publisher.sync(history, tmp_path / "work")
+    first = publisher.sync(history, tmp_path / "work")
+    assert first == publisher.SweepEvidenceExit.WAITING  # a race is transient
     publisher.sync(history, tmp_path / "work")
     assert sum(c[:2] == ("git", "clone") for c in calls) == 2
     assert not any("--force" in c for c in calls)
@@ -599,3 +601,116 @@ def test_missing_records_show_in_the_publisher_message_and_alert_when_persistent
     assert worker.unpublished_batches == 2
     batch(0, 3)
     assert worker.alert is None
+
+
+def test_the_same_red_check_twice_is_refused_alerts_and_new_evidence_still_flows(
+    tmp_path, monkeypatch
+):
+    history = tmp_path / "results.jsonl"
+    history.write_text(json.dumps(historical()) + "\n")
+    work = tmp_path / "work"
+    calls = []
+
+    def command(cwd, *args, **kwargs):
+        calls.append(args)
+        if args[:3] == ("gh", "pr", "list"):
+            return '[{"number":123}]'
+        if args[:3] == ("gh", "pr", "view"):
+            return json.dumps(
+                {
+                    "number": 123,
+                    "mergeStateStatus": "BLOCKED",
+                    "headRefOid": "abc123",
+                    "statusCheckRollup": [
+                        {"name": "lint", "status": "COMPLETED", "conclusion": "FAILURE"}
+                    ],
+                }
+            )
+        if args[:2] == ("gh", "api"):
+            return "0"  # main has not moved: the red PR would wait forever
+        if args[:2] == ("git", "clone"):
+            (Path(args[-1]) / ".git").mkdir()
+            seed_catalog(Path(args[-1]))
+        if args[:3] == ("git", "diff", "origin/main"):
+            return "evidence diff"
+        if args[:3] == ("git", "diff", "--cached"):
+            return "qualification/evidence/vonk-forge/example.json"
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    first = publisher.sync(history, work)
+    assert first == publisher.SweepEvidenceExit.FAILING_CHECK
+    assert not any(c[:2] == ("git", "push") for c in calls)  # waits once
+    publisher.sync(history, work)  # the same red twice: refused
+    assert publisher.load_state(work) == (
+        publisher.PublisherState.REFUSED,
+        "abc123 lint",
+    )
+    assert any(c[:2] == ("git", "push") for c in calls)  # new evidence still flows
+
+    class Done:
+        def poll(self):
+            return publisher.SweepEvidenceExit.SYNCED
+
+        def wait(self, timeout):
+            return 0
+
+    worker = publisher.EvidencePublisher(history, work, Path("worker"))
+    monkeypatch.setattr(worker, "process", Done())
+    worker.next_attempt = 1e18
+    worker.tick(0)
+    assert worker.alert
+    assert "refused, same failure twice: abc123 lint" in worker.alert
+    # The push moves the head; a new, pending PR clears the refusal.
+    assert (
+        publisher.transition(
+            publisher.PublisherState.REFUSED, red=False, repeated=False
+        )
+        == publisher.PublisherState.IDLE
+    )
+    assert (
+        publisher.transition(publisher.PublisherState.REFUSED, red=True, repeated=False)
+        == publisher.PublisherState.RED
+    )
+
+
+def test_unknown_state_file_self_heals_to_idle(tmp_path):
+    (tmp_path / publisher.STATE_FILE).write_text('{"state":"bogus","signature":"x"}')
+    assert publisher.load_state(tmp_path) == (publisher.PublisherState.IDLE, "")
+
+
+def test_a_deterministic_command_failure_is_refused_not_a_crash(tmp_path, monkeypatch):
+    def fail(*args, **kwargs):
+        raise subprocess.CalledProcessError(
+            128, ["git", "push", "x"], stderr="fatal: bad object"
+        )
+
+    monkeypatch.setattr(publisher, "_batch", fail)
+    work = tmp_path / "work"
+    history = tmp_path / "results.jsonl"
+    for expected in ("red", "refused"):
+        assert (
+            publisher.sync(history, work) == publisher.SweepEvidenceExit.FAILING_CHECK
+        )
+        assert publisher.load_state(work)[0] == expected
+
+
+def test_a_transient_command_failure_retries_with_jitter_then_succeeds(monkeypatch):
+    sleeps = []
+    attempts = iter(
+        [
+            subprocess.CalledProcessError(1, ["gh"], stderr="HTTP 503"),
+            subprocess.CompletedProcess(["gh"], 0, stdout="ok\n"),
+        ]
+    )
+
+    def run(*args, **kwargs):
+        outcome = next(attempts)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+    monkeypatch.setattr(publisher.subprocess, "run", run)
+    monkeypatch.setattr(publisher.time, "sleep", sleeps.append)
+    assert publisher.command(Path("."), "gh") == "ok"
+    assert len(sleeps) == 1 and 0 <= sleeps[0] <= 2
