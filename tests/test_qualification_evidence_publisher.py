@@ -787,18 +787,160 @@ def test_success_clears_the_state_and_unknown_state_self_heals(tmp_path, monkeyp
     assert publisher.load_state(work).state == publisher.PublisherState.IDLE
 
 
-def test_refused_is_only_reachable_from_a_state_that_saw_red():
+def test_refused_needs_two_runs_and_is_reachable_only_after_red():
     idle = publisher.PublisherRecord()
-    red = publisher.transition(idle, signature="lint")
+    red = publisher.transition(idle, signature="lint", head="h1")
     assert red.state == publisher.PublisherState.RED
-    assert (
-        publisher.transition(red, signature="lint").state
-        == publisher.PublisherState.REFUSED
+    same_run = publisher.transition(red, signature="lint", head="h1")
+    assert same_run.state == publisher.PublisherState.RED  # one run seen twice
+    again = publisher.transition(red, signature="lint", head="h2")
+    assert again.state == publisher.PublisherState.REFUSED
+    other = publisher.transition(red, signature="other", head="h2")
+    assert other.state == publisher.PublisherState.RED
+    assert publisher.transition(red, signature=None).state == (
+        publisher.PublisherState.IDLE
     )
-    assert (
-        publisher.transition(red, signature="other").state
-        == publisher.PublisherState.RED
+    # a refused batch does not count as the first of two reds for the next PR
+    fresh = publisher.transition(again, signature="lint", head="h3")
+    assert fresh.state == publisher.PublisherState.RED
+
+
+def test_the_same_red_run_seen_on_two_ticks_is_not_refused(tmp_path, monkeypatch):
+    history, calls = _open_pr(tmp_path, monkeypatch, RED, 0)
+    work = tmp_path / "work"
+    for _ in range(3):
+        assert (
+            publisher.sync(history, work) == publisher.SweepEvidenceExit.FAILING_CHECK
+        )
+    assert publisher.load_state(work).state == publisher.PublisherState.RED
+    assert not any(c[:3] == ("gh", "pr", "close") for c in calls)
+
+
+def test_refused_because_is_set_only_when_the_refused_set_grows():
+    first = publisher.transition(
+        publisher.PublisherRecord(), signature="lint", refused=("a#1",)
     )
-    assert (
-        publisher.transition(red, signature=None).state == publisher.PublisherState.IDLE
+    assert first.refused_because == "lint"
+    later = publisher.transition(first, signature="other", refused=("a#1",))
+    assert later.refused_because == "lint"
+    grown = publisher.transition(later, signature="other", refused=("a#1", "b#2"))
+    assert grown.refused_because == "other"
+    assert publisher.transition(grown, signature=None, refused=()).refused_because == ""
+
+
+def test_refused_records_are_released_when_main_moves(tmp_path, monkeypatch):
+    from test_qualification_status import KEY
+
+    from spark_sweep.qualification import from_history, read_evidence
+
+    row = _row(21)
+    record = from_history(row)
+    assert record
+    history = tmp_path / "results.jsonl"
+    history.write_text(json.dumps(row) + "\n")
+    work = tmp_path / "work"
+    work.mkdir()
+    (work / publisher.STATE_FILE).write_text(
+        publisher.PublisherRecord(
+            refused=(publisher.record_id(KEY, record),),
+            refused_because="lint",
+            main="old",
+        ).model_dump_json()
     )
+    main = {"sha": "old"}
+    seen = []
+
+    def command(cwd, *args, **kwargs):
+        if args[:3] == ("gh", "pr", "list"):
+            return "[]"
+        if args[:2] == ("git", "clone"):
+            (Path(args[-1]) / ".git").mkdir()
+            seed_catalog(Path(args[-1]))
+        if args[:2] == ("git", "rev-parse"):
+            return main["sha"]
+        if args[:3] == ("git", "diff", "origin/main"):
+            seen.append(read_evidence(cwd, KEY).records)
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    publisher.sync(history, work)
+    assert seen[-1] == () and publisher.load_state(work).refused  # still refused
+    main["sha"] = "new"  # main moved: the red may be fixed there
+    publisher.sync(history, work)
+    assert len(seen[-1]) == 1
+    released = publisher.load_state(work)
+    assert released.refused == () and released.main == ""
+
+
+def test_dropping_refused_records_reads_only_the_files_it_names(tmp_path, monkeypatch):
+    from test_qualification_status import KEY
+    from vonk_forge_contracts import RecipeQualificationEvidence
+
+    from spark_sweep.qualification import from_history, write_evidence
+
+    record = from_history(historical())
+    assert record
+    for n in range(300):
+        write_evidence(
+            tmp_path,
+            RecipeQualificationEvidence(
+                recipe_key=f"vonk-forge/r{n}", records=(record,)
+            ),
+        )
+    reads = []
+    real = publisher.read_evidence
+    monkeypatch.setattr(
+        publisher,
+        "read_evidence",
+        lambda root, key: reads.append(key) or real(root, key),
+    )
+    refused = {publisher.record_id(f"vonk-forge/r{n}", record) for n in (3, 250)}
+    found = publisher._drop_refused(tmp_path, refused)
+    assert sorted(reads) == ["vonk-forge/r250", "vonk-forge/r3"]
+    assert len(found) == 2
+    assert not (tmp_path / "qualification/evidence/vonk-forge/r3.json").exists()
+    assert (tmp_path / "qualification/evidence/vonk-forge/r4.json").exists()
+    assert KEY not in reads
+
+
+#: Every tool that opens pull requests, with what happens when its PR cannot land.
+#: "refused": the batch stops waiting, leaves the blocked content out and alerts.
+#: "follow-up": no refused outcome yet, with the reason it is not part of this change.
+PR_OPENING_TOOLS = {
+    "spark_sweep/evidence_publisher.py": (
+        "refused",
+        "PublisherState.REFUSED: PR closed, records left out until main moves, alert",
+    ),
+    "tools/refresh-upstream": (
+        "follow-up",
+        (
+            "failed/cancelled refresh PRs wait for upstream or main to change; no alert "
+            "and no fork-PR check on its --head / headRefName selection"
+        ),
+    ),
+}
+#: Named in the audit but opens no PR; kept so a change that makes it open one fails here.
+OPENS_NO_PR = {
+    "tools/sync-release-assets": "uploads release assets with gh release upload",
+    "tools/backfill-qualification-evidence": "writes evidence files in a checkout",
+}
+
+
+def test_every_tool_that_opens_pull_requests_declares_its_refused_outcome():
+    import re
+
+    root = Path(__file__).resolve().parents[1]
+    opens = re.compile(r'"pr",\s*"create"')
+    found = {
+        str(path.relative_to(root))
+        for path in [*(root / "tools").glob("*"), *(root / "spark_sweep").glob("*.py")]
+        if path.is_file() and opens.search(path.read_text(errors="ignore"))
+    }
+    assert found == set(PR_OPENING_TOOLS), (
+        "a tool opens pull requests without a declared refused outcome: "
+        f"{sorted(found ^ set(PR_OPENING_TOOLS))}"
+    )
+    for path, (kind, reason) in PR_OPENING_TOOLS.items():
+        assert kind in ("refused", "follow-up") and reason, path
+    for path in OPENS_NO_PR:
+        assert path not in found
