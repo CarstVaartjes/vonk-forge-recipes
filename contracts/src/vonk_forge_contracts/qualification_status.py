@@ -24,6 +24,10 @@ Version = Annotated[
     ),
 ]
 RecipeKey = Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$")]
+# A recipe topology role name (recipe.Identifier).
+RoleName = Annotated[
+    str, Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]*$")
+]
 
 
 class PublicQualificationModel(BaseModel):
@@ -213,6 +217,38 @@ class QualificationFixReference(PublicQualificationModel):
         return self
 
 
+class QualificationRoleMemory(PublicQualificationModel):
+    """What one role's Spark held while the run served, as the hardware run observed it.
+
+    ``steady_bytes`` is that Spark's host memory in use (total less available, the
+    OS included) sampled after the smoke passed, with the run alone on it. It is an
+    observation, never the recipe's declaration.
+    """
+
+    role: RoleName
+    steady_bytes: int = Field(ge=0)
+
+
+class QualificationMeasuredMemory(PublicQualificationModel):
+    """The memory a hardware pass measured, bound to the record's content identity.
+
+    ``budget_bytes`` is the vLLM utilization budget the launch that ran had
+    (gpu-memory-utilization x Spark memory); ``None`` when it had none (an
+    absolute KV pool, or another engine). ``roles`` holds only roles whose Spark
+    the run had to itself, so their use is the run's own.
+    """
+
+    budget_bytes: int | None = Field(default=None, ge=0)
+    roles: tuple[QualificationRoleMemory, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def canonical_roles(self) -> Self:
+        names = tuple(item.role for item in self.roles)
+        if names != tuple(sorted(set(names))):
+            raise ValueError("measured roles must be sorted and unique")
+        return self
+
+
 class QualificationEvidenceRecord(PublicQualificationModel):
     identity: QualificationIdentity
     outcome: QualificationOutcome
@@ -224,9 +260,13 @@ class QualificationEvidenceRecord(PublicQualificationModel):
     platform: QualificationPlatform
     fix_reference: QualificationFixReference | None = None
     quality_notes: tuple[QualificationQualityNote, ...] = ()
+    # Absent means "not measured": records written before the sweep measured.
+    memory: QualificationMeasuredMemory | None = None
 
     @model_validator(mode="after")
     def consistent_verdict(self) -> Self:
+        if self.memory is not None and self.outcome != QualificationOutcome.PASSED:
+            raise ValueError("only a hardware pass records measured memory")
         if (
             self.outcome == QualificationOutcome.PASSED
             and self.platform.spark_count is not None

@@ -148,7 +148,7 @@ OpenAI-compatible HTTP or filesystem job interface. Native decision models use
 extensions (`tests/test_systemone_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v3.0.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v3.1.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge

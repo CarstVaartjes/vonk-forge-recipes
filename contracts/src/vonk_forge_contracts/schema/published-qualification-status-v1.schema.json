@@ -98,6 +98,17 @@
           },
           "title": "Quality Notes",
           "type": "array"
+        },
+        "memory": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QualificationMeasuredMemory"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -217,6 +228,38 @@
       "title": "QualificationIdentity",
       "type": "object"
     },
+    "QualificationMeasuredMemory": {
+      "additionalProperties": false,
+      "description": "The memory a hardware pass measured, bound to the record's content identity.\n\n``budget_bytes`` is the vLLM utilization budget the launch that ran had\n(gpu-memory-utilization x Spark memory); ``None`` when it had none (an\nabsolute KV pool, or another engine). ``roles`` holds only roles whose Spark\nthe run had to itself, so their use is the run's own.",
+      "properties": {
+        "budget_bytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Budget Bytes"
+        },
+        "roles": {
+          "items": {
+            "$ref": "#/$defs/QualificationRoleMemory"
+          },
+          "minItems": 1,
+          "title": "Roles",
+          "type": "array"
+        }
+      },
+      "required": [
+        "roles"
+      ],
+      "title": "QualificationMeasuredMemory",
+      "type": "object"
+    },
     "QualificationOutcome": {
       "enum": [
         "passed",
@@ -308,6 +351,30 @@
       ],
       "title": "QualificationQualityNote",
       "type": "string"
+    },
+    "QualificationRoleMemory": {
+      "additionalProperties": false,
+      "description": "What one role's Spark held while the run served, as the hardware run observed it.\n\n``steady_bytes`` is that Spark's host memory in use (total less available, the\nOS included) sampled after the smoke passed, with the run alone on it. It is an\nobservation, never the recipe's declaration.",
+      "properties": {
+        "role": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "title": "Role",
+          "type": "string"
+        },
+        "steady_bytes": {
+          "minimum": 0,
+          "title": "Steady Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "role",
+        "steady_bytes"
+      ],
+      "title": "QualificationRoleMemory",
+      "type": "object"
     },
     "QualificationRuntimeImage": {
       "additionalProperties": false,
