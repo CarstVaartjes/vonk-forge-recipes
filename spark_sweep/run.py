@@ -36,6 +36,7 @@ from vonk_forge_contracts import (
     QualificationIdentity,
     QualificationStatus,
     QualificationStatusView,
+    RecipeDefinition,
     RecipeQualificationEvidence,
 )
 from vonk_forge_contracts.sweep import (
@@ -96,7 +97,7 @@ from .prefetch import DOWNLOAD_RETIRED, SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
 from .qualification import (
     current_identity,
-    from_history,
+    history_evidence,
     local_status,
     merge_evidence,
     pass_marker,
@@ -410,11 +411,10 @@ class Sweep:
 
     def _remember_qualification(self, row: Mapping[str, Any]) -> None:
         try:
-            record = from_history(row)
-            if record is None:
+            evidence = history_evidence(row)
+            if evidence is None:
                 return
-            key = str(row["recipe"])
-            evidence = RecipeQualificationEvidence(recipe_key=key, records=(record,))
+            key = evidence.recipe_key
             previous = self.qualification_evidence.get(key) or read_evidence(
                 Path(__file__).resolve().parents[1], key
             )
@@ -2143,6 +2143,15 @@ class Sweep:
             raise ValueError(reply.error_text)
         return str(target)
 
+    def _ran_recipe(self, recipe: Recipe) -> RecipeDefinition | None:
+        """The document of exactly the content that ran, for its budget; None if unreadable."""
+        reply = self.vk.run("recipe", "detail", recipe.key, "--technical", timeout=60)
+        return (
+            memory.ran_recipe(reply.document, recipe.content_sha256)
+            if reply.ok
+            else None
+        )
+
     def _record_pass(self, key: str, slot: dict[str, Any], result: SmokeResult) -> None:
         now = self.clock.now()
         entry = self.state.entry(key)
@@ -2194,6 +2203,13 @@ class Sweep:
             recipe.load_peak_bytes,
             recipe.minimum_swap_bytes,
         )
+        measured = memory.measurement(
+            observed,
+            self.documents.get(str(slot.get("request_key", ""))),
+            str(slot["alias"]),
+            self._ran_recipe(recipe) if observed else None,
+            recipe.content_sha256,
+        )
         quality = result.quality_notes + memory.notes(observed)
         if quality:
             entry["quality"] = quality
@@ -2217,6 +2233,7 @@ class Sweep:
             "passed",
             result={"endpoint_alias": slot["alias"], **result.record()},
             memory=observed,
+            measured_memory=[row.model_dump(mode="json") for row in measured] or None,
             slot=slot,
         )
         notes = len(quality)
