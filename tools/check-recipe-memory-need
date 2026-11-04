@@ -52,23 +52,6 @@ def touched_recipes(root: Path, base: str) -> list[Path]:
     return sorted({root / name for name in names})
 
 
-def previous_document(root: Path, base: str, path: Path) -> dict | None:
-    """The recipe as of the merge base, None when it is new."""
-    point = subprocess.run(
-        ["git", "-C", str(root), "merge-base", base, "HEAD"],
-        capture_output=True,
-        text=True,
-        check=False,
-    ).stdout.strip()
-    shown = subprocess.run(
-        ["git", "-C", str(root), "show", f"{point or base}:{path.relative_to(root)}"],
-        capture_output=True,
-        check=False,
-        text=True,
-    )
-    return json.loads(shown.stdout) if shown.returncode == 0 else None
-
-
 def report_markdown(mismatches: list[str]) -> str:
     if not mismatches:
         return ""
@@ -134,15 +117,8 @@ def main() -> int:
                 f"{key}: maximum loading floor {max(n.peak_bytes for n in needs)} bytes/rank"
             )
             continue
-        old = previous_document(ROOT, args.base, path) if args.base else None
         found = memory_estimate_warnings(
-            recipe,
-            models,
-            inputs,
-            document_digest=digest,
-            touched=bool(args.base),
-            previous=RecipeDefinition.model_validate(old) if old else None,
-            previous_digest=document_sha256(old) if old else "",
+            recipe, models, inputs, document_digest=digest, touched=bool(args.base)
         )
         mismatches += found
         for warning in found:

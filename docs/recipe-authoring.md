@@ -148,7 +148,7 @@ OpenAI-compatible HTTP or filesystem job interface. Native decision models use
 extensions (`tests/test_systemone_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v3.0.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v3.1.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -445,8 +445,16 @@ An uncapped pool keeps the calibrated fraction × total plus the SGLang margin (
 first run, a pool-less vLLM declaration's peak, on one Spark or several, covers
 its utilization budget plus the margin, since the Controller reserves the
 declared peak (`tools/refresh-upstream` raises a moved document's peaks to that
-envelope); once it has run, the measured peak wins over this formula (today
-the refresh still raises measured peaks too; issue #2055).
+envelope); once it has run, the measured peak wins over this formula. A
+hardware pass records each role's steady use and the launch's vLLM budget in
+the evidence's `measured_memory` table, keyed (content, role). A launch variant
+whose budget is no larger than one a still-Working content was measured under,
+with every role within its declared peak, is neither flagged nor raised
+(`keeps_measured_peaks`); the sweep measures the default launch. No row means
+not measured. Until the content a refresh replaces has a row for every role, a
+refresh keeps that proven document's peaks when the move raises no budget,
+lowers no peak and no row shows a role above its peak; complete rows then
+decide alone.
 `tests/test_absolute_kv_capacity.py` replays the recorded failures and must
 warn on each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a

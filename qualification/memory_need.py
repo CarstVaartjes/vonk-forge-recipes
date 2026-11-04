@@ -22,7 +22,9 @@ from typing import Annotated, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from vonk_forge_contracts import (
     ModelDefinition,
+    QualificationMeasuredRoleMemory,
     RecipeDefinition,
+    RecipeQualificationEvidence,
     document_sha256,
 )
 from vonk_forge_contracts.memory_admission import (
@@ -387,12 +389,19 @@ def unchanged_recipe(
     )
 
 
-def hardware_proven(recipe: RecipeDefinition, document_digest: str) -> bool:
-    """Use the qualification reducer, including later failures and exact reverts."""
+def hardware_proven(
+    recipe: RecipeDefinition,
+    document_digest: str,
+    evidence: RecipeQualificationEvidence | None = None,
+) -> bool:
+    """Use the qualification reducer, including later failures and exact reverts.
+
+    ``evidence`` is the recipe's evidence when the caller already read it.
+    """
     from vonk_forge_contracts import QualificationStatus, derive_status
 
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-    evidence = _evidence(key)
+    evidence = evidence if evidence is not None else _evidence(key)
     for record in evidence.records:
         if record.identity.content_sha256 != document_digest:
             continue
@@ -405,6 +414,14 @@ def hardware_proven(recipe: RecipeDefinition, document_digest: str) -> bool:
         ):
             return True
     return False
+
+
+def holds_within(declared_bytes: int, used_bytes: int) -> bool:
+    """Whether a Spark's observed use (OS included) fits a role's declared peak.
+
+    The one rule for the sweep's memory-envelope note and for measured peaks.
+    """
+    return used_bytes <= declared_bytes + OS_FLOOR_BYTES
 
 
 def load_inputs(root: Path = ROOT) -> MemoryInputs:
@@ -1288,8 +1305,6 @@ def memory_estimate_warnings(
     *,
     document_digest: str,
     touched: bool = False,
-    previous: RecipeDefinition | None = None,
-    previous_digest: str = "",
 ) -> list[str]:
     """Where the declared memory disagrees with the estimate; none of it blocks.
 
@@ -1326,7 +1341,7 @@ def memory_estimate_warnings(
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return warnings
     single = recipe.topology.node_count == 1
-    keep = keeps_measured_peaks(recipe, previous, previous_digest)
+    measured = measured_budget(recipe)
     for variant in memory_variants(recipe):
         warnings += estimate_problems(
             key,
@@ -1339,7 +1354,7 @@ def memory_estimate_warnings(
                 document_digest,
                 touched,
                 single,
-                keep,
+                keeps_measured_peaks(variant, measured),
             ),
         )
     return warnings
@@ -1407,11 +1422,11 @@ def variant_estimate_warnings(
     return warnings
 
 
-def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
-    """vLLM's utilization budget plus the margin it holds beside it, if pool-less.
+def vllm_budget_bytes(recipe: RecipeDefinition) -> int | None:
+    """vLLM's own utilization budget (gpu-memory-utilization x Spark memory), if pool-less.
 
-    A speculative drafter is charged inside the budget, whichever mechanism
-    loads it (qualification/vllm_memory_fit.py).
+    None for an absolute KV pool or another engine. Hardware evidence records it
+    for the launch that ran (spark_sweep/memory.py::measurement).
     """
     if recipe.runtime.engine != "vllm" or any(
         argument_value(recipe, name) is not None
@@ -1420,8 +1435,17 @@ def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
         return None
     fraction = argument_value(recipe, "gpu-memory-utilization")
     share = Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
-    envelope = share * TOTAL_BYTES + budget_margin_bytes(recipe)
-    return int(envelope.to_integral_value(ROUND_CEILING))
+    return int((share * TOTAL_BYTES).to_integral_value(ROUND_CEILING))
+
+
+def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
+    """vLLM's utilization budget plus the margin it holds beside it, if pool-less.
+
+    A speculative drafter is charged inside the budget, whichever mechanism
+    loads it (qualification/vllm_memory_fit.py).
+    """
+    budget = vllm_budget_bytes(recipe)
+    return None if budget is None else budget + budget_margin_bytes(recipe)
 
 
 def declarable_vllm_envelope(recipe: RecipeDefinition) -> int | None:
@@ -1444,43 +1468,98 @@ def recipe_envelope(recipe: RecipeDefinition) -> int:
     )
 
 
-def keeps_measured_peaks(
+def measured_budget(
     recipe: RecipeDefinition,
-    previous: RecipeDefinition | None,
-    previous_digest: str,
-) -> bool:
-    """Whether a moved document keeps its declared peaks: measured and not out-grown.
+    replaced: tuple[RecipeDefinition, str] | None = None,
+) -> int | None:
+    """The largest vLLM budget under which hardware measured these declared peaks.
 
-    The one rule for the raise and for the "peak understates" warning: the
-    pre-move content (``previous``, authored digest ``previous_digest``) has hardware
-    evidence AND the move did not raise the budget. Unmeasured estimates heal.
+    Read from the recipe's evidence table (never git history): a content that is
+    still Working (``hardware_proven``) whose rows measure every declared role
+    within its declared peak (``holds_within``); a content's budget is the
+    smallest over its rows. ``replaced`` is the document (and digest) a refresh
+    is replacing, in hand: while its content has no complete rows, proven
+    content vouches for peaks no smaller than its own declared ones, under its
+    largest budget, unless a row shows a role using more than declared (partial
+    rows are "not measured", never a loss of that proof). Once every role of it
+    has a row, the rows alone decide, per launch variant. ``None`` when nothing
+    qualifies.
     """
-    return (
-        previous is not None
-        and bool(previous_digest)
-        and recipe_envelope(recipe) <= recipe_envelope(previous)
-        and hardware_proven(previous, previous_digest)
-    )
+    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    evidence = _evidence(key)
+    by_content: dict[str, dict[str, QualificationMeasuredRoleMemory]] = {}
+    for row in evidence.measured_memory:
+        by_content.setdefault(row.content_sha256, {})[row.role] = row
+    budgets: list[int] = []
+    for content, rows in by_content.items():
+        ran = [row.budget_bytes for row in rows.values()]
+        if (
+            None not in ran
+            and all(
+                role.name in rows
+                and holds_within(
+                    role.resources.memory.peak_bytes, rows[role.name].steady_bytes
+                )
+                for role in recipe.topology.roles
+            )
+            and hardware_proven(recipe, content, evidence)
+        ):
+            budgets.append(min(b for b in ran if b is not None))
+    if replaced is not None:
+        old, digest = replaced
+        before = {r.name: r.resources.memory.peak_bytes for r in old.topology.roles}
+        rows = by_content.get(digest, {})
+        overrun = any(
+            role in before and not holds_within(before[role], row.steady_bytes)
+            for role, row in rows.items()
+        )
+        if (
+            not overrun
+            and not set(before) <= set(rows)  # complete rows retire the fallback
+            and all(
+                role.resources.memory.peak_bytes >= before.get(role.name, 2**63)
+                for role in recipe.topology.roles
+            )
+            and hardware_proven(old, digest, evidence)
+        ):
+            budgets += [b for v in memory_variants(old) if (b := vllm_budget_bytes(v))]
+    return max(budgets, default=None)
+
+
+def keeps_measured_peaks(launch: RecipeDefinition, measured: int | None) -> bool:
+    """Whether one launch variant keeps its declared peaks: they are measured.
+
+    The one rule for the refresh's raise and for the "peak understates" warning:
+    hardware measured the peaks (``measured``, from ``measured_budget``) under a
+    vLLM budget no smaller than this launch's. Unmeasured estimates heal.
+    """
+    budget = vllm_budget_bytes(launch)
+    return budget is not None and measured is not None and budget <= measured
 
 
 def raise_peaks_to_envelope(
-    recipe: RecipeDefinition,
-    previous: RecipeDefinition | None = None,
-    previous_digest: str = "",
+    recipe: RecipeDefinition, replaced: tuple[RecipeDefinition, str] | None = None
 ) -> RecipeDefinition | None:
     """The recipe with role peaks raised to its vLLM budget envelope, None if none is.
 
     A document that moves (``tools/refresh-upstream``) is new content and meets the
     current margins; raising here keeps a refresh from blocking. Peaks are never
     lowered, and a declared load peak keeps its rise above the peak. The envelope
-    is capped at the admission maximum. A move whose pre-move content is
-    hardware-measured and did not raise the budget keeps its declared peaks
-    (``keeps_measured_peaks``); every other move, including a measured one that
-    raises the budget, is raised to the capped envelope.
+    is capped at the admission maximum. A launch variant whose peaks hardware
+    evidence measured under no smaller budget is kept (``keeps_measured_peaks``);
+    the peaks rise to the largest capped envelope of the variants that are not,
+    including a measured launch whose budget the move raised.
     """
-    envelope = recipe_envelope(recipe)
-    if keeps_measured_peaks(recipe, previous, previous_digest):
-        return None
+    measured = measured_budget(recipe, replaced)
+    envelope = max(
+        (
+            e
+            for v in memory_variants(recipe)
+            if not keeps_measured_peaks(v, measured)
+            and (e := declarable_vllm_envelope(v))
+        ),
+        default=0,
+    )
     if all(r.resources.memory.peak_bytes >= envelope for r in recipe.topology.roles):
         return None
     raised = recipe.model_copy(deep=True)
