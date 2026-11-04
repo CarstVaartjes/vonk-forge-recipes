@@ -32,6 +32,7 @@ from vonk_forge_contracts.sweep import (
 from .qualification import (
     backfill,
     catalog_recipe_keys,
+    evidence_path,
     merge_evidence,
     prune_withdrawn_evidence,
     read_evidence,
@@ -67,9 +68,13 @@ class PublisherRecord(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     state: PublisherState = PublisherState.IDLE
     signature: str = ""  # red check names, or the failing command and exit code
+    head: str = ""  # the PR head the red was seen on: a repeat needs a new head
     command: bool = False  # the signature names a command rather than checks
     refused: tuple[str, ...] = ()  # record ids kept out of the publication
-    refused_because: str = ""
+    refused_because: str = ""  # set when the refused set grows
+    main: str = (
+        ""  # origin/main when they were refused; they are released when it moves
+    )
 
 
 #: Declared edges. REFUSED is only reachable from a state that already saw red.
@@ -84,28 +89,41 @@ def transition(
     current: PublisherRecord,
     *,
     signature: str | None,
+    head: str = "",
     command: bool = False,
     refused: tuple[str, ...] | None = None,
+    main: str | None = None,
 ) -> PublisherRecord:
     """The only place a record is chosen; an undeclared edge self-heals to IDLE.
 
-    `signature` None means nothing failed. The same signature twice in a row,
-    whatever the head commit, is refused.
+    `signature` None means nothing failed. "Twice" means two different runs: the
+    same red on a new PR head (after a re-plan push), or a command that failed on
+    a new tick. The same head seen on two ticks is one run and stays RED.
     """
     if signature is None:
         wanted = PublisherState.IDLE
-    elif signature == current.signature and current.state != PublisherState.IDLE:
+    elif (
+        current.state == PublisherState.RED
+        and signature == current.signature
+        and (command or head != current.head)
+    ):
         wanted = PublisherState.REFUSED
     else:
         wanted = PublisherState.RED
     state = wanted if wanted in EDGES.get(current.state, ()) else PublisherState.IDLE
     kept = current.refused if refused is None else refused
+    grew = bool(set(kept) - set(current.refused))
+    red = state != PublisherState.IDLE
     return PublisherRecord(
         state=state,
-        signature=(signature or "") if state != PublisherState.IDLE else "",
-        command=command and state != PublisherState.IDLE,
+        signature=signature or "" if red else "",
+        head=head if red else "",
+        command=command and red,
         refused=kept,
-        refused_because=(signature or current.refused_because) if kept else "",
+        refused_because=(
+            (signature or "") if grew else current.refused_because if kept else ""
+        ),
+        main=(current.main if main is None else main) if kept else "",
     )
 
 
@@ -114,8 +132,10 @@ class Seen:
     """What one batch observed; sync() turns it into the persisted record."""
 
     signature: str | None = None
+    head: str = ""
     command: bool = False
     refused: tuple[str, ...] | None = None
+    main: str | None = None
 
 
 def load_state(directory: Path) -> PublisherRecord:
@@ -166,6 +186,7 @@ class PullRequest(BaseModel):
         default=SweepEvidenceMergeState.UNKNOWN, alias="mergeStateStatus"
     )
     checks: list[CheckResult] = Field(default_factory=list, alias="statusCheckRollup")
+    head: str = Field(default="", alias="headRefOid")
 
     @property
     def check_failed(self) -> bool:
@@ -215,8 +236,10 @@ def sync(
         transition(
             previous,
             signature=seen.signature,
+            head=seen.head,
             command=seen.command,
             refused=seen.refused,
+            main=seen.main,
         ).model_dump_json(),
     )
     return code
@@ -260,11 +283,12 @@ def _branch_only_ids(clone: Path) -> list[str]:
 
 
 def _drop_refused(clone: Path, refused: set[str]) -> tuple[str, ...]:
-    """Remove refused records from the clone; return the ones still produced locally."""
+    """Remove refused records from the clone; return the ones still produced locally.
+
+    Only the files named by the refused ids are read.
+    """
     found: list[str] = []
-    root = clone / "qualification/evidence"
-    for path in sorted(root.rglob("*.json")):
-        key = path.relative_to(root).with_suffix("").as_posix()
+    for key in sorted({i.split("#")[0] for i in refused}):
         evidence = read_evidence(clone, key)
         ids = [record_id(key, r) for r in evidence.records]
         dropped = [i for i in ids if i in refused]
@@ -275,7 +299,7 @@ def _drop_refused(clone: Path, refused: set[str]) -> tuple[str, ...]:
         if kept:
             write_evidence(clone, evidence.model_copy(update={"records": kept}))
         else:
-            path.unlink()
+            evidence_path(clone, key).unlink()
     return tuple(sorted(found))
 
 
@@ -334,9 +358,10 @@ def _batch(
         # once on current main waits, visibly.
         red = details.check_failed
         seen.signature = details.failure_signature if red else None
+        seen.head = details.head
         blocked = pr.number
         refusing = (
-            transition(previous, signature=seen.signature).state
+            transition(previous, signature=seen.signature, head=seen.head).state
             == PublisherState.REFUSED
         )
         replan = (
@@ -399,10 +424,14 @@ def _batch(
             timeout=120,
         )
         remote = command(clone, "git", "ls-remote", "--heads", "origin", BRANCH)
+        seen.main = command(clone, "git", "rev-parse", "origin/main")
+        # Refused records are released when main moves: the red may be fixed there.
+        carried = previous.refused if previous.main == seen.main else ()
+        seen.refused = carried
         if refusing:
-            # The same red checks twice: close the blocked PR and plan from main
-            # without its records, so new evidence is no longer held behind it.
-            seen.refused = tuple(sorted({*previous.refused, *_branch_only_ids(clone)}))
+            # The same red checks on two runs: close the blocked PR and plan from
+            # main without its records, so new evidence is no longer held behind it.
+            seen.refused = tuple(sorted({*carried, *_branch_only_ids(clone)}))
             command(
                 clone,
                 "gh",
@@ -489,11 +518,7 @@ def _batch(
                 flush=True,
             )
         prune_withdrawn_evidence(clone)
-        if seen.refused is not None or previous.refused:
-            seen.refused = _drop_refused(
-                clone,
-                set(seen.refused if seen.refused is not None else previous.refused),
-            )
+        seen.refused = _drop_refused(clone, set(seen.refused or ()))
         command(clone, "git", "add", "qualification/evidence")
         if not command(
             clone, "git", "diff", "origin/main", "--", "qualification/evidence"
