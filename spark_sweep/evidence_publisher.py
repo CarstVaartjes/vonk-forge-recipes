@@ -60,6 +60,7 @@ _PASSED = (
     SweepCheckConclusion.SKIPPED,
 )
 _STATUS_RED = (SweepCommitStatusState.FAILURE, SweepCommitStatusState.ERROR)
+_STATUS_DONE = (*_STATUS_RED, SweepCommitStatusState.SUCCESS)
 
 
 class PublisherRecord(BaseModel):
@@ -93,14 +94,19 @@ def transition(
     command: bool = False,
     refused: tuple[str, ...] | None = None,
     main: str | None = None,
+    observed: bool = True,
 ) -> PublisherRecord:
     """The only place a record is chosen; an undeclared edge self-heals to IDLE.
 
     `signature` None means nothing failed. "Twice" means two different runs: the
     same red on a new PR head (after a re-plan push), or a command that failed on
-    a new tick. The same head seen on two ticks is one run and stays RED.
+    a new tick. The same head seen on two ticks is one run and stays RED. A
+    rollup that is still running (`observed` False) changes nothing.
     """
-    if signature is None:
+    if not observed:
+        signature, head, command = current.signature, current.head, current.command
+        wanted = current.state
+    elif signature is None:
         wanted = PublisherState.IDLE
     elif (
         current.state == PublisherState.RED
@@ -136,6 +142,8 @@ class Seen:
     command: bool = False
     refused: tuple[str, ...] | None = None
     main: str | None = None
+    pending: bool = False  # the PR's checks are still running: nothing was observed
+    closing: bool = False  # the blocked PR is being closed; a failure retries it
 
 
 def load_state(directory: Path) -> PublisherRecord:
@@ -165,6 +173,12 @@ class CheckResult(BaseModel):
     state: SweepCommitStatusState | str | None = None
 
     @property
+    def incomplete(self) -> bool:
+        if self.status is not None:
+            return self.status != SweepCheckStatus.COMPLETED
+        return self.state is not None and self.state not in _STATUS_DONE
+
+    @property
     def label(self) -> str:
         return self.name or self.context or "check"
 
@@ -191,6 +205,11 @@ class PullRequest(BaseModel):
     @property
     def check_failed(self) -> bool:
         return any(check.failed for check in self.checks)
+
+    @property
+    def settled(self) -> bool:
+        """A fully completed rollup; a pending one is not an observation."""
+        return not any(check.incomplete for check in self.checks)
 
     @property
     def failure_signature(self) -> str:
@@ -224,11 +243,26 @@ def sync(
         subprocess.CalledProcessError,
         subprocess.TimeoutExpired,
         EvidencePublicationTimeout,
+        ValueError,  # malformed evidence or provider JSON, incl. pydantic's ValidationError
     ) as error:
-        argv = " ".join(map(str, getattr(error, "cmd", ())[:2]))
-        exit_code = getattr(error, "returncode", None)
-        seen.signature = f"{argv} exit {'timeout' if exit_code is None else exit_code}"
+        if isinstance(error, ValueError):
+            seen.signature = "validate evidence exit invalid"
+        else:
+            argv = " ".join(map(str, getattr(error, "cmd", ())[:2]))
+            exit_code = getattr(error, "returncode", None)
+            seen.signature = (
+                f"{argv} exit {'timeout' if exit_code is None else exit_code}"
+            )
         seen.command = True
+        if seen.closing:  # the blocked PR is still open: observe it again next tick
+            seen.signature, seen.head, seen.command = (
+                previous.signature,
+                previous.head,
+                False,
+            )
+            seen.pending = False
+            seen.refused = None
+            print("evidence: closing the refused PR failed; retrying", flush=True)
         print(f"evidence: command failed: {seen.signature}", flush=True)
         code = SweepEvidenceExit.COMMAND_FAILED
     write_atomic(
@@ -240,6 +274,7 @@ def sync(
             command=seen.command,
             refused=seen.refused,
             main=seen.main,
+            observed=not seen.pending,
         ).model_dump_json(),
     )
     return code
@@ -359,6 +394,7 @@ def _batch(
         red = details.check_failed
         seen.signature = details.failure_signature if red else None
         seen.head = details.head
+        seen.pending = not red and not details.settled
         blocked = pr.number
         refusing = (
             transition(previous, signature=seen.signature, head=seen.head).state
@@ -431,7 +467,8 @@ def _batch(
         if refusing:
             # The same red checks on two runs: close the blocked PR and plan from
             # main without its records, so new evidence is no longer held behind it.
-            seen.refused = tuple(sorted({*carried, *_branch_only_ids(clone)}))
+            refused = tuple(sorted({*carried, *_branch_only_ids(clone)}))
+            seen.closing = True
             command(
                 clone,
                 "gh",
@@ -445,6 +482,8 @@ def _batch(
                 f"Refused: the same checks stayed red twice ({seen.signature}). "
                 "Its records are left out of the next evidence PR until their content changes.",
             )
+            seen.closing = False
+            seen.refused = refused  # recorded only once the close succeeded
             remote = ""
         if remote:
             command(
@@ -676,7 +715,11 @@ class EvidencePublisher:
                 if code == SweepEvidenceExit.WAITING
                 else f"evidence PR has failing checks ({signature}); waiting for main to move (see publisher.log)"
                 if code == SweepEvidenceExit.FAILING_CHECK
-                else f"evidence publisher command failed ({signature}); re-plan in 300s (see publisher.log)"
+                else (
+                    f"evidence publisher command failed ({signature}); re-plan in 300s (see publisher.log)"
+                    if self.record.command
+                    else f"evidence publisher: closing the refused PR failed, retrying (last red: {signature}; see publisher.log)"
+                )
                 if code == SweepEvidenceExit.COMMAND_FAILED
                 else f"evidence PR refused (red twice: {signature}); {len(self.record.refused)} records left out, a fresh PR carries the rest (see publisher.log)"
                 if code == SweepEvidenceExit.REFUSED
