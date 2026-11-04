@@ -6,18 +6,22 @@ its next attempt; no force push, unbounded wait, or sweep-state write is used.
 
 from __future__ import annotations
 
+import hashlib
 import json
-import random
 import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
-from enum import StrEnum
 from pathlib import Path
 from typing import TextIO
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from vonk_forge_contracts import (
+    QualificationEvidenceRecord,
+    RecipeQualificationEvidence,
+)
 from vonk_forge_contracts.sweep import (
+    PublisherState,
     SweepCheckConclusion,
     SweepCheckStatus,
     SweepCommitStatusState,
@@ -43,7 +47,6 @@ _deadline: float | None = None
 UNPUBLISHED_FILE = "unpublished.json"
 PERSISTENT_BATCHES = 2
 STATE_FILE = "publisher-state.json"
-RETRY_ATTEMPTS = 3
 
 
 class EvidencePublicationTimeout(TimeoutError):
@@ -58,12 +61,15 @@ _PASSED = (
 _STATUS_RED = (SweepCommitStatusState.FAILURE, SweepCommitStatusState.ERROR)
 
 
-class PublisherState(StrEnum):
-    """What the last batch saw of the one rolling evidence PR."""
+class PublisherRecord(BaseModel):
+    """The persisted state file: what the last batch saw, and what is left out."""
 
-    IDLE = "idle"  # no open PR, or nothing red
-    RED = "red"  # a failure seen once: wait for main to move
-    REFUSED = "refused"  # the same failure seen again: stop waiting, alert
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    state: PublisherState = PublisherState.IDLE
+    signature: str = ""  # red check names, or the failing command and exit code
+    command: bool = False  # the signature names a command rather than checks
+    refused: tuple[str, ...] = ()  # record ids kept out of the publication
+    refused_because: str = ""
 
 
 #: Declared edges. REFUSED is only reachable from a state that already saw red.
@@ -74,32 +80,55 @@ EDGES: dict[PublisherState, frozenset[PublisherState]] = {
 }
 
 
-def transition(current: PublisherState, *, red: bool, repeated: bool) -> PublisherState:
-    """The only place a state is chosen; an undeclared edge self-heals to IDLE."""
-    if not red:
+def transition(
+    current: PublisherRecord,
+    *,
+    signature: str | None,
+    command: bool = False,
+    refused: tuple[str, ...] | None = None,
+) -> PublisherRecord:
+    """The only place a record is chosen; an undeclared edge self-heals to IDLE.
+
+    `signature` None means nothing failed. The same signature twice in a row,
+    whatever the head commit, is refused.
+    """
+    if signature is None:
         wanted = PublisherState.IDLE
-    elif repeated and current != PublisherState.IDLE:
+    elif signature == current.signature and current.state != PublisherState.IDLE:
         wanted = PublisherState.REFUSED
     else:
         wanted = PublisherState.RED
-    return wanted if wanted in EDGES.get(current, ()) else PublisherState.IDLE
+    state = wanted if wanted in EDGES.get(current.state, ()) else PublisherState.IDLE
+    kept = current.refused if refused is None else refused
+    return PublisherRecord(
+        state=state,
+        signature=(signature or "") if state != PublisherState.IDLE else "",
+        command=command and state != PublisherState.IDLE,
+        refused=kept,
+        refused_because=(signature or current.refused_because) if kept else "",
+    )
 
 
 @dataclass
 class Seen:
-    """What one batch observed; sync() persists it."""
+    """What one batch observed; sync() turns it into the persisted record."""
 
-    state: PublisherState = PublisherState.IDLE
-    signature: str = ""
+    signature: str | None = None
+    command: bool = False
+    refused: tuple[str, ...] | None = None
 
 
-def load_state(directory: Path) -> tuple[PublisherState, str]:
+def load_state(directory: Path) -> PublisherRecord:
     """Missing, unreadable or unknown state is IDLE: the next batch re-observes."""
     try:
-        data = json.loads((directory / STATE_FILE).read_text())
-        return PublisherState(data["state"]), str(data["signature"])
-    except (OSError, ValueError, KeyError, TypeError):
-        return PublisherState.IDLE, ""
+        return PublisherRecord.model_validate_json((directory / STATE_FILE).read_text())
+    except (OSError, ValidationError):
+        return PublisherRecord()
+
+
+def record_id(key: str, record: QualificationEvidenceRecord) -> str:
+    """A record's identity for the refused list; new content is a new id."""
+    return f"{key}#{hashlib.sha256(record.model_dump_json().encode()).hexdigest()[:16]}"
 
 
 class CheckResult(BaseModel):
@@ -137,7 +166,6 @@ class PullRequest(BaseModel):
         default=SweepEvidenceMergeState.UNKNOWN, alias="mergeStateStatus"
     )
     checks: list[CheckResult] = Field(default_factory=list, alias="statusCheckRollup")
-    head: str = Field(default="", alias="headRefOid")
 
     @property
     def check_failed(self) -> bool:
@@ -145,61 +173,21 @@ class PullRequest(BaseModel):
 
     @property
     def failure_signature(self) -> str:
-        """The evidence (head commit) and the checks that are red on it."""
-        names = sorted(check.label for check in self.checks if check.failed)
-        return f"{self.head[:12]} {','.join(names)}"
-
-
-_TRANSIENT = (
-    "timed out",
-    "could not resolve",
-    "connection",
-    "temporarily",
-    "rate limit",
-    "http 5",
-    "hung up",
-    "unable to access",
-    "tls",
-    "fetch first",
-    "non-fast-forward",
-)
-_FAILURES = (
-    subprocess.CalledProcessError,
-    subprocess.TimeoutExpired,
-    EvidencePublicationTimeout,
-)
-
-
-def transient(error: Exception) -> bool:
-    """Network, rate-limit and push-race failures heal on their own; the rest is deterministic."""
-    if isinstance(error, subprocess.TimeoutExpired | EvidencePublicationTimeout):
-        return True
-    text = f"{getattr(error, 'stderr', '')}".lower()
-    return any(marker in text for marker in _TRANSIENT)
+        """The red checks by name, never the commit they ran on."""
+        return ",".join(sorted(check.label for check in self.checks if check.failed))
 
 
 def command(cwd: Path, *args: str, timeout: int = 60) -> str:
-    for attempt in range(RETRY_ATTEMPTS):
-        if _deadline is not None:
-            remaining = _deadline - time.monotonic()
-            if remaining <= 0:
-                raise EvidencePublicationTimeout("evidence batch exceeded 240s")
-            timeout = min(timeout, max(1, int(remaining)))
-        try:
-            result = subprocess.run(
-                args,
-                cwd=cwd,
-                text=True,
-                capture_output=True,
-                timeout=timeout,
-                check=True,
-            )
-            return result.stdout.strip()
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
-            if attempt == RETRY_ATTEMPTS - 1 or not transient(error):
-                raise
-            time.sleep(random.uniform(0, 2 ** (attempt + 1)))  # full jitter
-    raise AssertionError("unreachable")
+    """One bounded subprocess. No retry here: the next tick re-plans from a fresh clone."""
+    if _deadline is not None:
+        remaining = _deadline - time.monotonic()
+        if remaining <= 0:
+            raise EvidencePublicationTimeout("evidence batch exceeded 240s")
+        timeout = min(timeout, max(1, int(remaining)))
+    result = subprocess.run(
+        args, cwd=cwd, text=True, capture_output=True, timeout=timeout, check=True
+    )
+    return result.stdout.strip()
 
 
 def sync(
@@ -208,28 +196,95 @@ def sync(
     """One batch, then record what it saw. A failing command never crashes the child."""
     seen = Seen()
     directory.mkdir(parents=True, exist_ok=True)
+    previous = load_state(directory)
     try:
-        code = _batch(history, directory, state, seen)
-    except _FAILURES as error:
-        if transient(error):
-            print(f"evidence: transient failure, retry later: {error}", flush=True)
-            return SweepEvidenceExit.WAITING  # the recorded state stays as it was
-        lines = f"{getattr(error, 'stderr', '')}".strip().splitlines()
-        cmd = " ".join(map(str, getattr(error, "cmd", ())[:3]))
-        seen.signature = f"{cmd}: {lines[-1] if lines else error}"
+        code = _batch(history, directory, state, seen, previous)
+    except (
+        subprocess.CalledProcessError,
+        subprocess.TimeoutExpired,
+        EvidencePublicationTimeout,
+    ) as error:
+        argv = " ".join(map(str, getattr(error, "cmd", ())[:2]))
+        exit_code = getattr(error, "returncode", None)
+        seen.signature = f"{argv} exit {'timeout' if exit_code is None else exit_code}"
+        seen.command = True
         print(f"evidence: command failed: {seen.signature}", flush=True)
-        current, previous = load_state(directory)
-        seen.state = transition(current, red=True, repeated=seen.signature == previous)
-        code = SweepEvidenceExit.FAILING_CHECK
+        code = SweepEvidenceExit.COMMAND_FAILED
     write_atomic(
         directory / STATE_FILE,
-        json.dumps({"state": seen.state, "signature": seen.signature}),
+        transition(
+            previous,
+            signature=seen.signature,
+            command=seen.command,
+            refused=seen.refused,
+        ).model_dump_json(),
     )
     return code
 
 
+def _evidence_records(clone: Path, ref: str, name: str) -> tuple:
+    try:
+        return RecipeQualificationEvidence.model_validate_json(
+            command(clone, "git", "show", f"{ref}:{name}")
+        ).records
+    except subprocess.CalledProcessError:
+        return ()  # the file does not exist at that ref
+
+
+def _branch_only_ids(clone: Path) -> list[str]:
+    """Ids of the records the evidence branch carries that main does not."""
+    command(clone, "git", "fetch", "origin", f"{BRANCH}:refs/remotes/origin/{BRANCH}")
+    names = command(
+        clone,
+        "git",
+        "diff",
+        "--name-only",
+        f"origin/main...origin/{BRANCH}",
+        "--",
+        "qualification/evidence",
+    ).splitlines()
+    ids = []
+    for name in names:
+        key = (
+            Path(name).relative_to("qualification/evidence").with_suffix("").as_posix()
+        )
+        on_main = {
+            r.model_dump_json() for r in _evidence_records(clone, "origin/main", name)
+        }
+        ids += [
+            record_id(key, r)
+            for r in _evidence_records(clone, f"origin/{BRANCH}", name)
+            if r.model_dump_json() not in on_main
+        ]
+    return ids
+
+
+def _drop_refused(clone: Path, refused: set[str]) -> tuple[str, ...]:
+    """Remove refused records from the clone; return the ones still produced locally."""
+    found: list[str] = []
+    root = clone / "qualification/evidence"
+    for path in sorted(root.rglob("*.json")):
+        key = path.relative_to(root).with_suffix("").as_posix()
+        evidence = read_evidence(clone, key)
+        ids = [record_id(key, r) for r in evidence.records]
+        dropped = [i for i in ids if i in refused]
+        if not dropped:
+            continue
+        found += dropped
+        kept = tuple(r for r, i in zip(evidence.records, ids) if i not in refused)
+        if kept:
+            write_evidence(clone, evidence.model_copy(update={"records": kept}))
+        else:
+            path.unlink()
+    return tuple(sorted(found))
+
+
 def _batch(
-    history: Path, directory: Path, state: Path | None, seen: Seen
+    history: Path,
+    directory: Path,
+    state: Path | None,
+    seen: Seen,
+    previous: PublisherRecord,
 ) -> SweepEvidenceExit:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
     global _deadline
@@ -256,6 +311,8 @@ def _batch(
     )
     if len(opened) > 1:
         raise RuntimeError("multiple qualification evidence PRs; needs repair")
+    refusing = False
+    blocked = 0
     if opened:
         pr = PullRequest.model_validate(opened[0])
         details = PullRequest.model_validate_json(
@@ -276,10 +333,11 @@ def _batch(
         # (the same failure twice): new evidence still flows. A red PR seen
         # once on current main waits, visibly.
         red = details.check_failed
-        previous, previous_signature = load_state(directory)
-        seen.signature = details.failure_signature if red else ""
-        seen.state = transition(
-            previous, red=red, repeated=seen.signature == previous_signature
+        seen.signature = details.failure_signature if red else None
+        blocked = pr.number
+        refusing = (
+            transition(previous, signature=seen.signature).state
+            == PublisherState.REFUSED
         )
         replan = (
             details.merge_state
@@ -287,7 +345,7 @@ def _batch(
                 SweepEvidenceMergeState.BEHIND,
                 SweepEvidenceMergeState.DIRTY,
             )
-            or seen.state == PublisherState.REFUSED
+            or refusing
             or (
                 red
                 and int(
@@ -315,7 +373,7 @@ def _batch(
                 "--squash",
             )
             print(
-                f"evidence PR #{pr.number} has a failing check; waiting for main to move"
+                f"evidence PR #{pr.number} has a failing check ({seen.signature}); waiting for main to move"
                 if red
                 else f"evidence: PR #{pr.number} awaiting CI/auto-merge; new results remain in history",
                 flush=True,
@@ -326,6 +384,7 @@ def _batch(
         prefix="qualification-", dir=directory
     ) as temporary:
         clone = Path(temporary)
+        done = SweepEvidenceExit.REFUSED if refusing else SweepEvidenceExit.SYNCED
         command(
             directory,
             "git",
@@ -340,6 +399,24 @@ def _batch(
             timeout=120,
         )
         remote = command(clone, "git", "ls-remote", "--heads", "origin", BRANCH)
+        if refusing:
+            # The same red checks twice: close the blocked PR and plan from main
+            # without its records, so new evidence is no longer held behind it.
+            seen.refused = tuple(sorted({*previous.refused, *_branch_only_ids(clone)}))
+            command(
+                clone,
+                "gh",
+                "pr",
+                "close",
+                str(blocked),
+                "--repo",
+                REPOSITORY,
+                "--delete-branch",
+                "--comment",
+                f"Refused: the same checks stayed red twice ({seen.signature}). "
+                "Its records are left out of the next evidence PR until their content changes.",
+            )
+            remote = ""
         if remote:
             command(
                 clone,
@@ -412,13 +489,16 @@ def _batch(
                 flush=True,
             )
         prune_withdrawn_evidence(clone)
+        if seen.refused is not None or previous.refused:
+            seen.refused = _drop_refused(
+                clone,
+                set(seen.refused if seen.refused is not None else previous.refused),
+            )
         command(clone, "git", "add", "qualification/evidence")
         if not command(
             clone, "git", "diff", "origin/main", "--", "qualification/evidence"
         ):
-            return (
-                SweepEvidenceExit.SYNCED
-            )  # merged evidence or an empty batch never creates an empty PR
+            return done  # merged evidence or an empty batch never creates an empty PR
         changed = command(clone, "git", "diff", "--cached", "--name-only")
         merging = (clone / ".git/MERGE_HEAD").exists()
         if changed or merging:
@@ -432,7 +512,7 @@ def _batch(
             )
             command(clone, "git", "push", "origin", f"HEAD:refs/heads/{BRANCH}")
         elif not remote:
-            return SweepEvidenceExit.SYNCED
+            return done
         opened = json.loads(
             command(
                 clone,
@@ -497,7 +577,7 @@ def _batch(
             "--squash",
         )
         print(f"evidence: PR #{pr.number}, auto-merge requested", flush=True)
-        return SweepEvidenceExit.SYNCED
+        return done
 
 
 class EvidencePublisher:
@@ -520,7 +600,7 @@ class EvidencePublisher:
         self.next_attempt = 0.0
         self.started_at = 0.0
         self.message = "evidence publication pending"
-        self.refused = ""
+        self.record = PublisherRecord()
         self._output: TextIO | None = None
 
     def _read_unpublished(self) -> None:
@@ -538,8 +618,14 @@ class EvidencePublisher:
     @property
     def alert(self) -> str | None:
         """Raised when the publisher is broken: a refused failure, or a gap that persists."""
-        if self.refused:
-            return f"evidence publisher refused, same failure twice: {self.refused}"
+        if self.record.refused:
+            return (
+                f"evidence publisher: {len(self.record.refused)} records refused and left "
+                f"out of the publication (red twice: {self.record.refused_because}); "
+                "they return when their content changes"
+            )
+        if self.record.state == PublisherState.REFUSED:
+            return f"evidence publisher: failing repeatedly: {self.record.signature}"
         if self.unpublished_batches < PERSISTENT_BATCHES:
             return None
         return (
@@ -556,20 +642,22 @@ class EvidencePublisher:
                     self.message = "evidence publication exceeded 240s; retry scheduled"
                 return
             self.process.wait(timeout=1)
+            self.record = load_state(self.directory)
+            signature = self.record.signature
             self.message = (
                 "evidence sync complete"
                 if code == SweepEvidenceExit.SYNCED
                 else "evidence PR awaiting CI/auto-merge; new results queued; check in 300s (see publisher.log)"
                 if code == SweepEvidenceExit.WAITING
-                else "evidence PR has a failing check; waiting for main to move (see publisher.log)"
+                else f"evidence PR has failing checks ({signature}); waiting for main to move (see publisher.log)"
                 if code == SweepEvidenceExit.FAILING_CHECK
+                else f"evidence publisher command failed ({signature}); re-plan in 300s (see publisher.log)"
+                if code == SweepEvidenceExit.COMMAND_FAILED
+                else f"evidence PR refused (red twice: {signature}); {len(self.record.refused)} records left out, a fresh PR carries the rest (see publisher.log)"
+                if code == SweepEvidenceExit.REFUSED
                 else f"evidence publisher exited {code}; re-plan in 300s (see publisher.log)"
             )
             self._read_unpublished()
-            state, signature = load_state(self.directory)
-            self.refused = signature if state == PublisherState.REFUSED else ""
-            if self.refused:
-                self.message = f"evidence publication refused ({signature}); new evidence still published"
             if self._output is not None:
                 self._output.close()
             self.process = None

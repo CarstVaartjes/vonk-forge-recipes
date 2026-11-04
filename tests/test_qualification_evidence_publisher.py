@@ -51,7 +51,7 @@ def test_sync_batches_one_pr_requests_auto_merge_and_replans_after_push_race(
 
     monkeypatch.setattr(publisher, "command", command)
     first = publisher.sync(history, tmp_path / "work")
-    assert first == publisher.SweepEvidenceExit.WAITING  # a race is transient
+    assert first == publisher.SweepEvidenceExit.COMMAND_FAILED  # no in-process retry
     publisher.sync(history, tmp_path / "work")
     assert sum(c[:2] == ("git", "clone") for c in calls) == 2
     assert not any("--force" in c for c in calls)
@@ -331,7 +331,7 @@ def test_red_pr_on_current_main_waits_and_says_so(tmp_path, monkeypatch, capsys)
     )
     assert not any(c[0] == "git" for c in calls)
     assert (
-        "evidence PR #123 has a failing check; waiting for main to move"
+        "evidence PR #123 has a failing check (check); waiting for main to move"
         in capsys.readouterr().out
     )
 
@@ -364,7 +364,7 @@ def test_lane_status_shows_a_failing_evidence_check(tmp_path, monkeypatch):
     worker.tick(0)
     worker.tick(1)
     assert worker.message == (
-        "evidence PR has a failing check; waiting for main to move (see publisher.log)"
+        "evidence PR has failing checks (); waiting for main to move (see publisher.log)"
     )
     assert worker.next_attempt == 301
 
@@ -603,34 +603,79 @@ def test_missing_records_show_in_the_publisher_message_and_alert_when_persistent
     assert worker.alert is None
 
 
-def test_the_same_red_check_twice_is_refused_alerts_and_new_evidence_still_flows(
+def _row(day):
+    row = historical()
+    row["recorded_at"] = f"2026-10-{day}T00:00:00+00:00"
+    return row
+
+
+def _evidence_json(rows):
+    from test_qualification_status import KEY
+    from vonk_forge_contracts import RecipeQualificationEvidence
+
+    from spark_sweep.qualification import from_history
+
+    records = tuple(r for r in map(from_history, rows) if r)
+    return RecipeQualificationEvidence(
+        recipe_key=KEY, records=records
+    ).model_dump_json()
+
+
+def test_the_same_red_checks_twice_close_the_pr_and_a_fresh_pr_leaves_them_out(
     tmp_path, monkeypatch
 ):
+    from test_qualification_status import KEY
+
+    from spark_sweep.qualification import read_evidence
+
+    refused_row, new_row = _row(21), _row(22)
     history = tmp_path / "results.jsonl"
-    history.write_text(json.dumps(historical()) + "\n")
+    history.write_text("\n".join(json.dumps(r) for r in (refused_row, new_row)) + "\n")
     work = tmp_path / "work"
     calls = []
+    open_prs = [123]
+    created = []
+    heads = iter(
+        ["aaa", "bbb"]
+    )  # the head moves between batches; the signature must not
 
     def command(cwd, *args, **kwargs):
         calls.append(args)
         if args[:3] == ("gh", "pr", "list"):
-            return '[{"number":123}]'
+            return json.dumps([{"number": n} for n in open_prs])
         if args[:3] == ("gh", "pr", "view"):
             return json.dumps(
                 {
                     "number": 123,
                     "mergeStateStatus": "BLOCKED",
-                    "headRefOid": "abc123",
+                    "headRefOid": next(heads),
                     "statusCheckRollup": [
                         {"name": "lint", "status": "COMPLETED", "conclusion": "FAILURE"}
                     ],
                 }
             )
         if args[:2] == ("gh", "api"):
-            return "0"  # main has not moved: the red PR would wait forever
+            return "0"  # main has not moved: waiting would block forever
+        if args[:3] == ("gh", "pr", "close"):
+            open_prs.clear()
+        if args[:3] == ("gh", "pr", "create"):
+            open_prs.append(124)
+            created.append(read_evidence(cwd, KEY).records)
         if args[:2] == ("git", "clone"):
             (Path(args[-1]) / ".git").mkdir()
             seed_catalog(Path(args[-1]))
+        if args[:2] == ("git", "ls-remote"):
+            return "" if not open_prs else "sha refs/heads/x"
+        if args[:2] == ("git", "show"):
+            if args[2].startswith("origin/qualification"):
+                return _evidence_json([refused_row])
+            raise subprocess.CalledProcessError(128, args)  # not on main
+        if (
+            args[:2] == ("git", "diff")
+            and "--name-only" in args
+            and "--cached" not in args
+        ):
+            return "qualification/evidence/vonk-forge/example.json"
         if args[:3] == ("git", "diff", "origin/main"):
             return "evidence diff"
         if args[:3] == ("git", "diff", "--cached"):
@@ -638,19 +683,23 @@ def test_the_same_red_check_twice_is_refused_alerts_and_new_evidence_still_flows
         return ""
 
     monkeypatch.setattr(publisher, "command", command)
-    first = publisher.sync(history, work)
-    assert first == publisher.SweepEvidenceExit.FAILING_CHECK
-    assert not any(c[:2] == ("git", "push") for c in calls)  # waits once
-    publisher.sync(history, work)  # the same red twice: refused
-    assert publisher.load_state(work) == (
-        publisher.PublisherState.REFUSED,
-        "abc123 lint",
-    )
-    assert any(c[:2] == ("git", "push") for c in calls)  # new evidence still flows
+    assert publisher.sync(history, work) == publisher.SweepEvidenceExit.FAILING_CHECK
+    assert not any(c[:3] == ("gh", "pr", "close") for c in calls)
+    assert publisher.sync(history, work) == publisher.SweepEvidenceExit.REFUSED
+    close = next(c for c in calls if c[:3] == ("gh", "pr", "close"))
+    assert close[3] == "123" and "lint" in close[-1] and "--delete-branch" in close
+    assert open_prs == [124]  # a fresh PR from main
+    (records,) = created
+    assert [r.tested_at.day for r in records] == [
+        22
+    ]  # only evidence the refused PR lacked
+    record = publisher.load_state(work)
+    assert record.state == publisher.PublisherState.REFUSED
+    assert record.signature == "lint" and len(record.refused) == 1
 
     class Done:
         def poll(self):
-            return publisher.SweepEvidenceExit.SYNCED
+            return publisher.SweepEvidenceExit.REFUSED
 
         def wait(self, timeout):
             return 0
@@ -659,58 +708,97 @@ def test_the_same_red_check_twice_is_refused_alerts_and_new_evidence_still_flows
     monkeypatch.setattr(worker, "process", Done())
     worker.next_attempt = 1e18
     worker.tick(0)
-    assert worker.alert
-    assert "refused, same failure twice: abc123 lint" in worker.alert
-    # The push moves the head; a new, pending PR clears the refusal.
-    assert (
-        publisher.transition(
-            publisher.PublisherState.REFUSED, red=False, repeated=False
-        )
-        == publisher.PublisherState.IDLE
+    assert worker.alert and "1 records refused" in worker.alert
+    assert "refused (red twice: lint)" in worker.message
+
+
+def test_refused_records_stay_out_until_their_content_changes(tmp_path, monkeypatch):
+    from test_qualification_status import KEY
+
+    from spark_sweep.qualification import read_evidence
+
+    old, newer = _row(21), _row(23)
+    history = tmp_path / "results.jsonl"
+    history.write_text(json.dumps(old) + "\n")
+    work = tmp_path / "work"
+    work.mkdir()
+    from spark_sweep.qualification import from_history
+
+    record = from_history(old)
+    assert record
+    refused = publisher.record_id(KEY, record)
+    (work / publisher.STATE_FILE).write_text(
+        publisher.PublisherRecord(
+            refused=(refused,), refused_because="lint"
+        ).model_dump_json()
     )
-    assert (
-        publisher.transition(publisher.PublisherState.REFUSED, red=True, repeated=False)
-        == publisher.PublisherState.RED
-    )
+    seen = []
+
+    def command(cwd, *args, **kwargs):
+        if args[:3] == ("gh", "pr", "list"):
+            return "[]"
+        if args[:2] == ("git", "clone"):
+            (Path(args[-1]) / ".git").mkdir()
+            seed_catalog(Path(args[-1]))
+        if args[:3] == ("git", "diff", "origin/main"):
+            seen.append(read_evidence(cwd, KEY).records)
+            return ""
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    publisher.sync(history, work)
+    assert seen[-1] == ()  # the refused record is left out
+    assert publisher.load_state(work).refused == (refused,)
+    history.write_text(json.dumps(old) + "\n" + json.dumps(newer) + "\n")
+    publisher.sync(history, work)
+    assert [r.tested_at.day for r in seen[-1]] == [23]  # newer evidence supersedes it
 
 
-def test_unknown_state_file_self_heals_to_idle(tmp_path):
-    (tmp_path / publisher.STATE_FILE).write_text('{"state":"bogus","signature":"x"}')
-    assert publisher.load_state(tmp_path) == (publisher.PublisherState.IDLE, "")
+def test_a_failing_command_is_keyed_on_argv_and_exit_code_not_text(
+    tmp_path, monkeypatch
+):
+    texts = iter(["fatal: first wording", "fatal: other wording"])
 
-
-def test_a_deterministic_command_failure_is_refused_not_a_crash(tmp_path, monkeypatch):
     def fail(*args, **kwargs):
         raise subprocess.CalledProcessError(
-            128, ["git", "push", "x"], stderr="fatal: bad object"
+            128, ["git", "push", "x"], stderr=next(texts)
         )
 
     monkeypatch.setattr(publisher, "_batch", fail)
     work = tmp_path / "work"
     history = tmp_path / "results.jsonl"
     for expected in ("red", "refused"):
-        assert (
-            publisher.sync(history, work) == publisher.SweepEvidenceExit.FAILING_CHECK
-        )
-        assert publisher.load_state(work)[0] == expected
+        code = publisher.sync(history, work)
+        assert code == publisher.SweepEvidenceExit.COMMAND_FAILED
+        record = publisher.load_state(work)
+        assert (record.state, record.signature) == (expected, "git push exit 128")
+        assert record.command
 
 
-def test_a_transient_command_failure_retries_with_jitter_then_succeeds(monkeypatch):
-    sleeps = []
-    attempts = iter(
-        [
-            subprocess.CalledProcessError(1, ["gh"], stderr="HTTP 503"),
-            subprocess.CompletedProcess(["gh"], 0, stdout="ok\n"),
-        ]
+def test_success_clears_the_state_and_unknown_state_self_heals(tmp_path, monkeypatch):
+    work = tmp_path / "work"
+    work.mkdir()
+    (work / publisher.STATE_FILE).write_text('{"state":"bogus"}')
+    assert publisher.load_state(work) == publisher.PublisherRecord()
+    monkeypatch.setattr(
+        publisher, "_batch", lambda *a: publisher.SweepEvidenceExit.SYNCED
     )
+    publisher.sync(tmp_path / "results.jsonl", work)
+    assert publisher.load_state(work).state == publisher.PublisherState.IDLE
 
-    def run(*args, **kwargs):
-        outcome = next(attempts)
-        if isinstance(outcome, Exception):
-            raise outcome
-        return outcome
 
-    monkeypatch.setattr(publisher.subprocess, "run", run)
-    monkeypatch.setattr(publisher.time, "sleep", sleeps.append)
-    assert publisher.command(Path("."), "gh") == "ok"
-    assert len(sleeps) == 1 and 0 <= sleeps[0] <= 2
+def test_refused_is_only_reachable_from_a_state_that_saw_red():
+    idle = publisher.PublisherRecord()
+    red = publisher.transition(idle, signature="lint")
+    assert red.state == publisher.PublisherState.RED
+    assert (
+        publisher.transition(red, signature="lint").state
+        == publisher.PublisherState.REFUSED
+    )
+    assert (
+        publisher.transition(red, signature="other").state
+        == publisher.PublisherState.RED
+    )
+    assert (
+        publisher.transition(red, signature=None).state == publisher.PublisherState.IDLE
+    )
