@@ -1397,11 +1397,11 @@ def variant_estimate_warnings(
     return warnings
 
 
-def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
-    """vLLM's utilization budget plus the margin it holds beside it, if pool-less.
+def vllm_budget_bytes(recipe: RecipeDefinition) -> int | None:
+    """vLLM's own utilization budget (gpu-memory-utilization x Spark memory), if pool-less.
 
-    A speculative drafter is charged inside the budget, whichever mechanism
-    loads it (qualification/vllm_memory_fit.py).
+    None for an absolute KV pool or another engine. Hardware evidence records it
+    for the launch that ran (spark_sweep/memory.py::measurement).
     """
     if recipe.runtime.engine != "vllm" or any(
         argument_value(recipe, name) is not None
@@ -1410,8 +1410,17 @@ def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
         return None
     fraction = argument_value(recipe, "gpu-memory-utilization")
     share = Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
-    envelope = share * TOTAL_BYTES + budget_margin_bytes(recipe)
-    return int(envelope.to_integral_value(ROUND_CEILING))
+    return int((share * TOTAL_BYTES).to_integral_value(ROUND_CEILING))
+
+
+def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
+    """vLLM's utilization budget plus the margin it holds beside it, if pool-less.
+
+    A speculative drafter is charged inside the budget, whichever mechanism
+    loads it (qualification/vllm_memory_fit.py).
+    """
+    budget = vllm_budget_bytes(recipe)
+    return None if budget is None else budget + budget_margin_bytes(recipe)
 
 
 def declarable_vllm_envelope(recipe: RecipeDefinition) -> int | None:

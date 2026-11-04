@@ -9,13 +9,14 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from vonk_forge_contracts import (
     QualificationBlame,
     QualificationCauseCode,
     QualificationDerivationInput,
     QualificationEvidenceRecord,
     QualificationIdentity,
+    QualificationMeasuredMemory,
     QualificationOutcome,
     QualificationPlatform,
     QualificationQualityNote,
@@ -112,6 +113,16 @@ def write_evidence(root: Path, evidence: RecipeQualificationEvidence) -> bool:
         return False
     write_atomic(path, payload)
     return True
+
+
+def measured_memory(value: object) -> QualificationMeasuredMemory | None:
+    """A pass's ``measured_memory``; an unreadable one is "not measured", never a lost verdict."""
+    if value is None:
+        return None
+    try:
+        return QualificationMeasuredMemory.model_validate(value)
+    except ValidationError:
+        return None
 
 
 def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None:
@@ -217,6 +228,7 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         quality_notes=(QualificationQualityNote.ANSWER_VARIANCE,)
         if any(not check.ok for check in (*row.quality, *row.result.quality))
         else (),
+        memory=measured_memory(value.get("measured_memory")) if passed else None,
     )
 
 
