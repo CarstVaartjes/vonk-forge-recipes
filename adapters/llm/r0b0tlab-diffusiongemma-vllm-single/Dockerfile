@@ -8,8 +8,13 @@ LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/diffusiongemm
 # Parent: upstream's patched image tag spark-dgemma-patched (Spark day-0 vLLM wheel plus the DiffusionGemma
 # patch set in third_party/, image ID sha256:6ae2b249...; docker/Dockerfile.spark-dgemma-patched in this
 # directory is upstream's recipe for it), pinned by registry digest. This layer adds a launcher that
-# creates the platform-owned cache directories, and the non-root user.
+# creates the platform-owned cache directories, and the non-root user. The parser patch returns an unclosed
+# thinking channel as answer text (see patch-gemma4-unclosed-channel.py).
 USER root
+COPY patch-gemma4-unclosed-channel.py /tmp/patch-gemma4-unclosed-channel.py
+RUN python3 /tmp/patch-gemma4-unclosed-channel.py \
+        /usr/local/lib/python3.12/dist-packages/vllm/reasoning/gemma4_reasoning_parser.py \
+    && rm /tmp/patch-gemma4-unclosed-channel.py
 RUN install --directory --mode=0755 /opt/vonk/bin \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /outputs/cache/home --no-create-home --shell /usr/sbin/nologin vonk; fi \
