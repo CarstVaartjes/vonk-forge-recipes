@@ -10,7 +10,9 @@
     },
     "whole": false
   },
-  "ours": [],
+  "ours": [
+    "patch-gemma4-unclosed-channel.py"
+  ],
   "source": {
     "commit": "c255963962e71c0cb9d7a4baed4ab5c410459988",
     "repo": "r0b0tlab/diffusiongemma-26b-nvfp4-sm121-vllm"
