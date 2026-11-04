@@ -35,6 +35,7 @@ from .lifecycle import ACTIVE, LifecycleState
 from .policy import (
     CLIENT_CREDENTIAL,
     CONTROLLER_WAIT,
+    FIT,
     RECIPE_FAILURE_CODES,
     REVIEW_FINAL_CODES,
     SWAP_SHORT,
@@ -125,9 +126,6 @@ OBSERVE_CLASSES = frozenset(
         SMOKE_TIMEOUT,
         UNATTRIBUTED,
         SweepFailureClass.PLATFORM_EXIT,
-        # The gateway refused the sweep's own key for the route: the key is renewed and the
-        # smoke looked at again; never the recipe's verdict.
-        SmokeAuthClass.REFUSAL,
     }
 )
 #: The Controller reports the lane's application as stalled (``STALLED_CODE``): the lane is
@@ -139,9 +137,26 @@ SWEEP_CRASH = "sweep-crash"
 #: A job recipe's smoke job ended failed and the Controller names no platform cause.
 JOB_FAILED = "job-failed"
 FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data", JOB_FAILED})
-#: A lane that stayed silent past its whole window (``policy.classify`` names the ``timeout``
-#: phase's class so): recorded now with its evidence, but the platform's, not the recipe's.
-RECORDED_CLASSES = frozenset({"timeout"})
+#: Outcomes the sweep ends and records now, with their evidence, without blaming the recipe:
+#: a failure named only by the phase it happened in (``policy.classify`` falls back to the
+#: phase), a lane silent past its whole window (``timeout``), the gateway refusing the
+#: sweep's own key for the route, a model-integrity fault and the Controller's final
+#: never-fits word (``FIT``).
+RECORDED_CLASSES = frozenset(
+    {
+        "download",
+        "install",
+        "build",
+        "start",
+        "readiness",
+        "smoke",
+        "smoke-request",
+        "timeout",
+        "model-integrity",
+        FIT,
+        SmokeAuthClass.REFUSAL,
+    }
+)
 #: The recipe left the complete catalog (``catalog.recipe_removed``): deterministic, so it is
 #: skipped at once; a recipe that comes back is picked up like any new one.
 SKIP_CLASSES = frozenset({"catalog"})
@@ -445,11 +460,7 @@ def blame(klass: str, code: str | None) -> Blame:
     if klass == UNATTRIBUTED:
         # Even a recipe code is nobody's verdict while nothing names whose it is.
         return Blame.PLATFORM
-    if (
-        klass in FAIL_CLASSES
-        or code in RECIPE_FAILURE_CODES
-        or code in REVIEW_FINAL_CODES
-    ):
+    if klass in FAIL_CLASSES or code in RECIPE_FAILURE_CODES:
         return Blame.RECIPE
     if (
         klass in SKIP_CLASSES
@@ -469,6 +480,8 @@ def disposition(failure: Failure) -> Disposition:
     if (
         blame(failure.klass, failure.code) is Blame.RECIPE
         or failure.klass in RECORDED_CLASSES
+        # The Controller's final word (never fits): recorded now, the platform's verdict.
+        or (failure.klass != UNATTRIBUTED and failure.code in REVIEW_FINAL_CODES)
     ):
         return Disposition.FAIL
     if failure.klass in WAIT_CLASSES:

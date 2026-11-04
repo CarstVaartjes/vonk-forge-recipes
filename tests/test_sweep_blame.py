@@ -40,7 +40,7 @@ def test_every_class_constant_is_covered():
         | verdict.RECORDED_CLASSES
     )
     assert named <= set(EXPECTED)
-    assert SmokeAuthClass.REFUSAL not in verdict.FAIL_CLASSES
+    assert SmokeAuthClass.REFUSAL in verdict.RECORDED_CLASSES
 
 
 def test_an_unnamed_class_is_observed_never_failed():
@@ -49,10 +49,15 @@ def test_an_unnamed_class_is_observed_never_failed():
     assert verdict.disposition(failure) is Disposition.OBSERVE
 
 
-@pytest.mark.parametrize("code", [RECIPE_CODE, FINAL_CODE])
-def test_a_recipe_code_blames_the_recipe_unless_unattributed(code):
-    assert verdict.blame(UNNAMED, code) is Blame.RECIPE
-    assert verdict.blame(verdict.UNATTRIBUTED, code) is Blame.PLATFORM
+def test_a_recipe_code_blames_the_recipe_unless_unattributed():
+    assert verdict.blame(UNNAMED, RECIPE_CODE) is Blame.RECIPE
+    assert verdict.blame(verdict.UNATTRIBUTED, RECIPE_CODE) is Blame.PLATFORM
+
+
+def test_the_controllers_final_word_is_recorded_but_is_the_platforms():
+    failure = policy.classify("review", FINAL_CODE, "x")
+    assert verdict.blame(failure.klass, failure.code) is Blame.PLATFORM
+    assert verdict.disposition(failure) is Disposition.FAIL
 
 
 @pytest.mark.parametrize(
