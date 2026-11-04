@@ -27,6 +27,7 @@
   },
   "ours": [
     "licenses/",
+    "kit-final-stage.txt",
     "scan-sm121.py",
     "tensorfold-serve"
   ]
