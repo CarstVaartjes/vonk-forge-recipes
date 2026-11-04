@@ -140,8 +140,8 @@ FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data", JOB_FAILED})
 #: Outcomes the sweep ends and records now, with their evidence, without blaming the recipe:
 #: a failure named only by the phase it happened in (``policy.classify`` falls back to the
 #: phase), a lane silent past its whole window (``timeout``), the gateway refusing the
-#: sweep's own key for the route, a model-integrity fault and the Controller's final
-#: never-fits word (``FIT``).
+#: sweep's own key for the route, and the classes ``policy._CODE_CLASSES`` gives the
+#: Controller's never-fits words (``FIT``) and model-integrity faults.
 RECORDED_CLASSES = frozenset(
     {
         "download",
@@ -451,8 +451,14 @@ def silent_seconds(watch: Mapping[str, Any], now: float) -> float:
 
 class Blame(StrEnum):
     RECIPE = "recipe"  # the recipe's own definite fault: a verdict
-    PLATFORM = "platform"  # a known class that is not the recipe's: wait/observe/skip
-    UNKNOWN = "unknown"  # a class nobody has named: observe, never a verdict
+    PLATFORM = "platform"  # anything else: never the recipe's verdict
+
+
+#: Every class some producer names. A class outside it is unnamed: ``disposition`` observes it
+#: and ``Sweep._bound_identical_exit`` ends it after three identical outcomes.
+DECLARED_CLASSES = (
+    FAIL_CLASSES | SKIP_CLASSES | RECORDED_CLASSES | WAIT_CLASSES | OBSERVE_CLASSES
+) | {"capacity"}
 
 
 def blame(klass: str, code: str | None) -> Blame:
@@ -462,15 +468,7 @@ def blame(klass: str, code: str | None) -> Blame:
         return Blame.PLATFORM
     if klass in FAIL_CLASSES or code in RECIPE_FAILURE_CODES:
         return Blame.RECIPE
-    if (
-        klass in SKIP_CLASSES
-        or klass in RECORDED_CLASSES
-        or klass in WAIT_CLASSES
-        or klass in OBSERVE_CLASSES
-        or klass == "capacity"
-    ):
-        return Blame.PLATFORM
-    return Blame.UNKNOWN
+    return Blame.PLATFORM
 
 
 def disposition(failure: Failure) -> Disposition:

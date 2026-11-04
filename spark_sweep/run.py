@@ -2010,19 +2010,24 @@ class Sweep:
     ) -> policy.Failure:
         """The same content identity exiting the same way three times in a row is its verdict.
 
-        The run of identical parsed exit facts (cause, trigger) lives on the recipe's entry; another
-        cause, another outcome class or a changed content identity restarts the count.
+        The run of identical facts lives on the recipe's entry: a platform exit's parsed cause and
+        trigger, or the class and code of an outcome no producer named. Another cause, another class
+        or a changed content identity restarts the count.
         """
         cause = failure.evidence.get("exit_cause")
-        if failure.klass != SweepFailureClass.PLATFORM_EXIT or not cause:
-            # Only parsed exit facts are compared; free text (a long Controller prefix) is not.
+        if failure.klass == SweepFailureClass.PLATFORM_EXIT and cause:
+            # Parsed exit facts are compared; free text (a long Controller prefix) is not.
+            facts = {
+                "exit_cause": cause,
+                "exit_trigger": failure.evidence.get("exit_trigger"),
+            }
+        elif failure.klass not in verdict.DECLARED_CLASSES:
+            # A class nobody named is observed; the same one on the same identity ends too.
+            facts = {"klass": failure.klass, "code": failure.code}
+        else:
             entry.pop("exit_repeat", None)
             return failure
-        key = {
-            "identity": content_identity(recipe).model_dump(mode="json"),
-            "exit_cause": cause,
-            "exit_trigger": failure.evidence.get("exit_trigger"),
-        }
+        key = {"identity": content_identity(recipe).model_dump(mode="json"), **facts}
         seen = entry.get("exit_repeat") or {}
         count = int(seen.get("count", 0)) + 1 if seen.get("key") == key else 1
         if count < IDENTICAL_EXIT_LIMIT:
@@ -2034,7 +2039,12 @@ class Sweep:
             failure.phase,
             QualificationCauseCode.RUNTIME_EXIT,
             failure.detail,
-            evidence={**failure.evidence, "identical_exits": count},
+            evidence={
+                **failure.evidence,
+                "identical_exits": count,
+                "observed_class": failure.klass,
+                "observed_code": failure.code,
+            },
         )
 
     def _reconcile_completed(self, key: str) -> None:
