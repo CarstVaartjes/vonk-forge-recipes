@@ -1,0 +1,58 @@
+{
+  "capabilities": [],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "deepseek-mit-6e4c38e1172f-bd38f8de85",
+      "path": "kit/LICENSES/DeepSeek-MIT.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "6e4c38e1172f42fdbff13edf9a7a017679fb82b0fde415a3e8b3c31c6ed4a4e4",
+      "size_bytes": 1065
+    },
+    {
+      "id": "gate-bias-vl-4745da4b5f24-100126d001",
+      "path": "kit/vision/gate_bias_vl.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4745da4b5f24c67170ee24e2c95652e45ba13c0ca0abc2be3cc7a2a3545792d0",
+      "size_bytes": 67192
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "deepseek-ai",
+      "slug": "deepseek"
+    },
+    "model": {
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-v4-1-flash-1017"
+    },
+    "publisher": "bertholomus",
+    "slug": "deepseek-v4-1-flash-1017-tensorfold-tp4-kit-ca83223e",
+    "variant": "1017 tensorfold kit",
+    "version": "1017-kit-ca83223e"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "DeepSeek-AI (the ffn.gate.bias_vl tensors of DeepSeek-V4.1-Flash-1017, byte for byte); bertholomus for the TensorFold TP4 kit."
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/bertholomus/DeepSeek-V4.1-Flash-TensorFold-TP4-4xGB10/blob/ca83223e341febd35244176b2f5340cc090f7c0f/kit/LICENSES/DeepSeek-MIT.txt"
+  },
+  "modalities": [
+    "image"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/bertholomus/DeepSeek-V4.1-Flash-TensorFold-TP4-4xGB10",
+    "revision": "ca83223e341febd35244176b2f5340cc090f7c0f"
+  }
+}

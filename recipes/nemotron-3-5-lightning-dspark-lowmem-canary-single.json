@@ -745,7 +745,7 @@
     {
       "files": [
         {
-          "file_id": "metadata-gitattributes",
+          "file_id": "metadata-11ad7efa2497-618cd5b83d",
           "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-metadata-",
           "mount": {
             "target": "/models/drafter"
@@ -755,8 +755,8 @@
           ]
         },
         {
-          "file_id": "metadata-license",
-          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-metadat-2",
+          "file_id": "license-8a0c5e232551-c693279643",
+          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-license-8",
           "mount": {
             "target": "/models/drafter"
           },
@@ -765,8 +765,8 @@
           ]
         },
         {
-          "file_id": "metadata-readme",
-          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-metadat-3",
+          "file_id": "readme-a61513135575-b335630551",
+          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-readme-a6",
           "mount": {
             "target": "/models/drafter"
           },
@@ -775,8 +775,8 @@
           ]
         },
         {
-          "file_id": "configuration",
-          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-configura",
+          "file_id": "config-e390ae49aaf2-587cb980af",
+          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-config-e3",
           "mount": {
             "target": "/models/drafter"
           },
@@ -785,8 +785,8 @@
           ]
         },
         {
-          "file_id": "quantization-config",
-          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-quantizat",
+          "file_id": "hf-quant-config-5b4eea93e73f-a481ad90fa",
+          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-hf-quant-",
           "mount": {
             "target": "/models/drafter"
           },
@@ -795,8 +795,8 @@
           ]
         },
         {
-          "file_id": "weights",
-          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-weights",
+          "file_id": "model-8eef955ebc57-9d75c1098f",
+          "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-model-8ee",
           "mount": {
             "target": "/models/drafter"
           },
@@ -807,10 +807,10 @@
       ],
       "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark",
       "model": {
-        "content_sha256": "239c502d421384614cb0aaaed8295f7821e77a739354b940118696d8a415fab6",
+        "content_sha256": "e58c4a8c609254494c5665fd291af66181e8131fc656d4e011f2895bccbd2940",
         "kind": "model",
         "publisher": "nvidia",
-        "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark"
+        "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-6d127b50"
       }
     }
   ],
@@ -821,8 +821,8 @@
     "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/tree/bee7596271d1495f6992ae224aefde4410e816b8"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.1.0"
+    "released_at": "2026-10-12",
+    "version": "1.1.1"
   },
   "runtime": {
     "arguments": [

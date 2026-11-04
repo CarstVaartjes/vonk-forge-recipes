@@ -46,10 +46,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a13c7d5e44bcc9784ee23cc54fc669ce496eca31291d2571096f5145ec48b9ef",
+        "content_sha256": "530b4d073355b2170a54952c28ed9d3ef6d71baef6e5b39836d6f738cc077e38",
         "kind": "model",
         "publisher": "antirez",
-        "slug": "deepseek-v4-1-flash-ds4-q2-dd8a266f"
+        "slug": "deepseek-v4-1-flash-1017-ds4-q2-9dcee516"
       }
     }
   ],
@@ -108,18 +108,18 @@
       "DeepSeek AI",
       "Salvatore Sanfilippo (antirez)"
     ],
-    "source_reference": "https://github.com/antirez/ds4/tree/5379c1c9ac315f1540371b06a3db88491d4059ff"
+    "source_reference": "https://github.com/antirez/ds4/tree/b3f50180ec2c7324892be1f50bc83555ccb8d5e7"
   },
   "release": {
-    "released_at": "2026-10-20",
-    "version": "1.0.2"
+    "released_at": "2026-11-03",
+    "version": "1.0.3"
   },
   "runtime": {
     "arguments": [
       {
         "name": "model",
         "setting": null,
-        "value": "/models/DeepSeek-V4.1-Flash-Q2.gguf"
+        "value": "/models/DeepSeek-V4.1-Flash-1017-IQ2_XXS-Q2_K-imatrix.gguf"
       },
       {
         "name": "ssd-streaming",

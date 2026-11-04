@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import importlib.machinery
 import importlib.util
@@ -18,6 +19,7 @@ from unittest.mock import patch
 
 from vonk_forge_contracts import ModelDisplay
 
+from qualification import documents
 from tools._catalog_model import roles_for
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -554,9 +556,13 @@ class NothingRunsTests(unittest.TestCase):
             )
         )
 
-    def assess(self, comparison_, *, used=None, report=None, engine=None):
+    def assess(
+        self, comparison_, *, used=None, report=None, engine=None, document=None
+    ):
         catalog = single_recipe_catalog(f"https://github.com/example/recipe/tree/{OLD}")
-        if engine is not None:
+        if document is not None:
+            catalog.recipes["recipe"] = document
+        elif engine is not None:
             recipe = catalog.recipes["recipe"]
             recipe["runtime"] = {"engine": engine}
             recipe["topology"] = {"roles": []}
@@ -616,6 +622,69 @@ class NothingRunsTests(unittest.TestCase):
             result = self.assess(moved, engine="vllm")
         self.assertFalse(result.mechanical)
         self.assertIn("memory envelope", " ".join(result.reasons))
+
+    def body(self, result) -> str:
+        self.assertTrue(result.mechanical)
+        return refresh.pr_body(result)
+
+    def test_body_of_a_non_vllm_move_claims_no_peaks(self) -> None:
+        body = self.body(
+            self.assess(comparison(files=("src/engine.py",)), engine="sglang")
+        )
+        self.assertIn("## Principles", body)
+        self.assertNotIn("peaks", body)
+        self.assertIn("re-checks the new digest", body)
+        self.assertIn("The sweep proves the recipe runs.", body)
+
+    def test_body_of_an_unmark_only_drift_claims_no_move_and_no_new_digest(
+        self,
+    ) -> None:
+        item = refresh.Item(
+            "source", "github", "example/recipe", OLD, self.TARGET, unmark=True
+        )
+        found = refresh.Assessment("recipe", items=[item])
+        stub = lambda _self, _item, _recipe, _new, _result, edits: edits.update(
+            {"adapters/x/vendored-upstream.json": b"{}"}
+        )
+        with (
+            patch("refresh_upstream.collect_items", return_value=found),
+            patch.object(refresh.Assessor, "_mark", stub),
+        ):
+            result = self.assess(comparison(files=("src/engine.py",)))
+        body = self.body(result)
+        self.assertIn("## Principles", body)
+        self.assertNotIn("pins move", body)
+        self.assertNotIn("new digest", body)
+        self.assertNotIn("sweep proves", body)
+        self.assertNotIn("peaks", body)
+
+    def test_body_of_a_poolless_vllm_move_states_the_raised_peaks(self) -> None:
+        recipe = documents.recipe("d3-lite-vllm-single", ROOT).model_copy(deep=True)
+        recipe.provenance.source_reference = (
+            f"https://github.com/example/recipe/tree/{OLD}"
+        )
+        recipe.execution.build.context.path = "missing"
+        for role in recipe.topology.roles:
+            role.resources.memory.peak_bytes = 1 << 30
+            role.resources.memory.load_peak_bytes = None
+        document = recipe.model_dump(mode="json", exclude_none=True)
+        result = self.assess(comparison(files=("src/engine.py",)), document=document)
+        self.assertTrue(result.peaks_raised)
+        body = self.body(result)
+        self.assertIn("raised to the vLLM budget envelope", body)
+
+    def test_body_names_held_pins_and_does_not_claim_they_moved(self) -> None:
+        result = refresh.Assessment(
+            "recipe",
+            items=[
+                refresh.Item("source", "github", "o/r", OLD, self.TARGET),
+            ],
+            declined=["image o/base"],
+            edits={"recipes/recipe.json": b"x"},
+        )
+        body = refresh.pr_body(result)
+        self.assertIn("pins that moved go", body)
+        self.assertIn("image o/base", body)
 
     def test_whole_repository_code_move_is_still_a_refresh(self) -> None:
         result = self.assess(comparison(files=("README.md", "src/engine.py")))
@@ -718,6 +787,63 @@ class MergeGateTests(unittest.TestCase):
                 refresh.git("rev-parse", "refs/heads/refresh/recipe", cwd=root),
                 prepared,
             )
+
+    def test_leftover_edits_of_a_previous_recipe_do_not_block_the_next(self) -> None:
+        # Run 41704192720: an "already current" recipe returned with its edits staged,
+        # and every later `git switch --detach origin/main` aborted on them.
+        assessment = refresh.Assessment("recipe", edits={"recipe.json": b"new pin\n"})
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            patch.dict(
+                os.environ,
+                {
+                    "GIT_CONFIG_GLOBAL": os.devnull,
+                    "GIT_CONFIG_NOSYSTEM": "1",
+                    "GIT_CONFIG_COUNT": "0",
+                    "GIT_AUTHOR_NAME": "Refresh test",
+                    "GIT_AUTHOR_EMAIL": "refresh@example.test",
+                    "GIT_COMMITTER_NAME": "Refresh test",
+                    "GIT_COMMITTER_EMAIL": "refresh@example.test",
+                },
+            ),
+            patch("refresh_upstream.verify", return_value=None),
+            patch(
+                "refresh_upstream.gh",
+                side_effect=lambda *arguments: (
+                    "https://github.test/pull/7"
+                    if arguments[:2] == ("pr", "create")
+                    else "[]"
+                ),
+            ),
+        ):
+            root = Path(temporary)
+            refresh.git("init", "-q", "--initial-branch=main", cwd=root)
+            refresh.git("remote", "add", "origin", str(root), cwd=root)
+            (root / "recipe.json").write_bytes(b"old pin\n")
+            refresh.git("add", "recipe.json", cwd=root)
+            refresh.git("commit", "-qm", "Base", cwd=root)
+            (root / "recipe.json").write_bytes(b"newer main\n")
+            (root / "added.json").write_bytes(b"main adds\n")
+            refresh.git("add", "added.json", cwd=root)
+            refresh.git("commit", "-qam", "Main moves", cwd=root)
+            main = refresh.git("rev-parse", "HEAD", cwd=root)
+            refresh.git("update-ref", "refs/remotes/origin/main", main, cwd=root)
+            refresh.git("switch", "-q", "--detach", "HEAD~1", cwd=root)
+            (root / "recipe.json").write_bytes(b"left behind\n")
+            refresh.git("add", "-A", cwd=root)
+            # An edit that raised before `git add -A` leaves a file untracked at a
+            # path the moved main tracks.
+            (root / "added.json").write_bytes(b"half applied\n")
+
+            number = refresh.publish_mechanical(root, assessment, refresh.Summary())
+
+            self.assertEqual(refresh.git("rev-parse", "HEAD", cwd=root), main)
+            self.assertEqual((root / "added.json").read_bytes(), b"main adds\n")
+            self.assertEqual(
+                refresh.git("diff", "--name-only", "origin/main", cwd=root),
+                "recipe.json",
+            )
+            self.assertEqual(number, 7)
 
     def test_existing_armed_pr_does_not_block_a_disjoint_mechanical_merge(self) -> None:
         summary = refresh.Summary()
@@ -2093,6 +2219,146 @@ class AppCommandBoundaryTests(unittest.TestCase):
         ):
             refresh.main()
         command.assert_not_called()
+
+
+class PerRecipeFaultTests(unittest.TestCase):
+    """One recipe's unexpected error is that recipe's failure; the others still run."""
+
+    def drifted(self, recipe_id: str, **kwargs):
+        item = refresh.Item(
+            "source",
+            "github",
+            "o/r",
+            OLD,
+            refresh.Target("github", "o/r", NEW, "d", None, None, "u"),
+        )
+        return refresh.Assessment(recipe_id, items=[item], **kwargs)
+
+    def run_refresh(self, assessments, *, assess_fault=None, **patches):
+        """Run command_run over the assessments; return (exit code, summary).
+
+        GitHub is never reached: ``gh`` and ``sync_issue`` are patched unless a test
+        passes its own; ``self.synced`` lists the recipes whose issue was synced.
+        """
+        written: list = []
+        self.synced: list[str] = []
+        patches = {
+            "gh": lambda *_arguments, **_keywords: "",
+            "sync_issue": lambda result, *_rest, **_keywords: self.synced.append(
+                result.recipe_id
+            ),
+            **patches,
+        }
+
+        class FakeAssessor:
+            def __init__(self, *_arguments) -> None:
+                pass
+
+            def assess(self, recipe_id: str):
+                if recipe_id == assess_fault:
+                    raise ValueError("Expecting value: line 1 column 1 (char 0)")
+                return assessments[recipe_id]
+
+        def read_optional(source, action, *_arguments, **_keywords):
+            if source == "catalog assessment":
+                return action()
+
+        catalog = types.SimpleNamespace(recipes=dict.fromkeys(assessments))
+        arguments = refresh.argparse.Namespace(cache_dir=None, dry_run=False)
+        with (
+            contextlib.ExitStack() as stack,
+            patch.object(refresh, "git", return_value="head"),
+            patch.object(refresh, "read_optional", side_effect=read_optional),
+            patch.object(refresh.Catalog, "load", return_value=catalog),
+            patch.object(refresh.drift, "load_manifest", return_value=({}, {})),
+            patch.object(refresh.drift, "discover_watches"),
+            patch.object(
+                refresh.drift, "embedded_inventory", return_value={"coverage": {}}
+            ),
+            patch.object(refresh.drift, "observe_embedded_heads"),
+            patch.object(refresh, "Assessor", FakeAssessor),
+            patch.object(refresh, "ensure_labels"),
+            patch.object(refresh, "foreign_open_prs", return_value={}),
+            patch.object(refresh, "sharing_groups", return_value={}),
+            patch.object(refresh, "recipe_footprint", return_value=(set(), [])),
+            patch.object(refresh, "close_current_issues"),
+            patch.object(refresh, "close_stale_refresh_prs"),
+            patch.object(
+                refresh,
+                "write_summary",
+                side_effect=lambda summary, *_rest: written.append(summary),
+            ),
+            patch("traceback.print_exc"),
+        ):
+            for name, fn in patches.items():
+                stack.enter_context(patch.object(refresh, name, side_effect=fn))
+            code = refresh.command_run(arguments)
+        (summary,) = written
+        return code, summary
+
+    def test_an_error_in_a_recipe_step_does_not_starve_the_next(self) -> None:
+        published: list[str] = []
+
+        def publish(_root, assessment, _summary):
+            if assessment.recipe_id == "a":
+                raise ValueError("Expecting value: line 1 column 1 (char 0)")
+            published.append(assessment.recipe_id)
+            return 7
+
+        code, summary = self.run_refresh(
+            {"a": self.drifted("a"), "b": self.drifted("b")},
+            publish_mechanical=publish,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(published, ["b"])
+        self.assertEqual(len(summary.failures), 1)
+        self.assertTrue(
+            summary.failures[0].startswith("a: ValueError: Expecting value")
+        )
+
+    def test_an_error_syncing_an_unreachable_recipe_does_not_starve_the_next(
+        self,
+    ) -> None:
+        published: list[str] = []
+
+        def sync(assessment, _summary, **_keywords):
+            raise ValueError("Expecting value: line 1 column 1 (char 0)")
+
+        def publish(_root, assessment, _summary):
+            published.append(assessment.recipe_id)
+            return 7
+
+        code, summary = self.run_refresh(
+            {
+                "a": refresh.Assessment("a", unreachable=["x not found"]),
+                "b": self.drifted("b"),
+            },
+            sync_issue=sync,
+            publish_mechanical=publish,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(published, ["b"])
+        self.assertTrue(summary.failures[0].startswith("a: ValueError:"))
+
+    def test_an_error_assessing_one_recipe_does_not_stop_the_others(self) -> None:
+        published: list[str] = []
+
+        def publish(_root, assessment, _summary):
+            published.append(assessment.recipe_id)
+            return 7
+
+        code, summary = self.run_refresh(
+            {"a": self.drifted("a"), "b": self.drifted("b")},
+            assess_fault="a",
+            publish_mechanical=publish,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(published, ["b"])
+        self.assertEqual(self.synced, [])  # the failed recipe's issue is untouched
+        self.assertEqual(summary.unreachable, [])
+        self.assertTrue(
+            summary.failures[0].startswith("a: ValueError: Expecting value")
+        )
 
 
 class AppKeyLifetimeTests(unittest.TestCase):

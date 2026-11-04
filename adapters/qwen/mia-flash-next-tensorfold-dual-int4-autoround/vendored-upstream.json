@@ -1,10 +1,16 @@
 {
   "source": {
     "repo": "MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold",
-    "commit": "6730319ed948cc88b525bbbdc9d309451a863834"
+    "commit": "dc05c912342ec19467b3b7b686888de763f2ada1"
   },
   "kit": {
     "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "scripts/config.sh",
+        "pattern": "^TF_REF=\"\\$\\{TF_REF:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo": "ashhart/TensorFold"
+      },
       "image": {
         "datasource": "oci-image",
         "file": "scripts/config.sh",
@@ -15,12 +21,18 @@
         "datasource": "hf-revision",
         "binds": "primary",
         "file": "scripts/config.sh",
+        "override": {
+          "revision": "8b145d7f6505f71521a73646c268e51f6af532e4",
+          "reason": "the kit's scripts/config.sh still pins 1464274120d36a4d8fcaa934552334a7d83ce0fd, which Hugging Face no longer serves: azampatti squashed the repository's history into 8b145d7f on 2026-11-01. Every weight, configuration and tokenizer file at 8b145d7f is the catalogued bytes (only README.md differs), so the recipe pins the revision that serves them."
+        },
         "pattern": "^\\s*int4ar\\)\\s+_model=(?P<repo>[^;]+); _pin=(?P<version>[0-9a-f]{40})$"
       }
     }
   },
   "ours": [
     "licenses/",
+    "kit-final-stage.txt",
+    "scan-sm121.py",
     "tensorfold-serve"
   ]
 }

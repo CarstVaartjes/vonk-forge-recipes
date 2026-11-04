@@ -29,7 +29,10 @@ SEEDING_LAUNCHERS = {"adapters/nvidia/r0b0tlab-ornith-sglang-single/sglang-serve
 NATIVE_KIT_BUILDERS = {
     f"adapters/deepseek/tonyd2wild-1017-tensorfold-tp{world}/prepare_cache.py"
     for world in (2, 4)
-} | {"adapters/deepseek/mia-1017-tensorfold-dual/prepare_cache.py"}
+} | {
+    "adapters/deepseek/mia-1017-tensorfold-dual/prepare_cache.py",
+    "adapters/deepseek/bertholomus-1017-tensorfold-tp4/prepare_cache.py",
+}
 
 
 def _own_sources() -> list[Path]:
@@ -120,6 +123,7 @@ def test_native_kit_replacement_keeps_verified_cache_on_failure(
     tmp_path, relative, monkeypatch
 ):
     import hashlib
+    import inspect
     import json
     import subprocess
 
@@ -136,6 +140,14 @@ def test_native_kit_replacement_keeps_verified_cache_on_failure(
     destination = tmp_path / "kit"
     calls = []
 
+    # A kit whose image bias is a Model file copies it instead of generating it.
+    copied = "bias" in inspect.signature(module.prepare_kit).parameters
+    extra = []
+    if copied:
+        (tmp_path / "bias.safetensors").write_bytes(bias)
+        extra = [tmp_path / "bias.safetensors"]
+        monkeypatch.setattr(module, "BIAS_SIZE", len(bias))
+
     def generate(command, check):
         assert check
         calls.append(command)
@@ -145,10 +157,10 @@ def test_native_kit_replacement_keeps_verified_cache_on_failure(
             Path(command[-1]).write_bytes(bias)
 
     monkeypatch.setattr(module.subprocess, "run", generate)
-    module.prepare_kit(tmp_path, destination, source, tmp_path)
+    module.prepare_kit(tmp_path, destination, source, tmp_path, *extra)
     receipt = (destination / "vonk-generated.json").read_bytes()
-    module.prepare_kit(tmp_path, destination, source, tmp_path)
-    assert len(calls) == 2
+    module.prepare_kit(tmp_path, destination, source, tmp_path, *extra)
+    assert len(calls) == (1 if copied else 2)
     (source / "VONK_SOURCE_SHA256").write_text("second source")
 
     def interrupted(command, check):
@@ -156,15 +168,15 @@ def test_native_kit_replacement_keeps_verified_cache_on_failure(
 
     monkeypatch.setattr(module.subprocess, "run", interrupted)
     with pytest.raises(subprocess.CalledProcessError):
-        module.prepare_kit(tmp_path, destination, source, tmp_path)
+        module.prepare_kit(tmp_path, destination, source, tmp_path, *extra)
     assert (destination / "vonk-generated.json").read_bytes() == receipt
     assert (destination / "rope.f32").read_bytes() == rope
     monkeypatch.setattr(module.subprocess, "run", generate)
-    module.prepare_kit(tmp_path, destination, source, tmp_path)
+    module.prepare_kit(tmp_path, destination, source, tmp_path, *extra)
     assert (
         json.loads((destination / "vonk-generated.json").read_text())["source"]
         == "second source"
     )
     (destination / "rope.f32").unlink()
-    module.prepare_kit(tmp_path, destination, source, tmp_path)
+    module.prepare_kit(tmp_path, destination, source, tmp_path, *extra)
     assert (destination / "rope.f32").read_bytes() == rope

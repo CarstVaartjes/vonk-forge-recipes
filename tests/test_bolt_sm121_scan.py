@@ -70,3 +70,18 @@ def test_cuobjdump_errors_are_failures_but_missing_device_code_is_not() -> None:
     assert scan.interpret("ELF file 1: x.sm_121.cubin", "", 0)[1] is None
     text, error = scan.interpret("", "cuobjdump fatal : Unrecognized file", 1)
     assert text == "" and error and "exited 1" in error
+
+
+def test_every_adapter_copy_of_the_scan_is_this_one() -> None:
+    copies = sorted(SCRIPT.parents[2].glob("*/*/scan-sm121.py"))
+    assert SCRIPT in copies
+    for copy in copies:
+        assert copy.read_bytes() == SCRIPT.read_bytes(), copy
+
+
+def test_the_two_mia_tensorfold_dual_adapters_are_byte_identical() -> None:
+    root = SCRIPT.parents[2] / "qwen"
+    first = root / "mia-flash-next-tensorfold-dual-int4-autoround"
+    second = root / "mia-flash-next-tensorfold-dual-nvfp4"
+    for name in ("Dockerfile", "kit-final-stage.txt", "scan-sm121.py"):
+        assert (first / name).read_bytes() == (second / name).read_bytes(), name

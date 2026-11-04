@@ -1300,11 +1300,11 @@
       "eugr",
       "Qwen"
     ],
-    "source_reference": "https://github.com/NVIDIA/local-ai-inference-recipes/tree/ca3326c375f77ab60301898a83f3094ee72b0884"
+    "source_reference": "https://github.com/NVIDIA/local-ai-inference-recipes/tree/7b2ee453234617f58e1e100c195ac3be7f79e233"
   },
   "release": {
-    "released_at": "2026-10-19",
-    "version": "1.0.2"
+    "released_at": "2026-10-24",
+    "version": "0.66"
   },
   "runtime": {
     "arguments": [

@@ -10,7 +10,10 @@
       },
       "dockerfile": "adapters/qwen/mia-flash-next-tensorfold-dual-int4-autoround/Dockerfile",
       "network": {
-        "hosts": []
+        "hosts": [
+          "github.com",
+          "ziglang.org"
+        ]
       },
       "patches": []
     }
@@ -56,8 +59,8 @@
           ]
         },
         {
-          "file_id": "readme-3a81d9ddf728-b335630551",
-          "id": "target-readme-3a81d9ddf728-b335630551",
+          "file_id": "readme-55024a8f3cfb-b335630551",
+          "id": "target-readme-55024a8f3cfb-b335630551",
           "mount": {
             "target": "/models/target"
           },
@@ -893,7 +896,7 @@
         },
         {
           "file_id": "model-healed-shared-expert-safetensors-bc862c182ed3-4766e23f34",
-          "id": "primary-6f1f3d4f7b17b84277155f36",
+          "id": "target-model-healed-shared-expert-safetensors-bc862c182ed3-4766e",
           "mount": {
             "target": "/models/target"
           },
@@ -1389,10 +1392,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "37e223447c9b7404c702ebcb116d1f72d9568f6f9e30af56ae0e0b68f700ebca",
+        "content_sha256": "9c168731e700f6dfad8559954da24f48c4ec63723d33175c5fe1ddb92ceab12a",
         "kind": "model",
         "publisher": "azampatti",
-        "slug": "qwen3-8-flash-next-int4-autoround-14642741"
+        "slug": "qwen3-8-flash-next-int4-autoround-8b145d7f"
       }
     }
   ],
@@ -1403,11 +1406,11 @@
       "Qwen",
       "azampatti"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold/tree/6730319ed948cc88b525bbbdc9d309451a863834"
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold/tree/dc05c912342ec19467b3b7b686888de763f2ada1"
   },
   "release": {
-    "released_at": "2026-10-18",
-    "version": "1.0.0"
+    "released_at": "2026-11-03",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -1539,7 +1542,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 130836896655,
+            "artifact_bytes": 130836896639,
             "image_bytes": 26000000000,
             "safety_margin_bytes": 15000000000,
             "working_bytes": 8000000000
@@ -1556,7 +1559,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 130836896655,
+            "artifact_bytes": 130836896639,
             "image_bytes": 26000000000,
             "safety_margin_bytes": 15000000000,
             "working_bytes": 8000000000

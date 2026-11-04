@@ -1,0 +1,21 @@
+{
+  "kit": {
+    "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "ENGINE_COMMIT",
+        "pattern": "^(?P<version>[0-9a-f]{40})$",
+        "repo": "bertholomus/TensorFold"
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "requirements.in",
+    "requirements.lock",
+    "scan-sm121.py",
+    "tensorfold-serve",
+    "prepare_cache.py",
+    "launcher.py"
+  ]
+}

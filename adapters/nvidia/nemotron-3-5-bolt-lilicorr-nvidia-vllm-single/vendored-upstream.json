@@ -4,7 +4,7 @@
     "dependencies": {
       "image": {
         "datasource": "oci-image",
-        "file": "models/nvidia/nemotron-3.5-bolt-74b-a9b/dgx-spark/linux/vllm/iq2/performance.yaml",
+        "file": "models/nvidia/nemotron-3.5-bolt-74b-a9b/dgx-spark/linux/vllm/128gb/iq2/performance.yaml",
         "pattern": "^  runtime_revision: (?P<version>sha256:[0-9a-f]{64})$",
         "repo": "eugr/spark-vllm"
       }

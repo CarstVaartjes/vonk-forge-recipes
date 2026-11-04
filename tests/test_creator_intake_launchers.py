@@ -4,6 +4,7 @@ import importlib.util
 import json
 import os
 import runpy
+import stat
 import subprocess
 import sys
 import types
@@ -62,6 +63,32 @@ def test_flash_next_profile_receives_platform_endpoint(
     runtime = types.ModuleType("runtime")
     runtime.__dict__["entrypoint"] = entrypoint
     monkeypatch.setitem(sys.modules, "runtime", runtime)
+
+    # The creator's check, copied from patches/sglang.patch at 1dc3c2f0.
+    class PleCacheError(Exception):
+        pass
+
+    def require_single(st, what):
+        if stat.S_ISLNK(st.st_mode):
+            raise PleCacheError(f"{what} is a symlink")
+        if not stat.S_ISREG(st.st_mode):
+            raise PleCacheError(f"{what} is not a regular file")
+        if st.st_nlink != 1:
+            raise PleCacheError(
+                f"{what} must have exactly one hard link (got {st.st_nlink})"
+            )
+
+    ple_cache = types.ModuleType("sglang.srt.models.qwen4_exp_ple_cache")
+    ple_cache.__dict__["_require_regular_single_link"] = require_single
+    models = types.ModuleType("sglang.srt.models")
+    models.__dict__["qwen4_exp_ple_cache"] = ple_cache
+    for name, module in (
+        ("sglang", types.ModuleType("sglang")),
+        ("sglang.srt", types.ModuleType("sglang.srt")),
+        ("sglang.srt.models", models),
+        ("sglang.srt.models.qwen4_exp_ple_cache", ple_cache),
+    ):
+        monkeypatch.setitem(sys.modules, name, module)
     monkeypatch.setattr(os, "chdir", lambda path: None)
     monkeypatch.setattr(sys, "path", list(sys.path))
     monkeypatch.setattr(
@@ -104,6 +131,18 @@ def test_flash_next_profile_receives_platform_endpoint(
     assert ple_root == tmp_path / "cache" / "ple"
     assert ple_root.is_dir()
     assert ple_root.resolve() == ple_root
+    # Platform model files are shared hard links: only the source may have several.
+    linked = tmp_path / "linked"
+    linked.touch()
+    os.link(linked, tmp_path / "linked-again")
+    shared = os.stat(linked)
+    assert shared.st_nlink == 2
+    ple_cache._require_regular_single_link(shared, "source")
+    with pytest.raises(PleCacheError):
+        ple_cache._require_regular_single_link(shared, "cached table")
+    not_regular = os.stat_result((stat.S_IFDIR | 0o755, *tuple(shared)[1:]))
+    with pytest.raises(PleCacheError, match="not a regular file"):
+        ple_cache._require_regular_single_link(not_regular, "source")
     for flag, value in (
         ("--model-path", str(tmp_path)),
         ("--host", "127.0.0.1"),

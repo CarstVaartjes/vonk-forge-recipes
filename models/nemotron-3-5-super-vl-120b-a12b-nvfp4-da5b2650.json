@@ -12,13 +12,13 @@
       "size_bytes": 1903
     },
     {
-      "id": "readme-c9fc198e4414-b335630551",
+      "id": "readme-8f43225c9036-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "c9fc198e4414632c9dc8441ba02b3817b1a9968b5127a2de5073aae61fa1ff13",
-      "size_bytes": 97884
+      "sha256": "8f43225c9036e7aa14cdba81e56107e0a1d8b6d28a59b559c92a6dc8f8463ff9",
+      "size_bytes": 98048
     },
     {
       "id": "file---init---e3b0c44298fc-8e2c1f7272",
@@ -55,15 +55,6 @@
       ],
       "sha256": "1369e90b19976f99ce2070eb21ade8fcb4af640f008e14e82af5c5e89a9cc816",
       "size_bytes": 12927
-    },
-    {
-      "id": "chat-template-backup-6521afc75afb-73cabe859e",
-      "path": "chat_template_backup.jinja",
-      "roles": [
-        "tokenizer"
-      ],
-      "sha256": "6521afc75afb0661e3558e7e6dee5f2d15de8be1c4dece8171935e778ea283f4",
-      "size_bytes": 12514
     },
     {
       "id": "config-35189a8038d1-587cb980af",
@@ -1043,9 +1034,9 @@
       "slug": "nemotron-3-5-super-vl-120b-a12b-nvfp4"
     },
     "publisher": "nvidia",
-    "slug": "nemotron-3-5-super-vl-120b-a12b-nvfp4-59b87216",
+    "slug": "nemotron-3-5-super-vl-120b-a12b-nvfp4-da5b2650",
     "variant": "nemotron-3-5-super-vl-120b-a12b-nvfp4",
-    "version": "59b87216"
+    "version": "da5b2650"
   },
   "kind": "model",
   "license": {
@@ -1061,6 +1052,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4",
-    "revision": "59b8721646c38111a242da18218859fb2b454322"
+    "revision": "da5b2650a835292c678994a1fa3fb653250fb508"
   }
 }

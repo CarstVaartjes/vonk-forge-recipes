@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "engine": {
+      "commit": "953bd6fd50149041bceaa5abd0971de81e2cbbd0",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "953bd6fd50149041bceaa5abd0971de81e2cbbd0",
+      "repo": "bertholomus/TensorFold"
+    }
+  },
+  "kit": {
+    "commit": "16f65a98c6ff1c628e49ef29a8037fe2feb034c6",
+    "repo": "bertholomus/deepseek-v4.1-tensorfold-tp4-4xgb10"
+  }
+}

@@ -34,6 +34,7 @@ import re
 import subprocess
 import sys
 import threading
+import traceback
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterable
@@ -1020,6 +1021,10 @@ class Assessment:
     edits: dict[str, bytes | None] = field(default_factory=dict)
     version: tuple[str, str] | None = None  # (version, released_at) after refresh
     members: list[str] = field(default_factory=list)  # recipes refreshed together
+    # Pins a hold or a declined revision keeps where they are (labels), and whether the
+    # move raised any role peak: the PR body claims only what happened.
+    declined: list[str] = field(default_factory=list)
+    peaks_raised: bool = False
 
     @property
     def label(self) -> str:
@@ -2304,6 +2309,7 @@ class Assessor:
             ):
                 # A held base image stays (base-image-holds.json): no move, no review.
                 item.noop = True
+                result.declined.append(item.label)
                 result.evidence.append(
                     f"### {item.label}\n\n- newest `{item.target.sha}` is not followed: "
                     f"{base_holds.describe(hold)}\n"
@@ -2315,6 +2321,7 @@ class Assessor:
                 # The declined revision stays declined (model-revision-holds.json); a
                 # newer one is assessed again.
                 item.noop = True
+                result.declined.append(item.label)
                 result.evidence.append(
                     f"### {item.label}\n\n- newest `{item.target.sha}` is not followed: "
                     f"{model_holds.describe(model_hold)}\n"
@@ -2355,7 +2362,7 @@ class Assessor:
                     # A moved document meets today's margins (never lowered), unless
                     # its measured pre-move content did not raise the budget.
                     try:
-                        raise_role_peaks(
+                        result.peaks_raised = raise_role_peaks(
                             new_recipe["topology"]["roles"],
                             RecipeDefinition.model_validate(new_recipe),
                             RecipeDefinition.model_validate(recipe),
@@ -3207,6 +3214,58 @@ def render_pins(assessment: Assessment) -> str:
     return "\n".join(rows)
 
 
+def changes_recipe(assessment: Assessment) -> bool:
+    """Whether the move edits a recipe document (so its digest changes)."""
+    return any(
+        name.startswith("recipes/") and name.endswith(".json")
+        for name in assessment.edits
+    )
+
+
+def principles_section(assessment: Assessment) -> list[str]:
+    """The ``## Principles`` section: only what this move did.
+
+    Placed before the evidence so ``clip`` never drops it. Every claim follows the
+    assessment: pins moved, a recipe document changed (a new digest), proven bytes
+    followed, peaks raised.
+    """
+    lines = ["## Principles", ""]
+    if any(not item.unmark for item in assessment.items):
+        held = bool(assessment.declined)
+        lines.append(
+            "- Follow the creator, newest only: "
+            + ("the pins that moved go " if held else "the pins move in place ")
+            + "to the creator's newest published versions; no variant or history is added."
+        )
+    else:
+        lines.append(
+            "- No pin moves: only the `source.unverified` mark goes; the image is unchanged."
+        )
+    if assessment.declined:
+        lines.append(
+            "- Held, not followed (a hold or declined revision): "
+            + ", ".join(assessment.declined)
+            + "."
+        )
+    if PROVEN_BYTES in assessment.edits:
+        lines.append(
+            "- Content identity: the recipe is proven, so its entry in "
+            f"`{PROVEN_BYTES}` follows the new bytes; its evidence no longer matches the "
+            "new digest."
+        )
+    if assessment.peaks_raised:
+        lines.append(
+            "- Declared role peaks were raised to the vLLM budget envelope and never "
+            "lowered; hardware-measured peaks are kept (`keeps_measured_peaks`)."
+        )
+    if changes_recipe(assessment):
+        lines.append(
+            "- The sweep re-checks the new digest on hardware; nothing here claims it runs."
+        )
+    lines.append("")
+    return lines
+
+
 def pr_body(assessment: Assessment) -> str:
     version = assessment.version
     body = [
@@ -3226,12 +3285,18 @@ def pr_body(assessment: Assessment) -> str:
             "entrypoint the recipe references still in it (its diff is below); no launch script, "
             "configuration or patch target the recipe uses changed otherwise; every Model file "
             "the recipe mounts by name is still there; the full test suite and "
-            "`tools/check-vendored-upstream` passed. The sweep proves the recipe runs."
+            "`tools/check-vendored-upstream` passed."
+            + (
+                " The sweep proves the recipe runs."
+                if changes_recipe(assessment)
+                else ""
+            )
             if not assessment.held
             else "Needs review, not merged automatically:\n\n"
             + "\n".join(f"- {text}" for text in assessment.held)
         ),
         "",
+        *principles_section(assessment),
         *[f"> {note}\n" for note in assessment.notes],
         "## Evidence",
         "",
@@ -3553,8 +3618,10 @@ def raise_role_peaks(
     recipe: RecipeDefinition,
     previous: RecipeDefinition,
     previous_digest: str,
-) -> None:
+) -> bool:
     """Raise a moved vLLM document's role peaks (``roles``, in place) to the envelope.
+
+    Returns whether any peak was raised.
 
     The declared peaks stay only when the pre-move content (``previous``, authored
     digest ``previous_digest``) is hardware-measured and the move did not raise the
@@ -3562,12 +3629,13 @@ def raise_role_peaks(
     """
     raised = raise_peaks_to_envelope(recipe, previous, previous_digest)
     if raised is None:
-        return
+        return False
     for role, kept in zip(roles, raised.topology.roles, strict=True):
         memory = role["resources"]["memory"]
         memory["peak_bytes"] = kept.resources.memory.peak_bytes
         if kept.resources.memory.load_peak_bytes is not None:
             memory["load_peak_bytes"] = kept.resources.memory.load_peak_bytes
+    return True
 
 
 def follow_proven_bytes(root: Path, edits: dict[str, bytes | None]) -> None:
@@ -3655,7 +3723,10 @@ def _publish(
                 "started; the next run assesses it afresh"
             )
             return None
-    git("switch", "--detach", "origin/main", cwd=root)
+    # -f: whatever an earlier recipe left behind (staged edits after an early return or
+    # a publish, a half-applied edit) combined with main moving at the fetch above
+    # must never block this one, not even an untracked file where main now tracks one.
+    git("checkout", "-f", "--detach", "origin/main", cwd=root)
     git("reset", "--hard", "origin/main", cwd=root)
     git("clean", "-fdq", cwd=root)
     follow_proven_bytes(root, assessment.edits)
@@ -3809,6 +3880,8 @@ def combine_group(
         evidence=[text for part in parts for text in part.evidence],
         notes=list(dict.fromkeys(note for part in parts for note in part.notes)),
         held=list(dict.fromkeys(text for part in parts for text in part.held)),
+        declined=list(dict.fromkeys(text for part in parts for text in part.declined)),
+        peaks_raised=any(part.peaks_raised for part in parts),
         edits=edits,
         version=lead.version,
         members=[part.recipe_id for part in parts],  # the recipes that move
@@ -4343,6 +4416,12 @@ class AnonymousHeadClient:
         return self.http.json(url, provider, anonymous=True)
 
 
+def record_failure(summary: Summary, recipe_id: str, error: Exception) -> None:
+    """Record one recipe's failure; the full traceback goes to stderr for debugging."""
+    traceback.print_exc()
+    summary.failures.append(f"{recipe_id}: {type(error).__name__}: {str(error)[:300]}")
+
+
 def command_run(arguments: argparse.Namespace) -> int:
     root = ROOT
     cache_dir = arguments.cache_dir
@@ -4377,6 +4456,8 @@ def command_run(arguments: argparse.Namespace) -> int:
     if cache_dir is not None:
         os.environ.setdefault("VONK_UPSTREAM_CACHE", str(cache_dir / "github-trees"))
 
+    failed: set[str] = set()  # recipes whose assessment or processing raised
+
     def assess_catalog():
         catalog_ = Catalog.load(root)
         defaults, overrides = drift.load_manifest(root / "upstream-watch.json")
@@ -4384,8 +4465,19 @@ def command_run(arguments: argparse.Namespace) -> int:
         embedded = drift.embedded_inventory(root, watches)
         drift.observe_embedded_heads(embedded, AnonymousHeadClient(http))
         assessor = Assessor(catalog_, http, cache_dir, embedded)
+
+        def assess_one(recipe_id: str) -> Assessment:
+            try:
+                return assessor.assess(recipe_id)
+            except Exception as error:  # noqa: BLE001 - one recipe's fault must not starve the rest
+                record_failure(summary, recipe_id, error)
+                failed.add(recipe_id)
+                # skipped this run: the loop leaves its issue and PRs untouched and
+                # the close functions skip an unreachable assessment
+                return Assessment(recipe_id, unreachable=["assessment failed"])
+
         with ThreadPoolExecutor(max_workers=8) as pool:
-            results = list(pool.map(assessor.assess, sorted(catalog_.recipes)))
+            results = list(pool.map(assess_one, sorted(catalog_.recipes)))
         return catalog_, results, embedded
 
     assessment = read_optional(
@@ -4427,7 +4519,6 @@ def command_run(arguments: argparse.Namespace) -> int:
     ensure_labels()
     summary.current = sum(1 for r in results if not r.drifted and not r.unreachable)
     review_ids: set[str] = set()
-    failed: set[str] = set()
     open_prs = foreign_open_prs()
     groups = sharing_groups(catalog_)
     grouped: set[str] = set()
@@ -4435,30 +4526,29 @@ def command_run(arguments: argparse.Namespace) -> int:
     handled: set[str] = set()  # recipes (group members too) an open refresh PR covers
     prepared_prs: dict[str, int | None] = {}  # group member -> the group's PR
     for result in results:
-        if result.drifted and (
-            blockers := blocking_prs(
-                recipe_footprint(catalog_, result.recipe_id), open_prs
-            )
-        ):
-            review_ids.add(result.recipe_id)  # leave any existing issue alone
-            summary.deferred.append(
-                f"{result.recipe_id}: skipped: open PR "
-                + ", ".join(f"#{n}" for n in blockers)
-            )
-            continue
-        if result.unreachable:
-            summary.unreachable.append(
-                f"{result.recipe_id}: {'; '.join(result.unreachable)}"
-            )
-            try:
-                sync_issue(result, summary, create=False)
-            except RuntimeError as error:
-                summary.failures.append(f"{result.recipe_id}: {str(error)[:300]}")
-            continue
-        summary.newer_lines += [f"{result.recipe_id}: {n}" for n in result.notes]
-        if not result.drifted:
+        if result.recipe_id in failed:  # its assessment raised; already recorded
             continue
         try:
+            if result.drifted and (
+                blockers := blocking_prs(
+                    recipe_footprint(catalog_, result.recipe_id), open_prs
+                )
+            ):
+                review_ids.add(result.recipe_id)  # leave any existing issue alone
+                summary.deferred.append(
+                    f"{result.recipe_id}: skipped: open PR "
+                    + ", ".join(f"#{n}" for n in blockers)
+                )
+                continue
+            if result.unreachable:
+                summary.unreachable.append(
+                    f"{result.recipe_id}: {'; '.join(result.unreachable)}"
+                )
+                sync_issue(result, summary, create=False)
+                continue
+            summary.newer_lines += [f"{result.recipe_id}: {n}" for n in result.notes]
+            if not result.drifted:
+                continue
             if result.prepared:
                 if summary.prepared >= MAX_MECHANICAL_PER_RUN:
                     summary.deferred.append(
@@ -4514,9 +4604,9 @@ def command_run(arguments: argparse.Namespace) -> int:
             if result.reasons or result.held or result.group_outcome:
                 review_ids.add(result.recipe_id)
                 sync_issue(result, summary)
-        except (RuntimeError, OSError, KeyError) as error:
+        except Exception as error:  # noqa: BLE001 - one recipe's fault must not starve the rest
             failed.add(result.recipe_id)
-            summary.failures.append(f"{result.recipe_id}: {str(error)[:300]}")
+            record_failure(summary, result.recipe_id, error)
     for source, action in (
         (
             "close current issues",

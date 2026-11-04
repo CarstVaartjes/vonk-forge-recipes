@@ -3,7 +3,7 @@ FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a71
 LABEL org.opencontainers.image.source="https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo" \
       org.opencontainers.image.revision="fc13ba1986fcb905854dc8de2f52eee395f49b5b" \
       org.opencontainers.image.licenses="Qwen-Research" \
-      io.vonk.diffusers.revision="b800f828f3951c4d206e154411bcbfa693cd322e"
+      io.vonk.diffusers.revision="2a1433913c7044f34fa4767dd84b28bba0bb0ecf"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -23,7 +23,7 @@ RUN apt-get update \
         torch==2.14.0 \
         torchvision==0.29.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir \
-        "diffusers @ git+https://github.com/huggingface/diffusers.git@b800f828f3951c4d206e154411bcbfa693cd322e" \
+        "diffusers @ git+https://github.com/huggingface/diffusers.git@2a1433913c7044f34fa4767dd84b28bba0bb0ecf" \
         accelerate==1.15.0 \
         Pillow==12.3.0 \
         safetensors==0.8.0 \
