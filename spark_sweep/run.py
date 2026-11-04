@@ -97,7 +97,7 @@ from .prefetch import DOWNLOAD_RETIRED, SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
 from .qualification import (
     current_identity,
-    from_history,
+    history_evidence,
     local_status,
     merge_evidence,
     pass_marker,
@@ -411,11 +411,10 @@ class Sweep:
 
     def _remember_qualification(self, row: Mapping[str, Any]) -> None:
         try:
-            record = from_history(row)
-            if record is None:
+            evidence = history_evidence(row)
+            if evidence is None:
                 return
-            key = str(row["recipe"])
-            evidence = RecipeQualificationEvidence(recipe_key=key, records=(record,))
+            key = evidence.recipe_key
             previous = self.qualification_evidence.get(key) or read_evidence(
                 Path(__file__).resolve().parents[1], key
             )
@@ -2209,6 +2208,7 @@ class Sweep:
             self.documents.get(str(slot.get("request_key", ""))),
             str(slot["alias"]),
             self._ran_recipe(recipe) if observed else None,
+            recipe.content_sha256,
         )
         quality = result.quality_notes + memory.notes(observed)
         if quality:
@@ -2233,7 +2233,7 @@ class Sweep:
             "passed",
             result={"endpoint_alias": slot["alias"], **result.record()},
             memory=observed,
-            measured_memory=measured.model_dump(mode="json") if measured else None,
+            measured_memory=[row.model_dump(mode="json") for row in measured] or None,
             slot=slot,
         )
         notes = len(quality)

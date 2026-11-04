@@ -1,96 +1,73 @@
-"""A hardware pass records the memory it measured, bound to its content identity."""
+"""Measured memory is its own evidence table, keyed by (content_sha256, role)."""
 
-from datetime import UTC, datetime
+from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 from vonk_forge_contracts import (
-    QualificationBlame,
-    QualificationCauseCode,
-    QualificationEvidenceRecord,
-    QualificationIdentity,
-    QualificationMeasuredMemory,
-    QualificationOutcome,
-    QualificationPlatform,
-    QualificationRoleMemory,
-    QualificationSummary,
+    QualificationMeasuredRoleMemory,
     RecipeQualificationEvidence,
 )
 
-NOW = datetime(2026, 11, 4, tzinfo=UTC)
-MEASURED = QualificationMeasuredMemory(
-    budget_bytes=96_000_000_000,
-    roles=(
-        QualificationRoleMemory(role="entrypoint", steady_bytes=101_000_000_000),
-        QualificationRoleMemory(role="worker", steady_bytes=99_000_000_000),
-    ),
-)
+ROOT = Path(__file__).resolve().parents[1]
 
 
-def passed(
-    memory: QualificationMeasuredMemory | None = None,
-) -> QualificationEvidenceRecord:
-    return QualificationEvidenceRecord(
-        identity=QualificationIdentity(content_sha256="a" * 64, required_sparks=2),
-        outcome=QualificationOutcome.PASSED,
-        cause_code=QualificationCauseCode.HARDWARE_PASS,
-        cause_summary=QualificationSummary.PASSED,
-        tested_at=NOW,
-        platform=QualificationPlatform(spark_count=2),
-        memory=memory,
+def row(
+    content: str = "a", role: str = "entrypoint"
+) -> QualificationMeasuredRoleMemory:
+    return QualificationMeasuredRoleMemory(
+        content_sha256=content * 64,
+        role=role,
+        steady_bytes=101_000_000_000,
+        budget_bytes=96_000_000_000,
     )
 
 
-def test_a_pass_round_trips_its_measured_memory() -> None:
-    record = passed(memory=MEASURED)
-    evidence = RecipeQualificationEvidence(recipe_key="vonk-forge/x", records=(record,))
+def test_the_table_round_trips() -> None:
+    evidence = RecipeQualificationEvidence(
+        recipe_key="vonk-forge/x",
+        measured_memory=(row("a"), row("a", "worker"), row("b")),
+    )
     again = RecipeQualificationEvidence.model_validate_json(
         evidence.model_dump_json(exclude_none=True)
     )
-    assert again.records[0].memory == MEASURED
+    assert again == evidence
 
 
-def test_a_record_without_a_measurement_keeps_its_bytes() -> None:
-    """Existing evidence is "not measured": no migration, the same published bytes."""
-    record = passed()
-    assert record.memory is None
-    assert "memory" not in record.model_dump(mode="json", exclude_none=True)
-
-
-def test_only_a_pass_records_measured_memory() -> None:
-    with pytest.raises(ValidationError, match="only a hardware pass"):
-        QualificationEvidenceRecord(
-            identity=QualificationIdentity(content_sha256="a" * 64),
-            outcome=QualificationOutcome.FAILED,
-            blame=QualificationBlame.RECIPE,
-            cause_code=QualificationCauseCode.RUNTIME_OOM,
-            cause_summary=QualificationSummary.RUNTIME_OOM,
-            tested_at=NOW,
-            platform=QualificationPlatform(),
-            memory=MEASURED,
-        )
+def test_every_committed_evidence_file_keeps_its_bytes() -> None:
+    """No migration: an empty table is left out, so today's files are unchanged."""
+    paths = sorted((ROOT / "qualification/evidence").rglob("*.json"))
+    assert paths
+    for path in paths:
+        text = path.read_text()
+        evidence = RecipeQualificationEvidence.model_validate_json(text)
+        assert evidence.model_dump_json(indent=2, exclude_none=True) + "\n" == text
 
 
 @pytest.mark.parametrize(
-    "roles",
+    "rows",
     [
-        (),
-        ("worker", "entrypoint"),
-        ("entrypoint", "entrypoint"),
+        (row("b"), row("a")),
+        (row("a", "worker"), row("a", "entrypoint")),
+        (row("a"), row("a")),
     ],
 )
-def test_measured_roles_are_nonempty_sorted_and_unique(roles: tuple[str, ...]) -> None:
-    with pytest.raises(ValidationError):
-        QualificationMeasuredMemory(
-            roles=tuple(
-                QualificationRoleMemory(role=name, steady_bytes=1) for name in roles
-            )
-        )
+def test_rows_are_sorted_and_unique_by_content_and_role(rows) -> None:
+    with pytest.raises(ValidationError, match="sorted and unique"):
+        RecipeQualificationEvidence(recipe_key="vonk-forge/x", measured_memory=rows)
 
 
-@pytest.mark.parametrize("field", ["node_id", "hostname", "used_bytes"])
-def test_a_measurement_carries_no_infrastructure_or_unnamed_fields(field: str) -> None:
-    payload = passed(memory=MEASURED).model_dump(mode="json")
-    payload["memory"]["roles"][0][field] = "spk_private"
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("node_id", "spk_private"),
+        ("hostname", "spark-1"),
+        ("role", "Not A Role"),
+        ("content_sha256", "rev-1"),
+        ("steady_bytes", -1),
+    ],
+)
+def test_a_row_carries_no_infrastructure_and_only_valid_values(field, value) -> None:
+    payload = row().model_dump(mode="json") | {field: value}
     with pytest.raises(ValidationError):
-        QualificationEvidenceRecord.model_validate(payload)
+        QualificationMeasuredRoleMemory.model_validate(payload)
