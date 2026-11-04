@@ -472,7 +472,7 @@ def blame(klass: str, code: str | None) -> Blame:
 
 
 def disposition(failure: Failure) -> Disposition:
-    """What an outcome the sweep observed means for the recipe's attempt budget."""
+    """What an outcome the sweep observed means for the recipe's retry."""
     if failure.klass in SKIP_CLASSES:
         return Disposition.SKIP
     if (
@@ -488,8 +488,14 @@ def disposition(failure: Failure) -> Disposition:
         # NAS space is a resource prerequisite the collector frees: a wait. A placement
         # refusal may be the recipe not fitting: the fleet is cleared and it is observed.
         return Disposition.WAIT if failure.phase == "download" else Disposition.OBSERVE
-    # An observe class, or a class nobody named: look again (the identical-exit bound and
-    # the attempt budget end it), never a verdict.
+    if failure.klass not in DECLARED_CLASSES and failure.evidence.get(
+        "identical_exits"
+    ):
+        # An unnamed class that repeated identically (``Sweep._bound_identical_exit``): recorded
+        # now with its own class and code and the platform's blame, reopened on a release change.
+        return Disposition.FAIL
+    # An observe class, or a class nobody named: look again; ``Sweep._bound_identical_exit``
+    # ends an unnamed class after three identical outcomes.
     return Disposition.OBSERVE
 
 
