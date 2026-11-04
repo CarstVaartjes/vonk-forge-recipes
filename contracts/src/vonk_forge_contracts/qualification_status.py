@@ -11,6 +11,7 @@ from typing import Annotated, Literal, Self
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
 from ._schema_version import QualificationEvidenceSchemaVersion
+from .recipe import Identifier
 
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 SourceSHA = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
@@ -24,10 +25,6 @@ Version = Annotated[
     ),
 ]
 RecipeKey = Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$")]
-# A recipe topology role name (recipe.Identifier).
-RoleName = Annotated[
-    str, Field(min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]*$")
-]
 
 
 class PublicQualificationModel(BaseModel):
@@ -217,38 +214,6 @@ class QualificationFixReference(PublicQualificationModel):
         return self
 
 
-class QualificationRoleMemory(PublicQualificationModel):
-    """What one role's Spark held while the run served, as the hardware run observed it.
-
-    ``steady_bytes`` is that Spark's host memory in use (total less available, the
-    OS included) sampled after the smoke passed, with the run alone on it. It is an
-    observation, never the recipe's declaration.
-    """
-
-    role: RoleName
-    steady_bytes: int = Field(ge=0)
-
-
-class QualificationMeasuredMemory(PublicQualificationModel):
-    """The memory a hardware pass measured, bound to the record's content identity.
-
-    ``budget_bytes`` is the vLLM utilization budget the launch that ran had
-    (gpu-memory-utilization x Spark memory); ``None`` when it had none (an
-    absolute KV pool, or another engine). ``roles`` holds only roles whose Spark
-    the run had to itself, so their use is the run's own.
-    """
-
-    budget_bytes: int | None = Field(default=None, ge=0)
-    roles: tuple[QualificationRoleMemory, ...] = Field(min_length=1)
-
-    @model_validator(mode="after")
-    def canonical_roles(self) -> Self:
-        names = tuple(item.role for item in self.roles)
-        if names != tuple(sorted(set(names))):
-            raise ValueError("measured roles must be sorted and unique")
-        return self
-
-
 class QualificationEvidenceRecord(PublicQualificationModel):
     identity: QualificationIdentity
     outcome: QualificationOutcome
@@ -260,13 +225,9 @@ class QualificationEvidenceRecord(PublicQualificationModel):
     platform: QualificationPlatform
     fix_reference: QualificationFixReference | None = None
     quality_notes: tuple[QualificationQualityNote, ...] = ()
-    # Absent means "not measured": records written before the sweep measured.
-    memory: QualificationMeasuredMemory | None = None
 
     @model_validator(mode="after")
     def consistent_verdict(self) -> Self:
-        if self.memory is not None and self.outcome != QualificationOutcome.PASSED:
-            raise ValueError("only a hardware pass records measured memory")
         if (
             self.outcome == QualificationOutcome.PASSED
             and self.platform.spark_count is not None
@@ -298,10 +259,42 @@ class QualificationEvidenceRecord(PublicQualificationModel):
         return self
 
 
+class QualificationMeasuredRoleMemory(PublicQualificationModel):
+    """What one role of one content held on hardware: a row keyed (content, role).
+
+    ``steady_bytes`` is the role's Spark host memory in use (total less available,
+    the OS included) sampled after a smoke passed, the run alone on that Spark: an
+    observation, never the recipe's declaration. ``budget_bytes`` is the vLLM
+    utilization budget of the launch that ran (gpu-memory-utilization x Spark
+    memory); ``None`` when it had none (an absolute KV pool, or another engine).
+    """
+
+    content_sha256: Digest
+    role: Identifier
+    steady_bytes: int = Field(ge=0)
+    budget_bytes: int | None = Field(default=None, ge=0)
+
+    @property
+    def key(self) -> tuple[str, str]:
+        return (self.content_sha256, self.role)
+
+
 class RecipeQualificationEvidence(PublicQualificationModel):
     schema_version: QualificationEvidenceSchemaVersion = 1
     recipe_key: RecipeKey
     records: tuple[QualificationEvidenceRecord, ...] = ()
+    # Its own table, keyed (content_sha256, role); empty means "not measured" and
+    # is left out of the file, so evidence written before it keeps its bytes.
+    measured_memory: tuple[QualificationMeasuredRoleMemory, ...] = Field(
+        default=(), exclude_if=lambda rows: not rows
+    )
+
+    @model_validator(mode="after")
+    def keyed_measurements(self) -> Self:
+        keys = [row.key for row in self.measured_memory]
+        if keys != sorted(set(keys)):
+            raise ValueError("measured memory rows must be sorted and unique by key")
+        return self
 
 
 class QualificationDerivationInput(PublicQualificationModel):
