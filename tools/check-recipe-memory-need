@@ -14,8 +14,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-from pydantic import ValidationError
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
@@ -33,6 +31,7 @@ from qualification.memory_need import (
     memory_notes,
     memory_variants,
     per_rank_need,
+    recipe_envelope,
     unchanged_recipe,
 )
 from spark_sweep.qualification import read_evidence
@@ -54,23 +53,35 @@ def touched_recipes(root: Path, base: str) -> list[Path]:
     return sorted({root / name for name in names})
 
 
+def keep_rule_applies(recipe: RecipeDefinition, unchanged: bool) -> bool:
+    """Whether ``keeps_measured_peaks`` can change this recipe's findings.
+
+    It only waives the vLLM envelope for a peak below it on content the
+    evidence does not already judge, so only such recipes need their
+    predecessor (and a git lookup).
+    """
+    envelope = recipe_envelope(recipe)
+    return not unchanged and any(
+        role.resources.memory.peak_bytes < envelope for role in recipe.topology.roles
+    )
+
+
 def previous_recipe(
     root: Path, base: str | None, path: Path
 ) -> tuple[RecipeDefinition | None, str]:
-    """The recipe before the change under review and its digest; (None, "") when
-    it is new, its history is unavailable or it predates the current contract.
+    """The content a change replaced and its digest; (None, "") when it is new or
+    its history is absent.
 
-    With ``base`` that is the merge base; without it, the parent of the last
-    commit that changed the file (main squash-merges, so that is the merge base
-    the PR was checked against).
+    With ``base`` that is the merge base. Without it, it is main's state just
+    before the last first-parent commit that changed the file, for a squash and
+    an integration merge alike. ``tools/refresh-upstream`` holds the same
+    content in memory when it moves a recipe; both judge it by
+    ``keeps_measured_peaks``.
     """
     document = previous_document(root, base, path)
     if document is None:
         return None, ""
-    try:
-        return RecipeDefinition.model_validate(document), document_sha256(document)
-    except ValidationError:
-        return None, ""
+    return RecipeDefinition.model_validate(document), document_sha256(document)
 
 
 def previous_document(root: Path, base: str | None, path: Path) -> dict | None:
@@ -88,7 +99,7 @@ def previous_document(root: Path, base: str | None, path: Path) -> dict | None:
     if base:
         point = git("merge-base", base, "HEAD") or base
     else:
-        changed = git("log", "-1", "--format=%H", "--", str(relative))
+        changed = git("log", "-1", "--first-parent", "--format=%H", "--", str(relative))
         if not changed:
             return None
         point = f"{changed}^"
@@ -166,7 +177,12 @@ def main() -> int:
                 f"{key}: maximum loading floor {max(n.peak_bytes for n in needs)} bytes/rank"
             )
             continue
-        previous, previous_digest = previous_recipe(ROOT, args.base, path)
+        unchanged = unchanged_recipe(recipe, digest, inputs)
+        previous, previous_digest = (
+            previous_recipe(ROOT, args.base, path)
+            if keep_rule_applies(recipe, unchanged)
+            else (None, "")
+        )
         found = memory_estimate_warnings(
             recipe,
             models,
@@ -180,7 +196,6 @@ def main() -> int:
         for warning in found:
             print(f"WARNING {warning}")
         if recipe.runtime.engine in {"vllm", "sglang"}:
-            unchanged = unchanged_recipe(recipe, digest, inputs)
             print(
                 f"{key}: hardware-proven={hardware_proven(recipe, digest)}; unchanged={unchanged}"
             )

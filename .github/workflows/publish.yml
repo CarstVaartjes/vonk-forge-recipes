@@ -94,8 +94,12 @@ jobs:
       - name: Check out recipes
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # The report judges a moved recipe against its pre-move content.
+          # The report judges a moved recipe against its pre-move content:
+          # full history without blobs (commits and trees, a few MB); git
+          # fetches the few predecessor blobs it shows on demand. A bounded
+          # depth would relist every move older than the window.
           fetch-depth: 0
+          filter: blob:none
 
       - name: Set up uv and Python
         uses: ./.github/actions/setup-tooling
