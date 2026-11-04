@@ -22,6 +22,7 @@ from vonk_forge_contracts.sweep import (
     SweepEvidenceMergeState,
 )
 
+from .own_pulls import OWN_FIELDS, own_pulls
 from .qualification import (
     backfill,
     catalog_recipe_keys,
@@ -100,37 +101,26 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     return result.stdout.strip()
 
 
-OWNER = REPOSITORY.split("/")[0]
-
-
 def own_open_prs(cwd: Path) -> list[dict]:
-    """Open PRs on the evidence branch that come from this repository.
-
-    The repository is public: a fork can open a PR from a branch of the same name.
-    Those are never ours to merge, close or count.
-    """
-    listed = json.loads(
-        command(
-            cwd,
-            "gh",
-            "pr",
-            "list",
-            "--repo",
-            REPOSITORY,
-            "--head",
-            BRANCH,
-            "--state",
-            "open",
-            "--json",
-            "number,isCrossRepository,headRepositoryOwner",
+    """Open PRs on the evidence branch that come from this repository."""
+    own = own_pulls(
+        json.loads(
+            command(
+                cwd,
+                "gh",
+                "pr",
+                "list",
+                "--repo",
+                REPOSITORY,
+                "--head",
+                BRANCH,
+                "--state",
+                "open",
+                "--json",
+                f"number,{OWN_FIELDS}",
+            )
         )
     )
-    own = [
-        pr
-        for pr in listed
-        if pr.get("isCrossRepository") is False
-        and (pr.get("headRepositoryOwner") or {}).get("login") == OWNER
-    ]
     if len(own) > 1:
         raise RuntimeError("multiple qualification evidence PRs; needs repair")
     return own

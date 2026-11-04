@@ -32,6 +32,9 @@ refresh = importlib.util.module_from_spec(SPEC)
 sys.modules[LOADER.name] = refresh
 LOADER.exec_module(refresh)
 
+#: The fields a PR from this repository carries (see spark_sweep.own_pulls).
+OWN = {"isCrossRepository": False, "headRepositoryOwner": {"login": "CarstVaartjes"}}
+
 MODEL = json.loads(
     (
         ROOT / "contracts/src/vonk_forge_contracts/examples/model-definition.json"
@@ -750,7 +753,9 @@ class MergeGateTests(unittest.TestCase):
 
             def github(*arguments: str) -> str:
                 if arguments[:3] == ("pr", "list", "--head"):
-                    return json.dumps([{"number": 421, "state": "OPEN", "body": ""}])
+                    return json.dumps(
+                        [{"number": 421, "state": "OPEN", "body": "", **OWN}]
+                    )
                 if arguments[:2] == ("pr", "list"):
                     return "[]"
                 if arguments[0] == "api":
@@ -851,10 +856,11 @@ class MergeGateTests(unittest.TestCase):
         pulls = [
             {
                 "number": 419,
+                **OWN,
                 "autoMergeRequest": {"enabledAt": "now"},
                 "files": [{"path": "recipes/a.json"}],
             },
-            {"number": 421, "files": [{"path": "recipes/b.json"}]},
+            {"number": 421, **OWN, "files": [{"path": "recipes/b.json"}]},
         ]
         with (
             patch("refresh_upstream.gh_json", return_value=pulls),
@@ -872,11 +878,13 @@ class MergeGateTests(unittest.TestCase):
         pulls = [
             {
                 "number": 419,
+                **OWN,
                 "autoMergeRequest": {"enabledAt": "now"},
                 "files": [{"path": "models/shared.json"}],
             },
             {
                 "number": 421,
+                **OWN,
                 "files": [{"path": "recipes/b.json"}, {"path": "models/shared.json"}],
             },
         ]
@@ -893,9 +901,9 @@ class MergeGateTests(unittest.TestCase):
 
     def test_file_overlap_counts_prs_armed_earlier_in_the_run(self) -> None:
         pulls = [
-            {"number": 1, "files": [{"path": "models/m.json"}]},
-            {"number": 2, "files": [{"path": "models/m.json"}]},
-            {"number": 3, "files": [{"path": "models/m.json"}]},
+            {"number": 1, **OWN, "files": [{"path": "models/m.json"}]},
+            {"number": 2, **OWN, "files": [{"path": "models/m.json"}]},
+            {"number": 3, **OWN, "files": [{"path": "models/m.json"}]},
         ]
         self.assertEqual(refresh.file_overlaps(2, pulls, armed=[1]), [1])
         self.assertEqual(refresh.file_overlaps(2, pulls), [])
@@ -923,7 +931,7 @@ class MergeGateTests(unittest.TestCase):
             }
         ]
         pulls = [
-            {"number": n, "files": [{"path": f"recipes/r{n}.json"}]}
+            {"number": n, **OWN, "files": [{"path": f"recipes/r{n}.json"}]}
             for n in (421, 422, 423)
         ]
         with (
@@ -953,16 +961,21 @@ class MergeGateTests(unittest.TestCase):
         summary = refresh.Summary()
         summary.healthy = True
         listing = [
-            {"number": 1, "headRefName": "refresh/a", "autoMergeRequest": None},
-            {"number": 2, "headRefName": "refresh/b", "autoMergeRequest": {"x": 1}},
-            {"number": 3, "headRefName": "codex/c", "autoMergeRequest": None},
+            {"number": 1, "headRefName": "refresh/a", "autoMergeRequest": None, **OWN},
+            {
+                "number": 2,
+                "headRefName": "refresh/b",
+                "autoMergeRequest": {"x": 1},
+                **OWN,
+            },
+            {"number": 3, "headRefName": "codex/c", "autoMergeRequest": None, **OWN},
         ]
         calls = []
 
         def gh_json(*arguments: str):
             calls.append(arguments)
             if "autoMergeRequest,files" in arguments[-1]:
-                return [{"number": 1, "files": []}]
+                return [{"number": 1, "files": [], **OWN}]
             return listing
 
         with (
@@ -2545,6 +2558,7 @@ class SelfHealingTests(unittest.TestCase):
                         [
                             {
                                 "number": 9,
+                                **OWN,
                                 "state": "OPEN",
                                 "body": "",
                                 "statusCheckRollup": rollup,
@@ -2748,7 +2762,7 @@ class SharedContextTests(unittest.TestCase):
 
     def test_a_group_pr_survives_a_run_that_did_not_republish_it(self) -> None:
         # Lead "a" is current; "b" still moves but this run deferred it (cap, open PR).
-        pulls = [{"number": 5, "headRefName": "refresh/a", "body": ""}]
+        pulls = [{"number": 5, "headRefName": "refresh/a", "body": "", **OWN}]
         assessed = {
             "a": refresh.Assessment("a"),
             "b": self.assessment("b", edits={"recipes/b.json": b"2"}),
@@ -2948,8 +2962,8 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
 class StalePullRequestTests(unittest.TestCase):
     def close(self, assessed, groups=None, published=None, issues=()):
         pulls = [
-            {"number": 1, "headRefName": "refresh/a", "body": ""},
-            {"number": 2, "headRefName": "refresh/b", "body": ""},
+            {"number": 1, "headRefName": "refresh/a", "body": "", **OWN},
+            {"number": 2, "headRefName": "refresh/b", "body": "", **OWN},
         ]
         closed: list[tuple[str, ...]] = []
 

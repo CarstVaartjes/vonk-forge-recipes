@@ -53,6 +53,7 @@ from vonk_forge_contracts.recipe import RecipeRelease
 
 from qualification.documents import model_display
 from qualification.memory_need import raise_peaks_to_envelope
+from spark_sweep.own_pulls import OWN_FIELDS, own_pulls
 from spark_sweep.tolerant import InputReason, read_optional
 
 
@@ -3494,15 +3495,17 @@ def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
         )
         return False
 
-    pull_requests = gh_json(
-        "pr",
-        "list",
-        "--state",
-        "open",
-        "--limit",
-        "1000",
-        "--json",
-        "number,autoMergeRequest,files",
+    pull_requests = own_pulls(
+        gh_json(
+            "pr",
+            "list",
+            "--state",
+            "open",
+            "--limit",
+            "1000",
+            "--json",
+            f"number,autoMergeRequest,files,{OWN_FIELDS}",
+        )
     )
     if conflicting := file_overlaps(number, pull_requests, summary.armed):
         numbers = ", ".join(f"#{n}" for n in conflicting[:5])
@@ -3522,17 +3525,19 @@ def arm_open_mechanical_prs(summary: Summary) -> None:
     A full run takes tens of minutes; prepared PRs must not wait for it. Required checks
     still gate each merge, and a later push to the branch only restarts them.
     """
-    pull_requests = gh_json(
-        "pr",
-        "list",
-        "--state",
-        "open",
-        "--label",
-        LABEL_MECHANICAL,
-        "--limit",
-        "200",
-        "--json",
-        "number,headRefName,autoMergeRequest",
+    pull_requests = own_pulls(
+        gh_json(
+            "pr",
+            "list",
+            "--state",
+            "open",
+            "--label",
+            LABEL_MECHANICAL,
+            "--limit",
+            "200",
+            "--json",
+            f"number,headRefName,autoMergeRequest,{OWN_FIELDS}",
+        )
     )
     for pr in pull_requests:
         branch = str(pr.get("headRefName", ""))
@@ -3684,15 +3689,17 @@ def _publish(
     recipe_id = assessment.recipe_id
     branch = f"refresh/{recipe_id}"
     marker = f"<!-- refresh-target: {assessment.fingerprint()} -->"
-    existing = gh_json(
-        "pr",
-        "list",
-        "--head",
-        branch,
-        "--state",
-        "all",
-        "--json",
-        "number,state,body,statusCheckRollup",
+    existing = own_pulls(
+        gh_json(
+            "pr",
+            "list",
+            "--head",
+            branch,
+            "--state",
+            "all",
+            "--json",
+            f"number,state,body,statusCheckRollup,{OWN_FIELDS}",
+        )
     )
     if any(pr["state"] == "CLOSED" and marker in (pr["body"] or "") for pr in existing):
         summary.deferred.append(
@@ -3931,15 +3938,17 @@ def supersede_member_prs(
     for member in members:
         if member == lead:
             continue
-        for pr in gh_json(
-            "pr",
-            "list",
-            "--head",
-            f"refresh/{member}",
-            "--state",
-            "open",
-            "--json",
-            "number",
+        for pr in own_pulls(
+            gh_json(
+                "pr",
+                "list",
+                "--head",
+                f"refresh/{member}",
+                "--state",
+                "open",
+                "--json",
+                f"number,{OWN_FIELDS}",
+            )
         ):
             gh(
                 "pr",
@@ -3970,17 +3979,19 @@ def close_stale_refresh_prs(
     pulls = [
         pr
         for label in (LABEL_MECHANICAL, LABEL_NEEDS_REVIEW)  # held moves are PRs too
-        for pr in gh_json(
-            "pr",
-            "list",
-            "--state",
-            "open",
-            "--label",
-            label,
-            "--limit",
-            "200",
-            "--json",
-            "number,headRefName,body",
+        for pr in own_pulls(
+            gh_json(
+                "pr",
+                "list",
+                "--state",
+                "open",
+                "--label",
+                label,
+                "--limit",
+                "200",
+                "--json",
+                f"number,headRefName,body,{OWN_FIELDS}",
+            )
         )
     ]
     issues: list[dict[str, Any]] = (
