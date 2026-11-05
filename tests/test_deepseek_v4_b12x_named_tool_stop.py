@@ -33,6 +33,12 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests/fixtures/vllm-b5f995e7-forced-tool-grammar.py.txt"
 # The base image whose vLLM is b5f995e7 (content identity, not repository name).
 B5F995E7_BASE = "7dc02f162929943ba2e14514066ed2a04bb7e9ed3592d4eb460ebcbb1f8376bd"
+# The SparkInfer base (ghcr.io/0xsero/deepseek-v4-flash-0731-spark-sparkinfer) builds the same
+# forced-call structural tag; hardware, 2026-11-05: the Mia recipe answered T_REPORT with two
+# identical report_temperature calls (the free prefix up to </think> held one, the grammar forced
+# a second). Only recipes that declare a tool-calling smoke case are in scope.
+SPARKINFER_BASE = "2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4"
+MIA_SPARKINFER = "deepseek-v4-flash-0731-mia-sparkinfer-single"
 STRICT = "VLLM_ENFORCE_STRICT_TOOL_CALLING"
 SFXNZ = "deepseek-v4-flash-vision-exp-sfxnz-vllm-dual"
 
@@ -190,18 +196,26 @@ def test_default_strict_grammar_demands_reasoning_for_a_thinking_off_call(
     assert vllm["DeepSeekV4EngineToolParser"].supports_required_and_named is False
 
 
+def _declares_t_report(slug: str) -> bool:
+    path = ROOT / "qualification/recipes" / f"{slug}.json"
+    smoke = json.loads(path.read_text())["service_recipes"]["smoke_cases"]
+    return "T_REPORT" in smoke
+
+
 def _b5f995e7_deepseek_v4_recipes() -> list[str]:
     found = []
     for path in sorted((ROOT / "recipes").glob("*.json")):
         recipe = json.loads(path.read_text())
         runtime = recipe["runtime"]
         build = recipe.get("execution", {}).get("build") or {}
+        digest = (build.get("base_image") or {}).get("digest")
         arguments = {a["name"]: a.get("value") for a in runtime["arguments"]}
-        if (
-            runtime["engine"] == "vllm"
-            and (build.get("base_image") or {}).get("digest") == B5F995E7_BASE
+        b5f995e7 = (
+            digest == B5F995E7_BASE
             and arguments.get("tool-call-parser") == "deepseek_v4"
-        ):
+        )
+        sparkinfer = digest == SPARKINFER_BASE and _declares_t_report(path.stem)
+        if runtime["engine"] == "vllm" and (b5f995e7 or sparkinfer):
             found.append(path.stem)
     return found
 
@@ -211,6 +225,8 @@ def test_every_b5f995e7_deepseek_v4_recipe_serves_forced_calls_by_json_schema(
 ) -> None:
     slugs = _b5f995e7_deepseek_v4_recipes()
     assert SFXNZ in slugs
+    assert MIA_SPARKINFER in slugs
+    assert "deepseek-v4-flash-0731-sparkinfer-single" not in slugs
     for slug in slugs:
         recipe = _recipe(slug)
         vllm = _load_vllm(monkeypatch, strict=_environment(recipe).get(STRICT))
