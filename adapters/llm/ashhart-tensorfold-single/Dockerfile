@@ -17,7 +17,8 @@ RUN curl -fsSL -o /tmp/tensorfold.tar.gz https://github.com/ashhart/TensorFold/r
     && tar -xzf /tmp/tensorfold.tar.gz -C /opt/tensorfold --strip-components=1 \
     && rm /tmp/tensorfold.tar.gz \
     && test "$(cat /opt/tensorfold/VERSION)" = 1.2.3 \
-    && /opt/tensorfold/bin/tensorfold-native --version
+    && /opt/tensorfold/bin/tensorfold-native --version \
+    && /opt/tensorfold/bin/tensorfold-native capabilities --json | grep -q '"soname":"libcublasLt.so.13","found":true'
 
 COPY --chmod=0755 tensorfold-serve /opt/vonk/bin/tensorfold-serve
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
