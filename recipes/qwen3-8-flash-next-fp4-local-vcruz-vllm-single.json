@@ -493,7 +493,7 @@
       },
       {
         "name": "gpu-memory-utilization",
-        "value": 0.89
+        "value": 0.905
       },
       {
         "name": "max-model-len",
@@ -619,7 +619,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 124290276025,
+            "peak_bytes": 124450224497,
             "reserve_bytes": 8000000000
           }
         }
