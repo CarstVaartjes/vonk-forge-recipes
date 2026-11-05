@@ -18,6 +18,7 @@ from .catalog import fetch_fleet, fetch_models, fetch_recipes
 from .definitions import Definitions
 from .issues import file_issues
 from .job_media import ffprobe
+from .own_pulls import REPOSITORY
 from .plan import make_plan, render_plan
 from .prefetch import PrefetchConfig
 from .report import build_report, export_evidence, render_report, saved_qualification
@@ -30,7 +31,7 @@ from .vonkctl import OWNER_PROFILES, Vonkctl, VonkctlError
 # the results log is read by `vonk-fleet-qualify-campaign status` for that authority.
 AUTHORITY_ID = "nl-family-aware-20260924"
 DEFAULT_STATE_DIR = Path.home() / ".vonk-sweep"
-REPO = "CarstVaartjes/vonk-forge-recipes"
+REPO = REPOSITORY
 
 
 def _parser() -> argparse.ArgumentParser:
