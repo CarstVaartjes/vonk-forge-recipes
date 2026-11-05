@@ -1938,8 +1938,8 @@ class ReleaseAssetTests(unittest.TestCase):
         # Another project's download and digest are not this release's.
         self.assertIn("libjpeg-turbo/releases/download/3.1.4.1/j.tar.gz", moved)
         self.assertIn(self.OTHER, moved)
-        recipe = json.loads(result.edits["recipes/recipe.json"])
-        self.assertEqual(recipe["release"]["version"], "1.2.4")
+        self.assertIn("recipes/recipe.json", result.edits)
+        self.assertEqual(result.version, ("1.2.4", "2026-11-07"))
 
     def test_a_release_without_its_sha256_file_is_a_review(self) -> None:
         result = self.assess(new_has_sha256=False)
