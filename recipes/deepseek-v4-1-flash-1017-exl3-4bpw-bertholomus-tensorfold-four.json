@@ -657,10 +657,10 @@
       ],
       "id": "kit-bias",
       "model": {
-        "content_sha256": "d3b3e70116d098d2279e188009d5a9508d85e5ac7eeba800f0392e52e7f56fe9",
+        "content_sha256": "4115ac0ed843c18a58519b79edf9053d74345ece3a58b97097344bda295ccf4e",
         "kind": "model",
         "publisher": "bertholomus",
-        "slug": "deepseek-v4-1-flash-1017-tensorfold-tp4-kit-ca83223e"
+        "slug": "deepseek-v4-1-flash-1017-tensorfold-tp4-kit-9d3cd05c"
       }
     }
   ],
@@ -672,11 +672,11 @@
       "Ash Hart / TensorFold",
       "DeepSeek-AI"
     ],
-    "source_reference": "https://github.com/bertholomus/deepseek-v4.1-tensorfold-tp4-4xgb10/tree/16f65a98c6ff1c628e49ef29a8037fe2feb034c6"
+    "source_reference": "https://github.com/bertholomus/deepseek-v4.1-tensorfold-tp4-4xgb10/tree/acf0d2bad07b6e31501c3e04df1fc6c27dcb91b6"
   },
   "release": {
-    "released_at": "2026-11-02",
-    "version": "0.3.6"
+    "released_at": "2026-11-04",
+    "version": "0.3.7"
   },
   "runtime": {
     "arguments": [
@@ -758,7 +758,7 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 16
+      "value": 32
     },
     "context_tokens": {
       "change_effect": "restart",

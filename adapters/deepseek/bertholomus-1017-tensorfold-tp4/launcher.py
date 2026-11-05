@@ -1,4 +1,4 @@
-"""Bind one rank of bertholomus's v0.3.6 TP4 launch (scripts/serve.sh, config.env.example) to the Controller's model, cache and fabric."""
+"""Bind one rank of bertholomus's v0.3.7 TP4 launch (scripts/serve.sh, config.env.example) to the Controller's model, cache and fabric."""
 import argparse
 import fcntl
 from ipaddress import ip_address
@@ -10,11 +10,12 @@ from prepare_cache import prepare
 
 ENGINE = Path("/opt/tensorfold")
 RDMA_KERNELS = ENGINE / "fatbin/dsv41_rdma.fatbin"
-# config.env.example ENGINE_ENV at 16f65a98 (v0.3.6): every rank's environment, apart from TF_DS_STREAMS and TF_DS_WINDOW
+# config.env.example ENGINE_ENV at acf0d2ba (v0.3.7): every rank's environment, apart from TF_DS_STREAMS and TF_DS_WINDOW
 # (bound to --parallel and --pool) and TENSORFOLD_GRAMMAR_LIB (the cache's kit).
-ROUND_MS = "14.5,17.4,19.9,22.3,24.0,25.9,27.5,29.2,30.8,32.5,34.1,35.7,37.4,39.0,40.7,42.3,43.9,45.6,47.2,48.9,50.5,52.1,53.8,55.4,57.1,58.7,60.3,62.0,63.6,65.3,66.9,68.5,70.2,71.8,73.5,75.1,76.7,78.4,80.0,81.7,83.3,84.9,86.6,88.2,89.9,91.5,93.1,94.8"
+ROUND_ROWS = "64"
+ROUND_MS = "14.5,17.4,19.9,22.3,24.0,25.9,27.5,29.2,30.8,32.5,34.1,35.7,37.4,39.0,40.7,42.3,43.9,45.6,47.2,48.9,50.5,52.1,53.8,55.4,57.1,58.7,60.3,62.0,63.6,65.3,66.9,68.5,70.2,71.8,73.5,75.1,76.7,78.4,80.0,81.7,83.3,84.9,86.6,88.2,89.9,91.5,93.1,94.8,96.4,98.1,99.7,101.4,103.0,104.6,106.3,107.9,109.6,111.2,112.9,114.5,116.1,117.8,119.4,121.1"
 ENGINE_ENV = {
-    "TF_DS_2D_GU": "parity", "TF_DS_ROUND_ROWS": "48", "TF_DS_SERVED_K": "solo", "TF_DS_ROUND_MS": ROUND_MS,
+    "TF_DS_2D_GU": "parity", "TF_DS_ROUND_ROWS": ROUND_ROWS, "TF_DS_SERVED_K": "solo", "TF_DS_ROUND_MS": ROUND_MS,
     "TF_DS_IDX_SPLIT": "8192", "TENSORFOLD_PLAIN_SPECIALS": "1", "TENSORFOLD_SSE_KEEPALIVE": "15",
     "TENSORFOLD_STATS_EVERY": "60", "TF_FILL_CHUNKS": "1", "TF_FILL_MANY": "1", "TF_DS_2D_YX": "1", "TF_DS_WAVES": "1",
     "NCCL_MAX_NCHANNELS": "4",
@@ -77,7 +78,7 @@ def launch(arguments, environ):
         command = [str(ENGINE / "bin/tf-dsv41-lanes"), str(model), str(rank_cache), str(args.rank), str(args.tp), master, port, str(kit),
                    "--pool", str(args.context), "--engram", "/models/engram", "--token-map", str(token_map), "--rdma", rails,
                    "--rdma-kernels", str(RDMA_KERNELS), "--graphs", "1", "--side", "1", "--prefetch", "1", "--aio", "1",
-                   "--round-rows", "48", "--streams", str(args.parallel), "--pool", str(args.pool), "--context", str(args.context)]
+                   "--round-rows", ROUND_ROWS, "--streams", str(args.parallel), "--pool", str(args.pool), "--context", str(args.context)]
     return args, cache, command, env
 
 
