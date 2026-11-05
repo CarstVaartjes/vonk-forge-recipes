@@ -3536,6 +3536,11 @@
         "value": "glm47"
       },
       {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/opt/vonk/glm53-chat-template.jinja"
+      },
+      {
         "name": "tool-call-parser",
         "setting": null,
         "value": "glm47"
