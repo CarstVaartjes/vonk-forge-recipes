@@ -1,4 +1,7 @@
-"""What a serving run holds beside its declared envelope: a quality note, never a verdict."""
+"""What a serving run holds: a quality note beside its envelope, and the evidence it measured.
+
+Neither is a verdict: a run that cannot be measured still passes, unmeasured.
+"""
 
 from __future__ import annotations
 
@@ -6,8 +9,9 @@ from collections.abc import Iterable, Mapping
 from typing import Any
 
 from pydantic import BaseModel, ValidationError
+from vonk_forge_contracts import QualificationMeasuredRoleMemory, RecipeDefinition
 
-from qualification.memory_need import OS_FLOOR_BYTES
+from qualification.memory_need import OS_FLOOR_BYTES, holds_within, vllm_budget_bytes
 
 
 class _Sample(BaseModel):
@@ -119,5 +123,99 @@ def notes(memory: Mapping[str, Any] | None) -> list[dict[str, Any]]:
         }
         for node in memory["nodes"]
         if node["alone"]
-        and node["used_bytes"] > memory["declared_bytes"] + OS_FLOOR_BYTES
+        and not holds_within(memory["declared_bytes"], node["used_bytes"])
     ]
+
+
+class _Placement(BaseModel):
+    node_id: str
+    role: str
+
+
+class _Assignment(BaseModel):
+    alias: str | None = None
+    nodes: list[_Placement]
+    option_choices: dict[str, str] = {}
+
+
+class _IntendedProfile(BaseModel):
+    assignments: list[_Assignment]
+
+
+class _Progress(BaseModel):
+    intended_profile: _IntendedProfile
+
+
+class _Application(BaseModel):
+    progress: _Progress
+
+
+class _DetailIdentity(BaseModel):
+    content_sha256: str
+
+
+class _Detail(BaseModel):
+    identity: _DetailIdentity
+    document: dict[str, Any]
+
+
+def ran_recipe(detail: Any, content_sha256: str) -> RecipeDefinition | None:
+    """The recipe document ``vonkctl recipe detail --technical`` reports, if it is what ran.
+
+    Bound by the Controller's own content identity; another content is ``None``.
+    """
+    try:
+        parsed = _Detail.model_validate(detail)
+        if parsed.identity.content_sha256 != content_sha256:
+            return None
+        return RecipeDefinition.model_validate(parsed.document)
+    except ValidationError:
+        return None
+
+
+def measurement(
+    observed: Mapping[str, Any] | None,
+    application: Any,
+    alias: str,
+    recipe: RecipeDefinition | None,
+    content_sha256: str,
+) -> tuple[QualificationMeasuredRoleMemory, ...]:
+    """The evidence rows this pass measured, keyed (content, role); none when unclear.
+
+    ``observed`` is :func:`observe`'s sample; the Controller ``application`` document
+    places each Spark in a role for the run's ``alias`` and names its option
+    choices, so the budget is the one of the launch that ran. Only Sparks the run
+    had to itself count, only roles the recipe declares; a role keeps the largest
+    use over its Sparks. Measuring never costs a verdict: anything it cannot tell
+    apart or compute is "not measured".
+    """
+    if not observed or recipe is None:
+        return ()
+    try:
+        assignments = _Application.model_validate(
+            application
+        ).progress.intended_profile.assignments
+        assignment = next(item for item in assignments if item.alias == alias)
+        launch = recipe.with_option_choices(assignment.option_choices)
+        budget = vllm_budget_bytes(launch)
+    except (StopIteration, ValueError, TypeError, ArithmeticError):
+        return ()
+    declared = {role.name for role in launch.topology.roles}
+    role_of = {item.node_id: item.role for item in assignment.nodes}
+    steady: dict[str, int] = {}
+    for node in observed["nodes"]:
+        role = role_of.get(node["node_id"])
+        if role in declared and node["alone"]:
+            steady[role] = max(steady.get(role, 0), node["used_bytes"])
+    try:
+        return tuple(
+            QualificationMeasuredRoleMemory(
+                content_sha256=content_sha256,
+                role=role,
+                steady_bytes=used,
+                budget_bytes=budget,
+            )
+            for role, used in sorted(steady.items())
+        )
+    except ValueError:
+        return ()

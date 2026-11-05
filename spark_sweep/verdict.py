@@ -35,6 +35,7 @@ from .lifecycle import ACTIVE, LifecycleState
 from .policy import (
     CLIENT_CREDENTIAL,
     CONTROLLER_WAIT,
+    FIT,
     RECIPE_FAILURE_CODES,
     REVIEW_FINAL_CODES,
     SWAP_SHORT,
@@ -135,8 +136,26 @@ PLATFORM_STALLED = "platform-stalled"
 SWEEP_CRASH = "sweep-crash"
 #: A job recipe's smoke job ended failed and the Controller names no platform cause.
 JOB_FAILED = "job-failed"
-FAIL_CLASSES = frozenset(
-    {"smoke-assertion", "recipe-data", JOB_FAILED, SmokeAuthClass.REFUSAL}
+FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data", JOB_FAILED})
+#: Outcomes the sweep ends and records now, with their evidence, without blaming the recipe:
+#: a failure named only by the phase it happened in (``policy.classify`` falls back to the
+#: phase), a lane silent past its whole window (``timeout``), the gateway refusing the
+#: sweep's own key for the route, and the classes ``policy._CODE_CLASSES`` gives the
+#: Controller's never-fits words (``FIT``) and model-integrity faults.
+RECORDED_CLASSES = frozenset(
+    {
+        "download",
+        "install",
+        "build",
+        "start",
+        "readiness",
+        "smoke",
+        "smoke-request",
+        "timeout",
+        "model-integrity",
+        FIT,
+        SmokeAuthClass.REFUSAL,
+    }
 )
 #: The recipe left the complete catalog (``catalog.recipe_removed``): deterministic, so it is
 #: skipped at once; a recipe that comes back is picked up like any new one.
@@ -430,17 +449,37 @@ def silent_seconds(watch: Mapping[str, Any], now: float) -> float:
 # -- disposition ------------------------------------------------------------------
 
 
+class Blame(StrEnum):
+    RECIPE = "recipe"  # the recipe's own definite fault: a verdict
+    PLATFORM = "platform"  # anything else: never the recipe's verdict
+
+
+#: Every class some producer names. A class outside it is unnamed: ``disposition`` observes it
+#: and ``Sweep._bound_identical_exit`` ends it after three identical outcomes.
+DECLARED_CLASSES = (
+    FAIL_CLASSES | SKIP_CLASSES | RECORDED_CLASSES | WAIT_CLASSES | OBSERVE_CLASSES
+) | {"capacity"}
+
+
+def blame(klass: str, code: str | None) -> Blame:
+    """Whose fault an outcome is: the one rule the sweep and the published status share."""
+    if klass == UNATTRIBUTED:
+        # Even a recipe code is nobody's verdict while nothing names whose it is.
+        return Blame.PLATFORM
+    if klass in FAIL_CLASSES or code in RECIPE_FAILURE_CODES:
+        return Blame.RECIPE
+    return Blame.PLATFORM
+
+
 def disposition(failure: Failure) -> Disposition:
-    """What an outcome the sweep observed means for the recipe's attempt budget."""
+    """What an outcome the sweep observed means for the recipe's retry."""
     if failure.klass in SKIP_CLASSES:
         return Disposition.SKIP
-    if failure.klass == UNATTRIBUTED:
-        # Even a recipe code is nobody's verdict while nothing names whose it is.
-        return Disposition.OBSERVE
     if (
-        failure.klass in FAIL_CLASSES
-        or failure.code in RECIPE_FAILURE_CODES
-        or failure.code in REVIEW_FINAL_CODES
+        blame(failure.klass, failure.code) is Blame.RECIPE
+        or failure.klass in RECORDED_CLASSES
+        # The Controller's final word (never fits): recorded now, the platform's verdict.
+        or (failure.klass != UNATTRIBUTED and failure.code in REVIEW_FINAL_CODES)
     ):
         return Disposition.FAIL
     if failure.klass in WAIT_CLASSES:
@@ -449,9 +488,15 @@ def disposition(failure: Failure) -> Disposition:
         # NAS space is a resource prerequisite the collector frees: a wait. A placement
         # refusal may be the recipe not fitting: the fleet is cleared and it is observed.
         return Disposition.WAIT if failure.phase == "download" else Disposition.OBSERVE
-    if failure.klass in OBSERVE_CLASSES:
-        return Disposition.OBSERVE
-    return Disposition.FAIL
+    if failure.klass not in DECLARED_CLASSES and failure.evidence.get(
+        "identical_exits"
+    ):
+        # An unnamed class that repeated identically (``Sweep._bound_identical_exit``): recorded
+        # now with its own class and code and the platform's blame, reopened on a release change.
+        return Disposition.FAIL
+    # An observe class, or a class nobody named: look again; ``Sweep._bound_identical_exit``
+    # ends an unnamed class after three identical outcomes.
+    return Disposition.OBSERVE
 
 
 def _document(reply: Reply | None) -> Mapping[str, Any]:

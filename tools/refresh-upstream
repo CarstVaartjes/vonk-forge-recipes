@@ -2361,7 +2361,8 @@ class Assessor:
             if new_recipe != recipe:
                 if new_recipe.get("runtime", {}).get("engine") == "vllm":
                     # A moved document meets today's margins (never lowered), unless
-                    # its measured pre-move content did not raise the budget.
+                    # hardware measured its peaks under no smaller budget: evidence
+                    # rows, or the proven document it replaces.
                     try:
                         result.peaks_raised = raise_role_peaks(
                             new_recipe["topology"]["roles"],
@@ -3621,18 +3622,19 @@ def checks_moved(root: Path, head: str) -> bool:
 def raise_role_peaks(
     roles: list[dict[str, Any]],
     recipe: RecipeDefinition,
-    previous: RecipeDefinition,
-    previous_digest: str,
+    replaced: RecipeDefinition,
+    replaced_digest: str,
 ) -> bool:
     """Raise a moved vLLM document's role peaks (``roles``, in place) to the envelope.
 
     Returns whether any peak was raised.
 
-    The declared peaks stay only when the pre-move content (``previous``, authored
-    digest ``previous_digest``) is hardware-measured and the move did not raise the
-    budget; unmeasured estimates and budget-raising moves are raised.
+    The declared peaks stay where hardware evidence measured them under no smaller
+    budget (``keeps_measured_peaks``). ``replaced`` is the document this refresh
+    replaces, in hand (never git history): proven content without measured rows
+    vouches for its own declared peaks under its own budget.
     """
-    raised = raise_peaks_to_envelope(recipe, previous, previous_digest)
+    raised = raise_peaks_to_envelope(recipe, (replaced, replaced_digest))
     if raised is None:
         return False
     for role, kept in zip(roles, raised.topology.roles, strict=True):
