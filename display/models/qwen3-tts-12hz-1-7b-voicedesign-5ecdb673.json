@@ -1,0 +1,14 @@
+{
+  "description": "Exact official Qwen3-TTS 12Hz 1.7B VoiceDesign checkpoint (bundled 12Hz speech tokenizer): speech in a voice described in natural language, with emotion and tone instructions.",
+  "family_title": "Qwen3-TTS",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen3-tts-12hz-1-7b-voicedesign-5ecdb673"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3-TTS 12Hz 1.7B VoiceDesign",
+  "tags": [
+    "qwen",
+    "qwen3-tts"
+  ]
+}

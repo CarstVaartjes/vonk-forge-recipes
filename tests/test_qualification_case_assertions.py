@@ -292,6 +292,9 @@ SHARED_PROVEN_MEDIA = {
     "ltx-2-19b-distilled-diffusers-single": "ltx-2-19b-distilled-fp8-diffusers-single",
     "trellis-2-4b-pytorch-single": "pixal3d-pytorch-single",
 }
+# The audio length follows the smoke fixture's single short sentence, so the
+# smoke is minimal by its input rather than by a generation control.
+MINIMAL_BY_FIXTURE_MEDIA = {"qwen3-tts-12hz-1-7b-pytorch-single"}
 REQUEST_CONTROLLED_MEDIA = {
     "minimax-h3-diffusers-single",
     "minimax-h3-fl2va-diffusers-single",
@@ -355,6 +358,15 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
                 else:
                     assert request["num_inference_steps_global"] == 2
                     assert request["num_inference_steps_local"] == 2
+        elif slug in MINIMAL_BY_FIXTURE_MEDIA:
+            assert not spec.get("parameters")
+            assert all(
+                (ROOT / "qualification" / definitions["fixtures"][i["fixture"]]["path"])
+                .stat()
+                .st_size
+                <= 256
+                for i in spec["inputs"]
+            )
         elif slug in SHARED_PROVEN_MEDIA:
             assert SHARED_PROVEN_MEDIA[slug] in PROVEN_FIXED_MEDIA
             recipe = json.loads((ROOT / "recipes" / path.name).read_text())
@@ -376,6 +388,7 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
     assert seen == (
         PROVEN_FIXED_MEDIA
         | MINIMAL_MEDIA_PARAMETERS.keys()
+        | MINIMAL_BY_FIXTURE_MEDIA
         | REQUEST_CONTROLLED_MEDIA
         | SHARED_PROVEN_MEDIA.keys()
         | {"skintokens-pytorch-single"}
