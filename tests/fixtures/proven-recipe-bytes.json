@@ -130,7 +130,7 @@
   "vonk-forge/qwen3-6-27b-nvfp4-r0b0tlab-vllm-single": "de3893397bc3a4e72d08cb0333d54bba69c82894b524626b6e386c57249c25b4",
   "vonk-forge/qwen3-6-27b-ud-q8-k-xl-llama-cpp-mia-single": "a5aa002aa583ad460f0880fdd3532de8ec0b7f4eb50afcd79818574ab90e492e",
   "vonk-forge/qwen3-6-27b-vllm-single": "ac4ab44288f3c3fa0b7b99ca7f847478d18edaa7e9d58256e158e465d4e5b0a9",
-  "vonk-forge/qwen3-6-35b-a3b-fp8-dflash-eugr-vllm-single": "6d0f47ece9a415ffbeed00b6ca0bad19a0634526404ed5dca72bc34fdb6ec89f",
+  "vonk-forge/qwen3-6-35b-a3b-fp8-dflash-eugr-vllm-single": "f7852c5108685c7bdfb99c140c69cc34c9c37f246715d776175213230e67b07f",
   "vonk-forge/qwen3-6-35b-a3b-fp8-eugr-vllm-single": "6c67fb9bf8562a1771dc2606f43d2188a87290d3a574a9b22c02741dabcb401a",
   "vonk-forge/qwen3-6-35b-a3b-mtp-q4-k-xl-nvidia-llamacpp-single": "cf94b52f47b13c7a60c7e93934edcd61b91047b26952ff9d1400aa0feb814a0b",
   "vonk-forge/qwen3-6-35b-a3b-nvfp4-eugr-vllm-dual": "4d77fa43a5b48a4db1b6fee5e6a5363bfaa9d213a86149e6ee16970d3ee8eb25",
