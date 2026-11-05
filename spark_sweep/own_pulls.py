@@ -11,7 +11,9 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any
 
-OWNER = "CarstVaartjes"
+#: The one repository constant; the evidence publisher and the sweep CLI import it.
+REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
+OWNER = REPOSITORY.split("/")[0]
 #: Add to the `--json` fields of every `gh pr list`; `own_pulls` needs them.
 OWN_FIELDS = "isCrossRepository,headRepositoryOwner"
 

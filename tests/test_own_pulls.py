@@ -2,6 +2,7 @@
 
 import ast
 import json
+import re
 from pathlib import Path
 from unittest.mock import patch
 
@@ -11,7 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 OWN = {"isCrossRepository": False, "headRepositoryOwner": {"login": "CarstVaartjes"}}
 FORK = {"isCrossRepository": True, "headRepositoryOwner": {"login": "someone-else"}}
 HELPERS = {"own_pulls", "own_open_prs"}
-ACTING = {"view", "merge", "close"}
+ACTING = {"view", "merge", "close", "edit", "comment", "reopen", "ready"}
+BY_NUMBER = re.compile(r"^\d+$")
 
 
 def test_own_pulls_fails_closed():
@@ -33,61 +35,112 @@ def test_own_pulls_fails_closed():
     assert [pr["number"] for pr in own_pulls(pulls)] == [1]
 
 
-def _gh_verb(call: ast.Call) -> tuple[str, int] | None:
-    strings = [
-        a.value if isinstance(a, ast.Constant) and isinstance(a.value, str) else None
-        for a in call.args
-    ]
-    for i in range(len(strings) - 1):
-        if strings[i] == "pr" and strings[i + 1] in {"list", *ACTING}:
-            return strings[i + 1] or "", i
-    return None
+def _tokens(node: ast.AST) -> list[str | None]:
+    """String constants of a call's arguments in order, looking inside lists, tuples
+    and f-strings; anything computed is None."""
+    out: list[str | None] = []
+    for arg in getattr(node, "args", []):
+        stack = [arg]
+        while stack:
+            item = stack.pop(0)
+            if isinstance(item, ast.List | ast.Tuple):
+                stack = [*item.elts, *stack]
+            elif isinstance(item, ast.Starred):
+                stack = [item.value, *stack]
+            elif isinstance(item, ast.Constant) and isinstance(item.value, str):
+                out.append(item.value)
+            elif isinstance(item, ast.JoinedStr):
+                parts = [
+                    v.value
+                    if isinstance(v, ast.Constant) and isinstance(v.value, str)
+                    else "\0"
+                    for v in item.values
+                ]
+                out.append("".join(parts))
+            else:
+                out.append(None)
+    return out
+
+
+def _is_helper_call(n: ast.AST, names=HELPERS) -> bool:
+    return (
+        isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id in names
+    )
 
 
 def unguarded_pr_calls(source: str) -> list[str]:
-    """`gh pr list` must go through own_pulls with OWN_FIELDS; view/merge/close only
-    inside a function that selects PRs through a helper."""
+    """What the own-repo rule forbids:
+
+    * `gh pr list` unless its result reaches `own_pulls` (wrapped, or assigned to a
+      variable that is later passed to it) and it asks for OWN_FIELDS;
+    * `gh pr view|merge|close|edit|...` and `gh api` calls on `/pulls` or graphql,
+      unless the function selects PRs through a helper;
+    * `gh pr <verb> <branch name>`: acting by branch name instead of a selected number.
+    """
     tree = ast.parse(source)
     parents = {c: p for p in ast.walk(tree) for c in ast.iter_child_nodes(p)}
     offenders = []
 
-    def calls_helper(node: ast.AST) -> bool:
-        return any(
-            isinstance(n, ast.Call)
-            and isinstance(n.func, ast.Name)
-            and n.func.id in HELPERS
-            for n in ast.walk(node)
-        )
+    def scope(node: ast.AST) -> ast.AST:
+        while node in parents and not isinstance(
+            node, ast.FunctionDef | ast.AsyncFunctionDef
+        ):
+            node = parents[node]
+        return node
 
     for call in (n for n in ast.walk(tree) if isinstance(n, ast.Call)):
-        found = _gh_verb(call)
-        if found is None:
+        tokens = _tokens(call)
+        verb = next(
+            (
+                (tokens[i + 1], tokens[i + 2] if i + 2 < len(tokens) else None)
+                for i in range(len(tokens) - 1)
+                if tokens[i] == "pr" and tokens[i + 1] in {"list", *ACTING}
+            ),
+            None,
+        )
+        api = "api" in tokens and any(
+            t and ("/pulls" in t or "graphql" in t) for t in tokens
+        )
+        where = f"line {call.lineno}"
+        if verb is None and not api:
             continue
-        verb, _ = found
-        if verb == "list":
+        env = scope(call)
+        has_helper = any(_is_helper_call(n) for n in ast.walk(env))
+        if api and not has_helper:
+            offenders.append(
+                f"{where}: gh api on pulls/graphql outside an own-repo helper"
+            )
+        if verb is None:
+            continue
+        name, argument = verb
+        if name == "list":
             node, wrapped = call, False
             while node in parents and not isinstance(node, ast.stmt):
                 node = parents[node]
-                wrapped |= (
-                    isinstance(node, ast.Call)
-                    and isinstance(node.func, ast.Name)
-                    and node.func.id == "own_pulls"
+                wrapped |= _is_helper_call(node, {"own_pulls"})
+            if not wrapped and isinstance(node, ast.Assign):
+                names = {t.id for t in node.targets if isinstance(t, ast.Name)}
+                wrapped = any(
+                    _is_helper_call(n, {"own_pulls"})
+                    and any(
+                        isinstance(a, ast.Name) and a.id in names for a in ast.walk(n)
+                    )
+                    for n in ast.walk(env)
                 )
             fields = any(
                 isinstance(n, ast.Name) and n.id == "OWN_FIELDS" for n in ast.walk(call)
             )
             if not (wrapped and fields):
-                offenders.append(
-                    f"line {call.lineno}: gh pr list not own_pulls+OWN_FIELDS"
-                )
+                offenders.append(f"{where}: gh pr list not own_pulls+OWN_FIELDS")
         else:
-            node = call
-            while node in parents and not isinstance(
-                node, ast.FunctionDef | ast.AsyncFunctionDef
+            if not has_helper:
+                offenders.append(f"{where}: gh pr {name} without a helper")
+            if (
+                argument
+                and not argument.startswith("-")
+                and not BY_NUMBER.match(argument)
             ):
-                node = parents[node]
-            if not calls_helper(node):
-                offenders.append(f"line {call.lineno}: gh pr {verb} without a helper")
+                offenders.append(f"{where}: gh pr {name} acts on a branch name")
     return offenders
 
 
@@ -104,8 +157,6 @@ def _sources():
 def test_every_gh_pr_selection_goes_through_the_own_repo_helper():
     offenders = []
     for path, text in _sources():
-        if "gh" not in text or '"pr"' not in text:
-            continue
         try:
             found = unguarded_pr_calls(text)
         except SyntaxError:
@@ -114,21 +165,40 @@ def test_every_gh_pr_selection_goes_through_the_own_repo_helper():
     assert not offenders, offenders
 
 
-def test_the_guard_fails_on_planted_unguarded_calls():
-    listed = 'def f():\n    return gh_json("pr", "list", "--head", "x", "--json", "number")\n'
-    wrapped_without_fields = (
-        'def f():\n    return own_pulls(gh_json("pr", "list", "--json", "number"))\n'
-    )
-    merged = 'def f(n):\n    gh("pr", "merge", str(n), "--auto")\n'
-    closed = 'def f(n):\n    command(cwd, "gh", "pr", "close", str(n))\n'
-    for source in (listed, wrapped_without_fields, merged, closed):
-        assert unguarded_pr_calls(source), source
-    good = (
+PLANTED = {
+    "list not wrapped": 'def f():\n    return gh_json("pr", "list", "--head", "x", "--json", "number")\n',
+    "list without fields": 'def f():\n    return own_pulls(gh_json("pr", "list", "--json", "number"))\n',
+    "merge": 'def f(n):\n    gh("pr", "merge", str(n), "--auto")\n',
+    "close in command": 'def f(n):\n    command(cwd, "gh", "pr", "close", str(n))\n',
+    "subprocess list": 'def f(n):\n    subprocess.run(["gh", "pr", "merge", n])\n',
+    "gh list argument": 'def f(n):\n    gh(["pr", "close", n])\n',
+    "api pulls": 'def f():\n    return gh("api", "repos/{owner}/{repo}/pulls?state=open")\n',
+    "api put merge": 'def f(n):\n    gh("api", "-X", "PUT", f"repos/o/r/pulls/{n}/merge")\n',
+    "api graphql": 'def f():\n    gh("api", "graphql", "-f", "query=q")\n',
+    "by branch name": 'def f():\n    gh("pr", "view", "refresh/x")\n',
+}
+
+
+def test_the_guard_flags_every_known_bypass():
+    for name, source in PLANTED.items():
+        assert unguarded_pr_calls(source), name
+
+
+def test_the_guard_accepts_guarded_shapes():
+    wrapped = (
         "def f():\n"
         '    pulls = own_pulls(gh_json("pr", "list", "--json", f"number,{OWN_FIELDS}"))\n'
         '    gh("pr", "merge", str(pulls[0]["number"]))\n'
     )
-    assert unguarded_pr_calls(good) == []
+    assigned = (
+        "def f():\n"
+        '    listed = gh_json("pr", "list", "--json", f"number,{OWN_FIELDS}")\n'
+        "    pulls = own_pulls(listed)\n"
+        '    gh("pr", "close", str(pulls[0]["number"]))\n'
+    )
+    numbered = 'def f():\n    own_pulls([])\n    gh("pr", "view", "123")\n'
+    for source in (wrapped, assigned, numbered):
+        assert unguarded_pr_calls(source) == [], source
 
 
 def _load_refresh():
@@ -184,3 +254,81 @@ def test_refresh_upstream_never_arms_merges_or_closes_a_fork_pr():
     assert acted  # our own refresh/y was armed and closed
     assert all("7" not in c for c in acted)
     assert summary.armed == [8]
+
+
+def test_a_fork_pr_touching_a_recipe_does_not_block_its_refresh():
+    refresh = _load_refresh()
+    pulls = [
+        {
+            "number": 5,
+            "headRefName": "feature",
+            "files": [{"path": "recipes/x.json"}],
+            **FORK,
+        },
+        {
+            "number": 6,
+            "headRefName": "feature2",
+            "files": [{"path": "recipes/y.json"}],
+            **OWN,
+        },
+    ]
+    calls: list[tuple] = []
+
+    def gh_json(*arguments: str):
+        calls.append(arguments)
+        assert arguments[:2] == ("pr", "list") and OWN_FIELDS in arguments[-1]
+        return pulls
+
+    with patch("refresh_upstream.gh_json", side_effect=gh_json):
+        open_prs = refresh.foreign_open_prs()
+    assert open_prs == {6: {"recipes/y.json"}}  # one listing, no per-PR files calls
+    footprint = ({"recipes/x.json"}, [])
+    assert refresh.blocking_prs(footprint, open_prs) == []
+    assert refresh.blocking_prs(({"recipes/y.json"}, []), open_prs) == [6]
+
+
+class Reached(Exception):
+    pass
+
+
+def _publish_with_closed_pr(refresh, pr):
+    assessment = refresh.Assessment("x")
+    summary = refresh.Summary()
+    marker = f"<!-- refresh-target: {assessment.fingerprint()} -->"
+    listing = [{"number": 9, "state": "CLOSED", "body": marker, **pr}]
+    with (
+        patch("refresh_upstream.gh_json", return_value=listing),
+        patch("refresh_upstream.gh"),
+        patch("refresh_upstream.git", side_effect=Reached),
+    ):
+        try:
+            refresh._publish(Path("."), assessment, summary, arm=False)
+        except Reached:
+            return summary, True
+    return summary, False
+
+
+def test_a_closed_fork_pr_with_the_marker_does_not_defer_a_refresh():
+    refresh = _load_refresh()
+    summary, proceeded = _publish_with_closed_pr(refresh, FORK)
+    assert proceeded and not summary.deferred
+    summary, proceeded = _publish_with_closed_pr(refresh, OWN)  # our own closed PR does
+    assert not proceeded and "closed unmerged" in summary.deferred[0]
+
+
+def test_an_overlapping_armed_fork_pr_does_not_defer_arming():
+    refresh = _load_refresh()
+    shared = [{"path": "models/shared.json"}]
+    pulls = [
+        {"number": 419, "autoMergeRequest": {"x": 1}, "files": shared, **FORK},
+        {"number": 421, "autoMergeRequest": None, "files": shared, **OWN},
+    ]
+    summary = refresh.Summary()
+    summary.healthy = True
+    with (
+        patch("refresh_upstream.gh_json", return_value=pulls),
+        patch("refresh_upstream.gh") as gh,
+    ):
+        assert refresh.arm_mechanical_pr(421, "recipe-b", summary)
+    gh.assert_called_once_with("pr", "merge", "421", "--auto", "--squash")
+    assert not summary.deferred
