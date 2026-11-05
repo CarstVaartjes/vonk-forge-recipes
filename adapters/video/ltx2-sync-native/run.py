@@ -48,7 +48,7 @@ WIDTH = 768
 HEIGHT = 512
 FRAME_COUNT = 65
 FPS = 24
-LTX_PIPELINES_VERSION = "1.5.0"
+LTX_PIPELINES_VERSION = "1.6.1"
 PIPELINE_OUTPUT_FIELDS = (
     "video",
     "audio",
@@ -263,7 +263,7 @@ def _pipeline_command(
         "65",
         "--frame-rate",
         "24",
-        # fp8-scaled-mm requires the non-streaming builder in pinned LTX 1.5.0.
+        # fp8-scaled-mm keeps the non-streaming builder proven on LTX 1.5.0.
         # Upstream recommends fp8-cast for BF16 checkpoints, not prequantized FP8.
         *(() if name == "ltx-2-19b-distilled-fp8.safetensors" else ("--offload", "cpu")),
         "--max-batch-size",
