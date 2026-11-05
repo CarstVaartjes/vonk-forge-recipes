@@ -132,19 +132,10 @@ def test_the_guard_fails_on_planted_unguarded_calls():
 
 
 def _load_refresh():
-    import importlib.machinery
-    import importlib.util
-    import sys
+    """The one loaded module: re-executing it would replace the object other tests patch."""
+    from test_refresh_upstream import refresh
 
-    loader = importlib.machinery.SourceFileLoader(
-        "refresh_upstream", str(ROOT / "tools/refresh-upstream")
-    )
-    spec = importlib.util.spec_from_loader(loader.name, loader)
-    assert spec
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[loader.name] = module
-    loader.exec_module(module)
-    return module
+    return refresh
 
 
 def test_refresh_upstream_never_arms_merges_or_closes_a_fork_pr():
