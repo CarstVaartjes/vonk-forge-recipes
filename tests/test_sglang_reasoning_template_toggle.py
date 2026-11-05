@@ -30,6 +30,8 @@ import json
 import re
 from pathlib import Path
 
+from documents import recipe
+
 ROOT = Path(__file__).resolve().parents[1]
 GENERATION_PROMPT = re.compile(
     r"add_generation_prompt\s*-?%\}(?P<tail>.*?)\{%-?\s*endif", re.DOTALL
@@ -43,7 +45,7 @@ SWITCHLESS_BAKED = {
     # `<think>` with no switch; A391 on hardware 2026-11-05 leaked `</think>`.
     "d15e56b35f44": "0xSero GLM-5.3-Flash EXL3 TR3 template",
 }
-BAKED_TEMPLATE_ID = re.compile(r"chat-template-([0-9a-f]{12})-")
+BAKED_TEMPLATE_ID = re.compile(r"chat-template-([0-9a-f]{12})-[0-9a-f]+")
 MUSE_TEMPLATES = sorted(
     (ROOT / "adapters").glob("*/*/vonk-muse-glimmer-chat-template.jinja")
 )
@@ -147,15 +149,16 @@ def test_muse_template_differs_from_upstream_only_in_the_switch() -> None:
 def test_glm_recipes_do_not_ship_a_known_switchless_baked_template() -> None:
     served = {slug for slug, *_ in _reasoning_templates()[0]}
     for path in sorted((ROOT / "recipes").glob("*.json")):
-        recipe = json.loads(path.read_text())
-        args = {
-            a["name"]: a.get("value")
-            for a in recipe.get("runtime", {}).get("arguments", [])
-        }
+        definition = recipe(path.stem)
+        args = {a.name: a.value for a in definition.runtime.arguments}
         if str(args.get("reasoning-parser", "")) not in GLM_VLLM_PARSERS:
             continue
-        for prefix in BAKED_TEMPLATE_ID.findall(json.dumps(recipe["models"])):
-            assert prefix not in SWITCHLESS_BAKED or path.stem in served, (
-                f"{path.stem}: the model's own {SWITCHLESS_BAKED[prefix]} ignores "
-                "enable_thinking; serve a repository template with the switch"
-            )
+        for selection in definition.models:
+            for model_file in selection.files:
+                match = BAKED_TEMPLATE_ID.fullmatch(model_file.file_id)
+                prefix = match.group(1) if match else ""
+                assert prefix not in SWITCHLESS_BAKED or path.stem in served, (
+                    f"{path.stem}: the model's own {SWITCHLESS_BAKED[prefix]} "
+                    "ignores enable_thinking; serve a repository template with "
+                    "the switch"
+                )
