@@ -15,7 +15,6 @@ ROOT = Path(__file__).resolve().parents[1]
 @pytest.fixture(
     params=[
         (2, "tonyd2wild-1017-tensorfold-tp2"),
-        (4, "tonyd2wild-1017-tensorfold-tp4"),
         (2, "mia-1017-tensorfold-dual"),
     ]
 )
@@ -57,7 +56,7 @@ def test_rank_cache_reuses_complete_and_rebuilds_truncated(
     result.write_bytes(b"interrupted")
     cache.prepare_rank(tmp_path, output, 0, world, Path("generator"))
     assert len(calls) == 2 and cache.rank_cache_valid(result, expected)
-    assert ("--parity" in calls[0]) == (world == 4)
+    assert "--parity" not in calls[0]
     assert not cache.rank_cache_valid(result, [["different", "uint8", [4], 0, 4]])
 
 
@@ -104,9 +103,7 @@ def test_rank_launch_binds_authorized_fabric_and_shared_pool(modules):
     ]
     _, _, command, runtime = launcher.launch(args, env)
     assert command.count("--pool") == 1
-    assert command[command.index("--pool") + 1] == str(
-        1048576 * (2 if world == 4 else 1)
-    )
+    assert command[command.index("--pool") + 1] == str(1048576)
     assert runtime["NCCL_IB_HCA"] == env["NCCL_IB_HCA"]
     assert runtime["TF_RDMA_DEVICES"] == "rocep1s0,rocep2s0"
     assert runtime["TF_RDMA_GID_INDEX"] == runtime["TF_RDMA_GID"] == "3"
@@ -118,9 +115,7 @@ def test_rank_launch_binds_authorized_fabric_and_shared_pool(modules):
 
 @pytest.mark.parametrize("rank", [0, 1])
 def test_admission_repair_reaches_both_engine_ranks(modules, rank):
-    world, _, launcher = modules
-    if world != 2:
-        pytest.skip("the four-rank recipe is outside this repair")
+    _, _, launcher = modules
     adapter = Path(launcher.__file__).parent.name
     slug = (
         "deepseek-v4-1-flash-1017-mia-tensorfold-dual"
@@ -176,3 +171,29 @@ def test_admission_repair_reaches_both_engine_ranks(modules, rank):
     ) >= 1024**3
     for role in recipe["topology"]["roles"]:
         assert role["resources"]["memory"]["peak_bytes"] == (115 - 3 - 1) * 1024**3
+
+
+def test_four_rank_cache_asks_the_generator_for_parity(tmp_path, monkeypatch):
+    """The kept four-Spark recipe's rank caches need the 2D parity split."""
+    folder = ROOT / "adapters/deepseek/bertholomus-1017-tensorfold-tp4"
+    spec = importlib.util.spec_from_file_location(
+        "prepare_cache", folder / "prepare_cache.py"
+    )
+    assert spec and spec.loader
+    cache = importlib.util.module_from_spec(spec)
+    monkeypatch.setitem(sys.modules, "prepare_cache", cache)
+    spec.loader.exec_module(cache)
+    expected = [["tensor", "uint8", [4], 0, 4]]
+    body = json.dumps(expected).encode()
+    name = f"rank0of4-{hashlib.sha256(body).hexdigest()[:20]}.bin"
+    output = tmp_path / "rank-cache"
+    calls = []
+
+    def generate(command, check):
+        calls.append(command)
+        (output / name).write_bytes(b"data" + body + struct.pack("<Q", 4) + b"TFDSRK01")
+
+    monkeypatch.setattr(cache.subprocess, "check_output", lambda command: body)
+    monkeypatch.setattr(cache.subprocess, "run", generate)
+    cache.prepare_rank(tmp_path, output, 0, 4, Path("generator"))
+    assert "--parity" in calls[0]
