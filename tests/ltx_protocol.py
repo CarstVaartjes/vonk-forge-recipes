@@ -52,7 +52,7 @@ def manifest_bytes(payload: bytes, *, name: str = "prompt.txt") -> bytes:
 
 
 def assert_streaming_quantization_supported(command: list[str]) -> None:
-    """Pinned LTX streaming supports no quantization policy or fp8-cast only."""
+    """Pinned LTX streaming supports no quantization policy or fp8-cast; NVFP4 checkpoints use nvfp4-prequant with none or cpu."""
     offload = (
         command[command.index("--offload") + 1] if "--offload" in command else "none"
     )
@@ -67,9 +67,10 @@ def assert_streaming_quantization_supported(command: list[str]) -> None:
         else ""
     )
     if "-fp4" in Path(checkpoint).stem:
-        assert offload == "none" and quantization == "nvfp4-prequant", (
-            "NVFP4 checkpoints require the native nvfp4-prequant loader without block streaming"
+        assert offload in ("none", "cpu") and quantization == "nvfp4-prequant", (
+            "NVFP4 checkpoints require nvfp4-prequant with --offload none or cpu"
         )
+        return
     assert offload == "none" or quantization in (None, "fp8-cast"), (
         f"{offload} block streaming does not support {quantization} quantization"
     )

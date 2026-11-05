@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "Historical native LTX 1.4.2 two-stage pipeline using the exact mixed BF16/NVFP4 checkpoint, the nvfp4-prequant loader and NVFP4-aware distilled refinement LoRA fusion, spatial upscaler, and Gemma 3 companion closure. Prequantized companion scales require the resident model loader; CPU/disk block streaming is unsupported. The image builds the pinned native NVFP4 kernels for Spark SM121. The conservative 89 GB peak and 8 GB reserve cover the 49 GB Gemma encoder or 20 GB checkpoint plus 8 GB LoRA, transient fusion and inference buffers; physical Spark acceptance remains required. This historical recipe remains available for reproducibility.",
+  "description": "Native LTX 1.6.1 two-stage pipeline using the exact mixed BF16/NVFP4 checkpoint, the nvfp4-prequant loader and NVFP4-aware distilled refinement LoRA fusion, spatial upscaler, and Gemma 3 companion closure. The pipeline runs with --offload cpu (block streaming) because the resident loader faulted on LTX v1.6.1 during model build; this is a diagnostic setting pending hardware acceptance. The image builds the pinned native NVFP4 kernels for Spark SM121. The conservative 89 GB peak and 8 GB reserve cover the 49 GB Gemma encoder or 20 GB checkpoint plus 8 GB LoRA, transient fusion and inference buffers; physical Spark acceptance remains required.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "ltx-2-19b-dev-fp4-pytorch-single"
