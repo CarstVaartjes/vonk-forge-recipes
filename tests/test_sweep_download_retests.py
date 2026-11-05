@@ -420,3 +420,82 @@ def test_missing_saved_intent_cannot_authorize_a_terminal_retry(tmp_path):
     adopted = State.load(sweep.state.path)
     sweep.state.data = adopted.data
     assert sweep.prefetcher._can_request(recipe, clock.now())
+
+
+def test_a_failed_record_of_old_content_gets_a_new_request_for_the_new_content(
+    tmp_path,
+):
+    from dataclasses import replace
+
+    sweep, _, clock, recipe = _failed_download(tmp_path)
+    record = sweep.state.downloads[recipe.key]
+    record.pop("accepted_content")  # an old record that kept no accepted content
+    sweep.state.entry(recipe.key)["status"] = "pending"
+    # The same content is not asked again without its own terminal evidence.
+    assert not sweep.prefetcher._can_request(recipe, clock.now())
+    changed = replace(recipe, content_sha256="c2")
+    sweep.recipes[recipe.key] = changed
+    sweep._reconcile_entry(changed, 2)
+    assert sweep.prefetcher._can_request(changed, clock.now())
+
+
+def _fail_again(sweep, recipe, clock, fleet) -> None:
+    clock.sleep(sweep.prefetcher.config.retry_cooldown * 2)
+    sweep.prefetcher._request(recipe, "model")
+    clock.sleep(fleet.download_seconds + 1)
+    sweep.prefetcher._poll()
+
+
+def test_identical_download_outcomes_on_one_content_end_as_a_recorded_platform_outcome(
+    tmp_path,
+):
+    from spark_sweep.verdict import IDENTICAL_EXIT_LIMIT
+
+    fake = FakeRecipe(
+        "stuck",
+        fail_download="image preparation exhausted",
+        fail_download_code="recipe_image.preparation_exhausted",
+    )
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [fake], [FakeModel("m1")], prefetch=PrefetchConfig(pin_profile=None)
+    )
+    sweep.refresh_catalog()
+    recipe = sweep.recipes[fake.key]
+    sweep.prefetcher._request(recipe, "model")
+    clock.sleep(fleet.download_seconds + 1)
+    sweep.prefetcher._poll()
+    entry = sweep.state.entry(recipe.key)
+    # Each failure is a platform outcome; the count survives the new request of each retest.
+    for _ in range(IDENTICAL_EXIT_LIMIT - 1):
+        assert entry["download_repeat"]["count"] < IDENTICAL_EXIT_LIMIT
+        assert "identical_exits" not in (entry.get("evidence") or {})
+        sweep._schedule_retest(recipe.key, "scheduled-retest")
+        _fail_again(sweep, recipe, clock, fleet)
+    assert entry["download_repeat"]["count"] == IDENTICAL_EXIT_LIMIT
+    assert entry["evidence"]["identical_exits"] == IDENTICAL_EXIT_LIMIT
+    assert entry["status"] == "deferred"  # the platform's, reopened by a release change
+    assert entry["code"] == "recipe_image.preparation_exhausted"
+
+
+def test_changed_content_restarts_the_download_outcome_count(tmp_path):
+    from dataclasses import replace
+
+    fake = FakeRecipe(
+        "stuck2",
+        fail_download="image preparation exhausted",
+        fail_download_code="recipe_image.preparation_exhausted",
+    )
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [fake], [FakeModel("m1")], prefetch=PrefetchConfig(pin_profile=None)
+    )
+    sweep.refresh_catalog()
+    recipe = sweep.recipes[fake.key]
+    sweep.prefetcher._request(recipe, "model")
+    clock.sleep(fleet.download_seconds + 1)
+    sweep.prefetcher._poll()
+    entry = sweep.state.entry(recipe.key)
+    assert entry["download_repeat"]["count"] == 1
+    changed = replace(recipe, content_sha256="c2")
+    sweep.recipes[fake.key] = changed
+    _fail_again(sweep, changed, clock, fleet)
+    assert entry["download_repeat"]["count"] == 1

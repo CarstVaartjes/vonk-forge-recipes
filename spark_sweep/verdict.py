@@ -461,6 +461,24 @@ DECLARED_CLASSES = (
 ) | {"capacity"}
 
 
+#: Identical outcomes of one content identity that end the retrying (a recorded platform outcome).
+IDENTICAL_EXIT_LIMIT = 3
+
+
+def count_identical(
+    holder: MutableMapping[str, Any], field: str, key: Mapping[str, Any]
+) -> int:
+    """How many times in a row ``key`` (content identity + outcome facts) was observed.
+
+    The run lives in ``holder[field]``; any other key restarts it at one. The one counter the
+    load lane (``Sweep._bound_identical_exit``) and the download lane share.
+    """
+    seen = holder.get(field) or {}
+    count = int(seen.get("count", 0)) + 1 if seen.get("key") == key else 1
+    holder[field] = {"key": dict(key), "count": count}
+    return count
+
+
 def blame(klass: str, code: str | None) -> Blame:
     """Whose fault an outcome is: the one rule the sweep and the published status share."""
     if klass == UNATTRIBUTED:
@@ -488,11 +506,10 @@ def disposition(failure: Failure) -> Disposition:
         # NAS space is a resource prerequisite the collector frees: a wait. A placement
         # refusal may be the recipe not fitting: the fleet is cleared and it is observed.
         return Disposition.WAIT if failure.phase == "download" else Disposition.OBSERVE
-    if failure.klass not in DECLARED_CLASSES and failure.evidence.get(
-        "identical_exits"
-    ):
-        # An unnamed class that repeated identically (``Sweep._bound_identical_exit``): recorded
-        # now with its own class and code and the platform's blame, reopened on a release change.
+    if failure.evidence.get("identical_exits"):
+        # An outcome that repeated identically (``Sweep._bound_identical_exit`` for loads,
+        # ``Prefetcher._bound_identical_download`` for downloads): recorded now with its own
+        # class and code and the platform's blame, reopened on a release change.
         return Disposition.FAIL
     # An observe class, or a class nobody named: look again; ``Sweep._bound_identical_exit``
     # ends an unnamed class after three identical outcomes.
