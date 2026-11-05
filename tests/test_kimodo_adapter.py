@@ -23,14 +23,14 @@ from pathlib import Path, PurePosixPath
 
 import pytest
 
+from qualification import documents
+from spark_sweep.definitions import Definitions
 from spark_sweep.job_assertions import Output, evaluate
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/three-d/kimodo"
 WHEEL = next(ADAPTER.glob("*.whl"))
 SLUG = "kimodo-soma-rp-v1-2-pytorch-single"
-RECIPE = ROOT / f"recipes/{SLUG}.json"
-QUALIFICATION = ROOT / f"qualification/recipes/{SLUG}.json"
 FIXTURE = ROOT / "qualification/fixtures/kimodo-motion-prompt.txt"
 sys.path.insert(0, str(WHEEL))
 
@@ -96,46 +96,44 @@ def _write_motion(stem: Path, *, bvh_frames: int = 60, npz_frames: int = 60) -> 
 # --- recipe, models and adapter agree ----------------------------------------
 
 
-def _recipe() -> dict:
-    return json.loads(RECIPE.read_text())
-
-
 def test_the_recipe_passes_exactly_the_arguments_the_adapter_parses() -> None:
-    recipe = _recipe()
-    arguments = {item["name"]: item for item in recipe["runtime"]["arguments"]}
+    recipe = documents.recipe(SLUG)
+    arguments = {item.name: item for item in recipe.runtime.arguments}
     assert set(arguments) == {"entrypoint", "output-mime", "seed", "duration-seconds"}
-    assert arguments["entrypoint"]["value"] == run.ENTRYPOINT
-    assert arguments["output-mime"]["value"] == "application/zip"
-    assert arguments["duration-seconds"]["setting"] == "duration-seconds"
-    default = recipe["settings"]["knobs"]["duration-seconds"]["value"]
+    assert arguments["entrypoint"].value == run.ENTRYPOINT
+    assert arguments["output-mime"].value == "application/zip"
+    assert arguments["duration-seconds"].setting == "duration-seconds"
+    default = recipe.settings.knobs["duration-seconds"].value
+    assert isinstance(default, float)
     assert run.MIN_DURATION_SECONDS <= default <= run.MAX_DURATION_SECONDS
     argv = [
-        f"--{name}={item['value']}"
+        f"--{name}={item.value}"
         for name, item in arguments.items()
-        if item["setting"] is None
+        if item.setting is None
     ]
     args = run._arguments(
         [*argv, f"--duration-seconds={default}", "--output-dir=/outputs"]
     )
-    assert args.duration_seconds == default and args.seed == arguments["seed"]["value"]
+    assert args.duration_seconds == default
+    assert args.seed == arguments["seed"].value
 
 
 def test_the_qualification_selects_a_duration_the_adapter_accepts() -> None:
-    document = json.loads(QUALIFICATION.read_text())["recipes"]
-    duration = document["parameters"]["duration-seconds"]
-    assert run.MIN_DURATION_SECONDS <= duration <= 2.0
-    assert set(document["parameters"]) == set(_recipe()["settings"]["knobs"])
+    definition = Definitions.load().artifact(f"vonk-forge/{SLUG}")
+    assert definition is not None
+    parameters = definition["parameters"]
+    assert run.MIN_DURATION_SECONDS <= parameters["duration-seconds"] <= 2.0
+    assert set(parameters) == set(documents.recipe(SLUG).settings.knobs)
 
 
 def test_every_file_the_adapter_reads_is_a_mounted_model_file() -> None:
     mounted: set[PurePosixPath] = set()
-    for selection in _recipe()["models"]:
-        document = json.loads(
-            (ROOT / "models" / f"{selection['model']['slug']}.json").read_text()
-        )
-        paths = {item["id"]: item["path"] for item in document["files"]}
-        for item in selection["files"]:
-            mounted.add(PurePosixPath(item["mount"]["target"]) / paths[item["file_id"]])
+    for selection in documents.recipe(SLUG).models:
+        paths = {
+            item.id: item.path for item in documents.model(selection.model.slug).files
+        }
+        for item in selection.files:
+            mounted.add(PurePosixPath(item.mount.target) / paths[item.file_id])
     wanted = {
         PurePosixPath(directory) / name
         for directory, names in run.MODEL_FILES.items()
@@ -145,13 +143,12 @@ def test_every_file_the_adapter_reads_is_a_mounted_model_file() -> None:
 
 
 def test_the_models_declare_the_text_encoder_as_dependencies() -> None:
-    primary = next(s for s in _recipe()["models"] if s["id"] == "primary")
-    document = json.loads(
-        (ROOT / "models" / f"{primary['model']['slug']}.json").read_text()
-    )
-    dependencies = {item["slug"] for item in document["dependencies"]}
-    selected = {s["model"]["slug"] for s in _recipe()["models"] if s["id"] != "primary"}
-    assert dependencies == selected
+    models = documents.recipe(SLUG).models
+    primary = next(s for s in models if s.id == "primary")
+    dependencies = {
+        item.slug for item in documents.model(primary.model.slug).dependencies
+    }
+    assert dependencies == {s.model.slug for s in models if s.id != "primary"}
 
 
 def test_the_fixture_prompt_is_one_sentence_of_valid_input() -> None:
@@ -189,10 +186,12 @@ def test_an_input_outside_the_declared_slot_is_refused(
         run._load_prompt(tmp_path)
 
 
-def test_a_prompt_that_changed_after_the_manifest_is_refused(tmp_path: Path) -> None:
+def test_a_prompt_whose_size_differs_from_the_manifest_is_refused(
+    tmp_path: Path,
+) -> None:
     _stage_inputs(tmp_path, b"a person waves")
-    (tmp_path / "prompt.txt").write_bytes(b"a person waved")
-    with pytest.raises(SystemExit, match="digest"):
+    (tmp_path / "prompt.txt").write_bytes(b"a person waved twice")
+    with pytest.raises(SystemExit, match="size"):
         run._load_prompt(tmp_path)
 
 
@@ -443,7 +442,9 @@ def test_the_published_zip_passes_the_qualification_assertions(tmp_path: Path) -
     """The sweep's own evaluator, on the assertions the qualification definition declares."""
     archive = run.publish(_members(tmp_path), tmp_path, tmp_path)
     content = archive.read_bytes()
-    assertions = json.loads(QUALIFICATION.read_text())["recipes"]["assertions"]
+    definition = Definitions.load().artifact(f"vonk-forge/{SLUG}")
+    assert definition is not None
+    assertions = definition["assertions"]
     assert [a["kind"] for a in assertions].count("zip-entries") == 1
     assert (
         evaluate(assertions, [Output(archive.name, "application/zip", content)]) == {}

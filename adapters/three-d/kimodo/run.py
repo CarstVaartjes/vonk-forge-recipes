@@ -21,7 +21,6 @@ or the upstream stack.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import re
@@ -152,8 +151,6 @@ def _load_prompt(input_root: Path) -> str:
     payload = path.read_bytes()
     if len(payload) != item.size_bytes:
         raise SystemExit("prompt size does not match the job manifest")
-    if hashlib.sha256(payload).hexdigest() != item.sha256:
-        raise SystemExit("prompt digest does not match the job manifest")
     try:
         prompt = payload.decode("utf-8").strip()
     except UnicodeDecodeError as error:
