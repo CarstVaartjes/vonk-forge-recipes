@@ -13,7 +13,8 @@
         "hosts": [
           "github.com",
           "objects.githubusercontent.com",
-          "release-assets.githubusercontent.com"
+          "release-assets.githubusercontent.com",
+          "storage.googleapis.com"
         ]
       },
       "patches": []

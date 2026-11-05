@@ -13,7 +13,8 @@
         "hosts": [
           "github.com",
           "objects.githubusercontent.com",
-          "release-assets.githubusercontent.com"
+          "release-assets.githubusercontent.com",
+          "storage.googleapis.com"
         ]
       },
       "patches": []
@@ -314,7 +315,7 @@
           "value": "images-https"
         }
       ],
-      "help": "Serve image_url parts with the model's own bf16 vision tower (--vision) on the native CUDA engine, which counts the tower and its scratch as model memory at startup; image requests start with a fresh KV cache (no prefix reuse). PNG images decode in the engine; this image ships neither libjpeg-turbo 3.1.4.1 nor libwebp 1.6.0, so JPEG and WebP images are refused by name. Video is not supported for this model.",
+      "help": "Serve image_url parts with the model's own bf16 vision tower (--vision) on the native CUDA engine, which counts the tower and its scratch as model memory at startup; image requests start with a fresh KV cache (no prefix reuse). JPEG, PNG and WebP images decode in the engine (JPEG through libjpeg-turbo 3.1.4.1 and WebP through libwebp 1.6.0, the exact releases TensorFold pins, built into this image). Video is not supported for this model.",
       "label": "Image input",
       "name": "images"
     },
