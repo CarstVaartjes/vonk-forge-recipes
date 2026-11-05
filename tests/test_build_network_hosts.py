@@ -1,14 +1,58 @@
 from __future__ import annotations
 
 import json
+import re
+import shlex
 import unittest
 from pathlib import Path
+
+from documents import recipe as document_recipe
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+INSTALL = re.compile(r"(?:\bpip3?|-m pip|\buv pip)\s+install\b(?P<args>[^&;|\n]*)")
+ARGUMENT_FLAGS = {"-r", "-c", "-f", "--requirement", "--constraint", "--find-links"}
+
+
+def fetching_installs(dockerfile_text: str) -> list[str]:
+    """pip/uv installs that may reach an index: no --no-index, and not only local paths.
+
+    An install fetches nothing when --no-deps is set and every target is a local wheel, or a
+    local source with --no-build-isolation (an isolated build downloads its build backend).
+    """
+    joined = re.sub(r"\\\n", " ", dockerfile_text)
+    found: list[str] = []
+    for match in INSTALL.finditer(joined):
+        args = shlex.split(match.group("args"), posix=True)
+        if "--no-index" in args:
+            continue
+        targets: list[str] = []
+        flags = iter(args)
+        requirement_file = False
+        for arg in flags:
+            if arg in ARGUMENT_FLAGS:
+                next(flags, None)
+                requirement_file = requirement_file or arg in {"-r", "--requirement"}
+            elif not arg.startswith("-"):
+                targets.append(arg)
+        local_only = (
+            "--no-deps" in args
+            and not requirement_file
+            and bool(targets)
+            and all(t.startswith(("/", ".")) for t in targets)
+            and (
+                "--no-build-isolation" in args
+                or all(t.endswith(".whl") for t in targets)
+            )
+        )
+        if not local_only:
+            found.append(match.group(0).strip())
+    return found
 
 
 class BuildNetworkHostMetadataTests(unittest.TestCase):
@@ -21,6 +65,34 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
             )
             dockerfile = ROOT / recipe["execution"]["build"]["dockerfile"]
             self.assertTrue(dockerfile.is_file(), path.name)
+
+    def test_package_installs_declare_an_index_host(self) -> None:
+        """The Spark builder gives an empty host list --network=none: a pip install would fail."""
+        offline: list[tuple[str, str]] = []
+        for path in sorted((ROOT / "recipes").glob("*.json")):
+            build = document_recipe(path.stem).execution.build
+            if not build.network.hosts:
+                offline.append((path.stem, build.dockerfile))
+        for slug, dockerfile in offline:
+            text = (ROOT / dockerfile).read_text(encoding="utf-8")
+            self.assertEqual([], fetching_installs(text), slug)
+
+    def test_fetching_install_detection(self) -> None:
+        self.assertTrue(fetching_installs("RUN pip install foo"))
+        self.assertTrue(fetching_installs("RUN python -m pip install -r /tmp/a.txt"))
+        self.assertFalse(fetching_installs("RUN pip install --no-index /tmp/a.whl"))
+        self.assertFalse(
+            fetching_installs(
+                "RUN python -m pip install --no-deps --no-build-isolation /tmp/src"
+                " && pip show x"
+            )
+        )
+        self.assertFalse(fetching_installs("RUN pip install --no-deps /tmp/a.whl"))
+        # an isolated source build downloads its build backend
+        self.assertTrue(fetching_installs("RUN pip install --no-deps /tmp/src"))
+        # the arguments end at the line: a later --no-index or apostrophe is not ours
+        self.assertTrue(fetching_installs("RUN pip install foo\nRUN echo --no-index"))
+        self.assertTrue(fetching_installs("RUN pip install foo\n# it's a comment"))
 
     def test_nvcr_is_only_a_base_image_registry(self) -> None:
         for path in sorted((ROOT / "recipes").glob("*.json")):

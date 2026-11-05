@@ -10,7 +10,10 @@
       },
       "dockerfile": "adapters/deepseek/mia-sparkinfer-single/Dockerfile",
       "network": {
-        "hosts": []
+        "hosts": [
+          "files.pythonhosted.org",
+          "pypi.org"
+        ]
       },
       "patches": []
     }
