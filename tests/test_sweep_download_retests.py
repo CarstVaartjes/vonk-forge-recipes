@@ -420,3 +420,19 @@ def test_missing_saved_intent_cannot_authorize_a_terminal_retry(tmp_path):
     adopted = State.load(sweep.state.path)
     sweep.state.data = adopted.data
     assert sweep.prefetcher._can_request(recipe, clock.now())
+
+
+def test_a_legacy_download_record_without_accepted_content_is_requested_again(tmp_path):
+    sweep, _, clock, recipe = _failed_download(tmp_path)
+    record = sweep.state.downloads[recipe.key]
+    record.pop(
+        "accepted_content"
+    )  # a pre-#1594 record: it names its request, keeps no content
+    sweep.state.entry(recipe.key)["status"] = "pending"
+    sweep.state.save()
+    # Kept as saved, the record would not authorize a request without terminal evidence.
+    assert not sweep.prefetcher._can_request(recipe, clock.now())
+    adopted = State.load(sweep.state.path)
+    assert recipe.key not in adopted.downloads
+    sweep.state.data = adopted.data
+    assert sweep.prefetcher._can_request(recipe, clock.now())

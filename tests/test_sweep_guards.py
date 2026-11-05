@@ -931,3 +931,117 @@ def test_the_sweep_names_lifecycle_states_only_through_the_shared_vocabulary(
         f"{path.name}: use LifecycleState / TERMINAL / WAITING / ACTIVE from "
         "spark_sweep.lifecycle, not literal state words"
     )
+
+
+# Named exemptions: "file:line" -> reason. Empty: every real writer is a literal.
+_DOWNLOAD_WRITER_EXEMPTIONS: dict[str, str] = {}
+
+
+def _is_downloads(node: ast.expr) -> bool:
+    """`<x>.downloads`, a bare `downloads`, or `<x>["downloads"]`."""
+    if isinstance(node, ast.Attribute):
+        return node.attr == "downloads"
+    if isinstance(node, ast.Name):
+        return node.id == "downloads"
+    return (
+        isinstance(node, ast.Subscript)
+        and isinstance(node.slice, ast.Constant)
+        and node.slice.value == "downloads"
+    )
+
+
+def _has_accepted_content(value: ast.expr) -> bool:
+    if not isinstance(value, ast.Dict):
+        return False
+    for key, item in zip(value.keys, value.values, strict=True):
+        if isinstance(key, ast.Constant) and key.value == "accepted_content":
+            return not (isinstance(item, ast.Constant) and item.value is None)
+    return False
+
+
+def _download_stores(node: ast.AST) -> bool:
+    if isinstance(node, ast.Assign):
+        targets = node.targets
+    elif isinstance(node, ast.AnnAssign) and node.value is not None:
+        targets = [node.target]
+    else:
+        return False
+    return any(isinstance(t, ast.Subscript) and _is_downloads(t.value) for t in targets)
+
+
+def _download_writers_without_accepted_content(tree: ast.AST) -> list[int]:
+    """Lines storing a download record that is not a literal with accepted_content."""
+    bad: list[int] = []
+    for node in ast.walk(tree):
+        if _download_stores(node):
+            assert isinstance(node, (ast.Assign, ast.AnnAssign))
+            if node.value is None or not _has_accepted_content(node.value):
+                bad.append(node.lineno)
+        elif (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and _is_downloads(node.func.value)
+        ):
+            if node.func.attr == "setdefault":
+                if len(node.args) < 2 or not _has_accepted_content(node.args[1]):
+                    bad.append(node.lineno)
+            elif node.func.attr == "update":
+                values: list[ast.expr] = [kw.value for kw in node.keywords]
+                for arg in node.args:
+                    if isinstance(arg, ast.Dict):
+                        values.extend(arg.values)
+                    else:
+                        values.append(arg)  # not a literal: cannot be proven
+                if not values or not all(_has_accepted_content(v) for v in values):
+                    bad.append(node.lineno)
+    return bad
+
+
+def test_every_download_record_writer_sets_accepted_content() -> None:
+    """The class behind the legacy-record heal: no writer may store a download record without it."""
+    seen = 0
+    for path in sorted((ROOT / "spark_sweep").rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        seen += sum(_download_stores(n) for n in ast.walk(tree))
+        for line in _download_writers_without_accepted_content(tree):
+            where = f"{path.relative_to(ROOT)}:{line}"
+            assert where in _DOWNLOAD_WRITER_EXEMPTIONS, (
+                f"{where} stores a download record without a literal "
+                "accepted_content (State._adopt drops such records)"
+            )
+    assert seen, "the download record writers moved: update this guard"
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        'self.state.downloads[k] = {"request_intent": 1}',
+        'self.state.downloads[k] = {"accepted_content": None}',
+        'rec = {"accepted_content": 1}\nself.state.downloads[k] = rec',
+        'self.state.downloads.setdefault(k, {"state": "x"})',
+        "self.state.downloads.setdefault(k, rec)",
+        'self.state.downloads.update({k: {"state": "x"}})',
+        "self.state.downloads.update(other)",
+        'self.state.data["downloads"][k] = {"state": "x"}',
+        "downloads[k] = make()",
+    ],
+)
+def test_download_writer_guard_flags_every_unproven_shape(source: str) -> None:
+    assert _download_writers_without_accepted_content(ast.parse(source))
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        'self.state.downloads[k] = {"accepted_content": c}',
+        'self.state.downloads.setdefault(k, {"accepted_content": c})',
+        'self.state.downloads.update({k: {"accepted_content": c}})',
+        'self.state.data["downloads"][k] = {"accepted_content": c}',
+        'self.state.downloads[k]["retry_at"] = 1',
+        "self.state.downloads.get(k, {})",
+    ],
+)
+def test_download_writer_guard_accepts_literals_with_accepted_content(
+    source: str,
+) -> None:
+    assert not _download_writers_without_accepted_content(ast.parse(source))
