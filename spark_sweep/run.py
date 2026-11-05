@@ -3805,6 +3805,7 @@ class Sweep:
                 if not candidates:
                     return
             # A dual at the head drains both lanes; do not refill one with later singles.
+            offered = candidates[:1]
             if candidates[0].node_count == 2:
                 if len(bins) < 2:
                     self._reserve_for_dual(candidates[0], {b.id for b in bins})
@@ -3819,6 +3820,7 @@ class Sweep:
                     if recipe.node_count == 2:
                         break
                     singles.append(recipe)
+                offered = singles
                 placements = policy.place_singles(
                     singles,
                     bins,
@@ -3826,25 +3828,34 @@ class Sweep:
                 )
             if not placements:
                 # Declared demand beyond one Spark: let the platform's review decide.
-                head = candidates[0]
-                width = head.node_count
-                spark_ids = tuple(b.id for b in bins[:width])
-                if len(spark_ids) == width and all(
-                    head.key not in b.disk_blocked_recipes for b in bins[:width]
-                ):
-                    placements = [policy.Placement(head, spark_ids)]
+                # Only a live disk wait keeps a free Spark from being offered.
+                for head in offered:
+                    open_bins = [
+                        b for b in bins if head.key not in b.disk_blocked_recipes
+                    ]
+                    if len(open_bins) >= head.node_count:
+                        spark_ids = tuple(b.id for b in open_bins[: head.node_count])
+                        placements = [policy.Placement(head, spark_ids)]
+                        break
             if placements:
                 attempted.update(p.recipe.key for p in placements)
                 if self._apply(placements, self.clock.now()) is False:
                     return
             else:
                 head = candidates[0]
-                why = (
-                    f"ready {head.key} was placed on no free Spark "
-                    f"(declares {head.memory_bytes / 1e9:.1f} GB; a disk, port or "
-                    "alias block holds it back)"
-                )
-                self.fit_holds.update({b.id: why for b in bins})
+                wait = self.state.entry(head.key).get("storage_wait")
+                if wait is not None:
+                    wait = SweepStorageWait.model_validate(wait)
+                    retry = datetime.fromtimestamp(wait.next_check, UTC).isoformat()
+                    for b in bins:
+                        if head.key in b.disk_blocked_recipes:
+                            detail = "; ".join(
+                                r.detail for r in wait.reasons if b.id in r.node_ids
+                            )
+                            self.fit_holds[b.id] = (
+                                f"ready {head.key} waits for disk on {b.name}: "
+                                f"{detail}; reviewed again at {retry}"
+                            )
                 return
             candidates = [r for r in self.ready_candidates() if r.key not in attempted]
 

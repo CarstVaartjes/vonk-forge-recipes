@@ -7,6 +7,8 @@ lane was scheduled again for over an hour.
 
 from __future__ import annotations
 
+import json
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -14,7 +16,10 @@ from typing import Any
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
+from spark_sweep import policy
 from spark_sweep.catalog import fetch_fleet
+
+FIXTURES = Path(__file__).parent / "fixtures"
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -375,12 +380,10 @@ def test_cached_lane_starts_before_blocked_cleanup_and_reused_alias_is_retained(
     assert "old-unused" not in sweep.state.data["cleanup"]
 
 
-def _scheduling_beside_a_live_lane(
-    tmp_path: Path, gateway: Gateway, memory: int
-) -> list[Any]:
-    sweep, _, _ = make_sweep(
+def _ready(tmp_path: Path, gateway: Gateway, recipes: list[FakeRecipe]):
+    sweep, fleet, clock = make_sweep(
         tmp_path,
-        [FakeRecipe("a", ("m1",), local="cached", memory=memory)],
+        recipes,
         [FakeModel("m1", local="cached")],
         gateway=gateway,
     )
@@ -388,55 +391,109 @@ def _scheduling_beside_a_live_lane(
     sweep.refresh_catalog()
     sweep.fleet = fetch_fleet(sweep.vk, sweep.cfg.default_spark_memory)
     sweep.queue = list(sweep.recipes)
-    sweep.state.slots["other"] = {
-        "alias": "other",
-        "phase": "loading",
-        "node_ids": ["spk_a"],
-        "request_key": "k",
-        "deadline": sweep.clock.now() + 600,
-    }
-    placed: list[Any] = []
-    sweep._apply = lambda placements, now: placed.extend(placements)  # type: ignore[method-assign]
-    sweep.schedule(sweep.clock.now())
-    return placed
+    return sweep, fleet, clock
 
 
-@pytest.mark.parametrize("beyond_the_spark", [False, True])
-def test_a_ready_single_goes_to_the_free_spark_while_another_lane_runs(
-    tmp_path: Path, gateway: Gateway, beyond_the_spark: bool
+def _review_calls(fleet: Any) -> int:
+    return sum(1 for _, c in fleet.calls if c[:3] == ("profile", "load", "--review"))
+
+
+@pytest.mark.parametrize("memory", [125_000_000_000, 10**15])
+def test_a_ready_single_is_admitted_on_the_free_spark_while_another_lane_loads(
+    tmp_path: Path, gateway: Gateway, memory: int
 ) -> None:
     # Wrong implementation: the sweep's own reserve (or an oversized declaration) kept a
-    # ready single off the free Spark that the Controller's review would have admitted;
-    # the review fallback only fired when the whole fleet was idle.
-    memory = 125_000_000_000 if not beyond_the_spark else 10**15
-    placed = _scheduling_beside_a_live_lane(tmp_path, gateway, memory)
-    assert [(p.recipe.slug, p.spark_ids) for p in placed] == [("a", ("spk_b",))]
+    # ready single off the free Spark that the Controller's review admits.
+    first = FakeRecipe("first", ("m1",), local="cached")
+    second = FakeRecipe("second", ("m1",), local="cached", memory=memory)
+    sweep, _, clock = _ready(tmp_path, gateway, [first, second])
+    sweep._apply([policy.Placement(sweep.recipes[first.key], ("spk_a",))], clock.now())
+    assert sweep.state.slots[first.key]["node_ids"] == ["spk_a"]
+    sweep.schedule(clock.now())
+    assert sweep.state.slots[second.key]["node_ids"] == ["spk_b"]
 
 
-def test_a_free_lane_nothing_was_placed_on_names_the_recipe_that_found_no_place(
+def test_a_refused_review_is_not_asked_again_inside_the_defer_delay(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    sweep, _, _ = make_sweep(
-        tmp_path,
-        [FakeRecipe("a", ("m1",), local="cached")],
-        [FakeModel("m1", local="cached")],
-        gateway=gateway,
-    )
-    sweep.preflight()
-    sweep.refresh_catalog()
-    sweep.fleet = fetch_fleet(sweep.vk, sweep.cfg.default_spark_memory)
-    sweep.queue = list(sweep.recipes)
-    (key,) = sweep.recipes
-    sweep._bins = lambda: [  # type: ignore[method-assign]
-        SimpleNamespace(
-            id="spk_a",
-            name="spark-a",
-            capacity=10**12,
-            used=0,
-            ports=frozenset(),
-            aliases=frozenset(),
-            disk_blocked_recipes=frozenset({key}),
-        )
+    only = FakeRecipe("only", ("m1",), local="cached", memory=10**15)
+    sweep, fleet, clock = _ready(tmp_path, gateway, [only])
+    refusal = {
+        "allowed": False,
+        "waits_for_preparation": False,
+        "effects": {"adopted": [], "runs": []},
+        "admission_decisions": [
+            {
+                "alias": sweep._alias(sweep.recipes[only.key]),
+                "allowed": False,
+                "blockers": [
+                    {
+                        "code": "run-switch.resource.insufficient_capacity",
+                        "detail": "spk_a lacks memory",
+                    }
+                ],
+            }
+        ],
+        "reasons": [],
+    }
+    fleet.observations.append((("profile", "load", "--review"), 2, refusal))
+    sweep.schedule(clock.now())
+    assert only.key not in sweep.state.slots
+    assert _review_calls(fleet) == 1
+    clock.sleep(sweep.cfg.defer_delay / 4)
+    sweep.schedule(clock.now())
+    assert _review_calls(fleet) == 1
+
+
+def _storage_shortfall(sweep: Any, key: str, spark_ids: list[str]) -> dict[str, Any]:
+    review = json.loads((FIXTURES / "sweep-storage-shortfall.json").read_text())
+    review["resolved_assignments"] = [
+        {
+            "id": "id-only",
+            "alias": sweep._alias(sweep.recipes[key]),
+            "desired_state": "running",
+            "recipe_revision_id": f"rev-{sweep.recipes[key].content_sha256}",
+        }
     ]
-    sweep.schedule(sweep.clock.now())
-    assert key in sweep._lane_holds()["spk_a"]
+    for blocker in review["assessments"][0]["assessment"]["blockers"]:
+        blocker["node_ids"] = spark_ids
+    return review
+
+
+def test_a_head_blocked_on_disk_on_one_spark_is_placed_on_the_clean_one(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    only = FakeRecipe("only", ("m1",), local="cached")
+    sweep, fleet, clock = _ready(tmp_path, gateway, [only])
+    key = only.key
+    review = _storage_shortfall(sweep, key, ["spk_a"])
+    review["resolved_assignments"][0]["recipe_revision_id"] = f"rev-{only.content}"
+    fleet.observations.append((("profile", "load", "--review"), 0, review))
+    sweep.schedule(clock.now())
+    assert sweep.state.entry(key)["storage_wait"] is not None
+    assert key not in sweep.state.slots
+    sweep.schedule(clock.now())
+    assert sweep.state.slots[key]["node_ids"] == ["spk_b"]
+
+
+def test_a_head_blocked_on_disk_on_every_free_spark_names_the_wait(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    only = FakeRecipe("only", ("m1",), local="cached")
+    sweep, fleet, clock = _ready(tmp_path, gateway, [only])
+    key = only.key
+    review = _storage_shortfall(sweep, key, ["spk_a", "spk_b"])
+    review["resolved_assignments"][0]["recipe_revision_id"] = f"rev-{only.content}"
+    fleet.observations.append((("profile", "load", "--review"), 0, review))
+    sweep.schedule(clock.now())
+    sweep.schedule(clock.now())
+    wait = sweep.state.entry(key)["storage_wait"]
+    retry = datetime.fromtimestamp(wait["next_check"], UTC).isoformat()
+    detail = review["assessments"][0]["assessment"]["blockers"][0]["detail"]
+    holds = sweep._lane_holds()
+    for spark in ("spark-a", "spark-b"):
+        node = "spk_a" if spark == "spark-a" else "spk_b"
+        assert holds[node] == (
+            f"ready {key} waits for disk on {spark}: {detail}; reviewed again at {retry}"
+        )
+    assert key not in sweep.state.slots
