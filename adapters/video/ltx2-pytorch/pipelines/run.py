@@ -246,12 +246,18 @@ def main() -> None:
         str(args.num_inference_steps),
         "--frame-rate",
         str(FPS),
-        # Prequantized NVFP4 emits weight/input scales that block streaming
-        # cannot represent. Use the native loader and its NVFP4 LoRA fuse rule.
+        # Prequantized NVFP4 with the NVFP4 LoRA fuse rule. LTX v1.6.1 on
+        # Spark faulted during model build (NVRM out-of-memory, then Xid 31
+        # CE1 read, then SIGABRT) with the resident `--offload none` loader.
+        # `--offload cpu` is a diagnostic change: no cpu recipe has passed on
+        # v1.6.1 yet, and it moves both the transformer and Gemma to RAM
+        # streaming. If it also faults, try
+        # PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True (set by every
+        # creator command), then the creator's distilled + nvfp4 form.
         "--quantization",
         "nvfp4-prequant",
         "--offload",
-        "none",
+        "cpu",
         "--max-batch-size",
         "1",
     ]
