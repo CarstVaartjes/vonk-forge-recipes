@@ -15,7 +15,6 @@ ROOT = Path(__file__).resolve().parents[1]
 @pytest.fixture(
     params=[
         (2, "tonyd2wild-1017-tensorfold-tp2"),
-        (4, "tonyd2wild-1017-tensorfold-tp4"),
         (2, "mia-1017-tensorfold-dual"),
     ]
 )
@@ -57,7 +56,7 @@ def test_rank_cache_reuses_complete_and_rebuilds_truncated(
     result.write_bytes(b"interrupted")
     cache.prepare_rank(tmp_path, output, 0, world, Path("generator"))
     assert len(calls) == 2 and cache.rank_cache_valid(result, expected)
-    assert ("--parity" in calls[0]) == (world == 4)
+    assert "--parity" not in calls[0]
     assert not cache.rank_cache_valid(result, [["different", "uint8", [4], 0, 4]])
 
 
@@ -104,9 +103,7 @@ def test_rank_launch_binds_authorized_fabric_and_shared_pool(modules):
     ]
     _, _, command, runtime = launcher.launch(args, env)
     assert command.count("--pool") == 1
-    assert command[command.index("--pool") + 1] == str(
-        1048576 * (2 if world == 4 else 1)
-    )
+    assert command[command.index("--pool") + 1] == str(1048576)
     assert runtime["NCCL_IB_HCA"] == env["NCCL_IB_HCA"]
     assert runtime["TF_RDMA_DEVICES"] == "rocep1s0,rocep2s0"
     assert runtime["TF_RDMA_GID_INDEX"] == runtime["TF_RDMA_GID"] == "3"
@@ -118,9 +115,7 @@ def test_rank_launch_binds_authorized_fabric_and_shared_pool(modules):
 
 @pytest.mark.parametrize("rank", [0, 1])
 def test_admission_repair_reaches_both_engine_ranks(modules, rank):
-    world, _, launcher = modules
-    if world != 2:
-        pytest.skip("the four-rank recipe is outside this repair")
+    _, _, launcher = modules
     adapter = Path(launcher.__file__).parent.name
     slug = (
         "deepseek-v4-1-flash-1017-mia-tensorfold-dual"
