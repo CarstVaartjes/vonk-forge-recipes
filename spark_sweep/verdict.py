@@ -506,7 +506,7 @@ def disposition(failure: Failure) -> Disposition:
         # NAS space is a resource prerequisite the collector frees: a wait. A placement
         # refusal may be the recipe not fitting: the fleet is cleared and it is observed.
         return Disposition.WAIT if failure.phase == "download" else Disposition.OBSERVE
-    if failure.evidence.get("identical_exits"):
+    if failure.klass not in OBSERVE_CLASSES and failure.evidence.get("identical_exits"):
         # An outcome that repeated identically (``Sweep._bound_identical_exit`` for loads,
         # ``Prefetcher._bound_identical_download`` for downloads): recorded now with its own
         # class and code and the platform's blame, reopened on a release change.

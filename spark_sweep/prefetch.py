@@ -48,6 +48,7 @@ from .policy import (
 from .state import State
 from .verdict import (
     IDENTICAL_EXIT_LIMIT,
+    OBSERVE_CLASSES,
     Blame,
     Disposition,
     Progress,
@@ -463,7 +464,13 @@ class Prefetcher:
         content identity restarts the count.
         """
         accepted = AcceptedRequest.read(record)
-        if accepted is None or blame(failure.klass, failure.code) is not Blame.PLATFORM:
+        if (
+            accepted is None
+            or blame(failure.klass, failure.code) is not Blame.PLATFORM
+            # Waits and the classes declared uncertain (a transport error) are not bounded here.
+            or disposition(failure) is Disposition.WAIT
+            or failure.klass in OBSERVE_CLASSES
+        ):
             return failure
         facts = {
             "identity": content_identity(accepted.recipe).model_dump(mode="json"),
