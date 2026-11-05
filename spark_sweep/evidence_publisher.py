@@ -22,6 +22,7 @@ from vonk_forge_contracts.sweep import (
     SweepEvidenceMergeState,
 )
 
+from .own_pulls import OWN_FIELDS, REPOSITORY, own_pulls
 from .qualification import (
     backfill,
     catalog_recipe_keys,
@@ -35,7 +36,6 @@ from .state import write_atomic
 
 BRANCH = "qualification/evidence"
 TITLE = "qualification evidence"
-REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 _deadline: float | None = None
 UNPUBLISHED_FILE = "unpublished.json"
 PERSISTENT_BATCHES = 2
@@ -100,6 +100,31 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     return result.stdout.strip()
 
 
+def own_open_prs(cwd: Path) -> list[dict]:
+    """Open PRs on the evidence branch that come from this repository."""
+    own = own_pulls(
+        json.loads(
+            command(
+                cwd,
+                "gh",
+                "pr",
+                "list",
+                "--repo",
+                REPOSITORY,
+                "--head",
+                BRANCH,
+                "--state",
+                "open",
+                "--json",
+                f"number,{OWN_FIELDS}",
+            )
+        )
+    )
+    if len(own) > 1:
+        raise RuntimeError("multiple qualification evidence PRs; needs repair")
+    return own
+
+
 def sync(
     history: Path, directory: Path, state: Path | None = None
 ) -> SweepEvidenceExit:
@@ -110,24 +135,7 @@ def sync(
     (directory / UNPUBLISHED_FILE).unlink(
         missing_ok=True
     )  # only a synced batch reports
-    opened = json.loads(
-        command(
-            directory,
-            "gh",
-            "pr",
-            "list",
-            "--repo",
-            REPOSITORY,
-            "--head",
-            BRANCH,
-            "--state",
-            "open",
-            "--json",
-            "number",
-        )
-    )
-    if len(opened) > 1:
-        raise RuntimeError("multiple qualification evidence PRs; needs repair")
+    opened = own_open_prs(directory)
     if opened:
         pr = PullRequest.model_validate(opened[0])
         details = PullRequest.model_validate_json(
@@ -294,24 +302,7 @@ def sync(
             command(clone, "git", "push", "origin", f"HEAD:refs/heads/{BRANCH}")
         elif not remote:
             return SweepEvidenceExit.SYNCED
-        opened = json.loads(
-            command(
-                clone,
-                "gh",
-                "pr",
-                "list",
-                "--repo",
-                REPOSITORY,
-                "--head",
-                BRANCH,
-                "--state",
-                "open",
-                "--json",
-                "number",
-            )
-        )
-        if len(opened) > 1:
-            raise RuntimeError("multiple qualification evidence PRs; needs repair")
+        opened = own_open_prs(clone)
         if not opened:
             command(
                 clone,
@@ -329,22 +320,7 @@ def sync(
                 "--body",
                 "Sanitized hardware evidence from the maintainer sweep. Status is derived at library publication.",
             )
-            opened = json.loads(
-                command(
-                    clone,
-                    "gh",
-                    "pr",
-                    "list",
-                    "--repo",
-                    REPOSITORY,
-                    "--head",
-                    BRANCH,
-                    "--state",
-                    "open",
-                    "--json",
-                    "number",
-                )
-            )
+            opened = own_open_prs(clone)
         pr = PullRequest.model_validate(opened[0])
         command(
             clone,
