@@ -171,3 +171,29 @@ def test_admission_repair_reaches_both_engine_ranks(modules, rank):
     ) >= 1024**3
     for role in recipe["topology"]["roles"]:
         assert role["resources"]["memory"]["peak_bytes"] == (115 - 3 - 1) * 1024**3
+
+
+def test_four_rank_cache_asks_the_generator_for_parity(tmp_path, monkeypatch):
+    """The kept four-Spark recipe's rank caches need the 2D parity split."""
+    folder = ROOT / "adapters/deepseek/bertholomus-1017-tensorfold-tp4"
+    spec = importlib.util.spec_from_file_location(
+        "prepare_cache", folder / "prepare_cache.py"
+    )
+    assert spec and spec.loader
+    cache = importlib.util.module_from_spec(spec)
+    monkeypatch.setitem(sys.modules, "prepare_cache", cache)
+    spec.loader.exec_module(cache)
+    expected = [["tensor", "uint8", [4], 0, 4]]
+    body = json.dumps(expected).encode()
+    name = f"rank0of4-{hashlib.sha256(body).hexdigest()[:20]}.bin"
+    output = tmp_path / "rank-cache"
+    calls = []
+
+    def generate(command, check):
+        calls.append(command)
+        (output / name).write_bytes(b"data" + body + struct.pack("<Q", 4) + b"TFDSRK01")
+
+    monkeypatch.setattr(cache.subprocess, "check_output", lambda command: body)
+    monkeypatch.setattr(cache.subprocess, "run", generate)
+    cache.prepare_rank(tmp_path, output, 0, 4, Path("generator"))
+    assert "--parity" in calls[0]
