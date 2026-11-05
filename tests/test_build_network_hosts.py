@@ -6,6 +6,8 @@ import shlex
 import unittest
 from pathlib import Path
 
+from documents import recipe as document_recipe
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -61,12 +63,14 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
 
     def test_package_installs_declare_an_index_host(self) -> None:
         """The Spark builder gives an empty host list --network=none: a pip install would fail."""
+        offline: list[tuple[str, str]] = []
         for path in sorted((ROOT / "recipes").glob("*.json")):
-            build = load(path)["execution"]["build"]
-            if build["network"]["hosts"]:
-                continue
-            text = (ROOT / build["dockerfile"]).read_text(encoding="utf-8")
-            self.assertEqual([], fetching_installs(text), path.name)
+            build = document_recipe(path.stem).execution.build
+            if not build.network.hosts:
+                offline.append((path.stem, build.dockerfile))
+        for slug, dockerfile in offline:
+            text = (ROOT / dockerfile).read_text(encoding="utf-8")
+            self.assertEqual([], fetching_installs(text), slug)
 
     def test_fetching_install_detection(self) -> None:
         self.assertTrue(fetching_installs("RUN pip install foo"))
