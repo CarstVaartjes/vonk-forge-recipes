@@ -608,10 +608,10 @@ class NothingRunsTests(unittest.TestCase):
         ):
             self.assess(moved, engine="vllm")
             raised.assert_called_once()
-            roles, _recipe, previous, digest = raised.call_args.args
+            roles, _recipe, replaced, digest = raised.call_args.args
             self.assertEqual(roles, [])
-            self.assertEqual(len(digest), 64)  # the pre-move authored digest
-            self.assertIsNotNone(previous)  # the keep rule judges the pre-move content
+            self.assertEqual(len(digest), 64)  # the replaced document, in hand
+            self.assertIsNotNone(replaced)
         with patch("refresh_upstream.raise_role_peaks") as raised:
             self.assess(moved, engine="sglang")
             raised.assert_not_called()
@@ -1440,11 +1440,11 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             ),
             "vLLM budget plus overhead",
         )
-        previous = documents.recipe(slug)
+        replaced = documents.recipe(slug)
         refresh.raise_role_peaks(
             payload["topology"]["roles"],
             before,
-            previous,
+            replaced,
             qualification_documents.recipe_digest(slug),
         )
         after = RecipeDefinition.model_validate(payload)
