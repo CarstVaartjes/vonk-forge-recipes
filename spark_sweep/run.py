@@ -357,6 +357,8 @@ class Sweep:
         self.unobserved_loads: set[str] = set()
         # This pass's free Sparks whose placement review did not adopt a loading lane.
         self.adoption_holds: dict[str, str] = {}
+        # This pass's free Sparks that no ready recipe was placed on, and why.
+        self.fit_holds: dict[str, str] = {}
         self._skew_checked_at = float("-inf")
         self.library_commit = ""
         self.rate = policy.RateTracker()
@@ -1111,6 +1113,7 @@ class Sweep:
         self.state.data.pop("profile_edit_wait", None)
         self.state.data.pop("dual_reservation", None)
         self.adoption_holds.clear()
+        self.fit_holds.clear()
         now = self.clock.now()
         self.advance_catalog(now)
         if self.retry_failed_pending and self.catalog_loaded:
@@ -3424,6 +3427,8 @@ class Sweep:
                 )
         for node, why in self.adoption_holds.items():
             holds.setdefault(node, why)
+        for node, why in self.fit_holds.items():
+            holds.setdefault(node, why)
         online = {s.id for s in self.sparks()}
         if wait := self.state.data.get("profile_edit_wait"):
             held = (
@@ -3759,6 +3764,7 @@ class Sweep:
     def schedule(self, now: float) -> None:
         self.state.data.pop("dual_reservation", None)
         self.adoption_holds.clear()
+        self.fit_holds.clear()
         self._refresh_controller_waits(now)
         self.release_given_up(now)
         self.release_orphan_load()
@@ -3799,12 +3805,13 @@ class Sweep:
                 if not candidates:
                     return
             # A dual at the head drains both lanes; do not refill one with later singles.
+            offered = candidates[:1]
             if candidates[0].node_count == 2:
                 if len(bins) < 2:
                     self._reserve_for_dual(candidates[0], {b.id for b in bins})
                     return
                 self.state.data["mode"] = "dual"
-                dual = policy.place_dual(candidates[:1], bins, self.cfg.reserve_bytes)
+                dual = policy.place_dual(candidates[:1], bins)
                 placements = [dual] if dual else []
             else:
                 self.state.data["mode"] = "single"
@@ -3813,26 +3820,42 @@ class Sweep:
                     if recipe.node_count == 2:
                         break
                     singles.append(recipe)
+                offered = singles
                 placements = policy.place_singles(
                     singles,
                     bins,
-                    self.cfg.reserve_bytes,
                     lambda r: alias_for(r, self.defs),
                 )
-            if not placements and not self.state.slots:
+            if not placements:
                 # Declared demand beyond one Spark: let the platform's review decide.
-                head = candidates[0]
-                width = head.node_count
-                spark_ids = tuple(b.id for b in bins[:width])
-                if len(spark_ids) == width and all(
-                    head.key not in b.disk_blocked_recipes for b in bins[:width]
-                ):
-                    placements = [policy.Placement(head, spark_ids)]
+                # Only a live disk wait keeps a free Spark from being offered.
+                for head in offered:
+                    open_bins = [
+                        b for b in bins if head.key not in b.disk_blocked_recipes
+                    ]
+                    if len(open_bins) >= head.node_count:
+                        spark_ids = tuple(b.id for b in open_bins[: head.node_count])
+                        placements = [policy.Placement(head, spark_ids)]
+                        break
             if placements:
                 attempted.update(p.recipe.key for p in placements)
                 if self._apply(placements, self.clock.now()) is False:
                     return
             else:
+                head = candidates[0]
+                wait = self.state.entry(head.key).get("storage_wait")
+                if wait is not None:
+                    wait = SweepStorageWait.model_validate(wait)
+                    retry = datetime.fromtimestamp(wait.next_check, UTC).isoformat()
+                    for b in bins:
+                        if head.key in b.disk_blocked_recipes:
+                            detail = "; ".join(
+                                r.detail for r in wait.reasons if b.id in r.node_ids
+                            )
+                            self.fit_holds[b.id] = (
+                                f"ready {head.key} waits for disk on {b.name}: "
+                                f"{detail}; reviewed again at {retry}"
+                            )
                 return
             candidates = [r for r in self.ready_candidates() if r.key not in attempted]
 
