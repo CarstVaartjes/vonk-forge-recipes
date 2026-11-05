@@ -240,9 +240,10 @@ ownership remains a security boundary (`tests/test_sweep_owner_pause.py`,
 Place singles on online free nodes, preferring exact model/cache affinity;
 gangs need their complete topology. More nodes than enrolled means skipped;
 enough enrolled but temporarily offline means pending. A blocked gang cannot
-reserve an independent usable lane. The sweep's own fit check only advises: a
-ready single is offered to every free Spark and the Controller's review decides
-fit (no 8 GB reserve, no `never_fits`). Typed disk refusals hold only their node
+reserve an independent usable lane. On an empty Spark the sweep's fit check only
+advises: a ready recipe may go to any free Spark without a live disk wait, and the
+Controller's review decides fit. Sharing a Spark is still bounded by
+`_overfull_sparks` (declared peaks plus the 8 GB reserve). Typed disk refusals hold only their node
 scope until reconsideration, without spending recipe attempts
 (`tests/test_sweep_online_sparks.py`, `tests/test_sweep_offline_lane.py`,
 `tests/test_sweep_big_alone.py`, `tests/test_sweep_no_idle.py`).
@@ -309,12 +310,15 @@ fault from arbitrary error text:
 | `skipped` | Topology or platform support unavailable; not a recipe failure. |
 | `passed` | The recorded smoke ran; inspect its kind, quality notes and identity before drawing conclusions. |
 
-A cancelled preparation receipt that carries a failure with `retryable` false and
-no recovery action is a bounded outcome: the third identical one on the same
-content ends `deferred`. A supersession cancel (it carries `download_again`) still
-retries. `spark_sweep/receipt.py` is the one receipt reader
-(`tests/test_sweep_receipt_reader.py`). Old download records with no accepted
-content are dropped at load.
+A cancelled download receipt that carries a non-empty failure code, `retryable`
+false and no recovery action is a bounded outcome: the third identical one on the
+same content ends `deferred` (`tests/test_sweep_cancel_final_word.py`). A
+supersession cancel (it carries `download_again`) still retries.
+`spark_sweep/receipt.py` is the one receipt reader; a guard stops other modules
+reading a receipt's `failure` (`tests/test_sweep_receipt_reader.py`). At load, a
+download record with `request_intent` and no `accepted_content` is dropped and
+requested again
+(`tests/test_sweep_download_retests.py::test_a_legacy_download_record_without_accepted_content_is_requested_again`).
 
 Gateway 401/403 refusals end the case with evidence; only typed LiteLLM key
 expiry/revocation waits for renewal. Unclassified policy refusal is not evidence

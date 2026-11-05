@@ -187,7 +187,8 @@ Resolve an immutable source identity and enumerate the files needed to load
 the model, including configuration, tokenizer, companion data, and license.
 For GitHub release assets, bind the numeric release ID and each file's numeric
 asset ID; do not use a mutable tag or browser download URL as the source
-identity. This provider supports public, anonymous assets only. For Git LFS
+identity (an adapter's build input is different: it is a release asset URL pinned
+by sha256). This provider supports public, anonymous assets only. For Git LFS
 objects in a public GitHub repository, use the `github-lfs` source: pin the
 full commit SHA as `revision`, make every file of the Model one LFS object
 (`sha256` is the LFS oid, `size_bytes` the LFS size, `path` the repository path
@@ -263,7 +264,9 @@ only the hosts in `execution.build.network.hosts`; an empty list builds
 offline (`--network=none`), so a pip/uv install that can reach an index must
 declare the index hosts. An install is exempt with `--no-index`, or when it uses
 local targets with `--no-deps` and either all `.whl` files or
-`--no-build-isolation` (`tests/test_build_network_hosts.py`). Include all required local build inputs, patches, entrypoints,
+`--no-build-isolation`; a `-r`/`--requirement` install always counts as fetching.
+`tests/test_build_network_hosts.py` checks this for recipes with an empty host
+list. Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
 
@@ -756,10 +759,11 @@ Its `add_generation_prompt` branch must honour `enable_thinking is defined and
 not enable_thinking`: SGLang forces its reasoning parser from that branch, and a
 creator template that always opens `<think>` leaks `</think>` into `content`
 when a request turns thinking off (`tests/test_sglang_reasoning_template_toggle.py`).
-The same rule covers a vLLM recipe with `--reasoning-parser glm47`. Its vendored
-template is the Model's own `chat_template.jinja` (sha256 from the Model document)
+The same rule covers a vLLM recipe with `--reasoning-parser glm47` that serves a
+repository template. Its vendored template is the Model's own `chat_template.jinja` (sha256 from the Model document)
 plus only the thinking-switch line, so a model refresh that changes the template
-turns the suite red.
+turns the suite red. A template baked into a vLLM image is not checked statically;
+hardware covers it.
 
 ### Options: user-selectable runtime variants
 
@@ -890,10 +894,11 @@ contexts refresh together. Human repairs may intentionally diverge with evidence
 An adapter that installs a creator's GitHub release asset pins it by version and
 sha256. A refresh moves the `releases/download/<tag>/<asset>` URL and re-pins the
 sha256 from the creator's `<asset>.sha256`, checked against GitHub's recorded
-digest; if either is missing or they disagree, the refresh goes to review ("re-pin
-by hand"). A declared release line can be moved deliberately: the ashhart
-TensorFold adapters moved from 0.6 to 1.x, while the two ashhart Flash Next
-recipes stay on 0.6.
+digest when GitHub records one. These go to review ("re-pin by hand"): a missing
+asset or `.sha256`, a disagreement, a target that is not a release, or a Dockerfile
+that does not pin the old asset by sha256. The refresh never leaves a declared
+`source.line`; it only notes that a newer line exists. Moving to another line is a
+hand change (engine work) with its own hardware proof.
 A proven recipe moves too: the refresh rewrites its entry in
 `tests/fixtures/proven-recipe-bytes.json` and the sweep re-checks it. A refresh
 branch only moves forward (never force-pushed); a PR whose checks failed on an
@@ -1133,7 +1138,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
 | `tests/test_recipe_model_mounts.py`, `tests/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
 | `tools/check-build-context-sources`, `tests/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
-| `tests/test_recipe_build_inputs.py`, `tests/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress, including the index hosts of any pip/uv install. |
+| `tests/test_recipe_build_inputs.py`, `tests/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress. |
 | `tools/check-vendored-upstream`, `tests/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. |
 | `tools/check-model-construction-device --base origin/main`, `tests/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and `vendored-upstream.json` verbatim creator copies excluded) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
 | `tools/kit-pins check`, `tests/test_kit_pins.py`, `tests/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
