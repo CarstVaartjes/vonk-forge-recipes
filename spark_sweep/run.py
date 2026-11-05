@@ -1957,9 +1957,8 @@ class Sweep:
             if from_download or slot is not None
             else self.release_sha
         )
-        attributable = failure.klass != verdict.UNATTRIBUTED and (
-            failure.code in policy.RECIPE_FAILURE_CODES
-            or failure.klass in verdict.FAIL_CLASSES
+        attributable = (
+            verdict.blame(failure.klass, failure.code) is verdict.Blame.RECIPE
         )
         status = "failed" if attributable else "deferred"
         entry.update(
@@ -2011,26 +2010,37 @@ class Sweep:
     ) -> policy.Failure:
         """The same content identity exiting the same way three times in a row is its verdict.
 
-        The run of identical parsed exit facts (cause, trigger) lives on the recipe's entry; another
-        cause, another outcome class or a changed content identity restarts the count.
+        The run of identical facts lives on the recipe's entry: a platform exit's parsed cause and
+        trigger, or the class and code of an outcome no producer named. Another cause, another class
+        or a changed content identity restarts the count.
         """
         cause = failure.evidence.get("exit_cause")
-        if failure.klass != SweepFailureClass.PLATFORM_EXIT or not cause:
-            # Only parsed exit facts are compared; free text (a long Controller prefix) is not.
+        if failure.klass == SweepFailureClass.PLATFORM_EXIT and cause:
+            # Parsed exit facts are compared; free text (a long Controller prefix) is not.
+            facts = {
+                "exit_cause": cause,
+                "exit_trigger": failure.evidence.get("exit_trigger"),
+            }
+        elif failure.klass not in verdict.DECLARED_CLASSES:
+            # A class nobody named is observed; the same one on the same identity ends too.
+            facts = {"klass": failure.klass, "code": failure.code}
+        else:
             entry.pop("exit_repeat", None)
             return failure
-        key = {
-            "identity": content_identity(recipe).model_dump(mode="json"),
-            "exit_cause": cause,
-            "exit_trigger": failure.evidence.get("exit_trigger"),
-        }
+        key = {"identity": content_identity(recipe).model_dump(mode="json"), **facts}
         seen = entry.get("exit_repeat") or {}
         count = int(seen.get("count", 0)) + 1 if seen.get("key") == key else 1
         if count < IDENTICAL_EXIT_LIMIT:
             entry["exit_repeat"] = {"key": key, "count": count}
             return failure
-        # The verdict is written: a retest starts at zero.
+        # The outcome is written: a retest starts at zero.
         entry.pop("exit_repeat", None)
+        if "exit_cause" not in facts:
+            # An unnamed class keeps its own class and code (no recipe cause is invented): it is
+            # recorded as the platform's, deferred, and reopened by a release change.
+            return replace(
+                failure, evidence={**failure.evidence, "identical_exits": count}
+            )
         return policy.classify(
             failure.phase,
             QualificationCauseCode.RUNTIME_EXIT,
