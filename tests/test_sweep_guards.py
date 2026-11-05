@@ -810,16 +810,10 @@ def test_every_evidence_exit_has_its_own_status_message():
 # -- lifecycle words come from the shared vocabulary ---------------------------------------
 
 _LIFECYCLE_WORDS = frozenset(state.value for state in STATES)
-#: The legacy spellings the published vocabulary retired, read from its own description.
+#: The legacy spellings the lifecycle vocabulary retired (vonk-forge #2042). Spelled out here, not
+#: read from the fixture's description prose, which no longer lists them.
 _RETIRED_WORDS = frozenset(
-    re.findall(
-        r"``([a-z-]+)``",
-        json.loads((ROOT / "tests/fixtures/sweep-lifecycle.json").read_text())[
-            "LifecycleState"
-        ]["description"]
-        .split("legacy spellings", 1)[1]
-        .split(")", 1)[0],
-    )
+    {"waiting", "partial", "cancelling", "expired", "waiting-for-operator"}
 )
 #: Words only a lifecycle state speaks: ``failed`` is also a recipe status and is judged by
 #: the compare rule, not the collection rule.
@@ -889,8 +883,7 @@ def _local_lifecycle_literals(tree: ast.AST) -> list[int]:
     return sorted(lines)
 
 
-def test_retired_spellings_come_from_the_published_vocabulary() -> None:
-    assert "waiting-for-operator" in _RETIRED_WORDS
+def test_retired_spellings_are_not_lifecycle_states() -> None:
     assert not _RETIRED_WORDS & _LIFECYCLE_WORDS
 
 
