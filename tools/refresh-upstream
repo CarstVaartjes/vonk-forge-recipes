@@ -4224,27 +4224,26 @@ def blocking_prs(
 
 
 def foreign_open_prs() -> dict[int, set[str]]:
-    """Changed paths of every open pull request whose branch is not ``refresh/*``."""
+    """Changed paths of every open pull request of this repository that is not ``refresh/*``.
+
+    A fork PR is never ours to wait for: only our own PRs can block a refresh.
+    """
     found: dict[int, set[str]] = {}
-    listing = gh(
-        "api",
-        "--paginate",
-        "repos/{owner}/{repo}/pulls?state=open&per_page=100",
-        "--jq",
-        '.[] | "\\(.number) \\(.head.ref)"',
-    )
-    pulls = [line.split(" ", 1) for line in listing.splitlines() if line.strip()]
-    for number, branch in pulls:
-        if branch.startswith("refresh/"):
+    for pr in own_pulls(
+        gh_json(
+            "pr",
+            "list",
+            "--state",
+            "open",
+            "--limit",
+            "1000",
+            "--json",
+            f"number,headRefName,files,{OWN_FIELDS}",
+        )
+    ):
+        if str(pr.get("headRefName", "")).startswith("refresh/"):
             continue
-        names = gh(
-            "api",
-            "--paginate",
-            f"repos/{{owner}}/{{repo}}/pulls/{number}/files?per_page=100",
-            "--jq",
-            ".[].filename",
-        ).split()
-        found[int(number)] = set(names)
+        found[int(pr["number"])] = {f.get("path", "") for f in pr.get("files") or []}
     return found
 
 

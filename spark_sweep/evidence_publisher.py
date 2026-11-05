@@ -22,7 +22,7 @@ from vonk_forge_contracts.sweep import (
     SweepEvidenceMergeState,
 )
 
-from .own_pulls import OWN_FIELDS, own_pulls
+from .own_pulls import OWN_FIELDS, REPOSITORY, own_pulls
 from .qualification import (
     backfill,
     catalog_recipe_keys,
@@ -36,7 +36,6 @@ from .state import write_atomic
 
 BRANCH = "qualification/evidence"
 TITLE = "qualification evidence"
-REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 _deadline: float | None = None
 UNPUBLISHED_FILE = "unpublished.json"
 PERSISTENT_BATCHES = 2
