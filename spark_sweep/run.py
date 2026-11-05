@@ -131,6 +131,8 @@ INFRA_BASE = 30.0
 INFRA_CAP = 600.0
 # Ceiling of the growing re-plan delay after a wait receipt ended without a successor.
 ENDED_RECEIPT_REPLAN_CAP = 3600.0
+# Identical platform-exit failures of one content identity that end the retrying (a FAIL).
+IDENTICAL_EXIT_LIMIT = 3
 RETEST_SECONDS = 24 * 3600.0
 ENDPOINT_RECHECK_SECONDS = 20.0
 # A results row carries the Controller document it ended on, bounded.
@@ -2026,8 +2028,10 @@ class Sweep:
             entry.pop("exit_repeat", None)
             return failure
         key = {"identity": content_identity(recipe).model_dump(mode="json"), **facts}
-        count = verdict.count_identical(entry, "exit_repeat", key)
-        if count < verdict.IDENTICAL_EXIT_LIMIT:
+        seen = entry.get("exit_repeat") or {}
+        count = int(seen.get("count", 0)) + 1 if seen.get("key") == key else 1
+        if count < IDENTICAL_EXIT_LIMIT:
+            entry["exit_repeat"] = {"key": key, "count": count}
             return failure
         # The outcome is written: a retest starts at zero.
         entry.pop("exit_repeat", None)

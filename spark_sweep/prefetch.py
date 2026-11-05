@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from typing import Any
 
 from vonk_forge_contracts.sweep import SweepWaitReason
@@ -47,14 +47,9 @@ from .policy import (
 )
 from .state import State
 from .verdict import (
-    IDENTICAL_EXIT_LIMIT,
-    OBSERVE_CLASSES,
-    Blame,
     Disposition,
     Progress,
     RecoveryReason,
-    blame,
-    count_identical,
     disposition,
     download_signal,
     progress_verdict,
@@ -430,7 +425,6 @@ class Prefetcher:
             for child in document.get("children", [])
             if isinstance(child, dict)
         )
-        failure = self._bound_identical_download(key, record, failure)
         record["failure"] = failure.signature
         outcome = disposition(failure)
         if outcome is Disposition.WAIT:
@@ -451,36 +445,6 @@ class Prefetcher:
             str(document.get("id") or ""),
             model_child or failure.model_level,
         )
-
-    def _bound_identical_download(
-        self, key: str, record: Mapping[str, Any], failure: Failure
-    ) -> Failure:
-        """The same content failing the same way again and again is the platform's recorded outcome.
-
-        The run is counted on the recipe's entry by content identity, class and code, so it
-        survives the new request each retest makes. From the third identical outcome the failure
-        carries ``identical_exits`` and ``disposition`` records it (a deferral that a Controller
-        release change reopens) instead of observing it again. Another outcome or another
-        content identity restarts the count.
-        """
-        accepted = AcceptedRequest.read(record)
-        if (
-            accepted is None
-            or blame(failure.klass, failure.code) is not Blame.PLATFORM
-            # Waits and the classes declared uncertain (a transport error) are not bounded here.
-            or disposition(failure) is Disposition.WAIT
-            or failure.klass in OBSERVE_CLASSES
-        ):
-            return failure
-        facts = {
-            "identity": content_identity(accepted.recipe).model_dump(mode="json"),
-            "klass": failure.klass,
-            "code": failure.code,
-        }
-        count = count_identical(self.state.entry(key), "download_repeat", facts)
-        if count < IDENTICAL_EXIT_LIMIT:
-            return failure
-        return replace(failure, evidence={**failure.evidence, "identical_exits": count})
 
     def _refused(self, key: str, record: dict[str, Any], reply: Reply) -> None:
         document = reply.document
@@ -854,10 +818,6 @@ class Prefetcher:
         if active(record.get("state")) and record.get("state") != DOWNLOAD_RETIRED:
             return False
         accepted = AcceptedRequest.read(record)
-        if self._stale_content(record, recipe) and accepted is None:
-            # An old record that never kept accepted content (a failed request) still names the
-            # content it asked for: a changed document is a new selector request, not a retest.
-            return True
         if accepted is not None and content_identity(
             accepted.recipe
         ) != content_identity(recipe):
@@ -905,15 +865,6 @@ class Prefetcher:
             # retry timer must never override an active or unreadable observation.
             return self._terminal_retest(recipe, record, now)
         return bool(record.get("retry_at")) and now >= float(record["retry_at"])
-
-    @staticmethod
-    def _stale_content(record: Mapping[str, Any], recipe: Recipe) -> bool:
-        intent = record.get("request_intent")
-        return (
-            isinstance(intent, Mapping)
-            and intent.get("content_sha256") is not None
-            and intent["content_sha256"] != recipe.content_sha256
-        )
 
     def _terminal_retest(
         self, recipe: Recipe, record: dict[str, Any], now: float

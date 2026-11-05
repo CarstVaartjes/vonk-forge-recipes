@@ -931,3 +931,27 @@ def test_the_sweep_names_lifecycle_states_only_through_the_shared_vocabulary(
         f"{path.name}: use LifecycleState / TERMINAL / WAITING / ACTIVE from "
         "spark_sweep.lifecycle, not literal state words"
     )
+
+
+def test_every_download_record_writer_sets_accepted_content() -> None:
+    """The class behind the legacy-record heal: no writer may store a download record without it."""
+    tree = ast.parse((ROOT / "spark_sweep/prefetch.py").read_text(encoding="utf-8"))
+    writers = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Assign)
+        and isinstance(node.value, ast.Dict)
+        and any(
+            isinstance(t, ast.Subscript)
+            and isinstance(t.value, ast.Attribute)
+            and t.value.attr == "downloads"
+            for t in node.targets
+        )
+    ]
+    assert writers, "the download record writers moved: update this guard"
+    for node in writers:
+        assert isinstance(node.value, ast.Dict)
+        keys = {k.value for k in node.value.keys if isinstance(k, ast.Constant)}
+        assert "accepted_content" in keys, (
+            f"prefetch.py:{node.lineno} lacks accepted_content"
+        )
