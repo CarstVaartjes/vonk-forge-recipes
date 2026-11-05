@@ -1,7 +1,4 @@
 {
-  "covered_by_build": {
-    "image-patch/entrypoint-toolfix.sh": "Dockerfile: hash-pinned xgrammar 0.2.4 layer with import and transformers asserts"
-  },
   "kit": {
     "dependencies": {
       "model": {
