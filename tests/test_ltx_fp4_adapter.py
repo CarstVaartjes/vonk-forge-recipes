@@ -103,9 +103,9 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         ]
 
         def run_pipeline(command, **_kwargs):
-            # Reproduce the captured failure before the adapter can publish output:
-            # a plain streaming model has no NVFP4 companion parameters.
-            if command[command.index("--offload") + 1] != "none":
+            # The resident loader faulted on v1.6.1 hardware; disk streaming
+            # is not an accepted NVFP4 mode.
+            if command[command.index("--offload") + 1] != "cpu":
                 raise KeyError("attn1.to_k.input_scale")
             self.assertEqual(
                 command[command.index("--quantization") + 1], "nvfp4-prequant"
@@ -143,7 +143,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             ("--num-frames", "1"),
             ("--num-inference-steps", "2"),
             ("--frame-rate", "24"),
-            ("--offload", "none"),
+            ("--offload", "cpu"),
             ("--quantization", "nvfp4-prequant"),
             ("--max-batch-size", "1"),
         ):
@@ -167,14 +167,14 @@ class LtxFp4PromptContractTests(unittest.TestCase):
                     assert_streaming_quantization_supported(
                         [*checkpoint, "--offload", mode, *policy]
                     )
-        for mode in ("cpu", "disk"):
-            with self.assertRaisesRegex(AssertionError, "NVFP4 checkpoints"):
-                assert_streaming_quantization_supported(
-                    [*checkpoint, "--offload", mode, "--quantization", "nvfp4-prequant"]
-                )
-        assert_streaming_quantization_supported(
-            [*checkpoint, "--offload", "none", "--quantization", "nvfp4-prequant"]
-        )
+        with self.assertRaisesRegex(AssertionError, "NVFP4 checkpoints"):
+            assert_streaming_quantization_supported(
+                [*checkpoint, "--offload", "disk", "--quantization", "nvfp4-prequant"]
+            )
+        for mode in ("none", "cpu"):
+            assert_streaming_quantization_supported(
+                [*checkpoint, "--offload", mode, "--quantization", "nvfp4-prequant"]
+            )
 
     def test_native_nvfp4_kernels_are_built_and_checked_for_spark(self) -> None:
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text()

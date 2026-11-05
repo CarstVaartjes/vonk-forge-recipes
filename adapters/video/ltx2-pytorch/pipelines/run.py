@@ -246,12 +246,16 @@ def main() -> None:
         str(args.num_inference_steps),
         "--frame-rate",
         str(FPS),
-        # Prequantized NVFP4 emits weight/input scales that block streaming
-        # cannot represent. Use the native loader and its NVFP4 LoRA fuse rule.
+        # Prequantized NVFP4 with the NVFP4 LoRA fuse rule. LTX v1.6.1 on
+        # Spark faulted (Xid 31 CE1 read after NVRM out-of-memory) on the
+        # resident `--offload none` loader while fusing the distilled LoRA;
+        # `--offload cpu` takes the streaming loader that the passing native
+        # siblings use. Diagnostic: if it also faults, use the creator's
+        # ltx_pipelines.distilled + nvfp4 form instead.
         "--quantization",
         "nvfp4-prequant",
         "--offload",
-        "none",
+        "cpu",
         "--max-batch-size",
         "1",
     ]
