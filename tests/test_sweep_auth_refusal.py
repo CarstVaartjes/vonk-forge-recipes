@@ -51,7 +51,7 @@ def _resumed(tmp_path: Path):
     return resumed, recipe, clock, fleet
 
 
-def test_saved_d3_refusal_fails_immediately_with_case_body_and_releases_lane(
+def test_saved_d3_refusal_is_recorded_immediately_with_case_body_and_releases_lane(
     tmp_path: Path,
 ):
     sweep, recipe, _, _ = _resumed(tmp_path)
@@ -64,7 +64,8 @@ def test_saved_d3_refusal_fails_immediately_with_case_body_and_releases_lane(
     sweep.enqueue_finished_cleanup()
     assert recipe.key not in sweep.state.slots
     entry = sweep.state.entry(recipe.key)
-    assert entry["status"] == RecipeVerdict.FAILED
+    # Recorded now, but a gateway refusal is platform evidence, never the recipe's failure.
+    assert entry["status"] == RecipeVerdict.DEFERRED
     assert entry["attempts"] == 1
     assert entry["evidence"]["case"] == "D3_TEXT"
     assert entry["evidence"]["http_status"] == 403
