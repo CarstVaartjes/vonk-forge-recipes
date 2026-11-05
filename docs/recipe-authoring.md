@@ -260,7 +260,10 @@ recipe builds its image from a digest-pinned ARM64 base image
 (`base_image.digest` is the bare 64-hex digest, without `sha256:`) and a
 recipe-owned build context, Dockerfile and patches. The build reaches
 only the hosts in `execution.build.network.hosts`; an empty list builds
-offline. Include all required local build inputs, patches, entrypoints,
+offline (`--network=none`), so a pip/uv install that can reach an index must
+declare the index hosts. An install is exempt with `--no-index`, or when it uses
+local targets with `--no-deps` and either all `.whl` files or
+`--no-build-isolation` (`tests/test_build_network_hosts.py`). Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
 
@@ -606,7 +609,10 @@ its strict DeepSeek V4 tool grammar with a reasoning block even for
 `VLLM_ENFORCE_STRICT_TOOL_CALLING=0`
 (`tests/test_deepseek_v4_b12x_named_tool_stop.py`). Newer B12X builds, such as
 vLLM 8244d1c4 in base `sha256:03a956544e9f...`, pass `reasoning=False` and need
-no setting.
+no setting. The SparkInfer base `sha256:2e077489a83a...` (vLLM 30038602) builds
+the same forced-call tag: a recipe on it that declares `T_REPORT` also sets
+`VLLM_ENFORCE_STRICT_TOOL_CALLING=0`, or the named call runs twice (#2292). The
+test selects a recipe by base digest, and on SparkInfer by `T_REPORT` too.
 
 On GB10, CPU and CUDA allocations share physical memory: CPU/model/sequential/
 group offload adds device transitions and can duplicate storage; it is not a
@@ -750,6 +756,10 @@ Its `add_generation_prompt` branch must honour `enable_thinking is defined and
 not enable_thinking`: SGLang forces its reasoning parser from that branch, and a
 creator template that always opens `<think>` leaks `</think>` into `content`
 when a request turns thinking off (`tests/test_sglang_reasoning_template_toggle.py`).
+The same rule covers a vLLM recipe with `--reasoning-parser glm47`. Its vendored
+template is the Model's own `chat_template.jinja` (sha256 from the Model document)
+plus only the thinking-switch line, so a model refresh that changes the template
+turns the suite red.
 
 ### Options: user-selectable runtime variants
 
@@ -877,6 +887,13 @@ launch names, complete selected Model files and passing producer checks. Changes
 to patched runtime files or missing selected files need review; metadata-only
 changes do not independently justify rebuilding identical content. Shared build
 contexts refresh together. Human repairs may intentionally diverge with evidence.
+An adapter that installs a creator's GitHub release asset pins it by version and
+sha256. A refresh moves the `releases/download/<tag>/<asset>` URL and re-pins the
+sha256 from the creator's `<asset>.sha256`, checked against GitHub's recorded
+digest; if either is missing or they disagree, the refresh goes to review ("re-pin
+by hand"). A declared release line can be moved deliberately: the ashhart
+TensorFold adapters moved from 0.6 to 1.x, while the two ashhart Flash Next
+recipes stay on 0.6.
 A proven recipe moves too: the refresh rewrites its entry in
 `tests/fixtures/proven-recipe-bytes.json` and the sweep re-checks it. A refresh
 branch only moves forward (never force-pushed); a PR whose checks failed on an
@@ -1116,7 +1133,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
 | `tests/test_recipe_model_mounts.py`, `tests/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
 | `tools/check-build-context-sources`, `tests/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
-| `tests/test_recipe_build_inputs.py`, `tests/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress. |
+| `tests/test_recipe_build_inputs.py`, `tests/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress, including the index hosts of any pip/uv install. |
 | `tools/check-vendored-upstream`, `tests/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. |
 | `tools/check-model-construction-device --base origin/main`, `tests/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and `vendored-upstream.json` verbatim creator copies excluded) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
 | `tools/kit-pins check`, `tests/test_kit_pins.py`, `tests/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |

@@ -240,7 +240,9 @@ ownership remains a security boundary (`tests/test_sweep_owner_pause.py`,
 Place singles on online free nodes, preferring exact model/cache affinity;
 gangs need their complete topology. More nodes than enrolled means skipped;
 enough enrolled but temporarily offline means pending. A blocked gang cannot
-reserve an independent usable lane. Typed disk refusals hold only their node
+reserve an independent usable lane. The sweep's own fit check only advises: a
+ready single is offered to every free Spark and the Controller's review decides
+fit (no 8 GB reserve, no `never_fits`). Typed disk refusals hold only their node
 scope until reconsideration, without spending recipe attempts
 (`tests/test_sweep_online_sparks.py`, `tests/test_sweep_offline_lane.py`,
 `tests/test_sweep_big_alone.py`, `tests/test_sweep_no_idle.py`).
@@ -306,6 +308,13 @@ fault from arbitrary error text:
 | `deferred` | Unknown platform/transport outcomes stay retryable, without blaming a sibling. |
 | `skipped` | Topology or platform support unavailable; not a recipe failure. |
 | `passed` | The recorded smoke ran; inspect its kind, quality notes and identity before drawing conclusions. |
+
+A cancelled preparation receipt that carries a failure with `retryable` false and
+no recovery action is a bounded outcome: the third identical one on the same
+content ends `deferred`. A supersession cancel (it carries `download_again`) still
+retries. `spark_sweep/receipt.py` is the one receipt reader
+(`tests/test_sweep_receipt_reader.py`). Old download records with no accepted
+content are dropped at load.
 
 Gateway 401/403 refusals end the case with evidence; only typed LiteLLM key
 expiry/revocation waits for renewal. Unclassified policy refusal is not evidence
