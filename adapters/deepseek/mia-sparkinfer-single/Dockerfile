@@ -36,6 +36,18 @@ ENV HOME=/state \
     TRANSFORMERS_OFFLINE=1 \
     VLLM_NO_USAGE_STATS=1
 
+# The base image pins xgrammar 0.1.27, but its vLLM needs normalize_tool_choice (>= 0.2.1).
+# The creator's image-patch/entrypoint-toolfix.sh upgrades it at boot (xgrammar>=0.2.4, then
+# transformers back to 5.13.1); a runtime pip install cannot work offline as USER 10001, so the
+# same step runs here at build time with the creator's floor, hash-checked. --no-deps leaves
+# transformers untouched; the assert proves the creator's restored version still stands.
+RUN printf 'xgrammar==0.2.4 --hash=sha256:b1d2bef13aec8122dfa6b96e3ece2cc0a42a732685f1d44f6248c305274e8eae\n' > /tmp/xgrammar.txt \
+    && env -u PIP_CONSTRAINT /opt/runtime-venv/bin/python -m pip install \
+         --no-deps --only-binary :all: --require-hashes -r /tmp/xgrammar.txt \
+    && /opt/runtime-venv/bin/python -c \
+         'import importlib.metadata as m; from xgrammar import normalize_tool_choice; assert m.version("xgrammar") == "0.2.4"; assert m.version("transformers") == "5.13.1"' \
+    && rm -f /tmp/xgrammar.txt
+
 WORKDIR /state
 USER 10001:10001
 ENTRYPOINT []
