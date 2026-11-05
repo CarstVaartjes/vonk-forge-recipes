@@ -322,20 +322,13 @@ def test_dual_does_not_use_a_busy_spark_and_singles_get_distinct_sparks(
     sweep.refresh_catalog()
     singles = [recipe for recipe in sweep.recipes.values() if recipe.node_count == 1]
     sweep._apply(
-        policy.place_singles(
-            singles, sweep._bins(), sweep.cfg.reserve_bytes, lambda r: r.slug
-        ),
+        policy.place_singles(singles, sweep._bins(), lambda r: r.slug),
         clock.now(),
     )
     assert len(sweep.state.slots) == 2
     assert len({slot["node_ids"][0] for slot in sweep.state.slots.values()}) == 2
     assert sweep._bins() == []
-    assert (
-        policy.place_dual(
-            list(sweep.recipes.values()), sweep._bins(), sweep.cfg.reserve_bytes
-        )
-        is None
-    )
+    assert policy.place_dual(list(sweep.recipes.values()), sweep._bins()) is None
 
 
 def test_a_running_smoke_expires_and_its_late_result_cannot_pass_the_case(

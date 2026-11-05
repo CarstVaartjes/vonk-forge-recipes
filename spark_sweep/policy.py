@@ -299,12 +299,7 @@ class Placement:
     spark_ids: tuple[str, ...]
 
 
-def never_fits(recipe: Recipe, capacity: int, reserve: int) -> bool:
-    """Declared memory beyond an empty Spark: not testable on this fleet."""
-    return recipe.memory_bytes > 0 and recipe.memory_bytes + reserve > capacity
-
-
-def _fits(recipe: Recipe, spark: SparkBin, reserve: int, alias: str) -> bool:
+def _fits(recipe: Recipe, spark: SparkBin, alias: str) -> bool:
     if recipe.key in spark.disk_blocked_recipes:
         return False
     if spark.used or spark.aliases:
@@ -313,15 +308,15 @@ def _fits(recipe: Recipe, spark: SparkBin, reserve: int, alias: str) -> bool:
         return False
     if spark.ports & set(recipe.ports):
         return False
-    if recipe.memory_bytes == 0:  # unknown demand: only on an empty Spark
-        return spark.used == 0
-    return spark.used + recipe.memory_bytes + reserve <= spark.capacity
+    # The Spark is empty here. Declared memory is an estimate until tried: only demand
+    # beyond the whole Spark is oversized, and the Controller's review decides on that.
+    # Sharing a Spark is bounded elsewhere (the run's _overfull_sparks).
+    return recipe.memory_bytes <= spark.capacity
 
 
 def place_singles(
     candidates: Sequence[Recipe],
     bins: Sequence[SparkBin],
-    reserve: int,
     alias_of: Callable[[Recipe], str],
 ) -> list[Placement]:
     """One single recipe per free Spark, in queue order.
@@ -342,7 +337,7 @@ def place_singles(
             if recipe.key in claimed:
                 continue
             alias = alias_of(recipe)
-            options = [b for b in state.values() if _fits(recipe, b, reserve, alias)]
+            options = [b for b in state.values() if _fits(recipe, b, alias)]
             if not options:
                 continue
 
@@ -351,8 +346,7 @@ def place_singles(
                 and placed
                 and not any(b.holds_models(recipe) for b in options)
                 and any(
-                    b.holds_models(recipe) and _fits(recipe, b, reserve, alias)
-                    for b in bins
+                    b.holds_models(recipe) and _fits(recipe, b, alias) for b in bins
                 )
             ):
                 continue  # its owner was assigned this round; offer the other lane later work
@@ -373,15 +367,13 @@ def place_singles(
 
 
 def place_dual(
-    candidates: Sequence[Recipe], bins: Sequence[SparkBin], reserve: int
+    candidates: Sequence[Recipe], bins: Sequence[SparkBin]
 ) -> Placement | None:
     """A two-Spark recipe needs every Spark empty."""
     if len(bins) < 2 or any(b.used for b in bins):
         return None
     for recipe in candidates:
-        if recipe.node_count == 2 and all(
-            _fits(recipe, b, reserve, "") for b in bins[:2]
-        ):
+        if recipe.node_count == 2 and all(_fits(recipe, b, "") for b in bins[:2]):
             return Placement(recipe, tuple(b.id for b in bins[:2]))
     return None
 

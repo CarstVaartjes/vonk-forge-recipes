@@ -16,7 +16,6 @@ from spark_sweep.catalog import Recipe
 
 GB = 10**9
 CAP = SPARK_MEMORY_BYTES
-RESERVE = 8 * GB
 
 
 def recipe(slug: str, digests: tuple[str, ...] = ("m",), **kw) -> Recipe:
@@ -240,7 +239,7 @@ def test_each_free_spark_gets_exactly_one_recipe() -> None:
         recipe("b", ports=(8002,)),
         recipe("c", ports=(8003,)),
     ]
-    placed = policy.place_singles(cands, bins(0, 0), RESERVE, alias)
+    placed = policy.place_singles(cands, bins(0, 0), alias)
     assert [(p.recipe.slug, p.spark_ids) for p in placed] == [
         ("a", ("s0",)),
         ("b", ("s1",)),
@@ -252,19 +251,29 @@ def test_a_single_owns_its_spark_even_when_another_recipe_would_fit() -> None:
         recipe("a", memory_bytes=40 * GB, ports=(8001,)),
         recipe("b", memory_bytes=40 * GB, ports=(8002,)),
     ]
-    placed = policy.place_singles(cands, bins(0), RESERVE, alias)
+    placed = policy.place_singles(cands, bins(0), alias)
     assert [p.spark_ids for p in placed] == [("s0",)]
 
 
 def test_a_port_clash_or_too_little_memory_prevents_packing() -> None:
     clash = [recipe("a"), recipe("b")]  # both on 8000
-    assert len(policy.place_singles(clash, bins(0), RESERVE, alias)) == 1
+    assert len(policy.place_singles(clash, bins(0), alias)) == 1
     big = [
         recipe("a", memory_bytes=70 * GB, ports=(1,)),
         recipe("b", memory_bytes=70 * GB, ports=(2,)),
     ]
-    assert len(policy.place_singles(big, bins(0), RESERVE, alias)) == 1
-    assert len(policy.place_singles(big, bins(0, 0), RESERVE, alias)) == 2
+    assert len(policy.place_singles(big, bins(0), alias)) == 1
+    assert len(policy.place_singles(big, bins(0, 0), alias)) == 2
+
+
+def test_a_single_within_the_whole_spark_is_placed_without_the_sweeps_reserve() -> None:
+    # Declared memory is an estimate; only demand beyond the whole Spark is oversized.
+    snug = recipe("snug", memory_bytes=CAP - 20_000_000)
+    assert [p.spark_ids for p in policy.place_singles([snug], bins(0), alias)] == [
+        ("s0",)
+    ]
+    oversized = recipe("oversized", memory_bytes=CAP + 1)
+    assert policy.place_singles([oversized], bins(0), alias) == []
 
 
 def test_placement_respects_queue_order() -> None:
@@ -272,7 +281,7 @@ def test_placement_respects_queue_order() -> None:
         recipe("small", memory_bytes=30 * GB, ports=(1,)),
         recipe("huge", memory_bytes=100 * GB, ports=(2,)),
     ]
-    placed = policy.place_singles(cands, bins(0, 0), RESERVE, alias)
+    placed = policy.place_singles(cands, bins(0, 0), alias)
     assert {p.recipe.slug: p.spark_ids for p in placed} == {
         "small": ("s0",),
         "huge": ("s1",),
@@ -291,13 +300,13 @@ def test_running_recipes_are_respected_and_aliases_cannot_collide() -> None:
     ]
     assert (
         policy.place_singles(
-            [recipe("b", ports=(9000,), memory_bytes=40 * GB)], running, RESERVE, alias
+            [recipe("b", ports=(9000,), memory_bytes=40 * GB)], running, alias
         )
         == []
     )
     assert (
         policy.place_singles(
-            [recipe("a", ports=(9000,), memory_bytes=1 * GB)], running, RESERVE, alias
+            [recipe("a", ports=(9000,), memory_bytes=1 * GB)], running, alias
         )
         == []
     )
@@ -305,19 +314,13 @@ def test_running_recipes_are_respected_and_aliases_cannot_collide() -> None:
 
 def test_a_dual_needs_every_spark_empty() -> None:
     d = recipe("d", node_count=2, memory_bytes=60 * GB)
-    assert policy.place_dual([d], bins(0, 1), RESERVE) is None
-    placed = policy.place_dual([recipe("single"), d], bins(0, 0), RESERVE)
+    assert policy.place_dual([d], bins(0, 1)) is None
+    placed = policy.place_dual([recipe("single"), d], bins(0, 0))
     assert (
         placed is not None
         and placed.recipe.slug == "d"
         and placed.spark_ids == ("s0", "s1")
     )
-
-
-def test_never_fits_flags_declared_demand_beyond_an_empty_spark() -> None:
-    assert policy.never_fits(recipe("x", memory_bytes=128 * GB), CAP, RESERVE)
-    assert not policy.never_fits(recipe("x", memory_bytes=100 * GB), CAP, RESERVE)
-    assert not policy.never_fits(recipe("x", memory_bytes=0), CAP, RESERVE)
 
 
 # -- timeouts -------------------------------------------------------------------------------
@@ -520,5 +523,5 @@ def test_ready_single_is_not_hidden_behind_duals_or_oversized_queue_heads() -> N
     candidates += [recipe(f"large-{i}", memory_bytes=2 * CAP) for i in range(5)]
     fitting = recipe("fitting")
     candidates.append(fitting)
-    placed = policy.place_singles(candidates, bins(0), RESERVE, alias)
+    placed = policy.place_singles(candidates, bins(0), alias)
     assert [item.recipe for item in placed] == [fitting]
