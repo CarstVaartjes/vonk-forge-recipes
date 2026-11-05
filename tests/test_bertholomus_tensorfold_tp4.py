@@ -1,4 +1,4 @@
-"""bertholomus's v0.3.6 TP4 lane: the launch serve.sh runs, bound to the Controller, and its readied checkpoint."""
+"""bertholomus's v0.3.7 TP4 lane: the launch serve.sh runs, bound to the Controller, and its readied checkpoint."""
 
 import hashlib
 import importlib.util
@@ -65,12 +65,15 @@ def test_every_rank_runs_the_served_settings_on_the_controller_fabric(modules, r
     pool = next(a.value for a in recipe.runtime.arguments if a.name == "pool")
     # tonyd2wild's dedicated-node pool (run README at 74ac0136), the owner's rule
     assert pool == 29_360_128
-    assert env["TF_DS_WINDOW"] == str(pool) and env["TF_DS_STREAMS"] == "16"
+    assert env["TF_DS_WINDOW"] == str(pool) and env["TF_DS_STREAMS"] == "32"
     assert env["TF_RDMA_DEVICES"] == "rocep1s0f0,roceP2p1s0f0"
     assert env["TF_RDMA_GID"] == "3" and env["NCCL_IB_HCA"] == ENVIRON["NCCL_IB_HCA"]
+    assert (
+        env["TF_DS_ROUND_ROWS"] == "64" and len(env["TF_DS_ROUND_MS"].split(",")) == 64
+    )
     assert env["TF_DS_WAVES"] == env["TF_DS_2D_YX"] == env["TF_FILL_MANY"] == "1"
     assert env["NCCL_MAX_NCHANNELS"] == "4" and env["TF_DS_IDX_SPLIT"] == "8192"
-    # v0.3.6 serves with its sampling opt-ins unset
+    # v0.3.7 serves with its sampling opt-ins unset
     assert "TF_SEED_RANDOM" not in env and "TF_TOP_K_MAX" not in env
     assert env["TENSORFOLD_GRAMMAR_LIB"] == str(cache / "kit/grammar/libtfgrammar.so")
     if rank == 0:
@@ -94,7 +97,8 @@ def test_every_rank_runs_the_served_settings_on_the_controller_fabric(modules, r
         pools = [command[i + 1] for i, a in enumerate(command) if a == "--pool"]
         assert pools == ["1048576", str(pool)]
         assert command[command.index("--rdma") + 1] == env["TF_RDMA_DEVICES"]
-        assert command[command.index("--streams") + 1] == "16"
+        assert command[command.index("--streams") + 1] == "32"
+        assert command[command.index("--round-rows") + 1] == "64"
 
 
 def test_unauthorized_fabric_and_a_pool_below_one_context_refuse(modules):
