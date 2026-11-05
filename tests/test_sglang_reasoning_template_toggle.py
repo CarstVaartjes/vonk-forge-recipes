@@ -1,21 +1,23 @@
 """A reasoning recipe that serves a repository chat template must honour the switch.
 
 The strength rule applies to every engine; the `<think>` rule to SGLang and to
-the vLLM GLM parsers (`glm45`, `glm47`). The opening tag is in the prompt, so
+the vLLM `glm47` parser. The opening tag is in the prompt, so
 the output has none; the parser is forced from the chat template's
 `enable_thinking` switch. A template that always writes `<think>` and ignores
 the switch leaves the parser unforced for a request that turns thinking off,
 and the end tag leaks into `content` (smoke case A391 on the GLM-5.3 EXL3
-baseline, SGLang and the vLLM K2 recipe). The switch is a per-request input,
+baseline; the vLLM K2 recipe with `glm47`). The switch is a per-request input,
 never a recipe option.
 
-Other vLLM parsers (`deepseek_r1` on the proven NVFP4 dual recipe) are not held
-to the rule. A template baked into the HF weights (not a repository file)
-cannot be checked statically; smoke A391 on hardware covers it. The one gap this
-file closes is a baked template already proven switchless on hardware: its
-12-hex digest prefix (the `chat-template-<prefix>-` model file id) is listed in
-`SWITCHLESS_BAKED` and a GLM-parser recipe shipping it must serve a repository
-template instead.
+Other vLLM parsers are not held to the rule: `glm45` on the proven NVFP4 recipes
+(`glm-5-3-flash-nvfp4-spark-eugr-vllm-dual`, unswitched baked template) passed
+A391 on hardware. A template baked into the HF weights cannot be checked
+statically; A391 on hardware covers it.
+
+A vendored `glm47` copy must be the model's own `chat_template.jinja` plus the
+switch line and nothing else, proven against the sha256 in the Model document.
+The #1906 SGLang copies also carry a multimodal edit, so they are not covered
+by that byte check.
 
 The Muse Glimmer template has no `<think>` tag: `render_reasoning` always writes
 "Reasoning strength: high.", so a request with thinking off reasoned to
@@ -30,22 +32,19 @@ import json
 import re
 from pathlib import Path
 
-from documents import recipe
+from documents import model, recipe
 
 ROOT = Path(__file__).resolve().parents[1]
 GENERATION_PROMPT = re.compile(
     r"add_generation_prompt\s*-?%\}(?P<tail>.*?)\{%-?\s*endif", re.DOTALL
 )
 SWITCH = re.compile(r"enable_thinking\s+is\s+defined\s+and\s+not\s+enable_thinking")
-# Mia's GLM template derives `thinking_enabled` from enable_thinking / thinking.
-SWITCH_IDIOMS = re.compile(SWITCH.pattern + r"|\bif\s+thinking_enabled\b")
-GLM_VLLM_PARSERS = {"glm45", "glm47"}
-SWITCHLESS_BAKED = {
-    # 0xSero/GLM-5.3-Flash-EXL3-TR3-2.0bpw @35b4b580 chat_template.jinja:212 opens
-    # `<think>` with no switch; A391 on hardware 2026-11-05 leaked `</think>`.
-    "d15e56b35f44": "0xSero GLM-5.3-Flash EXL3 TR3 template",
-}
-BAKED_TEMPLATE_ID = re.compile(r"chat-template-([0-9a-f]{12})-[0-9a-f]+")
+GLM_VLLM_PARSERS = {"glm47"}
+SWITCH_LINE = (
+    "<|assistant|>{{- '<think></think>' if "
+    "(enable_thinking is defined and not enable_thinking) else '<think>' -}}"
+)
+UPSTREAM_LINE = "<|assistant|>{{- '<think>' -}}"
 MUSE_TEMPLATES = sorted(
     (ROOT / "adapters").glob("*/*/vonk-muse-glimmer-chat-template.jinja")
 )
@@ -115,7 +114,7 @@ def test_reasoning_templates_honour_enable_thinking() -> None:
         prompts = GENERATION_PROMPT.findall(text)
         tail = prompts[-1] if prompts else ""
         if (engine == "sglang" or parser in GLM_VLLM_PARSERS) and "<think>" in tail:
-            assert SWITCH_IDIOMS.search(tail), (
+            assert SWITCH.search(tail), (
                 f"{slug}: {source.relative_to(ROOT)} opens <think> in the generation "
                 "prompt without the enable_thinking switch"
             )
@@ -146,19 +145,31 @@ def test_muse_template_differs_from_upstream_only_in_the_switch() -> None:
     assert len({p.read_bytes() for p in MUSE_TEMPLATES}) == 1
 
 
-def test_glm_recipes_do_not_ship_a_known_switchless_baked_template() -> None:
-    served = {slug for slug, *_ in _reasoning_templates()[0]}
-    for path in sorted((ROOT / "recipes").glob("*.json")):
-        definition = recipe(path.stem)
-        args = {a.name: a.value for a in definition.runtime.arguments}
-        if str(args.get("reasoning-parser", "")) not in GLM_VLLM_PARSERS:
+def test_glm47_template_is_the_models_own_plus_the_switch() -> None:
+    """A vendored copy equals the model's chat_template.jinja except the switch line.
+
+    Reverting the switch line must give the exact bytes of the template in the
+    recipe's Model document, so a refreshed model revision turns this red until
+    the copy is re-derived from it.
+    """
+    checked = 0
+    for slug, _, parser, _, source in _reasoning_templates()[0]:
+        text = source.read_bytes().decode()
+        if parser not in GLM_VLLM_PARSERS or SWITCH_LINE not in text:
             continue
-        for selection in definition.models:
-            for model_file in selection.files:
-                match = BAKED_TEMPLATE_ID.fullmatch(model_file.file_id)
-                prefix = match.group(1) if match else ""
-                assert prefix not in SWITCHLESS_BAKED or path.stem in served, (
-                    f"{path.stem}: the model's own {SWITCHLESS_BAKED[prefix]} "
-                    "ignores enable_thinking; serve a repository template with "
-                    "the switch"
-                )
+        assert text.count(SWITCH_LINE) == 1, source
+        upstream = hashlib.sha256(
+            text.replace(SWITCH_LINE, UPSTREAM_LINE).encode()
+        ).hexdigest()
+        published = {
+            file.sha256
+            for selection in recipe(slug).models
+            for file in model(selection.model.slug).files
+            if file.path == "chat_template.jinja"
+        }
+        assert upstream in published, (
+            f"{slug}: {source.relative_to(ROOT)} without the switch line is not the "
+            "chat_template.jinja of the recipe's model; re-derive it from the model"
+        )
+        checked += 1
+    assert checked
