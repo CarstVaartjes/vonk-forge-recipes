@@ -463,7 +463,7 @@ def _storage_shortfall(sweep: Any, key: str, spark_ids: list[str]) -> dict[str, 
 def test_a_head_blocked_on_disk_on_one_spark_is_placed_on_the_clean_one(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    only = FakeRecipe("only", ("m1",), local="cached")
+    only = FakeRecipe("only", ("m1",), local="cached", memory=10**15)
     sweep, fleet, clock = _ready(tmp_path, gateway, [only])
     key = only.key
     review = _storage_shortfall(sweep, key, ["spk_a"])
