@@ -11,7 +11,8 @@
     "whole": false
   },
   "ours": [
-    "vllm-wrapper.sh"
+    "vllm-wrapper.sh",
+    "vonk-glm53-chat-template.jinja"
   ],
   "source": {
     "commit": "6ff8595aa271f2eac49579fbf5e90cde9e90674e",

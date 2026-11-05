@@ -14,6 +14,7 @@ LABEL org.opencontainers.image.source="https://github.com/0xSero/GLM-5.3-Flash-E
 
 COPY --chmod=0755 tools/prepare_mtp_draft.py /opt/vonk/tools/prepare_mtp_draft.py
 COPY --chmod=0755 vllm-wrapper.sh /opt/vonk/bin/vllm
+COPY vonk-glm53-chat-template.jinja /opt/vonk/glm53-chat-template.jinja
 COPY LICENSE /opt/vonk/LICENSE.glm53-exl3-k2-single
 
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
