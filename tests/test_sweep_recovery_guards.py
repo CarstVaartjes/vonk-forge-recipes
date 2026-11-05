@@ -670,6 +670,7 @@ def test_saved_download_intent_is_adopted_from_original_arguments(tmp_path, pare
     state.downloads["saved"] = {
         "operation_id": "operation",
         "request_key": "original-uuid",
+        "accepted_content": {"request_key": "original-uuid", "recipe": {}},
         "request_intent": {"recipe_key": "saved", "content_sha256": "original-content"},
         "retry_of_operation_id": parent,
     }
