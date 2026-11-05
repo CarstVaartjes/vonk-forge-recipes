@@ -43,6 +43,7 @@ from .policy import (
     activity,
     forward_marks,
 )
+from .receipt import receipt_failure
 from .vonkctl import Reply
 
 
@@ -311,13 +312,13 @@ def download_signal(document: Mapping[str, Any]) -> Signal:
     )
     space = next(
         (
-            child["failure"]
+            failure
             for child in document.get("children") or []
             if isinstance(child, Mapping)
             and child.get("kind") == "model-cache"
             and child.get("state") in (LifecycleState.QUEUED, LifecycleState.BACKOFF)
-            and isinstance(child.get("failure"), Mapping)
-            and child["failure"].get("code") == NAS_SPACE_CODE
+            and (failure := receipt_failure(child)) is not None
+            and failure.get("code") == NAS_SPACE_CODE
         ),
         None,
     )

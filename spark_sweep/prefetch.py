@@ -45,6 +45,7 @@ from .policy import (
     excerpt,
     plan_groups,
 )
+from .receipt import receipt_failure, terminal_outcome
 from .state import State
 from .verdict import (
     Disposition,
@@ -323,6 +324,13 @@ class Prefetcher:
                 )
                 self.state.event(f"download intent ended: {key}")
                 self.state.save()
+                if (cancelled := terminal_outcome(document)) is not None:
+                    # An observed outcome (not a verdict): the sweep's bound on identical
+                    # outcomes ends a repeat; the retry above stands until then.
+                    record["failure"] = cancelled.signature
+                    self.on_failure(
+                        key, cancelled, str(document.get("id") or ""), False
+                    )
             if record["state"] == LifecycleState.SUCCEEDED and not record.get(
                 "done_at"
             ):
@@ -390,32 +398,9 @@ class Prefetcher:
     def _failed(
         self, key: str, record: dict[str, Any], document: Mapping[str, Any]
     ) -> None:
-        failure_doc = document.get("failure") or {}
-        code = str(failure_doc.get("code", ""))
-        detail = str(failure_doc.get("detail", "") or document.get("detail", ""))
-        actions = [str(a) for a in failure_doc.get("recovery_actions", [])]
-        failure = classify(
-            "download",
-            code,
-            detail,
-            evidence={
-                "operation_id": document.get("id"),
-                "state": document.get("state"),
-                "reason": excerpt(failure_doc.get("detail") or detail, 500),
-                "recovery_actions": actions,
-                "children": [
-                    {
-                        k: child.get(k)
-                        for k in ("kind", "state", "id")
-                        if child.get(k) is not None
-                    }
-                    for child in document.get("children", [])
-                    if isinstance(child, dict)
-                    and child.get("state") == LifecycleState.FAILED
-                ][:8],
-                "failure": excerpt(failure_doc, 1000),
-            },
-        )
+        failure = terminal_outcome(document)
+        assert failure is not None  # only a FAILED receipt is routed here
+        actions = [str(a) for a in failure.evidence.get("recovery_actions", [])]
         if "free_space" in actions or failure.klass == "capacity":
             self.pressure_until = self.clock() + self.config.pressure_pause
             self.state.event(f"NAS pressure on {key}: new model downloads paused")
@@ -920,7 +905,7 @@ class Prefetcher:
             or document.get("id") != record["operation_id"]
             or document.get("request_id") != record["request_key"]
             or document.get("recipe_content_sha256") != recipe.content_sha256
-            or not isinstance(document.get("failure"), Mapping)
+            or receipt_failure(document) is None
             or not isinstance(document.get("request"), Mapping)
             or document.get("state") != LifecycleState.FAILED
         ):
