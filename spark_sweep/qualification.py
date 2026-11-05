@@ -16,6 +16,7 @@ from vonk_forge_contracts import (
     QualificationDerivationInput,
     QualificationEvidenceRecord,
     QualificationIdentity,
+    QualificationMeasuredRoleMemory,
     QualificationOutcome,
     QualificationPlatform,
     QualificationQualityNote,
@@ -35,7 +36,6 @@ from vonk_forge_contracts.qualification_status import (
     published_status,
 )
 
-from .auth_contract import SmokeAuthClass
 from .catalog import Recipe
 from .identity import current_identity
 from .lifecycle import RecipeStatus
@@ -77,6 +77,8 @@ class HistoricalResult(BaseModel):
     result: HistoricalSmokeResult = Field(default_factory=HistoricalSmokeResult)
     failure_class: str | None = None
     code: str | None = None
+    # What a pass measured, as evidence rows keyed (content_sha256, role).
+    measured_memory: tuple[QualificationMeasuredRoleMemory, ...] = ()
 
 
 def evidence_path(root: Path, recipe_key: str) -> Path:
@@ -102,7 +104,49 @@ def merge_evidence(
         raise ValueError("cannot merge different recipes")
     unique = {r.model_dump_json(): r for r in (*left.records, *right.records)}
     ordered = sorted(unique.values(), key=lambda r: (r.tested_at, r.model_dump_json()))
-    return left.model_copy(update={"records": tuple(ordered)})
+    rows: dict[tuple[str, str], QualificationMeasuredRoleMemory] = {}
+    for row in (*left.measured_memory, *right.measured_memory):
+        rows[row.key] = (
+            merge_measurement(rows[row.key], row) if row.key in rows else row
+        )
+    return left.model_copy(
+        update={
+            "records": tuple(ordered),
+            "measured_memory": tuple(rows[key] for key in sorted(rows)),
+        }
+    )
+
+
+def merge_measurement(
+    left: QualificationMeasuredRoleMemory, right: QualificationMeasuredRoleMemory
+) -> QualificationMeasuredRoleMemory:
+    """One (content, role) measured twice: the larger use, the smaller budget.
+
+    Both are the conservative side for a reader asking whether a declaration
+    covers what hardware used under no smaller budget; no budget is smallest.
+    """
+    a, b = left.budget_bytes, right.budget_bytes
+    return left.model_copy(
+        update={
+            "steady_bytes": max(left.steady_bytes, right.steady_bytes),
+            "budget_bytes": None if a is None or b is None else min(a, b),
+        }
+    )
+
+
+def history_evidence(value: Mapping[str, Any]) -> RecipeQualificationEvidence | None:
+    """One history row as evidence: its verdict record and, for a pass, its measurements."""
+    record = from_history(value)
+    if record is None:
+        return None
+    row = HistoricalResult.model_validate(value)
+    return RecipeQualificationEvidence(
+        recipe_key=row.recipe,
+        records=(record,),
+        measured_memory=tuple(sorted(row.measured_memory, key=lambda m: m.key))
+        if record.outcome == QualificationOutcome.PASSED
+        else (),
+    )
 
 
 def write_evidence(root: Path, evidence: RecipeQualificationEvidence) -> bool:
@@ -141,8 +185,8 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         models_resolved=models is not None,
         required_sparks=row.node_count or len(row.node_ids) or None,
     )
-    from .policy import RECIPE_FAILURE_CODES
-    from .verdict import FAIL_CLASSES
+    from .verdict import Blame
+    from .verdict import blame as sweep_blame
 
     passed = row.status == RecipeStatus.PASSED
     blame = (
@@ -151,13 +195,7 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         else (
             QualificationBlame.RECIPE
             if row.status == RecipeStatus.FAILED
-            and (
-                row.code in RECIPE_FAILURE_CODES
-                or (
-                    row.failure_class in FAIL_CLASSES
-                    and row.failure_class != SmokeAuthClass.REFUSAL
-                )
-            )
+            and sweep_blame(row.failure_class or "", row.code) is Blame.RECIPE
             else QualificationBlame.PLATFORM
         )
     )
@@ -339,14 +377,10 @@ def backfill(
         for line in path.read_text().splitlines():
             result.read += 1
             try:
-                raw = json.loads(line)
-                record = from_history(raw)
-                if record is None:
+                evidence = history_evidence(json.loads(line))
+                if evidence is None:
                     continue
-                key = HistoricalResult.model_validate(raw).recipe
-                evidence = RecipeQualificationEvidence(
-                    recipe_key=key, records=(record,)
-                )
+                key = evidence.recipe_key
             except (ValueError, TypeError, AttributeError):
                 result.rejected += 1
                 continue
