@@ -10,10 +10,10 @@
     ],
     "higher_tiers": {
       "stress": [
-        "Bounded context (16,384 default up to the 262,144 window) and MTP acceptance canaries, with the first-run kernel compile time recorded separately"
+        "Bounded context (16,384 default up to the 262,144 window) and MTP acceptance canaries"
       ],
       "recovery": [
-        "Controller stop/start with warm kernel-cache restart"
+        "Controller stop/start with warm-cache restart"
       ]
     }
   }

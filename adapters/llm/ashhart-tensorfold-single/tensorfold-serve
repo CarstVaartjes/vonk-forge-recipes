@@ -1,0 +1,10 @@
+#!/bin/sh
+# Entrypoint for the single-Spark TensorFold (native 1.x) recipes. The recipe passes
+# only named `tensorfold-native serve` options; the served checkpoint is always
+# mounted at /models/target.
+set -eu
+: "${HOME:?}" "${CUDA_CACHE_PATH:?}" "${TMPDIR:?}"
+# The platform binds /outputs/cache; the cache and temporary directories below
+# it are created here (nothing else is writable).
+mkdir -p "$HOME/.cache/tensorfold" "$CUDA_CACHE_PATH" "$TMPDIR"
+exec /opt/tensorfold/bin/tensorfold-native serve /models/target "$@"
