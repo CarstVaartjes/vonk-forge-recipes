@@ -1823,6 +1823,130 @@ def retarget_archive_labels(dockerfile: str, item: Item) -> tuple[str, bool]:
     return dockerfile.replace(old, new), True
 
 
+# An adapter that installs a creator's release asset (TensorFold's native archive) pins
+# it by version and sha256: a move re-pins the URL, the asset name, the version checks
+# and the digest together, or it is a review.
+RELEASE_ASSET_REVIEW = "release asset pinned by version and sha; re-pin by hand"
+MAX_DIGEST_FILE_BYTES = 4096
+
+
+class ReleaseAssetError(RuntimeError):
+    """A release asset the adapter pins cannot be re-pinned at the new release."""
+
+
+def release_downloads(repo: str) -> re.Pattern[str]:
+    """``github.com/<repo>/releases/download/<tag>/<asset>`` URLs (tag, asset)."""
+    return re.compile(
+        rf"https://github\.com/{re.escape(repo)}/releases/download/"
+        r"([^/\s\"'\\]+)/([^/\s\"'\\]+)",
+        re.IGNORECASE,
+    )
+
+
+def version_token(version: str) -> re.Pattern[str]:
+    """``version`` as a whole token (``1.2.3`` in ``-1.2.3-`` or ``v1.2.3``, not ``11.2.3``)."""
+    return re.compile(rf"(?<![\w.])(v?){re.escape(version)}(?![\w.])")
+
+
+def download_text(url: str) -> str:
+    """A small published text file (a release's ``.sha256``), bounded in size."""
+    request = urllib.request.Request(url, headers={"User-Agent": "vonk-forge-recipes"})
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            data = response.read(MAX_DIGEST_FILE_BYTES + 1)
+    except (urllib.error.URLError, OSError) as error:
+        raise ReleaseAssetError(f"{url}: {error}") from error
+    if len(data) > MAX_DIGEST_FILE_BYTES:
+        raise ReleaseAssetError(f"{url} is larger than {MAX_DIGEST_FILE_BYTES} bytes")
+    return data.decode("utf-8", errors="replace")
+
+
+def published_sha256(http: Any, repo: str, tag: str, asset: str) -> str:
+    """The sha256 the creator publishes beside ``asset`` (``<asset>.sha256``), verified.
+
+    Ingress read: the published digest file must name the asset and agree with the
+    digest GitHub records for the uploaded asset, when GitHub records one.
+    """
+    try:
+        release = http.github(f"repos/{repo}/releases/tags/{quote(tag, safe='')}")
+    except (RuntimeError, KeyError, TypeError) as error:
+        raise ReleaseAssetError(f"{repo} release {tag}: {error}") from error
+    assets = {a.get("name"): a for a in release.get("assets", [])}
+    if asset not in assets:
+        raise ReleaseAssetError(f"{repo} release {tag} publishes no `{asset}`")
+    published = assets.get(f"{asset}.sha256")
+    if published is None:
+        raise ReleaseAssetError(f"{repo} release {tag} publishes no `{asset}.sha256`")
+    digests = {
+        fields[0].lower()
+        for line in download_text(published["browser_download_url"]).splitlines()
+        if len(fields := line.split()) >= 2
+        and re.fullmatch(r"[0-9a-fA-F]{64}", fields[0])
+        and fields[-1].lstrip("*").rsplit("/", 1)[-1] == asset
+    }
+    if len(digests) != 1:
+        raise ReleaseAssetError(f"`{asset}.sha256` of {tag} names no single digest")
+    (digest,) = digests
+    recorded = str(assets[asset].get("digest") or "")
+    if recorded and recorded.lower() != f"sha256:{digest}":
+        raise ReleaseAssetError(
+            f"`{asset}.sha256` of {tag} disagrees with GitHub's recorded digest"
+        )
+    return digest
+
+
+def retarget_release_assets(dockerfile: str, item: Item, http: Any) -> tuple[str, bool]:
+    """Move the creator's release assets the Dockerfile installs to the target release.
+
+    Each ``releases/download/<tag>/<asset>`` URL of the pinned repository moves to the
+    target tag, the old version in its asset name to the new one, and the old asset's
+    published sha256 (wherever the Dockerfile states it) to the new asset's. Lines that
+    check a ``VERSION`` file, and comments naming the project, carry the new version.
+    Anything that cannot be re-pinned raises ``ReleaseAssetError``.
+    """
+    pattern = release_downloads(item.repo)
+    matches = list(pattern.finditer(dockerfile))
+    if not matches:
+        return dockerfile, False
+    new_tag, new_version = item.target.ref, item.target.version
+    if not new_tag or not new_version:
+        raise ReleaseAssetError("the target is not a published release")
+    old_versions: set[str] = set()
+    for match in matches:
+        old_tag, old_asset = match.group(1), match.group(2)
+        if old_tag == new_tag:
+            continue
+        old_version = old_tag.removeprefix("v")
+        old_versions.add(old_version)
+        new_asset = version_token(old_version).sub(
+            lambda m: m.group(1) + new_version, old_asset
+        )
+        old_digest = published_sha256(http, item.repo, old_tag, old_asset)
+        if old_digest not in dockerfile:
+            raise ReleaseAssetError(
+                f"the Dockerfile does not pin `{old_asset}` by sha256"
+            )
+        new_digest = published_sha256(http, item.repo, new_tag, new_asset)
+        dockerfile = dockerfile.replace(old_digest, new_digest).replace(
+            match.group(0),
+            f"https://github.com/{item.repo}/releases/download/{new_tag}/{new_asset}",
+        )
+    if not old_versions:
+        return dockerfile, False
+    project = item.repo.split("/", 1)[1].lower()
+    lines = []
+    for line in dockerfile.splitlines(keepends=True):
+        if "VERSION" in line or (
+            line.lstrip().startswith("#") and project in line.lower()
+        ):
+            for old_version in old_versions:
+                line = version_token(old_version).sub(
+                    lambda m: m.group(1) + new_version, line
+                )
+        lines.append(line)
+    return "".join(lines), True
+
+
 def patch_targets(adapter: Path) -> set[str]:
     """Paths named by ``+++ b/<path>`` in the adapter's ``*.patch`` and ``*.diff`` files."""
     targets: set[str] = set()
@@ -2702,7 +2826,16 @@ class Assessor:
                         f"{str(error)[:200]}"
                     )
                     continue
-                changed = changed or relabelled
+                try:
+                    text, released_asset = retarget_release_assets(
+                        text, item, self.http
+                    )
+                except ReleaseAssetError as error:
+                    result.reasons.append(
+                        f"{item.label}: {RELEASE_ASSET_REVIEW} ({str(error)[:200]})"
+                    )
+                    continue
+                changed = changed or relabelled or released_asset
             if changed:
                 edits[path.relative_to(root).as_posix()] = text.encode()
         if item.unverified is None:
