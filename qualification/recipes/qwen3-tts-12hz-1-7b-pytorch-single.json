@@ -1,0 +1,61 @@
+{
+  "id": "vonk-forge/qwen3-tts-12hz-1-7b-pytorch-single",
+  "recipes": {
+    "interface": "audio-job",
+    "parameters": {},
+    "inputs": [
+      {
+        "slot": "text",
+        "fixture": "tts-text"
+      },
+      {
+        "slot": "voice",
+        "fixture": "tts-voice"
+      }
+    ],
+    "output_limits": {
+      "max_files": 1,
+      "max_file_bytes": 33554432,
+      "max_total_bytes": 33554432,
+      "allowed_media_types": [
+        "audio/wav"
+      ]
+    },
+    "timeout_seconds": 1800,
+    "assertions": [
+      {
+        "kind": "file-count",
+        "exact": 1
+      },
+      {
+        "kind": "file-names",
+        "exact": [
+          "speech.wav"
+        ]
+      },
+      {
+        "kind": "media-type",
+        "allowed": [
+          "audio/wav"
+        ]
+      },
+      {
+        "kind": "minimum-bytes",
+        "value": 44
+      },
+      {
+        "kind": "format",
+        "format": "wav"
+      },
+      {
+        "kind": "audio-metadata",
+        "media_type": "audio/wav",
+        "channels": 1,
+        "sample_rate": 24000,
+        "sample_width_bytes": 2,
+        "minimum_duration_seconds": 0.5,
+        "maximum_duration_seconds": 30.0
+      }
+    ]
+  }
+}
