@@ -6,13 +6,15 @@
         "repository": "nvcr.io/nvidia/pytorch"
       },
       "context": {
-        "path": "adapters/qwen/27b-tensorfold-single"
+        "path": "adapters/llm/ashhart-tensorfold-single"
       },
-      "dockerfile": "adapters/qwen/27b-tensorfold-single/Dockerfile",
+      "dockerfile": "adapters/llm/ashhart-tensorfold-single/Dockerfile",
       "network": {
         "hosts": [
-          "files.pythonhosted.org",
-          "pypi.org"
+          "github.com",
+          "objects.githubusercontent.com",
+          "release-assets.githubusercontent.com",
+          "storage.googleapis.com"
         ]
       },
       "patches": []
@@ -313,7 +315,7 @@
           "value": "images-https"
         }
       ],
-      "help": "Serve image_url parts with the model's own vision tower (--vision). TensorFold's vision guide calls this experimental pending its hardware matrix and makes no vision throughput claim; image requests start with a fresh KV cache (no prefix reuse). Video is not supported by this engine.",
+      "help": "Serve image_url parts with the model's own bf16 vision tower (--vision) on the native CUDA engine, which counts the tower and its scratch as model memory at startup; image requests start with a fresh KV cache (no prefix reuse). JPEG, PNG and WebP images decode in the engine (JPEG through libjpeg-turbo 3.1.4.1 and WebP through libwebp 1.6.0, the exact releases TensorFold pins, built into this image). Video is not supported for this model.",
       "label": "Image input",
       "name": "images"
     },
@@ -321,7 +323,7 @@
       "choices": [
         {
           "default": true,
-          "help": "Draft with z-lab/Qwen3.8-27B-DFlash2 and context copies (upstream default on CUDA).",
+          "help": "Draft with z-lab/Qwen3.8-27B-DFlash2 (--drafter) and context copies (upstream's documented launch).",
           "label": "DFlash2 drafting",
           "value": "dflash2"
         },
@@ -332,12 +334,12 @@
               "value": true
             }
           ],
-          "help": "Serial one-token-at-a-time reference decoding (--no-drafts); the draft model stays mounted but unused. Upstream measured about 16 tok/s serial against 46 to 63 tok/s drafted on a 64 GB M5 Pro (upstream claim, other hardware).",
+          "help": "Plain decoding through the same engine (--no-drafts); the draft model stays mounted but unused. Upstream measured 17.3 tok/s plain against 47 to 89 tok/s with DFlash2 for the MLX 4-bit checkpoint on a 48 GB M5 Pro with TensorFold 1.2.1 (upstream claim, other hardware).",
           "label": "No drafting",
           "value": "serial"
         }
       ],
-      "help": "TensorFold's CUDA engine drafts with z-lab's DFlash2 draft model and accepts a draft only when it equals the token the same engine would sample serially, so outputs are unchanged by drafting (upstream claim).",
+      "help": "TensorFold's native CUDA engine drafts with z-lab's DFlash2 draft model (--drafter) and accepts a draft only when it equals the token the same engine would produce with drafting off, so outputs are unchanged by drafting (upstream claim).",
       "label": "Speculative drafting",
       "name": "drafting"
     }
@@ -350,11 +352,11 @@
       "z-lab",
       "IncoAI"
     ],
-    "source_reference": "https://github.com/ashhart/TensorFold/tree/cb2ebf0540f42604e2759b2ddef497861e928248"
+    "source_reference": "https://github.com/ashhart/TensorFold/tree/6ec5fa4cb233f3606acbdad5bec433f0f8758f96"
   },
   "release": {
-    "released_at": "2026-10-06",
-    "version": "0.6.6"
+    "released_at": "2026-11-05",
+    "version": "1.2.3"
   },
   "runtime": {
     "arguments": [
@@ -372,11 +374,6 @@
         "name": "name",
         "setting": null,
         "value": "Qwen3.8-27B"
-      },
-      {
-        "name": "parallel",
-        "setting": "concurrency",
-        "value": null
       },
       {
         "name": "context",
@@ -398,32 +395,15 @@
     "entrypoint": [
       "/opt/vonk/bin/tensorfold-serve"
     ],
-    "environment": [
-      {
-        "name": "HF_HUB_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
-        "name": "TENSORFOLD_NO_UPDATE_CHECK",
-        "value": "1"
-      }
-    ],
+    "environment": [],
     "lifecycle": {
       "stop_timeout_seconds": 60
     }
   },
   "settings": {
-    "concurrency": {
-      "change_effect": "restart",
-      "value": 1
-    },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 262144
+      "value": 32768
     },
     "kind": "generation",
     "knobs": {},

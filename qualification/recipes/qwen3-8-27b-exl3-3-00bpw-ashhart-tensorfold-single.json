@@ -9,10 +9,10 @@
     ],
     "higher_tiers": {
       "stress": [
-        "Bounded concurrency (shared rounds above 1) and long-context canaries on the experimental EXL3 path, with the first-run kernel compile time recorded separately"
+        "Bounded concurrency (shared rounds above 1) and long-context canaries on the EXL3 path"
       ],
       "recovery": [
-        "Controller stop/start with warm kernel-cache restart"
+        "Controller stop/start with warm-cache restart"
       ]
     }
   }

@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "tensorfold-serve"
+  ],
+  "source": {
+    "commit": "6ec5fa4cb233f3606acbdad5bec433f0f8758f96",
+    "line": "1",
+    "repo": "ashhart/TensorFold"
+  }
+}

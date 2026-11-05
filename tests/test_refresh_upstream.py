@@ -1794,6 +1794,165 @@ class ArchiveLabelTests(unittest.TestCase):
             self.assertFalse(result.reasons)
 
 
+class ReleaseAssetTests(unittest.TestCase):
+    """An adapter installing a creator's release asset moves its version and sha with the pin.
+
+    TensorFold 1.x adapters fetch ``releases/download/v<version>/<asset>`` pinned by
+    sha256; a mechanical move that rewrote only the commit kept installing the old
+    binary while the recipe claimed the new release.
+    """
+
+    REPO = "ashhart/TensorFold"
+    OLD_SHA256 = "1" * 64
+    NEW_SHA256 = "2" * 64
+    OTHER = "3" * 64  # another download's digest, never touched
+    TARGET = refresh.Target("github", REPO, NEW, "2026-11-07", "v1.2.4", "1.2.4", "u")
+
+    def asset(self, version: str) -> str:
+        return f"tensorfold-{version}-linux-aarch64.tar.gz"
+
+    def dockerfile(self) -> str:
+        return (
+            "# TensorFold v1.2.3 (Apache-2.0): the native engine as released.\n"
+            "FROM base@sha256:" + "4" * 64 + "\n"
+            f'LABEL org.opencontainers.image.source="https://github.com/{self.REPO}" \\\n'
+            f'      org.opencontainers.image.revision="{OLD}"\n'
+            "RUN curl -fsSL -o /tmp/tf.tar.gz "
+            f"https://github.com/{self.REPO}/releases/download/v1.2.3/{self.asset('1.2.3')} \\\n"
+            f'    && echo "{self.OLD_SHA256}  /tmp/tf.tar.gz" | sha256sum -c - \\\n'
+            '    && test "$(cat /opt/tensorfold/VERSION)" = 1.2.3\n'
+            "RUN curl -fsSL -o /tmp/j.tar.gz "
+            "https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.4.1/j.tar.gz \\\n"
+            f'    && echo "{self.OTHER}  /tmp/j.tar.gz" | sha256sum -c -\n'
+        )
+
+    def release(self, tag: str, digest: str, *, with_sha256: bool = True):
+        version = tag.removeprefix("v")
+        name = self.asset(version)
+        assets = [
+            {
+                "name": name,
+                "digest": f"sha256:{digest}",
+                "browser_download_url": f"https://dl/{tag}/{name}",
+            }
+        ]
+        if with_sha256:
+            assets.append(
+                {
+                    "name": f"{name}.sha256",
+                    "browser_download_url": f"https://dl/{tag}/{name}.sha256",
+                }
+            )
+        return {"tag_name": tag, "assets": assets}
+
+    def assess(self, *, new_has_sha256: bool = True):
+        test = self
+        releases = {
+            "v1.2.3": self.release("v1.2.3", self.OLD_SHA256),
+            "v1.2.4": self.release(
+                "v1.2.4", self.NEW_SHA256, with_sha256=new_has_sha256
+            ),
+        }
+        published = {
+            f"https://dl/v1.2.3/{self.asset('1.2.3')}.sha256": self.OLD_SHA256,
+            f"https://dl/v1.2.4/{self.asset('1.2.4')}.sha256": self.NEW_SHA256,
+        }
+
+        class FakeHttp:
+            def github(self, path):
+                prefix = f"repos/{test.REPO}/releases/tags/"
+                if path.startswith(prefix):
+                    return releases[path.removeprefix(prefix)]
+                raise refresh.NotFound(path)
+
+        def download(url: str) -> str:
+            name = url.rsplit("/", 1)[1].removesuffix(".sha256")
+            return f"{published[url]}  {name}\n"
+
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        adapter = root / "adapters/tf"
+        adapter.mkdir(parents=True)
+        (adapter / "Dockerfile").write_text(self.dockerfile())
+        (adapter / "tensorfold-serve").write_text("#!/bin/sh\n")
+        (adapter / "vendored-upstream.json").write_text(
+            json.dumps(
+                {
+                    "ours": ["tensorfold-serve"],
+                    "source": {"commit": OLD, "line": "1", "repo": self.REPO},
+                }
+            )
+        )
+        catalog = refresh.Catalog(
+            root,
+            recipes={
+                "recipe": {
+                    "identity": {"slug": "recipe"},
+                    "provenance": {
+                        "attribution": ["Ash Hart (TensorFold)"],
+                        "source_reference": f"https://github.com/{self.REPO}/tree/{OLD}",
+                    },
+                    "release": {"version": "1.2.3", "released_at": "2026-11-05"},
+                    "models": [],
+                    "execution": {"build": {"context": {"path": "adapters/tf"}}},
+                }
+            },
+        )
+        assessor = refresh.Assessor(catalog, FakeHttp(), None, {})
+        assessor.target = lambda _provider, _repo: self.TARGET
+        zig_only = comparison(files=("zig/src/families/qwen3_5/cuda_engine.zig",))
+        for active in (
+            patch("refresh_upstream.compare_commits", return_value=zig_only),
+            patch("refresh_upstream.resolve_github_line", return_value=self.TARGET),
+            patch("refresh_upstream.download_text", side_effect=download, create=True),
+            patch.object(
+                refresh.vendored,
+                "fetch_tree",
+                return_value=refresh.vendored.Tree({}, True),
+            ),
+            patch.object(
+                refresh.vendored,
+                "check_adapter",
+                return_value=refresh.vendored.Report("adapters/tf"),
+            ),
+        ):
+            active.start()
+            self.addCleanup(active.stop)
+        return assessor.assess("recipe")
+
+    def test_a_code_only_release_re_pins_url_version_and_sha(self) -> None:
+        result = self.assess()
+        self.assertTrue(result.mechanical, result.reasons)
+        moved = result.edits["adapters/tf/Dockerfile"].decode()
+        self.assertIn(
+            f"https://github.com/{self.REPO}/releases/download/v1.2.4/{self.asset('1.2.4')}",
+            moved,
+        )
+        self.assertIn(f'echo "{self.NEW_SHA256}  /tmp/tf.tar.gz"', moved)
+        self.assertIn('test "$(cat /opt/tensorfold/VERSION)" = 1.2.4', moved)
+        self.assertIn("# TensorFold v1.2.4 (Apache-2.0)", moved)
+        self.assertIn(f'revision="{NEW}"', moved)
+        self.assertNotIn("1.2.3", moved)
+        self.assertNotIn(self.OLD_SHA256, moved)
+        # Another project's download and digest are not this release's.
+        self.assertIn("libjpeg-turbo/releases/download/3.1.4.1/j.tar.gz", moved)
+        self.assertIn(self.OTHER, moved)
+        self.assertIn("recipes/recipe.json", result.edits)
+        self.assertEqual(result.version, ("1.2.4", "2026-11-07"))
+
+    def test_a_release_without_its_sha256_file_is_a_review(self) -> None:
+        result = self.assess(new_has_sha256=False)
+        self.assertFalse(result.mechanical)
+        self.assertTrue(
+            any(
+                "release asset pinned by version and sha; re-pin by hand" in reason
+                for reason in result.reasons
+            ),
+            result.reasons,
+        )
+
+
 class EnvelopeTests(unittest.TestCase):
     def retarget(
         self, artifact_bytes: int, old_size: int, new_size: int, prefix: str = "sel-"

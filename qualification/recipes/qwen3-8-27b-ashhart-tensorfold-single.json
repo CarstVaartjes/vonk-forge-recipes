@@ -9,10 +9,10 @@
     ],
     "higher_tiers": {
       "stress": [
-        "Bounded concurrency (shared rounds above 1) and long-context canaries, with the first-run kernel compile time recorded separately"
+        "Bounded concurrency (shared rounds above 1) and long-context canaries"
       ],
       "recovery": [
-        "Controller stop/start with warm kernel-cache restart"
+        "Controller stop/start with warm-cache restart"
       ]
     }
   }
