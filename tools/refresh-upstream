@@ -3496,7 +3496,7 @@ def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
         )
         return False
 
-    pull_requests = own_pulls(
+    pull_requests = with_all_files(
         gh_json(
             "pr",
             "list",
@@ -3505,7 +3505,7 @@ def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
             "--limit",
             "1000",
             "--json",
-            f"number,autoMergeRequest,files,{OWN_FIELDS}",
+            f"number,autoMergeRequest,files,changedFiles,{OWN_FIELDS}",
         )
     )
     if conflicting := file_overlaps(number, pull_requests, summary.armed):
@@ -4223,13 +4223,31 @@ def blocking_prs(
     )
 
 
+def with_all_files(pulls: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """This repository's PRs from a ``gh pr list`` that asked for ``files,changedFiles``,
+    each with its complete file list: the listing returns at most 100 files per PR."""
+    complete = []
+    for pr in own_pulls(pulls):
+        files = pr.get("files") or []
+        if int(pr.get("changedFiles") or 0) > len(files):
+            names = gh(
+                "api",
+                "--paginate",
+                f"repos/{{owner}}/{{repo}}/pulls/{pr['number']}/files?per_page=100",
+                "--jq",
+                ".[].filename",
+            ).split()
+            files = [{"path": name} for name in names]
+        complete.append({**pr, "files": files})
+    return complete
+
+
 def foreign_open_prs() -> dict[int, set[str]]:
     """Changed paths of every open pull request of this repository that is not ``refresh/*``.
 
     A fork PR is never ours to wait for: only our own PRs can block a refresh.
     """
-    found: dict[int, set[str]] = {}
-    for pr in own_pulls(
+    listed = own_pulls(
         gh_json(
             "pr",
             "list",
@@ -4238,13 +4256,19 @@ def foreign_open_prs() -> dict[int, set[str]]:
             "--limit",
             "1000",
             "--json",
-            f"number,headRefName,files,{OWN_FIELDS}",
+            f"number,headRefName,files,changedFiles,{OWN_FIELDS}",
         )
-    ):
-        if str(pr.get("headRefName", "")).startswith("refresh/"):
-            continue
-        found[int(pr["number"])] = {f.get("path", "") for f in pr.get("files") or []}
-    return found
+    )
+    return {
+        int(pr["number"]): {f.get("path", "") for f in pr["files"]}
+        for pr in with_all_files(
+            [
+                p
+                for p in listed
+                if not str(p.get("headRefName", "")).startswith("refresh/")
+            ]
+        )
+    }
 
 
 def refresh_is_spinning(
