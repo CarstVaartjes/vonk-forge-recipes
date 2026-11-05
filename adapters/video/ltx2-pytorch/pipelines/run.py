@@ -247,11 +247,13 @@ def main() -> None:
         "--frame-rate",
         str(FPS),
         # Prequantized NVFP4 with the NVFP4 LoRA fuse rule. LTX v1.6.1 on
-        # Spark faulted (Xid 31 CE1 read after NVRM out-of-memory) on the
-        # resident `--offload none` loader while fusing the distilled LoRA;
-        # `--offload cpu` takes the streaming loader that the passing native
-        # siblings use. Diagnostic: if it also faults, use the creator's
-        # ltx_pipelines.distilled + nvfp4 form instead.
+        # Spark faulted during model build (NVRM out-of-memory, then Xid 31
+        # CE1 read, then SIGABRT) with the resident `--offload none` loader.
+        # `--offload cpu` is a diagnostic change: no cpu recipe has passed on
+        # v1.6.1 yet, and it moves both the transformer and Gemma to RAM
+        # streaming. If it also faults, try
+        # PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True (set by every
+        # creator command), then the creator's distilled + nvfp4 form.
         "--quantization",
         "nvfp4-prequant",
         "--offload",

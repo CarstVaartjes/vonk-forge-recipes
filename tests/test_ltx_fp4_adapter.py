@@ -103,10 +103,6 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         ]
 
         def run_pipeline(command, **_kwargs):
-            # The resident loader faulted on v1.6.1 hardware; disk streaming
-            # is not an accepted NVFP4 mode.
-            if command[command.index("--offload") + 1] != "cpu":
-                raise KeyError("attn1.to_k.input_scale")
             self.assertEqual(
                 command[command.index("--quantization") + 1], "nvfp4-prequant"
             )
