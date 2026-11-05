@@ -312,10 +312,23 @@ class Prefetcher:
             ):
                 # An exact terminal receipt ends the current intent. Preserve its
                 # identity for audit, but never reconnect a new intent to this key.
+                final_failure = (
+                    record["state"] == LifecycleState.CANCELLED
+                    and isinstance(document.get("failure"), Mapping)
+                    and bool(document["failure"].get("code"))
+                    and document["failure"].get("retryable") is False
+                )
                 record["terminal_receipt"] = dict(document)
                 record["terminal_verified_at"] = now
                 record["previous_request_key"] = record.pop("request_key")
                 self._retire(key, record, str(record["state"]))
+                if final_failure:
+                    # The receipt's final word is its failure, whatever the lifecycle
+                    # word: the Controller ends an exhausted preparation as cancelled
+                    # to keep the download. Record it; a release change reopens it.
+                    self._failed(key, record, document)
+                    self.state.save()
+                    continue
                 record["retry_at"] = now + min(
                     self.config.retry_cooldown
                     * 2 ** min(int(record.get("attempt", 1)) - 1, 5),
