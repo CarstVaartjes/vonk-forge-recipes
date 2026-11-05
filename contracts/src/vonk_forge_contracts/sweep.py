@@ -294,6 +294,16 @@ class SweepEvidenceExit(IntEnum):
     SYNCED = 0
     WAITING = 10
     FAILING_CHECK = 11
+    COMMAND_FAILED = 12
+    REFUSED = 13
+
+
+class PublisherState(StrEnum):
+    """What the evidence publisher last saw of its one rolling PR."""
+
+    IDLE = "idle"
+    RED = "red"
+    REFUSED = "refused"
 
 
 class SweepEvidenceMergeState(StrEnum):
