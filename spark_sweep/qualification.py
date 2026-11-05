@@ -36,7 +36,6 @@ from vonk_forge_contracts.qualification_status import (
     published_status,
 )
 
-from .auth_contract import SmokeAuthClass
 from .catalog import Recipe
 from .identity import current_identity
 from .lifecycle import RecipeStatus
@@ -186,8 +185,8 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         models_resolved=models is not None,
         required_sparks=row.node_count or len(row.node_ids) or None,
     )
-    from .policy import RECIPE_FAILURE_CODES
-    from .verdict import FAIL_CLASSES
+    from .verdict import Blame
+    from .verdict import blame as sweep_blame
 
     passed = row.status == RecipeStatus.PASSED
     blame = (
@@ -196,13 +195,7 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         else (
             QualificationBlame.RECIPE
             if row.status == RecipeStatus.FAILED
-            and (
-                row.code in RECIPE_FAILURE_CODES
-                or (
-                    row.failure_class in FAIL_CLASSES
-                    and row.failure_class != SmokeAuthClass.REFUSAL
-                )
-            )
+            and sweep_blame(row.failure_class or "", row.code) is Blame.RECIPE
             else QualificationBlame.PLATFORM
         )
     )
