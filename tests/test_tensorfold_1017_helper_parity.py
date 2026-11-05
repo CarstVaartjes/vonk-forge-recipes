@@ -14,7 +14,6 @@ ALL = [
     "bertholomus-1017-tensorfold-tp4",
     "mia-1017-tensorfold-dual",
     "tonyd2wild-1017-tensorfold-tp2",
-    "tonyd2wild-1017-tensorfold-tp4",
 ]
 NO_MIA = [name for name in ALL if not name.startswith("mia-")]
 
