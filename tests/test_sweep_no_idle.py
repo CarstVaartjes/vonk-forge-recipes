@@ -373,3 +373,70 @@ def test_cached_lane_starts_before_blocked_cleanup_and_reused_alias_is_retained(
         "next_check": 0.0,
     }
     assert "old-unused" not in sweep.state.data["cleanup"]
+
+
+def _scheduling_beside_a_live_lane(
+    tmp_path: Path, gateway: Gateway, memory: int
+) -> list[Any]:
+    sweep, _, _ = make_sweep(
+        tmp_path,
+        [FakeRecipe("a", ("m1",), local="cached", memory=memory)],
+        [FakeModel("m1", local="cached")],
+        gateway=gateway,
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep.fleet = fetch_fleet(sweep.vk, sweep.cfg.default_spark_memory)
+    sweep.queue = list(sweep.recipes)
+    sweep.state.slots["other"] = {
+        "alias": "other",
+        "phase": "loading",
+        "node_ids": ["spk_a"],
+        "request_key": "k",
+        "deadline": sweep.clock.now() + 600,
+    }
+    placed: list[Any] = []
+    sweep._apply = lambda placements, now: placed.extend(placements)  # type: ignore[method-assign]
+    sweep.schedule(sweep.clock.now())
+    return placed
+
+
+@pytest.mark.parametrize("beyond_the_spark", [False, True])
+def test_a_ready_single_goes_to_the_free_spark_while_another_lane_runs(
+    tmp_path: Path, gateway: Gateway, beyond_the_spark: bool
+) -> None:
+    # Wrong implementation: the sweep's own reserve (or an oversized declaration) kept a
+    # ready single off the free Spark that the Controller's review would have admitted;
+    # the review fallback only fired when the whole fleet was idle.
+    memory = 125_000_000_000 if not beyond_the_spark else 10**15
+    placed = _scheduling_beside_a_live_lane(tmp_path, gateway, memory)
+    assert [(p.recipe.slug, p.spark_ids) for p in placed] == [("a", ("spk_b",))]
+
+
+def test_a_free_lane_nothing_was_placed_on_names_the_recipe_that_found_no_place(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, _, _ = make_sweep(
+        tmp_path,
+        [FakeRecipe("a", ("m1",), local="cached")],
+        [FakeModel("m1", local="cached")],
+        gateway=gateway,
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep.fleet = fetch_fleet(sweep.vk, sweep.cfg.default_spark_memory)
+    sweep.queue = list(sweep.recipes)
+    (key,) = sweep.recipes
+    sweep._bins = lambda: [  # type: ignore[method-assign]
+        SimpleNamespace(
+            id="spk_a",
+            name="spark-a",
+            capacity=10**12,
+            used=0,
+            ports=frozenset(),
+            aliases=frozenset(),
+            disk_blocked_recipes=frozenset({key}),
+        )
+    ]
+    sweep.schedule(sweep.clock.now())
+    assert key in sweep._lane_holds()["spk_a"]

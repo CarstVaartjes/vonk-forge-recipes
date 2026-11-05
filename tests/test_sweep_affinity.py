@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import make_sweep
-from test_sweep_policy import CAP, RESERVE, alias, recipe
+from test_sweep_policy import CAP, alias, recipe
 
 from spark_sweep import policy
 from spark_sweep.catalog import Recipe, parse_fleet
@@ -37,7 +37,7 @@ def test_variant_uses_the_spark_with_all_its_models(tmp_path: Path) -> None:
     installed = recipe("installed", ("a", "b"), revision_id="installed")
     variant = recipe("variant", ("a", "b"), revision_id="variant")
     bins = observed_bins(tmp_path, [installed, variant], [[], ["installed"]])
-    placed = policy.place_singles([variant], bins, RESERVE, alias)
+    placed = policy.place_singles([variant], bins, alias)
     assert [p.spark_ids for p in placed] == [("spk_b",)]
 
 
@@ -48,7 +48,7 @@ def test_partial_model_set_loses_to_the_complete_set(tmp_path: Path) -> None:
     bins = observed_bins(
         tmp_path, [partial, complete, variant], [["partial"], ["complete"]]
     )
-    placed = policy.place_singles([variant], bins, RESERVE, alias)
+    placed = policy.place_singles([variant], bins, alias)
     assert [p.spark_ids for p in placed] == [("spk_b",)]
 
 
@@ -56,7 +56,7 @@ def test_exact_installed_runtime_breaks_a_model_locality_tie(tmp_path: Path) -> 
     sibling = recipe("sibling", revision_id="sibling")
     target = recipe("target", revision_id="target")
     bins = observed_bins(tmp_path, [sibling, target], [["sibling"], ["target"]])
-    placed = policy.place_singles([target], bins, RESERVE, alias)
+    placed = policy.place_singles([target], bins, alias)
     assert [p.spark_ids for p in placed] == [("spk_b",)]
 
 
@@ -65,7 +65,7 @@ def test_model_locality_outweighs_image_hint(tmp_path: Path) -> None:
     bins = observed_bins(tmp_path, [target], [[], ["target"]])
     # Model and image hints can disagree after an observation changes.
     bins[0] = replace(bins[0], installed_revisions=frozenset({"target"}))
-    placed = policy.place_singles([target], bins, RESERVE, alias)
+    placed = policy.place_singles([target], bins, alias)
     assert [p.spark_ids for p in placed] == [("spk_b",)]
 
 
@@ -80,14 +80,14 @@ def test_other_lane_takes_next_local_model_or_download(
     bins = observed_bins(
         tmp_path, [head, variant, other, next_recipe], [["other"], ["head"]]
     )
-    placed = policy.place_singles([head, variant, next_recipe], bins, RESERVE, alias)
+    placed = policy.place_singles([head, variant, next_recipe], bins, alias)
     assert [(p.recipe.slug, p.spark_ids) for p in placed] == [
         ("head", ("spk_b",)),
         ("next", ("spk_a",)),
     ]
     # On the next round the skipped variant is head, even if its owner stays busy.
     bins[1] = replace(bins[1], aliases=frozenset({"head"}))
-    placed = policy.place_singles([variant, next_recipe], bins, RESERVE, alias)
+    placed = policy.place_singles([variant, next_recipe], bins, alias)
     assert [(p.recipe.slug, p.spark_ids) for p in placed] == [("variant", ("spk_a",))]
 
 
@@ -95,7 +95,7 @@ def test_no_idle_lane_when_only_variants_remain(tmp_path: Path) -> None:
     head = recipe("head", revision_id="head")
     variant = recipe("variant", revision_id="variant")
     bins = observed_bins(tmp_path, [head, variant], [[], ["head"]])
-    placed = policy.place_singles([head, variant], bins, RESERVE, alias)
+    placed = policy.place_singles([head, variant], bins, alias)
     assert [(p.recipe.slug, p.spark_ids) for p in placed] == [
         ("head", ("spk_b",)),
         ("variant", ("spk_a",)),
@@ -105,7 +105,7 @@ def test_no_idle_lane_when_only_variants_remain(tmp_path: Path) -> None:
 def test_unknown_inventory_preserves_queue_and_id_order(tmp_path: Path) -> None:
     candidates = [recipe(slug, revision_id=slug) for slug in ("head", "next")]
     bins = observed_bins(tmp_path, candidates, [[], ["unknown-revision"]])
-    placed = policy.place_singles(candidates, list(reversed(bins)), RESERVE, alias)
+    placed = policy.place_singles(candidates, list(reversed(bins)), alias)
     assert [(p.recipe.slug, p.spark_ids) for p in placed] == [
         ("head", ("spk_a",)),
         ("next", ("spk_b",)),
@@ -128,7 +128,7 @@ def test_incomplete_or_dual_installations_do_not_claim_a_whole_model(
         }
     ]
     sweep.fleet = parse_fleet(document, CAP)
-    placed = policy.place_singles([target], sweep._bins(), RESERVE, alias)
+    placed = policy.place_singles([target], sweep._bins(), alias)
     assert [p.spark_ids for p in placed] == [("spk_a",)]
 
 
@@ -136,8 +136,8 @@ def test_affinity_never_overrides_fit_or_ports(tmp_path: Path) -> None:
     target = recipe("target", revision_id="target")
     bins = observed_bins(tmp_path, [target], [[], ["target"]])
     for blocked in (
-        replace(bins[1], capacity=target.memory_bytes),
+        replace(bins[1], capacity=target.memory_bytes - 1),
         replace(bins[1], ports=frozenset(target.ports)),
     ):
-        placed = policy.place_singles([target], [bins[0], blocked], RESERVE, alias)
+        placed = policy.place_singles([target], [bins[0], blocked], alias)
         assert [p.spark_ids for p in placed] == [("spk_a",)]

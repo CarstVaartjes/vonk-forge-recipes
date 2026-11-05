@@ -357,6 +357,8 @@ class Sweep:
         self.unobserved_loads: set[str] = set()
         # This pass's free Sparks whose placement review did not adopt a loading lane.
         self.adoption_holds: dict[str, str] = {}
+        # This pass's free Sparks that no ready recipe was placed on, and why.
+        self.fit_holds: dict[str, str] = {}
         self._skew_checked_at = float("-inf")
         self.library_commit = ""
         self.rate = policy.RateTracker()
@@ -1111,6 +1113,7 @@ class Sweep:
         self.state.data.pop("profile_edit_wait", None)
         self.state.data.pop("dual_reservation", None)
         self.adoption_holds.clear()
+        self.fit_holds.clear()
         now = self.clock.now()
         self.advance_catalog(now)
         if self.retry_failed_pending and self.catalog_loaded:
@@ -3424,6 +3427,8 @@ class Sweep:
                 )
         for node, why in self.adoption_holds.items():
             holds.setdefault(node, why)
+        for node, why in self.fit_holds.items():
+            holds.setdefault(node, why)
         online = {s.id for s in self.sparks()}
         if wait := self.state.data.get("profile_edit_wait"):
             held = (
@@ -3759,6 +3764,7 @@ class Sweep:
     def schedule(self, now: float) -> None:
         self.state.data.pop("dual_reservation", None)
         self.adoption_holds.clear()
+        self.fit_holds.clear()
         self._refresh_controller_waits(now)
         self.release_given_up(now)
         self.release_orphan_load()
@@ -3804,7 +3810,7 @@ class Sweep:
                     self._reserve_for_dual(candidates[0], {b.id for b in bins})
                     return
                 self.state.data["mode"] = "dual"
-                dual = policy.place_dual(candidates[:1], bins, self.cfg.reserve_bytes)
+                dual = policy.place_dual(candidates[:1], bins)
                 placements = [dual] if dual else []
             else:
                 self.state.data["mode"] = "single"
@@ -3816,10 +3822,9 @@ class Sweep:
                 placements = policy.place_singles(
                     singles,
                     bins,
-                    self.cfg.reserve_bytes,
                     lambda r: alias_for(r, self.defs),
                 )
-            if not placements and not self.state.slots:
+            if not placements:
                 # Declared demand beyond one Spark: let the platform's review decide.
                 head = candidates[0]
                 width = head.node_count
@@ -3833,6 +3838,13 @@ class Sweep:
                 if self._apply(placements, self.clock.now()) is False:
                     return
             else:
+                head = candidates[0]
+                why = (
+                    f"ready {head.key} was placed on no free Spark "
+                    f"(declares {head.memory_bytes / 1e9:.1f} GB; a disk, port or "
+                    "alias block holds it back)"
+                )
+                self.fit_holds.update({b.id: why for b in bins})
                 return
             candidates = [r for r in self.ready_candidates() if r.key not in attempted]
 
