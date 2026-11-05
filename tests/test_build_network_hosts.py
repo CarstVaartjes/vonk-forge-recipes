@@ -15,14 +15,15 @@ def load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-INSTALL = re.compile(r"(?:\bpip3?|-m pip|\buv pip)\s+install\b(?P<args>[^&;|]*)")
+INSTALL = re.compile(r"(?:\bpip3?|-m pip|\buv pip)\s+install\b(?P<args>[^&;|\n]*)")
 ARGUMENT_FLAGS = {"-r", "-c", "-f", "--requirement", "--constraint", "--find-links"}
 
 
 def fetching_installs(dockerfile_text: str) -> list[str]:
     """pip/uv installs that may reach an index: no --no-index, and not only local paths.
 
-    An install whose every target is a local path with --no-deps fetches nothing.
+    An install fetches nothing when --no-deps is set and every target is a local wheel, or a
+    local source with --no-build-isolation (an isolated build downloads its build backend).
     """
     joined = re.sub(r"\\\n", " ", dockerfile_text)
     found: list[str] = []
@@ -44,6 +45,10 @@ def fetching_installs(dockerfile_text: str) -> list[str]:
             and not requirement_file
             and bool(targets)
             and all(t.startswith(("/", ".")) for t in targets)
+            and (
+                "--no-build-isolation" in args
+                or all(t.endswith(".whl") for t in targets)
+            )
         )
         if not local_only:
             found.append(match.group(0).strip())
@@ -78,9 +83,16 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
         self.assertFalse(fetching_installs("RUN pip install --no-index /tmp/a.whl"))
         self.assertFalse(
             fetching_installs(
-                "RUN python -m pip install --no-deps /tmp/src && pip show x"
+                "RUN python -m pip install --no-deps --no-build-isolation /tmp/src"
+                " && pip show x"
             )
         )
+        self.assertFalse(fetching_installs("RUN pip install --no-deps /tmp/a.whl"))
+        # an isolated source build downloads its build backend
+        self.assertTrue(fetching_installs("RUN pip install --no-deps /tmp/src"))
+        # the arguments end at the line: a later --no-index or apostrophe is not ours
+        self.assertTrue(fetching_installs("RUN pip install foo\nRUN echo --no-index"))
+        self.assertTrue(fetching_installs("RUN pip install foo\n# it's a comment"))
 
     def test_nvcr_is_only_a_base_image_registry(self) -> None:
         for path in sorted((ROOT / "recipes").glob("*.json")):
