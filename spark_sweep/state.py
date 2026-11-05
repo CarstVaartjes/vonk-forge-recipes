@@ -104,6 +104,21 @@ def _drop_cache_ready(data: dict[str, Any]) -> None:
                 recipe.pop("cache_ready", None)
 
 
+def _drop_unbound_downloads(data: dict[str, Any]) -> None:
+    """A current download record that names a request but kept no accepted content is dropped.
+
+    Only pre-#1594 records look like this (every current writer sets ``accepted_content``).
+    With no current record the prefetcher asks for the recipe again; ``download_history`` stays.
+    """
+    downloads = data["downloads"]
+    for key in [
+        key
+        for key, record in downloads.items()
+        if record.get("request_intent") and record.get("accepted_content") is None
+    ]:
+        del downloads[key]
+
+
 def _adopt(
     data: dict[str, Any],
     now: float,
@@ -130,6 +145,7 @@ def _adopt(
             merged[name] = value
     data = merged
     _drop_cache_ready(data)
+    _drop_unbound_downloads(data)
     if data["schema"] == SCHEMA:
         return data
     load = data.pop("load", None)
