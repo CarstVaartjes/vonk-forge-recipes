@@ -28,6 +28,12 @@ ALLOWED = {
     ): "base Spark count of edited recipes",
     # The release index records when its source commit was made.
     ("tools/build-catalog-index", "_commit_time"): "source commit time (provenance)",
+    # The evidence publisher reads the records of the PR branch it is refusing: the
+    # content of the change under review, never a fact about an old revision.
+    (
+        "spark_sweep/evidence_publisher.py",
+        "_evidence_records",
+    ): "records carried by the refused evidence PR branch",
     # A merge tool for qualification definitions on a PR branch.
     ("tools/migrate-pr-qualification", "main"): "three-way merge of definitions",
     # The one-time contracts 3.0.0 display split reads a revision archive.
