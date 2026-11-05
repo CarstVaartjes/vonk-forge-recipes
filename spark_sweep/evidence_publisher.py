@@ -245,6 +245,10 @@ def sync(
         EvidencePublicationTimeout,
         ValueError,  # malformed evidence or provider JSON, incl. pydantic's ValidationError
     ) as error:
+        # The signature is keyed on behaviour; the real error goes to publisher.log.
+        print(f"evidence: {type(error).__name__}: {error}", flush=True)
+        if stderr := getattr(error, "stderr", None):
+            print(f"evidence: stderr: {stderr}", flush=True)
         if isinstance(error, ValueError):
             seen.signature = "validate evidence exit invalid"
         else:
@@ -394,7 +398,11 @@ def _batch(
         red = details.check_failed
         seen.signature = details.failure_signature if red else None
         seen.head = details.head
-        seen.pending = not red and not details.settled
+        # Checks still running, or none registered yet on a head we have not seen red.
+        seen.pending = not red and (
+            not details.settled
+            or (not details.checks and details.head != previous.head)
+        )
         blocked = pr.number
         refusing = (
             transition(previous, signature=seen.signature, head=seen.head).state

@@ -788,12 +788,15 @@ def test_refused_ids_are_recorded_only_after_the_close_succeeded(tmp_path, monke
 
 
 def test_malformed_branch_evidence_is_a_command_failure_not_an_escape(
-    tmp_path, monkeypatch
+    tmp_path, monkeypatch, capsys
 ):
-    world = World(tmp_path, monkeypatch, branch='{"recipe_key": 7')
+    world = World(tmp_path, monkeypatch, branch='{"recipe_key": 7}')
     world.tick()
     world.head = "B"
+    capsys.readouterr()
     assert world.tick() == publisher.SweepEvidenceExit.COMMAND_FAILED
+    out = capsys.readouterr().out  # the real error reaches publisher.log
+    assert "ValidationError" in out and "recipe_key" in out
     record = publisher.load_state(world.work)
     assert record.command and record.signature == "validate evidence exit invalid"
     assert not world.closed()
@@ -1035,3 +1038,22 @@ def test_every_tool_that_opens_pull_requests_declares_its_refused_outcome():
         assert kind in ("refused", "follow-up") and reason, path
     for path in OPENS_NO_PR:
         assert path not in found
+
+
+def test_a_failed_command_logs_its_real_stderr(tmp_path, monkeypatch, capsys):
+    world = World(tmp_path, monkeypatch, close_fails=True)
+    world.tick()
+    world.head = "B"
+    capsys.readouterr()
+    world.tick()
+    out = capsys.readouterr().out
+    assert "CalledProcessError" in out and "stderr: boom" in out
+
+
+def test_an_empty_rollup_on_a_new_head_is_pending_not_settled(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch)
+    world.tick()  # red on A
+    before = publisher.load_state(world.work)
+    world.head, world.rollup = "B", []  # just pushed: CI has not registered yet
+    assert world.tick() == publisher.SweepEvidenceExit.WAITING
+    assert publisher.load_state(world.work) == before
