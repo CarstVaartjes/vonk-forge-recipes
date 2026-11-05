@@ -415,7 +415,7 @@
     "knobs": {},
     "max_batch_tokens": {
       "change_effect": "restart",
-      "value": 16384
+      "value": 4096
     }
   },
   "topology": {
