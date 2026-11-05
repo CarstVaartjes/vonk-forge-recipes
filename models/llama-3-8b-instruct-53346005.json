@@ -1,0 +1,113 @@
+{
+  "capabilities": [],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "license-475211637354-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "475211637354ce4c14b9c3dacccbefbaba735fe1b0db97d6c4fd11cd1356819f",
+      "size_bytes": 7801
+    },
+    {
+      "id": "config-61f3de03a16c-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "61f3de03a16ca8046b05dc777bce72717022bc8522152eee61a69072272ef54b",
+      "size_bytes": 654
+    },
+    {
+      "id": "generation-config-d1af74d8ba49-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d1af74d8ba49428ab2faa65f7948165cc6bf52b740e57e840f8af772587c894c",
+      "size_bytes": 187
+    },
+    {
+      "id": "model-00001-of-00004-d8cf9c4d0dd9-1913267ec8",
+      "path": "model-00001-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d8cf9c4d0dd972e1a2131bfe656235ee98221679711a3beef6d46dadf0f20b5c",
+      "size_bytes": 4976698672
+    },
+    {
+      "id": "model-00002-of-00004-8d4782b4a69e-60f6088da9",
+      "path": "model-00002-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8d4782b4a69ef03845159ce1a15e272aadaaf134dc138d68f616098e8531729c",
+      "size_bytes": 4999802720
+    },
+    {
+      "id": "model-00003-of-00004-3acdd690e65c-fc35f2c4d5",
+      "path": "model-00003-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3acdd690e65c24f42a24581b8467af98bd3ca357444580f8012aacd2bd607921",
+      "size_bytes": 4915916176
+    },
+    {
+      "id": "model-00004-of-00004-67e9ad31c8c3-5078e75d62",
+      "path": "model-00004-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "67e9ad31c8c32abf3a55ee7fc7217b3ecb35fd3c74d98a5bd233e0e4d6964f46",
+      "size_bytes": 1168138808
+    },
+    {
+      "id": "model-safetensors-index-146776fce3f6-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "146776fce3f6db1103aa6f249e65ee5544c5923ce6f971b092eee79aa6e5d37b",
+      "size_bytes": 23950
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "meta-llama",
+      "slug": "llama"
+    },
+    "model": {
+      "publisher": "meta-llama",
+      "slug": "llama-3-8b-instruct"
+    },
+    "publisher": "nousresearch",
+    "slug": "llama-3-8b-instruct-53346005",
+    "variant": "53346005",
+    "version": "53346005"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Meta Platforms",
+      "NousResearch"
+    ],
+    "spdx": "LicenseRef-Llama-3-Community-License",
+    "url": "https://www.llama.com/llama3/license/"
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/NousResearch/Meta-Llama-3-8B-Instruct",
+    "revision": "53346005fb0ef11d3b6a83b12c895cca40156b6c"
+  }
+}

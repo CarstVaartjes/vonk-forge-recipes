@@ -1,0 +1,493 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/three-d/kimodo"
+      },
+      "dockerfile": "adapters/three-d/kimodo/Dockerfile",
+      "network": {
+        "hosts": [
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "kimodo-soma-rp-v1-2-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "artifact-job",
+      "input": {
+        "max_bytes": 4096,
+        "media_types": [
+          "text/plain"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "UTF-8 prompt.txt describing the motion in plain sentences, for example \"a person walks forward slowly, then stops and looks around\". Kimodo splits the text at periods and generates each sentence as its own segment of the configured duration.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Motion prompt",
+            "max_file_bytes": 4096,
+            "max_files": 1,
+            "max_total_bytes": 4096,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 67108864,
+        "slots": [
+          {
+            "description": "One motion.zip holding motion.bvh (SOMA somaskel77 skeleton, centimetres, standard T-pose rest pose) and motion.npz (Kimodo's own arrays), 30 fps.",
+            "extensions": [
+              ".zip"
+            ],
+            "id": "motion",
+            "label": "SOMA motion",
+            "max_file_bytes": 67108864,
+            "max_files": 1,
+            "max_total_bytes": 67108864,
+            "media_types": [
+              "application/zip"
+            ],
+            "min_files": 1
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "license-11ccdcb47db8-c693279643",
+          "id": "primary-license-11ccdcb47db8-c693279643",
+          "mount": {
+            "target": "/models/checkpoints/Kimodo-SOMA-RP-v1.2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-82f1e9f44d0d-d8d0422389",
+          "id": "primary-config-82f1e9f44d0d-d8d0422389",
+          "mount": {
+            "target": "/models/checkpoints/Kimodo-SOMA-RP-v1.2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-fdcef624140a-9d75c1098f",
+          "id": "primary-model-fdcef624140a-9d75c1098f",
+          "mount": {
+            "target": "/models/checkpoints/Kimodo-SOMA-RP-v1.2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mean-d42f35f8bb7e-d57c9b1a5b",
+          "id": "primary-mean-d42f35f8bb7e-d57c9b1a5b",
+          "mount": {
+            "target": "/models/checkpoints/Kimodo-SOMA-RP-v1.2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "std-965bbad49772-749e44d42d",
+          "id": "primary-std-965bbad49772-749e44d42d",
+          "mount": {
+            "target": "/models/checkpoints/Kimodo-SOMA-RP-v1.2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mean-6c110980f9a0-99e379e9e8",
+          "id": "primary-mean-6c110980f9a0-99e379e9e8",
+          "mount": {
+            "target": "/models/checkpoints/Kimodo-SOMA-RP-v1.2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "std-fb15aeed7143-26f1c90b09",
+          "id": "primary-std-fb15aeed7143-26f1c90b09",
+          "mount": {
+            "target": "/models/checkpoints/Kimodo-SOMA-RP-v1.2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mean-4c36e8e33d6d-63db87775b",
+          "id": "primary-mean-4c36e8e33d6d-63db87775b",
+          "mount": {
+            "target": "/models/checkpoints/Kimodo-SOMA-RP-v1.2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "std-5f57b41f51ce-7737440463",
+          "id": "primary-std-5f57b41f51ce-7737440463",
+          "mount": {
+            "target": "/models/checkpoints/Kimodo-SOMA-RP-v1.2"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "610e238eafdb928385b58e22b278a0a05184866ad0943f5ef6f6511ad97b3a18",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "kimodo-soma-rp-v1-2-0e3c8902"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "license-475211637354-c693279643",
+          "id": "llama-base-license-475211637354-c693279643",
+          "mount": {
+            "target": "/models/meta-llama/Meta-Llama-3-8B-Instruct"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-61f3de03a16c-587cb980af",
+          "id": "llama-base-config-61f3de03a16c-587cb980af",
+          "mount": {
+            "target": "/models/meta-llama/Meta-Llama-3-8B-Instruct"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-d1af74d8ba49-97dd3d578b",
+          "id": "llama-base-generation-config-d1af74d8ba49-97dd3d578b",
+          "mount": {
+            "target": "/models/meta-llama/Meta-Llama-3-8B-Instruct"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00004-d8cf9c4d0dd9-1913267ec8",
+          "id": "llama-base-model-00001-of-00004-d8cf9c4d0dd9-1913267ec8",
+          "mount": {
+            "target": "/models/meta-llama/Meta-Llama-3-8B-Instruct"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00004-8d4782b4a69e-60f6088da9",
+          "id": "llama-base-model-00002-of-00004-8d4782b4a69e-60f6088da9",
+          "mount": {
+            "target": "/models/meta-llama/Meta-Llama-3-8B-Instruct"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00004-3acdd690e65c-fc35f2c4d5",
+          "id": "llama-base-model-00003-of-00004-3acdd690e65c-fc35f2c4d5",
+          "mount": {
+            "target": "/models/meta-llama/Meta-Llama-3-8B-Instruct"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00004-67e9ad31c8c3-5078e75d62",
+          "id": "llama-base-model-00004-of-00004-67e9ad31c8c3-5078e75d62",
+          "mount": {
+            "target": "/models/meta-llama/Meta-Llama-3-8B-Instruct"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-146776fce3f6-0a05be8238",
+          "id": "llama-base-model-safetensors-index-146776fce3f6-0a05be8238",
+          "mount": {
+            "target": "/models/meta-llama/Meta-Llama-3-8B-Instruct"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "llama-base",
+      "model": {
+        "content_sha256": "e0f4ec017af1d63dc96662fdabb648b05967bc53599c92e4f1d2c5018a5d8ca2",
+        "kind": "model",
+        "publisher": "nousresearch",
+        "slug": "llama-3-8b-instruct-53346005"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "adapter-config-1d3bbf141428-f9ad40812f",
+          "id": "text-encoder-mntp-adapter-config-1d3bbf141428-f9ad40812f",
+          "mount": {
+            "target": "/models/text-encoders/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "adapter-model-de9c8736618a-6bdb0cb708",
+          "id": "text-encoder-mntp-adapter-model-de9c8736618a-6bdb0cb708",
+          "mount": {
+            "target": "/models/text-encoders/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-416c57027648-587cb980af",
+          "id": "text-encoder-mntp-config-416c57027648-587cb980af",
+          "mount": {
+            "target": "/models/text-encoders/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-849070cae53b-c07a9be597",
+          "id": "text-encoder-mntp-special-tokens-map-849070cae53b-c07a9be597",
+          "mount": {
+            "target": "/models/text-encoders/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-52b583ee1699-224931eb13",
+          "id": "text-encoder-mntp-tokenizer-52b583ee1699-224931eb13",
+          "mount": {
+            "target": "/models/text-encoders/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-0655c52e8741-94d5c6ba8f",
+          "id": "text-encoder-mntp-tokenizer-config-0655c52e8741-94d5c6ba8f",
+          "mount": {
+            "target": "/models/text-encoders/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "text-encoder-mntp",
+      "model": {
+        "content_sha256": "a0834c50c6250345d8bac426306c523f8669c61b29602250cc7c0a2169403841",
+        "kind": "model",
+        "publisher": "mcgill-nlp",
+        "slug": "llm2vec-llama-3-8b-instruct-mntp-31474e39"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "adapter-config-2a1265e4a782-f9ad40812f",
+          "id": "text-encoder-supervised-adapter-config-2a1265e4a782-f9ad40812f",
+          "mount": {
+            "target": "/models/text-encoders/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp-supervised"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "adapter-model-53f8f94ebdf3-6bdb0cb708",
+          "id": "text-encoder-supervised-adapter-model-53f8f94ebdf3-6bdb0cb708",
+          "mount": {
+            "target": "/models/text-encoders/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp-supervised"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "text-encoder-supervised",
+      "model": {
+        "content_sha256": "c73bd5288ce14c909d54d12f40e3464feb173709221ab9d6c1e4e988a4509645",
+        "kind": "model",
+        "publisher": "mcgill-nlp",
+        "slug": "llm2vec-llama-3-8b-instruct-mntp-supervised-baa8ebf0"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "nvidia"
+    ],
+    "source_reference": "https://github.com/nv-tlabs/kimodo/blob/e1c219c99b4b94ba48be1fb6a1cbc64ecee4c954/README.md"
+  },
+  "release": {
+    "released_at": "2026-11-06",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "entrypoint",
+        "setting": null,
+        "value": "/opt/vonk/source/run.py"
+      },
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "application/zip"
+      },
+      {
+        "name": "seed",
+        "setting": null,
+        "value": 0
+      },
+      {
+        "name": "duration-seconds",
+        "setting": "duration-seconds",
+        "value": null
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {
+      "duration-seconds": {
+        "change_effect": "none",
+        "value": 5.0
+      }
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 17538582853,
+            "image_bytes": 12000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 4000000000
+          },
+          "memory": {
+            "peak_bytes": 20000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "artifact-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/kimodo-motion-prompt.txt",
+            "input_slots": {
+              "prompt": "qualification/fixtures/kimodo-motion-prompt.txt"
+            },
+            "output_slot": "motion",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "artifact-job"
+    }
+  }
+}

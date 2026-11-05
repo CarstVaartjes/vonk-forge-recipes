@@ -1,0 +1,14 @@
+{
+  "description": "LoRA adapter of the supervised contrastive LLM2Vec step, applied on the merged MNTP model.",
+  "family_title": "LLM2Vec",
+  "identity": {
+    "publisher": "mcgill-nlp",
+    "slug": "llm2vec-llama-3-8b-instruct-mntp-supervised-baa8ebf0"
+  },
+  "kind": "model-display",
+  "model_title": "LLM2Vec Llama 3 8B Instruct MNTP supervised",
+  "tags": [
+    "mcgill-nlp",
+    "llm2vec"
+  ]
+}
