@@ -1,4 +1,4 @@
-# TensorFold v1.2.3 (Apache-2.0, commit 6ec5fa4c): Ash Hart's native Zig engine as released, the linux-aarch64 archive
+# TensorFold v1.2.3 (Apache-2.0): Ash Hart's native Zig engine as released, the linux-aarch64 archive
 # installed as the creator's Linux instructions install it (README "Linux with an NVIDIA GPU": download, sha256sum -c,
 # unpack, keep its directories together). CUDA fatbins (sm_80, sm_86, sm_120, sm_121) are embedded in the binary, so
 # nothing is compiled at start; lib/ holds libtfgrammar for structured output and required tool calls. The NVIDIA
@@ -49,8 +49,7 @@ RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
 
 # The engine writes its measured window costs under $HOME/.cache/tensorfold and the driver its compute cache, both under
 # the platform's writable /outputs/cache.
-ENV HF_HUB_OFFLINE=1 \
-    HOME=/outputs/cache/home \
+ENV HOME=/outputs/cache/home \
     XDG_CACHE_HOME=/outputs/cache \
     CUDA_CACHE_PATH=/outputs/cache/cuda \
     TMPDIR=/outputs/cache/tmp
