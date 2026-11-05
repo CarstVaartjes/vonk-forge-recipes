@@ -11,6 +11,20 @@ from test_qualification_status import historical
 from spark_sweep import evidence_publisher as publisher
 
 
+def pr_list(*numbers):
+    """What `gh pr list` returns for PRs from this repository."""
+    return json.dumps(
+        [
+            {
+                "number": n,
+                "isCrossRepository": False,
+                "headRepositoryOwner": {"login": "CarstVaartjes"},
+            }
+            for n in numbers
+        ]
+    )
+
+
 def seed_catalog(root):
     source = Path(__file__).resolve().parents[1] / "recipes/qwen3-5-9b-vllm-single.json"
     document = json.loads(source.read_text())
@@ -47,7 +61,7 @@ def test_sync_batches_one_pr_requests_auto_merge_and_replans_after_push_race(
         if args[:2] == ("git", "push"):
             pushed = True
         if args[:3] == ("gh", "pr", "list"):
-            return '[{"number": 123}]' if pushed else "[]"
+            return pr_list(123) if pushed else "[]"
         return ""
 
     monkeypatch.setattr(publisher, "command", command)
@@ -154,7 +168,7 @@ def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
             return "qualification/evidence/vonk-forge/example.json"
         if args[:3] == ("gh", "pr", "list"):
             lists += 1
-            return "[]" if lists == 1 else '[{"number":123}]'
+            return "[]" if lists == 1 else pr_list(123)
         return ""
 
     def merge(args, *, cwd, **kwargs):
@@ -210,7 +224,7 @@ def test_open_pr_has_a_quiet_head_for_ci_and_auto_merge(tmp_path, monkeypatch, s
     def command(cwd, *args, **kwargs):
         calls.append(args)
         if args[:3] == ("gh", "pr", "list"):
-            return '[{"number":123}]'
+            return pr_list(123)
         if args[:3] == ("gh", "pr", "view"):
             return json.dumps({"number": 123, "mergeStateStatus": state})
         return ""
@@ -259,7 +273,7 @@ def test_sync_removes_withdrawn_evidence_despite_branch_conflict_and_old_history
             return "qualification/evidence/vonk-forge/withdrawn.json"
         if args[:3] == ("gh", "pr", "list"):
             lists += 1
-            return "[]" if lists == 1 else '[{"number":123}]'
+            return "[]" if lists == 1 else pr_list(123)
         return ""
 
     monkeypatch.setattr(publisher, "command", command)
@@ -298,7 +312,7 @@ def _open_pr(tmp_path, monkeypatch, rollup, behind_by):
     def command(cwd, *args, **kwargs):
         calls.append(args)
         if args[:3] == ("gh", "pr", "list"):
-            return '[{"number":123}]'
+            return pr_list(123)
         if args[:3] == ("gh", "pr", "view"):
             return json.dumps(
                 {
@@ -438,7 +452,7 @@ def _publish_with_state(tmp_path, monkeypatch, repo_records, state_evidence):
             return "qualification/evidence/vonk-forge/example.json"
         if args[:3] == ("gh", "pr", "list"):
             listed += 1
-            return "[]" if listed == 1 else '[{"number":7}]'
+            return "[]" if listed == 1 else pr_list(7)
         return ""
 
     monkeypatch.setattr(publisher, "command", command)
@@ -508,7 +522,7 @@ def test_a_batch_that_never_reaches_backfill_leaves_no_stale_count(
 
     def command(cwd, *args, **kwargs):
         if args[:3] == ("gh", "pr", "list"):
-            return '[{"number": 9}]'
+            return pr_list(9)
         if args[:3] == ("gh", "pr", "view"):
             return '{"number": 9, "mergeStateStatus": "CLEAN", "statusCheckRollup": []}'
         return ""
@@ -1057,3 +1071,43 @@ def test_an_empty_rollup_on_a_new_head_is_pending_not_settled(tmp_path, monkeypa
     world.head, world.rollup = "B", []  # just pushed: CI has not registered yet
     assert world.tick() == publisher.SweepEvidenceExit.WAITING
     assert publisher.load_state(world.work) == before
+
+
+def test_a_fork_pr_on_the_same_branch_is_never_merged_closed_or_counted(
+    tmp_path, monkeypatch
+):
+    fork = {
+        "number": 666,
+        "isCrossRepository": True,
+        "headRepositoryOwner": {"login": "someone-else"},
+    }
+    spoofed_owner = {**fork, "number": 667, "isCrossRepository": False}
+    calls = []
+
+    def command(cwd, *args, **kwargs):
+        calls.append(args)
+        if args[:3] == ("gh", "pr", "list"):
+            return json.dumps([fork, spoofed_owner, *json.loads(pr_list(123))])
+        if args[:3] == ("gh", "pr", "view"):
+            assert args[3] == "123"
+            return json.dumps(
+                {
+                    "number": 123,
+                    "mergeStateStatus": "BLOCKED",
+                    "statusCheckRollup": PENDING,
+                }
+            )
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    history = tmp_path / "results.jsonl"
+    history.write_text("")
+    assert (
+        publisher.sync(history, tmp_path / "work")
+        == publisher.SweepEvidenceExit.WAITING
+    )  # one own PR plus two foreign ones is not "multiple PRs"
+    touched = [c for c in calls if c[:2] == ("gh", "pr") and c[2] != "list"]
+    assert touched and all(c[3] == "123" for c in touched)
+    assert any(c[:3] == ("gh", "pr", "merge") for c in touched)
+    assert not any("666" in c or "667" in c for c in calls)
+    assert any("isCrossRepository" in a for c in calls for a in c)
