@@ -106,6 +106,7 @@ from .qualification import (
     scheduling_priority,
     unpublishable_pass,
 )
+from .receipt import CANCELLED_FAILURE
 from .removal import ModelRemover
 from .removal_contract import RemovalWait
 from .report import write_status
@@ -1299,6 +1300,10 @@ class Sweep:
         return policy.present_models(self.models) | self.cached_models
 
     def _download_done(self, key: str) -> None:
+        entry = self.state.recipes.get(key, {})
+        repeat = entry.get("exit_repeat") or {}
+        if (repeat.get("key") or {}).get("klass") == CANCELLED_FAILURE:
+            entry.pop("exit_repeat")  # a download that landed ends the run of cancels
         accepted = AcceptedRequest.read(self.state.downloads.get(key))
         if accepted is not None:
             done = set(self.state.data["models_done"]) | set(

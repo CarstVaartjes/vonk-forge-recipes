@@ -1,0 +1,47 @@
+{
+  "cancellation": {
+    "cancel_actor": "admin",
+    "cancel_request_id": "8f8ab22f-47f7-5267-9461-b29fa9501853",
+    "cancel_requested": true,
+    "cancel_requested_at": "2026-11-05T12:04:11.011207Z",
+    "reason": "observation-unavailable"
+  },
+  "children": [
+    {
+      "failure": {
+        "code": "recipe_image.preparation_exhausted",
+        "detail": "Image preparation observation budget ended",
+        "recovery_actions": [],
+        "retryable": false
+      },
+      "kind": "runtime-image",
+      "state": "cancelled"
+    }
+  ],
+  "failure": {
+    "code": "recipe_image.preparation_exhausted",
+    "detail": "Image preparation observation budget ended",
+    "recovery_actions": [],
+    "retryable": false
+  },
+  "kind": "recipe.image.availability.v2",
+  "progress": {
+    "completed_bytes": 0,
+    "members": [
+      {
+        "completed_bytes": 0,
+        "member_id": "runtime-image",
+        "phase": "prepare",
+        "state": "cancelled"
+      }
+    ],
+    "phase": "prepare",
+    "total_bytes_known": false
+  },
+  "request": {
+    "force": false,
+    "kind": "selector",
+    "selector": "PLACEHOLDER"
+  },
+  "state": "cancelled"
+}
