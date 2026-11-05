@@ -38,7 +38,7 @@
     }
   },
   "kit": {
-    "commit": "0e7d421eb4797d98dc781dad764b8f86d34118ae",
+    "commit": "f424dfe3b14ac9f02fe12f5777c852dba967a79a",
     "repo": "MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks"
   }
 }

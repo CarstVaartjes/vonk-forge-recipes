@@ -1,6 +1,6 @@
 FROM ghcr.io/miaai-lab/deepseek-v4.1-flash-1017-2x-dgx-sparks-tensorfold@sha256:4ed15dceaf0a210052d5db89c74145794d8ee45f63a3436878ac3ec01cea38b5
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks" \
-      org.opencontainers.image.revision="0e7d421eb4797d98dc781dad764b8f86d34118ae" \
+      org.opencontainers.image.revision="f424dfe3b14ac9f02fe12f5777c852dba967a79a" \
       org.opencontainers.image.licenses="Apache-2.0 AND MIT" \
       ai.vonkforge.runtime-interface="v1" \
       tf.ref="" tf.patches=""
