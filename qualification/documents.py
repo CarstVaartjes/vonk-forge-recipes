@@ -3,7 +3,8 @@
 Documents are execution data (``recipes/<slug>.json``, ``models/<slug>.json``).
 Display is what a person reads about them (``display/recipes/<slug>.json``,
 ``display/models/<slug>.json``); a display edit never changes a document digest.
-Callers never read display fields off a document.
+Callers never read display fields off a document. A recipe's API facts
+(``api/recipes/<slug>.json``) are a third optional sibling, read the same way.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from pathlib import Path
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,
+    RecipeApi,
     RecipeDefinition,
     RecipeDisplay,
     document_sha256,
@@ -52,3 +54,15 @@ def model_display(slug: str, root: Path = ROOT) -> ModelDisplay:
     if display.identity.slug != slug:
         raise ValueError(f"{path.name} describes {display.identity.slug}")
     return display
+
+
+def has_recipe_api(slug: str, root: Path = ROOT) -> bool:
+    return (root / "api" / "recipes" / f"{slug}.json").is_file()
+
+
+def recipe_api(slug: str, root: Path = ROOT) -> RecipeApi:
+    path = root / "api" / "recipes" / f"{slug}.json"
+    api = RecipeApi.model_validate(json.loads(path.read_text(encoding="utf-8")))
+    if api.identity.slug != slug:
+        raise ValueError(f"{path.name} describes {api.identity.slug}")
+    return api

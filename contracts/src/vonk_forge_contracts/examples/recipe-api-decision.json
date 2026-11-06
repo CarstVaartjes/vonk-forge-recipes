@@ -1,0 +1,19 @@
+{
+  "api": {
+    "input_modalities": {
+      "audio": false,
+      "image": true,
+      "pdf": false,
+      "text": true,
+      "video": false
+    },
+    "max_input_tokens": null,
+    "mode": "decision"
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-build-decision"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}

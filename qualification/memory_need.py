@@ -27,6 +27,7 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
     document_sha256,
 )
+from vonk_forge_contracts.api_checks import CONTEXT_ARGUMENTS
 from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
     evaluate_memory_admission,
@@ -546,10 +547,9 @@ def calculate_need(
         raise ValueError(
             f"{label}: include the wrapper's draft weights in the need model"
         )
-    context_flag, concurrency_flag = (
-        ("max-model-len", "max-num-seqs")
-        if recipe.runtime.engine == "vllm"
-        else ("context-length", "max-running-requests")
+    context_flag = CONTEXT_ARGUMENTS[recipe.runtime.engine][0]
+    concurrency_flag = (
+        "max-num-seqs" if recipe.runtime.engine == "vllm" else "max-running-requests"
     )
     context = positive_argument(recipe, context_flag)
     concurrency = positive_argument(recipe, concurrency_flag)
@@ -1200,9 +1200,7 @@ def absolute_kv_need(
     selection = recipe.models[0]
     model = models[selection.model.content_sha256]
     geometry = pinned_geometry(recipe, selection.model.slug, model, inputs.geometries)
-    context_flag = (
-        "max-model-len" if recipe.runtime.engine == "vllm" else "context-length"
-    )
+    context_flag = CONTEXT_ARGUMENTS[recipe.runtime.engine][0]
     context_value = argument_value(recipe, context_flag)
     context = (
         geometry.max_context_tokens
@@ -1241,7 +1239,7 @@ def absolute_kv_warnings(
             tokens = argument_value(variant, "max-total-tokens")
             if tokens is not None and positive_argument(
                 variant, "max-total-tokens"
-            ) < positive_argument(variant, "context-length"):
+            ) < positive_argument(variant, CONTEXT_ARGUMENTS["sglang"][0]):
                 warnings.append(
                     f"{recipe.identity.slug}: absolute KV token pool cannot hold one full-context request"
                 )

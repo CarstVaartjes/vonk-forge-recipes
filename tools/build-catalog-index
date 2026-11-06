@@ -706,9 +706,9 @@ def build(
         document_sha256,
         published_json,
     )
-    from vonk_forge_contracts.resolver import validate_library
+    from vonk_forge_contracts.resolver import validate_library, validate_recipe_apis
 
-    from qualification.documents import model_display, recipe_display
+    from qualification.documents import model_display, recipe_api, recipe_display
     from qualification.documents import recipe as recipe_of
 
     memory_models = {
@@ -725,14 +725,20 @@ def build(
             path.stem: model_display(path.stem, ROOT)
             for path in sorted((ROOT / "display/models").glob("*.json"))
         }
+        recipe_documents = [recipe_of(path.stem, ROOT) for path in recipe_paths]
         validate_library(
-            [recipe_of(path.stem, ROOT) for path in recipe_paths],
+            recipe_documents,
             memory_models.values(),
             recipe_displays,
             model_displays,
         )
+        recipe_apis = {
+            path.stem: recipe_api(path.stem, ROOT)
+            for path in sorted((ROOT / "api/recipes").glob("*.json"))
+        }
+        validate_recipe_apis(recipe_documents, recipe_apis)
     except ValueError as error:
-        raise SystemExit(f"display validation failed: {error}") from error
+        raise SystemExit(f"display or API validation failed: {error}") from error
     memory_inputs = load_inputs()
     recipes: list[dict[str, Any]] = []
     for path in recipe_paths:
@@ -763,6 +769,10 @@ def build(
                 "source_bundle_sha256": metadata["source_bundle_sha256"],
                 "document": document,
                 "display": published_json(recipe_displays[path.stem]),
+                # Optional sibling: null when the recipe has no API document.
+                "api": published_json(recipe_apis[path.stem])
+                if path.stem in recipe_apis
+                else None,
                 "package": metadata,
                 "release": document["release"],
             }

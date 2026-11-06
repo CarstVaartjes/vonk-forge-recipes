@@ -1,0 +1,220 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "repository": "registry.example/vonk/base"
+      },
+      "context": {
+        "path": "context.tar"
+      },
+      "dockerfile": "Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-build-options"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "synthetic-tiny"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "weights",
+          "id": "weights",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "ff4323e5418ddd5c6684949ca2fe9de6fd0b2ba50970458125176f1969298acf",
+        "kind": "model",
+        "publisher": "vonk-forge",
+        "slug": "synthetic-tiny-fp16"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "args": [
+            {
+              "name": "language-model-only",
+              "value": true
+            }
+          ],
+          "default": true,
+          "help": "The language model alone.",
+          "label": "Text only",
+          "value": "text-only"
+        },
+        {
+          "args": [
+            {
+              "name": "language-model-only",
+              "value": false
+            },
+            {
+              "name": "limit-mm-per-prompt",
+              "value": "{\"image\":4}"
+            }
+          ],
+          "help": "Up to four images per prompt.",
+          "label": "Images",
+          "value": "images"
+        }
+      ],
+      "help": "Serve text only, or accept images as well.",
+      "label": "Images",
+      "name": "vision"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Vonk Forge"
+    ],
+    "source_reference": null
+  },
+  "release": {
+    "released_at": "2026-09-05",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "unknown-option",
+        "value": "value with spaces; $HOME/Δ and {json}"
+      },
+      {
+        "name": "structured_option",
+        "value": {
+          "enabled": true,
+          "items": [
+            "a",
+            3,
+            0.25
+          ]
+        }
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [],
+    "lifecycle": {
+      "stop_timeout_seconds": 30
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 1024
+    },
+    "kind": "generation",
+    "knobs": {}
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 1024,
+            "image_bytes": 1000,
+            "safety_margin_bytes": 1024,
+            "working_bytes": 3072
+          },
+          "memory": {
+            "peak_bytes": 80000000,
+            "reserve_bytes": 1000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.vision",
+          "name": "chat",
+          "request": {
+            "body": {
+              "max_tokens": 16,
+              "messages": [
+                {
+                  "content": [
+                    {
+                      "text": "Describe this synthetic image.",
+                      "type": "text"
+                    },
+                    {
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgo="
+                      },
+                      "type": "image_url"
+                    }
+                  ],
+                  "role": "user"
+                }
+              ],
+              "model": "$MODEL"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

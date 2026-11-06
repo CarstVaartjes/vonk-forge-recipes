@@ -1,0 +1,4 @@
+{
+  "contract": "RecipeApi",
+  "error_contains": "at most one option may carry API blocks"
+}
