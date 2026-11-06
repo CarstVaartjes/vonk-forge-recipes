@@ -24,7 +24,7 @@ from vonk_forge_contracts import (
     recipe_api_json_schema,
 )
 from vonk_forge_contracts.api import ApiTokenArgument
-from vonk_forge_contracts.api_checks import IMAGE_INPUT_CAPABILITIES
+from vonk_forge_contracts.api_checks import IMAGE_INPUT_CAPABILITY
 from vonk_forge_contracts.resolver import ContractResolutionError, validate_recipe_apis
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -333,7 +333,7 @@ def test_the_synthetic_decision_example_is_checked_like_any_recipe() -> None:
 
 
 def test_image_input_has_one_capability_name() -> None:
-    assert IMAGE_INPUT_CAPABILITIES == {"image-understanding"}
+    assert IMAGE_INPUT_CAPABILITY == "image-understanding"
 
 
 def _git(root: Path, *args: str) -> None:

@@ -186,7 +186,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "51a80d879c4da7576406e897a46ea6d74ac09940cccbf5cd7e7c271d6e3f04e4",
+        "content_sha256": "234b3a4ba33ddad00446e2b76d1ce5e400a96e66b8ae653916dda2377b57488d",
         "kind": "model",
         "publisher": "vonk-forge",
         "slug": "d3-edge-bf16-c454ee39"

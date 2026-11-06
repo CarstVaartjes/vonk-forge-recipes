@@ -1,8 +1,8 @@
 {
   "capabilities": [
     "decision",
-    "video",
-    "vision"
+    "image-understanding",
+    "video"
   ],
   "dependencies": [],
   "files": [
