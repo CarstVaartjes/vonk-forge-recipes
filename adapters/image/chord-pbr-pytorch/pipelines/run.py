@@ -122,7 +122,8 @@ def _validate_maps(directory: Path, size: tuple[int, int]) -> None:
     if {path.name for path in directory.iterdir()} != _MAPS.keys():
         raise SystemExit("PBR estimation did not produce exactly the four maps")
     for name, color_type in _MAPS.items():
-        header = (directory / name).read_bytes()[:26]
+        with (directory / name).open("rb") as stream:
+            header = stream.read(26)
         if len(header) < 26 or header[:8] != b"\x89PNG\r\n\x1a\n":
             raise SystemExit(f"{name} is not a PNG")
         width, height, bit_depth, kind = struct.unpack(">IIBB", header[16:26])
