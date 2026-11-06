@@ -441,12 +441,43 @@ def _listing_url(owner: str, page: int = 1) -> str:
     )
 
 
+def _watch(entity: str, repository: str, **fields: Any) -> Any:
+    provider = "github" if entity.startswith("recipe/") else "huggingface"
+    return drift.Watch(
+        entity, "x.json", provider, repository, PINNED, None, "default-branch", None,
+        **fields,
+    )  # fmt: skip
+
+
+# A fixed, recipe-shaped catalog: the signals must not depend on live data.
+FIXTURE_WATCHES = [
+    _watch("model/example/glm-a", "example/glm-a", family="glm"),
+    _watch("model/example/qwen-a", "example/qwen-a", family="qwen"),
+    _watch("recipe/vonk-forge/glm-old-a", MIA_OLD, models=("model/example/glm-a",)),
+    _watch("recipe/vonk-forge/glm-old-b", MIA_OLD, models=("model/example/glm-a",)),
+    _watch("recipe/vonk-forge/glm-other", "other/glm-kit", models=("model/example/glm-a",)),
+    _watch("recipe/vonk-forge/qwen-x", "other/qwen-kit", models=("model/example/qwen-a",)),
+]  # fmt: skip
+FIXTURE_FAMILIES = {
+    "glm", "qwen", "agents-a1", "decision-3", "ui-mate", "real-esrgan",
+    "hunyuan-video", "deepseek-flash", "gem-x",
+}  # fmt: skip
+
+
 class CreatorSignalTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
+    watches = FIXTURE_WATCHES
+    families = FIXTURE_FAMILIES
+
+    def test_live_catalog_recipe_watches_are_structurally_sound(self) -> None:
         defaults, overrides = drift.load_manifest(ROOT / "upstream-watch.json")
-        cls.watches = drift.discover_watches(ROOT, defaults, overrides)
-        cls.families = {w.family for w in cls.watches if w.family}
+        live = drift.discover_watches(ROOT, defaults, overrides)
+        recipes = [w for w in live if w.entity.startswith("recipe/")]
+        self.assertTrue(recipes)
+        for watch in recipes:
+            slug = watch.entity.split("/")[2]
+            self.assertTrue((ROOT / "recipes" / f"{slug}.json").is_file(), slug)
+            self.assertTrue(watch.models, slug)
+        self.assertTrue(any(w.family for w in live if w.entity.startswith("model/")))
 
     def test_mia_banner_names_the_successor(self) -> None:
         notice = drift.find_supersession(MIA_BANNER, MIA_OLD, PINNED)
@@ -596,23 +627,8 @@ class CreatorSignalTests(unittest.TestCase):
         old, new = by_kind["supersession"], by_kind["new-repo"]
         self.assertEqual((old.source_commit, old.linked_commit), (OBSERVED, NEWHEAD))
         self.assertEqual(new.linked_commit, NEWHEAD)
-        pinned_to_old = sorted(
-            w.entity.split("/")[2]
-            for w in self.watches
-            if w.entity.startswith("recipe/") and w.repository == MIA_OLD
-        )
-        self.assertIn("glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual", pinned_to_old)
-        self.assertEqual(old.recipe_slugs, pinned_to_old)
-        glm_models = {w.entity for w in self.watches if w.family == "glm"}
-        in_family = sorted(
-            w.entity.split("/")[2]
-            for w in self.watches
-            if w.entity.startswith("recipe/") and glm_models.intersection(w.models)
-        )
-        self.assertEqual(new.recipe_slugs, in_family)
-        self.assertIn("glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual", in_family)
-        for slug in {*old.recipe_slugs, *new.recipe_slugs}:
-            self.assertTrue((ROOT / "recipes" / f"{slug}.json").is_file(), slug)
+        self.assertEqual(old.recipe_slugs, ["glm-old-a", "glm-old-b"])
+        self.assertEqual(new.recipe_slugs, ["glm-old-a", "glm-old-b", "glm-other"])
         self.assertEqual(
             drift.report([], "t", None, signals)["creator_signals"],
             signals.model_dump(mode="json"),
