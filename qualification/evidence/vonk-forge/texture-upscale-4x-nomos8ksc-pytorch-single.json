@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/texture-upscale-4x-nomos8ksc-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "0b4a2141c520d9e4e8cb02b09a68e4d6986ff1de870f40cd3d7f409d86c5fa3f",
+        "source_bundle_sha256": "ab7462f96908ac70956785b2f67841a4e5bdbde1619fe1d6fe836d4c99e580c5",
+        "runtime_image": {
+          "build_key": "e77edf479ea096cc56ab62225a5ecd79ce701cf08f40a081391b097dbefd0bc7",
+          "image_digest": "sha256:86420793647b3a23746deafa1abe66ceb2f3fc11988377173d95596c6ba831b8"
+        },
+        "model_digests": [
+          "aadea257aac72c34c6f56506a18dc6ce2f4882529b52e84ad0db0d295199303c"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "c0a821b4176f33557ecac487789b77d24894f05dd717b4c91427b1efc2d9f052"
+      ],
+      "tested_at": "2026-11-06T13:16:41.220410Z",
+      "platform": {
+        "controller_source_sha": "47c6bc7417eaf14eb485cea51de0f4fd85c91324",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "0b4a2141c520d9e4e8cb02b09a68e4d6986ff1de870f40cd3d7f409d86c5fa3f",
+      "role": "entrypoint",
+      "steady_bytes": 4206444544
+    }
+  ]
+}
