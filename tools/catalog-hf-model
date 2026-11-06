@@ -157,6 +157,10 @@ def _split_sets(
     return sets, [entry for entry in entries if entry["path"] not in split_paths]
 
 
+class AccessDenied(SystemExit):
+    """The repository withholds a digest or file this inventory needs (gated)."""
+
+
 def inventory(
     repository: str,
     revision: str,
@@ -185,6 +189,13 @@ def inventory(
             return None
         lfs = entry.get("lfs")
         if isinstance(lfs, dict) and isinstance(lfs.get("oid"), str):
+            if not re.fullmatch(r"[0-9a-f]{64}", lfs["oid"]):
+                # A gated repository masks the LFS digest (all asterisks) for callers
+                # without access; it is not a digest.
+                raise AccessDenied(
+                    f"cannot inventory exact LFS artifact without access: {path} "
+                    "(digest withheld); authenticate to Hugging Face and rerun"
+                )
             return {"path": path, "size": size, "sha256": lfs["oid"]}
         if size > MAX_INLINE_ARTIFACT_BYTES:
             raise SystemExit(
@@ -196,7 +207,7 @@ def inventory(
                 f"https://huggingface.co/{repository}/resolve/{revision}/{quote(path, safe='/')}"
             )
         except HTTPError as error:
-            raise SystemExit(
+            raise AccessDenied(
                 "cannot inventory exact non-LFS artifact without access: "
                 f"{path} (HTTP {error.code}); authenticate to Hugging Face "
                 "and rerun"

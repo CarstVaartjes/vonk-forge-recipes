@@ -3388,3 +3388,87 @@ class RewrittenHistoryTests(unittest.TestCase):
             "u", 404, "Not Found", Message(), io.BytesIO(b"<html>")
         )
         self.assertEqual(refresh._error_message(error), "")
+
+
+class GatedRepositoryTests(unittest.TestCase):
+    """#1517: a gated repository masks LFS digests and refuses non-LFS bytes (401).
+
+    The trees are recorded from the Hugging Face API for black-forest-labs/flux-3-image-klein
+    at 337337621b85 and 09561231f44e (four files kept): only README.md differs.
+    """
+
+    trees = json.loads((ROOT / "tests/fixtures/hf-gated-klein-trees.json").read_text())
+
+    def old(self):
+        return model_with(("README.md", "config.json", "model.safetensors"))
+
+    def test_same_blob_ids_and_sizes_are_unchanged_weights(self) -> None:
+        self.assertTrue(
+            refresh.gated_payload_unchanged(
+                self.old(), self.trees["before"], self.trees["after"]
+            )
+        )
+
+    def test_a_changed_weights_pointer_is_a_change(self) -> None:
+        after = json.loads(json.dumps(self.trees["after"]))
+        for entry in after:
+            if entry["path"] == "model.safetensors":
+                entry["oid"] = "0" * 40
+        self.assertFalse(
+            refresh.gated_payload_unchanged(self.old(), self.trees["before"], after)
+        )
+
+    def test_a_new_non_metadata_file_is_a_change(self) -> None:
+        after = [
+            *self.trees["after"],
+            {"type": "file", "path": "extra.safetensors", "oid": "1" * 40, "size": 5},
+        ]
+        self.assertFalse(
+            refresh.gated_payload_unchanged(self.old(), self.trees["before"], after)
+        )
+
+    def test_masked_lfs_digest_is_refused_not_catalogued(self) -> None:
+        with self.assertRaises(refresh.catalog.AccessDenied):
+            refresh.catalog.inventory("o/r", NEW, self.trees["after"])
+
+    def test_a_gated_metadata_only_revision_is_not_a_move(self) -> None:
+        old = self.old()
+        old["source"]["repository"] = "https://huggingface.co/o/r"
+        recipe = {"identity": {"slug": "recipe"}, "models": []}
+        assessor = refresh.Assessor(
+            refresh.Catalog(
+                Path("."),
+                recipes={"recipe": recipe},
+                models={old["identity"]["slug"]: old},
+            ),
+            object(),
+            None,
+            {},
+        )
+        item = refresh.Item(
+            "model",
+            "huggingface",
+            "o/r",
+            OLD,
+            refresh.Target("huggingface", "o/r", NEW, "2026-11-02", None, None, "u"),
+            old["identity"]["slug"],
+        )
+        result = refresh.Assessment("recipe", items=[item])
+        trees = {OLD: self.trees["before"], NEW: self.trees["after"]}
+        with (
+            patch.object(
+                refresh.catalog,
+                "_get_tree",
+                side_effect=lambda url: trees[
+                    next(r for r in trees if f"/tree/{r}?" in url)
+                ],
+            ),
+            patch.object(
+                refresh.Assessor,
+                "_inventory",
+                side_effect=refresh.catalog.AccessDenied("gated"),
+            ),
+        ):
+            assessor._model(item, recipe, json.loads(json.dumps(recipe)), result, {})
+        self.assertEqual(result.reasons, [])
+        self.assertTrue(item.noop)
