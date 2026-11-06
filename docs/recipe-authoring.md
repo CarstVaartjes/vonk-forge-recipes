@@ -1344,10 +1344,12 @@ release commit. Build them locally with one command when a tool or test outside
 the suite needs them:
 
 ```bash
-uv run --python 3.14 --no-project --with-editable contracts tools/build-catalog-index
+uv run --python 3.14 --no-project --with-editable contracts tools/build-catalog-index \
+  --source-commit "$(git rev-parse HEAD)" --source-date-epoch "$(git show -s --format=%ct HEAD)"
 ```
 
-It writes them in place, recording the checkout's `HEAD` as `source_commit`.
+It writes them in place, recording the given commit as `source_commit` and its
+commit time as `updated_at`; the tool itself never runs Git.
 `tools/build-family-aware-coverage` then derives the coverage matrix and report
 into `qualification/coverage/`. The test suite builds its own copy once per
 session in a temporary directory and never reads outputs from the checkout.

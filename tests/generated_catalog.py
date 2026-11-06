@@ -21,6 +21,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+# Provenance arguments are fixed: no test reads the checkout history.
+SOURCE_COMMIT = "0" * 40
+SOURCE_DATE_EPOCH = 0
 SHARED_ENV = "VONK_RECIPES_GENERATED_DIR"
 
 
@@ -41,6 +44,10 @@ def generated_root() -> Path:
         [
             sys.executable,
             str(ROOT / "tools/build-catalog-index"),
+            "--source-commit",
+            SOURCE_COMMIT,
+            "--source-date-epoch",
+            str(SOURCE_DATE_EPOCH),
             "--output-dir",
             str(directory),
         ],

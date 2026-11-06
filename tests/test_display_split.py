@@ -161,7 +161,9 @@ def test_editing_a_proven_recipes_display_changes_no_identity_or_status(
     tree = _tree_with_edited_display(tmp_path, slug)
     monkeypatch.setitem(TOOL["build"].__globals__, "ROOT", tree)
     # The build runs the memory gate on every recipe; it raises when it is not silent.
-    edited = TOOL["build"](package_dir=tmp_path / "packages", source_commit="0" * 40)
+    edited = TOOL["build"](
+        package_dir=tmp_path / "packages", source_commit="0" * 40, source_date_epoch=0
+    )
     original, _ = built_catalog
 
     def projection(catalog: dict) -> list[tuple[object, ...]]:
