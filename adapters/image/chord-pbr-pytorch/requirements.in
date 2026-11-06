@@ -1,0 +1,24 @@
+# Torch stack: the versions and index the GB10-proven HunyuanVideo-Foley image locks
+# (adapters/audio/hunyuan-video-foley-native/requirements.lock), not the creator's cu128 wheels.
+torch==2.14.0
+torchvision==0.29.0
+# CUDA closure of that torch, held at the versions the Foley lock resolved (the others match).
+cuda-bindings==13.3.1
+cuda-pathfinder==1.7.0
+nvidia-nvjitlink==13.3.33
+
+# The creator's requirements.txt pins (transformers 4.57.1, tokenizers 0.22.1) and its unpinned
+# dependencies: diffusers and omegaconf at the versions the GB10-proven Foley image resolves,
+# huggingface-hub at the Foley version that transformers 4.57.1 accepts (below 1.0), numpy at
+# the version the Stable Audio 3 adapter locks, and the newest imageio. The creator's CLI-only
+# typer is left out; huggingface-hub still brings hf-xet, which is unused because
+# every file is read from /models.
+transformers==4.57.1
+tokenizers==0.22.1
+huggingface-hub==0.36.0
+diffusers==0.39.0
+omegaconf==2.3.0
+imageio==2.37.2
+numpy==2.2.6
+Pillow==12.3.0
+safetensors==0.8.0

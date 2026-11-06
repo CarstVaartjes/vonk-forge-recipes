@@ -1,0 +1,26 @@
+{
+  "alignment": "unspecified",
+  "description": "Single-Spark NVIDIA Kimodo job: a text prompt becomes a 30 fps human motion on the SOMA skeleton, from Kimodo-SOMA-RP-v1.2 with the creator's own generator and its default diffusion steps and guidance. The text encoder is LLM2Vec (two McGill NLP adapters on Meta-Llama-3-8B-Instruct, about 17 GB together with the motion model). The output is one motion.zip holding motion.bvh (somaskel77 skeleton, centimetres, standard T-pose rest pose) and motion.npz, meant for retargeting in Blender; the artifact contract has no animation format, so a skinned GLB clip is not offered. The duration is a setting; every sentence of the prompt becomes its own segment of that duration. Foot-skate post-processing is off, because upstream's MotionCorrection is x86-only C++. The model is released under the NVIDIA Open Model License and the text encoder's base under the Meta Llama 3 Community License. Physical Spark acceptance is pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "kimodo-soma-rp-v1-2-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "nvidia",
+    "kimodo",
+    "motion-generation",
+    "text-to-motion",
+    "animation",
+    "bvh",
+    "soma",
+    "pytorch-pipeline",
+    "single",
+    "spark",
+    "native",
+    "physical-acceptance-required"
+  ],
+  "title": "Kimodo SOMA RP v1.2 pytorch-pipeline single Spark"
+}

@@ -24,6 +24,8 @@ RECIPES = [
     if (
         recipe := RecipeDefinition.model_validate_json(path.read_bytes())
     ).execution.build.context.path.startswith("adapters/image/")
+    # This test mocks diffusers pipelines and reads the `pipeline` argument.
+    and recipe.runtime.engine == "diffusers"
 ]
 
 
