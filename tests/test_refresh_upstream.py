@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import copy
 import hashlib
 import importlib.machinery
 import importlib.util
@@ -3469,6 +3470,6 @@ class GatedRepositoryTests(unittest.TestCase):
                 side_effect=refresh.catalog.AccessDenied("gated"),
             ),
         ):
-            assessor._model(item, recipe, json.loads(json.dumps(recipe)), result, {})
+            assessor._model(item, recipe, copy.deepcopy(recipe), result, {})
         self.assertEqual(result.reasons, [])
         self.assertTrue(item.noop)
