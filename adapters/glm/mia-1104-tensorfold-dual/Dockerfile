@@ -7,7 +7,7 @@
 # and the grammar library only: the CUDA dev CLI and the tf-*-test tools are not part of serving. ZIG_CPU=baseline, not the
 # kit's `native`: the kit builds on the Spark that runs it, this image is built on a hosted arm64 runner and must run on a GB10.
 # Thin layer on top: the Controller placement wrapper, the licence texts and the non-root user.
-FROM nvcr.io/nvidia/cuda:13.3.1-devel-ubuntu24.04@sha256:afc92f9727f96346f2912934f11e5a43aa0581aca4a826bd5c8fd4ab6b152bcc AS toolchain
+FROM nvcr.io/nvidia/cuda:13.3.1-devel-ubuntu24.04@sha256:afc92f9727f96346f2912934f11e5a43aa0581aca4a826bd5c8fd4ab6b152bcc AS build
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive LC_ALL=C.UTF-8
 RUN apt-get update \
@@ -21,8 +21,7 @@ RUN curl -fsSL --retry 3 -o /tmp/zig.tar.xz https://ziglang.org/download/0.17.0/
  && ln -s /opt/zig/zig /usr/local/bin/zig \
  && test "$(zig version)" = 0.17.0
 
-# The image decoders --vision needs: the server refuses JPEG and WebP input unless it finds exactly libjpeg-turbo 3.1.4.1 and libwebp 1.6.0.
-FROM toolchain AS codecs
+# Codecs: the image decoders --vision needs: the server refuses JPEG and WebP input unless it finds exactly libjpeg-turbo 3.1.4.1 and libwebp 1.6.0.
 WORKDIR /build
 RUN curl -fsSL --retry 3 -o jpeg.tar.gz https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.4.1/libjpeg-turbo-3.1.4.1.tar.gz \
  && echo "ecae8008e2cc9ade2f2c1bb9d5e6d4fb73e7c433866a056bd82980741571a022  jpeg.tar.gz" | sha256sum -c - \
@@ -44,8 +43,7 @@ RUN curl -fsSL --retry 3 -o webp.tar.gz https://storage.googleapis.com/downloads
  && install -D -m 0644 webp/COPYING /codecs/LICENSES/libwebp-COPYING \
  && ldd /codecs/lib/libturbojpeg.so.0 /codecs/lib/libwebpdecoder.so.3
 
-# TensorFold f350cd3e (the kit's TF_REF, by its codeload archive) with patches/engine/*.patch applied in filename order.
-FROM toolchain AS build
+# Engine: TensorFold f350cd3e (the kit's TF_REF, by its codeload archive) with patches/engine/*.patch applied in filename order.
 RUN git clone -q --depth 1 --branch v0.2.8 --recurse-submodules https://github.com/mlc-ai/xgrammar.git /src/xgrammar \
  && test "$(git -C /src/xgrammar rev-parse HEAD)" = 97787376faee5ed8466cfad57c99855e4ce2f6aa \
  && test "$(git -C /src/xgrammar describe --tags --exact-match)" = v0.2.8
@@ -67,10 +65,10 @@ RUN test "$(cat .zig-version)" = 0.17.0 \
       -Doptimize=fast -Dcpu=baseline -Dstrip=false \
       -Dnvcc=/usr/local/cuda/bin/nvcc -Dsm=121 -Dxgrammar=/src/xgrammar \
  && /opt/tensorfold/native/bin/tensorfold-native --version
-COPY --from=codecs /codecs/lib/ /opt/tensorfold/native/lib/
-COPY --from=codecs /codecs/LICENSES/ /opt/tensorfold/LICENSES/
 RUN shopt -s nullglob \
  && mkdir -p /opt/tensorfold/LICENSES/tensorfold \
+ && cp -r /codecs/lib/. /opt/tensorfold/native/lib/ \
+ && cp -r /codecs/LICENSES/. /opt/tensorfold/LICENSES/ \
  && cp -r LICENSE NOTICE THIRD_PARTY_NOTICES.md LICENSES /opt/tensorfold/LICENSES/tensorfold/ \
  && cp /src/xgrammar/LICENSE /opt/tensorfold/LICENSES/xgrammar-Apache-2.0.txt \
  && cp /src/xgrammar/NOTICE /opt/tensorfold/LICENSES/xgrammar-NOTICE.txt \
