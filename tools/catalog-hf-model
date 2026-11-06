@@ -5,13 +5,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError
-from urllib.parse import quote
-from urllib.request import Request, urlopen
+from urllib.parse import quote, urlparse
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -26,15 +27,37 @@ from tools._catalog_model import (
 MAX_INLINE_ARTIFACT_BYTES = 16 * 1024 * 1024
 
 
+_HF_HOSTS = {"huggingface.co", "www.huggingface.co"}
+
+
+class _KeepTokenOnHuggingFace(HTTPRedirectHandler):
+    """Follow redirects, but never send the Hugging Face token to another host."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):  # type: ignore[no-untyped-def]
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if redirected is not None and urlparse(newurl).hostname not in _HF_HOSTS:
+            redirected.remove_header("Authorization")
+        return redirected
+
+
+def _open(url: str, timeout: int) -> Any:
+    """Open ``url``; an ``HF_TOKEN`` in the environment authenticates Hugging Face calls."""
+    headers = {"User-Agent": "vonk-forge-recipe-library/1"}
+    token = os.environ.get("HF_TOKEN")
+    if token and urlparse(url).hostname in _HF_HOSTS:
+        headers["Authorization"] = f"Bearer {token}"
+    return build_opener(_KeepTokenOnHuggingFace).open(
+        Request(url, headers=headers), timeout=timeout
+    )
+
+
 def _get_json(url: str) -> object:
-    request = Request(url, headers={"User-Agent": "vonk-forge-recipe-library/1"})
-    with urlopen(request, timeout=60) as response:
+    with _open(url, 60) as response:
         return json.load(response)
 
 
 def _get_json_page(url: str) -> tuple[object, str | None]:
-    request = Request(url, headers={"User-Agent": "vonk-forge-recipe-library/1"})
-    with urlopen(request, timeout=60) as response:
+    with _open(url, 60) as response:
         payload = json.load(response)
         link = response.headers.get("Link", "")
     match = re.search(r'<([^>]+)>;\s*rel="next"', link)
@@ -53,8 +76,7 @@ def _get_tree(url: str) -> list[object]:
 
 
 def _get_bytes(url: str) -> bytes:
-    request = Request(url, headers={"User-Agent": "vonk-forge-recipe-library/1"})
-    with urlopen(request, timeout=120) as response:
+    with _open(url, 120) as response:
         return response.read()
 
 
@@ -157,6 +179,10 @@ def _split_sets(
     return sets, [entry for entry in entries if entry["path"] not in split_paths]
 
 
+class AccessDenied(SystemExit):
+    """The repository withholds a digest or file this inventory needs (gated)."""
+
+
 def inventory(
     repository: str,
     revision: str,
@@ -185,6 +211,13 @@ def inventory(
             return None
         lfs = entry.get("lfs")
         if isinstance(lfs, dict) and isinstance(lfs.get("oid"), str):
+            if not re.fullmatch(r"[0-9a-f]{64}", lfs["oid"]):
+                # A gated repository masks the LFS digest (all asterisks) for callers
+                # without access; it is not a digest.
+                raise AccessDenied(
+                    f"cannot inventory exact LFS artifact without access: {path} "
+                    "(digest withheld); authenticate to Hugging Face and rerun"
+                )
             return {"path": path, "size": size, "sha256": lfs["oid"]}
         if size > MAX_INLINE_ARTIFACT_BYTES:
             raise SystemExit(
@@ -196,7 +229,9 @@ def inventory(
                 f"https://huggingface.co/{repository}/resolve/{revision}/{quote(path, safe='/')}"
             )
         except HTTPError as error:
-            raise SystemExit(
+            if error.code not in {401, 403}:
+                raise  # 5xx and 429 are transient, handled by the caller
+            raise AccessDenied(
                 "cannot inventory exact non-LFS artifact without access: "
                 f"{path} (HTTP {error.code}); authenticate to Hugging Face "
                 "and rerun"
