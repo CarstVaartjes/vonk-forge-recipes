@@ -56,11 +56,6 @@ def recipe_file_name(recipe_id: str) -> str:
 
 
 def load_definitions(root: Path = QUALIFICATION_ROOT) -> dict[str, Any]:
-    if (root / "definitions.json").exists():
-        raise ValueError(
-            "qualification/definitions.json is the old layout; "
-            "run tools/migrate-pr-qualification"
-        )
     document = _read(root / "shared.json")
     for section in PER_RECIPE_SECTIONS:
         if section in document:
