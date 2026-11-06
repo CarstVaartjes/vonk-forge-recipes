@@ -39,7 +39,7 @@ CONTEXT_ARGUMENTS: dict[str, tuple[str, ...]] = {
     "llama-cpp": ("ctx-size",),
     "tensorfold": ("context",),
     "ds4": ("ctx",),
-    "exllamav3": ("cache_size", "cache-size", "max-seq-len", "window"),
+    "exllamav3": ("cache_size", "max-seq-len", "window"),
 }
 IMAGE_INPUT_CAPABILITY = "image-understanding"
 
