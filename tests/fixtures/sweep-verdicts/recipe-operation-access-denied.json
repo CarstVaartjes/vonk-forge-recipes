@@ -1,0 +1,81 @@
+{
+  "kind": "recipe.image.availability.v2",
+  "state": "backoff",
+  "attempt": 47,
+  "blockers": [
+    {
+      "code": "recipe_image.waiting_for_model",
+      "detail": "Waiting for the model download to finish.",
+      "node_ids": [],
+      "severity": "info"
+    }
+  ],
+  "request_id": "a02400eb-4aa7-5af2-a102-e09134a8b27f",
+  "failure": {
+    "code": "recipe_image.build_wait",
+    "detail": "waiting for the Controller to pull prebuilt image ghcr.io/carstvaartjes/vonk-forge-recipe-stable-audio-3-small-sfx-pytorch-single@sha256:1f3b3e4097e1eb8831d5ee9a20658bce095726af17192927452a28451474f9fd (build 371be95d-7e9f-420b-93f2-bebbe493165c): running",
+    "log_excerpt": "waiting for the Controller to pull prebuilt image ghcr.io/carstvaartjes/vonk-forge-recipe-stable-audio-3-small-sfx-pytorch-single@sha256:1f3b3e4097e1eb8831d5ee9a20658bce095726af17192927452a28451474f9fd (build 371be95d-7e9f-420b-93f2-bebbe493165c): running",
+    "recovery_actions": [
+      "retry"
+    ],
+    "retry_after_seconds": 5,
+    "retry_time": "2026-11-06T12:55:30.942687+00:00",
+    "retryable": true
+  },
+  "progress": {
+    "activity": "waiting",
+    "completed_bytes": 5798493061,
+    "last_progress_at": "2026-11-06T13:26:47.118226+00:00",
+    "phase": "queued",
+    "total_bytes": 9286333599,
+    "total_bytes_known": true
+  },
+  "children": [
+    {
+      "artifact_set_sha256": "cd0b4431c2b5fb93fb219825be594f6539424b6ca4e5e855da4b51f3fd50177b",
+      "failure": {
+        "artifact_key": "artifact-1068b94599a9-generation-config-1068b94599a9-ecb78b93fa",
+        "code": "access_denied",
+        "detail": "Gated or access-restricted model: the configured token lacks access. Request or accept access on https://huggingface.co/stabilityai/stable-audio-3-small-sfx while signed in as the Hugging Face account of the configured token; ensure the token permits this model. Access is rechecked automatically within 1 hour and when token content changes; the download resumes once allowed.",
+        "log_excerpt": "Gated or access-restricted model: the configured token lacks access. Request or accept access on https://huggingface.co/stabilityai/stable-audio-3-small-sfx while signed in as the Hugging Face account of the configured token; ensure the token permits this model. Access is rechecked automatically within 1 hour and when token content changes; the download resumes once allowed.",
+        "recovery_actions": [
+          "open_model_access",
+          "check_access_and_resume"
+        ],
+        "retry_after_seconds": 2805,
+        "retry_time": "2026-11-06T14:13:32.118226+00:00",
+        "retryable": true
+      },
+      "id": "96c1a078-ffec-413d-83ab-1a82b04cc4c1",
+      "kind": "model-cache",
+      "plan_digest": "d4f8f75b5a43895c5079619227251b80a309e784d4f43135a1ceafb926982713",
+      "progress": {
+        "activity": "waiting",
+        "completed_bytes": 11852,
+        "completed_items": 0,
+        "elapsed_seconds": 8.992137,
+        "last_progress_at": "2026-11-06T13:26:47.118226+00:00",
+        "observed_at": "2026-11-06T13:26:47.118226+00:00",
+        "phase": "queued",
+        "total_bytes": 3487852390,
+        "total_bytes_known": true,
+        "total_items": 12
+      },
+      "request_key": "29f606d7-57d3-5024-9055-a69bad17dc3b",
+      "state": "queued"
+    },
+    {
+      "id": "99249269-05d6-4fb6-8ebd-b3387ab1aa4b",
+      "kind": "runtime-image",
+      "progress": {
+        "completed_bytes": 5798481209,
+        "members": [],
+        "phase": "available",
+        "total_bytes": 5798481209,
+        "total_bytes_known": true
+      },
+      "request_key": "a02400eb-4aa7-5af2-a102-e09134a8b27f",
+      "state": "succeeded"
+    }
+  ]
+}

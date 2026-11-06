@@ -30,8 +30,6 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from vonk_forge_contracts.sweep import SweepWaitReason
-
 from .catalog import Model, Recipe
 from .identity import AcceptedRequest, content_identity, verdict_matches
 from .lifecycle import TERMINAL, WAITING, LifecycleState, RetestReason, active
@@ -48,6 +46,7 @@ from .policy import (
 from .receipt import receipt_failure, terminal_outcome
 from .state import State
 from .verdict import (
+    CONTROLLER_OWNED_WAITS,
     Disposition,
     Progress,
     RecoveryReason,
@@ -282,7 +281,7 @@ class Prefetcher:
             record["bps"] = speed
             if (
                 signal.wait is not None
-                and signal.wait.reason is SweepWaitReason.NAS_SPACE
+                and signal.wait.reason in CONTROLLER_OWNED_WAITS
                 and now > float(window.get("wait_deadline", now))
             ):
                 # The Controller owns a NAS-space wait (its own window; eviction frees
@@ -291,7 +290,7 @@ class Prefetcher:
                 record["wait_deferral"] = wait_expiry(window, now).model_dump(
                     mode="json"
                 )
-                self.state.event(f"download still waits for NAS space: {key}")
+                self.state.event(f"download still waits ({signal.wait.reason}): {key}")
             elif moving is Progress.WAIT_EXPIRED:
                 record["wait_deferral"] = wait_expiry(watch, now).model_dump(
                     mode="json"

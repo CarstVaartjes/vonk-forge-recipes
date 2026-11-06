@@ -71,6 +71,17 @@ STALLED_CODE = "progress.stalled"
 #: ModelCacheCode.DOWNLOAD_BLOCKED: the Controller holds a model download for NAS space
 #: while retention evicts. The Controller owns that wait; it is no infrastructure problem.
 NAS_SPACE_CODE = "model_cache.download_blocked"
+#: Model-cache failure codes that mean the source wants the owner's access (accepted terms, a
+#: token with access): the Controller rechecks on its own schedule and when the token changes.
+ACCESS_CODES = frozenset(
+    {"access_denied", "access_required", "model_cache.credentials_missing"}
+)
+#: The waits the Controller owns under its own bounded window: ours renews at each expiry
+#: (it is looked at once per window), they are no infrastructure problem and pause no work.
+CONTROLLER_OWNED_WAITS = frozenset(
+    {SweepWaitReason.NAS_SPACE, SweepWaitReason.ACCESS_TERMS}
+)
+_URL = re.compile(r"https://[^\s;,)]+")
 #: Source name of a long Controller review wait's escalation (``review-wait:<code>``).
 REVIEW_WAIT_SOURCE = "review-wait"
 #: The codes a refused review may end the recipe on.
@@ -310,7 +321,7 @@ def download_signal(document: Mapping[str, Any]) -> Signal:
         state,
         children,
     )
-    space = next(
+    held = next(
         (
             failure
             for child in document.get("children") or []
@@ -318,15 +329,22 @@ def download_signal(document: Mapping[str, Any]) -> Signal:
             and child.get("kind") == "model-cache"
             and child.get("state") in (LifecycleState.QUEUED, LifecycleState.BACKOFF)
             and (failure := receipt_failure(child)) is not None
-            and failure.get("code") == NAS_SPACE_CODE
+            and failure.get("code") in {NAS_SPACE_CODE, *ACCESS_CODES}
         ),
         None,
     )
     wait = None
-    if space is not None:
-        wait = SweepWait(
-            reason=SweepWaitReason.NAS_SPACE, detail=str(space.get("detail") or "")
-        )
+    if held is not None:
+        detail = str(held.get("detail") or "")
+        if held.get("code") == NAS_SPACE_CODE:
+            wait = SweepWait(reason=SweepWaitReason.NAS_SPACE, detail=detail)
+        else:
+            # The owner's move: the repository page that carries the terms to accept.
+            url = _URL.search(detail)
+            wait = SweepWait(
+                reason=SweepWaitReason.ACCESS_TERMS,
+                detail=url.group(0) if url else detail,
+            )
     elif state == LifecycleState.QUEUED:
         wait = SweepWait(reason=SweepWaitReason.OPERATION_QUEUED)
     elif state == LifecycleState.BACKOFF:
@@ -416,10 +434,10 @@ def progress_verdict(
         wait = signal.wait if signal is not None else None
         if (
             wait is not None
-            and wait.reason is SweepWaitReason.NAS_SPACE
+            and wait.reason in CONTROLLER_OWNED_WAITS
             and now > float(watch.get("wait_deadline", now))
         ):
-            # The Controller holds a NAS-space wait under its own bounded window while
+            # The Controller holds a NAS-space or access wait under its own bounded window while
             # retention evicts: each expiry of ours renews it (the caller records the
             # expired window), so it is looked at once per window and pauses no work.
             watch["wait_started_at"] = now

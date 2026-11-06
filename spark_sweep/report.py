@@ -45,6 +45,18 @@ if TYPE_CHECKING:
 DEFAULT_TEST_SECONDS = 1200.0
 
 
+def access_alerts(downloads: Iterable[Mapping[str, Any]]) -> list[str]:
+    """The owner's move for each download the Controller holds on gated access, once per page."""
+    pages = {
+        str((record["watch"]["wait"]).get("detail") or "")
+        for record in downloads
+        if record.get("state") in ACTIVE
+        and ((record.get("watch") or {}).get("wait") or {}).get("reason")
+        == SweepWaitReason.ACCESS_TERMS
+    }
+    return [f"owner: accept terms at {page}" for page in sorted(pages)]
+
+
 def _gib(value: float) -> str:
     return f"{value / 1024**3:,.1f} GiB"
 
@@ -256,6 +268,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         "alerts": list(data.get("alerts") or [])
         + ([sweep.stall_reason] if sweep.stall_reason else [])
         + ([sweep.evidence_publisher.alert] if sweep.evidence_publisher.alert else [])
+        + access_alerts(data["downloads"].values())
         + [
             f"ESCALATION: {source} has not recovered since {item['since']}; "
             f"{item['dependency']}"
