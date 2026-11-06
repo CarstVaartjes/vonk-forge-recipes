@@ -1,0 +1,20 @@
+{
+  "alignment": "unspecified",
+  "description": "sfxnz's two-Spark GLM-5.3-Flash recipe (kit 9e5933c0): the stock TensorFold 1.2.2 release (no fork, no patches) at TP=2 over the direct RoCE link, serving sfxnz's EXL3 4bpw pack (routed experts EXL3 4 bpw, the rest Z.AI's BF16) with vision, thinking and MTP drafts on. Up to 8 requests at once and one request up to 1,048,576 tokens, sharing one BF16 KV pool of 2,056 pages per rank; dense linears and the head are packed to 8 bits at load (TF_GLM_DENSE_BITS/HEAD_BITS 8, within sfxnz's 0.002 nats/token gate). The creator publishes no image: the image installs the checksummed release archive on NVIDIA's CUDA 13.0 base, and Controller placement supplies rank, rendezvous and RoCE rails instead of run.sh's ssh and docker. Memory is an estimate from the engine's own accounting (82.9 GiB weights + 17.7 GiB pools per rank, 10.5 GiB host reserve kept; the creator's gate is 109 GiB MemAvailable per node); upstream figures (33.8 tok/s at 1 stream, 58.8 tok/s aggregate at 8, a needle found at 1,045,624 tokens) are the creator's, not measured here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-exl3-sfxnz-tensorfold-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "glm",
+    "tensorfold",
+    "exl3",
+    "mtp",
+    "vision",
+    "tool-use",
+    "reasoning",
+    "spark"
+  ],
+  "title": "GLM-5.3 Flash EXL3 4bpw TensorFold dual Spark (sfxnz)"
+}
