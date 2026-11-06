@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/minimax-m3-1-flash-exl3-sage-2-15bpw-tonyd2wild-vllm-dual",
+  "service_recipes": {
+    "alias": "minimax-m3.1-flash",
+    "higher_tiers": {
+      "recovery": [
+        "Controller-only rank-loss and warm-cache restart; the first start loads the pack on both ranks and JIT-compiles kernels"
+      ],
+      "stress": [
+        "Single stream per prompt type and 1 to 6 concurrent streams, plus a cold-prefill ladder to 128K tokens, as the creator measured"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT"
+    ]
+  }
+}
