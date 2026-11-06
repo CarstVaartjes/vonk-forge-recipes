@@ -219,7 +219,7 @@ def check_api_models(
         ):
             found.setdefault(
                 "image input needs a Model with the image modality "
-                "and an image-understanding (or vision) capability",
+                "and an image-understanding capability",
                 [],
             ).append(label)
         for modality in ("video", "audio"):
