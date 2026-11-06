@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/kimodo-soma-rp-v1-2-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "1f4b6e54d8d63e6715e9c61b6830890bbbebe7b311e4d2cb50956ff2245e08ae",
+        "source_bundle_sha256": "2ebe48760a51fe9eb98ee3b5fbd3e7994e141e947a64a219430432c3a7d95c30",
+        "runtime_image": {
+          "build_key": "0415abc75cf01a537417943fba93232656c048d9c94a286e9b7d153b74921048",
+          "image_digest": "sha256:a45dc6a0852c27be07a7007106009bac9eebe44395ec5e6a1ead8027e09dc5cb"
+        },
+        "model_digests": [
+          "610e238eafdb928385b58e22b278a0a05184866ad0943f5ef6f6511ad97b3a18",
+          "a0834c50c6250345d8bac426306c523f8669c61b29602250cc7c0a2169403841",
+          "c73bd5288ce14c909d54d12f40e3464feb173709221ab9d6c1e4e988a4509645",
+          "e0f4ec017af1d63dc96662fdabb648b05967bc53599c92e4f1d2c5018a5d8ca2"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "5c3e340696817d1950793001666afc9cdb06453fe57a04fd34aefb4a1ddfd43a"
+      ],
+      "tested_at": "2026-11-06T13:21:42.029408Z",
+      "platform": {
+        "controller_source_sha": "47c6bc7417eaf14eb485cea51de0f4fd85c91324",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "1f4b6e54d8d63e6715e9c61b6830890bbbebe7b311e4d2cb50956ff2245e08ae",
+      "role": "entrypoint",
+      "steady_bytes": 4165722112
+    }
+  ]
+}
