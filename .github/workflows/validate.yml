@@ -161,10 +161,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first"
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
+          # Independent builds: two release dirs (each builds in its own temp
+          # dir) and the checkout outputs, which are not read by the others.
+          # Each PID is waited on separately so every exit code counts.
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first" &
+          first_pid=$!
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second" &
+          second_pid=$!
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index &
+          checkout_pid=$!
+          wait "$first_pid"
+          wait "$second_pid"
+          wait "$checkout_pid"
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index
           "$RECIPE_TEST_PYTHON" tools/build-family-aware-coverage
 
       - name: Reject a changed Spark count for an existing recipe
