@@ -1124,7 +1124,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "cbaf7f22fc815f9ccd5f366a1766f681a0fd3ef165b62dd6fcd917f63a81137f",
+        "content_sha256": "865d16526b4c5a27f59027a0d82a06afaba45624a6a2fa5f567e1ac6d9f446d9",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "glm-5-3-flash-exl3-4bpw-tensorfold-76c0b517"
