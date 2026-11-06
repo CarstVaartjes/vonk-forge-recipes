@@ -127,7 +127,10 @@ class ModelRemover:
             protected, owner_error = set(), str(error)
         # One model per tick bounds CLI latency; rotate by the persisted next check.
         advanced = False
-        for digest in sorted(eligible):
+        for digest in sorted(
+            eligible,
+            key=lambda item: (float(records.get(item, {}).get("next_check", 0)), item),
+        ):
             record = RemovalRecord.model_validate(
                 self.state.data.setdefault("model_removals", {}).get(digest, {})
             )
