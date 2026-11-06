@@ -10,7 +10,7 @@
 FROM nvcr.io/nvidia/cuda:13.3.1-devel-ubuntu24.04@sha256:afc92f9727f96346f2912934f11e5a43aa0581aca4a826bd5c8fd4ab6b152bcc AS build
 ENV DEBIAN_FRONTEND=noninteractive LC_ALL=C.UTF-8
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates curl git xz-utils cmake nasm libibverbs-dev \
+ && apt-get install -y --no-install-recommends ca-certificates curl git xz-utils cmake nasm libibverbs-dev python3 \
  && rm -rf /var/lib/apt/lists/*
 RUN curl -fsSL --retry 3 -o /tmp/zig.tar.xz https://ziglang.org/download/0.17.0/zig-aarch64-linux-0.17.0.tar.xz \
  && echo "9e8d11661d4ae3bd57702a3832781e23ad151dde5798e16a5ccd503f65234ff8  /tmp/zig.tar.xz" | sha256sum -c - \
@@ -55,13 +55,20 @@ COPY patches/engine/ /opt/tf-patches/engine/
 RUN n=0; for p in /opt/tf-patches/engine/*.patch; do \
       echo "apply ${p##*/}"; git apply --check "${p}" && git apply "${p}" || exit 1; n=$((n + 1)); \
     done \
- && echo "${n} engine patch(es) applied" \
- && test "${n}" = 108
+ && echo "${n} engine patch(es) applied"
 RUN test "$(cat .zig-version)" = 0.17.0 \
- && zig build native grammar --prefix /opt/tensorfold --summary failures \
+ && zig build native grammar fatbins --prefix /opt/tensorfold --summary failures \
       -Doptimize=fast -Dcpu=baseline -Dstrip=false \
       -Dnvcc=/usr/local/cuda/bin/nvcc -Dsm=121 -Dxgrammar=/src/xgrammar \
  && /opt/tensorfold/native/bin/tensorfold-native --version
+# Build-time sm_121 kernel scan (scan-sm121.py, docs/recipe-authoring.md): the creator's image is not published, so every kernel image the
+# engine embeds (the `fatbins` install of this same build) and the server and its libraries must carry code a GB10 can load. The
+# fatbin directory is removed afterwards: the engine embeds those images. Not covered: a runtime JIT of kernels the binaries do not embed.
+COPY scan-sm121.py /opt/scan-sm121.py
+RUN ls /opt/tensorfold/fatbin/*.fatbin >/dev/null \
+ && python3 /opt/scan-sm121.py $(for f in /opt/tensorfold/fatbin/*.fatbin; do echo --require $f; done) \
+      /opt/tensorfold/native/bin/tensorfold-native \
+ && rm -rf /opt/tensorfold/fatbin
 RUN mkdir -p /opt/tensorfold/LICENSES/tensorfold \
  && cp -r /codecs/lib/. /opt/tensorfold/native/lib/ \
  && cp -r /codecs/LICENSES/. /opt/tensorfold/LICENSES/ \

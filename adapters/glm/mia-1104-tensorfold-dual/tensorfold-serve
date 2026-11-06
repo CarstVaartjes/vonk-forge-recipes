@@ -63,4 +63,4 @@ if ((vision)); then serve+=(--chat-template /opt/vonk/templates/chat_template.ji
 
 export TF_GLM_RANK=$rank TF_GLM_WORLD=2 TF_CUDA_DEVICE=0 \
     NCCL_COMM_ID="$master:$master_port" TF_ROCE_HCA="$(IFS=,; echo "${hca[*]}")"
-exec /usr/local/bin/tensorfold-native serve /models/target "${serve[@]}"
+exec tensorfold-native serve /models/target "${serve[@]}"
