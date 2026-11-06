@@ -20,6 +20,7 @@ RECIPES = {
     "glm-5-3-flash-nvfp4-vllm-dual": "adapters/glm/glm53-sm121/vllm-wrapper.py",
     "glm-5-3-flash-nvfp4-vllm-four": "adapters/glm/tonyd2wild-glm53-tp4-current/vllm-wrapper.py",
     "minimax-m3-1-flash-tonyd2wild-vllm-four": "adapters/minimax/tonyd2wild-m31-flash-tp4/vllm-wrapper.py",
+    "minimax-m3-1-flash-exl3-sage-2-15bpw-tonyd2wild-vllm-dual": "adapters/minimax/tonyd2wild-m31-flash-exl3-tp2/vllm-wrapper.py",
 }
 
 
