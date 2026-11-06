@@ -85,44 +85,93 @@ def test_a_gated_access_wait_is_the_owners_and_pauses_no_download(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     """A model-cache child denied by the source (recorded ``access_denied``) is a Controller
-    wait for the owner to accept terms: past the sweep's window it is no infrastructure
-    problem, pauses no download, shows the page to visit, and the download completes once
-    access is granted."""
+    wait for the owner: past the sweep's window it is no infrastructure problem, pauses no
+    download and shows the page to visit. Once access is granted the model child runs under
+    a parent that stays in backoff: rising bytes renew the window and the run completes."""
     gated = FakeRecipe(
         "gated", ("g",), download_access_denied_for=3 * DOWNLOAD_STALL_SECONDS
     )
-    sweep, _, clock = make_sweep(
+    sweep, fleet, clock = make_sweep(
         tmp_path,
         [gated, FakeRecipe("free", ("f",))],
         [FakeModel("g"), FakeModel("f")],
         gateway=gateway,
         prefetch=PrefetchConfig(max_model_downloads=2, pin_profile=13),
     )
-    seen: list[tuple[set[str], list[str], str | None]] = []
+    fleet.download_seconds = 2 * DOWNLOAD_STALL_SECONDS  # longer than one window
+    seen: list[tuple[set[str], list[str], str | None, int, float | None]] = []
 
     def observe(_now: float) -> None:
         record = sweep.state.downloads.get(gated.key)
         if record is None or record.get("state") != "backoff":
             return
-        reason = ((record.get("watch") or {}).get("wait") or {}).get("reason")
+        watch = record.get("watch") or {}
         seen.append(
-            (set(sweep.state.data["infra"]), build_status(sweep)["alerts"], reason)
+            (
+                set(sweep.state.data["infra"]),
+                build_status(sweep)["alerts"],
+                (watch.get("wait") or {}).get("reason"),
+                int(record.get("bytes_done") or 0),
+                watch.get("wait_started_at"),
+            )
         )
 
     clock.hooks.append(observe)
     sweep.run()
 
-    reasons = [reason for *_, reason in seen if reason is not None]
-    assert reasons and set(reasons) == {SweepWaitReason.ACCESS_TERMS}
     assert all("download" not in infra for infra, *_ in seen)
+    denied = [row for row in seen if row[2] == SweepWaitReason.ACCESS_TERMS]
+    assert denied and all(row[3] == 0 for row in denied)
     owner = (
-        "owner: accept terms at "
-        "https://huggingface.co/stabilityai/stable-audio-3-small-sfx"
+        "owner: grant Hugging Face access at "
+        "https://huggingface.co/stabilityai/stable-audio-3-small-sfx "
+        "(accept terms / configure token)"
     )
-    assert any(owner in alerts for _, alerts, _ in seen)
+    assert any(owner in row[1] for row in denied)
+    # Granted: the parent stays in backoff while bytes rise, and each rise renews the window.
+    moving = [row for row in seen if row[3] > 0]
+    assert moving
+    assert {row[2] for row in moving} == {SweepWaitReason.OPERATION_BACKOFF}
+    assert len({row[4] for row in moving}) > 1
     assert not [
         e for e in sweep.state.data["events"] if "download released" in e["message"]
     ]
+    assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
+
+
+def test_gated_sets_hold_no_download_slot(tmp_path: Path, gateway: Gateway) -> None:
+    """More gated sets than download slots: other downloads still start."""
+    gated = [
+        FakeRecipe(f"gated{i}", (f"g{i}",), download_access_denied_for=2 * 3600.0)
+        for i in range(3)
+    ]
+    free = [FakeRecipe(f"free{i}", (f"f{i}",)) for i in range(2)]
+    sweep, _, clock = make_sweep(
+        tmp_path,
+        [*gated, *free],
+        [FakeModel(r.digests[0]) for r in [*gated, *free]],
+        gateway=gateway,
+        prefetch=PrefetchConfig(max_model_downloads=2, pin_profile=13),
+    )
+    free_started: list[float] = []
+    gated_waiting: list[float] = []
+
+    def observe(now: float) -> None:
+        reasons = [
+            ((sweep.state.downloads.get(r.key) or {}).get("watch") or {})
+            .get("wait", {})
+            .get("reason")
+            for r in gated
+        ]
+        if all(reason == SweepWaitReason.ACCESS_TERMS for reason in reasons):
+            gated_waiting.append(now)
+            if any(sweep.state.downloads.get(r.key) for r in free):
+                free_started.append(now)
+
+    clock.hooks.append(observe)
+    sweep.run()
+
+    assert gated_waiting and free_started  # started while every gated set still waited
     assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
 
 

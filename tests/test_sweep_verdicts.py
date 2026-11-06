@@ -66,6 +66,19 @@ def test_a_model_cache_access_denial_is_the_owners_wait_with_the_page_to_visit()
     assert signal.wait.reason in verdict.CONTROLLER_OWNED_WAITS
 
 
+def test_access_required_is_the_same_wait() -> None:
+    """``access_required`` (no token, or the credentials_missing remap) is the owner's too."""
+    document = _document("recipe-operation-access-denied")
+    failure = next(c for c in document["children"] if c["kind"] == "model-cache")[
+        "failure"
+    ]
+    failure["code"] = "access_required"
+    signal = verdict.download_signal(document)
+    assert signal.wait is not None
+    assert signal.wait.reason is SweepWaitReason.ACCESS_TERMS
+    assert signal.wait.detail.startswith("https://huggingface.co/stabilityai/")
+
+
 def test_an_access_wait_without_a_page_keeps_the_controllers_words() -> None:
     document = _document("recipe-operation-access-denied")
     failure = next(c for c in document["children"] if c["kind"] == "model-cache")[

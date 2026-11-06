@@ -54,7 +54,10 @@ def access_alerts(downloads: Iterable[Mapping[str, Any]]) -> list[str]:
         and ((record.get("watch") or {}).get("wait") or {}).get("reason")
         == SweepWaitReason.ACCESS_TERMS
     }
-    return [f"owner: accept terms at {page}" for page in sorted(pages)]
+    return [
+        f"owner: grant Hugging Face access at {page} (accept terms / configure token)"
+        for page in sorted(pages)
+    ]
 
 
 def _gib(value: float) -> str:

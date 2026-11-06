@@ -30,6 +30,8 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from vonk_forge_contracts.sweep import SweepWaitReason
+
 from .catalog import Model, Recipe
 from .identity import AcceptedRequest, content_identity, verdict_matches
 from .lifecycle import TERMINAL, WAITING, LifecycleState, RetestReason, active
@@ -64,6 +66,11 @@ from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
 DOWNLOAD_STALL_SECONDS = 3600.0
 FailureHandler = Callable[[str, Failure, str | None, bool], None]
 DoneHandler = Callable[[str], None]
+
+
+def _waits_for_owner(record: Mapping[str, Any]) -> bool:
+    wait = (record.get("watch") or {}).get("wait") or {}
+    return wait.get("reason") == SweepWaitReason.ACCESS_TERMS
 
 
 @dataclass(frozen=True)
@@ -600,7 +607,9 @@ class Prefetcher:
             ):
                 counted.add(key)
                 if record.get("kind") == "model":
-                    model_ops += 1
+                    # A gated download waits on the owner, not on a download slot.
+                    if not _waits_for_owner(record):
+                        model_ops += 1
                     accepted = AcceptedRequest.read(record)
                     if accepted is not None:
                         downloading.update(accepted.recipe.model_digests)

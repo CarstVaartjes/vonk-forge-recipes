@@ -546,9 +546,9 @@ class FakeFleet:
             denied_for = self.recipes[op["recipe"]].download_access_denied_for
             if op["state"] == "backoff" and denied_for:
                 if now >= op["started"] + denied_for:
-                    op.update(
-                        state="running", started=now
-                    )  # the owner accepted the terms
+                    # The owner accepted the terms: the model child runs while the parent
+                    # stays in backoff, as the Controller's ``_park_for_model`` does.
+                    op.update(state="running", started=now, parked=True)
             elif op["state"] == "backoff":
                 behind = self.recipes[op["recipe"]].download_blocked_behind
                 if any(
@@ -558,7 +558,8 @@ class FakeFleet:
                 ):
                     op["behind_pinned"] = True
                 elif op.get("behind_pinned"):
-                    op.update(state="running", started=now)  # eviction freed the space
+                    # Eviction freed the space: the child runs, the parent stays parked.
+                    op.update(state="running", started=now, parked=True)
             if (
                 op["state"] in ("queued", "running")
                 and now >= op["started"] + op["duration"]
@@ -1168,7 +1169,9 @@ class FakeFleet:
             "request": op.get("intent"),
             "recipe_revision_id": op.get("recipe_revision_id"),
             "recipe_content_sha256": op.get("recipe_content_sha256"),
-            "state": op["state"],
+            "state": "backoff"
+            if op.get("parked") and op["state"] == "running"
+            else op["state"],
             "progress": {
                 "completed_bytes": done,
                 "total_bytes": op["bytes"],
@@ -1202,6 +1205,8 @@ class FakeFleet:
                     },
                 }
             ]
+        if op.get("parked") and op["state"] == "running":
+            doc["children"] = [{"kind": "model-cache", "state": "running"}]
         if op["state"] == "failed":
             doc["failure"] = {
                 "code": (
