@@ -186,8 +186,7 @@ present and bound to `context_tokens`, or the block declares an explicit
 `max_input_tokens`; limits cannot exceed the context; a `default_output_tokens`
 argument must exist with an integer value; llama.cpp `--parallel` gives each
 request only its slot's share. `check_api_models` requires a selected Model that
-declares each accepted modality (image also needs `image-understanding`; the
-D3 `vision` name is not accepted). Whether the launch really enables a tool-call
+declares each accepted modality (image also needs `image-understanding`). Whether the launch really enables a tool-call
 or reasoning parser is not re-derived: `tools/check-recipe-api` asks
 `qualification.capabilities.serving_capabilities` (runtime arguments, adapter
 scripts, kit flags) for every variant. The guard runs all three on added or

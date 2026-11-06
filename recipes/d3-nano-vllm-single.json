@@ -176,7 +176,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "042386e06b429ec891a3f39cb634067372035cedc1018c0a0329aea4a61340bb",
+        "content_sha256": "639d3cbc4d937a73263471e3e661b57475abf8df6891ab73fd72aa40a586faff",
         "kind": "model",
         "publisher": "vonk-forge",
         "slug": "d3-nano-bf16-462efc36"

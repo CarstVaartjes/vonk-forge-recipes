@@ -2,7 +2,7 @@
   "capabilities": [
     "decision",
     "image-understanding",
-    "video"
+    "video-understanding"
   ],
   "dependencies": [],
   "files": [
