@@ -18,6 +18,7 @@ import os
 import sys
 import tempfile
 import time
+import types
 import zipfile
 from pathlib import Path, PurePosixPath
 
@@ -409,6 +410,101 @@ def test_the_npz_is_byte_identical_for_identical_arrays_and_numpy_reads_it() -> 
     with numpy.load(io.BytesIO(first), allow_pickle=False) as loaded:
         assert loaded.files == ["posed_joints", "fps"]
         assert (loaded["posed_joints"] == arrays["posed_joints"]).all()
+
+
+def _stub_torch(monkeypatch: pytest.MonkeyPatch) -> None:
+    """numpy stands in for torch: ``motion_tensors`` needs only ``cat``, ``isfinite`` and the rotation helper."""
+    numpy = _numpy()
+    torch = types.SimpleNamespace(
+        cat=lambda arrays, dim: numpy.concatenate(arrays, axis=dim),
+        isfinite=numpy.isfinite,
+    )
+    rotations = types.SimpleNamespace(
+        axis_angle_to_matrix=lambda a: (
+            numpy.zeros((*a.shape[:-1], 3, 3)) + a.sum(axis=-1)[..., None, None]
+        )
+    )
+    for name, module in {
+        "torch": torch,
+        "gem": types.ModuleType("gem"),
+        "gem.common": types.ModuleType("gem.common"),
+        "gem.common.geometry": types.ModuleType("gem.common.geometry"),
+        "gem.common.geometry.rotations": rotations,
+    }.items():
+        monkeypatch.setitem(sys.modules, name, module)
+
+
+def _result(**changes: object) -> dict:
+    numpy = _numpy()
+    frames = 4
+    result: dict = {
+        "format": export.RESULT_FORMAT,
+        "postprocessing": {"contact_ik": True},
+        "sampling_fps": 30.0,
+        "pred_soma_params_global": {
+            "global_orient": numpy.zeros((1, frames, 3)),
+            "body_pose": numpy.zeros((1, frames, export.BODY_JOINTS, 3)),
+            "transl": numpy.zeros((1, frames, 3)),
+        },
+        "static_conf_logits": numpy.zeros((1, frames, 4)),
+    }
+    return {**result, **changes}
+
+
+def test_a_well_formed_result_gives_one_rotation_and_position_per_frame(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _stub_torch(monkeypatch)
+    rotations, positions, logits = export.motion_tensors(_result())
+    assert rotations.shape == (4, 77, 3, 3)
+    assert positions.shape == (4, 3)
+    assert logits.shape == (4, 4)
+
+
+def test_a_result_that_is_not_the_body_video_format_is_refused(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _stub_torch(monkeypatch)
+    with pytest.raises(SystemExit, match="not a gem_body_video_predictions_v1 result"):
+        export.motion_tensors(_result(format="something_else"))
+
+
+def test_a_result_without_the_contact_ik_postprocessing_is_refused(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _stub_torch(monkeypatch)
+    for missing in (None, {}, False):
+        with pytest.raises(SystemExit, match="no Contact/IK postprocessing"):
+            export.motion_tensors(_result(postprocessing=missing))
+
+
+def test_a_result_not_sampled_at_30_fps_is_refused(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _stub_torch(monkeypatch)
+    for fps in (24.0, 25.0, 60.0):
+        with pytest.raises(SystemExit, match="30 fps"):
+            export.motion_tensors(_result(sampling_fps=fps))
+
+
+def test_a_result_with_non_finite_motion_is_refused(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    numpy = _numpy()
+    _stub_torch(monkeypatch)
+    for key, value in (
+        ("transl", numpy.nan),
+        ("global_orient", numpy.inf),
+        ("body_pose", -numpy.inf),
+    ):
+        result = _result()
+        result["pred_soma_params_global"][key][0, 1].flat[0] = value
+        with pytest.raises(SystemExit, match="non-finite"):
+            export.motion_tensors(result)
+    result = _result()
+    result["static_conf_logits"][0, 2, 0] = numpy.nan
+    with pytest.raises(SystemExit, match="non-finite"):
+        export.motion_tensors(result)
 
 
 def _bvh(frames: int) -> str:
