@@ -12,10 +12,11 @@
   },
   "ours": [
     "dsv41-vllm-wrapper.py",
+    "scan-sm121.py",
     "test_dsv41_sfxnz_wrapper.py"
   ],
   "source": {
-    "commit": "3de914682d0880c8e478712a60ada930339c22e4",
-    "repo": "sfxnz/DeepSeek-V4.1-Flash-EXL3-vLLM-2x-DGX-Spark"
+    "commit": "8087818b9fe2aaf8fb3dbd456f0e18d7751edb9a",
+    "repo": "sfxnz/DeepSeek-V4.1-Flash-1017-EXL3-2.7bpw-vLLM-2x-DGX-Spark"
   }
 }
