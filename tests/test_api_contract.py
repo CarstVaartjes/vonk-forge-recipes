@@ -89,7 +89,7 @@ def test_an_option_choice_replaces_the_whole_block() -> None:
     api = recipe_api(document.identity.slug)
     default = api.for_choices(document, {})
     text_only = api.for_choices(document, {"images_video": "text-only"})
-    assert default.input_modalities.image and default.input_modalities.video
+    assert default.input_modalities.image and not default.input_modalities.video
     assert not text_only.input_modalities.image
     assert api.for_choices(document, {"drafter": "mtp"}) == default
 

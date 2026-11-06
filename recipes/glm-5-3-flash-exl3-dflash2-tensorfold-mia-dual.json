@@ -2,15 +2,25 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "99fe7496d7002fd8f2ca3b1beb0aa07513835cd09989ca657b65875d60f69956",
-        "repository": "ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold"
+        "digest": "585155539dd4ff2ab653ee59d812aae81a9406a5804596d516c06e3a5719eb26",
+        "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
-        "path": "adapters/glm/mia-tensorfold-dflash2-dual"
+        "path": "adapters/glm/mia-1104-tensorfold-dual"
       },
-      "dockerfile": "adapters/glm/mia-tensorfold-dflash2-dual/Dockerfile",
+      "dockerfile": "adapters/glm/mia-1104-tensorfold-dual/Dockerfile",
       "network": {
-        "hosts": []
+        "hosts": [
+          "archive.ubuntu.com",
+          "codeload.github.com",
+          "github.com",
+          "objects.githubusercontent.com",
+          "ports.ubuntu.com",
+          "release-assets.githubusercontent.com",
+          "security.ubuntu.com",
+          "storage.googleapis.com",
+          "ziglang.org"
+        ]
       },
       "patches": []
     }
@@ -24,7 +34,7 @@
       "adapter": "openai",
       "health_path": "/v1/models",
       "model_aliases": [
-        "GLM-5.3-Flash-EXL3"
+        "GLM-5.3-Flash"
       ],
       "port": 8888
     }
@@ -45,8 +55,8 @@
           ]
         },
         {
-          "file_id": "license-30b85b6b9659-c693279643",
-          "id": "primary-license-30b85b6b9659-c693279643",
+          "file_id": "license-cfc7749b96f6-c693279643",
+          "id": "primary-license-cfc7749b96f6-c693279643",
           "mount": {
             "target": "/models/target"
           },
@@ -56,8 +66,52 @@
           ]
         },
         {
-          "file_id": "readme-19c68bba9d04-b335630551",
-          "id": "primary-readme-19c68bba9d04-b335630551",
+          "file_id": "license-glm-5-30b85b6b9659-cbfd48fb4c",
+          "id": "primary-license-glm-5-30b85b6b9659-cbfd48fb4c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-0c91717aea08-b335630551",
+          "id": "primary-readme-0c91717aea08-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "confident-mistakes-86e99bcabd11-d545f80e4e",
+          "id": "primary-confident-mistakes-86e99bcabd11-d545f80e4e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "kld-paired-ci-a32ea6adffb5-532b045398",
+          "id": "primary-kld-paired-ci-a32ea6adffb5-532b045398",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "kld-reduction-1c8943086380-682f67e957",
+          "id": "primary-kld-reduction-1c8943086380-682f67e957",
           "mount": {
             "target": "/models/target"
           },
@@ -1070,10 +1124,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "3faccf3a9bafcc89de8ab01c59db5579bb01f513ba1740ccf526c3d0a60ed7bf",
+        "content_sha256": "cbaf7f22fc815f9ccd5f366a1766f681a0fd3ef165b62dd6fcd917f63a81137f",
         "kind": "model",
         "publisher": "mia-ai-lab",
-        "slug": "glm-5-3-flash-exl3-4bpw-tensorfold-078455ff"
+        "slug": "glm-5-3-flash-exl3-4bpw-tensorfold-76c0b517"
       }
     },
     {
@@ -1148,43 +1202,27 @@
       "choices": [
         {
           "default": true,
-          "help": "IncoAI's DFlash2 drafter with up to 7 drafts a round, plus copy drafts; up to 4 concurrent requests (upstream's two-Spark default). Upstream claims +5-10% decode over MTP.",
-          "label": "DFlash2 and copy drafts",
+          "help": "IncoAI's DFlash2 drafter at 4 bits (the kit's DRAFTER=dflash2, DRAFTER_BITS=4).",
+          "label": "DFlash2",
           "value": "dflash2"
         },
         {
           "args": [
             {
-              "name": "parallel",
-              "value": 8
-            }
-          ],
-          "env": {
-            "TENSORFOLD_MEMORY_RESERVE_GIB": "19.6",
-            "TF_GLM_MULTI_WINDOW": "64",
-            "TF_ROCE_MAX_KB": "1024"
-          },
-          "help": "DFlash2 and copy drafts with up to 8 concurrent requests (upstream PARALLEL=8, kit v1.5): a 64-row verify window and a host reserve grown to 19.6 GiB, so the shared KV pool shrinks to about 1.5M tokens (2.0-2.6M at 4); upstream measured 12.9 GiB lowest free on the head under a 195k-token prompt. Upstream claims 130.8 tok/s prose and 167.0 code aggregate at 8 (103.2 and 126.7 at 4). The concurrency setting is overridden to 8.",
-          "label": "DFlash2, 8 requests at once",
-          "value": "dflash2-8"
-        },
-        {
-          "args": [
-            {
               "name": "drafter",
-              "value": "none"
+              "value": false
             },
             {
-              "name": "parallel",
-              "value": 1
+              "name": "drafter-bits",
+              "value": false
             }
           ],
-          "help": "The checkpoint's own MTP head, one request at a time (upstream DRAFTER=mtp, which requires PARALLEL=1); the concurrency setting is overridden to 1. The DFlash2 files are still downloaded as part of the recipe's model closure but unused.",
+          "help": "The checkpoint's own MTP head (the kit's DRAFTER=mtp). The DFlash2 files are still downloaded as part of the recipe's model closure but unused.",
           "label": "Checkpoint MTP head",
           "value": "mtp"
         }
       ],
-      "help": "Which draft source speeds up decoding, and how many requests run at once with it. The DFlash2 drafter is IncoAI's (CC BY-NC-ND 4.0, non-commercial: licence information only, nothing here enforces it). The checkpoint's own MTP head serves one request at a time. Replies are verified against the model's own samples either way (upstream claim).",
+      "help": "Which draft source speeds up decoding. The DFlash2 drafter is IncoAI's (CC BY-NC-ND 4.0, non-commercial: licence information only, nothing here enforces it). Replies are verified against the model's own samples either way (upstream claim).",
       "label": "Speculative drafter",
       "name": "drafter"
     },
@@ -1192,8 +1230,8 @@
       "choices": [
         {
           "default": true,
-          "help": "Vision tower loaded; data URLs only, up to 50 images and 4 videos a request (upstream default).",
-          "label": "Images and video",
+          "help": "Vision tower loaded on rank 0; data URLs, up to 50 images a request (the kit's VISION=1, VISION_MAX_IMAGES=50). The default image has no video runtime, so a video_url part is refused.",
+          "label": "Images",
           "value": "vision"
         },
         {
@@ -1201,15 +1239,19 @@
             {
               "name": "vision",
               "value": false
+            },
+            {
+              "name": "vision-max-images",
+              "value": false
             }
           ],
-          "help": "No vision tower (upstream VISION=0).",
+          "help": "No vision tower (the kit's VISION=0).",
           "label": "Text only",
           "value": "text-only"
         }
       ],
-      "help": "Serve image_url and video_url parts with GLM's own vision tower on rank 0 (1.05 GiB of weights and 0.75 GiB of workspace), or text only. Text only leaves that memory to the KV cache (upstream VISION=0).",
-      "label": "Image and video input",
+      "help": "Serve image_url parts with GLM's own vision tower on rank 0, or text only. Text only leaves that memory to the KV pool (the kit's VISION=0).",
+      "label": "Image input",
       "name": "images_video"
     }
   ],
@@ -1217,18 +1259,25 @@
     "attribution": [
       "MiaAI Lab",
       "Ash Hart (TensorFold)",
-      "Brandon M. Music",
+      "Adam Hillson",
+      "ajensenwaud",
+      "Bizuayeu",
       "IncoAI",
       "Z.AI"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/bf5f94523a8251029cedae86bf61f8ce37fac218"
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104/tree/02dac3879852b8c5713318d3d64a5a791002e954"
   },
   "release": {
-    "released_at": "2026-11-01",
-    "version": "1.7.10"
+    "released_at": "2026-11-06",
+    "version": "1104"
   },
   "runtime": {
     "arguments": [
+      {
+        "name": "name",
+        "setting": null,
+        "value": "GLM-5.3-Flash"
+      },
       {
         "name": "host",
         "setting": null,
@@ -1240,18 +1289,13 @@
         "value": 8888
       },
       {
-        "name": "name",
-        "setting": null,
-        "value": "GLM-5.3-Flash-EXL3"
+        "name": "context",
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "parallel",
         "setting": "concurrency",
-        "value": null
-      },
-      {
-        "name": "context",
-        "setting": "context_tokens",
         "value": null
       },
       {
@@ -1260,9 +1304,24 @@
         "value": 32768
       },
       {
-        "name": "drafter",
+        "name": "kv-cache",
         "setting": null,
-        "value": "/models/drafter"
+        "value": "fp8"
+      },
+      {
+        "name": "no-update-check",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "no-thinking",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning-effort",
+        "setting": null,
+        "value": "xhigh"
       },
       {
         "name": "vision",
@@ -1270,9 +1329,19 @@
         "value": true
       },
       {
-        "name": "thinking",
+        "name": "vision-max-images",
         "setting": null,
-        "value": true
+        "value": 50
+      },
+      {
+        "name": "drafter",
+        "setting": null,
+        "value": "/models/drafter"
+      },
+      {
+        "name": "drafter-bits",
+        "setting": null,
+        "value": 4
       }
     ],
     "engine": "tensorfold",
@@ -1285,136 +1354,64 @@
         "value": "1"
       },
       {
-        "name": "TRANSFORMERS_OFFLINE",
-        "value": "1"
-      },
-      {
         "name": "TENSORFOLD_NO_UPDATE_CHECK",
         "value": "1"
       },
       {
+        "name": "TENSORFOLD_NO_LIVE",
+        "value": "1"
+      },
+      {
+        "name": "CUDA_DEVICE_ORDER",
+        "value": "PCI_BUS_ID"
+      },
+      {
         "name": "TENSORFOLD_MEMORY_RESERVE_GIB",
-        "value": "14.5"
+        "value": "9.5"
       },
       {
-        "name": "TF_GLM_MTP",
-        "value": "auto"
+        "name": "TF_GLM_DENSE_BITS",
+        "value": "8"
       },
       {
-        "name": "TF_GLM_KV",
-        "value": "fp8"
-      },
-      {
-        "name": "TF_GLM_DENSE",
-        "value": "q4"
-      },
-      {
-        "name": "TF_GLM_COMM",
-        "value": "roce"
-      },
-      {
-        "name": "TF_ROCE_MAX_KB",
-        "value": "512"
-      },
-      {
-        "name": "TF_ROCE_WAIT_S",
-        "value": "300"
-      },
-      {
-        "name": "TF_GLM_COPY_DRAFTS",
-        "value": "1"
-      },
-      {
-        "name": "TF_GLM_COPY_MAX",
-        "value": "15"
-      },
-      {
-        "name": "TF_GLM_DFLASH_POLICY",
-        "value": "fnc7:0.3"
-      },
-      {
-        "name": "TF_GLM_HC_SPLIT",
-        "value": "1"
-      },
-      {
-        "name": "TF_GLM_PREFILL_OVERLAP",
-        "value": "2"
-      },
-      {
-        "name": "TF_GLM_KDA_CHUNKED",
-        "value": "1"
-      },
-      {
-        "name": "TF_GLM_WIDE_GRAPHS",
-        "value": "16"
-      },
-      {
-        "name": "TF_GLM_COPY_REPLY_MATCH",
-        "value": "16"
-      },
-      {
-        "name": "TF_GLM_MULTI_LONE",
-        "value": "0"
-      },
-      {
-        "name": "TF_GLM_MULTI_WINDOW",
-        "value": "32"
-      },
-      {
-        "name": "TF_GLM_MULTI_PREFILL",
-        "value": "1"
-      },
-      {
-        "name": "TF_GLM_L2PF",
-        "value": "1"
-      },
-      {
-        "name": "TF_GLM_EXL3_LOADS",
-        "value": "nc"
-      },
-      {
-        "name": "TF_GLM_SHARED_PREFIX",
-        "value": "1"
-      },
-      {
-        "name": "TF_GLM_CACHE_GIB",
-        "value": "12.5"
-      },
-      {
-        "name": "TF_GLM_CACHE_ENTRIES",
-        "value": "32"
+        "name": "TF_GLM_HEAD_BITS",
+        "value": "8"
       },
       {
         "name": "TF_GLM_CLEAR_THINKING",
+        "value": "1"
+      },
+      {
+        "name": "TF_KV_PAGES",
+        "value": "on"
+      },
+      {
+        "name": "TF_GLM_CE_EXCHANGE",
         "value": "0"
       },
       {
-        "name": "TF_GLM_STREAM_SMOOTH",
+        "name": "TF_GLM_ABSORB_MMA",
         "value": "1"
       },
       {
-        "name": "TF_GLM_STREAM_SMOOTH_MS",
-        "value": "400"
+        "name": "TF_GLM_W8A8",
+        "value": "0"
       },
       {
-        "name": "TF_GLM_FILL_BUDGET_MS",
-        "value": "200"
+        "name": "TF_GLM_HOST_CACHE_GIB",
+        "value": "0"
       },
       {
-        "name": "TF_GLM_FILL_DRAFTS",
+        "name": "TENSORFOLD_PREFILL_SHARE",
+        "value": "0.68"
+      },
+      {
+        "name": "TF_ROCE",
         "value": "1"
       },
       {
-        "name": "TENSORFOLD_GLM_REQUEST_IMAGE_TOKENS",
-        "value": "102400"
-      },
-      {
-        "name": "TENSORFOLD_VISION_WORKSPACE_MIB",
-        "value": "1440"
-      },
-      {
-        "name": "TENSORFOLD_SSE_KEEPALIVE_S",
-        "value": "15"
+        "name": "TF_ROCE_MAX_KB",
+        "value": "4096"
       },
       {
         "name": "NCCL_MIN_NCHANNELS",
@@ -1432,7 +1429,7 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 4
+      "value": 8
     },
     "context_tokens": {
       "change_effect": "restart",
@@ -1458,14 +1455,14 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 178058260101,
-            "image_bytes": 26000000000,
+            "artifact_bytes": 178058608133,
+            "image_bytes": 8000000000,
             "safety_margin_bytes": 15000000000,
             "working_bytes": 8000000000
           },
           "memory": {
-            "peak_bytes": 105800000000,
-            "reserve_bytes": 15600000000
+            "peak_bytes": 109900000000,
+            "reserve_bytes": 10200547328
           }
         }
       },
@@ -1475,14 +1472,14 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 178058260101,
-            "image_bytes": 26000000000,
+            "artifact_bytes": 178058608133,
+            "image_bytes": 8000000000,
             "safety_margin_bytes": 15000000000,
             "working_bytes": 8000000000
           },
           "memory": {
-            "peak_bytes": 105100000000,
-            "reserve_bytes": 15600000000
+            "peak_bytes": 108000000000,
+            "reserve_bytes": 10200547328
           }
         }
       }
@@ -1524,7 +1521,7 @@
                   "role": "user"
                 }
               ],
-              "model": "GLM-5.3-Flash-EXL3"
+              "model": "GLM-5.3-Flash"
             },
             "method": "POST",
             "path": "/v1/chat/completions",
@@ -1558,7 +1555,7 @@
                   "role": "user"
                 }
               ],
-              "model": "GLM-5.3-Flash-EXL3"
+              "model": "GLM-5.3-Flash"
             },
             "method": "POST",
             "path": "/v1/chat/completions",

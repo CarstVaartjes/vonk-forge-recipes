@@ -1,0 +1,35 @@
+{
+  "kit": {
+    "dependencies": {
+      "drafter": {
+        "binds": "drafter",
+        "datasource": "hf-revision",
+        "file": "scripts/config.sh",
+        "pattern": "^DFLASH2_REVISION=\"\\$\\{DFLASH2_REVISION:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^DFLASH2_ID=\"\\$\\{DFLASH2_ID:-(?P<repo>[^}\"\\s]+)\\}\""
+      },
+      "engine": {
+        "datasource": "git-ref",
+        "file": "scripts/config.sh",
+        "pattern": "^TF_REF=\"\\$\\{TF_REF:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo": "ashhart/TensorFold"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "scripts/config.sh",
+        "pattern": "^\\s*(?P<repo>[\\w.-]+/[\\w.-]+(?<!-Ablit))\\) _rev=(?P<version>[0-9a-f]{40}) ;;$"
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "tensorfold-serve"
+  ],
+  "renamed": {
+    "chat_template.jinja": "templates/glm-5.3-flash-vision.jinja",
+    "licenses/CREDITS.md": "CREDITS.md",
+    "licenses/LICENSE": "LICENSE",
+    "licenses/NOTICE.md": "NOTICE.md"
+  }
+}
