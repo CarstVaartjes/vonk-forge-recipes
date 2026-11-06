@@ -56,6 +56,25 @@
         "minimum_duration_seconds": 0.5,
         "maximum_duration_seconds": 30.0
       }
+    ],
+    "cases": [
+      {
+        "id": "clone-with-transcript",
+        "inputs": [
+          {
+            "slot": "text",
+            "fixture": "tts-text"
+          },
+          {
+            "slot": "reference_audio",
+            "fixture": "tts-reference-audio"
+          },
+          {
+            "slot": "reference_text",
+            "fixture": "tts-reference-text"
+          }
+        ]
+      }
     ]
   }
 }
