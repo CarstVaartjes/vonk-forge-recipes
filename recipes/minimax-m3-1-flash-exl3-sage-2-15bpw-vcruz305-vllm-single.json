@@ -441,7 +441,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "fe803c1cc625039d6a1885b1d9bb4a89f9f088fa0316d7d44ab1ed7f5adf4e20",
+        "content_sha256": "7b352e966eb6f7ffeb37fe154588e454a05d329af7bd781f5eb7b4ca78281321",
         "kind": "model",
         "publisher": "vcruz305",
         "slug": "minimax-m3-1-flash-exl3-sage-2-15bpw-99bf3a57"
@@ -557,11 +557,6 @@
         "name": "override-generation-config",
         "setting": null,
         "value": "{\"max_new_tokens\": 32768}"
-      },
-      {
-        "name": "trust-remote-code",
-        "setting": null,
-        "value": true
       }
     ],
     "engine": "vllm",
@@ -630,6 +625,10 @@
       {
         "name": "VLLM_EXL3_MOE_TEMP_ROWS",
         "value": "512"
+      },
+      {
+        "name": "VLLM_EXL3_PERIODIC_TRIM_S",
+        "value": "30"
       },
       {
         "name": "VLLM_TRITON_JIT_WARMUP_NUM_THREADS",
