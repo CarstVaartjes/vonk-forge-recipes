@@ -15,12 +15,11 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from documents import recipe_display
+from documents import model_display, recipe_display
 from vonk_forge_contracts import (
     RecipeDefinition,
     RecipeDisplay,
     read_model,
-    read_model_display,
     read_recipe,
 )
 from vonk_forge_contracts.recipe import RecipeIdentity
@@ -44,7 +43,7 @@ MODELS = {
     )
 }
 MODEL_DISPLAYS = {
-    path.stem: read_model_display(json.loads(path.read_text(encoding="utf-8")))
+    path.stem: model_display(path.stem, ROOT)
     for path in sorted((ROOT / "display" / "models").glob("*.json"))
 }
 
