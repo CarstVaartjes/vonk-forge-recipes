@@ -218,6 +218,12 @@ jobs:
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" tools/check-recipe-model-references
 
+      - name: Require touched Models' modalities and capabilities to agree
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/check-model-modalities --base origin/main
+
       - name: Check that every Model family is one consistent lineage
         shell: bash
         run: |

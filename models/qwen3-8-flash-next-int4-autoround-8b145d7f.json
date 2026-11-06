@@ -1142,6 +1142,7 @@
     "url": "https://huggingface.co/azampatti/Qwen3.8-Flash-Next-125B-A5B-INT4-AutoRound/blob/1464274120d36a4d8fcaa934552334a7d83ce0fd/LICENSE"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "requires_token": false,

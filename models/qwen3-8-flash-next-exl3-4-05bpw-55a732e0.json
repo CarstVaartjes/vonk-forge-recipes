@@ -278,6 +278,7 @@
     "url": "https://huggingface.co/turboderp/Qwen3.8-Flash-Next-exl3/blob/55a732e0c4c3d4614bc42b68493bb930d9b02c0a/LICENSE"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "requires_token": false,

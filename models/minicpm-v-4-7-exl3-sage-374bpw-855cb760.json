@@ -324,6 +324,7 @@
     "url": "https://huggingface.co/vcruz305/MiniCPM-V-4.7-35B-A3B-EXL3-SAGE-3.74bpw/blob/855cb7601710064aeb7452b6b7e45e60a40be76b/README.md"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "requires_token": false,

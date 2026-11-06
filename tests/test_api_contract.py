@@ -374,3 +374,29 @@ def test_touched_slugs_reads_add_modify_rename_delete_and_untracked(
         "new-name",
         "untracked",
     ]
+
+
+def test_a_model_repin_alone_does_not_touch_a_recipes_api_facts() -> None:
+    before = {"models": [{"id": "a", "model": {"slug": "m", "content_sha256": "0"}}]}
+    repinned = {"models": [{"id": "a", "model": {"slug": "m", "content_sha256": "1"}}]}
+    other_model = {
+        "models": [{"id": "a", "model": {"slug": "n", "content_sha256": "1"}}]
+    }
+    edited = {"models": before["models"], "runtime": {"engine": "vllm"}}
+    only = GUARD["only_model_pins_differ"]
+    assert only(before, repinned)
+    assert not only(before, other_model)
+    assert not only(before, edited)
+
+
+def test_model_modalities_and_capabilities_must_agree() -> None:
+    guard = runpy.run_path(str(ROOT / "tools/check-model-modalities"))
+    language = ["text-generation", "image-understanding"]
+    ok = {"capabilities": language, "modalities": ["image", "text"]}
+    no_image = {"capabilities": language, "modalities": ["text"]}
+    no_capability = {"capabilities": ["text-generation"], "modalities": ["image"]}
+    generator = {"capabilities": ["image-generation"], "modalities": ["image"]}
+    assert guard["disagreements"](ok) == []
+    assert len(guard["disagreements"](no_image)) == 1
+    assert len(guard["disagreements"](no_capability)) == 1
+    assert guard["disagreements"](generator) == []

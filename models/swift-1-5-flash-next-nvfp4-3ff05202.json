@@ -1,6 +1,7 @@
 {
   "capabilities": [
     "code-generation",
+    "image-understanding",
     "reasoning",
     "text-generation"
   ],
@@ -917,6 +918,7 @@
     "url": "https://huggingface.co/ukisai/Swift-Qwen3.8-Flash-Next/blob/main/LICENSE"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "requires_token": false,

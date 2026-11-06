@@ -521,6 +521,7 @@
     "url": "https://huggingface.co/Vontra/GLM-5.3-Flash-MLX-4bit-MTP/blob/main/LICENSE"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "requires_token": false,

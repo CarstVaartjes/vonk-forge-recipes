@@ -23,6 +23,7 @@ from the backfill, and a recipe nobody touches is not this guard's concern.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -54,8 +55,27 @@ from qualification.documents import (
 SERVING_KINDS = frozenset({"generation", "decision"})
 
 
+def only_model_pins_differ(before: object, after: object) -> bool:
+    """True when two recipe documents differ at most in their Models' digests."""
+
+    def unpinned(document: object) -> object:
+        if not isinstance(document, dict):
+            return document
+        copy = json.loads(json.dumps(document))
+        for reference in copy.get("models", []):
+            reference.get("model", {}).pop("content_sha256", None)
+        return copy
+
+    return unpinned(before) == unpinned(after)
+
+
 def touched_slugs(root: Path, base: str) -> list[str]:
-    """Slugs of recipe and API files added or modified since the merge base."""
+    """Slugs of recipe and API files added or modified since the merge base.
+
+    A recipe whose only change is a re-pin to a corrected Model digest keeps its
+    API facts as they were: the backfill owns completeness, and a Model data fix
+    must not demand a document for every recipe that selects the Model.
+    """
 
     def git(*args: str) -> list[str]:
         return subprocess.run(
@@ -75,7 +95,34 @@ def touched_slugs(root: Path, base: str) -> list[str]:
 
     names = git("diff", "--name-only", "--diff-filter=AMR", "--merge-base", base)
     names += git("ls-files", "--others", "--exclude-standard")
-    return sorted({Path(name).stem for name in names})
+    api_touched = {Path(n).stem for n in names if n.startswith("api/")}
+    fork = subprocess.run(
+        ["git", "-C", str(root), "merge-base", base, "HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    slugs: set[str] = set()
+    for name in names:
+        slug = Path(name).stem
+        if slug not in api_touched and name.startswith("recipes/"):
+            old = subprocess.run(
+                ["git", "-C", str(root), "show", f"{fork}:{name}"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            current = root / name
+            if (
+                old.returncode == 0
+                and current.is_file()
+                and only_model_pins_differ(
+                    json.loads(old.stdout), json.loads(current.read_text())
+                )
+            ):
+                continue
+        slugs.add(slug)
+    return sorted(slugs)
 
 
 def parser_problems(

@@ -63,6 +63,7 @@
     "url": "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/blob/6ab461498e2023f6e3c1baea90a8f0fe38ab64d0/README.md"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "requires_token": false,

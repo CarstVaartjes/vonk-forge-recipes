@@ -156,7 +156,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "840160e2df5d05f1047922837a978cedbfc2e556d77bd3eccf344535a9943d61",
+        "content_sha256": "dcef916de233812363e5109e4596e5b073ef591b3ac70acf93d86d0221fa878b",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "gemma-4-26b-a4b-it-nvfp4-a19cfe00"
