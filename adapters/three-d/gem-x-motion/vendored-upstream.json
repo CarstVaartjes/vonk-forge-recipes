@@ -1,0 +1,24 @@
+{
+  "also": [
+    {
+      "commit": "e1c219c99b4b94ba48be1fb6a1cbc64ecee4c954",
+      "files": [
+        "kimodo/"
+      ],
+      "repo": "nv-tlabs/kimodo"
+    }
+  ],
+  "ours": [
+    "NOTICE",
+    "export_motion.py",
+    "kimodo-LICENSE",
+    "requirements.in",
+    "requirements.lock",
+    "run.py",
+    "vonk_agent_protocol-4.1.0-py3-none-any.whl"
+  ],
+  "source": {
+    "commit": "4aef1452e5df171deff4f293c08e643eb450981e",
+    "repo": "NVlabs/GEM-X"
+  }
+}

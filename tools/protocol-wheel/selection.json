@@ -17,6 +17,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/three-d/gem-x-motion",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/three-d/kimodo",
       "wheel_directory": ""
     },
