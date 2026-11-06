@@ -40,8 +40,6 @@ def catalog_model_displays() -> dict[str, ModelDisplay]:
     from qualification.documents import model_display
 
     return {
-        document_sha256(json.loads(path.read_text(encoding="utf-8"))): model_display(
-            path.stem, ROOT
-        )
-        for path in sorted((ROOT / "models").glob("*.json"))
+        digest: model_display(model.identity.slug, ROOT)
+        for digest, model in catalog_models().items()
     }
