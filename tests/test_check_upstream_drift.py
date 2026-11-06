@@ -5,6 +5,7 @@ import importlib.machinery
 import importlib.util
 import json
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -511,14 +512,50 @@ class CreatorSignalTests(unittest.TestCase):
                 _listing_url("o", 3): [],
             }
         )
-        self.assertEqual(len(drift._recent_repos(client, "o", NOW)), 101)
+        self.assertEqual(len(drift._recent_repos(client, "o", NOW)[0]), 101)
         self.assertEqual(
             [u for u, _ in client.requests],
             [_listing_url("o", 1), _listing_url("o", 2)],
         )
 
+    def test_paging_cap_is_a_signal_error(self) -> None:
+        full = [
+            {"name": f"r{i}", "created_at": "2026-11-05T00:00:00Z"} for i in range(100)
+        ]
+        client = FakeClient({_listing_url("o", n): full for n in range(1, 6)})
+        self.assertTrue(drift._recent_repos(client, "o", NOW)[1])
+        root = self._scan_root(
+            json.dumps(
+                {
+                    "_comment": "c",
+                    "creators": [
+                        {
+                            "name": "o",
+                            "url": "https://github.com/o",
+                            "aliases": [],
+                            "focus": "f",
+                        }
+                    ],
+                }
+            )
+        )
+        signals = drift.scan_creator_signals(root, [], client, NOW)
+        self.assertEqual([e.subject for e in signals.signal_errors], ["o"])
+        self.assertIn("5 pages", signals.signal_errors[0].detail)
+
+    def test_label_is_derived_from_kind(self) -> None:
+        finding = drift._finding(
+            "new-repo", "o", "o/r", source_repo=None, source_commit=None,
+            linked_commit=None, recipe_slugs=[], matched_family="glm", detail="d",
+        )  # fmt: skip
+        self.assertEqual(finding.label, "upstream-new-repo")
+        record = {**finding.model_dump(), "label": "upstream-superseded"}
+        with self.assertRaises(ValueError):
+            drift.CreatorFinding.model_validate(record)
+
     def _scan_root(self, creators: str) -> Path:
         root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
         (root / "creators.json").write_text(creators, encoding="utf-8")
         return root
 
@@ -633,15 +670,6 @@ elif args[:2] == ["issue", "edit"]:
     for i in state["issues"]:
         if str(i["number"]) == args[2]:
             i["body"] = flag("--body")
-elif args[:2] == ["issue", "close"]:
-    for i in state["issues"]:
-        if str(i["number"]) == args[2]:
-            i["state"] = "CLOSED"
-elif args[0] == "api":
-    label = args[2].split("labels=")[1].split("&")[0]
-    for i in state["issues"]:
-        if label in i["labels"] and i["state"] == "OPEN":
-            print(json.dumps({{"number": i["number"], "body": i["body"]}}))
 save()
 """
 
@@ -665,14 +693,13 @@ class IssueWritingTests(unittest.TestCase):
             "labels": [finding.label],
         }
 
-    def test_create_refresh_skip_closed_isolate_failure_and_converge(self) -> None:
+    def test_create_refresh_skip_closed_isolate_failure_and_never_close(self) -> None:
         fresh = self._finding("supersession", "o/fresh", "o/next")
         open_one = self._finding("supersession", "o/open", "o/next")
         closed = self._finding("supersession", "o/closed", "o/next")
         refused = self._finding("new-repo", "o", "o/failme")
-        stale = self._finding("supersession", "o/stale", "o/gone")
-        unchecked = self._finding("supersession", "o/unchecked", "o/gone")
         directory = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, directory, ignore_errors=True)
         state_path = directory / "state.json"
         state_path.write_text(
             json.dumps(
@@ -681,8 +708,6 @@ class IssueWritingTests(unittest.TestCase):
                     "issues": [
                         self._issue(1, open_one),
                         self._issue(2, closed, "CLOSED"),
-                        self._issue(3, stale),
-                        self._issue(4, unchecked),
                     ],
                 }
             )
@@ -692,9 +717,6 @@ class IssueWritingTests(unittest.TestCase):
         gh.chmod(0o755)
         signals = drift.CreatorSignals(
             findings=[fresh, open_one, closed, refused],
-            signal_errors=[
-                drift.SignalError(subject="o/unchecked", detail="rate limited")
-            ],
         )
         with mock.patch.dict(
             "os.environ", {"PATH": f"{directory}:{os.environ['PATH']}"}
@@ -717,11 +739,8 @@ class IssueWritingTests(unittest.TestCase):
             by_title[f"[upstream-superseded] {closed.dedupe_key}"]["state"], "CLOSED"
         )
         self.assertNotIn(f"[upstream-new-repo] {refused.dedupe_key}", by_title)
-        self.assertEqual(
-            by_title[f"[upstream-superseded] {stale.dedupe_key}"]["state"], "CLOSED"
-        )
-        self.assertEqual(
-            by_title[f"[upstream-superseded] {unchecked.dedupe_key}"]["state"], "OPEN"
+        self.assertNotIn(
+            "close", [call[1] for call in state["log"] if call[0] == "issue"]
         )
         self.assertEqual(
             sum(1 for call in state["log"] if call[:2] == ["issue", "create"]), 2

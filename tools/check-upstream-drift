@@ -28,7 +28,7 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.model import GitHubReleaseSource
 
@@ -136,7 +136,7 @@ class CreatorFinding(_Finding):
     """
 
     kind: Literal["supersession", "new-repo"]
-    label: str
+    label: Literal["upstream-superseded", "upstream-new-repo"]
     dedupe_key: str
     source_repo: str | None
     source_commit: str | None
@@ -145,6 +145,23 @@ class CreatorFinding(_Finding):
     recipe_slugs: list[str]
     matched_family: str | None
     detail: str
+
+    @model_validator(mode="before")
+    @classmethod
+    def _label_from_kind(cls, data: Any) -> Any:
+        if (
+            isinstance(data, dict)
+            and "label" not in data
+            and data.get("kind") in LABELS
+        ):
+            return {**data, "label": LABELS[data["kind"]]}
+        return data
+
+    @model_validator(mode="after")
+    def _label_matches_kind(self) -> CreatorFinding:
+        if LABELS[self.kind] != self.label:
+            raise ValueError("label does not match kind")
+        return self
 
     @field_validator("detail")
     @classmethod
@@ -1168,7 +1185,6 @@ def _finding(
 ) -> CreatorFinding:
     return CreatorFinding(
         kind=kind,
-        label=LABELS[kind],
         dedupe_key=f"{kind}:{source}:{linked}".lower(),
         linked_repo=linked,
         **fields,
@@ -1258,8 +1274,13 @@ def match_new_repos(
     return found
 
 
-def _recent_repos(client: ProviderClient, owner: str, now: datetime) -> list[object]:
-    """Newest-first listing, paged until a repo falls outside the window."""
+def _recent_repos(
+    client: ProviderClient, owner: str, now: datetime
+) -> tuple[list[object], bool]:
+    """Newest-first listing, paged until a repo falls outside the window.
+
+    The flag is True when MAX_LISTING_PAGES ended the paging instead.
+    """
     repos: list[object] = []
     for page in range(1, MAX_LISTING_PAGES + 1):
         batch = client.json(
@@ -1280,8 +1301,8 @@ def _recent_repos(client: ProviderClient, owner: str, now: datetime) -> list[obj
             or not isinstance(oldest, str)
             or now - datetime.fromisoformat(oldest) > NEW_REPO_WINDOW
         ):
-            break
-    return repos
+            return repos, False
+    return repos, True
 
 
 def _readme_notice(client: ProviderClient, repository: str) -> CreatorFinding | None:
@@ -1353,18 +1374,19 @@ def scan_creator_signals(
             )
         ]
 
-    def recent(owner: str) -> list[CreatorFinding] | SignalError:
+    def recent(owner: str) -> list[CreatorFinding | SignalError] | SignalError:
         try:
+            repos, capped = _recent_repos(client, owner, now)
             found = match_new_repos(
                 owner,
-                _recent_repos(client, owner, now),
+                repos,
                 now,
                 set(family_models),
                 pinned,
             )
         except (RemoteNotFound, RuntimeError, TypeError, ValueError, KeyError) as error:
             return SignalError(subject=owner, detail=str(error)[:256])
-        return [
+        matched: list[CreatorFinding | SignalError] = [
             f.model_copy(
                 update={
                     "recipe_slugs": sorted(
@@ -1378,6 +1400,14 @@ def scan_creator_signals(
             )
             for f in found
         ]
+        if capped:
+            matched.append(
+                SignalError(
+                    subject=owner,
+                    detail=f"listing stopped at {MAX_LISTING_PAGES} pages; older repos in the window were not seen",
+                )
+            )
+        return matched
 
     # Independent sources: one bounded pool; each item keeps its own outcome.
     with ThreadPoolExecutor(max_workers=SIGNAL_WORKERS) as pool:
@@ -1388,10 +1418,11 @@ def scan_creator_signals(
     if owner_error is not None:
         result.signal_errors.append(owner_error)
     for outcome in outcomes:
-        if isinstance(outcome, SignalError):
-            result.signal_errors.append(outcome)
-        else:
-            result.findings.extend(outcome)
+        for item in [outcome] if isinstance(outcome, SignalError) else outcome:
+            if isinstance(item, SignalError):
+                result.signal_errors.append(item)
+            else:
+                result.findings.append(item)
     return result
 
 
@@ -1407,9 +1438,12 @@ def _why(error: Exception) -> str:
     return str(getattr(error, "stderr", None) or error).strip()[:200]
 
 
+GH_ERRORS = (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError)
+
+
 def _gh(*arguments: str) -> str:
     return subprocess.run(
-        ["gh", *arguments], check=True, capture_output=True, text=True
+        ["gh", *arguments], check=True, capture_output=True, text=True, timeout=60
     ).stdout
 
 
@@ -1417,14 +1451,14 @@ def file_issues(signals: CreatorSignals) -> int:
     """One issue per finding: create if absent, refresh if open, leave if closed.
 
     Every write has its own outcome: a refused one is a warning, never a stop.
-    Open supersession issues whose key no longer appears are closed, unless the
-    scan could not look at their source this run.
+    Issues are never closed here; the agent that solves one closes it with its PR.
+    Serial on purpose: GitHub rate-limits content creation.
     """
     failures = 0
     for label in LABELS.values():
         try:
             _gh("label", "create", label, "--force")
-        except (subprocess.CalledProcessError, OSError) as error:
+        except GH_ERRORS as error:
             print(f"::warning::label {label}: {_why(error)}")
     for finding in signals.findings:
         title = f"[{finding.label}] {finding.dedupe_key}"
@@ -1456,33 +1490,9 @@ def file_issues(signals: CreatorSignals) -> int:
                 )
             elif existing[0]["state"] == "OPEN":
                 _gh("issue", "edit", str(existing[0]["number"]), "--body", body)
-        except (subprocess.CalledProcessError, OSError, ValueError, KeyError) as error:
+        except (*GH_ERRORS, ValueError, KeyError) as error:
             failures += 1
             print(f"::warning::issue for {finding.dedupe_key}: {_why(error)}")
-    current = {finding.dedupe_key for finding in signals.findings}
-    unchecked = {error.subject for error in signals.signal_errors}
-    try:
-        lines = _gh(
-            "api", "--paginate",
-            f"repos/{{owner}}/{{repo}}/issues?labels={LABELS['supersession']}&state=open&per_page=100",
-            "--jq", ".[] | select(.pull_request | not) | {number, body}",
-        )  # fmt: skip
-    except (subprocess.CalledProcessError, OSError) as error:
-        print(f"::warning::converge list: {_why(error)}")
-        return failures
-    for line in lines.splitlines():
-        try:
-            issue = json.loads(line)
-            recorded = parse_issue_body(issue["body"] or "")
-            if recorded.dedupe_key in current or recorded.source_repo in unchecked:
-                continue
-            _gh(
-                "issue", "close", str(issue["number"]), "--comment",
-                "The source README no longer names a successor; closing.",
-            )  # fmt: skip
-        except (subprocess.CalledProcessError, OSError, ValueError, KeyError) as error:
-            failures += 1
-            print(f"::warning::converge: {_why(error)}")
     return failures
 
 
