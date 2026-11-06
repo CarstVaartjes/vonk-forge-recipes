@@ -14,7 +14,7 @@
       "image": true,
       "pdf": false,
       "text": true,
-      "video": false
+      "video": true
     },
     "max_input_tokens": null,
     "max_output_tokens": {

@@ -16,20 +16,26 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
 
 from vonk_forge_contracts.api_checks import INPUT_MODALITY_CAPABILITIES
 
+ROOT = Path(__file__).resolve().parents[1]
+
+TEXT_OUTPUT = frozenset({"text-generation", "code-generation"})
+
 
 def is_generator(capabilities: set[str]) -> bool:
-    """A generator or editor lists its outputs as modalities, not what it accepts."""
+    """True when an output other than text is generated or edited.
+
+    Such a Model lists its outputs among its modalities; a language Model that
+    generates text or code still lists what it accepts.
+    """
 
     return any(
-        c.endswith(("-generation", "-editing")) or "-to-" in c for c in capabilities
+        (c.endswith(("-generation", "-editing")) and c not in TEXT_OUTPUT)
+        or "-to-" in c
+        for c in capabilities
     )
 
 

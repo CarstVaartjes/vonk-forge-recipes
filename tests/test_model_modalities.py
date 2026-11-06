@@ -56,3 +56,18 @@ def test_generators_are_not_checked_and_only_model_files_are_named() -> None:
     assert GUARD["changed_slugs"](
         ["models/a.json", "recipes/b.json", "models/x/c.json"]
     ) == ["a"]
+
+
+def test_a_text_generating_model_is_judged_not_skipped() -> None:
+    refused = GUARD["disagreements"](
+        {
+            "capabilities": ["text-generation", "image-understanding"],
+            "modalities": ["text"],
+        }
+    )
+    assert len(refused) == 1
+    code = {
+        "capabilities": ["code-generation", "video-understanding"],
+        "modalities": ["text"],
+    }
+    assert len(GUARD["disagreements"](code)) == 1
