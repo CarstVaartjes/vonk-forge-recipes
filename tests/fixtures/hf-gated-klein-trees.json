@@ -1,0 +1,78 @@
+{
+ "after": [
+  {
+   "oid": "ed5c34c4ad78fe9477dcafd79845cab593c34193",
+   "path": "README.md",
+   "size": 14259,
+   "type": "file"
+  },
+  {
+   "lfs": {
+    "oid": "****************************************************************",
+    "pointerSize": 134,
+    "size": 336211292
+   },
+   "oid": "78f8fcf4adb004763e3335b937a9d7a6dfa9f5b5",
+   "path": "ae.safetensors",
+   "size": 336211292,
+   "type": "file",
+   "xetHash": "****************************************************************"
+  },
+  {
+   "oid": "42ecddf05e20cb81ffa81d1325bcd39b66cfc7eb",
+   "path": "config.json",
+   "size": 828,
+   "type": "file"
+  },
+  {
+   "lfs": {
+    "oid": "****************************************************************",
+    "pointerSize": 136,
+    "size": 11097404512
+   },
+   "oid": "36d986aa9c4e54eb26e1b5d80455cc6546da9ce3",
+   "path": "model.safetensors",
+   "size": 11097404512,
+   "type": "file",
+   "xetHash": "****************************************************************"
+  }
+ ],
+ "before": [
+  {
+   "oid": "0e982c06ad459fa612d9db2bdac2c36e8bebc6c1",
+   "path": "README.md",
+   "size": 14525,
+   "type": "file"
+  },
+  {
+   "lfs": {
+    "oid": "****************************************************************",
+    "pointerSize": 134,
+    "size": 336211292
+   },
+   "oid": "78f8fcf4adb004763e3335b937a9d7a6dfa9f5b5",
+   "path": "ae.safetensors",
+   "size": 336211292,
+   "type": "file",
+   "xetHash": "****************************************************************"
+  },
+  {
+   "oid": "42ecddf05e20cb81ffa81d1325bcd39b66cfc7eb",
+   "path": "config.json",
+   "size": 828,
+   "type": "file"
+  },
+  {
+   "lfs": {
+    "oid": "****************************************************************",
+    "pointerSize": 136,
+    "size": 11097404512
+   },
+   "oid": "36d986aa9c4e54eb26e1b5d80455cc6546da9ce3",
+   "path": "model.safetensors",
+   "size": 11097404512,
+   "type": "file",
+   "xetHash": "****************************************************************"
+  }
+ ]
+}
