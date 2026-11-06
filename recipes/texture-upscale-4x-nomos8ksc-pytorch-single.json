@@ -6,9 +6,9 @@
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
-        "path": "adapters/media/texture-upscale-pytorch"
+        "path": "adapters/image/texture-upscale-pytorch"
       },
-      "dockerfile": "adapters/media/texture-upscale-pytorch/Dockerfile",
+      "dockerfile": "adapters/image/texture-upscale-pytorch/Dockerfile",
       "network": {
         "hosts": [
           "download.pytorch.org",
@@ -169,7 +169,7 @@
             "working_bytes": 2000000000
           },
           "memory": {
-            "peak_bytes": 12000000000,
+            "peak_bytes": 42000000000,
             "reserve_bytes": 4000000000
           }
         }

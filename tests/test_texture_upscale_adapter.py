@@ -1,4 +1,4 @@
-"""The texture upscaler's job adapter: tiling, input bounds, alpha and outputs."""
+"""The texture upscaler's job adapter: input bounds, alpha and outputs."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ Image: Any = importlib.import_module("PIL.Image")
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = "texture-upscale-4x-nomos8ksc-pytorch-single"
-RUNNER = ROOT / "adapters/media/texture-upscale-pytorch/run.py"
+RUNNER = ROOT / "adapters/image/texture-upscale-pytorch/run.py"
 FIXTURE = ROOT / "qualification/fixtures/tiny.png"
 
 
@@ -30,8 +30,8 @@ def _load() -> Any:
     return module
 
 
-def _nearest(tile: Any) -> Any:
-    return tile.repeat(4, axis=0).repeat(4, axis=1)
+def _nearest(pixels: Any) -> Any:
+    return pixels.repeat(4, axis=0).repeat(4, axis=1)
 
 
 @pytest.fixture
@@ -79,16 +79,6 @@ def _png(tmp_path: Path, image: Any, **options: Any) -> bytes:
     path = tmp_path / "source.png"
     image.save(path, **options)
     return path.read_bytes()
-
-
-def test_tiling_is_seamless_for_a_local_model(
-    adapter: Any, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setattr(adapter, "_TILE", 32)
-    pixels = np.random.default_rng(0).integers(0, 256, (70, 45, 3), dtype=np.uint8)
-    result = adapter.upscale(pixels, _nearest, deadline=float("inf"))
-    assert result.shape == (280, 180, 3)
-    assert (result == _nearest(pixels)).all()
 
 
 def test_rgb_texture_is_upscaled_4x_and_satisfies_the_qualification(
@@ -159,10 +149,14 @@ def test_input_must_be_exactly_one_image_slot_file(
         _run(adapter, tmp_path, monkeypatch)
 
 
-def test_job_budget_stops_the_tile_loop(adapter: Any) -> None:
-    pixels = np.zeros((4, 4, 3), dtype=np.uint8)
+def test_job_budget_stops_before_the_forward_pass(
+    adapter: Any, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(adapter, "_job_deadline", lambda: 0.0)
+    _stage(adapter._INPUT_ROOT, "tiny.png", FIXTURE.read_bytes())
     with pytest.raises(SystemExit, match="declared job budget"):
-        adapter.upscale(pixels, _nearest, deadline=0.0)
+        _run(adapter, tmp_path, monkeypatch)
+    assert not (tmp_path / "outputs").exists()
 
 
 @pytest.mark.parametrize("value", [None, "0", "3601", "soon"])

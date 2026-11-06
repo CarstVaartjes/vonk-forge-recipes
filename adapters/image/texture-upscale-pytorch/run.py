@@ -1,4 +1,4 @@
-"""Offline 4x texture upscaler: 4xNomos8kSC (RRDBNet) loaded with Spandrel, tiled."""
+"""Offline 4x texture upscaler: 4xNomos8kSC (RRDBNet) loaded with Spandrel, one forward pass."""
 
 from __future__ import annotations
 
@@ -23,12 +23,8 @@ _MAX_MANIFEST_BYTES = 256 * 1024
 _MAX_INPUT_BYTES = 32 * 1024 * 1024
 _MAX_SIDE = 2048
 _SCALE = 4
-# A tile is upscaled with this many pixels of real neighbours around it, which
-# are dropped from the result, so a tile edge is not a model-visible border.
-_TILE = 512
-_CONTEXT = 32
 
-TileModel = Callable[[np.ndarray], np.ndarray]
+Model = Callable[[np.ndarray], np.ndarray]
 
 
 def _arguments() -> argparse.Namespace:
@@ -111,26 +107,7 @@ def _read_image(path: Path) -> tuple[np.ndarray, Image.Image | None]:
     return np.asarray(pixels.convert("RGB")), alpha
 
 
-def upscale(pixels: np.ndarray, model: TileModel, deadline: float) -> np.ndarray:
-    """Upscale HxWx3 uint8 pixels by _SCALE with ``model`` one tile at a time."""
-    height, width = pixels.shape[:2]
-    padded = np.pad(pixels, ((_CONTEXT, _CONTEXT), (_CONTEXT, _CONTEXT), (0, 0)), "edge")
-    result = np.empty((height * _SCALE, width * _SCALE, 3), dtype=np.uint8)
-    for top in range(0, height, _TILE):
-        for left in range(0, width, _TILE):
-            _check_deadline(deadline)
-            bottom = min(top + _TILE, height)
-            right = min(left + _TILE, width)
-            tile = model(padded[top : bottom + 2 * _CONTEXT, left : right + 2 * _CONTEXT])
-            inner = tile[
-                _CONTEXT * _SCALE : (bottom - top + _CONTEXT) * _SCALE,
-                _CONTEXT * _SCALE : (right - left + _CONTEXT) * _SCALE,
-            ]
-            result[top * _SCALE : bottom * _SCALE, left * _SCALE : right * _SCALE] = inner
-    return result
-
-
-def _load_model() -> TileModel:
+def _load_model() -> Model:
     import torch
     from spandrel import ImageModelDescriptor, ModelLoader
 
@@ -146,9 +123,9 @@ def _load_model() -> TileModel:
     # full range and costs little for a 17M-parameter network.
     descriptor.to("cuda").eval()
 
-    def run(tile: np.ndarray) -> np.ndarray:
+    def run(pixels: np.ndarray) -> np.ndarray:
         with torch.inference_mode():
-            batch = torch.from_numpy(np.ascontiguousarray(tile)).to("cuda")
+            batch = torch.from_numpy(np.ascontiguousarray(pixels)).to("cuda")
             batch = batch.permute(2, 0, 1).unsqueeze(0).float().div_(255)
             output = descriptor(batch).squeeze(0).permute(1, 2, 0)
             return output.clamp_(0, 1).mul_(255).round_().to(torch.uint8).cpu().numpy()
@@ -162,7 +139,10 @@ def main() -> None:
     if not _MODEL.is_file():
         raise SystemExit("the pinned 4xNomos8kSC weights are missing")
     pixels, alpha = _read_image(_input_path())
-    upscaled = Image.fromarray(upscale(pixels, _load_model(), deadline))
+    model = _load_model()
+    _check_deadline(deadline)
+    upscaled = Image.fromarray(model(pixels))
+    _check_deadline(deadline)
     if alpha is not None:
         upscaled.putalpha(alpha.resize(upscaled.size, Image.Resampling.BICUBIC))
     # The platform owns tmp/ and cache/; only our unique workspace must be fresh.
