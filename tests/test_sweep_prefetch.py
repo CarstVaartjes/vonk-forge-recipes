@@ -81,6 +81,51 @@ def test_preparing_siblings_share_one_model_download_slot(tmp_path: Path) -> Non
     assert sum(args[:2] == ("recipe", "download") for _, args in fleet.calls) == 3
 
 
+def test_a_gated_access_wait_is_the_owners_and_pauses_no_download(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    """A model-cache child denied by the source (recorded ``access_denied``) is a Controller
+    wait for the owner to accept terms: past the sweep's window it is no infrastructure
+    problem, pauses no download, shows the page to visit, and the download completes once
+    access is granted."""
+    gated = FakeRecipe(
+        "gated", ("g",), download_access_denied_for=3 * DOWNLOAD_STALL_SECONDS
+    )
+    sweep, _, clock = make_sweep(
+        tmp_path,
+        [gated, FakeRecipe("free", ("f",))],
+        [FakeModel("g"), FakeModel("f")],
+        gateway=gateway,
+        prefetch=PrefetchConfig(max_model_downloads=2, pin_profile=13),
+    )
+    seen: list[tuple[set[str], list[str], str | None]] = []
+
+    def observe(_now: float) -> None:
+        record = sweep.state.downloads.get(gated.key)
+        if record is None or record.get("state") != "backoff":
+            return
+        reason = ((record.get("watch") or {}).get("wait") or {}).get("reason")
+        seen.append(
+            (set(sweep.state.data["infra"]), build_status(sweep)["alerts"], reason)
+        )
+
+    clock.hooks.append(observe)
+    sweep.run()
+
+    reasons = [reason for *_, reason in seen if reason is not None]
+    assert reasons and set(reasons) == {SweepWaitReason.ACCESS_TERMS}
+    assert all("download" not in infra for infra, *_ in seen)
+    owner = (
+        "owner: accept terms at "
+        "https://huggingface.co/stabilityai/stable-audio-3-small-sfx"
+    )
+    assert any(owner in alerts for _, alerts, _ in seen)
+    assert not [
+        e for e in sweep.state.data["events"] if "download released" in e["message"]
+    ]
+    assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
+
+
 def test_a_controller_space_hold_longer_than_the_window_pauses_no_other_work(
     tmp_path: Path, gateway: Gateway
 ) -> None:
@@ -156,7 +201,9 @@ def test_a_controller_space_hold_longer_than_the_window_pauses_no_other_work(
         for w in watches
     )
     renewals = [
-        e for e in sweep.state.data["events"] if "waits for NAS space" in e["message"]
+        e
+        for e in sweep.state.data["events"]
+        if "still waits (nas space)" in e["message"]
     ]
     assert 1 <= len(renewals) <= (during[-1][0] - start) // DOWNLOAD_STALL_SECONDS
     shown = [
