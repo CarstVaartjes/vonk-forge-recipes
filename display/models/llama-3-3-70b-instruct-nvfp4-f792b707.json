@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
   "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Meta Llama 3.3 70B Instruct.",
   "family_title": "Meta Llama",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "llama-3-3-70b-instruct-nvfp4-f792b707"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Meta Platforms"
+    ],
+    "spdx": "LicenseRef-Llama-3.3-Community-License",
+    "url": "https://www.llama.com/llama3_3/license/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Llama 3.3 70B Instruct",
   "tags": [
     "nvidia",

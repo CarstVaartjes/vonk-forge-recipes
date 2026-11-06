@@ -46,6 +46,29 @@
     },
     {
       "identity": {
+        "content_sha256": "f2cd875f276e1b725e1bfae54047c2c3010f697f8517f5a0cbe2939a05723cdf",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "7c5a68b49b7f5b9f50172371d417c02b96866908bc473256e573258f2908e017"
+      ],
+      "tested_at": "2026-10-19T06:13:37.857096Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "7408b88f1cc7939ad8be4d1e7c02e3ee1c64daa8a9b89263e018b9bbe5ccc7ca",
         "source_bundle_sha256": "0b896cee06fd76052313d268af165765d27c57319560a6c45dd1a5007806bdc7",
         "runtime_image": {
@@ -102,6 +125,38 @@
       },
       "quality_notes": [
         "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "f2cd875f276e1b725e1bfae54047c2c3010f697f8517f5a0cbe2939a05723cdf",
+        "source_bundle_sha256": "0b896cee06fd76052313d268af165765d27c57319560a6c45dd1a5007806bdc7",
+        "runtime_image": {
+          "build_key": "2cd3c0ea5a8f0adc8a7ba179a99e218bf0f04870ee3f1f68943ee7e625145605",
+          "image_digest": "sha256:dbfe4ed495fbe0c2e7e4d72e7e7053f1db1c9b45adf11707d7e25972a8028d91"
+        },
+        "model_digests": [
+          "1cf2c5cfbcc13521ff62ce2fb7337f30e000a0b6f725a975bd1d518a85e1f509"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "f11e916aaff815ad53fc3f9cf8a8b9ae4ae9d909357832ff9bfbfb4be1b567ac"
+      ],
+      "tested_at": "2026-11-01T11:38:25.857022Z",
+      "platform": {
+        "controller_source_sha": "83ddc8a108d31e52031c96a7d75b6b97cc06efee",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split"
       ]
     }
   ]

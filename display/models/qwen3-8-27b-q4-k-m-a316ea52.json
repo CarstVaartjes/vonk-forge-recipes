@@ -1,4 +1,12 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "ggml-org GGUF conversion of Qwen3.8 27B at Q4_K_M, plus the Q8_0 vision projector.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +14,18 @@
     "slug": "qwen3-8-27b-q4-k-m-a316ea52"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Alibaba Qwen",
+      "ggml-org"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Qwen3.8 27B",
   "tags": [
     "ggml-org",

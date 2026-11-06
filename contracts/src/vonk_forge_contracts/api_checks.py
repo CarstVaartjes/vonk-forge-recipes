@@ -4,8 +4,7 @@
 Controller's loader call. It compares the base block and every option choice's block with the
 runtime the recipe really compiles to (``with_option_choices``), so a choice
 that flips a runtime argument without carrying its own block is refused too.
-``check_api_models`` is the cross-document half: input modalities need a Model
-that declares them. Whether a route really serves tools or a reasoning parser
+``check_api_models`` is the cross-document half: input modalities need a Modelthat declares them. Whether a route really serves tools or a reasoning parser
 is owned by ``qualification.capabilities.serving_capabilities`` (it reads
 adapter wrappers and kit flags this package cannot see); ``tools/check-recipe-api``
 applies it to every variant from ``api_variants``.
@@ -24,7 +23,7 @@ from .api import (
     RecipeApi,
     require_api_of,
 )
-from .model import ModelDefinition
+from .display import ModelDisplay
 from .recipe import RecipeDecisionSettings, RecipeDefinition, RecipeGenerationSettings
 
 # The argument each engine takes its context window from; the one table, also
@@ -202,9 +201,13 @@ def check_recipe_api(recipe: RecipeDefinition, api: RecipeApi) -> None:
 
 
 def check_api_models(
-    recipe: RecipeDefinition, api: RecipeApi, models: Iterable[ModelDefinition]
+    recipe: RecipeDefinition, api: RecipeApi, models: Iterable[ModelDisplay]
 ) -> None:
-    """Raise unless some selected Model declares each modality the API accepts."""
+    """Raise unless some selected Model declares each modality the API accepts.
+
+    The modalities and capabilities are Model display facts, so the caller
+    passes the displays of the Models the recipe selects.
+    """
 
     selected = list(models)
     found: dict[str, list[str]] = {}

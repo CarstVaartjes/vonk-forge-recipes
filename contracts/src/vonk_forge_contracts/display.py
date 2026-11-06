@@ -1,12 +1,15 @@
-"""Authored display text of a Recipe or Model, as its own small contract.
+"""Authored display of a Recipe or Model, as its own small contract.
 
-A display carries what a person reads in a catalog (titles, description, tags,
-alignment). It never carries execution data, and a display has no digest of its
-own: the signed index that transports it is verified at ingress.
+A display carries what a person or a filter reads in a catalog: titles,
+description, tags, alignment, and a Model's declared facts (modalities,
+capabilities, licence). It never carries execution data, and a display has no
+digest of its own: the signed index that transports it is verified at ingress.
 
 Display lives in ``display/recipes/<slug>.json`` and ``display/models/<slug>.json``,
 never in the Recipe or Model document, so the document digest covers execution
-data only and a display edit never changes it.
+data only and a display edit never changes it. A Model fact nothing reads to
+select, mount, launch or admit belongs here, so correcting it never re-runs a
+proven Recipe.
 
 Strict ``model_validate`` is for this repository's files and output;
 ``read_recipe_display`` / ``read_model_display`` ignore unknown fields and are
@@ -19,9 +22,17 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from .model import Description, ModelIdentity, Slug, Tags, Title
+from .model import (
+    CapabilityName,
+    Description,
+    ModelIdentity,
+    ModelLicense,
+    Slug,
+    Tags,
+    Title,
+)
 from .recipe import Alignment, RecipeIdentity, RecipeTags
 
 
@@ -50,6 +61,20 @@ class ModelDisplay(_DisplayContract):
     model_title: Title
     description: Description
     tags: Tags
+    modalities: list[Literal["text", "image", "audio", "video", "3d", "embeddings"]] = (
+        Field(min_length=1, max_length=6)
+    )
+    # The capabilities this model supports, by name.
+    capabilities: list[CapabilityName] = Field(max_length=64)
+    license: ModelLicense
+
+    @model_validator(mode="after")
+    def unique_facts(self) -> ModelDisplay:
+        if len(self.modalities) != len(set(self.modalities)):
+            raise ValueError("modalities must be unique")
+        if len(self.capabilities) != len(set(self.capabilities)):
+            raise ValueError("capabilities must be unique")
+        return self
 
 
 def read_recipe_display(document: Mapping[str, object]) -> RecipeDisplay:

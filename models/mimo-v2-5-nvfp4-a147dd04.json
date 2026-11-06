@@ -1,13 +1,4 @@
 {
-  "capabilities": [
-    "audio-understanding",
-    "chat",
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "tool-use",
-    "video-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -516,17 +507,6 @@
     "version": "MiMo V2.5 NVFP4 a147dd04"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Xiaomi MiMo",
-      "lukealonso"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.5/blob/63651580ca774f8504f676040460aed3e1244ac1/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/lukealonso/MiMo-V2.5-NVFP4",

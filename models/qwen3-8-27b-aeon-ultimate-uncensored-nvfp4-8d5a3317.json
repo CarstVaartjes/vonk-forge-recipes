@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -152,19 +147,6 @@
     "version": "8d5a3317b4fcb6f278e1cde7fcae5ed88a27443a"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "AEON-7",
-      "sakamakismile"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/sakamakismile/Qwen3.8-27B-AEON-ULTIMATE-UNCENSORED-NVFP4/blob/8d5a3317b4fcb6f278e1cde7fcae5ed88a27443a/README.md"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/sakamakismile/Qwen3.8-27B-AEON-ULTIMATE-UNCENSORED-NVFP4",

@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -87,17 +84,6 @@
     "version": "5.3"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "RedHatAI",
-      "Z.ai"
-    ],
-    "spdx": "LicenseRef-GLM-5.3",
-    "url": "https://huggingface.co/RedHatAI/GLM-5.3-speculator.dspark/blob/b374b95663447ea0e935151be4f3d6666e36e6d7/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/RedHatAI/GLM-5.3-speculator.dspark",

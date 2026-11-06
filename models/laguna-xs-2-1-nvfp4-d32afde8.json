@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "reasoning",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -179,16 +174,6 @@
     "version": "nvfp4-d32afde8"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Poolside"
-    ],
-    "spdx": "OpenMDW-1.1",
-    "url": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4/blob/d32afde8b09af1539b49ff96ff5551c674485f8e/LICENSE.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4",

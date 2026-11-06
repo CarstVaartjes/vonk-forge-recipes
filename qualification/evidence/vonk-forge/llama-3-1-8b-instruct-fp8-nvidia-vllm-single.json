@@ -93,6 +93,31 @@
     },
     {
       "identity": {
+        "content_sha256": "81c24c99872c9f4ac8dc4fe2cd43bb01d029f45934577a993c4a43f06947d24e",
+        "model_digests": [
+          "8fe3363a85722ce26fac9a1a56885ad129758123abd7e8ff781de21636ec2b77"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "e2cd0e8c1af58edcca9bf1918e07acdc4628beb41faa77749cb86ae8fa5e2bf5"
+      ],
+      "tested_at": "2026-10-20T23:45:55.913171Z",
+      "platform": {
+        "controller_source_sha": "f0a25540a78071e1179a5496b363a05af3659a8f",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "a30d2d7a6d5e1d7c6364e3f89de4a5b4cea94f6470b662be19d7cfc2e11b5244",
         "model_digests": [
           "aacdef2d62f08635ecc551342ac3ec668c3274146934b91df40cd2ed7198b3ba"
@@ -135,6 +160,39 @@
       },
       "quality_notes": [
         "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "81c24c99872c9f4ac8dc4fe2cd43bb01d029f45934577a993c4a43f06947d24e",
+        "source_bundle_sha256": "c1c3bedb56f390339fea247d8fe8bcd08e4ec29858093afe090a1a488aea7428",
+        "runtime_image": {
+          "build_key": "ac6bdcc9fe7d302093a48c5e89b3faef9034de637d228d0f0474aecd0956bacb",
+          "image_digest": "sha256:d442d351db2ba553d3eac4f8c65d90bf62d3f23bd5c9dead54c720a1fb31c537"
+        },
+        "model_digests": [
+          "8fe3363a85722ce26fac9a1a56885ad129758123abd7e8ff781de21636ec2b77"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "5e6a0fefe318bd63fadd38b4eb2778e85ca9b6ddcf1bd4c8cf7dff293d185ff0"
+      ],
+      "tested_at": "2026-10-23T06:11:45.874988Z",
+      "platform": {
+        "controller_source_sha": "ec302b880c904d0bd9912ba335a3d93d62141845",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split"
       ]
     },
     {
@@ -197,6 +255,37 @@
       },
       "quality_notes": [
         "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "81c24c99872c9f4ac8dc4fe2cd43bb01d029f45934577a993c4a43f06947d24e",
+        "source_bundle_sha256": "c1c3bedb56f390339fea247d8fe8bcd08e4ec29858093afe090a1a488aea7428",
+        "runtime_image": {
+          "build_key": "ac6bdcc9fe7d302093a48c5e89b3faef9034de637d228d0f0474aecd0956bacb",
+          "image_digest": "sha256:d442d351db2ba553d3eac4f8c65d90bf62d3f23bd5c9dead54c720a1fb31c537"
+        },
+        "model_digests": [
+          "8fe3363a85722ce26fac9a1a56885ad129758123abd7e8ff781de21636ec2b77"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "bae77e0d5d7435a9238b200924643faaea156e8bfc5fbc284a7718f84982c0ff"
+      ],
+      "tested_at": "2026-11-03T01:49:17.587131Z",
+      "platform": {
+        "controller_source_sha": "a39b02c721eeee98a3193a9daf4803caaa96c213",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical execution document before the Model facts split"
       ]
     },
     {

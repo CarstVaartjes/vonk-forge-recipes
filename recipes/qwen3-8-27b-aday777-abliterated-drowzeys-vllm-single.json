@@ -262,7 +262,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "2e9bd1e7f1825bf1929af663d28dc3747f7d91bb35c0f2309a9f0085944259a8",
+        "content_sha256": "4c0c27a56e26d3ca400d2755ce7f54ae4deb5438f54c8e68f0bcbb0a84c07c62",
         "kind": "model",
         "publisher": "aday777",
         "slug": "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"

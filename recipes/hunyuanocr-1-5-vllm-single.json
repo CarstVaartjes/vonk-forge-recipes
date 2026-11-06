@@ -146,7 +146,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "6ea341cd00b2e49f0c9b5bc8332b846090679c30e4d192ea21842d6a0ea901c6",
+        "content_sha256": "438a0505b6293f936df2985d6398b50ccddeddfd4fbd3b1e66166341c9ad55d2",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuanocr-1-5-47644ecc"

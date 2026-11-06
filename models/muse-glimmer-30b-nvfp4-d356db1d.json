@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "image-understanding",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -180,18 +174,6 @@
     "version": "Muse Glimmer 30B NVFP4 d356db1d"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Meta",
-      "r0b0tlab"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B/blob/a4e59da52a7bc87ae7251dd5545c0dd437c44b68/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/r0b0tlab/Muse-Glimmer-30B-NVFP4",

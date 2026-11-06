@@ -580,7 +580,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1525cca1ab435e924e06d984c106f3ce553b36d4f56cd51f18f8c8d74520eb39",
+        "content_sha256": "3f360dee36be553902cd6453f5f8ad2e9d05e0c6193f2dfe263d08939e15b481",
         "kind": "model",
         "publisher": "bertholomus",
         "slug": "deepseek-v4-1-flash-1017-exl3-4-0bpw-f3657818"
@@ -624,7 +624,7 @@
       ],
       "id": "engram",
       "model": {
-        "content_sha256": "d0d4352886a3cba94ad6233c93b594e770d0d8deeeda2331671fbd9deb5d7e1b",
+        "content_sha256": "ec2b8163755981b0b332e45c4bc2d722805c434542ef5bccaa997840236ae26e",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-1017-native-1bae0e10"
@@ -657,7 +657,7 @@
       ],
       "id": "kit-bias",
       "model": {
-        "content_sha256": "4115ac0ed843c18a58519b79edf9053d74345ece3a58b97097344bda295ccf4e",
+        "content_sha256": "1e21755193e3184991c755a30bd8f5571651a42a2ff19956181b16ae73d4a242",
         "kind": "model",
         "publisher": "bertholomus",
         "slug": "deepseek-v4-1-flash-1017-tensorfold-tp4-kit-9d3cd05c"

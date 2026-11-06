@@ -107,7 +107,6 @@ def write_model(
     from vonk_forge_contracts import (
         ModelDefinition,
         ModelDisplay,
-        ModelDisplayIdentity,
         document_sha256,
         published_json,
     )
@@ -139,28 +138,30 @@ def write_model(
         },
         "requires_token": requires_token,
         "dependencies": [],
-        "modalities": modalities,
         "source": source,
         "format": {
             "precision": args.precision,
             "quantization": args.quantization,
         },
-        "license": {
-            "spdx": args.license_spdx,
-            "url": args.license_url,
-            "attribution": args.attribution,
-        },
         "files": files,
-        "capabilities": sorted(set(args.capability)),
     }
     ModelDefinition.model_validate(document)
-    display = ModelDisplay(
-        kind="model-display",
-        identity=ModelDisplayIdentity(publisher=args.publisher, slug=args.version_slug),
-        family_title=args.model_group_title,
-        model_title=args.model_title,
-        description=args.model_description,
-        tags=list(dict.fromkeys([lineage_publisher, args.model_group_slug])),
+    display = ModelDisplay.model_validate(
+        {
+            "kind": "model-display",
+            "identity": {"publisher": args.publisher, "slug": args.version_slug},
+            "family_title": args.model_group_title,
+            "model_title": args.model_title,
+            "description": args.model_description,
+            "tags": list(dict.fromkeys([lineage_publisher, args.model_group_slug])),
+            "modalities": modalities,
+            "capabilities": sorted(set(args.capability)),
+            "license": {
+                "spdx": args.license_spdx,
+                "url": args.license_url,
+                "attribution": args.attribution,
+            },
+        }
     )
     root = args.root.resolve()
     for path, payload in (

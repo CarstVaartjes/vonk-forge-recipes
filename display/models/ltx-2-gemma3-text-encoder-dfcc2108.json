@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Exact public Gemma 3 text-encoder and tokenizer closure redistributed with the immutable LTX-2 snapshot.",
   "family_title": "LTX",
   "identity": {
@@ -6,6 +7,18 @@
     "slug": "ltx-2-gemma3-text-encoder-dfcc2108"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Google",
+      "Lightricks"
+    ],
+    "spdx": "LTX-2 Community License Agreement",
+    "url": "https://huggingface.co/Lightricks/LTX-2/blob/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/LICENSE"
+  },
+  "modalities": [
+    "audio",
+    "video"
+  ],
   "model_title": "LTX-2",
   "tags": [
     "lightricks",

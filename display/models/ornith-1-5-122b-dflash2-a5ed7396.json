@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "text-generation"
+  ],
   "description": "Exact public Ornith 1.5 122B DFlash2 draft checkpoint a5ed7396 selected by MiaAI-Lab's TensorFold kit.",
   "family_title": "Ornith",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "ornith-1-5-122b-dflash2-a5ed7396"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "IncoAI"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/incoai/Ornith-1.5-122B-DFlash2/blob/a5ed7396f5f9e5b1abf7ff50b7899a3186961432/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Ornith 1.5 122B DFlash2",
   "tags": [
     "incoai",

@@ -2646,7 +2646,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "aef724a8a997a67a6a7a77019385d75beccbc64c7d31c0abdaf38bf0d79d7ab1",
+        "content_sha256": "bab72fee1397abec48d80ab371e85b92fca7db5600d555581fed779f0b2c681f",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-a5fee929"
@@ -2712,7 +2712,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "2d8e03a41333a86e3f1d566e3a31c7f6e10bb44d9d0110c2189337ec640b2b54",
+        "content_sha256": "007390c22d2ef2aa3113a7a4ff215f4b3dd401a1dcc04c3393b0f50c2671d752",
         "kind": "model",
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2-bf582e4e"

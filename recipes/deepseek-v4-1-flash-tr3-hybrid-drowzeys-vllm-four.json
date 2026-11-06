@@ -663,7 +663,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "344019fc1a49cfb972efe1cc35b86f3bfad653f0fb1041df779ede2b13bee96f",
+        "content_sha256": "a04185486a8e922db434eb98a9271a21174301248b29ad3659004668d0142b24",
         "kind": "model",
         "publisher": "drowzeys",
         "slug": "deepseek-v4-1-flash-tr3-hybrid-74aa7dfe"

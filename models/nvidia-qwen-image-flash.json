@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "image-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -240,16 +237,6 @@
     "version": "NVIDIA Qwen Image Flash"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "nvidia"
-    ],
-    "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
-    "url": "https://huggingface.co/nvidia/Qwen-Image-Flash/blob/eafac15f6140e6dd9c6031217d658ac10bfb604b/LICENSE"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Qwen-Image-Flash",

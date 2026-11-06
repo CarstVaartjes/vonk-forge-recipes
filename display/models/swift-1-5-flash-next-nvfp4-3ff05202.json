@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "code-generation",
+    "reasoning",
+    "text-generation"
+  ],
   "description": "Exact public UkisAI Swift 1.5 derivative of Qwen3.8 Flash Next in NVFP4 (FP4 routed experts, BF16 everywhere else, BF16 PLE n-gram table, 186.4 GB), reasoning-efficient (upstream claim: 63.4 percent fewer thinking tokens). The Swift contribution is under the Swift Open License v1.0 (free up to US$1M gross annual revenue, otherwise a separate Swift Enterprise License); the Qwen3.8 Flash Next base terms (Qwen Community License 1.0: attribution above 100M MAU or US$20M monthly revenue, separate licence for Model-as-a-Service or AI Work Assistant businesses) still apply. The checkpoint carries a vision tower that the TensorFold CUDA route does not read.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "swift-1-5-flash-next-nvfp4-3ff05202"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "UkisAI",
+      "Qwen"
+    ],
+    "spdx": "LicenseRef-Swift-Open-License-1.0",
+    "url": "https://huggingface.co/ukisai/Swift-Qwen3.8-Flash-Next/blob/main/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Swift 1.5 Qwen3.8 Flash Next NVFP4",
   "tags": [
     "ukisai",

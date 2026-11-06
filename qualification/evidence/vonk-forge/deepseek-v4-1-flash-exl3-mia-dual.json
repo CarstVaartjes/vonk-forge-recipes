@@ -34,6 +34,39 @@
     },
     {
       "identity": {
+        "content_sha256": "05670adc0c5d1f53d89e3195f22228d8041ae5f7b790475b2b955735971a954e",
+        "source_bundle_sha256": "1388ec1cdd312c8e5e6fddc42640247df80ce0ae05287c7eef8144a56f18e6a0",
+        "runtime_image": {
+          "build_key": "55382d7d893fc9d7f3d9daea967c200905762bccd1e5d61987ba4b32cb24290c",
+          "image_digest": "sha256:71045159b7f4d8c607140743d46dcb8ca7b44d749ac7a2d1bbbbc47581db641a"
+        },
+        "model_digests": [
+          "7dbfe1db7b1ca6a784848c1e7525f975e5a73be3541f1e573a906593c4d4e08f",
+          "aab4021a80637f18f9c184a2047540a14e4f313dd907f2b372b03560833ea073"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_oom",
+      "cause_summary": "Recipe runtime exceeded available memory; needs fix",
+      "evidence_refs": [
+        "603eacfa9ed2bbddf8a9aff8f9a1f268d5e4b6466fe406ea8ea69616d058c743"
+      ],
+      "tested_at": "2026-11-02T18:50:16.011812Z",
+      "platform": {
+        "controller_source_sha": "f145e6f2dbf16e606c96314595962467f732bf2d",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": [
+        "Carried from the identical execution document before the Model facts split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "880b01ce4dc1438b585f272708e6b9786d341584767977ba3a44ad4cd86cc771",
         "source_bundle_sha256": "1388ec1cdd312c8e5e6fddc42640247df80ce0ae05287c7eef8144a56f18e6a0",
         "runtime_image": {
@@ -65,6 +98,39 @@
     },
     {
       "identity": {
+        "content_sha256": "05670adc0c5d1f53d89e3195f22228d8041ae5f7b790475b2b955735971a954e",
+        "source_bundle_sha256": "1388ec1cdd312c8e5e6fddc42640247df80ce0ae05287c7eef8144a56f18e6a0",
+        "runtime_image": {
+          "build_key": "55382d7d893fc9d7f3d9daea967c200905762bccd1e5d61987ba4b32cb24290c",
+          "image_digest": "sha256:71045159b7f4d8c607140743d46dcb8ca7b44d749ac7a2d1bbbbc47581db641a"
+        },
+        "model_digests": [
+          "7dbfe1db7b1ca6a784848c1e7525f975e5a73be3541f1e573a906593c4d4e08f",
+          "aab4021a80637f18f9c184a2047540a14e4f313dd907f2b372b03560833ea073"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_oom",
+      "cause_summary": "Recipe runtime exceeded available memory; needs fix",
+      "evidence_refs": [
+        "ba30ab753abbc849585893627b586a79410fd65171749f62d0acd7ba797ff8b5"
+      ],
+      "tested_at": "2026-11-02T20:17:45.301984Z",
+      "platform": {
+        "controller_source_sha": "f145e6f2dbf16e606c96314595962467f732bf2d",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": [
+        "Carried from the identical execution document before the Model facts split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "880b01ce4dc1438b585f272708e6b9786d341584767977ba3a44ad4cd86cc771",
         "source_bundle_sha256": "1388ec1cdd312c8e5e6fddc42640247df80ce0ae05287c7eef8144a56f18e6a0",
         "runtime_image": {
@@ -93,6 +159,38 @@
         "topology": "multi"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "05670adc0c5d1f53d89e3195f22228d8041ae5f7b790475b2b955735971a954e",
+        "source_bundle_sha256": "1388ec1cdd312c8e5e6fddc42640247df80ce0ae05287c7eef8144a56f18e6a0",
+        "runtime_image": {
+          "build_key": "55382d7d893fc9d7f3d9daea967c200905762bccd1e5d61987ba4b32cb24290c",
+          "image_digest": "sha256:71045159b7f4d8c607140743d46dcb8ca7b44d749ac7a2d1bbbbc47581db641a"
+        },
+        "model_digests": [
+          "7dbfe1db7b1ca6a784848c1e7525f975e5a73be3541f1e573a906593c4d4e08f",
+          "aab4021a80637f18f9c184a2047540a14e4f313dd907f2b372b03560833ea073"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "8fbefbbc2f5f02fe3b96c6b4621daddd5987c4942592130b127454ded1210fd8"
+      ],
+      "tested_at": "2026-11-02T20:47:27.371267Z",
+      "platform": {
+        "controller_source_sha": "f145e6f2dbf16e606c96314595962467f732bf2d",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": [
+        "Carried from the identical execution document before the Model facts split"
+      ]
     },
     {
       "identity": {

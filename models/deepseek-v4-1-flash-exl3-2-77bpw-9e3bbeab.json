@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -2665,18 +2659,6 @@
     "version": "exl3-2.77bpw-k2k3k5-9e3bbeab"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "DeepSeek AI",
-      "0xSero",
-      "Turboderp"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/0xSero/DeepSeek-V4.1-Flash-Spark/blob/9e3bbeabbb39fa2cf6e37e1cecfbd2fd0290329f/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/0xSero/DeepSeek-V4.1-Flash-Spark",

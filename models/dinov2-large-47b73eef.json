@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -49,16 +48,6 @@
     "version": "DINOv2 Large 47b73eef"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "facebook"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/facebook/dinov2-large/blob/47b73eefe95e8d44ec3623f8890bd894b6ea2d6c/README.md"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/facebook/dinov2-large",

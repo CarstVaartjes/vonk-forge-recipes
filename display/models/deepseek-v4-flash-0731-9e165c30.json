@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
   "description": "DeepSeek V4 Flash 0731 official checkpoint with DSpark speculative layers.",
   "family_title": "DeepSeek Flash",
   "identity": {
@@ -6,6 +11,16 @@
     "slug": "deepseek-v4-flash-0731-9e165c30"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek AI"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/blob/7872f01b1d1fe23eabc4c98b48bffcef5a386062/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "DeepSeek V4 Flash 0731",
   "tags": [
     "deepseek-ai",

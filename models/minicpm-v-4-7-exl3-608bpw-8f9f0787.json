@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -296,17 +291,6 @@
     "version": "8f9f0787"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "OpenBMB",
-      "r0b0tlab"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/r0b0tlab/MiniCPM-V-4.7-35B-A3B-EXL3-6.08bpw/blob/8f9f07872b09846f2e14b3c908e99be1ccf3402a/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/r0b0tlab/MiniCPM-V-4.7-35B-A3B-EXL3-6.08bpw",

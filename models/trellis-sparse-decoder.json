@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -40,16 +39,6 @@
     "version": "25e0d31f"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "microsoft"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/microsoft/TRELLIS-image-large/blob/25e0d31ffbebe4b5a97464dd851910efc3002d96/README.md"
-  },
-  "modalities": [
-    "3d"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/microsoft/TRELLIS-image-large",

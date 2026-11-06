@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -1304,17 +1299,6 @@
     "version": "GLM 5.2 Int4 Int8Mix"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Z.ai",
-      "QuantTrio"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix/blob/main/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix",

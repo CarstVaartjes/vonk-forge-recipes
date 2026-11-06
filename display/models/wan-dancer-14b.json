@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "audio-understanding",
+    "image-understanding",
+    "video-generation"
+  ],
   "description": "Exact public Wan-Dancer 14B checkpoint.",
   "family_title": "Wan",
   "identity": {
@@ -6,6 +11,19 @@
     "slug": "wan-dancer-14b"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Wan-AI",
+      "Wan-Video"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/Wan-Video/Wan-Dancer/blob/e6c87a94ec733230dac15b924c015f6e6501e618/LICENSE"
+  },
+  "modalities": [
+    "audio",
+    "image",
+    "video"
+  ],
   "model_title": "Wan-Dancer 14B",
   "tags": [
     "wan-ai",

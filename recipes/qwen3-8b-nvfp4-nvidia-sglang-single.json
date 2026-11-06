@@ -186,7 +186,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d19d87e36e86a11a3d0a6ddd3f112e9a8a6a6f6e5101d9f59a909c23265441b8",
+        "content_sha256": "eaa7bdc1479a2a7501ed93a367f39fc23dd88e891ad36b43a63e403ea2a9a753",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen3-8b-nvfp4-ccd10a89"

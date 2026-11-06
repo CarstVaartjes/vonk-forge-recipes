@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "Exact public Vontra MLX 4-bit (group size 32) conversion of Qwen3.8 Flash Next with the MTP draft head and vision tower, for TensorFold.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +13,19 @@
     "slug": "qwen3-8-flash-next-mlx-4bit-mtp-dadefa80"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "Vontra"
+    ],
+    "spdx": "LicenseRef-Qwen-Community-1.0",
+    "url": "https://huggingface.co/Vontra/Qwen3.8-Flash-Next-MLX-4bit-MTP/blob/dadefa8066e3be900a0d148d0f5a2f4eb1cf6534/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "Qwen3.8 Flash Next MLX 4-bit with MTP head",
   "tags": [
     "vontra",

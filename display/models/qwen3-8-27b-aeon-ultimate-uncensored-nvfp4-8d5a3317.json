@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "sakamakismile's uniform NVFP4 (compressed-tensors) quantization of AEON-7's uncensored Qwen3.8 27B with a BF16 MTP head, vision-language. Apache-2.0.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +11,19 @@
     "slug": "qwen3-8-27b-aeon-ultimate-uncensored-nvfp4-8d5a3317"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "AEON-7",
+      "sakamakismile"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/sakamakismile/Qwen3.8-27B-AEON-ULTIMATE-UNCENSORED-NVFP4/blob/8d5a3317b4fcb6f278e1cde7fcae5ed88a27443a/README.md"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Qwen3.8 27B AEON Ultimate Uncensored NVFP4",
   "tags": [
     "abliterated",

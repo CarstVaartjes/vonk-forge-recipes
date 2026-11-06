@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "audio-generation",
+    "video-generation"
+  ],
   "description": "Immutable public snapshot at 8462bea9.",
   "family_title": "MOVA",
   "identity": {
@@ -6,6 +10,17 @@
     "slug": "mova-720p"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "openmoss"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p/blob/8462bea9a317a3591279faeedfd3ca01b055cb59/README.md"
+  },
+  "modalities": [
+    "audio",
+    "video"
+  ],
   "model_title": "MOVA 720p",
   "tags": [
     "openmoss",

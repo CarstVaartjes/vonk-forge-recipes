@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "FP4-Local checkpoint for b12x on DGX Spark.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +12,17 @@
     "slug": "qwen3-8-flash-next-fp4-local-b9ce18a6"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "NVIDIA"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/nvidia/Qwen3.8-Flash-Next-FP4-Local/blob/b9ce18a6887e18c089fdea8509a33e63429a3300/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Qwen3.8 Flash Next",
   "tags": [
     "nvidia",

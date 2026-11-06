@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "image-generation"
+  ],
   "description": "Exact Comfy-Org BF16 Qwen Image 2512 diffusion model, scaled-FP8 Qwen-VL encoder, and VAE.",
   "family_title": "Qwen Image",
   "identity": {
@@ -6,6 +9,17 @@
     "slug": "qwen-image-2512-comfyui-1f12b17b"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "Comfy-Org"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen-Image-2512/blob/25468b98e3276ca6700de15c6628e51b7de54a26/LICENSE.md"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "Qwen Image 2512",
   "tags": [
     "qwen",

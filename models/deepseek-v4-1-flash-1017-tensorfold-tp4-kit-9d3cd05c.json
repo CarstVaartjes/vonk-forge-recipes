@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -40,16 +39,6 @@
     "version": "1017-kit-9d3cd05c"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "DeepSeek-AI (the ffn.gate.bias_vl tensors of DeepSeek-V4.1-Flash-1017, byte for byte); bertholomus for the TensorFold TP4 kit."
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/bertholomus/DeepSeek-V4.1-Flash-TensorFold-TP4-4xGB10/blob/9d3cd05c60e1f17758df8623ca8e988e33fb205e/kit/LICENSES/DeepSeek-MIT.txt"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/bertholomus/DeepSeek-V4.1-Flash-TensorFold-TP4-4xGB10",

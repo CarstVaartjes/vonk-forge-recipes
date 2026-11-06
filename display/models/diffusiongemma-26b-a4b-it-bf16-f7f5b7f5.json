@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Exact public Google DiffusionGemma 26B-A4B IT (diffusion-decoding Gemma) checkpoint.",
   "family_title": "Google Gemma",
   "identity": {
@@ -6,6 +13,17 @@
     "slug": "diffusiongemma-26b-a4b-it-bf16-f7f5b7f5"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Google DeepMind"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "DiffusionGemma 26B-A4B",
   "tags": [
     "google",

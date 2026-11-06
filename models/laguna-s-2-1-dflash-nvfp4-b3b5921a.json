@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -69,16 +66,6 @@
     "version": "DFlash NVFP4 b3b5921a"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Poolside"
-    ],
-    "spdx": "NOASSERTION",
-    "url": "https://huggingface.co/poolside/Laguna-S-2.1-DFlash-NVFP4/blob/b3b5921a900b9e0a1e27e50bdaeb480692a6d19b/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/poolside/Laguna-S-2.1-DFlash-NVFP4",

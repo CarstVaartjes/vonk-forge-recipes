@@ -306,7 +306,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "92d073f12c6164fc4af416c7c3b6c7b94955026ff522e6b6c8d0612baa310f3a",
+        "content_sha256": "665f8d2975fe886bbd6a31b5662c121e51367558ddbe6062b23344331df134fb",
         "kind": "model",
         "publisher": "poolside",
         "slug": "laguna-s-2-1-nvfp4-07614121"
@@ -367,7 +367,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "e4aa81554b8a900d17de91e55df1223a0211bb830a556a69b7199fc969da87a6",
+        "content_sha256": "79aa324585de2dec8774573e239a3b26860c358592fb5a0f10f3aadf7e1b8bf6",
         "kind": "model",
         "publisher": "poolside",
         "slug": "laguna-s-2-1-dflash-nvfp4-72379475"

@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "audio-generation",
+    "video-generation"
+  ],
   "description": "FastVideo FastH3 8-Step V2 Comfy checkpoint and its exact H3 text encoder, video VAE and audio VAE. TensorFold converts the transformer blocks to int8 at load. The underlying MiniMax H3 Community License applies.",
   "family_title": "MiniMax H3",
   "identity": {
@@ -6,6 +10,26 @@
     "slug": "fasth3-8step-v2-comfy-ec1e3aa3"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "minimax"
+    ],
+    "spdx": "LicenseRef-MiniMax-H3-Community-License",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR",
+        "US"
+      ],
+      "notice": "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."
+    },
+    "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
+  },
+  "modalities": [
+    "audio",
+    "video"
+  ],
   "model_title": "MiniMax",
   "tags": [
     "fasth3",

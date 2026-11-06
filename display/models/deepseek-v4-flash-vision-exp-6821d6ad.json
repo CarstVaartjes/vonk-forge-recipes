@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "Complete 84-file official DeepSeek V4 Flash Vision Experimental snapshot at 6821d6ad: native interleaved image and text understanding, 48 mixed FP4/FP8/BF16 shards, a 32-layer ViT and aligner, three DSpark prediction layers, tokenizer, prompt encoder, and minimal inference reference.",
   "family_title": "DeepSeek Flash",
   "identity": {
@@ -6,6 +12,17 @@
     "slug": "deepseek-v4-flash-vision-exp-6821d6ad"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek AI"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp/blob/6821d6ad3681a4b137b066b76094fa82ebd0a380/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "DeepSeek V4 Flash Vision Experimental",
   "tags": [
     "candidate",

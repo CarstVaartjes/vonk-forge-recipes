@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Official NVIDIA Nemotron 3 Nano 30B-A3B FP8 checkpoint.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +12,16 @@
     "slug": "nemotron-3-nano-30b-a3b-fp8-9bee1944"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Nemotron 3 Nano 30B-A3B",
   "tags": [
     "nvidia",

@@ -234,7 +234,7 @@ def test_model_territorial_restrictions_preserve_all_published_records(
         ),
     }
     actual = {}
-    for path in ROOT.joinpath("models").glob("*.json"):
+    for path in ROOT.joinpath("display/models").glob("*.json"):
         document = json.loads(path.read_text())
         restriction = document["license"].get("territorial_restrictions")
         if restriction is not None:
@@ -247,7 +247,7 @@ def test_model_territorial_restrictions_preserve_all_published_records(
     catalog, _ = built_catalog
     published = {}
     for row in catalog["catalog_entities"]:
-        document = row["document"]
+        document = row["display"]
         restriction = document["license"].get("territorial_restrictions")
         if restriction is not None:
             published[document["identity"]["slug"]] = (

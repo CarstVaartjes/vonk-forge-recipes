@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "reasoning",
+    "text-generation"
+  ],
   "description": "Full GLM 5.3 with EXL3 2.75bpw routed experts for TensorFold.",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +10,17 @@
     "slug": "glm-5-3-exl3-275bpw-mia-2d747d0e"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.ai",
+      "MiaAI-Lab"
+    ],
+    "spdx": "LicenseRef-GLM-5.3",
+    "url": "https://huggingface.co/Mia-AiLab/GLM-5.3-EXL3-2.75bpw-TensorFold/blob/2d747d0e30eca6e3fe37ba63c471cdf9172faa83/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "GLM 5.3",
   "tags": [
     "mia-ailab",

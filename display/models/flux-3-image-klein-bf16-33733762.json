@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "FLUX 3 Image Klein immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "FLUX 3",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "flux-3-image-klein-bf16-33733762"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Black Forest Labs"
+    ],
+    "spdx": "flux-kommunity-license",
+    "url": "https://huggingface.co/black-forest-labs/flux-3-image-klein/blob/337337621b8526e120f2275d250242f4a6bedd75/LICENSE.md"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "FLUX 3 Image Klein",
   "tags": [
     "candidate",

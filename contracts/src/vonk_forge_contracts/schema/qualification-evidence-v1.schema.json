@@ -337,7 +337,8 @@
     "QualificationQualityNote": {
       "enum": [
         "Model output differed from the expected answer",
-        "Carried from the identical document before the display split"
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split"
       ],
       "title": "QualificationQualityNote",
       "type": "string"

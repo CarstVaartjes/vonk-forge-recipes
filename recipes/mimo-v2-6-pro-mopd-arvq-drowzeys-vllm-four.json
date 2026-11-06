@@ -5756,7 +5756,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c01910aa57906e592f1bedd9009bf7a46cc02b5b80a4d9564367cfee7a4c620e",
+        "content_sha256": "03c9e6147b0d729c174b84447ef79896421ba92f6ad3a54db476bc03c988b28a",
         "kind": "model",
         "publisher": "drowzeys",
         "slug": "mimo-v2-6-pro-mopd-arvq-hybrid21-bb83094e"

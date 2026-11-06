@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -493,16 +489,6 @@
     "version": "FP8 da6e2ed2"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Qwen/Qwen3-Coder-Next-FP8/blob/da6e2ed27304dd39abadd9c82ef50e8de67bdd4c/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Qwen/Qwen3-Coder-Next-FP8",

@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -94,17 +93,6 @@
     "version": "53346005"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Meta Platforms",
-      "NousResearch"
-    ],
-    "spdx": "LicenseRef-Llama-3-Community-License",
-    "url": "https://www.llama.com/llama3/license/"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/NousResearch/Meta-Llama-3-8B-Instruct",

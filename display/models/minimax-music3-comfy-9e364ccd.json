@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "text-to-audio"
+  ],
   "description": "Exact Comfy-Org Music3 files used by the TensorFold CUDA engine; the engine converts its autoregressive weights to int8 at load. The repack card labels Apache-2.0; the original MiniMax-Music3 Community License applies to the underlying model.",
   "family_title": "MiniMax Music3",
   "identity": {
@@ -6,6 +9,17 @@
     "slug": "minimax-music3-comfy-9e364ccd"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "MiniMax; Comfy-Org repack. Commercial services must display MiniMax-Music3; see original license for commercial thresholds and acceptable-use terms."
+    ],
+    "spdx": "LicenseRef-MiniMax-Music3-Community",
+    "url": "https://huggingface.co/MiniMaxAI/MiniMax-Music3/blob/fbdf52fbaaca799592917417eb05f1899f1255ec/LICENSE"
+  },
+  "modalities": [
+    "text",
+    "audio"
+  ],
   "model_title": "MiniMax Music3",
   "tags": [
     "minimax",

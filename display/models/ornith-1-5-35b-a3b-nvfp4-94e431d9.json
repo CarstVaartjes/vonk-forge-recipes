@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "Exact public NVFP4 94e431d9 checkpoint.",
   "family_title": "Ornith",
   "identity": {
@@ -6,6 +10,17 @@
     "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Ornith AI"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/blob/94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Ornith 1.5 35B-A3B",
   "tags": [
     "ornith-ai",
