@@ -27,9 +27,12 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
+sys.path.insert(0, str(ROOT))
 from pydantic import BaseModel, ConfigDict
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.model import GitHubReleaseSource
+
+from qualification.documents import model as read_model
 
 DEFAULT_MANIFEST = ROOT / "upstream-watch.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
@@ -1129,11 +1132,10 @@ def carried_families(root: Path) -> dict[str, set[str]]:
     """Map the first token of each family slug (deepseek-flash -> deepseek) to model entities."""
     families: dict[str, set[str]] = {}
     for path in (root / "models").glob("*.json"):
-        identity = json.loads(path.read_text(encoding="utf-8")).get("identity", {})
-        slug = identity.get("family", {}).get("slug", "")
-        token = slug.split("-")[0].lower() if isinstance(slug, str) else ""
+        identity = read_model(path.stem, root).identity
+        token = identity.family.slug.split("-")[0].lower()
         if len(token) >= 3:
-            entity = f"model/{identity.get('publisher')}/{identity.get('slug')}"
+            entity = f"model/{identity.publisher}/{identity.slug}"
             families.setdefault(token, set()).add(entity)
     return families
 

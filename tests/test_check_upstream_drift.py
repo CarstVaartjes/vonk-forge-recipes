@@ -4,6 +4,7 @@ import base64
 import importlib.machinery
 import importlib.util
 import json
+import shutil
 import sys
 import tempfile
 import unittest
@@ -472,17 +473,8 @@ class CreatorSignalTests(unittest.TestCase):
     def test_scan_collects_both_signals_and_isolates_failures(self) -> None:
         root = Path(tempfile.mkdtemp())
         (root / "models").mkdir()
-        (root / "models" / "m.json").write_text(
-            json.dumps(
-                {
-                    "identity": {
-                        "publisher": "zai-org",
-                        "slug": "glm-5-flash",
-                        "family": {"slug": "glm"},
-                    }
-                }
-            ),
-            encoding="utf-8",
+        shutil.copy(
+            ROOT / "models/glm-5-3-dflash2-425aa615.json", root / "models" / "m.json"
         )
         (root / "creators.json").write_text(
             json.dumps(
@@ -497,7 +489,7 @@ class CreatorSignalTests(unittest.TestCase):
         )
         watches = [
             drift.Watch(
-                "model/zai-org/glm-5-flash",
+                "model/incoai/glm-5-3-dflash2-425aa615",
                 "m",
                 "github",
                 MIA_OLD,
@@ -551,11 +543,11 @@ class CreatorSignalTests(unittest.TestCase):
         self.assertEqual(
             (old["source_commit"], old["linked_commit"]), (OBSERVED, NEWHEAD)
         )
-        self.assertEqual(old["recipe_slugs"], ["model/zai-org/glm-5-flash"])
+        self.assertEqual(old["recipe_slugs"], ["model/incoai/glm-5-3-dflash2-425aa615"])
         new = by_kind["new-repo"]
         self.assertEqual(new["matched_family"], "glm")
         self.assertEqual(new["linked_commit"], NEWHEAD)
-        self.assertEqual(new["recipe_slugs"], ["model/zai-org/glm-5-flash"])
+        self.assertEqual(new["recipe_slugs"], ["model/incoai/glm-5-3-dflash2-425aa615"])
         self.assertEqual(
             sorted(e["subject"] for e in signals["signal_errors"]),
             ["gone", "gone/repo"],
