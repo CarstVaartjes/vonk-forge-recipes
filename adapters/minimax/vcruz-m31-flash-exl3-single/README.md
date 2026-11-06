@@ -1,0 +1,392 @@
+# MiniMax-M3.1-Flash EXL3 (SAGE 2.15 bpw) on ONE NVIDIA DGX Spark
+
+**Model on Hugging Face:** [vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw](https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw) (gated: request access on the model page)
+
+> **Work in progress.** This recipe is under active development. The `q4-48k` profile is measured and is what the author serves today (`q4-32k` is the same flags with more memory headroom); the tool-calling evaluation is still being worked on, and pins/profiles may change. The two-Spark 4.26 bpw path is not validated yet — PRs welcome.
+
+A pinned, fail-closed serving recipe for
+[`vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw`](https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw)
+on **one** DGX Spark (GB10, 128 GB unified memory, linux/arm64), with vLLM
+and the [vllm-exl3](https://github.com/vcruz305/vllm-exl3) plugin. Every
+default in this repo is a measured boot configuration; the README's numbers
+are Victor's measurements on his Spark, each labeled with the tool/log it
+came from.
+
+**Pins (all fail-closed, all verified by scripts at build/serve time):**
+
+| what | pin | where it is read |
+|---|---|---|
+| model pack | [`vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw`](https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw) @ `99bf3a57af5d07245ea9abb5426e7dce6af6356b` (byte-verified via `scripts/SHA256SUMS` + `scripts/PACK-BLOB-SUMS`; see [Pack revision](#pack-revision)) | `scripts/env.sh` |
+| base engine image | `vllm/vllm-openai:minimax-m31-flash` @ digest `sha256:86f582dae25ea92802353727164ae4eb03b37b18baf9119b805ffaec2a7ef07c` | `scripts/env.sh` (`BASE_IMAGE_DIGEST`), `Dockerfile` |
+| exllamav3 fork | [`vcruz305/exllamav3`](https://github.com/vcruz305/exllamav3) branch `feat/moe-act3-batched` @ `fdd77361971144e8d175e09e7b50b7100739fd95` | `scripts/env.sh` (`EXL3_REQUIRED_REV`) |
+| vllm-exl3 plugin | [`vcruz305/vllm-exl3`](https://github.com/vcruz305/vllm-exl3) branch `feat/minimax-q4-prefill` @ `41fdb7d99a441d37938c2a1bd600ac963c18a3cb` (also on plugin `main` as `053c634`; the pin is a sha, so either ref resolves to the same tree) | `scripts/env.sh` (`PLUGIN_REQUIRED_REV`) |
+
+Why the two fork pins are not optional: the exllamav3 pin carries the
+act-3 (clamped SwiGLU-OAI) case in the batched MoE kernels — a tree without
+it decodes garbage from every MiniMax MoE layer (measured cosine ~0.10
+without the fix, 1.0 with it). The plugin pin carries the true-bit-width
+per-expert K arrays of the unified mixed-K dispatch — upstream plugin main
+builds them in half-bit units, which is wrong for every mixed-K pack in
+unified mode — plus the indexer MXFP8 retention, the q4 main-KV pool, the
+single-pass q4 prefill staging (`VLLM_EXL3_Q4KV_PREFILL_FAST`, on by
+default: 338/324/276 -> 379/369/328 tok/s at 6.6K/12K/25-45K prompt tokens),
+the UMA load hygiene and the C++20 build fix the plugin needs on torch 2.14.
+`scripts/build_image.sh` refuses to build and `scripts/serve.sh` refuses to
+serve anything below either pin.
+
+## Status
+
+| Sparks | folder | engine | profile | status |
+|---|---|---|---|---|
+| 1x DGX Spark (GB10, 128 GB unified) | this repo | vLLM (pinned upstream image) + vllm-exl3 plugin | `q4-48k` (48K context, q4 main KV) | **measured** — see [Measured results](#measured-results) |
+| 2x DGX Spark | — | — | SAGE 4.26 bpw pack ([vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-4.26bpw](https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-4.26bpw)) | **not validated yet — help wanted** |
+
+## Quick start
+
+Run top-down on the Spark itself (aarch64, Docker + NVIDIA container toolkit,
+passwordless `sudo docker`, ~120 GB free disk for the pack).
+
+1. **Tooling.** Python 3.12, `git`, `sha256sum`, curl; the HF CLI with hf_xet:
+
+   ```bash
+   pip install -U "huggingface_hub[cli]" hf_xet
+   hf auth login   # the pack repo is GATED (manual approval): request
+                   # access on the model page first, then log in here
+   ```
+
+   No token value is ever stored in this repo or passed by its scripts:
+   `download_and_verify.sh` never handles a token value.
+
+2. **Clone the two pinned runtime trees** (build_image.sh builds from exactly
+   these checkouts and labels the image with their HEADs):
+
+   ```bash
+   mkdir -p ~/minimax-m31-src   # or set SRC_DIR=... before every step
+   git clone https://github.com/vcruz305/exllamav3.git ~/minimax-m31-src/exllamav3
+   git -C ~/minimax-m31-src/exllamav3 checkout fdd77361971144e8d175e09e7b50b7100739fd95
+   git clone https://github.com/vcruz305/vllm-exl3.git ~/minimax-m31-src/vllm-exl3
+   git -C ~/minimax-m31-src/vllm-exl3 checkout 41fdb7d99a441d37938c2a1bd600ac963c18a3cb
+   ```
+
+3. **Download and verify the pack** (~119 GB; hashes every file and refuses
+   on any mismatch — see [Pack revision](#pack-revision)):
+
+   ```bash
+   bash scripts/download_and_verify.sh    # default target: ~/models/
+   ```
+
+4. **Build the serving image** (upstream engine image pinned by digest + both
+   pinned trees compiled in; the image is labelled with the pins and
+   serve.sh re-checks the labels):
+
+   ```bash
+   sudo docker pull vllm/vllm-openai@sha256:86f582dae25ea92802353727164ae4eb03b37b18baf9119b805ffaec2a7ef07c
+   bash scripts/build_image.sh
+   ```
+
+5. **Serve.** The default profile is `q4-48k` (48K context, q4 main KV, the
+   configuration the author serves); `PROFILE=` selects any
+   `configs/<name>.env`:
+
+   ```bash
+   bash scripts/serve.sh                      # PROFILE=q4-48k by default
+   PROFILE=q4-32k bash scripts/serve.sh       # 32K q4, ~0.8 GiB more headroom
+   PROFILE=fp8-16k bash scripts/serve.sh      # 16K, fp8 KV everywhere
+   ```
+
+   The serve is standalone: it waits for `/v1/models` (`SERVE_WAIT=1`), then
+   runs the warm-up (one short chat request and one ~8K-token prompt,
+   `max_tokens` 32) and only then prints the READY line. Each warm-up
+   request's wall time and MemAvailable before/after are logged to
+   `<run dir>/warmup.log`; a warm-up failure fails the start. The memory
+   guard is armed before the container starts and is not optional.
+
+6. **Smoke test** (chat, tool call, reasoning separation, and the mixed-K
+   dispatch-mode gate):
+
+   ```bash
+   bash scripts/smoke.sh
+   ```
+
+7. **Stop** (container down, host sysctls restored, own guard ended):
+
+   ```bash
+   bash scripts/guard.sh stop
+   ```
+
+Optional tools kept in the repo: `scripts/longctx.py` (needle tests at
+context length, prefill tok/s and TTFT per length), `bench/bench.py`
+(decode measurements; see `bench/README.md`), `scripts/guard.sh status`
+(one snapshot).
+
+## Profiles
+
+`PROFILE=` selects `configs/<name>.env`. Every profile is byte-for-byte the
+flag set of a measured boot; a profile can only tighten the measured
+defaults, never widen them. The guard floor each profile sets is part of
+the measurement (see [Known limits](#known-limits)).
+
+| profile | context | main KV | indexer KV | draft KV | guard floor | measured |
+|---|---|---|---|---|---|---|
+| `q4-48k` (default, recommended) | 49,152 | q4 (nvfp4 layout) | fp8 | fp8 | 0.2 GiB (explicit opt-in) | yes |
+| `q4-32k` | 32,768 | q4 (nvfp4 layout) | fp8 | fp8 | 0.2 GiB (explicit opt-in) | yes |
+| `fp8-24k` | 24,576 | fp8 | fp8 | fp8 | 0.2 GiB (explicit opt-in) | yes |
+| `fp8-16k` | 16,384 | fp8 | fp8 | fp8 | 0.5 GiB (public default) | yes |
+
+`q4-48k` is the profile the author serves: 48K context with the q4 main-KV
+pool (KVB `2374395495` B, which the engine turns into 50,048 tokens of KV,
+1.02x the context limit), needles PASS out to 44,755 prompt tokens, and
+prefill within 3% of the fp8 profiles. It needs the mimalloc purge/reset
+delays this repo passes at `0` — without them the first request after boot
+was guard-killed at 48K (ready MemAvailable 0.32 GiB). `q4-32k` is the same
+flag set at 32K and is the **more-headroom** choice: it reaches the READY
+line with ~0.8 GiB more free memory and its lowest guard sample is roughly
+double 48K's (table below), so pick it if the box also runs anything else.
+`fp8-24k` and `fp8-16k` keep fp8 main KV (flat ~377-384 tok/s prefill, no
+q4 fast-prefill path) and fit in less of the 2.15 bpw pack's budget.
+
+## Measured results
+
+All numbers below are from Victor's runs of this exact recipe on his DGX
+Spark on 2026-10-23. Provenance for every table is given per row. The
+receipts themselves are not in this repo; each label names the tool/log the
+number came from.
+
+### Current pin (plugin `41fdb7d`, mimalloc delays `0`)
+
+The production configuration as of 2026-10-23 20:07 PDT: image
+`m31-flash-exl3-spark:dev-fdd7736-41fdb7d` (the q4 fast-prefill staging is
+on by default in this plugin rev) with `MIMALLOC_PURGE_DELAY=0` and
+`MIMALLOC_RESET_DELAY=0`, as `scripts/serve.sh` passes them.
+
+| metric | q4-32k | q4-48k (default) | source |
+|---|---|---|---|
+| KV tokens allocated (1.02x limit) | 33,408 | 50,048 | `container.log` (engine KV-cache line) |
+| MemAvailable at ready (GiB) | 2.06 | 1.28 | `mem-ready` / run `result` |
+| MemAvailable after warm-up (GiB) | — | 0.88 | `warmup.out` |
+| MemAvailable minimum under load (GiB) | 1.50 | 0.73-0.78 | `guard.log` (0.05 s samples, two boots) |
+| guard floor the run used (MiB) | 204 | 204 | `serve.out` |
+
+The 48K warm-up drops MemAvailable 1.281 -> 1.037 -> 0.877 GiB across its two
+requests (`warmup.out`). Without the two mimalloc delays, 48K was
+guard-killed on the first request after boot (ready MemAvailable 0.32 GiB
+instead of 1.28); with them, ready memory rose from ~1.17 to 2.06 GiB at 32K
+and needles + bench ran clean. The smoke test passes on 48K.
+
+### Boot and memory (earlier image, plugin `688220e`, no mimalloc knobs)
+
+| metric | fp8-16k | fp8-24k | q4-32k | source |
+|---|---|---|---|---|
+| time to `/v1/models` (s) | 171 | 174 | 174 | run `result` (`boot_secs`) |
+| KV tokens allocated (1.02x limit) | 16,640 | 24,960 | 33,408 | `container.log` (engine KV-cache line) |
+| MemAvailable at ready (GiB) | 1.55 | 1.00 | 1.09 | `mem-ready` / run `result` |
+| MemAvailable after warm-up (GiB) | 1.17 | 0.59 | 1.34 | `warmup.out` |
+| MemAvailable minimum under load (GiB) | 1.03 | 0.44 | 0.52 | `guard.log` (0.05 s samples) |
+| guard floor the run used (MiB) | 204 | 204 | 204 | `serve.out` |
+
+The warm-up requests cost 1.8-1.9 s (short chat) and 24.1-29.4 s (~8K
+prompt) per boot (`warmup.out`).
+
+The indexer MXFP8 retention (`INDEXER_MXFP8=1`, default) was A/B-measured
+on the same 16K fp8 boot: identical needle results and prefill speed
+(379.2 vs 378.4 tok/s), and +0.4-0.5 GiB free memory at every stage
+(steady 1.03-1.12 GiB with the knob vs 0.57-0.67 GiB without) — `longctx.log`
+of both runs.
+
+### Long-context needles, current pin (all PASS, answer in `content`)
+
+Prefill and TTFT per tested length (`scripts/longctx.py`, `longctx.log`) on
+plugin `41fdb7d` + mimalloc delays `0` — the q4 fast-prefill staging brings
+q4 prefill level with fp8:
+
+| profile | prompt tokens | prefill (tok/s) | TTFT (s) |
+|---|---|---|---|
+| q4-48k | 6,625 | 379.4 | 17.5 |
+| q4-48k | 29,893 | 369.1 | 81.0 |
+| q4-48k | 44,755 | 327.6 | 136.6 |
+| q4-32k | 6,625 | 379.3 | — |
+| q4-32k | 29,893 | 369.8 | — |
+
+Decode on the same 48K boot (`bench/bench.py`, medians over 3 prompts per
+class, 512 tokens each): prose 24.37 / code 28.97 / structured 29.72 tok/s;
+32K q4 on the same pin: prose 24.32 / code 29.23 tok/s.
+
+### Long-context needles (earlier image, plugin `688220e`; all PASS)
+
+Prefill and TTFT per tested length (`scripts/longctx.py`, `longctx.log`):
+
+| profile | prompt tokens | prefill (tok/s) | TTFT (s) | decode probe (tok/s) |
+|---|---|---|---|---|
+| fp8-16k | 6,530 | 378.4 | 17.257 | 20.24 |
+| fp8-16k | 12,070 | 384.3 | 31.408 | 22.24 |
+| fp8-24k | 6,533 | 379.0 | 17.238 | 22.08 |
+| fp8-24k | 12,075 | 381.5 | 31.652 | 22.35 |
+| fp8-24k | 18,439 | 377.3 | 48.865 | 14.72 |
+| q4-32k | 6,532 | 338.1 | 19.32 | 18.97 |
+| q4-32k | 12,071 | 324.3 | 37.217 | 20.01 |
+| q4-32k | 24,798 | 276.2 | 89.769 | 20.77 |
+
+### Decode (`bench/bench.py`, medians over 3 prompts per class, 512 tokens each; earlier image)
+
+| profile | class | tok/s (median) | ms/step (mean) | acceptance (median) |
+|---|---|---|---|---|
+| fp8-16k | prose | 23.08 | 130.9 | 0.714 |
+| fp8-16k | code | 19.93 | 126.9 | 0.533 |
+| fp8-16k | structured | 28.65 | 129.1 | 0.936 |
+| fp8-24k | prose | 25.29 | 130.8 | 0.756 |
+| fp8-24k | code | 23.5 | 121.0 | 0.594 |
+| fp8-24k | structured | 28.64 | 129.5 | 0.955 |
+| q4-32k | prose | 21.15 | 133.1 | 0.651 |
+| q4-32k | code | 29.67 | 129.6 | 0.938 |
+| q4-32k | structured | 29.79 | 130.6 | 0.947 |
+
+Sampling note: every number above was measured at the pack's own
+`generation_config.json` sampling — temperature 1.0, top_p 0.95 — which the
+recipe leaves in force (the serve passes no temperature/top_p override).
+Acceptance varies strongly with prompt class; the per-step cost does not
+(~121-133 ms/step everywhere).
+
+### DSpark speculative decoding (k=4)
+
+The draft ships inside the pack (`dspark/` subfolder); the engine resolves
+it from the model path and no draft model path is passed anywhere. The
+measured configuration is `num_speculative_tokens=3`: one verify step
+covers up to 4 tokens (k=4), which is what the CUDA-graph capture sizes
+1-4 pin. On GB10 the only draft pair that boots and passes is
+`TRITON_ATTN` + fp8 draft KV ("auto" picks FLASHINFER, which has no block
+size 128; FA fp8 draft KV is FA3/Hopper-only) — every profile pins that
+pair, and the q4 gate refuses to serve without it. Measured acceptance and
+effective decode rates are the bench table above (0.53-0.98 acceptance by
+class, 19-30 tok/s effective); a no-draft serve was never measured on this
+pack.
+
+## Pack revision
+
+The pack was measured at revision
+`e2682d076e220e71e2a7ea7b9885e70390c27698`. The Hub repository's history
+was later replaced by a commit that only removed a stray temp file; the
+current head `99bf3a57af5d07245ea9abb5426e7dce6af6356b` — which is what
+`MODEL_REV` pins — carries byte-identical weights: the same git blob oid and
+size for every one of the 40 files, so the pinned tree and the measured
+tree are the same bytes. The bytes, not the commit id, are what this
+recipe pins:
+
+- `scripts/SHA256SUMS` — sha256 of every LFS file (the 16 weight shards and
+  the DSpark draft weight) at the measured revision;
+- `scripts/PACK-BLOB-SUMS` — git blob sha1 of every non-LFS file.
+
+`scripts/SHA256SUMS` + `scripts/PACK-BLOB-SUMS` remain the byte authority:
+`scripts/download_and_verify.sh` downloads `MODEL_REV` and refuses unless
+every file matches those hashes; it never falls back to a different tree on
+its own. If the pinned revision ever stops resolving again, do not serve a
+different tree — the hash check is the only acceptance criterion, and if no
+commit carries the measured bytes, this recipe has no pack to serve.
+
+## Cards tested on
+
+| card | VRAM | status |
+|---|---|---|
+| NVIDIA DGX Spark (GB10, sm_121, linux/arm64) | 128 GB unified | measured (this README) |
+
+No other card, host OS or vLLM build has been verified with this recipe.
+
+## Quants
+
+The EXL3 packs of this model live in
+[`vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw`](https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw);
+the table mirrors the HF model README.
+
+| bpw | size | smallest card | top-1 vs original | mean KLD | p99 KLD | download |
+|---|---|---|---|---|---|---|
+| 2.15 (SAGE) | ~119 GB | DGX Spark (128 GB unified) | — | — | — | [HF](https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw) |
+| 4.26 (SAGE) | — | 2x DGX Spark | — | — | — | [HF](https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-4.26bpw) |
+
+top-1 = next-token agreement with the original checkpoint on a held-out set;
+KLD = mean and 99th-percentile KL(reference ‖ pack) at those positions. No
+held-out quality evaluation of this pack has been run, so those cells stay
+em dashes rather than invented numbers; the evaluation text was not used
+for calibration. Every number on this page is tied to one card, one pack
+revision and one set of server settings.
+
+## Two Sparks (not validated yet — help wanted)
+
+The SAGE 4.26 bpw pack
+([`vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-4.26bpw`](https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-4.26bpw),
+public, not gated) is meant for **two** DGX Sparks.
+
+The two-Spark part of this recipe has **not** been validated yet: there is no
+measured boot and no launch config in this repo for it, and nothing above
+(the pins, profiles, measured results, guard behaviour) was obtained on two
+Sparks. Everything else in this repo is the one-Spark 2.15 bpw recipe.
+
+The author is looking for help here and PRs are welcome — two-Spark launch
+configs, fixes, and measured results together with the hardware and logs they
+came from.
+
+## Known limits
+
+- **No vision weights in this pack.** MiniMax-M3.1-Flash is multimodal in
+  its original release; this pack ships the language model and the DSpark
+  draft only, and the serve passes `--language-model-only`. Vision requests
+  are not served by this recipe.
+- **262K does not fit on one Spark.** The model's full context window is
+  262K; the largest context that boots and passes needles here is 48K (the
+  default `q4-48k` profile). Beyond that the q4 pool and the load-time
+  resident weights do not leave room for the first-request transient inside
+  the 0.2 GiB guard floor.
+- **q4 prefill degrades with length, but no longer with the pool.** On the
+  current pin the q4 fast-prefill staging puts q4 prefill at 379.4 / 369.1 /
+  327.6 tok/s at 6.6K / 30K / 45K prompt tokens — level with fp8 at short
+  lengths, and the fall-off at 45K is the price of the 48K context. On the
+  earlier plugin pin it was 338 / 324 / 276 tok/s at 6.5K / 12K / 25K
+  (`longctx.log`).
+- **69-scenario tool-calling eval not run.** The smoke test checks one
+  well-formed tool call; the 69-scenario tool-calling evaluation has not
+  been run on this stack.
+- **The first request after boot costs a MAXLEN-independent memory
+  transient.** ~0.33 GiB of host memory (plus ~0.18 GiB more at the first
+  ~8K prefill) is consumed by the first request and recovered by
+  malloc_trim only ~30 s later. This is why the warm-up must run before the
+  READY line (it absorbs the transient into a logged request), and why the
+  q4-48k, q4-32k and fp8-24k profiles set the 0.2 GiB guard floor opt-in
+  (`GUARD_MEM_FLOOR_KIB=209716`, what the measured boots ran): at the
+  public default 0.5 GiB floor, q4-48k's measured ready MemAvailable
+  (1.28 GiB) minus that transient leaves well under 0.5 GiB and the guard
+  would kill the serve during the warm-up. The guard exists to keep the host
+  alive; the floor is not a context-length knob.
+- **One decode stream only.** `MAX_NUM_SEQS=1` on every profile: the MSA
+  indexer tops out at one running sequence and the memory budget has no
+  room for more.
+- **mimalloc arena retention (`MIMALLOC_PURGE_DELAY`/`MIMALLOC_RESET_DELAY`,
+  default `0`).** torch 2.14.0+cu130 on aarch64 links mimalloc statically
+  into `libc10.so`, so the engine process holds freed load-time CPU memory
+  inside a mimalloc arena until the purge/reset delays expire (upstream
+  defaults: 10 s purge, 0 s reset). `scripts/serve.sh` passes both delays
+  into the container, `0` by default, so freed pages go back to the OS
+  immediately; an empty value passes nothing (upstream mimalloc defaults),
+  and anything else must be a non-negative integer or the launch is refused.
+  This is what makes 48K servable at all: without it, 48K was guard-killed
+  on the first request after boot. Measured on this box (exact 32K q4
+  profile, both `0` vs unset): PRE_KV
+  MemAvailable 4.20 vs 3.47 GiB, engine `rss_anon` at PRE_KV 2.25 vs
+  3.11 GiB, ready MemAvailable 2.06 vs ~1.17 GiB, lowest guard sample over
+  warm-up + 6.6K/30K needles + bench 1.50 vs 0.56 GiB, arena `rss` at ready
+  160 KiB vs ~879 MiB held in a 1 GiB arena. Needles PASS (6,625 tok at
+  379.3 tok/s, 29,893 tok at 369.8 tok/s) and decode is unchanged (prose
+  24.32 / code 29.23 tok/s).
+
+## Credits
+
+- [MiniMax](https://www.minimax.io) — MiniMax-M3.1-Flash, the base model
+  and its DSpark draft.
+- [vLLM](https://github.com/vllm-project/vllm) — the serving engine and the
+  upstream MiniMax-M3.1-Flash support this image is pinned to.
+- [turboderp/exllamav3](https://github.com/turboderp-org/exllamav3) — the
+  EXL3 runtime this pack is built for.
+- [vllm-exl3](https://github.com/vcruz305/vllm-exl3) — the plugin that
+  binds EXL3 packs into vLLM.
+
+## License
+
+MIT (see [LICENSE](LICENSE)). The model pack follows its own license on the
+Hugging Face model page.

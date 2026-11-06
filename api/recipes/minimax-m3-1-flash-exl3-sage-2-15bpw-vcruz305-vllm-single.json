@@ -1,0 +1,48 @@
+{
+  "api": {
+    "audio_output": false,
+    "default_output_tokens": {
+      "remaining": "context"
+    },
+    "endpoints": [
+      "/v1/chat/completions",
+      "/v1/completions",
+      "/v1/responses",
+      "/v1/messages"
+    ],
+    "input_modalities": {
+      "audio": false,
+      "image": false,
+      "pdf": false,
+      "text": true,
+      "video": false
+    },
+    "max_input_tokens": null,
+    "max_output_tokens": {
+      "setting": "context_tokens"
+    },
+    "mode": "chat",
+    "reasoning": {
+      "effort": null,
+      "kind": "always-on"
+    },
+    "streaming": true,
+    "structured_output": true,
+    "system_messages": true,
+    "tools": {
+      "kind": "supported",
+      "parallel_calls": true,
+      "tool_choice": [
+        "auto",
+        "required",
+        "named"
+      ]
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "minimax-m3-1-flash-exl3-sage-2-15bpw-vcruz305-vllm-single"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}
