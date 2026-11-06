@@ -1,0 +1,60 @@
+{
+  "capabilities": [
+    "material-estimation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "license-e9502b582c33-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e9502b582c33a6747415ef0be569f5d7acf2e725a107eb39cee3b2b352cea449",
+      "size_bytes": 4724
+    },
+    {
+      "id": "chord-v1-b56f48857f1d-b8783ab6c9",
+      "path": "chord_v1.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b56f48857f1d84f0d051284d0c1f3ac58ecc6e86fba15c4849789f3807dd0cc2",
+      "size_bytes": 2761211350
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "ubisoft",
+      "slug": "chord"
+    },
+    "model": {
+      "publisher": "ubisoft",
+      "slug": "chord"
+    },
+    "publisher": "ubisoft",
+    "slug": "chord-v1-2b61fc12",
+    "variant": "v1",
+    "version": "v1"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "ubisoft"
+    ],
+    "spdx": "LicenseRef-Ubisoft-Machine-Learning-License-Research-Only-Copyleft",
+    "url": "https://github.com/ubisoft/ubisoft-laforge-chord/blob/675a29d1fee5e1b256833bd4edabd619be43d0c7/LICENSE"
+  },
+  "modalities": [
+    "image"
+  ],
+  "requires_token": true,
+  "source": {
+    "repository": "https://huggingface.co/Ubisoft/ubisoft-laforge-chord",
+    "revision": "2b61fc12f316b4692c2a79651e03340427450735"
+  }
+}
