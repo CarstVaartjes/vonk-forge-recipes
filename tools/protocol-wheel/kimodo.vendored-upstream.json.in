@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "NOTICE",
+    "requirements.in",
+    "requirements.lock",
+    "run.py",
+    "@protocol.wheel@"
+  ],
+  "source": {
+    "commit": "e1c219c99b4b94ba48be1fb6a1cbc64ecee4c954",
+    "repo": "nv-tlabs/kimodo"
+  }
+}
