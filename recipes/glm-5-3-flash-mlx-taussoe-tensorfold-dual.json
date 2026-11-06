@@ -633,7 +633,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "b83de4b1a00d7f5a2fffa3cf03fbe024a87b270117e04159d4a22413e899ae75",
+        "content_sha256": "0f81da8f2edb370aa0cb5d684f80647fd84c083c15351ee7469a0467cc443b90",
         "kind": "model",
         "publisher": "vontra",
         "slug": "glm-5-3-flash-mlx-4bit-mtp-d2b17f52"

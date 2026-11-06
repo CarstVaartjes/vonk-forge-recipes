@@ -211,7 +211,7 @@
       ],
       "id": "target",
       "model": {
-        "content_sha256": "df02689d8f0e0a07bdc41b266abc40476a7909109403ce6048c3aa6a59e88bc2",
+        "content_sha256": "8ba2532465b1cac728c60a0d4f1afd5371b624186b3c331de5514156024493ef",
         "kind": "model",
         "publisher": "vontra",
         "slug": "qwen3-8-27b-mlx-4bit-70ae7fac"

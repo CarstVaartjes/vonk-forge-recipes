@@ -2,7 +2,8 @@
   "capabilities": [
     "image-understanding",
     "reasoning",
-    "text-generation"
+    "text-generation",
+    "video-understanding"
   ],
   "dependencies": [],
   "files": [
@@ -521,7 +522,9 @@
     "url": "https://huggingface.co/Vontra/GLM-5.3-Flash-MLX-4bit-MTP/blob/main/LICENSE"
   },
   "modalities": [
-    "text"
+    "image",
+    "text",
+    "video"
   ],
   "requires_token": false,
   "source": {
