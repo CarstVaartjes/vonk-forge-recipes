@@ -65,7 +65,7 @@ class RemovalPeer:
         if self.crash:
             self.crash = False
             raise KeyboardInterrupt
-        if self.conflict:
+        if self.conflict and digest == A:
             self.conflict = False
             return 2, json.dumps(fixture("conflict")), ""
         if self.lost:
@@ -206,10 +206,11 @@ def test_a_submit_refusal_keeps_its_typed_cause_and_the_key_then_heals(tmp_path)
     assert "validation error" not in record["message"]
     assert record["next_check"] > clock.now()
     advance(sweep, clock)
-    assert [args[args.index("--request-key") + 1] for args in peer.submissions] == [
-        original,
-        original,
-    ]
+    assert [
+        args[args.index("--request-key") + 1]
+        for args in peer.submissions
+        if args[2] == A
+    ] == [original, original]
     assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.RECEIPT
 
 
