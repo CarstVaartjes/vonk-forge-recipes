@@ -1,0 +1,10 @@
+{
+  "code": "controller.conflict",
+  "error_type": "control_api",
+  "http_status": 409,
+  "retryable": false,
+  "detail": "model-object 8b1a9953c4611296a827abf8c47804d7e6c8c8bdc8f8b8ea0f4a7f6a3c4b9f10 has another removal owner",
+  "recovery_actions": [],
+  "submission": {"acceptance": "unknown", "failures": []},
+  "reconcile": {"request_key": "0c1d9f60-6d4e-4b0b-8a47-6a1a3a5a2f11"}
+}
