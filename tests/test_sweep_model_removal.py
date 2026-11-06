@@ -38,6 +38,7 @@ class RemovalPeer:
             }
         ]
         self.lost = False
+        self.conflict = False
         self.crash = False
         self.blocked = False
         self.mismatch = False
@@ -64,6 +65,9 @@ class RemovalPeer:
         if self.crash:
             self.crash = False
             raise KeyboardInterrupt
+        if self.conflict:
+            self.conflict = False
+            return 2, json.dumps(fixture("conflict")), ""
         if self.lost:
             self.lost = False
             return 124, "", "connection lost after acceptance"
@@ -185,6 +189,28 @@ def test_owner_unknown_blocks_only_removal_and_heals(tmp_path):
     peer.profiles = []
     advance(sweep, clock)
     assert peer.submissions
+
+
+def test_a_submit_refusal_keeps_its_typed_cause_and_the_key_then_heals(tmp_path):
+    """Catches validating a Controller error document as a receipt (a pydantic dump)."""
+    sweep, peer, clock = scenario(tmp_path)
+    peer.conflict = True
+    sweep.remove_finished_models()
+    record = sweep.state.data["model_removals"][A]
+    original = record["request_key"]
+    assert original is not None
+    conflict = fixture("conflict")
+    assert conflict["code"] in record["message"]
+    assert "http_status=409" in record["message"]
+    assert conflict["detail"] in record["message"]
+    assert "validation error" not in record["message"]
+    assert record["next_check"] > clock.now()
+    advance(sweep, clock)
+    assert [args[args.index("--request-key") + 1] for args in peer.submissions] == [
+        original,
+        original,
+    ]
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.RECEIPT
 
 
 @pytest.mark.parametrize("fault", ["lost", "crash"])
