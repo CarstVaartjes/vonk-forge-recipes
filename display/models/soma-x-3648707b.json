@@ -1,0 +1,14 @@
+{
+  "description": "SOMA-X v0.3.3 geometry assets: the template rig, neutral shape data and procedural transforms the SOMA 0.3.3 runtime loads.",
+  "family_title": "SOMA-X",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "soma-x-3648707b"
+  },
+  "kind": "model-display",
+  "model_title": "SOMA-X body assets",
+  "tags": [
+    "nvidia",
+    "soma-x"
+  ]
+}

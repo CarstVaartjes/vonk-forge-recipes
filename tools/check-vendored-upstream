@@ -18,7 +18,9 @@ file is classified:
   file elsewhere must be added to ``renamed``; one that shares a unique
   basename with an upstream file has drifted after a rename and fails;
 * in an adapter that vendors upstream files, any other file must be listed
-  under ``ours``.
+  under ``ours``;
+* files under a path prefix of an ``also`` entry come from that second upstream
+  (``repo`` at ``commit``) and must have the same git blob sha at the same path.
 
 Adapters that carry no upstream-derived file and have no manifest (they only
 add our wrapper on top of a published image) are reported, not compared.
@@ -42,7 +44,8 @@ Manifest ``vendored-upstream.json``::
       "source": {"repo": "owner/name", "commit": "<40 hex>"},   // optional
       "ours": ["vllm-wrapper.py", "verify-runtime.py"],
       "renamed": {"local/path.py": "upstream/path.py"},
-      "renamed_dirs": {"overlays/": "image-patch/"}
+      "renamed_dirs": {"overlays/": "image-patch/"},
+      "also": [{"repo": "o/other", "commit": "<40 hex>", "files": ["other/"]}]
     }
 """
 
@@ -325,7 +328,23 @@ def check_adapter(
     renamed: dict[str, str] = manifest.get("renamed", {})
     renamed_dirs: dict[str, str] = manifest.get("renamed_dirs", {})
     files = _local_files(adapter, root)
-    for entry in sorted(ours | set(renamed)):
+    also: list[tuple[str, str, tuple[str, ...], Tree]] = []
+    for extra in manifest.get("also", []):
+        try:
+            also.append(
+                (
+                    extra["repo"],
+                    extra["commit"],
+                    tuple(extra["files"]),
+                    load_tree(extra["repo"], extra["commit"]),
+                )
+            )
+        except RuntimeError as error:
+            report.problems.append(
+                f"{label}: cannot read upstream {extra['repo']}@{extra['commit']}: {error}"
+            )
+            return report
+    for entry in sorted(ours | set(renamed) | {p for e in also for p in e[2]}):
         if not any(
             f == entry or (entry.endswith("/") and f.startswith(entry)) for f in files
         ):
@@ -345,6 +364,17 @@ def check_adapter(
         if rel in ours or any(o.endswith("/") and rel.startswith(o) for o in ours):
             continue
         local_sha = git_blob_sha((adapter / rel).read_bytes())
+        second = next((e for e in also if rel.startswith(e[2])), None)
+        if second is not None:
+            vendored = True
+            report.checked += 1
+            if second[3].blobs.get(rel) != local_sha:
+                message = (
+                    f"{label}: {rel}: differs from upstream {second[0]} {rel} "
+                    f"at {second[1][:12]}"
+                )
+                report.problems.append(message)
+            continue
         candidates = _candidates(rel, renamed, renamed_dirs)
         present = [c for c in candidates if c in tree.blobs]
         if rel in renamed and not present:

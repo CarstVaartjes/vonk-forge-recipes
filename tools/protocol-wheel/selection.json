@@ -17,6 +17,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/three-d/gem-x-motion",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/three-d/motionbricks",
       "wheel_directory": ""
     },

@@ -1,0 +1,26 @@
+{
+  "alignment": "unspecified",
+  "description": "Single-Spark NVIDIA GEM-X video motion capture, body only: one video of one person (at most 60 seconds) becomes a 30 fps SOMA body motion with the creator's own gem-infer motion-video path (Body Pose s240000 features, original ViTPose 2D observations, Native77 final775 Body Motion, Contact/IK postprocess). The output is one motion.zip holding motion.bvh (somaskel77 skeleton, centimetres, standard T-pose rest pose, world-space root trajectory) and motion.npz (posed joints, rotations, root positions and contact logits), meant for retargeting onto a creature rig in Blender; the artifact contract has no animation format, so a skinned GLB clip is not offered. Hands, ViPE camera estimation and rendering are not offered. The BVH is written by Kimodo's SOMA exporter, so it carries Kimodo's neutral skeleton bone lengths, not the performer's. The creator's HumanArt person detector is published only on download.openmmlab.com, so the detector is the YOLOX-X COCO ONNX from the Megvii YOLOX 0.1.1rc0 release, which GEM-X's own detector code decodes; it runs on the CPU (there is no aarch64 onnxruntime-gpu wheel). The weights are released under the NVIDIA Open Model License and the SOMA-X assets under Apache-2.0. GEM-X has no recorded GB10 run yet. Physical Spark acceptance is pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "gem-x-body-motion-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "nvidia",
+    "gem-x",
+    "motion-capture",
+    "video-to-motion",
+    "animation",
+    "bvh",
+    "soma",
+    "pytorch-pipeline",
+    "single",
+    "spark",
+    "native",
+    "physical-acceptance-required"
+  ],
+  "title": "GEM-X body motion capture pytorch-pipeline single Spark"
+}
