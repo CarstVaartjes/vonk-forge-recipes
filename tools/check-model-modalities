@@ -15,12 +15,16 @@ and no list of exempt Models.
 from __future__ import annotations
 
 import argparse
-import json
+import sys
+from collections.abc import Iterable
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from vonk_forge_contracts.api_checks import INPUT_MODALITY_CAPABILITIES
 
-ROOT = Path(__file__).resolve().parents[1]
+from qualification.documents import model
 
 TEXT_OUTPUT = frozenset({"text-generation", "code-generation"})
 
@@ -39,7 +43,7 @@ def is_generator(capabilities: set[str]) -> bool:
     )
 
 
-def disagreements(document: dict[str, object]) -> list[str]:
+def disagreements(capabilities: Iterable[str], modalities: Iterable[str]) -> list[str]:
     """One message per capability and modality that do not hold together.
 
     A Model is checked when it is not a generator and either declares an
@@ -48,8 +52,8 @@ def disagreements(document: dict[str, object]) -> list[str]:
     declares no understanding and is not a language Model).
     """
 
-    capabilities = {str(c) for c in document.get("capabilities", [])}  # type: ignore[attr-defined]
-    modalities = {str(m) for m in document.get("modalities", [])}  # type: ignore[attr-defined]
+    capabilities = set(capabilities)
+    modalities = set(modalities)
     declares = any(c.endswith("-understanding") for c in capabilities)
     if is_generator(capabilities) or not (declares or {"text"} < modalities):
         return []
@@ -89,10 +93,10 @@ def main() -> int:
     )
     failed = 0
     for slug in slugs:
-        path = ROOT / "models" / f"{slug}.json"
-        if not path.is_file():
+        if not (ROOT / "models" / f"{slug}.json").is_file():
             continue
-        for message in disagreements(json.loads(path.read_text(encoding="utf-8"))):
+        document = model(slug, ROOT)
+        for message in disagreements(document.capabilities, document.modalities):
             failed += 1
             print(f"{slug}: {message}")
     print(f"Checked {len(slugs)} Model(s); {failed} disagreement(s).")
