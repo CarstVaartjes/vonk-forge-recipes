@@ -1,0 +1,18 @@
+{
+  "id": "vonk-forge/nemotron-3-5-transcribe-30b-a4b-nvfp4-nvidia-vllm-single",
+  "service_recipes": {
+    "alias": "nemotron-3-5-transcribe",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ],
+      "stress": [
+        "Bounded context and concurrency canaries"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "ASR_SPEECH"
+    ]
+  }
+}

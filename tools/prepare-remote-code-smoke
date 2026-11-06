@@ -238,8 +238,11 @@ IMPORTED = "vonk-smoke: vllm imported"
 # vLLM, so the next one is tried.
 PARSE = '''import faulthandler
 import sys
+from vllm.plugins import load_general_plugins
 from vllm.transformers_utils.config import get_config
 print("vonk-smoke: vllm imported", flush=True)
+# The engine loads its plugins before it parses a config; a plugin can register the model type.
+load_general_plugins()
 # A get_config that hangs dumps its stack before the parent's bound kills it.
 faulthandler.dump_traceback_later(float(sys.argv[3]) * 0.8)
 try:
