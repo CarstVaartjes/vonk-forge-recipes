@@ -1,0 +1,26 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "configs/config.env.example",
+        "pattern": "^IMAGE=vllm/vllm-openai:(?P<version>\\S+)$",
+        "repo": "docker.io/vllm/vllm-openai"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "README.md",
+        "pattern": "^\\| Model \\| (?P<repo>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+) at revision `(?P<version>[0-9a-f]{40})`"
+      }
+    },
+    "whole": false
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "commit": "7b46c7f5d55328d1c8ee97880c50d83528a34d90",
+    "repo": "tonyd2wild/MiniMax-M3.1-Flash-TP4-DGX-Sparks"
+  }
+}
