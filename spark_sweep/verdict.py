@@ -72,10 +72,10 @@ STALLED_CODE = "progress.stalled"
 #: while retention evicts. The Controller owns that wait; it is no infrastructure problem.
 NAS_SPACE_CODE = "model_cache.download_blocked"
 #: Model-cache failure codes that mean the source wants the owner's access (accepted terms, a
-#: token with access): the Controller rechecks on its own schedule and when the token changes.
-ACCESS_CODES = frozenset(
-    {"access_denied", "access_required", "model_cache.credentials_missing"}
-)
+#: token with access): the Controller's ``ModelAccessReason`` words. Its ``_cache_failure``
+#: remaps ``model_cache.credentials_missing`` to ``access_required`` before storing, so only
+#: these two reach a receipt. It rechecks on its own schedule and when the token changes.
+ACCESS_CODES = frozenset({"access_denied", "access_required"})
 #: The waits the Controller owns under its own bounded window: ours renews at each expiry
 #: (it is looked at once per window), they are no infrastructure problem and pause no work.
 CONTROLLER_OWNED_WAITS = frozenset(
