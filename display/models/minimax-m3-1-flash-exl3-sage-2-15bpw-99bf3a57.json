@@ -1,0 +1,17 @@
+{
+  "description": "vcruz305's EXL3 SAGE mixed-precision quantization of MiniMaxAI/MiniMax-M3.1-Flash at 2.15 bits per weight (428B total, 23B active mixture of experts, 119 GB) for ExLlamaV3 and the vllm-exl3 plugin, with the DSpark draft head in dspark/. Language model only: the pack carries no vision-tower weights.",
+  "family_title": "MiniMax",
+  "identity": {
+    "publisher": "vcruz305",
+    "slug": "minimax-m3-1-flash-exl3-sage-2-15bpw-99bf3a57"
+  },
+  "kind": "model-display",
+  "model_title": "MiniMax M3.1 Flash EXL3 SAGE 2.15bpw",
+  "tags": [
+    "vcruz305",
+    "minimax-m3.1",
+    "language",
+    "exl3",
+    "candidate"
+  ]
+}
