@@ -48,6 +48,7 @@ from .policy import (
 from .receipt import receipt_failure, terminal_outcome
 from .state import State
 from .verdict import (
+    CONTROLLER_OWNED_WAITS,
     Disposition,
     Progress,
     RecoveryReason,
@@ -65,6 +66,11 @@ from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
 DOWNLOAD_STALL_SECONDS = 3600.0
 FailureHandler = Callable[[str, Failure, str | None, bool], None]
 DoneHandler = Callable[[str], None]
+
+
+def _waits_for_owner(record: Mapping[str, Any]) -> bool:
+    wait = (record.get("watch") or {}).get("wait") or {}
+    return wait.get("reason") == SweepWaitReason.ACCESS_TERMS
 
 
 @dataclass(frozen=True)
@@ -282,7 +288,7 @@ class Prefetcher:
             record["bps"] = speed
             if (
                 signal.wait is not None
-                and signal.wait.reason is SweepWaitReason.NAS_SPACE
+                and signal.wait.reason in CONTROLLER_OWNED_WAITS
                 and now > float(window.get("wait_deadline", now))
             ):
                 # The Controller owns a NAS-space wait (its own window; eviction frees
@@ -291,7 +297,7 @@ class Prefetcher:
                 record["wait_deferral"] = wait_expiry(window, now).model_dump(
                     mode="json"
                 )
-                self.state.event(f"download still waits for NAS space: {key}")
+                self.state.event(f"download still waits ({signal.wait.reason}): {key}")
             elif moving is Progress.WAIT_EXPIRED:
                 record["wait_deferral"] = wait_expiry(watch, now).model_dump(
                     mode="json"
@@ -601,7 +607,9 @@ class Prefetcher:
             ):
                 counted.add(key)
                 if record.get("kind") == "model":
-                    model_ops += 1
+                    # A gated download waits on the owner, not on a download slot.
+                    if not _waits_for_owner(record):
+                        model_ops += 1
                     accepted = AcceptedRequest.read(record)
                     if accepted is not None:
                         downloading.update(accepted.recipe.model_digests)

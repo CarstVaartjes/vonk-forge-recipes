@@ -13,6 +13,7 @@ from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from vonk_forge_contracts.sweep import SweepWaitReason
 
 from spark_sweep import policy, verdict
 from spark_sweep.policy import TimeoutPolicy
@@ -48,6 +49,44 @@ def _drive(sweep, clock, *, until, limit: int = 2000) -> None:
             return
         clock.sleep(sweep.cfg.poll_seconds)
     raise AssertionError("the scenario did not settle")
+
+
+# -- a gated model download ---------------------------------------------------------------
+
+
+def test_a_model_cache_access_denial_is_the_owners_wait_with_the_page_to_visit() -> (
+    None
+):
+    signal = verdict.download_signal(_document("recipe-operation-access-denied"))
+    assert signal.wait is not None
+    assert signal.wait.reason is SweepWaitReason.ACCESS_TERMS
+    assert signal.wait.detail == (
+        "https://huggingface.co/stabilityai/stable-audio-3-small-sfx"
+    )
+    assert signal.wait.reason in verdict.CONTROLLER_OWNED_WAITS
+
+
+def test_access_required_is_the_same_wait() -> None:
+    """``access_required`` (no token, or the credentials_missing remap) is the owner's too."""
+    document = _document("recipe-operation-access-denied")
+    failure = next(c for c in document["children"] if c["kind"] == "model-cache")[
+        "failure"
+    ]
+    failure["code"] = "access_required"
+    signal = verdict.download_signal(document)
+    assert signal.wait is not None
+    assert signal.wait.reason is SweepWaitReason.ACCESS_TERMS
+    assert signal.wait.detail.startswith("https://huggingface.co/stabilityai/")
+
+
+def test_an_access_wait_without_a_page_keeps_the_controllers_words() -> None:
+    document = _document("recipe-operation-access-denied")
+    failure = next(c for c in document["children"] if c["kind"] == "model-cache")[
+        "failure"
+    ]
+    failure["detail"] = "the token lacks access"
+    signal = verdict.download_signal(document)
+    assert signal.wait is not None and signal.wait.detail == "the token lacks access"
 
 
 # -- progress_verdict on Controller documents --------------------------------------------
