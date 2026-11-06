@@ -1,0 +1,15 @@
+This build context embeds the Stable Audio 3 inference library
+(https://github.com/Stability-AI/stable-audio-3, MIT License) at commit
+790793b89ddceea612be9ce42ff6830d18f6fa57. The vendored archive is a deterministic
+subset of that commit: LICENSE, pyproject.toml and the stable_audio_3/ package, every
+member byte-identical to the upstream file at that commit. The rest of the repository
+(training scripts, tests, documentation and the optimized/ benchmark assets that make
+the full repository archive 52 MB) is not needed to run inference and is left out.
+The Docker build verifies the archive SHA-256 before extraction and applies
+patch-offline-models.py, which points the library at the read-only /models mount
+instead of the Hugging Face Hub.
+
+The model weights (Stability AI Community License; the bundled T5Gemma text encoder
+under the Gemma Terms of Use) are not part of this build context.
+
+The files under pipelines/ are Vonk Forge wrappers for the signed job contract.
