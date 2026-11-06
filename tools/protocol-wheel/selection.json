@@ -17,6 +17,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/three-d/kimodo",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/three-d/motionbricks",
       "wheel_directory": ""
     },
