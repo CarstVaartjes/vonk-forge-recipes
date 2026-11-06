@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -69,16 +66,6 @@
     "version": "425aa615"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "incoai"
-    ],
-    "spdx": "CC-BY-NC-ND-4.0",
-    "url": "https://huggingface.co/incoai/GLM-5.3-DFlash2/blob/425aa615ce320caac34400208b30808c8f14f76c/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/incoai/GLM-5.3-DFlash2",

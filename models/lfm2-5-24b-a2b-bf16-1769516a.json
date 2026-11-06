@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -193,16 +192,6 @@
     "version": "1769516a"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "LiquidAI"
-    ],
-    "spdx": "lfm1.0",
-    "url": "https://huggingface.co/LiquidAI/LFM2.5-24B-A2B/blob/1769516ac588c4c558089c94f27d96b0dc67b183/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/LiquidAI/LFM2.5-24B-A2B",

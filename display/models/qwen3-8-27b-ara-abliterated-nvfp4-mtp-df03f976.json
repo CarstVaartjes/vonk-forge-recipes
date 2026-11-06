@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "Abliterated (trohrbaugh heretic-ara) Qwen3.8 27B, uniform NVFP4 compressed-tensors, BF16 MTP head, vision-language. Apache-2.0.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +11,19 @@
     "slug": "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "trohrbaugh",
+      "aday777"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP/blob/df03f976e0f0c06f952dba7034220087f8582f51/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Qwen3.8 27B ARA abliterated NVFP4 MTP",
   "tags": [
     "abliterated",

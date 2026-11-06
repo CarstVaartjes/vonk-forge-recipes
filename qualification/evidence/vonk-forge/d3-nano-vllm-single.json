@@ -31,6 +31,34 @@
     },
     {
       "identity": {
+        "content_sha256": "5e63f2bddb9a98b56aedbb651374dfd2b1394cb529f6eaa743bc5b9de2a2341f",
+        "model_digests": [
+          "f47af5186c2ff6a3fe0936a7cf4194f0d1982d4c3b3e405397a7bd21891ea619"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "e6da67fa41581e07728602e8b69933f5fb076548a87e19ca46c5901d797b8691"
+      ],
+      "tested_at": "2026-10-20T20:54:17.973048Z",
+      "platform": {
+        "controller_source_sha": "030d3d02dbc175e02c1334e0f1442286aba4723a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "e4c75bcfe7869848f03494b108152e7a8216558fed05a2e3b4033426f0e8d08b",
         "model_digests": [
           "d84a5ff33a36d9c35b0e622bdfa9139540c1f8dde1433fca7a22badf57fc2353"
@@ -83,6 +111,34 @@
     },
     {
       "identity": {
+        "content_sha256": "5e63f2bddb9a98b56aedbb651374dfd2b1394cb529f6eaa743bc5b9de2a2341f",
+        "model_digests": [
+          "f47af5186c2ff6a3fe0936a7cf4194f0d1982d4c3b3e405397a7bd21891ea619"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "f3b633ab7d346f2b4eeefcdf28cbe3872397fdecd35b5804647cfa1ec4081592"
+      ],
+      "tested_at": "2026-10-20T21:42:41.566783Z",
+      "platform": {
+        "controller_source_sha": "030d3d02dbc175e02c1334e0f1442286aba4723a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "e4c75bcfe7869848f03494b108152e7a8216558fed05a2e3b4033426f0e8d08b",
         "model_digests": [
           "d84a5ff33a36d9c35b0e622bdfa9139540c1f8dde1433fca7a22badf57fc2353"
@@ -131,6 +187,34 @@
       },
       "quality_notes": [
         "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "5e63f2bddb9a98b56aedbb651374dfd2b1394cb529f6eaa743bc5b9de2a2341f",
+        "model_digests": [
+          "f47af5186c2ff6a3fe0936a7cf4194f0d1982d4c3b3e405397a7bd21891ea619"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "69a2aa5e4b952e968f1a05ba2716d88ab6b0a4b6f71d08e22acd03aea7b7010c"
+      ],
+      "tested_at": "2026-10-20T22:38:02.877369Z",
+      "platform": {
+        "controller_source_sha": "030d3d02dbc175e02c1334e0f1442286aba4723a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split"
       ]
     },
     {
@@ -206,6 +290,33 @@
     },
     {
       "identity": {
+        "content_sha256": "5e63f2bddb9a98b56aedbb651374dfd2b1394cb529f6eaa743bc5b9de2a2341f",
+        "model_digests": [
+          "f47af5186c2ff6a3fe0936a7cf4194f0d1982d4c3b3e405397a7bd21891ea619"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "549a6c192cf65625976a470d6dc123e4c11ee62d8f815af5d1c74393da3e3e0b"
+      ],
+      "tested_at": "2026-10-21T00:54:10.596162Z",
+      "platform": {
+        "controller_source_sha": "f0a25540a78071e1179a5496b363a05af3659a8f",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "e4c75bcfe7869848f03494b108152e7a8216558fed05a2e3b4033426f0e8d08b",
         "model_digests": [
           "d84a5ff33a36d9c35b0e622bdfa9139540c1f8dde1433fca7a22badf57fc2353"
@@ -256,6 +367,37 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "5e63f2bddb9a98b56aedbb651374dfd2b1394cb529f6eaa743bc5b9de2a2341f",
+        "source_bundle_sha256": "c0a9e23eece3f15e97b5b49d76d9daafaf03336f0aebccf898c7eb479fa5e1ad",
+        "runtime_image": {
+          "build_key": "8a25a29e9570c3386cf15c310916a8c53375a2d0da353119cee7407f0bb31642",
+          "image_digest": "sha256:6e622471f2bacbdc399c6d7bf0c630a41a794b780a311883fd2638457669f961"
+        },
+        "model_digests": [
+          "f47af5186c2ff6a3fe0936a7cf4194f0d1982d4c3b3e405397a7bd21891ea619"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "db3c0707165c689f226abf656940a18496459c86e9ab92a08422f3fac1f687c4"
+      ],
+      "tested_at": "2026-11-03T17:18:23.037962Z",
+      "platform": {
+        "controller_source_sha": "ef0dfb4edf6f283c8cbc2e9a1c0c9aa68f64dfa0",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical execution document before the Model facts split"
+      ]
     }
   ]
 }

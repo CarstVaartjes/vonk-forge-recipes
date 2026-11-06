@@ -811,7 +811,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "68d75296033c58665e0a84d9f8356784db4057b94f56a25ace830027df473642",
+        "content_sha256": "c3134a8befe2dec7dba003ce2f662c85584c97923e0a52fa00c4698bdf4174ee",
         "kind": "model",
         "publisher": "lukealonso",
         "slug": "minimax-m3-nvfp4-e7c7b65d"

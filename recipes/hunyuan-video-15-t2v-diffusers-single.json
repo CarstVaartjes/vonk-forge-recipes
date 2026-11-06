@@ -434,7 +434,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "666c27b5ce38b8e7eefb778d6d140f68bc38416e1c5b9e01666aa4e32f1b6926",
+        "content_sha256": "a9f7f6c6f906926bfe3d1303950005a2b9cc92e6d26d521c3381ad392f3307ae",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan-video-15-t2v"

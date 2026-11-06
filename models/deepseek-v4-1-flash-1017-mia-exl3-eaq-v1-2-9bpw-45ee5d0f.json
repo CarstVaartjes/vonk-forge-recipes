@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -603,18 +597,6 @@
     "version": "1017-45ee5d0f"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Mia-AiLab",
-      "DeepSeek-AI"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-1017-EXL3-EAQ-v1-2.9-bpw/blob/45ee5d0fd106c94a3d77f721e09cbb2f50e5a16b/LICENSE"
-  },
-  "modalities": [
-    "text",
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-1017-EXL3-EAQ-v1-2.9-bpw",

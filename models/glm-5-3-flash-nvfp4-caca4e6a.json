@@ -1,11 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation",
-    "video-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -1207,19 +1200,6 @@
     "version": "GLM 5.3 Flash NVFP4 caca4e6a"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Z.ai",
-      "LibertAI"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/blob/caca4e6a4ebbd66f159d3d2fc256683fd6e27177/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text",
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4",

@@ -369,7 +369,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "b75f9b51667af55cf8ecd41a4b704124a7285a2429a7586047102188f32cb68c",
+        "content_sha256": "759d8336bb0709b31a4ced3d3b9e484b68cdfe75f8721dbb1dc8dc5626f480d9",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "minimax-m2-7-nvfp4-e79701cb"

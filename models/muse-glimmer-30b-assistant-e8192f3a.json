@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -78,16 +75,6 @@
     "version": "Muse Glimmer 30B Assistant e8192f3a"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Meta"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B-assistant/blob/e8192f3a8f617f74be2ce220360c89ef4789f39f/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B-assistant",

@@ -126,7 +126,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "7089c9f98653de6ff3b39fa29b5acea2d8267378224016354d7447eb0cddd3e2",
+        "content_sha256": "8c3b7f84fa5cc8ae81e13cfeb408e29f47960016284b60d46764037c69cc2414",
         "kind": "model",
         "publisher": "google",
         "slug": "gemma-4-e2b-it-4adf1574"

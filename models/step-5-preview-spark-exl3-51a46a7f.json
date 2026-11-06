@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -1795,16 +1794,6 @@
     "version": "51a46a7f"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "0xSero"
-    ],
-    "spdx": "stepfun-community-license",
-    "url": "https://huggingface.co/0xSero/Step-5-Preview-Spark/blob/51a46a7f62eee1225d124170da903bba23d04a26/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/0xSero/Step-5-Preview-Spark",

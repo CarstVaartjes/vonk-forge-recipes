@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "XYZAILab XYZ-Aquila-mini (Qwen3-architecture mixture-of-experts language model).",
   "family_title": "XYZ Aquila",
   "identity": {
@@ -6,6 +12,17 @@
     "slug": "xyz-aquila-mini-nvfp4-39f7345d"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "XYZAILab",
+      "r0b0tlab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/r0b0tlab/XYZ-Aquila-mini-NVFP4/blob/39f7345d7838713107a7ee728cbe7c963a707f4d/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "XYZ-Aquila-mini",
   "tags": [
     "r0b0tlab",

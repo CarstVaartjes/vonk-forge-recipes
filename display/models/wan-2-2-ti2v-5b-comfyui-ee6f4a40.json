@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "video-generation"
+  ],
   "description": "Exact Comfy-Org FP16 TI2V 5B model, scaled-FP8 encoder, and Wan 2.2 VAE.",
   "family_title": "Wan",
   "identity": {
@@ -6,6 +10,18 @@
     "slug": "wan-2-2-ti2v-5b-comfyui-ee6f4a40"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Wan-AI",
+      "Comfy-Org"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B/blob/921dbaf3f1674a56f47e83fb80a34bac8a8f203e/LICENSE.txt"
+  },
+  "modalities": [
+    "image",
+    "video"
+  ],
   "model_title": "Wan 2.2 TI2V 5B",
   "tags": [
     "wan",

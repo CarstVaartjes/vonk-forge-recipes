@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -540,18 +534,6 @@
     "version": "74aa7dfeb4edc2d59df71abda01470d795394a26"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "DeepSeek-AI",
-      "drowzeys (Keys)",
-      "Turboderp (ExLlamaV3 EXL3 format)"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid/blob/74aa7dfeb4edc2d59df71abda01470d795394a26/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid",

@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -468,17 +462,6 @@
     "version": "1017-f3657818"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "DeepSeek-AI; bertholomus for the EXL3 quantization."
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/bertholomus/DeepSeek-V4.1-Flash-1017-EXL3-4.0bpw/blob/f3657818ca522b38aad5449b16aa1991c96a3e83/LICENSE"
-  },
-  "modalities": [
-    "text",
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/bertholomus/DeepSeek-V4.1-Flash-1017-EXL3-4.0bpw",

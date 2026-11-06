@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -78,17 +75,6 @@
     "version": "Qwen3.6 27B DFlash 09196886"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "z-lab",
-      "Qwen"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/z-lab/Qwen3.6-27B-DFlash/blob/0919688658996800f86b895034249700e9481106/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/z-lab/Qwen3.6-27B-DFlash",

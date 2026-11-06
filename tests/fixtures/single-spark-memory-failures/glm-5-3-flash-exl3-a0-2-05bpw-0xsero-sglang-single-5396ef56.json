@@ -266,7 +266,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "3c4c667c88415320952c5642fcd4646b1ae4505efd546b31dc76ac6730e3189b",
+        "content_sha256": "fc925e754ec0fa36a00f50c75f423c032144b4f5073aeee8ccff53c4a7124386",
         "kind": "model",
         "publisher": "turboderp",
         "slug": "glm-5-3-flash-exl3-2-05bpw-51058cd5"

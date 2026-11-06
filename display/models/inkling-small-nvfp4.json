@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "audio-understanding",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "Exact public NVFP4 checkpoint, including its built-in eight-head MTP weights and text, image, and 16 kHz audio processor contract.",
   "family_title": "Inkling",
   "identity": {
@@ -6,6 +11,18 @@
     "slug": "inkling-small-nvfp4"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Thinking Machines Lab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/blob/b6a99534467840620d411e4cd4ad5819b2610d9c/README.md"
+  },
+  "modalities": [
+    "audio",
+    "image",
+    "text"
+  ],
   "model_title": "Inkling Small",
   "tags": [
     "thinkingmachines",

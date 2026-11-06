@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "image-understanding",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -801,18 +795,6 @@
     "version": "Ling 3.0 flash VL NVFP4-MP 093789ca"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "inclusionAI",
-      "r0b0tlab"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/r0b0tlab/Ling-3.0-flash-VL-NVFP4-MP/blob/093789ca027f219a6e2f717ad16977d7a3809132/README.md"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/r0b0tlab/Ling-3.0-flash-VL-NVFP4-MP",

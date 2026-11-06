@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -130,16 +129,6 @@
     "version": "3f3edb52"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "black-forest-labs"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/black-forest-labs/flux-3-image-klein-pup/blob/3f3edb52b2c55de0d49feab28598b68f7f8e4830/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/black-forest-labs/flux-3-image-klein-pup",

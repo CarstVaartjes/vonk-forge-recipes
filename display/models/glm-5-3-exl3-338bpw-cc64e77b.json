@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Full GLM-5.3 SAGE EXL3 3.38bpw, exact creator revision.",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "glm-5-3-exl3-338bpw-cc64e77b"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.ai",
+      "vcruz305"
+    ],
+    "spdx": "LicenseRef-GLM-5.3",
+    "url": "https://huggingface.co/vcruz305/GLM-5.3-EXL3-3.38bpw/blob/cc64e77b1b1744c7bc71e54c838727f0db0f1a36/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "GLM 5.3",
   "tags": [
     "vcruz305",

@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -69,16 +66,6 @@
     "version": "MiniMax M3 EAGLE3 RTN INT4 86ffe4b7"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Sebesky"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/Sebesky/MiniMax-M3-EAGLE3-RTN-INT4/blob/86ffe4b794c23d000ddf6d93904f7526d2c575ea/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Sebesky/MiniMax-M3-EAGLE3-RTN-INT4",

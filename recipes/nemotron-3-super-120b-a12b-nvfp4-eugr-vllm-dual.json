@@ -432,7 +432,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4ad62d68ca8d92e7f8cf8d6948d6ebdf0f1890b861f9414b1bff7e7794faeac1",
+        "content_sha256": "38333d6149cec8defd25d081c6dd88bf7de5541bca0ab255cf312157a532fa1e",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-super-120b-a12b-nvfp4"

@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Exact public Inkling Small DSpark Preview speculator checkpoint at fcc210dc (BF16, block_size 15, draft weights only; requires the matching Inkling Small NVFP4 target).",
   "family_title": "Inkling",
   "identity": {
@@ -6,6 +7,17 @@
     "slug": "inkling-small-dspark-fcc210dc"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "RadixArk",
+      "Thinking Machines Lab"
+    ],
+    "spdx": "NOASSERTION",
+    "url": "https://huggingface.co/RadixArk/Inkling-Small-DSpark-Preview/blob/fcc210dcf244cc2f550ef1f75507eb4146c17a57/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Inkling Small DSpark companion",
   "tags": [
     "radixark",

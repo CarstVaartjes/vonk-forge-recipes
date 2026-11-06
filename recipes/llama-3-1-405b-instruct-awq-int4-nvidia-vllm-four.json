@@ -663,7 +663,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "3470a192c5ad8667e732bb654764de8464b23244b6a2765b9e09fef7cd4c7d75",
+        "content_sha256": "542edd4ae74b638254ff47d3e76a0424e05b63283696d1bde61ad3f8791ff3f9",
         "kind": "model",
         "publisher": "hugging-quants",
         "slug": "llama-3-1-405b-instruct-awq-int4-1954fc59"

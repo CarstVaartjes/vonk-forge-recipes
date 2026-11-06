@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Nemotron 3.5 Super VL LiLiCorr immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "nemotron-3-5-super-vl-lilicorr-nvfp4-292bf1ef"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "nvidia"
+    ],
+    "spdx": "openmdw-1.1",
+    "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4-LiLiCorr/blob/292bf1efc06ba39567da7351f2ad7a522afa3959/https://openmdw.ai/license/1-1/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Nemotron 3.5 Super VL LiLiCorr",
   "tags": [
     "candidate",

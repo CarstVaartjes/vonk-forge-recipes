@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "image-understanding"
+  ],
   "description": "Unsloth NVFP4 checkpoint (mixed FP8 dense + NVFP4 experts) of Qwen3.6 35B-A3B, multimodal, calibrated on Unsloth + UltraChat data.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +9,17 @@
     "slug": "qwen3-6-35b-a3b-unsloth-nvfp4-739af1e7"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Unsloth",
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/blob/main/LICENSE"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "Unsloth Qwen3.6 35B-A3B NVFP4",
   "tags": [
     "unsloth",

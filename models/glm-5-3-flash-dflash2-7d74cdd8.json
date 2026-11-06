@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -60,16 +57,6 @@
     "version": "GLM 5.3 Flash DFlash2 7d74cdd8"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "IncoAI"
-    ],
-    "spdx": "CC-BY-NC-ND-4.0",
-    "url": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/blob/bf582e4eacc1810f76656d1811693ff6c6737d2a/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2",

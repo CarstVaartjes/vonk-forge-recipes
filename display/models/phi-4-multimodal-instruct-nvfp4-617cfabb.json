@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "audio-understanding",
+    "chat",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Phi-4-multimodal-instruct with its speech and vision LoRA adapters.",
   "family_title": "Microsoft Phi-4",
   "identity": {
@@ -6,6 +12,19 @@
     "slug": "phi-4-multimodal-instruct-nvfp4-617cfabb"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Microsoft"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
+  },
+  "modalities": [
+    "audio",
+    "image",
+    "text"
+  ],
   "model_title": "Phi-4 Multimodal Instruct",
   "tags": [
     "nvidia",

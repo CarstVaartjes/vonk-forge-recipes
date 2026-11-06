@@ -156,7 +156,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "31f85f3b02e83138d33436f612c21e152f3834350e69f15bbf6b9899d1b8f761",
+        "content_sha256": "f44ce218bf8b10dc5d637f6256eeb9a2cafbd9f688192bbfc5c24f7459dba188",
         "kind": "model",
         "publisher": "redhatai",
         "slug": "muse-glimmer-30b-nvfp4-e83ead54"
@@ -227,7 +227,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "e9c25fc788b6e012c4d213c9d8e6d3fadae89db8ef816929982836a17a39f21a",
+        "content_sha256": "ff51caa37b2844ec33a65f4d45d17dbca75f53a565fdf620652f02d423f615d6",
         "kind": "model",
         "publisher": "meta",
         "slug": "muse-glimmer-30b-assistant-e8192f3a"

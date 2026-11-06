@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "3d-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -222,16 +219,6 @@
     "version": "TRELLIS.2 4B"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "microsoft"
-    ],
-    "spdx": "MIT",
-    "url": "https://github.com/microsoft/TRELLIS.2/blob/75fbf0183001ed9876c8dbb35de6b68552ee08bd/LICENSE"
-  },
-  "modalities": [
-    "3d"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/microsoft/TRELLIS.2-4B",

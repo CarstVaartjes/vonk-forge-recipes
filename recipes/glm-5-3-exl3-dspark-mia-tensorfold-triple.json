@@ -1653,7 +1653,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "98bdcb2820da9bd85be4a6285224e8a1a0f4f522d9d67ef670de6444fcab94ab",
+        "content_sha256": "355aafc329361d040714386ff0866be65ebe108f2d2494e917651ed26459668f",
         "kind": "model",
         "publisher": "mia-ailab",
         "slug": "glm-5-3-exl3-275bpw-mia-2d747d0e"
@@ -1741,7 +1741,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "15b4d3e0d86bae4519e9ba15bb5836e00afb8d27046972262845ec9d48ce86f2",
+        "content_sha256": "aeecc8a929d78b35dd5a743869b2d1795545cf9977130c19d11929929124a48e",
         "kind": "model",
         "publisher": "redhatai",
         "slug": "glm-5-3-dspark-b374b956"

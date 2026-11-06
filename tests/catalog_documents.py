@@ -6,7 +6,7 @@ import json
 from functools import cache
 from pathlib import Path
 
-from vonk_forge_contracts import ModelDefinition, document_sha256
+from vonk_forge_contracts import ModelDefinition, ModelDisplay, document_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -27,3 +27,21 @@ def catalog_models() -> dict[str, ModelDefinition]:
         document = json.loads(path.read_text(encoding="utf-8"))
         models[document_sha256(document)] = ModelDefinition.model_validate(document)
     return models
+
+
+@cache
+def catalog_model_displays() -> dict[str, ModelDisplay]:
+    """Every Model display, keyed by the digest of its Model's published document.
+
+    The display holds the Model's declared facts (modalities, capabilities,
+    licence), so a test that reads one goes through here, not the document.
+    """
+
+    from qualification.documents import model_display
+
+    return {
+        document_sha256(json.loads(path.read_text(encoding="utf-8"))): model_display(
+            path.stem, ROOT
+        )
+        for path in sorted((ROOT / "models").glob("*.json"))
+    }

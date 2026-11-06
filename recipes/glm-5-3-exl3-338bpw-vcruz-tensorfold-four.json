@@ -771,7 +771,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "7e30275dde7abd644516e1110a49885707675118ac908bbf57332c94818fa421",
+        "content_sha256": "5be7f81c6733a1edc44969f0cd12ed7ff54a423d6505f657a44fb5a4bff8d416",
         "kind": "model",
         "publisher": "vcruz305",
         "slug": "glm-5-3-exl3-338bpw-cc64e77b"
@@ -837,7 +837,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "f61c1d7a94179af45eb1d5420747be8e8979c88956ea44496a772a5d90086575",
+        "content_sha256": "69ddf1cd9a66ddabe55b144f10344a0edce0dd8cf1278201e285877c0c79ae45",
         "kind": "model",
         "publisher": "incoai",
         "slug": "glm-5-3-dflash2-425aa615"
@@ -870,7 +870,7 @@
       ],
       "id": "head",
       "model": {
-        "content_sha256": "94e126829adf22fcc6fc539b22b49b7ecd620af58fbcd503a0cd87f97e754272",
+        "content_sha256": "bd31c7084f372ecdefd5137a1af0a2380cbc7bb9f4fa4e64e12a527ba1b4ea67",
         "kind": "model",
         "publisher": "zai-org",
         "slug": "glm-5-3-bf16-head-source-aca966e4"

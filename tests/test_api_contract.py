@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from documents import has_recipe_api, model, recipe, recipe_api
+from documents import has_recipe_api, model_display, recipe, recipe_api
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from vonk_forge_contracts import (
@@ -54,7 +54,9 @@ def test_every_api_document_round_trips_and_agrees_with_its_recipe(path: Path) -
     Draft202012Validator(recipe_api_json_schema()).validate(_json(path))
     document = recipe(path.stem)
     check_recipe_api(document, api)
-    check_api_models(document, api, [model(s.model.slug) for s in document.models])
+    check_api_models(
+        document, api, [model_display(s.model.slug) for s in document.models]
+    )
 
 
 def test_the_api_document_leaves_the_recipe_untouched() -> None:
@@ -145,10 +147,11 @@ def test_a_block_with_an_unknown_mode_or_extra_field_is_refused() -> None:
 
 
 def _library(tmp_path: Path, *slugs: str) -> Path:
-    for folder in ("recipes", "api/recipes", "models"):
+    for folder in ("recipes", "api/recipes", "models", "display/models"):
         (tmp_path / folder).mkdir(parents=True, exist_ok=True)
-    for path in (ROOT / "models").glob("*.json"):
-        shutil.copy(path, tmp_path / "models")
+    for folder in ("models", "display/models"):
+        for path in (ROOT / folder).glob("*.json"):
+            shutil.copy(path, tmp_path / folder)
     for slug in slugs:
         shutil.copy(ROOT / f"recipes/{slug}.json", tmp_path / "recipes")
         shutil.copy(ROOT / f"api/recipes/{slug}.json", tmp_path / "api/recipes")

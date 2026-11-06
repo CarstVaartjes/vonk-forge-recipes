@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "reasoning",
+    "text-generation"
+  ],
   "description": "EXL3 checkpoint without a published vision sidecar at this revision.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +10,17 @@
     "slug": "qwen3-8-flash-next-exl3-6-05bpw-d2e238fe"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "turboderp"
+    ],
+    "spdx": "LicenseRef-Qwen-Community-1.0",
+    "url": "https://huggingface.co/turboderp/Qwen3.8-Flash-Next-exl3/blob/d2e238feca4c1c4d966943117356d8a42c2f4dcb/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Qwen3.8 Flash Next EXL3",
   "tags": [
     "turboderp",

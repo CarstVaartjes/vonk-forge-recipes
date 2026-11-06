@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -241,17 +237,6 @@
     "version": "INT4 AutoRound 79c8a6bb"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Intel",
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Intel/Qwen3-Coder-Next-int4-AutoRound/blob/79c8a6bb73b7946095d7ece1f8fc68535f7c9ab8/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Intel/Qwen3-Coder-Next-int4-AutoRound",

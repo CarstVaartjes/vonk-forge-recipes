@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "audio-generation",
-    "text-to-audio"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -133,18 +129,6 @@
     "version": "Small SFX"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "stabilityai",
-      "google"
-    ],
-    "spdx": "LicenseRef-Stability-AI-Community-License AND LicenseRef-Gemma-Terms-of-Use",
-    "url": "https://huggingface.co/stabilityai/stable-audio-3-small-sfx/blob/05ca3857881c94a2b84026b1111c537d78f5f9f0/LICENSE.md"
-  },
-  "modalities": [
-    "text",
-    "audio"
-  ],
   "requires_token": true,
   "source": {
     "repository": "https://huggingface.co/stabilityai/stable-audio-3-small-sfx",

@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "image-understanding",
-    "reasoning"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -287,17 +282,6 @@
     "version": "27B 6a9e13bd"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/main/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Qwen/Qwen3.6-27B",

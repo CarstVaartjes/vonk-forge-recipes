@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -134,17 +129,6 @@
     "version": "FP8 42d9515e"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation",
-      "Meta Platforms"
-    ],
-    "spdx": "LicenseRef-Llama-3.1-Community-License",
-    "url": "https://www.llama.com/llama3_1/license/"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Llama-3.1-8B-Instruct-FP8",

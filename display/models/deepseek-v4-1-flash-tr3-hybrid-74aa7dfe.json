@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "drowzeys' hybrid quant of deepseek-ai/DeepSeek-V4.1-Flash: routed tail experts in EXL3-TR3 K=3 (mcg codebook, ~3.0 bpw), the 64 highest round-trip-error experts per layer kept native MXFP4, everything else (attention, indexer, Engram tables, hyper-connections) in the release's own format; about 3.22 bpw MoE mix, 410 GB in 48 shards (release: 476 GB). Includes vision. MIT.",
   "family_title": "DeepSeek Flash",
   "identity": {
@@ -6,6 +12,18 @@
     "slug": "deepseek-v4-1-flash-tr3-hybrid-74aa7dfe"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek-AI",
+      "drowzeys (Keys)",
+      "Turboderp (ExLlamaV3 EXL3 format)"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid/blob/74aa7dfeb4edc2d59df71abda01470d795394a26/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "DeepSeek V4.1 Flash TR3-Hybrid",
   "tags": [
     "drowzeys",

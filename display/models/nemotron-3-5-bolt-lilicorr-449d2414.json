@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Exact draft checkpoint used by vcruz305 Bolt vLLM profile.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "nemotron-3-5-bolt-lilicorr-449d2414"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA"
+    ],
+    "spdx": "LicenseRef-OpenMDW-1.1",
+    "url": "https://openmdw.ai/license/1-1/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Nemotron 3.5 Bolt LiLiCorr (abd47806)",
   "tags": [
     "nvidia",

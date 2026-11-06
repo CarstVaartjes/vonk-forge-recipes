@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -175,16 +174,6 @@
     "version": "2367e865"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "XiaomiMiMo"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Distill-Qwen-9B/blob/2367e865d009c13ac81713a2878291d33ab28177/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Distill-Qwen-9B",

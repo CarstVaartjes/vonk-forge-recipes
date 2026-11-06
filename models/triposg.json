@@ -1,10 +1,7 @@
 {
-  "capabilities": [
-    "3d-generation"
-  ],
   "dependencies": [
     {
-      "content_sha256": "88bd00232eeb03eff1f99abfa61bb34d4e6f970084f8dc19970da2ab7d44aa49",
+      "content_sha256": "27697cbe0a70d7392fc7e719264da303fd58623edef7d32b5b46771573d1b42c",
       "kind": "model",
       "publisher": "bria-ai",
       "slug": "bria-rmbg-1-4"
@@ -130,17 +127,6 @@
     "version": "TripoSG base"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "vast-ai"
-    ],
-    "spdx": "MIT",
-    "territorial_restrictions": null,
-    "url": "https://github.com/VAST-AI-Research/TripoSG/blob/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c/LICENSE"
-  },
-  "modalities": [
-    "3d"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/VAST-AI/TripoSG",

@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Exact Step1X label-geometry offline dependency closure for CLIP configuration. No external CLIP weights are selected or required. The pinned model card cautions against deployed use; this is recorded separately from the upstream MIT license.",
   "family_title": "CLIP ViT Large Patch14",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "clip-vit-large-patch14"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "openai"
+    ],
+    "spdx": "MIT",
+    "url": "https://github.com/openai/CLIP/blob/d05afc436d78f1c48dc0dbf8e5980a9d471f35f6/LICENSE"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "CLIP ViT Large Patch14",
   "tags": [
     "openai",

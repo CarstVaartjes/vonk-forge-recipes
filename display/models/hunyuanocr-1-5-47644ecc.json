@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "ocr",
+    "text-generation"
+  ],
   "description": "Official HunyuanOCR 1.5 BF16 target checkpoint for plain autoregressive OCR serving. Draft and archived 1.0 files are not selected.",
   "family_title": "HunyuanOCR",
   "identity": {
@@ -6,6 +12,25 @@
     "slug": "hunyuanocr-1-5-47644ecc"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Tencent Hunyuan"
+    ],
+    "spdx": "LicenseRef-Tencent-Hunyuan-Community",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR"
+      ],
+      "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
+    },
+    "url": "https://huggingface.co/tencent/HunyuanOCR/blob/47644ecc4fc854efa4f505155158831f36773ee4/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "HunyuanOCR 1.5",
   "tags": [
     "tencent",

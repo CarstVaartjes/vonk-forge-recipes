@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "reasoning",
+    "text-generation"
+  ],
   "description": "Exact public Reasoning NVFP4 16993199 checkpoint.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +10,16 @@
     "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-nvfp4"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Nemotron 3 Nano Omni 30B-A3B",
   "tags": [
     "nvidia",

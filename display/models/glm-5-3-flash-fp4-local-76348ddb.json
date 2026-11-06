@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "NVIDIA FP4-Local (ModelOpt, quantization-aware distillation) checkpoint of Z.ai GLM-5.3-Flash for local b12x serving on DGX Spark.",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +12,18 @@
     "slug": "glm-5-3-flash-fp4-local-76348ddb"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.ai",
+      "NVIDIA"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "GLM 5.3 Flash",
   "tags": [
     "nvidia",

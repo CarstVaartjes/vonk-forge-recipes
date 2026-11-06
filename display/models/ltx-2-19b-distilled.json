@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "audio-generation",
+    "video-generation"
+  ],
   "description": "Exact executable checkpoint closure at dfcc2108 with a digest-bound Gemma 3 companion dependency.",
   "family_title": "LTX",
   "identity": {
@@ -6,6 +10,17 @@
     "slug": "ltx-2-19b-distilled"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Lightricks"
+    ],
+    "spdx": "LTX-2 Community License Agreement",
+    "url": "https://huggingface.co/Lightricks/LTX-2/blob/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/LICENSE"
+  },
+  "modalities": [
+    "audio",
+    "video"
+  ],
   "model_title": "LTX-2",
   "tags": [
     "lightricks",

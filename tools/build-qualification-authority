@@ -139,7 +139,9 @@ def _model_license_refs(
         if not isinstance(document, dict) or document.get("kind") != "model":
             raise ValueError(f"catalog identity is not a Model: {digest}")
         identity = document.get("identity")
-        license_value = document.get("license")
+        # The licence is a Model display fact; the entity ships the display.
+        display = entity.get("display")
+        license_value = display.get("license") if isinstance(display, dict) else None
         if not isinstance(identity, dict) or not isinstance(license_value, dict):
             raise TypeError(f"Model license is malformed: {digest}")
         key = f"{identity.get('publisher')}/{identity.get('slug')}"
