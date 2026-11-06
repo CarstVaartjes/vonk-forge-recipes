@@ -2174,39 +2174,44 @@ def model_problems(
     ]
 
 
-def gated_payload_unchanged(
+def gated_payload_identical(
     old: dict[str, Any],
-    old_tree: list[dict[str, Any]],
-    new_tree: list[dict[str, Any]],
+    before_tree: list[Any],
+    new_tree: list[Any],
 ) -> bool:
-    """Whether the tree entries alone show every catalogued non-metadata file unchanged.
+    """``payload_identical`` from tree entries alone, for a repository we cannot read.
 
     A gated repository serves neither non-LFS bytes nor LFS digests without access, but
-    its tree still lists each file's git blob id (for an LFS file the pointer, which
-    holds the digest) and size. The same id and size at the same path is the same bytes.
-    A file the repository added since that is not metadata is a change.
+    its tree lists each file's git blob id (for an LFS file the pointer, which holds the
+    digest) and size. ``<id>:<size>`` stands in for the digest on both sides; the
+    stored document keeps its roles, and the curation and the comparison are the
+    ungated ones (``curate``, ``payload_identical``).
     """
 
-    def entries(tree: list[dict[str, Any]]) -> dict[str, tuple[Any, Any]]:
+    def records(tree: list[Any]) -> dict[str, str]:
         return {
-            e["path"]: (e.get("oid"), e.get("size"))
+            e["path"]: f"{e.get('oid')}:{e.get('size')}"
             for e in tree
             if isinstance(e, dict) and e.get("type") == "file" and "path" in e
         }
 
-    before, after = entries(old_tree), entries(new_tree)
-    for entry in old["files"]:
-        if entry["roles"] != ["metadata"] and (
-            entry["path"] not in before
-            or before[entry["path"]][0] is None
-            or before[entry["path"]] != after.get(entry["path"])
-        ):
-            return False
-    known = {f["path"] for f in old["files"]}
-    return all(
-        path in known or path in before or roles_for(path) == ["metadata"]
-        for path in after
+    before, after = records(before_tree), records(new_tree)
+    stored = [{**f, "sha256": before.get(f["path"], "missing")} for f in old["files"]]
+    new_files = [
+        {"path": path, "roles": roles_for(path), "sha256": digest}
+        for path, digest in sorted(after.items())
+    ]
+    return payload_identical(
+        {**old, "files": stored}, curate(old, set(before), new_files)
     )
+
+
+def curate(
+    old: dict[str, Any], before: set[str], new_files: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """The new snapshot's files the Model document is about (see ``Assessor._curated``)."""
+    known = {entry["path"] for entry in old["files"]}
+    return [f for f in new_files if f["path"] in known or f["path"] not in before]
 
 
 def payload_identical(old: dict[str, Any], new_files: list[dict[str, Any]]) -> bool:
@@ -2407,6 +2412,7 @@ class Assessor:
         self.http = http
         self.cache_dir = cache_dir
         self.targets: dict[tuple[str, str], Target] = {}
+        self.trees: dict[tuple[str, str], list[Any]] = {}
         self.target_lock = threading.Lock()
         self.embedded_candidates: dict[str, list[dict[str, Any]]] = {}
         for record in embedded.get("recipes", []):
@@ -3004,7 +3010,11 @@ class Assessor:
                     old, item, self._inventory(item.repo, item.target.sha)
                 )
             except catalog.AccessDenied:
-                if declared or not self._gated_unchanged(old, item):
+                if declared or not gated_payload_identical(
+                    old,
+                    self._tree(item.repo, item.current),
+                    self._tree(item.repo, item.target.sha),
+                ):
                     raise
                 item.noop = True
                 result.evidence.append(
@@ -3077,20 +3087,11 @@ class Assessor:
         several); a file it left out that the catalogued revision already had is neither
         new nor part of the move. Files the repository added since are judged as new.
         """
-        known = {entry["path"] for entry in old["files"]}
         try:
             before = {f["path"] for f in self._inventory(item.repo, item.current)}
         except (RuntimeError, SystemExit, KeyError, ValueError, OSError):
             return new_files  # unknown history: judge every file
-        return [f for f in new_files if f["path"] in known or f["path"] not in before]
-
-    def _gated_unchanged(self, old: dict[str, Any], item: Item) -> bool:
-        base = f"https://huggingface.co/api/models/{quote(item.repo, safe='/')}"
-        trees = [
-            catalog._get_tree(f"{base}/tree/{revision}?recursive=true&limit=100")
-            for revision in (item.current, item.target.sha)
-        ]
-        return gated_payload_unchanged(old, trees[0], trees[1])
+        return curate(old, before, new_files)
 
     @staticmethod
     def _mounted_noop(item: Item, result: Assessment) -> None:
@@ -3102,6 +3103,16 @@ class Assessor:
             f"`{item.target.sha[:12]}`, so this move alone is not a refresh.\n"
         )
 
+    def _tree(self, repo: str, revision: str) -> list[Any]:
+        """One snapshot's recursive tree, fetched once per run."""
+        key = (repo, revision)
+        if key not in self.trees:
+            self.trees[key] = catalog._get_tree(
+                f"https://huggingface.co/api/models/{quote(repo, safe='/')}"
+                f"/tree/{revision}?recursive=true&expand=true&limit=100"
+            )
+        return self.trees[key]
+
     def _inventory(self, repo: str, revision: str) -> list[dict[str, Any]]:
         cache = (
             None
@@ -3110,11 +3121,7 @@ class Assessor:
         )
         if cache is not None and cache.is_file():
             return json.loads(cache.read_text(encoding="utf-8"))
-        base = f"https://huggingface.co/api/models/{quote(repo, safe='/')}"
-        tree = catalog._get_tree(
-            f"{base}/tree/{revision}?recursive=true&expand=true&limit=100"
-        )
-        artifacts = catalog.inventory(repo, revision, tree)
+        artifacts = catalog.inventory(repo, revision, self._tree(repo, revision))
         if cache is not None:
             cache.parent.mkdir(parents=True, exist_ok=True)
             cache.write_text(json.dumps(artifacts), encoding="utf-8")
