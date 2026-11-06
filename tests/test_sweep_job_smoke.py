@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import json
 import struct
+import warnings
 import zipfile
 from collections.abc import Sequence
 from pathlib import Path
@@ -548,6 +549,161 @@ def test_the_document_archive_manifest_is_read_strictly() -> None:
             [assertion],
             [Output("d.zip", "application/zip", _archive(extra=float("nan")))],
         )
+
+
+# -- zip-entries -----------------------------------------------------------------------
+
+MOTION = {
+    "kind": "zip-entries",
+    "media_type": "application/zip",
+    "exact_names": ["motion.bvh", "motion.npz"],
+    "allowed_suffixes": [".bvh", ".npz"],
+    "minimum_entries": 2,
+    "nonempty": True,
+}
+
+
+def _zip(
+    entries: Sequence[tuple[str, bytes]] = (
+        ("motion.bvh", b"HIERARCHY"),
+        ("motion.npz", b"PK"),
+    ),
+    *,
+    compression: int = zipfile.ZIP_STORED,
+    edit: Any = None,
+) -> bytes:
+    """An archive of ``entries``; ``edit`` may change the entries' ZipInfo before it is closed."""
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", compression) as archive:
+        with warnings.catch_warnings():  # a duplicate name is the point of one case
+            warnings.simplefilter("ignore", UserWarning)
+            for name, data in entries:
+                archive.writestr(name, data)
+        if edit is not None:
+            edit(archive.infolist())
+    return buffer.getvalue()
+
+
+def _check(content: bytes, **fields: Any) -> dict[str, str]:
+    assertion = {"kind": "zip-entries", **fields}
+    return evaluate([assertion], [Output("motion.zip", "application/zip", content)])
+
+
+def test_a_zip_with_the_declared_entries_passes_and_is_evaluated() -> None:
+    assert _check(_zip(), **{k: v for k, v in MOTION.items() if k != "kind"}) == {}
+    assert (
+        _check(
+            _zip(compression=zipfile.ZIP_DEFLATED),
+            exact_names=["motion.bvh", "motion.npz"],
+        )
+        == {}
+    )
+
+
+def test_a_zip_entries_assertion_without_fields_asks_for_one_entry() -> None:
+    """Every field is optional: the defaults are any names, one entry, any suffix, empties allowed."""
+    assert _check(_zip([("a.bin", b"")])) == {}
+    with pytest.raises(AssertionFailed, match="no files"):
+        _check(_zip([]))
+
+
+@pytest.mark.parametrize(
+    ("content", "fields", "message"),
+    [
+        (_zip([("motion.npz", b"PK"), ("motion.bvh", b"H")]), MOTION, "entry names"),
+        (_zip([("motion.bvh", b"H")]), MOTION, "entry names"),
+        (_zip(), {"minimum_entries": 3}, "entry count"),
+        (_zip(), {"allowed_suffixes": [".bvh"]}, "entry suffix"),
+        (_zip([("motion.bvh", b"")]), {"nonempty": True}, "empty entry"),
+    ],
+)
+def test_each_zip_entries_field_fails_the_recipe_on_a_miss(
+    content: bytes, fields: dict[str, Any], message: str
+) -> None:
+    with pytest.raises(AssertionFailed, match=message) as missed:
+        _check(content, **fields)
+    assert missed.value.kind == "zip-entries"
+
+
+def test_only_nonempty_true_rejects_an_empty_entry() -> None:
+    assert _check(_zip([("a.bin", b"")]), nonempty=False) == {}
+
+
+def test_zip_entries_checks_only_the_selected_media_type() -> None:
+    other = Output("m.json", "application/json", b"{}")
+    zipped = Output("m.zip", "application/zip", _zip())
+    assert evaluate([MOTION], [other, zipped]) == {}
+    with pytest.raises(AssertionFailed, match="selected no output"):
+        evaluate([MOTION], [other])
+
+
+def _declare(**sizes: int) -> Any:
+    def edit(infos: list[zipfile.ZipInfo]) -> None:
+        for name, value in sizes.items():
+            setattr(infos[0], name, value)
+
+    return edit
+
+
+@pytest.mark.parametrize(
+    ("content", "message"),
+    [
+        (_zip([("../motion.bvh", b"H")]), "unsafe entry"),
+        (_zip([("/motion.bvh", b"H")]), "unsafe entry"),
+        (_zip([("a/../../b", b"H")]), "unsafe entry"),
+        (_zip([("a\\b", b"H")]), "unsafe entry"),
+        (_zip([("dir/", b"")]), "unsafe entry"),
+        (
+            _zip(edit=lambda i: setattr(i[0], "flag_bits", i[0].flag_bits | 0x1)),
+            "unsafe entry",
+        ),
+        (
+            _zip(edit=lambda i: setattr(i[0], "external_attr", 0o120777 << 16)),
+            "unsafe entry",
+        ),
+        (_zip([("a", b"1"), ("a", b"2")]), "duplicate entries"),
+        (_zip(edit=_declare(file_size=129 * 1024**2)), "expansion is unsafe"),
+        (
+            _zip(edit=_declare(file_size=100_000_000, compress_size=1)),
+            "expansion is unsafe",
+        ),
+        (_zip(edit=_declare(compress_size=0)), "expansion is unsafe"),
+    ],
+)
+def test_an_unsafe_zip_is_a_miss_and_never_extracted(
+    content: bytes, message: str
+) -> None:
+    with pytest.raises(AssertionFailed, match=message) as missed:
+        _check(content)
+    assert missed.value.kind == "zip-entries"
+
+
+def _corrupt(content: bytes, at: int) -> bytes:
+    return content[:at] + bytes([content[at] ^ 0xFF]) + content[at + 1 :]
+
+
+def _first_data(name: str) -> int:
+    """Where the first entry's data starts: a 30-byte local header and its name."""
+    return 30 + len(name)
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        b"not a zip at all",
+        _zip()[:-10],
+        _corrupt(_zip(), _first_data("motion.bvh")),
+        _corrupt(
+            _zip([("a", b"x" * 4096)], compression=zipfile.ZIP_DEFLATED),
+            _first_data("a") + 1,
+        ),
+    ],
+    ids=["not-a-zip", "truncated", "crc-mismatch", "damaged-deflate"],
+)
+def test_a_corrupt_zip_is_a_miss_not_a_crash(content: bytes) -> None:
+    with pytest.raises(AssertionFailed) as missed:
+        _check(content)
+    assert missed.value.kind == "zip-entries"
 
 
 def test_every_assertion_kind_the_definitions_use_is_decided_or_named_not_evaluated() -> (

@@ -1099,8 +1099,8 @@ The sweep process and verdict meanings live in
   `tests/test_qualification_chat_cases.py`, `tests/test_sweep_vonkctl_smoke.py`).
 - **Artifact job with `--job-recipes`:** create/upload/submit one job against the
   held run, follow its receipt, download outputs and evaluate output count,
-  names, media/format, size, image/audio/video metadata, GLB structure or declared
-  document/transcript assertions. `spark_sweep/smoke_job.py` and
+  names, media/format, size, image/audio/video metadata, GLB structure, ZIP entries
+  or declared document/transcript assertions. `spark_sweep/smoke_job.py` and
   `spark_sweep/job_assertions.py` are the executors. Host-unobservable assertions
   are recorded as `not_evaluated` with a reason, never silently passed. Video
   inspection needs ffprobe; inspect any missing observation before claiming
