@@ -1,0 +1,28 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/env.sh",
+        "pattern": "^BASE_IMAGE_DIGEST=\"\\$\\{BASE_IMAGE_DIGEST:-(?P<version>sha256:[0-9a-f]{64})\\}\"$",
+        "repo": "docker.io/vllm/vllm-openai"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "scripts/env.sh",
+        "pattern": "^MODEL_REV=\"\\$\\{MODEL_REV:-(?P<version>[0-9a-f]{40})\\}\"$",
+        "repo_pattern": "^MODEL_REPO=\"(?P<repo>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)\"$"
+      }
+    },
+    "whole": false
+  },
+  "ours": [
+    "vllm-launcher.sh",
+    "scan-sm121.py"
+  ],
+  "source": {
+    "commit": "d7445a4317c5894828aaa34a702bdc84200cc456",
+    "repo": "vcruz305/MiniMax-M3.1-Flash-EXL3-Spark-recipe"
+  }
+}
