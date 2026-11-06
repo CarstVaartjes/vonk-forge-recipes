@@ -61,7 +61,7 @@ def test_the_api_document_leaves_the_recipe_untouched() -> None:
     """The recipe has no API field; its digest cannot depend on the sibling."""
 
     assert "api" not in RecipeDefinition.model_fields
-    assert not has_recipe_api("agents-a1-nvfp4-r0b0tlab-vllm-single")
+    assert not has_recipe_api("no-such-recipe")
 
 
 def test_an_orphan_api_document_is_refused() -> None:
