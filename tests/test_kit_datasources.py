@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
+from documents import model_display
 from test_kit_pins import (
     BASE,
     KIT,
@@ -705,12 +706,10 @@ class HfCheckAndLockTests(unittest.TestCase):
             )
             # the display (with the licence, capabilities and modalities) moves too
             old_slug = f"{slug_name(NEW)}-{NEW_REV[:8]}"
-            shown = json.loads(
-                (world.root / "display/models" / f"{new_slug}.json").read_text()
-            )
-            self.assertEqual(shown["identity"]["slug"], new_slug)
-            self.assertEqual(shown["license"]["spdx"], "MIT")
-            self.assertEqual(shown["modalities"], ["text"])
+            shown = model_display(new_slug, world.root)
+            self.assertEqual(shown.identity.slug, new_slug)
+            self.assertEqual(shown.license.spdx, "MIT")
+            self.assertEqual(shown.modalities, ["text"])
             self.assertFalse(
                 (world.root / "display/models" / f"{old_slug}.json").exists()
             )
