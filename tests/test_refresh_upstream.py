@@ -2669,6 +2669,7 @@ class SelfHealingTests(unittest.TestCase):
             "tools/check-recipe-topology",
             "tools/check-image-provenance",
             "tools/check-test-git",
+            "tools/_added_lines",
             "tools/generate-contract-examples",
             "tools/generate-contract-schemas",
             "tools/build-release-bundle",
