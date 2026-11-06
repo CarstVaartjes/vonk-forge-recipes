@@ -1,0 +1,23 @@
+{
+  "alignment": "unspecified",
+  "description": "Executable Candidate native TP4 recipe for the official MiniMax-M3.1-Flash checkpoint (about 428B total, 23B active mixture of experts; NVFP4 routed experts, MXFP8 attention and dense layers; text and image input) on four Sparks, from tonyd2wild's MiniMax-M3.1-Flash-TP4-DGX-Sparks kit at 7b46c7f5. It runs the vLLM project's published arm64 image vllm/vllm-openai:minimax-m31-flash-arm64-cu134 (vLLM 0.1.dev23341+g8744dd2fb, CUDA 13.4, torch 2.14.0, FlashInfer 0.7.2), the image the kit's launcher runs, pinned by digest and not rebuilt; a thin layer adds the Controller's launcher, the CUDA 13.4 forward-compat libcuda ahead of the host's 13.0 one, and the non-root user. The launch is the kit's: tensor parallel 4 over the native multi-node executor, 300,000-token context, 8 sequences, 8,192 batched tokens, block size 128, fp8 KV and indexer cache, the hybrid KV cache manager off, FULL_AND_PIECEWISE graphs, FlashInfer autotune off, images up to 4 per prompt with video off, the minimax_m3 reasoning and tool parsers, and MiniMax's DSpark speculative decoding (k = 3, the draft is in the checkpoint's dspark folder). Memory follows the creator: gpu-memory-utilization 0.80, the highest value that held on their four Sparks (0.82 and 0.85 starved the host and tripped their guard or swapped a node); that gave a 1.4M-token KV pool, 4.7 full 300K requests. The declared peaks are the creator's lowest observed MemAvailable (4.8 GB on rank 0, 6.6 GB on the workers) taken from the 130,663,231,488-byte total less the 5,012,574,208-byte idle use, estimates until the hardware try measures them. Creator figures (22 tok/s single user on a short prompt, 33 tok/s with a 32K prompt in context, 84 tok/s with six users, 82.6 on their 69-scenario tool eval) are upstream claims until measured here. The checkpoint's thinking is adaptive in its chat template; reasoning_effort (low to max) is a per-request chat-template argument, not a recipe option. License: MiniMax Community License (free for non-commercial use; commercial use has attribution and notice conditions; prohibited-use appendix), shown as information only.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "minimax-m3-1-flash-tonyd2wild-vllm-four"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "dspark",
+    "minimax-m3.1",
+    "multimodal",
+    "mxfp8",
+    "nvfp4",
+    "reasoning",
+    "spark",
+    "tool-use",
+    "tp4",
+    "vllm"
+  ],
+  "title": "MiniMax M3.1 Flash vLLM DSpark four Sparks"
+}
