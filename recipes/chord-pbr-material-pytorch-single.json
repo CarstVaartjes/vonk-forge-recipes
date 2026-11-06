@@ -1,0 +1,301 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/image/chord-pbr-pytorch"
+      },
+      "dockerfile": "adapters/image/chord-pbr-pytorch/Dockerfile",
+      "network": {
+        "hosts": [
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "chord-pbr-material-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "image-job",
+      "input": {
+        "max_bytes": 16777216,
+        "media_types": [
+          "image/jpeg",
+          "image/png"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "One texture image (a photographed or generated surface) to estimate PBR maps from; any size up to 16 megapixels.",
+            "extensions": [
+              ".jpg",
+              ".jpeg",
+              ".png"
+            ],
+            "id": "image",
+            "label": "Texture image",
+            "max_file_bytes": 16777216,
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/jpeg",
+              "image/png"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 268435456,
+        "slots": [
+          {
+            "description": "The four PBR maps at the input's size, named by the creator: basecolor.png (sRGB), normal.png (RGB tangent-space), roughness.png and metalness.png (8-bit grayscale).",
+            "extensions": [
+              ".png"
+            ],
+            "id": "maps",
+            "label": "PBR maps",
+            "max_file_bytes": 67108864,
+            "max_files": 4,
+            "max_total_bytes": 268435456,
+            "media_types": [
+              "image/png"
+            ],
+            "min_files": 4
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "license-e9502b582c33-c693279643",
+          "id": "primary-license-e9502b582c33-c693279643",
+          "mount": {
+            "target": "/models/chord"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chord-v1-b56f48857f1d-b8783ab6c9",
+          "id": "primary-chord-v1-b56f48857f1d-b8783ab6c9",
+          "mount": {
+            "target": "/models/chord"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "588b049a8d57c4e4d297ccbb9a4497dc8c2ebfef0105e7ed69f3ac9a5decc8cb",
+        "kind": "model",
+        "publisher": "ubisoft",
+        "slug": "chord-v1-2b61fc12"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "scheduler-config-11ac5627d7df-67ecb3dc37",
+          "id": "sd21-scheduler-config-11ac5627d7df-67ecb3dc37",
+          "mount": {
+            "target": "/models/stable-diffusion-2-1-base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-7e33bfc475f6-bcfd37e83e",
+          "id": "sd21-config-7e33bfc475f6-bcfd37e83e",
+          "mount": {
+            "target": "/models/stable-diffusion-2-1-base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-9fd691f7c803-ebbb0f71ea",
+          "id": "sd21-merges-9fd691f7c803-ebbb0f71ea",
+          "mount": {
+            "target": "/models/stable-diffusion-2-1-base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-f118ab3a9832-9a6c011314",
+          "id": "sd21-special-tokens-map-f118ab3a9832-9a6c011314",
+          "mount": {
+            "target": "/models/stable-diffusion-2-1-base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-d562b18a0c6d-47a6faaf45",
+          "id": "sd21-tokenizer-config-d562b18a0c6d-47a6faaf45",
+          "mount": {
+            "target": "/models/stable-diffusion-2-1-base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-e089ad92ba36-8c35116cc3",
+          "id": "sd21-vocab-e089ad92ba36-8c35116cc3",
+          "mount": {
+            "target": "/models/stable-diffusion-2-1-base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-ce0c6d379e3b-479c438b53",
+          "id": "sd21-config-ce0c6d379e3b-479c438b53",
+          "mount": {
+            "target": "/models/stable-diffusion-2-1-base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-424117cb534c-101abd63da",
+          "id": "sd21-config-424117cb534c-101abd63da",
+          "mount": {
+            "target": "/models/stable-diffusion-2-1-base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "stable-diffusion",
+      "model": {
+        "content_sha256": "893c8b94a78643ee90023a63bc7cd78b4c2bc67f37f43b09123d512a46557ed2",
+        "kind": "model",
+        "publisher": "sd2-community",
+        "slug": "stable-diffusion-2-1-base-configs-4e63672c"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "ubisoft"
+    ],
+    "source_reference": "https://github.com/ubisoft/ubisoft-laforge-chord/tree/675a29d1fee5e1b256833bd4edabd619be43d0c7"
+  },
+  "release": {
+    "released_at": "2026-11-06",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "image/png"
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 2762804345,
+            "image_bytes": 10000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 2000000000
+          },
+          "memory": {
+            "peak_bytes": 16000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "image-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png"
+            },
+            "output_slot": "maps",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "image-job"
+    }
+  }
+}

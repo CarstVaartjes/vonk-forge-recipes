@@ -1,0 +1,20 @@
+{
+  "alignment": "unspecified",
+  "description": "Installable Candidate for text-to-sound-effects with the exact gated Stable Audio 3 Small SFX checkpoint and its bundled T5Gemma text encoder, run through the creator's own library with its defaults (8 steps, CFG 1.0, float16). One text prompt in, one native 44.1 kHz stereo 16-bit WAV out (1 to 120 s, default 7 s per request knob). Weights: Stability AI Community License (free below USD 1M annual revenue, Enterprise licence above) and the Gemma Terms of Use for the encoder; the download needs a Hugging Face token whose account accepted the terms. Memory is an estimate from the 3.5 GB of weights and the creator's 2.4 GB peak VRAM at 120 s; physical Spark acceptance remains pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "stable-audio-3-small-sfx-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "audio",
+    "text-to-audio",
+    "sound-effects",
+    "pytorch",
+    "single",
+    "spark"
+  ],
+  "title": "Stable Audio 3 Small SFX PyTorch single Spark"
+}

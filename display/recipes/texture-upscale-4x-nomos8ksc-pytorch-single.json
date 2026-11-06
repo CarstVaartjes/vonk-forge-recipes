@@ -1,0 +1,19 @@
+{
+  "alignment": "unspecified",
+  "description": "4x texture and reference-photo upscaler: Philip Hofmann's 4xNomos8kSC (an RRDBNet fine-tuned from RealESRGAN_x4plus for realistic photos, robust to JPEG compression and slight blur), run in fp32 with Spandrel on one Spark. Takes one PNG or JPEG up to 2048x2048 and returns one PNG up to 8192x8192; transparency is carried over with bicubic scaling. Weights are CC BY 4.0, so credit the author when you use the output; physical Spark acceptance is pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "texture-upscale-4x-nomos8ksc-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "image",
+    "upscaling",
+    "pytorch",
+    "single",
+    "spark"
+  ],
+  "title": "4xNomos8kSC texture upscaler PyTorch single Spark"
+}

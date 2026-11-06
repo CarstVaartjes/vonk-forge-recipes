@@ -1,0 +1,20 @@
+{
+  "alignment": "unspecified",
+  "description": "Image to PBR maps for material authoring. One texture image (a photograph, or a texture you generated) in; four PNG maps out at the input's size, as the creator's CHORD model writes them: basecolor.png and normal.png (RGB), roughness.png and metalness.png (8-bit grayscale). It is a single-step image-conditional diffusion run through the creator's own code and settings (bfloat16, circular VAE padding, no per-request knobs); the model works internally at 1024 x 1024. CHORD does not output a height map (the creator's ComfyUI node derives one from the normal) and the stage-1 tileable texture generator is not released. Weights: Ubisoft Machine Learning License (Research-Only - Copyleft): academic or research use only, commercial use prohibited, derivatives under the same terms; shown for information, nothing here gates on it. The gated download needs a Hugging Face token whose account accepted the terms. Stable Diffusion 2.1 Base configuration and tokenizer files come from the ungated sd2-community mirror (OpenRAIL++). Memory is an estimate from the 2.76 GB of weights plus the 1024 x 1024 VAE and shading-grid activations; physical Spark acceptance remains pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "chord-pbr-material-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "image",
+    "image-to-material",
+    "pbr",
+    "pytorch",
+    "single",
+    "spark"
+  ],
+  "title": "CHORD PBR material estimation PyTorch single Spark"
+}

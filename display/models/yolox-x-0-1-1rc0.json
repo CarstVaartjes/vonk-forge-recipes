@@ -1,0 +1,14 @@
+{
+  "description": "YOLOX-X COCO person detector exported to ONNX (640x640, raw 8400x85 head output), the 0.1.1rc0 release asset GEM-X's own detector decodes. Immutable release and asset IDs bind the checkpoint.",
+  "family_title": "YOLOX",
+  "identity": {
+    "publisher": "megvii-basedetection",
+    "slug": "yolox-x-0-1-1rc0"
+  },
+  "kind": "model-display",
+  "model_title": "YOLOX-X",
+  "tags": [
+    "megvii-basedetection",
+    "yolox"
+  ]
+}

@@ -1,0 +1,67 @@
+FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
+
+LABEL org.opencontainers.image.source="https://github.com/NVlabs/GEM-X" \
+      org.opencontainers.image.revision="4aef1452e5df171deff4f293c08e643eb450981e" \
+      org.opencontainers.image.licenses="Apache-2.0" \
+      io.vonk.adapter="gem-x-motion" \
+      io.vonk.kimodo.revision="e1c219c99b4b94ba48be1fb6a1cbc64ecee4c954" \
+      io.vonk.agent-protocol.wheel-sha256="@protocol.sha256@"
+
+# PYTHONPATH is a platform-owned name, so run.py puts /opt/vonk/gem-x on the children's path itself.
+# GEM-X's own Dockerfile sets TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=0 so that PyTorch's explicit matmul
+# policy, including the IEEE geometry/IK scopes of the Contact/IK postprocess, takes effect.
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONUNBUFFERED=1 \
+    TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=0
+
+COPY requirements.lock /tmp/requirements.lock
+COPY @protocol.wheel@ /tmp/@protocol.wheel@
+# build-essential and python3-dev: Triton JIT needs a compiler and Python.h in every
+# CUDA runtime image that pip-installs torch (tests/test_job_runtime_toolchain.py).
+# libglib2.0-0, libgomp1 and ffmpeg are GEM-X's own Dockerfile packages (ffmpeg normalizes the clip to 30 fps).
+# --no-deps: every dependency is in the lock, except cholespy, which py-soma-x declares but never imports.
+RUN apt-get update \
+    && apt-get install --no-install-recommends --yes \
+        build-essential \
+        python3-dev \
+        ca-certificates \
+        ffmpeg \
+        libglib2.0-0 \
+        libgomp1 \
+        python3 \
+        python3-pip \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m pip install --break-system-packages --no-cache-dir \
+        --require-hashes \
+        --no-deps \
+        --extra-index-url https://download.pytorch.org/whl/cu130 \
+        --requirement /tmp/requirements.lock \
+    && printf '%s  %s\n' @protocol.sha256@ \
+        /tmp/@protocol.wheel@ | sha256sum --check --strict \
+    && python3 -m pip install --break-system-packages --no-cache-dir --no-index --no-deps \
+        /tmp/@protocol.wheel@ \
+    && rm /tmp/requirements.lock /tmp/@protocol.wheel@
+
+# GEM-X's gem package (vendored whole, unmodified), and the part of Kimodo that exports a SOMA
+# BVH: its exporter, skeleton code and somaskel77 assets (no kimodo/__init__.py, which would pull
+# in the text-to-motion stack; kimodo is a namespace package here). The weights, the SOMA-X
+# assets and the person detector are mounted by the recipe.
+COPY gem /opt/vonk/gem-x/gem
+COPY kimodo /opt/vonk/gem-x/kimodo
+COPY LICENSE ATTRIBUTIONS.md kimodo-LICENSE NOTICE run.py export_motion.py /opt/vonk/source/
+COPY LICENSES /opt/vonk/source/LICENSES
+
+# Build-time import smoke (no GPU, no weights): the inference entry point, the Contact/IK
+# postprocess, the SOMA runtime (with its OpenUSD and Warp dependencies), the ONNX runtime and
+# OpenCV load, Kimodo's exporter and its somaskel77 assets load, the protocol model imports.
+RUN PYTHONPATH=/opt/vonk/gem-x python3 -c "import gem.inference.__main__, gem.inference.body_video, gem.inference.postprocess, gem.motion.postprocess.api, cv2, onnxruntime, soma, warp, pxr, trimesh, rtree, yaml, bvhio, glm, SpatialTransform; from gem.common.geometry.rotations import axis_angle_to_matrix; from kimodo.exports.bvh import motion_to_bvh; from kimodo.skeleton import build_skeleton; build_skeleton(77); from vonk_agent_protocol.job_inputs import RecipeJobInputManifest" \
+    && ffmpeg -version \
+    && install --directory --mode=0755 /opt/vonk/bin /inputs /outputs \
+    && printf '%s\n' '#!/bin/sh' 'exec python3 /opt/vonk/source/run.py "$@"' > /opt/vonk/bin/pytorch-pipeline \
+    && chmod 0755 /opt/vonk/bin/pytorch-pipeline \
+    && useradd --uid 10001 --create-home --shell /usr/sbin/nologin vonk \
+    && chown 10001:10001 /outputs
+
+USER 10001:10001
+ENTRYPOINT []

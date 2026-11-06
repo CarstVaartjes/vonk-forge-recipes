@@ -1,0 +1,64 @@
+{
+  "id": "vonk-forge/kimodo-soma-rp-v1-2-pytorch-single",
+  "recipes": {
+    "interface": "artifact-job",
+    "parameters": {
+      "duration-seconds": 2.0
+    },
+    "inputs": [
+      {
+        "slot": "prompt",
+        "fixture": "kimodo-motion-prompt-v1"
+      }
+    ],
+    "output_limits": {
+      "max_files": 1,
+      "max_file_bytes": 67108864,
+      "max_total_bytes": 67108864,
+      "allowed_media_types": [
+        "application/zip"
+      ]
+    },
+    "timeout_seconds": 1800,
+    "assertions": [
+      {
+        "kind": "file-count",
+        "exact": 1
+      },
+      {
+        "kind": "file-names",
+        "exact": [
+          "motion.zip"
+        ]
+      },
+      {
+        "kind": "media-type",
+        "allowed": [
+          "application/zip"
+        ]
+      },
+      {
+        "kind": "minimum-bytes",
+        "value": 1024
+      },
+      {
+        "kind": "format",
+        "format": "zip"
+      },
+      {
+        "kind": "zip-entries",
+        "media_type": "application/zip",
+        "exact_names": [
+          "motion.bvh",
+          "motion.npz"
+        ],
+        "allowed_suffixes": [
+          ".bvh",
+          ".npz"
+        ],
+        "minimum_entries": 2,
+        "nonempty": true
+      }
+    ]
+  }
+}

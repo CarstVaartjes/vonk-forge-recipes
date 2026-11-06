@@ -1,0 +1,153 @@
+{
+  "capabilities": [
+    "audio-generation",
+    "text-to-audio"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "license-d6f6b1a4dce5-4673a3aba0",
+      "path": "LICENSE.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d6f6b1a4dce5c852bd6d7d9482d002baf0ccdb71e662250b73be9eec8764ee8d",
+      "size_bytes": 11852
+    },
+    {
+      "id": "license-gemma-e77acc0d3163-9678acd3f0",
+      "path": "LICENSE_GEMMA.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e77acc0d3163bb7534675045c584b4d04b387b529239fc4b3647da0a01ba4745",
+      "size_bytes": 10541
+    },
+    {
+      "id": "notice-66f856d7da72-dfb14fbb9e",
+      "path": "NOTICE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "66f856d7da72797f528fca46b7c80634ab481f917bfe020960e123d84b19f75f",
+      "size_bytes": 97
+    },
+    {
+      "id": "model-ed9cf1b6172f-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ed9cf1b6172f1a8c2921a9560c21109ff3239524563ced9dce6dcdef41e2f515",
+      "size_bytes": 2270384940
+    },
+    {
+      "id": "model-config-a8aa5d45ae3d-6c087f6a3b",
+      "path": "model_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a8aa5d45ae3d6524d3cd4e85e0d6e7d8d401267e7c6f28214bca8aae7b77bdeb",
+      "size_bytes": 10454
+    },
+    {
+      "id": "config-575334409716-89f978097c",
+      "path": "t5gemma-b-b-ul2/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "575334409716886ac2952f5a275ed92868deef8a0ea560258d9970a431c6fb3a",
+      "size_bytes": 2540
+    },
+    {
+      "id": "generation-config-1068b94599a9-ecb78b93fa",
+      "path": "t5gemma-b-b-ul2/generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "1068b94599a94ceea097dd3936819f108c2e70806d7c6cc5ec425610af347625",
+      "size_bytes": 156
+    },
+    {
+      "id": "model-9b05ea5a4f21-bfcb0b9f4b",
+      "path": "t5gemma-b-b-ul2/model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9b05ea5a4f211d023832f706fb2c0e83e4fc721b6da35ab69ceb0b55eb7800d3",
+      "size_bytes": 1183022944
+    },
+    {
+      "id": "special-tokens-map-baec30ea1090-f215f5717c",
+      "path": "t5gemma-b-b-ul2/special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "baec30ea10906f16adb8c18af7a34023002c1746542612b8b41c9f09e1351351",
+      "size_bytes": 636
+    },
+    {
+      "id": "tokenizer-7794135caa3e-7415f2871c",
+      "path": "t5gemma-b-b-ul2/tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "7794135caa3ea73918949c902a781cc61dab674a4b59c17d85931c77c1114cbd",
+      "size_bytes": 34362429
+    },
+    {
+      "id": "tokenizer-61a7b147390c-63a3696f64",
+      "path": "t5gemma-b-b-ul2/tokenizer.model",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "61a7b147390c64585d6c3543dd6fc636906c9af3865a5548f27f31aee1d4c8e2",
+      "size_bytes": 4241003
+    },
+    {
+      "id": "tokenizer-config-9546baec0dfe-408a0b9e6f",
+      "path": "t5gemma-b-b-ul2/tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "9546baec0dfefec0e29873edea9488ecde153f846e18c06ea48cb44587bf408f",
+      "size_bytes": 46437
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "stabilityai",
+      "slug": "stable-audio-3"
+    },
+    "model": {
+      "publisher": "stabilityai",
+      "slug": "stable-audio-3-small-sfx"
+    },
+    "publisher": "stabilityai",
+    "slug": "stable-audio-3-small-sfx-05ca3857",
+    "variant": "Small SFX",
+    "version": "Small SFX"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "stabilityai",
+      "google"
+    ],
+    "spdx": "LicenseRef-Stability-AI-Community-License AND LicenseRef-Gemma-Terms-of-Use",
+    "url": "https://huggingface.co/stabilityai/stable-audio-3-small-sfx/blob/05ca3857881c94a2b84026b1111c537d78f5f9f0/LICENSE.md"
+  },
+  "modalities": [
+    "text",
+    "audio"
+  ],
+  "requires_token": true,
+  "source": {
+    "repository": "https://huggingface.co/stabilityai/stable-audio-3-small-sfx",
+    "revision": "05ca3857881c94a2b84026b1111c537d78f5f9f0"
+  }
+}

@@ -1099,8 +1099,8 @@ The sweep process and verdict meanings live in
   `tests/test_qualification_chat_cases.py`, `tests/test_sweep_vonkctl_smoke.py`).
 - **Artifact job with `--job-recipes`:** create/upload/submit one job against the
   held run, follow its receipt, download outputs and evaluate output count,
-  names, media/format, size, image/audio/video metadata, GLB structure or declared
-  document/transcript assertions. `spark_sweep/smoke_job.py` and
+  names, media/format, size, image/audio/video metadata, GLB structure, ZIP entries
+  or declared document/transcript assertions. `spark_sweep/smoke_job.py` and
   `spark_sweep/job_assertions.py` are the executors. Host-unobservable assertions
   are recorded as `not_evaluated` with a reason, never silently passed. Video
   inspection needs ffprobe; inspect any missing observation before claiming
@@ -1139,7 +1139,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/test_recipe_model_mounts.py`, `tests/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
 | `tools/check-build-context-sources`, `tests/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
 | `tests/test_recipe_build_inputs.py`, `tests/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress. |
-| `tools/check-vendored-upstream`, `tests/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. |
+| `tools/check-vendored-upstream`, `tests/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. An adapter that also vendors a directory of a second upstream lists it under `also` (`repo`, `commit`, `files` prefixes). |
 | `tools/check-model-construction-device --base origin/main`, `tests/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and `vendored-upstream.json` verbatim creator copies excluded) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
 | `tools/kit-pins check`, `tests/test_kit_pins.py`, `tests/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
 | `tools/check-image-provenance`, `tests/test_published_image_follow.py` | Claimed build commit matches the selected source image. Fix provenance or supply the supported explicit unavailable-commit evidence. |

@@ -1,0 +1,58 @@
+{
+  "capabilities": [
+    "person-detection"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "yolox-x-weights",
+      "path": "yolox_x.onnx",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c892d7aaf1c4746d8a4d675bec669a4db4f434b4ee1efb654bc9b353379c7c55",
+      "size_bytes": 396142663
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "megvii-basedetection",
+      "slug": "yolox"
+    },
+    "model": {
+      "publisher": "megvii-basedetection",
+      "slug": "yolox-x"
+    },
+    "publisher": "megvii-basedetection",
+    "slug": "yolox-x-0-1-1rc0",
+    "variant": "0.1.1rc0",
+    "version": "0.1.1rc0"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "megvii-basedetection"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/Megvii-BaseDetection/YOLOX/blob/e1052df71842031413f6030723c3607b839c80ce/LICENSE"
+  },
+  "modalities": [
+    "image"
+  ],
+  "requires_token": false,
+  "source": {
+    "assets": [
+      {
+        "asset_id": 42724917,
+        "file_id": "yolox-x-weights"
+      }
+    ],
+    "provider": "github-release",
+    "release_id": 48035658,
+    "repository": "https://github.com/Megvii-BaseDetection/YOLOX"
+  }
+}

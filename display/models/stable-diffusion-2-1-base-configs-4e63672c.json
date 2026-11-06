@@ -1,0 +1,14 @@
+{
+  "description": "Configuration and tokenizer files of Stable Diffusion 2.1 Base (unet, vae, text_encoder and scheduler configs, CLIP tokenizer) from the ungated community re-host sd2-community/stable-diffusion-2-1-base at 4e63672c, with no weights. The CHORD checkpoint carries the full UNet, VAE and text-encoder weights; its code builds those modules from these configs and loads the tokenizer. The creator's own source, RedbeardNZ/stable-diffusion-2-1-base, no longer exists on Hugging Face and the original Stability AI repository is gone, so this mirror's bytes stand in. CreativeML OpenRAIL++-M.",
+  "family_title": "Stable Diffusion",
+  "identity": {
+    "publisher": "sd2-community",
+    "slug": "stable-diffusion-2-1-base-configs-4e63672c"
+  },
+  "kind": "model-display",
+  "model_title": "Stable Diffusion 2.1 Base (configuration and tokenizer)",
+  "tags": [
+    "stabilityai",
+    "stable-diffusion"
+  ]
+}

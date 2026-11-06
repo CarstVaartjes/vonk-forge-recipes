@@ -1,0 +1,94 @@
+{
+  "capabilities": [],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "adapter-config-1d3bbf141428-f9ad40812f",
+      "path": "adapter_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "1d3bbf14142865885ea8d0dbc1fb261adf4f5d14ddbdc939efb47c4913037813",
+      "size_bytes": 794
+    },
+    {
+      "id": "adapter-model-de9c8736618a-6bdb0cb708",
+      "path": "adapter_model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "de9c8736618a13173c6a1623cdef1b75e86c69317f1073ae82cd516ac36a632d",
+      "size_bytes": 167829552
+    },
+    {
+      "id": "config-416c57027648-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "416c570276487324e49dca7c3d79e212b948d9cb2282fa734b1fa8014de041d1",
+      "size_bytes": 781
+    },
+    {
+      "id": "special-tokens-map-849070cae53b-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "849070cae53bd45439e64ce5b1ddd650a66081b1bd47895c5a58939a05055579",
+      "size_bytes": 335
+    },
+    {
+      "id": "tokenizer-52b583ee1699-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "52b583ee1699c6ca4468f70885bd5f96dd1f7517292362a67581038afc04f4d8",
+      "size_bytes": 9085671
+    },
+    {
+      "id": "tokenizer-config-0655c52e8741-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "0655c52e874137e4a455228155d982c4ea18419f461a10ceb57054995fec4223",
+      "size_bytes": 51042
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "mcgill-nlp",
+      "slug": "llm2vec"
+    },
+    "model": {
+      "publisher": "mcgill-nlp",
+      "slug": "llm2vec-llama-3-8b-instruct-mntp"
+    },
+    "publisher": "mcgill-nlp",
+    "slug": "llm2vec-llama-3-8b-instruct-mntp-31474e39",
+    "variant": "mntp 31474e39",
+    "version": "mntp 31474e39"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "mcgill-nlp"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp/blob/31474e395ada192e8ed1586db6be79fb3b70c9c0/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp",
+    "revision": "31474e395ada192e8ed1586db6be79fb3b70c9c0"
+  }
+}

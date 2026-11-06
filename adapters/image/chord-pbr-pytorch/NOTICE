@@ -1,0 +1,18 @@
+This build context embeds Ubisoft La Forge's CHORD inference code
+(https://github.com/ubisoft/ubisoft-laforge-chord, Ubisoft Machine Learning License
+(Research-Only - Copyleft)) at commit 675a29d1fee5e1b256833bd4edabd619be43d0c7.
+The vendored archive is a deterministic subset of that commit: LICENSE,
+config/chord.yaml and the chord/ package, every member byte-identical to the
+upstream file at that commit (sorted members, mtime 0). The creator's test.py and
+demo_gradio.py, its examples and assets, and its requirements.txt are left out:
+pipelines/infer.py repeats test.py's inference steps against the vendored package,
+and the dependencies are locked in requirements.lock. The Docker build verifies the
+archive SHA-256 before extraction. The vendored LICENSE applies to this code and to
+the model weights, which are not part of this build context.
+
+Nothing is patched. The creator's StableDiffusion module already loads its UNet, VAE,
+text-encoder configuration and tokenizer from a local directory when the config names
+one (hf_key); pipelines/infer.py sets that key to the read-only /models mount and
+loads chord_v1.safetensors from /models, so no file is fetched at run time.
+
+The files under pipelines/ are Vonk Forge wrappers for the signed job contract.

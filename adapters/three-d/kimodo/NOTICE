@@ -1,0 +1,27 @@
+Kimodo SOMA adapter notices
+
+The code under kimodo/ is vendored unmodified from nv-tlabs/kimodo at commit
+e1c219c99b4b94ba48be1fb6a1cbc64ecee4c954 and is licensed under Apache-2.0 (the LICENSE
+file in this directory). Only the headless generation path and the SOMA skeleton
+assets are vendored: the viewer (kimodo/demo, kimodo/viz), the Gradio text-encoder
+server and the other scripts, the demo assets, the G1 and SMPL-X skeleton assets and
+the MotionCorrection package are not.
+
+MotionCorrection (foot-skate post-processing) is x86-only C++ (SSE4.1/AVX intrinsics),
+so the adapter runs upstream's generator with its own --no-postprocess switch.
+
+The Kimodo-SOMA-RP-v1.2 checkpoint is licensed under the NVIDIA Open Model License.
+The text encoder is LLM2Vec: the McGill-NLP MNTP and supervised LoRA adapters (MIT) on
+Meta-Llama-3-8B-Instruct, which is licensed under the Meta Llama 3 Community License
+("Built with Meta Llama 3"). The recipe's Model documents address every weight file by
+its SHA-256 and size; the platform verifies the bytes when it ingests them.
+
+run.py is a Vonk Forge adapter. It runs upstream's `python -m kimodo.scripts.generate`
+with the creator's default diffusion steps and guidance, writes the BVH (somaskel77,
+centimetres, standard T-pose) and NPZ it produces into one deterministic zip, and points
+the offline text-encoder adapter config at the mounted Llama base.
+
+Primary sources:
+- https://github.com/nv-tlabs/kimodo/tree/e1c219c99b4b94ba48be1fb6a1cbc64ecee4c954
+- https://huggingface.co/nvidia/Kimodo-SOMA-RP-v1.2
+- https://research.nvidia.com/labs/sil/projects/kimodo/

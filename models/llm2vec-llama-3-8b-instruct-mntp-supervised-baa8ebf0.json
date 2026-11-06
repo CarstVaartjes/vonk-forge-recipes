@@ -1,0 +1,58 @@
+{
+  "capabilities": [],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "adapter-config-2a1265e4a782-f9ad40812f",
+      "path": "adapter_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "2a1265e4a7829c16dad38a5175ec8ac41ea1e851654da5044ace2437615a58ba",
+      "size_bytes": 794
+    },
+    {
+      "id": "adapter-model-53f8f94ebdf3-6bdb0cb708",
+      "path": "adapter_model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "53f8f94ebdf396667ba99dd96e78203edae27bbcdbd1cf5f12b611e1d916b225",
+      "size_bytes": 167829552
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "mcgill-nlp",
+      "slug": "llm2vec"
+    },
+    "model": {
+      "publisher": "mcgill-nlp",
+      "slug": "llm2vec-llama-3-8b-instruct-mntp-supervised"
+    },
+    "publisher": "mcgill-nlp",
+    "slug": "llm2vec-llama-3-8b-instruct-mntp-supervised-baa8ebf0",
+    "variant": "supervised baa8ebf0",
+    "version": "supervised baa8ebf0"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "mcgill-nlp"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp-supervised/blob/baa8ebf04a1c2500e61288e7dad65e8ae42601a7/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp-supervised",
+    "revision": "baa8ebf04a1c2500e61288e7dad65e8ae42601a7"
+  }
+}

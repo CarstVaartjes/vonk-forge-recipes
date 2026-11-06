@@ -1,0 +1,320 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/audio/stable-audio-3-small-sfx"
+      },
+      "dockerfile": "adapters/audio/stable-audio-3-small-sfx/Dockerfile",
+      "network": {
+        "hosts": [
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": [
+        {
+          "path": "adapters/audio/stable-audio-3-small-sfx/patch-offline-models.py"
+        }
+      ]
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "stable-audio-3-small-sfx-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "audio-job",
+      "input": {
+        "max_bytes": 16384,
+        "media_types": [
+          "text/plain"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "UTF-8 description of the sound effect to generate.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Sound-effect prompt",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 21200000,
+        "slots": [
+          {
+            "description": "Generated sound effect as 16-bit PCM stereo WAV at the model's native 44.1 kHz, up to 120 seconds.",
+            "extensions": [
+              ".wav"
+            ],
+            "id": "audio",
+            "label": "Sound effect",
+            "max_file_bytes": 21200000,
+            "max_files": 1,
+            "max_total_bytes": 21200000,
+            "media_types": [
+              "audio/wav"
+            ],
+            "min_files": 1
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "license-d6f6b1a4dce5-4673a3aba0",
+          "id": "primary-license-d6f6b1a4dce5-4673a3aba0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-gemma-e77acc0d3163-9678acd3f0",
+          "id": "primary-license-gemma-e77acc0d3163-9678acd3f0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "notice-66f856d7da72-dfb14fbb9e",
+          "id": "primary-notice-66f856d7da72-dfb14fbb9e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-ed9cf1b6172f-9d75c1098f",
+          "id": "primary-model-ed9cf1b6172f-9d75c1098f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-config-a8aa5d45ae3d-6c087f6a3b",
+          "id": "primary-model-config-a8aa5d45ae3d-6c087f6a3b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-575334409716-89f978097c",
+          "id": "primary-config-575334409716-89f978097c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-1068b94599a9-ecb78b93fa",
+          "id": "primary-generation-config-1068b94599a9-ecb78b93fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-9b05ea5a4f21-bfcb0b9f4b",
+          "id": "primary-model-9b05ea5a4f21-bfcb0b9f4b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-baec30ea1090-f215f5717c",
+          "id": "primary-special-tokens-map-baec30ea1090-f215f5717c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-7794135caa3e-7415f2871c",
+          "id": "primary-tokenizer-7794135caa3e-7415f2871c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-61a7b147390c-63a3696f64",
+          "id": "primary-tokenizer-61a7b147390c-63a3696f64",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-9546baec0dfe-408a0b9e6f",
+          "id": "primary-tokenizer-config-9546baec0dfe-408a0b9e6f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "00adb0542d5cfa1bd304b9e0d7fca62815624c7c2609607d727002f3810328d9",
+        "kind": "model",
+        "publisher": "stabilityai",
+        "slug": "stable-audio-3-small-sfx-05ca3857"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "stabilityai"
+    ],
+    "source_reference": "https://huggingface.co/stabilityai/stable-audio-3-small-sfx/tree/05ca3857881c94a2b84026b1111c537d78f5f9f0"
+  },
+  "release": {
+    "released_at": "2026-11-06",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "audio/wav"
+      },
+      {
+        "name": "duration-seconds",
+        "setting": "duration-seconds",
+        "value": null
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {
+      "duration-seconds": {
+        "change_effect": "none",
+        "value": 7
+      }
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 3492094029,
+            "image_bytes": 10000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 4000000000
+          },
+          "memory": {
+            "peak_bytes": 10000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "audio-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/sfx-prompt.txt",
+            "input_slots": {
+              "prompt": "qualification/fixtures/sfx-prompt.txt"
+            },
+            "output_slot": "audio",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "audio-job"
+    }
+  }
+}
