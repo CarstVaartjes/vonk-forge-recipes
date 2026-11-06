@@ -1,6 +1,5 @@
 """The Mia 1104 GLM dual wrapper turns the Controller's placement into the kit's per-rank environment, or refuses."""
 
-import json
 import os
 import subprocess
 import sys
@@ -31,12 +30,21 @@ PLACEMENT = [
 ]
 
 
+def seen(stdout: str) -> tuple[list[str], dict[str, str]]:
+    argv = [line[2:] for line in stdout.splitlines() if line.startswith("A:")]
+    env = dict(
+        line[2:].split("=", 1) for line in stdout.splitlines() if line.startswith("E:")
+    )
+    return argv, env
+
+
 def run(tmp_path: Path, args: list[str], **env: str):
     stub = tmp_path / "bin" / "tensorfold-native"
     stub.parent.mkdir(exist_ok=True)
     stub.write_text(
-        f"#!{sys.executable}\nimport json, os, sys\n"
-        "print(json.dumps({'argv': sys.argv[1:], 'env': dict(os.environ)}))\n"
+        f"#!{sys.executable}\nimport os, sys\n"
+        "for a in sys.argv[1:]: print('A:' + a)\n"
+        "for k, v in os.environ.items(): print('E:' + k + '=' + v)\n"
     )
     stub.chmod(0o755)
     base = {k: v for k, v in os.environ.items() if k not in FABRIC}
@@ -60,8 +68,8 @@ def test_both_ranks_get_the_kits_placement(tmp_path: Path, rank: str) -> None:
     placement[3] = rank
     result = run(tmp_path, ["--port", "8888", "--vision", *placement], **FABRIC)
     assert result.returncode == 0, result.stderr
-    seen = json.loads(result.stdout)
-    assert seen["argv"] == [
+    argv, env = seen(result.stdout)
+    assert argv == [
         "serve",
         "/models/target",
         "--port",
@@ -70,7 +78,6 @@ def test_both_ranks_get_the_kits_placement(tmp_path: Path, rank: str) -> None:
         "--chat-template",
         "/opt/vonk/templates/chat_template.jinja",
     ]
-    env = seen["env"]
     assert env["TF_GLM_RANK"] == rank
     assert env["TF_GLM_WORLD"] == "2"
     assert env["NCCL_COMM_ID"] == "192.0.2.10:29500"
@@ -81,7 +88,7 @@ def test_both_ranks_get_the_kits_placement(tmp_path: Path, rank: str) -> None:
 
 def test_text_only_keeps_the_checkpoints_template(tmp_path: Path) -> None:
     result = run(tmp_path, ["--port", "8888", *PLACEMENT], **FABRIC)
-    assert json.loads(result.stdout)["argv"] == [
+    assert seen(result.stdout)[0] == [
         "serve",
         "/models/target",
         "--port",
