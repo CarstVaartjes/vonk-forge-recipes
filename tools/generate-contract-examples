@@ -2,8 +2,8 @@
 """Generate small synthetic variants used for contract review.
 
 ``model-definition.json``, ``recipe-source-build.json`` and their displays
-(``model-display.json``, ``recipe-display-source-build.json``) are the authored
-seeds. This tool points the build recipe at the model's document digest and
+(``model-display.json``, ``recipe-display-source-build.json``) and the API facts
+``recipe-api-source-build.json`` are the authored seeds. This tool points the build recipe at the model's document digest and
 derives the job and dual-node variants from it, plus the Git LFS model variant,
 each with its display.
 """
@@ -23,9 +23,12 @@ sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,
+    RecipeApi,
     RecipeDefinition,
     RecipeDisplay,
+    check_recipe_api,
     document_sha256,
+    require_api_of,
     require_display_of,
 )
 
@@ -191,6 +194,172 @@ def _display_vectors(
     )
 
 
+def _options_recipe(build: dict[str, Any]) -> dict[str, Any]:
+    """The seed with a context-bound vLLM argument and a vision option."""
+
+    options = copy.deepcopy(build)
+    options["identity"]["slug"] = "synthetic-tiny-build-options"
+    options["runtime"]["arguments"] += [
+        {"name": "max-model-len", "setting": "context_tokens"},
+    ]
+    options["options"] = [
+        {
+            "name": "vision",
+            "label": "Images",
+            "help": "Serve text only, or accept images as well.",
+            "choices": [
+                {
+                    "value": "text-only",
+                    "label": "Text only",
+                    "help": "The language model alone.",
+                    "default": True,
+                    "args": [{"name": "language-model-only", "value": True}],
+                },
+                {
+                    "value": "images",
+                    "label": "Images",
+                    "help": "Up to four images per prompt.",
+                    "args": [
+                        {"name": "language-model-only", "value": False},
+                        {"name": "limit-mm-per-prompt", "value": '{"image":4}'},
+                    ],
+                },
+            ],
+        }
+    ]
+    return options
+
+
+def _api_for(recipe: dict[str, Any], seed: dict[str, Any]) -> dict[str, Any]:
+    identity = RecipeDefinition.model_validate(recipe).identity
+    return {**seed, "identity": {**seed["identity"], "slug": identity.slug}}
+
+
+def _api_vectors(
+    build: dict[str, Any], options: dict[str, Any], seed: dict[str, Any]
+) -> None:
+    """The option-aware API example, its application vectors and the refusals."""
+
+    block = seed["api"]
+    images = {
+        **block,
+        "input_modalities": {**block["input_modalities"], "image": True},
+    }
+    api_options = {
+        **_api_for(options, seed),
+        "option_choices": [{"option": "vision", "value": "images", "api": images}],
+    }
+    for recipe, api in ((build, seed), (options, api_options)):
+        recipe_model = RecipeDefinition.model_validate(recipe)
+        api_model = RecipeApi.model_validate(api)
+        require_api_of(api_model, recipe_model.identity)
+        check_recipe_api(recipe_model, api_model)
+    _write("recipe-options.json", options)
+    _write("recipe-api-options.json", api_options)
+    options_model = RecipeDefinition.model_validate(options)
+    options_api = RecipeApi.model_validate(api_options)
+    vectors = []
+    for choices in ({}, {"vision": "text-only"}, {"vision": "images"}):
+        applied = options_api.for_choices(options_model, choices)
+        vectors.append({"choices": choices, "api": applied.model_dump(mode="json")})
+    _write(
+        "api-vectors/option-choices.json",
+        {
+            "recipe": "recipe-options.json",
+            "api": "recipe-api-options.json",
+            "vectors": vectors,
+        },
+    )
+
+    def refuse(name: str, contract: str, error: str, recipe: Any, api: Any) -> None:
+        document = api if contract == "RecipeApi" else {"recipe": recipe, "api": api}
+        _invalid(name, contract, error, document)
+
+    def with_block(**changes: Any) -> dict[str, Any]:
+        return {**seed, "api": {**block, **changes}}
+
+    refuse(
+        "recipe-api-missing-field",
+        "RecipeApi",
+        "streaming",
+        options,
+        {**seed, "api": {k: v for k, v in block.items() if k != "streaming"}},
+    )
+    refuse(
+        "recipe-api-effort-default-not-a-level",
+        "RecipeApi",
+        "effort default must be one of its levels",
+        options,
+        with_block(
+            reasoning={
+                "kind": "always-on",
+                "effort": {
+                    "via": "top_level",
+                    "key": "reasoning_effort",
+                    "levels": ["low", "high"],
+                    "default": "max",
+                },
+            }
+        ),
+    )
+    refuse(
+        "recipe-api-two-options-carry-blocks",
+        "RecipeApi",
+        "at most one option may carry API blocks",
+        options,
+        {
+            **api_options,
+            "option_choices": [
+                *api_options["option_choices"],
+                {"option": "other", "value": "x", "api": images},
+            ],
+        },
+    )
+    tools = {"kind": "supported", "tool_choice": ["auto"], "parallel_calls": True}
+    refuse(
+        "recipe-api-tools-without-parser",
+        "check_recipe_api",
+        "tools need --enable-auto-tool-choice and --tool-call-parser",
+        options,
+        _api_for(options, with_block(tools=tools)),
+    )
+    refuse(
+        "recipe-api-reasoning-without-parser",
+        "check_recipe_api",
+        "reasoning needs --reasoning-parser",
+        options,
+        _api_for(
+            options,
+            with_block(
+                reasoning={"kind": "always-on", "effort": None},
+            ),
+        ),
+    )
+    refuse(
+        "recipe-api-image-with-language-model-only",
+        "check_recipe_api",
+        "image input conflicts with --language-model-only",
+        options,
+        _api_for(options, {**api_options, "api": images}),
+    )
+    unbound = copy.deepcopy(options)
+    unbound["runtime"]["arguments"][-1] = {"name": "max-model-len", "value": 1024}
+    refuse(
+        "recipe-api-context-unbound",
+        "check_recipe_api",
+        "must be bound to the context_tokens setting",
+        unbound,
+        api_options,
+    )
+    refuse(
+        "recipe-api-identity-mismatch",
+        "check_recipe_api",
+        "api identity differs from its recipe",
+        options,
+        seed,
+    )
+
+
 def main() -> int:
     model = _read("model-definition.json")
     ModelDefinition.model_validate(model)
@@ -296,6 +465,7 @@ def main() -> int:
             },
         },
     )
+    _api_vectors(build, _options_recipe(build), _read("recipe-api-source-build.json"))
     return 0
 
 

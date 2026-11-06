@@ -117,7 +117,7 @@ prove that every embedded source, container, or dependency is current.
 The [Pydantic definitions](../contracts/src/vonk_forge_contracts) are the source
 of truth; the [generated JSON Schemas](../contracts/src/vonk_forge_contracts/schema)
 (`recipe-definition-v3`, `model-definition-v3`, `recipe-display-v3`,
-`model-display-v3`) state every field's shape, bound, enum and default. Use the
+`model-display-v3`, `recipe-api-v3`) state every field's shape, bound, enum and default. Use the
 [examples](../contracts/src/vonk_forge_contracts/examples) (a Recipe, Model and
 display for each shape) for structure only; replace synthetic identities and
 data with verified inputs.
@@ -125,12 +125,13 @@ data with verified inputs.
 The roots are strict: authoring rejects unknown fields. Do not use lenient
 published-document readers to bypass producer validation (`tests/test_contracts.py`).
 
-| Document | Required structure (read the definitions for typed variants); every document also writes its defaulted `kind` (`model`, `recipe`, `recipe-display`, `model-display`) |
+| Document | Required structure (read the definitions for typed variants); every document also writes its defaulted `kind` (`model`, `recipe`, `recipe-display`, `model-display`, `recipe-api`) |
 | --- | --- |
 | Model | `identity`, `requires_token`, `dependencies`, `modalities`, `source`, `format`, `license`, `files`, `capabilities`. |
 | Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
 | Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment` is optional. |
 | Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`. |
+| Recipe API | `identity` (the Recipe's), `api` (a `chat` or `decision` block, every field required), `option_choices`. |
 
 A document holds execution data only. What a person reads about it lives in
 its display file, `display/recipes/<slug>.json`
@@ -140,6 +141,52 @@ document, its `content_sha256`, its evidence or its proven status; a change that
 alters what runs edits the document. Read display through `qualification/documents.py`
 (`recipe_display`, `model_display`), never off a document.
 
+### Recipe API facts
+
+An OpenAI-interface generation or decision recipe also has `api/recipes/<slug>.json`
+(`RecipeApi`, `kind: "recipe-api"`): what a client may rely on when it calls the
+route. It is a sibling like the display: editing it never changes the recipe's
+`content_sha256`, its evidence or its proven status, and a recipe without one
+publishes no gateway facts (the block is optional at contract level; the guard
+requires it on every recipe you add or change). The `api` block is discriminated
+by `mode`, and every field is written down, "not applicable" included (`false`,
+`{"kind": "none"}`, `null`):
+
+- `chat`: `max_output_tokens` (`{"value": N}` or `{"setting": "context_tokens"}`),
+  `default_output_tokens` (`{"value": N}` or `{"remaining": "context"|"slot_context"}`),
+  `max_input_tokens` (`null`, or the engine's own lower prompt cap: TRT-LLM
+  without chunked prefill, a llama.cpp slot's share of `--ctx-size`),
+  `input_modalities` (`text`, `image`, `video`, `audio`, `pdf`), `audio_output`,
+  `reasoning`, `tools`, `structured_output`, `system_messages`, `streaming`,
+  `endpoints`.
+- `reasoning` is `{"kind": "none"}`, `{"kind": "always-on", "effort": ...}` or
+  `{"kind": "switch", "via", "keys", "on", "off", "default": "on"|"off"|"model",
+  "effort": ...}`; `effort` is `null` or `{via, key, levels, default}` with the
+  default one of the levels. State what this route's engine and template do, not
+  what the model family does.
+- `tools` is `{"kind": "none"}` or `{"kind": "supported", "tool_choice": [...],
+  "parallel_calls": bool}`; an empty `tool_choice` means the field is only a
+  prompt nudge.
+- `decision` (the `/v1/systemone` recipes): `max_input_tokens` and
+  `input_modalities` only.
+
+An option choice that changes any of these facts carries its own complete
+block in `option_choices` (`{option, value, api}`); it replaces the base block as
+a whole, applied by `RecipeApi.for_choices` the way `with_option_choices`
+applies arguments. Only one option of a recipe may carry blocks.
+
+`check_recipe_api(recipe, api)` refuses facts that contradict the runtime of
+the base route and of every option choice: vLLM tools need
+`--enable-auto-tool-choice` and `--tool-call-parser`; reasoning on vLLM or
+SGLang needs `--reasoning-parser`; image, video or audio input conflicts with
+`--language-model-only` or a `--limit-mm-per-prompt` of 0; the engine's context
+argument must be bound to `context_tokens`; limits cannot exceed the context;
+llama.cpp `--parallel` gives each request only its slot's share.
+`check_api_models` requires a selected Model that declares each accepted
+modality (image also needs `image-understanding`). `tools/check-recipe-api` runs
+both on added or changed recipes and API files; there is no allowlist of gaps.
+Read the document through `qualification/documents.py` (`recipe_api`).
+
 `settings.kind` selects the typed generation, embedding, job or decision shape;
 never invent an LLM context length for an artifact job. `interfaces` contains one
 OpenAI-compatible HTTP or filesystem job interface. Native decision models use
@@ -148,7 +195,7 @@ OpenAI-compatible HTTP or filesystem job interface. Native decision models use
 extensions (`tests/test_systemone_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v3.1.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v3.2.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -1156,7 +1203,8 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/test_qualification_definitions_loader.py`, `tests/test_qualification_index.py`, `tests/test_qualification_case_assertions.py`, `tests/test_qualification_service_aliases.py` | Every recipe is defined/scheduled; ids, aliases, fixtures and assertions resolve. Repair the per-recipe source definition, not generated outputs. |
 | `tests/test_family_aware_coverage.py`, `tests/test_qualification_coverage_identity.py` | Coverage equivalence binds actual runtime/topology/content identities. Rebuild coverage and fix false equivalence. |
 | `tests/test_prebuilt_images.py`, `tests/test_publish_image_guard.py`, `tests/test_release_bundle.py`, `tests/test_release_assets.py` | Plan/source/build keys, digests, signed index and packaged bytes agree. Rebuild/resolve the correct artifacts before signing. |
-| `tools/check-document-reads`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`) or `qualification/documents.py`; only added lines are checked. |
+| `tools/check-document-reads`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
+| `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
 | `tests/test_guidance_files.py` | Guidance stays in the allowlisted files and local Markdown links resolve. Consolidate the new rule here or in AGENTS; fix links in the same change. |
 | `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
 

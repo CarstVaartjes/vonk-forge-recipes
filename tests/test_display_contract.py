@@ -96,6 +96,7 @@ def invalid_vectors() -> list[Path]:
         path
         for path in INVALID.glob("*.json")
         if not path.name.endswith(".expect.json")
+        and not path.stem.startswith("recipe-api-")
     )
 
 

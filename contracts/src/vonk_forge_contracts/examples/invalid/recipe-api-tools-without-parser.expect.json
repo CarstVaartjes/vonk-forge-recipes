@@ -1,0 +1,4 @@
+{
+  "contract": "check_recipe_api",
+  "error_contains": "tools need --enable-auto-tool-choice and --tool-call-parser"
+}

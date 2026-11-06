@@ -1,0 +1,602 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.vonkforge.ai/contracts/recipe-api-v3.schema.json",
+  "$defs": {
+    "ApiInputModalities": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "boolean"
+        },
+        "image": {
+          "title": "Image",
+          "type": "boolean"
+        },
+        "video": {
+          "title": "Video",
+          "type": "boolean"
+        },
+        "audio": {
+          "title": "Audio",
+          "type": "boolean"
+        },
+        "pdf": {
+          "title": "Pdf",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "text",
+        "image",
+        "video",
+        "audio",
+        "pdf"
+      ],
+      "title": "ApiInputModalities",
+      "type": "object"
+    },
+    "ApiReasoningAlwaysOn": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "always-on",
+          "title": "Kind",
+          "type": "string"
+        },
+        "effort": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ApiReasoningEffort"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "effort"
+      ],
+      "title": "ApiReasoningAlwaysOn",
+      "type": "object"
+    },
+    "ApiReasoningEffort": {
+      "additionalProperties": false,
+      "properties": {
+        "via": {
+          "enum": [
+            "chat_template_kwargs",
+            "top_level"
+          ],
+          "title": "Via",
+          "type": "string"
+        },
+        "key": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "levels": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Levels",
+          "type": "array"
+        },
+        "default": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "title": "Default"
+        }
+      },
+      "required": [
+        "via",
+        "key",
+        "levels",
+        "default"
+      ],
+      "title": "ApiReasoningEffort",
+      "type": "object"
+    },
+    "ApiReasoningNone": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "none",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "ApiReasoningNone",
+      "type": "object"
+    },
+    "ApiReasoningSwitch": {
+      "additionalProperties": false,
+      "description": "Thinking can be turned on and off per request.\n\n``keys`` are the alternative request keys the route reads (any one works);\n``default`` is what the route does when the request says nothing, and\n``model`` when the checkpoint decides.",
+      "properties": {
+        "kind": {
+          "const": "switch",
+          "title": "Kind",
+          "type": "string"
+        },
+        "via": {
+          "enum": [
+            "chat_template_kwargs",
+            "top_level"
+          ],
+          "title": "Via",
+          "type": "string"
+        },
+        "keys": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Keys",
+          "type": "array"
+        },
+        "on": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "On"
+        },
+        "off": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Off"
+        },
+        "default": {
+          "enum": [
+            "on",
+            "off",
+            "model"
+          ],
+          "type": "string",
+          "title": "Default"
+        },
+        "effort": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ApiReasoningEffort"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "via",
+        "keys",
+        "on",
+        "off",
+        "default",
+        "effort"
+      ],
+      "title": "ApiReasoningSwitch",
+      "type": "object"
+    },
+    "ApiRemainingContext": {
+      "additionalProperties": false,
+      "description": "No server default: the request may use what the context still holds.",
+      "properties": {
+        "remaining": {
+          "enum": [
+            "context",
+            "slot_context"
+          ],
+          "title": "Remaining",
+          "type": "string"
+        }
+      },
+      "required": [
+        "remaining"
+      ],
+      "title": "ApiRemainingContext",
+      "type": "object"
+    },
+    "ApiTokenSetting": {
+      "additionalProperties": false,
+      "description": "Bound to the recipe setting of the same name, as ``RecipeRuntimeArgument``.",
+      "properties": {
+        "setting": {
+          "const": "context_tokens",
+          "title": "Setting",
+          "type": "string"
+        }
+      },
+      "required": [
+        "setting"
+      ],
+      "title": "ApiTokenSetting",
+      "type": "object"
+    },
+    "ApiTokenValue": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "minimum": 1,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "ApiTokenValue",
+      "type": "object"
+    },
+    "ApiToolsNone": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "none",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "ApiToolsNone",
+      "type": "object"
+    },
+    "ApiToolsSupported": {
+      "additionalProperties": false,
+      "description": "Function calling works. An empty ``tool_choice`` means the field is only a\nprompt nudge: the route accepts it and does not enforce any choice.",
+      "properties": {
+        "kind": {
+          "const": "supported",
+          "title": "Kind",
+          "type": "string"
+        },
+        "tool_choice": {
+          "items": {
+            "enum": [
+              "auto",
+              "none",
+              "required",
+              "named"
+            ],
+            "type": "string"
+          },
+          "maxItems": 4,
+          "title": "Tool Choice",
+          "type": "array"
+        },
+        "parallel_calls": {
+          "title": "Parallel Calls",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "tool_choice",
+        "parallel_calls"
+      ],
+      "title": "ApiToolsSupported",
+      "type": "object"
+    },
+    "ChatApi": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "chat",
+          "title": "Mode",
+          "type": "string"
+        },
+        "max_output_tokens": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ApiTokenValue"
+            },
+            {
+              "$ref": "#/$defs/ApiTokenSetting"
+            }
+          ],
+          "title": "Max Output Tokens"
+        },
+        "default_output_tokens": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ApiTokenValue"
+            },
+            {
+              "$ref": "#/$defs/ApiRemainingContext"
+            }
+          ],
+          "title": "Default Output Tokens"
+        },
+        "max_input_tokens": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Input Tokens"
+        },
+        "input_modalities": {
+          "$ref": "#/$defs/ApiInputModalities"
+        },
+        "audio_output": {
+          "title": "Audio Output",
+          "type": "boolean"
+        },
+        "reasoning": {
+          "discriminator": {
+            "mapping": {
+              "always-on": "#/$defs/ApiReasoningAlwaysOn",
+              "none": "#/$defs/ApiReasoningNone",
+              "switch": "#/$defs/ApiReasoningSwitch"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ApiReasoningNone"
+            },
+            {
+              "$ref": "#/$defs/ApiReasoningAlwaysOn"
+            },
+            {
+              "$ref": "#/$defs/ApiReasoningSwitch"
+            }
+          ],
+          "title": "Reasoning"
+        },
+        "tools": {
+          "discriminator": {
+            "mapping": {
+              "none": "#/$defs/ApiToolsNone",
+              "supported": "#/$defs/ApiToolsSupported"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ApiToolsNone"
+            },
+            {
+              "$ref": "#/$defs/ApiToolsSupported"
+            }
+          ],
+          "title": "Tools"
+        },
+        "structured_output": {
+          "title": "Structured Output",
+          "type": "boolean"
+        },
+        "system_messages": {
+          "title": "System Messages",
+          "type": "boolean"
+        },
+        "streaming": {
+          "title": "Streaming",
+          "type": "boolean"
+        },
+        "endpoints": {
+          "items": {
+            "enum": [
+              "/v1/chat/completions",
+              "/v1/completions",
+              "/v1/responses",
+              "/v1/messages"
+            ],
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Endpoints",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode",
+        "max_output_tokens",
+        "default_output_tokens",
+        "max_input_tokens",
+        "input_modalities",
+        "audio_output",
+        "reasoning",
+        "tools",
+        "structured_output",
+        "system_messages",
+        "streaming",
+        "endpoints"
+      ],
+      "title": "ChatApi",
+      "type": "object"
+    },
+    "DecisionApi": {
+      "additionalProperties": false,
+      "description": "A route serving ``POST /v1/systemone``; it has no chat-shaped facts.",
+      "properties": {
+        "mode": {
+          "const": "decision",
+          "title": "Mode",
+          "type": "string"
+        },
+        "max_input_tokens": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Input Tokens"
+        },
+        "input_modalities": {
+          "$ref": "#/$defs/ApiInputModalities"
+        }
+      },
+      "required": [
+        "mode",
+        "max_input_tokens",
+        "input_modalities"
+      ],
+      "title": "DecisionApi",
+      "type": "object"
+    },
+    "RecipeApiOptionChoice": {
+      "additionalProperties": false,
+      "description": "The complete block that applies when ``option`` is set to ``value``.",
+      "properties": {
+        "option": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "title": "Option",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "title": "Value",
+          "type": "string"
+        },
+        "api": {
+          "discriminator": {
+            "mapping": {
+              "chat": "#/$defs/ChatApi",
+              "decision": "#/$defs/DecisionApi"
+            },
+            "propertyName": "mode"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ChatApi"
+            },
+            {
+              "$ref": "#/$defs/DecisionApi"
+            }
+          ],
+          "title": "Api"
+        }
+      },
+      "required": [
+        "option",
+        "value",
+        "api"
+      ],
+      "title": "RecipeApiOptionChoice",
+      "type": "object"
+    },
+    "RecipeIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "publisher": {
+          "maxLength": 64,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 64,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug"
+      ],
+      "title": "RecipeIdentity",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "recipe-api",
+      "default": "recipe-api",
+      "title": "Kind",
+      "type": "string"
+    },
+    "identity": {
+      "$ref": "#/$defs/RecipeIdentity"
+    },
+    "api": {
+      "discriminator": {
+        "mapping": {
+          "chat": "#/$defs/ChatApi",
+          "decision": "#/$defs/DecisionApi"
+        },
+        "propertyName": "mode"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ChatApi"
+        },
+        {
+          "$ref": "#/$defs/DecisionApi"
+        }
+      ],
+      "title": "Api"
+    },
+    "option_choices": {
+      "items": {
+        "$ref": "#/$defs/RecipeApiOptionChoice"
+      },
+      "maxItems": 64,
+      "title": "Option Choices",
+      "type": "array"
+    }
+  },
+  "required": [
+    "identity",
+    "api",
+    "option_choices"
+  ],
+  "title": "RecipeApi",
+  "type": "object"
+}

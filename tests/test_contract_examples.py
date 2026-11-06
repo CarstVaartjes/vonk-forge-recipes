@@ -6,6 +6,7 @@ from pathlib import Path
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,
+    RecipeApi,
     RecipeDefinition,
     RecipeDisplay,
 )
@@ -24,12 +25,14 @@ def test_representative_contract_examples_validate() -> None:
         "recipe-dual.json",
         "model-display.json",
         "recipe-display-source-build.json",
+        "recipe-api-source-build.json",
     }
     contracts = {
         "model": ModelDefinition,
         "recipe": RecipeDefinition,
         "model-display": ModelDisplay,
         "recipe-display": RecipeDisplay,
+        "recipe-api": RecipeApi,
     }
     for path in examples:
         document = json.loads(path.read_text(encoding="utf-8"))

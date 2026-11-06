@@ -1,0 +1,229 @@
+"""Recipe API facts are their own contract: files, shared vectors, checks, guard."""
+
+from __future__ import annotations
+
+import json
+import runpy
+import shutil
+from pathlib import Path
+from typing import Any
+
+import pytest
+from documents import has_recipe_api, model, recipe, recipe_api
+from jsonschema import Draft202012Validator
+from pydantic import ValidationError
+from vonk_forge_contracts import (
+    RecipeApi,
+    RecipeApiError,
+    RecipeDefinition,
+    check_api_models,
+    check_recipe_api,
+    published_json,
+    read_recipe_api,
+    recipe_api_json_schema,
+)
+from vonk_forge_contracts.resolver import ContractResolutionError, validate_recipe_apis
+
+ROOT = Path(__file__).resolve().parents[1]
+EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
+INVALID = EXAMPLES / "invalid"
+APIS = sorted((ROOT / "api/recipes").glob("*.json"))
+GUARD = runpy.run_path(str(ROOT / "tools/check-recipe-api"))
+
+
+def _json(path: Path) -> Any:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_the_backfill_proves_each_shape() -> None:
+    assert {path.stem for path in APIS} >= {
+        "glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual",
+        "deepseek-v4-1-flash-1017-mia-tensorfold-dual",
+        "qwen3-8-27b-exl3-dflash2-mia-single",
+        "d3-vllm-single",
+        "llama-3-1-8b-instruct-fp8-nvidia-trtllm-single",
+    }
+
+
+@pytest.mark.parametrize("path", APIS, ids=lambda path: path.stem)
+def test_every_api_document_round_trips_and_agrees_with_its_recipe(path: Path) -> None:
+    api = recipe_api(path.stem)
+    assert published_json(api) == _json(path)
+    assert read_recipe_api(published_json(api)) == api
+    Draft202012Validator(recipe_api_json_schema()).validate(_json(path))
+    document = recipe(path.stem)
+    check_recipe_api(document, api)
+    check_api_models(document, api, [model(s.model.slug) for s in document.models])
+
+
+def test_the_api_document_leaves_the_recipe_untouched() -> None:
+    """The recipe has no API field; its digest cannot depend on the sibling."""
+
+    assert "api" not in RecipeDefinition.model_fields
+    assert not has_recipe_api("agents-a1-nvfp4-r0b0tlab-vllm-single")
+
+
+def test_an_orphan_api_document_is_refused() -> None:
+    api = recipe_api("d3-vllm-single")
+    with pytest.raises(ContractResolutionError, match="no recipe"):
+        validate_recipe_apis(
+            [recipe("llama-3-1-8b-instruct-fp8-nvidia-trtllm-single")],
+            {"d3-vllm-single": api},
+        )
+    validate_recipe_apis([recipe("d3-vllm-single")], {"d3-vllm-single": api})
+    validate_recipe_apis([recipe("d3-vllm-single")], {})
+
+
+def test_option_vectors_resolve_the_block_in_force() -> None:
+    vectors = _json(EXAMPLES / "api-vectors/option-choices.json")
+    options = RecipeDefinition.model_validate(_json(EXAMPLES / vectors["recipe"]))
+    api = RecipeApi.model_validate(_json(EXAMPLES / vectors["api"]))
+    assert vectors["vectors"]
+    for vector in vectors["vectors"]:
+        applied = api.for_choices(options, vector["choices"])
+        assert applied.model_dump(mode="json") == vector["api"], vector["choices"]
+
+
+def test_an_option_choice_replaces_the_whole_block() -> None:
+    document = recipe("glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual")
+    api = recipe_api(document.identity.slug)
+    default = api.for_choices(document, {})
+    text_only = api.for_choices(document, {"images_video": "text-only"})
+    assert default.input_modalities.image and default.input_modalities.video
+    assert not text_only.input_modalities.image
+    assert api.for_choices(document, {"drafter": "mtp"}) == default
+
+
+def _refuse(contract: str, document: dict[str, Any]) -> None:
+    if contract == "RecipeApi":
+        RecipeApi.model_validate(document)
+    elif contract == "check_recipe_api":
+        api = RecipeApi.model_validate(document["api"])
+        check_recipe_api(RecipeDefinition.model_validate(document["recipe"]), api)
+    else:
+        raise AssertionError(f"unknown contract {contract!r}")
+
+
+API_VECTORS = sorted(
+    path
+    for path in INVALID.glob("recipe-api-*.json")
+    if not path.name.endswith(".expect.json")
+)
+
+
+def test_there_are_invalid_vectors_for_each_named_failure() -> None:
+    assert {path.stem for path in API_VECTORS} == {
+        "recipe-api-context-unbound",
+        "recipe-api-effort-default-not-a-level",
+        "recipe-api-identity-mismatch",
+        "recipe-api-image-with-language-model-only",
+        "recipe-api-missing-field",
+        "recipe-api-reasoning-without-parser",
+        "recipe-api-tools-without-parser",
+        "recipe-api-two-options-carry-blocks",
+    }
+
+
+@pytest.mark.parametrize("path", API_VECTORS, ids=lambda path: path.stem)
+def test_every_invalid_api_vector_is_refused_with_its_named_error(path: Path) -> None:
+    expect = _json(path.with_suffix(".expect.json"))
+    with pytest.raises((ValidationError, RecipeApiError, ValueError)) as caught:
+        _refuse(expect["contract"], _json(path))
+    assert expect["error_contains"] in str(caught.value)
+
+
+def test_a_block_with_an_unknown_mode_or_extra_field_is_refused() -> None:
+    document = _json(EXAMPLES / "recipe-api-source-build.json")
+    with pytest.raises(ValidationError):
+        RecipeApi.model_validate(
+            {**document, "api": {**document["api"], "mode": "rerank"}}
+        )
+    with pytest.raises(ValidationError):
+        RecipeApi.model_validate({**document, "api": {**document["api"], "extra": 1}})
+    read_recipe_api({**document, "extra": 1})
+
+
+def _library(tmp_path: Path, *slugs: str) -> Path:
+    for folder in ("recipes", "api/recipes", "models"):
+        (tmp_path / folder).mkdir(parents=True, exist_ok=True)
+    for path in (ROOT / "models").glob("*.json"):
+        shutil.copy(path, tmp_path / "models")
+    for slug in slugs:
+        shutil.copy(ROOT / f"recipes/{slug}.json", tmp_path / "recipes")
+        shutil.copy(ROOT / f"api/recipes/{slug}.json", tmp_path / "api/recipes")
+    return tmp_path
+
+
+def test_the_guard_passes_the_backfilled_recipes(tmp_path: Path) -> None:
+    slugs = [path.stem for path in APIS]
+    assert GUARD["problems"](_library(tmp_path, *slugs), slugs) == []
+
+
+def test_the_guard_requires_a_document_on_a_touched_openai_recipe(
+    tmp_path: Path,
+) -> None:
+    slug = "qwen3-8-27b-exl3-dflash2-mia-single"
+    root = _library(tmp_path, slug)
+    (root / f"api/recipes/{slug}.json").unlink()
+    assert GUARD["problems"](root, [slug]) == [f"{slug}: needs api/recipes/{slug}.json"]
+
+
+def test_the_guard_refuses_facts_the_runtime_contradicts(tmp_path: Path) -> None:
+    slug = "d3-vllm-single"
+    root = _library(tmp_path, slug)
+    path = root / f"api/recipes/{slug}.json"
+    document = _json(path)
+    document["api"]["input_modalities"]["audio"] = True
+    path.write_text(json.dumps(document), encoding="utf-8")
+    found = GUARD["problems"](root, [slug])
+    assert len(found) == 1 and "audio input needs a Model" in found[0]
+
+
+def test_the_guard_refuses_an_image_the_model_does_not_declare(tmp_path: Path) -> None:
+    slug = "llama-3-1-8b-instruct-fp8-nvidia-trtllm-single"
+    root = _library(tmp_path, slug)
+    path = root / f"api/recipes/{slug}.json"
+    document = _json(path)
+    document["api"]["input_modalities"]["image"] = True
+    path.write_text(json.dumps(document), encoding="utf-8")
+    found = GUARD["problems"](root, [slug])
+    assert len(found) == 1 and "image input needs a Model" in found[0]
+
+
+def test_the_guard_checks_an_option_choice_against_its_own_runtime(
+    tmp_path: Path,
+) -> None:
+    slug = "glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual"
+    root = _library(tmp_path, slug)
+    path = root / f"api/recipes/{slug}.json"
+    document = _json(path)
+    document["option_choices"][0]["api"]["max_input_tokens"] = 2**30
+    path.write_text(json.dumps(document), encoding="utf-8")
+    found = GUARD["problems"](root, [slug])
+    assert len(found) == 1 and "option images_video=text-only" in found[0]
+    assert "max_input_tokens exceeds context_tokens" in found[0]
+
+
+def test_the_catalog_index_carries_each_recipes_api_or_null() -> None:
+    from generated_catalog import GENERATED
+
+    entries = _json(GENERATED / "catalog-index.json")["recipes"]
+    with_api = {
+        entry["document"]["identity"]["slug"]: entry["api"]
+        for entry in entries
+        if entry["api"] is not None
+    }
+    assert set(with_api) == {path.stem for path in APIS}
+    for entry in entries:
+        assert "api" in entry
+        if entry["api"] is not None:
+            assert entry["api"] == _json(
+                ROOT / "api/recipes" / f"{entry['document']['identity']['slug']}.json"
+            )
+            assert entry["content_sha256"] == _json_digest(entry["source_path"])
+
+
+def _json_digest(source_path: str) -> str:
+    from vonk_forge_contracts import document_sha256
+
+    return document_sha256(_json(ROOT / source_path))
