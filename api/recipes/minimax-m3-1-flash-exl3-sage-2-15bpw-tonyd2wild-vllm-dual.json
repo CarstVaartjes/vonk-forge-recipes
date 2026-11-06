@@ -2,7 +2,7 @@
   "api": {
     "audio_output": false,
     "default_output_tokens": {
-      "remaining": "context"
+      "value": 32768
     },
     "endpoints": [
       "/v1/chat/completions",
