@@ -10,8 +10,7 @@ its publisher prefix::
 Either section may be omitted. ``load_definitions`` is the only reader; it
 returns the same document the single file used to hold, with both maps sorted
 by recipe id. It fails loudly on a recipe id defined twice, on a duplicate JSON
-key, on a file name that does not match its id, and on a leftover
-``definitions.json`` (the pre-split layout).
+key, and on a file name that does not match its id.
 """
 
 from __future__ import annotations

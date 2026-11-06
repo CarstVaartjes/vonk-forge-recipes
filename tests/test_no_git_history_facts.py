@@ -34,8 +34,6 @@ ALLOWED = {
         "spark_sweep/evidence_publisher.py",
         "_evidence_records",
     ): "records carried by the refused evidence PR branch",
-    # The one-time contracts 3.0.0 display split reads a revision archive.
-    ("tools/split-display", "main"): "one-time migration from a revision archive",
 }
 
 

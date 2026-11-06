@@ -174,15 +174,6 @@ jobs:
           git fetch --no-tags origin main:refs/remotes/origin/main
           python3 tools/check-recipe-topology --base origin/main
 
-      # One-time display split (contracts 3.0.0): requires the checkout to equal
-      # the split of its base, and exits 0 once the base is already split.
-      # Deleted with the tool in the follow-up that repoints the platform pins.
-      - name: Require the display split to be exactly the tool's result
-        shell: bash
-        run: |
-          set -euo pipefail
-          "$RECIPE_TEST_PYTHON" tools/split-display --check --base origin/main
-
       # A platform pin on a PR branch commit stops resolving when that branch is
       # deleted after its squash merge, and every recipes workflow then fails to
       # load. Each pinned SHA must be an ancestor of vonk-forge main.
