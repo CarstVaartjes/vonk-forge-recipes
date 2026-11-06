@@ -1,6 +1,7 @@
 {
   "capabilities": [
     "code-generation",
+    "image-understanding",
     "reasoning",
     "text-generation"
   ],
@@ -260,6 +261,7 @@
     "url": "https://huggingface.co/turboderp/Qwen3.8-Flash-Next-exl3/blob/69e33439ae950f17bcbe95c98f117d80f759ab6d/LICENSE"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "requires_token": false,
