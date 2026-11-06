@@ -126,7 +126,8 @@ from pathlib import Path
 from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
+# The contracts import lazily (this tool starts on a bare interpreter); the path is set once.
+sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT)]
 from tools._catalog_model import file_id
 
 MANIFEST = "vendored-upstream.json"
@@ -1682,7 +1683,6 @@ def moved_model(
     catalogued unless it is metadata (a README), as the old document may have left such
     files out on purpose. The slug, version and variant follow the revision.
     """
-    sys.path.insert(0, str(ROOT / "contracts" / "src"))
     from vonk_forge_contracts import ModelDefinition
 
     by_path = {f["path"]: f for f in inventory}
@@ -1719,9 +1719,8 @@ def moved_model(
     return document
 
 
-def moved_model_display(root: Path, old_slug: str, new_slug: str) -> str:
+def moved_model_display(root: Path, old_slug: str, new_slug: str) -> bytes:
     """The display of ``old_slug`` written for the Model that replaces it as ``new_slug``."""
-    sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT)]
     from vonk_forge_contracts import published_json
 
     from qualification.documents import model_display
@@ -1733,7 +1732,7 @@ def moved_model_display(root: Path, old_slug: str, new_slug: str) -> str:
     return (
         json.dumps(published_json(moved), indent=2, sort_keys=True, ensure_ascii=False)
         + "\n"
-    )
+    ).encode()
 
 
 def catalogued_model(root: Path, repo: str, revision: str) -> dict[str, Any] | None:
@@ -1875,9 +1874,8 @@ def _rebind_model(
         )
         changed.append(f"models/{new['identity']['slug']}.json (catalogued)")
         display_path = root / "display" / "models" / f"{new['identity']['slug']}.json"
-        display_path.write_text(
-            moved_model_display(root, old["identity"]["slug"], new["identity"]["slug"]),
-            encoding="utf-8",
+        display_path.write_bytes(
+            moved_model_display(root, old["identity"]["slug"], new["identity"]["slug"])
         )
         changed.append(f"display/models/{new['identity']['slug']}.json (catalogued)")
     moved = rebind(recipe, declaration.binds, old, new)

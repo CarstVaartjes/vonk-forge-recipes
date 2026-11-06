@@ -213,10 +213,10 @@ jobs:
           set -euo pipefail
           # The one-time Model facts split rewrites every recipe's Model pins and
           # nothing else; the split check proves that, so those recipes are not
-          # "touched" for this guard. Once the base is split the check says so
-          # and every edited recipe is checked again.
+          # "touched" for this guard. Once the base is split the tool says so
+          # (exit 0) and every edited recipe is checked again.
           drop='^$'
-          if "$RECIPE_TEST_PYTHON" tools/split-model-facts --check --base origin/main | grep -q 'equals the split'; then
+          if ! "$RECIPE_TEST_PYTHON" tools/split-model-facts --base-is-split --base origin/main; then
             drop='^recipes/'
           fi
           {

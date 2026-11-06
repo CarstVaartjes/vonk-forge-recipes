@@ -290,6 +290,13 @@ class World:
                     "model_title": "Model",
                     "description": "A model.",
                     "tags": [],
+                    "modalities": ["text"],
+                    "capabilities": [],
+                    "license": {
+                        "spdx": "MIT",
+                        "url": "https://example.com/license",
+                        "attribution": [],
+                    },
                 },
                 indent=2,
                 sort_keys=True,
@@ -695,6 +702,17 @@ class HfCheckAndLockTests(unittest.TestCase):
                 (
                     world.root / "models" / f"{slug_name(NEW)}-{NEW_REV[:8]}.json"
                 ).exists()
+            )
+            # the display (with the licence, capabilities and modalities) moves too
+            old_slug = f"{slug_name(NEW)}-{NEW_REV[:8]}"
+            shown = json.loads(
+                (world.root / "display/models" / f"{new_slug}.json").read_text()
+            )
+            self.assertEqual(shown["identity"]["slug"], new_slug)
+            self.assertEqual(shown["license"]["spdx"], "MIT")
+            self.assertEqual(shown["modalities"], ["text"])
+            self.assertFalse(
+                (world.root / "display/models" / f"{old_slug}.json").exists()
             )
 
     def test_the_file_ids_are_the_ones_the_catalog_tool_gives(self) -> None:

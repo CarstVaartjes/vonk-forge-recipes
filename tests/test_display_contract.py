@@ -105,6 +105,7 @@ def test_there_are_invalid_vectors_for_each_named_failure() -> None:
         "model-display-bad-tag",
         "model-display-duplicate-tag",
         "model-display-identity-mismatch",
+        "model-with-display-facts",
         "model-with-family-title",
         "recipe-display-bad-alignment",
         "recipe-display-empty-title",
@@ -132,6 +133,7 @@ def test_producer_only_vectors_are_accepted_by_the_lenient_readers() -> None:
         if _json(path.with_suffix(".expect.json")).get("producer_only")
     ]
     assert {path.stem for path in marked} == {
+        "model-with-display-facts",
         "model-with-family-title",
         "recipe-display-identity-extra-key",
         "recipe-display-with-runtime",

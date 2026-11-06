@@ -31,9 +31,7 @@ position with the new digest; fixtures carrying a digest are mapped.
 
 The gate: every proven recipe must have a resolved hardware pass on its current
 digest, and every key with evidence must derive the same published status
-before and after, under every runtime identity its records name. The old to new
-recipe digest map is written to ``qualification/model-facts-split-digests.json``
-so the Controller re-keys what it measured by recipe digest.
+before and after, under every runtime identity its records name.
 
 When REV is already split the tool exits 0 and changes nothing.
 """
@@ -68,7 +66,6 @@ NAMED_BY_DIGEST_TESTS = ("tests/test_absolute_kv_capacity.py",)
 RAW_BYTES_TESTS = ("tests/test_qualification_case_assertions.py",)
 LEDGER = "qualification/memory-inputs.json"
 ENVELOPE_EXCEPTIONS = "memory-envelope-exceptions.json"
-DIGEST_MAP = "qualification/model-facts-split-digests.json"
 ARCHIVE_PATHS = (
     "recipes",
     "models",
@@ -186,7 +183,9 @@ def phase_a(tree: Path, output: Path) -> int:
             item["stripped"] = parsed.model_dump(
                 mode="json", exclude_unset=True, exclude=EXCLUDE
             )
-            item["facts"] = {name: raw[name] for name in MOVED}
+            item["facts"] = json.loads(
+                parsed.model_dump_json(include=set(MOVED), exclude_unset=True)
+            )
         if published_json(parsed) != raw:
             raise SystemExit(f"{relative}: the contract does not round-trip it")
         if kind == "model":
@@ -316,19 +315,7 @@ def compute(tree: Path, phase_a_output: dict[str, dict[str, Any]]) -> dict[str, 
         new_recipe[path] = recipe
         mapping[item["old_sha256"]] = document_sha256(published_json(recipe))
 
-    # Proof: only the moved fields left a Model and only the pins of a Recipe changed.
-    for path, document in {**new_model, **new_recipe}.items():
-        item = items[path]
-        raw = json.loads((tree / path).read_text(encoding="utf-8"))
-        if published_json(document) != _reduced(raw, item["kind"], mapping):
-            raise SystemExit(f"{path}: more than the moved fields changed")
-    for path, display in new_display.items():
-        item = items[path]
-        moved = published_json(display)
-        if {k: v for k, v in moved.items() if k not in MOVED} != item["display"]:
-            raise SystemExit(f"{path}: the display changed beyond the moved fields")
-        if {name: moved[name] for name in MOVED} != item["facts"]:
-            raise SystemExit(f"{path}: a moved fact was not carried unchanged")
+    _prove_only_moved(new_model, new_recipe, new_display, items, tree, mapping)
 
     # Library files and the displays that travel with them.
     recipe_displays: dict[str, RecipeDisplay] = {}
@@ -480,30 +467,6 @@ def compute(tree: Path, phase_a_output: dict[str, dict[str, Any]]) -> dict[str, 
         ).hexdigest()
     expected[PROVEN_BYTES] = dump(proven)
 
-    # The old to new digest of every recipe and Model: what the Controller re-keys
-    # its measured role peaks (keyed by recipe digest) with.
-    expected[DIGEST_MAP] = dump(
-        {
-            "contract_version": contracts.CONTRACT_VERSION,
-            "recipes": {
-                f"{r.identity.publisher}/{r.identity.slug}": {
-                    "old": items[p]["old_sha256"],
-                    "new": mapping[items[p]["old_sha256"]],
-                }
-                for p, r in sorted(new_recipe.items())
-                if p.startswith("recipes/")
-            },
-            "models": {
-                f"{m.identity.publisher}/{m.identity.slug}": {
-                    "old": items[p]["old_sha256"],
-                    "new": mapping[items[p]["old_sha256"]],
-                }
-                for p, m in sorted(new_model.items())
-                if p.startswith("models/")
-            },
-        }
-    )
-
     # The canary: documents, its package and the index that names them.
     expected.update(_canary(tree, items, new_model, new_display, new_recipe, mapping))
 
@@ -519,6 +482,33 @@ def compute(tree: Path, phase_a_output: dict[str, dict[str, Any]]) -> dict[str, 
         }
     ).encode()
     return expected
+
+
+def _prove_only_moved(
+    new_model: dict[str, Any],
+    new_recipe: dict[str, Any],
+    new_display: dict[str, Any],
+    items: dict[str, dict[str, Any]],
+    tree: Path,
+    mapping: dict[str, str],
+) -> None:
+    """Only the moved fields left a Model, only the pins of a Recipe changed, and
+    every moved fact reached its display unchanged."""
+
+    from vonk_forge_contracts import published_json
+
+    for path, document in {**new_model, **new_recipe}.items():
+        item = items[path]
+        raw = json.loads((tree / path).read_text(encoding="utf-8"))
+        if published_json(document) != _reduced(raw, item["kind"], mapping):
+            raise SystemExit(f"{path}: more than the moved fields changed")
+    for path, display in new_display.items():
+        item = items[path]
+        moved = published_json(display)
+        if {k: v for k, v in moved.items() if k not in MOVED} != item["display"]:
+            raise SystemExit(f"{path}: the display changed beyond the moved fields")
+        if {name: moved[name] for name in MOVED} != item["facts"]:
+            raise SystemExit(f"{path}: a moved fact was not carried unchanged")
 
 
 def _status_gate(
@@ -681,6 +671,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
     parser.add_argument("--base", default="origin/main")
     parser.add_argument("--check", action="store_true")
+    parser.add_argument(
+        "--base-is-split",
+        action="store_true",
+        help="exit 0 when --base already holds the split, 1 when it does not",
+    )
     parser.add_argument("--phase-a", nargs=2, metavar=("TREE", "OUTPUT"))
     arguments = parser.parse_args()
     if arguments.phase_a:
@@ -690,6 +685,8 @@ def main() -> int:
     revision = (
         _git("rev-parse", "--verify", f"{arguments.base}^{{commit}}").decode().strip()
     )
+    if arguments.base_is_split:
+        return 0 if _already_split(revision) else 1
     if _already_split(revision):
         print("base already split; nothing to check")
         return 0
