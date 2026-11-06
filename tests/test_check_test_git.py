@@ -27,7 +27,7 @@ HITS = {
     "argv tuple": 'subprocess.check_output(("git", "status"))',
     "starred prefix": 'subprocess.run([*GIT, "log"])',
     "prefix join": 'subprocess.run(GIT + ["diff", base])',
-    "argv string head": 'check(["git commit -m x"])',
+    "argv string head": 'subprocess.run(["git commit -m x"], shell=True)',
     "helper name": '_git(root, "init")',
     "attribute helper": 'tool.git("rev-parse", "HEAD")',
     "run helper": 'run_git("status")',
@@ -46,6 +46,10 @@ CLEAN = {
     "word git in a string": 'subprocess.run(["echo", "digit"])',
     "text mentioning git": 'assert "git ls-files" not in text',
     "comment": "# git init",
+    "recorded argv in an exception": 'raise subprocess.CalledProcessError(128, ["git", "push"])',
+    "recorded argv in a result": 'result = subprocess.CompletedProcess(["git", "push"], 0)',
+    "argv handed to a fake": 'fake.record(["git", "push"])',
+    "pure helper named git_*": "sha = checker.git_blob_sha(payload)",
 }
 
 

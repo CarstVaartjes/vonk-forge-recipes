@@ -8,9 +8,11 @@ hook) that calls it. A test that needs a changed set feeds the tool diff text.
 Only lines added by the diff given with ``--diff FILE|-`` are checked, in
 ``tests/**/*.py``. There is no count and no allowlist. A hit is an added line that
   (a) passes an argv list or tuple headed ``git`` (also ``[*GIT, ...]`` and
-      ``GIT + [...]``) to a call,
-  (b) calls a function named ``git``, ``_git``, ``run_git``, ``git_output`` and
-      the like,
+      ``GIT + [...]``) to a subprocess call (``run``, ``Popen``, ``check_output``,
+      ``os.system`` ...); an argv handed to a fake, a ``patch`` or an exception
+      (``CompletedProcess(["git", ...])``) is recorded data and passes,
+  (b) calls a function named ``git``, ``_git`` or ``run_git`` (a name ending in
+      ``git``; ``git_blob_sha`` is a pure helper),
   (c) passes a string holding ``git <word>`` to a subprocess or shell call
       (``bash -c``, ``shell=True``, ``os.system``), or
   (d) is a dict key naming a git environment variable (``GIT_...``).
@@ -43,7 +45,7 @@ SUBPROCESS = frozenset(
         "getstatusoutput",
     }
 )
-GIT_FUNCTION = re.compile(r"(^|_)git($|_)", re.IGNORECASE)
+GIT_FUNCTION = re.compile(r"(^|_)git$", re.IGNORECASE)
 SHELL_GIT = re.compile(r"(^|[\s;&|(])git\s+[a-z]")
 GIT_VARIABLE = re.compile(r"^GIT_[A-Z_]+$")
 ADVICE = (
@@ -120,10 +122,12 @@ def scan(source: str, added: set[int] | None) -> list[tuple[int, str]]:
         if GIT_FUNCTION.search(callee(node)):
             add(node.lineno, "call to a git helper")
         values = [*node.args, *(keyword.value for keyword in node.keywords)]
+        if not is_shell(node):
+            continue
         for value in values:
             if is_git_argv(value):
                 add(value.lineno, "git argv")
-            elif is_shell(node):
+            else:
                 for line, text in strings(value):
                     if SHELL_GIT.search(text):
                         add(line, "git in a shell command")

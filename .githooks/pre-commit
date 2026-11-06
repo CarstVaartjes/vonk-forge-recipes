@@ -21,6 +21,7 @@ if [ -n "$(git diff --cached --name-only --diff-filter=d -- '*.py')" ]; then
     UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-cache}" \
         scripts/check-python-types
 fi
-# Tests never use git (tools/check-test-git); the hook is the edge that supplies
-# the staged diff.
-git diff --cached -U0 --no-color --diff-filter=AMR -- tests | python3 tools/check-test-git --diff -
+# Tests never use git (tools/check-test-git). The staged diff is captured first so
+# a failure of the diff writer aborts the hook (a pipe has no pipefail under sh).
+staged=$(python3 tools/_added_lines.py --cached)
+printf '%s\n' "$staged" | python3 tools/check-test-git --diff -
