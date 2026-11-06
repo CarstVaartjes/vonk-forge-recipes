@@ -151,8 +151,13 @@ class ApiToolsNone(_ApiContract):
 
 
 class ApiToolsSupported(_ApiContract):
-    """Function calling works. An empty ``tool_choice`` means the field is only a
-    prompt nudge: the route accepts it and does not enforce any choice."""
+    """Function calling works.
+
+    ``tool_choice`` lists the choices the route enforces. ``none`` is always
+    honoured, so it is implied and never listed. An empty list means non-auto
+    choices are accepted but not enforced (a prompt nudge, or ignored). An
+    unlisted value may be refused (HTTP 400).
+    """
 
     kind: Literal["supported"]
     tool_choice: list[ToolChoice] = Field(max_length=4)
