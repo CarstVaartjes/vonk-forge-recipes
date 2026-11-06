@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/minimax-m3-1-flash-exl3-sage-2-15bpw-vcruz305-vllm-single",
+  "service_recipes": {
+    "alias": "minimax-m3.1-flash-2.15bpw",
+    "higher_tiers": {
+      "recovery": [
+        "Controller-only restart and warm-cache reuse; the first request after boot pays the JIT-compile cost"
+      ],
+      "stress": [
+        "needle retrieval at 8K, 32K and 44K prompt tokens, as the creator's longctx.py"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT"
+    ]
+  }
+}

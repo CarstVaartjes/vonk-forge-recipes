@@ -2,7 +2,7 @@
 
 A build context cannot share files, so each adapter holds its own copy; these tests keep the copies equal.
 Functions are compared by AST (docstrings included), whole files by bytes. Only what is truly identical is
-asserted: the dual-Spark Mia adapter differs in `prepare_rank`, and bertholomus differs in the rest."""
+asserted: the dual-Spark Mia adapter differs in `prepare_rank` (no parity layout), and bertholomus differs in the rest."""
 
 import ast
 from pathlib import Path
@@ -13,9 +13,10 @@ ADAPTERS = Path(__file__).resolve().parents[1] / "adapters/deepseek"
 ALL = [
     "bertholomus-1017-tensorfold-tp4",
     "mia-1017-tensorfold-dual",
+    "mia-1017-tensorfold-four",
     "tonyd2wild-1017-tensorfold-tp2",
 ]
-NO_MIA = [name for name in ALL if not name.startswith("mia-")]
+PARITY_RANK = [name for name in ALL if name != "mia-1017-tensorfold-dual"]
 
 
 def function(adapter: str, filename: str, name: str) -> str:
@@ -32,7 +33,7 @@ def function(adapter: str, filename: str, name: str) -> str:
         ("prepare_cache.py", "sync_dir", ALL),
         ("prepare_cache.py", "atomic_bytes", ALL),
         ("prepare_cache.py", "rank_cache_valid", ALL),
-        ("prepare_cache.py", "prepare_rank", NO_MIA),
+        ("prepare_cache.py", "prepare_rank", PARITY_RANK),
     ],
 )
 def test_shared_function_is_identical(

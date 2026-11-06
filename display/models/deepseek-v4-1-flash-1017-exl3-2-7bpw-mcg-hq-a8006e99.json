@@ -1,0 +1,33 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation"
+  ],
+  "description": "sfxnz EXL3 2.7 bpw MCG mixed-K pack of DeepSeek V4.1 Flash 1017 (branch 2.7bpw-mcg-hq, revision a8006e99): routed experts re-encoded as EXL3 MCG trellis with K in {2,3,4} per layer and projection group (exactly 2.70 bpw on average, real activation Hessians), lm_head MXFP8, DSpark/MTP drafter experts and every other tensor at the source dtypes, Engram tables in the same pack (two shards of about 95 GiB each). Source model MIT (DeepSeek).",
+  "family_title": "DeepSeek",
+  "identity": {
+    "publisher": "sfxnz",
+    "slug": "deepseek-v4-1-flash-1017-exl3-2-7bpw-mcg-hq-a8006e99"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek AI",
+      "sfxnz",
+      "Turboderp"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/sfxnz/DeepSeek-V4.1-Flash-1017-EXL3/blob/a8006e99931e7d67c4d218c66543f478b521b857/LICENSE"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "DeepSeek V4.1 Flash 1017 EXL3 2.7 bpw",
+  "tags": [
+    "deepseek-ai",
+    "deepseek"
+  ]
+}

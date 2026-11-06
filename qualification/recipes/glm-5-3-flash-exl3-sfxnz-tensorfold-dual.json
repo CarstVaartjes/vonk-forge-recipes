@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/glm-5-3-flash-exl3-sfxnz-tensorfold-dual",
+  "service_recipes": {
+    "alias": "glm-5.3-flash",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Long-context canary with the first-run weight load and page-cache warm-up recorded separately; bounded concurrency up to 8 streams, with the server's shared KV pool line checked"
+      ],
+      "recovery": [
+        "Controller-only rank-loss and warm-cache recovery"
+      ]
+    }
+  }
+}

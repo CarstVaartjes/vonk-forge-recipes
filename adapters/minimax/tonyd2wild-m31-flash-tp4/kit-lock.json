@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:5d76347628973fb80519a919a2f2740b6645b62cba3fe2bd87b25f111bd0e948",
+      "kind": "tag",
+      "ref": "minimax-m31-flash-arm64-cu134",
+      "repo": "docker.io/vllm/vllm-openai"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "54e4e69dfc452b1e94a426c24a4fdeeaa8e3ad5e",
+      "repo": "MiniMaxAI/MiniMax-M3.1-Flash",
+      "revision": "54e4e69dfc452b1e94a426c24a4fdeeaa8e3ad5e"
+    }
+  },
+  "kit": {
+    "commit": "7b46c7f5d55328d1c8ee97880c50d83528a34d90",
+    "repo": "tonyd2wild/MiniMax-M3.1-Flash-TP4-DGX-Sparks"
+  }
+}

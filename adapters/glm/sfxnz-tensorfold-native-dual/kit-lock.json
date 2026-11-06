@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "d75e26a4fedfdb0e9a7d2422afd9cdba926ca7e6",
+      "repo": "sfxnz/GLM-5.3-Flash-EXL3-4bpw",
+      "revision": "d75e26a4fedfdb0e9a7d2422afd9cdba926ca7e6"
+    }
+  },
+  "kit": {
+    "commit": "9e5933c085e60361104e2dc7157661bdaa8829fb",
+    "repo": "sfxnz/GLM-5.3-Flash-EXL3-4bpw-TensorFold-2x-DGX-Spark"
+  }
+}
