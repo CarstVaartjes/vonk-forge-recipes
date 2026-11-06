@@ -6,11 +6,10 @@
 ARG TF_VERSION=1.2.2
 ARG TF_SHA256=17632c30f761e7f9051255744a17fc36f0b9c0d46343d47617bb34e7ec4e4128
 
-FROM docker.io/nvidia/cuda:13.0.0-base-ubuntu24.04@sha256:6e43a6b02e5f16e4a715953be8b29c40acbe84aed11a61357ef0fc899967fbd9 AS base
-
+# Every FROM pins the digest (the recipe source policy checks each one).
 # TensorFold refuses any JPEG/WebP decoder whose embedded version is not exactly libjpeg-turbo 3.1.4.1 / libwebp 1.6.0,
 # and Ubuntu 24.04 ships older ones.
-FROM base AS codecs
+FROM docker.io/nvidia/cuda:13.0.0-base-ubuntu24.04@sha256:6e43a6b02e5f16e4a715953be8b29c40acbe84aed11a61357ef0fc899967fbd9 AS codecs
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl gcc libc6-dev make && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /dl /out /src/jpeg \
  && curl -fsSL -o /dl/libjpeg-turbo.deb https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.4.1/libjpeg-turbo-official_3.1.4.1_arm64.deb \
@@ -25,7 +24,7 @@ RUN mkdir -p /dl /out /src/jpeg \
  && make -C sharpyuv -j"$(nproc)" && make -C src -j"$(nproc)" \
  && cp -L src/.libs/libwebpdecoder.so.3 /out/
 
-FROM base
+FROM docker.io/nvidia/cuda:13.0.0-base-ubuntu24.04@sha256:6e43a6b02e5f16e4a715953be8b29c40acbe84aed11a61357ef0fc899967fbd9
 ARG TF_VERSION
 ARG TF_SHA256
 LABEL io.vonk.recipe.source="https://github.com/sfxnz/GLM-5.3-Flash-EXL3-4bpw-TensorFold-2x-DGX-Spark/tree/9e5933c085e60361104e2dc7157661bdaa8829fb" \
