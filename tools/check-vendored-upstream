@@ -100,6 +100,44 @@ class Tree:
     complete: bool
 
 
+@dataclass(frozen=True, slots=True)
+class AlsoSource:
+    """One ``also`` manifest entry: a second upstream and the path prefixes taken from it."""
+
+    repo: str
+    commit: str
+    files: tuple[str, ...]
+
+
+def parse_also(raw: object) -> tuple[list[AlsoSource], list[str]]:
+    """The typed ``also`` entries and a message for each malformed one."""
+    if not isinstance(raw, list):
+        return [], ["must be a list of {repo, commit, files} objects"]
+    sources: list[AlsoSource] = []
+    problems: list[str] = []
+    for index, entry in enumerate(raw):
+        where = f"entry {index}"
+        if not isinstance(entry, dict):
+            problems.append(f"{where} must be an object, not {type(entry).__name__}")
+            continue
+        repo, commit, files = entry.get("repo"), entry.get("commit"), entry.get("files")
+        if not isinstance(repo, str) or not repo:
+            problems.append(f"{where} needs a repo string 'owner/name'")
+        elif not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+            problems.append(f"{where} ({repo}) needs a 40-hex commit string")
+        elif (
+            not isinstance(files, list)
+            or not files
+            or not all(isinstance(f, str) and f for f in files)
+        ):
+            problems.append(
+                f"{where} ({repo}) needs files: a non-empty list of path prefixes"
+            )
+        else:
+            sources.append(AlsoSource(repo, commit, tuple(files)))
+    return sources, problems
+
+
 TreeLoader = Callable[[str, str], Tree]
 
 
@@ -328,23 +366,20 @@ def check_adapter(
     renamed: dict[str, str] = manifest.get("renamed", {})
     renamed_dirs: dict[str, str] = manifest.get("renamed_dirs", {})
     files = _local_files(adapter, root)
-    also: list[tuple[str, str, tuple[str, ...], Tree]] = []
-    for extra in manifest.get("also", []):
+    also_sources, malformed = parse_also(manifest.get("also", []))
+    if malformed:
+        report.problems.extend(f"{label}: {MANIFEST} also {m}" for m in malformed)
+        return report
+    also: list[tuple[AlsoSource, Tree]] = []
+    for extra in also_sources:
         try:
-            also.append(
-                (
-                    extra["repo"],
-                    extra["commit"],
-                    tuple(extra["files"]),
-                    load_tree(extra["repo"], extra["commit"]),
-                )
-            )
+            also.append((extra, load_tree(extra.repo, extra.commit)))
         except RuntimeError as error:
             report.problems.append(
-                f"{label}: cannot read upstream {extra['repo']}@{extra['commit']}: {error}"
+                f"{label}: cannot read upstream {extra.repo}@{extra.commit}: {error}"
             )
             return report
-    for entry in sorted(ours | set(renamed) | {p for e in also for p in e[2]}):
+    for entry in sorted(ours | set(renamed) | {p for e, _ in also for p in e.files}):
         if not any(
             f == entry or (entry.endswith("/") and f.startswith(entry)) for f in files
         ):
@@ -364,14 +399,15 @@ def check_adapter(
         if rel in ours or any(o.endswith("/") and rel.startswith(o) for o in ours):
             continue
         local_sha = git_blob_sha((adapter / rel).read_bytes())
-        second = next((e for e in also if rel.startswith(e[2])), None)
+        second = next(((e, t) for e, t in also if rel.startswith(e.files)), None)
         if second is not None:
             vendored = True
             report.checked += 1
-            if second[3].blobs.get(rel) != local_sha:
+            extra, extra_tree = second
+            if extra_tree.blobs.get(rel) != local_sha:
                 message = (
-                    f"{label}: {rel}: differs from upstream {second[0]} {rel} "
-                    f"at {second[1][:12]}"
+                    f"{label}: {rel}: differs from upstream {extra.repo} {rel} "
+                    f"at {extra.commit[:12]}"
                 )
                 report.problems.append(message)
             continue

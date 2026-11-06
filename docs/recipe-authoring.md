@@ -187,7 +187,8 @@ Resolve an immutable source identity and enumerate the files needed to load
 the model, including configuration, tokenizer, companion data, and license.
 For GitHub release assets, bind the numeric release ID and each file's numeric
 asset ID; do not use a mutable tag or browser download URL as the source
-identity. This provider supports public, anonymous assets only. For Git LFS
+identity (an adapter's build input is different: it is a release asset URL pinned
+by sha256). This provider supports public, anonymous assets only. For Git LFS
 objects in a public GitHub repository, use the `github-lfs` source: pin the
 full commit SHA as `revision`, make every file of the Model one LFS object
 (`sha256` is the LFS oid, `size_bytes` the LFS size, `path` the repository path
@@ -260,7 +261,12 @@ recipe builds its image from a digest-pinned ARM64 base image
 (`base_image.digest` is the bare 64-hex digest, without `sha256:`) and a
 recipe-owned build context, Dockerfile and patches. The build reaches
 only the hosts in `execution.build.network.hosts`; an empty list builds
-offline. Include all required local build inputs, patches, entrypoints,
+offline (`--network=none`), so a pip/uv install that can reach an index must
+declare the index hosts. An install is exempt with `--no-index`, or when it uses
+local targets with `--no-deps` and either all `.whl` files or
+`--no-build-isolation`; without `--no-index`, a `-r`/`--requirement` install counts as fetching.
+`tests/test_build_network_hosts.py` checks this for recipes with an empty host
+list. Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
 
@@ -606,7 +612,10 @@ its strict DeepSeek V4 tool grammar with a reasoning block even for
 `VLLM_ENFORCE_STRICT_TOOL_CALLING=0`
 (`tests/test_deepseek_v4_b12x_named_tool_stop.py`). Newer B12X builds, such as
 vLLM 8244d1c4 in base `sha256:03a956544e9f...`, pass `reasoning=False` and need
-no setting.
+no setting. The SparkInfer base `sha256:2e077489a83a...` (vLLM 30038602) builds
+the same forced-call tag: a recipe on it that declares `T_REPORT` also sets
+`VLLM_ENFORCE_STRICT_TOOL_CALLING=0`, or the named call runs twice (#2292). The
+test selects a recipe by base digest, and on SparkInfer by `T_REPORT` too.
 
 On GB10, CPU and CUDA allocations share physical memory: CPU/model/sequential/
 group offload adds device transitions and can duplicate storage; it is not a
@@ -750,6 +759,11 @@ Its `add_generation_prompt` branch must honour `enable_thinking is defined and
 not enable_thinking`: SGLang forces its reasoning parser from that branch, and a
 creator template that always opens `<think>` leaks `</think>` into `content`
 when a request turns thinking off (`tests/test_sglang_reasoning_template_toggle.py`).
+The same rule covers a vLLM recipe with `--reasoning-parser glm47` that serves a
+repository template. Its vendored template is the Model's own `chat_template.jinja` (sha256 from the Model document)
+plus only the thinking-switch line, so a model refresh that changes the template
+turns the suite red. A template baked into a vLLM image is not checked statically;
+hardware covers it.
 
 ### Options: user-selectable runtime variants
 
@@ -877,6 +891,14 @@ launch names, complete selected Model files and passing producer checks. Changes
 to patched runtime files or missing selected files need review; metadata-only
 changes do not independently justify rebuilding identical content. Shared build
 contexts refresh together. Human repairs may intentionally diverge with evidence.
+An adapter that installs a creator's GitHub release asset pins it by version and
+sha256. A refresh moves the `releases/download/<tag>/<asset>` URL and re-pins the
+sha256 from the creator's `<asset>.sha256`, checked against GitHub's recorded
+digest when GitHub records one. These go to review ("re-pin by hand"): a missing
+asset or `.sha256`, a disagreement, a target that is not a release, or a Dockerfile
+that does not pin the old asset by sha256. The refresh never leaves a declared
+`source.line`; it only notes that a newer line exists. Moving to another line is a
+hand change (engine work) with its own hardware proof.
 A proven recipe moves too: the refresh rewrites its entry in
 `tests/fixtures/proven-recipe-bytes.json` and the sweep re-checks it. A refresh
 branch only moves forward (never force-pushed); a PR whose checks failed on an

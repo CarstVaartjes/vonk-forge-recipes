@@ -135,7 +135,12 @@ class VendoredUpstreamTest(unittest.TestCase):
         )
         self.assertEqual(report.problems, [])
 
-    def _run_also(self, other: dict[str, bytes], local: dict[str, bytes]):
+    def _run_also(
+        self,
+        other: dict[str, bytes],
+        local: dict[str, bytes],
+        also: object | None = None,
+    ):
         trees = {
             ("o/r", COMMIT): checker.Tree({"a.py": sha(b"1")}, True),
             ("o/other", "b" * 40): checker.Tree(
@@ -144,7 +149,9 @@ class VendoredUpstreamTest(unittest.TestCase):
         }
         manifest = {
             "ours": [],
-            "also": [{"repo": "o/other", "commit": "b" * 40, "files": ["other/"]}],
+            "also": [{"repo": "o/other", "commit": "b" * 40, "files": ["other/"]}]
+            if also is None
+            else also,
         }
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -177,6 +184,27 @@ class VendoredUpstreamTest(unittest.TestCase):
     def test_also_prefix_without_files_fails(self) -> None:
         report = self._run_also({}, {})
         self.assertIn("'other/', which is not in the adapter", report.problems[0])
+
+    def test_malformed_also_entries_are_guard_problems(self) -> None:
+        good = {"repo": "o/other", "commit": "b" * 40, "files": ["other/"]}
+        cases = {
+            "not a list": ({"repo": "o/other"}, "must be a list"),
+            "entry not an object": (["o/other"], "entry 0 must be an object, not str"),
+            "missing repo": ([{**good, "repo": None}], "needs a repo string"),
+            "repo wrong type": ([{**good, "repo": 3}], "needs a repo string"),
+            "missing commit": ([{"repo": "o/other", "files": ["x/"]}], "40-hex commit"),
+            "short commit": ([{**good, "commit": "abc"}], "40-hex commit"),
+            "missing files": ([{"repo": "o/other", "commit": "b" * 40}], "needs files"),
+            "files not a list": ([{**good, "files": "other/"}], "needs files"),
+            "files empty": ([{**good, "files": []}], "needs files"),
+            "files item wrong type": ([{**good, "files": [1]}], "needs files"),
+        }
+        for name, (also, expected) in cases.items():
+            with self.subTest(name):
+                report = self._run_also({}, {}, also=also)
+                self.assertEqual(len(report.problems), 1)
+                self.assertIn(expected, report.problems[0])
+                self.assertIn("vendored-upstream.json also", report.problems[0])
 
 
 if __name__ == "__main__":
