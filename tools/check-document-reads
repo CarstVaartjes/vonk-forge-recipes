@@ -72,7 +72,7 @@ KEYS = frozenset(
     }
 )
 SEGMENTS = frozenset({"recipes", "models", "display"})
-FRAGMENTS = ("recipe.json", "recipes/", "models/", "display/")
+FRAGMENTS = ("recipe.json", "recipes/", "models/", "display/", "api/recipes/")
 DOCUMENT_NAMES = frozenset({"document", "recipe", "model", "doc", "display"})
 ANNOTATIONS = frozenset({"dict", "Mapping", "Any"})
 READ_METHODS = frozenset({"read_text", "read_bytes"})
@@ -80,7 +80,7 @@ JSON_LOADS = frozenset({"load", "loads"})
 HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
 ADVICE = (
     "use vonk_forge_contracts (read_recipe/read_model/read_recipe_display/"
-    "read_model_display) or qualification/documents.py"
+    "read_model_display/read_recipe_api) or qualification/documents.py"
 )
 
 

@@ -1,0 +1,4 @@
+{
+  "contract": "check_recipe_api",
+  "error_contains": "no context argument (--max-model-len) is bound to context_tokens"
+}

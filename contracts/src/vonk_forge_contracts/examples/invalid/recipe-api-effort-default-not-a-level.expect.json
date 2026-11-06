@@ -1,0 +1,4 @@
+{
+  "contract": "RecipeApi",
+  "error_contains": "effort default must be one of its levels"
+}

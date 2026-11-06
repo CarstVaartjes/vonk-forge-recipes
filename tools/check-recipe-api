@@ -1,0 +1,177 @@
+#!/usr/bin/env -S uv run --no-project --python 3.14 --with-editable contracts python
+"""Require and check the API facts of every recipe a change adds or edits.
+
+An OpenAI-interface generation or decision recipe needs ``api/recipes/<slug>.json``
+(the ``recipe-api`` document: token limits, modalities, reasoning, tools,
+endpoints). The document must agree with the recipe's runtime for its engine,
+through every option choice (``check_recipe_api``), and with the Models the
+recipe selects (``check_api_models``). An edited API document is checked
+together with its recipe.
+
+Whether the route really serves tools or a reasoning parser is not re-derived
+here: ``qualification.capabilities.serving_capabilities`` owns that fact (runtime
+arguments, adapter launch scripts and kit flags) and is asked once per option
+variant. The context-argument table is the one in ``vonk_forge_contracts.api_checks``,
+shared with the memory estimator.
+
+Only recipes and API documents touched since the merge base with ``--base`` are
+checked; with no ``--base`` the named slugs, or the whole library, are. There is
+no count and no allowlist of recipes that lack a document: completeness comes
+from the backfill, and a recipe nobody touches is not this guard's concern.
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from vonk_forge_contracts import (
+    ChatApi,
+    RecipeApi,
+    RecipeApiError,
+    RecipeDefinition,
+    check_api_models,
+    check_recipe_api,
+)
+from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone
+from vonk_forge_contracts.api_checks import api_variants, join_problems
+
+from qualification.capabilities import serving_capabilities
+from qualification.documents import (
+    has_recipe_api,
+    model,
+    recipe,
+    recipe_api,
+    recipe_display,
+)
+
+SERVING_KINDS = frozenset({"generation", "decision"})
+
+
+def touched_slugs(root: Path, base: str) -> list[str]:
+    """Slugs of recipe and API files added or modified since the merge base."""
+
+    def git(*args: str) -> list[str]:
+        return subprocess.run(
+            [
+                "git",
+                "-C",
+                str(root),
+                *args,
+                "--",
+                "recipes/*.json",
+                "api/recipes/*.json",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.splitlines()
+
+    names = git("diff", "--name-only", "--diff-filter=AMR", "--merge-base", base)
+    names += git("ls-files", "--others", "--exclude-standard")
+    return sorted({Path(name).stem for name in names})
+
+
+def parser_problems(
+    root: Path, slug: str, document: RecipeDefinition, api: RecipeApi
+) -> list[str]:
+    """Tools and reasoning the API states against what the launch really enables."""
+
+    display = recipe_display(slug, root)
+    found: dict[str, list[str]] = {}
+    count = 0
+    for label, effective, block in api_variants(document, api):
+        count += 1
+        if not isinstance(block, ChatApi):
+            continue
+        # The variant's own arguments; its options are already merged in.
+        launch = effective.model_dump(mode="json") | {"options": []}
+        caps = serving_capabilities(launch, slug, {}, display, root)
+        if not isinstance(block.tools, ApiToolsNone) and not caps.tools:
+            found.setdefault(
+                f"tools need a tool-call parser the launch enables ({caps.flags_from})",
+                [],
+            ).append(label)
+        if not isinstance(block.reasoning, ApiReasoningNone) and not (
+            caps.reasoning_parser
+        ):
+            found.setdefault(
+                f"reasoning needs a reasoning parser the launch enables ({caps.flags_from})",
+                [],
+            ).append(label)
+    return [join_problems(found, count)] if found else []
+
+
+def problems(root: Path, slugs: list[str]) -> list[str]:
+    """One message per recipe slug whose API facts are missing or wrong."""
+
+    found: list[str] = []
+    for slug in slugs:
+        try:
+            document = recipe(slug, root)
+        except FileNotFoundError:
+            if has_recipe_api(slug, root):
+                found.append(f"{slug}: api document has no recipe")
+            continue
+        serves = (
+            document.interfaces[0].adapter == "openai"
+            and document.settings.kind in SERVING_KINDS
+        )
+        if not has_recipe_api(slug, root):
+            if serves:
+                found.append(f"{slug}: needs api/recipes/{slug}.json")
+            continue
+        if not serves:
+            found.append(f"{slug}: api documents are for OpenAI-interface recipes")
+            continue
+        try:
+            api = recipe_api(slug, root)
+        except ValueError as error:
+            found.append(f"{slug}: {error}")
+            continue
+        models = [model(s.model.slug, root) for s in document.models]
+        messages: list[str] = []
+        try:
+            check_recipe_api(document, api)
+        except RecipeApiError as error:
+            messages.append(str(error))
+        try:
+            check_api_models(document, api, models)
+        except RecipeApiError as error:
+            messages.append(str(error))
+        try:
+            messages += parser_problems(root, slug, document, api)
+        except ValueError as error:  # an engine serving_capabilities has no rule for
+            messages.append(str(error))
+        found += [f"{slug}: {message}" for message in messages]
+    return found
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("slugs", nargs="*", help="recipe slugs; default: catalog")
+    parser.add_argument(
+        "--base",
+        help="check only files touched since the merge base with this revision",
+    )
+    args = parser.parse_args()
+    slugs = (
+        touched_slugs(ROOT, args.base)
+        if args.base
+        else args.slugs or sorted(p.stem for p in (ROOT / "recipes").glob("*.json"))
+    )
+    found = problems(ROOT, slugs)
+    for item in found:
+        print(f"::error::{item}" if "GITHUB_ACTIONS" in os.environ else item)
+    print(f"Checked {len(slugs)} recipe(s); {len(found)} with API problems.")
+    return 1 if found else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

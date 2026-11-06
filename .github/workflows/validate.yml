@@ -109,7 +109,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Recipe data (recipes, models, display, adapters, qualification, README,
+          # Recipe data (recipes, models, display, api, adapters, qualification, README,
           # creators) skips lint, format, type checks and the wheel build; every
           # other change (contracts, tools, tests, workflows) runs them too.
           case "${{ github.event_name }}" in
@@ -123,7 +123,7 @@ jobs:
           if [[ -n "$base" ]] && git cat-file -e "$base^{commit}" 2>/dev/null; then
             # Capture first: grep -q exiting early must not fail the pipeline.
             changed=$(git diff --name-only "$base" HEAD)
-            other=$(grep -Ev '^(recipes/|models/|display/|adapters/|qualification/shared\.json$|qualification/recipes/|README\.md$|creators\.json$)' <<<"$changed" | grep -v '^$' || true)
+            other=$(grep -Ev '^(recipes/|models/|display/|api/|adapters/|qualification/shared\.json$|qualification/recipes/|README\.md$|creators\.json$)' <<<"$changed" | grep -v '^$' || true)
             if [[ -z "$other" ]]; then full=false; else echo "Not recipe data:"; head -20 <<<"$other"; fi
           fi
           echo "full=$full" >> "$GITHUB_OUTPUT"
@@ -205,6 +205,12 @@ jobs:
         run: |
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" tools/check-recipe-memory-need --base origin/main
+
+      - name: Require API facts on every touched OpenAI-interface recipe
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/check-recipe-api --base origin/main
 
       - name: Require every recipe to reference Models this library holds
         shell: bash
