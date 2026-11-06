@@ -52,13 +52,6 @@ def test_rejects_per_recipe_map_in_shared_file(tmp_path: Path) -> None:
         load_definitions(tmp_path)
 
 
-def test_rejects_leftover_definitions_json(tmp_path: Path) -> None:
-    root = _root(tmp_path)
-    _write(root / "definitions.json", {"schema_version": 2})
-    with pytest.raises(ValueError, match="old layout"):
-        load_definitions(root)
-
-
 def test_repository_definitions_load() -> None:
     document = load_definitions(ROOT / "qualification")
     assert document["recipes"] and document["service_recipes"]

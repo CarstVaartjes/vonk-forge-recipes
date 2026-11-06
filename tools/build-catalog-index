@@ -194,6 +194,12 @@ def _commit_time(cwd: Path, commit: str) -> str:
     return datetime.fromtimestamp(int(value), UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _updated_at(source_date_epoch: int) -> str:
+    """Return a Unix time in RFC 3339 UTC."""
+
+    return datetime.fromtimestamp(source_date_epoch, UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def _catalog_entity_documents() -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
     from vonk_forge_contracts import ModelDefinition
@@ -696,6 +702,7 @@ def build(
     package_dir: Path,
     platform_root: Path | None = None,
     source_commit: str | None = None,
+    source_date_epoch: int | None = None,
     prebuilt_images: dict[str, dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     package_dir.mkdir(parents=True, exist_ok=True)
@@ -840,7 +847,11 @@ def build(
         # The library release is the contract version; recipe changes only
         # move updated_at, the source commit's commit time.
         "contract_version": CONTRACT_VERSION,
-        "updated_at": _commit_time(ROOT, source_value),
+        "updated_at": (
+            _updated_at(source_date_epoch)
+            if source_date_epoch is not None
+            else _commit_time(ROOT, source_value)
+        ),
         "repository": REPOSITORY,
         "source_commit": source_value,
         "platform_commit": platform_commit,
@@ -896,7 +907,9 @@ def _rendered_index(document: dict[str, Any]) -> bytes:
     return index
 
 
-def write_outputs(directory: Path, *, source_commit: str) -> dict[str, Any]:
+def write_outputs(
+    directory: Path, *, source_commit: str, source_date_epoch: int | None = None
+) -> dict[str, Any]:
     """Write the catalog build outputs under ``directory`` in checkout layout.
 
     ``catalog-index.json``, ``qualification/qualification-index.json`` and
@@ -905,7 +918,11 @@ def write_outputs(directory: Path, *, source_commit: str) -> dict[str, Any]:
     """
 
     package_dir = directory / "packages"
-    document = build(package_dir=package_dir, source_commit=source_commit)
+    document = build(
+        package_dir=package_dir,
+        source_commit=source_commit,
+        source_date_epoch=source_date_epoch,
+    )
     expected = {
         PurePosixPath(str(row["package"]["path"])).name for row in document["recipes"]
     }
@@ -923,6 +940,7 @@ def write_release(
     directory: Path,
     *,
     source_commit: str,
+    source_date_epoch: int | None = None,
     include: tuple[Path, ...] = (),
     prebuilt_images: dict[str, dict[str, str]] | None = None,
 ) -> dict[str, str]:
@@ -942,6 +960,7 @@ def write_release(
         document = build(
             package_dir=package_dir,
             source_commit=source_commit,
+            source_date_epoch=source_date_epoch,
             prebuilt_images=prebuilt_images,
         )
         assets = {
@@ -976,6 +995,12 @@ def main() -> int:
     parser.add_argument(
         "--source-commit",
         help="immutable recipe source commit recorded in the index (default: HEAD)",
+    )
+    parser.add_argument(
+        "--source-date-epoch",
+        type=int,
+        help="commit time of the source commit (Unix seconds) recorded as "
+        "updated_at (default: read from Git)",
     )
     target = parser.add_mutually_exclusive_group()
     target.add_argument(
@@ -1014,6 +1039,7 @@ def main() -> int:
         digests = write_release(
             arguments.release_dir,
             source_commit=source_commit,
+            source_date_epoch=arguments.source_date_epoch,
             include=tuple(arguments.include),
             prebuilt_images=prebuilt_images,
         )
@@ -1021,7 +1047,11 @@ def main() -> int:
         return 0
     if arguments.include or prebuilt_images is not None:
         parser.error("--include and --prebuilt-images require --release-dir")
-    document = write_outputs(arguments.output_dir, source_commit=source_commit)
+    document = write_outputs(
+        arguments.output_dir,
+        source_commit=source_commit,
+        source_date_epoch=arguments.source_date_epoch,
+    )
     print(
         f"wrote catalog-index.json, qualification/qualification-index.json and "
         f"{len(document['recipes'])} packages under {arguments.output_dir}"

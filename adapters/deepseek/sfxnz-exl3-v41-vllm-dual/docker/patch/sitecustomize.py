@@ -85,6 +85,76 @@ def _sm120_rewrite(rel, fn_name):
     return body
 
 
+# DeepseekV4Model.forward stops keeping the previous layer's outputs alive through each layer call
+# and the last DSpark tap's recon to the end of the forward (docker/patch/model_loop_release.py;
+# bit-identical, -400 MiB at every layer's prefill peak at 8190 rows). DSV41_MODEL_LOOP_RELEASE=1
+# rewrites models/deepseek_v4_1/nvidia/model.py here, before anything imports vLLM.
+def _p_model_loop_release():
+    import model_loop_release
+
+    if not model_loop_release.enabled():
+        if model_loop_release.restore(_VLLM, _rewrite) == "rewritten":
+            print("dsv41: model loop release off: model.py restored to the image's loop", flush=True)
+        raise _PatchSkip("DSV41_MODEL_LOOP_RELEASE is not 1")
+    return model_loop_release.install(_VLLM, _rewrite)
+
+
+_patch("model_loop_release", _p_model_loop_release)
+
+
+# vLLM PR #60996 packed KV group sizing (docker/patch/kv_packed_groups.py): one layer-pattern repeat
+# per KV-cache group, 50 groups on 46,080-byte blocks instead of 18 on 138,240 (3.875 GiB at
+# max-model-len 500,000: 1,471,832 tokens instead of 964,308, CPU planner). DSV41_KV_PACKED_GROUPS=1 (run.sh
+# default) rewrites v1/core/kv_cache_utils.py here, before anything imports vLLM; 0 keeps the image's
+# planner. Required: an anchor miss is image drift.
+def _p_kv_packed_groups():
+    import kv_packed_groups
+
+    if not kv_packed_groups.enabled():
+        kv_packed_groups.refuse_stale(_VLLM)
+        raise _PatchSkip("DSV41_KV_PACKED_GROUPS is not 1")
+    return kv_packed_groups.install(_VLLM, _rewrite)
+
+
+_patch("kv_packed_groups", _p_kv_packed_groups, required=True)
+
+
+# Indexer expanded block table on first use (docker/patch/indexer_expanded_lazy.py): each indexer
+# builder allocates B x (blocks per max-length request) x 4 B in __init__ that only the flattened decode
+# branch reads, and SM120 native decode never takes it (122 MiB per ratio-2 and 244 MiB per ratio-1
+# builder at 500,000 / 8192). DSV41_INDEXER_EXPANDED_TABLE_LAZY=1 (run.sh default) rewrites
+# v1/attention/backends/mla/indexer.py before kernel_block_sizes below imports it; 0 keeps the stock
+# allocation. Required: an anchor miss is image drift.
+def _p_indexer_expanded_lazy():
+    import indexer_expanded_lazy
+
+    if not indexer_expanded_lazy.enabled():
+        indexer_expanded_lazy.refuse_stale(_VLLM)
+        raise _PatchSkip("DSV41_INDEXER_EXPANDED_TABLE_LAZY is not 1")
+    return indexer_expanded_lazy.install(_VLLM, _rewrite)
+
+
+_patch("indexer_expanded_lazy", _p_indexer_expanded_lazy, required=True)
+
+
+# 16-bit grayscale images (docker/patch/image_16bit_gray.py): Pillow clamps I;16 to 255 when it converts to an
+# 8-bit mode, so a 16-bit grayscale PNG reached the model almost white. DSV41_IMAGE_16BIT_GRAY=1 (run.sh default)
+# rewrites multimodal/image.py convert_image_mode and the V4.1 processor's load_image here, before anything
+# imports vLLM, to scale I;16* by 1/257 as the DeepSeek API does; 0 keeps (or puts back) the image's text.
+# Required: an anchor miss is image drift.
+def _p_image_16bit_gray():
+    import image_16bit_gray
+
+    if not image_16bit_gray.enabled():
+        if "rewritten" in image_16bit_gray.restore(_VLLM, _rewrite):
+            print("dsv41: image 16-bit gray off: the image's conversion restored", file=sys.stderr, flush=True)
+        raise _PatchSkip("DSV41_IMAGE_16BIT_GRAY is not 1")
+    return image_16bit_gray.install(_VLLM, _rewrite)
+
+
+_patch("image_16bit_gray", _p_image_16bit_gray, required=True)
+
+
 # --- pfg8 load tracer (Round 31): when DSV41_LOAD_PF_G8=1, sample the worker
 # process every 10s during weight load: RSS, gc type census (top objects by
 # retained count), torch tensor count, and main-thread stack. Writes
@@ -266,6 +336,18 @@ _patch(
     required=True,
 )
 
+
+# Ragged decode batches in the sparse indexer (docker/patch/indexer_ragged_decode.py): vLLM 0.32rc1's
+# needs_padded_path guard (sparse_attn_indexer.py:795-808). Uniform decode lengths with a token count
+# that is not a multiple of the decode requests crash the uniform reshape; MAX_NUM_SEQS=4 adds batch shapes.
+def _p_indexer_ragged_decode():
+    import indexer_ragged_decode
+
+    return _rewrite(f"{_VLLM}/{indexer_ragged_decode.REL}", indexer_ragged_decode.patch_source)
+
+
+_patch("indexer_ragged_decode", _p_indexer_ragged_decode, required=True)
+
 # PF-G8 loader re-index (results/2026-09-21-pfg8/BOOT-CHAIN-AUDIT.md):
 # DSV41_LOAD_PF_G8=1 serves a G8 pack (trellis [NT/8][KT][8W]) — the loader
 # must narrow the G8 dims (gate/up dim0, down dim1) or TP sharding reads the
@@ -394,7 +476,8 @@ _patch("cudagraph_worker_stub", _p_cudagraph_worker_stub)
 #    allocates from MemFree and does not reclaim clean page cache
 #    (DSV41_DROP_PAGE_CACHE=1).
 # 2) torch.cuda.empty_cache() after long prefill chunks while MemAvailable is
-#    under the floor (DSV41_PREFILL_EMPTY_CACHE_TOKENS / _MEMAVAIL_GIB).
+#    under the floor (DSV41_PREFILL_EMPTY_CACHE_TOKENS / _MEMAVAIL_GIB), held
+#    while a prompt is in flight (DSV41_PREFILL_EMPTY_CACHE_HOLD / _FLOOR_GIB / _GROWTH_MIB).
 try:
     from drop_page_cache import install as _install_dpc
 
@@ -407,6 +490,57 @@ try:
     _install_pec()
 except Exception as _pec_err:
     print(f"dsv41: prefill-empty-cache install skipped: {_pec_err!r}", flush=True)
+
+
+# 3) One vllm_exl3 fat-expert scratch set for every row bucket and K instead of
+#    one per (bucket, K) held for the process life (docker/patch/fat_scratch_shared.py,
+#    DSV41_FAT_SCRATCH_SHARED=1; bit-identical). Needs the plugin imported above.
+def _p_fat_scratch_shared():
+    import fat_scratch_shared
+
+    if not fat_scratch_shared.enabled():
+        raise _PatchSkip("DSV41_FAT_SCRATCH_SHARED is not 1")
+    detail = fat_scratch_shared.install()
+    if detail.startswith("disabled"):
+        raise RuntimeError(detail)
+    return detail
+
+
+_patch("fat_scratch_shared", _p_fat_scratch_shared)
+
+
+# 4) Eager prefill steps (> 64 tokens): the attention output buffer is allocated after the indexer and
+#    the projection outputs are dropped before o_proj (docker/patch/attn_out_defer.py,
+#    DSV41_ATTN_OUT_DEFER=1); the Engram post-wkv kernel writes its output in place and optionally runs
+#    the wkv GEMM per row chunk (docker/patch/engram_post_inplace.py, DSV41_ENGRAM_POST_INPLACE=1,
+#    DSV41_ENGRAM_WKV_ROWS=N, self-checked bitwise on the first eager calls). Decode and graph capture
+#    keep the stock code.
+def _p_attn_out_defer():
+    import attn_out_defer
+
+    if not attn_out_defer.enabled():
+        raise _PatchSkip("DSV41_ATTN_OUT_DEFER is not 1")
+    detail = attn_out_defer.install()
+    if detail.startswith("disabled"):
+        raise RuntimeError(detail)
+    return detail
+
+
+_patch("attn_out_defer", _p_attn_out_defer)
+
+
+def _p_engram_post_inplace():
+    import engram_post_inplace
+
+    if not engram_post_inplace.enabled():
+        raise _PatchSkip("DSV41_ENGRAM_POST_INPLACE is not 1 and DSV41_ENGRAM_WKV_ROWS is 0")
+    detail = engram_post_inplace.install()
+    if detail.startswith("disabled"):
+        raise RuntimeError(detail)
+    return detail
+
+
+_patch("engram_post_inplace", _p_engram_post_inplace)
 
 # FlashInfer SM120 DSV4 decode is compiled only for page_block_size=64.
 # Upstream V4.1 hardcodes SWA pages to 32 (DeepGEMM paged-MQA).
@@ -549,6 +683,11 @@ _patch(
     "indexer_short_context",
     _sm120_rewrite("models/deepseek_v4_1/attention.py", "patch_indexer_short_context_source"),
 )
+
+# DeepSeek-V4.1-Flash-1017 chat-encoder parity (docker/patch/chat_encoder_1017.py): tool-result-only
+# user turns do not start a turn, content_blocks passthrough, placeholder check before merging, 1017
+# reasoning-effort budgets. Rewrites the image's vllm/tokenizers/deepseek_v41{,_encoding}.py.
+_patch("chat_encoder_1017", lambda: __import__("chat_encoder_1017").install(_VLLM, _rewrite), required=True)
 
 # lm_head MXFP8 (b12x): DSV41_LMHEAD_MXFP8=1 + quantized tensor in the
 # snapshot. Default-off; self-disarms (one line, never a crash) when the
@@ -1206,6 +1345,70 @@ def _p_nccl_eager_twin():
 
 
 _patch("nccl_eager_twin", _p_nccl_eager_twin)
+
+
+# Prompt-end SWA prefix-cache fallback (docker/patch/prefix_end_fallback.py):
+# DSV41_PREFIX_END_FALLBACK=1 (default) also keeps the SWA tail one hit unit below every
+# reachable boundary (resends and at-N follow-ups always hit); 0 = stock e15. Scheduler
+# side, with or without decoder replay.
+def _p_prefix_end_fallback():
+    import prefix_end_fallback
+
+    state = prefix_end_fallback.install()
+    if state == "off":
+        raise _PatchSkip(f"{prefix_end_fallback.ENV}=0")
+    return state
+
+
+_patch("prefix_end_fallback", _p_prefix_end_fallback)
+
+
+# Decode-filled SWA blocks in the prefix cache (docker/patch/prefix_reply_retain.py):
+# DSV41_PREFIX_REPLY_RETAIN=1 (default) lets a follow-up that repeats the assistant reply
+# hit at the reply's end; 0 = stock e15. Scheduler side, with or without decoder replay.
+def _p_prefix_reply_retain():
+    import prefix_reply_retain
+
+    state = prefix_reply_retain.install()
+    if state == "off":
+        raise _PatchSkip(f"{prefix_reply_retain.ENV}=0")
+    return state
+
+
+_patch("prefix_reply_retain", _p_prefix_reply_retain)
+
+
+# Decoder-side SWA bounded replay, the CED prefill skip (docker/patch/decoder_replay.py):
+# DSV41_DECODER_REPLAY_ROWS=W (2670 exact, 128 upstream approximate, 0 off). Installs the
+# worker side and the scheduler's SWA prefix-cache guard together, or neither.
+def _p_decoder_replay():
+    import decoder_replay
+
+    state = decoder_replay.install()
+    if state == "off":
+        raise _PatchSkip(f"{decoder_replay.ENV}=0")
+    return state
+
+
+_patch("decoder_replay", _p_decoder_replay)
+
+
+# Prefill sharing for concurrent sessions (docker/patch/sched_prefill_cap.py): DSV41_SCHED_PREFILL_CAP=X
+# caps each prefilling request at X tokens per step while the scheduler holds more than one request;
+# DSV41_SCHED_DECODE_STEPS=n runs n decode-only steps after each step that carried prefill while a
+# request decodes. Both 0 (default): stock scheduling, nothing patched.
+def _p_sched_prefill_cap():
+    import sched_prefill_cap
+
+    state = sched_prefill_cap.install()
+    if state == "off":
+        raise _PatchSkip(f"{sched_prefill_cap.ENV_CAP} and {sched_prefill_cap.ENV_STEPS} are 0")
+    if state not in ("armed", "already installed"):
+        raise RuntimeError(f"sched_prefill_cap {state}")
+    return state
+
+
+_patch("sched_prefill_cap", _p_sched_prefill_cap)
 
 
 # Env-gated decode levers (docker/patch/decode_levers.py; each is off by default).

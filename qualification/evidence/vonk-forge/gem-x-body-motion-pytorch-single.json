@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/gem-x-body-motion-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "6a58751a509cbcc66bfe1a1b78f41f78fe29b2f3f568ea2696ec723fe7e45923",
+        "source_bundle_sha256": "d9c377a47f1c591709a3a32b552a1b16113a20dbb8088002ff72137af1ccbddf",
+        "runtime_image": {
+          "build_key": "cf711669bd259d6ec7e2bb55b5b41b4dc43a214746b7716587030df4f5e3d8af",
+          "image_digest": "sha256:7ba96f4644486fbe66a36b3c47e68122a0007e9c2d139519cf04f2986eabee88"
+        },
+        "model_digests": [
+          "8055627272779a31a4bff9c1c29e1c10e9c1daa2ac12d488327cbb1230c44804",
+          "bafae803698c69eb39a3b1f6de3dd9abe388ca276a5f0ad7947efa008831c35e",
+          "f87f282b17640e6192cdb34cf728c256a3f134402520b7c80d0cfd630205f540"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "cfc901d8fb1b2ebcd98401a9633e54b168509d6a81ea392de352952ecd592042"
+      ],
+      "tested_at": "2026-11-06T13:19:18.305072Z",
+      "platform": {
+        "controller_source_sha": "47c6bc7417eaf14eb485cea51de0f4fd85c91324",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical execution document before the Model facts split"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "b44668d2ccbd724f5ad22842a3a0474e5aff44ef58cf7c810af2bff52d4fdae2",
+        "source_bundle_sha256": "d9c377a47f1c591709a3a32b552a1b16113a20dbb8088002ff72137af1ccbddf",
+        "runtime_image": {
+          "build_key": "cf711669bd259d6ec7e2bb55b5b41b4dc43a214746b7716587030df4f5e3d8af",
+          "image_digest": "sha256:7ba96f4644486fbe66a36b3c47e68122a0007e9c2d139519cf04f2986eabee88"
+        },
+        "model_digests": [
+          "74de5bdc10cc5b99eb75ed184e160bb101e1c287b1395d8405e02640c47ceb0a",
+          "815733ca8f00e29eebaf1d9b50bf5add7065d2108b235d826845b7132bc9b7ad",
+          "cb4ee2c39723381554ff45bedf1143f4faff8948175751bad2501fcc3d875a50"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "cfc901d8fb1b2ebcd98401a9633e54b168509d6a81ea392de352952ecd592042"
+      ],
+      "tested_at": "2026-11-06T13:19:18.305072Z",
+      "platform": {
+        "controller_source_sha": "47c6bc7417eaf14eb485cea51de0f4fd85c91324",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "6a58751a509cbcc66bfe1a1b78f41f78fe29b2f3f568ea2696ec723fe7e45923",
+      "role": "entrypoint",
+      "steady_bytes": 4232998912
+    },
+    {
+      "content_sha256": "b44668d2ccbd724f5ad22842a3a0474e5aff44ef58cf7c810af2bff52d4fdae2",
+      "role": "entrypoint",
+      "steady_bytes": 4232998912
+    }
+  ]
+}

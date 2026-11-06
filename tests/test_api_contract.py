@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from documents import has_recipe_api, model_display, recipe, recipe_api
+from documents import model_display, recipe, recipe_api
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from vonk_forge_contracts import (
@@ -63,7 +63,6 @@ def test_the_api_document_leaves_the_recipe_untouched() -> None:
     """The recipe has no API field; its digest cannot depend on the sibling."""
 
     assert "api" not in RecipeDefinition.model_fields
-    assert not has_recipe_api("agents-a1-nvfp4-r0b0tlab-vllm-single")
 
 
 def test_an_orphan_api_document_is_refused() -> None:
@@ -92,7 +91,7 @@ def test_an_option_choice_replaces_the_whole_block() -> None:
     api = recipe_api(document.identity.slug)
     default = api.for_choices(document, {})
     text_only = api.for_choices(document, {"images_video": "text-only"})
-    assert default.input_modalities.image and default.input_modalities.video
+    assert default.input_modalities.image and not default.input_modalities.video
     assert not text_only.input_modalities.image
     assert api.for_choices(document, {"drafter": "mtp"}) == default
 

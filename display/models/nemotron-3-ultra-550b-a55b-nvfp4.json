@@ -1,0 +1,31 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "NVIDIA's frontier-scale Nemotron 3 Ultra: a 550B-parameter (55B active) LatentMoE Mamba-2, MoE and attention hybrid with multi-token prediction.",
+  "family_title": "NVIDIA Nemotron",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "nemotron-3-ultra-550b-a55b-nvfp4"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-OpenMDW-1.1",
+    "url": "https://openmdw.ai/license/1-1/"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "Nemotron 3 Ultra 550B-A55B",
+  "tags": [
+    "nvidia",
+    "nemotron"
+  ]
+}

@@ -19,6 +19,25 @@
       },
       "value_dim": 0
     },
+    "deepseek-v4-1-flash-1017-exl3-2-7bpw-mcg-hq-a8006e99": {
+      "architecture": "DeepseekV41ForCausalLM",
+      "configuration_sha256": "af5a69352a19b8b0928509703068597596d231709a06a544e0b07879fb70512c",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 40,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/sfxnz/DeepSeek-V4.1-Flash-1017-EXL3/resolve/a8006e99931e7d67c4d218c66543f478b521b857/config.json (HF API revision a8006e99931e7d67c4d218c66543f478b521b857); sha256 af5a69352a19b8b0928509703068597596d231709a06a544e0b07879fb70512c. Differs from the native 1017 config (deepseek-v4-1-flash-1017-native-1bae0e10) only in quantization_config, so the attention geometry is the same: 40 layers, four kv_source_layer_ids and eight index_source_layer_ids sharing one compressed KV/index cache, 1 KV head, key_dim 512; bound 2048 bytes/token for FP8, 4096 for BF16, bounded SWA and replay state rounded to 64 MiB/request. The kit's README 'Memory and context' (https://github.com/sfxnz/DeepSeek-V4.1-Flash-1017-EXL3-2.7bpw-vLLM-2x-DGX-Spark/blob/8087818b9fe2aaf8fb3dbd456f0e18d7751edb9a/README.md) reports the 4,160,749,568-byte fp8 pool with packed KV groups holding 1,471,832 tokens (2.94x) at the 500,000-token window; the 1,048,576-token window fits 1.73x. Allocation estimate, not hardware proof.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 4096,
+        "fp8": 2048,
+        "fp8_ds_mla": 2048,
+        "fp8_e4m3": 2048,
+        "nvfp4_ds_mla": 2048
+      },
+      "value_dim": 0
+    },
     "deepseek-v4-1-flash-314113f8": {
       "architecture": "DeepseekV41ForCausalLM",
       "configuration_sha256": "8be45ce0476004a3f529fd896115a4a2e800a129ad2d3ec05b16050f52e21879",
@@ -801,7 +820,7 @@
       "aa385fa2e65683a422beb0e7604fa4b2bf68f9ec36dec66ea321d42d73fa52c4"
     ],
     "vonk-forge/deepseek-v4-1-flash-exl3-sfxnz-vllm-dual": [
-      "151d56df9993fa2e36dbf3172360af86480c9bd4c7fb4b0ed020d63999dc5f5a"
+      "f9503d0d40ffbe21ae1d73d8685e0ed690e36efde48e2c3866e3b2e4f4546f0f"
     ],
     "vonk-forge/deepseek-v4-1-flash-r0b0tlab-sglang-four": [
       "87c0457c2fa3a309913cb9b7566a98ad5602a59692ae93c0202c84ca460ccbdf"

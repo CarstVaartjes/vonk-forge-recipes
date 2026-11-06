@@ -1,0 +1,24 @@
+{
+  "alignment": "standard",
+  "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker 4x-spark-cluster nemotron-3-ultra-nvfp4 recipe (recipes directory last changed 628882d0, repository 73a48892) for NVIDIA's NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4 (OpenMDW-1.1; checkpoint revision 02462641) served by vLLM on four Sparks. Runs eugr's published vllm-node image (docker.io/eugr/spark-vllm:latest, digest pinned; its build metadata records spark-vllm-docker 73a48892) with upstream's launch: tensor parallel 4, FP8 KV cache, Marlin MoE backend, TRITON_ATTN attention, float32 mamba SSM cache with mamba cache mode align, InstantTensor loading with one loading worker, MTP speculation with four tokens (Triton MoE and attention backends), full-decode CUDA graphs without compilation at capture sizes 5, 10, 15 and 20, prefix caching, FlashInfer autotune, the nemotron_v3 reasoning parser, the qwen3_xml tool-call parser, 262,144-token context, two sequences, 16,384 batched tokens and memory utilisation 0.85 (upstream defaults), with VLLM_FLOAT32_MATMUL_PRECISION=high. Deviations from upstream: tensor parallel 4 across the four Sparks uses vLLM's native multi-node launch, eugr's default no-Ray cluster mode (upstream's yaml header says no-ray), so --distributed-executor-backend ray is dropped; the three compilation arguments (-cc.mode 0, -cc.cudagraph_mode FULL_DECODE_ONLY, --cudagraph-capture-sizes 5 10 15 20) are written as the one equivalent --compilation-config JSON; the model is served from the mounted snapshot under its upstream id as the served model name. Upstream names a nemotron-ultra mod, but eugr's yaml sets mods to an empty list and the repository has no such mod at any commit, so none is applied. The checkpoint's 113 per-shard weight-map JSON files are left out of the Model: vLLM reads model.safetensors.index.json. The 352 GB checkpoint is 88 GB per Spark at tensor parallel 4. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending: this recipe needs four Sparks. GB10 memory estimate: per-node peak budgets utilization x 130,663,231,488-byte unified memory plus the 10.4 GB margin held beside a pool-less multi-Spark vLLM budget; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-ultra-550b-a55b-nvfp4-eugr-vllm-four"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "eugr",
+    "executable",
+    "four",
+    "nemotron",
+    "nemotron-3",
+    "nvfp4",
+    "nvidia",
+    "reasoning",
+    "spark",
+    "tool-use",
+    "vllm"
+  ],
+  "title": "Nemotron 3 Ultra 550B-A55B NVFP4 Marlin MTP vLLM four Sparks (eugr)"
+}

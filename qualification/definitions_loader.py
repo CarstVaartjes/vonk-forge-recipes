@@ -10,8 +10,7 @@ its publisher prefix::
 Either section may be omitted. ``load_definitions`` is the only reader; it
 returns the same document the single file used to hold, with both maps sorted
 by recipe id. It fails loudly on a recipe id defined twice, on a duplicate JSON
-key, on a file name that does not match its id, and on a leftover
-``definitions.json`` (the pre-split layout).
+key, and on a file name that does not match its id.
 """
 
 from __future__ import annotations
@@ -56,11 +55,6 @@ def recipe_file_name(recipe_id: str) -> str:
 
 
 def load_definitions(root: Path = QUALIFICATION_ROOT) -> dict[str, Any]:
-    if (root / "definitions.json").exists():
-        raise ValueError(
-            "qualification/definitions.json is the old layout; "
-            "run tools/migrate-pr-qualification"
-        )
     document = _read(root / "shared.json")
     for section in PER_RECIPE_SECTIONS:
         if section in document:

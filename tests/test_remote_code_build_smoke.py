@@ -116,6 +116,11 @@ def installed_vllm(
     for directory in (package.parent, package):
         (directory / "__init__.py").write_text("")
     record = tmp_path / "parsed.txt"
+    (package.parent / "plugins.py").write_text(
+        "import pathlib\n"
+        "def load_general_plugins():\n"
+        f"    pathlib.Path({str(tmp_path / 'plugins.txt')!r}).write_text('loaded')\n"
+    )
     (package / "config.py").write_text(
         "import pathlib\n"
         "def get_config(path, trust_remote_code):\n"
@@ -131,6 +136,22 @@ def installed_vllm(
 ACCEPTS = (
     "    record.write_text(pathlib.Path(path).name + ' ' + str(trust_remote_code))\n"
 )
+
+
+def test_vllm_loads_its_plugins_before_it_parses_the_served_config(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A plugin can register the model type (Nemotron Transcribe's nemo_speechlm)."""
+    plugins = tmp_path / "plugins.txt"
+    record = installed_vllm(
+        tmp_path,
+        monkeypatch,
+        f"    assert pathlib.Path({str(plugins)!r}).is_file()\n" + ACCEPTS,
+    )
+    assert (
+        execute_smoke(tmp_path, pinned(tmp_path, SERVED), [], [("served", True)]) == []
+    )
+    assert record.read_text() == "served True"
 
 
 def test_vllm_parses_the_served_config_of_a_model_without_remote_code(

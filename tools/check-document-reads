@@ -7,7 +7,7 @@ A Recipe, a Model and their display documents each have one typed contract
 Code that loads such a file with ``json.load`` and indexes the dict re-derives
 the shape by hand and drifts from the contract.
 
-Only lines added since the merge base with ``--base`` are checked; existing raw
+Only lines added by the diff given with ``--diff FILE|-`` are checked; existing raw
 readers are left alone. There is no count and no allowlist of offenders. The
 exempt paths are the places that own the typed read.
 
@@ -23,14 +23,14 @@ from __future__ import annotations
 
 import argparse
 import ast
-import re
-import subprocess
 import sys
 from collections.abc import Iterator
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PATHSPEC = ("*.py", "tools/", "spark_sweep/", "qualification/", "scripts/", "tests/")
+sys.path.insert(0, str(ROOT))
+from tools._added_lines import git_diff, parse_added, read_diff
+
 EXEMPT_PREFIXES = (
     "contracts/src/vonk_forge_contracts/",
     "adapters/",
@@ -81,36 +81,10 @@ DOCUMENT_NAMES = frozenset({"document", "recipe", "model", "doc", "display"})
 ANNOTATIONS = frozenset({"dict", "Mapping", "Any"})
 READ_METHODS = frozenset({"read_text", "read_bytes"})
 JSON_LOADS = frozenset({"load", "loads"})
-HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
 ADVICE = (
     "use vonk_forge_contracts (read_recipe/read_model/read_recipe_display/"
     "read_model_display/read_recipe_api) or qualification/documents.py"
 )
-
-
-def _git(root: Path, *args: str) -> str:
-    completed = subprocess.run(
-        ["git", "-C", str(root), *args], capture_output=True, text=True, check=False
-    )
-    if completed.returncode != 0:
-        sys.exit(f"git {' '.join(args)}: {completed.stderr.strip()}")
-    return completed.stdout
-
-
-def added_lines(root: Path, base: str) -> dict[str, set[int]]:
-    diff = _git(
-        root, "diff", "-U0", "--no-color", "--diff-filter=AMR", f"{base}...HEAD",
-        "--", *PATHSPEC,
-    )  # fmt: skip
-    result: dict[str, set[int]] = {}
-    path: str | None = None
-    for line in diff.splitlines():
-        if line.startswith("+++ "):
-            path = line[4:].removeprefix("b/") if line != "+++ /dev/null" else None
-        elif path and (hunk := HUNK.match(line)):
-            start, count = int(hunk[1]), int(hunk[2] if hunk[2] is not None else 1)
-            result.setdefault(path, set()).update(range(start, start + count))
-    return result
 
 
 def _is_python_shebang(first_line: str) -> bool:
@@ -268,9 +242,9 @@ def document_access(node: ast.AST) -> tuple[int, object, ast.expr] | None:
     return None
 
 
-def check(root: Path, base: str) -> list[str]:
+def check(root: Path, diff: str) -> list[str]:
     problems: list[str] = []
-    for name, lines in sorted(added_lines(root, base).items()):
+    for name, lines in sorted(parse_added(diff).items()):
         if name.startswith(EXEMPT_PREFIXES) or not names_python(root, name):
             continue
         source = (root / name).read_text(encoding="utf-8")
@@ -283,10 +257,21 @@ def check(root: Path, base: str) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
-    parser.add_argument("--base", required=True, help="revision to diff against")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument(
+        "--diff", help="unified -U0 diff to judge: a file, or - for stdin"
+    )
+    source.add_argument(
+        "--base", help="developer shortcut: diff HEAD against this revision"
+    )
     parser.add_argument("--root", type=Path, default=ROOT)
     arguments = parser.parse_args()
-    problems = check(arguments.root, arguments.base)
+    diff = (
+        read_diff(arguments.diff)
+        if arguments.diff is not None
+        else git_diff(arguments.root, arguments.base)
+    )
+    problems = check(arguments.root, diff)
     print("\n".join(problems))
     return 1 if problems else 0
 

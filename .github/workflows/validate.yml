@@ -171,10 +171,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first"
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
+          # Independent builds: two release dirs (each builds in its own temp
+          # dir) and the checkout outputs, which are not read by the others.
+          # Each PID is waited on separately so every exit code counts.
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first" &
+          first_pid=$!
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second" &
+          second_pid=$!
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index &
+          checkout_pid=$!
+          wait "$first_pid"
+          wait "$second_pid"
+          wait "$checkout_pid"
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index
           "$RECIPE_TEST_PYTHON" tools/build-family-aware-coverage
 
       - name: Reject a changed Spark count for an existing recipe
@@ -282,6 +291,16 @@ jobs:
           set -euo pipefail
           python3 tools/check-image-provenance --base origin/main
 
+      # The change's added lines, written once for the "Reject new ..." tools
+      # that judge only added lines. Git runs here, at the edge, through the one
+      # entry point that owns the diff flags and the pathspec; the tools and
+      # their tests take the diff as text.
+      - name: Write the added-lines diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/_added_lines.py --base origin/main > "$RUNNER_TEMP/added.diff"
+
       # GB10 shares one memory pool between CPU and CUDA: new adapter code may
       # not build a full model as real CPU tensors or pin a model constructor
       # to CUDA. Checks only lines added against main.
@@ -307,13 +326,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/check-document-reads --base origin/main
+          python3 tools/check-document-reads --diff "$RUNNER_TEMP/added.diff"
+
+      # Tests never use git: a tool takes its changed set, commit or epoch as an
+      # argument, and git runs only here, at the CI edge. Checks only added lines.
+      - name: Reject new tests that run git
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-test-git --diff "$RUNNER_TEMP/added.diff"
 
       - name: Reject new tests that gate on a real recipe's declared memory
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/check-estimate-gates --base origin/main
+          python3 tools/check-estimate-gates --diff "$RUNNER_TEMP/added.diff"
 
       # Every test runs on recipe changes too: the suite takes about as long
       # as any subset, and a subset silently misses recipe-data checks.

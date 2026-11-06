@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""Controller launcher for one rank of sfxnz's TensorFold 1.2.2 GLM-5.3-Flash TP launch.
+
+The platform appends `--tp`, `--rank`, `--master VONK_MASTER_ADDR` and `--master-port VONK_MASTER_PORT` to the named
+`tensorfold-native serve` options. The native GLM family reads the pair from the environment instead, as the creator's
+run.sh sets it: TF_GLM_RANK, TF_GLM_WORLD, NCCL_COMM_ID (rank 0's rendezvous), NCCL_SOCKET_IFNAME, NCCL_IB_HCA and
+TF_ROCE_HCA. Both ranks get the same serve options, so only the rank differs. The Controller supplies the rendezvous,
+the interface and the RoCE rails; this launcher fails closed when any is missing or malformed.
+"""
+
+import os
+import re
+import sys
+from ipaddress import ip_address
+
+ENGINE = "/opt/tensorfold/bin/tensorfold-native"
+MODEL = "/models/target"
+
+
+def fail(message):
+    raise SystemExit(f"tensorfold-serve: {message}")
+
+
+def take(arguments, name):
+    if name not in arguments:
+        fail(f"the platform did not pass {name}")
+    index = arguments.index(name)
+    if index + 1 >= len(arguments):
+        fail(f"{name} has no value")
+    value = arguments[index + 1]
+    del arguments[index : index + 2]
+    return value
+
+
+def number(text, low, high, what):
+    if not (text.isascii() and text.isdigit() and low <= int(text) <= high):
+        fail(f"{what} is not a number from {low} to {high}")
+    return int(text)
+
+
+def rendezvous(arguments):
+    world = number(take(arguments, "--tp"), 2, 8, "--tp")
+    rank = number(take(arguments, "--rank"), 0, world - 1, "--rank")
+    master = take(arguments, "--master")
+    port = take(arguments, "--master-port")
+    if master == "VONK_MASTER_ADDR":
+        master = os.environ.get(master, "")
+    if port == "VONK_MASTER_PORT":
+        port = os.environ.get(port, "")
+    try:
+        ip_address(master)
+    except ValueError:
+        fail("distributed TensorFold needs a valid VONK_MASTER_ADDR")
+    return world, rank, master, number(port, 1024, 65534, "the rendezvous port")
+
+
+def fabric():
+    names = []
+    for selector in os.environ.get("NCCL_IB_HCA", "").removeprefix("=").split(","):
+        match = re.fullmatch(r"([A-Za-z0-9_.-]+):1", selector)
+        if not match or match[1] in names:
+            fail("TensorFold needs distinct Controller-authorized port-1 RoCE rails in NCCL_IB_HCA")
+        names.append(match[1])
+    if not os.environ.get("NCCL_SOCKET_IFNAME"):
+        fail("NCCL_SOCKET_IFNAME is not set")
+    return names
+
+
+for name in ("HOME", "TMPDIR"):
+    if not os.environ.get(name):
+        fail(f"{name} is not set")
+os.makedirs(os.environ["TMPDIR"], exist_ok=True)
+arguments = sys.argv[1:]
+world, rank, master, port = rendezvous(arguments)
+rails = fabric()
+os.environ.update(
+    TF_GLM_RANK=str(rank),
+    TF_GLM_WORLD=str(world),
+    NCCL_COMM_ID=f"{master}:{port}",
+    # The creator's TF_ROCE_HCA is the first rail only; NCCL keeps every rail the Controller authorized.
+    TF_ROCE_HCA=rails[0],
+)
+os.execv(ENGINE, [ENGINE, "serve", MODEL, *arguments])
