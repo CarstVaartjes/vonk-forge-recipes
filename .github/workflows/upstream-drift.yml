@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: upstream-drift
@@ -156,12 +157,59 @@ jobs:
                       f"| `{o['pinned_revision'][:12]}` | {observed} | {o['policy']} |"
                   )
               lines.append("")
+          signals = report.get("creator_signals", {})
+          findings = signals.get("findings", [])
+          lines.append(f"### Creator findings (superseded sources, new family repositories): {len(findings)}")
+          lines.append("")
+          for f in findings:
+              lines.append(
+                  f"- {f['kind']}: `{f['source_repo'] or '-'}` → `{f['linked_repo']}` "
+                  f"(family {f['matched_family'] or '-'}; recipes {', '.join(f['recipe_slugs']) or '-'}): {f['detail']}"
+              )
+          lines.append("" if findings else "None.\n")
+          for e in signals.get("signal_errors", []):
+              lines.append(f"- signal check failed for `{e['subject']}`: {e['detail']}")
+          lines.append(
+              "A different engine lineage needs a recipe author; these signals never change a recipe."
+          )
           lines.append(
               "Drift is informational: review the upstream change before moving an immutable pin."
           )
           with summary.open("a", encoding="utf-8") as handle:
               handle.write("\n".join(lines) + "\n")
           PY
+
+      # One issue per finding for the scheduled recipe agent. The dedupe key is
+      # the exact issue title: an existing issue (open or closed) is never
+      # duplicated; an open one gets its record refreshed, a closed one is left.
+      - name: File one issue per creator finding
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ -s upstream-drift.json ] || exit 0
+          jq '.creator_signals.findings // []' upstream-drift.json > upstream-findings.json
+          gh label create upstream-superseded --force --description "Pinned source says another repo replaces it" || true
+          gh label create upstream-new-repo --force --description "New creator repo matching a carried family" || true
+          jq -c '.[]' upstream-findings.json | while read -r record; do
+            key=$(jq -r .dedupe_key <<<"$record")
+            label=upstream-new-repo
+            [ "$(jq -r .kind <<<"$record")" = supersession ] && label=upstream-superseded
+            title="[$label] $key"
+            fence='```'
+            body=$(printf 'Scheduled upstream drift finding. Do not change recipes automatically; a different engine lineage needs a recipe author.\n\n%sjson\n%s\n%s\n' "$fence" "$(jq . <<<"$record")" "$fence")
+            existing=$(gh issue list --label "$label" --state all --limit 200 --json number,state,title \
+              | jq -r --arg t "$title" '[.[] | select(.title == $t)][0] | "\(.number // "") \(.state // "")"')
+            number=${existing% *}
+            state=${existing#* }
+            if [ -z "${number// /}" ]; then
+              gh issue create --label "$label" --title "$title" --body "$body"
+            elif [ "$state" = OPEN ]; then
+              gh issue edit "$number" --body "$body"
+            fi
+          done
 
       - name: Upload drift report
         if: always()
@@ -171,6 +219,7 @@ jobs:
           path: |
             upstream-drift.json
             upstream-drift.txt
+            upstream-findings.json
           if-no-files-found: error
           retention-days: 30
 

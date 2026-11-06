@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import hashlib
 import json
 import os
@@ -13,17 +15,19 @@ import sys
 import time
 from collections import Counter
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import AbstractContextManager
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from pydantic import BaseModel, ConfigDict
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.model import GitHubReleaseSource
 
@@ -35,6 +39,20 @@ ENTITY_DIRECTORIES = {
 }
 POLICIES = {"default-branch", "latest-release", "manual"}
 MAX_RESPONSE_BYTES = 4 * 1024 * 1024
+# Creator signals. The window is twice the weekly cadence, so one missed run
+# still sees every new repository without any stored "last scan" state.
+NEW_REPO_WINDOW = timedelta(days=14)
+SIGNAL_WORKERS = 4
+NOTICE_HEAD_LINES = 60
+# Supersession banners seen so far (Mia's AI Lab 2026-11-04) sit in the first
+# README block as "superseded" next to a link to the successor repository.
+NOTICE_WORDS = re.compile(
+    r"supersed|deprecat|moved to|use the new|replaced by|no longer maintained",
+    re.IGNORECASE,
+)
+GITHUB_REPO_LINK = re.compile(
+    r"github\.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+?)(?:\.git)?(?=[\s)\]>\"'#?/]|$)"
+)
 
 
 class DriftInputError(RuntimeError):
@@ -82,6 +100,33 @@ class Observation:
     upstream_url: str | None
     status: str
     detail: str | None
+
+
+class _Finding(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+
+class CreatorFinding(_Finding):
+    """One machine-actionable creator signal; a scheduled agent acts on it.
+
+    supersession: source_repo's README head names linked_repo as its successor.
+    new-repo: linked_repo is a recent repository of a followed owner.
+    """
+
+    kind: Literal["supersession", "new-repo"]
+    dedupe_key: str
+    source_repo: str | None
+    source_commit: str | None
+    linked_repo: str
+    linked_commit: str | None
+    recipe_slugs: list[str]
+    matched_family: str | None
+    detail: str
+
+
+class SignalError(_Finding):
+    subject: str
+    detail: str
 
 
 def _repository_parts(path: str) -> tuple[str, str] | None:
@@ -594,6 +639,7 @@ def report(
     observations: list[Observation],
     checked_at: str,
     embedded: dict[str, object] | None = None,
+    signals: dict[str, list[dict[str, object]]] | None = None,
 ) -> dict[str, object]:
     counts = Counter(observation.status for observation in observations)
     return {
@@ -606,6 +652,7 @@ def report(
         "observations": [asdict(observation) for observation in observations],
         "embedded_inputs": embedded
         or {"coverage": {"scope": "not collected"}, "recipes": []},
+        "creator_signals": signals or {"findings": [], "signal_errors": []},
     }
 
 
@@ -1048,6 +1095,190 @@ def observe_embedded_heads(
         coverage["counts_by_candidate_status"] = dict(sorted(candidate_counts.items()))
 
 
+def _key(kind: str, source: str, linked: str) -> str:
+    return f"{kind}:{source}:{linked}".lower()
+
+
+def find_supersession(
+    readme: str, source_repo: str, commit: str
+) -> CreatorFinding | None:
+    """Return the first notice block in the README head that links another repo."""
+    head = "\n".join(readme.splitlines()[:NOTICE_HEAD_LINES])
+    for block in re.split(r"\n\s*\n", head):
+        if not NOTICE_WORDS.search(block):
+            continue
+        for owner, name in GITHUB_REPO_LINK.findall(block):
+            linked = f"{owner}/{name}"
+            if owner == "sponsors" or linked.lower() == source_repo.lower():
+                continue
+            return CreatorFinding(
+                kind="supersession",
+                dedupe_key=_key("supersession", source_repo, linked),
+                source_repo=source_repo,
+                source_commit=commit,
+                linked_repo=linked,
+                linked_commit=None,
+                recipe_slugs=[],
+                matched_family=None,
+                detail=re.sub(r"[>#*\s]+", " ", block).strip()[:200],
+            )
+    return None
+
+
+def carried_families(root: Path) -> dict[str, set[str]]:
+    """Map the first token of each family slug (deepseek-flash -> deepseek) to model entities."""
+    families: dict[str, set[str]] = {}
+    for path in (root / "models").glob("*.json"):
+        identity = json.loads(path.read_text(encoding="utf-8")).get("identity", {})
+        slug = identity.get("family", {}).get("slug", "")
+        token = slug.split("-")[0].lower() if isinstance(slug, str) else ""
+        if len(token) >= 3:
+            entity = f"model/{identity.get('publisher')}/{identity.get('slug')}"
+            families.setdefault(token, set()).add(entity)
+    return families
+
+
+def match_new_repos(
+    owner: str,
+    listing: object,
+    now: datetime,
+    families: set[str],
+    pinned: set[str],
+) -> list[CreatorFinding]:
+    """Flag repos created inside the window whose name or description names a family."""
+    if not isinstance(listing, list):
+        raise TypeError("repository listing is not a list")
+    found: list[CreatorFinding] = []
+    for item in listing:
+        if not isinstance(item, dict) or item.get("fork"):
+            continue
+        name, created = item.get("name"), item.get("created_at")
+        if not isinstance(name, str) or not isinstance(created, str):
+            continue
+        if now - datetime.fromisoformat(created) > NEW_REPO_WINDOW:
+            continue
+        linked = f"{owner}/{name}"
+        if linked.lower() in pinned:
+            continue
+        description = item.get("description")
+        text = f"{name} {description if isinstance(description, str) else ''}".lower()
+        family = next((f for f in sorted(families) if f in text), None)
+        if family is not None:
+            found.append(
+                CreatorFinding(
+                    kind="new-repo",
+                    dedupe_key=_key("new-repo", owner, linked),
+                    source_repo=None,
+                    source_commit=None,
+                    linked_repo=linked,
+                    linked_commit=None,
+                    recipe_slugs=[],
+                    matched_family=family,
+                    detail=f"created {created}: {description or '-'}"[:200],
+                )
+            )
+    return found
+
+
+def _readme_notice(client: ProviderClient, repository: str) -> CreatorFinding | None:
+    commit, _, _ = _github_commit(client, repository, "HEAD")
+    document = client.json(
+        f"https://api.github.com/repos/{repository}/readme?ref={commit}", "github"
+    )
+    content = _required_string(document, "content", "readme")
+    try:
+        text = base64.b64decode(content).decode("utf-8", errors="replace")
+    except binascii.Error as error:
+        raise RuntimeError(f"readme is not base64: {error}") from error
+    return find_supersession(text, repository, commit)
+
+
+def _followed_owners(root: Path, watches: list[Watch]) -> list[str]:
+    owners: dict[str, str] = {}
+    creators = json.loads((root / "creators.json").read_text(encoding="utf-8"))
+    for creator in creators.get("creators", []):
+        parts = urlsplit(str(creator.get("url", "")))
+        segments = [part for part in parts.path.split("/") if part]
+        if parts.hostname == "github.com" and segments:
+            owners.setdefault(segments[0].lower(), segments[0])
+    for watch in watches:
+        if watch.provider == "github":
+            owner = watch.repository.split("/")[0]
+            owners.setdefault(owner.lower(), owner)
+    return sorted(owners.values(), key=str.lower)
+
+
+def scan_creator_signals(
+    root: Path, watches: list[Watch], client: ProviderClient, now: datetime
+) -> dict[str, list[dict[str, object]]]:
+    """Report creator findings; a failure is recorded per item and never hides the rest."""
+    carried = carried_families(root)
+    repositories = sorted({w.repository for w in watches if w.provider == "github"})
+    pinned = {repository.lower() for repository in repositories}
+    owners = _followed_owners(root, watches)
+
+    def head(repository: str) -> str | None:
+        try:
+            return _github_commit(client, repository, "HEAD")[0]
+        except (RemoteNotFound, RuntimeError, KeyError, TypeError):
+            return None
+
+    def notice(repository: str) -> CreatorFinding | SignalError | None:
+        try:
+            found = _readme_notice(client, repository)
+        except (RemoteNotFound, RuntimeError, KeyError, TypeError) as error:
+            return SignalError(subject=repository, detail=str(error)[:256])
+        if found is None:
+            return None
+        slugs = sorted(
+            w.entity for w in watches if w.repository.lower() == repository.lower()
+        )
+        return found.model_copy(
+            update={"recipe_slugs": slugs, "linked_commit": head(found.linked_repo)}
+        )
+
+    def recent(owner: str) -> list[CreatorFinding] | SignalError:
+        try:
+            listing = client.json(
+                f"https://api.github.com/users/{owner}/repos"
+                "?sort=created&direction=desc&per_page=30&type=owner",
+                "github",
+            )
+            found = match_new_repos(owner, listing, now, set(carried), pinned)
+        except (RemoteNotFound, RuntimeError, TypeError, ValueError) as error:
+            return SignalError(subject=owner, detail=str(error)[:256])
+        return [
+            f.model_copy(
+                update={
+                    "recipe_slugs": sorted(
+                        w.entity
+                        for w in watches
+                        if w.repository.lower().startswith(owner.lower() + "/")
+                        and w.entity in carried[str(f.matched_family)]
+                    ),
+                    "linked_commit": head(f.linked_repo),
+                }
+            )
+            for f in found
+        ]
+
+    # Independent sources: one bounded pool; each item keeps its own outcome.
+    with ThreadPoolExecutor(max_workers=SIGNAL_WORKERS) as pool:
+        notice_jobs = [pool.submit(notice, repository) for repository in repositories]
+        listing_jobs = [pool.submit(recent, owner) for owner in owners]
+        outcomes = [job.result() for job in notice_jobs + listing_jobs]
+    result: dict[str, list[dict[str, object]]] = {"findings": [], "signal_errors": []}
+    for outcome in outcomes:
+        if outcome is None:
+            continue
+        if isinstance(outcome, SignalError):
+            result["signal_errors"].append(outcome.model_dump())
+            continue
+        for finding in outcome if isinstance(outcome, list) else [outcome]:
+            result["findings"].append(finding.model_dump())
+    return result
+
+
 def render_table(observations: list[Observation]) -> str:
     rows = [("STATUS", "ENTITY", "PINNED", "OBSERVED", "POLICY")]
     for observation in observations:
@@ -1108,7 +1339,8 @@ def main() -> int:
     except (DriftInputError, OSError, json.JSONDecodeError) as error:
         print(f"embedded source inventory error: {error}", file=sys.stderr)
         return 1
-    document = report(observations, checked_at, embedded)
+    signals = scan_creator_signals(root, watches, client, datetime.now(UTC))
+    document = report(observations, checked_at, embedded, signals)
     rendered_json = json.dumps(document, indent=2, sort_keys=True) + "\n"
     if arguments.output:
         arguments.output.write_text(rendered_json, encoding="utf-8")

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import base64
 import importlib.machinery
 import importlib.util
 import json
 import sys
 import tempfile
 import unittest
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -373,6 +375,194 @@ class ReleaseAssetWatchTests(unittest.TestCase):
         self.assertEqual(drift.observe(watch, client).status, "missing")
         client.responses[f"{base}/264676230"] = drift.RemoteNotFound("deleted release")
         self.assertEqual(drift.observe(watch, client).status, "missing")
+
+
+MIA_BANNER = """# 🚨 NEW, BETTER RECIPE AVAILABLE — EVERYONE SHOULD USE IT 🚨
+
+> [!IMPORTANT]
+> ## This recipe is superseded. **Everything should be using the new one.**
+>
+> # 👉 [github.com/MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104](https://github.com/MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104) 👈
+
+<h1 align="center">GLM-5.3-Flash EXL3 on DGX Sparks with TensorFold</h1>
+
+<a href="https://github.com/sponsors/MiaAI-Lab">Sponsor</a>
+"""
+MIA_OLD = "MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold"
+MIA_NEW_README = """<h1>GLM-5.3-Flash on DGX Sparks with TensorFold</h1>
+
+> [!IMPORTANT]
+> **This is a brand-new recipe, version 1104.** It is not an update of
+> [old](https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold)
+"""
+NEWHEAD = "c" * 40
+NOW = datetime(2026, 11, 6, tzinfo=UTC)
+
+
+class CreatorSignalTests(unittest.TestCase):
+    def test_mia_banner_names_the_successor(self) -> None:
+        notice = drift.find_supersession(MIA_BANNER, MIA_OLD, PINNED)
+        assert notice is not None
+        self.assertEqual(notice.kind, "supersession")
+        self.assertEqual(
+            notice.dedupe_key,
+            f"supersession:{MIA_OLD}:miaai-lab/glm-5.3-flash-dgx-sparks-1104".lower(),
+        )
+        self.assertEqual(notice.linked_repo, "MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104")
+        self.assertEqual(notice.source_repo, MIA_OLD)
+        self.assertEqual(notice.source_commit, PINNED)
+
+    def test_ordinary_readmes_and_back_links_are_not_notices(self) -> None:
+        self.assertIsNone(
+            drift.find_supersession(
+                MIA_NEW_README, "MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104", PINNED
+            )
+        )
+        self.assertIsNone(
+            drift.find_supersession("# Tool\nSee https://github.com/a/b", "a/c", PINNED)
+        )
+        self_link = "> Deprecated, see https://github.com/a/c"
+        self.assertIsNone(drift.find_supersession(self_link, "a/c", PINNED))
+        deep = "\n" * 80 + "superseded https://github.com/a/b"
+        self.assertIsNone(drift.find_supersession(deep, "a/c", PINNED))
+
+    def test_new_repos_match_carried_families_inside_the_window(self) -> None:
+        listing = [
+            {
+                "name": "GLM-5.3-Flash-DGX-Sparks-1104",
+                "created_at": "2026-11-04T11:54:11Z",
+                "description": "GLM-5.3-Flash on DGX Sparks",
+            },
+            {
+                "name": "Hy4-100-HTML-Files",
+                "created_at": "2026-11-04T09:03:42Z",
+                "description": "art",
+            },
+            {
+                "name": "old-glm",
+                "created_at": "2026-08-01T00:00:00Z",
+                "description": "glm",
+            },
+            {
+                "name": "glm-fork",
+                "created_at": "2026-11-05T00:00:00Z",
+                "description": None,
+                "fork": True,
+            },
+            {
+                "name": "deepseek-pinned",
+                "created_at": "2026-11-05T00:00:00Z",
+                "description": None,
+            },
+        ]
+        found = drift.match_new_repos(
+            "MiaAI-Lab",
+            listing,
+            NOW,
+            {"glm", "deepseek"},
+            {"miaai-lab/deepseek-pinned"},
+        )
+        self.assertEqual(
+            [(r.linked_repo, r.matched_family) for r in found],
+            [("MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104", "glm")],
+        )
+        with self.assertRaises(TypeError):
+            drift.match_new_repos("x", {"message": "rate limited"}, NOW, set(), set())
+
+    def test_scan_collects_both_signals_and_isolates_failures(self) -> None:
+        root = Path(tempfile.mkdtemp())
+        (root / "models").mkdir()
+        (root / "models" / "m.json").write_text(
+            json.dumps(
+                {
+                    "identity": {
+                        "publisher": "zai-org",
+                        "slug": "glm-5-flash",
+                        "family": {"slug": "glm"},
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        (root / "creators.json").write_text(
+            json.dumps(
+                {
+                    "creators": [
+                        {"url": "https://github.com/MiaAI-Lab"},
+                        {"url": "https://huggingface.co/x"},
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        watches = [
+            drift.Watch(
+                "model/zai-org/glm-5-flash",
+                "m",
+                "github",
+                MIA_OLD,
+                PINNED,
+                None,
+                "default-branch",
+                None,
+            ),
+            drift.Watch(
+                "model/p/b",
+                "m",
+                "github",
+                "gone/repo",
+                PINNED,
+                None,
+                "default-branch",
+                None,
+            ),
+        ]
+        api = "https://api.github.com"
+        readme = base64.b64encode(MIA_BANNER.encode()).decode()
+        client = FakeClient(
+            {
+                f"{api}/repos/{MIA_OLD}/commits/HEAD": {
+                    "sha": OBSERVED,
+                    "html_url": "u",
+                },
+                f"{api}/repos/{MIA_OLD}/readme?ref={OBSERVED}": {"content": readme},
+                f"{api}/repos/MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104/commits/HEAD": {
+                    "sha": NEWHEAD,
+                    "html_url": "u",
+                },
+                f"{api}/repos/gone/repo/commits/HEAD": drift.RemoteNotFound("gone"),
+                f"{api}/users/MiaAI-Lab/repos?sort=created&direction=desc&per_page=30&type=owner": [
+                    {
+                        "name": "GLM-5.3-Flash-DGX-Sparks-1104",
+                        "created_at": "2026-11-04T11:54:11Z",
+                        "description": "GLM-5.3-Flash",
+                    }
+                ],
+                f"{api}/users/gone/repos?sort=created&direction=desc&per_page=30&type=owner": drift.RemoteNotFound(
+                    "gone"
+                ),
+            }
+        )
+        signals = drift.scan_creator_signals(root, watches, client, NOW)
+        by_kind = {f["kind"]: f for f in signals["findings"]}
+        self.assertEqual(set(by_kind), {"supersession", "new-repo"})
+        old = by_kind["supersession"]
+        self.assertEqual(old["linked_repo"], "MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104")
+        self.assertEqual(
+            (old["source_commit"], old["linked_commit"]), (OBSERVED, NEWHEAD)
+        )
+        self.assertEqual(old["recipe_slugs"], ["model/zai-org/glm-5-flash"])
+        new = by_kind["new-repo"]
+        self.assertEqual(new["matched_family"], "glm")
+        self.assertEqual(new["linked_commit"], NEWHEAD)
+        self.assertEqual(new["recipe_slugs"], ["model/zai-org/glm-5-flash"])
+        self.assertEqual(
+            sorted(e["subject"] for e in signals["signal_errors"]),
+            ["gone", "gone/repo"],
+        )
+        self.assertEqual(
+            drift.report([], "t", None, signals)["creator_signals"], signals
+        )
 
 
 if __name__ == "__main__":
