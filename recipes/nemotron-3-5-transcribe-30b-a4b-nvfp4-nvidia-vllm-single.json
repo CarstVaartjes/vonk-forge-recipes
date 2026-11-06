@@ -243,7 +243,7 @@
       "vLLM contributors",
       "NVIDIA NeMo Speech"
     ],
-    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4/blob/66c6adc4020179567074d0399cda2a4eeb2bb347/README.md"
+    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B-NVFP4/tree/66c6adc4020179567074d0399cda2a4eeb2bb347"
   },
   "release": {
     "released_at": "2026-10-29",
