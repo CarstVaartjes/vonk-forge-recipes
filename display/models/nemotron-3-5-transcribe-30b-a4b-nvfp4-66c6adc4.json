@@ -1,0 +1,18 @@
+{
+  "description": "NVIDIA offline speech-to-text and audio-understanding model: 40-language transcription, word timestamps and speaker tags, recordings up to one hour.",
+  "family_title": "NVIDIA Nemotron",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "nemotron-3-5-transcribe-30b-a4b-nvfp4-66c6adc4"
+  },
+  "kind": "model-display",
+  "model_title": "Nemotron 3.5 Transcribe 30B-A4B",
+  "tags": [
+    "nvidia",
+    "nemotron",
+    "audio",
+    "speech-to-text",
+    "nvfp4",
+    "spark"
+  ]
+}
