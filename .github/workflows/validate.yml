@@ -211,10 +211,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # The one-time Model facts split rewrites every recipe's Model pins and
+          # nothing else; the split check proves that, so those recipes are not
+          # "touched" for this guard. Once the base is split the check says so
+          # and every edited recipe is checked again.
+          drop='^$'
+          if "$RECIPE_TEST_PYTHON" tools/split-model-facts --check --base origin/main | grep -q 'equals the split'; then
+            drop='^recipes/'
+          fi
           {
             git diff --name-only --diff-filter=AMR --merge-base origin/main
             git ls-files --others --exclude-standard
-          } | "$RECIPE_TEST_PYTHON" tools/check-recipe-api --changed-files -
+          } | { grep -Ev "$drop" || true; } | "$RECIPE_TEST_PYTHON" tools/check-recipe-api --changed-files -
 
       - name: Require every recipe to reference Models this library holds
         shell: bash
