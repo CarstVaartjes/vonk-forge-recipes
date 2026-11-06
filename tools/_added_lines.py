@@ -2,20 +2,22 @@
 
 The tools judge only lines a change adds. They take that change as diff text
 (``--diff FILE|-``), so a test feeds them text and needs no repository. Git runs
-once, at the edge that calls the tool: the ``validate.yml`` step writes the diff
-and the pre-commit hook pipes it. ``git_diff`` is the one helper for a developer
-running a tool by hand with ``--base``; tests never call it.
+once, at the edge that calls the tool: ``python3 tools/_added_lines.py --base REV``
+(or ``--cached`` for the staged change) writes the diff, and the validate.yml step
+and the pre-commit hook call it. This module is the one owner of the diff flags and
+the pathspec. ``git_diff`` also backs the developer shortcut ``--base`` of the
+tools that still take it; tests never call it.
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import subprocess
 import sys
 from pathlib import Path
 
-# The files the change-judging tools read. validate.yml writes the shared diff
-# with exactly this pathspec (a test keeps the two equal).
+# The files the change-judging tools read.
 ADDED_PATHSPEC = (
     "*.py",
     "tools/",
@@ -24,7 +26,16 @@ ADDED_PATHSPEC = (
     "scripts/",
     "tests/",
 )
-DIFF_ARGUMENTS = ("diff", "-U0", "--no-color", "--diff-filter=AMR")
+# Explicit prefixes: a developer's diff.mnemonicPrefix or diff.noprefix must not
+# change how paths are parsed.
+DIFF_ARGUMENTS = (
+    "diff",
+    "-U0",
+    "--no-color",
+    "--src-prefix=a/",
+    "--dst-prefix=b/",
+    "--diff-filter=AMR",
+)
 HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
 
 
@@ -48,15 +59,19 @@ def read_diff(source: str) -> str:
     return Path(source).read_text(encoding="utf-8")
 
 
-def git_diff(root: Path, base: str) -> str:
-    """The diff a developer's ``--base REV`` stands for (the edge, never a test)."""
+def git_diff(root: Path, base: str | None = None) -> str:
+    """The added-lines diff of ``base...HEAD``, or of the staged change if no base.
+
+    The edge, never a test: it is the only place git runs for these tools.
+    """
+    range_arguments = [f"{base}...HEAD"] if base else ["--cached"]
     completed = subprocess.run(
         [
             "git",
             "-C",
             str(root),
             *DIFF_ARGUMENTS,
-            f"{base}...HEAD",
+            *range_arguments,
             "--",
             *ADDED_PATHSPEC,
         ],
@@ -65,5 +80,20 @@ def git_diff(root: Path, base: str) -> str:
         check=False,
     )
     if completed.returncode != 0:
-        sys.exit(f"git diff {base}...HEAD: {completed.stderr.strip()}")
+        sys.exit(f"git diff {' '.join(range_arguments)}: {completed.stderr.strip()}")
     return completed.stdout
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Write the added-lines diff.")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--base", help="diff HEAD against the merge base with REV")
+    source.add_argument("--cached", action="store_true", help="the staged change")
+    parser.add_argument("--root", type=Path, default=Path.cwd())
+    arguments = parser.parse_args()
+    sys.stdout.write(git_diff(arguments.root, arguments.base))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

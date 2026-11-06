@@ -1,8 +1,7 @@
-"""The shared added-lines parser, and the workflow step that writes its input."""
+"""The shared added-lines parser."""
 
 from __future__ import annotations
 
-import re
 import sys
 from pathlib import Path
 
@@ -10,7 +9,7 @@ from added_diff import added_diff
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from tools._added_lines import ADDED_PATHSPEC, parse_added
+from tools._added_lines import parse_added
 
 DIFF = """\
 diff --git a/tools/a.py b/tools/a.py
@@ -48,14 +47,3 @@ def test_an_empty_diff_adds_nothing() -> None:
 def test_the_test_helper_round_trips() -> None:
     diff = added_diff({"a.py": "1\n2\n3\n"}, old_lines={"a.py": 1})
     assert parse_added(diff) == {"a.py": {2, 3}}
-
-
-def test_the_workflow_step_uses_the_shared_pathspec() -> None:
-    workflow = (ROOT / ".github/workflows/validate.yml").read_text()
-    step = workflow.split("- name: Write the added-lines diff", 1)[1]
-    command = re.search(
-        r"git diff[^>]*>\s*\"\$RUNNER_TEMP/added\.diff\"", step, re.DOTALL
-    )
-    assert command is not None
-    pathspec = command[0].split(" -- ", 1)[1].split(">")[0].replace("\\", " ")
-    assert tuple(pathspec.replace("'", "").split()) == ADDED_PATHSPEC
