@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "engine": {
+      "commit": "59402086381a42c74d53053443224eec2790b4c5",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "59402086381a42c74d53053443224eec2790b4c5",
+      "repo": "bertholomus/TensorFold"
+    },
+    "kernel-kit": {
+      "commit": "6033ea48a27004b2715db82190e2a61f33411d92",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "6033ea48a27004b2715db82190e2a61f33411d92",
+      "repo": "bertholomus/deepseek-v4.1-tensorfold-tp4-4xgb10"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "1bae0e1088993b9b82de08f59de5be5a34e42170",
+      "repo": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "revision": "1bae0e1088993b9b82de08f59de5be5a34e42170"
+    }
+  },
+  "kit": {
+    "commit": "8ffa67d53ef15bab997399135f85e8b0910f30be",
+    "repo": "MiaAI-Lab/DeepSeek-V4.1-Flash-1017-4x-DGX-Sparks-TensorFold"
+  }
+}

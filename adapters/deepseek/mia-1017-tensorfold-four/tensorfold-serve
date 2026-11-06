@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+import sys
+from launcher import main
+
+main(sys.argv[1:])
