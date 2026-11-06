@@ -74,11 +74,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          epoch=$(git show -s --format=%ct "$GITHUB_SHA")
           test_venv="$RUNNER_TEMP/catalog-test-venv"
           uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" -e contracts
-          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first"
-          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
+          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first" \
+            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
+          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second" \
+            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
           echo "RECIPE_CATALOG_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
 
@@ -87,7 +90,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$RECIPE_CATALOG_PYTHON" tools/build-catalog-index
+          epoch=$(git show -s --format=%ct "$GITHUB_SHA")
+          "$RECIPE_CATALOG_PYTHON" tools/build-catalog-index \
+            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
           "$RECIPE_CATALOG_PYTHON" tools/build-family-aware-coverage
 
   producer-contracts:
@@ -161,10 +166,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first"
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
+          epoch=$(git show -s --format=%ct "$GITHUB_SHA")
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first" \
+            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second" \
+            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index \
+            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
           "$RECIPE_TEST_PYTHON" tools/build-family-aware-coverage
 
       - name: Reject a changed Spark count for an existing recipe

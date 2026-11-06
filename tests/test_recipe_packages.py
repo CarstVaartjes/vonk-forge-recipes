@@ -153,23 +153,21 @@ def test_editing_one_recipe_changes_only_that_package(
 
 
 def test_supplied_source_commit_only_changes_index_metadata(tmp_path: Path) -> None:
-    # This field records Git provenance only; package contents do not consume
-    # platform harness files. Use this checkout to exercise revision lookup.
+    # This field records provenance only; package contents do not consume it.
     first_dir = tmp_path / "first"
     second_dir = tmp_path / "second"
     first = TOOL["build"](
         package_dir=first_dir,
-        platform_root=ROOT,
         source_commit="a" * 40,
+        source_date_epoch=0,
     )
     second = TOOL["build"](
         package_dir=second_dir,
-        platform_root=ROOT,
         source_commit="b" * 40,
+        source_date_epoch=0,
     )
     assert first["source_commit"] == "a" * 40
     assert second["source_commit"] == "b" * 40
-    assert first["platform_commit"] == second["platform_commit"]
     for row in first["recipes"]:
         filename = Path(str(row["package"]["path"])).name
         assert (first_dir / filename).read_bytes() == (
