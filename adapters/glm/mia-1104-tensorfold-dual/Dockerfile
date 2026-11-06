@@ -8,7 +8,6 @@
 # kit's `native`: the kit builds on the Spark that runs it, this image is built on a hosted arm64 runner and must run on a GB10.
 # Thin layer on top: the Controller placement wrapper, the licence texts and the non-root user.
 FROM nvcr.io/nvidia/cuda:13.3.1-devel-ubuntu24.04@sha256:afc92f9727f96346f2912934f11e5a43aa0581aca4a826bd5c8fd4ab6b152bcc AS build
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive LC_ALL=C.UTF-8
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates curl git xz-utils cmake nasm libibverbs-dev \
@@ -53,20 +52,17 @@ RUN curl -fsSL --retry 3 -o /tmp/tensorfold.tar.gz https://codeload.github.com/a
  && tar -xzf /tmp/tensorfold.tar.gz --strip-components=1 -C /src/tensorfold \
  && rm /tmp/tensorfold.tar.gz
 COPY patches/engine/ /opt/tf-patches/engine/
-RUN shopt -s nullglob \
- && patches=(/opt/tf-patches/engine/*.patch) \
- && for p in "${patches[@]}"; do \
-      echo "apply ${p##*/}"; git apply --check "${p}" && git apply "${p}" || exit 1; \
+RUN n=0; for p in /opt/tf-patches/engine/*.patch; do \
+      echo "apply ${p##*/}"; git apply --check "${p}" && git apply "${p}" || exit 1; n=$((n + 1)); \
     done \
- && echo "${#patches[@]} engine patch(es) applied" \
- && test "${#patches[@]}" = 108
+ && echo "${n} engine patch(es) applied" \
+ && test "${n}" = 108
 RUN test "$(cat .zig-version)" = 0.17.0 \
  && zig build native grammar --prefix /opt/tensorfold --summary failures \
       -Doptimize=fast -Dcpu=baseline -Dstrip=false \
       -Dnvcc=/usr/local/cuda/bin/nvcc -Dsm=121 -Dxgrammar=/src/xgrammar \
  && /opt/tensorfold/native/bin/tensorfold-native --version
-RUN shopt -s nullglob \
- && mkdir -p /opt/tensorfold/LICENSES/tensorfold \
+RUN mkdir -p /opt/tensorfold/LICENSES/tensorfold \
  && cp -r /codecs/lib/. /opt/tensorfold/native/lib/ \
  && cp -r /codecs/LICENSES/. /opt/tensorfold/LICENSES/ \
  && cp -r LICENSE NOTICE THIRD_PARTY_NOTICES.md LICENSES /opt/tensorfold/LICENSES/tensorfold/ \
@@ -77,7 +73,6 @@ RUN shopt -s nullglob \
 # The CUDA runtime image carries libcublasLt, libnccl.so.2 (the engine needs 2.30.0 or newer) and, with rdma-core below, the
 # libibverbs and mlx5 provider the engine's RoCE all-gather dlopens. libcuda.so.1 comes from the host driver.
 FROM nvcr.io/nvidia/cuda:13.3.1-runtime-ubuntu24.04@sha256:585155539dd4ff2ab653ee59d812aae81a9406a5804596d516c06e3a5719eb26
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive LC_ALL=C.UTF-8
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104" \
       org.opencontainers.image.revision="02dac3879852b8c5713318d3d64a5a791002e954" \
