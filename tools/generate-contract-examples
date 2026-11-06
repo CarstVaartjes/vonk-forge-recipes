@@ -299,6 +299,51 @@ def _decision_example(build: dict[str, Any], seed: dict[str, Any]) -> None:
     _write("recipe-api-decision.json", api)
 
 
+def _transcription_example(build: dict[str, Any], seed: dict[str, Any]) -> None:
+    """A synthetic ``/v1/audio/transcriptions`` recipe, its API document and refusals.
+
+    The recipe contract has no transcription serving check yet (health alone is
+    refused), so this speech model keeps the seed's chat check: like most
+    speech LLMs on vLLM it answers chat too.
+    """
+
+    speech = copy.deepcopy(build)
+    speech["identity"]["slug"] = "synthetic-tiny-build-transcription"
+    speech["runtime"]["arguments"] += [
+        {"name": "max-model-len", "setting": "context_tokens"}
+    ]
+    speech["runtime"]["environment"] += [
+        {"name": "VLLM_MAX_AUDIO_CLIP_FILESIZE_MB", "value": "25"},
+        {"name": "VLLM_MAX_AUDIO_DECODE_DURATION_S", "value": "600"},
+    ]
+    block = {
+        "mode": "audio_transcription",
+        "input_formats": ["flac", "mp3", "ogg", "wav"],
+        "max_file_bytes": 25 * 1024 * 1024,
+        "max_audio_seconds": 600,
+        "languages": ["en", "nl"],
+        "response_formats": ["json", "text", "verbose_json"],
+    }
+    api = {**_api_for(speech, seed), "api": block}
+    check_recipe_api(
+        RecipeDefinition.model_validate(speech), RecipeApi.model_validate(api)
+    )
+    _write("recipe-transcription.json", speech)
+    _write("recipe-api-transcription.json", api)
+    _invalid(
+        "recipe-api-transcription-file-limit-differs",
+        "check_recipe_api",
+        "max_file_bytes must be 26214400, as VLLM_MAX_AUDIO_CLIP_FILESIZE_MB sets",
+        {"recipe": speech, "api": {**api, "api": {**block, "max_file_bytes": 1048576}}},
+    )
+    _invalid(
+        "recipe-api-transcription-duplicate-format",
+        "RecipeApi",
+        "input_formats must be unique",
+        {**api, "api": {**block, "input_formats": ["wav", "wav"]}},
+    )
+
+
 def _api_vectors(
     build: dict[str, Any], options: dict[str, Any], seed: dict[str, Any]
 ) -> None:
@@ -321,6 +366,7 @@ def _api_vectors(
     _write("recipe-options.json", options)
     _write("recipe-api-options.json", api_options)
     _decision_example(build, seed)
+    _transcription_example(build, seed)
     options_model = RecipeDefinition.model_validate(options)
     options_api = RecipeApi.model_validate(api_options)
     vectors = []

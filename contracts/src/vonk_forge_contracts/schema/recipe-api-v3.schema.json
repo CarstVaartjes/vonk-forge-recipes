@@ -332,6 +332,92 @@
       "title": "ApiToolsSupported",
       "type": "object"
     },
+    "AudioTranscriptionApi": {
+      "additionalProperties": false,
+      "description": "A route serving ``POST /v1/audio/transcriptions``: one audio upload in.\n\nThe input is audio by mode, so the block has no modalities or token limits.\n``max_file_bytes`` and ``max_audio_seconds`` are the engine's own upload and\ndecode limits (``null``: the engine has no duration limit); ``languages``\nare the ISO 639 codes the route transcribes.",
+      "properties": {
+        "mode": {
+          "const": "audio_transcription",
+          "title": "Mode",
+          "type": "string"
+        },
+        "input_formats": {
+          "items": {
+            "enum": [
+              "flac",
+              "m4a",
+              "mp3",
+              "mp4",
+              "mpeg",
+              "mpga",
+              "ogg",
+              "wav",
+              "webm"
+            ],
+            "type": "string"
+          },
+          "maxItems": 9,
+          "minItems": 1,
+          "title": "Input Formats",
+          "type": "array"
+        },
+        "max_file_bytes": {
+          "maximum": 268435456,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "max_audio_seconds": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Audio Seconds"
+        },
+        "languages": {
+          "items": {
+            "pattern": "^[a-z]{2,3}$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Languages",
+          "type": "array"
+        },
+        "response_formats": {
+          "items": {
+            "enum": [
+              "json",
+              "text",
+              "srt",
+              "verbose_json",
+              "vtt",
+              "diarized_json"
+            ],
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Response Formats",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode",
+        "input_formats",
+        "max_file_bytes",
+        "max_audio_seconds",
+        "languages",
+        "response_formats"
+      ],
+      "title": "AudioTranscriptionApi",
+      "type": "object"
+    },
     "ChatApi": {
       "additionalProperties": false,
       "properties": {
@@ -523,6 +609,7 @@
         "api": {
           "discriminator": {
             "mapping": {
+              "audio_transcription": "#/$defs/AudioTranscriptionApi",
               "chat": "#/$defs/ChatApi",
               "decision": "#/$defs/DecisionApi"
             },
@@ -534,6 +621,9 @@
             },
             {
               "$ref": "#/$defs/DecisionApi"
+            },
+            {
+              "$ref": "#/$defs/AudioTranscriptionApi"
             }
           ],
           "title": "Api"
@@ -587,6 +677,7 @@
     "api": {
       "discriminator": {
         "mapping": {
+          "audio_transcription": "#/$defs/AudioTranscriptionApi",
           "chat": "#/$defs/ChatApi",
           "decision": "#/$defs/DecisionApi"
         },
@@ -598,6 +689,9 @@
         },
         {
           "$ref": "#/$defs/DecisionApi"
+        },
+        {
+          "$ref": "#/$defs/AudioTranscriptionApi"
         }
       ],
       "title": "Api"

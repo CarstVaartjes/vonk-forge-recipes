@@ -1,0 +1,28 @@
+{
+  "api": {
+    "input_formats": [
+      "flac",
+      "mp3",
+      "ogg",
+      "wav"
+    ],
+    "languages": [
+      "en",
+      "nl"
+    ],
+    "max_audio_seconds": 600,
+    "max_file_bytes": 26214400,
+    "mode": "audio_transcription",
+    "response_formats": [
+      "json",
+      "text",
+      "verbose_json"
+    ]
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-build-transcription"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}

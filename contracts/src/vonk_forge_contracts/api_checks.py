@@ -18,8 +18,10 @@ from collections.abc import Iterable
 
 from .api import (
     ApiBlock,
+    ApiInputModalities,
     ApiTokenArgument,
     ApiTokenValue,
+    AudioTranscriptionApi,
     ChatApi,
     RecipeApi,
     require_api_of,
@@ -46,8 +48,27 @@ CONTEXT_ARGUMENTS: dict[str, tuple[str, ...]] = {
 IMAGE_INPUT_CAPABILITIES = frozenset({"image-understanding"})
 
 
+# vLLM's own transcription upload and decode limits (environment variables,
+# megabytes of 1 MiB and seconds); when a recipe sets one, the block states it.
+VLLM_AUDIO_LIMITS: dict[str, tuple[str, int]] = {
+    "VLLM_MAX_AUDIO_CLIP_FILESIZE_MB": ("max_file_bytes", 1 << 20),
+    "VLLM_MAX_AUDIO_DECODE_DURATION_S": ("max_audio_seconds", 1),
+}
+_AUDIO_ONLY = ApiInputModalities(
+    text=False, image=False, video=False, audio=True, pdf=False
+)
+
+
 class RecipeApiError(ValueError):
     """The API facts contradict the recipe's runtime or its Models."""
+
+
+def accepted_modalities(block: ApiBlock) -> ApiInputModalities:
+    """What the route takes in; a transcription route takes audio by mode."""
+
+    if isinstance(block, AudioTranscriptionApi):
+        return _AUDIO_ONLY
+    return block.input_modalities
 
 
 def api_variants(
@@ -130,7 +151,10 @@ def _problems(recipe: RecipeDefinition, block: ApiBlock) -> list[str]:
             found.append(
                 f"--{argument.name} must be bound to the context_tokens setting"
             )
-    if names and not present and block.max_input_tokens is None:
+    declared_input = (
+        None if isinstance(block, AudioTranscriptionApi) else block.max_input_tokens
+    )
+    if names and not present and declared_input is None:
         found.append(
             f"no context argument (--{names[0]}) is bound to context_tokens; "
             "bind one or declare max_input_tokens"
@@ -141,15 +165,17 @@ def _problems(recipe: RecipeDefinition, block: ApiBlock) -> list[str]:
     if (settings.kind == "decision") != (block.mode == "decision"):
         found.append(f"a {settings.kind} recipe cannot serve a {block.mode} block")
     context = settings.context_tokens.value
-    if block.max_input_tokens is not None and block.max_input_tokens > context:
+    if declared_input is not None and declared_input > context:
         found.append("max_input_tokens exceeds context_tokens")
     for modality in ("image", "video", "audio"):
-        if not getattr(block.input_modalities, modality):
+        if not getattr(accepted_modalities(block), modality):
             continue
         if engine == "vllm" and _is_set(recipe, "language-model-only"):
             found.append(f"{modality} input conflicts with --language-model-only")
         if engine == "vllm" and _mm_limits(recipe).get(modality) == 0:
             found.append(f"{modality} input conflicts with --limit-mm-per-prompt 0")
+    if isinstance(block, AudioTranscriptionApi):
+        return [*found, *_audio_limit_problems(recipe, block)]
     if not isinstance(block, ChatApi):
         return found
     if (
@@ -184,6 +210,28 @@ def _problems(recipe: RecipeDefinition, block: ApiBlock) -> list[str]:
     return found
 
 
+def _audio_limit_problems(
+    recipe: RecipeDefinition, block: AudioTranscriptionApi
+) -> list[str]:
+    """A vLLM limit the recipe sets must be the one the block states."""
+
+    if recipe.runtime.engine != "vllm":
+        return []
+    found: list[str] = []
+    for item in recipe.runtime.environment:
+        if item.name not in VLLM_AUDIO_LIMITS:
+            continue
+        field, unit = VLLM_AUDIO_LIMITS[item.name]
+        try:
+            limit = int(str(item.value)) * unit
+        except ValueError:
+            found.append(f"{item.name} is not an integer")
+            continue
+        if getattr(block, field) != limit:
+            found.append(f"{field} must be {limit}, as {item.name} sets")
+    return found
+
+
 def check_recipe_api(recipe: RecipeDefinition, api: RecipeApi) -> None:
     """Raise ``RecipeApiError`` for every fact that contradicts the recipe."""
 
@@ -211,7 +259,7 @@ def check_api_models(
     count = 0
     for label, _, block in api_variants(recipe, api):
         count += 1
-        wanted = block.input_modalities
+        wanted = accepted_modalities(block)
         if wanted.image and not any(
             "image" in m.modalities
             and IMAGE_INPUT_CAPABILITIES.intersection(m.capabilities)
