@@ -24,6 +24,7 @@
     "whole": true
   },
   "ours": [
+    "scan-sm121.py",
     "tensorfold-serve"
   ],
   "renamed": {
