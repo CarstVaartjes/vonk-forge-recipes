@@ -14,9 +14,11 @@ import tempfile
 import types
 import unittest
 from datetime import UTC, datetime, timedelta
+from email.message import Message
 from pathlib import Path
 from typing import Any, ClassVar
 from unittest.mock import patch
+from urllib.error import HTTPError
 
 from vonk_forge_contracts import ModelDisplay
 
@@ -3400,37 +3402,133 @@ class GatedRepositoryTests(unittest.TestCase):
 
     trees = json.loads((ROOT / "tests/fixtures/hf-gated-klein-trees.json").read_text())
 
+    def setUp(self) -> None:
+        # Nothing here may reach the network.
+        blocker = patch(
+            "socket.socket.connect", side_effect=AssertionError("network used")
+        )
+        blocker.start()
+        self.addCleanup(blocker.stop)
+
     def old(self):
         return model_with(("README.md", "config.json", "model.safetensors"))
 
+    def gated(self, old, after):
+        return refresh.gated_payload_identical(old, self.trees["before"], after)
+
     def test_same_blob_ids_and_sizes_are_unchanged_weights(self) -> None:
-        self.assertTrue(
-            refresh.gated_payload_unchanged(
-                self.old(), self.trees["before"], self.trees["after"]
-            )
-        )
+        self.assertTrue(self.gated(self.old(), self.trees["after"]))
 
     def test_a_changed_weights_pointer_is_a_change(self) -> None:
         after = json.loads(json.dumps(self.trees["after"]))
         for entry in after:
             if entry["path"] == "model.safetensors":
                 entry["oid"] = "0" * 40
-        self.assertFalse(
-            refresh.gated_payload_unchanged(self.old(), self.trees["before"], after)
-        )
+        self.assertFalse(self.gated(self.old(), after))
 
     def test_a_new_non_metadata_file_is_a_change(self) -> None:
-        after = [
-            *self.trees["after"],
-            {"type": "file", "path": "extra.safetensors", "oid": "1" * 40, "size": 5},
-        ]
-        self.assertFalse(
-            refresh.gated_payload_unchanged(self.old(), self.trees["before"], after)
-        )
+        extra = {
+            "type": "file",
+            "path": "extra.safetensors",
+            "oid": "1" * 40,
+            "size": 5,
+        }
+        self.assertFalse(self.gated(self.old(), [*self.trees["after"], extra]))
+
+    def test_stored_roles_decide_exactly_as_without_access(self) -> None:
+        # The document stores config.json as metadata, roles_for says configuration.
+        old = self.old()
+        for entry in old["files"]:
+            entry["sha256"] = "c" * 64
+            if entry["path"] == "config.json":
+                entry["roles"] = ["metadata"]
+        for changed in (False, True):
+            with self.subTest(config_changed=changed):
+                after = copy.deepcopy(self.trees["after"])
+                ungated = []
+                for entry in after:
+                    if changed and entry["path"] == "config.json":
+                        entry["oid"] = "2" * 40
+                    differs = changed and entry["path"] == "config.json"
+                    ungated.append(
+                        {
+                            "path": entry["path"],
+                            "roles": roles_for(entry["path"]),
+                            "sha256": "d" * 64 if differs else "c" * 64,
+                        }
+                    )
+                self.assertEqual(
+                    self.gated(old, after), refresh.payload_identical(old, ungated)
+                )
 
     def test_masked_lfs_digest_is_refused_not_catalogued(self) -> None:
+        lfs_only = [e for e in self.trees["after"] if "lfs" in e]
         with self.assertRaises(refresh.catalog.AccessDenied):
-            refresh.catalog.inventory("o/r", NEW, self.trees["after"])
+            refresh.catalog.inventory("o/r", NEW, lfs_only)
+
+    def test_only_401_and_403_are_access_denied(self) -> None:
+        entries = [{"type": "file", "path": "config.json", "size": 2}]
+        for code, expected in (
+            (401, "AccessDenied"),
+            (403, "AccessDenied"),
+            (503, "HTTPError"),
+            (429, "HTTPError"),
+        ):
+
+            def fail(_url: str, code: int = code) -> bytes:
+                error = HTTPError(_url, code, "x", Message(), None)
+                error.close()
+                raise error
+
+            with (
+                self.subTest(code=code),
+                patch.object(refresh.catalog, "_get_bytes", fail),
+                self.assertRaises(
+                    refresh.catalog.AccessDenied
+                    if expected == "AccessDenied"
+                    else HTTPError
+                ),
+            ):
+                refresh.catalog.inventory("o/r", NEW, entries)
+
+    def test_the_token_is_sent_to_hugging_face_when_set(self) -> None:
+        seen = {}
+
+        class Opener:
+            def open(self, request, timeout):
+                seen.update(request.header_items())
+                raise OSError("stop")
+
+        for url, expected in (
+            ("https://huggingface.co/api/models/o/r", "Bearer secret"),
+            ("https://example.test/x", None),
+        ):
+            seen.clear()
+            with (
+                patch.dict(os.environ, {"HF_TOKEN": "secret"}),
+                patch.object(refresh.catalog, "build_opener", return_value=Opener()),
+                self.assertRaises(OSError),
+            ):
+                refresh.catalog._open(url, 5)
+            self.assertEqual(seen.get("Authorization"), expected)
+
+    def test_the_token_goes_to_hugging_face_only(self) -> None:
+        from urllib.request import Request
+
+        request = Request(
+            "https://cdn.example/x", headers={"Authorization": "Bearer t"}
+        )
+        handler = refresh.catalog._KeepTokenOnHuggingFace()
+        moved = handler.redirect_request(
+            Request("https://huggingface.co/a", headers={"Authorization": "Bearer t"}),
+            None,
+            302,
+            "Found",
+            {},
+            "https://cdn.example/x",
+        )
+        self.assertFalse(moved.has_header("Authorization"))
+        del request
 
     def test_a_gated_metadata_only_revision_is_not_a_move(self) -> None:
         old = self.old()
@@ -3456,20 +3554,22 @@ class GatedRepositoryTests(unittest.TestCase):
         )
         result = refresh.Assessment("recipe", items=[item])
         trees = {OLD: self.trees["before"], NEW: self.trees["after"]}
+        fetched: list[str] = []
+
+        def tree(url: str) -> list:
+            fetched.append(url)
+            return trees[next(r for r in trees if f"/tree/{r}?" in url)]
+
+        def denied(url: str) -> bytes:
+            error = HTTPError(url, 401, "Unauthorized", Message(), None)
+            error.close()
+            raise error
+
         with (
-            patch.object(
-                refresh.catalog,
-                "_get_tree",
-                side_effect=lambda url: trees[
-                    next(r for r in trees if f"/tree/{r}?" in url)
-                ],
-            ),
-            patch.object(
-                refresh.Assessor,
-                "_inventory",
-                side_effect=refresh.catalog.AccessDenied("gated"),
-            ),
+            patch.object(refresh.catalog, "_get_tree", side_effect=tree),
+            patch.object(refresh.catalog, "_get_bytes", denied),
         ):
             assessor._model(item, recipe, copy.deepcopy(recipe), result, {})
         self.assertEqual(result.reasons, [])
         self.assertTrue(item.noop)
+        self.assertEqual(len(fetched), len(set(fetched)))  # each tree once
