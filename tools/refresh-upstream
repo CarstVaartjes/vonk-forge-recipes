@@ -55,6 +55,7 @@ from qualification.documents import model_display
 from qualification.memory_need import raise_peaks_to_envelope
 from spark_sweep.own_pulls import OWN_FIELDS, own_pulls
 from spark_sweep.tolerant import InputReason, read_optional
+from tools._catalog_model import roles_for
 
 
 def _load(name: str) -> Any:
@@ -2173,6 +2174,41 @@ def model_problems(
     ]
 
 
+def gated_payload_unchanged(
+    old: dict[str, Any],
+    old_tree: list[dict[str, Any]],
+    new_tree: list[dict[str, Any]],
+) -> bool:
+    """Whether the tree entries alone show every catalogued non-metadata file unchanged.
+
+    A gated repository serves neither non-LFS bytes nor LFS digests without access, but
+    its tree still lists each file's git blob id (for an LFS file the pointer, which
+    holds the digest) and size. The same id and size at the same path is the same bytes.
+    A file the repository added since that is not metadata is a change.
+    """
+
+    def entries(tree: list[dict[str, Any]]) -> dict[str, tuple[Any, Any]]:
+        return {
+            e["path"]: (e.get("oid"), e.get("size"))
+            for e in tree
+            if isinstance(e, dict) and e.get("type") == "file" and "path" in e
+        }
+
+    before, after = entries(old_tree), entries(new_tree)
+    for entry in old["files"]:
+        if entry["roles"] != ["metadata"] and (
+            entry["path"] not in before
+            or before[entry["path"]][0] is None
+            or before[entry["path"]] != after.get(entry["path"])
+        ):
+            return False
+    known = {f["path"] for f in old["files"]}
+    return all(
+        path in known or path in before or roles_for(path) == ["metadata"]
+        for path in after
+    )
+
+
 def payload_identical(old: dict[str, Any], new_files: list[dict[str, Any]]) -> bool:
     """Whether every non-metadata file is the same bytes at the same path."""
     before = {
@@ -2963,9 +2999,21 @@ class Assessor:
         mounted = None if declared else mounted_paths(recipe, old)
         new_files: list[dict[str, Any]] | None = None
         if fresh is None:
-            new_files = self._curated(
-                old, item, self._inventory(item.repo, item.target.sha)
-            )
+            try:
+                new_files = self._curated(
+                    old, item, self._inventory(item.repo, item.target.sha)
+                )
+            except catalog.AccessDenied:
+                if declared or not self._gated_unchanged(old, item):
+                    raise
+                item.noop = True
+                result.evidence.append(
+                    f"### {item.label}\n\nThe repository is gated: its tree shows every "
+                    "catalogued non-metadata file with the same git id and size at "
+                    f"`{item.target.sha[:12]}`, so the catalogued revision keeps serving "
+                    "identical weights; no move is proposed.\n"
+                )
+                return
             if mounted is not None and mounted_unchanged(old, new_files, mounted):
                 self._mounted_noop(item, result)
                 return
@@ -3035,6 +3083,14 @@ class Assessor:
         except (RuntimeError, SystemExit, KeyError, ValueError, OSError):
             return new_files  # unknown history: judge every file
         return [f for f in new_files if f["path"] in known or f["path"] not in before]
+
+    def _gated_unchanged(self, old: dict[str, Any], item: Item) -> bool:
+        base = f"https://huggingface.co/api/models/{quote(item.repo, safe='/')}"
+        trees = [
+            catalog._get_tree(f"{base}/tree/{revision}?recursive=true&limit=100")
+            for revision in (item.current, item.target.sha)
+        ]
+        return gated_payload_unchanged(old, trees[0], trees[1])
 
     @staticmethod
     def _mounted_noop(item: Item, result: Assessment) -> None:
