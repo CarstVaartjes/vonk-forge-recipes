@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import runpy
 import shutil
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,8 @@ from vonk_forge_contracts import (
     read_recipe_api,
     recipe_api_json_schema,
 )
+from vonk_forge_contracts.api import ApiTokenArgument
+from vonk_forge_contracts.api_checks import IMAGE_INPUT_CAPABILITIES
 from vonk_forge_contracts.resolver import ContractResolutionError, validate_recipe_apis
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,7 +43,6 @@ def test_the_backfill_proves_each_shape() -> None:
         "glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual",
         "deepseek-v4-1-flash-1017-mia-tensorfold-dual",
         "qwen3-8-27b-exl3-dflash2-mia-single",
-        "d3-vllm-single",
         "llama-3-1-8b-instruct-fp8-nvidia-trtllm-single",
     }
 
@@ -64,14 +66,14 @@ def test_the_api_document_leaves_the_recipe_untouched() -> None:
 
 
 def test_an_orphan_api_document_is_refused() -> None:
-    api = recipe_api("d3-vllm-single")
+    slug = "qwen3-8-27b-exl3-dflash2-mia-single"
+    api = recipe_api(slug)
     with pytest.raises(ContractResolutionError, match="no recipe"):
         validate_recipe_apis(
-            [recipe("llama-3-1-8b-instruct-fp8-nvidia-trtllm-single")],
-            {"d3-vllm-single": api},
+            [recipe("llama-3-1-8b-instruct-fp8-nvidia-trtllm-single")], {slug: api}
         )
-    validate_recipe_apis([recipe("d3-vllm-single")], {"d3-vllm-single": api})
-    validate_recipe_apis([recipe("d3-vllm-single")], {})
+    validate_recipe_apis([recipe(slug)], {slug: api})
+    validate_recipe_apis([recipe(slug)], {})
 
 
 def test_option_vectors_resolve_the_block_in_force() -> None:
@@ -113,13 +115,13 @@ API_VECTORS = sorted(
 
 def test_there_are_invalid_vectors_for_each_named_failure() -> None:
     assert {path.stem for path in API_VECTORS} == {
+        "recipe-api-context-argument-missing",
         "recipe-api-context-unbound",
+        "recipe-api-default-output-names-missing-argument",
         "recipe-api-effort-default-not-a-level",
         "recipe-api-identity-mismatch",
         "recipe-api-image-with-language-model-only",
         "recipe-api-missing-field",
-        "recipe-api-reasoning-without-parser",
-        "recipe-api-tools-without-parser",
         "recipe-api-two-options-carry-blocks",
     }
 
@@ -151,6 +153,8 @@ def _library(tmp_path: Path, *slugs: str) -> Path:
     for slug in slugs:
         shutil.copy(ROOT / f"recipes/{slug}.json", tmp_path / "recipes")
         shutil.copy(ROOT / f"api/recipes/{slug}.json", tmp_path / "api/recipes")
+        (tmp_path / "display/recipes").mkdir(parents=True, exist_ok=True)
+        shutil.copy(ROOT / f"display/recipes/{slug}.json", tmp_path / "display/recipes")
     return tmp_path
 
 
@@ -168,8 +172,8 @@ def test_the_guard_requires_a_document_on_a_touched_openai_recipe(
     assert GUARD["problems"](root, [slug]) == [f"{slug}: needs api/recipes/{slug}.json"]
 
 
-def test_the_guard_refuses_facts_the_runtime_contradicts(tmp_path: Path) -> None:
-    slug = "d3-vllm-single"
+def test_the_guard_refuses_a_modality_no_model_declares(tmp_path: Path) -> None:
+    slug = "qwen3-8-27b-exl3-dflash2-mia-single"
     root = _library(tmp_path, slug)
     path = root / f"api/recipes/{slug}.json"
     document = _json(path)
@@ -227,3 +231,146 @@ def _json_digest(source_path: str) -> str:
     from vonk_forge_contracts import document_sha256
 
     return document_sha256(_json(ROOT / source_path))
+
+
+def _chat_api(slug: str, **changes: Any) -> RecipeApi:
+    """A complete chat document for ``slug`` with tools and reasoning declared."""
+
+    document = _json(EXAMPLES / "recipe-api-source-build.json")
+    context = recipe(slug).settings.model_dump()["context_tokens"]["value"]
+    block = {
+        **document["api"],
+        "max_input_tokens": context,
+        "tools": {"kind": "supported", "tool_choice": ["auto"], "parallel_calls": True},
+        "reasoning": {"kind": "always-on", "effort": None},
+        **changes,
+    }
+    identity = {"publisher": "vonk-forge", "slug": slug}
+    return RecipeApi.model_validate(
+        {**document, "identity": identity, "api": block, "option_choices": []}
+    )
+
+
+def test_the_guard_refuses_tools_and_reasoning_a_trtllm_launch_does_not_enable() -> (
+    None
+):
+    slug = "llama-3-1-8b-instruct-fp8-nvidia-trtllm-single"
+    found = GUARD["parser_problems"](ROOT, slug, recipe(slug), _chat_api(slug))
+    assert len(found) == 1
+    assert "tools need a tool-call parser" in found[0]
+    assert "reasoning needs a reasoning parser" in found[0]
+    tools_only = _chat_api(slug, reasoning={"kind": "none"})
+    found = GUARD["parser_problems"](ROOT, slug, recipe(slug), tools_only)
+    assert "reasoning" not in found[0] and "tools need" in found[0]
+
+
+@pytest.mark.parametrize(
+    "slug",
+    [
+        "ling-3-0-flash-dspark-sglang-single",
+        "qwen3-8-27b-nvfp4-dspark-sglang-single",
+        "mimo-v2-6-flash-rl-sglang-mia-dual",
+        "deepseek-v4-flash-0731-mia-sparkinfer-single",
+        "qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single",
+    ],
+)
+def test_parsers_set_by_wrappers_and_kit_flags_count_as_served(slug: str) -> None:
+    """The guard asks ``serving_capabilities``, which reads adapters and kit flags."""
+
+    assert GUARD["parser_problems"](ROOT, slug, recipe(slug), _chat_api(slug)) == []
+
+
+def test_a_missing_context_argument_needs_an_explicit_input_limit() -> None:
+    slug = "qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single"
+    declared = _chat_api(slug)
+    check_recipe_api(recipe(slug), declared)
+    bare = recipe(slug).model_copy(
+        update={
+            "runtime": recipe(slug).runtime.model_copy(
+                update={
+                    "arguments": [
+                        a
+                        for a in recipe(slug).runtime.arguments
+                        if a.name != "context-length"
+                    ]
+                }
+            )
+        }
+    )
+    check_recipe_api(bare, declared)
+    undeclared = _chat_api(slug, max_input_tokens=None)
+    with pytest.raises(RecipeApiError, match="no context argument"):
+        check_recipe_api(bare, undeclared)
+
+
+def test_default_output_tokens_names_a_runtime_argument() -> None:
+    slug = "glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual"
+    document = recipe(slug)
+    api = recipe_api(slug)
+    assert api.api.default_output_tokens.model_dump() == {"argument": "max-tokens"}  # type: ignore[union-attr]
+    check_recipe_api(document, api)
+    other = api.model_copy(
+        update={
+            "api": api.api.model_copy(
+                update={"default_output_tokens": ApiTokenArgument(argument="nope")}
+            )
+        }
+    )
+    with pytest.raises(RecipeApiError, match="--nope, which has no integer value"):
+        check_recipe_api(document, other)
+    # A setting-bound argument resolves through the recipe's settings.
+    bound = api.api.model_copy(
+        update={"default_output_tokens": ApiTokenArgument(argument="context")}
+    )
+    check_recipe_api(document, api.model_copy(update={"api": bound}))
+
+
+def test_the_synthetic_decision_example_is_checked_like_any_recipe() -> None:
+    document = RecipeDefinition.model_validate(_json(EXAMPLES / "recipe-decision.json"))
+    api = RecipeApi.model_validate(_json(EXAMPLES / "recipe-api-decision.json"))
+    assert api.api.mode == "decision"
+    check_recipe_api(document, api)
+
+
+def test_image_input_has_one_capability_name() -> None:
+    assert IMAGE_INPUT_CAPABILITIES == {"image-understanding"}
+
+
+def _git(root: Path, *args: str) -> None:
+    subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
+
+
+def test_touched_slugs_reads_add_modify_rename_delete_and_untracked(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "api/recipes").mkdir(parents=True)
+    names = {
+        "recipes/kept.json": '{"a": 1}',
+        "recipes/edited.json": '{"a": 1}',
+        "recipes/gone.json": '{"b": 2, "c": 3}',
+        "recipes/old-name.json": '{"d": 4, "e": 5, "f": 6, "g": 7}',
+        "api/recipes/api-edited.json": '{"a": 1}',
+    }
+    for name, text in names.items():
+        (tmp_path / name).write_text(text)
+    _git(tmp_path, "init", "-q", "-b", "main")
+    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "add", "-A")
+    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "base")
+    _git(tmp_path, "checkout", "-q", "-b", "change")
+    (tmp_path / "recipes/edited.json").write_text('{"a": 2}')
+    (tmp_path / "api/recipes/api-edited.json").write_text('{"a": 2}')
+    (tmp_path / "recipes/gone.json").unlink()
+    (tmp_path / "recipes/old-name.json").rename(tmp_path / "recipes/new-name.json")
+    (tmp_path / "recipes/added.json").write_text('{"x": 1}')
+    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "add", "-A")
+    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "work")
+    (tmp_path / "recipes/untracked.json").write_text('{"y": 1}')
+    (tmp_path / "notes.txt").write_text("not a recipe")
+    assert GUARD["touched_slugs"](tmp_path, "main") == [
+        "added",
+        "api-edited",
+        "edited",
+        "new-name",
+        "untracked",
+    ]

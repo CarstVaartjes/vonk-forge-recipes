@@ -153,7 +153,9 @@ by `mode`, and every field is written down, "not applicable" included (`false`,
 `{"kind": "none"}`, `null`):
 
 - `chat`: `max_output_tokens` (`{"value": N}` or `{"setting": "context_tokens"}`),
-  `default_output_tokens` (`{"value": N}` or `{"remaining": "context"|"slot_context"}`),
+  `default_output_tokens` (`{"argument": "<runtime argument>"}`, read from the
+  recipe's arguments so the number is never copied; `{"value": N}` only when the
+  server code fixes it; or `{"remaining": "context"|"slot_context"}`),
   `max_input_tokens` (`null`, or the engine's own lower prompt cap: TRT-LLM
   without chunked prefill, a llama.cpp slot's share of `--ctx-size`),
   `input_modalities` (`text`, `image`, `video`, `audio`, `pdf`), `audio_output`,
@@ -168,23 +170,28 @@ by `mode`, and every field is written down, "not applicable" included (`false`,
   "parallel_calls": bool}`; an empty `tool_choice` means the field is only a
   prompt nudge.
 - `decision` (the `/v1/systemone` recipes): `max_input_tokens` and
-  `input_modalities` only.
+  `input_modalities` only. A synthetic example is `recipe-api-decision.json`.
 
 An option choice that changes any of these facts carries its own complete
 block in `option_choices` (`{option, value, api}`); it replaces the base block as
 a whole, applied by `RecipeApi.for_choices` the way `with_option_choices`
 applies arguments. Only one option of a recipe may carry blocks.
 
-`check_recipe_api(recipe, api)` refuses facts that contradict the runtime of
-the base route and of every option choice: vLLM tools need
-`--enable-auto-tool-choice` and `--tool-call-parser`; reasoning on vLLM or
-SGLang needs `--reasoning-parser`; image, video or audio input conflicts with
-`--language-model-only` or a `--limit-mm-per-prompt` of 0; the engine's context
-argument must be bound to `context_tokens`; limits cannot exceed the context;
-llama.cpp `--parallel` gives each request only its slot's share.
-`check_api_models` requires a selected Model that declares each accepted
-modality (image also needs `image-understanding`). `tools/check-recipe-api` runs
-both on added or changed recipes and API files; there is no allowlist of gaps.
+`check_recipe_api(recipe, api)` is the structural check, run for the base route
+and for every option choice against the runtime that choice compiles to: image,
+video or audio input conflicts with `--language-model-only` or a
+`--limit-mm-per-prompt` of 0 on vLLM; the engine's context argument
+(`CONTEXT_ARGUMENTS`, the one table, also used by the memory estimator) must be
+present and bound to `context_tokens`, or the block declares an explicit
+`max_input_tokens`; limits cannot exceed the context; a `default_output_tokens`
+argument must exist with an integer value; llama.cpp `--parallel` gives each
+request only its slot's share. `check_api_models` requires a selected Model that
+declares each accepted modality (image also needs `image-understanding`; the
+D3 `vision` name is not accepted). Whether the launch really enables a tool-call
+or reasoning parser is not re-derived: `tools/check-recipe-api` asks
+`qualification.capabilities.serving_capabilities` (runtime arguments, adapter
+scripts, kit flags) for every variant. The guard runs all three on added or
+changed recipes and API files; there is no allowlist of gaps.
 Read the document through `qualification/documents.py` (`recipe_api`).
 
 `settings.kind` selects the typed generation, embedding, job or decision shape;

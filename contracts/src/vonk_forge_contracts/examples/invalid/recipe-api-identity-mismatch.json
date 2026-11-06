@@ -18,7 +18,7 @@
         "text": true,
         "video": false
       },
-      "max_input_tokens": null,
+      "max_input_tokens": 1024,
       "max_output_tokens": {
         "setting": "context_tokens"
       },

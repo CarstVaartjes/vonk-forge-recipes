@@ -67,6 +67,16 @@ class ApiTokenSetting(_ApiContract):
 ApiTokenBound = ApiTokenValue | ApiTokenSetting
 
 
+class ApiTokenArgument(_ApiContract):
+    """The server default is the value of this runtime argument.
+
+    The number is never copied here: it is read from the recipe's arguments (as
+    the option choice in force sets them), so it cannot drift from the launch.
+    """
+
+    argument: StrictStr = Field(pattern=r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
+
+
 class ApiRemainingContext(_ApiContract):
     """No server default: the request may use what the context still holds."""
 
@@ -162,7 +172,7 @@ ApiTools = Annotated[ApiToolsNone | ApiToolsSupported, Field(discriminator="kind
 class ChatApi(_ApiContract):
     mode: Literal["chat"]
     max_output_tokens: ApiTokenBound
-    default_output_tokens: ApiTokenValue | ApiRemainingContext
+    default_output_tokens: ApiTokenValue | ApiTokenArgument | ApiRemainingContext
     # Null: the prompt may fill the context. A number is the engine's own lower
     # prompt cap (TRT-LLM without chunked prefill, a llama.cpp slot's share).
     max_input_tokens: StrictInt | None = Field(ge=1)

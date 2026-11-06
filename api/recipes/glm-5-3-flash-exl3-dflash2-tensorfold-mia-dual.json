@@ -2,7 +2,7 @@
   "api": {
     "audio_output": false,
     "default_output_tokens": {
-      "value": 32768
+      "argument": "max-tokens"
     },
     "endpoints": [
       "/v1/chat/completions",
@@ -66,7 +66,7 @@
       "api": {
         "audio_output": false,
         "default_output_tokens": {
-          "value": 32768
+          "argument": "max-tokens"
         },
         "endpoints": [
           "/v1/chat/completions",

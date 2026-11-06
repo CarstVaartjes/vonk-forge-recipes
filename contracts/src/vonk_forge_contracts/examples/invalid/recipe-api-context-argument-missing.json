@@ -24,8 +24,7 @@
       },
       "mode": "chat",
       "reasoning": {
-        "effort": null,
-        "kind": "always-on"
+        "kind": "none"
       },
       "streaming": true,
       "structured_output": true,
@@ -39,7 +38,45 @@
       "slug": "synthetic-tiny-build-options"
     },
     "kind": "recipe-api",
-    "option_choices": []
+    "option_choices": [
+      {
+        "api": {
+          "audio_output": false,
+          "default_output_tokens": {
+            "remaining": "context"
+          },
+          "endpoints": [
+            "/v1/chat/completions",
+            "/v1/completions",
+            "/v1/responses",
+            "/v1/messages"
+          ],
+          "input_modalities": {
+            "audio": false,
+            "image": true,
+            "pdf": false,
+            "text": true,
+            "video": false
+          },
+          "max_input_tokens": null,
+          "max_output_tokens": {
+            "setting": "context_tokens"
+          },
+          "mode": "chat",
+          "reasoning": {
+            "kind": "none"
+          },
+          "streaming": true,
+          "structured_output": true,
+          "system_messages": true,
+          "tools": {
+            "kind": "none"
+          }
+        },
+        "option": "vision",
+        "value": "images"
+      }
+    ]
   },
   "recipe": {
     "execution": {
@@ -158,10 +195,6 @@
               0.25
             ]
           }
-        },
-        {
-          "name": "max-model-len",
-          "setting": "context_tokens"
         }
       ],
       "engine": "vllm",

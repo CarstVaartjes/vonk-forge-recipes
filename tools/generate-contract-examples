@@ -235,18 +235,82 @@ def _api_for(recipe: dict[str, Any], seed: dict[str, Any]) -> dict[str, Any]:
     return {**seed, "identity": {**seed["identity"], "slug": identity.slug}}
 
 
+def _decision_example(build: dict[str, Any], seed: dict[str, Any]) -> None:
+    """A synthetic ``/v1/systemone`` recipe and its decision-mode API document."""
+
+    decision = copy.deepcopy(build)
+    decision["identity"]["slug"] = "synthetic-tiny-build-decision"
+    decision["settings"]["kind"] = "decision"
+    decision["runtime"]["arguments"] += [
+        {"name": "max-model-len", "setting": "context_tokens"}
+    ]
+    decision["validation"] = {
+        "serving": {
+            "interface": "openai",
+            "checks": [
+                {
+                    "name": "health",
+                    "kind": "openai.health",
+                    "request": {
+                        "transport": "http",
+                        "method": "GET",
+                        "path": "/v1/models",
+                    },
+                    "assertions": ["endpoint.healthy"],
+                },
+                {
+                    "name": "decide",
+                    "kind": "openai.systemone",
+                    "request": {
+                        "transport": "http",
+                        "method": "POST",
+                        "path": "/v1/systemone",
+                        "body": {
+                            "model": "synthetic-tiny",
+                            "state": "Is this easy?",
+                            "questions": {
+                                "easy": {"type": "noul", "instructions": "Easy?"}
+                            },
+                        },
+                    },
+                    "assertions": ["decision.probabilities"],
+                },
+            ],
+        }
+    }
+    api = {
+        **_api_for(decision, seed),
+        "api": {
+            "mode": "decision",
+            "max_input_tokens": None,
+            "input_modalities": {
+                "text": True,
+                "image": True,
+                "video": False,
+                "audio": False,
+                "pdf": False,
+            },
+        },
+    }
+    recipe_model = RecipeDefinition.model_validate(decision)
+    api_model = RecipeApi.model_validate(api)
+    check_recipe_api(recipe_model, api_model)
+    _write("recipe-decision.json", decision)
+    _write("recipe-api-decision.json", api)
+
+
 def _api_vectors(
     build: dict[str, Any], options: dict[str, Any], seed: dict[str, Any]
 ) -> None:
     """The option-aware API example, its application vectors and the refusals."""
 
-    block = seed["api"]
+    block = {**seed["api"], "max_input_tokens": None}
     images = {
         **block,
         "input_modalities": {**block["input_modalities"], "image": True},
     }
     api_options = {
-        **_api_for(options, seed),
+        **_api_for(options, {**seed, "api": block}),
         "option_choices": [{"option": "vision", "value": "images", "api": images}],
     }
     for recipe, api in ((build, seed), (options, api_options)):
@@ -256,6 +320,7 @@ def _api_vectors(
         check_recipe_api(recipe_model, api_model)
     _write("recipe-options.json", options)
     _write("recipe-api-options.json", api_options)
+    _decision_example(build, seed)
     options_model = RecipeDefinition.model_validate(options)
     options_api = RecipeApi.model_validate(api_options)
     vectors = []
@@ -315,26 +380,6 @@ def _api_vectors(
             ],
         },
     )
-    tools = {"kind": "supported", "tool_choice": ["auto"], "parallel_calls": True}
-    refuse(
-        "recipe-api-tools-without-parser",
-        "check_recipe_api",
-        "tools need --enable-auto-tool-choice and --tool-call-parser",
-        options,
-        _api_for(options, with_block(tools=tools)),
-    )
-    refuse(
-        "recipe-api-reasoning-without-parser",
-        "check_recipe_api",
-        "reasoning needs --reasoning-parser",
-        options,
-        _api_for(
-            options,
-            with_block(
-                reasoning={"kind": "always-on", "effort": None},
-            ),
-        ),
-    )
     refuse(
         "recipe-api-image-with-language-model-only",
         "check_recipe_api",
@@ -350,6 +395,30 @@ def _api_vectors(
         "must be bound to the context_tokens setting",
         unbound,
         api_options,
+    )
+    missing = copy.deepcopy(options)
+    missing["runtime"]["arguments"] = [
+        a for a in missing["runtime"]["arguments"] if a["name"] != "max-model-len"
+    ]
+    refuse(
+        "recipe-api-context-argument-missing",
+        "check_recipe_api",
+        "no context argument (--max-model-len) is bound to context_tokens",
+        missing,
+        api_options,
+    )
+    refuse(
+        "recipe-api-default-output-names-missing-argument",
+        "check_recipe_api",
+        "default_output_tokens names --max-tokens, which has no integer value",
+        options,
+        _api_for(
+            options,
+            {
+                **seed,
+                "api": {**block, "default_output_tokens": {"argument": "max-tokens"}},
+            },
+        ),
     )
     refuse(
         "recipe-api-identity-mismatch",

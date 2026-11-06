@@ -3,7 +3,7 @@
     "api": {
       "audio_output": false,
       "default_output_tokens": {
-        "remaining": "context"
+        "argument": "max-tokens"
       },
       "endpoints": [
         "/v1/chat/completions",
@@ -30,11 +30,7 @@
       "structured_output": true,
       "system_messages": true,
       "tools": {
-        "kind": "supported",
-        "parallel_calls": true,
-        "tool_choice": [
-          "auto"
-        ]
+        "kind": "none"
       }
     },
     "identity": {

@@ -234,6 +234,22 @@
       "title": "ApiRemainingContext",
       "type": "object"
     },
+    "ApiTokenArgument": {
+      "additionalProperties": false,
+      "description": "The server default is the value of this runtime argument.\n\nThe number is never copied here: it is read from the recipe's arguments (as\nthe option choice in force sets them), so it cannot drift from the launch.",
+      "properties": {
+        "argument": {
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Argument",
+          "type": "string"
+        }
+      },
+      "required": [
+        "argument"
+      ],
+      "title": "ApiTokenArgument",
+      "type": "object"
+    },
     "ApiTokenSetting": {
       "additionalProperties": false,
       "description": "Bound to the recipe setting of the same name, as ``RecipeRuntimeArgument``.",
@@ -339,6 +355,9 @@
           "anyOf": [
             {
               "$ref": "#/$defs/ApiTokenValue"
+            },
+            {
+              "$ref": "#/$defs/ApiTokenArgument"
             },
             {
               "$ref": "#/$defs/ApiRemainingContext"

@@ -5,14 +5,14 @@
       "image": true,
       "pdf": false,
       "text": true,
-      "video": true
+      "video": false
     },
     "max_input_tokens": null,
     "mode": "decision"
   },
   "identity": {
     "publisher": "vonk-forge",
-    "slug": "d3-vllm-single"
+    "slug": "synthetic-tiny-build-decision"
   },
   "kind": "recipe-api",
   "option_choices": []

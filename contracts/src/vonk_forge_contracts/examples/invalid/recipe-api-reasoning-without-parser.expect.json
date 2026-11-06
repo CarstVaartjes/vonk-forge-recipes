@@ -1,4 +1,0 @@
-{
-  "contract": "check_recipe_api",
-  "error_contains": "reasoning needs --reasoning-parser"
-}

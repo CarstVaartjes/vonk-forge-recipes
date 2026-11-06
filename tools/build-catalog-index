@@ -738,7 +738,7 @@ def build(
         }
         validate_recipe_apis(recipe_documents, recipe_apis)
     except ValueError as error:
-        raise SystemExit(f"display validation failed: {error}") from error
+        raise SystemExit(f"display or API validation failed: {error}") from error
     memory_inputs = load_inputs()
     recipes: list[dict[str, Any]] = []
     for path in recipe_paths:
