@@ -1,0 +1,164 @@
+#!/usr/bin/env python3
+"""Reject new test code that runs git (owner rule, 2026-11-06).
+
+Tests never use git. A tool takes its inputs (the changed set, a commit, an epoch,
+a file list) as arguments, and git runs only at the CI edge (a workflow step or a
+hook) that calls it. A test that needs a changed set feeds the tool diff text.
+
+Only lines added by the diff given with ``--diff FILE|-`` are checked, in
+``tests/**/*.py``. There is no count and no allowlist. A hit is an added line that
+  (a) passes an argv list or tuple headed ``git`` (also ``[*GIT, ...]`` and
+      ``GIT + [...]``) to a call,
+  (b) calls a function named ``git``, ``_git``, ``run_git``, ``git_output`` and
+      the like,
+  (c) passes a string holding ``git <word>`` to a subprocess or shell call
+      (``bash -c``, ``shell=True``, ``os.system``), or
+  (d) is a dict key naming a git environment variable (``GIT_...``).
+A bare ``"git"`` file name, argv data that is never passed to a call and the
+name of a variable such as ``VONK_GIT_SIGNING_KEY_FILE`` are not hits.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools._added_lines import parse_added, read_diff
+
+SUBPROCESS = frozenset(
+    {
+        "run",
+        "call",
+        "check_call",
+        "check_output",
+        "Popen",
+        "system",
+        "popen",
+        "getoutput",
+        "getstatusoutput",
+    }
+)
+GIT_FUNCTION = re.compile(r"(^|_)git($|_)", re.IGNORECASE)
+SHELL_GIT = re.compile(r"(^|[\s;&|(])git\s+[a-z]")
+GIT_VARIABLE = re.compile(r"^GIT_[A-Z_]+$")
+ADVICE = (
+    "tests never use git: the tool takes its changed set, commit or epoch as an "
+    "argument and git runs at the CI edge"
+)
+
+
+def callee(call: ast.Call) -> str:
+    func = call.func
+    return func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
+
+
+def names_git(node: ast.AST) -> bool:
+    return GIT_FUNCTION.search(ast.unparse(node).replace(".", "_")) is not None
+
+
+def is_git_head(item: ast.expr) -> bool:
+    if isinstance(item, ast.Constant) and isinstance(item.value, str):
+        return item.value == "git" or item.value.startswith("git ")
+    if isinstance(item, ast.Starred):
+        return names_git(item.value)
+    return isinstance(item, ast.Name) and names_git(item)
+
+
+def is_git_argv(node: ast.expr) -> bool:
+    """A list or tuple headed ``git``, or a ``GIT + [...]`` prefix join."""
+    if isinstance(node, ast.List | ast.Tuple):
+        return bool(node.elts) and is_git_head(node.elts[0])
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        if isinstance(node.left, ast.List | ast.Tuple):
+            return is_git_argv(node.left)
+        return isinstance(node.right, ast.List) and names_git(node.left)
+    return False
+
+
+def strings(node: ast.expr) -> list[tuple[int, str]]:
+    """``(line, text)`` of every string constant under ``node``."""
+    return [
+        (n.lineno, n.value)
+        for n in ast.walk(node)
+        if isinstance(n, ast.Constant) and isinstance(n.value, str)
+    ]
+
+
+def is_shell(call: ast.Call) -> bool:
+    return callee(call) in SUBPROCESS or any(
+        keyword.arg == "shell"
+        and isinstance(keyword.value, ast.Constant)
+        and keyword.value.value is True
+        for keyword in call.keywords
+    )
+
+
+def scan(source: str, added: set[int] | None) -> list[tuple[int, str]]:
+    """``(line, rule)`` of every git use on an added line (all lines when None)."""
+    hits: set[tuple[int, str]] = set()
+
+    def add(line: int, rule: str) -> None:
+        if added is None or line in added:
+            hits.add((line, rule))
+
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Dict):
+            for key in node.keys:
+                if (
+                    isinstance(key, ast.Constant)
+                    and isinstance(key.value, str)
+                    and GIT_VARIABLE.match(key.value)
+                ):
+                    add(key.lineno, "git environment variable")
+        if not isinstance(node, ast.Call):
+            continue
+        if GIT_FUNCTION.search(callee(node)):
+            add(node.lineno, "call to a git helper")
+        values = [*node.args, *(keyword.value for keyword in node.keywords)]
+        for value in values:
+            if is_git_argv(value):
+                add(value.lineno, "git argv")
+            elif is_shell(node):
+                for line, text in strings(value):
+                    if SHELL_GIT.search(text):
+                        add(line, "git in a shell command")
+    return sorted(hits)
+
+
+def is_test_file(name: str) -> bool:
+    return name.startswith("tests/") and name.endswith(".py")
+
+
+def check(root: Path, diff: str) -> list[str]:
+    problems: list[str] = []
+    for name, lines in sorted(parse_added(diff).items()):
+        if not is_test_file(name):
+            continue
+        source = (root / name).read_text(encoding="utf-8")
+        problems.extend(
+            f"{name}:{line}: {rule}; {ADVICE}" for line, rule in scan(source, lines)
+        )
+    return problems
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
+    parser.add_argument(
+        "--diff",
+        required=True,
+        help="unified -U0 diff to judge: a file, or - for stdin",
+    )
+    parser.add_argument("--root", type=Path, default=ROOT)
+    arguments = parser.parse_args()
+    problems = check(arguments.root, read_diff(arguments.diff))
+    print("\n".join(problems))
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
