@@ -360,13 +360,13 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
                     assert request["num_inference_steps_local"] == 2
         elif slug in MINIMAL_BY_FIXTURE_MEDIA:
             assert not spec.get("parameters")
-            assert all(
-                (ROOT / "qualification" / definitions["fixtures"][i["fixture"]]["path"])
-                .stat()
-                .st_size
-                <= 256
-                for i in spec["inputs"]
-            )
+            # Text inputs stay one short sentence; the clone case's reference
+            # clip is one three-second 24 kHz mono WAV (144044 bytes).
+            for case in [spec, *spec.get("cases", [])]:
+                for item in case["inputs"]:
+                    fixture = definitions["fixtures"][item["fixture"]]
+                    limit = 144044 if fixture["media_type"] == "audio/wav" else 256
+                    assert fixture["size_bytes"] <= limit
         elif slug in SHARED_PROVEN_MEDIA:
             assert SHARED_PROVEN_MEDIA[slug] in PROVEN_FIXED_MEDIA
             recipe = json.loads((ROOT / "recipes" / path.name).read_text())

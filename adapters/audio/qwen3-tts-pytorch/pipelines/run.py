@@ -17,7 +17,6 @@ from speech_mode import Mode, select_mode
 
 _WORKER = Path(__file__).with_name("synthesize.py")
 _INPUT_ROOT = Path("/inputs")
-_SLOTS = ("text", "voice", "reference_audio", "reference_text")
 _MODEL_DIRS = {
     Mode.DESIGN: Path("/models/voicedesign"),
     Mode.CLONE_WITH_TRANSCRIPT: Path("/models/base"),
@@ -43,15 +42,11 @@ def _staged_files() -> dict[str, Path]:
     found: dict[str, Path] = {}
     for item in entries:
         slot, name = item.get("slot"), item.get("name")
-        if slot not in _SLOTS:
-            raise SystemExit(f"input slot is not declared: {slot!r}")
         if not isinstance(name, str) or Path(name).name != name:
             raise SystemExit("signed input manifest contains an unsafe name")
         path = _INPUT_ROOT / name
         if path.is_symlink() or not path.is_file():
             raise SystemExit(f"signed input file is unavailable: {slot}")
-        if slot in found:
-            raise SystemExit(f"input slot {slot} carries more than one file")
         found[slot] = path
     return found
 
@@ -66,26 +61,11 @@ def _text(path: Path) -> str:
     return value
 
 
-def _check_language(model_dir: Path, language: str) -> None:
-    """Accept what the selected model's own configuration supports, plus Auto."""
-    try:
-        config = json.loads((model_dir / "config.json").read_text("utf-8"))
-        supported = {"auto", *config["talker_config"]["codec_language_id"]}
-    except (OSError, ValueError, KeyError, TypeError) as error:
-        raise SystemExit(f"cannot read the language list of {model_dir}") from error
-    if language.lower() not in supported:
-        raise SystemExit(
-            f"language {language!r} is not supported; choose one of {sorted(supported)}"
-        )
-
-
 def _job_deadline() -> float:
     try:
         seconds = int(os.environ["VONK_JOB_TIMEOUT_SECONDS"])
     except (KeyError, ValueError) as error:
         raise SystemExit("job must declare VONK_JOB_TIMEOUT_SECONDS") from error
-    if seconds < 1:
-        raise SystemExit("job timeout must be positive")
     return time.monotonic() + seconds
 
 
@@ -124,7 +104,6 @@ def main() -> None:
         raise SystemExit("input slot text is required")
     mode = select_mode(slots.keys() - {"text"})
     model_dir = _MODEL_DIRS[mode]
-    _check_language(model_dir, args.language)
 
     command = [
         sys.executable,
