@@ -25,6 +25,14 @@ from .vonkctl import Vonkctl, VonkctlTransportError
 RETRY_SECONDS = 60.0
 MAX_BACKOFF_SECONDS = 3600.0
 _REVIEW_REPLY = TypeAdapter(RemovalReview | RemovalReplyError)
+_SUBMIT_REPLY = TypeAdapter(RemovalReceipt | RemovalReplyError)
+
+
+def _error_text(error: RemovalReplyError) -> str:
+    return (
+        f"{error.code} (http_status={error.http_status}, "
+        f"retryable={error.retryable}): {error.detail}"
+    )
 
 
 class ModelRemover:
@@ -195,8 +203,7 @@ class ModelRemover:
                 if isinstance(parsed, RemovalReplyError):
                     self._retry(
                         record,
-                        f"review error: {parsed.code} (http_status={parsed.http_status}, "
-                        f"retryable={parsed.retryable}): {parsed.detail}",
+                        f"review error: {_error_text(parsed)}",
                         now,
                     )
                     record.last_response = review.document
@@ -238,7 +245,13 @@ class ModelRemover:
         )
         record.last_response = reply.document
         try:
-            receipt = RemovalReceipt.model_validate(reply.require_document())
+            receipt = _SUBMIT_REPLY.validate_python(reply.require_document())
+            if isinstance(receipt, RemovalReplyError):
+                # The Controller's typed refusal (e.g. another removal owner): keep the
+                # key and back off; the same request reconnects to the same owner.
+                record.message = f"submit error: {_error_text(receipt)}"[:1024]
+                self._store(digest, record)
+                return
             if (
                 receipt.request_key != record.request_key
                 or receipt.model_content_sha256 != digest
