@@ -1176,7 +1176,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e428c0f24056bd251bf14b6be745657d8317ba71134583ec6f19ee78e17cc481",
+        "content_sha256": "3a6a6fd5782ee35d182eb198bd9af3565ba12af167ec31931b83a8a7656e0fa3",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-super-vl-nvfp4-82d93699"

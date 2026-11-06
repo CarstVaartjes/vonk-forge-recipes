@@ -1097,9 +1097,7 @@
     "url": "https://openmdw.ai/license/1-1/"
   },
   "modalities": [
-    "image",
-    "text",
-    "video"
+    "text"
   ],
   "requires_token": false,
   "source": {

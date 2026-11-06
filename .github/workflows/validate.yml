@@ -216,7 +216,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$RECIPE_TEST_PYTHON" tools/check-model-modalities --base origin/main
+          {
+            git diff --name-only --diff-filter=AMR --merge-base origin/main
+            git ls-files --others --exclude-standard
+          } | "$RECIPE_TEST_PYTHON" tools/check-model-modalities --changed-files -
 
       - name: Check that every Model family is one consistent lineage
         shell: bash

@@ -525,10 +525,7 @@
     "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.5/blob/63651580ca774f8504f676040460aed3e1244ac1/README.md"
   },
   "modalities": [
-    "audio",
-    "image",
-    "text",
-    "video"
+    "text"
   ],
   "requires_token": false,
   "source": {

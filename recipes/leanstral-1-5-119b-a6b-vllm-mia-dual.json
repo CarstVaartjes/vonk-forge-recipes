@@ -182,7 +182,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "823ddbf81918f8b8266c2fefd372c7d72aa3f68d48c6e78eff90b40ecdfcff93",
+        "content_sha256": "b99d622f84cd823f353cbd9ead785140f47ff6c17355be5cfaaa15121bc99626",
         "kind": "model",
         "publisher": "mistralai",
         "slug": "leanstral-1-5-119b-a6b-81592da9"

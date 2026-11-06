@@ -16,6 +16,15 @@
       ],
       "sha256": "3d6ff16be3258f910eac4dcec7142edc7a7100d8400fe363035c8cfedc151164",
       "size_bytes": 35776484480
+    },
+    {
+      "id": "mmproj",
+      "path": "mmproj-BF16.gguf",
+      "roles": [
+        "multimodal-projector"
+      ],
+      "sha256": "05353347512982ee62317b9d8c89372bc815f4b4043580e7ef3ad411ec1a1cd3",
+      "size_bytes": 931146304
     }
   ],
   "format": {
@@ -46,6 +55,7 @@
     "url": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/main/LICENSE"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "requires_token": false,

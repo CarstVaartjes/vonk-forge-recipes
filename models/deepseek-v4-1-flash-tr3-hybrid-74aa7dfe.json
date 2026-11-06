@@ -550,7 +550,6 @@
     "url": "https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid/blob/74aa7dfeb4edc2d59df71abda01470d795394a26/README.md"
   },
   "modalities": [
-    "image",
     "text"
   ],
   "requires_token": false,

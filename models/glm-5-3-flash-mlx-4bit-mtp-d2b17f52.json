@@ -2,7 +2,8 @@
   "capabilities": [
     "image-understanding",
     "reasoning",
-    "text-generation"
+    "text-generation",
+    "video-understanding"
   ],
   "dependencies": [],
   "files": [
@@ -522,7 +523,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "requires_token": false,
   "source": {

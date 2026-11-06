@@ -431,9 +431,7 @@
     "url": "https://huggingface.co/nvidia/GLM-5.3-Flash-NVFP4/blob/da920bb0b9f4a06727223a349e55468e38352348/README.md"
   },
   "modalities": [
-    "image",
-    "text",
-    "video"
+    "text"
   ],
   "requires_token": false,
   "source": {

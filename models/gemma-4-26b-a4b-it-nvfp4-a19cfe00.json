@@ -144,7 +144,6 @@
     "url": "https://ai.google.dev/gemma/apache_2"
   },
   "modalities": [
-    "image",
     "text"
   ],
   "requires_token": false,

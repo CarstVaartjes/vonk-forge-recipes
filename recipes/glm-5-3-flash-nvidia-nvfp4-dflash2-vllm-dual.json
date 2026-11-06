@@ -520,7 +520,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "8985d4629a72dd10c2aa6c8aaad8c129ac81912664873a800b9df17bcc268fb0",
+        "content_sha256": "736b4f8fcff74eed810d7324e28ac5fcde49ba0ba9d54d561d64334e11286ade",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "glm-5-3-flash-nvfp4-1d007386"

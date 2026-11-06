@@ -3,8 +3,7 @@
     "code-generation",
     "image-understanding",
     "reasoning",
-    "text-generation",
-    "video-understanding"
+    "text-generation"
   ],
   "dependencies": [],
   "files": [
@@ -191,8 +190,7 @@
   },
   "modalities": [
     "image",
-    "text",
-    "video"
+    "text"
   ],
   "requires_token": false,
   "source": {

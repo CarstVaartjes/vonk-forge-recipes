@@ -630,7 +630,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "2b7e7cc6cca94cdf674a401835aa8b0e2617508b87e66b4f8b90637a4a387837",
+        "content_sha256": "499cf8ee5206932e94055c1dd55214d96aa8f8caeb3f6d941b50aa29d0f39e1e",
         "kind": "model",
         "publisher": "lukealonso",
         "slug": "mimo-v2-5-nvfp4-a147dd04"

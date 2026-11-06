@@ -1229,7 +1229,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "287f31ee261c31255ef4fd11ad44fbf41a33950d4038eaec5515cbdca54a74ad",
+        "content_sha256": "1dfd1612113cb0e6d45e8473ad8863aefdee5737b482b460a0c1b864dd7c12be",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-bolt-24gb-a326822a"

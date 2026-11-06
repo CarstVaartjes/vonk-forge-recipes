@@ -262,8 +262,6 @@
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
   },
   "modalities": [
-    "image",
-    "text",
     "video"
   ],
   "requires_token": false,

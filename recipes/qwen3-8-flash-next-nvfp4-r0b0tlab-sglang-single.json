@@ -286,7 +286,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "7decfb037a84b47c1d8609f3bbf8ff3b7c73769276b362bc1d3f4d76482ed6f2",
+        "content_sha256": "788c612ba2913fe19f8b4b7f7694998318909d8c0c98162bb3f55055bd9981fb",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen3-8-flash-next-nvfp4-fc694b54"

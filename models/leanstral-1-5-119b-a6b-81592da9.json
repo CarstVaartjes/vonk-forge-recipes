@@ -154,7 +154,6 @@
     "url": "https://huggingface.co/mistralai/Leanstral-1.5-119B-A6B"
   },
   "modalities": [
-    "image",
     "text"
   ],
   "requires_token": false,

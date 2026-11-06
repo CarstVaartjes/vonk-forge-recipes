@@ -172,9 +172,7 @@
     "url": "https://ai.google.dev/gemma/apache_2"
   },
   "modalities": [
-    "image",
-    "text",
-    "video"
+    "text"
   ],
   "requires_token": false,
   "source": {

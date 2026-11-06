@@ -848,9 +848,6 @@
     "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/blob/3b38d063180c3e4aed9691fdc735f3d10b266ee4/README.md"
   },
   "modalities": [
-    "audio",
-    "image",
-    "text",
     "video"
   ],
   "requires_token": false,

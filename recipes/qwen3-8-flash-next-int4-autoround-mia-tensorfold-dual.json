@@ -1392,7 +1392,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e8f1c0e6f2dc1a2b5094d76dfd2e4901d72a69a9adb7bfb3762cb20cce66067e",
+        "content_sha256": "b193a8c03b2ba6cf8d552004ad4e8a19150f6a204a6a6c5f270616ff545f0cdb",
         "kind": "model",
         "publisher": "azampatti",
         "slug": "qwen3-8-flash-next-int4-autoround-8b145d7f"

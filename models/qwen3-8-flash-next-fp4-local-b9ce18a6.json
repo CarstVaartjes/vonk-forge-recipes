@@ -333,9 +333,7 @@
     "url": "https://huggingface.co/nvidia/Qwen3.8-Flash-Next-FP4-Local/blob/b9ce18a6887e18c089fdea8509a33e63429a3300/LICENSE"
   },
   "modalities": [
-    "image",
-    "text",
-    "video"
+    "text"
   ],
   "requires_token": false,
   "source": {

@@ -289,7 +289,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "18635c757aaaed36820e085fa6b93393c3d4c57e9df725fe70900ba210ae6038",
+        "content_sha256": "6ce39b04e90f2d73139cd99c6df9ea28f1afdf2974ae3d572b76f818ea4221af",
         "kind": "model",
         "publisher": "turboderp",
         "slug": "qwen3-8-flash-next-exl3-3-05bpw-69e33439"
