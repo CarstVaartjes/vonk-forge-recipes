@@ -186,7 +186,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "53734a947cfbfe992714334f7e762f1f6abfa0287c62047419d27c95ca524299",
+        "content_sha256": "da28afb7859d96c5870b028e83ef02483f62184f0db169fb12110e4156c156cf",
         "kind": "model",
         "publisher": "vonk-forge",
         "slug": "d3-lite-bf16-03560c26"

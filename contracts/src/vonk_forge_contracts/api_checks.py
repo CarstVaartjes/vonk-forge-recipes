@@ -41,9 +41,7 @@ CONTEXT_ARGUMENTS: dict[str, tuple[str, ...]] = {
     "ds4": ("ctx",),
     "exllamav3": ("cache_size", "max-seq-len", "window"),
 }
-# The D3 decision Models still name image input ``vision``; their rename to
-# ``image-understanding`` is its own data change, not accepted here as a second name.
-IMAGE_INPUT_CAPABILITIES = frozenset({"image-understanding"})
+IMAGE_INPUT_CAPABILITY = "image-understanding"
 
 
 class RecipeApiError(ValueError):
@@ -213,13 +211,12 @@ def check_api_models(
         count += 1
         wanted = block.input_modalities
         if wanted.image and not any(
-            "image" in m.modalities
-            and IMAGE_INPUT_CAPABILITIES.intersection(m.capabilities)
+            "image" in m.modalities and IMAGE_INPUT_CAPABILITY in m.capabilities
             for m in selected
         ):
             found.setdefault(
                 "image input needs a Model with the image modality "
-                "and an image-understanding capability",
+                "and the image-understanding capability",
                 [],
             ).append(label)
         for modality in ("video", "audio"):
