@@ -1,0 +1,18 @@
+{
+  "description": "Exact public MiaAI-Lab GLM 5.3 Flash EXL3 4bpw checkpoint for TensorFold (EXL3 routed experts at 4 bpw, BF16 elsewhere), revision 76c0b517. Pinned by MiaAI-Lab's GLM-5.3-Flash-DGX-Sparks-1104 kit. The quantization is Apache-2.0 with Z.AI's MIT licence kept for the base model. Information only. Drafter checkpoints are selected separately by each recipe.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "mia-ai-lab",
+    "slug": "glm-5-3-flash-exl3-4bpw-tensorfold-76c0b517"
+  },
+  "kind": "model-display",
+  "model_title": "GLM 5.3 Flash EXL3 4bpw TensorFold",
+  "tags": [
+    "mia-ai-lab",
+    "glm-5-3-mia",
+    "text",
+    "image",
+    "video",
+    "candidate"
+  ]
+}
