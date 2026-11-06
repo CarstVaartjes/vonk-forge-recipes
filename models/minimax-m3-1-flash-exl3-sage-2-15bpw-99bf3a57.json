@@ -398,7 +398,7 @@
   "modalities": [
     "text"
   ],
-  "requires_token": true,
+  "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw",
     "revision": "99bf3a57af5d07245ea9abb5426e7dce6af6356b"
