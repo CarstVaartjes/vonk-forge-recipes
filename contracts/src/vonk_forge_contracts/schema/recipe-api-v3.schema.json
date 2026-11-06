@@ -298,7 +298,7 @@
     },
     "ApiToolsSupported": {
       "additionalProperties": false,
-      "description": "Function calling works. An empty ``tool_choice`` means the field is only a\nprompt nudge: the route accepts it and does not enforce any choice.",
+      "description": "Function calling works.\n\n``tool_choice`` lists the choices the route enforces. ``none`` is always\nhonoured, so it is implied and never listed. An empty list means non-auto\nchoices are accepted but not enforced (a prompt nudge, or ignored). An\nunlisted value may be refused (HTTP 400).",
       "properties": {
         "kind": {
           "const": "supported",

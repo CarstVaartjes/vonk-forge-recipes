@@ -39,7 +39,7 @@ CONTEXT_ARGUMENTS: dict[str, tuple[str, ...]] = {
     "llama-cpp": ("ctx-size",),
     "tensorfold": ("context",),
     "ds4": ("ctx",),
-    "exllamav3": ("cache_size", "cache-size", "max-seq-len", "window"),
+    "exllamav3": ("cache_size", "max-seq-len", "window"),
 }
 # The D3 decision Models still name image input ``vision``; their rename to
 # ``image-understanding`` is its own data change, not accepted here as a second name.

@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import runpy
 import shutil
-import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -336,41 +335,26 @@ def test_image_input_has_one_capability_name() -> None:
     assert IMAGE_INPUT_CAPABILITIES == {"image-understanding"}
 
 
-def _git(root: Path, *args: str) -> None:
-    subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
+def test_changed_slugs_keeps_only_recipe_and_api_documents() -> None:
+    assert GUARD["changed_slugs"](
+        [
+            "recipes/added.json",
+            "api/recipes/api-edited.json",
+            "recipes/edited.json",
+            "api/recipes/edited.json",
+            "notes.txt",
+            "recipes/readme.md",
+            "adapters/x/recipes/nested.json",
+            "display/recipes/other.json",
+        ]
+    ) == ["added", "api-edited", "edited"]
 
 
-def test_touched_slugs_reads_add_modify_rename_delete_and_untracked(
-    tmp_path: Path,
-) -> None:
-    (tmp_path / "recipes").mkdir()
-    (tmp_path / "api/recipes").mkdir(parents=True)
-    names = {
-        "recipes/kept.json": '{"a": 1}',
-        "recipes/edited.json": '{"a": 1}',
-        "recipes/gone.json": '{"b": 2, "c": 3}',
-        "recipes/old-name.json": '{"d": 4, "e": 5, "f": 6, "g": 7}',
-        "api/recipes/api-edited.json": '{"a": 1}',
-    }
-    for name, text in names.items():
-        (tmp_path / name).write_text(text)
-    _git(tmp_path, "init", "-q", "-b", "main")
-    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "add", "-A")
-    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "base")
-    _git(tmp_path, "checkout", "-q", "-b", "change")
-    (tmp_path / "recipes/edited.json").write_text('{"a": 2}')
-    (tmp_path / "api/recipes/api-edited.json").write_text('{"a": 2}')
-    (tmp_path / "recipes/gone.json").unlink()
-    (tmp_path / "recipes/old-name.json").rename(tmp_path / "recipes/new-name.json")
-    (tmp_path / "recipes/added.json").write_text('{"x": 1}')
-    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "add", "-A")
-    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "work")
-    (tmp_path / "recipes/untracked.json").write_text('{"y": 1}')
-    (tmp_path / "notes.txt").write_text("not a recipe")
-    assert GUARD["touched_slugs"](tmp_path, "main") == [
-        "added",
-        "api-edited",
-        "edited",
-        "new-name",
-        "untracked",
-    ]
+def test_exllamav3_context_arguments_name_per_request_context_only() -> None:
+    from vonk_forge_contracts.api_checks import CONTEXT_ARGUMENTS
+
+    row = CONTEXT_ARGUMENTS["exllamav3"]
+    # TabbyAPI's cache-size is the shared KV pool, not a request's context.
+    assert "cache-size" not in row
+    # The memory estimator reads row[0]; Mia's cache_size is its context.
+    assert row[0] == "cache_size"

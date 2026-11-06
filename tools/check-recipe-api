@@ -14,8 +14,8 @@ arguments, adapter launch scripts and kit flags) and is asked once per option
 variant. The context-argument table is the one in ``vonk_forge_contracts.api_checks``,
 shared with the memory estimator.
 
-Only recipes and API documents touched since the merge base with ``--base`` are
-checked; with no ``--base`` the named slugs, or the whole library, are. There is
+Only recipes and API documents named in ``--changed-files`` are checked; with it
+absent the named slugs, or the whole library, are. There is
 no count and no allowlist of recipes that lack a document: completeness comes
 from the backfill, and a recipe nobody touches is not this guard's concern.
 """
@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import subprocess
 import sys
 from pathlib import Path
 
@@ -54,28 +53,20 @@ from qualification.documents import (
 SERVING_KINDS = frozenset({"generation", "decision"})
 
 
-def touched_slugs(root: Path, base: str) -> list[str]:
-    """Slugs of recipe and API files added or modified since the merge base."""
+def changed_slugs(paths: list[str]) -> list[str]:
+    """Slugs of the recipe and API files in a list of changed paths (pure).
 
-    def git(*args: str) -> list[str]:
-        return subprocess.run(
-            [
-                "git",
-                "-C",
-                str(root),
-                *args,
-                "--",
-                "recipes/*.json",
-                "api/recipes/*.json",
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.splitlines()
+    The caller (CI) says which files changed; this tool runs no git.
+    """
 
-    names = git("diff", "--name-only", "--diff-filter=AMR", "--merge-base", base)
-    names += git("ls-files", "--others", "--exclude-standard")
-    return sorted({Path(name).stem for name in names})
+    return sorted(
+        {
+            Path(name).stem
+            for name in paths
+            if Path(name).suffix == ".json"
+            and Path(name).parent.as_posix() in {"recipes", "api/recipes"}
+        }
+    )
 
 
 def parser_problems(
@@ -157,13 +148,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("slugs", nargs="*", help="recipe slugs; default: catalog")
     parser.add_argument(
-        "--base",
-        help="check only files touched since the merge base with this revision",
+        "--changed-files",
+        type=argparse.FileType("r"),
+        help="file (or - for stdin) listing changed paths, one per line; "
+        "only their recipes and API documents are checked",
     )
     args = parser.parse_args()
     slugs = (
-        touched_slugs(ROOT, args.base)
-        if args.base
+        changed_slugs(args.changed_files.read().split())
+        if args.changed_files
         else args.slugs or sorted(p.stem for p in (ROOT / "recipes").glob("*.json"))
     )
     found = problems(ROOT, slugs)

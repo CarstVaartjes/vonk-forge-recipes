@@ -210,7 +210,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$RECIPE_TEST_PYTHON" tools/check-recipe-api --base origin/main
+          {
+            git diff --name-only --diff-filter=AMR --merge-base origin/main
+            git ls-files --others --exclude-standard
+          } | "$RECIPE_TEST_PYTHON" tools/check-recipe-api --changed-files -
 
       - name: Require every recipe to reference Models this library holds
         shell: bash
