@@ -23,7 +23,15 @@
     },
     "mode": "chat",
     "reasoning": {
-      "kind": "none"
+      "default": "off",
+      "effort": null,
+      "keys": [
+        "enable_thinking"
+      ],
+      "kind": "switch",
+      "off": false,
+      "on": true,
+      "via": "chat_template_kwargs"
     },
     "streaming": true,
     "structured_output": true,
