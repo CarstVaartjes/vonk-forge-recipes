@@ -120,6 +120,9 @@ class FakeRecipe:
     # backoff) until eviction can free this model digest's files: once its pin, seen in
     # the pin profile, is gone (its recipes tested), the download runs.
     download_blocked_behind: str = ""
+    # The gated source denies the token (a recorded ``access_denied`` model-cache child) until
+    # the owner accepts the terms, this many seconds after the download was requested.
+    download_access_denied_for: float = 0.0
     alias: str | None = None
     # What its run really holds on a Spark once serving (the node telemetry shows it).
     observed_memory: int = 0
@@ -540,7 +543,13 @@ class FakeFleet:
                 del self.orphans[alias]
                 self.runs = [r for r in self.runs if r["alias"] != alias]
         for op in self.ops.values():
-            if op["state"] == "backoff":
+            denied_for = self.recipes[op["recipe"]].download_access_denied_for
+            if op["state"] == "backoff" and denied_for:
+                if now >= op["started"] + denied_for:
+                    # The owner accepted the terms: the model child runs while the parent
+                    # stays in backoff, as the Controller's ``_park_for_model`` does.
+                    op.update(state="running", started=now, parked=True)
+            elif op["state"] == "backoff":
                 behind = self.recipes[op["recipe"]].download_blocked_behind
                 if any(
                     behind in self.recipes[a["recipe_selector"]].digests
@@ -549,7 +558,8 @@ class FakeFleet:
                 ):
                     op["behind_pinned"] = True
                 elif op.get("behind_pinned"):
-                    op.update(state="running", started=now)  # eviction freed the space
+                    # Eviction freed the space: the child runs, the parent stays parked.
+                    op.update(state="running", started=now, parked=True)
             if (
                 op["state"] in ("queued", "running")
                 and now >= op["started"] + op["duration"]
@@ -1097,7 +1107,9 @@ class FakeFleet:
             return 0, self._op_doc(self.ops[self.by_request[request]])
         recipe = self.recipes[key]
         model_missing = any(self.models[d].local != "cached" for d in recipe.digests)
-        blocked = model_missing and bool(recipe.download_blocked_behind)
+        blocked = model_missing and bool(
+            recipe.download_blocked_behind or recipe.download_access_denied_for
+        )
         op_id = self._id("op")
         self.ops[op_id] = {
             "id": op_id,
@@ -1157,7 +1169,9 @@ class FakeFleet:
             "request": op.get("intent"),
             "recipe_revision_id": op.get("recipe_revision_id"),
             "recipe_content_sha256": op.get("recipe_content_sha256"),
-            "state": op["state"],
+            "state": "backoff"
+            if op.get("parked") and op["state"] == "running"
+            else op["state"],
             "progress": {
                 "completed_bytes": done,
                 "total_bytes": op["bytes"],
@@ -1167,7 +1181,17 @@ class FakeFleet:
             },
             "children": [],
         }
-        if op["state"] == "backoff":
+        if op["state"] == "backoff" and recipe.download_access_denied_for:
+            recorded = json.loads(
+                (
+                    ROOT
+                    / "tests/fixtures/sweep-verdicts/recipe-operation-access-denied.json"
+                ).read_text()
+            )
+            doc["children"] = [
+                c for c in recorded["children"] if c["kind"] == "model-cache"
+            ]
+        elif op["state"] == "backoff":
             # vonk-forge model_cache/repair.py ``_capacity_holds``: a retryable wait.
             doc["children"] = [
                 {
@@ -1181,6 +1205,8 @@ class FakeFleet:
                     },
                 }
             ]
+        if op.get("parked") and op["state"] == "running":
+            doc["children"] = [{"kind": "model-cache", "state": "running"}]
         if op["state"] == "failed":
             doc["failure"] = {
                 "code": (
