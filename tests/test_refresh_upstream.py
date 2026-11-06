@@ -1647,6 +1647,13 @@ class ModelReExportTests(unittest.TestCase):
                     "model_title": "Demo",
                     "description": "A demo model.",
                     "tags": ["demo"],
+                    "modalities": ["text"],
+                    "capabilities": [],
+                    "license": {
+                        "spdx": "MIT",
+                        "url": "https://example.com/license",
+                        "attribution": [],
+                    },
                 }
             )
         )
