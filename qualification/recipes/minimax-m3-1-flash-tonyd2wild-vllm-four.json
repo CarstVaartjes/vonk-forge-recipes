@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/minimax-m3-1-flash-tonyd2wild-vllm-four",
+  "service_recipes": {
+    "alias": "minimax-m3.1-flash",
+    "higher_tiers": {
+      "recovery": [
+        "Controller-only rank-loss and warm-cache restart; the first start loads about 60 GB per rank and JIT-compiles kernels"
+      ],
+      "stress": [
+        "8K, 32K and 100K cold-prefill ladder with 1 to 6 concurrent users, as the creator measured"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ]
+  }
+}
