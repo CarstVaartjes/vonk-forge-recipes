@@ -270,6 +270,18 @@ jobs:
           set -euo pipefail
           python3 tools/check-image-provenance --base origin/main
 
+      # The change's added lines, written once for the "Reject new ..." tools
+      # that judge only added lines. Git runs here, at the edge; the tools and
+      # their tests take the diff as text. The pathspec equals ADDED_PATHSPEC
+      # in tools/_added_lines.py (a test keeps the two equal).
+      - name: Write the added-lines diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff -U0 --no-color --diff-filter=AMR origin/main...HEAD \
+            -- '*.py' tools/ spark_sweep/ qualification/ scripts/ tests/ \
+            > "$RUNNER_TEMP/added.diff"
+
       # GB10 shares one memory pool between CPU and CUDA: new adapter code may
       # not build a full model as real CPU tensors or pin a model constructor
       # to CUDA. Checks only lines added against main.
@@ -295,13 +307,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/check-document-reads --base origin/main
+          python3 tools/check-document-reads --diff "$RUNNER_TEMP/added.diff"
 
       - name: Reject new tests that gate on a real recipe's declared memory
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/check-estimate-gates --base origin/main
+          python3 tools/check-estimate-gates --diff "$RUNNER_TEMP/added.diff"
 
       # Every test runs on recipe changes too: the suite takes about as long
       # as any subset, and a subset silently misses recipe-data checks.
