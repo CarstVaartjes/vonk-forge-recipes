@@ -73,8 +73,7 @@ def _input_path() -> Path:
     name = names[0]
     path = _INPUT_ROOT / name
     if (
-        not isinstance(name, str)
-        or Path(name).name != name
+        Path(name).name != name
         or path.suffix.lower() not in _SUFFIXES
         or path.is_symlink()
         or not path.is_file()
