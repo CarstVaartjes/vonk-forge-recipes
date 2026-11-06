@@ -310,6 +310,14 @@ jobs:
           set -euo pipefail
           python3 tools/check-document-reads --diff "$RUNNER_TEMP/added.diff"
 
+      # Tests never use git: a tool takes its changed set, commit or epoch as an
+      # argument, and git runs only here, at the CI edge. Checks only added lines.
+      - name: Reject new tests that run git
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-test-git --diff "$RUNNER_TEMP/added.diff"
+
       - name: Reject new tests that gate on a real recipe's declared memory
         shell: bash
         run: |

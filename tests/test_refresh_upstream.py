@@ -2668,6 +2668,7 @@ class SelfHealingTests(unittest.TestCase):
             "tools/build-family-aware-coverage",
             "tools/check-recipe-topology",
             "tools/check-image-provenance",
+            "tools/check-test-git",
             "tools/generate-contract-examples",
             "tools/generate-contract-schemas",
             "tools/build-release-bundle",
