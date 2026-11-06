@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:5d76347628973fb80519a919a2f2740b6645b62cba3fe2bd87b25f111bd0e948",
+      "kind": "digest",
+      "ref": "sha256:86f582dae25ea92802353727164ae4eb03b37b18baf9119b805ffaec2a7ef07c",
+      "repo": "docker.io/vllm/vllm-openai"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "99bf3a57af5d07245ea9abb5426e7dce6af6356b",
+      "repo": "vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw",
+      "revision": "99bf3a57af5d07245ea9abb5426e7dce6af6356b"
+    }
+  },
+  "kit": {
+    "commit": "d7445a4317c5894828aaa34a702bdc84200cc456",
+    "repo": "vcruz305/MiniMax-M3.1-Flash-EXL3-Spark-recipe"
+  }
+}
