@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from pydantic import ValidationError
@@ -20,12 +21,12 @@ EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 FIXTURE = "qualification/fixtures/jfk-inaugural-10s.wav"
 
 
-def _example() -> dict[str, object]:
+def _example() -> dict[str, Any]:
     return json.loads((EXAMPLES / "recipe-audio-serving.json").read_text("utf-8"))
 
 
-def _checks(document: dict[str, object]) -> list[dict[str, object]]:
-    return document["validation"]["serving"]["checks"]  # type: ignore[index]
+def _checks(example: dict[str, Any]) -> list[dict[str, Any]]:
+    return example["validation"]["serving"]["checks"]
 
 
 def test_the_audio_example_carries_both_kinds_and_stages_one_fixture() -> None:
@@ -62,10 +63,10 @@ def test_a_multipart_fixture_is_part_of_the_package_closure() -> None:
     ],
 )
 def test_a_transcription_request_outside_the_shape_is_refused(change) -> None:  # type: ignore[no-untyped-def]
-    document = _example()
-    change(_checks(document)[-2])
+    example = _example()
+    change(_checks(example)[-2])
     with pytest.raises(ValidationError):
-        RecipeDefinition.model_validate(document)
+        RecipeDefinition.model_validate(example)
 
 
 @pytest.mark.parametrize(
@@ -80,17 +81,17 @@ def test_a_transcription_request_outside_the_shape_is_refused(change) -> None:  
     ],
 )
 def test_a_speech_check_needs_input_voice_and_wav(body: dict[str, str]) -> None:
-    document = _example()
-    _checks(document)[-1]["request"]["body"] = body  # type: ignore[index]
+    example = _example()
+    _checks(example)[-1]["request"]["body"] = body
     with pytest.raises(ValidationError, match="speech checks require"):
-        RecipeDefinition.model_validate(document)
+        RecipeDefinition.model_validate(example)
 
 
 def test_a_speech_check_stays_at_its_own_path() -> None:
-    document = _example()
-    _checks(document)[-1]["request"]["path"] = "/v1/chat/completions"  # type: ignore[index]
+    example = _example()
+    _checks(example)[-1]["request"]["path"] = "/v1/chat/completions"
     with pytest.raises(ValidationError, match="speech checks require"):
-        RecipeDefinition.model_validate(document)
+        RecipeDefinition.model_validate(example)
 
 
 def test_the_raw_jfk_fixture_is_the_recorded_public_domain_clip() -> None:
