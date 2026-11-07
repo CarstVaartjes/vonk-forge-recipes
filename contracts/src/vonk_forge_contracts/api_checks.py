@@ -104,7 +104,7 @@ def _mm_limits(recipe: RecipeDefinition) -> dict[str, object]:
     return value if isinstance(value, dict) else {}
 
 
-def _integer_argument(
+def integer_argument(
     recipe: RecipeDefinition,
     name: str,
     settings: RecipeGenerationSettings | RecipeDecisionSettings,
@@ -168,7 +168,7 @@ def _problems(recipe: RecipeDefinition, block: ApiBlock) -> list[str]:
         found.append("default_output_tokens exceeds context_tokens")
     if isinstance(block.default_output_tokens, ApiTokenArgument):
         name = block.default_output_tokens.argument
-        default = _integer_argument(recipe, name, settings)
+        default = integer_argument(recipe, name, settings)
         if default is None:
             found.append(
                 f"default_output_tokens names --{name}, which has no integer value"
