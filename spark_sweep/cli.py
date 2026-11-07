@@ -172,12 +172,6 @@ def _parser() -> argparse.ArgumentParser:
         help="the stall window while bytes are copied to a Spark: a copy with no progress for this long is observed again (the load window does not count copying)",
     )
     run.add_argument(
-        "--job-recipes",
-        action="store_true",
-        help="test job recipes (one artifact job each); only once the deployed Controller "
-        "loads them as profile members (vonk-forge #1491, #1494), otherwise they are skipped",
-    )
-    run.add_argument(
         "--allow-version-skew",
         action="store_true",
         help="run even when vonkctl is not the accepted release (otherwise: vonkctl update --apply)",
@@ -278,7 +272,6 @@ def _config(args: argparse.Namespace) -> SweepConfig:
         allow_version_skew=args.allow_version_skew,
         retry_failed=args.retry_failed,
         publish_evidence=not args.no_publish_evidence,
-        job_recipes_loadable=args.job_recipes,
         copy_stall_seconds=args.copy_stall_minutes * 60,
     )
 
@@ -366,7 +359,7 @@ def main(
         )
         return 2
     config = _config(args)
-    if args.job_recipes and ffprobe() is None:
+    if ffprobe() is None:
         print(
             "sweep-recipes: warning: ffprobe is not installed, so video-metadata "
             "assertions are recorded as not evaluated (brew install ffmpeg)",

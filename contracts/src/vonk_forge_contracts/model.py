@@ -298,13 +298,6 @@ class ModelLicense(_ModelContract):
         return _https_or_http(value, "license.url")
 
 
-# A capability name is data, not a closed enum: a newer catalog may declare a
-# capability this contract release does not know yet, and readers keep it.
-CapabilityName = Annotated[
-    StrictStr, Field(min_length=1, max_length=40, pattern=r"^[a-z0-9][a-z0-9-]{0,39}$")
-]
-
-
 class ModelDefinition(_ModelContract):
     """One exact model version and variant, including its complete manifest."""
 
