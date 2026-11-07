@@ -24,7 +24,6 @@
         "speculative-decoding",
         "speech-recognition",
         "text-generation",
-        "text-to-audio",
         "text-to-speech",
         "tool-use",
         "video-generation",

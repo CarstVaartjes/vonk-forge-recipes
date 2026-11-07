@@ -42,7 +42,6 @@ class CapabilityName(StrEnum):
     SPECULATIVE_DECODING = "speculative-decoding"
     SPEECH_RECOGNITION = "speech-recognition"
     TEXT_GENERATION = "text-generation"
-    TEXT_TO_AUDIO = "text-to-audio"
     TEXT_TO_SPEECH = "text-to-speech"
     TOOL_USE = "tool-use"
     VIDEO_GENERATION = "video-generation"
@@ -52,7 +51,7 @@ class CapabilityName(StrEnum):
 
     @property
     def role(self) -> CapabilityRole:
-        return CAPABILITY_ROLES.get(self, CapabilityRole.OTHER)
+        return CAPABILITY_ROLES[self]
 
 
 _UNDERSTANDING = (
@@ -65,14 +64,32 @@ _GENERATORS = (
     CapabilityName.AUDIO_GENERATION,
     CapabilityName.IMAGE_EDITING,
     CapabilityName.IMAGE_GENERATION,
+    CapabilityName.IMAGE_UPSCALING,
+    CapabilityName.MATERIAL_ESTIMATION,
+    CapabilityName.MOTION_CAPTURE,
     CapabilityName.MOTION_GENERATION,
-    CapabilityName.TEXT_TO_AUDIO,
+    CapabilityName.PARAMETRIC_BODY_MODEL,
     CapabilityName.TEXT_TO_SPEECH,
     CapabilityName.VIDEO_GENERATION,
+    CapabilityName.VOICE_CLONING,
+    CapabilityName.VOICE_DESIGN,
+)
+_OTHER = (
+    CapabilityName.CHAT,
+    CapabilityName.CODE_GENERATION,
+    CapabilityName.DECISION,
+    CapabilityName.OCR,
+    CapabilityName.PERSON_DETECTION,
+    CapabilityName.REASONING,
+    CapabilityName.SPECULATIVE_DECODING,
+    CapabilityName.SPEECH_RECOGNITION,
+    CapabilityName.TEXT_GENERATION,
+    CapabilityName.TOOL_USE,
 )
 
-# The one classification; a capability not listed here has the role OTHER.
+# The one classification; every name has an explicit entry.
 CAPABILITY_ROLES: dict[CapabilityName, CapabilityRole] = {
     **dict.fromkeys(_UNDERSTANDING, CapabilityRole.UNDERSTANDING),
     **dict.fromkeys(_GENERATORS, CapabilityRole.GENERATOR),
+    **dict.fromkeys(_OTHER, CapabilityRole.OTHER),
 }
