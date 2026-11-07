@@ -10,14 +10,14 @@ from __future__ import annotations
 
 import base64
 import hashlib
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from vonk_forge_contracts.api import ChatApi, read_recipe_api
+from vonk_forge_contracts.api import ChatApi
 
 from qualification.definitions_loader import QUALIFICATION_ROOT, load_definitions
+from qualification.documents import recipe_api
 
 
 @dataclass(frozen=True)
@@ -52,9 +52,9 @@ class Definitions:
     def _load_chat_apis(self) -> None:
         """The ``recipe-api`` documents beside the qualification tree (``api/recipes``)."""
         for path in sorted((self.root.parent / "api" / "recipes").glob("*.json")):
-            api = read_recipe_api(json.loads(path.read_text(encoding="utf-8")))
-            if isinstance(api.api, ChatApi):
-                self._chat_apis[api.identity.slug] = api.api
+            api = recipe_api(path.stem, self.root.parent).api
+            if isinstance(api, ChatApi):
+                self._chat_apis[path.stem] = api
 
     def chat_api(self, slug: str) -> ChatApi | None:
         """The recipe's declared chat facts (base route), when it publishes them."""
