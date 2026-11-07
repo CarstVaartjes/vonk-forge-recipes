@@ -21,6 +21,7 @@
     "url": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/main/LICENSE"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "model_title": "Qwen3.6 27B",

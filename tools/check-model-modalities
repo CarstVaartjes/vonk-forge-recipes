@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""Fail when a Model's input modalities and capabilities disagree.
+
+For a Model that is not a generator, ``image-understanding`` holds exactly when
+``image`` is an input modality, ``audio-understanding`` exactly when ``audio``
+is, and ``video-understanding`` exactly when ``video`` is. The Model records the
+checkpoint's own ability (its config at the pinned revision); a launch that
+switches a modality off is a Recipe fact, not a Model fact.
+
+The facts are Model display facts (display/models). Only Models named in ``--changed-files`` are checked; with it absent the named
+slugs, or the whole library, are. There is no count
+and no list of exempt Models.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from collections.abc import Iterable
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from vonk_forge_contracts.api_checks import INPUT_MODALITY_CAPABILITIES
+
+from qualification.documents import model_display
+
+TEXT_OUTPUT = frozenset({"text-generation", "code-generation"})
+
+
+def is_generator(capabilities: set[str]) -> bool:
+    """True when an output other than text is generated or edited.
+
+    Such a Model lists its outputs among its modalities; a language Model that
+    generates text or code still lists what it accepts.
+    """
+
+    return any(
+        (c.endswith(("-generation", "-editing")) and c not in TEXT_OUTPUT)
+        or "-to-" in c
+        for c in capabilities
+    )
+
+
+def disagreements(capabilities: Iterable[str], modalities: Iterable[str]) -> list[str]:
+    """One message per capability and modality that do not hold together.
+
+    A Model is checked when it is not a generator and either declares an
+    understanding capability or takes text together with another modality (a
+    stand-alone encoder, classifier or VAE that lists only its own modality
+    declares no understanding and is not a language Model).
+    """
+
+    capabilities = set(capabilities)
+    modalities = set(modalities)
+    declares = any(c.endswith("-understanding") for c in capabilities)
+    if is_generator(capabilities) or not (declares or {"text"} < modalities):
+        return []
+    return [
+        f"capability {capability!r} and modality {modality!r} must come together"
+        for modality, capability in INPUT_MODALITY_CAPABILITIES.items()
+        if (capability in capabilities) != (modality in modalities)
+    ]
+
+
+def changed_slugs(paths: list[str]) -> list[str]:
+    """Slugs of the Model display files in a list of changed paths (pure; the caller runs git)."""
+
+    return sorted(
+        {
+            Path(name).stem
+            for name in paths
+            if Path(name).suffix == ".json"
+            and Path(name).parent.as_posix() == "display/models"
+        }
+    )
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("slugs", nargs="*", help="Model slugs; default: library")
+    parser.add_argument(
+        "--changed-files",
+        type=argparse.FileType("r"),
+        help="file (or - for stdin) listing changed paths, one per line; "
+        "only their Models are checked",
+    )
+    args = parser.parse_args()
+    slugs = (
+        changed_slugs(args.changed_files.read().split())
+        if args.changed_files
+        else args.slugs
+        or sorted(p.stem for p in (ROOT / "display" / "models").glob("*.json"))
+    )
+    failed = 0
+    for slug in slugs:
+        if not (ROOT / "display" / "models" / f"{slug}.json").is_file():
+            continue
+        document = model_display(slug, ROOT)
+        for message in disagreements(document.capabilities, document.modalities):
+            failed += 1
+            print(f"{slug}: {message}")
+    print(f"Checked {len(slugs)} Model(s); {failed} disagreement(s).")
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

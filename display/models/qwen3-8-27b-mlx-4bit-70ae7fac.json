@@ -3,7 +3,8 @@
     "code-generation",
     "image-understanding",
     "reasoning",
-    "text-generation"
+    "text-generation",
+    "video-understanding"
   ],
   "description": "Exact public Vontra MLX 4-bit (group size 64) conversion of Qwen3.8-27B with its vision tower, for TensorFold.",
   "family_title": "Qwen",
@@ -22,7 +23,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "Qwen3.8 27B MLX 4-bit",
   "tags": [
