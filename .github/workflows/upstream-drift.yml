@@ -2,7 +2,9 @@ name: Audit upstream drift
 
 on:
   schedule:
-    - cron: "17 6 * * 1"
+    # Daily: GitHub drops scheduled runs, and a new creator repository or a
+    # supersession notice should reach an issue within a day, not a week.
+    - cron: "17 6 * * *"
   workflow_dispatch:
 
 permissions:
