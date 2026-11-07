@@ -382,7 +382,11 @@ def test_real_catalog_build_warns_about_a_new_recipe_whose_pool_cannot_hold_a_re
     # the build goes on to packaging.
     monkeypatch.setitem(build.__globals__, "recipe_package", reached_packaging)
     with pytest.raises(PackagingReached):
-        build(package_dir=tmp_path / "packages", source_commit="0" * 40)
+        build(
+            package_dir=tmp_path / "packages",
+            source_commit="0" * 40,
+            source_date_epoch=0,
+        )
     assert "cannot hold one full-context request" in capsys.readouterr().err
 
 
