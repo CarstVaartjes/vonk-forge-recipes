@@ -177,8 +177,8 @@
         "origin": "upstream",
         "source_url": "https://commons.wikimedia.org/wiki/File:JFK_inaugural_address.ogg",
         "source_revision": "a257580da6eda796ed1c703e545865005753f7cb20cc042e0db3c44de82274fc",
-        "license_spdx": "LicenseRef-Public-Domain",
-        "attribution": "10.4 s excerpt (815.4 s to 825.8 s, mono, 16 kHz, 16-bit PCM WAV) of John F. Kennedy's inaugural address, 20 January 1961, from the John F. Kennedy Presidential Library and Museum recording; Wikimedia Commons marks the file Public domain. source_revision is the sha256 of the full JFK_inaugural_address.ogg the excerpt was cut from."
+        "license_spdx": "PD-USGov",
+        "attribution": "10.4 s excerpt (815.4 s to 825.8 s, mono, 16 kHz, 16-bit PCM WAV) of John F. Kennedy's inaugural address, 20 January 1961, from the John F. Kennedy Presidential Library and Museum recording; Wikimedia Commons marks the file Public domain (PD-USGov; credit: John F. Kennedy Presidential Library and Museum). source_revision is the sha256 of the full JFK_inaugural_address.ogg the excerpt was cut from."
       }
     },
     "wan-dancer-music-1s": {

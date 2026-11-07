@@ -681,6 +681,10 @@ class RecipeJobServingRequest(_RecipeContract):
     output_slot: Identifier
 
 
+def _non_empty_text(value: object) -> bool:
+    return isinstance(value, str) and value != ""
+
+
 class RecipeMultipartFile(_RecipeContract):
     field: Literal["file"]
     fixture: RelativePath
@@ -735,11 +739,12 @@ class RecipeValidationCheck(_RecipeContract):
         if isinstance(self.request, RecipeMultipartServingRequest):
             if (
                 "model" not in self.request.fields
+                or "file" in self.request.fields
                 or "transcription.nonempty" not in self.assertions
             ):
                 raise ValueError(
-                    "transcription checks require a model field and "
-                    "transcription.nonempty"
+                    "transcription checks require a model field, no file field "
+                    "and transcription.nonempty"
                 )
             return self
         if self.kind == "openai.health":
@@ -816,8 +821,8 @@ class RecipeValidationCheck(_RecipeContract):
             elif self.kind == "openai.speech":
                 if (
                     self.request.path != "/v1/audio/speech"
-                    or not body.get("input")
-                    or not body.get("voice")
+                    or not _non_empty_text(body.get("input"))
+                    or not _non_empty_text(body.get("voice"))
                     or body.get("response_format") != "wav"
                     or "speech.audio" not in self.assertions
                 ):
