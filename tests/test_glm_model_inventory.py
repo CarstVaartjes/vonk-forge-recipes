@@ -21,7 +21,7 @@ class GlmModelInventoryTests(unittest.TestCase):
     def test_mia_catalog_does_not_offer_an_unused_readme_only_model_revision(
         self,
     ) -> None:
-        recipe = load("recipes/glm-5-3-flash-exl3-dflash2-vllm-dual.json")
+        recipe = load("recipes/glm-5-3-flash-exl3-dflash2-vllm-mia-triple.json")
         primary = next(
             selection["model"]
             for selection in recipe["models"]
@@ -102,6 +102,28 @@ class GlmModelInventoryTests(unittest.TestCase):
         self.assertEqual(
             len({item["id"] for item in model["files"]}), len(model["files"])
         )
+
+    def test_native_mtp_choice_reaches_the_mia_triple_and_four_runtimes(self) -> None:
+        from vonk_forge_contracts import read_recipe
+
+        for slug in (
+            "glm-5-3-flash-exl3-dflash2-vllm-mia-four",
+            "glm-5-3-flash-exl3-dflash2-vllm-mia-triple",
+        ):
+            recipe = read_recipe(load(f"recipes/{slug}.json"))
+            self.assertEqual(recipe.resolve_options()["speculation"], "dflash2")
+            arguments = recipe.with_option_choices(
+                {"speculation": "native-mtp-k2"}
+            ).runtime.arguments
+            selected = next(
+                argument.value
+                for argument in arguments
+                if argument.name == "speculative-config"
+            )
+            assert isinstance(selected, str)
+            self.assertEqual(
+                json.loads(selected), {"method": "mtp", "num_speculative_tokens": 2}
+            )
 
 
 if __name__ == "__main__":

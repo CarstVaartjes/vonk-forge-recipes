@@ -42,7 +42,7 @@ def test_budget_margins_have_one_owner() -> None:
     assert source.count("def budget_margin_bytes(") == 1
     assert memory_need.OVERHEAD_BYTES == 8_000_000_000
     cases = {
-        ("deepseek-v4-flash-vllm-mia-dual"): 10_400_000_000,
+        ("deepseek-v4-flash-mtp-tonyd2wild-vllm-dual"): 10_400_000_000,
         ("qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single"): 6_200_000_000,
         ("glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single"): 8_500_000_000,
         ("inkling-small-nvfp4-sglang-dual"): 8_000_000_000,
