@@ -1,0 +1,11 @@
+This build context serves Cloudflare/clef-flash (Apache-2.0) with the Spark serving code of
+https://github.com/amarjeet/dgx-spark-recipes recipes/Clef-Flash-FP8-transformers at commit
+87ea80d6eb1de0eed1690e101da8161c9c8462de (MIT, Copyright (c) 2026 amarjeet).
+
+app.py and fp8.py are that recipe's server/app.py and server/fp8.py. The Vonk Forge changes to app.py
+are: the model directory defaults to /models, the port to 8000, the served name and input length arrive as flags, the response goes through
+decision_response.py, and the file header says so. fp8.py is unchanged. decision_response.py is Vonk
+Forge's (Apache-2.0). The creator's systemd scope, memory watchdog and preflight scripts are not used:
+the platform admits the workload by memory and runs it in its own container.
+
+requirements.lock is the creator's uv.lock exported unchanged.
