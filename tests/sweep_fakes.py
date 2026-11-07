@@ -320,6 +320,10 @@ class Gateway:
     refused: int = 0
     # The next this many requests get a temporary 503 (an overloaded engine or gateway).
     busy: int = 0
+    # Per alias, the tokens its engine spends thinking unless the request turns thinking off
+    # with ``chat_template_kwargs.enable_thinking: false``; a reply cut inside them has no content.
+    thinking: dict[str, int] = field(default_factory=dict)
+    bodies: list[dict[str, Any]] = field(default_factory=list)
     _server: ThreadingHTTPServer | None = None
 
     def start(self) -> str:
@@ -370,6 +374,7 @@ class Gateway:
                 body = json.loads(self.rfile.read(length) or b"{}")
                 alias = self.path.split("/")[1]
                 gateway.requests.append(("POST", self.path))
+                gateway.bodies.append(body)
                 if self._refuses():
                     return
                 if alias in gateway.broken:
@@ -388,14 +393,17 @@ class Gateway:
                         f"data: {json.dumps(usage)}\n\ndata: [DONE]\n\n".encode()
                     )
                     return
+                message = gateway.messages.get(alias, {"content": "391"})
+                finish = "stop"
+                spent = gateway.thinking.get(alias, 0)
+                kwargs = body.get("chat_template_kwargs") or {}
+                cut = int(body.get("max_tokens", 0)) <= spent
+                if spent and kwargs.get("enable_thinking") is not False and cut:
+                    message = {"content": "", "reasoning_content": "hmm"}
+                    finish = "length"
                 reply = {
                     "model": alias,
-                    "choices": [
-                        {
-                            "message": gateway.messages.get(alias, {"content": "391"}),
-                            "finish_reason": "stop",
-                        }
-                    ],
+                    "choices": [{"message": message, "finish_reason": finish}],
                 }
                 self._send(200, json.dumps(reply).encode())
 

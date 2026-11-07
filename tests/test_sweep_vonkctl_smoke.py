@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import stat
 import textwrap
@@ -9,9 +10,11 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import Gateway
+from vonk_forge_contracts.api import ChatApi, read_recipe_api
 from vonk_forge_contracts.sweep import CliObservationStatus
 
 from spark_sweep.catalog import Recipe
+from spark_sweep.chat_probe import ALWAYS_ON_TOKENS
 from spark_sweep.definitions import Definitions
 from spark_sweep.smoke import (
     AssertionFailed,
@@ -593,3 +596,111 @@ def test_a_timeout_is_a_failed_reply_for_reads_and_an_error_for_calls() -> None:
     assert not vk.run("fleet").ok
     with pytest.raises(VonkctlError):
         vk.call("fleet")
+
+
+# -- the declared bounded chat follows the recipe's own reasoning facts -------------------------
+
+
+def _chat_api(reasoning: dict, default_output: dict | None = None):
+    source = json.loads(
+        (ROOT / "api/recipes/agents-a1-nvfp4-r0b0tlab-vllm-single.json").read_text()
+    )
+    source["api"]["reasoning"] = reasoning
+    source["api"]["default_output_tokens"] = default_output or {"remaining": "context"}
+    api = read_recipe_api(source).api
+    assert isinstance(api, ChatApi)
+    return api
+
+
+_SWITCH = {
+    "kind": "switch",
+    "via": "chat_template_kwargs",
+    "keys": ["enable_thinking"],
+    "on": True,
+    "off": False,
+    "default": "on",
+    "effort": None,
+}
+
+
+def _bounded_chat_smoke(gateway, definitions, api, max_tokens=64, thinking=200):
+    server, root = gateway
+    server.thinking["x"] = thinking
+    recipe = _recipe()
+    check = {
+        **recipe.checks[0],
+        "request": {
+            "body": {
+                "messages": [{"role": "user", "content": "hello"}],
+                "max_tokens": max_tokens,
+            }
+        },
+    }
+    recipe = dataclasses.replace(recipe, checks=(check,))
+    bare = Definitions(
+        {**definitions.document, "service_recipes": {}}, definitions.root
+    )
+    bare._chat_apis[recipe.slug] = api
+    result = smoke_service(recipe, bare, f"{root}/x/v1", "x", HttpConfig())
+    return result, server.bodies[-1]
+
+
+def test_a_switch_route_is_asked_with_its_declared_off_value(
+    gateway, definitions: Definitions
+) -> None:
+    result, sent = _bounded_chat_smoke(gateway, definitions, _chat_api(_SWITCH))
+    assert result.ok, result.failure
+    assert sent["chat_template_kwargs"] == {"enable_thinking": False}
+    assert sent["max_tokens"] == 64
+
+
+def test_every_declared_key_at_a_top_level_placement_is_switched_off(
+    gateway, definitions: Definitions
+) -> None:
+    api = _chat_api({**_SWITCH, "via": "top_level", "keys": ["thinking", "think"]})
+    result, sent = _bounded_chat_smoke(gateway, definitions, api, thinking=0)
+    assert result.ok, result.failure
+    assert (sent["thinking"], sent["think"]) == (False, False)
+    assert "chat_template_kwargs" not in sent
+
+
+def test_an_always_on_route_gets_the_budget_its_facts_imply(
+    gateway, definitions: Definitions
+) -> None:
+    api = _chat_api({"kind": "always-on", "effort": None}, {"value": 1024})
+    result, sent = _bounded_chat_smoke(gateway, definitions, api, thinking=500)
+    assert result.ok, result.failure
+    assert "chat_template_kwargs" not in sent
+    assert sent["max_tokens"] == 1024
+
+
+def test_an_always_on_route_without_a_number_gets_the_shared_budget(
+    gateway, definitions: Definitions
+) -> None:
+    api = _chat_api({"kind": "always-on", "effort": None})
+    result, sent = _bounded_chat_smoke(gateway, definitions, api, thinking=500)
+    assert result.ok, result.failure
+    assert sent["max_tokens"] == ALWAYS_ON_TOKENS
+
+
+def test_a_route_without_reasoning_is_sent_as_declared(
+    gateway, definitions: Definitions
+) -> None:
+    result, sent = _bounded_chat_smoke(
+        gateway, definitions, _chat_api({"kind": "none"}), thinking=0
+    )
+    assert result.ok, result.failure
+    assert sent == {
+        "messages": [{"role": "user", "content": "hello"}],
+        "max_tokens": 64,
+        "model": "x",
+        "stream": False,
+    }
+
+
+def test_the_declared_request_alone_is_all_thinking_on_a_reasoning_default_on_route(
+    gateway, definitions: Definitions
+) -> None:
+    """The fake is faithful: without the helper the reply has no content."""
+    result, _ = _bounded_chat_smoke(gateway, definitions, None)
+    assert not result.ok
