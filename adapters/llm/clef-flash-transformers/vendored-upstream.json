@@ -1,0 +1,16 @@
+{
+  "ours": [
+    "NOTICE",
+    "decision_response.py",
+    "requirements.lock",
+    "serve.py"
+  ],
+  "renamed": {
+    "app.py": "recipes/Clef-Flash-FP8-transformers/server/app.py",
+    "fp8.py": "recipes/Clef-Flash-FP8-transformers/server/fp8.py"
+  },
+  "source": {
+    "repo": "amarjeet/dgx-spark-recipes",
+    "commit": "87ea80d6eb1de0eed1690e101da8161c9c8462de"
+  }
+}
