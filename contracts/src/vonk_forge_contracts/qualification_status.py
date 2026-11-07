@@ -265,8 +265,8 @@ class QualificationEvidenceRecord(PublicQualificationModel):
 class QualificationMeasuredRoleMemory(PublicQualificationModel):
     """What one role of one content held on hardware: a row keyed (content, role).
 
-    ``steady_bytes`` is the role's Spark host memory in use (total less available,
-    the OS included) sampled after a smoke passed, the run alone on that Spark: an
+    ``steady_bytes`` is a serving recipe's role Spark host memory in use (total less
+    available, the OS included) sampled after a smoke passed, the run alone on that Spark: an
     observation, never the recipe's declaration. ``budget_bytes`` is the vLLM
     utilization budget of the launch that ran (gpu-memory-utilization x Spark
     memory); ``None`` when it had none (an absolute KV pool, or another engine).

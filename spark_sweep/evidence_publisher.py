@@ -41,6 +41,7 @@ from .qualification import (
     prune_withdrawn_evidence,
     read_evidence,
     read_state_evidence,
+    serving_rows,
     write_evidence,
 )
 from .state import write_atomic
@@ -635,11 +636,15 @@ def _batch(
                     else:
                         command(clone, "git", "checkout", "--theirs", "--", name)
             keys = catalog_recipe_keys(clone)
+            jobs: dict[str, bool] = {}
             for key, evidence in inherited.items():
                 if key not in keys:
                     continue
                 write_evidence(
-                    clone, merge_evidence(read_evidence(clone, key), evidence)
+                    clone,
+                    merge_evidence(
+                        read_evidence(clone, key), serving_rows(clone, evidence, jobs)
+                    ),
                 )
         else:
             command(clone, "git", "checkout", "-b", BRANCH, "origin/main")
