@@ -290,8 +290,10 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         ],
         "queue_length": len(sweep.queue),
         "evidence_publication": sweep.evidence_publisher.message,
-        # An int, "stale" (results finished after the count), or None (never counted).
-        "evidence_unpublished": sweep.evidence_publisher.unpublished_report,
+        # {state: counted|stale|unknown, count}: the typed value status readers share.
+        "evidence_unpublished": sweep.evidence_publisher.unpublished_report.model_dump(
+            mode="json"
+        ),
         "qualification": {
             key: view.model_dump(mode="json", exclude_none=True)
             for key, recipe in sweep.recipes.items()
@@ -547,17 +549,15 @@ def render_status(status: Mapping[str, Any]) -> str:
             f"| {key} | {_qualification_text(view)} |"
             for key, view in sorted(status["qualification"].items())
         ]
-        unpublished = status.get("evidence_unpublished")
+        unpublished = status.get("evidence_unpublished") or {}
         lines += [
             "",
             str(status.get("evidence_publication", "")),
             *(
-                [
-                    "evidence unpublished: stale (results finished since the last count)"
-                    if unpublished == "stale"
-                    else f"evidence unpublished: {unpublished}"
-                ]
-                if unpublished is not None
+                ["evidence unpublished: stale (results finished since the last count)"]
+                if unpublished.get("state") == "stale"
+                else [f"evidence unpublished: {unpublished['count']}"]
+                if unpublished.get("state") == "counted"
                 else []
             ),
         ]

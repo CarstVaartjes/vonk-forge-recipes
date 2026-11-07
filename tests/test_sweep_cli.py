@@ -475,3 +475,7 @@ def test_publish_evidence_runs_one_final_batch_without_a_run(
     finally:
         held.release()
     assert len(calls) == 1
+    monkeypatch.setattr(  # a red PR the final batch could not move is not success
+        cli, "sync", lambda *a, **k: SweepEvidenceExit.FAILING_CHECK
+    )
+    assert main(["publish-evidence", "--state-dir", str(tmp_path)]) == 1
