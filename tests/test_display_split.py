@@ -11,6 +11,7 @@ from typing import Any
 import pytest
 from documents import model, model_display, recipe, recipe_display
 from vonk_forge_contracts import (
+    CapabilityName,
     ModelDefinition,
     ModelDisplay,
     RecipeDefinition,
@@ -222,7 +223,10 @@ def test_editing_a_proven_recipes_model_facts_changes_no_identity_or_status(
     facts = model_display(model_slug)
     edited = facts.model_copy(
         update={
-            "capabilities": [*facts.capabilities, "a-corrected-capability"],
+            "capabilities": [
+                *facts.capabilities,
+                next(c for c in CapabilityName if c not in facts.capabilities),
+            ],
             "license": facts.license.model_copy(update={"spdx": "LicenseRef-edited"}),
         }
     )
