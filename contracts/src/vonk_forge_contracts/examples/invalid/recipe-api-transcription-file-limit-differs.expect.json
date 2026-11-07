@@ -1,0 +1,4 @@
+{
+  "contract": "check_recipe_api",
+  "error_contains": "max_file_bytes must be 26214400, as VLLM_MAX_AUDIO_CLIP_FILESIZE_MB sets"
+}

@@ -23,7 +23,10 @@ from vonk_forge_contracts import (
     recipe_api_json_schema,
 )
 from vonk_forge_contracts.api import ApiTokenArgument
-from vonk_forge_contracts.api_checks import INPUT_MODALITY_CAPABILITIES
+from vonk_forge_contracts.api_checks import (
+    INPUT_MODALITY_CAPABILITIES,
+    accepted_modalities,
+)
 from vonk_forge_contracts.resolver import ContractResolutionError, validate_recipe_apis
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -91,8 +94,9 @@ def test_an_option_choice_replaces_the_whole_block() -> None:
     api = recipe_api(document.identity.slug)
     default = api.for_choices(document, {})
     text_only = api.for_choices(document, {"images_video": "text-only"})
-    assert default.input_modalities.image and not default.input_modalities.video
-    assert not text_only.input_modalities.image
+    seen = accepted_modalities(default)
+    assert seen.image and not seen.video
+    assert not accepted_modalities(text_only).image
     assert api.for_choices(document, {"drafter": "mtp"}) == default
 
 
@@ -122,6 +126,9 @@ def test_there_are_invalid_vectors_for_each_named_failure() -> None:
         "recipe-api-identity-mismatch",
         "recipe-api-image-with-language-model-only",
         "recipe-api-missing-field",
+        "recipe-api-speech-no-voices",
+        "recipe-api-transcription-duplicate-format",
+        "recipe-api-transcription-file-limit-differs",
         "recipe-api-two-options-carry-blocks",
     }
 
@@ -337,6 +344,101 @@ def test_the_synthetic_decision_example_is_checked_like_any_recipe() -> None:
     api = RecipeApi.model_validate(_json(EXAMPLES / "recipe-api-decision.json"))
     assert api.api.mode == "decision"
     check_recipe_api(document, api)
+
+
+def _audio_example(name: str) -> tuple[RecipeDefinition, RecipeApi]:
+    return (
+        RecipeDefinition.model_validate(_json(EXAMPLES / f"recipe-{name}.json")),
+        RecipeApi.model_validate(_json(EXAMPLES / f"recipe-api-{name}.json")),
+    )
+
+
+@pytest.mark.parametrize("name", ["transcription", "speech"])
+def test_the_synthetic_audio_examples_are_checked_like_any_recipe(name: str) -> None:
+    document, api = _audio_example(name)
+    assert api.api.mode == f"audio_{'speech' if name == 'speech' else 'transcription'}"
+    check_recipe_api(document, api)
+    assert read_recipe_api(published_json(api)) == api
+    Draft202012Validator(recipe_api_json_schema()).validate(published_json(api))
+
+
+def _silent_model() -> Any:
+    slug = recipe("qwen3-8-27b-mia-tensorfold-single").models[0].model.slug
+    return model_display(slug).model_copy(
+        update={"modalities": ["text"], "capabilities": []}
+    )
+
+
+def test_an_audio_mode_fixes_its_accepted_modality() -> None:
+    heard = accepted_modalities(_audio_example("transcription")[1].api)
+    spoken = accepted_modalities(_audio_example("speech")[1].api)
+    assert (heard.audio, heard.text) == (True, False)
+    assert (spoken.audio, spoken.text) == (False, True)
+
+
+def test_an_audio_block_has_no_endpoints_or_token_fields() -> None:
+    for name in ("transcription", "speech"):
+        raw = _json(EXAMPLES / f"recipe-api-{name}.json")
+        for extra in ("endpoints", "max_input_tokens"):
+            with pytest.raises(ValidationError):
+                RecipeApi.model_validate({**raw, "api": {**raw["api"], extra: 1}})
+
+
+def test_a_transcription_route_needs_a_hearing_model() -> None:
+    document, api = _audio_example("transcription")
+    silent = _silent_model()
+    with pytest.raises(RecipeApiError, match="audio input needs a Model"):
+        check_api_models(document, api, [silent])
+    hearing = silent.model_copy(
+        update={"modalities": ["audio"], "capabilities": ["audio-understanding"]}
+    )
+    check_api_models(document, api, [hearing])
+
+
+def test_a_speech_route_needs_a_model_that_produces_audio() -> None:
+    document, api = _audio_example("speech")
+    silent = _silent_model()
+    with pytest.raises(RecipeApiError, match="audio output needs a Model"):
+        check_api_models(document, api, [silent])
+    listed_only = silent.model_copy(
+        update={"modalities": ["audio"], "capabilities": ["chat"]}
+    )
+    with pytest.raises(RecipeApiError, match="audio output needs a Model"):
+        check_api_models(document, api, [listed_only])
+    speaking = silent.model_copy(
+        update={"modalities": ["audio"], "capabilities": ["audio-generation"]}
+    )
+    check_api_models(document, api, [speaking])
+
+
+def test_vllm_audio_limits_are_checked_only_where_the_recipe_sets_them() -> None:
+    document, api = _audio_example("transcription")
+    longer = api.model_copy(
+        update={"api": api.api.model_copy(update={"max_audio_seconds": 3600})}
+    )
+    with pytest.raises(RecipeApiError, match="max_audio_seconds must be 600"):
+        check_recipe_api(document, longer)
+    unset = document.model_copy(
+        update={"runtime": document.runtime.model_copy(update={"environment": []})}
+    )
+    check_recipe_api(unset, longer)
+
+
+def test_a_decision_recipe_cannot_serve_an_audio_block() -> None:
+    decision = RecipeDefinition.model_validate(_json(EXAMPLES / "recipe-decision.json"))
+    for name in ("transcription", "speech"):
+        raw = _json(EXAMPLES / f"recipe-api-{name}.json")
+        raw["identity"] = decision.identity.model_dump()
+        with pytest.raises(RecipeApiError, match="decision recipe cannot serve"):
+            check_recipe_api(decision, RecipeApi.model_validate(raw))
+
+
+def test_an_audio_file_limit_stays_within_the_edge_bound() -> None:
+    raw = _json(EXAMPLES / "recipe-api-transcription.json")
+    with pytest.raises(ValidationError):
+        RecipeApi.model_validate(
+            {**raw, "api": {**raw["api"], "max_file_bytes": 268_435_457}}
+        )
 
 
 def test_image_input_has_one_capability_name() -> None:
