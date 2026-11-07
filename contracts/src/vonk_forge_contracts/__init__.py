@@ -26,6 +26,7 @@ from .api import (
 )
 from .api_checks import RecipeApiError, check_api_models, check_recipe_api
 from .canonical import canonical_json, document_sha256, read_model, read_recipe
+from .capability import CAPABILITY_ROLES, CapabilityName, CapabilityRole
 from .display import (
     ModelDisplay,
     ModelDisplayIdentity,
@@ -89,10 +90,13 @@ CONTRACT_VERSION = __version__
 CONTRACT_MAJOR = int(CONTRACT_VERSION.split(".", 1)[0])
 
 __all__ = [
+    "CAPABILITY_ROLES",
     "CONTRACT_MAJOR",
     "CONTRACT_VERSION",
     "ENDPOINT_ALIAS_PATTERN",
     "ApiBlock",
+    "CapabilityName",
+    "CapabilityRole",
     "ChatApi",
     "DecisionApi",
     "EndpointAlias",
