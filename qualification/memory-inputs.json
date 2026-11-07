@@ -891,9 +891,6 @@
     "vonk-forge/deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual": [
       "b0d1077e1840d8ab804d1a2f75e31d8e167bf35d80ffd4e1480c678bf34e8988"
     ],
-    "vonk-forge/deepseek-v4-flash-vllm-mia-dual": [
-      "2dd054c675e8eb3737845234036bba7ee97884785ffaab3341e0d1232378a301"
-    ],
     "vonk-forge/diffusiongemma-26b-a4b-it-eugr-vllm-single": [
       "e2c6925a24c11cabd48a9fdb57a8b475ed11c429737d2340f197968a32987bae"
     ],
@@ -972,10 +969,6 @@
     ],
     "vonk-forge/glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual": [
       "4e0ce1e7099b1c88b023ec86ad2a02bee0e28d1ef59b21f89a3a4501b22b6ef0"
-    ],
-    "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual": [
-      "bbf5aa8b4d1f497cea7dd8f5b3e9f2105744e278e1be0e0c8c10df57cd4380f2",
-      "e464859341620e545b07094ea563daf9f2f0b3ca5f7bb4c2fbfcbcd852c2faeb"
     ],
     "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-mia-four": [
       "48d2e4b0b33ce12cb60eea310a332aef593d011337c9d8885000b7076f57cc95"
