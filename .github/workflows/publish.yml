@@ -35,11 +35,11 @@ jobs:
   validate:
     permissions:
       contents: read
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@999329d55ba98ed4133d6e3dbdc2a51638134714
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@5ede37df36c0f7c593faa1c6ffd93cffb5d934c4
     with:
       # Use the same reviewed Forge contract/runtime-policy validator as PR
       # validation; publication remains independent of Forge release CI.
-      platform_ref: 999329d55ba98ed4133d6e3dbdc2a51638134714
+      platform_ref: 5ede37df36c0f7c593faa1c6ffd93cffb5d934c4
 
   producer-contracts:
     name: Validate producer contracts and packages
@@ -70,11 +70,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          epoch=$(git show -s --format=%ct "$GITHUB_SHA")
           test_venv="$RUNNER_TEMP/catalog-test-venv"
           uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" -e contracts
-          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first"
-          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
+          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first" \
+            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
+          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second" \
+            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
 
   # The recipes are estimates until the hardware try measures them: a PR token
@@ -195,12 +198,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          epoch=$(git show -s --format=%ct "$GITHUB_SHA")
           test -s "$RUNNER_TEMP/prebuilt/prebuilt-images.json"
           # Coverage is derived offline from this build (the authority is derived from it, not committed).
-          "$RELEASE_TEST_PYTHON" tools/build-catalog-index --source-commit "$GITHUB_SHA"
+          "$RELEASE_TEST_PYTHON" tools/build-catalog-index --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
           "$RELEASE_TEST_PYTHON" tools/build-family-aware-coverage
           "$RELEASE_TEST_PYTHON" tools/build-catalog-index \
-            --release-dir "$RUNNER_TEMP/release" --source-commit "$GITHUB_SHA" \
+            --release-dir "$RUNNER_TEMP/release" \
+            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" \
             --include qualification/coverage/family-aware-coverage-2026-09-24.json \
             --include qualification/coverage/family-aware-coverage-2026-09-24.md \
             --prebuilt-images "$RUNNER_TEMP/prebuilt/prebuilt-images.json" \
