@@ -1483,8 +1483,33 @@ class FakeFleet:
                 out.setdefault(name, []).append(x)
         return out
 
+    def _identical_renames(self, data: dict[str, Any]) -> dict[str, str]:
+        """vonk-forge #2112: a run matching an assignment by execution identity (recipe and
+        Sparks) under another route alias is kept and renamed by a load, never restarted."""
+        names = {name: nid for nid, name in self.sparks}
+        wanted = [x for x in data["assignments"] if x["desired_state"] == "running"]
+        taken = {x["assignment_name"] for x in wanted}
+        renames: dict[str, str] = {}
+        for run in self.runs:
+            if run["alias"] in taken:
+                continue
+            for x in wanted:
+                if (
+                    x["assignment_name"] not in renames.values()
+                    and x["assignment_name"] not in {r["alias"] for r in self.runs}
+                    and run["recipe"] == x["recipe_selector"]
+                    and run["node_ids"] == [names[s] for s in x["spark_ids"]]
+                ):
+                    renames[run["alias"]] = x["assignment_name"]
+                    break
+        return renames
+
     def _load(self, n: int, data: dict[str, Any], a: list[str]) -> tuple[int, Any]:
         by_spark = self._desired_by_spark(data)
+        renames = self._identical_renames(data)
+        if "--review" not in a:
+            for run in self.runs:
+                run["alias"] = renames.get(run["alias"], run["alias"])
         running = {r["alias"]: r for r in self.runs}
         names = {name: nid for nid, name in self.sparks}
         blocked: dict[str, list[dict[str, str]]] = {}
@@ -1602,13 +1627,18 @@ class FakeFleet:
                     "adopted": adopted,
                     "runs": [
                         {
-                            "alias": r["alias"],
+                            "alias": renames.get(r["alias"], r["alias"]),
+                            **(
+                                {"previous_alias": r["alias"]}
+                                if r["alias"] in renames
+                                else {}
+                            ),
                             "run_id": r["run_id"],
                             "installation_id": r.get("installation_id")
                             or str(uuid5(NAMESPACE_URL, r["run_id"])),
                             "node_ids": r["node_ids"],
                             "action": "keep"
-                            if r["alias"] in desired_aliases
+                            if r["alias"] in desired_aliases or r["alias"] in renames
                             else "stop",
                         }
                         for r in self.runs

@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-5-transcribe-30b-a4b-nvfp4-nvidia-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "4ccdec558ce68ebc8cfcbbed3ae825c104f94398931703afba34e1ac0cfcc490",
+        "source_bundle_sha256": "2b1ad734d56a7e1aa7ac5072c15560f7b36066e09ffd81cedd54c6b0b1e473b4",
+        "runtime_image": {
+          "build_key": "a4bb212b677c831e952c8417eb3159dbb2fa1be318ace751200fc288b76e2efe",
+          "image_digest": "sha256:9c0dea4dde42f7a7aef190ffe7fb2ff114572fb8703eda779caf30c3af8def56"
+        },
+        "model_digests": [
+          "5deebe12a6ded7a6272ef650d933ca2d59d53ba88da496701862bf1dc8d7f18f"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "8a7fc004422641d63f558944cef303e888f78ec554fdcd10a0b59b29d2566229"
+      ],
+      "tested_at": "2026-11-06T23:13:46.152283Z",
+      "platform": {
+        "controller_source_sha": "055f4ea38d4833c82cfc13719865a8ac827891cd",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "4ccdec558ce68ebc8cfcbbed3ae825c104f94398931703afba34e1ac0cfcc490",
+        "source_bundle_sha256": "2b1ad734d56a7e1aa7ac5072c15560f7b36066e09ffd81cedd54c6b0b1e473b4",
+        "runtime_image": {
+          "build_key": "a4bb212b677c831e952c8417eb3159dbb2fa1be318ace751200fc288b76e2efe",
+          "image_digest": "sha256:9c0dea4dde42f7a7aef190ffe7fb2ff114572fb8703eda779caf30c3af8def56"
+        },
+        "model_digests": [
+          "5deebe12a6ded7a6272ef650d933ca2d59d53ba88da496701862bf1dc8d7f18f"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "7e9c9fe2d76d9dca482c216425d63f0944068a111bf1087b2c09fac43b05037c"
+      ],
+      "tested_at": "2026-11-07T00:19:29.560089Z",
+      "platform": {
+        "controller_source_sha": "055f4ea38d4833c82cfc13719865a8ac827891cd",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "4ccdec558ce68ebc8cfcbbed3ae825c104f94398931703afba34e1ac0cfcc490",
+      "role": "entrypoint",
+      "steady_bytes": 97522163712,
+      "budget_bytes": 87544365097
+    }
+  ]
+}
