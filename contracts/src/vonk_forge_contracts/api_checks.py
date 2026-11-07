@@ -5,7 +5,8 @@ Controller's loader call. It compares the base block and every option choice's b
 runtime the recipe really compiles to (``with_option_choices``), so a choice
 that flips a runtime argument without carrying its own block is refused too.
 ``check_api_models`` is the cross-document half: input modalities need a Model
-display that declares them. Whether a route really serves tools or a reasoning parser
+display that declares them, and a speech route needs one that produces audio.
+Whether a route really serves tools or a reasoning parser
 is owned by ``qualification.capabilities.serving_capabilities`` (it reads
 adapter wrappers and kit flags this package cannot see); ``tools/check-recipe-api``
 applies it to every variant from ``api_variants``.
@@ -18,8 +19,11 @@ from collections.abc import Iterable
 
 from .api import (
     ApiBlock,
+    ApiInputModalities,
     ApiTokenArgument,
     ApiTokenValue,
+    AudioSpeechApi,
+    AudioTranscriptionApi,
     ChatApi,
     RecipeApi,
     require_api_of,
@@ -41,6 +45,7 @@ CONTEXT_ARGUMENTS: dict[str, tuple[str, ...]] = {
     "tensorfold": ("context",),
     "ds4": ("ctx",),
     "exllamav3": ("cache_size", "max-seq-len", "window"),
+    "pytorch-server": ("max-model-len",),
 }
 # The capability a Model declares for each non-text input modality it accepts: the
 # one table the API check and the Model modality guard share.
@@ -49,10 +54,32 @@ INPUT_MODALITY_CAPABILITIES: dict[str, CapabilityName] = {
     "audio": CapabilityName.AUDIO_UNDERSTANDING,
     "video": CapabilityName.VIDEO_UNDERSTANDING,
 }
+# vLLM's own transcription upload and decode limits (environment variables,
+# in MiB and seconds). A recipe that sets one states the same limit in its block.
+VLLM_AUDIO_LIMITS: dict[str, tuple[str, int]] = {
+    "VLLM_MAX_AUDIO_CLIP_FILESIZE_MB": ("max_file_bytes", 1 << 20),
+    "VLLM_MAX_AUDIO_DECODE_DURATION_S": ("max_audio_seconds", 1),
+}
+_AUDIO_IN = ApiInputModalities(
+    text=False, image=False, video=False, audio=True, pdf=False
+)
+_TEXT_IN = ApiInputModalities(
+    text=True, image=False, video=False, audio=False, pdf=False
+)
 
 
 class RecipeApiError(ValueError):
     """The API facts contradict the recipe's runtime or its Models."""
+
+
+def accepted_modalities(block: ApiBlock) -> ApiInputModalities:
+    """What the route takes in; an audio mode fixes it by the endpoint."""
+
+    if isinstance(block, AudioTranscriptionApi):
+        return _AUDIO_IN
+    if isinstance(block, AudioSpeechApi):
+        return _TEXT_IN
+    return block.input_modalities
 
 
 def api_variants(
@@ -125,7 +152,49 @@ def integer_argument(
     return None
 
 
+def _audio_limit_problems(
+    recipe: RecipeDefinition, block: AudioTranscriptionApi
+) -> list[str]:
+    if recipe.runtime.engine != "vllm":
+        return []
+    found: list[str] = []
+    for item in recipe.runtime.environment:
+        if item.name not in VLLM_AUDIO_LIMITS:
+            continue
+        field, unit = VLLM_AUDIO_LIMITS[item.name]
+        try:
+            limit = int(str(item.value)) * unit
+        except ValueError:
+            found.append(f"{item.name} is not an integer")
+            continue
+        if getattr(block, field) != limit:
+            found.append(f"{field} must be {limit}, as {item.name} sets")
+    return found
+
+
+def _audio_problems(
+    recipe: RecipeDefinition, block: AudioTranscriptionApi | AudioSpeechApi
+) -> list[str]:
+    """An audio route has no token facts: only its modality and engine limits."""
+
+    found: list[str] = []
+    settings = recipe.settings
+    if not isinstance(settings, RecipeGenerationSettings | RecipeDecisionSettings):
+        return ["the recipe does not serve a generation or decision route"]
+    if settings.kind == "decision":
+        found.append(f"a decision recipe cannot serve a {block.mode} block")
+    if isinstance(block, AudioTranscriptionApi):
+        if recipe.runtime.engine == "vllm" and _is_set(recipe, "language-model-only"):
+            found.append("audio input conflicts with --language-model-only")
+        if recipe.runtime.engine == "vllm" and _mm_limits(recipe).get("audio") == 0:
+            found.append("audio input conflicts with --limit-mm-per-prompt 0")
+        found.extend(_audio_limit_problems(recipe, block))
+    return found
+
+
 def _problems(recipe: RecipeDefinition, block: ApiBlock) -> list[str]:
+    if isinstance(block, AudioTranscriptionApi | AudioSpeechApi):
+        return _audio_problems(recipe, block)
     engine = recipe.runtime.engine
     found: list[str] = []
     names = CONTEXT_ARGUMENTS.get(engine, ())
@@ -220,7 +289,17 @@ def check_api_models(
     count = 0
     for label, _, block in api_variants(recipe, api):
         count += 1
-        wanted = block.input_modalities
+        wanted = accepted_modalities(block)
+        if isinstance(block, AudioSpeechApi) and not any(
+            "audio" in m.modalities
+            and CapabilityName.AUDIO_GENERATION in m.capabilities
+            for m in selected
+        ):
+            found.setdefault(
+                "audio output needs a Model with the audio modality "
+                f"and the {CapabilityName.AUDIO_GENERATION} capability",
+                [],
+            ).append(label)
         for modality, capability in INPUT_MODALITY_CAPABILITIES.items():
             if getattr(wanted, modality) and not any(
                 modality in m.modalities and capability in m.capabilities
