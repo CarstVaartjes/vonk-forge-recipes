@@ -40,6 +40,7 @@ CONTEXT_ARGUMENTS: dict[str, tuple[str, ...]] = {
     "tensorfold": ("context",),
     "ds4": ("ctx",),
     "exllamav3": ("cache_size", "max-seq-len", "window"),
+    "pytorch-server": ("max-model-len",),
 }
 # The capability a Model declares for each non-text input modality it accepts: the
 # one table the API check and the Model modality guard share.
