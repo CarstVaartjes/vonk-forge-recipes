@@ -9,11 +9,14 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .catalog_contract import ModelRow, RecipeRow, RuntimeImageIdentity
 from .tolerant import InputDiagnostic, InputReason, read_optional
 from .vonkctl import Reply, Vonkctl
+
+if TYPE_CHECKING:
+    from vonk_forge_contracts import RecipeDefinition
 
 # Rows asked per library page: about what the Controller returns under its ~1 MiB page
 # trim, so it never builds rows it then drops. The end of a list is the absent cursor.
@@ -87,11 +90,20 @@ class Recipe:
     @property
     def is_job(self) -> bool:
         """A job recipe: one ``*-job`` interface (``settings.kind == "job"`` in the contract)."""
-        return self.adapter.endswith("-job")
+        return is_job_adapter(self.adapter)
 
     @property
     def slug(self) -> str:
         return self.key.partition("/")[2]
+
+
+def is_job_adapter(adapter: str) -> bool:
+    return adapter.endswith("-job")
+
+
+def never_measured(definition: RecipeDefinition) -> bool:
+    """The one rule: a job recipe is never measured (its sample is taken after the job ran)."""
+    return is_job_adapter(definition.interfaces[0].adapter)
 
 
 def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None:
