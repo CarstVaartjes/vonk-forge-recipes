@@ -2,7 +2,8 @@
   "capabilities": [
     "image-understanding",
     "reasoning",
-    "text-generation"
+    "text-generation",
+    "video-understanding"
   ],
   "description": "AutoRound INT4 checkpoint with healed shared expert and top-5 routing.",
   "family_title": "Qwen",
@@ -20,7 +21,9 @@
     "url": "https://huggingface.co/azampatti/Qwen3.8-Flash-Next-125B-A5B-INT4-AutoRound/blob/1464274120d36a4d8fcaa934552334a7d83ce0fd/LICENSE"
   },
   "modalities": [
-    "text"
+    "image",
+    "text",
+    "video"
   ],
   "model_title": "Qwen3.8 Flash Next",
   "tags": [
