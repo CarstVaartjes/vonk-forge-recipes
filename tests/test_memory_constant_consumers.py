@@ -42,7 +42,7 @@ def test_budget_margins_have_one_owner() -> None:
     assert source.count("def budget_margin_bytes(") == 1
     assert memory_need.OVERHEAD_BYTES == 8_000_000_000
     cases = {
-        ("deepseek-v4-flash-vllm-mia-dual"): 10_400_000_000,
+        ("deepseek-v4-flash-mtp-tonyd2wild-vllm-dual"): 10_400_000_000,
         ("qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single"): 6_200_000_000,
         ("glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single"): 8_500_000_000,
         ("inkling-small-nvfp4-sglang-dual"): 8_000_000_000,
@@ -97,3 +97,19 @@ def test_observed_capacity_overrides_only_the_historical_fallback() -> None:
     )
     assert fleet.sparks[0].memory_total == observed
     assert fleet.sparks[1].memory_total == memory_need.SPARK_MEMORY_BYTES
+
+
+def test_measured_peak_conversion_and_publish_rule_have_one_owner() -> None:
+    """The Spark-use -> role-peak conversion and the publish rule live in memory_need only."""
+    source = Path(memory_need.__file__).read_text()
+    assert source.count("def measured_peak_bytes(") == 1
+    assert source.count("def published_measured_peaks(") == 1
+    builder = (
+        Path(memory_need.__file__).parents[1] / "tools/build-catalog-index"
+    ).read_text()
+    assert "published_measured_peaks(" in builder
+    assert "OS_FLOOR_BYTES" not in builder
+    assert "ADMISSION_IDLE_USE_BYTES" not in builder
+    # The sweep states the floor in its note; it never converts a use itself.
+    sweep = Path(memory.__file__).read_text()
+    assert "- OS_FLOOR_BYTES" not in sweep and "OS_FLOOR_BYTES +" not in sweep
