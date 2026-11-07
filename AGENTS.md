@@ -191,6 +191,10 @@ tools/sweep-recipes export-evidence
 tools/sweep-recipes file-issues --dry-run
 ```
 
+`run` refuses to start without `--client-key-file` (the smoke cases call the
+gateway); `--no-client-key` is for a gateway without keys. A recipe whose
+identical run already runs is cleared before its test load (a kept, renamed
+run has no cold start).
 `plan` reads the catalog/fleet and estimates unique bytes/order. `run` accepts
 `--only`, `--limit`, `--spark`, `--seed-list` (JSON slugs), `--boost`,
 `--retry-failed`, `--watch` and `--no-revalidate`.

@@ -33,7 +33,7 @@ def _fleet(recipes, models, root="http://127.0.0.1:1"):
 
 def _run(argv, fleet, recipes):
     if argv[0] == "run":
-        argv = [*argv, "--no-publish-evidence"]
+        argv = [*argv, "--no-publish-evidence", "--no-client-key"]
     return main(
         argv,
         vonkctl_factory=lambda exe: Vonkctl(exe, runner=fleet.runner),
@@ -119,6 +119,24 @@ def test_run_refuses_without_yes_and_never_accepts_owner_profile_numbers(
         with pytest.raises(SystemExit):
             _run(["run", "--yes", "--state-dir", str(tmp_path), *flags], fleet, recipes)
     assert fleet.calls == []  # not one vonkctl call before the arguments were accepted
+
+
+def test_run_refuses_to_start_without_a_client_key_for_the_gateway(
+    tmp_path: Path,
+) -> None:
+    recipes = [FakeRecipe("a")]
+    fleet = _fleet(recipes, [FakeModel("m1")])
+    argv = ["run", "--yes", "--state-dir", str(tmp_path)]
+    for extra in ([], ["--client-key-file", str(tmp_path / "missing.key")]):
+        with pytest.raises(SystemExit) as refused:
+            main(
+                [*argv, *extra],
+                vonkctl_factory=lambda exe: Vonkctl(exe, runner=fleet.runner),
+                clock=fleet.clock,
+                definitions=make_definitions(recipes),
+            )
+        assert "client-key-file" in str(refused.value)
+    assert fleet.calls == []
 
 
 def test_job_recipes_without_ffprobe_warn_once_at_startup(
