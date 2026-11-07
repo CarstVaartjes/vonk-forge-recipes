@@ -1,6 +1,5 @@
 {
-  "description": "Shared vector for the catalog's measured_memory sibling key (contracts 4.2.0). vonk-forge-recipes builds the entry from the evidence rows; the Controller admits on each role's peak_bytes. measured_peak_bytes = steady_bytes - os_floor_bytes. Over the admission maximum, peak_bytes stays the declared peak and the flag is set (keep declared + warn).",
-  "os_floor_bytes": 2147483648,
+  "description": "Shared vector for the catalog's measured_memory sibling key (contracts 4.2.0). vonk-forge-recipes builds the entry from the evidence rows; the Controller admits on each role's peak_bytes. measured_peak_bytes = steady_bytes less the OS floor (owned by the contract, not restated here). Over the admission maximum, peak_bytes stays the declared peak and the flag is set (keep declared + warn).",
   "admission_maximum_peak_bytes": 124452516352,
   "cases": [
     {
