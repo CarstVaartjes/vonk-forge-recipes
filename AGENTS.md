@@ -198,8 +198,7 @@ run has no cold start).
 `plan` reads the catalog/fleet and estimates unique bytes/order. `run` accepts
 `--only`, `--limit`, `--spark`, `--seed-list` (JSON slugs), `--boost`,
 `--retry-failed`, `--watch` and `--no-revalidate`.
-Use `--job-recipes` only when the deployed Controller supports job profile
-members; otherwise job recipes are skipped before consuming a lane.
+Job recipes are always tested (one artifact job each); there is no flag.
 Read `spark_sweep/cli.py` or `--help` for current defaults.
 SIGINT/SIGTERM interrupt owned work; rerunning with the same state directory
 resumes. One process holds the directory's exclusive `run.lock`.
