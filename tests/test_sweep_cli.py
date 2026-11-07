@@ -139,7 +139,7 @@ def test_run_refuses_to_start_without_a_client_key_for_the_gateway(
     assert fleet.calls == []
 
 
-def test_job_recipes_without_ffprobe_warn_once_at_startup(
+def test_without_ffprobe_the_sweep_warns_once_at_startup(
     tmp_path: Path, capsys, monkeypatch
 ) -> None:
     from spark_sweep import job_media
@@ -148,8 +148,6 @@ def test_job_recipes_without_ffprobe_warn_once_at_startup(
     fleet = _fleet([], [FakeModel("m1")])
     argv = ["run", "--yes", "--state-dir", str(tmp_path)]
     assert _run(argv, fleet, []) == 0
-    assert "ffprobe" not in capsys.readouterr().err
-    assert _run([*argv, "--job-recipes"], fleet, []) == 0
     warnings = [
         line for line in capsys.readouterr().err.splitlines() if "ffprobe" in line
     ]
