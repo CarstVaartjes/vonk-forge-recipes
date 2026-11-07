@@ -13,23 +13,28 @@ with the operator's client key.
 
 from __future__ import annotations
 
+import base64
 import itertools
 import json
 import re
+import secrets
 import ssl
 import threading
 import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
+
+from vonk_forge_contracts import AudioSpeechApi, RecipeApi
+from vonk_forge_contracts.recipe import MIN_SPEECH_SECONDS, wav_facts
 
 from .auth_contract import GatewayAuthReply, SmokeAuthClass
 from .catalog import Recipe
 from .chat_probe import ChatFacts, bounded_chat_body
-from .definitions import Definitions
+from .definitions import CaseRenderError, Definitions
 from .policy import CLIENT_CREDENTIAL, Failure, classify, excerpt
 from .verdict import SMOKE_BUSY, http_wait
 
@@ -187,6 +192,23 @@ def _evaluate(response: Any, raw: str, assertion: dict[str, Any]) -> tuple[bool,
             None,
         )
         return hit is None, hit
+    if kind == "transcription.nonempty":
+        # The Controller's own meaning: the JSON `text` is a non-empty string.
+        text = _path(response, "text")
+        return isinstance(text, str) and bool(text.strip()), text
+    if kind == "speech.audio":
+        # An audio/* reply that decodes as a WAV of at least `min_seconds`, by default
+        # the contract's MIN_SPEECH_SECONDS (a case may ask for more as a quality note).
+        audio = _path(response, "audio")
+        content_type = str(_path(response, "content_type"))
+        seconds = audio.get("seconds") if isinstance(audio, dict) else None
+        floor = assertion.get("min_seconds", MIN_SPEECH_SECONDS)
+        holds = (
+            content_type.lower().startswith("audio/")
+            and isinstance(seconds, (int, float))
+            and seconds >= floor
+        )
+        return holds, {"content_type": content_type, "audio": audio}
     if kind == "chat.nonempty":
         # The Controller's own meaning: the first choice answers with text or tool calls.
         message = _path(response, "choices.0.message")
@@ -287,6 +309,34 @@ def check_quality(
 
 
 # -- requests ---------------------------------------------------------------
+
+
+def encode_multipart(spec: dict[str, Any]) -> tuple[bytes, str]:
+    """The body and Content-Type of an OpenAI-style multipart upload (RFC 7578).
+
+    Form fields come first, then the one file part, as the OpenAI client sends
+    them. ``spec`` is a case's ``multipart``: string ``fields`` and a ``file``
+    with ``field``, ``name``, ``media_type`` and base64 ``data``.
+    """
+    boundary = secrets.token_hex(16)
+    parts: list[bytes] = []
+    for name, value in spec["fields"].items():
+        parts.append(
+            f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"\r\n\r\n'
+            f"{value}\r\n".encode()
+        )
+    upload = spec["file"]
+    parts.append(
+        (
+            f"--{boundary}\r\nContent-Disposition: form-data; "
+            f'name="{upload["field"]}"; filename="{upload["name"]}"\r\n'
+            f"Content-Type: {upload['media_type']}\r\n\r\n"
+        ).encode()
+        + base64.b64decode(upload["data"])
+        + b"\r\n"
+    )
+    parts.append(f"--{boundary}--\r\n".encode())
+    return b"".join(parts), f"multipart/form-data; boundary={boundary}"
 
 
 def _open(
@@ -572,17 +622,23 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
     if method == "POST":
         data = json.dumps(body).encode()
         headers["Content-Type"] = "application/json"
+    if case.get("response") == "audio":
+        headers["Accept"] = "application/octet-stream"  # as the OpenAI SDK asks
+    multipart = case.get("multipart")
+    if isinstance(multipart, dict):
+        data, headers["Content-Type"] = encode_multipart(multipart)
     url = base.rstrip("/") + str(case["path"])
     limit = int(case.get("max_response_bytes", 262144))
     timeout = min(float(case.get("timeout_seconds", 180)), config.case_timeout)
     started = time.monotonic()
-    if method == "POST" and isinstance(body, dict):
+    if method == "POST" and isinstance(body, dict) and multipart is None:
         opened = open_with_body(url, body, headers, timeout, config.context())
     else:
         request = urllib.request.Request(url, data, headers, method=method)
         opened = _open(request, timeout, config.context())
     with opened as response:
         status = int(getattr(response, "status", 200))
+        content_type = str(getattr(response, "headers", {}).get("Content-Type", ""))
         raw = response.read(limit + 1)
     if len(raw) > limit:
         raise AssertionFailed("response exceeds its bound")
@@ -590,7 +646,20 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
     from .job_media import strict_json  # job_media imports this module
 
     try:
-        document = strict_json(text)
+        if case.get("response") == "audio":
+            # A binary reply is judged by its type and what decodes from it. A body
+            # that is not audio (an error page, JSON) stays in the failure row.
+            if not content_type.lower().startswith("audio/"):
+                text = text[:4096]
+            else:
+                text = ""
+            facts = wav_facts(raw)
+            document: Any = {
+                "content_type": content_type,
+                "audio": None if facts is None else asdict(facts),
+            }
+        else:
+            document = strict_json(text)
         check_assertions(document, text, list(case.get("assertions", [])))
     except (AssertionFailed, ValueError) as error:
         error.body = text  # type: ignore[attr-defined]  # evidence for the result row
@@ -612,6 +681,11 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
     return record
 
 
+def speech_voice(api: RecipeApi | None) -> str | None:
+    """The first voice of an ``audio_speech`` api document: the sweep's TTS voice."""
+    return api.api.voices[0] if api and isinstance(api.api, AudioSpeechApi) else None
+
+
 def has_chat(recipe: Recipe, cases: list[dict[str, Any]]) -> bool:
     return any(
         str(c.get("path", "")).endswith("/chat/completions") for c in cases
@@ -627,12 +701,18 @@ def smoke_service(
     facts: ChatFacts | None = None,
 ) -> SmokeResult:
     started = time.monotonic()
-    cases = definitions.service_cases(recipe.key, alias) or _fallback_cases(
-        recipe, alias, facts
-    )
     result = SmokeResult(ok=False, kind="service")
+    cases: list[dict[str, Any]] = []
     try:
-        if has_chat(recipe, cases):
+        cases = definitions.service_cases(
+            recipe.key, alias, speech_voice(definitions.recipe_api(recipe.slug))
+        ) or _fallback_cases(recipe, alias, facts)
+    except CaseRenderError as error:  # only the recipe's own gap; sweep faults crash
+        result.failure = _assertion_failure(
+            AssertionFailed(str(error)), "cases", config
+        )
+    try:
+        if result.failure is None and has_chat(recipe, cases):
             result.perf = stream_probe(base, alias, config)
     except AssertionFailed as error:
         result.failure = _assertion_failure(error, "stream", config)
