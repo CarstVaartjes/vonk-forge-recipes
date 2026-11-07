@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-import base64
 import hashlib
-import io
 import json
 import runpy
 import shutil
-import wave
 from pathlib import Path
 from typing import Any
 
@@ -364,19 +361,16 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
                     assert request["num_inference_steps_local"] == 2
         elif slug in MINIMAL_BY_FIXTURE_MEDIA:
             assert not spec.get("parameters")
-            # Text inputs stay one short sentence; the clone case's reference
-            # clip is a short (about 3 s at most) WAV, judged by its duration.
-            for case in [spec, *spec.get("cases", [])]:
-                for item in case["inputs"]:
-                    fixture = definitions["fixtures"][item["fixture"]]
-                    if fixture["media_type"] == "text/plain":
-                        assert fixture["size_bytes"] <= 256
-                    else:
-                        encoded = (
-                            ROOT / "qualification" / fixture["path"]
-                        ).read_bytes()
-                        with wave.open(io.BytesIO(base64.b64decode(encoded))) as clip:
-                            assert clip.getnframes() / clip.getframerate() <= 3.5
+            # The inputs are the reviewed fixtures (their bytes are sha256-pinned
+            # in qualification/shared.json), not a size or duration bound.
+            assert {item["fixture"] for item in spec["inputs"]} == {
+                "tts-text",
+                "tts-voice",
+            }
+            assert [
+                {item["fixture"] for item in case["inputs"]}
+                for case in spec.get("cases", [])
+            ] == [{"tts-text", "tts-reference-audio", "tts-reference-text"}]
         elif slug in SHARED_PROVEN_MEDIA:
             assert SHARED_PROVEN_MEDIA[slug] in PROVEN_FIXED_MEDIA
             recipe = json.loads((ROOT / "recipes" / path.name).read_text())

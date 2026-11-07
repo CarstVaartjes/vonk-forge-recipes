@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "Narrator and radio-chatter text to speech with Qwen3-TTS 12Hz 1.7B. Describe a voice and its emotion (VoiceDesign), or clone one from a reference clip of about 3 seconds (Base), then speak your lines. Language is a setting, Auto by default. Writes one mono 24 kHz WAV. Runs the official qwen-tts 0.1.1 with bf16 weights, SDPA attention and full-text (non-streaming) input; loads one 1.7B model per job. The 8 GB memory figure is an estimate from the community GB10 report of about 6 GB per model; physical Spark acceptance is pending. Apache-2.0 weights and code.",
+  "description": "Narrator and radio-chatter text to speech with Qwen3-TTS 12Hz 1.7B. Describe a voice and its emotion (VoiceDesign), or clone one from a reference clip of about 3 seconds (Base), then speak your lines. Language is a setting, Auto by default. Writes one mono 24 kHz WAV. Runs the official qwen-tts 0.1.1 with bf16 weights, SDPA attention and full-text (non-streaming) input; loads one 1.7B model per job. Apache-2.0 weights and code.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "qwen3-tts-12hz-1-7b-pytorch-single"
