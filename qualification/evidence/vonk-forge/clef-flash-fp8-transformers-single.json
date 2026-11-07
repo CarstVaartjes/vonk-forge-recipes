@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/clef-flash-fp8-transformers-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "619d69aa6177f5ca7bf8cfb1d8c1fabefd50b1dd500e22b77d01510e10f41388",
+        "source_bundle_sha256": "704fc8ad691528ea576055e62f1168eb604972c9b30e61850c65f3c8651da90b",
+        "runtime_image": {
+          "build_key": "0225b1e3fb868e888726f4797fa8d5adc22f0d1611ebca3fd85951eb487e96ce",
+          "image_digest": "sha256:12d85ca5e9f3ce5f2c6b63c8a96f62dff2d8db2d5dddf77d005709a5337737c5"
+        },
+        "model_digests": [
+          "b02b5f123234109c78e4a3f8291ff62d3eccee1b5b062cd4e4bddb95f29cab86"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "0a1eff3c36c892427416da6dce6d45774483d243a335e00c139a48d66e854274"
+      ],
+      "tested_at": "2026-11-07T21:24:25.047317Z",
+      "platform": {
+        "controller_source_sha": "3f5941529d6b39d9b762d4da461801ba9fe34193",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "619d69aa6177f5ca7bf8cfb1d8c1fabefd50b1dd500e22b77d01510e10f41388",
+      "role": "entrypoint",
+      "steady_bytes": 25018159104
+    }
+  ]
+}

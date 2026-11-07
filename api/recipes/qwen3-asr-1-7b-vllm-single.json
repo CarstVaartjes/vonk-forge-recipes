@@ -1,0 +1,61 @@
+{
+  "api": {
+    "input_formats": [
+      "flac",
+      "m4a",
+      "mp3",
+      "mp4",
+      "mpeg",
+      "mpga",
+      "ogg",
+      "wav",
+      "webm"
+    ],
+    "languages": [
+      "ar",
+      "cs",
+      "da",
+      "de",
+      "el",
+      "en",
+      "es",
+      "fa",
+      "fi",
+      "fr",
+      "hi",
+      "hu",
+      "id",
+      "it",
+      "ja",
+      "ko",
+      "mk",
+      "ms",
+      "nl",
+      "pl",
+      "pt",
+      "ro",
+      "ru",
+      "sv",
+      "th",
+      "tr",
+      "vi",
+      "zh"
+    ],
+    "max_audio_seconds": 600,
+    "max_file_bytes": 26214400,
+    "mode": "audio_transcription",
+    "prompt": true,
+    "response_formats": [
+      "json",
+      "text"
+    ],
+    "temperature": true,
+    "timestamp_granularities": []
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-asr-1-7b-vllm-single"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}
