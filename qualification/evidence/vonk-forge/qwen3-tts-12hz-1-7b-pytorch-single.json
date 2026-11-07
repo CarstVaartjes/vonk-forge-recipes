@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-tts-12hz-1-7b-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "425ce2d8fd5349ca9fde4ca2f538f534c70b9901e11a3261d9b9719422ccdc03",
+        "source_bundle_sha256": "905710d2d1566c4902e726b017955f7d9a7348a43f9b7dff99cdab00105aa6cf",
+        "runtime_image": {
+          "build_key": "5bb75a55f24a7c58c10ae16582459f014befa2482747f10755f11c28d0cfd40c",
+          "image_digest": "sha256:428e695b05afba7874d2e5c25aab5cc385dc937c23f9a0585e86e063391ae9aa"
+        },
+        "model_digests": [
+          "169920576b5590da26aaaff7b40ff51a0e4ba97415ee1d0a93aa27e658aa6748",
+          "d8bb04790679cabce3093daa6e72be10fdde3968a3a0ffbe102bf8867360b510"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "cbb3e4ae78d0bb0d64111f04edb289e586780a65b98815a16a54d9325cd51129"
+      ],
+      "tested_at": "2026-11-07T12:15:13.954665Z",
+      "platform": {
+        "controller_source_sha": "5123361425044dcac09b86e9810faed6f90b73fb",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "425ce2d8fd5349ca9fde4ca2f538f534c70b9901e11a3261d9b9719422ccdc03",
+      "role": "entrypoint",
+      "steady_bytes": 4250849280
+    }
+  ]
+}

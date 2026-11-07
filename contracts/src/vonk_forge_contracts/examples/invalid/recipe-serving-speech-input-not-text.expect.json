@@ -1,0 +1,4 @@
+{
+  "contract": "RecipeDefinition",
+  "error_contains": "speech checks require input, voice, response_format wav"
+}

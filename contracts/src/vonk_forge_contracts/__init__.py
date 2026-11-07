@@ -17,6 +17,8 @@ from __future__ import annotations
 from ._version import __version__
 from .api import (
     ApiBlock,
+    AudioSpeechApi,
+    AudioTranscriptionApi,
     ChatApi,
     DecisionApi,
     RecipeApi,
@@ -95,6 +97,8 @@ __all__ = [
     "CONTRACT_VERSION",
     "ENDPOINT_ALIAS_PATTERN",
     "ApiBlock",
+    "AudioSpeechApi",
+    "AudioTranscriptionApi",
     "CapabilityName",
     "CapabilityRole",
     "ChatApi",
