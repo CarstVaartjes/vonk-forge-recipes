@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "4db4122f89ace65f3c1eeed7be3447b11f9fac6ae9511b42afe2d6b12daa8ca0",
+        "digest": "5e59cb7efe08a99b023925a185c971c5a31868d8261b755c33d9911c3b9389aa",
         "repository": "docker.io/eugr/spark-vllm"
       },
       "context": {
@@ -184,7 +184,7 @@
     "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/bc224d8126036675c6a84b698ed40919027782d2"
   },
   "release": {
-    "released_at": "2026-11-06",
+    "released_at": "2026-11-07",
     "version": "prebuilt-vllm-current"
   },
   "runtime": {
