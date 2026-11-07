@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import ast
+import dataclasses
 import json
 import stat
 import textwrap
@@ -9,9 +11,21 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import Gateway
+from vonk_forge_contracts.api import (
+    ApiReasoningAlwaysOn,
+    ApiReasoningNone,
+    ApiReasoningSwitch,
+    ApiRemainingContext,
+    ApiTokenArgument,
+    ApiTokenSetting,
+    ApiTokenValue,
+    ChatApi,
+)
 from vonk_forge_contracts.sweep import CliObservationStatus
 
+from qualification.documents import recipe, recipe_api
 from spark_sweep.catalog import Recipe
+from spark_sweep.chat_probe import ChatFacts, chat_facts
 from spark_sweep.definitions import Definitions
 from spark_sweep.smoke import (
     AssertionFailed,
@@ -593,3 +607,223 @@ def test_a_timeout_is_a_failed_reply_for_reads_and_an_error_for_calls() -> None:
     assert not vk.run("fleet").ok
     with pytest.raises(VonkctlError):
         vk.call("fleet")
+
+
+# -- the declared bounded chat follows the recipe's own reasoning facts -------------------------
+
+_BASE = "agents-a1-nvfp4-r0b0tlab-vllm-single"
+_ARGUMENT = "deepseek-v4-1-flash-1017-mia-tensorfold-dual"  # --max-tokens 32768
+_OPTION = (
+    "deepseek-v4-1-flash-exl3-sfxnz-vllm-dual"  # option vision=text-only has a block
+)
+
+
+def _facts(
+    slug: str = _BASE, reasoning=None, default_output=None, max_output=None
+) -> ChatFacts:
+    """The real recipe and facts of ``slug``, with the named facts replaced."""
+    api = recipe_api(slug, ROOT).api
+    assert isinstance(api, ChatApi)
+    update = {
+        key: value
+        for key, value in (
+            ("reasoning", reasoning),
+            ("default_output_tokens", default_output),
+            ("max_output_tokens", max_output),
+        )
+        if value is not None
+    }
+    return ChatFacts(api.model_copy(update=update), recipe(slug, ROOT))
+
+
+_SWITCH = ApiReasoningSwitch(
+    kind="switch",
+    via="chat_template_kwargs",
+    keys=["enable_thinking"],
+    on=True,
+    off=False,
+    default="on",
+    effort=None,
+)
+_ALWAYS_ON = ApiReasoningAlwaysOn(kind="always-on", effort=None)
+
+
+def _bounded_chat_smoke(gateway, definitions, facts, max_tokens=64, thinking=200):
+    server, root = gateway
+    server.thinking["x"] = thinking
+    recipe_row = _recipe()
+    check = {
+        **recipe_row.checks[0],
+        "request": {
+            "body": {
+                "messages": [{"role": "user", "content": "hello"}],
+                "max_tokens": max_tokens,
+            }
+        },
+    }
+    recipe_row = dataclasses.replace(recipe_row, checks=(check,))
+    bare = Definitions(
+        {**definitions.document, "service_recipes": {}}, definitions.root
+    )
+    result = smoke_service(recipe_row, bare, f"{root}/x/v1", "x", HttpConfig(), facts)
+    return result, server.bodies[-1]
+
+
+def test_a_switch_route_is_asked_with_its_declared_off_value(
+    gateway, definitions: Definitions
+) -> None:
+    result, sent = _bounded_chat_smoke(gateway, definitions, _facts(reasoning=_SWITCH))
+    assert result.ok, result.failure
+    assert sent["chat_template_kwargs"] == {"enable_thinking": False}
+    assert sent["max_tokens"] == 64
+
+
+def test_every_declared_key_at_a_top_level_placement_is_switched_off(
+    gateway, definitions: Definitions
+) -> None:
+    switch = _SWITCH.model_copy(
+        update={"via": "top_level", "keys": ["thinking", "think"]}
+    )
+    result, sent = _bounded_chat_smoke(gateway, definitions, _facts(reasoning=switch))
+    assert result.ok, result.failure
+    assert (sent["thinking"], sent["think"]) == (False, False)
+    assert "chat_template_kwargs" not in sent
+
+
+def test_an_always_on_route_with_a_numeric_default_gets_that_allowance_capped(
+    gateway, definitions: Definitions
+) -> None:
+    facts = _facts(
+        reasoning=_ALWAYS_ON,
+        default_output=ApiTokenValue(value=1024),
+        max_output=ApiTokenValue(value=512),
+    )
+    result, sent = _bounded_chat_smoke(gateway, definitions, facts, thinking=300)
+    assert result.ok, result.failure
+    assert sent["max_tokens"] == 512
+
+
+def test_an_always_on_route_reads_its_default_from_the_runtime_argument(
+    gateway, definitions: Definitions
+) -> None:
+    facts = _facts(
+        _ARGUMENT,
+        reasoning=_ALWAYS_ON,
+        default_output=ApiTokenArgument(argument="max-tokens"),
+        max_output=ApiTokenSetting(setting="context_tokens"),
+    )
+    result, sent = _bounded_chat_smoke(gateway, definitions, facts, thinking=5000)
+    assert result.ok, result.failure
+    assert sent["max_tokens"] == 32768
+
+
+def test_an_always_on_route_defaulting_to_the_remaining_context_sends_no_cap(
+    gateway, definitions: Definitions
+) -> None:
+    """The engine thinks far past any fixed budget; with no cap the reply still answers."""
+    facts = _facts(
+        reasoning=_ALWAYS_ON, default_output=ApiRemainingContext(remaining="context")
+    )
+    result, sent = _bounded_chat_smoke(gateway, definitions, facts, thinking=20000)
+    assert result.ok, result.failure
+    assert "max_tokens" not in sent
+
+
+def test_a_route_without_reasoning_is_sent_as_declared(
+    gateway, definitions: Definitions
+) -> None:
+    result, sent = _bounded_chat_smoke(
+        gateway,
+        definitions,
+        _facts(reasoning=ApiReasoningNone(kind="none")),
+        thinking=0,
+    )
+    assert result.ok, result.failure
+    assert sent == {
+        "messages": [{"role": "user", "content": "hello"}],
+        "max_tokens": 64,
+        "model": "x",
+        "stream": False,
+    }
+
+
+def test_the_option_choice_of_the_run_selects_the_block(
+    gateway, definitions: Definitions
+) -> None:
+    api = recipe_api(_OPTION, ROOT)
+    always = api.option_choices[0].api.model_copy(update={"reasoning": _ALWAYS_ON})
+    api = api.model_copy(
+        update={
+            "option_choices": [api.option_choices[0].model_copy(update={"api": always})]
+        }
+    )
+    definition = recipe(_OPTION, ROOT)
+    choice = {api.option_choices[0].option: api.option_choices[0].value}
+    base = chat_facts(definition, api, {})
+    chosen = chat_facts(definition, api, choice)
+    assert base is not None and chosen is not None
+    assert isinstance(base.api.reasoning, ApiReasoningSwitch)
+    assert isinstance(chosen.api.reasoning, ApiReasoningAlwaysOn)
+
+
+def test_without_facts_the_declared_check_runs_as_written_with_its_old_assertion(
+    gateway, definitions: Definitions
+) -> None:
+    """A recipe with no published facts keeps main's assertion: it is not newly failed.
+
+    The real fix for those recipes is publishing their api documents.
+    """
+    result, sent = _bounded_chat_smoke(gateway, definitions, None, thinking=200)
+    assert result.ok, result.failure
+    assert "chat_template_kwargs" not in sent and sent["max_tokens"] == 64
+
+
+def test_with_facts_a_reply_that_is_all_thinking_fails_the_case() -> None:
+    cut = {"choices": [{"message": {"content": " ", "reasoning_content": "hmm"}}]}
+    with pytest.raises(AssertionFailed):
+        check_assertions(cut, json.dumps(cut), [{"kind": "chat.nonempty"}])
+
+
+def test_chat_nonempty_accepts_text_or_tool_calls_like_the_controller() -> None:
+    text = {"choices": [{"message": {"content": "hi"}}]}
+    tools = {"choices": [{"message": {"content": None, "tool_calls": [{"id": "1"}]}}]}
+    for response in (text, tools):
+        check_assertions(response, json.dumps(response), [{"kind": "chat.nonempty"}])
+
+
+def test_every_recipe_declared_chat_case_goes_through_the_one_helper() -> None:
+    """No second sender: a case built from a recipe's declared check uses ``bounded_chat_body``."""
+    tree = ast.parse((ROOT / "spark_sweep/smoke.py").read_text())
+    reads = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Subscript)
+        and isinstance(node.slice, ast.Constant)
+        and node.slice.value == "body"
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "request"
+    ]
+    assert reads, "the declared check body is read in smoke.py"
+    # Every read of the declared body sits inside the arguments of the one helper.
+    covered = {
+        id(inner)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "bounded_chat_body"
+        for argument in node.args
+        for inner in ast.walk(argument)
+    }
+    assert all(id(read) in covered for read in reads)
+    for path in (ROOT / "spark_sweep").glob("*.py"):
+        if path.name == "smoke.py":
+            continue
+        readers = [
+            node
+            for node in ast.walk(ast.parse(path.read_text()))
+            if isinstance(node, ast.Attribute)
+            and node.attr == "checks"
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "recipe"
+        ]
+        assert not readers, f"{path.name} reads recipe-declared checks outside smoke.py"

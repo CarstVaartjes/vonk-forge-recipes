@@ -1,5 +1,8 @@
 {
-  "capabilities": [],
+  "capabilities": [
+    "image-understanding",
+    "video-understanding"
+  ],
   "description": "Exact public Realtime 0708 BF16 d1f71a58 checkpoint with per-sample media budgets, batched-vision MRoPE fixes, cached-vision RoPE correction, and synchronized preprocessing defaults.",
   "family_title": "OpenMOSS MOSS-VL",
   "identity": {
