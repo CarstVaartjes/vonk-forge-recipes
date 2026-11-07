@@ -1,10 +1,11 @@
 {
-  "description": "Shared vector for the catalog's measured_memory sibling key (contracts 4.2.0). vonk-forge-recipes builds the entry from the evidence rows; the Controller admits on each role's peak_bytes. measured_peak_bytes = steady_bytes less the OS floor (owned by the contract, not restated here). Over the admission maximum, peak_bytes stays the declared peak and the flag is set (keep declared + warn).",
+  "description": "Shared vector for the catalog's measured_memory sibling key (contracts 4.5.0). vonk-forge-recipes builds the entry from the evidence rows; the Controller admits on each role's peak_bytes. measured_peak_bytes = steady_bytes less the OS floor (owned by qualification/memory_need.py, not restated here). Over the admission maximum, peak_bytes stays the declared peak and the flag is set (keep declared + warn).",
   "admission_maximum_peak_bytes": 124452516352,
   "cases": [
     {
-      "name": "stricter: measured above declared, 73 launch variants",
+      "name": "stricter: measured above declared, several launch variants",
       "recipe": "deepseek-v4-1-flash-exl3-sfxnz-vllm-dual",
+      "has_launch_options": true,
       "declared_peak_bytes": {
         "entrypoint": 117100000000,
         "worker": 117100000000
@@ -41,6 +42,7 @@
     {
       "name": "looser: measured below declared, one launch variant",
       "recipe": "minimax-m3-1-flash-exl3-sage-2-15bpw-tonyd2wild-vllm-dual",
+      "has_launch_options": false,
       "declared_peak_bytes": {
         "entrypoint": 111063746765,
         "worker": 111063746765
@@ -77,6 +79,7 @@
     {
       "name": "over the admission maximum: declared stays, measured is information",
       "recipe": "deepseek-v4-flash-0731-mia-sparkinfer-single",
+      "has_launch_options": false,
       "declared_peak_bytes": {
         "entrypoint": 124452516352
       },
@@ -101,6 +104,7 @@
     {
       "name": "lower but launch variants not covered: not published",
       "recipe": "qwen3-8-27b-ashhart-tensorfold-single",
+      "has_launch_options": true,
       "declared_peak_bytes": {
         "entrypoint": 67000000000
       },

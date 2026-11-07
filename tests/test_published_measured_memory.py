@@ -9,15 +9,12 @@ from typing import Any
 import pytest
 from generated_catalog import GENERATED
 from pydantic import ValidationError
+from test_admission_maximum_cap import record
 from vonk_forge_contracts import (
     PublishedMeasuredMemory,
     PublishedQualificationStatusView,
     PublishedRoleMemory,
-    QualificationBlame,
-    QualificationCauseCode,
     QualificationMeasuredRoleMemory,
-    QualificationOutcome,
-    QualificationSummary,
     RecipeDefinition,
     RecipeQualificationEvidence,
 )
@@ -41,7 +38,7 @@ VECTOR = json.loads(
         / "catalog-measured-memory-v1.json"
     ).read_text()
 )
-# One pool-less vLLM recipe with launch variants (budgets differ by option choice).
+# A pool-less vLLM recipe; the test gives it launch variants (budgets differ by option choice).
 VLLM_DUAL = "qwen3-6-35b-a3b-fp8-eugr-vllm-dual"
 GB = 1_000_000_000
 
@@ -51,40 +48,68 @@ def catalog_entries() -> list[dict[str, Any]]:
     return catalog["recipes"]
 
 
-def evidence_of(slug: str) -> RecipeQualificationEvidence:
-    return RecipeQualificationEvidence.model_validate_json(
-        (ROOT / "qualification/evidence/vonk-forge" / f"{slug}.json").read_text()
-    )
-
-
 def digest_of(slug: str) -> str:
     return documents.recipe_digest(slug)
 
 
 def measured(slug: str, *rows: tuple[str, int, int | None]):
-    """The recipe's real hardware proof with exactly these measured rows."""
+    """Synthetic hardware proof of the recipe's content with exactly these measured rows."""
     digest = digest_of(slug)
-    return evidence_of(slug).model_copy(
-        update={
-            "measured_memory": tuple(
-                QualificationMeasuredRoleMemory(
-                    content_sha256=digest,
-                    role=role,
-                    steady_bytes=used,
-                    budget_bytes=budget,
-                )
-                for role, used, budget in sorted(rows)
+    return RecipeQualificationEvidence(
+        recipe_key=f"vonk-forge/{slug}",
+        records=(record(documents.recipe(slug), digest),),
+        measured_memory=tuple(
+            QualificationMeasuredRoleMemory(
+                content_sha256=digest,
+                role=role,
+                steady_bytes=used,
+                budget_bytes=budget,
             )
-        }
+            for role, used, budget in sorted(rows)
+        ),
     )
 
 
-def declaring(slug: str, peak_bytes: int) -> RecipeDefinition:
-    """The real recipe with a synthetic declaration: the rule is judged on that, not the catalog."""
+def with_launch_variants(
+    payload: dict[str, Any], utilizations: tuple[str, ...] = ()
+) -> dict[str, Any]:
+    """One launch (no options), or one option whose choices set these utilizations.
+
+    The rule depends on the launch variants, so a test states them instead of
+    reading whatever options the creator's recipe has today.
+    """
+    payload["options"] = (
+        [
+            {
+                "name": "utilization",
+                "label": "Utilization",
+                "help": "Synthetic launch variants for the test.",
+                "choices": [
+                    {
+                        "value": f"u{index}",
+                        "label": f"u{index}",
+                        "help": "Synthetic launch variant.",
+                        "default": index == 0,
+                        "args": [{"name": "gpu-memory-utilization", "value": value}],
+                    }
+                    for index, value in enumerate(utilizations)
+                ],
+            }
+        ]
+        if utilizations
+        else []
+    )
+    return payload
+
+
+def declaring(
+    slug: str, peak_bytes: int, utilizations: tuple[str, ...] = ()
+) -> RecipeDefinition:
+    """The recipe with a synthetic declaration and launch variants: the rule is judged on those."""
     document = documents.recipe(slug).model_dump(mode="json", by_alias=True)
     for role in document["topology"]["roles"]:
         role["resources"]["memory"]["peak_bytes"] = peak_bytes
-    return RecipeDefinition.model_validate(document)
+    return RecipeDefinition.model_validate(with_launch_variants(document, utilizations))
 
 
 def published(slug: str, evidence: RecipeQualificationEvidence, recipe=None):
@@ -112,7 +137,11 @@ def test_the_vector_is_what_the_builder_publishes(case: dict[str, Any]) -> None:
         role["resources"]["memory"]["peak_bytes"] = case["declared_peak_bytes"][
             role["name"]
         ]
-    recipe = RecipeDefinition.model_validate(document)
+    recipe = RecipeDefinition.model_validate(
+        with_launch_variants(
+            document, ("0.80", "0.90") if case["has_launch_options"] else ()
+        )
+    )
     rows = tuple(
         (row["role"], row["steady_bytes"], row["budget_bytes"])
         for row in case["evidence_rows"]
@@ -138,6 +167,7 @@ def test_no_rows_publish_nothing() -> None:
 
 def test_a_row_of_another_content_is_ignored() -> None:
     slug = "deepseek-v4-1-flash-exl3-sfxnz-vllm-dual"
+    recipe = declaring(slug, 100 * GB)
     other = measured(slug, ("entrypoint", 130 * GB, None))
     other = other.model_copy(
         update={
@@ -147,41 +177,30 @@ def test_a_row_of_another_content_is_ignored() -> None:
             )
         }
     )
-    assert published(slug, other) == ()
+    assert published(slug, other, recipe) == ()
 
 
 def test_content_that_is_not_hardware_proven_publishes_nothing() -> None:
     slug = "deepseek-v4-1-flash-exl3-sfxnz-vllm-dual"
+    recipe = declaring(slug, 100 * GB)
     evidence = measured(slug, ("entrypoint", 130 * GB, None))
-    assert published(slug, evidence)
+    assert published(slug, evidence, recipe)
     unproven = evidence.model_copy(update={"records": ()})
-    assert published(slug, unproven) == ()
+    assert published(slug, unproven, recipe) == ()
 
 
 def test_a_later_recipe_failure_withdraws_the_value() -> None:
     slug = "deepseek-v4-1-flash-exl3-sfxnz-vllm-dual"
+    recipe = declaring(slug, 100 * GB)
     evidence = measured(slug, ("entrypoint", 130 * GB, None))
-    digest = digest_of(slug)
-    failures = tuple(
-        record.model_copy(
-            update={
-                "outcome": QualificationOutcome.FAILED,
-                "blame": QualificationBlame.RECIPE,
-                "cause_code": QualificationCauseCode.RECIPE_FAILURE,
-                "cause_summary": QualificationSummary.RECIPE_FAILED,
-                "tested_at": record.tested_at.replace(year=record.tested_at.year + 1),
-            }
-        )
-        for record in evidence.records
-        if record.identity.content_sha256 == digest
-        and record.outcome == QualificationOutcome.PASSED
-    )
-    failed = evidence.model_copy(update={"records": (*evidence.records, *failures)})
-    assert published(slug, failed) == ()
+    assert published(slug, evidence, recipe)
+    failure = record(documents.recipe(slug), digest_of(slug), failed=True, day=1)
+    failed = evidence.model_copy(update={"records": (*evidence.records, failure)})
+    assert published(slug, failed, recipe) == ()
 
 
 def test_vllm_variants_within_the_measured_budget_publish_a_lower_value() -> None:
-    recipe = declaring(VLLM_DUAL, 110 * GB)
+    recipe = declaring(VLLM_DUAL, 110 * GB, ("0.80", "0.90"))
     budgets = [vllm_budget_bytes(variant) for variant in memory_variants(recipe)]
     assert len(budgets) > 1 and None not in budgets
     used = 60 * GB
