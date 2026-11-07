@@ -227,9 +227,21 @@ OpenAI-compatible HTTP or filesystem job interface. Native decision models use
 `POST /v1/systemone`, `openai.systemone` and `decision.probabilities`; use the
 `systemone.py` typed requests/responses, preserving native result shapes and
 extensions (`tests/test_systemone_contract.py`).
+Audio routes have their own serving kinds. `openai.transcription` is the only
+check with the `http-multipart` request: `POST /v1/audio/transcriptions` with
+string `fields` (at least `model`; also `language`, `response_format`) and one
+`file` (`field: "file"`, a package `fixture` path, `media_type: "audio/wav"`),
+asserting `transcription.nonempty` (the JSON `text` is non-empty). Use the raw
+`qualification/fixtures/jfk-inaugural-10s.wav` (public domain, 10.4 s, 16 kHz)
+unless the recipe needs another clip. `openai.speech` is a JSON `http` request to
+`/v1/audio/speech` with `input`, `voice` and `response_format: "wav"`, asserting
+`speech.audio` (a decodable WAV of at least 0.5 s with an `audio/*` content
+type). A kind that an older reader does not know is a hard read failure there,
+so a recipe uses a new kind only after the Controller reads this contract
+version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.3.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.4.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
