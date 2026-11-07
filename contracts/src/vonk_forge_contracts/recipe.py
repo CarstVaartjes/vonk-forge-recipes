@@ -614,6 +614,8 @@ ServingKind = Literal[
     "openai.completion",
     "openai.embedding",
     "openai.systemone",
+    "openai.transcription",
+    "openai.speech",
     "image-job.output",
     "audio-job.output",
     "video-job.output",
@@ -629,6 +631,8 @@ ServingAssertion = Literal[
     "completion.output-cap",
     "embedding.nonempty",
     "decision.probabilities",
+    "transcription.nonempty",
+    "speech.audio",
     "inference.completed",
     "artifact.output",
 ]
@@ -641,6 +645,8 @@ _ASSERTIONS_BY_KIND: dict[str, frozenset[str]] = {
     "openai.completion": frozenset({"completion.nonempty", "completion.output-cap"}),
     "openai.embedding": frozenset({"embedding.nonempty"}),
     "openai.systemone": frozenset({"decision.probabilities"}),
+    "openai.transcription": frozenset({"transcription.nonempty"}),
+    "openai.speech": frozenset({"speech.audio"}),
     "image-job.output": frozenset({"inference.completed", "artifact.output"}),
     "audio-job.output": frozenset({"inference.completed", "artifact.output"}),
     "video-job.output": frozenset({"inference.completed", "artifact.output"}),
@@ -675,8 +681,29 @@ class RecipeJobServingRequest(_RecipeContract):
     output_slot: Identifier
 
 
+def _non_empty_text(value: object) -> bool:
+    return isinstance(value, str) and value != ""
+
+
+class RecipeMultipartFile(_RecipeContract):
+    field: Literal["file"]
+    fixture: RelativePath
+    media_type: Literal["audio/wav"]
+
+
+class RecipeMultipartServingRequest(_RecipeContract):
+    """``POST /v1/audio/transcriptions``: form fields plus one staged audio file."""
+
+    transport: Literal["http-multipart"]
+    method: Literal["POST"]
+    path: Literal["/v1/audio/transcriptions"]
+    fields: dict[StrictStr, StrictStr] = Field(min_length=1, max_length=32)
+    file: RecipeMultipartFile
+
+
 ServingRequest = Annotated[
-    RecipeHttpServingRequest | RecipeJobServingRequest, Field(discriminator="transport")
+    RecipeHttpServingRequest | RecipeMultipartServingRequest | RecipeJobServingRequest,
+    Field(discriminator="transport"),
 ]
 
 
@@ -685,6 +712,16 @@ class RecipeValidationCheck(_RecipeContract):
     kind: ServingKind
     request: ServingRequest
     assertions: list[ServingAssertion] = Field(min_length=1, max_length=32)
+
+    def fixture_paths(self) -> list[str]:
+        """The package files this check's request stages, in request order."""
+
+        request = self.request
+        if isinstance(request, RecipeJobServingRequest):
+            return [request.fixture, *request.input_slots.values()]
+        if isinstance(request, RecipeMultipartServingRequest):
+            return [request.file.fixture]
+        return []
 
     @model_validator(mode="after")
     def executable(self) -> RecipeValidationCheck:
@@ -695,6 +732,21 @@ class RecipeValidationCheck(_RecipeContract):
         is_job = self.kind.endswith(".output")
         if is_job != isinstance(self.request, RecipeJobServingRequest):
             raise ValueError("serving request transport must match serving kind")
+        if (self.kind == "openai.transcription") != isinstance(
+            self.request, RecipeMultipartServingRequest
+        ):
+            raise ValueError("serving request transport must match serving kind")
+        if isinstance(self.request, RecipeMultipartServingRequest):
+            if (
+                "model" not in self.request.fields
+                or "file" in self.request.fields
+                or "transcription.nonempty" not in self.assertions
+            ):
+                raise ValueError(
+                    "transcription checks require a model field, no file field "
+                    "and transcription.nonempty"
+                )
+            return self
         if self.kind == "openai.health":
             if (
                 not isinstance(self.request, RecipeHttpServingRequest)
@@ -766,6 +818,18 @@ class RecipeValidationCheck(_RecipeContract):
                         "decision checks require /v1/systemone and decision.probabilities"
                     )
                 SystemOneRequest.model_validate_json(json.dumps(body))
+            elif self.kind == "openai.speech":
+                if (
+                    self.request.path != "/v1/audio/speech"
+                    or not _non_empty_text(body.get("input"))
+                    or not _non_empty_text(body.get("voice"))
+                    or body.get("response_format") != "wav"
+                    or "speech.audio" not in self.assertions
+                ):
+                    raise ValueError(
+                        "speech checks require input, voice, response_format wav "
+                        "and speech.audio at /v1/audio/speech"
+                    )
             elif self.kind == "openai.embedding":
                 if (
                     self.request.path != "/v1/embeddings"
