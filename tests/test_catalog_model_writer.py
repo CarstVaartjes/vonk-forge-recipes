@@ -79,6 +79,7 @@ def test_family_publisher_defaults_to_the_publisher(tmp_path: Path) -> None:
 
 def test_several_modalities_are_written_without_stray_tags(tmp_path: Path) -> None:
     model, display = _written(tmp_path, "--modality", "language", "--modality", "image")
-    assert model["modalities"] == ["text", "image"]
+    assert "modalities" not in model
+    assert display["modalities"] == ["text", "image"]
     assert "candidate" not in display["tags"]
     assert "language" not in display["tags"]

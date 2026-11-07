@@ -81,7 +81,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "923614b180b52d60aa8c11bd1e206140f35538f107829e9a00f42c9c3311c4eb",
+        "content_sha256": "be2d13ccb6371f1e30fdbcb02b453428be8b17a67cd4de07a36f33783651806a",
         "kind": "model",
         "publisher": "prism-ml",
         "slug": "ternary-bonsai-2-27b-pq2-0-gguf-6ed5e12b"

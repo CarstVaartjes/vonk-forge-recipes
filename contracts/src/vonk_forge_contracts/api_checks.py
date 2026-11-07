@@ -5,7 +5,7 @@ Controller's loader call. It compares the base block and every option choice's b
 runtime the recipe really compiles to (``with_option_choices``), so a choice
 that flips a runtime argument without carrying its own block is refused too.
 ``check_api_models`` is the cross-document half: input modalities need a Model
-that declares them. Whether a route really serves tools or a reasoning parser
+display that declares them. Whether a route really serves tools or a reasoning parser
 is owned by ``qualification.capabilities.serving_capabilities`` (it reads
 adapter wrappers and kit flags this package cannot see); ``tools/check-recipe-api``
 applies it to every variant from ``api_variants``.
@@ -24,7 +24,7 @@ from .api import (
     RecipeApi,
     require_api_of,
 )
-from .model import ModelDefinition
+from .display import ModelDisplay
 from .recipe import RecipeDecisionSettings, RecipeDefinition, RecipeGenerationSettings
 
 # The argument each engine takes its context window from; the one table, also
@@ -39,11 +39,15 @@ CONTEXT_ARGUMENTS: dict[str, tuple[str, ...]] = {
     "llama-cpp": ("ctx-size",),
     "tensorfold": ("context",),
     "ds4": ("ctx",),
-    "exllamav3": ("cache_size", "cache-size", "max-seq-len", "window"),
+    "exllamav3": ("cache_size", "max-seq-len", "window"),
 }
-# The D3 decision Models still name image input ``vision``; their rename to
-# ``image-understanding`` is its own data change, not accepted here as a second name.
-IMAGE_INPUT_CAPABILITIES = frozenset({"image-understanding"})
+# The capability a Model declares for each non-text input modality it accepts: the
+# one table the API check and the Model modality guard share.
+INPUT_MODALITY_CAPABILITIES: dict[str, str] = {
+    "image": "image-understanding",
+    "audio": "audio-understanding",
+    "video": "video-understanding",
+}
 
 
 class RecipeApiError(ValueError):
@@ -99,7 +103,7 @@ def _mm_limits(recipe: RecipeDefinition) -> dict[str, object]:
     return value if isinstance(value, dict) else {}
 
 
-def _integer_argument(
+def integer_argument(
     recipe: RecipeDefinition,
     name: str,
     settings: RecipeGenerationSettings | RecipeDecisionSettings,
@@ -163,7 +167,7 @@ def _problems(recipe: RecipeDefinition, block: ApiBlock) -> list[str]:
         found.append("default_output_tokens exceeds context_tokens")
     if isinstance(block.default_output_tokens, ApiTokenArgument):
         name = block.default_output_tokens.argument
-        default = _integer_argument(recipe, name, settings)
+        default = integer_argument(recipe, name, settings)
         if default is None:
             found.append(
                 f"default_output_tokens names --{name}, which has no integer value"
@@ -202,9 +206,13 @@ def check_recipe_api(recipe: RecipeDefinition, api: RecipeApi) -> None:
 
 
 def check_api_models(
-    recipe: RecipeDefinition, api: RecipeApi, models: Iterable[ModelDefinition]
+    recipe: RecipeDefinition, api: RecipeApi, models: Iterable[ModelDisplay]
 ) -> None:
-    """Raise unless some selected Model declares each modality the API accepts."""
+    """Raise unless some selected Model declares each modality the API accepts.
+
+    The modalities and capabilities are Model display facts, so the caller
+    passes the displays of the Models the recipe selects.
+    """
 
     selected = list(models)
     found: dict[str, list[str]] = {}
@@ -212,22 +220,15 @@ def check_api_models(
     for label, _, block in api_variants(recipe, api):
         count += 1
         wanted = block.input_modalities
-        if wanted.image and not any(
-            "image" in m.modalities
-            and IMAGE_INPUT_CAPABILITIES.intersection(m.capabilities)
-            for m in selected
-        ):
-            found.setdefault(
-                "image input needs a Model with the image modality "
-                "and an image-understanding capability",
-                [],
-            ).append(label)
-        for modality in ("video", "audio"):
+        for modality, capability in INPUT_MODALITY_CAPABILITIES.items():
             if getattr(wanted, modality) and not any(
-                modality in m.modalities for m in selected
+                modality in m.modalities and capability in m.capabilities
+                for m in selected
             ):
                 found.setdefault(
-                    f"{modality} input needs a Model with the {modality} modality", []
+                    f"{modality} input needs a Model with the {modality} modality "
+                    f"and the {capability} capability",
+                    [],
                 ).append(label)
     if found:
         raise RecipeApiError(join_problems(found, count))

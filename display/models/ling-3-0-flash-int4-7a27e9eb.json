@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "reasoning",
+    "text-generation"
+  ],
   "description": "Exact public Ling 3.0 Flash INT4 7a27e9eb checkpoint.",
   "family_title": "Ling",
   "identity": {
@@ -6,6 +10,16 @@
     "slug": "ling-3-0-flash-int4-7a27e9eb"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "InclusionAI"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4/blob/7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Ling 3.0 Flash",
   "tags": [
     "inclusionai",

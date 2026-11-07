@@ -289,7 +289,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9b0c1c8cc6774b567109c0f0e3646aae67a9c1bef0fb7e9e82ed9005a6caa4c4",
+        "content_sha256": "60f9ae2d293489684b8485adadeeffd479d8a3023d3a3024a275492bfad4c72f",
         "kind": "model",
         "publisher": "black-forest-labs",
         "slug": "flux-3-image-klein-bf16-33733762"
@@ -420,7 +420,7 @@
       ],
       "id": "upsampler",
       "model": {
-        "content_sha256": "f51b5572e467f888bc2c81dc52fc88d7f059d56ea2c030fc3af8e7045396a6e9",
+        "content_sha256": "907aad293b2ae46806b4c09f3e8764ab57b2f0051a833ca605da31f26ad7d49f",
         "kind": "model",
         "publisher": "black-forest-labs",
         "slug": "flux-3-image-klein-pup-bf16-3f3edb52"
@@ -491,7 +491,7 @@
       ],
       "id": "classifier",
       "model": {
-        "content_sha256": "998c24794e185c2bb9865f4187b69b92659c1f5fd6bc78ebcbf531332f42ffa7",
+        "content_sha256": "c678099dc4ec8894828486cdfbe9498635246c108fc0be5869735754c32a871d",
         "kind": "model",
         "publisher": "falconsai",
         "slug": "flux-3-safety-classifier-96cb0d03"

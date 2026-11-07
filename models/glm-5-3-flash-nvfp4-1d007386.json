@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding",
-    "text-generation",
-    "video-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -422,17 +417,6 @@
     "version": "GLM 5.3 Flash NVFP4 1d007386"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Z.ai",
-      "NVIDIA"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/nvidia/GLM-5.3-Flash-NVFP4/blob/da920bb0b9f4a06727223a349e55468e38352348/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/GLM-5.3-Flash-NVFP4",

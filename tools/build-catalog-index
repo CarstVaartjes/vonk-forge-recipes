@@ -802,7 +802,6 @@ def build(
         "updated_at": _updated_at(source_date_epoch),
         "repository": REPOSITORY,
         "source_commit": source_commit,
-        "platform_commit": "",
         "package_contract": {
             "schema_version": PACKAGE_SCHEMA_VERSION,
             "media_type": PACKAGE_MEDIA_TYPE,

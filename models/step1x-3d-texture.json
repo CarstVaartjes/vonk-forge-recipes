@@ -1,16 +1,13 @@
 {
-  "capabilities": [
-    "3d-generation"
-  ],
   "dependencies": [
     {
-      "content_sha256": "0435a1b907313b4e9e8966c13b4dd987dd80076f92e21eb9f61549faf76754fb",
+      "content_sha256": "a454bd0d9a2c7844f4c60e9e3c908afb621fa58d498f2e9bed31cf73ff6bc763",
       "kind": "model",
       "publisher": "stabilityai",
       "slug": "stable-diffusion-xl-base-1-0"
     },
     {
-      "content_sha256": "92386af9dcb24a758cbceebd219ec9176968d6dec3e0e9990b28e9cfc1da8721",
+      "content_sha256": "dbe33688ecedec3b1c0d12b4d653cd11dc5aa40b64afaba4025d90dbe1d3ca42",
       "kind": "model",
       "publisher": "madebyollin",
       "slug": "sdxl-vae-fp16-fix"
@@ -46,16 +43,6 @@
     "version": "Step1X-3D texture"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "stepfun-ai"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/LICENSE"
-  },
-  "modalities": [
-    "3d"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/stepfun-ai/Step1X-3D",

@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "0xSero EXL3 pack of DeepSeek V4.1 Flash: every backbone routed expert (layers 0-39, 15,360 experts) re-encoded as EXL3 trellis (MUL1 codebook) at a per-expert K2/K3/K5 mix, 2.77 bpw average; attention, shared experts, routers, Engram tables, DSpark/MTP draft layers, vision tower, embeddings and head are the upstream checkpoint byte for byte. Weights MIT (DeepSeek).",
   "family_title": "DeepSeek Flash",
   "identity": {
@@ -6,6 +12,19 @@
     "slug": "deepseek-v4-1-flash-exl3-2-77bpw-9e3bbeab"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek AI",
+      "0xSero",
+      "Turboderp"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/0xSero/DeepSeek-V4.1-Flash-Spark/blob/9e3bbeabbb39fa2cf6e37e1cecfbd2fd0290329f/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "DeepSeek V4.1 Flash EXL3",
   "tags": [
     "0xsero",

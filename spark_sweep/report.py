@@ -28,6 +28,7 @@ from vonk_forge_contracts.sweep import SweepSlotPhase, SweepWaitReason
 
 from . import policy, verdict
 from .evidence_contract import read_result
+from .evidence_publisher import UnpublishedState, UnpublishedStatus
 from .identity import recorded_identity
 from .lifecycle import ACTIVE
 from .qualification import (
@@ -43,6 +44,21 @@ if TYPE_CHECKING:
     from .run import Sweep
 
 DEFAULT_TEST_SECONDS = 1200.0
+
+
+def access_alerts(downloads: Iterable[Mapping[str, Any]]) -> list[str]:
+    """The owner's move for each download the Controller holds on gated access, once per page."""
+    pages = {
+        str((record["watch"]["wait"]).get("detail") or "")
+        for record in downloads
+        if record.get("state") in ACTIVE
+        and ((record.get("watch") or {}).get("wait") or {}).get("reason")
+        == SweepWaitReason.ACCESS_TERMS
+    }
+    return [
+        f"owner: grant Hugging Face access at {page} (accept terms / configure token)"
+        for page in sorted(pages)
+    ]
 
 
 def _gib(value: float) -> str:
@@ -256,6 +272,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         "alerts": list(data.get("alerts") or [])
         + ([sweep.stall_reason] if sweep.stall_reason else [])
         + ([sweep.evidence_publisher.alert] if sweep.evidence_publisher.alert else [])
+        + access_alerts(data["downloads"].values())
         + [
             f"ESCALATION: {source} has not recovered since {item['since']}; "
             f"{item['dependency']}"
@@ -274,6 +291,10 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         ],
         "queue_length": len(sweep.queue),
         "evidence_publication": sweep.evidence_publisher.message,
+        # {state: counted|stale|unknown, count}: the typed value status readers share.
+        "evidence_unpublished": sweep.evidence_publisher.unpublished_report.model_dump(
+            mode="json"
+        ),
         "qualification": {
             key: view.model_dump(mode="json", exclude_none=True)
             for key, recipe in sweep.recipes.items()
@@ -529,7 +550,20 @@ def render_status(status: Mapping[str, Any]) -> str:
             f"| {key} | {_qualification_text(view)} |"
             for key, view in sorted(status["qualification"].items())
         ]
-        lines += ["", str(status.get("evidence_publication", ""))]
+        unpublished = UnpublishedStatus.model_validate(
+            status.get("evidence_unpublished") or {}
+        )
+        lines += [
+            "",
+            str(status.get("evidence_publication", "")),
+            *(
+                ["evidence unpublished: stale (results finished since the last count)"]
+                if unpublished.state == UnpublishedState.STALE
+                else [f"evidence unpublished: {unpublished.count}"]
+                if unpublished.state == UnpublishedState.COUNTED
+                else []
+            ),
+        ]
     return "\n".join(lines) + "\n"
 
 

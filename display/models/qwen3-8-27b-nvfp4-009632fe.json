@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "Exact public Qwen3.8 27B NVFP4 BF16 LM head 009632fe checkpoint.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +10,18 @@
     "slug": "qwen3-8-27b-nvfp4-009632fe"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "RadixArk"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead/blob/009632fef96dd349150baa780c984e62e70e91fe/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Qwen3.8 27B NVFP4 BF16 LM head",
   "tags": [
     "radixark",

@@ -424,7 +424,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a47ec3f03172a8de0ca5bec9c0a18a624aa2bcf567b5ae5e7fff96bd1071c71f",
+        "content_sha256": "26cc6157e7731e269a6f8210cd23c28c4ea3b4d0da531c4cf2fb81ba70cdc5b5",
         "kind": "model",
         "publisher": "tensorfold",
         "slug": "qwen3-8-flash-next-mlx-4bit-mtp-2b170fa6"

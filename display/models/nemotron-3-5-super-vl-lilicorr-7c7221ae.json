@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "text-generation"
+  ],
   "description": "Exact LiLiCorr draft for sfxnz’s interactive profile.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "nemotron-3-5-super-vl-lilicorr-7c7221ae"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
+    "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4-LiLiCorr/blob/7c7221aeb4cb3139307aa457f7dce11a8fb6ceb2/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "NVIDIA Nemotron 3.5 Super VL LiLiCorr",
   "tags": [
     "nvidia",

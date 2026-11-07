@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "image-generation"
+  ],
   "description": "Exact public four-step Qwen Image Flash checkpoint at eafac15f for candidate single-Spark Diffusers qualification.",
   "family_title": "Qwen Image",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "nvidia-qwen-image-flash"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "nvidia"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
+    "url": "https://huggingface.co/nvidia/Qwen-Image-Flash/blob/eafac15f6140e6dd9c6031217d658ac10bfb604b/LICENSE"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "NVIDIA Qwen Image",
   "tags": [
     "nvidia",

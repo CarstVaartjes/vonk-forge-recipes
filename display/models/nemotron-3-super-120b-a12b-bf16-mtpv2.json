@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Exact NVIDIA MTPv2 speculative-decoding companion for Nemotron 3 Super target checkpoints; this is not a standalone language model.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "nemotron-3-super-120b-a12b-bf16-mtpv2"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Nemotron 3 Super 120B-A12B",
   "tags": [
     "nvidia",

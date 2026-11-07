@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -234,18 +228,6 @@
     "version": "GLM 5.3 Flash EXL3 2.05bpw 51058cd5"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "turboderp",
-      "Z.ai"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/turboderp/GLM-5.3-Flash-exl3/blob/51058cd551c7e570d87bd32a4adee720edce2349/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/turboderp/GLM-5.3-Flash-exl3",

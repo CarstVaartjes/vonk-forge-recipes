@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "reasoning",
+    "text-generation"
+  ],
   "description": "Official NVIDIA Nemotron 3 Nano NVFP4 checkpoint with selective BF16 attention/Mamba layers and FP8 KV-cache support.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +10,16 @@
     "slug": "nemotron-3-nano-30b-a3b-nvfp4"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Nemotron 3 Nano 30B-A3B",
   "tags": [
     "nvidia",

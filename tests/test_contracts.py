@@ -19,6 +19,7 @@ from vonk_forge_contracts import (
     GitHubLfsSource,
     GitHubReleaseSource,
     ModelDefinition,
+    ModelDisplay,
     RecipeDefinition,
     document_sha256,
     model_display_json_schema,
@@ -193,7 +194,8 @@ def test_examples_validate_against_the_two_roots_and_generated_schemas() -> None
         Draft202012Validator(recipe_json_schema()).validate(recipe)
     Draft202012Validator(model_json_schema()).validate(model)
     assert parsed_model.kind == "model"
-    assert set(parsed_model.capabilities) == {"image-generation", "text-generation"}
+    parsed_display = ModelDisplay.model_validate(load("model-display.json"))
+    assert set(parsed_display.capabilities) == {"image-generation", "text-generation"}
     assert parsed_model.download_bytes == parsed_model.installed_bytes == 1024
 
 
@@ -395,12 +397,12 @@ def test_model_selection_accepts_large_but_bounded_shard_manifests() -> None:
 
 
 def test_capabilities_are_open_unique_names() -> None:
-    document = load("model-definition.json")
+    document = load("model-display.json")
     document["capabilities"].append("a-capability-from-a-newer-catalog")
-    ModelDefinition.model_validate(document)
+    ModelDisplay.model_validate(document)
     document["capabilities"].append("image-generation")
     with pytest.raises(ValidationError, match="unique"):
-        ModelDefinition.model_validate(document)
+        ModelDisplay.model_validate(document)
 
 
 def test_model_and_recipe_are_strict_and_reject_wrong_types_or_extra_fields() -> None:
@@ -733,7 +735,7 @@ def test_checked_in_schemas_are_generated_from_the_same_models() -> None:
         json.loads(
             (
                 ROOT
-                / "contracts/src/vonk_forge_contracts/schema/model-definition-v3.schema.json"
+                / "contracts/src/vonk_forge_contracts/schema/model-definition-v4.schema.json"
             ).read_text()
         )
         == model_json_schema()
@@ -742,7 +744,7 @@ def test_checked_in_schemas_are_generated_from_the_same_models() -> None:
         json.loads(
             (
                 ROOT
-                / "contracts/src/vonk_forge_contracts/schema/recipe-definition-v3.schema.json"
+                / "contracts/src/vonk_forge_contracts/schema/recipe-definition-v4.schema.json"
             ).read_text()
         )
         == recipe_json_schema()
@@ -784,12 +786,12 @@ def test_model_references_resolve_and_reject_swapped_digest() -> None:
 
 
 def test_model_license_accepts_typed_territorial_restrictions() -> None:
-    document = load("model-definition.json")
+    document = load("model-display.json")
     document["license"]["territorial_restrictions"] = {
         "denied_jurisdictions": ["EU", "GB", "KR"],
         "notice": "This license does not apply in the listed jurisdictions.",
     }
-    parsed = ModelDefinition.model_validate(document)
+    parsed = ModelDisplay.model_validate(document)
     assert parsed.license.territorial_restrictions is not None
     assert parsed.license.territorial_restrictions.denied_jurisdictions == [
         "EU",
@@ -799,13 +801,13 @@ def test_model_license_accepts_typed_territorial_restrictions() -> None:
 
 
 def test_model_license_rejects_duplicate_territories() -> None:
-    document = load("model-definition.json")
+    document = load("model-display.json")
     document["license"]["territorial_restrictions"] = {
         "denied_jurisdictions": ["EU", "EU"],
         "notice": "Duplicate jurisdictions are invalid.",
     }
     with pytest.raises(ValidationError, match="unique jurisdictions"):
-        ModelDefinition.model_validate(document)
+        ModelDisplay.model_validate(document)
 
 
 @pytest.mark.parametrize(
@@ -824,10 +826,10 @@ def test_model_license_rejects_duplicate_territories() -> None:
 def test_model_license_rejects_invalid_territorial_restrictions(
     restrictions: dict[str, object], message: str
 ) -> None:
-    document = load("model-definition.json")
+    document = load("model-display.json")
     document["license"]["territorial_restrictions"] = restrictions
     with pytest.raises(ValidationError, match=message):
-        ModelDefinition.model_validate(document)
+        ModelDisplay.model_validate(document)
 
 
 def _recipe_with_options() -> dict[str, Any]:

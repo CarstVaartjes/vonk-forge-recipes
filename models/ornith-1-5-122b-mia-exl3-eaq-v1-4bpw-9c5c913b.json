@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -279,18 +273,6 @@
     "version": "EAQ v1 EXL3 4 bpw 9c5c913b"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Mia-AiLab",
-      "Ornith-AI"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/Mia-AiLab/Ornith-1.5-122B-EXL3-EAQv1-4-bpw/blob/9c5c913b3de1eef901520d6fedaf450044ea0423/README.md"
-  },
-  "modalities": [
-    "text",
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Mia-AiLab/Ornith-1.5-122B-EXL3-EAQv1-4-bpw",

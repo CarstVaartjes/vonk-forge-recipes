@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/deepseek-v4-1-flash-exl3-sfxnz-vllm-dual",
   "service_recipes": {
-    "alias": "deepseek-v4.1-flash-exl3-sfxnz",
+    "alias": "deepseek-v4.1-flash-1017-exl3-sfxnz",
     "smoke_cases": [
       "M0",
       "A391",

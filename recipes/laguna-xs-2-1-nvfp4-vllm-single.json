@@ -206,7 +206,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d5063c88eb08f963e423f6cd2bf18e9bdd80bb54045ad9a0a869fd71f60bf25c",
+        "content_sha256": "f413feb33c45d52c03e23b67c5256a3fdb795fac824bafd582e8a2fdbe56e145",
         "kind": "model",
         "publisher": "poolside",
         "slug": "laguna-xs-2-1-nvfp4-d32afde8"

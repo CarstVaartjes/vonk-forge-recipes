@@ -1,5 +1,9 @@
 {
   "display": {
+    "capabilities": [
+      "image-generation",
+      "text-generation"
+    ],
     "description": "A small model used only for contract examples.",
     "family_title": "Synthetic",
     "identity": {
@@ -7,6 +11,17 @@
       "slug": "synthetic-tiny-fp16"
     },
     "kind": "model-display",
+    "license": {
+      "attribution": [
+        "Vonk Forge"
+      ],
+      "spdx": "Apache-2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    },
+    "modalities": [
+      "text",
+      "image"
+    ],
     "model_title": "Synthetic Tiny",
     "tags": [
       "synthetic",
@@ -14,10 +29,6 @@
     ]
   },
   "document": {
-    "capabilities": [
-      "image-generation",
-      "text-generation"
-    ],
     "dependencies": [],
     "files": [
       {
@@ -49,17 +60,6 @@
       "version": "1.0.0"
     },
     "kind": "model",
-    "license": {
-      "attribution": [
-        "Vonk Forge"
-      ],
-      "spdx": "Apache-2.0",
-      "url": "https://www.apache.org/licenses/LICENSE-2.0"
-    },
-    "modalities": [
-      "text",
-      "image"
-    ],
     "requires_token": false,
     "source": {
       "provider": "github-lfs",

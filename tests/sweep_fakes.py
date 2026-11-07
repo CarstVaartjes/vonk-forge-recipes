@@ -120,6 +120,9 @@ class FakeRecipe:
     # backoff) until eviction can free this model digest's files: once its pin, seen in
     # the pin profile, is gone (its recipes tested), the download runs.
     download_blocked_behind: str = ""
+    # The gated source denies the token (a recorded ``access_denied`` model-cache child) until
+    # the owner accepts the terms, this many seconds after the download was requested.
+    download_access_denied_for: float = 0.0
     alias: str | None = None
     # What its run really holds on a Spark once serving (the node telemetry shows it).
     observed_memory: int = 0
@@ -317,6 +320,11 @@ class Gateway:
     refused: int = 0
     # The next this many requests get a temporary 503 (an overloaded engine or gateway).
     busy: int = 0
+    # Per alias, the tokens its engine spends thinking unless the request turns thinking off
+    # (a switch key, in ``chat_template_kwargs`` or at the top level); a reply whose
+    # ``max_tokens`` ends inside them has no content.
+    thinking: dict[str, int] = field(default_factory=dict)
+    bodies: list[dict[str, Any]] = field(default_factory=list)
     _server: ThreadingHTTPServer | None = None
 
     def start(self) -> str:
@@ -367,6 +375,7 @@ class Gateway:
                 body = json.loads(self.rfile.read(length) or b"{}")
                 alias = self.path.split("/")[1]
                 gateway.requests.append(("POST", self.path))
+                gateway.bodies.append(body)
                 if self._refuses():
                     return
                 if alias in gateway.broken:
@@ -385,14 +394,26 @@ class Gateway:
                         f"data: {json.dumps(usage)}\n\ndata: [DONE]\n\n".encode()
                     )
                     return
+                message = gateway.messages.get(alias, {"content": "391"})
+                finish = "stop"
+                spent = gateway.thinking.get(alias, 0)
+                off = {
+                    **(body.get("chat_template_kwargs") or {}),
+                    **body,
+                }
+                switched_off = any(
+                    off.get(key) is False
+                    for key in ("enable_thinking", "thinking", "think")
+                )
+                # No max_tokens: the engine answers with the context that remains, however
+                # long it thinks first. A cap at or under the thinking cuts the reply.
+                cap = body.get("max_tokens")
+                if spent and not switched_off and cap is not None and cap <= spent:
+                    message = {"content": "", "reasoning_content": "hmm"}
+                    finish = "length"
                 reply = {
                     "model": alias,
-                    "choices": [
-                        {
-                            "message": gateway.messages.get(alias, {"content": "391"}),
-                            "finish_reason": "stop",
-                        }
-                    ],
+                    "choices": [{"message": message, "finish_reason": finish}],
                 }
                 self._send(200, json.dumps(reply).encode())
 
@@ -540,7 +561,13 @@ class FakeFleet:
                 del self.orphans[alias]
                 self.runs = [r for r in self.runs if r["alias"] != alias]
         for op in self.ops.values():
-            if op["state"] == "backoff":
+            denied_for = self.recipes[op["recipe"]].download_access_denied_for
+            if op["state"] == "backoff" and denied_for:
+                if now >= op["started"] + denied_for:
+                    # The owner accepted the terms: the model child runs while the parent
+                    # stays in backoff, as the Controller's ``_park_for_model`` does.
+                    op.update(state="running", started=now, parked=True)
+            elif op["state"] == "backoff":
                 behind = self.recipes[op["recipe"]].download_blocked_behind
                 if any(
                     behind in self.recipes[a["recipe_selector"]].digests
@@ -549,7 +576,8 @@ class FakeFleet:
                 ):
                     op["behind_pinned"] = True
                 elif op.get("behind_pinned"):
-                    op.update(state="running", started=now)  # eviction freed the space
+                    # Eviction freed the space: the child runs, the parent stays parked.
+                    op.update(state="running", started=now, parked=True)
             if (
                 op["state"] in ("queued", "running")
                 and now >= op["started"] + op["duration"]
@@ -1097,7 +1125,9 @@ class FakeFleet:
             return 0, self._op_doc(self.ops[self.by_request[request]])
         recipe = self.recipes[key]
         model_missing = any(self.models[d].local != "cached" for d in recipe.digests)
-        blocked = model_missing and bool(recipe.download_blocked_behind)
+        blocked = model_missing and bool(
+            recipe.download_blocked_behind or recipe.download_access_denied_for
+        )
         op_id = self._id("op")
         self.ops[op_id] = {
             "id": op_id,
@@ -1157,7 +1187,9 @@ class FakeFleet:
             "request": op.get("intent"),
             "recipe_revision_id": op.get("recipe_revision_id"),
             "recipe_content_sha256": op.get("recipe_content_sha256"),
-            "state": op["state"],
+            "state": "backoff"
+            if op.get("parked") and op["state"] == "running"
+            else op["state"],
             "progress": {
                 "completed_bytes": done,
                 "total_bytes": op["bytes"],
@@ -1167,7 +1199,17 @@ class FakeFleet:
             },
             "children": [],
         }
-        if op["state"] == "backoff":
+        if op["state"] == "backoff" and recipe.download_access_denied_for:
+            recorded = json.loads(
+                (
+                    ROOT
+                    / "tests/fixtures/sweep-verdicts/recipe-operation-access-denied.json"
+                ).read_text()
+            )
+            doc["children"] = [
+                c for c in recorded["children"] if c["kind"] == "model-cache"
+            ]
+        elif op["state"] == "backoff":
             # vonk-forge model_cache/repair.py ``_capacity_holds``: a retryable wait.
             doc["children"] = [
                 {
@@ -1181,6 +1223,8 @@ class FakeFleet:
                     },
                 }
             ]
+        if op.get("parked") and op["state"] == "running":
+            doc["children"] = [{"kind": "model-cache", "state": "running"}]
         if op["state"] == "failed":
             doc["failure"] = {
                 "code": (
@@ -1457,8 +1501,33 @@ class FakeFleet:
                 out.setdefault(name, []).append(x)
         return out
 
+    def _identical_renames(self, data: dict[str, Any]) -> dict[str, str]:
+        """vonk-forge #2112: a run matching an assignment by execution identity (recipe and
+        Sparks) under another route alias is kept and renamed by a load, never restarted."""
+        names = {name: nid for nid, name in self.sparks}
+        wanted = [x for x in data["assignments"] if x["desired_state"] == "running"]
+        taken = {x["assignment_name"] for x in wanted}
+        renames: dict[str, str] = {}
+        for run in self.runs:
+            if run["alias"] in taken:
+                continue
+            for x in wanted:
+                if (
+                    x["assignment_name"] not in renames.values()
+                    and x["assignment_name"] not in {r["alias"] for r in self.runs}
+                    and run["recipe"] == x["recipe_selector"]
+                    and run["node_ids"] == [names[s] for s in x["spark_ids"]]
+                ):
+                    renames[run["alias"]] = x["assignment_name"]
+                    break
+        return renames
+
     def _load(self, n: int, data: dict[str, Any], a: list[str]) -> tuple[int, Any]:
         by_spark = self._desired_by_spark(data)
+        renames = self._identical_renames(data)
+        if "--review" not in a:
+            for run in self.runs:
+                run["alias"] = renames.get(run["alias"], run["alias"])
         running = {r["alias"]: r for r in self.runs}
         names = {name: nid for nid, name in self.sparks}
         blocked: dict[str, list[dict[str, str]]] = {}
@@ -1576,13 +1645,18 @@ class FakeFleet:
                     "adopted": adopted,
                     "runs": [
                         {
-                            "alias": r["alias"],
+                            "alias": renames.get(r["alias"], r["alias"]),
+                            **(
+                                {"previous_alias": r["alias"]}
+                                if r["alias"] in renames
+                                else {}
+                            ),
                             "run_id": r["run_id"],
                             "installation_id": r.get("installation_id")
                             or str(uuid5(NAMESPACE_URL, r["run_id"])),
                             "node_ids": r["node_ids"],
                             "action": "keep"
-                            if r["alias"] in desired_aliases
+                            if r["alias"] in desired_aliases or r["alias"] in renames
                             else "stop",
                         }
                         for r in self.runs

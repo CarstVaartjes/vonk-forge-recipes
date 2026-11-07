@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "audio-generation",
+    "video-generation"
+  ],
   "description": "Immutable public snapshot at eab4aa91.",
   "family_title": "MOVA",
   "identity": {
@@ -6,6 +10,17 @@
     "slug": "mova-360p"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "openmoss"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/OpenMOSS-Team/MOVA-360p/blob/eab4aa91d6d5eb515e259a0c8533c90062b117a5/README.md"
+  },
+  "modalities": [
+    "audio",
+    "video"
+  ],
   "model_title": "MOVA 360p",
   "tags": [
     "openmoss",

@@ -1,12 +1,4 @@
 {
-  "capabilities": [
-    "audio-understanding",
-    "chat",
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "video-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -272,19 +264,6 @@
     "version": "Reasoning FP8 0acd4b1c"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation"
-    ],
-    "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
-    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/"
-  },
-  "modalities": [
-    "audio",
-    "image",
-    "text",
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8",

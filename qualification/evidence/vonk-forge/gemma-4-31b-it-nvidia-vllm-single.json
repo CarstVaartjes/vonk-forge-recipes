@@ -24,6 +24,29 @@
     },
     {
       "identity": {
+        "content_sha256": "cbb7c68fb7c992bfb6b2b16e4bed8e469d51bc736569669771a902317f15f91a",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "2ea6e6260167f8d8cf16e7f227698ecf4262b4a8191abac9d915a3a12a888a4e"
+      ],
+      "tested_at": "2026-10-19T06:04:16.218472Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "cd804f4fe08f1cca55d107644fd249526f50e51c70ee414c54e3b88f1e9a8152",
         "model_digests": [],
         "models_resolved": false
@@ -42,6 +65,37 @@
       },
       "quality_notes": [
         "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "cbb7c68fb7c992bfb6b2b16e4bed8e469d51bc736569669771a902317f15f91a",
+        "source_bundle_sha256": "ace6a27c5ef3e51409ee3b5793e3afd3178574c102987401912abf1aa3febf68",
+        "runtime_image": {
+          "build_key": "98669054da7599dd2a575a1108c2e725b5caa75a8d8e4a752d8be5d496cce42f",
+          "image_digest": "sha256:57709d569526117a889934e898107aeaa22b5d79fd437eca160c2a2c718de8b7"
+        },
+        "model_digests": [
+          "dfff726623c3cb3fd9146f70dd15da6bd5ab95e693a9515ae992ea33b6136e53"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "47e8aaec0a29a6070a477277616201a06e2cd92d0f6b36e123b564780197b4ab"
+      ],
+      "tested_at": "2026-11-02T17:41:37.029613Z",
+      "platform": {
+        "controller_source_sha": "f145e6f2dbf16e606c96314595962467f732bf2d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical execution document before the Model facts split"
       ]
     },
     {

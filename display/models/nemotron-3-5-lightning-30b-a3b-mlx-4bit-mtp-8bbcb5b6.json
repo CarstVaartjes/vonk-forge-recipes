@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "reasoning",
+    "text-generation"
+  ],
   "description": "Exact public Vontra MLX 4-bit (group size 64) conversion of NVIDIA Nemotron 3.5 Lightning 30B-A3B with its MTP draft head (mtp-4bit.safetensors), for TensorFold.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +10,17 @@
     "slug": "nemotron-3-5-lightning-30b-a3b-mlx-4bit-mtp-8bbcb5b6"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Vontra"
+    ],
+    "spdx": "LicenseRef-OpenMDW-1.1",
+    "url": "https://huggingface.co/Vontra/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-MLX-4bit/blob/8bbcb5b6a46a4409d47832b6fdc2fcc9183c83e8/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Nemotron 3.5 Lightning 30B-A3B MLX 4-bit with MTP head",
   "tags": [
     "vontra",

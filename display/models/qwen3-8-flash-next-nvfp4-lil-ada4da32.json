@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "Public local-inference-lab Qwen3.8 Flash Next NVFP4 checkpoint (MXFP8 attention, NVFP4 experts and PLE table, about 99 GiB), sized for one 121 GiB Spark; the origin of the Mia-AiLab mirror this family was catalogued from (that repository returns HTTP 401 since 2026-10-03), with every weight, configuration and tokenizer file byte-identical. The base model Qwen/Qwen3.8-Flash-Next is under the Qwen Community License 1.0 (attribution and Model-as-a-Service conditions for commercial use).",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +13,19 @@
     "slug": "qwen3-8-flash-next-nvfp4-lil-ada4da32"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "local-inference-lab"
+    ],
+    "spdx": "LicenseRef-Qwen-Community-1.0",
+    "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/blob/de4b8e4d43b917e7706784d8bb445c9af86a3540/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "Qwen3.8 Flash Next NVFP4 (ModelOpt, local-inference-lab)",
   "tags": [
     "local-inference-lab",

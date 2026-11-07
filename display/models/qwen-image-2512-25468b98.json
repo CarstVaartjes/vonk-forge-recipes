@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "image-generation"
+  ],
   "description": "Exact official Qwen Image 2512 checkpoint for a candidate single-Spark Diffusers recipe.",
   "family_title": "Qwen Image",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "qwen-image-2512-25468b98"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen-Image-2512/blob/25468b98e3276ca6700de15c6628e51b7de54a26/LICENSE.md"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "Qwen Image 2512",
   "tags": [
     "qwen",

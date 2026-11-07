@@ -47,6 +47,9 @@ def test_the_retired_display_paths_are_gone_from_the_documents() -> None:
     assert "metadata" not in ModelDefinition.model_fields
     assert "title" not in ModelFamily.model_fields
     assert "title" not in ModelRecord.model_fields
+    for moved in ("modalities", "capabilities", "license"):
+        assert moved not in ModelDefinition.model_fields
+        assert moved in ModelDisplay.model_fields
 
 
 def test_a_document_refuses_a_display_field_written_back_into_it() -> None:
@@ -80,6 +83,9 @@ def test_display_fields_are_exactly_the_moved_set() -> None:
         "model_title",
         "description",
         "tags",
+        "modalities",
+        "capabilities",
+        "license",
     }
 
 
@@ -199,3 +205,49 @@ def test_editing_a_proven_recipes_display_changes_no_identity_or_status(
         for row in edited["recipes"]
         if row["document"]["identity"]["slug"] == slug
     )
+
+
+def test_editing_a_proven_recipes_model_facts_changes_no_identity_or_status(
+    tmp_path: Path, built_catalog: tuple[dict, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The licence, capabilities and modalities of a Model are display: correcting
+    one re-runs nothing."""
+
+    key = next(iter(sorted(PROVEN)))
+    model_slug = recipe(key.split("/", 1)[1]).models[0].model.slug
+    tree = tmp_path / "tree"
+    tree.mkdir()
+    for entry in ROOT.iterdir():
+        if entry.name not in {".git", "display"}:
+            (tree / entry.name).symlink_to(entry)
+    shutil.copytree(ROOT / "display", tree / "display")
+    facts = model_display(model_slug)
+    edited = facts.model_copy(
+        update={
+            "capabilities": [*facts.capabilities, "a-corrected-capability"],
+            "license": facts.license.model_copy(update={"spdx": "LicenseRef-edited"}),
+        }
+    )
+    (tree / "display/models" / f"{model_slug}.json").write_text(
+        json.dumps(published_json(edited), indent=2, sort_keys=True) + "\n"
+    )
+    monkeypatch.setitem(TOOL["build"].__globals__, "ROOT", tree)
+    changed = TOOL["build"](
+        package_dir=tmp_path / "packages", source_commit="0" * 40, source_date_epoch=0
+    )
+    original, _ = built_catalog
+    assert [
+        (r["content_sha256"], r["package"], r["qualification"])
+        for r in changed["recipes"]
+    ] == [
+        (r["content_sha256"], r["package"], r["qualification"])
+        for r in original["recipes"]
+    ]
+    assert [
+        (e["content_sha256"], e["document"]) for e in changed["catalog_entities"]
+    ] == [(e["content_sha256"], e["document"]) for e in original["catalog_entities"]]
+    shown = {
+        e["document"]["identity"]["slug"]: e["display"]
+        for e in changed["catalog_entities"]
+    }
+    assert shown[model_slug]["license"]["spdx"] == "LicenseRef-edited"

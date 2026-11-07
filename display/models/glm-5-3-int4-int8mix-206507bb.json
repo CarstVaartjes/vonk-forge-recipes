@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "tonyd2wild's data-free Int4/Int8 mixed-precision (compressed-tensors W4A16 experts, W8A16 attention and dense MLP, MTP layer kept) quantization of the full zai-org/GLM-5.3 BF16 checkpoint, 377 GiB in 282 shards. The quality evaluation has not been run upstream.",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +13,17 @@
     "slug": "glm-5-3-int4-int8mix-206507bb"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.ai",
+      "tonyd2wild"
+    ],
+    "spdx": "LicenseRef-GLM-5.3",
+    "url": "https://huggingface.co/Tech2wild/GLM-5.3-Int4-Int8Mix/blob/206507bbb047d8223964a0414cd83230c59428f9/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "GLM 5.3 Int4 Int8Mix",
   "tags": [
     "tech2wild",

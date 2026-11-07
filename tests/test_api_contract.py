@@ -5,12 +5,11 @@ from __future__ import annotations
 import json
 import runpy
 import shutil
-import subprocess
 from pathlib import Path
 from typing import Any
 
 import pytest
-from documents import has_recipe_api, model, recipe, recipe_api
+from documents import model_display, recipe, recipe_api
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from vonk_forge_contracts import (
@@ -24,7 +23,7 @@ from vonk_forge_contracts import (
     recipe_api_json_schema,
 )
 from vonk_forge_contracts.api import ApiTokenArgument
-from vonk_forge_contracts.api_checks import IMAGE_INPUT_CAPABILITIES
+from vonk_forge_contracts.api_checks import INPUT_MODALITY_CAPABILITIES
 from vonk_forge_contracts.resolver import ContractResolutionError, validate_recipe_apis
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,14 +54,15 @@ def test_every_api_document_round_trips_and_agrees_with_its_recipe(path: Path) -
     Draft202012Validator(recipe_api_json_schema()).validate(_json(path))
     document = recipe(path.stem)
     check_recipe_api(document, api)
-    check_api_models(document, api, [model(s.model.slug) for s in document.models])
+    check_api_models(
+        document, api, [model_display(s.model.slug) for s in document.models]
+    )
 
 
 def test_the_api_document_leaves_the_recipe_untouched() -> None:
     """The recipe has no API field; its digest cannot depend on the sibling."""
 
     assert "api" not in RecipeDefinition.model_fields
-    assert not has_recipe_api("agents-a1-nvfp4-r0b0tlab-vllm-single")
 
 
 def test_an_orphan_api_document_is_refused() -> None:
@@ -91,7 +91,7 @@ def test_an_option_choice_replaces_the_whole_block() -> None:
     api = recipe_api(document.identity.slug)
     default = api.for_choices(document, {})
     text_only = api.for_choices(document, {"images_video": "text-only"})
-    assert default.input_modalities.image and default.input_modalities.video
+    assert default.input_modalities.image and not default.input_modalities.video
     assert not text_only.input_modalities.image
     assert api.for_choices(document, {"drafter": "mtp"}) == default
 
@@ -146,10 +146,11 @@ def test_a_block_with_an_unknown_mode_or_extra_field_is_refused() -> None:
 
 
 def _library(tmp_path: Path, *slugs: str) -> Path:
-    for folder in ("recipes", "api/recipes", "models"):
+    for folder in ("recipes", "api/recipes", "models", "display/models"):
         (tmp_path / folder).mkdir(parents=True, exist_ok=True)
-    for path in (ROOT / "models").glob("*.json"):
-        shutil.copy(path, tmp_path / "models")
+    for folder in ("models", "display/models"):
+        for path in (ROOT / folder).glob("*.json"):
+            shutil.copy(path, tmp_path / folder)
     for slug in slugs:
         shutil.copy(ROOT / f"recipes/{slug}.json", tmp_path / "recipes")
         shutil.copy(ROOT / f"api/recipes/{slug}.json", tmp_path / "api/recipes")
@@ -333,44 +334,70 @@ def test_the_synthetic_decision_example_is_checked_like_any_recipe() -> None:
 
 
 def test_image_input_has_one_capability_name() -> None:
-    assert IMAGE_INPUT_CAPABILITIES == {"image-understanding"}
+    assert INPUT_MODALITY_CAPABILITIES["image"] == "image-understanding"
 
 
-def _git(root: Path, *args: str) -> None:
-    subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
-
-
-def test_touched_slugs_reads_add_modify_rename_delete_and_untracked(
-    tmp_path: Path,
+@pytest.mark.parametrize(
+    ("modality", "capability"), sorted(INPUT_MODALITY_CAPABILITIES.items())
+)
+def test_an_accepted_input_modality_needs_its_understanding_capability(
+    modality: str, capability: str
 ) -> None:
-    (tmp_path / "recipes").mkdir()
-    (tmp_path / "api/recipes").mkdir(parents=True)
-    names = {
-        "recipes/kept.json": '{"a": 1}',
-        "recipes/edited.json": '{"a": 1}',
-        "recipes/gone.json": '{"b": 2, "c": 3}',
-        "recipes/old-name.json": '{"d": 4, "e": 5, "f": 6, "g": 7}',
-        "api/recipes/api-edited.json": '{"a": 1}',
-    }
-    for name, text in names.items():
-        (tmp_path / name).write_text(text)
-    _git(tmp_path, "init", "-q", "-b", "main")
-    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "add", "-A")
-    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "base")
-    _git(tmp_path, "checkout", "-q", "-b", "change")
-    (tmp_path / "recipes/edited.json").write_text('{"a": 2}')
-    (tmp_path / "api/recipes/api-edited.json").write_text('{"a": 2}')
-    (tmp_path / "recipes/gone.json").unlink()
-    (tmp_path / "recipes/old-name.json").rename(tmp_path / "recipes/new-name.json")
-    (tmp_path / "recipes/added.json").write_text('{"x": 1}')
-    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "add", "-A")
-    _git(tmp_path, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "work")
-    (tmp_path / "recipes/untracked.json").write_text('{"y": 1}')
-    (tmp_path / "notes.txt").write_text("not a recipe")
-    assert GUARD["touched_slugs"](tmp_path, "main") == [
-        "added",
-        "api-edited",
-        "edited",
-        "new-name",
-        "untracked",
+    """A Model that lists the modality without the capability does not satisfy it."""
+
+    slug = "qwen3-8-27b-mia-tensorfold-single"
+    document = recipe(slug)
+    raw = _json(ROOT / "api" / "recipes" / f"{slug}.json")
+    raw["api"]["input_modalities"][modality] = True
+    api = RecipeApi.model_validate(raw)
+    shown = [model_display(s.model.slug) for s in document.models]
+    complete = [
+        d.model_copy(
+            update={
+                "modalities": sorted({*d.modalities, modality}),
+                "capabilities": sorted({*d.capabilities, capability}),
+            }
+        )
+        for d in shown
     ]
+    check_api_models(document, api, complete)
+    listed_only = [
+        d.model_copy(
+            update={
+                "modalities": sorted({*d.modalities, modality}),
+                "capabilities": [c for c in d.capabilities if c != capability],
+            }
+        )
+        for d in shown
+    ]
+    with pytest.raises(
+        RecipeApiError,
+        match=f"{modality} input needs a Model with the {modality} modality "
+        f"and the {capability} capability",
+    ):
+        check_api_models(document, api, listed_only)
+
+
+def test_changed_slugs_keeps_only_recipe_and_api_documents() -> None:
+    assert GUARD["changed_slugs"](
+        [
+            "recipes/added.json",
+            "api/recipes/api-edited.json",
+            "recipes/edited.json",
+            "api/recipes/edited.json",
+            "notes.txt",
+            "recipes/readme.md",
+            "adapters/x/recipes/nested.json",
+            "display/recipes/other.json",
+        ]
+    ) == ["added", "api-edited", "edited"]
+
+
+def test_exllamav3_context_arguments_name_per_request_context_only() -> None:
+    from vonk_forge_contracts.api_checks import CONTEXT_ARGUMENTS
+
+    row = CONTEXT_ARGUMENTS["exllamav3"]
+    # TabbyAPI's cache-size is the shared KV pool, not a request's context.
+    assert "cache-size" not in row
+    # The memory estimator reads row[0]; Mia's cache_size is its context.
+    assert row[0] == "cache_size"

@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
   "description": "Exact DS4 V4.1 Flash 1017 checkpoint Q2 GGUF (imatrix-calibrated IQ2_XXS gate/up and Q2_K down routed experts, 341 GiB including 189 GiB of disk-only Engram tables). V4 Flash weights and DSpark support files are not interchangeable with it. Text only on CUDA; vision and DSpark are not supported there.",
   "family_title": "DeepSeek Flash",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "deepseek-v4-1-flash-1017-ds4-q2-9dcee516"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek AI",
+      "Salvatore Sanfilippo (antirez)"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/antirez/deepseek-v4.1-flash-gguf/blob/9dcee51692e6540f697141fc98b097e3c96492a3/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "DeepSeek V4.1 Flash",
   "tags": [
     "deepseek",

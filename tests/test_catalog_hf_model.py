@@ -103,7 +103,10 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             model = load(Path(directory) / "models/test-version.json")
             self.assertEqual(len(model["files"]), 419)
             self.assertFalse(model["requires_token"])
-            self.assertEqual(model["capabilities"], ["text-generation"])
+            self.assertNotIn("capabilities", model)
+            display = load(Path(directory) / "display/models/test-version.json")
+            self.assertEqual(display["capabilities"], ["text-generation"])
+            self.assertEqual(display["license"]["spdx"], "MIT")
 
     def test_artifact_ids_include_full_path_for_repeated_identical_files(self) -> None:
         namespace = runpy.run_path(str(TOOL))
@@ -301,7 +304,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             self.assertIn(option, result.stdout)
 
     def test_current_qwen_snapshot_has_unique_complete_files(self) -> None:
-        version = load(ROOT / "models/qwen3-8-27b-fp8-017b9c7a.json")
+        version = load(ROOT / "models/qwen3-8-27b-fp8-c3a462cc.json")
         files = version["files"]
         self.assertGreater(len(files), 70)
         self.assertEqual(len({item["id"] for item in files}), len(files))
@@ -310,11 +313,11 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
     def test_qwen_dense_models_advertise_native_multimodal_capabilities(self) -> None:
         for slug in (
             "qwen3-5-9b-c2022362",
-            "qwen3-6-27b-6a9e13bd",
-            "qwen3-8-27b-1d4bf0f2",
+            "qwen3-6-27b-8f33b989",
+            "qwen3-8-27b-37561816",
         ):
-            model = load(ROOT / f"models/{slug}.json")
-            capabilities = set(model["capabilities"])
+            display = load(ROOT / f"display/models/{slug}.json")
+            capabilities = set(display["capabilities"])
             self.assertTrue(
                 capabilities & {"text-generation", "image-understanding"}, slug
             )

@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -94,16 +93,6 @@
     "version": "2.1 base configs"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "stabilityai"
-    ],
-    "spdx": "LicenseRef-CreativeML-Open-RAIL-Plus-Plus-M",
-    "url": "https://huggingface.co/sd2-community/stable-diffusion-2-1-base/blob/4e63672c03103b6c636b8fb4119ba982469b2955/README.md"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/sd2-community/stable-diffusion-2-1-base",

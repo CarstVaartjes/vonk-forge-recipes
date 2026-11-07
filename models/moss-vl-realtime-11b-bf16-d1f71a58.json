@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -229,19 +228,6 @@
     "version": "Realtime 0708 BF16 d1f71a58"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "OpenMOSS"
-    ],
-    "spdx": "Apache-2.0",
-    "territorial_restrictions": null,
-    "url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/blob/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86/README.md"
-  },
-  "modalities": [
-    "image",
-    "text",
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime",

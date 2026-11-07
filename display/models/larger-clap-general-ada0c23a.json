@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Pinned LAION-CLAP larger-general files required by the HunyuanVideo-Foley offline text encoder.",
   "family_title": "CLAP",
   "identity": {
@@ -6,6 +7,17 @@
     "slug": "larger-clap-general-ada0c23a"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "laion"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/laion/larger_clap_general/blob/ada0c23a36c4e8582805bb38fec3905903f18b41/README.md"
+  },
+  "modalities": [
+    "audio",
+    "text"
+  ],
   "model_title": "LAION CLAP Larger General",
   "tags": [
     "laion",

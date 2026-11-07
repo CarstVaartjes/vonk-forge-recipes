@@ -314,15 +314,9 @@ class ModelDefinition(_ModelContract):
     # repository). Public models download anonymously.
     requires_token: StrictBool
     dependencies: list[ModelReference] = Field(max_length=32)
-    modalities: list[Literal["text", "image", "audio", "video", "3d", "embeddings"]] = (
-        Field(min_length=1, max_length=6)
-    )
     source: ModelSource | GitHubReleaseSource | GitHubLfsSource
     format: ModelFormat
-    license: ModelLicense
     files: list[ModelFile] = Field(min_length=1)
-    # The capabilities this model supports, by name.
-    capabilities: list[CapabilityName] = Field(max_length=64)
 
     @model_validator(mode="after")
     def exact_snapshot(self) -> ModelDefinition:
@@ -352,10 +346,6 @@ class ModelDefinition(_ModelContract):
                 raise ValueError("Git LFS objects are never empty")
         if len(paths) != len(set(paths)):
             raise ValueError("file paths must be unique")
-        if len(self.modalities) != len(set(self.modalities)):
-            raise ValueError("modalities must be unique")
-        if len(self.capabilities) != len(set(self.capabilities)):
-            raise ValueError("capabilities must be unique")
         dependency_keys = [(item.publisher, item.slug) for item in self.dependencies]
         if len(dependency_keys) != len(set(dependency_keys)):
             raise ValueError("model dependencies must be unique")

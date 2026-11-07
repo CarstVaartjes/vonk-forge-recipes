@@ -196,7 +196,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d202e7feba153c67f3ec6f17f99e744ddb3b38da94afa519e672cf39b8ac4b0c",
+        "content_sha256": "93094e40304013fdd5b3dae8528aefdef30745741f6006394a8a9b9eb1352fb2",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "phi-4-reasoning-plus-fp8-18abf8a5"

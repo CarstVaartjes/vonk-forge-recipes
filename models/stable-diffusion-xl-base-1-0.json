@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -166,16 +165,6 @@
     "version": "462165984030d82259a11f4367a4eed129e94a7b"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "stabilityai"
-    ],
-    "spdx": "LicenseRef-CreativeML-Open-RAIL-Plus-Plus-M",
-    "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/462165984030d82259a11f4367a4eed129e94a7b/LICENSE.md"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0",

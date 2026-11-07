@@ -1,0 +1,107 @@
+{
+  "api": {
+    "audio_output": false,
+    "default_output_tokens": {
+      "remaining": "context"
+    },
+    "endpoints": [
+      "/v1/chat/completions",
+      "/v1/completions",
+      "/v1/responses",
+      "/v1/messages"
+    ],
+    "input_modalities": {
+      "audio": false,
+      "image": true,
+      "pdf": false,
+      "text": true,
+      "video": true
+    },
+    "max_input_tokens": null,
+    "max_output_tokens": {
+      "setting": "context_tokens"
+    },
+    "mode": "chat",
+    "reasoning": {
+      "default": "on",
+      "effort": null,
+      "keys": [
+        "enable_thinking"
+      ],
+      "kind": "switch",
+      "off": false,
+      "on": true,
+      "via": "chat_template_kwargs"
+    },
+    "streaming": true,
+    "structured_output": true,
+    "system_messages": true,
+    "tools": {
+      "kind": "supported",
+      "parallel_calls": true,
+      "tool_choice": [
+        "auto",
+        "required",
+        "named"
+      ]
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-6-35b-a3b-fp8-eugr-vllm-single"
+  },
+  "kind": "recipe-api",
+  "option_choices": [
+    {
+      "api": {
+        "audio_output": false,
+        "default_output_tokens": {
+          "remaining": "context"
+        },
+        "endpoints": [
+          "/v1/chat/completions",
+          "/v1/completions",
+          "/v1/responses",
+          "/v1/messages"
+        ],
+        "input_modalities": {
+          "audio": false,
+          "image": false,
+          "pdf": false,
+          "text": true,
+          "video": false
+        },
+        "max_input_tokens": null,
+        "max_output_tokens": {
+          "setting": "context_tokens"
+        },
+        "mode": "chat",
+        "reasoning": {
+          "default": "on",
+          "effort": null,
+          "keys": [
+            "enable_thinking"
+          ],
+          "kind": "switch",
+          "off": false,
+          "on": true,
+          "via": "chat_template_kwargs"
+        },
+        "streaming": true,
+        "structured_output": true,
+        "system_messages": true,
+        "tools": {
+          "kind": "supported",
+          "parallel_calls": true,
+          "tool_choice": [
+            "auto",
+            "required",
+            "named"
+          ]
+        }
+      },
+      "option": "modality",
+      "value": "text-only"
+    }
+  ]
+}

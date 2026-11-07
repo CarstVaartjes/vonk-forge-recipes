@@ -608,7 +608,7 @@
       ],
       "id": "m",
       "model": {
-        "content_sha256": "fba6bd4211f3d10dca08fef748d1f6c67f7fd5c4a6199e6e8a44407a6732dc78",
+        "content_sha256": "56fa6068be22f8f0b6d2bff5a2653883c12aff4404341c53a55d0e8b497ff58f",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "glm-5-3-flash-fp4-local-76348ddb"

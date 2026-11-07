@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -142,17 +138,6 @@
     "version": "Qwen3.8 27B NVFP4 unsloth f0b7c9e7"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "Unsloth"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/unsloth/Qwen3.8-27B-NVFP4/blob/f0b7c9e722f5565102fff8481c99e4d86ae099c7/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/unsloth/Qwen3.8-27B-NVFP4",

@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -31,16 +30,6 @@
     "version": "32bd64288804d66eefd0ccbe215aa642df71cc41"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "openai"
-    ],
-    "spdx": "MIT",
-    "url": "https://github.com/openai/CLIP/blob/d05afc436d78f1c48dc0dbf8e5980a9d471f35f6/LICENSE"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/openai/clip-vit-large-patch14",

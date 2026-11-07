@@ -165,7 +165,7 @@ def model_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/model-definition-v3.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/model-definition-v4.schema.json",
         **ModelDefinition.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -175,7 +175,7 @@ def recipe_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v3.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v4.schema.json",
         **RecipeDefinition.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -185,7 +185,7 @@ def recipe_display_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recipe-display-v3.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/recipe-display-v4.schema.json",
         **RecipeDisplay.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -195,7 +195,7 @@ def model_display_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/model-display-v3.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/model-display-v4.schema.json",
         **ModelDisplay.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -205,6 +205,6 @@ def recipe_api_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recipe-api-v3.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/recipe-api-v4.schema.json",
         **RecipeApi.model_json_schema(ref_template="#/$defs/{model}"),
     }

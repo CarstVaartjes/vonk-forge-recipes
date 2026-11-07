@@ -1,4 +1,12 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Mistral's Leanstral 1.5 (119B total, about 6.5B active, 128-expert MoE, FP8 e4m3 weights, Mistral-format consolidated checkpoint) for Lean 4 agentic proof and code work, with text and image input and up to 256K context. Apache-2.0 per the model card.",
   "family_title": "Leanstral",
   "identity": {
@@ -6,6 +14,17 @@
     "slug": "leanstral-1-5-119b-a6b-81592da9"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Mistral AI"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/mistralai/Leanstral-1.5-119B-A6B"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Leanstral 1.5 119B A6B",
   "tags": [
     "mistralai",

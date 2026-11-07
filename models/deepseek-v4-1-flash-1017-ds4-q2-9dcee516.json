@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -44,17 +39,6 @@
     "version": "ds4-1017-q2-9dcee516"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "DeepSeek AI",
-      "Salvatore Sanfilippo (antirez)"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/antirez/deepseek-v4.1-flash-gguf/blob/9dcee51692e6540f697141fc98b097e3c96492a3/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/antirez/deepseek-v4.1-flash-gguf",

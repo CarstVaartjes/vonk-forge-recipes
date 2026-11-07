@@ -56,7 +56,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "fa4f8840051cf39e428cd24143204b9d723a0ae0989580e6167621254fb354d3",
+        "content_sha256": "ba9ae14d739110a50efda00848c695bd5115932346fd785ae790369051f0021a",
         "kind": "model",
         "publisher": "antirez",
         "slug": "deepseek-v4-flash-ds4-q2-imatrix-mtp-f71f23d5"

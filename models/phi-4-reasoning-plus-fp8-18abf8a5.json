@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -170,17 +165,6 @@
     "version": "FP8 18abf8a5"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation",
-      "Microsoft"
-    ],
-    "spdx": "MIT",
-    "url": "https://opensource.org/license/mit"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Phi-4-reasoning-plus-FP8",

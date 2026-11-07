@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.vonkforge.ai/contracts/model-display-v4.schema.json",
+  "$defs": {
+    "ModelDisplayIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "publisher": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug"
+      ],
+      "title": "ModelDisplayIdentity",
+      "type": "object"
+    },
+    "ModelLicense": {
+      "additionalProperties": false,
+      "properties": {
+        "spdx": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Spdx",
+          "type": "string"
+        },
+        "url": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        },
+        "attribution": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Attribution",
+          "type": "array"
+        },
+        "territorial_restrictions": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelTerritorialRestrictions"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "spdx",
+        "url",
+        "attribution"
+      ],
+      "title": "ModelLicense",
+      "type": "object"
+    },
+    "ModelTerritorialRestrictions": {
+      "additionalProperties": false,
+      "properties": {
+        "denied_jurisdictions": {
+          "items": {
+            "pattern": "^[A-Z]{2,3}$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Denied Jurisdictions",
+          "type": "array"
+        },
+        "notice": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Notice",
+          "type": "string"
+        }
+      },
+      "required": [
+        "denied_jurisdictions",
+        "notice"
+      ],
+      "title": "ModelTerritorialRestrictions",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "model-display",
+      "default": "model-display",
+      "title": "Kind",
+      "type": "string"
+    },
+    "identity": {
+      "$ref": "#/$defs/ModelDisplayIdentity"
+    },
+    "family_title": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Family Title",
+      "type": "string"
+    },
+    "model_title": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Model Title",
+      "type": "string"
+    },
+    "description": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Description",
+      "type": "string"
+    },
+    "tags": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9.-]{0,39}$",
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Tags",
+      "type": "array"
+    },
+    "modalities": {
+      "items": {
+        "enum": [
+          "text",
+          "image",
+          "audio",
+          "video",
+          "3d",
+          "embeddings"
+        ],
+        "type": "string"
+      },
+      "maxItems": 6,
+      "minItems": 1,
+      "title": "Modalities",
+      "type": "array"
+    },
+    "capabilities": {
+      "items": {
+        "maxLength": 40,
+        "minLength": 1,
+        "pattern": "^[a-z0-9][a-z0-9-]{0,39}$",
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "license": {
+      "$ref": "#/$defs/ModelLicense"
+    }
+  },
+  "required": [
+    "identity",
+    "family_title",
+    "model_title",
+    "description",
+    "tags",
+    "modalities",
+    "capabilities",
+    "license"
+  ],
+  "title": "ModelDisplay",
+  "type": "object"
+}

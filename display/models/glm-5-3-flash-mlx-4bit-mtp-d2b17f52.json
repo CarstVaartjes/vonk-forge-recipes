@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "MLX four-bit GLM 5.3 Flash with MTP head.",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +12,19 @@
     "slug": "glm-5-3-flash-mlx-4bit-mtp-d2b17f52"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.ai",
+      "Vontra"
+    ],
+    "spdx": "LicenseRef-GLM-5.3",
+    "url": "https://huggingface.co/Vontra/GLM-5.3-Flash-MLX-4bit-MTP/blob/main/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "GLM 5.3 Flash",
   "tags": [
     "vontra",

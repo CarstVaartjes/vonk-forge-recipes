@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "Exact public Vontra MLX 4-bit (group size 64) conversion of Qwen3.8-27B with its vision tower, for TensorFold.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +13,19 @@
     "slug": "qwen3-8-27b-mlx-4bit-70ae7fac"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "Vontra"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Vontra/Qwen3.8-27B-MLX-4bit/blob/70ae7fac63274ff2eac54152031433374cb80f2f/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "Qwen3.8 27B MLX 4-bit",
   "tags": [
     "vontra",
