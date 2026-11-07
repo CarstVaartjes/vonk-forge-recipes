@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/minimax-m3-1-flash-exl3-sage-2-15bpw-tonyd2wild-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "29b64854c66d91ffbc8acc7fd76a0d4b472781aec0c8df03d581bce042b6e082",
+        "source_bundle_sha256": "532b9a5623265efb25c0612ac06249a0dd878db911ae6caf46c04180a112306e",
+        "runtime_image": {
+          "build_key": "6dcac4c55576c7410f2d8c4db3610fec3bab250a7b0025528f6cd2e42480bb04",
+          "image_digest": "sha256:22022ae0758b9124555a0f936510f7a16ff03534a5b07ad115b32d6043f47b13"
+        },
+        "model_digests": [
+          "7b352e966eb6f7ffeb37fe154588e454a05d329af7bd781f5eb7b4ca78281321"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "919f673a9887f2163ea36c8ffb56ebf3e793e2680c0f7e8f97e40a23f65aeb14"
+      ],
+      "tested_at": "2026-11-07T00:47:00.445382Z",
+      "platform": {
+        "controller_source_sha": "055f4ea38d4833c82cfc13719865a8ac827891cd",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "29b64854c66d91ffbc8acc7fd76a0d4b472781aec0c8df03d581bce042b6e082",
+      "role": "entrypoint",
+      "steady_bytes": 97472540672
+    },
+    {
+      "content_sha256": "29b64854c66d91ffbc8acc7fd76a0d4b472781aec0c8df03d581bce042b6e082",
+      "role": "worker",
+      "steady_bytes": 96664674304
+    }
+  ]
+}
