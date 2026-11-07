@@ -2,6 +2,39 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://api.vonkforge.ai/contracts/model-display-v4.schema.json",
   "$defs": {
+    "CapabilityName": {
+      "enum": [
+        "3d-generation",
+        "audio-generation",
+        "audio-understanding",
+        "chat",
+        "code-generation",
+        "decision",
+        "image-editing",
+        "image-generation",
+        "image-understanding",
+        "image-upscaling",
+        "material-estimation",
+        "motion-capture",
+        "motion-generation",
+        "ocr",
+        "parametric-body-model",
+        "person-detection",
+        "reasoning",
+        "speculative-decoding",
+        "speech-recognition",
+        "text-generation",
+        "text-to-audio",
+        "text-to-speech",
+        "tool-use",
+        "video-generation",
+        "video-understanding",
+        "voice-cloning",
+        "voice-design"
+      ],
+      "title": "CapabilityName",
+      "type": "string"
+    },
     "ModelDisplayIdentity": {
       "additionalProperties": false,
       "properties": {
@@ -155,10 +188,7 @@
     },
     "capabilities": {
       "items": {
-        "maxLength": 40,
-        "minLength": 1,
-        "pattern": "^[a-z0-9][a-z0-9-]{0,39}$",
-        "type": "string"
+        "$ref": "#/$defs/CapabilityName"
       },
       "maxItems": 64,
       "title": "Capabilities",
