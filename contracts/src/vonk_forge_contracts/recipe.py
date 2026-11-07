@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import json
 import math
+import struct
 from collections.abc import Mapping
+from dataclasses import dataclass
 from datetime import date
 from typing import Annotated, Literal
 
@@ -614,6 +616,8 @@ ServingKind = Literal[
     "openai.completion",
     "openai.embedding",
     "openai.systemone",
+    "openai.transcription",
+    "openai.speech",
     "image-job.output",
     "audio-job.output",
     "video-job.output",
@@ -629,9 +633,53 @@ ServingAssertion = Literal[
     "completion.output-cap",
     "embedding.nonempty",
     "decision.probabilities",
+    "transcription.nonempty",
+    "speech.audio",
     "inference.completed",
     "artifact.output",
 ]
+
+# ``speech.audio`` holds when the reply is an ``audio/*`` body that decodes as a WAV
+# at least this long. The Controller's executor, the sweep and any guard share this
+# one value and the one reader below.
+MIN_SPEECH_SECONDS = 0.5
+
+
+@dataclass(frozen=True)
+class WavFacts:
+    format_tag: int
+    channels: int
+    sample_rate: int
+    seconds: float
+
+
+def wav_facts(raw: bytes) -> WavFacts | None:
+    """The shape and duration of a RIFF/WAVE body, or None when it does not decode.
+
+    Any sample format counts (PCM or float). A ``data`` chunk whose size is 0 or
+    0xFFFFFFFF is a streamed WAV whose writer could not know the length, and it
+    means "the rest of the body"; a size past the end of the body is clamped to it.
+    A WAV with no ``fmt `` chunk before ``data``, or a zero byte rate, is undecodable.
+    """
+
+    if len(raw) < 12 or raw[:4] != b"RIFF" or raw[8:12] != b"WAVE":
+        return None
+    position, fmt = 12, None
+    while position + 8 <= len(raw):
+        chunk = raw[position : position + 4]
+        (size,) = struct.unpack_from("<I", raw, position + 4)
+        body = position + 8
+        if chunk == b"fmt " and size >= 16 and body + 16 <= len(raw):
+            fmt = struct.unpack_from("<HHII", raw, body)
+        elif chunk == b"data":
+            if fmt is None or fmt[2] == 0 or fmt[3] == 0:
+                return None
+            left = len(raw) - body
+            length = left if size in (0, 0xFFFFFFFF) else min(size, left)
+            return WavFacts(fmt[0], fmt[1], fmt[2], round(length / fmt[3], 3))
+        position = body + size + (size & 1)
+    return None
+
 
 _ASSERTIONS_BY_KIND: dict[str, frozenset[str]] = {
     "openai.health": frozenset({"endpoint.healthy"}),
@@ -641,6 +689,8 @@ _ASSERTIONS_BY_KIND: dict[str, frozenset[str]] = {
     "openai.completion": frozenset({"completion.nonempty", "completion.output-cap"}),
     "openai.embedding": frozenset({"embedding.nonempty"}),
     "openai.systemone": frozenset({"decision.probabilities"}),
+    "openai.transcription": frozenset({"transcription.nonempty"}),
+    "openai.speech": frozenset({"speech.audio"}),
     "image-job.output": frozenset({"inference.completed", "artifact.output"}),
     "audio-job.output": frozenset({"inference.completed", "artifact.output"}),
     "video-job.output": frozenset({"inference.completed", "artifact.output"}),
@@ -675,8 +725,29 @@ class RecipeJobServingRequest(_RecipeContract):
     output_slot: Identifier
 
 
+def _non_empty_text(value: object) -> bool:
+    return isinstance(value, str) and value != ""
+
+
+class RecipeMultipartFile(_RecipeContract):
+    field: Literal["file"]
+    fixture: RelativePath
+    media_type: Literal["audio/wav"]
+
+
+class RecipeMultipartServingRequest(_RecipeContract):
+    """``POST /v1/audio/transcriptions``: form fields plus one staged audio file."""
+
+    transport: Literal["http-multipart"]
+    method: Literal["POST"]
+    path: Literal["/v1/audio/transcriptions"]
+    fields: dict[StrictStr, StrictStr] = Field(min_length=1, max_length=32)
+    file: RecipeMultipartFile
+
+
 ServingRequest = Annotated[
-    RecipeHttpServingRequest | RecipeJobServingRequest, Field(discriminator="transport")
+    RecipeHttpServingRequest | RecipeMultipartServingRequest | RecipeJobServingRequest,
+    Field(discriminator="transport"),
 ]
 
 
@@ -685,6 +756,16 @@ class RecipeValidationCheck(_RecipeContract):
     kind: ServingKind
     request: ServingRequest
     assertions: list[ServingAssertion] = Field(min_length=1, max_length=32)
+
+    def fixture_paths(self) -> list[str]:
+        """The package files this check's request stages, in request order."""
+
+        request = self.request
+        if isinstance(request, RecipeJobServingRequest):
+            return [request.fixture, *request.input_slots.values()]
+        if isinstance(request, RecipeMultipartServingRequest):
+            return [request.file.fixture]
+        return []
 
     @model_validator(mode="after")
     def executable(self) -> RecipeValidationCheck:
@@ -695,6 +776,21 @@ class RecipeValidationCheck(_RecipeContract):
         is_job = self.kind.endswith(".output")
         if is_job != isinstance(self.request, RecipeJobServingRequest):
             raise ValueError("serving request transport must match serving kind")
+        if (self.kind == "openai.transcription") != isinstance(
+            self.request, RecipeMultipartServingRequest
+        ):
+            raise ValueError("serving request transport must match serving kind")
+        if isinstance(self.request, RecipeMultipartServingRequest):
+            if (
+                "model" not in self.request.fields
+                or "file" in self.request.fields
+                or "transcription.nonempty" not in self.assertions
+            ):
+                raise ValueError(
+                    "transcription checks require a model field, no file field "
+                    "and transcription.nonempty"
+                )
+            return self
         if self.kind == "openai.health":
             if (
                 not isinstance(self.request, RecipeHttpServingRequest)
@@ -766,6 +862,18 @@ class RecipeValidationCheck(_RecipeContract):
                         "decision checks require /v1/systemone and decision.probabilities"
                     )
                 SystemOneRequest.model_validate_json(json.dumps(body))
+            elif self.kind == "openai.speech":
+                if (
+                    self.request.path != "/v1/audio/speech"
+                    or not _non_empty_text(body.get("input"))
+                    or not _non_empty_text(body.get("voice"))
+                    or body.get("response_format") != "wav"
+                    or "speech.audio" not in self.assertions
+                ):
+                    raise ValueError(
+                        "speech checks require input, voice, response_format wav "
+                        "and speech.audio at /v1/audio/speech"
+                    )
             elif self.kind == "openai.embedding":
                 if (
                     self.request.path != "/v1/embeddings"

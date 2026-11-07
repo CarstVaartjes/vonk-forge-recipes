@@ -1,0 +1,31 @@
+{
+  "capabilities": [
+    "decision",
+    "image-understanding",
+    "video-understanding"
+  ],
+  "description": "Clef-Flash 9B multimodal typed-decision model: Qwen3.5-9B backbone with a joint schema head that answers choice, noul and score questions in one forward pass, no generated text.",
+  "family_title": "Clef",
+  "identity": {
+    "publisher": "cloudflare",
+    "slug": "clef-flash-bf16-fb4417d3"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Cloudflare"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Cloudflare/clef-flash/blob/fb4417d31c1d0f9e7e77f1141b40aaede7491e00/LICENSE"
+  },
+  "modalities": [
+    "text",
+    "image",
+    "video"
+  ],
+  "model_title": "Clef-Flash",
+  "tags": [
+    "cloudflare",
+    "clef"
+  ]
+}

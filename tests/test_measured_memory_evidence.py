@@ -9,6 +9,8 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
 )
 
+from qualification import documents
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -71,3 +73,11 @@ def test_a_row_carries_no_infrastructure_and_only_valid_values(field, value) -> 
     payload = row().model_dump(mode="json") | {field: value}
     with pytest.raises(ValidationError):
         QualificationMeasuredRoleMemory.model_validate(payload)
+
+
+def test_no_job_recipe_has_a_measured_row() -> None:
+    """A job's post-run sample is idle, not a peak: steady rows are serving rows."""
+    for path in sorted((ROOT / "qualification/evidence").rglob("*.json")):
+        evidence = RecipeQualificationEvidence.model_validate_json(path.read_text())
+        if evidence.measured_memory:
+            assert documents.recipe(path.stem).settings.kind != "job", path.name
