@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Run the creator's server (app.py, unchanged) behind the platform's serving flags.
 
-The platform launches ``vllm serve /models --served-model-name N --max-model-len L
---host H --port P``; the launcher passes those here. They become the environment
+The platform's ``pytorch-server`` harness launches ``pytorch-server --served-model-name N
+--max-model-len L --host H --port P``; the wrapper passes those here. They become the environment
 app.py reads, and the model's SystemOne answer is completed into the platform's
 decision response (decision_response.py) where app.py calls ``jsm.systemone``.
 """

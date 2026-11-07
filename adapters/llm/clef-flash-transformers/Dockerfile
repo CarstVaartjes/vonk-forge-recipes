@@ -31,8 +31,8 @@ RUN apt-get update \
 COPY app.py fp8.py decision_response.py serve.py /opt/vonk/source/
 RUN python3 -m py_compile /opt/vonk/source/app.py /opt/vonk/source/fp8.py /opt/vonk/source/decision_response.py /opt/vonk/source/serve.py \
     && install --directory --mode=0755 /opt/vonk/bin \
-    && printf '%s\n' '#!/bin/sh' 'set -eu' '[ "${1:-}" = serve ] && [ "${2:-}" = /models ] || exit 2' '[ -r /models/joint_schema_model.py ] && [ -r /models/joint_head.safetensors ] || exit 2' 'exec python3 /opt/vonk/source/serve.py "$@"' > /opt/vonk/bin/vllm \
-    && chmod 0755 /opt/vonk/bin/vllm \
+    && printf '%s\n' '#!/bin/sh' 'exec python3 /opt/vonk/source/serve.py "$@"' > /opt/vonk/bin/pytorch-server \
+    && chmod 0755 /opt/vonk/bin/pytorch-server \
     && useradd --uid 10001 --create-home --shell /usr/sbin/nologin vonk
 
 USER 10001:10001
