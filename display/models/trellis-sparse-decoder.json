@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Sparse structure decoder referenced by TRELLIS.2-4B at af44b45f; exact files from microsoft/TRELLIS-image-large.",
   "family_title": "TRELLIS",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "trellis-sparse-decoder"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "microsoft"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/microsoft/TRELLIS-image-large/blob/25e0d31ffbebe4b5a97464dd851910efc3002d96/README.md"
+  },
+  "modalities": [
+    "3d"
+  ],
   "model_title": "TRELLIS sparse structure decoder",
   "tags": [
     "microsoft",

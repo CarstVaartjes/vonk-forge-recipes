@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Exact public OpenAI gpt-oss-20b checkpoint (MXFP4 MoE weights) without the duplicate original/ and metal/ trees.",
   "family_title": "OpenAI gpt-oss",
   "identity": {
@@ -6,6 +13,16 @@
     "slug": "gpt-oss-20b-mxfp4-6cee5e81"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "OpenAI"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "gpt-oss 20b",
   "tags": [
     "openai",

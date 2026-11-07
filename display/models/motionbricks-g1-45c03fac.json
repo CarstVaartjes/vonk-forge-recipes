@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "motion-generation"
+  ],
   "description": "NVIDIA MotionBricks checkpoints for the Unitree G1 (pose, root and VQ-VAE models plus the G1 clip cache), read from NVIDIA's Git LFS objects in GR00T-WholeBodyControl at commit 45c03fac. Only the LFS checkpoints are addressed here; the plain git sidecars (hparams, configs, skeletons, statistics) are vendored in the recipe adapter and proven by check-vendored-upstream.",
   "family_title": "MotionBricks",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "motionbricks-g1-45c03fac"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "nvidia"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
+    "url": "https://github.com/NVlabs/GR00T-WholeBodyControl/blob/45c03facbf848e0c743091b7d9c17952096ff908/LICENSE"
+  },
+  "modalities": [
+    "3d"
+  ],
   "model_title": "MotionBricks G1",
   "tags": [
     "nvidia",

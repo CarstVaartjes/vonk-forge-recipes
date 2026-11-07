@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "person-detection"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -33,16 +30,6 @@
     "version": "0.1.1rc0"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "megvii-basedetection"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://github.com/Megvii-BaseDetection/YOLOX/blob/e1052df71842031413f6030723c3607b839c80ce/LICENSE"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "assets": [

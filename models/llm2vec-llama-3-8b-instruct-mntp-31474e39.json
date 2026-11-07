@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -76,16 +75,6 @@
     "version": "mntp 31474e39"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "mcgill-nlp"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp/blob/31474e395ada192e8ed1586db6be79fb3b70c9c0/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp",

@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "reasoning",
+    "text-generation"
+  ],
   "description": "Full GLM 5.3 with mixed-width EXL3 2.75bpw experts.",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +10,17 @@
     "slug": "glm-5-3-exl3-275bpw-drowzeys-ae7b6967"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.ai",
+      "drowzeys"
+    ],
+    "spdx": "LicenseRef-GLM-5.3",
+    "url": "https://huggingface.co/drowzeys/keys-GLM-5.3-EXL3-2.75BPW/blob/ae7b69671a94cf130fd1360a3b9213539ef3446f/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "GLM 5.3",
   "tags": [
     "drowzeys",

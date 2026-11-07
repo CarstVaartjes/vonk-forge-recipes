@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "Exact public turboderp GLM 5.3 Flash EXL3 2.05 bpw checkpoint (branch 2.05bpw head, codebook mul1, 85.2 GB, the a0 baseline of 0xSero's single-Spark SGLang recipes). An editor swap file in the branch is left out.",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +12,18 @@
     "slug": "glm-5-3-flash-exl3-2-05bpw-51058cd5"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "turboderp",
+      "Z.ai"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/turboderp/GLM-5.3-Flash-exl3/blob/51058cd551c7e570d87bd32a4adee720edce2349/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "GLM 5.3 Flash EXL3 2.05bpw",
   "tags": [
     "turboderp",

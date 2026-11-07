@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Step 5 Preview Spark immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "Step 5",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "step-5-preview-spark-exl3-51a46a7f"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "0xSero"
+    ],
+    "spdx": "stepfun-community-license",
+    "url": "https://huggingface.co/0xSero/Step-5-Preview-Spark/blob/51a46a7f62eee1225d124170da903bba23d04a26/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Step 5 Preview Spark",
   "tags": [
     "candidate",

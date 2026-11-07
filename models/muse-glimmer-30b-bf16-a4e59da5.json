@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "image-understanding",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -144,17 +138,6 @@
     "version": "Muse Glimmer 30B BF16 a4e59da5"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Meta"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B/blob/a4e59da52a7bc87ae7251dd5545c0dd437c44b68/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",

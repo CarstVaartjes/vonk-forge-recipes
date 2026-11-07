@@ -419,9 +419,8 @@ class LabelEncoder:
 
     def test_triposg_diso_license_matches_pypi_metadata(self) -> None:
         recipe = json.loads((ROOT / "recipes/triposg-pytorch-single.json").read_text())
-        model = json.loads((ROOT / "models/triposg.json").read_text())
         self.assertEqual(recipe["models"][0]["model"]["slug"], "triposg")
-        self.assertEqual(model["license"]["spdx"], "MIT")
+        self.assertEqual(model_display("triposg").license.spdx, "MIT")
 
     def test_texture_validates_input_before_importing_upstream(self) -> None:
         source = RUN_PATH.read_text(encoding="utf-8")
@@ -549,7 +548,7 @@ class LabelEncoder:
         self.assertNotIn(
             "weights", {role for item in clip.files for role in item.roles}
         )
-        self.assertEqual(clip.license.spdx, "MIT")
+        self.assertEqual(model_display(clip.identity.slug).license.spdx, "MIT")
         self.assertIn(
             "cautions against deployed use",
             model_display(clip.identity.slug).description,

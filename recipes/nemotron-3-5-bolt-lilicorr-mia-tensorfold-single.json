@@ -1223,7 +1223,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1dfd1612113cb0e6d45e8473ad8863aefdee5737b482b460a0c1b864dd7c12be",
+        "content_sha256": "23c202c7b2f097f3ff7ee9d8476ec800edc74a4856783da311b88e3c0708e2b8",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-bolt-24gb-a326822a"
@@ -1294,7 +1294,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "a47ca89c86ac05a3a4120da081a4b562b2588baaa7cc06e1b1f8339794bdb8b1",
+        "content_sha256": "64367ac3b534f918923e3d4cab7c7a7fe91975a70df50ca2d931264c34c6d534",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-bolt-lilicorr-4c6a5613"

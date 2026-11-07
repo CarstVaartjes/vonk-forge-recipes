@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from catalog_documents import model_digest
+from documents import model_display
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -109,9 +110,10 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
             )
         )
         self.assertFalse(bria.requires_token)
-        self.assertEqual(bria.license.spdx, "other")
+        license = model_display("bria-rmbg-1-4").license
+        self.assertEqual(license.spdx, "other")
         self.assertEqual(
-            bria.license.url,
+            license.url,
             "https://bria.ai/bria-huggingface-model-license-agreement/",
         )
 

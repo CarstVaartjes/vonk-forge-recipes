@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -197,17 +192,6 @@
     "version": "NVFP4 f792b707"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation",
-      "Meta Platforms"
-    ],
-    "spdx": "LicenseRef-Llama-3.3-Community-License",
-    "url": "https://www.llama.com/llama3_3/license/"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-NVFP4",

@@ -34,6 +34,10 @@ ALLOWED = {
         "spark_sweep/evidence_publisher.py",
         "_evidence_records",
     ): "records carried by the refused evidence PR branch",
+    # The one-time Model facts split migrates the base revision's documents: it
+    # reads the pre-split tree it rewrites, never a fact. Removed with the tool.
+    ("tools/split-model-facts", "_already_split"): "base revision of the migration",
+    ("tools/split-model-facts", "main"): "base revision of the migration",
 }
 
 

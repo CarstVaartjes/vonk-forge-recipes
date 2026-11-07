@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Exact public Muse Glimmer 30B NVFP4 (W4A4) e83ead54 checkpoint by RedHatAI.",
   "family_title": "Muse Glimmer",
   "identity": {
@@ -6,6 +11,18 @@
     "slug": "muse-glimmer-30b-nvfp4-e83ead54"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "RedHatAI",
+      "Meta"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/RedHatAI/Muse-Glimmer-30B-NVFP4/blob/e83ead547c81973aaa09c0072c0dbc916e0d8190/README.md"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Muse Glimmer 30B",
   "tags": [
     "redhatai",

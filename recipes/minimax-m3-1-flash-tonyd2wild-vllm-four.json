@@ -828,7 +828,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a6b44d5a10344a382bd0703e9582e139be1f3e9c64d0aa129fbfb09a382a178d",
+        "content_sha256": "f848238d6084591866aaa9a9771693e2049cfa2fe054da6a6bacd922c0b7c4bd",
         "kind": "model",
         "publisher": "minimax",
         "slug": "minimax-m3-1-flash-54e4e69d"

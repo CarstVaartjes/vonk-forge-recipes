@@ -126,7 +126,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "adfc705729d0800b58c03a89e6eb3331ed5657ecf8eb06cdf295d5fff7d6fb17",
+        "content_sha256": "227c0cb2d99fc6f33edc5134fbe764fa141f3d417cd4bcae8352c1b446859bc5",
         "kind": "model",
         "publisher": "fastvideo",
         "slug": "fasth3-8step-v2-comfy-ec1e3aa3"

@@ -369,7 +369,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "2dbb2a7006be54dfd50fe2ae3b5a8f9ba7a537386e31f5bdc7b9f38a81a00b6c",
+        "content_sha256": "9233a73ff71f944280a34446bc7c75b47db1551baf9d51051e4e81f39d8bb5ea",
         "kind": "model",
         "publisher": "vcruz305",
         "slug": "minicpm-v-4-7-exl3-sage-374bpw-855cb760"

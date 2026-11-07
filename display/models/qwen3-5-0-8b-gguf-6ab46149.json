@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation"
+  ],
   "description": "Alibaba Qwen3.5 0.8B vision-language model as Unsloth's Dynamic UD-Q8_K_XL GGUF with the F16 vision projector (mmproj). The repository's other quantizations and projectors are not declared.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +12,17 @@
     "slug": "qwen3-5-0-8b-gguf-6ab46149"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Alibaba Qwen",
+      "Unsloth"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/blob/6ab461498e2023f6e3c1baea90a8f0fe38ab64d0/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Qwen3.5 0.8B",
   "tags": [
     "unsloth",

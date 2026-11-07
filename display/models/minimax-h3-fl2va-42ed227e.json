@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "audio-generation",
+    "video-generation"
+  ],
   "description": "Exact official MiniMax H3 root Modular Diffusers closure for text-to-video-and-audio and optional first/last-keyframe generation. It excludes the Ref2VA transformer, duplicate original-checkpoint trees, examples, and documentation while retaining every component the pinned FL2VA loader requires.",
   "family_title": "MiniMax H3",
   "identity": {
@@ -6,6 +10,26 @@
     "slug": "minimax-h3-fl2va-42ed227e"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "minimax"
+    ],
+    "spdx": "LicenseRef-MiniMax-H3-Community-License",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR",
+        "US"
+      ],
+      "notice": "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."
+    },
+    "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
+  },
+  "modalities": [
+    "audio",
+    "video"
+  ],
   "model_title": "MiniMax",
   "tags": [
     "minimax",

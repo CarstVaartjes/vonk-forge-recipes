@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -134,17 +129,6 @@
     "version": "GLM 4.7 Flash AWQ 4bit 25624b53"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Z.ai",
-      "cyankiwi"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/cyankiwi/GLM-4.7-Flash-AWQ-4bit/blob/25624b53414e585bcf7dcb9584667c3106c6089b/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/cyankiwi/GLM-4.7-Flash-AWQ-4bit",

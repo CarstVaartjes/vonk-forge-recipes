@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "image-generation"
+  ],
   "description": "Exact Comfy-Org BF16 FLUX.2 Klein 4B diffusion, Qwen3 encoder, and VAE files for core ComfyUI inference.",
   "family_title": "FLUX.2",
   "identity": {
@@ -6,6 +9,17 @@
     "slug": "flux-2-klein-4b-comfyui-5f526678"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Black Forest Labs",
+      "Comfy-Org"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4B/blob/e7b7dc27f91deacad38e78976d1f2b499d76a294/LICENSE.md"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "FLUX.2 Klein 4B",
   "tags": [
     "flux",

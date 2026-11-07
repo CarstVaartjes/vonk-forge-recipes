@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -1008,17 +1002,6 @@
     "version": "Hy3 295B NVFP4 W4A16 4f7e1f02"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Tencent",
-      "kodelow"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/kodelow/Hy3-NVFP4-W4A16/blob/4f7e1f02f32f4662bdc47f1237f34995088867a9/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/kodelow/Hy3-NVFP4-W4A16",

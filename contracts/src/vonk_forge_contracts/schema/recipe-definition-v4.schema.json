@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v3.schema.json",
+  "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v4.schema.json",
   "$defs": {
     "BuildContext": {
       "additionalProperties": false,

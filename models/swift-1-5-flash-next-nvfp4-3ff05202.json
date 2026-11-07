@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -908,17 +903,6 @@
     "version": "Swift 1.5 Qwen3.8 Flash Next NVFP4 3ff05202"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "UkisAI",
-      "Qwen"
-    ],
-    "spdx": "LicenseRef-Swift-Open-License-1.0",
-    "url": "https://huggingface.co/ukisai/Swift-Qwen3.8-Flash-Next/blob/main/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/ukisai/Swift-1.5-Qwen3.8-Flash-Next-NVFP4",

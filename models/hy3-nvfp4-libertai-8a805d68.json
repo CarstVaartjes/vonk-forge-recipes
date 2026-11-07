@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -1098,17 +1092,6 @@
     "version": "8a805d687c4bf02b364af15db5ee85e43ed998bf"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Tencent",
-      "LibertAI"
-    ],
-    "spdx": "LicenseRef-tencent-hy-community-license",
-    "url": "https://huggingface.co/LibertAIDAI/Hy3-NVFP4/blob/8a805d687c4bf02b364af15db5ee85e43ed998bf/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/LibertAIDAI/Hy3-NVFP4",

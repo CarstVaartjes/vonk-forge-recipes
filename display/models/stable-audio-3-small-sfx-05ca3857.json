@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "audio-generation",
+    "text-to-audio"
+  ],
   "description": "Exact gated stabilityai/stable-audio-3-small-sfx snapshot at 05ca3857 with its T5Gemma text encoder (t5gemma-b-b-ul2, Gemma Terms of Use) from the same repository. The gated API masks LFS digests, so they and the plain-file bytes come from the ungated cocktailpeanut/stable-audio-3-small-sfx mirror whose blob IDs equal the official ones; its model_config.json differs only in repo_id, restored here and checked against the official blob ID. The Controller verifies every file at ingress with the provider token.",
   "family_title": "Stable Audio 3",
   "identity": {
@@ -6,6 +10,18 @@
     "slug": "stable-audio-3-small-sfx-05ca3857"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "stabilityai",
+      "google"
+    ],
+    "spdx": "LicenseRef-Stability-AI-Community-License AND LicenseRef-Gemma-Terms-of-Use",
+    "url": "https://huggingface.co/stabilityai/stable-audio-3-small-sfx/blob/05ca3857881c94a2b84026b1111c537d78f5f9f0/LICENSE.md"
+  },
+  "modalities": [
+    "text",
+    "audio"
+  ],
   "model_title": "Stable Audio 3 Small SFX",
   "tags": [
     "stabilityai",

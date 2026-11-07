@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -522,19 +516,6 @@
     "version": "1017-exl3-2-7bpw-mcg-hq-a8006e99"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "DeepSeek AI",
-      "sfxnz",
-      "Turboderp"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/sfxnz/DeepSeek-V4.1-Flash-1017-EXL3/blob/a8006e99931e7d67c4d218c66543f478b521b857/LICENSE"
-  },
-  "modalities": [
-    "text",
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/sfxnz/DeepSeek-V4.1-Flash-1017-EXL3",

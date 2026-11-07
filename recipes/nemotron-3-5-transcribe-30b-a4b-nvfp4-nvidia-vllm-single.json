@@ -230,7 +230,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "5deebe12a6ded7a6272ef650d933ca2d59d53ba88da496701862bf1dc8d7f18f",
+        "content_sha256": "5f95a87edc5d1bcad37cb75509ccfe30c8583f52d714cd54e25e902b320e41be",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-transcribe-30b-a4b-nvfp4-66c6adc4"

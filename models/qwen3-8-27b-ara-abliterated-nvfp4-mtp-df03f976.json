@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -224,19 +219,6 @@
     "version": "df03f976e0f0c06f952dba7034220087f8582f51"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "trohrbaugh",
-      "aday777"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP/blob/df03f976e0f0c06f952dba7034220087f8582f51/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP",

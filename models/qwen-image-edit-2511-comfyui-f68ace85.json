@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "image-editing"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -33,17 +30,6 @@
     "version": "comfyui-f68ace85"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "Comfy-Org"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Qwen/Qwen-Image-Edit-2511/blob/6f3ccc0b56e431dc6a0c2b2039706d7d26f22cb9/LICENSE"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI",

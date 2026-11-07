@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -171,17 +165,6 @@
     "version": "NVFP4 4387675e"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Nex-AGI",
-      "r0b0tlab"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/r0b0tlab/nex-n2-mini-nvfp4/blob/4387675e4dfb5c1aade7a91a6cbcf2f951182bc2/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/r0b0tlab/nex-n2-mini-nvfp4",

@@ -1070,7 +1070,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "75a3172d9afe4479c9291ad4caa273cf79751c2a99247758b43a41dac8ab56cd",
+        "content_sha256": "c651bcebbb3f4339c0a8b448512c83a64bd27c0378facfd4d8540f98db1aadc8",
         "kind": "model",
         "publisher": "r0b0tlab",
         "slug": "mimo-v2-6-flash-rl-nvfp4-0c75a7a5"

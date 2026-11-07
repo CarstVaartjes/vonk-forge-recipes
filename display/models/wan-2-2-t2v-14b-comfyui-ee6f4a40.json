@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "video-generation"
+  ],
   "description": "Exact Comfy-Org scaled-FP8 high/low-noise T2V experts, encoder, and Wan VAE.",
   "family_title": "Wan",
   "identity": {
@@ -6,6 +9,17 @@
     "slug": "wan-2-2-t2v-14b-comfyui-ee6f4a40"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Wan-AI",
+      "Comfy-Org"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B/blob/c8c270b13ee05bfa474194ac9fb07a5868a97cea/LICENSE.txt"
+  },
+  "modalities": [
+    "video"
+  ],
   "model_title": "Wan 2.2 T2V 14B",
   "tags": [
     "wan",

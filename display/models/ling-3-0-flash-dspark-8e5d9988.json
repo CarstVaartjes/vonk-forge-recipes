@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Exact public Ling 3.0 Flash DSpark 8e5d9988 checkpoint.",
   "family_title": "Ling",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "ling-3-0-flash-dspark-8e5d9988"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "InclusionAI"
+    ],
+    "spdx": "LicenseRef-Ling-DSpark",
+    "url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-dspark/blob/8e5d9988c9b09de13f1f7c9d999ff2bfa533a149/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Ling 3.0 Flash DSpark companion",
   "tags": [
     "inclusionai",
