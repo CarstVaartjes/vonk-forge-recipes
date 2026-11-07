@@ -4712,24 +4712,27 @@ class Sweep:
             return
         # A test needs a cold start (startup peak, real load). The Controller keeps a run
         # whose execution identity matches and only renames it: clear it first, then load.
+        # A holder is the kept run itself (its run_id): a later run is a new holder.
         reused = {
-            str(r.get("alias"))
+            str(r["alias"]): r
             for r in runs
-            if isinstance(r, dict) and r.get("action") == "keep"
-        } & set(aliases)
+            if isinstance(r, dict)
+            and r.get("action") == "keep"
+            and str(r.get("alias")) in aliases
+        }
         if reused:
-            held = [p for alias, p in aliases.items() if alias in reused]
+            held = [aliases[alias] for alias in reused]
+            names = sorted(str(r.get("previous_alias") or a) for a, r in reused.items())
             self._rollback(
-                held, f"already running, a test needs a fresh start: {sorted(reused)}"
+                held, f"already running, a test needs a fresh start: {names}"
             )
             self._clear_holders(
-                sorted(reused),
+                sorted(str(r.get("run_id")) for r in reused.values()),
                 held,
                 document,
                 now,
-                "review would keep a running "
-                + ", ".join(sorted(reused))
-                + ": clearing",
+                "review would keep a running " + ", ".join(names) + ": clearing",
+                names,
             )
             remaining = [p for alias, p in aliases.items() if alias not in reused]
             if remaining:
@@ -4879,7 +4882,6 @@ class Sweep:
                 self.state.slots.pop(placement.recipe.key, None)
             self._rollback(added, f"load refused: {error}")
             return
-        self.state.data.pop("cleared_for", None)
         self.state.data["loads"][key]["app_id"] = submitted.get("id")
         if isinstance(submitted, Mapping):
             self.documents[key] = submitted
@@ -5161,8 +5163,13 @@ class Sweep:
         document: Mapping[str, Any],
         now: float,
         event: str,
+        labels: Sequence[str] | None = None,
     ) -> None:
-        """Workloads in the way of ``blocked`` are cleared once; if they outlive it, wait for their owner."""
+        """Workloads in the way of ``blocked`` are cleared once; if they outlive it, wait for their owner.
+
+        ``holders`` identify them (a run id, or a name); ``labels`` is what the text shows.
+        """
+        labels = labels if labels is not None else holders
         if self.state.data.get("cleared_for") != holders:
             self.state.data["cleared_for"] = holders
             self._request_clearing(now)
@@ -5178,7 +5185,7 @@ class Sweep:
                     placement.recipe.key,
                     "review",
                     "waiting",
-                    reason=f"review blocked by {', '.join(holders)}; their clearing "
+                    reason=f"review blocked by {', '.join(labels)}; their clearing "
                     f"was not submitted ({why}): clearing again",
                     disposition=Disposition.WAIT.value,
                     document=document,
@@ -5194,7 +5201,7 @@ class Sweep:
                 "review",
                 "waiting",
                 reason="review blocked by workloads that outlived a clearing: "
-                + ", ".join(holders),
+                + ", ".join(labels),
                 disposition=Disposition.WAIT.value,
                 document=document,
             )
