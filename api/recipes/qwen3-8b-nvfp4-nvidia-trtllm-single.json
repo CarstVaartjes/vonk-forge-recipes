@@ -1,0 +1,40 @@
+{
+  "api": {
+    "audio_output": false,
+    "default_output_tokens": {
+      "remaining": "context"
+    },
+    "endpoints": [
+      "/v1/chat/completions",
+      "/v1/completions",
+      "/v1/responses"
+    ],
+    "input_modalities": {
+      "audio": false,
+      "image": false,
+      "pdf": false,
+      "text": true,
+      "video": false
+    },
+    "max_input_tokens": 8192,
+    "max_output_tokens": {
+      "setting": "context_tokens"
+    },
+    "mode": "chat",
+    "reasoning": {
+      "kind": "none"
+    },
+    "streaming": true,
+    "structured_output": false,
+    "system_messages": true,
+    "tools": {
+      "kind": "none"
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8b-nvfp4-nvidia-trtllm-single"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}

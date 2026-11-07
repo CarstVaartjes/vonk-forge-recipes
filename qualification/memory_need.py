@@ -22,6 +22,7 @@ from typing import Annotated, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from vonk_forge_contracts import (
     ModelDefinition,
+    PublishedRoleMemory,
     QualificationMeasuredRoleMemory,
     RecipeDefinition,
     RecipeQualificationEvidence,
@@ -172,6 +173,7 @@ ATTENTION_ARCHITECTURES = frozenset(
         "LlamaForCausalLM",
         "MiMoV2ForCausalLM",
         "MiniMaxM2ForCausalLM",
+        "MiniMaxM3SparseForConditionalGeneration",
         "Step3p7ForConditionalGeneration",
         "Step5ForConditionalGeneration",
         "params.json",
@@ -417,12 +419,66 @@ def hardware_proven(
     return False
 
 
+def measured_peak_bytes(used_bytes: int) -> int:
+    """A role's peak from a Spark's observed use (OS included): the one conversion."""
+    return max(0, used_bytes - OS_FLOOR_BYTES)
+
+
 def holds_within(declared_bytes: int, used_bytes: int) -> bool:
     """Whether a Spark's observed use (OS included) fits a role's declared peak.
 
     The one rule for the sweep's memory-envelope note and for measured peaks.
     """
-    return used_bytes <= declared_bytes + OS_FLOOR_BYTES
+    return measured_peak_bytes(used_bytes) <= declared_bytes
+
+
+def published_measured_peaks(
+    recipe: RecipeDefinition,
+    document_digest: str,
+    evidence: RecipeQualificationEvidence,
+) -> tuple[PublishedRoleMemory, ...]:
+    """The measured steady peak per role the catalog carries for exactly this content.
+
+    A role is published only when hardware proved this content (a later recipe
+    failure withdraws it) and its row (keyed content, role) either covers every
+    launch variant the recipe allows (``keeps_measured_peaks`` for a vLLM budget,
+    else a single variant) or measured more than the declaration (raising is
+    always safe). A measurement above the admission maximum is carried as
+    information and flagged, while ``peak_bytes`` stays the declared peak: the
+    Controller admits on the declaration and warns.
+    """
+    if not hardware_proven(recipe, document_digest, evidence):
+        return ()
+    rows = {
+        row.role: row
+        for row in evidence.measured_memory
+        if row.content_sha256 == document_digest
+    }
+    variants = memory_variants(recipe)
+    published = []
+    for role in sorted(recipe.topology.roles, key=lambda item: item.name):
+        row = rows.get(role.name)
+        if row is None:
+            continue
+        declared = role.resources.memory.peak_bytes
+        measured = measured_peak_bytes(row.steady_bytes)
+        covers = (
+            all(keeps_measured_peaks(variant, row.budget_bytes) for variant in variants)
+            if row.budget_bytes is not None
+            else len(variants) == 1
+        )
+        if not (covers or measured > declared):
+            continue
+        over = measured > ADMISSION_MAXIMUM_PEAK_BYTES
+        published.append(
+            PublishedRoleMemory(
+                role=role.name,
+                peak_bytes=declared if over else measured,
+                measured_peak_bytes=measured,
+                exceeds_admission_maximum=over,
+            )
+        )
+    return tuple(published)
 
 
 def load_inputs(root: Path = ROOT) -> MemoryInputs:
