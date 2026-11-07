@@ -97,3 +97,19 @@ def test_observed_capacity_overrides_only_the_historical_fallback() -> None:
     )
     assert fleet.sparks[0].memory_total == observed
     assert fleet.sparks[1].memory_total == memory_need.SPARK_MEMORY_BYTES
+
+
+def test_measured_peak_conversion_and_publish_rule_have_one_owner() -> None:
+    """The Spark-use -> role-peak conversion and the publish rule live in memory_need only."""
+    source = Path(memory_need.__file__).read_text()
+    assert source.count("def measured_peak_bytes(") == 1
+    assert source.count("def published_measured_peaks(") == 1
+    builder = (
+        Path(memory_need.__file__).parents[1] / "tools/build-catalog-index"
+    ).read_text()
+    assert "published_measured_peaks(" in builder
+    assert "OS_FLOOR_BYTES" not in builder
+    assert "ADMISSION_IDLE_USE_BYTES" not in builder
+    # The sweep states the floor in its note; it never converts a use itself.
+    sweep = Path(memory.__file__).read_text()
+    assert "- OS_FLOOR_BYTES" not in sweep and "OS_FLOOR_BYTES +" not in sweep
