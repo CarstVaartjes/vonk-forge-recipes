@@ -14,6 +14,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from vonk_forge_contracts import CapabilityName
+
 _MODALITIES = {"language": "text", "multimodal": "text"}
 
 
@@ -57,6 +59,7 @@ def add_model_arguments(parser: argparse.ArgumentParser) -> None:
         "--capability",
         action="append",
         default=[],
+        choices=list(CapabilityName),
         help="a capability name the model supports (repeatable)",
     )
 
