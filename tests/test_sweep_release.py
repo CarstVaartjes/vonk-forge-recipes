@@ -260,6 +260,7 @@ def test_the_cli_takes_retry_failed_and_only(tmp_path: Path, gateway: Gateway) -
         [
             "run",
             "--yes",
+            "--no-client-key",
             "--no-publish-evidence",
             "--state-dir",
             str(tmp_path),
