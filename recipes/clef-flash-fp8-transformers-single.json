@@ -240,14 +240,16 @@
         "value": "clef-flash-fp8-transformers-single"
       },
       {
-        "name": "max-length",
+        "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
       }
     ],
-    "engine": "transformers",
+    "engine": "vllm",
     "entrypoint": [
-      "/opt/vonk/bin/clef-flash"
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
     ],
     "environment": [
       {
