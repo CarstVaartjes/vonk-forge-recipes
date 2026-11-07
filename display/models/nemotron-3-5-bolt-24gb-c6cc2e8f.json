@@ -20,6 +20,7 @@
     "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB/blob/c6cc2e8ffa353403213d6b9b18aaf8eb684d705a/LICENSE"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "model_title": "NVIDIA Nemotron 3.5 Bolt",
