@@ -156,6 +156,12 @@ def _library(tmp_path: Path, *slugs: str) -> Path:
         shutil.copy(ROOT / f"api/recipes/{slug}.json", tmp_path / "api/recipes")
         (tmp_path / "display/recipes").mkdir(parents=True, exist_ok=True)
         shutil.copy(ROOT / f"display/recipes/{slug}.json", tmp_path / "display/recipes")
+        # The launch scripts of the recipe's adapter are where an image's own
+        # parser flags live (serving_capabilities reads them).
+        execution = _json(ROOT / f"recipes/{slug}.json")["execution"]
+        context = execution.get("build", {}).get("context", {}).get("path")
+        if context and (ROOT / context).is_dir():
+            shutil.copytree(ROOT / context, tmp_path / context, dirs_exist_ok=True)
     return tmp_path
 
 
