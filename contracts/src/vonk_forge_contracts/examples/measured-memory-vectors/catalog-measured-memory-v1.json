@@ -1,0 +1,118 @@
+{
+  "description": "Shared vector for the catalog's measured_memory sibling key (contracts 4.2.0). vonk-forge-recipes builds the entry from the evidence rows; the Controller admits on each role's peak_bytes. measured_peak_bytes = steady_bytes - os_floor_bytes. Over the admission maximum, peak_bytes stays the declared peak and the flag is set (keep declared + warn).",
+  "os_floor_bytes": 2147483648,
+  "admission_maximum_peak_bytes": 124452516352,
+  "cases": [
+    {
+      "name": "stricter: measured above declared, 73 launch variants",
+      "recipe": "deepseek-v4-1-flash-exl3-sfxnz-vllm-dual",
+      "declared_peak_bytes": {
+        "entrypoint": 117100000000,
+        "worker": 117100000000
+      },
+      "evidence_rows": [
+        {
+          "role": "entrypoint",
+          "steady_bytes": 123957866496,
+          "budget_bytes": null
+        },
+        {
+          "role": "worker",
+          "steady_bytes": 124024504320,
+          "budget_bytes": null
+        }
+      ],
+      "measured_memory": {
+        "roles": [
+          {
+            "role": "entrypoint",
+            "peak_bytes": 121810382848,
+            "measured_peak_bytes": 121810382848,
+            "exceeds_admission_maximum": false
+          },
+          {
+            "role": "worker",
+            "peak_bytes": 121877020672,
+            "measured_peak_bytes": 121877020672,
+            "exceeds_admission_maximum": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "looser: measured below declared, one launch variant",
+      "recipe": "minimax-m3-1-flash-exl3-sage-2-15bpw-tonyd2wild-vllm-dual",
+      "declared_peak_bytes": {
+        "entrypoint": 111063746765,
+        "worker": 111063746765
+      },
+      "evidence_rows": [
+        {
+          "role": "entrypoint",
+          "steady_bytes": 97472540672,
+          "budget_bytes": null
+        },
+        {
+          "role": "worker",
+          "steady_bytes": 96664674304,
+          "budget_bytes": null
+        }
+      ],
+      "measured_memory": {
+        "roles": [
+          {
+            "role": "entrypoint",
+            "peak_bytes": 95325057024,
+            "measured_peak_bytes": 95325057024,
+            "exceeds_admission_maximum": false
+          },
+          {
+            "role": "worker",
+            "peak_bytes": 94517190656,
+            "measured_peak_bytes": 94517190656,
+            "exceeds_admission_maximum": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "over the admission maximum: declared stays, measured is information",
+      "recipe": "deepseek-v4-flash-0731-mia-sparkinfer-single",
+      "declared_peak_bytes": {
+        "entrypoint": 124452516352
+      },
+      "evidence_rows": [
+        {
+          "role": "entrypoint",
+          "steady_bytes": 130416881664,
+          "budget_bytes": 122823437599
+        }
+      ],
+      "measured_memory": {
+        "roles": [
+          {
+            "role": "entrypoint",
+            "peak_bytes": 124452516352,
+            "measured_peak_bytes": 128269398016,
+            "exceeds_admission_maximum": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "lower but launch variants not covered: not published",
+      "recipe": "qwen3-8-27b-ashhart-tensorfold-single",
+      "declared_peak_bytes": {
+        "entrypoint": 67000000000
+      },
+      "evidence_rows": [
+        {
+          "role": "entrypoint",
+          "steady_bytes": 44130844672,
+          "budget_bytes": null
+        }
+      ],
+      "measured_memory": null
+    }
+  ]
+}

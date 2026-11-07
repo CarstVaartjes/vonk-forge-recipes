@@ -318,6 +318,50 @@ class QualificationStatusView(PublicQualificationModel):
     required_sparks: int = Field(ge=1)
 
 
+class PublishedRoleMemory(PublicQualificationModel):
+    """What one role of one content measured on hardware, as the catalog carries it.
+
+    ``measured_peak_bytes`` is information: the role's workload bytes (the
+    observed Spark use less the OS floor), never the recipe's declaration.
+    ``peak_bytes`` is the one value admission reads: the measured peak, or, when
+    that exceeds the admission maximum (``exceeds_admission_maximum``), the
+    role's declared peak. The Controller admits on ``peak_bytes`` and, for the
+    flagged case, shows a warning that hardware measured more than it can admit.
+    """
+
+    role: Identifier
+    peak_bytes: int = Field(ge=0)
+    measured_peak_bytes: int = Field(ge=0)
+    exceeds_admission_maximum: bool = False
+
+    @model_validator(mode="after")
+    def _admits_the_measurement_unless_over_the_maximum(self) -> Self:
+        if not self.exceeds_admission_maximum and (
+            self.peak_bytes != self.measured_peak_bytes
+        ):
+            raise ValueError(
+                "only an over-maximum measurement may differ from the peak"
+            )
+        return self
+
+
+class PublishedMeasuredMemory(PublicQualificationModel):
+    """A catalog entry's sibling key ``measured_memory``: roles of exactly its content.
+
+    Never part of :class:`PublishedQualificationStatusView`, which forbids unknown
+    fields: an older Controller reads the status unchanged and ignores this key.
+    """
+
+    roles: tuple[PublishedRoleMemory, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _roles_are_sorted_and_unique(self) -> Self:
+        names = [item.role for item in self.roles]
+        if names != sorted(set(names)):
+            raise ValueError("measured memory roles must be sorted and unique")
+        return self
+
+
 class PublishedQualificationStatusView(PublicQualificationModel):
     status: Literal[
         QualificationStatus.WORKING,
@@ -568,3 +612,7 @@ def qualification_status_json_schema() -> dict[str, object]:
 
 def published_qualification_status_json_schema() -> dict[str, object]:
     return PublishedQualificationStatusView.model_json_schema()
+
+
+def published_measured_memory_json_schema() -> dict[str, object]:
+    return PublishedMeasuredMemory.model_json_schema()
