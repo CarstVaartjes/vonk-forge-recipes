@@ -4,13 +4,19 @@ from __future__ import annotations
 
 import hashlib
 import json
+import struct
 from pathlib import Path
 from typing import Any
 
 import pytest
 from pydantic import ValidationError
 from vonk_forge_contracts import RecipeDefinition
-from vonk_forge_contracts.recipe import RecipeMultipartServingRequest
+from vonk_forge_contracts.recipe import (
+    MIN_SPEECH_SECONDS,
+    RecipeMultipartServingRequest,
+    WavFacts,
+    wav_facts,
+)
 from vonk_forge_contracts.resolver import (
     ContractResolutionError,
     validate_recipe_package_paths,
@@ -103,3 +109,38 @@ def test_the_raw_jfk_fixture_is_the_recorded_public_domain_clip() -> None:
     assert raw[:4] == b"RIFF" and raw[8:12] == b"WAVE"
     assert entry["provenance"]["license_spdx"] == "LicenseRef-PD-USGov"
     assert "commons.wikimedia.org" in entry["provenance"]["source_url"]
+
+
+def _wav(
+    data: bytes, size: int | None = None, rate: int = 24000, tag: int = 1
+) -> bytes:
+    fmt = struct.pack("<HHIIHH", tag, 1, rate, rate * 2, 2, 16)
+    declared = len(data) if size is None else size
+    return (
+        b"RIFF"
+        + struct.pack("<I", 36 + len(data))
+        + b"WAVE"
+        + b"fmt "
+        + struct.pack("<I", 16)
+        + fmt
+        + b"data"
+        + struct.pack("<I", declared)
+        + data
+    )
+
+
+def test_wav_facts_reads_the_duration_and_defines_the_streamed_size() -> None:
+    one_second = b"\x00" * 48000
+    assert wav_facts(_wav(one_second)) == WavFacts(1, 1, 24000, 1.0)
+    # Size 0 and 0xFFFFFFFF mean "the rest of the body"; an oversize is clamped.
+    for size in (0, 0xFFFFFFFF, 10**9):
+        assert wav_facts(_wav(one_second, size)) == WavFacts(1, 1, 24000, 1.0)
+    assert wav_facts(_wav(one_second, tag=3)) == WavFacts(3, 1, 24000, 1.0)
+    assert MIN_SPEECH_SECONDS == 0.5
+
+
+@pytest.mark.parametrize(
+    "raw", [b"", b"not a wav", b"RIFF....WAVE", _wav(b"\x00" * 8, rate=0)]
+)
+def test_wav_facts_refuses_what_does_not_decode(raw: bytes) -> None:
+    assert wav_facts(raw) is None

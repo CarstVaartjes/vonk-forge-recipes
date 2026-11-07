@@ -36,9 +36,13 @@ KINDS = frozenset(
         "path.nonempty",
         "path.regex",
         "raw.not-contains",
+        "speech.audio",
+        "transcription.nonempty",
     }
 )
-_FIELDS = frozenset({"kind", "path", "value", "values", "item_path", "count"})
+_FIELDS = frozenset(
+    {"kind", "path", "value", "values", "item_path", "count", "min_seconds"}
+)
 
 
 def _assertion_problems(case: str, tier: str, assertion: object) -> list[str]:
