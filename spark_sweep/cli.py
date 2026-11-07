@@ -101,6 +101,11 @@ def _parser() -> argparse.ArgumentParser:
         help="do not keep a never-loaded profile that protects downloads from eviction",
     )
     run.add_argument("--client-key-file", type=Path)
+    run.add_argument(
+        "--no-client-key",
+        action="store_true",
+        help="smoke through a gateway that needs no client key (otherwise --client-key-file is required)",
+    )
     run.add_argument("--ca-file", type=Path)
     run.add_argument("--insecure-tls", action="store_true")
     run.add_argument("--max-model-downloads", type=int, default=3)
@@ -225,6 +230,15 @@ def _config(args: argparse.Namespace) -> SweepConfig:
         )
     if not args.no_pin and args.pin_profile == args.sweep_profile:
         raise SystemExit("--pin-profile must differ from --sweep-profile")
+    if args.client_key_file is None and not args.no_client_key:
+        raise SystemExit(
+            "the smoke cases call the gateway: pass --client-key-file (or --no-client-key "
+            "for a gateway without keys); a restart that drops it fails every smoke"
+        )
+    if args.client_key_file is not None and not args.client_key_file.is_file():
+        raise SystemExit(
+            f"--client-key-file {args.client_key_file} is not a readable file"
+        )
     return SweepConfig(
         state_dir=args.state_dir,
         authority_id=args.authority_id,

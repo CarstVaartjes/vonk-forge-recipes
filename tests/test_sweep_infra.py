@@ -255,7 +255,14 @@ def test_the_cli_updates_a_skewed_client(
     )
     fleet.accepted_version = "1.1"
     code = main(
-        ["run", "--yes", "--no-publish-evidence", "--state-dir", str(tmp_path / "s")],
+        [
+            "run",
+            "--yes",
+            "--no-client-key",
+            "--no-publish-evidence",
+            "--state-dir",
+            str(tmp_path / "s"),
+        ],
         vonkctl_factory=lambda exe: Vonkctl(exe, runner=fleet.runner),
         clock=clock,
         definitions=make_definitions(recipes),
