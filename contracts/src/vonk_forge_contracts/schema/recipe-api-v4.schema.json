@@ -332,6 +332,177 @@
       "title": "ApiToolsSupported",
       "type": "object"
     },
+    "AudioSpeechApi": {
+      "additionalProperties": false,
+      "description": "A route serving ``POST /v1/audio/speech``: text in, audio bytes out.\n\n``voices`` are the values of OpenAI's ``voice`` parameter; the first is the\nroute's health-check voice. ``instructions`` and ``speed`` say whether the\nengine honours those OpenAI parameters. ``max_input_chars`` bounds ``input``.",
+      "properties": {
+        "mode": {
+          "const": "audio_speech",
+          "title": "Mode",
+          "type": "string"
+        },
+        "voices": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Voices",
+          "type": "array"
+        },
+        "response_formats": {
+          "items": {
+            "enum": [
+              "mp3",
+              "opus",
+              "aac",
+              "flac",
+              "wav",
+              "pcm"
+            ],
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Response Formats",
+          "type": "array"
+        },
+        "instructions": {
+          "title": "Instructions",
+          "type": "boolean"
+        },
+        "speed": {
+          "title": "Speed",
+          "type": "boolean"
+        },
+        "max_input_chars": {
+          "minimum": 1,
+          "title": "Max Input Chars",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "mode",
+        "voices",
+        "response_formats",
+        "instructions",
+        "speed",
+        "max_input_chars"
+      ],
+      "title": "AudioSpeechApi",
+      "type": "object"
+    },
+    "AudioTranscriptionApi": {
+      "additionalProperties": false,
+      "description": "A route serving ``POST /v1/audio/transcriptions``: one audio upload in.\n\nThe input is audio by mode, so the block has no modalities or token limits.\n``max_file_bytes`` and ``max_audio_seconds`` are the engine's own upload and\ndecode limits (``null``: the engine states no duration limit); ``languages``\nare the ISO 639-1 values of OpenAI's ``language`` parameter the engine\naccepts. ``prompt`` and ``temperature`` say whether the engine honours those\nOpenAI parameters; no ``timestamp_granularities`` means none are offered.",
+      "properties": {
+        "mode": {
+          "const": "audio_transcription",
+          "title": "Mode",
+          "type": "string"
+        },
+        "input_formats": {
+          "items": {
+            "enum": [
+              "flac",
+              "m4a",
+              "mp3",
+              "mp4",
+              "mpeg",
+              "mpga",
+              "ogg",
+              "wav",
+              "webm"
+            ],
+            "type": "string"
+          },
+          "maxItems": 9,
+          "minItems": 1,
+          "title": "Input Formats",
+          "type": "array"
+        },
+        "max_file_bytes": {
+          "maximum": 268435456,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "max_audio_seconds": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Audio Seconds"
+        },
+        "languages": {
+          "items": {
+            "pattern": "^[a-z]{2}$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Languages",
+          "type": "array"
+        },
+        "response_formats": {
+          "items": {
+            "enum": [
+              "json",
+              "text",
+              "srt",
+              "verbose_json",
+              "vtt",
+              "diarized_json"
+            ],
+            "type": "string"
+          },
+          "maxItems": 6,
+          "minItems": 1,
+          "title": "Response Formats",
+          "type": "array"
+        },
+        "prompt": {
+          "title": "Prompt",
+          "type": "boolean"
+        },
+        "timestamp_granularities": {
+          "items": {
+            "enum": [
+              "word",
+              "segment"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Timestamp Granularities",
+          "type": "array"
+        },
+        "temperature": {
+          "title": "Temperature",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "mode",
+        "input_formats",
+        "max_file_bytes",
+        "max_audio_seconds",
+        "languages",
+        "response_formats",
+        "prompt",
+        "timestamp_granularities",
+        "temperature"
+      ],
+      "title": "AudioTranscriptionApi",
+      "type": "object"
+    },
     "ChatApi": {
       "additionalProperties": false,
       "properties": {
@@ -523,6 +694,8 @@
         "api": {
           "discriminator": {
             "mapping": {
+              "audio_speech": "#/$defs/AudioSpeechApi",
+              "audio_transcription": "#/$defs/AudioTranscriptionApi",
               "chat": "#/$defs/ChatApi",
               "decision": "#/$defs/DecisionApi"
             },
@@ -534,6 +707,12 @@
             },
             {
               "$ref": "#/$defs/DecisionApi"
+            },
+            {
+              "$ref": "#/$defs/AudioTranscriptionApi"
+            },
+            {
+              "$ref": "#/$defs/AudioSpeechApi"
             }
           ],
           "title": "Api"
@@ -587,6 +766,8 @@
     "api": {
       "discriminator": {
         "mapping": {
+          "audio_speech": "#/$defs/AudioSpeechApi",
+          "audio_transcription": "#/$defs/AudioTranscriptionApi",
           "chat": "#/$defs/ChatApi",
           "decision": "#/$defs/DecisionApi"
         },
@@ -598,6 +779,12 @@
         },
         {
           "$ref": "#/$defs/DecisionApi"
+        },
+        {
+          "$ref": "#/$defs/AudioTranscriptionApi"
+        },
+        {
+          "$ref": "#/$defs/AudioSpeechApi"
         }
       ],
       "title": "Api"

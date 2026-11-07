@@ -233,11 +233,9 @@ class RealClock:
 FLEET_SKIP = SkipReasonKind.FLEET
 #: Skipped because the recipe left the complete catalog; undone when it comes back.
 CATALOG_SKIP = SkipReasonKind.CATALOG
-#: Skipped because the platform cannot load this kind of recipe through a fleet profile yet:
-#: the sweep's own decision, neither a recipe verdict nor a platform fault. It heals by itself
-#: once ``_platform_cannot_load`` no longer holds for the recipe.
+#: Older state files hold job recipes skipped as "platform cannot load yet" (the removed
+#: ``--job-recipes`` gate); reconcile returns every such entry to pending.
 PLATFORM_SKIP = SkipReasonKind.PLATFORM
-JOB_SKIP_CODE = "platform.job_recipes_not_loadable"
 
 
 def _fleet_skip(entry: Mapping[str, Any]) -> bool:
@@ -287,9 +285,6 @@ class SweepConfig:
     # Preparation waits use this shorter bound, capped by the lane budget.
     # Expiry re-plans without spending an attempt.
     blocked_release_seconds: float = 300.0
-    # The deployed Controller loads job recipes as profile members (vonk-forge #1491) and
-    # reports a held job run healthy (#1494). Off: job recipes are skipped before any lane.
-    job_recipes_loadable: bool = False
 
 
 #: The traceback frames a sweep crash keeps as evidence: where it raised, and its callers.
@@ -739,15 +734,6 @@ class Sweep:
             if recipe.node_count <= enrolled:
                 self._reconcile_entry(recipe, enrolled)
 
-    def _platform_cannot_load(self, recipe: Recipe) -> bool:
-        """Job recipes, until the deployed Controller can load them (``--job-recipes``).
-
-        Without vonk-forge #1491 the run-switch builds a serving start payload for a job
-        plan, which never validates; without #1494 a held job run reads degraded. Either
-        way the lane would end in a false verdict, so the sweep decides before admission.
-        """
-        return recipe.is_job and not self.cfg.job_recipes_loadable
-
     def _selected(self, recipe: Recipe) -> bool:
         return not self.cfg.only or any(word in recipe.key for word in self.cfg.only)
 
@@ -824,9 +810,7 @@ class Sweep:
                 recipe.key, "reconcile", "pending", reason="back in the catalog"
             )
             self.state.event(f"{recipe.key} is back in the catalog: pending")
-        if entry.get("reason_kind") == PLATFORM_SKIP and not self._platform_cannot_load(
-            recipe
-        ):
+        if entry.get("reason_kind") == PLATFORM_SKIP:
             entry["status"] = "pending"
             entry.pop("reason", None)
             entry.pop("reason_kind", None)
@@ -834,27 +818,6 @@ class Sweep:
                 recipe.key, "reconcile", "pending", reason="loadable on this platform"
             )
             self.state.event(f"{recipe.key} is loadable on this platform: pending")
-        if self._platform_cannot_load(recipe):
-            slot = self.state.slots.get(recipe.key)
-            if entry.get("status") == "pending" and (
-                slot is None or slot.get("phase") == "finished"
-            ):
-                reason = "job recipes are not loadable through a fleet profile on this platform yet"
-                self.record_result(
-                    recipe.key,
-                    "reconcile",
-                    "skipped",
-                    reason=reason,
-                    code=JOB_SKIP_CODE,
-                )
-                self.state.event(f"skipped {recipe.key}: {JOB_SKIP_CODE}")
-                entry.update(
-                    status="skipped",
-                    reason=reason,
-                    reason_kind=PLATFORM_SKIP,
-                    content_sha256=recipe.content_sha256,
-                )
-            return  # never requeued while the platform cannot load it
         if recipe.node_count > enrolled_sparks and (
             entry.get("status") == "pending" or _fleet_skip(entry)
         ):
@@ -963,7 +926,7 @@ class Sweep:
                 or recipe.key in self.state.slots
             ):
                 continue
-            if not self._selected(recipe) or self._platform_cannot_load(recipe):
+            if not self._selected(recipe):
                 continue
             out.append(recipe)
         out.sort(
@@ -1333,7 +1296,6 @@ class Sweep:
             entry
             and entry.get("status") == "pending"
             and self._selected(self.recipes[key])
-            and not self._platform_cannot_load(self.recipes[key])
         )
 
     def adopt_in_flight(self) -> None:
