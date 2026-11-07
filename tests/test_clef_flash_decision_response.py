@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
+import pytest
 from vonk_forge_contracts.systemone import (
     SystemOneRequest,
     SystemOneResponse,
@@ -74,3 +75,36 @@ def test_native_answer_validates_against_the_platform_contract() -> None:
 def test_request_id_is_the_response_id() -> None:
     result = _load().platform_response({**REQUEST, "request_id": "abc"}, NATIVE)
     assert result["id"] == "abc"
+
+
+def test_rounding_drift_is_renormalised_and_score_recomputed() -> None:
+    # Four-decimal rounding leaves 0.9999 of mass; the native score is stale.
+    request = {
+        "model": "clef-flash",
+        "state": "x",
+        "questions": {
+            "urgency": {"type": "score", "criteria": ["Low", "Mid", "High"]},
+        },
+    }
+    native = {
+        "model": "clef-flash",
+        "answers": {
+            "urgency": {
+                "type": "score",
+                "score": 0.9999,
+                "confidence": 0.3333,
+                "legend": {"0": "Low", "1": "Mid", "2": "High"},
+                "probabilities": {"0": 0.3333, "1": 0.3333, "2": 0.3333},
+            }
+        },
+        "usage": {"input_tokens": 1, "output_tokens": 0},
+    }
+    result = _load().platform_response(request, native)
+    answer = result["answers"]["urgency"]
+    assert sum(answer["probabilities"].values()) == pytest.approx(1.0, abs=1e-9)
+    assert answer["score"] == pytest.approx(1.0, abs=1e-9)
+    assert answer["confidence"] == pytest.approx(1 / 3, abs=1e-9)
+    validate_decision_result(
+        SystemOneRequest.model_validate(request),
+        SystemOneResponse.model_validate(result),
+    )
