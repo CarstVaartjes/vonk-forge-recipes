@@ -210,6 +210,22 @@ jobs:
             esac
           done
 
+      # The Controller reads a recipe with the contracts version its lock pins.
+      # A serving kind or Model capability newer than that is a read failure there, so
+      # it may not land until the pinned platform reads it. The minimum per
+      # value is owned by qualification/introduced.py.
+      - name: Require every recipe to be readable by the pinned platform
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ref=$(grep -rhoE 'platform_ref: [0-9a-f]{40}' .github/workflows | grep -oE '[0-9a-f]{40}' | sort -u)
+          test "$(echo "$ref" | wc -l)" = 1
+          gh api "repos/CarstVaartjes/vonk-forge/contents/control/packaging/public-contracts.lock?ref=${ref}" \
+            -H 'Accept: application/vnd.github.raw+json' > "$RUNNER_TEMP/platform-contracts.lock"
+          "$RECIPE_TEST_PYTHON" tools/check-platform-contracts --platform-lock "$RUNNER_TEMP/platform-contracts.lock"
+
       - name: Require touched multi-Spark vLLM recipes to bound KV by need
         shell: bash
         run: |
