@@ -1873,6 +1873,70 @@
           "path": "answers.direction.probabilities"
         }
       ]
+    },
+    "ASR_TRANSCRIPTION_JFK": {
+      "method": "POST",
+      "path": "/audio/transcriptions",
+      "body": null,
+      "multipart": {
+        "fields": {
+          "model": "$ALIAS",
+          "language": "en",
+          "response_format": "json"
+        },
+        "file": {
+          "field": "file",
+          "$fixture": "service-speech-jfk-wav"
+        }
+      },
+      "timeout_seconds": 300,
+      "max_response_bytes": 262144,
+      "assertions": [
+        {
+          "kind": "transcription.nonempty"
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "text",
+          "value": "[\\s\\S]*(?i:final judge)[\\s\\S]*",
+          "expected": "final judge"
+        },
+        {
+          "kind": "path.regex",
+          "path": "text",
+          "value": "[\\s\\S]*(?i:land we love)[\\s\\S]*",
+          "expected": "land we love"
+        }
+      ]
+    },
+    "TTS_SPEECH": {
+      "method": "POST",
+      "path": "/audio/speech",
+      "body": {
+        "model": "$ALIAS",
+        "input": {
+          "$fixture_text": "tts-text"
+        },
+        "voice": "$VOICE",
+        "response_format": "wav"
+      },
+      "response": "audio",
+      "timeout_seconds": 300,
+      "max_response_bytes": 33554432,
+      "assertions": [
+        {
+          "kind": "speech.audio"
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "speech.audio",
+          "min_seconds": 1.5,
+          "expected": "at least 1.5 s of speech"
+        }
+      ]
     }
   }
 }
