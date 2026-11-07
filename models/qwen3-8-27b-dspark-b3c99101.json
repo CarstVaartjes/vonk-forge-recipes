@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -76,17 +75,6 @@
     "version": "Qwen3.8 27B DSpark v2 b3c99101"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "RadixArk"
-    ],
-    "spdx": "LicenseRef-Qwen3.8-DSpark",
-    "url": "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/blob/b3c9910194dc7ae53fea3d95a1959b654f495416/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark",

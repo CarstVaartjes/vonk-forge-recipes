@@ -116,8 +116,8 @@ prove that every embedded source, container, or dependency is current.
 
 The [Pydantic definitions](../contracts/src/vonk_forge_contracts) are the source
 of truth; the [generated JSON Schemas](../contracts/src/vonk_forge_contracts/schema)
-(`recipe-definition-v3`, `model-definition-v3`, `recipe-display-v3`,
-`model-display-v3`) state every field's shape, bound, enum and default. Use the
+(`recipe-definition-v4`, `model-definition-v4`, `recipe-display-v4`,
+`model-display-v4`, `recipe-api-v4`) state every field's shape, bound, enum and default. Use the
 [examples](../contracts/src/vonk_forge_contracts/examples) (a Recipe, Model and
 display for each shape) for structure only; replace synthetic identities and
 data with verified inputs.
@@ -125,20 +125,75 @@ data with verified inputs.
 The roots are strict: authoring rejects unknown fields. Do not use lenient
 published-document readers to bypass producer validation (`tests/test_contracts.py`).
 
-| Document | Required structure (read the definitions for typed variants); every document also writes its defaulted `kind` (`model`, `recipe`, `recipe-display`, `model-display`) |
+| Document | Required structure (read the definitions for typed variants); every document also writes its defaulted `kind` (`model`, `recipe`, `recipe-display`, `model-display`, `recipe-api`) |
 | --- | --- |
-| Model | `identity`, `requires_token`, `dependencies`, `modalities`, `source`, `format`, `license`, `files`, `capabilities`. |
+| Model | `identity`, `requires_token`, `dependencies`, `source`, `format`, `files`. |
 | Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
 | Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment` is optional. |
-| Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`. |
+| Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`, and the Model's declared facts: `modalities`, `capabilities`, `license`. |
+| Recipe API | `identity` (the Recipe's), `api` (a `chat` or `decision` block, every field required), `option_choices`. |
 
-A document holds execution data only. What a person reads about it lives in
-its display file, `display/recipes/<slug>.json`
+A document holds execution data only. What a person or a filter reads about it
+(titles, description, tags, and a Model's `modalities`, `capabilities` and
+`license`) lives in its display file, `display/recipes/<slug>.json`
 or `display/models/<slug>.json`, one per document and no orphan (`RecipeDisplay`,
 `ModelDisplay`, checked by `validate_library`). A display edit never changes a
 document, its `content_sha256`, its evidence or its proven status; a change that
 alters what runs edits the document. Read display through `qualification/documents.py`
 (`recipe_display`, `model_display`), never off a document.
+
+### Recipe API facts
+
+An OpenAI-interface generation or decision recipe also has `api/recipes/<slug>.json`
+(`RecipeApi`, `kind: "recipe-api"`): what a client may rely on when it calls the
+route. It is a sibling like the display: editing it never changes the recipe's
+`content_sha256`, its evidence or its proven status, and a recipe without one
+publishes no gateway facts (the block is optional at contract level; the guard
+requires it on every recipe you add or change). The `api` block is discriminated
+by `mode`, and every field is written down, "not applicable" included (`false`,
+`{"kind": "none"}`, `null`):
+
+- `chat`: `max_output_tokens` (`{"value": N}` or `{"setting": "context_tokens"}`),
+  `default_output_tokens` (`{"argument": "<runtime argument>"}`, read from the
+  recipe's arguments so the number is never copied; `{"value": N}` only when the
+  server code fixes it; or `{"remaining": "context"|"slot_context"}`),
+  `max_input_tokens` (`null`, or the engine's own lower prompt cap: TRT-LLM
+  without chunked prefill, a llama.cpp slot's share of `--ctx-size`),
+  `input_modalities` (`text`, `image`, `video`, `audio`, `pdf`), `audio_output`,
+  `reasoning`, `tools`, `structured_output`, `system_messages`, `streaming`,
+  `endpoints`.
+- `reasoning` is `{"kind": "none"}`, `{"kind": "always-on", "effort": ...}` or
+  `{"kind": "switch", "via", "keys", "on", "off", "default": "on"|"off"|"model",
+  "effort": ...}`; `effort` is `null` or `{via, key, levels, default}` with the
+  default one of the levels. State what this route's engine and template do, not
+  what the model family does.
+- `tools` is `{"kind": "none"}` or `{"kind": "supported", "tool_choice": [...],
+  "parallel_calls": bool}`; an empty `tool_choice` means the field is only a
+  prompt nudge.
+- `decision` (the `/v1/systemone` recipes): `max_input_tokens` and
+  `input_modalities` only. A synthetic example is `recipe-api-decision.json`.
+
+An option choice that changes any of these facts carries its own complete
+block in `option_choices` (`{option, value, api}`); it replaces the base block as
+a whole, applied by `RecipeApi.for_choices` the way `with_option_choices`
+applies arguments. Only one option of a recipe may carry blocks.
+
+`check_recipe_api(recipe, api)` is the structural check, run for the base route
+and for every option choice against the runtime that choice compiles to: image,
+video or audio input conflicts with `--language-model-only` or a
+`--limit-mm-per-prompt` of 0 on vLLM; the engine's context argument
+(`CONTEXT_ARGUMENTS`, the one table, also used by the memory estimator) must be
+present and bound to `context_tokens`, or the block declares an explicit
+`max_input_tokens`; limits cannot exceed the context; a `default_output_tokens`
+argument must exist with an integer value; llama.cpp `--parallel` gives each
+request only its slot's share. `check_api_models` requires a selected Model whose
+display declares each accepted modality (image also needs `image-understanding`; the
+D3 `vision` name is not accepted). Whether the launch really enables a tool-call
+or reasoning parser is not re-derived: `tools/check-recipe-api` asks
+`qualification.capabilities.serving_capabilities` (runtime arguments, adapter
+scripts, kit flags) for every variant. The guard runs all three on added or
+changed recipes and API files; there is no allowlist of gaps.
+Read the document through `qualification/documents.py` (`recipe_api`).
 
 `settings.kind` selects the typed generation, embedding, job or decision shape;
 never invent an LLM context length for an artifact job. `interfaces` contains one
@@ -148,7 +203,7 @@ OpenAI-compatible HTTP or filesystem job interface. Native decision models use
 extensions (`tests/test_systemone_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v3.1.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.0.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -159,7 +214,7 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`:
   `read_recipe`, which ignore fields they do not know, and identifies each
   document by the `document_sha256` of its published JSON, so an older
   Controller keeps working and picks the field up when vonk-forge upgrades.
-- **Breaking (major, for example `3.0.0`, which moved display text out of the documents):** remove or rename a field, make one required,
+- **Breaking (major, for example `3.0.0`, which moved display text out of the documents, and `4.0.0`, which moved a Model's modalities, capabilities and licence into its display):** remove or rename a field, make one required,
   or change a field's meaning. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
   unknown fields does not let an old reader accept a missing required field.
@@ -187,7 +242,8 @@ Resolve an immutable source identity and enumerate the files needed to load
 the model, including configuration, tokenizer, companion data, and license.
 For GitHub release assets, bind the numeric release ID and each file's numeric
 asset ID; do not use a mutable tag or browser download URL as the source
-identity. This provider supports public, anonymous assets only. For Git LFS
+identity (an adapter's build input is different: it is a release asset URL pinned
+by sha256). This provider supports public, anonymous assets only. For Git LFS
 objects in a public GitHub repository, use the `github-lfs` source: pin the
 full commit SHA as `revision`, make every file of the Model one LFS object
 (`sha256` is the LFS oid, `size_bytes` the LFS size, `path` the repository path
@@ -206,7 +262,7 @@ non-LFS files over 16 MiB), and writes a validated
 `models/<--version-slug>.json`. It prints the pinned revision, the Model's
 `document_sha256` to use in recipe model references, and the total bytes. You
 still supply identity, license, `--requires-token` for a gated repository and
-`--capability` names through its flags. Review the file list and roles, drop
+`--capability` names through its flags (these are written to the Model's display file, not the Model). Review the file list and roles, drop
 files the model does not need, and list only capabilities the model supports
 before you use the Model in a recipe.
 
@@ -237,8 +293,10 @@ build context or publication. A configured token does not prove that the account
 has accepted terms or received model-specific approval. Verify access separately
 and report pending approval accurately; publication is not download readiness.
 
-`capabilities` is the list of capability names the model supports. Leave out
-what is unknown. A source model's vision capability does not prove that every
+`capabilities` (in the Model's display, with `modalities` and `license`) is the list
+of capability names the model supports. Leave out what is unknown. Correcting one
+of these facts edits `display/models/<slug>.json` only: no Model or Recipe digest
+moves, so no proven recipe is re-run. A source model's vision capability does not prove that every
 engine recipe can serve images.
 
 Preserve upstream license terms, territorial notices, and their source links
@@ -260,7 +318,12 @@ recipe builds its image from a digest-pinned ARM64 base image
 (`base_image.digest` is the bare 64-hex digest, without `sha256:`) and a
 recipe-owned build context, Dockerfile and patches. The build reaches
 only the hosts in `execution.build.network.hosts`; an empty list builds
-offline. Include all required local build inputs, patches, entrypoints,
+offline (`--network=none`), so a pip/uv install that can reach an index must
+declare the index hosts. An install is exempt with `--no-index`, or when it uses
+local targets with `--no-deps` and either all `.whl` files or
+`--no-build-isolation`; without `--no-index`, a `-r`/`--requirement` install counts as fetching.
+`tests/test_build_network_hosts.py` checks this for recipes with an empty host
+list. Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
 
@@ -606,7 +669,10 @@ its strict DeepSeek V4 tool grammar with a reasoning block even for
 `VLLM_ENFORCE_STRICT_TOOL_CALLING=0`
 (`tests/test_deepseek_v4_b12x_named_tool_stop.py`). Newer B12X builds, such as
 vLLM 8244d1c4 in base `sha256:03a956544e9f...`, pass `reasoning=False` and need
-no setting.
+no setting. The SparkInfer base `sha256:2e077489a83a...` (vLLM 30038602) builds
+the same forced-call tag: a recipe on it that declares `T_REPORT` also sets
+`VLLM_ENFORCE_STRICT_TOOL_CALLING=0`, or the named call runs twice (#2292). The
+test selects a recipe by base digest, and on SparkInfer by `T_REPORT` too.
 
 On GB10, CPU and CUDA allocations share physical memory: CPU/model/sequential/
 group offload adds device transitions and can duplicate storage; it is not a
@@ -750,6 +816,11 @@ Its `add_generation_prompt` branch must honour `enable_thinking is defined and
 not enable_thinking`: SGLang forces its reasoning parser from that branch, and a
 creator template that always opens `<think>` leaks `</think>` into `content`
 when a request turns thinking off (`tests/test_sglang_reasoning_template_toggle.py`).
+The same rule covers a vLLM recipe with `--reasoning-parser glm47` that serves a
+repository template. Its vendored template is the Model's own `chat_template.jinja` (sha256 from the Model document)
+plus only the thinking-switch line, so a model refresh that changes the template
+turns the suite red. A template baked into a vLLM image is not checked statically;
+hardware covers it.
 
 ### Options: user-selectable runtime variants
 
@@ -877,6 +948,14 @@ launch names, complete selected Model files and passing producer checks. Changes
 to patched runtime files or missing selected files need review; metadata-only
 changes do not independently justify rebuilding identical content. Shared build
 contexts refresh together. Human repairs may intentionally diverge with evidence.
+An adapter that installs a creator's GitHub release asset pins it by version and
+sha256. A refresh moves the `releases/download/<tag>/<asset>` URL and re-pins the
+sha256 from the creator's `<asset>.sha256`, checked against GitHub's recorded
+digest when GitHub records one. These go to review ("re-pin by hand"): a missing
+asset or `.sha256`, a disagreement, a target that is not a release, or a Dockerfile
+that does not pin the old asset by sha256. The refresh never leaves a declared
+`source.line`; it only notes that a newer line exists. Moving to another line is a
+hand change (engine work) with its own hardware proof.
 A proven recipe moves too: the refresh rewrites its entry in
 `tests/fixtures/proven-recipe-bytes.json` and the sweep re-checks it. A refresh
 branch only moves forward (never force-pushed); a PR whose checks failed on an
@@ -1077,8 +1156,8 @@ The sweep process and verdict meanings live in
   `tests/test_qualification_chat_cases.py`, `tests/test_sweep_vonkctl_smoke.py`).
 - **Artifact job with `--job-recipes`:** create/upload/submit one job against the
   held run, follow its receipt, download outputs and evaluate output count,
-  names, media/format, size, image/audio/video metadata, GLB structure or declared
-  document/transcript assertions. `spark_sweep/smoke_job.py` and
+  names, media/format, size, image/audio/video metadata, GLB structure, ZIP entries
+  or declared document/transcript assertions. `spark_sweep/smoke_job.py` and
   `spark_sweep/job_assertions.py` are the executors. Host-unobservable assertions
   are recorded as `not_evaluated` with a reason, never silently passed. Video
   inspection needs ffprobe; inspect any missing observation before claiming
@@ -1117,7 +1196,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/test_recipe_model_mounts.py`, `tests/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
 | `tools/check-build-context-sources`, `tests/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
 | `tests/test_recipe_build_inputs.py`, `tests/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress. |
-| `tools/check-vendored-upstream`, `tests/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. |
+| `tools/check-vendored-upstream`, `tests/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. An adapter that also vendors a directory of a second upstream lists it under `also` (`repo`, `commit`, `files` prefixes). |
 | `tools/check-model-construction-device --base origin/main`, `tests/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and `vendored-upstream.json` verbatim creator copies excluded) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
 | `tools/kit-pins check`, `tests/test_kit_pins.py`, `tests/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
 | `tools/check-image-provenance`, `tests/test_published_image_follow.py` | Claimed build commit matches the selected source image. Fix provenance or supply the supported explicit unavailable-commit evidence. |
@@ -1134,7 +1213,9 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/test_qualification_definitions_loader.py`, `tests/test_qualification_index.py`, `tests/test_qualification_case_assertions.py`, `tests/test_qualification_service_aliases.py` | Every recipe is defined/scheduled; ids, aliases, fixtures and assertions resolve. Repair the per-recipe source definition, not generated outputs. |
 | `tests/test_family_aware_coverage.py`, `tests/test_qualification_coverage_identity.py` | Coverage equivalence binds actual runtime/topology/content identities. Rebuild coverage and fix false equivalence. |
 | `tests/test_prebuilt_images.py`, `tests/test_publish_image_guard.py`, `tests/test_release_bundle.py`, `tests/test_release_assets.py` | Plan/source/build keys, digests, signed index and packaged bytes agree. Rebuild/resolve the correct artifacts before signing. |
-| `tools/check-document-reads`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`) or `qualification/documents.py`; only added lines are checked. |
+| `tools/check-test-git`, `tests/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
+| `tools/check-document-reads`, `tools/_added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
+| `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
 | `tests/test_guidance_files.py` | Guidance stays in the allowlisted files and local Markdown links resolve. Consolidate the new rule here or in AGENTS; fix links in the same change. |
 | `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
 

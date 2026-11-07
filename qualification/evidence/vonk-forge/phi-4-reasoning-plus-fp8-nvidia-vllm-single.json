@@ -4,6 +4,29 @@
   "records": [
     {
       "identity": {
+        "content_sha256": "1c6b32530a805b2cb6ec006073ed4793e2b78a2e5747b3c4a1245aba1bd01d31",
+        "model_digests": [
+          "93094e40304013fdd5b3dae8528aefdef30745741f6006394a8a9b9eb1352fb2"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "25387c950dd88f81223b20261c0f9f960ca502c1cd70b7746501a8fcb67545b6"
+      ],
+      "tested_at": "1970-01-01T00:00:00Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "525f13997fa9af2c03fa637cfda9eea12681835d23e88f6aac8e167067b44e97",
         "model_digests": [
           "d202e7feba153c67f3ec6f17f99e744ddb3b38da94afa519e672cf39b8ac4b0c"
@@ -69,6 +92,32 @@
     },
     {
       "identity": {
+        "content_sha256": "1c6b32530a805b2cb6ec006073ed4793e2b78a2e5747b3c4a1245aba1bd01d31",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "848b714ac566d9f4db27bb423681780ce81a416e3e0a9dd7ae09e215d80a1b5e"
+      ],
+      "tested_at": "2026-10-14T23:27:08.833699Z",
+      "platform": {
+        "controller_source_sha": "fadaeb65d44cfbddb4999a3ad9a092efce943d29",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer",
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "525f13997fa9af2c03fa637cfda9eea12681835d23e88f6aac8e167067b44e97",
         "model_digests": [],
         "required_sparks": 1,
@@ -114,6 +163,38 @@
       },
       "quality_notes": [
         "Model output differed from the expected answer"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "1c6b32530a805b2cb6ec006073ed4793e2b78a2e5747b3c4a1245aba1bd01d31",
+        "source_bundle_sha256": "c1c3bedb56f390339fea247d8fe8bcd08e4ec29858093afe090a1a488aea7428",
+        "runtime_image": {
+          "build_key": "ac6bdcc9fe7d302093a48c5e89b3faef9034de637d228d0f0474aecd0956bacb",
+          "image_digest": "sha256:d442d351db2ba553d3eac4f8c65d90bf62d3f23bd5c9dead54c720a1fb31c537"
+        },
+        "model_digests": [
+          "93094e40304013fdd5b3dae8528aefdef30745741f6006394a8a9b9eb1352fb2"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "2cad6ec603df34a90d3de4a8097116a7974466e5d94f25033f4c84df12b96406"
+      ],
+      "tested_at": "2026-11-03T21:43:54.738958Z",
+      "platform": {
+        "controller_source_sha": "ef0dfb4edf6f283c8cbc2e9a1c0c9aa68f64dfa0",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer",
+        "Carried from the identical execution document before the Model facts split"
       ]
     },
     {

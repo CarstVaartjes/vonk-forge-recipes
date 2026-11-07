@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -179,18 +174,6 @@
     "version": "Qwen3.8 27B EXL3 3.5bpw Mia 19441ac8"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "MiaAI-Lab",
-      "Turboderp"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Mia-AiLab/Qwen3.8-27B-EXL3-3.5bpw/blob/19441ac874c4018295da848e250f23511361cda4/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Mia-AiLab/Qwen3.8-27B-EXL3-3.5bpw",

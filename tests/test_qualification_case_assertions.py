@@ -288,6 +288,7 @@ MINIMAL_MEDIA_PARAMETERS = {
     "hunyuan-video-15-i2v-step-distilled-diffusers-single": {"num-frames": 1},
     "ltx-2-19b-dev-fp4-pytorch-single": {"num-frames": 1, "num-inference-steps": 2},
     "fasth3-8step-v2-drowzeys-tensorfold-single": {"num-frames": 124},
+    "stable-audio-3-small-sfx-pytorch-single": {"duration-seconds": 2},
 }
 # These unproven recipes share their entire context with a hardware pass.
 # Keep the single adapter unchanged rather than fork it for smaller smokes.
@@ -430,11 +431,11 @@ def test_qualification_parameters_do_not_enter_recipe_content_identity(built_cat
 # Recipe-only protection misses changes in a shared image build context.
 REVIEWED_SHARED_IDENTITIES = {
     "ltx-2-19b-distilled-fp8-diffusers-single": (
-        "8165fb194f21055031b48c18c5a7ea22170b152a875dcad392d2a8fd21f66124",
+        "731706b3970cee62678fc067b9fec941fc13e6bcb5f62f8ca2ad269319ae2b29",
         "eb632ac4c1aaa31045d757ca60cea19a2268ee9610a24824dc6183f415cfb102",
     ),
     "pixal3d-pytorch-single": (
-        "ab6f0a06e2d02fc728647a684cdd80cd47ddd3208bc647478a4a0a129f8a0fbe",
+        "b440f06d4ab646519da54cea62047d3d7fac54d81d46c6846fcdf28c45bfa295",
         "7d171fe64ef2da27ed5bc9d31da69a3c2ec8dd54139961bba320afd7cc81354a",
     ),
 }

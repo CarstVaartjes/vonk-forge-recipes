@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Exact public 0xSero DeepSeek V4 Flash REAP 162B (K144, 144 routed experts, MXFP4, about 93.7 GB); head 2b29d032 differs from the revision upstream pinned (d663e8fb) only in the model card. Python caches, backup file, PDF and image assets are left out.",
   "family_title": "DeepSeek Flash",
   "identity": {
@@ -6,6 +13,17 @@
     "slug": "deepseek-v4-flash-reap-162b-k144-2b29d032"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "0xSero",
+      "DeepSeek-AI"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/0xSero/DeepSeek-V4-Flash-162B/blob/2b29d032372f96679bbcd2ec32f6c00bb1d5af3c/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "DeepSeek V4 Flash REAP 162B K144",
   "tags": [
     "0xsero",

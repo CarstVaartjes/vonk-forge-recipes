@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "Public brandonmusic copy of the GLM 5.3 Flash EXL3 TR3 4bpw checkpoint at the revision Reederey87's kit names: the weights, configuration, tokenizer, chat template, index and processor files are byte-identical to the Mia-AiLab repository this family was catalogued from (that repository returns HTTP 401 since 2026-10-03). Drafter checkpoints are selected separately by each recipe.",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +13,21 @@
     "slug": "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-a5fee929"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.AI",
+      "Brandon M. Music",
+      "MiaAI-Lab",
+      "IncoAI"
+    ],
+    "spdx": "LicenseRef-ShapleyMCG-1.0",
+    "url": "https://huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw/blob/1ae6d70430a12d762917786696db06a7b4f9bbae/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "GLM 5.3 Flash EXL3 TR3",
   "tags": [
     "mia-ai-lab",

@@ -1,0 +1,23 @@
+{
+  "alignment": "unspecified",
+  "description": "Mia AI Lab's DeepSeek-V4.1-Flash-1017 four-Spark TensorFold kit (MiaAI-Lab/DeepSeek-V4.1-Flash-1017-4x-DGX-Sparks-TensorFold 8ffa67d5, Apache-2.0): DeepSeek's own FP8 / MXFP4 release deepseek-ai/DeepSeek-V4.1-Flash-1017 at 1bae0e10, served as published (no re-quantization) on TensorFold's native Zig engine with tensor parallel 4, 16 streams at the model's 1,048,576-token window, DSpark drafting from the checkpoint's own draft blocks, image input, thinking on by default at reasoning effort max, tool calling with required and named tool choice, and structured output through libtfgrammar. The creator publishes no image: it builds zig/Dockerfile locally. This recipe builds the same engine here, pinned: BertholomusAI's bertholomus/TensorFold deepseek-v41-zig-tp4 at the kit's TF_REF 59402086 plus the kit's 45 zig/patches (vendored, applied in order), Zig 0.17.0, xgrammar v0.2.8 and PyAV 18.1.0 on nvcr.io/nvidia/pytorch:26.07-py3 for aarch64 and sm_121, with a build-time sm_121 kernel scan of every kernel image the engine embeds (the kit's prebuilt cubins are not covered: they come from BertholomusAI's kit 6033ea48 as the creator serves them). The RoPE tables, image bias, token map and each rank's weight file are derived from the checkpoint into /outputs/cache at the first start (scripts/prepare.sh steps 4 and 5) and reused on restart, replacing the creator's ssh and NFS setup. Launch values are the kit's start.sh and scripts/config.sh defaults on a switch (mesh, TF_DS_2D_ORDER 0,1,2,3): 16 streams, 48-row rounds with the measured ROUND_MS table, DRAFT_MS 25, SERVED_K solo, parity 2D split, CUDA graphs, side stream, L2 prefetch and Engram AIO on, temperature 1.0, top_p 1.0, top_k 20, 32,768 default reply tokens. Deviations: the shared position pool is 16,777,216 positions (16 streams x 1,048,576), the value the kit's README states for its own served setup and the owner's dedicated-node rule, where scripts/config.sh ships 2,097,152; the Controller's RoCE rails and GID index replace the creator's device discovery (the RDMA rings' GID index TF_DS_RDMA_GID is the Controller's); Engram's tables are read from the checkpoint's shards 47 and 48 mounted read-only on every node instead of NFS or per-worker copies. Not carried: the switchless ring mode (start-switchless.sh), the opt-in NVFP4, DERISKED and ABLIT checkpoints, packed Engram rows, and the engine switches the kit marks 'on, this cluster' in its unshipped scripts/local.sh (TF_DS_PAIR_SUM, TF_DS_IDX_RB, TF_DS_QUARTER_HC, TF_DS_OWNER_GATHER, TF_DS_SAMPLE_CAND, TF_DS_EXPERT_EXIT, TF_DS_PREFILL_YIELD, TF_DS_IDX_SHARD). The kit's patch 0002 also reads video input; the Model declares text and image, so only those are claimed. Upstream figures (65.8 tok/s at one request, 96.5 at two, up to 183.7 aggregate at eight, 45 of 45 needle cells to 997k tokens) were measured by the creator on a switchless ring and are claims until measured here. Memory: the creator states about 80 GiB of weights a node and, at the 16,777,216-position pool, 15-18 GiB free on three Sparks and about 11 GiB on the fourth. Each peak is 130,663,231,488 bytes minus 11 GiB minus the 4,063,231,488-byte idle host use admission charges, 114.79 GB on every role: an estimate until the hardware try measures it. The recipe needs four Sparks; Vonk physical acceptance is pending. Licences are information only: the kit is Apache-2.0, and TensorFold and the DeepSeek weights are MIT.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-1017-mia-tensorfold-four"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "deepseek",
+    "1017",
+    "tensorfold",
+    "fp8",
+    "mxfp4",
+    "vision",
+    "mia",
+    "spark",
+    "four",
+    "tool-use",
+    "reasoning"
+  ],
+  "title": "DeepSeek V4.1 Flash 1017 FP8/MXFP4 TensorFold TP4 (Mia)"
+}

@@ -311,7 +311,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a9c8cdf797c5f3d3dc9a76cdebad6c1978a45ccd94b50210d5d2d5c43158b134",
+        "content_sha256": "ced9b783628bbd916fed62874ef9dd65ab74fa4b6aa26e9885c53ea762ca6157",
         "kind": "model",
         "publisher": "intel",
         "slug": "qwen3-5-122b-a10b-int4-autoround-3045d02b"

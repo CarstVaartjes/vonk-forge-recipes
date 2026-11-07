@@ -1,0 +1,27 @@
+{
+  "capabilities": [
+    "motion-generation"
+  ],
+  "description": "Kimodo-SOMA-RP-v1.2 (282M parameters): text-driven human motion on the 30-joint SOMA skeleton, trained on the Bones Rigplay dataset; the diffusion checkpoint, its config and motion statistics.",
+  "family_title": "Kimodo",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "kimodo-soma-rp-v1-2-0e3c8902"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "nvidia"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
+    "url": "https://huggingface.co/nvidia/Kimodo-SOMA-RP-v1.2/blob/0e3c89024d896064b6851201373f7834784a386b/LICENSE"
+  },
+  "modalities": [
+    "3d"
+  ],
+  "model_title": "Kimodo SOMA RP",
+  "tags": [
+    "nvidia",
+    "kimodo"
+  ]
+}

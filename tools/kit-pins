@@ -126,7 +126,8 @@ from pathlib import Path
 from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
+# The contracts import lazily (this tool starts on a bare interpreter); the path is set once.
+sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT)]
 from tools._catalog_model import file_id
 
 MANIFEST = "vendored-upstream.json"
@@ -1676,12 +1677,12 @@ def moved_model(
 ) -> dict[str, Any]:
     """The Model document ``old`` moved to the snapshot ``inventory`` of ``revision``.
 
-    The curation is kept: identity, licence, capabilities, and the files the document
-    kept (a file the snapshot no longer has is dropped). A file the snapshot adds is
+    The curation is kept: identity and the files the document kept (a file the snapshot
+    no longer has is dropped). Its licence, capabilities and modalities are display
+    facts and travel with the Model's display file (``moved_model_display``). A file the snapshot adds is
     catalogued unless it is metadata (a README), as the old document may have left such
     files out on purpose. The slug, version and variant follow the revision.
     """
-    sys.path.insert(0, str(ROOT / "contracts" / "src"))
     from vonk_forge_contracts import ModelDefinition
 
     by_path = {f["path"]: f for f in inventory}
@@ -1716,6 +1717,22 @@ def moved_model(
     document["files"] = sorted(files, key=lambda entry: entry["path"])
     ModelDefinition.model_validate(document)
     return document
+
+
+def moved_model_display(root: Path, old_slug: str, new_slug: str) -> bytes:
+    """The display of ``old_slug`` written for the Model that replaces it as ``new_slug``."""
+    from vonk_forge_contracts import published_json
+
+    from qualification.documents import model_display
+
+    display = model_display(old_slug, root)
+    moved = display.model_copy(
+        update={"identity": display.identity.model_copy(update={"slug": new_slug})}
+    )
+    return (
+        json.dumps(published_json(moved), indent=2, sort_keys=True, ensure_ascii=False)
+        + "\n"
+    ).encode()
 
 
 def catalogued_model(root: Path, repo: str, revision: str) -> dict[str, Any] | None:
@@ -1856,6 +1873,11 @@ def _rebind_model(
             encoding="utf-8",
         )
         changed.append(f"models/{new['identity']['slug']}.json (catalogued)")
+        display_path = root / "display" / "models" / f"{new['identity']['slug']}.json"
+        display_path.write_bytes(
+            moved_model_display(root, old["identity"]["slug"], new["identity"]["slug"])
+        )
+        changed.append(f"display/models/{new['identity']['slug']}.json (catalogued)")
     moved = rebind(recipe, declaration.binds, old, new)
     changed.append(f"Model '{declaration.binds}' -> {new['identity']['slug']}")
     slug = old["identity"]["slug"]
@@ -1867,6 +1889,7 @@ def _rebind_model(
         for m in other["models"]
     ):
         (root / "models" / f"{slug}.json").unlink()
+        (root / "display" / "models" / f"{slug}.json").unlink(missing_ok=True)
         changed.append(f"models/{slug}.json (removed: no recipe uses it)")
     return moved, changed
 

@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -157,16 +156,6 @@
     "version": "36d86369"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "lightonai"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/lightonai/LightOnOCR-3-0.8B/blob/36d8636925327c671bd8e479c517a004f7566bd9/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/lightonai/LightOnOCR-3-0.8B",

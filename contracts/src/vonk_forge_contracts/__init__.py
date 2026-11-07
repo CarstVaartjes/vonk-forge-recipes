@@ -15,6 +15,16 @@ ignore fields a newer minor release added, and identify a document by the
 from __future__ import annotations
 
 from ._version import __version__
+from .api import (
+    ApiBlock,
+    ChatApi,
+    DecisionApi,
+    RecipeApi,
+    RecipeApiOptionChoice,
+    read_recipe_api,
+    require_api_of,
+)
+from .api_checks import RecipeApiError, check_api_models, check_recipe_api
 from .canonical import canonical_json, document_sha256, read_model, read_recipe
 from .display import (
     ModelDisplay,
@@ -82,6 +92,9 @@ __all__ = [
     "CONTRACT_MAJOR",
     "CONTRACT_VERSION",
     "ENDPOINT_ALIAS_PATTERN",
+    "ApiBlock",
+    "ChatApi",
+    "DecisionApi",
     "EndpointAlias",
     "GitHubLfsSource",
     "GitHubReleaseAsset",
@@ -112,6 +125,9 @@ __all__ = [
     "QualificationSummary",
     "QualificationTopology",
     "QualificationUnverifiedReason",
+    "RecipeApi",
+    "RecipeApiError",
+    "RecipeApiOptionChoice",
     "RecipeAuthorityRow",
     "RecipeDefinition",
     "RecipeDisplay",
@@ -124,6 +140,8 @@ __all__ = [
     "campaign_authority_json_schema",
     "campaign_manifest_json_schema",
     "canonical_json",
+    "check_api_models",
+    "check_recipe_api",
     "derive_status",
     "document_sha256",
     "published_json",
@@ -134,8 +152,10 @@ __all__ = [
     "read_model",
     "read_model_display",
     "read_recipe",
+    "read_recipe_api",
     "read_recipe_display",
     "recovery_coverage_id",
+    "require_api_of",
     "require_display_of",
 ]
 
@@ -145,7 +165,7 @@ def model_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/model-definition-v3.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/model-definition-v4.schema.json",
         **ModelDefinition.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -155,7 +175,7 @@ def recipe_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v3.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v4.schema.json",
         **RecipeDefinition.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -165,7 +185,7 @@ def recipe_display_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recipe-display-v3.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/recipe-display-v4.schema.json",
         **RecipeDisplay.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -175,6 +195,16 @@ def model_display_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/model-display-v3.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/model-display-v4.schema.json",
         **ModelDisplay.model_json_schema(ref_template="#/$defs/{model}"),
+    }
+
+
+def recipe_api_json_schema() -> dict[str, object]:
+    """Return the generated JSON Schema for :class:`RecipeApi`."""
+
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://api.vonkforge.ai/contracts/recipe-api-v4.schema.json",
+        **RecipeApi.model_json_schema(ref_template="#/$defs/{model}"),
     }

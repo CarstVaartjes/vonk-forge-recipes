@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "image-understanding",
-    "reasoning"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -746,17 +741,6 @@
     "version": "Qwen3.8 27B FP8"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Qwen/Qwen3.8-27B-FP8/blob/017b9c7af6b5689d5dd426a76e0bc077eb5ca20a/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Qwen/Qwen3.8-27B-FP8",

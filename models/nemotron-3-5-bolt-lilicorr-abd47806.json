@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -76,16 +75,6 @@
     "version": "abd47806"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA"
-    ],
-    "spdx": "LicenseRef-OpenMDW-1.1",
-    "url": "https://openmdw.ai/license/1-1/"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB-LiLiCorr",

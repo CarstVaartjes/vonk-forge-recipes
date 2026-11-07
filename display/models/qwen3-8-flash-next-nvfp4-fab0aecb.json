@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "NVIDIA ModelOpt NVFP4 quantization of Qwen3.8 Flash Next (BF16 dense layers, NVFP4 routed experts, FP8 per-layer embeddings and MTP).",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +13,17 @@
     "slug": "qwen3-8-flash-next-nvfp4-fab0aecb"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Qwen"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
+  },
+  "modalities": [
+    "video"
+  ],
   "model_title": "Qwen3.8 Flash Next NVFP4",
   "tags": [
     "nvidia",

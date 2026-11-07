@@ -13,6 +13,8 @@ API entry points:
 
 - [Model types](src/vonk_forge_contracts/model.py) and
   [Recipe types](src/vonk_forge_contracts/recipe.py).
+- [Recipe API facts](src/vonk_forge_contracts/api.py) (an optional sibling of the
+  Recipe, like its display) and [their checks](src/vonk_forge_contracts/api_checks.py).
 - [Resolution and package validation](src/vonk_forge_contracts/resolver.py).
 - [Canonical document identity](src/vonk_forge_contracts/canonical.py).
 - [Qualification authority](src/vonk_forge_contracts/qualification_authority.py),

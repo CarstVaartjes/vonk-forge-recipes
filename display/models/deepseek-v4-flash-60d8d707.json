@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "DeepSeek-V4-Flash (FP8 with MLA and sparse indexer, native MTP head), the original release before 0731.",
   "family_title": "DeepSeek Flash",
   "identity": {
@@ -6,6 +12,16 @@
     "slug": "deepseek-v4-flash-60d8d707"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek AI"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/blob/60d8d70770c6776ff598c94bb586a859a38244f1/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "DeepSeek V4 Flash",
   "tags": [
     "deepseek-ai",

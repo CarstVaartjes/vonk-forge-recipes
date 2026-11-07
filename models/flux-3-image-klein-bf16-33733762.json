@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -211,16 +210,6 @@
     "version": "33733762"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Black Forest Labs"
-    ],
-    "spdx": "flux-kommunity-license",
-    "url": "https://huggingface.co/black-forest-labs/flux-3-image-klein/blob/337337621b8526e120f2275d250242f4a6bedd75/LICENSE.md"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": true,
   "source": {
     "repository": "https://huggingface.co/black-forest-labs/flux-3-image-klein",

@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Exact public Realtime 0708 BF16 d1f71a58 checkpoint with per-sample media budgets, batched-vision MRoPE fixes, cached-vision RoPE correction, and synchronized preprocessing defaults.",
   "family_title": "OpenMOSS MOSS-VL",
   "identity": {
@@ -6,6 +7,19 @@
     "slug": "moss-vl-realtime-11b-bf16-d1f71a58"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "OpenMOSS"
+    ],
+    "spdx": "Apache-2.0",
+    "territorial_restrictions": null,
+    "url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/blob/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86/README.md"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "MOSS-VL-Realtime 11B",
   "tags": [
     "openmoss",

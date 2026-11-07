@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding",
-    "ocr",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -117,17 +111,6 @@
     "version": "BF16 a3af5799"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Liquid AI"
-    ],
-    "spdx": "LicenseRef-LFM-1.0",
-    "url": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/a3af5799199acdd2a4f56ac4342816abb46c12a9/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B",

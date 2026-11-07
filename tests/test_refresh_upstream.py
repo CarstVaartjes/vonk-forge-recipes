@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import copy
 import hashlib
 import importlib.machinery
 import importlib.util
@@ -13,9 +14,11 @@ import tempfile
 import types
 import unittest
 from datetime import UTC, datetime, timedelta
+from email.message import Message
 from pathlib import Path
 from typing import Any, ClassVar
 from unittest.mock import patch
+from urllib.error import HTTPError
 
 from vonk_forge_contracts import ModelDisplay
 
@@ -1647,6 +1650,13 @@ class ModelReExportTests(unittest.TestCase):
                     "model_title": "Demo",
                     "description": "A demo model.",
                     "tags": ["demo"],
+                    "modalities": ["text"],
+                    "capabilities": [],
+                    "license": {
+                        "spdx": "MIT",
+                        "url": "https://example.com/license",
+                        "attribution": [],
+                    },
                 }
             )
         )
@@ -2668,6 +2678,8 @@ class SelfHealingTests(unittest.TestCase):
             "tools/build-family-aware-coverage",
             "tools/check-recipe-topology",
             "tools/check-image-provenance",
+            "tools/_added_lines",
+            "tools/check-test-git",
             "tools/generate-contract-examples",
             "tools/generate-contract-schemas",
             "tools/build-release-bundle",
@@ -3386,3 +3398,185 @@ class RewrittenHistoryTests(unittest.TestCase):
             "u", 404, "Not Found", Message(), io.BytesIO(b"<html>")
         )
         self.assertEqual(refresh._error_message(error), "")
+
+
+class GatedRepositoryTests(unittest.TestCase):
+    """#1517: a gated repository masks LFS digests and refuses non-LFS bytes (401).
+
+    The trees are recorded from the Hugging Face API for black-forest-labs/flux-3-image-klein
+    at 337337621b85 and 09561231f44e (four files kept): only README.md differs.
+    """
+
+    trees = json.loads((ROOT / "tests/fixtures/hf-gated-klein-trees.json").read_text())
+
+    def setUp(self) -> None:
+        # Nothing here may reach the network.
+        blocker = patch(
+            "socket.socket.connect", side_effect=AssertionError("network used")
+        )
+        blocker.start()
+        self.addCleanup(blocker.stop)
+
+    def old(self):
+        return model_with(("README.md", "config.json", "model.safetensors"))
+
+    def gated(self, old, after):
+        return refresh.gated_payload_identical(old, self.trees["before"], after)
+
+    def test_same_blob_ids_and_sizes_are_unchanged_weights(self) -> None:
+        self.assertTrue(self.gated(self.old(), self.trees["after"]))
+
+    def test_a_changed_weights_pointer_is_a_change(self) -> None:
+        after = json.loads(json.dumps(self.trees["after"]))
+        for entry in after:
+            if entry["path"] == "model.safetensors":
+                entry["oid"] = "0" * 40
+        self.assertFalse(self.gated(self.old(), after))
+
+    def test_a_new_non_metadata_file_is_a_change(self) -> None:
+        extra = {
+            "type": "file",
+            "path": "extra.safetensors",
+            "oid": "1" * 40,
+            "size": 5,
+        }
+        self.assertFalse(self.gated(self.old(), [*self.trees["after"], extra]))
+
+    def test_stored_roles_decide_exactly_as_without_access(self) -> None:
+        # The document stores config.json as metadata, roles_for says configuration.
+        old = self.old()
+        for entry in old["files"]:
+            entry["sha256"] = "c" * 64
+            if entry["path"] == "config.json":
+                entry["roles"] = ["metadata"]
+        for changed in (False, True):
+            with self.subTest(config_changed=changed):
+                after = copy.deepcopy(self.trees["after"])
+                ungated = []
+                for entry in after:
+                    if changed and entry["path"] == "config.json":
+                        entry["oid"] = "2" * 40
+                    differs = changed and entry["path"] == "config.json"
+                    ungated.append(
+                        {
+                            "path": entry["path"],
+                            "roles": roles_for(entry["path"]),
+                            "sha256": "d" * 64 if differs else "c" * 64,
+                        }
+                    )
+                self.assertEqual(
+                    self.gated(old, after), refresh.payload_identical(old, ungated)
+                )
+
+    def test_masked_lfs_digest_is_refused_not_catalogued(self) -> None:
+        lfs_only = [e for e in self.trees["after"] if "lfs" in e]
+        with self.assertRaises(refresh.catalog.AccessDenied):
+            refresh.catalog.inventory("o/r", NEW, lfs_only)
+
+    def test_only_401_and_403_are_access_denied(self) -> None:
+        entries = [{"type": "file", "path": "config.json", "size": 2}]
+        for code, expected in (
+            (401, "AccessDenied"),
+            (403, "AccessDenied"),
+            (503, "HTTPError"),
+            (429, "HTTPError"),
+        ):
+
+            def fail(_url: str, code: int = code) -> bytes:
+                error = HTTPError(_url, code, "x", Message(), None)
+                error.close()
+                raise error
+
+            with (
+                self.subTest(code=code),
+                patch.object(refresh.catalog, "_get_bytes", fail),
+                self.assertRaises(
+                    refresh.catalog.AccessDenied
+                    if expected == "AccessDenied"
+                    else HTTPError
+                ),
+            ):
+                refresh.catalog.inventory("o/r", NEW, entries)
+
+    def test_the_token_is_sent_to_hugging_face_when_set(self) -> None:
+        seen = {}
+
+        class Opener:
+            def open(self, request, timeout):
+                seen.update(request.header_items())
+                raise OSError("stop")
+
+        for url, expected in (
+            ("https://huggingface.co/api/models/o/r", "Bearer secret"),
+            ("https://example.test/x", None),
+        ):
+            seen.clear()
+            with (
+                patch.dict(os.environ, {"HF_TOKEN": "secret"}),
+                patch.object(refresh.catalog, "build_opener", return_value=Opener()),
+                self.assertRaises(OSError),
+            ):
+                refresh.catalog._open(url, 5)
+            self.assertEqual(seen.get("Authorization"), expected)
+
+    def test_the_token_goes_to_hugging_face_only(self) -> None:
+        from urllib.request import Request
+
+        request = Request(
+            "https://cdn.example/x", headers={"Authorization": "Bearer t"}
+        )
+        handler = refresh.catalog._KeepTokenOnHuggingFace()
+        moved = handler.redirect_request(
+            Request("https://huggingface.co/a", headers={"Authorization": "Bearer t"}),
+            None,
+            302,
+            "Found",
+            {},
+            "https://cdn.example/x",
+        )
+        self.assertFalse(moved.has_header("Authorization"))
+        del request
+
+    def test_a_gated_metadata_only_revision_is_not_a_move(self) -> None:
+        old = self.old()
+        old["source"]["repository"] = "https://huggingface.co/o/r"
+        recipe = {"identity": {"slug": "recipe"}, "models": []}
+        assessor = refresh.Assessor(
+            refresh.Catalog(
+                Path("."),
+                recipes={"recipe": recipe},
+                models={old["identity"]["slug"]: old},
+            ),
+            object(),
+            None,
+            {},
+        )
+        item = refresh.Item(
+            "model",
+            "huggingface",
+            "o/r",
+            OLD,
+            refresh.Target("huggingface", "o/r", NEW, "2026-11-02", None, None, "u"),
+            old["identity"]["slug"],
+        )
+        result = refresh.Assessment("recipe", items=[item])
+        trees = {OLD: self.trees["before"], NEW: self.trees["after"]}
+        fetched: list[str] = []
+
+        def tree(url: str) -> list:
+            fetched.append(url)
+            return trees[next(r for r in trees if f"/tree/{r}?" in url)]
+
+        def denied(url: str) -> bytes:
+            error = HTTPError(url, 401, "Unauthorized", Message(), None)
+            error.close()
+            raise error
+
+        with (
+            patch.object(refresh.catalog, "_get_tree", side_effect=tree),
+            patch.object(refresh.catalog, "_get_bytes", denied),
+        ):
+            assessor._model(item, recipe, copy.deepcopy(recipe), result, {})
+        self.assertEqual(result.reasons, [])
+        self.assertTrue(item.noop)
+        self.assertEqual(len(fetched), len(set(fetched)))  # each tree once

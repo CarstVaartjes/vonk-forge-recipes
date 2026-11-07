@@ -1,0 +1,29 @@
+{
+  "capabilities": [
+    "image-upscaling"
+  ],
+  "description": "Immutable public snapshot at 623bdf3d of Philip Hofmann's 4xNomos8kSC: an RRDBNet fine-tuned from RealESRGAN_x4plus on Nomos8k_sfw with on-the-fly JPEG compression and blur, for realistic 4x photo super-resolution. Licensed CC BY 4.0: credit the author when you use its output.",
+  "family_title": "Real-ESRGAN",
+  "identity": {
+    "publisher": "phips",
+    "slug": "4xnomos8ksc-623bdf3d"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Philip Hofmann (Phips)"
+    ],
+    "spdx": "CC-BY-4.0",
+    "url": "https://huggingface.co/Phips/4xNomos8kSC/blob/623bdf3d1ec5bccb02548a79eec1b62d32ff86fd/README.md"
+  },
+  "modalities": [
+    "image"
+  ],
+  "model_title": "4xNomos8kSC",
+  "tags": [
+    "phips",
+    "image",
+    "upscaling",
+    "candidate"
+  ]
+}

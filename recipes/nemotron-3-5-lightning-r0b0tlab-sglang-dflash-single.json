@@ -726,7 +726,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "69ef4df9fa4a1caca85055e820050b1e45f2525c98c012b2a37904e583fd8525",
+        "content_sha256": "712da901528f07e9f9d07f1f98f496238716cb3559c196f2932fbca8825b7cbf",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-e8f3c7c4"
@@ -797,7 +797,7 @@
       ],
       "id": "draft",
       "model": {
-        "content_sha256": "0d4ced58553107756e0dedf6a938535f060098402ed5afc1d1aa243a330cd474",
+        "content_sha256": "50924b0f218bbe47d2156998a8bc94f0b94d109761299d805d8e93c03d024c42",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dflash-7fc1f1ff"

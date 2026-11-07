@@ -1,0 +1,27 @@
+{
+  "capabilities": [
+    "parametric-body-model"
+  ],
+  "description": "SOMA-X v0.3.3 geometry assets: the template rig, neutral shape data and procedural transforms the SOMA 0.3.3 runtime loads.",
+  "family_title": "SOMA-X",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "soma-x-3648707b"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "nvidia"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/nvidia/SOMA-X/blob/3648707b69e1b1dcf14c473e30613266b786b9f1/LICENSE"
+  },
+  "modalities": [
+    "3d"
+  ],
+  "model_title": "SOMA-X body assets",
+  "tags": [
+    "nvidia",
+    "soma-x"
+  ]
+}

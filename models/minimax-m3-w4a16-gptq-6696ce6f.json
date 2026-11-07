@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -729,17 +723,6 @@
     "version": "MiniMax M3 W4A16 GPTQ 6696ce6f"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "MiniMax",
-      "Sebesky"
-    ],
-    "spdx": "LicenseRef-MiniMax-M3-Community-License",
-    "url": "https://huggingface.co/Sebesky/MiniMax-M3-W4A16-GPTQ/blob/6696ce6fed67de2c5027320fdfbc83f3fd3abb4e/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Sebesky/MiniMax-M3-W4A16-GPTQ",

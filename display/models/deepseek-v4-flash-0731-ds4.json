@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
   "description": "Exact DS4 96/128-GB imatrix target GGUF and matching DSpark support GGUF.",
   "family_title": "DeepSeek Flash",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "deepseek-v4-flash-0731-ds4"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek AI",
+      "Salvatore Sanfilippo (antirez)"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-DSpark/blob/62af8fffb2f7030cac4de2f0169f5b8d1101b646/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "DeepSeek V4 Flash 0731",
   "tags": [
     "deepseek",

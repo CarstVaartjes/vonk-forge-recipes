@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "3d-generation"
+  ],
   "description": "Immutable public snapshot of TencentARC/Pixal3D at b0cb2e1b: the single-view checkpoint set (the multi-view *_mv files are not used by this recipe).",
   "family_title": "Pixal3D",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "pixal3d-b0cb2e1b"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "tencentarc"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/TencentARC/Pixal3D/blob/b0cb2e1b794cab9aa0ac38a95d794a4d9337437f/LICENSE"
+  },
+  "modalities": [
+    "3d"
+  ],
   "model_title": "Pixal3D",
   "tags": [
     "tencentarc",

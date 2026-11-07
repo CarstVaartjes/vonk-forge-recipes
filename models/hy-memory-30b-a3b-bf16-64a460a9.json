@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -580,16 +579,6 @@
     "version": "64a460a9"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "tencent"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/tencent/Hy-Memory-30B-A3B/blob/64a460a94d5498b7316fb02395c72d01c47a7347/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/tencent/Hy-Memory-30B-A3B",

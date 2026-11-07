@@ -1,0 +1,26 @@
+{
+  "capabilities": [],
+  "description": "Meta-Llama-3-8B-Instruct weights (bf16 safetensors) as republished by NousResearch with the same LFS digests as the gated meta-llama repository. Built with Meta Llama 3. Used as the frozen base of the LLM2Vec text encoder behind Kimodo.",
+  "family_title": "Meta Llama",
+  "identity": {
+    "publisher": "nousresearch",
+    "slug": "llama-3-8b-instruct-53346005"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Meta Platforms",
+      "NousResearch"
+    ],
+    "spdx": "LicenseRef-Llama-3-Community-License",
+    "url": "https://www.llama.com/llama3/license/"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "Llama 3 8B Instruct",
+  "tags": [
+    "meta-llama",
+    "llama"
+  ]
+}

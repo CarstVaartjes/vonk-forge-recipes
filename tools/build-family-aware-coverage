@@ -331,19 +331,20 @@ def _row(
         if model is None:
             raise ValueError(f"recipe references an undocumented Model: {model_key}")
         source_repository, source_revision = _model_source_projection(model)
+        display = model_display(model.identity.slug)
         selections.append(
             {
                 "key": model_key,
                 "selection": selection.id,
                 "family": model.identity.family.slug,
-                "family_title": model_display(model.identity.slug).family_title,
+                "family_title": display.family_title,
                 "model": model.identity.model.slug,
                 "variant": model.identity.variant,
                 "precision": model.format.precision,
                 "quantization": model.format.quantization,
-                "modalities": list(model.modalities),
+                "modalities": list(display.modalities),
                 "requires_token": model.requires_token,
-                "license_spdx": model.license.spdx,
+                "license_spdx": display.license.spdx,
                 "source_repository": source_repository,
                 "source_revision": source_revision,
             }

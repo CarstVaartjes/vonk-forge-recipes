@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -40,16 +39,6 @@
     "version": "5.3"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Z.ai"
-    ],
-    "spdx": "LicenseRef-GLM-5.3",
-    "url": "https://huggingface.co/zai-org/GLM-5.3/blob/aca966e4e02791568aa6a4ced368624b3d897f42/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/zai-org/GLM-5.3",

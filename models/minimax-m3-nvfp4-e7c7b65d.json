@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -657,17 +651,6 @@
     "version": "MiniMax M3 NVFP4 e7c7b65d"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "MiniMax",
-      "lukealonso"
-    ],
-    "spdx": "LicenseRef-MiniMax-Community",
-    "url": "https://huggingface.co/MiniMaxAI/MiniMax-M3/blob/f0e1c1e04d40177e4673a22097036854f536e9c0/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/lukealonso/MiniMax-M3-NVFP4",

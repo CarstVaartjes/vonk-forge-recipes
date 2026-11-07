@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -69,16 +66,6 @@
     "version": "Ornith 1.5 122B DFlash2 a5ed7396"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "IncoAI"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/incoai/Ornith-1.5-122B-DFlash2/blob/a5ed7396f5f9e5b1abf7ff50b7899a3186961432/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/incoai/Ornith-1.5-122B-DFlash2",

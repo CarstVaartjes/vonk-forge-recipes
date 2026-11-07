@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -602,17 +597,6 @@
     "version": "MiniMax M2.5 AWQ 4bit 07002ac7"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "MiniMax",
-      "cyankiwi"
-    ],
-    "spdx": "LicenseRef-MiniMax-Modified-MIT",
-    "url": "https://github.com/MiniMax-AI/MiniMax-M2.5/blob/main/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/cyankiwi/MiniMax-M2.5-AWQ-4bit",

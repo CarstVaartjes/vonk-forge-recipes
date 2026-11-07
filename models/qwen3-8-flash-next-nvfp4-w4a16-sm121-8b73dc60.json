@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -1321,17 +1317,6 @@
     "version": "Qwen3.8 Flash Next NVFP4 W4A16 sm121 8b73dc60"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "r0b0tlab"
-    ],
-    "spdx": "LicenseRef-Qwen-Community-1.0",
-    "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/blob/de4b8e4d43b917e7706784d8bb445c9af86a3540/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/r0b0tlab/Qwen3.8-Flash-Next-NVFP4-W4A16-sm121",

@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -177,17 +174,6 @@
     "version": "NVFP4 1355db6a"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA",
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4/blob/1355db6a052410cfd62085d94b58866fd0f2c3c5/LICENSE"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4",

@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "text-generation"
+  ],
   "description": "Exact public z-lab DFlash block-diffusion draft model for Qwen3.6-35B-A3B.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +9,17 @@
     "slug": "qwen3-6-35b-a3b-dflash-f181eece"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "z-lab",
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/z-lab/Qwen3.6-35B-A3B-DFlash/blob/f181eece646affea2c38b2765f1aaa01a9734ccd/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Qwen3.6 35B-A3B DFlash draft",
   "tags": [
     "z-lab",

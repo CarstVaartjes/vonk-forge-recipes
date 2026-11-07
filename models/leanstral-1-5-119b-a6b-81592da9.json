@@ -1,12 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -146,16 +138,6 @@
     "version": "1.5"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Mistral AI"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/mistralai/Leanstral-1.5-119B-A6B"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/mistralai/Leanstral-1.5-119B-A6B",

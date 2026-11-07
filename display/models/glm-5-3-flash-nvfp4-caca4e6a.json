@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "Exact public GLM 5.3 Flash NVFP4 caca4e6a checkpoint; its 120 weight shards and runtime configuration are byte-identical to the prior 92d8bfb9 inventory, while the upstream README is refreshed.",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +13,19 @@
     "slug": "glm-5-3-flash-nvfp4-caca4e6a"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.ai",
+      "LibertAI"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/blob/caca4e6a4ebbd66f159d3d2fc256683fd6e27177/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "GLM 5.3 Flash NVFP4",
   "tags": [
     "libertaidai",

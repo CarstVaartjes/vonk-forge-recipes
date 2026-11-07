@@ -1,0 +1,41 @@
+{
+  "api": {
+    "audio_output": false,
+    "default_output_tokens": {
+      "value": 1024
+    },
+    "endpoints": [
+      "/v1/chat/completions"
+    ],
+    "input_modalities": {
+      "audio": false,
+      "image": false,
+      "pdf": false,
+      "text": true,
+      "video": false
+    },
+    "max_input_tokens": null,
+    "max_output_tokens": {
+      "setting": "context_tokens"
+    },
+    "mode": "chat",
+    "reasoning": {
+      "effort": null,
+      "kind": "always-on"
+    },
+    "streaming": true,
+    "structured_output": false,
+    "system_messages": true,
+    "tools": {
+      "kind": "supported",
+      "parallel_calls": true,
+      "tool_choice": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-27b-exl3-dflash2-mia-single"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}

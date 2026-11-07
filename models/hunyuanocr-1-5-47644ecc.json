@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "image-understanding",
-    "ocr",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -126,25 +120,6 @@
     "version": "1.5-47644ecc"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Tencent Hunyuan"
-    ],
-    "spdx": "LicenseRef-Tencent-Hunyuan-Community",
-    "territorial_restrictions": {
-      "denied_jurisdictions": [
-        "EU",
-        "GB",
-        "KR"
-      ],
-      "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
-    },
-    "url": "https://huggingface.co/tencent/HunyuanOCR/blob/47644ecc4fc854efa4f505155158831f36773ee4/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/tencent/HunyuanOCR",

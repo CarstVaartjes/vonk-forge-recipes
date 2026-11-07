@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "video-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -279,18 +273,6 @@
     "version": "FP8 9d1823d2"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Qwen/Qwen3.5-35B-A3B-FP8/blob/9d1823d2dee688a6b25e77009dc727688c44936e/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text",
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Qwen/Qwen3.5-35B-A3B-FP8",

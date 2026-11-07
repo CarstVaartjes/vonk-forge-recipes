@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation"
+  ],
   "description": "VibeThinker 3B reasoning model.",
   "family_title": "VibeThinker",
   "identity": {
@@ -6,6 +11,16 @@
     "slug": "vibethinker-3b-nvfp4-2fc00139"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "r0b0tlab"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/r0b0tlab/VibeThinker-3B-NVFP4/blob/2fc0013974d1a466e6a5a11839f029d5aff34dc9/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "VibeThinker-3B",
   "tags": [
     "r0b0tlab",

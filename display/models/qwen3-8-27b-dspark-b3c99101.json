@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Exact public Qwen3.8 27B DSpark v2 Stage 2 checkpoint at b3c99101.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +7,17 @@
     "slug": "qwen3-8-27b-dspark-b3c99101"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "RadixArk"
+    ],
+    "spdx": "LicenseRef-Qwen3.8-DSpark",
+    "url": "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/blob/b3c9910194dc7ae53fea3d95a1959b654f495416/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Qwen3.8 27B DSpark companion",
   "tags": [
     "radixark",

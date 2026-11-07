@@ -109,7 +109,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Recipe data (recipes, models, display, adapters, qualification, README,
+          # Recipe data (recipes, models, display, api, adapters, qualification, README,
           # creators) skips lint, format, type checks and the wheel build; every
           # other change (contracts, tools, tests, workflows) runs them too.
           case "${{ github.event_name }}" in
@@ -123,7 +123,7 @@ jobs:
           if [[ -n "$base" ]] && git cat-file -e "$base^{commit}" 2>/dev/null; then
             # Capture first: grep -q exiting early must not fail the pipeline.
             changed=$(git diff --name-only "$base" HEAD)
-            other=$(grep -Ev '^(recipes/|models/|display/|adapters/|qualification/shared\.json$|qualification/recipes/|README\.md$|creators\.json$)' <<<"$changed" | grep -v '^$' || true)
+            other=$(grep -Ev '^(recipes/|models/|display/|api/|adapters/|qualification/shared\.json$|qualification/recipes/|README\.md$|creators\.json$)' <<<"$changed" | grep -v '^$' || true)
             if [[ -z "$other" ]]; then full=false; else echo "Not recipe data:"; head -20 <<<"$other"; fi
           fi
           echo "full=$full" >> "$GITHUB_OUTPUT"
@@ -157,14 +157,33 @@ jobs:
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" tools/generate-contract-schemas --check
 
+      # One-time Model facts split (contracts 4.0.0): requires the checkout to
+      # equal the split of its base, and exits 0 once the base is already split.
+      # Deleted with the tool in the follow-up that repoints the platform pins.
+      - name: Require the Model facts split to be exactly the tool's result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          "$RECIPE_TEST_PYTHON" tools/split-model-facts --check --base origin/main
+
       - name: Build the catalog index twice and require identical bytes
         shell: bash
         run: |
           set -euo pipefail
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first"
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
+          # Independent builds: two release dirs (each builds in its own temp
+          # dir) and the checkout outputs, which are not read by the others.
+          # Each PID is waited on separately so every exit code counts.
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first" &
+          first_pid=$!
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second" &
+          second_pid=$!
+          "$RECIPE_TEST_PYTHON" tools/build-catalog-index &
+          checkout_pid=$!
+          wait "$first_pid"
+          wait "$second_pid"
+          wait "$checkout_pid"
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index
           "$RECIPE_TEST_PYTHON" tools/build-family-aware-coverage
 
       - name: Reject a changed Spark count for an existing recipe
@@ -173,15 +192,6 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin main:refs/remotes/origin/main
           python3 tools/check-recipe-topology --base origin/main
-
-      # One-time display split (contracts 3.0.0): requires the checkout to equal
-      # the split of its base, and exits 0 once the base is already split.
-      # Deleted with the tool in the follow-up that repoints the platform pins.
-      - name: Require the display split to be exactly the tool's result
-        shell: bash
-        run: |
-          set -euo pipefail
-          "$RECIPE_TEST_PYTHON" tools/split-display --check --base origin/main
 
       # A platform pin on a PR branch commit stops resolving when that branch is
       # deleted after its squash merge, and every recipes workflow then fails to
@@ -205,6 +215,23 @@ jobs:
         run: |
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" tools/check-recipe-memory-need --base origin/main
+
+      - name: Require API facts on every touched OpenAI-interface recipe
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The one-time Model facts split rewrites every recipe's Model pins and
+          # nothing else; the split check proves that, so those recipes are not
+          # "touched" for this guard. Once the base is split the tool says so
+          # (exit 0) and every edited recipe is checked again.
+          drop='^$'
+          if ! "$RECIPE_TEST_PYTHON" tools/split-model-facts --base-is-split --base origin/main; then
+            drop='^recipes/'
+          fi
+          {
+            git diff --name-only --diff-filter=AMR --merge-base origin/main
+            git ls-files --others --exclude-standard
+          } | { grep -Ev "$drop" || true; } | "$RECIPE_TEST_PYTHON" tools/check-recipe-api --changed-files -
 
       - name: Require every recipe to reference Models this library holds
         shell: bash
@@ -264,6 +291,16 @@ jobs:
           set -euo pipefail
           python3 tools/check-image-provenance --base origin/main
 
+      # The change's added lines, written once for the "Reject new ..." tools
+      # that judge only added lines. Git runs here, at the edge, through the one
+      # entry point that owns the diff flags and the pathspec; the tools and
+      # their tests take the diff as text.
+      - name: Write the added-lines diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/_added_lines.py --base origin/main > "$RUNNER_TEMP/added.diff"
+
       # GB10 shares one memory pool between CPU and CUDA: new adapter code may
       # not build a full model as real CPU tensors or pin a model constructor
       # to CUDA. Checks only lines added against main.
@@ -289,13 +326,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/check-document-reads --base origin/main
+          python3 tools/check-document-reads --diff "$RUNNER_TEMP/added.diff"
+
+      # Tests never use git: a tool takes its changed set, commit or epoch as an
+      # argument, and git runs only here, at the CI edge. Checks only added lines.
+      - name: Reject new tests that run git
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-test-git --diff "$RUNNER_TEMP/added.diff"
 
       - name: Reject new tests that gate on a real recipe's declared memory
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/check-estimate-gates --base origin/main
+          python3 tools/check-estimate-gates --diff "$RUNNER_TEMP/added.diff"
 
       # Every test runs on recipe changes too: the suite takes about as long
       # as any subset, and a subset silently misses recipe-data checks.

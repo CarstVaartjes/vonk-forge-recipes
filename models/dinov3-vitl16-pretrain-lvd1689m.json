@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -76,16 +75,6 @@
     "version": "ea8dc286"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "facebook"
-    ],
-    "spdx": "LicenseRef-DINOv3",
-    "url": "https://huggingface.co/facebook/dinov3-vitl16-pretrain-lvd1689m/blob/ea8dc2863c51be0a264bab82070e3e8836b02d51/LICENSE.md"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": true,
   "source": {
     "repository": "https://huggingface.co/facebook/dinov3-vitl16-pretrain-lvd1689m",

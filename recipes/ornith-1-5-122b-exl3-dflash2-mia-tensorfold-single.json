@@ -316,7 +316,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1539d8464826c8123cfcb3b432de5fa4dbb68b1d804fc560b83fde66f4ec4fda",
+        "content_sha256": "6e15eae8f2525d88f2f0e2a61fa0a8447a9fafe4eb37bec2276d65cdf5cd05b3",
         "kind": "model",
         "publisher": "mia-ailab",
         "slug": "ornith-1-5-122b-mia-exl3-eaq-v1-4bpw-9c5c913b"
@@ -377,7 +377,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "ef6bab3263b2458e76ab685dda8fdf0e13f31fd7dc5548573b33174635034790",
+        "content_sha256": "11f86f74f9aaecf02b707506e16c86038f861ad71305fb4fec568f78c3f46c94",
         "kind": "model",
         "publisher": "incoai",
         "slug": "ornith-1-5-122b-dflash2-a5ed7396"

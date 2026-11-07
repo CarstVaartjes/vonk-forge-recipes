@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "MiniCPM-V 4.7 EXL3 6.08bpw; this runtime uses the text path.",
   "family_title": "MiniCPM",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "minicpm-v-4-7-exl3-608bpw-8f9f0787"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "OpenBMB",
+      "r0b0tlab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/r0b0tlab/MiniCPM-V-4.7-35B-A3B-EXL3-6.08bpw/blob/8f9f07872b09846f2e14b3c908e99be1ccf3402a/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "MiniCPM-V 4.7 35B A3B",
   "tags": [
     "r0b0tlab",

@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "LFM2.5-24B-A2B immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "LiquidAI LFM2.5",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "lfm2-5-24b-a2b-bf16-1769516a"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "LiquidAI"
+    ],
+    "spdx": "lfm1.0",
+    "url": "https://huggingface.co/LiquidAI/LFM2.5-24B-A2B/blob/1769516ac588c4c558089c94f27d96b0dc67b183/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "LFM2.5-24B-A2B",
   "tags": [
     "candidate",

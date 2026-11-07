@@ -1,12 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -65,18 +57,6 @@
     "version": "UD-Q4_K_XL MTP 5bc3e238"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Unsloth",
-      "Alibaba Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://www.apache.org/licenses/LICENSE-2.0"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/unsloth/Qwen3.6-35B-A3B-MTP-GGUF",

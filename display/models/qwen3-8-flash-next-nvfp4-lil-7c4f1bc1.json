@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "Exact public local-inference-lab quantization-aware-distilled ModelOpt export of Qwen3.8 Flash Next: NVFP4 routed experts and n-gram tables, MXFP8 attention, DeltaNet and shared experts, with vision tower and MTP module.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +13,19 @@
     "slug": "qwen3-8-flash-next-nvfp4-lil-7c4f1bc1"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "local-inference-lab"
+    ],
+    "spdx": "LicenseRef-Qwen-Community-1.0",
+    "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/blob/de4b8e4d43b917e7706784d8bb445c9af86a3540/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "Qwen3.8 Flash Next NVFP4 (QAD, local-inference-lab)",
   "tags": [
     "local-inference-lab",
