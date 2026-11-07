@@ -37,7 +37,6 @@ MIA_MUSE = "https://github.com/MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-600
 MIA_Q36 = "https://github.com/MiaAI-Lab/Qwen3.6-27B-NVFP4-DFlash-DGX-Spark/blob/c9b071012e8e7a74cdb5277413332d0767ba7fff"
 TONY_JASL = "https://github.com/tonyd2wild/DS4-Jasl-Sparkrun-GB10-Fix/blob/050f1ba36d376f6a629894be795ebb79bc74501d"
 TONY_DS1M = "https://github.com/tonyd2wild/DeepSeek-V4-Flash-2x-Spark-1M/blob/7cc2c55c7b6428dcf49401dae63583c2e0141cdf"
-MIA_DS1M = "https://github.com/MiaAI-Lab/DeepSeek-V4-Flash-Dual-DGX-Spark-1M-Context/blob/d84319952b41df812603830cd13ae921c39860f7"
 MIA_LEAN = "https://github.com/MiaAI-Lab/Leanstral-1.5-119B-A6B_2x_DGX_Sparks_vLLM/blob/94d729896226db3eaf7f584e79b7c1f0028bab1d"
 MIA_EXL3 = "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks/blob/6f7d1590ad49a2b8995188e45d7b9db31e677452"
 R0B0_GLM = "https://github.com/r0b0tlab/glm53-flash-nvfp4-sm121/blob/222697317a4a165767ab8ef17b44cf969a5ece09"
@@ -227,14 +226,6 @@ CREATOR = {
         context_tokens=1000000,
         # The creator's 500K rollback profile (launch/ds4-500k-launch.sh#L30).
         options={"memory/profile-500k": {"gpu-memory-utilization": "0.80"}},
-    ),
-    "deepseek-v4-flash-vllm-mia-dual": Creator(
-        source=f"{MIA_DS1M}/docker-compose.yml#L68",
-        arguments={"gpu-memory-utilization": "0.83"},
-        absent=("kv-cache-memory-bytes",),
-        context_tokens=1000000,
-        # The creator's out-of-memory fallback (README#L232).
-        options={"memory/util-075": {"gpu-memory-utilization": "0.75"}},
     ),
     "glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual": Creator(
         source=f"{R0B0_GLM}/serve/boot_dflash2.sh#L14",
