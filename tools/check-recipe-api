@@ -44,7 +44,7 @@ from vonk_forge_contracts.api_checks import api_variants, join_problems
 from qualification.capabilities import serving_capabilities
 from qualification.documents import (
     has_recipe_api,
-    model,
+    model_display,
     recipe,
     recipe_api,
     recipe_display,
@@ -126,7 +126,7 @@ def problems(root: Path, slugs: list[str]) -> list[str]:
         except ValueError as error:
             found.append(f"{slug}: {error}")
             continue
-        models = [model(s.model.slug, root) for s in document.models]
+        models = [model_display(s.model.slug, root) for s in document.models]
         messages: list[str] = []
         try:
             check_recipe_api(document, api)

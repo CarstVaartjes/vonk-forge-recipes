@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -143,17 +138,6 @@
     "version": "Qwen3.6 35B-A3B NVFP4 RedHatAI e94a930c"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Red Hat AI",
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/blob/main/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/RedHatAI/Qwen3.6-35B-A3B-NVFP4",

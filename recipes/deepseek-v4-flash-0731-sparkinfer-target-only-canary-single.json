@@ -1936,7 +1936,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "12fd6a229340fd80f190e82d8c73b0cc6de037f3c73ed7ca95bb795d1a2932c2",
+        "content_sha256": "20378ebde0454207a238aebf5930ab5e0f5fa4bdf71e294d419c15c37ab94660",
         "kind": "model",
         "publisher": "0xsero",
         "slug": "deepseek-v4-flash-0731-sparkinfer-exl3-k216-22f28d32"

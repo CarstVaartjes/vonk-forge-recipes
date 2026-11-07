@@ -206,7 +206,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "be6e665f3dcd8d6b2a0d5dce11a675de7aae2a427d818040674d08c4657cb77f",
+        "content_sha256": "3a7cc3a6a0c1e3ad38c679834ee0fa1c0c62305b10ba9127ea5c35dc2b89b444",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen3-6-27b-nvfp4-0893e160"

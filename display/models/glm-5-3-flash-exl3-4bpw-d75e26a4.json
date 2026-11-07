@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "sfxnz GLM-5.3-Flash EXL3 4bpw pack for stock TensorFold 1.2.2 (TP2): routed experts EXL3 4 bpw on the mcg codebook, everything else Z.AI's BF16/F32 bytes, vision tower and MTP layer kept, revision d75e26a4. Built with stock exllamav3 v1.6.6 from MIT sources. Weights MIT (Z.AI).",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +12,19 @@
     "slug": "glm-5-3-flash-exl3-4bpw-d75e26a4"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "sfxnz",
+      "Z.AI",
+      "Turboderp"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/sfxnz/GLM-5.3-Flash-EXL3-4bpw/blob/d75e26a4fedfdb0e9a7d2422afd9cdba926ca7e6/LICENSE"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
   "model_title": "GLM 5.3 Flash EXL3 4bpw",
   "tags": [
     "zai-org",

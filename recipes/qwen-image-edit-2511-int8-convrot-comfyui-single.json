@@ -118,7 +118,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "64aa73119b0e05cb34cf0e9855b63fb146e165df4c586213ced5457815bc6959",
+        "content_sha256": "ae4faf747d375ff3b21fb465cd65f7a6f9f7bef26aeb88f7ee0ca8df43b93ae3",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-comfyui-int8-convrot-f68ace85"
@@ -149,7 +149,7 @@
       ],
       "id": "dependency-qwen-image-2512-comfyui-1f12b17b",
       "model": {
-        "content_sha256": "670e2a8010a939ebc86ed90fd7c4c14e402b5a8a4b137f277d9e6cca3fc191d3",
+        "content_sha256": "faedd2b365698b783063711a1e6dd4d35998d365de256a6dd001eb9c340501d4",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-2512-comfyui-1f12b17b"

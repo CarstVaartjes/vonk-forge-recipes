@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "MiMo-V2.6-Distill-Qwen-9B immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "MiMo",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "mimo-v2-6-distill-qwen-9b-bf16-2367e865"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "XiaomiMiMo"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Distill-Qwen-9B/blob/2367e865d009c13ac81713a2878291d33ab28177/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "MiMo-V2.6-Distill-Qwen-9B",
   "tags": [
     "candidate",

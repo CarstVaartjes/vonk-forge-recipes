@@ -1,12 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "tool-use",
-    "video-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -677,18 +669,6 @@
     "version": "MiniMax M3.1 Flash 54e4e69d"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "MiniMax"
-    ],
-    "spdx": "LicenseRef-MiniMax-Community",
-    "url": "https://huggingface.co/MiniMaxAI/MiniMax-M3.1-Flash/blob/54e4e69dfc452b1e94a426c24a4fdeeaa8e3ad5e/LICENSE"
-  },
-  "modalities": [
-    "text",
-    "image",
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/MiniMaxAI/MiniMax-M3.1-Flash",

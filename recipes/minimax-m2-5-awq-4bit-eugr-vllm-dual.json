@@ -740,7 +740,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "dc48ec9fb4aa8a91579ce2be04468a79436f236488a274e8932397021a911588",
+        "content_sha256": "6d217d634bd710b2fb1ec32cdee07eb1eb478ad3c313b09d9790b131c6fb0822",
         "kind": "model",
         "publisher": "cyankiwi",
         "slug": "minimax-m2-5-awq-4bit-07002ac7"

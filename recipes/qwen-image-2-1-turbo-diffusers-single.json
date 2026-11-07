@@ -265,7 +265,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "cd55015ea57a334d91d14364c838456dfe6e1f6dd498f05f74e7e24e3f2b03a7",
+        "content_sha256": "130b73ec2a4e2f1c8a930e7416d87429bf4765f6458a5d19671b21bc6560d71e",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-2-1-turbo-bf16-fc13ba19"

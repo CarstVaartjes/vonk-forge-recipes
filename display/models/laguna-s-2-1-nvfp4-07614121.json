@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "code-generation",
+    "reasoning",
+    "tool-use"
+  ],
   "description": "Poolside Laguna S 2.1 mixture-of-experts coding model.",
   "family_title": "Laguna",
   "identity": {
@@ -6,6 +11,16 @@
     "slug": "laguna-s-2-1-nvfp4-07614121"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Poolside"
+    ],
+    "spdx": "LicenseRef-OpenMDW-1.1",
+    "url": "https://www.poolside.ai/legal/openmdw-1-1"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Laguna S 2.1",
   "tags": [
     "poolside",

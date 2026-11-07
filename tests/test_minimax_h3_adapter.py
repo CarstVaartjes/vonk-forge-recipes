@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from documents import recipe_display
+from documents import model_display, recipe_display
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/minimax-h3-modular-diffusers"
@@ -63,10 +63,10 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
         self.assertTrue(recipe["execution"])
 
     def test_license_records_excluded_territories(self) -> None:
-        model = json.loads(MODEL_PATH.read_text(encoding="utf-8"))
-        restrictions = model["license"]["territorial_restrictions"]
+        restrictions = model_display("minimax-h3").license.territorial_restrictions
+        assert restrictions is not None
         self.assertTrue(
-            {"EU", "GB", "KR", "US"} <= set(restrictions["denied_jurisdictions"])
+            {"EU", "GB", "KR", "US"} <= set(restrictions.denied_jurisdictions)
         )
 
     def test_signed_source_bundle_matches_recipe(self) -> None:

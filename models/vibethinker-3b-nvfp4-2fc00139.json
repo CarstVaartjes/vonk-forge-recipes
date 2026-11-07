@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -125,16 +120,6 @@
     "version": "NVFP4 2fc00139"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "r0b0tlab"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/r0b0tlab/VibeThinker-3B-NVFP4/blob/2fc0013974d1a466e6a5a11839f029d5aff34dc9/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/r0b0tlab/VibeThinker-3B-NVFP4",

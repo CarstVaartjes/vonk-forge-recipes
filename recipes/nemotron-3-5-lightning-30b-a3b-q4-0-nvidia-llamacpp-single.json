@@ -66,7 +66,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ba78faec0213ab74403f69b4ef6d7f3f67f3e4cc648f1efbb242db24b39e4817",
+        "content_sha256": "57e12f20b2b2a736d8aa8d5a5c0aa65cccd429dfabf49e79bd20505637c280ac",
         "kind": "model",
         "publisher": "ggml-org",
         "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-8cd08217"

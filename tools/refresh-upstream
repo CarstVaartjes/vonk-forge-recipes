@@ -48,10 +48,9 @@ from urllib.parse import quote
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 sys.path.insert(0, str(ROOT))
-from vonk_forge_contracts import RecipeDefinition, document_sha256, published_json
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.recipe import RecipeRelease
 
-from qualification.documents import model_display
 from qualification.memory_need import raise_peaks_to_envelope
 from spark_sweep.own_pulls import OWN_FIELDS, own_pulls
 from spark_sweep.tolerant import InputReason, read_optional
@@ -706,15 +705,6 @@ def resolve(http: Http, provider: str, repo: str) -> Target:
 # ---------------------------------------------------------------------------
 # Catalog view
 # ---------------------------------------------------------------------------
-
-
-def moved_display(root: Path, old_slug: str, new_slug: str) -> bytes:
-    """The Model display of ``old_slug`` for the Model that replaces it as ``new_slug``."""
-    display = model_display(old_slug, root)
-    moved = display.model_copy(
-        update={"identity": display.identity.model_copy(update={"slug": new_slug})}
-    )
-    return canonical(published_json(moved))
 
 
 def canonical(document: object) -> bytes:
@@ -3043,8 +3033,12 @@ class Assessor:
                 return
             fresh = refreshed_model(old, new_files, item.target)
             edits[f"models/{fresh['identity']['slug']}.json"] = canonical(fresh)
-            edits[f"display/models/{fresh['identity']['slug']}.json"] = moved_display(
-                self.catalog.root, old["identity"]["slug"], fresh["identity"]["slug"]
+            edits[f"display/models/{fresh['identity']['slug']}.json"] = (
+                kit_pins.moved_model_display(
+                    self.catalog.root,
+                    old["identity"]["slug"],
+                    fresh["identity"]["slug"],
+                )
             )
         else:
             if mounted is not None and mounted_unchanged(old, fresh["files"], mounted):

@@ -108,7 +108,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "588b049a8d57c4e4d297ccbb9a4497dc8c2ebfef0105e7ed69f3ac9a5decc8cb",
+        "content_sha256": "066403a4e151165ea2bc5c6f33d28f6c9f3415657c68d25a0dab1d525b14c381",
         "kind": "model",
         "publisher": "ubisoft",
         "slug": "chord-v1-2b61fc12"
@@ -199,7 +199,7 @@
       ],
       "id": "stable-diffusion",
       "model": {
-        "content_sha256": "893c8b94a78643ee90023a63bc7cd78b4c2bc67f37f43b09123d512a46557ed2",
+        "content_sha256": "125708ff27c9474f5069ed3adb3f8d7e58ddbde598d0430c60e5e5ee0a07cfc6",
         "kind": "model",
         "publisher": "sd2-community",
         "slug": "stable-diffusion-2-1-base-configs-4e63672c"

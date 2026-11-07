@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "InternScience Agents-A1 (Qwen3.5 MoE agentic model).",
   "family_title": "Agents-A1",
   "identity": {
@@ -6,6 +12,17 @@
     "slug": "agents-a1-nvfp4-68a7ff18"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "InternScience",
+      "r0b0tlab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/r0b0tlab/Agents-A1-NVFP4/blob/68a7ff18c006927cbf3a97f76f293452ca14e016/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Agents-A1",
   "tags": [
     "r0b0tlab",

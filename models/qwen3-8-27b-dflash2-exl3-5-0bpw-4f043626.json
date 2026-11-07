@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -78,19 +75,6 @@
     "version": "Qwen3.8 27B DFlash2 EXL3 5.0bpw Mia 4f043626"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "inco.ai",
-      "z-lab",
-      "MiaAI-Lab",
-      "Turboderp"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Mia-AiLab/Qwen3.8-27B-DFlash2-EXL3-5.0bpw/blob/4f0436269bca761b071f05319e8e04a87cc633f9/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Mia-AiLab/Qwen3.8-27B-DFlash2-EXL3-5.0bpw",

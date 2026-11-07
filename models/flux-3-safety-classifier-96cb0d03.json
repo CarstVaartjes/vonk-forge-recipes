@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -76,16 +75,6 @@
     "version": "96cb0d03"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Falconsai"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Falconsai/nsfw_image_detection/blob/96cb0d0342c7afb80cab76ecc58b265fa44da256/LICENSE"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Falconsai/nsfw_image_detection",

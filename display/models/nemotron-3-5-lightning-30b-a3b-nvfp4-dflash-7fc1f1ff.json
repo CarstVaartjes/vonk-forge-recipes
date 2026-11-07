@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "text-generation"
+  ],
   "description": "Exact public NVIDIA DFlash speculative draft head for Nemotron 3.5 Lightning at 7fc1f1ff, the revision r0b0tlab's SGLang evidence binds to.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dflash-7fc1f1ff"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-OpenMDW-1.1",
+    "url": "https://openmdw.ai/license/1-1/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Nemotron 3.5 Lightning 30B-A3B NVFP4 DFlash draft",
   "tags": [
     "nvidia",

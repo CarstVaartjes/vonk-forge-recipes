@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
   "description": "XiaomiMiMo/MiMo-V2.6-Pro-MOPD (MOPD C3, stock) in Jarrelscy's ARVQ / NVFP4 hybrid format with a 21% NVFP4 hot set of routed experts and a three-head MTP stack; drowzeys (Keys) checkpoint. MIT.",
   "family_title": "MiMo",
   "identity": {
@@ -6,6 +11,18 @@
     "slug": "mimo-v2-6-pro-mopd-arvq-hybrid21-bb83094e"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "XiaomiMiMo",
+      "Jarrelscy",
+      "drowzeys (Keys)"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21/blob/bb83094e0075076cb0b553c965412e20b061b9c2/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "MiMo V2.6 Pro MOPD C3 ARVQ NVFP4 hybrid-21",
   "tags": [
     "drowzeys",

@@ -1,16 +1,13 @@
 {
-  "capabilities": [
-    "motion-capture"
-  ],
   "dependencies": [
     {
-      "content_sha256": "cb4ee2c39723381554ff45bedf1143f4faff8948175751bad2501fcc3d875a50",
+      "content_sha256": "8055627272779a31a4bff9c1c29e1c10e9c1daa2ac12d488327cbb1230c44804",
       "kind": "model",
       "publisher": "megvii-basedetection",
       "slug": "yolox-x-0-1-1rc0"
     },
     {
-      "content_sha256": "815733ca8f00e29eebaf1d9b50bf5add7065d2108b235d826845b7132bc9b7ad",
+      "content_sha256": "f87f282b17640e6192cdb34cf728c256a3f134402520b7c80d0cfd630205f540",
       "kind": "model",
       "publisher": "nvidia",
       "slug": "soma-x-3648707b"
@@ -208,17 +205,6 @@
     "version": "b111f2dc"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "nvidia"
-    ],
-    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
-    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
-  },
-  "modalities": [
-    "video",
-    "3d"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/GEM-X",

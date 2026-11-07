@@ -1,11 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -64,18 +57,6 @@
     "version": "IT Q8_0 9cf8c8db"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Google DeepMind",
-      "ggml-org"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/ggml-org/gemma-4-26B-A4B-it-GGUF",

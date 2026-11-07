@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -46,17 +40,6 @@
     "version": "Ling 3.0 Flash Fin IQ4_XS GGUF a792b6bd"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "inclusionAI",
-      "bartowski"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/bartowski/Ling-3.0-flash-Fin-GGUF/blob/a792b6bd51d2cb47b5aa8687ff5dd4f2974acdb4/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/bartowski/Ling-3.0-flash-Fin-GGUF",

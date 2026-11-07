@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -143,17 +138,6 @@
     "version": "NVFP4 bdb54e24"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation",
-      "Meta Platforms"
-    ],
-    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
-    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Llama-3.1-8B-Instruct-NVFP4",

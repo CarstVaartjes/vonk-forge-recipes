@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Official NVIDIA six-layer DSpark speculative-decoding companion for the exact Nemotron 3.5 Lightning 30B-A3B NVFP4 target.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-6d127b50"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-OpenMDW-1.1",
+    "url": "https://openmdw.ai/license/1-1/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Nemotron 3.5 Lightning 30B-A3B DSpark companion",
   "tags": [
     "nvidia",

@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -296,17 +291,6 @@
     "version": "nvfp4-e79701cb"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation",
-      "MiniMax"
-    ],
-    "spdx": "LicenseRef-NVIDIA-Software-and-Model-Evaluation-License",
-    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-software-and-model-evaluation-license"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/MiniMax-M2.7-NVFP4",

@@ -306,7 +306,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "00efc3e14c481833fd9c92d3250ed5dc2511a583dd12846f8e4b584a026bdc3a",
+        "content_sha256": "25e1e9898d5d3166050c300cfc8af0376779232b5d9df2ff9be3e132c9bf4199",
         "kind": "model",
         "publisher": "0xsero",
         "slug": "glm-5-3-flash-exl3-mosaic-12l-2726c32b"

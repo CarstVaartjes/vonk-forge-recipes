@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "Unsloth NVFP4 quantization of Qwen3.8 27B with the MTP head baked in, vision-language. Apache-2.0.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +11,18 @@
     "slug": "qwen3-8-27b-nvfp4-unsloth-f0b7c9e7"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "Unsloth"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/unsloth/Qwen3.8-27B-NVFP4/blob/f0b7c9e722f5565102fff8481c99e4d86ae099c7/README.md"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Qwen3.8 27B NVFP4 (Unsloth)",
   "tags": [
     "candidate",

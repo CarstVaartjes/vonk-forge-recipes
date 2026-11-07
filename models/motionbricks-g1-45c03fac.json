@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "motion-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -60,16 +57,6 @@
     "version": "MotionBricks G1 45c03fac"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "nvidia"
-    ],
-    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
-    "url": "https://github.com/NVlabs/GR00T-WholeBodyControl/blob/45c03facbf848e0c743091b7d9c17952096ff908/LICENSE"
-  },
-  "modalities": [
-    "3d"
-  ],
   "requires_token": false,
   "source": {
     "provider": "github-lfs",

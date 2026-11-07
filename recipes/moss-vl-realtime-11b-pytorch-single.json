@@ -352,7 +352,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ef2977463bbb7854d80b7bb8b72c3ebca9e6ad5e2d5029abac441ee3f8556a84",
+        "content_sha256": "6b4ed10aba172c5f9b6b4ea2f4538ad6d5fea9212463ddac96fb49564dc34dd2",
         "kind": "model",
         "publisher": "openmoss",
         "slug": "moss-vl-realtime-11b-bf16-d1f71a58"

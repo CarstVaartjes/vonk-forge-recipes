@@ -184,7 +184,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "7083ba4dbdf63e5acbd0bd819673dd5adda67d87faf9f3ee0aa0cabde23a0ada",
+        "content_sha256": "5e55443b5ca97b8dd5da7d36809933e38e9c9b660541e7c07969e64a5009ed55",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step1x-3d-geometry"
@@ -215,7 +215,7 @@
       ],
       "id": "dinov2-registers",
       "model": {
-        "content_sha256": "ab5ae5fdcdf6e4e976cb56a1d9cb58efe152cbba6d74347dfcfdd1afa61e9ff4",
+        "content_sha256": "2f87374761b1087d4dea34155a08adccf25e8b42306b8da88e80060402509342",
         "kind": "model",
         "publisher": "facebook",
         "slug": "dinov2-with-registers-large"

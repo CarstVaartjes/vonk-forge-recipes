@@ -94,6 +94,17 @@ def _with_family_title(model: dict[str, Any]) -> dict[str, Any]:
     return document
 
 
+def _with_display_facts(
+    model: dict[str, Any], display: dict[str, Any]
+) -> dict[str, Any]:
+    """The Model document with the facts that belong to its display written back."""
+
+    return {
+        **model,
+        **{name: display[name] for name in ("modalities", "capabilities", "license")},
+    }
+
+
 def _display_vectors(
     recipes: dict[str, dict[str, Any]],
     models: dict[str, dict[str, Any]],
@@ -126,6 +137,13 @@ def _display_vectors(
         "ModelDefinition",
         "Extra inputs are not permitted",
         _with_family_title(models[""]),
+        producer_only=True,
+    )
+    _invalid(
+        "model-with-display-facts",
+        "ModelDefinition",
+        "Extra inputs are not permitted",
+        _with_display_facts(models[""], model_display),
         producer_only=True,
     )
     _invalid(

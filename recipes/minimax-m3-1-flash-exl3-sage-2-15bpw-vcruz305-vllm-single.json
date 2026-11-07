@@ -441,7 +441,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "7b352e966eb6f7ffeb37fe154588e454a05d329af7bd781f5eb7b4ca78281321",
+        "content_sha256": "67a14acc314d03e5727f3b7e2c83265ab1b29fd2a6eca19a8ab338a7fa1b068d",
         "kind": "model",
         "publisher": "vcruz305",
         "slug": "minimax-m3-1-flash-exl3-sage-2-15bpw-99bf3a57"

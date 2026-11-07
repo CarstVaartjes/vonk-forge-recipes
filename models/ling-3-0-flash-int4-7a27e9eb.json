@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -340,16 +336,6 @@
     "version": "Ling 3.0 Flash INT4 7a27e9eb"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "InclusionAI"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4/blob/7a27e9eb8179b2c2eb71eb214f0dab14ec6a63f2/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/inclusionAI/Ling-3.0-flash-int4",

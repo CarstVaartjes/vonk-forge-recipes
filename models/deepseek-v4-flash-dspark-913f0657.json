@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -692,16 +687,6 @@
     "version": "dspark-913f0657"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "DeepSeek AI"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-DSpark/blob/62af8fffb2f7030cac4de2f0169f5b8d1101b646/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-DSpark",

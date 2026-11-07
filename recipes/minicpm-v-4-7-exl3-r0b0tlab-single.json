@@ -345,7 +345,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "95ff6042c46c9591390846d07a035640fa42aae2d1bbfe5ac1ad54429754bc19",
+        "content_sha256": "ad73193f0246092aa2f375ae50d1c8a713f6afb8d6af05e232daaebbad2a4a84",
         "kind": "model",
         "publisher": "r0b0tlab",
         "slug": "minicpm-v-4-7-exl3-608bpw-8f9f0787"

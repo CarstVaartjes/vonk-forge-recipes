@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "Exact official Qwen block-wise FP8 checkpoint of Qwen3.5-122B-A10B, a multimodal mixture-of-experts model.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +12,18 @@
     "slug": "qwen3-5-122b-a10b-fp8-a099dee7"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen3.5-122B-A10B-FP8/blob/a099dee70ccfcd8d5dda56aaa0b60cb8ecadabc9/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "Qwen3.5 122B-A10B FP8",
   "tags": [
     "qwen",

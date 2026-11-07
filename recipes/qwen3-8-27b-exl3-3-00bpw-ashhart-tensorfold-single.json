@@ -211,7 +211,7 @@
       ],
       "id": "target",
       "model": {
-        "content_sha256": "251c48503a4c3c937e421ce21f03f67882f7c6cfc184c7826ba3c378b86b4918",
+        "content_sha256": "0c4b8dc64a3dc315dc9191347120361b0382e31350684771b088f26ab68c7285",
         "kind": "model",
         "publisher": "turboderp",
         "slug": "qwen3-8-27b-exl3-3-00bpw-6fe61ad6"
@@ -272,7 +272,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "5479ba57e0cb31945807660fbe38cdf62c9a5c516ce4a0b593e1f907c56e08c9",
+        "content_sha256": "abd9b4c762654ff36016c8c8520a39d113d68258813d57f1a70b4fca9fcec070",
         "kind": "model",
         "publisher": "z-lab",
         "slug": "qwen3-8-27b-dflash2-50307d4c"

@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -1359,18 +1353,6 @@
     "version": "GLM 5.2 NVFP4 AQLM Hybrid 53e0082e"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Z.ai",
-      "jarrelscy"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid/blob/c5d93567f1ff2de4dbba6018b58a653654c1309a/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid",

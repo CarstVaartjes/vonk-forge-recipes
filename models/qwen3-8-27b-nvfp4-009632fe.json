@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -223,18 +219,6 @@
     "version": "Qwen3.8 27B NVFP4 BF16 LM head 009632fe"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "RadixArk"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead/blob/009632fef96dd349150baa780c984e62e70e91fe/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead",
