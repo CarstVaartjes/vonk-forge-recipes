@@ -25,6 +25,7 @@ from vonk_forge_contracts import (
     model_display_json_schema,
     model_json_schema,
     read_model,
+    read_model_display,
     read_recipe,
     recipe_display_json_schema,
     recipe_json_schema,
@@ -396,9 +397,13 @@ def test_model_selection_accepts_large_but_bounded_shard_manifests() -> None:
         RecipeDefinition.model_validate(recipe)
 
 
-def test_capabilities_are_open_unique_names() -> None:
+def test_capabilities_are_a_closed_set_of_unique_names() -> None:
     document = load("model-display.json")
     document["capabilities"].append("a-capability-from-a-newer-catalog")
+    for read in (ModelDisplay.model_validate, read_model_display):
+        with pytest.raises(ValidationError, match="a-capability-from-a-newer"):
+            read(document)
+    document["capabilities"][-1] = "ocr"
     ModelDisplay.model_validate(document)
     document["capabilities"].append("image-generation")
     with pytest.raises(ValidationError, match="unique"):
