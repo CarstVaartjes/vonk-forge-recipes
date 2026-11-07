@@ -2,7 +2,7 @@
   "dependencies": [],
   "files": [
     {
-      "id": "metadata-34448b82c17d",
+      "id": "metadata-34448b82c17d-618cd5b83d",
       "path": ".gitattributes",
       "roles": [
         "metadata"
@@ -11,7 +11,7 @@
       "size_bytes": 1570
     },
     {
-      "id": "license-50cbab8a892c",
+      "id": "license-50cbab8a892c-c693279643",
       "path": "LICENSE",
       "roles": [
         "metadata"
@@ -20,7 +20,7 @@
       "size_bytes": 11343
     },
     {
-      "id": "readme-bb936d6da510",
+      "id": "readme-bb936d6da510-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
@@ -29,16 +29,16 @@
       "size_bytes": 62593
     },
     {
-      "id": "chat-template-e84f32a23fdd",
+      "id": "chat-template-1b8361565cc3-00824420d1",
       "path": "chat_template.jinja",
       "roles": [
         "tokenizer"
       ],
-      "sha256": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259",
-      "size_bytes": 7764
+      "sha256": "1b8361565cc35d47551d342214cff341c0f1a9685ce529c7ce31de0ed3616248",
+      "size_bytes": 7816
     },
     {
-      "id": "config-69db4eb7196b",
+      "id": "config-69db4eb7196b-587cb980af",
       "path": "config.json",
       "roles": [
         "configuration"
@@ -47,7 +47,7 @@
       "size_bytes": 4308
     },
     {
-      "id": "configuration-2d4464e2ead0",
+      "id": "configuration-2d4464e2ead0-761e16ca02",
       "path": "configuration.json",
       "roles": [
         "configuration"
@@ -56,7 +56,7 @@
       "size_bytes": 51
     },
     {
-      "id": "generation-config-e70c136c1b78",
+      "id": "generation-config-e70c136c1b78-97dd3d578b",
       "path": "generation_config.json",
       "roles": [
         "configuration"
@@ -65,7 +65,7 @@
       "size_bytes": 202
     },
     {
-      "id": "merges-a9d356d7bdf1",
+      "id": "merges-a9d356d7bdf1-b0d6dcfed4",
       "path": "merges.txt",
       "roles": [
         "metadata"
@@ -74,7 +74,7 @@
       "size_bytes": 3353259
     },
     {
-      "id": "model-00001-of-00015-5f21d4e349ae",
+      "id": "model-00001-of-00015-5f21d4e349ae-44561eb6b2",
       "path": "model-00001-of-00015.safetensors",
       "roles": [
         "weights"
@@ -83,7 +83,7 @@
       "size_bytes": 3968861352
     },
     {
-      "id": "model-00002-of-00015-03de44dc7e93",
+      "id": "model-00002-of-00015-03de44dc7e93-07a29c15a6",
       "path": "model-00002-of-00015.safetensors",
       "roles": [
         "weights"
@@ -92,7 +92,7 @@
       "size_bytes": 3921677136
     },
     {
-      "id": "model-00003-of-00015-5c3a68304dab",
+      "id": "model-00003-of-00015-5c3a68304dab-f78009be1c",
       "path": "model-00003-of-00015.safetensors",
       "roles": [
         "weights"
@@ -101,7 +101,7 @@
       "size_bytes": 3921677128
     },
     {
-      "id": "model-00004-of-00015-ba8b0849cb4c",
+      "id": "model-00004-of-00015-ba8b0849cb4c-537155251a",
       "path": "model-00004-of-00015.safetensors",
       "roles": [
         "weights"
@@ -110,7 +110,7 @@
       "size_bytes": 3921677128
     },
     {
-      "id": "model-00005-of-00015-a5abc1d5e958",
+      "id": "model-00005-of-00015-a5abc1d5e958-a66a0e8406",
       "path": "model-00005-of-00015.safetensors",
       "roles": [
         "weights"
@@ -119,7 +119,7 @@
       "size_bytes": 3921677112
     },
     {
-      "id": "model-00006-of-00015-160d914e2e47",
+      "id": "model-00006-of-00015-160d914e2e47-c6f64b47d4",
       "path": "model-00006-of-00015.safetensors",
       "roles": [
         "weights"
@@ -128,7 +128,7 @@
       "size_bytes": 3900710888
     },
     {
-      "id": "model-00007-of-00015-0bcd0ce28c7d",
+      "id": "model-00007-of-00015-0bcd0ce28c7d-77f2bf80e6",
       "path": "model-00007-of-00015.safetensors",
       "roles": [
         "weights"
@@ -137,7 +137,7 @@
       "size_bytes": 3994391976
     },
     {
-      "id": "model-00008-of-00015-584a0ed8018d",
+      "id": "model-00008-of-00015-584a0ed8018d-b15e39c23e",
       "path": "model-00008-of-00015.safetensors",
       "roles": [
         "weights"
@@ -146,7 +146,7 @@
       "size_bytes": 3879219776
     },
     {
-      "id": "model-00009-of-00015-e7e3e1a17a26",
+      "id": "model-00009-of-00015-e7e3e1a17a26-114707df82",
       "path": "model-00009-of-00015.safetensors",
       "roles": [
         "weights"
@@ -155,7 +155,7 @@
       "size_bytes": 3921677136
     },
     {
-      "id": "model-00010-of-00015-e8934789f474",
+      "id": "model-00010-of-00015-e8934789f474-beabd0fa3e",
       "path": "model-00010-of-00015.safetensors",
       "roles": [
         "weights"
@@ -164,7 +164,7 @@
       "size_bytes": 3921677128
     },
     {
-      "id": "model-00011-of-00015-44e8fe06d2d6",
+      "id": "model-00011-of-00015-44e8fe06d2d6-d3dd1f014d",
       "path": "model-00011-of-00015.safetensors",
       "roles": [
         "weights"
@@ -173,7 +173,7 @@
       "size_bytes": 3921677136
     },
     {
-      "id": "model-00012-of-00015-33c5d7d18e1b",
+      "id": "model-00012-of-00015-33c5d7d18e1b-188b7f7b7b",
       "path": "model-00012-of-00015.safetensors",
       "roles": [
         "weights"
@@ -182,7 +182,7 @@
       "size_bytes": 3921677136
     },
     {
-      "id": "model-00013-of-00015-68db2ebb0323",
+      "id": "model-00013-of-00015-68db2ebb0323-75674c2d2e",
       "path": "model-00013-of-00015.safetensors",
       "roles": [
         "weights"
@@ -191,7 +191,7 @@
       "size_bytes": 3995081848
     },
     {
-      "id": "model-00014-of-00015-26c114fb6d5d",
+      "id": "model-00014-of-00015-26c114fb6d5d-50b8711ff6",
       "path": "model-00014-of-00015.safetensors",
       "roles": [
         "weights"
@@ -200,7 +200,7 @@
       "size_bytes": 3942652952
     },
     {
-      "id": "model-00015-of-00015-b84b5b1315e8",
+      "id": "model-00015-of-00015-b84b5b1315e8-91ba459589",
       "path": "model-00015-of-00015.safetensors",
       "roles": [
         "weights"
@@ -209,7 +209,7 @@
       "size_bytes": 508670568
     },
     {
-      "id": "model-safetensors-index-a8ad2c26fb70",
+      "id": "model-safetensors-index-a8ad2c26fb70-0a05be8238",
       "path": "model.safetensors.index.json",
       "roles": [
         "configuration"
@@ -218,7 +218,7 @@
       "size_bytes": 112216
     },
     {
-      "id": "preprocessor-config-27225450ac9c",
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
       "path": "preprocessor_config.json",
       "roles": [
         "configuration"
@@ -227,7 +227,7 @@
       "size_bytes": 390
     },
     {
-      "id": "tokenizer-5f9e4d4901a9",
+      "id": "tokenizer-5f9e4d4901a9-224931eb13",
       "path": "tokenizer.json",
       "roles": [
         "tokenizer"
@@ -236,16 +236,16 @@
       "size_bytes": 12807982
     },
     {
-      "id": "tokenizer-config-5186f0defcd7",
+      "id": "tokenizer-config-a39230de9293-94d5c6ba8f",
       "path": "tokenizer_config.json",
       "roles": [
         "tokenizer"
       ],
-      "sha256": "5186f0defcd7f232382c7f0aebcd2252d073bb921ab240e407b7ae8745d2b29b",
-      "size_bytes": 16718
+      "sha256": "a39230de929388c748904265340616449f3bdeeb324d99385c6243d0577f98ed",
+      "size_bytes": 9983
     },
     {
-      "id": "video-preprocessor-config-7768af27c1fa",
+      "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
       "path": "video_preprocessor_config.json",
       "roles": [
         "configuration"
@@ -254,7 +254,7 @@
       "size_bytes": 385
     },
     {
-      "id": "vocab-ce99b4cb2983",
+      "id": "vocab-ce99b4cb2983-ba05d8e2e4",
       "path": "vocab.json",
       "roles": [
         "tokenizer"
@@ -277,14 +277,14 @@
       "slug": "qwen3-6-27b"
     },
     "publisher": "qwen",
-    "slug": "qwen3-6-27b-6a9e13bd",
-    "variant": "27B 6a9e13bd",
-    "version": "27B 6a9e13bd"
+    "slug": "qwen3-6-27b-8f33b989",
+    "variant": "27B 8f33b989",
+    "version": "27B 8f33b989"
   },
   "kind": "model",
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Qwen/Qwen3.6-27B",
-    "revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9"
+    "revision": "8f33b98937c6031bb49e713dee3e8e185aafd26f"
   }
 }
