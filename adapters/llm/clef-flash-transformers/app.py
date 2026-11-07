@@ -1,8 +1,5 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 amarjeet
-# Vonk Forge changes (see NOTICE): paths and port for the container, the
-# platform SystemOne response envelope (decision_response.py), no systemd or
-# host-memory scripts.
 """Clef-Flash behind a SystemOne-compatible HTTP API.
 
 Clef-Flash is a Qwen3.5-9B backbone plus a joint schema head that scores every
@@ -34,12 +31,11 @@ FP8 right after the BF16 load -- see server/fp8.py for why and what, and
 server/fp8_drift.py for the comparison that admitted it. WEIGHTS=bf16 serves
 the checkpoint as released.
 
-Configuration is environment variables; the defaults are the container's.
+Configuration is environment variables set by start.sh (see profiles.sh).
 """
 
 from __future__ import annotations
 
-import argparse
 import base64
 import binascii
 import io
@@ -55,16 +51,9 @@ import torch
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
-SNAPSHOT = os.environ.get("CLEF_SNAPSHOT", "/models")
-# The recipe's settings arrive as flags, like the other engines' arguments.
-_parser = argparse.ArgumentParser(allow_abbrev=False)
-_parser.add_argument("--served-model-name", default=os.environ.get("SERVED_MODEL_NAME", "clef-flash"))
-_parser.add_argument("--max-model-len", type=int, default=int(os.environ.get("MAX_LENGTH", "16384")))
-_parser.add_argument("--host", default=os.environ.get("HOST", "0.0.0.0"))
-_parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8000")))
-_flags, _ = _parser.parse_known_args()
-SERVED_MODEL_NAME = _flags.served_model_name
-MAX_LENGTH = _flags.max_model_len
+SNAPSHOT = os.environ["CLEF_SNAPSHOT"]
+SERVED_MODEL_NAME = os.environ.get("SERVED_MODEL_NAME", "clef-flash")
+MAX_LENGTH = int(os.environ.get("MAX_LENGTH", "16384"))
 MAX_IMAGES = int(os.environ.get("MAX_IMAGES", "8"))
 MAX_VIDEOS = int(os.environ.get("MAX_VIDEOS", "1"))
 MAX_BODY_BYTES = int(os.environ.get("MAX_BODY_MIB", "64")) * 1024 * 1024
@@ -79,7 +68,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 # The model's own code, from the snapshot preflight.sh verified by SHA-256.
 sys.path.insert(0, SNAPSHOT)
 import joint_schema_model as jsm  # noqa: E402
-from decision_response import platform_response  # noqa: E402
 
 STATE: dict[str, Any] = {}
 LOCK = threading.Lock()
@@ -319,7 +307,7 @@ async def systemone(request: Request) -> JSONResponse:
         torch.cuda.empty_cache()
         raise HTTPException(507, f"out of GPU memory for this request: {exc}") from exc
     # Timing rides in a header so the body stays exactly the SystemOne shape.
-    return JSONResponse(platform_response(payload, result), headers={"X-Clef-Forward-Ms": f"{elapsed_ms:.1f}"})
+    return JSONResponse(result, headers={"X-Clef-Forward-Ms": f"{elapsed_ms:.1f}"})
 
 if __name__ == "__main__":
     import uvicorn
@@ -327,8 +315,8 @@ if __name__ == "__main__":
     # One worker: a second would load a second 18 GiB copy of the model.
     uvicorn.run(
         app,
-        host=_flags.host,
-        port=_flags.port,
+        host=os.environ.get("HOST", "0.0.0.0"),
+        port=int(os.environ.get("PORT", "8012")),
         workers=1,
         log_level="info",
         timeout_graceful_shutdown=10,
