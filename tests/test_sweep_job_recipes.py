@@ -1,4 +1,4 @@
-"""Job recipes are skipped before any lane is spent, and the skip heals once they load."""
+"""Job recipes are always tested; an older platform-skip entry returns to pending."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
-from spark_sweep.run import JOB_SKIP_CODE, PLATFORM_SKIP
+from spark_sweep.run import PLATFORM_SKIP
 
 
 def _rows(tmp_path: Path, key: str) -> list[dict]:
@@ -18,28 +18,28 @@ def _rows(tmp_path: Path, key: str) -> list[dict]:
     return [r for r in rows if r.get("recipe") == key]
 
 
-def test_job_recipe_is_skipped_without_a_lane_and_heals(tmp_path: Path) -> None:
-    job, chat = FakeRecipe("ocr", adapter="artifact-job"), FakeRecipe("chat")
-    sweep, fleet, _ = make_sweep(tmp_path, [job, chat], [FakeModel("m1")])
+def test_job_recipe_is_pending_without_any_flag(tmp_path: Path) -> None:
+    job = FakeRecipe("ocr", adapter="artifact-job")
+    sweep, _, _ = make_sweep(tmp_path, [job], [FakeModel("m1")])
     sweep.refresh_catalog()
+    assert sweep.state.status(job.key) == "pending"
+    assert [r.key for r in sweep.pending()] == [job.key]
 
-    entry = sweep.state.recipes[job.key]
-    assert entry["status"] == "skipped"
-    assert entry["reason_kind"] == PLATFORM_SKIP
-    assert entry.get("attempts", 0) == 0
-    assert sweep.state.status(chat.key) == "pending"
-    assert [r.key for r in sweep.pending()] == [chat.key]
-    assert job.key not in sweep.state.slots
 
-    sweep.refresh_catalog()  # idempotent: one row, however many passes
-    rows = _rows(tmp_path, job.key)
-    assert [(r["status"], r.get("code")) for r in rows] == [("skipped", JOB_SKIP_CODE)]
-
-    fleet.recipes[job.key] = FakeRecipe("ocr")  # the platform loads job recipes now
+def test_an_older_platform_skip_returns_to_pending(tmp_path: Path) -> None:
+    job = FakeRecipe("ocr", adapter="artifact-job")
+    sweep, _, _ = make_sweep(tmp_path, [job], [FakeModel("m1")])
+    sweep.refresh_catalog()
+    sweep.state.recipes[job.key].update(
+        status="skipped",
+        reason="job recipes are not loadable through a fleet profile on this platform yet",
+        reason_kind=PLATFORM_SKIP,
+    )
     sweep.refresh_catalog()
     entry = sweep.state.recipes[job.key]
     assert entry["status"] == "pending"
     assert "reason" not in entry and "reason_kind" not in entry
+    assert [r.key for r in sweep.pending()] == [job.key]
 
 
 def test_job_recipe_in_a_live_lane_is_left_to_finish(tmp_path: Path) -> None:
@@ -57,33 +57,9 @@ def test_job_recipe_in_a_live_lane_is_left_to_finish(tmp_path: Path) -> None:
     assert job.key not in [r.key for r in sweep.pending()]
 
 
-def test_with_job_recipes_on_a_job_recipe_is_pending_and_a_skip_heals(
-    tmp_path: Path,
-) -> None:
+def test_a_job_recipe_passes_through_one_artifact_job(tmp_path: Path) -> None:
     job = FakeRecipe("ocr", adapter="artifact-job")
-    sweep, _, _ = make_sweep(tmp_path, [job], [FakeModel("m1")])
-    sweep.refresh_catalog()
-    assert sweep.state.status(job.key) == "skipped"
-    sweep.state.save()
-
-    # The Controller can load job recipes now: the flag is flipped, no code reverted.
-    sweep, _, _ = make_sweep(
-        tmp_path, [job], [FakeModel("m1")], job_recipes_loadable=True
-    )
-    sweep.refresh_catalog()
-    entry = sweep.state.recipes[job.key]
-    assert entry["status"] == "pending"
-    assert "reason_kind" not in entry
-    assert [r.key for r in sweep.pending()] == [job.key]
-
-
-def test_with_job_recipes_on_a_job_recipe_passes_through_one_artifact_job(
-    tmp_path: Path,
-) -> None:
-    job = FakeRecipe("ocr", adapter="artifact-job")
-    sweep, fleet, _ = make_sweep(
-        tmp_path, [job], [FakeModel("m1")], job_recipes_loadable=True
-    )
+    sweep, fleet, _ = make_sweep(tmp_path, [job], [FakeModel("m1")])
     assert sweep.run() == 0
     assert sweep.state.status(job.key) == "passed"
     assert [step for step, _ in fleet.job_calls] == ["create", "submit", "download"]

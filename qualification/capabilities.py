@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from vonk_forge_contracts import ModelDisplay, RecipeDisplay
+from vonk_forge_contracts import CapabilityName, ModelDisplay, RecipeDisplay
 
 ROOT = Path(__file__).resolve().parents[1]
 KIT_FLAGS = Path(__file__).resolve().parent / "kit-engine-flags.json"
@@ -159,7 +159,8 @@ def multimodal(
     for entry in recipe["models"]:
         model = models.get(entry["model"]["slug"])
         if model is not None and (
-            "image" in model.modalities or "image-understanding" in model.capabilities
+            "image" in model.modalities
+            or CapabilityName.IMAGE_UNDERSTANDING in model.capabilities
         ):
             return True
     return False

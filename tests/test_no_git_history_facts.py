@@ -26,8 +26,6 @@ ALLOWED = {
         "tools/check-recipe-topology",
         "base_recipes",
     ): "base Spark count of edited recipes",
-    # The release index records when its source commit was made.
-    ("tools/build-catalog-index", "_commit_time"): "source commit time (provenance)",
     # The evidence publisher reads the records of the PR branch it is refusing: the
     # content of the change under review, never a fact about an old revision.
     (

@@ -1,0 +1,4 @@
+{
+  "contract": "RecipeDefinition",
+  "error_contains": "serving assertion is not applicable to its check kind"
+}
