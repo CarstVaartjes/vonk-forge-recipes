@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "image-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -33,17 +30,6 @@
     "version": "nvfp4-1db2b2f7"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Black Forest Labs",
-      "Comfy-Org"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/blob/1db2b2f776c24b76f1122e5f69ab1949fc620068/LICENSE.md"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4",

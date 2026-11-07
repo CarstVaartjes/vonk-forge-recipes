@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "image-upscaling"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -51,16 +48,6 @@
     "version": "623bdf3d"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Philip Hofmann (Phips)"
-    ],
-    "spdx": "CC-BY-4.0",
-    "url": "https://huggingface.co/Phips/4xNomos8kSC/blob/623bdf3d1ec5bccb02548a79eec1b62d32ff86fd/README.md"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Phips/4xNomos8kSC",

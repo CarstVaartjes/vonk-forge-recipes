@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "video-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -60,17 +57,6 @@
     "version": "comfyui-ee6f4a40"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Wan-AI",
-      "Comfy-Org"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B/blob/c8c270b13ee05bfa474194ac9fb07a5868a97cea/LICENSE.txt"
-  },
-  "modalities": [
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged",

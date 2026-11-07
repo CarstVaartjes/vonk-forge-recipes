@@ -1,4 +1,13 @@
 {
+  "capabilities": [
+    "audio-understanding",
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use",
+    "video-understanding"
+  ],
   "description": "lukealonso ModelOpt NVFP4 quantization of XiaomiMiMo/MiMo-V2.5 (Omni: text, image, video, audio): non-shared MoE expert projections in NVFP4, attention, dense MLPs and shared experts in BF16, with the MTP head.",
   "family_title": "MiMo",
   "identity": {
@@ -6,6 +15,17 @@
     "slug": "mimo-v2-5-nvfp4-a147dd04"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Xiaomi MiMo",
+      "lukealonso"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.5/blob/63651580ca774f8504f676040460aed3e1244ac1/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "MiMo V2.5 NVFP4",
   "tags": [
     "lukealonso",

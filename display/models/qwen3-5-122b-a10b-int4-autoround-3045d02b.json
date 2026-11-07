@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "reasoning",
+    "text-generation"
+  ],
   "description": "Exact Intel AutoRound INT4 (group size 128) quantization of Qwen3.5-122B-A10B; Intel states to follow the licence of the original model.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +11,18 @@
     "slug": "qwen3-5-122b-a10b-int4-autoround-3045d02b"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Intel",
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Intel/Qwen3.5-122B-A10B-int4-AutoRound/blob/3045d02bb737effc4581da91bddbad3be02934e4/README.md"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Qwen3.5 122B-A10B INT4 AutoRound (Intel)",
   "tags": [
     "intel",

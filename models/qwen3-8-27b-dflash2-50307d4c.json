@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -69,17 +66,6 @@
     "version": "Qwen3.8 27B DFlash2 50307d4c"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "z-lab",
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/z-lab/Qwen3.8-27B-DFlash2/blob/50307d4c4cde6860d4eee73e2547cd786fe8e8a4/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/z-lab/Qwen3.8-27B-DFlash2",

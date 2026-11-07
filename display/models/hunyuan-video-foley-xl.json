@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "audio-generation",
+    "video-understanding"
+  ],
   "description": "Immutable public snapshot at 3abd4e83.",
   "family_title": "HunyuanVideo Foley",
   "identity": {
@@ -6,6 +10,25 @@
     "slug": "hunyuan-video-foley-xl"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "tencent"
+    ],
+    "spdx": "LicenseRef-Tencent-Hunyuan-Community",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR"
+      ],
+      "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
+    },
+    "url": "https://huggingface.co/tencent/HunyuanVideo-Foley/blob/3abd4e833b95b8db0fc9c687afc52483a48e9a97/LICENSE"
+  },
+  "modalities": [
+    "audio",
+    "video"
+  ],
   "model_title": "HunyuanVideo Foley",
   "tags": [
     "tencent",

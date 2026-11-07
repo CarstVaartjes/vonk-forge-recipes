@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "parametric-body-model"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -321,16 +318,6 @@
     "version": "v0.3.3 3648707b"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "nvidia"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/nvidia/SOMA-X/blob/3648707b69e1b1dcf14c473e30613266b786b9f1/LICENSE"
-  },
-  "modalities": [
-    "3d"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/SOMA-X",

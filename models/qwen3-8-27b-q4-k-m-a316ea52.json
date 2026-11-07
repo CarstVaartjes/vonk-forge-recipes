@@ -1,12 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -65,18 +57,6 @@
     "version": "Q4_K_M a316ea52"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Alibaba Qwen",
-      "ggml-org"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://www.apache.org/licenses/LICENSE-2.0"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF",

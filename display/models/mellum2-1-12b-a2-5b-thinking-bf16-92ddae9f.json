@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Mellum2.1-12B-A2.5B-Thinking immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "Mellum",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "mellum2-1-12b-a2-5b-thinking-bf16-92ddae9f"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "JetBrains"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/JetBrains/Mellum2.1-12B-A2.5B-Thinking/blob/92ddae9fc7665e9f801d141d2e5a6b2caf2460c4/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Mellum2.1-12B-A2.5B-Thinking",
   "tags": [
     "candidate",

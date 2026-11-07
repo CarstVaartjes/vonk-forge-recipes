@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "audio-understanding",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -215,18 +210,6 @@
     "version": "NVFP4 b6a99534"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Thinking Machines Lab"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/blob/b6a99534467840620d411e4cd4ad5819b2610d9c/README.md"
-  },
-  "modalities": [
-    "audio",
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4",

@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "audio-generation",
-    "video-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -277,17 +273,6 @@
     "version": "MOVA 720p"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "openmoss"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p/blob/8462bea9a317a3591279faeedfd3ca01b055cb59/README.md"
-  },
-  "modalities": [
-    "audio",
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/OpenMOSS-Team/MOVA-720p",

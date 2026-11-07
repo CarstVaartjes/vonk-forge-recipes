@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -1039,16 +1038,6 @@
     "version": "da5b2650"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "nvidia"
-    ],
-    "spdx": "openmdw-1.1",
-    "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/blob/59b8721646c38111a242da18218859fb2b454322/https://openmdw.ai/license/1-1/"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4",

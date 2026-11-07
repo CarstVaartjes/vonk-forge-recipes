@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
   "description": "Exact public NVIDIA Model Optimizer FP8 quantization of Meta Llama 3.1 8B Instruct.",
   "family_title": "Meta Llama",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "llama-3-1-8b-instruct-fp8-42d9515e"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Meta Platforms"
+    ],
+    "spdx": "LicenseRef-Llama-3.1-Community-License",
+    "url": "https://www.llama.com/llama3_1/license/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Llama 3.1 8B Instruct",
   "tags": [
     "nvidia",

@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "material-estimation"
+  ],
   "description": "Exact gated Ubisoft/ubisoft-laforge-chord snapshot at 2b61fc12: chord_v1.safetensors (2.76 GB, bfloat16) with the repository LICENSE. The weights are a single Stable Diffusion 2.1 UNet with per-map input and output blocks, plus the VAE and text encoder it was trained with, and the prior-light constants. Ubisoft Machine Learning License (Research-Only - Copyleft): academic or research use only, commercial use prohibited, derivatives under the same terms; the licence is shown for information and nothing here gates on it. The gated API masks LFS digests, so the checkpoint digest comes from the byte-identical public mirror camenduru/ubisoft-laforge-chord, proved by the official git blob id of its LFS pointer (61a4d59c), and LICENSE is the upstream GitHub file at 675a29d1 without its trailing newline, proved by the official blob id 88dcaf40. The Controller verifies every file at ingress with the provider token.",
   "family_title": "CHORD",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "chord-v1-2b61fc12"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "ubisoft"
+    ],
+    "spdx": "LicenseRef-Ubisoft-Machine-Learning-License-Research-Only-Copyleft",
+    "url": "https://github.com/ubisoft/ubisoft-laforge-chord/blob/675a29d1fee5e1b256833bd4edabd619be43d0c7/LICENSE"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "CHORD v1",
   "tags": [
     "ubisoft",

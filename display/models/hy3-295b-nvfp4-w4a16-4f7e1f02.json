@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Exact public kodelow Hy3 295B NVFP4 weight-only (W4A16) checkpoint 4f7e1f02: routed experts in 4-bit NVFP4 with MSE-optimal group scales, everything else BF16, MTP layer preserved; 99 weight shards, 181 GB. Base model tencent/Hy3.",
   "family_title": "Hy3",
   "identity": {
@@ -6,6 +12,17 @@
     "slug": "hy3-295b-nvfp4-w4a16-4f7e1f02"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Tencent",
+      "kodelow"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/kodelow/Hy3-NVFP4-W4A16/blob/4f7e1f02f32f4662bdc47f1237f34995088867a9/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Hy3 295B NVFP4 W4A16",
   "tags": [
     "kodelow",

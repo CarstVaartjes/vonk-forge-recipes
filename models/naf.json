@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -31,16 +30,6 @@
     "version": "model"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "valeoai"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://github.com/valeoai/NAF/blob/37f2dfc180f2de53d98bd601109c0da0dd6b0f43/LICENSE"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "assets": [

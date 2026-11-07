@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "LightOnOCR 3 1B immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "LightOnOCR",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "lightonocr-3-1b-bf16-23d54408"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "lightonai"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/lightonai/LightOnOCR-3-1B/blob/23d544085c886bbdace647bcfab91203299417e2/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "LightOnOCR 3 1B",
   "tags": [
     "candidate",

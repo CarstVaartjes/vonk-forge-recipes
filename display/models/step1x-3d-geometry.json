@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "3d-generation"
+  ],
   "description": "Exact immutable geometry pipeline subtree at bf708449; its DINOv2 config and image-processor metadata are separately selected without external encoder weights.",
   "family_title": "Step1X-3D",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "step1x-3d-geometry"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "stepfun-ai"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/LICENSE"
+  },
+  "modalities": [
+    "3d"
+  ],
   "model_title": "Step1X-3D",
   "tags": [
     "stepfun-ai",

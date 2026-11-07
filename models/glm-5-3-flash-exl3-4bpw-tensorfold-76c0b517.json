@@ -1,11 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation",
-    "video-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -910,19 +903,6 @@
     "version": "GLM 5.3 Flash EXL3 4bpw TensorFold 76c0b517"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "MiaAI-Lab",
-      "Z.AI"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold/blob/76c0b5173166d2795dd48860f45d8224817f894c/LICENSE"
-  },
-  "modalities": [
-    "text",
-    "image",
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold",

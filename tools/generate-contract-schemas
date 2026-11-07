@@ -55,12 +55,12 @@ def main() -> int:
         ),
         (
             ROOT
-            / "contracts/src/vonk_forge_contracts/schema/model-definition-v3.schema.json",
+            / "contracts/src/vonk_forge_contracts/schema/model-definition-v4.schema.json",
             model_json_schema(),
         ),
         (
             ROOT
-            / "contracts/src/vonk_forge_contracts/schema/recipe-definition-v3.schema.json",
+            / "contracts/src/vonk_forge_contracts/schema/recipe-definition-v4.schema.json",
             recipe_json_schema(),
         ),
         (
@@ -75,17 +75,17 @@ def main() -> int:
         ),
         (
             ROOT
-            / "contracts/src/vonk_forge_contracts/schema/recipe-display-v3.schema.json",
+            / "contracts/src/vonk_forge_contracts/schema/recipe-display-v4.schema.json",
             recipe_display_json_schema(),
         ),
         (
             ROOT
-            / "contracts/src/vonk_forge_contracts/schema/model-display-v3.schema.json",
+            / "contracts/src/vonk_forge_contracts/schema/model-display-v4.schema.json",
             model_display_json_schema(),
         ),
         (
             ROOT
-            / "contracts/src/vonk_forge_contracts/schema/recipe-api-v3.schema.json",
+            / "contracts/src/vonk_forge_contracts/schema/recipe-api-v4.schema.json",
             recipe_api_json_schema(),
         ),
     )

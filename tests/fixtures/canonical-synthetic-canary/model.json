@@ -16,9 +16,6 @@
   },
   "requires_token": false,
   "dependencies": [],
-  "modalities": [
-    "text"
-  ],
   "source": {
     "repository": "https://huggingface.co/Qwen/Qwen3.6-27B",
     "revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9"
@@ -26,13 +23,6 @@
   "format": {
     "precision": "utf8",
     "quantization": "none"
-  },
-  "license": {
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/LICENSE",
-    "attribution": [
-      "Qwen"
-    ]
   },
   "files": [
     {
@@ -44,8 +34,5 @@
         "fixture"
       ]
     }
-  ],
-  "capabilities": [
-    "text-generation"
   ]
 }

@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -179,17 +174,6 @@
     "version": "Qwen3.8 27B EXL3 3.00bpw 6fe61ad6"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "turboderp"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/turboderp/Qwen3.8-27B-exl3/blob/6fe61ad620abfe97c5b49f9722c2bceeea4ccc28/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/turboderp/Qwen3.8-27B-exl3",

@@ -42,6 +42,13 @@ def _write(root: Path, name: str, publisher: str, family: dict[str, str]) -> Non
         "model_title": name,
         "description": "A model.",
         "tags": [],
+        "modalities": ["text"],
+        "capabilities": [],
+        "license": {
+            "spdx": "MIT",
+            "url": "https://example.com/license",
+            "attribution": [],
+        },
     }
     (root / "display/models" / f"{name}.json").write_text(json.dumps(display))
 

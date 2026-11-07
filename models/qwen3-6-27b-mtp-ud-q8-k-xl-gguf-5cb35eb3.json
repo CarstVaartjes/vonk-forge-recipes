@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "reasoning"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -37,17 +31,6 @@
     "version": "MTP UD-Q8_K_XL GGUF 5cb35eb3"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "Unsloth"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/main/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/unsloth/Qwen3.6-27B-MTP-GGUF",

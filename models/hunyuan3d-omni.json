@@ -1,10 +1,7 @@
 {
-  "capabilities": [
-    "3d-generation"
-  ],
   "dependencies": [
     {
-      "content_sha256": "7d430ed00162e6a0cce265dc41fe2544c53c11cc67e581db8397f140038f8385",
+      "content_sha256": "2f8a86cb03d99ad29ccf57cdbd191c10b7c93efd0b187e6e644496f0ec3d9858",
       "kind": "model",
       "publisher": "facebook",
       "slug": "dinov2-large-47b73eef"
@@ -130,24 +127,6 @@
     "version": "Hunyuan3D-Omni"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "tencent"
-    ],
-    "spdx": "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
-    "territorial_restrictions": {
-      "denied_jurisdictions": [
-        "EU",
-        "GB",
-        "KR"
-      ],
-      "notice": "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea."
-    },
-    "url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/License.txt"
-  },
-  "modalities": [
-    "3d"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/tencent/Hunyuan3D-Omni",

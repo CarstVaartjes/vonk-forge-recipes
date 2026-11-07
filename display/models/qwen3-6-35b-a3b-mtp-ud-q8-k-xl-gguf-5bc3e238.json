@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning"
+  ],
   "description": "Unsloth Dynamic UD-Q8_K_XL GGUF of Qwen3.6 35B-A3B (MoE) with Multi-Token Prediction heads baked in (for llama.cpp draft-mtp speculative decoding), plus the BF16 vision projector. Only these two files of the repository are cataloged; the repository has no LICENSE file (Apache-2.0 per its model card).",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +12,17 @@
     "slug": "qwen3-6-35b-a3b-mtp-ud-q8-k-xl-gguf-5bc3e238"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "Unsloth"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/blob/main/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Qwen3.6 35B-A3B",
   "tags": [
     "qwen",

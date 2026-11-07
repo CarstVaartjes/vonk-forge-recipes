@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "text-generation"
+  ],
   "description": "Exact public z-lab DFlash draft for Qwen3.6 27B.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +9,17 @@
     "slug": "qwen3-6-27b-dflash-09196886"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "z-lab",
+      "Qwen"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/z-lab/Qwen3.6-27B-DFlash/blob/0919688658996800f86b895034249700e9481106/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Qwen3.6 27B DFlash draft",
   "tags": [
     "z-lab",

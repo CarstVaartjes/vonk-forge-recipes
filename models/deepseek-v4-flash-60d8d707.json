@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -684,16 +678,6 @@
     "version": "DeepSeek V4 Flash 60d8d707"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "DeepSeek AI"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/blob/60d8d70770c6776ff598c94bb586a859a38244f1/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash",

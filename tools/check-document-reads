@@ -38,9 +38,13 @@ EXEMPT_PREFIXES = (
     "tests/documents.py",
     "tools/check-document-reads",
     "tests/test_check_document_reads.py",
+    # One-time migration: reads the documents of the base revision raw, because
+    # they are not valid under the contract it migrates to. Deleted with the split.
+    "tools/split-model-facts",
 )
 KEYS = frozenset(
     {
+        # Execution documents (recipes/, models/).
         "identity",
         "metadata",
         "runtime",
@@ -55,18 +59,20 @@ KEYS = frozenset(
         "options",
         "files",
         "format",
-        "license",
         "source",
         "dependencies",
-        "capabilities",
-        "modalities",
         "requires_token",
+        # Display documents (display/recipes/, display/models/): text a person reads
+        # and the Model facts (licence, capabilities, modalities) a filter reads.
         "title",
         "description",
         "tags",
         "alignment",
         "family_title",
         "model_title",
+        "license",
+        "capabilities",
+        "modalities",
     }
 )
 SEGMENTS = frozenset({"recipes", "models", "display"})

@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -169,17 +165,6 @@
     "version": "c2022362"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Qwen/Qwen3.5-9B/blob/c202236235762e1c871ad0ccb60c8ee5ba337b9a/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Qwen/Qwen3.5-9B",

@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "tool-use"
+  ],
   "description": "PrismML Ternary-Bonsai-2-27B in the PQ2_0 packing (ternary g128, 1.72 bits per weight, 6.70 GiB) with its Q8_0 vision projector: a hybrid 27B-class vision-language model (48 gated-DeltaNet plus 16 full-attention layers) derived from Qwen/Qwen3.8-27B. The weights sit in a blockwise Hadamard-rotated basis and need the PrismML llama.cpp fork; stock llama.cpp cannot run them. Only the PQ2_0 file and the Q8_0 projector are cataloged.",
   "family_title": "Ternary Bonsai",
   "identity": {
@@ -6,6 +12,18 @@
     "slug": "ternary-bonsai-2-27b-pq2-0-gguf-6ed5e12b"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "PrismML",
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/prism-ml/Ternary-Bonsai-2-27B-gguf/blob/6ed5e12bf84b7a63069882c91dd9e9218647d17b/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Ternary Bonsai 2 27B GGUF",
   "tags": [
     "ternary-bonsai",

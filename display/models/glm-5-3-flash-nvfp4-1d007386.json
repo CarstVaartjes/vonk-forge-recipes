@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "Official NVIDIA ModelOpt NVFP4 checkpoint of Z.ai GLM 5.3 Flash (NVFP4 routed experts and dense MLP, FP8 KV cache metadata, multimodal).",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "glm-5-3-flash-nvfp4-1d007386"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.ai",
+      "NVIDIA"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/nvidia/GLM-5.3-Flash-NVFP4/blob/da920bb0b9f4a06727223a349e55468e38352348/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "GLM 5.3 Flash NVFP4",
   "tags": [
     "nvidia",

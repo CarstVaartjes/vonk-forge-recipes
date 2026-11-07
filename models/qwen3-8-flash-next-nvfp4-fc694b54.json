@@ -1,11 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "video-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -253,17 +246,6 @@
     "version": "fc694b54"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation",
-      "Qwen"
-    ],
-    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
-    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
-  },
-  "modalities": [
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Qwen3.8-Flash-Next-NVFP4",

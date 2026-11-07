@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "decision",
+    "video",
+    "vision"
+  ],
   "description": "d3-lite typed-decision model with probability outputs and an FP32 answer-code readout.",
   "family_title": "Decision 3.0",
   "identity": {
@@ -6,6 +11,18 @@
     "slug": "d3-lite-bf16-03560c26"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "vLLM Semantic Router"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/vllm-sr/d3-lite/blob/03560c26f5199c3c04129a2ccb38960c913635e0/LICENSE"
+  },
+  "modalities": [
+    "text",
+    "image",
+    "video"
+  ],
   "model_title": "D3-LITE",
   "tags": [
     "vonk-forge",

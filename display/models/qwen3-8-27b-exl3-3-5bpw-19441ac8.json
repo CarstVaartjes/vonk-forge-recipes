@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "code-generation",
+    "reasoning",
+    "text-generation"
+  ],
   "description": "Exact public Mia-AiLab EXL3 3.5 bpw quantization of Qwen/Qwen3.8-27B (14.2 GB, workload-calibrated, text model with a built-in MTP draft head, no vision tower). Apache-2.0.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +11,18 @@
     "slug": "qwen3-8-27b-exl3-3-5bpw-19441ac8"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "MiaAI-Lab",
+      "Turboderp"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Mia-AiLab/Qwen3.8-27B-EXL3-3.5bpw/blob/19441ac874c4018295da848e250f23511361cda4/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Qwen3.8 27B EXL3 3.5bpw (Mia)",
   "tags": [
     "mia-ai-lab",

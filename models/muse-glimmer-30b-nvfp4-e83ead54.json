@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -134,18 +129,6 @@
     "version": "Muse Glimmer 30B NVFP4 e83ead54"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "RedHatAI",
-      "Meta"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/RedHatAI/Muse-Glimmer-30B-NVFP4/blob/e83ead547c81973aaa09c0072c0dbc916e0d8190/README.md"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/RedHatAI/Muse-Glimmer-30B-NVFP4",

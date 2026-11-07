@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -161,16 +156,6 @@
     "version": "Chat 85864749"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "DeepSeek AI"
-    ],
-    "spdx": "LicenseRef-DeepSeek-Model-License",
-    "url": "https://github.com/deepseek-ai/DeepSeek-V2/blob/main/LICENSE-MODEL"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/deepseek-ai/DeepSeek-V2-Lite-Chat",

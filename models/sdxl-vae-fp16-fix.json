@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -40,16 +39,6 @@
     "version": "207b116dae70ace3637169f1ddd2434b91b3a8cd"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "madebyollin"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/blob/207b116dae70ace3637169f1ddd2434b91b3a8cd/README.md"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix",

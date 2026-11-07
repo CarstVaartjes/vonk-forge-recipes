@@ -326,7 +326,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "6c2460dbb9bdd4e6d724fab100b90eaaf253f4139594769ba6483c8421953b5e",
+        "content_sha256": "8d7353ca26e3fba053433c40263a385ccbb48f852b3f642aa1c4a90045dc78ae",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen3-6-27b-6a9e13bd"

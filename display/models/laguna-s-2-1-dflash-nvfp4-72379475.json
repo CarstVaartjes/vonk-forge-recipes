@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "code-generation"
+  ],
   "description": "DFlash speculative-decoding draft head for Laguna S 2.1.",
   "family_title": "Laguna",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "laguna-s-2-1-dflash-nvfp4-72379475"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Poolside"
+    ],
+    "spdx": "NOASSERTION",
+    "url": "https://huggingface.co/poolside/Laguna-S-2.1-DFlash-NVFP4/blob/723794750422b3efbf3a7b3af76dffb4ba035943/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Laguna S 2.1 DFlash",
   "tags": [
     "poolside",

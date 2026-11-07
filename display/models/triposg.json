@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "3d-generation"
+  ],
   "description": "Immutable public snapshot at 2c1c516d.",
   "family_title": "TripoSG",
   "identity": {
@@ -6,6 +9,17 @@
     "slug": "triposg"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "vast-ai"
+    ],
+    "spdx": "MIT",
+    "territorial_restrictions": null,
+    "url": "https://github.com/VAST-AI-Research/TripoSG/blob/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c/LICENSE"
+  },
+  "modalities": [
+    "3d"
+  ],
   "model_title": "TripoSG",
   "tags": [
     "vast-ai",

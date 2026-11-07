@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -220,18 +219,6 @@
     "version": "gemma3-text-encoder-dfcc2108"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Google",
-      "Lightricks"
-    ],
-    "spdx": "LTX-2 Community License Agreement",
-    "url": "https://huggingface.co/Lightricks/LTX-2/blob/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/LICENSE"
-  },
-  "modalities": [
-    "audio",
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Lightricks/LTX-2",

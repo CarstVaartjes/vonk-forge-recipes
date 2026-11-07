@@ -1,11 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation",
-    "video-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -163,17 +156,6 @@
     "version": "31B IT NVFP4 4135a98a"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Google DeepMind",
-      "NVIDIA"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://ai.google.dev/gemma/apache_2"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Gemma-4-31B-IT-NVFP4",

@@ -2203,7 +2203,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d71c5f7b2a587985eab6fb12af538c8c5eeb9a6b3df1b63601c87b2e6f1b90a7",
+        "content_sha256": "a220da9c6f76698b3681a02d2908af91c8bff982314f7891cf78985a269f7654",
         "kind": "model",
         "publisher": "0xsero",
         "slug": "step-5-preview-spark-exl3-51a46a7f"

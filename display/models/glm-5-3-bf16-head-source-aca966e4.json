@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Original GLM-5.3 first shard, used only to extract the exact BF16 lm_head.weight in the managed cache. This is a companion source artifact, not a complete standalone checkpoint.",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "glm-5-3-bf16-head-source-aca966e4"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.ai"
+    ],
+    "spdx": "LicenseRef-GLM-5.3",
+    "url": "https://huggingface.co/zai-org/GLM-5.3/blob/aca966e4e02791568aa6a4ced368624b3d897f42/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "GLM 5.3",
   "tags": [
     "glm",

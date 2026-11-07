@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "tool-use"
+  ],
   "description": "Exact public UI-Mate 27B BF16 checkpoint.",
   "family_title": "UI-Mate",
   "identity": {
@@ -6,6 +10,18 @@
     "slug": "ui-mate-27b-3ade2378"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Tencent",
+      "Tencent HY Frontier Team"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/Tencent/UI-Mate/blob/d185dc9d74cfcab3a890d7ffb2bb011ecdd64c64/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "UI-Mate 27B",
   "tags": [
     "tencent",
