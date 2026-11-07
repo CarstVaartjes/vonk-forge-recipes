@@ -38,9 +38,6 @@ EXEMPT_PREFIXES = (
     "tests/documents.py",
     "tools/check-document-reads",
     "tests/test_check_document_reads.py",
-    # One-time migration: reads the documents of the base revision raw, because
-    # they are not valid under the contract it migrates to. Deleted with the split.
-    "tools/split-model-facts",
 )
 KEYS = frozenset(
     {
