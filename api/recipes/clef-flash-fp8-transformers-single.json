@@ -1,0 +1,19 @@
+{
+  "api": {
+    "input_modalities": {
+      "audio": false,
+      "image": true,
+      "pdf": false,
+      "text": true,
+      "video": false
+    },
+    "max_input_tokens": null,
+    "mode": "decision"
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "clef-flash-fp8-transformers-single"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}
