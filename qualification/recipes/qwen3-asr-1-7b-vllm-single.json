@@ -12,7 +12,7 @@
     },
     "smoke_cases": [
       "M0",
-      "ASR_SPEECH"
+      "ASR_TRANSCRIPTION_JFK"
     ]
   }
 }
