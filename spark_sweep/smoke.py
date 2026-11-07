@@ -13,10 +13,13 @@ with the operator's client key.
 
 from __future__ import annotations
 
+import base64
 import itertools
 import json
 import re
+import secrets
 import ssl
+import struct
 import threading
 import time
 import urllib.error
@@ -25,6 +28,8 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+from vonk_forge_contracts import AudioSpeechApi, RecipeApi
 
 from .auth_contract import GatewayAuthReply, SmokeAuthClass
 from .catalog import Recipe
@@ -187,6 +192,22 @@ def _evaluate(response: Any, raw: str, assertion: dict[str, Any]) -> tuple[bool,
             None,
         )
         return hit is None, hit
+    if kind == "transcription.nonempty":
+        # The Controller's own meaning: the JSON `text` is a non-empty string.
+        text = _path(response, "text")
+        return isinstance(text, str) and bool(text.strip()), text
+    if kind == "speech.audio":
+        # A decodable WAV of at least `min_seconds` (default 0.5) under an audio/* type.
+        audio = _path(response, "audio")
+        content_type = str(_path(response, "content_type"))
+        seconds = audio.get("seconds") if isinstance(audio, dict) else None
+        floor = assertion.get("min_seconds", 0.5)
+        holds = (
+            content_type.lower().startswith("audio/")
+            and isinstance(seconds, (int, float))
+            and seconds >= floor
+        )
+        return holds, {"content_type": content_type, "audio": audio}
     if kind == "chat.nonempty":
         # The Controller's own meaning: the first choice answers with text or tool calls.
         message = _path(response, "choices.0.message")
@@ -287,6 +308,65 @@ def check_quality(
 
 
 # -- requests ---------------------------------------------------------------
+
+
+def encode_multipart(spec: dict[str, Any]) -> tuple[bytes, str]:
+    """The body and Content-Type of an OpenAI-style multipart upload (RFC 7578).
+
+    Form fields come first, then the one file part, as the OpenAI client sends
+    them. ``spec`` is a case's ``multipart``: string ``fields`` and a ``file``
+    with ``field``, ``name``, ``media_type`` and base64 ``data``.
+    """
+    boundary = secrets.token_hex(16)
+    parts: list[bytes] = []
+    for name, value in spec["fields"].items():
+        parts.append(
+            f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"\r\n\r\n'
+            f"{value}\r\n".encode()
+        )
+    upload = spec["file"]
+    parts.append(
+        (
+            f"--{boundary}\r\nContent-Disposition: form-data; "
+            f'name="{upload["field"]}"; filename="{upload["name"]}"\r\n'
+            f"Content-Type: {upload['media_type']}\r\n\r\n"
+        ).encode()
+        + base64.b64decode(upload["data"])
+        + b"\r\n"
+    )
+    parts.append(f"--{boundary}--\r\n".encode())
+    return b"".join(parts), f"multipart/form-data; boundary={boundary}"
+
+
+def wav_facts(raw: bytes) -> dict[str, Any] | None:
+    """Duration and shape of a RIFF/WAVE body, or None when it is not decodable.
+
+    Any sample format counts (PCM or float); a streamed WAV whose data size is
+    unset is measured by the bytes that follow.
+    """
+    if len(raw) < 12 or raw[:4] != b"RIFF" or raw[8:12] != b"WAVE":
+        return None
+    position, fmt = 12, None
+    while position + 8 <= len(raw):
+        chunk = raw[position : position + 4]
+        (size,) = struct.unpack_from("<I", raw, position + 4)
+        body = position + 8
+        if chunk == b"fmt " and size >= 16 and body + 16 <= len(raw):
+            tag, channels, rate, byte_rate = struct.unpack_from("<HHII", raw, body)
+            fmt = (tag, channels, rate, byte_rate)
+        elif chunk == b"data":
+            if fmt is None or fmt[3] == 0 or fmt[2] == 0:
+                return None
+            left = len(raw) - body
+            length = left if size in (0, 0xFFFFFFFF) else min(size, left)
+            return {
+                "format_tag": fmt[0],
+                "channels": fmt[1],
+                "sample_rate": fmt[2],
+                "seconds": round(length / fmt[3], 3),
+            }
+        position = body + size + (size & 1)
+    return None
 
 
 def _open(
@@ -572,17 +652,21 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
     if method == "POST":
         data = json.dumps(body).encode()
         headers["Content-Type"] = "application/json"
+    multipart = case.get("multipart")
+    if isinstance(multipart, dict):
+        data, headers["Content-Type"] = encode_multipart(multipart)
     url = base.rstrip("/") + str(case["path"])
     limit = int(case.get("max_response_bytes", 262144))
     timeout = min(float(case.get("timeout_seconds", 180)), config.case_timeout)
     started = time.monotonic()
-    if method == "POST" and isinstance(body, dict):
+    if method == "POST" and isinstance(body, dict) and multipart is None:
         opened = open_with_body(url, body, headers, timeout, config.context())
     else:
         request = urllib.request.Request(url, data, headers, method=method)
         opened = _open(request, timeout, config.context())
     with opened as response:
         status = int(getattr(response, "status", 200))
+        content_type = str(getattr(response, "headers", {}).get("Content-Type", ""))
         raw = response.read(limit + 1)
     if len(raw) > limit:
         raise AssertionFailed("response exceeds its bound")
@@ -590,7 +674,12 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
     from .job_media import strict_json  # job_media imports this module
 
     try:
-        document = strict_json(text)
+        if case.get("response") == "audio":
+            # A binary reply is judged by its type and what decodes from it.
+            text = ""
+            document: Any = {"content_type": content_type, "audio": wav_facts(raw)}
+        else:
+            document = strict_json(text)
         check_assertions(document, text, list(case.get("assertions", [])))
     except (AssertionFailed, ValueError) as error:
         error.body = text  # type: ignore[attr-defined]  # evidence for the result row
@@ -612,6 +701,11 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
     return record
 
 
+def speech_voice(api: RecipeApi | None) -> str | None:
+    """The first voice of an ``audio_speech`` api document: the sweep's TTS voice."""
+    return api.api.voices[0] if api and isinstance(api.api, AudioSpeechApi) else None
+
+
 def has_chat(recipe: Recipe, cases: list[dict[str, Any]]) -> bool:
     return any(
         str(c.get("path", "")).endswith("/chat/completions") for c in cases
@@ -627,9 +721,9 @@ def smoke_service(
     facts: ChatFacts | None = None,
 ) -> SmokeResult:
     started = time.monotonic()
-    cases = definitions.service_cases(recipe.key, alias) or _fallback_cases(
-        recipe, alias, facts
-    )
+    cases = definitions.service_cases(
+        recipe.key, alias, speech_voice(definitions.recipe_api(recipe.slug))
+    ) or _fallback_cases(recipe, alias, facts)
     result = SmokeResult(ok=False, kind="service")
     try:
         if has_chat(recipe, cases):

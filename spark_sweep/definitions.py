@@ -84,8 +84,13 @@ class Definitions:
             )
         return self._fixtures[fixture_id]
 
-    def service_cases(self, key: str, alias: str) -> list[dict[str, Any]]:
-        """The recipe's reviewed smoke cases with ``$ALIAS`` and fixtures substituted."""
+    def service_cases(
+        self, key: str, alias: str, voice: str | None = None
+    ) -> list[dict[str, Any]]:
+        """The recipe's reviewed smoke cases with ``$ALIAS``, ``$VOICE`` and fixtures substituted.
+
+        ``voice`` is the recipe's first ``audio_speech`` voice (its api document owns it).
+        """
         service = self.service(key)
         if service is None:
             return []
@@ -94,16 +99,20 @@ class Definitions:
         for case_id in service.get("smoke_cases", []):
             template = templates.get(case_id)
             if isinstance(template, dict):
-                rendered = self._substitute(template, alias)
+                rendered = self._substitute(template, alias, voice)
                 rendered["id"] = case_id
                 cases.append(rendered)
         return cases
 
-    def _substitute(self, value: Any, alias: str) -> Any:
+    def _substitute(self, value: Any, alias: str, voice: str | None = None) -> Any:
         if value == "$ALIAS":
             return alias
+        if value == "$VOICE":
+            if voice is None:
+                raise ValueError("a $VOICE case needs the recipe's audio_speech voices")
+            return voice
         if isinstance(value, list):
-            return [self._substitute(item, alias) for item in value]
+            return [self._substitute(item, alias, voice) for item in value]
         if isinstance(value, dict):
             if set(value) in ({"$fixture_data_uri"}, {"$fixture_base64"}):
                 marker = next(iter(value))
@@ -114,5 +123,5 @@ class Definitions:
                     if marker == "$fixture_data_uri"
                     else encoded
                 )
-            return {k: self._substitute(v, alias) for k, v in value.items()}
+            return {k: self._substitute(v, alias, voice) for k, v in value.items()}
         return value
