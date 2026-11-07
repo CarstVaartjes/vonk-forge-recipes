@@ -40,8 +40,8 @@ ENTITY_DIRECTORIES = {
 }
 POLICIES = {"default-branch", "latest-release", "manual"}
 MAX_RESPONSE_BYTES = 4 * 1024 * 1024
-# Creator signals. The window is twice the weekly cadence, so one missed run
-# still sees every new repository without any stored "last scan" state.
+# Creator signals. The window is far wider than the daily cadence, so missed runs
+# still see every new repository without any stored "last scan" state.
 NEW_REPO_WINDOW = timedelta(days=14)
 SIGNAL_WORKERS = 4
 NOTICE_HEAD_LINES = 60
