@@ -20,7 +20,6 @@ from vonk_forge_contracts import (
     QualificationSummary,
     RecipeDefinition,
     RecipeQualificationEvidence,
-    document_sha256,
 )
 
 from qualification import documents
@@ -47,6 +46,11 @@ VLLM_DUAL = "qwen3-6-35b-a3b-fp8-eugr-vllm-dual"
 GB = 1_000_000_000
 
 
+def catalog_entries() -> list[dict[str, Any]]:
+    catalog = json.loads((GENERATED / "catalog-index.json").read_text())
+    return catalog["recipes"]
+
+
 def evidence_of(slug: str) -> RecipeQualificationEvidence:
     return RecipeQualificationEvidence.model_validate_json(
         (ROOT / "qualification/evidence/vonk-forge" / f"{slug}.json").read_text()
@@ -54,7 +58,7 @@ def evidence_of(slug: str) -> RecipeQualificationEvidence:
 
 
 def digest_of(slug: str) -> str:
-    return document_sha256(json.loads((ROOT / "recipes" / f"{slug}.json").read_text()))
+    return documents.recipe_digest(slug)
 
 
 def measured(slug: str, *rows: tuple[str, int, int | None]):
@@ -73,6 +77,14 @@ def measured(slug: str, *rows: tuple[str, int, int | None]):
             )
         }
     )
+
+
+def declaring(slug: str, peak_bytes: int) -> RecipeDefinition:
+    """The real recipe with a synthetic declaration: the rule is judged on that, not the catalog."""
+    document = documents.recipe(slug).model_dump(mode="json", by_alias=True)
+    for role in document["topology"]["roles"]:
+        role["resources"]["memory"]["peak_bytes"] = peak_bytes
+    return RecipeDefinition.model_validate(document)
 
 
 def published(slug: str, evidence: RecipeQualificationEvidence, recipe=None):
@@ -170,35 +182,35 @@ def test_a_later_recipe_failure_withdraws_the_value() -> None:
 
 
 def test_vllm_variants_within_the_measured_budget_publish_a_lower_value() -> None:
-    recipe = documents.recipe(VLLM_DUAL)
+    recipe = declaring(VLLM_DUAL, 110 * GB)
     budgets = [vllm_budget_bytes(variant) for variant in memory_variants(recipe)]
     assert len(budgets) > 1 and None not in budgets
     used = 60 * GB
     covered = max(b for b in budgets if b is not None)
-    assert covered > 0
-    [entry] = published(VLLM_DUAL, measured(VLLM_DUAL, ("entrypoint", used, covered)))[
-        :1
-    ]
-    assert entry.measured_peak_bytes == used - OS_FLOOR_BYTES
-    assert (
-        entry.measured_peak_bytes < recipe.topology.roles[0].resources.memory.peak_bytes
+    [entry, *_] = published(
+        VLLM_DUAL, measured(VLLM_DUAL, ("entrypoint", used, covered)), recipe
     )
+    assert entry.measured_peak_bytes == used - OS_FLOOR_BYTES
+    assert entry.peak_bytes == entry.measured_peak_bytes < 110 * GB
     # One variant above the budget that ran: not every launch is covered.
     short = min(b for b in budgets if b is not None) - 1
-    assert published(VLLM_DUAL, measured(VLLM_DUAL, ("entrypoint", used, short))) == ()
+    assert (
+        published(VLLM_DUAL, measured(VLLM_DUAL, ("entrypoint", used, short)), recipe)
+        == ()
+    )
 
 
 def test_over_the_admission_maximum_keeps_the_declared_peak_and_flags_it() -> None:
     slug = "deepseek-v4-flash-0731-mia-sparkinfer-single"
-    recipe = documents.recipe(slug)
-    declared = recipe.topology.roles[0].resources.memory.peak_bytes
+    declared = 120 * GB
+    recipe = declaring(slug, declared)
     used = ADMISSION_MAXIMUM_PEAK_BYTES + OS_FLOOR_BYTES + 1
-    [entry] = published(slug, measured(slug, ("entrypoint", used, None)))
+    [entry] = published(slug, measured(slug, ("entrypoint", used, None)), recipe)
     assert entry.exceeds_admission_maximum
     assert entry.measured_peak_bytes == ADMISSION_MAXIMUM_PEAK_BYTES + 1
     assert entry.peak_bytes == declared
     at_maximum = measured(slug, ("entrypoint", used - 1, None))
-    [entry] = published(slug, at_maximum)
+    [entry] = published(slug, at_maximum, recipe)
     assert not entry.exceeds_admission_maximum
     assert entry.peak_bytes == entry.measured_peak_bytes == ADMISSION_MAXIMUM_PEAK_BYTES
 
@@ -229,7 +241,7 @@ def test_roles_are_sorted_and_unique() -> None:
 
 
 def test_the_catalog_carries_the_sibling_key_exactly_where_rows_publish() -> None:
-    entries = json.loads((GENERATED / "catalog-index.json").read_text())["recipes"]
+    entries = catalog_entries()
     keyed = 0
     for entry in entries:
         document = entry["document"]
@@ -258,7 +270,7 @@ def test_the_catalog_carries_the_sibling_key_exactly_where_rows_publish() -> Non
 def test_the_status_view_older_controllers_read_never_carries_the_field() -> None:
     """Older Controllers reject unknown status fields; the field is a sibling key."""
     assert "measured_memory" not in PublishedQualificationStatusView.model_fields
-    entries = json.loads((GENERATED / "catalog-index.json").read_text())["recipes"]
+    entries = catalog_entries()
     for entry in entries:
         assert set(entry["qualification"]) <= set(
             PublishedQualificationStatusView.model_fields
