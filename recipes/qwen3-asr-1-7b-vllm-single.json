@@ -177,7 +177,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.2"
+        "value": "0.8"
       },
       {
         "name": "max-model-len",
@@ -235,7 +235,7 @@
             "working_bytes": 2351556394
           },
           "memory": {
-            "peak_bytes": 32400000000,
+            "peak_bytes": 110800000000,
             "reserve_bytes": 6000000000
           }
         }
