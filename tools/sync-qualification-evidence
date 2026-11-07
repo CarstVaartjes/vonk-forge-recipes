@@ -16,8 +16,13 @@ def main() -> None:
     parser.add_argument("--history", type=Path, required=True)
     parser.add_argument("--work-dir", type=Path, required=True)
     parser.add_argument("--state", type=Path, default=None)
+    parser.add_argument(
+        "--final",
+        action="store_true",
+        help="bring an open evidence PR up to date instead of waiting for its merge",
+    )
     args = parser.parse_args()
-    raise SystemExit(sync(args.history, args.work_dir, args.state))
+    raise SystemExit(sync(args.history, args.work_dir, args.state, args.final))
 
 
 if __name__ == "__main__":

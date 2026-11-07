@@ -599,7 +599,9 @@ def test_missing_records_show_in_the_publisher_message_and_alert_when_persistent
         report = worker.directory / publisher.UNPUBLISHED_FILE
         report.unlink(missing_ok=True)
         if count is not None:
-            report.write_text(json.dumps({"count": count}))
+            report.write_text(
+                publisher.UnpublishedReport(count=count, head="h").model_dump_json()
+            )
         worker.process = Done()
         worker.next_attempt = 1e18
         worker.tick(now)
@@ -1111,3 +1113,150 @@ def test_a_fork_pr_on_the_same_branch_is_never_merged_closed_or_counted(
     assert any(c[:3] == ("gh", "pr", "merge") for c in touched)
     assert not any("666" in c or "667" in c for c in calls)
     assert any("isCrossRepository" in a for c in calls for a in c)
+
+
+def test_a_final_batch_updates_an_open_pr_that_normal_ticks_leave_waiting(
+    tmp_path, monkeypatch
+):
+    world = World(tmp_path, monkeypatch)
+    world.rollup = [{"status": "IN_PROGRESS", "conclusion": ""}]
+    assert world.tick() == publisher.SweepEvidenceExit.WAITING
+    assert world.pushes == 0  # the open PR does not carry the newest results yet
+    code = publisher.sync(world.history, world.work, final=True)
+    assert code == publisher.SweepEvidenceExit.SYNCED
+    assert world.pushes == 1 and world.open_prs == [123]
+    assert any(
+        c[:3] == ("gh", "pr", "merge") for c in world.calls
+    )  # requested, not awaited
+
+
+def test_the_unpublished_count_is_stale_once_the_history_moves_past_it(
+    tmp_path, monkeypatch
+):
+    world = World(tmp_path, monkeypatch)
+    assert publisher.unpublished_report(world.work, world.history) is None
+    publisher.sync(world.history, world.work, final=True)
+    count = publisher.unpublished_report(world.work, world.history)
+    assert isinstance(count, int)
+    with world.history.open("a") as stream:  # a pass finishes after the count
+        stream.write(json.dumps(_row(23)) + "\n")
+    assert publisher.unpublished_report(world.work, world.history) == "stale"
+    # A report without a head (any other shape) is unknown, never a trusted zero.
+    (world.work / publisher.UNPUBLISHED_FILE).write_text('{"count": 0}')
+    assert publisher.unpublished_report(world.work, world.history) is None
+
+
+def test_the_status_shows_stale_instead_of_a_count(tmp_path):
+    from test_qualification_status import evidence_sweep
+
+    from spark_sweep.report import build_status, render_status
+
+    sweep, _, _ = evidence_sweep(tmp_path)
+    worker = sweep.evidence_publisher
+    worker.directory.mkdir(parents=True, exist_ok=True)
+    worker.history.write_text(json.dumps(_row(21)) + "\n")
+    report = publisher.UnpublishedReport(
+        count=0, head=publisher.history_head(worker.history)
+    )
+    (worker.directory / publisher.UNPUBLISHED_FILE).write_text(report.model_dump_json())
+    assert build_status(sweep)["evidence_unpublished"] == 0
+    with worker.history.open("a") as stream:
+        stream.write(json.dumps(_row(22)) + "\n")
+    status = build_status(sweep)
+    assert status["evidence_unpublished"] == "stale"
+    assert "evidence unpublished: stale" in render_status(status)
+
+
+class _Child:
+    """A publisher child that runs until waited for."""
+
+    started: ClassVar[list] = []
+
+    def __init__(self, args, **kwargs):
+        self.args, self.code, self.killed = args, 0, False
+        _Child.started.append(self)
+
+    def poll(self):
+        return None
+
+    def wait(self, timeout=None):
+        return self.code
+
+    def kill(self):
+        self.killed = True
+
+
+def test_flush_waits_for_a_running_child_then_runs_one_final_batch(
+    tmp_path, monkeypatch
+):
+    _Child.started.clear()
+    monkeypatch.setattr(publisher.subprocess, "Popen", _Child)
+    worker = publisher.EvidencePublisher(
+        tmp_path / "results.jsonl", tmp_path / "publisher", Path("worker")
+    )
+    worker.tick(0)
+    assert len(_Child.started) == 1 and "--final" not in _Child.started[0].args
+    assert worker.flush(1) == publisher.SweepEvidenceExit.SYNCED
+    assert len(_Child.started) == 2 and "--final" in _Child.started[1].args
+    assert worker.process is None and worker.message == "evidence sync complete"
+
+
+def test_flush_reports_a_held_pr_and_survives_a_second_stop(tmp_path, monkeypatch):
+    _Child.started.clear()
+    monkeypatch.setattr(publisher.subprocess, "Popen", _Child)
+    worker = publisher.EvidencePublisher(
+        tmp_path / "results.jsonl", tmp_path / "publisher", Path("worker")
+    )
+    monkeypatch.setattr(_Child, "wait", lambda self, timeout=None: 11)
+    assert worker.flush(0) == publisher.SweepEvidenceExit.FAILING_CHECK
+    assert "failing checks" in worker.message
+
+    def stopped(self, timeout=None):
+        if not self.killed:
+            raise KeyboardInterrupt
+        return -9
+
+    monkeypatch.setattr(_Child, "wait", stopped)
+    assert worker.flush(1) is None
+    assert _Child.started[-1].killed and "interrupted" in worker.message
+
+
+def _flushing_sweep(tmp_path, monkeypatch, publish=True):
+    from test_qualification_status import evidence_sweep
+
+    sweep, _, _ = evidence_sweep(tmp_path)
+    sweep.cfg.publish_evidence = publish
+    sweep.qualification_evidence = {"k": object()}
+    flushed = []
+    monkeypatch.setattr(sweep.evidence_publisher, "flush", flushed.append)
+    return sweep, flushed
+
+
+@pytest.mark.parametrize("how", ["returns", "raises"])
+def test_the_sweep_flushes_evidence_whatever_ends_it(tmp_path, monkeypatch, how):
+    from spark_sweep import run as run_module
+
+    sweep, flushed = _flushing_sweep(tmp_path, monkeypatch)
+
+    def ended():
+        if how == "raises":
+            raise RuntimeError("boom")
+        return 130  # a SIGTERM shutdown returns 130 after finish()
+
+    monkeypatch.setattr(sweep, "_run", ended)
+    monkeypatch.setattr(run_module, "_install_signal_handlers", dict)
+    if how == "raises":
+        with pytest.raises(RuntimeError):
+            sweep.run()
+    else:
+        assert sweep.run() == 130
+    assert len(flushed) == 1
+
+
+def test_no_flush_without_publication_or_evidence(tmp_path, monkeypatch):
+    sweep, flushed = _flushing_sweep(tmp_path, monkeypatch, publish=False)
+    sweep._flush_evidence()
+    sweep.cfg.publish_evidence = True
+    sweep.qualification_evidence = {}
+    sweep._flush_evidence()
+    assert flushed == []

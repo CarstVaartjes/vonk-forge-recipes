@@ -443,3 +443,35 @@ def test_unknown_issue_close_keeps_identity_for_later_reconciliation() -> None:
 
     assert file_issues(recipes, "o/r", gh) == []
     assert recipes["vonk-forge/recovered"]["issue"].endswith("/11")
+
+
+def test_publish_evidence_runs_one_final_batch_without_a_run(
+    tmp_path: Path, monkeypatch
+) -> None:
+    from spark_sweep import cli
+    from spark_sweep.evidence_publisher import SweepEvidenceExit
+    from spark_sweep.state import StateLock
+
+    calls = []
+
+    def sync(history, directory, state, final=False):
+        calls.append((history, directory, state, final))
+        return SweepEvidenceExit.SYNCED
+
+    monkeypatch.setattr(cli, "sync", sync)
+    assert main(["publish-evidence", "--state-dir", str(tmp_path)]) == 0
+    assert calls == [
+        (
+            tmp_path / "results.jsonl",
+            tmp_path / "evidence-publisher",
+            tmp_path / "state.json",
+            True,
+        )
+    ]
+    held = StateLock(tmp_path)
+    held.acquire()  # a running sweep publishes by itself: no second publisher
+    try:
+        assert main(["publish-evidence", "--state-dir", str(tmp_path)]) == 2
+    finally:
+        held.release()
+    assert len(calls) == 1
