@@ -1,0 +1,19 @@
+{
+  "api": {
+    "input_modalities": {
+      "audio": false,
+      "image": true,
+      "pdf": false,
+      "text": true,
+      "video": true
+    },
+    "max_input_tokens": null,
+    "mode": "decision"
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "d3-lite-vllm-single"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}

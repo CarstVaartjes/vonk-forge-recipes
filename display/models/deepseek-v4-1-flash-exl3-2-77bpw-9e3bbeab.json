@@ -22,6 +22,7 @@
     "url": "https://huggingface.co/0xSero/DeepSeek-V4.1-Flash-Spark/blob/9e3bbeabbb39fa2cf6e37e1cecfbd2fd0290329f/LICENSE"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "model_title": "DeepSeek V4.1 Flash EXL3",
