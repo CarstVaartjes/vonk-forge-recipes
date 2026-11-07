@@ -61,7 +61,7 @@ def test_archive_allows_bounded_recipe_owned_direction_tensor(
 ) -> None:
     row, payload = _row_for_slug(
         built_catalog,
-        "glm-5-3-flash-exl3-dflash2-vllm-dual",
+        "glm-5-3-flash-exl3-dflash2-vllm-mia-triple",
     )
     TOOL["validate_recipe_archive"](payload, row["document"])
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
