@@ -263,3 +263,18 @@ def test_a_measurement_that_raises_never_costs_the_pass(
     assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
     smoke = smoke_row(tmp_path)
     assert smoke["status"] == "passed" and "measured_memory" not in smoke
+
+
+def test_a_job_recipe_is_never_measured_its_sample_is_taken_after_the_job() -> None:
+    job = documents.recipe("ltx-2-19b-distilled-diffusers-single")
+    assert job.settings.kind == "job"
+    assert (
+        memory.measurement(
+            observed(("n1", GB, True)),
+            application(("n1", "entrypoint")),
+            ALIAS,
+            job,
+            RAN,
+        )
+        == ()
+    )
