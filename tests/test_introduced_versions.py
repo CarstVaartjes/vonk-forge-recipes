@@ -131,7 +131,9 @@ def test_models_no_recipe_selects_are_gated_too(tmp_path: Path, monkeypatch) -> 
         introduced, "CAPABILITY_SINCE", {**CAPABILITY_SINCE, name: "4.9.0"}
     )
     assert GUARD["model_problems"](tmp_path, "4.8.0") == [
-        f"model orphan: capability {name.value} needs contracts 4.9.0, "
-        "the pinned platform reads 4.8.0"
+        (
+            f"model orphan: capability {name.value} needs contracts 4.9.0, "
+            "the pinned platform reads 4.8.0"
+        )
     ]
     assert GUARD["model_problems"](tmp_path, "4.9.0") == []
