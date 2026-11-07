@@ -2,13 +2,19 @@
 
 A ``RecipeApi`` states what a client may rely on when it calls the route a
 recipe serves: token limits, input modalities, reasoning control, tool use,
-structured output and endpoints. It never carries execution data, and it has no
+structured output and endpoints, or for an audio route the uploads, voices and
+responses its LiteLLM audio endpoint takes. It never carries execution data, and it has no
 digest of its own: the signed index that transports it is verified at ingress.
 
 The document lives in ``api/recipes/<slug>.json``, never in the Recipe, so the
 recipe's ``content_sha256`` (its execution identity) and every qualification
 record keyed by it stay as they are. A document is optional at contract level;
 a route without one publishes no gateway facts.
+
+A block is named by the LiteLLM ``model_info.mode`` its route publishes
+(``chat``, ``audio_transcription``, ``audio_speech``; ``decision`` is ours, as
+LiteLLM has no equivalent). An audio mode has exactly one endpoint, so its block
+carries no ``endpoints`` field: the consumer derives it from the mode.
 
 Every field of a block is required: "not applicable" is written down (``false``,
 ``{"kind": "none"}``, ``null``), never left out. A block is discriminated by
@@ -48,6 +54,22 @@ class _ApiContract(BaseModel):
 Endpoint = Literal[
     "/v1/chat/completions", "/v1/completions", "/v1/responses", "/v1/messages"
 ]
+# The upload formats of OpenAI's transcription endpoint.
+AudioInputFormat = Literal[
+    "flac", "m4a", "mp3", "mp4", "mpeg", "mpga", "ogg", "wav", "webm"
+]
+TranscriptionResponseFormat = Literal[
+    "json", "text", "srt", "verbose_json", "vtt", "diarized_json"
+]
+# OpenAI createSpeech response formats.
+SpeechResponseFormat = Literal["mp3", "opus", "aac", "flac", "wav", "pcm"]
+TimestampGranularity = Literal["word", "segment"]
+# The largest upload a transcription route may declare. The gateway's edge
+# admits exactly this much on /v1/audio/transcriptions, so any declared limit
+# is the engine's to enforce, never an edge refusal.
+MAX_AUDIO_FILE_BYTES = 268_435_456
+Iso639_1 = Annotated[StrictStr, Field(pattern=r"^[a-z]{2}$")]
+VoiceName = Annotated[StrictStr, Field(min_length=1, max_length=64)]
 ToolChoice = Literal["auto", "none", "required", "named"]
 ReasoningDefault = Literal["on", "off", "model"]
 RequestPlacement = Literal["chat_template_kwargs", "top_level"]
@@ -213,7 +235,69 @@ class DecisionApi(_ApiContract):
         return self
 
 
-ApiBlock = Annotated[ChatApi | DecisionApi, Field(discriminator="mode")]
+def _unique(values: list[str], label: str) -> None:
+    if len(values) != len(set(values)):
+        raise ValueError(f"{label} must be unique")
+
+
+class AudioTranscriptionApi(_ApiContract):
+    """A route serving ``POST /v1/audio/transcriptions``: one audio upload in.
+
+    The input is audio by mode, so the block has no modalities or token limits.
+    ``max_file_bytes`` and ``max_audio_seconds`` are the engine's own upload and
+    decode limits (``null``: the engine states no duration limit); ``languages``
+    are the ISO 639-1 values of OpenAI's ``language`` parameter the engine
+    accepts. ``prompt`` and ``temperature`` say whether the engine honours those
+    OpenAI parameters; no ``timestamp_granularities`` means none are offered.
+    """
+
+    mode: Literal["audio_transcription"]
+    input_formats: list[AudioInputFormat] = Field(min_length=1, max_length=9)
+    max_file_bytes: StrictInt = Field(ge=1, le=MAX_AUDIO_FILE_BYTES)
+    max_audio_seconds: StrictInt | None = Field(ge=1)
+    languages: list[Iso639_1] = Field(min_length=1, max_length=256)
+    response_formats: list[TranscriptionResponseFormat] = Field(
+        min_length=1, max_length=6
+    )
+    prompt: StrictBool
+    timestamp_granularities: list[TimestampGranularity] = Field(max_length=2)
+    temperature: StrictBool
+
+    @model_validator(mode="after")
+    def unique_lists(self) -> AudioTranscriptionApi:
+        _unique(list(self.input_formats), "input_formats")
+        _unique(self.languages, "languages")
+        _unique(list(self.response_formats), "response_formats")
+        _unique(list(self.timestamp_granularities), "timestamp_granularities")
+        return self
+
+
+class AudioSpeechApi(_ApiContract):
+    """A route serving ``POST /v1/audio/speech``: text in, audio bytes out.
+
+    ``voices`` are the values of OpenAI's ``voice`` parameter; the first is the
+    route's health-check voice. ``instructions`` and ``speed`` say whether the
+    engine honours those OpenAI parameters. ``max_input_chars`` bounds ``input``.
+    """
+
+    mode: Literal["audio_speech"]
+    voices: list[VoiceName] = Field(min_length=1, max_length=256)
+    response_formats: list[SpeechResponseFormat] = Field(min_length=1, max_length=6)
+    instructions: StrictBool
+    speed: StrictBool
+    max_input_chars: StrictInt = Field(ge=1)
+
+    @model_validator(mode="after")
+    def unique_lists(self) -> AudioSpeechApi:
+        _unique(self.voices, "voices")
+        _unique(list(self.response_formats), "response_formats")
+        return self
+
+
+ApiBlock = Annotated[
+    ChatApi | DecisionApi | AudioTranscriptionApi | AudioSpeechApi,
+    Field(discriminator="mode"),
+]
 
 
 class RecipeApiOptionChoice(_ApiContract):
