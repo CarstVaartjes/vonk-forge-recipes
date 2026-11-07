@@ -199,9 +199,10 @@ def measurement(
     choices, so the budget is the one of the launch that ran. Only Sparks the run
     had to itself count, only roles the recipe declares; a role keeps the largest
     use over its Sparks. Measuring never costs a verdict: anything it cannot tell
-    apart or compute is "not measured".
+    apart or compute is "not measured". A job recipe is never measured: the sample
+    is taken after the job finished, so it reads idle, not a serving peak.
     """
-    if not observed or recipe is None:
+    if not observed or recipe is None or recipe.settings.kind == "job":
         return ()
     try:
         assignment = intended_assignment(application, alias)
