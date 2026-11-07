@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import json
 import math
+import struct
 from collections.abc import Mapping
+from dataclasses import dataclass
 from datetime import date
 from typing import Annotated, Literal
 
@@ -636,6 +638,48 @@ ServingAssertion = Literal[
     "inference.completed",
     "artifact.output",
 ]
+
+# ``speech.audio`` holds when the reply is an ``audio/*`` body that decodes as a WAV
+# at least this long. The Controller's executor, the sweep and any guard share this
+# one value and the one reader below.
+MIN_SPEECH_SECONDS = 0.5
+
+
+@dataclass(frozen=True)
+class WavFacts:
+    format_tag: int
+    channels: int
+    sample_rate: int
+    seconds: float
+
+
+def wav_facts(raw: bytes) -> WavFacts | None:
+    """The shape and duration of a RIFF/WAVE body, or None when it does not decode.
+
+    Any sample format counts (PCM or float). A ``data`` chunk whose size is 0 or
+    0xFFFFFFFF is a streamed WAV whose writer could not know the length, and it
+    means "the rest of the body"; a size past the end of the body is clamped to it.
+    A WAV with no ``fmt `` chunk before ``data``, or a zero byte rate, is undecodable.
+    """
+
+    if len(raw) < 12 or raw[:4] != b"RIFF" or raw[8:12] != b"WAVE":
+        return None
+    position, fmt = 12, None
+    while position + 8 <= len(raw):
+        chunk = raw[position : position + 4]
+        (size,) = struct.unpack_from("<I", raw, position + 4)
+        body = position + 8
+        if chunk == b"fmt " and size >= 16 and body + 16 <= len(raw):
+            fmt = struct.unpack_from("<HHII", raw, body)
+        elif chunk == b"data":
+            if fmt is None or fmt[2] == 0 or fmt[3] == 0:
+                return None
+            left = len(raw) - body
+            length = left if size in (0, 0xFFFFFFFF) else min(size, left)
+            return WavFacts(fmt[0], fmt[1], fmt[2], round(length / fmt[3], 3))
+        position = body + size + (size & 1)
+    return None
+
 
 _ASSERTIONS_BY_KIND: dict[str, frozenset[str]] = {
     "openai.health": frozenset({"endpoint.healthy"}),
