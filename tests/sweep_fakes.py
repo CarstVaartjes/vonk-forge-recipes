@@ -28,8 +28,10 @@ from uuid import NAMESPACE_URL, uuid5
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
+from spark_sweep.definitions import Definitions
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.run import DaemonExecutor
+from spark_sweep.smoke import speech_voice
 
 _ALIAS = re.compile(ENDPOINT_ALIAS_PATTERN)
 SPARK_MEMORY = SPARK_MEMORY_BYTES
@@ -2170,3 +2172,11 @@ def make_sweep(
     )
     sweep.catalog_executor = ImmediateCatalogExecutor()
     return sweep, fleet, clock
+
+
+def production_service_cases(
+    definitions: Definitions, key: str, alias: str
+) -> list[dict[str, Any]]:
+    """The recipe's smoke cases rendered as the sweep does: with its api document's voice."""
+    api = definitions.recipe_api(key.partition("/")[2])
+    return definitions.service_cases(key, alias, speech_voice(api))
