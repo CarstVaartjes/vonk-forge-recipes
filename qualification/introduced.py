@@ -53,6 +53,15 @@ def parse_version(text: str) -> tuple[int, int, int]:
     return major, minor, patch
 
 
+def capability_features(display: ModelDisplay) -> dict[str, str]:
+    """Each capability a Model display lists, with the version that introduced it."""
+
+    return {
+        f"capability {name.value}": CAPABILITY_SINCE[name]
+        for name in display.capabilities
+    }
+
+
 def features_used(
     recipe: RecipeDefinition, models: Sequence[ModelDisplay]
 ) -> dict[str, str]:
@@ -63,11 +72,19 @@ def features_used(
         for check in recipe.validation.serving.checks
     }
     for display in models:
-        used |= {
-            f"capability {name.value}": CAPABILITY_SINCE[name]
-            for name in display.capabilities
-        }
+        used |= capability_features(display)
     return used
+
+
+def unreadable_capabilities(display: ModelDisplay, platform_version: str) -> list[str]:
+    """The capabilities of one Model display a platform cannot read (sorted)."""
+
+    have = parse_version(platform_version)
+    return sorted(
+        f"{feature} needs contracts {since}"
+        for feature, since in capability_features(display).items()
+        if parse_version(since) > have
+    )
 
 
 def unreadable_features(
