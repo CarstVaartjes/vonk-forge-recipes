@@ -95,12 +95,26 @@ def test_empty_batch_never_opens_pr(tmp_path, monkeypatch):
     )
 
 
+@pytest.fixture(autouse=True)
+def group_kills(monkeypatch):
+    """A fake child is ended through its process group; no real group is signalled."""
+    groups = []
+
+    def killpg(pid, sig):
+        groups.append(pid)
+        raise ProcessLookupError  # the helper falls back to the fake's own kill()
+
+    monkeypatch.setattr(publisher.os, "killpg", killpg)
+    return groups
+
+
 def test_lane_tick_never_waits_on_github_and_timeout_is_visible(tmp_path, monkeypatch):
     processes = []
 
     class Process:
         code = None
         killed = False
+        pid = 4242
 
         def __init__(self, *args, **kwargs):
             processes.append(self)
@@ -1153,6 +1167,20 @@ def test_the_unpublished_count_is_stale_once_the_history_moves_past_it(
     assert publisher.unpublished_report(world.work, world.history) == unknown
 
 
+def test_a_count_belongs_to_the_counted_state_only():
+    import pydantic
+
+    states = publisher.UnpublishedState
+    for state, count in (
+        (states.COUNTED, None),
+        (states.STALE, 3),
+        (states.UNKNOWN, 0),
+    ):
+        with pytest.raises(pydantic.ValidationError):
+            publisher.UnpublishedStatus(state=state, count=count)
+    assert publisher.UnpublishedStatus(state=states.COUNTED, count=0).count == 0
+
+
 def test_the_status_shows_stale_instead_of_a_count(tmp_path):
     from test_qualification_status import evidence_sweep
 
@@ -1182,8 +1210,10 @@ class _Child:
 
     started: ClassVar[list] = []
     code: ClassVar[int | None] = 0
+    pid = 4243
 
     def __init__(self, args, **kwargs):
+        assert kwargs["start_new_session"]  # its own group: git/gh die with it
         self.args, self.killed = args, False
         self.exit = type(self).code
         _Child.started.append(self)
@@ -1205,7 +1235,7 @@ class _Child:
 
 
 def test_flush_kills_a_running_child_and_runs_one_bounded_final_batch(
-    tmp_path, monkeypatch
+    tmp_path, monkeypatch, group_kills
 ):
     _Child.started.clear()
     monkeypatch.setattr(_Child, "code", 0)
@@ -1217,6 +1247,7 @@ def test_flush_kills_a_running_child_and_runs_one_bounded_final_batch(
     assert len(_Child.started) == 1 and "--final" not in _Child.started[0].args
     assert worker.flush(1) == publisher.SweepEvidenceExit.SYNCED
     assert _Child.started[0].killed  # its history was older: not awaited
+    assert group_kills == [_Child.pid]  # ended as a group, with its git/gh children
     assert len(_Child.started) == 2 and "--final" in _Child.started[1].args
     assert worker.process is None and worker.message == "evidence sync complete"
 

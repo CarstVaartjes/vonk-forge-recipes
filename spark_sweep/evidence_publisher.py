@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import signal
 import subprocess
 import tempfile
 import time
@@ -16,7 +18,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import TextIO
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 from vonk_forge_contracts import (
     QualificationEvidenceRecord,
     RecipeQualificationEvidence,
@@ -92,7 +94,13 @@ class UnpublishedStatus(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
     state: UnpublishedState = UnpublishedState.UNKNOWN
-    count: int | None = None  # set only when COUNTED
+    count: int | None = None  # set exactly when COUNTED
+
+    @model_validator(mode="after")
+    def _count_only_when_counted(self) -> UnpublishedStatus:
+        if (self.count is not None) != (self.state == UnpublishedState.COUNTED):
+            raise ValueError("count is set exactly when the state is counted")
+        return self
 
 
 def unpublished_report(directory: Path, history: Path) -> UnpublishedStatus:
@@ -106,6 +114,14 @@ def unpublished_report(directory: Path, history: Path) -> UnpublishedStatus:
     if report.head != history_head(history):
         return UnpublishedStatus(state=UnpublishedState.STALE)
     return UnpublishedStatus(state=UnpublishedState.COUNTED, count=report.count)
+
+
+def kill_group(process: subprocess.Popen) -> None:
+    """End the child and its git/gh children: it runs in a session of its own."""
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        process.kill()
 
 
 class EvidencePublicationTimeout(TimeoutError):
@@ -280,7 +296,7 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     if _deadline is not None:
         remaining = _deadline - time.monotonic()
         if remaining <= 0:
-            raise EvidencePublicationTimeout("evidence batch exceeded 240s")
+            raise EvidencePublicationTimeout(f"evidence batch exceeded {CHILD_BUDGET}s")
         timeout = min(timeout, max(1, int(remaining)))
     result = subprocess.run(
         args, cwd=cwd, text=True, capture_output=True, timeout=timeout, check=True
@@ -439,7 +455,7 @@ def _batch(
 ) -> SweepEvidenceExit:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
     global _deadline
-    _deadline = time.monotonic() + 240
+    _deadline = time.monotonic() + CHILD_BUDGET
     directory.mkdir(parents=True, exist_ok=True)
     (directory / UNPUBLISHED_FILE).unlink(
         missing_ok=True
@@ -803,6 +819,7 @@ class EvidencePublisher:
                 ],
                 stdout=self._output,
                 stderr=self._output,
+                start_new_session=True,  # a terminal Ctrl-C reaches only the sweep
             )
         except OSError as error:
             if self._output is not None:
@@ -812,7 +829,7 @@ class EvidencePublisher:
             self.message = f"evidence publisher unavailable ({type(error).__name__}); retry in 300s"
             return False
         self.started_at = now
-        self.message = "evidence publication running (240s budget)"
+        self.message = f"evidence publication running ({CHILD_BUDGET}s budget)"
         return True
 
     def tick(self, now: float) -> None:
@@ -820,8 +837,10 @@ class EvidencePublisher:
             code = self.process.poll()
             if code is None:
                 if now - self.started_at > CHILD_BUDGET:
-                    self.process.kill()  # only our child PID; the next tick reaps it
-                    self.message = "evidence publication exceeded 240s; retry scheduled"
+                    kill_group(
+                        self.process
+                    )  # our child's own group; the next tick reaps it
+                    self.message = f"evidence publication exceeded {CHILD_BUDGET}s; retry scheduled"
                 return
             self.process.wait(timeout=1)
             self._finish(code, now)
@@ -832,7 +851,7 @@ class EvidencePublisher:
     def _stop(self) -> None:
         """Kill our own child and reap it."""
         if self.process is not None:
-            self.process.kill()  # only our child PID
+            kill_group(self.process)
             self.process.wait()
             self.process = None
             if self._output is not None:
