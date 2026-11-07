@@ -36,7 +36,9 @@ from vonk_forge_contracts.qualification_status import (
     published_status,
 )
 
-from .catalog import Recipe
+from qualification import documents
+
+from .catalog import Recipe, never_measured
 from .identity import current_identity
 from .lifecycle import RecipeStatus
 from .state import write_atomic
@@ -146,6 +148,26 @@ def history_evidence(value: Mapping[str, Any]) -> RecipeQualificationEvidence | 
         measured_memory=tuple(sorted(row.measured_memory, key=lambda m: m.key))
         if record.outcome == QualificationOutcome.PASSED
         else (),
+    )
+
+
+def serving_rows(
+    root: Path, evidence: RecipeQualificationEvidence, jobs: dict[str, bool]
+) -> RecipeQualificationEvidence:
+    """The evidence a log or state may add to the repo: a job recipe carries no measured rows.
+
+    ``jobs`` memoizes the decision per recipe for one pass over many rows.
+    """
+    if not evidence.measured_memory:
+        return evidence
+    key = evidence.recipe_key
+    if key not in jobs:
+        slug = key.partition("/")[2]
+        jobs[key] = (root / "recipes" / f"{slug}.json").is_file() and never_measured(
+            documents.recipe(slug, root)
+        )
+    return (
+        evidence.model_copy(update={"measured_memory": ()}) if jobs[key] else evidence
     )
 
 
@@ -360,6 +382,7 @@ def backfill(
 ) -> BackfillResult:
     """Append history rows and the sweep's merged evidence (`extra`) to the repo."""
     result = BackfillResult()
+    jobs: dict[str, bool] = {}
     grouped: dict[str, RecipeQualificationEvidence] = {}
     catalog = catalog_recipe_keys(root) if extra else set()
     for key, evidence in (extra or {}).items():
@@ -370,7 +393,10 @@ def backfill(
         result.unpublished += len(lacking)
         if lacking:  # resolved records only; nothing is rewritten, only appended
             grouped[key] = merge_evidence(
-                previous, evidence.model_copy(update={"records": lacking})
+                previous,
+                serving_rows(
+                    root, evidence.model_copy(update={"records": lacking}), jobs
+                ),
             )
     for path in paths:
         # Read only. Never use State.load: its recovery path mutates source state.
@@ -385,7 +411,7 @@ def backfill(
                 result.rejected += 1
                 continue
             previous = grouped.get(key) or read_evidence(root, key)
-            grouped[key] = merge_evidence(previous, evidence)
+            grouped[key] = merge_evidence(previous, serving_rows(root, evidence, jobs))
             result.imported += 1
     for evidence in grouped.values():
         result.changed_files += int(write_evidence(root, evidence))

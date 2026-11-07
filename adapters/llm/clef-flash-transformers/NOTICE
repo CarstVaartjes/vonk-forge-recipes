@@ -1,0 +1,13 @@
+This build context serves Cloudflare/clef-flash (Apache-2.0) with the Spark serving code of
+https://github.com/amarjeet/dgx-spark-recipes recipes/Clef-Flash-FP8-transformers at commit
+87ea80d6eb1de0eed1690e101da8161c9c8462de (MIT, Copyright (c) 2026 amarjeet).
+
+app.py and fp8.py are that recipe's server/app.py and server/fp8.py, byte for byte. serve.py (Vonk Forge, Apache-2.0)
+passes the platform's serving flags to app.py as its environment and wraps jsm.systemone with
+decision_response.py, which completes the model's answer into the platform's decision response. The creator's
+systemd scope, memory watchdog and preflight scripts are not used: the platform admits the workload by
+memory and runs it in its own container.
+
+requirements.lock is the creator's uv.lock exported unchanged.
+
+/opt/vonk/bin/pytorch-server is the platform's `pytorch-server` harness wrapper: it runs serve.py (which runs app.py) with the platform's serving flags.

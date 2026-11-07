@@ -209,7 +209,7 @@
     },
     "QualificationMeasuredRoleMemory": {
       "additionalProperties": false,
-      "description": "What one role of one content held on hardware: a row keyed (content, role).\n\n``steady_bytes`` is the role's Spark host memory in use (total less available,\nthe OS included) sampled after a smoke passed, the run alone on that Spark: an\nobservation, never the recipe's declaration. ``budget_bytes`` is the vLLM\nutilization budget of the launch that ran (gpu-memory-utilization x Spark\nmemory); ``None`` when it had none (an absolute KV pool, or another engine).",
+      "description": "What one role of one content held on hardware: a row keyed (content, role).\n\n``steady_bytes`` is a serving recipe's role Spark host memory in use (total less\navailable, the OS included) sampled after a smoke passed, the run alone on that Spark: an\nobservation, never the recipe's declaration. ``budget_bytes`` is the vLLM\nutilization budget of the launch that ran (gpu-memory-utilization x Spark\nmemory); ``None`` when it had none (an absolute KV pool, or another engine).",
       "properties": {
         "content_sha256": {
           "pattern": "^[0-9a-f]{64}$",

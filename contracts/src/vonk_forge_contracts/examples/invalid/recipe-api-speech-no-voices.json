@@ -1,0 +1,19 @@
+{
+  "api": {
+    "instructions": false,
+    "max_input_chars": 4096,
+    "mode": "audio_speech",
+    "response_formats": [
+      "mp3",
+      "wav"
+    ],
+    "speed": true,
+    "voices": []
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-build-speech"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}

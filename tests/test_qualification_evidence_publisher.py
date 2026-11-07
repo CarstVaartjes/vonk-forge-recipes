@@ -1398,3 +1398,59 @@ def test_every_tick_driven_child_process_worker_is_flushed_on_exit():
         "self._flush_evidence()"
         in run_source.split("def run(self)")[1].split("def _flush_evidence")[0]
     )
+
+
+def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monkeypatch):
+    from datetime import timedelta
+
+    from test_qualification_status import KEY, NOW, evidence, record
+    from vonk_forge_contracts import QualificationMeasuredRoleMemory
+
+    from spark_sweep.qualification import read_evidence, write_evidence
+
+    history = tmp_path / "results.jsonl"
+    row = historical()
+    row["recorded_at"] = (NOW + timedelta(days=2)).isoformat()
+    history.write_text(json.dumps(row) + "\n")
+    job = Path(__file__).resolve().parents[1] / "recipes"
+    job = job / "ltx-2-19b-distilled-diffusers-single.json"
+    steady = QualificationMeasuredRoleMemory(
+        content_sha256="a" * 64, role="entrypoint", steady_bytes=1
+    )
+    observed = []
+    lists = 0
+
+    def command(cwd, *args, **kwargs):
+        nonlocal lists
+        if args[:2] == ("git", "clone"):
+            clone = Path(args[-1])
+            (clone / ".git").mkdir()
+            seed_catalog(clone)
+            document = json.loads(job.read_text())
+            document["identity"]["slug"] = "example"
+            (clone / "recipes/example.json").write_text(json.dumps(document))
+            # The open evidence branch still carries a job row.
+            write_evidence(
+                clone,
+                evidence(record()).model_copy(update={"measured_memory": (steady,)}),
+            )
+        if args[:2] == ("git", "ls-remote"):
+            return "remote-branch"
+        if args[:3] == ("git", "diff", "origin/main"):
+            observed.extend(read_evidence(cwd, KEY).measured_memory)
+            return "changed evidence"
+        if args[:3] == ("git", "diff", "--cached"):
+            return "qualification/evidence/vonk-forge/example.json"
+        if args[:3] == ("gh", "pr", "list"):
+            lists += 1
+            return "[]" if lists == 1 else pr_list(123)
+        return ""
+
+    def merge(args, *, cwd, **kwargs):
+        write_evidence(cwd, evidence(record()))  # main's version: no rows
+        return subprocess.CompletedProcess(args, 0)
+
+    monkeypatch.setattr(publisher, "command", command)
+    monkeypatch.setattr(publisher.subprocess, "run", merge)
+    publisher.sync(history, tmp_path / "work")
+    assert observed == []
