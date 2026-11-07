@@ -1,0 +1,18 @@
+{
+  "alignment": "unspecified",
+  "description": "Cloudflare Clef-Flash typed-decision service on one Spark, following amarjeet's transformers recipe: choice, noul and score questions answered over text and images in one forward pass through POST /v1/systemone, with no generated text. Decoder linears are converted to FP8 at load; the head and vision tower stay BF16. A 16384-token input limit bounds the profile and requests run one at a time. Memory is the creator's measurement (18.7 GiB steady, 22.8 GiB predicted load peak); physical Spark qualification is pending. Video is not served: the model takes frame lists, the platform decision API sends one video. Requires native System One gateway support.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "clef-flash-fp8-transformers-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "executable",
+    "spark",
+    "transformers",
+    "decision",
+    "vision"
+  ],
+  "title": "Clef-Flash FP8 transformers single Spark"
+}
