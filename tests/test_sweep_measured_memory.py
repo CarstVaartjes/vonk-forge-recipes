@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ from vonk_forge_contracts import (
 )
 
 from qualification import documents
+from qualification.documents import ROOT
 from qualification.memory_need import TOTAL_BYTES, vllm_budget_bytes
 from spark_sweep import memory
 from spark_sweep.qualification import history_evidence, merge_evidence
@@ -278,3 +280,37 @@ def test_a_job_recipe_is_never_measured_its_sample_is_taken_after_the_job() -> N
         )
         == ()
     )
+
+
+def test_a_job_pass_row_replayed_through_backfill_adds_no_measured_rows(
+    tmp_path: Path,
+) -> None:
+    from spark_sweep.qualification import backfill, read_evidence
+
+    (tmp_path / "recipes").mkdir()
+    for slug in (
+        "ltx-2-19b-distilled-diffusers-single",
+        "agents-a1-nvfp4-r0b0tlab-vllm-single",
+    ):
+        shutil.copy(ROOT / "recipes" / f"{slug}.json", tmp_path / "recipes")
+    log = tmp_path / "results.jsonl"
+    keys = {
+        "job": "vonk-forge/ltx-2-19b-distilled-diffusers-single",
+        "serving": "vonk-forge/agents-a1-nvfp4-r0b0tlab-vllm-single",
+    }
+    log.write_text(
+        "\n".join(
+            json.dumps(
+                history(
+                    recipe=key,
+                    measured_memory=[
+                        row("entrypoint", 5 * GB, None).model_dump(mode="json")
+                    ],
+                )
+            )
+            for key in keys.values()
+        )
+    )
+    assert backfill([log], tmp_path).imported == 2
+    assert read_evidence(tmp_path, keys["job"]).measured_memory == ()
+    assert len(read_evidence(tmp_path, keys["serving"]).measured_memory) == 1
