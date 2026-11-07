@@ -22,6 +22,7 @@
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
   },
   "modalities": [
+    "image",
     "video"
   ],
   "model_title": "Qwen3.8 Flash Next NVFP4",
