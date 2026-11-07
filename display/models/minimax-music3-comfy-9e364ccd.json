@@ -1,6 +1,6 @@
 {
   "capabilities": [
-    "text-to-audio"
+    "audio-generation"
   ],
   "description": "Exact Comfy-Org Music3 files used by the TensorFold CUDA engine; the engine converts its autoregressive weights to int8 at load. The repack card labels Apache-2.0; the original MiniMax-Music3 Community License applies to the underlying model.",
   "family_title": "MiniMax Music3",

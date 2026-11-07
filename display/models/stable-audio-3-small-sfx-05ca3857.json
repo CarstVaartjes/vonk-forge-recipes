@@ -1,7 +1,6 @@
 {
   "capabilities": [
-    "audio-generation",
-    "text-to-audio"
+    "audio-generation"
   ],
   "description": "Exact gated stabilityai/stable-audio-3-small-sfx snapshot at 05ca3857 with its T5Gemma text encoder (t5gemma-b-b-ul2, Gemma Terms of Use) from the same repository. The gated API masks LFS digests, so they and the plain-file bytes come from the ungated cocktailpeanut/stable-audio-3-small-sfx mirror whose blob IDs equal the official ones; its model_config.json differs only in repo_id, restored here and checked against the official blob ID. The Controller verifies every file at ingress with the provider token.",
   "family_title": "Stable Audio 3",

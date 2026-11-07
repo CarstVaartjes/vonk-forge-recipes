@@ -20,12 +20,12 @@ identity rule: a display describes exactly the document it travels with.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .capability import CapabilityName
 from .model import (
-    CapabilityName,
     Description,
     ModelIdentity,
     ModelLicense,
@@ -65,7 +65,9 @@ class ModelDisplay(_DisplayContract):
         Field(min_length=1, max_length=6)
     )
     # The capabilities this model supports, by name.
-    capabilities: list[CapabilityName] = Field(max_length=64)
+    capabilities: list[Annotated[CapabilityName, Field(strict=False)]] = Field(
+        max_length=64
+    )
     license: ModelLicense
 
     @model_validator(mode="after")
