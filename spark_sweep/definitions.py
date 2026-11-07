@@ -114,6 +114,17 @@ class Definitions:
         if isinstance(value, list):
             return [self._substitute(item, alias, voice) for item in value]
         if isinstance(value, dict):
+            if set(value) == {"field", "$fixture"}:
+                # A multipart file part: name, type and bytes are the fixture's own.
+                fixture = self.fixture(value["$fixture"])
+                return {
+                    "field": value["field"],
+                    "name": fixture.name,
+                    "media_type": fixture.media_type,
+                    "data": base64.b64encode(fixture.content).decode("ascii"),
+                }
+            if set(value) == {"$fixture_text"}:
+                return self.fixture(value["$fixture_text"]).content.decode("utf-8")
             if set(value) in ({"$fixture_data_uri"}, {"$fixture_base64"}):
                 marker = next(iter(value))
                 fixture = self.fixture(value[marker])

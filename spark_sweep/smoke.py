@@ -19,17 +19,17 @@ import json
 import re
 import secrets
 import ssl
-import struct
 import threading
 import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
 from vonk_forge_contracts import AudioSpeechApi, RecipeApi
+from vonk_forge_contracts.recipe import MIN_SPEECH_SECONDS, wav_facts
 
 from .auth_contract import GatewayAuthReply, SmokeAuthClass
 from .catalog import Recipe
@@ -197,11 +197,12 @@ def _evaluate(response: Any, raw: str, assertion: dict[str, Any]) -> tuple[bool,
         text = _path(response, "text")
         return isinstance(text, str) and bool(text.strip()), text
     if kind == "speech.audio":
-        # A decodable WAV of at least `min_seconds` (default 0.5) under an audio/* type.
+        # An audio/* reply that decodes as a WAV of at least `min_seconds`, by default
+        # the contract's MIN_SPEECH_SECONDS (a case may ask for more as a quality note).
         audio = _path(response, "audio")
         content_type = str(_path(response, "content_type"))
         seconds = audio.get("seconds") if isinstance(audio, dict) else None
-        floor = assertion.get("min_seconds", 0.5)
+        floor = assertion.get("min_seconds", MIN_SPEECH_SECONDS)
         holds = (
             content_type.lower().startswith("audio/")
             and isinstance(seconds, (int, float))
@@ -336,37 +337,6 @@ def encode_multipart(spec: dict[str, Any]) -> tuple[bytes, str]:
     )
     parts.append(f"--{boundary}--\r\n".encode())
     return b"".join(parts), f"multipart/form-data; boundary={boundary}"
-
-
-def wav_facts(raw: bytes) -> dict[str, Any] | None:
-    """Duration and shape of a RIFF/WAVE body, or None when it is not decodable.
-
-    Any sample format counts (PCM or float); a streamed WAV whose data size is
-    unset is measured by the bytes that follow.
-    """
-    if len(raw) < 12 or raw[:4] != b"RIFF" or raw[8:12] != b"WAVE":
-        return None
-    position, fmt = 12, None
-    while position + 8 <= len(raw):
-        chunk = raw[position : position + 4]
-        (size,) = struct.unpack_from("<I", raw, position + 4)
-        body = position + 8
-        if chunk == b"fmt " and size >= 16 and body + 16 <= len(raw):
-            tag, channels, rate, byte_rate = struct.unpack_from("<HHII", raw, body)
-            fmt = (tag, channels, rate, byte_rate)
-        elif chunk == b"data":
-            if fmt is None or fmt[3] == 0 or fmt[2] == 0:
-                return None
-            left = len(raw) - body
-            length = left if size in (0, 0xFFFFFFFF) else min(size, left)
-            return {
-                "format_tag": fmt[0],
-                "channels": fmt[1],
-                "sample_rate": fmt[2],
-                "seconds": round(length / fmt[3], 3),
-            }
-        position = body + size + (size & 1)
-    return None
 
 
 def _open(
@@ -652,6 +622,8 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
     if method == "POST":
         data = json.dumps(body).encode()
         headers["Content-Type"] = "application/json"
+    if case.get("response") == "audio":
+        headers["Accept"] = "application/octet-stream"  # as the OpenAI SDK asks
     multipart = case.get("multipart")
     if isinstance(multipart, dict):
         data, headers["Content-Type"] = encode_multipart(multipart)
@@ -675,9 +647,17 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
 
     try:
         if case.get("response") == "audio":
-            # A binary reply is judged by its type and what decodes from it.
-            text = ""
-            document: Any = {"content_type": content_type, "audio": wav_facts(raw)}
+            # A binary reply is judged by its type and what decodes from it. A body
+            # that is not audio (an error page, JSON) stays in the failure row.
+            if not content_type.lower().startswith("audio/"):
+                text = text[:4096]
+            else:
+                text = ""
+            facts = wav_facts(raw)
+            document: Any = {
+                "content_type": content_type,
+                "audio": None if facts is None else asdict(facts),
+            }
         else:
             document = strict_json(text)
         check_assertions(document, text, list(case.get("assertions", [])))
@@ -721,12 +701,18 @@ def smoke_service(
     facts: ChatFacts | None = None,
 ) -> SmokeResult:
     started = time.monotonic()
-    cases = definitions.service_cases(
-        recipe.key, alias, speech_voice(definitions.recipe_api(recipe.slug))
-    ) or _fallback_cases(recipe, alias, facts)
     result = SmokeResult(ok=False, kind="service")
+    cases: list[dict[str, Any]] = []
     try:
-        if has_chat(recipe, cases):
+        cases = definitions.service_cases(
+            recipe.key, alias, speech_voice(definitions.recipe_api(recipe.slug))
+        ) or _fallback_cases(recipe, alias, facts)
+    except ValueError as error:  # a case the recipe's own documents cannot render
+        result.failure = _assertion_failure(
+            AssertionFailed(str(error)), "cases", config
+        )
+    try:
+        if result.failure is None and has_chat(recipe, cases):
             result.perf = stream_probe(base, alias, config)
     except AssertionFailed as error:
         result.failure = _assertion_failure(error, "stream", config)

@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import io
 import json
-import struct
 import threading
 import wave
 from collections.abc import Iterator
@@ -17,6 +16,7 @@ from email import message_from_bytes
 from email.policy import HTTP
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -66,6 +66,7 @@ def gateway(tmp_path: Path) -> Iterator[tuple[Gateway, str, smoke.HttpConfig]]:
             record: dict[str, Any] = {
                 "path": self.path,
                 "auth": self.headers.get("Authorization"),
+                "accept": self.headers.get("Accept"),
                 "content_type": self.headers["Content-Type"],
             }
             if self.path.endswith("/audio/transcriptions"):
@@ -152,7 +153,7 @@ def test_transcription_is_an_openai_multipart_upload(gateway) -> None:
     }
     assert seen["order"] == ["model", "language", "response_format", "file"]
     assert seen["file"] == {
-        "name": "jfk-inaugural-10s.wav",
+        "name": "speech.wav",
         "type": "audio/wav",
         "bytes": JFK,
     }
@@ -180,9 +181,10 @@ def test_speech_is_an_openai_json_request_and_the_wav_is_judged(gateway) -> None
     assert seen["path"] == "/v1/audio/speech"
     assert seen["auth"] == f"Bearer {KEY}"
     assert seen["content_type"] == "application/json"
+    assert seen["accept"] == "application/octet-stream"
     assert seen["json"] == {
         "model": "alias-x",
-        "input": "The quick brown fox jumps over the lazy dog.",
+        "input": (QUALIFICATION / "fixtures/tts-text.txt").read_text("utf-8"),
         "voice": "vivian",
         "response_format": "wav",
     }
@@ -205,6 +207,29 @@ def test_a_reply_that_is_not_speech_fails_the_case(gateway, reply, kind) -> None
         smoke.run_case(base, cases()["TTS_SPEECH"], config)
 
 
+def test_a_non_audio_reply_keeps_its_body_in_the_failure_row(gateway) -> None:
+    state, base, config = gateway
+    state.speech = (b'{"error": "voice not found"}', "application/json")
+    with pytest.raises(smoke.AssertionFailed) as caught:
+        smoke.run_case(base, cases()["TTS_SPEECH"], config)
+    assert "voice not found" in vars(caught.value)["body"]
+
+
+def test_a_missing_voice_is_a_typed_recipe_failure(gateway) -> None:
+    _, base, config = gateway
+    document = {
+        "service_recipes": {"k": {"alias": "a", "smoke_cases": ["TTS_SPEECH"]}},
+        "service_case_templates": SHARED["service_case_templates"],
+        "fixtures": SHARED["fixtures"],
+    }
+    recipe: Any = SimpleNamespace(key="k", slug="k", checks=())
+    result = smoke.smoke_service(
+        recipe, Definitions(document, QUALIFICATION), base, "a", config
+    )
+    assert not result.ok and result.failure is not None
+    assert result.failure.evidence["case"] == "cases"
+
+
 def test_a_short_wav_that_decodes_is_only_a_quality_note(gateway) -> None:
     state, base, config = gateway
     state.speech = (make_wav(0.8), "audio/wav")
@@ -212,36 +237,14 @@ def test_a_short_wav_that_decodes_is_only_a_quality_note(gateway) -> None:
     assert [note["ok"] for note in record["quality"]] == [False]
 
 
-def test_a_streamed_float_wav_still_decodes() -> None:
-    rate = 24000
-    fmt = struct.pack("<HHIIHH", 3, 1, rate, rate * 4, 4, 32)
-    data = b"\x00" * (rate * 4)  # one second
-    header = b"fmt " + struct.pack("<I", 16) + fmt
-    streamed = (
-        b"RIFF"
-        + b"\xff\xff\xff\xff"
-        + b"WAVE"
-        + header
-        + b"data"
-        + b"\xff\xff\xff\xff"
-        + data
-    )
-    facts = smoke.wav_facts(streamed)
-    assert facts is not None and facts["seconds"] == 1.0 and facts["format_tag"] == 3
-    assert smoke.wav_facts(b"RIFF....WAVE") is None
-
-
 def test_speech_needs_the_recipes_voice() -> None:
     with pytest.raises(ValueError, match="voices"):
         cases(voice=None)
 
 
-def test_every_recipe_that_smokes_speech_states_its_voices() -> None:
+def test_every_service_recipe_renders_its_cases() -> None:
     definitions = Definitions.load(QUALIFICATION)
-    for key, service in definitions.document["service_recipes"].items():
-        if "TTS_SPEECH" in service.get("smoke_cases", []):
-            slug = key.split("/")[-1]
-            api = definitions.recipe_api(slug)
-            assert smoke.speech_voice(api) is not None, (
-                f"{key} needs an audio_speech api"
-            )
+    for key in definitions.document["service_recipes"]:
+        slug = key.partition("/")[2]
+        api = definitions.recipe_api(slug)
+        definitions.service_cases(key, "alias", smoke.speech_voice(api))
