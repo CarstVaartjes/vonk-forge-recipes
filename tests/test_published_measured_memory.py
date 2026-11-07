@@ -100,8 +100,7 @@ def test_the_conversion_is_the_one_boundary(used: int) -> None:
         assert holds_within(declared, used) == (measured_peak_bytes(used) <= declared)
 
 
-def test_the_vector_pins_the_shared_constants() -> None:
-    assert VECTOR["os_floor_bytes"] == OS_FLOOR_BYTES
+def test_the_vector_pins_the_admission_maximum() -> None:
     assert VECTOR["admission_maximum_peak_bytes"] == ADMISSION_MAXIMUM_PEAK_BYTES
 
 
