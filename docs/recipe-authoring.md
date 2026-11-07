@@ -474,6 +474,7 @@ memory (`per_rank_need`) and record the predicted outcome, and any creator
 caveat such as "testing only", in the PR and description. The
 estimate rules are calibrated on the proven set. A KV pool holds at least one full-context request,
 not declared context × engine concurrency: engines schedule requests within it.
+Any sparse-index geometry (DSA, MSA) counts its index cache, and a draft pool if any, in the numbers (`replicated_token_bytes`).
 GLM DSA (sparse-MLA) pools count the indexer cache inside the same pool: bytes per
 token are (backbone + MTP layers) × the main record (656 fp8_ds_mla, 400
 nvfp4_ds_mla) plus the layers that build an indexer (the full layers of
