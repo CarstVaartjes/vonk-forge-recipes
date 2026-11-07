@@ -32,3 +32,29 @@ def test_a_text_generating_model_is_judged_not_skipped() -> None:
     assert len(refused) == 1
     code = (["code-generation", "video-understanding"], ["text"])
     assert len(GUARD["disagreements"](*code)) == 1
+
+
+def test_roles_come_from_the_contract_not_from_name_suffixes() -> None:
+    from vonk_forge_contracts import CapabilityName, CapabilityRole
+
+    assert CapabilityName("text-to-speech").role is CapabilityRole.GENERATOR
+    assert CapabilityName("image-upscaling").role is CapabilityRole.GENERATOR
+    assert CapabilityName("code-generation").role is CapabilityRole.OTHER
+    assert CapabilityName("video-understanding").role is CapabilityRole.UNDERSTANDING
+    assert {c for c in CapabilityName if c.role is CapabilityRole.UNDERSTANDING} == set(
+        GUARD["INPUT_MODALITY_CAPABILITIES"].values()
+    )
+
+
+def test_every_capability_has_an_explicit_role() -> None:
+    from vonk_forge_contracts import CapabilityName
+    from vonk_forge_contracts.capability import CAPABILITY_ROLES
+
+    assert set(CAPABILITY_ROLES) == set(CapabilityName)
+
+
+def test_a_generator_with_text_plus_media_modalities_is_not_refused() -> None:
+    check = GUARD["disagreements"]
+    assert check(["image-upscaling"], ["image", "text"]) == []
+    assert check(["voice-cloning"], ["audio", "text"]) == []
+    assert check(["voice-design", "audio-generation"], ["audio", "text"]) == []
