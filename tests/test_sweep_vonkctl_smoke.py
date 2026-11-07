@@ -10,7 +10,7 @@ import textwrap
 from pathlib import Path
 
 import pytest
-from sweep_fakes import Gateway
+from sweep_fakes import Gateway, production_service_cases
 from vonk_forge_contracts.api import (
     ApiReasoningAlwaysOn,
     ApiReasoningNone,
@@ -420,7 +420,7 @@ def test_every_reviewed_service_case_renders_with_its_fixtures(
     services = definitions.document["service_recipes"]
     assert services
     for key, service in services.items():
-        cases = definitions.service_cases(key, service["alias"])
+        cases = production_service_cases(definitions, key, service["alias"])
         assert [c["id"] for c in cases] == service["smoke_cases"], key
         assert json.dumps(cases).count("$ALIAS") == 0 and "$fixture" not in json.dumps(
             cases
@@ -435,7 +435,9 @@ def test_a_vision_case_carries_its_image_as_a_data_uri(
         for k, s in definitions.document["service_recipes"].items()
         if "V_RED" in s["smoke_cases"]
     )
-    case = next(c for c in definitions.service_cases(key, "x") if c["id"] == "V_RED")
+    case = next(
+        c for c in production_service_cases(definitions, key, "x") if c["id"] == "V_RED"
+    )
     url = case["body"]["messages"][0]["content"][0]["image_url"]["url"]
     assert url.startswith("data:image/png;base64,") and len(url) > 100
 
