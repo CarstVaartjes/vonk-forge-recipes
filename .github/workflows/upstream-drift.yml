@@ -2,11 +2,14 @@ name: Audit upstream drift
 
 on:
   schedule:
-    - cron: "17 6 * * 1"
+    # Daily: GitHub drops scheduled runs, and a new creator repository or a
+    # supersession notice should reach an issue within a day, not a week.
+    - cron: "17 6 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
+  issues: write # creator findings become deduplicated issues
   issues: write
 
 concurrency:
@@ -53,6 +56,19 @@ jobs:
           status=$?
           set -e
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+
+      # One typed issue per creator finding (upstream-superseded /
+      # upstream-new-repo, labels created by the tool); deduplicated by key,
+      # never closed here. A refused write is a warning, not a failed run.
+      - name: File creator findings
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if [ -s upstream-drift.json ]; then
+            "$UPSTREAM_AUDIT_PYTHON" tools/check-upstream-drift --file-issues upstream-drift.json
+          fi
 
       - name: Summarize drift
         if: always()
