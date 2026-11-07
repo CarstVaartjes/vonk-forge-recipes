@@ -10,9 +10,17 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import Gateway
-from vonk_forge_contracts.api import ChatApi, read_recipe_api
+from vonk_forge_contracts.api import (
+    ApiReasoningAlwaysOn,
+    ApiReasoningNone,
+    ApiReasoningSwitch,
+    ApiRemainingContext,
+    ApiTokenValue,
+    ChatApi,
+)
 from vonk_forge_contracts.sweep import CliObservationStatus
 
+from qualification.documents import recipe_api
 from spark_sweep.catalog import Recipe
 from spark_sweep.chat_probe import ALWAYS_ON_TOKENS
 from spark_sweep.definitions import Definitions
@@ -601,26 +609,27 @@ def test_a_timeout_is_a_failed_reply_for_reads_and_an_error_for_calls() -> None:
 # -- the declared bounded chat follows the recipe's own reasoning facts -------------------------
 
 
-def _chat_api(reasoning: dict, default_output: dict | None = None):
-    source = json.loads(
-        (ROOT / "api/recipes/agents-a1-nvfp4-r0b0tlab-vllm-single.json").read_text()
+def _chat_api(reasoning, default_output=None):
+    base = recipe_api("agents-a1-nvfp4-r0b0tlab-vllm-single", ROOT).api
+    assert isinstance(base, ChatApi)
+    return base.model_copy(
+        update={
+            "reasoning": reasoning,
+            "default_output_tokens": default_output
+            or ApiRemainingContext(remaining="context"),
+        }
     )
-    source["api"]["reasoning"] = reasoning
-    source["api"]["default_output_tokens"] = default_output or {"remaining": "context"}
-    api = read_recipe_api(source).api
-    assert isinstance(api, ChatApi)
-    return api
 
 
-_SWITCH = {
-    "kind": "switch",
-    "via": "chat_template_kwargs",
-    "keys": ["enable_thinking"],
-    "on": True,
-    "off": False,
-    "default": "on",
-    "effort": None,
-}
+_SWITCH = ApiReasoningSwitch(
+    kind="switch",
+    via="chat_template_kwargs",
+    keys=["enable_thinking"],
+    on=True,
+    off=False,
+    default="on",
+    effort=None,
+)
 
 
 def _bounded_chat_smoke(gateway, definitions, api, max_tokens=64, thinking=200):
@@ -657,7 +666,9 @@ def test_a_switch_route_is_asked_with_its_declared_off_value(
 def test_every_declared_key_at_a_top_level_placement_is_switched_off(
     gateway, definitions: Definitions
 ) -> None:
-    api = _chat_api({**_SWITCH, "via": "top_level", "keys": ["thinking", "think"]})
+    api = _chat_api(
+        _SWITCH.model_copy(update={"via": "top_level", "keys": ["thinking", "think"]})
+    )
     result, sent = _bounded_chat_smoke(gateway, definitions, api, thinking=0)
     assert result.ok, result.failure
     assert (sent["thinking"], sent["think"]) == (False, False)
@@ -667,7 +678,9 @@ def test_every_declared_key_at_a_top_level_placement_is_switched_off(
 def test_an_always_on_route_gets_the_budget_its_facts_imply(
     gateway, definitions: Definitions
 ) -> None:
-    api = _chat_api({"kind": "always-on", "effort": None}, {"value": 1024})
+    api = _chat_api(
+        ApiReasoningAlwaysOn(kind="always-on", effort=None), ApiTokenValue(value=1024)
+    )
     result, sent = _bounded_chat_smoke(gateway, definitions, api, thinking=500)
     assert result.ok, result.failure
     assert "chat_template_kwargs" not in sent
@@ -677,7 +690,7 @@ def test_an_always_on_route_gets_the_budget_its_facts_imply(
 def test_an_always_on_route_without_a_number_gets_the_shared_budget(
     gateway, definitions: Definitions
 ) -> None:
-    api = _chat_api({"kind": "always-on", "effort": None})
+    api = _chat_api(ApiReasoningAlwaysOn(kind="always-on", effort=None))
     result, sent = _bounded_chat_smoke(gateway, definitions, api, thinking=500)
     assert result.ok, result.failure
     assert sent["max_tokens"] == ALWAYS_ON_TOKENS
@@ -687,7 +700,7 @@ def test_a_route_without_reasoning_is_sent_as_declared(
     gateway, definitions: Definitions
 ) -> None:
     result, sent = _bounded_chat_smoke(
-        gateway, definitions, _chat_api({"kind": "none"}), thinking=0
+        gateway, definitions, _chat_api(ApiReasoningNone(kind="none")), thinking=0
     )
     assert result.ok, result.failure
     assert sent == {
