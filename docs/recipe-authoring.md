@@ -131,7 +131,7 @@ published-document readers to bypass producer validation (`tests/test_contracts.
 | Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
 | Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment` is optional. |
 | Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`, and the Model's declared facts: `modalities`, `capabilities`, `license`. |
-| Recipe API | `identity` (the Recipe's), `api` (a `chat` or `decision` block, every field required), `option_choices`. |
+| Recipe API | `identity` (the Recipe's), `api` (a `chat`, `decision`, `audio_transcription` or `audio_speech` block, every field required), `option_choices`. |
 
 A document holds execution data only. What a person or a filter reads about it
 (titles, description, tags, and a Model's `modalities`, `capabilities` and
@@ -172,6 +172,26 @@ by `mode`, and every field is written down, "not applicable" included (`false`,
   prompt nudge.
 - `decision` (the `/v1/systemone` recipes): `max_input_tokens` and
   `input_modalities` only. A synthetic example is `recipe-api-decision.json`.
+- `audio_transcription` and `audio_speech` are LiteLLM's own `model_info.mode`
+  names, one block and one endpoint per mode, so an audio block has no
+  `endpoints` and no token or modality fields: the consumer derives
+  `/v1/audio/transcriptions` or `/v1/audio/speech` from the mode. Field names are
+  OpenAI request parameter names. A route that also answers chat is still one
+  mode: declare the one the recipe is loaded for.
+  - `audio_transcription` (on vLLM only a model class with
+    `supports_transcription`, so check the engine first): `input_formats` (of
+    flac, m4a, mp3, mp4, mpeg, mpga, ogg, wav, webm), `max_file_bytes` (the
+    engine's upload limit, at most `MAX_AUDIO_FILE_BYTES` = 256 MiB, the bound the
+    gateway's edge admits), `max_audio_seconds` (the engine's decode limit, or
+    `null`), `languages` (two-letter ISO 639-1 values of `language`),
+    `response_formats` (of json, text, srt, verbose_json, vtt, diarized_json),
+    `prompt` and `temperature` (the engine honours that OpenAI parameter) and
+    `timestamp_granularities` (of word, segment; `[]` offers none). Example:
+    `recipe-api-transcription.json`.
+  - `audio_speech`: `voices` (the values of `voice`; the first is the route's
+    health-check voice), `response_formats` (of mp3, opus, aac, flac, wav, pcm),
+    `instructions` and `speed` (the engine honours that OpenAI parameter) and
+    `max_input_chars` (the bound of `input`). Example: `recipe-api-speech.json`.
 
 An option choice that changes any of these facts carries its own complete
 block in `option_choices` (`{option, value, api}`); it replaces the base block as
@@ -186,8 +206,15 @@ video or audio input conflicts with `--language-model-only` or a
 present and bound to `context_tokens`, or the block declares an explicit
 `max_input_tokens`; limits cannot exceed the context; a `default_output_tokens`
 argument must exist with an integer value; llama.cpp `--parallel` gives each
-request only its slot's share. `check_api_models` requires a selected Model whose
-display declares each accepted modality together with its `*-understanding` capability (`INPUT_MODALITY_CAPABILITIES`). Whether the launch really enables a tool-call
+request only its slot's share; on vLLM a `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB` (MiB)
+or `VLLM_MAX_AUDIO_DECODE_DURATION_S` the recipe sets must equal a transcription
+block's `max_file_bytes` or `max_audio_seconds`. An audio block takes no token
+checks, and a decision recipe cannot serve one. `check_api_models` requires a
+selected Model whose display declares each accepted modality together with its
+`*-understanding` capability (`INPUT_MODALITY_CAPABILITIES`; `accepted_modalities`
+says audio for a transcription block and text for a speech block); a speech block
+also needs a Model with the `audio` modality and the `audio-generation`
+capability. Whether the launch really enables a tool-call
 or reasoning parser is not re-derived: `tools/check-recipe-api` asks
 `qualification.capabilities.serving_capabilities` (runtime arguments, adapter
 scripts, kit flags) for every variant. The guard runs all three on added or
@@ -202,7 +229,7 @@ OpenAI-compatible HTTP or filesystem job interface. Native decision models use
 extensions (`tests/test_systemone_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.1.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.3.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
