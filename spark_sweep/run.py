@@ -71,6 +71,7 @@ from .catalog import (
     recipe_listing,
     serving_run,
 )
+from .chat_probe import ChatFacts, chat_facts
 from .definitions import Definitions
 from .evidence_publisher import EvidencePublisher
 from .finalization import FinalAction, Finalization
@@ -395,6 +396,8 @@ class Sweep:
         self._wait_event_at = -1e18
         # The latest Controller document of each load (by request key): evidence for its rows.
         self.documents: dict[str, Mapping[str, Any]] = {}
+        # The recipe documents that ran, by content: written by smoke threads, read on the tick.
+        self.ran_recipes: dict[str, RecipeDefinition] = {}
         self.retry_failed_pending = config.retry_failed
         self.qualification_evidence = {
             key: merge_evidence(
@@ -2184,13 +2187,23 @@ class Sweep:
         return str(target)
 
     def _ran_recipe(self, recipe: Recipe) -> RecipeDefinition | None:
-        """The document of exactly the content that ran, for its budget; None if unreadable."""
+        """The document of exactly the content that ran; None if unreadable.
+
+        Read once per content (the smoke's facts and the pass's budget share it) and held
+        until the pass is recorded.
+        """
+        held = self.ran_recipes.get(recipe.content_sha256)
+        if held is not None:
+            return held
         reply = self.vk.run("recipe", "detail", recipe.key, "--technical", timeout=60)
-        return (
+        definition = (
             memory.ran_recipe(reply.document, recipe.content_sha256)
             if reply.ok
             else None
         )
+        if definition is not None:
+            self.ran_recipes[recipe.content_sha256] = definition
+        return definition
 
     def _record_pass(self, key: str, slot: dict[str, Any], result: SmokeResult) -> None:
         now = self.clock.now()
@@ -2250,6 +2263,7 @@ class Sweep:
             self._ran_recipe(recipe) if observed else None,
             recipe.content_sha256,
         )
+        self.ran_recipes.pop(recipe.content_sha256, None)
         quality = result.quality_notes + memory.notes(observed)
         if quality:
             entry["quality"] = quality
@@ -3150,13 +3164,52 @@ class Sweep:
         stop = threading.Event()
         self.smoke_stops[key] = stop
         self.futures[key] = self.executor.submit(
-            smoke_service,
+            self._smoke_service,
+            recipe,
+            base,
+            str(slot["alias"]),
+            replace(self.cfg.http, cancelled=stop),
+            self.documents.get(str(slot.get("request_key", ""))),
+        )
+
+    def _smoke_service(
+        self,
+        recipe: Recipe,
+        base: str,
+        alias: str,
+        config: HttpConfig,
+        application: Any,
+    ) -> SmokeResult:
+        """The service smoke, on an executor thread: resolving its facts may read the Controller."""
+        return smoke_service(
             recipe,
             self.defs,
             base,
-            slot["alias"],
-            replace(self.cfg.http, cancelled=stop),
+            alias,
+            config,
+            self._chat_facts(recipe, alias, application),
         )
+
+    def _chat_facts(
+        self, recipe: Recipe, alias: str, application: Any
+    ) -> ChatFacts | None:
+        """The recipe-api facts of the launch that ran, when its smoke is the declared check.
+
+        Reviewed smoke cases carry their own requests; only the fallback needs the facts.
+        None when the recipe publishes none or the launch cannot be read: the declared check
+        then runs as written.
+        """
+        api = self.defs.recipe_api(recipe.slug)
+        if self.defs.service_cases(recipe.key, alias) or api is None:
+            return None
+        definition = self._ran_recipe(recipe)
+        if definition is None:
+            return None
+        try:
+            choices = memory.intended_assignment(application, alias).option_choices
+            return chat_facts(definition, api, choices)
+        except (StopIteration, ValueError, TypeError):
+            return None
 
     def _advance_smoking(self, key: str, slot: dict[str, Any]) -> None:
         future = self.futures.get(key)

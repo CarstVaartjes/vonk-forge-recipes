@@ -320,6 +320,11 @@ class Gateway:
     refused: int = 0
     # The next this many requests get a temporary 503 (an overloaded engine or gateway).
     busy: int = 0
+    # Per alias, the tokens its engine spends thinking unless the request turns thinking off
+    # (a switch key, in ``chat_template_kwargs`` or at the top level); a reply whose
+    # ``max_tokens`` ends inside them has no content.
+    thinking: dict[str, int] = field(default_factory=dict)
+    bodies: list[dict[str, Any]] = field(default_factory=list)
     _server: ThreadingHTTPServer | None = None
 
     def start(self) -> str:
@@ -370,6 +375,7 @@ class Gateway:
                 body = json.loads(self.rfile.read(length) or b"{}")
                 alias = self.path.split("/")[1]
                 gateway.requests.append(("POST", self.path))
+                gateway.bodies.append(body)
                 if self._refuses():
                     return
                 if alias in gateway.broken:
@@ -388,14 +394,26 @@ class Gateway:
                         f"data: {json.dumps(usage)}\n\ndata: [DONE]\n\n".encode()
                     )
                     return
+                message = gateway.messages.get(alias, {"content": "391"})
+                finish = "stop"
+                spent = gateway.thinking.get(alias, 0)
+                off = {
+                    **(body.get("chat_template_kwargs") or {}),
+                    **body,
+                }
+                switched_off = any(
+                    off.get(key) is False
+                    for key in ("enable_thinking", "thinking", "think")
+                )
+                # No max_tokens: the engine answers with the context that remains, however
+                # long it thinks first. A cap at or under the thinking cuts the reply.
+                cap = body.get("max_tokens")
+                if spent and not switched_off and cap is not None and cap <= spent:
+                    message = {"content": "", "reasoning_content": "hmm"}
+                    finish = "length"
                 reply = {
                     "model": alias,
-                    "choices": [
-                        {
-                            "message": gateway.messages.get(alias, {"content": "391"}),
-                            "finish_reason": "stop",
-                        }
-                    ],
+                    "choices": [{"message": message, "finish_reason": finish}],
                 }
                 self._send(200, json.dumps(reply).encode())
 
