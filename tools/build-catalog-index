@@ -31,7 +31,11 @@ def image_diagnostic(diagnostic: InputDiagnostic) -> None:
 from qualification.case_assertions import require_valid_case_assertions
 from qualification.definitions_loader import load_definitions
 from qualification.media_types import require_canonical_recipe_media
-from qualification.memory_need import load_inputs, memory_warnings
+from qualification.memory_need import (
+    load_inputs,
+    memory_warnings,
+    published_measured_peaks,
+)
 from qualification.service_aliases import require_valid_service_aliases
 
 QUALIFICATION_ROOT = ROOT / "qualification"
@@ -741,6 +745,7 @@ def build(
         )
     pin_prebuilt_images(recipes, prebuilt_images or {})
     from vonk_forge_contracts import (
+        PublishedMeasuredMemory,
         QualificationIdentity,
         QualificationRuntimeImage,
         published_status,
@@ -748,6 +753,7 @@ def build(
 
     from spark_sweep.qualification import read_evidence
 
+    recipe_by_slug = {item.identity.slug: item for item in recipe_documents}
     for entry in recipes:
         document = entry["document"]
         image = entry.get("prebuilt_image")
@@ -771,9 +777,21 @@ def build(
             required_sparks=document["topology"]["node_count"],
         )
         key = f"{document['identity']['publisher']}/{document['identity']['slug']}"
-        entry["qualification"] = published_status(
-            read_evidence(ROOT, key), identity
-        ).model_dump(mode="json", exclude_none=True)
+        evidence = read_evidence(ROOT, key)
+        entry["qualification"] = published_status(evidence, identity).model_dump(
+            mode="json", exclude_none=True
+        )
+        # A sibling of "qualification", never inside it: older Controllers reject
+        # unknown fields of the status and ignore unknown entry keys.
+        peaks = published_measured_peaks(
+            recipe_by_slug[document["identity"]["slug"]],
+            entry["content_sha256"],
+            evidence,
+        )
+        if peaks:
+            entry["measured_memory"] = PublishedMeasuredMemory(roles=peaks).model_dump(
+                mode="json"
+            )
 
     from vonk_forge_contracts import CONTRACT_VERSION, document_sha256
 
