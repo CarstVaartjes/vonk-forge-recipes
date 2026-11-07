@@ -24,6 +24,7 @@ from .api import (
     RecipeApi,
     require_api_of,
 )
+from .capability import CapabilityName
 from .display import ModelDisplay
 from .recipe import RecipeDecisionSettings, RecipeDefinition, RecipeGenerationSettings
 
@@ -43,10 +44,10 @@ CONTEXT_ARGUMENTS: dict[str, tuple[str, ...]] = {
 }
 # The capability a Model declares for each non-text input modality it accepts: the
 # one table the API check and the Model modality guard share.
-INPUT_MODALITY_CAPABILITIES: dict[str, str] = {
-    "image": "image-understanding",
-    "audio": "audio-understanding",
-    "video": "video-understanding",
+INPUT_MODALITY_CAPABILITIES: dict[str, CapabilityName] = {
+    "image": CapabilityName.IMAGE_UNDERSTANDING,
+    "audio": CapabilityName.AUDIO_UNDERSTANDING,
+    "video": CapabilityName.VIDEO_UNDERSTANDING,
 }
 
 
