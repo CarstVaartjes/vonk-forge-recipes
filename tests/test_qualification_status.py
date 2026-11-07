@@ -434,7 +434,6 @@ def test_catalog_derives_after_resolving_release_image(
             {"path": "packages/example.tar.gz", "source_bundle_sha256": "1" * 64},
         ),
     )
-    monkeypatch.setitem(globals_, "_commit_time", lambda *a: NOW.isoformat())
     images = {
         digest: {
             "build_key": image.build_key,
@@ -444,6 +443,7 @@ def test_catalog_derives_after_resolving_release_image(
     first = build(
         package_dir=tmp_path / "packages",
         source_commit="a" * 40,
+        source_date_epoch=int(NOW.timestamp()),
         prebuilt_images=images,
     )
     assert first["recipes"][0]["qualification"]["status"] == Status.WORKING
@@ -451,6 +451,7 @@ def test_catalog_derives_after_resolving_release_image(
     second = build(
         package_dir=tmp_path / "packages",
         source_commit="a" * 40,
+        source_date_epoch=int(NOW.timestamp()),
         prebuilt_images=images,
     )
     published = second["recipes"][0]["qualification"]

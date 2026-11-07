@@ -63,7 +63,11 @@ def test_estimate_mismatch_does_not_fail_the_catalog_build(
 
     monkeypatch.setitem(build.__globals__, "recipe_package", reached_packaging)
     with pytest.raises(PackagingReached):
-        build(package_dir=tmp_path / "packages", source_commit="0" * 40)
+        build(
+            package_dir=tmp_path / "packages",
+            source_commit="0" * 40,
+            source_date_epoch=0,
+        )
     assert "peak understates need" in capsys.readouterr().err
 
 
@@ -82,7 +86,11 @@ def test_high_but_valid_declaration_warns_and_fails_nothing(
 
     monkeypatch.setitem(build.__globals__, "recipe_package", reached_packaging)
     with pytest.raises(PackagingReached):
-        build(package_dir=tmp_path / "packages", source_commit="0" * 40)
+        build(
+            package_dir=tmp_path / "packages",
+            source_commit="0" * 40,
+            source_date_epoch=0,
+        )
     assert "not admissible on an idle Spark" in capsys.readouterr().err
     main = runpy.run_path(str(ROOT / "tools/check-recipe-memory-need"))["main"]
     monkeypatch.setitem(main.__globals__, "ROOT", root)
@@ -150,7 +158,11 @@ def test_contract_shape_violation_fails_the_catalog_build(
     root = mismatching_root(tmp_path, load_peak_bytes=1_000_000_000)
     monkeypatch.setitem(build.__globals__, "ROOT", root)
     with pytest.raises(SystemExit, match="load_peak_bytes must exceed peak_bytes"):
-        build(package_dir=tmp_path / "packages", source_commit="0" * 40)
+        build(
+            package_dir=tmp_path / "packages",
+            source_commit="0" * 40,
+            source_date_epoch=0,
+        )
 
 
 def test_no_estimate_rule_can_raise_or_gate() -> None:
