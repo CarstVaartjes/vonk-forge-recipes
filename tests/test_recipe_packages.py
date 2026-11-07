@@ -342,9 +342,7 @@ def test_adapter_only_change_is_published_as_new_source_identity(monkeypatch):
     first_archive, first = TOOL["recipe_package"](document)
     fixtures = [
         name
-        for check in RecipeDefinition.model_validate(
-            document
-        ).validation.serving.checks
+        for check in RecipeDefinition.model_validate(document).validation.serving.checks
         for name in check.fixture_paths()
     ]
     closure = original(
