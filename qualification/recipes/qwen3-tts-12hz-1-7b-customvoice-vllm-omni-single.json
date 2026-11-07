@@ -1,0 +1,17 @@
+{
+  "id": "vonk-forge/qwen3-tts-12hz-1-7b-customvoice-vllm-omni-single",
+  "service_recipes": {
+    "alias": "qwen3-tts-customvoice",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ],
+      "stress": [
+        "One long input near the 4096-frame talker ceiling"
+      ]
+    },
+    "smoke_cases": [
+      "M0"
+    ]
+  }
+}

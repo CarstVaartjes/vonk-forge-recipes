@@ -1,0 +1,308 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "f713b909f16cf8c7901f17c3aee3f471cbee5fbde5603b7dbe2631630887d7c2",
+        "repository": "vllm/vllm-omni"
+      },
+      "context": {
+        "path": "adapters/qwen/qwen3-tts-customvoice-vllm-omni-single"
+      },
+      "dockerfile": "adapters/qwen/qwen3-tts-customvoice-vllm-omni-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-tts-12hz-1-7b-customvoice-vllm-omni-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "qwen3-tts-customvoice"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "readme-64f65e809b51-b335630551",
+          "id": "readme-64f65e809b51-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-17a07f527a1c-587cb980af",
+          "id": "config-17a07f527a1c-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-f1b90b4513f3-97dd3d578b",
+          "id": "generation-config-f1b90b4513f3-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-b0d6dcfed4",
+          "id": "merges-599bab540750-b0d6dcfed4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-38b1d5971bdb-9d75c1098f",
+          "id": "model-38b1d5971bdb-9d75c1098f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-efdde1022ea9-36afccab5d",
+          "id": "preprocessor-config-efdde1022ea9-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-ee65bb901c87-27c95e2283",
+          "id": "config-ee65bb901c87-27c95e2283",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-6bc26d64eb50-8784199069",
+          "id": "configuration-6bc26d64eb50-8784199069",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-836b7b357f5e-abfeb27adb",
+          "id": "model-836b7b357f5e-abfeb27adb",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-fcb3805e597e-e6c782fc2d",
+          "id": "preprocessor-config-fcb3805e597e-e6c782fc2d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-dc3c31c3bdae-94d5c6ba8f",
+          "id": "tokenizer-config-dc3c31c3bdae-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "09b0768f5a8ee3c15d8b0d5731fdbee28dabf0ae5a903a6846ad481b1802247f",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen3-tts-12hz-1-7b-customvoice-0c0e3051"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Qwen",
+      "vLLM-Omni contributors"
+    ],
+    "source_reference": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice/tree/0c0e3051f131929182e2c023b9537f8b1c68adfe"
+  },
+  "release": {
+    "released_at": "2026-10-28",
+    "version": "0.32.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "qwen3-tts-customvoice"
+      },
+      {
+        "name": "deploy-config",
+        "setting": null,
+        "value": "/opt/vonk/qwen3_tts.yaml"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.197"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "omni",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 4096
+    },
+    "kind": "generation",
+    "knobs": {}
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 4520217432,
+            "image_bytes": 38000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 2260108716
+          },
+          "memory": {
+            "peak_bytes": 58000000000,
+            "reserve_bytes": 6000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "speech.audio"
+          ],
+          "kind": "openai.speech",
+          "name": "speak",
+          "request": {
+            "body": {
+              "input": "The road ahead is closed. Turn back.",
+              "model": "qwen3-tts-customvoice",
+              "response_format": "wav",
+              "voice": "ryan"
+            },
+            "method": "POST",
+            "path": "/v1/audio/speech",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
