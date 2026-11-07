@@ -1,0 +1,29 @@
+{
+  "capabilities": [
+    "audio-generation",
+    "text-to-speech",
+    "voice-design"
+  ],
+  "description": "Exact official Qwen3-TTS 12Hz 1.7B VoiceDesign checkpoint (bundled 12Hz speech tokenizer): speech in a voice described in natural language, with emotion and tone instructions.",
+  "family_title": "Qwen3-TTS",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen3-tts-12hz-1-7b-voicedesign-5ecdb673"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/QwenLM/Qwen3-TTS/blob/022e286b98fbec7e1e916cb940cdf532cd9f488e/LICENSE"
+  },
+  "modalities": [
+    "audio"
+  ],
+  "model_title": "Qwen3-TTS 12Hz 1.7B VoiceDesign",
+  "tags": [
+    "qwen",
+    "qwen3-tts"
+  ]
+}

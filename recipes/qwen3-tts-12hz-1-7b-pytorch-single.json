@@ -1,0 +1,493 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/audio/qwen3-tts-pytorch"
+      },
+      "dockerfile": "adapters/audio/qwen3-tts-pytorch/Dockerfile",
+      "network": {
+        "hosts": [
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-tts-12hz-1-7b-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "audio-job",
+      "input": {
+        "max_bytes": 33579008,
+        "media_types": [
+          "audio/wav",
+          "text/plain"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "UTF-8 text to speak; shorter, well-punctuated passages keep one voice steadier.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "text",
+            "label": "Lines to speak",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          },
+          {
+            "description": "Optional UTF-8 voice and emotion instruction for VoiceDesign, for example a hoarse old man whispering in fear. Exclusive with the reference clip.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "voice",
+            "label": "Voice description",
+            "max_file_bytes": 4096,
+            "max_files": 1,
+            "max_total_bytes": 4096,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 0
+          },
+          {
+            "description": "Optional WAV clip of the voice to clone (about 3 seconds or more). Exclusive with the voice description.",
+            "extensions": [
+              ".wav"
+            ],
+            "id": "reference_audio",
+            "label": "Reference clip",
+            "max_file_bytes": 33554432,
+            "max_files": 1,
+            "max_total_bytes": 33554432,
+            "media_types": [
+              "audio/wav"
+            ],
+            "min_files": 0
+          },
+          {
+            "description": "Optional UTF-8 transcript of the reference clip; without it only the speaker embedding is cloned.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "reference_text",
+            "label": "Reference transcript",
+            "max_file_bytes": 4096,
+            "max_files": 1,
+            "max_total_bytes": 4096,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 0
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 33554432,
+        "slots": [
+          {
+            "description": "Mono PCM16 WAV at the model's native 24 kHz.",
+            "extensions": [
+              ".wav"
+            ],
+            "id": "speech",
+            "label": "Speech",
+            "max_file_bytes": 33554432,
+            "max_files": 1,
+            "max_total_bytes": 33554432,
+            "media_types": [
+              "audio/wav"
+            ],
+            "min_files": 1
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "readme-acfaf6c0d433-b335630551",
+          "id": "voicedesign-readme-acfaf6c0d433-b335630551",
+          "mount": {
+            "target": "/models/voicedesign"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-aecd2cc4c1fe-587cb980af",
+          "id": "voicedesign-config-aecd2cc4c1fe-587cb980af",
+          "mount": {
+            "target": "/models/voicedesign"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-f1b90b4513f3-97dd3d578b",
+          "id": "voicedesign-generation-config-f1b90b4513f3-97dd3d578b",
+          "mount": {
+            "target": "/models/voicedesign"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-b0d6dcfed4",
+          "id": "voicedesign-merges-599bab540750-b0d6dcfed4",
+          "mount": {
+            "target": "/models/voicedesign"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-391e8db219f2-9d75c1098f",
+          "id": "voicedesign-model-391e8db219f2-9d75c1098f",
+          "mount": {
+            "target": "/models/voicedesign"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-efdde1022ea9-36afccab5d",
+          "id": "voicedesign-preprocessor-config-efdde1022ea9-36afccab5d",
+          "mount": {
+            "target": "/models/voicedesign"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-ee65bb901c87-27c95e2283",
+          "id": "voicedesign-config-ee65bb901c87-27c95e2283",
+          "mount": {
+            "target": "/models/voicedesign"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-6bc26d64eb50-8784199069",
+          "id": "voicedesign-configuration-6bc26d64eb50-8784199069",
+          "mount": {
+            "target": "/models/voicedesign"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-836b7b357f5e-abfeb27adb",
+          "id": "voicedesign-model-836b7b357f5e-abfeb27adb",
+          "mount": {
+            "target": "/models/voicedesign"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-fcb3805e597e-e6c782fc2d",
+          "id": "voicedesign-preprocessor-config-fcb3805e597e-e6c782fc2d",
+          "mount": {
+            "target": "/models/voicedesign"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-dc3c31c3bdae-94d5c6ba8f",
+          "id": "voicedesign-tokenizer-config-dc3c31c3bdae-94d5c6ba8f",
+          "mount": {
+            "target": "/models/voicedesign"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "id": "voicedesign-vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "mount": {
+            "target": "/models/voicedesign"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "voicedesign",
+      "model": {
+        "content_sha256": "169920576b5590da26aaaff7b40ff51a0e4ba97415ee1d0a93aa27e658aa6748",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen3-tts-12hz-1-7b-voicedesign-5ecdb673"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "readme-621b7e88f186-b335630551",
+          "id": "base-readme-621b7e88f186-b335630551",
+          "mount": {
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-b4f01752d15a-587cb980af",
+          "id": "base-config-b4f01752d15a-587cb980af",
+          "mount": {
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-f1b90b4513f3-97dd3d578b",
+          "id": "base-generation-config-f1b90b4513f3-97dd3d578b",
+          "mount": {
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-b0d6dcfed4",
+          "id": "base-merges-599bab540750-b0d6dcfed4",
+          "mount": {
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-38fc7fc51c5e-9d75c1098f",
+          "id": "base-model-38fc7fc51c5e-9d75c1098f",
+          "mount": {
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-efdde1022ea9-36afccab5d",
+          "id": "base-preprocessor-config-efdde1022ea9-36afccab5d",
+          "mount": {
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-ee65bb901c87-27c95e2283",
+          "id": "base-config-ee65bb901c87-27c95e2283",
+          "mount": {
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-6bc26d64eb50-8784199069",
+          "id": "base-configuration-6bc26d64eb50-8784199069",
+          "mount": {
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-836b7b357f5e-abfeb27adb",
+          "id": "base-model-836b7b357f5e-abfeb27adb",
+          "mount": {
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-fcb3805e597e-e6c782fc2d",
+          "id": "base-preprocessor-config-fcb3805e597e-e6c782fc2d",
+          "mount": {
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-dc3c31c3bdae-94d5c6ba8f",
+          "id": "base-tokenizer-config-dc3c31c3bdae-94d5c6ba8f",
+          "mount": {
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "id": "base-vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "mount": {
+            "target": "/models/base"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "base",
+      "model": {
+        "content_sha256": "d8bb04790679cabce3093daa6e72be10fdde3968a3a0ffbe102bf8867360b510",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen3-tts-12hz-1-7b-base-fd4b2543"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "qwen"
+    ],
+    "source_reference": "https://github.com/QwenLM/Qwen3-TTS/tree/6cafe5582caea83df269c36b1ce62d953a9cc66b"
+  },
+  "release": {
+    "released_at": "2026-02-06",
+    "version": "0.1.1"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "language",
+        "setting": "language",
+        "value": null
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {
+      "language": {
+        "change_effect": "none",
+        "value": "Auto"
+      }
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 9064390494,
+            "image_bytes": 10000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 20000000000
+          },
+          "memory": {
+            "peak_bytes": 8000000000,
+            "reserve_bytes": 2000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "audio-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tts-text.txt",
+            "input_slots": {
+              "text": "qualification/fixtures/tts-text.txt",
+              "voice": "qualification/fixtures/tts-voice.txt"
+            },
+            "output_slot": "speech",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "audio-job"
+    }
+  }
+}
