@@ -9,7 +9,6 @@ import hashlib
 import io
 import json
 import re
-import subprocess
 import sys
 import tarfile
 import tempfile
@@ -152,50 +151,8 @@ def rendered(document: dict[str, object]) -> str:
     )
 
 
-def _git_revision(cwd: Path) -> str:
-    try:
-        value = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            cwd=cwd,
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
-    except (OSError, subprocess.CalledProcessError) as error:
-        raise SystemExit(
-            "unable to determine the immutable recipe source commit"
-        ) from error
-    if not re.fullmatch(r"[0-9a-f]{40}", value):
-        raise SystemExit("source commit must be a full SHA-1")
-    return value
-
-
-# The commit time of a source commit that is not in this checkout (a test
-# fixture or a shallow clone) falls back to a fixed instant, so the index stays
-# a deterministic function of its inputs.
-UNKNOWN_COMMIT_TIME = "1970-01-01T00:00:00Z"
-
-
-def _commit_time(cwd: Path, commit: str) -> str:
-    """Return the committer time of ``commit`` in RFC 3339 UTC."""
-
-    try:
-        value = subprocess.run(
-            ["git", "show", "-s", "--format=%ct", commit],
-            cwd=cwd,
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
-    except (OSError, subprocess.CalledProcessError):
-        return UNKNOWN_COMMIT_TIME
-    if not value.isdigit():
-        return UNKNOWN_COMMIT_TIME
-    return datetime.fromtimestamp(int(value), UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
 def _updated_at(source_date_epoch: int) -> str:
-    """Return a Unix time in RFC 3339 UTC."""
+    """Return the source commit time in RFC 3339 UTC."""
 
     return datetime.fromtimestamp(source_date_epoch, UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -700,9 +657,8 @@ def pin_prebuilt_images(recipes: list[dict[str, Any]], images: object) -> None:
 def build(
     *,
     package_dir: Path,
-    platform_root: Path | None = None,
-    source_commit: str | None = None,
-    source_date_epoch: int | None = None,
+    source_commit: str,
+    source_date_epoch: int,
     prebuilt_images: dict[str, dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     package_dir.mkdir(parents=True, exist_ok=True)
@@ -835,11 +791,7 @@ def build(
             entities.values(), key=lambda item: str(item["identity"]["slug"])
         )
     ]
-    platform_commit = ""
-    if platform_root is not None:
-        platform_commit = _git_revision(Path(platform_root))
-    source_value = source_commit or _git_revision(ROOT)
-    if not re.fullmatch(r"[0-9a-f]{40}", source_value):
+    if not re.fullmatch(r"[0-9a-f]{40}", source_commit):
         raise SystemExit("source commit must be a full SHA-1")
     return {
         "schema_version": 2,
@@ -847,14 +799,9 @@ def build(
         # The library release is the contract version; recipe changes only
         # move updated_at, the source commit's commit time.
         "contract_version": CONTRACT_VERSION,
-        "updated_at": (
-            _updated_at(source_date_epoch)
-            if source_date_epoch is not None
-            else _commit_time(ROOT, source_value)
-        ),
+        "updated_at": _updated_at(source_date_epoch),
         "repository": REPOSITORY,
-        "source_commit": source_value,
-        "platform_commit": platform_commit,
+        "source_commit": source_commit,
         "package_contract": {
             "schema_version": PACKAGE_SCHEMA_VERSION,
             "media_type": PACKAGE_MEDIA_TYPE,
@@ -908,7 +855,7 @@ def _rendered_index(document: dict[str, Any]) -> bytes:
 
 
 def write_outputs(
-    directory: Path, *, source_commit: str, source_date_epoch: int | None = None
+    directory: Path, *, source_commit: str, source_date_epoch: int
 ) -> dict[str, Any]:
     """Write the catalog build outputs under ``directory`` in checkout layout.
 
@@ -940,7 +887,7 @@ def write_release(
     directory: Path,
     *,
     source_commit: str,
-    source_date_epoch: int | None = None,
+    source_date_epoch: int,
     include: tuple[Path, ...] = (),
     prebuilt_images: dict[str, dict[str, str]] | None = None,
 ) -> dict[str, str]:
@@ -994,13 +941,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--source-commit",
-        help="immutable recipe source commit recorded in the index (default: HEAD)",
+        required=True,
+        help="immutable recipe source commit recorded in the index",
     )
     parser.add_argument(
         "--source-date-epoch",
         type=int,
-        help="commit time of the source commit (Unix seconds) recorded as "
-        "updated_at (default: read from Git)",
+        required=True,
+        help="commit time of the source commit (Unix seconds), recorded as updated_at",
     )
     target = parser.add_mutually_exclusive_group()
     target.add_argument(
@@ -1029,7 +977,6 @@ def main() -> int:
         "(tools/prebuilt-images resolve), recorded in the index (with --release-dir)",
     )
     arguments = parser.parse_args()
-    source_commit = arguments.source_commit or _git_revision(ROOT)
     prebuilt_images = (
         load_images(arguments.prebuilt_images, image_diagnostic)
         if arguments.prebuilt_images is not None
@@ -1038,7 +985,7 @@ def main() -> int:
     if arguments.release_dir is not None:
         digests = write_release(
             arguments.release_dir,
-            source_commit=source_commit,
+            source_commit=arguments.source_commit,
             source_date_epoch=arguments.source_date_epoch,
             include=tuple(arguments.include),
             prebuilt_images=prebuilt_images,
@@ -1049,7 +996,7 @@ def main() -> int:
         parser.error("--include and --prebuilt-images require --release-dir")
     document = write_outputs(
         arguments.output_dir,
-        source_commit=source_commit,
+        source_commit=arguments.source_commit,
         source_date_epoch=arguments.source_date_epoch,
     )
     print(

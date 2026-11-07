@@ -26,18 +26,12 @@ ALLOWED = {
         "tools/check-recipe-topology",
         "base_recipes",
     ): "base Spark count of edited recipes",
-    # The release index records when its source commit was made.
-    ("tools/build-catalog-index", "_commit_time"): "source commit time (provenance)",
     # The evidence publisher reads the records of the PR branch it is refusing: the
     # content of the change under review, never a fact about an old revision.
     (
         "spark_sweep/evidence_publisher.py",
         "_evidence_records",
     ): "records carried by the refused evidence PR branch",
-    # The one-time Model facts split migrates the base revision's documents: it
-    # reads the pre-split tree it rewrites, never a fact. Removed with the tool.
-    ("tools/split-model-facts", "_already_split"): "base revision of the migration",
-    ("tools/split-model-facts", "main"): "base revision of the migration",
 }
 
 
