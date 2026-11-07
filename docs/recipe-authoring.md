@@ -1159,7 +1159,7 @@ The sweep process and verdict meanings live in
   cases switch thinking off per request, while markup rules still apply. Keep
   the two assertion classes separate (`tests/test_sweep_quality.py`,
   `tests/test_qualification_chat_cases.py`, `tests/test_sweep_vonkctl_smoke.py`).
-- **Artifact job with `--job-recipes`:** create/upload/submit one job against the
+- **Artifact job:** create/upload/submit one job against the
   held run, follow its receipt, download outputs and evaluate output count,
   names, media/format, size, image/audio/video metadata, GLB structure, ZIP entries
   or declared document/transcript assertions. `spark_sweep/smoke_job.py` and
@@ -1167,8 +1167,7 @@ The sweep process and verdict meanings live in
   are recorded as `not_evaluated` with a reason, never silently passed. Video
   inspection needs ffprobe; inspect any missing observation before claiming
   coverage (`tests/test_sweep_job_smoke.py`, `tests/test_sweep_job_media.py`,
-  `tests/test_image_output_contracts.py`). Without deployed job-profile support
-  and the flag, jobs are skipped (`tests/test_sweep_job_recipes.py`).
+  `tests/test_image_output_contracts.py`, `tests/test_sweep_job_recipes.py`).
 - **Other non-OpenAI services:** `readiness-only` proves health/routing only;
   never call it successful generation (`spark_sweep/smoke.py`).
 
