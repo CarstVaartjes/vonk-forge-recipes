@@ -31,7 +31,11 @@ def image_diagnostic(diagnostic: InputDiagnostic) -> None:
 from qualification.case_assertions import require_valid_case_assertions
 from qualification.definitions_loader import load_definitions
 from qualification.media_types import require_canonical_recipe_media
-from qualification.memory_need import load_inputs, memory_warnings
+from qualification.memory_need import (
+    load_inputs,
+    memory_warnings,
+    published_measured_peaks,
+)
 from qualification.service_aliases import require_valid_service_aliases
 
 QUALIFICATION_ROOT = ROOT / "qualification"
@@ -191,7 +195,10 @@ def _safe_file(path: Path) -> bool:
 
 
 def _recipe_closure(
-    recipe: dict[str, Any], recipe_path: Path, entities: dict[str, dict[str, Any]]
+    recipe: dict[str, Any],
+    recipe_path: Path,
+    entities: dict[str, dict[str, Any]],
+    fixture_paths: list[str],
 ) -> list[tuple[str, bytes]]:
     files: dict[str, bytes] = {"recipe.json": canonical(recipe)}
     pending = [selection["model"] for selection in recipe["models"]]
@@ -232,16 +239,11 @@ def _recipe_closure(
         if not _safe_file(source):
             raise SystemExit(f"package source file is missing: {name}")
         files[name] = source.read_bytes()
-    for check in recipe["validation"]["serving"]["checks"]:
-        request = check["request"]
-        if request.get("transport") != "job":
-            continue
-        required = [request["fixture"], *request.get("input_slots", {}).values()]
-        for name in required:
-            source = ROOT / name
-            if not _safe_file(source):
-                raise SystemExit(f"package serving fixture is missing: {name}")
-            files[name] = source.read_bytes()
+    for name in fixture_paths:
+        source = ROOT / name
+        if not _safe_file(source):
+            raise SystemExit(f"package serving fixture is missing: {name}")
+        files[name] = source.read_bytes()
     return sorted(files.items())
 
 
@@ -335,7 +337,6 @@ def validate_recipe_archive(
     """
     entities = entities or _catalog_entity_documents()
     from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
-    from vonk_forge_contracts.recipe import RecipeJobServingRequest
     from vonk_forge_contracts.resolver import validate_model_references
 
     expected_recipe = RecipeDefinition.model_validate(recipe)
@@ -372,10 +373,7 @@ def validate_recipe_archive(
 
     expected_fixture_paths: set[str] = set()
     for check in expected_recipe.validation.serving.checks:
-        request = check.request
-        if isinstance(request, RecipeJobServingRequest):
-            expected_fixture_paths.add(request.fixture)
-            expected_fixture_paths.update(request.input_slots.values())
+        expected_fixture_paths.update(check.fixture_paths())
 
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         members = archive.getmembers()
@@ -569,14 +567,13 @@ def validate_recipe_archive(
                 "recipe package base image is absent from Dockerfile build inputs"
             )
         for check in expected_recipe.validation.serving.checks:
-            request = check.request
-            if isinstance(request, RecipeJobServingRequest):
-                required = [request.fixture, *request.input_slots.values()]
-                missing = sorted(name for name in required if name not in paths)
-                if missing:
-                    raise SystemExit(
-                        f"recipe package serving closure is missing: {', '.join(missing)}"
-                    )
+            missing = sorted(
+                name for name in check.fixture_paths() if name not in paths
+            )
+            if missing:
+                raise SystemExit(
+                    f"recipe package serving closure is missing: {', '.join(missing)}"
+                )
 
 
 def recipe_package(
@@ -587,13 +584,19 @@ def recipe_package(
 ) -> tuple[bytes, dict[str, object]]:
     from vonk_forge_contracts import RecipeDefinition, document_sha256
 
-    require_canonical_recipe_media(RecipeDefinition.model_validate(document))
+    validated = RecipeDefinition.model_validate(document)
+    require_canonical_recipe_media(validated)
     recipe_digest = document_sha256(document)
     recipe_path = (
         recipe_path or ROOT / "recipes" / f"{document['identity']['slug']}.json"
     )
     entities = entity_documents or _catalog_entity_documents()
-    files = _recipe_closure(document, recipe_path, entities)
+    fixtures = [
+        name
+        for check in validated.validation.serving.checks
+        for name in check.fixture_paths()
+    ]
+    files = _recipe_closure(document, recipe_path, entities, fixtures)
     manifest_files = [
         {
             "path": name,
@@ -742,6 +745,7 @@ def build(
         )
     pin_prebuilt_images(recipes, prebuilt_images or {})
     from vonk_forge_contracts import (
+        PublishedMeasuredMemory,
         QualificationIdentity,
         QualificationRuntimeImage,
         published_status,
@@ -749,6 +753,7 @@ def build(
 
     from spark_sweep.qualification import read_evidence
 
+    recipe_by_slug = {item.identity.slug: item for item in recipe_documents}
     for entry in recipes:
         document = entry["document"]
         image = entry.get("prebuilt_image")
@@ -772,9 +777,21 @@ def build(
             required_sparks=document["topology"]["node_count"],
         )
         key = f"{document['identity']['publisher']}/{document['identity']['slug']}"
-        entry["qualification"] = published_status(
-            read_evidence(ROOT, key), identity
-        ).model_dump(mode="json", exclude_none=True)
+        evidence = read_evidence(ROOT, key)
+        entry["qualification"] = published_status(evidence, identity).model_dump(
+            mode="json", exclude_none=True
+        )
+        # A sibling of "qualification", never inside it: older Controllers reject
+        # unknown fields of the status and ignore unknown entry keys.
+        peaks = published_measured_peaks(
+            recipe_by_slug[document["identity"]["slug"]],
+            entry["content_sha256"],
+            evidence,
+        )
+        if peaks:
+            entry["measured_memory"] = PublishedMeasuredMemory(roles=peaks).model_dump(
+                mode="json"
+            )
 
     from vonk_forge_contracts import CONTRACT_VERSION, document_sha256
 

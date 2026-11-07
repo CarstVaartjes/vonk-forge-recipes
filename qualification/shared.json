@@ -177,8 +177,8 @@
         "origin": "upstream",
         "source_url": "https://commons.wikimedia.org/wiki/File:JFK_inaugural_address.ogg",
         "source_revision": "a257580da6eda796ed1c703e545865005753f7cb20cc042e0db3c44de82274fc",
-        "license_spdx": "LicenseRef-Public-Domain",
-        "attribution": "10.4 s excerpt (815.4 s to 825.8 s, mono, 16 kHz, 16-bit PCM WAV) of John F. Kennedy's inaugural address, 20 January 1961, from the John F. Kennedy Presidential Library and Museum recording; Wikimedia Commons marks the file Public domain. source_revision is the sha256 of the full JFK_inaugural_address.ogg the excerpt was cut from."
+        "license_spdx": "LicenseRef-PD-USGov",
+        "attribution": "10.4 s excerpt (815.4 s to 825.8 s, mono, 16 kHz, 16-bit PCM WAV) of John F. Kennedy's inaugural address, 20 January 1961, from the John F. Kennedy Presidential Library and Museum recording; Wikimedia Commons marks the file Public domain (PD-USGov; credit: John F. Kennedy Presidential Library and Museum). source_revision is the sha256 of the full JFK_inaugural_address.ogg the excerpt was cut from."
       }
     },
     "wan-dancer-music-1s": {
@@ -1871,6 +1871,70 @@
         {
           "kind": "path.nonempty",
           "path": "answers.direction.probabilities"
+        }
+      ]
+    },
+    "ASR_TRANSCRIPTION_JFK": {
+      "method": "POST",
+      "path": "/audio/transcriptions",
+      "body": null,
+      "multipart": {
+        "fields": {
+          "model": "$ALIAS",
+          "language": "en",
+          "response_format": "json"
+        },
+        "file": {
+          "field": "file",
+          "$fixture": "service-speech-jfk-wav"
+        }
+      },
+      "timeout_seconds": 300,
+      "max_response_bytes": 262144,
+      "assertions": [
+        {
+          "kind": "transcription.nonempty"
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "text",
+          "value": "[\\s\\S]*(?i:final judge)[\\s\\S]*",
+          "expected": "final judge"
+        },
+        {
+          "kind": "path.regex",
+          "path": "text",
+          "value": "[\\s\\S]*(?i:land we love)[\\s\\S]*",
+          "expected": "land we love"
+        }
+      ]
+    },
+    "TTS_SPEECH": {
+      "method": "POST",
+      "path": "/audio/speech",
+      "body": {
+        "model": "$ALIAS",
+        "input": {
+          "$fixture_text": "tts-text"
+        },
+        "voice": "$VOICE",
+        "response_format": "wav"
+      },
+      "response": "audio",
+      "timeout_seconds": 300,
+      "max_response_bytes": 33554432,
+      "assertions": [
+        {
+          "kind": "speech.audio"
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "speech.audio",
+          "min_seconds": 1.5,
+          "expected": "at least 1.5 s of speech"
         }
       ]
     }

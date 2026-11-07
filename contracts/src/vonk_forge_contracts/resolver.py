@@ -11,7 +11,7 @@ from collections.abc import Iterable, Mapping
 from .api import RecipeApi
 from .display import ModelDisplay, RecipeDisplay
 from .model import ModelDefinition
-from .recipe import RecipeDefinition, RecipeJobServingRequest
+from .recipe import RecipeDefinition
 
 
 class ContractResolutionError(ValueError):
@@ -173,11 +173,8 @@ def validate_recipe_package_paths(
             f"build package files are missing: {', '.join(missing_build)}"
         )
     for check in recipe.validation.serving.checks:
-        if not isinstance(check.request, RecipeJobServingRequest):
-            continue
-        required = {check.request.fixture, *check.request.input_slots.values()}
-        missing = sorted(path for path in required if path not in paths)
+        missing = sorted(path for path in check.fixture_paths() if path not in paths)
         if missing:
             raise ContractResolutionError(
-                f"job serving package files are missing: {', '.join(missing)}"
+                f"serving package files are missing: {', '.join(missing)}"
             )

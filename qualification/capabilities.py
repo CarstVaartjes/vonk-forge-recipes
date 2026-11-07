@@ -33,6 +33,9 @@ FLAG_ENGINES = frozenset({"vllm", "sglang", "tensorrt-llm"})
 # Engines whose server always parses (llama.cpp through its chat template,
 # TensorFold, the exllamav3 OpenAI server, ds4): no flag decides.
 NATIVE_ENGINES = frozenset({"llama-cpp", "tensorfold", "exllamav3", "ds4"})
+# A generic server whose launch takes no engine flags and whose answers no engine
+# parses (a decision model generates no text): no tool or reasoning parser.
+UNPARSED_ENGINES = frozenset({"pytorch-server"})
 
 TOOL_CASES = frozenset({"T_REPORT", "T_PRODUCT", "NEM_TOOL", "MIS_T_REPORT"})
 VISION_CASES = frozenset({"V_RED", "V7", "MIS_V_RED"})
@@ -178,6 +181,13 @@ def serving_capabilities(
             reasoning_parser=True,
             vision=multimodal(recipe, models, display),
             flags_from="native",
+        )
+    if engine in UNPARSED_ENGINES:
+        return Capabilities(
+            tools=False,
+            reasoning_parser=False,
+            vision=multimodal(recipe, models, display),
+            flags_from="server code",
         )
     if engine not in FLAG_ENGINES:
         raise ValueError(f"{slug}: engine {engine!r} has no capability rule")
