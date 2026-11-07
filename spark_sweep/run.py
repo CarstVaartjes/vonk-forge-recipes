@@ -71,6 +71,7 @@ from .catalog import (
     recipe_listing,
     serving_run,
 )
+from .chat_probe import ChatFacts, chat_facts
 from .definitions import Definitions
 from .evidence_publisher import EvidencePublisher
 from .finalization import FinalAction, Finalization
@@ -3156,7 +3157,30 @@ class Sweep:
             base,
             slot["alias"],
             replace(self.cfg.http, cancelled=stop),
+            self._chat_facts(recipe, slot),
         )
+
+    def _chat_facts(self, recipe: Recipe, slot: dict[str, Any]) -> ChatFacts | None:
+        """The recipe-api facts of the launch that ran, when its smoke is the declared check.
+
+        Reviewed smoke cases carry their own requests; only the fallback needs the facts.
+        None when the recipe publishes none or the launch cannot be read: the declared check
+        then runs as written.
+        """
+        alias = str(slot["alias"])
+        api = self.defs.recipe_api(recipe.slug)
+        if self.defs.service_cases(recipe.key, alias) or api is None:
+            return None
+        definition = self._ran_recipe(recipe)
+        if definition is None:
+            return None
+        try:
+            choices = memory.intended_assignment(
+                self.documents.get(str(slot.get("request_key", ""))), alias
+            ).option_choices
+            return chat_facts(definition, api, choices)
+        except (StopIteration, ValueError, TypeError):
+            return None
 
     def _advance_smoking(self, key: str, slot: dict[str, Any]) -> None:
         future = self.futures.get(key)
