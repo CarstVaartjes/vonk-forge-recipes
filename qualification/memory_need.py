@@ -172,6 +172,7 @@ ATTENTION_ARCHITECTURES = frozenset(
         "LlamaForCausalLM",
         "MiMoV2ForCausalLM",
         "MiniMaxM2ForCausalLM",
+        "MiniMaxM3SparseForConditionalGeneration",
         "Step3p7ForConditionalGeneration",
         "Step5ForConditionalGeneration",
         "params.json",
