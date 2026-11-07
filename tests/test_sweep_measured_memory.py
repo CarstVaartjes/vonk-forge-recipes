@@ -314,3 +314,30 @@ def test_a_job_pass_row_replayed_through_backfill_adds_no_measured_rows(
     assert backfill([log], tmp_path).imported == 2
     assert read_evidence(tmp_path, keys["job"]).measured_memory == ()
     assert len(read_evidence(tmp_path, keys["serving"]).measured_memory) == 1
+
+
+def test_backfill_decides_each_recipe_once_however_many_rows_it_reads(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from spark_sweep.qualification import backfill
+
+    slug = "ltx-2-19b-distilled-diffusers-single"
+    (tmp_path / "recipes").mkdir()
+    shutil.copy(ROOT / "recipes" / f"{slug}.json", tmp_path / "recipes")
+    parsed = []
+    parse = documents.recipe
+    monkeypatch.setattr(
+        documents, "recipe", lambda *args: parsed.append(args) or parse(*args)
+    )
+    log = tmp_path / "results.jsonl"
+    rows = [
+        history(
+            recipe=f"vonk-forge/{slug}",
+            recorded_at=datetime(2026, 11, 4, 0, minute, tzinfo=UTC).isoformat(),
+            measured_memory=[row("entrypoint", 5 * GB, None).model_dump(mode="json")],
+        )
+        for minute in range(5)
+    ]
+    log.write_text("\n".join(json.dumps(item) for item in rows))
+    assert backfill([log], tmp_path).imported == 5
+    assert len(parsed) == 1
