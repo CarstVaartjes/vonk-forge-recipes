@@ -4699,15 +4699,41 @@ class Sweep:
             if remaining:
                 self._apply(remaining, now)
             return
+        runs = dig(document, "effects", "runs", default=[])
         stopped = [
             r["alias"]
-            for r in dig(document, "effects", "runs", default=[])
+            for r in runs
             if isinstance(r, dict)
             and r.get("action") == "stop"
             and r.get("alias") in kept
         ]
         if stopped:
             self._rollback(added, f"review would stop running lanes {stopped}")
+            return
+        # A test needs a cold start (startup peak, real load). The Controller keeps a run
+        # whose execution identity matches and only renames it: clear it first, then load.
+        reused = {
+            str(r.get("alias"))
+            for r in runs
+            if isinstance(r, dict) and r.get("action") == "keep"
+        } & set(aliases)
+        if reused:
+            held = [p for alias, p in aliases.items() if alias in reused]
+            self._rollback(
+                held, f"already running, a test needs a fresh start: {sorted(reused)}"
+            )
+            self._clear_holders(
+                sorted(reused),
+                held,
+                document,
+                now,
+                "review would keep a running "
+                + ", ".join(sorted(reused))
+                + ": clearing",
+            )
+            remaining = [p for alias, p in aliases.items() if alias not in reused]
+            if remaining:
+                self._apply(remaining, now)
             return
         cleanup_requests, dependency = self._cleanup_adoption(document)
         if cleanup_requests is None:
@@ -4853,6 +4879,7 @@ class Sweep:
                 self.state.slots.pop(placement.recipe.key, None)
             self._rollback(added, f"load refused: {error}")
             return
+        self.state.data.pop("cleared_for", None)
         self.state.data["loads"][key]["app_id"] = submitted.get("id")
         if isinstance(submitted, Mapping):
             self.documents[key] = submitted
@@ -5127,6 +5154,51 @@ class Sweep:
             )
         self.state.event(why[:200])
 
+    def _clear_holders(
+        self,
+        holders: list[str],
+        blocked: Sequence[policy.Placement],
+        document: Mapping[str, Any],
+        now: float,
+        event: str,
+    ) -> None:
+        """Workloads in the way of ``blocked`` are cleared once; if they outlive it, wait for their owner."""
+        if self.state.data.get("cleared_for") != holders:
+            self.state.data["cleared_for"] = holders
+            self._request_clearing(now)
+            self.state.event(event)
+            return
+        if not self.state.data.get("cleared_by"):
+            # Decided, never submitted: nothing has outlived anything. The refusal is
+            # the evidence; decide the clearing again with a budget of its own.
+            why = self.state.data.get("clearing_reason") or "not submitted"
+            self._request_clearing(now)
+            for placement in blocked:
+                self.record_result(
+                    placement.recipe.key,
+                    "review",
+                    "waiting",
+                    reason=f"review blocked by {', '.join(holders)}; their clearing "
+                    f"was not submitted ({why}): clearing again",
+                    disposition=Disposition.WAIT.value,
+                    document=document,
+                )
+            return
+        # The same workloads outlived a submitted clearing: their owner keeps them. Wait
+        # while they run (bounded by their owner, never by a count), no attempt spent.
+        for placement in blocked:
+            key = placement.recipe.key
+            self.state.entry(key)["defer_until"] = now + self.cfg.defer_delay
+            self.record_result(
+                key,
+                "review",
+                "waiting",
+                reason="review blocked by workloads that outlived a clearing: "
+                + ", ".join(holders),
+                disposition=Disposition.WAIT.value,
+                document=document,
+            )
+
     def _blocked(
         self,
         document: Mapping[str, Any],
@@ -5165,48 +5237,17 @@ class Sweep:
             # recipe's. Re-plan with that blocker as input: clear the fleet once for it. A
             # passed lane's workload keeps running after its slot is released: that one is
             # ours, not an owner's.
-            holders = sorted({*foreign, *leftover})
-            if self.state.data.get("cleared_for") != holders:
-                self.state.data["cleared_for"] = holders
-                self._request_clearing(now)
-                self.state.event(
-                    "review blocked by a workload that is not ours: clearing"
-                    if foreign
-                    else "review blocked by our own finished workload "
-                    + ", ".join(leftover)
-                    + ": clearing"
-                )
-                return
-            if not self.state.data.get("cleared_by"):
-                # Decided, never submitted: nothing has outlived anything. The refusal is
-                # the evidence; decide the clearing again with a budget of its own.
-                why = self.state.data.get("clearing_reason") or "not submitted"
-                self._request_clearing(now)
-                for placement in blocked:
-                    self.record_result(
-                        placement.recipe.key,
-                        "review",
-                        "waiting",
-                        reason=f"review blocked by {', '.join(holders)}; their clearing "
-                        f"was not submitted ({why}): clearing again",
-                        disposition=Disposition.WAIT.value,
-                        document=document,
-                    )
-                return
-            # The same workloads outlived a submitted clearing: their owner keeps them. Wait
-            # while they run (bounded by their owner, never by a count), no attempt spent.
-            for placement in blocked:
-                key = placement.recipe.key
-                self.state.entry(key)["defer_until"] = now + self.cfg.defer_delay
-                self.record_result(
-                    key,
-                    "review",
-                    "waiting",
-                    reason="review blocked by workloads that outlived a clearing: "
-                    + ", ".join(holders),
-                    disposition=Disposition.WAIT.value,
-                    document=document,
-                )
+            self._clear_holders(
+                sorted({*foreign, *leftover}),
+                blocked,
+                document,
+                now,
+                "review blocked by a workload that is not ours: clearing"
+                if foreign
+                else "review blocked by our own finished workload "
+                + ", ".join(leftover)
+                + ": clearing",
+            )
             return
         self.state.data.pop("cleared_for", None)
         for placement in blocked:
