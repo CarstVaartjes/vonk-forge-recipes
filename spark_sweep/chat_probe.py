@@ -36,7 +36,12 @@ from vonk_forge_contracts.api import (
     ChatApi,
     RecipeApi,
 )
-from vonk_forge_contracts.recipe import RecipeDefinition, RecipeGenerationSettings
+from vonk_forge_contracts.api_checks import integer_argument
+from vonk_forge_contracts.recipe import (
+    RecipeDecisionSettings,
+    RecipeDefinition,
+    RecipeGenerationSettings,
+)
 
 
 @dataclass(frozen=True)
@@ -64,23 +69,6 @@ def _context_tokens(launch: RecipeDefinition) -> int | None:
     return None
 
 
-def _argument_tokens(launch: RecipeDefinition, name: str) -> int | None:
-    """The integer a runtime argument carries, resolving a setting binding."""
-    settings = launch.settings
-    for argument in launch.runtime.arguments:
-        if argument.name != name:
-            continue
-        if argument.setting is None:
-            value = argument.value
-        else:
-            bound = getattr(settings, "knobs", {}).get(argument.setting) or getattr(
-                settings, argument.setting, None
-            )
-            value = bound.value if bound is not None else None
-        return value if isinstance(value, int) and not isinstance(value, bool) else None
-    return None
-
-
 def _allowance(facts: ChatFacts) -> int | None:
     """The route's own default output allowance; None when it is the remaining context."""
     api = facts.api
@@ -90,7 +78,10 @@ def _allowance(facts: ChatFacts) -> int | None:
     if isinstance(default, ApiTokenValue):
         tokens = default.value
     elif isinstance(default, ApiTokenArgument):
-        tokens = _argument_tokens(facts.launch, default.argument)
+        settings = facts.launch.settings
+        if not isinstance(settings, RecipeGenerationSettings | RecipeDecisionSettings):
+            return None
+        tokens = integer_argument(facts.launch, default.argument, settings)
         if tokens is None:
             return None
     else:

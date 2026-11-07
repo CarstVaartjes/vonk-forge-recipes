@@ -794,7 +794,7 @@ def test_chat_nonempty_accepts_text_or_tool_calls_like_the_controller() -> None:
 def test_every_recipe_declared_chat_case_goes_through_the_one_helper() -> None:
     """No second sender: a case built from a recipe's declared check uses ``bounded_chat_body``."""
     tree = ast.parse((ROOT / "spark_sweep/smoke.py").read_text())
-    senders = [
+    reads = [
         node
         for node in ast.walk(tree)
         if isinstance(node, ast.Subscript)
@@ -803,15 +803,18 @@ def test_every_recipe_declared_chat_case_goes_through_the_one_helper() -> None:
         and isinstance(node.value, ast.Name)
         and node.value.id == "request"
     ]
-    assert senders, "the declared check body is read in smoke.py"
-    calls = [
-        node
+    assert reads, "the declared check body is read in smoke.py"
+    # Every read of the declared body sits inside the arguments of the one helper.
+    covered = {
+        id(inner)
         for node in ast.walk(tree)
         if isinstance(node, ast.Call)
         and isinstance(node.func, ast.Name)
         and node.func.id == "bounded_chat_body"
-    ]
-    assert len(calls) == len(senders) == 1
+        for argument in node.args
+        for inner in ast.walk(argument)
+    }
+    assert all(id(read) in covered for read in reads)
     for path in (ROOT / "spark_sweep").glob("*.py"):
         if path.name == "smoke.py":
             continue
