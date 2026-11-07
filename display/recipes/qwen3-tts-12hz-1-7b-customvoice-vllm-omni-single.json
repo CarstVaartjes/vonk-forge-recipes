@@ -1,0 +1,25 @@
+{
+  "alignment": "unspecified",
+  "description": "Qwen's text-to-speech model with nine built-in voices on one DGX Spark, served by vLLM-Omni 0.32.0 the way the Qwen3-TTS README points to. It answers the OpenAI speech route, POST /v1/audio/speech: pick a voice, optionally give an instruction for style or emotion and a speed, and receive wav, pcm, flac, mp3 or opus. Voice design and voice cloning are not on this route; they stay in the Qwen3-TTS job recipe. The deploy config is the creator's, verified by its authors only on an H100; its two stages (talker and codec decoder) each take the creator's 24 GiB converted to 0.197 of a Spark, so the 58 GB peak is an estimate until tried. Apache-2.0 weights.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-tts-12hz-1-7b-customvoice-vllm-omni-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "audio",
+    "candidate",
+    "executable",
+    "openai",
+    "qwen",
+    "qwen3-tts",
+    "single",
+    "spark",
+    "speech",
+    "text-to-speech",
+    "tts",
+    "vllm",
+    "vllm-omni"
+  ],
+  "title": "Qwen3-TTS 12Hz 1.7B CustomVoice (vLLM-Omni, single Spark)"
+}
