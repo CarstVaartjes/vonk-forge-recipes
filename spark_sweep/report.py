@@ -28,6 +28,7 @@ from vonk_forge_contracts.sweep import SweepSlotPhase, SweepWaitReason
 
 from . import policy, verdict
 from .evidence_contract import read_result
+from .evidence_publisher import UnpublishedState, UnpublishedStatus
 from .identity import recorded_identity
 from .lifecycle import ACTIVE
 from .qualification import (
@@ -290,6 +291,10 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         ],
         "queue_length": len(sweep.queue),
         "evidence_publication": sweep.evidence_publisher.message,
+        # {state: counted|stale|unknown, count}: the typed value status readers share.
+        "evidence_unpublished": sweep.evidence_publisher.unpublished_report.model_dump(
+            mode="json"
+        ),
         "qualification": {
             key: view.model_dump(mode="json", exclude_none=True)
             for key, recipe in sweep.recipes.items()
@@ -545,7 +550,20 @@ def render_status(status: Mapping[str, Any]) -> str:
             f"| {key} | {_qualification_text(view)} |"
             for key, view in sorted(status["qualification"].items())
         ]
-        lines += ["", str(status.get("evidence_publication", ""))]
+        unpublished = UnpublishedStatus.model_validate(
+            status.get("evidence_unpublished") or {}
+        )
+        lines += [
+            "",
+            str(status.get("evidence_publication", "")),
+            *(
+                ["evidence unpublished: stale (results finished since the last count)"]
+                if unpublished.state == UnpublishedState.STALE
+                else [f"evidence unpublished: {unpublished.count}"]
+                if unpublished.state == UnpublishedState.COUNTED
+                else []
+            ),
+        ]
     return "\n".join(lines) + "\n"
 
 
