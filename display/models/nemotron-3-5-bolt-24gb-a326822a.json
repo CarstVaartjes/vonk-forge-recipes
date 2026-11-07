@@ -20,7 +20,6 @@
     "url": "https://openmdw.ai/license/1-1/"
   },
   "modalities": [
-    "image",
     "text"
   ],
   "model_title": "Nemotron 3.5 Bolt",
