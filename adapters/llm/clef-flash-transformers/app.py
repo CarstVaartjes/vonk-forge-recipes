@@ -59,10 +59,12 @@ SNAPSHOT = os.environ.get("CLEF_SNAPSHOT", "/models")
 # The recipe's settings arrive as flags, like the other engines' arguments.
 _parser = argparse.ArgumentParser(allow_abbrev=False)
 _parser.add_argument("--served-model-name", default=os.environ.get("SERVED_MODEL_NAME", "clef-flash"))
-_parser.add_argument("--max-length", type=int, default=int(os.environ.get("MAX_LENGTH", "16384")))
+_parser.add_argument("--max-model-len", type=int, default=int(os.environ.get("MAX_LENGTH", "16384")))
+_parser.add_argument("--host", default=os.environ.get("HOST", "0.0.0.0"))
+_parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8000")))
 _flags, _ = _parser.parse_known_args()
 SERVED_MODEL_NAME = _flags.served_model_name
-MAX_LENGTH = _flags.max_length
+MAX_LENGTH = _flags.max_model_len
 MAX_IMAGES = int(os.environ.get("MAX_IMAGES", "8"))
 MAX_VIDEOS = int(os.environ.get("MAX_VIDEOS", "1"))
 MAX_BODY_BYTES = int(os.environ.get("MAX_BODY_MIB", "64")) * 1024 * 1024
@@ -325,8 +327,8 @@ if __name__ == "__main__":
     # One worker: a second would load a second 18 GiB copy of the model.
     uvicorn.run(
         app,
-        host=os.environ.get("HOST", "0.0.0.0"),
-        port=int(os.environ.get("PORT", "8000")),
+        host=_flags.host,
+        port=_flags.port,
         workers=1,
         log_level="info",
         timeout_graceful_shutdown=10,

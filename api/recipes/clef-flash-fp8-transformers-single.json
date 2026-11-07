@@ -7,7 +7,7 @@
       "text": true,
       "video": false
     },
-    "max_input_tokens": 16384,
+    "max_input_tokens": null,
     "mode": "decision"
   },
   "identity": {
