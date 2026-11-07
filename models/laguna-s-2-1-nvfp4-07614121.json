@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "reasoning",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -269,16 +264,6 @@
     "version": "NVFP4 07614121"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Poolside"
-    ],
-    "spdx": "LicenseRef-OpenMDW-1.1",
-    "url": "https://www.poolside.ai/legal/openmdw-1-1"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4",

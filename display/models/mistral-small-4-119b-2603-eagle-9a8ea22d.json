@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Two-layer EAGLE speculative-decoding draft head for Mistral Small 4 119B (FP8 e4m3, about 392 MB). Not Leanstral-specific: the Leanstral upstream recipe offers it as an optional draft for Leanstral 1.5 and reports it unstable there. Apache-2.0 per the model card.",
   "family_title": "Mistral Small 4",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "mistral-small-4-119b-2603-eagle-9a8ea22d"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Mistral AI"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/mistralai/Mistral-Small-4-119B-2603-eagle"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Mistral Small 4 119B 2603 EAGLE",
   "tags": [
     "mistralai",

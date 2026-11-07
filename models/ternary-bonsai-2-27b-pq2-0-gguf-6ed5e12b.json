@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "image-understanding",
-    "reasoning",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -65,18 +59,6 @@
     "version": "Ternary Bonsai 2 27B PQ2_0 GGUF 6ed5e12b"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "PrismML",
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/prism-ml/Ternary-Bonsai-2-27B-gguf/blob/6ed5e12bf84b7a63069882c91dd9e9218647d17b/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/prism-ml/Ternary-Bonsai-2-27B-gguf",

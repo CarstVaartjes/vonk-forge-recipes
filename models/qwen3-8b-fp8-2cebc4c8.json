@@ -1,11 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -163,17 +156,6 @@
     "version": "FP8 2cebc4c8"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation",
-      "Alibaba Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://www.apache.org/licenses/LICENSE-2.0"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Qwen3-8B-FP8",

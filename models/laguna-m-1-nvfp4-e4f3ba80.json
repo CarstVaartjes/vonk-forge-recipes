@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "reasoning",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -386,16 +381,6 @@
     "version": "NVFP4 e4f3ba80"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Poolside"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/poolside/Laguna-M.1-NVFP4/blob/e4f3ba80ca1d8d83443df18e03ecebd7ef55a066/LICENSE.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/poolside/Laguna-M.1-NVFP4",

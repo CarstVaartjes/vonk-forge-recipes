@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Exact NVFP4 checkpoint for sfxnz’s interactive profile.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +12,17 @@
     "slug": "nemotron-3-5-super-vl-nvfp4-82d93699"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
+    "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/blob/82d93699acd3be9e4617c53360fe5b3f5dbeb1b3/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "NVIDIA Nemotron 3.5 Super VL",
   "tags": [
     "nvidia",

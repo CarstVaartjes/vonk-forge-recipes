@@ -293,6 +293,9 @@ SHARED_PROVEN_MEDIA = {
     "ltx-2-19b-distilled-diffusers-single": "ltx-2-19b-distilled-fp8-diffusers-single",
     "trellis-2-4b-pytorch-single": "pixal3d-pytorch-single",
 }
+# The audio length follows the smoke fixture's single short sentence, so the
+# smoke is minimal by its input rather than by a generation control.
+MINIMAL_BY_FIXTURE_MEDIA = {"qwen3-tts-12hz-1-7b-pytorch-single"}
 REQUEST_CONTROLLED_MEDIA = {
     "minimax-h3-diffusers-single",
     "minimax-h3-fl2va-diffusers-single",
@@ -356,6 +359,18 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
                 else:
                     assert request["num_inference_steps_global"] == 2
                     assert request["num_inference_steps_local"] == 2
+        elif slug in MINIMAL_BY_FIXTURE_MEDIA:
+            assert not spec.get("parameters")
+            # The inputs are the reviewed fixtures (their bytes are sha256-pinned
+            # in qualification/shared.json), not a size or duration bound.
+            assert {item["fixture"] for item in spec["inputs"]} == {
+                "tts-text",
+                "tts-voice",
+            }
+            assert [
+                {item["fixture"] for item in case["inputs"]}
+                for case in spec.get("cases", [])
+            ] == [{"tts-text", "tts-reference-audio", "tts-reference-text"}]
         elif slug in SHARED_PROVEN_MEDIA:
             assert SHARED_PROVEN_MEDIA[slug] in PROVEN_FIXED_MEDIA
             recipe = json.loads((ROOT / "recipes" / path.name).read_text())
@@ -377,6 +392,7 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
     assert seen == (
         PROVEN_FIXED_MEDIA
         | MINIMAL_MEDIA_PARAMETERS.keys()
+        | MINIMAL_BY_FIXTURE_MEDIA
         | REQUEST_CONTROLLED_MEDIA
         | SHARED_PROVEN_MEDIA.keys()
         | {"skintokens-pytorch-single"}
@@ -409,11 +425,11 @@ def test_qualification_parameters_do_not_enter_recipe_content_identity(built_cat
 # Recipe-only protection misses changes in a shared image build context.
 REVIEWED_SHARED_IDENTITIES = {
     "ltx-2-19b-distilled-fp8-diffusers-single": (
-        "8165fb194f21055031b48c18c5a7ea22170b152a875dcad392d2a8fd21f66124",
+        "731706b3970cee62678fc067b9fec941fc13e6bcb5f62f8ca2ad269319ae2b29",
         "eb632ac4c1aaa31045d757ca60cea19a2268ee9610a24824dc6183f415cfb102",
     ),
     "pixal3d-pytorch-single": (
-        "ab6f0a06e2d02fc728647a684cdd80cd47ddd3208bc647478a4a0a129f8a0fbe",
+        "b440f06d4ab646519da54cea62047d3d7fac54d81d46c6846fcdf28c45bfa295",
         "7d171fe64ef2da27ed5bc9d31da69a3c2ec8dd54139961bba320afd7cc81354a",
     ),
 }

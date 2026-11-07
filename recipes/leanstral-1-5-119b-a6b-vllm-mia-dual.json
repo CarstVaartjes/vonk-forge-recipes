@@ -182,7 +182,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "b99d622f84cd823f353cbd9ead785140f47ff6c17355be5cfaaa15121bc99626",
+        "content_sha256": "ba1c451e2b0edd1ac9c65ba4af521d2f59b56a3ae60394b0a707f798f6d600d2",
         "kind": "model",
         "publisher": "mistralai",
         "slug": "leanstral-1-5-119b-a6b-81592da9"
@@ -259,7 +259,7 @@
       ],
       "id": "draft",
       "model": {
-        "content_sha256": "2c3f21ecb6222aa633b2d51e6c1b88111d429d958f017c8488e36ee037a23c27",
+        "content_sha256": "0c0fa525d576727cf95eabad73ffa793e95fcfd88ef85b02242fca8b4bb7b175",
         "kind": "model",
         "publisher": "mistralai",
         "slug": "mistral-small-4-119b-2603-eagle-9a8ea22d"

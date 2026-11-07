@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "r0b0tlab NVFP4 export of Xiaomi MiMo-V2.6-Flash-RL (MIT): routed experts converted from MXFP4 to NVFP4 with calibrated FP8 KV-cache scales, plus the in-checkpoint MTP head, the DFlash drafter and the audio tokenizer. 309B total / 15B active MoE, 1M native context.",
   "family_title": "MiMo",
   "identity": {
@@ -6,6 +13,18 @@
     "slug": "mimo-v2-6-flash-rl-nvfp4-0c75a7a5"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Xiaomi MiMo",
+      "r0b0tlab"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/r0b0tlab/MiMo-V2.6-Flash-RL-NVFP4/blob/b98271785a70bf9ae64484ad46e1498d78caf2cf/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "MiMo V2.6 Flash RL",
   "tags": [
     "dflash",

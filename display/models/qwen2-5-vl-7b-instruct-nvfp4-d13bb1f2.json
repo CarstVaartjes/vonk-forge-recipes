@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Qwen2.5-VL-7B-Instruct.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +12,19 @@
     "slug": "qwen2-5-vl-7b-instruct-nvfp4-d13bb1f2"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Alibaba Qwen"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "Qwen2.5-VL 7B Instruct",
   "tags": [
     "nvidia",

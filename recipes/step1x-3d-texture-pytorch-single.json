@@ -120,7 +120,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "732544aa24c972e743dfd1378c64a6e05cac4a549509be106447fecae1906efd",
+        "content_sha256": "4b71f613ce48747958b6c24f6f3edd397c1767c7b3287335b3feae8c5c9952e1",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step1x-3d-texture"
@@ -291,7 +291,7 @@
       ],
       "id": "sdxl",
       "model": {
-        "content_sha256": "0435a1b907313b4e9e8966c13b4dd987dd80076f92e21eb9f61549faf76754fb",
+        "content_sha256": "a454bd0d9a2c7844f4c60e9e3c908afb621fa58d498f2e9bed31cf73ff6bc763",
         "kind": "model",
         "publisher": "stabilityai",
         "slug": "stable-diffusion-xl-base-1-0"
@@ -322,7 +322,7 @@
       ],
       "id": "sdxl-vae",
       "model": {
-        "content_sha256": "92386af9dcb24a758cbceebd219ec9176968d6dec3e0e9990b28e9cfc1da8721",
+        "content_sha256": "dbe33688ecedec3b1c0d12b4d653cd11dc5aa40b64afaba4025d90dbe1d3ca42",
         "kind": "model",
         "publisher": "madebyollin",
         "slug": "sdxl-vae-fp16-fix"

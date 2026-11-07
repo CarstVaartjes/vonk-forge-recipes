@@ -26,9 +26,9 @@ the installable contracts. Do not add separate guidance files.
   ownership edges. Decide by content identity and observed behaviour. Fix the
   class with a guard and fault-injection or behaviour regression tests.
 - A Recipe or Model document holds execution data only; its titles, description,
-  tags and alignment live in `display/recipes/<slug>.json` /
-  `display/models/<slug>.json`. A display edit never changes a digest, evidence
-  or a proven status. Add or remove a display together with its document.
+  tags and alignment, and a Model's modalities, capabilities and license, live in
+  `display/recipes/<slug>.json` / `display/models/<slug>.json`. A display edit
+  never changes a digest, evidence or a proven status. Add or remove a display together with its document.
 - Use contract models and enums for structures, states, reasons and codes we
   control. External wire extensions are distinct from locally owned structures.
   Platform wire consumers use the Pydantic → JSON Schema → typify Rust chain
@@ -191,6 +191,10 @@ tools/sweep-recipes export-evidence
 tools/sweep-recipes file-issues --dry-run
 ```
 
+`run` refuses to start without `--client-key-file` (the smoke cases call the
+gateway); `--no-client-key` is for a gateway without keys. A recipe whose
+identical run already runs is cleared before its test load (a kept, renamed
+run has no cold start).
 `plan` reads the catalog/fleet and estimates unique bytes/order. `run` accepts
 `--only`, `--limit`, `--spark`, `--seed-list` (JSON slugs), `--boost`,
 `--retry-failed`, `--watch` and `--no-revalidate`.

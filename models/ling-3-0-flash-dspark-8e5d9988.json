@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -58,16 +57,6 @@
     "version": "Ling 3.0 Flash DSpark 8e5d9988"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "InclusionAI"
-    ],
-    "spdx": "LicenseRef-Ling-DSpark",
-    "url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-dspark/blob/8e5d9988c9b09de13f1f7c9d999ff2bfa533a149/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/inclusionAI/Ling-3.0-flash-dspark",

@@ -238,7 +238,7 @@ def test_model_territorial_restrictions_preserve_all_published_records(
         ),
     }
     actual = {}
-    for path in ROOT.joinpath("models").glob("*.json"):
+    for path in ROOT.joinpath("display/models").glob("*.json"):
         document = json.loads(path.read_text())
         restriction = document["license"].get("territorial_restrictions")
         if restriction is not None:
@@ -251,7 +251,7 @@ def test_model_territorial_restrictions_preserve_all_published_records(
     catalog, _ = built_catalog
     published = {}
     for row in catalog["catalog_entities"]:
-        document = row["document"]
+        document = row["display"]
         restriction = document["license"].get("territorial_restrictions")
         if restriction is not None:
             published[document["identity"]["slug"]] = (
@@ -354,3 +354,13 @@ def test_adapter_only_change_is_published_as_new_source_identity(monkeypatch):
     assert first_archive != second_archive
     assert first["recipe_content_sha256"] == second["recipe_content_sha256"]
     assert first["source_bundle_sha256"] != second["source_bundle_sha256"]
+
+
+def test_a_supplied_source_date_epoch_is_the_index_time(tmp_path: Path) -> None:
+    # The commit time is an input; with it supplied the build needs no Git.
+    index = TOOL["build"](
+        package_dir=tmp_path / "packages",
+        source_commit="a" * 40,
+        source_date_epoch=1788260440,
+    )
+    assert index["updated_at"] == "2026-09-01T11:00:40Z"

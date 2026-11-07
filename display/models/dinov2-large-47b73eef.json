@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "The exact DINOv2-Large feature encoder loaded locally by the Hunyuan3D-Omni adapter.",
   "family_title": "DINOv2",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "dinov2-large-47b73eef"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "facebook"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/facebook/dinov2-large/blob/47b73eefe95e8d44ec3623f8890bd894b6ea2d6c/README.md"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "DINOv2 Large",
   "tags": [
     "facebook",

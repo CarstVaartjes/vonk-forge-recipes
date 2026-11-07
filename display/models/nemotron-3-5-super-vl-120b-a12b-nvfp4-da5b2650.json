@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Nemotron 3.5 Super VL 120B-A12B immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "nemotron-3-5-super-vl-120b-a12b-nvfp4-da5b2650"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "nvidia"
+    ],
+    "spdx": "openmdw-1.1",
+    "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/blob/59b8721646c38111a242da18218859fb2b454322/https://openmdw.ai/license/1-1/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Nemotron 3.5 Super VL 120B-A12B",
   "tags": [
     "candidate",

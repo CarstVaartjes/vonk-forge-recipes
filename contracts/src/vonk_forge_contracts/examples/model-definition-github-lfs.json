@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "image-generation",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -34,17 +30,6 @@
     "version": "1.0.0"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Vonk Forge"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://www.apache.org/licenses/LICENSE-2.0"
-  },
-  "modalities": [
-    "text",
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "provider": "github-lfs",

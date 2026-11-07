@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "decision",
+    "image-understanding",
+    "video-understanding"
+  ],
   "description": "d3-edge typed-decision model with probability outputs and an FP32 answer-code readout.",
   "family_title": "Decision 3.0",
   "identity": {
@@ -6,6 +11,18 @@
     "slug": "d3-edge-bf16-c454ee39"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "vLLM Semantic Router"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/vllm-sr/d3-edge/blob/c454ee39b862248d70abd7f84195d2f54ffe6d43/LICENSE"
+  },
+  "modalities": [
+    "text",
+    "image",
+    "video"
+  ],
   "model_title": "D3-EDGE",
   "tags": [
     "vonk-forge",

@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "MiniMax M2.7 mixture-of-experts language model.",
   "family_title": "MiniMax",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "minimax-m2-7-nvfp4-e79701cb"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "MiniMax"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Software-and-Model-Evaluation-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-software-and-model-evaluation-license"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "MiniMax M2.7",
   "tags": [
     "nvidia",

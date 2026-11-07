@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "audio-understanding",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -431,18 +426,6 @@
     "version": "NVFP4 42a75a99"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Thinking Machines Lab"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://www.apache.org/licenses/LICENSE-2.0"
-  },
-  "modalities": [
-    "audio",
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/thinkingmachines/Inkling-NVFP4",

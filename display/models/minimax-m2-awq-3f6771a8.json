@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "QuantTrio AWQ 4-bit quantization of MiniMax M2.",
   "family_title": "MiniMax",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "minimax-m2-awq-3f6771a8"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "MiniMax",
+      "QuantTrio"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/QuantTrio/MiniMax-M2-AWQ/blob/3f6771a80ff4dd0b0114f6bc9b18a227348bcbaa/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "MiniMax M2 AWQ",
   "tags": [
     "quanttrio",

@@ -596,7 +596,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "2c5965fb1364ea0451a25358f9b060ac5e7fae8752b01a69bf6e4f3b037ba351",
+        "content_sha256": "36bb3094fbdb5ec472382d72db3f6c9b1b700cd100b8af937df57ef9dd342b4d",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen3-6-35b-a3b-fp8-95a723d0"
@@ -667,7 +667,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "0a016dafb2e60b85874a85bb230814f4d6c442ea461dcc55c1d5b1c32df9ec45",
+        "content_sha256": "9c5cc4553561fa893a86a7d4f67a203ca251c5a33e7ea914d6b886edc6470c8d",
         "kind": "model",
         "publisher": "z-lab",
         "slug": "qwen3-6-35b-a3b-dflash-f181eece"

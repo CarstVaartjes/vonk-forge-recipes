@@ -1,0 +1,37 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use",
+    "video-understanding"
+  ],
+  "description": "Official MiniMax-M3.1-Flash checkpoint (about 428B total, 23B active mixture of experts, text, image and video input): NVFP4 routed experts, MXFP8 attention and dense layers, MiniMax Sparse Attention, with the DSpark speculative-decoding draft in dspark/ at revision 54e4e69d.",
+  "family_title": "MiniMax",
+  "identity": {
+    "publisher": "minimax",
+    "slug": "minimax-m3-1-flash-54e4e69d"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "MiniMax"
+    ],
+    "spdx": "LicenseRef-MiniMax-Community",
+    "url": "https://huggingface.co/MiniMaxAI/MiniMax-M3.1-Flash/blob/54e4e69dfc452b1e94a426c24a4fdeeaa8e3ad5e/LICENSE"
+  },
+  "modalities": [
+    "text",
+    "image",
+    "video"
+  ],
+  "model_title": "MiniMax M3.1 Flash",
+  "tags": [
+    "minimax",
+    "minimax-m3.1",
+    "language",
+    "image",
+    "candidate"
+  ]
+}

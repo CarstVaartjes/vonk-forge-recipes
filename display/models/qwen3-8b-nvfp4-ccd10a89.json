@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Qwen3 8B.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +13,17 @@
     "slug": "qwen3-8b-nvfp4-ccd10a89"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Alibaba Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Qwen3 8B",
   "tags": [
     "nvidia",

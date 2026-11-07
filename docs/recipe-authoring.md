@@ -116,8 +116,8 @@ prove that every embedded source, container, or dependency is current.
 
 The [Pydantic definitions](../contracts/src/vonk_forge_contracts) are the source
 of truth; the [generated JSON Schemas](../contracts/src/vonk_forge_contracts/schema)
-(`recipe-definition-v3`, `model-definition-v3`, `recipe-display-v3`,
-`model-display-v3`, `recipe-api-v3`) state every field's shape, bound, enum and default. Use the
+(`recipe-definition-v4`, `model-definition-v4`, `recipe-display-v4`,
+`model-display-v4`, `recipe-api-v4`) state every field's shape, bound, enum and default. Use the
 [examples](../contracts/src/vonk_forge_contracts/examples) (a Recipe, Model and
 display for each shape) for structure only; replace synthetic identities and
 data with verified inputs.
@@ -127,14 +127,15 @@ published-document readers to bypass producer validation (`tests/test_contracts.
 
 | Document | Required structure (read the definitions for typed variants); every document also writes its defaulted `kind` (`model`, `recipe`, `recipe-display`, `model-display`, `recipe-api`) |
 | --- | --- |
-| Model | `identity`, `requires_token`, `dependencies`, `modalities`, `source`, `format`, `license`, `files`, `capabilities`. |
+| Model | `identity`, `requires_token`, `dependencies`, `source`, `format`, `files`. |
 | Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
 | Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment` is optional. |
-| Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`. |
+| Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`, and the Model's declared facts: `modalities`, `capabilities`, `license`. |
 | Recipe API | `identity` (the Recipe's), `api` (a `chat` or `decision` block, every field required), `option_choices`. |
 
-A document holds execution data only. What a person reads about it lives in
-its display file, `display/recipes/<slug>.json`
+A document holds execution data only. What a person or a filter reads about it
+(titles, description, tags, and a Model's `modalities`, `capabilities` and
+`license`) lives in its display file, `display/recipes/<slug>.json`
 or `display/models/<slug>.json`, one per document and no orphan (`RecipeDisplay`,
 `ModelDisplay`, checked by `validate_library`). A display edit never changes a
 document, its `content_sha256`, its evidence or its proven status; a change that
@@ -185,9 +186,8 @@ video or audio input conflicts with `--language-model-only` or a
 present and bound to `context_tokens`, or the block declares an explicit
 `max_input_tokens`; limits cannot exceed the context; a `default_output_tokens`
 argument must exist with an integer value; llama.cpp `--parallel` gives each
-request only its slot's share. `check_api_models` requires a selected Model that
-declares each accepted modality (image also needs `image-understanding`; the
-D3 `vision` name is not accepted). Whether the launch really enables a tool-call
+request only its slot's share. `check_api_models` requires a selected Model whose
+display declares each accepted modality together with its `*-understanding` capability (`INPUT_MODALITY_CAPABILITIES`). Whether the launch really enables a tool-call
 or reasoning parser is not re-derived: `tools/check-recipe-api` asks
 `qualification.capabilities.serving_capabilities` (runtime arguments, adapter
 scripts, kit flags) for every variant. The guard runs all three on added or
@@ -202,7 +202,7 @@ OpenAI-compatible HTTP or filesystem job interface. Native decision models use
 extensions (`tests/test_systemone_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v3.2.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.0.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -213,7 +213,7 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`:
   `read_recipe`, which ignore fields they do not know, and identifies each
   document by the `document_sha256` of its published JSON, so an older
   Controller keeps working and picks the field up when vonk-forge upgrades.
-- **Breaking (major, for example `3.0.0`, which moved display text out of the documents):** remove or rename a field, make one required,
+- **Breaking (major, for example `3.0.0`, which moved display text out of the documents, and `4.0.0`, which moved a Model's modalities, capabilities and licence into its display):** remove or rename a field, make one required,
   or change a field's meaning. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
   unknown fields does not let an old reader accept a missing required field.
@@ -261,7 +261,7 @@ non-LFS files over 16 MiB), and writes a validated
 `models/<--version-slug>.json`. It prints the pinned revision, the Model's
 `document_sha256` to use in recipe model references, and the total bytes. You
 still supply identity, license, `--requires-token` for a gated repository and
-`--capability` names through its flags. Review the file list and roles, drop
+`--capability` names through its flags (these are written to the Model's display file, not the Model). Review the file list and roles, drop
 files the model does not need, and list only capabilities the model supports
 before you use the Model in a recipe.
 
@@ -292,8 +292,10 @@ build context or publication. A configured token does not prove that the account
 has accepted terms or received model-specific approval. Verify access separately
 and report pending approval accurately; publication is not download readiness.
 
-`capabilities` is the list of capability names the model supports. Leave out
-what is unknown. A source model's vision capability does not prove that every
+`capabilities` (in the Model's display, with `modalities` and `license`) is the list
+of capability names the model supports. Leave out what is unknown. Correcting one
+of these facts edits `display/models/<slug>.json` only: no Model or Recipe digest
+moves, so no proven recipe is re-run. A source model's vision capability does not prove that every
 engine recipe can serve images.
 
 Preserve upstream license terms, territorial notices, and their source links
@@ -1210,7 +1212,8 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/test_qualification_definitions_loader.py`, `tests/test_qualification_index.py`, `tests/test_qualification_case_assertions.py`, `tests/test_qualification_service_aliases.py` | Every recipe is defined/scheduled; ids, aliases, fixtures and assertions resolve. Repair the per-recipe source definition, not generated outputs. |
 | `tests/test_family_aware_coverage.py`, `tests/test_qualification_coverage_identity.py` | Coverage equivalence binds actual runtime/topology/content identities. Rebuild coverage and fix false equivalence. |
 | `tests/test_prebuilt_images.py`, `tests/test_publish_image_guard.py`, `tests/test_release_bundle.py`, `tests/test_release_assets.py` | Plan/source/build keys, digests, signed index and packaged bytes agree. Rebuild/resolve the correct artifacts before signing. |
-| `tools/check-document-reads`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
+| `tools/check-test-git`, `tests/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
+| `tools/check-document-reads`, `tools/_added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
 | `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
 | `tests/test_guidance_files.py` | Guidance stays in the allowlisted files and local Markdown links resolve. Consolidate the new rule here or in AGENTS; fix links in the same change. |
 | `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |

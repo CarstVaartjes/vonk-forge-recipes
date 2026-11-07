@@ -1,0 +1,31 @@
+{
+  "capabilities": [
+    "code-generation",
+    "image-understanding",
+    "reasoning"
+  ],
+  "description": "Exact public Qwen3.8 27B FP8 checkpoint.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen3-8-27b-fp8-c3a462cc"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen3.8-27B-FP8/blob/c3a462cc3d38cf351f3b26cbd763469eeb74ef81/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "model_title": "Qwen3.8 27B",
+  "tags": [
+    "qwen",
+    "language",
+    "candidate"
+  ]
+}

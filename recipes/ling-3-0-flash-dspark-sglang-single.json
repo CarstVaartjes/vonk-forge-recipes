@@ -386,7 +386,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "6e7caf71a1ac7dda5a5e8992efa8a7262efdd4ef712f5cda06ef047dcfae38a9",
+        "content_sha256": "00416957e3819087190266282fd52a6736292cfdff75e16d838603b5dae1493f",
         "kind": "model",
         "publisher": "inclusionai",
         "slug": "ling-3-0-flash-int4-7a27e9eb"
@@ -437,7 +437,7 @@
       ],
       "id": "dependency-ling-3-0-flash-dspark-8e5d9988",
       "model": {
-        "content_sha256": "1fae54f01ab45412072a6f4242f4aff563de18dff8401da0efd1c05defddf5b8",
+        "content_sha256": "782677d7c439294518a1ef61cb43eac191ce3d069f04c84f60ef8b0d53e979a3",
         "kind": "model",
         "publisher": "inclusionai",
         "slug": "ling-3-0-flash-dspark-8e5d9988"

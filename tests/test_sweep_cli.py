@@ -33,7 +33,7 @@ def _fleet(recipes, models, root="http://127.0.0.1:1"):
 
 def _run(argv, fleet, recipes):
     if argv[0] == "run":
-        argv = [*argv, "--no-publish-evidence"]
+        argv = [*argv, "--no-publish-evidence", "--no-client-key"]
     return main(
         argv,
         vonkctl_factory=lambda exe: Vonkctl(exe, runner=fleet.runner),
@@ -119,6 +119,24 @@ def test_run_refuses_without_yes_and_never_accepts_owner_profile_numbers(
         with pytest.raises(SystemExit):
             _run(["run", "--yes", "--state-dir", str(tmp_path), *flags], fleet, recipes)
     assert fleet.calls == []  # not one vonkctl call before the arguments were accepted
+
+
+def test_run_refuses_to_start_without_a_client_key_for_the_gateway(
+    tmp_path: Path,
+) -> None:
+    recipes = [FakeRecipe("a")]
+    fleet = _fleet(recipes, [FakeModel("m1")])
+    argv = ["run", "--yes", "--state-dir", str(tmp_path)]
+    for extra in ([], ["--client-key-file", str(tmp_path / "missing.key")]):
+        with pytest.raises(SystemExit) as refused:
+            main(
+                [*argv, *extra],
+                vonkctl_factory=lambda exe: Vonkctl(exe, runner=fleet.runner),
+                clock=fleet.clock,
+                definitions=make_definitions(recipes),
+            )
+        assert "client-key-file" in str(refused.value)
+    assert fleet.calls == []
 
 
 def test_job_recipes_without_ffprobe_warn_once_at_startup(
@@ -425,3 +443,39 @@ def test_unknown_issue_close_keeps_identity_for_later_reconciliation() -> None:
 
     assert file_issues(recipes, "o/r", gh) == []
     assert recipes["vonk-forge/recovered"]["issue"].endswith("/11")
+
+
+def test_publish_evidence_runs_one_final_batch_without_a_run(
+    tmp_path: Path, monkeypatch
+) -> None:
+    from spark_sweep import cli
+    from spark_sweep.evidence_publisher import SweepEvidenceExit
+    from spark_sweep.state import StateLock
+
+    calls = []
+
+    def sync(history, directory, state, final=False):
+        calls.append((history, directory, state, final))
+        return SweepEvidenceExit.SYNCED
+
+    monkeypatch.setattr(cli, "sync", sync)
+    assert main(["publish-evidence", "--state-dir", str(tmp_path)]) == 0
+    assert calls == [
+        (
+            tmp_path / "results.jsonl",
+            tmp_path / "evidence-publisher",
+            tmp_path / "state.json",
+            True,
+        )
+    ]
+    held = StateLock(tmp_path)
+    held.acquire()  # a running sweep publishes by itself: no second publisher
+    try:
+        assert main(["publish-evidence", "--state-dir", str(tmp_path)]) == 2
+    finally:
+        held.release()
+    assert len(calls) == 1
+    monkeypatch.setattr(  # a red PR the final batch could not move is not success
+        cli, "sync", lambda *a, **k: SweepEvidenceExit.FAILING_CHECK
+    )
+    assert main(["publish-evidence", "--state-dir", str(tmp_path)]) == 1

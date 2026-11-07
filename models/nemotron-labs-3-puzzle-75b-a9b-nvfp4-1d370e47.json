@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -242,16 +237,6 @@
     "version": "NVFP4 1d370e47"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation"
-    ],
-    "spdx": "OpenMDW-1.1",
-    "url": "https://openmdw.ai/license/1-1/"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-Labs-3-Puzzle-75B-A9B-NVFP4",

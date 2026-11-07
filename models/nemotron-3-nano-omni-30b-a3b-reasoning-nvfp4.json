@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -259,16 +255,6 @@
     "version": "Reasoning NVFP4 16993199"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation"
-    ],
-    "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
-    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-NVFP4",

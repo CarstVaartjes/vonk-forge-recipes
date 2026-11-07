@@ -578,7 +578,12 @@ def _zip(
         with warnings.catch_warnings():  # a duplicate name is the point of one case
             warnings.simplefilter("ignore", UserWarning)
             for name, data in entries:
-                archive.writestr(name, data)
+                # A fixed timestamp keeps the bytes, and so the parametrize ids
+                # built from them, identical in every xdist worker.
+                info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
+                info.compress_type = compression
+                info.external_attr = 0o600 << 16
+                archive.writestr(info, data)
         if edit is not None:
             edit(archive.infolist())
     return buffer.getvalue()

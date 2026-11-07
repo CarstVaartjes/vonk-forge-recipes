@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "3d-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -60,17 +57,6 @@
     "version": "SkinTokens / TokenRig"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "vast-ai"
-    ],
-    "spdx": "MIT",
-    "territorial_restrictions": null,
-    "url": "https://github.com/VAST-AI-Research/SkinTokens/blob/273b691d35989d71cd17ff2895fdc735097b92d1/LICENSE"
-  },
-  "modalities": [
-    "3d"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/VAST-AI/SkinTokens",

@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "ocr",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Exact public BF16 a3af5799 checkpoint.",
   "family_title": "LiquidAI LFM2.5",
   "identity": {
@@ -6,6 +12,17 @@
     "slug": "lfm2-5-vl-3b-bf16-a3af5799"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Liquid AI"
+    ],
+    "spdx": "LicenseRef-LFM-1.0",
+    "url": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/a3af5799199acdd2a4f56ac4342816abb46c12a9/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "LFM2.5-VL-3B",
   "tags": [
     "liquidai",

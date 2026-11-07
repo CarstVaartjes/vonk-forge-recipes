@@ -1,13 +1,7 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [
     {
-      "content_sha256": "8556bae5128f2beb446506af4b34e6475c65367daf125146e4a0217f5a68b41e",
+      "content_sha256": "aab4021a80637f18f9c184a2047540a14e4f313dd907f2b372b03560833ea073",
       "kind": "model",
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-1-flash-dba1be0a"
@@ -475,18 +469,6 @@
     "version": "exl3-2.9bpw-64ba41b6"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "DeepSeek AI",
-      "MiaAI-Lab",
-      "Turboderp"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw/blob/64ba41b6c916a587db06eae2e19b7845f7be6e6b/LICENSE"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw",

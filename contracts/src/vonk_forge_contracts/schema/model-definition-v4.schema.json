@@ -1,0 +1,432 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.vonkforge.ai/contracts/model-definition-v4.schema.json",
+  "$defs": {
+    "GitHubLfsSource": {
+      "additionalProperties": false,
+      "description": "Git LFS objects at one commit of a canonical public GitHub repository.\n\nEvery model file is one LFS object: its ``sha256`` is the LFS oid, its\n``size_bytes`` the LFS size, and its ``path`` the file's path in the\nrepository at ``revision`` (the full commit SHA). The bytes are fetched by\noid and verified at ingress; the commit and path record where the binding\nof path to oid was read.",
+      "properties": {
+        "provider": {
+          "const": "github-lfs",
+          "title": "Provider",
+          "type": "string"
+        },
+        "repository": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Repository",
+          "type": "string"
+        },
+        "revision": {
+          "pattern": "^[a-f0-9]{40,64}$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "repository",
+        "revision"
+      ],
+      "title": "GitHubLfsSource",
+      "type": "object"
+    },
+    "GitHubReleaseAsset": {
+      "additionalProperties": false,
+      "description": "One GitHub release asset selected for an existing model file.",
+      "properties": {
+        "file_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "File Id",
+          "type": "string"
+        },
+        "asset_id": {
+          "exclusiveMinimum": 0,
+          "title": "Asset Id",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "file_id",
+        "asset_id"
+      ],
+      "title": "GitHubReleaseAsset",
+      "type": "object"
+    },
+    "GitHubReleaseSource": {
+      "additionalProperties": false,
+      "description": "An exact asset from one release in a canonical GitHub repository.",
+      "properties": {
+        "provider": {
+          "const": "github-release",
+          "title": "Provider",
+          "type": "string"
+        },
+        "repository": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Repository",
+          "type": "string"
+        },
+        "release_id": {
+          "exclusiveMinimum": 0,
+          "title": "Release Id",
+          "type": "integer"
+        },
+        "assets": {
+          "items": {
+            "$ref": "#/$defs/GitHubReleaseAsset"
+          },
+          "minItems": 1,
+          "title": "Assets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "provider",
+        "repository",
+        "release_id",
+        "assets"
+      ],
+      "title": "GitHubReleaseSource",
+      "type": "object"
+    },
+    "ModelFamily": {
+      "additionalProperties": false,
+      "properties": {
+        "publisher": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug"
+      ],
+      "title": "ModelFamily",
+      "type": "object"
+    },
+    "ModelFile": {
+      "additionalProperties": false,
+      "description": "One entry in the complete immutable model file manifest.\n\n``sha256`` and ``size_bytes`` always describe the whole installed file.\nWhen the source publishes the file only as split parts, ``parts`` lists\nthem in joining order (byte concatenation yields the file). Omitted means\nthe source publishes the file whole, so the same bytes have the same\nidentity whether the source splits them or not.",
+      "properties": {
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        },
+        "roles": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Roles",
+          "type": "array"
+        },
+        "parts": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/ModelFilePart"
+              },
+              "maxItems": 1024,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parts"
+        }
+      },
+      "required": [
+        "id",
+        "path",
+        "sha256",
+        "size_bytes",
+        "roles"
+      ],
+      "title": "ModelFile",
+      "type": "object"
+    },
+    "ModelFilePart": {
+      "additionalProperties": false,
+      "description": "One published piece of a file the source can only host split.\n\nA part is a transport detail: it exists only at the source (for example a\nHugging Face repository that caps files at 50 GB publishes\n``model.safetensors.part00``). It is never installed.",
+      "properties": {
+        "path": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 1,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "title": "ModelFilePart",
+      "type": "object"
+    },
+    "ModelFormat": {
+      "additionalProperties": false,
+      "properties": {
+        "precision": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,127}$",
+          "title": "Precision",
+          "type": "string"
+        },
+        "quantization": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,127}$",
+          "title": "Quantization",
+          "type": "string"
+        }
+      },
+      "required": [
+        "precision",
+        "quantization"
+      ],
+      "title": "ModelFormat",
+      "type": "object"
+    },
+    "ModelIdentity": {
+      "additionalProperties": false,
+      "description": "The family, logical model, exact version, and selected variant.",
+      "properties": {
+        "publisher": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        },
+        "family": {
+          "$ref": "#/$defs/ModelFamily"
+        },
+        "model": {
+          "$ref": "#/$defs/ModelRecord"
+        },
+        "version": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "variant": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Variant",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug",
+        "family",
+        "model",
+        "version",
+        "variant"
+      ],
+      "title": "ModelIdentity",
+      "type": "object"
+    },
+    "ModelRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "publisher": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug"
+      ],
+      "title": "ModelRecord",
+      "type": "object"
+    },
+    "ModelReference": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "model",
+          "default": "model",
+          "title": "Kind",
+          "type": "string"
+        },
+        "publisher": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        },
+        "content_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug",
+        "content_sha256"
+      ],
+      "title": "ModelReference",
+      "type": "object"
+    },
+    "ModelSource": {
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Repository",
+          "type": "string"
+        },
+        "revision": {
+          "pattern": "^[a-f0-9]{40,64}$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "repository",
+        "revision"
+      ],
+      "title": "ModelSource",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One exact model version and variant, including its complete manifest.",
+  "properties": {
+    "kind": {
+      "const": "model",
+      "default": "model",
+      "title": "Kind",
+      "type": "string"
+    },
+    "identity": {
+      "$ref": "#/$defs/ModelIdentity"
+    },
+    "requires_token": {
+      "title": "Requires Token",
+      "type": "boolean"
+    },
+    "dependencies": {
+      "items": {
+        "$ref": "#/$defs/ModelReference"
+      },
+      "maxItems": 32,
+      "title": "Dependencies",
+      "type": "array"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ModelSource"
+        },
+        {
+          "$ref": "#/$defs/GitHubReleaseSource"
+        },
+        {
+          "$ref": "#/$defs/GitHubLfsSource"
+        }
+      ],
+      "title": "Source"
+    },
+    "format": {
+      "$ref": "#/$defs/ModelFormat"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/ModelFile"
+      },
+      "minItems": 1,
+      "title": "Files",
+      "type": "array"
+    }
+  },
+  "required": [
+    "identity",
+    "requires_token",
+    "dependencies",
+    "source",
+    "format",
+    "files"
+  ],
+  "title": "ModelDefinition",
+  "type": "object"
+}

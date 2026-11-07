@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "NVIDIA ModelOpt NVFP4 quantization of google/gemma-4-26B-A4B-it at an exact Hugging Face revision.",
   "family_title": "Google Gemma",
   "identity": {
@@ -6,6 +13,19 @@
     "slug": "gemma-4-26b-a4b-it-nvfp4-a19cfe00"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Google DeepMind",
+      "NVIDIA"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://ai.google.dev/gemma/apache_2"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "Gemma 4 26B-A4B IT NVFP4",
   "tags": [
     "nvidia",

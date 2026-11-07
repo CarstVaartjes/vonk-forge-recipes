@@ -1,0 +1,53 @@
+{
+  "capabilities": [
+    "image-generation",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "weights",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "size_bytes": 1024
+    }
+  ],
+  "format": {
+    "precision": "fp16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "vonk-forge",
+      "slug": "synthetic"
+    },
+    "model": {
+      "publisher": "vonk-forge",
+      "slug": "synthetic-tiny"
+    },
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-fp16",
+    "variant": "fp16",
+    "version": "1.0.0"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Vonk Forge"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://example.com/models/synthetic-tiny",
+    "revision": "0123456789abcdef0123456789abcdef01234567"
+  }
+}

@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -85,16 +84,6 @@
     "version": "BF16 MTPv2 c929f8a5"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation"
-    ],
-    "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
-    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Nemotron-3-Super-120B-A12B-BF16-MTPv2",

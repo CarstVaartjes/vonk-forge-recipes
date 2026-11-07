@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "image-understanding"
+  ],
   "description": "Exact NVIDIA Model Optimizer NVFP4 checkpoint for Qwen3.6 35B-A3B multimodal agentic inference.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +9,17 @@
     "slug": "qwen3-6-35b-a3b-nvfp4-1355db6a"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA",
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/nvidia/Qwen3.6-35B-A3B-NVFP4/blob/1355db6a052410cfd62085d94b58866fd0f2c3c5/LICENSE"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "NVIDIA Qwen3.6 35B-A3B NVFP4",
   "tags": [
     "nvidia",

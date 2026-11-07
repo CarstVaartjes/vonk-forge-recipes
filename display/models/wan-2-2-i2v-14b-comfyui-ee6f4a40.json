@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "video-generation"
+  ],
   "description": "Exact Comfy-Org scaled-FP8 high/low-noise I2V experts, encoder, and Wan VAE.",
   "family_title": "Wan",
   "identity": {
@@ -6,6 +10,18 @@
     "slug": "wan-2-2-i2v-14b-comfyui-ee6f4a40"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Wan-AI",
+      "Comfy-Org"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B/blob/206a9ee1b7bfaaf8f7e4d81335650533490646a3/LICENSE.txt"
+  },
+  "modalities": [
+    "image",
+    "video"
+  ],
   "model_title": "Wan 2.2 I2V 14B",
   "tags": [
     "wan",

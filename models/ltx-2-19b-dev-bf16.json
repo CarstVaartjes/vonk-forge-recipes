@@ -1,11 +1,7 @@
 {
-  "capabilities": [
-    "audio-generation",
-    "video-generation"
-  ],
   "dependencies": [
     {
-      "content_sha256": "7bcc3f9e353351a39e3167859c2d9d4a44d71c0a27dd11420c44b7032cdcba5a",
+      "content_sha256": "da57bc35b8603753eb9e0530815e5925401596c58b9eee958b7a0061c0d41f7b",
       "kind": "model",
       "publisher": "lightricks",
       "slug": "ltx-2-gemma3-text-encoder-dfcc2108"
@@ -59,17 +55,6 @@
     "version": "19b-dev-bf16-dfcc2108"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Lightricks"
-    ],
-    "spdx": "LTX-2 Community License Agreement",
-    "url": "https://huggingface.co/Lightricks/LTX-2/blob/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/LICENSE"
-  },
-  "modalities": [
-    "audio",
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Lightricks/LTX-2",

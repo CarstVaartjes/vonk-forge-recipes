@@ -32,6 +32,10 @@
   C with the GIL released (engram_native_stage.py, engram_native.c). Hooked
   here rather than in sitecustomize so the mounted patch dir arms it on an
   image whose baked sitecustomize predates it.
+- DSV41_ENGRAM_PREFILL_AHEAD=1: prefill-size Engram stage calls take their rows
+  from a read-ahead of the next chunk, gathered on a thread pool while this
+  chunk computes (engram_prefill_ahead.py). Installed before the native stage,
+  so the native wrapper stays outermost and decode-size calls never enter it.
 - DSV41_INDEXER_WP_GEMV=1: the indexer's bf16 weights_proj [32, 5120] as a
   Triton GEMV with cuBLAS's MMA chain order (bit-identical, indexer_wp_gemv.py).
 - DSV41_CANDIDATE_MASK_BOUNDED=1: the V4.1 decode candidate mask stops at each
@@ -51,10 +55,33 @@
   is_valid_token, the lens tail and the SWA indices/lens in one Triton kernel
   instead of compare + copy + fill + the stock kernel (15 builds a target
   step; integer math, bit-exact; swa_meta_fused.py).
+- DSV41_SWA_META_BATCHED=1 (with DSV41_SWA_META_FUSED=1): the causal SWA
+  groups of one target build_attn_metadata call get their decode window rows
+  from one launch over (tokens, groups) instead of one fused launch each (43
+  groups with DSV41_KV_PACKED_GROUPS=1; same integer math, own buffers per
+  group, verified against the fused launches; swa_meta_batched.py).
 - DSV41_ENGRAM_WKV_TP=1: the Engram wkv (ReplicatedLinear [25600, 6144]
   MXFP8, read whole on every rank) becomes a ColumnParallelLinear with the
   output gathered: each rank reads half the weight, bit-identical output,
   checked against the replicated GEMM after loading (engram_wkv_tp.py).
+- DSV41_MOE_PREFILL_TC=1: routed-MoE prefill calls (>= DSV41_MOE_PREFILL_TC_MIN_ROWS rows) on the
+  tensor-core kernels of moe_prefill_tc.cuh, each EXL3 trellis tile decoded once per row chunk;
+  self-checked and verified against the stock path (moe_prefill_tc.py). Not a decode lever: it is
+  hooked here so the mounted patch dir arms it like the others.
+- DSV41_DSPARK_ADAPTIVE=1: each request verifies only the drafts whose
+  confidence-head survival is >= DSV41_DSPARK_TAU (cap DSV41_DSPARK_VERIFY_MAX)
+  at unchanged shapes; the other verify rows reuse their anchor's experts with
+  weight 0 and their drafts are forced rejected (dspark_adaptive.py).
+- DSV41_ROUTER_GEMV=1: the bf16 x bf16 -> fp32 torch.mm of the router gates
+  (target [384, 5120], DSpark draft [128, 5120]) and of the compressor
+  kv_score ([1024 | 512, 5120]) at M <= 24 as one Triton kernel that
+  reproduces cuBLAS's per-M split-K slices and slice-sum order, bitwise; the
+  per-M split table comes from a self-test against cuBLAS (router_gemv.py).
+- DSV41_MAIN_PROJ_OVERLAP=1: the DSpark combine_hidden_states (cat of the
+  target aux hidden states, main_proj, main_norm) runs on a side stream from
+  the target's logits all-gather on, beside the all-gather and the sampler,
+  and propose() takes its result; same ops, bitwise, first steps verified
+  (main_proj_overlap.py).
 
 Top-level imports are stdlib only, so importing this module cannot fail.
 """
@@ -242,6 +269,18 @@ def _install_swa_meta_fused(env) -> None:
     print(f"dsv41: swa metadata fused: {swa_meta_fused.install()}", flush=True)
 
 
+def _install_swa_meta_batched(env) -> None:
+    if (env.get("DSV41_SWA_META_BATCHED", "0") or "0") != "1":
+        return
+    import swa_meta_batched
+
+    if not swa_meta_batched.enabled(env):
+        # It rides on the fused build: DSV41_SWA_META_FUSED=0 turns both off.
+        print("dsv41: swa metadata batched: off (needs DSV41_SWA_META_FUSED=1)", flush=True)
+        return
+    print(f"dsv41: swa metadata batched: {swa_meta_batched.install()}", flush=True)
+
+
 def _install_moe_prep_fused(env) -> None:
     if (env.get("DSV41_MOE_PREP_FUSED", "0") or "0") != "1":
         return
@@ -258,12 +297,52 @@ def _install_engram_wkv_tp(env) -> None:
     print(f"dsv41: engram wkv column-parallel: {engram_wkv_tp.install()}", flush=True)
 
 
+def _install_router_gemv(env) -> None:
+    if (env.get("DSV41_ROUTER_GEMV", "0") or "0") != "1":
+        return
+    import router_gemv
+
+    print(f"dsv41: router gemv: {router_gemv.install()}", flush=True)
+
+
+def _install_main_proj_overlap(env) -> None:
+    if (env.get("DSV41_MAIN_PROJ_OVERLAP", "0") or "0") != "1":
+        return
+    import main_proj_overlap
+
+    print(f"dsv41: main_proj overlap: {main_proj_overlap.install()}", flush=True)
+
+
 def _install_engram_native_stage(env) -> None:
     if (env.get("DSV41_ENGRAM_NATIVE_STAGE", "0") or "0") != "1":
         return
     import engram_native_stage
 
     print(f"dsv41: engram native stage: {engram_native_stage.install()}", flush=True)
+
+
+def _install_moe_prefill_tc(env) -> None:
+    if (env.get("DSV41_MOE_PREFILL_TC", "0") or "0") != "1":
+        return
+    import moe_prefill_tc
+
+    print(f"dsv41: moe prefill tc: {moe_prefill_tc.install()}", flush=True)
+
+
+def _install_dspark_adaptive(env) -> None:
+    if (env.get("DSV41_DSPARK_ADAPTIVE", "0") or "0") != "1":
+        return
+    import dspark_adaptive
+
+    print(f"dsv41: dspark adaptive verify: {dspark_adaptive.install(env)}", flush=True)
+
+
+def _install_engram_prefill_ahead(env) -> None:
+    if (env.get("DSV41_ENGRAM_PREFILL_AHEAD", "0") or "0") != "1":
+        return
+    import engram_prefill_ahead
+
+    print(f"dsv41: engram prefill ahead: {engram_prefill_ahead.install()}", flush=True)
 
 
 def install(env=None) -> None:
@@ -275,13 +354,19 @@ def install(env=None) -> None:
         ("woa-prepack", _check_woa_prepack),
         ("p2b_src_sort", _check_p2b_src_sort),
         ("p2b_coop", _check_p2b_coop),
+        ("engram-prefill-ahead", _install_engram_prefill_ahead),
         ("engram-native-stage", _install_engram_native_stage),
         ("attn-t2r-dedup", _install_t2r_dedup),
         ("moe-prep-fused", _install_moe_prep_fused),
         ("candidate-mask-bounded", _install_candidate_mask_bounded),
         ("indexer-wp-gemv", _install_indexer_wp_gemv),
         ("swa-meta-fused", _install_swa_meta_fused),
+        ("swa-meta-batched", _install_swa_meta_batched),
         ("engram-wkv-tp", _install_engram_wkv_tp),
+        ("moe-prefill-tc", _install_moe_prefill_tc),
+        ("dspark-adaptive", _install_dspark_adaptive),
+        ("router-gemv", _install_router_gemv),
+        ("main-proj-overlap", _install_main_proj_overlap),
     ):
         try:
             step(env)

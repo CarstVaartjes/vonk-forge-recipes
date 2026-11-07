@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "chat",
+    "text-generation"
+  ],
   "description": "Exact public r0b0tlab Qwen3.8 27B NVFP4 (W4A16 NVFP4 linear, FP8 KV metadata) checkpoint with BF16 MTP head merged into shard 4, 4 shards, for GB10 (SM121).",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +10,17 @@
     "slug": "qwen3-8-27b-nvfp4-mtp-sm121-36f717a2"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "r0b0tlab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/r0b0tlab/Qwen3.8-27B-NVFP4-MTP-sm121/blob/36f717a22990e82c54c1d48ee77c491b87825680/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Qwen3.8 27B NVFP4 MTP sm121",
   "tags": [
     "r0b0tlab",

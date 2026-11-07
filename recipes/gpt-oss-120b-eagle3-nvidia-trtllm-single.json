@@ -296,7 +296,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "05c6ed6c0b33257e2673d0f08c9face7db1f25e850d8c90be5de2a0be46ef735",
+        "content_sha256": "6fbfc3f2e20556b1b03be842c7b6badbdea86643d40a1994c58851ec26342907",
         "kind": "model",
         "publisher": "openai",
         "slug": "gpt-oss-120b-mxfp4-b5c939de"
@@ -367,7 +367,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "ec06a73b940ecd334fb643f505f79c3f3342613df6be242588c75c0d5dd194b0",
+        "content_sha256": "2859a072862a443cffa22282b92440d5421a04e166c7c49e13c2e452e3c511ad",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "gpt-oss-120b-eagle3-long-context-eagle3-633caf45"

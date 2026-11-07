@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -340,17 +336,6 @@
     "version": "3.8"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "TensorFold"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/TensorFold/Qwen3.8-Flash-Next-MLX-4bit-MTP/blob/2b170fa6309d5d1ee380b35636075fac7945f286/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/TensorFold/Qwen3.8-Flash-Next-MLX-4bit-MTP",

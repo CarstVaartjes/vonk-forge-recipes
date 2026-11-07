@@ -1,4 +1,8 @@
 {
+  "capabilities": [
+    "chat",
+    "text-generation"
+  ],
   "description": "Exact public AWQ INT4 quantization of Meta Llama 3.1 405B Instruct by Hugging Quants, used in NVIDIA's two-Spark vLLM playbook.",
   "family_title": "Meta Llama",
   "identity": {
@@ -6,6 +10,17 @@
     "slug": "llama-3-1-405b-instruct-awq-int4-1954fc59"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Hugging Quants",
+      "Meta Platforms"
+    ],
+    "spdx": "LicenseRef-Llama-3.1-Community-License",
+    "url": "https://www.llama.com/llama3_1/license/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Llama 3.1 405B Instruct",
   "tags": [
     "hugging-quants",

@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Exact Step1X offline dependency closure for DINOv2 configuration and image preprocessing. No external DINOv2 weights are selected or required.",
   "family_title": "DINOv2",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "dinov2-with-registers-large"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "facebook"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/facebook/dinov2-with-registers-large/blob/e4c89a4e05589de9b3e188688a303d0f3c04d0f3/README.md"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "DINOv2 with Registers Large",
   "tags": [
     "facebook",

@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "3d-generation"
+  ],
   "description": "Immutable public snapshot at af44b45f.",
   "family_title": "TRELLIS",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "trellis-2-4b"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "microsoft"
+    ],
+    "spdx": "MIT",
+    "url": "https://github.com/microsoft/TRELLIS.2/blob/75fbf0183001ed9876c8dbb35de6b68552ee08bd/LICENSE"
+  },
+  "modalities": [
+    "3d"
+  ],
   "model_title": "TRELLIS.2",
   "tags": [
     "microsoft",

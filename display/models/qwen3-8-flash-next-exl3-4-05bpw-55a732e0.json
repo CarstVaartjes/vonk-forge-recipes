@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "EXL3 4.05bpw checkpoint including its quantized vision sidecar.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +12,19 @@
     "slug": "qwen3-8-flash-next-exl3-4-05bpw-55a732e0"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "turboderp"
+    ],
+    "spdx": "LicenseRef-Qwen-Community-1.0",
+    "url": "https://huggingface.co/turboderp/Qwen3.8-Flash-Next-exl3/blob/55a732e0c4c3d4614bc42b68493bb930d9b02c0a/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "Qwen3.8 Flash Next EXL3",
   "tags": [
     "turboderp",

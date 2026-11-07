@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding",
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -512,17 +507,6 @@
     "version": "5.3"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Z.ai",
-      "Vontra"
-    ],
-    "spdx": "LicenseRef-GLM-5.3",
-    "url": "https://huggingface.co/Vontra/GLM-5.3-Flash-MLX-4bit-MTP/blob/main/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Vontra/GLM-5.3-Flash-MLX-4bit-MTP",

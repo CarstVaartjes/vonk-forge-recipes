@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -166,16 +165,6 @@
     "version": "92ddae9f"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "JetBrains"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/JetBrains/Mellum2.1-12B-A2.5B-Thinking/blob/92ddae9fc7665e9f801d141d2e5a6b2caf2460c4/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/JetBrains/Mellum2.1-12B-A2.5B-Thinking",

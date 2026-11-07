@@ -32,10 +32,6 @@ ALLOWED = {
         "spark_sweep/evidence_publisher.py",
         "_evidence_records",
     ): "records carried by the refused evidence PR branch",
-    # A merge tool for qualification definitions on a PR branch.
-    ("tools/migrate-pr-qualification", "main"): "three-way merge of definitions",
-    # The one-time contracts 3.0.0 display split reads a revision archive.
-    ("tools/split-display", "main"): "one-time migration from a revision archive",
 }
 
 

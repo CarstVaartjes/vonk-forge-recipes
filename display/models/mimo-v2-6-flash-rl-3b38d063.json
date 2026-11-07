@@ -1,4 +1,13 @@
 {
+  "capabilities": [
+    "audio-understanding",
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use",
+    "video-understanding"
+  ],
   "description": "Xiaomi MiMo-V2.6-Flash-RL: 309B total / 15B active MoE, fp8 attention with MXFP4 routed experts, 1M native context, text, image, video and audio input, with the MTP head and DFlash drafter.",
   "family_title": "MiMo",
   "identity": {
@@ -6,6 +15,18 @@
     "slug": "mimo-v2-6-flash-rl-3b38d063"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Xiaomi MiMo"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/blob/3b38d063180c3e4aed9691fdc735f3d10b266ee4/README.md"
+  },
+  "modalities": [
+    "audio",
+    "image",
+    "video"
+  ],
   "model_title": "MiMo V2.6 Flash RL",
   "tags": [
     "xiaomimimo",

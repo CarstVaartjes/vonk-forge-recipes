@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-to-audio"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -60,17 +57,6 @@
     "version": "Music3-9e364ccd"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "MiniMax; Comfy-Org repack. Commercial services must display MiniMax-Music3; see original license for commercial thresholds and acceptable-use terms."
-    ],
-    "spdx": "LicenseRef-MiniMax-Music3-Community",
-    "url": "https://huggingface.co/MiniMaxAI/MiniMax-Music3/blob/fbdf52fbaaca799592917417eb05f1899f1255ec/LICENSE"
-  },
-  "modalities": [
-    "text",
-    "audio"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Comfy-Org/MiniMax-Music-3",

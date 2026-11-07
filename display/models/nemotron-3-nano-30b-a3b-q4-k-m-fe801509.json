@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "ggml-org GGUF conversion of NVIDIA Nemotron 3 Nano 30B-A3B at Q4_K_M.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +12,17 @@
     "slug": "nemotron-3-nano-30b-a3b-q4-k-m-fe801509"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "ggml-org"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Nemotron 3 Nano 30B-A3B",
   "tags": [
     "ggml-org",

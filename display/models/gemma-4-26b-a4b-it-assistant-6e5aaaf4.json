@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "text-generation"
+  ],
   "description": "Google's Multi-Token Prediction assistant (draft) model for Gemma 4 26B-A4B IT at an exact Hugging Face revision.",
   "family_title": "Google Gemma",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "gemma-4-26b-a4b-it-assistant-6e5aaaf4"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Google DeepMind"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Gemma 4 26B-A4B IT assistant",
   "tags": [
     "google",
