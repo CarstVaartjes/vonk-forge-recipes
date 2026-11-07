@@ -211,9 +211,9 @@ jobs:
           done
 
       # The Controller reads a recipe with the contracts version its lock pins.
-      # A serving kind or api mode newer than that is a read failure there, so
+      # A serving kind or Model capability newer than that is a read failure there, so
       # it may not land until the pinned platform reads it. The minimum per
-      # feature is owned by vonk_forge_contracts.introduced.
+      # value is owned by qualification/introduced.py.
       - name: Require every recipe to be readable by the pinned platform
         shell: bash
         env:
