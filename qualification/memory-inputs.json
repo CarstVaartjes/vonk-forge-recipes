@@ -583,6 +583,17 @@
       "source": "https://huggingface.co/nvidia/MiniMax-M2.7-NVFP4/resolve/e79701cb1f9dce8fe5395b9ed2b20170beebecde/config.json",
       "value_dim": 128
     },
+    "minimax-m3-1-flash-exl3-sage-2-15bpw-99bf3a57": {
+      "architecture": "MiniMaxM3SparseForConditionalGeneration",
+      "configuration_sha256": "c284f32a983fe0092eda467af2d0f4224a8094d3a82f7b705acf3747ffc2ec25",
+      "key_dim": 128,
+      "kv_heads": 4,
+      "layers": 60,
+      "max_context_tokens": 1048576,
+      "replicated_token_bytes": 12800,
+      "source": "https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw/resolve/99bf3a57af5d07245ea9abb5426e7dce6af6356b/config.json (HF API revision 99bf3a57af5d07245ea9abb5426e7dce6af6356b); sha256 c284f32a983fe0092eda467af2d0f4224a8094d3a82f7b705acf3747ffc2ec25. text_config: num_hidden_layers 60, num_key_value_heads 4, head_dim 128, max_position_embeddings 1048576; every layer is full attention (no sliding window). replicated_token_bytes 12800 = the MSA indexer key cache (every layer sets sparse_attention_freq 1: 4 index heads x 128 dim, no index values) plus the DSpark draft pool, both fp8: the creator's measured 46.25 KiB/token (47,360 B) minus the 34,560 B/token main q4 KV (60 layers x 576 B), from adapters/minimax/vcruz-m31-flash-exl3-single/configs/q4-48k.env lines 10-13 (KVB 2374395495 = 47,360 x 49,152 tokens + 2% margin). Allocation estimate, not hardware proof.",
+      "value_dim": 128
+    },
     "nemotron-3-5-lightning-30b-a3b-nvfp4": {
       "architecture": "NemotronHForCausalLM",
       "configuration_sha256": "f1d98b530846087dc08b574a219713a94f945bf6583dc7230a19ebf1e8c50933",
@@ -891,9 +902,6 @@
     "vonk-forge/deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual": [
       "b0d1077e1840d8ab804d1a2f75e31d8e167bf35d80ffd4e1480c678bf34e8988"
     ],
-    "vonk-forge/deepseek-v4-flash-vllm-mia-dual": [
-      "2dd054c675e8eb3737845234036bba7ee97884785ffaab3341e0d1232378a301"
-    ],
     "vonk-forge/diffusiongemma-26b-a4b-it-eugr-vllm-single": [
       "e2c6925a24c11cabd48a9fdb57a8b475ed11c429737d2340f197968a32987bae"
     ],
@@ -972,10 +980,6 @@
     ],
     "vonk-forge/glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual": [
       "4e0ce1e7099b1c88b023ec86ad2a02bee0e28d1ef59b21f89a3a4501b22b6ef0"
-    ],
-    "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual": [
-      "bbf5aa8b4d1f497cea7dd8f5b3e9f2105744e278e1be0e0c8c10df57cd4380f2",
-      "e464859341620e545b07094ea563daf9f2f0b3ca5f7bb4c2fbfcbcd852c2faeb"
     ],
     "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-mia-four": [
       "48d2e4b0b33ce12cb60eea310a332aef593d011337c9d8885000b7076f57cc95"

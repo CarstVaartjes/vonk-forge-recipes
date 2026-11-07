@@ -17,6 +17,8 @@ from __future__ import annotations
 from ._version import __version__
 from .api import (
     ApiBlock,
+    AudioSpeechApi,
+    AudioTranscriptionApi,
     ChatApi,
     DecisionApi,
     RecipeApi,
@@ -58,7 +60,9 @@ from .qualification_authority import (
     recovery_coverage_id,
 )
 from .qualification_status import (
+    PublishedMeasuredMemory,
     PublishedQualificationStatusView,
+    PublishedRoleMemory,
     QualificationBlame,
     QualificationCauseCode,
     QualificationChange,
@@ -79,6 +83,7 @@ from .qualification_status import (
     QualificationUnverifiedReason,
     RecipeQualificationEvidence,
     derive_status,
+    published_measured_memory_json_schema,
     published_qualification_status_json_schema,
     published_status,
     qualification_evidence_json_schema,
@@ -95,6 +100,8 @@ __all__ = [
     "CONTRACT_VERSION",
     "ENDPOINT_ALIAS_PATTERN",
     "ApiBlock",
+    "AudioSpeechApi",
+    "AudioTranscriptionApi",
     "CapabilityName",
     "CapabilityRole",
     "ChatApi",
@@ -106,7 +113,9 @@ __all__ = [
     "ModelDefinition",
     "ModelDisplay",
     "ModelDisplayIdentity",
+    "PublishedMeasuredMemory",
     "PublishedQualificationStatusView",
+    "PublishedRoleMemory",
     "QualificationAuthority",
     "QualificationBatch",
     "QualificationBatchAssignment",
@@ -149,6 +158,7 @@ __all__ = [
     "derive_status",
     "document_sha256",
     "published_json",
+    "published_measured_memory_json_schema",
     "published_qualification_status_json_schema",
     "published_status",
     "qualification_evidence_json_schema",

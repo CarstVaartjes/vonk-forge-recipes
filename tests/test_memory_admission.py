@@ -171,7 +171,7 @@ def test_single_spark_vllm_utilization_maximum_is_0905(
 def test_multi_spark_vllm_utilization_maximum_is_08728(
     value: str, admissible: bool
 ) -> None:
-    recipe = documents.recipe("deepseek-v4-flash-vllm-mia-dual")
+    recipe = documents.recipe("deepseek-v4-flash-mtp-tonyd2wild-vllm-dual")
     recipe.runtime.arguments = [
         item
         for item in recipe.runtime.arguments
@@ -197,7 +197,7 @@ def test_multi_spark_vllm_utilization_maximum_is_08728(
 
 
 def test_refresh_raises_peaks_to_the_budget_envelope_and_never_lowers() -> None:
-    recipe = documents.recipe("deepseek-v4-flash-vllm-mia-dual")
+    recipe = documents.recipe("deepseek-v4-flash-mtp-tonyd2wild-vllm-dual")
     for role in recipe.topology.roles:
         role.resources.memory.peak_bytes = 100_000_000_000
         role.resources.memory.load_peak_bytes = 101_000_000_000
@@ -216,7 +216,7 @@ def test_refresh_raises_peaks_to_the_budget_envelope_and_never_lowers() -> None:
 
 def test_multi_spark_peak_below_the_vllm_envelope_is_refused_untouched() -> None:
     """A pool-less dual declares utilization x total + 10.4e9, touched or not."""
-    recipe = documents.recipe("deepseek-v4-flash-vllm-mia-dual")
+    recipe = documents.recipe("deepseek-v4-flash-mtp-tonyd2wild-vllm-dual")
     envelope = vllm_utilization_envelope(recipe)
     assert envelope is not None
     floor = memory_need.per_rank_need(
