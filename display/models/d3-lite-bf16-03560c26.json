@@ -1,8 +1,8 @@
 {
   "capabilities": [
     "decision",
-    "video",
-    "vision"
+    "image-understanding",
+    "video-understanding"
   ],
   "description": "d3-lite typed-decision model with probability outputs and an FP32 answer-code readout.",
   "family_title": "Decision 3.0",
