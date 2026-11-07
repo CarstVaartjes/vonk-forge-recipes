@@ -241,7 +241,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.5.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.6.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -1274,6 +1274,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-test-git`, `tests/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
 | `tools/check-document-reads`, `tools/_added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
 | `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
+| `tools/check-platform-contracts`, `vonk_forge_contracts/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind or api mode newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or mode gets its minimum in `introduced.py`. |
 | `tests/test_guidance_files.py` | Guidance stays in the allowlisted files and local Markdown links resolve. Consolidate the new rule here or in AGENTS; fix links in the same change. |
 | `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
 
