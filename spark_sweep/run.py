@@ -1691,9 +1691,11 @@ class Sweep:
         lock.acquire()
         previous = _install_signal_handlers()
         try:
-            return self._run()
+            try:
+                return self._run()
+            finally:
+                self._flush_evidence()
         finally:
-            self._flush_evidence()
             _restore_signal_handlers(previous)
             lock.release()
 
@@ -1704,11 +1706,17 @@ class Sweep:
         """
         if not (self.cfg.publish_evidence and self.qualification_evidence):
             return
-        try:
-            self.evidence_publisher.flush(self.clock.now())
-        except Exception as error:  # noqa: BLE001 - publication never changes the exit code
-            self.evidence_publisher.message = f"evidence final batch failed ({type(error).__name__}); results stay in history"
-        print(f"sweep: {self.evidence_publisher.message}", flush=True)
+        try:  # a late stop signal must not change the exit code or skip the release
+            try:
+                self.evidence_publisher.flush(self.clock.now())
+            except (Exception, KeyboardInterrupt) as error:  # noqa: BLE001 - publication never changes the exit code
+                self.evidence_publisher.message = f"evidence final batch failed ({type(error).__name__}); results stay in history"
+            print(f"sweep: {self.evidence_publisher.message}", flush=True)
+            write_status(self, final=True)  # the last status shows the flush outcome
+        except (Exception, KeyboardInterrupt) as error:  # noqa: BLE001
+            print(
+                f"sweep: final status not written ({type(error).__name__})", flush=True
+            )
 
     def _run(self) -> int:
         # Adoption parses no remote state and writes nothing during read-only

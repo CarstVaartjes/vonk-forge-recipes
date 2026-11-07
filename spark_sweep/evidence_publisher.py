@@ -12,6 +12,7 @@ import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 from typing import TextIO
 
@@ -48,6 +49,7 @@ _deadline: float | None = None
 UNPUBLISHED_FILE = "unpublished.json"
 PERSISTENT_BATCHES = 2
 STATE_FILE = "publisher-state.json"
+CHILD_BUDGET = 240  # seconds a publisher child may run, as seen from the sweep
 
 
 class UnpublishedReport(BaseModel):
@@ -77,15 +79,33 @@ def history_head(history: Path) -> str:
     return hashlib.sha256("\n".join(entries).encode()).hexdigest()[:16]
 
 
-def unpublished_report(directory: Path, history: Path) -> int | str | None:
-    """The unpublished count, "stale" when the history moved past it, None when unknown."""
+class UnpublishedState(StrEnum):
+    """What a reader may say about the unpublished count."""
+
+    COUNTED = "counted"  # the count was taken against the current history
+    STALE = "stale"  # results finished after the count: it says nothing
+    UNKNOWN = "unknown"  # no batch has counted yet
+
+
+class UnpublishedStatus(BaseModel):
+    """The one typed value readers (status.json, the status page, rendering) get."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    state: UnpublishedState = UnpublishedState.UNKNOWN
+    count: int | None = None  # set only when COUNTED
+
+
+def unpublished_report(directory: Path, history: Path) -> UnpublishedStatus:
+    """Counted, stale (the history moved past the count) or unknown."""
     try:
         report = UnpublishedReport.model_validate_json(
             (directory / UNPUBLISHED_FILE).read_text()
         )
     except (OSError, ValueError):
-        return None  # no batch reached backfill yet, or an unknown shape: unknown
-    return report.count if report.head == history_head(history) else "stale"
+        return UnpublishedStatus()  # no batch reached backfill yet, or an unknown shape
+    if report.head != history_head(history):
+        return UnpublishedStatus(state=UnpublishedState.STALE)
+    return UnpublishedStatus(state=UnpublishedState.COUNTED, count=report.count)
 
 
 class EvidencePublicationTimeout(TimeoutError):
@@ -426,6 +446,7 @@ def _batch(
     )  # only a synced batch reports
     opened = own_open_prs(directory)
     refusing = False
+    red = False
     blocked = 0
     if opened:
         pr = PullRequest.model_validate(opened[0])
@@ -506,6 +527,10 @@ def _batch(
     ) as temporary:
         clone = Path(temporary)
         done = SweepEvidenceExit.REFUSED if refusing else SweepEvidenceExit.SYNCED
+        # A final batch that pushed nothing onto a red PR left that PR red: say so.
+        held = (
+            SweepEvidenceExit.FAILING_CHECK if final and red and not refusing else done
+        )
         command(
             directory,
             "git",
@@ -624,7 +649,7 @@ def _batch(
         if not command(
             clone, "git", "diff", "origin/main", "--", "qualification/evidence"
         ):
-            return done  # merged evidence or an empty batch never creates an empty PR
+            return held  # merged evidence or an empty batch never creates an empty PR
         changed = command(clone, "git", "diff", "--cached", "--name-only")
         merging = (clone / ".git/MERGE_HEAD").exists()
         if changed or merging:
@@ -638,7 +663,7 @@ def _batch(
             )
             command(clone, "git", "push", "origin", f"HEAD:refs/heads/{BRANCH}")
         elif not remote:
-            return done
+            return held
         opened = own_open_prs(clone)
         if not opened:
             command(
@@ -671,7 +696,7 @@ def _batch(
             "--squash",
         )
         print(f"evidence: PR #{pr.number}, auto-merge requested", flush=True)
-        return done
+        return done if changed or merging else held
 
 
 class EvidencePublisher:
@@ -698,8 +723,8 @@ class EvidencePublisher:
         self._output: TextIO | None = None
 
     @property
-    def unpublished_report(self) -> int | str | None:
-        """The last counted gap, or "stale" once results finished after it."""
+    def unpublished_report(self) -> UnpublishedStatus:
+        """The last counted gap, stale once results finished after it."""
         return unpublished_report(self.directory, self.history)
 
     def _read_unpublished(self) -> None:
@@ -794,7 +819,7 @@ class EvidencePublisher:
         if self.process is not None:
             code = self.process.poll()
             if code is None:
-                if now - self.started_at > 240:
+                if now - self.started_at > CHILD_BUDGET:
                     self.process.kill()  # only our child PID; the next tick reaps it
                     self.message = "evidence publication exceeded 240s; retry scheduled"
                 return
@@ -804,25 +829,37 @@ class EvidencePublisher:
             return
         self._spawn(now)
 
+    def _stop(self) -> None:
+        """Kill our own child and reap it."""
+        if self.process is not None:
+            self.process.kill()  # only our child PID
+            self.process.wait()
+            self.process = None
+            if self._output is not None:
+                self._output.close()
+
     def flush(self, now: float) -> SweepEvidenceExit | None:
         """The batch a sweep runs on exit, so its last results are not stranded.
 
-        A running child saw an older history: it is awaited (it ends itself within
-        its own 240s budget), then one final batch runs and is awaited until its
-        PR is opened (sync returns once auto-merge is requested, never on merge).
-        Any outcome is reported honestly through the message and the stale marker.
+        A running child saw an older history: it is killed (the final batch
+        re-plans from a fresh clone). The final batch gets the same parent-side
+        budget as a tick's child and is awaited until its PR is opened (sync
+        returns once auto-merge is requested, never on merge). Any outcome is
+        reported honestly through the message and the stale marker.
         """
+        print("sweep: publishing final evidence (stop again to skip)", flush=True)
         try:
-            if self.process is not None:
-                self._finish(self.process.wait(), now)
+            self._stop()
             if not self._spawn(now, final=True) or self.process is None:
                 return None
-            code = self.process.wait()
+            try:
+                code = self.process.wait(timeout=CHILD_BUDGET)
+            except subprocess.TimeoutExpired:
+                self._stop()
+                self.message = f"evidence final batch exceeded {CHILD_BUDGET}s; results stay in history"
+                return None
         except KeyboardInterrupt:
-            if self.process is not None:
-                self.process.kill()  # a second stop signal: leave the rest stale
-                self.process.wait()
-                self.process = None
+            self._stop()  # a second stop signal: leave the rest stale
             self.message = "evidence final batch interrupted; results stay in history"
             return None
         self._finish(code, now)
