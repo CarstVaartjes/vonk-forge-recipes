@@ -15,6 +15,7 @@ from vonk_forge_contracts import (
     campaign_manifest_json_schema,
     model_display_json_schema,
     model_json_schema,
+    published_measured_memory_json_schema,
     published_qualification_status_json_schema,
     qualification_evidence_json_schema,
     qualification_status_json_schema,
@@ -38,6 +39,11 @@ def main() -> int:
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     targets = (
+        (
+            ROOT
+            / "contracts/src/vonk_forge_contracts/schema/published-measured-memory-v1.schema.json",
+            published_measured_memory_json_schema(),
+        ),
         (
             ROOT
             / "contracts/src/vonk_forge_contracts/schema/published-qualification-status-v1.schema.json",
