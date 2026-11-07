@@ -1693,8 +1693,22 @@ class Sweep:
         try:
             return self._run()
         finally:
+            self._flush_evidence()
             _restore_signal_handlers(previous)
             lock.release()
+
+    def _flush_evidence(self) -> None:
+        """Whatever ends the sweep, its last results are published once, not stranded.
+
+        Optional transport: a failure is logged, never raised over the sweep's result.
+        """
+        if not (self.cfg.publish_evidence and self.qualification_evidence):
+            return
+        try:
+            self.evidence_publisher.flush(self.clock.now())
+        except Exception as error:  # noqa: BLE001 - publication never changes the exit code
+            self.evidence_publisher.message = f"evidence final batch failed ({type(error).__name__}); results stay in history"
+        print(f"sweep: {self.evidence_publisher.message}", flush=True)
 
     def _run(self) -> int:
         # Adoption parses no remote state and writes nothing during read-only
