@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "qwen3-tts-omni-serve.py",
+    "verify-runtime.py"
+  ],
+  "renamed": {
+    "qwen3_tts.yaml": "vllm_omni/deploy/qwen3_tts.yaml"
+  },
+  "source": {
+    "commit": "5917730a4b02aedb44d374173cdc1b10484ccd52",
+    "repo": "vllm-project/vllm-omni"
+  }
+}
