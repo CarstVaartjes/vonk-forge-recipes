@@ -28,6 +28,7 @@ from typing import Any
 
 from .auth_contract import GatewayAuthReply, SmokeAuthClass
 from .catalog import Recipe
+from .chat_probe import ChatFacts, bounded_chat_body
 from .definitions import Definitions
 from .policy import CLIENT_CREDENTIAL, Failure, classify, excerpt
 from .verdict import SMOKE_BUSY, http_wait
@@ -186,6 +187,15 @@ def _evaluate(response: Any, raw: str, assertion: dict[str, Any]) -> tuple[bool,
             None,
         )
         return hit is None, hit
+    if kind == "chat.nonempty":
+        # The Controller's own meaning: the first choice answers with text or tool calls.
+        message = _path(response, "choices.0.message")
+        text = message.get("content") if isinstance(message, dict) else None
+        calls = message.get("tool_calls") if isinstance(message, dict) else None
+        holds = (isinstance(text, str) and bool(text.strip())) or (
+            isinstance(calls, list) and bool(calls)
+        )
+        return holds, text
     path = str(assertion.get("path", ""))
     value = (
         _empty_or_path(response, path)
@@ -512,7 +522,9 @@ def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
     }
 
 
-def _fallback_cases(recipe: Recipe, alias: str) -> list[dict[str, Any]]:
+def _fallback_cases(
+    recipe: Recipe, alias: str, facts: ChatFacts | None = None
+) -> list[dict[str, Any]]:
     """Cases from the recipe's own declared serving checks when no reviewed smoke exists."""
     cases: list[dict[str, Any]] = [
         {
@@ -528,7 +540,16 @@ def _fallback_cases(recipe: Recipe, alias: str) -> list[dict[str, Any]]:
     for check in recipe.checks:
         request = check.get("request") or {}
         if check.get("kind") == "openai.chat" and isinstance(request.get("body"), dict):
-            body = {**request["body"], "model": alias, "stream": False}
+            body = bounded_chat_body(
+                {**request["body"], "model": alias, "stream": False}, facts
+            )
+            # Answerable only when the recipe's facts shaped the request: without them the
+            # declared check is sent as written and holds to what it always held to.
+            assertions: list[dict[str, Any]] = [
+                {"kind": "path.nonempty", "path": "choices"}
+            ]
+            if facts is not None:
+                assertions.append({"kind": "chat.nonempty"})
             cases.append(
                 {
                     "id": str(check.get("name", "chat")),
@@ -537,7 +558,7 @@ def _fallback_cases(recipe: Recipe, alias: str) -> list[dict[str, Any]]:
                     "body": body,
                     "timeout_seconds": 180,
                     "max_response_bytes": 262144,
-                    "assertions": [{"kind": "path.nonempty", "path": "choices"}],
+                    "assertions": assertions,
                 }
             )
     return cases
@@ -598,11 +619,16 @@ def has_chat(recipe: Recipe, cases: list[dict[str, Any]]) -> bool:
 
 
 def smoke_service(
-    recipe: Recipe, definitions: Definitions, base: str, alias: str, config: HttpConfig
+    recipe: Recipe,
+    definitions: Definitions,
+    base: str,
+    alias: str,
+    config: HttpConfig,
+    facts: ChatFacts | None = None,
 ) -> SmokeResult:
     started = time.monotonic()
     cases = definitions.service_cases(recipe.key, alias) or _fallback_cases(
-        recipe, alias
+        recipe, alias, facts
     )
     result = SmokeResult(ok=False, kind="service")
     try:
