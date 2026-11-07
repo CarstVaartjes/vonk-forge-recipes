@@ -321,7 +321,8 @@ class Gateway:
     # The next this many requests get a temporary 503 (an overloaded engine or gateway).
     busy: int = 0
     # Per alias, the tokens its engine spends thinking unless the request turns thinking off
-    # with ``chat_template_kwargs.enable_thinking: false``; a reply cut inside them has no content.
+    # (a switch key, in ``chat_template_kwargs`` or at the top level); a reply whose
+    # ``max_tokens`` ends inside them has no content.
     thinking: dict[str, int] = field(default_factory=dict)
     bodies: list[dict[str, Any]] = field(default_factory=list)
     _server: ThreadingHTTPServer | None = None
@@ -396,9 +397,18 @@ class Gateway:
                 message = gateway.messages.get(alias, {"content": "391"})
                 finish = "stop"
                 spent = gateway.thinking.get(alias, 0)
-                kwargs = body.get("chat_template_kwargs") or {}
-                cut = int(body.get("max_tokens", 0)) <= spent
-                if spent and kwargs.get("enable_thinking") is not False and cut:
+                off = {
+                    **(body.get("chat_template_kwargs") or {}),
+                    **body,
+                }
+                switched_off = any(
+                    off.get(key) is False
+                    for key in ("enable_thinking", "thinking", "think")
+                )
+                # No max_tokens: the engine answers with the context that remains, however
+                # long it thinks first. A cap at or under the thinking cuts the reply.
+                cap = body.get("max_tokens")
+                if spent and not switched_off and cap is not None and cap <= spent:
                     message = {"content": "", "reasoning_content": "hmm"}
                     finish = "length"
                 reply = {

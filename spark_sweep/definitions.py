@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from vonk_forge_contracts.api import ChatApi
+from vonk_forge_contracts.api import RecipeApi
 
 from qualification.definitions_loader import QUALIFICATION_ROOT, load_definitions
 from qualification.documents import recipe_api
@@ -34,7 +34,7 @@ class Definitions:
         self.document = document
         self.root = root
         self._fixtures: dict[str, Fixture] = {}
-        self._chat_apis: dict[str, ChatApi] = {}
+        self._recipe_apis: dict[str, RecipeApi] = {}
 
     @classmethod
     def load(cls, root: Path = QUALIFICATION_ROOT) -> Definitions:
@@ -46,19 +46,17 @@ class Definitions:
         definitions = cls(load_definitions(root), root)
         for fixture_id in definitions.document["fixtures"]:
             definitions.fixture(fixture_id)
-        definitions._load_chat_apis()
+        definitions._load_recipe_apis()
         return definitions
 
-    def _load_chat_apis(self) -> None:
+    def _load_recipe_apis(self) -> None:
         """The ``recipe-api`` documents beside the qualification tree (``api/recipes``)."""
         for path in sorted((self.root.parent / "api" / "recipes").glob("*.json")):
-            api = recipe_api(path.stem, self.root.parent).api
-            if isinstance(api, ChatApi):
-                self._chat_apis[path.stem] = api
+            self._recipe_apis[path.stem] = recipe_api(path.stem, self.root.parent)
 
-    def chat_api(self, slug: str) -> ChatApi | None:
-        """The recipe's declared chat facts (base route), when it publishes them."""
-        return self._chat_apis.get(slug)
+    def recipe_api(self, slug: str) -> RecipeApi | None:
+        """The recipe's published API facts, when it has them."""
+        return self._recipe_apis.get(slug)
 
     def service(self, key: str) -> dict[str, Any] | None:
         value = self.document["service_recipes"].get(key)

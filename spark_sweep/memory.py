@@ -159,6 +159,18 @@ class _Detail(BaseModel):
     document: dict[str, Any]
 
 
+def intended_assignment(application: Any, alias: str) -> _Assignment:
+    """The Controller application's assignment for ``alias``: its Sparks and option choices.
+
+    Raises ``StopIteration`` when the alias is not assigned and a validation error when
+    the document is not an application.
+    """
+    assignments = _Application.model_validate(
+        application
+    ).progress.intended_profile.assignments
+    return next(item for item in assignments if item.alias == alias)
+
+
 def ran_recipe(detail: Any, content_sha256: str) -> RecipeDefinition | None:
     """The recipe document ``vonkctl recipe detail --technical`` reports, if it is what ran.
 
@@ -192,10 +204,7 @@ def measurement(
     if not observed or recipe is None:
         return ()
     try:
-        assignments = _Application.model_validate(
-            application
-        ).progress.intended_profile.assignments
-        assignment = next(item for item in assignments if item.alias == alias)
+        assignment = intended_assignment(application, alias)
         launch = recipe.with_option_choices(assignment.option_choices)
         budget = vllm_budget_bytes(launch)
     except (StopIteration, ValueError, TypeError, ArithmeticError):
