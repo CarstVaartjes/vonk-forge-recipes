@@ -337,6 +337,47 @@ def test_image_input_has_one_capability_name() -> None:
     assert INPUT_MODALITY_CAPABILITIES["image"] == "image-understanding"
 
 
+@pytest.mark.parametrize(
+    ("modality", "capability"), sorted(INPUT_MODALITY_CAPABILITIES.items())
+)
+def test_an_accepted_input_modality_needs_its_understanding_capability(
+    modality: str, capability: str
+) -> None:
+    """A Model that lists the modality without the capability does not satisfy it."""
+
+    slug = "qwen3-8-27b-mia-tensorfold-single"
+    document = recipe(slug)
+    raw = _json(ROOT / "api" / "recipes" / f"{slug}.json")
+    raw["api"]["input_modalities"][modality] = True
+    api = RecipeApi.model_validate(raw)
+    shown = [model_display(s.model.slug) for s in document.models]
+    complete = [
+        d.model_copy(
+            update={
+                "modalities": sorted({*d.modalities, modality}),
+                "capabilities": sorted({*d.capabilities, capability}),
+            }
+        )
+        for d in shown
+    ]
+    check_api_models(document, api, complete)
+    listed_only = [
+        d.model_copy(
+            update={
+                "modalities": sorted({*d.modalities, modality}),
+                "capabilities": [c for c in d.capabilities if c != capability],
+            }
+        )
+        for d in shown
+    ]
+    with pytest.raises(
+        RecipeApiError,
+        match=f"{modality} input needs a Model with the {modality} modality "
+        f"and the {capability} capability",
+    ):
+        check_api_models(document, api, listed_only)
+
+
 def test_changed_slugs_keeps_only_recipe_and_api_documents() -> None:
     assert GUARD["changed_slugs"](
         [
