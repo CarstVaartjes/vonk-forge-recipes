@@ -22,7 +22,9 @@
     "url": "https://ai.google.dev/gemma/apache_2"
   },
   "modalities": [
-    "text"
+    "image",
+    "text",
+    "video"
   ],
   "model_title": "Gemma 4 31B IT NVFP4",
   "tags": [
