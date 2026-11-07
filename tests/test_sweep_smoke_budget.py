@@ -32,9 +32,7 @@ def test_a_smoking_job_lane_shows_its_smokes_own_budget_and_wait(
     tmp_path: Path,
 ) -> None:
     job = FakeRecipe("ocr", adapter="artifact-job")
-    sweep, _fleet, clock = make_sweep(
-        tmp_path, [job], [FakeModel("m1")], job_recipes_loadable=True
-    )
+    sweep, _fleet, clock = make_sweep(tmp_path, [job], [FakeModel("m1")])
     sweep.executor = _Following()
     sweep.refresh_catalog()
     for _ in range(200):

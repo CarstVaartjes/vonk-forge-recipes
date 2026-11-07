@@ -131,7 +131,7 @@ published-document readers to bypass producer validation (`tests/test_contracts.
 | Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
 | Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment` is optional. |
 | Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`, and the Model's declared facts: `modalities`, `capabilities`, `license`. |
-| Recipe API | `identity` (the Recipe's), `api` (a `chat` or `decision` block, every field required), `option_choices`. |
+| Recipe API | `identity` (the Recipe's), `api` (a `chat`, `decision`, `audio_transcription` or `audio_speech` block, every field required), `option_choices`. |
 
 A document holds execution data only. What a person or a filter reads about it
 (titles, description, tags, and a Model's `modalities`, `capabilities` and
@@ -172,6 +172,26 @@ by `mode`, and every field is written down, "not applicable" included (`false`,
   prompt nudge.
 - `decision` (the `/v1/systemone` recipes): `max_input_tokens` and
   `input_modalities` only. A synthetic example is `recipe-api-decision.json`.
+- `audio_transcription` and `audio_speech` are LiteLLM's own `model_info.mode`
+  names, one block and one endpoint per mode, so an audio block has no
+  `endpoints` and no token or modality fields: the consumer derives
+  `/v1/audio/transcriptions` or `/v1/audio/speech` from the mode. Field names are
+  OpenAI request parameter names. A route that also answers chat is still one
+  mode: declare the one the recipe is loaded for.
+  - `audio_transcription` (on vLLM only a model class with
+    `supports_transcription`, so check the engine first): `input_formats` (of
+    flac, m4a, mp3, mp4, mpeg, mpga, ogg, wav, webm), `max_file_bytes` (the
+    engine's upload limit, at most `MAX_AUDIO_FILE_BYTES` = 256 MiB, the bound the
+    gateway's edge admits), `max_audio_seconds` (the engine's decode limit, or
+    `null`), `languages` (two-letter ISO 639-1 values of `language`),
+    `response_formats` (of json, text, srt, verbose_json, vtt, diarized_json),
+    `prompt` and `temperature` (the engine honours that OpenAI parameter) and
+    `timestamp_granularities` (of word, segment; `[]` offers none). Example:
+    `recipe-api-transcription.json`.
+  - `audio_speech`: `voices` (the values of `voice`; the first is the route's
+    health-check voice), `response_formats` (of mp3, opus, aac, flac, wav, pcm),
+    `instructions` and `speed` (the engine honours that OpenAI parameter) and
+    `max_input_chars` (the bound of `input`). Example: `recipe-api-speech.json`.
 
 An option choice that changes any of these facts carries its own complete
 block in `option_choices` (`{option, value, api}`); it replaces the base block as
@@ -186,8 +206,15 @@ video or audio input conflicts with `--language-model-only` or a
 present and bound to `context_tokens`, or the block declares an explicit
 `max_input_tokens`; limits cannot exceed the context; a `default_output_tokens`
 argument must exist with an integer value; llama.cpp `--parallel` gives each
-request only its slot's share. `check_api_models` requires a selected Model whose
-display declares each accepted modality together with its `*-understanding` capability (`INPUT_MODALITY_CAPABILITIES`). Whether the launch really enables a tool-call
+request only its slot's share; on vLLM a `VLLM_MAX_AUDIO_CLIP_FILESIZE_MB` (MiB)
+or `VLLM_MAX_AUDIO_DECODE_DURATION_S` the recipe sets must equal a transcription
+block's `max_file_bytes` or `max_audio_seconds`. An audio block takes no token
+checks, and a decision recipe cannot serve one. `check_api_models` requires a
+selected Model whose display declares each accepted modality together with its
+`*-understanding` capability (`INPUT_MODALITY_CAPABILITIES`; `accepted_modalities`
+says audio for a transcription block and text for a speech block); a speech block
+also needs a Model with the `audio` modality and the `audio-generation`
+capability. Whether the launch really enables a tool-call
 or reasoning parser is not re-derived: `tools/check-recipe-api` asks
 `qualification.capabilities.serving_capabilities` (runtime arguments, adapter
 scripts, kit flags) for every variant. The guard runs all three on added or
@@ -200,9 +227,21 @@ OpenAI-compatible HTTP or filesystem job interface. Native decision models use
 `POST /v1/systemone`, `openai.systemone` and `decision.probabilities`; use the
 `systemone.py` typed requests/responses, preserving native result shapes and
 extensions (`tests/test_systemone_contract.py`).
+Audio routes have their own serving kinds. `openai.transcription` is the only
+check with the `http-multipart` request: `POST /v1/audio/transcriptions` with
+string `fields` (at least `model`; also `language`, `response_format`) and one
+`file` (`field: "file"`, a package `fixture` path, `media_type: "audio/wav"`),
+asserting `transcription.nonempty` (the JSON `text` is non-empty). Use the raw
+`qualification/fixtures/jfk-inaugural-10s.wav` (public domain, 10.4 s, 16 kHz)
+unless the recipe needs another clip. `openai.speech` is a JSON `http` request to
+`/v1/audio/speech` with `input`, `voice` and `response_format: "wav"`, asserting
+`speech.audio` (a decodable WAV of at least `MIN_SPEECH_SECONDS` with an `audio/*` content
+type; `wav_facts` is the one reader, and a `data` chunk of size 0 or 0xFFFFFFFF means the rest of the body). A kind that an older reader does not know is a hard read failure there,
+so a recipe uses a new kind only after the Controller reads this contract
+version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.1.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.6.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -474,6 +513,7 @@ memory (`per_rank_need`) and record the predicted outcome, and any creator
 caveat such as "testing only", in the PR and description. The
 estimate rules are calibrated on the proven set. A KV pool holds at least one full-context request,
 not declared context × engine concurrency: engines schedule requests within it.
+Any sparse-index geometry (DSA, MSA) counts its index cache, and a draft pool if any, in the numbers (`replicated_token_bytes`).
 GLM DSA (sparse-MLA) pools count the indexer cache inside the same pool: bytes per
 token are (backbone + MTP layers) × the main record (656 fp8_ds_mla, 400
 nvfp4_ds_mla) plus the layers that build an indexer (the full layers of
@@ -523,6 +563,20 @@ not measured. Until the content a refresh replaces has a row for every role, a
 refresh keeps that proven document's peaks when the move raises no budget,
 lowers no peak and no row shows a role above its peak; complete rows then
 decide alone.
+The catalog publishes what hardware measured as the entry's sibling key
+`measured_memory` (contract `PublishedMeasuredMemory`, never inside
+`qualification`: older Controllers reject unknown status fields and ignore
+unknown entry keys). `published_measured_peaks` is the one publish rule: per
+role, the evidence row of the exact content, converted once by
+`measured_peak_bytes` (use less the 2 GiB OS floor), only while that content is
+hardware-proven and only when the row covers every launch variant
+(`keeps_measured_peaks`, or a single variant) or measured more than declared.
+`measured_peak_bytes` is information; `peak_bytes` is what admission reads. A
+measurement above the admission maximum keeps `peak_bytes` at the declared peak
+and sets `exceeds_admission_maximum`: the Controller admits on the declaration
+and warns. Job recipes are never measured (their sample is taken after the
+job). `catalog-measured-memory-v1.json` under the contract examples is the
+vector both repositories test against.
 `tests/test_absolute_kv_capacity.py` replays the recorded failures and must
 warn on each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
@@ -1159,7 +1213,7 @@ The sweep process and verdict meanings live in
   cases switch thinking off per request, while markup rules still apply. Keep
   the two assertion classes separate (`tests/test_sweep_quality.py`,
   `tests/test_qualification_chat_cases.py`, `tests/test_sweep_vonkctl_smoke.py`).
-- **Artifact job with `--job-recipes`:** create/upload/submit one job against the
+- **Artifact job:** create/upload/submit one job against the
   held run, follow its receipt, download outputs and evaluate output count,
   names, media/format, size, image/audio/video metadata, GLB structure, ZIP entries
   or declared document/transcript assertions. `spark_sweep/smoke_job.py` and
@@ -1167,8 +1221,7 @@ The sweep process and verdict meanings live in
   are recorded as `not_evaluated` with a reason, never silently passed. Video
   inspection needs ffprobe; inspect any missing observation before claiming
   coverage (`tests/test_sweep_job_smoke.py`, `tests/test_sweep_job_media.py`,
-  `tests/test_image_output_contracts.py`). Without deployed job-profile support
-  and the flag, jobs are skipped (`tests/test_sweep_job_recipes.py`).
+  `tests/test_image_output_contracts.py`, `tests/test_sweep_job_recipes.py`).
 - **Other non-OpenAI services:** `readiness-only` proves health/routing only;
   never call it successful generation (`spark_sweep/smoke.py`).
 
@@ -1221,6 +1274,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-test-git`, `tests/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
 | `tools/check-document-reads`, `tools/_added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
 | `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
+| `tools/check-platform-contracts`, `qualification/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. |
 | `tests/test_guidance_files.py` | Guidance stays in the allowlisted files and local Markdown links resolve. Consolidate the new rule here or in AGENTS; fix links in the same change. |
 | `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
 

@@ -62,17 +62,5 @@
         "Carried from the identical execution document before the Model facts split"
       ]
     }
-  ],
-  "measured_memory": [
-    {
-      "content_sha256": "0b4a2141c520d9e4e8cb02b09a68e4d6986ff1de870f40cd3d7f409d86c5fa3f",
-      "role": "entrypoint",
-      "steady_bytes": 4206444544
-    },
-    {
-      "content_sha256": "aa8eaec1d359e762800f6a0734145dc7c6335c482004da0b362af545bb3d3bd0",
-      "role": "entrypoint",
-      "steady_bytes": 4206444544
-    }
   ]
 }

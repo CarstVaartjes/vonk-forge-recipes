@@ -239,17 +239,5 @@
       },
       "quality_notes": []
     }
-  ],
-  "measured_memory": [
-    {
-      "content_sha256": "6e072f2e9354921c8163153882d4e9fea9356f5de5ac1546f08c95e3961f89e4",
-      "role": "entrypoint",
-      "steady_bytes": 4861157376
-    },
-    {
-      "content_sha256": "8d5c8ddf44b2f6eb379dc43c3eb171bbdf993286dc6dc3c16c42b88ad87c39ec",
-      "role": "entrypoint",
-      "steady_bytes": 4861157376
-    }
   ]
 }

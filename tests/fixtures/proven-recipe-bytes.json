@@ -26,7 +26,6 @@
   "vonk-forge/gemma-4-e4b-it-q8-0-ggml-org-llamacpp-single": "34e8676648cb4c1e21deddbc1071a2c320008464b9fefe29bc4f0cda6a0519e9",
   "vonk-forge/glm-4-7-flash-awq-4bit-eugr-vllm-dual": "6395cc10cb444a970b22961bbd73e570da0a72964a344280371feb5469f19de2",
   "vonk-forge/glm-4-7-flash-awq-4bit-eugr-vllm-single": "38e1805764908e5930708eda2a65b02222af3e84102b7dbc2a8f79048558bf63",
-  "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual": "7980c495b467a9f40168b816a6d74baa682655e2d5bd6da52bd5c24f9b856b78",
   "vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual": "01421d6a2d4efdf67a232ba21da022436a6c8b19910ccaa3f014f6f00fc107af",
   "vonk-forge/gpt-oss-120b-eagle3-nvidia-trtllm-single": "cc43c7c0d1d51ac46ff5773b3181998c8bd9c60029ac56433bcbcbbb32562388",
   "vonk-forge/gpt-oss-120b-nvidia-trtllm-single": "9db2167626c8bec5c2e5ba92e6ab4a9a7d419e3edefda3180c1e50c3029c841f",
