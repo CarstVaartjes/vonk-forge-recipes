@@ -241,7 +241,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.4.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.5.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -562,6 +562,20 @@ not measured. Until the content a refresh replaces has a row for every role, a
 refresh keeps that proven document's peaks when the move raises no budget,
 lowers no peak and no row shows a role above its peak; complete rows then
 decide alone.
+The catalog publishes what hardware measured as the entry's sibling key
+`measured_memory` (contract `PublishedMeasuredMemory`, never inside
+`qualification`: older Controllers reject unknown status fields and ignore
+unknown entry keys). `published_measured_peaks` is the one publish rule: per
+role, the evidence row of the exact content, converted once by
+`measured_peak_bytes` (use less the 2 GiB OS floor), only while that content is
+hardware-proven and only when the row covers every launch variant
+(`keeps_measured_peaks`, or a single variant) or measured more than declared.
+`measured_peak_bytes` is information; `peak_bytes` is what admission reads. A
+measurement above the admission maximum keeps `peak_bytes` at the declared peak
+and sets `exceeds_admission_maximum`: the Controller admits on the declaration
+and warns. Job recipes are never measured (their sample is taken after the
+job). `catalog-measured-memory-v1.json` under the contract examples is the
+vector both repositories test against.
 `tests/test_absolute_kv_capacity.py` replays the recorded failures and must
 warn on each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
