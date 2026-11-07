@@ -583,6 +583,16 @@
       "source": "https://huggingface.co/nvidia/MiniMax-M2.7-NVFP4/resolve/e79701cb1f9dce8fe5395b9ed2b20170beebecde/config.json",
       "value_dim": 128
     },
+    "minimax-m3-1-flash-exl3-sage-2-15bpw-99bf3a57": {
+      "architecture": "MiniMaxM3SparseForConditionalGeneration",
+      "configuration_sha256": "c284f32a983fe0092eda467af2d0f4224a8094d3a82f7b705acf3747ffc2ec25",
+      "key_dim": 128,
+      "kv_heads": 4,
+      "layers": 60,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw/resolve/99bf3a57af5d07245ea9abb5426e7dce6af6356b/config.json (HF API revision 99bf3a57af5d07245ea9abb5426e7dce6af6356b); sha256 c284f32a983fe0092eda467af2d0f4224a8094d3a82f7b705acf3747ffc2ec25. text_config: num_hidden_layers 60, num_key_value_heads 4, head_dim 128, max_position_embeddings 1048576; every layer is full attention (no sliding window). Every layer also sets sparse_attention_freq 1 with a 4-head, 128-dim sparse index (sparse_disable_index_value 1); that index cache is not counted here. Allocation estimate, not hardware proof.",
+      "value_dim": 128
+    },
     "nemotron-3-5-lightning-30b-a3b-nvfp4": {
       "architecture": "NemotronHForCausalLM",
       "configuration_sha256": "f1d98b530846087dc08b574a219713a94f945bf6583dc7230a19ebf1e8c50933",
