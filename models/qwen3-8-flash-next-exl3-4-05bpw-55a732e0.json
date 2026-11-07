@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding",
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -269,17 +264,6 @@
     "version": "3.8"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "turboderp"
-    ],
-    "spdx": "LicenseRef-Qwen-Community-1.0",
-    "url": "https://huggingface.co/turboderp/Qwen3.8-Flash-Next-exl3/blob/55a732e0c4c3d4614bc42b68493bb930d9b02c0a/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/turboderp/Qwen3.8-Flash-Next-exl3",

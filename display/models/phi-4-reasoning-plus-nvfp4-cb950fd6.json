@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation"
+  ],
   "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Phi-4-reasoning-plus.",
   "family_title": "Microsoft Phi-4",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "phi-4-reasoning-plus-nvfp4-cb950fd6"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Microsoft"
+    ],
+    "spdx": "MIT",
+    "url": "https://opensource.org/license/mit"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Phi-4 Reasoning Plus",
   "tags": [
     "nvidia",

@@ -1,4 +1,10 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "Complete 88-file official DeepSeek V4.1 Flash snapshot at dba1be0a: 48 mixed FP4/FP8/BF16 shards, vision tower, native DSpark prediction layers, tokenizer, prompt encoder and minimal inference reference. Serves as the source of the Engram n-gram tables (shards 47 and 48) for the MiaAI-Lab EXL3 checkpoint.",
   "family_title": "DeepSeek Flash",
   "identity": {
@@ -6,6 +12,16 @@
     "slug": "deepseek-v4-1-flash-314113f8"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek AI"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/dba1be0a40aa45a94ad051997016db3960a90277/LICENSE"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "DeepSeek V4.1 Flash",
   "tags": [
     "candidate",

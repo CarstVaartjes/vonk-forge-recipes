@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "text-generation"
+  ],
   "description": "LiLiCorr speculative drafter for the Bolt 24GB checkpoint.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "nemotron-3-5-bolt-lilicorr-4c6a5613"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA"
+    ],
+    "spdx": "LicenseRef-OpenMDW-1.1",
+    "url": "https://openmdw.ai/license/1-1/"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Nemotron 3.5 Bolt LiLiCorr",
   "tags": [
     "nvidia",

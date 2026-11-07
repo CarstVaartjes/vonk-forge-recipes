@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+import base64
 import importlib.machinery
 import importlib.util
 import json
+import os
+import shutil
 import sys
 import tempfile
 import unittest
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "tools/check-upstream-drift"
@@ -26,7 +32,7 @@ class FakeClient:
         self.responses = responses
         self.requests: list[tuple[str, str]] = []
 
-    def json(self, url: str, provider: str) -> object:
+    def json(self, url: str, provider: str) -> Any:
         self.requests.append((url, provider))
         response = self.responses[url]
         if isinstance(response, Exception):
@@ -260,7 +266,7 @@ class DiscoveryTests(unittest.TestCase):
 
 
 class ObservationTests(unittest.TestCase):
-    def watch(self, *, provider: str, policy: str) -> object:
+    def watch(self, *, provider: str, policy: str) -> Any:
         return drift.Watch(
             entity="recipe/example/runtime",
             source_path="recipes/runtime.json",
@@ -373,6 +379,388 @@ class ReleaseAssetWatchTests(unittest.TestCase):
         self.assertEqual(drift.observe(watch, client).status, "missing")
         client.responses[f"{base}/264676230"] = drift.RemoteNotFound("deleted release")
         self.assertEqual(drift.observe(watch, client).status, "missing")
+
+
+MIA_BANNER = """# 🚨 NEW, BETTER RECIPE AVAILABLE — EVERYONE SHOULD USE IT 🚨
+
+> [!IMPORTANT]
+> ## This recipe is superseded. **Everything should be using the new one.**
+>
+> # 👉 [github.com/MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104](https://github.com/MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104) 👈
+
+<h1 align="center">GLM-5.3-Flash EXL3 on DGX Sparks with TensorFold</h1>
+
+<a href="https://github.com/sponsors/MiaAI-Lab">Sponsor</a>
+"""
+MIA_OLD = "MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold"
+MIA_NEW = "MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104"
+MIA_NEW_README = """<h1>GLM-5.3-Flash on DGX Sparks with TensorFold</h1>
+
+> [!IMPORTANT]
+> **This is a brand-new recipe, version 1104.** It is not an update of
+> [old](https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold)
+"""
+MIA_LISTING = {
+    "name": "GLM-5.3-Flash-DGX-Sparks-1104",
+    "created_at": "2026-11-04T11:54:11Z",
+    "description": "GLM-5.3-Flash on DGX Sparks (ver 1104) with TensorFold",
+}
+# Real 2026-11 listings that the first matcher flagged wrongly.
+NOISE_LISTINGS = [
+    ("microsoft", "amplifier-bundle-ui-use", "2026-11-02T00:00:00Z",
+     "Shared browser and computer UI-use behavior with optional decision models"),
+    ("microsoft", "amplifier-constellation-instance", "2026-11-03T01:13:49Z",
+     "Independent installed agents with setup, profiles, authorized context, and management UI/API"),
+    ("microsoft", "amplifier-lib-decisions", "2026-11-02T00:00:00Z",
+     "Optional typed decision-model contracts for the Amplifier ecosystem"),
+    ("microsoft", "amplifier-bundle-alexa-tester", "2026-11-02T00:00:00Z",
+     "Test and validate Alexa custom skills against Amazon's real NLU"),
+    ("huggingface", "safeagents", "2026-11-03T13:52:42Z",
+     "Safely run your agents using any coding harness"),
+    ("Tencent-Hunyuan", "FlashTopK", "2026-11-05T10:38:09Z",
+     "Fast, exact fused top-k selection for learned sparse attention training and inference, from HyScale (Tencent Hunyuan)."),
+]  # fmt: skip
+NEWHEAD = "c" * 40
+NOW = datetime(2026, 11, 6, tzinfo=UTC)
+API = "https://api.github.com"
+
+
+class QuietClient(FakeClient):
+    """Unknown URLs are absent upstream, like a real 404."""
+
+    def json(self, url: str, provider: str) -> Any:
+        if url not in self.responses:
+            raise drift.RemoteNotFound(url)
+        return super().json(url, provider)
+
+
+def _listing_url(owner: str, page: int = 1) -> str:
+    return (
+        f"{API}/users/{owner}/repos?sort=created&direction=desc"
+        f"&per_page=100&page={page}&type=owner"
+    )
+
+
+def _watch(entity: str, repository: str, **fields: Any) -> Any:
+    provider = "github" if entity.startswith("recipe/") else "huggingface"
+    return drift.Watch(
+        entity, "x.json", provider, repository, PINNED, None, "default-branch", None,
+        **fields,
+    )  # fmt: skip
+
+
+# A fixed, recipe-shaped catalog: the signals must not depend on live data.
+FIXTURE_WATCHES = [
+    _watch("model/example/glm-a", "example/glm-a", family="glm"),
+    _watch("model/example/qwen-a", "example/qwen-a", family="qwen"),
+    _watch("recipe/vonk-forge/glm-old-a", MIA_OLD, models=("model/example/glm-a",)),
+    _watch("recipe/vonk-forge/glm-old-b", MIA_OLD, models=("model/example/glm-a",)),
+    _watch("recipe/vonk-forge/glm-other", "other/glm-kit", models=("model/example/glm-a",)),
+    _watch("recipe/vonk-forge/qwen-x", "other/qwen-kit", models=("model/example/qwen-a",)),
+]  # fmt: skip
+FIXTURE_FAMILIES = {
+    "glm", "qwen", "agents-a1", "decision-3", "ui-mate", "real-esrgan",
+    "hunyuan-video", "deepseek-flash", "gem-x",
+}  # fmt: skip
+
+
+class CreatorSignalTests(unittest.TestCase):
+    watches = FIXTURE_WATCHES
+    families = FIXTURE_FAMILIES
+
+    def test_live_catalog_recipe_watches_are_structurally_sound(self) -> None:
+        defaults, overrides = drift.load_manifest(ROOT / "upstream-watch.json")
+        live = drift.discover_watches(ROOT, defaults, overrides)
+        recipes = [w for w in live if w.entity.startswith("recipe/")]
+        self.assertTrue(recipes)
+        for watch in recipes:
+            slug = watch.entity.split("/")[2]
+            self.assertTrue((ROOT / "recipes" / f"{slug}.json").is_file(), slug)
+            self.assertTrue(watch.models, slug)
+        self.assertTrue(any(w.family for w in live if w.entity.startswith("model/")))
+
+    def test_mia_banner_names_the_successor(self) -> None:
+        notice = drift.find_supersession(MIA_BANNER, MIA_OLD, PINNED)
+        assert notice is not None
+        self.assertEqual(notice.kind, "supersession")
+        self.assertEqual(notice.label, "upstream-superseded")
+        self.assertEqual(notice.linked_repo, MIA_NEW)
+        self.assertEqual(notice.source_commit, PINNED)
+        self.assertEqual(notice.dedupe_key, f"supersession:{MIA_OLD}:{MIA_NEW}".lower())
+
+    def test_ordinary_readmes_and_non_repo_links_are_not_notices(self) -> None:
+        for readme in (
+            MIA_NEW_README,
+            "# Tool\nSee https://github.com/a/b",
+            "> Deprecated, see https://github.com/a/c",
+            "\n" * 80 + "superseded https://github.com/a/b",
+            # real false positives: an attachment and a pull request link
+            "> This is superseded, see https://github.com/user-attachments/assets/1f2e",
+            "> Superseded by the work in https://github.com/a/b/pull/12",
+            "> Deprecated, see https://github.com/a/b/issues/3 and https://github.com/orgs/x/y",
+        ):
+            with self.subTest(readme=readme):
+                self.assertIsNone(drift.find_supersession(readme, "a/c", PINNED))
+
+    def test_new_repos_match_whole_family_slugs_inside_the_window(self) -> None:
+        for owner, name, created, description in NOISE_LISTINGS:
+            with self.subTest(repo=name):
+                listing = [
+                    {"name": name, "created_at": created, "description": description}
+                ]
+                self.assertEqual(
+                    drift.match_new_repos(owner, listing, NOW, self.families, set()), []
+                )
+        listing = [
+            MIA_LISTING,
+            {
+                "name": "old-glm",
+                "created_at": "2026-08-01T00:00:00Z",
+                "description": "glm",
+            },
+            {"name": "glm-fork", "created_at": "2026-11-05T00:00:00Z", "fork": True},
+            {"name": "glm-pinned", "created_at": "2026-11-05T00:00:00Z"},
+        ]
+        found = drift.match_new_repos(
+            "MiaAI-Lab", listing, NOW, self.families, {"miaai-lab/glm-pinned"}
+        )
+        self.assertEqual(
+            [(f.linked_repo, f.matched_family) for f in found], [(MIA_NEW, "glm")]
+        )
+        self.assertEqual(found[0].label, "upstream-new-repo")
+        with self.assertRaises(TypeError):
+            drift.match_new_repos("x", {"message": "rate limited"}, NOW, set(), set())
+
+    def test_listing_pages_until_the_window_is_left(self) -> None:
+        recent = [
+            {"name": f"r{i}", "created_at": "2026-11-05T00:00:00Z"} for i in range(100)
+        ]
+        old = [{"name": "o", "created_at": "2026-01-01T00:00:00Z"}]
+        client = FakeClient(
+            {
+                _listing_url("o", 1): recent,
+                _listing_url("o", 2): old,
+                _listing_url("o", 3): [],
+            }
+        )
+        self.assertEqual(len(drift._recent_repos(client, "o", NOW)[0]), 101)
+        self.assertEqual(
+            [u for u, _ in client.requests],
+            [_listing_url("o", 1), _listing_url("o", 2)],
+        )
+
+    def test_paging_cap_is_a_signal_error(self) -> None:
+        full = [
+            {"name": f"r{i}", "created_at": "2026-11-05T00:00:00Z"} for i in range(100)
+        ]
+        client = FakeClient({_listing_url("o", n): full for n in range(1, 6)})
+        self.assertTrue(drift._recent_repos(client, "o", NOW)[1])
+        root = self._scan_root(
+            json.dumps(
+                {
+                    "_comment": "c",
+                    "creators": [
+                        {
+                            "name": "o",
+                            "url": "https://github.com/o",
+                            "aliases": [],
+                            "focus": "f",
+                        }
+                    ],
+                }
+            )
+        )
+        signals = drift.scan_creator_signals(root, [], client, NOW)
+        self.assertEqual([e.subject for e in signals.signal_errors], ["o"])
+        self.assertIn("5 pages", signals.signal_errors[0].detail)
+
+    def test_label_is_derived_from_kind(self) -> None:
+        finding = drift._finding(
+            "new-repo", "o", "o/r", source_repo=None, source_commit=None,
+            linked_commit=None, recipe_slugs=[], matched_family="glm", detail="d",
+        )  # fmt: skip
+        self.assertEqual(finding.label, "upstream-new-repo")
+        record = {**finding.model_dump(), "label": "upstream-superseded"}
+        with self.assertRaises(ValueError):
+            drift.CreatorFinding.model_validate(record)
+
+    def _scan_root(self, creators: str) -> Path:
+        root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        (root / "creators.json").write_text(creators, encoding="utf-8")
+        return root
+
+    def test_scan_names_real_recipes_for_both_signals(self) -> None:
+        root = self._scan_root(
+            json.dumps(
+                {
+                    "_comment": "c",
+                    "creators": [
+                        {
+                            "name": "Mia",
+                            "url": "https://github.com/MiaAI-Lab",
+                            "aliases": [],
+                            "focus": "f",
+                        }
+                    ],
+                }
+            )
+        )
+        readme = base64.b64encode(MIA_BANNER.encode()).decode()
+        client = QuietClient(
+            {
+                f"{API}/repos/{MIA_OLD}/commits/HEAD": {
+                    "sha": OBSERVED,
+                    "html_url": "u",
+                },
+                f"{API}/repos/{MIA_OLD}/readme?ref={OBSERVED}": {"content": readme},
+                f"{API}/repos/{MIA_NEW}/commits/HEAD": {
+                    "sha": NEWHEAD,
+                    "html_url": "u",
+                },
+                _listing_url("MiaAI-Lab"): [MIA_LISTING],
+            }
+        )
+        signals = drift.scan_creator_signals(root, self.watches, client, NOW)
+        by_kind = {f.kind: f for f in signals.findings}
+        self.assertEqual(set(by_kind), {"supersession", "new-repo"})
+        old, new = by_kind["supersession"], by_kind["new-repo"]
+        self.assertEqual((old.source_commit, old.linked_commit), (OBSERVED, NEWHEAD))
+        self.assertEqual(new.linked_commit, NEWHEAD)
+        self.assertEqual(old.recipe_slugs, ["glm-old-a", "glm-old-b"])
+        self.assertEqual(new.recipe_slugs, ["glm-old-a", "glm-old-b", "glm-other"])
+        self.assertEqual(
+            drift.report([], "t", None, signals)["creator_signals"],
+            signals.model_dump(mode="json"),
+        )
+
+    def test_bad_creators_file_is_a_signal_error_not_a_lost_scan(self) -> None:
+        root = self._scan_root(
+            '{"_comment": "c", "creators": [{"name": "x", "extra": 1}]}'
+        )
+        readme = base64.b64encode(MIA_BANNER.encode()).decode()
+        client = QuietClient(
+            {
+                f"{API}/repos/{MIA_OLD}/commits/HEAD": {
+                    "sha": OBSERVED,
+                    "html_url": "u",
+                },
+                f"{API}/repos/{MIA_OLD}/readme?ref={OBSERVED}": {"content": readme},
+            }
+        )
+        signals = drift.scan_creator_signals(root, self.watches, client, NOW)
+        self.assertEqual([f.kind for f in signals.findings], ["supersession"])
+        self.assertIn("creators.json", [e.subject for e in signals.signal_errors])
+
+    def test_detail_cannot_close_the_issue_fence(self) -> None:
+        finding = drift._finding(
+            "supersession", "a/b", "a/c", source_repo="a/b", source_commit=PINNED,
+            linked_commit=None, recipe_slugs=[], matched_family=None, detail="x ``` y",
+        )  # fmt: skip
+        self.assertNotIn("```", finding.detail)
+
+
+FAKE_GH = """#!{python}
+import json, sys
+state_path = {state!r}
+state = json.load(open(state_path))
+args = sys.argv[1:]
+state["log"].append(args)
+
+def flag(name):
+    return args[args.index(name) + 1]
+
+def save():
+    json.dump(state, open(state_path, "w"))
+
+if args[:2] == ["issue", "list"]:
+    rows = [i for i in state["issues"] if flag("--label") in i["labels"]]
+    print(json.dumps([{{k: i[k] for k in ("number", "state", "title")}} for i in rows]))
+elif args[:2] == ["issue", "create"]:
+    if "failme" in flag("--title"):
+        save()
+        sys.exit("refused")
+    state["issues"].append({{"number": len(state["issues"]) + 1, "state": "OPEN",
+        "title": flag("--title"), "body": flag("--body"), "labels": [flag("--label")]}})
+elif args[:2] == ["issue", "edit"]:
+    for i in state["issues"]:
+        if str(i["number"]) == args[2]:
+            i["body"] = flag("--body")
+save()
+"""
+
+
+class IssueWritingTests(unittest.TestCase):
+    def _finding(self, kind: str, source: str, linked: str) -> Any:
+        return drift._finding(
+            kind, source, linked, source_repo=source if kind == "supersession" else None,
+            source_commit=None, linked_commit=None, recipe_slugs=["r"], matched_family=None,
+            detail="d",
+        )  # fmt: skip
+
+    def _issue(
+        self, number: int, finding: Any, state: str = "OPEN"
+    ) -> dict[str, object]:
+        return {
+            "number": number,
+            "state": state,
+            "title": f"[{finding.label}] {finding.dedupe_key}",
+            "body": f"```json\n{finding.model_dump_json()}\n```",
+            "labels": [finding.label],
+        }
+
+    def test_create_refresh_skip_closed_isolate_failure_and_never_close(self) -> None:
+        fresh = self._finding("supersession", "o/fresh", "o/next")
+        open_one = self._finding("supersession", "o/open", "o/next")
+        closed = self._finding("supersession", "o/closed", "o/next")
+        refused = self._finding("new-repo", "o", "o/failme")
+        directory = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, directory, ignore_errors=True)
+        state_path = directory / "state.json"
+        state_path.write_text(
+            json.dumps(
+                {
+                    "log": [],
+                    "issues": [
+                        self._issue(1, open_one),
+                        self._issue(2, closed, "CLOSED"),
+                    ],
+                }
+            )
+        )
+        gh = directory / "gh"
+        gh.write_text(FAKE_GH.format(python=sys.executable, state=str(state_path)))
+        gh.chmod(0o755)
+        signals = drift.CreatorSignals(
+            findings=[fresh, open_one, closed, refused],
+        )
+        with mock.patch.dict(
+            "os.environ", {"PATH": f"{directory}:{os.environ['PATH']}"}
+        ):
+            failures = drift.file_issues(signals)
+        state = json.loads(state_path.read_text())
+        self.assertEqual(failures, 1)
+        by_title = {i["title"]: i for i in state["issues"]}
+        created = by_title[f"[upstream-superseded] {fresh.dedupe_key}"]
+        self.assertIn(f"<!-- dedupe-key: {fresh.dedupe_key} -->", created["body"])
+        self.assertEqual(drift.parse_issue_body(created["body"]), fresh)
+        self.assertEqual(
+            by_title[f"[upstream-superseded] {open_one.dedupe_key}"]["state"], "OPEN"
+        )
+        self.assertIn(
+            "dedupe-key",
+            by_title[f"[upstream-superseded] {open_one.dedupe_key}"]["body"],
+        )
+        self.assertEqual(
+            by_title[f"[upstream-superseded] {closed.dedupe_key}"]["state"], "CLOSED"
+        )
+        self.assertNotIn(f"[upstream-new-repo] {refused.dedupe_key}", by_title)
+        self.assertNotIn(
+            "close", [call[1] for call in state["log"] if call[0] == "issue"]
+        )
+        self.assertEqual(
+            sum(1 for call in state["log"] if call[:2] == ["issue", "create"]), 2
+        )  # the refused write did not stop the fresh one
 
 
 if __name__ == "__main__":

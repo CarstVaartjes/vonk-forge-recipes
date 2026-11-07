@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -85,16 +84,6 @@
     "version": "SigLIP 2 Base Patch16 512 a89f5c50"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "google"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/google/siglip2-base-patch16-512/blob/a89f5c5093f902bf39d3cd4d81d2c09867f0724b/README.md"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/google/siglip2-base-patch16-512",

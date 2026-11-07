@@ -1,0 +1,26 @@
+{
+  "alignment": "unspecified",
+  "description": "NVIDIA's offline speech-to-text model on one DGX Spark: 40-language transcription, speaker tags and word timestamps for recordings up to an hour, served by vLLM 0.32.0 with NeMo Speech as the model card prescribes. Send audio to /v1/chat/completions as an audio_url; it is not a /v1/audio/transcriptions route. Memory is converted from the creator's 0.85 of a 96 GB RTX PRO 6000 and is an estimate until tried.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-5-transcribe-30b-a4b-nvfp4-nvidia-vllm-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "audio",
+    "candidate",
+    "executable",
+    "multimodal",
+    "nemotron",
+    "nvfp4",
+    "nvidia",
+    "openai",
+    "reasoning",
+    "single",
+    "spark",
+    "speech-to-text",
+    "transcription",
+    "vllm"
+  ],
+  "title": "Nemotron 3.5 Transcribe 30B-A4B NVFP4 (NVIDIA, vLLM, single Spark)"
+}

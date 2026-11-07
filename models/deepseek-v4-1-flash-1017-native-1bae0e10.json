@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -774,17 +768,6 @@
     "version": "1017-1bae0e10"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "DeepSeek-AI; LibertAI for the EXL3 quantization."
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/blob/1bae0e1088993b9b82de08f59de5be5a34e42170/LICENSE"
-  },
-  "modalities": [
-    "text",
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017",

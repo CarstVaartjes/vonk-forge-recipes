@@ -1,11 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -2656,17 +2649,6 @@
     "version": "GLM 5.3 Int4 Int8Mix 206507bb"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Z.ai",
-      "tonyd2wild"
-    ],
-    "spdx": "LicenseRef-GLM-5.3",
-    "url": "https://huggingface.co/Tech2wild/GLM-5.3-Int4-Int8Mix/blob/206507bbb047d8223964a0414cd83230c59428f9/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Tech2wild/GLM-5.3-Int4-Int8Mix",

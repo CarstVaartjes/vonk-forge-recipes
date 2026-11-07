@@ -9,6 +9,8 @@ import sys
 import textwrap
 from pathlib import Path
 
+from added_diff import added_diff
+
 ROOT = Path(__file__).resolve().parents[1]
 LOADER = importlib.machinery.SourceFileLoader(
     "check_document_reads", str(ROOT / "tools/check-document-reads")
@@ -55,28 +57,18 @@ def f(entry, roles):
 OLD_RAW = "import json\nx = json.loads(open('recipes/a.json').read())['runtime']\n"
 
 
-def _git(root: Path, *args: str) -> None:
-    subprocess.run(
-        ["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t", *args],
-        check=True,
-        capture_output=True,
-    )
-
-
 def _check(tmp_path: Path, files: dict[str, str], old: dict[str, str] | None = None):
-    _git(tmp_path, "init", "-q", "-b", "main")
-    for name, text in (old or {"README": "x\n"}).items():
+    """Judge ``files`` appended to the ``old`` files of the same names."""
+    before = old or {}
+    after = {
+        name: before.get(name, "") + textwrap.dedent(text)
+        for name, text in files.items()
+    }
+    for name, text in after.items():
         (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / name).write_text(text)
-    _git(tmp_path, "add", ".")
-    _git(tmp_path, "commit", "-q", "-m", "base")
-    _git(tmp_path, "branch", "base")
-    for name, text in files.items():
-        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
-        (tmp_path / name).write_text(textwrap.dedent(text))
-    _git(tmp_path, "add", ".")
-    _git(tmp_path, "commit", "-q", "-m", "head")
-    return guard.check(tmp_path, "base")
+    skipped = {name: len(text.splitlines()) for name, text in before.items()}
+    return guard.check(tmp_path, added_diff(after, old_lines=skipped))
 
 
 def test_added_raw_recipe_read_fails(tmp_path: Path) -> None:
@@ -125,20 +117,23 @@ def test_exempt_paths_pass(tmp_path: Path) -> None:
 
 def test_unchanged_raw_reads_pass_and_only_added_lines_count(tmp_path: Path) -> None:
     old = {"tools/old.py": OLD_RAW}
-    assert _check(tmp_path, {"tools/old.py": OLD_RAW + "y = 1\n"}, old) == []
+    assert _check(tmp_path, {"tools/old.py": "y = 1\n"}, old) == []
 
 
-def test_cli_exits_one_on_a_hit(tmp_path: Path) -> None:
-    _check(tmp_path, {"tools/new.py": RAW_RECIPE})
+def test_cli_reads_the_diff_from_stdin_and_exits_one_on_a_hit(tmp_path: Path) -> None:
+    text = textwrap.dedent(RAW_RECIPE)
+    (tmp_path / "tools").mkdir()
+    (tmp_path / "tools/new.py").write_text(text)
     run = subprocess.run(
         [
             sys.executable,
             str(ROOT / "tools/check-document-reads"),
-            "--base",
-            "base",
+            "--diff",
+            "-",
             "--root",
             str(tmp_path),
         ],
+        input=added_diff({"tools/new.py": text}),
         capture_output=True,
         text=True,
         check=False,

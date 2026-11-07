@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/stable-audio-3-small-sfx-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "1cf30f19281cf371bd27f50857cfbcf17d459bfc9a1b67ae718b9726db2d5da1",
+        "source_bundle_sha256": "7e8b554ef936c16cd66f94054728c62aabb9e3b15ec8b66192e98d9580a8b913",
+        "runtime_image": {
+          "build_key": "178f4787d236ec1c2ea459163fa2ab3695b3305c9f347fce2c33ab6ae7e2c203",
+          "image_digest": "sha256:1f3b3e4097e1eb8831d5ee9a20658bce095726af17192927452a28451474f9fd"
+        },
+        "model_digests": [
+          "00adb0542d5cfa1bd304b9e0d7fca62815624c7c2609607d727002f3810328d9"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "2176ed07ccc2a917a176647dfa28b277095b892f55703e899ca77a4b9620f314"
+      ],
+      "tested_at": "2026-11-06T14:31:59.150413Z",
+      "platform": {
+        "controller_source_sha": "47c6bc7417eaf14eb485cea51de0f4fd85c91324",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "5478798984e1b23f2e889889679076ae0b80c82e077570b2e639694206fc5c1e",
+        "source_bundle_sha256": "7e8b554ef936c16cd66f94054728c62aabb9e3b15ec8b66192e98d9580a8b913",
+        "runtime_image": {
+          "build_key": "178f4787d236ec1c2ea459163fa2ab3695b3305c9f347fce2c33ab6ae7e2c203",
+          "image_digest": "sha256:1f3b3e4097e1eb8831d5ee9a20658bce095726af17192927452a28451474f9fd"
+        },
+        "model_digests": [
+          "11de60543a0cf67d436aee87c4f2c3ab3f3b05c066b0993ff1e5d0a2ef7cac52"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "2176ed07ccc2a917a176647dfa28b277095b892f55703e899ca77a4b9620f314"
+      ],
+      "tested_at": "2026-11-06T14:31:59.150413Z",
+      "platform": {
+        "controller_source_sha": "47c6bc7417eaf14eb485cea51de0f4fd85c91324",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical execution document before the Model facts split"
+      ]
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "1cf30f19281cf371bd27f50857cfbcf17d459bfc9a1b67ae718b9726db2d5da1",
+      "role": "entrypoint",
+      "steady_bytes": 4137160704
+    },
+    {
+      "content_sha256": "5478798984e1b23f2e889889679076ae0b80c82e077570b2e639694206fc5c1e",
+      "role": "entrypoint",
+      "steady_bytes": 4137160704
+    }
+  ]
+}

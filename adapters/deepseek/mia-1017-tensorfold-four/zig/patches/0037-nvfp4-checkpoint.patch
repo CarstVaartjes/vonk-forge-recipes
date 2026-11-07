@@ -1,0 +1,1649 @@
+diff --git a/tools/dsv41-zig/native/check_cand.py b/tools/dsv41-zig/native/check_cand.py
+index fd7c279..d653e64 100644
+--- a/tools/dsv41-zig/native/check_cand.py
++++ b/tools/dsv41-zig/native/check_cand.py
+@@ -28,7 +28,7 @@ def check(name, ok, detail=""):
+ 
+ def build():
+     so = os.path.join("/tmp", "dsn_cand_host.so")
+-    subprocess.check_call(["nvcc", "-arch=sm_121", "-O3", "--fmad=false", "--ftz=false", "-std=c++17", "-shared",
++    subprocess.check_call(["nvcc", "-arch=sm_121a", "-O3", "--fmad=false", "--ftz=false", "-std=c++17", "-shared",
+                            "-Xcompiler", "-fPIC", "-o", so, os.path.join(HERE, "cand_host.cu")])
+     lib = ctypes.CDLL(so)
+     P, I, U = ctypes.c_void_p, ctypes.c_int, ctypes.c_ulonglong
+diff --git a/tools/dsv41-zig/native/check_native.py b/tools/dsv41-zig/native/check_native.py
+index f621673..f36528a 100644
+--- a/tools/dsv41-zig/native/check_native.py
++++ b/tools/dsv41-zig/native/check_native.py
+@@ -43,7 +43,7 @@ def check(name, ok, detail=""):
+ def build():
+     so = os.path.join("/tmp", "dsn_native_host.so")
+     src = os.path.join(HERE, "native_host.cu")
+-    subprocess.check_call(["nvcc", "-arch=sm_121", "-O3", "-std=c++17", "-shared", "-Xcompiler", "-fPIC", "-o", so, src])
++    subprocess.check_call(["nvcc", "-arch=sm_121a", "-O3", "-std=c++17", "-shared", "-Xcompiler", "-fPIC", "-o", so, src])
+     lib = ctypes.CDLL(so)
+     return lib
+ 
+diff --git a/tools/dsv41-zig/native/check_nvfp4.py b/tools/dsv41-zig/native/check_nvfp4.py
+new file mode 100644
+index 0000000..41aa674
+--- /dev/null
++++ b/tools/dsv41-zig/native/check_nvfp4.py
+@@ -0,0 +1,275 @@
++"""Checks of NVFP4 in zig/kernels/cuda/dsv41/native.cu (tf_dsn_nv_quant, the decode and prefill expert kernels with fmt 2)
++on real tensors of nvidia/DeepSeek-V4.1-Flash-1017-NVFP4. Runs in nvcr.io/nvidia/pytorch:26.07-py3 on a GB10:
++
++    python check_nvfp4.py <NVFP4 checkpoint dir> [layer] [n experts] [source FP8 checkpoint dir]
++
++  1. the scale pairs: a weight's E4M3 scales per 16 are equal in pairs (the kernels read one a block of 32);
++  2. the weights dequantize to what the checkpoint's card says: code * scale * weight_scale_2 (and, given the source
++     checkpoint, exactly to its MXFP4 weights);
++  3. tf_dsn_nv_quant: codes and scales equal nvfp4q.cuh's rule bit for bit, by expert;
++  4. the grouped experts, decode and prefill kernels, against MoE.forward's arithmetic in fp64 with NVFP4's quantization
++     (a bf16 ulp of h may flip one quantized input, so a relative bound on the outputs, and h compared exactly in ulps);
++  5. a row's bits never depend on the launch on the decode kernels (rows alone against rows together);
++  6. the outputs sit near W4A8's (the source's FP8 activations against the same weights): alpha and g are the right way
++     round, the quantization only coarser. Exit status 0 when every check holds.
++"""
++import ctypes
++import json
++import os
++import struct
++import subprocess
++import sys
++
++import torch
++
++HERE = os.path.dirname(os.path.abspath(__file__))
++sys.path.insert(0, HERE)
++from check_native import ref_act_quant, ptr  # noqa: E402
++
++dev = torch.device("cuda")
++TAB = torch.tensor([0, .5, 1, 1.5, 2, 3, 4, 6, -0., -.5, -1, -1.5, -2, -3, -4, -6], dtype=torch.float64)
++P, L, I, F = ctypes.c_void_p, ctypes.c_long, ctypes.c_int, ctypes.c_float
++FAILS = []
++
++
++def ok(cond, msg):
++    print(("ok   " if cond else "FAIL ") + msg, flush=True)
++    if not cond:
++        FAILS.append(msg)
++
++
++class Nv:
++    def __init__(self, root):
++        self.root = root
++        self.map = json.load(open(os.path.join(root, "model.safetensors.index.json")))["weight_map"]
++        self.h = {}
++
++    def get(self, name):
++        f = self.map[name]
++        if f not in self.h:
++            with open(os.path.join(self.root, f), "rb") as fh:
++                n = struct.unpack("<Q", fh.read(8))[0]
++                self.h[f] = (json.loads(fh.read(n)), 8 + n)
++        hh, base = self.h[f]
++        e = hh[name]
++        a, b = e["data_offsets"]
++        with open(os.path.join(self.root, f), "rb") as fh:
++            fh.seek(base + a)
++            raw = bytearray(fh.read(b - a))
++        dt = {"U8": torch.uint8, "I8": torch.uint8, "F8_E4M3": torch.uint8, "F8_E8M0": torch.uint8, "F32": torch.float32}[e["dtype"]]
++        return torch.frombuffer(raw, dtype=dt).reshape(e["shape"])
++
++
++def e4m3(b):
++    return b.view(torch.float8_e4m3fn).to(torch.float64)
++
++
++def nibbles(w):
++    b = w.to(torch.int64)
++    return torch.stack([b & 0xF, (b >> 4) & 0xF], -1).view(w.shape[0], -1)
++
++
++def dq(w, ws, g):
++    """code * e4m3 scale * global, fp64 [N, K]."""
++    return TAB.to(w.device)[nibbles(w)] * e4m3(ws).repeat_interleave(16, 1) * float(g)
++
++
++def ref_quant(x, g):
++    """nvfp4q.cuh: per 16, sf = e4m3(g * amax / 6), codes e2m1(x * g / sf): codes [M, K] (ints), scale bytes [M, K/16]."""
++    v = x.to(torch.bfloat16).float()
++    m, k = v.shape
++    b = v.view(m, k // 16, 16)
++    amax = b.abs().amax(-1)
++    sv = g.view(m, 1) * (amax * torch.tensor(1 / 6, dtype=torch.float32, device=v.device))
++    sb = sv.clamp(max=448).to(torch.float8_e4m3fn)
++    sf = sb.to(torch.float32)
++    mul = torch.where(sf != 0, g.view(m, 1) / sf, torch.zeros_like(sf))
++    a = (b * mul[:, :, None]).abs()
++    c = torch.zeros_like(a, dtype=torch.int64)
++    c[a > .25] = 1
++    c[a >= .75] = 2
++    c[a > 1.25] = 3
++    c[a >= 1.75] = 4
++    c[a > 2.5] = 5
++    c[a >= 3.5] = 6
++    c[a > 5] = 7
++    neg = (b * mul[:, :, None]) < 0
++    c = torch.where(neg & (c != 0), c | 8, c)
++    return c.view(m, k), sb.view(torch.uint8)
++
++
++def to_bf(v):
++    return v.to(torch.float32).to(torch.bfloat16).to(torch.float64)
++
++
++def main():
++    root = sys.argv[1]
++    layer = int(sys.argv[2]) if len(sys.argv) > 2 else 3
++    n_exp = int(sys.argv[3]) if len(sys.argv) > 3 else 12
++    src = sys.argv[4] if len(sys.argv) > 4 else None
++    so = "/tmp/dsn_nv_host.so"
++    subprocess.check_call(["nvcc", "-arch=sm_121a", "-O3", "-std=c++17", "-shared", "-Xcompiler", "-fPIC", "-o", so, os.path.join(HERE, "native_host.cu")])
++    lib = ctypes.CDLL(so)
++    lib.dsn_nv_quant.argtypes = [P, L, P, I, I, I, I, P, I, P, P]
++    lib.dsn_nv_experts.argtypes = [P, I, I, P, P, I, I] + [P] * 11 + [I, I, F] + [P] * 14 + [I]
++    nv = Nv(root)
++    D, Iw, N = 5120, 2304, 5120
++    p = f"layers.{layer}.ffn.experts"
++    W = {k: [] for k in ("w1", "w3", "w2", "s1", "s3", "s2")}
++    inp, glb = {}, {}
++    for e in range(n_exp):
++        for name in ("w1", "w3", "w2"):
++            pre = f"{p}.{e}.{name}"
++            w = nv.get(pre + ".weight")
++            ws = nv.get(pre + ".weight_scale")
++            eq = (ws[:, 0::2] == ws[:, 1::2]).all().item()
++            if not eq:
++                ok(False, f"{pre}: scales not equal in pairs")
++            W[name].append(w.to(dev))
++            W["s" + name[1]].append(ws.to(dev))
++            inp[(e, name)] = nv.get(pre + ".input_scale").item()
++            glb[(e, name)] = nv.get(pre + ".weight_scale_2").item()
++    ok(all(inp[(e, "w1")] == inp[(e, "w3")] for e in range(n_exp)), "gate and up share an input_scale")
++    ok(not FAILS, f"weight_scale pairs equal in {n_exp} experts of layer {layer}")
++    if src:
++        from check_native import Shards, dequant_fp4
++        sh = Shards(src)
++        for e in (0, n_exp - 1):
++            for name in ("w1", "w2", "w3"):
++                pre = f"{p}.{e}.{name}"
++                a = dq(W[name][e], W["s" + name[1]][e], glb[(e, name)])
++                b = dequant_fp4(sh.get(pre + ".weight").to(dev), sh.get(pre + ".scale").to(dev))
++                ok(torch.equal(a, b.to(a.device)), f"{pre}: code * scale * weight_scale_2 == the source's MXFP4 weight")
++
++    # the kernels' per-32 scale bytes
++    def tab(ts):
++        return torch.tensor([t.data_ptr() for t in ts], dtype=torch.uint64, device=dev)
++    keep = dict(W)
++    s32 = {k: [s[:, 0::2].contiguous() for s in W[k]] for k in ("s1", "s3", "s2")}
++    tabs = {k: tab(v) for k, v in W.items() if k[0] == "w"}
++    tabs.update({k: tab(v) for k, v in s32.items()})
++    g13 = torch.tensor([1 / inp[(e, "w1")] for e in range(n_exp)], dtype=torch.float32, device=dev)
++    g2 = torch.tensor([1 / inp[(e, "w2")] for e in range(n_exp)], dtype=torch.float32, device=dev)
++    al = {n: torch.tensor([inp[(e, n)] * glb[(e, n)] for e in range(n_exp)], dtype=torch.float32, device=dev) for n in ("w1", "w3", "w2")}
++    print(f"input_scale w1 {inp[(0, 'w1')]:.6g} w2 {inp[(0, 'w2')]:.6g} weight_scale_2 {glb[(0, 'w1')]:.6g} alpha {al['w1'][0].item():.6g}", flush=True)
++
++    torch.manual_seed(1)
++    R, S = 40, 6
++    x = (torch.randn(R, D, device=dev) * 0.02 * torch.logspace(-1, 1, D, device=dev)[torch.randperm(D, device=dev)]).to(torch.bfloat16)
++    x[5, :16] = 0
++    pick = torch.stack([torch.randperm(n_exp, device=dev)[:S] for _ in range(R)]).to(torch.int32)
++    wts = torch.rand(R, S, device=dev, dtype=torch.float32) * 0.5 + 0.05
++
++    # 3. the quant
++    RS = R * S
++    nq = torch.empty(RS, D // 2, dtype=torch.uint8, device=dev)
++    ns = torch.empty(RS, D // 16, dtype=torch.uint8, device=dev)
++    assert lib.dsn_nv_quant(ptr(x), D, ptr(pick), S, 0, RS, D, ptr(g13), n_exp, ptr(nq), ptr(ns)) == 0
++    entry_e = pick.view(-1).long()
++    rx = x.repeat_interleave(S, 0)
++    rc, rs = ref_quant(rx, g13[entry_e])
++    ok(torch.equal(nibbles(nq), rc), "tf_dsn_nv_quant codes == nvfp4q.cuh's rule")
++    ok(torch.equal(ns, rs), "tf_dsn_nv_quant scales == nvfp4q.cuh's rule")
++
++    # 4. the grouped experts against fp64
++    limit = 10.0
++    def ref_experts():
++        xhat = TAB.to(dev)[rc] * e4m3(rs).repeat_interleave(16, 1)
++        h = torch.zeros(RS, Iw, dtype=torch.float64, device=dev)
++        for e in range(n_exp):
++            idx = (entry_e == e).nonzero()[:, 0]
++            if idx.numel() == 0:
++                continue
++            w1 = dq(W["w1"][e], W["s1"][e], 1.0)
++            w3 = dq(W["w3"][e], W["s3"][e], 1.0)
++            ga = to_bf((xhat[idx] @ w1.T) * al["w1"][e].double())
++            up = to_bf((xhat[idx] @ w3.T) * al["w3"][e].double())
++            up = up.clamp(-limit, limit)
++            ga = ga.clamp(max=limit)
++            hv = (ga / (1 + torch.exp(-ga))) * up
++            h[idx] = to_bf(hv * wts.view(-1)[idx].double()[:, None])
++        hc, hs = ref_quant(h.to(torch.float32), g2[entry_e])
++        hhat = TAB.to(dev)[hc] * e4m3(hs).repeat_interleave(16, 1)
++        out = torch.zeros(RS, N, dtype=torch.float64, device=dev)
++        for e in range(n_exp):
++            idx = (entry_e == e).nonzero()[:, 0]
++            if idx.numel() == 0:
++                continue
++            w2 = dq(W["w2"][e], W["s2"][e], 1.0)
++            out[idx] = to_bf((hhat[idx] @ w2.T) * al["w2"][e].double())
++        y = out.view(R, S, N).sum(1)
++        return h, y
++    rh, ry = ref_experts()
++
++    def run(px, ppick, pw, path):
++        r = px.shape[0]
++        rs_ = r * S
++        cnt = torch.empty(n_exp, dtype=torch.int32, device=dev)
++        off = torch.empty(n_exp + 1, dtype=torch.int32, device=dev)
++        fill = torch.empty(n_exp, dtype=torch.int32, device=dev)
++        act = torch.empty(n_exp, dtype=torch.int32, device=dev)
++        nact = torch.empty(1, dtype=torch.int32, device=dev)
++        ent = torch.empty(rs_, dtype=torch.int32, device=dev)
++        erow = torch.empty(rs_, dtype=torch.int32, device=dev)
++        q = torch.empty(rs_, D // 2, dtype=torch.uint8, device=dev)
++        s = torch.empty(rs_, D // 16, dtype=torch.uint8, device=dev)
++        h = torch.empty(rs_, Iw, dtype=torch.bfloat16, device=dev)
++        hq = torch.empty(rs_, Iw // 2, dtype=torch.uint8, device=dev)
++        hs = torch.empty(rs_, Iw // 16, dtype=torch.uint8, device=dev)
++        out = torch.empty(rs_, N, dtype=torch.float32, device=dev)
++        y = torch.empty(r, N, dtype=torch.float32, device=dev)
++        assert lib.dsn_nv_experts(ptr(px), r, D, ptr(ppick), ptr(pw), S, n_exp, ptr(tabs["w1"]), ptr(tabs["w3"]), ptr(tabs["s1"]), ptr(tabs["s3"]),
++                                  ptr(tabs["w2"]), ptr(tabs["s2"]), ptr(g13), ptr(g2), ptr(al["w1"]), ptr(al["w3"]), ptr(al["w2"]),
++                                  Iw, N, limit, ptr(cnt), ptr(off), ptr(fill), ptr(act), ptr(nact), ptr(ent), ptr(erow), ptr(q), ptr(s),
++                                  ptr(h), ptr(hq), ptr(hs), ptr(out), ptr(y), path) == 0
++        return h, y
++
++    for path, name in ((0, "decode"), (1, "prefill")):
++        h, y = run(x, pick, wts, path)
++        dh = (h.to(torch.float64) - rh).abs()
++        ulp = rh.abs().clamp_min(1e-30) * 2.0 ** -7
++        ok((dh / ulp).max().item() <= 2.01, f"{name}: h within 2 bf16 ulps of fp64 (max {(dh / ulp).max().item():.3f} ulp, {100 * (dh > 0).double().mean().item():.4f} % differ)")
++        rel = (y.double() - ry).norm() / ry.norm()
++        ok(rel.item() < 2e-3, f"{name}: routed sum within 0.2 % of fp64 (relative error {rel.item():.2e})")
++        ok(torch.isfinite(y).all().item() and y.abs().max().item() > 0, f"{name}: outputs finite and nonzero (max {y.abs().max().item():.4g})")
++
++    # 5. a row alone
++    h0, y0 = run(x, pick, wts, 0)
++    same = True
++    for r in (0, 5, 17, R - 1):
++        hr, yr = run(x[r:r + 1], pick[r:r + 1], wts[r:r + 1], 0)
++        same = same and torch.equal(yr[0], y0[r])
++    ok(same, "decode kernels: a row's output has the same bits alone and with the others")
++    hb, yb = run(x, pick, wts, 0)
++    ok(torch.equal(yb, y0), "decode kernels: repeatable")
++
++    # 6. W4A8 on the same weights
++    q8, s8 = ref_act_quant(x)
++    xh8 = (q8.to(torch.float64).view(R, D // 32, 32) * s8.double()[:, :, None]).view(R, D).repeat_interleave(S, 0)
++    h8 = torch.zeros(RS, Iw, dtype=torch.float64, device=dev)
++    for e in range(n_exp):
++        idx = (entry_e == e).nonzero()[:, 0]
++        if idx.numel() == 0:
++            continue
++        ga = to_bf(xh8[idx] @ dq(W["w1"][e], W["s1"][e], glb[(e, "w1")]).T).clamp(max=limit)
++        up = to_bf(xh8[idx] @ dq(W["w3"][e], W["s3"][e], glb[(e, "w3")]).T).clamp(-limit, limit)
++        h8[idx] = to_bf((ga / (1 + torch.exp(-ga))) * up * wts.view(-1)[idx].double()[:, None])
++    q8h, s8h = ref_act_quant(h8.to(torch.float32))
++    hh8 = (q8h.to(torch.float64).view(RS, Iw // 32, 32) * s8h.double()[:, :, None]).view(RS, Iw)
++    o8 = torch.zeros(RS, N, dtype=torch.float64, device=dev)
++    for e in range(n_exp):
++        idx = (entry_e == e).nonzero()[:, 0]
++        if idx.numel():
++            o8[idx] = to_bf(hh8[idx] @ dq(W["w2"][e], W["s2"][e], glb[(e, "w2")]).T)
++    y8 = o8.view(R, S, N).sum(1)
++    cos = torch.nn.functional.cosine_similarity(y0.double(), y8, dim=1)
++    ratio = (y0.double().norm(dim=1) / y8.norm(dim=1))
++    print(f"W4A8 vs W4A4 on the same weights: cosine min {cos.min().item():.4f} mean {cos.mean().item():.4f}; norm ratio {ratio.min().item():.3f} .. {ratio.max().item():.3f}", flush=True)
++    ok(cos.mean().item() > 0.8 and 0.5 < ratio.mean().item() < 2.0, "the 4-bit activations stay near the 8-bit ones (alpha and g the right way round)")
++    del keep
++    print("FAILED: " + "; ".join(FAILS) if FAILS else "all NVFP4 checks hold", flush=True)
++    return 1 if FAILS else 0
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/tools/dsv41-zig/native/decode_bench.cu b/tools/dsv41-zig/native/decode_bench.cu
+index 760db7d..bc2e5e9 100644
+--- a/tools/dsv41-zig/native/decode_bench.cu
++++ b/tools/dsv41-zig/native/decode_bench.cu
+@@ -1,7 +1,7 @@
+ // Decode microbenchmarks of zig/kernels/cuda/dsv41/native.cu on one GB10 (not part of the engine): the decode
+ // launches of a 2D-TP4 node's layer shapes, each replayed from a CUDA graph over `layers` weight copies (cold L2, as a
+ // round reads each layer's weights once), timed per launch and as GB/s of the weight bytes read.
+-//   nvcc -arch=sm_121 -O3 -std=c++17 -o decode_bench decode_bench.cu && ./decode_bench [filter]
++//   nvcc -arch=sm_121a -O3 -std=c++17 -o decode_bench decode_bench.cu && ./decode_bench [filter]
+ #include "../../../zig/kernels/cuda/dsv41/native.cu"
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -282,6 +282,12 @@ int main(int argc, char** argv) {
+         uint8_t* hq = (uint8_t*)dbuf(size_t(maxR) * S * IH, F_FP8);
+         float* hs = (float*)dbuf(size_t(maxR) * S * IH / 32 * 4, F_ONE);
+         float* out = (float*)dbuf(size_t(maxR) * S * DN * 4, F_ZERO);
++        // NVFP4: each entry's codes and scales, gate / up's and down's, and the experts' alphas
++        uint8_t* nq = (uint8_t*)dbuf(size_t(maxR) * S * D / 2, F_FP4);
++        uint8_t* ns = (uint8_t*)dbuf(size_t(maxR) * S * D / 16, F_SCALE);
++        uint8_t* hnq = (uint8_t*)dbuf(size_t(maxR) * S * IH / 2, F_FP4);
++        uint8_t* hns = (uint8_t*)dbuf(size_t(maxR) * S * IH / 16, F_SCALE);
++        float* alpha = (float*)dbuf(4 * E, F_ONE);
+         for (int R : rows_list) {
+             // picks: 6 distinct routed experts a row (random) and the shared expert last
+             std::vector<int> ph(R * S);
+@@ -335,6 +341,16 @@ int main(int argc, char** argv) {
+                 const int tpc = warps_cta / (2 * ks), nt = (MAIN + REST) / 16;
+                 if (want(nm)) report(nm, timeit(LE, [&](int l) { GuArgs g = gargs(l); g.splits = ks; decLaunch("gu", rgOf(R), 1, dim3((nt + tpc - 1) / tpc, ny), &g); }), gu_bytes);
+             }
++            for (int ks : {1, 2, 4}) {
++                snprintf(nm, 96, "experts gu nv%d R=%d (%d experts)", ks, R, distinct + 1);
++                const int tpc = warps_cta / (2 * ks), nt = (MAIN + REST) / 16;
++                if (want(nm)) report(nm, timeit(LE, [&](int l) { GuArgs g = gargs(l); g.splits = ks; g.fmt = 2; g.nq = nq; g.ns = ns; g.ldnq = D / 2; g.ldns = D / 16; g.a1 = alpha; g.a3 = alpha; decLaunch("gu", rgOf(R), 1, dim3((nt + tpc - 1) / tpc, ny), &g); }), gu_bytes);
++            }
++            for (int ks : {1, 2, 4}) {
++                snprintf(nm, 96, "experts dn nv%d R=%d (%d experts)", ks, R, distinct + 1);
++                const int tpc = warps_cta / ks, nt = DN / 16;
++                if (want(nm)) report(nm, timeit(LE, [&](int l) { DnArgs dd = dargs(l); dd.splits = ks; dd.fmt = 2; dd.nq = hnq; dd.ns = hns; dd.ldnq = IH / 2; dd.ldns = IH / 16; dd.a2 = alpha; decLaunch("dn", rgOf(R), 1, dim3((nt + tpc - 1) / tpc, ny), &dd); }), dn_bytes);
++            }
+             for (int ks : {1, 2}) {
+                 snprintf(nm, 96, "experts dn dec%d R=%d (%d experts)", ks, R, distinct + 1);
+                 const int tpc = warps_cta / ks, nt = DN / 16;
+diff --git a/tools/dsv41-zig/native/native_host.cu b/tools/dsv41-zig/native/native_host.cu
+index 49af7a3..d666abd 100644
+--- a/tools/dsv41-zig/native/native_host.cu
++++ b/tools/dsv41-zig/native/native_host.cu
+@@ -316,3 +316,65 @@ extern "C" int dsn_pf_bf16(const __nv_bfloat16* x, long ldx, long gx, const __nv
+     dsn_pf_bf16_launch(a, groups, 0);
+     return int(cudaDeviceSynchronize());
+ }
++
++// NVFP4's grouped experts for check_nvfp4.py (no shared expert): x [R, D] bf16 -> y [R, N] fp32 (routed sum) and the
++// intermediate h [R * S, I] bf16, on the decode tensor-core kernels (path 0) or the prefill tiles (path 1).
++extern "C" int dsn_nv_quant(const __nv_bfloat16* x, long ldx, const int* pick, int S, int by_entry, int P, int K, const float* g,
++                            int routed, uint8_t* nq, uint8_t* ns) {
++    tf_dsn_nv_quant_kernel<<<(long(P) * (K / 16) + 127) / 128, 128>>>(x, ldx, pick, S, by_entry, P, K, g, routed, nq, K / 2, ns, K / 16);
++    return int(cudaDeviceSynchronize());
++}
++
++extern "C" int dsn_nv_experts(const __nv_bfloat16* x, int R, int D, const int* pick, const float* wts, int S, int E,
++                              const uint64_t* w1, const uint64_t* w3, const uint64_t* s1, const uint64_t* s3,
++                              const uint64_t* w2, const uint64_t* s2, const float* g13, const float* g2, const float* a1,
++                              const float* a3, const float* a2, int I, int N, float limit, int* cnt, int* off, int* fill,
++                              int* act, int* nact, int* ent, int* erow, uint8_t* nq, uint8_t* ns, __nv_bfloat16* h,
++                              uint8_t* hnq, uint8_t* hns, float* out, float* y, int path) {
++    const int RS = R * S, ny = E < RS ? E : RS;
++    cudaMemset(cnt, 0, sizeof(int) * E);
++    cudaMemset(h, 0, sizeof(__nv_bfloat16) * size_t(RS) * I);
++    if (path == 0) {
++        tf_dsn_dec_group_kernel<<<1, 1024, (2 * E + 1) * 4>>>(pick, RS, S, E, off, act, nact, ent, erow);
++    } else {
++        tf_dsn_group_count_kernel<<<(RS + 255) / 256, 256>>>(pick, RS, E, cnt);
++        tf_dsn_group_scan_kernel<<<1, 1>>>(cnt, E, off, fill, act, nact);
++        tf_dsn_group_place_kernel<<<(RS + 255) / 256, 256>>>(pick, RS, S, E, off, fill, ent, erow);
++    }
++    dsn_nv_quant(x, D, pick, S, 0, RS, D, g13, E, nq, ns);
++    GuArgs g{};
++    g.ent = ent; g.erow = erow; g.off = off; g.act = act; g.nact = nact; g.w1 = w1; g.w3 = w3; g.s1 = s1; g.s3 = s3;
++    g.ldw = D / 2; g.ldws = D / 32; g.fmt = 2; g.D = D; g.shared = -1; g.n_tiles = I / 32; g.wts = wts; g.limit = limit;
++    g.h = h; g.ldh = I; g.P = RS; g.nq = nq; g.ns = ns; g.ldnq = D / 2; g.ldns = D / 16; g.a1 = a1; g.a3 = a3;
++    pf_tiles_init();
++    static bool init = false;
++    if (!init) {
++        cudaFuncSetAttribute(tf_dsn_pf_gu_nv_kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, pf::kGuSmem);
++        cudaFuncSetAttribute(tf_dsn_pf_dn_nv_kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, pf::kDnSmem);
++        init = true;
++    }
++    if (path == 0) {
++        g.splits = 4;
++        const int tpc = 8 / (2 * g.splits);
++        dec_launch(3, dec_rg(R), dim3((g.n_tiles * 2 + tpc - 1) / tpc, ny), 8, &g);
++    } else {
++        tf_dsn_pf_tiles_kernel<<<1, 32>>>(off, act, nact, pf_tiles, pf_ntiles);
++        tf_dsn_pf_gu_nv_kernel<<<dim3(g.n_tiles * 32 / 128, RS / 64 + E), 256, pf::kGuSmem>>>(g, pf_tiles, pf_ntiles);
++    }
++    dsn_nv_quant(h, I, pick, S, 1, RS, I, g2, E, hnq, hns);
++    DnArgs d{};
++    d.ent = ent; d.off = off; d.act = act; d.nact = nact; d.w2 = w2; d.s2 = s2; d.ldw = I / 2; d.ldws = I / 32; d.fmt = 2;
++    d.shared = -1; d.I = I; d.N = N; d.round_bf16 = 1; d.out = out; d.ldo = N; d.P = RS; d.nq = hnq; d.ns = hns;
++    d.ldnq = I / 2; d.ldns = I / 16; d.a2 = a2;
++    if (path == 0) {
++        d.splits = 2;
++        const int tpc = 8 / d.splits;
++        dec_launch(4, dec_rg(R), dim3((N / 16 + tpc - 1) / tpc, ny), 8, &d);
++    } else {
++        tf_dsn_pf_dn_nv_kernel<<<dim3(N / 128, RS / 64 + E), 256, pf::kDnSmem>>>(d, pf_tiles, pf_ntiles);
++    }
++    tf_dsn_combine_kernel<<<(long(R) * N + 255) / 256, 256>>>(out, N, pick, R, S, E, N, y, N, 0);
++    const cudaError_t err = cudaDeviceSynchronize();
++    if (err != cudaSuccess) fprintf(stderr, "dsn_nv_experts: %s (%s)\n", cudaGetErrorString(err), cudaGetErrorString(cudaGetLastError()));
++    return int(err);
++}
+diff --git a/zig/build/cuda.zig b/zig/build/cuda.zig
+index 8827a5a..885f413 100644
+--- a/zig/build/cuda.zig
++++ b/zig/build/cuda.zig
+@@ -31,7 +31,7 @@ const kernels = [_]Kernel{
+     .{ .name = "dsv41_torch", .flags = torch_ops }, // ours: DeepSeek-V4.1 torch arithmetic at torch's rounding points
+     .{ .name = "dsv41_rdma", .src = "dsv41/rdma_gather", .flags = &.{"-O3"} }, // ours: the decode gathers' RDMA kernel pair
+     .{ .name = "dsv41_experts_par", .src = "dsv41/experts_par", .flags = &.{ "-O3", "-lineinfo" } }, // ours: the exl3 extension's gate / up with the parity split's rest in its grid (tensorfold_exl3_experts_v19's flags)
+-    .{ .name = "dsv41_native", .src = "dsv41/native", .flags = &.{"-O3"} }, // DeepSeek's own FP8 / MXFP4 checkpoint (mx.zig)
++    .{ .name = "dsv41_native", .src = "dsv41/native", .flags = &.{"-O3"}, .arch_specific = true }, // DeepSeek's own FP8 / MXFP4 checkpoint and NVIDIA's NVFP4 (mx.zig; the block-scaled FP4 MMA is sm_121a's)
+     .{ .name = "dsv41_engram", .src = "dsv41/engram", .flags = torch_ops }, // Engram's packed records to bf16 rows (engram_gpu.zig)
+ };
+ 
+diff --git a/zig/kernels/cuda/dsv41/native.cu b/zig/kernels/cuda/dsv41/native.cu
+index f602f16..7362677 100644
+--- a/zig/kernels/cuda/dsv41/native.cu
++++ b/zig/kernels/cuda/dsv41/native.cu
+@@ -9,6 +9,10 @@
+ //   - each 32-wide K block's MMA sum is scaled by both scales and added to an fp32 accumulator, K blocks in order.
+ // A row's result never depends on the other rows of a launch (one row's MMA lanes never mix with another's) and every
+ // layer's K split is fixed by its shape, so drafted, concurrent and resumed rows get the bits of a row alone.
++// NVIDIA's NVFP4 release of the same checkpoint (nvidia/DeepSeek-V4.1-Flash-1017-NVFP4) keeps all of that but for the
++// routed experts of its 40 target layers: E2M1 weights with an E4M3 scale per 16 values and a global scale, and E2M1
++// activations of each expert's own input_scale, on the block-scaled FP4 MMA (the TF_DSN_FMT_NV paths: see mma_fp4 and
++// tf_dsn_nv_quant).
+ // Raw device pointers, the caller's stream, extern "C" names (tf_dsn_*).
+ #include <cuda_runtime.h>
+ #include <cuda_bf16.h>
+@@ -77,6 +81,45 @@ __device__ __forceinline__ void mma_bf16(float (&d)[4], const uint32_t (&a)[4],
+         : "r"(a[0]), "r"(a[1]), "r"(a[2]), "r"(a[3]), "r"(b[0]), "r"(b[1]));
+ }
+ 
++// NVFP4 x NVFP4 on the block-scaled MMA (sm_121a): 64 inputs, an E4M3 scale per 16 of them on both sides, the sums
++// added to d in place. TensorFold's mma4.cuh (ashhart/TensorFold), whose scale registers are read as there: sa a word of
++// four scales, lanes t 0 and 1 giving A rows g and g + 8 (t 2, 3 are not read); sb the four of B row g.
++__device__ __forceinline__ void mma_fp4(float (&d)[4], const uint32_t (&a)[4], uint32_t b0, uint32_t b1, uint32_t sa,
++                                        uint32_t sb) {
++#if defined(__CUDA_ARCH_FEAT_SM120_ALL) || defined(__CUDA_ARCH_FEAT_SM121_ALL)
++    const uint16_t z = 0;
++    asm volatile(
++        "mma.sync.aligned.kind::mxf4nvf4.block_scale.scale_vec::4X.m16n8k64.row.col.f32.e2m1.e2m1.f32.ue4m3 "
++        "{%0, %1, %2, %3}, {%4, %5, %6, %7}, {%8, %9}, {%0, %1, %2, %3}, %10, {%11, %12}, %13, {%14, %15};\n"
++        : "+f"(d[0]), "+f"(d[1]), "+f"(d[2]), "+f"(d[3])
++        : "r"(a[0]), "r"(a[1]), "r"(a[2]), "r"(a[3]), "r"(b0), "r"(b1), "r"(sa), "h"(z), "h"(z), "r"(sb), "h"(z),
++          "h"(z));
++#else
++    __trap();
++#endif
++}
++
++// A weight row's 64-input step scales from its two per-32 bytes: NVFP4's per-16 E4M3 scales come in equal pairs here
++// (the converter kept MXFP4's power-of-two blocks; tf-dsv41-rank-cache refuses a checkpoint where a pair differs).
++__device__ __forceinline__ uint32_t nv_scales(uint32_t lo, uint32_t hi) {
++    return (lo | (lo << 8)) | ((hi | (hi << 8)) << 16);
++}
++
++// |v| to the nearest E2M1 magnitude code (ties to the even code), saturating at 6, with v's sign (nvfp4q.cuh).
++__device__ __forceinline__ uint32_t nv_e2m1(float v) {
++    const float a = fabsf(v);
++    uint32_t c;
++    if (a <= 0.25f) c = 0;
++    else if (a < 0.75f) c = 1;
++    else if (a <= 1.25f) c = 2;
++    else if (a < 1.75f) c = 3;
++    else if (a <= 2.5f) c = 4;
++    else if (a < 3.5f) c = 5;
++    else if (a <= 5.0f) c = 6;
++    else c = 7;
++    return (v < 0.0f && c != 0) ? (c | 8u) : c;
++}
++
+ __device__ __forceinline__ void store_y(void* y, int dtype, size_t i, float v) {
+     if (dtype == 1) reinterpret_cast<__nv_bfloat16*>(y)[i] = __float2bfloat16_rn(v);
+     else if (dtype == 0) reinterpret_cast<__half*>(y)[i] = __float2half_rn(v);
+@@ -338,6 +381,13 @@ struct GuArgs {
+     int splits, kblocks;
+     float* z;
+     int early_exit;     // Track C (TF_DS_EXPERT_EXIT): the decode kernel's rows past the active experts leave at once
++    // fmt 2, NVFP4: the routed entries' codes and E4M3 scales (tf_dsn_nv_quant, a row an entry), each expert's gate and
++    // up alpha (its input_scale * weight_scale_2); s1 / s3 hold each weight row's scale per 32 (nv_scales)
++    const uint8_t* nq;
++    const uint8_t* ns;
++    int64_t ldnq, ldns;
++    const float* a1;
++    const float* a3;
+ };
+ 
+ __device__ __forceinline__ float silu_f(float v) { return v / (1.0f + expf(-v)); }
+@@ -460,6 +510,11 @@ struct DnArgs {
+     float* z;
+     int P;              // the entries (z's row count)
+     int early_exit;     // Track C (TF_DS_EXPERT_EXIT): as GuArgs'
++    // fmt 2, NVFP4: as GuArgs'
++    const uint8_t* nq;
++    const uint8_t* ns;
++    int64_t ldnq, ldns;
++    const float* a2;
+ };
+ 
+ template <int MT>
+@@ -1587,6 +1642,226 @@ extern "C" __global__ void __launch_bounds__(256, PF_MINB) tf_dsn_pf_dn_kernel(D
+     }
+ }
+ 
++// NVFP4's prefill tile (the routed experts of a prompt chunk): 64 entries by 128 columns, operands staged as the MXFP4
++// tile's but an entry's codes half as wide and their scales its own bytes, one block-scaled MMA a 64-input step.
++namespace pf {
++template <int BM_, int BN_, int WGM_, int WGN_, int NWT_, int STAGES_>
++struct NvCfg {
++    static constexpr int BM = BM_, BN = BN_, WGM = WGM_, WGN = WGN_, NWT = NWT_, STAGES = STAGES_;
++    static constexpr int STEPS = 2;  // 64-input steps a stage
++    static constexpr int WM = BM / WGM, WN = BN / WGN, MT = WM / 16, NT = WN / 8;
++    static constexpr int SR = STEPS * 32;  // a staged row's bytes, either operand's codes
++    static constexpr int A_BYTES = BM * SR;
++    static constexpr int B_BYTES = NWT * BN * SR;
++    static constexpr int AS_BYTES = BM * STEPS * 4;  // an entry's four E4M3 scales a step
++    static constexpr int WS_BYTES = NWT * BN * 4;    // a weight row's two per-32 scales a step
++    static constexpr int STAGE = (A_BYTES + B_BYTES + AS_BYTES + WS_BYTES + 127) / 128 * 128;
++    static constexpr int SMEM = STAGES * STAGE;
++    static_assert(WGM * WGN * 32 == kThreads, "8 warps");
++    static_assert(WM % 16 == 0 && WN % 8 == 0, "warp tile");
++    // a row's 16-byte piece c: a warp reads eight rows' 4-byte pieces of one c, on distinct banks
++    __device__ static __forceinline__ int pc(int r, int c) { return c ^ ((r >> 1) & 3); }
++};
++using NvGuCfg = NvCfg<64, 128, 2, 4, 2, 3>;
++using NvDnCfg = NvCfg<64, 128, 2, 4, 1, 3>;
++static_assert(NvGuCfg::SMEM <= kGuSmem && NvDnCfg::SMEM <= kDnSmem, "the launches' dynamic shared memory");
++
++// One stage: step s0 and s0 + 1 of the entries' codes and scales (q, ns; rows srow[], -1: padding) and the weights.
++template <class C>
++__device__ __forceinline__ void nv_load(char* st, const int* srow, const uint8_t* q, int64_t ldq, const uint8_t* ns,
++                                        int64_t ldns, const Ops& o, int s0) {
++    const int tid = threadIdx.x;
++    char* A = st;
++    char* B = A + C::A_BYTES;
++    char* AS = B + C::B_BYTES;
++    char* WS = AS + C::AS_BYTES;
++    constexpr int CP = C::STEPS * 2;  // 16-byte pieces of a row's stage
++    for (int c = tid; c < C::BM * CP; c += kThreads) {
++        const int r = c / CP, cc = c % CP;
++        const int row = srow[r];
++        const bool ok = row >= 0;
++        cp16(A + r * C::SR + C::pc(r, cc) * 16, q + size_t(ok ? row : 0) * ldq + s0 * 32 + cc * 16, ok);
++    }
++    for (int r = tid; r < C::BM; r += kThreads) {
++        const int row = srow[r];
++        const bool ok = row >= 0;
++        cp8(AS + r * 8, ns + size_t(ok ? row : 0) * ldns + s0 * 4, ok);
++    }
++    for (int c = tid; c < C::NWT * C::BN * CP; c += kThreads) {
++        const int r = c / CP, cc = c % CP;
++        const int wi = r / C::BN, col = o.n0 + r % C::BN;
++        cp16(B + r * C::SR + C::pc(r, cc) * 16, o.w(wi) + size_t(col) * o.ldw + s0 * 32 + cc * 16, true);
++    }
++    for (int r = tid; r < C::NWT * C::BN; r += kThreads) {
++        const int wi = r / C::BN, col = o.n0 + r % C::BN;
++        cp4(WS + r * 4, o.ws(wi) + size_t(col) * o.ldws + s0 * 2, true);
++    }
++}
++
++// The tile's steps: acc[wi][i][j][c] as run_tile's (entry row g + 8 (c >> 1), column 2 t + (c & 1) of the n8 tile), the
++// MMA's own accumulation in K order. mvalid: the tile's rows from mvalid on are padding.
++template <class C>
++__device__ __forceinline__ void nv_run(char* smem, const int* srow, const uint8_t* q, int64_t ldq, const uint8_t* ns,
++                                       int64_t ldns, const Ops& o, int steps, int mvalid,
++                                       float (&acc)[C::NWT][C::MT][C::NT][4]) {
++    const int warp = threadIdx.x >> 5, lane = threadIdx.x & 31, g = lane >> 2, t = lane & 3;
++    const int wm = warp / C::WGN, wn = warp % C::WGN;
++#pragma unroll
++    for (int wi = 0; wi < C::NWT; wi++)
++#pragma unroll
++        for (int i = 0; i < C::MT; i++)
++#pragma unroll
++            for (int j = 0; j < C::NT; j++)
++#pragma unroll
++                for (int c = 0; c < 4; c++) acc[wi][i][j][c] = 0.f;
++    const int nst = steps / C::STEPS;
++#pragma unroll
++    for (int s = 0; s < C::STAGES - 1; s++) {
++        if (s < nst) nv_load<C>(smem + s * C::STAGE, srow, q, ldq, ns, ldns, o, s * C::STEPS);
++        commit();
++    }
++    for (int st = 0; st < nst; st++) {
++        wait_groups<C::STAGES - 2>();
++        __syncthreads();
++        {
++            const int nx = st + C::STAGES - 1;
++            if (nx < nst) nv_load<C>(smem + (nx % C::STAGES) * C::STAGE, srow, q, ldq, ns, ldns, o, nx * C::STEPS);
++            commit();
++        }
++        const char* A = smem + (st % C::STAGES) * C::STAGE;
++        const char* B = A + C::A_BYTES;
++        const char* AS = B + C::B_BYTES;
++        const uint32_t* WS = reinterpret_cast<const uint32_t*>(AS + C::AS_BYTES);
++#pragma unroll
++        for (int p = 0; p < C::STEPS; p++) {
++            uint32_t af[C::MT][4], sa[C::MT];
++#pragma unroll
++            for (int i = 0; i < C::MT; i++) {
++                const int r = wm * C::WM + i * 16 + g, r8 = r + 8;
++                af[i][0] = *reinterpret_cast<const uint32_t*>(A + r * C::SR + C::pc(r, 2 * p) * 16 + 4 * t);
++                af[i][1] = *reinterpret_cast<const uint32_t*>(A + r8 * C::SR + C::pc(r8, 2 * p) * 16 + 4 * t);
++                af[i][2] = *reinterpret_cast<const uint32_t*>(A + r * C::SR + C::pc(r, 2 * p + 1) * 16 + 4 * t);
++                af[i][3] = *reinterpret_cast<const uint32_t*>(A + r8 * C::SR + C::pc(r8, 2 * p + 1) * 16 + 4 * t);
++                sa[i] = *reinterpret_cast<const uint32_t*>(AS + ((t & 1) ? r8 : r) * 8 + p * 4);
++            }
++#pragma unroll
++            for (int wi = 0; wi < C::NWT; wi++)
++#pragma unroll
++                for (int j = 0; j < C::NT; j++) {
++                    const int br = wi * C::BN + wn * C::WN + j * 8 + g;
++                    const uint32_t b0 = *reinterpret_cast<const uint32_t*>(B + br * C::SR + C::pc(br, 2 * p) * 16 + 4 * t);
++                    const uint32_t b1 = *reinterpret_cast<const uint32_t*>(B + br * C::SR + C::pc(br, 2 * p + 1) * 16 + 4 * t);
++                    const uint32_t w = WS[br];
++                    const uint32_t sb = nv_scales((w >> (16 * p)) & 0xffu, (w >> (16 * p + 8)) & 0xffu);
++#pragma unroll
++                    for (int i = 0; i < C::MT; i++) {
++                        if (wm * C::WM + i * 16 >= mvalid) continue;
++                        mma_fp4(acc[wi][i][j], af[i], b0, b1, sa[i], sb);
++                    }
++                }
++        }
++    }
++    wait_groups<0>();
++}
++}  // namespace pf
++
++// tf_dsn_pf_gu with NVFP4 routed experts (fmt 2; the shared expert stays FP8): the same grid and tile list.
++extern "C" __global__ void __launch_bounds__(256, PF_MINB) tf_dsn_pf_gu_nv_kernel(GuArgs a, const int2* __restrict__ tiles,
++                                                                            const int* __restrict__ ntiles) {
++    if (int(blockIdx.y) >= ntiles[0]) return;
++    const int2 tl = tiles[blockIdx.y];
++    const int e = tl.x, m0 = tl.y;
++    const int c0 = blockIdx.x * pf::NvGuCfg::BN;
++    const int main = (a.n_tiles - a.rest_tiles) * 32;
++    if (a.owner && c0 >= main && a.owner[e] == 0) return;
++    __shared__ int srow[pf::kBm];
++    __shared__ uint8_t wss[pf::kWss];
++    const int base = a.off[e], cnt = a.off[e + 1] - base;
++    const bool fp8 = e == a.shared;
++    for (int r = threadIdx.x; r < pf::kBm; r += pf::kThreads)
++        srow[r] = m0 + r < cnt ? (fp8 ? a.erow[base + m0 + r] : a.ent[base + m0 + r]) : -1;
++    pf::Ops o{};
++    o.q = a.q; o.s = a.s; o.ldq = a.ldq; o.lds = a.lds;
++    o.w0 = reinterpret_cast<const uint8_t*>(a.w1[e]);
++    o.w1 = reinterpret_cast<const uint8_t*>(a.w3[e]);
++    o.ws0 = reinterpret_cast<const uint8_t*>(a.s1[e]);
++    o.ws1 = reinterpret_cast<const uint8_t*>(a.s3[e]);
++    o.ldw = fp8 ? a.sldw : a.ldw;
++    o.ldws = fp8 ? a.sldws : a.ldws;
++    o.stream = PF_HINT;
++    if (fp8) {
++        using C = pf::GuCfg8;
++        for (int half = 0; half < pf::NvGuCfg::BN / C::BN; half++) {
++            o.n0 = c0 + half * C::BN;
++            if (half) __syncthreads();  // the stages' buffers and the scales are the next sub-tile's
++            pf::fp8_scales<C>(wss, o, a.D / kBlk);
++            __syncthreads();
++            float acc[2][C::MT][C::NT][4];
++            pf::run_tile<C, false>(pf::smem, srow, wss, o, a.D / kBlk, 0, cnt - m0, acc);
++            pf::gu_tile_store<C>(a, acc, o.n0, base, m0, cnt);
++        }
++    } else {
++        using C = pf::NvGuCfg;
++        o.n0 = c0;
++        __syncthreads();
++        float acc[2][C::MT][C::NT][4];
++        pf::nv_run<C>(pf::smem, srow, a.nq, a.ldnq, a.ns, a.ldns, o, a.D / 64, cnt - m0, acc);
++        const float a1 = a.a1[e], a3 = a.a3[e];
++#pragma unroll
++        for (int i = 0; i < C::MT; i++)
++#pragma unroll
++            for (int j = 0; j < C::NT; j++)
++#pragma unroll
++                for (int c = 0; c < 4; c++) {
++                    acc[0][i][j][c] *= a1;
++                    acc[1][i][j][c] *= a3;
++                }
++        pf::gu_tile_store<C>(a, acc, o.n0, base, m0, cnt);
++    }
++}
++
++// tf_dsn_pf_dn with NVFP4 routed experts: the same grid and tile list.
++extern "C" __global__ void __launch_bounds__(256, PF_MINB) tf_dsn_pf_dn_nv_kernel(DnArgs a, const int2* __restrict__ tiles,
++                                                                            const int* __restrict__ ntiles) {
++    if (int(blockIdx.y) >= ntiles[0]) return;
++    const int2 tl = tiles[blockIdx.y];
++    const int e = tl.x, m0 = tl.y;
++    __shared__ int srow[pf::kBm];
++    __shared__ uint8_t wss[pf::kWss];
++    const int base = a.off[e], cnt = a.off[e + 1] - base;
++    for (int r = threadIdx.x; r < pf::kBm; r += pf::kThreads) srow[r] = m0 + r < cnt ? a.ent[base + m0 + r] : -1;
++    const bool fp8 = e == a.shared;
++    pf::Ops o{};
++    o.q = a.q; o.s = a.s; o.ldq = a.ldq; o.lds = a.lds;
++    o.w0 = o.w1 = reinterpret_cast<const uint8_t*>(a.w2[e]);
++    o.ws0 = o.ws1 = reinterpret_cast<const uint8_t*>(a.s2[e]);
++    o.ldw = fp8 ? a.sldw : a.ldw;
++    o.ldws = fp8 ? a.sldws : a.ldws;
++    o.stream = PF_HINT;
++    o.n0 = blockIdx.x * pf::NvDnCfg::BN;
++    if (fp8) {
++        using C = pf::DnCfg8;
++        pf::fp8_scales<C>(wss, o, a.I / kBlk);
++        __syncthreads();
++        float acc[1][C::MT][C::NT][4];
++        pf::run_tile<C, false>(pf::smem, srow, wss, o, a.I / kBlk, 0, cnt - m0, acc);
++        pf::dn_tile_store<C>(a, acc, o.n0, base, m0, cnt);
++    } else {
++        using C = pf::NvDnCfg;
++        __syncthreads();
++        float acc[1][C::MT][C::NT][4];
++        pf::nv_run<C>(pf::smem, srow, a.nq, a.ldnq, a.ns, a.ldns, o, a.I / 64, cnt - m0, acc);
++        const float a2 = a.a2[e];
++#pragma unroll
++        for (int i = 0; i < C::MT; i++)
++#pragma unroll
++            for (int j = 0; j < C::NT; j++)
++#pragma unroll
++                for (int c = 0; c < 4; c++) acc[0][i][j][c] *= a2;
++        pf::dn_tile_store<C>(a, acc, o.n0, base, m0, cnt);
++    }
++}
++
+ // The bf16 GEMM of a prompt chunk (BfArgs as tf_dsn_bf16_gemm, splits 1): the same MMA chain (m16n8k16 accumulating
+ // in its C fragment, 16-column K steps in order, the standard fragment layout), so the same bits, on 128 x 128 CTA tiles
+ // staged by cp.async (32 K columns a stage, 4 stages) and read by ldmatrix. N a multiple of 128, K of 32; grid
+@@ -1800,15 +2075,16 @@ __device__ __forceinline__ float wscale(uint32_t e) {
+     return FMT == 1 ? __uint_as_float((e + 6) << 23) : __uint_as_float(e << 23);
+ }
+ 
+-// a format's K values a stage, and a row's bytes for K values
++// a format's K values a stage, and a row's bytes for K values (FMT 3: NVFP4, the row's bytes as MXFP4's)
+ template <int FMT>
+-__host__ __device__ constexpr int64_t rowBytes(int64_t k) { return FMT == 1 ? k / 2 : FMT == 0 ? k : 2 * k; }
++__host__ __device__ constexpr int64_t rowBytes(int64_t k) { return FMT == 1 || FMT == 3 ? k / 2 : FMT == 0 ? k : 2 * k; }
+ 
+ // One warp: weight rows n0 .. n0 + 15 of NM matrices (w[m], row stride ldw bytes; scales ws[m], row stride ldws
+ // bytes), stages st0 .. st1 - 1 of a row of rb bytes (the last stage may hold 64 bytes: K a multiple of 64 values for
+ // FP4, 64 bytes FP8 / bf16), activation rows i < cnt (row rows_of(i); FP8 / FP4: codes xq, row stride ldq bytes, and
+-// scales s, lds floats; bf16: xq bf16, ldq elements) in RG groups of 8. acc[m][g][c]: weight row n0 + lane / 4 +
+-// 8 (c >> 1), activation row 8 g + 2 (lane % 4) + (c & 1).
++// scales s, lds floats; bf16: xq bf16, ldq elements; FMT 3, NVFP4: codes xq, ldq bytes, and E4M3 scales s (as bytes), lds
++// bytes) in RG groups of 8. acc[m][g][c]: weight row n0 + lane / 4 + 8 (c >> 1), activation row 8 g + 2 (lane % 4) +
++// (c & 1). FMT 3's sums come unscaled by the expert's alpha.
+ template <int RB, int NS, int FMT, int NM, int RG, typename RowOf>
+ __device__ __forceinline__ void core(const uint8_t* const (&w)[NM], const uint8_t* const (&ws)[NM], int64_t ldw,
+                                      int64_t ldws, int64_t rb, int n0, int st0, int st1, int sst, const void* xq, int64_t ldq,
+@@ -1831,8 +2107,14 @@ __device__ __forceinline__ void core(const uint8_t* const (&w)[NM], const uint8_
+         const int i = r * 8 + g, j0 = r * 8 + 2 * t, j1 = j0 + 1;
+         const int64_t esz = FMT == 2 ? 2 : 1;
+         brow[r] = reinterpret_cast<const uint8_t*>(xq) + (cnt ? int64_t(rows_of(i < cnt ? i : 0)) * ldq * esz : 0);
+-        c0[r] = cnt ? int64_t(rows_of(j0 < cnt ? j0 : 0)) * lds : 0;
+-        c1[r] = cnt ? int64_t(rows_of(j1 < cnt ? j1 : 0)) * lds : 0;
++        if (FMT == 3) {
++            // the block-scaled MMA takes the scales of the thread's B row (row i's), not of its C rows
++            c0[r] = cnt ? int64_t(rows_of(i < cnt ? i : 0)) * lds : 0;
++            c1[r] = 0;
++        } else {
++            c0[r] = cnt ? int64_t(rows_of(j0 < cnt ? j0 : 0)) * lds : 0;
++            c1[r] = cnt ? int64_t(rows_of(j1 < cnt ? j1 : 0)) * lds : 0;
++        }
+     }
+     const uint32_t ring_s = smem_u32(ring);
+     // ldmatrix: matrices (rows 0-7, chunk b), (rows 8-15, chunk b), (rows 0-7, b + 1), (rows 8-15, b + 1)
+@@ -1849,7 +2131,7 @@ __device__ __forceinline__ void core(const uint8_t* const (&w)[NM], const uint8_
+                     if (ch < vc)
+                         cp16(base + swz<kRowB>(row, ch), w[m] + int64_t(n0 + row) * ldw + int64_t(st) * kRowB + ch * 16);
+                 }
+-                if (FMT == 1) {
++                if (FMT == 1 || FMT == 3) {
+                     // 16 rows x kChunks block scales: kChunks / 4 words a row (a short stage's first only)
+                     constexpr int wpr = kChunks / 4;
+                     const int row = lane / wpr, h = lane % wpr;
+@@ -1885,7 +2167,24 @@ __device__ __forceinline__ void core(const uint8_t* const (&w)[NM], const uint8_
+             for (int p = 0; p < kChunks / 2; p++)
+                 if (2 * p < vc) ldsm4(r[m][p], base + swz<kRowB>(lrow, 2 * p + lch));
+         }
+-        if (FMT == 2) {
++        if (FMT == 3) {
++            // a 64-input step a pair of chunks: one MMA, the scales in hardware
++            const uint8_t* srow = sbase + kTileB + ((t & 1) ? g + 8 : g) * kChunks;
++#pragma unroll
++            for (int p = 0; p < kChunks / 2; p++) {
++                if (2 * p >= vc) break;
++                const int64_t kg = int64_t(st) * (kChunks / 2) + p;
++                const uint32_t sa = nv_scales(srow[2 * p], srow[2 * p + 1]);
++#pragma unroll
++                for (int rg = 0; rg < RG; rg++) {
++                    if (rg >= ng) break;
++                    const uint32_t b0 = DEC_LD(reinterpret_cast<const uint32_t*>(brow[rg] + kg * 32 + 4 * t));
++                    const uint32_t b1 = DEC_LD(reinterpret_cast<const uint32_t*>(brow[rg] + kg * 32 + 16 + 4 * t));
++                    const uint32_t sb = DEC_LD(reinterpret_cast<const uint32_t*>(reinterpret_cast<const uint8_t*>(s) + c0[rg] + kg * 4));
++                    mma_fp4(acc[0][rg], r[0][p], b0, b1, sa, sb);
++                }
++            }
++        } else if (FMT == 2) {
+             // 16-value steps: chunks 2p, 2p + 1
+ #pragma unroll
+             for (int p = 0; p < kChunks / 2; p++) {
+@@ -2066,6 +2365,7 @@ struct DecArgs {
+ 
+ template <int FMT, int RG>
+ __device__ __forceinline__ void dec_dense(const DecArgs& a, int bx) {
++    static_assert(FMT != 3, "NVFP4 is the routed experts' alone");
+     // (no launch_dependents: the next kernel may be any of the round's, programmatic or not, and some of those
+     // complete without waiting for their predecessor, which would let a later kernel overtake this one; only
+     // tf_dsn_dec_quant, always followed by one of these kernels, which waits, lets its successor start early)
+@@ -2169,12 +2469,20 @@ __device__ __forceinline__ void dec_gu(const GuArgs& a) {
+     const int base = live ? a.off[e] : 0, all = live ? a.off[e + 1] - base : 0;
+     const uint8_t* w[1] = {reinterpret_cast<const uint8_t*>(mat ? a.w3[e] : a.w1[e])};
+     const uint8_t* ws[1] = {reinterpret_cast<const uint8_t*>(mat ? a.s3[e] : a.s1[e])};
++    const bool nv = a.fmt == 2 && !fp8;
++    const float ag = nv && live ? a.a1[e] : 1.f, au = nv && live ? a.a3[e] : 1.f;
+     for (int p0 = 0; p0 < max(all, 1); p0 += 8 * RG) {
+         const int cnt = on ? min(8 * RG, all - p0) : 0;
+         auto rows_of = [&](int i) { return a.erow[base + p0 + i]; };
+         float acc[1][RG][4];
+         int lo = 0, hi = 0, sst = 1;
+-        if (fp8) {
++        if (nv) {
++            const int64_t rb = dec::rowBytes<3>(a.D);
++            if (on) dec::chunk(int((rb + dec::kRbG - 1) / dec::kRbG), ks, ch, lo, hi, sst);
++            auto ent_of = [&](int i) { return a.ent[base + p0 + i]; };
++            dec::core<dec::kRbG, dec::kNsG, 3, 1, RG>(w, ws, a.ldw, a.ldws, rb, on ? n0 : 0, lo, hi, sst, a.nq, a.ldnq,
++                                reinterpret_cast<const float*>(a.ns), a.ldns, cnt, ent_of, dsm + warp * wb, acc);
++        } else if (fp8) {
+             const int64_t rb = dec::rowBytes<0>(a.D);
+             if (on) dec::chunk(int((rb + dec::kRbG - 1) / dec::kRbG), ks, ch, lo, hi, sst);
+             dec::core<dec::kRbG, dec::kNsG, 0, 1, RG>(w, ws, a.sldw, a.sldws, rb, on ? n0 : 0, lo, hi, sst, a.q, a.ldq, a.s, a.lds, cnt, rows_of,
+@@ -2215,7 +2523,7 @@ __device__ __forceinline__ void dec_gu(const GuArgs& a) {
+                 for (int c = 0; c < 4; c++) {
+                     const int i = r * 8 + 2 * t + (c & 1);
+                     if (i >= cnt) continue;
+-                    gu_store(a, a.ent[base + p0 + i], n0 + g + 8 * (c >> 1), gs[r][c], us[r][c]);
++                    gu_store(a, a.ent[base + p0 + i], n0 + g + 8 * (c >> 1), gs[r][c] * ag, us[r][c] * au);
+                 }
+         }
+         __syncthreads();
+@@ -2241,12 +2549,19 @@ __device__ __forceinline__ void dec_dn(const DnArgs& a) {
+     const int base = live ? a.off[e] : 0, all = live ? a.off[e + 1] - base : 0;
+     const uint8_t* w[1] = {reinterpret_cast<const uint8_t*>(a.w2[e])};
+     const uint8_t* ws[1] = {reinterpret_cast<const uint8_t*>(a.s2[e])};
++    const bool nv = a.fmt == 2 && !fp8;
++    const float al = nv && live ? a.a2[e] : 1.f;
+     for (int p0 = 0; p0 < max(all, 1); p0 += 8 * RG) {
+         const int cnt = on ? min(8 * RG, all - p0) : 0;
+         auto rows_of = [&](int i) { return a.ent[base + p0 + i]; };
+         float acc[1][RG][4];
+         int lo = 0, hi = 0, sst = 1;
+-        if (fp8) {
++        if (nv) {
++            const int64_t rb = dec::rowBytes<3>(a.I);
++            if (on) dec::chunk(int((rb + dec::kRbE - 1) / dec::kRbE), a.splits, warp % a.splits, lo, hi, sst);
++            dec::core<dec::kRbE, dec::kNsE, 3, 1, RG>(w, ws, a.ldw, a.ldws, rb, on ? n0 : 0, lo, hi, sst, a.nq, a.ldnq,
++                                reinterpret_cast<const float*>(a.ns), a.ldns, cnt, rows_of, dsm + warp * wb, acc);
++        } else if (fp8) {
+             const int64_t rb = dec::rowBytes<0>(a.I);
+             if (on) dec::chunk(int((rb + dec::kRbE - 1) / dec::kRbE), a.splits, warp % a.splits, lo, hi, sst);
+             dec::core<dec::kRbE, dec::kNsE, 0, 1, RG>(w, ws, a.sldw, a.sldws, rb, on ? n0 : 0, lo, hi, sst, a.q, a.ldq, a.s, a.lds, cnt, rows_of,
+@@ -2265,7 +2580,7 @@ __device__ __forceinline__ void dec_dn(const DnArgs& a) {
+                 for (int c = 0; c < 4; c++) {
+                     const int i = r * 8 + 2 * t + (c & 1);
+                     if (i >= cnt) continue;
+-                    const float v = acc[0][r][c];
++                    const float v = acc[0][r][c] * al;
+                     a.out[size_t(a.ent[base + p0 + i]) * a.ldo + n0 + g + 8 * (c >> 1)] = a.round_bf16 ? bf16r(v) : v;
+                 }
+         }
+@@ -2324,6 +2639,48 @@ extern "C" __global__ void tf_dsn_dec_quant_kernel(const void* __restrict__ x, i
+     if (lane == 0) s[size_t(m) * lds + g] = sc;
+ }
+ 
++// NVFP4's activations: each routed entry's input as its expert's own codes and scales (nvfp4q.cuh, ashhart/TensorFold, the
++// format the checkpoint's input_scale names): per 16 inputs of the row, an E4M3 scale of g * amax / 6 and E2M1 codes of
++// x * g / scale, g = 1 / input_scale (a table over the experts). Entry i = r * S + s reads pick[i] and x's row r
++// (by_entry: its own row, down's intermediate); entries past the routed experts are skipped. One thread a block of 16.
++extern "C" __global__ void __launch_bounds__(128) tf_dsn_nv_quant_kernel(const __nv_bfloat16* __restrict__ x, int64_t ldx,
++                                                                         const int* __restrict__ pick, int S, int by_entry,
++                                                                         int P, int K, const float* __restrict__ gt,
++                                                                         int routed, uint8_t* __restrict__ nq, int64_t ldnq,
++                                                                         uint8_t* __restrict__ ns, int64_t ldns) {
++    dec::pdl_launch();
++    dec::pdl_wait();
++    const int groups = K / 16;
++    const int64_t i = int64_t(blockIdx.x) * blockDim.x + threadIdx.x;
++    if (i >= int64_t(P) * groups) return;
++    const int entry = int(i / groups), blk = int(i % groups);
++    const int e = pick[entry];
++    if (e < 0 || e >= routed) return;
++    const float gv = gt[e];
++    const int row = by_entry ? entry : entry / S;
++    // bf16 is fp32's top half
++    const uint32_t* src = reinterpret_cast<const uint32_t*>(x + size_t(row) * ldx + blk * 16);
++    uint32_t bits[8];
++    float amax = 0.f;
++#pragma unroll
++    for (int j = 0; j < 8; j++) {
++        bits[j] = src[j];
++        const float lo = __uint_as_float(bits[j] << 16), hi = __uint_as_float(bits[j] & 0xffff0000u);
++        amax = fmaxf(amax, fmaxf(fabsf(lo), fabsf(hi)));
++    }
++    const __nv_fp8_storage_t sf8 = __nv_cvt_float_to_fp8(gv * (amax * (1.0f / 6.0f)), __NV_SATFINITE, __NV_E4M3);
++    const float sf = __half2float(__half(__nv_cvt_fp8_to_halfraw(sf8, __NV_E4M3)));
++    const float mul = sf != 0.f ? gv / sf : 0.f;
++    uint32_t w[2] = {0u, 0u};
++#pragma unroll
++    for (int j = 0; j < 8; j++) {
++        const float lo = __uint_as_float(bits[j] << 16), hi = __uint_as_float(bits[j] & 0xffff0000u);
++        w[j >> 2] |= (nv_e2m1(lo * mul) | (nv_e2m1(hi * mul) << 4)) << (8 * (j & 3));
++    }
++    *reinterpret_cast<uint2*>(nq + size_t(entry) * ldnq + blk * 8) = make_uint2(w[0], w[1]);
++    ns[size_t(entry) * ldns + blk] = uint8_t(sf8);
++}
++
+ // The active experts' down weights touched into L2 while the 2D exchange of the intermediate runs (it leaves DRAM
+ // idle), in down's CTA order (act[] ascending), up to `budget` bytes: 8 KiB bulk L2 prefetches, one block of 128
+ // threads, a wave of 128 every wave_ns (DRAM's queue about a wave deep). w2 [E] pointers, the routed experts' down
+@@ -2441,8 +2798,8 @@ extern "C" __global__ void __launch_bounds__(1024) tf_dsn_dec_group_kernel(const
+ 
+ // the layouts mx.zig passes (its extern structs assert the same offsets)
+ static_assert(sizeof(MxArgs) == 128 && offsetof(MxArgs, z) == 96, "MxArgs layout");
+-static_assert(offsetof(GuArgs, sldw) == 136 && offsetof(GuArgs, owner) == 152 && offsetof(GuArgs, z) == 216 && offsetof(GuArgs, early_exit) == 224 && sizeof(GuArgs) == 232, "GuArgs layout");
+-static_assert(offsetof(DnArgs, sldw) == 104 && offsetof(DnArgs, out) == 136 && offsetof(DnArgs, z) == 160 && offsetof(DnArgs, early_exit) == 172 && sizeof(DnArgs) == 176, "DnArgs layout");
++static_assert(offsetof(GuArgs, sldw) == 136 && offsetof(GuArgs, owner) == 152 && offsetof(GuArgs, z) == 216 && offsetof(GuArgs, early_exit) == 224 && offsetof(GuArgs, nq) == 232 && sizeof(GuArgs) == 280, "GuArgs layout");
++static_assert(offsetof(DnArgs, sldw) == 104 && offsetof(DnArgs, out) == 136 && offsetof(DnArgs, z) == 160 && offsetof(DnArgs, early_exit) == 172 && offsetof(DnArgs, nq) == 176 && sizeof(DnArgs) == 216, "DnArgs layout");
+ static_assert(sizeof(DecMulti) == 4 * 168 + 24 && offsetof(DecMulti, cta0) == 676, "DecMulti layout");
+ static_assert(sizeof(DecArgs) == 168 && offsetof(DecArgs, gq) == 152 && offsetof(DecArgs, z) == 96 && offsetof(DecArgs, y) == 112, "DecArgs layout");
+ static_assert(offsetof(BfArgs, y) == 64 && offsetof(BfArgs, z) == 112 && sizeof(BfArgs) == 120, "BfArgs layout");
+diff --git a/zig/src/families/dsv41/checkpoint.zig b/zig/src/families/dsv41/checkpoint.zig
+index 51f6caa..933aab3 100644
+--- a/zig/src/families/dsv41/checkpoint.zig
++++ b/zig/src/families/dsv41/checkpoint.zig
+@@ -76,10 +76,10 @@ const Key = struct {
+     rows: ?[2]usize = null,
+     part: []const u8 = "",
+ 
+-    /// A native part ("w8", "s8", "w4", "s4", "bf"), else null (an EXL3 part).
++    /// A native part ("w8", "s8", "w4", "s4", "t4", "bf"), else null (an EXL3 part).
+     fn native(k: Key) ?NativePart {
+         if (!k.exl3) return null;
+-        inline for (.{ .{ "w8", NativePart.w8 }, .{ "s8", NativePart.s8 }, .{ "w4", NativePart.w4 }, .{ "s4", NativePart.s4 }, .{ "bf", NativePart.bf } }) |x| {
++        inline for (.{ .{ "w8", NativePart.w8 }, .{ "s8", NativePart.s8 }, .{ "w4", NativePart.w4 }, .{ "s4", NativePart.s4 }, .{ "t4", NativePart.t4 }, .{ "bf", NativePart.bf } }) |x| {
+             if (std.mem.eql(u8, k.part, x[0])) return x[1];
+         }
+         return null;
+@@ -133,12 +133,14 @@ const NativePart = enum {
+     s8,
+     w4,
+     s4,
++    t4, // NVFP4's weight_scale: E4M3 per 16 values, stored equal in pairs, read as one a block of 32
+     bf,
+ 
+     fn tensor(p: NativePart) []const u8 {
+         return switch (p) {
+             .w8, .w4, .bf => "weight",
+             .s8, .s4 => "scale",
++            .t4 => "weight_scale",
+         };
+     }
+ 
+@@ -148,7 +150,7 @@ const NativePart = enum {
+             .w8, .bf => .{ 1, 1 },
+             .s8 => .{ 32, 32 },
+             .w4 => .{ 1, 2 },
+-            .s4 => .{ 1, 32 },
++            .s4, .t4 => .{ 1, 32 },
+         };
+     }
+ };
+@@ -180,7 +182,7 @@ pub fn describe(sh: *const Shards, key: []const u8) !Slice {
+         if (k.rows) |r| {
+             if (r[0] % dv[1] != 0 or r[1] % dv[1] != 0) return error.UnalignedSlice;
+             out.shape[1] = (r[1] - r[0]) / dv[1];
+-        }
++        } else if (np == .t4) out.shape[1] /= 2;
+     } else if (k.exl3) {
+         if (std.mem.eql(u8, k.part, "tr")) {
+             if (k.rows) |r| out.shape[0] = (r[1] - r[0]) / 16;
+@@ -240,6 +242,15 @@ pub fn readFrom(sh: *const Shards, key: []const u8, bytes: ?[]const u8, out: []u
+         const nr = want.shape[0];
+         const c0 = (if (k.rows) |r| r[0] / dv[1] else 0) * es;
+         const w = want.shape[1] * es;
++        if (np == .t4) {
++            // the pairs of per-16 scales, each one byte per 32; a pair that differs is not this kernel's checkpoint
++            for (0..nr) |i| for (0..w) |j| {
++                const pair = t.bytes[(r0 + i) * row + 2 * (c0 + j) ..][0..2];
++                if (pair[0] != pair[1]) return error.UnequalScalePair;
++                out[i * w + j] = pair[0];
++            };
++            return;
++        }
+         for (0..nr) |i| @memcpy(out[i * w ..][0..w], t.bytes[(r0 + i) * row + c0 ..][0..w]);
+         return;
+     }
+diff --git a/zig/src/families/dsv41/config.zig b/zig/src/families/dsv41/config.zig
+index 3deb893..45da667 100644
+--- a/zig/src/families/dsv41/config.zig
++++ b/zig/src/families/dsv41/config.zig
+@@ -44,6 +44,9 @@ pub const Format = enum { exl3, native };
+ 
+ pub const Config = struct {
+     format: Format = .exl3,
++    /// Format.native with NVIDIA's NVFP4 routed experts (nvidia/DeepSeek-V4.1-Flash-1017-NVFP4: moe_quant_algo NVFP4):
++    /// the target layers' routed experts in NVFP4 W4A4; the DSpark stages and everything else as DeepSeek's release.
++    nvfp4: bool = false,
+     layers: usize,
+     draft_layers: usize,
+     hidden: usize,
+@@ -170,6 +173,7 @@ pub fn parse(gpa: std.mem.Allocator, text: []const u8, why: *Why) !Config {
+     const rope = rope_v.object;
+     var c = Config{
+         .format = format,
++        .nvfp4 = moeNvfp4(top),
+         .layers = try int(o, "num_hidden_layers"),
+         .draft_layers = try int(o, "num_nextn_predict_layers"),
+         .hidden = try int(o, "hidden_size"),
+@@ -246,6 +250,14 @@ pub fn parse(gpa: std.mem.Allocator, text: []const u8, why: *Why) !Config {
+     return c;
+ }
+ 
++/// quantization_config.moe_quant_algo says the routed experts are NVFP4.
++fn moeNvfp4(top: std.json.ObjectMap) bool {
++    const q = top.get("quantization_config") orelse return false;
++    if (q != .object) return false;
++    const m = q.object.get("moe_quant_algo") orelse return false;
++    return m == .string and std.mem.eql(u8, m.string, "NVFP4");
++}
++
+ /// The checkpoints our kernels read: an EXL3 quant (quant_method exl3, the mul1 codebook), or DeepSeek's own release
+ /// (quant_method fp8, 32 x 32 weight blocks, ue8m0 scales, fp4 experts).
+ fn quantization(top: std.json.ObjectMap, why: *Why) !Format {
+diff --git a/zig/src/families/dsv41/draft.zig b/zig/src/families/dsv41/draft.zig
+index cad18ad..be6cd17 100644
+--- a/zig/src/families/dsv41/draft.zig
++++ b/zig/src/families/dsv41/draft.zig
+@@ -510,6 +510,10 @@ pub const Drafter = struct {
+             const es = mx.ExpertScratch.sizes(R, dr.slots_moe, ex.count, ex.dims, ex.down_k, ex.down_n);
+             dr.mxe.rows = R;
+             dr.mxe.slots = dr.slots_moe;
++            dr.mxe.nq = 0; // the stages' experts are MXFP4 in every checkpoint
++            dr.mxe.ns = 0;
++            dr.mxe.hnq = 0;
++            dr.mxe.hns = 0;
+             inline for (.{ "q", "s", "cnt", "off", "fill", "act", "nact", "ent", "erow", "hq", "hs", "out" }, 0..) |f, j| {
+                 @field(dr.mxe, f) = try a.take(es[j]);
+             }
+diff --git a/zig/src/families/dsv41/engram.zig b/zig/src/families/dsv41/engram.zig
+index 5409324..8ad311f 100644
+--- a/zig/src/families/dsv41/engram.zig
++++ b/zig/src/families/dsv41/engram.zig
+@@ -125,8 +125,9 @@ pub const Hasher = struct {
+ };
+ 
+ /// One row's FP8 E4M3 values times their E8M0 scale (one a 32) rounded to bf16, as Engram._decode does on the GPU:
+-/// the value exactly in fp32, times 2^(scale - 127), then round to nearest even.
++/// the value exactly in fp32, times 2^(scale - 127), then round to nearest even. `w` half of `out`: NVIDIA's MXFP4 row.
+ pub fn decodeRow(w: []const u8, s: []const u8, out: []u16) void {
++    if (w.len * 2 == out.len) return decodeRowFp4(w, s, out);
+     // the same products: each byte's value from a table of e4m3, each 32's scale once
+     var i: usize = 0;
+     while (i < w.len) : (i += 32) {
+@@ -136,6 +137,23 @@ pub fn decodeRow(w: []const u8, s: []const u8, out: []u16) void {
+     }
+ }
+ 
++/// One MXFP4 row: E2M1 codes two a byte, the even column in the low nibble (vllm-project/vllm#61530's reading of the
++/// checkpoint, Zhehao Hu), times their E8M0 scale (one a 32 values). Every product is exact in bf16 but past its range.
++fn decodeRowFp4(w: []const u8, s: []const u8, out: []u16) void {
++    var i: usize = 0;
++    while (i < w.len) : (i += 16) {
++        const p = pow2(@as(i32, s[i / 16]) - 127);
++        const end = @min(w.len, i + 16);
++        for (w[i..end], i..) |b, at| {
++            out[2 * at] = bf16(e2m1_table[b & 0xf] * p);
++            out[2 * at + 1] = bf16(e2m1_table[b >> 4] * p);
++        }
++    }
++}
++
++/// E2M1 of every nibble.
++const e2m1_table = [16]f32{ 0, 0.5, 1, 1.5, 2, 3, 4, 6, -0.0, -0.5, -1, -1.5, -2, -3, -4, -6 };
++
+ /// e4m3 of every byte.
+ const e4m3_table: [256]f32 = blk: {
+     @setEvalBranchQuota(20000);
+@@ -149,7 +167,8 @@ const e4m3_table: [256]f32 = blk: {
+ pub fn decodeRows(w: []const u8, s: []const u8, out: []u16, m: usize, row_w: usize, row_s: usize, threads: usize) void {
+     const Part = struct {
+         fn run(pw: []const u8, ps: []const u8, po: []u16, lo: usize, hi: usize, rw: usize, rs: usize) void {
+-            for (lo..hi) |i| decodeRow(pw[i * rw ..][0..rw], ps[i * rs ..][0..rs], po[i * rw ..][0..rw]);
++            const rd = if (rw * 2 == rs * 32) rw * 2 else rw; // MXFP4: two values a byte
++            for (lo..hi) |i| decodeRow(pw[i * rw ..][0..rw], ps[i * rs ..][0..rs], po[i * rd ..][0..rd]);
+         }
+     };
+     const n = if (m * row_w < 1 << 20) 1 else @min(threads, max_decode_threads);
+@@ -255,6 +274,19 @@ test "a hash row by hand: bigram to 4-gram over a two-layer toy table" {
+     try std.testing.expectEqual(@as(i64, @mod(3 * 3 ^ 7 * 5, 11)), dead[0]);
+ }
+ 
++test "MXFP4 rows decode: even columns in the low nibble, a scale per 32 values" {
++    var w: [32]u8 = @splat(0);
++    w[0] = 0xF2; // column 0: code 2 -> 1; column 1: code 0xF -> -6
++    w[16] = 0x07; // column 32: 6, under the second scale
++    const s = [_]u8{ 127, 126 }; // 1, 0.5
++    var out: [64]u16 = undefined;
++    decodeRow(&w, &s, &out);
++    try std.testing.expectEqual(bf16(1), out[0]);
++    try std.testing.expectEqual(bf16(-6), out[1]);
++    try std.testing.expectEqual(bf16(3), out[32]);
++    try std.testing.expectEqual(bf16(0), out[2]);
++}
++
+ test "FP8 rows decode as the GPU does: exact values, power-of-two scales, bf16 rounding" {
+     try std.testing.expectEqual(@as(f32, 448), e4m3(0x7e));
+     try std.testing.expectEqual(@as(f32, -0x1p-9), e4m3(0x81));
+diff --git a/zig/src/families/dsv41/engram_io.zig b/zig/src/families/dsv41/engram_io.zig
+index 5d6f0ef..4177624 100644
+--- a/zig/src/families/dsv41/engram_io.zig
++++ b/zig/src/families/dsv41/engram_io.zig
+@@ -1,4 +1,4 @@
+-//! Engram rows from the original FP8 tables on local NVMe: a weight row and its scale row a row id, read by offset with
++//! Engram rows from the original FP8 tables (or NVIDIA's MXFP4 ones: two codes a byte, Table.dim) on local NVMe: a weight row and its scale row a row id, read by offset with
+ //! one pread each on a pool of threads (engram_io.cpp's gather_rows2), so a step's random rows cost about one latency.
+ //! gatherDirect reads them through O_DIRECT descriptors (gather_rows2_direct_at: each row's 4 KiB-aligned span into an
+ //! aligned bounce buffer, then the row copied out; the same bytes, the page cache skipped), and engram_aio.zig submits
+@@ -8,7 +8,13 @@ const dio = @import("core").direct_io;
+ 
+ /// One layer's table: [rows, row_w] FP8 weights and [rows, row_s] E8M0 scales, by file and offset; fd_wd / fd_sd the same
+ /// files through O_DIRECT (-1 where the file system refuses it: the buffered ones serve).
+-pub const Table = struct { fd_w: std.c.fd_t, base_w: u64, row_w: usize, fd_s: std.c.fd_t, base_s: u64, row_s: usize, rows: u64, fd_wd: std.c.fd_t = -1, fd_sd: std.c.fd_t = -1 };
++pub const Table = struct { fd_w: std.c.fd_t, base_w: u64, row_w: usize, fd_s: std.c.fd_t, base_s: u64, row_s: usize, rows: u64, fd_wd: std.c.fd_t = -1, fd_sd: std.c.fd_t = -1,
++
++    /// A row's values: a byte each in FP8, two a byte in MXFP4 (a scale per 32 values either way).
++    pub fn dim(t: Table) usize {
++        return if (t.row_w * 2 == t.row_s * 32) t.row_w * 2 else t.row_w;
++    }
++};
+ 
+ /// One layer's packed shard (engram_pack.zig): table rows [lo, hi) of `rows`, each a record of its weights then its
+ /// scales, `rec` bytes at base + (id - lo) * rec, so a row is one read; fd_d the same file through O_DIRECT (-1: none).
+diff --git a/zig/src/families/dsv41/model.zig b/zig/src/families/dsv41/model.zig
+index 90ae861..c6101bd 100644
+--- a/zig/src/families/dsv41/model.zig
++++ b/zig/src/families/dsv41/model.zig
+@@ -438,6 +438,9 @@ pub const Model = struct {
+             // reads only its range of the rows and a byte max over the nodes fills the rest; TF_DS_ENGRAM_INSTREAM=1:
+             // a round's landing as a host step on the stream (with TF_DS_ENGRAM_AIO)
+             if (std.c.getenv("TF_DS_ENGRAM_PACKED")) |pd| {
++                // packed shards hold FP8 rows and decode them on the GPU; NVIDIA's MXFP4 tables are read as stored
++                var eit = m.tables.?.layers.valueIterator();
++                while (eit.next()) |t| if (t.dim() != t.row_w) return error.PackedEngramIsFp8;
+                 const owned = engram_rows.envOn("TF_DS_ENGRAM_OWNED");
+                 const eh = &m.eh.?;
+                 const cols = eh.hasher.cols();
+diff --git a/zig/src/families/dsv41/mx.zig b/zig/src/families/dsv41/mx.zig
+index 81c09d3..5f3b13e 100644
+--- a/zig/src/families/dsv41/mx.zig
++++ b/zig/src/families/dsv41/mx.zig
+@@ -70,6 +70,13 @@ pub const GuArgs = extern struct {
+     kblocks: c_int = 0,
+     z: u64 = 0,
+     early_exit: c_int = 0, // Track C (TF_DS_EXPERT_EXIT)
++    // fmt 2, NVFP4
++    nq: u64 = 0,
++    ns: u64 = 0,
++    ldnq: i64 = 0,
++    ldns: i64 = 0,
++    a1: u64 = 0,
++    a3: u64 = 0,
+ };
+ 
+ /// native.cu's DnArgs.
+@@ -100,6 +107,12 @@ pub const DnArgs = extern struct {
+     z: u64 = 0,
+     P: c_int = 0,
+     early_exit: c_int = 0, // Track C (TF_DS_EXPERT_EXIT)
++    // fmt 2, NVFP4
++    nq: u64 = 0,
++    ns: u64 = 0,
++    ldnq: i64 = 0,
++    ldns: i64 = 0,
++    a2: u64 = 0,
+ };
+ 
+ /// native.cu's BfArgs.
+@@ -189,8 +202,8 @@ const dec_counters = 16384;
+ comptime {
+     // the layouts native.cu was compiled with (pointers and int64 8 bytes, ints and floats 4, C padding)
+     std.debug.assert(@sizeOf(MxArgs) == 128 and @offsetOf(MxArgs, "z") == 96);
+-    std.debug.assert(@offsetOf(GuArgs, "sldw") == 136 and @offsetOf(GuArgs, "owner") == 152 and @offsetOf(GuArgs, "z") == 216 and @offsetOf(GuArgs, "early_exit") == 224 and @sizeOf(GuArgs) == 232);
+-    std.debug.assert(@offsetOf(DnArgs, "sldw") == 104 and @offsetOf(DnArgs, "out") == 136 and @offsetOf(DnArgs, "z") == 160 and @offsetOf(DnArgs, "early_exit") == 172 and @sizeOf(DnArgs) == 176);
++    std.debug.assert(@offsetOf(GuArgs, "sldw") == 136 and @offsetOf(GuArgs, "owner") == 152 and @offsetOf(GuArgs, "z") == 216 and @offsetOf(GuArgs, "early_exit") == 224 and @offsetOf(GuArgs, "nq") == 232 and @sizeOf(GuArgs) == 280);
++    std.debug.assert(@offsetOf(DnArgs, "sldw") == 104 and @offsetOf(DnArgs, "out") == 136 and @offsetOf(DnArgs, "z") == 160 and @offsetOf(DnArgs, "early_exit") == 172 and @offsetOf(DnArgs, "nq") == 176 and @sizeOf(DnArgs) == 216);
+     std.debug.assert(@offsetOf(BfArgs, "y") == 64 and @offsetOf(BfArgs, "z") == 112 and @sizeOf(BfArgs) == 120);
+ }
+ 
+@@ -237,6 +250,9 @@ pub const Kernels = struct {
+     pf_gemm_fold: cuda.Function,
+     pf_gu: cuda.Function,
+     pf_dn: cuda.Function,
++    pf_gu_nv: cuda.Function, // the same with NVFP4 routed experts
++    pf_dn_nv: cuda.Function,
++    nv_quant: cuda.Function, // NVFP4's activations, an entry's own (a programmatic dependent launch's predecessor)
+     pf_tiles: cuda.Function,
+     pf_bf16: cuda.Function,
+     pf_off: bool, // TF_DS_PF_TILES=0: prompt chunks on the tile kernels (the same bits)
+@@ -290,6 +306,9 @@ pub const Kernels = struct {
+             .pf_gemm_fold = try pfFunction(m, "tf_dsn_pf_gemm_fold_kernel", pf_gemm_smem),
+             .pf_gu = try pfFunction(m, "tf_dsn_pf_gu_kernel", pf_gu_smem),
+             .pf_dn = try pfFunction(m, "tf_dsn_pf_dn_kernel", pf_dn_smem),
++            .pf_gu_nv = try pfFunction(m, "tf_dsn_pf_gu_nv_kernel", pf_gu_smem),
++            .pf_dn_nv = try pfFunction(m, "tf_dsn_pf_dn_nv_kernel", pf_dn_smem),
++            .nv_quant = try m.function("tf_dsn_nv_quant_kernel"),
+             .pf_tiles = try m.function("tf_dsn_pf_tiles_kernel"),
+             .pf_bf16 = try pfFunction(m, "tf_dsn_pf_bf16_kernel", pf_bf16_smem),
+             .pf_off = if (std.c.getenv("TF_DS_PF_TILES")) |v| std.mem.eql(u8, std.mem.span(v), "0") else false,
+@@ -960,6 +979,17 @@ pub const ExpertScratch = struct {
+     // tile kernels
+     tiles: u64 = 0,
+     ntiles: u64 = 0,
++    // NVFP4 routed experts (none otherwise): each entry's codes and E4M3 scales, gate / up's and down's
++    nq: u64 = 0, // u8 [rows * slots, D / 2]
++    ns: u64 = 0, // u8 [rows * slots, D / 16]
++    hnq: u64 = 0, // u8 [rows * slots, I / 2]
++    hns: u64 = 0, // u8 [rows * slots, I / 16]
++
++    /// Bytes of NVFP4's entry codes and scales: nq, ns, hnq, hns.
++    pub fn nvSizes(rows: usize, slots: usize, d: usize, i: usize) [4]usize {
++        const p = rows * slots;
++        return .{ p * d / 2, p * d / 16, p * i / 2, p * i / 16 };
++    }
+ 
+     /// Bytes of the prefill tile list for `rows` rows of `slots` slots and `e` experts.
+     pub fn tileBytes(rows: usize, slots: usize, e: usize) usize {
+@@ -974,7 +1004,7 @@ pub const ExpertScratch = struct {
+ 
+ /// The routed rows grouped by expert (picks pick [r, slots]; ids past the experts are another node's), and x's rows
+ /// quantized: what gate / up and down read.
+-fn group(k: *const Kernels, s: cuda.Stream, d: *const cuda.Driver, ex: weights.Experts, sc: ExpertScratch, x: u64, ldx: usize, pick: u64, r: usize, one_cta: bool) !void {
++fn group(k: *const Kernels, s: cuda.Stream, d: *const cuda.Driver, ex: weights.Experts, sc: ExpertScratch, x: u64, ldx: usize, pick: u64, r: usize, one_cta: bool, nv: bool) !void {
+     const e: usize = ex.count;
+     const rs = r * sc.slots;
+     if (one_cta and rs <= 4096) {
+@@ -991,6 +1021,8 @@ fn group(k: *const Kernels, s: cuda.Stream, d: *const cuda.Driver, ex: weights.E
+         g.add(sc.erow);
+         try cuda.launch.launch(k.dec_group, .{ .grid = .{ .x = 1, .y = 1, .z = 1 }, .block = .{ .x = 1024 }, .shared = @intCast((2 * e + 1) * 4) }, s, &g);
+         // x's codes last: gate / up (a programmatic dependent launch) reads the groups before it waits for them
++        // (NVFP4: the entries' codes are last, tf_dsn_nv_quant; these are the shared expert's alone)
++        if (nv) return quant(k, s, x, .bf16, ldx, r, ex.dims, sc.q, ex.dims, sc.s, ex.dims / 32);
+         return quantDec(k, s, x, .bf16, ldx, r, ex.dims, sc.q, ex.dims, sc.s, ex.dims / 32);
+     }
+     try quant(k, s, x, .bf16, ldx, r, ex.dims, sc.q, ex.dims, sc.s, ex.dims / 32);
+@@ -1021,6 +1053,26 @@ fn group(k: *const Kernels, s: cuda.Stream, d: *const cuda.Driver, ex: weights.E
+     try launch(k.place, s, .{ cdiv(rs, 256), 1, 1 }, 256, &a);
+ }
+ 
++/// NVFP4's activations: every routed entry's codes and scales of x [rows, kdim] (by_entry: x [p, kdim], its own row; else
++/// x's row entry / slots) under its expert's g, tf_dsn_nv_quant.
++fn nvQuant(k: *const Kernels, s: cuda.Stream, x: u64, ldx: usize, pick: u64, slots: usize, by_entry: bool, p: usize, kdim: usize, g: u64, routed: usize, nq: u64, ns: u64) !void {
++    var a: cuda.Args = .{};
++    a.add(x);
++    a.add(@as(i64, @intCast(ldx)));
++    a.add(pick);
++    a.add(@as(c_int, @intCast(slots)));
++    a.add(@as(c_int, @intFromBool(by_entry)));
++    a.add(@as(c_int, @intCast(p)));
++    a.add(@as(c_int, @intCast(kdim)));
++    a.add(g);
++    a.add(@as(c_int, @intCast(routed)));
++    a.add(nq);
++    a.add(@as(i64, @intCast(kdim / 2)));
++    a.add(ns);
++    a.add(@as(i64, @intCast(kdim / 16)));
++    try launch(k.nv_quant, s, .{ cdiv(p * (kdim / 16), 128), 1, 1 }, 128, &a);
++}
++
+ /// The active experts' down weights (down's order) into L2 on stream `s`, up to `budget` bytes, paced at about
+ /// 230 GB/s: the 2D exchange between gate / up and down leaves DRAM idle.
+ pub fn prefetchDown(k: *const Kernels, s: cuda.Stream, ex: weights.Experts, sc: ExpertScratch, budget: usize) !void {
+@@ -1053,8 +1105,13 @@ pub const dec_dn_ks = 2;
+ pub fn gateUp(k: *const Kernels, s: cuda.Stream, d: *const cuda.Driver, ex: weights.Experts, sc: ExpertScratch, x: u64, ldx: usize, pick: u64, wts: u64, r: usize, limit: f32, h: u64, ldh: usize, split: bool) !void {
+     const nx = ex.native orelse return error.NotNativeExperts;
+     if (r > sc.rows) return error.ScratchTooSmall;
+-    try group(k, s, d, ex, sc, x, ldx, pick, r, split and k.dec_on);
++    try group(k, s, d, ex, sc, x, ldx, pick, r, split and k.dec_on, nx.nv);
+     const dd: usize = ex.dims;
++    if (nx.nv) {
++        // the block-scaled kernels are the decode tensor-core and prefill tile ones (a prompt chunk's scratch has both)
++        if (sc.nq == 0 or dd % 128 != 0 or (split and !k.dec_on) or (!split and !pfExperts(k, sc, dd, nx.tiles * 32, (nx.tiles - nx.rest_tiles) * 32))) return error.NvfpNeedsTileKernels;
++        try nvQuant(k, s, x, ldx, pick, sc.slots, false, r * sc.slots, dd, nx.g13, ex.count - 1, sc.nq, sc.ns);
++    }
+     const a: GuArgs = .{
+         .q = sc.q,
+         .s = sc.s,
+@@ -1071,7 +1128,13 @@ pub fn gateUp(k: *const Kernels, s: cuda.Stream, d: *const cuda.Driver, ex: weig
+         .s3 = nx.s3,
+         .ldw = @intCast(dd / 2),
+         .ldws = @intCast(dd / 32),
+-        .fmt = 1,
++        .fmt = if (nx.nv) 2 else 1,
++        .nq = sc.nq,
++        .ns = sc.ns,
++        .ldnq = @intCast(dd / 2),
++        .ldns = @intCast(dd / 16),
++        .a1 = nx.a1,
++        .a3 = nx.a3,
+         .D = @intCast(dd),
+         .shared = @intCast(ex.count - 1),
+         .sldw = @intCast(dd),
+@@ -1110,7 +1173,7 @@ pub fn gateUp(k: *const Kernels, s: cuda.Stream, d: *const cuda.Driver, ex: weig
+         try tileList(k, s, sc);
+         args.add(sc.tiles);
+         args.add(sc.ntiles);
+-        return launchShared(k.pf_gu, s, .{ nx.tiles * 32 / 128, p / pf_bm + ex.count, 1 }, pf_gu_smem, &args);
++        return launchShared(if (nx.nv) k.pf_gu_nv else k.pf_gu, s, .{ nx.tiles * 32 / 128, p / pf_bm + ex.count, 1 }, pf_gu_smem, &args);
+     }
+     const t = @min(tiles(r), 2);
+     try launch(k.gu[t], s, .{ cdiv(nx.tiles, 4), ny, 1 }, 128, &args);
+@@ -1143,7 +1206,13 @@ pub fn down(k: *const Kernels, s: cuda.Stream, ex: weights.Experts, sc: ExpertSc
+     const i: usize = ex.down_k;
+     const n: usize = ex.down_n;
+     const p = r * sc.slots;
+-    if (split) try quantDec(k, s, h, .bf16, ldh, p, i, sc.hq, i, sc.hs, i / 32) else try quant(k, s, h, .bf16, ldh, p, i, sc.hq, i, sc.hs, i / 32);
++    if (nx.nv) {
++        if (sc.hnq == 0 or i % 128 != 0 or n % 16 != 0 or (split and !k.dec_on) or (!split and !pfExperts(k, sc, i, n, 0))) return error.NvfpNeedsTileKernels;
++        // the shared expert's entries (every row's last slot) in FP8, in their entry rows; the routed ones' own codes last
++        const last = sc.slots - 1;
++        try quant(k, s, h + last * ldh * 2, .bf16, sc.slots * ldh, r, i, sc.hq + last * i, sc.slots * i, sc.hs + last * (i / 32) * 4, sc.slots * (i / 32));
++        try nvQuant(k, s, h, ldh, pick, sc.slots, true, p, i, nx.g2, ex.count - 1, sc.hnq, sc.hns);
++    } else if (split) try quantDec(k, s, h, .bf16, ldh, p, i, sc.hq, i, sc.hs, i / 32) else try quant(k, s, h, .bf16, ldh, p, i, sc.hq, i, sc.hs, i / 32);
+     const a: DnArgs = .{
+         .q = sc.hq,
+         .s = sc.hs,
+@@ -1157,7 +1226,12 @@ pub fn down(k: *const Kernels, s: cuda.Stream, ex: weights.Experts, sc: ExpertSc
+         .s2 = nx.s2,
+         .ldw = @intCast(i / 2),
+         .ldws = @intCast(i / 32),
+-        .fmt = 1,
++        .fmt = if (nx.nv) 2 else 1,
++        .nq = sc.hnq,
++        .ns = sc.hns,
++        .ldnq = @intCast(i / 2),
++        .ldns = @intCast(i / 16),
++        .a2 = nx.a2,
+         .shared = @intCast(ex.count - 1),
+         .sldw = @intCast(i),
+         .sldws = @intCast(i / 32),
+@@ -1185,7 +1259,7 @@ pub fn down(k: *const Kernels, s: cuda.Stream, ex: weights.Experts, sc: ExpertSc
+         try tileList(k, s, sc);
+         args.add(sc.tiles);
+         args.add(sc.ntiles);
+-        try launchShared(k.pf_dn, s, .{ n / 128, p / pf_bm + ex.count, 1 }, pf_dn_smem, &args);
++        try launchShared(if (nx.nv) k.pf_dn_nv else k.pf_dn, s, .{ n / 128, p / pf_bm + ex.count, 1 }, pf_dn_smem, &args);
+     } else {
+         const t = @min(tiles(r), 2);
+         try launch(k.dn[t], s, .{ cdiv(n / 32, 4), ny, 1 }, 128, &args);
+diff --git a/zig/src/families/dsv41/plan.zig b/zig/src/families/dsv41/plan.zig
+index 3d69c4f..21ac77d 100644
+--- a/zig/src/families/dsv41/plan.zig
++++ b/zig/src/families/dsv41/plan.zig
+@@ -122,7 +122,7 @@ pub const Want = struct {
+ /// A native linear's storage (Format.native): FP8 E4M3 with UE8M0 scales on 32 x 32 blocks, MXFP4 (E2M1 pairs) with a
+ /// UE8M0 scale per 32 values of a row, or bf16. Its parts' keys: "prefix|cols|rows|w8" and "|s8", "|w4" and "|s4",
+ /// "|bf" (cols: output columns, dim 0 of the [N, K] weight; rows: input rows, dim 1), the split's ranges as for EXL3.
+-pub const Native = enum { fp8, fp4, bf16 };
++pub const Native = enum { fp8, fp4, nv4, bf16 };
+ 
+ /// plain(name, dtype)'s key: f"{name}|{dtype}", the dtype as torch prints it.
+ pub fn plainKey(buf: []u8, tensor: []const u8, dtype: ?DType) ![]const u8 {
+@@ -168,6 +168,7 @@ const Builder = struct {
+         const parts: []const []const u8 = switch (kind) {
+             .fp8 => &.{ "w8", "s8" },
+             .fp4 => &.{ "w4", "s4" },
++            .nv4 => &.{ "w4", "t4" }, // NVFP4: the codes as MXFP4's, the E4M3 scales taken per 32 (checkpoint.zig)
+             .bf16 => &.{"bf"},
+         };
+         for (parts) |part| {
+@@ -276,10 +277,15 @@ fn blockNative(b: *Builder, c: Config, s: Split, p: []const u8, i: usize, expert
+     for (0..experts + 1) |e| {
+         const shared = e == experts;
+         const ep = if (!shared) try b.fmt("{s}.ffn.experts.{d}", .{ p, e }) else try b.fmt("{s}.ffn.shared_experts", .{p});
+-        const kind: Native = if (shared) .fp8 else .fp4;
++        const nv = !shared and c.nvfp4 and i < c.layers; // the DSpark stages stay MXFP4
++        const kind: Native = if (shared) .fp8 else if (nv) .nv4 else .fp4;
+         try b.native(try b.fmt("{s}.w1", .{ep}), xp.gu, null, kind);
+         try b.native(try b.fmt("{s}.w3", .{ep}), xp.gu, null, kind);
+         try b.native(try b.fmt("{s}.w2", .{ep}), xp.dcols, xp.half, kind);
++        if (nv) for ([_][]const u8{ "w1", "w3", "w2" }) |w| {
++            try b.plain(try b.fmt("{s}.{s}.input_scale", .{ ep, w }), .f32);
++            try b.plain(try b.fmt("{s}.{s}.weight_scale_2", .{ ep, w }), .f32);
++        };
+         if (xp.rest) |rc| if (restPair(e, experts) == s.pair.?) {
+             try b.native(try b.fmt("{s}.w1", .{ep}), rc, null, kind);
+             try b.native(try b.fmt("{s}.w3", .{ep}), rc, null, kind);
+diff --git a/zig/src/families/dsv41/prompt.zig b/zig/src/families/dsv41/prompt.zig
+index a378725..4e8e44e 100644
+--- a/zig/src/families/dsv41/prompt.zig
++++ b/zig/src/families/dsv41/prompt.zig
+@@ -597,6 +597,17 @@ fn mxScratch(e: *const Engine, ch: *Chunk, a: *Arena, cap: usize) !void {
+     // the prefill tiles' list (mx.gateUp / down of a prompt chunk)
+     x.tiles = try a.take(mx.ExpertScratch.tileBytes(cap, sl, e_max));
+     x.ntiles = try a.take(4);
++    x.nq = 0;
++    x.ns = 0;
++    x.hnq = 0;
++    x.hns = 0;
++    if (e.c.nvfp4) {
++        const ns = mx.ExpertScratch.nvSizes(cap, sl, e.c.hidden, dn_k);
++        x.nq = try a.take(ns[0]);
++        x.ns = try a.take(ns[1]);
++        x.hnq = try a.take(ns[2]);
++        x.hns = try a.take(ns[3]);
++    }
+     x.z = .{ .ptr = 0, .floats = 0 };
+     // decode launches' split partials (round.zig and the drafter's own: mx.decode_rows rows at most)
+     var zf_dec: usize = 0;
+@@ -1520,7 +1531,7 @@ pub const EngramHost = struct {
+         var max_s: usize = 0;
+         for (0..@min(2, c.engram_layers.slice().len)) |j| {
+             const tj = tables.layers.get(@intCast(c.engram_layers.slice()[j])) orelse return error.MissingEngramTable;
+-            for (0..2) |slot| wr[slot][j] = try gpa.alloc(u16, cap * k * tj.row_w);
++            for (0..2) |slot| wr[slot][j] = try gpa.alloc(u16, cap * k * tj.dim());
+             max_w = @max(max_w, tj.row_w);
+             max_s = @max(max_s, tj.row_s);
+         }
+@@ -1532,7 +1543,7 @@ pub const EngramHost = struct {
+             const tj = tables.layers.get(@intCast(c.engram_layers.slice()[j])) orelse return error.MissingEngramTable;
+             aw[j] = try gpa.alloc(u8, cap * k * tj.row_w);
+             as[j] = try gpa.alloc(u8, cap * k * tj.row_s);
+-            ar[j] = try gpa.alloc(u16, cap * k * tj.row_w);
++            ar[j] = try gpa.alloc(u16, cap * k * tj.dim());
+             af[j] = try gpa.alloc(i64, cap * k);
+         }
+         return .{
+@@ -1554,7 +1565,7 @@ pub const EngramHost = struct {
+             .flat = try gpa.alloc(i64, cap * k),
+             .w = try gpa.alloc(u8, cap * k * t.row_w),
+             .s = try gpa.alloc(u8, cap * k * t.row_s),
+-            .rows = try gpa.alloc(u16, cap * k * t.row_w),
++            .rows = try gpa.alloc(u16, cap * k * t.dim()),
+         };
+     }
+ };
+@@ -1596,7 +1607,7 @@ fn engramAhead1(eh: *EngramHost, c: *const Config, seq: []const i32, start: usiz
+     const m = n * k;
+     // by AIO on the prompt's ring when it is open (the main thread reads by it only after joining this one)
+     if (eh.paio) |aio| try aioGather(aio, t, eh.ahead_flat[j][0..m], eh.ahead_w[j][0 .. m * t.row_w], eh.ahead_s[j][0 .. m * t.row_s]) else try eh.pool.gather(t, eh.ahead_flat[j][0..m], eh.ahead_w[j][0 .. m * t.row_w], eh.ahead_s[j][0 .. m * t.row_s]);
+-    engram.decodeRows(eh.ahead_w[j][0 .. m * t.row_w], eh.ahead_s[j][0 .. m * t.row_s], eh.ahead_rows[j][0 .. m * t.row_w], m, t.row_w, t.row_s, 8);
++    engram.decodeRows(eh.ahead_w[j][0 .. m * t.row_w], eh.ahead_s[j][0 .. m * t.row_s], eh.ahead_rows[j][0 .. m * t.dim()], m, t.row_w, t.row_s, 8);
+     eh.ahead_ready[j] = true;
+ }
+ 
+@@ -1640,7 +1651,7 @@ fn workerRows(eh: *EngramHost, c: *const Config, seq: []const i32, start: usize,
+     }
+     const m = n * k;
+     if (eh.paio) |aio| try aioGather(aio, t, eh.wk_flat[0..m], eh.wk_w[0 .. m * t.row_w], eh.wk_s[0 .. m * t.row_s]) else try eh.pool.gather(t, eh.wk_flat[0..m], eh.wk_w[0 .. m * t.row_w], eh.wk_s[0 .. m * t.row_s]);
+-    engram.decodeRows(eh.wk_w[0 .. m * t.row_w], eh.wk_s[0 .. m * t.row_s], out[0 .. m * t.row_w], m, t.row_w, t.row_s, 8);
++    engram.decodeRows(eh.wk_w[0 .. m * t.row_w], eh.wk_s[0 .. m * t.row_s], out[0 .. m * t.dim()], m, t.row_w, t.row_s, 8);
+ }
+ 
+ /// Start the worker for a fill of `seq` from chunk `start` (any worker before it stopped first).
+@@ -1725,7 +1736,7 @@ pub fn engramApply(e: *const Engine, ch: *Chunk, eh: *EngramHost, li: usize, seq
+     const m = n * k;
+     const prof = eh.io != null;
+     var tq = if (prof) pstamp(e, eh) else 0;
+-    if (m * t.row_w != n * ew.k) return error.EngramShape;
++    if (m * t.dim() != n * ew.k) return error.EngramShape;
+     if (eh.pk) |pr| {
+         // packed shards: the chunk's records (the fill's worker's, else read ahead when they are this chunk's, else read
+         // here), decoded on the GPU
+@@ -1754,10 +1765,10 @@ pub fn engramApply(e: *const Engine, ch: *Chunk, eh: *EngramHost, li: usize, seq
+                 for (0..k) |j| eh.flat[r * k + j] = eh.hashes[(r * eh.hasher.layers + l) * cols + eh.lo + j];
+             }
+             if (eh.paio) |aio| try aioGather(aio, t, eh.flat[0..m], eh.w[0 .. m * t.row_w], eh.s[0 .. m * t.row_s]) else try eh.pool.gather(t, eh.flat[0..m], eh.w[0 .. m * t.row_w], eh.s[0 .. m * t.row_s]);
+-            engram.decodeRows(eh.w[0 .. m * t.row_w], eh.s[0 .. m * t.row_s], eh.rows[0 .. m * t.row_w], m, t.row_w, t.row_s, 8); // the rows on 8 threads
++            engram.decodeRows(eh.w[0 .. m * t.row_w], eh.s[0 .. m * t.row_s], eh.rows[0 .. m * t.dim()], m, t.row_w, t.row_s, 8); // the rows on 8 threads
+         }
+         if (prof) eh.p_rows += lap(e, eh, &tq);
+-        try upload(e, ch.eb, rows.ptr, m * t.row_w * 2);
++        try upload(e, ch.eb, rows.ptr, m * t.dim() * 2);
+         if (prof) eh.p_upload += lap(e, eh, &tq);
+     }
+     try mm(e, ch, ew, ch.eb, ew.k, ch.ek, .fp32, ew.n);
+diff --git a/zig/src/families/dsv41/round.zig b/zig/src/families/dsv41/round.zig
+index deff59a..2c809eb 100644
+--- a/zig/src/families/dsv41/round.zig
++++ b/zig/src/families/dsv41/round.zig
+@@ -1332,9 +1332,10 @@ fn engramLand(e: *const Engine, rd: *Round, eh: *prompt.EngramHost, ah: *const A
+     const t2 = stamp(eh);
+     const w0 = f0 * tbl.row_w;
+     const s0 = f0 * tbl.row_s;
+-    for (0..m) |i| engram.decodeRow(eh.w[w0 + i * tbl.row_w ..][0..tbl.row_w], eh.s[s0 + i * tbl.row_s ..][0..tbl.row_s], eh.rows[w0 + i * tbl.row_w ..][0..tbl.row_w]);
++    const d0 = f0 * tbl.dim();
++    for (0..m) |i| engram.decodeRow(eh.w[w0 + i * tbl.row_w ..][0..tbl.row_w], eh.s[s0 + i * tbl.row_s ..][0..tbl.row_s], eh.rows[d0 + i * tbl.dim() ..][0..tbl.dim()]);
+     const t3 = stamp(eh);
+-    try prompt.upload(e, rd.e_in, eh.rows[w0..].ptr, m * tbl.row_w * 2);
++    try prompt.upload(e, rd.e_in, eh.rows[d0..].ptr, m * tbl.dim() * 2);
+     if (eh.io != null) {
+         eh.t_read += t2 - t1;
+         eh.t_decode += t3 - t2;
+diff --git a/zig/src/families/dsv41/weights.zig b/zig/src/families/dsv41/weights.zig
+index cbfe5d7..4cd25aa 100644
+--- a/zig/src/families/dsv41/weights.zig
++++ b/zig/src/families/dsv41/weights.zig
+@@ -33,6 +33,13 @@ pub const NativeExperts = struct {
+     owner: u64 = 0, // int32 [E]: 1 when this node computes e's rest block (the pack's last tile), else 0; 0: no rest
+     tiles: u32, // the pack's 32-column tiles (main, plus one rest block's 4 when there is a rest)
+     rest_tiles: u32 = 0,
++    // NVFP4 routed experts (s1 / s3 / s2: one E4M3 byte a block of 32): fp32 [E] each, the shared expert's unused
++    nv: bool = false,
++    g13: u64 = 0, // 1 / input_scale of gate and up (the same input)
++    g2: u64 = 0, // 1 / input_scale of down
++    a1: u64 = 0, // input_scale * weight_scale_2 of gate
++    a3: u64 = 0,
++    a2: u64 = 0,
+ };
+ 
+ /// A layer's routed experts and its shared expert (the last entry), as exl3_experts.prepare lays them out. On a 2D node
+@@ -390,6 +397,7 @@ const Loader = struct {
+         const wpart: []const u8 = switch (kind) {
+             .fp8 => "w8",
+             .fp4 => "w4",
++            .nv4 => return error.UnexpectedTensor, // the routed experts' alone (expertsNative)
+             .bf16 => "bf",
+         };
+         const wkey = try plan.partKey(&kb, prefix, cols, rows, wpart);
+@@ -405,6 +413,7 @@ const Loader = struct {
+         return .{ .words = w, .w = w, .s = s, .k = @intCast(k), .n = @intCast(sh[0]), .fmt = switch (kind) {
+             .fp8 => .fp8,
+             .fp4 => .fp4,
++            .nv4 => unreachable,
+             .bf16 => .bf16,
+         } };
+     }
+@@ -488,7 +497,7 @@ const Loader = struct {
+ 
+     /// Format.native experts of block p: every expert's gate / up pack (main columns, then its rest when this node
+     /// computes it) and its down part, in one buffer, with pointer tables over the experts (routed MXFP4, shared FP8).
+-    fn expertsNative(L: *Loader, p: []const u8, n: usize, half: [2]usize, gu: [2]usize, dcols: ?[2]usize, d: usize, rest: ?[2]usize, pair: ?u32) !Experts {
++    fn expertsNative(L: *Loader, p: []const u8, n: usize, half: [2]usize, gu: [2]usize, dcols: ?[2]usize, d: usize, rest: ?[2]usize, pair: ?u32, nv: bool) !Experts {
+         const e_count = n + 1;
+         var kb: [256]u8 = undefined;
+         var nb: [256]u8 = undefined;
+@@ -504,14 +513,14 @@ const Loader = struct {
+         // when this node computes the rest (one pack, no gap); every tensor starts 256-byte aligned
+         const Piece = struct { proj: []const u8, part: []const u8, cols: ?[2]usize, rows: ?[2]usize };
+         const pieces = struct {
+-            fn of(out: *[2]Piece, j: usize, fp4: bool, g: [2]usize, r: ?[2]usize, own: bool, dc: ?[2]usize, h: [2]usize) []Piece {
++            fn of(out: *[2]Piece, j: usize, fp4: bool, nv4: bool, g: [2]usize, r: ?[2]usize, own: bool, dc: ?[2]usize, h: [2]usize) []Piece {
+                 const proj: []const u8 = switch (j) {
+                     0, 2 => "w1",
+                     1, 3 => "w3",
+                     else => "w2",
+                 };
+                 const scale = j == 2 or j == 3 or j == 5;
+-                const part: []const u8 = if (fp4) (if (scale) "s4" else "w4") else (if (scale) "s8" else "w8");
++                const part: []const u8 = if (fp4) (if (scale) (if (nv4) "t4" else "s4") else "w4") else (if (scale) "s8" else "w8");
+                 if (j >= 4) {
+                     out[0] = .{ .proj = proj, .part = part, .cols = dc, .rows = h };
+                     return out[0..1];
+@@ -531,7 +540,7 @@ const Loader = struct {
+         var total: usize = 0;
+         for (0..e_count) |e| for (0..6) |j| {
+             var len_j: usize = 0;
+-            for (pieces(&pbuf, j, e < n, gu, rest, owner[e] == 1, dcols, half)) |pc| {
++            for (pieces(&pbuf, j, e < n, nv, gu, rest, owner[e] == 1, dcols, half)) |pc| {
+                 len_j += try L.src.size(try plan.partKey(&kb, try name(&nb, p, e, n, pc.proj), pc.cols, pc.rows, pc.part));
+             }
+             total += std.mem.alignForward(usize, len_j, 256);
+@@ -544,7 +553,7 @@ const Loader = struct {
+         for (0..e_count) |e| for (0..6) |j| {
+             tabs[j * e_count + e] = buf.ptr + at;
+             var len_j: usize = 0;
+-            for (pieces(&pbuf, j, e < n, gu, rest, owner[e] == 1, dcols, half)) |pc| {
++            for (pieces(&pbuf, j, e < n, nv, gu, rest, owner[e] == 1, dcols, half)) |pc| {
+                 const bytes = try L.entry(try plan.partKey(&kb, try name(&nb, p, e, n, pc.proj), pc.cols, pc.rows, pc.part));
+                 try buf.upload(at + len_j, bytes);
+                 len_j += bytes.len;
+@@ -571,6 +580,40 @@ const Loader = struct {
+         for (fields, 0..) |f, j| f.* = try L.upload(try std.fmt.bufPrint(&tb, "{s}.ffn.experts.native_tab{d}", .{ p, j }), std.mem.sliceAsBytes(tabs[j * e_count ..][0..e_count]));
+         nx.tiles = @intCast((width + ir) / 32);
+         nx.rest_tiles = @intCast(ir / 32);
++        nx.nv = nv;
++        nx.g13 = 0;
++        nx.g2 = 0;
++        nx.a1 = 0;
++        nx.a3 = 0;
++        nx.a2 = 0;
++        if (nv) {
++            const fl = try L.gpa.alloc(f32, 5 * e_count); // g13, g2, a1, a3, a2 over the experts
++            defer L.gpa.free(fl);
++            for (0..e_count) |e| {
++                for (0..5) |j| fl[j * e_count + e] = 1;
++                if (e == n) continue;
++                const sc = struct {
++                    fn of(Lo: *Loader, nbuf: []u8, kbuf: []u8, pp: []const u8, ee: usize, w: []const u8, tail: []const u8) !f32 {
++                        const tn = try std.fmt.bufPrint(nbuf, "{s}.ffn.experts.{d}.{s}.{s}", .{ pp, ee, w, tail });
++                        const bytes = try Lo.entry(try plan.plainKey(kbuf, tn, .f32));
++                        if (bytes.len != 4) return error.UnexpectedTensor;
++                        return std.mem.bytesToValue(f32, bytes[0..4]);
++                    }
++                }.of;
++                const in1 = try sc(L, &nb, &kb, p, e, "w1", "input_scale");
++                const in3 = try sc(L, &nb, &kb, p, e, "w3", "input_scale");
++                const in2 = try sc(L, &nb, &kb, p, e, "w2", "input_scale");
++                // gate and up read one quantized input: a checkpoint that calibrated them apart is not this kernel's
++                if (in1 != in3 or !(in1 > 0) or !(in2 > 0)) return error.UnexpectedTensor;
++                fl[0 * e_count + e] = 1 / in1;
++                fl[1 * e_count + e] = 1 / in2;
++                fl[2 * e_count + e] = in1 * try sc(L, &nb, &kb, p, e, "w1", "weight_scale_2");
++                fl[3 * e_count + e] = in3 * try sc(L, &nb, &kb, p, e, "w3", "weight_scale_2");
++                fl[4 * e_count + e] = in2 * try sc(L, &nb, &kb, p, e, "w2", "weight_scale_2");
++            }
++            const nvf = [_]*u64{ &nx.g13, &nx.g2, &nx.a1, &nx.a3, &nx.a2 };
++            for (nvf, 0..) |ptr, j| ptr.* = try L.upload(try std.fmt.bufPrint(&tb, "{s}.ffn.experts.native_nv{d}", .{ p, j }), std.mem.sliceAsBytes(fl[j * e_count ..][0..e_count]));
++        }
+         nx.owner = if (rest != null) try L.upload(try std.fmt.bufPrint(&nb, "{s}.ffn.experts.native_owner", .{p}), std.mem.sliceAsBytes(owner)) else 0;
+         x.native = nx;
+         if (rest) |rc| {
+@@ -854,7 +897,7 @@ const Loader = struct {
+         lay.gate_b = try L.plain(try std.fmt.bufPrint(&nb, "{s}.ffn.gate.bias", .{p}), .f32);
+         if (c.vision) lay.gate_b_vl = try L.plain(try std.fmt.bufPrint(&nb, "{s}.ffn.gate.bias_vl", .{p}), .f32);
+         const xp = s.expertParts(c);
+-        lay.experts = try L.expertsNative(p, n_experts, xp.half, xp.gu, xp.dcols, c.hidden, xp.rest, s.pair);
++        lay.experts = try L.expertsNative(p, n_experts, xp.half, xp.gu, xp.dcols, c.hidden, xp.rest, s.pair, c.nvfp4 and i < c.layers);
+         if (c.engram_layers.has(i)) {
+             lay.engram_wkv = try L.native(try std.fmt.bufPrint(&pb, "{s}.engram.wkv", .{p}), s.engramCols(c), s.range(s.engramRows(c)), .fp8);
+             var kb: [256]u8 = undefined;

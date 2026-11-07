@@ -1,0 +1,127 @@
+{
+  "api": {
+    "audio_output": false,
+    "default_output_tokens": {
+      "argument": "max-tokens"
+    },
+    "endpoints": [
+      "/v1/chat/completions",
+      "/v1/completions",
+      "/v1/responses",
+      "/v1/messages"
+    ],
+    "input_modalities": {
+      "audio": false,
+      "image": true,
+      "pdf": false,
+      "text": true,
+      "video": false
+    },
+    "max_input_tokens": null,
+    "max_output_tokens": {
+      "setting": "context_tokens"
+    },
+    "mode": "chat",
+    "reasoning": {
+      "default": "off",
+      "effort": {
+        "default": "max",
+        "key": "reasoning_effort",
+        "levels": [
+          "low",
+          "high",
+          "max"
+        ],
+        "via": "top_level"
+      },
+      "keys": [
+        "enable_thinking",
+        "thinking"
+      ],
+      "kind": "switch",
+      "off": false,
+      "on": true,
+      "via": "chat_template_kwargs"
+    },
+    "streaming": true,
+    "structured_output": true,
+    "system_messages": true,
+    "tools": {
+      "kind": "supported",
+      "parallel_calls": true,
+      "tool_choice": [
+        "auto",
+        "required",
+        "named"
+      ]
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual"
+  },
+  "kind": "recipe-api",
+  "option_choices": [
+    {
+      "api": {
+        "audio_output": false,
+        "default_output_tokens": {
+          "argument": "max-tokens"
+        },
+        "endpoints": [
+          "/v1/chat/completions",
+          "/v1/completions",
+          "/v1/responses",
+          "/v1/messages"
+        ],
+        "input_modalities": {
+          "audio": false,
+          "image": false,
+          "pdf": false,
+          "text": true,
+          "video": false
+        },
+        "max_input_tokens": null,
+        "max_output_tokens": {
+          "setting": "context_tokens"
+        },
+        "mode": "chat",
+        "reasoning": {
+          "default": "off",
+          "effort": {
+            "default": "max",
+            "key": "reasoning_effort",
+            "levels": [
+              "low",
+              "high",
+              "max"
+            ],
+            "via": "top_level"
+          },
+          "keys": [
+            "enable_thinking",
+            "thinking"
+          ],
+          "kind": "switch",
+          "off": false,
+          "on": true,
+          "via": "chat_template_kwargs"
+        },
+        "streaming": true,
+        "structured_output": true,
+        "system_messages": true,
+        "tools": {
+          "kind": "supported",
+          "parallel_calls": true,
+          "tool_choice": [
+            "auto",
+            "required",
+            "named"
+          ]
+        }
+      },
+      "option": "images_video",
+      "value": "text-only"
+    }
+  ]
+}

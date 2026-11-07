@@ -256,7 +256,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "5a5f9f5af3b6b87c368efacb1771fe724539c103393fcefee56fc42c242b324d",
+        "content_sha256": "0cbb91ab2bbec5dc6690fb67516f816402a236b40b5467c1ad025b7589f9b0a1",
         "kind": "model",
         "publisher": "google",
         "slug": "diffusiongemma-26b-a4b-it-bf16-f7f5b7f5"

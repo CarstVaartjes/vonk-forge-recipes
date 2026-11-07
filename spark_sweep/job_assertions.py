@@ -7,6 +7,20 @@ does (the media kinds in ``job_media``). What the sweep host cannot observe (a
 ``video-metadata`` without ``ffprobe`` installed) is reported as not evaluated with
 its reason, never passed and never failed. ``tests/test_sweep_job_smoke.py`` keeps
 every kind the definitions use in exactly one of the two sets.
+
+``zip-entries`` is the platform's assertion of the same name (vonk-forge
+``qualification_fixtures/outputs.py``), field for field. Its contract, with the
+defaults a definition may leave out:
+
+- ``exact_names`` (absent: any names): the entry names, in archive order, equal it.
+- ``minimum_entries`` (absent: 1): at least that many entries.
+- ``allowed_suffixes`` (absent: any): every entry name ends with one of them.
+- ``nonempty`` (absent or false: empty entries allowed): only ``true`` requires
+  every entry to hold bytes.
+
+The archive is read as the platform reads it (:func:`_zip_entries`): a path that
+leaves the archive, a directory, symlink or encrypted entry, a duplicate name, an
+unsafe expansion or an unreadable archive is a miss, never a crash.
 """
 
 from __future__ import annotations
@@ -16,8 +30,10 @@ import re
 import struct
 import wave
 import zipfile
+import zlib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from pathlib import PurePosixPath
 from typing import Any, NoReturn
 
 from .job_media import (
@@ -49,6 +65,7 @@ EVALUATED = frozenset(
         "image-metadata",
         "audio-metadata",
         "document-archive",
+        "zip-entries",
         "json-document",
         "video-metadata",
         "glb-structure",
@@ -203,6 +220,83 @@ def _document_archive(content: bytes, assertion: Mapping[str, Any]) -> None:
         _fail(assertion, "document-archive text", text[:200])
 
 
+#: The platform's bounds on what a ZIP may expand to.
+ZIP_MAX_TOTAL_BYTES = 256 * 1024**2
+ZIP_MAX_ENTRY_BYTES = 128 * 1024**2
+ZIP_MAX_EXPANSION_RATIO = 10_000
+_ZIP_SYMLINK = 0o120000
+
+
+def _zip_entries(content: bytes) -> list[tuple[str, bytes]]:
+    """Every entry of the archive, refused when any is unsafe (the platform's ``_safe_zip_entries``)."""
+
+    def unsafe(message: str, value: Any = None) -> NoReturn:
+        raise AssertionFailed(message, value, "zip-entries")
+
+    try:
+        with zipfile.ZipFile(io.BytesIO(content)) as archive:
+            entries: dict[str, bytes] = {}
+            total = 0
+            for info in archive.infolist():
+                path = PurePosixPath(info.filename)
+                if (
+                    "\\" in info.filename
+                    or "\x00" in info.filename
+                    or path.is_absolute()
+                    or ".." in path.parts
+                    or info.is_dir()
+                    or info.flag_bits & 0x1
+                    or (info.external_attr >> 16) & 0o170000 == _ZIP_SYMLINK
+                ):
+                    unsafe("ZIP contains an unsafe entry", info.filename)
+                if info.filename in entries:
+                    unsafe("ZIP contains duplicate entries", info.filename)
+                total += info.file_size
+                if (
+                    total > ZIP_MAX_TOTAL_BYTES
+                    or info.file_size > ZIP_MAX_ENTRY_BYTES
+                    or info.file_size / max(info.compress_size, 1)
+                    > ZIP_MAX_EXPANSION_RATIO
+                    or (info.compress_size == 0 and info.file_size > 0)
+                ):
+                    unsafe("ZIP expansion is unsafe", info.filename)
+                data = archive.read(info)
+                if len(data) != info.file_size:
+                    unsafe("ZIP entry size changed", info.filename)
+                entries[info.filename] = data
+    except (
+        EOFError,
+        RuntimeError,
+        ValueError,
+        zipfile.BadZipFile,
+        zlib.error,
+    ) as error:
+        raise AssertionFailed(
+            f"ZIP structure is invalid: {error}", None, "zip-entries"
+        ) from error
+    if not entries:
+        unsafe("ZIP has no files")
+    return list(entries.items())
+
+
+def _zip_entries_assertion(content: bytes, assertion: Mapping[str, Any]) -> None:
+    entries = _zip_entries(content)
+    names = [name for name, _ in entries]
+    if "exact_names" in assertion and names != assertion["exact_names"]:
+        _fail(assertion, "zip-entries entry names", names)
+    if len(entries) < assertion.get("minimum_entries", 1):
+        _fail(assertion, "zip-entries entry count", len(entries))
+    suffixes = assertion.get("allowed_suffixes")
+    if isinstance(suffixes, list):
+        bad = [n for n in names if not any(n.endswith(s) for s in suffixes)]
+        if bad:
+            _fail(assertion, "zip-entries entry suffix", bad)
+    if assertion.get("nonempty") is True:
+        empty = [name for name, data in entries if not data]
+        if empty:
+            _fail(assertion, "zip-entries empty entry", empty)
+
+
 def _json_document(content: bytes, assertion: Mapping[str, Any]) -> None:
     try:
         document = strict_json(content)
@@ -279,6 +373,9 @@ def evaluate(
         elif kind == "document-archive":
             for output in selected:
                 _document_archive(output.content, assertion)
+        elif kind == "zip-entries":
+            for output in selected:
+                _zip_entries_assertion(output.content, assertion)
         elif kind == "json-document":
             for output in selected:
                 _json_document(output.content, assertion)

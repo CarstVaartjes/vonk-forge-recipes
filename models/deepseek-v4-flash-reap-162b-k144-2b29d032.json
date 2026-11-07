@@ -1,11 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -721,17 +714,6 @@
     "version": "DeepSeek V4 Flash REAP 162B K144 2b29d032"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "0xSero",
-      "DeepSeek-AI"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/0xSero/DeepSeek-V4-Flash-162B/blob/2b29d032372f96679bbcd2ec32f6c00bb1d5af3c/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/0xSero/DeepSeek-V4-Flash-162B",

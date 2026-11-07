@@ -103,7 +103,10 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             model = load(Path(directory) / "models/test-version.json")
             self.assertEqual(len(model["files"]), 419)
             self.assertFalse(model["requires_token"])
-            self.assertEqual(model["capabilities"], ["text-generation"])
+            self.assertNotIn("capabilities", model)
+            display = load(Path(directory) / "display/models/test-version.json")
+            self.assertEqual(display["capabilities"], ["text-generation"])
+            self.assertEqual(display["license"]["spdx"], "MIT")
 
     def test_artifact_ids_include_full_path_for_repeated_identical_files(self) -> None:
         namespace = runpy.run_path(str(TOOL))
@@ -313,8 +316,8 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             "qwen3-6-27b-6a9e13bd",
             "qwen3-8-27b-1d4bf0f2",
         ):
-            model = load(ROOT / f"models/{slug}.json")
-            capabilities = set(model["capabilities"])
+            display = load(ROOT / f"display/models/{slug}.json")
+            capabilities = set(display["capabilities"])
             self.assertTrue(
                 capabilities & {"text-generation", "image-understanding"}, slug
             )

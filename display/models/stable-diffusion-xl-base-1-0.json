@@ -1,4 +1,5 @@
 {
+  "capabilities": [],
   "description": "Complete default-weight SDXL pipeline closure used by Step1X texture inference, excluding only its explicitly overridden VAE. Model files are manifest-selected; no HF network fallback is intended.",
   "family_title": "Stable Diffusion XL",
   "identity": {
@@ -6,6 +7,16 @@
     "slug": "stable-diffusion-xl-base-1-0"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "stabilityai"
+    ],
+    "spdx": "LicenseRef-CreativeML-Open-RAIL-Plus-Plus-M",
+    "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/462165984030d82259a11f4367a4eed129e94a7b/LICENSE.md"
+  },
+  "modalities": [
+    "image"
+  ],
   "model_title": "Stable Diffusion XL Base 1.0",
   "tags": [
     "stabilityai",

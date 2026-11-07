@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
   "description": "DeepSeek-V2-Lite Chat SFT checkpoint for chat completion, with the upstream tokenizer chat template and EOS configuration.",
   "family_title": "DeepSeek",
   "identity": {
@@ -6,6 +11,16 @@
     "slug": "deepseek-v2-lite-chat-85864749"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek AI"
+    ],
+    "spdx": "LicenseRef-DeepSeek-Model-License",
+    "url": "https://github.com/deepseek-ai/DeepSeek-V2/blob/main/LICENSE-MODEL"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "DeepSeek-V2-Lite",
   "tags": [
     "deepseek-ai",

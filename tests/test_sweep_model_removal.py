@@ -38,6 +38,7 @@ class RemovalPeer:
             }
         ]
         self.lost = False
+        self.conflict = False
         self.crash = False
         self.blocked = False
         self.mismatch = False
@@ -61,10 +62,13 @@ class RemovalPeer:
         request = args[args.index("--request-key") + 1]
         persisted = State.load(self.sweep.state.path).data["model_removals"][digest]
         assert persisted["request_key"] == request  # write-ahead before effects
-        if self.crash:
+        if self.crash and digest == A:  # faults hit the model under test, A
             self.crash = False
             raise KeyboardInterrupt
-        if self.lost:
+        if self.conflict and digest == A:
+            self.conflict = False
+            return 2, json.dumps(fixture("conflict")), ""
+        if self.lost and digest == A:
             self.lost = False
             return 124, "", "connection lost after acceptance"
         receipt = fixture("receipt")
@@ -82,8 +86,16 @@ class RemovalPeer:
         return [args for args in self.calls if "--review" not in args]
 
 
-def scenario(tmp_path):
-    (tmp_path / "state.json").write_text(json.dumps(fixture("state")))
+def scenario(tmp_path, *, extra: int = 0):
+    """The saved campaign, plus ``extra`` passed recipes that each own one more model."""
+    extra_digests = [f"{0xE0 + index:064x}" for index in range(extra)]
+    state = fixture("state")
+    for index in range(extra):
+        state["recipes"][f"vonk-forge/x{index}"] = {
+            "status": "passed",
+            "content_sha256": "c1",
+        }
+    (tmp_path / "state.json").write_text(json.dumps(state))
     sweep, fleet, clock = make_sweep(
         tmp_path,
         [
@@ -91,8 +103,12 @@ def scenario(tmp_path):
             FakeRecipe("b", digests=(A,)),
             FakeRecipe("owner", digests=(C,)),
             FakeRecipe("later", digests=(D,)),
+            *(
+                FakeRecipe(f"x{index}", digests=(digest,))
+                for index, digest in enumerate(extra_digests)
+            ),
         ],
-        [FakeModel(digest, local="cached") for digest in (A, B, C, D)],
+        [FakeModel(digest, local="cached") for digest in (A, B, C, D, *extra_digests)],
     )
     from spark_sweep.catalog import parse_recipe
     from spark_sweep.identity import content_identity
@@ -111,8 +127,10 @@ def scenario(tmp_path):
 
 
 def advance(sweep, clock):
+    """Everything is due again: one tick per record, each advancing the oldest due one."""
     clock.t += MAX_BACKOFF_SECONDS + 1
-    sweep.remove_finished_models()
+    for _ in range(4):  # the scenario's eligible models (A, B), with room to spare
+        sweep.remove_finished_models()
 
 
 def test_shared_and_secondary_models_wait_for_every_current_verdict(tmp_path):
@@ -187,6 +205,62 @@ def test_owner_unknown_blocks_only_removal_and_heals(tmp_path):
     assert peer.submissions
 
 
+def test_a_submit_refusal_keeps_its_typed_cause_and_the_key_then_heals(tmp_path):
+    """Catches validating a Controller error document as a receipt (a pydantic dump)."""
+    sweep, peer, clock = scenario(tmp_path)
+    peer.conflict = True
+    sweep.remove_finished_models()
+    record = sweep.state.data["model_removals"][A]
+    original = record["request_key"]
+    assert original is not None
+    conflict = fixture("conflict")
+    assert conflict["code"] in record["message"]
+    assert "http_status=409" in record["message"]
+    assert conflict["detail"] in record["message"]
+    assert "validation error" not in record["message"]
+    assert record["next_check"] > clock.now()
+    advance(sweep, clock)
+    assert [
+        args[args.index("--request-key") + 1]
+        for args in peer.submissions
+        if args[2] == A
+    ] == [original, original]
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.RECEIPT
+
+
+def test_many_due_records_rotate_by_their_persisted_next_check(tmp_path, monkeypatch):
+    """Catches a pass that always starts at the lowest digest: records that come due again
+    first keep the single slot per tick while the later ones stay overdue."""
+    from spark_sweep import removal
+
+    # The earliest retry the schedule allows, so a refused record is due again soon.
+    monkeypatch.setattr(removal, "uniform", lambda low, _high: low)
+    sweep, peer, clock = scenario(tmp_path, extra=8)
+    refused = fixture("error")
+    original_runner = peer.runner
+
+    def runner(argv, timeout):
+        if "--review" in argv:
+            peer.calls.append(list(argv)[3:])
+            return 2, json.dumps(refused), ""
+        return original_runner(argv, timeout)
+
+    sweep.model_remover.vk = Vonkctl(runner=runner)
+    for _ in range(30):
+        sweep.remove_finished_models()
+        clock.t += 20
+    reviewed = [args[2] for args in peer.calls if "--review" in args]
+    eligible = {
+        digest
+        for digest, record in sweep.state.data["model_removals"].items()
+        if record["outcome"] == RemovalOutcome.RETRY
+    }
+    assert len(eligible) >= 9
+    # Every record is reviewed before any is reviewed a second time.
+    first_round = reviewed[: len(eligible)]
+    assert set(first_round) == eligible
+
+
 @pytest.mark.parametrize("fault", ["lost", "crash"])
 def test_restart_reconnects_to_the_write_ahead_request(tmp_path, fault):
     sweep, peer, clock = scenario(tmp_path)
@@ -200,9 +274,10 @@ def test_restart_reconnects_to_the_write_ahead_request(tmp_path, fault):
     sweep.state = State.load(sweep.state.path, clock.now)
     sweep.model_remover.state = sweep.state
     advance(sweep, clock)
-    assert len(peer.submissions) == 2
+    submissions = [args for args in peer.submissions if args[2] == A]
+    assert len(submissions) == 2
     assert all(
-        args[args.index("--request-key") + 1] == original for args in peer.submissions
+        args[args.index("--request-key") + 1] == original for args in submissions
     )
     record = sweep.state.data["model_removals"][A]
     assert record["outcome"] == RemovalOutcome.RECEIPT
@@ -265,7 +340,11 @@ def test_repeated_failures_and_uncertainty_always_schedule_a_next_check(
         status = render_status(build_status(sweep))
         assert str(record.outcome) in status and record.message in status
         assert str(record.next_check) in status
-        keys = [args[args.index("--request-key") + 1] for args in peer.submissions]
+        keys = [
+            args[args.index("--request-key") + 1]
+            for args in peer.submissions
+            if args[2] == A
+        ]
         sweep.state = State.load(sweep.state.path, clock.now)
         sweep.model_remover.state = sweep.state
     if fault in ("blocked", "mismatch"):
@@ -273,7 +352,8 @@ def test_repeated_failures_and_uncertainty_always_schedule_a_next_check(
         assert record.outcome == RemovalOutcome.RETRY
     elif fault == "terminal":
         assert len(set(keys)) == 12
-        assert len([args for args in peer.calls if "--review" in args]) >= 12
+        reviews = [args for args in peer.calls if "--review" in args and args[2] == A]
+        assert len(reviews) >= 12
     else:
         assert len(keys) == 12 and len(set(keys)) == 1
         assert record.outcome == RemovalOutcome.WAIT

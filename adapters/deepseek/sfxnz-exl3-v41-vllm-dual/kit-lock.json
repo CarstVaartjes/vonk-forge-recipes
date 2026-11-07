@@ -3,13 +3,13 @@
     "model": {
       "datasource": "hf-revision",
       "kind": "branch",
-      "ref": "2.0bpw-mcg-viterbi-lmhead-mxfp8",
-      "repo": "sfxnz/DeepSeek-V4.1-Flash-EXL3",
-      "revision": "982b70452f399814f56b46272fd30394ae10d58c"
+      "ref": "2.7bpw-mcg-hq",
+      "repo": "sfxnz/DeepSeek-V4.1-Flash-1017-EXL3",
+      "revision": "a8006e99931e7d67c4d218c66543f478b521b857"
     }
   },
   "kit": {
-    "commit": "3de914682d0880c8e478712a60ada930339c22e4",
-    "repo": "sfxnz/DeepSeek-V4.1-Flash-EXL3-vLLM-2x-DGX-Spark"
+    "commit": "8087818b9fe2aaf8fb3dbd456f0e18d7751edb9a",
+    "repo": "sfxnz/DeepSeek-V4.1-Flash-1017-EXL3-2.7bpw-vLLM-2x-DGX-Spark"
   }
 }

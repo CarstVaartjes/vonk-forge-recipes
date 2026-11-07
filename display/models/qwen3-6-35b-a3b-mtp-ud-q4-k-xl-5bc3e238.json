@@ -1,4 +1,12 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Unsloth Dynamic UD-Q4_K_XL GGUF of Qwen3.6-35B-A3B with the multi-token-prediction (MTP) head, plus the F16 vision projector.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +14,18 @@
     "slug": "qwen3-6-35b-a3b-mtp-ud-q4-k-xl-5bc3e238"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Unsloth",
+      "Alibaba Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Qwen3.6 35B-A3B",
   "tags": [
     "unsloth",

@@ -1,16 +1,13 @@
 {
-  "capabilities": [
-    "3d-generation"
-  ],
   "dependencies": [
     {
-      "content_sha256": "ab5ae5fdcdf6e4e976cb56a1d9cb58efe152cbba6d74347dfcfdd1afa61e9ff4",
+      "content_sha256": "2f87374761b1087d4dea34155a08adccf25e8b42306b8da88e80060402509342",
       "kind": "model",
       "publisher": "facebook",
       "slug": "dinov2-with-registers-large"
     },
     {
-      "content_sha256": "c858dbb69df14112730e9df44829f041a8cecee1a2bfd3df4193c5d31a92ca70",
+      "content_sha256": "41ffcfc00ab897e0ca15dc0c89e045e9d68ca52283a78f9739405dc389ff0171",
       "kind": "model",
       "publisher": "openai",
       "slug": "clip-vit-large-patch14"
@@ -136,16 +133,6 @@
     "version": "Step1X-3D label-geometry"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "stepfun-ai"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/LICENSE"
-  },
-  "modalities": [
-    "3d"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/stepfun-ai/Step1X-3D",

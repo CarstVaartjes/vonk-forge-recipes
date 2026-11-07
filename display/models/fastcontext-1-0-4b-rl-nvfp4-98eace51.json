@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Microsoft FastContext-1.0-4B-RL async repo-exploration subagent model.",
   "family_title": "FastContext",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "fastcontext-1-0-4b-rl-nvfp4-98eace51"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Microsoft",
+      "r0b0tlab"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/r0b0tlab/FastContext-1.0-4B-RL-NVFP4/blob/98eace51079e3a1927ea3ce215581842f721ebe4/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "FastContext-1.0-4B-RL",
   "tags": [
     "r0b0tlab",

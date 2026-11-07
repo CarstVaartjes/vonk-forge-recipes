@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -204,17 +201,6 @@
     "version": "BRIA RMBG 1.4"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "BRIA AI"
-    ],
-    "spdx": "other",
-    "territorial_restrictions": null,
-    "url": "https://bria.ai/bria-huggingface-model-license-agreement/"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/briaai/RMBG-1.4",

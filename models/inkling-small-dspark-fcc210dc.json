@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -76,17 +75,6 @@
     "version": "Inkling Small DSpark Preview fcc210dc"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "RadixArk",
-      "Thinking Machines Lab"
-    ],
-    "spdx": "NOASSERTION",
-    "url": "https://huggingface.co/RadixArk/Inkling-Small-DSpark-Preview/blob/fcc210dcf244cc2f550ef1f75507eb4146c17a57/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/RadixArk/Inkling-Small-DSpark-Preview",

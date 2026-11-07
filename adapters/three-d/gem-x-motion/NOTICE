@@ -1,0 +1,47 @@
+GEM-X motion adapter notices
+
+The code under gem/ (with LICENSE, ATTRIBUTIONS.md and LICENSES/) is vendored unmodified
+from NVlabs/GEM-X at commit 4aef1452e5df171deff4f293c08e643eb450981e. It is licensed under
+Apache-2.0 (the LICENSE file in this directory), except the per-file notices ATTRIBUTIONS.md
+lists: the adapted Hand processing modules and the source-camera restoration function carry
+LicenseRef-OpenMDW-1.1 (LICENSES/LicenseRef-OpenMDW-1.1.txt), the diffusion and rotation
+utilities carry their MIT and BSD-3-Clause notices. The adapter runs GEM-X's body video path
+only (gem-infer motion-video with Contact/IK); the Hand, rendering and training code is
+vendored with the package but never run.
+
+The code under kimodo/ is the part of nv-tlabs/kimodo at commit
+e1c219c99b4b94ba48be1fb6a1cbc64ecee4c954 that exports a SOMA BVH, vendored unmodified and
+licensed under Apache-2.0 (kimodo-LICENSE): kimodo/exports/bvh.py, the skeleton code it
+builds on (kimodo/skeleton, kimodo/geometry.py, kimodo/tools.py, kimodo/assets.py) and the
+somaskel77 skeleton assets. The text-to-motion model, the viewer, the other skeletons and
+kimodo/__init__.py are not vendored.
+
+The weights are NVIDIA's: GEM-X Body Pose (body_s240000.ckpt), Native77 Body Motion
+(motion_native77_e774_s292175.ckpt) and the original ViTPose (vitpose.pth) from
+huggingface.co/nvidia/GEM-X, licensed under the NVIDIA Open Model License. The SOMA-X v0.3.3
+geometry assets are from huggingface.co/nvidia/SOMA-X (Apache-2.0). The person detector is
+the YOLOX-X COCO ONNX export of the Megvii-BaseDetection/YOLOX 0.1.1rc0 release (Apache-2.0);
+the creator's own detector, OpenMMLab's yolox_x_8xb8-300e_humanart, is published only on
+download.openmmlab.com, which the Model contract cannot address. The recipe's Model
+documents address every file by its SHA-256 and size; the platform verifies the bytes when it
+ingests them.
+
+run.py and export_motion.py are Vonk Forge adapters. run.py runs upstream's
+`python -m gem.inference motion-video --task body --postprocess`
+on the one input video, with the creator's unmodified release configuration read from a
+scratch directory of links to the mounted files (its yolox_humanart.onnx is the mounted
+YOLOX-X), and writes motion.bvh and motion.npz into one deterministic zip.
+export_motion.py hands GEM-X's SOMA rotations and Hips positions to Kimodo's own
+motion_to_bvh with standard_tpose=True.
+
+py-soma-x 0.3.3 is installed without its declared cholespy dependency: no SOMA code imports
+it and PyPI has no Linux aarch64 wheel for it. ONNX Runtime is the CPU package; there is no
+aarch64 onnxruntime-gpu wheel, and GEM-X runs its detector on the CPU by default.
+
+Primary sources:
+- https://github.com/NVlabs/GEM-X/tree/4aef1452e5df171deff4f293c08e643eb450981e
+- https://huggingface.co/nvidia/GEM-X
+- https://github.com/nv-tlabs/kimodo/tree/e1c219c99b4b94ba48be1fb6a1cbc64ecee4c954
+- https://huggingface.co/nvidia/SOMA-X
+- https://github.com/Megvii-BaseDetection/YOLOX/releases/tag/0.1.1rc0
+- https://arxiv.org/abs/2505.01425

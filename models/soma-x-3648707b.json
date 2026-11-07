@@ -1,0 +1,326 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-689ae4bae829-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "689ae4bae829c0858efafde7787b7592423b759da746db4837919409433fd39e",
+      "size_bytes": 1984
+    },
+    {
+      "id": "soma-wrap-15e1500a13d3-9af10d6967",
+      "path": "Anny/SOMA_wrap.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "15e1500a13d3fac2db17b622ab54292cfb2e58d9efaa1e86cc11e46071bffb2e",
+      "size_bytes": 2613343
+    },
+    {
+      "id": "base-body-7bf31cbc0897-67af22c252",
+      "path": "Anny/base_body.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "7bf31cbc0897670de51b7cd6b1a3da55a35fe56ef1d7b2e6aae2f95a11196504",
+      "size_bytes": 1182571
+    },
+    {
+      "id": "soma-wrap-c18717420422-6b5c43f81d",
+      "path": "GarmentMeasurements/SOMA_wrap.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "c1871742042290cb6de7641e7e29fc1c42f331e8be1b4f9a019437d244986baa",
+      "size_bytes": 2192530
+    },
+    {
+      "id": "mean-4536d92bc379-fe805231a6",
+      "path": "GarmentMeasurements/mean.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "4536d92bc379e818a4b29b83ab7ab19b3036cd7ceaf3469fba5883b88eb33c13",
+      "size_bytes": 3552167
+    },
+    {
+      "id": "license-d1a7d615ab8e-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d1a7d615ab8eff4de143b1456f46dabf232f54daf0fcf9a70442bb6f637a9e95",
+      "size_bytes": 11387
+    },
+    {
+      "id": "soma-wrap-left-e198a37e9d33-b3c11efa0f",
+      "path": "MANO/SOMA_wrap_left.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e198a37e9d33e32176d6325d47d48c153b5429dce5d248769ac03959b9c28aaa",
+      "size_bytes": 194628
+    },
+    {
+      "id": "soma-wrap-right-5c5f8dc18bd8-fb96398ba5",
+      "path": "MANO/SOMA_wrap_right.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "5c5f8dc18bd8386aacee78dfa4437f3cd1cfbad066ae3772d2f666db1d047771",
+      "size_bytes": 194585
+    },
+    {
+      "id": "base-hand-left-fd8b895d18e3-ac8cdfdcc8",
+      "path": "MANO/base_hand_left.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "fd8b895d18e38cad9f082e4e7f8c66534c70253eedebdf77c5cd4987fcad54b8",
+      "size_bytes": 49391
+    },
+    {
+      "id": "base-hand-right-9d83807a5852-b041e7dafb",
+      "path": "MANO/base_hand_right.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "9d83807a5852cf35a85da421e32d6168de6e33c2ce6f42dd531aecc88febc3b6",
+      "size_bytes": 49408
+    },
+    {
+      "id": "soma-wrap-lod1-9ab7a2328d5b-21a3456a39",
+      "path": "MHR/SOMA_wrap_lod1.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "9ab7a2328d5b026c17ef1d09ed692ffeb68f96d3fc74970cba72e667dbe0f728",
+      "size_bytes": 1816801
+    },
+    {
+      "id": "base-body-lod1-e8bbb3f3681d-8ecfdc656e",
+      "path": "MHR/base_body_lod1.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e8bbb3f3681d76737635c10a9e6f6a058ad3d9be5a75547f84a578cea572e916",
+      "size_bytes": 2277452
+    },
+    {
+      "id": "base-body-lod6-cd46620ec46e-7a3ac6619f",
+      "path": "MHR/base_body_lod6.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "cd46620ec46e968658527f25e2b54b8f2292bfd486eac59c596f8b5d5229b9e0",
+      "size_bytes": 39006
+    },
+    {
+      "id": "mhr-model-lod1-352e271a6c42-1c6bc717de",
+      "path": "MHR/mhr_model_lod1.pt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "352e271a6c42729c68554ceaea0c955e866970160c31e35506d782dc0f7377bc",
+      "size_bytes": 696110248
+    },
+    {
+      "id": "mhr-model-lod6-28839b7ee0eb-cc0ce0a676",
+      "path": "MHR/mhr_model_lod6.pt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "28839b7ee0eb38eb3943cf26cff61a306de78f86227a0f17bb044252c7bc06ac",
+      "size_bytes": 2080751
+    },
+    {
+      "id": "readme-a799719b0577-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a799719b05779f38b79f4ab87856c1ef5eff53ea99036a855b54defcc1134407",
+      "size_bytes": 11019
+    },
+    {
+      "id": "soma-wrap-d56c7d1452a5-5aeaeafc05",
+      "path": "SMPL/SOMA_wrap.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d56c7d1452a57b3f1950cfe9b81fec483b3a8e7a9a85bdc4ea83f2996e1a58da",
+      "size_bytes": 2731479
+    },
+    {
+      "id": "base-body-08996c762b0a-af908d5ca6",
+      "path": "SMPL/base_body.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "08996c762b0adfe45aeb4d6297c9b93d460484b09815674d36a3a544d64e0c43",
+      "size_bytes": 457369
+    },
+    {
+      "id": "smpl-anim-1126c0b377f0-96bbba3082",
+      "path": "SMPL/smpl_anim.npy",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "1126c0b377f00b2678a91a2e0dd0eb712d27ed700eea6edc76ed46e779769a84",
+      "size_bytes": 1009136
+    },
+    {
+      "id": "soma-wrap-7498e3a7873d-16bea7e340",
+      "path": "SMPLX/SOMA_wrap.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "7498e3a7873d7b4d8f1d3455a8af945589b1c494fbff99b14bc905a691208b6f",
+      "size_bytes": 2630564
+    },
+    {
+      "id": "base-body-f03f95e5e303-c5ade41bdb",
+      "path": "SMPLX/base_body.obj",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "f03f95e5e303c8dc070afa09387e9dde861eeb1567ccf61a70bf53a5f7fd2b70",
+      "size_bytes": 700964
+    },
+    {
+      "id": "soma-x-hf-manifest-ce4faff52ead-0b7b2101c8",
+      "path": "SOMA-X-HF-MANIFEST.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ce4faff52eade51acce1798a664f862b644198c49a23d521b55ef1e55183e677",
+      "size_bytes": 6471
+    },
+    {
+      "id": "somahand-233e9225c1da-01ec3aa2eb",
+      "path": "SOMAHand.npz",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "233e9225c1da05c6a3dd98107b9f027f2366e3b972bbe67e0d164e5d28619fff",
+      "size_bytes": 993833
+    },
+    {
+      "id": "soma-neutral-5829af4a5333-cf747661f6",
+      "path": "SOMA_neutral.npz",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "5829af4a5333abdba5ad449360b868faacee99d395971e62f35c0e7169432b63",
+      "size_bytes": 26608121
+    },
+    {
+      "id": "soma-procedural-transforms-9853e19ab516-462e07a525",
+      "path": "SOMA_procedural_transforms.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "9853e19ab51625ffaa7d9e7ccf0e443272c2740837604e6bacd66604e8edf509",
+      "size_bytes": 20045
+    },
+    {
+      "id": "soma-template-rig-a952cb7bdf4c-7532f9e87d",
+      "path": "SOMA_template_rig.usda",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a952cb7bdf4ccd801e355d53122d395b985b69d0d9181439edad5081bb171856",
+      "size_bytes": 28306038
+    },
+    {
+      "id": "correctives-model-411d061a6510-6d33f93d0e",
+      "path": "correctives_model.pt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "411d061a651051a7a4ec941543495d35eac21e5a7a69c8ce042b89cd12772a43",
+      "size_bytes": 70549157
+    },
+    {
+      "id": "example-animation-f424385dae31-3217c7ef09",
+      "path": "example_animation.npy",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "f424385dae3128278e74e81e0789ee4048753199d04fef77c27ba5457bd3819d",
+      "size_bytes": 5601024
+    },
+    {
+      "id": "banner-fa6f2b7a2248-9c3be19511",
+      "path": "images/banner.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "fa6f2b7a22486d970d105d746d19d0e07700775f517ed277b9fa595fcd619be2",
+      "size_bytes": 48523
+    },
+    {
+      "id": "mhr2soma-d3ea90a5e41d-bf6edd9ecb",
+      "path": "images/mhr2soma.gif",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d3ea90a5e41d6fd4d64bd28916a2e51d2da5ac38bed1f2b00e58a4be392109cf",
+      "size_bytes": 543006
+    },
+    {
+      "id": "smpl2soma-8ec04d057a47-29966752a2",
+      "path": "images/smpl2soma.gif",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8ec04d057a47fe9ad0bb5e8723aa7c7ce821ffacc0d79e1868efba122d5c18dd",
+      "size_bytes": 1407968
+    },
+    {
+      "id": "soma-in-action-85290dc989a9-07db291a8f",
+      "path": "images/soma-in-action.gif",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "85290dc989a90c6f78eea74f0c232f488cc8a095882d8538e54d5fa2d3b9d1d4",
+      "size_bytes": 8443986
+    },
+    {
+      "id": "soma-correctives-d071c2042768-fa52de16bc",
+      "path": "images/soma_correctives.gif",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d071c2042768b15de8e1b5877f1f767e0e50abf791d370dec28100535d7c335a",
+      "size_bytes": 4819293
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "soma-x"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "soma-x-body"
+    },
+    "publisher": "nvidia",
+    "slug": "soma-x-3648707b",
+    "variant": "v0.3.3 3648707b",
+    "version": "v0.3.3 3648707b"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/SOMA-X",
+    "revision": "3648707b69e1b1dcf14c473e30613266b786b9f1"
+  }
+}

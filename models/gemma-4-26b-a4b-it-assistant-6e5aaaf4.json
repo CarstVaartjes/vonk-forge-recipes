@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -87,16 +84,6 @@
     "version": "26B-A4B IT assistant 6e5aaaf4"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Google DeepMind"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/google/gemma-4-26B-A4B-it-assistant",

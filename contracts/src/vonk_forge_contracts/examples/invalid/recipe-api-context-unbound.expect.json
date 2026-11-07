@@ -1,0 +1,4 @@
+{
+  "contract": "check_recipe_api",
+  "error_contains": "must be bound to the context_tokens setting"
+}

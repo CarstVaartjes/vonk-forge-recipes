@@ -8,7 +8,7 @@ recipe PR that declares a higher but valid peak. Such a test must overwrite the
 declaration it asserts on (``peak_bytes``) before the assertion, so it judges the
 rule on a synthetic declaration, not on the catalog.
 
-Only lines added since the merge base with ``--base`` are checked (``--all`` audits
+Only lines added by the diff given with ``--diff FILE|-`` are checked (``--all`` audits
 whole files). There is no count and no allowlist. An estimate call is a call to a
 function named ``*_warnings`` or to a local helper that returns one.
 """
@@ -17,25 +17,15 @@ from __future__ import annotations
 
 import argparse
 import ast
-import importlib.machinery
-import importlib.util
 import sys
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools._added_lines import git_diff, parse_added, read_diff
+
 PEAK = "peak_bytes"
 PEAK_SETTERS = frozenset({"declare_peak"})
-
-
-def _reads() -> Any:
-    path = ROOT / "tools/check-document-reads"
-    loader = importlib.machinery.SourceFileLoader("check_document_reads", str(path))
-    spec = importlib.util.spec_from_loader(loader.name, loader)
-    assert spec is not None
-    module = importlib.util.module_from_spec(spec)
-    loader.exec_module(module)
-    return module
 
 
 def call_name(call: ast.Call) -> str:
@@ -219,31 +209,48 @@ def scan(source: str, added: set[int] | None) -> list[tuple[int, str]]:
     return hits
 
 
+def check(root: Path, targets: dict[str, set[int] | None]) -> list[str]:
+    return [
+        f"{path}:{line}: {message}"
+        for path, added in targets.items()
+        for line, message in scan((root / path).read_text(encoding="utf-8"), added)
+    ]
+
+
+def added_targets(diff: str) -> dict[str, set[int] | None]:
+    return {
+        path: lines
+        for path, lines in parse_added(diff).items()
+        if path.startswith("tests/") and path.endswith(".py")
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--base", help="check lines added since the merge base")
+    group.add_argument(
+        "--diff", help="unified -U0 diff to judge: a file, or - for stdin"
+    )
+    group.add_argument(
+        "--base", help="developer shortcut: diff HEAD against this revision"
+    )
     group.add_argument("--all", action="store_true", help="audit whole test files")
     arguments = parser.parse_args()
-    reads = _reads()
-    failed = False
     if arguments.all:
         targets: dict[str, set[int] | None] = {
             p.relative_to(ROOT).as_posix(): None
             for p in sorted((ROOT / "tests").glob("test_*.py"))
         }
     else:
-        changed = reads.added_lines(ROOT, arguments.base)
-        targets = {
-            p: lines
-            for p, lines in changed.items()
-            if p.startswith("tests/") and p.endswith(".py")
-        }
-    for path, added in targets.items():
-        for line, message in scan((ROOT / path).read_text(encoding="utf-8"), added):
-            print(f"{path}:{line}: {message}")
-            failed = True
-    return int(failed)
+        diff = (
+            read_diff(arguments.diff)
+            if arguments.diff is not None
+            else git_diff(ROOT, arguments.base)
+        )
+        targets = added_targets(diff)
+    problems = check(ROOT, targets)
+    print("\n".join(problems))
+    return int(bool(problems))
 
 
 if __name__ == "__main__":

@@ -46,7 +46,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "46e2c607dfae5961badb502053208042f230d7d4eed3680efe85d3d4df0b268d",
+        "content_sha256": "fdf1b85468f97c234c0595e8bc3a15454afb1d6bc8dd76e26269f6dd49a5301c",
         "kind": "model",
         "publisher": "antirez",
         "slug": "deepseek-v4-flash-0731-ds4"

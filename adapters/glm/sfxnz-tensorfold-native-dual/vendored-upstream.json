@@ -1,0 +1,17 @@
+{
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "recipe.conf",
+        "pattern": "^REVISION=\\$\\{REVISION:-(?P<version>[0-9a-f]{40})\\}$",
+        "repo_pattern": "^MODEL=\\$\\{MODEL:-(?P<repo>[^}\\s]+)\\}$"
+      }
+    }
+  },
+  "ours": [
+    "licenses/",
+    "tensorfold-serve"
+  ]
+}

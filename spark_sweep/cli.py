@@ -1,4 +1,4 @@
-"""Command line: ``plan``, ``run``, ``status``, ``report``, ``export-evidence``, ``file-issues``."""
+"""Command line: ``plan``, ``run``, ``status``, ``report``, ``export-evidence``, ``publish-evidence``, ``file-issues``."""
 
 from __future__ import annotations
 
@@ -10,12 +10,14 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts.sweep import SweepEvidenceExit
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
 
 from . import policy
 from .catalog import fetch_fleet, fetch_models, fetch_recipes
 from .definitions import Definitions
+from .evidence_publisher import sync
 from .issues import file_issues
 from .job_media import ffprobe
 from .own_pulls import REPOSITORY
@@ -24,7 +26,7 @@ from .prefetch import PrefetchConfig
 from .report import build_report, export_evidence, render_report, saved_qualification
 from .run import Clock, Sweep, SweepConfig
 from .smoke import HttpConfig
-from .state import ResultsLog, State
+from .state import ResultsLog, State, StateLock, StateLocked
 from .vonkctl import OWNER_PROFILES, Vonkctl, VonkctlError
 
 # Kept equal to AUTHORITY_ID in tools/build-qualification-authority (a test checks it), so
@@ -101,6 +103,11 @@ def _parser() -> argparse.ArgumentParser:
         help="do not keep a never-loaded profile that protects downloads from eviction",
     )
     run.add_argument("--client-key-file", type=Path)
+    run.add_argument(
+        "--no-client-key",
+        action="store_true",
+        help="smoke through a gateway that needs no client key (otherwise --client-key-file is required)",
+    )
     run.add_argument("--ca-file", type=Path)
     run.add_argument("--insecure-tls", action="store_true")
     run.add_argument("--max-model-downloads", type=int, default=3)
@@ -194,6 +201,12 @@ def _parser() -> argparse.ArgumentParser:
     export.add_argument(
         "--output-dir", type=Path, default=Path("qualification/evidence")
     )
+    common(
+        commands.add_parser(
+            "publish-evidence",
+            help="publish unpublished results as the evidence PR, without a run",
+        )
+    )
     issues = commands.add_parser(
         "file-issues", help="file the missing hardware-test issues for failed recipes"
     )
@@ -225,6 +238,15 @@ def _config(args: argparse.Namespace) -> SweepConfig:
         )
     if not args.no_pin and args.pin_profile == args.sweep_profile:
         raise SystemExit("--pin-profile must differ from --sweep-profile")
+    if args.client_key_file is None and not args.no_client_key:
+        raise SystemExit(
+            "the smoke cases call the gateway: pass --client-key-file (or --no-client-key "
+            "for a gateway without keys); a restart that drops it fails every smoke"
+        )
+    if args.client_key_file is not None and not args.client_key_file.is_file():
+        raise SystemExit(
+            f"--client-key-file {args.client_key_file} is not a readable file"
+        )
     return SweepConfig(
         state_dir=args.state_dir,
         authority_id=args.authority_id,
@@ -278,6 +300,20 @@ def main(
             status.read_text(encoding="utf-8") if status.exists() else "no status yet"
         )
         return 0
+    if args.command == "publish-evidence":
+        directory = args.state_dir / "evidence-publisher"
+        lock = StateLock(args.state_dir)
+        try:
+            lock.acquire()  # a running sweep publishes itself
+        except StateLocked as error:
+            print(f"sweep-recipes: {error}", file=sys.stderr)
+            return 2
+        try:
+            code = sync(results.path, directory, state_path, final=True)
+        finally:
+            lock.release()
+        print(f"sweep-recipes: evidence publication exit {int(code)} ({code.name})")
+        return 0 if code in (SweepEvidenceExit.SYNCED, SweepEvidenceExit.WAITING) else 1
     if args.command in ("report", "export-evidence", "file-issues"):
         state = State.load(state_path)
         if args.command == "report":

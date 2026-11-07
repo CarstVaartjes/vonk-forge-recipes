@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "decision",
+    "video",
+    "vision"
+  ],
   "description": "d3-nano typed-decision model with probability outputs and an FP32 answer-code readout.",
   "family_title": "Decision 3.0",
   "identity": {
@@ -6,6 +11,18 @@
     "slug": "d3-nano-bf16-462efc36"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "vLLM Semantic Router"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/vllm-sr/d3-nano/blob/462efc366229ea268cf4eed3738b3fc4415e4817/LICENSE"
+  },
+  "modalities": [
+    "text",
+    "image",
+    "video"
+  ],
   "model_title": "D3-NANO",
   "tags": [
     "vonk-forge",

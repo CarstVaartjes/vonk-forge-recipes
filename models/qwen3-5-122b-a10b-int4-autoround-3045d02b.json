@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding",
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -251,18 +246,6 @@
     "version": "INT4 AutoRound 3045d02b"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Intel",
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Intel/Qwen3.5-122B-A10B-int4-AutoRound/blob/3045d02bb737effc4581da91bddbad3be02934e4/README.md"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Intel/Qwen3.5-122B-A10B-int4-AutoRound",

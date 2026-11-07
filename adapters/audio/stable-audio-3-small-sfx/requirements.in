@@ -1,0 +1,22 @@
+# Torch stack: the version and index the GB10-proven HunyuanVideo-Foley image locks
+# (adapters/audio/hunyuan-video-foley-native/requirements.lock), not upstream's torch 2.7.1 pin.
+torch==2.14.0
+torchaudio==2.11.0
+# torchaudio>=2.9 loads and saves audio through TorchCodec.
+torchcodec==0.17.0
+# CUDA closure of that torch, held at the versions the Foley lock resolved (the others match).
+cuda-bindings==13.3.1
+cuda-pathfinder==1.7.0
+nvidia-nvjitlink==13.3.33
+
+# Stable Audio 3 runtime dependencies at the versions the creator's uv.lock resolves
+# (stable-audio-3 pyproject.toml dependencies, without its torch pin).
+einops==0.8.2
+einops-exts==0.0.4
+numpy==2.2.6
+packaging==26.0
+safetensors==0.7.0
+tqdm==4.67.3
+huggingface-hub==1.7.1
+transformers==5.8.0
+soundfile==0.13.1

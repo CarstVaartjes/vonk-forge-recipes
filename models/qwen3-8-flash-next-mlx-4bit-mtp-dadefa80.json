@@ -1,11 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "video-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -343,19 +336,6 @@
     "version": "Qwen3.8 Flash Next MLX 4-bit MTP dadefa80"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "Vontra"
-    ],
-    "spdx": "LicenseRef-Qwen-Community-1.0",
-    "url": "https://huggingface.co/Vontra/Qwen3.8-Flash-Next-MLX-4bit-MTP/blob/dadefa8066e3be900a0d148d0f5a2f4eb1cf6534/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text",
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Vontra/Qwen3.8-Flash-Next-MLX-4bit-MTP",

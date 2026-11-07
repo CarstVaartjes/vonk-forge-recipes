@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "3d-generation"
+  ],
   "description": "Immutable public snapshot at 70e803bf.",
   "family_title": "Hunyuan3D",
   "identity": {
@@ -6,6 +9,24 @@
     "slug": "hunyuan3d-omni"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "tencent"
+    ],
+    "spdx": "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR"
+      ],
+      "notice": "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea."
+    },
+    "url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/License.txt"
+  },
+  "modalities": [
+    "3d"
+  ],
   "model_title": "Hunyuan3D-Omni",
   "tags": [
     "tencent",

@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "code-generation",
+    "image-understanding",
+    "reasoning"
+  ],
   "description": "Exact public Qwen3.8 27B BF16 checkpoint.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "qwen3-8-27b-1d4bf0f2"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen3.8-27B/blob/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Qwen3.8 27B",
   "tags": [
     "qwen",

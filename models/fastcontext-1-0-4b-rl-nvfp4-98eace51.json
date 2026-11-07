@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -116,17 +111,6 @@
     "version": "NVFP4 98eace51"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Microsoft",
-      "r0b0tlab"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/r0b0tlab/FastContext-1.0-4B-RL-NVFP4/blob/98eace51079e3a1927ea3ce215581842f721ebe4/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/r0b0tlab/FastContext-1.0-4B-RL-NVFP4",

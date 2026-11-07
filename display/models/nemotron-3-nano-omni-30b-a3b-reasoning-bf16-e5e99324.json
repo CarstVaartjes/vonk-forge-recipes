@@ -1,4 +1,12 @@
 {
+  "capabilities": [
+    "audio-understanding",
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "Exact public NVIDIA Nemotron 3 Nano Omni 30B-A3B Reasoning BF16 checkpoint.",
   "family_title": "NVIDIA Nemotron",
   "identity": {
@@ -6,6 +14,19 @@
     "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-bf16-e5e99324"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/"
+  },
+  "modalities": [
+    "audio",
+    "image",
+    "text",
+    "video"
+  ],
   "model_title": "Nemotron 3 Nano Omni 30B-A3B",
   "tags": [
     "nvidia",

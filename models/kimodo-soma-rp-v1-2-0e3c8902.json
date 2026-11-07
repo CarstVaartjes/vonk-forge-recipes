@@ -1,0 +1,129 @@
+{
+  "dependencies": [
+    {
+      "content_sha256": "178538798ddfa6c4e070257096d71be50fc9b3827457c30eb2bd7e86640582ca",
+      "kind": "model",
+      "publisher": "mcgill-nlp",
+      "slug": "llm2vec-llama-3-8b-instruct-mntp-31474e39"
+    },
+    {
+      "content_sha256": "017280c355be7fe8fc5453f0a8398565f1209a0308546dcca55346e8534aadb2",
+      "kind": "model",
+      "publisher": "mcgill-nlp",
+      "slug": "llm2vec-llama-3-8b-instruct-mntp-supervised-baa8ebf0"
+    },
+    {
+      "content_sha256": "72a93935b1c15d74332fa1b5dcd91fd40daef73ed2ce114678dcdf030da662b6",
+      "kind": "model",
+      "publisher": "nousresearch",
+      "slug": "llama-3-8b-instruct-53346005"
+    }
+  ],
+  "files": [
+    {
+      "id": "license-11ccdcb47db8-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ccdcb47db87ac30b63765b5e5154403026c4fbb52c19919d99d912ec454e19",
+      "size_bytes": 10229
+    },
+    {
+      "id": "config-82f1e9f44d0d-d8d0422389",
+      "path": "config.yaml",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "82f1e9f44d0df517d8ebde03d2e9396fd0bf372360714757901c1d97a2626599",
+      "size_bytes": 675
+    },
+    {
+      "id": "model-fdcef624140a-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fdcef624140a12c0a4840192ce0b75cafb4e73228a893da3864b4a990d3e919e",
+      "size_bytes": 1133177724
+    },
+    {
+      "id": "mean-d42f35f8bb7e-d57c9b1a5b",
+      "path": "stats/motion/body/mean.npy",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d42f35f8bb7ef52fdec66ae29c5cf590bd038f4f1aabd2d560d1d0f78663ed6f",
+      "size_bytes": 3040
+    },
+    {
+      "id": "std-965bbad49772-749e44d42d",
+      "path": "stats/motion/body/std.npy",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "965bbad497726ef4e6c46b519827e2cbcb29f974214b25718d20a725b82279ed",
+      "size_bytes": 3040
+    },
+    {
+      "id": "mean-6c110980f9a0-99e379e9e8",
+      "path": "stats/motion/global_root/mean.npy",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "6c110980f9a0386e57a8c186f8eac7f55dc05bade92f44c4b391450ada598da1",
+      "size_bytes": 168
+    },
+    {
+      "id": "std-fb15aeed7143-26f1c90b09",
+      "path": "stats/motion/global_root/std.npy",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "fb15aeed7143f5f0754611f0acf5fa5f55d1f6492a49c23e490fc62f7bf11fb0",
+      "size_bytes": 168
+    },
+    {
+      "id": "mean-4c36e8e33d6d-63db87775b",
+      "path": "stats/motion/local_root/mean.npy",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "4c36e8e33d6d51e6c8206ac796a52b7b3a4da7f0dc49ebdbb4f130178e3e9d31",
+      "size_bytes": 160
+    },
+    {
+      "id": "std-5f57b41f51ce-7737440463",
+      "path": "stats/motion/local_root/std.npy",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "5f57b41f51ced7832cffa81702f6e04d8694e16475c184baec6c8be0e98c8dba",
+      "size_bytes": 160
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "kimodo"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "kimodo-soma-rp"
+    },
+    "publisher": "nvidia",
+    "slug": "kimodo-soma-rp-v1-2-0e3c8902",
+    "variant": "v1.2 0e3c8902",
+    "version": "v1.2 0e3c8902"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/Kimodo-SOMA-RP-v1.2",
+    "revision": "0e3c89024d896064b6851201373f7834784a386b"
+  }
+}

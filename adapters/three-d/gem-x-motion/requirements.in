@@ -1,0 +1,29 @@
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+# Same torch pin as the hardware-proven motionbricks, moss-vl-realtime and kimodo recipes
+# (GEM-X asks for torch>=2.10,<3; GB10 needs a CUDA 13 build).
+torch==2.14.0+cu130
+# GEM-X's own pins (setup.cfg install_requires) or ranges, resolved to the newest release.
+transformers==5.3.0
+numpy>=1.26,<3
+scipy>=1.11,<2
+einops>=0.8,<1
+pillow>=10,<13
+opencv-python-headless>=4.10,<5
+omegaconf>=2.3,<2.4
+# `video` extra: the YOLOX person detector runs on CPU, there is no aarch64 onnxruntime-gpu wheel.
+onnxruntime>=1.20,<2
+# py-soma-x 0.3.3 and the dependencies it imports. It also declares cholespy, which no SOMA
+# code imports (its "cholespy" solver is torch.linalg.cholesky) and which has no Linux
+# aarch64 wheel; the lock leaves it out (see the header's --no-emit-package).
+py-soma-x==0.3.3
+trimesh
+warp-lang
+rtree
+huggingface-hub
+usd-core
+# BVH export (kimodo/exports/bvh.py); its PyGLM and SpatialTransform dependencies resolve with it.
+bvhio
+pydantic
+# vonk-agent-protocol 4.1.0 requirement.
+jsonschema

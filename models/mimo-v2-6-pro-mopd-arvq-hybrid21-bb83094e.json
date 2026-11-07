@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -4706,18 +4701,6 @@
     "version": "bb83094e0075076cb0b553c965412e20b061b9c2"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "XiaomiMiMo",
-      "Jarrelscy",
-      "drowzeys (Keys)"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21/blob/bb83094e0075076cb0b553c965412e20b061b9c2/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21",

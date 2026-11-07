@@ -181,7 +181,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "7adadef076681ad2457f1b42bcddd00ac7c9be62016e5fe08497b84f979648a4",
+        "content_sha256": "85502608e4cde1f1edb5e408e29890f0d4b772b5b16cd40c5c6e4095adfc54a5",
         "kind": "model",
         "publisher": "vontra",
         "slug": "nemotron-3-5-lightning-30b-a3b-mlx-4bit-mtp-8bbcb5b6"

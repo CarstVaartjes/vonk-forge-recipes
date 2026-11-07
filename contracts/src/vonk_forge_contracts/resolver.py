@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 
+from .api import RecipeApi
 from .display import ModelDisplay, RecipeDisplay
 from .model import ModelDefinition
 from .recipe import RecipeDefinition, RecipeJobServingRequest
@@ -105,6 +106,26 @@ def validate_library(
                     f"{label} display has no document: "
                     f"{display.identity.publisher}/{slug}"
                 )
+
+
+def validate_recipe_apis(
+    recipes: Iterable[RecipeDefinition], apis: Mapping[str, RecipeApi]
+) -> None:
+    """Reject an API document that names no recipe (a recipe may have none).
+
+    APIs are keyed by their file name stem (the slug), like displays.
+    """
+
+    keys = {(r.identity.publisher, r.identity.slug) for r in recipes}
+    for slug, api in apis.items():
+        if api.identity.slug != slug:
+            raise ContractResolutionError(
+                f"api file name differs from its identity: {slug}"
+            )
+        if (api.identity.publisher, slug) not in keys:
+            raise ContractResolutionError(
+                f"api has no recipe: {api.identity.publisher}/{slug}"
+            )
 
 
 def validate_recipe_models(

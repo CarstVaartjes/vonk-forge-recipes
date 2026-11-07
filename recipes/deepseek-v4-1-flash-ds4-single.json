@@ -46,7 +46,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "530b4d073355b2170a54952c28ed9d3ef6d71baef6e5b39836d6f738cc077e38",
+        "content_sha256": "5d5afc7318e72007f30502a8c50d44a06de7544f6cac2f8fd72a0e413f68581f",
         "kind": "model",
         "publisher": "antirez",
         "slug": "deepseek-v4-1-flash-1017-ds4-q2-9dcee516"

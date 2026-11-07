@@ -1,0 +1,4 @@
+{
+  "contract": "check_recipe_api",
+  "error_contains": "default_output_tokens names --max-tokens, which has no integer value"
+}

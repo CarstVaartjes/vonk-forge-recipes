@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "scan-sm121.py",
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "commit": "70c4e4338c0c41fcf3d8c7a905c2155b2e4cd19f",
+    "repo": "tonyd2wild/MiniMax-M3.1-Flash-EXL3-TP2-2x-DGX-Spark"
+  }
+}

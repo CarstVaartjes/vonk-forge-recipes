@@ -1,0 +1,101 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "scheduler-config-11ac5627d7df-67ecb3dc37",
+      "path": "scheduler/scheduler_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "11ac5627d7df0fa344b875c4b5722b1767a8a2aa1684c2cf8b4d614300127234",
+      "size_bytes": 346
+    },
+    {
+      "id": "config-7e33bfc475f6-bcfd37e83e",
+      "path": "text_encoder/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7e33bfc475f6cf76e69b28b101993ca834d1f22ff4d35caefde32d63d4f42fba",
+      "size_bytes": 613
+    },
+    {
+      "id": "merges-9fd691f7c803-ebbb0f71ea",
+      "path": "tokenizer/merges.txt",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a",
+      "size_bytes": 524619
+    },
+    {
+      "id": "special-tokens-map-f118ab3a9832-9a6c011314",
+      "path": "tokenizer/special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "f118ab3a983206e4f32583448de6bd6aae4ee21869135cef1f5848a753cdaab6",
+      "size_bytes": 460
+    },
+    {
+      "id": "tokenizer-config-d562b18a0c6d-47a6faaf45",
+      "path": "tokenizer/tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "d562b18a0c6d32a168fce3d7a342fce64579ebacffb98fb71b0affc494fc32d8",
+      "size_bytes": 807
+    },
+    {
+      "id": "vocab-e089ad92ba36-8c35116cc3",
+      "path": "tokenizer/vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e089ad92ba36837a0d31433e555c8f45fe601ab5c221d4f607ded32d9f7a4349",
+      "size_bytes": 1059962
+    },
+    {
+      "id": "config-ce0c6d379e3b-479c438b53",
+      "path": "unet/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ce0c6d379e3b1d3e1f79338de70c80a1e36f17a6372439a8249b6fb0dfa1b608",
+      "size_bytes": 911
+    },
+    {
+      "id": "config-424117cb534c-101abd63da",
+      "path": "vae/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "424117cb534ce03497c41305ed868980123917b2b6abba4bbaa615e968772903",
+      "size_bytes": 553
+    }
+  ],
+  "format": {
+    "precision": "none",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "stabilityai",
+      "slug": "stable-diffusion"
+    },
+    "model": {
+      "publisher": "stabilityai",
+      "slug": "stable-diffusion-2-1-base"
+    },
+    "publisher": "sd2-community",
+    "slug": "stable-diffusion-2-1-base-configs-4e63672c",
+    "variant": "2.1 base configs",
+    "version": "2.1 base configs"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/sd2-community/stable-diffusion-2-1-base",
+    "revision": "4e63672c03103b6c636b8fb4119ba982469b2955"
+  }
+}

@@ -1,0 +1,66 @@
+#!/bin/bash
+# Entrypoint for the two-Spark TensorFold GLM-5.3-Flash recipe (MiaAI-Lab's kit 1104).
+#
+# The kit's start.sh gives each rank the same `tensorfold-native serve /model ...` arguments and places the rank by
+# environment: TF_GLM_RANK, TF_GLM_WORLD=2, NCCL_COMM_ID=<rank 0's address>:<port>, the link's RDMA devices in
+# TF_ROCE_HCA, and NCCL_SOCKET_IFNAME / NCCL_IB_HCA / NCCL_IB_GID_INDEX. The platform appends `--tp N --rank R
+# --master VONK_MASTER_ADDR --master-port VONK_MASTER_PORT` and puts the fabric in NCCL_*; this wrapper turns those into the
+# kit's placement and fails closed when one is missing or malformed. The checkpoint is always mounted at /models/target.
+set -euo pipefail
+
+fail() { echo "tensorfold-serve: $*" >&2; exit 1; }
+
+tp= rank= master= master_port= vision=0
+serve=()
+while (($#)); do
+    case "$1" in
+        --tp|--rank|--master|--master-port)
+            (($# >= 2)) || fail "$1 needs a value"
+            case "$1" in
+                --tp) tp=$2 ;;
+                --rank) rank=$2 ;;
+                --master) master=$2 ;;
+                --master-port) master_port=$2 ;;
+            esac
+            shift 2 ;;
+        --vision) vision=1; serve+=("$1"); shift ;;
+        *) serve+=("$1"); shift ;;
+    esac
+done
+
+[[ $tp == 2 ]] || fail "this engine runs two ranks, not --tp '$tp'"
+[[ $rank == 0 || $rank == 1 ]] || fail "--rank must be 0 or 1, not '$rank'"
+[[ $master == VONK_MASTER_ADDR ]] && master=${VONK_MASTER_ADDR:-}
+[[ $master_port == VONK_MASTER_PORT ]] && master_port=${VONK_MASTER_PORT:-}
+octet='(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])'
+[[ $master =~ ^$octet\.$octet\.$octet\.$octet$ ]] || fail "distributed TensorFold needs a valid IPv4 VONK_MASTER_ADDR"
+[[ $master_port =~ ^[0-9]{4,5}$ ]] && ((master_port >= 1024 && master_port < 65535)) \
+    || fail "distributed TensorFold needs a valid VONK_MASTER_PORT (the ranks also use the next port)"
+
+# The Controller authorises the rails as NCCL_IB_HCA ("=mlx5_0:1,mlx5_1:1"); the engine's RoCE gather takes the device names.
+rails=${NCCL_IB_HCA:-}
+rails=${rails#=}
+hca=()
+IFS=, read -r -a selectors <<< "$rails"
+for selector in "${selectors[@]}"; do
+    [[ $selector =~ ^([A-Za-z0-9_.-]+)(:1)?$ ]] || fail "NCCL_IB_HCA must name port-1 RDMA devices"
+    for seen in "${hca[@]}"; do [[ $seen != "${BASH_REMATCH[1]}" ]] || fail "NCCL_IB_HCA repeats ${BASH_REMATCH[1]}"; done
+    hca+=("${BASH_REMATCH[1]}")
+done
+((${#hca[@]} >= 1 && ${#hca[@]} <= 2)) || fail "the engine takes one or two RDMA devices, not '$rails'"
+[[ ${NCCL_IB_GID_INDEX:-} =~ ^[0-9]{1,3}$ ]] || fail "the Controller's RoCE GID index is absent or invalid"
+[[ -n ${NCCL_SOCKET_IFNAME:-} ]] || fail "the Controller's fabric netdev (NCCL_SOCKET_IFNAME) is absent"
+
+for name in HOME TMPDIR; do
+    [[ -n ${!name:-} ]] || fail "$name is not set"
+done
+# The platform binds /outputs/cache; the per-file checkpoint digest cache lives under HOME (nothing else is writable).
+mkdir -p "$HOME" "$TMPDIR"
+
+# The kit's CHAT_TEMPLATE=auto: with --vision, its templates/glm-5.3-flash-vision.jinja (the checkpoint's own template, whose
+# media branch writes GLM's image markers); otherwise the checkpoint's.
+if ((vision)); then serve+=(--chat-template /opt/vonk/templates/chat_template.jinja); fi
+
+export TF_GLM_RANK=$rank TF_GLM_WORLD=2 TF_CUDA_DEVICE=0 \
+    NCCL_COMM_ID="$master:$master_port" TF_ROCE_HCA="$(IFS=,; echo "${hca[*]}")"
+exec tensorfold-native serve /models/target "${serve[@]}"

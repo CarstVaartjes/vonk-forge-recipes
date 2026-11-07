@@ -66,3 +66,20 @@ def test_only_added_lines_are_judged() -> None:
 def test_the_whole_suite_is_clean() -> None:
     for path in sorted((ROOT / "tests").glob("test_*.py")):
         assert gates.scan(path.read_text(encoding="utf-8"), None) == [], path.name
+
+
+def test_a_diff_selects_the_added_test_lines() -> None:
+    diff = (
+        "+++ b/tests/test_x.py\n@@ -0,0 +4,2 @@\n"
+        "+++ b/tools/check-document-reads\n@@ -1 +1 @@\n"
+    )
+    assert gates.added_targets(diff) == {"tests/test_x.py": {4, 5}}
+
+
+def test_check_judges_only_the_added_lines(tmp_path: Path) -> None:
+    source = LOADS.format(body="assert memory_estimate_warnings(recipe) == []")
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests/test_x.py").write_text(source)
+    assert gates.check(tmp_path, {"tests/test_x.py": {1}}) == []
+    problems = gates.check(tmp_path, {"tests/test_x.py": {7}})
+    assert [p.split(":")[1] for p in problems] == ["7"]

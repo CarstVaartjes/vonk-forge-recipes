@@ -166,7 +166,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "82a9be0317986683876d0cf9f05ba93d77519d10f1abb0e1eb8a2cf7084524d9",
+        "content_sha256": "8546563945bc9b0f350bcad4c4d5f5d76c7e408be8cb88c32286b6ae0333d9ee",
         "kind": "model",
         "publisher": "meta",
         "slug": "muse-glimmer-30b-bf16-a4e59da5"

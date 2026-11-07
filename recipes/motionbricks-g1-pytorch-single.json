@@ -124,7 +124,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "92698751ef9d86383c88f12b4b5b5d7de79e44842d6a264665d2bacb30e62752",
+        "content_sha256": "0cbd6cc90d652bb42364d7f29e2f2d98f16d4e67d4f8e036110d8a67192fe389",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "motionbricks-g1-45c03fac"

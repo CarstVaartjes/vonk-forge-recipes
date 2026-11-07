@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -538,17 +534,6 @@
     "version": "AWQ-INT4 1954fc59"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Hugging Quants",
-      "Meta Platforms"
-    ],
-    "spdx": "LicenseRef-Llama-3.1-Community-License",
-    "url": "https://www.llama.com/llama3_1/license/"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/hugging-quants/Meta-Llama-3.1-405B-Instruct-AWQ-INT4",

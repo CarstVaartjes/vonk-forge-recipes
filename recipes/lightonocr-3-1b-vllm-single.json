@@ -166,7 +166,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "bc7753ef74445095af823369228d885d66c350317d903c845fd75a1e68c2f043",
+        "content_sha256": "afffd8ed62b0949f878b6a55f360617ea585fac8895eed40cccb0ac068bbc368",
         "kind": "model",
         "publisher": "lightonai",
         "slug": "lightonocr-3-1b-bf16-23d54408"

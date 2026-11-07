@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -94,17 +93,6 @@
     "version": "CLAP Larger General ada0c23a"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "laion"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/laion/larger_clap_general/blob/ada0c23a36c4e8582805bb38fec3905903f18b41/README.md"
-  },
-  "modalities": [
-    "audio",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/laion/larger_clap_general",

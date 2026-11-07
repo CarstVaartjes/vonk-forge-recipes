@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "Exact public 0xSero DeepSeek V4 Flash REAP 180B (K160, 160 routed experts, MXFP4, about 103 GB) with the MTP head; head d3c704b7 differs from the revision upstream pinned (7c360e1c) only in the model card. Python caches, backup file, PDF and image assets are left out.",
   "family_title": "DeepSeek Flash",
   "identity": {
@@ -6,6 +13,17 @@
     "slug": "deepseek-v4-flash-reap-180b-k160-d3c704b7"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "0xSero",
+      "DeepSeek-AI"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/0xSero/DeepSeek-V4-Flash-180B/blob/d3c704b7a8144060e122f14e67c1595d1e733cb4/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "DeepSeek V4 Flash REAP 180B K160",
   "tags": [
     "0xsero",

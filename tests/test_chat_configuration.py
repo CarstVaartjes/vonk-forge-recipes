@@ -10,8 +10,8 @@ import json
 from pathlib import Path
 
 import pytest
-from catalog_documents import catalog_models
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, read_recipe
+from catalog_documents import catalog_model_displays, catalog_models
+from vonk_forge_contracts import ModelDisplay, RecipeDefinition, read_recipe
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,7 +27,7 @@ CHAT_RECIPES = [
 
 
 def _has_chat_configuration(
-    recipe: RecipeDefinition, models: dict[str, ModelDefinition]
+    recipe: RecipeDefinition, displays: dict[str, ModelDisplay]
 ) -> bool:
     if any(
         argument.name in {"chat-template", "chat_template"} and argument.value
@@ -36,9 +36,9 @@ def _has_chat_configuration(
         return True
     # The catalog selects the served Model first, before companion/draft Models.
     selection = recipe.models[0]
-    model = models[selection.model.content_sha256]
-    if "chat" in model.capabilities:
+    if "chat" in displays[selection.model.content_sha256].capabilities:
         return True
+    model = catalog_models()[selection.model.content_sha256]
     selected = {item.file_id for item in selection.files}
     return any(
         item.id in selected
@@ -49,7 +49,7 @@ def _has_chat_configuration(
 
 @pytest.mark.parametrize("recipe", CHAT_RECIPES, ids=lambda r: r.identity.slug)
 def test_chat_recipe_declares_template_or_chat_model(recipe: RecipeDefinition) -> None:
-    assert _has_chat_configuration(recipe, catalog_models()), (
+    assert _has_chat_configuration(recipe, catalog_model_displays()), (
         "chat serving requires an explicit chat template, a selected template file, "
         "or a Model with the chat capability; base weights are not chat weights"
     )
@@ -61,16 +61,16 @@ def test_chat_guard_rejects_a_base_model() -> None:
         for r in CHAT_RECIPES
         if r.identity.slug == "deepseek-v2-lite-nvidia-sglang-single"
     )
-    models = dict(catalog_models())
+    displays = dict(catalog_model_displays())
     digest = recipe.models[0].model.content_sha256
-    models[digest] = models[digest].model_copy(
+    displays[digest] = displays[digest].model_copy(
         update={"capabilities": ["text-generation"]}
     )
-    assert not _has_chat_configuration(recipe, models)
+    assert not _has_chat_configuration(recipe, displays)
 
     for name in ("chat-template", "chat_template"):
         explicit = recipe.model_copy(deep=True)
         explicit.runtime.arguments.append(
             RecipeRuntimeArgument(name=name, value="deepseek-chat")
         )
-        assert _has_chat_configuration(explicit, models)
+        assert _has_chat_configuration(explicit, displays)

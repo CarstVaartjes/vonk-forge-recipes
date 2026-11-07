@@ -1,0 +1,39 @@
+{
+  "kit": {
+    "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "scripts/config.sh",
+        "pattern": "^TF_REF=\"\\$\\{TF_REF:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo": "bertholomus/TensorFold"
+      },
+      "kernel-kit": {
+        "datasource": "git-ref",
+        "file": "scripts/config.sh",
+        "pattern": "^KIT_REF=\"\\$\\{KIT_REF:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo": "bertholomus/deepseek-v4.1-tensorfold-tp4-4xgb10"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "scripts/config.sh",
+        "pattern": "^  (?P<repo>deepseek-ai/DeepSeek-V4\\.1-Flash-1017)\\) _rev=(?P<version>[0-9a-f]{40}) ;;"
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "requirements.in",
+    "requirements.lock",
+    "scan-sm121.py",
+    "tensorfold-serve",
+    "prepare_cache.py",
+    "launcher.py"
+  ],
+  "renamed": {
+    "chat_template.jinja": "model/chat_template.jinja",
+    "licenses/CREDITS.md": "CREDITS.md",
+    "licenses/LICENSE": "LICENSE",
+    "licenses/NOTICE": "NOTICE"
+  }
+}

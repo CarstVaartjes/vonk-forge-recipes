@@ -34,10 +34,10 @@ ALLOWED = {
         "spark_sweep/evidence_publisher.py",
         "_evidence_records",
     ): "records carried by the refused evidence PR branch",
-    # A merge tool for qualification definitions on a PR branch.
-    ("tools/migrate-pr-qualification", "main"): "three-way merge of definitions",
-    # The one-time contracts 3.0.0 display split reads a revision archive.
-    ("tools/split-display", "main"): "one-time migration from a revision archive",
+    # The one-time Model facts split migrates the base revision's documents: it
+    # reads the pre-split tree it rewrites, never a fact. Removed with the tool.
+    ("tools/split-model-facts", "_already_split"): "base revision of the migration",
+    ("tools/split-model-facts", "main"): "base revision of the migration",
 }
 
 

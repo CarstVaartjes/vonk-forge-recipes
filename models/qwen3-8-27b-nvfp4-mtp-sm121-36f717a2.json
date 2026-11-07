@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -196,17 +192,6 @@
     "version": "Qwen3.8 27B NVFP4 MTP sm121 36f717a2"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Qwen",
-      "r0b0tlab"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/r0b0tlab/Qwen3.8-27B-NVFP4-MTP-sm121/blob/36f717a22990e82c54c1d48ee77c491b87825680/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/r0b0tlab/Qwen3.8-27B-NVFP4-MTP-sm121",

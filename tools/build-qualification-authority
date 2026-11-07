@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION = ROOT / "qualification"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts import RecipeDefinition, read_model_display
 from vonk_forge_contracts.qualification_authority import (
     QualificationAuthority,
     QualificationBatch,
@@ -138,34 +138,26 @@ def _model_license_refs(
         document = entity.get("document")
         if not isinstance(document, dict) or document.get("kind") != "model":
             raise ValueError(f"catalog identity is not a Model: {digest}")
-        identity = document.get("identity")
-        license_value = document.get("license")
-        if not isinstance(identity, dict) or not isinstance(license_value, dict):
-            raise TypeError(f"Model license is malformed: {digest}")
-        key = f"{identity.get('publisher')}/{identity.get('slug')}"
-        spdx = license_value.get("spdx")
-        url = license_value.get("url")
-        attribution = license_value.get("attribution")
-        if (
-            key != f"{reference.get('publisher')}/{reference.get('slug')}"
-            or not isinstance(spdx, str)
-            or not spdx
-            or not isinstance(url, str)
-            or not url
-            or not isinstance(attribution, list)
-            or any(not isinstance(item, str) for item in attribution)
-        ):
+        # The licence is a Model display fact; the entity ships the display.
+        try:
+            display = read_model_display(entity.get("display") or {})
+        except ValueError as error:
+            raise TypeError(f"Model license is malformed: {digest}") from error
+        key = f"{display.identity.publisher}/{display.identity.slug}"
+        if key != f"{reference.get('publisher')}/{reference.get('slug')}":
             raise ValueError(f"recipe Model identity or license does not match: {key}")
         license_ref: dict[str, Any] = {
             "key": key,
             "content_sha256": digest,
-            "spdx": spdx,
-            "url": url,
-            "attribution": attribution,
+            "spdx": display.license.spdx,
+            "url": display.license.url,
+            "attribution": list(display.license.attribution),
         }
-        restrictions = license_value.get("territorial_restrictions")
+        restrictions = display.license.territorial_restrictions
         if restrictions is not None:
-            license_ref["territorial_restrictions"] = restrictions
+            license_ref["territorial_restrictions"] = restrictions.model_dump(
+                mode="json"
+            )
         result.append(license_ref)
     return result
 

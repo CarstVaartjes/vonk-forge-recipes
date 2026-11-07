@@ -1,0 +1,28 @@
+{
+  "capabilities": [
+    "motion-capture"
+  ],
+  "description": "GEM-X Body Pose (body_s240000), native77 Body Motion (final775) and the original ViTPose observation model: temporal SOMA body motion from monocular video.",
+  "family_title": "GEM-X",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "gem-x-b111f2dc"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "nvidia"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
+  },
+  "modalities": [
+    "video",
+    "3d"
+  ],
+  "model_title": "GEM-X Body Motion",
+  "tags": [
+    "nvidia",
+    "gem-x"
+  ]
+}
