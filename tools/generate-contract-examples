@@ -513,6 +513,18 @@ def _audio_serving_example(build: dict[str, Any]) -> None:
         "serving assertion is not applicable to its check kind",
         {**heard, "assertions": ["chat.nonempty"]},
     )
+    for field, value in (("voice", 7), ("input", ["x"])):
+        refused(
+            f"recipe-serving-speech-{field}-not-text",
+            "speech checks require input, voice, response_format wav",
+            {
+                **spoken,
+                "request": {
+                    **spoken["request"],
+                    "body": {**spoken["request"]["body"], field: value},
+                },
+            },
+        )
     refused(
         "recipe-serving-speech-not-wav",
         "speech checks require input, voice, response_format wav",

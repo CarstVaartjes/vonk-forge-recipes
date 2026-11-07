@@ -56,6 +56,7 @@ def test_a_multipart_fixture_is_part_of_the_package_closure() -> None:
         lambda check: check["request"].update(method="GET"),
         lambda check: check["request"].update(fields={}),
         lambda check: check["request"].update(fields={"language": "en"}),
+        lambda check: check["request"]["fields"].update(file="x"),
         lambda check: check["request"].update(extra=1),
         lambda check: check["request"]["file"].update(fixture="/etc/passwd"),
     ],
@@ -74,6 +75,8 @@ def test_a_transcription_request_outside_the_shape_is_refused(change) -> None:  
         {"model": "m", "input": "x", "response_format": "wav"},
         {"model": "m", "input": "x", "voice": "alloy"},
         {"model": "m", "input": "x", "voice": "alloy", "response_format": "mp3"},
+        {"model": "m", "input": "x", "voice": 7, "response_format": "wav"},
+        {"model": "m", "input": ["x"], "voice": "alloy", "response_format": "wav"},
     ],
 )
 def test_a_speech_check_needs_input_voice_and_wav(body: dict[str, str]) -> None:
@@ -97,5 +100,5 @@ def test_the_raw_jfk_fixture_is_the_recorded_public_domain_clip() -> None:
     assert len(raw) == entry["size_bytes"]
     assert hashlib.sha256(raw).hexdigest() == entry["sha256"]
     assert raw[:4] == b"RIFF" and raw[8:12] == b"WAVE"
-    assert entry["provenance"]["license_spdx"] == "LicenseRef-Public-Domain"
+    assert entry["provenance"]["license_spdx"] == "PD-USGov"
     assert "commons.wikimedia.org" in entry["provenance"]["source_url"]

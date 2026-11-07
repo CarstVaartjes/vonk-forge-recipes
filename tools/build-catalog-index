@@ -191,7 +191,10 @@ def _safe_file(path: Path) -> bool:
 
 
 def _recipe_closure(
-    recipe: dict[str, Any], recipe_path: Path, entities: dict[str, dict[str, Any]]
+    recipe: dict[str, Any],
+    recipe_path: Path,
+    entities: dict[str, dict[str, Any]],
+    fixture_paths: list[str],
 ) -> list[tuple[str, bytes]]:
     files: dict[str, bytes] = {"recipe.json": canonical(recipe)}
     pending = [selection["model"] for selection in recipe["models"]]
@@ -232,14 +235,11 @@ def _recipe_closure(
         if not _safe_file(source):
             raise SystemExit(f"package source file is missing: {name}")
         files[name] = source.read_bytes()
-    from vonk_forge_contracts import RecipeDefinition
-
-    for check in RecipeDefinition.model_validate(recipe).validation.serving.checks:
-        for name in check.fixture_paths():
-            source = ROOT / name
-            if not _safe_file(source):
-                raise SystemExit(f"package serving fixture is missing: {name}")
-            files[name] = source.read_bytes()
+    for name in fixture_paths:
+        source = ROOT / name
+        if not _safe_file(source):
+            raise SystemExit(f"package serving fixture is missing: {name}")
+        files[name] = source.read_bytes()
     return sorted(files.items())
 
 
@@ -580,13 +580,19 @@ def recipe_package(
 ) -> tuple[bytes, dict[str, object]]:
     from vonk_forge_contracts import RecipeDefinition, document_sha256
 
-    require_canonical_recipe_media(RecipeDefinition.model_validate(document))
+    validated = RecipeDefinition.model_validate(document)
+    require_canonical_recipe_media(validated)
     recipe_digest = document_sha256(document)
     recipe_path = (
         recipe_path or ROOT / "recipes" / f"{document['identity']['slug']}.json"
     )
     entities = entity_documents or _catalog_entity_documents()
-    files = _recipe_closure(document, recipe_path, entities)
+    fixtures = [
+        name
+        for check in validated.validation.serving.checks
+        for name in check.fixture_paths()
+    ]
+    files = _recipe_closure(document, recipe_path, entities, fixtures)
     manifest_files = [
         {
             "path": name,
