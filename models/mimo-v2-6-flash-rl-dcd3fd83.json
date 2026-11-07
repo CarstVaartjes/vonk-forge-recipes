@@ -1,13 +1,4 @@
 {
-  "capabilities": [
-    "audio-understanding",
-    "chat",
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "tool-use",
-    "video-understanding"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -822,19 +813,6 @@
     "version": "MiMo V2.6 Flash RL dcd3fd83"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Xiaomi MiMo"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/blob/5711b268169967567844e1e560e8a3966da959b1/README.md"
-  },
-  "modalities": [
-    "audio",
-    "image",
-    "text",
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL",

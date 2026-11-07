@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://api.vonkforge.ai/contracts/model-definition-v3.schema.json",
+  "$id": "https://api.vonkforge.ai/contracts/model-definition-v4.schema.json",
   "$defs": {
     "GitHubLfsSource": {
       "additionalProperties": false,
@@ -285,49 +285,6 @@
       "title": "ModelIdentity",
       "type": "object"
     },
-    "ModelLicense": {
-      "additionalProperties": false,
-      "properties": {
-        "spdx": {
-          "maxLength": 128,
-          "minLength": 1,
-          "title": "Spdx",
-          "type": "string"
-        },
-        "url": {
-          "maxLength": 512,
-          "minLength": 1,
-          "title": "Url",
-          "type": "string"
-        },
-        "attribution": {
-          "items": {
-            "type": "string"
-          },
-          "maxItems": 32,
-          "title": "Attribution",
-          "type": "array"
-        },
-        "territorial_restrictions": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/ModelTerritorialRestrictions"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        }
-      },
-      "required": [
-        "spdx",
-        "url",
-        "attribution"
-      ],
-      "title": "ModelLicense",
-      "type": "object"
-    },
     "ModelRecord": {
       "additionalProperties": false,
       "properties": {
@@ -410,33 +367,6 @@
       ],
       "title": "ModelSource",
       "type": "object"
-    },
-    "ModelTerritorialRestrictions": {
-      "additionalProperties": false,
-      "properties": {
-        "denied_jurisdictions": {
-          "items": {
-            "pattern": "^[A-Z]{2,3}$",
-            "type": "string"
-          },
-          "maxItems": 64,
-          "minItems": 1,
-          "title": "Denied Jurisdictions",
-          "type": "array"
-        },
-        "notice": {
-          "maxLength": 1024,
-          "minLength": 1,
-          "title": "Notice",
-          "type": "string"
-        }
-      },
-      "required": [
-        "denied_jurisdictions",
-        "notice"
-      ],
-      "title": "ModelTerritorialRestrictions",
-      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -463,23 +393,6 @@
       "title": "Dependencies",
       "type": "array"
     },
-    "modalities": {
-      "items": {
-        "enum": [
-          "text",
-          "image",
-          "audio",
-          "video",
-          "3d",
-          "embeddings"
-        ],
-        "type": "string"
-      },
-      "maxItems": 6,
-      "minItems": 1,
-      "title": "Modalities",
-      "type": "array"
-    },
     "source": {
       "anyOf": [
         {
@@ -497,9 +410,6 @@
     "format": {
       "$ref": "#/$defs/ModelFormat"
     },
-    "license": {
-      "$ref": "#/$defs/ModelLicense"
-    },
     "files": {
       "items": {
         "$ref": "#/$defs/ModelFile"
@@ -507,29 +417,15 @@
       "minItems": 1,
       "title": "Files",
       "type": "array"
-    },
-    "capabilities": {
-      "items": {
-        "maxLength": 40,
-        "minLength": 1,
-        "pattern": "^[a-z0-9][a-z0-9-]{0,39}$",
-        "type": "string"
-      },
-      "maxItems": 64,
-      "title": "Capabilities",
-      "type": "array"
     }
   },
   "required": [
     "identity",
     "requires_token",
     "dependencies",
-    "modalities",
     "source",
     "format",
-    "license",
-    "files",
-    "capabilities"
+    "files"
   ],
   "title": "ModelDefinition",
   "type": "object"

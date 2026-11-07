@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "video-generation"
+  ],
   "description": "Complete immutable 480p CFG-distilled Diffusers snapshot at 1abb14f0.",
   "family_title": "HunyuanVideo",
   "identity": {
@@ -6,6 +9,24 @@
     "slug": "hunyuan-video-15-distilled"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "tencent"
+    ],
+    "spdx": "LicenseRef-Tencent-Hunyuan-Community",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR"
+      ],
+      "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
+    },
+    "url": "https://huggingface.co/tencent/HunyuanVideo-1.5/blob/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038/LICENSE"
+  },
+  "modalities": [
+    "video"
+  ],
   "model_title": "HunyuanVideo 1.5",
   "tags": [
     "tencent",

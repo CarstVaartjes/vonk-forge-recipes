@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from vonk_forge_contracts import RecipeDisplay
+from vonk_forge_contracts import ModelDisplay, RecipeDisplay
 
 ROOT = Path(__file__).resolve().parents[1]
 KIT_FLAGS = Path(__file__).resolve().parent / "kit-engine-flags.json"
@@ -139,18 +139,24 @@ def tags(display: RecipeDisplay) -> set[str]:
 
 
 def multimodal(
-    recipe: Mapping[str, Any], models: Mapping[str, Any], display: RecipeDisplay
+    recipe: Mapping[str, Any],
+    models: Mapping[str, ModelDisplay],
+    display: RecipeDisplay,
 ) -> bool:
-    """The recipe serves images: declared by its tags or by a model it loads."""
+    """The recipe serves images: declared by its tags or by a model it loads.
+
+    ``models`` maps a model slug to its display, where modalities and
+    capabilities are declared.
+    """
     arguments = _flag_text(_arguments(recipe))
     if _VISION_OFF.search(arguments):
         return False
     if tags(display) & _VISION_TAGS:
         return True
     for entry in recipe["models"]:
-        model = models.get(entry["model"]["slug"], {})
-        if "image" in model.get("modalities", []) or "image-understanding" in model.get(
-            "capabilities", []
+        model = models.get(entry["model"]["slug"])
+        if model is not None and (
+            "image" in model.modalities or "image-understanding" in model.capabilities
         ):
             return True
     return False
@@ -159,7 +165,7 @@ def multimodal(
 def serving_capabilities(
     recipe: Mapping[str, Any],
     slug: str,
-    models: Mapping[str, Any],
+    models: Mapping[str, ModelDisplay],
     display: RecipeDisplay,
     root: Path = ROOT,
 ) -> Capabilities:

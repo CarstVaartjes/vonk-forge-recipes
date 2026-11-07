@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from documents import recipe_display
+from documents import model_display, recipe_display
 from vonk_forge_contracts import (
     RecipeDefinition,
     RecipeDisplay,
@@ -42,6 +42,10 @@ MODELS = {
         for path in sorted((ROOT / "models").glob("*.json"))
     )
 }
+MODEL_DISPLAYS = {
+    path.stem: model_display(path.stem, ROOT)
+    for path in sorted((ROOT / "display" / "models").glob("*.json"))
+}
 
 
 def _recipe(slug: str) -> dict[str, Any]:
@@ -55,7 +59,7 @@ SERVICE_SLUGS = sorted(key.split("/", 1)[1] for key in DEFINITIONS["service_reci
 def test_a_recipes_smoke_cases_and_tags_match_what_its_engine_serves(slug: str) -> None:
     recipe = _recipe(slug)
     display = recipe_display(slug)
-    caps = serving_capabilities(recipe, slug, MODELS, display)
+    caps = serving_capabilities(recipe, slug, MODEL_DISPLAYS, display)
     cases = DEFINITIONS["service_recipes"][f"vonk-forge/{slug}"]["smoke_cases"]
     assert generic_case_problems(slug, recipe, cases, caps, display) == []
 

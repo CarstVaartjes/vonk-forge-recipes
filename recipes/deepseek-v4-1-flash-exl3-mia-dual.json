@@ -575,7 +575,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e5c55673ee308d9040965ae734f0f4ff2229da81780181c0ba6e276dd2006935",
+        "content_sha256": "7dbfe1db7b1ca6a784848c1e7525f975e5a73be3541f1e573a906593c4d4e08f",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "deepseek-v4-1-flash-exl3-2-9bpw-64ba41b6"
@@ -630,7 +630,7 @@
       ],
       "id": "dependency-deepseek-v4-1-flash-dba1be0a",
       "model": {
-        "content_sha256": "8556bae5128f2beb446506af4b34e6475c65367daf125146e4a0217f5a68b41e",
+        "content_sha256": "aab4021a80637f18f9c184a2047540a14e4f313dd907f2b372b03560833ea073",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-dba1be0a"

@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "code-generation",
-    "image-understanding",
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -198,18 +192,6 @@
     "version": "Qwen3.8 27B NVFP4 ModelOpt 482ca0f3"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation",
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4/blob/482ca0f3832238542f8f5295dde86b5f22711d80/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4",

@@ -1,9 +1,4 @@
 {
-  "capabilities": [
-    "decision",
-    "video",
-    "vision"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -170,18 +165,6 @@
     "version": "bd0090dd758d"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "vLLM Semantic Router"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/vllm-sr/d3-mini/blob/bd0090dd758d32ba59ef5c749910a8e87fc4391f/LICENSE"
-  },
-  "modalities": [
-    "text",
-    "image",
-    "video"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/vllm-sr/d3-mini",

@@ -146,7 +146,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f8bb778a21cd139df486b3964f37501c47a2e08627184f78ffda0bbe55bead25",
+        "content_sha256": "c676a2fee20ba641e5de5c5255f7b32160d3dbbaca4806bc3d9aa0d9d505b4aa",
         "kind": "model",
         "publisher": "r0b0tlab",
         "slug": "vibethinker-3b-nvfp4-2fc00139"

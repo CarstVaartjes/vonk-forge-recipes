@@ -629,7 +629,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f2c283ca18368bf82f25290e6c7fa0c8d88e2d6ceb1d73b51c734649989a8915",
+        "content_sha256": "2bee2e7bcc430ef775dba3ca22a0020c02c53329b7539148a633f901f3382ff6",
         "kind": "model",
         "publisher": "sfxnz",
         "slug": "deepseek-v4-1-flash-1017-exl3-2-7bpw-mcg-hq-a8006e99"

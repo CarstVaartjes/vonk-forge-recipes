@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Protocol, cast
 from unittest import mock
 
-from documents import recipe_display
+from documents import model_display, recipe_display
 from generated_catalog import GENERATED
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -360,11 +360,12 @@ class NativeThreeDAdapterTests(unittest.TestCase):
             (ROOT / "recipes/hunyuan3d-omni-pytorch-single.json").read_text()
         )
         model_version = json.loads((ROOT / "models/hunyuan3d-omni.json").read_text())
+        license = model_display("hunyuan3d-omni").license
         self.assertEqual(
-            model_version["license"]["spdx"],
+            license.spdx,
             "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
         )
-        self.assertTrue(model_version["license"]["url"].startswith("https://"))
+        self.assertTrue(license.url.startswith("https://"))
         self.assertEqual(
             recipe["models"][0]["model"]["content_sha256"],
             hashlib.sha256(CATALOG.canonical(model_version)).hexdigest(),

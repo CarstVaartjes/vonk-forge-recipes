@@ -136,7 +136,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "756f667089b1a2abb86af6276eb1a81e02a7c0ebeb42f23fdaebdbfc99e2e69e",
+        "content_sha256": "f45a15fb481823aaac9b7cf87d866d512ddf112e6c2617af70c853f3d44432db",
         "kind": "model",
         "publisher": "liquidai",
         "slug": "lfm2-5-vl-3b-bf16-a3af5799"

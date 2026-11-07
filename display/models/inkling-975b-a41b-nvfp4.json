@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "audio-understanding",
+    "image-understanding",
+    "text-generation"
+  ],
   "description": "Exact public NVFP4 42a75a99 checkpoint.",
   "family_title": "Inkling",
   "identity": {
@@ -6,6 +11,18 @@
     "slug": "inkling-975b-a41b-nvfp4"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Thinking Machines Lab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "modalities": [
+    "audio",
+    "image",
+    "text"
+  ],
   "model_title": "Inkling 975B-A41B",
   "tags": [
     "thinkingmachines",

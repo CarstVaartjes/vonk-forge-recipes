@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -844,17 +840,6 @@
     "version": "5.3"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Z.ai",
-      "drowzeys"
-    ],
-    "spdx": "LicenseRef-GLM-5.3",
-    "url": "https://huggingface.co/drowzeys/keys-GLM-5.3-EXL3-2.75BPW/blob/ae7b69671a94cf130fd1360a3b9213539ef3446f/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/drowzeys/keys-GLM-5.3-EXL3-2.75BPW",

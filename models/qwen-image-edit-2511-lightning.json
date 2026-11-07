@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "image-editing"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -33,18 +30,6 @@
     "version": "4steps-v1.0-bf16-d74eba14"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "ModelTC",
-      "lightx2v",
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://github.com/ModelTC/Qwen-Image-Lightning/blob/25d1e9935ba97e1f60503f8c000201e08b1fe8f4/LICENSE"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning",

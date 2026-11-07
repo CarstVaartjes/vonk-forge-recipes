@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "material-estimation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -42,16 +39,6 @@
     "version": "v1"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "ubisoft"
-    ],
-    "spdx": "LicenseRef-Ubisoft-Machine-Learning-License-Research-Only-Copyleft",
-    "url": "https://github.com/ubisoft/ubisoft-laforge-chord/blob/675a29d1fee5e1b256833bd4edabd619be43d0c7/LICENSE"
-  },
-  "modalities": [
-    "image"
-  ],
   "requires_token": true,
   "source": {
     "repository": "https://huggingface.co/Ubisoft/ubisoft-laforge-chord",

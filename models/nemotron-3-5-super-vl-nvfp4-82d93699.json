@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -1053,16 +1047,6 @@
     "version": "82d93699"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA"
-    ],
-    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
-    "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/blob/82d93699acd3be9e4617c53360fe5b3f5dbeb1b3/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4",

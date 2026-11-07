@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "speculative-decoding"
+  ],
   "description": "IncoAI's DFlash2 block-diffusion speculative-decoding draft for Qwen3.8 27B (BF16). Apache-2.0 per the model card.",
   "family_title": "Qwen",
   "identity": {
@@ -6,6 +9,17 @@
     "slug": "qwen3-8-27b-dflash2-incoai-015e7956"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "IncoAI",
+      "Z-Lab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/incoai/Qwen3.8-27B-DFlash2/blob/015e795645c74b1a0eeef3b570031fb62e769bc5/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Qwen3.8 27B DFlash2 draft (IncoAI)",
   "tags": [
     "candidate",

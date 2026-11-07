@@ -21,7 +21,7 @@
       "projected": {
         "models": [
           {
-            "content_sha256": "2e9bd1e7f1825bf1929af663d28dc3747f7d91bb35c0f2309a9f0085944259a8",
+            "content_sha256": "4c0c27a56e26d3ca400d2755ce7f54ae4deb5438f54c8e68f0bcbb0a84c07c62",
             "kind": "model",
             "publisher": "aday777",
             "slug": "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"
@@ -47,7 +47,7 @@
       "projected": {
         "models": [
           {
-            "content_sha256": "bc6c175277b2daf29b5a39f24da829971758d9b37267e872847784281b6de14f",
+            "content_sha256": "0c433329a488bfe37a33f13249a70ac2ebf12fe360227e3eab2ffd9c80660dfe",
             "kind": "model",
             "publisher": "openmoss",
             "slug": "mova-720p"
@@ -73,7 +73,7 @@
       "projected": {
         "models": [
           {
-            "content_sha256": "bb4d892c29d60f0082c88e480cae87bc1c8d7561a77906f3e2b15be5daee33f8",
+            "content_sha256": "43d1daceea59866d3d558f04fef8b32278d88b780ce92bae148c3a929a1cc0ed",
             "kind": "model",
             "publisher": "openmoss",
             "slug": "mova-360p"
@@ -99,7 +99,7 @@
       "projected": {
         "models": [
           {
-            "content_sha256": "712b5a5f0777591fec47f743659a1dcc17bca28be246b6a792dcadf371ddf618",
+            "content_sha256": "3265091507f9645ae79cb82e629e51423f5469bbf39f7a7bef1921e0d06ebdbc",
             "kind": "model",
             "publisher": "lightricks",
             "slug": "ltx-2-19b-dev-fp4-dfcc2108"
@@ -125,7 +125,7 @@
       "projected": {
         "models": [
           {
-            "content_sha256": "666c27b5ce38b8e7eefb778d6d140f68bc38416e1c5b9e01666aa4e32f1b6926",
+            "content_sha256": "a9f7f6c6f906926bfe3d1303950005a2b9cc92e6d26d521c3381ad392f3307ae",
             "kind": "model",
             "publisher": "tencent",
             "slug": "hunyuan-video-15-t2v"
@@ -140,7 +140,7 @@
     {
       "selector": "vonk-forge/d3-vllm-single",
       "identity": {
-        "content_sha256": "103cc7800a30a4e27250ea947bd22be3d3caea2b08985e34360939e7e96fcae5",
+        "content_sha256": "f05d64bff2fd5fed81c59ed6f836e5f359b9d24df2b18284caad55cd4948ddaf",
         "recipe_revision_id": "5d56cfe0-9202-4527-8173-223d0aa703a9"
       },
       "node_count": 1,
@@ -151,7 +151,7 @@
       "projected": {
         "models": [
           {
-            "content_sha256": "84156047069d3a0bca70e7b62d7dc12d2e3c2e062d9c3abc978b9aed5ea76ce8",
+            "content_sha256": "afadb90f6645117a1987b3a317e1f160bf73132c2ec302861b9fc40b81fddecb",
             "kind": "model",
             "publisher": "vonk-forge",
             "slug": "d3-bf16-cf15549a"

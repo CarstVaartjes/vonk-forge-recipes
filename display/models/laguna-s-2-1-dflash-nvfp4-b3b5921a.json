@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "text-generation"
+  ],
   "description": "Exact public DFlash speculative draft (BF16, 6 layers) for the Laguna S 2.1 NVFP4 target at b3b5921a; the repository declares no licence.",
   "family_title": "Laguna",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "laguna-s-2-1-dflash-nvfp4-b3b5921a"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Poolside"
+    ],
+    "spdx": "NOASSERTION",
+    "url": "https://huggingface.co/poolside/Laguna-S-2.1-DFlash-NVFP4/blob/b3b5921a900b9e0a1e27e50bdaeb480692a6d19b/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Laguna S 2.1 NVFP4 DFlash draft",
   "tags": [
     "poolside",

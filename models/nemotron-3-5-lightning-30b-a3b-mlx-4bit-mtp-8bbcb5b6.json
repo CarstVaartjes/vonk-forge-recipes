@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "reasoning",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -151,17 +147,6 @@
     "version": "Nemotron 3.5 Lightning 30B-A3B MLX 4-bit MTP 8bbcb5b6"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation",
-      "Vontra"
-    ],
-    "spdx": "LicenseRef-OpenMDW-1.1",
-    "url": "https://huggingface.co/Vontra/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-MLX-4bit/blob/8bbcb5b6a46a4409d47832b6fdc2fcc9183c83e8/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Vontra/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-MLX-4bit",

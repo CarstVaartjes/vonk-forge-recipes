@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -387,17 +381,6 @@
     "version": "MiniMax M3.1 Flash EXL3 SAGE 2.15bpw 99bf3a57"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "MiniMax",
-      "vcruz305"
-    ],
-    "spdx": "LicenseRef-MiniMax-Community",
-    "url": "https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw/blob/99bf3a57af5d07245ea9abb5426e7dce6af6356b/LICENSE"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/vcruz305/MiniMax-M3.1-Flash-EXL3-SAGE-2.15bpw",

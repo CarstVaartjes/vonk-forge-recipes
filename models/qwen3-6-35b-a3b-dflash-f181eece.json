@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -78,17 +75,6 @@
     "version": "Qwen3.6 35B-A3B DFlash f181eece"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "z-lab",
-      "Qwen"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/z-lab/Qwen3.6-35B-A3B-DFlash/blob/f181eece646affea2c38b2765f1aaa01a9734ccd/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/z-lab/Qwen3.6-35B-A3B-DFlash",

@@ -1,10 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "image-understanding",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -1197,19 +1191,6 @@
     "version": "exl3-4bpw-mcg-d75e26a4"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "sfxnz",
-      "Z.AI",
-      "Turboderp"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/sfxnz/GLM-5.3-Flash-EXL3-4bpw/blob/d75e26a4fedfdb0e9a7d2422afd9cdba926ca7e6/LICENSE"
-  },
-  "modalities": [
-    "text",
-    "image"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/sfxnz/GLM-5.3-Flash-EXL3-4bpw",

@@ -1,7 +1,4 @@
 {
-  "capabilities": [
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -78,16 +75,6 @@
     "version": "Eagle3 633caf45"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation"
-    ],
-    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
-    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/gpt-oss-120b-Eagle3-long-context",

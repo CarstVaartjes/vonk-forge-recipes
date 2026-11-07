@@ -1,4 +1,11 @@
 {
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "ggml-org GGUF conversion of Gemma 4 26B-A4B IT at Q8_0, plus the Q8_0 vision projector.",
   "family_title": "Google Gemma",
   "identity": {
@@ -6,6 +13,18 @@
     "slug": "gemma-4-26b-a4b-it-q8-0-9cf8c8db"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Google DeepMind",
+      "ggml-org"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
   "model_title": "Gemma 4 26B-A4B",
   "tags": [
     "ggml-org",

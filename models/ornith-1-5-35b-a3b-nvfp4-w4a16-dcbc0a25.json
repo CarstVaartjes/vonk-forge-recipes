@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "text-generation"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -178,17 +174,6 @@
     "version": "Ornith 1.5 35B-A3B NVFP4 W4A16 dcbc0a25"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Ornith-AI",
-      "r0b0tlab"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/r0b0tlab/Ornith-1.5-35B-A3B-NVFP4-W4A16/blob/dcbc0a25d5b3ce634c2f5d988a81ba598ca7adcc/README.md"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/r0b0tlab/Ornith-1.5-35B-A3B-NVFP4-W4A16",

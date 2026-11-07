@@ -1,11 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "code-generation",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -1198,16 +1191,6 @@
     "version": "NVFP4 02462641"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "NVIDIA Corporation"
-    ],
-    "spdx": "LicenseRef-OpenMDW-1.1",
-    "url": "https://openmdw.ai/license/1-1/"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4",

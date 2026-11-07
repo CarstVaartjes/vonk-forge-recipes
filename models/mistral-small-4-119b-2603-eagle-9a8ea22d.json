@@ -1,5 +1,4 @@
 {
-  "capabilities": [],
   "dependencies": [],
   "files": [
     {
@@ -76,16 +75,6 @@
     "version": "2603"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Mistral AI"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/mistralai/Mistral-Small-4-119B-2603-eagle"
-  },
-  "modalities": [
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/mistralai/Mistral-Small-4-119B-2603-eagle",

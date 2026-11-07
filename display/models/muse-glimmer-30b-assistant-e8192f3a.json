@@ -1,4 +1,7 @@
 {
+  "capabilities": [
+    "text-generation"
+  ],
   "description": "Exact public Muse Glimmer 30B assistant DFlash block-diffusion draft head e8192f3a.",
   "family_title": "Muse Glimmer",
   "identity": {
@@ -6,6 +9,16 @@
     "slug": "muse-glimmer-30b-assistant-e8192f3a"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Meta"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B-assistant/blob/e8192f3a8f617f74be2ce220360c89ef4789f39f/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "Muse Glimmer 30B Assistant (DFlash drafter)",
   "tags": [
     "meta",

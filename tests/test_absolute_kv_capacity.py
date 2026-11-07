@@ -305,26 +305,26 @@ FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
         # Exhausted host memory 2026-10-21: 0.85 beside a 10 GB Marlin repack.
         # Judged on the image its geometry now pins (same Marlin expansion).
         (
-            "gpt-oss-120b-nvidia-vllm-single-9e7406aa",
+            "gpt-oss-120b-nvidia-vllm-single-bd0c4780",
             "admissible on an idle Spark",
             "gpt-oss-120b-nvidia-vllm-single",
         ),
         # OOM-killed (exit 137) 2026-10-21: 0.75 below weights + expansion.
         (
-            "glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single-87588c35",
+            "glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single-5396ef56",
             "cannot hold the selected weights",
             None,
         ),
         # 2026-10-21: 0.95, not admissible on an idle Spark.
         (
-            "glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single-f3951d5d",
+            "glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single-94ee10cc",
             "admissible on an idle Spark",
             None,
         ),
         # 2026-10-19 and 2026-10-27: 0.6 left 4.25 GB beside 74.15 GB of
         # target and draft weights; vLLM found no memory for KV cache blocks.
         (
-            "laguna-s-2-1-nvfp4-r0b0tlab-vllm-single-7cf347ae",
+            "laguna-s-2-1-nvfp4-r0b0tlab-vllm-single-42486206",
             "cannot hold the selected weights",
             None,
         ),
@@ -332,14 +332,14 @@ FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
         # draft weights, below one 262,144-token BF16 request (13.0 GB); vLLM
         # reported -23.95 GiB of KV cache memory and found no cache blocks.
         (
-            "laguna-s-2-1-nvfp4-dflash-vllm-mia-single-ff5eb86e",
+            "laguna-s-2-1-nvfp4-dflash-vllm-mia-single-753365de",
             "one full-context request",
             None,
         ),
         # 2026-10-21: 0.60 (78.40 GB) was below even the 80.32 GB of weights
         # vLLM loads; vLLM found no memory for KV cache blocks.
         (
-            "nemotron-3-super-120b-a12b-vllm-single-13f1417f",
+            "nemotron-3-super-120b-a12b-vllm-single-a6510627",
             "cannot hold the selected weights",
             None,
         ),

@@ -1,11 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -874,18 +867,6 @@
     "version": "NVFP4 0c75a7a5"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Xiaomi MiMo",
-      "r0b0tlab"
-    ],
-    "spdx": "MIT",
-    "url": "https://huggingface.co/r0b0tlab/MiMo-V2.6-Flash-RL-NVFP4/blob/b98271785a70bf9ae64484ad46e1498d78caf2cf/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/r0b0tlab/MiMo-V2.6-Flash-RL-NVFP4",

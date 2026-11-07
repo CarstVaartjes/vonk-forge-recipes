@@ -1,8 +1,4 @@
 {
-  "capabilities": [
-    "image-understanding",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -223,18 +219,6 @@
     "version": "UI-Mate 27B BF16"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Tencent",
-      "Tencent HY Frontier Team"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://github.com/Tencent/UI-Mate/blob/d185dc9d74cfcab3a890d7ffb2bb011ecdd64c64/LICENSE"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/tencent/UI-Mate-27B",

@@ -174,7 +174,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "610e238eafdb928385b58e22b278a0a05184866ad0943f5ef6f6511ad97b3a18",
+        "content_sha256": "e8bf5b862bf2b5131bffdb8e1133bb496298f1623d345a1611ca7f82f3e274d5",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "kimodo-soma-rp-v1-2-0e3c8902"
@@ -265,7 +265,7 @@
       ],
       "id": "llama-base",
       "model": {
-        "content_sha256": "e0f4ec017af1d63dc96662fdabb648b05967bc53599c92e4f1d2c5018a5d8ca2",
+        "content_sha256": "72a93935b1c15d74332fa1b5dcd91fd40daef73ed2ce114678dcdf030da662b6",
         "kind": "model",
         "publisher": "nousresearch",
         "slug": "llama-3-8b-instruct-53346005"
@@ -336,7 +336,7 @@
       ],
       "id": "text-encoder-mntp",
       "model": {
-        "content_sha256": "a0834c50c6250345d8bac426306c523f8669c61b29602250cc7c0a2169403841",
+        "content_sha256": "178538798ddfa6c4e070257096d71be50fc9b3827457c30eb2bd7e86640582ca",
         "kind": "model",
         "publisher": "mcgill-nlp",
         "slug": "llm2vec-llama-3-8b-instruct-mntp-31474e39"
@@ -367,7 +367,7 @@
       ],
       "id": "text-encoder-supervised",
       "model": {
-        "content_sha256": "c73bd5288ce14c909d54d12f40e3464feb173709221ab9d6c1e4e988a4509645",
+        "content_sha256": "017280c355be7fe8fc5453f0a8398565f1209a0308546dcca55346e8534aadb2",
         "kind": "model",
         "publisher": "mcgill-nlp",
         "slug": "llm2vec-llama-3-8b-instruct-mntp-supervised-baa8ebf0"

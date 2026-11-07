@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
   "description": "Exact public GLM 5.2 Int4 Int8Mix checkpoint.",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "glm-5-2-int4-int8mix"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.ai",
+      "QuantTrio"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix/blob/main/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "GLM 5.2 Int4 Int8Mix",
   "tags": [
     "quanttrio",

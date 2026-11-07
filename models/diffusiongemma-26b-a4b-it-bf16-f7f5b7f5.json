@@ -1,11 +1,4 @@
 {
-  "capabilities": [
-    "chat",
-    "image-understanding",
-    "reasoning",
-    "text-generation",
-    "tool-use"
-  ],
   "dependencies": [],
   "files": [
     {
@@ -226,17 +219,6 @@
     "version": "IT-BF16 f7f5b7f5"
   },
   "kind": "model",
-  "license": {
-    "attribution": [
-      "Google DeepMind"
-    ],
-    "spdx": "Apache-2.0",
-    "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
-  },
-  "modalities": [
-    "image",
-    "text"
-  ],
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/google/diffusiongemma-26B-A4B-it",

@@ -10,7 +10,7 @@ from typing import Any, cast
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from catalog_documents import catalog_models
-from documents import recipe_display
+from documents import model_display, recipe_display
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.resolver import validate_recipe_models
 
@@ -101,11 +101,11 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
             <= set(recipe_display(recipe["identity"]["slug"]).tags)
         )
         self.assertEqual(recipe["interfaces"][0]["adapter"], "openai")
-        model = recipe_model(recipe)
-        self.assertEqual(model["modalities"], ["text"])
+        facts = model_display(cast(Any, recipe)["models"][0]["model"]["slug"])
+        self.assertEqual(facts.modalities, ["text"])
         self.assertFalse(
             {"image-understanding", "audio-understanding", "video-understanding"}
-            & set(cast(list[str], model["capabilities"]))
+            & set(facts.capabilities)
         )
 
     def test_source_builds_are_offline_and_digest_pinned(self) -> None:

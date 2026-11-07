@@ -1,4 +1,9 @@
 {
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
   "description": "cyankiwi AWQ 4-bit (compressed-tensors) quantization of Z.ai GLM-4.7-Flash, a 30B-A3B MoE.",
   "family_title": "GLM",
   "identity": {
@@ -6,6 +11,17 @@
     "slug": "glm-4-7-flash-awq-4bit-25624b53"
   },
   "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.ai",
+      "cyankiwi"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/cyankiwi/GLM-4.7-Flash-AWQ-4bit/blob/25624b53414e585bcf7dcb9584667c3106c6089b/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
   "model_title": "GLM 4.7 Flash AWQ 4bit",
   "tags": [
     "cyankiwi",
