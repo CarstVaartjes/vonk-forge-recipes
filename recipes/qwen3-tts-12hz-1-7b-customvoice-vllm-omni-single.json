@@ -257,7 +257,7 @@
             "working_bytes": 2260108716
           },
           "memory": {
-            "peak_bytes": 58000000000,
+            "peak_bytes": 64000000000,
             "reserve_bytes": 6000000000
           }
         }
