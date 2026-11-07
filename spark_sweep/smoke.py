@@ -26,8 +26,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from vonk_forge_contracts.api import ChatApi
+
 from .auth_contract import GatewayAuthReply, SmokeAuthClass
 from .catalog import Recipe
+from .chat_probe import bounded_chat_body
 from .definitions import Definitions
 from .policy import CLIENT_CREDENTIAL, Failure, classify, excerpt
 from .verdict import SMOKE_BUSY, http_wait
@@ -512,7 +515,9 @@ def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
     }
 
 
-def _fallback_cases(recipe: Recipe, alias: str) -> list[dict[str, Any]]:
+def _fallback_cases(
+    recipe: Recipe, alias: str, api: ChatApi | None = None
+) -> list[dict[str, Any]]:
     """Cases from the recipe's own declared serving checks when no reviewed smoke exists."""
     cases: list[dict[str, Any]] = [
         {
@@ -528,7 +533,9 @@ def _fallback_cases(recipe: Recipe, alias: str) -> list[dict[str, Any]]:
     for check in recipe.checks:
         request = check.get("request") or {}
         if check.get("kind") == "openai.chat" and isinstance(request.get("body"), dict):
-            body = {**request["body"], "model": alias, "stream": False}
+            body = bounded_chat_body(
+                {**request["body"], "model": alias, "stream": False}, api
+            )
             cases.append(
                 {
                     "id": str(check.get("name", "chat")),
@@ -537,7 +544,13 @@ def _fallback_cases(recipe: Recipe, alias: str) -> list[dict[str, Any]]:
                     "body": body,
                     "timeout_seconds": 180,
                     "max_response_bytes": 262144,
-                    "assertions": [{"kind": "path.nonempty", "path": "choices"}],
+                    "assertions": [
+                        {"kind": "path.nonempty", "path": "choices"},
+                        {
+                            "kind": "path.nonempty",
+                            "path": "choices.0.message.content",
+                        },
+                    ],
                 }
             )
     return cases
@@ -602,7 +615,7 @@ def smoke_service(
 ) -> SmokeResult:
     started = time.monotonic()
     cases = definitions.service_cases(recipe.key, alias) or _fallback_cases(
-        recipe, alias
+        recipe, alias, definitions.chat_api(recipe.slug)
     )
     result = SmokeResult(ok=False, kind="service")
     try:
