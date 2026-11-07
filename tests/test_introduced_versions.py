@@ -117,3 +117,21 @@ def test_the_guard_names_the_recipe_and_both_versions(
     ]
     assert all(m.endswith("the pinned platform reads 4.1.0") for m in old)
     assert GUARD["problems"](tmp_path, ["x"], "4.4.0") == []
+
+
+def test_models_no_recipe_selects_are_gated_too(tmp_path: Path, monkeypatch) -> None:
+    (tmp_path / "display/models").mkdir(parents=True)
+    display = _any_display()
+    name = display.capabilities[0]
+    monkeypatch.setitem(
+        GUARD["model_problems"].__globals__, "model_display", lambda slug, root: display
+    )
+    (tmp_path / "display/models/orphan.json").touch()
+    monkeypatch.setattr(
+        introduced, "CAPABILITY_SINCE", {**CAPABILITY_SINCE, name: "4.9.0"}
+    )
+    assert GUARD["model_problems"](tmp_path, "4.8.0") == [
+        f"model orphan: capability {name.value} needs contracts 4.9.0, "
+        "the pinned platform reads 4.8.0"
+    ]
+    assert GUARD["model_problems"](tmp_path, "4.9.0") == []
