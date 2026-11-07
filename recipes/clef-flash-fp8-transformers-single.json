@@ -245,11 +245,9 @@
         "value": null
       }
     ],
-    "engine": "vllm",
+    "engine": "pytorch-server",
     "entrypoint": [
-      "/opt/vonk/bin/vllm",
-      "serve",
-      "/models"
+      "/opt/vonk/bin/pytorch-server"
     ],
     "environment": [
       {

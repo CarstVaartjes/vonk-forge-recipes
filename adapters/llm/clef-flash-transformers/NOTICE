@@ -10,4 +10,4 @@ memory and runs it in its own container.
 
 requirements.lock is the creator's uv.lock exported unchanged.
 
-/opt/vonk/bin/vllm is a launcher in the sense of adapters/llm/vllm-decision-3: the platform's serving harness for this interface launches `vllm serve /models --host H --port P ...`, and the launcher runs serve.py (which runs app.py) instead; no vLLM is installed.
+/opt/vonk/bin/pytorch-server is the platform's `pytorch-server` harness wrapper: it runs serve.py (which runs app.py) with the platform's serving flags.
