@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/clef-flash-fp8-transformers-single",
+  "service_recipes": {
+    "alias": "clef-flash-fp8-transformers-single",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start and offline warm-cache restart with the exact alias"
+      ],
+      "stress": [
+        "Input-context and concurrency boundaries with text and image decisions"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "D3_TEXT",
+      "D3_IMAGE"
+    ]
+  }
+}

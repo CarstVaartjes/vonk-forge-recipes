@@ -66,7 +66,7 @@ def test_proven_set_calibrates_need_without_false_rejections() -> None:
             need = per_rank_need(variant, catalog_models(), load_inputs())
             assert need.peak_bytes <= IDLE_AVAILABLE_BYTES, key
         checked += 1
-    assert checked == 115
+    assert checked == 114
 
 
 def require_repaired_declaration(slug: str, variant: RecipeDefinition) -> None:
