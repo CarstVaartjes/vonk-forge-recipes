@@ -202,7 +202,7 @@ OpenAI-compatible HTTP or filesystem job interface. Native decision models use
 extensions (`tests/test_systemone_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.0.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.1.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -213,6 +213,12 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`:
   `read_recipe`, which ignore fields they do not know, and identifies each
   document by the `document_sha256` of its published JSON, so an older
   Controller keeps working and picks the field up when vonk-forge upgrades.
+- **Closed vocabulary (minor):** a Model display's `capabilities` are the closed
+  `CapabilityName` set (`vonk_forge_contracts/capability.py`), each with one
+  `CapabilityRole` (understanding, generator or other) that guards read instead
+  of parsing names. A new capability is a contract minor release: add the name
+  and its role there, release it, and let the Controller adopt it before a
+  catalog declares the name; a reader refuses a name it does not list.
 - **Breaking (major, for example `3.0.0`, which moved display text out of the documents, and `4.0.0`, which moved a Model's modalities, capabilities and licence into its display):** remove or rename a field, make one required,
   or change a field's meaning. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
@@ -1347,10 +1353,12 @@ release commit. Build them locally with one command when a tool or test outside
 the suite needs them:
 
 ```bash
-uv run --python 3.14 --no-project --with-editable contracts tools/build-catalog-index
+uv run --python 3.14 --no-project --with-editable contracts tools/build-catalog-index \
+  --source-commit "$(git rev-parse HEAD)" --source-date-epoch "$(git show -s --format=%ct HEAD)"
 ```
 
-It writes them in place, recording the checkout's `HEAD` as `source_commit`.
+It writes them in place, recording the given commit as `source_commit` and its
+commit time as `updated_at`; the tool itself never runs Git.
 `tools/build-family-aware-coverage` then derives the coverage matrix and report
 into `qualification/coverage/`. The test suite builds its own copy once per
 session in a temporary directory and never reads outputs from the checkout.

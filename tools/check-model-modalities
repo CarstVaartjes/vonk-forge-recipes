@@ -22,25 +22,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from vonk_forge_contracts import CapabilityName, CapabilityRole
 from vonk_forge_contracts.api_checks import INPUT_MODALITY_CAPABILITIES
 
 from qualification.documents import model_display
-
-TEXT_OUTPUT = frozenset({"text-generation", "code-generation"})
 
 
 def is_generator(capabilities: set[str]) -> bool:
     """True when an output other than text is generated or edited.
 
     Such a Model lists its outputs among its modalities; a language Model that
-    generates text or code still lists what it accepts.
+    generates text or code still lists what it accepts. The role of each name
+    is the contract's (``CapabilityName.role``).
     """
 
-    return any(
-        (c.endswith(("-generation", "-editing")) and c not in TEXT_OUTPUT)
-        or "-to-" in c
-        for c in capabilities
-    )
+    return any(CapabilityName(c).role is CapabilityRole.GENERATOR for c in capabilities)
 
 
 def disagreements(capabilities: Iterable[str], modalities: Iterable[str]) -> list[str]:
@@ -54,11 +50,13 @@ def disagreements(capabilities: Iterable[str], modalities: Iterable[str]) -> lis
 
     capabilities = set(capabilities)
     modalities = set(modalities)
-    declares = any(c.endswith("-understanding") for c in capabilities)
+    declares = any(
+        CapabilityName(c).role is CapabilityRole.UNDERSTANDING for c in capabilities
+    )
     if is_generator(capabilities) or not (declares or {"text"} < modalities):
         return []
     return [
-        f"capability {capability!r} and modality {modality!r} must come together"
+        f"capability {str(capability)!r} and modality {modality!r} must come together"
         for modality, capability in INPUT_MODALITY_CAPABILITIES.items()
         if (capability in capabilities) != (modality in modalities)
     ]
