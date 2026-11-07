@@ -114,6 +114,10 @@ def test_there_are_invalid_vectors_for_each_named_failure() -> None:
         "recipe-display-kind-recipe",
         "recipe-display-title-too-long",
         "recipe-display-with-runtime",
+        "recipe-serving-multipart-for-chat",
+        "recipe-serving-speech-not-wav",
+        "recipe-serving-transcription-over-json",
+        "recipe-serving-transcription-without-assertion",
         "recipe-with-metadata",
     }
 
