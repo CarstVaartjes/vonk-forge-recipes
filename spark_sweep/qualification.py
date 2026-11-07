@@ -36,7 +36,9 @@ from vonk_forge_contracts.qualification_status import (
     published_status,
 )
 
-from .catalog import Recipe
+from qualification import documents
+
+from .catalog import Recipe, never_measured
 from .identity import current_identity
 from .lifecycle import RecipeStatus
 from .state import write_atomic
@@ -147,6 +149,21 @@ def history_evidence(value: Mapping[str, Any]) -> RecipeQualificationEvidence | 
         if record.outcome == QualificationOutcome.PASSED
         else (),
     )
+
+
+def serving_rows(
+    root: Path, evidence: RecipeQualificationEvidence
+) -> RecipeQualificationEvidence:
+    """The evidence a log or state may add to the repo: a job recipe carries no measured rows."""
+    slug = evidence.recipe_key.partition("/")[2]
+    if (
+        not evidence.measured_memory
+        or not (root / "recipes" / f"{slug}.json").is_file()
+    ):
+        return evidence
+    if not never_measured(documents.recipe(slug, root)):
+        return evidence
+    return evidence.model_copy(update={"measured_memory": ()})
 
 
 def write_evidence(root: Path, evidence: RecipeQualificationEvidence) -> bool:
@@ -370,7 +387,8 @@ def backfill(
         result.unpublished += len(lacking)
         if lacking:  # resolved records only; nothing is rewritten, only appended
             grouped[key] = merge_evidence(
-                previous, evidence.model_copy(update={"records": lacking})
+                previous,
+                serving_rows(root, evidence.model_copy(update={"records": lacking})),
             )
     for path in paths:
         # Read only. Never use State.load: its recovery path mutates source state.
@@ -385,7 +403,7 @@ def backfill(
                 result.rejected += 1
                 continue
             previous = grouped.get(key) or read_evidence(root, key)
-            grouped[key] = merge_evidence(previous, evidence)
+            grouped[key] = merge_evidence(previous, serving_rows(root, evidence))
             result.imported += 1
     for evidence in grouped.values():
         result.changed_files += int(write_evidence(root, evidence))

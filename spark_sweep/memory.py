@@ -13,6 +13,8 @@ from vonk_forge_contracts import QualificationMeasuredRoleMemory, RecipeDefiniti
 
 from qualification.memory_need import OS_FLOOR_BYTES, holds_within, vllm_budget_bytes
 
+from .catalog import never_measured
+
 
 class _Sample(BaseModel):
     memory_total_bytes: int
@@ -202,7 +204,7 @@ def measurement(
     apart or compute is "not measured". A job recipe is never measured: the sample
     is taken after the job finished, so it reads idle, not a serving peak.
     """
-    if not observed or recipe is None or recipe.settings.kind == "job":
+    if not observed or recipe is None or never_measured(recipe):
         return ()
     try:
         assignment = intended_assignment(application, alias)
