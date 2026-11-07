@@ -447,6 +447,85 @@ def _api_vectors(
     )
 
 
+def _audio_serving_example(build: dict[str, Any]) -> None:
+    """A synthetic recipe whose checks upload audio and request speech, and refusals."""
+
+    audio = copy.deepcopy(build)
+    audio["identity"]["slug"] = "synthetic-tiny-build-audio-serving"
+    seeded = audio["validation"]["serving"]["checks"][0]
+    heard = {
+        "name": "transcribe",
+        "kind": "openai.transcription",
+        "request": {
+            "transport": "http-multipart",
+            "method": "POST",
+            "path": "/v1/audio/transcriptions",
+            "fields": {
+                "model": "synthetic-tiny",
+                "language": "en",
+                "response_format": "json",
+            },
+            "file": {
+                "field": "file",
+                "fixture": "qualification/fixtures/jfk-inaugural-10s.wav",
+                "media_type": "audio/wav",
+            },
+        },
+        "assertions": ["transcription.nonempty"],
+    }
+    spoken = {
+        "name": "speak",
+        "kind": "openai.speech",
+        "request": {
+            "transport": "http",
+            "method": "POST",
+            "path": "/v1/audio/speech",
+            "body": {
+                "model": "synthetic-tiny",
+                "input": "The road ahead is closed. Turn back.",
+                "voice": "alloy",
+                "response_format": "wav",
+            },
+        },
+        "assertions": ["speech.audio"],
+    }
+    audio["validation"]["serving"]["checks"] = [seeded, heard, spoken]
+    RecipeDefinition.model_validate(audio)
+    _write("recipe-audio-serving.json", audio)
+
+    def refused(name: str, error: str, check: dict[str, Any]) -> None:
+        document = copy.deepcopy(audio)
+        document["validation"]["serving"]["checks"] = [seeded, check]
+        _invalid(name, "RecipeDefinition", error, document)
+
+    refused(
+        "recipe-serving-transcription-over-json",
+        "serving request transport must match serving kind",
+        {**heard, "request": spoken["request"]},
+    )
+    refused(
+        "recipe-serving-multipart-for-chat",
+        "serving request transport must match serving kind",
+        {**heard, "kind": "openai.chat", "assertions": ["chat.nonempty"]},
+    )
+    refused(
+        "recipe-serving-transcription-without-assertion",
+        "serving assertion is not applicable to its check kind",
+        {**heard, "assertions": ["chat.nonempty"]},
+    )
+    refused(
+        "recipe-serving-speech-not-wav",
+        "speech checks require input, voice, response_format wav",
+        {
+            **spoken,
+            "request": {
+                **spoken["request"],
+                "body": {**spoken["request"]["body"], "response_format": "mp3"},
+            },
+        },
+    )
+
+
 def main() -> int:
     model = _read("model-definition.json")
     ModelDefinition.model_validate(model)
@@ -552,6 +631,7 @@ def main() -> int:
             },
         },
     )
+    _audio_serving_example(build)
     _api_vectors(build, _options_recipe(build), _read("recipe-api-source-build.json"))
     return 0
 

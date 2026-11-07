@@ -1,0 +1,4 @@
+{
+  "contract": "RecipeDefinition",
+  "error_contains": "serving request transport must match serving kind"
+}
