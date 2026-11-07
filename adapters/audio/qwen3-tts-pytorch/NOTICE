@@ -1,0 +1,5 @@
+This build context installs the Qwen3-TTS `qwen-tts` 0.1.1 Python package from PyPI
+(Apache-2.0, https://github.com/QwenLM/Qwen3-TTS commit
+6cafe5582caea83df269c36b1ce62d953a9cc66b) without its demo-only gradio dependency;
+no upstream source is vendored. The files under pipelines/ are Vonk Forge wrappers
+for the signed job contract.
