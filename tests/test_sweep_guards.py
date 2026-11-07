@@ -795,7 +795,7 @@ def test_every_evidence_exit_has_its_own_status_message():
     tick = next(
         node
         for node in ast.walk(tree)
-        if isinstance(node, ast.FunctionDef) and node.name == "tick"
+        if isinstance(node, ast.FunctionDef) and node.name == "_finish"
     )
     mapped = {
         node.attr
