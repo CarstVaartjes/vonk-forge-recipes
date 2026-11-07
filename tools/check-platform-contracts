@@ -1,0 +1,101 @@
+#!/usr/bin/env -S uv run --no-project --python 3.14 --with-editable contracts python
+"""Refuse a recipe the pinned platform's contracts version cannot read.
+
+The deployed vonk-forge Controller reads recipes with the contracts version its
+``control/packaging/public-contracts.lock`` pins (``package =
+"vonk-forge-public-contracts==X.Y.Z"``). A serving kind or Model capability
+newer than that version is a read failure there. ``qualification/introduced.py``
+owns the version each value arrived in; this tool compares every recipe in the
+library (and the Model displays it selects) against the lock of the platform
+commit the workflows pin, so a recipe cannot land ahead of the Controller that
+reads it.
+
+The lock text is an argument: CI fetches it from ``platform_ref`` and this tool
+runs no git and no network.
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from qualification.documents import model_display, recipe
+from qualification.introduced import (
+    parse_version,
+    unreadable_capabilities,
+    unreadable_features,
+)
+
+LOCK_PACKAGE = re.compile(
+    r'^package\s*=\s*"vonk-forge-public-contracts==([0-9]+\.[0-9]+\.[0-9]+)"\s*$',
+    re.MULTILINE,
+)
+
+
+def platform_contracts_version(lock_text: str) -> str:
+    """The contracts version a ``public-contracts.lock`` pins (pure)."""
+
+    found = LOCK_PACKAGE.findall(lock_text)
+    if len(found) != 1:
+        raise ValueError("lock must pin vonk-forge-public-contracts exactly once")
+    parse_version(found[0])
+    return found[0]
+
+
+def problems(root: Path, slugs: list[str], platform_version: str) -> list[str]:
+    """One message per recipe using a feature the platform cannot read yet."""
+
+    found: list[str] = []
+    for slug in slugs:
+        document = recipe(slug, root)
+        models = [model_display(m.model.slug, root) for m in document.models]
+        found += [
+            f"{slug}: {feature}, the pinned platform reads {platform_version}"
+            for feature in unreadable_features(document, models, platform_version)
+        ]
+    return found
+
+
+def model_problems(root: Path, platform_version: str) -> list[str]:
+    """Every Model display in the library, selected by a recipe or not (once each)."""
+
+    found: list[str] = []
+    for path in sorted((root / "display" / "models").glob("*.json")):
+        found += [
+            f"model {path.stem}: {feature}, the pinned platform reads {platform_version}"
+            for feature in unreadable_capabilities(
+                model_display(path.stem, root), platform_version
+            )
+        ]
+    return found
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--platform-lock",
+        type=argparse.FileType("r"),
+        required=True,
+        help="the platform's control/packaging/public-contracts.lock (- for stdin)",
+    )
+    args = parser.parse_args()
+    version = platform_contracts_version(args.platform_lock.read())
+    slugs = sorted(p.stem for p in (ROOT / "recipes").glob("*.json"))
+    found = problems(ROOT, slugs, version) + model_problems(ROOT, version)
+    for item in found:
+        print(f"::error::{item}" if "GITHUB_ACTIONS" in os.environ else item)
+    print(
+        f"Checked {len(slugs)} recipe(s) against platform contracts {version}; "
+        f"{len(found)} too new."
+    )
+    return 1 if found else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
