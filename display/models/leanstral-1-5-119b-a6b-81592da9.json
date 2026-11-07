@@ -22,6 +22,7 @@
     "url": "https://huggingface.co/mistralai/Leanstral-1.5-119B-A6B"
   },
   "modalities": [
+    "image",
     "text"
   ],
   "model_title": "Leanstral 1.5 119B A6B",

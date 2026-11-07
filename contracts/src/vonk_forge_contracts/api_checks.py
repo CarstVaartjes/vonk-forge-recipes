@@ -41,9 +41,13 @@ CONTEXT_ARGUMENTS: dict[str, tuple[str, ...]] = {
     "ds4": ("ctx",),
     "exllamav3": ("cache_size", "max-seq-len", "window"),
 }
-# The D3 decision Models still name image input ``vision``; their rename to
-# ``image-understanding`` is its own data change, not accepted here as a second name.
-IMAGE_INPUT_CAPABILITIES = frozenset({"image-understanding"})
+# The capability a Model declares for each non-text input modality it accepts: the
+# one table the API check and the Model modality guard share.
+INPUT_MODALITY_CAPABILITIES: dict[str, str] = {
+    "image": "image-understanding",
+    "audio": "audio-understanding",
+    "video": "video-understanding",
+}
 
 
 class RecipeApiError(ValueError):
@@ -99,7 +103,7 @@ def _mm_limits(recipe: RecipeDefinition) -> dict[str, object]:
     return value if isinstance(value, dict) else {}
 
 
-def _integer_argument(
+def integer_argument(
     recipe: RecipeDefinition,
     name: str,
     settings: RecipeGenerationSettings | RecipeDecisionSettings,
@@ -163,7 +167,7 @@ def _problems(recipe: RecipeDefinition, block: ApiBlock) -> list[str]:
         found.append("default_output_tokens exceeds context_tokens")
     if isinstance(block.default_output_tokens, ApiTokenArgument):
         name = block.default_output_tokens.argument
-        default = _integer_argument(recipe, name, settings)
+        default = integer_argument(recipe, name, settings)
         if default is None:
             found.append(
                 f"default_output_tokens names --{name}, which has no integer value"
@@ -216,22 +220,15 @@ def check_api_models(
     for label, _, block in api_variants(recipe, api):
         count += 1
         wanted = block.input_modalities
-        if wanted.image and not any(
-            "image" in m.modalities
-            and IMAGE_INPUT_CAPABILITIES.intersection(m.capabilities)
-            for m in selected
-        ):
-            found.setdefault(
-                "image input needs a Model with the image modality "
-                "and an image-understanding capability",
-                [],
-            ).append(label)
-        for modality in ("video", "audio"):
+        for modality, capability in INPUT_MODALITY_CAPABILITIES.items():
             if getattr(wanted, modality) and not any(
-                modality in m.modalities for m in selected
+                modality in m.modalities and capability in m.capabilities
+                for m in selected
             ):
                 found.setdefault(
-                    f"{modality} input needs a Model with the {modality} modality", []
+                    f"{modality} input needs a Model with the {modality} modality "
+                    f"and the {capability} capability",
+                    [],
                 ).append(label)
     if found:
         raise RecipeApiError(join_problems(found, count))
