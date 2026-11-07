@@ -34,7 +34,7 @@ from vonk_forge_contracts.recipe import MIN_SPEECH_SECONDS, wav_facts
 from .auth_contract import GatewayAuthReply, SmokeAuthClass
 from .catalog import Recipe
 from .chat_probe import ChatFacts, bounded_chat_body
-from .definitions import Definitions
+from .definitions import CaseRenderError, Definitions
 from .policy import CLIENT_CREDENTIAL, Failure, classify, excerpt
 from .verdict import SMOKE_BUSY, http_wait
 
@@ -707,7 +707,7 @@ def smoke_service(
         cases = definitions.service_cases(
             recipe.key, alias, speech_voice(definitions.recipe_api(recipe.slug))
         ) or _fallback_cases(recipe, alias, facts)
-    except ValueError as error:  # a case the recipe's own documents cannot render
+    except CaseRenderError as error:  # only the recipe's own gap; sweep faults crash
         result.failure = _assertion_failure(
             AssertionFailed(str(error)), "cases", config
         )

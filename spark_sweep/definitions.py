@@ -20,6 +20,10 @@ from qualification.definitions_loader import QUALIFICATION_ROOT, load_definition
 from qualification.documents import recipe_api
 
 
+class CaseRenderError(ValueError):
+    """A smoke case the recipe's own documents cannot render (its fault, not the sweep's)."""
+
+
 @dataclass(frozen=True)
 class Fixture:
     name: str
@@ -109,7 +113,9 @@ class Definitions:
             return alias
         if value == "$VOICE":
             if voice is None:
-                raise ValueError("a $VOICE case needs the recipe's audio_speech voices")
+                raise CaseRenderError(
+                    "a $VOICE case needs the recipe's audio_speech voices"
+                )
             return voice
         if isinstance(value, list):
             return [self._substitute(item, alias, voice) for item in value]

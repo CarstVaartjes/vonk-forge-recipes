@@ -23,7 +23,7 @@ import pytest
 
 from qualification.case_assertions import invalid_case_assertions
 from spark_sweep import smoke
-from spark_sweep.definitions import Definitions
+from spark_sweep.definitions import CaseRenderError, Definitions
 
 ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION = ROOT / "qualification"
@@ -248,3 +248,22 @@ def test_every_service_recipe_renders_its_cases() -> None:
         slug = key.partition("/")[2]
         api = definitions.recipe_api(slug)
         definitions.service_cases(key, "alias", smoke.speech_voice(api))
+
+
+def test_a_fixture_digest_mismatch_is_a_sweep_fault_not_a_recipe_failure(
+    gateway, tmp_path
+) -> None:
+    _, base, config = gateway
+    fixtures = json.loads(json.dumps(SHARED["fixtures"]))
+    fixtures["tts-text"]["sha256"] = "0" * 64
+    document = {
+        "service_recipes": {"k": {"alias": "a", "smoke_cases": ["TTS_SPEECH"]}},
+        "service_case_templates": SHARED["service_case_templates"],
+        "fixtures": fixtures,
+    }
+    recipe: Any = SimpleNamespace(key="k", slug="k", checks=())
+    definitions = Definitions(document, QUALIFICATION)
+    definitions.recipe_api = lambda slug: None  # type: ignore[method-assign]
+    with pytest.raises(ValueError, match="digest") as caught:
+        smoke.smoke_service(recipe, definitions, base, "a", config)
+    assert not isinstance(caught.value, CaseRenderError)
