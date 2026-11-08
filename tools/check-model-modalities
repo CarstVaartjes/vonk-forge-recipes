@@ -13,8 +13,8 @@ route needs ``text-generation``, and ``chat`` unless it serves only the plain
 completions endpoint (chat completions, responses and messages are chat APIs);
 reasoning other than ``none`` needs ``reasoning``, and tools other than ``none``
 need ``tool-use``. The API document is typed evidence
-``tools/check-recipe-api`` already checks against the launch. The other direction is not implied: a
-checkpoint may reason or call tools while a recipe leaves the parser off.
+``tools/check-recipe-api`` already checks against the launch. The other direction is not
+implied: a checkpoint may reason or call tools while a recipe leaves the parser off.
 
 The facts are Model display facts (display/models) and API documents
 (api/recipes). Only the Models named in ``--changed-files`` are checked, together
