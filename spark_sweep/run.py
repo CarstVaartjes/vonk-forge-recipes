@@ -73,7 +73,6 @@ from .catalog import (
     serving_run,
 )
 from .chat_probe import ChatFacts, chat_facts
-from .contract_recovery import ContractRecovery
 from .definitions import CaseRenderError, Definitions
 from .evidence_publisher import EvidencePublisher
 from .finalization import FinalAction, Finalization
@@ -388,14 +387,8 @@ class Sweep:
         # This pass's free Sparks that no ready recipe was placed on, and why.
         self.fit_holds: dict[str, str] = {}
         self._skew_checked_at = float("-inf")
-        self.vk.recovery = ContractRecovery(
-            self.clock.now,
-            lambda text: self.note_infra(
-                "client-contract", text, dependency=text, escalated=True
-            ),
-            lambda: self.clear_infra("client-contract"),
-            self._client_updated,
-        )
+        self.vk.recovery = self
+        self._contract_check = threading.Lock()
         self.library_commit = ""
         self.rate = policy.RateTracker()
         self.rate.rate = float(state.data["rate"].get("ema", 0.0))
@@ -1479,8 +1472,11 @@ class Sweep:
             return
         self._take_over(self.clock.now())
 
-    def check_client(self) -> None:
-        """Observe deployment and let the signed CLI updater select a compatible client."""
+    def check_client(self) -> bool:
+        """Observe deployment and let the signed CLI updater select a compatible client.
+
+        True when an update was applied.
+        """
         version = self.vk.run("--version")
         if version.ok and isinstance(version.document, dict):
             self.state.data["client"] = {
@@ -1495,17 +1491,17 @@ class Sweep:
                 "could not compare vonkctl with the signed publication: "
                 f"{check.error_text[:120]}"
             )
-            return
+            return False
         self.observe_publication(document)
         if document["update_available"] is not True:
             self.requeue_for_changed_owner()
-            return
+            return False
         current = dig(document, "current", "version", default="unknown")
         accepted = document.get("accepted_version", "unknown")
         message = f"vonkctl {current} differs from the signed publication {accepted}"
         if self.cfg.allow_version_skew:
             self.state.event(f"WARNING: {message}; continuing as asked")
-            return
+            return False
         # The installed updater owns signed artifact verification and the actual
         # deployed API compatibility check. No publication/source-label shortcut.
         upgraded = self.vk.run("update", "--apply", timeout=120)
@@ -1517,7 +1513,7 @@ class Sweep:
                 f"{message}; signed client update pending: "
                 f"{update_document.get('compatibility') or 'not applied'}"
             )
-            return
+            return False
         if upgraded.ok:
             self.state.event(f"{message}; compatible signed client update applied")
             version = self.vk.run("--version")
@@ -1528,8 +1524,9 @@ class Sweep:
                 }
             self.clear_infra("client-update")
             self.requeue_for_changed_owner()
-        else:
-            self.note_infra("client-update", f"{message}; update will be retried")
+            return True
+        self.note_infra("client-update", f"{message}; update will be retried")
+        return False
 
     @property
     def release_sha(self) -> str | None:
@@ -2595,23 +2592,45 @@ class Sweep:
     def _blind(self, message: str, reply: Any = None) -> None:
         """The sweep cannot observe the Controller (outage, 502/503, protocol or version skew)."""
         self.blind = True
-        self.note_infra("observe", message)
-        # The typed ``client.contract_mismatch`` is answered in ``Vonkctl.run`` (``ContractRecovery``);
-        # this is the older client's untyped ``protocol_invalid``.
-        if "protocol_invalid" in message or "OpenAPI" in message:
+        self.note_infra("observe", message, typed=reply)
+        # The typed ``client.contract_mismatch`` is answered in ``Vonkctl.run`` (its message also
+        # says "OpenAPI"). Untyped ``protocol_invalid`` remains: older clients, and new ones for a
+        # damaged stamp or an unanswered compatibility probe.
+        typed = reply is not None and getattr(reply, "is_contract_mismatch", False)
+        if not typed and ("protocol_invalid" in message or "OpenAPI" in message):
             self._diagnose_skew()
 
-    def _client_updated(self) -> None:
-        """The contract recovery replaced vonkctl: record the new build like ``check_client``."""
-        self.state.event(
-            "vonkctl updated after client.contract_mismatch; retrying the call"
+    def on_contract_mismatch(self) -> bool:
+        """The typed ``client.contract_mismatch``: the one client check, now; True if it updated.
+
+        ``check_client`` honours ``allow_version_skew`` and requeues for the changed client. A
+        check already running (it is what reads the Controller) is not asked again.
+        """
+        if not self._contract_check.acquire(blocking=False):
+            return False
+        try:
+            self.release_at = self.clock.now()
+            if self.check_client():
+                return True
+        finally:
+            self._contract_check.release()
+        self._contract_alert("no compatible vonkctl update was applied")
+        return False
+
+    def on_contract_unresolved(self) -> None:
+        self._contract_alert(
+            "the Controller still names another contract after the update"
         )
-        version = self.vk.run("--version")
-        if version.ok and isinstance(version.document, dict):
-            self.state.data["client"] = {
-                k: version.document.get(k)
-                for k in ("version", "source_sha", "control_contract_sha256")
-            }
+
+    def on_call_ok(self) -> None:
+        self.clear_infra(policy.CLIENT_CONTRACT)
+
+    def _contract_alert(self, why: str) -> None:
+        text = (
+            f"client.contract_mismatch: {why} (--allow-version-skew, nothing published, or the "
+            "update failed). Not a recipe failure: work waits. Run `vonkctl update --apply`."
+        )
+        self.note_infra(policy.CLIENT_CONTRACT, text, dependency=text, escalated=True)
 
     def _diagnose_skew(self) -> None:
         """protocol_invalid means vonkctl is older than the Controller: say so, loudly, once in a while."""
@@ -5593,6 +5612,7 @@ class Sweep:
         *,
         dependency: str | None = None,
         escalated: bool = False,
+        typed: Reply | None = None,
     ) -> None:
         """Pause that kind of work, preserving retry history until its predicate passes."""
         now = self.clock.now()
@@ -5602,7 +5622,8 @@ class Sweep:
         item.count += 1
         hint = (
             " (vonkctl may be older than the Controller: run `vonkctl update --apply`)"
-            if "protocol_invalid" in message or "OpenAPI" in message
+            if not (typed is not None and typed.is_contract_mismatch)
+            and ("protocol_invalid" in message or "OpenAPI" in message)
             else ""
         )
         item.message = message[:300] + hint
