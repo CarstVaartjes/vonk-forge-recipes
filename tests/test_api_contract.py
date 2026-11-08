@@ -265,6 +265,43 @@ def _chat_api(slug: str, **changes: Any) -> RecipeApi:
     )
 
 
+def _with_effort(effort: dict[str, Any]) -> dict[str, Any]:
+    document = _json(EXAMPLES / "recipe-api-source-build.json")
+    reasoning = {"kind": "always-on", "effort": effort}
+    return {**document, "api": {**document["api"], "reasoning": reasoning}}
+
+
+def test_a_text_effort_takes_any_string_with_or_without_a_default() -> None:
+    for default in ("high", None):
+        effort = {
+            "kind": "text",
+            "via": "chat_template_kwargs",
+            "key": "reasoning_strength",
+            "default": default,
+        }
+        document = _with_effort(effort)
+        Draft202012Validator(recipe_api_json_schema()).validate(document)
+        assert published_json(RecipeApi.model_validate(document)) == document
+
+
+def test_an_effort_states_its_kind_and_only_that_kind_s_fields() -> None:
+    levels = {
+        "via": "top_level",
+        "key": "reasoning_effort",
+        "levels": ["low", "high"],
+        "default": "high",
+    }
+    RecipeApi.model_validate(_with_effort({**levels, "kind": "levels"}))
+    for effort in (
+        levels,
+        {**levels, "kind": "text"},
+        {"kind": "text", "via": "top_level", "key": "reasoning_effort"},
+        {"kind": "levels", "via": "top_level", "key": "x", "default": "high"},
+    ):
+        with pytest.raises(ValidationError):
+            RecipeApi.model_validate(_with_effort(effort))
+
+
 def test_the_guard_refuses_tools_and_reasoning_a_trtllm_launch_does_not_enable() -> (
     None
 ):

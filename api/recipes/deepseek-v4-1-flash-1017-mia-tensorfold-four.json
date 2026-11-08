@@ -27,6 +27,7 @@
       "effort": {
         "default": "max",
         "key": "reasoning_effort",
+        "kind": "levels",
         "levels": [
           "minimal",
           "low",
