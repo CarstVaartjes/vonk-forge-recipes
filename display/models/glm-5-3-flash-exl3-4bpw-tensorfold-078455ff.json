@@ -3,7 +3,9 @@
     "chat",
     "code-generation",
     "image-understanding",
+    "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Exact public MiaAI-Lab GLM 5.3 Flash EXL3 4bpw checkpoint for TensorFold (EXL3 routed experts at 4 bpw, BF16 elsewhere), revision 078455ff. Pinned by MiaAI-Lab's two-Spark TensorFold kit. The pinned revision's own LICENSE and model card carry Z.AI's MIT text; MiaAI-Lab relicensed the quantization Apache-2.0 in a later metadata-only commit (41ba3c2b) and the kit's NOTICE states Apache-2.0 for it, with Z.AI's MIT kept for the base model. Information only. Drafter checkpoints are selected separately by each recipe.",

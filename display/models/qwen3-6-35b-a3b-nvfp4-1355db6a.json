@@ -1,6 +1,10 @@
 {
   "capabilities": [
-    "image-understanding"
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact NVIDIA Model Optimizer NVFP4 checkpoint for Qwen3.6 35B-A3B multimodal agentic inference.",
   "family_title": "Qwen",

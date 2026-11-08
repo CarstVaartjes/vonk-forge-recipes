@@ -1,8 +1,10 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
     "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Exact official Qwen block-wise FP8 checkpoint of Qwen3.5-122B-A10B, a multimodal mixture-of-experts model.",
