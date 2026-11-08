@@ -53,20 +53,35 @@ from qualification.documents import (
 SERVING_KINDS = frozenset({"generation", "decision"})
 
 
-def changed_slugs(paths: list[str]) -> list[str]:
-    """Slugs of the recipe and API files in a list of changed paths (pure).
+def changed_slugs(paths: list[str], root: Path = ROOT) -> list[str]:
+    """Slugs of the recipe and API files in a list of changed paths.
 
-    The caller (CI) says which files changed; this tool runs no git.
+    A changed Model display (``display/models``) also names every recipe that
+    serves that Model (its first selection) and has an API document, since the
+    modality checks read the display. The caller (CI) says which files
+    changed; this tool runs no git.
     """
 
-    return sorted(
-        {
-            Path(name).stem
-            for name in paths
-            if Path(name).suffix == ".json"
-            and Path(name).parent.as_posix() in {"recipes", "api/recipes"}
-        }
-    )
+    slugs = {
+        Path(name).stem
+        for name in paths
+        if Path(name).suffix == ".json"
+        and Path(name).parent.as_posix() in {"recipes", "api/recipes"}
+    }
+    displays = {
+        Path(name).stem
+        for name in paths
+        if Path(name).suffix == ".json"
+        and Path(name).parent.as_posix() == "display/models"
+    }
+    if displays:
+        for path in sorted((root / "recipes").glob("*.json")):
+            if not has_recipe_api(path.stem, root):
+                continue
+            models = recipe(path.stem, root).models
+            if models and models[0].model.slug in displays:
+                slugs.add(path.stem)
+    return sorted(slugs)
 
 
 def parser_problems(

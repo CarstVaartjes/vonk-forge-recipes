@@ -448,6 +448,7 @@ def _api_vectors(
             reasoning={
                 "kind": "always-on",
                 "effort": {
+                    "kind": "levels",
                     "via": "top_level",
                     "key": "reasoning_effort",
                     "levels": ["low", "high"],

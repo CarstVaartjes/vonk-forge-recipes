@@ -1,9 +1,11 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
     "image-understanding",
     "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Exact public Vontra MLX 4-bit (group size 32) conversion of Qwen3.8 Flash Next with the MTP draft head and vision tower, for TensorFold.",

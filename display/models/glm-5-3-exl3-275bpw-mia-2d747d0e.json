@@ -1,7 +1,9 @@
 {
   "capabilities": [
+    "chat",
     "reasoning",
-    "text-generation"
+    "text-generation",
+    "tool-use"
   ],
   "description": "Full GLM 5.3 with EXL3 2.75bpw routed experts for TensorFold.",
   "family_title": "GLM",

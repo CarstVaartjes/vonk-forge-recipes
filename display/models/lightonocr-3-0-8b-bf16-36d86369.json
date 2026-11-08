@@ -1,5 +1,10 @@
 {
-  "capabilities": [],
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "text-generation",
+    "video-understanding"
+  ],
   "description": "LightOnOCR 3 0.8B immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "LightOnOCR",
   "identity": {
@@ -15,7 +20,9 @@
     "url": "https://huggingface.co/lightonai/LightOnOCR-3-0.8B/blob/36d8636925327c671bd8e479c517a004f7566bd9/LICENSE"
   },
   "modalities": [
-    "text"
+    "image",
+    "text",
+    "video"
   ],
   "model_title": "LightOnOCR 3 0.8B",
   "tags": [
