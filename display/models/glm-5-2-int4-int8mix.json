@@ -2,7 +2,9 @@
   "capabilities": [
     "chat",
     "code-generation",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact public GLM 5.2 Int4 Int8Mix checkpoint.",
   "family_title": "GLM",

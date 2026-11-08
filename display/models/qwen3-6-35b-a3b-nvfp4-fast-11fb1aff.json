@@ -1,8 +1,11 @@
 {
   "capabilities": [
     "chat",
+    "image-understanding",
+    "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Exact public Unsloth mixed-precision Qwen3.6 35B-A3B NVFP4-Fast (FP8 dense groups, NVFP4 experts, trained MTP layer kept) at the revision r0b0tlab reviewed on 2026-07-10.",
   "family_title": "Qwen",
@@ -20,7 +23,9 @@
     "url": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/main/LICENSE"
   },
   "modalities": [
-    "text"
+    "image",
+    "text",
+    "video"
   ],
   "model_title": "Qwen3.6 35B-A3B NVFP4 Fast",
   "tags": [

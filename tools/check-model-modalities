@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail when a Model's input modalities and capabilities disagree.
+"""Fail when a Model's capabilities disagree with its modalities or its routes.
 
 For a Model that is not a generator, ``image-understanding`` holds exactly when
 ``image`` is an input modality, ``audio-understanding`` exactly when ``audio``
@@ -7,25 +7,45 @@ is, and ``video-understanding`` exactly when ``video`` is. The Model records the
 checkpoint's own ability (its config at the pinned revision); a launch that
 switches a modality off is a Recipe fact, not a Model fact.
 
-The facts are Model display facts (display/models). Only Models named in ``--changed-files`` are checked; with it absent the named
-slugs, or the whole library, are. There is no count
-and no list of exempt Models.
+A Model a recipe serves (its first model selection) also declares what that
+recipe's API document says the route serves, in any option variant: a chat
+route needs ``text-generation``, and ``chat`` unless it serves only the plain
+completions endpoint (chat completions, responses and messages are chat APIs);
+reasoning other than ``none`` needs ``reasoning``, and tools other than ``none``
+need ``tool-use``. The API document is typed evidence
+``tools/check-recipe-api`` already checks against the launch. The other direction is not
+implied: a checkpoint may reason or call tools while a recipe leaves the parser off.
+
+The facts are Model display facts (display/models) and API documents
+(api/recipes). Only the Models named in ``--changed-files`` are checked, together
+with the served Model of each changed recipe or API document; with it absent the
+named slugs, or the whole library, are. There is no count and no list of exempt
+Models.
 """
 
 from __future__ import annotations
 
 import argparse
 import sys
-from collections.abc import Iterable
+from collections import defaultdict
+from collections.abc import Iterable, Mapping
 from pathlib import Path
+from typing import get_args
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from vonk_forge_contracts import CapabilityName, CapabilityRole
-from vonk_forge_contracts.api_checks import INPUT_MODALITY_CAPABILITIES
+from vonk_forge_contracts import (
+    CapabilityName,
+    CapabilityRole,
+    ChatApi,
+    RecipeApi,
+    RecipeDefinition,
+)
+from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone, Endpoint
+from vonk_forge_contracts.api_checks import INPUT_MODALITY_CAPABILITIES, api_variants
 
-from qualification.documents import model_display
+from qualification.documents import has_recipe_api, model_display, recipe, recipe_api
 
 
 def is_generator(capabilities: set[str]) -> bool:
@@ -62,17 +82,79 @@ def disagreements(capabilities: Iterable[str], modalities: Iterable[str]) -> lis
     ]
 
 
-def changed_slugs(paths: list[str]) -> list[str]:
-    """Slugs of the Model display files in a list of changed paths (pure; the caller runs git)."""
-
-    return sorted(
-        {
-            Path(name).stem
-            for name in paths
-            if Path(name).suffix == ".json"
-            and Path(name).parent.as_posix() == "display/models"
-        }
+# The one Endpoint of the contract that is not a chat API (text in, text out).
+COMPLETIONS_ONLY = {
+    next(
+        e for e in get_args(Endpoint) if e.endswith("/completions") and "chat" not in e
     )
+}
+
+
+def route_capabilities(document: RecipeDefinition, api: RecipeApi) -> set[str]:
+    """The capabilities a recipe's routes, in any option variant, say it serves."""
+
+    found: set[str] = set()
+    for _, _, block in api_variants(document, api):
+        if not isinstance(block, ChatApi):
+            continue
+        found.add(CapabilityName.TEXT_GENERATION)
+        if set(block.endpoints) != COMPLETIONS_ONLY:
+            found.add(CapabilityName.CHAT)
+        if not isinstance(block.reasoning, ApiReasoningNone):
+            found.add(CapabilityName.REASONING)
+        if not isinstance(block.tools, ApiToolsNone):
+            found.add(CapabilityName.TOOL_USE)
+    return found
+
+
+def served_requirements(root: Path) -> dict[str, dict[str, list[str]]]:
+    """Per served Model slug, each capability its recipes' routes need, and by whom."""
+
+    found: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
+    for path in sorted((root / "recipes").glob("*.json")):
+        if not has_recipe_api(path.stem, root):
+            continue
+        document = recipe(path.stem, root)
+        served = document.models[0].model.slug
+        for capability in route_capabilities(document, recipe_api(path.stem, root)):
+            found[served][capability].append(path.stem)
+    return found
+
+
+def missing(
+    capabilities: Iterable[str], required: Mapping[str, list[str]]
+) -> list[str]:
+    """One message per capability a serving recipe needs that the Model lacks."""
+
+    capabilities = set(capabilities)
+    return [
+        f"needs capability {str(capability)!r}: served by {', '.join(recipes)}"
+        for capability, recipes in sorted(required.items())
+        if capability not in capabilities
+    ]
+
+
+def changed_slugs(paths: list[str], root: Path = ROOT) -> list[str]:
+    """Models a list of changed paths touches (the caller runs git).
+
+    A Model display names its Model; a recipe or its API document names the
+    Model the recipe serves.
+    """
+
+    slugs: set[str] = set()
+    for name in paths:
+        path = Path(name)
+        folder = path.parent.as_posix()
+        if path.suffix != ".json":
+            continue
+        if folder == "display/models":
+            slugs.add(path.stem)
+        elif (
+            folder in {"recipes", "api/recipes"}
+            and (root / "recipes" / f"{path.stem}.json").is_file()
+        ):
+            slugs.add(recipe(path.stem, root).models[0].model.slug)
+    return sorted(slugs)
 
 
 def main() -> int:
@@ -82,7 +164,7 @@ def main() -> int:
         "--changed-files",
         type=argparse.FileType("r"),
         help="file (or - for stdin) listing changed paths, one per line; "
-        "only their Models are checked",
+        "only their Models (and changed recipes' served Models) are checked",
     )
     args = parser.parse_args()
     slugs = (
@@ -91,12 +173,16 @@ def main() -> int:
         else args.slugs
         or sorted(p.stem for p in (ROOT / "display" / "models").glob("*.json"))
     )
+    required = served_requirements(ROOT)
     failed = 0
     for slug in slugs:
         if not (ROOT / "display" / "models" / f"{slug}.json").is_file():
             continue
         document = model_display(slug, ROOT)
-        for message in disagreements(document.capabilities, document.modalities):
+        for message in [
+            *disagreements(document.capabilities, document.modalities),
+            *missing(document.capabilities, required.get(slug, {})),
+        ]:
             failed += 1
             print(f"{slug}: {message}")
     print(f"Checked {len(slugs)} Model(s); {failed} disagreement(s).")
