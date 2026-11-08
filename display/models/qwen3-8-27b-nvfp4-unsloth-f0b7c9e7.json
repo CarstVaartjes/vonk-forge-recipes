@@ -2,7 +2,8 @@
   "capabilities": [
     "chat",
     "image-understanding",
-    "text-generation"
+    "text-generation",
+    "video-understanding"
   ],
   "description": "Unsloth NVFP4 quantization of Qwen3.8 27B with the MTP head baked in, vision-language. Apache-2.0.",
   "family_title": "Qwen",
@@ -21,7 +22,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "Qwen3.8 27B NVFP4 (Unsloth)",
   "tags": [
