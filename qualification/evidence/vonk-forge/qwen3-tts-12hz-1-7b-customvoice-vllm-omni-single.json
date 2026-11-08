@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-tts-12hz-1-7b-customvoice-vllm-omni-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "8995744e69f30ed06bdb9e86ddea0db83e83966dc37868dbf066167923f71c32",
+        "source_bundle_sha256": "8912d9d25931d10a403f328473fd0bc3591be037f5f0c71808cc3c4b8542d227",
+        "runtime_image": {
+          "build_key": "0357fe2474a3b152c812931365e8dba88285e837cbc50aebcdb2fe2d64b66b85",
+          "image_digest": "sha256:f5b351e88e978e61a3399c780dbacf86c686a8e773414296df81d660971079aa"
+        },
+        "model_digests": [
+          "09b0768f5a8ee3c15d8b0d5731fdbee28dabf0ae5a903a6846ad481b1802247f"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "7aefab4b23f881f3fab85928860b9ade0c205aa3c684e7326bfe902c0c72c60c"
+      ],
+      "tested_at": "2026-11-08T04:44:06.952659Z",
+      "platform": {
+        "controller_source_sha": "bbdcc4c290e8f1fa7068975ded012341f5c8c233",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "8995744e69f30ed06bdb9e86ddea0db83e83966dc37868dbf066167923f71c32",
+      "role": "entrypoint",
+      "steady_bytes": 38082904064,
+      "budget_bytes": 25740656604
+    }
+  ]
+}

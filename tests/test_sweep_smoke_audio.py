@@ -20,6 +20,7 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
+from sweep_fakes import production_service_cases
 
 from qualification.case_assertions import invalid_case_assertions
 from spark_sweep import smoke
@@ -245,9 +246,7 @@ def test_speech_needs_the_recipes_voice() -> None:
 def test_every_service_recipe_renders_its_cases() -> None:
     definitions = Definitions.load(QUALIFICATION)
     for key in definitions.document["service_recipes"]:
-        slug = key.partition("/")[2]
-        api = definitions.recipe_api(slug)
-        definitions.service_cases(key, "alias", smoke.speech_voice(api))
+        production_service_cases(definitions, key, "alias")
 
 
 def test_a_fixture_digest_mismatch_is_a_sweep_fault_not_a_recipe_failure(

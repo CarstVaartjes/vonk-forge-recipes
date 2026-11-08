@@ -1,7 +1,9 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
     "reasoning",
+    "text-generation",
     "tool-use"
   ],
   "description": "Exact Poolside Laguna XS 2.1 NVFP4 checkpoint with an FP8 KV cache for a candidate single-Spark vLLM recipe.",

@@ -28,8 +28,10 @@ from uuid import NAMESPACE_URL, uuid5
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
+from spark_sweep.definitions import Definitions
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.run import DaemonExecutor
+from spark_sweep.smoke import speech_voice
 
 _ALIAS = re.compile(ENDPOINT_ALIAS_PATTERN)
 SPARK_MEMORY = SPARK_MEMORY_BYTES
@@ -501,6 +503,7 @@ class FakeFleet:
         self.library_faults: list[str | None] = []
         # The library's local cache state lags what the NAS holds (it keeps saying not_cached).
         self.library_lag = False
+        self.library_commit = "lib-commit-1"  # the library the catalog serves
         # Rows carry the library's assessment, as the real Controller's do when it has time.
         self.assessments = False
         # recipe key -> when the Controller stops holding it (see FakeRecipe.blocked_for)
@@ -1006,7 +1009,7 @@ class FakeFleet:
         return {
             name: [row(i) for i in page],
             "next_cursor": f"c{start + size}" if more else None,
-            "library": {"commit": "lib-commit-1", "version": "2.1.0"},
+            "library": {"commit": self.library_commit, "version": "2.1.0"},
         }
 
     def _recipe_row(self, r: FakeRecipe) -> dict[str, Any]:
@@ -2147,6 +2150,10 @@ def make_sweep(
         fleet = FakeFleet(clock, recipes, models, root)
     clock = fleet.clock
     prefetch = overrides.pop("prefetch", PrefetchConfig(pin_profile=13))
+    # The fake source authored what the fake catalog serves now, unless a test says otherwise.
+    authored = overrides.pop(
+        "authored", {key: r.content for key, r in fleet.recipes.items()}
+    )
     settings: dict[str, Any] = {
         "poll_seconds": 10.0,
         "catalog_seconds": 10.0,
@@ -2167,6 +2174,15 @@ def make_sweep(
         ResultsLog(tmp_path / "results.jsonl", "test-authority"),
         make_definitions(recipes),
         clock,
+        authored=authored,
     )
     sweep.catalog_executor = ImmediateCatalogExecutor()
     return sweep, fleet, clock
+
+
+def production_service_cases(
+    definitions: Definitions, key: str, alias: str
+) -> list[dict[str, Any]]:
+    """The recipe's smoke cases rendered as the sweep does: with its api document's voice."""
+    api = definitions.recipe_api(key.partition("/")[2])
+    return definitions.service_cases(key, alias, speech_voice(api))

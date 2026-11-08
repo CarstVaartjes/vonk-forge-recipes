@@ -1,0 +1,32 @@
+{
+  "api": {
+    "instructions": true,
+    "max_input_chars": 4096,
+    "mode": "audio_speech",
+    "response_formats": [
+      "wav",
+      "pcm",
+      "flac",
+      "mp3",
+      "opus"
+    ],
+    "speed": true,
+    "voices": [
+      "ryan",
+      "aiden",
+      "vivian",
+      "serena",
+      "uncle_fu",
+      "dylan",
+      "eric",
+      "ono_anna",
+      "sohee"
+    ]
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-tts-12hz-1-7b-customvoice-vllm-omni-single"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}
