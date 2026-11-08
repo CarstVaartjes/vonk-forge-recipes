@@ -12,7 +12,7 @@
     ],
     "input_modalities": {
       "audio": false,
-      "image": false,
+      "image": true,
       "pdf": false,
       "text": true,
       "video": false
@@ -38,8 +38,7 @@
         "via": "top_level"
       },
       "keys": [
-        "thinking",
-        "enable_thinking"
+        "thinking"
       ],
       "kind": "switch",
       "off": false,
