@@ -1,8 +1,11 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
     "image-understanding",
-    "reasoning"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact public 27B 8f33b989 checkpoint.",
   "family_title": "Qwen",

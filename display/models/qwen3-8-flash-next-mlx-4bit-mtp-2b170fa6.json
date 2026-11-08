@@ -1,7 +1,9 @@
 {
   "capabilities": [
+    "chat",
     "reasoning",
-    "text-generation"
+    "text-generation",
+    "tool-use"
   ],
   "description": "MLX 4-bit Flash Next checkpoint with MTP head for TensorFold.",
   "family_title": "Qwen",
