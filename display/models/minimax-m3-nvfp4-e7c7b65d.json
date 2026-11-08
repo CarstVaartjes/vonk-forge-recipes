@@ -1,9 +1,11 @@
 {
   "capabilities": [
     "chat",
+    "image-understanding",
     "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "lukealonso's ModelOpt NVFP4 quantization of MiniMaxAI/MiniMax-M3 (about 243 GB) for SM120/SM121 b12x kernels. The repository declares no licence of its own; the base model's MiniMax Community License applies.",
   "family_title": "MiniMax",
@@ -21,7 +23,9 @@
     "url": "https://huggingface.co/MiniMaxAI/MiniMax-M3/blob/f0e1c1e04d40177e4673a22097036854f536e9c0/LICENSE"
   },
   "modalities": [
-    "text"
+    "image",
+    "text",
+    "video"
   ],
   "model_title": "MiniMax M3 NVFP4",
   "tags": [
