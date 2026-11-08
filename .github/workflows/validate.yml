@@ -32,13 +32,13 @@ jobs:
 
   validate:
     if: ${{ !inputs.producer_only }}
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@1b9276b05fb8d173137d9ec46db7cd9cb82feaf2
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@028fb421308addf84441932f708de5b854a07835
     with:
       # Keep the validator and platform checkout on the same reviewed commit.
       # It builds this checkout's index/packages, validates current contract
       # and archive contents, and checks every option choice against Forge's
       # runtime policy.
-      platform_ref: 1b9276b05fb8d173137d9ec46db7cd9cb82feaf2
+      platform_ref: 028fb421308addf84441932f708de5b854a07835
 
   # PR catalog checks run inside producer-contracts. Keep this existing
   # required check as the image fan-in, so a failed matrix cannot be merged
