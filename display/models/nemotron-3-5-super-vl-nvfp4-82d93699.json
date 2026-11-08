@@ -3,7 +3,8 @@
     "image-understanding",
     "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Exact NVFP4 checkpoint for sfxnz’s interactive profile.",
   "family_title": "NVIDIA Nemotron",
@@ -21,7 +22,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "NVIDIA Nemotron 3.5 Super VL",
   "tags": [
