@@ -2149,6 +2149,10 @@ def make_sweep(
         fleet = FakeFleet(clock, recipes, models, root)
     clock = fleet.clock
     prefetch = overrides.pop("prefetch", PrefetchConfig(pin_profile=13))
+    # The fake source authored what the fake catalog serves now, unless a test says otherwise.
+    authored = overrides.pop(
+        "authored", {key: r.content for key, r in fleet.recipes.items()}
+    )
     settings: dict[str, Any] = {
         "poll_seconds": 10.0,
         "catalog_seconds": 10.0,
@@ -2169,6 +2173,7 @@ def make_sweep(
         ResultsLog(tmp_path / "results.jsonl", "test-authority"),
         make_definitions(recipes),
         clock,
+        authored=authored,
     )
     sweep.catalog_executor = ImmediateCatalogExecutor()
     return sweep, fleet, clock
