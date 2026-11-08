@@ -9,11 +9,12 @@ switches a modality off is a Recipe fact, not a Model fact.
 
 A Model a recipe serves (its first model selection) also declares what that
 recipe's API document says the route serves, in any option variant: a chat
-route needs ``chat`` and ``text-generation``, reasoning other than ``none``
-needs ``reasoning``, and tools other than ``none`` need ``tool-use``. The API
-document is typed evidence ``tools/check-recipe-api`` already checks against
-the launch. The other direction is not implied: a checkpoint may reason or call
-tools while a recipe leaves the parser off.
+route needs ``text-generation``, and ``chat`` unless it serves only the plain
+completions endpoint (chat completions, responses and messages are chat APIs);
+reasoning other than ``none`` needs ``reasoning``, and tools other than ``none``
+need ``tool-use``. The API document is typed evidence
+``tools/check-recipe-api`` already checks against the launch. The other direction is not
+implied: a checkpoint may reason or call tools while a recipe leaves the parser off.
 
 The facts are Model display facts (display/models) and API documents
 (api/recipes). Only the Models named in ``--changed-files`` are checked, together
@@ -29,6 +30,7 @@ import sys
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from pathlib import Path
+from typing import get_args
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -40,7 +42,7 @@ from vonk_forge_contracts import (
     RecipeApi,
     RecipeDefinition,
 )
-from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone
+from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone, Endpoint
 from vonk_forge_contracts.api_checks import INPUT_MODALITY_CAPABILITIES, api_variants
 
 from qualification.documents import has_recipe_api, model_display, recipe, recipe_api
@@ -80,14 +82,24 @@ def disagreements(capabilities: Iterable[str], modalities: Iterable[str]) -> lis
     ]
 
 
+# The one Endpoint of the contract that is not a chat API (text in, text out).
+COMPLETIONS_ONLY = {
+    next(
+        e for e in get_args(Endpoint) if e.endswith("/completions") and "chat" not in e
+    )
+}
+
+
 def route_capabilities(document: RecipeDefinition, api: RecipeApi) -> set[str]:
-    """The capabilities a recipe's routes, in any option variant, say its Model serves."""
+    """The capabilities a recipe's routes, in any option variant, say it serves."""
 
     found: set[str] = set()
     for _, _, block in api_variants(document, api):
         if not isinstance(block, ChatApi):
             continue
-        found |= {CapabilityName.CHAT, CapabilityName.TEXT_GENERATION}
+        found.add(CapabilityName.TEXT_GENERATION)
+        if set(block.endpoints) != COMPLETIONS_ONLY:
+            found.add(CapabilityName.CHAT)
         if not isinstance(block.reasoning, ApiReasoningNone):
             found.add(CapabilityName.REASONING)
         if not isinstance(block.tools, ApiToolsNone):
