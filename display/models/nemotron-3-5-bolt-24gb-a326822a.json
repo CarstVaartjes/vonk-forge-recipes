@@ -1,8 +1,10 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
     "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Nemotron 3.5 Bolt 74B-A9B 24GB checkpoint.",
