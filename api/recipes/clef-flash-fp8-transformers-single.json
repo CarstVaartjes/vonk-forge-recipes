@@ -5,7 +5,7 @@
       "image": true,
       "pdf": false,
       "text": true,
-      "video": false
+      "video": true
     },
     "max_input_tokens": null,
     "mode": "decision"
