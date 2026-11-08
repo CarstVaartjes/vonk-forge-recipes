@@ -21,7 +21,7 @@
   "vonk-forge/gemma-4-31b-it-nvfp4-vllm-mia-single": "a4db3f4b3b33d0428935977f50314ee8b4c2896789f793e9f02bb5894e35c5eb",
   "vonk-forge/gemma-4-31b-it-q4-0-ggml-org-llamacpp-single": "5c276084a3022ad8cf7064888a3a63d0c5b026a6c7c4f442be37217dfef4179f",
   "vonk-forge/gemma-4-e2b-it-nvidia-vllm-single": "25d131ed847419683be685477e9aee89b592d5744c9ef37a0a922a7f61c9fabf",
-  "vonk-forge/gemma-4-e2b-it-q8-0-ggml-org-llamacpp-single": "3dd81f988ed1333aca8e296e50ad3597632607d92a0d6f58918644719f46d9d9",
+  "vonk-forge/gemma-4-e2b-it-q8-0-ggml-org-llamacpp-single": "82032c917642c14d3f84bca23ba91481918b4662a8961782ff4e007ba94225b7",
   "vonk-forge/gemma-4-e4b-it-nvidia-vllm-single": "e38cbdef0259a31f63c4d704ef911436969410506b7c9dd7c72cb534d112787b",
   "vonk-forge/gemma-4-e4b-it-q8-0-ggml-org-llamacpp-single": "34e8676648cb4c1e21deddbc1071a2c320008464b9fefe29bc4f0cda6a0519e9",
   "vonk-forge/glm-4-7-flash-awq-4bit-eugr-vllm-dual": "6395cc10cb444a970b22961bbd73e570da0a72964a344280371feb5469f19de2",
