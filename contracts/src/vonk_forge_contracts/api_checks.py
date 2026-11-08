@@ -122,18 +122,24 @@ def _is_set(recipe: RecipeDefinition, name: str) -> bool:
     return value is True or (isinstance(value, str) and value != "")
 
 
-def _language_model_only(recipe: RecipeDefinition) -> bool:
-    """True when the vLLM launch loads no multimodal tower.
+# vLLM never reads an environment variable for this; one adapter's wrapper
+# does. adapters/deepseek/sfxnz-exl3-v41-vllm-dual/dsv41-vllm-wrapper.py:42-44
+# turns LANGUAGE_MODEL_ONLY=1 into --language-model-only, so that kit's
+# vision=text-only choice sets the variable. Keyed by build context, so a stock
+# vLLM recipe setting the variable is still checked as served.
+WRAPPER_LANGUAGE_MODEL_ONLY: dict[str, str] = {
+    "adapters/deepseek/sfxnz-exl3-v41-vllm-dual": "LANGUAGE_MODEL_ONLY",
+}
 
-    ``--language-model-only`` itself, or ``LANGUAGE_MODEL_ONLY=1`` in the
-    runtime environment: kit wrappers (the sfxnz DeepSeek V4.1 one) translate
-    that variable into the flag, so an option can switch it per choice.
-    """
+
+def _language_model_only(recipe: RecipeDefinition) -> bool:
+    """True when the vLLM launch loads no multimodal tower (``--language-model-only``)."""
 
     if _is_set(recipe, "language-model-only"):
         return True
-    return any(
-        item.name == "LANGUAGE_MODEL_ONLY" and str(item.value) == "1"
+    variable = WRAPPER_LANGUAGE_MODEL_ONLY.get(str(recipe.execution.build.context.path))
+    return variable is not None and any(
+        item.name == variable and str(item.value) == "1"
         for item in recipe.runtime.environment
     )
 
@@ -299,6 +305,7 @@ def _undeclared_vllm_inputs(
 
     vLLM loads every input its model class supports unless the launch switches
     one off (``--language-model-only``, or a ``--limit-mm-per-prompt`` of 0;
+    a wrapper's environment switch only through ``WRAPPER_LANGUAGE_MODEL_ONLY``;
     an omitted modality keeps vLLM's default limit). The served Model (the
     first selection) states which inputs its checkpoint takes, as modality
     plus understanding capability. Only vLLM is checked: other engines need a
