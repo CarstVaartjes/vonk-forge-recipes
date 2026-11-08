@@ -509,3 +509,35 @@ def test_exllamav3_context_arguments_name_per_request_context_only() -> None:
     assert "cache-size" not in row
     # The memory estimator reads row[0]; Mia's cache_size is its context.
     assert row[0] == "cache_size"
+
+
+def _served_check(slug: str, **inputs: bool) -> None:
+    document = recipe(slug)
+    raw = _json(ROOT / "api" / "recipes" / f"{slug}.json")
+    for block in [raw["api"], *(c["api"] for c in raw["option_choices"])]:
+        block["input_modalities"].update(inputs)
+    shown = [model_display(s.model.slug) for s in document.models]
+    check_api_models(document, RecipeApi.model_validate(raw), shown)
+
+
+def test_a_vllm_route_declares_every_input_its_launch_serves_for_the_model() -> None:
+    """vLLM serves the Model's video unless the launch switches it off."""
+
+    slug = "ornith-1-5-35b-a3b-nvfp4-vllm-single"
+    with pytest.raises(RecipeApiError, match="declare video input"):
+        _served_check(slug, video=False)
+    _served_check(slug)
+
+
+@pytest.mark.parametrize(
+    "slug",
+    [
+        "minimax-m3-1-flash-tonyd2wild-vllm-four",  # --limit-mm-per-prompt video: 0
+        "nemotron-3-5-super-vl-lilicorr-sfxnz-vllm-single",  # video: 0
+        "qwen3-6-27b-nvfp4-r0b0tlab-vllm-single",  # --language-model-only
+        "deepseek-v4-1-flash-exl3-sfxnz-vllm-dual",  # LANGUAGE_MODEL_ONLY=1 choice
+        "qwen3-8-27b-taussoe-tensorfold-single",  # not vLLM: case by case
+    ],
+)
+def test_a_launch_that_switches_an_input_off_need_not_declare_it(slug: str) -> None:
+    _served_check(slug)

@@ -25,6 +25,7 @@ from .api import (
     AudioSpeechApi,
     AudioTranscriptionApi,
     ChatApi,
+    DecisionApi,
     RecipeApi,
     require_api_of,
 )
@@ -121,6 +122,22 @@ def _is_set(recipe: RecipeDefinition, name: str) -> bool:
     return value is True or (isinstance(value, str) and value != "")
 
 
+def _language_model_only(recipe: RecipeDefinition) -> bool:
+    """True when the vLLM launch loads no multimodal tower.
+
+    ``--language-model-only`` itself, or ``LANGUAGE_MODEL_ONLY=1`` in the
+    runtime environment: kit wrappers (the sfxnz DeepSeek V4.1 one) translate
+    that variable into the flag, so an option can switch it per choice.
+    """
+
+    if _is_set(recipe, "language-model-only"):
+        return True
+    return any(
+        item.name == "LANGUAGE_MODEL_ONLY" and str(item.value) == "1"
+        for item in recipe.runtime.environment
+    )
+
+
 def _mm_limits(recipe: RecipeDefinition) -> dict[str, object]:
     value = _argument(recipe, "limit-mm-per-prompt")
     if isinstance(value, str):
@@ -184,7 +201,7 @@ def _audio_problems(
     if settings.kind == "decision":
         found.append(f"a decision recipe cannot serve a {block.mode} block")
     if isinstance(block, AudioTranscriptionApi):
-        if recipe.runtime.engine == "vllm" and _is_set(recipe, "language-model-only"):
+        if recipe.runtime.engine == "vllm" and _language_model_only(recipe):
             found.append("audio input conflicts with --language-model-only")
         if recipe.runtime.engine == "vllm" and _mm_limits(recipe).get("audio") == 0:
             found.append("audio input conflicts with --limit-mm-per-prompt 0")
@@ -220,7 +237,7 @@ def _problems(recipe: RecipeDefinition, block: ApiBlock) -> list[str]:
     for modality in ("image", "video", "audio"):
         if not getattr(block.input_modalities, modality):
             continue
-        if engine == "vllm" and _is_set(recipe, "language-model-only"):
+        if engine == "vllm" and _language_model_only(recipe):
             found.append(f"{modality} input conflicts with --language-model-only")
         if engine == "vllm" and _mm_limits(recipe).get(modality) == 0:
             found.append(f"{modality} input conflicts with --limit-mm-per-prompt 0")
@@ -275,6 +292,38 @@ def check_recipe_api(recipe: RecipeDefinition, api: RecipeApi) -> None:
         raise RecipeApiError(join_problems(found, count))
 
 
+def _undeclared_vllm_inputs(
+    recipe: RecipeDefinition, block: ApiBlock, served: ModelDisplay | None
+) -> list[str]:
+    """Inputs a vLLM launch serves for its Model that the block leaves out.
+
+    vLLM loads every input its model class supports unless the launch switches
+    one off (``--language-model-only``, or a ``--limit-mm-per-prompt`` of 0;
+    an omitted modality keeps vLLM's default limit). The served Model (the
+    first selection) states which inputs its checkpoint takes, as modality
+    plus understanding capability. Only vLLM is checked: other engines need a
+    flag or a projector per modality, so they stay case by case.
+    """
+
+    if recipe.runtime.engine != "vllm" or served is None:
+        return []
+    if not isinstance(block, ChatApi | DecisionApi):
+        return []
+    if _language_model_only(recipe):
+        return []
+    limits = _mm_limits(recipe)
+    return [
+        f"the vLLM launch serves the Model's {modality} input "
+        f"(no --language-model-only, no --limit-mm-per-prompt {modality}: 0); "
+        f"declare {modality} input"
+        for modality, capability in INPUT_MODALITY_CAPABILITIES.items()
+        if modality in served.modalities
+        and capability in served.capabilities
+        and limits.get(modality) != 0
+        and not getattr(block.input_modalities, modality)
+    ]
+
+
 def check_api_models(
     recipe: RecipeDefinition, api: RecipeApi, models: Iterable[ModelDisplay]
 ) -> None:
@@ -285,11 +334,14 @@ def check_api_models(
     """
 
     selected = list(models)
+    served = selected[0] if selected else None
     found: dict[str, list[str]] = {}
     count = 0
-    for label, _, block in api_variants(recipe, api):
+    for label, effective, block in api_variants(recipe, api):
         count += 1
         wanted = accepted_modalities(block)
+        for item in _undeclared_vllm_inputs(effective, block, served):
+            found.setdefault(item, []).append(label)
         if isinstance(block, AudioSpeechApi) and not any(
             "audio" in m.modalities
             and CapabilityName.AUDIO_GENERATION in m.capabilities
