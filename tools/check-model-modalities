@@ -9,8 +9,8 @@ switches a modality off is a Recipe fact, not a Model fact.
 
 A Model a recipe serves (its first model selection) also declares what that
 recipe's API document says the route serves, in any option variant: a chat
-route needs ``chat`` and ``text-generation``, reasoning other than ``none``
-needs ``reasoning``, and tools other than ``none`` need ``tool-use``. The API
+route needs ``text-generation`` (and ``chat`` when it serves
+``/v1/chat/completions``), reasoning other than ``none`` needs ``reasoning``, and tools other than ``none`` need ``tool-use``. The API
 document is typed evidence ``tools/check-recipe-api`` already checks against
 the launch. The other direction is not implied: a checkpoint may reason or call
 tools while a recipe leaves the parser off.
@@ -87,7 +87,9 @@ def route_capabilities(document: RecipeDefinition, api: RecipeApi) -> set[str]:
     for _, _, block in api_variants(document, api):
         if not isinstance(block, ChatApi):
             continue
-        found |= {CapabilityName.CHAT, CapabilityName.TEXT_GENERATION}
+        found.add(CapabilityName.TEXT_GENERATION)
+        if "/v1/chat/completions" in block.endpoints:
+            found.add(CapabilityName.CHAT)
         if not isinstance(block.reasoning, ApiReasoningNone):
             found.add(CapabilityName.REASONING)
         if not isinstance(block.tools, ApiToolsNone):
