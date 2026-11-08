@@ -3,7 +3,9 @@
     "chat",
     "code-generation",
     "image-understanding",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "Complete 84-file official DeepSeek V4 Flash Vision Experimental snapshot at 6821d6ad: native interleaved image and text understanding, 48 mixed FP4/FP8/BF16 shards, a 32-layer ViT and aligner, three DSpark prediction layers, tokenizer, prompt encoder, and minimal inference reference.",
   "family_title": "DeepSeek Flash",

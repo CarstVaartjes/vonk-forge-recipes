@@ -5,6 +5,7 @@
     "image-understanding",
     "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Exact public NVIDIA Nemotron 3 Nano Omni 30B-A3B Reasoning BF16 checkpoint.",

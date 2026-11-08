@@ -1,8 +1,10 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
     "reasoning",
-    "text-generation"
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact public turboderp EXL3 3.05 bits-per-weight pack (branch 3.05bpw_h5_ng5) of Qwen3.8 Flash Next with MTP layer, read by TensorFold's experimental CUDA EXL3 path.",
   "family_title": "Qwen",

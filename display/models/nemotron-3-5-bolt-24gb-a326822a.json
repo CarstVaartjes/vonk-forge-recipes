@@ -1,8 +1,10 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
     "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Nemotron 3.5 Bolt 74B-A9B 24GB checkpoint.",
@@ -20,7 +22,9 @@
     "url": "https://openmdw.ai/license/1-1/"
   },
   "modalities": [
-    "text"
+    "image",
+    "text",
+    "video"
   ],
   "model_title": "Nemotron 3.5 Bolt",
   "tags": [
