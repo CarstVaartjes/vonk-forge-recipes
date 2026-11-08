@@ -1,0 +1,137 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "readme-64f65e809b51-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "64f65e809b51cc0c35f393fbbfcc2d735c0cb3fdbbc6f3fdc4a5e6ce55e9d088",
+      "size_bytes": 57846
+    },
+    {
+      "id": "config-17a07f527a1c-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "17a07f527a1c25ea30b4e023a184482a23d3e279d697b1dc81b1bde498d29cf9",
+      "size_bytes": 4908
+    },
+    {
+      "id": "generation-config-f1b90b4513f3-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f1b90b4513f3b34c62851049e2492d7b4c5940daf1276f89c82b8ef04127f3aa",
+      "size_bytes": 245
+    },
+    {
+      "id": "merges-599bab540750-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "size_bytes": 1671839
+    },
+    {
+      "id": "model-38b1d5971bdb-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "38b1d5971bdbd982b561cccec982669a53b0537c3cf5e9bd4778ed07bb2f5137",
+      "size_bytes": 3833402552
+    },
+    {
+      "id": "preprocessor-config-efdde1022ea9-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "efdde1022ea9d76928bf7a9cd53139138f5ba2e466e837f08f6105ab1af1c119",
+      "size_bytes": 127
+    },
+    {
+      "id": "config-ee65bb901c87-27c95e2283",
+      "path": "speech_tokenizer/config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ee65bb901c876664ab8707c487157aa1a6ee57c65969b28fb5ec9dc211e68167",
+      "size_bytes": 2336
+    },
+    {
+      "id": "configuration-6bc26d64eb50-8784199069",
+      "path": "speech_tokenizer/configuration.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "6bc26d64eb5024b4d1dab5a52371958b429256d6c9d59787f1f5294a54e0cebd",
+      "size_bytes": 76
+    },
+    {
+      "id": "model-836b7b357f5e-abfeb27adb",
+      "path": "speech_tokenizer/model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+      "size_bytes": 682293092
+    },
+    {
+      "id": "preprocessor-config-fcb3805e597e-e6c782fc2d",
+      "path": "speech_tokenizer/preprocessor_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "fcb3805e597e786d4067706e602f6688524640f8d3396790e2e09b5942fcbdfb",
+      "size_bytes": 234
+    },
+    {
+      "id": "tokenizer-config-dc3c31c3bdae-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "dc3c31c3bdaedd5016382bb3cbe07323026775ad51f5a4fb564505992ae4a670",
+      "size_bytes": 7344
+    },
+    {
+      "id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "size_bytes": 2776833
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "qwen",
+      "slug": "qwen3-tts"
+    },
+    "model": {
+      "publisher": "qwen",
+      "slug": "qwen3-tts-12hz-1-7b-customvoice"
+    },
+    "publisher": "qwen",
+    "slug": "qwen3-tts-12hz-1-7b-customvoice-0c0e3051",
+    "variant": "0c0e3051",
+    "version": "0c0e3051"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+    "revision": "0c0e3051f131929182e2c023b9537f8b1c68adfe"
+  }
+}
