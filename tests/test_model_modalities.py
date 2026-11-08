@@ -110,6 +110,21 @@ def test_a_chat_route_requires_chat_text_reasoning_and_tool_use() -> None:
     assert route(document, _with_blocks(api, off, [])) == {"chat", "text-generation"}
 
 
+def test_a_completions_only_route_requires_text_generation_not_chat() -> None:
+    slug = _chat_recipe()
+    document, api = recipe(slug, ROOT), recipe_api(slug, ROOT)
+    base = api.api.model_dump(mode="json")
+    off = base | {
+        "reasoning": {"kind": "none"},
+        "tools": {"kind": "none"},
+        "endpoints": ["/v1/completions"],
+    }
+    route = GUARD["route_capabilities"]
+    assert route(document, _with_blocks(api, off, [])) == {"text-generation"}
+    both = off | {"endpoints": ["/v1/completions", "/v1/chat/completions"]}
+    assert route(document, _with_blocks(api, both, [])) == {"chat", "text-generation"}
+
+
 def test_one_option_variant_that_serves_tools_requires_tool_use() -> None:
     slug = _chat_recipe()
     document, api = recipe(slug, ROOT), recipe_api(slug, ROOT)
