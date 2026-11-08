@@ -543,7 +543,7 @@ _CHILD_PHASE = {
     "verify": "start",
 }
 #: The sweep's own vonkctl speaks another control contract than the Controller: nobody's recipe
-#: verdict, a wait until the client is updated (``contract_recovery``).
+#: verdict, a wait until the client is updated (``Sweep.check_release``).
 CLIENT_CONTRACT = "client-contract"
 #: The run executed another recipe revision than the requested one: the platform's fault.
 REVISION_MISMATCH = "platform.revision_mismatch"

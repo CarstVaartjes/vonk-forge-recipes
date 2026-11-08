@@ -37,20 +37,12 @@ def request_key(*parts: object) -> str:
 CLIENT_CONTRACT_MISMATCH = "client.contract_mismatch"
 
 
-class ContractRecoverer(Protocol):
-    """What ``Vonkctl.run`` asks of the sweep when the client and the Controller disagree."""
+class ContractObserver(Protocol):
+    """Told, from any thread, what Controller commands met or no longer meet the mismatch."""
 
-    def on_contract_mismatch(self) -> bool:
-        """True when the client was replaced and the failed call should be made once more."""
-        ...
+    def contract_mismatch(self, command: tuple[str, ...]) -> None: ...
 
-    def on_contract_unresolved(self) -> None:
-        """The retry after a replaced client met the mismatch again."""
-        ...
-
-    def on_call_ok(self) -> None:
-        """Any command succeeded: a mismatch alert no longer holds."""
-        ...
+    def controller_answered(self, command: tuple[str, ...]) -> None: ...
 
 
 class OwnerProfileError(ValueError):
@@ -246,7 +238,7 @@ class Vonkctl:
         self.runner = runner
         self.timeout = timeout
         #: Set by the sweep; absent, a contract mismatch is just an error reply.
-        self.recovery: ContractRecoverer | None = None
+        self.observer: ContractObserver | None = None
 
     def run(
         self,
@@ -255,26 +247,17 @@ class Vonkctl:
         timeout: float | None = None,
         allow_owner_write: bool = False,
     ) -> Reply:
-        """One call; a typed contract mismatch gets at most one recovery and one retry."""
+        """One call. A typed contract mismatch is only reported; the main loop owns the answer."""
         reply = self.run_once(
             *args, profile=profile, timeout=timeout, allow_owner_write=allow_owner_write
         )
-        recovery = self.recovery
-        if recovery is None:
-            return reply
-        if reply.ok:
-            recovery.on_call_ok()
-            return reply
-        if not (reply.is_contract_mismatch and recovery.on_contract_mismatch()):
-            return reply
-        retry = self.run_once(
-            *args, profile=profile, timeout=timeout, allow_owner_write=allow_owner_write
-        )
-        if retry.is_contract_mismatch:
-            recovery.on_contract_unresolved()
-        elif retry.ok:
-            recovery.on_call_ok()
-        return retry
+        observer = self.observer
+        if observer is not None:
+            if reply.is_contract_mismatch:
+                observer.contract_mismatch(args[:2])
+            elif reply.ok:
+                observer.controller_answered(args[:2])
+        return reply
 
     def run_once(
         self,

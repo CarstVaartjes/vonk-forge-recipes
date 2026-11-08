@@ -303,10 +303,11 @@ See `tests/test_sweep_wait_budget.py`, `tests/test_sweep_copy.py`,
 
 A Controller on another control contract is the typed `client.contract_mismatch`
 (never message matching; vector `tests/fixtures/sweep-verdicts/cli-contract-mismatch.json`).
-`Vonkctl.run` asks the sweep, which runs the one `check_client` path now (signed
-update, `--allow-version-skew` honoured); if it updated, the failed call is retried
-once. Otherwise an escalated `policy.CLIENT_CONTRACT` incident is raised and calls
-wait as for any Controller error; it clears on the next successful vonkctl command
+`Vonkctl.run` only reports it (any thread, a flag); the main loop's `check_release`
+runs the one `check_client` path (signed update, `--allow-version-skew` honoured) at
+most once per 30 s and the failed operation retries on its next pass. If no update was
+applied, an escalated `policy.CLIENT_CONTRACT` incident is raised; it clears only when
+a Controller command that met the mismatch succeeds, never for `--version`/`update`
 (`tests/test_sweep_contract_mismatch.py`).
 
 A selected recipe whose served digest differs from the sweep's own source
