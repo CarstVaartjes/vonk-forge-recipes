@@ -794,6 +794,42 @@ def declares_adapter_source(directory: Path | None) -> bool:
     )
 
 
+def image_label_claim(directory: Path | None, pin: AdapterPin | None) -> bool:
+    """Whether the adapter's pin is only a label about the image it runs ``FROM``.
+
+    An adapter with no ``vendored-upstream.json`` takes its pin from the
+    Dockerfile's ``org.opencontainers.image.source`` / ``.revision`` labels. When the
+    Dockerfile builds ``FROM`` a digest-pinned image of that repository (its name is in
+    the image's) and uses the commit nowhere but that label, the label is a claim about what the image is built
+    from, not a git pin the refresh may advance: the upstream repository's newest release
+    is not what the digest contains. Such a label moves only with the image digest (a
+    followed or kit-declared image, which records its own build commit).
+    """
+    if directory is None or pin is None or adapter_manifest(directory):
+        return (
+            False  # a manifest declares a source, a kit or vendored files: a real pin
+        )
+    dockerfile = directory / "Dockerfile"
+    name = pin.repo.rsplit("/", 1)[-1].lower()
+    pinned = any(
+        digest and name in image.lower()
+        for image, _, digest in (
+            kit_pins.split_image(match["image"])
+            for match in kit_pins.FROM_LINE.finditer(
+                dockerfile.read_text(encoding="utf-8")
+            )
+        )
+    )
+    if not pinned or adapter_usage(directory, pin.repo, pin.commit) != (set(), False):
+        return False
+    mentions = sum(
+        path.read_text(encoding="utf-8", errors="replace").count(pin.commit)
+        for path in directory.rglob("*")
+        if path.is_file() and not path.is_symlink() and path.stat().st_size <= 1_000_000
+    )
+    return mentions == 1
+
+
 def whole_kit(directory: Path | None) -> bool:
     """Whether every changed file of the kit repository is judged (the default).
 
@@ -1606,7 +1642,17 @@ def collect_items(
                 kit_head,
                 kit_source or kit_upstream(http),
             )
-    if pin is not None and not declares_adapter_source(kit_dir):
+    if (
+        pin is not None
+        and ("github", pin.repo.lower()) not in seen
+        and image_label_claim(context, pin)
+    ):
+        result.evidence.append(
+            f"### Image label {pin.repo}\n\n- the adapter's `org.opencontainers.image."
+            f"revision` `{pin.commit[:12]}` describes the digest-pinned image it runs "
+            "FROM; upstream releases do not move it, only a new image digest does\n"
+        )
+    elif pin is not None and not declares_adapter_source(kit_dir):
         consider("adapter", "github", pin.repo, pin.commit, line=line)
     kit_models = kit_declared_models(recipe, kit_dir)
     for reference in recipe["models"]:
