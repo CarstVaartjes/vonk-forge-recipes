@@ -1,0 +1,24 @@
+{
+  "alignment": "unspecified",
+  "description": "Qwen's multilingual speech recognition model on one DGX Spark, served by vLLM 0.32.0 exactly as the Qwen3-ASR README documents (`vllm serve` with the `vllm[audio]` extra). It answers the OpenAI transcription route, POST /v1/audio/transcriptions, in 28 languages that OpenAI's `language` parameter can name, and also answers chat completions with an audio_url. Uploads are limited by vLLM's defaults of 25 MiB and 600 seconds. Memory follows the creator's 0.8 engine fraction (the Qwen3-ASR README's qwen-asr-serve example, hardware unstated) and is an estimate until tried.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-asr-1-7b-vllm-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "asr",
+    "audio",
+    "candidate",
+    "executable",
+    "openai",
+    "qwen",
+    "qwen3-asr",
+    "single",
+    "spark",
+    "speech-to-text",
+    "transcription",
+    "vllm"
+  ],
+  "title": "Qwen3-ASR 1.7B (vLLM, single Spark)"
+}
