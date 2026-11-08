@@ -3,7 +3,10 @@
     "chat",
     "code-generation",
     "image-understanding",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Exact public 0xSero GLM 5.3 Flash EXL3 K2 2.0bpw checkpoint (mcg codebook, 133 weight shards plus the EXL3 sidecar manifests upstream downloads, native unquantized MTP layer 45): the repository start.sh serves it as-is. The card names it the provenance-verified twin of the K2 staging artifact; the GitHub repository description calls the quantization 2.33 bpw while its scripts and docs say 2.0 bpw.",
   "family_title": "GLM",
@@ -23,7 +26,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "GLM 5.3 Flash EXL3 K2 2.0bpw",
   "tags": [

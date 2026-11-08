@@ -22,7 +22,17 @@
     "mode": "chat",
     "reasoning": {
       "default": "on",
-      "effort": null,
+      "effort": {
+        "default": "xhigh",
+        "key": "reasoning_effort",
+        "kind": "levels",
+        "levels": [
+          "low",
+          "medium",
+          "xhigh"
+        ],
+        "via": "chat_template_kwargs"
+      },
       "keys": [
         "enable_thinking"
       ],

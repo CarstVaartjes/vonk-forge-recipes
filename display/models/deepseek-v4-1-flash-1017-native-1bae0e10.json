@@ -3,7 +3,9 @@
     "chat",
     "code-generation",
     "image-understanding",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "deepseek-ai/DeepSeek-V4.1-Flash-1017 at immutable revision 1bae0e1088993b9b82de08f59de5be5a34e42170. Source model inputs for the creator runtime; physical Spark acceptance is unmeasured.",
   "family_title": "DeepSeek",
@@ -20,8 +22,8 @@
     "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/blob/1bae0e1088993b9b82de08f59de5be5a34e42170/LICENSE"
   },
   "modalities": [
-    "text",
-    "image"
+    "image",
+    "text"
   ],
   "model_title": "DeepSeek V4.1 Flash 1017",
   "tags": [

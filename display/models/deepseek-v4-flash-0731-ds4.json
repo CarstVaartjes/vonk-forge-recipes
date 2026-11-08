@@ -2,7 +2,9 @@
   "capabilities": [
     "chat",
     "code-generation",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact DS4 96/128-GB imatrix target GGUF and matching DSpark support GGUF.",
   "family_title": "DeepSeek Flash",
