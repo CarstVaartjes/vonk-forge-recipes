@@ -5,7 +5,8 @@
     "image-understanding",
     "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "ggml-org GGUF conversion of Qwen3.8 27B at Q4_K_M, plus the Q8_0 vision projector.",
   "family_title": "Qwen",
@@ -24,7 +25,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "Qwen3.8 27B",
   "tags": [

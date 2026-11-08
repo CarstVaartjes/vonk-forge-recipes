@@ -15,7 +15,7 @@
       "image": true,
       "pdf": false,
       "text": true,
-      "video": false
+      "video": true
     },
     "max_input_tokens": null,
     "max_output_tokens": {
@@ -24,7 +24,16 @@
     "mode": "chat",
     "reasoning": {
       "default": "on",
-      "effort": null,
+      "effort": {
+        "default": "xhigh",
+        "key": "reasoning_effort",
+        "levels": [
+          "xhigh",
+          "medium",
+          "low"
+        ],
+        "via": "top_level"
+      },
       "keys": [
         "enable_thinking"
       ],
