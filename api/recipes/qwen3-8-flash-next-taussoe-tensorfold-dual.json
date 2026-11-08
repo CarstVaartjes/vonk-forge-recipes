@@ -25,6 +25,7 @@
       "effort": {
         "default": "xhigh",
         "key": "reasoning_effort",
+        "kind": "levels",
         "levels": [
           "low",
           "medium",

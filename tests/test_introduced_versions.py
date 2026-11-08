@@ -10,12 +10,19 @@ from typing import get_args
 
 import pytest
 from documents import model_display
-from vonk_forge_contracts import CapabilityName, RecipeDefinition, read_recipe
+from vonk_forge_contracts import (
+    CapabilityName,
+    RecipeApi,
+    RecipeDefinition,
+    read_recipe,
+)
+from vonk_forge_contracts.api import ApiReasoningEffort
 from vonk_forge_contracts.recipe import ServingKind
 
 from qualification import introduced
 from qualification.introduced import (
     CAPABILITY_SINCE,
+    EFFORT_KIND_SINCE,
     SERVING_KIND_SINCE,
     parse_version,
     unreadable_features,
@@ -65,27 +72,59 @@ def test_the_audio_kinds_arrived_in_4_4_0() -> None:
 
 def test_a_4_4_0_kind_recipe_fails_at_platform_4_1_0_and_passes_at_4_4_0() -> None:
     recipe = _audio_recipe()
-    assert unreadable_features(recipe, [], "4.1.0") == [
+    assert unreadable_features(recipe, [], None, "4.1.0") == [
         "serving kind openai.speech needs contracts 4.4.0",
         "serving kind openai.transcription needs contracts 4.4.0",
     ]
-    assert unreadable_features(recipe, [], "4.4.0") == []
-    assert unreadable_features(recipe, [], "5.0.0") == []
-    assert unreadable_features(_without_audio_kinds(recipe), [], "4.1.0") == []
+    assert unreadable_features(recipe, [], None, "4.4.0") == []
+    assert unreadable_features(recipe, [], None, "5.0.0") == []
+    assert unreadable_features(_without_audio_kinds(recipe), [], None, "4.1.0") == []
 
 
 def test_a_capability_newer_than_the_platform_is_refused(monkeypatch) -> None:
     recipe = _without_audio_kinds(_audio_recipe())
     display = _any_display()
     name = display.capabilities[0]
-    assert unreadable_features(recipe, [display], "4.1.0") == []
+    assert unreadable_features(recipe, [display], None, "4.1.0") == []
     monkeypatch.setattr(
         introduced, "CAPABILITY_SINCE", {**CAPABILITY_SINCE, name: "4.9.0"}
     )
-    assert unreadable_features(recipe, [display], "4.8.0") == [
+    assert unreadable_features(recipe, [display], None, "4.8.0") == [
         f"capability {name.value} needs contracts 4.9.0"
     ]
-    assert unreadable_features(recipe, [display], "4.9.0") == []
+    assert unreadable_features(recipe, [display], None, "4.9.0") == []
+
+
+def _options_api(effort: dict | None) -> tuple[RecipeDefinition, RecipeApi]:
+    """The options example; ``effort`` goes on its option choice's block only."""
+
+    recipe = read_recipe(
+        json.loads((EXAMPLES / "recipe-options.json").read_text("utf-8"))
+    )
+    document = json.loads((EXAMPLES / "recipe-api-options.json").read_text("utf-8"))
+    for choice in document["option_choices"]:
+        choice["api"]["reasoning"] = {"kind": "always-on", "effort": effort}
+    return recipe, RecipeApi.model_validate(document)
+
+
+def test_every_effort_kind_states_when_it_arrived() -> None:
+    union = get_args(ApiReasoningEffort)[0]
+    kinds = {get_args(m.model_fields["kind"].annotation)[0] for m in get_args(union)}
+    assert set(EFFORT_KIND_SINCE) == kinds
+    for since in EFFORT_KIND_SINCE.values():
+        parse_version(since)
+
+
+def test_a_text_effort_waits_for_a_platform_that_reads_it() -> None:
+    text = {"kind": "text", "via": "top_level", "key": "reasoning_effort"}
+    recipe, api = _options_api({**text, "default": None})
+    assert unreadable_features(recipe, [], api, "4.6.0") == [
+        "reasoning effort text needs contracts 4.7.0"
+    ]
+    assert unreadable_features(recipe, [], api, "4.7.0") == []
+    levels = {**text, "kind": "levels", "levels": ["high"], "default": "high"}
+    recipe, api = _options_api(levels)
+    assert unreadable_features(recipe, [], api, "4.4.0") == []
 
 
 def _any_display():
