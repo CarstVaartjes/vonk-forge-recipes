@@ -121,8 +121,16 @@ def test_a_completions_only_route_requires_text_generation_not_chat() -> None:
     }
     route = GUARD["route_capabilities"]
     assert route(document, _with_blocks(api, off, [])) == {"text-generation"}
-    both = off | {"endpoints": ["/v1/completions", "/v1/chat/completions"]}
-    assert route(document, _with_blocks(api, both, [])) == {"chat", "text-generation"}
+    for endpoints in (
+        ["/v1/completions", "/v1/chat/completions"],
+        ["/v1/responses"],
+        ["/v1/messages"],
+    ):
+        block = off | {"endpoints": endpoints}
+        assert route(document, _with_blocks(api, block, [])) == {
+            "chat",
+            "text-generation",
+        }
 
 
 def test_one_option_variant_that_serves_tools_requires_tool_use() -> None:
