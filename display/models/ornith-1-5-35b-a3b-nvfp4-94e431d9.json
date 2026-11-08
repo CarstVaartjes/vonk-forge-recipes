@@ -1,7 +1,11 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Exact public NVFP4 94e431d9 checkpoint.",
   "family_title": "Ornith",
@@ -19,7 +23,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "Ornith 1.5 35B-A3B",
   "tags": [

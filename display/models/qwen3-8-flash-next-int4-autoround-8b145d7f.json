@@ -1,8 +1,10 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
     "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "AutoRound INT4 checkpoint with healed shared expert and top-5 routing.",

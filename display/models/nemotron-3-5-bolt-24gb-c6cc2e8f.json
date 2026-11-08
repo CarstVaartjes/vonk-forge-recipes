@@ -3,7 +3,8 @@
     "image-understanding",
     "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Mixed IQ2_XXS experts, NVFP4 Mamba and Q8_0 attention weights; exact official vLLM profile checkpoint.",
   "family_title": "NVIDIA Nemotron",
@@ -21,7 +22,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "NVIDIA Nemotron 3.5 Bolt",
   "tags": [

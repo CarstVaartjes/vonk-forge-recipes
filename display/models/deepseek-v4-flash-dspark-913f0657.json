@@ -2,7 +2,9 @@
   "capabilities": [
     "chat",
     "code-generation",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "Official DeepSeek-V4-Flash-DSpark snapshot 62af8fff: mixed FP4/FP8 shards with DSpark speculative-decoding prediction layers, tokenizer, prompt encoder and minimal inference reference. MIT.",
   "family_title": "DeepSeek Flash",

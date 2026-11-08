@@ -1,7 +1,10 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
+    "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Exact public Unsloth Dynamic V3.0 NVFP4 (compressed-tensors) Qwen3.8 27B checkpoint with MTP weights.",

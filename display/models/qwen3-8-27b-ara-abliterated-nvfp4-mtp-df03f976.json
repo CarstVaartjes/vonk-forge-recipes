@@ -2,7 +2,9 @@
   "capabilities": [
     "chat",
     "image-understanding",
-    "text-generation"
+    "text-generation",
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Abliterated (trohrbaugh heretic-ara) Qwen3.8 27B, uniform NVFP4 compressed-tensors, BF16 MTP head, vision-language. Apache-2.0.",
   "family_title": "Qwen",
@@ -22,7 +24,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "Qwen3.8 27B ARA abliterated NVFP4 MTP",
   "tags": [

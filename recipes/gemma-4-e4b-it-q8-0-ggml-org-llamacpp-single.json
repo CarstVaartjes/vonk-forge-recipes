@@ -54,8 +54,8 @@
           ]
         },
         {
-          "file_id": "gemma-4-e4b-it-q8-0-34be82b17b49-b94df0c6df",
-          "id": "gemma-4-e4b-it-q8-0-34be82b17b49-b94df0c6df",
+          "file_id": "gemma-4-e4b-it-q8-0-49008e7cc7ed-b94df0c6df",
+          "id": "gemma-4-e4b-it-q8-0-49008e7cc7ed-b94df0c6df",
           "mount": {
             "target": "/models"
           },
@@ -64,8 +64,8 @@
           ]
         },
         {
-          "file_id": "mmproj-gemma-4-e4b-it-q8-0-197f49a93027-afb249a518",
-          "id": "mmproj-gemma-4-e4b-it-q8-0-197f49a93027-afb249a518",
+          "file_id": "mmproj-gemma-4-e4b-it-q8-0-9257f21a0f53-afb249a518",
+          "id": "mmproj-gemma-4-e4b-it-q8-0-9257f21a0f53-afb249a518",
           "mount": {
             "target": "/models"
           },
@@ -76,10 +76,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e4c10259bf0accee9afddb5bf0ceb4226c1d0fd76887966df268d4bfa7f71562",
+        "content_sha256": "a64233f453b653e8d054566b02d02533ad68a3ce4440c8a2b422ef92e017052e",
         "kind": "model",
         "publisher": "ggml-org",
-        "slug": "gemma-4-e4b-it-q8-0-a69f018d"
+        "slug": "gemma-4-e4b-it-q8-0-27cd6836"
       }
     }
   ],
@@ -90,11 +90,11 @@
       "Google DeepMind",
       "ggml-org"
     ],
-    "source_reference": "https://huggingface.co/ggml-org/gemma-4-E4B-it-GGUF/tree/a69f018d7678a2b9f5e705f8903d6fb29b9b25dc"
+    "source_reference": "https://huggingface.co/ggml-org/gemma-4-E4B-it-GGUF/tree/27cd6836f8e2a6e5e6b57ea0e77fa72490706985"
   },
   "release": {
-    "released_at": "2026-10-19",
-    "version": "0.6.1"
+    "released_at": "2026-11-08",
+    "version": "0.6.2"
   },
   "runtime": {
     "arguments": [
@@ -164,7 +164,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 8591120768,
+            "artifact_bytes": 8591115456,
             "image_bytes": 8000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 16000000000

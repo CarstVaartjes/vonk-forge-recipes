@@ -301,6 +301,16 @@ work. Fresh fleet/ownership facts and security review still govern new loads.
 See `tests/test_sweep_wait_budget.py`, `tests/test_sweep_copy.py`,
 `tests/test_sweep_stalled_work.py`, `tests/test_sweep_noblock.py`.
 
+A selected recipe whose served digest differs from the sweep's own source
+checkout (the authored document digest) waits for the catalog to serve the source,
+for example a publish the Controller has not imported yet: it is not tested and the
+run does not end. The wait is a `catalog source` bounded wait (30 minutes,
+serialized publishes plus the import) shown through `waiting`, a results row and a
+status alert. It ends when a complete pass serves the source, or at the bound
+(`wait-expired` row with the digests and an alert); from then on the sweep tests
+what the catalog serves (`spark_sweep/source_serving.py`,
+`tests/test_sweep_source_serving.py`).
+
 Use the typed `Disposition` and `RecipeVerdict` contracts; never guess a recipe
 fault from arbitrary error text:
 

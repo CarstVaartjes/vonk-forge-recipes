@@ -1,5 +1,12 @@
 {
-  "capabilities": [],
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use",
+    "video-understanding"
+  ],
   "description": "Step 5 Preview Spark immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "Step 5",
   "identity": {
@@ -15,7 +22,9 @@
     "url": "https://huggingface.co/0xSero/Step-5-Preview-Spark/blob/51a46a7f62eee1225d124170da903bba23d04a26/LICENSE"
   },
   "modalities": [
-    "text"
+    "image",
+    "text",
+    "video"
   ],
   "model_title": "Step 5 Preview Spark",
   "tags": [
