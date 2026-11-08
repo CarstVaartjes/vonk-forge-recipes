@@ -3,7 +3,8 @@
     "chat",
     "image-understanding",
     "reasoning",
-    "text-generation"
+    "text-generation",
+    "tool-use"
   ],
   "description": "Alibaba Qwen3.5 0.8B vision-language model as Unsloth's Dynamic UD-Q8_K_XL GGUF with the F16 vision projector (mmproj). The repository's other quantizations and projectors are not declared.",
   "family_title": "Qwen",

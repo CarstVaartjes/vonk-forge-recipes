@@ -1,5 +1,10 @@
 {
-  "capabilities": [],
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
   "description": "LFM2.5-24B-A2B immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "LiquidAI LFM2.5",
   "identity": {

@@ -3,7 +3,9 @@
     "chat",
     "code-generation",
     "image-understanding",
-    "reasoning"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "Unsloth Dynamic UD-Q8_K_XL GGUF of Qwen3.6 35B-A3B (MoE) with Multi-Token Prediction heads baked in (for llama.cpp draft-mtp speculative decoding), plus the BF16 vision projector. Only these two files of the repository are cataloged; the repository has no LICENSE file (Apache-2.0 per its model card).",
   "family_title": "Qwen",
