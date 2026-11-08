@@ -10,9 +10,9 @@ The comparison is by content identity: the ``document_sha256`` the library publi
 each recipe document, hashed once here from the authored file. A commit says nothing
 about content (a docs-only commit publishes nothing and changes no recipe).
 
-The wait is bounded (publish plus import), and it ends early when the catalog moves to
-another library without serving the source (the Controller took a newer release, or the
-checkout is behind main). Either way the sweep then tests what the catalog serves.
+The wait is bounded (serialized publishes plus the import). A catalog that never serves
+the source (a newer release, a checkout behind main, a failed publish or import) ends
+it at the bound; the sweep then tests what the catalog serves.
 """
 
 from __future__ import annotations
@@ -24,8 +24,9 @@ from pathlib import Path
 
 from qualification.documents import recipe_key_digest
 
-# Publish (about 14 min on 2026-11-08) plus the Controller's import (under 2 min).
-SOURCE_WAIT_SECONDS = 15 * 60.0
+# Publishes run one at a time (about 14 min each on 2026-11-08), then the Controller
+# imports (under 2 min): room for one publish queued behind another.
+SOURCE_WAIT_SECONDS = 30 * 60.0
 
 
 class SourceServing(StrEnum):
@@ -39,7 +40,6 @@ class SourceServing(StrEnum):
 class SourceEvent(StrEnum):
     UNSERVED_PASS = "unserved-pass"  # a complete pass serves other content
     SERVED_PASS = "served-pass"  # a complete pass serves the source
-    CATALOG_MOVED = "catalog-moved"  # another library, still not the source
     WAIT_EXPIRED = "wait-expired"  # not served within SOURCE_WAIT_SECONDS
 
 
@@ -49,7 +49,6 @@ EDGES: Mapping[tuple[SourceServing, SourceEvent], SourceServing] = {
     (SourceServing.UNREAD, SourceEvent.SERVED_PASS): SourceServing.SERVED,
     (SourceServing.UNSERVED, SourceEvent.UNSERVED_PASS): SourceServing.UNSERVED,
     (SourceServing.UNSERVED, SourceEvent.SERVED_PASS): SourceServing.SERVED,
-    (SourceServing.UNSERVED, SourceEvent.CATALOG_MOVED): SourceServing.SERVED,
     (SourceServing.UNSERVED, SourceEvent.WAIT_EXPIRED): SourceServing.SERVED,
 }
 
@@ -57,6 +56,14 @@ EDGES: Mapping[tuple[SourceServing, SourceEvent], SourceServing] = {
 def advance(state: SourceServing, event: SourceEvent) -> SourceServing:
     """The one transition."""
     return EDGES.get((state, event), state)
+
+
+class SourceRowStatus(StrEnum):
+    """The status of a ``catalog`` results row about the source."""
+
+    WAITING = "waiting"
+    SERVED = "served"
+    WAIT_EXPIRED = "wait-expired"
 
 
 @dataclass(frozen=True)
