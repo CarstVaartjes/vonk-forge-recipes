@@ -11,7 +11,9 @@
       "dockerfile": "adapters/mimo/tonyd2wild-v25-nvfp4kv-triple/Dockerfile",
       "network": {
         "hosts": [
-          "patch-diff.githubusercontent.com"
+          "files.pythonhosted.org",
+          "patch-diff.githubusercontent.com",
+          "pypi.org"
         ]
       },
       "patches": []

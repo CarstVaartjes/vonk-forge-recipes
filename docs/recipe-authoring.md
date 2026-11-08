@@ -379,7 +379,10 @@ declare the index hosts. An install is exempt with `--no-index`, or when it uses
 local targets with `--no-deps` and either all `.whl` files or
 `--no-build-isolation`; without `--no-index`, a `-r`/`--requirement` install counts as fetching.
 `tests/test_build_network_hosts.py` checks this for recipes with an empty host
-list. Include all required local build inputs, patches, entrypoints,
+list, follows the context scripts the Dockerfile's `RUN` lines execute (such as
+`mods/*/run.sh`) and also detects `curl`, `wget`, `git clone`, `apt-get` and
+npm-style installs, and requires `pypi.org` and `files.pythonhosted.org` for any
+recipe whose build runs a fetching pip/uv install. Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
 
