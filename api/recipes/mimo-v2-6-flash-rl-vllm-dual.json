@@ -11,11 +11,11 @@
       "/v1/messages"
     ],
     "input_modalities": {
-      "audio": false,
-      "image": false,
+      "audio": true,
+      "image": true,
       "pdf": false,
       "text": true,
-      "video": false
+      "video": true
     },
     "max_input_tokens": null,
     "max_output_tokens": {

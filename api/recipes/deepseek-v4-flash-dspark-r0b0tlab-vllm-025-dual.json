@@ -35,8 +35,7 @@
         "via": "top_level"
       },
       "keys": [
-        "thinking",
-        "enable_thinking"
+        "thinking"
       ],
       "kind": "switch",
       "off": false,
