@@ -3,7 +3,9 @@
     "chat",
     "code-generation",
     "image-understanding",
+    "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Exact public instruction-tuned Gemma 4 26B-A4B checkpoint with Google's canonical chat template.",

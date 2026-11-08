@@ -27,6 +27,7 @@
       "effort": {
         "default": "high",
         "key": "reasoning_effort",
+        "kind": "levels",
         "levels": [
           "low",
           "high",
@@ -90,6 +91,7 @@
           "effort": {
             "default": "high",
             "key": "reasoning_effort",
+            "kind": "levels",
             "levels": [
               "low",
               "high",

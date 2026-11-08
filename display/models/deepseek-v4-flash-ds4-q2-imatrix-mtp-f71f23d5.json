@@ -1,7 +1,9 @@
 {
   "capabilities": [
     "chat",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "antirez's DeepSeek-V4-Flash chat-v2 IQ2XXS/Q2K imatrix GGUF (81 GB) with the Q4K/Q8_0/F32 MTP GGUF, at the repository revision that still carries the pre-0731 files. Used by drowzeys' DSpark-style ds4 port.",
   "family_title": "DeepSeek Flash",

@@ -2,7 +2,9 @@
   "capabilities": [
     "chat",
     "code-generation",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact DS4 V4.1 Flash 1017 checkpoint Q2 GGUF (imatrix-calibrated IQ2_XXS gate/up and Q2_K down routed experts, 341 GiB including 189 GiB of disk-only Engram tables). V4 Flash weights and DSpark support files are not interchangeable with it. Text only on CUDA; vision and DSpark are not supported there.",
   "family_title": "DeepSeek Flash",

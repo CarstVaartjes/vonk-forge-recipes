@@ -2,8 +2,10 @@
   "capabilities": [
     "chat",
     "image-understanding",
+    "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Exact public r0b0tlab NVFP4 (W4A4, block 16; NVIDIA Model Optimizer 0.45, cnn_dailymail calibration) quantization of meta-models/Muse-Glimmer-30B, qualified upstream on one DGX Spark to 131,072 tokens.",
   "family_title": "Muse Glimmer",
@@ -22,7 +24,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "Muse Glimmer 30B NVFP4",
   "tags": [
