@@ -3,7 +3,10 @@
     "chat",
     "code-generation",
     "image-understanding",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use",
+    "video-understanding"
   ],
   "description": "NVIDIA FP4-Local (ModelOpt, quantization-aware distillation) checkpoint of Z.ai GLM-5.3-Flash for local b12x serving on DGX Spark.",
   "family_title": "GLM",
@@ -22,7 +25,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "GLM 5.3 Flash",
   "tags": [
