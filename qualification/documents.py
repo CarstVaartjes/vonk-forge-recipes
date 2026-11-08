@@ -35,6 +35,18 @@ def recipe_digest(slug: str, root: Path = ROOT) -> str:
     return document_sha256(json.loads(path.read_text(encoding="utf-8")))
 
 
+def recipe_key_digest(slug: str, root: Path = ROOT) -> tuple[str, str]:
+    """The authored recipe's ``publisher/slug`` and document digest, from one read.
+
+    Not validated: the sweep only compares this digest with the one the catalog
+    serves, and the library publish validated the same document.
+    """
+    path = root / "recipes" / f"{slug}.json"
+    document = json.loads(path.read_text(encoding="utf-8"))
+    identity = document["identity"]
+    return f"{identity['publisher']}/{identity['slug']}", document_sha256(document)
+
+
 def model(slug: str, root: Path = ROOT) -> ModelDefinition:
     path = root / "models" / f"{slug}.json"
     return ModelDefinition.model_validate(json.loads(path.read_text(encoding="utf-8")))
