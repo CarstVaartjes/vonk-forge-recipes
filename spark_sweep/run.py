@@ -52,6 +52,7 @@ from vonk_forge_contracts.sweep import (
     SweepStorageReview,
     SweepStorageWait,
     SweepWait,
+    SweepWaitCode,
     SweepWaitReason,
     WorkloadFailureCode,
 )
@@ -119,7 +120,16 @@ from .smoke import (
     smoke_service,
 )
 from .smoke_job import job_budget_seconds, smoke_job
-from .source_serving import SourceServing, Unserved, advance, describe, unserved
+from .source_serving import (
+    SOURCE_WAIT_SECONDS,
+    SourceEvent,
+    SourceServing,
+    Unserved,
+    advance,
+    describe,
+    digests,
+    unserved,
+)
 from .state import ResultsLog, State, StateLock
 from .tolerant import InputReason, read_optional
 from .verdict import Disposition, Progress
@@ -287,6 +297,13 @@ class SweepConfig:
     # Preparation waits use this shorter bound, capped by the lane budget.
     # Expiry re-plans without spending an attempt.
     blocked_release_seconds: float = 300.0
+    # How long recipes wait for the catalog to serve this sweep's source.
+    source_wait_seconds: float = SOURCE_WAIT_SECONDS
+
+
+def selects(only: Sequence[str], key: str) -> bool:
+    """The ``--only`` rule: a recipe is selected when its key contains one of the words."""
+    return not only or any(word in key for word in only)
 
 
 #: The traceback frames a sweep crash keeps as evidence: where it raised, and its callers.
@@ -334,6 +351,11 @@ class Sweep:
         self.authored = dict(authored)
         self.source_serving = SourceServing.UNREAD
         self.unserved_recipes: tuple[Unserved, ...] = ()
+        self.unserved_keys: frozenset[str] = frozenset()
+        # The bounded wait's watch (``bounded_wait``) and the library it began on.
+        self.source_watch: dict[str, Any] = {}
+        # The alert of an ended wait is this process's: a new process derives its own.
+        state.data.pop("source_alert", None)
         self.vk = vk
         self.state = state
         self.log = log
@@ -749,7 +771,8 @@ class Sweep:
     @property
     def source_alert(self) -> str:
         return (
-            describe(self.unserved_recipes, self.library_commit)
+            "WAITING FOR THE CATALOG: "
+            + describe(self.unserved_recipes, self.library_commit)
             if self.unserved_recipes
             else ""
         )
@@ -757,44 +780,123 @@ class Sweep:
     def observe_source(self) -> None:
         """Until the catalog serves this sweep's source, its differing recipes wait.
 
-        A served recipe whose content differs from the source is not tested: its
-        verdict would be the old content's again, and a run that only has such
-        recipes left would end having tested nothing. The wait has no deadline; it
-        is written to the results log and the status page and ends when a complete
-        library pass serves the source.
+        A served recipe whose content differs from the source is not tested yet: its
+        verdict would be the old content's again, and a run with only such recipes
+        left would end having tested nothing. The wait is bounded
+        (``source_wait_seconds``, checked every poll by ``observe_source_wait``) and
+        ends early when a complete pass of another library still does not serve the
+        source; then the sweep tests what the catalog serves.
         """
         complete = bool(self.recipe_list.passes) and not self.recipe_list.in_pass
-        differing = (
-            unserved(
-                {key: recipe.content_sha256 for key, recipe in self.recipes.items()},
-                self.authored,
-                self._selected_key,
-            )
-            if complete and self.source_serving is not SourceServing.SERVED
-            else self.unserved_recipes
-        )
-        state = advance(
-            self.source_serving, complete_pass=complete, differing=differing
-        )
-        before = self.unserved_recipes
-        self.source_serving = state
-        self.unserved_recipes = differing if state is SourceServing.UNSERVED else ()
-        if self.unserved_recipes == before:
+        if not complete or self.source_serving is SourceServing.SERVED:
             return
-        message = self.source_alert or "the catalog serves this sweep's source"
+        differing = unserved(
+            {key: recipe.content_sha256 for key, recipe in self.recipes.items()},
+            self.authored,
+            self._selected_key,
+        )
+        if not differing:
+            event = SourceEvent.SERVED_PASS
+        elif (
+            self.source_serving is SourceServing.UNSERVED
+            and self.library_commit != self.source_watch.get("library_commit")
+        ):
+            event = SourceEvent.CATALOG_MOVED
+        else:
+            event = SourceEvent.UNSERVED_PASS
+        self._source_transition(event, differing)
+
+    def observe_source_wait(self) -> None:
+        """Every poll of the wait: the bounded wait's budget, said through ``waiting``."""
+        if self.source_serving is not SourceServing.UNSERVED:
+            return
+        now = self.clock.now()
+        wait = SweepWait(
+            reason=SweepWaitReason.CATALOG_SOURCE, detail=self.source_alert
+        )
+        progress = verdict.bounded_wait(
+            wait, self.source_watch, window=self.cfg.source_wait_seconds, now=now
+        )
+        if progress is Progress.WAIT_EXPIRED:
+            self._source_transition(
+                SourceEvent.WAIT_EXPIRED,
+                self.unserved_recipes,
+                expiry=verdict.wait_expiry(self.source_watch, now).model_dump(
+                    mode="json"
+                ),
+            )
+            return
+        self.waiting(wait.description, float(self.source_watch["wait_started_at"]))
+
+    def _source_transition(
+        self,
+        event: SourceEvent,
+        differing: tuple[Unserved, ...],
+        expiry: Mapping[str, Any] | None = None,
+    ) -> None:
+        before_state, before = self.source_serving, self.unserved_recipes
+        state = advance(before_state, event)
+        self.source_serving = state
+        if state is SourceServing.UNSERVED and before_state is not state:
+            self.source_watch = {
+                "wait_started_at": self.clock.now(),
+                "library_commit": self.library_commit,
+            }
+        self.unserved_recipes = differing if state is SourceServing.UNSERVED else ()
+        self.unserved_keys = frozenset(item.recipe for item in self.unserved_recipes)
+        if event is SourceEvent.UNSERVED_PASS and differing == before:
+            return  # the same wait, already recorded
+        if event is SourceEvent.SERVED_PASS and before_state is SourceServing.UNREAD:
+            return  # the catalog served the source from the first pass
+        commit = self.library_commit[:12] or "unknown"
+        status, reason, alert = {
+            SourceEvent.UNSERVED_PASS: ("waiting", self.source_alert, False),
+            SourceEvent.SERVED_PASS: (
+                "available",
+                f"library {commit} serves this sweep's source",
+                False,
+            ),
+            SourceEvent.CATALOG_MOVED: (
+                "available",
+                (
+                    f"the catalog moved to library {commit} without serving this "
+                    "sweep's source (a newer release, or the checkout is behind "
+                    "main): testing what the catalog serves"
+                ),
+                True,
+            ),
+            SourceEvent.WAIT_EXPIRED: (
+                "wait-expired",
+                (
+                    "source not served within bound "
+                    f"({self.cfg.source_wait_seconds:.0f}s): testing what library "
+                    f"{commit} serves; check the publish and `vonkctl recipe "
+                    "sync-status`, or update the sweep's source checkout"
+                ),
+                True,
+            ),
+        }[event]
         self.record_result(
             None,
             "catalog",
-            "waiting" if self.unserved_recipes else "available",
-            reason=message,
+            status,
+            reason=reason,
+            code=SweepWaitCode.BUDGET_EXHAUSTED
+            if event is SourceEvent.WAIT_EXPIRED
+            else None,
+            wait_expiry=expiry,
             library_commit=self.library_commit or None,
-            unserved=[
-                {"recipe": u.recipe, "served": u.served, "authored": u.authored}
-                for u in self.unserved_recipes
-            ]
-            or None,
+            unserved=digests(differing) or None,
         )
-        self.state.event(message)
+        self.state.event(reason)
+        if alert:
+            self.state.data["source_alert"] = (
+                f"CATALOG DOES NOT SERVE THE SOURCE: {reason} "
+                f"({len(differing)} recipe(s): "
+                + ", ".join(item.recipe for item in differing[:3])
+                + (" ..." if len(differing) > 3 else "")
+                + ")"
+            )
 
     def _reconcile_entry(self, recipe: Recipe, enrolled_sparks: int) -> None:
         """Testable is the enrolled topology; fewer lanes online now is a wait, never a skip."""
@@ -987,7 +1089,7 @@ class Sweep:
                 continue
             if not self._selected(recipe):
                 continue
-            if any(item.recipe == recipe.key for item in self.unserved_recipes):
+            if recipe.key in self.unserved_keys:
                 continue  # the catalog still serves other content than the source
             out.append(recipe)
         out.sort(
@@ -1641,7 +1743,7 @@ class Sweep:
         return len(keys)
 
     def _selected_key(self, key: str) -> bool:
-        return not self.cfg.only or any(word in key for word in self.cfg.only)
+        return selects(self.cfg.only, key)
 
     def _requeue_failed(self, key: str, why: str) -> None:
         """Back to pending; the failure stays in results.jsonl, which is only ever appended to."""
@@ -1788,6 +1890,7 @@ class Sweep:
                             # Eager clearing is useful, but is never a startup gate.
                             self.note_infra("clearing", str(error))
                     self.tick()
+                    self.observe_source_wait()
                     if self.done():
                         self.state.data.pop("pending_idle", None)
                         self.state.data["alerts"] = []
@@ -1851,7 +1954,6 @@ class Sweep:
         waiting = (
             external
             or self.paused
-            or bool(self.unserved_recipes)
             or self.clock.now()
             < max(
                 self.prefetcher.pressure_until,

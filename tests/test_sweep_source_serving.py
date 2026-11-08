@@ -14,7 +14,13 @@ from pathlib import Path
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
-from spark_sweep.source_serving import SourceServing, Unserved, advance, unserved
+from spark_sweep.source_serving import (
+    SourceEvent,
+    SourceServing,
+    Unserved,
+    advance,
+    unserved,
+)
 
 KEY = "vonk-forge/good"
 OLD = "c" * 64
@@ -81,26 +87,94 @@ def test_a_refreshed_proven_recipe_waits_for_the_catalog_then_is_retested(
     assert sweep.source_serving is SourceServing.SERVED
 
 
-def test_a_served_source_is_not_a_ceiling_and_absence_is_not_judged() -> None:
-    differing = (Unserved(KEY, OLD, NEW),)
-    # Only a complete pass decides.
-    assert (
-        advance(SourceServing.UNREAD, complete_pass=False, differing=differing)
-        is SourceServing.UNREAD
+def _first_load_at(fleet) -> float:
+    return next(
+        t
+        for t, (_, c) in zip(fleet.call_times, fleet.calls)
+        if c[:2] == ("profile", "add")
     )
-    assert (
-        advance(SourceServing.UNREAD, complete_pass=True, differing=differing)
-        is SourceServing.UNSERVED
+
+
+def _guard(clock, start: float) -> None:
+    def hang(now: float) -> None:
+        if now - start >= 20_000:
+            raise AssertionError("the sweep never finished")
+
+    clock.hooks.append(hang)
+
+
+def test_a_source_the_catalog_never_serves_is_waited_for_within_the_bound_only(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [FakeRecipe("good", ("1" * 64,), content=OLD)],
+        [FakeModel("1" * 64)],
+        gateway=gateway,
+        authored={KEY: NEW},
+        restore_owner=2,
     )
-    assert (
-        advance(SourceServing.UNSERVED, complete_pass=True, differing=())
-        is SourceServing.SERVED
+    start = clock.now()
+    _guard(clock, start)
+    assert sweep.run() == 0
+
+    # Nothing loaded within the bound; after it, the served content was tested.
+    assert _first_load_at(fleet) >= start + sweep.cfg.source_wait_seconds
+    entry = sweep.state.recipes[KEY]
+    assert entry["status"] == "passed" and entry["content_sha256"] == OLD
+    rows = [r for r in _rows(tmp_path) if r["step"] == "catalog" and "recipe" not in r]
+    assert [r["status"] for r in rows] == ["waiting", "wait-expired"]
+    expired = rows[-1]
+    assert expired["code"] == "sweep.wait_budget_exhausted"
+    assert expired["unserved"] == [{"recipe": KEY, "served": OLD, "authored": NEW}]
+    assert expired["wait_expiry"]["wait"]["reason"] == "catalog source"
+    assert "CATALOG DOES NOT SERVE THE SOURCE" in sweep.state.data["source_alert"]
+    # The run finished as usual: the owner's profile was loaded back last.
+    last = [(p, c) for p, c in fleet.calls if c[:2] == ("profile", "load")][-1]
+    assert last[0] == 2
+
+
+def test_a_catalog_newer_than_the_source_is_tested_without_waiting_the_bound(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    newer = "e" * 64
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [FakeRecipe("good", ("1" * 64,), content=OLD)],
+        [FakeModel("1" * 64)],
+        gateway=gateway,
+        authored={KEY: NEW},
     )
-    # Once served, a newer library (a merge during a long sweep) is followed, not awaited.
-    assert (
-        advance(SourceServing.SERVED, complete_pass=True, differing=differing)
-        is SourceServing.SERVED
-    )
+    start = clock.now()
+
+    def newer_release(now: float) -> None:
+        if now - start >= 120 and fleet.library_commit == "lib-commit-1":
+            fleet.recipes[KEY].content = newer  # the Controller took a newer release
+            fleet.library_commit = "lib-commit-2"
+
+    clock.hooks.append(newer_release)
+    _guard(clock, start)
+    assert sweep.run() == 0
+
+    assert _first_load_at(fleet) < start + sweep.cfg.source_wait_seconds
+    entry = sweep.state.recipes[KEY]
+    assert entry["status"] == "passed" and entry["content_sha256"] == newer
+    rows = [r for r in _rows(tmp_path) if r["step"] == "catalog" and "recipe" not in r]
+    assert [r["status"] for r in rows] == ["waiting", "available"]
+    assert rows[-1]["unserved"] == [{"recipe": KEY, "served": newer, "authored": NEW}]
+    assert sweep.state.data["source_alert"]
+
+
+def test_the_source_state_machine_and_what_is_judged() -> None:
+    S, E = SourceServing, SourceEvent
+    assert advance(S.UNREAD, E.UNSERVED_PASS) is S.UNSERVED
+    assert advance(S.UNREAD, E.SERVED_PASS) is S.SERVED
+    assert advance(S.UNSERVED, E.UNSERVED_PASS) is S.UNSERVED
+    for ending in (E.SERVED_PASS, E.CATALOG_MOVED, E.WAIT_EXPIRED):
+        assert advance(S.UNSERVED, ending) is S.SERVED
+    # Once following the catalog, newer library content is tested, never awaited.
+    for event in E:
+        assert advance(S.SERVED, event) is S.SERVED
     # A recipe on one side only, or outside --only, is not a difference.
     assert unserved(
         {KEY: OLD, "vonk-forge/listed-only": OLD, "vonk-forge/other": OLD},

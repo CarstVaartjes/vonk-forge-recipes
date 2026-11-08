@@ -503,6 +503,7 @@ class FakeFleet:
         self.library_faults: list[str | None] = []
         # The library's local cache state lags what the NAS holds (it keeps saying not_cached).
         self.library_lag = False
+        self.library_commit = "lib-commit-1"  # the library the catalog serves
         # Rows carry the library's assessment, as the real Controller's do when it has time.
         self.assessments = False
         # recipe key -> when the Controller stops holding it (see FakeRecipe.blocked_for)
@@ -1008,7 +1009,7 @@ class FakeFleet:
         return {
             name: [row(i) for i in page],
             "next_cursor": f"c{start + size}" if more else None,
-            "library": {"commit": "lib-commit-1", "version": "2.1.0"},
+            "library": {"commit": self.library_commit, "version": "2.1.0"},
         }
 
     def _recipe_row(self, r: FakeRecipe) -> dict[str, Any]:

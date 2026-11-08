@@ -9,6 +9,10 @@ nothing to do and ends having tested nothing.
 The comparison is by content identity: the ``document_sha256`` the library publishes for
 each recipe document, hashed once here from the authored file. A commit says nothing
 about content (a docs-only commit publishes nothing and changes no recipe).
+
+The wait is bounded (publish plus import), and it ends early when the catalog moves to
+another library without serving the source (the Controller took a newer release, or the
+checkout is behind main). Either way the sweep then tests what the catalog serves.
 """
 
 from __future__ import annotations
@@ -18,26 +22,41 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-from qualification.documents import recipe, recipe_digest
+from qualification.documents import recipe_key_digest
+
+# Publish (about 14 min on 2026-11-08) plus the Controller's import (under 2 min).
+SOURCE_WAIT_SECONDS = 15 * 60.0
 
 
 class SourceServing(StrEnum):
     """One sweep process's view of its source in the catalog (never persisted)."""
 
     UNREAD = "unread"  # no complete library pass yet
-    UNSERVED = "unserved"  # a complete pass serves other content for a selected recipe
-    SERVED = "served"  # a complete pass served the source; later library changes are followed
+    UNSERVED = "unserved"  # selected recipes wait for the catalog to serve the source
+    SERVED = "served"  # the sweep tests what the catalog serves, newer content included
 
 
-# The edges. SERVED is final for the process: after the catalog has caught up with the
-# source, a newer library (a merge during a long sweep) is tested as the catalog serves it.
-EDGES: Mapping[SourceServing, frozenset[SourceServing]] = {
-    SourceServing.UNREAD: frozenset(
-        {SourceServing.UNREAD, SourceServing.UNSERVED, SourceServing.SERVED}
-    ),
-    SourceServing.UNSERVED: frozenset({SourceServing.UNSERVED, SourceServing.SERVED}),
-    SourceServing.SERVED: frozenset({SourceServing.SERVED}),
+class SourceEvent(StrEnum):
+    UNSERVED_PASS = "unserved-pass"  # a complete pass serves other content
+    SERVED_PASS = "served-pass"  # a complete pass serves the source
+    CATALOG_MOVED = "catalog-moved"  # another library, still not the source
+    WAIT_EXPIRED = "wait-expired"  # not served within SOURCE_WAIT_SECONDS
+
+
+# The edges; any other (state, event) keeps the state. SERVED is final for the process.
+EDGES: Mapping[tuple[SourceServing, SourceEvent], SourceServing] = {
+    (SourceServing.UNREAD, SourceEvent.UNSERVED_PASS): SourceServing.UNSERVED,
+    (SourceServing.UNREAD, SourceEvent.SERVED_PASS): SourceServing.SERVED,
+    (SourceServing.UNSERVED, SourceEvent.UNSERVED_PASS): SourceServing.UNSERVED,
+    (SourceServing.UNSERVED, SourceEvent.SERVED_PASS): SourceServing.SERVED,
+    (SourceServing.UNSERVED, SourceEvent.CATALOG_MOVED): SourceServing.SERVED,
+    (SourceServing.UNSERVED, SourceEvent.WAIT_EXPIRED): SourceServing.SERVED,
 }
+
+
+def advance(state: SourceServing, event: SourceEvent) -> SourceServing:
+    """The one transition."""
+    return EDGES.get((state, event), state)
 
 
 @dataclass(frozen=True)
@@ -48,13 +67,17 @@ class Unserved:
 
 
 def authored_contents(root: Path) -> dict[str, str]:
-    """``publisher/slug`` to the content digest of each authored recipe, read once at start."""
+    """``publisher/slug`` to the content digest of each authored recipe, read once at start.
+
+    A file that cannot be read is not judged (the catalog decides for that recipe).
+    """
     contents: dict[str, str] = {}
     for path in sorted((root / "recipes").glob("*.json")):
-        identity = recipe(path.stem, root).identity
-        contents[f"{identity.publisher}/{identity.slug}"] = recipe_digest(
-            path.stem, root
-        )
+        try:
+            key, digest = recipe_key_digest(path.stem, root)
+        except (OSError, ValueError, KeyError, TypeError):
+            continue
+        contents[key] = digest
     return contents
 
 
@@ -76,14 +99,11 @@ def unserved(
     )
 
 
-def advance(
-    state: SourceServing, *, complete_pass: bool, differing: tuple[Unserved, ...]
-) -> SourceServing:
-    """The one transition: only a complete library pass decides."""
-    if not complete_pass:
-        return state
-    target = SourceServing.UNSERVED if differing else SourceServing.SERVED
-    return target if target in EDGES[state] else state
+def digests(differing: tuple[Unserved, ...]) -> list[dict[str, str]]:
+    return [
+        {"recipe": u.recipe, "served": u.served, "authored": u.authored}
+        for u in differing
+    ]
 
 
 def describe(differing: tuple[Unserved, ...], library_commit: str) -> str:
@@ -93,9 +113,7 @@ def describe(differing: tuple[Unserved, ...], library_commit: str) -> str:
     )
     more = f" and {len(differing) - 3} more" if len(differing) > 3 else ""
     return (
-        f"WAITING FOR THE CATALOG: library {library_commit[:12] or 'unknown'} does not "
-        f"serve this sweep's source for {len(differing)} recipe(s) ({shown}{more}); "
-        "these wait for the library publish and the Controller's import "
-        "(`vonkctl recipe sync-status`). If the catalog is the newer one, update "
-        "the sweep's source checkout."
+        f"library {library_commit[:12] or 'unknown'} does not serve this sweep's "
+        f"source for {len(differing)} recipe(s) ({shown}{more}); they wait for the "
+        "library publish and the Controller's import (`vonkctl recipe sync-status`)"
     )
