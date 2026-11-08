@@ -387,8 +387,12 @@ class Sweep:
         # This pass's free Sparks that no ready recipe was placed on, and why.
         self.fit_holds: dict[str, str] = {}
         self._skew_checked_at = float("-inf")
-        self.vk.recovery = self
-        self._contract_check = threading.Lock()
+        self.vk.observer = self
+        # Written by worker threads (through ``Vonkctl.run``), read by the main loop only.
+        self._contract_lock = threading.Lock()
+        self._mismatched: set[tuple[str, ...]] = set()
+        self._mismatch_pending = False
+        self._mismatch_healed = False
         self.library_commit = ""
         self.rate = policy.RateTracker()
         self.rate.rate = float(state.data["rate"].get("ema", 0.0))
@@ -1587,10 +1591,33 @@ class Sweep:
         previous.update(**publication, seen_at=self.clock.now())
 
     def check_release(self, now: float) -> None:
+        with self._contract_lock:
+            healed = self._mismatch_healed and not self._mismatched
+            self._mismatch_healed = False
+            pending = self._mismatch_pending
+        if healed:
+            self.clear_infra(policy.CLIENT_CONTRACT)
+        # A typed contract mismatch asks for the client check now (at most one per
+        # ``INFRA_BASE``, however many calls met it); otherwise the normal cadence.
+        if pending and now - self.release_at >= INFRA_BASE:
+            with self._contract_lock:
+                self._mismatch_pending = False
+            self.release_at = now
+            if not self.check_client():
+                self._contract_alert()
+            return
         if now - self.release_at < self.cfg.release_seconds:
             return
         self.release_at = now
         self.check_client()
+
+    def _contract_alert(self) -> None:
+        text = (
+            "client.contract_mismatch: the Controller runs another control contract and no "
+            "compatible vonkctl update was applied (--allow-version-skew, nothing published, or "
+            "the update failed). Not a recipe failure: work waits. Run `vonkctl update --apply`."
+        )
+        self.note_infra(policy.CLIENT_CONTRACT, text, dependency=text, escalated=True)
 
     def requeue_for_changed_owner(self) -> None:
         observations = self._component_observations()
@@ -2600,37 +2627,21 @@ class Sweep:
         if not typed and ("protocol_invalid" in message or "OpenAPI" in message):
             self._diagnose_skew()
 
-    def on_contract_mismatch(self) -> bool:
-        """The typed ``client.contract_mismatch``: the one client check, now; True if it updated.
+    def contract_mismatch(self, command: tuple[str, ...]) -> None:
+        """Any thread: a Controller command met the typed ``client.contract_mismatch``.
 
-        ``check_client`` honours ``allow_version_skew`` and requeues for the changed client. A
-        check already running (it is what reads the Controller) is not asked again.
+        Only a flag is set; ``check_release`` on the main loop owns the answer.
         """
-        if not self._contract_check.acquire(blocking=False):
-            return False
-        try:
-            self.release_at = self.clock.now()
-            if self.check_client():
-                return True
-        finally:
-            self._contract_check.release()
-        self._contract_alert("no compatible vonkctl update was applied")
-        return False
+        with self._contract_lock:
+            self._mismatched.add(command)
+            self._mismatch_pending = True
 
-    def on_contract_unresolved(self) -> None:
-        self._contract_alert(
-            "the Controller still names another contract after the update"
-        )
-
-    def on_call_ok(self) -> None:
-        self.clear_infra(policy.CLIENT_CONTRACT)
-
-    def _contract_alert(self, why: str) -> None:
-        text = (
-            f"client.contract_mismatch: {why} (--allow-version-skew, nothing published, or the "
-            "update failed). Not a recipe failure: work waits. Run `vonkctl update --apply`."
-        )
-        self.note_infra(policy.CLIENT_CONTRACT, text, dependency=text, escalated=True)
+    def controller_answered(self, command: tuple[str, ...]) -> None:
+        """Any thread: a command succeeded. Only one that met the mismatch heals it."""
+        with self._contract_lock:
+            if command in self._mismatched:
+                self._mismatched.discard(command)
+                self._mismatch_healed = not self._mismatched
 
     def _diagnose_skew(self) -> None:
         """protocol_invalid means vonkctl is older than the Controller: say so, loudly, once in a while."""

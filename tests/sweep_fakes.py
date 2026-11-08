@@ -895,7 +895,7 @@ class FakeFleet:
 
     def _error(self, code: str, detail: str) -> tuple[int, dict[str, Any]]:
         if code == "client.contract_mismatch":
-            # The document vonk-forge #2170 emits, not a reshaped copy.
+            # The recorded vonkctl document (see tests/test_sweep_contract_mismatch.py).
             return 2, json.loads(CONTRACT_MISMATCH_FIXTURE.read_text())
         return 2, {
             "error": detail,
