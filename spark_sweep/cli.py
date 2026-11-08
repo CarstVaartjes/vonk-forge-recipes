@@ -24,7 +24,7 @@ from .own_pulls import REPOSITORY
 from .plan import make_plan, render_plan
 from .prefetch import PrefetchConfig
 from .report import build_report, export_evidence, render_report, saved_qualification
-from .run import Clock, Sweep, SweepConfig
+from .run import Clock, Sweep, SweepConfig, selects
 from .smoke import HttpConfig
 from .source_serving import authored_contents, describe, unserved
 from .state import ResultsLog, State, StateLock, StateLocked
@@ -341,14 +341,12 @@ def main(
 
     vk = vonkctl_factory(args.vonkctl)
     defs = definitions or Definitions.load()
-    # The recipe content this source authored, hashed once: the catalog must serve it.
-    authored = authored if authored is not None else authored_contents(SOURCE_ROOT)
     if args.command == "plan":
         recipes, commit = fetch_recipes(vk)
         differing = unserved(
             {r.key: r.content_sha256 for r in recipes},
-            authored,
-            lambda key: not args.only or any(word in key for word in args.only),
+            authored if authored is not None else authored_contents(SOURCE_ROOT),
+            lambda key: selects(args.only, key),
         )
         if differing:
             print(describe(differing, commit), file=sys.stderr)
@@ -379,7 +377,9 @@ def main(
         )
     state = State.load(state_path)
     try:
-        code = Sweep(config, vk, state, results, defs, clock, authored=authored).run()
+        # The recipe content this source authored, hashed once: the catalog must serve it.
+        source = authored if authored is not None else authored_contents(SOURCE_ROOT)
+        code = Sweep(config, vk, state, results, defs, clock, authored=source).run()
     except (RuntimeError, VonkctlError, OSError) as error:
         print(f"sweep-recipes: {error}", file=sys.stderr)
         return 2
