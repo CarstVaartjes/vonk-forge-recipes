@@ -1,8 +1,10 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
     "reasoning",
-    "text-generation"
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact Intel AutoRound INT4 (group size 128) quantization of Qwen3.5-122B-A10B; Intel states to follow the licence of the original model.",
   "family_title": "Qwen",

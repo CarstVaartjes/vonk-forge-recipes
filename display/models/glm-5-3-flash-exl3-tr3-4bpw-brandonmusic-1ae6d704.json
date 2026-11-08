@@ -3,7 +3,9 @@
     "chat",
     "code-generation",
     "image-understanding",
+    "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Public brandonmusic copy of the GLM 5.3 Flash EXL3 TR3 4bpw checkpoint at the revision Reederey87's kit names: the weights, configuration, tokenizer, chat template, index and processor files are byte-identical to the Mia-AiLab repository this family was catalogued from (that repository returns HTTP 401 since 2026-10-03). Drafter checkpoints are selected separately by each recipe.",
