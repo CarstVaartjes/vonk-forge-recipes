@@ -23,7 +23,6 @@ from the backfill, and a recipe nobody touches is not this guard's concern.
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 from pathlib import Path
@@ -79,8 +78,8 @@ def changed_slugs(paths: list[str], root: Path = ROOT) -> list[str]:
         for path in sorted((root / "recipes").glob("*.json")):
             if not has_recipe_api(path.stem, root):
                 continue
-            models = json.loads(path.read_text(encoding="utf-8")).get("models") or []
-            if models and models[0]["model"]["slug"] in displays:
+            models = recipe(path.stem, root).models
+            if models and models[0].model.slug in displays:
                 slugs.add(path.stem)
     return sorted(slugs)
 
