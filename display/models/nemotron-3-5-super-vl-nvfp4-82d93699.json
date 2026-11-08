@@ -1,5 +1,6 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
     "reasoning",
     "text-generation",

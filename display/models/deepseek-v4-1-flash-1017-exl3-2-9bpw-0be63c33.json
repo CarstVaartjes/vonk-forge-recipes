@@ -3,7 +3,9 @@
     "chat",
     "code-generation",
     "image-understanding",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "LibertAIDAI/DeepSeek-V4.1-Flash-1017-EXL3-2.9bpw at immutable revision 9a85740a8dce89e858c2113c4d04b6f8fcd33999. Source model inputs for the creator runtime; physical Spark acceptance is unmeasured.",
   "family_title": "DeepSeek",
@@ -20,8 +22,8 @@
     "url": "https://huggingface.co/LibertAIDAI/DeepSeek-V4.1-Flash-1017-EXL3-2.9bpw/blob/9a85740a8dce89e858c2113c4d04b6f8fcd33999/LICENSE"
   },
   "modalities": [
-    "text",
-    "image"
+    "image",
+    "text"
   ],
   "model_title": "DeepSeek V4.1 Flash 1017",
   "tags": [

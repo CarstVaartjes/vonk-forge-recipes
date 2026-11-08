@@ -1,7 +1,10 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
+    "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Official NVIDIA ModelOpt NVFP4 checkpoint of Z.ai GLM 5.3 Flash (NVFP4 routed experts and dense MLP, FP8 KV cache metadata, multimodal).",
