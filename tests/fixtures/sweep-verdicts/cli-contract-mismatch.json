@@ -1,0 +1,16 @@
+{
+  "code": "client.contract_mismatch",
+  "decision": "exit",
+  "detail": "control API response does not match the OpenAPI schema: $.next_cursor: violates anyOf [...]; this vonkctl and the Controller run different control contracts",
+  "endpoint": "/api/recipe/library",
+  "error": "control API response does not match the OpenAPI schema: $.next_cursor: violates anyOf [...]; this vonkctl and the Controller run different control contracts",
+  "error_type": "control_api",
+  "http_status": 200,
+  "operation": "GET /api/recipe/library",
+  "recovery_actions": [
+    "vonkctl update --apply"
+  ],
+  "retryable": false,
+  "schema_version": 2,
+  "source": "protocol"
+}
