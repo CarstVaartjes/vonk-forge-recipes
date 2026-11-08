@@ -164,9 +164,15 @@ by `mode`, and every field is written down, "not applicable" included (`false`,
   `endpoints`.
 - `reasoning` is `{"kind": "none"}`, `{"kind": "always-on", "effort": ...}` or
   `{"kind": "switch", "via", "keys", "on", "off", "default": "on"|"off"|"model",
-  "effort": ...}`; `effort` is `null` or `{via, key, levels, default}` with the
-  default one of the levels. State what this route's engine and template do, not
-  what the model family does.
+  "effort": ...}`. `always-on` means no request turns reasoning off, also when
+  the checkpoint decides per turn and a thinking flag only lowers the effort.
+  `effort` is `null`, `{"kind": "levels", via, key, levels, default}` with the
+  default one of the levels, or `{"kind": "text", via, key, default}` when the
+  template takes any string (`default` `null`: with none set, the template writes
+  no effort). List only the names a client picks; an engine's numeric scale
+  behind them, or a boolean prompt flag, is not an effort. A `text` effort needs
+  a platform on contracts 4.7.0 (`tools/check-platform-contracts`). State what
+  this route's engine and template do, not what the model family does.
 - `tools` is `{"kind": "none"}` or `{"kind": "supported", "tool_choice": [...],
   "parallel_calls": bool}`; an empty `tool_choice` means the field is only a
   prompt nudge.
@@ -247,7 +253,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.6.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.7.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge

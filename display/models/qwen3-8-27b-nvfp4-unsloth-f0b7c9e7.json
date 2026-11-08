@@ -3,6 +3,7 @@
     "chat",
     "image-understanding",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Unsloth NVFP4 quantization of Qwen3.8 27B with the MTP head baked in, vision-language. Apache-2.0.",
