@@ -72,7 +72,7 @@ from .catalog import (
     serving_run,
 )
 from .chat_probe import ChatFacts, chat_facts
-from .definitions import Definitions
+from .definitions import CaseRenderError, Definitions
 from .evidence_publisher import EvidencePublisher
 from .finalization import FinalAction, Finalization
 from .identity import (
@@ -114,6 +114,7 @@ from .report import write_status
 from .smoke import (
     HttpConfig,
     SmokeResult,
+    case_render_failure,
     smoke_readiness,
     smoke_service,
 )
@@ -3162,7 +3163,7 @@ class Sweep:
         then runs as written.
         """
         api = self.defs.recipe_api(recipe.slug)
-        if self.defs.service_cases(recipe.key, alias) or api is None:
+        if self.defs.has_service_cases(recipe.key) or api is None:
             return None
         definition = self._ran_recipe(recipe)
         if definition is None:
@@ -3196,6 +3197,13 @@ class Sweep:
         self.smoke_stops.pop(key, None)
         try:
             result = future.result()
+        except (
+            CaseRenderError
+        ) as error:  # the recipe's own gap: a typed failure, no retry
+            self._record_failure(
+                key, case_render_failure(error), slot.get("operation_id")
+            )
+            return
         except Exception as error:  # noqa: BLE001 - a bug in one smoke must not stop an unattended sweep
             self._smoke_crashed(key, error)
             return
