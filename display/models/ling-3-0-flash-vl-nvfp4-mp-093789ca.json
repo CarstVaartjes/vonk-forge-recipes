@@ -2,6 +2,7 @@
   "capabilities": [
     "chat",
     "image-understanding",
+    "reasoning",
     "text-generation",
     "tool-use"
   ],

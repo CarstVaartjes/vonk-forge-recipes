@@ -38,6 +38,7 @@
     },
     "ApiReasoningAlwaysOn": {
       "additionalProperties": false,
+      "description": "No request turns reasoning off; the checkpoint may still skip it on a turn.",
       "properties": {
         "kind": {
           "const": "always-on",
@@ -47,12 +48,27 @@
         "effort": {
           "anyOf": [
             {
-              "$ref": "#/$defs/ApiReasoningEffort"
+              "discriminator": {
+                "mapping": {
+                  "levels": "#/$defs/ApiReasoningEffortLevels",
+                  "text": "#/$defs/ApiReasoningEffortText"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/ApiReasoningEffortLevels"
+                },
+                {
+                  "$ref": "#/$defs/ApiReasoningEffortText"
+                }
+              ]
             },
             {
               "type": "null"
             }
-          ]
+          ],
+          "title": "Effort"
         }
       },
       "required": [
@@ -62,9 +78,15 @@
       "title": "ApiReasoningAlwaysOn",
       "type": "object"
     },
-    "ApiReasoningEffort": {
+    "ApiReasoningEffortLevels": {
       "additionalProperties": false,
+      "description": "The request names one of ``levels`` at ``key``; another value may be refused.\n\n``default`` is the level in force when the request names none. Only the\nnames a client chooses from are listed: an engine's own numeric scale behind\nthem (an integer or float alias) is not.",
       "properties": {
+        "kind": {
+          "const": "levels",
+          "title": "Kind",
+          "type": "string"
+        },
         "via": {
           "enum": [
             "chat_template_kwargs",
@@ -98,12 +120,59 @@
         }
       },
       "required": [
+        "kind",
         "via",
         "key",
         "levels",
         "default"
       ],
-      "title": "ApiReasoningEffort",
+      "title": "ApiReasoningEffortLevels",
+      "type": "object"
+    },
+    "ApiReasoningEffortText": {
+      "additionalProperties": false,
+      "description": "The route takes any string at ``key`` (the template writes it into the prompt).\n\n``default`` is the text in force when the request sets none; ``null`` when\nthen no effort is written and the checkpoint decides.",
+      "properties": {
+        "kind": {
+          "const": "text",
+          "title": "Kind",
+          "type": "string"
+        },
+        "via": {
+          "enum": [
+            "chat_template_kwargs",
+            "top_level"
+          ],
+          "title": "Via",
+          "type": "string"
+        },
+        "key": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "default": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Default"
+        }
+      },
+      "required": [
+        "kind",
+        "via",
+        "key",
+        "default"
+      ],
+      "title": "ApiReasoningEffortText",
       "type": "object"
     },
     "ApiReasoningNone": {
@@ -195,12 +264,27 @@
         "effort": {
           "anyOf": [
             {
-              "$ref": "#/$defs/ApiReasoningEffort"
+              "discriminator": {
+                "mapping": {
+                  "levels": "#/$defs/ApiReasoningEffortLevels",
+                  "text": "#/$defs/ApiReasoningEffortText"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/ApiReasoningEffortLevels"
+                },
+                {
+                  "$ref": "#/$defs/ApiReasoningEffortText"
+                }
+              ]
             },
             {
               "type": "null"
             }
-          ]
+          ],
+          "title": "Effort"
         }
       },
       "required": [

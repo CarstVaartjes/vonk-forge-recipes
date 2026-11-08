@@ -1,5 +1,13 @@
 {
-  "capabilities": [],
+  "capabilities": [
+    "audio-understanding",
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use",
+    "video-understanding"
+  ],
   "description": "Muse Spark Open 816B-A42B immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "Muse Spark",
   "identity": {
@@ -15,7 +23,10 @@
     "url": "https://huggingface.co/unsloth/Muse-Spark-Open-816B-A42B-NVFP4/blob/fc6908f53c6882d4ec48fca5ba144e41d21e1f92/LICENSE.md"
   },
   "modalities": [
-    "text"
+    "audio",
+    "image",
+    "text",
+    "video"
   ],
   "model_title": "Muse Spark Open 816B-A42B",
   "tags": [
