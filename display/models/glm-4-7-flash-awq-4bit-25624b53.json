@@ -2,7 +2,9 @@
   "capabilities": [
     "chat",
     "code-generation",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "cyankiwi AWQ 4-bit (compressed-tensors) quantization of Z.ai GLM-4.7-Flash, a 30B-A3B MoE.",
   "family_title": "GLM",
