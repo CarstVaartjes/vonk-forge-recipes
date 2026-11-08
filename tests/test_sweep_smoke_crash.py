@@ -107,3 +107,66 @@ def test_definitions_hold_their_fixtures_when_the_tree_changes(
     shutil.rmtree(root / "fixtures")
     cases = definitions.service_cases(DIFFUSIONGEMMA, "alias")
     assert any(c["id"] == "V_RED" for c in cases)
+
+
+def _crashing_sweep(
+    tmp_path: Path,
+    gateway: Gateway,
+    monkeypatch: pytest.MonkeyPatch,
+    messages: list[str],
+) -> tuple[Any, Any, list[int]]:
+    """A sweep whose smoke raises ``KeyError(message)`` for each message in turn, then passes."""
+    recipe = FakeRecipe("r")
+    sweep, _, clock = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
+    real_smoke = run.smoke_service
+    calls: list[int] = []
+
+    def smoke(*args: Any) -> Any:
+        calls.append(1)
+        if len(calls) <= len(messages):
+            raise KeyError(messages[len(calls) - 1])
+        return real_smoke(*args)
+
+    monkeypatch.setattr(run, "smoke_service", smoke)
+    return sweep, clock, calls
+
+
+def _tick_until(sweep: Any, clock: Any, done: Any) -> None:
+    for _ in range(6000):
+        sweep.tick()
+        if done():
+            return
+        clock.sleep(sweep.cfg.poll_seconds)
+    raise AssertionError("the sweep never reached the expected state")
+
+
+def test_three_identical_smoke_crashes_are_one_fail_with_evidence(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sweep, clock, calls = _crashing_sweep(tmp_path, gateway, monkeypatch, ["x"] * 9)
+    _tick_until(
+        sweep,
+        clock,
+        lambda: any(r.get("disposition") == "fail" for r in _rows(tmp_path)),
+    )
+    for _ in range(300):  # no further retries after the verdict
+        sweep.tick()
+        clock.sleep(sweep.cfg.poll_seconds)
+
+    (failed,) = [r for r in _rows(tmp_path) if r.get("disposition") == "fail"]
+    assert len(calls) == run.IDENTICAL_EXIT_LIMIT
+    assert failed["evidence"]["identical_exits"] == run.IDENTICAL_EXIT_LIMIT
+    assert failed["evidence"]["type"] == "KeyError"
+    assert sweep.state.status("vonk-forge/r") != "pending"
+
+
+def test_a_different_smoke_crash_restarts_the_count(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sweep, clock, calls = _crashing_sweep(
+        tmp_path, gateway, monkeypatch, ["a", "a", "b", "b"]
+    )
+    _tick_until(sweep, clock, lambda: sweep.state.status("vonk-forge/r") == "passed")
+
+    assert len(calls) == 5
+    assert not [r for r in _rows(tmp_path) if r.get("disposition") == "fail"]
