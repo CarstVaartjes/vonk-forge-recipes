@@ -271,6 +271,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         ),
         "alerts": list(data.get("alerts") or [])
         + ([sweep.stall_reason] if sweep.stall_reason else [])
+        + ([sweep.source_alert] if sweep.source_alert else [])
         + ([sweep.evidence_publisher.alert] if sweep.evidence_publisher.alert else [])
         + access_alerts(data["downloads"].values())
         + [
