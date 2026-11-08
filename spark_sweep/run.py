@@ -73,6 +73,7 @@ from .catalog import (
     serving_run,
 )
 from .chat_probe import ChatFacts, chat_facts
+from .contract_recovery import ContractRecovery
 from .definitions import CaseRenderError, Definitions
 from .evidence_publisher import EvidencePublisher
 from .finalization import FinalAction, Finalization
@@ -387,6 +388,14 @@ class Sweep:
         # This pass's free Sparks that no ready recipe was placed on, and why.
         self.fit_holds: dict[str, str] = {}
         self._skew_checked_at = float("-inf")
+        self.vk.recovery = ContractRecovery(
+            self.clock.now,
+            lambda text: self.note_infra(
+                "client-contract", text, dependency=text, escalated=True
+            ),
+            lambda: self.clear_infra("client-contract"),
+            self._client_updated,
+        )
         self.library_commit = ""
         self.rate = policy.RateTracker()
         self.rate.rate = float(state.data["rate"].get("ema", 0.0))
@@ -2587,8 +2596,22 @@ class Sweep:
         """The sweep cannot observe the Controller (outage, 502/503, protocol or version skew)."""
         self.blind = True
         self.note_infra("observe", message)
+        # The typed ``client.contract_mismatch`` is answered in ``Vonkctl.run`` (``ContractRecovery``);
+        # this is the older client's untyped ``protocol_invalid``.
         if "protocol_invalid" in message or "OpenAPI" in message:
             self._diagnose_skew()
+
+    def _client_updated(self) -> None:
+        """The contract recovery replaced vonkctl: record the new build like ``check_client``."""
+        self.state.event(
+            "vonkctl updated after client.contract_mismatch; retrying the call"
+        )
+        version = self.vk.run("--version")
+        if version.ok and isinstance(version.document, dict):
+            self.state.data["client"] = {
+                k: version.document.get(k)
+                for k in ("version", "source_sha", "control_contract_sha256")
+            }
 
     def _diagnose_skew(self) -> None:
         """protocol_invalid means vonkctl is older than the Controller: say so, loudly, once in a while."""
