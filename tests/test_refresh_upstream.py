@@ -1098,6 +1098,161 @@ class NeverDowngradeTests(unittest.TestCase):
         self.assertTrue(classify(result.items[0].comparison))
 
 
+class ImageLabelClaimTests(unittest.TestCase):
+    """The revision label of an adapter built FROM a digest-pinned image is a claim about
+    that image, never a git pin: only a new image digest (which records its own build
+    commit) may move it."""
+
+    DOCKERFILE = (
+        "FROM ghcr.io/ggml-org/llama.cpp@sha256:" + "e" * 64 + "\n"
+        'LABEL org.opencontainers.image.source="https://github.com/ggml-org/llama.cpp" \\\n'
+        f'      org.opencontainers.image.revision="{OLD}"\n'
+        "COPY verify-runtime.sh /opt/vonk/verify-runtime.sh\n"
+    )
+
+    def collect(self, directory: Path, asked: list[str]):
+        recipe = {
+            "identity": {"slug": "recipe"},
+            "release": {"version": "1.0.0", "released_at": "2026-01-01"},
+            "models": [],
+            "execution": {"build": {"context": {"path": "adapter"}}},
+        }
+        catalog = refresh.Catalog(directory, recipes={"recipe": recipe})
+
+        def targets(provider: str, repo: str):
+            asked.append(repo)
+            return refresh.Target(
+                provider, repo, NEW, "2026-11-08", "b11200", "b11200", "u"
+            )
+
+        with patch(
+            "refresh_upstream.compare_commits",
+            return_value=refresh.Comparison("ahead", [], [], False, "u"),
+        ):
+            return refresh.collect_items(catalog, "recipe", object(), targets)
+
+    def adapter(self, root: Path, dockerfile: str, manifest: bool = False) -> None:
+        directory = root / "adapter"
+        directory.mkdir()
+        (directory / "Dockerfile").write_text(dockerfile)
+        (directory / "verify-runtime.sh").write_text("#!/bin/sh\n")
+        if manifest:
+            (directory / "vendored-upstream.json").write_text(
+                json.dumps({"ours": ["verify-runtime.sh"]})
+            )
+
+    def test_newer_release_with_unchanged_digest_proposes_nothing(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.adapter(root, self.DOCKERFILE)
+            asked: list[str] = []
+            result = self.collect(root, asked)
+            self.assertEqual(result.items, [])
+            self.assertFalse(result.drifted)
+            self.assertEqual(asked, [])
+            self.assertIn("describes the digest-pinned image", result.evidence[0])
+
+    def test_pin_the_build_uses_is_still_followed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            used = self.DOCKERFILE + f"RUN git checkout {OLD}\n"
+            for name, dockerfile, manifest in (
+                ("commit used by the build", used, False),
+                ("manifest declares the pin", self.DOCKERFILE, True),
+                (
+                    "not an image of the repository",
+                    self.DOCKERFILE.replace("ggml-org/llama.cpp@", "nvcr.io/cuda@"),
+                    False,
+                ),
+                (
+                    "image not pinned by digest",
+                    self.DOCKERFILE.replace("@sha256:" + "e" * 64, ":latest"),
+                    False,
+                ),
+            ):
+                with self.subTest(name):
+                    shutil.rmtree(root / "adapter", ignore_errors=True)
+                    self.adapter(root, dockerfile, manifest)
+                    result = self.collect(root, [])
+                    self.assertEqual([i.kind for i in result.items], ["adapter"])
+
+    def test_twin_label_and_notice_do_not_make_the_pin_used(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.adapter(
+                root,
+                self.DOCKERFILE.replace(
+                    f'revision="{OLD}"',
+                    f'revision="{OLD}" \\\n      io.vonk.vllm.build-commit="{OLD}"',
+                ),
+            )
+            (root / "adapter" / "NOTICE").write_text(
+                f"Runtime https://github.com/ggml-org/llama.cpp/tree/{OLD} (MIT).\n"
+            )
+            asked: list[str] = []
+            result = self.collect(root, asked)
+            self.assertEqual(result.items, [])
+            self.assertEqual(asked, [])
+
+    def test_no_catalog_adapter_of_the_shape_moves_with_a_release(self) -> None:
+        # Selected by shape alone, independently of image_label_claim.
+        catalog = refresh.Catalog.load(ROOT)
+        covered = 0
+        for recipe_id, recipe in catalog.recipes.items():
+            directory = ROOT / recipe["execution"]["build"]["context"]["path"]
+            pin = refresh.adapter_pin(ROOT, recipe)
+            if (
+                pin is None
+                or pin.derived
+                or (directory / "vendored-upstream.json").is_file()
+            ):
+                continue
+            name = pin.repo.rsplit("/", 1)[-1].lower()
+            images = [
+                m["image"]
+                for m in refresh.kit_pins.FROM_LINE.finditer(
+                    (directory / "Dockerfile").read_text(encoding="utf-8")
+                )
+            ]
+            if not any(
+                refresh.kit_pins.split_image(i)[2] and name in i.lower() for i in images
+            ):
+                continue
+            if refresh.adapter_usage(directory, pin.repo, pin.commit) != (set(), False):
+                continue
+            source = refresh.source_pin(recipe)
+            if source is not None and source[1].lower() == pin.repo.lower():
+                continue  # the source path owns the pin (a separate class)
+            covered += 1
+            with self.subTest(recipe_id):
+                alone = {
+                    **recipe,
+                    "models": [],
+                    "provenance": {
+                        k: v
+                        for k, v in recipe["provenance"].items()
+                        if k != "source_reference"
+                    },
+                }
+                asked: list[str] = []
+
+                def targets(provider: str, repo: str, asked=asked):
+                    asked.append(repo)
+                    return refresh.Target(
+                        provider, repo, NEW, "2026-11-08", None, None, "u"
+                    )
+
+                result = refresh.collect_items(
+                    refresh.Catalog(ROOT, recipes={recipe_id: alone}),
+                    recipe_id,
+                    object(),
+                    targets,
+                )
+                self.assertEqual(result.items, [])
+                self.assertEqual(asked, [])
+        self.assertGreater(covered, 0)
+
+
 class ReleaseTests(unittest.TestCase):
     recipe: ClassVar[dict[str, object]] = {
         "release": {"version": "1.0.0", "released_at": "2026-06-01"}

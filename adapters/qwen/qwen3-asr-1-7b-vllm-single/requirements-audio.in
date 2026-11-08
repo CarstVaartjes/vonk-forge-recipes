@@ -1,0 +1,11 @@
+# vLLM's `audio` extra (vllm/setup.py at v0.32.0: av, scipy, soundfile, soxr,
+# mistral_common[audio]), which the Qwen3-ASR README installs with `uv pip install "vllm[audio]"`.
+# The immutable vLLM 0.32.0 base does not install it, so the extra is added here, limited to the
+# packages the extra names. mistral_common is already in the base (vLLM's own requirement) and its
+# `audio` extra is soundfile and soxr, both listed. The versions are the ones the Nemotron 3.5
+# Transcribe recipe already locks on this same base (av from its model card, the rest from NeMo's
+# uv.lock), so the install is the one that base has built with.
+av==19.0.2
+scipy==1.17.1
+soundfile==0.13.1
+soxr==1.0.0

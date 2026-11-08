@@ -1,5 +1,8 @@
 {
-  "capabilities": [],
+  "capabilities": [
+    "chat",
+    "text-generation"
+  ],
   "description": "Hy-Memory-30B-A3B immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "Hy Memory",
   "identity": {

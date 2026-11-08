@@ -1,9 +1,11 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
     "image-understanding",
     "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Exact public Vontra MLX 4-bit (group size 64) conversion of Qwen3.8-27B with its vision tower, for TensorFold.",
