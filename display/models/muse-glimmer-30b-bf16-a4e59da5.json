@@ -1,7 +1,9 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
     "image-understanding",
+    "reasoning",
     "text-generation",
     "tool-use"
   ],

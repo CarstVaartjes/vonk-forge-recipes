@@ -22,6 +22,7 @@ import pytest
 from spark_sweep import policy, verdict
 from spark_sweep.lifecycle import ACTIVE, STATES, TERMINAL, WAITING, RecipeStatus
 from spark_sweep.verdict import Disposition
+from spark_sweep.vonkctl import CLIENT_CONTRACT_MISMATCH
 
 ROOT = Path(__file__).resolve().parents[1]
 SWEEP = [*sorted((ROOT / "spark_sweep").glob("*.py")), ROOT / "tools/sweep-recipes"]
@@ -460,6 +461,7 @@ def test_verdict_codes_match_the_published_enums() -> None:
         *policy.CAPACITY_CODES,
         *verdict.CLIENT_WAIT_DECISIONS,
         verdict.CLIENT_EXIT_DECISION,
+        CLIENT_CONTRACT_MISMATCH,
     }
     assert used <= words, sorted(used - words)
 
@@ -482,7 +484,7 @@ def test_the_vocabulary_sources_pin_a_vonk_forge_commit() -> None:
 
 
 def test_every_code_class_word_is_a_published_word_or_named_here() -> None:
-    published = {w for n in _BLOCKER_LISTS for w in _vocabulary()[n]}
+    published = {w for n in (*_BLOCKER_LISTS, "ClientCode") for w in _vocabulary()[n]}
     # Not vonk-forge words: the sweep's own download-space and transport classes.
     own = {"storage.insufficient_capacity", "controller.transport_timeout"}
     keys = set(policy._CODE_CLASSES) - set(policy.RECIPE_FAILURE_CODES) - own

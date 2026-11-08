@@ -34,6 +34,7 @@ from vonk_forge_contracts.sweep import (
 from .auth_contract import SmokeAuthClass
 from .catalog import Model, Recipe
 from .lifecycle import LifecycleState
+from .vonkctl import CLIENT_CONTRACT_MISMATCH
 
 Boost = Callable[[Recipe], float]
 
@@ -541,6 +542,9 @@ _CHILD_PHASE = {
     "final_verify": "start",
     "verify": "start",
 }
+#: The sweep's own vonkctl speaks another control contract than the Controller: nobody's recipe
+#: verdict, a wait until the client is updated (``Sweep.check_release``).
+CLIENT_CONTRACT = "client-contract"
 #: The run executed another recipe revision than the requested one: the platform's fault.
 REVISION_MISMATCH = "platform.revision_mismatch"
 # The one table of recipe-data codes, for CLI errors and Controller failures alike:
@@ -597,6 +601,7 @@ _CODE_CLASSES = {
     **dict.fromkeys(REVIEW_FINAL_CODES, FIT),
     "storage.insufficient_capacity": "capacity",
     "controller.transport_timeout": "network",
+    CLIENT_CONTRACT_MISMATCH: CLIENT_CONTRACT,
 }
 _FIXED_CLASS = {"timeout": "timeout", "readiness": "readiness"}
 # Only typed expiry/revocation is renewable; route and other auth denials are final.
