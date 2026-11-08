@@ -301,6 +301,13 @@ work. Fresh fleet/ownership facts and security review still govern new loads.
 See `tests/test_sweep_wait_budget.py`, `tests/test_sweep_copy.py`,
 `tests/test_sweep_stalled_work.py`, `tests/test_sweep_noblock.py`.
 
+Until a complete library pass serves the recipe content of the sweep's own source
+checkout (the authored document digest), each selected recipe whose served digest
+differs waits: it is not tested, the run does not end, and the wait is a results
+row and a status alert. A publish that has succeeded but not yet been imported by
+the Controller is such a wait. Once served, newer library content is followed
+(`spark_sweep/source_serving.py`, `tests/test_sweep_source_serving.py`).
+
 Use the typed `Disposition` and `RecipeVerdict` contracts; never guess a recipe
 fault from arbitrary error text:
 

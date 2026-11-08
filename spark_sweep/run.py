@@ -119,6 +119,7 @@ from .smoke import (
     smoke_service,
 )
 from .smoke_job import job_budget_seconds, smoke_job
+from .source_serving import SourceServing, Unserved, advance, describe, unserved
 from .state import ResultsLog, State, StateLock
 from .tolerant import InputReason, read_optional
 from .verdict import Disposition, Progress
@@ -325,8 +326,14 @@ class Sweep:
         definitions: Definitions,
         clock: Clock | None = None,
         executor: Any = None,
+        *,
+        authored: Mapping[str, str],
     ) -> None:
         self.cfg = config
+        # The recipe content this sweep's source authored (key to document digest).
+        self.authored = dict(authored)
+        self.source_serving = SourceServing.UNREAD
+        self.unserved_recipes: tuple[Unserved, ...] = ()
         self.vk = vk
         self.state = state
         self.log = log
@@ -629,6 +636,7 @@ class Sweep:
             self.state.event(f"fleet unreadable: {str(error)[:120]}")
             if not self.fleet.sparks:
                 return
+        self.observe_source()
         if self.recipe_list.passes and not self.recipe_list.in_pass:
             # A complete authoritative catalog pass can retire disappeared work.
             for key in set(self.state.recipes) - self.recipes.keys():
@@ -736,7 +744,57 @@ class Sweep:
                 self._reconcile_entry(recipe, enrolled)
 
     def _selected(self, recipe: Recipe) -> bool:
-        return not self.cfg.only or any(word in recipe.key for word in self.cfg.only)
+        return self._selected_key(recipe.key)
+
+    @property
+    def source_alert(self) -> str:
+        return (
+            describe(self.unserved_recipes, self.library_commit)
+            if self.unserved_recipes
+            else ""
+        )
+
+    def observe_source(self) -> None:
+        """Until the catalog serves this sweep's source, its differing recipes wait.
+
+        A served recipe whose content differs from the source is not tested: its
+        verdict would be the old content's again, and a run that only has such
+        recipes left would end having tested nothing. The wait has no deadline; it
+        is written to the results log and the status page and ends when a complete
+        library pass serves the source.
+        """
+        complete = bool(self.recipe_list.passes) and not self.recipe_list.in_pass
+        differing = (
+            unserved(
+                {key: recipe.content_sha256 for key, recipe in self.recipes.items()},
+                self.authored,
+                self._selected_key,
+            )
+            if complete and self.source_serving is not SourceServing.SERVED
+            else self.unserved_recipes
+        )
+        state = advance(
+            self.source_serving, complete_pass=complete, differing=differing
+        )
+        before = self.unserved_recipes
+        self.source_serving = state
+        self.unserved_recipes = differing if state is SourceServing.UNSERVED else ()
+        if self.unserved_recipes == before:
+            return
+        message = self.source_alert or "the catalog serves this sweep's source"
+        self.record_result(
+            None,
+            "catalog",
+            "waiting" if self.unserved_recipes else "available",
+            reason=message,
+            library_commit=self.library_commit or None,
+            unserved=[
+                {"recipe": u.recipe, "served": u.served, "authored": u.authored}
+                for u in self.unserved_recipes
+            ]
+            or None,
+        )
+        self.state.event(message)
 
     def _reconcile_entry(self, recipe: Recipe, enrolled_sparks: int) -> None:
         """Testable is the enrolled topology; fewer lanes online now is a wait, never a skip."""
@@ -929,6 +987,8 @@ class Sweep:
                 continue
             if not self._selected(recipe):
                 continue
+            if any(item.recipe == recipe.key for item in self.unserved_recipes):
+                continue  # the catalog still serves other content than the source
             out.append(recipe)
         out.sort(
             key=lambda recipe: (
@@ -1283,7 +1343,7 @@ class Sweep:
         return {r.key for r in pending if any(d in failures for d in r.model_digests)}
 
     def done(self) -> bool:
-        if not self.catalog_loaded or self.state.slots:
+        if not self.catalog_loaded or self.state.slots or self.unserved_recipes:
             return False
         if self._cleanup_nodes():
             return False
@@ -1791,6 +1851,7 @@ class Sweep:
         waiting = (
             external
             or self.paused
+            or bool(self.unserved_recipes)
             or self.clock.now()
             < max(
                 self.prefetcher.pressure_until,

@@ -6,7 +6,7 @@ import argparse
 import json
 import sys
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
 from vonk_forge_contracts import RecipeDefinition
@@ -26,12 +26,14 @@ from .prefetch import PrefetchConfig
 from .report import build_report, export_evidence, render_report, saved_qualification
 from .run import Clock, Sweep, SweepConfig
 from .smoke import HttpConfig
+from .source_serving import authored_contents, describe, unserved
 from .state import ResultsLog, State, StateLock, StateLocked
 from .vonkctl import OWNER_PROFILES, Vonkctl, VonkctlError
 
 # Kept equal to AUTHORITY_ID in tools/build-qualification-authority (a test checks it), so
 # the results log is read by `vonk-fleet-qualify-campaign status` for that authority.
 AUTHORITY_ID = "nl-family-aware-20260924"
+SOURCE_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_STATE_DIR = Path.home() / ".vonk-sweep"
 REPO = REPOSITORY
 
@@ -282,6 +284,7 @@ def main(
     vonkctl_factory: Callable[[str], Vonkctl] = lambda exe: Vonkctl(exe),
     clock: Clock | None = None,
     definitions: Definitions | None = None,
+    authored: Mapping[str, str] | None = None,
 ) -> int:
     args = _parser().parse_args(argv)
     state_path = args.state_dir / "state.json"
@@ -338,8 +341,17 @@ def main(
 
     vk = vonkctl_factory(args.vonkctl)
     defs = definitions or Definitions.load()
+    # The recipe content this source authored, hashed once: the catalog must serve it.
+    authored = authored if authored is not None else authored_contents(SOURCE_ROOT)
     if args.command == "plan":
-        recipes, _ = fetch_recipes(vk)
+        recipes, commit = fetch_recipes(vk)
+        differing = unserved(
+            {r.key: r.content_sha256 for r in recipes},
+            authored,
+            lambda key: not args.only or any(word in key for word in args.only),
+        )
+        if differing:
+            print(describe(differing, commit), file=sys.stderr)
         fleet = fetch_fleet(vk, SPARK_MEMORY_BYTES)
         # Testable is the enrolled topology, never how many Sparks are online right now.
         enrolled = len(fleet.sparks) if not args.spark else len(args.spark)
@@ -367,7 +379,7 @@ def main(
         )
     state = State.load(state_path)
     try:
-        code = Sweep(config, vk, state, results, defs, clock).run()
+        code = Sweep(config, vk, state, results, defs, clock, authored=authored).run()
     except (RuntimeError, VonkctlError, OSError) as error:
         print(f"sweep-recipes: {error}", file=sys.stderr)
         return 2
