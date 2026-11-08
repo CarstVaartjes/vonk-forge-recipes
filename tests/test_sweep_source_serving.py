@@ -81,7 +81,7 @@ def test_a_refreshed_proven_recipe_waits_for_the_catalog_then_is_retested(
     catalog = [
         r["status"] for r in rows if r["step"] == "catalog" and "recipe" not in r
     ]
-    assert catalog == ["waiting", "available"]
+    assert catalog == ["waiting", "served"]
     requeue = [r for r in rows if r.get("recipe") == KEY and r["step"] == "requeue"]
     assert requeue and requeue[-1]["reason"] == "passed-on-older-revision"
     assert sweep.source_serving is SourceServing.SERVED
@@ -128,16 +128,15 @@ def test_a_source_the_catalog_never_serves_is_waited_for_within_the_bound_only(
     assert expired["code"] == "sweep.wait_budget_exhausted"
     assert expired["unserved"] == [{"recipe": KEY, "served": OLD, "authored": NEW}]
     assert expired["wait_expiry"]["wait"]["reason"] == "catalog source"
-    assert "CATALOG DOES NOT SERVE THE SOURCE" in sweep.state.data["source_alert"]
+    assert "CATALOG DOES NOT SERVE THE SOURCE" in sweep.source_alert
     # The run finished as usual: the owner's profile was loaded back last.
     last = [(p, c) for p, c in fleet.calls if c[:2] == ("profile", "load")][-1]
     assert last[0] == 2
 
 
-def test_a_catalog_newer_than_the_source_is_tested_without_waiting_the_bound(
+def test_a_new_library_that_leaves_the_recipe_unchanged_keeps_it_waiting(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    newer = "e" * 64
     sweep, fleet, clock = make_sweep(
         tmp_path,
         [FakeRecipe("good", ("1" * 64,), content=OLD)],
@@ -146,23 +145,27 @@ def test_a_catalog_newer_than_the_source_is_tested_without_waiting_the_bound(
         authored={KEY: NEW},
     )
     start = clock.now()
+    seen: list[tuple[bool, int]] = []
 
-    def newer_release(now: float) -> None:
+    def releases(now: float) -> None:
         if now - start >= 120 and fleet.library_commit == "lib-commit-1":
-            fleet.recipes[KEY].content = newer  # the Controller took a newer release
-            fleet.library_commit = "lib-commit-2"
+            fleet.library_commit = "lib-commit-2"  # an unrelated release: same digest
+        if now - start >= 600 and not seen:
+            adds = len([c for _, c in fleet.calls if c[:2] == ("profile", "add")])
+            seen.append((sweep.done(), adds))
+            fleet.recipes[KEY].content = NEW  # the release with the source arrives
+            fleet.library_commit = "lib-commit-3"
 
-    clock.hooks.append(newer_release)
+    clock.hooks.append(releases)
     _guard(clock, start)
     assert sweep.run() == 0
 
-    assert _first_load_at(fleet) < start + sweep.cfg.source_wait_seconds
+    assert seen == [(False, 0)]  # still waiting across the unrelated release
     entry = sweep.state.recipes[KEY]
-    assert entry["status"] == "passed" and entry["content_sha256"] == newer
+    assert entry["status"] == "passed" and entry["content_sha256"] == NEW
     rows = [r for r in _rows(tmp_path) if r["step"] == "catalog" and "recipe" not in r]
-    assert [r["status"] for r in rows] == ["waiting", "available"]
-    assert rows[-1]["unserved"] == [{"recipe": KEY, "served": newer, "authored": NEW}]
-    assert sweep.state.data["source_alert"]
+    assert [r["status"] for r in rows] == ["waiting", "served"]
+    assert not sweep.source_alert
 
 
 def test_the_source_state_machine_and_what_is_judged() -> None:
@@ -170,7 +173,7 @@ def test_the_source_state_machine_and_what_is_judged() -> None:
     assert advance(S.UNREAD, E.UNSERVED_PASS) is S.UNSERVED
     assert advance(S.UNREAD, E.SERVED_PASS) is S.SERVED
     assert advance(S.UNSERVED, E.UNSERVED_PASS) is S.UNSERVED
-    for ending in (E.SERVED_PASS, E.CATALOG_MOVED, E.WAIT_EXPIRED):
+    for ending in (E.SERVED_PASS, E.WAIT_EXPIRED):
         assert advance(S.UNSERVED, ending) is S.SERVED
     # Once following the catalog, newer library content is tested, never awaited.
     for event in E:
