@@ -113,14 +113,22 @@ class ApiInputModalities(_ApiContract):
     pdf: StrictBool
 
 
-class ApiReasoningEffort(_ApiContract):
+class ApiReasoningEffortLevels(_ApiContract):
+    """The request names one of ``levels`` at ``key``; another value may be refused.
+
+    ``default`` is the level in force when the request names none. Only the
+    names a client chooses from are listed: an engine's own numeric scale behind
+    them (an integer or float alias) is not.
+    """
+
+    kind: Literal["levels"]
     via: RequestPlacement
     key: _Key
     levels: list[_Key] = Field(min_length=1, max_length=16)
     default: _Key
 
     @model_validator(mode="after")
-    def default_is_a_level(self) -> ApiReasoningEffort:
+    def default_is_a_level(self) -> ApiReasoningEffortLevels:
         if len(self.levels) != len(set(self.levels)):
             raise ValueError("effort levels must be unique")
         if self.default not in self.levels:
@@ -128,11 +136,31 @@ class ApiReasoningEffort(_ApiContract):
         return self
 
 
+class ApiReasoningEffortText(_ApiContract):
+    """The route takes any string at ``key`` (the template writes it into the prompt).
+
+    ``default`` is the text in force when the request sets none; ``null`` when
+    then no effort is written and the checkpoint decides.
+    """
+
+    kind: Literal["text"]
+    via: RequestPlacement
+    key: _Key
+    default: _Key | None
+
+
+ApiReasoningEffort = Annotated[
+    ApiReasoningEffortLevels | ApiReasoningEffortText, Field(discriminator="kind")
+]
+
+
 class ApiReasoningNone(_ApiContract):
     kind: Literal["none"]
 
 
 class ApiReasoningAlwaysOn(_ApiContract):
+    """No request turns reasoning off; the checkpoint may still skip it on a turn."""
+
     kind: Literal["always-on"]
     effort: ApiReasoningEffort | None
 
