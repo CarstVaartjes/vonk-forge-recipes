@@ -1,7 +1,10 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact Qwen3.5-9B multimodal checkpoint revision for a candidate single-Spark vLLM recipe.",
   "family_title": "Qwen",
