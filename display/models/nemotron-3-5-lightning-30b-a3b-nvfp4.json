@@ -1,7 +1,9 @@
 {
   "capabilities": [
+    "chat",
     "reasoning",
-    "text-generation"
+    "text-generation",
+    "tool-use"
   ],
   "description": "Official NVIDIA Nemotron 3.5 Lightning NVFP4 checkpoint with DSpark-oriented model packaging.",
   "family_title": "NVIDIA Nemotron",

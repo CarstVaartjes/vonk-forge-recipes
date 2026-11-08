@@ -1,5 +1,7 @@
 {
-  "capabilities": [],
+  "capabilities": [
+    "audio-understanding"
+  ],
   "description": "Pinned LAION-CLAP larger-general files required by the HunyuanVideo-Foley offline text encoder.",
   "family_title": "CLAP",
   "identity": {
