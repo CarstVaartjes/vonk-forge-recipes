@@ -8,3 +8,7 @@ https://github.com/tonyd2wild/Inkling-Small-NVFP4-MTP-262K-2x-DGX-Spark at commi
 7913395c4f1bacfc8a97c90efe096a62f3010178. That repository states that no licence has been selected.
 
 The container image is eugr's published eugr/spark-vllm build (pinned by digest).
+
+mods/inkling-audio-deps is also tonyd2wild's, copied byte-identically from
+https://github.com/tonyd2wild/Inkling-Small-NVFP4-DSpark-BF16-KV-262K-2x-DGX-Spark at commit
+7795dd3a6a476a544f43e84ea1bad072ea86648b (same creator, same image; this repository's mods lack it).
