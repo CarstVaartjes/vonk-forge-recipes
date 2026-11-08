@@ -206,6 +206,7 @@ class SweepWaitReason(StrEnum):
     CLIENT_KEY = "client key renewal"
     SMOKE_BUSY = "smoke busy"
     SMOKE_RESPONSE = "smoke response"
+    CATALOG_SOURCE = "catalog source"
 
 
 class SweepWaitCode(StrEnum):

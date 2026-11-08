@@ -3,7 +3,9 @@
     "chat",
     "code-generation",
     "image-understanding",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "MiaAI-Lab EXL3 2.9 bpw (codebook mul1, mixed K per tensor, lm_head 6 bits, MTP 4 bits) quantization of DeepSeek V4.1 Flash: 39 shards, vision tower and native DSpark draft experts kept in the checkpoint. The n-gram (Engram) tables are not quantized and stay in shards 47 and 48 of the official checkpoint, which this Model lists as a dependency.",
   "family_title": "DeepSeek Flash",
@@ -22,7 +24,8 @@
     "url": "https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw/blob/64ba41b6c916a587db06eae2e19b7845f7be6e6b/LICENSE"
   },
   "modalities": [
-    "image"
+    "image",
+    "text"
   ],
   "model_title": "DeepSeek V4.1 Flash EXL3",
   "tags": [
