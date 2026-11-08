@@ -8,7 +8,8 @@
     "RunAdmissionCode": "https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/agent_protocol/src/vonk_agent_protocol/lifecycle_vocabulary.py",
     "ResourceBlockerCode": "https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/agent_protocol/src/vonk_agent_protocol/lifecycle_vocabulary.py",
     "ProjectionCode": "https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/agent_protocol/src/vonk_agent_protocol/reason_codes/profiles.py",
-    "ControllerWaitCodes": "https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/control/src/vonk_control/run_admission.py (RETRYABLE_PLAN_BLOCKERS, RUN_ADMISSION_WAIT_CODES), https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/control/src/vonk_control/run_switch_operations/constants.py (_MEMORY_STOP_CONDITIONAL_REFUSALS)"
+    "ControllerWaitCodes": "https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/control/src/vonk_control/run_admission.py (RETRYABLE_PLAN_BLOCKERS, RUN_ADMISSION_WAIT_CODES), https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/control/src/vonk_control/run_switch_operations/constants.py (_MEMORY_STOP_CONDITIONAL_REFUSALS)",
+    "ClientCode": "https://github.com/CarstVaartjes/vonk-forge/blob/f1b95dc3c389f5b3559bc954299670b4fea89193/src/cluster_profiles/error_reporting.py"
   },
   "RunSwitchCode": [
     "gpu-clock.above-default",
@@ -427,5 +428,8 @@
     "run.rendezvous_port_occupied",
     "run.stale_inventory",
     "run.target_membership_changed"
+  ],
+  "ClientCode": [
+    "client.contract_mismatch"
   ]
 }
