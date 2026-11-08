@@ -1,8 +1,10 @@
 {
   "capabilities": [
     "chat",
+    "image-understanding",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Exact public NVIDIA Qwen3.6 27B NVFP4 (ModelOpt native W4A4) at 0893e160, the revision r0b0tlab's SM121 runtime pins.",
   "family_title": "Qwen",
@@ -20,7 +22,9 @@
     "url": "https://huggingface.co/nvidia/Qwen3.6-27B-NVFP4/blob/0893e1606ff3d5f97a441f405d5fc541a6bdf404/LICENSE"
   },
   "modalities": [
-    "text"
+    "image",
+    "text",
+    "video"
   ],
   "model_title": "Qwen3.6 27B NVFP4",
   "tags": [
