@@ -1,0 +1,12 @@
+{
+  "code": "client.contract_mismatch",
+  "decision": "exit",
+  "detail": "control API response does not match the OpenAPI schema: $.items[0].reasoning_effort: {'kind': 'levels'} is not of type 'string'; this vonkctl and the Controller run different control contracts",
+  "error": "control API response does not match the OpenAPI schema: $.items[0].reasoning_effort: {'kind': 'levels'} is not of type 'string'; this vonkctl and the Controller run different control contracts",
+  "error_type": "control_api",
+  "operation": "recipe.library",
+  "recovery_actions": [
+    "vonkctl update --apply"
+  ],
+  "retryable": false
+}

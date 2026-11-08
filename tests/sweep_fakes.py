@@ -38,6 +38,11 @@ SPARK_MEMORY = SPARK_MEMORY_BYTES
 GB = 10**9
 
 
+CONTRACT_MISMATCH_FIXTURE = (
+    Path(__file__).parent / "fixtures/sweep-verdicts/cli-contract-mismatch.json"
+)
+
+
 class FakeClock:
     def __init__(self) -> None:
         self.t = 1_000_000.0
@@ -889,6 +894,9 @@ class FakeFleet:
         return code, json.dumps(document), ""
 
     def _error(self, code: str, detail: str) -> tuple[int, dict[str, Any]]:
+        if code == "client.contract_mismatch":
+            # The document vonk-forge #2170 emits, not a reshaped copy.
+            return 2, json.loads(CONTRACT_MISMATCH_FIXTURE.read_text())
         return 2, {
             "error": detail,
             "error_type": "control_api",

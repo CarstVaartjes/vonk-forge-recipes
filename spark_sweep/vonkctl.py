@@ -38,14 +38,18 @@ CLIENT_CONTRACT_MISMATCH = "client.contract_mismatch"
 
 
 class ContractRecoverer(Protocol):
-    """What ``Vonkctl.run`` asks when the client and the Controller disagree (``contract_recovery``)."""
+    """What ``Vonkctl.run`` asks of the sweep when the client and the Controller disagree."""
 
-    def recover(self, run_once: Callable[..., Reply], command: tuple[str, ...]) -> bool:
+    def on_contract_mismatch(self) -> bool:
         """True when the client was replaced and the failed call should be made once more."""
         ...
 
-    def observed_ok(self, command: tuple[str, ...]) -> None:
-        """The command that met a mismatch now succeeds: that mismatch has healed."""
+    def on_contract_unresolved(self) -> None:
+        """The retry after a replaced client met the mismatch again."""
+        ...
+
+    def on_call_ok(self) -> None:
+        """Any command succeeded: a mismatch alert no longer holds."""
         ...
 
 
@@ -258,18 +262,19 @@ class Vonkctl:
         recovery = self.recovery
         if recovery is None:
             return reply
-        if not reply.is_contract_mismatch:
-            if reply.ok:
-                recovery.observed_ok(args[:2])
+        if reply.ok:
+            recovery.on_call_ok()
             return reply
-        if recovery.recover(self.run_once, args[:2]):
-            return self.run_once(
-                *args,
-                profile=profile,
-                timeout=timeout,
-                allow_owner_write=allow_owner_write,
-            )
-        return reply
+        if not (reply.is_contract_mismatch and recovery.on_contract_mismatch()):
+            return reply
+        retry = self.run_once(
+            *args, profile=profile, timeout=timeout, allow_owner_write=allow_owner_write
+        )
+        if retry.is_contract_mismatch:
+            recovery.on_contract_unresolved()
+        elif retry.ok:
+            recovery.on_call_ok()
+        return retry
 
     def run_once(
         self,
