@@ -216,8 +216,9 @@ says audio for a transcription block and text for a speech block); a speech bloc
 also needs a Model with the `audio` modality and the `audio-generation`
 capability. The reverse holds on vLLM: an image, video or audio input the served
 Model (the first selection) takes, as modality plus understanding capability,
-must be declared unless the launch switches it off (`--language-model-only`, its
-wrapper form `LANGUAGE_MODEL_ONLY=1`, or a `--limit-mm-per-prompt` of 0 for it),
+must be declared unless the launch switches it off (`--language-model-only`, or
+a `--limit-mm-per-prompt` of 0 for it; an adapter wrapper's environment switch
+counts only as a named `WRAPPER_LANGUAGE_MODEL_ONLY` exemption),
 because vLLM loads every input its resolved model class supports; other engines
 need a flag or projector per modality and stay case by case. Whether the launch really enables a tool-call
 or reasoning parser is not re-derived: `tools/check-recipe-api` asks

@@ -501,6 +501,14 @@ def test_changed_slugs_keeps_only_recipe_and_api_documents() -> None:
     ) == ["added", "api-edited", "edited"]
 
 
+def test_a_changed_model_display_rechecks_the_recipes_that_serve_it() -> None:
+    served = GUARD["changed_slugs"](
+        ["display/models/ornith-1-5-35b-a3b-nvfp4-94e431d9.json"]
+    )
+    assert "ornith-1-5-35b-a3b-nvfp4-vllm-single" in served
+    assert all((ROOT / "api" / "recipes" / f"{slug}.json").is_file() for slug in served)
+
+
 def test_exllamav3_context_arguments_name_per_request_context_only() -> None:
     from vonk_forge_contracts.api_checks import CONTEXT_ARGUMENTS
 
@@ -511,8 +519,18 @@ def test_exllamav3_context_arguments_name_per_request_context_only() -> None:
     assert row[0] == "cache_size"
 
 
-def _served_check(slug: str, **inputs: bool) -> None:
+def _served_check(
+    slug: str, environment: dict[str, str] | None = None, **inputs: bool
+) -> None:
     document = recipe(slug)
+    if environment:
+        runtime = document.model_dump(mode="json")["runtime"]
+        runtime["environment"] += [
+            {"name": k, "value": v} for k, v in environment.items()
+        ]
+        document = RecipeDefinition.model_validate(
+            {**document.model_dump(mode="json"), "runtime": runtime}
+        )
     raw = _json(ROOT / "api" / "recipes" / f"{slug}.json")
     for block in [raw["api"], *(c["api"] for c in raw["option_choices"])]:
         block["input_modalities"].update(inputs)
@@ -527,6 +545,24 @@ def test_a_vllm_route_declares_every_input_its_launch_serves_for_the_model() -> 
     with pytest.raises(RecipeApiError, match="declare video input"):
         _served_check(slug, video=False)
     _served_check(slug)
+
+
+def test_the_mia_qwen36_route_declares_the_video_its_vllm_serves() -> None:
+    slug = "qwen3-6-35b-a3b-unsloth-nvfp4-vllm-mia-single"
+    with pytest.raises(RecipeApiError, match="declare video input"):
+        _served_check(slug, video=False)
+    _served_check(slug)
+
+
+def test_a_wrapper_variable_does_not_switch_inputs_off_on_stock_vllm() -> None:
+    """vLLM reads no LANGUAGE_MODEL_ONLY; only the named sfxnz wrapper does."""
+
+    with pytest.raises(RecipeApiError, match="declare video input"):
+        _served_check(
+            "ornith-1-5-35b-a3b-nvfp4-vllm-single",
+            environment={"LANGUAGE_MODEL_ONLY": "1"},
+            video=False,
+        )
 
 
 @pytest.mark.parametrize(
