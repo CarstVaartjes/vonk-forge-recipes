@@ -1321,6 +1321,68 @@
         }
       ]
     },
+    "INKLING_ASR": {
+      "method": "POST",
+      "path": "/chat/completions",
+      "body": {
+        "model": "$ALIAS",
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Transcribe the following audio."
+              },
+              {
+                "type": "audio_url",
+                "audio_url": {
+                  "url": {
+                    "$fixture_data_uri": "service-speech-jfk-wav"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 512,
+        "stream": false,
+        "reasoning_effort": "none"
+      },
+      "timeout_seconds": 300,
+      "max_response_bytes": 262144,
+      "assertions": [
+        {
+          "kind": "path.equals",
+          "path": "model",
+          "value": "$ALIAS"
+        },
+        {
+          "kind": "path.count",
+          "path": "choices",
+          "value": 1
+        },
+        {
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "[\\s\\S]*(?i:final judge)[\\s\\S]*",
+          "expected": "final judge"
+        },
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "[\\s\\S]*(?i:land we love)[\\s\\S]*",
+          "expected": "land we love"
+        }
+      ]
+    },
     "NEM_A391_OFF": {
       "method": "POST",
       "path": "/chat/completions",
