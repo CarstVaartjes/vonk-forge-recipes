@@ -33,6 +33,7 @@ from vonk_forge_contracts.sweep import SweepProgress as Progress
 from .auth_contract import SmokeAuthClass
 from .lifecycle import ACTIVE, LifecycleState
 from .policy import (
+    CLIENT_CONTRACT,
     CLIENT_CREDENTIAL,
     CONTROLLER_WAIT,
     FIT,
@@ -126,6 +127,7 @@ WAIT_CLASSES = frozenset(
         SweepWaitCode.BUDGET_EXHAUSTED,
         SWAP_SHORT,
         CONTROLLER_WAIT,
+        CLIENT_CONTRACT,
     }
 )
 #: Uncertain outcomes. ``network`` is a Controller operation that ended failed on a transport

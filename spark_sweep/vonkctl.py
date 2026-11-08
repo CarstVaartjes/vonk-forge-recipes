@@ -14,7 +14,7 @@ import subprocess
 import uuid
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Protocol
 
 from pydantic import ValidationError
 from vonk_forge_contracts.sweep import CliObservationReply
@@ -30,6 +30,19 @@ Runner = Callable[[Sequence[str], float], tuple[int, str, str]]
 def request_key(*parts: object) -> str:
     """A deterministic request UUID, so a restarted run reconnects to its work."""
     return str(uuid.uuid5(_KEY_NAMESPACE, "|".join(str(part) for part in parts)))
+
+
+#: The installed vonkctl names a Controller on another control contract (vonk-forge
+#: ``ClientCode.CONTRACT_MISMATCH``): decision ``exit``, recovery ``vonkctl update --apply``.
+CLIENT_CONTRACT_MISMATCH = "client.contract_mismatch"
+
+
+class ContractObserver(Protocol):
+    """Told, from any thread, what Controller commands met or no longer meet the mismatch."""
+
+    def contract_mismatch(self, command: tuple[str, ...]) -> None: ...
+
+    def controller_answered(self, command: tuple[str, ...]) -> None: ...
 
 
 class OwnerProfileError(ValueError):
@@ -94,6 +107,15 @@ class Reply:
         if self.is_transport_error:
             raise VonkctlTransportError(self.argv, self, self.error_text)
         return self.document
+
+    @property
+    def is_contract_mismatch(self) -> bool:
+        """The typed code only: no message matching."""
+        document = self.document
+        return (
+            isinstance(document, dict)
+            and document.get("code") == CLIENT_CONTRACT_MISMATCH
+        )
 
     @property
     def is_error_document(self) -> bool:
@@ -215,8 +237,29 @@ class Vonkctl:
         self.executable = executable
         self.runner = runner
         self.timeout = timeout
+        #: Set by the sweep; absent, a contract mismatch is just an error reply.
+        self.observer: ContractObserver | None = None
 
     def run(
+        self,
+        *args: str,
+        profile: int | None = None,
+        timeout: float | None = None,
+        allow_owner_write: bool = False,
+    ) -> Reply:
+        """One call. A typed contract mismatch is only reported; the main loop owns the answer."""
+        reply = self.run_once(
+            *args, profile=profile, timeout=timeout, allow_owner_write=allow_owner_write
+        )
+        observer = self.observer
+        if observer is not None:
+            if reply.is_contract_mismatch:
+                observer.contract_mismatch(args[:2])
+            elif reply.ok:
+                observer.controller_answered(args[:2])
+        return reply
+
+    def run_once(
         self,
         *args: str,
         profile: int | None = None,
