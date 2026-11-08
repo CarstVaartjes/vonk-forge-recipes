@@ -1,6 +1,10 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Unsloth NVFP4 checkpoint (mixed FP8 dense + NVFP4 experts) of Qwen3.6 35B-A3B, multimodal, calibrated on Unsloth + UltraChat data.",

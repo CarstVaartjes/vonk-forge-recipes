@@ -1,7 +1,9 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
-    "text-generation"
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact Intel AutoRound INT4 quantization of Qwen3-Coder-Next; Intel states to follow the licence of the original model.",
   "family_title": "Qwen",

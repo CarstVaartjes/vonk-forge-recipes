@@ -1,7 +1,9 @@
 {
   "capabilities": [
+    "chat",
     "reasoning",
-    "text-generation"
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact public Reasoning NVFP4 16993199 checkpoint.",
   "family_title": "NVIDIA Nemotron",

@@ -1,8 +1,11 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
     "image-understanding",
-    "reasoning"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact public Qwen3.8 27B BF16 checkpoint.",
   "family_title": "Qwen",

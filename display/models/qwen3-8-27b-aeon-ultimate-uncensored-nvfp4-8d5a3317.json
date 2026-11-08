@@ -2,7 +2,9 @@
   "capabilities": [
     "chat",
     "image-understanding",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "sakamakismile's uniform NVFP4 (compressed-tensors) quantization of AEON-7's uncensored Qwen3.8 27B with a BF16 MTP head, vision-language. Apache-2.0.",
   "family_title": "Qwen",
