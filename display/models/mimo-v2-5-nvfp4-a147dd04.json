@@ -24,7 +24,10 @@
     "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.5/blob/63651580ca774f8504f676040460aed3e1244ac1/README.md"
   },
   "modalities": [
-    "text"
+    "audio",
+    "image",
+    "text",
+    "video"
   ],
   "model_title": "MiMo V2.5 NVFP4",
   "tags": [

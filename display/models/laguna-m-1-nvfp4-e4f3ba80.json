@@ -1,7 +1,9 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
     "reasoning",
+    "text-generation",
     "tool-use"
   ],
   "description": "Poolside Laguna M.1 mixture-of-experts coding model (225B total, 23B active).",
