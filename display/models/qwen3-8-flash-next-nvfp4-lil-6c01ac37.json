@@ -1,9 +1,11 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
     "image-understanding",
     "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Exact public local-inference-lab quantization-aware-distilled ModelOpt export of Qwen3.8 Flash Next: NVFP4 routed experts and n-gram tables, MXFP8 attention, DeltaNet and shared experts, with vision tower and MTP module.",

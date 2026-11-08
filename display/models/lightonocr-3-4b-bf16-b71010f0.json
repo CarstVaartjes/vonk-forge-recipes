@@ -1,6 +1,8 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
+    "text-generation",
     "video-understanding"
   ],
   "description": "LightOnOCR 3 4B immutable upstream checkpoint. Physical Spark qualification pending.",
