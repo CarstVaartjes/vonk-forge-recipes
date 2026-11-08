@@ -1,7 +1,9 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
     "reasoning",
+    "text-generation",
     "tool-use"
   ],
   "description": "Poolside Laguna S 2.1 mixture-of-experts coding model.",

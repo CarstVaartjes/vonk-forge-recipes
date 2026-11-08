@@ -1,9 +1,11 @@
 {
   "capabilities": [
     "chat",
+    "image-understanding",
     "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Nex-AGI Nex-N2-mini (Qwen3.5-MoE 35B).",
   "family_title": "Nex N2",
@@ -21,7 +23,9 @@
     "url": "https://huggingface.co/r0b0tlab/nex-n2-mini-nvfp4/blob/4387675e4dfb5c1aade7a91a6cbcf2f951182bc2/README.md"
   },
   "modalities": [
-    "text"
+    "image",
+    "text",
+    "video"
   ],
   "model_title": "Nex-N2-mini",
   "tags": [
