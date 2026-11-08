@@ -37,7 +37,7 @@
       "kind": "always-on"
     },
     "streaming": true,
-    "structured_output": true,
+    "structured_output": false,
     "system_messages": true,
     "tools": {
       "kind": "supported",
