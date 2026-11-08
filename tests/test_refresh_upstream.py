@@ -1176,15 +1176,54 @@ class ImageLabelClaimTests(unittest.TestCase):
                     result = self.collect(root, [])
                     self.assertEqual([i.kind for i in result.items], ["adapter"])
 
-    def test_no_catalog_adapter_label_claim_moves_with_a_release(self) -> None:
+    def test_twin_label_and_notice_do_not_make_the_pin_used(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.adapter(
+                root,
+                self.DOCKERFILE.replace(
+                    f'revision="{OLD}"',
+                    f'revision="{OLD}" \\\n      io.vonk.vllm.build-commit="{OLD}"',
+                ),
+            )
+            (root / "adapter" / "NOTICE").write_text(
+                f"Runtime https://github.com/ggml-org/llama.cpp/tree/{OLD} (MIT).\n"
+            )
+            asked: list[str] = []
+            result = self.collect(root, asked)
+            self.assertEqual(result.items, [])
+            self.assertEqual(asked, [])
+
+    def test_no_catalog_adapter_of_the_shape_moves_with_a_release(self) -> None:
+        # Selected by shape alone, independently of image_label_claim.
         catalog = refresh.Catalog.load(ROOT)
-        claims = 0
+        covered = 0
         for recipe_id, recipe in catalog.recipes.items():
             directory = ROOT / recipe["execution"]["build"]["context"]["path"]
             pin = refresh.adapter_pin(ROOT, recipe)
-            if not refresh.image_label_claim(directory, pin):
+            if (
+                pin is None
+                or pin.derived
+                or (directory / "vendored-upstream.json").is_file()
+            ):
                 continue
-            claims += 1
+            name = pin.repo.rsplit("/", 1)[-1].lower()
+            images = [
+                m["image"]
+                for m in refresh.kit_pins.FROM_LINE.finditer(
+                    (directory / "Dockerfile").read_text(encoding="utf-8")
+                )
+            ]
+            if not any(
+                refresh.kit_pins.split_image(i)[2] and name in i.lower() for i in images
+            ):
+                continue
+            if refresh.adapter_usage(directory, pin.repo, pin.commit) != (set(), False):
+                continue
+            source = refresh.source_pin(recipe)
+            if source is not None and source[1].lower() == pin.repo.lower():
+                continue  # the source path owns the pin (a separate class)
+            covered += 1
             with self.subTest(recipe_id):
                 alone = {
                     **recipe,
@@ -1195,7 +1234,6 @@ class ImageLabelClaimTests(unittest.TestCase):
                         if k != "source_reference"
                     },
                 }
-                alone_catalog = refresh.Catalog(ROOT, recipes={recipe_id: alone})
                 asked: list[str] = []
 
                 def targets(provider: str, repo: str, asked=asked):
@@ -1205,11 +1243,14 @@ class ImageLabelClaimTests(unittest.TestCase):
                     )
 
                 result = refresh.collect_items(
-                    alone_catalog, recipe_id, object(), targets
+                    refresh.Catalog(ROOT, recipes={recipe_id: alone}),
+                    recipe_id,
+                    object(),
+                    targets,
                 )
                 self.assertEqual(result.items, [])
                 self.assertEqual(asked, [])
-        self.assertGreater(claims, 0)
+        self.assertGreater(covered, 0)
 
 
 class ReleaseTests(unittest.TestCase):
