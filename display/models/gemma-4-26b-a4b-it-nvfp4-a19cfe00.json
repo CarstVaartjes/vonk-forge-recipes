@@ -3,7 +3,9 @@
     "chat",
     "code-generation",
     "image-understanding",
+    "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "NVIDIA ModelOpt NVFP4 quantization of google/gemma-4-26B-A4B-it at an exact Hugging Face revision.",
