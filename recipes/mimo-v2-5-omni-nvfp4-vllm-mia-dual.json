@@ -10,7 +10,10 @@
       },
       "dockerfile": "adapters/mimo/mia-vllm-dual/Dockerfile",
       "network": {
-        "hosts": []
+        "hosts": [
+          "files.pythonhosted.org",
+          "pypi.org"
+        ]
       },
       "patches": []
     }
