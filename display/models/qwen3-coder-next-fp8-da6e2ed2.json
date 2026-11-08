@@ -1,7 +1,9 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
-    "text-generation"
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact official Qwen block-wise FP8 checkpoint of Qwen3-Coder-Next, an 80B-total mixture-of-experts coding model.",
   "family_title": "Qwen",

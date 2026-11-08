@@ -164,9 +164,15 @@ by `mode`, and every field is written down, "not applicable" included (`false`,
   `endpoints`.
 - `reasoning` is `{"kind": "none"}`, `{"kind": "always-on", "effort": ...}` or
   `{"kind": "switch", "via", "keys", "on", "off", "default": "on"|"off"|"model",
-  "effort": ...}`; `effort` is `null` or `{via, key, levels, default}` with the
-  default one of the levels. State what this route's engine and template do, not
-  what the model family does.
+  "effort": ...}`. `always-on` means no request turns reasoning off, also when
+  the checkpoint decides per turn and a thinking flag only lowers the effort.
+  `effort` is `null`, `{"kind": "levels", via, key, levels, default}` with the
+  default one of the levels, or `{"kind": "text", via, key, default}` when the
+  template takes any string (`default` `null`: with none set, the template writes
+  no effort). List only the names a client picks; an engine's numeric scale
+  behind them, or a boolean prompt flag, is not an effort. A `text` effort needs
+  a platform on contracts 4.7.0 (`tools/check-platform-contracts`). State what
+  this route's engine and template do, not what the model family does.
 - `tools` is `{"kind": "none"}` or `{"kind": "supported", "tool_choice": [...],
   "parallel_calls": bool}`; an empty `tool_choice` means the field is only a
   prompt nudge.
@@ -214,7 +220,13 @@ selected Model whose display declares each accepted modality together with its
 `*-understanding` capability (`INPUT_MODALITY_CAPABILITIES`; `accepted_modalities`
 says audio for a transcription block and text for a speech block); a speech block
 also needs a Model with the `audio` modality and the `audio-generation`
-capability. Whether the launch really enables a tool-call
+capability. The reverse holds on vLLM: an image, video or audio input the served
+Model (the first selection) takes, as modality plus understanding capability,
+must be declared unless the launch switches it off (`--language-model-only`, or
+a `--limit-mm-per-prompt` of 0 for it; an adapter wrapper's environment switch
+counts only as a named `WRAPPER_LANGUAGE_MODEL_ONLY` exemption),
+because vLLM loads every input its resolved model class supports; other engines
+need a flag or projector per modality and stay case by case. Whether the launch really enables a tool-call
 or reasoning parser is not re-derived: `tools/check-recipe-api` asks
 `qualification.capabilities.serving_capabilities` (runtime arguments, adapter
 scripts, kit flags) for every variant. The guard runs all three on added or
@@ -241,7 +253,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.6.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.7.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -1274,6 +1286,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-test-git`, `tests/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
 | `tools/check-document-reads`, `tools/_added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
 | `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
+| `tools/check-model-modalities`, `tests/test_model_modalities.py` | A touched Model's display (or the Model a touched recipe serves) disagrees with its modalities (`image` ⇔ `image-understanding`, likewise audio and video) or with a serving recipe's API document: a chat route needs `chat` and `text-generation`, reasoning other than `none` needs `reasoning`, tools other than `none` need `tool-use`. Correct `display/models/<slug>.json`, or the API document if it claims what the launch does not serve. |
 | `tools/check-platform-contracts`, `qualification/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. |
 | `tests/test_guidance_files.py` | Guidance stays in the allowlisted files and local Markdown links resolve. Consolidate the new rule here or in AGENTS; fix links in the same change. |
 | `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |

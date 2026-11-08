@@ -88,6 +88,17 @@ class Definitions:
             )
         return self._fixtures[fixture_id]
 
+    def has_service_cases(self, key: str) -> bool:
+        """Whether the recipe has reviewed smoke cases; nothing is rendered."""
+        service = self.service(key)
+        if service is None:
+            return False
+        templates = self.document["service_case_templates"]
+        return any(
+            isinstance(templates.get(case_id), dict)
+            for case_id in service.get("smoke_cases", [])
+        )
+
     def service_cases(
         self, key: str, alias: str, voice: str | None = None
     ) -> list[dict[str, Any]]:
