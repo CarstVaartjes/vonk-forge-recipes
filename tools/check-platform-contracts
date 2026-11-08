@@ -3,12 +3,12 @@
 
 The deployed vonk-forge Controller reads recipes with the contracts version its
 ``control/packaging/public-contracts.lock`` pins (``package =
-"vonk-forge-public-contracts==X.Y.Z"``). A serving kind or Model capability
-newer than that version is a read failure there. ``qualification/introduced.py``
-owns the version each value arrived in; this tool compares every recipe in the
-library (and the Model displays it selects) against the lock of the platform
-commit the workflows pin, so a recipe cannot land ahead of the Controller that
-reads it.
+"vonk-forge-public-contracts==X.Y.Z"``). A serving kind, Model capability or
+API reasoning effort kind newer than that version is a read failure there.
+``qualification/introduced.py`` owns the version each value arrived in; this
+tool compares every recipe in the library (with the Model displays it selects
+and its API facts) against the lock of the platform commit the workflows pin, so
+a recipe cannot land ahead of the Controller that reads it.
 
 The lock text is an argument: CI fetches it from ``platform_ref`` and this tool
 runs no git and no network.
@@ -25,7 +25,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from qualification.documents import model_display, recipe
+from qualification.documents import has_recipe_api, model_display, recipe, recipe_api
 from qualification.introduced import (
     parse_version,
     unreadable_capabilities,
@@ -55,9 +55,10 @@ def problems(root: Path, slugs: list[str], platform_version: str) -> list[str]:
     for slug in slugs:
         document = recipe(slug, root)
         models = [model_display(m.model.slug, root) for m in document.models]
+        api = recipe_api(slug, root) if has_recipe_api(slug, root) else None
         found += [
             f"{slug}: {feature}, the pinned platform reads {platform_version}"
-            for feature in unreadable_features(document, models, platform_version)
+            for feature in unreadable_features(document, models, api, platform_version)
         ]
     return found
 
