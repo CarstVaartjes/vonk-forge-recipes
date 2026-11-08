@@ -1,6 +1,8 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
+    "text-generation",
     "tool-use"
   ],
   "description": "Exact public UI-Mate 27B BF16 checkpoint.",

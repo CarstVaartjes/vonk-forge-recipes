@@ -1,7 +1,9 @@
 {
   "capabilities": [
+    "chat",
     "reasoning",
-    "text-generation"
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact public NVFP4 ff433f54 checkpoint with NVIDIA's current DGX Spark vLLM 0.27.1 and MTPv2 deployment guidance.",
   "family_title": "NVIDIA Nemotron",
