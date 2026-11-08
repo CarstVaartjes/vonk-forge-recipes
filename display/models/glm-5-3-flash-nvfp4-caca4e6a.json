@@ -3,7 +3,9 @@
     "chat",
     "code-generation",
     "image-understanding",
+    "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Exact public GLM 5.3 Flash NVFP4 caca4e6a checkpoint; its 120 weight shards and runtime configuration are byte-identical to the prior 92d8bfb9 inventory, while the upstream README is refreshed.",

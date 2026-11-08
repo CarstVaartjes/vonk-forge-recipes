@@ -20,22 +20,22 @@
       "size_bytes": 660
     },
     {
-      "id": "gemma-4-e4b-it-q8-0-34be82b17b49-b94df0c6df",
+      "id": "gemma-4-e4b-it-q8-0-49008e7cc7ed-b94df0c6df",
       "path": "gemma-4-E4B-it-Q8_0.gguf",
       "roles": [
         "weights"
       ],
-      "sha256": "34be82b17b4942d389b9b527170c4b058027abdd32531fda063d3d97dd8ce80a",
-      "size_bytes": 8031242688
+      "sha256": "49008e7cc7edadf154c8748904a89ee86eb6905d220aac568f6b7b92ca6aa0c6",
+      "size_bytes": 8031237344
     },
     {
-      "id": "mmproj-gemma-4-e4b-it-q8-0-197f49a93027-afb249a518",
+      "id": "mmproj-gemma-4-e4b-it-q8-0-9257f21a0f53-afb249a518",
       "path": "mmproj-gemma-4-E4B-it-Q8_0.gguf",
       "roles": [
         "weights"
       ],
-      "sha256": "197f49a93027f9843772bd24a6a9e0be2a32a788de5a3def330e9c585d86edd1",
-      "size_bytes": 559874816
+      "sha256": "9257f21a0f5358204b4a612cff83fad2e56412f4f607f0049331ce60c0cf9d34",
+      "size_bytes": 559874848
     }
   ],
   "format": {
@@ -52,14 +52,14 @@
       "slug": "gemma-4-e4b"
     },
     "publisher": "ggml-org",
-    "slug": "gemma-4-e4b-it-q8-0-a69f018d",
-    "variant": "IT Q8_0 a69f018d",
-    "version": "IT Q8_0 a69f018d"
+    "slug": "gemma-4-e4b-it-q8-0-27cd6836",
+    "variant": "IT Q8_0 27cd6836",
+    "version": "IT Q8_0 27cd6836"
   },
   "kind": "model",
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/ggml-org/gemma-4-E4B-it-GGUF",
-    "revision": "a69f018d7678a2b9f5e705f8903d6fb29b9b25dc"
+    "revision": "27cd6836f8e2a6e5e6b57ea0e77fa72490706985"
   }
 }

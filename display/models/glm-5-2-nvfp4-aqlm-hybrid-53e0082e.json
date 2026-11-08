@@ -3,7 +3,9 @@
     "chat",
     "code-generation",
     "image-understanding",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact public GLM 5.2 NVFP4 AQLM Hybrid c5d93567 checkpoint with the complete 751-file pinned Hugging Face snapshot, including non-runtime Terminal-Bench trace evidence.",
   "family_title": "GLM",
