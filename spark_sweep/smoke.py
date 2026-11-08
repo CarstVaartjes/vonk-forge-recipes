@@ -451,6 +451,13 @@ def _transport_failure(
     )
 
 
+def case_render_failure(
+    error: CaseRenderError, config: HttpConfig | None = None
+) -> Failure:
+    """A case the recipe's own documents cannot render: its typed failure, never a retry."""
+    return _assertion_failure(AssertionFailed(str(error)), "cases", config)
+
+
 def _assertion_failure(
     error: AssertionFailed, case: str, config: HttpConfig | None = None
 ) -> Failure:
@@ -708,9 +715,7 @@ def smoke_service(
             recipe.key, alias, speech_voice(definitions.recipe_api(recipe.slug))
         ) or _fallback_cases(recipe, alias, facts)
     except CaseRenderError as error:  # only the recipe's own gap; sweep faults crash
-        result.failure = _assertion_failure(
-            AssertionFailed(str(error)), "cases", config
-        )
+        result.failure = case_render_failure(error, config)
     try:
         if result.failure is None and has_chat(recipe, cases):
             result.perf = stream_probe(base, alias, config)
