@@ -2020,6 +2020,9 @@ class Sweep:
         elif failure.klass not in verdict.DECLARED_CLASSES:
             # A class nobody named is observed; the same one on the same identity ends too.
             facts = {"klass": failure.klass, "code": failure.code}
+            if failure.klass == verdict.SWEEP_CRASH:
+                # One code covers every exception: the type and message tell crashes apart.
+                facts["crash"] = failure.detail
         else:
             entry.pop("exit_repeat", None)
             return failure
@@ -3197,19 +3200,19 @@ class Sweep:
         self.smoke_stops.pop(key, None)
         try:
             result = future.result()
-        except (
-            CaseRenderError
-        ) as error:  # the recipe's own gap: a typed failure, no retry
+        except CaseRenderError as error:
+            # The recipe's own gap: a typed failure, never a tool crash to retry.
             self._record_failure(
                 key, case_render_failure(error), slot.get("operation_id")
             )
             return
         except Exception as error:  # noqa: BLE001 - a bug in one smoke must not stop an unattended sweep
-            self._smoke_crashed(key, error)
+            self._smoke_crashed(key, slot, error)
             return
         if result.ok:
             self.clear_infra("client-key")
             self.clear_infra("smoke-tool")
+            self.state.entry(key).pop("exit_repeat", None)
             self._record_pass(key, slot, result)
             return
         assert result.failure is not None
@@ -3221,13 +3224,17 @@ class Sweep:
             return
         self._record_failure(key, failure, slot.get("operation_id"))
 
-    def _smoke_crashed(self, key: str, error: BaseException) -> None:
+    def _smoke_crashed(
+        self, key: str, slot: dict[str, Any], error: BaseException
+    ) -> None:
         """The sweep's own smoke code raised: a tool fault, never a verdict on the recipe.
 
         The exception's type, message (an ``OSError`` keeps its filename) and last frames
         go into the row and the event log. The recipe is requeued without spending an
         attempt, and this recipe backs off (``note_infra``) until a smoke passes again, so a
-        crash that repeats costs backed-off loads, never the recipe.
+        crash that repeats costs backed-off loads, never the recipe. The same crash on the same
+        content identity three times in a row ends as the platform's FAIL with its evidence
+        (``_bound_identical_exit``); another exception or identity retries again.
         """
         evidence = crash_evidence(error)
         failure = policy.classify(
@@ -3237,6 +3244,14 @@ class Sweep:
             verdict.SWEEP_CRASH,
             evidence,
         )
+        accepted = AcceptedRequest.read(slot)
+        if accepted is not None:
+            bounded = self._bound_identical_exit(
+                self.state.entry(key), failure, accepted.recipe
+            )
+            if bounded.evidence.get("identical_exits"):
+                self._record_failure(key, bounded, slot.get("operation_id"))
+                return
         self.state.event(
             f"smoke of {key} crashed in the sweep (a tool fault, not the recipe's): "
             f"{failure.detail[:200]} at {evidence['frames'][-1][:200] if evidence['frames'] else '?'}"

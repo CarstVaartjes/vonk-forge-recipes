@@ -17,7 +17,7 @@ from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from qualification.documents import recipe_api
 from spark_sweep import run
-from spark_sweep.definitions import Definitions
+from spark_sweep.definitions import CaseRenderError, Definitions
 from spark_sweep.smoke import SmokeResult
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -100,3 +100,27 @@ def test_a_tts_recipe_without_voices_is_one_typed_failure_not_a_retry_loop(
     assert codes.count("case.cases") == 1
     assert "smoke.crash" not in codes
     assert "smoke-tool" not in sweep.state.data["infra"]
+
+
+def test_a_case_render_error_from_the_smoke_is_one_typed_failure(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    recipe = FakeRecipe(SLUG)
+    sweep, _, clock = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
+    calls: list[int] = []
+
+    def raising(*_: Any) -> SmokeResult:
+        calls.append(1)
+        raise CaseRenderError("a $VOICE case needs the recipe's audio_speech voices")
+
+    monkeypatch.setattr(run, "smoke_service", raising)
+    _drive(sweep, clock, lambda: "case.cases" in _codes(tmp_path))
+    for _ in range(300):
+        sweep.tick()
+        clock.sleep(sweep.cfg.poll_seconds)
+
+    codes = _codes(tmp_path)
+    assert codes.count("case.cases") == 1
+    assert "smoke.crash" not in codes
+    assert "smoke-tool" not in sweep.state.data["infra"]
+    assert len(calls) == 1
