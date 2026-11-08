@@ -2,7 +2,9 @@
   "capabilities": [
     "chat",
     "code-generation",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "DeepSeek V4 Flash 0731 official checkpoint with DSpark speculative layers.",
   "family_title": "DeepSeek Flash",

@@ -1,7 +1,10 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
+    "reasoning",
     "text-generation",
+    "tool-use",
     "video-understanding"
   ],
   "description": "Exact public NVFP4 94e431d9 checkpoint.",
