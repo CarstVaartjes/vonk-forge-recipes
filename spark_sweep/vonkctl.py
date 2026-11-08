@@ -14,7 +14,7 @@ import subprocess
 import uuid
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Protocol
 
 from pydantic import ValidationError
 from vonk_forge_contracts.sweep import CliObservationReply
@@ -30,6 +30,23 @@ Runner = Callable[[Sequence[str], float], tuple[int, str, str]]
 def request_key(*parts: object) -> str:
     """A deterministic request UUID, so a restarted run reconnects to its work."""
     return str(uuid.uuid5(_KEY_NAMESPACE, "|".join(str(part) for part in parts)))
+
+
+#: The installed vonkctl names a Controller on another control contract (vonk-forge
+#: ``ClientCode.CONTRACT_MISMATCH``): decision ``exit``, recovery ``vonkctl update --apply``.
+CLIENT_CONTRACT_MISMATCH = "client.contract_mismatch"
+
+
+class ContractRecoverer(Protocol):
+    """What ``Vonkctl.run`` asks when the client and the Controller disagree (``contract_recovery``)."""
+
+    def recover(self, run_once: Callable[..., Reply], command: tuple[str, ...]) -> bool:
+        """True when the client was replaced and the failed call should be made once more."""
+        ...
+
+    def observed_ok(self, command: tuple[str, ...]) -> None:
+        """The command that met a mismatch now succeeds: that mismatch has healed."""
+        ...
 
 
 class OwnerProfileError(ValueError):
@@ -94,6 +111,15 @@ class Reply:
         if self.is_transport_error:
             raise VonkctlTransportError(self.argv, self, self.error_text)
         return self.document
+
+    @property
+    def is_contract_mismatch(self) -> bool:
+        """The typed code only: no message matching."""
+        document = self.document
+        return (
+            isinstance(document, dict)
+            and document.get("code") == CLIENT_CONTRACT_MISMATCH
+        )
 
     @property
     def is_error_document(self) -> bool:
@@ -215,8 +241,37 @@ class Vonkctl:
         self.executable = executable
         self.runner = runner
         self.timeout = timeout
+        #: Set by the sweep; absent, a contract mismatch is just an error reply.
+        self.recovery: ContractRecoverer | None = None
 
     def run(
+        self,
+        *args: str,
+        profile: int | None = None,
+        timeout: float | None = None,
+        allow_owner_write: bool = False,
+    ) -> Reply:
+        """One call; a typed contract mismatch gets at most one recovery and one retry."""
+        reply = self.run_once(
+            *args, profile=profile, timeout=timeout, allow_owner_write=allow_owner_write
+        )
+        recovery = self.recovery
+        if recovery is None:
+            return reply
+        if not reply.is_contract_mismatch:
+            if reply.ok:
+                recovery.observed_ok(args[:2])
+            return reply
+        if recovery.recover(self.run_once, args[:2]):
+            return self.run_once(
+                *args,
+                profile=profile,
+                timeout=timeout,
+                allow_owner_write=allow_owner_write,
+            )
+        return reply
+
+    def run_once(
         self,
         *args: str,
         profile: int | None = None,
