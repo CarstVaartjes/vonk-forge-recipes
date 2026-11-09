@@ -5,7 +5,8 @@
     "smoke_cases": [
       "M0",
       "A391",
-      "T_REPORT"
+      "T_REPORT",
+      "INKLING_ASR"
     ],
     "higher_tiers": {
       "stress": [

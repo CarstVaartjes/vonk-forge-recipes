@@ -1,8 +1,11 @@
 {
   "capabilities": [
     "audio-understanding",
+    "chat",
     "image-understanding",
-    "text-generation"
+    "reasoning",
+    "text-generation",
+    "tool-use"
   ],
   "description": "Exact public NVFP4 checkpoint, including its built-in eight-head MTP weights and text, image, and 16 kHz audio processor contract.",
   "family_title": "Inkling",

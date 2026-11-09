@@ -301,6 +301,15 @@ work. Fresh fleet/ownership facts and security review still govern new loads.
 See `tests/test_sweep_wait_budget.py`, `tests/test_sweep_copy.py`,
 `tests/test_sweep_stalled_work.py`, `tests/test_sweep_noblock.py`.
 
+A Controller on another control contract is the typed `client.contract_mismatch`
+(never message matching; vector `tests/fixtures/sweep-verdicts/cli-contract-mismatch.json`).
+`Vonkctl.run` only reports it (any thread, a flag); the main loop's `check_release`
+runs the one `check_client` path (signed update, `--allow-version-skew` honoured) at
+most once per 30 s and the failed operation retries on its next pass. If no update was
+applied, an escalated `policy.CLIENT_CONTRACT` incident is raised; it clears only when
+a Controller command that met the mismatch succeeds, never for `--version`/`update`
+(`tests/test_sweep_contract_mismatch.py`).
+
 A selected recipe whose served digest differs from the sweep's own source
 checkout (the authored document digest) waits for the catalog to serve the source,
 for example a publish the Controller has not imported yet: it is not tested and the

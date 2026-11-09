@@ -2,6 +2,7 @@
   "ours": [
     "NOTICE.upstream",
     "mods/inkling-agent-parser-fix/",
+    "mods/inkling-audio-deps/",
     "vllm-wrapper.py"
   ],
   "renamed": {

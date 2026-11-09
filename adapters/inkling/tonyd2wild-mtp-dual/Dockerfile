@@ -13,13 +13,15 @@ LABEL org.opencontainers.image.source="https://github.com/eugr/spark-vllm-docker
 # loop) is a memory-pressure helper, not image content, and is left out. The
 # inkling-sm12-paged-kv mod checks for a CUDA device before installing; no GPU exists at
 # build time, so use the mod's own test override that skips that preflight (the patch
-# anchors are still checked).
+# anchors are still checked). The creator's inkling-audio-deps mod (from tonyd2wild's DSpark
+# recipe, which this recipe's repo lacks) installs the audio wheels the model class needs for
+# WAV input; it pins them by version.
 COPY mods /opt/vonk/build/mods
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
 RUN set -eu; \
     export INKLING_SM12_MOD_SKIP_RUNTIME_CHECK=1; \
-    for mod in inkling-sm12-paged-kv inkling-agent-parser-fix instanttensor-hybrid-draft-loader; do \
+    for mod in inkling-sm12-paged-kv inkling-agent-parser-fix inkling-audio-deps instanttensor-hybrid-draft-loader; do \
       bash "/opt/vonk/build/mods/$mod/run.sh"; \
     done \
     && rm -rf /opt/vonk/build \
