@@ -1,7 +1,7 @@
 FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
 
 LABEL org.opencontainers.image.source="https://huggingface.co/MiniMaxAI/MiniMax-H3" \
-      org.opencontainers.image.revision="42ed227ee7df40d41602854ae760620d6eb651fe" \
+      org.opencontainers.image.revision="0919fb684102ef115126612f3fbb84d1027e7317" \
       org.opencontainers.image.licenses="MiniMax H3 Community License Agreement" \
       io.vonk.minimax-h3.variant="fl2va-only" \
       io.vonk.diffusers.revision="efabd60d61c2b7aabf9f182bee6b5b6058980304"

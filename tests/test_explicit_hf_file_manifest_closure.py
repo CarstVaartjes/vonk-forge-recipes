@@ -13,14 +13,14 @@ MODEL_RECIPE_PAIRS = {
     "hunyuan-video-15-distilled": "hunyuan-video-15-distilled-diffusers-single",
     "hunyuan-video-15-i2v-step-distilled": "hunyuan-video-15-i2v-step-distilled-diffusers-single",
     "skintokens": "skintokens-pytorch-single",
-    "minimax-h3": "minimax-h3-diffusers-single",
+    "minimax-h3-0919fb68": "minimax-h3-diffusers-single",
     "triposg": "triposg-pytorch-single",
 }
 FULL_MODEL_SELECTIONS = {
     "hunyuan-video-15-t2v",
     "hunyuan-video-15-distilled",
     "hunyuan-video-15-i2v-step-distilled",
-    "minimax-h3",
+    "minimax-h3-0919fb68",
     "triposg",
 }
 

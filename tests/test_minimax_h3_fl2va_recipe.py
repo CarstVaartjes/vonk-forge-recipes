@@ -11,7 +11,7 @@ from documents import recipe_display
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE_PATH = ROOT / "recipes/minimax-h3-fl2va-diffusers-single.json"
 FULL_RECIPE_PATH = ROOT / "recipes/minimax-h3-diffusers-single.json"
-MODEL_PATH = ROOT / "models/minimax-h3-fl2va-42ed227e.json"
+MODEL_PATH = ROOT / "models/minimax-h3-fl2va-0919fb68.json"
 ADAPTER_PATH = ROOT / "adapters/video/minimax-h3-fl2va-modular-diffusers/minimax_h3.py"
 
 
@@ -46,7 +46,7 @@ class MiniMaxH3Fl2vaRecipeTests(unittest.TestCase):
         )
         self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest)
         self.assertEqual(
-            model["source"]["revision"], "42ed227ee7df40d41602854ae760620d6eb651fe"
+            model["source"]["revision"], "0919fb684102ef115126612f3fbb84d1027e7317"
         )
         selected = {item["file_id"] for item in recipe["models"][0]["files"]}
         self.assertEqual(selected, {item["id"] for item in model["files"]})

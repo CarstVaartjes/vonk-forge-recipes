@@ -167,7 +167,7 @@
       "files": [
         {
           "file_id": "metadata-e48ce24c550b-618cd5b83d",
-          "id": "primary-001",
+          "id": "primary-metadata-e48ce24c550b-618cd5b83d",
           "mount": {
             "target": "/models"
           },
@@ -177,7 +177,7 @@
         },
         {
           "file_id": "config-d8f3bcc62e23-d58ca2d4a0",
-          "id": "primary-002",
+          "id": "primary-config-d8f3bcc62e23-d58ca2d4a0",
           "mount": {
             "target": "/models"
           },
@@ -187,7 +187,7 @@
         },
         {
           "file_id": "config-259f675c9f71-4aaaa43791",
-          "id": "primary-003",
+          "id": "primary-config-259f675c9f71-4aaaa43791",
           "mount": {
             "target": "/models"
           },
@@ -197,7 +197,7 @@
         },
         {
           "file_id": "dac-activations-74ca8bb9e803-be68b9732d",
-          "id": "primary-004",
+          "id": "primary-dac-activations-74ca8bb9e803-be68b9732d",
           "mount": {
             "target": "/models"
           },
@@ -207,7 +207,7 @@
         },
         {
           "file_id": "dac-alias-free-act-db8761e66c0e-3a455ace82",
-          "id": "primary-005",
+          "id": "primary-dac-alias-free-act-db8761e66c0e-3a455ace82",
           "mount": {
             "target": "/models"
           },
@@ -217,7 +217,7 @@
         },
         {
           "file_id": "dac-alias-free-filter-a369523cd7f1-6e2a879bc8",
-          "id": "primary-006",
+          "id": "primary-dac-alias-free-filter-a369523cd7f1-6e2a879bc8",
           "mount": {
             "target": "/models"
           },
@@ -227,7 +227,7 @@
         },
         {
           "file_id": "dac-alias-free-resample-fe3505589383-31000d9509",
-          "id": "primary-007",
+          "id": "primary-dac-alias-free-resample-fe3505589383-31000d9509",
           "mount": {
             "target": "/models"
           },
@@ -237,7 +237,7 @@
         },
         {
           "file_id": "dac-attn-proj-0e04556fa5fd-3bed22238d",
-          "id": "primary-008",
+          "id": "primary-dac-attn-proj-0e04556fa5fd-3bed22238d",
           "mount": {
             "target": "/models"
           },
@@ -247,7 +247,7 @@
         },
         {
           "file_id": "dac-audio-vae-ec04939602d4-8ab3fc2e70",
-          "id": "primary-009",
+          "id": "primary-dac-audio-vae-ec04939602d4-8ab3fc2e70",
           "mount": {
             "target": "/models"
           },
@@ -257,7 +257,7 @@
         },
         {
           "file_id": "dac-bigvgan-f5df4e6f633e-464375c66a",
-          "id": "primary-010",
+          "id": "primary-dac-bigvgan-f5df4e6f633e-464375c66a",
           "mount": {
             "target": "/models"
           },
@@ -267,7 +267,7 @@
         },
         {
           "file_id": "dac-utils-74ef0ba2c2a1-23df8f1a3a",
-          "id": "primary-011",
+          "id": "primary-dac-utils-74ef0ba2c2a1-23df8f1a3a",
           "mount": {
             "target": "/models"
           },
@@ -277,7 +277,7 @@
         },
         {
           "file_id": "metadata-755d0529d43b-fa013bfce2",
-          "id": "primary-012",
+          "id": "primary-metadata-755d0529d43b-fa013bfce2",
           "mount": {
             "target": "/models"
           },
@@ -287,7 +287,7 @@
         },
         {
           "file_id": "minimax-h3-audio-vae-63bc0dab6def-652521aba5",
-          "id": "primary-013",
+          "id": "primary-minimax-h3-audio-vae-63bc0dab6def-652521aba5",
           "mount": {
             "target": "/models"
           },
@@ -297,7 +297,7 @@
         },
         {
           "file_id": "model-37dddc2f3e6d-811eff632a",
-          "id": "primary-014",
+          "id": "primary-model-37dddc2f3e6d-811eff632a",
           "mount": {
             "target": "/models"
           },
@@ -307,7 +307,7 @@
         },
         {
           "file_id": "model-index-d1113e0f123c-76e5c66db0",
-          "id": "primary-015",
+          "id": "primary-model-index-d1113e0f123c-76e5c66db0",
           "mount": {
             "target": "/models"
           },
@@ -317,7 +317,7 @@
         },
         {
           "file_id": "chat-template-5c72a170d2a4-5931bb9a91",
-          "id": "primary-016",
+          "id": "primary-chat-template-5c72a170d2a4-5931bb9a91",
           "mount": {
             "target": "/models"
           },
@@ -327,7 +327,7 @@
         },
         {
           "file_id": "merges-599bab540750-3779d3b20e",
-          "id": "primary-017",
+          "id": "primary-merges-599bab540750-3779d3b20e",
           "mount": {
             "target": "/models"
           },
@@ -337,7 +337,7 @@
         },
         {
           "file_id": "preprocessor-config-27225450ac9c-0b3ae79637",
-          "id": "primary-018",
+          "id": "primary-preprocessor-config-27225450ac9c-0b3ae79637",
           "mount": {
             "target": "/models"
           },
@@ -347,7 +347,7 @@
         },
         {
           "file_id": "tokenizer-a5d85b6dcc53-437fa6b5b1",
-          "id": "primary-019",
+          "id": "primary-tokenizer-a5d85b6dcc53-437fa6b5b1",
           "mount": {
             "target": "/models"
           },
@@ -357,7 +357,7 @@
         },
         {
           "file_id": "tokenizer-config-a07e942ac874-c56ba9d9f8",
-          "id": "primary-020",
+          "id": "primary-tokenizer-config-a07e942ac874-c56ba9d9f8",
           "mount": {
             "target": "/models"
           },
@@ -367,7 +367,7 @@
         },
         {
           "file_id": "video-preprocessor-config-7768af27c1fa-067d65f229",
-          "id": "primary-021",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-067d65f229",
           "mount": {
             "target": "/models"
           },
@@ -377,7 +377,7 @@
         },
         {
           "file_id": "vocab-ca10d7e9fb3e-ab71c8a414",
-          "id": "primary-022",
+          "id": "primary-vocab-ca10d7e9fb3e-ab71c8a414",
           "mount": {
             "target": "/models"
           },
@@ -387,7 +387,7 @@
         },
         {
           "file_id": "chat-template-5c72a170d2a4-3208956155",
-          "id": "primary-023",
+          "id": "primary-chat-template-5c72a170d2a4-3208956155",
           "mount": {
             "target": "/models"
           },
@@ -397,7 +397,7 @@
         },
         {
           "file_id": "config-d2dd0c60d01b-2cc321e6b4",
-          "id": "primary-024",
+          "id": "primary-config-d2dd0c60d01b-2cc321e6b4",
           "mount": {
             "target": "/models"
           },
@@ -407,7 +407,7 @@
         },
         {
           "file_id": "merges-599bab540750-6d82d192d0",
-          "id": "primary-025",
+          "id": "primary-merges-599bab540750-6d82d192d0",
           "mount": {
             "target": "/models"
           },
@@ -417,7 +417,7 @@
         },
         {
           "file_id": "model-00001-of-00014-6b9dfbc930e5-e61cd8b03d",
-          "id": "primary-026",
+          "id": "primary-model-00001-of-00014-6b9dfbc930e5-e61cd8b03d",
           "mount": {
             "target": "/models"
           },
@@ -427,7 +427,7 @@
         },
         {
           "file_id": "model-00002-of-00014-d8bb44b4ff30-fe53e326c8",
-          "id": "primary-027",
+          "id": "primary-model-00002-of-00014-d8bb44b4ff30-fe53e326c8",
           "mount": {
             "target": "/models"
           },
@@ -437,7 +437,7 @@
         },
         {
           "file_id": "model-00003-of-00014-54f22e8b3168-27137fcbf0",
-          "id": "primary-028",
+          "id": "primary-model-00003-of-00014-54f22e8b3168-27137fcbf0",
           "mount": {
             "target": "/models"
           },
@@ -447,7 +447,7 @@
         },
         {
           "file_id": "model-00004-of-00014-ad09c74d3c13-520230ed3c",
-          "id": "primary-029",
+          "id": "primary-model-00004-of-00014-ad09c74d3c13-520230ed3c",
           "mount": {
             "target": "/models"
           },
@@ -457,7 +457,7 @@
         },
         {
           "file_id": "model-00005-of-00014-fc993c8a0e2a-ce1ad86bc9",
-          "id": "primary-030",
+          "id": "primary-model-00005-of-00014-fc993c8a0e2a-ce1ad86bc9",
           "mount": {
             "target": "/models"
           },
@@ -467,7 +467,7 @@
         },
         {
           "file_id": "model-00006-of-00014-82f05620d1f7-a3fd82ec13",
-          "id": "primary-031",
+          "id": "primary-model-00006-of-00014-82f05620d1f7-a3fd82ec13",
           "mount": {
             "target": "/models"
           },
@@ -477,7 +477,7 @@
         },
         {
           "file_id": "model-00007-of-00014-fb91da8cb01f-e206746de7",
-          "id": "primary-032",
+          "id": "primary-model-00007-of-00014-fb91da8cb01f-e206746de7",
           "mount": {
             "target": "/models"
           },
@@ -487,7 +487,7 @@
         },
         {
           "file_id": "model-00008-of-00014-431ca56535c8-3c1d847d0d",
-          "id": "primary-033",
+          "id": "primary-model-00008-of-00014-431ca56535c8-3c1d847d0d",
           "mount": {
             "target": "/models"
           },
@@ -497,7 +497,7 @@
         },
         {
           "file_id": "model-00009-of-00014-3825e3f4302f-960b50bf17",
-          "id": "primary-034",
+          "id": "primary-model-00009-of-00014-3825e3f4302f-960b50bf17",
           "mount": {
             "target": "/models"
           },
@@ -507,7 +507,7 @@
         },
         {
           "file_id": "model-00010-of-00014-aded5a4d1d5e-294672edfa",
-          "id": "primary-035",
+          "id": "primary-model-00010-of-00014-aded5a4d1d5e-294672edfa",
           "mount": {
             "target": "/models"
           },
@@ -517,7 +517,7 @@
         },
         {
           "file_id": "model-00011-of-00014-3820ffe8d8d6-1763c2ae80",
-          "id": "primary-036",
+          "id": "primary-model-00011-of-00014-3820ffe8d8d6-1763c2ae80",
           "mount": {
             "target": "/models"
           },
@@ -527,7 +527,7 @@
         },
         {
           "file_id": "model-00012-of-00014-05ad2d08ce71-9dadc75ad4",
-          "id": "primary-037",
+          "id": "primary-model-00012-of-00014-05ad2d08ce71-9dadc75ad4",
           "mount": {
             "target": "/models"
           },
@@ -537,7 +537,7 @@
         },
         {
           "file_id": "model-00013-of-00014-b64f22898712-f87514d8ea",
-          "id": "primary-038",
+          "id": "primary-model-00013-of-00014-b64f22898712-f87514d8ea",
           "mount": {
             "target": "/models"
           },
@@ -547,7 +547,7 @@
         },
         {
           "file_id": "model-00014-of-00014-e45b6c9998c7-d0b6ded30d",
-          "id": "primary-039",
+          "id": "primary-model-00014-of-00014-e45b6c9998c7-d0b6ded30d",
           "mount": {
             "target": "/models"
           },
@@ -557,7 +557,7 @@
         },
         {
           "file_id": "model-safetensors-index-06c952c56928-6bf2228ba3",
-          "id": "primary-040",
+          "id": "primary-model-safetensors-index-06c952c56928-6bf2228ba3",
           "mount": {
             "target": "/models"
           },
@@ -567,7 +567,7 @@
         },
         {
           "file_id": "preprocessor-config-27225450ac9c-2db1ae842e",
-          "id": "primary-041",
+          "id": "primary-preprocessor-config-27225450ac9c-2db1ae842e",
           "mount": {
             "target": "/models"
           },
@@ -577,7 +577,7 @@
         },
         {
           "file_id": "tokenizer-a5d85b6dcc53-209a2a717d",
-          "id": "primary-042",
+          "id": "primary-tokenizer-a5d85b6dcc53-209a2a717d",
           "mount": {
             "target": "/models"
           },
@@ -587,7 +587,7 @@
         },
         {
           "file_id": "tokenizer-config-a07e942ac874-826f46dd44",
-          "id": "primary-043",
+          "id": "primary-tokenizer-config-a07e942ac874-826f46dd44",
           "mount": {
             "target": "/models"
           },
@@ -597,7 +597,7 @@
         },
         {
           "file_id": "video-preprocessor-config-7768af27c1fa-d0db2babbf",
-          "id": "primary-044",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-d0db2babbf",
           "mount": {
             "target": "/models"
           },
@@ -607,7 +607,7 @@
         },
         {
           "file_id": "vocab-ca10d7e9fb3e-a81b66f16b",
-          "id": "primary-045",
+          "id": "primary-vocab-ca10d7e9fb3e-a81b66f16b",
           "mount": {
             "target": "/models"
           },
@@ -617,7 +617,7 @@
         },
         {
           "file_id": "merges-599bab540750-328feddd83",
-          "id": "primary-046",
+          "id": "primary-merges-599bab540750-328feddd83",
           "mount": {
             "target": "/models"
           },
@@ -627,7 +627,7 @@
         },
         {
           "file_id": "tokenizer-a5d85b6dcc53-683f62767e",
-          "id": "primary-047",
+          "id": "primary-tokenizer-a5d85b6dcc53-683f62767e",
           "mount": {
             "target": "/models"
           },
@@ -637,7 +637,7 @@
         },
         {
           "file_id": "tokenizer-config-a07e942ac874-4dee8e7f2b",
-          "id": "primary-048",
+          "id": "primary-tokenizer-config-a07e942ac874-4dee8e7f2b",
           "mount": {
             "target": "/models"
           },
@@ -647,7 +647,7 @@
         },
         {
           "file_id": "vocab-ca10d7e9fb3e-64ecb57cd0",
-          "id": "primary-049",
+          "id": "primary-vocab-ca10d7e9fb3e-64ecb57cd0",
           "mount": {
             "target": "/models"
           },
@@ -657,7 +657,7 @@
         },
         {
           "file_id": "config-f619093a231f-653aa96ab4",
-          "id": "primary-050",
+          "id": "primary-config-f619093a231f-653aa96ab4",
           "mount": {
             "target": "/models"
           },
@@ -667,7 +667,7 @@
         },
         {
           "file_id": "model-00001-of-00013-0b3386565e47-d8593c44bd",
-          "id": "primary-051",
+          "id": "primary-model-00001-of-00013-0b3386565e47-d8593c44bd",
           "mount": {
             "target": "/models"
           },
@@ -677,7 +677,7 @@
         },
         {
           "file_id": "model-00002-of-00013-9c98fd4579c9-33571fc6ab",
-          "id": "primary-052",
+          "id": "primary-model-00002-of-00013-9c98fd4579c9-33571fc6ab",
           "mount": {
             "target": "/models"
           },
@@ -687,7 +687,7 @@
         },
         {
           "file_id": "model-00003-of-00013-fa484c940d41-2b7cd8128d",
-          "id": "primary-053",
+          "id": "primary-model-00003-of-00013-fa484c940d41-2b7cd8128d",
           "mount": {
             "target": "/models"
           },
@@ -697,7 +697,7 @@
         },
         {
           "file_id": "model-00004-of-00013-4a851df37cce-c71773960f",
-          "id": "primary-054",
+          "id": "primary-model-00004-of-00013-4a851df37cce-c71773960f",
           "mount": {
             "target": "/models"
           },
@@ -707,7 +707,7 @@
         },
         {
           "file_id": "model-00005-of-00013-3fe6ff94dc9d-222eeac7fb",
-          "id": "primary-055",
+          "id": "primary-model-00005-of-00013-3fe6ff94dc9d-222eeac7fb",
           "mount": {
             "target": "/models"
           },
@@ -717,7 +717,7 @@
         },
         {
           "file_id": "model-00006-of-00013-79b47e1b9ff0-7e7b02d9dd",
-          "id": "primary-056",
+          "id": "primary-model-00006-of-00013-79b47e1b9ff0-7e7b02d9dd",
           "mount": {
             "target": "/models"
           },
@@ -727,7 +727,7 @@
         },
         {
           "file_id": "model-00007-of-00013-6ac4d6ce6397-dc328ec2ef",
-          "id": "primary-057",
+          "id": "primary-model-00007-of-00013-6ac4d6ce6397-dc328ec2ef",
           "mount": {
             "target": "/models"
           },
@@ -737,7 +737,7 @@
         },
         {
           "file_id": "model-00008-of-00013-03531812243f-d8d27b22b0",
-          "id": "primary-058",
+          "id": "primary-model-00008-of-00013-03531812243f-d8d27b22b0",
           "mount": {
             "target": "/models"
           },
@@ -747,7 +747,7 @@
         },
         {
           "file_id": "model-00009-of-00013-7e82a80b0d0d-cdab422c37",
-          "id": "primary-059",
+          "id": "primary-model-00009-of-00013-7e82a80b0d0d-cdab422c37",
           "mount": {
             "target": "/models"
           },
@@ -757,7 +757,7 @@
         },
         {
           "file_id": "model-00010-of-00013-ef0a1f6b6514-d726396399",
-          "id": "primary-060",
+          "id": "primary-model-00010-of-00013-ef0a1f6b6514-d726396399",
           "mount": {
             "target": "/models"
           },
@@ -767,7 +767,7 @@
         },
         {
           "file_id": "model-00011-of-00013-bf885b8f2f07-e01f3b8b0c",
-          "id": "primary-061",
+          "id": "primary-model-00011-of-00013-bf885b8f2f07-e01f3b8b0c",
           "mount": {
             "target": "/models"
           },
@@ -777,7 +777,7 @@
         },
         {
           "file_id": "model-00012-of-00013-dc717572d014-848cdc9ae8",
-          "id": "primary-062",
+          "id": "primary-model-00012-of-00013-dc717572d014-848cdc9ae8",
           "mount": {
             "target": "/models"
           },
@@ -787,7 +787,7 @@
         },
         {
           "file_id": "model-00013-of-00013-8bfd852d5817-bb9cc9d4c6",
-          "id": "primary-063",
+          "id": "primary-model-00013-of-00013-8bfd852d5817-bb9cc9d4c6",
           "mount": {
             "target": "/models"
           },
@@ -797,7 +797,7 @@
         },
         {
           "file_id": "model-safetensors-index-fb457a26ffa6-7d98056df6",
-          "id": "primary-064",
+          "id": "primary-model-safetensors-index-fb457a26ffa6-7d98056df6",
           "mount": {
             "target": "/models"
           },
@@ -807,7 +807,7 @@
         },
         {
           "file_id": "attention-c9db8465c57f-bce769d0a7",
-          "id": "primary-065",
+          "id": "primary-attention-c9db8465c57f-bce769d0a7",
           "mount": {
             "target": "/models"
           },
@@ -817,7 +817,7 @@
         },
         {
           "file_id": "base-module-0e7ddf508617-2f561436f3",
-          "id": "primary-066",
+          "id": "primary-base-module-0e7ddf508617-2f561436f3",
           "mount": {
             "target": "/models"
           },
@@ -827,7 +827,7 @@
         },
         {
           "file_id": "config-3edd2cdd1ebc-e676e0c122",
-          "id": "primary-067",
+          "id": "primary-config-3edd2cdd1ebc-e676e0c122",
           "mount": {
             "target": "/models"
           },
@@ -837,7 +837,7 @@
         },
         {
           "file_id": "conv-b3adee35f27e-404c6a6a46",
-          "id": "primary-068",
+          "id": "primary-conv-b3adee35f27e-404c6a6a46",
           "mount": {
             "target": "/models"
           },
@@ -847,7 +847,7 @@
         },
         {
           "file_id": "flash-c1918463d303-6a78508120",
-          "id": "primary-069",
+          "id": "primary-flash-c1918463d303-6a78508120",
           "mount": {
             "target": "/models"
           },
@@ -857,7 +857,7 @@
         },
         {
           "file_id": "func-0612c26a65f0-e840b37f29",
-          "id": "primary-070",
+          "id": "primary-func-0612c26a65f0-e840b37f29",
           "mount": {
             "target": "/models"
           },
@@ -867,7 +867,7 @@
         },
         {
           "file_id": "klvae-d05a22b4918a-1d060ed1ba",
-          "id": "primary-071",
+          "id": "primary-klvae-d05a22b4918a-1d060ed1ba",
           "mount": {
             "target": "/models"
           },
@@ -877,7 +877,7 @@
         },
         {
           "file_id": "minimax-h3-video-vae-77fdea69a484-5dc7056718",
-          "id": "primary-072",
+          "id": "primary-minimax-h3-video-vae-77fdea69a484-5dc7056718",
           "mount": {
             "target": "/models"
           },
@@ -887,7 +887,7 @@
         },
         {
           "file_id": "norm-258b120ca8d9-f3d3186037",
-          "id": "primary-073",
+          "id": "primary-norm-258b120ca8d9-f3d3186037",
           "mount": {
             "target": "/models"
           },
@@ -897,7 +897,7 @@
         },
         {
           "file_id": "normalize-8db651acb9eb-628238121a",
-          "id": "primary-074",
+          "id": "primary-normalize-8db651acb9eb-628238121a",
           "mount": {
             "target": "/models"
           },
@@ -907,7 +907,7 @@
         },
         {
           "file_id": "parallel-7193522beafd-b61d85f1f8",
-          "id": "primary-075",
+          "id": "primary-parallel-7193522beafd-b61d85f1f8",
           "mount": {
             "target": "/models"
           },
@@ -917,7 +917,7 @@
         },
         {
           "file_id": "config-66c68f541e65-3b19eb51cb",
-          "id": "primary-076",
+          "id": "primary-config-66c68f541e65-3b19eb51cb",
           "mount": {
             "target": "/models"
           },
@@ -927,7 +927,7 @@
         },
         {
           "file_id": "model-5f0c2e161d89-865716dcb9",
-          "id": "primary-077",
+          "id": "primary-model-5f0c2e161d89-865716dcb9",
           "mount": {
             "target": "/models"
           },
@@ -937,7 +937,7 @@
         },
         {
           "file_id": "utils-309e45e9d9e3-ed05d96572",
-          "id": "primary-078",
+          "id": "primary-utils-309e45e9d9e3-ed05d96572",
           "mount": {
             "target": "/models"
           },
@@ -947,7 +947,7 @@
         },
         {
           "file_id": "vae-cnn-3949b701e689-f17214b8fc",
-          "id": "primary-079",
+          "id": "primary-vae-cnn-3949b701e689-f17214b8fc",
           "mount": {
             "target": "/models"
           },
@@ -957,7 +957,7 @@
         },
         {
           "file_id": "vae-module-9558fb302e10-d594353552",
-          "id": "primary-080",
+          "id": "primary-vae-module-9558fb302e10-d594353552",
           "mount": {
             "target": "/models"
           },
@@ -967,7 +967,7 @@
         },
         {
           "file_id": "vae-processor-32870580a180-3977aacc51",
-          "id": "primary-081",
+          "id": "primary-vae-processor-32870580a180-3977aacc51",
           "mount": {
             "target": "/models"
           },
@@ -977,7 +977,7 @@
         },
         {
           "file_id": "vae-vit-a372c28441b5-cd77975584",
-          "id": "primary-082",
+          "id": "primary-vae-vit-a372c28441b5-cd77975584",
           "mount": {
             "target": "/models"
           },
@@ -987,7 +987,7 @@
         },
         {
           "file_id": "license-59b99642b95e-c693279643",
-          "id": "primary-083",
+          "id": "primary-license-59b99642b95e-c693279643",
           "mount": {
             "target": "/models"
           },
@@ -996,8 +996,8 @@
           ]
         },
         {
-          "file_id": "readme-f0116a903324-b335630551",
-          "id": "primary-084",
+          "file_id": "readme-101ddef2112b-b335630551",
+          "id": "primary-readme-101ddef2112b-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -1007,7 +1007,7 @@
         },
         {
           "file_id": "config-d8f3bcc62e23-f233ea09db",
-          "id": "primary-085",
+          "id": "primary-config-d8f3bcc62e23-f233ea09db",
           "mount": {
             "target": "/models"
           },
@@ -1017,7 +1017,7 @@
         },
         {
           "file_id": "config-259f675c9f71-42ac39e1cb",
-          "id": "primary-086",
+          "id": "primary-config-259f675c9f71-42ac39e1cb",
           "mount": {
             "target": "/models"
           },
@@ -1027,7 +1027,7 @@
         },
         {
           "file_id": "dac-activations-74ca8bb9e803-06a3d0dc0b",
-          "id": "primary-087",
+          "id": "primary-dac-activations-74ca8bb9e803-06a3d0dc0b",
           "mount": {
             "target": "/models"
           },
@@ -1037,7 +1037,7 @@
         },
         {
           "file_id": "dac-alias-free-act-db8761e66c0e-6859f8db1c",
-          "id": "primary-088",
+          "id": "primary-dac-alias-free-act-db8761e66c0e-6859f8db1c",
           "mount": {
             "target": "/models"
           },
@@ -1047,7 +1047,7 @@
         },
         {
           "file_id": "dac-alias-free-filter-a369523cd7f1-ff7211a145",
-          "id": "primary-089",
+          "id": "primary-dac-alias-free-filter-a369523cd7f1-ff7211a145",
           "mount": {
             "target": "/models"
           },
@@ -1057,7 +1057,7 @@
         },
         {
           "file_id": "dac-alias-free-resample-fe3505589383-68a585d73a",
-          "id": "primary-090",
+          "id": "primary-dac-alias-free-resample-fe3505589383-68a585d73a",
           "mount": {
             "target": "/models"
           },
@@ -1067,7 +1067,7 @@
         },
         {
           "file_id": "dac-attn-proj-0e04556fa5fd-296950c4fe",
-          "id": "primary-091",
+          "id": "primary-dac-attn-proj-0e04556fa5fd-296950c4fe",
           "mount": {
             "target": "/models"
           },
@@ -1077,7 +1077,7 @@
         },
         {
           "file_id": "dac-audio-vae-ec04939602d4-e212c76766",
-          "id": "primary-092",
+          "id": "primary-dac-audio-vae-ec04939602d4-e212c76766",
           "mount": {
             "target": "/models"
           },
@@ -1087,7 +1087,7 @@
         },
         {
           "file_id": "dac-bigvgan-f5df4e6f633e-9560b75556",
-          "id": "primary-093",
+          "id": "primary-dac-bigvgan-f5df4e6f633e-9560b75556",
           "mount": {
             "target": "/models"
           },
@@ -1097,7 +1097,7 @@
         },
         {
           "file_id": "dac-utils-74ef0ba2c2a1-af125a1afe",
-          "id": "primary-094",
+          "id": "primary-dac-utils-74ef0ba2c2a1-af125a1afe",
           "mount": {
             "target": "/models"
           },
@@ -1107,7 +1107,7 @@
         },
         {
           "file_id": "metadata-755d0529d43b-d2afbd7a90",
-          "id": "primary-095",
+          "id": "primary-metadata-755d0529d43b-d2afbd7a90",
           "mount": {
             "target": "/models"
           },
@@ -1117,7 +1117,7 @@
         },
         {
           "file_id": "minimax-h3-audio-vae-63bc0dab6def-8f6853aa88",
-          "id": "primary-096",
+          "id": "primary-minimax-h3-audio-vae-63bc0dab6def-8f6853aa88",
           "mount": {
             "target": "/models"
           },
@@ -1127,7 +1127,7 @@
         },
         {
           "file_id": "model-37dddc2f3e6d-4dd9dfe16b",
-          "id": "primary-097",
+          "id": "primary-model-37dddc2f3e6d-4dd9dfe16b",
           "mount": {
             "target": "/models"
           },
@@ -1137,7 +1137,7 @@
         },
         {
           "file_id": "model-index-b160b13700bf-3983db5e1a",
-          "id": "primary-098",
+          "id": "primary-model-index-b160b13700bf-3983db5e1a",
           "mount": {
             "target": "/models"
           },
@@ -1147,7 +1147,7 @@
         },
         {
           "file_id": "chat-template-5c72a170d2a4-5da76fec9e",
-          "id": "primary-099",
+          "id": "primary-chat-template-5c72a170d2a4-5da76fec9e",
           "mount": {
             "target": "/models"
           },
@@ -1157,7 +1157,7 @@
         },
         {
           "file_id": "merges-599bab540750-e258f19144",
-          "id": "primary-100",
+          "id": "primary-merges-599bab540750-e258f19144",
           "mount": {
             "target": "/models"
           },
@@ -1167,7 +1167,7 @@
         },
         {
           "file_id": "preprocessor-config-27225450ac9c-8830b72b07",
-          "id": "primary-101",
+          "id": "primary-preprocessor-config-27225450ac9c-8830b72b07",
           "mount": {
             "target": "/models"
           },
@@ -1177,7 +1177,7 @@
         },
         {
           "file_id": "tokenizer-a5d85b6dcc53-11fc3e2a47",
-          "id": "primary-102",
+          "id": "primary-tokenizer-a5d85b6dcc53-11fc3e2a47",
           "mount": {
             "target": "/models"
           },
@@ -1187,7 +1187,7 @@
         },
         {
           "file_id": "tokenizer-config-a07e942ac874-03ecb6bbac",
-          "id": "primary-103",
+          "id": "primary-tokenizer-config-a07e942ac874-03ecb6bbac",
           "mount": {
             "target": "/models"
           },
@@ -1197,7 +1197,7 @@
         },
         {
           "file_id": "video-preprocessor-config-7768af27c1fa-9ffbdbe195",
-          "id": "primary-104",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-9ffbdbe195",
           "mount": {
             "target": "/models"
           },
@@ -1207,7 +1207,7 @@
         },
         {
           "file_id": "vocab-ca10d7e9fb3e-80653ba783",
-          "id": "primary-105",
+          "id": "primary-vocab-ca10d7e9fb3e-80653ba783",
           "mount": {
             "target": "/models"
           },
@@ -1217,7 +1217,7 @@
         },
         {
           "file_id": "chat-template-5c72a170d2a4-1ffbbebb0d",
-          "id": "primary-106",
+          "id": "primary-chat-template-5c72a170d2a4-1ffbbebb0d",
           "mount": {
             "target": "/models"
           },
@@ -1227,7 +1227,7 @@
         },
         {
           "file_id": "config-d2dd0c60d01b-31e15edf80",
-          "id": "primary-107",
+          "id": "primary-config-d2dd0c60d01b-31e15edf80",
           "mount": {
             "target": "/models"
           },
@@ -1237,7 +1237,7 @@
         },
         {
           "file_id": "merges-599bab540750-f01b96d5f4",
-          "id": "primary-108",
+          "id": "primary-merges-599bab540750-f01b96d5f4",
           "mount": {
             "target": "/models"
           },
@@ -1247,7 +1247,7 @@
         },
         {
           "file_id": "model-00001-of-00014-6b9dfbc930e5-6202afa1fb",
-          "id": "primary-109",
+          "id": "primary-model-00001-of-00014-6b9dfbc930e5-6202afa1fb",
           "mount": {
             "target": "/models"
           },
@@ -1257,7 +1257,7 @@
         },
         {
           "file_id": "model-00002-of-00014-d8bb44b4ff30-411a722ccc",
-          "id": "primary-110",
+          "id": "primary-model-00002-of-00014-d8bb44b4ff30-411a722ccc",
           "mount": {
             "target": "/models"
           },
@@ -1267,7 +1267,7 @@
         },
         {
           "file_id": "model-00003-of-00014-54f22e8b3168-9c1bf70539",
-          "id": "primary-111",
+          "id": "primary-model-00003-of-00014-54f22e8b3168-9c1bf70539",
           "mount": {
             "target": "/models"
           },
@@ -1277,7 +1277,7 @@
         },
         {
           "file_id": "model-00004-of-00014-ad09c74d3c13-3cf02485e4",
-          "id": "primary-112",
+          "id": "primary-model-00004-of-00014-ad09c74d3c13-3cf02485e4",
           "mount": {
             "target": "/models"
           },
@@ -1287,7 +1287,7 @@
         },
         {
           "file_id": "model-00005-of-00014-fc993c8a0e2a-61c8e62971",
-          "id": "primary-113",
+          "id": "primary-model-00005-of-00014-fc993c8a0e2a-61c8e62971",
           "mount": {
             "target": "/models"
           },
@@ -1297,7 +1297,7 @@
         },
         {
           "file_id": "model-00006-of-00014-82f05620d1f7-acb8148576",
-          "id": "primary-114",
+          "id": "primary-model-00006-of-00014-82f05620d1f7-acb8148576",
           "mount": {
             "target": "/models"
           },
@@ -1307,7 +1307,7 @@
         },
         {
           "file_id": "model-00007-of-00014-fb91da8cb01f-ce6b13bb28",
-          "id": "primary-115",
+          "id": "primary-model-00007-of-00014-fb91da8cb01f-ce6b13bb28",
           "mount": {
             "target": "/models"
           },
@@ -1317,7 +1317,7 @@
         },
         {
           "file_id": "model-00008-of-00014-431ca56535c8-43fee1e71a",
-          "id": "primary-116",
+          "id": "primary-model-00008-of-00014-431ca56535c8-43fee1e71a",
           "mount": {
             "target": "/models"
           },
@@ -1327,7 +1327,7 @@
         },
         {
           "file_id": "model-00009-of-00014-3825e3f4302f-49c1b737e8",
-          "id": "primary-117",
+          "id": "primary-model-00009-of-00014-3825e3f4302f-49c1b737e8",
           "mount": {
             "target": "/models"
           },
@@ -1337,7 +1337,7 @@
         },
         {
           "file_id": "model-00010-of-00014-aded5a4d1d5e-099eaca839",
-          "id": "primary-118",
+          "id": "primary-model-00010-of-00014-aded5a4d1d5e-099eaca839",
           "mount": {
             "target": "/models"
           },
@@ -1347,7 +1347,7 @@
         },
         {
           "file_id": "model-00011-of-00014-3820ffe8d8d6-aa70dc36db",
-          "id": "primary-119",
+          "id": "primary-model-00011-of-00014-3820ffe8d8d6-aa70dc36db",
           "mount": {
             "target": "/models"
           },
@@ -1357,7 +1357,7 @@
         },
         {
           "file_id": "model-00012-of-00014-05ad2d08ce71-54dfa9c17c",
-          "id": "primary-120",
+          "id": "primary-model-00012-of-00014-05ad2d08ce71-54dfa9c17c",
           "mount": {
             "target": "/models"
           },
@@ -1367,7 +1367,7 @@
         },
         {
           "file_id": "model-00013-of-00014-b64f22898712-4447b816c4",
-          "id": "primary-121",
+          "id": "primary-model-00013-of-00014-b64f22898712-4447b816c4",
           "mount": {
             "target": "/models"
           },
@@ -1377,7 +1377,7 @@
         },
         {
           "file_id": "model-00014-of-00014-e45b6c9998c7-56f2c41436",
-          "id": "primary-122",
+          "id": "primary-model-00014-of-00014-e45b6c9998c7-56f2c41436",
           "mount": {
             "target": "/models"
           },
@@ -1387,7 +1387,7 @@
         },
         {
           "file_id": "model-safetensors-index-06c952c56928-5f715b95bd",
-          "id": "primary-123",
+          "id": "primary-model-safetensors-index-06c952c56928-5f715b95bd",
           "mount": {
             "target": "/models"
           },
@@ -1397,7 +1397,7 @@
         },
         {
           "file_id": "preprocessor-config-27225450ac9c-25f13e485f",
-          "id": "primary-124",
+          "id": "primary-preprocessor-config-27225450ac9c-25f13e485f",
           "mount": {
             "target": "/models"
           },
@@ -1407,7 +1407,7 @@
         },
         {
           "file_id": "tokenizer-a5d85b6dcc53-f41fe4d740",
-          "id": "primary-125",
+          "id": "primary-tokenizer-a5d85b6dcc53-f41fe4d740",
           "mount": {
             "target": "/models"
           },
@@ -1417,7 +1417,7 @@
         },
         {
           "file_id": "tokenizer-config-a07e942ac874-f6e3f47e75",
-          "id": "primary-126",
+          "id": "primary-tokenizer-config-a07e942ac874-f6e3f47e75",
           "mount": {
             "target": "/models"
           },
@@ -1427,7 +1427,7 @@
         },
         {
           "file_id": "video-preprocessor-config-7768af27c1fa-e60961cdd8",
-          "id": "primary-127",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-e60961cdd8",
           "mount": {
             "target": "/models"
           },
@@ -1437,7 +1437,7 @@
         },
         {
           "file_id": "vocab-ca10d7e9fb3e-47f31b7b51",
-          "id": "primary-128",
+          "id": "primary-vocab-ca10d7e9fb3e-47f31b7b51",
           "mount": {
             "target": "/models"
           },
@@ -1447,7 +1447,7 @@
         },
         {
           "file_id": "merges-599bab540750-191ae844a9",
-          "id": "primary-129",
+          "id": "primary-merges-599bab540750-191ae844a9",
           "mount": {
             "target": "/models"
           },
@@ -1457,7 +1457,7 @@
         },
         {
           "file_id": "tokenizer-a5d85b6dcc53-f8ce8c0004",
-          "id": "primary-130",
+          "id": "primary-tokenizer-a5d85b6dcc53-f8ce8c0004",
           "mount": {
             "target": "/models"
           },
@@ -1467,7 +1467,7 @@
         },
         {
           "file_id": "tokenizer-config-a07e942ac874-cb41531346",
-          "id": "primary-131",
+          "id": "primary-tokenizer-config-a07e942ac874-cb41531346",
           "mount": {
             "target": "/models"
           },
@@ -1477,7 +1477,7 @@
         },
         {
           "file_id": "vocab-ca10d7e9fb3e-7161bdf200",
-          "id": "primary-132",
+          "id": "primary-vocab-ca10d7e9fb3e-7161bdf200",
           "mount": {
             "target": "/models"
           },
@@ -1487,7 +1487,7 @@
         },
         {
           "file_id": "config-f619093a231f-89eaaec3cd",
-          "id": "primary-133",
+          "id": "primary-config-f619093a231f-89eaaec3cd",
           "mount": {
             "target": "/models"
           },
@@ -1497,7 +1497,7 @@
         },
         {
           "file_id": "model-00001-of-00013-902d6ae787f6-55c55c069b",
-          "id": "primary-134",
+          "id": "primary-model-00001-of-00013-902d6ae787f6-55c55c069b",
           "mount": {
             "target": "/models"
           },
@@ -1507,7 +1507,7 @@
         },
         {
           "file_id": "model-00002-of-00013-97b907e4d9b3-99136d196e",
-          "id": "primary-135",
+          "id": "primary-model-00002-of-00013-97b907e4d9b3-99136d196e",
           "mount": {
             "target": "/models"
           },
@@ -1517,7 +1517,7 @@
         },
         {
           "file_id": "model-00003-of-00013-fbdf425e3516-b5a7af01e2",
-          "id": "primary-136",
+          "id": "primary-model-00003-of-00013-fbdf425e3516-b5a7af01e2",
           "mount": {
             "target": "/models"
           },
@@ -1527,7 +1527,7 @@
         },
         {
           "file_id": "model-00004-of-00013-3831e9ff2640-a2c38e55ba",
-          "id": "primary-137",
+          "id": "primary-model-00004-of-00013-3831e9ff2640-a2c38e55ba",
           "mount": {
             "target": "/models"
           },
@@ -1537,7 +1537,7 @@
         },
         {
           "file_id": "model-00005-of-00013-ec7c6bdd2698-d29c94519c",
-          "id": "primary-138",
+          "id": "primary-model-00005-of-00013-ec7c6bdd2698-d29c94519c",
           "mount": {
             "target": "/models"
           },
@@ -1547,7 +1547,7 @@
         },
         {
           "file_id": "model-00006-of-00013-536c4fe01ffd-d596fb1ccc",
-          "id": "primary-139",
+          "id": "primary-model-00006-of-00013-536c4fe01ffd-d596fb1ccc",
           "mount": {
             "target": "/models"
           },
@@ -1557,7 +1557,7 @@
         },
         {
           "file_id": "model-00007-of-00013-c7b80189722b-dd1563268a",
-          "id": "primary-140",
+          "id": "primary-model-00007-of-00013-c7b80189722b-dd1563268a",
           "mount": {
             "target": "/models"
           },
@@ -1567,7 +1567,7 @@
         },
         {
           "file_id": "model-00008-of-00013-1a7da8bb7477-515359066e",
-          "id": "primary-141",
+          "id": "primary-model-00008-of-00013-1a7da8bb7477-515359066e",
           "mount": {
             "target": "/models"
           },
@@ -1577,7 +1577,7 @@
         },
         {
           "file_id": "model-00009-of-00013-33f44f03128b-46dfd9714d",
-          "id": "primary-142",
+          "id": "primary-model-00009-of-00013-33f44f03128b-46dfd9714d",
           "mount": {
             "target": "/models"
           },
@@ -1587,7 +1587,7 @@
         },
         {
           "file_id": "model-00010-of-00013-adb8df74dcff-cbfa2f2075",
-          "id": "primary-143",
+          "id": "primary-model-00010-of-00013-adb8df74dcff-cbfa2f2075",
           "mount": {
             "target": "/models"
           },
@@ -1597,7 +1597,7 @@
         },
         {
           "file_id": "model-00011-of-00013-7175cdde6953-c704c779b5",
-          "id": "primary-144",
+          "id": "primary-model-00011-of-00013-7175cdde6953-c704c779b5",
           "mount": {
             "target": "/models"
           },
@@ -1607,7 +1607,7 @@
         },
         {
           "file_id": "model-00012-of-00013-1c5c0bf33ab6-9756559b6c",
-          "id": "primary-145",
+          "id": "primary-model-00012-of-00013-1c5c0bf33ab6-9756559b6c",
           "mount": {
             "target": "/models"
           },
@@ -1617,7 +1617,7 @@
         },
         {
           "file_id": "model-00013-of-00013-572e060b9b72-b0b8e76073",
-          "id": "primary-146",
+          "id": "primary-model-00013-of-00013-572e060b9b72-b0b8e76073",
           "mount": {
             "target": "/models"
           },
@@ -1627,7 +1627,7 @@
         },
         {
           "file_id": "model-safetensors-index-fb457a26ffa6-6888126bb8",
-          "id": "primary-147",
+          "id": "primary-model-safetensors-index-fb457a26ffa6-6888126bb8",
           "mount": {
             "target": "/models"
           },
@@ -1637,7 +1637,7 @@
         },
         {
           "file_id": "attention-c9db8465c57f-1598dd8aff",
-          "id": "primary-148",
+          "id": "primary-attention-c9db8465c57f-1598dd8aff",
           "mount": {
             "target": "/models"
           },
@@ -1647,7 +1647,7 @@
         },
         {
           "file_id": "base-module-0e7ddf508617-04274259bc",
-          "id": "primary-149",
+          "id": "primary-base-module-0e7ddf508617-04274259bc",
           "mount": {
             "target": "/models"
           },
@@ -1657,7 +1657,7 @@
         },
         {
           "file_id": "config-3edd2cdd1ebc-ceff019a84",
-          "id": "primary-150",
+          "id": "primary-config-3edd2cdd1ebc-ceff019a84",
           "mount": {
             "target": "/models"
           },
@@ -1667,7 +1667,7 @@
         },
         {
           "file_id": "conv-b3adee35f27e-9e3a79799e",
-          "id": "primary-151",
+          "id": "primary-conv-b3adee35f27e-9e3a79799e",
           "mount": {
             "target": "/models"
           },
@@ -1677,7 +1677,7 @@
         },
         {
           "file_id": "flash-c1918463d303-8ca93b6b4c",
-          "id": "primary-152",
+          "id": "primary-flash-c1918463d303-8ca93b6b4c",
           "mount": {
             "target": "/models"
           },
@@ -1687,7 +1687,7 @@
         },
         {
           "file_id": "func-0612c26a65f0-53f3e10e33",
-          "id": "primary-153",
+          "id": "primary-func-0612c26a65f0-53f3e10e33",
           "mount": {
             "target": "/models"
           },
@@ -1697,7 +1697,7 @@
         },
         {
           "file_id": "klvae-d05a22b4918a-799b0593f1",
-          "id": "primary-154",
+          "id": "primary-klvae-d05a22b4918a-799b0593f1",
           "mount": {
             "target": "/models"
           },
@@ -1707,7 +1707,7 @@
         },
         {
           "file_id": "minimax-h3-video-vae-77fdea69a484-34d95a1246",
-          "id": "primary-155",
+          "id": "primary-minimax-h3-video-vae-77fdea69a484-34d95a1246",
           "mount": {
             "target": "/models"
           },
@@ -1717,7 +1717,7 @@
         },
         {
           "file_id": "norm-258b120ca8d9-4dfb8f748b",
-          "id": "primary-156",
+          "id": "primary-norm-258b120ca8d9-4dfb8f748b",
           "mount": {
             "target": "/models"
           },
@@ -1727,7 +1727,7 @@
         },
         {
           "file_id": "normalize-8db651acb9eb-b9dd527450",
-          "id": "primary-157",
+          "id": "primary-normalize-8db651acb9eb-b9dd527450",
           "mount": {
             "target": "/models"
           },
@@ -1737,7 +1737,7 @@
         },
         {
           "file_id": "parallel-7193522beafd-63c52628ec",
-          "id": "primary-158",
+          "id": "primary-parallel-7193522beafd-63c52628ec",
           "mount": {
             "target": "/models"
           },
@@ -1747,7 +1747,7 @@
         },
         {
           "file_id": "config-66c68f541e65-b4c1837734",
-          "id": "primary-159",
+          "id": "primary-config-66c68f541e65-b4c1837734",
           "mount": {
             "target": "/models"
           },
@@ -1757,7 +1757,7 @@
         },
         {
           "file_id": "model-5f0c2e161d89-9f39f51597",
-          "id": "primary-160",
+          "id": "primary-model-5f0c2e161d89-9f39f51597",
           "mount": {
             "target": "/models"
           },
@@ -1767,7 +1767,7 @@
         },
         {
           "file_id": "utils-309e45e9d9e3-bf7fa72d8b",
-          "id": "primary-161",
+          "id": "primary-utils-309e45e9d9e3-bf7fa72d8b",
           "mount": {
             "target": "/models"
           },
@@ -1777,7 +1777,7 @@
         },
         {
           "file_id": "vae-cnn-3949b701e689-a0dd6cb917",
-          "id": "primary-162",
+          "id": "primary-vae-cnn-3949b701e689-a0dd6cb917",
           "mount": {
             "target": "/models"
           },
@@ -1787,7 +1787,7 @@
         },
         {
           "file_id": "vae-module-9558fb302e10-aaa719f7ec",
-          "id": "primary-163",
+          "id": "primary-vae-module-9558fb302e10-aaa719f7ec",
           "mount": {
             "target": "/models"
           },
@@ -1797,7 +1797,7 @@
         },
         {
           "file_id": "vae-processor-32870580a180-6d28a86b6a",
-          "id": "primary-164",
+          "id": "primary-vae-processor-32870580a180-6d28a86b6a",
           "mount": {
             "target": "/models"
           },
@@ -1807,7 +1807,7 @@
         },
         {
           "file_id": "vae-vit-a372c28441b5-fd13e682e6",
-          "id": "primary-165",
+          "id": "primary-vae-vit-a372c28441b5-fd13e682e6",
           "mount": {
             "target": "/models"
           },
@@ -1817,7 +1817,7 @@
         },
         {
           "file_id": "fl2va-5a5d6e0fcdda-ef46d621a0",
-          "id": "primary-166",
+          "id": "primary-fl2va-5a5d6e0fcdda-ef46d621a0",
           "mount": {
             "target": "/models"
           },
@@ -1827,7 +1827,7 @@
         },
         {
           "file_id": "full-arch-5bd8e4077a11-300007a81b",
-          "id": "primary-167",
+          "id": "primary-full-arch-5bd8e4077a11-300007a81b",
           "mount": {
             "target": "/models"
           },
@@ -1837,7 +1837,7 @@
         },
         {
           "file_id": "h3-direct-2k-cc928dc5f406-b3853dbbf5",
-          "id": "primary-168",
+          "id": "primary-h3-direct-2k-cc928dc5f406-b3853dbbf5",
           "mount": {
             "target": "/models"
           },
@@ -1847,7 +1847,7 @@
         },
         {
           "file_id": "h3-direct-768p-642e444e8cfa-26318b7fe0",
-          "id": "primary-169",
+          "id": "primary-h3-direct-768p-642e444e8cfa-26318b7fe0",
           "mount": {
             "target": "/models"
           },
@@ -1857,7 +1857,7 @@
         },
         {
           "file_id": "i2va-5a5d6e0fcdda-597794dde9",
-          "id": "primary-170",
+          "id": "primary-i2va-5a5d6e0fcdda-597794dde9",
           "mount": {
             "target": "/models"
           },
@@ -1867,7 +1867,7 @@
         },
         {
           "file_id": "i2va-2k-dcfec002e432-aa9240637e",
-          "id": "primary-171",
+          "id": "primary-i2va-2k-dcfec002e432-aa9240637e",
           "mount": {
             "target": "/models"
           },
@@ -1877,7 +1877,7 @@
         },
         {
           "file_id": "i2va-direct-2k-c3c1eef07982-d1fea625d0",
-          "id": "primary-172",
+          "id": "primary-i2va-direct-2k-c3c1eef07982-d1fea625d0",
           "mount": {
             "target": "/models"
           },
@@ -1887,7 +1887,7 @@
         },
         {
           "file_id": "i2va-direct-768p-fc73d7633bed-a5db9d73d6",
-          "id": "primary-173",
+          "id": "primary-i2va-direct-768p-fc73d7633bed-a5db9d73d6",
           "mount": {
             "target": "/models"
           },
@@ -1897,7 +1897,7 @@
         },
         {
           "file_id": "minimax-h3-ebf43dfeaca4-4bdaa8e5b7",
-          "id": "primary-174",
+          "id": "primary-minimax-h3-ebf43dfeaca4-4bdaa8e5b7",
           "mount": {
             "target": "/models"
           },
@@ -1907,7 +1907,7 @@
         },
         {
           "file_id": "overview-b32290cdabb1-0f7b0c5bc7",
-          "id": "primary-175",
+          "id": "primary-overview-b32290cdabb1-0f7b0c5bc7",
           "mount": {
             "target": "/models"
           },
@@ -1917,7 +1917,7 @@
         },
         {
           "file_id": "r2va-5c9d33dfc517-eda86bf424",
-          "id": "primary-176",
+          "id": "primary-r2va-5c9d33dfc517-eda86bf424",
           "mount": {
             "target": "/models"
           },
@@ -1927,7 +1927,7 @@
         },
         {
           "file_id": "r2va-2k-c3c96ce2bcd2-9a31b86979",
-          "id": "primary-177",
+          "id": "primary-r2va-2k-c3c96ce2bcd2-9a31b86979",
           "mount": {
             "target": "/models"
           },
@@ -1937,7 +1937,7 @@
         },
         {
           "file_id": "r2va-direct-2k-26f07ac79f87-84f8b08e73",
-          "id": "primary-178",
+          "id": "primary-r2va-direct-2k-26f07ac79f87-84f8b08e73",
           "mount": {
             "target": "/models"
           },
@@ -1947,7 +1947,7 @@
         },
         {
           "file_id": "r2va-direct-768p-9b940b139d16-f6df4a271e",
-          "id": "primary-179",
+          "id": "primary-r2va-direct-768p-9b940b139d16-f6df4a271e",
           "mount": {
             "target": "/models"
           },
@@ -1957,7 +1957,7 @@
         },
         {
           "file_id": "ref2va-5c9d33dfc517-19d9d25c38",
-          "id": "primary-180",
+          "id": "primary-ref2va-5c9d33dfc517-19d9d25c38",
           "mount": {
             "target": "/models"
           },
@@ -1967,7 +1967,7 @@
         },
         {
           "file_id": "t2va-d66903241362-88fd959897",
-          "id": "primary-181",
+          "id": "primary-t2va-d66903241362-88fd959897",
           "mount": {
             "target": "/models"
           },
@@ -1977,7 +1977,7 @@
         },
         {
           "file_id": "t2va-2k-6624095cbda8-80f2cdfc50",
-          "id": "primary-182",
+          "id": "primary-t2va-2k-6624095cbda8-80f2cdfc50",
           "mount": {
             "target": "/models"
           },
@@ -1987,7 +1987,7 @@
         },
         {
           "file_id": "scheduler-config-804780f71334-d5d5004f55",
-          "id": "primary-183",
+          "id": "primary-scheduler-config-804780f71334-d5d5004f55",
           "mount": {
             "target": "/models"
           },
@@ -1997,7 +1997,7 @@
         },
         {
           "file_id": "config-9a3c645ff892-4092e5fbaa",
-          "id": "primary-184",
+          "id": "primary-config-9a3c645ff892-4092e5fbaa",
           "mount": {
             "target": "/models"
           },
@@ -2007,7 +2007,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-52c59e67ba8d-40eb23f3c1",
-          "id": "primary-185",
+          "id": "primary-diffusion-pytorch-model-52c59e67ba8d-40eb23f3c1",
           "mount": {
             "target": "/models"
           },
@@ -2017,7 +2017,7 @@
         },
         {
           "file_id": "qa-about-license-c39dcfc5dc3e-bc27f97b71",
-          "id": "primary-186",
+          "id": "primary-qa-about-license-c39dcfc5dc3e-bc27f97b71",
           "mount": {
             "target": "/models"
           },
@@ -2027,7 +2027,7 @@
         },
         {
           "file_id": "video-prompt-writing-guide-base-en-2cfebc096a6e-0e56aa34cb",
-          "id": "primary-187",
+          "id": "primary-video-prompt-writing-guide-base-en-2cfebc096a6e-0e56aa34",
           "mount": {
             "target": "/models"
           },
@@ -2037,7 +2037,7 @@
         },
         {
           "file_id": "video-prompt-writing-guide-ref-en-1e574f356716-da0563f59a",
-          "id": "primary-188",
+          "id": "primary-video-prompt-writing-guide-ref-en-1e574f356716-da0563f59",
           "mount": {
             "target": "/models"
           },
@@ -2047,7 +2047,7 @@
         },
         {
           "file_id": "model-index-5a587fe13b23-ee03ace9a3",
-          "id": "primary-189",
+          "id": "primary-model-index-5a587fe13b23-ee03ace9a3",
           "mount": {
             "target": "/models"
           },
@@ -2057,7 +2057,7 @@
         },
         {
           "file_id": "modular-model-index-a2b6a210e482-854eab417c",
-          "id": "primary-190",
+          "id": "primary-modular-model-index-a2b6a210e482-854eab417c",
           "mount": {
             "target": "/models"
           },
@@ -2067,7 +2067,7 @@
         },
         {
           "file_id": "chat-template-5c72a170d2a4-9ea95ca7fc",
-          "id": "primary-191",
+          "id": "primary-chat-template-5c72a170d2a4-9ea95ca7fc",
           "mount": {
             "target": "/models"
           },
@@ -2077,7 +2077,7 @@
         },
         {
           "file_id": "merges-599bab540750-5c109f0066",
-          "id": "primary-192",
+          "id": "primary-merges-599bab540750-5c109f0066",
           "mount": {
             "target": "/models"
           },
@@ -2087,7 +2087,7 @@
         },
         {
           "file_id": "preprocessor-config-27225450ac9c-f112452e22",
-          "id": "primary-193",
+          "id": "primary-preprocessor-config-27225450ac9c-f112452e22",
           "mount": {
             "target": "/models"
           },
@@ -2097,7 +2097,7 @@
         },
         {
           "file_id": "tokenizer-a5d85b6dcc53-05256ef213",
-          "id": "primary-194",
+          "id": "primary-tokenizer-a5d85b6dcc53-05256ef213",
           "mount": {
             "target": "/models"
           },
@@ -2107,7 +2107,7 @@
         },
         {
           "file_id": "tokenizer-config-a07e942ac874-c2c3c4f263",
-          "id": "primary-195",
+          "id": "primary-tokenizer-config-a07e942ac874-c2c3c4f263",
           "mount": {
             "target": "/models"
           },
@@ -2117,7 +2117,7 @@
         },
         {
           "file_id": "video-preprocessor-config-7768af27c1fa-318665c6b3",
-          "id": "primary-196",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-318665c6b3",
           "mount": {
             "target": "/models"
           },
@@ -2127,7 +2127,7 @@
         },
         {
           "file_id": "vocab-ca10d7e9fb3e-1ffa00cf15",
-          "id": "primary-197",
+          "id": "primary-vocab-ca10d7e9fb3e-1ffa00cf15",
           "mount": {
             "target": "/models"
           },
@@ -2137,7 +2137,7 @@
         },
         {
           "file_id": "scheduler-config-8fa6c3aa70dc-67ecb3dc37",
-          "id": "primary-198",
+          "id": "primary-scheduler-config-8fa6c3aa70dc-67ecb3dc37",
           "mount": {
             "target": "/models"
           },
@@ -2147,7 +2147,7 @@
         },
         {
           "file_id": "full-2k-i2va-h3-base-d7d9a3f7d0dd-5086ef1154",
-          "id": "primary-199",
+          "id": "primary-full-2k-i2va-h3-base-d7d9a3f7d0dd-5086ef1154",
           "mount": {
             "target": "/models"
           },
@@ -2157,7 +2157,7 @@
         },
         {
           "file_id": "full-2k-i2va-h3-context-ir-fc04f15349e8-2a54552d3f",
-          "id": "primary-200",
+          "id": "primary-full-2k-i2va-h3-context-ir-fc04f15349e8-2a54552d3f",
           "mount": {
             "target": "/models"
           },
@@ -2167,7 +2167,7 @@
         },
         {
           "file_id": "full-2k-i2va-h3-regenerate-2k-b66701da7bdb-40d387dc69",
-          "id": "primary-201",
+          "id": "primary-full-2k-i2va-h3-regenerate-2k-b66701da7bdb-40d387dc69",
           "mount": {
             "target": "/models"
           },
@@ -2177,7 +2177,7 @@
         },
         {
           "file_id": "full-2k-i2va-reference-2k-result-by-dir-51668e6d7533-b3736ead90",
-          "id": "primary-202",
+          "id": "primary-full-2k-i2va-reference-2k-result-by-dir-51668e6d7533-b37",
           "mount": {
             "target": "/models"
           },
@@ -2187,7 +2187,7 @@
         },
         {
           "file_id": "full-2k-i2va-reference-768p-result-by-d-a5db59db6b23-3e45e0324d",
-          "id": "primary-203",
+          "id": "primary-full-2k-i2va-reference-768p-result-by-d-a5db59db6b23-3e4",
           "mount": {
             "target": "/models"
           },
@@ -2197,7 +2197,7 @@
         },
         {
           "file_id": "full-2k-ref2va-h3-api-2k-in-open-platfo-caec8a2aaa52-10f54fe1a8",
-          "id": "primary-204",
+          "id": "primary-full-2k-ref2va-h3-api-2k-in-open-platfo-caec8a2aaa52-10f",
           "mount": {
             "target": "/models"
           },
@@ -2207,7 +2207,7 @@
         },
         {
           "file_id": "full-2k-ref2va-h3-base-a7fcd7ac1bba-9bcde4b9f7",
-          "id": "primary-205",
+          "id": "primary-full-2k-ref2va-h3-base-a7fcd7ac1bba-9bcde4b9f7",
           "mount": {
             "target": "/models"
           },
@@ -2217,7 +2217,7 @@
         },
         {
           "file_id": "full-2k-ref2va-h3-context-ir-8ad994259735-d055548c55",
-          "id": "primary-206",
+          "id": "primary-full-2k-ref2va-h3-context-ir-8ad994259735-d055548c55",
           "mount": {
             "target": "/models"
           },
@@ -2227,7 +2227,7 @@
         },
         {
           "file_id": "full-2k-ref2va-reference-2k-result-by-d-2dbfe2718937-c2bf623426",
-          "id": "primary-207",
+          "id": "primary-full-2k-ref2va-reference-2k-result-by-d-2dbfe2718937-c2b",
           "mount": {
             "target": "/models"
           },
@@ -2237,7 +2237,7 @@
         },
         {
           "file_id": "full-2k-ref2va-reference-768p-result-by-ae5ab4330dbf-282d7601b6",
-          "id": "primary-208",
+          "id": "primary-full-2k-ref2va-reference-768p-result-by-ae5ab4330dbf-282",
           "mount": {
             "target": "/models"
           },
@@ -2247,7 +2247,7 @@
         },
         {
           "file_id": "full-2k-t2va-h3-base-1281d8f4f653-bad33517bb",
-          "id": "primary-209",
+          "id": "primary-full-2k-t2va-h3-base-1281d8f4f653-bad33517bb",
           "mount": {
             "target": "/models"
           },
@@ -2257,7 +2257,7 @@
         },
         {
           "file_id": "full-2k-t2va-h3-context-ir-910f5ae62ee7-69c9e85f87",
-          "id": "primary-210",
+          "id": "primary-full-2k-t2va-h3-context-ir-910f5ae62ee7-69c9e85f87",
           "mount": {
             "target": "/models"
           },
@@ -2267,7 +2267,7 @@
         },
         {
           "file_id": "full-2k-t2va-h3-regenerate-2k-a285529b8840-0f94a99dd7",
-          "id": "primary-211",
+          "id": "primary-full-2k-t2va-h3-regenerate-2k-a285529b8840-0f94a99dd7",
           "mount": {
             "target": "/models"
           },
@@ -2277,7 +2277,7 @@
         },
         {
           "file_id": "full-2k-t2va-reference-2k-result-by-dir-8b7a9a9951d1-65c989ad22",
-          "id": "primary-212",
+          "id": "primary-full-2k-t2va-reference-2k-result-by-dir-8b7a9a9951d1-65c",
           "mount": {
             "target": "/models"
           },
@@ -2287,7 +2287,7 @@
         },
         {
           "file_id": "full-2k-t2va-reference-768p-result-by-d-6459f593f3a6-730d3da6cf",
-          "id": "primary-213",
+          "id": "primary-full-2k-t2va-reference-768p-result-by-d-6459f593f3a6-730",
           "mount": {
             "target": "/models"
           },
@@ -2297,7 +2297,7 @@
         },
         {
           "file_id": "reproducible-768p-fl2va-request-82d1c06897da-b70a978059",
-          "id": "primary-214",
+          "id": "primary-reproducible-768p-fl2va-request-82d1c06897da-b70a978059",
           "mount": {
             "target": "/models"
           },
@@ -2307,7 +2307,7 @@
         },
         {
           "file_id": "reproducible-768p-ref2va-request-73ea0e5cc944-c0e720f4a7",
-          "id": "primary-215",
+          "id": "primary-reproducible-768p-ref2va-request-73ea0e5cc944-c0e720f4a7",
           "mount": {
             "target": "/models"
           },
@@ -2317,7 +2317,7 @@
         },
         {
           "file_id": "reproducible-768p-t2va-request-78bfe72365f2-8a5b0bb2dc",
-          "id": "primary-216",
+          "id": "primary-reproducible-768p-t2va-request-78bfe72365f2-8a5b0bb2dc",
           "mount": {
             "target": "/models"
           },
@@ -2327,7 +2327,7 @@
         },
         {
           "file_id": "chat-template-5c72a170d2a4-1187694af5",
-          "id": "primary-217",
+          "id": "primary-chat-template-5c72a170d2a4-1187694af5",
           "mount": {
             "target": "/models"
           },
@@ -2337,7 +2337,7 @@
         },
         {
           "file_id": "config-d2dd0c60d01b-bcfd37e83e",
-          "id": "primary-218",
+          "id": "primary-config-d2dd0c60d01b-bcfd37e83e",
           "mount": {
             "target": "/models"
           },
@@ -2347,7 +2347,7 @@
         },
         {
           "file_id": "merges-599bab540750-fd9a7ce579",
-          "id": "primary-219",
+          "id": "primary-merges-599bab540750-fd9a7ce579",
           "mount": {
             "target": "/models"
           },
@@ -2357,7 +2357,7 @@
         },
         {
           "file_id": "model-00001-of-00014-6b9dfbc930e5-2a42d5483b",
-          "id": "primary-220",
+          "id": "primary-model-00001-of-00014-6b9dfbc930e5-2a42d5483b",
           "mount": {
             "target": "/models"
           },
@@ -2367,7 +2367,7 @@
         },
         {
           "file_id": "model-00002-of-00014-d8bb44b4ff30-d2607ab9ef",
-          "id": "primary-221",
+          "id": "primary-model-00002-of-00014-d8bb44b4ff30-d2607ab9ef",
           "mount": {
             "target": "/models"
           },
@@ -2377,7 +2377,7 @@
         },
         {
           "file_id": "model-00003-of-00014-54f22e8b3168-b6267df24b",
-          "id": "primary-222",
+          "id": "primary-model-00003-of-00014-54f22e8b3168-b6267df24b",
           "mount": {
             "target": "/models"
           },
@@ -2387,7 +2387,7 @@
         },
         {
           "file_id": "model-00004-of-00014-ad09c74d3c13-317ccb3592",
-          "id": "primary-223",
+          "id": "primary-model-00004-of-00014-ad09c74d3c13-317ccb3592",
           "mount": {
             "target": "/models"
           },
@@ -2397,7 +2397,7 @@
         },
         {
           "file_id": "model-00005-of-00014-fc993c8a0e2a-b77c6935b6",
-          "id": "primary-224",
+          "id": "primary-model-00005-of-00014-fc993c8a0e2a-b77c6935b6",
           "mount": {
             "target": "/models"
           },
@@ -2407,7 +2407,7 @@
         },
         {
           "file_id": "model-00006-of-00014-82f05620d1f7-3935be3cf5",
-          "id": "primary-225",
+          "id": "primary-model-00006-of-00014-82f05620d1f7-3935be3cf5",
           "mount": {
             "target": "/models"
           },
@@ -2417,7 +2417,7 @@
         },
         {
           "file_id": "model-00007-of-00014-fb91da8cb01f-9235be5840",
-          "id": "primary-226",
+          "id": "primary-model-00007-of-00014-fb91da8cb01f-9235be5840",
           "mount": {
             "target": "/models"
           },
@@ -2427,7 +2427,7 @@
         },
         {
           "file_id": "model-00008-of-00014-431ca56535c8-92faf76e8e",
-          "id": "primary-227",
+          "id": "primary-model-00008-of-00014-431ca56535c8-92faf76e8e",
           "mount": {
             "target": "/models"
           },
@@ -2437,7 +2437,7 @@
         },
         {
           "file_id": "model-00009-of-00014-3825e3f4302f-7626657756",
-          "id": "primary-228",
+          "id": "primary-model-00009-of-00014-3825e3f4302f-7626657756",
           "mount": {
             "target": "/models"
           },
@@ -2447,7 +2447,7 @@
         },
         {
           "file_id": "model-00010-of-00014-aded5a4d1d5e-bcc621276c",
-          "id": "primary-229",
+          "id": "primary-model-00010-of-00014-aded5a4d1d5e-bcc621276c",
           "mount": {
             "target": "/models"
           },
@@ -2457,7 +2457,7 @@
         },
         {
           "file_id": "model-00011-of-00014-3820ffe8d8d6-eedb8b685b",
-          "id": "primary-230",
+          "id": "primary-model-00011-of-00014-3820ffe8d8d6-eedb8b685b",
           "mount": {
             "target": "/models"
           },
@@ -2467,7 +2467,7 @@
         },
         {
           "file_id": "model-00012-of-00014-05ad2d08ce71-bebc220809",
-          "id": "primary-231",
+          "id": "primary-model-00012-of-00014-05ad2d08ce71-bebc220809",
           "mount": {
             "target": "/models"
           },
@@ -2477,7 +2477,7 @@
         },
         {
           "file_id": "model-00013-of-00014-b64f22898712-118b281a02",
-          "id": "primary-232",
+          "id": "primary-model-00013-of-00014-b64f22898712-118b281a02",
           "mount": {
             "target": "/models"
           },
@@ -2487,7 +2487,7 @@
         },
         {
           "file_id": "model-00014-of-00014-e45b6c9998c7-5997843bd8",
-          "id": "primary-233",
+          "id": "primary-model-00014-of-00014-e45b6c9998c7-5997843bd8",
           "mount": {
             "target": "/models"
           },
@@ -2497,7 +2497,7 @@
         },
         {
           "file_id": "model-safetensors-index-06c952c56928-5fc12c01f9",
-          "id": "primary-234",
+          "id": "primary-model-safetensors-index-06c952c56928-5fc12c01f9",
           "mount": {
             "target": "/models"
           },
@@ -2507,7 +2507,7 @@
         },
         {
           "file_id": "preprocessor-config-27225450ac9c-a788ac5484",
-          "id": "primary-235",
+          "id": "primary-preprocessor-config-27225450ac9c-a788ac5484",
           "mount": {
             "target": "/models"
           },
@@ -2517,7 +2517,7 @@
         },
         {
           "file_id": "tokenizer-a5d85b6dcc53-9b5d4488eb",
-          "id": "primary-236",
+          "id": "primary-tokenizer-a5d85b6dcc53-9b5d4488eb",
           "mount": {
             "target": "/models"
           },
@@ -2527,7 +2527,7 @@
         },
         {
           "file_id": "tokenizer-config-a07e942ac874-683269f7c6",
-          "id": "primary-237",
+          "id": "primary-tokenizer-config-a07e942ac874-683269f7c6",
           "mount": {
             "target": "/models"
           },
@@ -2537,7 +2537,7 @@
         },
         {
           "file_id": "video-preprocessor-config-7768af27c1fa-f4177064cb",
-          "id": "primary-238",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-f4177064cb",
           "mount": {
             "target": "/models"
           },
@@ -2547,7 +2547,7 @@
         },
         {
           "file_id": "vocab-ca10d7e9fb3e-0377681b2a",
-          "id": "primary-239",
+          "id": "primary-vocab-ca10d7e9fb3e-0377681b2a",
           "mount": {
             "target": "/models"
           },
@@ -2557,7 +2557,7 @@
         },
         {
           "file_id": "merges-599bab540750-ebbb0f71ea",
-          "id": "primary-240",
+          "id": "primary-merges-599bab540750-ebbb0f71ea",
           "mount": {
             "target": "/models"
           },
@@ -2567,7 +2567,7 @@
         },
         {
           "file_id": "tokenizer-a5d85b6dcc53-b87c178459",
-          "id": "primary-241",
+          "id": "primary-tokenizer-a5d85b6dcc53-b87c178459",
           "mount": {
             "target": "/models"
           },
@@ -2577,7 +2577,7 @@
         },
         {
           "file_id": "tokenizer-config-a07e942ac874-47a6faaf45",
-          "id": "primary-242",
+          "id": "primary-tokenizer-config-a07e942ac874-47a6faaf45",
           "mount": {
             "target": "/models"
           },
@@ -2587,7 +2587,7 @@
         },
         {
           "file_id": "vocab-ca10d7e9fb3e-8c35116cc3",
-          "id": "primary-243",
+          "id": "primary-vocab-ca10d7e9fb3e-8c35116cc3",
           "mount": {
             "target": "/models"
           },
@@ -2597,7 +2597,7 @@
         },
         {
           "file_id": "config-74c11bff5243-98e965502a",
-          "id": "primary-244",
+          "id": "primary-config-74c11bff5243-98e965502a",
           "mount": {
             "target": "/models"
           },
@@ -2607,7 +2607,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00001-of-00014-2d847200c45c-9b4a264364",
-          "id": "primary-245",
+          "id": "primary-diffusion-pytorch-model-00001-of-00014-2d847200c45c-9b4a",
           "mount": {
             "target": "/models"
           },
@@ -2617,7 +2617,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00002-of-00014-2c4d362eddd2-737a6faf71",
-          "id": "primary-246",
+          "id": "primary-diffusion-pytorch-model-00002-of-00014-2c4d362eddd2-737a",
           "mount": {
             "target": "/models"
           },
@@ -2627,7 +2627,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00003-of-00014-949c5aafbbfa-da530da1cb",
-          "id": "primary-247",
+          "id": "primary-diffusion-pytorch-model-00003-of-00014-949c5aafbbfa-da53",
           "mount": {
             "target": "/models"
           },
@@ -2637,7 +2637,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00004-of-00014-eef761679010-5fd3267fe9",
-          "id": "primary-248",
+          "id": "primary-diffusion-pytorch-model-00004-of-00014-eef761679010-5fd3",
           "mount": {
             "target": "/models"
           },
@@ -2647,7 +2647,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00005-of-00014-43fdf42d638e-cfe87c350a",
-          "id": "primary-249",
+          "id": "primary-diffusion-pytorch-model-00005-of-00014-43fdf42d638e-cfe8",
           "mount": {
             "target": "/models"
           },
@@ -2657,7 +2657,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00006-of-00014-6442510b34d1-149a56671a",
-          "id": "primary-250",
+          "id": "primary-diffusion-pytorch-model-00006-of-00014-6442510b34d1-149a",
           "mount": {
             "target": "/models"
           },
@@ -2667,7 +2667,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00007-of-00014-29f48f535c91-6e6ed6b7e7",
-          "id": "primary-251",
+          "id": "primary-diffusion-pytorch-model-00007-of-00014-29f48f535c91-6e6e",
           "mount": {
             "target": "/models"
           },
@@ -2677,7 +2677,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00008-of-00014-c711b096c764-a9e367faf3",
-          "id": "primary-252",
+          "id": "primary-diffusion-pytorch-model-00008-of-00014-c711b096c764-a9e3",
           "mount": {
             "target": "/models"
           },
@@ -2687,7 +2687,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00009-of-00014-44428defe397-af0806a668",
-          "id": "primary-253",
+          "id": "primary-diffusion-pytorch-model-00009-of-00014-44428defe397-af08",
           "mount": {
             "target": "/models"
           },
@@ -2697,7 +2697,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00010-of-00014-3d44939c374c-05e4c0d691",
-          "id": "primary-254",
+          "id": "primary-diffusion-pytorch-model-00010-of-00014-3d44939c374c-05e4",
           "mount": {
             "target": "/models"
           },
@@ -2707,7 +2707,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00011-of-00014-224d24430b58-e78154be23",
-          "id": "primary-255",
+          "id": "primary-diffusion-pytorch-model-00011-of-00014-224d24430b58-e781",
           "mount": {
             "target": "/models"
           },
@@ -2717,7 +2717,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00012-of-00014-48fa2bd8fe13-3be611e16f",
-          "id": "primary-256",
+          "id": "primary-diffusion-pytorch-model-00012-of-00014-48fa2bd8fe13-3be6",
           "mount": {
             "target": "/models"
           },
@@ -2727,7 +2727,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00013-of-00014-be5b4b1809f9-1d7af0b810",
-          "id": "primary-257",
+          "id": "primary-diffusion-pytorch-model-00013-of-00014-be5b4b1809f9-1d7a",
           "mount": {
             "target": "/models"
           },
@@ -2737,7 +2737,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00014-of-00014-8fbd5e6c1fb1-6aeebdc985",
-          "id": "primary-258",
+          "id": "primary-diffusion-pytorch-model-00014-of-00014-8fbd5e6c1fb1-6aee",
           "mount": {
             "target": "/models"
           },
@@ -2747,7 +2747,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-safetensors-ind-ac30a3b58963-322b43acad",
-          "id": "primary-259",
+          "id": "primary-diffusion-pytorch-model-safetensors-ind-ac30a3b58963-322",
           "mount": {
             "target": "/models"
           },
@@ -2757,7 +2757,7 @@
         },
         {
           "file_id": "config-74c11bff5243-bed05ab340",
-          "id": "primary-260",
+          "id": "primary-config-74c11bff5243-bed05ab340",
           "mount": {
             "target": "/models"
           },
@@ -2767,7 +2767,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00001-of-00014-7a3fcad885f5-928329b6ee",
-          "id": "primary-261",
+          "id": "primary-diffusion-pytorch-model-00001-of-00014-7a3fcad885f5-9283",
           "mount": {
             "target": "/models"
           },
@@ -2777,7 +2777,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00002-of-00014-1638ae1dc8ae-5b2f30df0c",
-          "id": "primary-262",
+          "id": "primary-diffusion-pytorch-model-00002-of-00014-1638ae1dc8ae-5b2f",
           "mount": {
             "target": "/models"
           },
@@ -2787,7 +2787,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00003-of-00014-1ef3c4954ffe-c3dbdda95a",
-          "id": "primary-263",
+          "id": "primary-diffusion-pytorch-model-00003-of-00014-1ef3c4954ffe-c3db",
           "mount": {
             "target": "/models"
           },
@@ -2797,7 +2797,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00004-of-00014-12d92f2975cf-8269794673",
-          "id": "primary-264",
+          "id": "primary-diffusion-pytorch-model-00004-of-00014-12d92f2975cf-8269",
           "mount": {
             "target": "/models"
           },
@@ -2807,7 +2807,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00005-of-00014-304d41ce03d5-5085ff2283",
-          "id": "primary-265",
+          "id": "primary-diffusion-pytorch-model-00005-of-00014-304d41ce03d5-5085",
           "mount": {
             "target": "/models"
           },
@@ -2817,7 +2817,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00006-of-00014-12a134b7c76d-f7bbe3c53e",
-          "id": "primary-266",
+          "id": "primary-diffusion-pytorch-model-00006-of-00014-12a134b7c76d-f7bb",
           "mount": {
             "target": "/models"
           },
@@ -2827,7 +2827,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00007-of-00014-b96395261359-4d973943a7",
-          "id": "primary-267",
+          "id": "primary-diffusion-pytorch-model-00007-of-00014-b96395261359-4d97",
           "mount": {
             "target": "/models"
           },
@@ -2837,7 +2837,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00008-of-00014-1897a6bf3b4f-240afa5684",
-          "id": "primary-268",
+          "id": "primary-diffusion-pytorch-model-00008-of-00014-1897a6bf3b4f-240a",
           "mount": {
             "target": "/models"
           },
@@ -2847,7 +2847,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00009-of-00014-edfb38235adc-d43bedd7d1",
-          "id": "primary-269",
+          "id": "primary-diffusion-pytorch-model-00009-of-00014-edfb38235adc-d43b",
           "mount": {
             "target": "/models"
           },
@@ -2857,7 +2857,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00010-of-00014-f8710775cf34-b432a67494",
-          "id": "primary-270",
+          "id": "primary-diffusion-pytorch-model-00010-of-00014-f8710775cf34-b432",
           "mount": {
             "target": "/models"
           },
@@ -2867,7 +2867,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00011-of-00014-9e18acc09f84-135f6294aa",
-          "id": "primary-271",
+          "id": "primary-diffusion-pytorch-model-00011-of-00014-9e18acc09f84-135f",
           "mount": {
             "target": "/models"
           },
@@ -2877,7 +2877,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00012-of-00014-ea2e18228f8b-d050e92d5c",
-          "id": "primary-272",
+          "id": "primary-diffusion-pytorch-model-00012-of-00014-ea2e18228f8b-d050",
           "mount": {
             "target": "/models"
           },
@@ -2887,7 +2887,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00013-of-00014-1e12083b1875-d56a519319",
-          "id": "primary-273",
+          "id": "primary-diffusion-pytorch-model-00013-of-00014-1e12083b1875-d56a",
           "mount": {
             "target": "/models"
           },
@@ -2897,7 +2897,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00014-of-00014-b340f44b5690-e8f99a650f",
-          "id": "primary-274",
+          "id": "primary-diffusion-pytorch-model-00014-of-00014-b340f44b5690-e8f9",
           "mount": {
             "target": "/models"
           },
@@ -2907,7 +2907,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-safetensors-ind-ac30a3b58963-0c022c80ad",
-          "id": "primary-275",
+          "id": "primary-diffusion-pytorch-model-safetensors-ind-ac30a3b58963-0c0",
           "mount": {
             "target": "/models"
           },
@@ -2917,7 +2917,7 @@
         },
         {
           "file_id": "config-78f67deec3d6-101abd63da",
-          "id": "primary-276",
+          "id": "primary-config-78f67deec3d6-101abd63da",
           "mount": {
             "target": "/models"
           },
@@ -2927,7 +2927,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00001-of-00003-72f4c6be84ac-580ad6b5f9",
-          "id": "primary-277",
+          "id": "primary-diffusion-pytorch-model-00001-of-00003-72f4c6be84ac-580a",
           "mount": {
             "target": "/models"
           },
@@ -2937,7 +2937,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00002-of-00003-2e05e8bc23fa-27c9bb4451",
-          "id": "primary-278",
+          "id": "primary-diffusion-pytorch-model-00002-of-00003-2e05e8bc23fa-27c9",
           "mount": {
             "target": "/models"
           },
@@ -2947,7 +2947,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-00003-of-00003-c05d6ac4b1a3-5f80efb1b5",
-          "id": "primary-279",
+          "id": "primary-diffusion-pytorch-model-00003-of-00003-c05d6ac4b1a3-5f80",
           "mount": {
             "target": "/models"
           },
@@ -2957,7 +2957,7 @@
         },
         {
           "file_id": "diffusion-pytorch-model-safetensors-ind-15f6d44553c3-3f3454fc53",
-          "id": "primary-280",
+          "id": "primary-diffusion-pytorch-model-safetensors-ind-15f6d44553c3-3f3",
           "mount": {
             "target": "/models"
           },
@@ -2968,10 +2968,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "77b33b6999dd527009f47e9357a21ea8783ddcdad15b6fcbe266f986389b350b",
+        "content_sha256": "7d8b170af9e99fae1a09873fdececcf97e5a659027dbe40a9f7a464417067325",
         "kind": "model",
         "publisher": "minimax",
-        "slug": "minimax-h3"
+        "slug": "minimax-h3-0919fb68"
       }
     }
   ],
@@ -2983,8 +2983,8 @@
     "source_reference": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe"
   },
   "release": {
-    "released_at": "2026-10-30",
-    "version": "3.0.10"
+    "released_at": "2026-11-09",
+    "version": "3.0.11"
   },
   "runtime": {
     "arguments": [
@@ -3058,7 +3058,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 498474749480,
+            "artifact_bytes": 498474749491,
             "image_bytes": 2000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 1004949498960

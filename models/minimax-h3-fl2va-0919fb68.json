@@ -2,7 +2,7 @@
   "dependencies": [],
   "files": [
     {
-      "id": "artifact-01",
+      "id": "license-59b99642b95e-c693279643",
       "path": "LICENSE",
       "roles": [
         "metadata"
@@ -11,7 +11,7 @@
       "size_bytes": 17604
     },
     {
-      "id": "artifact-02",
+      "id": "scheduler-config-804780f71334-d5d5004f55",
       "path": "audio_scheduler/scheduler_config.json",
       "roles": [
         "scheduler"
@@ -20,7 +20,7 @@
       "size_bytes": 96
     },
     {
-      "id": "artifact-03",
+      "id": "config-9a3c645ff892-4092e5fbaa",
       "path": "audio_vae/config.json",
       "roles": [
         "audio-vae"
@@ -29,7 +29,7 @@
       "size_bytes": 2271
     },
     {
-      "id": "artifact-04",
+      "id": "diffusion-pytorch-model-52c59e67ba8d-40eb23f3c1",
       "path": "audio_vae/diffusion_pytorch_model.safetensors",
       "roles": [
         "audio-vae"
@@ -38,7 +38,7 @@
       "size_bytes": 605429340
     },
     {
-      "id": "artifact-05",
+      "id": "model-index-5a587fe13b23-ee03ace9a3",
       "path": "model_index.json",
       "roles": [
         "metadata"
@@ -47,7 +47,7 @@
       "size_bytes": 2936
     },
     {
-      "id": "artifact-06",
+      "id": "modular-model-index-a2b6a210e482-854eab417c",
       "path": "modular_model_index.json",
       "roles": [
         "metadata"
@@ -56,7 +56,7 @@
       "size_bytes": 2935
     },
     {
-      "id": "artifact-07",
+      "id": "chat-template-5c72a170d2a4-9ea95ca7fc",
       "path": "processor/chat_template.json",
       "roles": [
         "conditioning"
@@ -65,7 +65,7 @@
       "size_bytes": 5499
     },
     {
-      "id": "artifact-08",
+      "id": "merges-599bab540750-5c109f0066",
       "path": "processor/merges.txt",
       "roles": [
         "conditioning"
@@ -74,7 +74,7 @@
       "size_bytes": 1671839
     },
     {
-      "id": "artifact-09",
+      "id": "preprocessor-config-27225450ac9c-f112452e22",
       "path": "processor/preprocessor_config.json",
       "roles": [
         "conditioning"
@@ -83,7 +83,7 @@
       "size_bytes": 390
     },
     {
-      "id": "artifact-10",
+      "id": "tokenizer-a5d85b6dcc53-05256ef213",
       "path": "processor/tokenizer.json",
       "roles": [
         "conditioning"
@@ -92,7 +92,7 @@
       "size_bytes": 7032403
     },
     {
-      "id": "artifact-11",
+      "id": "tokenizer-config-a07e942ac874-c2c3c4f263",
       "path": "processor/tokenizer_config.json",
       "roles": [
         "conditioning"
@@ -101,7 +101,7 @@
       "size_bytes": 11003
     },
     {
-      "id": "artifact-12",
+      "id": "video-preprocessor-config-7768af27c1fa-318665c6b3",
       "path": "processor/video_preprocessor_config.json",
       "roles": [
         "conditioning"
@@ -110,7 +110,7 @@
       "size_bytes": 385
     },
     {
-      "id": "artifact-13",
+      "id": "vocab-ca10d7e9fb3e-1ffa00cf15",
       "path": "processor/vocab.json",
       "roles": [
         "conditioning"
@@ -119,7 +119,7 @@
       "size_bytes": 2776833
     },
     {
-      "id": "artifact-14",
+      "id": "scheduler-config-8fa6c3aa70dc-67ecb3dc37",
       "path": "scheduler/scheduler_config.json",
       "roles": [
         "scheduler"
@@ -128,7 +128,7 @@
       "size_bytes": 97
     },
     {
-      "id": "artifact-15",
+      "id": "chat-template-5c72a170d2a4-1187694af5",
       "path": "text_encoder/chat_template.json",
       "roles": [
         "text-encoder"
@@ -137,7 +137,7 @@
       "size_bytes": 5499
     },
     {
-      "id": "artifact-16",
+      "id": "config-d2dd0c60d01b-bcfd37e83e",
       "path": "text_encoder/config.json",
       "roles": [
         "text-encoder"
@@ -146,7 +146,7 @@
       "size_bytes": 1474
     },
     {
-      "id": "artifact-17",
+      "id": "merges-599bab540750-fd9a7ce579",
       "path": "text_encoder/merges.txt",
       "roles": [
         "text-encoder"
@@ -155,7 +155,7 @@
       "size_bytes": 1671839
     },
     {
-      "id": "artifact-18",
+      "id": "model-00001-of-00014-6b9dfbc930e5-2a42d5483b",
       "path": "text_encoder/model-00001-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -164,7 +164,7 @@
       "size_bytes": 4932328944
     },
     {
-      "id": "artifact-19",
+      "id": "model-00002-of-00014-d8bb44b4ff30-d2607ab9ef",
       "path": "text_encoder/model-00002-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -173,7 +173,7 @@
       "size_bytes": 4875990528
     },
     {
-      "id": "artifact-20",
+      "id": "model-00003-of-00014-54f22e8b3168-b6267df24b",
       "path": "text_encoder/model-00003-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -182,7 +182,7 @@
       "size_bytes": 4875990552
     },
     {
-      "id": "artifact-21",
+      "id": "model-00004-of-00014-ad09c74d3c13-317ccb3592",
       "path": "text_encoder/model-00004-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -191,7 +191,7 @@
       "size_bytes": 4875990584
     },
     {
-      "id": "artifact-22",
+      "id": "model-00005-of-00014-fc993c8a0e2a-b77c6935b6",
       "path": "text_encoder/model-00005-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -200,7 +200,7 @@
       "size_bytes": 4875990584
     },
     {
-      "id": "artifact-23",
+      "id": "model-00006-of-00014-82f05620d1f7-3935be3cf5",
       "path": "text_encoder/model-00006-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -209,7 +209,7 @@
       "size_bytes": 4875990584
     },
     {
-      "id": "artifact-24",
+      "id": "model-00007-of-00014-fb91da8cb01f-9235be5840",
       "path": "text_encoder/model-00007-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -218,7 +218,7 @@
       "size_bytes": 4875990584
     },
     {
-      "id": "artifact-25",
+      "id": "model-00008-of-00014-431ca56535c8-92faf76e8e",
       "path": "text_encoder/model-00008-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -227,7 +227,7 @@
       "size_bytes": 4875990584
     },
     {
-      "id": "artifact-26",
+      "id": "model-00009-of-00014-3825e3f4302f-7626657756",
       "path": "text_encoder/model-00009-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -236,7 +236,7 @@
       "size_bytes": 4875990584
     },
     {
-      "id": "artifact-27",
+      "id": "model-00010-of-00014-aded5a4d1d5e-bcc621276c",
       "path": "text_encoder/model-00010-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -245,7 +245,7 @@
       "size_bytes": 4875990584
     },
     {
-      "id": "artifact-28",
+      "id": "model-00011-of-00014-3820ffe8d8d6-eedb8b685b",
       "path": "text_encoder/model-00011-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -254,7 +254,7 @@
       "size_bytes": 4875990584
     },
     {
-      "id": "artifact-29",
+      "id": "model-00012-of-00014-05ad2d08ce71-bebc220809",
       "path": "text_encoder/model-00012-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -263,7 +263,7 @@
       "size_bytes": 4875990584
     },
     {
-      "id": "artifact-30",
+      "id": "model-00013-of-00014-b64f22898712-118b281a02",
       "path": "text_encoder/model-00013-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -272,7 +272,7 @@
       "size_bytes": 4875990584
     },
     {
-      "id": "artifact-31",
+      "id": "model-00014-of-00014-e45b6c9998c7-5997843bd8",
       "path": "text_encoder/model-00014-of-00014.safetensors",
       "roles": [
         "text-encoder"
@@ -281,7 +281,7 @@
       "size_bytes": 3270697008
     },
     {
-      "id": "artifact-32",
+      "id": "model-safetensors-index-06c952c56928-5fc12c01f9",
       "path": "text_encoder/model.safetensors.index.json",
       "roles": [
         "text-encoder"
@@ -290,7 +290,7 @@
       "size_bytes": 97831
     },
     {
-      "id": "artifact-33",
+      "id": "preprocessor-config-27225450ac9c-a788ac5484",
       "path": "text_encoder/preprocessor_config.json",
       "roles": [
         "text-encoder"
@@ -299,7 +299,7 @@
       "size_bytes": 390
     },
     {
-      "id": "artifact-34",
+      "id": "tokenizer-a5d85b6dcc53-9b5d4488eb",
       "path": "text_encoder/tokenizer.json",
       "roles": [
         "text-encoder"
@@ -308,7 +308,7 @@
       "size_bytes": 7032403
     },
     {
-      "id": "artifact-35",
+      "id": "tokenizer-config-a07e942ac874-683269f7c6",
       "path": "text_encoder/tokenizer_config.json",
       "roles": [
         "text-encoder"
@@ -317,7 +317,7 @@
       "size_bytes": 11003
     },
     {
-      "id": "artifact-36",
+      "id": "video-preprocessor-config-7768af27c1fa-f4177064cb",
       "path": "text_encoder/video_preprocessor_config.json",
       "roles": [
         "text-encoder"
@@ -326,7 +326,7 @@
       "size_bytes": 385
     },
     {
-      "id": "artifact-37",
+      "id": "vocab-ca10d7e9fb3e-0377681b2a",
       "path": "text_encoder/vocab.json",
       "roles": [
         "text-encoder"
@@ -335,7 +335,7 @@
       "size_bytes": 2776833
     },
     {
-      "id": "artifact-38",
+      "id": "merges-599bab540750-ebbb0f71ea",
       "path": "tokenizer/merges.txt",
       "roles": [
         "conditioning"
@@ -344,7 +344,7 @@
       "size_bytes": 1671839
     },
     {
-      "id": "artifact-39",
+      "id": "tokenizer-a5d85b6dcc53-b87c178459",
       "path": "tokenizer/tokenizer.json",
       "roles": [
         "conditioning"
@@ -353,7 +353,7 @@
       "size_bytes": 7032403
     },
     {
-      "id": "artifact-40",
+      "id": "tokenizer-config-a07e942ac874-47a6faaf45",
       "path": "tokenizer/tokenizer_config.json",
       "roles": [
         "conditioning"
@@ -362,7 +362,7 @@
       "size_bytes": 11003
     },
     {
-      "id": "artifact-41",
+      "id": "vocab-ca10d7e9fb3e-8c35116cc3",
       "path": "tokenizer/vocab.json",
       "roles": [
         "conditioning"
@@ -371,7 +371,7 @@
       "size_bytes": 2776833
     },
     {
-      "id": "artifact-42",
+      "id": "config-74c11bff5243-98e965502a",
       "path": "transformer/config.json",
       "roles": [
         "transformer"
@@ -380,7 +380,7 @@
       "size_bytes": 546
     },
     {
-      "id": "artifact-43",
+      "id": "diffusion-pytorch-model-00001-of-00014-2d847200c45c-9b4a264364",
       "path": "transformer/diffusion_pytorch_model-00001-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -389,7 +389,7 @@
       "size_bytes": 4825958704
     },
     {
-      "id": "artifact-44",
+      "id": "diffusion-pytorch-model-00002-of-00014-2c4d362eddd2-737a6faf71",
       "path": "transformer/diffusion_pytorch_model-00002-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -398,7 +398,7 @@
       "size_bytes": 4702158032
     },
     {
-      "id": "artifact-45",
+      "id": "diffusion-pytorch-model-00003-of-00014-949c5aafbbfa-da530da1cb",
       "path": "transformer/diffusion_pytorch_model-00003-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -407,7 +407,7 @@
       "size_bytes": 4933368192
     },
     {
-      "id": "artifact-46",
+      "id": "diffusion-pytorch-model-00004-of-00014-eef761679010-5fd3267fe9",
       "path": "transformer/diffusion_pytorch_model-00004-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -416,7 +416,7 @@
       "size_bytes": 4567069608
     },
     {
-      "id": "artifact-47",
+      "id": "diffusion-pytorch-model-00005-of-00014-43fdf42d638e-cfe87c350a",
       "path": "transformer/diffusion_pytorch_model-00005-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -425,7 +425,7 @@
       "size_bytes": 4702158080
     },
     {
-      "id": "artifact-48",
+      "id": "diffusion-pytorch-model-00006-of-00014-6442510b34d1-149a56671a",
       "path": "transformer/diffusion_pytorch_model-00006-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -434,7 +434,7 @@
       "size_bytes": 4933368232
     },
     {
-      "id": "artifact-49",
+      "id": "diffusion-pytorch-model-00007-of-00014-29f48f535c91-6e6ed6b7e7",
       "path": "transformer/diffusion_pytorch_model-00007-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -443,7 +443,7 @@
       "size_bytes": 4567069608
     },
     {
-      "id": "artifact-50",
+      "id": "diffusion-pytorch-model-00008-of-00014-c711b096c764-a9e367faf3",
       "path": "transformer/diffusion_pytorch_model-00008-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -452,7 +452,7 @@
       "size_bytes": 4702158080
     },
     {
-      "id": "artifact-51",
+      "id": "diffusion-pytorch-model-00009-of-00014-44428defe397-af0806a668",
       "path": "transformer/diffusion_pytorch_model-00009-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -461,7 +461,7 @@
       "size_bytes": 4933368232
     },
     {
-      "id": "artifact-52",
+      "id": "diffusion-pytorch-model-00010-of-00014-3d44939c374c-05e4c0d691",
       "path": "transformer/diffusion_pytorch_model-00010-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -470,7 +470,7 @@
       "size_bytes": 4567069608
     },
     {
-      "id": "artifact-53",
+      "id": "diffusion-pytorch-model-00011-of-00014-224d24430b58-e78154be23",
       "path": "transformer/diffusion_pytorch_model-00011-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -479,7 +479,7 @@
       "size_bytes": 4702158080
     },
     {
-      "id": "artifact-54",
+      "id": "diffusion-pytorch-model-00012-of-00014-48fa2bd8fe13-3be611e16f",
       "path": "transformer/diffusion_pytorch_model-00012-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -488,7 +488,7 @@
       "size_bytes": 4933368232
     },
     {
-      "id": "artifact-55",
+      "id": "diffusion-pytorch-model-00013-of-00014-be5b4b1809f9-1d7af0b810",
       "path": "transformer/diffusion_pytorch_model-00013-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -497,7 +497,7 @@
       "size_bytes": 4567069608
     },
     {
-      "id": "artifact-56",
+      "id": "diffusion-pytorch-model-00014-of-00014-8fbd5e6c1fb1-6aeebdc985",
       "path": "transformer/diffusion_pytorch_model-00014-of-00014.safetensors",
       "roles": [
         "transformer"
@@ -506,7 +506,7 @@
       "size_bytes": 4644161920
     },
     {
-      "id": "artifact-57",
+      "id": "diffusion-pytorch-model-safetensors-ind-ac30a3b58963-322b43acad",
       "path": "transformer/diffusion_pytorch_model.safetensors.index.json",
       "roles": [
         "transformer"
@@ -515,7 +515,7 @@
       "size_bytes": 64488
     },
     {
-      "id": "artifact-58",
+      "id": "config-78f67deec3d6-101abd63da",
       "path": "vae/config.json",
       "roles": [
         "video-vae"
@@ -524,7 +524,7 @@
       "size_bytes": 2011
     },
     {
-      "id": "artifact-59",
+      "id": "diffusion-pytorch-model-00001-of-00003-72f4c6be84ac-580ad6b5f9",
       "path": "vae/diffusion_pytorch_model-00001-of-00003.safetensors",
       "roles": [
         "video-vae"
@@ -533,7 +533,7 @@
       "size_bytes": 5061033024
     },
     {
-      "id": "artifact-60",
+      "id": "diffusion-pytorch-model-00002-of-00003-2e05e8bc23fa-27c9bb4451",
       "path": "vae/diffusion_pytorch_model-00002-of-00003.safetensors",
       "roles": [
         "video-vae"
@@ -542,7 +542,7 @@
       "size_bytes": 4955986528
     },
     {
-      "id": "artifact-61",
+      "id": "diffusion-pytorch-model-00003-of-00003-c05d6ac4b1a3-5f80efb1b5",
       "path": "vae/diffusion_pytorch_model-00003-of-00003.safetensors",
       "roles": [
         "video-vae"
@@ -551,7 +551,7 @@
       "size_bytes": 398539336
     },
     {
-      "id": "artifact-62",
+      "id": "diffusion-pytorch-model-safetensors-ind-15f6d44553c3-3f3454fc53",
       "path": "vae/diffusion_pytorch_model.safetensors.index.json",
       "roles": [
         "video-vae"
@@ -574,14 +574,14 @@
       "slug": "minimax-h3"
     },
     "publisher": "minimax",
-    "slug": "minimax-h3-fl2va-42ed227e",
-    "variant": "MiniMax H3 FL2VA 42ed227e",
-    "version": "MiniMax H3 FL2VA 42ed227e"
+    "slug": "minimax-h3-fl2va-0919fb68",
+    "variant": "MiniMax H3 FL2VA 0919fb68",
+    "version": "MiniMax H3 FL2VA 0919fb68"
   },
   "kind": "model",
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
-    "revision": "42ed227ee7df40d41602854ae760620d6eb651fe"
+    "revision": "0919fb684102ef115126612f3fbb84d1027e7317"
   }
 }

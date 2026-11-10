@@ -3,11 +3,11 @@
     "audio-generation",
     "video-generation"
   ],
-  "description": "Immutable official MiniMax H3 BF16 snapshot with FL2VA and Ref2VA checkpoints plus the Modular Diffusers layout at 42ed227e.",
+  "description": "Immutable official MiniMax H3 BF16 snapshot with FL2VA and Ref2VA checkpoints plus the Modular Diffusers layout at 0919fb68.",
   "family_title": "MiniMax H3",
   "identity": {
     "publisher": "minimax",
-    "slug": "minimax-h3"
+    "slug": "minimax-h3-0919fb68"
   },
   "kind": "model-display",
   "license": {

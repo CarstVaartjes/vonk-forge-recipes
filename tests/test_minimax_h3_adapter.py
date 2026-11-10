@@ -16,9 +16,9 @@ ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/minimax-h3-modular-diffusers"
 ADAPTER_PATH = ADAPTER_ROOT / "minimax_h3.py"
 RECIPE_PATH = ROOT / "recipes/minimax-h3-diffusers-single.json"
-MODEL_PATH = ROOT / "models/minimax-h3.json"
+MODEL_PATH = ROOT / "models/minimax-h3-0919fb68.json"
 DIFFUSERS_REVISION = "efabd60d61c2b7aabf9f182bee6b5b6058980304"
-MODEL_REVISION = "42ed227ee7df40d41602854ae760620d6eb651fe"
+MODEL_REVISION = "0919fb684102ef115126612f3fbb84d1027e7317"
 
 
 def _canonical_digest(path: Path) -> str:
@@ -63,7 +63,9 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
         self.assertTrue(recipe["execution"])
 
     def test_license_records_excluded_territories(self) -> None:
-        restrictions = model_display("minimax-h3").license.territorial_restrictions
+        restrictions = model_display(
+            "minimax-h3-0919fb68"
+        ).license.territorial_restrictions
         assert restrictions is not None
         self.assertTrue(
             {"EU", "GB", "KR", "US"} <= set(restrictions.denied_jurisdictions)

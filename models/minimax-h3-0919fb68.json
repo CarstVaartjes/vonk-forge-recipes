@@ -749,13 +749,13 @@
       "size_bytes": 17604
     },
     {
-      "id": "readme-f0116a903324-b335630551",
+      "id": "readme-101ddef2112b-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "f0116a90332496bdfcc827320c603a26b849c73bf804f2674d03682fbbd2334a",
-      "size_bytes": 38406
+      "sha256": "101ddef2112b07ff6e3bb1f45e6f1e9607a52dd88b7852ee9d924a87e406f1e5",
+      "size_bytes": 38417
     },
     {
       "id": "config-d8f3bcc62e23-f233ea09db",
@@ -2536,14 +2536,14 @@
       "slug": "minimax-h3"
     },
     "publisher": "minimax",
-    "slug": "minimax-h3",
+    "slug": "minimax-h3-0919fb68",
     "variant": "MiniMax H3",
-    "version": "MiniMax H3 42ed227e"
+    "version": "MiniMax H3 0919fb68"
   },
   "kind": "model",
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
-    "revision": "42ed227ee7df40d41602854ae760620d6eb651fe"
+    "revision": "0919fb684102ef115126612f3fbb84d1027e7317"
   }
 }
