@@ -1,4 +1,4 @@
-"""The Controller launcher binds one rank of sfxnz's TensorFold 1.2.2 GLM pair to its environment."""
+"""The Controller launcher binds one rank of sfxnz's TensorFold 1.2.5 GLM pair to its environment."""
 
 import os
 import runpy
@@ -53,7 +53,7 @@ def test_rank_binds_the_pair_through_the_engines_environment(monkeypatch, tmp_pa
     assert os.environ["TF_GLM_RANK"] == "1"
     assert os.environ["TF_GLM_WORLD"] == "2"
     assert os.environ["NCCL_COMM_ID"] == "192.0.2.1:29500"
-    assert os.environ["TF_ROCE_HCA"] == "rocep1s0f1"
+    assert os.environ["TF_ROCE_HCA"] == "rocep1s0f1,roceP2p1s0f1"
     assert os.environ["NCCL_IB_HCA"] == ENVIRON["NCCL_IB_HCA"]
 
 
