@@ -31,7 +31,7 @@ def test_evicted_download_history_cannot_starve_new_models(
         "done_at": clock.now(),
         "next_check": clock.now() + 1000,
     }
-    # History stays durable, but a model no longer present or arriving holds
+    # The old receipt stays, but a model no longer present or arriving holds
     # no eviction pin.
     sweep.prefetcher.tick(
         sweep.recipes,

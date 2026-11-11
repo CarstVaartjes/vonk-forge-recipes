@@ -52,7 +52,6 @@ def _fresh() -> dict[str, Any]:
         "loads": {},  # request key -> in-flight profile application
         "load_seq": 0,
         "downloads": {},  # key -> {operation_id, request_key, ...}
-        "download_history": {},  # key -> complete prior accepted attempt records
         "pins": [],  # recipe keys in the pin profile
         "learned": {},  # engine -> [[model bytes, load seconds]]
         "rate": {"ema": 0.0, "samples": 0},
@@ -108,7 +107,7 @@ def _drop_unbound_downloads(data: dict[str, Any]) -> None:
     """A current download record that names a request but kept no accepted content is dropped.
 
     Only pre-#1594 records look like this (every current writer sets ``accepted_content``).
-    With no current record the prefetcher asks for the recipe again; ``download_history`` stays.
+    With no current record the prefetcher asks for the recipe again.
     """
     downloads = data["downloads"]
     for key in [
@@ -117,6 +116,20 @@ def _drop_unbound_downloads(data: dict[str, Any]) -> None:
         if record.get("request_intent") and record.get("accepted_content") is None
     ]:
         del downloads[key]
+
+
+def _drop_unread_bulk(data: dict[str, Any]) -> None:
+    """Records nothing reads are dropped; each save rewrote them (116 MB at 2026-11-11).
+
+    Superseded download attempts and the raw removal review/reply documents were
+    write-only: the current download record, removal receipt and message carry
+    what a restart needs.
+    """
+    data.pop("download_history", None)
+    for record in data["model_removals"].values():
+        if isinstance(record, dict):
+            record.pop("review", None)
+            record.pop("last_response", None)
 
 
 def _adopt(
@@ -146,6 +159,7 @@ def _adopt(
     data = merged
     _drop_cache_ready(data)
     _drop_unbound_downloads(data)
+    _drop_unread_bulk(data)
     if data["schema"] == SCHEMA:
         return data
     load = data.pop("load", None)

@@ -209,21 +209,18 @@ class ModelRemover:
                         f"review error: {_error_text(parsed)}",
                         now,
                     )
-                    record.last_response = review.document
                     self._store(digest, record)
                     return
                 if parsed.target_identity != digest:
                     raise ValueError(
                         "review names different model content; no effects requested"
                     )
-                record.review = review.document
                 if parsed.blockers:
                     raise ValueError("; ".join(item.detail for item in parsed.blockers))
                 if not review.ok:
                     raise ValueError(review.error_text)
             except (ValueError, VonkctlTransportError) as error:
                 self._retry(record, f"review refused: {error}", now)
-                record.last_response = review.document
                 self._store(digest, record)
                 return
             record.request_key = str(uuid4())
@@ -246,7 +243,6 @@ class ModelRemover:
             record.request_key,
             timeout=30,
         )
-        record.last_response = reply.document
         try:
             receipt = _SUBMIT_REPLY.validate_python(reply.require_document())
             if isinstance(receipt, RemovalReplyError):

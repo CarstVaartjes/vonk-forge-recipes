@@ -139,7 +139,5 @@ class RemovalRecord(BaseModel):
     request_key: str | None = None
     next_check: float = 0
     message: str = ""
-    review: dict[str, JsonValue] | None = None
     receipt: dict[str, JsonValue] | None = None
-    last_response: JsonValue = None
     history: list[dict[str, JsonValue]] = Field(default_factory=list)
