@@ -83,7 +83,7 @@
   "vonk-forge/nemotron-3-5-super-vl-lilicorr-sfxnz-vllm-single": "afae831ecec875ee1c49f8f5278aca55ef0c8e1f4d0155152b589ebdd8907b5f",
   "vonk-forge/nemotron-3-nano-30b-a3b-bf16-nvidia-vllm-single": "38be1c32819a3191724b39b0be14451500dd45d4b10e51ed3b908df777043c58",
   "vonk-forge/nemotron-3-nano-30b-a3b-fp8-nvidia-vllm-single": "01619b5a048013f63a5f4c7cedde99cf5be429d7011cb6ab4c1a8a3534215ad6",
-  "vonk-forge/nemotron-3-nano-30b-a3b-nvfp4-eugr-vllm-single": "0ecd10dc80541c4f6aa2019ffb955b2c90f7cf900787d63be483d4654f898593",
+  "vonk-forge/nemotron-3-nano-30b-a3b-nvfp4-eugr-vllm-single": "6b68ef50f942712952bbb5a5ec1f729cee20a53d68d62387f3a688063d19df5d",
   "vonk-forge/nemotron-3-nano-30b-a3b-nvfp4-nvidia-sglang-single": "27f39e5a68cc70ab2c22e6b8d35f481c48baad090d6dc3aa61ee7988d3b25983",
   "vonk-forge/nemotron-3-nano-30b-a3b-nvfp4-nvidia-trtllm-single": "7102a790b18ac68444ea1ba28ec6d548cb39160d015b2b064a8c2448021ee402",
   "vonk-forge/nemotron-3-nano-30b-a3b-q4-k-m-ggml-org-llamacpp-single": "2910202ad1d16b3b5f52e780c500a0b5f0851fe712735cb735d12f7eb0003641",
