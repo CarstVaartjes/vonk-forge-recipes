@@ -101,23 +101,16 @@ PIN_ALIAS_PREFIX = "pin-"
 RESULT_KEYS = ("artifact_set_sha256", "oci_archive_sha256", "build_id")
 
 
-def result_identity(document: Any) -> dict[str, Any]:
-    """The content a finished download produced: its artifact set, image archive and build."""
-    found: dict[str, set[str]] = {}
-
-    def walk(node: Any) -> None:
-        if isinstance(node, Mapping):
-            for name, value in node.items():
-                if name in RESULT_KEYS and isinstance(value, str):
-                    found.setdefault(name, set()).add(value)
-                else:
-                    walk(value)
-        elif isinstance(node, list):
-            for item in node:
-                walk(item)
-
-    walk(document)
-    return {name: sorted(values) for name, values in sorted(found.items())}
+def result_identity(document: Mapping[str, Any]) -> dict[str, str]:
+    """What a finished download produced: the typed ``result`` of the operation."""
+    result = document.get("result")
+    if not isinstance(result, Mapping):
+        return {}
+    return {
+        name: value
+        for name in RESULT_KEYS
+        if isinstance(value := result.get(name), str)
+    }
 
 
 def pin_alias(key: str) -> str:
@@ -160,9 +153,6 @@ class Prefetcher:
         # (sets to protect, free pins) while new model downloads wait for pin capacity.
         self.pin_hold: tuple[int, int] | None = None
         self.last_plans: list[GroupPlan] = []
-        # The library's model rows at the current tick (None: not read yet).
-        self._models: Mapping[str, Model] | None = None
-        self._recipes: Mapping[str, Recipe] = {}
 
     # -- operations ---------------------------------------------------------
 
@@ -366,46 +356,29 @@ class Prefetcher:
                 "done_at"
             ):
                 record["done_at"] = self.clock()
-                self._note_result(key, record, document)
+                self._note_result(record, document)
                 self.on_done(key)
         self.rate.add(total_rate)
         return total_rate
 
-    def _uncached_models(self, recipe: Recipe) -> list[str]:
-        """The recipe's bound models the library reads as not cached, by model digest."""
-        models = self._models or {}
-        return sorted(
-            digest
-            for digest in recipe.model_digests
-            if (model := models.get(digest)) is not None and model.local == "not_cached"
-        )
+    def _clear_agreed(self, recipes: Mapping[str, Recipe]) -> None:
+        """A fresh library pass reading a recipe cached ends any contradiction about it."""
+        for key, record in self.state.downloads.items():
+            recipe = recipes.get(key)
+            if (
+                recipe is not None
+                and recipe.local == "cached"
+                and record.get("state") == LifecycleState.SUCCEEDED
+                and self.library_fresh_since > float(record.get("done_at", 0))
+            ):
+                record.pop("contradiction", None)
+                record.pop("previous_result", None)
 
-    def _note_result(
-        self, key: str, record: dict[str, Any], document: Mapping[str, Any]
-    ) -> None:
-        """Keep what a finished download produced; flag a repeat that changed nothing.
-
-        A re-request that returns the very result of the one before it, while the library still reads the recipe as not cached, shows the
-        library (not the cache) is wrong: another request cannot change the answer.
-        """
-        result = result_identity(document)
-        if not result:
-            return
-        record["result_id"] = result
-        accepted = AcceptedRequest.read(record)
-        recipe = self._recipes.get(key)
-        if (
-            record.get("previous_result") == result
-            and accepted is not None
-            and recipe is not None
-            and recipe.local == "not_cached"
-        ):
-            record["contradiction"] = {
-                "content_sha256": accepted.recipe.content_sha256,
-                "uncached_models": self._uncached_models(recipe),
-                "at": record["done_at"],
-            }
-            self.state.event(f"platform contradiction: {key}: library reads not cached")
+    @staticmethod
+    def _note_result(record: dict[str, Any], document: Mapping[str, Any]) -> None:
+        """Keep what a finished download produced, for the next re-request to compare."""
+        if result := result_identity(document):
+            record["result_id"] = result
 
     def _retire(self, key: str, record: dict[str, Any], reason: str) -> None:
         if record.get("request_key"):
@@ -729,8 +702,8 @@ class Prefetcher:
         cached: set[str] | None = None,
     ) -> dict[str, Any]:
         now = self.clock()
-        self._models, self._recipes = models, recipes
         live_rate = self._poll()
+        self._clear_agreed(recipes)
         self._track_external(recipes, now)
         # Sets that landed in this poll are on the NAS before the library says so: they
         # are pinned (and count against the pin room) from this tick on.
@@ -913,20 +886,16 @@ class Prefetcher:
             # it still says the cache is empty (evicted). Fresh evidence, not a count,
             # authorizes recovery; the cooldown bounds lagging-listing churn.
             done_at = float(record.get("done_at", now))
-            flagged = record.get("contradiction")
-            if isinstance(flagged, Mapping):
-                # The library contradicts a finished, unchanged result: asking again
-                # cannot change the answer. Only new evidence re-arms: a bound model
-                # newly read as not cached by a pass made after the result.
-                return self.library_fresh_since > done_at and bool(
-                    set(self._uncached_models(recipe))
-                    - set(flagged.get("uncached_models", []))
-                )
-            return (
-                recipe.local == "not_cached"
-                and now - done_at > 600
-                and self.library_fresh_since > done_at
-            )
+            fresh = self.library_fresh_since > done_at
+            if not (recipe.local == "not_cached" and fresh and now - done_at > 600):
+                return False
+            result = record.get("result_id")
+            if result and record.get("previous_result") == result:
+                # The last request returned this very result and the library still
+                # reads the cache as empty: asking again cannot change the answer.
+                record["contradiction"] = {"at": now}
+                return False
+            return True
         if record.get("state") in (
             LifecycleState.FAILED,
             LifecycleState.CANCELLED,
