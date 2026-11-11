@@ -1,0 +1,27 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "launch.sh",
+        "pattern": "^    : \"\\$\\{IMAGE_REF:=eugr/spark-vllm-b12x:(?P<version>[^}\"]+)\\}\"$",
+        "repo": "docker.io/eugr/spark-vllm-b12x"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "launch.sh",
+        "pattern": "^CHECKPOINT_REV=\"(?P<version>[0-9a-f]{40})\"$",
+        "repo_pattern": "^MODEL_ID=\"(?P<repo>[^\\s\"'`}),;\\]:]+/[^\\s\"'`}),;\\]:]+)\"$"
+      }
+    },
+    "whole": false
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "commit": "29d0989cf60a82f653c33a25c871d00cba9ae1fe",
+    "repo": "Reederey87/glm53-flash-fp4-b12x-2x-dgx-spark"
+  }
+}
