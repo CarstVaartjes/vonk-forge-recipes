@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "e608a6c31e6fd41e05b5c8a8a558f9301d1122b6f8b535af70a4d992f7214f51",
+        "digest": "5e59cb7efe08a99b023925a185c971c5a31868d8261b755c33d9911c3b9389aa",
         "repository": "docker.io/eugr/spark-vllm"
       },
       "context": {
@@ -64,8 +64,8 @@
           ]
         },
         {
-          "file_id": "chat-template-e84f32a23fdd-00824420d1",
-          "id": "primary-chat-template-e84f32a23fdd-00824420d1",
+          "file_id": "chat-template-1b8361565cc3-00824420d1",
+          "id": "primary-chat-template-1b8361565cc3-00824420d1",
           "mount": {
             "target": "/models/target"
           },
@@ -564,8 +564,8 @@
           ]
         },
         {
-          "file_id": "tokenizer-config-5186f0defcd7-94d5c6ba8f",
-          "id": "primary-tokenizer-config-5186f0defcd7-94d5c6ba8f",
+          "file_id": "tokenizer-config-a39230de9293-94d5c6ba8f",
+          "id": "primary-tokenizer-config-a39230de9293-94d5c6ba8f",
           "mount": {
             "target": "/models/target"
           },
@@ -596,10 +596,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "36bb3094fbdb5ec472382d72db3f6c9b1b700cd100b8af937df57ef9dd342b4d",
+        "content_sha256": "6a233b4a1b88c622aa7c877196b77e5a8349f4810f79a20b012a18fa2eaaf5b5",
         "kind": "model",
         "publisher": "qwen",
-        "slug": "qwen3-6-35b-a3b-fp8-95a723d0"
+        "slug": "qwen3-6-35b-a3b-fp8-c653bba4"
       }
     },
     {
@@ -731,10 +731,10 @@
       "z-lab (Apache-2.0)",
       "vLLM contributors (Apache-2.0)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/73a48892ee517426d99dda658213eab75c5c2126"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/bc224d8126036675c6a84b698ed40919027782d2"
   },
   "release": {
-    "released_at": "2026-11-04",
+    "released_at": "2026-11-07",
     "version": "prebuilt-vllm-current"
   },
   "runtime": {
@@ -845,7 +845,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 38265249967,
+            "artifact_bytes": 38265243284,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 16000000000,
             "working_bytes": 30000000000

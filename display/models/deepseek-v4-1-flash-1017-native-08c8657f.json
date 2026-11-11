@@ -1,0 +1,34 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "deepseek-ai/DeepSeek-V4.1-Flash-1017 at immutable revision 1bae0e1088993b9b82de08f59de5be5a34e42170. Source model inputs for the creator runtime; physical Spark acceptance is unmeasured.",
+  "family_title": "DeepSeek",
+  "identity": {
+    "publisher": "deepseek-ai",
+    "slug": "deepseek-v4-1-flash-1017-native-08c8657f"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek-AI; LibertAI for the EXL3 quantization."
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/blob/1bae0e1088993b9b82de08f59de5be5a34e42170/LICENSE"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "model_title": "DeepSeek V4.1 Flash 1017",
+  "tags": [
+    "deepseek",
+    "1017",
+    "mxfp4"
+  ]
+}
