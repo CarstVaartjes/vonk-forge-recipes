@@ -1,10 +1,10 @@
-# sfxnz's GLM-5.3-Flash EXL3 4bpw recipe (kit 9e5933c0): the stock TensorFold 1.2.2 release, no fork and no patches. The
+# sfxnz's GLM-5.3-Flash EXL3 4bpw recipe (kit 22cfa239): the stock TensorFold 1.2.5 release, no fork and no patches. The
 # creator publishes no image; its docker/Dockerfile builds one from NVIDIA's CUDA 13.0 base, and so does this, with three
 # changes: its three `ADD` downloads are curl steps checked against the creator's sha256 (the recipe build policy forbids
 # ADD), python3 is installed for the Controller launcher, and the final user is numeric. The release archive carries the
 # CUDA kernels it embeds.
-ARG TF_VERSION=1.2.2
-ARG TF_SHA256=17632c30f761e7f9051255744a17fc36f0b9c0d46343d47617bb34e7ec4e4128
+ARG TF_VERSION=1.2.5
+ARG TF_SHA256=1a0192b28d6ab6ec2749f3ff25515379dba4895171e781b30f810afc971ae4f8
 
 # Every FROM pins the digest (the recipe source policy checks each one).
 # TensorFold refuses any JPEG/WebP decoder whose embedded version is not exactly libjpeg-turbo 3.1.4.1 / libwebp 1.6.0,
@@ -27,7 +27,7 @@ RUN mkdir -p /dl /out /src/jpeg \
 FROM docker.io/nvidia/cuda:13.0.0-base-ubuntu24.04@sha256:6e43a6b02e5f16e4a715953be8b29c40acbe84aed11a61357ef0fc899967fbd9
 ARG TF_VERSION
 ARG TF_SHA256
-LABEL io.vonk.recipe.source="https://github.com/sfxnz/GLM-5.3-Flash-EXL3-4bpw-TensorFold-2x-DGX-Spark/tree/9e5933c085e60361104e2dc7157661bdaa8829fb" \
+LABEL io.vonk.recipe.source="https://github.com/sfxnz/GLM-5.3-Flash-EXL3-4bpw-TensorFold-2x-DGX-Spark/tree/22cfa239a6d5702939e1d33472d64d631c2e300b" \
       org.opencontainers.image.licenses="Apache-2.0 AND MIT"
 # NCCL 2.30.7 is the version upstream's GLM TP receipts ran; ibverbs-providers carries the mlx5 provider for RoCE gathers.
 # curl only fetches the release archive and leaves with the apt lists.
