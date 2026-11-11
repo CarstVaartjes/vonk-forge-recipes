@@ -939,7 +939,37 @@ class ModelPayloadTests(unittest.TestCase):
         self.assertTrue(refresh.payload_identical(old, same))
         self.assertFalse(refresh.payload_identical(old, changed))
 
-    def test_merges_txt_is_judged_by_the_documents_roles(self) -> None:
+    def test_stored_metadata_that_roles_for_calls_payload_is_compared(self) -> None:
+        old = {
+            "files": [
+                {
+                    "path": "processor/tokenizer.json",
+                    "roles": ["metadata"],
+                    "sha256": "a" * 64,
+                },
+                {"path": "README.md", "roles": ["metadata"], "sha256": "b" * 64},
+            ]
+        }
+        same = [dict(old["files"][0]), dict(old["files"][1], sha256="c" * 64)]
+        changed = [dict(old["files"][0], sha256="d" * 64), same[1]]
+        self.assertTrue(refresh.payload_identical(old, same))
+        self.assertFalse(refresh.payload_identical(old, changed))
+
+    def test_stored_weights_that_roles_for_calls_metadata_are_compared(self) -> None:
+        from tools._catalog_model import roles_for
+
+        self.assertEqual(roles_for("model.gguf"), ["metadata"])
+        old = {
+            "files": [{"path": "model.gguf", "roles": ["weights"], "sha256": "a" * 64}]
+        }
+        new = [{"path": "model.gguf", "roles": ["metadata"], "sha256": "b" * 64}]
+        self.assertFalse(refresh.payload_identical(old, new))
+        new[0]["sha256"] = "a" * 64
+        self.assertTrue(refresh.payload_identical(old, new))
+
+    def test_readme_only_revision_with_merges_is_a_noop_and_merges_change_a_move(
+        self,
+    ) -> None:
         from tools._catalog_model import roles_for
 
         self.assertEqual(roles_for("processor/merges.txt"), ["tokenizer"])
