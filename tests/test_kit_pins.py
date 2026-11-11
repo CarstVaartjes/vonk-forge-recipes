@@ -939,6 +939,37 @@ class ModelPayloadTests(unittest.TestCase):
         self.assertTrue(refresh.payload_identical(old, same))
         self.assertFalse(refresh.payload_identical(old, changed))
 
+    def test_merges_txt_is_judged_by_the_documents_roles(self) -> None:
+        from tools._catalog_model import roles_for
+
+        self.assertEqual(roles_for("processor/merges.txt"), ["tokenizer"])
+        old = {
+            "files": [
+                {"path": "model.safetensors", "roles": ["weights"], "sha256": "a" * 64},
+                {
+                    "path": "processor/merges.txt",
+                    "roles": ["tokenizer"],
+                    "sha256": "b" * 64,
+                },
+                {"path": "README.md", "roles": ["metadata"], "sha256": "c" * 64},
+            ]
+        }
+
+        def new(merges: str, readme: str) -> list[dict[str, object]]:
+            # The new side is classified by an older roles_for: merges.txt as metadata.
+            return [
+                {"path": "model.safetensors", "roles": ["weights"], "sha256": "a" * 64},
+                {
+                    "path": "processor/merges.txt",
+                    "roles": ["metadata"],
+                    "sha256": merges,
+                },
+                {"path": "README.md", "roles": ["metadata"], "sha256": readme},
+            ]
+
+        self.assertTrue(refresh.payload_identical(old, new("b" * 64, "d" * 64)))
+        self.assertFalse(refresh.payload_identical(old, new("e" * 64, "c" * 64)))
+
 
 def issue_assessment(heads: list[str]) -> Any:
     result = refresh.Assessment("mia")

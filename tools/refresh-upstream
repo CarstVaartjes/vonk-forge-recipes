@@ -2245,11 +2245,23 @@ def curate(
 
 
 def payload_identical(old: dict[str, Any], new_files: list[dict[str, Any]]) -> bool:
-    """Whether every non-metadata file is the same bytes at the same path."""
+    """Whether every non-metadata file is the same bytes at the same path.
+
+    Both sides are judged by the catalogued document's roles, by path, so a
+    classifier change in ``roles_for`` cannot read as a payload change; only a
+    path the document does not know falls back to the new file's own roles.
+    """
+    roles = {f["path"]: f["roles"] for f in old["files"]}
+
+    def payload(path: str, own: list[str]) -> bool:
+        return roles.get(path, own) != ["metadata"]
+
     before = {
-        f["path"]: f["sha256"] for f in old["files"] if f["roles"] != ["metadata"]
+        f["path"]: f["sha256"] for f in old["files"] if payload(f["path"], f["roles"])
     }
-    after = {f["path"]: f["sha256"] for f in new_files if f["roles"] != ["metadata"]}
+    after = {
+        f["path"]: f["sha256"] for f in new_files if payload(f["path"], f["roles"])
+    }
     return before == after
 
 
