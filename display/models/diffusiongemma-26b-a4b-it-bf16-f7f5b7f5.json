@@ -4,7 +4,8 @@
     "image-understanding",
     "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Exact public Google DiffusionGemma 26B-A4B IT (diffusion-decoding Gemma) checkpoint.",
   "family_title": "Google Gemma",
@@ -22,7 +23,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "DiffusionGemma 26B-A4B",
   "tags": [
