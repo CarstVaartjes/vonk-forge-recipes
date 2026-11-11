@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "identity": "drowzeys-fasth3-tensorfold/8step-v2@1",
-  "upstream_template": "https://github.com/drowzeys/Imagination-Studio-by-keys-Wasserman/blob/3926471d59bfe8a51a295b7bfdef6cda0b09e1de/spark/spark_generate.py",
+  "upstream_template": "https://github.com/drowzeys/Imagination-Studio-by-keys-Wasserman/blob/24e49ac8a9f557ad83573bcf9ed7f78b8b091ed4/spark/spark_generate.py",
   "models": [
     {
       "artifact_id": "target",
