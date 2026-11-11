@@ -142,11 +142,11 @@
       "drowzeys",
       "TensorFold contributors"
     ],
-    "source_reference": "https://github.com/drowzeys/Imagination-Studio-by-keys-Wasserman/tree/3926471d59bfe8a51a295b7bfdef6cda0b09e1de"
+    "source_reference": "https://github.com/drowzeys/Imagination-Studio-by-keys-Wasserman/tree/24e49ac8a9f557ad83573bcf9ed7f78b8b091ed4"
   },
   "release": {
-    "released_at": "2026-10-30",
-    "version": "4.3.1"
+    "released_at": "2026-11-08",
+    "version": "4.4.1"
   },
   "runtime": {
     "arguments": [
@@ -156,7 +156,7 @@
       },
       {
         "name": "workflow-sha256",
-        "value": "a5d3593451edba43eb8842c42fec3f4d959cdbf1b103dc0de68ac90eb2afbe34"
+        "value": "11eb7c9b5ad4ce865427d2396dcf6acba4b066980cae9d68d810d8ba5d515b65"
       },
       {
         "name": "output-mime",
