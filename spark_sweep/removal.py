@@ -114,18 +114,14 @@ class ModelRemover:
             )
         }
         records = self.state.data.setdefault("model_removals", {})
+        # A model consumers need again is removed by a fresh request once eligible
+        # again, so its record (receipt or not) holds nothing a later pass reads.
         for digest in records.keys() - eligible:
-            record = RemovalRecord.model_validate(records[digest])
-            if record.outcome == RemovalOutcome.RECEIPT:
-                if not record.needed_again:
-                    record.needed_again = True
-                    self._store(digest, record)
-            else:
-                del records[digest]
-                self.state.event(
-                    f"model removal {digest}: dropped; consumers need it again"
-                )
-                self.state.save()
+            del records[digest]
+            self.state.event(
+                f"model removal {digest}: dropped; consumers need it again"
+            )
+            self.state.save()
         if not eligible:
             return
         try:
@@ -143,13 +139,8 @@ class ModelRemover:
                 self.state.data.setdefault("model_removals", {}).get(digest, {})
             )
             scope = {recipe.key: recipe.content_sha256 for recipe in consumers[digest]}
-            if record.outcome == RemovalOutcome.RECEIPT and (
-                record.needed_again or record.consumers != scope
-            ):
-                history = [*record.history]
-                if record.receipt:
-                    history.append(record.receipt)
-                record = RemovalRecord(history=history)
+            if record.outcome == RemovalOutcome.RECEIPT and record.consumers != scope:
+                record = RemovalRecord()
             record.consumers = scope
             if record.outcome == RemovalOutcome.RECEIPT:
                 continue
@@ -158,7 +149,7 @@ class ModelRemover:
                     self.state.event(
                         f"model removal {digest}: dropped request {record.request_key}; owner needs it"
                     )
-                    record = RemovalRecord(consumers=scope, history=record.history)
+                    record = RemovalRecord(consumers=scope)
                 if now < record.next_check:
                     continue
                 record.outcome = RemovalOutcome.OWNER
@@ -224,9 +215,7 @@ class ModelRemover:
                 self._store(digest, record)
                 return
             record.request_key = str(uuid4())
-            record.receipt = (
-                None  # prior terminal receipts belong to history, not this request
-            )
+            record.receipt = None  # a prior terminal receipt is not this request's
         record.outcome = RemovalOutcome.WAIT
         record.message = "request submitted or reconnecting; waiting for typed receipt"
         self._schedule(record, now)
@@ -271,7 +260,6 @@ class ModelRemover:
                     item for item in self.state.data["models_done"] if item != digest
                 ]
             elif receipt.state in TERMINAL:
-                record.history.append(record.receipt or {})
                 record.request_key = None
                 record.outcome = RemovalOutcome.RETRY
                 record.message = (

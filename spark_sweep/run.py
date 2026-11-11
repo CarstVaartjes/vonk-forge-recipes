@@ -5912,7 +5912,6 @@ class Sweep:
                                 "final receipt does not match the owned request/application"
                             )
                         if document.get("state") == LifecycleState.SUCCEEDED:
-                            own["terminal_receipt"] = dict(document)
                             # A new invocation may request a different final state. Finish
                             # observing the old accepted effect before applying the new one.
                             if final.action != action or final.profile != profile:
@@ -5929,7 +5928,6 @@ class Sweep:
                             )
                             break
                         if document.get("state") in SETTLED:
-                            own["terminal_receipt"] = dict(document)
                             final.request_key = self._own_key(
                                 final.action, final.profile
                             )
