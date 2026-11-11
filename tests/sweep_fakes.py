@@ -1210,6 +1210,22 @@ class FakeFleet:
             },
             "children": [],
         }
+        if op["state"] == "succeeded":
+            # The typed result (RecipeImageAvailabilityResult): fixed by the recipe's
+            # content, so a genuine refetch returns the same identity.
+            def digest(label: str) -> str:
+                return hashlib.sha256(f"{label}:{recipe.content}".encode()).hexdigest()
+
+            doc["result"] = {
+                "schema_version": 2,
+                "recipe_content_sha256": op.get("recipe_content_sha256"),
+                "artifact_set_sha256": digest("set"),
+                "model_content_digests": [],
+                "image_digest": f"sha256:{digest('image')}",
+                "oci_archive_sha256": digest("oci"),
+                "image_bytes": 1,
+                "build_id": f"build-{recipe.content}",
+            }
         if op["state"] == "backoff" and recipe.download_access_denied_for:
             recorded = json.loads(
                 (

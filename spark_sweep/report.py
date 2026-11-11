@@ -30,7 +30,7 @@ from . import policy, verdict
 from .evidence_contract import read_result
 from .evidence_publisher import UnpublishedState, UnpublishedStatus
 from .identity import recorded_identity
-from .lifecycle import ACTIVE
+from .lifecycle import ACTIVE, LifecycleState
 from .qualification import (
     current_identity,
     from_history,
@@ -61,14 +61,19 @@ def access_alerts(downloads: Iterable[Mapping[str, Any]]) -> list[str]:
     ]
 
 
-def contradiction_alerts(downloads: Mapping[str, Mapping[str, Any]]) -> list[str]:
-    """Recipes the library reads as not cached though their finished download is unchanged."""
+def contradiction_alerts(
+    downloads: Mapping[str, Mapping[str, Any]], recipes: Mapping[str, Any]
+) -> list[str]:
+    """Recipes whose finished download repeats unchanged while the library reads them uncached."""
     return [
-        f"platform contradiction: {key} finished downloading (unchanged result) but "
-        "the recipe library still reads it as not cached; no more requests until "
-        "the evidence changes"
+        f"{SweepWaitReason.PLATFORM_CONTRADICTION}: {key} finished downloading "
+        "(unchanged result) but the recipe library still reads it as not cached; "
+        "no more requests until the library reads it cached or the evidence changes"
         for key, record in sorted(downloads.items())
-        if record.get("state") == "succeeded" and record.get("contradiction")
+        if record.get("state") == LifecycleState.SUCCEEDED
+        and record.get("contradiction")
+        and (recipe := recipes.get(key)) is not None
+        and recipe.local == "not_cached"
     ]
 
 
@@ -285,7 +290,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         + ([sweep.source_alert] if sweep.source_alert else [])
         + ([sweep.evidence_publisher.alert] if sweep.evidence_publisher.alert else [])
         + access_alerts(data["downloads"].values())
-        + contradiction_alerts(data["downloads"])
+        + contradiction_alerts(data["downloads"], sweep.recipes)
         + [
             f"ESCALATION: {source} has not recovered since {item['since']}; "
             f"{item['dependency']}"

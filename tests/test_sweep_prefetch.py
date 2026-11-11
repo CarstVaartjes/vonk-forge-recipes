@@ -639,77 +639,81 @@ def test_one_pin_protects_a_model_shared_by_several_recipes(
     assert max(peak) == 2  # one per model set, not one per recipe
 
 
-RESULT = {
-    "children": [
-        {
-            "artifact_set_sha256": "aa",
-            "runtime_image": {"oci_archive_sha256": "bb", "build_id": "cc"},
-        }
-    ]
-}
+def _passes(sweep, clock, count: int) -> None:
+    """Prefetch passes, each after a fresh library read and past the cooldown."""
+    for _ in range(count):
+        clock.sleep(700)
+        sweep.refresh_catalog()
+        sweep.prefetcher.library_fresh_since = clock.now()
+        sweep.prefetcher.tick(
+            sweep.recipes,
+            sweep.models,
+            sweep.pending(),
+            sweep.sizes,
+            set(),
+            sweep.boost,
+        )
 
 
-def _contradicted(tmp_path: Path):
-    """A succeeded download whose library row stays not_cached; one re-request lands the same result."""
+def _lagging(tmp_path: Path):
     recipe = FakeRecipe("a")
-    sweep, _fleet, clock = make_sweep(
-        tmp_path, [recipe], [FakeModel("m1", local="cached")]
-    )
+    sweep, fleet, clock = make_sweep(tmp_path, [recipe], [FakeModel("m1")])
     sweep.refresh_catalog()
-    pf, key = sweep.prefetcher, recipe.key
-    pf._models, pf._recipes = sweep.models, sweep.recipes
-    pf.library_fresh_since = clock.now()
-    pf._request(sweep.recipes[key], "model")
-    record = sweep.state.downloads[key]
-    record.update(state="succeeded", done_at=clock.now())
-    pf._note_result(key, record, RESULT)  # the first success: nothing to compare yet
-    assert "contradiction" not in record
-    clock.sleep(700)
-    pf.library_fresh_since = clock.now()
-    assert pf._can_request(sweep.recipes[key], clock.now())  # the library says evicted
-    pf._request(sweep.recipes[key], "model")
-    record = sweep.state.downloads[key]
-    record.update(state="succeeded", done_at=clock.now())
-    pf._note_result(key, record, RESULT)  # byte-identical result, library unchanged
-    return sweep, pf, clock, key
+    return sweep, fleet, clock, recipe.key
 
 
-def test_an_unchanged_result_with_the_library_still_not_cached_is_asked_once_then_alerted(
+def _asked(fleet) -> int:
+    return len([c for _, c in fleet.calls if c[:2] == ("recipe", "download")])
+
+
+def test_an_unchanged_result_with_the_library_stuck_not_cached_is_asked_once_more_then_alerted(
     tmp_path: Path,
 ) -> None:
-    sweep, pf, clock, key = _contradicted(tmp_path)
+    sweep, fleet, clock, key = _lagging(tmp_path)
+    fleet.library_lag = True  # the Controller bug: the row reads not_cached forever
+    _passes(sweep, clock, 8)
+    assert _asked(fleet) == 2  # the first request and one more; then it stops
     assert sweep.state.downloads[key]["contradiction"]
-    before = len(sweep.state.downloads)
-    for _ in range(5):  # fresh library passes keep saying not_cached
-        clock.sleep(700)
-        pf.library_fresh_since = clock.now()
-        assert not pf._can_request(sweep.recipes[key], clock.now())
-    assert len(sweep.state.downloads) == before
-    assert any(key in a and "contradiction" in a for a in build_status(sweep)["alerts"])
+    alerts = build_status(sweep)["alerts"]
+    assert any(SweepWaitReason.PLATFORM_CONTRADICTION in a and key in a for a in alerts)
 
 
-def test_a_bound_model_reading_not_cached_rearms_the_request(tmp_path: Path) -> None:
-    sweep, pf, clock, key = _contradicted(tmp_path)
-    clock.sleep(700)
-    pf.library_fresh_since = clock.now()
-    assert not pf._can_request(sweep.recipes[key], clock.now())
-    pf._models = {"m1": FakeModel("m1", local="not_cached")}  # a real eviction
-    assert pf._can_request(sweep.recipes[key], clock.now())
-    pf._request(sweep.recipes[key], "model")  # re-fetch lands; still read as not cached
+def test_a_genuine_evict_and_refetch_is_not_flagged_and_a_second_eviction_refetches(
+    tmp_path: Path,
+) -> None:
+    sweep, fleet, clock, key = _lagging(tmp_path)
+    _passes(sweep, clock, 2)  # requested, landed, the library reads cached
+    for asked in (2, 3):  # evicted: refetched with the very same result, again
+        fleet.recipes[key].local = "not_cached"
+        _passes(sweep, clock, 2)  # one request, it lands
+        assert _asked(fleet) == asked
+        assert "contradiction" not in sweep.state.downloads[key]
+        fleet.recipes[key].local = "cached"
+        _passes(sweep, clock, 1)  # a fresh pass reads cached
+
+
+def test_the_flag_clears_when_the_library_reads_the_recipe_cached(
+    tmp_path: Path,
+) -> None:
+    sweep, fleet, clock, key = _lagging(tmp_path)
+    fleet.library_lag = True
+    _passes(sweep, clock, 8)
+    assert sweep.state.downloads[key]["contradiction"]
+    fleet.library_lag = False
+    _passes(sweep, clock, 1)
     record = sweep.state.downloads[key]
-    record.update(state="succeeded", done_at=clock.now())
-    pf._note_result(key, record, RESULT)
-    clock.sleep(700)
-    pf.library_fresh_since = clock.now()
-    assert not pf._can_request(
-        sweep.recipes[key], clock.now()
-    )  # no loop on the same read
+    assert "contradiction" not in record and "previous_result" not in record
+    assert not any("contradiction" in a for a in build_status(sweep)["alerts"])
 
 
-def test_a_changed_result_does_not_flag_a_contradiction(tmp_path: Path) -> None:
-    sweep, pf, _clock, key = _contradicted(tmp_path)
-    record = sweep.state.downloads[key]
-    record.pop("contradiction")
-    record["previous_result"] = {"build_id": ["other"]}
-    pf._note_result(key, record, RESULT)
-    assert "contradiction" not in record
+def test_an_image_only_loss_is_requested_again(tmp_path: Path) -> None:
+    sweep, fleet, clock, key = _lagging(tmp_path)
+    _passes(sweep, clock, 2)
+    first = _asked(fleet)
+    for model in sweep.models.values():
+        assert (
+            model.local == "cached"
+        )  # the model is on the NAS; only the image is gone
+    fleet.recipes[key].local = "not_cached"
+    _passes(sweep, clock, 1)
+    assert _asked(fleet) == first + 1
