@@ -477,10 +477,6 @@ class Prefetcher:
             if retry_of
             else {"kind": "selector", "selector": recipe.key, "force": False}
         )
-        if record:
-            history = self.state.data["download_history"].setdefault(recipe.key, [])
-            if not history or history[-1] != record:
-                history.append(dict(record))
         # Persist the next request before effects. An interrupted reply reconnects
         # this same UUID rather than losing it or creating a different attempt.
         self.state.downloads[recipe.key] = {

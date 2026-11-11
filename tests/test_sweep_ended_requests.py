@@ -66,7 +66,6 @@ def test_ended_download_releases_key_then_fresh_selector_completes(
     assert current["request_key"] != old["request_key"]
     assert current["operation_id"] != old["operation_id"]
     assert current["retry_of_operation_id"] is None
-    assert sweep.state.data["download_history"][recipe.key][-1] == retired
     clock.sleep(fleet.download_seconds + 1)
     prefetch._poll()
     assert current["state"] == LifecycleState.SUCCEEDED

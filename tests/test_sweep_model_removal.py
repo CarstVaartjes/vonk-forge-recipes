@@ -287,6 +287,27 @@ def test_restart_reconnects_to_the_write_ahead_request(tmp_path, fault):
     assert original in render_status(status)
 
 
+def test_state_saved_before_the_bounded_shape_resumes_its_removal(tmp_path):
+    """An upgraded sweep adopts the running sweep's state and drops write-only bulk."""
+    sweep, peer, clock = scenario(tmp_path)
+    peer.lost = True
+    sweep.remove_finished_models()
+    original = sweep.state.data["model_removals"][A]["request_key"]
+    saved = json.loads(sweep.state.path.read_text())
+    saved["model_removals"][A].update(review={"raw": 1}, last_response={"raw": 2})
+    saved["download_history"] = {"vonk-forge/a": [{"request_key": "old"}]}
+    sweep.state.path.write_text(json.dumps(saved))
+    sweep.state = State.load(sweep.state.path, clock.now)
+    sweep.model_remover.state = sweep.state
+    advance(sweep, clock)
+    record = sweep.state.data["model_removals"][A]
+    assert record["outcome"] == RemovalOutcome.RECEIPT
+    assert record["receipt"]["request_key"] == original
+    saved = json.loads(sweep.state.path.read_text())
+    assert "download_history" not in saved
+    assert not {"review", "last_response"} & saved["model_removals"][A].keys()
+
+
 def test_terminal_failure_replans_but_backoff_retains_the_request(tmp_path):
     sweep, peer, clock = scenario(tmp_path)
     peer.state = LifecycleState.BACKOFF
