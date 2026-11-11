@@ -637,3 +637,79 @@ def test_one_pin_protects_a_model_shared_by_several_recipes(
     )
     sweep.run()
     assert max(peak) == 2  # one per model set, not one per recipe
+
+
+RESULT = {
+    "children": [
+        {
+            "artifact_set_sha256": "aa",
+            "runtime_image": {"oci_archive_sha256": "bb", "build_id": "cc"},
+        }
+    ]
+}
+
+
+def _contradicted(tmp_path: Path):
+    """A succeeded download whose library row stays not_cached; one re-request lands the same result."""
+    recipe = FakeRecipe("a")
+    sweep, _fleet, clock = make_sweep(
+        tmp_path, [recipe], [FakeModel("m1", local="cached")]
+    )
+    sweep.refresh_catalog()
+    pf, key = sweep.prefetcher, recipe.key
+    pf._models, pf._recipes = sweep.models, sweep.recipes
+    pf.library_fresh_since = clock.now()
+    pf._request(sweep.recipes[key], "model")
+    record = sweep.state.downloads[key]
+    record.update(state="succeeded", done_at=clock.now())
+    pf._note_result(key, record, RESULT)  # the first success: nothing to compare yet
+    assert "contradiction" not in record
+    clock.sleep(700)
+    pf.library_fresh_since = clock.now()
+    assert pf._can_request(sweep.recipes[key], clock.now())  # the library says evicted
+    pf._request(sweep.recipes[key], "model")
+    record = sweep.state.downloads[key]
+    record.update(state="succeeded", done_at=clock.now())
+    pf._note_result(key, record, RESULT)  # byte-identical result, library unchanged
+    return sweep, pf, clock, key
+
+
+def test_an_unchanged_result_with_the_library_still_not_cached_is_asked_once_then_alerted(
+    tmp_path: Path,
+) -> None:
+    sweep, pf, clock, key = _contradicted(tmp_path)
+    assert sweep.state.downloads[key]["contradiction"]
+    before = len(sweep.state.downloads)
+    for _ in range(5):  # fresh library passes keep saying not_cached
+        clock.sleep(700)
+        pf.library_fresh_since = clock.now()
+        assert not pf._can_request(sweep.recipes[key], clock.now())
+    assert len(sweep.state.downloads) == before
+    assert any(key in a and "contradiction" in a for a in build_status(sweep)["alerts"])
+
+
+def test_a_bound_model_reading_not_cached_rearms_the_request(tmp_path: Path) -> None:
+    sweep, pf, clock, key = _contradicted(tmp_path)
+    clock.sleep(700)
+    pf.library_fresh_since = clock.now()
+    assert not pf._can_request(sweep.recipes[key], clock.now())
+    pf._models = {"m1": FakeModel("m1", local="not_cached")}  # a real eviction
+    assert pf._can_request(sweep.recipes[key], clock.now())
+    pf._request(sweep.recipes[key], "model")  # re-fetch lands; still read as not cached
+    record = sweep.state.downloads[key]
+    record.update(state="succeeded", done_at=clock.now())
+    pf._note_result(key, record, RESULT)
+    clock.sleep(700)
+    pf.library_fresh_since = clock.now()
+    assert not pf._can_request(
+        sweep.recipes[key], clock.now()
+    )  # no loop on the same read
+
+
+def test_a_changed_result_does_not_flag_a_contradiction(tmp_path: Path) -> None:
+    sweep, pf, _clock, key = _contradicted(tmp_path)
+    record = sweep.state.downloads[key]
+    record.pop("contradiction")
+    record["previous_result"] = {"build_id": ["other"]}
+    pf._note_result(key, record, RESULT)
+    assert "contradiction" not in record
