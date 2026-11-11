@@ -112,3 +112,25 @@ def test_qwen_image_option_arguments_reach_the_native_pipeline(
         assert pipeline.call is not None
         assert (pipeline.call["width"], pipeline.call["height"]) == size
         assert (output / "qwen-image.png").is_file()
+
+
+def test_glm_mia_dual_engine_options_bind_to_the_engines_values() -> None:
+    """tool_call_guard and extra_eos reach the engine as patches 0111 and 0120 read them.
+
+    Patch 0120 looks each TF_EXTRA_EOS name up in the tokenizer, so "none" would be token id 6697 and end replies that
+    write the word; the engine's off value is unset or empty (the kit leaves the variable out).
+    """
+    recipe = _recipe("glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual")
+
+    def env(**choices: str) -> dict[str, object]:
+        resolved = recipe.with_option_choices(choices)
+        return {item.name: item.value for item in resolved.runtime.environment}
+
+    assert env()["TF_EXTRA_EOS"] == "<|assistant|>"
+    assert "TF_TOOL_CALL_GUARD" not in env()
+    assert env(extra_eos="assistant")["TF_EXTRA_EOS"] == "<|assistant|>"
+    assert env(extra_eos="checkpoint")["TF_EXTRA_EOS"] == ""
+    assert env(tool_call_guard="off").get("TF_TOOL_CALL_GUARD") is None
+    assert env(tool_call_guard="on")["TF_TOOL_CALL_GUARD"] == "1"
+    for choices in ({}, {"extra_eos": "checkpoint"}, {"tool_call_guard": "on"}):
+        assert "none" not in env(**choices).values()
