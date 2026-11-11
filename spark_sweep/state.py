@@ -119,17 +119,25 @@ def _drop_unbound_downloads(data: dict[str, Any]) -> None:
 
 
 def _drop_unread_bulk(data: dict[str, Any]) -> None:
-    """Records nothing reads are dropped; each save rewrote them (116 MB at 2026-11-11).
+    """History nothing reads is dropped; each save rewrote it (116 MB at 2026-11-11).
 
-    Superseded download attempts and the raw removal review/reply documents were
-    write-only: the current download record, removal receipt and message carry
-    what a restart needs.
+    Superseded download attempts, raw removal review/reply documents, prior removal
+    receipts and final-load receipts were write-only. A removal receipt whose model
+    consumers needed again is re-requested exactly as if it were absent.
     """
     data.pop("download_history", None)
-    for record in data["model_removals"].values():
-        if isinstance(record, dict):
-            record.pop("review", None)
-            record.pop("last_response", None)
+    removals = data["model_removals"]
+    for digest, record in list(removals.items()):
+        if not isinstance(record, dict):
+            continue
+        if record.pop("needed_again", False):
+            del removals[digest]
+            continue
+        for field in ("review", "last_response", "history"):
+            record.pop(field, None)
+    for item in data["own_loads"]:
+        if isinstance(item, dict):
+            item.pop("terminal_receipt", None)
 
 
 def _adopt(
