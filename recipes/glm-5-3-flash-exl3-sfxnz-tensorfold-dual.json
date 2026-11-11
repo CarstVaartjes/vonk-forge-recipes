@@ -1466,11 +1466,11 @@
       "Ash Hart (TensorFold)",
       "Z.AI"
     ],
-    "source_reference": "https://github.com/sfxnz/GLM-5.3-Flash-EXL3-4bpw-TensorFold-2x-DGX-Spark/tree/9e5933c085e60361104e2dc7157661bdaa8829fb"
+    "source_reference": "https://github.com/sfxnz/GLM-5.3-Flash-EXL3-4bpw-TensorFold-2x-DGX-Spark/tree/22cfa239a6d5702939e1d33472d64d631c2e300b"
   },
   "release": {
-    "released_at": "2026-11-05",
-    "version": "1.2.2"
+    "released_at": "2026-11-10",
+    "version": "1.2.5"
   },
   "runtime": {
     "arguments": [
@@ -1489,6 +1489,10 @@
       {
         "name": "vision",
         "value": true
+      },
+      {
+        "name": "vision-video-tokens",
+        "value": 64
       },
       {
         "name": "no-update-check",
@@ -1519,6 +1523,14 @@
       {
         "name": "TENSORFOLD_MEMORY_RESERVE_GIB",
         "value": "10.5"
+      },
+      {
+        "name": "TF_GLM_INDEX_CUDA",
+        "value": "0"
+      },
+      {
+        "name": "TF_KV_SHARE",
+        "value": "16"
       }
     ],
     "lifecycle": {
