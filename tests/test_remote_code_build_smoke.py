@@ -358,37 +358,37 @@ def emitted(program: str, name: str) -> object:
 
 
 @pytest.mark.parametrize(
-    ("source", "configs", "pythons"),
+    ("source", "trust_remote_code", "pythons"),
     [
         # No remote code: main generated no smoke for it at all.
         (
             "recipes/gemma-4-26b-a4b-vllm-single.json",
-            [("gemma-4-26b-a4b-it-4d7ae498", False)],
+            False,
             [],
         ),
         # vLLM 0.30.0 rejected this config at start on hardware (2026-10-27).
         (
             "recipes/laguna-s-2-1-nvfp4-vllm-single.json",
-            [("laguna-s-2-1-nvfp4-07614121", False)],
+            False,
             [],
         ),
         # The served target, never its drafter; the recipe's trust flag.
         (
             "recipes/laguna-s-2-1-nvfp4-r0b0tlab-vllm-single.json",
-            [("laguna-s-2-1-nvfp4-07614121", True)],
+            True,
             [],
         ),
         # The Controller rewrites argv /models to the endpoint role's first
         # mount (/models/target), never to the drafter.
         (
             "recipes/nemotron-3-5-bolt-lilicorr-nvidia-vllm-single.json",
-            [("nemotron-3-5-bolt-24gb-c6cc2e8f", True)],
+            True,
             [],
         ),
         # A bare launcher serves /models; its adapter names the engine Python.
         (
             "recipes/mimo-v2-6-pro-mopd-arvq-drowzeys-vllm-four.json",
-            [("mimo-v2-6-pro-mopd-arvq-hybrid21-bb83094e", True)],
+            True,
             ["/opt/arvq/.venv/bin/python"],
         ),
     ],
@@ -396,7 +396,7 @@ def emitted(program: str, name: str) -> object:
 def test_every_vllm_recipe_plans_its_served_config_parse(
     tmp_path: Path,
     source: str,
-    configs: list[tuple[str, bool]],
+    trust_remote_code: bool,
     pythons: list[str],
 ) -> None:
     plan = TOOL["Plan"].model_validate(
@@ -404,11 +404,14 @@ def test_every_vllm_recipe_plans_its_served_config_parse(
     )
     TOOL["prepare"](plan, tmp_path)
     program = (tmp_path / KEY / "remote-code-smoke.py").read_text()
-    assert emitted(program, "VLLM_CONFIGS") == configs
+    # The served Model is whatever the recipe binds, so a Model move never edits this test.
+    models = json.loads((ROOT / source).read_text())["models"]
+    served = next(m["model"]["slug"] for m in models if m["id"] == "primary")
+    assert emitted(program, "VLLM_CONFIGS") == [(served, trust_remote_code)]
     assert emitted(program, "ENGINE_PYTHONS") == pythons
     files = emitted(program, "FILES")
     assert isinstance(files, list)
-    assert f"{configs[0][0]}/config.json" in [name for *_, name in files]
+    assert f"{served}/config.json" in [name for *_, name in files]
 
 
 def test_a_trust_remote_code_choice_also_parses_with_remote_code() -> None:
