@@ -44,8 +44,8 @@
           ]
         },
         {
-          "file_id": "readme-340e3303d0a9-b335630551",
-          "id": "readme-340e3303d0a9-b335630551",
+          "file_id": "readme-d3d1af38cf1a-b335630551",
+          "id": "readme-d3d1af38cf1a-b335630551",
           "mount": {
             "target": "/models/target"
           },
@@ -124,8 +124,8 @@
           ]
         },
         {
-          "file_id": "configuration-nemotron-h-puzzle-b13b837322dd-5753175326",
-          "id": "configuration-nemotron-h-puzzle-b13b837322dd-5753175326",
+          "file_id": "configuration-nemotron-h-puzzle-42febc0395d7-5753175326",
+          "id": "configuration-nemotron-h-puzzle-42febc0395d7-5753175326",
           "mount": {
             "target": "/models/target"
           },
@@ -1216,10 +1216,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "5773983674b65cb28a5037df24417e28dbf6023624f39d650dc935b057c136f2",
+        "content_sha256": "17cc3c0bd6d6a171d6b2ad059c17905e46c5ac0804cfcf20656ae9c90df313b6",
         "kind": "model",
         "publisher": "nvidia",
-        "slug": "nemotron-3-5-bolt-24gb-c6cc2e8f"
+        "slug": "nemotron-3-5-bolt-24gb-e0590ed2"
       }
     },
     {
@@ -1303,7 +1303,7 @@
     "source_reference": "https://github.com/NVIDIA/local-ai-inference-recipes/tree/7b2ee453234617f58e1e100c195ac3be7f79e233"
   },
   "release": {
-    "released_at": "2026-10-24",
+    "released_at": "2026-11-07",
     "version": "0.66"
   },
   "runtime": {
@@ -1370,7 +1370,7 @@
       },
       {
         "name": "max-model-len",
-        "value": "auto"
+        "setting": "context_tokens"
       },
       {
         "name": "max-num-seqs",
@@ -1424,7 +1424,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 25082874590,
+            "artifact_bytes": 25082874596,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 164762599794

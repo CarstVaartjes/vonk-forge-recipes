@@ -66,7 +66,7 @@
   "vonk-forge/muse-glimmer-30b-nvfp4-r0b0tlab-vllm-single": "4860ce60210919858b942168d6ccc9ebeb1d6c7343db9a5acaea55875e0cd265",
   "vonk-forge/muse-glimmer-30b-nvfp4-vllm-mia-single": "197914d01e9c14cc8faaebe749bac3b01d4f77cf2e3c027eda234e2e517d13a9",
   "vonk-forge/nemotron-3-5-bolt-lilicorr-mia-tensorfold-single": "009abd4e04023d6e5dcde8b7d460ddbb30c2c20bfefd520d1fadb9b94d15e3ac",
-  "vonk-forge/nemotron-3-5-bolt-lilicorr-nvidia-vllm-single": "41f049646e10c2c7a09cd0f92273b2a29a0dc74e66b75f0733f56e51f5d5c5b4",
+  "vonk-forge/nemotron-3-5-bolt-lilicorr-nvidia-vllm-single": "2bad9ae344dda8a65204eae4d61417976f5d805d8128d11d32d64cd2370656ba",
   "vonk-forge/nemotron-3-5-bolt-lilicorr-vcruz-vllm-single": "05b89c065d0e38c90b80e459375845ad6aa0d7cae0471bab5fd66455518275b3",
   "vonk-forge/nemotron-3-5-lightning-30b-a3b-ashhart-tensorfold-single": "484f68a6ef1a9ee15fc90f05ecad384dbef5a17627890ee8ceff2a70d8fa472f",
   "vonk-forge/nemotron-3-5-lightning-30b-a3b-nvfp4-eugr-vllm-dual": "d4e96282d9febec009776642503424dbdaaba523f364a102043206c60d32a11d",
