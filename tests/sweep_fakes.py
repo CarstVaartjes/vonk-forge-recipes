@@ -2164,6 +2164,7 @@ def make_sweep(
     )
     settings: dict[str, Any] = {
         "poll_seconds": 10.0,
+        "read_workers": 1,  # the fake Controller is not thread-safe; tests opt in
         "catalog_seconds": 10.0,
         "status_seconds": 30.0,
         "owner_poll_seconds": 10.0,
