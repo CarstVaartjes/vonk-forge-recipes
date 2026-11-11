@@ -17,12 +17,21 @@ from typing import Self
 from unittest.mock import patch
 
 import pytest
+from vonk_forge_contracts.model import ModelSource
 from vonk_forge_contracts.recipe import RecipeDefinition
+
+from qualification.documents import model as model_document
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = runpy.run_path(str(ROOT / "tools/prepare-remote-code-smoke"))
 MOSS = ROOT / "adapters/video/moss-vl-realtime"
 KEY = "a" * 64
+
+
+def served_slug(source: str) -> str:
+    """The Model the recipe binds as ``primary`` (read through the contract)."""
+    definition = recipe(source)
+    return next(m.model.slug for m in definition.models if m.id == "primary")
 
 
 def emitted_model_code(program: str) -> list[str]:
@@ -78,10 +87,10 @@ def test_moss_smoke_covers_pinned_model_and_processor_imports(tmp_path: Path) ->
         "processing_moss_vl.py",
         "video_processing_moss_vl.py",
     }
-    served = json.loads((ROOT / source).read_text())["models"][0]["model"]["slug"]
-    revision = json.loads((ROOT / "models" / f"{served}.json").read_text())["source"][
-        "revision"
-    ]
+    served = served_slug(source)
+    source_of_model = model_document(served).source
+    assert isinstance(source_of_model, ModelSource)
+    revision = source_of_model.revision
     assert all(f"/resolve/{revision}/" in item[0] for item in files)
     assert "check_imports(str(path))" in program
     # pytorch-pipeline loads the model through Transformers' AutoModel.
@@ -406,8 +415,7 @@ def test_every_vllm_recipe_plans_its_served_config_parse(
     TOOL["prepare"](plan, tmp_path)
     program = (tmp_path / KEY / "remote-code-smoke.py").read_text()
     # The served Model is whatever the recipe binds, so a Model move never edits this test.
-    models = json.loads((ROOT / source).read_text())["models"]
-    served = next(m["model"]["slug"] for m in models if m["id"] == "primary")
+    served = served_slug(source)
     assert emitted(program, "VLLM_CONFIGS") == [(served, trust_remote_code)]
     assert emitted(program, "ENGINE_PYTHONS") == pythons
     files = emitted(program, "FILES")
