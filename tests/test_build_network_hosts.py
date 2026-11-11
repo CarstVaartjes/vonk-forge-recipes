@@ -47,7 +47,7 @@ OFFLINE_ENV = re.compile(
 )
 LOCAL_URL = re.compile(r"://(?:localhost|127\.0\.0\.1|\[::1\])(?:[:/]|$)")
 PROBE = re.compile(
-    r"^(?:python3?\b.*(?:\s-c\b|\s-\s*(?:<<|$)|\bimport\b)|command\s+-v\b|which\b|test\b|\["
+    r"^(?:python3?\b(?:.*\bimport\b|\s+-\s*(?:<<|$))|command\s+-v\b|which\b"
     r"|.*\b(?:pip3?|uv pip)\s+(?:show|list|freeze)\b)"
 )
 LEADING_KEYWORDS = re.compile(r"^(?:(?:do|then|else|if|elif|while|until|!|time)\s+)+")
@@ -63,9 +63,11 @@ def commands(text: str) -> list[tuple[str, bool]]:
     """Shell commands of a text as (command, guarded).
 
     Comments, echo/printf/print lines and Dockerfile instructions other than RUN are dropped. A
-    command is guarded when it only runs after a failed probe: `<probe> || cmd`, or inside an
-    `if [!] <probe>` block. A probe is an import check, `command -v`, `which`, `test`, `[` or
-    `pip show/list`.
+    command is guarded when it only runs after a failed package-presence probe: `<probe> || cmd`,
+    or inside an `if ! <probe>` block. A probe is a python import check (also the heredoc form),
+    `command -v`, `which` or `pip show/list`. File tests (`[ -d d ] || git clone ...`) are not
+    probes: in a fresh build they always fail, so the fetch runs. `if <probe>` without `!` runs
+    its body when the package is present, so it guards nothing.
     """
     text = re.sub(r"(?m)(?:^|\s)#.*$", "", text)
     text = re.sub(r"\\\n", " ", text)
@@ -82,12 +84,14 @@ def commands(text: str) -> list[tuple[str, bool]]:
         raw = parts[index].strip()
         if index:
             separator = parts[index - 1]
-        command = LEADING_KEYWORDS.sub("", raw)
+        command = LEADING_KEYWORDS.sub("", raw).lstrip("(").strip()
+        while command.endswith(")") and command.count(")") > command.count("("):
+            command = command[:-1].strip()
         if not command:
             continue
-        if command == "fi":
+        if re.match(r"fi\b", command):
             in_probe_if = False
-        elif re.match(r"if\s+(?:!\s*)?", raw) and PROBE.match(command):
+        elif re.match(r"if\s+!", raw) and PROBE.match(command):
             in_probe_if = True
         elif not re.match(r"(?:echo|printf)\s|print\(", command):
             guarded = in_probe_if or (separator == "||" and bool(PROBE.match(previous)))
@@ -198,7 +202,10 @@ def other_fetch(command: str) -> Fetch | None:
         fetching = bool(rest) and rest[0] in {"install", "add", "ci"}
     else:
         fetching = tool == "cargo" and bool(rest) and rest[0] in {"install", "fetch"}
-    return Fetch(" ".join(words[:4]), frozenset()) if fetching else None
+    if not fetching:
+        return None
+    hosts = {h for w in words if "://" in w and "$" not in w and (h := _host(w))}
+    return Fetch(" ".join(words[:4]), frozenset(hosts))
 
 
 def fetches(text: str) -> list[Fetch]:
@@ -345,7 +352,9 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
 
     def test_build_fetches_are_covered_by_declared_hosts(self) -> None:
         """The Spark builder gives an empty host list --network=none; a declared list must also
-        hold every host the build's fetches need (Dockerfile and executed context scripts)."""
+        hold every host the build's fetches need (Dockerfile and executed context scripts): the index
+        hosts for pip, the literal URL host for curl, wget and git. apt and npm hosts are not
+        derived."""
         problems: dict[str, list[str]] = {}
         for path in sorted((ROOT / "recipes").glob("*.json")):
             build = document_recipe(path.stem).execution.build
@@ -401,9 +410,24 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
         self.assertFalse(
             fetches("if ! python3 -c 'import av'; then pip install av; fi")
         )
+        # a block ends at `fi` with or without a suffix; what follows is not guarded
+        for end in ("fi)", "fi 2>/dev/null", "fi >>log", "fi"):
+            text = f"if ! python3 -c 'import av'; then pip install av; {end}\npip install b"
+            self.assertEqual(1, len(fetches(text)), end)
         # a failure of anything else does not guard it
         self.assertTrue(fetches("make build || pip install av"))
         self.assertTrue(fetches("if true; then pip install av; fi"))
+        # file tests and a probe without `!` guard nothing
+        self.assertTrue(
+            fetches("[ -d /w/repo ] || git clone https://github.com/a/b /w/repo")
+        )
+        self.assertTrue(fetches("test -f x || curl -O https://x/y"))
+        self.assertTrue(fetches("if [ ! -f m ]; then pip install foo; fi"))
+        self.assertTrue(fetches('if python3 -c "import x"; then pip install -U x; fi'))
+        self.assertEqual(
+            frozenset({"github.com"}),
+            fetches("git clone https://github.com/a/b")[0].hosts,
+        )
 
     def test_hosts_follow_the_index(self) -> None:
         def hosts(text: str) -> frozenset[str]:
@@ -436,6 +460,7 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
             "workdir": "COPY mods/a/run.sh .\nWORKDIR /opt/w\nCOPY mods/a/run.sh .\nRUN ./run.sh",
             "bare": "WORKDIR /opt/m/a\nCOPY mods/a /opt/m/a\nRUN bash run.sh",
             "source": "COPY mods /opt/m\nRUN . /opt/m/a/run.sh",
+            "subshell": 'COPY mods /opt/m\nRUN for m in a; do (cd "/opt/m/$m" && bash ./run.sh); done',
         }
         with tempfile.TemporaryDirectory() as tmp:
             context = Path(tmp)
