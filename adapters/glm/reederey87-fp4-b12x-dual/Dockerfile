@@ -6,8 +6,8 @@ LABEL org.opencontainers.image.source="https://github.com/Reederey87/glm53-flash
 
 # The kit runs eugr's published vllm-node-b12x image: its launch.sh IMAGE_REF default is
 # eugr/spark-vllm-b12x:nightly-20261015 (FlashInfer 0.7.1 b12x, built 2026-10-15), locked here
-# by its linux/arm64 digest. The creator's own deployment is a local retag of an unpublished
-# build of that lane, so the published digest is the nearest runnable image (see the PR).
+# by its linux/arm64 digest. Its build metadata records the creator's vLLM 8244d1c4 and
+# FlashInfer 91271757; the creator's local image differs only in build date.
 # Upstream starts it with `vllm serve`; the wrapper is the Vonk entrypoint.
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
