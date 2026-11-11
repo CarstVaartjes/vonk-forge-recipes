@@ -26,6 +26,7 @@ from collections.abc import Callable, Iterable, Mapping, Sequence
 from concurrent.futures import Future
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -75,6 +76,7 @@ from .catalog import (
 from .chat_probe import ChatFacts, chat_facts
 from .definitions import CaseRenderError, Definitions
 from .evidence_publisher import EvidencePublisher
+from .fanout import READ_WORKERS, Outcome, gather
 from .finalization import FinalAction, Finalization
 from .identity import (
     AcceptedRequest,
@@ -269,6 +271,8 @@ class SweepConfig:
     reserve_bytes: int = 8_000_000_000
     default_spark_memory: int = SPARK_MEMORY_BYTES
     poll_seconds: float = 10.0
+    #: Concurrent independent reads per pass (1 = one after another).
+    read_workers: int = READ_WORKERS
     catalog_seconds: float = 60.0
     status_seconds: float = 15.0
     idle_alert_seconds: float = 600.0
@@ -398,6 +402,7 @@ class Sweep:
         self.rate.rate = float(state.data["rate"].get("ema", 0.0))
         self.rate.samples = int(state.data["rate"].get("samples", 0))
         self.guard = OwnerGuard(vk, state, config.owner_hold_seconds)
+        self._reads: dict[str, Outcome] = {}
         self.model_remover = ModelRemover(vk, state)
         # This is a projection of live catalog/owner observations, never a
         # persisted authorization or a gate to carry into a new process.
@@ -1172,6 +1177,8 @@ class Sweep:
             )
             self._save_quietly()
         finally:
+            self._reads.clear()
+            self.guard.reads = {}
             self.done_waiting()
 
     def _save_quietly(self) -> None:
@@ -1212,6 +1219,28 @@ class Sweep:
         else:
             self.state.data["owner"].pop("paused_at", None)
 
+    def _observe_concurrently(self) -> None:
+        """Start of a pass: the independent read-only observations, all at once.
+
+        Each consumer takes its outcome at its own place in the pass (an error is raised
+        there, in the old order); the writes stay sequential and unchanged.
+        """
+        calls: dict[str, Callable[[], Any]] = {
+            f"owner:{n}": partial(self.guard.read_latest, n)
+            for n in self.guard.profiles
+        }
+        calls["platform"] = lambda: self.vk.run("platform", timeout=30)
+        if self.state.slots:
+            calls["fleet"] = lambda: fetch_fleet(self.vk, self.cfg.default_spark_memory)
+        self._reads = gather(calls, self.cfg.read_workers)
+        self.guard.reads = {
+            n: self._reads.pop(f"owner:{n}") for n in self.guard.profiles
+        }
+
+    def _tick_read(self, name: str, fallback: Callable[[], Any]) -> Any:
+        outcome = self._reads.pop(name, None)
+        return outcome.result() if outcome is not None else fallback()
+
     def _tick(self) -> None:
         # Placement/cleanup re-derive these observations only when asked this pass.
         self.state.data.pop("profile_edit_wait", None)
@@ -1219,6 +1248,7 @@ class Sweep:
         self.adoption_holds.clear()
         self.fit_holds.clear()
         now = self.clock.now()
+        self._observe_concurrently()
         self.advance_catalog(now)
         if self.retry_failed_pending and self.catalog_loaded:
             self.requeue_failed()
@@ -1548,7 +1578,7 @@ class Sweep:
         )
 
     def observe_platform(self) -> None:
-        reply = self.vk.run("platform", timeout=30)
+        reply = self._tick_read("platform", lambda: self.vk.run("platform", timeout=30))
         document = (
             reply.document if reply.ok and isinstance(reply.document, dict) else {}
         )
@@ -1879,6 +1909,7 @@ class Sweep:
             self.requeue_uncertain()
             started = False
             for _ in itertools.count():
+                round_start = self.clock.now()
                 try:
                     if not started:
                         if not self._startup(self.preflight):
@@ -1924,7 +1955,9 @@ class Sweep:
                     self.state.event(
                         f"unexpected error in the loop, continuing: {type(error).__name__}: {str(error)[:150]}"
                     )
-                self.clock.sleep(self.cfg.poll_seconds)
+                self.clock.sleep(
+                    max(0.0, round_start + self.cfg.poll_seconds - self.clock.now())
+                )
         except KeyboardInterrupt:
             self.interrupt()
             self.finish(interrupted=True)
@@ -2668,7 +2701,9 @@ class Sweep:
                 self.clear_infra("observe")
             return
         try:
-            self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
+            self.fleet = self._tick_read(
+                "fleet", lambda: fetch_fleet(self.vk, self.cfg.default_spark_memory)
+            )
         except VonkctlError as error:
             # An unreadable fleet is unknown: nothing is judged on it this pass.
             self._blind(str(error), error.reply)
