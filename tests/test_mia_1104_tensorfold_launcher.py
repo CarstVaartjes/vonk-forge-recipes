@@ -12,6 +12,9 @@ WRAPPER = (
     / "adapters/glm/mia-1104-tensorfold-dual/tensorfold-serve"
 )
 VENDORED_TEMPLATE = WRAPPER.parent / "chat_template.jinja"
+# The two template paths the wrapper reads inside the container.
+IMAGE_TEMPLATE_PATH = "/opt/vonk/templates/chat_template.jinja"
+CHECKPOINT_TEMPLATE_PATH = "/models/target/chat_template.jinja"
 EFFORT_BASE = (
     "{%- set effective_reasoning_effort = reasoning_effort if reasoning_effort is defined "
     "and reasoning_effort in ['low', 'high'] else 'max' -%}"
@@ -51,7 +54,7 @@ def seen(stdout: str) -> tuple[list[str], dict[str, str]]:
 def wrapper_for(tmp_path: Path, checkpoint_template: str | None = None) -> Path:
     """The wrapper with its two template paths pointed under tmp_path (the container's /models and /opt are not here)."""
     vendored = tmp_path / "opt" / "chat_template.jinja"
-    checkpoint = tmp_path / "models" / "chat_template.jinja"
+    checkpoint = tmp_path / "ckpt" / "chat_template.jinja"
     vendored.parent.mkdir(exist_ok=True)
     checkpoint.parent.mkdir(exist_ok=True)
     vendored.write_bytes(VENDORED_TEMPLATE.read_bytes())
@@ -63,8 +66,8 @@ def wrapper_for(tmp_path: Path, checkpoint_template: str | None = None) -> Path:
     )
     text = WRAPPER.read_text(encoding="utf-8")
     for old, new in (
-        ("/opt/vonk/templates/chat_template.jinja", vendored),
-        ("/models/target/chat_template.jinja", checkpoint),
+        (IMAGE_TEMPLATE_PATH, vendored),
+        (CHECKPOINT_TEMPLATE_PATH, checkpoint),
     ):
         assert text.count(old) == 1
         text = text.replace(old, str(new))
