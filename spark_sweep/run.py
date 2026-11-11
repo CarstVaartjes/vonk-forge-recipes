@@ -76,7 +76,7 @@ from .catalog import (
 from .chat_probe import ChatFacts, chat_facts
 from .definitions import CaseRenderError, Definitions
 from .evidence_publisher import EvidencePublisher
-from .fanout import READ_WORKERS, Outcome, gather
+from .fanout import Outcome, gather
 from .finalization import FinalAction, Finalization
 from .identity import (
     AcceptedRequest,
@@ -271,8 +271,6 @@ class SweepConfig:
     reserve_bytes: int = 8_000_000_000
     default_spark_memory: int = SPARK_MEMORY_BYTES
     poll_seconds: float = 10.0
-    #: Concurrent independent reads per pass (1 = one after another).
-    read_workers: int = READ_WORKERS
     catalog_seconds: float = 60.0
     status_seconds: float = 15.0
     idle_alert_seconds: float = 600.0
@@ -369,6 +367,7 @@ class Sweep:
         self.futures: dict[str, Future[SmokeResult]] = {}
         self.smoke_stops: dict[str, threading.Event] = {}
         self.catalog_executor = DaemonExecutor()
+        self.read_executor = DaemonExecutor()
         self.catalog_future: Future[Reply] | None = None
         self.catalog_active: Listing[Recipe] | Listing[Model] | None = None
         # The cached listings: scheduling reads these, a refresh updates them page by page.
@@ -1222,8 +1221,9 @@ class Sweep:
     def _observe_concurrently(self) -> None:
         """Start of a pass: the independent read-only observations, all at once.
 
-        Each consumer takes its outcome at its own place in the pass (an error is raised
-        there, in the old order); the writes stay sequential and unchanged.
+        Run after catalog/release work (which may update vonkctl or re-read the fleet), so no
+        prefetched read predates it. Each consumer takes its outcome at its own place in
+        the pass and an error is raised there; writes stay sequential and unchanged.
         """
         calls: dict[str, Callable[[], Any]] = {
             f"owner:{n}": partial(self.guard.read_latest, n)
@@ -1232,7 +1232,7 @@ class Sweep:
         calls["platform"] = lambda: self.vk.run("platform", timeout=30)
         if self.state.slots:
             calls["fleet"] = lambda: fetch_fleet(self.vk, self.cfg.default_spark_memory)
-        self._reads = gather(calls, self.cfg.read_workers)
+        self._reads = gather(calls, self.read_executor)
         self.guard.reads = {
             n: self._reads.pop(f"owner:{n}") for n in self.guard.profiles
         }
@@ -1248,7 +1248,6 @@ class Sweep:
         self.adoption_holds.clear()
         self.fit_holds.clear()
         now = self.clock.now()
-        self._observe_concurrently()
         self.advance_catalog(now)
         if self.retry_failed_pending and self.catalog_loaded:
             self.requeue_failed()
@@ -1268,6 +1267,7 @@ class Sweep:
                     and self._selected_key(key)
                 ):
                     self._schedule_retest(key, RetestReason.SCHEDULED)
+        self._observe_concurrently()
         self._observe_owner(now)
         self.observe_platform()
         self.advance_slots(now)
@@ -1956,7 +1956,12 @@ class Sweep:
                         f"unexpected error in the loop, continuing: {type(error).__name__}: {str(error)[:150]}"
                     )
                 self.clock.sleep(
-                    max(0.0, round_start + self.cfg.poll_seconds - self.clock.now())
+                    min(
+                        self.cfg.poll_seconds,
+                        max(
+                            0.0, round_start + self.cfg.poll_seconds - self.clock.now()
+                        ),
+                    )
                 )
         except KeyboardInterrupt:
             self.interrupt()
