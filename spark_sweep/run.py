@@ -1219,7 +1219,8 @@ class Sweep:
             self.state.data["owner"].pop("paused_at", None)
 
     def _observe_concurrently(self) -> None:
-        """Start of a pass: the independent read-only observations, all at once.
+        """The independent read-only observations of a pass, all at once, right before the
+        owner check (after catalog and release work).
 
         Run after catalog/release work (which may update vonkctl or re-read the fleet), so no
         prefetched read predates it. Each consumer takes its outcome at its own place in

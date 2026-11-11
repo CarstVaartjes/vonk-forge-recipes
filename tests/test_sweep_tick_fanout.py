@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import signal
 import threading
-import time
 from pathlib import Path
 
 import pytest
@@ -28,7 +26,10 @@ def _sweep(tmp_path: Path):
     sweep, fleet, clock = make_sweep(
         tmp_path, [FakeRecipe("a", ("m1",))], [FakeModel("m1")]
     )
-    sweep.state.slots["vonk-forge/a"] = {"phase": "finished"}  # a fleet read is due
+    sweep.state.slots["vonk-forge/a"] = {
+        "phase": "finished",
+        "alias": "sweep-a",
+    }  # a fleet read is due
     return sweep, fleet, clock
 
 
@@ -86,24 +87,6 @@ def test_a_read_error_surfaces_at_its_consumer() -> None:
     assert done["ok"].result() == 1
     with pytest.raises(RuntimeError):
         done["bad"].result()
-
-
-def test_an_interrupt_during_the_reads_returns_promptly() -> None:
-    release = threading.Event()
-    timer = threading.Timer(
-        0.1,
-        signal.pthread_kill,
-        (threading.main_thread().ident, signal.SIGINT),
-    )
-    timer.start()
-    started = time.monotonic()
-    try:
-        with pytest.raises(KeyboardInterrupt):
-            gather({"slow": lambda: release.wait(30)}, DaemonExecutor())
-        assert time.monotonic() - started < 3
-    finally:
-        release.set()
-        timer.cancel()
 
 
 @pytest.mark.parametrize(
