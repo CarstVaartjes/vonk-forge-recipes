@@ -73,7 +73,9 @@ def roles_for(path: str) -> list[str]:
     lowered = path.lower()
     if lowered.endswith(".safetensors") or "model-" in lowered:
         return ["weights"]
-    if "token" in lowered or "vocab" in lowered or lowered.endswith(".jinja"):
+    if any(k in lowered for k in ("token", "vocab", "merges")) or lowered.endswith(
+        ".jinja"
+    ):
         return ["tokenizer"]
     if "config" in lowered or "generation" in lowered or lowered.endswith(".json"):
         return ["configuration"]

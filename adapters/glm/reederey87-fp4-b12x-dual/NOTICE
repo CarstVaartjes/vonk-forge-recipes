@@ -1,0 +1,24 @@
+GLM-5.3-Flash-FP4-Local B12X deployment kit
+Copyright 2026 Reederey87
+
+This product includes work developed by third parties. The full attribution,
+license terms and the exact way each work is used are in CREDITS.md.
+
+  nvidia/GLM-5.3-Flash-FP4-Local ............ NVIDIA Corporation (model card,
+      serving command and chat template; model under the NVIDIA Open Model
+      Agreement). Weights are not redistributed here.
+  GLM-5.3-Flash ............................. Z.ai / Zhipu AI (MIT), the base
+      model the checkpoint quantizes.
+  vLLM ...................................... the vLLM project (Apache-2.0),
+      the inference engine inside the pinned image.
+  FlashInfer, including b12x ................ the FlashInfer project and
+      local-inference-lab (Apache-2.0), the kernel layer inside the pin.
+  eugr/spark-vllm-docker .................... Eugene Rakhmatulin (MIT), the
+      Docker orchestration this kit clones at a pinned commit and runs.
+  NVIDIA Flare (flare-local-inference) ...... NVIDIA Corporation (Apache-2.0),
+      consulted for qualification; no code is copied.
+  glm53-flash-exl3-2x-dgx-spark ............. Reederey87 (Apache-2.0), the
+      earlier kit this runtime tree derives its watchdog and proxy from.
+
+This repository contains only original scripts, documentation and a recipe.
+It does not redistribute model weights, container images, or upstream source.
