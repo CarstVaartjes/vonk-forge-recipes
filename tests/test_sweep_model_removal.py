@@ -438,7 +438,10 @@ def test_eligibility_loss_drops_pending_removal_before_its_next_check(
         sweep.state.recipes["vonk-forge/a"]["status"] = RecipeVerdict.PENDING
     sweep.remove_finished_models()
     record = sweep.state.data["model_removals"].get(A)
-    assert record is None or record["request_key"] is None
+    if change == "owner":  # the owner's need cancels the request
+        assert record is None or record["request_key"] is None
+    else:  # an accepted request survives a consumer's requeue
+        assert record["request_key"] == original
     advance(sweep, clock)
     assert len([args for args in peer.submissions if args[2] == A]) == submissions
     peer.profiles = []
@@ -447,7 +450,20 @@ def test_eligibility_loss_drops_pending_removal_before_its_next_check(
     )
     peer.state = LifecycleState.SUCCEEDED
     advance(sweep, clock)
-    assert sweep.state.data["model_removals"][A]["request_key"] != original
+    record = sweep.state.data["model_removals"][A]
+    # Non-owner changes reconnect to the old request and finish at its receipt.
+    assert (record["request_key"] != original) == (change == "owner")
+
+
+def test_an_overdue_submitted_record_reconnects_despite_unsubmitted_models(tmp_path):
+    """Catches unsubmitted digests (no record, next_check 0) taking the tick's slot."""
+    sweep, peer, clock = scenario(tmp_path)
+    peer.lost = True
+    sweep.remove_finished_models()  # A is submitted; B is still unsubmitted
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.WAIT
+    clock.t += MAX_BACKOFF_SECONDS + 1
+    sweep.remove_finished_models()  # a single tick
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.RECEIPT
 
 
 def test_partial_catalog_and_live_slots_never_authorize_removal(tmp_path):

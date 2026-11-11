@@ -117,6 +117,12 @@ class ModelRemover:
         # A model consumers need again is removed by a fresh request once eligible
         # again, so its record (receipt or not) holds nothing a later pass reads.
         for digest in records.keys() - eligible:
+            held = records[digest]
+            if (
+                held.get("request_key")
+                and held.get("outcome") != RemovalOutcome.RECEIPT
+            ):
+                continue  # accepted by the Controller: stays until its receipt arrives
             del records[digest]
             self.state.event(
                 f"model removal {digest}: dropped; consumers need it again"
@@ -129,11 +135,16 @@ class ModelRemover:
             owner_error = ""
         except (ValueError, ValidationError) as error:
             protected, owner_error = set(), str(error)
-        # One model per tick bounds CLI latency; rotate by the persisted next check.
+        # One model per tick bounds CLI latency. Submitted requests reconnect first, so
+        # unsubmitted models (no record) cannot starve them; then rotate by next check.
         advanced = False
         for digest in sorted(
             eligible,
-            key=lambda item: (float(records.get(item, {}).get("next_check", 0)), item),
+            key=lambda item: (
+                records.get(item, {}).get("request_key") is None,
+                float(records.get(item, {}).get("next_check", 0)),
+                item,
+            ),
         ):
             record = RemovalRecord.model_validate(
                 self.state.data.setdefault("model_removals", {}).get(digest, {})
