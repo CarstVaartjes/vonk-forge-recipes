@@ -1370,7 +1370,7 @@
       },
       {
         "name": "max-model-len",
-        "value": "auto"
+        "setting": "context_tokens"
       },
       {
         "name": "max-num-seqs",

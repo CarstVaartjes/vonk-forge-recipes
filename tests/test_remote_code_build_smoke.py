@@ -78,13 +78,14 @@ def test_moss_smoke_covers_pinned_model_and_processor_imports(tmp_path: Path) ->
         "processing_moss_vl.py",
         "video_processing_moss_vl.py",
     }
-    assert all(
-        "/resolve/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86/" in item[0]
-        for item in files
-    )
+    served = json.loads((ROOT / source).read_text())["models"][0]["model"]["slug"]
+    revision = json.loads((ROOT / "models" / f"{served}.json").read_text())["source"][
+        "revision"
+    ]
+    assert all(f"/resolve/{revision}/" in item[0] for item in files)
     assert "check_imports(str(path))" in program
     # pytorch-pipeline loads the model through Transformers' AutoModel.
-    assert emitted_model_code(program) == ["moss-vl-realtime-11b-bf16-d1f71a58"]
+    assert emitted_model_code(program) == [served]
     assert "video_processing_moss_vl.py" in program
     assert "video_preprocessor_config.json" in program
 
