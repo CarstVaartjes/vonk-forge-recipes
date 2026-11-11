@@ -61,6 +61,17 @@ def access_alerts(downloads: Iterable[Mapping[str, Any]]) -> list[str]:
     ]
 
 
+def contradiction_alerts(downloads: Mapping[str, Mapping[str, Any]]) -> list[str]:
+    """Recipes the library reads as not cached though their finished download is unchanged."""
+    return [
+        f"platform contradiction: {key} finished downloading (unchanged result) but "
+        "the recipe library still reads it as not cached; no more requests until "
+        "the evidence changes"
+        for key, record in sorted(downloads.items())
+        if record.get("state") == "succeeded" and record.get("contradiction")
+    ]
+
+
 def _gib(value: float) -> str:
     return f"{value / 1024**3:,.1f} GiB"
 
@@ -274,6 +285,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         + ([sweep.source_alert] if sweep.source_alert else [])
         + ([sweep.evidence_publisher.alert] if sweep.evidence_publisher.alert else [])
         + access_alerts(data["downloads"].values())
+        + contradiction_alerts(data["downloads"])
         + [
             f"ESCALATION: {source} has not recovered since {item['since']}; "
             f"{item['dependency']}"
