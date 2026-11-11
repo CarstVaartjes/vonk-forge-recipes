@@ -1285,9 +1285,9 @@
         },
         {
           "env": {
-            "TF_EXTRA_EOS": "none"
+            "TF_EXTRA_EOS": ""
           },
-          "help": "Only the checkpoint's generation_config EOS ends a reply; <|assistant|> reaches the reply as text (the kit's TF_EXTRA_EOS=none).",
+          "help": "Only the checkpoint's generation_config EOS ends a reply; <|assistant|> reaches the reply as text. The engine reads an empty TF_EXTRA_EOS as the checkpoint's list (the kit's EXTRA_EOS=none leaves the variable out; the platform's runtime sets it, so this choice empties it).",
           "label": "Checkpoint's list only",
           "value": "checkpoint"
         }
@@ -1304,8 +1304,11 @@
       "Adam Hillson",
       "ajensenwaud",
       "Bizuayeu",
+      "Cameron Basham",
       "IncoAI",
-      "Z.AI"
+      "Robert Wojciechowski",
+      "Z.AI",
+      "wagzee"
     ],
     "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104/tree/80be4d6882837d8e0840827ae2aab6124fd48da3"
   },
