@@ -1,5 +1,5 @@
-# MiaAI-Lab's GLM-5.3-Flash DGX Sparks kit 1104 (commit 02dac387, Apache-2.0): TensorFold's native Zig/CUDA server, upstream
-# commit f350cd3e (1.1.9) plus the kit's 108 engine patches, built for sm_121 (GB10) on CUDA 13.3.1.
+# MiaAI-Lab's GLM-5.3-Flash DGX Sparks kit 1104 (commit 80be4d68, Apache-2.0): TensorFold's native Zig/CUDA server, upstream
+# commit f350cd3e (1.1.9) plus the kit's 121 engine patches, built for sm_121 (GB10) on CUDA 13.3.1.
 # The creator publishes no image of this kit (scripts/config.sh: IMAGE is empty, start.sh builds tensorfold-glm53-spark:<hash>
 # locally), so this is the kit's own docker/Dockerfile, stage for stage, with the Controller's static source policy applied:
 # digest-pinned bases, literal https hosts, no BuildKit cache mount, and the WITH_VIDEO and NCCL-wheel stages dropped (the kit's
@@ -82,7 +82,7 @@ RUN mkdir -p /opt/tensorfold/LICENSES/tensorfold \
 FROM nvcr.io/nvidia/cuda:13.3.1-runtime-ubuntu24.04@sha256:585155539dd4ff2ab653ee59d812aae81a9406a5804596d516c06e3a5719eb26
 ENV DEBIAN_FRONTEND=noninteractive LC_ALL=C.UTF-8
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104" \
-      org.opencontainers.image.revision="02dac3879852b8c5713318d3d64a5a791002e954" \
+      org.opencontainers.image.revision="80be4d6882837d8e0840827ae2aab6124fd48da3" \
       org.opencontainers.image.licenses="Apache-2.0" \
       ai.vonkforge.runtime-interface="v1" \
       tf.engine="zig" \

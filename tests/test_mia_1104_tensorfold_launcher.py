@@ -11,6 +11,16 @@ WRAPPER = (
     Path(__file__).resolve().parents[1]
     / "adapters/glm/mia-1104-tensorfold-dual/tensorfold-serve"
 )
+VENDORED_TEMPLATE = WRAPPER.parent / "chat_template.jinja"
+EFFORT_BASE = (
+    "{%- set effective_reasoning_effort = reasoning_effort if reasoning_effort is defined "
+    "and reasoning_effort in ['low', 'high'] else 'max' -%}"
+)
+EFFORT_LINE = (
+    "{%- set effective_reasoning_effort = (reasoning_effort if reasoning_effort in "
+    "['low', 'high'] else 'max') if (reasoning_effort is defined and reasoning_effort is "
+    "not none) else none -%}"
+)
 FABRIC = {
     "VONK_MASTER_ADDR": "192.0.2.10",
     "VONK_MASTER_PORT": "29500",
@@ -38,7 +48,37 @@ def seen(stdout: str) -> tuple[list[str], dict[str, str]]:
     return argv, env
 
 
-def run(tmp_path: Path, args: list[str], **env: str):
+def wrapper_for(tmp_path: Path, checkpoint_template: str | None = None) -> Path:
+    """The wrapper with its two template paths pointed under tmp_path (the container's /models and /opt are not here)."""
+    vendored = tmp_path / "opt" / "chat_template.jinja"
+    checkpoint = tmp_path / "models" / "chat_template.jinja"
+    vendored.parent.mkdir(exist_ok=True)
+    checkpoint.parent.mkdir(exist_ok=True)
+    vendored.write_bytes(VENDORED_TEMPLATE.read_bytes())
+    checkpoint.write_text(
+        checkpoint_template
+        if checkpoint_template is not None
+        else VENDORED_TEMPLATE.read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    text = WRAPPER.read_text(encoding="utf-8")
+    for old, new in (
+        ("/opt/vonk/templates/chat_template.jinja", vendored),
+        ("/models/target/chat_template.jinja", checkpoint),
+    ):
+        assert text.count(old) == 1
+        text = text.replace(old, str(new))
+    patched = tmp_path / "tensorfold-serve"
+    patched.write_text(text, encoding="utf-8")
+    return patched
+
+
+def run(
+    tmp_path: Path,
+    args: list[str],
+    checkpoint_template: str | None = None,
+    **env: str,
+):
     stub = tmp_path / "bin" / "tensorfold-native"
     stub.parent.mkdir(exist_ok=True)
     stub.write_text(
@@ -54,7 +94,7 @@ def run(tmp_path: Path, args: list[str], **env: str):
         TMPDIR=str(tmp_path / "tmp"),
     )
     return subprocess.run(
-        ["bash", str(WRAPPER), *args],
+        ["bash", str(wrapper_for(tmp_path, checkpoint_template)), *args],
         env={**base, **env},
         text=True,
         capture_output=True,
@@ -76,7 +116,7 @@ def test_both_ranks_get_the_kits_placement(tmp_path: Path, rank: str) -> None:
         "8888",
         "--vision",
         "--chat-template",
-        "/opt/vonk/templates/chat_template.jinja",
+        f"{tmp_path}/tmp/vonk-template/chat_template.jinja",
     ]
     assert env["TF_GLM_RANK"] == rank
     assert env["TF_GLM_WORLD"] == "2"
@@ -86,14 +126,50 @@ def test_both_ranks_get_the_kits_placement(tmp_path: Path, rank: str) -> None:
     assert (tmp_path / "home").is_dir() and (tmp_path / "tmp").is_dir()
 
 
-def test_text_only_keeps_the_checkpoints_template(tmp_path: Path) -> None:
-    result = run(tmp_path, ["--port", "8888", *PLACEMENT], **FABRIC)
-    assert seen(result.stdout)[0] == [
-        "serve",
-        "/models/target",
-        "--port",
-        "8888",
-    ]
+def served_template(tmp_path: Path, args: list[str]) -> str:
+    result = run(tmp_path, ["--port", "8888", *args, *PLACEMENT], **FABRIC)
+    assert result.returncode == 0, result.stderr
+    argv = seen(result.stdout)[0]
+    served = Path(argv[argv.index("--chat-template") + 1])
+    assert served == tmp_path / "tmp/vonk-template/chat_template.jinja"
+    return served.read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("args", [[], ["--vision"]])
+def test_the_served_template_takes_the_effort_line_from_reasoning_effort(
+    tmp_path: Path, args: list[str]
+) -> None:
+    """The kit's EFFORT_LINE=thinking: thinking off passes no reasoning_effort, so no `Reasoning Effort: Max` line."""
+    original = VENDORED_TEMPLATE.read_text(encoding="utf-8")
+    served = served_template(tmp_path, args)
+    assert served == original.replace(EFFORT_BASE, EFFORT_LINE)
+    assert EFFORT_BASE not in served and served.count(EFFORT_LINE) == 1
+    # Thinking off passes no reasoning_effort: the line then sets none, so the template's `is not none` guard drops the
+    # `Reasoning Effort` system line; thinking on keeps low/high and maps anything else to max.
+    assert (
+        "reasoning_effort is defined and reasoning_effort is not none) else none -%}"
+        in served
+    )
+
+
+def test_the_vendored_template_stays_as_vendored(tmp_path: Path) -> None:
+    before = VENDORED_TEMPLATE.read_bytes()
+    served_template(tmp_path, ["--vision"])
+    assert VENDORED_TEMPLATE.read_bytes() == before
+    assert (tmp_path / "opt/chat_template.jinja").read_bytes() == before
+
+
+def test_a_template_without_the_known_effort_line_does_not_start_the_engine(
+    tmp_path: Path,
+) -> None:
+    result = run(
+        tmp_path,
+        list(PLACEMENT),
+        checkpoint_template="{{ messages }}",
+        **FABRIC,
+    )
+    assert result.returncode != 0 and result.stdout == ""
+    assert "no effort line" in result.stderr
 
 
 @pytest.mark.parametrize(
