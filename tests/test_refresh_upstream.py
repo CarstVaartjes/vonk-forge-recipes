@@ -3597,8 +3597,9 @@ class GatedRepositoryTests(unittest.TestCase):
         }
         self.assertFalse(self.gated(self.old(), [*self.trees["after"], extra]))
 
-    def test_stored_roles_decide_exactly_as_without_access(self) -> None:
-        # The document stores config.json as metadata, roles_for says configuration.
+    def test_roles_decide_exactly_as_without_access(self) -> None:
+        # The document stores config.json as metadata, roles_for says configuration:
+        # either saying payload makes it payload, with or without access.
         old = self.old()
         for entry in old["files"]:
             entry["sha256"] = "c" * 64
@@ -3619,9 +3620,13 @@ class GatedRepositoryTests(unittest.TestCase):
                             "sha256": "d" * 64 if differs else "c" * 64,
                         }
                     )
+                # The real ungated path curates the new snapshot the same way.
+                before = {e["path"] for e in self.trees["before"]}
+                curated = refresh.curate(old, before, ungated)
                 self.assertEqual(
-                    self.gated(old, after), refresh.payload_identical(old, ungated)
+                    self.gated(old, after), refresh.payload_identical(old, curated)
                 )
+                self.assertEqual(self.gated(old, after), not changed)
 
     def test_masked_lfs_digest_is_refused_not_catalogued(self) -> None:
         lfs_only = [e for e in self.trees["after"] if "lfs" in e]
