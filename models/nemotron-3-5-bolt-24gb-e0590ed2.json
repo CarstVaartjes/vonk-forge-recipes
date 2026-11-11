@@ -11,13 +11,13 @@
       "size_bytes": 1619
     },
     {
-      "id": "readme-340e3303d0a9-b335630551",
+      "id": "readme-d3d1af38cf1a-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "340e3303d0a98ef9471fc949ea723a36080a7f14121f1dfa5753ef9ab64d0590",
-      "size_bytes": 85216
+      "sha256": "d3d1af38cf1aee564628bae321034d461b98b949ccd774876fbaaf0a0c6247b7",
+      "size_bytes": 85220
     },
     {
       "id": "file---init---e3b0c44298fc-8e2c1f7272",
@@ -83,13 +83,13 @@
       "size_bytes": 8912
     },
     {
-      "id": "configuration-nemotron-h-puzzle-b13b837322dd-5753175326",
+      "id": "configuration-nemotron-h-puzzle-42febc0395d7-5753175326",
       "path": "configuration_nemotron_h_puzzle.py",
       "roles": [
         "configuration"
       ],
-      "sha256": "b13b837322dd0e5ec972227d180aa86eb671cab2594df0c0d51d2456599bae91",
-      "size_bytes": 6129
+      "sha256": "42febc0395d71f13275b6374cc33657312f5919d9c0703b8640c6c3fd39da207",
+      "size_bytes": 6131
     },
     {
       "id": "configuration-radio-b0f1ea1d8136-9369578288",
@@ -1078,14 +1078,14 @@
       "slug": "nemotron-3-5-bolt"
     },
     "publisher": "nvidia",
-    "slug": "nemotron-3-5-bolt-24gb-c6cc2e8f",
+    "slug": "nemotron-3-5-bolt-24gb-e0590ed2",
     "variant": "IQ2_XXS experts, NVFP4 Mamba, Q8_0 attention",
-    "version": "c6cc2e8f"
+    "version": "e0590ed2"
   },
   "kind": "model",
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB",
-    "revision": "c6cc2e8ffa353403213d6b9b18aaf8eb684d705a"
+    "revision": "e0590ed2f3a564fd99725d9d891cb09deb7cc201"
   }
 }

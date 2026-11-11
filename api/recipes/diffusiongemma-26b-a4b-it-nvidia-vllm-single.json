@@ -15,7 +15,7 @@
       "image": true,
       "pdf": false,
       "text": true,
-      "video": false
+      "video": true
     },
     "max_input_tokens": null,
     "max_output_tokens": {
@@ -34,7 +34,7 @@
       "via": "chat_template_kwargs"
     },
     "streaming": true,
-    "structured_output": true,
+    "structured_output": false,
     "system_messages": true,
     "tools": {
       "kind": "supported",

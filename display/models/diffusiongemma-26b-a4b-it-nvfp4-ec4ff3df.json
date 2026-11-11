@@ -4,7 +4,8 @@
     "image-understanding",
     "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of DiffusionGemma 26B-A4B IT (diffusion-decoding Gemma).",
   "family_title": "Google Gemma",
@@ -23,7 +24,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "DiffusionGemma 26B-A4B",
   "tags": [

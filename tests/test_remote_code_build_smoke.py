@@ -17,12 +17,21 @@ from typing import Self
 from unittest.mock import patch
 
 import pytest
+from vonk_forge_contracts.model import ModelSource
 from vonk_forge_contracts.recipe import RecipeDefinition
+
+from qualification.documents import model as model_document
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = runpy.run_path(str(ROOT / "tools/prepare-remote-code-smoke"))
 MOSS = ROOT / "adapters/video/moss-vl-realtime"
 KEY = "a" * 64
+
+
+def served_slug(source: str) -> str:
+    """The Model the recipe binds as ``primary`` (read through the contract)."""
+    definition = recipe(source)
+    return next(m.model.slug for m in definition.models if m.id == "primary")
 
 
 def emitted_model_code(program: str) -> list[str]:
@@ -78,13 +87,14 @@ def test_moss_smoke_covers_pinned_model_and_processor_imports(tmp_path: Path) ->
         "processing_moss_vl.py",
         "video_processing_moss_vl.py",
     }
-    assert all(
-        "/resolve/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86/" in item[0]
-        for item in files
-    )
+    served = served_slug(source)
+    source_of_model = model_document(served).source
+    assert isinstance(source_of_model, ModelSource)
+    revision = source_of_model.revision
+    assert all(f"/resolve/{revision}/" in item[0] for item in files)
     assert "check_imports(str(path))" in program
     # pytorch-pipeline loads the model through Transformers' AutoModel.
-    assert emitted_model_code(program) == ["moss-vl-realtime-11b-bf16-d1f71a58"]
+    assert emitted_model_code(program) == [served]
     assert "video_processing_moss_vl.py" in program
     assert "video_preprocessor_config.json" in program
 
@@ -358,37 +368,37 @@ def emitted(program: str, name: str) -> object:
 
 
 @pytest.mark.parametrize(
-    ("source", "configs", "pythons"),
+    ("source", "trust_remote_code", "pythons"),
     [
         # No remote code: main generated no smoke for it at all.
         (
             "recipes/gemma-4-26b-a4b-vllm-single.json",
-            [("gemma-4-26b-a4b-it-4d7ae498", False)],
+            False,
             [],
         ),
         # vLLM 0.30.0 rejected this config at start on hardware (2026-10-27).
         (
             "recipes/laguna-s-2-1-nvfp4-vllm-single.json",
-            [("laguna-s-2-1-nvfp4-07614121", False)],
+            False,
             [],
         ),
         # The served target, never its drafter; the recipe's trust flag.
         (
             "recipes/laguna-s-2-1-nvfp4-r0b0tlab-vllm-single.json",
-            [("laguna-s-2-1-nvfp4-07614121", True)],
+            True,
             [],
         ),
         # The Controller rewrites argv /models to the endpoint role's first
         # mount (/models/target), never to the drafter.
         (
             "recipes/nemotron-3-5-bolt-lilicorr-nvidia-vllm-single.json",
-            [("nemotron-3-5-bolt-24gb-c6cc2e8f", True)],
+            True,
             [],
         ),
         # A bare launcher serves /models; its adapter names the engine Python.
         (
             "recipes/mimo-v2-6-pro-mopd-arvq-drowzeys-vllm-four.json",
-            [("mimo-v2-6-pro-mopd-arvq-hybrid21-bb83094e", True)],
+            True,
             ["/opt/arvq/.venv/bin/python"],
         ),
     ],
@@ -396,7 +406,7 @@ def emitted(program: str, name: str) -> object:
 def test_every_vllm_recipe_plans_its_served_config_parse(
     tmp_path: Path,
     source: str,
-    configs: list[tuple[str, bool]],
+    trust_remote_code: bool,
     pythons: list[str],
 ) -> None:
     plan = TOOL["Plan"].model_validate(
@@ -404,11 +414,13 @@ def test_every_vllm_recipe_plans_its_served_config_parse(
     )
     TOOL["prepare"](plan, tmp_path)
     program = (tmp_path / KEY / "remote-code-smoke.py").read_text()
-    assert emitted(program, "VLLM_CONFIGS") == configs
+    # The served Model is whatever the recipe binds, so a Model move never edits this test.
+    served = served_slug(source)
+    assert emitted(program, "VLLM_CONFIGS") == [(served, trust_remote_code)]
     assert emitted(program, "ENGINE_PYTHONS") == pythons
     files = emitted(program, "FILES")
     assert isinstance(files, list)
-    assert f"{configs[0][0]}/config.json" in [name for *_, name in files]
+    assert f"{served}/config.json" in [name for *_, name in files]
 
 
 def test_a_trust_remote_code_choice_also_parses_with_remote_code() -> None:

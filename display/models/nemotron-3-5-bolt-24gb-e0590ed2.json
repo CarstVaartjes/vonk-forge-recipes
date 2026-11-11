@@ -1,5 +1,6 @@
 {
   "capabilities": [
+    "chat",
     "image-understanding",
     "reasoning",
     "text-generation",
@@ -10,7 +11,7 @@
   "family_title": "NVIDIA Nemotron",
   "identity": {
     "publisher": "nvidia",
-    "slug": "nemotron-3-5-bolt-24gb-c6cc2e8f"
+    "slug": "nemotron-3-5-bolt-24gb-e0590ed2"
   },
   "kind": "model-display",
   "license": {
@@ -18,7 +19,7 @@
       "NVIDIA"
     ],
     "spdx": "LicenseRef-NVIDIA-Open-Model-License",
-    "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB/blob/c6cc2e8ffa353403213d6b9b18aaf8eb684d705a/LICENSE"
+    "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB/blob/e0590ed2f3a564fd99725d9d891cb09deb7cc201/LICENSE"
   },
   "modalities": [
     "image",
