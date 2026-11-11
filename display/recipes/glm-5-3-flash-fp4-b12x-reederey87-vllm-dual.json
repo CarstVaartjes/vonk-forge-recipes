@@ -1,0 +1,27 @@
+{
+  "alignment": "standard",
+  "description": "Reederey87's GLM-5.3-Flash-FP4-Local b12x kit (glm53-flash-fp4-b12x-2x-dgx-spark at 29d0989c, 2026-11-08) on two Sparks: NVIDIA's ModelOpt mixed FP4 checkpoint of Z.ai GLM-5.3-Flash (quantization-aware distillation; NVIDIA Open Model Agreement, informational, base model MIT; checkpoint revision 76348ddb, about 178 GB of weights). Runs eugr's published vllm-node-b12x image by digest (the kit's default IMAGE_REF eugr/spark-vllm-b12x:nightly-20261015, FlashInfer b12x) with the kit's launch: modelopt_mixed quantization, B12X attention, b12x MoE and linear backends, b12x load format (the Vonk launcher loads the same checkpoint with vLLM's standard safetensors reader because the sandbox blocks io_uring), FP8 KV cache with block size 256 and an explicit 17 GiB pool, hybrid mamba cache mode align, chunked prefill, prefix caching and prompt-token details, multimodal processor cache off, MTP speculative decoding with three tokens (the kit's measured optimum over five: humming drafter MoE backend, B12X attention), glm45 reasoning and glm47 tool-call parsers, a 1,000,000-token context, four sequences, 4,096 batched tokens and memory utilization 0.87, with the kit's RoCE all-reduce and all-gather, NCCL, A16 MoE FP4 and ahead-of-time compilation environment. Requests that omit reasoning_effort render Max, the checkpoint template's default. The kit's own deployment is a local image (id 3b5da79c, vLLM 0.1.dev21830 with FlashInfer 91271757) that is not the published nightly-20261015 digest (config a7f76ae9), so the published nightly-20261015 digest is the nearest runnable image, not byte-identical to the creator's. The creator reports on its own pair 40.2 tokens/s at one request and 79.4 at eight, a 2.35-million-token KV pool and 2.2 to 2.3 thousand tokens/s prefill (upstream claims, not measured here). Physical Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.87 beside the 17 GiB KV pin (the kit's boot gate wants 90 GiB free and 100 GiB available per node). The declared per-node peak is 0.87 x 130,663,231,488-byte unified memory plus 10.4 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; it is an estimate until the hardware try measures it.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-fp4-b12x-reederey87-vllm-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "1m-context",
+    "b12x",
+    "candidate",
+    "dual",
+    "eugr",
+    "executable",
+    "glm",
+    "glm-5-3",
+    "mtp",
+    "nvfp4",
+    "reasoning",
+    "reederey87",
+    "spark",
+    "tool-use",
+    "vllm"
+  ],
+  "title": "GLM 5.3 Flash FP4-Local B12X MTP-3 1M vLLM two Sparks (Reederey87)"
+}
