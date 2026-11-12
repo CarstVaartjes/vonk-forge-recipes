@@ -274,8 +274,10 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`:
   or change a field's meaning. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
   unknown fields does not let an old reader accept a missing required field.
-  Coordinate a vonk-forge release; Controllers on
-  the previous major keep following the previous major's release.
+  Deploy it consumer-first: pin this recipes commit in vonk-forge, deploy it,
+  then move `platform_ref` here (`tools/check-platform-contracts` refuses a
+  major newer than the platform's). Controllers on the previous major keep
+  following the previous major's release until then.
 
 ### Model: the exact files and their capabilities
 
@@ -1305,7 +1307,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-document-reads`, `tools/_added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
 | `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
 | `tools/check-model-modalities`, `tests/test_model_modalities.py` | A touched Model's display (or the Model a touched recipe serves) disagrees with its modalities (`image` ⇔ `image-understanding`, likewise audio and video) or with a serving recipe's API document: a chat route needs `chat` and `text-generation`, reasoning other than `none` needs `reasoning`, tools other than `none` need `tool-use`. Correct `display/models/<slug>.json`, or the API document if it claims what the launch does not serve. |
-| `tools/check-platform-contracts`, `qualification/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. |
+| `tools/check-platform-contracts`, `qualification/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. The row also fires on a contracts major newer than the platform's: pin this commit in vonk-forge, deploy, then move `platform_ref`. |
 | `tests/test_guidance_files.py` | Guidance stays in the allowlisted files and local Markdown links resolve. Consolidate the new rule here or in AGENTS; fix links in the same change. |
 | `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
 
