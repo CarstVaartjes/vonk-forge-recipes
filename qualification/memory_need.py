@@ -161,6 +161,9 @@ HYBRID_ARCHITECTURES = frozenset(
         "Qwen4ExpForConditionalGeneration",  # GDN linear attention
     }
 )
+# Hybrids whose attention is DSA: the per-token bound is hand-entered (index
+# cache and MTP included), spread over the layers holding a cache.
+HAND_ATTENTION_BOUND_ARCHITECTURES = frozenset({"Glm5NextForConditionalGeneration"})
 ATTENTION_ARCHITECTURES = frozenset(
     {
         "DeepseekV41ForCausalLM",
@@ -197,10 +200,6 @@ VLLM_UNMODELED_HYBRID = {
     # Sliding-window plus short-convolution layers on creator images whose
     # vLLM Inkling layout is not pinned; SGLang-measured state.
     "inkling-small-nvfp4": "Inkling short convolution on creator images",
-    # KDA linear + DSA layers on creator vLLM forks: not modeled (follow-up).
-    "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704": "Glm5Next KDA + DSA not modeled (follow-up)",
-    "glm-5-3-flash-fp4-local-76348ddb": "Glm5Next KDA + DSA not modeled (follow-up)",
-    "glm-5-3-flash-nvfp4-caca4e6a": "Glm5Next KDA + DSA not modeled (follow-up)",
 }
 
 
@@ -306,7 +305,10 @@ class CacheGeometry(BaseModel):
             or self.sglang_state_bytes_per_slot
             or self.sliding_layers
             or self.token_bytes is not None
-            or self.token_bytes_by_dtype
+            or (
+                self.token_bytes_by_dtype
+                and self.architecture not in HAND_ATTENTION_BOUND_ARCHITECTURES
+            )
             or self.replicated_token_bytes
         ):
             raise ValueError(
