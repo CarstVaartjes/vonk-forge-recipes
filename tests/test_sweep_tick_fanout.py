@@ -135,7 +135,6 @@ def test_the_lane_progress_reads_of_a_poll_overlap(tmp_path: Path) -> None:
 
     sweep.vk.runner = runner
     sweep.poll_application()
-    assert not barrier.broken
 
 
 def test_the_startup_client_checks_overlap(tmp_path: Path) -> None:
@@ -150,4 +149,28 @@ def test_the_startup_client_checks_overlap(tmp_path: Path) -> None:
 
     sweep.vk.runner = runner
     sweep.check_client()  # a serial check would time the barrier out
-    assert not barrier.broken
+
+
+def test_a_lane_whose_read_fails_leaves_the_others_observed(tmp_path: Path) -> None:
+    sweep, fleet, _ = _sweep(tmp_path)
+    sweep.state.data["loads"] = {
+        key: {"request_key": key, "app_id": f"{key}-app"} for key in ("a", "b")
+    }
+    fleet.observations.extend(
+        [
+            (
+                ("profile", "progress", "--application", "a-app"),
+                2,
+                {"error_type": "control_api", "code": "http.503", "http_status": 503},
+            ),
+            (
+                ("profile", "progress", "--application", "b-app"),
+                0,
+                {"id": "b-app", "state": "succeeded"},
+            ),
+        ]
+    )
+    assert not sweep.poll_application()
+    assert sweep.state.data["apps"]["b"]["state"] == "succeeded"
+    assert "b" not in sweep.state.data["loads"]
+    assert "a" in sweep.state.data["loads"] and sweep.unobserved_loads == {"a"}

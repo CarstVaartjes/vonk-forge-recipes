@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 import pytest
-from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_fakes import FakeModel, FakeRecipe, Gateway, _locked, make_sweep
 
 pytest_plugins = ["sweep_bounds"]
 
@@ -263,7 +263,7 @@ def test_the_cli_updates_a_skewed_client(
             "--state-dir",
             str(tmp_path / "s"),
         ],
-        vonkctl_factory=lambda exe: Vonkctl(exe, runner=fleet.runner),
+        vonkctl_factory=lambda exe: Vonkctl(exe, runner=_locked(fleet.runner)),
         clock=clock,
         definitions=make_definitions(recipes),
     )
