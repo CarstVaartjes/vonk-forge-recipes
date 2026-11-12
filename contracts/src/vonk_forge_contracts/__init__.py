@@ -108,6 +108,10 @@ from .qualification_status import (
     qualification_status_json_schema,
 )
 from .recipe import RecipeDefinition, RecipeOptionError
+from .vocabulary import (
+    CatalogVocabulary,
+    catalog_vocabulary,
+)
 
 CONTRACT_VERSION = __version__
 CONTRACT_MAJOR = int(CONTRACT_VERSION.split(".", 1)[0])
@@ -132,6 +136,7 @@ __all__ = [
     "CatalogIndex",
     "CatalogModelEntry",
     "CatalogRecipeEntry",
+    "CatalogVocabulary",
     "ChatApi",
     "DecisionApi",
     "EndpointAlias",
@@ -185,6 +190,7 @@ __all__ = [
     "campaign_manifest_json_schema",
     "canonical_json",
     "catalog_index_json_schema",
+    "catalog_vocabulary",
     "check_api_models",
     "check_recipe_api",
     "derive_status",

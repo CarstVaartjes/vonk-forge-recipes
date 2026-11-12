@@ -162,6 +162,10 @@ build constructs it through the model, consumers read it with `read_catalog_inde
 release ships its generated schema `catalog-index-v2.schema.json`. The envelope and package
 schema versions live only there; change the shape in the model and run
 `tools/generate-contract-schemas`.
+The index also publishes the vocabulary (`vonk_forge_contracts.vocabulary`): every capability's
+label, description and category and every qualification status's meaning and whether it counts as
+verified. Change user-facing words only there; the site, Controller UI and vonkctl render the
+release's copy. A new `CapabilityName` or `QualificationStatus` without an entry fails at import.
 `tools/build-catalog-index --release-dir DIR` builds catalog/qualification
 indexes, recipe archives, coverage and `SHA256SUMS`. The signed release contains
 one deterministic `recipe-library.tar`, built by `tools/build-release-bundle`:
