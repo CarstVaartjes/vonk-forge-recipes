@@ -111,7 +111,6 @@ from .qualification import (
     unpublishable_pass,
 )
 from .receipt import CANCELLED_FAILURE
-from .recheck import RecheckBackoff
 from .removal import ModelRemover
 from .removal_contract import RemovalWait
 from .report import write_status
@@ -137,7 +136,13 @@ from .source_serving import (
 from .state import ResultsLog, State, StateLock
 from .tolerant import InputReason, read_optional
 from .verdict import Disposition, Progress
-from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
+from .vonkctl import (
+    Reply,
+    Vonkctl,
+    VonkctlError,
+    VonkctlTransportError,
+    request_key,
+)
 
 WAIT_EVENT_SECONDS = 60.0  # a wait says what it waits for at least this often
 # Clearing the fleet and reviewing again, for a capacity refusal (an OBSERVE outcome),
@@ -395,8 +400,6 @@ class Sweep:
             self._download_failed,
             self._download_done,
         )
-        self.recheck = RecheckBackoff(config.poll_seconds, INFRA_CAP)
-        self.stuck_wait = 0.0  # set by a pass the Controller did not answer
         self.prefetcher.on_infra = self.note_infra
         self.prefetcher.on_ok = self.clear_infra
         self.prefetcher.release = lambda: self.release_sha
@@ -1148,13 +1151,17 @@ class Sweep:
         try:
             self._tick()
             self.clear_infra("tick")
-            self.recheck.reset()
         except VonkctlError as error:
-            self.stuck_wait = self.recheck.next_wait()
+            if isinstance(error, VonkctlTransportError):
+                self.note_infra("tick", f"Controller unanswered: {error}")
+                self._recheck_wait("tick", error)
+            else:
+                self.clear_infra("tick")  # the Controller answered: normal cadence
             self.state.event(f"vonkctl failed, will retry: {str(error)[:150]}")
             self._save_quietly()
         except Exception as error:  # noqa: BLE001 - an unattended sweep never dies of one bad pass
             self.note_infra("tick", f"{type(error).__name__}: {error}")
+            self._recheck_wait("tick", error)
             self.state.event(
                 f"unexpected error in a pass, will retry: {type(error).__name__}: {str(error)[:150]}"
             )
@@ -1182,12 +1189,10 @@ class Sweep:
         except (VonkctlError, OSError) as error:
             self.note_infra("startup", f"{type(error).__name__}: {error}")
             item = self.state.data["infra"]["startup"]
-            wait = self.recheck.next_wait()
-            item["until"] = self.clock.now() + wait
+            wait = self._recheck_wait("startup", error)
             self.waiting(f"startup {step.__name__}: {error}", float(item["since"]))
             self.clock.sleep(wait)
             return False
-        self.recheck.reset()
         self.clear_infra("startup")
         self.done_waiting()
         return True
@@ -1959,11 +1964,29 @@ class Sweep:
         self.finish()
         return 0
 
-    def _round_wait(self, round_start: float) -> float:
-        """The rest of the poll, or the backoff of a pass the Controller did not answer."""
-        stuck, self.stuck_wait = self.stuck_wait, 0.0
+    def _recheck_wait(self, source: str, error: Exception) -> float:
+        """How long to wait before looking again, written to the incident as its deadline.
+
+        Only a Controller that gave no authoritative reply (``VonkctlTransportError``)
+        lengthens the wait: ``poll * 2**(count - 1)`` up to ``INFRA_CAP``, from the
+        incident's own count. Any other error means something answered or the sweep itself
+        failed, so the cadence stays one poll.
+        """
+        item = self.state.data["infra"][source]
         poll = self.cfg.poll_seconds
-        return max(stuck, min(poll, max(0.0, round_start + poll - self.clock.now())))
+        if isinstance(error, VonkctlTransportError):
+            wait = min(poll * 2 ** min(item["count"] - 1, 20), INFRA_CAP)
+        else:
+            wait = poll
+        item["until"] = self.clock.now() + wait
+        return wait
+
+    def _round_wait(self, round_start: float) -> float:
+        """The rest of the poll, or the deadline of an unanswered pass if it is later."""
+        poll = self.cfg.poll_seconds
+        rest = min(poll, max(0.0, round_start + poll - self.clock.now()))
+        item = self.state.data["infra"].get("tick")
+        return max(rest, item["until"] - self.clock.now()) if item else rest
 
     def _model_preparing(self, recipe: Recipe) -> bool:
         return any(

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from concurrent.futures import Future
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
@@ -537,50 +538,35 @@ def test_cached_recipe_is_ready_while_its_native_model_stays_not_cached(
     ]
 
 
-def test_a_stuck_sweep_rechecks_with_growing_capped_jittered_waits_and_resets(
+NO_REPLY: Any = None  # a Controller call with no authoritative JSON reply
+
+
+def test_an_unanswering_controller_stretches_the_wait_and_an_answer_resets_it(
     tmp_path: Path,
 ) -> None:
-    (tmp_path / "state.json").write_text(FIXTURE.read_text())
-    sweep, _, clock = make_sweep(tmp_path, [], [])
-    sweep.recheck.uniform = lambda low, high: high  # the longest jittered wait
-
-    def unavailable() -> None:
-        raise VonkctlError(("fleet",), None, "fleet is unreadable")
-
+    sweep, fleet, clock = make_sweep(tmp_path, [], [])
+    poll = sweep.cfg.poll_seconds
     waits = []
     for _ in range(8):
+        fleet.observations.append((("fleet",), 0, NO_REPLY))
         before = clock.now()
-        assert not sweep._startup(unavailable)
+        assert not sweep._startup(sweep.preflight)
         waits.append(clock.now() - before)
-    poll = sweep.cfg.poll_seconds
     assert waits[:4] == [poll, 2 * poll, 4 * poll, 8 * poll]
-    assert waits[-1] == 600  # capped, never grows past INFRA_CAP
-    sweep.recheck.uniform = lambda low, high: low  # the shortest: never below the poll
-    assert sweep.recheck.next_wait() >= poll
-    assert sweep._startup(lambda: None)  # the first answer resets the backoff
+    assert waits[-1] == 600  # capped at INFRA_CAP
+    assert sweep.state.data["infra"]["startup"]["until"] == clock.now()
+    assert sweep._startup(sweep.preflight)  # the Controller answers
+    assert "startup" not in sweep.state.data["infra"]
+    fleet.observations.append((("fleet",), 0, NO_REPLY))
     before = clock.now()
-    assert not sweep._startup(unavailable)
+    assert not sweep._startup(sweep.preflight)
     assert clock.now() - before == poll
 
 
-def test_a_pass_the_controller_did_not_answer_stretches_the_next_poll(
-    tmp_path: Path,
-) -> None:
-    (tmp_path / "state.json").write_text(FIXTURE.read_text())
-    sweep, _, _clock = make_sweep(tmp_path, [], [])
-    sweep.recheck.uniform = lambda low, high: high
-
-    def down() -> None:
-        raise VonkctlError(("fleet",), None, "fleet is unreadable")
-
-    sweep._tick = down  # type: ignore[method-assign]
-    poll = sweep.cfg.poll_seconds
-    now = sweep.clock.now()
-    waits = []
-    for _ in range(3):
-        sweep.tick()
-        waits.append(sweep._round_wait(now))
-    assert waits == [poll, 2 * poll, 4 * poll]
-    sweep._tick = lambda: None  # type: ignore[method-assign]
-    sweep.tick()
-    assert sweep._round_wait(now) == poll
+def test_an_answered_refusal_keeps_the_poll_cadence(tmp_path: Path) -> None:
+    sweep, fleet, clock = make_sweep(tmp_path, [], [])
+    fleet.offline_nodes = {node for node, _ in fleet.sparks}  # "no Spark is online"
+    for _ in range(4):
+        before = clock.now()
+        assert not sweep._startup(sweep.preflight)
+        assert clock.now() - before == sweep.cfg.poll_seconds
