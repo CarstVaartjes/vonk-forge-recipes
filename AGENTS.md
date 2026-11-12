@@ -144,6 +144,11 @@ repository and accepts `--update`, not positional changed-file arguments.
 assets to the run's `GITHUB_SHA`; it does not rebase that run onto a newer main.
 The final publish job unconditionally repeats lint, format and types, even when
 the reusable producer job chose its light scope.
+A contracts **major** bump is deployed consumer-first: `tools/check-platform-contracts`
+refuses a `CONTRACT_MAJOR` newer than the major in the `platform_ref` lock. Pin the
+recipes commit in vonk-forge, deploy it (the Controller waits visibly for the new
+major), then move `platform_ref` here and merge. A platform major ahead of this
+repo never blocks.
 PR validation calls the same image workflow at the PR head, compares base/head
 build keys and builds only changed, unpublished keys (including native checks
 and the remote-code smoke); every key builds in CI, within one 360-minute job
