@@ -152,6 +152,11 @@ publication promotes their digests without rebuilding. Keys without a candidate
 use the same build and smoke path at publication; scheduled/manual runs also
 recover historical missing keys.
 Changed images from forks need a trusted repository branch to push candidates.
+`catalog-index.json` is the `CatalogIndex` contract (`vonk_forge_contracts.catalog_index`): the
+build constructs it through the model, consumers read it with `read_catalog_index`, and the
+release ships its generated schema `catalog-index-v2.schema.json`. The envelope and package
+schema versions live only there; change the shape in the model and run
+`tools/generate-contract-schemas`.
 `tools/build-catalog-index --release-dir DIR` builds catalog/qualification
 indexes, recipe archives, coverage and `SHA256SUMS`. The signed release contains
 one deterministic `recipe-library.tar`, built by `tools/build-release-bundle`:

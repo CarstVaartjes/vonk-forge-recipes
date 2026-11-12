@@ -43,6 +43,7 @@ from vonk_forge_contracts import (
     ModelDefinition,
     RecipeDefinition,
     document_sha256,
+    read_catalog_index,
 )
 from vonk_forge_contracts.model import ModelSource
 from vonk_forge_contracts.qualification_authority import QualificationAuthority
@@ -130,12 +131,20 @@ def _require_object(value: Any, description: str) -> dict[str, Any]:
     return value
 
 
-def _indexed_recipes(catalog_root: Path) -> dict[str, dict[str, Any]]:
-    """Validate every indexed recipe and prove the index matches the tree."""
+def _catalog_index(catalog_root: Path) -> dict[str, Any]:
+    """The generated index document, read through its contract."""
 
     catalog = _require_object(
         _json_document(catalog_root / "catalog-index.json"), "catalog-index.json"
     )
+    read_catalog_index(catalog)
+    return catalog
+
+
+def _indexed_recipes(catalog_root: Path) -> dict[str, dict[str, Any]]:
+    """Validate every indexed recipe and prove the index matches the tree."""
+
+    catalog = _catalog_index(catalog_root)
     entries = catalog.get("recipes")
     if not isinstance(entries, list):
         raise TypeError("catalog-index.json recipes must be an array")
@@ -169,9 +178,7 @@ def _indexed_recipes(catalog_root: Path) -> dict[str, dict[str, Any]]:
 def _indexed_models(catalog_root: Path) -> dict[str, ModelDefinition]:
     """Validate every canonical Model document referenced by the catalog."""
 
-    catalog = _require_object(
-        _json_document(catalog_root / "catalog-index.json"), "catalog-index.json"
-    )
+    catalog = _catalog_index(catalog_root)
     entities = catalog.get("catalog_entities")
     if not isinstance(entities, list):
         raise TypeError("catalog-index.json catalog_entities must be an array")

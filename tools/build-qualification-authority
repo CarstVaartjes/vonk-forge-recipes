@@ -24,7 +24,11 @@ ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION = ROOT / "qualification"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import RecipeDefinition, read_model_display
+from vonk_forge_contracts import (
+    RecipeDefinition,
+    read_catalog_index,
+    read_model_display,
+)
 from vonk_forge_contracts.qualification_authority import (
     QualificationAuthority,
     QualificationBatch,
@@ -346,6 +350,7 @@ def build(catalog_root: Path = ROOT) -> dict[str, bytes]:
     catalog_bytes = index_path.read_bytes()
     qualification_bytes = qualification_path.read_bytes()
     catalog = _document_bytes(catalog_bytes, "catalog-index.json")
+    read_catalog_index(catalog)
     qualification = _document_bytes(qualification_bytes, "qualification-index.json")
     repository = catalog.get("repository")
     if repository != "CarstVaartjes/vonk-forge-recipes":

@@ -63,6 +63,7 @@ def test_release_manifest_covers_every_asset_and_matches_the_index(
     assert set(listed) == {
         "catalog-index.json",
         "qualification-index.json",
+        "catalog-index-v2.schema.json",
         "coverage.md",
         *packages,
     }
@@ -128,3 +129,24 @@ def test_release_refuses_to_mix_with_existing_files(tmp_path: Path) -> None:
         TOOL["write_release"](
             tmp_path, source_commit=SOURCE_COMMIT, source_date_epoch=SOURCE_DATE_EPOCH
         )
+
+
+def test_the_index_reads_through_its_contract_and_the_release_ships_its_schema(
+    tmp_path: Path, built_catalog: tuple[dict, Path]
+) -> None:
+    from vonk_forge_contracts import published_index_json, read_catalog_index
+
+    catalog = built_catalog[0]
+    # The model loses nothing: writing it back gives the bytes' document again.
+    assert published_index_json(read_catalog_index(catalog)) == catalog
+    # A reader ignores what a newer minor adds, but refuses another envelope.
+    assert read_catalog_index({**catalog, "added_later": 1}).kind == catalog["kind"]
+    with pytest.raises(ValueError):
+        read_catalog_index({**catalog, "schema_version": 3})
+
+    release = tmp_path / "release"
+    TOOL["write_release"](
+        release, source_commit=SOURCE_COMMIT, source_date_epoch=SOURCE_DATE_EPOCH
+    )
+    shipped = json.loads((release / "catalog-index-v2.schema.json").read_text("utf-8"))
+    assert "CatalogIndex" in shipped["components"]["schemas"]
