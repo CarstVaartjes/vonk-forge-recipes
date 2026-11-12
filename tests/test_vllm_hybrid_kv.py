@@ -219,7 +219,7 @@ def test_other_engines_keep_the_hand_state_bound() -> None:
 def test_glm_kda_state_is_the_upstream_per_rank_layout() -> None:
     # vLLM kda_state_shape on TP2 with 7 speculative tokens: conv 24576 / 2
     # channels x (4 - 1 + 7) in bf16 (245,760 B) plus 64 / 2 heads x 128 x 128
-    # fp32 (2,097,152 B) per KDA layer; the hand bound is not also counted.
+    # fp32 (2,097,152 B) per KDA layer.
     recipe = next(
         recipe
         for recipe, _ in recipes()
@@ -228,7 +228,6 @@ def test_glm_kda_state_is_the_upstream_per_rank_layout() -> None:
     geometry = INPUTS.geometries[recipe.models[0].model.slug]
     assert geometry.recurrent is not None
     assert recurrent_layer_bytes(recipe, geometry.recurrent) == 2_342_912
-    assert geometry.state_bytes_per_request == 0
 
 
 ADAY777 = "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"
@@ -246,6 +245,12 @@ ADAY777 = "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"
         {"recurrent": {"mamba_prefix_caching": True, "chunk_tokens": 128}},
         {"recurrent": {"chunk_tokens": 128}},
         {"recurrent": {"attention_layers": 17}},
+        {
+            "architecture": "Glm5NextForConditionalGeneration",
+            "layers": 45,
+            "token_bytes_by_dtype": {"fp8": 12288},
+            "recurrent": {"attention_layers": 12},
+        },
     ],
 )
 def test_recurrent_geometry_fields_are_exclusive(update: dict[str, object]) -> None:

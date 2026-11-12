@@ -161,9 +161,6 @@ HYBRID_ARCHITECTURES = frozenset(
         "Qwen4ExpForConditionalGeneration",  # GDN linear attention
     }
 )
-# Hybrids whose attention is DSA: the per-token bound is hand-entered (index
-# cache and MTP included), spread over the layers holding a cache.
-HAND_ATTENTION_BOUND_ARCHITECTURES = frozenset({"Glm5NextForConditionalGeneration"})
 ATTENTION_ARCHITECTURES = frozenset(
     {
         "DeepseekV41ForCausalLM",
@@ -288,7 +285,8 @@ class CacheGeometry(BaseModel):
     @model_validator(mode="after")
     def classified_recurrent_bound(self) -> Self:
         """A classified architecture; typed recurrent state only on a hybrid
-        one, with plain attention and the loaded class's prefix caching."""
+        one, with plain attention and the loaded class's prefix caching. A hand
+        per-token bound is allowed only when spread over the layers vLLM groups."""
         if self.architecture not in HYBRID_ARCHITECTURES | ATTENTION_ARCHITECTURES:
             raise ValueError(
                 f"classify architecture {self.architecture} as hybrid or attention"
@@ -305,10 +303,7 @@ class CacheGeometry(BaseModel):
             or self.sglang_state_bytes_per_slot
             or self.sliding_layers
             or self.token_bytes is not None
-            or (
-                self.token_bytes_by_dtype
-                and self.architecture not in HAND_ATTENTION_BOUND_ARCHITECTURES
-            )
+            or (self.token_bytes_by_dtype and self.layers != recurrent.attention_layers)
             or self.replicated_token_bytes
         ):
             raise ValueError(
