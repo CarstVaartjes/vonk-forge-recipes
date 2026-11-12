@@ -574,8 +574,9 @@ def published_status(
         and failed_at is None
         and current_identity.resolved
         and view.last_pass is not None
+        and view.last_pass.identity != current_identity
     ):
-        # Passed before, nothing certifies this exact identity (e.g. only the
+        # Passed before under another identity, nothing certifies this exact identity (e.g. only the
         # image changed) and no recipe failure voided the proof: re-test,
         # never "Not yet verified".
         view = view.model_copy(
