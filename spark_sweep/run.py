@@ -1512,14 +1512,23 @@ class Sweep:
 
         True when an update was applied.
         """
-        version = self.vk.run("--version")
+        reads = gather(
+            {
+                "version": lambda: self.vk.run("--version"),
+                "platform": lambda: self.vk.run("platform", timeout=30),
+                "update": lambda: self.vk.run("update", timeout=60),
+            },
+            self.read_executor,
+        )
+        version = reads["version"].result()
         if version.ok and isinstance(version.document, dict):
             self.state.data["client"] = {
                 k: version.document.get(k)
                 for k in ("version", "source_sha", "control_contract_sha256")
             }
+        self._reads["platform"] = reads["platform"]
         self.observe_platform()
-        check = self.vk.run("update", timeout=60)
+        check = reads["update"].result()
         document = check.document if isinstance(check.document, dict) else {}
         if not check.ok or "update_available" not in document:
             self.state.event(
@@ -2474,22 +2483,30 @@ class Sweep:
         """Refresh the load's application; False when the Controller could not be observed."""
         observed = True
         fleet_blind = self.blind
-        for load in list(self.state.data["loads"].values()):
+        loads = list(self.state.data["loads"].values())
+        # The lanes' progress reads are independent; the state they change is applied in order.
+        replies = gather(
+            {load["request_key"]: partial(self._read_progress, load) for load in loads},
+            self.read_executor,
+        )
+        for load in loads:
             self.blind = fleet_blind
-            fresh = self._poll_application(load)
+            fresh = self._poll_application(load, replies[load["request_key"]].result())
             if not fresh:
                 self.unobserved_loads.add(load["request_key"])
             observed = fresh and observed
         self.blind = fleet_blind
         return observed
 
-    def _poll_application(self, load: dict[str, Any]) -> bool:
+    def _read_progress(self, load: dict[str, Any]) -> Any:
         args = ["progress"]
         if load.get("app_id"):
             args += ["--application", load["app_id"]]
         else:
             args += ["--request-key", load["request_key"]]
-        reply = self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
+        return self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
+
+    def _poll_application(self, load: dict[str, Any], reply: Any) -> bool:
         document = reply.document
         if reply.is_not_found and not load.get("app_id"):
             # An exact fresh lookup proved there is no receipt. Replay the same request.
