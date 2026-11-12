@@ -663,8 +663,9 @@ refs. Changed content and new ids are checked by the estimate rules (warnings); 
 digest cannot exempt modified recipe bytes or a modified parsed launch. Memory
 estimates (the envelope, loading floor, KV pool, startup budget, admissibility and
 swap rules) produce **WARNING** lines in `tools/build-catalog-index` and
-`tools/check-recipe-memory-need`, in the PR step summary, and on `main` in one
-“Memory estimate mismatches” issue; they never fail a build or a PR, rewrite a recipe
+`tools/check-recipe-memory-need`, and in the PR step summary; on `main` the one
+“Memory estimate mismatches” issue lists only estimates that cannot be computed
+(missing sourced inputs), never disagreements. They never fail a build or a PR, rewrite a recipe
 or assign a “does not fit” verdict. Qualification status comes only
 from `qualification/evidence/` and the shared `derive_status` reducer. There is
 no second pass/failure list in memory inputs; that file contains numerical

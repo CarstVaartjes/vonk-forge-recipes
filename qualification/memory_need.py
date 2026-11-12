@@ -675,21 +675,23 @@ def pinned_geometry(
         f"{slug}@{recipe.execution.build.base_image.digest}"
     ) or geometries.get(slug)
     if geometry is None:
-        raise ValueError(
+        raise MissingEstimateInput(
             f"{label}: add source-backed cache geometry for {slug} to qualification/memory-inputs.json"
         )
     if not any(
         item.sha256 == geometry.configuration_sha256 and "configuration" in item.roles
         for item in model.files
     ):
-        raise ValueError(
+        raise MissingEstimateInput(
             f"{label}: cache geometry does not match the pinned model configuration"
         )
     if (
         geometry.runtime_image_digest is not None
         and recipe.execution.build.base_image.digest != geometry.runtime_image_digest
     ):
-        raise ValueError(f"{label}: cache geometry does not match the pinned image")
+        raise MissingEstimateInput(
+            f"{label}: cache geometry does not match the pinned image"
+        )
     return geometry
 
 
@@ -1047,7 +1049,7 @@ def attention_token_bytes(
         "nvfp4",
         "fp4_mx_block16",
     }:
-        raise ValueError(
+        raise MissingEstimateInput(
             f"{recipe.identity.slug}: supply cache layout calibration for dtype {dtype}"
         )
     if dtype in geometry.token_bytes_by_dtype:
@@ -1076,7 +1078,9 @@ def attention_token_bytes(
             )
         )
     else:
-        raise ValueError(f"{recipe.identity.slug}: supply cache layout for {dtype}")
+        raise MissingEstimateInput(
+            f"{recipe.identity.slug}: supply cache layout for {dtype}"
+        )
     return layers, token_bytes
 
 
@@ -1170,7 +1174,7 @@ def vllm_recurrent(
         and geometry.architecture in HYBRID_ARCHITECTURES
         and slug not in VLLM_UNMODELED_HYBRID
     ):
-        raise ValueError(
+        raise MissingEstimateInput(
             f"{recipe.identity.slug}: {slug} is a hybrid {geometry.architecture}; "
             "add its typed recurrent geometry"
         )
@@ -1262,7 +1266,9 @@ def absolute_kv_need(
         else positive_argument(recipe, context_flag)
     )
     if context is None:
-        raise ValueError(f"{recipe.identity.slug}: declare default model context")
+        raise MissingEstimateInput(
+            f"{recipe.identity.slug}: declare default model context"
+        )
     block_flag = "block-size" if recipe.runtime.engine == "vllm" else "page-size"
     block = (
         positive_argument(recipe, block_flag)
@@ -1342,12 +1348,42 @@ def envelope_exception(slug: str, document_digest: str) -> bool:
     )
 
 
-def estimate_problems(label: str, rule: Callable[[], list[str]]) -> list[str]:
+class MissingEstimateInput(ValueError):
+    """The estimate lacks sourced data (memory-inputs.json); an agent can add it.
+
+    Any other error from an estimate rule is a creator flag or a value that
+    disagrees, which stays advisory.
+    """
+
+
+class EstimateFindingKind(StrEnum):
+    """What a finding asks for: data (actionable) or only a look (advisory)."""
+
+    UNAVAILABLE = "unavailable"
+    DISAGREEMENT = "disagreement"
+
+
+@dataclass(frozen=True)
+class EstimateFinding:
+    kind: EstimateFindingKind
+    text: str
+
+
+def estimate_problems(
+    label: str, rule: Callable[[], list[str]]
+) -> list[EstimateFinding]:
     """One estimate rule's findings; an estimate that cannot be computed is one too."""
     try:
-        return rule()
+        return [
+            EstimateFinding(EstimateFindingKind.DISAGREEMENT, text) for text in rule()
+        ]
     except (ValueError, TypeError, KeyError) as error:
-        return [f"{label}: estimate unavailable: {error}"]
+        kind = (
+            EstimateFindingKind.UNAVAILABLE
+            if isinstance(error, MissingEstimateInput)
+            else EstimateFindingKind.DISAGREEMENT
+        )
+        return [EstimateFinding(kind, f"{label}: estimate unavailable: {error}")]
 
 
 def memory_estimate_warnings(
@@ -1358,6 +1394,23 @@ def memory_estimate_warnings(
     document_digest: str,
     touched: bool = False,
 ) -> list[str]:
+    """The text of ``memory_estimate_findings``."""
+    return [
+        finding.text
+        for finding in memory_estimate_findings(
+            recipe, models, inputs, document_digest=document_digest, touched=touched
+        )
+    ]
+
+
+def memory_estimate_findings(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+    *,
+    document_digest: str,
+    touched: bool = False,
+) -> list[EstimateFinding]:
     """Where the declared memory disagrees with the estimate; none of it blocks.
 
     The recipes are estimates until the hardware try measures them, so every
@@ -1389,7 +1442,10 @@ def memory_estimate_warnings(
                     ),
                 )
         return warnings
-    warnings += admissible_declaration_warnings(recipe)
+    warnings += [
+        EstimateFinding(EstimateFindingKind.DISAGREEMENT, text)
+        for text in admissible_declaration_warnings(recipe)
+    ]
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return warnings
     single = recipe.topology.node_count == 1
