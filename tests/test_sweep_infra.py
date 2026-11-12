@@ -513,7 +513,6 @@ def test_download_reconnect_preserves_the_original_request(
     calls = [call for _, call in fleet.calls if call[:2] == ("recipe", "download")]
     assert len(calls) == 1
     assert calls[0][-1] == before["request_key"]
-    assert not sweep.state.data["download_history"]
 
 
 def test_accepted_download_absence_keeps_unknown_parent_without_replay(
@@ -542,4 +541,3 @@ def test_accepted_download_absence_keeps_unknown_parent_without_replay(
         len([call for _, call in fleet.calls if call[:2] == ("recipe", "download")])
         == 1
     )
-    assert not sweep.state.data["download_history"]

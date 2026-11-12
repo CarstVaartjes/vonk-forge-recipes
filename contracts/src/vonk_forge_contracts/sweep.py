@@ -207,6 +207,7 @@ class SweepWaitReason(StrEnum):
     SMOKE_BUSY = "smoke busy"
     SMOKE_RESPONSE = "smoke response"
     CATALOG_SOURCE = "catalog source"
+    PLATFORM_CONTRADICTION = "platform contradiction"
 
 
 class SweepWaitCode(StrEnum):
