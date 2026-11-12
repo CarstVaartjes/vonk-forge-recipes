@@ -691,3 +691,19 @@ def test_removal_reports_the_actual_owner_pause_and_invalid_rows(tmp_path):
     sweep.refresh_catalog()
     sweep.remove_finished_models()
     assert peer.submissions
+
+
+def test_an_unreadable_record_is_dropped_and_does_not_block_other_models(tmp_path):
+    sweep, _, _ = scenario(tmp_path)
+    sweep.state.data["model_removals"] = {
+        A: {"next_check": "soon", "request_key": 7},
+        B: RemovalRecord(message="kept").model_dump(mode="json"),
+    }
+    sweep.remove_finished_models()  # one model per pass: A is healed and re-requested
+    assert not sweep.state.data.get("model_removal_wait")
+    healed = RemovalRecord.model_validate(sweep.state.data["model_removals"][A])
+    assert healed.request_key and healed.outcome == RemovalOutcome.RECEIPT
+    sweep.remove_finished_models()  # the valid record proceeds on the next
+    assert sweep.state.data["model_removals"][B]["outcome"] == RemovalOutcome.RECEIPT
+    dropped = [e for e in sweep.state.data["events"] if "unreadable record" in str(e)]
+    assert len(dropped) == 1

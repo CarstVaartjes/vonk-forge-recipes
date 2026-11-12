@@ -56,6 +56,20 @@ class ModelRemover:
             self.state.save()
             self._dirty = False
 
+    def _read(self, digest: str, records: dict) -> RemovalRecord:
+        """The saved record; an unreadable one is dropped (and logged once) so the model
+        is requested afresh on this pass instead of blocking every other model."""
+        try:
+            return RemovalRecord.model_validate(records.get(digest, {}))
+        except ValidationError as error:
+            del records[digest]
+            self._dirty = True
+            self.state.event(
+                f"model removal {digest}: dropped unreadable record; re-requesting: "
+                f"{error.error_count()} invalid field(s)"
+            )
+            return RemovalRecord()
+
     def _owners(self, recipes: Mapping[str, Recipe], own: set[int]) -> set[str]:
         reply = self.vk.run("profile", "list", timeout=30)
         if not reply.ok:
@@ -153,18 +167,17 @@ class ModelRemover:
             protected, owner_error = set(), str(error)
         # One model per tick bounds CLI latency. Submitted requests reconnect first, so
         # unsubmitted models (no record) cannot starve them; then rotate by next check.
+        saved = {digest: self._read(digest, records) for digest in eligible}
         advanced = False
         for digest in sorted(
             eligible,
             key=lambda item: (
-                records.get(item, {}).get("request_key") is None,
-                float(records.get(item, {}).get("next_check", 0)),
+                saved[item].request_key is None,
+                saved[item].next_check,
                 item,
             ),
         ):
-            record = RemovalRecord.model_validate(
-                self.state.data.setdefault("model_removals", {}).get(digest, {})
-            )
+            record = saved[digest]
             scope = {recipe.key: recipe.content_sha256 for recipe in consumers[digest]}
             if record.outcome == RemovalOutcome.RECEIPT and record.consumers != scope:
                 record = RemovalRecord()
