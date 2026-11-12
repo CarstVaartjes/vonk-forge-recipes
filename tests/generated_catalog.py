@@ -37,6 +37,7 @@ GIT_MARKER = "git-was-called"
 
 def build_generated(directory: Path) -> None:
     """Build the outputs into ``directory`` with a failing git first on PATH."""
+    directory.mkdir(parents=True, exist_ok=True)  # the marker's home exists first
     stub_dir = Path(tempfile.mkdtemp(prefix="vonk-recipes-no-git-"))
     try:
         stub = stub_dir / "git"
