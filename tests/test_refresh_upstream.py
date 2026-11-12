@@ -1098,6 +1098,46 @@ class NeverDowngradeTests(unittest.TestCase):
         self.assertTrue(classify(result.items[0].comparison))
 
 
+class ImageHeaderMoveTests(unittest.TestCase):
+    def test_moving_the_image_replaces_the_versioned_header_prose(self) -> None:
+        tail = (
+            "# Upstream recipes start it with `vllm serve`; the wrapper is the entrypoint.\n"
+            "COPY vllm-wrapper.py /opt/vonk/bin/vllm\n"
+        )
+        old = "sha256:" + "a" * 64
+        new = "sha256:" + "b" * 64
+        text = (
+            f"FROM docker.io/eugr/spark-vllm@{old}\n\n"
+            'LABEL org.opencontainers.image.source="https://example.test/r" \\\n'
+            '      org.opencontainers.image.revision="42f62e34"\n'
+            "# eugr's image (nightly-20260929) records build_script_commit 42f62e34,\n"
+            "# vLLM af5b4857e.\n" + tail
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "Dockerfile").write_text(text)
+            edits: dict[str, bytes | None] = {}
+            refresh.Assessor(refresh.Catalog(root), object(), None, {})._move_image(
+                root,
+                "docker.io/eugr/spark-vllm",
+                new,
+                lambda written: f"docker.io/eugr/spark-vllm@{new}",
+                {"execution": {"build": {}}},
+                edits,
+            )
+        written = edits["Dockerfile"]
+        assert written is not None
+        moved = written.decode()
+        self.assertIn(f"FROM docker.io/eugr/spark-vllm@{new}\n", moved)
+        self.assertNotIn("nightly", moved)
+        self.assertNotIn("af5b4857e", moved)
+        self.assertIn(
+            "# The published docker.io/eugr/spark-vllm image, built from the revision "
+            "above; the digest is what runs.\n" + tail,
+            moved,
+        )
+
+
 class ImageLabelClaimTests(unittest.TestCase):
     """The revision label of an adapter built FROM a digest-pinned image is a claim about
     that image, never a git pin: only a new image digest (which records its own build

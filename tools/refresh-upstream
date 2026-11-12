@@ -1476,6 +1476,15 @@ def unverified_image(
     )
 
 
+#: The comment lines right after the LABEL block that describe the image (up to the
+#: "Upstream recipes start it with" line): FROM and LABEL own the identity, so they name none.
+IMAGE_NOTE = re.compile(
+    r"(?P<label>^LABEL[^\n]*(?:\\\n[^\n]*)*\n)"
+    r"(?:#(?! Upstream recipes start it with)[^\n]*\n)+",
+    re.MULTILINE,
+)
+
+
 def _pinned(written: str, digest: str) -> str:
     """``written`` (``repo[:tag]@digest``) at another digest, keeping any tag it names."""
     repository, tag, _ = kit_pins.split_image(written)
@@ -2994,7 +3003,7 @@ class Assessor:
         result.evidence.append(
             f"The recipe runs the kit's published image {pin.repo}; it moves to "
             f"`{pin.immutable}` (the kit's declaration), and the thin layer on top is "
-            "rebuilt on it. Review the Dockerfile's header comment.\n"
+            "rebuilt on it.\n"
         )
 
     def _move_image(
@@ -3022,6 +3031,15 @@ class Assessor:
 
             moved = kit_pins.FROM_LINE.sub(move, text)
             if moved != text:
+                moved = IMAGE_NOTE.sub(
+                    lambda m: (
+                        m["label"]
+                        + f"# The published {repository} image, built from the revision "
+                        "above; the digest is what runs.\n"
+                    ),
+                    moved,
+                    count=1,
+                )
                 edits[dockerfile.relative_to(self.catalog.root).as_posix()] = (
                     moved.encode()
                 )
