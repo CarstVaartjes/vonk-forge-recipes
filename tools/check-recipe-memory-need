@@ -150,7 +150,11 @@ def main() -> int:
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary and mismatches:
         with open(summary, "a", encoding="utf-8") as stream:
-            stream.write("\n".join(f"- {item}" for item in mismatches) + "\n")
+            stream.write(
+                "Memory estimates (advisory; none fails a check):\n\n"
+                + "\n".join(f"- {item}" for item in mismatches)
+                + "\n"
+            )
     if args.report:
         args.report.write_text(report_markdown(unavailable), encoding="utf-8")
     return 0
