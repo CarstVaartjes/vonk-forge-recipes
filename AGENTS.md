@@ -126,9 +126,13 @@ repository and accepts `--update`, not positional changed-file arguments.
 - Producer checks regenerate examples, check schemas, build release assets twice
   for byte equality, derive coverage, check topology, Model references, families,
   build context closure, vendored bytes, kit locks and image provenance, then run
-  the full producer suite. See the authoring guide's guard repair table.
-- In the producer job, recipe-data-only changes skip lint, format, types and
-  the wheel build, but still run the full suite. Tool/test/contract/workflow changes run full gates.
+  the producer suite. See the authoring guide's guard repair table.
+- `tools/select-producer-checks` owns the producer job's scope. Recipe-data-only
+  changes skip lint, format, types and the wheel build; tool/test/contract/workflow
+  changes run them. Integration batches (`integration/*`), pushes and manual runs
+  run the full suite; a member PR runs the core plus the tests its paths name,
+  because its batch runs everything before it lands. Hardware evidence and
+  refresher PRs (`refresh/*`) auto-merge without a batch, so they run the full suite.
 - Full checks build the contracts wheel and import/resolve examples from a clean
   external consumer directory. Generated indexes, packages and coverage are
   ignored build outputs, not committed state.
