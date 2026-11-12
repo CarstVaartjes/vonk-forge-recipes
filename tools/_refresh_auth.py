@@ -34,12 +34,12 @@ class RefreshAppAuth:
             raise RuntimeError(
                 "Refresh App is not configured: set REFRESH_APP_CLIENT_ID, "
                 "REFRESH_APP_PRIVATE_KEY and GITHUB_REPOSITORY; install it only "
-                "on the recipe repository."
+                "on the repositories it serves (recipes, and the site for dispatch)."
             )
         self.client_id = client_id
         self.private_key = private_key
         self.repository = repository
-        self.permissions = permissions or REFRESH_PERMISSIONS
+        self.permissions = REFRESH_PERMISSIONS if permissions is None else permissions
         self._token = ""
         self._expires = 0.0
 

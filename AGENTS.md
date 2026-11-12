@@ -147,8 +147,7 @@ the reusable producer job chose its light scope.
 After a release that changed, the `dispatch-site` job starts the public site's `pages.yml`
 (`tools/dispatch-site-build`, the refresh App scoped to vonk-forge-web with `actions: write`). It runs
 after and apart from the signing job, with `continue-on-error`: a failed dispatch is a visible
-failed job that never fails or undoes the release (the site's schedule is the backstop). Run
-`verify-site-dispatch.yml` to check the App token without dispatching.
+failed job that never fails or undoes the release (the site's schedule is the backstop).
 PR validation calls the same image workflow at the PR head, compares base/head
 build keys and builds only changed, unpublished keys (including native checks
 and the remote-code smoke); every key builds in CI, within one 360-minute job
