@@ -24,7 +24,7 @@ _COMFYUI = (
     "image adds no custom nodes, and the job wrapper does no audio I/O."
 )
 _LTX2 = (
-    "LTX-2 4f521619 ltx-core and ltx-pipelines decode and encode audio with PyAV "
+    "LTX-2 f0f2f860 ltx-core and ltx-pipelines decode and encode audio with PyAV "
     "(ltx_pipelines/utils/media_io) and use torchaudio only for MelSpectrogram "
     "and resample; torchaudio.load/save are only in ltx-trainer, which the "
     "image does not install."
