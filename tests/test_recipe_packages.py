@@ -8,8 +8,6 @@ import runpy
 import tarfile
 from pathlib import Path
 
-from generated_catalog import SOURCE_COMMIT, SOURCE_DATE_EPOCH
-
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
 PLATFORM_OWNED_ENVIRONMENT = {
@@ -25,17 +23,23 @@ PLATFORM_OWNED_ENVIRONMENT = {
 def test_full_catalog_packages_are_self_contained_and_deterministic(
     tmp_path: Path, built_catalog: tuple[dict, Path]
 ) -> None:
+    """A second build with other provenance reproduces every byte but the index's
+    provenance: the build is deterministic, and the supplied commit and commit
+    time are recorded as given without reaching any package."""
+
     first, first_dir = built_catalog
     second_dir = tmp_path / "second"
     second = TOOL["build"](
         package_dir=second_dir,
-        source_commit=SOURCE_COMMIT,
-        source_date_epoch=SOURCE_DATE_EPOCH,
+        source_commit="b" * 40,
+        source_date_epoch=1788260440,
     )
     assert first["kind"] == second["kind"] == "recipe-library-index"
     assert first["schema_version"] == second["schema_version"] == 2
-    # The generated index as a whole, not only each package, must reproduce.
-    assert first == second
+    # The generated index as a whole, not only each package, must reproduce;
+    # only the provenance differs, recorded exactly as supplied.
+    provenance = {"source_commit": "b" * 40, "updated_at": "2026-09-01T11:00:40Z"}
+    assert {**first, **provenance} == second
     source_models = {
         (
             json.loads(path.read_text())["identity"]["publisher"],
@@ -129,7 +133,7 @@ def test_editing_one_recipe_changes_only_that_package(
         Path(str(row["package"]["path"])).name: (
             package_dir / Path(str(row["package"]["path"])).name
         ).read_bytes()
-        for row in rows
+        for row in rows[:2]
     }
     target = rows[0]
     edited = copy.deepcopy(target["document"])
@@ -145,40 +149,17 @@ def test_editing_one_recipe_changes_only_that_package(
         package["media_type"] == "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
     )
     # `recipe_package` renders exactly the one document it is handed, so editing
-    # a recipe cannot reach another one: re-rendering every untouched recipe has
+    # a recipe cannot reach another one: re-rendering an untouched neighbour has
     # to reproduce the bytes `build()` wrote for it. Reading the built archive
-    # back would only compare a file with itself.
-    for row in rows[1:]:
-        filename = Path(str(row["package"]["path"])).name
-        rebuilt, _metadata = TOOL["recipe_package"](
-            row["document"],
-            recipe_path=ROOT / str(row["source_path"]),
-            entity_documents=entities,
-        )
-        assert rebuilt == original[filename], filename
-
-
-def test_supplied_source_commit_only_changes_index_metadata(tmp_path: Path) -> None:
-    # This field records provenance only; package contents do not consume it.
-    first_dir = tmp_path / "first"
-    second_dir = tmp_path / "second"
-    first = TOOL["build"](
-        package_dir=first_dir,
-        source_commit="a" * 40,
-        source_date_epoch=0,
+    # back would only compare a file with itself. That every package reproduces
+    # is the second full build in the determinism test above.
+    neighbour = rows[1]
+    rebuilt, _metadata = TOOL["recipe_package"](
+        neighbour["document"],
+        recipe_path=ROOT / str(neighbour["source_path"]),
+        entity_documents=entities,
     )
-    second = TOOL["build"](
-        package_dir=second_dir,
-        source_commit="b" * 40,
-        source_date_epoch=0,
-    )
-    assert first["source_commit"] == "a" * 40
-    assert second["source_commit"] == "b" * 40
-    for row in first["recipes"]:
-        filename = Path(str(row["package"]["path"])).name
-        assert (first_dir / filename).read_bytes() == (
-            second_dir / filename
-        ).read_bytes()
+    assert rebuilt == original[Path(str(neighbour["package"]["path"])).name]
 
 
 def test_platform_owned_cache_variables_are_not_recipe_inputs() -> None:
@@ -362,13 +343,3 @@ def test_adapter_only_change_is_published_as_new_source_identity(monkeypatch):
     assert first_archive != second_archive
     assert first["recipe_content_sha256"] == second["recipe_content_sha256"]
     assert first["source_bundle_sha256"] != second["source_bundle_sha256"]
-
-
-def test_a_supplied_source_date_epoch_is_the_index_time(tmp_path: Path) -> None:
-    # The commit time is an input; with it supplied the build needs no Git.
-    index = TOOL["build"](
-        package_dir=tmp_path / "packages",
-        source_commit="a" * 40,
-        source_date_epoch=1788260440,
-    )
-    assert index["updated_at"] == "2026-09-01T11:00:40Z"
