@@ -10,6 +10,12 @@ from documents import recipe
 from pydantic import ValidationError
 from vonk_forge_contracts.recipe import RecipeMemoryResources
 
+from qualification.memory_need import (
+    EstimateFindingKind,
+    MemoryInputs,
+    estimate_problems,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 LLAMA = "llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single"
 
@@ -120,7 +126,7 @@ def test_estimate_mismatch_does_not_fail_check_recipe_memory_need(
 def run_report(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    inputs: object | None = None,
+    inputs: MemoryInputs | None = None,
 ) -> str:
     main = runpy.run_path(str(ROOT / "tools/check-recipe-memory-need"))["main"]
     monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
@@ -145,6 +151,14 @@ def test_report_leaves_disagreement_advisories_out_of_the_issue(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     assert run_report(tmp_path, monkeypatch) == ""
+
+
+def test_creator_flag_request_is_an_advisory_not_a_missing_input() -> None:
+    def rule() -> list[str]:
+        raise ValueError("x: declare swa-full-tokens-ratio")
+
+    (finding,) = estimate_problems("x", rule)
+    assert finding.kind is EstimateFindingKind.DISAGREEMENT
 
 
 def test_report_lists_only_the_missing_estimator_input(
