@@ -4,7 +4,8 @@
 Every change lands through an integration batch (head branch ``integration/*``),
 which runs the full suite once, as do pushes, publication and manual runs. A
 member pull request runs the always-run core plus the tests its changed paths
-name; the batch it is folded into runs everything.
+name; the batch it is folded into runs everything. Hardware evidence lands
+without a batch, so a change to it runs everything too.
 
 Recipe data changes (light) skip lint, format, types and the wheel build; any
 other change runs them (full).
@@ -29,9 +30,12 @@ RECIPE_DATA = re.compile(
     r"^(recipes/|models/|display/|api/|adapters/|qualification/shared\.json$"
     r"|qualification/recipes/|README\.md$|creators\.json$)"
 )
-# Always run on a member PR: the checks of the CI wiring itself and the
-# library-wide checks that read every committed document, so a data change is
-# judged against the whole library, not only the tests naming its slug.
+# Hardware evidence lands through its own auto-merged PR, never a batch, and
+# memory admission and status derivation read it library-wide: a change there
+# runs the full suite.
+UNBATCHED = ("qualification/evidence/",)
+# Always run on a member PR: this selector, the Python gate wiring, the public
+# contract tests and the guidance allowlist.
 CORE = (
     "tests/test_select_producer_checks.py",
     "tests/test_python_gate_configuration.py",
@@ -53,8 +57,10 @@ def _named_by(path: PurePosixPath) -> re.Pattern[str]:
     if parts[0] == "adapters" and len(parts) > 3:
         names = ["/".join(parts[1:3])]  # the adapter directory: <group>/<name>
     elif path.suffix == ".py":
-        # An import line naming the module: `a.module` or `from a import module`.
-        word = re.escape(path.stem)
+        # An import line naming the module: `a.module` or `from a import module`;
+        # a package's `__init__.py` is named by its package.
+        module = path.parent.name if path.stem == "__init__" else path.stem
+        word = re.escape(module)
         return re.compile(
             rf"^\s*(?:from|import)\s+[\w.]*\b{word}\b"
             rf"|^\s*from\s+[\w.]+\s+import\s+[^\n]*\b{word}\b",
@@ -83,7 +89,11 @@ def targeted(changed: Iterable[str], tests: dict[str, str]) -> list[str]:
 
 def select(event: str, head_ref: str, changed: list[str] | None) -> dict[str, str]:
     member = event == "pull_request" and not head_ref.startswith(INTEGRATION_HEAD)
-    if member and changed is not None:
+    if (
+        member
+        and changed is not None
+        and not any(path.startswith(UNBATCHED) for path in changed)
+    ):
         files = {
             f"tests/{path.name}": path.read_text(encoding="utf-8")
             for path in sorted((ROOT / "tests").glob("test_*.py"))
