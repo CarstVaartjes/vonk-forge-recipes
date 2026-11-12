@@ -150,12 +150,35 @@ def test_no_update_available_alerts_with_bounded_reads_and_only_the_failed_comma
     sweep.vk.run(*LIBRARY)
     sweep.check_release(clock.now() + 1)
     assert _count(fleet, "update") == reads + 1
-    # Local commands and other Controller commands do not clear the alert.
+    # Another command succeeding is no evidence: the mismatch is per response shape.
     assert sweep.vk.run("--version").ok and sweep.vk.run("update").ok
     assert sweep.vk.run("platform").ok
     _pass(sweep, clock)
     assert CLIENT_CONTRACT in sweep.state.data["infra"]
-    # The command that met the mismatch succeeding does.
+    # Nor does a Controller whose contract fingerprint still differs from the client's.
+    fleet.api_contract_sha256 = "e" * 64
+    clock.t += sweep.cfg.release_seconds
+    sweep.check_release(clock.now())
+    assert CLIENT_CONTRACT in sweep.state.data["infra"]
+
+
+def test_a_matching_contract_fingerprint_clears_the_alert_without_the_rare_command(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, fleet, clock = _sweep(tmp_path, gateway)
+    fleet.faults = [FAULT]
+    assert sweep.vk.run(*LIBRARY).is_contract_mismatch
+    _pass(sweep, clock)
+    assert CLIENT_CONTRACT in sweep.state.data["infra"]
+    # The rare command never runs again; the periodic client check sees equal fingerprints.
+    clock.t += sweep.cfg.release_seconds
+    sweep.check_release(clock.now())
+    assert CLIENT_CONTRACT not in sweep.state.data["infra"]
+    # The command that met the mismatch succeeding clears it as before.
+    fleet.faults = [FAULT]
+    sweep.vk.run(*LIBRARY)
+    _pass(sweep, clock)
+    assert CLIENT_CONTRACT in sweep.state.data["infra"]
     assert sweep.vk.run(*LIBRARY).ok
     sweep.check_release(clock.now())
     assert CLIENT_CONTRACT not in sweep.state.data["infra"]
