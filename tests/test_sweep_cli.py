@@ -15,6 +15,7 @@ from sweep_fakes import (
     FakeModel,
     FakeRecipe,
     Gateway,
+    _locked,
     make_definitions,
 )
 
@@ -36,7 +37,7 @@ def _run(argv, fleet, recipes):
         argv = [*argv, "--no-publish-evidence", "--no-client-key"]
     return main(
         argv,
-        vonkctl_factory=lambda exe: Vonkctl(exe, runner=fleet.runner),
+        vonkctl_factory=lambda exe: Vonkctl(exe, runner=_locked(fleet.runner)),
         clock=fleet.clock,
         definitions=make_definitions(recipes),
     )
@@ -131,7 +132,7 @@ def test_run_refuses_to_start_without_a_client_key_for_the_gateway(
         with pytest.raises(SystemExit) as refused:
             main(
                 [*argv, *extra],
-                vonkctl_factory=lambda exe: Vonkctl(exe, runner=fleet.runner),
+                vonkctl_factory=lambda exe: Vonkctl(exe, runner=_locked(fleet.runner)),
                 clock=fleet.clock,
                 definitions=make_definitions(recipes),
             )
