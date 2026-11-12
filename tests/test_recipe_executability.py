@@ -72,18 +72,20 @@ class RecipeExecutabilityTests(unittest.TestCase):
             models[key] = model
         self.assertTrue(models)
         self.assertTrue(list(RECIPES.glob("*.json")))
+        # One walk of the tree and one Model set serve every recipe.
+        by_digest = catalog_models()
+        package_paths = {
+            item.relative_to(ROOT).as_posix()
+            for item in ROOT.rglob("*")
+            if (item.is_file() or item.is_dir())
+            and "__pycache__" not in item.parts
+            and item.suffix != ".pyc"
+        }
         for path in sorted(RECIPES.glob("*.json")):
             recipe = RecipeDefinition.model_validate(
                 json.loads(path.read_text(encoding="utf-8"))
             )
-            validate_recipe_models(recipe, catalog_models())
-            package_paths = {
-                item.relative_to(ROOT).as_posix()
-                for item in ROOT.rglob("*")
-                if (item.is_file() or item.is_dir())
-                and "__pycache__" not in item.parts
-                and item.suffix != ".pyc"
-            }
+            validate_recipe_models(recipe, by_digest)
             validate_recipe_package_paths(recipe, package_paths)
 
     def test_every_recipe_has_an_executable_contract(self) -> None:
