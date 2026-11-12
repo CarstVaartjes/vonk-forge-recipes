@@ -1103,7 +1103,7 @@ class ImageHeaderMoveTests(unittest.TestCase):
     NEW = "sha256:" + "b" * 64
     UPSTREAM = "# Upstream recipes start it with `vllm serve`; the wrapper is the entrypoint.\n"
 
-    def move(self, header: str, result: "refresh.Assessment | None" = None) -> str:
+    def move(self, header: str, result: Any = None) -> str:
         result = result or refresh.Assessment("recipe")
         text = (
             f"FROM docker.io/eugr/spark-vllm@{self.OLD}\n\n"
