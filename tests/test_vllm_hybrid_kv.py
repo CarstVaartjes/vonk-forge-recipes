@@ -234,33 +234,44 @@ ADAY777 = "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"
 
 
 @pytest.mark.parametrize(
-    "update",
+    ("update", "message"),
     [
-        {"architecture": "UnclassifiedForCausalLM"},
-        {"architecture": "LlamaForCausalLM"},
-        {"token_bytes": 4096},
-        {"sliding_layers": 4, "sliding_window": 128},
-        {"replicated_token_bytes": 768},
-        {"state_padding": 1},
-        {"recurrent": {"mamba_prefix_caching": True, "chunk_tokens": 128}},
-        {"recurrent": {"chunk_tokens": 128}},
-        {"recurrent": {"attention_layers": 17}},
-        {
-            "architecture": "Glm5NextForConditionalGeneration",
-            "layers": 45,
-            "token_bytes_by_dtype": {"fp8": 12288},
-            "recurrent": {"attention_layers": 12},
-        },
+        ({"architecture": "UnclassifiedForCausalLM"}, "classify architecture"),
+        ({"architecture": "LlamaForCausalLM"}, "needs a hybrid architecture"),
+        ({"token_bytes": 4096}, "needs plain attention layers"),
+        (
+            {"sliding_layers": 4, "sliding_window": 128},
+            "needs plain attention layers",
+        ),
+        ({"replicated_token_bytes": 768}, "needs plain attention layers"),
+        ({"state_padding": 1}, "needs plain attention layers"),
+        (
+            {"recurrent": {"mamba_prefix_caching": True, "chunk_tokens": 128}},
+            "mamba_prefix_caching must match",
+        ),
+        ({"recurrent": {"chunk_tokens": 128}}, "needs the Mamba chunk size"),
+        ({"recurrent": {"attention_layers": 17}}, "attention_layers cannot exceed"),
+        (
+            {
+                "architecture": "Glm5NextForConditionalGeneration",
+                "layers": 45,
+                "token_bytes_by_dtype": {"fp8": 12288},
+                "recurrent": {"attention_layers": 12},
+            },
+            "layers == recurrent.attention_layers",
+        ),
     ],
 )
-def test_recurrent_geometry_fields_are_exclusive(update: dict[str, object]) -> None:
+def test_recurrent_geometry_fields_are_exclusive(
+    update: dict[str, object], message: str
+) -> None:
     document = INPUTS.geometries[ADAY777].model_dump()
     for key, value in update.items():
         if isinstance(value, dict):
             document[key] |= value
         else:
             document[key] = value
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError, match=message):
         CacheGeometry.model_validate(document)
 
 
