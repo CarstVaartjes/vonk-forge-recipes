@@ -9,6 +9,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/image/minimax-h3-image-sglang",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/october-2026/flux-3-image-klein-pytorch-single",
       "wheel_directory": ""
     },
