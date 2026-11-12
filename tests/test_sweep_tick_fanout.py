@@ -174,3 +174,42 @@ def test_a_lane_whose_read_fails_leaves_the_others_observed(tmp_path: Path) -> N
     assert sweep.state.data["apps"]["b"]["state"] == "succeeded"
     assert "b" not in sweep.state.data["loads"]
     assert "a" in sweep.state.data["loads"] and sweep.unobserved_loads == {"a"}
+
+
+def test_the_download_progress_reads_of_a_poll_overlap(tmp_path: Path) -> None:
+    sweep, _, _ = _sweep(tmp_path)
+    sweep.state.downloads.update(
+        {
+            f"vonk-forge/d{n}": {"request_key": f"k{n}", "operation_id": f"op{n}"}
+            for n in range(3)
+        }
+    )
+    inner = sweep.vk.runner
+    barrier = threading.Barrier(3, timeout=5)
+
+    def runner(argv, timeout):
+        if _command(argv) == ("recipe", "progress"):
+            barrier.wait()
+        return inner(argv, timeout)
+
+    sweep.vk.runner = runner
+    sweep.prefetcher._poll()  # serial reads would time the barrier out
+
+
+def test_gather_runs_at_most_limit_reads_together() -> None:
+    barrier = threading.Barrier(2, timeout=5)
+    lock = threading.Lock()
+    running = peak = 0
+
+    def read() -> None:
+        nonlocal running, peak
+        with lock:
+            running += 1
+            peak = max(peak, running)
+        barrier.wait()  # two reads must be in flight together to pass
+        with lock:
+            running -= 1
+
+    outcomes = gather({str(n): read for n in range(4)}, DaemonExecutor(), limit=2)
+    assert all(o.error is None for o in outcomes.values())
+    assert peak == 2

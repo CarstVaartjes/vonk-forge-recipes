@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+"""Reject new serial Controller calls in a loop of the sweep (principle 21).
+
+Independent reads fan out: ``spark_sweep.fanout.gather`` runs them at once (bounded by
+``READ_LIMIT``) and the caller applies the results in order. A call that cannot fan out
+(it writes, or each call depends on the one before) says why with a comment on the loop
+or above the call:
+
+    # sequential: every removal edits the one shared sweep profile
+
+Only lines added by the diff given with ``--diff FILE|-`` are checked, in
+``spark_sweep/**/*.py``. A hit is an added ``self.vk.run`` / ``self.vk.call`` (any
+``<name>.vk.run`` or ``vk.run``) inside a ``for`` loop with no such comment between the
+loop header and the end of the call. There is no count and no allowlist.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools._added_lines import parse_added, read_diff
+
+SEQUENTIAL = re.compile(r"#\s*sequential:\s*\S")
+ADVICE = (
+    "read independent things with spark_sweep.fanout.gather and apply in order, "
+    "or say why not with '# sequential: <reason>'"
+)
+
+
+def is_controller_call(node: ast.AST) -> bool:
+    if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)):
+        return False
+    owner = node.func.value
+    named_vk = (isinstance(owner, ast.Name) and owner.id == "vk") or (
+        isinstance(owner, ast.Attribute) and owner.attr == "vk"
+    )
+    return named_vk and node.func.attr in ("run", "call")
+
+
+def scan(source: str, added: set[int] | None) -> list[int]:
+    """Lines of the Controller calls in loops that are added and not explained."""
+    lines = source.splitlines()
+    hits: set[int] = set()
+    for loop in ast.walk(ast.parse(source)):
+        if not isinstance(loop, ast.For | ast.AsyncFor):
+            continue
+        for call in ast.walk(loop):
+            if not is_controller_call(call):
+                continue
+            assert isinstance(call, ast.Call)
+            if added is not None and call.lineno not in added:
+                continue
+            span = lines[loop.lineno - 1 : call.end_lineno]
+            if not any(SEQUENTIAL.search(line) for line in span):
+                hits.add(call.lineno)
+    return sorted(hits)
+
+
+def check(root: Path, diff: str) -> list[str]:
+    problems: list[str] = []
+    for name, added in sorted(parse_added(diff).items()):
+        if not (name.startswith("spark_sweep/") and name.endswith(".py")):
+            continue
+        source = (root / name).read_text(encoding="utf-8")
+        problems.extend(
+            f"{name}:{line}: a Controller call in a loop; {ADVICE}"
+            for line in scan(source, added)
+        )
+    return problems
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
+    parser.add_argument(
+        "--diff",
+        required=True,
+        help="unified -U0 diff to judge: a file, or - for stdin",
+    )
+    parser.add_argument("--root", type=Path, default=ROOT)
+    arguments = parser.parse_args()
+    problems = check(arguments.root, read_diff(arguments.diff))
+    print("\n".join(problems))
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

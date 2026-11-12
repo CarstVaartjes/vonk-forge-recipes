@@ -28,11 +28,13 @@ from __future__ import annotations
 import hashlib
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from functools import partial
 from typing import Any
 
 from vonk_forge_contracts.sweep import SweepWaitReason
 
 from .catalog import Model, Recipe
+from .fanout import DaemonExecutor, gather
 from .identity import AcceptedRequest, content_identity, verdict_matches
 from .lifecycle import TERMINAL, WAITING, LifecycleState, RetestReason, active
 from .policy import (
@@ -135,6 +137,7 @@ class Prefetcher:
         self.clock = clock
         self.on_failure = on_failure
         self.on_done = on_done
+        self.read_executor = DaemonExecutor()
         # Set by the sweep: a client, protocol or transport problem is reported, never a recipe's failure.
         self.on_infra: Callable[[str, str], None] = lambda _source, _message: None
         self.on_ok: Callable[[str], None] = lambda _source: None
@@ -160,6 +163,7 @@ class Prefetcher:
         """Refresh our operations; returns the summed live throughput."""
         total_rate = 0.0
         now = self.clock()
+        polling: list[tuple[str, dict[str, Any]]] = []
         for key, record in list(self.state.downloads.items()):
             if (
                 record.get("state") == "external"
@@ -177,7 +181,19 @@ class Prefetcher:
             record.setdefault("started_at", now)
             if now < float(record.get("next_check", 0)):
                 continue
-            reply = self.vk.run("recipe", "progress", *self._progress_args(record))
+            polling.append((key, record))
+        # The records' progress reads are independent; each record's effects apply in order.
+        reads = gather(
+            {
+                key: partial(
+                    self.vk.run, "recipe", "progress", *self._progress_args(record)
+                )
+                for key, record in polling
+            },
+            self.read_executor,
+        )
+        for key, record in polling:
+            reply = reads[key].result()
             if reply.is_not_found and not record.get("operation_id"):
                 # Only a canonical absence before any accepted parent permits
                 # replay. Keep the persisted intent and request UUID unchanged.
