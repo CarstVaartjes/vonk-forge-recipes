@@ -361,6 +361,14 @@ jobs:
           set -euo pipefail
           python3 tools/check-test-git --diff "$RUNNER_TEMP/added.diff"
 
+      # Independent sweep reads fan out through spark_sweep.fanout.gather; a Controller
+      # call in a loop says '# sequential: <reason>'. Checks only added lines.
+      - name: Reject new serial Controller calls in sweep loops
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-serial-reads --diff "$RUNNER_TEMP/added.diff"
+
       - name: Reject new tests that gate on a real recipe's declared memory
         shell: bash
         run: |

@@ -360,8 +360,16 @@ def test_request_map_observes_each_lane_independently(tmp_path: Path) -> None:
     }
     fleet.observations.extend(
         [
-            (("profile", "progress"), 0, {"id": "slow-app", "state": "observing"}),
-            (("profile", "progress"), 0, {"id": "fast-app", "state": "succeeded"}),
+            (
+                ("profile", "progress", "--application", "slow-app"),
+                0,
+                {"id": "slow-app", "state": "observing"},
+            ),
+            (
+                ("profile", "progress", "--application", "fast-app"),
+                0,
+                {"id": "fast-app", "state": "succeeded"},
+            ),
         ]
     )
     assert sweep.poll_application()

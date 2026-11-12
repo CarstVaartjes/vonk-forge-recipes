@@ -133,7 +133,7 @@ def test_a_load_without_bound_adoption_never_follows_another_own_load(
     sweep._open_slot(policy.Placement(recipe, ("spk_a",)), "key-old", sweep.clock.now())
     load = _two_own_loads(sweep, observed)
 
-    assert sweep._poll_application(load)
+    assert sweep.poll_application()
 
     assert load["app_id"] != NEW_APP or observed["id"] == NEW_APP
     assert "key-old" not in sweep.state.data["loads"]
@@ -153,7 +153,7 @@ def test_failed_application_does_not_probe_for_an_untyped_continuation(tmp_path)
     sweep.vk.run = observe
     load = {"request_key": "key", "app_id": OLD_APP}
     sweep.state.data["loads"]["key"] = load
-    assert sweep._poll_application(load)
+    assert sweep.poll_application()
     assert len(calls) == 1
     assert "key" not in sweep.state.data["loads"]
     assert sweep.state.data["apps"]["key"]["state"] == "failed"

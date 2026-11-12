@@ -117,3 +117,99 @@ def test_the_loop_sleeps_to_the_poll_deadline(
     sweep.cfg.watch_seconds = 0
     sweep.run()
     assert slept[:3] == [sleep_for] * 3
+
+
+def test_the_lane_progress_reads_of_a_poll_overlap(tmp_path: Path) -> None:
+    sweep, _, _ = _sweep(tmp_path)
+    sweep.state.data["loads"] = {
+        key: {"request_key": key, "app_id": f"{key}-app"} for key in ("l1", "l2", "l3")
+    }
+    inner = sweep.vk.runner
+    barrier = threading.Barrier(3, timeout=5)
+
+    def runner(argv, timeout):
+        # The first read of each lane names its application; the by-key retry does not.
+        if _command(argv) == ("profile", "progress") and "--application" in argv:
+            barrier.wait()  # releases only when every lane's first read is in flight
+        return inner(argv, timeout)
+
+    sweep.vk.runner = runner
+    sweep.poll_application()
+
+
+def test_the_startup_client_checks_overlap(tmp_path: Path) -> None:
+    sweep, _, _ = _sweep(tmp_path)
+    inner = sweep.vk.runner
+    barrier = threading.Barrier(3, timeout=5)
+
+    def runner(argv, timeout):
+        if _command(argv) in {("--version",), ("platform",), ("update",)}:
+            barrier.wait()
+        return inner(argv, timeout)
+
+    sweep.vk.runner = runner
+    sweep.check_client()  # a serial check would time the barrier out
+
+
+def test_a_lane_whose_read_fails_leaves_the_others_observed(tmp_path: Path) -> None:
+    sweep, fleet, _ = _sweep(tmp_path)
+    sweep.state.data["loads"] = {
+        key: {"request_key": key, "app_id": f"{key}-app"} for key in ("a", "b")
+    }
+    fleet.observations.extend(
+        [
+            (
+                ("profile", "progress", "--application", "a-app"),
+                2,
+                {"error_type": "control_api", "code": "http.503", "http_status": 503},
+            ),
+            (
+                ("profile", "progress", "--application", "b-app"),
+                0,
+                {"id": "b-app", "state": "succeeded"},
+            ),
+        ]
+    )
+    assert not sweep.poll_application()
+    assert sweep.state.data["apps"]["b"]["state"] == "succeeded"
+    assert "b" not in sweep.state.data["loads"]
+    assert "a" in sweep.state.data["loads"] and sweep.unobserved_loads == {"a"}
+
+
+def test_the_download_progress_reads_of_a_poll_overlap(tmp_path: Path) -> None:
+    sweep, _, _ = _sweep(tmp_path)
+    sweep.state.downloads.update(
+        {
+            f"vonk-forge/d{n}": {"request_key": f"k{n}", "operation_id": f"op{n}"}
+            for n in range(3)
+        }
+    )
+    inner = sweep.vk.runner
+    barrier = threading.Barrier(3, timeout=5)
+
+    def runner(argv, timeout):
+        if _command(argv) == ("recipe", "progress"):
+            barrier.wait()
+        return inner(argv, timeout)
+
+    sweep.vk.runner = runner
+    sweep.prefetcher._poll()  # serial reads would time the barrier out
+
+
+def test_gather_runs_at_most_limit_reads_together() -> None:
+    barrier = threading.Barrier(2, timeout=5)
+    lock = threading.Lock()
+    running = peak = 0
+
+    def read() -> None:
+        nonlocal running, peak
+        with lock:
+            running += 1
+            peak = max(peak, running)
+        barrier.wait()  # two reads must be in flight together to pass
+        with lock:
+            running -= 1
+
+    outcomes = gather({str(n): read for n in range(4)}, DaemonExecutor(), limit=2)
+    assert all(o.error is None for o in outcomes.values())
+    assert peak == 2
