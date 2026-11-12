@@ -40,7 +40,6 @@
           "local": "cached",
           "updated_at": "",
           "base_image": "base-vllm",
-          "cache_ready": false,
           "checks": []
         },
         "library_commit": "accepted-library"
