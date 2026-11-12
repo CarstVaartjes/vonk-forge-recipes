@@ -93,53 +93,6 @@ def _adopt_evidence(entry: dict[str, Any]) -> None:
         entry.setdefault("evidence_bundle", entry.pop("evidence"))
 
 
-def _drop_cache_ready(data: dict[str, Any]) -> None:
-    """The library-assessment input is gone; receipts saved with it lose that one key."""
-    for name in ("downloads", "slots", "loads"):
-        for record in data[name].values():
-            content = record.get("accepted_content")
-            recipe = content.get("recipe") if isinstance(content, dict) else None
-            if isinstance(recipe, dict):
-                recipe.pop("cache_ready", None)
-
-
-def _drop_unbound_downloads(data: dict[str, Any]) -> None:
-    """A current download record that names a request but kept no accepted content is dropped.
-
-    Only pre-#1594 records look like this (every current writer sets ``accepted_content``).
-    With no current record the prefetcher asks for the recipe again.
-    """
-    downloads = data["downloads"]
-    for key in [
-        key
-        for key, record in downloads.items()
-        if record.get("request_intent") and record.get("accepted_content") is None
-    ]:
-        del downloads[key]
-
-
-def _drop_unread_bulk(data: dict[str, Any]) -> None:
-    """History nothing reads is dropped; each save rewrote it (116 MB at 2026-11-11).
-
-    Superseded download attempts, raw removal review/reply documents, prior removal
-    receipts and final-load receipts were write-only. A removal receipt whose model
-    consumers needed again is re-requested exactly as if it were absent.
-    """
-    data.pop("download_history", None)
-    removals = data["model_removals"]
-    for digest, record in list(removals.items()):
-        if not isinstance(record, dict):
-            continue
-        if record.pop("needed_again", False):
-            del removals[digest]
-            continue
-        for field in ("review", "last_response", "history"):
-            record.pop(field, None)
-    for item in data["own_loads"]:
-        if isinstance(item, dict):
-            item.pop("terminal_receipt", None)
-
-
 def _adopt(
     data: dict[str, Any],
     now: float,
@@ -165,9 +118,6 @@ def _adopt(
         else:
             merged[name] = value
     data = merged
-    _drop_cache_ready(data)
-    _drop_unbound_downloads(data)
-    _drop_unread_bulk(data)
     if data["schema"] == SCHEMA:
         return data
     load = data.pop("load", None)

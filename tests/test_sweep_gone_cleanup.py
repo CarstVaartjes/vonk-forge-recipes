@@ -235,3 +235,24 @@ def test_unrelated_offline_node_does_not_hold_absent_exact_target(
         == CleanupEndReason.TARGET_ABSENT
     )
     admit(sweep, clock, recipe)
+
+
+def _cleanup_loads_after(tmp_path: Path, cycles: int) -> dict:
+    """The cleanup bookkeeping after ``cycles`` clearings, each retired once its targets left."""
+    sweep, *_ = scenario(tmp_path)
+    ended = CleanupEnd(reason=CleanupEndReason.TARGET_ABSENT, observed_at=1.0)
+    loads = sweep.state.data["cleanup_loads"]
+    loads.clear()
+    for cycle in range(cycles):
+        key = f"clearing-{cycle}"
+        loads[key] = {"request_key": key, "end": ended.model_dump(mode="json")}
+        sweep.state.data["own_loads"].append({"request_key": key})
+        sweep.observe_cleanup()
+    return loads
+
+
+def test_retired_cleanup_bookkeeping_does_not_grow_with_clearings(tmp_path: Path):
+    few = _cleanup_loads_after(tmp_path / "few", 3)
+    many = _cleanup_loads_after(tmp_path / "many", 30)
+    assert set(few) == {"clearing-2"}
+    assert set(many) == {"clearing-29"}  # the newest retired one stays

@@ -110,13 +110,13 @@ def test_ended_owned_application_keeps_audit_identity_and_admits_new_loads(
     sweep.preflight()
     sweep.refresh_catalog()
     sweep.start_takeover()
+    original = sweep.state.data["cleanup_loads"]["old"]
     for _ in range(6):
         sweep.tick()
         sweep.clock.sleep(300)
-    original = sweep.state.data["cleanup_loads"]["old"]
     assert original["app_id"] == "app-0001"
     # Its projection never became known: it retired only once fresh fleet facts
-    # showed nothing running, and it keeps its audit identity.
+    # showed nothing running (a newer retired clearing then replaces it in the state).
     assert (
         CleanupEnd.model_validate(original["end"]).reason
         == CleanupEndReason.TARGET_ABSENT
