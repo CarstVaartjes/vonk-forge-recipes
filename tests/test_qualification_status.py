@@ -1184,16 +1184,13 @@ def test_real_projected_library_and_evidence_restore_requeued_pass(tmp_path):
     sweep.state = State.load(sweep.state.path)
     entry = sweep.state.entry(recipe.key)
     sweep._reconcile_entry(recipe, 2)
-    # The historical pass has no image-bound proof; the catalog pins an image, so the
-    # catalog would not publish it: it is asked for again rather than restored.
+    # The historical pass has no image-bound proof; the catalog pins an image, so it
+    # publishes Re-check (worked before) and is asked for again rather than restored.
     assert entry["status"] == RecipeStatus.PENDING
     view = sweep.qualification_view(recipe)
     assert view.status == Status.WORKING
     assert view.last_pass == passed
-    assert (
-        published_status(proof, current_identity(recipe)).status
-        == Status.NOT_YET_VERIFIED
-    )
+    assert published_status(proof, current_identity(recipe)).status == Status.RECHECK
     # no inference, loads or downloads: only the platform read that names the release
     assert not [c for _, c in fleet.calls if c != ("platform",)]
 
