@@ -40,11 +40,11 @@ def _load_auth() -> Any:
     return module
 
 
-def dispatch(auth: Any, *, run: Run = subprocess.run) -> str:
+def dispatch(auth: Any, *, run: Run | None = None) -> str:
     """Dispatch the site build; raise on failure."""
 
     command = ["gh", "workflow", "run", SITE_WORKFLOW, "-R", SITE_REPOSITORY]
-    result = run(
+    result = (run or subprocess.run)(
         command,
         env={**os.environ, **auth.environment()},
         capture_output=True,
