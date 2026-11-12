@@ -4322,7 +4322,8 @@ class Sweep:
         """Keep the observers still needed and the newest settled one; drop older settled ones.
 
         The newest settled observer stays as the marker that a clearing ran, and any a live
-        load adopted stays too; the rest were acted on and nothing reads them.
+        load adopted stays too. A dropped observer's stopped rows no longer confirm a survivor's
+        row; that survivor heals by retiring once fleet facts show its target absent.
         """
         loads = self.state.data["cleanup_loads"]
         settled = [key for key, load in loads.items() if self._cleanup_settled(load)]
