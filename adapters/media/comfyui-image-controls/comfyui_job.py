@@ -311,28 +311,15 @@ def workflow_replacements(
 def control_replacements(
     document: dict[str, Any], values: dict[str, int | None]
 ) -> dict[str, int]:
-    """Placeholder values for the controls the workflow declares, and no others."""
+    """Placeholder values for the controls the pinned workflow declares."""
 
-    controls = document.get("controls", {})
-    if not isinstance(controls, dict) or not set(controls) <= set(WORKFLOW_CONTROLS):
-        raise ValueError("workflow controls contract is invalid")
     replacements: dict[str, int] = {}
-    for name in WORKFLOW_CONTROLS:
-        value = values.get(name)
-        declaration = controls.get(name)
-        if declaration is None:
-            if value is not None:
-                raise ValueError(f"workflow does not accept --{name}")
-            continue
-        if not isinstance(declaration, dict) or not set(declaration) <= {
-            "multiple_of"
-        }:
-            raise ValueError(f"workflow control contract is invalid: {name}")
+    for name, declaration in document.get("controls", {}).items():
+        value = values[name]
         multiple = declaration.get("multiple_of")
-        if multiple is not None and value is not None and value % multiple:
+        if multiple is not None and value % multiple:
             raise ValueError(f"--{name} must be a multiple of {multiple}; got {value}")
-        if value is not None:
-            replacements[f"__VONK_{name.replace('-', '_').upper()}__"] = value
+        replacements[f"__VONK_{name.replace('-', '_').upper()}__"] = value
     return replacements
 
 
