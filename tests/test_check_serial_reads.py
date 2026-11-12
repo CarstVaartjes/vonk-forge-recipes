@@ -35,6 +35,13 @@ def test_an_added_serial_call_fails_and_a_reason_or_fan_out_passes() -> None:
     assert guard.scan("self.vk.run('x')\n", {1}) == []  # not in a loop
 
 
+def test_loops_of_any_kind_count_and_a_reason_covers_only_its_call() -> None:
+    assert guard.scan("r = {k: self.vk.run('x', k) for k in keys}\n", {1}) == [1]
+    assert guard.scan("while keys:\n    self.vk.run('x', keys.pop())\n", {2}) == [2]
+    later = EXPLAINED + "    self.vk.run('profile', 'progress', alias)\n"
+    assert guard.scan(later, {3, 4}) == [4]
+
+
 def test_only_added_lines_of_sweep_modules_count(tmp_path: Path) -> None:
     assert guard.scan(SERIAL, {1}) == []  # the call line is old
     for name in ("spark_sweep/run.py", "tools/helper.py"):
