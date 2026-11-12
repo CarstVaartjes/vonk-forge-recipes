@@ -294,21 +294,33 @@ class CacheGeometry(BaseModel):
         recurrent = self.recurrent
         if recurrent is None:
             return self
+        if self.architecture not in HYBRID_ARCHITECTURES:
+            raise ValueError("typed recurrent state needs a hybrid architecture")
+        if recurrent.mamba_prefix_caching != (
+            self.architecture in MAMBA_PREFIX_CACHING_ARCHITECTURES
+        ):
+            raise ValueError(
+                "recurrent.mamba_prefix_caching must match the architecture's "
+                "prefix-caching support"
+            )
+        if recurrent.attention_layers > self.layers:
+            raise ValueError("recurrent.attention_layers cannot exceed layers")
         if (
-            self.architecture not in HYBRID_ARCHITECTURES
-            or recurrent.mamba_prefix_caching
-            != (self.architecture in MAMBA_PREFIX_CACHING_ARCHITECTURES)
-            or recurrent.attention_layers > self.layers
-            or self.state_padding
+            self.state_padding
             or self.sglang_state_bytes_per_slot
             or self.sliding_layers
             or self.token_bytes is not None
-            or (self.token_bytes_by_dtype and self.layers != recurrent.attention_layers)
             or self.replicated_token_bytes
         ):
             raise ValueError(
-                "recurrent geometry needs a hybrid architecture, its prefix-caching "
-                "support and plain attention layers"
+                "typed recurrent state needs plain attention layers: no "
+                "state_padding, sglang_state_bytes_per_slot, sliding_layers, "
+                "token_bytes or replicated_token_bytes"
+            )
+        if self.token_bytes_by_dtype and self.layers != recurrent.attention_layers:
+            raise ValueError(
+                "a hand token bound with typed recurrent needs layers == "
+                "recurrent.attention_layers"
             )
         return self
 
@@ -1077,10 +1089,6 @@ def attention_token_bytes(
                 for dim in (geometry.key_dim, geometry.value_dim)
             )
         )
-    else:
-        raise MissingEstimateInput(
-            f"{recipe.identity.slug}: supply cache layout for {dtype}"
-        )
     return layers, token_bytes
 
 
@@ -1267,7 +1275,8 @@ def absolute_kv_need(
     )
     if context is None:
         raise MissingEstimateInput(
-            f"{recipe.identity.slug}: declare default model context"
+            f"{recipe.identity.slug}: declare max_context_tokens for the geometry in "
+            "memory-inputs.json"
         )
     block_flag = "block-size" if recipe.runtime.engine == "vllm" else "page-size"
     block = (
