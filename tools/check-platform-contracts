@@ -8,7 +8,8 @@ API reasoning effort kind newer than that version is a read failure there.
 ``qualification/introduced.py`` owns the version each value arrived in; this
 tool compares every recipe in the library (with the Model displays it selects
 and its API facts) against the lock of the platform commit the workflows pin, so
-a recipe cannot land ahead of the Controller that reads it.
+a recipe cannot land ahead of the Controller that reads it. A contracts major newer than the platform's is refused
+too: a major is deployed consumer-first (see AGENTS.md).
 
 The lock text is an argument: CI fetches it from ``platform_ref`` and this tool
 runs no git and no network.
@@ -24,6 +25,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+
+from vonk_forge_contracts import CONTRACT_MAJOR
 
 from qualification.documents import has_recipe_api, model_display, recipe, recipe_api
 from qualification.introduced import (
@@ -46,6 +49,23 @@ def platform_contracts_version(lock_text: str) -> str:
         raise ValueError("lock must pin vonk-forge-public-contracts exactly once")
     parse_version(found[0])
     return found[0]
+
+
+def major_problem(contract_major: int, platform_version: str) -> str | None:
+    """The error for a recipes contracts major the pinned platform has not adopted.
+
+    One-directional: a platform major ahead of this repo is the planned
+    consumer-first window and must not block a ``platform_ref`` move.
+    """
+
+    platform_major = parse_version(platform_version)[0]
+    if contract_major <= platform_major:
+        return None
+    return (
+        f"contracts major {contract_major} is newer than the pinned platform's "
+        f"{platform_major}: pin this recipes commit in vonk-forge, deploy it, "
+        "then move platform_ref"
+    )
 
 
 def problems(root: Path, slugs: list[str], platform_version: str) -> list[str]:
@@ -89,6 +109,7 @@ def main() -> int:
     version = platform_contracts_version(args.platform_lock.read())
     slugs = sorted(p.stem for p in (ROOT / "recipes").glob("*.json"))
     found = problems(ROOT, slugs, version) + model_problems(ROOT, version)
+    found += [m for m in [major_problem(CONTRACT_MAJOR, version)] if m]
     for item in found:
         print(f"::error::{item}" if "GITHUB_ACTIONS" in os.environ else item)
     print(
