@@ -6,9 +6,9 @@
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
-        "path": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed"
+        "path": "adapters/media/comfyui-image-controls"
       },
-      "dockerfile": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed/Dockerfile",
+      "dockerfile": "adapters/media/comfyui-image-controls/Dockerfile",
       "network": {
         "hosts": [
           "codeload.github.com",
@@ -164,8 +164,8 @@
     "source_reference": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/f68ace85e60b4a02a323e394253731947657b7d2"
   },
   "release": {
-    "released_at": "2026-10-16",
-    "version": "1.1.4"
+    "released_at": "2026-11-12",
+    "version": "1.2.0"
   },
   "runtime": {
     "arguments": [
@@ -177,7 +177,7 @@
       {
         "name": "workflow-sha256",
         "setting": null,
-        "value": "4007996393e3ae582d60e0c4f4bcbdc94b1b1ae72cdcb284e863f8b2db9900c0"
+        "value": "46e6bb16bb1f917caeca458198d4ed4e7b9af4fc95678db8616ce4aecb0a31b2"
       },
       {
         "name": "output-mime",
@@ -186,8 +186,13 @@
       },
       {
         "name": "seed",
-        "setting": null,
-        "value": 0
+        "setting": "seed",
+        "value": null
+      },
+      {
+        "name": "num-inference-steps",
+        "setting": "num-inference-steps",
+        "value": null
       }
     ],
     "engine": "comfyui",
@@ -207,7 +212,16 @@
   "settings": {
     "concurrency": null,
     "kind": "job",
-    "knobs": {}
+    "knobs": {
+      "num-inference-steps": {
+        "change_effect": "none",
+        "value": 40
+      },
+      "seed": {
+        "change_effect": "none",
+        "value": 0
+      }
+    }
   },
   "topology": {
     "name": "solo",

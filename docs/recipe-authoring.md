@@ -42,7 +42,7 @@ The signed catalog's per-recipe `qualification` is recomputed at publication
 against the recipe, image and Models in that release. It publishes Working,
 Re-check, Fix to verify, Failed: recipe, or **Not yet verified**, with a reason
 (never tested, needs more Sparks, platform issue under fix, or incomplete
-historical provenance). Fleet/lane states remain local. Working requires exact
+historical provenance). A recipe that passed before and then changed identity, or hit a platform fault on its current identity, publishes Re-check until re-tested, never Not yet verified. Fleet/lane states remain local. Working requires exact
 resolved identity and recorded platform provenance. The proof includes the
 Controller release, so consumers can show whether it was proven on the user's
 same, older or newer platform; it is not a claim about an untested platform.

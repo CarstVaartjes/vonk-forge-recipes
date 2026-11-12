@@ -2,7 +2,12 @@
   "id": "vonk-forge/flux-2-klein-4b-nvfp4-comfyui-single",
   "recipes": {
     "interface": "image-job",
-    "parameters": {},
+    "parameters": {
+      "height": 720,
+      "num-inference-steps": 4,
+      "seed": 1,
+      "width": 1280
+    },
     "inputs": [
       {
         "slot": "prompt",
@@ -46,8 +51,8 @@
       {
         "kind": "image-metadata",
         "media_type": "image/png",
-        "width": 1024,
-        "height": 1024,
+        "width": 1280,
+        "height": 720,
         "bit_depth": 8,
         "color_type": 2
       }

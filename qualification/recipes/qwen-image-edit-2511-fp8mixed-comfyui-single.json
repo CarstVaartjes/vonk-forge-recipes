@@ -2,7 +2,10 @@
   "id": "vonk-forge/qwen-image-edit-2511-fp8mixed-comfyui-single",
   "recipes": {
     "interface": "image-job",
-    "parameters": {},
+    "parameters": {
+      "num-inference-steps": 4,
+      "seed": 1
+    },
     "inputs": [
       {
         "slot": "prompt",
