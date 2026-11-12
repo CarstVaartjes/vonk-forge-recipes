@@ -255,7 +255,13 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         "mode": data["mode"],
         "counts": counts(data["recipes"]),
         "catalog_diagnostics": data.get("catalog_diagnostics", []),
-        "model_removals": data.get("model_removals", {}),
+        "model_removals": {
+            digest: {
+                field: record.get(field)
+                for field in ("outcome", "message", "next_check", "request_key")
+            }
+            for digest, record in data.get("model_removals", {}).items()
+        },
         "model_removal_wait": data.get("model_removal_wait"),
         "quality_notes": {
             key: len(notes) for key, notes in quality_notes(data["recipes"]).items()

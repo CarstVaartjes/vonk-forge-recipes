@@ -134,12 +134,8 @@ class RemovalRecord(BaseModel):
 
     outcome: RemovalOutcome = RemovalOutcome.WAIT
     backoff_seconds: float = 60.0
-    needed_again: bool = False
     consumers: dict[str, str] = Field(default_factory=dict)
     request_key: str | None = None
     next_check: float = 0
     message: str = ""
-    review: dict[str, JsonValue] | None = None
     receipt: dict[str, JsonValue] | None = None
-    last_response: JsonValue = None
-    history: list[dict[str, JsonValue]] = Field(default_factory=list)
