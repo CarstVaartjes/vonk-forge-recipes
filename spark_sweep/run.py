@@ -76,7 +76,7 @@ from .catalog import (
 from .chat_probe import ChatFacts, chat_facts
 from .definitions import CaseRenderError, Definitions
 from .evidence_publisher import EvidencePublisher
-from .fanout import Outcome, gather
+from .fanout import DaemonExecutor, Outcome, gather
 from .finalization import FinalAction, Finalization
 from .identity import (
     AcceptedRequest,
@@ -185,27 +185,6 @@ class ProfilePruneOutcome:
 
 class SweepProfileOwnershipError(RuntimeError):
     """Destructive profile edits may not adopt another requester's assignments."""
-
-
-class DaemonExecutor:
-    """Smoke tests on daemon threads: a request that hangs never keeps an interrupted sweep alive."""
-
-    def submit(self, fn: Callable[..., Any], *args: Any) -> Future[Any]:
-        future: Future[Any] = Future()
-
-        def work() -> None:
-            if not future.set_running_or_notify_cancel():
-                return
-            try:
-                future.set_result(fn(*args))
-            except BaseException as error:  # noqa: BLE001 - delivered through the future
-                future.set_exception(error)
-
-        threading.Thread(target=work, daemon=True, name="smoke").start()
-        return future
-
-    def shutdown(self, **_: Any) -> None:
-        return None
 
 
 def _interrupt(_signum: int, _frame: Any) -> None:
@@ -3998,11 +3977,7 @@ class Sweep:
         )
         for key, hold in probing:
             if hold.application_id not in documents:
-                reply = (
-                    replies[hold.application_id].result()
-                    if hold.application_id in replies
-                    else self._read_wait_receipt(hold.application_id)
-                )
+                reply = replies[hold.application_id].result()
                 if reply.is_not_found:
                     # The Controller's definite answer: no such receipt waits any more.
                     self._replan_ended(key, hold, "is absent at the Controller", now)
@@ -4349,18 +4324,21 @@ class Sweep:
         )
         load["observation_budget"] = budget.model_dump(mode="json")
 
-    def _read_cleanup_progress(self) -> dict[str, Outcome]:
-        """The due observers' progress reads, at once (one per observer, bounded by their count)."""
-        now = self.clock.now()
+    @staticmethod
+    def _cleanup_due(load: Mapping[str, Any], now: float) -> bool:
+        budget = CleanupObservationBudget.model_validate(
+            load.get("observation_budget", {})
+        )
+        return now >= budget.next_check
+
+    def _read_cleanup_progress(self, now: float) -> dict[str, Outcome]:
+        """The due observers' progress reads, at once (``observe_cleanup`` applies them)."""
         due = [
             load
             for load in self.state.data["cleanup_loads"].values()
             if not load.get("end")
             and not load.get("terminal_receipt")
-            and now
-            >= CleanupObservationBudget.model_validate(
-                load.get("observation_budget", {})
-            ).next_check
+            and self._cleanup_due(load, now)
         ]
         return gather(
             {load["request_key"]: partial(self._read_progress, load) for load in due},
@@ -4369,7 +4347,8 @@ class Sweep:
 
     def observe_cleanup(self) -> None:
         """Reconcile original applications and stops; never replace intent on timeout."""
-        reads = self._read_cleanup_progress()
+        now = self.clock.now()
+        reads = self._read_cleanup_progress(now)
         for load in self.state.data["cleanup_loads"].values():
             if load.get("end"):
                 continue
@@ -4379,12 +4358,11 @@ class Sweep:
                 and not self._cleanup_pending(load)
             ):
                 continue  # only a retained terminal receipt is immutable history
-            now = self.clock.now()
+            if not self._cleanup_due(load, now):
+                continue
             budget = CleanupObservationBudget.model_validate(
                 load.get("observation_budget", {})
             )
-            if now < budget.next_check:
-                continue
             if load.get("terminal_receipt"):
                 # The Controller ended it with stops unconfirmed and its receipt is
                 # final: only current fleet facts retire it, once its targets are gone.
@@ -4393,10 +4371,7 @@ class Sweep:
                 else:
                     self._defer_cleanup(load, budget, now)
                 continue
-            outcome = reads.get(load["request_key"]) or Outcome(
-                self._read_progress(load)  # became due after the batch was read
-            )
-            reply = outcome.result()
+            reply = reads[load["request_key"]].result()
             document = reply.document
             if reply.is_not_found and self._cleanup_target_absent(load):
                 self.clear_infra("clearing")
