@@ -700,7 +700,7 @@
       "SGLang",
       "MiniMaxAI"
     ],
-    "source_reference": "https://docs.sglang.io/cookbook/diffusion/MiniMax/MiniMax-H3-Image"
+    "source_reference": "https://github.com/sgl-project/sglang/tree/539fea720b86af0508d8d20ec585f25c547e3487"
   },
   "release": {
     "released_at": "2026-11-12",
