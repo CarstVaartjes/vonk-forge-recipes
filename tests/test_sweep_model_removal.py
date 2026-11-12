@@ -283,8 +283,64 @@ def test_restart_reconnects_to_the_write_ahead_request(tmp_path, fault):
     assert record["outcome"] == RemovalOutcome.RECEIPT
     assert record["receipt"]["request_key"] == original
     status = build_status(sweep)
-    assert status["model_removals"][A]["receipt"] == record["receipt"]
+    assert status["model_removals"][A]["request_key"] == original
     assert original in render_status(status)
+
+
+def test_state_saved_before_the_bounded_shape_resumes_its_removal(tmp_path):
+    """An upgraded sweep adopts the running sweep's state and drops write-only bulk."""
+    sweep, peer, clock = scenario(tmp_path)
+    peer.lost = True
+    sweep.remove_finished_models()
+    original = sweep.state.data["model_removals"][A]["request_key"]
+    saved = json.loads(sweep.state.path.read_text())
+    saved["model_removals"][A].update(
+        review={"raw": 1}, last_response={"raw": 2}, history=[{"raw": 3}]
+    )
+    needed_again = {"outcome": "receipt", "needed_again": True, "receipt": {}}
+    saved["model_removals"][C] = needed_again
+    saved["download_history"] = {"vonk-forge/a": [{"request_key": "old"}]}
+    saved["own_loads"] = [{"request_key": "own", "terminal_receipt": {"raw": 4}}]
+    sweep.state.path.write_text(json.dumps(saved))
+    sweep.state = State.load(sweep.state.path, clock.now)
+    sweep.model_remover.state = sweep.state
+    assert C not in sweep.state.data["model_removals"]  # same as never removed
+    advance(sweep, clock)
+    record = sweep.state.data["model_removals"][A]
+    assert record["outcome"] == RemovalOutcome.RECEIPT
+    assert record["receipt"]["request_key"] == original
+    saved = json.loads(sweep.state.path.read_text())
+    assert "download_history" not in saved
+    assert (
+        not {"review", "last_response", "history"} & saved["model_removals"][A].keys()
+    )
+    assert saved["own_loads"][0] == {"request_key": "own"}
+
+
+def _saved_bytes_after(tmp_path: Path, cycles: int) -> tuple[int, int]:
+    """Saved state and status bytes after ``cycles`` superseded downloads and removals."""
+    tmp_path.mkdir()
+    sweep, peer, clock = scenario(tmp_path)
+    recipe = sweep.recipes["vonk-forge/later"]
+    for _ in range(cycles):
+        sweep.prefetcher._request(recipe, "model")  # supersedes the previous attempt
+        peer.lost = True  # the review passes, the submitted request's reply is lost
+        advance(sweep, clock)
+        peer.state = LifecycleState.FAILED  # the same request ends in a failed receipt
+        advance(sweep, clock)
+        peer.state = LifecycleState.SUCCEEDED
+    saved = json.loads(sweep.state.path.read_text())
+    del saved["events"]  # the event log is capped at EVENT_LIMIT by design
+    status = json.dumps(build_status(sweep), sort_keys=True, default=str)
+    return len(json.dumps(saved)), len(status)
+
+
+def test_saved_state_does_not_grow_with_superseded_attempts(tmp_path):
+    """P17 guard: each save rewrites the state, so history must not accumulate in it."""
+    few = _saved_bytes_after(tmp_path / "few", 3)
+    many = _saved_bytes_after(tmp_path / "many", 30)
+    assert many[0] - few[0] < 256, (few, many)
+    assert many[1] - few[1] < 256, (few, many)
 
 
 def test_terminal_failure_replans_but_backoff_retains_the_request(tmp_path):
@@ -297,7 +353,7 @@ def test_terminal_failure_replans_but_backoff_retains_the_request(tmp_path):
     peer.state = LifecycleState.FAILED
     advance(sweep, clock)
     record = sweep.state.data["model_removals"][A]
-    assert record["history"] and record["request_key"] is None
+    assert record["outcome"] == RemovalOutcome.RETRY and record["request_key"] is None
     peer.state = LifecycleState.SUCCEEDED
     advance(sweep, clock)
     assert sweep.state.data["model_removals"][A]["request_key"] != original
@@ -312,7 +368,6 @@ def test_a_new_request_never_adopts_the_previous_failure_receipt(tmp_path):
     advance(sweep, clock)
     record = sweep.state.data["model_removals"][A]
     assert record["receipt"] is None
-    assert record["history"] == [previous]
     assert record["request_key"] != previous["request_key"]
 
 
@@ -425,7 +480,7 @@ def test_final_pass_submits_every_eligible_model_without_waiting(tmp_path):
     )
 
 
-def test_retesting_rearms_cleanup_with_new_identity_and_keeps_prior_receipt(tmp_path):
+def test_retesting_rearms_cleanup_with_a_new_request(tmp_path):
     sweep, _peer, clock = scenario(tmp_path)
     sweep.remove_finished_models()
     original = sweep.state.data["model_removals"][A]["request_key"]
@@ -435,7 +490,6 @@ def test_retesting_rearms_cleanup_with_new_identity_and_keeps_prior_receipt(tmp_
     advance(sweep, clock)
     record = sweep.state.data["model_removals"][A]
     assert record["request_key"] != original
-    assert record["history"][0]["request_key"] == original
 
 
 @pytest.mark.parametrize(
