@@ -31,6 +31,7 @@ from .canonical import canonical_json, document_sha256, read_model, read_recipe
 from .capability import CAPABILITY_ROLES, CapabilityName, CapabilityRole
 from .catalog_index import (
     INDEX_KIND,
+    INDEX_SCHEMA_ASSET,
     INDEX_SCHEMA_VERSION,
     PACKAGE_MEDIA_TYPE,
     PACKAGE_METADATA_FIELDS,
@@ -117,6 +118,7 @@ __all__ = [
     "CONTRACT_VERSION",
     "ENDPOINT_ALIAS_PATTERN",
     "INDEX_KIND",
+    "INDEX_SCHEMA_ASSET",
     "INDEX_SCHEMA_VERSION",
     "PACKAGE_MEDIA_TYPE",
     "PACKAGE_METADATA_FIELDS",

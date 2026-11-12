@@ -20,7 +20,11 @@ REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 sys.path.insert(0, str(ROOT))
-from vonk_forge_contracts import PACKAGE_MEDIA_TYPE, PACKAGE_SCHEMA_VERSION
+from vonk_forge_contracts import (
+    INDEX_SCHEMA_ASSET,
+    PACKAGE_MEDIA_TYPE,
+    PACKAGE_SCHEMA_VERSION,
+)
 
 from spark_sweep.image_evidence import load_images, read_images
 from spark_sweep.tolerant import InputDiagnostic
@@ -49,9 +53,8 @@ SHA256 = re.compile(r"^[0-9a-f]{64}$")
 ENTITY_DIRECTORIES = {
     "models": "model",
 }
-SCHEMA_ASSET = "catalog-index-v2.schema.json"
 SCHEMA_SOURCE = (
-    ROOT / "contracts" / "src" / "vonk_forge_contracts" / "schema" / SCHEMA_ASSET
+    ROOT / "contracts" / "src" / "vonk_forge_contracts" / "schema" / INDEX_SCHEMA_ASSET
 )
 FROM_LINE = re.compile(
     r"^FROM(?:\s+--platform=(\S+))?\s+(\S+)(?:\s+AS\s+(\S+))?\s*$", re.IGNORECASE
@@ -945,7 +948,7 @@ def write_release(
             # compiles against the schema of the data it deploys. The
             # checked-in file is Pydantic's output (generate-contract-schemas
             # --check), so it is read, not regenerated.
-            SCHEMA_ASSET: SCHEMA_SOURCE.read_bytes(),
+            INDEX_SCHEMA_ASSET: SCHEMA_SOURCE.read_bytes(),
         }
         named = [
             (PurePosixPath(str(row["package"]["path"])).name, package_dir)
