@@ -39,8 +39,11 @@ class ModelRemover:
     def __init__(self, vk: Vonkctl, state: State) -> None:
         self.vk = vk
         self.state = state
+        self._dirty = False
 
-    def _store(self, digest: str, record: RemovalRecord) -> None:
+    def _store(
+        self, digest: str, record: RemovalRecord, *, durable: bool = False
+    ) -> None:
         previous = self.state.data.setdefault("model_removals", {}).get(digest)
         value = record.model_dump(mode="json")
         self.state.data["model_removals"][digest] = value
@@ -48,7 +51,10 @@ class ModelRemover:
             self.state.event(
                 f"model removal {digest}: {record.outcome}: {record.message}"
             )
-        self.state.save()
+        self._dirty = True
+        if durable:
+            self.state.save()
+            self._dirty = False
 
     def _owners(self, recipes: Mapping[str, Recipe], own: set[int]) -> set[str]:
         reply = self.vk.run("profile", "list", timeout=30)
@@ -95,6 +101,22 @@ class ModelRemover:
         *,
         final: bool = False,
     ) -> None:
+        """One pass over the models; its changes are saved once, after the loop."""
+        self._dirty = False
+        try:
+            self._pass(recipes, own, now, final=final)
+        finally:
+            if self._dirty:
+                self.state.save()
+
+    def _pass(
+        self,
+        recipes: Mapping[str, Recipe],
+        own: set[int],
+        now: float,
+        *,
+        final: bool,
+    ) -> None:
         consumers: dict[str, list[Recipe]] = {}
         for recipe in recipes.values():
             for digest in recipe.model_digests:
@@ -121,7 +143,7 @@ class ModelRemover:
             self.state.event(
                 f"model removal {digest}: dropped; consumers need it again"
             )
-            self.state.save()
+            self._dirty = True
         if not eligible:
             return
         try:
@@ -225,7 +247,7 @@ class ModelRemover:
         record.message = "request submitted or reconnecting; waiting for typed receipt"
         self._schedule(record, now)
         # Write-ahead: even a process death inside run() reconnects to this key.
-        self._store(digest, record)
+        self._store(digest, record, durable=True)
         reply = self.vk.run(
             "model",
             "remove",
@@ -257,7 +279,7 @@ class ModelRemover:
             # from prose or an HTTP status: reconnect to the same owner after backoff.
             record.message = f"receipt unavailable: {reply.error_text}; {error}"[:1024]
         else:
-            record.receipt = reply.document
+            record.receipt = receipt
             record.message = f"operation {receipt.operation_id}: {receipt.state}"
             if receipt.state == LifecycleState.SUCCEEDED and receipt.result is not None:
                 record.outcome = RemovalOutcome.RECEIPT
