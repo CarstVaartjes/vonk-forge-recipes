@@ -5,7 +5,8 @@
     "image-understanding",
     "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Exact public Muse Glimmer 30B BF16 a4e59da5 checkpoint.",
   "family_title": "Muse Glimmer",
@@ -23,7 +24,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "Muse Glimmer 30B",
   "tags": [

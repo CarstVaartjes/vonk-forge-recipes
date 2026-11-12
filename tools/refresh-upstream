@@ -79,6 +79,9 @@ RefreshAppAuth = _load("_refresh_auth.py").RefreshAppAuth
 APP_AUTH: Any = None
 
 SHA = re.compile(r"^[0-9a-f]{40}$")
+#: Every refresher branch is ``<BRANCH_PREFIX><recipe-id>``; tools/select-producer-checks
+#: runs the full suite for it (tests/test_select_producer_checks.py holds the two together).
+BRANCH_PREFIX = "refresh/"
 LABEL_NEEDS_REVIEW = "refresh:needs-review"
 LABEL_MECHANICAL = "refresh:mechanical"
 LABEL_MEMORY_ESTIMATE = "memory:estimate"
@@ -1476,6 +1479,9 @@ def unverified_image(
     )
 
 
+#: The reminder a moved image's Dockerfile header gets when it cannot be rewritten.
+REVIEW_HEADER = "Review the Dockerfile's header comment."
+
 #: The comment lines between a published image's LABEL block and the "Upstream recipes
 #: start it with" line describe the image; FROM and LABEL own its identity, so they name none.
 IMAGE_NOTE = re.compile(
@@ -2626,6 +2632,7 @@ class Assessor:
                 new_recipe,
                 edits,
                 published=True,
+                result=result,
             )
             result.evidence.append(
                 f"The recipe runs {repository} as published; it moves to `{digest}`, "
@@ -2804,6 +2811,7 @@ class Assessor:
                 new_recipe,
                 edits,
                 published=True,
+                result=result,
             )
             result.evidence.append(
                 f"The recipe runs {repository} as published; it moves to `{digest}`, "
@@ -3001,11 +3009,12 @@ class Assessor:
             lambda written: kit_pins.image_reference(pin, written),
             new_recipe,
             edits,
+            result=result,
         )
         result.evidence.append(
             f"The recipe runs the kit's published image {pin.repo}; it moves to "
             f"`{pin.immutable}` (the kit's declaration), and the thin layer on top is "
-            "rebuilt on it. Review the Dockerfile's header comment.\n"
+            f"rebuilt on it. {REVIEW_HEADER}\n"
         )
 
     def _move_image(
@@ -3017,11 +3026,14 @@ class Assessor:
         new_recipe: dict[str, Any],
         edits: dict[str, bytes | None],
         published: bool = False,
+        *,
+        result: Assessment,
     ) -> None:
         """Move the Dockerfile's FROM of ``repository`` and the recorded base image.
 
         A ``published`` image (the recipe runs it as the creator pushed it) also gets
-        its header prose replaced by a note that names no version.
+        its header prose replaced by a note that names no version; a header the note
+        cannot replace is named in ``result`` for review, as the kit path does.
         """
         dockerfile = directory / "Dockerfile"
         if dockerfile.is_file():
@@ -3039,7 +3051,7 @@ class Assessor:
             moved = kit_pins.FROM_LINE.sub(move, text)
             if moved != text:
                 if published:
-                    moved = IMAGE_NOTE.sub(
+                    moved, noted = IMAGE_NOTE.subn(
                         lambda m: (
                             m["head"]
                             + f"# The published {repository} image, built from the revision "
@@ -3048,6 +3060,8 @@ class Assessor:
                         moved,
                         count=1,
                     )
+                    if not noted:
+                        result.evidence.append(f"{REVIEW_HEADER}\n")
                 edits[dockerfile.relative_to(self.catalog.root).as_posix()] = (
                     moved.encode()
                 )
@@ -3811,8 +3825,8 @@ def arm_open_mechanical_prs(summary: Summary) -> None:
     )
     for pr in pull_requests:
         branch = str(pr.get("headRefName", ""))
-        if branch.startswith("refresh/") and not pr.get("autoMergeRequest"):
-            arm_mechanical_pr(pr["number"], branch.removeprefix("refresh/"), summary)
+        if branch.startswith(BRANCH_PREFIX) and not pr.get("autoMergeRequest"):
+            arm_mechanical_pr(pr["number"], branch.removeprefix(BRANCH_PREFIX), summary)
 
 
 def has_publication_receipt(main_head: str, runs: list[dict[str, Any]]) -> bool:
@@ -3958,7 +3972,7 @@ def _publish(
     the current refresh are evidence for the recipe's needs-review issue.
     """
     recipe_id = assessment.recipe_id
-    branch = f"refresh/{recipe_id}"
+    branch = f"{BRANCH_PREFIX}{recipe_id}"
     marker = f"<!-- refresh-target: {assessment.fingerprint()} -->"
     existing = own_pulls(
         gh_json(
@@ -4214,7 +4228,7 @@ def supersede_member_prs(
                 "pr",
                 "list",
                 "--head",
-                f"refresh/{member}",
+                f"{BRANCH_PREFIX}{member}",
                 "--state",
                 "open",
                 "--json",
@@ -4283,9 +4297,9 @@ def close_stale_refresh_prs(
     )
     for pr in pulls:
         branch = str(pr.get("headRefName", ""))
-        if not branch.startswith("refresh/"):
+        if not branch.startswith(BRANCH_PREFIX):
             continue
-        recipe_id = branch.removeprefix("refresh/")
+        recipe_id = branch.removeprefix(BRANCH_PREFIX)
         result = assessed.get(recipe_id)
         together = (groups or {}).get(recipe_id)
         if together is not None and together[0] != recipe_id:
@@ -4534,7 +4548,7 @@ def foreign_open_prs() -> dict[int, set[str]]:
             [
                 p
                 for p in listed
-                if not str(p.get("headRefName", "")).startswith("refresh/")
+                if not str(p.get("headRefName", "")).startswith(BRANCH_PREFIX)
             ]
         )
     }
