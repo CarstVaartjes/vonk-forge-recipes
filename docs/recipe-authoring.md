@@ -253,7 +253,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.7.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.8.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -1436,7 +1436,8 @@ Commit authored sources only. `catalog-index.json`,
 `qualification/qualification-index.json`, `packages/` and
 `qualification/coverage/` are build outputs: Git ignores them, CI builds and
 validates them for every pull request, and publication builds them from the
-release commit. Build them locally with one command when a tool or test outside
+release commit. The release also ships `catalog-index-v2.schema.json`, the generated schema of the
+`CatalogIndex` contract that `catalog-index.json` is built through. Build them locally with one command when a tool or test outside
 the suite needs them:
 
 ```bash
