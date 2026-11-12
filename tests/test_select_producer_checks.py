@@ -3,6 +3,7 @@
 import importlib.machinery
 import importlib.util
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,15 @@ assert SPEC is not None
 selector = importlib.util.module_from_spec(SPEC)
 LOADER.exec_module(selector)
 
+REFRESH_LOADER = importlib.machinery.SourceFileLoader(
+    "refresh_upstream_branch_prefix", str(ROOT / "tools/refresh-upstream")
+)
+REFRESH_SPEC = importlib.util.spec_from_loader(REFRESH_LOADER.name, REFRESH_LOADER)
+assert REFRESH_SPEC is not None
+refresher = importlib.util.module_from_spec(REFRESH_SPEC)
+sys.modules[REFRESH_LOADER.name] = refresher
+REFRESH_LOADER.exec_module(refresher)
+
 # Import and reference lines copied from real tests.
 TESTS = {
     "tests/test_sweep_blame.py": "from spark_sweep import policy, verdict\n",
@@ -28,6 +38,10 @@ TESTS = {
         'RECIPE = ROOT / "recipes/deepseek-v4-flash-0731-ds4-single.json"\n'
     ),
 }
+
+
+def test_refresher_branches_run_the_full_suite() -> None:
+    assert refresher.BRANCH_PREFIX in selector.FULL_SUITE_HEADS
 
 
 def chosen(*changed: str) -> set[str]:
