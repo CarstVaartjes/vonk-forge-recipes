@@ -117,12 +117,16 @@ def test_estimate_mismatch_does_not_fail_check_recipe_memory_need(
     assert "peak understates need" in summary.read_text()
 
 
-def test_report_lists_the_mismatches_for_the_issue(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def run_report(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    inputs: object | None = None,
+) -> str:
     main = runpy.run_path(str(ROOT / "tools/check-recipe-memory-need"))["main"]
     monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
     monkeypatch.setitem(main.__globals__, "ROOT", mismatching_root(tmp_path))
+    if inputs is not None:
+        monkeypatch.setitem(main.__globals__, "load_inputs", lambda: inputs)
     report = tmp_path / "report.md"
     monkeypatch.setattr(
         "sys.argv",
@@ -134,7 +138,26 @@ def test_report_lists_the_mismatches_for_the_issue(
         ],
     )
     assert main() == 0
-    assert "peak understates need" in report.read_text()
+    return report.read_text()
+
+
+def test_report_leaves_disagreement_advisories_out_of_the_issue(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    assert run_report(tmp_path, monkeypatch) == ""
+
+
+def test_report_lists_only_the_missing_estimator_input(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from qualification.memory_need import load_inputs
+
+    inputs = load_inputs().model_copy(update={"geometries": {}})
+    body = run_report(tmp_path, monkeypatch, inputs)
+    items = [line for line in body.splitlines() if line.startswith("- ")]
+    assert len(items) == 1
+    assert "add source-backed cache geometry" in items[0]
+    assert "peak understates" not in body
 
 
 @pytest.mark.parametrize(

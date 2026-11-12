@@ -2,7 +2,8 @@
 """Report where declared memory disagrees with the estimate; warnings only, exit 0.
 
 The recipes are estimates until the hardware try measures them. Findings go to
-stdout and the step summary; ``--report FILE`` writes them as an issue body.
+stdout; ``--report FILE`` writes only the estimates that cannot be computed
+(missing sourced inputs) as an issue body. Disagreements are advisories, not issues.
 """
 
 from __future__ import annotations
@@ -25,9 +26,10 @@ from vonk_forge_contracts import (
 )
 
 from qualification.memory_need import (
+    EstimateFindingKind,
     hardware_proven,
     load_inputs,
-    memory_estimate_warnings,
+    memory_estimate_findings,
     memory_notes,
     memory_variants,
     per_rank_need,
@@ -52,13 +54,14 @@ def touched_recipes(root: Path, base: str) -> list[Path]:
     return sorted({root / name for name in names})
 
 
-def report_markdown(mismatches: list[str]) -> str:
-    if not mismatches:
+def report_markdown(unavailable: list[str]) -> str:
+    """The issue body: only estimates that cannot be computed, which need sourced data."""
+    if not unavailable:
         return ""
     return (
-        "The recipes are estimates until the hardware try measures them. These "
-        "declared memory values disagree with the estimate; none fails a check.\n\n"
-        + "\n".join(f"- {item}" for item in mismatches)
+        "These memory estimates cannot be computed. Add the missing sourced "
+        "inputs (for example to qualification/memory-inputs.json).\n\n"
+        + "\n".join(f"- {item}" for item in unavailable)
         + "\n"
     )
 
@@ -76,7 +79,7 @@ def main() -> int:
     parser.add_argument(
         "--report",
         type=Path,
-        help="write the estimate mismatches as a markdown issue body to this file",
+        help="write the estimates that cannot be computed as a markdown issue body to this file",
     )
     args = parser.parse_args()
     models: dict[str, ModelDefinition] = {}
@@ -86,6 +89,7 @@ def main() -> int:
     inputs = load_inputs()
     flagged = proven_count = applicable = 0
     mismatches: list[str] = []
+    unavailable: list[str] = []
     paths = (
         touched_recipes(ROOT, args.base)
         if args.base
@@ -117,12 +121,17 @@ def main() -> int:
                 f"{key}: maximum loading floor {max(n.peak_bytes for n in needs)} bytes/rank"
             )
             continue
-        found = memory_estimate_warnings(
+        found = memory_estimate_findings(
             recipe, models, inputs, document_digest=digest, touched=bool(args.base)
         )
-        mismatches += found
-        for warning in found:
-            print(f"WARNING {warning}")
+        mismatches += [finding.text for finding in found]
+        unavailable += [
+            finding.text
+            for finding in found
+            if finding.kind is EstimateFindingKind.UNAVAILABLE
+        ]
+        for finding in found:
+            print(f"WARNING {finding.text}")
         if recipe.runtime.engine in {"vllm", "sglang"}:
             unchanged = unchanged_recipe(recipe, digest, inputs)
             print(
@@ -135,14 +144,15 @@ def main() -> int:
             f"Calibration: {proven_count} hardware-pass recipes; {applicable} applicable; {proven_count - applicable} other engines; {flagged} falsely flagged"
         )
     mismatches = list(dict.fromkeys(mismatches))
+    unavailable = list(dict.fromkeys(unavailable))
     if mismatches:
         print(f"{len(mismatches)} memory estimate mismatch(es); none fails this check")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary and mismatches:
         with open(summary, "a", encoding="utf-8") as stream:
-            stream.write(report_markdown(mismatches))
+            stream.write("\n".join(f"- {item}" for item in mismatches) + "\n")
     if args.report:
-        args.report.write_text(report_markdown(mismatches), encoding="utf-8")
+        args.report.write_text(report_markdown(unavailable), encoding="utf-8")
     return 0
 
 

@@ -1345,12 +1345,34 @@ def envelope_exception(slug: str, document_digest: str) -> bool:
     )
 
 
-def estimate_problems(label: str, rule: Callable[[], list[str]]) -> list[str]:
+class EstimateFindingKind(StrEnum):
+    """What a finding asks for: data (actionable) or only a look (advisory)."""
+
+    UNAVAILABLE = "unavailable"
+    DISAGREEMENT = "disagreement"
+
+
+@dataclass(frozen=True)
+class EstimateFinding:
+    kind: EstimateFindingKind
+    text: str
+
+
+def estimate_problems(
+    label: str, rule: Callable[[], list[str]]
+) -> list[EstimateFinding]:
     """One estimate rule's findings; an estimate that cannot be computed is one too."""
     try:
-        return rule()
+        return [
+            EstimateFinding(EstimateFindingKind.DISAGREEMENT, text) for text in rule()
+        ]
     except (ValueError, TypeError, KeyError) as error:
-        return [f"{label}: estimate unavailable: {error}"]
+        return [
+            EstimateFinding(
+                EstimateFindingKind.UNAVAILABLE,
+                f"{label}: estimate unavailable: {error}",
+            )
+        ]
 
 
 def memory_estimate_warnings(
@@ -1361,6 +1383,23 @@ def memory_estimate_warnings(
     document_digest: str,
     touched: bool = False,
 ) -> list[str]:
+    """The text of ``memory_estimate_findings``."""
+    return [
+        finding.text
+        for finding in memory_estimate_findings(
+            recipe, models, inputs, document_digest=document_digest, touched=touched
+        )
+    ]
+
+
+def memory_estimate_findings(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+    *,
+    document_digest: str,
+    touched: bool = False,
+) -> list[EstimateFinding]:
     """Where the declared memory disagrees with the estimate; none of it blocks.
 
     The recipes are estimates until the hardware try measures them, so every
@@ -1392,7 +1431,10 @@ def memory_estimate_warnings(
                     ),
                 )
         return warnings
-    warnings += admissible_declaration_warnings(recipe)
+    warnings += [
+        EstimateFinding(EstimateFindingKind.DISAGREEMENT, text)
+        for text in admissible_declaration_warnings(recipe)
+    ]
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return warnings
     single = recipe.topology.node_count == 1
