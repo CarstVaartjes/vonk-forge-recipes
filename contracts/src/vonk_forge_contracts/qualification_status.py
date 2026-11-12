@@ -539,6 +539,7 @@ def published_status(
         raise ValueError("current identity requires the recipe's Spark count")
     view = derive_status(evidence, current_identity, required_sparks, False)
     certified: list[QualificationEvidenceRecord] = []
+    failed_at = None
     if view.status == QualificationStatus.WORKING:
         # A later successful test with incomplete telemetry does not erase a
         # complete proof. A recipe failure on this identity invalidates older
@@ -567,6 +568,22 @@ def published_status(
                     )
                 }
             )
+    if (
+        view.status == QualificationStatus.WORKING
+        and not certified
+        and failed_at is None
+        and current_identity.resolved
+        and view.last_pass is not None
+    ):
+        # Passed before, nothing certifies this exact identity (e.g. only the
+        # image changed) and no recipe failure voided the proof: re-test,
+        # never "Not yet verified".
+        view = view.model_copy(
+            update={
+                "status": QualificationStatus.RECHECK,
+                "changed": _changes(view.last_pass.identity, current_identity),
+            }
+        )
     reason = view.reason
     if view.status == QualificationStatus.UNTESTED and required_sparks > 1:
         # Describe the required topology without publishing our enrollment.
