@@ -384,11 +384,14 @@ def test_published_catalog_matches_shared_derivation(built_catalog):
         )
         if expected.status != Status.NOT_YET_VERIFIED:
             assert identity.required_sparks is not None
-            assert (
-                expected.status
-                == derive_status(
-                    read_evidence(ROOT, key), identity, identity.required_sparks, False
-                ).status
+            derived = derive_status(
+                read_evidence(ROOT, key), identity, identity.required_sparks, False
+            )
+            # A platform fault after an earlier pass publishes Re-check.
+            assert expected.status == (
+                Status.RECHECK
+                if derived.status == Status.BLOCKED_PLATFORM and derived.last_pass
+                else derived.status
             )
 
 
@@ -644,6 +647,17 @@ def test_incomplete_later_telemetry_never_erases_complete_working_proof(suffix):
     view = published_status(evidence(proven, incomplete), A)
     assert view.status == Status.WORKING
     assert view.last_pass == proven
+
+
+def test_platform_fault_on_current_identity_after_a_pass_elsewhere_is_recheck():
+    history = evidence(record(B), record(A, Outcome.FAILED, Blame.PLATFORM, day=1))
+    view = published_status(history, A)
+    assert view.status == Status.RECHECK
+    assert view.reason is None
+    assert view.last_pass == record(B)
+    assert view.changed
+    no_pass = evidence(record(A, Outcome.FAILED, Blame.PLATFORM))
+    assert published_status(no_pass, A).status == Status.NOT_YET_VERIFIED
 
 
 def test_partial_pass_after_recipe_failure_cannot_revive_an_invalidated_public_proof():
