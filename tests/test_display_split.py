@@ -141,8 +141,8 @@ def test_a_display_must_name_its_own_document() -> None:
 def test_editing_a_proven_recipes_displays_changes_no_identity_or_status(
     tmp_path: Path, built_catalog: tuple[dict, Path], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A proven recipe's display and its Model's licence, capabilities and
-    modalities are display: correcting them re-runs nothing.
+    """A proven recipe's display and its Model's licence and capabilities
+    are display: correcting them re-runs nothing.
 
     One build of a library whose only difference is those two display files.
     """
