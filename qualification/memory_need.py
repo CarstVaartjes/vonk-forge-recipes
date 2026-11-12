@@ -197,10 +197,6 @@ VLLM_UNMODELED_HYBRID = {
     # Sliding-window plus short-convolution layers on creator images whose
     # vLLM Inkling layout is not pinned; SGLang-measured state.
     "inkling-small-nvfp4": "Inkling short convolution on creator images",
-    # KDA linear + DSA layers on creator vLLM forks: not modeled (follow-up).
-    "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704": "Glm5Next KDA + DSA not modeled (follow-up)",
-    "glm-5-3-flash-fp4-local-76348ddb": "Glm5Next KDA + DSA not modeled (follow-up)",
-    "glm-5-3-flash-nvfp4-caca4e6a": "Glm5Next KDA + DSA not modeled (follow-up)",
 }
 
 
@@ -289,7 +285,8 @@ class CacheGeometry(BaseModel):
     @model_validator(mode="after")
     def classified_recurrent_bound(self) -> Self:
         """A classified architecture; typed recurrent state only on a hybrid
-        one, with plain attention and the loaded class's prefix caching."""
+        one, with plain attention and the loaded class's prefix caching. A hand
+        per-token bound is allowed only when spread over the layers vLLM groups."""
         if self.architecture not in HYBRID_ARCHITECTURES | ATTENTION_ARCHITECTURES:
             raise ValueError(
                 f"classify architecture {self.architecture} as hybrid or attention"
@@ -306,7 +303,7 @@ class CacheGeometry(BaseModel):
             or self.sglang_state_bytes_per_slot
             or self.sliding_layers
             or self.token_bytes is not None
-            or self.token_bytes_by_dtype
+            or (self.token_bytes_by_dtype and self.layers != recurrent.attention_layers)
             or self.replicated_token_bytes
         ):
             raise ValueError(

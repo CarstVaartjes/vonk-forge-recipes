@@ -130,7 +130,7 @@ class ProfileList(BaseModel):
 
 
 class RemovalRecord(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    """Saved per model; a field this class does not know is ignored, never a reason to fail."""
 
     outcome: RemovalOutcome = RemovalOutcome.WAIT
     backoff_seconds: float = 60.0
@@ -138,4 +138,4 @@ class RemovalRecord(BaseModel):
     request_key: str | None = None
     next_check: float = 0
     message: str = ""
-    receipt: dict[str, JsonValue] | None = None
+    receipt: RemovalReceipt | None = None

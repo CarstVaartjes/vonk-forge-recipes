@@ -1098,6 +1098,58 @@ class NeverDowngradeTests(unittest.TestCase):
         self.assertTrue(classify(result.items[0].comparison))
 
 
+class ImageHeaderMoveTests(unittest.TestCase):
+    OLD = "sha256:" + "a" * 64
+    NEW = "sha256:" + "b" * 64
+    UPSTREAM = "# Upstream recipes start it with `vllm serve`; the wrapper is the entrypoint.\n"
+
+    def move(self, header: str) -> str:
+        text = (
+            f"FROM docker.io/eugr/spark-vllm@{self.OLD}\n\n"
+            'LABEL org.opencontainers.image.source="https://example.test/r" \\\n'
+            '      org.opencontainers.image.revision="42f62e34"\n\n'
+            + header
+            + "COPY vllm-wrapper.py /opt/vonk/bin/vllm\n"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "Dockerfile").write_text(text)
+            edits: dict[str, bytes | None] = {}
+            refresh.Assessor(refresh.Catalog(root), object(), None, {})._move_image(
+                root,
+                "docker.io/eugr/spark-vllm",
+                self.NEW,
+                lambda written: f"docker.io/eugr/spark-vllm@{self.NEW}",
+                {"execution": {"build": {}}},
+                edits,
+                published=True,
+            )
+        written = edits["Dockerfile"]
+        assert written is not None
+        return written.decode()
+
+    def test_published_move_replaces_the_versioned_header_prose(self) -> None:
+        # Verbatim from adapters/eugr/qwen3-6-35b-a3b-fp8/Dockerfile.
+        header = (
+            "# eugr's published vllm-node image (nightly-20260929). Its /workspace/build-metadata.yaml records\n"
+            "# build_script_commit 42f62e34 (the revision above), vLLM af5b4857e and FlashInfer 4a638133, built\n"
+            "# from the repository's default Dockerfile (upstream's local `vllm-node` build) with the stock\n"
+            "# build arguments.\n" + self.UPSTREAM
+        )
+        moved = self.move(header)
+        self.assertIn(
+            "# The published docker.io/eugr/spark-vllm image, built from the revision "
+            "above; the digest is what runs.\n" + self.UPSTREAM,
+            moved,
+        )
+        self.assertNotIn("nightly", moved)
+        self.assertNotIn("42f62e34 (", moved)
+
+    def test_header_without_the_upstream_line_is_kept(self) -> None:
+        header = "# build arguments. Upstream recipes start it with `vllm serve`; the wrapper.\n"
+        self.assertIn(header, self.move(header))
+
+
 class ImageLabelClaimTests(unittest.TestCase):
     """The revision label of an adapter built FROM a digest-pinned image is a claim about
     that image, never a git pin: only a new image digest (which records its own build
