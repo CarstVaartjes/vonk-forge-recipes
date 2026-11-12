@@ -77,6 +77,7 @@ def test_a_tick_reads_each_observation_once_and_errors_reach_their_consumers(
     assert (
         not sweep._reads and not sweep.guard.reads
     )  # nothing leaks into the next pass
+    assert "tick" not in sweep.state.data["infra"]  # the pass ran to its end
 
 
 def test_a_read_error_surfaces_at_its_consumer() -> None:
