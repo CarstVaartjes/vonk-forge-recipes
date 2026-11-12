@@ -233,7 +233,8 @@ See `tests/test_sweep_noblock.py`, `tests/test_sweep_affinity.py`,
 
 Independent Controller reads in a sweep pass fan out: collect them with
 `spark_sweep.fanout.gather` (bounded by `READ_LIMIT`), then apply the replies in
-order on the main thread; worker threads never mutate sweep state. A `vk.run`/
+order on the main thread; worker threads never write `state.data` (only the
+contract-mismatch flags, under `_contract_lock`). A `vk.run`/
 `vk.call` that must stay serial (it writes, or depends on the previous reply)
 carries `# sequential: <reason>` on the call or the line above it.
 `tools/check-serial-reads` enforces this on added lines
