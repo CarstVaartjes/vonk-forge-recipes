@@ -174,7 +174,9 @@ jobs:
           # Git runs here, at the CI edge; the tool takes the commit and epoch.
           epoch=$(git show -s --format=%ct "$GITHUB_SHA")
           # Independent builds: two release dirs (each builds in its own temp
-          # dir) and the checkout outputs, which are not read by the others.
+          # dir) and the test suite's build (tests/generated_catalog.py, fixed
+          # provenance, no git), which is not read by the others. The suite
+          # reuses that build instead of repeating it before its workers start.
           # Each PID is waited on separately so every exit code counts.
           "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first" \
             --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" &
@@ -182,14 +184,15 @@ jobs:
           "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second" \
             --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" &
           second_pid=$!
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index \
-            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" &
-          checkout_pid=$!
+          generated="$RUNNER_TEMP/generated"
+          "$RECIPE_TEST_PYTHON" tests/generated_catalog.py "$generated" &
+          generated_pid=$!
           wait "$first_pid"
           wait "$second_pid"
-          wait "$checkout_pid"
+          wait "$generated_pid"
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
-          "$RECIPE_TEST_PYTHON" tools/build-family-aware-coverage
+          "$RECIPE_TEST_PYTHON" tools/build-family-aware-coverage --catalog-root "$generated"
+          echo "VONK_RECIPES_GENERATED_DIR=$generated" >> "$GITHUB_ENV"
 
       - name: Reject a changed Spark count for an existing recipe
         shell: bash
