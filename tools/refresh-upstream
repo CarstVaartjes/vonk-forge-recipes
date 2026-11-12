@@ -4376,7 +4376,7 @@ def command_memory_estimate_issue(report: Path) -> int:
             "close",
             str(open_issue["number"]),
             "--comment",
-            "No declared memory disagrees with the estimate any more.",
+            "No memory estimate is missing a sourced input any more.",
         )
     return 0
 
