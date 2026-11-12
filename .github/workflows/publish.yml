@@ -135,6 +135,9 @@ jobs:
       && needs.images.result == 'success' }}
     runs-on: ubuntu-24.04
     environment: recipe-release
+    outputs:
+      # False when the release already held this exact asset set.
+      changed: ${{ steps.current.outputs.skip != 'true' }}
     # Control planes accept only assets whose SHA256SUMS carries a Sigstore
     # attestation from this workflow on refs/heads/main of this repository.
     permissions:
@@ -287,3 +290,28 @@ jobs:
           "$RELEASE_TEST_PYTHON" tools/sync-release-assets --tag "$RELEASE_TAG" \
             publish --bundle "$bundle"
           gh release edit "$RELEASE_TAG" --title "$title" --notes "$notes" --latest
+
+  # The site follows the newest release; its own schedule is only the backstop.
+  # A separate job keeps the refresh App's key out of the signing job. The
+  # release is already published when this runs, so a failed dispatch is a
+  # visible failed job (the site then waits for its schedule) that neither fails
+  # this run nor touches the release.
+  dispatch-site:
+    name: Start the public site build
+    needs: [publish]
+    if: ${{ needs.publish.result == 'success' && needs.publish.outputs.changed == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    continue-on-error: true
+    permissions: {}
+    steps:
+      - name: Check out main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Dispatch the site build
+        env:
+          REFRESH_APP_CLIENT_ID: ${{ vars.REFRESH_APP_CLIENT_ID }}
+          REFRESH_APP_PRIVATE_KEY: ${{ secrets.REFRESH_APP_PRIVATE_KEY }}
+        run: python3 tools/dispatch-site-build
