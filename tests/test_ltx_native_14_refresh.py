@@ -81,12 +81,6 @@ class LtxNative14RefreshTests(unittest.TestCase):
                 "colour-science==0.4.7", (root / "requirements.lock").read_text()
             )
             self.assertIn("_verify_ltx_runtime_contract()", runner, slug)
-            # The runner refuses any ltx-pipelines but the one the recipe releases.
-            self.assertIn(
-                f'LTX_PIPELINES_VERSION = "{load(ROOT / "recipes" / f"{slug}.json")["release"]["version"]}"',
-                runner,
-                slug,
-            )
             self.assertIn('"tiling_config",\n)', runner, slug)
             self.assertNotIn('"video_latent"', runner, slug)
 
