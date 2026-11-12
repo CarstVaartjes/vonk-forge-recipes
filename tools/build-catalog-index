@@ -20,6 +20,12 @@ REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 sys.path.insert(0, str(ROOT))
+from vonk_forge_contracts import (
+    INDEX_SCHEMA_ASSET,
+    PACKAGE_MEDIA_TYPE,
+    PACKAGE_SCHEMA_VERSION,
+)
+
 from spark_sweep.image_evidence import load_images, read_images
 from spark_sweep.tolerant import InputDiagnostic
 
@@ -47,8 +53,9 @@ SHA256 = re.compile(r"^[0-9a-f]{64}$")
 ENTITY_DIRECTORIES = {
     "models": "model",
 }
-PACKAGE_SCHEMA_VERSION = 2
-PACKAGE_MEDIA_TYPE = "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
+SCHEMA_SOURCE = (
+    ROOT / "contracts" / "src" / "vonk_forge_contracts" / "schema" / INDEX_SCHEMA_ASSET
+)
 FROM_LINE = re.compile(
     r"^FROM(?:\s+--platform=(\S+))?\s+(\S+)(?:\s+AS\s+(\S+))?\s*$", re.IGNORECASE
 )
@@ -793,7 +800,18 @@ def build(
                 mode="json"
             )
 
-    from vonk_forge_contracts import CONTRACT_VERSION, document_sha256
+    from vonk_forge_contracts import (
+        CONTRACT_VERSION,
+        INDEX_KIND,
+        INDEX_SCHEMA_VERSION,
+        PACKAGE_METADATA_FIELDS,
+        PACKAGE_PATH_PREFIX,
+        CatalogIndex,
+        PackageContract,
+        catalog_vocabulary,
+        document_sha256,
+        published_index_json,
+    )
 
     catalog_entities = [
         {
@@ -810,32 +828,28 @@ def build(
     ]
     if not re.fullmatch(r"[0-9a-f]{40}", source_commit):
         raise SystemExit("source commit must be a full SHA-1")
-    return {
-        "schema_version": 2,
-        "kind": "recipe-library-index",
-        # The library release is the contract version; recipe changes only
-        # move updated_at, the source commit's commit time.
-        "contract_version": CONTRACT_VERSION,
-        "updated_at": _updated_at(source_date_epoch),
-        "repository": REPOSITORY,
-        "source_commit": source_commit,
-        "package_contract": {
-            "schema_version": PACKAGE_SCHEMA_VERSION,
-            "media_type": PACKAGE_MEDIA_TYPE,
-            "path_prefix": "packages/",
-            "metadata_fields": [
-                "path",
-                "media_type",
-                "sha256",
-                "expected_bytes",
-                "recipe_content_sha256",
-                "minimum_consumer_schema",
-                "source_bundle_sha256",
-            ],
-        },
-        "catalog_entities": catalog_entities,
-        "recipes": recipes,
-    }
+    index = CatalogIndex.model_validate(
+        {
+            "schema_version": INDEX_SCHEMA_VERSION,
+            "kind": INDEX_KIND,
+            # The library release is the contract version; recipe changes only
+            # move updated_at, the source commit's commit time.
+            "contract_version": CONTRACT_VERSION,
+            "updated_at": _updated_at(source_date_epoch),
+            "repository": REPOSITORY,
+            "source_commit": source_commit,
+            "vocabulary": catalog_vocabulary(),
+            "package_contract": PackageContract(
+                schema_version=PACKAGE_SCHEMA_VERSION,
+                media_type=PACKAGE_MEDIA_TYPE,
+                path_prefix=PACKAGE_PATH_PREFIX,
+                metadata_fields=PACKAGE_METADATA_FIELDS,
+            ),
+            "catalog_entities": catalog_entities,
+            "recipes": recipes,
+        }
+    )
+    return published_index_json(index)
 
 
 def qualification_index(catalog: dict[str, Any]) -> dict[str, object]:
@@ -932,6 +946,11 @@ def write_release(
             RELEASE_QUALIFICATION_INDEX: rendered(qualification_index(document)).encode(
                 "utf-8"
             ),
+            # The index contract ships in the signed release, so a consumer
+            # compiles against the schema of the data it deploys. The
+            # checked-in file is Pydantic's output (generate-contract-schemas
+            # --check), so it is read, not regenerated.
+            INDEX_SCHEMA_ASSET: SCHEMA_SOURCE.read_bytes(),
         }
         named = [
             (PurePosixPath(str(row["package"]["path"])).name, package_dir)

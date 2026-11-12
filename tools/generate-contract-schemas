@@ -11,8 +11,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import (
+    INDEX_SCHEMA_ASSET,
     campaign_authority_json_schema,
     campaign_manifest_json_schema,
+    catalog_index_json_schema,
     model_display_json_schema,
     model_json_schema,
     published_measured_memory_json_schema,
@@ -93,6 +95,10 @@ def main() -> int:
             ROOT
             / "contracts/src/vonk_forge_contracts/schema/recipe-api-v4.schema.json",
             recipe_api_json_schema(),
+        ),
+        (
+            ROOT / "contracts/src/vonk_forge_contracts/schema" / INDEX_SCHEMA_ASSET,
+            catalog_index_json_schema(),
         ),
     )
     ok = all(_write(path, schema, args.check) for path, schema in targets)

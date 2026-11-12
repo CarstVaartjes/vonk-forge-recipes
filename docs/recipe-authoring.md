@@ -30,18 +30,13 @@ count/topology. Unknown historical provenance stays unknown. Public evidence
 has closed summaries/codes and digest references, never raw messages, host
 names, addresses, run/request/operation ids, paths or credentials.
 
-The local sweep view uses these statuses:
-
-- **Working:** passed on the current exact identity; quality notes may remain.
-- **Re-check: worked before:** an identity changed after a pass; show recipe,
-  image and/or Model changes and the last successful test.
-- **Fix to verify:** a recipe failure preceded an identity change.
-- **Failed: recipe:** failed on the current identity; show cause and public fix
-  reference, or “needs fix”.
-- **Blocked: platform:** infrastructure/Controller fault; never recipe blame.
-- **Untested:** no hardware verdict.
-- **Can't test here:** requires more Sparks than are enrolled.
-- **Testing now:** occupies a lane; the prior proof remains visible.
+The local sweep view uses the `QualificationStatus` values. Their user-facing
+meanings, and which status counts as verified, have one owner:
+`contracts/src/vonk_forge_contracts/vocabulary.py`; do not restate them here.
+The view adds detail per status: for Re-check, the recipe, image and/or Model
+changes and the last successful test; for Failed: recipe, the cause and public
+fix reference, or “needs fix”; for Blocked: platform, never recipe blame; for
+Testing now, the prior proof stays visible.
 
 The signed catalog's per-recipe `qualification` is recomputed at publication
 against the recipe, image and Models in that release. It publishes Working,
@@ -253,7 +248,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.7.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.8.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -268,14 +263,17 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`:
   `CapabilityName` set (`vonk_forge_contracts/capability.py`), each with one
   `CapabilityRole` (understanding, generator or other) that guards read instead
   of parsing names. A new capability is a contract minor release: add the name
-  and its role there, release it, and let the Controller adopt it before a
+  and its role there, and its label, description and category to `CAPABILITY_TEXT`
+  in `vocabulary.py` (import fails without it), release it, and let the Controller adopt it before a
   catalog declares the name; a reader refuses a name it does not list.
 - **Breaking (major, for example `3.0.0`, which moved display text out of the documents, and `4.0.0`, which moved a Model's modalities, capabilities and licence into its display):** remove or rename a field, make one required,
   or change a field's meaning. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
   unknown fields does not let an old reader accept a missing required field.
-  Coordinate a vonk-forge release; Controllers on
-  the previous major keep following the previous major's release.
+  Deploy it consumer-first: pin this recipes commit in vonk-forge, deploy it,
+  then move `platform_ref` here (`tools/check-platform-contracts` refuses a
+  major newer than the platform's). Controllers on the previous major keep
+  following the previous major's release until then.
 
 ### Model: the exact files and their capabilities
 
@@ -1305,7 +1303,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-document-reads`, `tools/_added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
 | `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
 | `tools/check-model-modalities`, `tests/test_model_modalities.py` | A touched Model's display (or the Model a touched recipe serves) disagrees with its modalities (`image` ⇔ `image-understanding`, likewise audio and video) or with a serving recipe's API document: a chat route needs `chat` and `text-generation`, reasoning other than `none` needs `reasoning`, tools other than `none` need `tool-use`. Correct `display/models/<slug>.json`, or the API document if it claims what the launch does not serve. |
-| `tools/check-platform-contracts`, `qualification/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. |
+| `tools/check-platform-contracts`, `qualification/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. The row also fires on a contracts major newer than the platform's: pin this commit in vonk-forge, deploy, then move `platform_ref`. |
 | `tests/test_guidance_files.py` | Guidance stays in the allowlisted files and local Markdown links resolve. Consolidate the new rule here or in AGENTS; fix links in the same change. |
 | `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
 
@@ -1434,7 +1432,8 @@ Commit authored sources only. `catalog-index.json`,
 `qualification/qualification-index.json`, `packages/` and
 `qualification/coverage/` are build outputs: Git ignores them, CI builds and
 validates them for every pull request, and publication builds them from the
-release commit. Build them locally with one command when a tool or test outside
+release commit. The release also ships `catalog-index-v2.schema.json`, the generated schema of the
+`CatalogIndex` contract that `catalog-index.json` is built through. Build them locally with one command when a tool or test outside
 the suite needs them:
 
 ```bash
