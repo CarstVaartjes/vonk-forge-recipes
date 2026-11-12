@@ -1629,6 +1629,10 @@ class Sweep:
             return
         self.release_at = now
         self.check_client()
+        # The client's contract fingerprint equals the Controller's: direct evidence the
+        # mismatch is gone, whichever command met it (a rare one may not run for hours).
+        if self._component_observations().get("client") is not None:
+            self.clear_infra(policy.CLIENT_CONTRACT)
 
     def _contract_alert(self) -> None:
         text = (
