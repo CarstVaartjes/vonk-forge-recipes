@@ -20,6 +20,7 @@ from qualification.memory_need import (
     load_inputs,
     memory_variants,
     positive_argument,
+    recurrent_layer_bytes,
     speculative_tokens,
 )
 from qualification.vllm_memory_fit import loads_draft_model
@@ -213,6 +214,21 @@ def test_other_engines_keep_the_hand_state_bound() -> None:
         cache_need_for_context(recipe, geometry, -(-context // 16) * 16)
         + geometry.state_bytes_per_request
     )
+
+
+def test_glm_kda_state_is_the_upstream_per_rank_layout() -> None:
+    # vLLM kda_state_shape on TP2 with 7 speculative tokens: conv 24576 / 2
+    # channels x (4 - 1 + 7) in bf16 (245,760 B) plus 64 / 2 heads x 128 x 128
+    # fp32 (2,097,152 B) per KDA layer; the hand bound is not also counted.
+    recipe = next(
+        recipe
+        for recipe, _ in recipes()
+        if recipe.identity.slug == "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual"
+    )
+    geometry = INPUTS.geometries[recipe.models[0].model.slug]
+    assert geometry.recurrent is not None
+    assert recurrent_layer_bytes(recipe, geometry.recurrent) == 2_342_912
+    assert geometry.state_bytes_per_request == 0
 
 
 ADAY777 = "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"
