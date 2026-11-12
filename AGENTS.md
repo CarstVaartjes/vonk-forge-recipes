@@ -235,6 +235,15 @@ batch in the same tick. Rollback/prune failures retain the consistency boundary.
 See `tests/test_sweep_noblock.py`, `tests/test_sweep_affinity.py`,
 `tests/test_sweep_recovery_guards.py` and `tests/test_sweep_s3_recovery.py`.
 
+Independent Controller reads in a sweep pass fan out: collect them with
+`spark_sweep.fanout.gather` (bounded by `READ_LIMIT`), then apply the replies in
+order on the main thread; worker threads never write `state.data` (only the
+contract-mismatch flags, under `_contract_lock`). A `vk.run`/
+`vk.call` that must stay serial (it writes, or depends on the previous reply)
+carries `# sequential: <reason>` on the call or the line above it.
+`tools/check-serial-reads` enforces this on added lines
+(`tests/test_sweep_tick_fanout.py`, `tests/test_check_serial_reads.py`).
+
 Profiles 1–3 cannot be edited by the sweep; sweep/pin profile numbers cannot use
 these slots. Owner loads take priority with a visible persisted hold. Owner
 progress is re-read every tick, including while paused; unreadable progress has
