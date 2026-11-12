@@ -111,6 +111,7 @@ from .qualification import (
     unpublishable_pass,
 )
 from .receipt import CANCELLED_FAILURE
+from .recheck import RecheckBackoff
 from .removal import ModelRemover
 from .removal_contract import RemovalWait
 from .report import write_status
@@ -394,6 +395,8 @@ class Sweep:
             self._download_failed,
             self._download_done,
         )
+        self.recheck = RecheckBackoff(config.poll_seconds, INFRA_CAP)
+        self.stuck_wait = 0.0  # set by a pass the Controller did not answer
         self.prefetcher.on_infra = self.note_infra
         self.prefetcher.on_ok = self.clear_infra
         self.prefetcher.release = lambda: self.release_sha
@@ -1145,7 +1148,9 @@ class Sweep:
         try:
             self._tick()
             self.clear_infra("tick")
+            self.recheck.reset()
         except VonkctlError as error:
+            self.stuck_wait = self.recheck.next_wait()
             self.state.event(f"vonkctl failed, will retry: {str(error)[:150]}")
             self._save_quietly()
         except Exception as error:  # noqa: BLE001 - an unattended sweep never dies of one bad pass
@@ -1177,10 +1182,12 @@ class Sweep:
         except (VonkctlError, OSError) as error:
             self.note_infra("startup", f"{type(error).__name__}: {error}")
             item = self.state.data["infra"]["startup"]
-            item["until"] = self.clock.now() + self.cfg.poll_seconds
+            wait = self.recheck.next_wait()
+            item["until"] = self.clock.now() + wait
             self.waiting(f"startup {step.__name__}: {error}", float(item["since"]))
-            self.clock.sleep(self.cfg.poll_seconds)
+            self.clock.sleep(wait)
             return False
+        self.recheck.reset()
         self.clear_infra("startup")
         self.done_waiting()
         return True
@@ -1944,20 +1951,19 @@ class Sweep:
                     self.state.event(
                         f"unexpected error in the loop, continuing: {type(error).__name__}: {str(error)[:150]}"
                     )
-                self.clock.sleep(
-                    min(
-                        self.cfg.poll_seconds,
-                        max(
-                            0.0, round_start + self.cfg.poll_seconds - self.clock.now()
-                        ),
-                    )
-                )
+                self.clock.sleep(self._round_wait(round_start))
         except KeyboardInterrupt:
             self.interrupt()
             self.finish(interrupted=True)
             return 130
         self.finish()
         return 0
+
+    def _round_wait(self, round_start: float) -> float:
+        """The rest of the poll, or the backoff of a pass the Controller did not answer."""
+        stuck, self.stuck_wait = self.stuck_wait, 0.0
+        poll = self.cfg.poll_seconds
+        return max(stuck, min(poll, max(0.0, round_start + poll - self.clock.now())))
 
     def _model_preparing(self, recipe: Recipe) -> bool:
         return any(

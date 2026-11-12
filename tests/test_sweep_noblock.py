@@ -535,3 +535,52 @@ def test_cached_recipe_is_ready_while_its_native_model_stays_not_cached(
         recipe.key,
         cold.key,
     ]
+
+
+def test_a_stuck_sweep_rechecks_with_growing_capped_jittered_waits_and_resets(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "state.json").write_text(FIXTURE.read_text())
+    sweep, _, clock = make_sweep(tmp_path, [], [])
+    sweep.recheck.uniform = lambda low, high: high  # the longest jittered wait
+
+    def unavailable() -> None:
+        raise VonkctlError(("fleet",), None, "fleet is unreadable")
+
+    waits = []
+    for _ in range(8):
+        before = clock.now()
+        assert not sweep._startup(unavailable)
+        waits.append(clock.now() - before)
+    poll = sweep.cfg.poll_seconds
+    assert waits[:4] == [poll, 2 * poll, 4 * poll, 8 * poll]
+    assert waits[-1] == 600  # capped, never grows past INFRA_CAP
+    sweep.recheck.uniform = lambda low, high: low  # the shortest: never below the poll
+    assert sweep.recheck.next_wait() >= poll
+    assert sweep._startup(lambda: None)  # the first answer resets the backoff
+    before = clock.now()
+    assert not sweep._startup(unavailable)
+    assert clock.now() - before == poll
+
+
+def test_a_pass_the_controller_did_not_answer_stretches_the_next_poll(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "state.json").write_text(FIXTURE.read_text())
+    sweep, _, _clock = make_sweep(tmp_path, [], [])
+    sweep.recheck.uniform = lambda low, high: high
+
+    def down() -> None:
+        raise VonkctlError(("fleet",), None, "fleet is unreadable")
+
+    sweep._tick = down  # type: ignore[method-assign]
+    poll = sweep.cfg.poll_seconds
+    now = sweep.clock.now()
+    waits = []
+    for _ in range(3):
+        sweep.tick()
+        waits.append(sweep._round_wait(now))
+    assert waits == [poll, 2 * poll, 4 * poll]
+    sweep._tick = lambda: None  # type: ignore[method-assign]
+    sweep.tick()
+    assert sweep._round_wait(now) == poll
