@@ -1476,6 +1476,15 @@ def unverified_image(
     )
 
 
+#: The comment lines between a published image's LABEL block and the "Upstream recipes
+#: start it with" line describe the image; FROM and LABEL own its identity, so they name none.
+IMAGE_NOTE = re.compile(
+    r"(?P<head>^FROM[^\n]*\n\n?LABEL[^\n]*(?:\\\n[^\n]*)*\n\n?)"
+    r"(?:#[^\n]*\n)+?(?=# Upstream recipes start it with)",
+    re.MULTILINE,
+)
+
+
 def _pinned(written: str, digest: str) -> str:
     """``written`` (``repo[:tag]@digest``) at another digest, keeping any tag it names."""
     repository, tag, _ = kit_pins.split_image(written)
@@ -2616,6 +2625,7 @@ class Assessor:
                 lambda written: _pinned(written, digest),
                 new_recipe,
                 edits,
+                published=True,
             )
             result.evidence.append(
                 f"The recipe runs {repository} as published; it moves to `{digest}`, "
@@ -2793,6 +2803,7 @@ class Assessor:
                 lambda written: _pinned(written, digest),
                 new_recipe,
                 edits,
+                published=True,
             )
             result.evidence.append(
                 f"The recipe runs {repository} as published; it moves to `{digest}`, "
@@ -3005,8 +3016,13 @@ class Assessor:
         reference: Callable[[str], str],
         new_recipe: dict[str, Any],
         edits: dict[str, bytes | None],
+        published: bool = False,
     ) -> None:
-        """Move the Dockerfile's FROM of ``repository`` and the recorded base image."""
+        """Move the Dockerfile's FROM of ``repository`` and the recorded base image.
+
+        A ``published`` image (the recipe runs it as the creator pushed it) also gets
+        its header prose replaced by a note that names no version.
+        """
         dockerfile = directory / "Dockerfile"
         if dockerfile.is_file():
             text = self._pending(dockerfile, edits)
@@ -3022,6 +3038,16 @@ class Assessor:
 
             moved = kit_pins.FROM_LINE.sub(move, text)
             if moved != text:
+                if published:
+                    moved = IMAGE_NOTE.sub(
+                        lambda m: (
+                            m["head"]
+                            + f"# The published {repository} image, built from the revision "
+                            "above; the digest is what runs.\n"
+                        ),
+                        moved,
+                        count=1,
+                    )
                 edits[dockerfile.relative_to(self.catalog.root).as_posix()] = (
                     moved.encode()
                 )
