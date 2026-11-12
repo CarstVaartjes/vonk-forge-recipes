@@ -1103,7 +1103,7 @@ class ImageHeaderMoveTests(unittest.TestCase):
     NEW = "sha256:" + "b" * 64
     UPSTREAM = "# Upstream recipes start it with `vllm serve`; the wrapper is the entrypoint.\n"
 
-    def move(self, header: str) -> str:
+    def move(self, header: str, result: Any = None) -> str:
         text = (
             f"FROM docker.io/eugr/spark-vllm@{self.OLD}\n\n"
             'LABEL org.opencontainers.image.source="https://example.test/r" \\\n'
@@ -1123,6 +1123,7 @@ class ImageHeaderMoveTests(unittest.TestCase):
                 {"execution": {"build": {}}},
                 edits,
                 published=True,
+                result=result,
             )
         written = edits["Dockerfile"]
         assert written is not None
@@ -1148,6 +1149,24 @@ class ImageHeaderMoveTests(unittest.TestCase):
     def test_header_without_the_upstream_line_is_kept(self) -> None:
         header = "# build arguments. Upstream recipes start it with `vllm serve`; the wrapper.\n"
         self.assertIn(header, self.move(header))
+
+    def test_header_the_note_cannot_replace_is_named_for_review(self) -> None:
+        # Verbatim from adapters/eugr/qwen3-6-35b-a3b-nvfp4/Dockerfile.
+        mid_line = (
+            "# eugr's published vllm-node image (nightly-20260929). Its /workspace/build-metadata.yaml records\n"
+            "# build_script_commit 42f62e34 (the revision above), vLLM af5b4857e and FlashInfer 4a638133, built\n"
+            "# from the repository's default Dockerfile (upstream's local `vllm-node` build) with the stock\n"
+            "# build arguments. Upstream recipes start it with `vllm serve`; the wrapper is the Vonk entrypoint.\n"
+        )
+        for header, reviewed in (
+            (mid_line, True),
+            ("# Old prose.\n" + self.UPSTREAM, False),
+        ):
+            result = refresh.Assessment("recipe")
+            self.move(header, result)
+            self.assertEqual(
+                "Review the Dockerfile's header comment.\n" in result.evidence, reviewed
+            )
 
 
 class ImageLabelClaimTests(unittest.TestCase):

@@ -2626,6 +2626,7 @@ class Assessor:
                 new_recipe,
                 edits,
                 published=True,
+                result=result,
             )
             result.evidence.append(
                 f"The recipe runs {repository} as published; it moves to `{digest}`, "
@@ -2804,6 +2805,7 @@ class Assessor:
                 new_recipe,
                 edits,
                 published=True,
+                result=result,
             )
             result.evidence.append(
                 f"The recipe runs {repository} as published; it moves to `{digest}`, "
@@ -3017,11 +3019,13 @@ class Assessor:
         new_recipe: dict[str, Any],
         edits: dict[str, bytes | None],
         published: bool = False,
+        result: Assessment | None = None,
     ) -> None:
         """Move the Dockerfile's FROM of ``repository`` and the recorded base image.
 
         A ``published`` image (the recipe runs it as the creator pushed it) also gets
-        its header prose replaced by a note that names no version.
+        its header prose replaced by a note that names no version; a header the note
+        cannot replace is named in ``result`` for review, as the kit path does.
         """
         dockerfile = directory / "Dockerfile"
         if dockerfile.is_file():
@@ -3039,6 +3043,10 @@ class Assessor:
             moved = kit_pins.FROM_LINE.sub(move, text)
             if moved != text:
                 if published:
+                    if result is not None and not IMAGE_NOTE.search(moved):
+                        result.evidence.append(
+                            "Review the Dockerfile's header comment.\n"
+                        )
                     moved = IMAGE_NOTE.sub(
                         lambda m: (
                             m["head"]
