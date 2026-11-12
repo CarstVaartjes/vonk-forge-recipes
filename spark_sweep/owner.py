@@ -25,6 +25,7 @@ from vonk_forge_contracts.sweep import (
 )
 
 from . import verdict
+from .fanout import Outcome
 from .lifecycle import ACTIVE
 from .state import State
 from .vonkctl import OWNER_PROFILES, Vonkctl, VonkctlError
@@ -54,8 +55,9 @@ class OwnerGuard:
         self.state = state
         self.hold_seconds = hold_seconds
         self.profiles = sorted(profiles)
+        self.reads: dict[int, Outcome] = {}
 
-    def _latest(self, number: int) -> tuple[str, str, str, str] | None:
+    def read_latest(self, number: int) -> tuple[str, str, str, str] | None:
         reply = self.vk.run(
             "profile",
             "progress",
@@ -163,14 +165,19 @@ class OwnerGuard:
             self.state.event(message)
         return message if progress is verdict.Progress.WAITING else None
 
+    def _latest_of(self, number: int) -> tuple[str, str, str, str] | None:
+        outcome = self.reads.pop(number, None)
+        return outcome.result() if outcome is not None else self.read_latest(number)
+
     def check(self, now: float) -> OwnerStatus:
+        """Reads ``self.reads`` (this pass's concurrent ``read_latest`` outcomes) first."""
         owner = self.state.data["owner"]
         baseline: dict[str, dict[str, str]] = owner["baseline"]
         paused: list[str] = []
         new_activity = False
         for number in self.profiles:
             try:
-                latest = self._latest(number)
+                latest = self._latest_of(number)
             except VonkctlError as error:
                 reason = self._unreadable(number, error, now)
                 if reason is not None:

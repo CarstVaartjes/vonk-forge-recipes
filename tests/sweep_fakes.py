@@ -2154,6 +2154,17 @@ class ImmediateCatalogExecutor(DaemonExecutor):
         return future
 
 
+def _locked(runner: Any) -> Any:
+    """Reads of one pass run concurrently; the fake Controller takes one call at a time."""
+    lock = threading.RLock()
+
+    def call(argv: Any, timeout: float) -> Any:
+        with lock:
+            return runner(argv, timeout)
+
+    return call
+
+
 def make_sweep(
     tmp_path: Path,
     recipes: list[FakeRecipe],
@@ -2193,7 +2204,7 @@ def make_sweep(
     )
     sweep = Sweep(
         config,
-        Vonkctl("vonkctl", runner=fleet.runner),
+        Vonkctl("vonkctl", runner=_locked(fleet.runner)),
         State.load(tmp_path / "state.json", clock.now),
         ResultsLog(tmp_path / "results.jsonl", "test-authority"),
         make_definitions(recipes),
