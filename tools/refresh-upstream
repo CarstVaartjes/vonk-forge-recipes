@@ -79,6 +79,9 @@ RefreshAppAuth = _load("_refresh_auth.py").RefreshAppAuth
 APP_AUTH: Any = None
 
 SHA = re.compile(r"^[0-9a-f]{40}$")
+#: Every refresher branch is ``<BRANCH_PREFIX><recipe-id>``; tools/select-producer-checks
+#: runs the full suite for it (tests/test_select_producer_checks.py holds the two together).
+BRANCH_PREFIX = "refresh/"
 LABEL_NEEDS_REVIEW = "refresh:needs-review"
 LABEL_MECHANICAL = "refresh:mechanical"
 LABEL_MEMORY_ESTIMATE = "memory:estimate"
@@ -3811,8 +3814,8 @@ def arm_open_mechanical_prs(summary: Summary) -> None:
     )
     for pr in pull_requests:
         branch = str(pr.get("headRefName", ""))
-        if branch.startswith("refresh/") and not pr.get("autoMergeRequest"):
-            arm_mechanical_pr(pr["number"], branch.removeprefix("refresh/"), summary)
+        if branch.startswith(BRANCH_PREFIX) and not pr.get("autoMergeRequest"):
+            arm_mechanical_pr(pr["number"], branch.removeprefix(BRANCH_PREFIX), summary)
 
 
 def has_publication_receipt(main_head: str, runs: list[dict[str, Any]]) -> bool:
@@ -3958,7 +3961,7 @@ def _publish(
     the current refresh are evidence for the recipe's needs-review issue.
     """
     recipe_id = assessment.recipe_id
-    branch = f"refresh/{recipe_id}"
+    branch = f"{BRANCH_PREFIX}{recipe_id}"
     marker = f"<!-- refresh-target: {assessment.fingerprint()} -->"
     existing = own_pulls(
         gh_json(
@@ -4214,7 +4217,7 @@ def supersede_member_prs(
                 "pr",
                 "list",
                 "--head",
-                f"refresh/{member}",
+                f"{BRANCH_PREFIX}{member}",
                 "--state",
                 "open",
                 "--json",
@@ -4283,9 +4286,9 @@ def close_stale_refresh_prs(
     )
     for pr in pulls:
         branch = str(pr.get("headRefName", ""))
-        if not branch.startswith("refresh/"):
+        if not branch.startswith(BRANCH_PREFIX):
             continue
-        recipe_id = branch.removeprefix("refresh/")
+        recipe_id = branch.removeprefix(BRANCH_PREFIX)
         result = assessed.get(recipe_id)
         together = (groups or {}).get(recipe_id)
         if together is not None and together[0] != recipe_id:
@@ -4534,7 +4537,7 @@ def foreign_open_prs() -> dict[int, set[str]]:
             [
                 p
                 for p in listed
-                if not str(p.get("headRefName", "")).startswith("refresh/")
+                if not str(p.get("headRefName", "")).startswith(BRANCH_PREFIX)
             ]
         )
     }
