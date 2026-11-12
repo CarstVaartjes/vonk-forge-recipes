@@ -199,6 +199,7 @@ VLLM_UNMODELED_HYBRID = {
     "inkling-small-nvfp4": "Inkling short convolution on creator images",
     # KDA linear + DSA layers on creator vLLM forks: not modeled (follow-up).
     "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704": "Glm5Next KDA + DSA not modeled (follow-up)",
+    "glm-5-3-flash-fp4-local-76348ddb": "Glm5Next KDA + DSA not modeled (follow-up)",
     "glm-5-3-flash-nvfp4-caca4e6a": "Glm5Next KDA + DSA not modeled (follow-up)",
 }
 
