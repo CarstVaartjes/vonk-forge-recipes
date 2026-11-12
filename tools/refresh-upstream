@@ -1476,6 +1476,9 @@ def unverified_image(
     )
 
 
+#: The reminder a moved image's Dockerfile header gets when it cannot be rewritten.
+REVIEW_HEADER = "Review the Dockerfile's header comment."
+
 #: The comment lines between a published image's LABEL block and the "Upstream recipes
 #: start it with" line describe the image; FROM and LABEL own its identity, so they name none.
 IMAGE_NOTE = re.compile(
@@ -2626,6 +2629,7 @@ class Assessor:
                 new_recipe,
                 edits,
                 published=True,
+                result=result,
             )
             result.evidence.append(
                 f"The recipe runs {repository} as published; it moves to `{digest}`, "
@@ -2804,6 +2808,7 @@ class Assessor:
                 new_recipe,
                 edits,
                 published=True,
+                result=result,
             )
             result.evidence.append(
                 f"The recipe runs {repository} as published; it moves to `{digest}`, "
@@ -3001,11 +3006,12 @@ class Assessor:
             lambda written: kit_pins.image_reference(pin, written),
             new_recipe,
             edits,
+            result=result,
         )
         result.evidence.append(
             f"The recipe runs the kit's published image {pin.repo}; it moves to "
             f"`{pin.immutable}` (the kit's declaration), and the thin layer on top is "
-            "rebuilt on it. Review the Dockerfile's header comment.\n"
+            f"rebuilt on it. {REVIEW_HEADER}\n"
         )
 
     def _move_image(
@@ -3017,11 +3023,14 @@ class Assessor:
         new_recipe: dict[str, Any],
         edits: dict[str, bytes | None],
         published: bool = False,
+        *,
+        result: Assessment,
     ) -> None:
         """Move the Dockerfile's FROM of ``repository`` and the recorded base image.
 
         A ``published`` image (the recipe runs it as the creator pushed it) also gets
-        its header prose replaced by a note that names no version.
+        its header prose replaced by a note that names no version; a header the note
+        cannot replace is named in ``result`` for review, as the kit path does.
         """
         dockerfile = directory / "Dockerfile"
         if dockerfile.is_file():
@@ -3039,7 +3048,7 @@ class Assessor:
             moved = kit_pins.FROM_LINE.sub(move, text)
             if moved != text:
                 if published:
-                    moved = IMAGE_NOTE.sub(
+                    moved, noted = IMAGE_NOTE.subn(
                         lambda m: (
                             m["head"]
                             + f"# The published {repository} image, built from the revision "
@@ -3048,6 +3057,8 @@ class Assessor:
                         moved,
                         count=1,
                     )
+                    if not noted:
+                        result.evidence.append(f"{REVIEW_HEADER}\n")
                 edits[dockerfile.relative_to(self.catalog.root).as_posix()] = (
                     moved.encode()
                 )
