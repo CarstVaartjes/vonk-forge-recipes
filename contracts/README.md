@@ -16,6 +16,9 @@ API entry points:
 - [Recipe API facts](src/vonk_forge_contracts/api.py) (an optional sibling of the
   Recipe, like its display) and [their checks](src/vonk_forge_contracts/api_checks.py).
 - [Resolution and package validation](src/vonk_forge_contracts/resolver.py).
+- [Published words](src/vonk_forge_contracts/vocabulary.py): each capability's label,
+  description and category and each status's meaning and verified flag (the single owner;
+  the index publishes them).
 - [Published index](src/vonk_forge_contracts/catalog_index.py) (`CatalogIndex`, read with
   `read_catalog_index`; its schema ships in every release).
 - [Canonical document identity](src/vonk_forge_contracts/canonical.py).

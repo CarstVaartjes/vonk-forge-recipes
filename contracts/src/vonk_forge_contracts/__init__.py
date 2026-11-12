@@ -109,10 +109,6 @@ from .qualification_status import (
 )
 from .recipe import RecipeDefinition, RecipeOptionError
 from .vocabulary import (
-    CAPABILITY_TEXT,
-    CATEGORY_LABEL,
-    STATUS_TEXT,
-    CapabilityCategory,
     CatalogVocabulary,
     catalog_vocabulary,
 )
@@ -122,8 +118,6 @@ CONTRACT_MAJOR = int(CONTRACT_VERSION.split(".", 1)[0])
 
 __all__ = [
     "CAPABILITY_ROLES",
-    "CAPABILITY_TEXT",
-    "CATEGORY_LABEL",
     "CONTRACT_MAJOR",
     "CONTRACT_VERSION",
     "ENDPOINT_ALIAS_PATTERN",
@@ -134,11 +128,9 @@ __all__ = [
     "PACKAGE_METADATA_FIELDS",
     "PACKAGE_PATH_PREFIX",
     "PACKAGE_SCHEMA_VERSION",
-    "STATUS_TEXT",
     "ApiBlock",
     "AudioSpeechApi",
     "AudioTranscriptionApi",
-    "CapabilityCategory",
     "CapabilityName",
     "CapabilityRole",
     "CatalogIndex",
