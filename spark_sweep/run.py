@@ -4254,17 +4254,17 @@ class Sweep:
         load: Mapping,
         *,
         terminal: bool = False,
-        fleet: Callable[[], Reply] | None = None,
+        fleet: Callable[[], Reply],
     ) -> bool:
         """An exact absent receipt plus fresh online fleet facts ends bookkeeping.
 
         A ``terminal`` receipt is final: absence is judged against its own stop targets
         only, and one with none has nothing to wait for. An absent receipt without
         targets may have stopped anything, so only a fleet with no runs ends it.
-        A pass over several loads hands in one ``fleet`` read (``functools.cache``) so the
+        A pass hands in one ``fleet`` read (``functools.cache``) for all its loads, so the
         Controller is asked once per pass, not once per load.
         """
-        reply = fleet() if fleet else self.vk.run("fleet")
+        reply = fleet()
         if not reply.ok:
             return False
         try:
