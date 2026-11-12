@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""Start the public site's build after a recipe library release is published.
+
+The site (vonk-forge-web) follows the newest release. Its own schedule is only
+a backstop (GitHub ran it every 4-11 hours), so publication dispatches its
+``pages.yml`` right away. The refresh GitHub App is installed on that
+repository; the token is minted for that repository only and carries just
+``actions: write``.
+
+``--verify`` mints the token and checks it names exactly the site repository,
+and dispatches nothing. Failure exits non-zero; the publish workflow runs this
+as its last step with ``continue-on-error``, so a failed dispatch is a visible
+failed step and never fails or undoes the published release.
+"""
+
+from __future__ import annotations
+
+import argparse
+import importlib.util
+import json
+import os
+import subprocess
+import sys
+from collections.abc import Callable, Mapping
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+SITE_REPOSITORY = "CarstVaartjes/vonk-forge-web"
+SITE_WORKFLOW = "pages.yml"
+PERMISSIONS = {"actions": "write"}
+
+Run = Callable[..., subprocess.CompletedProcess[str]]
+
+
+def _load_auth() -> Any:
+    spec = importlib.util.spec_from_file_location(
+        "refresh_auth", ROOT / "tools" / "_refresh_auth.py"
+    )
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def dispatch(auth: Any, *, verify: bool, run: Run = subprocess.run) -> str:
+    """Dispatch the site build (or only verify the token's scope); raise on failure."""
+
+    environment = {**os.environ, **auth.environment()}
+    if verify:
+        command = ["gh", "api", "installation/repositories"]
+    else:
+        command = ["gh", "workflow", "run", SITE_WORKFLOW, "-R", SITE_REPOSITORY]
+    result = run(command, env=environment, capture_output=True, text=True, check=False)
+    if result.returncode:
+        raise RuntimeError(f"{' '.join(command[:3])} failed: {result.stderr.strip()}")
+    if not verify:
+        return f"dispatched {SITE_WORKFLOW} on {SITE_REPOSITORY}"
+    repositories = [r["full_name"] for r in json.loads(result.stdout)["repositories"]]
+    if repositories != [SITE_REPOSITORY]:
+        raise RuntimeError(
+            f"token scope differs from {SITE_REPOSITORY}: {repositories}"
+        )
+    return f"App token verified; restricted to {SITE_REPOSITORY}"
+
+
+def main(environment: Mapping[str, str] = os.environ) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--verify", action="store_true")
+    arguments = parser.parse_args()
+    auth_module = _load_auth()
+    try:
+        auth = auth_module.RefreshAppAuth(
+            environment.get("REFRESH_APP_CLIENT_ID", ""),
+            environment.get("REFRESH_APP_PRIVATE_KEY", ""),
+            SITE_REPOSITORY,
+            PERMISSIONS,
+        )
+        try:
+            print(dispatch(auth, verify=arguments.verify))
+        finally:
+            auth.close()
+    except RuntimeError as error:
+        print(f"::error::{error}" if "GITHUB_ACTIONS" in environment else error)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

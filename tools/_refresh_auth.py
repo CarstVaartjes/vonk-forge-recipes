@@ -13,9 +13,23 @@ import urllib.request
 from datetime import datetime
 from typing import Any
 
+#: What the recipe refresh needs on the recipe repository.
+REFRESH_PERMISSIONS = {
+    "contents": "write",
+    "pull_requests": "write",
+    "issues": "write",
+    "actions": "write",
+}
+
 
 class RefreshAppAuth:
-    def __init__(self, client_id: str, private_key: str, repository: str) -> None:
+    def __init__(
+        self,
+        client_id: str,
+        private_key: str,
+        repository: str,
+        permissions: dict[str, str] | None = None,
+    ) -> None:
         if not client_id or not private_key or len(repository.split("/")) != 2:
             raise RuntimeError(
                 "Refresh App is not configured: set REFRESH_APP_CLIENT_ID, "
@@ -25,6 +39,7 @@ class RefreshAppAuth:
         self.client_id = client_id
         self.private_key = private_key
         self.repository = repository
+        self.permissions = permissions or REFRESH_PERMISSIONS
         self._token = ""
         self._expires = 0.0
 
@@ -96,12 +111,7 @@ class RefreshAppAuth:
                 jwt,
                 {
                     "repositories": [self.repository.split("/")[1]],
-                    "permissions": {
-                        "contents": "write",
-                        "pull_requests": "write",
-                        "issues": "write",
-                        "actions": "write",
-                    },
+                    "permissions": self.permissions,
                 },
             )
             expires = datetime.fromisoformat(access["expires_at"]).timestamp()
