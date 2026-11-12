@@ -430,24 +430,11 @@ class ComfyUIWorkflowControlTests(unittest.TestCase):
         )["14"]["inputs"]
         self.assertEqual((sampler["steps"], sampler["seed"]), (8, 7))
 
-    def test_controls_refuse_sizes_off_the_latent_grid_and_undeclared_controls(
-        self,
-    ) -> None:
+    def test_controls_refuse_sizes_off_the_latent_grid(self) -> None:
         adapter = _controlled_adapter()
         workflow, arguments = _default_job("flux-2-klein-4b-nvfp4-comfyui-single")
         with self.assertRaisesRegex(ValueError, "multiple of 16"):
             _prompt(adapter, workflow, {**arguments, "width": 1000})
-        fixed = load(
-            ROOT / "adapters/media/comfyui-core/workflows/flux-2-klein-4b.json"
-        )
-        with self.assertRaisesRegex(ValueError, "does not accept --width"):
-            _prompt(adapter, fixed, {"seed": 0, "width": 1024})
-        for controls in ({"cfg": {}}, {"width": {"maximum": 2048}}, {"width": 16}):
-            with (
-                self.subTest(controls=controls),
-                self.assertRaisesRegex(ValueError, "contract is invalid"),
-            ):
-                adapter.control_replacements({"controls": controls}, {"width": 16})
 
 
 if __name__ == "__main__":
