@@ -626,7 +626,10 @@ null block; `vllm_hybrid_need` computes that bound from the recipe's prefix
 caching, cache dtypes, speculation, block size and TP and ignores any hand
 `state_bytes_per_request`, which other engines keep. A hybrid whose vLLM layout
 the formula cannot express is named, with its reason, in
-`VLLM_UNMODELED_HYBRID`.
+`VLLM_UNMODELED_HYBRID`. A typed geometry may keep a hand per-token attention
+bound (`token_bytes_by_dtype`, e.g. a DSA indexer record) only when `layers`
+equals `recurrent.attention_layers`, because the formula spreads that bound over
+the attention layers it groups; the validator rejects any other `layers`.
 After a pool fails on hardware, keep the creator context if one request at it
 fits beside the selected weights and runtime overhead (check the worst option);
 otherwise cap the engine context at what fits, cite the failure and disclose the
@@ -1056,6 +1059,11 @@ heads. `tools/check-image-provenance --base origin/main` checks changed recipes.
 An unavailable recorded commit needs the explicit unverified provenance mark
 and review; do not claim a byte comparison that could not run. Outages wait;
 missing source is unverified (`tests/test_published_image_follow.py`).
+When the refresher moves a published image it also replaces the adapter
+Dockerfile's image-description comment (between `LABEL` and the
+`# Upstream recipes start it with` line) with one version-free line; `FROM` and
+`LABEL` own the identity, so header prose never names a version. Kit image pins
+keep the manual header review.
 
 ### Kit-built recipes: the kit declares what it builds on
 
