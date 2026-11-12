@@ -26,7 +26,7 @@ from collections.abc import Callable, Iterable, Mapping, Sequence
 from concurrent.futures import Future
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
-from functools import partial
+from functools import cache, partial
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -4249,14 +4249,22 @@ class Sweep:
         online = {s.id for s in self.sparks()}
         return {node: why for node, why in held.items() if node in online}
 
-    def _cleanup_target_absent(self, load: Mapping, *, terminal: bool = False) -> bool:
+    def _cleanup_target_absent(
+        self,
+        load: Mapping,
+        *,
+        terminal: bool = False,
+        fleet: Callable[[], Reply],
+    ) -> bool:
         """An exact absent receipt plus fresh online fleet facts ends bookkeeping.
 
         A ``terminal`` receipt is final: absence is judged against its own stop targets
         only, and one with none has nothing to wait for. An absent receipt without
         targets may have stopped anything, so only a fleet with no runs ends it.
+        A pass hands in one ``fleet`` read (``functools.cache``) for all its loads, so the
+        Controller is asked once per pass, not once per load.
         """
-        reply = self.vk.run("fleet")
+        reply = fleet()
         if not reply.ok:
             return False
         try:
@@ -4383,6 +4391,7 @@ class Sweep:
         self._prune_cleanup_loads()
         now = self.clock.now()
         reads = self._read_cleanup_progress(now)
+        fleet = cache(partial(self.vk.run, "fleet"))
         for load in self.state.data["cleanup_loads"].values():
             if self._cleanup_settled(load):
                 continue
@@ -4394,14 +4403,14 @@ class Sweep:
             if load.get("terminal_receipt"):
                 # The Controller ended it with stops unconfirmed and its receipt is
                 # final: only current fleet facts retire it, once its targets are gone.
-                if self._cleanup_target_absent(load, terminal=True):
+                if self._cleanup_target_absent(load, terminal=True, fleet=fleet):
                     self._end_cleanup(load, now)
                 else:
                     self._defer_cleanup(load, budget, now)
                 continue
             reply = reads[load["request_key"]].result()
             document = reply.document
-            if reply.is_not_found and self._cleanup_target_absent(load):
+            if reply.is_not_found and self._cleanup_target_absent(load, fleet=fleet):
                 self.clear_infra("clearing")
                 self._end_cleanup(load, now)
                 continue
@@ -4529,7 +4538,7 @@ class Sweep:
             if not self._cleanup_pending(load):
                 # Child completion is not parent completion. Reconcile its exact
                 # targets with fresh fleet facts before retiring the observer.
-                if self._cleanup_target_absent(load, terminal=True):
+                if self._cleanup_target_absent(load, terminal=True, fleet=fleet):
                     self._end_cleanup(load, now)
                 else:
                     self._defer_cleanup(load, budget, now)
@@ -5322,11 +5331,12 @@ class Sweep:
         self, review: Mapping[str, Any]
     ) -> tuple[list[str] | None, str | None]:
         requests = []
+        fleet = cache(partial(self.vk.run, "fleet"))
         for key, load in self.state.data["cleanup_loads"].items():
             if load.get("end"):
                 continue
             if load.get("terminal_receipt") or load.get("state") in SETTLED:
-                if self._cleanup_target_absent(load, terminal=True):
+                if self._cleanup_target_absent(load, terminal=True, fleet=fleet):
                     self._end_cleanup(load, self.clock.now())
                 # An ended owner cannot adopt or execute another stop. The fresh
                 # placement review admits our own stops for any remaining runs.
@@ -5344,7 +5354,7 @@ class Sweep:
                 for row in self._cleanup_pending(load)
                 if set(row["node_ids"]) & online
             ]
-            if pending and self._cleanup_target_absent(load):
+            if pending and self._cleanup_target_absent(load, fleet=fleet):
                 self._end_cleanup(load, self.clock.now())
                 continue
             for row in pending:

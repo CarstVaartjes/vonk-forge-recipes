@@ -126,3 +126,21 @@ def test_a_terminal_cleanup_without_targets_retires_beside_a_foreign_workload(
     assert any(run["run_id"] == "old-run" for run in fleet.runs)
     sweep.fleet = fetch_fleet(sweep.vk, sweep.cfg.default_spark_memory)
     assert sweep._cleanup_nodes() == set()
+
+
+@pytest.mark.parametrize("loads", [3, 10])
+def test_a_cleanup_pass_reads_the_fleet_once_for_every_load(
+    tmp_path: Path, loads: int
+) -> None:
+    sweep, fleet, _clock, _recipe, record = scenario(tmp_path)
+    fleet.runs.clear()
+    cleanups = sweep.state.data["cleanup_loads"]
+    for index in range(1, loads):
+        cleanups[f"old-request-{index}"] = {
+            **record,
+            "request_key": f"old-request-{index}",
+        }
+    reads = fleet.fleet_reads
+    sweep.observe_cleanup()
+    assert all("end" in load for load in cleanups.values())
+    assert fleet.fleet_reads - reads == 1
