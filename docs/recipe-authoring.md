@@ -30,18 +30,13 @@ count/topology. Unknown historical provenance stays unknown. Public evidence
 has closed summaries/codes and digest references, never raw messages, host
 names, addresses, run/request/operation ids, paths or credentials.
 
-The local sweep view uses these statuses:
-
-- **Working:** passed on the current exact identity; quality notes may remain.
-- **Re-check: worked before:** an identity changed after a pass; show recipe,
-  image and/or Model changes and the last successful test.
-- **Fix to verify:** a recipe failure preceded an identity change.
-- **Failed: recipe:** failed on the current identity; show cause and public fix
-  reference, or “needs fix”.
-- **Blocked: platform:** infrastructure/Controller fault; never recipe blame.
-- **Untested:** no hardware verdict.
-- **Can't test here:** requires more Sparks than are enrolled.
-- **Testing now:** occupies a lane; the prior proof remains visible.
+The local sweep view uses the `QualificationStatus` values. Their user-facing
+meanings, and which status counts as verified, have one owner:
+`contracts/src/vonk_forge_contracts/vocabulary.py`; do not restate them here.
+The view adds detail per status: for Re-check, the recipe, image and/or Model
+changes and the last successful test; for Failed: recipe, the cause and public
+fix reference, or “needs fix”; for Blocked: platform, never recipe blame; for
+Testing now, the prior proof stays visible.
 
 The signed catalog's per-recipe `qualification` is recomputed at publication
 against the recipe, image and Models in that release. It publishes Working,
@@ -268,7 +263,8 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`:
   `CapabilityName` set (`vonk_forge_contracts/capability.py`), each with one
   `CapabilityRole` (understanding, generator or other) that guards read instead
   of parsing names. A new capability is a contract minor release: add the name
-  and its role there, release it, and let the Controller adopt it before a
+  and its role there, and its label, description and category to `CAPABILITY_TEXT`
+  in `vocabulary.py` (import fails without it), release it, and let the Controller adopt it before a
   catalog declares the name; a reader refuses a name it does not list.
 - **Breaking (major, for example `3.0.0`, which moved display text out of the documents, and `4.0.0`, which moved a Model's modalities, capabilities and licence into its display):** remove or rename a field, make one required,
   or change a field's meaning. Making a required field optional also needs

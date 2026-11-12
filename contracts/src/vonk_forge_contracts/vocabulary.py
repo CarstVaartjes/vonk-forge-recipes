@@ -195,11 +195,7 @@ def require_complete(
 
 require_complete("capability", CAPABILITY_TEXT, CapabilityName)
 require_complete("status", STATUS_TEXT, QualificationStatus)
-require_complete(
-    "category",
-    CATEGORY_LABEL,
-    {text.category for text in CAPABILITY_TEXT.values()} | {_C.OTHER},
-)
+require_complete("category", CATEGORY_LABEL, CapabilityCategory)
 
 
 class _VocabularyContract(BaseModel):
