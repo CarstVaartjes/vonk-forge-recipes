@@ -4,10 +4,7 @@ LABEL org.opencontainers.image.source="https://github.com/eugr/spark-vllm-docker
       org.opencontainers.image.revision="bc224d8126036675c6a84b698ed40919027782d2" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0"
 
-# eugr's published vllm-node image (nightly-20260929). Its /workspace/build-metadata.yaml records
-# build_script_commit 42f62e34 (the revision above), vLLM af5b4857e and FlashInfer 4a638133, built
-# from the repository's default Dockerfile (upstream's local `vllm-node` build) with the stock
-# build arguments.
+# eugr's published vllm-node image, built from the revision above; the digest is what runs.
 # Upstream recipes start it with `vllm serve`; the wrapper is the Vonk entrypoint.
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
