@@ -24,7 +24,10 @@ ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION = ROOT / "qualification"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import RecipeDefinition, read_model_display
+from vonk_forge_contracts import (
+    RecipeDefinition,
+    read_model_display,
+)
 from vonk_forge_contracts.qualification_authority import (
     QualificationAuthority,
     QualificationBatch,
