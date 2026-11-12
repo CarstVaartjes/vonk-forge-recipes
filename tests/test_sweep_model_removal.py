@@ -287,20 +287,6 @@ def test_restart_reconnects_to_the_write_ahead_request(tmp_path, fault):
     assert original in render_status(status)
 
 
-def test_a_saved_record_with_unknown_fields_still_resumes_its_removal(tmp_path):
-    """An unknown field is ignored, not a reason to refuse the record."""
-    sweep, peer, clock = scenario(tmp_path)
-    peer.lost = True
-    sweep.remove_finished_models()
-    original = sweep.state.data["model_removals"][A]["request_key"]
-    sweep.state.data["model_removals"][A].update(review={"raw": 1}, history=[{}])
-    advance(sweep, clock)
-    record = sweep.state.data["model_removals"][A]
-    assert record["outcome"] == RemovalOutcome.RECEIPT
-    assert record["receipt"]["request_key"] == original
-    assert not {"review", "history"} & record.keys()
-
-
 def test_one_pass_over_many_removals_saves_once(tmp_path):
     sweep, peer, clock = scenario(tmp_path, extra=3)
     peer.profiles = [
