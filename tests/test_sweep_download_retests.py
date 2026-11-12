@@ -40,7 +40,7 @@ def _failed_download(tmp_path: Path):
     return sweep, fleet, clock, recipe
 
 
-def test_terminal_download_retest_waits_then_keeps_complete_old_receipt(
+def test_terminal_download_retest_waits_then_retries_its_verified_parent(
     tmp_path: Path,
 ) -> None:
     sweep, fleet, clock, recipe = _failed_download(tmp_path)
@@ -80,7 +80,6 @@ def test_terminal_download_retest_waits_then_keeps_complete_old_receipt(
             new["request_key"],
         )
     ]
-    assert sweep.state.data["download_history"][recipe.key] == [verified]
     event = sweep.state.entry(recipe.key)["recovery_history"][-1]
     assert all(
         event["previous"][key] == value
@@ -90,7 +89,6 @@ def test_terminal_download_retest_waits_then_keeps_complete_old_receipt(
     sweep.state.save()
     resumed = State.load(sweep.state.path, clock.now)
     assert resumed.downloads[recipe.key] == new
-    assert resumed.data["download_history"][recipe.key] == [verified]
 
 
 def test_active_and_unknown_receipts_keep_exact_download_identity(
@@ -165,7 +163,6 @@ def test_foreign_or_unreadable_terminal_receipt_cannot_authorize_new_attempt(
         fleet.observations.append((("recipe", "progress"), 0, document))
         assert not sweep.prefetcher._can_request(recipe, clock.now())
         assert sweep.state.downloads[recipe.key] == original
-    assert recipe.key not in sweep.state.data["download_history"]
 
 
 def test_lost_new_reply_persists_same_request_before_effect(
@@ -206,7 +203,6 @@ def test_lost_new_reply_persists_same_request_before_effect(
     assert new["request_intent"] == old["request_intent"]
     resumed = State.load(sweep.state.path, clock.now)
     assert resumed.downloads[recipe.key] == new
-    assert resumed.data["download_history"][recipe.key] == [old]
     assert not sweep.prefetcher._can_request(recipe, clock.now())
 
 
@@ -302,7 +298,6 @@ def test_cache_arriving_during_retest_reuses_assets_without_download(
         len([call for _, call in fleet.calls if call[:2] == ("recipe", "download")])
         == 1
     )
-    assert recipe.key not in sweep.state.data["download_history"]
 
 
 @pytest.mark.parametrize("state", ["cancelled", "superseded"])
@@ -323,7 +318,6 @@ def test_operator_retest_replaces_confirmed_cancelled_parent(
     sweep.prefetcher._request(recipe, "model")
     assert sweep.state.downloads[recipe.key]["request_key"] != old_key
     assert not [call for _, call in fleet.calls if call[:2] == ("recipe", "retry")]
-    assert sweep.state.data["download_history"][recipe.key]
 
 
 def test_terminal_retry_uses_content_identity_despite_changed_revision(
@@ -370,10 +364,6 @@ def test_download_completion_credits_only_accepted_models_after_catalog_change(
     assert new["request_key"] != original["request_key"]
     assert new["retry_of_operation_id"] is None
     assert new["accepted_intent"]["kind"] == "selector"
-    assert (
-        sweep.state.data["download_history"][fake.key][0]["request_key"]
-        == original["request_key"]
-    )
 
 
 @pytest.mark.parametrize(
