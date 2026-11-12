@@ -144,6 +144,15 @@ repository and accepts `--update`, not positional changed-file arguments.
 assets to the run's `GITHUB_SHA`; it does not rebase that run onto a newer main.
 The final publish job unconditionally repeats lint, format and types, even when
 the reusable producer job chose its light scope.
+A contracts **major** bump is deployed consumer-first: `tools/check-platform-contracts`
+refuses a `CONTRACT_MAJOR` newer than the major in the `platform_ref` lock. Pin the
+recipes commit in vonk-forge, deploy it (the Controller waits visibly for the new
+major), then move `platform_ref` here and merge. A platform major ahead of this
+repo never blocks.
+After a release that changed, the `dispatch-site` job starts the public site's `pages.yml`
+(`tools/dispatch-site-build`, the refresh App scoped to vonk-forge-web with `actions: write`). It runs
+after and apart from the signing job, with `continue-on-error`: a failed dispatch is a visible
+failed job that never fails or undoes the release (the site's schedule is the backstop).
 PR validation calls the same image workflow at the PR head, compares base/head
 build keys and builds only changed, unpublished keys (including native checks
 and the remote-code smoke); every key builds in CI, within one 360-minute job
@@ -152,6 +161,15 @@ publication promotes their digests without rebuilding. Keys without a candidate
 use the same build and smoke path at publication; scheduled/manual runs also
 recover historical missing keys.
 Changed images from forks need a trusted repository branch to push candidates.
+`catalog-index.json` is the `CatalogIndex` contract (`vonk_forge_contracts.catalog_index`): the
+build constructs it through the model, consumers read it with `read_catalog_index`, and the
+release ships its generated schema `catalog-index-v2.schema.json`. The envelope and package
+schema versions live only there; change the shape in the model and run
+`tools/generate-contract-schemas`.
+The index also publishes the vocabulary (`vonk_forge_contracts.vocabulary`): every capability's
+label, description and category and every qualification status's meaning and whether it counts as
+verified. Change user-facing words only there; the site, Controller UI and vonkctl render the
+release's copy. A new `CapabilityName` or `QualificationStatus` without an entry fails at import.
 `tools/build-catalog-index --release-dir DIR` builds catalog/qualification
 indexes, recipe archives, coverage and `SHA256SUMS`. The signed release contains
 one deterministic `recipe-library.tar`, built by `tools/build-release-bundle`:

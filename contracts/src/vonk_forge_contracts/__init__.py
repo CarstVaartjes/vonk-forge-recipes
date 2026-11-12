@@ -29,6 +29,24 @@ from .api import (
 from .api_checks import RecipeApiError, check_api_models, check_recipe_api
 from .canonical import canonical_json, document_sha256, read_model, read_recipe
 from .capability import CAPABILITY_ROLES, CapabilityName, CapabilityRole
+from .catalog_index import (
+    INDEX_KIND,
+    INDEX_SCHEMA_ASSET,
+    INDEX_SCHEMA_VERSION,
+    PACKAGE_MEDIA_TYPE,
+    PACKAGE_METADATA_FIELDS,
+    PACKAGE_PATH_PREFIX,
+    PACKAGE_SCHEMA_VERSION,
+    CatalogIndex,
+    CatalogModelEntry,
+    CatalogRecipeEntry,
+    PackageContract,
+    PackageMetadata,
+    PrebuiltImage,
+    catalog_index_json_schema,
+    published_index_json,
+    read_catalog_index,
+)
 from .display import (
     ModelDisplay,
     ModelDisplayIdentity,
@@ -90,6 +108,10 @@ from .qualification_status import (
     qualification_status_json_schema,
 )
 from .recipe import RecipeDefinition, RecipeOptionError
+from .vocabulary import (
+    CatalogVocabulary,
+    catalog_vocabulary,
+)
 
 CONTRACT_VERSION = __version__
 CONTRACT_MAJOR = int(CONTRACT_VERSION.split(".", 1)[0])
@@ -99,11 +121,22 @@ __all__ = [
     "CONTRACT_MAJOR",
     "CONTRACT_VERSION",
     "ENDPOINT_ALIAS_PATTERN",
+    "INDEX_KIND",
+    "INDEX_SCHEMA_ASSET",
+    "INDEX_SCHEMA_VERSION",
+    "PACKAGE_MEDIA_TYPE",
+    "PACKAGE_METADATA_FIELDS",
+    "PACKAGE_PATH_PREFIX",
+    "PACKAGE_SCHEMA_VERSION",
     "ApiBlock",
     "AudioSpeechApi",
     "AudioTranscriptionApi",
     "CapabilityName",
     "CapabilityRole",
+    "CatalogIndex",
+    "CatalogModelEntry",
+    "CatalogRecipeEntry",
+    "CatalogVocabulary",
     "ChatApi",
     "DecisionApi",
     "EndpointAlias",
@@ -113,6 +146,9 @@ __all__ = [
     "ModelDefinition",
     "ModelDisplay",
     "ModelDisplayIdentity",
+    "PackageContract",
+    "PackageMetadata",
+    "PrebuiltImage",
     "PublishedMeasuredMemory",
     "PublishedQualificationStatusView",
     "PublishedRoleMemory",
@@ -153,16 +189,20 @@ __all__ = [
     "campaign_authority_json_schema",
     "campaign_manifest_json_schema",
     "canonical_json",
+    "catalog_index_json_schema",
+    "catalog_vocabulary",
     "check_api_models",
     "check_recipe_api",
     "derive_status",
     "document_sha256",
+    "published_index_json",
     "published_json",
     "published_measured_memory_json_schema",
     "published_qualification_status_json_schema",
     "published_status",
     "qualification_evidence_json_schema",
     "qualification_status_json_schema",
+    "read_catalog_index",
     "read_model",
     "read_model_display",
     "read_recipe",
