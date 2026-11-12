@@ -450,6 +450,17 @@ def test_eligibility_loss_drops_pending_removal_before_its_next_check(
     assert sweep.state.data["model_removals"][A]["request_key"] != original
 
 
+def test_an_overdue_submitted_record_reconnects_despite_unsubmitted_models(tmp_path):
+    """Catches unsubmitted digests (no record, next_check 0) taking the tick's slot."""
+    sweep, peer, clock = scenario(tmp_path)
+    peer.lost = True
+    sweep.remove_finished_models()  # A is submitted; B is still unsubmitted
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.WAIT
+    clock.t += MAX_BACKOFF_SECONDS + 1
+    sweep.remove_finished_models()  # a single tick
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.RECEIPT
+
+
 def test_partial_catalog_and_live_slots_never_authorize_removal(tmp_path):
     sweep, peer, _ = scenario(tmp_path)
     sweep.recipe_list.in_pass = True
