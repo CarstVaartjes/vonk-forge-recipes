@@ -438,10 +438,7 @@ def test_eligibility_loss_drops_pending_removal_before_its_next_check(
         sweep.state.recipes["vonk-forge/a"]["status"] = RecipeVerdict.PENDING
     sweep.remove_finished_models()
     record = sweep.state.data["model_removals"].get(A)
-    if change == "owner":  # the owner's need cancels the request
-        assert record is None or record["request_key"] is None
-    else:  # an accepted request survives a consumer's requeue
-        assert record["request_key"] == original
+    assert record is None or record["request_key"] is None
     advance(sweep, clock)
     assert len([args for args in peer.submissions if args[2] == A]) == submissions
     peer.profiles = []
@@ -450,9 +447,7 @@ def test_eligibility_loss_drops_pending_removal_before_its_next_check(
     )
     peer.state = LifecycleState.SUCCEEDED
     advance(sweep, clock)
-    record = sweep.state.data["model_removals"][A]
-    # Non-owner changes reconnect to the old request and finish at its receipt.
-    assert (record["request_key"] != original) == (change == "owner")
+    assert sweep.state.data["model_removals"][A]["request_key"] != original
 
 
 def test_an_overdue_submitted_record_reconnects_despite_unsubmitted_models(tmp_path):

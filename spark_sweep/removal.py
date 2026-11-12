@@ -117,12 +117,6 @@ class ModelRemover:
         # A model consumers need again is removed by a fresh request once eligible
         # again, so its record (receipt or not) holds nothing a later pass reads.
         for digest in records.keys() - eligible:
-            held = records[digest]
-            if (
-                held.get("request_key")
-                and held.get("outcome") != RemovalOutcome.RECEIPT
-            ):
-                continue  # accepted by the Controller: stays until its receipt arrives
             del records[digest]
             self.state.event(
                 f"model removal {digest}: dropped; consumers need it again"
