@@ -18,7 +18,7 @@ selector = importlib.util.module_from_spec(SPEC)
 LOADER.exec_module(selector)
 
 REFRESH_LOADER = importlib.machinery.SourceFileLoader(
-    "refresh_upstream", str(ROOT / "tools/refresh-upstream")
+    "refresh_upstream_branch_prefix", str(ROOT / "tools/refresh-upstream")
 )
 REFRESH_SPEC = importlib.util.spec_from_loader(REFRESH_LOADER.name, REFRESH_LOADER)
 assert REFRESH_SPEC is not None
