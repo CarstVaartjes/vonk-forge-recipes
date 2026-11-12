@@ -215,6 +215,49 @@
       "quality_notes": [
         "Carried from the identical execution document before the Model facts split"
       ]
+    },
+    {
+      "identity": {
+        "content_sha256": "034c69073a04dadac4f6d7b2a71bbf913e124e9501522ca45f5dc5ac3b5c0f42",
+        "source_bundle_sha256": "93bbbd877c3b457c5f81407a0987866055c1eabbc71830384c744057a649c160",
+        "runtime_image": {
+          "build_key": "2aa36a481ad94447f1bdde8586a71f9cf948167d6c1f891faab227e3b2211992",
+          "image_digest": "sha256:81ae382c0ccb2df61cf6724964fa2c7201edd691b742f7760813aa6caa5f56ef"
+        },
+        "model_digests": [
+          "6f1f7a77d4f52c646ce478e0a29f64438ba3f1f7d5562c23d665c5e3e25a32ee"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "94bf347518209abd10bbd85d1a3e826654531437aefa325744dac63f137c93de"
+      ],
+      "tested_at": "2026-11-12T06:01:22.335306Z",
+      "platform": {
+        "controller_source_sha": "d6ebc13a728f549234c0ef1d6d9acbded6e0f499",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "034c69073a04dadac4f6d7b2a71bbf913e124e9501522ca45f5dc5ac3b5c0f42",
+      "role": "entrypoint",
+      "steady_bytes": 63614103552,
+      "budget_bytes": 52265292596
+    },
+    {
+      "content_sha256": "034c69073a04dadac4f6d7b2a71bbf913e124e9501522ca45f5dc5ac3b5c0f42",
+      "role": "worker",
+      "steady_bytes": 62862774272,
+      "budget_bytes": 52265292596
     }
   ]
 }
