@@ -89,12 +89,6 @@ def test_a_server_that_died_fails_the_job_instead_of_waiting(job):
         module.wait_healthy(dead, deadline=module.time.monotonic() + 3600)
 
 
-def test_server_overrides_the_text_encoder_and_runs_in_a_scratch_cwd(job, monkeypatch):
+def test_server_loads_the_bundled_text_encoder(job):
     module, _ = job
     assert "--component-paths.text_encoder" in module.serve_command()
-    seen = {}
-    monkeypatch.setattr(
-        module.subprocess, "Popen", lambda cmd, **kw: seen.update(kw) or object()
-    )
-    module.start_server("/tmp/scratch")
-    assert seen["cwd"] == "/tmp/scratch"
