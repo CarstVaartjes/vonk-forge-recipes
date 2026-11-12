@@ -38,11 +38,11 @@ def chosen(*changed: str) -> set[str]:
     ("event", "head_ref"),
     [
         ("pull_request", "integration/recipes-batch-8"),
+        ("pull_request", "refresh/qwen3-6-35b-a3b-fp8-eugr-vllm-single"),
         ("push", ""),
-        ("workflow_dispatch", ""),
     ],
 )
-def test_batches_pushes_and_manual_runs_run_the_full_suite(event, head_ref) -> None:
+def test_batches_refresher_prs_and_pushes_run_the_full_suite(event, head_ref) -> None:
     scope = selector.select(event, head_ref, ["spark_sweep/fanout.py"])
     assert scope["tests"] == selector.FULL_SUITE
 
