@@ -30,25 +30,20 @@ from .recipe import RecipeDefinition, RecipeRelease
 from .vocabulary import CatalogVocabulary
 
 IndexSchemaVersion = Literal[2]
+IndexKind = Literal["recipe-library-index"]
+PackagePathPrefix = Literal["packages/"]
 PackageSchemaVersion = Literal[2]
 PackageMediaType = Literal["application/vnd.vonk-forge.recipe-package.v2+tar+gzip"]
 
 INDEX_SCHEMA_VERSION: Final[IndexSchemaVersion] = 2
-INDEX_KIND: Final = "recipe-library-index"
+INDEX_KIND: Final[IndexKind] = "recipe-library-index"
 PACKAGE_SCHEMA_VERSION: Final[PackageSchemaVersion] = 2
 PACKAGE_MEDIA_TYPE: Final[PackageMediaType] = (
     "application/vnd.vonk-forge.recipe-package.v2+tar+gzip"
 )
-PACKAGE_PATH_PREFIX: Final = "packages/"
-PACKAGE_METADATA_FIELDS: Final = (
-    "path",
-    "media_type",
-    "sha256",
-    "expected_bytes",
-    "recipe_content_sha256",
-    "minimum_consumer_schema",
-    "source_bundle_sha256",
-)
+PACKAGE_PATH_PREFIX: Final[PackagePathPrefix] = "packages/"
+#: The release asset holding this contract's schema (checked in beside the models).
+INDEX_SCHEMA_ASSET: Final = "catalog-index-v2.schema.json"
 
 _Sha256 = Annotated[StrictStr, Field(pattern=r"^[a-f0-9]{64}$")]
 
@@ -62,7 +57,7 @@ class PackageContract(_IndexContract):
 
     schema_version: PackageSchemaVersion
     media_type: PackageMediaType
-    path_prefix: Literal["packages/"]
+    path_prefix: PackagePathPrefix
     metadata_fields: tuple[StrictStr, ...]
 
 
@@ -74,6 +69,9 @@ class PackageMetadata(_IndexContract):
     recipe_content_sha256: _Sha256
     minimum_consumer_schema: int = Field(ge=1)
     source_bundle_sha256: _Sha256
+
+
+PACKAGE_METADATA_FIELDS: Final = tuple(PackageMetadata.model_fields)
 
 
 class PrebuiltImage(_IndexContract):
@@ -108,7 +106,7 @@ class CatalogIndex(_IndexContract):
     """``catalog-index.json``: the whole published library."""
 
     schema_version: IndexSchemaVersion
-    kind: Literal["recipe-library-index"]
+    kind: IndexKind
     contract_version: StrictStr = Field(pattern=r"^[0-9]+\.[0-9]+\.[0-9]+$")
     updated_at: StrictStr = Field(
         pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
