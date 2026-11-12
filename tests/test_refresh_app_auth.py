@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import importlib.machinery
 import importlib.util
 import json
 import os
@@ -143,3 +144,93 @@ class RefusedAppAuthTests(unittest.TestCase):
             self.assertRaisesRegex(RuntimeError, "HTTP 403"),
         ):
             auth.environment()
+
+
+def test_the_site_dispatch_token_is_scoped_to_the_site_and_actions_only() -> None:
+    from datetime import timedelta
+
+    loader = importlib.machinery.SourceFileLoader(
+        "dispatch_site_build", str(ROOT / "tools/dispatch-site-build")
+    )
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    assert spec
+    dispatch = importlib.util.module_from_spec(spec)
+    loader.exec_module(dispatch)
+    auth = module.RefreshAppAuth(
+        "client", "key", dispatch.SITE_REPOSITORY, dispatch.PERMISSIONS
+    )
+    posts = []
+
+    def request(method, path, token, body=None):
+        if method == "GET":
+            return {"id": 7}
+        posts.append(body)
+        return {
+            "token": "t",
+            "expires_at": (datetime.now(UTC) + timedelta(hours=1)).isoformat(),
+        }
+
+    commands = []
+
+    def run(command, **kwargs):
+        commands.append((command, kwargs["env"]["GH_TOKEN"]))
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    with (
+        patch.object(auth, "_jwt", return_value="jwt"),
+        patch.object(auth, "_request", side_effect=request),
+    ):
+        dispatch.dispatch(auth, run=run)
+    assert posts == [
+        {"repositories": ["vonk-forge-web"], "permissions": {"actions": "write"}}
+    ]
+    assert commands == [
+        (["gh", "workflow", "run", "pages.yml", "-R", dispatch.SITE_REPOSITORY], "t")
+    ]
+
+    def failing(command, **kwargs):
+        return subprocess.CompletedProcess(command, 1, "", "HTTP 403")
+
+    with (
+        patch.object(auth, "_jwt", return_value="jwt"),
+        patch.object(auth, "_request", side_effect=request),
+        unittest.TestCase().assertRaisesRegex(RuntimeError, "403"),
+    ):
+        dispatch.dispatch(auth, run=failing)
+
+
+def test_a_failed_token_revoke_does_not_hide_a_failed_dispatch(capsys) -> None:
+    loader = importlib.machinery.SourceFileLoader(
+        "dispatch_site_build_main", str(ROOT / "tools/dispatch-site-build")
+    )
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    assert spec
+    dispatch = importlib.util.module_from_spec(spec)
+    loader.exec_module(dispatch)
+
+    class Auth:
+        def __init__(self, *args) -> None:
+            pass
+
+        def environment(self) -> dict[str, str]:
+            return {"GH_TOKEN": "t"}
+
+        def close(self) -> None:
+            raise RuntimeError("revoke refused")
+
+    def failing(command, **kwargs):
+        return subprocess.CompletedProcess(command, 1, "", "HTTP 403")
+
+    with (
+        patch.object(
+            dispatch, "_load_auth", return_value=type("M", (), {"RefreshAppAuth": Auth})
+        ),
+        patch.object(dispatch.subprocess, "run", side_effect=failing),
+        patch.dict(
+            os.environ, {"REFRESH_APP_CLIENT_ID": "c", "REFRESH_APP_PRIVATE_KEY": "k"}
+        ),
+    ):
+        assert dispatch.main() == 1
+        assert "REFRESH_APP_PRIVATE_KEY" not in os.environ
+    output = capsys.readouterr().out
+    assert "403" in output and "revoke refused" in output
