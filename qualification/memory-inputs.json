@@ -350,7 +350,8 @@
       "kv_heads": 1,
       "layers": 45,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw/resolve/1ae6d70430a12d762917786696db06a7b4f9bbae/config.json; layer_types: 11 sparse and 34 linear; bound includes index cache on all 45 layers and MTP, rounded to 12288 bytes/token for FP8; BF16 65536-byte bound as in the existing single-Spark calibration.",
+      "source": "https://huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw/resolve/1ae6d70430a12d762917786696db06a7b4f9bbae/config.json; layer_types: 11 sparse and 34 linear; bound includes index cache on all 45 layers and MTP, rounded to 12288 bytes/token for FP8; BF16 65536-byte bound as in the existing single-Spark calibration. Per-request KDA state, from this config's linear_attn_config (64 heads, head_dim 128, short_conv_kernel_size 4) over its 34 kda_layers: recurrent state 34 x 64 x 128 x 128 x 4 bytes (fp32) = 142,606,336 plus short-conv state 34 x 3 (q, k, v) x 64 x 128 x (4 - 1) x 2 bytes (bf16) = 5,013,504, total 147,619,840 bytes = 140.78 MiB, the per-state size the 2026-10-21 operation 3d2ed06e trace reported for the same architecture; rounded to 150 MiB as in the exl3 entries. Allocation estimate, not hardware proof for this checkpoint.",
+      "state_bytes_per_request": 157286400,
       "tensor_replicated": true,
       "token_bytes_by_dtype": {
         "auto": 65536,
@@ -366,7 +367,8 @@
       "kv_heads": 1,
       "layers": 45,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/nvidia/GLM-5.3-Flash-FP4-Local/resolve/76348ddb2be2e35e39ecfc00e75dc07703f4f3d5/config.json (sha256 dbf6aaf0d3651a5a297e6672bed57979c20528e2aa7475b80df5ba63d5402ba8); same architecture as the other GLM 5.3 Flash entries: 45 layers, kv_lora_rank 512, index_head_dim 128, layer_types: 11 sparse and 34 linear, max_position_embeddings 1048576; bound includes index cache on all 45 layers and MTP, rounded to 12288 bytes/token for FP8; BF16 65536-byte bound as in the existing single-Spark calibration.",
+      "source": "https://huggingface.co/nvidia/GLM-5.3-Flash-FP4-Local/resolve/76348ddb2be2e35e39ecfc00e75dc07703f4f3d5/config.json (sha256 dbf6aaf0d3651a5a297e6672bed57979c20528e2aa7475b80df5ba63d5402ba8); same architecture as the other GLM 5.3 Flash entries: 45 layers, kv_lora_rank 512, index_head_dim 128, layer_types: 11 sparse and 34 linear, max_position_embeddings 1048576; bound includes index cache on all 45 layers and MTP, rounded to 12288 bytes/token for FP8; BF16 65536-byte bound as in the existing single-Spark calibration. Per-request KDA state, from this config's linear_attn_config (64 heads, head_dim 128, short_conv_kernel_size 4) over its 34 kda_layers: recurrent state 34 x 64 x 128 x 128 x 4 bytes (fp32) = 142,606,336 plus short-conv state 34 x 3 (q, k, v) x 64 x 128 x (4 - 1) x 2 bytes (bf16) = 5,013,504, total 147,619,840 bytes = 140.78 MiB, the per-state size the 2026-10-21 operation 3d2ed06e trace reported for the same architecture; rounded to 150 MiB as in the exl3 entries. Allocation estimate, not hardware proof for this checkpoint.",
+      "state_bytes_per_request": 157286400,
       "tensor_replicated": true,
       "token_bytes_by_dtype": {
         "auto": 65536,
@@ -382,7 +384,8 @@
       "kv_heads": 1,
       "layers": 45,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/resolve/caca4e6a4ebbd66f159d3d2fc256683fd6e27177/config.json; layer_types: 11 sparse and 34 linear; bound includes index cache on all 45 layers and MTP, rounded to 12288 bytes/token for FP8; BF16 65536-byte bound as in the existing single-Spark calibration.",
+      "source": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/resolve/caca4e6a4ebbd66f159d3d2fc256683fd6e27177/config.json; layer_types: 11 sparse and 34 linear; bound includes index cache on all 45 layers and MTP, rounded to 12288 bytes/token for FP8; BF16 65536-byte bound as in the existing single-Spark calibration. Per-request KDA state, from this config's linear_attn_config (64 heads, head_dim 128, short_conv_kernel_size 4) over its 34 kda_layers: recurrent state 34 x 64 x 128 x 128 x 4 bytes (fp32) = 142,606,336 plus short-conv state 34 x 3 (q, k, v) x 64 x 128 x (4 - 1) x 2 bytes (bf16) = 5,013,504, total 147,619,840 bytes = 140.78 MiB, the per-state size the 2026-10-21 operation 3d2ed06e trace reported for the same architecture; rounded to 150 MiB as in the exl3 entries. Allocation estimate, not hardware proof for this checkpoint.",
+      "state_bytes_per_request": 157286400,
       "tensor_replicated": true,
       "token_bytes_by_dtype": {
         "auto": 65536,
