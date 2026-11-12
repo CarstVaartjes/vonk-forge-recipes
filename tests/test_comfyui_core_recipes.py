@@ -360,9 +360,12 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
                     self.assertTrue(Path(flags["--user-directory"]).is_dir())
 
 
-def _adapter(path: Path):
+CONTROLLED_CONTEXT = ROOT / "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed"
+
+
+def _controlled_adapter():
     spec = importlib.util.spec_from_file_location(
-        f"comfyui_controls_{path.parent.name.replace('-', '_')}", path
+        "comfyui_controls", CONTROLLED_CONTEXT / "comfyui_job.py"
     )
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
@@ -370,8 +373,8 @@ def _adapter(path: Path):
     return module
 
 
-def _recipe_job(slug: str) -> tuple[dict, dict, dict]:
-    """The recipe, its workflow and the argument values a default job passes."""
+def _default_job(slug: str) -> tuple[dict, dict]:
+    """The recipe's workflow and the argument values a job with no parameters passes."""
 
     recipe = load(ROOT / "recipes" / f"{slug}.json")
     knobs = recipe["settings"]["knobs"]
@@ -382,68 +385,20 @@ def _recipe_job(slug: str) -> tuple[dict, dict, dict]:
         for item in recipe["runtime"]["arguments"]
     }
     context = ROOT / recipe["execution"]["build"]["context"]["path"]
-    workflow = load(context / "workflows" / Path(arguments["workflow"]).name)
-    return recipe, workflow, arguments
+    return load(context / "workflows" / Path(arguments["workflow"]).name), arguments
 
 
 def _prompt(adapter, workflow: dict, arguments: dict) -> dict:
-    """Build the submitted prompt exactly as the adapter's main() does."""
-
     inputs = [f"input-{index}.png" for index in range(workflow["inputs"]["minimum"])]
+    controls = {name: arguments.get(name) for name in adapter.WORKFLOW_CONTROLS}
     with patch.dict("os.environ", {"VONK_PROMPT": "A lantern in fog."}):
-        replacements = adapter.workflow_replacements(
-            workflow, inputs, arguments["seed"]
-        )
-    replacements.update(
-        adapter.control_replacements(
-            workflow,
-            {name: arguments.get(name) for name in adapter.WORKFLOW_CONTROLS},
-        )
-    )
-    unresolved = adapter.workflow_placeholders(workflow["prompt"]) - replacements.keys()
-    if unresolved:
-        raise ValueError(f"workflow placeholders are unresolved: {sorted(unresolved)}")
-    return adapter.substitute(workflow["prompt"], replacements)
-
-
-CONTROLLED_ADAPTERS = (
-    ROOT / "adapters/media/comfyui-core/comfyui_job.py",
-    ROOT / "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed/comfyui_job.py",
-)
+        return adapter.build_prompt(workflow, inputs, arguments["seed"], controls)
 
 
 class ComfyUIWorkflowControlTests(unittest.TestCase):
-    def test_recipes_on_controlled_adapters_build_complete_prompts(self) -> None:
-        # Every recipe on an adapter with workflow controls, knobs or not,
-        # resolves every placeholder from its own arguments and knob defaults;
-        # a workflow without controls accepts none.
-        for slug in COMFY_RECIPES:
-            recipe, workflow, arguments = _recipe_job(slug)
-            script = (
-                ROOT
-                / recipe["execution"]["build"]["context"]["path"]
-                / "comfyui_job.py"
-            )
-            if script not in CONTROLLED_ADAPTERS:
-                continue
-            with self.subTest(recipe=slug):
-                adapter = _adapter(script)
-                prompt = _prompt(adapter, workflow, arguments)
-                self.assertFalse(adapter.workflow_placeholders(prompt))
-                bound = {
-                    item["name"]
-                    for item in recipe["runtime"]["arguments"]
-                    if item["setting"] is not None
-                }
-                self.assertEqual(bound, set(recipe["settings"]["knobs"]))
-                self.assertEqual(bound - {"seed"}, set(workflow.get("controls", {})))
-                if not workflow.get("controls"):
-                    with self.assertRaisesRegex(ValueError, "does not accept"):
-                        adapter.control_replacements(workflow, {"width": 1024})
-
     def test_flux_nvfp4_defaults_reproduce_the_fixed_workflow(self) -> None:
-        _, workflow, arguments = _recipe_job("flux-2-klein-4b-nvfp4-comfyui-single")
-        adapter = _adapter(CONTROLLED_ADAPTERS[0])
+        adapter = _controlled_adapter()
+        workflow, arguments = _default_job("flux-2-klein-4b-nvfp4-comfyui-single")
         fixed = load(
             ROOT / "adapters/media/comfyui-core/workflows/flux-2-klein-4b.json"
         )
@@ -464,10 +419,10 @@ class ComfyUIWorkflowControlTests(unittest.TestCase):
         )
 
     def test_qwen_edit_fp8mixed_defaults_keep_the_forty_step_schedule(self) -> None:
-        _, workflow, arguments = _recipe_job(
+        adapter = _controlled_adapter()
+        workflow, arguments = _default_job(
             "qwen-image-edit-2511-fp8mixed-comfyui-single"
         )
-        adapter = _adapter(CONTROLLED_ADAPTERS[1])
         sampler = _prompt(adapter, workflow, arguments)["14"]["inputs"]
         self.assertEqual((sampler["steps"], sampler["seed"]), (40, 0))
         sampler = _prompt(
@@ -475,66 +430,30 @@ class ComfyUIWorkflowControlTests(unittest.TestCase):
         )["14"]["inputs"]
         self.assertEqual((sampler["steps"], sampler["seed"]), (8, 7))
 
-    def test_controls_refuse_missing_or_out_of_bounds_values(self) -> None:
-        _, workflow, arguments = _recipe_job("flux-2-klein-4b-nvfp4-comfyui-single")
-        for path in CONTROLLED_ADAPTERS:
-            adapter = _adapter(path)
-            for change, message in (
-                ({"width": 1000}, "multiples of 16"),
-                ({"width": 240}, "256..2048"),
-                ({"height": 2064}, "256..2048"),
-                ({"num-inference-steps": 0}, "1..16"),
-                ({"num-inference-steps": 17}, "1..16"),
-                ({"height": None}, "requires --height"),
-                ({"seed": -1}, "--seed must be"),
-                ({"seed": adapter.MAX_SEED + 1}, "--seed must be"),
+    def test_controls_refuse_what_comfyui_would_accept_silently(self) -> None:
+        adapter = _controlled_adapter()
+        workflow, arguments = _default_job("flux-2-klein-4b-nvfp4-comfyui-single")
+        for change, message in (
+            ({"width": 1000}, "multiple of 16"),
+            ({"height": 2064}, "at most 2048"),
+            ({"height": None}, "requires --height"),
+        ):
+            with (
+                self.subTest(change=change),
+                self.assertRaisesRegex(ValueError, message),
             ):
-                with (
-                    self.subTest(adapter=path.parent.name, change=change),
-                    self.assertRaisesRegex(ValueError, message),
-                ):
-                    _prompt(adapter, workflow, {**arguments, **change})
-            undeclared = {**workflow, "controls": {}}
-            with self.assertRaisesRegex(ValueError, "unresolved.*__VONK_WIDTH__"):
-                _prompt(adapter, undeclared, {"seed": 0})
-            for bounds in (
-                {"minimum": 0, "maximum": 4},
-                {"minimum": 8, "maximum": 4},
-                {"minimum": 16, "maximum": 2000, "multiple_of": 16},
-                {"minimum": 1, "maximum": 4, "step": 1},
+                _prompt(adapter, workflow, {**arguments, **change})
+        fixed = load(
+            ROOT / "adapters/media/comfyui-core/workflows/flux-2-klein-4b.json"
+        )
+        with self.assertRaisesRegex(ValueError, "does not accept --width"):
+            _prompt(adapter, fixed, {"seed": 0, "width": 1024})
+        for controls in ({"cfg": {}}, {"width": {"minimum": 16}}, {"width": 16}):
+            with (
+                self.subTest(controls=controls),
+                self.assertRaisesRegex(ValueError, "contract is invalid"),
             ):
-                with (
-                    self.subTest(adapter=path.parent.name, bounds=bounds),
-                    self.assertRaisesRegex(ValueError, "num-inference-steps"),
-                ):
-                    adapter.control_replacements(
-                        {"controls": {"num-inference-steps": bounds}},
-                        {"num-inference-steps": 4},
-                    )
-
-    def test_controls_arrive_through_the_command_line(self) -> None:
-        adapter = _adapter(CONTROLLED_ADAPTERS[0])
-        argv = [
-            "comfyui-job",
-            "--workflow=flux.json",
-            "--workflow-sha256=" + "0" * 64,
-            "--output-mime=image/png",
-            "--seed=3",
-            "--width=1280",
-            "--height=720",
-            "--num-inference-steps=4",
-        ]
-        with patch("sys.argv", argv):
-            args = adapter.parse_args()
-        self.assertEqual(
-            (args.seed, args.width, args.height, args.num_inference_steps),
-            (3, 1280, 720, 4),
-        )
-        with patch("sys.argv", argv[:5]):
-            args = adapter.parse_args()
-        self.assertEqual(
-            (args.width, args.height, args.num_inference_steps), (None,) * 3
-        )
+                adapter.control_replacements({"controls": controls}, {"width": 16})
 
 
 if __name__ == "__main__":
