@@ -4198,12 +4198,10 @@ class Sweep:
         """The online Sparks cleanup bookkeeping keeps from placement, each with why."""
         held: dict[str, str] = {}
         for key, load in self.state.data["cleanup_loads"].items():
-            if load.get("end"):
+            if self._cleanup_settled(load):
                 continue
             name = f"cleanup {str(load.get('app_id') or key)[:8]}"
             if load.get("terminal_receipt"):
-                if load.get("projection_known") and not self._cleanup_pending(load):
-                    continue
                 # Terminal bookkeeping is not a physical occupancy certificate.
                 # Current fleet facts and the fresh Controller review own admission.
                 kept = self._own_aliases()
@@ -4310,17 +4308,47 @@ class Sweep:
         )
         load["observation_budget"] = budget.model_dump(mode="json")
 
+    def _cleanup_settled(self, load: Mapping[str, Any]) -> bool:
+        """Nothing is left to observe: retired, or a terminal receipt whose projection is known
+        and has no pending stop. It reads the other observers' confirmations, so it can change
+        when they do."""
+        return bool(load.get("end")) or bool(
+            load.get("terminal_receipt")
+            and load.get("projection_known")
+            and not self._cleanup_pending(load)
+        )
+
+    def _prune_cleanup_loads(self) -> None:
+        """Keep the observers still needed and the newest settled one; drop older settled ones.
+
+        The newest settled observer stays as the marker that a clearing ran, and any a live
+        load adopted stays too. A dropped observer's stopped rows no longer confirm a survivor's
+        row; that survivor heals by retiring once fleet facts show its target absent.
+        """
+        loads = self.state.data["cleanup_loads"]
+        settled = [key for key, load in loads.items() if self._cleanup_settled(load)]
+        if len(settled) < 2:
+            return
+        order = {
+            item["request_key"]: i
+            for i, item in enumerate(self.state.data["own_loads"])
+        }
+        newest = max(settled, key=lambda key: order.get(key, -1))
+        adopted = {
+            key
+            for load in self.state.data["loads"].values()
+            for key in load.get("adopted_cleanup_requests", [])
+        }
+        for key in settled:
+            if key != newest and key not in adopted:
+                del loads[key]
+
     def observe_cleanup(self) -> None:
         """Reconcile original applications and stops; never replace intent on timeout."""
+        self._prune_cleanup_loads()
         for load in self.state.data["cleanup_loads"].values():
-            if load.get("end"):
+            if self._cleanup_settled(load):
                 continue
-            if (
-                load.get("terminal_receipt")
-                and load.get("projection_known")
-                and not self._cleanup_pending(load)
-            ):
-                continue  # only a retained terminal receipt is immutable history
             now = self.clock.now()
             budget = CleanupObservationBudget.model_validate(
                 load.get("observation_budget", {})
