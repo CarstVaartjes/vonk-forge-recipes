@@ -360,5 +360,101 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
                     self.assertTrue(Path(flags["--user-directory"]).is_dir())
 
 
+CONTROLLED_CONTEXT = ROOT / "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed"
+
+
+def _controlled_adapter():
+    spec = importlib.util.spec_from_file_location(
+        "comfyui_controls", CONTROLLED_CONTEXT / "comfyui_job.py"
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _default_job(slug: str) -> tuple[dict, dict]:
+    """The recipe's workflow and the argument values a job with no parameters passes."""
+
+    recipe = load(ROOT / "recipes" / f"{slug}.json")
+    knobs = recipe["settings"]["knobs"]
+    arguments = {
+        item["name"]: knobs[item["setting"]]["value"]
+        if item["setting"] is not None
+        else item["value"]
+        for item in recipe["runtime"]["arguments"]
+    }
+    context = ROOT / recipe["execution"]["build"]["context"]["path"]
+    return load(context / "workflows" / Path(arguments["workflow"]).name), arguments
+
+
+def _prompt(adapter, workflow: dict, arguments: dict) -> dict:
+    inputs = [f"input-{index}.png" for index in range(workflow["inputs"]["minimum"])]
+    controls = {name: arguments.get(name) for name in adapter.WORKFLOW_CONTROLS}
+    with patch.dict("os.environ", {"VONK_PROMPT": "A lantern in fog."}):
+        return adapter.build_prompt(workflow, inputs, arguments["seed"], controls)
+
+
+class ComfyUIWorkflowControlTests(unittest.TestCase):
+    def test_flux_nvfp4_defaults_reproduce_the_fixed_workflow(self) -> None:
+        adapter = _controlled_adapter()
+        workflow, arguments = _default_job("flux-2-klein-4b-nvfp4-comfyui-single")
+        fixed = load(
+            ROOT / "adapters/media/comfyui-core/workflows/flux-2-klein-4b.json"
+        )
+        self.assertEqual(
+            _prompt(adapter, workflow, arguments),
+            _prompt(adapter, fixed, {"seed": arguments["seed"]}),
+        )
+        wide = _prompt(
+            adapter,
+            workflow,
+            {**arguments, "width": 1280, "height": 720, "num-inference-steps": 6},
+        )
+        self.assertEqual(
+            wide["6"]["inputs"], {"width": 1280, "height": 720, "batch_size": 1}
+        )
+        self.assertEqual(
+            wide["10"]["inputs"], {"steps": 6, "width": 1280, "height": 720}
+        )
+
+    def test_qwen_edit_fp8mixed_defaults_keep_the_forty_step_schedule(self) -> None:
+        adapter = _controlled_adapter()
+        workflow, arguments = _default_job(
+            "qwen-image-edit-2511-fp8mixed-comfyui-single"
+        )
+        sampler = _prompt(adapter, workflow, arguments)["14"]["inputs"]
+        self.assertEqual((sampler["steps"], sampler["seed"]), (40, 0))
+        sampler = _prompt(
+            adapter, workflow, {**arguments, "seed": 7, "num-inference-steps": 8}
+        )["14"]["inputs"]
+        self.assertEqual((sampler["steps"], sampler["seed"]), (8, 7))
+
+    def test_controls_refuse_what_comfyui_would_accept_silently(self) -> None:
+        adapter = _controlled_adapter()
+        workflow, arguments = _default_job("flux-2-klein-4b-nvfp4-comfyui-single")
+        for change, message in (
+            ({"width": 1000}, "multiple of 16"),
+            ({"height": 2064}, "at most 2048"),
+            ({"height": None}, "requires --height"),
+        ):
+            with (
+                self.subTest(change=change),
+                self.assertRaisesRegex(ValueError, message),
+            ):
+                _prompt(adapter, workflow, {**arguments, **change})
+        fixed = load(
+            ROOT / "adapters/media/comfyui-core/workflows/flux-2-klein-4b.json"
+        )
+        with self.assertRaisesRegex(ValueError, "does not accept --width"):
+            _prompt(adapter, fixed, {"seed": 0, "width": 1024})
+        for controls in ({"cfg": {}}, {"width": {"minimum": 16}}, {"width": 16}):
+            with (
+                self.subTest(controls=controls),
+                self.assertRaisesRegex(ValueError, "contract is invalid"),
+            ):
+                adapter.control_replacements({"controls": controls}, {"width": 16})
+
+
 if __name__ == "__main__":
     unittest.main()
