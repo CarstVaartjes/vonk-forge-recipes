@@ -131,10 +131,6 @@ def serve_command() -> list[str]:
     ]
 
 
-def start_server(cwd: str) -> subprocess.Popen[bytes]:
-    return subprocess.Popen(serve_command(), cwd=cwd, start_new_session=True)
-
-
 def wait_healthy(server: subprocess.Popen[bytes], deadline: float) -> None:
     url = f"http://{HOST}:{PORT}/health"
     while time.monotonic() < deadline:
@@ -186,7 +182,7 @@ def main() -> None:
 
     # SGLang writes outputs/ and uploads relative to its cwd; the root is read-only.
     with tempfile.TemporaryDirectory(prefix="vonk-h3-server-") as cwd:
-        server = start_server(cwd)
+        server = subprocess.Popen(serve_command(), cwd=cwd, start_new_session=True)
         try:
             wait_healthy(server, deadline)
             remaining = max(1.0, deadline - time.monotonic())
