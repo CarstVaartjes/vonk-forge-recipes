@@ -8,9 +8,11 @@ rejected (or, worse, never checked) by every consumer.
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import runpy
+import shutil
 from pathlib import Path, PurePosixPath
 
 import pytest
@@ -26,13 +28,18 @@ def test_release_manifest_covers_every_asset_and_matches_the_index(
     built_catalog: tuple[dict, Path],
 ) -> None:
     release = tmp_path / "release"
+    report = tmp_path / "coverage.md"
+    report.write_text("coverage\n", encoding="utf-8")
     digest = built_catalog[0]["recipes"][0]["content_sha256"]
-    TOOL["write_release"](
+    digests = TOOL["write_release"](
         release,
         source_commit=SOURCE_COMMIT,
         source_date_epoch=SOURCE_DATE_EPOCH,
+        include=(report,),
         prebuilt_images={digest: {"build_key": "a" * 64}},
     )
+    # An included file is published and listed like every other asset.
+    assert digests["coverage.md"] == hashlib.sha256(b"coverage\n").hexdigest()
 
     lines = (release / "SHA256SUMS").read_text(encoding="utf-8").splitlines()
     listed = {name: digest for digest, name in (line.split("  ") for line in lines)}
@@ -54,21 +61,35 @@ def test_release_manifest_covers_every_asset_and_matches_the_index(
     assert set(listed) == {
         "catalog-index.json",
         "qualification-index.json",
+        "coverage.md",
         *packages,
     }
 
 
-def test_included_files_are_listed_and_cannot_shadow_an_asset(tmp_path: Path) -> None:
-    report = tmp_path / "coverage.md"
-    report.write_text("coverage\n", encoding="utf-8")
-    digests = TOOL["write_release"](
-        tmp_path / "release",
-        source_commit=SOURCE_COMMIT,
-        source_date_epoch=SOURCE_DATE_EPOCH,
-        include=(report,),
-    )
-    assert digests["coverage.md"] == hashlib.sha256(b"coverage\n").hexdigest()
+@pytest.fixture
+def session_build(
+    monkeypatch: pytest.MonkeyPatch, built_catalog: tuple[dict, Path]
+) -> dict:
+    """``build`` answers with the session's real build output.
 
+    These cases test what the writers do with a build's index and packages, so
+    they reuse the one full build instead of repeating it.
+    """
+    catalog, packages = built_catalog
+
+    def build(*, package_dir: Path, **_: object) -> dict:
+        package_dir.mkdir(parents=True, exist_ok=True)
+        for path in packages.glob("*.tar.gz"):
+            shutil.copyfile(path, package_dir / path.name)
+        return copy.deepcopy(catalog)
+
+    monkeypatch.setitem(TOOL["write_release"].__globals__, "build", build)
+    return catalog
+
+
+def test_an_included_file_cannot_shadow_an_asset(
+    tmp_path: Path, session_build: dict
+) -> None:
     shadow = tmp_path / "catalog-index.json"
     shadow.write_text("{}", encoding="utf-8")
     with pytest.raises(SystemExit, match="not unique: catalog-index.json"):
@@ -80,7 +101,9 @@ def test_included_files_are_listed_and_cannot_shadow_an_asset(tmp_path: Path) ->
         )
 
 
-def test_checkout_outputs_drop_packages_of_removed_recipes(tmp_path: Path) -> None:
+def test_checkout_outputs_drop_packages_of_removed_recipes(
+    tmp_path: Path, session_build: dict
+) -> None:
     stale = tmp_path / "packages" / "removed-recipe.tar.gz"
     stale.parent.mkdir()
     stale.write_bytes(b"stale")
@@ -93,7 +116,7 @@ def test_checkout_outputs_drop_packages_of_removed_recipes(tmp_path: Path) -> No
     }
     assert (tmp_path / "qualification" / "qualification-index.json").is_file()
     index = json.loads((tmp_path / "catalog-index.json").read_text(encoding="utf-8"))
-    assert index["source_commit"] == SOURCE_COMMIT
+    assert index == session_build
 
 
 def test_release_refuses_to_mix_with_existing_files(tmp_path: Path) -> None:
