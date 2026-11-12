@@ -371,7 +371,7 @@ jobs:
           # production retry or observation deadlines.
           # Only a real stall dumps: a dump racing a slow test's C code once
           # segfaulted the whole suite (exit 139).
-          "$RECIPE_TEST_PYTHON" -m pytest -n auto --dist worksteal -o faulthandler_timeout=300
+          "$RECIPE_TEST_PYTHON" -m pytest -n auto --dist worksteal -o faulthandler_timeout=300 --durations=0 --durations-min=1.0
 
       - name: Lint the repository with pinned Ruff
         if: steps.scope.outputs.full == 'true'
