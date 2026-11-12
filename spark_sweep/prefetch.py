@@ -98,6 +98,21 @@ SWEEP_LABEL = ("purpose", "hardware-sweep")
 PIN_ALIAS_PREFIX = "pin-"
 
 
+RESULT_KEYS = ("artifact_set_sha256", "oci_archive_sha256", "build_id")
+
+
+def result_identity(document: Mapping[str, Any]) -> dict[str, str]:
+    """What a finished download produced: the typed ``result`` of the operation."""
+    result = document.get("result")
+    if not isinstance(result, Mapping):
+        return {}
+    return {
+        name: value
+        for name in RESULT_KEYS
+        if isinstance(value := result.get(name), str)
+    }
+
+
 def pin_alias(key: str) -> str:
     return PIN_ALIAS_PREFIX + hashlib.sha1(key.encode()).hexdigest()[:12]
 
@@ -341,9 +356,29 @@ class Prefetcher:
                 "done_at"
             ):
                 record["done_at"] = self.clock()
+                self._note_result(record, document)
                 self.on_done(key)
         self.rate.add(total_rate)
         return total_rate
+
+    def _clear_agreed(self, recipes: Mapping[str, Recipe]) -> None:
+        """A fresh library pass reading a recipe cached ends any contradiction about it."""
+        for key, record in self.state.downloads.items():
+            recipe = recipes.get(key)
+            if (
+                recipe is not None
+                and recipe.local == "cached"
+                and record.get("state") == LifecycleState.SUCCEEDED
+                and self.library_fresh_since > float(record.get("done_at", 0))
+            ):
+                record.pop("contradiction", None)
+                record.pop("previous_result", None)
+
+    @staticmethod
+    def _note_result(record: dict[str, Any], document: Mapping[str, Any]) -> None:
+        """Keep what a finished download produced, for the next re-request to compare."""
+        if result := result_identity(document):
+            record["result_id"] = result
 
     def _retire(self, key: str, record: dict[str, Any], reason: str) -> None:
         if record.get("request_key"):
@@ -459,6 +494,11 @@ class Prefetcher:
         )
         key = request_key(
             "download", self.state.nonce, recipe.key, recipe.content_sha256, attempt
+        )
+        previous_result = (
+            record.get("result_id")
+            if record.get("state") == LifecycleState.SUCCEEDED
+            else None
         )
         accepted = AcceptedRequest.read(record)
         same_content = accepted is not None and content_identity(
@@ -577,6 +617,7 @@ class Prefetcher:
             "attempt": attempt,
             "observe_failures": int(record.get("observe_failures", 0)),
             "rerequests": rerequests,
+            **({"previous_result": previous_result} if previous_result else {}),
             "accepted_intent": document.get("request"),
             "retry_of_operation_id": retry_of,
             "request_intent": {
@@ -658,6 +699,7 @@ class Prefetcher:
     ) -> dict[str, Any]:
         now = self.clock()
         live_rate = self._poll()
+        self._clear_agreed(recipes)
         self._track_external(recipes, now)
         # Sets that landed in this poll are on the NAS before the library says so: they
         # are pinned (and count against the pin room) from this tick on.
@@ -840,11 +882,16 @@ class Prefetcher:
             # it still says the cache is empty (evicted). Fresh evidence, not a count,
             # authorizes recovery; the cooldown bounds lagging-listing churn.
             done_at = float(record.get("done_at", now))
-            return (
-                recipe.local == "not_cached"
-                and now - done_at > 600
-                and self.library_fresh_since > done_at
-            )
+            fresh = self.library_fresh_since > done_at
+            if not (recipe.local == "not_cached" and fresh and now - done_at > 600):
+                return False
+            result = record.get("result_id")
+            if result and record.get("previous_result") == result:
+                # The last request returned this very result and the library still
+                # reads the cache as empty: asking again cannot change the answer.
+                record["contradiction"] = {"at": now}
+                return False
+            return True
         if record.get("state") in (
             LifecycleState.FAILED,
             LifecycleState.CANCELLED,
