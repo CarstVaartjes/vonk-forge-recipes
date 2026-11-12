@@ -52,7 +52,10 @@ class Flux2NVFP4RecipeTests(unittest.TestCase):
         arguments = {
             item["name"]: item["value"] for item in recipe["runtime"]["arguments"]
         }
-        workflow = ROOT / "adapters/media/comfyui-core/workflows/flux-2-klein-4b.json"
+        workflow = (
+            ROOT
+            / "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed/workflows/flux-2-klein-4b-controls.json"
+        )
         self.assertEqual(
             arguments["workflow-sha256"],
             hashlib.sha256(workflow.read_bytes()).hexdigest(),

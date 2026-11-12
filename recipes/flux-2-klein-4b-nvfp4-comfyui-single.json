@@ -6,9 +6,9 @@
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
-        "path": "adapters/media/comfyui-core"
+        "path": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed"
       },
-      "dockerfile": "adapters/media/comfyui-core/Dockerfile",
+      "dockerfile": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed/Dockerfile",
       "network": {
         "hosts": [
           "codeload.github.com",
@@ -141,20 +141,20 @@
     "source_reference": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/tree/1db2b2f776c24b76f1122e5f69ab1949fc620068"
   },
   "release": {
-    "released_at": "2026-10-16",
-    "version": "1.1.4"
+    "released_at": "2026-11-12",
+    "version": "1.2.0"
   },
   "runtime": {
     "arguments": [
       {
         "name": "workflow",
         "setting": null,
-        "value": "/opt/vonk/source/workflows/flux-2-klein-4b.json"
+        "value": "/opt/vonk/source/workflows/flux-2-klein-4b-controls.json"
       },
       {
         "name": "workflow-sha256",
         "setting": null,
-        "value": "b322f7b92589c49b6d15a4cd935dc12700de9c1f16cde3bba61118fb4dedca1d"
+        "value": "1c01d6d28863fa76d14b5cc3dfb186274aba3b16ae63ac0ad6b1f1e7f5919fb6"
       },
       {
         "name": "output-mime",
@@ -163,8 +163,23 @@
       },
       {
         "name": "seed",
-        "setting": null,
-        "value": 0
+        "setting": "seed",
+        "value": null
+      },
+      {
+        "name": "width",
+        "setting": "width",
+        "value": null
+      },
+      {
+        "name": "height",
+        "setting": "height",
+        "value": null
+      },
+      {
+        "name": "num-inference-steps",
+        "setting": "num-inference-steps",
+        "value": null
       }
     ],
     "engine": "comfyui",
@@ -184,7 +199,24 @@
   "settings": {
     "concurrency": null,
     "kind": "job",
-    "knobs": {}
+    "knobs": {
+      "height": {
+        "change_effect": "none",
+        "value": 1024
+      },
+      "num-inference-steps": {
+        "change_effect": "none",
+        "value": 4
+      },
+      "seed": {
+        "change_effect": "none",
+        "value": 0
+      },
+      "width": {
+        "change_effect": "none",
+        "value": 1024
+      }
+    }
   },
   "topology": {
     "name": "solo",

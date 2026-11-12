@@ -12,7 +12,7 @@
   "vonk-forge/diffusiongemma-26b-nvfp4-r0b0tlab-vllm-single": "c9a46dc469d65b45e7ad4ad10ea9e1390ee14abf629cae5cdd42fc74ea52bf57",
   "vonk-forge/fastcontext-1-0-4b-rl-nvfp4-r0b0tlab-vllm-single": "8bdf2d1ec87fd80d9032f11f4479e7c3fcd537fcb16dcf71191f76a6c5813b7d",
   "vonk-forge/flux-2-klein-4b-comfyui-single": "a569d5cc1989aa27428c08cdd85e4e84f8ff441e75ffb28e1682715432b17a17",
-  "vonk-forge/flux-2-klein-4b-nvfp4-comfyui-single": "6fe821a586b41221d5f73810a90f8672bd6f9259348501ab42a90c9f114b597b",
+  "vonk-forge/flux-2-klein-4b-nvfp4-comfyui-single": "e9376419410c2299b27a0ebdc8afaed8ff08b2c0491c849ac5d7ed203f8ab5a2",
   "vonk-forge/flux-3-image-klein-pytorch-single": "ff30ae75d3ef0c59a5ac0d4e9d5b50fdf2f697b61fe5c61a74d357417deca34b",
   "vonk-forge/gemma-4-26b-a4b-it-nvfp4-eugr-vllm-single": "e57349c7411a03496a707eed1c83a87ec8c8d17d77a7c933b9f908f231fc0033",
   "vonk-forge/gemma-4-26b-a4b-it-q8-0-ggml-org-llamacpp-single": "b5f3332b1a01636b6fda323e05799b8bea8f90d6e1635995dbd7ef199ae14a16",

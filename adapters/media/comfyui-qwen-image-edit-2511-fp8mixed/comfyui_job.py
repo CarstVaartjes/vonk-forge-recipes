@@ -36,6 +36,11 @@ MIME_EXTENSIONS = {
 MEDIA_EXTENSIONS = frozenset(
     extension for extensions in MIME_EXTENSIONS.values() for extension in extensions
 )
+# Per-job integer controls a workflow may declare under "controls"; the recipe
+# binds each to a knob. ComfyUI validates each node input's own range; a
+# declaration adds only what ComfyUI does not check: "multiple_of" (latent
+# nodes floor a size silently) and a "maximum" kept as a memory guard.
+WORKFLOW_CONTROLS = ("width", "height", "num-inference-steps")
 
 
 def parse_args() -> argparse.Namespace:
@@ -44,6 +49,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--workflow-sha256", required=True)
     parser.add_argument("--output-mime", required=True, choices=sorted(MIME_EXTENSIONS))
     parser.add_argument("--seed", required=True, type=int)
+    for name in WORKFLOW_CONTROLS:
+        parser.add_argument(f"--{name}", type=int, default=None)
     parser.add_argument("--output-dir", default="/outputs")
     return parser.parse_args()
 
@@ -301,6 +308,53 @@ def workflow_replacements(
     return replacements
 
 
+def control_replacements(
+    document: dict[str, Any], values: dict[str, int | None]
+) -> dict[str, int]:
+    """Placeholder values for the controls the workflow declares, and no others."""
+
+    controls = document.get("controls", {})
+    if not isinstance(controls, dict) or not set(controls) <= set(WORKFLOW_CONTROLS):
+        raise ValueError("workflow controls contract is invalid")
+    replacements: dict[str, int] = {}
+    for name in WORKFLOW_CONTROLS:
+        value = values.get(name)
+        declaration = controls.get(name)
+        if declaration is None:
+            if value is not None:
+                raise ValueError(f"workflow does not accept --{name}")
+            continue
+        if not isinstance(declaration, dict) or not set(declaration) <= {
+            "multiple_of",
+            "maximum",
+        }:
+            raise ValueError(f"workflow control contract is invalid: {name}")
+        if value is None:
+            raise ValueError(f"workflow requires --{name}")
+        multiple = declaration.get("multiple_of")
+        if multiple is not None and value % multiple:
+            raise ValueError(f"--{name} must be a multiple of {multiple}; got {value}")
+        maximum = declaration.get("maximum")
+        if maximum is not None and value > maximum:
+            raise ValueError(f"--{name} must be at most {maximum}; got {value}")
+        replacements[f"__VONK_{name.replace('-', '_').upper()}__"] = value
+    return replacements
+
+
+def build_prompt(
+    document: dict[str, Any],
+    input_files: list[str],
+    seed: int,
+    controls: dict[str, int | None],
+    manifest: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """The ComfyUI prompt this job submits."""
+
+    replacements = workflow_replacements(document, input_files, seed, manifest)
+    replacements.update(control_replacements(document, controls))
+    return substitute(document["prompt"], replacements)
+
+
 def request_json(path: str, *, body: dict[str, Any] | None = None) -> Any:
     payload = None if body is None else json.dumps(body).encode("utf-8")
     request = Request(
@@ -556,8 +610,13 @@ def main() -> int:
     document = load_workflow(args.workflow, args.workflow_sha256)
     manifest = load_input_manifest()
     inputs = input_names(document, manifest)
-    replacements = workflow_replacements(document, inputs, args.seed, manifest)
-    prompt = substitute(document["prompt"], replacements)
+    prompt = build_prompt(
+        document,
+        inputs,
+        args.seed,
+        {name: getattr(args, name.replace("-", "_")) for name in WORKFLOW_CONTROLS},
+        manifest,
+    )
 
     with tempfile.TemporaryDirectory(prefix="vonk-comfyui-") as temp_dir:
         temporary = Path(temp_dir)
