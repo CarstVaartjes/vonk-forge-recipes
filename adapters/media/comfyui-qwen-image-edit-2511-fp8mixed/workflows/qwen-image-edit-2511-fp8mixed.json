@@ -9,7 +9,7 @@
   ],
   "inputs": {"minimum": 1, "maximum": 2, "slot": "image", "placeholder_count": 2},
   "controls": {
-    "num-inference-steps": {"minimum": 1, "maximum": 60}
+    "num-inference-steps": {}
   },
   "text_inputs": {
     "prompt": {"required": true, "slot": "prompt", "maximum_bytes": 16384, "maximum_characters": 4096},
