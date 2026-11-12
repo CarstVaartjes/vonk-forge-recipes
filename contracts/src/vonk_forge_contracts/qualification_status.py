@@ -584,6 +584,13 @@ def published_status(
         )
     ):
         reason = QualificationUnverifiedReason.INCOMPLETE_PROVENANCE
+    if view.status == QualificationStatus.BLOCKED_PLATFORM and view.last_pass:
+        # A platform fault on the current identity after a pass elsewhere: the
+        # recipe worked before and is re-tested, never "Not yet verified".
+        view = view.model_copy(
+            update={"status": QualificationStatus.RECHECK, "reason": None}
+        )
+        reason = None
     if (
         view.status
         in (
