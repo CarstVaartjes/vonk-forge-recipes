@@ -26,7 +26,7 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 FULL_SUITE = "tests/"
-# Heads that reach main without a batch: integration batches, and refresher PRs it auto-merges.
+# Heads that run everything: integration batches, and refresher PRs (auto-merged without a batch).
 FULL_SUITE_HEADS = ("integration/", "refresh/")
 RECIPE_DATA = re.compile(
     r"^(recipes/|models/|display/|api/|adapters/|qualification/shared\.json$"
