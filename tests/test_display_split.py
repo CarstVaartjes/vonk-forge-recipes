@@ -211,7 +211,7 @@ def test_editing_a_proven_recipes_display_changes_no_identity_or_status(
 def test_editing_a_proven_recipes_model_facts_changes_no_identity_or_status(
     tmp_path: Path, built_catalog: tuple[dict, Path], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """The licence, capabilities and modalities of a Model are display: correcting
+    """The licence and capabilities of a Model are display: correcting
     one re-runs nothing."""
 
     key = next(iter(sorted(PROVEN)))
