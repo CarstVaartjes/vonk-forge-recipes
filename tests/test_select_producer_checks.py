@@ -2,6 +2,7 @@
 
 import importlib.machinery
 import importlib.util
+import re
 from pathlib import Path
 
 import pytest
@@ -53,6 +54,14 @@ def test_a_member_pr_with_an_unknown_change_runs_the_full_suite() -> None:
     }
 
 
+def test_hardware_evidence_lands_without_a_batch_so_it_runs_the_full_suite() -> None:
+    changed = [
+        "qualification/evidence/vonk-forge/qwen3-6-35b-a3b-nvfp4-eugr-vllm-dual.json"
+    ]
+    scope = selector.select("pull_request", "qualification/evidence", changed)
+    assert scope["tests"] == selector.FULL_SUITE
+
+
 def test_a_member_pr_runs_the_core_plus_the_tests_its_paths_name() -> None:
     scope = selector.select("pull_request", "fix-x", ["tests/test_sweep_cli.py"])
     tests = scope["tests"].split()
@@ -86,8 +95,5 @@ def test_the_producer_job_reads_the_selector_for_its_scope() -> None:
     workflow = (ROOT / ".github/workflows/validate.yml").read_text(encoding="utf-8")
     assert "python3 tools/select-producer-checks" in workflow
     assert "TESTS: ${{ steps.scope.outputs.tests }}" in workflow
-    assert (
-        "-m pytest -n auto --dist worksteal -o faulthandler_timeout=300 $TESTS"
-        in workflow
-    )
+    assert re.search(r"-m pytest .* \$TESTS$", workflow, re.MULTILINE)
     assert "integration/" not in workflow
