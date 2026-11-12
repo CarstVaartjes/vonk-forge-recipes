@@ -1,0 +1,42 @@
+{
+  "capabilities": [
+    "image-editing",
+    "image-generation"
+  ],
+  "description": "Exact official MiniMax H3 Image BF16 checkpoint for text-to-image generation and ordered-reference image editing with SGLang Diffusion. It keeps the root SGLang layout (transformer, text encoder, VAE, tokenizer, processor, scheduler and PDD heads) and leaves out the duplicate Diffusers-format transformer and VAE trees, showcase assets and examples.",
+  "family_title": "MiniMax H3",
+  "identity": {
+    "publisher": "minimax",
+    "slug": "minimax-h3-image-5f904730"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "minimax"
+    ],
+    "spdx": "LicenseRef-MiniMax-H3-Image-Community-License",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR",
+        "US"
+      ],
+      "notice": "The MiniMax-H3-Image Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."
+    },
+    "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/5f90473023975e6271b0ed1dd84c4e88e4bbc6d3/LICENSE"
+  },
+  "modalities": [
+    "image"
+  ],
+  "model_title": "MiniMax Image",
+  "tags": [
+    "minimax",
+    "image",
+    "editing",
+    "text-to-image",
+    "image-to-image",
+    "bf16",
+    "spark"
+  ]
+}

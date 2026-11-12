@@ -193,15 +193,9 @@ class LtxSyncAuthorityTests(unittest.TestCase):
         )
         for relative in adapters:
             module = runpy.run_path(str(ROOT / relative))
-            self.assertRegex(module["LTX_PIPELINES_VERSION"], r"^\d+\.\d+\.\d+$")
             self.assertEqual(module["PIPELINE_OUTPUT_FIELDS"], expected)
             pipeline = types.SimpleNamespace(_fields=expected)
             with (
-                mock.patch.object(
-                    module["importlib"].metadata,
-                    "version",
-                    return_value=module["LTX_PIPELINES_VERSION"],
-                ),
                 mock.patch.object(
                     module["importlib"],
                     "import_module",
@@ -211,11 +205,6 @@ class LtxSyncAuthorityTests(unittest.TestCase):
                 module["_verify_ltx_runtime_contract"]()
             pipeline._fields = (*expected, "video_latent")
             with (
-                mock.patch.object(
-                    module["importlib"].metadata,
-                    "version",
-                    return_value=module["LTX_PIPELINES_VERSION"],
-                ),
                 mock.patch.object(
                     module["importlib"],
                     "import_module",

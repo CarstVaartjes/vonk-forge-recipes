@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import importlib
-import importlib.metadata
 import json
 import os
 import subprocess
@@ -34,7 +33,6 @@ GEMMA_REQUIRED_PATHS = (
     "tokenizer/tokenizer_config.json",
     *(f"text_encoder/model-{index:05d}-of-00011.safetensors" for index in range(1, 12)),
 )
-LTX_PIPELINES_VERSION = "1.6.2"
 PIPELINE_OUTPUT_FIELDS = (
     "video",
     "audio",
@@ -45,17 +43,11 @@ PIPELINE_OUTPUT_FIELDS = (
 
 def _verify_ltx_runtime_contract() -> None:
     try:
-        installed_version = importlib.metadata.version("ltx-pipelines")
         pipeline_output = importlib.import_module(
             "ltx_pipelines.utils.types"
         ).PipelineOutput
-    except (ImportError, importlib.metadata.PackageNotFoundError) as error:
+    except ImportError as error:
         raise SystemExit(f"LTX native runtime is incomplete: {error}") from error
-    if installed_version != LTX_PIPELINES_VERSION:
-        raise SystemExit(
-            "LTX native runtime version changed: "
-            f"expected {LTX_PIPELINES_VERSION}, found {installed_version}"
-        )
     if tuple(getattr(pipeline_output, "_fields", ())) != PIPELINE_OUTPUT_FIELDS:
         raise SystemExit("LTX PipelineOutput contract changed")
 
