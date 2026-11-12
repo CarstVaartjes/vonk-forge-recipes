@@ -149,6 +149,10 @@ refuses a `CONTRACT_MAJOR` newer than the major in the `platform_ref` lock. Pin 
 recipes commit in vonk-forge, deploy it (the Controller waits visibly for the new
 major), then move `platform_ref` here and merge. A platform major ahead of this
 repo never blocks.
+After a release that changed, the `dispatch-site` job starts the public site's `pages.yml`
+(`tools/dispatch-site-build`, the refresh App scoped to vonk-forge-web with `actions: write`). It runs
+after and apart from the signing job, with `continue-on-error`: a failed dispatch is a visible
+failed job that never fails or undoes the release (the site's schedule is the backstop).
 PR validation calls the same image workflow at the PR head, compares base/head
 build keys and builds only changed, unpublished keys (including native checks
 and the remote-code smoke); every key builds in CI, within one 360-minute job
