@@ -360,7 +360,7 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
                     self.assertTrue(Path(flags["--user-directory"]).is_dir())
 
 
-CONTROLLED_CONTEXT = ROOT / "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed"
+CONTROLLED_CONTEXT = ROOT / "adapters/media/comfyui-image-controls"
 
 
 def _controlled_adapter():
@@ -430,25 +430,19 @@ class ComfyUIWorkflowControlTests(unittest.TestCase):
         )["14"]["inputs"]
         self.assertEqual((sampler["steps"], sampler["seed"]), (8, 7))
 
-    def test_controls_refuse_what_comfyui_would_accept_silently(self) -> None:
+    def test_controls_refuse_sizes_off_the_latent_grid_and_undeclared_controls(
+        self,
+    ) -> None:
         adapter = _controlled_adapter()
         workflow, arguments = _default_job("flux-2-klein-4b-nvfp4-comfyui-single")
-        for change, message in (
-            ({"width": 1000}, "multiple of 16"),
-            ({"height": 2064}, "at most 2048"),
-            ({"height": None}, "requires --height"),
-        ):
-            with (
-                self.subTest(change=change),
-                self.assertRaisesRegex(ValueError, message),
-            ):
-                _prompt(adapter, workflow, {**arguments, **change})
+        with self.assertRaisesRegex(ValueError, "multiple of 16"):
+            _prompt(adapter, workflow, {**arguments, "width": 1000})
         fixed = load(
             ROOT / "adapters/media/comfyui-core/workflows/flux-2-klein-4b.json"
         )
         with self.assertRaisesRegex(ValueError, "does not accept --width"):
             _prompt(adapter, fixed, {"seed": 0, "width": 1024})
-        for controls in ({"cfg": {}}, {"width": {"minimum": 16}}, {"width": 16}):
+        for controls in ({"cfg": {}}, {"width": {"maximum": 2048}}, {"width": 16}):
             with (
                 self.subTest(controls=controls),
                 self.assertRaisesRegex(ValueError, "contract is invalid"),

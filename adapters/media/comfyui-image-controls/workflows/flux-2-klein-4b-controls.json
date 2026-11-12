@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "identity": "comfyui-qwen-image-edit-2511-fp8mixed/flux-2-klein-4b-controls@1",
+  "identity": "comfyui-image-controls/flux-2-klein-4b-controls@1",
   "upstream_template": "https://github.com/Comfy-Org/workflow_templates/blob/2ded761bde3af3b4c8e905e162f45551cbec12ea/templates/image_flux2_klein_text_to_image.json",
   "models": [
     {"artifact_id": "target", "category": "diffusion_models", "filename": "flux-2-klein-4b.safetensors"},
@@ -9,8 +9,8 @@
   ],
   "inputs": {"minimum": 0, "maximum": 0},
   "controls": {
-    "width": {"multiple_of": 16, "maximum": 2048},
-    "height": {"multiple_of": 16, "maximum": 2048},
+    "width": {"multiple_of": 16},
+    "height": {"multiple_of": 16},
     "num-inference-steps": {}
   },
   "text_inputs": {

@@ -54,7 +54,7 @@ class Flux2NVFP4RecipeTests(unittest.TestCase):
         }
         workflow = (
             ROOT
-            / "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed/workflows/flux-2-klein-4b-controls.json"
+            / "adapters/media/comfyui-image-controls/workflows/flux-2-klein-4b-controls.json"
         )
         self.assertEqual(
             arguments["workflow-sha256"],

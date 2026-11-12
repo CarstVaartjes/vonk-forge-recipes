@@ -39,7 +39,7 @@ MEDIA_EXTENSIONS = frozenset(
 # Per-job integer controls a workflow may declare under "controls"; the recipe
 # binds each to a knob. ComfyUI validates each node input's own range; a
 # declaration adds only what ComfyUI does not check: "multiple_of" (latent
-# nodes floor a size silently) and a "maximum" kept as a memory guard.
+# nodes floor a size silently).
 WORKFLOW_CONTROLS = ("width", "height", "num-inference-steps")
 
 
@@ -325,19 +325,14 @@ def control_replacements(
                 raise ValueError(f"workflow does not accept --{name}")
             continue
         if not isinstance(declaration, dict) or not set(declaration) <= {
-            "multiple_of",
-            "maximum",
+            "multiple_of"
         }:
             raise ValueError(f"workflow control contract is invalid: {name}")
-        if value is None:
-            raise ValueError(f"workflow requires --{name}")
         multiple = declaration.get("multiple_of")
-        if multiple is not None and value % multiple:
+        if multiple is not None and value is not None and value % multiple:
             raise ValueError(f"--{name} must be a multiple of {multiple}; got {value}")
-        maximum = declaration.get("maximum")
-        if maximum is not None and value > maximum:
-            raise ValueError(f"--{name} must be at most {maximum}; got {value}")
-        replacements[f"__VONK_{name.replace('-', '_').upper()}__"] = value
+        if value is not None:
+            replacements[f"__VONK_{name.replace('-', '_').upper()}__"] = value
     return replacements
 
 
