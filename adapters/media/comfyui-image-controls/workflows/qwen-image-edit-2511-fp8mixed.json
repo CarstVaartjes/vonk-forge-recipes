@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "identity": "comfyui-qwen-image-edit-2511-fp8mixed/qwen-image-edit-2511-fp8mixed@2",
+  "identity": "comfyui-image-controls/qwen-image-edit-2511-fp8mixed@2",
   "upstream_template": "https://github.com/Comfy-Org/workflow_templates/blob/2ded761bde3af3b4c8e905e162f45551cbec12ea/templates/image_qwen_image_edit_2511.json",
   "models": [
     {"artifact_id": "target", "category": "diffusion_models", "filename": "qwen_image_edit_2511_fp8mixed.safetensors"},
