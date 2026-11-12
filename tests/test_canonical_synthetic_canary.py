@@ -18,7 +18,12 @@ from typing import Any
 import pytest
 from generated_catalog import GENERATED
 from pydantic import ValidationError
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
+    document_sha256,
+    read_catalog_index,
+)
 from vonk_forge_contracts.model import ModelSource
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -76,6 +81,9 @@ def test_canonical_canary_is_valid_and_excluded_from_public_catalog() -> None:
     assert recipe.identity.slug not in public_recipes
     assert model.identity.slug not in public_models
     fixture_index = json.loads((FIXTURE / "index.json").read_text(encoding="utf-8"))
+    # The envelope is what consumers read through the contract (the entries are
+    # read one by one); the canary index must stay readable by it.
+    read_catalog_index({**fixture_index, "catalog_entities": [], "recipes": []})
     assert fixture_index["schema_version"] == 2
     assert fixture_index["kind"] == "recipe-library-index"
     assert len(fixture_index["recipes"]) == 1
