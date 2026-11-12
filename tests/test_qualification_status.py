@@ -431,7 +431,11 @@ def test_catalog_derives_after_resolving_release_image(
         "recipe_package",
         lambda *a, **kw: (
             b"package",
-            {"path": "packages/example.tar.gz", "source_bundle_sha256": "1" * 64},
+            {
+                **built_catalog[0]["recipes"][0]["package"],
+                "path": "packages/example.tar.gz",
+                "source_bundle_sha256": "1" * 64,
+            },
         ),
     )
     images = {
