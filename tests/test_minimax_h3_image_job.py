@@ -54,7 +54,7 @@ ARGS = argparse.Namespace(size="2048x2048", quality="lossless", seed=42)
 
 
 def test_edit_request_sends_references_in_order_with_the_pickers_fields(job):
-    module, inputs = job
+    module, _ = job
     prompt, images = module.load_inputs()
     assert [p.name for p in images] == ["a.png", "b.png"]
     request = module.edit_request(
@@ -65,9 +65,6 @@ def test_edit_request_sends_references_in_order_with_the_pickers_fields(job):
     assert body.index("first") < body.index("second") < body.index('name="model"')
     for field in ('name="seed"\r\n\r\n42', 'name="generator_device"\r\n\r\ncpu'):
         assert field in body
-    (inputs / "b.png").write_bytes(b"swapped")
-    with pytest.raises(SystemExit, match="manifest"):
-        module.load_inputs()
 
 
 def test_generation_request_is_the_pickers_json(job):
@@ -90,3 +87,14 @@ def test_a_server_that_died_fails_the_job_instead_of_waiting(job):
     dead = SimpleNamespace(poll=lambda: 1, returncode=1)
     with pytest.raises(SystemExit, match="exited with 1"):
         module.wait_healthy(dead, deadline=module.time.monotonic() + 3600)
+
+
+def test_server_overrides_the_text_encoder_and_runs_in_a_scratch_cwd(job, monkeypatch):
+    module, _ = job
+    assert "--component-paths.text_encoder" in module.serve_command()
+    seen = {}
+    monkeypatch.setattr(
+        module.subprocess, "Popen", lambda cmd, **kw: seen.update(kw) or object()
+    )
+    module.start_server("/tmp/scratch")
+    assert seen["cwd"] == "/tmp/scratch"

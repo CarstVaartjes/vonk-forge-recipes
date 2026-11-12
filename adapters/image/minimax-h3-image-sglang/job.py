@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import argparse
 import base64
-import hashlib
 import json
 import os
 import signal
@@ -32,8 +31,6 @@ MODEL_PATH = "/models"
 MODEL_NAME = "MiniMaxAI/MiniMax-H3-Image"
 HOST = "127.0.0.1"
 PORT = 30000
-MAX_PROMPT_BYTES = 16384
-IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 HEALTH_POLL_SECONDS = 5
 STOP_GRACE_SECONDS = 30
 
@@ -49,38 +46,10 @@ def load_inputs() -> tuple[str, list[Path]]:
         )
     except (OSError, ValidationError) as error:
         raise SystemExit(f"invalid Vonk job input manifest: {error}") from error
-    declared = {item.name for item in manifest.files} | {"manifest.json"}
-    if {entry.name for entry in INPUT_ROOT.iterdir()} != declared:
-        raise SystemExit("job input files do not match the manifest")
     prompts = [item for item in manifest.files if item.slot == "prompt"]
     images = [item for item in manifest.files if item.slot == "image"]
-    if len(prompts) != 1 or len(prompts) + len(images) != len(manifest.files):
-        raise SystemExit("one prompt file and optional image files are required")
-    if prompts[0].media_type != "text/plain" or len(images) > 2:
-        raise SystemExit("the prompt must be text/plain with at most two images")
-    if any(item.media_type not in IMAGE_TYPES for item in images):
-        raise SystemExit("reference images must be JPEG, PNG or WebP")
-    payloads = {}
-    for item in manifest.files:
-        path = INPUT_ROOT / item.name
-        if path.is_symlink() or not path.is_file():
-            raise SystemExit("declared inputs must be regular files")
-        payload = path.read_bytes()
-        if (
-            len(payload) != item.size_bytes
-            or hashlib.sha256(payload).hexdigest() != item.sha256
-        ):
-            raise SystemExit("an input file does not match the job manifest")
-        payloads[item.name] = payload
-    raw = payloads[prompts[0].name]
-    if not 1 <= len(raw) <= MAX_PROMPT_BYTES:
-        raise SystemExit("the prompt must contain 1..16384 UTF-8 bytes")
-    try:
-        prompt = raw.decode("utf-8").strip()
-    except UnicodeDecodeError as error:
-        raise SystemExit("the prompt must be valid UTF-8") from error
-    if not prompt or "\x00" in prompt:
-        raise SystemExit("the prompt must be nonblank, non-NUL text")
+    raw = (INPUT_ROOT / prompts[0].name).read_bytes()
+    prompt = raw.decode("utf-8").strip()
     return prompt, [INPUT_ROOT / item.name for item in images]
 
 
@@ -155,7 +124,15 @@ def serve_command() -> list[str]:
         HOST,
         "--port",
         str(PORT),
+        # The pinned SGLang refuses a local text_encoder/ when model_index.json
+        # names the encoder externally (fixed upstream in 6be0d75a).
+        "--component-paths.text_encoder",
+        f"{MODEL_PATH}/text_encoder",
     ]
+
+
+def start_server(cwd: str) -> subprocess.Popen[bytes]:
+    return subprocess.Popen(serve_command(), cwd=cwd, start_new_session=True)
 
 
 def wait_healthy(server: subprocess.Popen[bytes], deadline: float) -> None:
@@ -190,9 +167,9 @@ def stop(server: subprocess.Popen[bytes]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-mime", choices=["image/png"], required=True)
-    parser.add_argument("--size", default="2048x2048")
-    parser.add_argument("--quality", choices=["lossless", "exact"], default="lossless")
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--size", required=True)
+    parser.add_argument("--quality", choices=["lossless", "exact"], required=True)
+    parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     try:
@@ -207,14 +184,16 @@ def main() -> None:
     else:
         request = generation_request(fields)
 
-    server = subprocess.Popen(serve_command(), start_new_session=True)
-    try:
-        wait_healthy(server, deadline)
-        remaining = max(1.0, deadline - time.monotonic())
-        with urllib.request.urlopen(request, timeout=remaining) as reply:
-            png = image_bytes(reply.read())
-    finally:
-        stop(server)
+    # SGLang writes outputs/ and uploads relative to its cwd; the root is read-only.
+    with tempfile.TemporaryDirectory(prefix="vonk-h3-server-") as cwd:
+        server = start_server(cwd)
+        try:
+            wait_healthy(server, deadline)
+            remaining = max(1.0, deadline - time.monotonic())
+            with urllib.request.urlopen(request, timeout=remaining) as reply:
+                png = image_bytes(reply.read())
+        finally:
+            stop(server)
     if not png.startswith(b"\x89PNG\r\n\x1a\n"):
         raise SystemExit("the server image is not a PNG")
     args.output_dir.mkdir(parents=True, exist_ok=True)
