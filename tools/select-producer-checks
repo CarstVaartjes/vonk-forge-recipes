@@ -4,8 +4,9 @@
 Every change lands through an integration batch (head branch ``integration/*``),
 which runs the full suite once, as do pushes, publication and manual runs. A
 member pull request runs the always-run core plus the tests its changed paths
-name; the batch it is folded into runs everything. Hardware evidence lands
-without a batch, so a change to it runs everything too.
+name; the batch it is folded into runs everything. Hardware evidence and
+refresher PRs (``refresh/*``) auto-merge without a batch, so they run
+everything too.
 
 Recipe data changes (light) skip lint, format, types and the wheel build; any
 other change runs them (full).
@@ -25,7 +26,8 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 FULL_SUITE = "tests/"
-INTEGRATION_HEAD = "integration/"
+# Heads that reach main without a batch: integration batches, and refresher PRs it auto-merges.
+FULL_SUITE_HEADS = ("integration/", "refresh/")
 RECIPE_DATA = re.compile(
     r"^(recipes/|models/|display/|api/|adapters/|qualification/shared\.json$"
     r"|qualification/recipes/|README\.md$|creators\.json$)"
@@ -88,7 +90,7 @@ def targeted(changed: Iterable[str], tests: dict[str, str]) -> list[str]:
 
 
 def select(event: str, head_ref: str, changed: list[str] | None) -> dict[str, str]:
-    member = event == "pull_request" and not head_ref.startswith(INTEGRATION_HEAD)
+    member = event == "pull_request" and not head_ref.startswith(FULL_SUITE_HEADS)
     if (
         member
         and changed is not None
