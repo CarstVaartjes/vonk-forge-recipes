@@ -109,30 +109,35 @@ jobs:
       - name: Set up uv and Python
         uses: ./.github/actions/setup-tooling
 
-      - name: Decide light (recipe data only) or full checks
+      # One selector owns the scope: tools/select-producer-checks decides the
+      # Python gates (light for recipe data only) and which tests run (the full
+      # suite, except the core plus named tests on a member PR, whose
+      # integration batch runs everything). Git runs here, at the CI edge.
+      - name: Select the producer checks
         id: scope
         shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
         run: |
           set -euo pipefail
-          # Recipe data (recipes, models, display, api, adapters, qualification, README,
-          # creators) skips lint, format, type checks and the wheel build; every
-          # other change (contracts, tools, tests, workflows) runs them too.
-          case "${{ github.event_name }}" in
+          case "$EVENT" in
             pull_request)
-              git fetch --no-tags origin "${{ github.base_ref }}"
+              git fetch --no-tags origin "$BASE_REF"
               base=$(git merge-base FETCH_HEAD HEAD) ;;
-            push) base="${{ github.event.before }}" ;;
+            push) base="$BEFORE" ;;
             *) base= ;;
           esac
-          full=true
           if [[ -n "$base" ]] && git cat-file -e "$base^{commit}" 2>/dev/null; then
-            # Capture first: grep -q exiting early must not fail the pipeline.
-            changed=$(git diff --name-only "$base" HEAD)
-            other=$(grep -Ev '^(recipes/|models/|display/|api/|adapters/|qualification/shared\.json$|qualification/recipes/|README\.md$|creators\.json$)' <<<"$changed" | grep -v '^$' || true)
-            if [[ -z "$other" ]]; then full=false; else echo "Not recipe data:"; head -20 <<<"$other"; fi
+            git diff --name-only "$base" HEAD > "$RUNNER_TEMP/changed.txt"
+            changed=(--changed-files "$RUNNER_TEMP/changed.txt")
+          else
+            changed=()
           fi
-          echo "full=$full" >> "$GITHUB_OUTPUT"
-          echo "Checks: $([[ $full == true ]] && echo full || echo light)"
+          python3 tools/select-producer-checks --event "$EVENT" --head-ref "$HEAD_REF" \
+            "${changed[@]}" | tee -a "$GITHUB_OUTPUT"
 
       - name: Install producer contract dependencies
         shell: bash
@@ -359,10 +364,12 @@ jobs:
           set -euo pipefail
           python3 tools/check-estimate-gates --diff "$RUNNER_TEMP/added.diff"
 
-      # Every test runs on recipe changes too: the suite takes about as long
-      # as any subset, and a subset silently misses recipe-data checks.
-      - name: Run the full producer test suite
+      # The selector's test list: the whole suite, or on a member PR the core
+      # plus the tests its changed paths name.
+      - name: Run the selected producer tests
         shell: bash
+        env:
+          TESTS: ${{ steps.scope.outputs.tests }}
         run: |
           set -euo pipefail
           # Tests run in parallel (xdist worksteal, as vonk-forge does); a
@@ -371,31 +378,32 @@ jobs:
           # production retry or observation deadlines.
           # Only a real stall dumps: a dump racing a slow test's C code once
           # segfaulted the whole suite (exit 139).
-          "$RECIPE_TEST_PYTHON" -m pytest -n auto --dist worksteal -o faulthandler_timeout=300
+          # shellcheck disable=SC2086 # TESTS is a space-separated path list
+          "$RECIPE_TEST_PYTHON" -m pytest -n auto --dist worksteal -o faulthandler_timeout=300 $TESTS
 
       - name: Lint the repository with pinned Ruff
-        if: steps.scope.outputs.full == 'true'
+        if: steps.scope.outputs.gates == 'full'
         shell: bash
         run: |
           set -euo pipefail
           UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-lint
 
       - name: Check formatting with pinned Ruff
-        if: steps.scope.outputs.full == 'true'
+        if: steps.scope.outputs.gates == 'full'
         shell: bash
         run: |
           set -euo pipefail
           UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-format
 
       - name: Type check the repository with pinned Pyright
-        if: steps.scope.outputs.full == 'true'
+        if: steps.scope.outputs.gates == 'full'
         shell: bash
         run: |
           set -euo pipefail
           UV_CACHE_DIR="$RUNNER_TEMP/uv-cache" scripts/check-python-types
 
       - name: Build and externally import the contracts wheel
-        if: steps.scope.outputs.full == 'true'
+        if: steps.scope.outputs.gates == 'full'
         shell: bash
         run: |
           set -euo pipefail
