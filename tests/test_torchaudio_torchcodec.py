@@ -33,7 +33,7 @@ EXEMPT = {
     "media/comfyui-core": _COMFYUI,
     "media/comfyui-qwen-image-2512-bf16": _COMFYUI,
     "media/comfyui-qwen-image-2512-fp8-lightning": _COMFYUI,
-    "media/comfyui-qwen-image-edit-2511-fp8mixed": _COMFYUI,
+    "media/comfyui-image-controls": _COMFYUI,
     "media/comfyui-qwen-image-edit-2511-int8-convrot": _COMFYUI,
     "video/ltx2-pytorch": _LTX2,
     "video/ltx2-sync-native": _LTX2,

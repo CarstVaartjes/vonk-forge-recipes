@@ -6,9 +6,9 @@
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
-        "path": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed"
+        "path": "adapters/media/comfyui-image-controls"
       },
-      "dockerfile": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed/Dockerfile",
+      "dockerfile": "adapters/media/comfyui-image-controls/Dockerfile",
       "network": {
         "hosts": [
           "codeload.github.com",
@@ -177,7 +177,7 @@
       {
         "name": "workflow-sha256",
         "setting": null,
-        "value": "36825cd0c5e370995b7dcba288d64b72553c9095c259b9ebdbe992348774a6c8"
+        "value": "46e6bb16bb1f917caeca458198d4ed4e7b9af4fc95678db8616ce4aecb0a31b2"
       },
       {
         "name": "output-mime",
