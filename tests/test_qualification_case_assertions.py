@@ -485,6 +485,7 @@ def test_protocol_refresh_preserves_prior_pass_without_certifying_new_context() 
         QualificationOutcome,
         QualificationRuntimeImage,
         QualificationStatus,
+        QualificationUnverifiedReason,
         published_status,
     )
 
@@ -518,8 +519,8 @@ def test_protocol_refresh_preserves_prior_pass_without_certifying_new_context() 
     )
     view = published_status(history, current)
     assert view.last_pass == passed
-    assert view.status == QualificationStatus.RECHECK
-    assert view.reason is None
+    assert view.status == QualificationStatus.NOT_YET_VERIFIED
+    assert view.reason == QualificationUnverifiedReason.INCOMPLETE_PROVENANCE
     # Fresh, complete evidence clears the uncertainty without a manual waiver.
     platform = passed.platform.model_copy(update={"agent_version": "0.0.1"})
     assert platform.resolved
