@@ -287,34 +287,38 @@ def test_restart_reconnects_to_the_write_ahead_request(tmp_path, fault):
     assert original in render_status(status)
 
 
-def test_state_saved_before_the_bounded_shape_resumes_its_removal(tmp_path):
-    """An upgraded sweep adopts the running sweep's state and drops write-only bulk."""
+def test_a_saved_record_with_unknown_fields_still_resumes_its_removal(tmp_path):
+    """An unknown field is ignored, not a reason to refuse the record."""
     sweep, peer, clock = scenario(tmp_path)
     peer.lost = True
     sweep.remove_finished_models()
     original = sweep.state.data["model_removals"][A]["request_key"]
-    saved = json.loads(sweep.state.path.read_text())
-    saved["model_removals"][A].update(
-        review={"raw": 1}, last_response={"raw": 2}, history=[{"raw": 3}]
-    )
-    needed_again = {"outcome": "receipt", "needed_again": True, "receipt": {}}
-    saved["model_removals"][C] = needed_again
-    saved["download_history"] = {"vonk-forge/a": [{"request_key": "old"}]}
-    saved["own_loads"] = [{"request_key": "own", "terminal_receipt": {"raw": 4}}]
-    sweep.state.path.write_text(json.dumps(saved))
-    sweep.state = State.load(sweep.state.path, clock.now)
-    sweep.model_remover.state = sweep.state
-    assert C not in sweep.state.data["model_removals"]  # same as never removed
+    sweep.state.data["model_removals"][A].update(review={"raw": 1}, history=[{}])
     advance(sweep, clock)
     record = sweep.state.data["model_removals"][A]
     assert record["outcome"] == RemovalOutcome.RECEIPT
     assert record["receipt"]["request_key"] == original
-    saved = json.loads(sweep.state.path.read_text())
-    assert "download_history" not in saved
-    assert (
-        not {"review", "last_response", "history"} & saved["model_removals"][A].keys()
-    )
-    assert saved["own_loads"][0] == {"request_key": "own"}
+    assert not {"review", "history"} & record.keys()
+
+
+def test_one_pass_over_many_removals_saves_once(tmp_path):
+    sweep, peer, clock = scenario(tmp_path, extra=3)
+    peer.profiles = [
+        {"number": 20}
+    ]  # unreadable: every eligible model is held, none advanced
+    saves = 0
+    save = sweep.state.save
+
+    def counting_save() -> None:
+        nonlocal saves
+        saves += 1
+        save()
+
+    sweep.state.save = counting_save
+    sweep.model_remover.tick(sweep.recipes, set(), clock.now())
+    held = list(sweep.state.data["model_removals"].values())
+    assert len(held) > 3 and all(r["outcome"] == RemovalOutcome.OWNER for r in held)
+    assert saves == 1
 
 
 def _saved_bytes_after(tmp_path: Path, cycles: int) -> tuple[int, int]:

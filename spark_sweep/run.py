@@ -4310,8 +4310,43 @@ class Sweep:
         )
         load["observation_budget"] = budget.model_dump(mode="json")
 
+    def _prune_cleanup_loads(self) -> None:
+        """Keep the observers still needed and the newest settled one; drop older settled ones.
+
+        A settled observer (retired, or a terminal receipt with a known projection and nothing
+        pending) is immutable history. The newest stays as the marker that a clearing ran, and
+        any a live load adopted stays too; the rest were acted on and nothing reads them.
+        """
+        loads = self.state.data["cleanup_loads"]
+        settled = [
+            key
+            for key, load in loads.items()
+            if load.get("end")
+            or (
+                load.get("terminal_receipt")
+                and load.get("projection_known")
+                and not self._cleanup_pending(load)
+            )
+        ]
+        if len(settled) < 2:
+            return
+        order = {
+            item["request_key"]: i
+            for i, item in enumerate(self.state.data["own_loads"])
+        }
+        newest = max(settled, key=lambda key: order.get(key, -1))
+        adopted = {
+            key
+            for load in self.state.data["loads"].values()
+            for key in load.get("adopted_cleanup_requests", [])
+        }
+        for key in settled:
+            if key != newest and key not in adopted:
+                del loads[key]
+
     def observe_cleanup(self) -> None:
         """Reconcile original applications and stops; never replace intent on timeout."""
+        self._prune_cleanup_loads()
         for load in self.state.data["cleanup_loads"].values():
             if load.get("end"):
                 continue
