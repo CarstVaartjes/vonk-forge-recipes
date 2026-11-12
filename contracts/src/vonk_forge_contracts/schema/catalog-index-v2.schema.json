@@ -711,6 +711,9 @@
           "package_contract": {
             "$ref": "#/components/schemas/PackageContract"
           },
+          "vocabulary": {
+            "$ref": "#/components/schemas/CatalogVocabulary"
+          },
           "catalog_entities": {
             "items": {
               "$ref": "#/components/schemas/CatalogModelEntry"
@@ -734,6 +737,7 @@
           "repository",
           "source_commit",
           "package_contract",
+          "vocabulary",
           "catalog_entities",
           "recipes"
         ],
@@ -845,6 +849,40 @@
           "qualification"
         ],
         "title": "CatalogRecipeEntry",
+        "type": "object"
+      },
+      "CatalogVocabulary": {
+        "additionalProperties": false,
+        "description": "The words of one release, as the index publishes them.",
+        "properties": {
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/VocabularyCategory"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "capabilities": {
+            "items": {
+              "$ref": "#/components/schemas/VocabularyCapability"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "statuses": {
+            "items": {
+              "$ref": "#/components/schemas/VocabularyStatus"
+            },
+            "title": "Statuses",
+            "type": "array"
+          }
+        },
+        "required": [
+          "categories",
+          "capabilities",
+          "statuses"
+        ],
+        "title": "CatalogVocabulary",
         "type": "object"
       },
       "ChatApi": {
@@ -4118,6 +4156,78 @@
             "type": "object"
           }
         ]
+      },
+      "VocabularyCapability": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "description",
+          "category"
+        ],
+        "title": "VocabularyCapability",
+        "type": "object"
+      },
+      "VocabularyCategory": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "VocabularyCategory",
+        "type": "object"
+      },
+      "VocabularyStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "meaning": {
+            "title": "Meaning",
+            "type": "string"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "status",
+          "meaning",
+          "verified"
+        ],
+        "title": "VocabularyStatus",
+        "type": "object"
       }
     }
   }

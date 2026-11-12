@@ -27,6 +27,7 @@ from .qualification_status import (
     PublishedQualificationStatusView,
 )
 from .recipe import RecipeDefinition, RecipeRelease
+from .vocabulary import CatalogVocabulary
 
 IndexSchemaVersion = Literal[2]
 IndexKind = Literal["recipe-library-index"]
@@ -113,6 +114,7 @@ class CatalogIndex(_IndexContract):
     repository: StrictStr
     source_commit: StrictStr = Field(pattern=r"^[0-9a-f]{40}$")
     package_contract: PackageContract
+    vocabulary: CatalogVocabulary
     catalog_entities: tuple[CatalogModelEntry, ...]
     recipes: tuple[CatalogRecipeEntry, ...]
 
