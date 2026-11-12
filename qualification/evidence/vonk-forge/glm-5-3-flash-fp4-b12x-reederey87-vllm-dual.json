@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/glm-5-3-flash-fp4-b12x-reederey87-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "65fc11ba315f4a43110b8cd303cde485a9070d76efba04efa5b40f171a50da61",
+        "source_bundle_sha256": "3d04c304fc87c1598551ff04a5c987d054831f00ff3dae14869c42241ed1efea",
+        "runtime_image": {
+          "build_key": "7c4ec962edcd908a5040ad88c4d051c7e3bf0d0dd763acf90e12453ec98ce26a",
+          "image_digest": "sha256:a3e66167a73264b927870b26298a4fdf60a8cc3d029cb03d869268f5b5003dec"
+        },
+        "model_digests": [
+          "56fa6068be22f8f0b6d2bff5a2653883c12aff4404341c53a55d0e8b497ff58f"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "e5f02128f3995ee8f0c3eea1dd9c00a880fb4736b847dffd9ac191b359a5b345"
+      ],
+      "tested_at": "2026-11-12T03:02:31.618261Z",
+      "platform": {
+        "controller_source_sha": "b128306efd5ad6df44a620cfa3923d95e080613c",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "65fc11ba315f4a43110b8cd303cde485a9070d76efba04efa5b40f171a50da61",
+      "role": "entrypoint",
+      "steady_bytes": 125848940544
+    },
+    {
+      "content_sha256": "65fc11ba315f4a43110b8cd303cde485a9070d76efba04efa5b40f171a50da61",
+      "role": "worker",
+      "steady_bytes": 124855758848
+    }
+  ]
+}
