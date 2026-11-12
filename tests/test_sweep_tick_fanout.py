@@ -117,3 +117,37 @@ def test_the_loop_sleeps_to_the_poll_deadline(
     sweep.cfg.watch_seconds = 0
     sweep.run()
     assert slept[:3] == [sleep_for] * 3
+
+
+def test_the_lane_progress_reads_of_a_poll_overlap(tmp_path: Path) -> None:
+    sweep, _, _ = _sweep(tmp_path)
+    sweep.state.data["loads"] = {
+        key: {"request_key": key, "app_id": f"{key}-app"} for key in ("l1", "l2", "l3")
+    }
+    inner = sweep.vk.runner
+    barrier = threading.Barrier(3, timeout=5)
+
+    def runner(argv, timeout):
+        # The first read of each lane names its application; the by-key retry does not.
+        if _command(argv) == ("profile", "progress") and "--application" in argv:
+            barrier.wait()  # releases only when every lane's first read is in flight
+        return inner(argv, timeout)
+
+    sweep.vk.runner = runner
+    sweep.poll_application()
+    assert not barrier.broken
+
+
+def test_the_startup_client_checks_overlap(tmp_path: Path) -> None:
+    sweep, _, _ = _sweep(tmp_path)
+    inner = sweep.vk.runner
+    barrier = threading.Barrier(3, timeout=5)
+
+    def runner(argv, timeout):
+        if _command(argv) in {("--version",), ("platform",), ("update",)}:
+            barrier.wait()
+        return inner(argv, timeout)
+
+    sweep.vk.runner = runner
+    sweep.check_client()  # a serial check would time the barrier out
+    assert not barrier.broken
