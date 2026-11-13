@@ -51,7 +51,7 @@ def test_an_identical_running_run_is_cleared_and_the_recipe_starts_cold(
         )
     )
 
-    assert sweep.run() == 0
+    _tick_until_done(sweep, clock)
 
     assert sweep.state.recipes["vonk-forge/glm"]["status"] == "passed"
     assert not any(r["run_id"] == "run-owner" for r in fleet.runs)
@@ -137,16 +137,27 @@ def test_another_recipes_run_on_the_lanes_sparks_does_not_trigger_the_clearing(
         FakeRecipe("glm", local="cached", memory=20 * GB),
         FakeRecipe("other", local="cached", memory=20 * GB),
     ]
-    sweep, fleet, _ = make_sweep(
+    sweep, fleet, clock = make_sweep(
         tmp_path, recipes, [FakeModel("m1", local="cached")], gateway=gateway
     )
     sweep.state.data["took_over"] = True
     fleet.runs.append(dict(OWNER_GLM, recipe="vonk-forge/other", alias="owner-x"))
 
-    assert sweep.run() == 0
+    _tick_until_done(sweep, clock)
 
     assert not any("review would keep" in e for e in _events(sweep))
     assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
+
+
+def _tick_until_done(sweep, clock) -> None:
+    """run()'s own ticks without its startup, so the test's took_over setup stands."""
+    sweep.preflight()
+    sweep.refresh_catalog()
+    for _ in range(200):
+        sweep.tick()
+        if sweep.done():
+            return
+        clock.sleep(sweep.cfg.poll_seconds)
 
 
 def _events(sweep) -> list[str]:
