@@ -330,3 +330,39 @@ def test_every_review_of_a_new_intent_reconciles_the_profile_first() -> None:
             if edits and not (guards and min(guards) < min(edits)):
                 missing.append(f"{path.name}:{node.name}")
     assert missing == []
+
+
+def test_a_new_run_forgets_the_last_runs_takeover(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, _fleet, _clock = _recorded_world(tmp_path, gateway)
+    sweep.state.data.update(
+        took_over=True,
+        takeover_fallback=True,
+        cleared_for=["coder"],
+        takeover_budget={"attempts": 4, "next_check": 1e9},
+    )
+
+    sweep._begin_run()
+
+    data = sweep.state.data
+    assert data["took_over"] is False
+    assert data["takeover_budget"] == {"attempts": 0, "next_check": 0.0}
+    assert "takeover_fallback" not in data and "cleared_for" not in data
+
+
+def test_limit_counts_only_verdicts_of_this_run(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, _fleet, clock = _recorded_world(tmp_path, gateway)
+    sweep.cfg.limit = 1
+    sweep.refresh_catalog()
+    keys = [f"vonk-forge/{slug}" for slug in SWEPT]
+    old = sweep.state.entry("vonk-forge/older")
+    old.update(status="passed", finished_at=sweep.run_started_at - 100)
+    assert [r.key for r in sweep.pending()] == keys[
+        :1
+    ]  # an earlier run's verdict is not counted
+
+    sweep.state.entry(keys[0]).update(status="passed", finished_at=clock.now())
+    assert sweep.pending() == []  # this run's own verdict is

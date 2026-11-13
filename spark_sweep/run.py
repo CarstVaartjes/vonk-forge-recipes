@@ -356,6 +356,7 @@ class Sweep:
         self.models: dict[str, Model] = self.model_list.rows
         self.fleet = Fleet((), ())
         self.release_at = self.clock.now()  # check_client has just read it
+        self.run_started_at = self.clock.now()  # --limit counts verdicts reached since
         self.status_at = -1e18
         self.owner_status = OwnerStatus()
         # Visible application alarms never reserve unrelated lanes.
@@ -1066,6 +1067,7 @@ class Sweep:
                 1
                 for e in self.state.recipes.values()
                 if e.get("status") in ("passed", "failed")
+                and float(e.get("finished_at", 0)) >= self.run_started_at
             )
             out = out[: max(0, self.cfg.limit - done)]
         return out
@@ -1886,6 +1888,7 @@ class Sweep:
             self.state.save()
             self.state.adoptions.clear()
         self.state.data.pop("end", None)
+        self._begin_run()
         # Retired sources may be forgotten, but restarting does not prove that a
         # review/adoption dependency recovered. Its first sighting and budget survive.
         self.state.data["infra"] = {
@@ -4687,6 +4690,11 @@ class Sweep:
         self.state.data["clearing_refusal"] = why
         self.state.data["clearing_reason"] = f"clearing refused: {why}"
         return False
+
+    def _begin_run(self) -> None:
+        """A new run takes the fleet from fresh facts, never from the last run's takeover."""
+        self._request_clearing(self.clock.now())
+        self.state.data.pop("cleared_for", None)
 
     def _request_clearing(self, now: float) -> None:
         """A new clearing decision gets its own bounded budget, never an old one's exhaustion."""
