@@ -1190,7 +1190,7 @@ class Sweep:
     def _observe_owner(self, now: float) -> None:
         self.owner_status = self.guard.check(now)
         if self.owner_status.new_activity:
-            self.state.data["took_over"] = False  # their load replaced what ours ran
+            self._request_clearing(now)  # their load replaced what ours ran
             self.state.data["owner"]["seen_at"] = now
             self.preempt("an owner profile was loaded")
         if self.owner_status.paused:
@@ -4593,6 +4593,7 @@ class Sweep:
             admitted = False
         if admitted:
             budget.update(attempts=0, next_check=0.0)
+            self.state.data.pop("takeover_fallback", None)
             self.state.data.pop("clearing_reason", None)
             self.state.data.pop("clearing_refusal", None)
             return True

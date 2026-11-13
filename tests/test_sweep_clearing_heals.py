@@ -332,23 +332,29 @@ def test_every_review_of_a_new_intent_reconciles_the_profile_first() -> None:
     assert missing == []
 
 
-def test_a_new_run_forgets_the_last_runs_takeover(
+def test_a_new_run_clears_a_foreign_run_despite_the_last_runs_takeover(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    sweep, _fleet, _clock = _recorded_world(tmp_path, gateway)
-    sweep.state.data.update(
-        took_over=True,
-        takeover_fallback=True,
-        cleared_for=["coder"],
-        takeover_budget={"attempts": 4, "next_check": 1e9},
+    sweep, fleet, _clock = make_sweep(
+        tmp_path,
+        [FakeRecipe("glm", local="cached", memory=20 * GB)],
+        [FakeModel("m1", local="cached")],
+        gateway=gateway,
+    )
+    sweep.state.data.update(took_over=True, takeover_fallback=True)
+    fleet.runs.append(
+        {
+            "alias": "coder",
+            "recipe": "vonk-forge/coder",
+            "run_id": "run-coder",
+            "node_ids": ["spk_a"],
+            "ready": True,
+        }
     )
 
-    sweep._begin_run()
+    assert sweep.run() == 0
 
-    data = sweep.state.data
-    assert data["took_over"] is False
-    assert data["takeover_budget"] == {"attempts": 0, "next_check": 0.0}
-    assert "takeover_fallback" not in data and "cleared_for" not in data
+    assert sweep.state.data["own_loads"][0]["kind"] == "takeover"
 
 
 def test_limit_counts_only_verdicts_of_this_run(
