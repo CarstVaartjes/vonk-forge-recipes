@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/minimax-h3-image-sglang-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "43a74b7248d82a4999b57dfe767d5a1c54ddc3bcd48eb73b4ba213d237d0c13f",
+        "source_bundle_sha256": "032276c2838551e58c8f42be297818a25b13a698bf0244d8a12b603179f78406",
+        "runtime_image": {
+          "build_key": "089fa4650ac29320710568c18ca47ab46c6f8cff542ef3d7638203b11f164562",
+          "image_digest": "sha256:4af3a3e99e1d1f8d38441cd4258fe886befe460b614bb7cdc3c4fe17cd7f54ba"
+        },
+        "model_digests": [
+          "7a1b8eb95940aac586c1bebfa56387223a0de4703ba2110a86fb51ba33eef3f0"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "ca37a340c9a02e94452f0364b7c6ced50c927a5d3c06486cfb6c132e687a5435"
+      ],
+      "tested_at": "2026-11-13T00:07:24.562122Z",
+      "platform": {
+        "controller_source_sha": "b22ea60ea3156403d1c39c624a397e629f4e3143",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
