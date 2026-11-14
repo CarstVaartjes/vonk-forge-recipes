@@ -16,6 +16,15 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/TencentARC/Pixal3D/blob/b0cb2e1b794cab9aa0ac38a95d794a4d9337437f/LICENSE"
   },
+  "lineage": {
+    "family": "pixal3d",
+    "generation": "Pixal3D",
+    "line": "pixal3d",
+    "model": "pixal3d",
+    "publisher": "Tencent ARC",
+    "release_order": "001.000.000/2026-04-30",
+    "variant_kind": "base"
+  },
   "modalities": [
     "3d"
   ],

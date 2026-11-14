@@ -22,6 +22,15 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/blob/5711b268169967567844e1e560e8a3966da959b1/README.md"
   },
+  "lineage": {
+    "family": "mimo",
+    "generation": "MiMo V2.6",
+    "line": "mimo-flash",
+    "model": "mimo-v2-6-flash-rl",
+    "publisher": "Xiaomi",
+    "release_order": "002.006.000/2026-09-21",
+    "variant_kind": "base"
+  },
   "modalities": [
     "audio",
     "image",

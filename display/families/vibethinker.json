@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "vibethinker-3b",
+          "title": "VibeThinker 3B"
+        }
+      ],
+      "slug": "vibethinker-3b",
+      "title": "VibeThinker 3B"
+    }
+  ],
+  "slug": "vibethinker",
+  "title": "VibeThinker"
+}

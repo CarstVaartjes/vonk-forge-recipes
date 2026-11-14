@@ -19,6 +19,17 @@
     "spdx": "LicenseRef-Llama-3.1-Community-License",
     "url": "https://www.llama.com/llama3_1/license/"
   },
+  "lineage": {
+    "base_model": "meta-llama/Llama-3.1-8B-Instruct",
+    "family": "llama",
+    "flavor": "instruct",
+    "generation": "Llama 3.1",
+    "line": "llama-8b",
+    "model": "llama-3-1-8b-instruct",
+    "publisher": "Meta",
+    "release_order": "003.001.000/2024-07-18",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

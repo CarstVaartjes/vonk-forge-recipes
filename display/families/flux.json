@@ -1,0 +1,27 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "flux-2-klein-4b",
+          "title": "FLUX.2 Klein 4B"
+        }
+      ],
+      "slug": "flux-klein-4b",
+      "title": "FLUX Klein 4B"
+    },
+    {
+      "models": [
+        {
+          "slug": "flux-3-image-klein",
+          "title": "FLUX 3 Image Klein"
+        }
+      ],
+      "slug": "flux-image-klein",
+      "title": "FLUX Image Klein"
+    }
+  ],
+  "slug": "flux",
+  "title": "FLUX"
+}

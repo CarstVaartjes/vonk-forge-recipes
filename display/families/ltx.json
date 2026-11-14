@@ -1,0 +1,27 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "ltx-2-19b",
+          "title": "LTX-2 19B"
+        }
+      ],
+      "slug": "ltx-19b",
+      "title": "LTX 19B"
+    },
+    {
+      "models": [
+        {
+          "slug": "ltx-2-3-22b",
+          "title": "LTX-2.3 22B"
+        }
+      ],
+      "slug": "ltx-22b",
+      "title": "LTX 22B"
+    }
+  ],
+  "slug": "ltx",
+  "title": "LTX"
+}
