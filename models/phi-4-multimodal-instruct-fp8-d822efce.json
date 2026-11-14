@@ -340,10 +340,6 @@
     "quantization": "fp8-modelopt"
   },
   "identity": {
-    "family": {
-      "publisher": "microsoft",
-      "slug": "phi-4"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "phi-4-multimodal-instruct"

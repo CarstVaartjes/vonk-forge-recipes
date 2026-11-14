@@ -216,7 +216,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a397433e56f3e51f342b7cfa0393d94cd38ec099d3589e823598e62c9d443153",
+        "content_sha256": "c551fb901a2c8c2a7bfeb131728ec510c421fecb991a4600bcfcc0ce7a698228",
         "kind": "model",
         "publisher": "vonk-forge",
         "slug": "d3-flash-bf16-13dc1cc8"

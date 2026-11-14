@@ -1,13 +1,13 @@
 {
   "dependencies": [
     {
-      "content_sha256": "a454bd0d9a2c7844f4c60e9e3c908afb621fa58d498f2e9bed31cf73ff6bc763",
+      "content_sha256": "fab2889c895c048e5174b6daf78db8412ff50c3417c4fbd740ea0110e098538d",
       "kind": "model",
       "publisher": "stabilityai",
       "slug": "stable-diffusion-xl-base-1-0"
     },
     {
-      "content_sha256": "dbe33688ecedec3b1c0d12b4d653cd11dc5aa40b64afaba4025d90dbe1d3ca42",
+      "content_sha256": "ce8163041a009dc890895e8cc0261e104847cdf5cb97244933a08322b721d48a",
       "kind": "model",
       "publisher": "madebyollin",
       "slug": "sdxl-vae-fp16-fix"
@@ -29,10 +29,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "stepfun-ai",
-      "slug": "step1x-3d"
-    },
     "model": {
       "publisher": "stepfun-ai",
       "slug": "step1x-3d"

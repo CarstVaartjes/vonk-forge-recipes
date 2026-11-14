@@ -1,0 +1,27 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "ornith-1-5-35b-a3b",
+          "title": "Ornith 1.5 35B-A3B"
+        }
+      ],
+      "slug": "ornith-35b-a3b",
+      "title": "Ornith 35B-A3B"
+    },
+    {
+      "models": [
+        {
+          "slug": "ornith-1-5-122b",
+          "title": "Ornith 1.5 122B"
+        }
+      ],
+      "slug": "ornith-122b",
+      "title": "Ornith 122B"
+    }
+  ],
+  "slug": "ornith",
+  "title": "Ornith"
+}

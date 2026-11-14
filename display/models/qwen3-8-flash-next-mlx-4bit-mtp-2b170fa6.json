@@ -20,6 +20,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/TensorFold/Qwen3.8-Flash-Next-MLX-4bit-MTP/blob/2b170fa6309d5d1ee380b35636075fac7945f286/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-Flash-Next",
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-flash-next",
+    "model": "qwen3-8-flash-next",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

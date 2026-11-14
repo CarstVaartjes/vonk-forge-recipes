@@ -520,10 +520,6 @@
     "quantization": "awq-int4"
   },
   "identity": {
-    "family": {
-      "publisher": "minimax",
-      "slug": "minimax"
-    },
     "model": {
       "publisher": "quanttrio",
       "slug": "minimax-m2-awq"

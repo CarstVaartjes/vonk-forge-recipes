@@ -156,7 +156,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "611d166c56ebf49373ab43456b676b14d546c9c3e4bf8731c0f7681d6aaeb3f0",
+        "content_sha256": "ef9945a631e0c17eea98bdca5e337a88b00f588209a1addd429482df28ccc065",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "gemma-4-26b-a4b-it-nvfp4-a19cfe00"
@@ -237,7 +237,7 @@
       ],
       "id": "assistant",
       "model": {
-        "content_sha256": "ee6ddb026084b9886162d61888bfd38a7bdc4743766b921cf3e0a24abbacbb11",
+        "content_sha256": "0cb4f5cd8fadb188fae0e96855b5f85753b62ba1ab30a2e66838a8e1c7019f14",
         "kind": "model",
         "publisher": "google",
         "slug": "gemma-4-26b-a4b-it-assistant-6e5aaaf4"

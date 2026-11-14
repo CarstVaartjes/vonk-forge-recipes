@@ -23,6 +23,15 @@
     "spdx": "Apache-2.0",
     "url": "https://ai.google.dev/gemma/apache_2"
   },
+  "lineage": {
+    "base_model": "google/gemma-4-26B-A4B-it",
+    "family": "gemma",
+    "flavor": "instruct",
+    "generation": "Gemma 4",
+    "line": "gemma-26b-a4b",
+    "model": "gemma-4-26b-a4b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text",

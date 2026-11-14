@@ -18,6 +18,14 @@
     "spdx": "Apache-2.0",
     "url": "https://www.apache.org/licenses/LICENSE-2.0"
   },
+  "lineage": {
+    "base_model": "thinkingmachines/Inkling",
+    "family": "inkling",
+    "generation": "Inkling",
+    "line": "inkling-975b-a41b",
+    "model": "inkling",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "audio",
     "image",

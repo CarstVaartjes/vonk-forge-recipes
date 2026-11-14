@@ -133,10 +133,6 @@
     "quantization": "mxfp4"
   },
   "identity": {
-    "family": {
-      "publisher": "openai",
-      "slug": "gpt-oss"
-    },
     "model": {
       "publisher": "openai",
       "slug": "gpt-oss-20b"

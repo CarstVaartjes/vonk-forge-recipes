@@ -434,7 +434,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ea9bf5aa45e93894810242bab0367f367eb29b9bdad68c17657b8406ec920432",
+        "content_sha256": "a964109bd8bc4d98fb82bed0d772bcf9ec6a7c999e89b56070ac664a6e43785b",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan-video-15-distilled"

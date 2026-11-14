@@ -4687,10 +4687,6 @@
     "quantization": "nvfp4-arvq-hybrid"
   },
   "identity": {
-    "family": {
-      "publisher": "xiaomimimo",
-      "slug": "mimo"
-    },
     "model": {
       "publisher": "drowzeys",
       "slug": "mimo-v2-6-pro-mopd-arvq-hybrid21"

@@ -20,6 +20,14 @@
     "spdx": "LicenseRef-OpenMDW-1.1",
     "url": "https://www.poolside.ai/legal/openmdw-1-1"
   },
+  "lineage": {
+    "base_model": "poolside/Laguna-S-2.1",
+    "family": "laguna",
+    "generation": "Laguna 2.1",
+    "line": "laguna-s",
+    "model": "laguna-s-2-1",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

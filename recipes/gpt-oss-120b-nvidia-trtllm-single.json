@@ -296,7 +296,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "6fbfc3f2e20556b1b03be842c7b6badbdea86643d40a1994c58851ec26342907",
+        "content_sha256": "f15cd92e48105395233670630eff9a4cea439d8ce331841eef4e14cf364bac14",
         "kind": "model",
         "publisher": "openai",
         "slug": "gpt-oss-120b-mxfp4-b5c939de"

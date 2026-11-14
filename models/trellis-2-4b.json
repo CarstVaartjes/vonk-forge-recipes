@@ -205,10 +205,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "microsoft",
-      "slug": "trellis"
-    },
     "model": {
       "publisher": "microsoft",
       "slug": "trellis-2-4b"

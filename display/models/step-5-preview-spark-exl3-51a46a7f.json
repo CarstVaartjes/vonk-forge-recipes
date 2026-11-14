@@ -21,6 +21,14 @@
     "spdx": "stepfun-community-license",
     "url": "https://huggingface.co/0xSero/Step-5-Preview-Spark/blob/51a46a7f62eee1225d124170da903bba23d04a26/LICENSE"
   },
+  "lineage": {
+    "base_model": "SHSLab/Step-5-Preview-BF16",
+    "family": "step",
+    "generation": "Step 5",
+    "line": "step-5",
+    "model": "step-5-preview",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text",

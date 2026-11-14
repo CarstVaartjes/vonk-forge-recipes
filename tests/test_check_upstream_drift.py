@@ -131,8 +131,6 @@ class DiscoveryTests(unittest.TestCase):
             )
             model["identity"]["publisher"] = "example"
             model["identity"]["slug"] = "model"
-            model["identity"]["family"]["publisher"] = "example"
-            model["identity"]["family"]["slug"] = "model-family"
             model["identity"]["model"]["publisher"] = "example"
             model["identity"]["model"]["slug"] = "model"
             model["source"] = {

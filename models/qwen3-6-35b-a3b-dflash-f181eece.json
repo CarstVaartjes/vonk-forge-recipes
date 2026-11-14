@@ -61,10 +61,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "z-lab",
       "slug": "qwen3-6-35b-a3b-dflash"

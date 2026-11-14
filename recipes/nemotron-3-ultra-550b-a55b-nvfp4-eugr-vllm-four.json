@@ -1466,7 +1466,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d70b82f0a28b7517a92c5301ef76f1397f3d79ae33a3654d22b2ed4b27605040",
+        "content_sha256": "c01d10083ffda7b34931c8b46cc4468c44c0f06a80ecb1c40db78dd1d6a6d134",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-ultra-550b-a55b-nvfp4"

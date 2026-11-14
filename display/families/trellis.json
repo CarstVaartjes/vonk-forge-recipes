@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "trellis-2-4b",
+          "title": "TRELLIS.2 4B"
+        }
+      ],
+      "slug": "trellis-4b",
+      "title": "TRELLIS 4B"
+    }
+  ],
+  "slug": "trellis",
+  "title": "TRELLIS"
+}

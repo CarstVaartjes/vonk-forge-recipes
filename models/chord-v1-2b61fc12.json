@@ -25,10 +25,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "ubisoft",
-      "slug": "chord"
-    },
     "model": {
       "publisher": "ubisoft",
       "slug": "chord"

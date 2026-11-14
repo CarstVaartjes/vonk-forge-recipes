@@ -34,10 +34,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "xinntao",
-      "slug": "real-esrgan"
-    },
     "model": {
       "publisher": "xinntao",
       "slug": "4xnomos8ksc"

@@ -43,10 +43,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "minimax",
-      "slug": "minimax-music3"
-    },
     "model": {
       "publisher": "minimax",
       "slug": "minimax-music3"

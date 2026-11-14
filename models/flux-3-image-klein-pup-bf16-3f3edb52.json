@@ -115,10 +115,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "black-forest-labs",
-      "slug": "flux-3"
-    },
     "model": {
       "publisher": "black-forest-labs",
       "slug": "flux-3-image-klein-pup-bf16"

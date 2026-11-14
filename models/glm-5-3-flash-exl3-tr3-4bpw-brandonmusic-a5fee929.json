@@ -2140,10 +2140,6 @@
     "quantization": "exl3-tr3-4bpw-plus-bf16-dflash2"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "mia-ai-lab",
       "slug": "glm-5-3-flash-exl3-tr3"

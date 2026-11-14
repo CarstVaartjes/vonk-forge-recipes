@@ -21,6 +21,15 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/blob/6ab461498e2023f6e3c1baea90a8f0fe38ab64d0/README.md"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.5-0.8B",
+    "family": "qwen",
+    "flavor": "instruct",
+    "generation": "Qwen3.5",
+    "line": "qwen-0-8b",
+    "model": "qwen3-5-0-8b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text"

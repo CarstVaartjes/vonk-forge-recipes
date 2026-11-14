@@ -14,6 +14,13 @@
     "spdx": "flux-kommunity-license",
     "url": "https://huggingface.co/black-forest-labs/flux-3-image-klein/blob/337337621b8526e120f2275d250242f4a6bedd75/LICENSE.md"
   },
+  "lineage": {
+    "family": "flux",
+    "generation": "FLUX 3",
+    "line": "flux-image-klein",
+    "model": "flux-3-image-klein",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image"
   ],

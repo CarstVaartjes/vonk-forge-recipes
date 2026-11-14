@@ -22,6 +22,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/unsloth/Qwen3.8-27B-NVFP4/blob/f0b7c9e722f5565102fff8481c99e4d86ae099c7/README.md"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-27B",
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-27b",
+    "model": "qwen3-8-27b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text",

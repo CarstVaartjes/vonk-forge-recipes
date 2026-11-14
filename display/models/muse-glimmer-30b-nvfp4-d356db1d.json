@@ -22,6 +22,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B/blob/a4e59da52a7bc87ae7251dd5545c0dd437c44b68/LICENSE"
   },
+  "lineage": {
+    "base_model": "meta-models/Muse-Glimmer-30B",
+    "family": "muse",
+    "generation": "Muse",
+    "line": "muse-glimmer-30b",
+    "model": "muse-glimmer-30b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text",

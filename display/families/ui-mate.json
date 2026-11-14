@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "ui-mate-27b",
+          "title": "UI-Mate 27B"
+        }
+      ],
+      "slug": "ui-mate-27b",
+      "title": "UI-Mate 27B"
+    }
+  ],
+  "slug": "ui-mate",
+  "title": "UI-Mate"
+}

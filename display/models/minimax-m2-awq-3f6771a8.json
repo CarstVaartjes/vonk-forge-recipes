@@ -20,6 +20,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/QuantTrio/MiniMax-M2-AWQ/blob/3f6771a80ff4dd0b0114f6bc9b18a227348bcbaa/README.md"
   },
+  "lineage": {
+    "base_model": "MiniMaxAI/MiniMax-M2",
+    "family": "minimax",
+    "generation": "MiniMax M2",
+    "line": "minimax-m-229b",
+    "model": "minimax-m2",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

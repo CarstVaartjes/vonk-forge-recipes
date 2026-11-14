@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 
 from .api import RecipeApi
-from .display import ModelDisplay, RecipeDisplay
+from .display import FamilyDisplay, ModelDisplay, RecipeDisplay
 from .model import ModelDefinition
 from .recipe import RecipeDefinition
 
@@ -106,6 +106,47 @@ def validate_library(
                     f"{label} display has no document: "
                     f"{display.identity.publisher}/{slug}"
                 )
+
+
+def validate_families(
+    model_displays: Mapping[str, ModelDisplay],
+    families: Mapping[str, FamilyDisplay],
+) -> None:
+    """Require every Model ``lineage`` to name a Family, Line and Model that exist,
+    and every listed Model release to be named by a Model.
+
+    Families are keyed by their file name stem (the slug); the order of a
+    Line's ``models`` is its release order. Display only: a failure here never
+    touches a document digest.
+    """
+
+    for slug, family in families.items():
+        if family.slug != slug:
+            raise ContractResolutionError(
+                f"family file name differs from its slug: {slug}"
+            )
+    named: set[tuple[str, str, str]] = set()
+    for slug, display in model_displays.items():
+        lineage = display.lineage
+        if lineage is None:
+            continue
+        family = families.get(lineage.family)
+        lines = {item.slug: item for item in family.lines} if family else {}
+        line = lines.get(lineage.line)
+        if line is None or lineage.model not in {m.slug for m in line.models}:
+            raise ContractResolutionError(
+                f"model {slug}: lineage {lineage.family}/{lineage.line}/"
+                f"{lineage.model} is not in display/families"
+            )
+        named.add((lineage.family, lineage.line, lineage.model))
+    for family in families.values():
+        for line in family.lines:
+            for model in line.models:
+                if (family.slug, line.slug, model.slug) not in named:
+                    raise ContractResolutionError(
+                        f"family release {family.slug}/{line.slug}/{model.slug} "
+                        "has no Model"
+                    )
 
 
 def validate_recipe_apis(

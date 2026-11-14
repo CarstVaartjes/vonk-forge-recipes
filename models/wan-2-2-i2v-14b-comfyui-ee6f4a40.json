@@ -43,10 +43,6 @@
     "quantization": "fp8"
   },
   "identity": {
-    "family": {
-      "publisher": "wan-ai",
-      "slug": "wan"
-    },
     "model": {
       "publisher": "wan-ai",
       "slug": "wan-2-2-i2v-14b"
