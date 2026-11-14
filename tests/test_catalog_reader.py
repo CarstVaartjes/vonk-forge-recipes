@@ -107,6 +107,45 @@ def test_unknown_words_keep_their_entries_and_one_malformed_entry_is_skipped(
     assert recipes[0]["qualification"]["status"] == "Proven twice"
 
 
+def test_an_unreadable_family_costs_only_itself(index: Index) -> None:
+    # Wrong implementation: validating the families inside the all-or-nothing
+    # envelope lets one display-only Family refuse the whole catalog.
+    assert len(index["families"]) > 1
+    broken = index["families"][0]
+    broken["lines"] = "not a list"
+
+    read = read_catalog(index)
+
+    assert read.problems == (
+        SkippedEntry(
+            section=CatalogSection.FAMILIES,
+            entry=broken["slug"],
+            field="lines",
+            reason=FaultReason.WRONG_TYPE,
+        ),
+    )
+    assert [f.slug for f in read.index.families] == [
+        f["slug"] for f in index["families"][1:]
+    ]
+    assert len(read.index.recipes) == len(index["recipes"])
+
+
+def test_a_new_variant_kind_keeps_the_model_and_its_display(index: Index) -> None:
+    model = next(e for e in index["catalog_entities"] if e["display"].get("lineage"))
+    model["display"]["lineage"]["variant_kind"] = "merge"
+
+    read = read_catalog(index)
+
+    assert read.problems == (
+        UnrecognisedWordReport(
+            section=CatalogSection.MODELS,
+            field="display.lineage.variant_kind",
+            word="merge",
+            entries=(_name(model),),
+        ),
+    )
+
+
 def _mutable_image_tag(recipe: dict) -> None:
     recipe["prebuilt_image"] = {
         "reference": "ghcr.io/example/runtime:latest",

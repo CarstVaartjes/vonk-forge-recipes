@@ -30,7 +30,8 @@ An unknown value never breaks the catalog; only integrity edges refuse it.
 
 Unknown fields are ignored. The envelope is all-or-nothing: an unreadable
 envelope, another ``kind`` or ``schema_version`` or another contract major is
-refused. Each entry is validated once, here; what the reader returns is typed
+refused. ``families`` is display only: an unreadable Family is left out on its
+own, reported as a :class:`SkippedEntry`, and every entry stays. Each entry is validated once, here; what the reader returns is typed
 and needs no further validation, and its ``content_sha256`` is verified.
 """
 
@@ -49,6 +50,7 @@ from pydantic_core import ErrorDetails
 from ._version import __version__
 from .canonical import document_sha256
 from .catalog_index import CatalogIndex, CatalogModelEntry, CatalogRecipeEntry
+from .display import FamilyDisplay
 from .unrecognised import UnrecognisedWord, dropped_context, read_context
 
 _CONTRACT_MAJOR: Final = int(__version__.split(".", 1)[0])
@@ -60,6 +62,7 @@ _UNKNOWN_WORD_ERRORS: Final = frozenset({"literal_error", "enum", "union_tag_inv
 class CatalogSection(StrEnum):
     MODELS = "catalog_entities"
     RECIPES = "recipes"
+    FAMILIES = "families"
 
 
 class EntryOutcome(StrEnum):
@@ -246,10 +249,49 @@ def read_catalog(document: Mapping[str, object]) -> CatalogRead:
             for position, raw in enumerate(raw_recipes)
         ],
     )
+    families, family_problems = _read_families(document.get("families", []))
     index = envelope.model_copy(
-        update={"catalog_entities": tuple(models), "recipes": tuple(recipes)}
+        update={
+            "catalog_entities": tuple(models),
+            "recipes": tuple(recipes),
+            "families": families,
+        }
     )
-    return CatalogRead(index=index, problems=(*model_problems, *recipe_problems))
+    return CatalogRead(
+        index=index, problems=(*model_problems, *recipe_problems, *family_problems)
+    )
+
+
+def _read_families(
+    raw: object,
+) -> tuple[tuple[FamilyDisplay, ...], tuple[SkippedEntry, ...]]:
+    """Every readable Family; an unreadable one costs only itself (display only)."""
+
+    section = CatalogSection.FAMILIES
+    if not isinstance(raw, list):
+        field, reason = "families", FaultReason.WRONG_TYPE
+        return (), (
+            SkippedEntry(
+                section=section, entry=section.value, field=field, reason=reason
+            ),
+        )
+    families: list[FamilyDisplay] = []
+    skipped: list[SkippedEntry] = []
+    for position, item in enumerate(raw):
+        try:
+            families.append(FamilyDisplay.model_validate(item, extra="ignore"))
+        except ValidationError as failure:
+            slug = item.get("slug") if isinstance(item, Mapping) else None
+            field, reason = _fault(failure.errors()[0])
+            skipped.append(
+                SkippedEntry(
+                    section=section,
+                    entry=slug if isinstance(slug, str) else f"#{position}",
+                    field=field,
+                    reason=reason,
+                )
+            )
+    return tuple(families), tuple(skipped)
 
 
 def _read_envelope(document: Mapping[str, object]) -> CatalogIndex:
@@ -259,6 +301,7 @@ def _read_envelope(document: Mapping[str, object]) -> CatalogIndex:
                 **document,
                 CatalogSection.MODELS.value: [],
                 CatalogSection.RECIPES.value: [],
+                CatalogSection.FAMILIES.value: [],
             },
             extra="ignore",
         )

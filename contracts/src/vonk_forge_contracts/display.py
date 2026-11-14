@@ -62,6 +62,7 @@ class ModelDisplayIdentity(_DisplayContract):
 #: (``quantization``), or different weights such as a prune, distill or tune
 #: (``derivative``).
 VariantKind = Literal["base", "quantization", "derivative"]
+VariantKindWord = Annotated[VariantKind | UnrecognisedWord, KeepUnrecognised]
 # A Hugging Face repository id; it may name a model this catalog does not carry.
 HuggingFaceId = Annotated[
     StrictStr,
@@ -94,7 +95,7 @@ class ModelLineage(_DisplayContract):
     generation: Facet | None = None
     # The maker of the release, e.g. "NVIDIA" for Nemotron.
     publisher: Title
-    variant_kind: VariantKind
+    variant_kind: VariantKindWord
     base_model: HuggingFaceId | None = None
     release_order: ReleaseOrder
 
