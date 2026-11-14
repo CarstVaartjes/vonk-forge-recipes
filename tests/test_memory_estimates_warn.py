@@ -49,6 +49,9 @@ def mismatching_root(tmp_path: Path, **memory: int) -> Path:
     (tmp_path / "display/models").symlink_to(
         ROOT / "display/models", target_is_directory=True
     )
+    (tmp_path / "display/families").symlink_to(
+        ROOT / "display/families", target_is_directory=True
+    )
     return tmp_path
 
 

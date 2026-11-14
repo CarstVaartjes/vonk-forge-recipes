@@ -210,7 +210,10 @@ def _display_vectors(
         "model-display-bad-variant-kind",
         "ModelDisplay",
         "Input should be",
-        {**model_display, "lineage": {**model_display["lineage"], "variant_kind": "fork"}},
+        {
+            **model_display,
+            "lineage": {**model_display["lineage"], "variant_kind": "fork"},
+        },
     )
     _invalid(
         "model-display-bad-tag",
