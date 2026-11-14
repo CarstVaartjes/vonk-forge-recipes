@@ -19,6 +19,15 @@
     "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
   },
+  "lineage": {
+    "family": "nemotron",
+    "generation": "Nemotron 3",
+    "line": "nemotron-nano-30b-a3b",
+    "model": "nemotron-3-nano-30b-a3b",
+    "publisher": "NVIDIA",
+    "release_order": "003.000.000/2025-12-04",
+    "variant_kind": "base"
+  },
   "modalities": [
     "text"
   ],

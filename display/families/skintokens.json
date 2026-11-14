@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "skintokens-tokenrig",
+          "title": "SkinTokens (TokenRig)"
+        }
+      ],
+      "slug": "skintokens",
+      "title": "SkinTokens"
+    }
+  ],
+  "slug": "skintokens",
+  "title": "SkinTokens"
+}

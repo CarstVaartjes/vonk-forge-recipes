@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "swift-1-5-qwen3-8-flash-next",
+          "title": "Swift 1.5 Qwen3.8 Flash Next"
+        }
+      ],
+      "slug": "swift-flash-next",
+      "title": "Swift Flash Next"
+    }
+  ],
+  "slug": "swift",
+  "title": "Swift"
+}

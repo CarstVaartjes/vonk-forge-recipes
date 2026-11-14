@@ -16,6 +16,15 @@
     "spdx": "LicenseRef-NVIDIA-Open-Model-License",
     "url": "https://github.com/NVlabs/GR00T-WholeBodyControl/blob/45c03facbf848e0c743091b7d9c17952096ff908/LICENSE"
   },
+  "lineage": {
+    "family": "motionbricks",
+    "generation": "MotionBricks",
+    "line": "motionbricks-g1",
+    "model": "motionbricks-g1",
+    "publisher": "NVIDIA",
+    "release_order": "001.000.000/0000-00-00",
+    "variant_kind": "base"
+  },
   "modalities": [
     "3d"
   ],

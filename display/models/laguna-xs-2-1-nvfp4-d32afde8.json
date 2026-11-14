@@ -20,6 +20,16 @@
     "spdx": "OpenMDW-1.1",
     "url": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4/blob/d32afde8b09af1539b49ff96ff5551c674485f8e/LICENSE.md"
   },
+  "lineage": {
+    "base_model": "poolside/Laguna-XS-2.1",
+    "family": "laguna",
+    "generation": "Laguna 2.1",
+    "line": "laguna-xs",
+    "model": "laguna-xs-2-1",
+    "publisher": "poolside",
+    "release_order": "002.001.000/2026-06-20",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

@@ -1,0 +1,37 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "laguna-m-1",
+          "title": "Laguna M.1"
+        }
+      ],
+      "slug": "laguna-m",
+      "title": "Laguna M"
+    },
+    {
+      "models": [
+        {
+          "slug": "laguna-xs-2-1",
+          "title": "Laguna XS 2.1"
+        }
+      ],
+      "slug": "laguna-xs",
+      "title": "Laguna XS"
+    },
+    {
+      "models": [
+        {
+          "slug": "laguna-s-2-1",
+          "title": "Laguna S 2.1"
+        }
+      ],
+      "slug": "laguna-s",
+      "title": "Laguna S"
+    }
+  ],
+  "slug": "laguna",
+  "title": "Laguna"
+}

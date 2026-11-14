@@ -1,0 +1,47 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "mimo-v2-5",
+          "title": "MiMo V2.5"
+        }
+      ],
+      "slug": "mimo-311b",
+      "title": "MiMo 311B"
+    },
+    {
+      "models": [
+        {
+          "slug": "mimo-v2-6-distill-qwen-9b",
+          "title": "MiMo V2.6 Distill Qwen 9B"
+        }
+      ],
+      "slug": "mimo-distill-9b",
+      "title": "MiMo Distill 9B"
+    },
+    {
+      "models": [
+        {
+          "slug": "mimo-v2-6-flash-rl",
+          "title": "MiMo V2.6 Flash RL"
+        }
+      ],
+      "slug": "mimo-flash",
+      "title": "MiMo Flash"
+    },
+    {
+      "models": [
+        {
+          "slug": "mimo-v2-6-pro-mopd",
+          "title": "MiMo V2.6 Pro MOPD"
+        }
+      ],
+      "slug": "mimo-pro",
+      "title": "MiMo Pro"
+    }
+  ],
+  "slug": "mimo",
+  "title": "MiMo"
+}

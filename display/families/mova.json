@@ -1,0 +1,27 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "mova-360p",
+          "title": "MOVA 360p"
+        }
+      ],
+      "slug": "mova-360p",
+      "title": "MOVA 360p"
+    },
+    {
+      "models": [
+        {
+          "slug": "mova-720p",
+          "title": "MOVA 720p"
+        }
+      ],
+      "slug": "mova-720p",
+      "title": "MOVA 720p"
+    }
+  ],
+  "slug": "mova",
+  "title": "MOVA"
+}

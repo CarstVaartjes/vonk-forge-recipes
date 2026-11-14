@@ -17,6 +17,15 @@
     "territorial_restrictions": null,
     "url": "https://github.com/VAST-AI-Research/SkinTokens/blob/273b691d35989d71cd17ff2895fdc735097b92d1/LICENSE"
   },
+  "lineage": {
+    "family": "skintokens",
+    "generation": "SkinTokens",
+    "line": "skintokens",
+    "model": "skintokens-tokenrig",
+    "publisher": "VAST",
+    "release_order": "001.000.000/2026-04-20",
+    "variant_kind": "base"
+  },
   "modalities": [
     "3d"
   ],

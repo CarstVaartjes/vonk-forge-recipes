@@ -22,6 +22,16 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4/blob/482ca0f3832238542f8f5295dde86b5f22711d80/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-27B",
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-27b",
+    "model": "qwen3-8-27b",
+    "publisher": "Qwen (Alibaba)",
+    "release_order": "003.008.000/2026-08-05",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text"

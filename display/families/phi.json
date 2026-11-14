@@ -1,0 +1,27 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "phi-4-multimodal-instruct",
+          "title": "Phi-4 Multimodal Instruct"
+        }
+      ],
+      "slug": "phi-multimodal",
+      "title": "Phi Multimodal"
+    },
+    {
+      "models": [
+        {
+          "slug": "phi-4-reasoning-plus",
+          "title": "Phi-4 Reasoning Plus"
+        }
+      ],
+      "slug": "phi-reasoning-14b",
+      "title": "Phi Reasoning 14B"
+    }
+  ],
+  "slug": "phi",
+  "title": "Phi"
+}

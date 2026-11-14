@@ -26,6 +26,16 @@
     },
     "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3-Image/blob/5f90473023975e6271b0ed1dd84c4e88e4bbc6d3/LICENSE"
   },
+  "lineage": {
+    "family": "minimax",
+    "flavor": "image",
+    "generation": "MiniMax H3",
+    "line": "minimax-h-image",
+    "model": "minimax-h3-image",
+    "publisher": "MiniMax",
+    "release_order": "003.000.000/2026-11-03",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image"
   ],
