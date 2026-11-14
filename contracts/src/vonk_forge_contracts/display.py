@@ -22,7 +22,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, Strict, model_validator
 
 from .capability import CapabilityName
 from .model import (
@@ -34,6 +34,15 @@ from .model import (
     Title,
 )
 from .recipe import Alignment, RecipeIdentity, RecipeTags
+from .unrecognised import KeepUnrecognised, UnrecognisedWord
+
+Modality = Literal["text", "image", "audio", "video", "3d", "embeddings"]
+# A word a newer minor may add: a consumer reader keeps it (``UnrecognisedWord``).
+Capability = Annotated[
+    Annotated[CapabilityName, Strict(False)] | UnrecognisedWord, KeepUnrecognised
+]
+ModalityWord = Annotated[Modality | UnrecognisedWord, KeepUnrecognised]
+AlignmentWord = Annotated[Alignment | UnrecognisedWord, KeepUnrecognised]
 
 
 class _DisplayContract(BaseModel):
@@ -51,7 +60,7 @@ class RecipeDisplay(_DisplayContract):
     title: Title
     description: Description
     tags: RecipeTags
-    alignment: Alignment | None = None
+    alignment: AlignmentWord | None = None
 
 
 class ModelDisplay(_DisplayContract):
@@ -61,13 +70,9 @@ class ModelDisplay(_DisplayContract):
     model_title: Title
     description: Description
     tags: Tags
-    modalities: list[Literal["text", "image", "audio", "video", "3d", "embeddings"]] = (
-        Field(min_length=1, max_length=6)
-    )
+    modalities: list[ModalityWord] = Field(min_length=1, max_length=6)
     # The capabilities this model supports, by name.
-    capabilities: list[Annotated[CapabilityName, Field(strict=False)]] = Field(
-        max_length=64
-    )
+    capabilities: list[Capability] = Field(max_length=64)
     license: ModelLicense
 
     @model_validator(mode="after")

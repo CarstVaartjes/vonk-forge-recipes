@@ -248,11 +248,17 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.8.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.8.1`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
-release. A change to the contract itself bumps `CONTRACT_VERSION`:
+release. A change to the contract itself bumps `CONTRACT_VERSION`: once
+`v<CONTRACT_VERSION>` is released, validate.yml refuses any change under
+`contracts/src` until `_version.py` names a new version.
+
+- **Patch:** a fix that keeps every published field and meaning, such as a
+  stricter check of a value producers already write (`4.8.1` pinned prebuilt
+  images by digest and made `updated_at` a real UTC time) or a tolerant reader.
 
 - **Additive (minor):** add an optional field without changing existing wire
   requirements. The Controller reads published documents with `read_model` and
@@ -265,7 +271,13 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`:
   of parsing names. A new capability is a contract minor release: add the name
   and its role there, and its label, description and category to `CAPABILITY_TEXT`
   in `vocabulary.py` (import fails without it), release it, and let the Controller adopt it before a
-  catalog declares the name; a reader refuses a name it does not list.
+  catalog declares the name. Authoring refuses a name it does not list. A consumer
+  reading the index with `read_catalog` (4.8.1 and later) keeps the entry and the
+  word as an `UnrecognisedWord`, and so it does with any closed word outside the
+  execution document except a discriminator (`kind`, `mode`): a modality, an
+  alignment, an API endpoint, format or setting word, or a qualification word.
+  A Controller pinned before 4.8.1 loses what it cannot read, so the adoption
+  order still applies.
 - **Breaking (major, for example `3.0.0`, which moved display text out of the documents, and `4.0.0`, which moved a Model's modalities, capabilities and licence into its display):** remove or rename a field, make one required,
   or change a field's meaning. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
@@ -1277,6 +1289,8 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-recipe-model-references`, `tests/test_recipe_model_references.py`, `tests/test_display_split.py` | Every pinned Model/file exists at the exact digest, and every Recipe and Model has exactly one display file and none is orphaned. Catalog the missing immutable Model or update all bindings together; add or remove the display with its document. |
 | `tools/check-model-families`, `tests/test_check_model_families.py` | One consistent upstream lineage. Reuse its family identity instead of republisher/format families. |
 | `tools/check-recipe-topology --base origin/main`, `tests/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
+| validate.yml "Require a contract version bump for a changed contract" | `contracts/src` equals the released `v<__version__>` tag. Bump `__version__` in `contracts/src/vonk_forge_contracts/_version.py` (patch, minor or major as above). |
+| `tests/test_catalog_reader.py` | The consumer reader keeps every readable entry: an unknown word stays as an `UnrecognisedWord`, a malformed entry is skipped and reported, and only a wrong envelope or major or a digest mismatch refuses the index. Keep producer validation strict; change the reader's rules in `catalog_reader.py` only. |
 | `tests/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. Repair the launcher or display; do not publish placeholder tags. |
 | `tests/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
 | `tests/test_recipe_model_mounts.py`, `tests/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |

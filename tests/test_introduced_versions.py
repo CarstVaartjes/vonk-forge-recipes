@@ -85,6 +85,7 @@ def test_a_capability_newer_than_the_platform_is_refused(monkeypatch) -> None:
     recipe = _without_audio_kinds(_audio_recipe())
     display = _any_display()
     name = display.capabilities[0]
+    assert isinstance(name, CapabilityName)
     assert unreadable_features(recipe, [display], None, "4.1.0") == []
     monkeypatch.setattr(
         introduced, "CAPABILITY_SINCE", {**CAPABILITY_SINCE, name: "4.9.0"}
@@ -162,6 +163,7 @@ def test_models_no_recipe_selects_are_gated_too(tmp_path: Path, monkeypatch) -> 
     (tmp_path / "display/models").mkdir(parents=True)
     display = _any_display()
     name = display.capabilities[0]
+    assert isinstance(name, CapabilityName)
     monkeypatch.setitem(
         GUARD["model_problems"].__globals__, "model_display", lambda slug, root: display
     )

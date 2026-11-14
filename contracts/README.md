@@ -1,9 +1,10 @@
 # Vonk Forge contracts package
 
 The installable `vonk_forge_contracts` package supplies the public
-`ModelDefinition`, `RecipeDefinition` and qualification contracts. Its Pydantic
-models and generated JSON Schemas support producer validation and consumers
-without importing the Controller or a runtime.
+`ModelDefinition`, `RecipeDefinition` and qualification contracts, and the
+published catalog index (`catalog-index.json`) with its vocabulary and its
+consumer reader. Its Pydantic models and generated JSON Schemas support producer
+validation and consumers without importing the Controller or a runtime.
 
 Use [the authoring guide](../docs/recipe-authoring.md) for the complete Model and
 Recipe workflow, and [AGENTS.md](../AGENTS.md) for repository checks and release
@@ -19,8 +20,13 @@ API entry points:
 - [Published words](src/vonk_forge_contracts/vocabulary.py): each capability's label,
   description and category and each status's meaning and verified flag (the single owner;
   the index publishes them).
-- [Published index](src/vonk_forge_contracts/catalog_index.py) (`CatalogIndex`, read with
-  `read_catalog_index`; its schema ships in every release).
+- [Published index](src/vonk_forge_contracts/catalog_index.py) (`CatalogIndex`; its schema
+  ships in every release) and [its consumer reader](src/vonk_forge_contracts/catalog_reader.py):
+  `read_catalog` returns the entries this release reads plus typed problems. An unknown
+  word outside the execution document (a capability, modality, alignment, API endpoint or
+  format, or qualification word) keeps its entry as an `UnrecognisedWord`; a malformed entry is skipped and reported; a wrong envelope or contract
+  major, or a `content_sha256` that does not match its document, refuses the index
+  (`CatalogIndexRefused`). `read_catalog_index` is the strict whole-index form.
 - [Canonical document identity](src/vonk_forge_contracts/canonical.py).
 - [Qualification authority](src/vonk_forge_contracts/qualification_authority.py),
   [native decisions](src/vonk_forge_contracts/systemone.py) and
