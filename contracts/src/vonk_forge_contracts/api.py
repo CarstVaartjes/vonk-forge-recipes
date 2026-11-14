@@ -45,6 +45,7 @@ from pydantic import (
 )
 
 from .recipe import Identifier, RecipeDefinition, RecipeIdentity, Scalar
+from .unrecognised import KeepUnrecognised, UnrecognisedWord
 
 
 class _ApiContract(BaseModel):
@@ -74,6 +75,21 @@ ToolChoice = Literal["auto", "none", "required", "named"]
 ReasoningDefault = Literal["on", "off", "model"]
 RequestPlacement = Literal["chat_template_kwargs", "top_level"]
 _Key = Annotated[StrictStr, Field(min_length=1, max_length=64)]
+# A word a newer minor may add: a consumer reader keeps it (``UnrecognisedWord``)
+# and does not act on it. Discriminators (``mode``, ``kind``) stay closed.
+_EndpointWord = Annotated[Endpoint | UnrecognisedWord, KeepUnrecognised]
+_AudioInputWord = Annotated[AudioInputFormat | UnrecognisedWord, KeepUnrecognised]
+_TranscriptionFormatWord = Annotated[
+    TranscriptionResponseFormat | UnrecognisedWord, KeepUnrecognised
+]
+_SpeechFormatWord = Annotated[SpeechResponseFormat | UnrecognisedWord, KeepUnrecognised]
+_GranularityWord = Annotated[TimestampGranularity | UnrecognisedWord, KeepUnrecognised]
+_ToolChoiceWord = Annotated[ToolChoice | UnrecognisedWord, KeepUnrecognised]
+_ReasoningDefaultWord = Annotated[ReasoningDefault | UnrecognisedWord, KeepUnrecognised]
+_PlacementWord = Annotated[RequestPlacement | UnrecognisedWord, KeepUnrecognised]
+_RemainingWord = Annotated[
+    Literal["context", "slot_context"] | UnrecognisedWord, KeepUnrecognised
+]
 
 
 class ApiTokenValue(_ApiContract):
@@ -102,7 +118,7 @@ class ApiTokenArgument(_ApiContract):
 class ApiRemainingContext(_ApiContract):
     """No server default: the request may use what the context still holds."""
 
-    remaining: Literal["context", "slot_context"]
+    remaining: _RemainingWord
 
 
 class ApiInputModalities(_ApiContract):
@@ -122,7 +138,7 @@ class ApiReasoningEffortLevels(_ApiContract):
     """
 
     kind: Literal["levels"]
-    via: RequestPlacement
+    via: _PlacementWord
     key: _Key
     levels: list[_Key] = Field(min_length=1, max_length=16)
     default: _Key
@@ -144,7 +160,7 @@ class ApiReasoningEffortText(_ApiContract):
     """
 
     kind: Literal["text"]
-    via: RequestPlacement
+    via: _PlacementWord
     key: _Key
     default: _Key | None
 
@@ -174,11 +190,11 @@ class ApiReasoningSwitch(_ApiContract):
     """
 
     kind: Literal["switch"]
-    via: RequestPlacement
+    via: _PlacementWord
     keys: list[_Key] = Field(min_length=1, max_length=4)
     on: Scalar
     off: Scalar
-    default: ReasoningDefault
+    default: _ReasoningDefaultWord
     effort: ApiReasoningEffort | None
 
     @model_validator(mode="after")
@@ -210,12 +226,14 @@ class ApiToolsSupported(_ApiContract):
     """
 
     kind: Literal["supported"]
-    tool_choice: list[ToolChoice] = Field(max_length=4)
+    tool_choice: list[_ToolChoiceWord] = Field(max_length=4)
     parallel_calls: StrictBool
 
     @field_validator("tool_choice")
     @classmethod
-    def unique_choices(cls, value: list[ToolChoice]) -> list[ToolChoice]:
+    def unique_choices(
+        cls, value: list[ToolChoice | UnrecognisedWord]
+    ) -> list[ToolChoice | UnrecognisedWord]:
         if len(value) != len(set(value)):
             raise ValueError("tool_choice values must be unique")
         return value
@@ -238,7 +256,7 @@ class ChatApi(_ApiContract):
     structured_output: StrictBool
     system_messages: StrictBool
     streaming: StrictBool
-    endpoints: list[Endpoint] = Field(min_length=1, max_length=4)
+    endpoints: list[_EndpointWord] = Field(min_length=1, max_length=4)
 
     @model_validator(mode="after")
     def text_in_and_unique_endpoints(self) -> ChatApi:
@@ -280,15 +298,13 @@ class AudioTranscriptionApi(_ApiContract):
     """
 
     mode: Literal["audio_transcription"]
-    input_formats: list[AudioInputFormat] = Field(min_length=1, max_length=9)
+    input_formats: list[_AudioInputWord] = Field(min_length=1, max_length=9)
     max_file_bytes: StrictInt = Field(ge=1, le=MAX_AUDIO_FILE_BYTES)
     max_audio_seconds: StrictInt | None = Field(ge=1)
     languages: list[Iso639_1] = Field(min_length=1, max_length=256)
-    response_formats: list[TranscriptionResponseFormat] = Field(
-        min_length=1, max_length=6
-    )
+    response_formats: list[_TranscriptionFormatWord] = Field(min_length=1, max_length=6)
     prompt: StrictBool
-    timestamp_granularities: list[TimestampGranularity] = Field(max_length=2)
+    timestamp_granularities: list[_GranularityWord] = Field(max_length=2)
     temperature: StrictBool
 
     @model_validator(mode="after")
@@ -310,7 +326,7 @@ class AudioSpeechApi(_ApiContract):
 
     mode: Literal["audio_speech"]
     voices: list[VoiceName] = Field(min_length=1, max_length=256)
-    response_formats: list[SpeechResponseFormat] = Field(min_length=1, max_length=6)
+    response_formats: list[_SpeechFormatWord] = Field(min_length=1, max_length=6)
     instructions: StrictBool
     speed: StrictBool
     max_input_chars: StrictInt = Field(ge=1)
