@@ -23,8 +23,6 @@
       "generation": "Synthetic 1",
       "line": "synthetic-tiny",
       "model": "synthetic-tiny-1",
-      "publisher": "Vonk Forge",
-      "release_order": "001.000.000/2026-01-01",
       "variant_kind": "base"
     },
     "modalities": [

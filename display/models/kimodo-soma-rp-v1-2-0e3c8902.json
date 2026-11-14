@@ -21,8 +21,6 @@
     "generation": "Kimodo v1.2",
     "line": "kimodo-soma-rp",
     "model": "kimodo-soma-rp-v1-2",
-    "publisher": "NVIDIA",
-    "release_order": "001.002.000/2026-10-13",
     "variant_kind": "base"
   },
   "modalities": [

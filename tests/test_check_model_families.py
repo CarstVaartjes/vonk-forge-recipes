@@ -29,9 +29,7 @@ def _lineage(**update: str) -> dict[str, str]:
         "family": "glm",
         "line": "glm-flash",
         "model": "glm-5-3-flash",
-        "publisher": "Z.ai",
         "variant_kind": "quantization",
-        "release_order": "005.003.000/2026-08-01",
         **update,
     }
 
@@ -103,11 +101,12 @@ def test_a_served_model_needs_a_lineage_and_a_helper_does_not(tmp_path: Path) ->
     assert families.check(helper_only) == []
 
 
-def test_one_family_has_one_publisher(tmp_path: Path) -> None:
-    root = _library(
-        tmp_path, {PRIMARY: _lineage(), "other": _lineage(publisher="NVIDIA")}
-    )
-    assert len(families.check(root)) == 1
+def test_a_listed_release_no_model_names_is_refused(tmp_path: Path) -> None:
+    family = _family()
+    family["lines"][0]["models"].append({"slug": "glm-6-flash", "title": "GLM 6"})
+    root = _library(tmp_path, {PRIMARY: _lineage()}, family)
+    (problem,) = families.check(root)
+    assert "glm-6-flash" in problem
 
 
 def test_a_family_or_line_never_names_a_weight_format(tmp_path: Path) -> None:

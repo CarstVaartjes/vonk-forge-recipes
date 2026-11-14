@@ -22,8 +22,6 @@
     "generation": "TripoSG",
     "line": "triposg",
     "model": "triposg",
-    "publisher": "VAST",
-    "release_order": "001.000.000/2025-03-24",
     "variant_kind": "base"
   },
   "modalities": [

@@ -28,8 +28,6 @@
     "generation": "Nemotron 3",
     "line": "nemotron-nano-omni-30b-a3b",
     "model": "nemotron-3-nano-omni-30b-a3b-reasoning",
-    "publisher": "NVIDIA",
-    "release_order": "003.000.000/2026-04-20",
     "variant_kind": "base"
   },
   "modalities": [

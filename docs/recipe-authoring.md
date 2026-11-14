@@ -302,23 +302,22 @@ vendor release, plus an optional `flavor`) → variant (`variant_kind`: `base`
 for the vendor's own released checkpoint, `quantization` for the same weights in
 another format or bit-width, `derivative` for different weights such as a prune,
 distill or tune; `base_model` names the upstream Hugging Face id, which need
-not be in this catalog). `generation` and `publisher` (the maker) are facets
-across Lines; `release_order` (`MMM.mmm.ppp/<release date>`) is equal for every
-variant of one Model and orders a Line oldest first. Every quantization,
+not be in this catalog). `generation` is a facet across Lines. Every quantization,
 fine-tune and republished checkpoint of a release carries that release's
 lineage, whoever published it; the republisher is the Model's own
 `identity.publisher`, and the weight format belongs in `version`, `variant` and
 `format`. `display/families/<slug>.json` holds each Family's title and its
-Lines' Models in release order; a branded tune of another vendor's model is its
+Lines' Models; the order of a Line's `models` is its release order, oldest
+first; a branded tune of another vendor's model is its
 own Family, and a vision, omni, thinking or task checkpoint is its own Model in
 its own Line. Reuse an existing Family, Line and Model
 (`rg -l '"line": "glm-flash"' display/models/`); add a Line or Model to the
 Family file when the release is new. `tools/catalog-hf-model` and
 `tools/catalog-github-lfs-model` write it with `--lineage`. A helper (an
 encoder, a drafter, a weight part) has no lineage. `tools/check-model-families`
-fails a lineage outside `display/families`, a Line out of release order, a
-served Model without lineage, a Family with two publishers, and a Family or
-Line that names a weight format. Regrouping a Model is a display edit: no
+fails a lineage outside `display/families`, a listed Model release no Model
+names, a served Model without lineage, and a Family or Line that names a weight
+format. Regrouping a Model is a display edit: no
 digest, evidence or status moves.
 
 Resolve an immutable source identity and enumerate the files needed to load

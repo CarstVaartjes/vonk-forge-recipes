@@ -29,8 +29,6 @@
     "generation": "MiMo V2.5",
     "line": "mimo-311b",
     "model": "mimo-v2-5",
-    "publisher": "Xiaomi",
-    "release_order": "002.005.000/2026-04-27",
     "variant_kind": "quantization"
   },
   "modalities": [

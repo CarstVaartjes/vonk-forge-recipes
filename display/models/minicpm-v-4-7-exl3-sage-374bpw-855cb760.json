@@ -27,8 +27,6 @@
     "generation": "MiniCPM-V 4.7",
     "line": "minicpm-v-35b-a3b",
     "model": "minicpm-v-4-7-35b-a3b",
-    "publisher": "OpenBMB",
-    "release_order": "004.007.000/2026-10-07",
     "variant_kind": "quantization"
   },
   "modalities": [

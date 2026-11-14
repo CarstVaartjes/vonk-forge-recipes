@@ -23,8 +23,6 @@
     "generation": "LTX-2",
     "line": "ltx-19b",
     "model": "ltx-2-19b",
-    "publisher": "Lightricks",
-    "release_order": "002.000.000/2026-01-03",
     "variant_kind": "quantization"
   },
   "modalities": [

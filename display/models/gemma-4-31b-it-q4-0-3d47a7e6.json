@@ -28,8 +28,6 @@
     "generation": "Gemma 4",
     "line": "gemma-31b",
     "model": "gemma-4-31b",
-    "publisher": "Google",
-    "release_order": "004.000.000/2026-03-11",
     "variant_kind": "quantization"
   },
   "modalities": [

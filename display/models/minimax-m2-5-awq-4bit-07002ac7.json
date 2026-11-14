@@ -26,8 +26,6 @@
     "generation": "MiniMax M2.5",
     "line": "minimax-m-229b",
     "model": "minimax-m2-5",
-    "publisher": "MiniMax",
-    "release_order": "002.005.000/2026-02-12",
     "variant_kind": "quantization"
   },
   "modalities": [

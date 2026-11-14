@@ -26,8 +26,6 @@
     "generation": "UI-Mate",
     "line": "ui-mate-27b",
     "model": "ui-mate-27b",
-    "publisher": "Tencent",
-    "release_order": "001.000.000/2026-08-14",
     "variant_kind": "base"
   },
   "modalities": [

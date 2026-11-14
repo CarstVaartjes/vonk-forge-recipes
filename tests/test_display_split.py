@@ -19,7 +19,7 @@ from vonk_forge_contracts import (
     document_sha256,
     published_json,
 )
-from vonk_forge_contracts.model import ModelIdentity, ModelRecord
+from vonk_forge_contracts.model import ModelRecord
 from vonk_forge_contracts.resolver import ContractResolutionError, validate_library
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,7 +46,6 @@ def _library() -> tuple[
 def test_the_retired_display_paths_are_gone_from_the_documents() -> None:
     assert "metadata" not in RecipeDefinition.model_fields
     assert "metadata" not in ModelDefinition.model_fields
-    assert "family" not in ModelIdentity.model_fields
     assert "title" not in ModelRecord.model_fields
     for moved in ("modalities", "capabilities", "license"):
         assert moved not in ModelDefinition.model_fields

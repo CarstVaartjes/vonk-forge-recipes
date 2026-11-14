@@ -21,8 +21,6 @@
     "generation": "GEM-X",
     "line": "gem-x-body-motion",
     "model": "gem-x-body-motion",
-    "publisher": "NVIDIA",
-    "release_order": "001.000.000/2026-03-11",
     "variant_kind": "base"
   },
   "modalities": [

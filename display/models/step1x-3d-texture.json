@@ -22,8 +22,6 @@
     "generation": "Step1X-3D",
     "line": "step1x-3d-texture",
     "model": "step1x-3d-texture",
-    "publisher": "StepFun",
-    "release_order": "001.000.000/2025-05-11",
     "variant_kind": "base"
   },
   "modalities": [

@@ -23,8 +23,6 @@
     "generation": "Qwen Image",
     "line": "qwen-image-20b",
     "model": "qwen-image-2512",
-    "publisher": "Qwen (Alibaba)",
-    "release_order": "001.000.000/2025-12-30",
     "variant_kind": "quantization"
   },
   "modalities": [

@@ -25,8 +25,6 @@
     "generation": "Nemotron 3",
     "line": "nemotron-puzzle-75b-a9b",
     "model": "nemotron-labs-3-puzzle-75b-a9b",
-    "publisher": "NVIDIA",
-    "release_order": "003.000.000/2026-06-24",
     "variant_kind": "quantization"
   },
   "modalities": [

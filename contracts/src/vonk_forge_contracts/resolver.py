@@ -113,10 +113,11 @@ def validate_families(
     families: Mapping[str, FamilyDisplay],
 ) -> None:
     """Require every Model ``lineage`` to name a Family, Line and Model that exist,
-    every listed Line and Model to be named, and each Line in release order.
+    and every listed Model release to be named by a Model.
 
-    Families are keyed by their file name stem (the slug). Display only: a
-    failure here never touches a document digest.
+    Families are keyed by their file name stem (the slug); the order of a
+    Line's ``models`` is its release order. Display only: a failure here never
+    touches a document digest.
     """
 
     for slug, family in families.items():
@@ -124,7 +125,7 @@ def validate_families(
             raise ContractResolutionError(
                 f"family file name differs from its slug: {slug}"
             )
-    orders: dict[tuple[str, str, str], set[str]] = {}
+    named: set[tuple[str, str, str]] = set()
     for slug, display in model_displays.items():
         lineage = display.lineage
         if lineage is None:
@@ -137,26 +138,15 @@ def validate_families(
                 f"model {slug}: lineage {lineage.family}/{lineage.line}/"
                 f"{lineage.model} is not in display/families"
             )
-        key = (lineage.family, lineage.line, lineage.model)
-        orders.setdefault(key, set()).add(lineage.release_order)
-    for key, found in orders.items():
-        if len(found) != 1:
-            raise ContractResolutionError(
-                f"model release {'/'.join(key)} has more than one release_order"
-            )
+        named.add((lineage.family, lineage.line, lineage.model))
     for family in families.values():
         for line in family.lines:
-            listed = [(family.slug, line.slug, model.slug) for model in line.models]
-            unnamed = [key for key in listed if key not in orders]
-            if unnamed:
-                raise ContractResolutionError(
-                    f"family release {'/'.join(unnamed[0])} has no Model"
-                )
-            sequence = [next(iter(orders[key])) for key in listed]
-            if sequence != sorted(sequence):
-                raise ContractResolutionError(
-                    f"line {family.slug}/{line.slug} is not in release order"
-                )
+            for model in line.models:
+                if (family.slug, line.slug, model.slug) not in named:
+                    raise ContractResolutionError(
+                        f"family release {family.slug}/{line.slug}/{model.slug} "
+                        "has no Model"
+                    )
 
 
 def validate_recipe_apis(

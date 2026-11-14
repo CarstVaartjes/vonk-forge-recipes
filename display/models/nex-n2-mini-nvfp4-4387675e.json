@@ -28,8 +28,6 @@
     "generation": "Nex-N2",
     "line": "nex-mini",
     "model": "nex-n2-mini",
-    "publisher": "Nex AGI",
-    "release_order": "002.000.000/2026-06-04",
     "variant_kind": "quantization"
   },
   "modalities": [

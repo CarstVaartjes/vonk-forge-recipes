@@ -24,8 +24,6 @@
     "generation": "Decision 3.0",
     "line": "d3-nano-2b",
     "model": "d3-nano",
-    "publisher": "vLLM Semantic Router",
-    "release_order": "003.000.000/2026-10-10",
     "variant_kind": "base"
   },
   "modalities": [

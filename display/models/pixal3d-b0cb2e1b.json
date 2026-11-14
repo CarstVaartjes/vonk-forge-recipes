@@ -21,8 +21,6 @@
     "generation": "Pixal3D",
     "line": "pixal3d",
     "model": "pixal3d",
-    "publisher": "Tencent ARC",
-    "release_order": "001.000.000/2026-04-30",
     "variant_kind": "base"
   },
   "modalities": [

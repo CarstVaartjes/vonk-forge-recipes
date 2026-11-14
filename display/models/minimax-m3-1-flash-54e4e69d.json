@@ -26,8 +26,6 @@
     "generation": "MiniMax M3.1",
     "line": "minimax-m-flash",
     "model": "minimax-m3-1-flash",
-    "publisher": "MiniMax",
-    "release_order": "003.001.000/2026-10-17",
     "variant_kind": "base"
   },
   "modalities": [

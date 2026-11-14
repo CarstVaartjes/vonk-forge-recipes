@@ -26,8 +26,6 @@
     "generation": "Laguna 2.1",
     "line": "laguna-xs",
     "model": "laguna-xs-2-1",
-    "publisher": "poolside",
-    "release_order": "002.001.000/2026-06-20",
     "variant_kind": "quantization"
   },
   "modalities": [

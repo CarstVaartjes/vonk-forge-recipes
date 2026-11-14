@@ -24,8 +24,6 @@
     "generation": "Qwen3.8",
     "line": "qwen-flash-next",
     "model": "qwen3-8-flash-next",
-    "publisher": "Qwen (Alibaba)",
-    "release_order": "003.008.000/2026-08-24",
     "variant_kind": "quantization"
   },
   "modalities": [

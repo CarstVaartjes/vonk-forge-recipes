@@ -24,8 +24,6 @@
     "generation": "Qwen3",
     "line": "qwen-tts-voicedesign-1-7b",
     "model": "qwen3-tts-12hz-1-7b-voicedesign",
-    "publisher": "Qwen (Alibaba)",
-    "release_order": "003.000.000/2026-01-21",
     "variant_kind": "base"
   },
   "modalities": [

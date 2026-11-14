@@ -22,8 +22,6 @@
     "generation": "SkinTokens",
     "line": "skintokens",
     "model": "skintokens-tokenrig",
-    "publisher": "VAST",
-    "release_order": "001.000.000/2026-04-20",
     "variant_kind": "base"
   },
   "modalities": [

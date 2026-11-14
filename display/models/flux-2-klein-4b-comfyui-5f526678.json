@@ -23,8 +23,6 @@
     "generation": "FLUX.2",
     "line": "flux-klein-4b",
     "model": "flux-2-klein-4b",
-    "publisher": "Black Forest Labs",
-    "release_order": "002.000.000/2026-01-14",
     "variant_kind": "quantization"
   },
   "modalities": [

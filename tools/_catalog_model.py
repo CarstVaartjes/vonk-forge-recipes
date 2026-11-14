@@ -39,8 +39,8 @@ def add_model_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--lineage",
         type=json.loads,
-        help="the display lineage as a JSON object (family, line, model, publisher, "
-        "variant_kind, release_order, ...): required for a Model a recipe serves "
+        help="the display lineage as a JSON object (family, line, model, "
+        "variant_kind, ...): required for a Model a recipe serves "
         "first, absent for a helper; its family must be in display/families",
     )
     parser.add_argument("--model-group-slug", required=True)

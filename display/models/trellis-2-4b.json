@@ -21,8 +21,6 @@
     "generation": "TRELLIS.2",
     "line": "trellis-4b",
     "model": "trellis-2-4b",
-    "publisher": "Microsoft",
-    "release_order": "002.000.000/2025-12-01",
     "variant_kind": "base"
   },
   "modalities": [

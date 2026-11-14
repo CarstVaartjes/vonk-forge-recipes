@@ -22,8 +22,6 @@
     "generation": "Qwen Image",
     "line": "qwen-image-20b",
     "model": "qwen-image",
-    "publisher": "Qwen (Alibaba)",
-    "release_order": "001.000.000/2025-08-02",
     "variant_kind": "derivative"
   },
   "modalities": [

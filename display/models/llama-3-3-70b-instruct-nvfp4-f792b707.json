@@ -26,8 +26,6 @@
     "generation": "Llama 3.3",
     "line": "llama-70b",
     "model": "llama-3-3-70b-instruct",
-    "publisher": "Meta",
-    "release_order": "003.003.000/2024-11-26",
     "variant_kind": "quantization"
   },
   "modalities": [

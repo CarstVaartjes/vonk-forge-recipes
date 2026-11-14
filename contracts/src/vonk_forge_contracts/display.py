@@ -71,12 +71,6 @@ HuggingFaceId = Annotated[
         pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$",
     ),
 ]
-# ``<major>.<minor>.<patch>/<vendor release date>``: sorts the releases of a
-# Line oldest first. Every variant of one Model release carries the same value.
-ReleaseOrder = Annotated[
-    StrictStr,
-    Field(pattern=r"^[0-9]{3}\.[0-9]{3}\.[0-9]{3}/[0-9]{4}-[0-9]{2}-[0-9]{2}$"),
-]
 Facet = Annotated[StrictStr, Field(min_length=1, max_length=64)]
 
 
@@ -84,8 +78,9 @@ class ModelLineage(_DisplayContract):
     """Where a Model sits in the catalog: Family, then Line, then Model release.
 
     ``family``, ``line`` and ``model`` are slugs a :class:`FamilyDisplay` names
-    (a Line is unique within its Family, a Model within its Line).
-    ``generation`` and ``publisher`` are facets across Lines.
+    (a Line is unique within its Family, a Model within its Line); the order
+    of a Line's ``models`` there is the release order. ``generation`` is a
+    facet across Lines.
     """
 
     family: Slug
@@ -93,11 +88,8 @@ class ModelLineage(_DisplayContract):
     model: Slug
     flavor: Facet | None = None
     generation: Facet | None = None
-    # The maker of the release, e.g. "NVIDIA" for Nemotron.
-    publisher: Title
     variant_kind: VariantKindWord
     base_model: HuggingFaceId | None = None
-    release_order: ReleaseOrder
 
 
 class LineModel(_DisplayContract):
@@ -176,12 +168,6 @@ def read_model_display(document: Mapping[str, object]) -> ModelDisplay:
     """Parse a published ModelDisplay, ignoring fields a newer minor added."""
 
     return ModelDisplay.model_validate(document, extra="ignore")
-
-
-def read_family_display(document: Mapping[str, object]) -> FamilyDisplay:
-    """Parse a published FamilyDisplay, ignoring fields a newer minor added."""
-
-    return FamilyDisplay.model_validate(document, extra="ignore")
 
 
 def require_display_of(

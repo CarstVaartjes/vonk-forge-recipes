@@ -26,8 +26,6 @@
     "generation": "Qwen3.6",
     "line": "qwen-27b",
     "model": "qwen3-6-27b",
-    "publisher": "Qwen (Alibaba)",
-    "release_order": "003.006.000/2026-04-21",
     "variant_kind": "base"
   },
   "modalities": [

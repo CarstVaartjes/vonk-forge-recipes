@@ -24,8 +24,6 @@
     "generation": "DeepSeek V4.1",
     "line": "deepseek-flash",
     "model": "deepseek-v4-1-flash",
-    "publisher": "DeepSeek",
-    "release_order": "004.001.000/2026-09-10",
     "variant_kind": "base"
   },
   "modalities": [

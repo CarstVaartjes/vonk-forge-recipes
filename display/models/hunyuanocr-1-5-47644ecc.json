@@ -32,8 +32,6 @@
     "generation": "HunyuanOCR 1.5",
     "line": "hunyuanocr",
     "model": "hunyuanocr-1-5",
-    "publisher": "Tencent",
-    "release_order": "001.005.000/2025-11-18",
     "variant_kind": "base"
   },
   "modalities": [

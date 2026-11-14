@@ -27,8 +27,6 @@
     "generation": "Qwen2.5",
     "line": "qwen-vl-7b",
     "model": "qwen2-5-vl-7b-instruct",
-    "publisher": "Qwen (Alibaba)",
-    "release_order": "002.005.000/2025-01-26",
     "variant_kind": "quantization"
   },
   "modalities": [

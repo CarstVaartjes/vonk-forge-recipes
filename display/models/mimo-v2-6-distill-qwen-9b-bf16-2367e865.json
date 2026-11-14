@@ -20,8 +20,6 @@
     "generation": "MiMo V2.6",
     "line": "mimo-distill-9b",
     "model": "mimo-v2-6-distill-qwen-9b",
-    "publisher": "Xiaomi",
-    "release_order": "002.006.000/2026-09-21",
     "variant_kind": "base"
   },
   "modalities": [

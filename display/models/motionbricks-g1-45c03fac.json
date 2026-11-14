@@ -21,8 +21,6 @@
     "generation": "MotionBricks",
     "line": "motionbricks-g1",
     "model": "motionbricks-g1",
-    "publisher": "NVIDIA",
-    "release_order": "001.000.000/0000-00-00",
     "variant_kind": "base"
   },
   "modalities": [

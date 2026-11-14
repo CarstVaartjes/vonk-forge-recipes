@@ -22,8 +22,6 @@
     "generation": "Qwen3",
     "line": "qwen-asr-1-7b",
     "model": "qwen3-asr-1-7b",
-    "publisher": "Qwen (Alibaba)",
-    "release_order": "003.000.000/2026-01-28",
     "variant_kind": "base"
   },
   "modalities": [

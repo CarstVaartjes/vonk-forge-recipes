@@ -31,8 +31,6 @@
     "generation": "HunyuanVideo 1.5",
     "line": "hunyuanvideo-t2v",
     "model": "hunyuanvideo-1-5-t2v",
-    "publisher": "Tencent",
-    "release_order": "001.005.000/2025-11-18",
     "variant_kind": "quantization"
   },
   "modalities": [

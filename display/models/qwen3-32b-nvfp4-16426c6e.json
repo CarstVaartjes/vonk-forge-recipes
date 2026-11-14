@@ -27,8 +27,6 @@
     "generation": "Qwen3",
     "line": "qwen-32b",
     "model": "qwen3-32b",
-    "publisher": "Qwen (Alibaba)",
-    "release_order": "003.000.000/2025-04-27",
     "variant_kind": "quantization"
   },
   "modalities": [
