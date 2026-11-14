@@ -24,8 +24,6 @@
     "generation": "Inkling",
     "line": "inkling-975b-a41b",
     "model": "inkling",
-    "publisher": "Thinking Machines",
-    "release_order": "001.000.000/2026-07-14",
     "variant_kind": "quantization"
   },
   "modalities": [

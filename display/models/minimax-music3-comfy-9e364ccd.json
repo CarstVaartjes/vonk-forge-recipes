@@ -22,8 +22,6 @@
     "generation": "MiniMax Music3",
     "line": "minimax-music",
     "model": "minimax-music3",
-    "publisher": "MiniMax",
-    "release_order": "003.000.000/2026-08-07",
     "variant_kind": "quantization"
   },
   "modalities": [

@@ -28,8 +28,6 @@
     "generation": "Qwen3.5",
     "line": "qwen-35b-a3b",
     "model": "qwen3-5-35b-a3b",
-    "publisher": "Qwen (Alibaba)",
-    "release_order": "003.005.000/2026-02-24",
     "variant_kind": "quantization"
   },
   "modalities": [

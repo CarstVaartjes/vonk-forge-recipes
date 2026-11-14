@@ -24,8 +24,6 @@
     "generation": "Wan 2.2",
     "line": "wan-i2v-14b",
     "model": "wan-2-2-i2v-a14b",
-    "publisher": "Alibaba (Wan-AI)",
-    "release_order": "002.002.000/2025-07-24",
     "variant_kind": "quantization"
   },
   "modalities": [

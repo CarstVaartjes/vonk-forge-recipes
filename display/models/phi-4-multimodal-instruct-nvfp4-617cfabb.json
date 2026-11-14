@@ -27,8 +27,6 @@
     "generation": "Phi-4",
     "line": "phi-multimodal",
     "model": "phi-4-multimodal-instruct",
-    "publisher": "Microsoft",
-    "release_order": "004.000.000/2025-02-24",
     "variant_kind": "quantization"
   },
   "modalities": [

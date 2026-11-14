@@ -26,8 +26,6 @@
     "generation": "MiniMax M3",
     "line": "minimax-m-427b",
     "model": "minimax-m3",
-    "publisher": "MiniMax",
-    "release_order": "003.000.000/2026-06-02",
     "variant_kind": "quantization"
   },
   "modalities": [

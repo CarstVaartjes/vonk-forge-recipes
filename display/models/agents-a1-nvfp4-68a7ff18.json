@@ -26,8 +26,6 @@
     "generation": "Agents-A1",
     "line": "agents-a1",
     "model": "agents-a1",
-    "publisher": "InternScience",
-    "release_order": "001.000.000/2026-06-22",
     "variant_kind": "quantization"
   },
   "modalities": [

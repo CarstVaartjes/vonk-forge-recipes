@@ -27,8 +27,6 @@
     "generation": "Ling 3.0",
     "line": "ling-flash-fin",
     "model": "ling-3-0-flash-fin",
-    "publisher": "inclusionAI",
-    "release_order": "003.000.000/2026-09-03",
     "variant_kind": "quantization"
   },
   "modalities": [

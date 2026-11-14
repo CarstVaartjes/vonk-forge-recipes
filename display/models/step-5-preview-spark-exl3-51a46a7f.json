@@ -27,8 +27,6 @@
     "generation": "Step 5",
     "line": "step-5",
     "model": "step-5-preview",
-    "publisher": "StepFun",
-    "release_order": "005.000.000/2026-09-20",
     "variant_kind": "quantization"
   },
   "modalities": [

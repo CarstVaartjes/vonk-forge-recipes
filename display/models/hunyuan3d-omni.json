@@ -29,8 +29,6 @@
     "generation": "Hunyuan3D",
     "line": "hunyuan3d-omni",
     "model": "hunyuan3d-omni",
-    "publisher": "Tencent",
-    "release_order": "001.000.000/2025-09-23",
     "variant_kind": "base"
   },
   "modalities": [

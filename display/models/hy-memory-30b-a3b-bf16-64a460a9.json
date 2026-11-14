@@ -22,8 +22,6 @@
     "generation": "Hy-Memory",
     "line": "hy-memory-30b-a3b",
     "model": "hy-memory-30b-a3b",
-    "publisher": "Tencent",
-    "release_order": "001.000.000/2026-10-15",
     "variant_kind": "base"
   },
   "modalities": [

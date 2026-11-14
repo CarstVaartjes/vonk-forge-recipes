@@ -27,8 +27,6 @@
     "generation": "GLM 4.7",
     "line": "glm-flash-31b",
     "model": "glm-4-7-flash",
-    "publisher": "Z.ai",
-    "release_order": "004.007.000/2026-01-19",
     "variant_kind": "quantization"
   },
   "modalities": [

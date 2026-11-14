@@ -25,8 +25,6 @@
     "generation": "Mellum2.1",
     "line": "mellum-thinking-12b-a2-5b",
     "model": "mellum2-1-12b-a2-5b-thinking",
-    "publisher": "JetBrains",
-    "release_order": "002.001.000/2026-09-20",
     "variant_kind": "base"
   },
   "modalities": [

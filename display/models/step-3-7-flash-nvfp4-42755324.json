@@ -26,8 +26,6 @@
     "generation": "Step 3.7",
     "line": "step-flash",
     "model": "step-3-7-flash",
-    "publisher": "StepFun",
-    "release_order": "003.007.000/2026-05-23",
     "variant_kind": "quantization"
   },
   "modalities": [

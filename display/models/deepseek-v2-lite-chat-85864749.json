@@ -24,8 +24,6 @@
     "generation": "DeepSeek V2",
     "line": "deepseek-v2-lite",
     "model": "deepseek-v2-lite-chat",
-    "publisher": "DeepSeek",
-    "release_order": "002.000.000/2024-05-15",
     "variant_kind": "base"
   },
   "modalities": [

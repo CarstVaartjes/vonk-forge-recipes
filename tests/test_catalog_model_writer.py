@@ -81,10 +81,8 @@ def test_the_hierarchy_is_written_to_the_display_only(tmp_path: Path) -> None:
         "family": "lineage",
         "line": "lineage-line",
         "model": "lineage-model",
-        "publisher": "Creator",
         "variant_kind": "quantization",
         "base_model": "creator/Lineage-Model",
-        "release_order": "001.000.000/2026-01-01",
     }
     model, display = _written(tmp_path, "--lineage", json.dumps(lineage))
     assert "family" not in model["identity"]

@@ -28,8 +28,6 @@
     "generation": "Muse",
     "line": "muse-spark-816b-a42b",
     "model": "muse-spark-open-816b-a42b",
-    "publisher": "Meta",
-    "release_order": "001.000.000/2026-09-15",
     "variant_kind": "quantization"
   },
   "modalities": [

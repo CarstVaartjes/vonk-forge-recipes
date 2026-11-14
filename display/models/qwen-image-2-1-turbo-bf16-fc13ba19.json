@@ -20,8 +20,6 @@
     "generation": "Qwen Image 2",
     "line": "qwen-image-7b",
     "model": "qwen-image-2-1",
-    "publisher": "Qwen (Alibaba)",
-    "release_order": "002.001.000/2026-09-14",
     "variant_kind": "derivative"
   },
   "modalities": [

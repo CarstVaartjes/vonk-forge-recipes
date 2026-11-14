@@ -28,8 +28,6 @@
     "generation": "Nemotron 3.5",
     "line": "nemotron-super-vl-120b-a12b",
     "model": "nemotron-3-5-super-vl-120b-a12b",
-    "publisher": "NVIDIA",
-    "release_order": "003.005.000/2026-10-12",
     "variant_kind": "quantization"
   },
   "modalities": [

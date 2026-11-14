@@ -28,8 +28,6 @@
     "generation": "DeepSeek V4.1",
     "line": "deepseek-flash",
     "model": "deepseek-v4-1-flash-1017",
-    "publisher": "DeepSeek",
-    "release_order": "004.001.000/2026-10-17",
     "variant_kind": "quantization"
   },
   "modalities": [

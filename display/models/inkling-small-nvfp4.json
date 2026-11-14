@@ -27,8 +27,6 @@
     "generation": "Inkling",
     "line": "inkling-small",
     "model": "inkling-small",
-    "publisher": "Thinking Machines",
-    "release_order": "001.000.000/2026-07-27",
     "variant_kind": "quantization"
   },
   "modalities": [

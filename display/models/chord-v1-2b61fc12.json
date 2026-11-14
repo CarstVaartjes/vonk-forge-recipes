@@ -21,8 +21,6 @@
     "generation": "CHORD v1",
     "line": "chord",
     "model": "chord-v1",
-    "publisher": "Ubisoft",
-    "release_order": "001.000.000/2025-11-18",
     "variant_kind": "base"
   },
   "modalities": [

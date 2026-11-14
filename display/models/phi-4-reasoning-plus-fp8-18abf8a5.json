@@ -26,8 +26,6 @@
     "generation": "Phi-4",
     "line": "phi-reasoning-14b",
     "model": "phi-4-reasoning-plus",
-    "publisher": "Microsoft",
-    "release_order": "004.000.000/2025-04-17",
     "variant_kind": "quantization"
   },
   "modalities": [

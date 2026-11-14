@@ -22,8 +22,6 @@
     "generation": "MOVA",
     "line": "mova-720p",
     "model": "mova-720p",
-    "publisher": "OpenMOSS",
-    "release_order": "001.000.000/2026-01-28",
     "variant_kind": "base"
   },
   "modalities": [

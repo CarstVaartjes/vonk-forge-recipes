@@ -19,8 +19,6 @@
     "generation": "FLUX 3",
     "line": "flux-image-klein",
     "model": "flux-3-image-klein",
-    "publisher": "Black Forest Labs",
-    "release_order": "003.000.000/2026-10-13",
     "variant_kind": "base"
   },
   "modalities": [

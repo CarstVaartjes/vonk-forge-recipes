@@ -23,8 +23,6 @@
     "generation": "LightOnOCR 3",
     "line": "lightonocr-1b",
     "model": "lightonocr-3-1b",
-    "publisher": "LightOn",
-    "release_order": "003.000.000/2026-10-07",
     "variant_kind": "base"
   },
   "modalities": [

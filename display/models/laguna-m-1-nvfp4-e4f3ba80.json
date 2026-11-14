@@ -26,8 +26,6 @@
     "generation": "Laguna 1",
     "line": "laguna-m",
     "model": "laguna-m-1",
-    "publisher": "poolside",
-    "release_order": "001.000.000/2026-06-15",
     "variant_kind": "quantization"
   },
   "modalities": [

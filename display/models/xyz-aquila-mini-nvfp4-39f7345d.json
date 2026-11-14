@@ -26,8 +26,6 @@
     "generation": "XYZ-Aquila",
     "line": "xyz-aquila-mini",
     "model": "xyz-aquila-mini",
-    "publisher": "XYZ AI Lab",
-    "release_order": "001.000.000/2026-07-22",
     "variant_kind": "quantization"
   },
   "modalities": [

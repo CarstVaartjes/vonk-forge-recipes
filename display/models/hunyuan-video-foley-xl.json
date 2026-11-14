@@ -30,8 +30,6 @@
     "generation": "HunyuanVideo-Foley",
     "line": "hunyuanvideo-foley-xl",
     "model": "hunyuanvideo-foley-xl",
-    "publisher": "Tencent",
-    "release_order": "001.000.000/2025-08-21",
     "variant_kind": "base"
   },
   "modalities": [

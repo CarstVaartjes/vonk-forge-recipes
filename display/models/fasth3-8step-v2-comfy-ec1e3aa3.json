@@ -32,8 +32,6 @@
     "generation": "MiniMax H3",
     "line": "minimax-h",
     "model": "minimax-h3",
-    "publisher": "MiniMax",
-    "release_order": "003.000.000/2026-07-28",
     "variant_kind": "derivative"
   },
   "modalities": [

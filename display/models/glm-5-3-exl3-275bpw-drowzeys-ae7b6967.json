@@ -24,8 +24,6 @@
     "generation": "GLM 5.3",
     "line": "glm",
     "model": "glm-5-3",
-    "publisher": "Z.ai",
-    "release_order": "005.003.000/2026-08-25",
     "variant_kind": "quantization"
   },
   "modalities": [

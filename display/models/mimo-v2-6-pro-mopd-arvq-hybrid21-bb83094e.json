@@ -26,8 +26,6 @@
     "generation": "MiMo V2.6",
     "line": "mimo-pro",
     "model": "mimo-v2-6-pro-mopd",
-    "publisher": "Xiaomi",
-    "release_order": "002.006.000/2026-09-27",
     "variant_kind": "quantization"
   },
   "modalities": [
