@@ -111,8 +111,8 @@ prove that every embedded source, container, or dependency is current.
 
 The [Pydantic definitions](../contracts/src/vonk_forge_contracts) are the source
 of truth; the [generated JSON Schemas](../contracts/src/vonk_forge_contracts/schema)
-(`recipe-definition-v4`, `model-definition-v4`, `recipe-display-v4`,
-`model-display-v4`, `recipe-api-v4`) state every field's shape, bound, enum and default. Use the
+(`recipe-definition-v5`, `model-definition-v5`, `recipe-display-v5`,
+`model-display-v5`, `recipe-api-v5`) state every field's shape, bound, enum and default. Use the
 [examples](../contracts/src/vonk_forge_contracts/examples) (a Recipe, Model and
 display for each shape) for structure only; replace synthetic identities and
 data with verified inputs.

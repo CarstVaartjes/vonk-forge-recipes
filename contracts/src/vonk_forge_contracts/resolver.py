@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 
 from .api import RecipeApi
-from .display import ModelDisplay, RecipeDisplay
+from .display import FamilyDisplay, ModelDisplay, RecipeDisplay
 from .model import ModelDefinition
 from .recipe import RecipeDefinition
 
@@ -105,6 +105,57 @@ def validate_library(
                 raise ContractResolutionError(
                     f"{label} display has no document: "
                     f"{display.identity.publisher}/{slug}"
+                )
+
+
+def validate_families(
+    model_displays: Mapping[str, ModelDisplay],
+    families: Mapping[str, FamilyDisplay],
+) -> None:
+    """Require every Model ``lineage`` to name a Family, Line and Model that exist,
+    every listed Line and Model to be named, and each Line in release order.
+
+    Families are keyed by their file name stem (the slug). Display only: a
+    failure here never touches a document digest.
+    """
+
+    for slug, family in families.items():
+        if family.slug != slug:
+            raise ContractResolutionError(
+                f"family file name differs from its slug: {slug}"
+            )
+    orders: dict[tuple[str, str, str], set[str]] = {}
+    for slug, display in model_displays.items():
+        lineage = display.lineage
+        if lineage is None:
+            continue
+        family = families.get(lineage.family)
+        lines = {item.slug: item for item in family.lines} if family else {}
+        line = lines.get(lineage.line)
+        if line is None or lineage.model not in {m.slug for m in line.models}:
+            raise ContractResolutionError(
+                f"model {slug}: lineage {lineage.family}/{lineage.line}/"
+                f"{lineage.model} is not in display/families"
+            )
+        key = (lineage.family, lineage.line, lineage.model)
+        orders.setdefault(key, set()).add(lineage.release_order)
+    for key, found in orders.items():
+        if len(found) != 1:
+            raise ContractResolutionError(
+                f"model release {'/'.join(key)} has more than one release_order"
+            )
+    for family in families.values():
+        for line in family.lines:
+            listed = [(family.slug, line.slug, model.slug) for model in line.models]
+            unnamed = [key for key in listed if key not in orders]
+            if unnamed:
+                raise ContractResolutionError(
+                    f"family release {'/'.join(unnamed[0])} has no Model"
+                )
+            sequence = [next(iter(orders[key])) for key in listed]
+            if sequence != sorted(sequence):
+                raise ContractResolutionError(
+                    f"line {family.slug}/{line.slug} is not in release order"
                 )
 
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://api.vonkforge.ai/contracts/model-display-v4.schema.json",
+  "$id": "https://api.vonkforge.ai/contracts/model-display-v5.schema.json",
   "$defs": {
     "CapabilityName": {
       "enum": [
@@ -102,6 +102,105 @@
       "title": "ModelLicense",
       "type": "object"
     },
+    "ModelLineage": {
+      "additionalProperties": false,
+      "description": "Where a Model sits in the catalog: Family, then Line, then Model release.\n\n``family``, ``line`` and ``model`` are slugs a :class:`FamilyDisplay` names\n(a Line is unique within its Family, a Model within its Line).\n``generation`` and ``publisher`` are facets across Lines.",
+      "properties": {
+        "family": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Family",
+          "type": "string"
+        },
+        "line": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Line",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Model",
+          "type": "string"
+        },
+        "flavor": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Flavor"
+        },
+        "generation": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generation"
+        },
+        "publisher": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Publisher",
+          "type": "string"
+        },
+        "variant_kind": {
+          "enum": [
+            "base",
+            "quantization",
+            "derivative"
+          ],
+          "title": "Variant Kind",
+          "type": "string"
+        },
+        "base_model": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Base Model"
+        },
+        "release_order": {
+          "pattern": "^[0-9]{3}\\.[0-9]{3}\\.[0-9]{3}/[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "title": "Release Order",
+          "type": "string"
+        }
+      },
+      "required": [
+        "family",
+        "line",
+        "model",
+        "publisher",
+        "variant_kind",
+        "release_order"
+      ],
+      "title": "ModelLineage",
+      "type": "object"
+    },
     "ModelTerritorialRestrictions": {
       "additionalProperties": false,
       "properties": {
@@ -194,6 +293,17 @@
     },
     "license": {
       "$ref": "#/$defs/ModelLicense"
+    },
+    "lineage": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ModelLineage"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [

@@ -40,7 +40,7 @@ from pydantic.json_schema import models_json_schema
 from pydantic_core import PydanticCustomError
 
 from .api import RecipeApi, require_api_of
-from .display import ModelDisplay, RecipeDisplay, require_display_of
+from .display import FamilyDisplay, ModelDisplay, RecipeDisplay, require_display_of
 from .model import ModelDefinition
 from .qualification_status import (
     PublishedMeasuredMemory,
@@ -238,6 +238,9 @@ class CatalogIndex(_IndexContract):
     vocabulary: CatalogVocabulary
     catalog_entities: Annotated[tuple[CatalogModelEntry, ...], _Array]
     recipes: Annotated[tuple[CatalogRecipeEntry, ...], _Array]
+    # Display only: each Family's title and its Lines' Model releases in order,
+    # which the Model displays' ``lineage`` names.
+    families: Annotated[tuple[FamilyDisplay, ...], _Array] = ()
 
 
 def read_catalog_index(document: Mapping[str, object]) -> CatalogIndex:
