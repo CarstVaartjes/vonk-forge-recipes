@@ -10,6 +10,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 from vonk_forge_contracts import (
+    CONTRACT_MAJOR,
     CatalogIndexRefused,
     CatalogModelEntry,
     UnrecognisedWord,
@@ -226,7 +227,7 @@ def test_a_duplicate_identity_skips_both_entries(index: Index) -> None:
 
 
 def _wrong_major(index: Index) -> None:
-    index["contract_version"] = "5.0.0"
+    index["contract_version"] = f"{CONTRACT_MAJOR + 1}.0.0"
 
 
 def _document_changed(index: Index) -> None:

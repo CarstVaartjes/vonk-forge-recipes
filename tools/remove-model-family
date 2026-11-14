@@ -683,9 +683,7 @@ def main() -> int:
     managed = {
         path
         for path in expected
-        if path.startswith(
-            ("recipes/", "models/", "qualification/evidence/")
-        )
+        if path.startswith(("recipes/", "models/", "qualification/evidence/"))
     }
     if arguments.check:
         leftover = [path for path in removed if (ROOT / path).exists()]
