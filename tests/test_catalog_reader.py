@@ -168,6 +168,61 @@ def test_a_producer_still_refuses_an_unknown_word(index: Index) -> None:
     entry["display"]["capabilities"].append("telepathy")
     with pytest.raises(ValidationError):
         CatalogModelEntry.model_validate(entry)
+    # Not even an UnrecognisedWord a reader kept, from a Python dump.
+    (kept,) = read_catalog(index).index.catalog_entities[:1]
+    with pytest.raises(ValidationError):
+        CatalogModelEntry.model_validate(kept.model_dump())
+
+
+def test_a_new_word_in_a_full_list_is_kept_without_dropping_the_block(
+    index: Index,
+) -> None:
+    recipe = next(
+        r
+        for r in index["recipes"]
+        if r.get("api") is not None and len(r["api"]["api"].get("endpoints", ())) == 4
+    )
+    recipe["api"]["api"]["endpoints"].append("/v1/realtime")
+    read = read_catalog(index)
+    assert read.problems == (
+        UnrecognisedWordReport(
+            section=CatalogSection.RECIPES,
+            field="api.api.endpoints",
+            word="/v1/realtime",
+            entries=(_name(recipe),),
+        ),
+    )
+
+
+def test_a_wire_null_display_is_reported_as_a_missing_block(index: Index) -> None:
+    model = index["catalog_entities"][0]
+    model["display"] = None
+    read = read_catalog(index)
+    assert read.problems == (
+        DroppedBlock(
+            section=CatalogSection.MODELS,
+            entry=_name(model),
+            block=CatalogBlock.DISPLAY,
+            field="display",
+            reason=FaultReason.MISSING,
+        ),
+    )
+    assert read.index.catalog_entities[0].display is None
+
+
+def test_a_duplicate_identity_skips_both_entries(index: Index) -> None:
+    recipe = index["recipes"][0]
+    index["recipes"].append(copy.deepcopy(recipe))
+    read = read_catalog(index)
+    duplicate = SkippedEntry(
+        section=CatalogSection.RECIPES,
+        entry=_name(recipe),
+        field="document.identity",
+        reason=FaultReason.DUPLICATE,
+    )
+    assert read.problems == (duplicate, duplicate)
+    assert _name(recipe) not in _names(read.index.recipes)
+    assert len(read.index.recipes) == len(index["recipes"]) - 2
 
 
 def _wrong_major(index: Index) -> None:

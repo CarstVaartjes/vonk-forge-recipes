@@ -27,6 +27,9 @@ from pydantic_core import PydanticOmit, core_schema
 
 #: The validation context key the consumer readers set (see ``read_context``).
 TOLERANT_READ: Final = "vonk_forge_contracts.unrecognised"
+#: Set only on the catalog reader's second pass, after it dropped unreadable
+#: optional blocks (see ``dropped_context``).
+DROPPED_BLOCKS: Final = "vonk_forge_contracts.dropped"
 
 
 class UnrecognisedWord(str):
@@ -38,10 +41,15 @@ class UnrecognisedWord(str):
     def __get_pydantic_core_schema__(
         cls, source: type[Any], handler: GetCoreSchemaHandler
     ) -> core_schema.CoreSchema:
-        # Only an instance passes: plain JSON text never validates as one
-        # outside the reader (see ``keep_unrecognised``).
-        return core_schema.is_instance_schema(
-            cls, serialization=core_schema.to_string_ser_schema()
+        # Only an instance, and only inside a consumer reader: a producer can
+        # never validate (and so never emit) one, even from a Python dump.
+        def validate(value: object, info: ValidationInfo) -> UnrecognisedWord:
+            if isinstance(value, cls) and is_reading(info):
+                return value
+            raise ValueError("an unrecognised word exists only in a consumer read")
+
+        return core_schema.with_info_plain_validator_function(
+            validate, serialization=core_schema.to_string_ser_schema()
         )
 
     @classmethod
@@ -58,11 +66,28 @@ def read_context() -> dict[str, object]:
     return {TOLERANT_READ: True}
 
 
+def dropped_context() -> dict[str, object]:
+    """The reader's second pass: the dropped optional blocks are ``None``."""
+
+    return {**read_context(), DROPPED_BLOCKS: True}
+
+
 def is_reading(info: ValidationInfo) -> bool:
     """Whether a consumer reader (``read_context``) runs this validation."""
 
     context = info.context
     return isinstance(context, dict) and context.get(TOLERANT_READ) is True
+
+
+def is_dropping(info: ValidationInfo) -> bool:
+    """Whether this is the reader's pass after dropping optional blocks."""
+
+    context = info.context
+    return (
+        isinstance(context, dict)
+        and context.get(TOLERANT_READ) is True
+        and context.get(DROPPED_BLOCKS) is True
+    )
 
 
 def _keep_unrecognised(

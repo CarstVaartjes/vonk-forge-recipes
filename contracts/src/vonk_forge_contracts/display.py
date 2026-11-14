@@ -70,7 +70,7 @@ class ModelDisplay(_DisplayContract):
     model_title: Title
     description: Description
     tags: Tags
-    modalities: list[ModalityWord] = Field(min_length=1, max_length=6)
+    modalities: list[ModalityWord] = Field(min_length=1)
     # The capabilities this model supports, by name.
     capabilities: list[Capability] = Field(max_length=64)
     license: ModelLicense

@@ -37,6 +37,7 @@ from pydantic import (
     field_validator,
 )
 from pydantic.json_schema import models_json_schema
+from pydantic_core import PydanticCustomError
 
 from .api import RecipeApi, require_api_of
 from .display import ModelDisplay, RecipeDisplay, require_display_of
@@ -46,7 +47,7 @@ from .qualification_status import (
     PublishedQualificationStatusView,
 )
 from .recipe import RecipeDefinition, RecipeRelease
-from .unrecognised import is_reading
+from .unrecognised import is_dropping
 from .vocabulary import CatalogVocabulary
 
 IndexSchemaVersion = Literal[2]
@@ -157,9 +158,10 @@ def _dropped_by_reader(
     value: object, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
 ) -> object:
     if value is None:
-        if is_reading(info):
+        if is_dropping(info):
             return None
-        raise ValueError("a published entry carries this block")
+        # A wire ``null`` is a missing block: the reader drops and reports it.
+        raise PydanticCustomError("missing", "a published entry carries this block")
     return handler(value)
 
 

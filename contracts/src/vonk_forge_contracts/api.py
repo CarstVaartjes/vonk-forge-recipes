@@ -76,7 +76,9 @@ ReasoningDefault = Literal["on", "off", "model"]
 RequestPlacement = Literal["chat_template_kwargs", "top_level"]
 _Key = Annotated[StrictStr, Field(min_length=1, max_length=64)]
 # A word a newer minor may add: a consumer reader keeps it (``UnrecognisedWord``)
-# and does not act on it. Discriminators (``mode``, ``kind``) stay closed.
+# and does not act on it. Discriminators (``mode``, ``kind``) stay closed. Lists
+# of these words carry no length cap (their uniqueness bounds them), so a newer
+# minor's extra word never overflows an older reader's list.
 _EndpointWord = Annotated[Endpoint | UnrecognisedWord, KeepUnrecognised]
 _AudioInputWord = Annotated[AudioInputFormat | UnrecognisedWord, KeepUnrecognised]
 _TranscriptionFormatWord = Annotated[
@@ -226,7 +228,7 @@ class ApiToolsSupported(_ApiContract):
     """
 
     kind: Literal["supported"]
-    tool_choice: list[_ToolChoiceWord] = Field(max_length=4)
+    tool_choice: list[_ToolChoiceWord]
     parallel_calls: StrictBool
 
     @field_validator("tool_choice")
@@ -256,7 +258,7 @@ class ChatApi(_ApiContract):
     structured_output: StrictBool
     system_messages: StrictBool
     streaming: StrictBool
-    endpoints: list[_EndpointWord] = Field(min_length=1, max_length=4)
+    endpoints: list[_EndpointWord] = Field(min_length=1)
 
     @model_validator(mode="after")
     def text_in_and_unique_endpoints(self) -> ChatApi:
@@ -298,13 +300,13 @@ class AudioTranscriptionApi(_ApiContract):
     """
 
     mode: Literal["audio_transcription"]
-    input_formats: list[_AudioInputWord] = Field(min_length=1, max_length=9)
+    input_formats: list[_AudioInputWord] = Field(min_length=1)
     max_file_bytes: StrictInt = Field(ge=1, le=MAX_AUDIO_FILE_BYTES)
     max_audio_seconds: StrictInt | None = Field(ge=1)
     languages: list[Iso639_1] = Field(min_length=1, max_length=256)
-    response_formats: list[_TranscriptionFormatWord] = Field(min_length=1, max_length=6)
+    response_formats: list[_TranscriptionFormatWord] = Field(min_length=1)
     prompt: StrictBool
-    timestamp_granularities: list[_GranularityWord] = Field(max_length=2)
+    timestamp_granularities: list[_GranularityWord]
     temperature: StrictBool
 
     @model_validator(mode="after")
@@ -326,7 +328,7 @@ class AudioSpeechApi(_ApiContract):
 
     mode: Literal["audio_speech"]
     voices: list[VoiceName] = Field(min_length=1, max_length=256)
-    response_formats: list[_SpeechFormatWord] = Field(min_length=1, max_length=6)
+    response_formats: list[_SpeechFormatWord] = Field(min_length=1)
     instructions: StrictBool
     speed: StrictBool
     max_input_chars: StrictInt = Field(ge=1)
