@@ -167,6 +167,16 @@ jobs:
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" tools/generate-contract-schemas --check
 
+      # One-time family removal (contracts 5.0.0): requires the checkout to equal
+      # the removal from its base, and exits 0 once the base already lacks the
+      # family. Deleted with the tool in the follow-up that repoints the pins.
+      - name: Require the family removal to be exactly the tool's result
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          "$RECIPE_TEST_PYTHON" tools/remove-model-family --check --base origin/main
+
       - name: Build the catalog index twice and require identical bytes
         shell: bash
         run: |
@@ -270,10 +280,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # The one-time family removal rewrites every recipe's Model pins and
+          # nothing else; its check proves that, so those recipes are not
+          # "touched" for this guard. Once the base lacks the family the tool says
+          # so (exit 0) and every edited recipe is checked again.
+          drop='^$'
+          if ! "$RECIPE_TEST_PYTHON" tools/remove-model-family --base-is-removed --base origin/main; then
+            drop='^recipes/'
+          fi
           {
             git diff --name-only --diff-filter=AMR --merge-base origin/main
             git ls-files --others --exclude-standard
-          } | "$RECIPE_TEST_PYTHON" tools/check-recipe-api --changed-files -
+          } | { grep -Ev "$drop" || true; } | "$RECIPE_TEST_PYTHON" tools/check-recipe-api --changed-files -
 
       - name: Require every recipe to reference Models this library holds
         shell: bash
@@ -290,7 +308,7 @@ jobs:
             git ls-files --others --exclude-standard
           } | "$RECIPE_TEST_PYTHON" tools/check-model-modalities --changed-files -
 
-      - name: Check that every Model family is one consistent lineage
+      - name: Check that the catalog hierarchy in the Model displays is one tree
         shell: bash
         run: |
           set -euo pipefail
