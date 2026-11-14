@@ -214,7 +214,9 @@ jobs:
             exit 1
           fi
           tag="v$version"
-          if [[ -z "$(git ls-remote --tags origin "refs/tags/$tag")" ]]; then
+          # Its own line, so a failed ls-remote fails the step (set -e).
+          refs=$(git ls-remote --tags origin "refs/tags/$tag")
+          if [[ -z "$refs" ]]; then
             echo "$tag is not released yet; contracts/src may still change"
             exit 0
           fi

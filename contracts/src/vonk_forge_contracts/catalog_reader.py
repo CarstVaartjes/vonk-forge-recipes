@@ -49,7 +49,7 @@ from pydantic_core import ErrorDetails
 from ._version import __version__
 from .canonical import document_sha256
 from .catalog_index import CatalogIndex, CatalogModelEntry, CatalogRecipeEntry
-from .unrecognised import UnrecognisedWord, read_context
+from .unrecognised import UnrecognisedWord, dropped_context, read_context
 
 _CONTRACT_MAJOR: Final = int(__version__.split(".", 1)[0])
 _SHA256: Final = re.compile(r"[0-9a-f]{64}")
@@ -354,7 +354,7 @@ def _validate[E: (CatalogModelEntry, CatalogRecipeEntry)](
     )
     without = {**raw, **{block.value: None for block in first}}
     try:
-        entry = model.model_validate(without, extra="ignore", context=read_context())
+        entry = model.model_validate(without, extra="ignore", context=dropped_context())
     except ValidationError as failure:
         return None, failure.errors()[0], ()
     return entry, None, dropped

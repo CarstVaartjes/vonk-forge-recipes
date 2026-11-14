@@ -399,7 +399,6 @@
             ],
             "type": "string"
           },
-          "maxItems": 4,
           "title": "Tool Choice",
           "type": "array"
         },
@@ -448,7 +447,6 @@
             ],
             "type": "string"
           },
-          "maxItems": 6,
           "minItems": 1,
           "title": "Response Formats",
           "type": "array"
@@ -502,7 +500,6 @@
             ],
             "type": "string"
           },
-          "maxItems": 9,
           "minItems": 1,
           "title": "Input Formats",
           "type": "array"
@@ -547,7 +544,6 @@
             ],
             "type": "string"
           },
-          "maxItems": 6,
           "minItems": 1,
           "title": "Response Formats",
           "type": "array"
@@ -564,7 +560,6 @@
             ],
             "type": "string"
           },
-          "maxItems": 2,
           "title": "Timestamp Granularities",
           "type": "array"
         },
@@ -701,7 +696,6 @@
             ],
             "type": "string"
           },
-          "maxItems": 4,
           "minItems": 1,
           "title": "Endpoints",
           "type": "array"

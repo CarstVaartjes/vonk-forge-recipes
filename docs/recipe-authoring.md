@@ -248,7 +248,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.8.1`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v4.9.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -256,12 +256,11 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`: once
 `v<CONTRACT_VERSION>` is released, validate.yml refuses any change under
 `contracts/src` until `_version.py` names a new version.
 
-- **Patch:** a fix that keeps every published field and meaning, such as a
-  stricter check of a value producers already write (`4.8.1` pinned prebuilt
-  images by digest and made `updated_at` a real UTC time) or a tolerant reader.
+- **Patch:** a fix that keeps every published field, meaning and public API,
+  such as a stricter check of a value producers already write.
 
-- **Additive (minor):** add an optional field without changing existing wire
-  requirements. The Controller reads published documents with `read_model` and
+- **Additive (minor):** add an optional field or a new public API without
+  changing existing wire requirements (`4.9.0` added the `read_catalog` reader). The Controller reads published documents with `read_model` and
   `read_recipe`, which ignore fields they do not know, and identifies each
   document by the `document_sha256` of its published JSON, so an older
   Controller keeps working and picks the field up when vonk-forge upgrades.
@@ -272,12 +271,14 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`: once
   and its role there, and its label, description and category to `CAPABILITY_TEXT`
   in `vocabulary.py` (import fails without it), release it, and let the Controller adopt it before a
   catalog declares the name. Authoring refuses a name it does not list. A consumer
-  reading the index with `read_catalog` (4.8.1 and later) keeps the entry and the
-  word as an `UnrecognisedWord`, and so it does with any closed word outside the
-  execution document except a discriminator (`kind`, `mode`): a modality, an
-  alignment, an API endpoint, format or setting word, or a qualification word.
-  A Controller pinned before 4.8.1 loses what it cannot read, so the adoption
-  order still applies.
+  reading the index with `read_catalog` (4.9.0 and later) keeps the entry and the
+  word as an `UnrecognisedWord`, and so it does with a modality, an alignment, an
+  API endpoint, format, tool choice, request placement or reasoning default, or a
+  qualification word. An unknown discriminator (`kind`, `mode`) or API token
+  `setting` drops the API block instead (the recipe stays); an unknown word in the
+  execution document skips the entry. Closed-word lists carry no length cap, so a
+  new word never overflows one. A Controller pinned before 4.9.0 loses what it
+  cannot read, so the adoption order still applies.
 - **Breaking (major, for example `3.0.0`, which moved display text out of the documents, and `4.0.0`, which moved a Model's modalities, capabilities and licence into its display):** remove or rename a field, make one required,
   or change a field's meaning. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
