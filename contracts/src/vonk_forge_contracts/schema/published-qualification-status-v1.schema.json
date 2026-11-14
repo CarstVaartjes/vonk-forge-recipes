@@ -44,7 +44,8 @@
           "$ref": "#/$defs/QualificationIdentity"
         },
         "outcome": {
-          "$ref": "#/$defs/QualificationOutcome"
+          "$ref": "#/$defs/QualificationOutcome",
+          "title": "Outcome"
         },
         "blame": {
           "anyOf": [
@@ -55,13 +56,16 @@
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "title": "Blame"
         },
         "cause_code": {
-          "$ref": "#/$defs/QualificationCauseCode"
+          "$ref": "#/$defs/QualificationCauseCode",
+          "title": "Cause Code"
         },
         "cause_summary": {
-          "$ref": "#/$defs/QualificationSummary"
+          "$ref": "#/$defs/QualificationSummary",
+          "title": "Cause Summary"
         },
         "evidence_refs": {
           "default": [],
@@ -271,7 +275,8 @@
         },
         "hardware_class": {
           "$ref": "#/$defs/QualificationHardware",
-          "default": "GB10"
+          "default": "GB10",
+          "title": "Hardware Class"
         },
         "spark_count": {
           "anyOf": [
@@ -295,7 +300,8 @@
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "title": "Topology"
         }
       },
       "title": "QualificationPlatform",
@@ -417,7 +423,8 @@
           "type": "null"
         }
       ],
-      "default": null
+      "default": null,
+      "title": "Reason"
     },
     "required_sparks": {
       "minimum": 1,

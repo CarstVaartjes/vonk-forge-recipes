@@ -1,7 +1,7 @@
 # Vonk Forge public contracts
 
-This package ships the Model, Recipe and qualification Pydantic models,
-JSON Schemas and synthetic examples. See the [package API guide](../../README.md)
+This package ships the Model, Recipe, qualification and catalog index Pydantic
+models, the index's consumer reader, JSON Schemas and synthetic examples. See the [package API guide](../../README.md)
 and the repository's [authoring guide](../../../docs/recipe-authoring.md).
 
 Schemas are generated with `tools/generate-contract-schemas`; examples with

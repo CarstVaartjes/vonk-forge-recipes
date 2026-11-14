@@ -180,7 +180,6 @@
         ],
         "type": "string"
       },
-      "maxItems": 6,
       "minItems": 1,
       "title": "Modalities",
       "type": "array"

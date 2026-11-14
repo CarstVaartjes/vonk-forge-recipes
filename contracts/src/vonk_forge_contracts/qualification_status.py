@@ -8,10 +8,18 @@ bytes, never a host, request, operation or local artifact path.
 from enum import StrEnum
 from typing import Annotated, Literal, Self
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictInt,
+    model_validator,
+)
 
 from ._schema_version import QualificationEvidenceSchemaVersion
 from .recipe import Identifier
+from .unrecognised import KeepUnrecognised, UnrecognisedWord
 
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 SourceSHA = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
@@ -177,15 +185,22 @@ class QualificationPlatform(PublicQualificationModel):
     controller_source_sha: SourceSHA | None = None
     controller_version: Version | None = None
     agent_version: Version | None = None
-    hardware_class: QualificationHardware = QualificationHardware.GB10
+    # Words a newer minor may add; a consumer reader keeps them (``UnrecognisedWord``).
+    hardware_class: Annotated[
+        QualificationHardware | UnrecognisedWord, KeepUnrecognised
+    ] = QualificationHardware.GB10
     spark_count: int | None = Field(default=None, ge=1)
-    topology: QualificationTopology | None = None
+    topology: Annotated[
+        QualificationTopology | UnrecognisedWord | None, KeepUnrecognised
+    ] = None
 
     @model_validator(mode="after")
     def check_topology(self) -> Self:
         if self.spark_count is None:
             if self.topology is not None:
                 raise ValueError("topology requires a recorded Spark count")
+            return self
+        if isinstance(self.topology, UnrecognisedWord):
             return self
         expected = (
             QualificationTopology.SINGLE
@@ -219,15 +234,22 @@ class QualificationFixReference(PublicQualificationModel):
 
 class QualificationEvidenceRecord(PublicQualificationModel):
     identity: QualificationIdentity
-    outcome: QualificationOutcome
-    blame: QualificationBlame | None = None
-    cause_code: QualificationCauseCode
-    cause_summary: QualificationSummary
+    # The published status is derived by the producer; a consumer only shows an
+    # outcome or blame a newer minor added (``UnrecognisedWord``).
+    outcome: Annotated[QualificationOutcome | UnrecognisedWord, KeepUnrecognised]
+    blame: Annotated[QualificationBlame | UnrecognisedWord | None, KeepUnrecognised] = (
+        None
+    )
+    # Words a newer minor may add; a consumer reader keeps them (``UnrecognisedWord``).
+    cause_code: Annotated[QualificationCauseCode | UnrecognisedWord, KeepUnrecognised]
+    cause_summary: Annotated[QualificationSummary | UnrecognisedWord, KeepUnrecognised]
     evidence_refs: tuple[Digest, ...] = ()
     tested_at: AwareDatetime
     platform: QualificationPlatform
     fix_reference: QualificationFixReference | None = None
-    quality_notes: tuple[QualificationQualityNote, ...] = ()
+    quality_notes: tuple[
+        Annotated[QualificationQualityNote | UnrecognisedWord, KeepUnrecognised], ...
+    ] = ()
 
     @model_validator(mode="after")
     def consistent_verdict(self) -> Self:
@@ -240,9 +262,19 @@ class QualificationEvidenceRecord(PublicQualificationModel):
             raise ValueError(
                 "a hardware pass must use the recipe's required Spark count"
             )
+        if (
+            isinstance(self.outcome, UnrecognisedWord)
+            or isinstance(self.blame, UnrecognisedWord)
+            or isinstance(self.cause_code, UnrecognisedWord)
+        ):
+            # A verdict word a newer minor added: its rules are that minor's.
+            return self
         if (self.outcome == QualificationOutcome.PASSED) != (self.blame is None):
             raise ValueError("passes have no blame; failures must identify blame")
-        if self.cause_summary != QUALIFICATION_SUMMARIES[self.cause_code]:
+        if (
+            isinstance(self.cause_summary, QualificationSummary)
+            and self.cause_summary != QUALIFICATION_SUMMARIES[self.cause_code]
+        ):
             raise ValueError("summary must match the cause code")
         if (
             self.blame is None
@@ -362,19 +394,28 @@ class PublishedMeasuredMemory(PublicQualificationModel):
         return self
 
 
+PublishedStatus = Literal[
+    QualificationStatus.WORKING,
+    QualificationStatus.RECHECK,
+    QualificationStatus.FIX_TO_VERIFY,
+    QualificationStatus.FAILED_RECIPE,
+    QualificationStatus.NOT_YET_VERIFIED,
+]
+
+
 class PublishedQualificationStatusView(PublicQualificationModel):
-    status: Literal[
-        QualificationStatus.WORKING,
-        QualificationStatus.RECHECK,
-        QualificationStatus.FIX_TO_VERIFY,
-        QualificationStatus.FAILED_RECIPE,
-        QualificationStatus.NOT_YET_VERIFIED,
-    ]
-    changed: tuple[QualificationChange, ...] = ()
+    # A status, change or reason a newer minor adds: a consumer reader keeps the
+    # word (``UnrecognisedWord``); the release's vocabulary carries its meaning.
+    status: Annotated[PublishedStatus | UnrecognisedWord, KeepUnrecognised]
+    changed: tuple[
+        Annotated[QualificationChange | UnrecognisedWord, KeepUnrecognised], ...
+    ] = ()
     last_pass: QualificationEvidenceRecord | None = None
     last_failure: QualificationEvidenceRecord | None = None
-    reason: QualificationUnverifiedReason | None = None
-    required_sparks: int = Field(ge=1)
+    reason: Annotated[
+        QualificationUnverifiedReason | UnrecognisedWord | None, KeepUnrecognised
+    ] = None
+    required_sparks: StrictInt = Field(ge=1)
 
 
 def _changes(
