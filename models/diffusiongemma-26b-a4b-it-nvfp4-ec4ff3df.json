@@ -133,10 +133,6 @@
     "quantization": "nvfp4-modelopt"
   },
   "identity": {
-    "family": {
-      "publisher": "google",
-      "slug": "gemma"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "diffusiongemma-26b-a4b"

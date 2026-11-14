@@ -61,10 +61,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "radixark",
       "slug": "qwen3-8-27b-dspark"

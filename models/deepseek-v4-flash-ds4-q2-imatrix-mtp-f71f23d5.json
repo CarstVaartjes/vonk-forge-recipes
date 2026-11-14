@@ -25,10 +25,6 @@
     "quantization": "iq2_xxs-q2_k-mixed"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-flash"
-    },
     "model": {
       "publisher": "antirez",
       "slug": "deepseek-v4-flash-ds4-q2-imatrix-mtp"

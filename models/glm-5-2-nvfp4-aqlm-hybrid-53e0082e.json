@@ -1339,10 +1339,6 @@
     "quantization": "nvfp4_aqlm_hybrid"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "jarrelscy",
       "slug": "glm-5-2-aqlm-hybrid"

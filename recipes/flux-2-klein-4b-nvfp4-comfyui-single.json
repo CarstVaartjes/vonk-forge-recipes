@@ -95,7 +95,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "29584509b5c97f637693d25956322b1bd79ed5bd995945c94b1f07c074e16c18",
+        "content_sha256": "859973d93607832ad2e1e203ee02821dbc2360e6bfaffb45808f8b5e2eb1b88f",
         "kind": "model",
         "publisher": "black-forest-labs",
         "slug": "flux-2-klein-4b-nvfp4-1db2b2f7"
@@ -126,7 +126,7 @@
       ],
       "id": "dependency-flux-2-klein-4b-comfyui-5f526678",
       "model": {
-        "content_sha256": "5c730d89fe3294b2fbbcad5f31fac5f0ea43e864908b15f535b7e2719861892f",
+        "content_sha256": "b3141cbc6967f3750d381bbb234b49d522f53433c504300e34d36d3f3fa8cd48",
         "kind": "model",
         "publisher": "black-forest-labs",
         "slug": "flux-2-klein-4b-comfyui-5f526678"

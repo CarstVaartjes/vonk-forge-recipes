@@ -211,7 +211,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "92785a590bf7cb0fd033111993391303db5cb8e418ea844b81d1cfa0a9b0ba43",
+        "content_sha256": "f1ac899ad5c30a18ce40c41c8bb62f5437d922519bb029a8f09b658829fb37e5",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "qwen3-8-27b-exl3-3-5bpw-19441ac8"
@@ -282,7 +282,7 @@
       ],
       "id": "draft",
       "model": {
-        "content_sha256": "1d001035e3f7d7dad37676dabc3bb1d3733d024c3faa3cce3bf222ee60842bc9",
+        "content_sha256": "8e1d4e95bf332f673130af2599576dd03ba03c65c8191c71fd3fd96a976ed9cb",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "qwen3-8-27b-dflash2-exl3-5-0bpw-4f043626"

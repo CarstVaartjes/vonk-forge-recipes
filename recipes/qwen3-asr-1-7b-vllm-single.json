@@ -149,7 +149,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ab188dbf23c29dbdbf119e6f40b2af031a3874752f54425ebcb7b8303b72de6e",
+        "content_sha256": "2e67dc8836329037a1f45cfcf1abd2b2817ca371bf98c77ff56fd6a2a205b206",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen3-asr-1-7b-7278e1e7"

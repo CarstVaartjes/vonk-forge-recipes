@@ -1166,7 +1166,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1fec542db4b80d7b5aaf32f823ee8d132ad212392d987f2a14477566232e2a19",
+        "content_sha256": "be5b781c72d356e8be827c3abb378f8d68849efc17aea847803325a8cf0da1e6",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-super-vl-120b-a12b-nvfp4-da5b2650"
@@ -1227,7 +1227,7 @@
       ],
       "id": "draft",
       "model": {
-        "content_sha256": "05062617744cacf2c20f917613adeb9cca75cbc2efb7a11ba720daac62aa0ea6",
+        "content_sha256": "caa7c7180f61b1450abb6f5eae3aeb374b76514c955091b40c0a98d346fcf1c5",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-super-vl-lilicorr-nvfp4-292bf1ef"

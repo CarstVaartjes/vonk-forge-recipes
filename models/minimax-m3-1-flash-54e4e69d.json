@@ -655,10 +655,6 @@
     "quantization": "mxfp8-nvfp4"
   },
   "identity": {
-    "family": {
-      "publisher": "minimax",
-      "slug": "minimax"
-    },
     "model": {
       "publisher": "minimax",
       "slug": "minimax-m3-1-flash"

@@ -97,10 +97,6 @@
     "quantization": "nvfp4-modelopt"
   },
   "identity": {
-    "family": {
-      "publisher": "r0b0tlab",
-      "slug": "fastcontext"
-    },
     "model": {
       "publisher": "r0b0tlab",
       "slug": "fastcontext-1-0-4b-rl"

@@ -944,7 +944,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "b1ed7e831db99d248f9109642f1dd2a65ce8a10519b77a4f0e27cb553ebbfbef",
+        "content_sha256": "70c04bd01e6e989267591e6b4fbba5a7faddd10aff6912cd6ad3c38924280c84",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-vision-exp-86f746b3"

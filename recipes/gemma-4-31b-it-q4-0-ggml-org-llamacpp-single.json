@@ -76,7 +76,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "fda9bba0cc73ee16ca0718c94b6916baf73d89d0db72be3a64e87bc4c5ca1a1d",
+        "content_sha256": "e0fddb92b2e705f8f7e26e2651aad6a08529ce8305e7c53246e65ab47a634e70",
         "kind": "model",
         "publisher": "ggml-org",
         "slug": "gemma-4-31b-it-q4-0-3d47a7e6"

@@ -142,10 +142,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek"
-    },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v2-lite"

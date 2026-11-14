@@ -79,10 +79,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "meta-llama",
-      "slug": "llama"
-    },
     "model": {
       "publisher": "meta-llama",
       "slug": "llama-3-8b-instruct"

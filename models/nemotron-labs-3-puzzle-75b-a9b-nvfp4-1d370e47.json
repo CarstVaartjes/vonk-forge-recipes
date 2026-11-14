@@ -223,10 +223,6 @@
     "quantization": "nvfp4-modelopt-mixed-precision"
   },
   "identity": {
-    "family": {
-      "publisher": "nvidia",
-      "slug": "nemotron"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "nemotron-labs-3-puzzle-75b-a9b"
