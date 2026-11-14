@@ -18,8 +18,7 @@
   "identity": {
     "family": {
       "publisher": "vonk-forge",
-      "slug": "synthetic",
-      "title": "Synthetic"
+      "slug": "synthetic"
     },
     "model": {
       "publisher": "vonk-forge",

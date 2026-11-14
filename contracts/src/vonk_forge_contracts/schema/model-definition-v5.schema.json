@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://api.vonkforge.ai/contracts/model-definition-v4.schema.json",
+  "$id": "https://api.vonkforge.ai/contracts/model-definition-v5.schema.json",
   "$defs": {
     "GitHubLfsSource": {
       "additionalProperties": false,
@@ -91,31 +91,6 @@
         "assets"
       ],
       "title": "GitHubReleaseSource",
-      "type": "object"
-    },
-    "ModelFamily": {
-      "additionalProperties": false,
-      "properties": {
-        "publisher": {
-          "maxLength": 63,
-          "minLength": 2,
-          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
-          "title": "Publisher",
-          "type": "string"
-        },
-        "slug": {
-          "maxLength": 63,
-          "minLength": 2,
-          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
-          "title": "Slug",
-          "type": "string"
-        }
-      },
-      "required": [
-        "publisher",
-        "slug"
-      ],
-      "title": "ModelFamily",
       "type": "object"
     },
     "ModelFile": {
@@ -239,7 +214,7 @@
     },
     "ModelIdentity": {
       "additionalProperties": false,
-      "description": "The family, logical model, exact version, and selected variant.",
+      "description": "The logical model, exact version, and selected variant.",
       "properties": {
         "publisher": {
           "maxLength": 63,
@@ -254,9 +229,6 @@
           "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
           "title": "Slug",
           "type": "string"
-        },
-        "family": {
-          "$ref": "#/$defs/ModelFamily"
         },
         "model": {
           "$ref": "#/$defs/ModelRecord"
@@ -277,7 +249,6 @@
       "required": [
         "publisher",
         "slug",
-        "family",
         "model",
         "version",
         "variant"
