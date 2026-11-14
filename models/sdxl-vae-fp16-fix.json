@@ -25,10 +25,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "stabilityai",
-      "slug": "stable-diffusion-xl"
-    },
     "model": {
       "publisher": "madebyollin",
       "slug": "sdxl-vae-fp16-fix"

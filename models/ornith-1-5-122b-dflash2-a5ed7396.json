@@ -52,10 +52,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "ornith-ai",
-      "slug": "ornith"
-    },
     "model": {
       "publisher": "incoai",
       "slug": "ornith-1-5-122b-dflash2"

@@ -106,10 +106,6 @@
     "quantization": "nvfp4-modelopt"
   },
   "identity": {
-    "family": {
-      "publisher": "r0b0tlab",
-      "slug": "vibethinker"
-    },
     "model": {
       "publisher": "r0b0tlab",
       "slug": "vibethinker-3b"

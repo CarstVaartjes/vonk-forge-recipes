@@ -115,10 +115,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen3-tts"
-    },
     "model": {
       "publisher": "qwen",
       "slug": "qwen3-tts-12hz-1-7b-base"

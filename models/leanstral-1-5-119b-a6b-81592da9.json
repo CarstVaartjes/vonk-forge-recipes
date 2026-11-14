@@ -124,10 +124,6 @@
     "quantization": "fp8_e4m3"
   },
   "identity": {
-    "family": {
-      "publisher": "mistralai",
-      "slug": "leanstral"
-    },
     "model": {
       "publisher": "mistralai",
       "slug": "leanstral-1-5-119b-a6b"

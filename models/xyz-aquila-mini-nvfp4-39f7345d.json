@@ -124,10 +124,6 @@
     "quantization": "nvfp4-modelopt-mixed"
   },
   "identity": {
-    "family": {
-      "publisher": "r0b0tlab",
-      "slug": "xyz-aquila"
-    },
     "model": {
       "publisher": "r0b0tlab",
       "slug": "xyz-aquila-mini"

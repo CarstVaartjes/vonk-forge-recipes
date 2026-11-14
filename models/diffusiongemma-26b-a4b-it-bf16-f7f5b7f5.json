@@ -205,10 +205,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "google",
-      "slug": "gemma"
-    },
     "model": {
       "publisher": "google",
       "slug": "diffusiongemma-26b-a4b"

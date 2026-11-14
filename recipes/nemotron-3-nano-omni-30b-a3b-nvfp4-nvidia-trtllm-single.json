@@ -296,7 +296,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "0641467b1e64ea6812ee568badc4d43a7e6db98b5da9815b9b28bd2172dac6f0",
+        "content_sha256": "e63d2a1aed94b43f20b0d803c63c7d9fc570bd5769ba7dce66eebf5b413f526e",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-nvfp4"

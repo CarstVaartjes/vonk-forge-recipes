@@ -250,7 +250,7 @@
       ],
       "id": "voicedesign",
       "model": {
-        "content_sha256": "169920576b5590da26aaaff7b40ff51a0e4ba97415ee1d0a93aa27e658aa6748",
+        "content_sha256": "9999e3e83b4f445e68a8422a355c20a3f2068a6612d0c953d1a1f57e8e5c5b48",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen3-tts-12hz-1-7b-voicedesign-5ecdb673"
@@ -381,7 +381,7 @@
       ],
       "id": "base",
       "model": {
-        "content_sha256": "d8bb04790679cabce3093daa6e72be10fdde3968a3a0ffbe102bf8867360b510",
+        "content_sha256": "8c7e5e518c254806f975e9b88152680bafe4093a7e6fd8f2d03bf76ad1d14af9",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen3-tts-12hz-1-7b-base-fd4b2543"

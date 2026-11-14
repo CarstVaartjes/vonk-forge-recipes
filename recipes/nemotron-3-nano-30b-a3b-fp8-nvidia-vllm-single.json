@@ -416,7 +416,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9fec499d4f4d591050438e0663c3c233e96d1e760da7f369f78fccfc2b1a0182",
+        "content_sha256": "421a71493ae66e9e2d8c60cb49079ef361a3d9e624d36f903a8689a8077af205",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-nano-30b-a3b-fp8-9bee1944"

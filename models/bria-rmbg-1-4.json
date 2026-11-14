@@ -187,10 +187,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "bria-ai",
-      "slug": "bria-rmbg"
-    },
     "model": {
       "publisher": "bria-ai",
       "slug": "bria-rmbg"

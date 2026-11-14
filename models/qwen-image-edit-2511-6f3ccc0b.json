@@ -322,10 +322,6 @@
     "quantization": "bf16"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen-image"
-    },
     "model": {
       "publisher": "qwen",
       "slug": "qwen-image-edit"

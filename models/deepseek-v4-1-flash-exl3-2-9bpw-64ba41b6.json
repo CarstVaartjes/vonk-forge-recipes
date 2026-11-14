@@ -1,7 +1,7 @@
 {
   "dependencies": [
     {
-      "content_sha256": "aab4021a80637f18f9c184a2047540a14e4f313dd907f2b372b03560833ea073",
+      "content_sha256": "b4b7a6f6829c3ba874f9acda79322ea1280d3534b782e8921cbf6298d77d0fa9",
       "kind": "model",
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-1-flash-dba1be0a"
@@ -455,10 +455,6 @@
     "quantization": "exl3-mul1-2_9bpw"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-flash"
-    },
     "model": {
       "publisher": "mia-ai-lab",
       "slug": "deepseek-v4-1-flash-exl3"

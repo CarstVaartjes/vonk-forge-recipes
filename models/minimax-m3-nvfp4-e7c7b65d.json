@@ -637,10 +637,6 @@
     "quantization": "modelopt-nvfp4"
   },
   "identity": {
-    "family": {
-      "publisher": "minimax",
-      "slug": "minimax"
-    },
     "model": {
       "publisher": "lukealonso",
       "slug": "minimax-m3-nvfp4"

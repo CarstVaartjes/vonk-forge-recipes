@@ -97,10 +97,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "liquidai",
-      "slug": "lfm2-5"
-    },
     "model": {
       "publisher": "liquidai",
       "slug": "lfm2-5-vl-3b"

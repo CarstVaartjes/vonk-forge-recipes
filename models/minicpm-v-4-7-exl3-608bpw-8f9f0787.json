@@ -277,10 +277,6 @@
     "quantization": "exl3"
   },
   "identity": {
-    "family": {
-      "publisher": "openbmb",
-      "slug": "minicpm"
-    },
     "model": {
       "publisher": "r0b0tlab",
       "slug": "minicpm-v-4-7-35b-a3b"

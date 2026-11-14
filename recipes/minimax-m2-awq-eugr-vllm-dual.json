@@ -663,7 +663,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1aaa402e8bfe437972bbc5d854ace0435a29e91521666d2adecf1a503677e4f7",
+        "content_sha256": "d8028ca0d98d07cbbcc29a51e89b6e5ac20b157871b78418e1642fd0c9600eed",
         "kind": "model",
         "publisher": "quanttrio",
         "slug": "minimax-m2-awq-3f6771a8"
