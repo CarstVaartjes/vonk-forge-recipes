@@ -7,10 +7,18 @@ An unknown value never breaks the catalog; only integrity edges refuse it.
 ``REFUSE``             The entry's ``content_sha256`` is not the digest of its
                        document, or its package names another digest. The whole
                        index is refused (:class:`CatalogIndexRefused`).
-``SKIP``               The entry is malformed for this release (a missing field,
-                       a wrong type, an invalid value, a word it cannot do without)
-                       or shares its identity with another entry. Only that entry
-                       is left out, reported as a :class:`SkippedEntry`.
+``SKIP``               What the entry needs to run is malformed for this release
+                       (its document, package, digests or source path: a missing
+                       field, a wrong type, an invalid value, an unknown
+                       discriminator) or it shares its identity with another
+                       entry. Only that entry is left out, reported as a
+                       :class:`SkippedEntry`.
+``DROP_BLOCK``         An optional block (``CatalogBlock``: display, API facts,
+                       qualification, prebuilt image, measured memory) is
+                       unreadable. The entry stays with that block ``None``,
+                       reported as a :class:`DroppedBlock`: a recipe without its
+                       image builds from source, without API facts publishes no
+                       API surface, without a display is titled by its identity.
 ``KEEP_UNRECOGNISED``  The entry carries a closed word a newer minor added outside
                        its execution document (a capability, modality, alignment,
                        API endpoint or format, or qualification word; see
@@ -57,8 +65,19 @@ class CatalogSection(StrEnum):
 class EntryOutcome(StrEnum):
     KEEP = "keep"
     KEEP_UNRECOGNISED = "keep-unrecognised"
+    DROP_BLOCK = "drop-block"
     SKIP = "skip"
     REFUSE = "refuse"
+
+
+class CatalogBlock(StrEnum):
+    """An entry block a consumer can do without; an unreadable one is dropped."""
+
+    DISPLAY = "display"
+    API = "api"
+    QUALIFICATION = "qualification"
+    PREBUILT_IMAGE = "prebuilt_image"
+    MEASURED_MEMORY = "measured_memory"
 
 
 class DigestCheck(StrEnum):
@@ -68,12 +87,12 @@ class DigestCheck(StrEnum):
     UNREADABLE = "unreadable"
 
 
-class SkipReason(StrEnum):
+class FaultReason(StrEnum):
     MISSING = "missing"
     WRONG_TYPE = "wrong-type"
     INVALID_VALUE = "invalid-value"
-    # A word this release does not know where the entry cannot do without it
-    # (an execution or API field); a newer platform reads it.
+    # A word this release does not know where it cannot keep it as an
+    # ``UnrecognisedWord`` (a discriminator or an execution field).
     UNKNOWN_WORD = "unknown-word"
     DUPLICATE = "duplicate"
 
@@ -108,7 +127,19 @@ class SkippedEntry(_Report):
     entry: StrictStr
     # The dotted location inside the entry; ``entry`` for the entry as a whole.
     field: StrictStr
-    reason: SkipReason
+    reason: FaultReason
+
+
+class DroppedBlock(_Report):
+    """One unreadable optional block left out; its entry stays."""
+
+    kind: Literal["dropped-block"] = "dropped-block"
+    section: CatalogSection
+    entry: StrictStr
+    block: CatalogBlock
+    # The dotted location of the first fault inside the entry.
+    field: StrictStr
+    reason: FaultReason
 
 
 class UnrecognisedWordReport(_Report):
@@ -122,8 +153,12 @@ class UnrecognisedWordReport(_Report):
 
 
 CatalogProblem = Annotated[
-    SkippedEntry | UnrecognisedWordReport, Field(discriminator="kind")
+    SkippedEntry | DroppedBlock | UnrecognisedWordReport, Field(discriminator="kind")
 ]
+_DROPPABLE: Final = {
+    CatalogSection.MODELS: frozenset({CatalogBlock.DISPLAY}),
+    CatalogSection.RECIPES: frozenset(CatalogBlock),
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,7 +178,12 @@ class CatalogRead(NamedTuple):
 
 
 def entry_outcome(
-    digest: DigestCheck, *, parsed: bool, unrecognised: bool, duplicate: bool
+    digest: DigestCheck,
+    *,
+    parsed: bool,
+    dropped: bool,
+    unrecognised: bool,
+    duplicate: bool,
 ) -> EntryOutcome:
     """The one decision: refuse at an integrity edge, else skip, else keep."""
 
@@ -154,6 +194,8 @@ def entry_outcome(
             return EntryOutcome.SKIP
         case DigestCheck.MATCH if not parsed or duplicate:
             return EntryOutcome.SKIP
+        case DigestCheck.MATCH if dropped:
+            return EntryOutcome.DROP_BLOCK
         case DigestCheck.MATCH if unrecognised:
             return EntryOutcome.KEEP_UNRECOGNISED
         case DigestCheck.MATCH:
@@ -244,19 +286,20 @@ def _read_entry[E: (CatalogModelEntry, CatalogRecipeEntry)](
     model: type[E], section: CatalogSection, raw: object, position: int | None
 ) -> EntryRead[E]:
     digest = _digest_check(section, raw)
-    context = read_context()
+    name = _entry_name(raw, position)
     entry: E | None = None
     error: ErrorDetails | None = None
+    dropped: tuple[DroppedBlock, ...] = ()
     if digest is not DigestCheck.MISMATCH:
-        try:
-            entry = model.model_validate(raw, extra="ignore", context=context)
-        except ValidationError as failure:
-            error = failure.errors()[0]
+        entry, error, dropped = _validate(model, section, raw, name)
     words = tuple(_unrecognised(entry, ())) if entry is not None else ()
     outcome = entry_outcome(
-        digest, parsed=entry is not None, unrecognised=bool(words), duplicate=False
+        digest,
+        parsed=entry is not None,
+        dropped=bool(dropped),
+        unrecognised=bool(words),
+        duplicate=False,
     )
-    name = _entry_name(raw, position)
     match outcome:
         case EntryOutcome.REFUSE:
             raise CatalogIndexRefused(
@@ -264,19 +307,57 @@ def _read_entry[E: (CatalogModelEntry, CatalogRecipeEntry)](
                 f"{section.value} entry {name} does not match its digest",
             )
         case EntryOutcome.SKIP:
-            field, reason = _skip_cause(error)
+            field, reason = _fault(error)
             skipped = SkippedEntry(
                 section=section, entry=name, field=field, reason=reason
             )
             return EntryRead(outcome=outcome, entry=None, problems=(skipped,))
-        case EntryOutcome.KEEP | EntryOutcome.KEEP_UNRECOGNISED:
+        case (
+            EntryOutcome.DROP_BLOCK | EntryOutcome.KEEP_UNRECOGNISED | EntryOutcome.KEEP
+        ):
             reports = tuple(
                 UnrecognisedWordReport(
                     section=section, field=field, word=word, entries=(name,)
                 )
                 for field, word in dict.fromkeys(words)
             )
-            return EntryRead(outcome=outcome, entry=entry, problems=reports)
+            return EntryRead(
+                outcome=outcome, entry=entry, problems=(*dropped, *reports)
+            )
+
+
+def _validate[E: (CatalogModelEntry, CatalogRecipeEntry)](
+    model: type[E], section: CatalogSection, raw: object, name: str
+) -> tuple[E | None, ErrorDetails | None, tuple[DroppedBlock, ...]]:
+    """Validate once; when only optional blocks fail, once more without them."""
+
+    try:
+        return (
+            model.model_validate(raw, extra="ignore", context=read_context()),
+            None,
+            (),
+        )
+    except ValidationError as failure:
+        errors = failure.errors()
+    droppable = _DROPPABLE[section]
+    needed = [e for e in errors if not e["loc"] or e["loc"][0] not in droppable]
+    if needed or not isinstance(raw, Mapping):
+        return None, (needed or errors)[0], ()
+    first: dict[CatalogBlock, ErrorDetails] = {}
+    for error in errors:
+        first.setdefault(CatalogBlock(str(error["loc"][0])), error)
+    dropped = tuple(
+        DroppedBlock(
+            section=section, entry=name, block=block, field=field, reason=reason
+        )
+        for block, (field, reason) in ((b, _fault(e)) for b, e in first.items())
+    )
+    without = {**raw, **{block.value: None for block in first}}
+    try:
+        entry = model.model_validate(without, extra="ignore", context=read_context())
+    except ValidationError as failure:
+        return None, failure.errors()[0], ()
+    return entry, None, dropped
 
 
 def _settle[E: (CatalogModelEntry, CatalogRecipeEntry)](
@@ -287,26 +368,29 @@ def _settle[E: (CatalogModelEntry, CatalogRecipeEntry)](
     counts = Counter(_identity(read.entry) for read in reads if read.entry is not None)
     duplicated = {name for name, count in counts.items() if count > 1}
     kept: list[E] = []
-    skipped: list[CatalogProblem] = []
+    faults: list[CatalogProblem] = []
     words: dict[tuple[str, str], list[str]] = {}
     for read in reads:
         if read.entry is None:
-            skipped.extend(read.problems)
+            faults.extend(read.problems)
             continue
         name = _identity(read.entry)
         outcome = entry_outcome(
             DigestCheck.MATCH,
             parsed=True,
-            unrecognised=bool(read.problems),
+            dropped=read.outcome is EntryOutcome.DROP_BLOCK,
+            unrecognised=any(
+                isinstance(report, UnrecognisedWordReport) for report in read.problems
+            ),
             duplicate=name in duplicated,
         )
         if outcome is EntryOutcome.SKIP:
-            skipped.append(
+            faults.append(
                 SkippedEntry(
                     section=section,
                     entry=name,
                     field="document.identity",
-                    reason=SkipReason.DUPLICATE,
+                    reason=FaultReason.DUPLICATE,
                 )
             )
             continue
@@ -314,13 +398,15 @@ def _settle[E: (CatalogModelEntry, CatalogRecipeEntry)](
         for report in read.problems:
             if isinstance(report, UnrecognisedWordReport):
                 words.setdefault((report.field, report.word), []).append(name)
+            else:
+                faults.append(report)
     reports = [
         UnrecognisedWordReport(
             section=section, field=field, word=word, entries=tuple(entries)
         )
         for (field, word), entries in sorted(words.items())
     ]
-    return kept, [*skipped, *reports]
+    return kept, [*faults, *reports]
 
 
 def _digest_check(section: CatalogSection, raw: object) -> DigestCheck:
@@ -349,18 +435,18 @@ def _digest_check(section: CatalogSection, raw: object) -> DigestCheck:
     return DigestCheck.MATCH
 
 
-def _skip_cause(error: ErrorDetails | None) -> tuple[str, SkipReason]:
+def _fault(error: ErrorDetails | None) -> tuple[str, FaultReason]:
     if error is None:  # parsed, but its document cannot be hashed
-        return "document", SkipReason.INVALID_VALUE
+        return "document", FaultReason.INVALID_VALUE
     field = ".".join(str(part) for part in error["loc"]) or "entry"
     kind = error["type"]
     if kind == "missing":
-        return field, SkipReason.MISSING
+        return field, FaultReason.MISSING
     if kind in _UNKNOWN_WORD_ERRORS:
-        return field, SkipReason.UNKNOWN_WORD
+        return field, FaultReason.UNKNOWN_WORD
     if kind.endswith("_type") or kind == "is_instance_of":
-        return field, SkipReason.WRONG_TYPE
-    return field, SkipReason.INVALID_VALUE
+        return field, FaultReason.WRONG_TYPE
+    return field, FaultReason.INVALID_VALUE
 
 
 def _unrecognised(value: object, path: tuple[str, ...]) -> Iterator[tuple[str, str]]:

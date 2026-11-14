@@ -17,10 +17,12 @@ from vonk_forge_contracts import (
     read_catalog,
 )
 from vonk_forge_contracts.catalog_reader import (
+    CatalogBlock,
     CatalogSection,
+    DroppedBlock,
+    FaultReason,
     RefusalReason,
     SkippedEntry,
-    SkipReason,
     UnrecognisedWordReport,
 )
 
@@ -83,7 +85,7 @@ def test_unknown_words_keep_their_entries_and_one_malformed_entry_is_skipped(
                 section=CatalogSection.RECIPES,
                 entry=_name(broken),
                 field="package.expected_bytes",
-                reason=SkipReason.WRONG_TYPE,
+                reason=FaultReason.WRONG_TYPE,
             ),
         ],
         key=repr,
@@ -94,7 +96,9 @@ def test_unknown_words_keep_their_entries_and_one_malformed_entry_is_skipped(
     assert _names(read.index.recipes) == [
         _name(e) for e in index["recipes"] if e is not broken
     ]
-    capability = read.index.catalog_entities[0].display.capabilities[-1]
+    display = read.index.catalog_entities[0].display
+    assert display is not None
+    capability = display.capabilities[-1]
     assert isinstance(capability, UnrecognisedWord) and capability == "telepathy"
     # The raw word survives a re-publication of what was read.
     recipes = published_index_json(read.index)["recipes"]
@@ -102,21 +106,61 @@ def test_unknown_words_keep_their_entries_and_one_malformed_entry_is_skipped(
     assert recipes[0]["qualification"]["status"] == "Proven twice"
 
 
-def test_a_mutable_image_tag_skips_only_its_entry(index: Index) -> None:
-    recipe = index["recipes"][2]
+def _mutable_image_tag(recipe: dict) -> None:
     recipe["prebuilt_image"] = {
         "reference": "ghcr.io/example/runtime:latest",
         "build_key": "0" * 64,
     }
+
+
+def _unknown_api_mode(recipe: dict) -> None:
+    recipe["api"]["api"]["mode"] = "realtime"
+
+
+def _display_title_not_text(recipe: dict) -> None:
+    recipe["display"]["title"] = 5
+
+
+@pytest.mark.parametrize(
+    ("damage", "block", "field", "reason"),
+    [
+        (
+            _mutable_image_tag,
+            CatalogBlock.PREBUILT_IMAGE,
+            "prebuilt_image.reference",
+            FaultReason.INVALID_VALUE,
+        ),
+        (_unknown_api_mode, CatalogBlock.API, "api.api", FaultReason.UNKNOWN_WORD),
+        (
+            _display_title_not_text,
+            CatalogBlock.DISPLAY,
+            "display.title",
+            FaultReason.WRONG_TYPE,
+        ),
+    ],
+)
+def test_an_unreadable_optional_block_is_dropped_and_its_recipe_stays(
+    index: Index,
+    damage: Callable[[dict], None],
+    block: CatalogBlock,
+    field: str,
+    reason: FaultReason,
+) -> None:
+    recipe = next(r for r in index["recipes"] if r.get("api") is not None)
+    damage(recipe)
     read = read_catalog(index)
     assert read.problems == (
-        SkippedEntry(
+        DroppedBlock(
             section=CatalogSection.RECIPES,
             entry=_name(recipe),
-            field="prebuilt_image.reference",
-            reason=SkipReason.INVALID_VALUE,
+            block=block,
+            field=field,
+            reason=reason,
         ),
     )
+    assert _names(read.index.recipes) == [_name(r) for r in index["recipes"]]
+    (kept,) = [e for e in read.index.recipes if _names((e,)) == [_name(recipe)]]
+    assert getattr(kept, block.value) is None
 
 
 def test_a_producer_still_refuses_an_unknown_word(index: Index) -> None:

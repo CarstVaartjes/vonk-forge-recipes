@@ -164,9 +164,11 @@ Changed images from forks need a trusted repository branch to push candidates.
 `catalog-index.json` is the `CatalogIndex` contract (`vonk_forge_contracts.catalog_index`): the
 build constructs it through the model, consumers read it with `read_catalog`
 (`vonk_forge_contracts.catalog_reader`), and the release ships its generated schema
-`catalog-index-v2.schema.json`. `read_catalog` verifies each entry's `content_sha256`, keeps a word
-a newer minor added as an `UnrecognisedWord`, skips and reports a malformed entry, and refuses the
-index only for a wrong envelope or contract major or a digest mismatch; `read_catalog_index` is
+`catalog-index-v2.schema.json`. `read_catalog` verifies each entry's `content_sha256`, keeps a
+word a newer minor added as an `UnrecognisedWord`, drops an unreadable optional block (display,
+API facts, qualification, prebuilt image, measured memory; the entry stays), skips an entry whose
+execution data is malformed, and refuses the index only for a wrong envelope or contract major or
+a digest mismatch; `read_catalog_index` is
 the strict whole-index form for producers and tests. The envelope and package
 schema versions live only there; change the shape in the model and run
 `tools/generate-contract-schemas`. Once `v<CONTRACT_VERSION>` is released, validate.yml refuses a

@@ -34,7 +34,8 @@
           "$ref": "#/$defs/QualificationIdentity"
         },
         "outcome": {
-          "$ref": "#/$defs/QualificationOutcome"
+          "$ref": "#/$defs/QualificationOutcome",
+          "title": "Outcome"
         },
         "blame": {
           "anyOf": [
@@ -45,7 +46,8 @@
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "title": "Blame"
         },
         "cause_code": {
           "$ref": "#/$defs/QualificationCauseCode",

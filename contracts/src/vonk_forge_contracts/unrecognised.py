@@ -58,18 +58,20 @@ def read_context() -> dict[str, object]:
     return {TOLERANT_READ: True}
 
 
+def is_reading(info: ValidationInfo) -> bool:
+    """Whether a consumer reader (``read_context``) runs this validation."""
+
+    context = info.context
+    return isinstance(context, dict) and context.get(TOLERANT_READ) is True
+
+
 def _keep_unrecognised(
     value: object, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
 ) -> object:
     try:
         return handler(value)
     except ValueError:
-        context = info.context
-        if (
-            isinstance(context, dict)
-            and context.get(TOLERANT_READ) is True
-            and isinstance(value, str)
-        ):
+        if is_reading(info) and isinstance(value, str):
             return UnrecognisedWord(value)
         raise
 
