@@ -201,6 +201,32 @@ jobs:
           git fetch --no-tags origin main:refs/remotes/origin/main
           python3 tools/check-recipe-topology --base origin/main
 
+      # A released contract version means one thing: publish.yml tags the first
+      # release of each version, so once v<version> exists, any change under
+      # contracts/src needs a new version in _version.py. Git runs here.
+      - name: Require a contract version bump for a changed contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' contracts/src/vonk_forge_contracts/_version.py)
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::no MAJOR.MINOR.PATCH __version__ in contracts/src/vonk_forge_contracts/_version.py"
+            exit 1
+          fi
+          tag="v$version"
+          # Its own line, so a failed ls-remote fails the step (set -e).
+          refs=$(git ls-remote --tags origin "refs/tags/$tag")
+          if [[ -z "$refs" ]]; then
+            echo "$tag is not released yet; contracts/src may still change"
+            exit 0
+          fi
+          git fetch --no-tags origin "+refs/tags/$tag:refs/tags/$tag"
+          if ! git diff --quiet "$tag" HEAD -- contracts/src; then
+            echo "::error::contracts/src differs from the released $tag; bump __version__ in contracts/src/vonk_forge_contracts/_version.py"
+            git diff --stat "$tag" HEAD -- contracts/src
+            exit 1
+          fi
+
       # A platform pin on a PR branch commit stops resolving when that branch is
       # deleted after its squash merge, and every recipes workflow then fails to
       # load. Each pinned SHA must be an ancestor of vonk-forge main.

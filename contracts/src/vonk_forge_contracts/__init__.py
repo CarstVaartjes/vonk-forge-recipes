@@ -9,7 +9,11 @@ change it; a release records when its recipes were last updated instead.
 
 Consumers read published documents with ``read_model``/``read_recipe``, which
 ignore fields a newer minor release added, and identify a document by the
-``document_sha256`` of its published JSON.
+``document_sha256`` of its published JSON. A published index is read with
+``read_catalog``: it keeps every entry this release reads, keeps a word a newer
+minor added as an ``UnrecognisedWord``, drops an unreadable optional block (the
+entry stays), skips an entry whose execution data is malformed, and refuses only
+at integrity edges (``CatalogIndexRefused``).
 """
 
 from __future__ import annotations
@@ -46,6 +50,13 @@ from .catalog_index import (
     catalog_index_json_schema,
     published_index_json,
     read_catalog_index,
+)
+from .catalog_reader import (
+    CatalogIndexRefused,
+    CatalogRead,
+    read_catalog,
+    read_catalog_model_entry,
+    read_catalog_recipe_entry,
 )
 from .display import (
     ModelDisplay,
@@ -108,6 +119,7 @@ from .qualification_status import (
     qualification_status_json_schema,
 )
 from .recipe import RecipeDefinition, RecipeOptionError
+from .unrecognised import UnrecognisedWord
 from .vocabulary import (
     CatalogVocabulary,
     catalog_vocabulary,
@@ -134,7 +146,9 @@ __all__ = [
     "CapabilityName",
     "CapabilityRole",
     "CatalogIndex",
+    "CatalogIndexRefused",
     "CatalogModelEntry",
+    "CatalogRead",
     "CatalogRecipeEntry",
     "CatalogVocabulary",
     "ChatApi",
@@ -186,6 +200,7 @@ __all__ = [
     "RecoveryCoverageDefinition",
     "RecoveryCoverageMember",
     "RecoveryCoverageRef",
+    "UnrecognisedWord",
     "campaign_authority_json_schema",
     "campaign_manifest_json_schema",
     "canonical_json",
@@ -202,7 +217,10 @@ __all__ = [
     "published_status",
     "qualification_evidence_json_schema",
     "qualification_status_json_schema",
+    "read_catalog",
     "read_catalog_index",
+    "read_catalog_model_entry",
+    "read_catalog_recipe_entry",
     "read_model",
     "read_model_display",
     "read_recipe",
