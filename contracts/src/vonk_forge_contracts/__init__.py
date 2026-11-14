@@ -11,8 +11,9 @@ Consumers read published documents with ``read_model``/``read_recipe``, which
 ignore fields a newer minor release added, and identify a document by the
 ``document_sha256`` of its published JSON. A published index is read with
 ``read_catalog``: it keeps every entry this release reads, keeps a word a newer
-minor added as an ``UnrecognisedWord``, skips and reports a malformed entry, and
-refuses only at integrity edges (``CatalogIndexRefused``).
+minor added as an ``UnrecognisedWord``, drops an unreadable optional block (the
+entry stays), skips an entry whose execution data is malformed, and refuses only
+at integrity edges (``CatalogIndexRefused``).
 """
 
 from __future__ import annotations

@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 from datetime import UTC, datetime, timedelta
-from typing import Annotated, Final, Literal, Self
+from typing import Annotated, Any, Final, Literal
 
 from pydantic import (
     BaseModel,
@@ -30,8 +30,11 @@ from pydantic import (
     Strict,
     StrictInt,
     StrictStr,
+    ValidationInfo,
+    ValidatorFunctionWrapHandler,
     WithJsonSchema,
-    model_validator,
+    WrapValidator,
+    field_validator,
 )
 from pydantic.json_schema import models_json_schema
 
@@ -43,6 +46,7 @@ from .qualification_status import (
     PublishedQualificationStatusView,
 )
 from .recipe import RecipeDefinition, RecipeRelease
+from .unrecognised import is_reading
 from .vocabulary import CatalogVocabulary
 
 IndexSchemaVersion = Literal[2]
@@ -149,16 +153,46 @@ class PrebuiltImage(_IndexContract):
         return self.reference.rsplit("@", 1)[1]
 
 
+def _dropped_by_reader(
+    value: object, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
+) -> object:
+    if value is None:
+        if is_reading(info):
+            return None
+        raise ValueError("a published entry carries this block")
+    return handler(value)
+
+
+def _published_form(schema: dict[str, Any]) -> None:
+    # The wire always carries the block; ``None`` is the reader's drop only.
+    (published,) = [item for item in schema.pop("anyOf") if item != {"type": "null"}]
+    schema.update(published)
+
+
+#: A block every published entry carries, which a consumer reader may drop
+#: (``None``) when it cannot read it; the entry stays.
+_Droppable = (
+    WrapValidator(_dropped_by_reader),
+    Field(json_schema_extra=_published_form),
+)
+
+
 class CatalogModelEntry(_IndexContract):
     source_path: _SourcePath
     content_sha256: _Sha256
     document: ModelDefinition
-    display: ModelDisplay
+    # ``None`` only from a consumer reader that dropped an unreadable display.
+    display: Annotated[ModelDisplay | None, *_Droppable]
 
-    @model_validator(mode="after")
-    def _display_describes_document(self) -> Self:
-        require_display_of(self.display, self.document.identity)
-        return self
+    @field_validator("display")
+    @classmethod
+    def _display_describes_document(
+        cls, display: ModelDisplay | None, info: ValidationInfo
+    ) -> ModelDisplay | None:
+        document = info.data.get("document")
+        if display is not None and isinstance(document, ModelDefinition):
+            require_display_of(display, document.identity)
+        return display
 
 
 class CatalogRecipeEntry(_IndexContract):
@@ -166,20 +200,27 @@ class CatalogRecipeEntry(_IndexContract):
     content_sha256: _Sha256
     source_bundle_sha256: _Sha256
     document: RecipeDefinition
-    display: RecipeDisplay
+    # ``None`` only from a consumer reader that dropped an unreadable block.
+    display: Annotated[RecipeDisplay | None, *_Droppable]
     api: RecipeApi | None
     package: PackageMetadata
     release: RecipeRelease
-    qualification: PublishedQualificationStatusView
+    qualification: Annotated[PublishedQualificationStatusView | None, *_Droppable]
     prebuilt_image: PrebuiltImage | None = None
     measured_memory: PublishedMeasuredMemory | None = None
 
-    @model_validator(mode="after")
-    def _siblings_describe_document(self) -> Self:
-        require_display_of(self.display, self.document.identity)
-        if self.api is not None:
-            require_api_of(self.api, self.document.identity)
-        return self
+    @field_validator("display", "api")
+    @classmethod
+    def _siblings_describe_document(
+        cls, sibling: RecipeDisplay | RecipeApi | None, info: ValidationInfo
+    ) -> RecipeDisplay | RecipeApi | None:
+        document = info.data.get("document")
+        if isinstance(document, RecipeDefinition):
+            if isinstance(sibling, RecipeDisplay):
+                require_display_of(sibling, document.identity)
+            elif isinstance(sibling, RecipeApi):
+                require_api_of(sibling, document.identity)
+        return sibling
 
 
 class CatalogIndex(_IndexContract):

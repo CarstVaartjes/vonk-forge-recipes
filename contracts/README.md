@@ -24,8 +24,11 @@ API entry points:
   ships in every release) and [its consumer reader](src/vonk_forge_contracts/catalog_reader.py):
   `read_catalog` returns the entries this release reads plus typed problems. An unknown
   word outside the execution document (a capability, modality, alignment, API endpoint or
-  format, or qualification word) keeps its entry as an `UnrecognisedWord`; a malformed entry is skipped and reported; a wrong envelope or contract
-  major, or a `content_sha256` that does not match its document, refuses the index
+  format, or qualification word) keeps its entry as an `UnrecognisedWord`. An unreadable
+  optional block (display, API facts, qualification, prebuilt image, measured memory) is
+  dropped and reported while its entry stays. An entry whose document, package, digests or
+  source path are malformed is skipped and reported. A wrong envelope or contract major, or
+  a `content_sha256` that does not match its document, refuses the index
   (`CatalogIndexRefused`). `read_catalog_index` is the strict whole-index form.
 - [Canonical document identity](src/vonk_forge_contracts/canonical.py).
 - [Qualification authority](src/vonk_forge_contracts/qualification_authority.py),

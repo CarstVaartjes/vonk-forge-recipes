@@ -1972,7 +1972,8 @@
             "$ref": "#/components/schemas/QualificationIdentity"
           },
           "outcome": {
-            "$ref": "#/components/schemas/QualificationOutcome"
+            "$ref": "#/components/schemas/QualificationOutcome",
+            "title": "Outcome"
           },
           "blame": {
             "anyOf": [
@@ -1983,7 +1984,8 @@
                 "type": "null"
               }
             ],
-            "default": null
+            "default": null,
+            "title": "Blame"
           },
           "cause_code": {
             "$ref": "#/components/schemas/QualificationCauseCode",

@@ -234,8 +234,12 @@ class QualificationFixReference(PublicQualificationModel):
 
 class QualificationEvidenceRecord(PublicQualificationModel):
     identity: QualificationIdentity
-    outcome: QualificationOutcome
-    blame: QualificationBlame | None = None
+    # The published status is derived by the producer; a consumer only shows an
+    # outcome or blame a newer minor added (``UnrecognisedWord``).
+    outcome: Annotated[QualificationOutcome | UnrecognisedWord, KeepUnrecognised]
+    blame: Annotated[QualificationBlame | UnrecognisedWord | None, KeepUnrecognised] = (
+        None
+    )
     # Words a newer minor may add; a consumer reader keeps them (``UnrecognisedWord``).
     cause_code: Annotated[QualificationCauseCode | UnrecognisedWord, KeepUnrecognised]
     cause_summary: Annotated[QualificationSummary | UnrecognisedWord, KeepUnrecognised]
@@ -258,11 +262,15 @@ class QualificationEvidenceRecord(PublicQualificationModel):
             raise ValueError(
                 "a hardware pass must use the recipe's required Spark count"
             )
+        if (
+            isinstance(self.outcome, UnrecognisedWord)
+            or isinstance(self.blame, UnrecognisedWord)
+            or isinstance(self.cause_code, UnrecognisedWord)
+        ):
+            # A verdict word a newer minor added: its rules are that minor's.
+            return self
         if (self.outcome == QualificationOutcome.PASSED) != (self.blame is None):
             raise ValueError("passes have no blame; failures must identify blame")
-        if isinstance(self.cause_code, UnrecognisedWord):
-            # A cause a newer minor added: its rules are that minor's to check.
-            return self
         if (
             isinstance(self.cause_summary, QualificationSummary)
             and self.cause_summary != QUALIFICATION_SUMMARIES[self.cause_code]
