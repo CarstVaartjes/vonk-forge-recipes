@@ -32,6 +32,10 @@ ALLOWED = {
         "spark_sweep/evidence_publisher.py",
         "_evidence_records",
     ): "records carried by the refused evidence PR branch",
+    # The one-time family removal migrates the base revision's documents: it
+    # reads the pre-removal tree it rewrites, never a fact. Removed with the tool.
+    ("tools/remove-model-family", "_already_removed"): "base revision of the migration",
+    ("tools/remove-model-family", "main"): "base revision of the migration",
 }
 
 
