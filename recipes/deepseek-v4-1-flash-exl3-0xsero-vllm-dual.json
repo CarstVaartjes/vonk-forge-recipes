@@ -3182,7 +3182,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d679897e7572d548c13228efa43faeb81d617c5868fc1736e547d0ad74034b87",
+        "content_sha256": "769a006f3a6825528e68bd1b905bee4318d2040724225f96dc9457ee4fd8da68",
         "kind": "model",
         "publisher": "0xsero",
         "slug": "deepseek-v4-1-flash-exl3-2-77bpw-9e3bbeab"

@@ -25,6 +25,14 @@
     "spdx": "LicenseRef-ShapleyMCG-1.0",
     "url": "https://huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw/blob/1ae6d70430a12d762917786696db06a7b4f9bbae/LICENSE"
   },
+  "lineage": {
+    "base_model": "zai-org/GLM-5.3-Flash",
+    "family": "glm",
+    "generation": "GLM 5.3",
+    "line": "glm-flash-321b",
+    "model": "glm-5-3-flash",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text",

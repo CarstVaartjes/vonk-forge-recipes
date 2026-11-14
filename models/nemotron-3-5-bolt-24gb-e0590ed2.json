@@ -1069,10 +1069,6 @@
     "quantization": "iq2_xxs-nvfp4-q8_0"
   },
   "identity": {
-    "family": {
-      "publisher": "nvidia",
-      "slug": "nemotron"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "nemotron-3-5-bolt"

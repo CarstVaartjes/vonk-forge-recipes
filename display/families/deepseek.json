@@ -1,0 +1,49 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "deepseek-v2-lite-chat",
+          "title": "DeepSeek V2 Lite Chat"
+        }
+      ],
+      "slug": "deepseek-v2-lite",
+      "title": "DeepSeek V2 Lite"
+    },
+    {
+      "models": [
+        {
+          "slug": "deepseek-v4-flash-vision-experimental",
+          "title": "DeepSeek V4 Flash Vision Experimental"
+        }
+      ],
+      "slug": "deepseek-flash-vision",
+      "title": "DeepSeek Flash Vision"
+    },
+    {
+      "models": [
+        {
+          "slug": "deepseek-v4-flash",
+          "title": "DeepSeek V4 Flash"
+        },
+        {
+          "slug": "deepseek-v4-flash-0731",
+          "title": "DeepSeek V4 Flash 0731"
+        },
+        {
+          "slug": "deepseek-v4-1-flash",
+          "title": "DeepSeek V4.1 Flash"
+        },
+        {
+          "slug": "deepseek-v4-1-flash-1017",
+          "title": "DeepSeek V4.1 Flash 1017"
+        }
+      ],
+      "slug": "deepseek-flash",
+      "title": "DeepSeek Flash"
+    }
+  ],
+  "slug": "deepseek",
+  "title": "DeepSeek"
+}

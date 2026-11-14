@@ -1078,10 +1078,6 @@
     "quantization": "nvfp4-weight-only-modelopt"
   },
   "identity": {
-    "family": {
-      "publisher": "tencent",
-      "slug": "hy3"
-    },
     "model": {
       "publisher": "libertaidai",
       "slug": "hy3-nvfp4"

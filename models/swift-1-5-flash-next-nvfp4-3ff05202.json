@@ -889,10 +889,6 @@
     "quantization": "nvfp4-modelopt"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "ukisai",
       "slug": "swift-1-5-flash-next-nvfp4"

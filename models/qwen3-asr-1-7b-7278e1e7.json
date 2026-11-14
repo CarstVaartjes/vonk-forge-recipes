@@ -106,10 +106,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen3-asr"
-    },
     "model": {
       "publisher": "qwen",
       "slug": "qwen3-asr-1-7b"

@@ -601,10 +601,6 @@
     "quantization": "exl3"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "vcruz305",
       "slug": "glm-5-3"

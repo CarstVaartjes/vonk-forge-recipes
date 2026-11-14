@@ -103,10 +103,11 @@ def invalid_vectors() -> list[Path]:
 def test_there_are_invalid_vectors_for_each_named_failure() -> None:
     assert {path.stem for path in invalid_vectors()} == {
         "model-display-bad-tag",
+        "model-display-bad-variant-kind",
         "model-display-duplicate-tag",
         "model-display-identity-mismatch",
         "model-with-display-facts",
-        "model-with-family-title",
+        "model-with-identity-family",
         "recipe-display-bad-alignment",
         "recipe-display-empty-title",
         "recipe-display-identity-extra-key",
@@ -140,7 +141,7 @@ def test_producer_only_vectors_are_accepted_by_the_lenient_readers() -> None:
     ]
     assert {path.stem for path in marked} == {
         "model-with-display-facts",
-        "model-with-family-title",
+        "model-with-identity-family",
         "recipe-display-identity-extra-key",
         "recipe-display-with-runtime",
         "recipe-with-metadata",

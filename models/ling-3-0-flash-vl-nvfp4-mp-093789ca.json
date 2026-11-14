@@ -781,10 +781,6 @@
     "quantization": "nvfp4-fp8"
   },
   "identity": {
-    "family": {
-      "publisher": "inclusionai",
-      "slug": "ling"
-    },
     "model": {
       "publisher": "r0b0tlab",
       "slug": "ling-3-0-flash-vl-nvfp4-mp"

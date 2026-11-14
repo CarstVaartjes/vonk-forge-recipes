@@ -88,9 +88,11 @@ def _invalid(
     _write(f"invalid/{name}.expect.json", expect)
 
 
-def _with_family_title(model: dict[str, Any]) -> dict[str, Any]:
+def _with_identity_family(model: dict[str, Any]) -> dict[str, Any]:
+    """The Model document with the family it carried before contracts 5.0.0."""
+
     document = copy.deepcopy(model)
-    document["identity"]["family"]["title"] = "Synthetic"
+    document["identity"]["family"] = {"publisher": "vonk-forge", "slug": "synthetic"}
     return document
 
 
@@ -133,10 +135,10 @@ def _display_vectors(
         producer_only=True,
     )
     _invalid(
-        "model-with-family-title",
+        "model-with-identity-family",
         "ModelDefinition",
         "Extra inputs are not permitted",
-        _with_family_title(models[""]),
+        _with_identity_family(models[""]),
         producer_only=True,
     )
     _invalid(
@@ -203,6 +205,15 @@ def _display_vectors(
         "ModelDisplay",
         "tags must be unique",
         {**model_display, "tags": ["synthetic", "synthetic"]},
+    )
+    _invalid(
+        "model-display-bad-variant-kind",
+        "ModelDisplay",
+        "Input should be",
+        {
+            **model_display,
+            "lineage": {**model_display["lineage"], "variant_kind": "fork"},
+        },
     )
     _invalid(
         "model-display-bad-tag",

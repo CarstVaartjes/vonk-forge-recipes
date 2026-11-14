@@ -106,10 +106,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "tencent",
-      "slug": "hunyuanocr"
-    },
     "model": {
       "publisher": "tencent",
       "slug": "hunyuanocr-1-5"

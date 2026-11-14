@@ -115,7 +115,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "5c730d89fe3294b2fbbcad5f31fac5f0ea43e864908b15f535b7e2719861892f",
+        "content_sha256": "b3141cbc6967f3750d381bbb234b49d522f53433c504300e34d36d3f3fa8cd48",
         "kind": "model",
         "publisher": "black-forest-labs",
         "slug": "flux-2-klein-4b-comfyui-5f526678"

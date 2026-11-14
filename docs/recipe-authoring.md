@@ -111,8 +111,8 @@ prove that every embedded source, container, or dependency is current.
 
 The [Pydantic definitions](../contracts/src/vonk_forge_contracts) are the source
 of truth; the [generated JSON Schemas](../contracts/src/vonk_forge_contracts/schema)
-(`recipe-definition-v4`, `model-definition-v4`, `recipe-display-v4`,
-`model-display-v4`, `recipe-api-v4`) state every field's shape, bound, enum and default. Use the
+(`recipe-definition-v5`, `model-definition-v5`, `recipe-display-v5`,
+`model-display-v5`, `recipe-api-v5`) state every field's shape, bound, enum and default. Use the
 [examples](../contracts/src/vonk_forge_contracts/examples) (a Recipe, Model and
 display for each shape) for structure only; replace synthetic identities and
 data with verified inputs.
@@ -125,7 +125,8 @@ published-document readers to bypass producer validation (`tests/test_contracts.
 | Model | `identity`, `requires_token`, `dependencies`, `source`, `format`, `files`. |
 | Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
 | Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment` is optional. |
-| Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`, and the Model's declared facts: `modalities`, `capabilities`, `license`. |
+| Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`, and the Model's declared facts: `modalities`, `capabilities`, `license`; `lineage` (its place in the catalog hierarchy) is required for a Model a recipe serves first and absent for a helper. |
+| Family display | `slug`, `title`, `lines` (each `slug`, `title`, `models` oldest first). |
 | Recipe API | `identity` (the Recipe's), `api` (a `chat`, `decision`, `audio_transcription` or `audio_speech` block, every field required), `option_choices`. |
 
 A document holds execution data only. What a person or a filter reads about it
@@ -248,7 +249,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.9.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v5.0.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -279,7 +280,7 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`: once
   execution document skips the entry. Closed-word lists carry no length cap, so a
   new word never overflows one. A Controller pinned before 4.9.0 loses what it
   cannot read, so the adoption order still applies.
-- **Breaking (major, for example `3.0.0`, which moved display text out of the documents, and `4.0.0`, which moved a Model's modalities, capabilities and licence into its display):** remove or rename a field, make one required,
+- **Breaking (major, for example `3.0.0`, which moved display text out of the documents, `4.0.0`, which moved a Model's modalities, capabilities and licence into its display, and `5.0.0`, which removed `identity.family` from the Model in favour of the display `lineage`):** remove or rename a field, make one required,
   or change a field's meaning. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
   unknown fields does not let an old reader accept a missing required field.
@@ -294,16 +295,30 @@ Reuse an existing exact Model when appropriate. Create a distinct version or
 variant record when the underlying model identity changes. Family names and
 new versions are data; they do not require new Python classes.
 
-`identity.family` is the upstream lineage, not the checkpoint you are adding:
-every quantization, fine-tune and republished checkpoint of Qwen carries
-`{"publisher": "qwen", "slug": "qwen"}` (its title, "Qwen", is the Model
-display's `family_title`), whoever published it; the republisher is the Model's own `identity.publisher`, and the weight
-format belongs in `version`, `variant` and `format`. Reuse the family an
-existing Model of that lineage already declares
-(`rg -l '"slug": "glm"' models/`); invent a new one only for a new lineage,
-with the upstream creator's slug as its publisher. `tools/check-model-families` fails a family
-that names a republisher or a format, or a slug that two documents describe
-differently, because the public catalog groups by this field.
+Where a Model sits in the catalog is display, never identity: the Model
+document has no family. The Model display's `lineage` places it in the
+hierarchy Family (the product brand) → Line (one size and role) → Model (one
+vendor release, plus an optional `flavor`) → variant (`variant_kind`: `base`
+for the vendor's own released checkpoint, `quantization` for the same weights in
+another format or bit-width, `derivative` for different weights such as a prune,
+distill or tune; `base_model` names the upstream Hugging Face id, which need
+not be in this catalog). `generation` is a facet across Lines. Every quantization,
+fine-tune and republished checkpoint of a release carries that release's
+lineage, whoever published it; the republisher is the Model's own
+`identity.publisher`, and the weight format belongs in `version`, `variant` and
+`format`. `display/families/<slug>.json` holds each Family's title and its
+Lines' Models; the order of a Line's `models` is its release order, oldest
+first; a branded tune of another vendor's model is its
+own Family, and a vision, omni, thinking or task checkpoint is its own Model in
+its own Line. Reuse an existing Family, Line and Model
+(`rg -l '"line": "glm-flash"' display/models/`); add a Line or Model to the
+Family file when the release is new. `tools/catalog-hf-model` and
+`tools/catalog-github-lfs-model` write it with `--lineage`. A helper (an
+encoder, a drafter, a weight part) has no lineage. `tools/check-model-families`
+fails a lineage outside `display/families`, a listed Model release no Model
+names, a served Model without lineage, and a Family or Line that names a weight
+format. Regrouping a Model is a display edit: no
+digest, evidence or status moves.
 
 Resolve an immutable source identity and enumerate the files needed to load
 the model, including configuration, tokenizer, companion data, and license.
@@ -1288,7 +1303,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | --- | --- |
 | `tests/test_contracts.py`, `tests/test_contract_examples.py` | Strict root/field/relationship validation, bounded paths/argv, source/file identities. Correct data to the current definitions; regenerate examples/schemas after a contract change. |
 | `tools/check-recipe-model-references`, `tests/test_recipe_model_references.py`, `tests/test_display_split.py` | Every pinned Model/file exists at the exact digest, and every Recipe and Model has exactly one display file and none is orphaned. Catalog the missing immutable Model or update all bindings together; add or remove the display with its document. |
-| `tools/check-model-families`, `tests/test_check_model_families.py` | One consistent upstream lineage. Reuse its family identity instead of republisher/format families. |
+| `tools/check-model-families`, `tests/test_check_model_families.py` | One consistent catalog hierarchy in the displays. Add the Family/Line/Model to `display/families` or correct the Model display's `lineage`; never a format in a Family or Line. |
 | `tools/check-recipe-topology --base origin/main`, `tests/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
 | validate.yml "Require a contract version bump for a changed contract" | `contracts/src` equals the released `v<__version__>` tag. Bump `__version__` in `contracts/src/vonk_forge_contracts/_version.py` (patch, minor or major as above). |
 | `tests/test_catalog_reader.py` | The consumer reader keeps every readable entry: an unknown word stays as an `UnrecognisedWord`, an unreadable optional block is dropped while its entry stays, an entry with malformed execution data is skipped, and only a wrong envelope or major or a digest mismatch refuses the index. Keep producer validation strict; change the reader's rules in `catalog_reader.py` only. |

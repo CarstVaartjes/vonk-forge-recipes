@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "ternary-bonsai-2-27b",
+          "title": "Ternary Bonsai 2 27B"
+        }
+      ],
+      "slug": "ternary-bonsai-27b",
+      "title": "Ternary Bonsai 27B"
+    }
+  ],
+  "slug": "bonsai",
+  "title": "Bonsai"
+}

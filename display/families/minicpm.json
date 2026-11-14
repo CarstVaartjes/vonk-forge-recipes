@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "minicpm-v-4-7-35b-a3b",
+          "title": "MiniCPM-V 4.7 35B-A3B"
+        }
+      ],
+      "slug": "minicpm-v-35b-a3b",
+      "title": "MiniCPM-V 35B-A3B"
+    }
+  ],
+  "slug": "minicpm",
+  "title": "MiniCPM"
+}

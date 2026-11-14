@@ -20,10 +20,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "vonk-forge",
-      "slug": "synthetic"
-    },
     "model": {
       "publisher": "vonk-forge",
       "slug": "synthetic-tiny"

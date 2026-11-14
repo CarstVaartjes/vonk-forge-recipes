@@ -520,10 +520,6 @@
     "quantization": "awq"
   },
   "identity": {
-    "family": {
-      "publisher": "meta-llama",
-      "slug": "llama"
-    },
     "model": {
       "publisher": "hugging-quants",
       "slug": "llama-3-1-405b-instruct"

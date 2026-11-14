@@ -17,6 +17,13 @@
     "territorial_restrictions": null,
     "url": "https://github.com/VAST-AI-Research/TripoSG/blob/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c/LICENSE"
   },
+  "lineage": {
+    "family": "triposg",
+    "generation": "TripoSG",
+    "line": "triposg",
+    "model": "triposg",
+    "variant_kind": "base"
+  },
   "modalities": [
     "3d"
   ],

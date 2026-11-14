@@ -142,10 +142,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "vonk-forge",
-      "slug": "decision-3"
-    },
     "model": {
       "publisher": "vonk-forge",
       "slug": "d3-edge"

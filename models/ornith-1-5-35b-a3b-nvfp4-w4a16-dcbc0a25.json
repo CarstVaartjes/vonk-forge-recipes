@@ -160,10 +160,6 @@
     "quantization": "nvfp4-w4a16"
   },
   "identity": {
-    "family": {
-      "publisher": "ornith-ai",
-      "slug": "ornith"
-    },
     "model": {
       "publisher": "r0b0tlab",
       "slug": "ornith-1-5-35b-a3b-nvfp4-w4a16"

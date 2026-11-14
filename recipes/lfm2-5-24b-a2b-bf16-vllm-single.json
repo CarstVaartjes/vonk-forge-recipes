@@ -226,7 +226,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "643228b28aa96a42029f15a1937fe2dc843d4a0cd0f4504471263fabf72b387f",
+        "content_sha256": "e1f639d89d9c0aaf135545ae8faf64baf56563abf61b37f1d58cd1fa096a3439",
         "kind": "model",
         "publisher": "liquidai",
         "slug": "lfm2-5-24b-a2b-bf16-1769516a"

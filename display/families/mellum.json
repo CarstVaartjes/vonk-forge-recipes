@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "mellum2-1-12b-a2-5b-thinking",
+          "title": "Mellum2.1 12B-A2.5B Thinking"
+        }
+      ],
+      "slug": "mellum-thinking-12b-a2-5b",
+      "title": "Mellum Thinking 12B-A2.5B"
+    }
+  ],
+  "slug": "mellum",
+  "title": "Mellum"
+}

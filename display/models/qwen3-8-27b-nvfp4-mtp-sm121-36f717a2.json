@@ -21,6 +21,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/r0b0tlab/Qwen3.8-27B-NVFP4-MTP-sm121/blob/36f717a22990e82c54c1d48ee77c491b87825680/README.md"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-27B",
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-27b",
+    "model": "qwen3-8-27b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text",

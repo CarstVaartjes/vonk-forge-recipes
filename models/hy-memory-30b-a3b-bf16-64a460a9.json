@@ -565,10 +565,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "tencent",
-      "slug": "hy-memory"
-    },
     "model": {
       "publisher": "tencent",
       "slug": "hy-memory-30b-a3b-bf16"

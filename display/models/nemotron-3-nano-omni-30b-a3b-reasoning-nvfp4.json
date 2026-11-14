@@ -19,6 +19,15 @@
     "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/"
   },
+  "lineage": {
+    "base_model": "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16",
+    "family": "nemotron",
+    "flavor": "omni",
+    "generation": "Nemotron 3",
+    "line": "nemotron-nano-omni-30b-a3b",
+    "model": "nemotron-3-nano-omni-30b-a3b-reasoning",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

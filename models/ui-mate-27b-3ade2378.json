@@ -205,10 +205,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "tencent",
-      "slug": "ui-mate"
-    },
     "model": {
       "publisher": "tencent",
       "slug": "ui-mate-27b"

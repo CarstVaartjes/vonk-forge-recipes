@@ -22,6 +22,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4/blob/482ca0f3832238542f8f5295dde86b5f22711d80/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-27B",
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-27b",
+    "model": "qwen3-8-27b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text"

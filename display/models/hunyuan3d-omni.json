@@ -24,6 +24,13 @@
     },
     "url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/License.txt"
   },
+  "lineage": {
+    "family": "hunyuan",
+    "generation": "Hunyuan3D",
+    "line": "hunyuan3d-omni",
+    "model": "hunyuan3d-omni",
+    "variant_kind": "base"
+  },
   "modalities": [
     "3d"
   ],
