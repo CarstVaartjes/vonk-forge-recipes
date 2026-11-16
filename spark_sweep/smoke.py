@@ -14,6 +14,7 @@ with the operator's client key.
 from __future__ import annotations
 
 import base64
+import http.client
 import itertools
 import json
 import re
@@ -721,7 +722,12 @@ def smoke_service(
             result.perf = stream_probe(base, alias, config)
     except AssertionFailed as error:
         result.failure = _assertion_failure(error, "stream", config)
-    except (OSError, urllib.error.URLError, ValueError) as error:
+    except (
+        OSError,
+        http.client.HTTPException,
+        urllib.error.URLError,
+        ValueError,
+    ) as error:
         result.failure = _transport_failure(error, "stream", config)
     if result.failure is None:
         for case in cases:
@@ -733,7 +739,12 @@ def smoke_service(
                     config.on_progress()
             except AssertionFailed as error:
                 result.failure = _assertion_failure(error, str(case.get("id")), config)
-            except (OSError, urllib.error.URLError, ValueError) as error:
+            except (
+                OSError,
+                http.client.HTTPException,
+                urllib.error.URLError,
+                ValueError,
+            ) as error:
                 result.failure = _transport_failure(error, str(case.get("id")), config)
             if result.failure is not None:
                 break
