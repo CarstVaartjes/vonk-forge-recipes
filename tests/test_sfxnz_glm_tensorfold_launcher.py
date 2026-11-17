@@ -8,12 +8,11 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-# The sfxnz pair and the Sage pair run the same stock-release launch, so one launcher body serves both.
+# The sfxnz pair and the Sage pair run the same stock-release launch; every test below runs against both launchers.
 LAUNCHERS = [
     ROOT / "adapters/glm/sfxnz-tensorfold-native-dual/tensorfold-serve",
     ROOT / "adapters/glm/bizuayeu-sage-tensorfold-dual/tensorfold-serve",
 ]
-LAUNCHER = LAUNCHERS[0]
 SERVE = ["--host", "0.0.0.0", "--port", "8000", "--vision", "--parallel", "8"]
 PLATFORM = [
     "--tp",
@@ -34,7 +33,12 @@ ENVIRON = {
 }
 
 
-def launch(monkeypatch, tmp_path, arguments, **environ):
+@pytest.fixture(params=LAUNCHERS, ids=lambda path: path.parent.name)
+def launcher(request):
+    return request.param
+
+
+def launch(launcher, monkeypatch, tmp_path, arguments, **environ):
     for name in list(os.environ):
         if name.startswith(("TF_", "NCCL_", "VONK_")):
             monkeypatch.delenv(name)
@@ -43,12 +47,14 @@ def launch(monkeypatch, tmp_path, arguments, **environ):
     calls = []
     monkeypatch.setattr(os, "execv", lambda path, argv: calls.append((path, argv)))
     monkeypatch.setattr(sys, "argv", ["tensorfold-serve", *arguments])
-    runpy.run_path(str(LAUNCHER), run_name="__main__")
+    runpy.run_path(str(launcher), run_name="__main__")
     return calls
 
 
-def test_rank_binds_the_pair_through_the_engines_environment(monkeypatch, tmp_path):
-    (call,) = launch(monkeypatch, tmp_path, [*SERVE, *PLATFORM])
+def test_rank_binds_the_pair_through_the_engines_environment(
+    launcher, monkeypatch, tmp_path
+):
+    (call,) = launch(launcher, monkeypatch, tmp_path, [*SERVE, *PLATFORM])
     assert call == (
         "/opt/tensorfold/bin/tensorfold-native",
         ["/opt/tensorfold/bin/tensorfold-native", "serve", "/models/target", *SERVE],
@@ -71,20 +77,15 @@ def test_rank_binds_the_pair_through_the_engines_environment(monkeypatch, tmp_pa
         {"NCCL_SOCKET_IFNAME": ""},
     ],
 )
-def test_missing_or_malformed_placement_is_refused(monkeypatch, tmp_path, environ):
+def test_missing_or_malformed_placement_is_refused(
+    launcher, monkeypatch, tmp_path, environ
+):
     with pytest.raises(SystemExit, match="tensorfold-serve"):
-        launch(monkeypatch, tmp_path, [*SERVE, *PLATFORM], **environ)
+        launch(launcher, monkeypatch, tmp_path, [*SERVE, *PLATFORM], **environ)
 
 
-def test_a_rank_outside_the_world_is_refused(monkeypatch, tmp_path):
+def test_a_rank_outside_the_world_is_refused(launcher, monkeypatch, tmp_path):
     arguments = [*SERVE, *PLATFORM]
     arguments[arguments.index("--rank") + 1] = "2"
     with pytest.raises(SystemExit, match="--rank"):
-        launch(monkeypatch, tmp_path, arguments)
-
-
-def test_the_sage_launcher_runs_the_same_code_as_the_sfxnz_launcher():
-    def code(path):
-        return path.read_text().split('"""', 2)[2]
-
-    assert code(LAUNCHERS[1]) == code(LAUNCHERS[0])
+        launch(launcher, monkeypatch, tmp_path, arguments)
