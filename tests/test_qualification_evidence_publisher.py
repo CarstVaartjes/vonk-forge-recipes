@@ -846,19 +846,19 @@ def test_success_clears_the_state_and_unknown_state_self_heals(tmp_path, monkeyp
 
 def test_refused_needs_two_runs_and_is_reachable_only_after_red():
     idle = publisher.PublisherRecord()
-    red = publisher.transition(idle, signature="lint", head="h1")
+    red = publisher.transition(idle, signature="lint", head="h1", now=0)
     assert red.state == publisher.PublisherState.RED
-    same_run = publisher.transition(red, signature="lint", head="h1")
+    same_run = publisher.transition(red, signature="lint", head="h1", now=0)
     assert same_run.state == publisher.PublisherState.RED  # one run seen twice
-    again = publisher.transition(red, signature="lint", head="h2")
+    again = publisher.transition(red, signature="lint", head="h2", now=0)
     assert again.state == publisher.PublisherState.REFUSED
-    other = publisher.transition(red, signature="other", head="h2")
+    other = publisher.transition(red, signature="other", head="h2", now=0)
     assert other.state == publisher.PublisherState.RED
-    assert publisher.transition(red, signature=None).state == (
+    assert publisher.transition(red, signature=None, now=0).state == (
         publisher.PublisherState.IDLE
     )
     # a refused batch does not count as the first of two reds for the next PR
-    fresh = publisher.transition(again, signature="lint", head="h3")
+    fresh = publisher.transition(again, signature="lint", head="h3", now=0)
     assert fresh.state == publisher.PublisherState.RED
 
 
@@ -873,16 +873,85 @@ def test_the_same_red_run_seen_on_two_ticks_is_not_refused(tmp_path, monkeypatch
     assert not any(c[:3] == ("gh", "pr", "close") for c in calls)
 
 
+def test_the_stall_clock_follows_the_pr_number_and_alerts_past_the_bound():
+    bound = publisher.STALL_SECONDS
+    idle = publisher.PublisherRecord()
+    seen = publisher.transition(idle, signature=None, open_pr=7, now=100)
+    # Checks never finish, a re-plan pushes a new head: the same PR's clock runs on.
+    late = publisher.transition(
+        seen, signature="lint", head="h2", observed=False, open_pr=7, now=100 + bound
+    )
+    assert late.pr_since == 100 and late.stalled(101 + bound)
+    assert not late.stalled(100 + bound)
+    # A failure before the PR was looked at keeps it; another PR or none resets it.
+    failed = publisher.transition(
+        late, signature="gh pr exit 1", command=True, now=200 + bound
+    )
+    assert failed.pr_since == 100
+    renewed = publisher.transition(late, signature=None, open_pr=8, now=200 + bound)
+    assert not renewed.stalled(201 + bound)
+    assert publisher.transition(late, signature=None, open_pr=0, now=0).pr == 0
+    # A red PR is named with its failure, also beside refused records.
+    red = publisher.transition(idle, signature="lint", head="h1", open_pr=7, now=100)
+    worker = publisher.EvidencePublisher(Path("h"), Path("w"), Path("s"))
+    worker.record = red.model_copy(update={"refused": ("k#1",)})
+    alert = worker.alert_at(101 + bound)
+    assert (
+        alert and "PR #7" in alert and "lint" in alert and "1 records refused" in alert
+    )
+    assert "PR #7" not in (worker.alert_at(100 + bound) or "")
+
+
+def test_a_stalled_pr_only_alerts_the_batch_runs_as_before(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch)
+    exits = publisher.SweepEvidenceExit
+    assert world.tick() == exits.FAILING_CHECK  # red on A, PR 123 first seen
+    record = publisher.load_state(world.work)
+    old = record.model_copy(
+        update={"pr_since": record.pr_since - 2 * publisher.STALL_SECONDS}
+    )
+    (world.work / publisher.STATE_FILE).write_text(old.model_dump_json())
+    # The same exit as an unstalled red PR: no push, no close, no new PR.
+    assert world.tick() == exits.FAILING_CHECK
+    assert world.pushes == 0 and not world.closed() and world.open_prs == [123]
+    assert publisher.load_state(world.work) == old
+
+
+def test_a_batch_gives_the_stall_clock_only_what_it_saw(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch)
+    world.tick()  # red on A
+    seen = publisher.load_state(world.work)
+    assert seen.pr == 123
+    fake = publisher.command
+
+    def view_fails(cwd, *args, **kwargs):
+        if args[:3] == ("gh", "pr", "view"):
+            raise subprocess.CalledProcessError(1, args)
+        return fake(cwd, *args, **kwargs)
+
+    monkeypatch.setattr(publisher, "command", view_fails)
+    world.tick()  # the PR was not looked at: its clock keeps running
+    assert publisher.load_state(world.work).pr_since == seen.pr_since
+    world.open_prs.clear()
+    world.tick()  # no PR open: nothing is waiting
+    assert publisher.load_state(world.work).pr == 0
+
+
 def test_refused_because_is_set_only_when_the_refused_set_grows():
     first = publisher.transition(
-        publisher.PublisherRecord(), signature="lint", refused=("a#1",)
+        publisher.PublisherRecord(), signature="lint", refused=("a#1",), now=0
     )
     assert first.refused_because == "lint"
-    later = publisher.transition(first, signature="other", refused=("a#1",))
+    later = publisher.transition(first, signature="other", refused=("a#1",), now=0)
     assert later.refused_because == "lint"
-    grown = publisher.transition(later, signature="other", refused=("a#1", "b#2"))
+    grown = publisher.transition(
+        later, signature="other", refused=("a#1", "b#2"), now=0
+    )
     assert grown.refused_because == "other"
-    assert publisher.transition(grown, signature=None, refused=()).refused_because == ""
+    assert (
+        publisher.transition(grown, signature=None, refused=(), now=0).refused_because
+        == ""
+    )
 
 
 def test_refused_records_are_released_when_main_moves(tmp_path, monkeypatch):
