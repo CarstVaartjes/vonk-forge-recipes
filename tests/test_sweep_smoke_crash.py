@@ -170,3 +170,31 @@ def test_a_different_smoke_crash_restarts_the_count(
 
     assert len(calls) == 5
     assert not [r for r in _rows(tmp_path) if r.get("disposition") == "fail"]
+
+
+def test_identical_crashes_without_an_accepted_request_are_bounded_too(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, _, _ = make_sweep(
+        tmp_path, [FakeRecipe("r")], [FakeModel("m1")], gateway=gateway
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    for _ in range(run.IDENTICAL_EXIT_LIMIT):
+        sweep._smoke_crashed(
+            "vonk-forge/r", {}, KeyError("x")
+        )  # a slot with no accepted content
+    (failed,) = [r for r in _rows(tmp_path) if r.get("disposition") == "fail"]
+    assert failed["evidence"]["identical_exits"] == run.IDENTICAL_EXIT_LIMIT
+
+
+def test_a_fix_to_the_sweep_source_reopens_its_crash_deferral(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sweep, clock, _ = _crashing_sweep(tmp_path, gateway, monkeypatch, ["x"] * 9)
+    _tick_until(sweep, clock, lambda: sweep.state.status("vonk-forge/r") == "deferred")
+    sweep.requeue_for_changed_owner()
+    assert sweep.state.status("vonk-forge/r") == "deferred"  # same code, same wait
+    sweep.sweep_source = "f" * 64  # the sweep's code changed: a fix may have landed
+    sweep.requeue_for_changed_owner()
+    assert sweep.state.status("vonk-forge/r") == "pending"

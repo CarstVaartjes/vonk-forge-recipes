@@ -335,6 +335,7 @@ class Sweep:
         self.unserved_recipes: tuple[Unserved, ...] = ()
         self.unserved_keys: frozenset[str] = frozenset()
         self.source_watch: dict[str, Any] = {}  # the bounded wait's watch
+        self.sweep_source = recovery.sweep_source_digest()
         # The status alert while the source is not served (cleared once it is).
         self.source_alert = ""
         self.vk = vk
@@ -1566,6 +1567,7 @@ class Sweep:
             self.state.data["platform"],
             self.state.data.get("client", {}),
             self.clock.now(),
+            self.sweep_source,
         )
 
     def observe_platform(self) -> None:
@@ -3475,10 +3477,10 @@ class Sweep:
             evidence,
         )
         accepted = AcceptedRequest.read(slot)
-        if accepted is not None:
-            bounded = self._bound_identical_exit(
-                self.state.entry(key), failure, accepted.recipe
-            )
+        # Without an accepted request the catalog's current content is the identity.
+        recipe = accepted.recipe if accepted is not None else self.recipes.get(key)
+        if recipe is not None:
+            bounded = self._bound_identical_exit(self.state.entry(key), failure, recipe)
             if bounded.evidence.get("identical_exits"):
                 self._record_failure(key, bounded, slot.get("operation_id"))
                 return
