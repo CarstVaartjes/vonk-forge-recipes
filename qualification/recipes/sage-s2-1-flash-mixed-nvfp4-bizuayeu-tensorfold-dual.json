@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/sage-s2-1-flash-mixed-nvfp4-bizuayeu-tensorfold-dual",
+  "service_recipes": {
+    "alias": "sage-s2.1-flash",
+    "higher_tiers": {
+      "recovery": [
+        "Controller-only rank-loss and warm-cache recovery"
+      ],
+      "stress": [
+        "Long-context canary up to the 262,144-token window with the first-run weight load and page-cache warm-up recorded separately; the free-memory floor watched during an image request (creator: 9.63 GiB lowest at 11 GiB reserve)"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ]
+  }
+}
