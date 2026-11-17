@@ -4,7 +4,6 @@ import hashlib
 import importlib
 import importlib.util
 import json
-import sys
 import wave
 from pathlib import Path
 
@@ -12,7 +11,6 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTEXT = ROOT / "adapters/audio/drowzeys-music3-tensorfold"
-sys.path.insert(0, str(next(CONTEXT.glob("*.whl"))))
 Manifest = importlib.import_module(
     "vonk_agent_protocol.job_inputs"
 ).RecipeJobInputManifest

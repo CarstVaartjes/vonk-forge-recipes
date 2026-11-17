@@ -30,10 +30,8 @@ from spark_sweep.job_assertions import Output, evaluate
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/three-d/gem-x-motion"
-WHEEL = next(ADAPTER.glob("*.whl"))
 SLUG = "gem-x-body-motion-pytorch-single"
 FIXTURE = ROOT / "qualification/fixtures/gemx-person-2s.mp4"
-sys.path.insert(0, str(WHEEL))
 
 
 def _load(name: str):
