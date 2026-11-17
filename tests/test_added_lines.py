@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 from added_diff import added_diff
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
 from tools._added_lines import parse_added
 
 DIFF = """\

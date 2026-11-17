@@ -1593,8 +1593,8 @@
       },
       {
         "name": "max-model-len",
-        "setting": null,
-        "value": 1048576
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "max-num-seqs",
@@ -1757,7 +1757,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 262144
+      "value": 1048576
     },
     "kind": "generation",
     "knobs": {},

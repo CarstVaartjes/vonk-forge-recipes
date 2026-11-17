@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import json
 import runpy
-import sys
 import unittest
 from pathlib import Path
 from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from catalog_documents import catalog_models
 from documents import model_display, recipe_display
 from vonk_forge_contracts import RecipeDefinition

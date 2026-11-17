@@ -341,6 +341,7 @@ class Sweep:
         self.authored_digest = hashlib.sha256(
             json.dumps(sorted(self.authored.items())).encode()
         ).hexdigest()
+        self.sweep_source = recovery.sweep_source_digest()
         # The status alert while the source is not served (cleared once it is).
         self.source_alert = ""
         self.vk = vk
@@ -1485,19 +1486,6 @@ class Sweep:
                 + " (time away not counted)"
             )
 
-    def start_takeover(self) -> None:
-        """``run --yes`` means the sweep owns the fleet: clear it once, now, so reviews see idle Sparks.
-
-        While an owner load runs the clearing waits for it (``schedule`` clears once the owner
-        is done); the wait never ends the sweep.
-        """
-        if self.owner_status.paused:
-            self.state.event(
-                f"waiting for an owner load before clearing: {self.owner_status.reason}"
-            )
-            return
-        self._take_over(self.clock.now())
-
     def check_client(self) -> bool:
         """Observe deployment and let the signed CLI updater select a compatible client.
 
@@ -1576,6 +1564,7 @@ class Sweep:
             self.state.data["platform"],
             self.state.data.get("client", {}),
             self.clock.now(),
+            self.sweep_source,
         )
 
     def observe_platform(self) -> None:
@@ -1923,11 +1912,6 @@ class Sweep:
                             continue
                         self.adopt_in_flight()
                         started = True
-                        try:
-                            self.start_takeover()
-                        except (VonkctlError, OSError) as error:
-                            # Eager clearing is useful, but is never a startup gate.
-                            self.note_infra("clearing", str(error))
                     self.tick()
                     self.observe_source_wait()
                     if self.done():
@@ -2260,7 +2244,8 @@ class Sweep:
         entry.pop("exit_repeat", None)
         if "exit_cause" not in facts:
             # An unnamed class keeps its own class and code (no recipe cause is invented): it is
-            # recorded as the platform's, deferred, and reopened by a release change.
+            # recorded as the platform's, deferred, and reopened by a Controller release change (and, for
+            # a sweep crash, by a change of the sweep's own source).
             return replace(
                 failure, evidence={**failure.evidence, "identical_exits": count}
             )

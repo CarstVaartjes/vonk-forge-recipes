@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -10,7 +9,6 @@ from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts/src"))
 
 from vonk_forge_contracts import (
     QualificationAuthority,
