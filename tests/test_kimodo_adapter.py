@@ -29,10 +29,8 @@ from spark_sweep.job_assertions import Output, evaluate
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/three-d/kimodo"
-WHEEL = next(ADAPTER.glob("*.whl"))
 SLUG = "kimodo-soma-rp-v1-2-pytorch-single"
 FIXTURE = ROOT / "qualification/fixtures/kimodo-motion-prompt.txt"
-sys.path.insert(0, str(WHEEL))
 
 
 def _load_run():

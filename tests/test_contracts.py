@@ -14,7 +14,6 @@ ROOT = Path(__file__).parents[1]
 
 import sys
 
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import (
     GitHubLfsSource,
     GitHubReleaseSource,

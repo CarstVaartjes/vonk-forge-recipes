@@ -11,7 +11,6 @@ from contextlib import contextmanager
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeRelease
 
