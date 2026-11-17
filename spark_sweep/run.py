@@ -335,6 +335,7 @@ class Sweep:
         self.unserved_recipes: tuple[Unserved, ...] = ()
         self.unserved_keys: frozenset[str] = frozenset()
         self.source_watch: dict[str, Any] = {}  # the bounded wait's watch
+        self.sweep_source = recovery.sweep_source_digest()
         # The status alert while the source is not served (cleared once it is).
         self.source_alert = ""
         self.vk = vk
@@ -1553,6 +1554,7 @@ class Sweep:
             self.state.data["platform"],
             self.state.data.get("client", {}),
             self.clock.now(),
+            self.sweep_source,
         )
 
     def observe_platform(self) -> None:
@@ -2217,7 +2219,8 @@ class Sweep:
         entry.pop("exit_repeat", None)
         if "exit_cause" not in facts:
             # An unnamed class keeps its own class and code (no recipe cause is invented): it is
-            # recorded as the platform's, deferred, and reopened by a release change.
+            # recorded as the platform's, deferred, and reopened by a Controller release change (and, for
+            # a sweep crash, by a change of the sweep's own source).
             return replace(
                 failure, evidence={**failure.evidence, "identical_exits": count}
             )
