@@ -59,20 +59,20 @@ and Re-check last. `--retry-failed` never requeues Working.
 and all rotated siblings without opening or mutating sweep state. Missing image,
 Model or platform provenance must remain unknown. Never infer it from today's
 catalog. Public models forbid infrastructure identifiers and raw free text;
-keep private diagnostic artifacts in local state only.
+keep private diagnostic artifacts in local state only. The sweep's publisher
+reads the live log every batch; a rotated log never changes, so its merged
+evidence is kept in `evidence-publisher/rotated-history.json` and each new sweep
+reads every log once.
 
 The sweep's background `tools/sync-qualification-evidence` batches evidence onto
 `qualification/evidence`, maintains one open “qualification evidence” PR and
 requests auto-merge. Each attempt has bounded subprocess waits; failures are
 visible on the status page and in `evidence-publisher/publisher.log`. A competing
-push re-plans from a fresh disposable clone on the next batch. A batch reads the
-live results log; a rotated log never changes, so its merged evidence is kept in
-`evidence-publisher/rotated-history.json` and each new sweep reads every log once.
-GitHub cannot block lanes. Keep an open PR's head stable through CI and
-auto-merge; new results accumulate in history until it merges. A behind or
-conflicted PR gets a fresh merge plan. `--no-publish-evidence` disables this
-optional transport. Never run it against a production sweep unless that task
-explicitly authorizes writing.
+push re-plans from a fresh disposable clone on the next batch. GitHub cannot
+block lanes. Keep an open PR's head stable through CI and auto-merge; new results
+accumulate in history until it merges. A behind or conflicted PR gets a fresh
+merge plan. `--no-publish-evidence` disables this optional transport. Never run
+it against a production sweep unless that task explicitly authorizes writing.
 Publication computes every recipe's public view from release identities and
 includes it in the normally signed catalog; publication is not hardware proof.
 
