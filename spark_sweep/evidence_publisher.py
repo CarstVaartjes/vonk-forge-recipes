@@ -654,7 +654,7 @@ def _batch(
             paths.append(history)
         local = read_state_evidence(state) if state is not None else {}
         result = backfill(paths, clone, local)
-        # Counted before the merge, on the fresh clone; reported, never a blocker.
+        # What the batch could not write to its clone; reported, never a blocker.
         write_atomic(
             directory / UNPUBLISHED_FILE,
             UnpublishedReport(count=result.unpublished, head=head).model_dump_json(),
