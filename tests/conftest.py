@@ -11,10 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 # The one owner of the test import path: the repository, the contracts source and the
 # selected agent-protocol wheel (the adapters overlay the same wheel).
 sys.path.insert(0, str(ROOT))
+from tools.protocol_wheel import selection
+
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-sys.path.insert(
-    0, str(next((ROOT / "adapters/video/ltx2-pytorch/wheels").glob("*.whl")))
-)
+sys.path.insert(0, str(ROOT / selection(ROOT).artifact))
 
 
 @pytest.fixture(autouse=True)
