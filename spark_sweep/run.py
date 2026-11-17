@@ -334,7 +334,8 @@ class Sweep:
         self.source_serving = SourceServing.UNREAD
         self.unserved_recipes: tuple[Unserved, ...] = ()
         self.unserved_keys: frozenset[str] = frozenset()
-        self.source_watch: dict[str, Any] = {}  # the bounded wait's watch
+        # The bounded wait's watch lives in the state: a restart continues the budget.
+        self.source_watch: dict[str, Any] = state.data["source_watch"]
         # The status alert while the source is not served (cleared once it is).
         self.source_alert = ""
         self.vk = vk
@@ -811,8 +812,10 @@ class Sweep:
         before_state, before = self.source_serving, self.unserved_recipes
         state = advance(before_state, event)
         self.source_serving = state
-        if state is SourceServing.UNSERVED and before_state is not state:
-            self.source_watch = {}  # bounded_wait starts the budget on its first poll
+        if state is SourceServing.SERVED or (
+            state is SourceServing.UNSERVED and before_state is SourceServing.SERVED
+        ):
+            self.source_watch.clear()  # bounded_wait starts the budget on its first poll
         self.unserved_recipes = differing if state is SourceServing.UNSERVED else ()
         self.unserved_keys = frozenset(item.recipe for item in self.unserved_recipes)
         if event is SourceEvent.UNSERVED_PASS and differing == before:
@@ -1904,6 +1907,7 @@ class Sweep:
                 self._leave_fleet()
             self.requeue_uncertain()
             started = False
+            unmatched = False
             for _ in itertools.count():
                 round_start = self.clock.now()
                 try:
@@ -1922,6 +1926,9 @@ class Sweep:
                     if self.done():
                         self.state.data.pop("pending_idle", None)
                         self.state.data["alerts"] = []
+                        if self._only_matches_nothing():
+                            unmatched = True
+                            break
                         if self.cfg.watch_seconds <= 0:
                             break
                         self.clock.sleep(self.cfg.watch_seconds)
@@ -1964,7 +1971,20 @@ class Sweep:
             self.finish(interrupted=True)
             return 130
         self.finish()
+        if unmatched:
+            raise RuntimeError(
+                f"--only {' '.join(self.cfg.only)} matches no recipe in the catalog"
+            )
         return 0
+
+    def _only_matches_nothing(self) -> bool:
+        """A complete catalog pass in which ``--only`` selected nothing: a typo, not an empty sweep."""
+        return (
+            bool(self.cfg.only)
+            and bool(self.recipe_list.passes)
+            and not self.recipe_list.in_pass
+            and not any(self._selected_key(key) for key in self.recipes)
+        )
 
     def _model_preparing(self, recipe: Recipe) -> bool:
         return any(

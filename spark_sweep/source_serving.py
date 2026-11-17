@@ -30,7 +30,7 @@ SOURCE_WAIT_SECONDS = 30 * 60.0
 
 
 class SourceServing(StrEnum):
-    """One sweep process's view of its source in the catalog (never persisted)."""
+    """One sweep process's view of its source in the catalog (only its wait budget is persisted)."""
 
     UNREAD = "unread"  # no complete library pass yet
     UNSERVED = "unserved"  # selected recipes wait for the catalog to serve the source

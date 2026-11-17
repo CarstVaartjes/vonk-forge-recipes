@@ -70,6 +70,7 @@ def _fresh() -> dict[str, Any]:
         "own_loads": [],
         "own_aliases": [],  # workload names the sweep put in its profile: never an owner's
         "own_seq": 0,  # numbers the loads the sweep submits itself: one request key per attempt
+        "source_watch": {},  # the bounded wait for the catalog to serve the sweep's source
         "infra": {},  # source -> {message, since, count, until}: problems that are not the recipes
         "mode": "single",
         "events": [],
