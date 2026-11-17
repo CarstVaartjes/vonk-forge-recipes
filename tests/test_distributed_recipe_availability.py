@@ -72,7 +72,8 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         )
         self.assertEqual(recipe["execution"]["build"]["network"]["hosts"], [])
         self.assertEqual(arguments["tensor-parallel-size"], 4)
-        self.assertEqual(arguments["max-model-len"], 1048576)
+        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 1048576)
+        self.assertIsNone(arguments["max-model-len"])  # bound to context_tokens
         self.assertEqual(arguments["max-num-seqs"], 64)
         self.assertEqual(arguments["max-num-batched-tokens"], 16384)
         self.assertEqual(arguments["kv-cache-memory"], 25769803776)
