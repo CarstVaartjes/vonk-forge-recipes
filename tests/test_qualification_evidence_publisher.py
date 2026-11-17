@@ -514,37 +514,16 @@ def test_guard_flags_repo_lacking_a_resolved_local_record():
     assert resolved_missing(local, evidence(record(A), record(B))) == ()
 
 
-def test_withdrawn_recipes_are_never_counted_as_missing(tmp_path):
+def test_withdrawn_recipes_in_the_state_are_never_written(tmp_path):
     from test_qualification_status import KEY, A, evidence, record
 
-    from spark_sweep.qualification import backfill
+    from spark_sweep.qualification import backfill, evidence_path
 
     seed_catalog(tmp_path)
     withdrawn = evidence(record(A)).model_copy(update={"recipe_key": "vonk-forge/gone"})
-    result = backfill(
-        [], tmp_path, {"vonk-forge/gone": withdrawn, KEY: evidence(record(A))}
-    )
-    assert result.unpublished == 1  # only the catalog recipe
-
-
-def test_a_batch_that_never_reaches_backfill_leaves_no_stale_count(
-    tmp_path, monkeypatch
-):
-    work = tmp_path / "work"
-    work.mkdir()
-    (work / publisher.UNPUBLISHED_FILE).write_text('{"count": 5}')
-
-    def command(cwd, *args, **kwargs):
-        if args[:3] == ("gh", "pr", "list"):
-            return pr_list(9)
-        if args[:3] == ("gh", "pr", "view"):
-            return '{"number": 9, "mergeStateStatus": "CLEAN", "statusCheckRollup": []}'
-        return ""
-
-    monkeypatch.setattr(publisher, "command", command)
-    code = publisher.sync(tmp_path / "results.jsonl", work, tmp_path / "state.json")
-    assert code == publisher.SweepEvidenceExit.WAITING
-    assert not (work / publisher.UNPUBLISHED_FILE).exists()
+    backfill([], tmp_path, {"vonk-forge/gone": withdrawn, KEY: evidence(record(A))})
+    assert evidence_path(tmp_path, KEY).exists()
+    assert not evidence_path(tmp_path, "vonk-forge/gone").exists()
 
 
 def test_only_resolved_records_are_exported_and_unresolved_stay_local(
@@ -588,50 +567,6 @@ def test_the_sweep_wires_its_state_file_into_the_publisher(tmp_path):
 
     sweep, _, _ = evidence_sweep(tmp_path)
     assert sweep.evidence_publisher.state == sweep.state.path
-
-
-def test_missing_records_show_in_the_publisher_message_and_alert_when_persistent(
-    tmp_path, monkeypatch
-):
-    from test_qualification_status import evidence_sweep
-
-    from spark_sweep.report import build_status, render_status
-
-    sweep, _, _ = evidence_sweep(tmp_path)
-    worker = sweep.evidence_publisher
-    worker.directory.mkdir(parents=True, exist_ok=True)
-
-    class Done:
-        def poll(self):
-            return 0
-
-        def wait(self, timeout):
-            return 0
-
-    def batch(count, now):
-        # The real child unlinks first and reports only if it reached backfill.
-        report = worker.directory / publisher.UNPUBLISHED_FILE
-        report.unlink(missing_ok=True)
-        if count is not None:
-            report.write_text(
-                publisher.UnpublishedReport(count=count, head="h").model_dump_json()
-            )
-        worker.process = Done()
-        worker.next_attempt = 1e18
-        worker.tick(now)
-
-    batch(3, 0)
-    status = build_status(sweep)
-    assert "3 resolved sweep records were missing" in status["evidence_publication"]
-    assert not any("evidence publisher" in a for a in status["alerts"])
-    batch(3, 1)
-    status = build_status(sweep)
-    assert any("3 resolved sweep records still missing" in a for a in status["alerts"])
-    assert "evidence publisher: 3 resolved" in render_status(status)
-    batch(None, 2)  # WAITING/FAILING_CHECK exit: no new report, nothing changes
-    assert worker.unpublished_batches == 2
-    batch(0, 3)
-    assert worker.alert is None
 
 
 def _row(day):
@@ -1148,63 +1083,6 @@ def test_a_final_batch_updates_an_open_pr_that_normal_ticks_leave_waiting(
     )  # requested, not awaited
 
 
-def test_the_unpublished_count_is_stale_once_the_history_moves_past_it(
-    tmp_path, monkeypatch
-):
-    world = World(tmp_path, monkeypatch)
-    unknown = publisher.UnpublishedStatus()
-    assert publisher.unpublished_report(world.work, world.history) == unknown
-    publisher.sync(world.history, world.work, final=True)
-    counted = publisher.unpublished_report(world.work, world.history)
-    assert counted.state == publisher.UnpublishedState.COUNTED
-    assert isinstance(counted.count, int)
-    with world.history.open("a") as stream:  # a pass finishes after the count
-        stream.write(json.dumps(_row(23)) + "\n")
-    stale = publisher.unpublished_report(world.work, world.history)
-    assert stale == publisher.UnpublishedStatus(state=publisher.UnpublishedState.STALE)
-    # A report without a head (any other shape) is unknown, never a trusted zero.
-    (world.work / publisher.UNPUBLISHED_FILE).write_text('{"count": 0}')
-    assert publisher.unpublished_report(world.work, world.history) == unknown
-
-
-def test_a_count_belongs_to_the_counted_state_only():
-    import pydantic
-
-    states = publisher.UnpublishedState
-    for state, count in (
-        (states.COUNTED, None),
-        (states.STALE, 3),
-        (states.UNKNOWN, 0),
-    ):
-        with pytest.raises(pydantic.ValidationError):
-            publisher.UnpublishedStatus(state=state, count=count)
-    assert publisher.UnpublishedStatus(state=states.COUNTED, count=0).count == 0
-
-
-def test_the_status_shows_stale_instead_of_a_count(tmp_path):
-    from test_qualification_status import evidence_sweep
-
-    from spark_sweep.report import build_status, render_status
-
-    sweep, _, _ = evidence_sweep(tmp_path)
-    worker = sweep.evidence_publisher
-    worker.directory.mkdir(parents=True, exist_ok=True)
-    worker.history.write_text(json.dumps(_row(21)) + "\n")
-    report = publisher.UnpublishedReport(
-        count=0, head=publisher.history_head(worker.history)
-    )
-    (worker.directory / publisher.UNPUBLISHED_FILE).write_text(report.model_dump_json())
-    assert build_status(sweep)["evidence_unpublished"] == {
-        "state": "counted",
-        "count": 0,
-    }
-    with worker.history.open("a") as stream:
-        stream.write(json.dumps(_row(22)) + "\n")
-    status = build_status(sweep)
-    assert status["evidence_unpublished"] == {"state": "stale", "count": None}
-    assert "evidence unpublished: stale" in render_status(status)
-
-
 class _Child:
     """A publisher child; `code` is its exit, None means it hangs until killed."""
 
@@ -1266,8 +1144,6 @@ def test_a_hung_final_batch_is_killed_and_the_results_stay_for_the_next_run(
     assert all(child.killed for child in _Child.started) and worker.process is None
     assert "exceeded" in worker.message
     assert "stop again to skip" in capsys.readouterr().out
-    # nothing was counted, so a reader sees the gap as unknown, never as zero
-    assert worker.unpublished_report == publisher.UnpublishedStatus()
 
 
 def test_flush_reports_a_held_pr_and_survives_a_second_stop(tmp_path, monkeypatch):
@@ -1369,7 +1245,7 @@ def test_a_late_stop_signal_cannot_change_the_exit_or_skip_the_release(
     assert sweep.run() == 0 and restored == [1]
     status = json.loads((sweep.cfg.state_dir / "status.json").read_text())
     assert (
-        "evidence_unpublished" in status
+        "evidence_publication" in status
     )  # the last status was written after the flush
 
 
