@@ -100,3 +100,19 @@ def test_several_modalities_are_written_without_stray_tags(tmp_path: Path) -> No
     assert display["modalities"] == ["text", "image"]
     assert "candidate" not in display["tags"]
     assert "language" not in display["tags"]
+
+
+def test_every_weight_format_is_classified_as_weights() -> None:
+    from tools._catalog_model import roles_for
+
+    for name in (
+        "m.safetensors",
+        "m.gguf",
+        "m.pth",
+        "m.pt",
+        "m.bin",
+        "m.onnx",
+        "m.ckpt",
+    ):
+        assert roles_for(f"sub/{name}") == ["weights"], name
+    assert roles_for("notes.txt") == ["metadata"]

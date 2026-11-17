@@ -77,9 +77,12 @@ def slug(value: str) -> str:
     return text if text[:1].isalpha() else f"file-{text}"
 
 
+WEIGHT_SUFFIXES = (".safetensors", ".gguf", ".pth", ".pt", ".bin", ".onnx", ".ckpt")
+
+
 def roles_for(path: str) -> list[str]:
     lowered = path.lower()
-    if lowered.endswith(".safetensors") or "model-" in lowered:
+    if lowered.endswith(WEIGHT_SUFFIXES) or "model-" in lowered:
         return ["weights"]
     if any(k in lowered for k in ("token", "vocab", "merges")) or lowered.endswith(
         ".jinja"
