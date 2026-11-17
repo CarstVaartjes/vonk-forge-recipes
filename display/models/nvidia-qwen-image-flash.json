@@ -16,6 +16,14 @@
     "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
     "url": "https://huggingface.co/nvidia/Qwen-Image-Flash/blob/eafac15f6140e6dd9c6031217d658ac10bfb604b/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen-Image",
+    "family": "qwen",
+    "generation": "Qwen Image",
+    "line": "qwen-image-20b",
+    "model": "qwen-image",
+    "variant_kind": "derivative"
+  },
   "modalities": [
     "image"
   ],

@@ -679,9 +679,18 @@ def build(
         document_sha256,
         published_json,
     )
-    from vonk_forge_contracts.resolver import validate_library, validate_recipe_apis
+    from vonk_forge_contracts.resolver import (
+        validate_families,
+        validate_library,
+        validate_recipe_apis,
+    )
 
-    from qualification.documents import model_display, recipe_api, recipe_display
+    from qualification.documents import (
+        families,
+        model_display,
+        recipe_api,
+        recipe_display,
+    )
     from qualification.documents import recipe as recipe_of
 
     memory_models = {
@@ -705,6 +714,8 @@ def build(
             recipe_displays,
             model_displays,
         )
+        family_displays = families(ROOT)
+        validate_families(model_displays, family_displays)
         recipe_apis = {
             path.stem: recipe_api(path.stem, ROOT)
             for path in sorted((ROOT / "api/recipes").glob("*.json"))
@@ -847,6 +858,10 @@ def build(
             ),
             "catalog_entities": catalog_entities,
             "recipes": recipes,
+            "families": [
+                published_json(family_displays[slug])
+                for slug in sorted(family_displays)
+            ],
         }
     )
     return published_index_json(index)

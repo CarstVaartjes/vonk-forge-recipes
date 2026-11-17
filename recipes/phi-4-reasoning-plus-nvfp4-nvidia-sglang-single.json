@@ -176,7 +176,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "fc4a620405ddff04c064b7aec7d5afa376a954478ffc0d18acb0caa0dc0d7f74",
+        "content_sha256": "396c5a08fe0e661c5261cffb5c57b5a8c8aeb922935218eedd1b7a4abcc1bc0f",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "phi-4-reasoning-plus-nvfp4-cb950fd6"

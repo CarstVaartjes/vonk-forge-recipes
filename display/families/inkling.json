@@ -1,0 +1,27 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "inkling",
+          "title": "Inkling"
+        }
+      ],
+      "slug": "inkling-975b-a41b",
+      "title": "Inkling 975B-A41B"
+    },
+    {
+      "models": [
+        {
+          "slug": "inkling-small",
+          "title": "Inkling Small"
+        }
+      ],
+      "slug": "inkling-small",
+      "title": "Inkling Small"
+    }
+  ],
+  "slug": "inkling",
+  "title": "Inkling"
+}

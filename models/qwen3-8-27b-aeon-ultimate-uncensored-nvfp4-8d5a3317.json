@@ -133,10 +133,6 @@
     "quantization": "nvfp4-compressed-tensors-uniform"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "sakamakismile",
       "slug": "qwen3-8-27b-aeon-ultimate-uncensored-nvfp4"

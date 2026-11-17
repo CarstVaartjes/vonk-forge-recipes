@@ -20,6 +20,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/poolside/Laguna-M.1-NVFP4/blob/e4f3ba80ca1d8d83443df18e03ecebd7ef55a066/LICENSE.md"
   },
+  "lineage": {
+    "base_model": "poolside/Laguna-M.1",
+    "family": "laguna",
+    "generation": "Laguna 1",
+    "line": "laguna-m",
+    "model": "laguna-m-1",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

@@ -214,10 +214,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "openmoss",
-      "slug": "moss-vl"
-    },
     "model": {
       "publisher": "openmoss",
       "slug": "moss-vl-realtime-11b"

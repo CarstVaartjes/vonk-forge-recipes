@@ -778,7 +778,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "8b0708fe4c10d746f2e0c65394329b0d113d23cdad61909b3f37abd3404900ec",
+        "content_sha256": "dfdc41c1d5ca8c8812766ad74d6438036cbe33a989557ad46809fef6fac7806e",
         "kind": "model",
         "publisher": "libertaidai",
         "slug": "deepseek-v4-1-flash-1017-exl3-2-9bpw-0be63c33"
@@ -822,7 +822,7 @@
       ],
       "id": "engram",
       "model": {
-        "content_sha256": "ec2b8163755981b0b332e45c4bc2d722805c434542ef5bccaa997840236ae26e",
+        "content_sha256": "e65ca30a5c3a5dca9b771734ef268a8cb9af7192fd79be73d334212d072e9462",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-1017-native-1bae0e10"

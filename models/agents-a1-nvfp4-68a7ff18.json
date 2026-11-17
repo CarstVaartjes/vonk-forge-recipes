@@ -151,10 +151,6 @@
     "quantization": "nvfp4-modelopt-mlp-moe"
   },
   "identity": {
-    "family": {
-      "publisher": "r0b0tlab",
-      "slug": "agents-a1"
-    },
     "model": {
       "publisher": "r0b0tlab",
       "slug": "agents-a1"

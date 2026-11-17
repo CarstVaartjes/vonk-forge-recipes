@@ -1,7 +1,7 @@
 """A published word this contract version does not know, kept for display.
 
 A newer minor release may publish a closed word this reader does not list
-outside an execution document: a Model's capability or modality, a Recipe's
+outside an execution document: a Model's capability, modality or variant kind, a Recipe's
 alignment, an API fact's endpoint, format, tool choice, request placement or
 default, or a qualification status, change, reason, cause, quality note,
 hardware class or topology. The catalog reader keeps the entry and stores the word as an :class:`UnrecognisedWord`: a ``str`` (so it

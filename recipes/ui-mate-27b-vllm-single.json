@@ -256,7 +256,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "bcc8eef12759d75df8a5e948ebd39d541251b69fd78f154ce133fa288c032613",
+        "content_sha256": "3d36bff72acb7b949b0bf2c87f286799e37010ba3b8a727caf0ab010a7a053d2",
         "kind": "model",
         "publisher": "tencent",
         "slug": "ui-mate-27b-3ade2378"

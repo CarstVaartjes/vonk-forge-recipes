@@ -20,6 +20,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen3.5-9B/blob/c202236235762e1c871ad0ccb60c8ee5ba337b9a/LICENSE"
   },
+  "lineage": {
+    "family": "qwen",
+    "flavor": "instruct",
+    "generation": "Qwen3.5",
+    "line": "qwen-9b",
+    "model": "qwen3-5-9b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image",
     "text"

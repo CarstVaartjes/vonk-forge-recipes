@@ -23,6 +23,14 @@
     "spdx": "Apache-2.0",
     "url": "https://www.apache.org/licenses/LICENSE-2.0"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-27B",
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-27b",
+    "model": "qwen3-8-27b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text",

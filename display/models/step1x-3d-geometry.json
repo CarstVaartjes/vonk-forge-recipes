@@ -16,6 +16,14 @@
     "spdx": "Apache-2.0",
     "url": "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/LICENSE"
   },
+  "lineage": {
+    "family": "step1x",
+    "flavor": "geometry",
+    "generation": "Step1X-3D",
+    "line": "step1x-3d-geometry",
+    "model": "step1x-3d-geometry",
+    "variant_kind": "base"
+  },
   "modalities": [
     "3d"
   ],

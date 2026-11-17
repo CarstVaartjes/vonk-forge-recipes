@@ -20,6 +20,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/r0b0tlab/XYZ-Aquila-mini-NVFP4/blob/39f7345d7838713107a7ee728cbe7c963a707f4d/README.md"
   },
+  "lineage": {
+    "base_model": "XYZAILab/XYZ-Aquila-mini",
+    "family": "xyz-aquila",
+    "generation": "XYZ-Aquila",
+    "line": "xyz-aquila-mini",
+    "model": "xyz-aquila-mini",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

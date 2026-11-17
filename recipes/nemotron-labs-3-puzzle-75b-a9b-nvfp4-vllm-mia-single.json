@@ -276,7 +276,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c20733c5093c2247cc6b45907e67919b0616de1bde6c65f20a7964b598b9379c",
+        "content_sha256": "3401c694a37a4257d309d07c4307dea4447b8e7824e645076f4988723c02bd82",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-labs-3-puzzle-75b-a9b-nvfp4-1d370e47"

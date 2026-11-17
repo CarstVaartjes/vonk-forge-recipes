@@ -27,6 +27,13 @@
     },
     "url": "https://huggingface.co/tencent/HunyuanOCR/blob/47644ecc4fc854efa4f505155158831f36773ee4/LICENSE"
   },
+  "lineage": {
+    "family": "hunyuan",
+    "generation": "HunyuanOCR 1.5",
+    "line": "hunyuanocr",
+    "model": "hunyuanocr-1-5",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image",
     "text"

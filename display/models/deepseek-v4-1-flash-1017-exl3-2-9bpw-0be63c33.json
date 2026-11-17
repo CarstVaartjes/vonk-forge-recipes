@@ -21,6 +21,14 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/LibertAIDAI/DeepSeek-V4.1-Flash-1017-EXL3-2.9bpw/blob/9a85740a8dce89e858c2113c4d04b6f8fcd33999/LICENSE"
   },
+  "lineage": {
+    "base_model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "family": "deepseek",
+    "generation": "DeepSeek V4.1",
+    "line": "deepseek-flash",
+    "model": "deepseek-v4-1-flash-1017",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text"

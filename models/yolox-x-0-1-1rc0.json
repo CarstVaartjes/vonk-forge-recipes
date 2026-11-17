@@ -16,10 +16,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "megvii-basedetection",
-      "slug": "yolox"
-    },
     "model": {
       "publisher": "megvii-basedetection",
       "slug": "yolox-x"

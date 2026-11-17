@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "kimodo-soma-rp-v1-2",
+          "title": "Kimodo SOMA RP v1.2"
+        }
+      ],
+      "slug": "kimodo-soma-rp",
+      "title": "Kimodo SOMA RP"
+    }
+  ],
+  "slug": "kimodo",
+  "title": "Kimodo"
+}

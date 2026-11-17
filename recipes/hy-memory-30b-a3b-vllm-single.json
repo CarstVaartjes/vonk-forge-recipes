@@ -656,7 +656,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "172e2cd6985d2b9c8569161bb39943285baf413194b47e27f7bb2c031d1bc4a0",
+        "content_sha256": "0826fb95410ce237b833dda47ec09b01c658ca681f7af97bb0001553c602b73b",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hy-memory-30b-a3b-bf16-64a460a9"

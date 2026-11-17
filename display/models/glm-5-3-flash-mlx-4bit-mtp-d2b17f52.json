@@ -22,6 +22,14 @@
     "spdx": "LicenseRef-GLM-5.3",
     "url": "https://huggingface.co/Vontra/GLM-5.3-Flash-MLX-4bit-MTP/blob/main/LICENSE"
   },
+  "lineage": {
+    "base_model": "zai-org/GLM-5.3-Flash",
+    "family": "glm",
+    "generation": "GLM 5.3",
+    "line": "glm-flash-321b",
+    "model": "glm-5-3-flash",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text",

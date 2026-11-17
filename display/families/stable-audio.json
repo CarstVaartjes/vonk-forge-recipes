@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "stable-audio-3-small-sfx",
+          "title": "Stable Audio 3 Small SFX"
+        }
+      ],
+      "slug": "stable-audio-small-sfx",
+      "title": "Stable Audio Small SFX"
+    }
+  ],
+  "slug": "stable-audio",
+  "title": "Stable Audio"
+}

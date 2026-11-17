@@ -16,10 +16,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "openai",
-      "slug": "clip-vit-large-patch14"
-    },
     "model": {
       "publisher": "openai",
       "slug": "clip-vit-large-patch14"

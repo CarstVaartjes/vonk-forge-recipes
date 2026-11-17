@@ -25,10 +25,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "microsoft",
-      "slug": "trellis"
-    },
     "model": {
       "publisher": "microsoft",
       "slug": "trellis-sparse-decoder"

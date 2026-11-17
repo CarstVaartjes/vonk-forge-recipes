@@ -412,10 +412,6 @@
     "quantization": "nvfp4"
   },
   "identity": {
-    "family": {
-      "publisher": "thinkingmachines",
-      "slug": "inkling"
-    },
     "model": {
       "publisher": "thinkingmachines",
       "slug": "inkling-975b-a41b"

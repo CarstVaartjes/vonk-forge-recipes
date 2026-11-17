@@ -18,6 +18,14 @@
     "spdx": "Apache-2.0",
     "url": "https://github.com/ModelTC/Qwen-Image-Lightning/blob/25d1e9935ba97e1f60503f8c000201e08b1fe8f4/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen-Image-Edit-2511",
+    "family": "qwen",
+    "generation": "Qwen Image",
+    "line": "qwen-image-edit",
+    "model": "qwen-image-edit-2511",
+    "variant_kind": "derivative"
+  },
   "modalities": [
     "image"
   ],

@@ -1,0 +1,41 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "glm-4-7-flash",
+          "title": "GLM 4.7 Flash"
+        }
+      ],
+      "slug": "glm-flash-31b",
+      "title": "GLM Flash 31B"
+    },
+    {
+      "models": [
+        {
+          "slug": "glm-5-2",
+          "title": "GLM 5.2"
+        },
+        {
+          "slug": "glm-5-3",
+          "title": "GLM 5.3"
+        }
+      ],
+      "slug": "glm",
+      "title": "GLM"
+    },
+    {
+      "models": [
+        {
+          "slug": "glm-5-3-flash",
+          "title": "GLM 5.3 Flash"
+        }
+      ],
+      "slug": "glm-flash-321b",
+      "title": "GLM Flash 321B"
+    }
+  ],
+  "slug": "glm",
+  "title": "GLM"
+}

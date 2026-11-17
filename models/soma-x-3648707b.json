@@ -304,10 +304,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "nvidia",
-      "slug": "soma-x"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "soma-x-body"

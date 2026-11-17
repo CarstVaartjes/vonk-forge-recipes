@@ -889,10 +889,6 @@
     "quantization": "exl3-4bpw-routed-experts-bf16-dense"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "mia-ai-lab",
       "slug": "glm-5-3-flash-exl3-4bpw-tensorfold"

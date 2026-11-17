@@ -20,6 +20,13 @@
     "spdx": "LicenseRef-OpenMDW-1.1",
     "url": "https://openmdw.ai/license/1-1/"
   },
+  "lineage": {
+    "family": "nemotron",
+    "generation": "Nemotron 3",
+    "line": "nemotron-ultra-550b-a55b",
+    "model": "nemotron-3-ultra-550b-a55b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

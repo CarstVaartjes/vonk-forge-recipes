@@ -21,6 +21,13 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/mistralai/Leanstral-1.5-119B-A6B"
   },
+  "lineage": {
+    "family": "leanstral",
+    "generation": "Leanstral 1.5",
+    "line": "leanstral-119b-a6b",
+    "model": "leanstral-1-5-119b-a6b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image",
     "text"

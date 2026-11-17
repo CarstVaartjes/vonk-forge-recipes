@@ -205,10 +205,6 @@
     "quantization": "modelopt-mixed-w4a16-nvfp4-fp8"
   },
   "identity": {
-    "family": {
-      "publisher": "ornith-ai",
-      "slug": "ornith"
-    },
     "model": {
       "publisher": "ornith-ai",
       "slug": "ornith-1-5-35b-a3b"

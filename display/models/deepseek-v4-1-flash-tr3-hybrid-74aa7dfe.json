@@ -23,6 +23,14 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/drowzeys/DeepSeek-V4.1-Flash-TR3-Hybrid/blob/74aa7dfeb4edc2d59df71abda01470d795394a26/README.md"
   },
+  "lineage": {
+    "base_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "family": "deepseek",
+    "generation": "DeepSeek V4.1",
+    "line": "deepseek-flash",
+    "model": "deepseek-v4-1-flash",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text"

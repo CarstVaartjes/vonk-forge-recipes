@@ -745,7 +745,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "23c1f98170eac8309e2d13084f3e0c39b7994f753cd7391e8f3e93483a2d74ab",
+        "content_sha256": "e101d51f1f6d16a3319339087323d8b5531c46dc229f3fe3d2ff10b62f5c20b1",
         "kind": "model",
         "publisher": "mia-ailab",
         "slug": "deepseek-v4-1-flash-1017-mia-exl3-eaq-v1-2-9bpw-45ee5d0f"
@@ -789,7 +789,7 @@
       ],
       "id": "engram",
       "model": {
-        "content_sha256": "ec2b8163755981b0b332e45c4bc2d722805c434542ef5bccaa997840236ae26e",
+        "content_sha256": "e65ca30a5c3a5dca9b771734ef268a8cb9af7192fd79be73d334212d072e9462",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-1017-native-1bae0e10"

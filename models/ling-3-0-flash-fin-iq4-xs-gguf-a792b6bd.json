@@ -26,10 +26,6 @@
     "quantization": "iq4-xs"
   },
   "identity": {
-    "family": {
-      "publisher": "inclusionai",
-      "slug": "ling"
-    },
     "model": {
       "publisher": "bartowski",
       "slug": "ling-3-0-flash-fin-gguf"

@@ -16,6 +16,13 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen-Image-Layered/blob/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf/README.md"
   },
+  "lineage": {
+    "family": "qwen",
+    "generation": "Qwen Image",
+    "line": "qwen-image-layered",
+    "model": "qwen-image-layered",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image"
   ],

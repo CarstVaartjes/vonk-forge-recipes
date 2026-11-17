@@ -122,6 +122,9 @@ class QualificationQualityNote(StrEnum):
     CARRIED_MODEL_FACTS = (
         "Carried from the identical execution document before the Model facts split"
     )
+    # A document whose execution bytes did not change, re-digested by a contract
+    # move (only its Model pins differ): its evidence is the old digest's.
+    CARRIED_IDENTICAL_EXECUTION = "Carried from the identical execution document"
 
 
 class QualificationChange(StrEnum):

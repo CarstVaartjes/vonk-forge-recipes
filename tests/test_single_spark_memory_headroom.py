@@ -370,6 +370,9 @@ def test_real_catalog_build_warns_about_a_new_recipe_whose_pool_cannot_hold_a_re
     (tmp_path / "display/models").symlink_to(
         ROOT / "display/models", target_is_directory=True
     )
+    (tmp_path / "display/families").symlink_to(
+        ROOT / "display/families", target_is_directory=True
+    )
     monkeypatch.setitem(build.__globals__, "ROOT", tmp_path)
 
     class PackagingReached(Exception):

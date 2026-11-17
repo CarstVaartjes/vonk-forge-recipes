@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "fastcontext-1-0-4b-rl",
+          "title": "FastContext 1.0 4B RL"
+        }
+      ],
+      "slug": "fastcontext-4b",
+      "title": "FastContext 4B"
+    }
+  ],
+  "slug": "fastcontext",
+  "title": "FastContext"
+}
