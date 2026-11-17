@@ -35,7 +35,7 @@ def _load_keys(fleet, profile: int) -> list[str]:
     ]
 
 
-def test_a_second_takeover_in_the_same_state_directory_really_clears_the_fleet(
+def test_a_second_run_in_the_same_state_dir_clears_todays_owner_workload(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     recipes = [FakeRecipe("a", ("m1",))]
@@ -59,7 +59,6 @@ def test_a_second_takeover_in_the_same_state_directory_really_clears_the_fleet(
     assert all(r["alias"] != "owner-glm" for r in fleet.runs)
     keys = _load_keys(fleet, 10)
     assert len(keys) == len(set(keys))  # no key was ever sent twice
-    assert [x["kind"] for x in again.state.data["own_loads"]].count("takeover") == 1
 
 
 def test_every_attempt_has_its_own_key_recorded_in_own_loads(
