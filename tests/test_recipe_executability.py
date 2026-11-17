@@ -3,13 +3,11 @@ from __future__ import annotations
 import json
 import re
 import shlex
-import sys
 import unittest
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES = ROOT / "recipes"
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
 
 from catalog_documents import catalog_models
 from documents import recipe_display
