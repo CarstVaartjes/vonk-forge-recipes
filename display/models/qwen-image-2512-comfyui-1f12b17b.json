@@ -17,6 +17,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen-Image-2512/blob/25468b98e3276ca6700de15c6628e51b7de54a26/LICENSE.md"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen-Image-2512",
+    "family": "qwen",
+    "generation": "Qwen Image",
+    "line": "qwen-image-20b",
+    "model": "qwen-image-2512",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image"
   ],

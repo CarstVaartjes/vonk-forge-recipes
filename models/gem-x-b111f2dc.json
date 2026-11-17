@@ -1,13 +1,13 @@
 {
   "dependencies": [
     {
-      "content_sha256": "8055627272779a31a4bff9c1c29e1c10e9c1daa2ac12d488327cbb1230c44804",
+      "content_sha256": "7253e19f79af8b2c63f3a25ac233e1e3f4d3fa6eefa8934489398d85816a43d5",
       "kind": "model",
       "publisher": "megvii-basedetection",
       "slug": "yolox-x-0-1-1rc0"
     },
     {
-      "content_sha256": "f87f282b17640e6192cdb34cf728c256a3f134402520b7c80d0cfd630205f540",
+      "content_sha256": "dc403b96e128eb609b60d043c992eafe2261f708d30b7171ba35c9178cfa1620",
       "kind": "model",
       "publisher": "nvidia",
       "slug": "soma-x-3648707b"
@@ -191,10 +191,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "nvidia",
-      "slug": "gem-x"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "gem-x-body-motion"

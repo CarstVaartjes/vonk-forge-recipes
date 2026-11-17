@@ -284,7 +284,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "62c78f6ac4115c30da1501dcf8b2eecdb500e464ac60a893c0704109ef23ee81",
+        "content_sha256": "34d7c5c718c5ce5564c079b1965fbec582cf9dc071bde7bc09752b79b0dfe79f",
         "kind": "model",
         "publisher": "tencentarc",
         "slug": "pixal3d-b0cb2e1b"
@@ -305,7 +305,7 @@
       ],
       "id": "naf",
       "model": {
-        "content_sha256": "03e9db72e91786645892b7572e48cc9a456e64c11bc879e0261bfe24966a0662",
+        "content_sha256": "62f9029c70e9c3ea79dbcfa3f694470e951887bae9f0d05fb61c581e745b08f7",
         "kind": "model",
         "publisher": "valeoai",
         "slug": "naf"
@@ -376,7 +376,7 @@
       ],
       "id": "dino",
       "model": {
-        "content_sha256": "8c374b1a6645b7fba5d51db36a7a32dd541702b252148c2b81858f54aa9d1e49",
+        "content_sha256": "c5d43dc514adf8c2f8e730159349936434224fa96808e0b06ad1ebefd62656d3",
         "kind": "model",
         "publisher": "facebook",
         "slug": "dinov3-vitl16-pretrain-lvd1689m"

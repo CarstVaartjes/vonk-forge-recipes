@@ -20,6 +20,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/kodelow/Hy3-NVFP4-W4A16/blob/4f7e1f02f32f4662bdc47f1237f34995088867a9/LICENSE"
   },
+  "lineage": {
+    "base_model": "tencent/Hy3",
+    "family": "hy",
+    "generation": "Hy3",
+    "line": "hy3-295b",
+    "model": "hy3",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

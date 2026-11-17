@@ -20,6 +20,15 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/vcruz305/MiniCPM-V-4.7-35B-A3B-EXL3-SAGE-3.74bpw/blob/855cb7601710064aeb7452b6b7e45e60a40be76b/README.md"
   },
+  "lineage": {
+    "base_model": "openbmb/MiniCPM-V-4.7-35B-A3B",
+    "family": "minicpm",
+    "flavor": "vision",
+    "generation": "MiniCPM-V 4.7",
+    "line": "minicpm-v-35b-a3b",
+    "model": "minicpm-v-4-7-35b-a3b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text"

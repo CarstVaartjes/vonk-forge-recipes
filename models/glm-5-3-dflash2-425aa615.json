@@ -52,10 +52,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "incoai",
       "slug": "glm-5-3-dflash2"

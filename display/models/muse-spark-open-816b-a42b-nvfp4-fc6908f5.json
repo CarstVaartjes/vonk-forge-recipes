@@ -22,6 +22,14 @@
     "spdx": "muse-model-license",
     "url": "https://huggingface.co/unsloth/Muse-Spark-Open-816B-A42B-NVFP4/blob/fc6908f53c6882d4ec48fca5ba144e41d21e1f92/LICENSE.md"
   },
+  "lineage": {
+    "base_model": "meta-models/Muse-Spark-Open-816B-A42B",
+    "family": "muse",
+    "generation": "Muse",
+    "line": "muse-spark-816b-a42b",
+    "model": "muse-spark-open-816b-a42b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "audio",
     "image",

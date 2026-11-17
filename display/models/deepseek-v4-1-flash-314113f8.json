@@ -19,6 +19,13 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/dba1be0a40aa45a94ad051997016db3960a90277/LICENSE"
   },
+  "lineage": {
+    "family": "deepseek",
+    "generation": "DeepSeek V4.1",
+    "line": "deepseek-flash",
+    "model": "deepseek-v4-1-flash",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image"
   ],

@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "motionbricks-g1",
+          "title": "MotionBricks G1"
+        }
+      ],
+      "slug": "motionbricks-g1",
+      "title": "MotionBricks G1"
+    }
+  ],
+  "slug": "motionbricks",
+  "title": "MotionBricks"
+}

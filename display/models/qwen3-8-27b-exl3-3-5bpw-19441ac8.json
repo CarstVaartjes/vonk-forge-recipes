@@ -22,6 +22,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Mia-AiLab/Qwen3.8-27B-EXL3-3.5bpw/blob/19441ac874c4018295da848e250f23511361cda4/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-27B",
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-27b",
+    "model": "qwen3-8-27b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

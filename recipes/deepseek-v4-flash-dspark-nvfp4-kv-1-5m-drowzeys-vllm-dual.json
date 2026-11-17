@@ -850,7 +850,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f54d00619fc586cc4164f9e20f3400fca20c7fe976b85f9d86364e8363cb238e",
+        "content_sha256": "feac867ce31c659ce41b4089f60e12f93d8b9ed1d169d07aaea806aebbcc4a43",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-dspark-62af8fff"

@@ -124,6 +124,37 @@
     },
     {
       "identity": {
+        "content_sha256": "05c260b713b1957448f77b894507f5bfebee66ef8baf7453a9b93aefae461987",
+        "source_bundle_sha256": "226f77b07735189919eca0408f568f1ed9138a8a294c36a31c10d30808975e49",
+        "runtime_image": {
+          "build_key": "9189803a0fd39e2c65817220d28b697cc4e2b0f2ede68c59ab03c27a01545d61",
+          "image_digest": "sha256:708f4beb3e8c3e93454db2a873f6ad96d530dfbf3a695c13f218b507f248f5b4"
+        },
+        "model_digests": [
+          "711669a808e866da834110730be85f2db0d4de2b1fbe2df9cf8a23af10a72688"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "3009fd22eb808c152cad4dc08a8789e4a798572725276c83cedd62fd161a1d58"
+      ],
+      "tested_at": "2026-11-12T03:59:05.673929Z",
+      "platform": {
+        "controller_source_sha": "d6ebc13a728f549234c0ef1d6d9acbded6e0f499",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": [
+        "Carried from the identical execution document"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "1c2fe479bb0d6ee51a058a641023280ad4ae03eba93a2f71f472997c8b483eec",
         "source_bundle_sha256": "226f77b07735189919eca0408f568f1ed9138a8a294c36a31c10d30808975e49",
         "runtime_image": {
@@ -153,6 +184,18 @@
     }
   ],
   "measured_memory": [
+    {
+      "content_sha256": "05c260b713b1957448f77b894507f5bfebee66ef8baf7453a9b93aefae461987",
+      "role": "entrypoint",
+      "steady_bytes": 117144588288,
+      "budget_bytes": 104530585191
+    },
+    {
+      "content_sha256": "05c260b713b1957448f77b894507f5bfebee66ef8baf7453a9b93aefae461987",
+      "role": "worker",
+      "steady_bytes": 116462321664,
+      "budget_bytes": 104530585191
+    },
     {
       "content_sha256": "1c2fe479bb0d6ee51a058a641023280ad4ae03eba93a2f71f472997c8b483eec",
       "role": "entrypoint",

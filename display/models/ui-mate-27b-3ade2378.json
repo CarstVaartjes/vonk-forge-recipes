@@ -20,6 +20,14 @@
     "spdx": "Apache-2.0",
     "url": "https://github.com/Tencent/UI-Mate/blob/d185dc9d74cfcab3a890d7ffb2bb011ecdd64c64/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.6-27B",
+    "family": "ui-mate",
+    "generation": "UI-Mate",
+    "line": "ui-mate-27b",
+    "model": "ui-mate-27b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image",
     "text"

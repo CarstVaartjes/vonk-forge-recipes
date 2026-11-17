@@ -61,10 +61,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "thinkingmachines",
-      "slug": "inkling"
-    },
     "model": {
       "publisher": "radixark",
       "slug": "inkling-small-dspark"

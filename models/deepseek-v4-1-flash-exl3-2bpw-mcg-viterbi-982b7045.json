@@ -511,10 +511,6 @@
     "quantization": "exl3-mcg-2bpw-viterbi-lmhead-mxfp8"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-flash"
-    },
     "model": {
       "publisher": "sfxnz",
       "slug": "deepseek-v4-1-flash-exl3"

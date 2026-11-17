@@ -20,6 +20,14 @@
     "spdx": "LicenseRef-MiniMax-M3-Community-License",
     "url": "https://huggingface.co/Sebesky/MiniMax-M3-W4A16-GPTQ/blob/6696ce6fed67de2c5027320fdfbc83f3fd3abb4e/LICENSE"
   },
+  "lineage": {
+    "base_model": "MiniMaxAI/MiniMax-M3",
+    "family": "minimax",
+    "generation": "MiniMax M3",
+    "line": "minimax-m-427b",
+    "model": "minimax-m3",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

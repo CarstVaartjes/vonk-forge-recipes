@@ -14,6 +14,14 @@
     "spdx": "qwen-research",
     "url": "https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo/blob/fc13ba1986fcb905854dc8de2f52eee395f49b5b/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen-Image-2.1",
+    "family": "qwen",
+    "generation": "Qwen Image 2",
+    "line": "qwen-image-7b",
+    "model": "qwen-image-2-1",
+    "variant_kind": "derivative"
+  },
   "modalities": [
     "image"
   ],

@@ -26,7 +26,9 @@ the installable contracts. Do not add separate guidance files.
   ownership edges. Decide by content identity and observed behaviour. Fix the
   class with a guard and fault-injection or behaviour regression tests.
 - A Recipe or Model document holds execution data only; its titles, description,
-  tags and alignment, and a Model's modalities, capabilities and license, live in
+  tags and alignment, and a Model's modalities, capabilities, license and place in
+  the catalog hierarchy (`lineage`: Family → Line → Model, with the Family titles
+  and Line order in `display/families/<slug>.json`), live in
   `display/recipes/<slug>.json` / `display/models/<slug>.json`. A display edit
   never changes a digest, evidence or a proven status. Add or remove a display together with its document.
 - Use contract models and enums for structures, states, reasons and codes we

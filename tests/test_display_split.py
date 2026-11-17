@@ -19,7 +19,7 @@ from vonk_forge_contracts import (
     document_sha256,
     published_json,
 )
-from vonk_forge_contracts.model import ModelFamily, ModelRecord
+from vonk_forge_contracts.model import ModelRecord
 from vonk_forge_contracts.resolver import ContractResolutionError, validate_library
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,7 +46,6 @@ def _library() -> tuple[
 def test_the_retired_display_paths_are_gone_from_the_documents() -> None:
     assert "metadata" not in RecipeDefinition.model_fields
     assert "metadata" not in ModelDefinition.model_fields
-    assert "title" not in ModelFamily.model_fields
     assert "title" not in ModelRecord.model_fields
     for moved in ("modalities", "capabilities", "license"):
         assert moved not in ModelDefinition.model_fields
@@ -62,7 +61,7 @@ def test_a_document_refuses_a_display_field_written_back_into_it() -> None:
         RecipeDefinition.model_validate({**recipe_document, "metadata": {"title": "x"}})
     with pytest.raises(ValueError, match="Extra inputs are not permitted"):
         ModelDefinition.model_validate({**model_document, "metadata": {"tags": []}})
-    family = {**model_document["identity"]["family"], "title": "x"}
+    family = {"publisher": "deepseek-ai", "slug": "deepseek"}
     identity = {**model_document["identity"], "family": family}
     with pytest.raises(ValueError, match="Extra inputs are not permitted"):
         ModelDefinition.model_validate({**model_document, "identity": identity})
@@ -87,6 +86,7 @@ def test_display_fields_are_exactly_the_moved_set() -> None:
         "modalities",
         "capabilities",
         "license",
+        "lineage",
     }
 
 

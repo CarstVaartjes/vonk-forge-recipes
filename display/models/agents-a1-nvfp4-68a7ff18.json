@@ -20,6 +20,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/r0b0tlab/Agents-A1-NVFP4/blob/68a7ff18c006927cbf3a97f76f293452ca14e016/README.md"
   },
+  "lineage": {
+    "base_model": "InternScience/Agents-A1",
+    "family": "agents-a1",
+    "generation": "Agents-A1",
+    "line": "agents-a1",
+    "model": "agents-a1",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

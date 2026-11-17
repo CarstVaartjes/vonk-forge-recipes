@@ -1717,10 +1717,6 @@
     "quantization": "reap-k216-exl3-trellis-3_0bpw"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-flash"
-    },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-flash-0731"

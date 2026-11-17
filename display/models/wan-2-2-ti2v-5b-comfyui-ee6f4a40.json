@@ -18,6 +18,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B/blob/921dbaf3f1674a56f47e83fb80a34bac8a8f203e/LICENSE.txt"
   },
+  "lineage": {
+    "base_model": "Wan-AI/Wan2.2-TI2V-5B",
+    "family": "wan",
+    "generation": "Wan 2.2",
+    "line": "wan-ti2v-5b",
+    "model": "wan-2-2-ti2v-5b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "video"

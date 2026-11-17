@@ -160,10 +160,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "cloudflare",
-      "slug": "clef"
-    },
     "model": {
       "publisher": "cloudflare",
       "slug": "clef-flash"

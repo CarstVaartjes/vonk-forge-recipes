@@ -22,6 +22,13 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/blob/3b38d063180c3e4aed9691fdc735f3d10b266ee4/README.md"
   },
+  "lineage": {
+    "family": "mimo",
+    "generation": "MiMo V2.6",
+    "line": "mimo-flash",
+    "model": "mimo-v2-6-flash-rl",
+    "variant_kind": "base"
+  },
   "modalities": [
     "audio",
     "image",

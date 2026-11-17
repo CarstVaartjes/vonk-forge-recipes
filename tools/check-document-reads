@@ -70,6 +70,7 @@ KEYS = frozenset(
         "license",
         "capabilities",
         "modalities",
+        "lineage",
     }
 )
 SEGMENTS = frozenset({"recipes", "models", "display"})

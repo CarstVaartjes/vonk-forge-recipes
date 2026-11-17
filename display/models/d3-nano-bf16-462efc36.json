@@ -18,6 +18,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/vllm-sr/d3-nano/blob/462efc366229ea268cf4eed3738b3fc4415e4817/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.5-2B",
+    "family": "d3",
+    "generation": "Decision 3.0",
+    "line": "d3-nano-2b",
+    "model": "d3-nano",
+    "variant_kind": "base"
+  },
   "modalities": [
     "text",
     "image",
