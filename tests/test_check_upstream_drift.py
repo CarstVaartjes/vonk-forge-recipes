@@ -10,9 +10,11 @@ import sys
 import tempfile
 import unittest
 from datetime import UTC, datetime
+from email.message import Message
 from pathlib import Path
 from typing import Any
 from unittest import mock
+from urllib.error import HTTPError
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "tools/check-upstream-drift"
@@ -340,6 +342,29 @@ class ObservationTests(unittest.TestCase):
 
         self.assertEqual(observation.status, "missing")
         self.assertIn("no longer resolvable", observation.detail)
+
+    def test_only_an_anonymous_hugging_face_401_means_missing(self) -> None:
+        for provider, token, expected in (
+            ("huggingface", None, "missing"),
+            ("huggingface", "set", "error"),
+            ("github", None, "error"),
+        ):
+
+            def unauthorized(request: Any, timeout: float) -> Any:
+                error = HTTPError(
+                    request.full_url, 401, "Unauthorized", Message(), None
+                )
+                error.close()
+                raise error
+
+            client = drift.ProviderClient(
+                github_token=token, huggingface_token=token, opener=unauthorized
+            )
+            with self.subTest(provider=provider, token=token):
+                observation = drift.observe(
+                    self.watch(provider=provider, policy="default-branch"), client
+                )
+                self.assertEqual(observation.status, expected)
 
 
 class ReleaseAssetWatchTests(unittest.TestCase):
