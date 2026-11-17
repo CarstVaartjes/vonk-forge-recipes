@@ -750,6 +750,9 @@ def test_a_rotated_log_is_read_once_and_still_published_every_batch(
     world.open_prs.clear()  # the next batch plans a fresh PR from main again
     world.tick()
     assert [r.tested_at.day for r in world.pushed[-1]] == [20, 21, 22]
+    world.open_prs.clear()  # a new sweep run re-reads every rotated log
+    publisher.sync(world.history, world.work, run="next sweep")
+    assert [r.tested_at.day for r in world.pushed[-1]] == [21, 22]
 
 
 def test_a_slow_red_is_not_reset_by_a_pending_tick(tmp_path, monkeypatch):
