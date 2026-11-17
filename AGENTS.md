@@ -108,7 +108,9 @@ to the local run; report it. `control/`, `scripts/repository-guards`,
 platform repository and are not gates available in this repository.
 
 The Ruff wrappers pin **0.16.9** and discover tracked extensionless Python
-executables by shebang. Bare `ruff check .`/`format --check .` miss those files.
+executables by shebang. Given path arguments they check only those paths; the
+pre-commit hook passes the staged Python files (unstaged edits elsewhere never
+block a commit), CI passes none and checks the whole repository. Bare `ruff check .`/`format --check .` miss those files.
 Pyright **1.1.414** uses managed Python and Linux diagnostics with the pinned
 `[tool.pyright]` language version/mode. `tools/pyright-baseline.json` is a
 reviewed allowlist: unlisted errors, increased counts and missing reasons fail;
