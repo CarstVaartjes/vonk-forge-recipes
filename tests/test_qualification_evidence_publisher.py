@@ -343,7 +343,7 @@ def _open_pr(tmp_path, monkeypatch, rollup, behind_by):
         if args[:2] == ("gh", "api"):
             return str(behind_by)
         if args[:2] == ("git", "clone"):
-            raise RuntimeError("fresh plan reached")
+            raise subprocess.CalledProcessError(128, args)  # stop at the plan
         return ""
 
     monkeypatch.setattr(publisher, "command", command)
@@ -352,8 +352,8 @@ def _open_pr(tmp_path, monkeypatch, rollup, behind_by):
 
 def test_red_pr_with_moved_main_takes_the_fresh_plan(tmp_path, monkeypatch):
     history, calls = _open_pr(tmp_path, monkeypatch, RED, 3)
-    with pytest.raises(RuntimeError, match="fresh plan reached"):
-        publisher.sync(history, tmp_path / "work")
+    publisher.sync(history, tmp_path / "work")
+    assert any(c[:2] == ("git", "clone") for c in calls)  # the fresh plan
     assert not any(c[:3] == ("gh", "pr", "merge") for c in calls)
 
 
@@ -433,8 +433,8 @@ def test_behind_pr_replans_without_asking_how_far_main_moved(tmp_path, monkeypat
         return original(cwd, *args, **kwargs)
 
     monkeypatch.setattr(publisher, "command", behind)
-    with pytest.raises(RuntimeError, match="fresh plan reached"):
-        publisher.sync(history, tmp_path / "work")
+    publisher.sync(history, tmp_path / "work")
+    assert any(c[:2] == ("git", "clone") for c in calls)  # the fresh plan
     assert not any(c[:2] == ("gh", "api") for c in calls)
 
 
@@ -1405,6 +1405,8 @@ def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monke
             )
         if args[:2] == ("git", "ls-remote"):
             return "remote-branch"
+        if f"origin/main...origin/{publisher.BRANCH}" in args:
+            return "qualification/evidence/vonk-forge/example.json"  # branch's own
         if args[:3] == ("git", "diff", "origin/main"):
             observed.extend(read_evidence(cwd, KEY).measured_memory)
             return "changed evidence"
@@ -1425,7 +1427,7 @@ def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monke
     assert observed == []
 
 
-def test_a_non_evidence_branch_conflict_is_a_command_failure(tmp_path, monkeypatch):
+def test_a_non_evidence_branch_conflict_takes_mains_version(tmp_path, monkeypatch):
     world = World(tmp_path, monkeypatch)
     world.open_prs.clear()
     real = publisher.command
@@ -1443,7 +1445,37 @@ def test_a_non_evidence_branch_conflict_is_a_command_failure(tmp_path, monkeypat
         "run",
         lambda args, **kwargs: subprocess.CompletedProcess(args, 1),
     )
+    assert world.tick() == publisher.SweepEvidenceExit.SYNCED
+    assert ("git", "checkout", "origin/main", "--", "recipes/example.json") in (
+        world.calls
+    )
+
+
+def test_any_batch_error_on_an_open_pr_is_recorded_and_alerts_when_repeated(
+    tmp_path, monkeypatch
+):
+    """A DIRTY PR with no checks yet looks pending; the failure is still observed."""
+
+    def command(cwd, *args, **kwargs):
+        if args[:3] == ("gh", "pr", "list"):
+            return pr_list(123)
+        if args[:3] == ("gh", "pr", "view"):
+            return json.dumps(
+                {"number": 123, "mergeStateStatus": "DIRTY", "headRefOid": "A"}
+            )
+        if args[:2] == ("git", "clone"):
+            raise IndexError("unexpected")  # not a command error: the net holds
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    history, work = tmp_path / "results.jsonl", tmp_path / "work"
+    history.write_text("")
     for state in (publisher.PublisherState.RED, publisher.PublisherState.REFUSED):
-        assert world.tick() == publisher.SweepEvidenceExit.COMMAND_FAILED
-        record = publisher.load_state(world.work)
-        assert record.state == state and record.signature == "merge main exit conflict"
+        assert (
+            publisher.sync(history, work) == publisher.SweepEvidenceExit.COMMAND_FAILED
+        )
+        record = publisher.load_state(work)
+        assert record.state == state and record.signature == "publisher IndexError"
+    worker = publisher.EvidencePublisher(history, work, Path("worker"))
+    worker.record = publisher.load_state(work)
+    assert "failing repeatedly: publisher IndexError" in (worker.alert or "")
