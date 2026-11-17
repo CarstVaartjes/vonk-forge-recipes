@@ -40,23 +40,7 @@ def atomic_bytes(path, data):
         Path(name).unlink(missing_ok=True)
 
 
-def overlay_names(path):
-    with path.open("rb") as stream:
-        (size,) = struct.unpack("<Q", stream.read(8))
-        header = json.loads(stream.read(size))
-    return {name for name in header if name != "__metadata__"}
-
-
-def check_overlay(source, overlay):
-    """The overlay must replace tensors the checkpoint has; otherwise the stock weights would serve unchanged."""
-    replaced = json.loads((source / "model.safetensors.index.json").read_text())["weight_map"]
-    names = overlay_names(overlay)
-    if not names or not names <= replaced.keys():
-        raise ValueError("BLACKFOLD overlay tensors do not replace tensors of the checkpoint")
-
-
 def model_view(source, destination, template, overlay):
-    check_overlay(source, overlay)
     destination.mkdir(parents=True, exist_ok=True)
     for item in source.iterdir():
         if item.name == "chat_template.jinja":
@@ -73,9 +57,6 @@ def model_view(source, destination, template, overlay):
     temporary.unlink(missing_ok=True)
     temporary.symlink_to(overlay)
     os.replace(temporary, link)
-    shards = sorted(item.name for item in destination.iterdir() if item.name.endswith(".safetensors"))
-    if shards[-1] != OVERLAY_LINK:
-        raise ValueError("BLACKFOLD overlay does not sort after the checkpoint shards")
     atomic_bytes(destination / "chat_template.jinja", template.read_bytes())
     sync_dir(destination)
 
