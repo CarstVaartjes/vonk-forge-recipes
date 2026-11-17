@@ -15,8 +15,8 @@ under a fake clock and a fake ``vonkctl``:
 
 from __future__ import annotations
 
-import itertools
 import hashlib
+import itertools
 import json
 import random
 import signal
