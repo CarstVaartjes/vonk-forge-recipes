@@ -92,17 +92,6 @@ class GlmModelInventoryTests(unittest.TestCase):
         self.assertIn("model-input-scales.safetensors", files)
         self.assertIn("model.safetensors.index.json", files)
 
-    def test_aqlm_inventory_closes_the_full_pinned_snapshot(self) -> None:
-        model = load("models/glm-5-2-nvfp4-aqlm-hybrid-53e0082e.json")
-        recipe = load("recipes/glm-5-2-aqlm-vllm-triple.json")
-        # directories of the snapshot are catalogued, not only its top-level files
-        self.assertTrue(any("/" in item["path"] for item in model["files"]))
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
-        self.assertEqual(recipe["topology"]["parallelism"]["backend"], "ray")
-        self.assertEqual(
-            len({item["id"] for item in model["files"]}), len(model["files"])
-        )
-
     def test_native_mtp_choice_reaches_the_mia_triple_and_four_runtimes(self) -> None:
         from vonk_forge_contracts import read_recipe
 

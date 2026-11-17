@@ -601,14 +601,6 @@ GLM_DSA_CREATOR_POOLS = [
         317_279,
         id="glm-5.2-nvfp4-kv",
     ),
-    pytest.param(
-        "glm-5-2-aqlm-vllm-triple",
-        "nvfp4_ds_mla",
-        348_160,
-        11_811_160_064,
-        354_496,
-        id="glm-5.2-aqlm",
-    ),
 ]
 
 

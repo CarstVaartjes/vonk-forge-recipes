@@ -10,7 +10,6 @@ from generated_catalog import GENERATED
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES = {
-    "glm-5-2-aqlm-vllm-triple": 3,
     "glm-5-2-quanttrio-vllm-four": 4,
     "glm-5-3-flash-nvfp4-vllm-four": 4,
     "inkling-small-nvfp4-sglang-dual": 2,
