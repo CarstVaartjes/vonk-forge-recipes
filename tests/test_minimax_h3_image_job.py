@@ -6,7 +6,6 @@ import argparse
 import hashlib
 import importlib.util
 import json
-import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -14,7 +13,6 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTEXT = ROOT / "adapters/image/minimax-h3-image-sglang"
-sys.path.insert(0, str(next(CONTEXT.glob("*.whl"))))
 
 
 @pytest.fixture

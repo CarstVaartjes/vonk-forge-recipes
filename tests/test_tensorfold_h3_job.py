@@ -12,7 +12,6 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTEXT = ROOT / "adapters/video/drowzeys-fasth3-tensorfold"
-sys.path.insert(0, str(next(CONTEXT.glob("*.whl"))))
 Manifest = importlib.import_module(
     "vonk_agent_protocol.job_inputs"
 ).RecipeJobInputManifest

@@ -3,13 +3,11 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
-import sys
 import unittest
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from generated_catalog import GENERATED
 from vonk_forge_contracts import (
     document_sha256,
