@@ -270,7 +270,6 @@ def test_cached_lane_starts_before_blocked_preparation_maintenance(
         gateway=gateway,
     )
     sweep.preflight()
-    sweep.start_takeover()
     sweep.refresh_catalog()
     original_request = None
     original_application = None
@@ -335,7 +334,6 @@ def test_cached_lane_starts_before_blocked_cleanup_and_reused_alias_is_retained(
         tmp_path, [recipe], [FakeModel("m1", local="cached")], gateway=gateway
     )
     sweep.preflight()
-    sweep.start_takeover()
     sweep.refresh_catalog()
     for key, alias in (("old-reused", "ready"), ("old-unused", "old-unused")):
         sweep.state.slots[key] = {
