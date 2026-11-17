@@ -191,7 +191,8 @@ def changed_release(
         return None
     if entry.get("release") == release:
         return None
-    owner = FAULT_OWNERS.get(entry.get("code"))
+    code = entry.get("code")
+    owner = FAULT_OWNERS.get(code) if isinstance(code, str) else None
     if (
         owner is not None
         and owner != "sweep"
