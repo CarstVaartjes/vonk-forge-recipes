@@ -906,6 +906,26 @@ def test_an_evidence_pr_head_open_past_the_ci_bound_is_reported_not_blocked():
     assert "PR #7" not in worker.alert
 
 
+def test_a_batch_gives_the_stall_clock_only_what_it_saw(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch)
+    world.tick()  # red on A
+    seen = publisher.load_state(world.work)
+    assert (seen.pr, seen.pr_head) == (123, "A")
+    fake = publisher.command
+
+    def view_fails(cwd, *args, **kwargs):
+        if args[:3] == ("gh", "pr", "view"):
+            raise subprocess.CalledProcessError(1, args)
+        return fake(cwd, *args, **kwargs)
+
+    monkeypatch.setattr(publisher, "command", view_fails)
+    world.tick()  # the PR was not looked at: its clock keeps running
+    assert publisher.load_state(world.work).pr_since == seen.pr_since
+    world.open_prs.clear()
+    world.tick()  # no PR open: nothing is waiting
+    assert publisher.load_state(world.work).pr == 0
+
+
 def test_refused_because_is_set_only_when_the_refused_set_grows():
     first = publisher.transition(
         publisher.PublisherRecord(), signature="lint", refused=("a#1",)
