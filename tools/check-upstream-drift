@@ -543,7 +543,11 @@ class ProviderClient:
                 self.cache[url] = value
                 return value
             except HTTPError as error:
-                if error.code == 404:
+                # Hugging Face answers an anonymous request for a deleted or
+                # private repository with 401, not 404 (gated ones still list).
+                if error.code == 404 or (
+                    error.code == 401 and provider == "huggingface" and not token
+                ):
                     raise RemoteNotFound(url) from error
                 if error.code not in {429, 500, 502, 503, 504} or attempt == 2:
                     raise RuntimeError(
