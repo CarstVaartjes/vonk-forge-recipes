@@ -72,10 +72,6 @@ class EvidencePublicationTimeout(TimeoutError):
     """Only the optional repository transport ends; hardware lanes continue."""
 
 
-class BranchConflict(RuntimeError):
-    """Main conflicts with the evidence branch outside evidence: a command failure."""
-
-
 _PASSED = (
     SweepCheckConclusion.SUCCESS,
     SweepCheckConclusion.NEUTRAL,
@@ -356,7 +352,8 @@ def sync(
     final: bool = False,
     run: str = "",
 ) -> SweepEvidenceExit:
-    """One batch, then record what it saw. A failing command never crashes the child.
+    """One batch, then record what it saw. Nothing a batch raises crashes the child:
+    every exception is a command failure, recorded and alerted on when repeated.
 
     `final` is the batch a sweep runs on exit: an open evidence PR is brought up
     to date with the latest results instead of waiting for its own merge.
@@ -366,35 +363,29 @@ def sync(
     previous = load_state(directory)
     try:
         code = _batch(history, directory, state, seen, previous, final, run)
-    except (
-        subprocess.CalledProcessError,
-        subprocess.TimeoutExpired,
-        EvidencePublicationTimeout,
-        ValueError,  # malformed evidence or provider JSON, incl. pydantic's ValidationError
-        BranchConflict,
-    ) as error:
+    except Exception as error:  # noqa: BLE001 - the runtime net: a crash writes no state
         # The signature is keyed on behaviour; the real error goes to publisher.log.
         print(f"evidence: {type(error).__name__}: {error}", flush=True)
         if stderr := getattr(error, "stderr", None):
             print(f"evidence: stderr: {stderr}", flush=True)
-        if isinstance(error, ValueError):
+        if isinstance(error, ValueError):  # malformed evidence or provider JSON
             seen.signature = "validate evidence exit invalid"
-        elif isinstance(error, BranchConflict):
-            seen.signature = "merge main exit conflict"
-        else:
+        elif isinstance(error, subprocess.SubprocessError | EvidencePublicationTimeout):
             argv = " ".join(map(str, getattr(error, "cmd", ())[:2]))
             exit_code = getattr(error, "returncode", None)
             seen.signature = (
                 f"{argv} exit {'timeout' if exit_code is None else exit_code}"
             )
+        else:
+            seen.signature = f"publisher {type(error).__name__}"
         seen.command = True
+        seen.pending = False  # a failed command is an observation, even mid-CI
         if seen.closing:  # the blocked PR is still open: observe it again next tick
             seen.signature, seen.head, seen.command = (
                 previous.signature,
                 previous.head,
                 False,
             )
-            seen.pending = False
             seen.refused = None
             print("evidence: closing the refused PR failed; retrying", flush=True)
         print(f"evidence: command failed: {seen.signature}", flush=True)
@@ -656,14 +647,16 @@ def _batch(
                 conflicts = command(
                     clone, "git", "diff", "--name-only", "--diff-filter=U"
                 ).splitlines()
-                if not conflicts or any(
-                    not p.startswith("qualification/evidence/") for p in conflicts
-                ):
-                    raise BranchConflict(
-                        f"evidence branch conflicts outside evidence: {conflicts}"
+                if not conflicts:
+                    raise subprocess.CalledProcessError(
+                        result.returncode, result.args, stderr=result.stderr
                     )
                 keys = catalog_recipe_keys(clone)
                 for name in conflicts:
+                    if not name.startswith("qualification/evidence/"):
+                        # The branch owns only evidence: main's version wins.
+                        command(clone, "git", "checkout", "origin/main", "--", name)
+                        continue
                     key = (
                         Path(name)
                         .relative_to("qualification/evidence")
