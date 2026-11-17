@@ -28,11 +28,11 @@
         "key": "reasoning_effort",
         "kind": "levels",
         "levels": [
+          "none",
           "minimal",
           "low",
           "medium",
           "high",
-          "xhigh",
           "max"
         ],
         "via": "top_level"
