@@ -59,7 +59,10 @@ and Re-check last. `--retry-failed` never requeues Working.
 and all rotated siblings without opening or mutating sweep state. Missing image,
 Model or platform provenance must remain unknown. Never infer it from today's
 catalog. Public models forbid infrastructure identifiers and raw free text;
-keep private diagnostic artifacts in local state only.
+keep private diagnostic artifacts in local state only. The sweep's publisher
+reads the live log every batch; a rotated log never changes, so its merged
+evidence is kept in `evidence-publisher/rotated-history.json` and each new sweep
+reads every log once.
 
 The sweep's background `tools/sync-qualification-evidence` batches evidence onto
 `qualification/evidence`, maintains one open “qualification evidence” PR and

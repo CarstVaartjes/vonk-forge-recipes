@@ -6,6 +6,7 @@ its next attempt; no force push, unbounded wait, or sweep-state write is used.
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -34,12 +35,14 @@ from vonk_forge_contracts.sweep import (
 
 from .own_pulls import OWN_FIELDS, REPOSITORY, own_pulls
 from .qualification import (
+    BackfillResult,
     backfill,
     catalog_recipe_keys,
     evidence_path,
     merge_evidence,
     prune_withdrawn_evidence,
     read_evidence,
+    read_history,
     read_state_evidence,
     serving_rows,
     write_evidence,
@@ -50,6 +53,7 @@ BRANCH = "qualification/evidence"
 TITLE = "qualification evidence"
 _deadline: float | None = None
 STATE_FILE = "publisher-state.json"
+ROTATED_FILE = "rotated-history.json"
 CHILD_BUDGET = 240  # seconds a publisher child may run, as seen from the sweep
 #: How long one evidence PR may stay open before it is reported. Evidence PRs were
 #: observed to merge 6-14 minutes after they opened; an hour open is stuck.
@@ -184,6 +188,56 @@ def load_state(directory: Path) -> PublisherRecord:
         return PublisherRecord.model_validate_json((directory / STATE_FILE).read_text())
     except (OSError, ValidationError):
         return PublisherRecord()
+
+
+class RotatedHistory(BaseModel):
+    """The merged evidence of the rotated result logs, and which logs it holds.
+
+    A log never changes once rotated, so each is read once; the union merge
+    makes adding one log's rows equal to reading them all again.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    files: tuple[str, ...] = ()
+    evidence: dict[str, RecipeQualificationEvidence] = Field(default_factory=dict)
+
+
+def rotated_history(
+    rotated: list[Path], directory: Path
+) -> dict[str, RecipeQualificationEvidence]:
+    """The rotated logs' evidence, reading only logs rotated since the last batch.
+
+    A missing or unreadable file, or one naming a log that is gone, is rebuilt
+    from every rotated log: a first run, a fresh clone and a new sweep (which
+    drops the file, so a conversion fix reaches old rows) read them all.
+    """
+    try:
+        known = RotatedHistory.model_validate_json(
+            (directory / ROTATED_FILE).read_text()
+        )
+    except (OSError, ValidationError):
+        known = RotatedHistory()
+    names = [path.name for path in rotated]
+    if not set(known.files) <= set(names):
+        known = RotatedHistory()
+    new = [path for path in rotated if path.name not in known.files]
+    if not new:
+        return known.evidence
+    counted = BackfillResult()
+    evidence = dict(known.evidence)
+    for key, rows in read_history(new, counted).items():
+        evidence[key] = merge_evidence(evidence[key], rows) if key in evidence else rows
+    if counted.rejected:
+        print(
+            f"evidence: rejected {counted.rejected} malformed rotated rows", flush=True
+        )
+    write_atomic(
+        directory / ROTATED_FILE,
+        RotatedHistory(
+            files=(*known.files, *(path.name for path in new)), evidence=evidence
+        ).model_dump_json(),
+    )
+    return evidence
 
 
 def record_id(key: str, record: QualificationEvidenceRecord) -> str:
@@ -609,11 +663,12 @@ def _batch(
                 )
         else:
             command(clone, "git", "checkout", "-b", BRANCH, "origin/main")
-        paths = sorted(history.parent.glob(history.name + ".*"))
-        if history.exists():
-            paths.append(history)
+        rotated = rotated_history(
+            sorted(history.parent.glob(history.name + ".*")), directory
+        )
+        live = [history] if history.exists() else []
         local = read_state_evidence(state) if state is not None else {}
-        result = backfill(paths, clone, local)
+        result = backfill(live, clone, local, rotated)
         if result.rejected:
             print(
                 f"evidence: rejected {result.rejected} malformed historical rows",
@@ -688,6 +743,10 @@ class EvidencePublisher:
         self.history = history
         self.state = state
         self.directory = directory
+        # A new sweep may run new conversion code: its first batch reads every log.
+        # Best effort: a file left behind is rebuilt anyway once its logs change.
+        with contextlib.suppress(OSError):
+            (directory / ROTATED_FILE).unlink(missing_ok=True)
         self.script = script
         self.process: subprocess.Popen | None = None
         self.next_attempt = 0.0

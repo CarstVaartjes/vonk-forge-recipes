@@ -374,12 +374,45 @@ def resolved_missing(
     )
 
 
+def read_history(
+    paths: Iterable[Path], result: BackfillResult
+) -> dict[str, RecipeQualificationEvidence]:
+    """History rows merged per recipe, in file order; `result` counts them.
+
+    The merge is a union, so evidence merged here and then into the repo equals
+    merging each row into the repo.
+    """
+    merged: dict[str, RecipeQualificationEvidence] = {}
+    for path in paths:
+        # Read only. Never use State.load: its recovery path mutates source state.
+        for line in path.read_text().splitlines():
+            result.read += 1
+            try:
+                evidence = history_evidence(json.loads(line))
+                if evidence is None:
+                    continue
+                key = evidence.recipe_key
+            except (ValueError, TypeError, AttributeError):
+                result.rejected += 1
+                continue
+            merged[key] = (
+                merge_evidence(merged[key], evidence) if key in merged else evidence
+            )
+            result.imported += 1
+    return merged
+
+
 def backfill(
     paths: Iterable[Path],
     root: Path,
     extra: Mapping[str, RecipeQualificationEvidence] | None = None,
+    read: Mapping[str, RecipeQualificationEvidence] | None = None,
 ) -> BackfillResult:
-    """Append history rows and the sweep's merged evidence (`extra`) to the repo."""
+    """Append history rows and the sweep's merged evidence (`extra`) to the repo.
+
+    `read` is history merged earlier by `read_history` (rotated logs); it is
+    added before the rows of `paths`, as if those files came first.
+    """
     result = BackfillResult()
     jobs: dict[str, bool] = {}
     grouped: dict[str, RecipeQualificationEvidence] = {}
@@ -396,21 +429,10 @@ def backfill(
                     root, evidence.model_copy(update={"records": lacking}), jobs
                 ),
             )
-    for path in paths:
-        # Read only. Never use State.load: its recovery path mutates source state.
-        for line in path.read_text().splitlines():
-            result.read += 1
-            try:
-                evidence = history_evidence(json.loads(line))
-                if evidence is None:
-                    continue
-                key = evidence.recipe_key
-            except (ValueError, TypeError, AttributeError):
-                result.rejected += 1
-                continue
+    for history in (read or {}, read_history(paths, result)):
+        for key, evidence in history.items():
             previous = grouped.get(key) or read_evidence(root, key)
             grouped[key] = merge_evidence(previous, serving_rows(root, evidence, jobs))
-            result.imported += 1
     for evidence in grouped.values():
         result.changed_files += int(write_evidence(root, evidence))
     return result
