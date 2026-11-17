@@ -218,3 +218,53 @@ def test_only_that_matches_no_recipe_is_an_error_not_a_clean_exit(
     )
     with pytest.raises(RuntimeError, match="--only typo matches no recipe"):
         sweep.run()
+
+
+def test_a_restart_with_other_authored_content_waits_again(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    recipes = [FakeRecipe("good", ("1" * 64,), content=OLD)]
+    models = [FakeModel("1" * 64)]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, models, gateway=gateway, authored={KEY: NEW}
+    )
+    sweep.preflight()
+    for _ in range(5):
+        sweep.tick()
+        sweep.observe_source_wait()
+        clock.sleep(10)
+    assert "wait_started_at" in sweep.source_watch
+    sweep.state.save()
+
+    newer = "e" * 64  # the source checkout moved on while the sweep was down
+    again, _, _ = make_sweep(
+        tmp_path, recipes, models, fleet=fleet, authored={KEY: newer}
+    )
+    again.preflight()
+    again.tick()
+    assert again.source_serving is SourceServing.UNSERVED
+    assert again.source_watch.get("wait_started_at") != sweep.source_watch.get(
+        "wait_started_at"
+    )
+
+
+def test_watch_mode_keeps_polling_when_only_matches_nothing_yet(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    recipes = [FakeRecipe("good", ("1" * 64,), content=OLD)]
+    sweep, _, clock = make_sweep(
+        tmp_path,
+        recipes,
+        [FakeModel("1" * 64)],
+        gateway=gateway,
+        only=("not-yet-published",),
+        watch_seconds=60.0,
+    )
+    start = clock.now()
+
+    def stop_later(now: float) -> None:
+        if now - start >= 600:
+            raise KeyboardInterrupt
+
+    clock.hooks.append(stop_later)
+    assert sweep.run() == 130  # interrupted while still watching, no --only error

@@ -16,6 +16,7 @@ under a fake clock and a fake ``vonkctl``:
 from __future__ import annotations
 
 import itertools
+import hashlib
 import json
 import random
 import signal
@@ -336,6 +337,10 @@ class Sweep:
         self.unserved_keys: frozenset[str] = frozenset()
         # The bounded wait's watch lives in the state: a restart continues the budget.
         self.source_watch: dict[str, Any] = state.data["source_watch"]
+        # The wait is for this authored content: a restart with other content waits again.
+        self.authored_digest = hashlib.sha256(
+            json.dumps(sorted(self.authored.items())).encode()
+        ).hexdigest()
         # The status alert while the source is not served (cleared once it is).
         self.source_alert = ""
         self.vk = vk
@@ -812,10 +817,12 @@ class Sweep:
         before_state, before = self.source_serving, self.unserved_recipes
         state = advance(before_state, event)
         self.source_serving = state
-        if state is SourceServing.SERVED or (
-            state is SourceServing.UNSERVED and before_state is SourceServing.SERVED
-        ):
-            self.source_watch.clear()  # bounded_wait starts the budget on its first poll
+        if state is SourceServing.SERVED:
+            self.source_watch.clear()
+        elif self.source_watch.get("authored") != self.authored_digest:
+            # bounded_wait starts the budget on its first poll
+            self.source_watch.clear()
+            self.source_watch["authored"] = self.authored_digest
         self.unserved_recipes = differing if state is SourceServing.UNSERVED else ()
         self.unserved_keys = frozenset(item.recipe for item in self.unserved_recipes)
         if event is SourceEvent.UNSERVED_PASS and differing == before:
@@ -1926,10 +1933,8 @@ class Sweep:
                     if self.done():
                         self.state.data.pop("pending_idle", None)
                         self.state.data["alerts"] = []
-                        if self._only_matches_nothing():
-                            unmatched = True
-                            break
                         if self.cfg.watch_seconds <= 0:
+                            unmatched = self._only_matches_nothing()
                             break
                         self.clock.sleep(self.cfg.watch_seconds)
                         self.recipe_list.pass_done_at = (
