@@ -12,7 +12,7 @@
     ],
     "input_modalities": {
       "audio": false,
-      "image": true,
+      "image": false,
       "pdf": false,
       "text": true,
       "video": false

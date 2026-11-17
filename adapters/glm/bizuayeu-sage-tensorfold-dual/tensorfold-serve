@@ -77,8 +77,7 @@ os.environ.update(
     TF_GLM_RANK=str(rank),
     TF_GLM_WORLD=str(world),
     NCCL_COMM_ID=f"{master}:{port}",
-    # The creator's run.sh passes every authorized rail in TF_ROCE_HCA (recipe.conf's ROCE_HCA default lists both);
-    # NCCL keeps every rail the Controller authorized.
+    # The Controller supplies the RoCE rails; the engine's RoCE gathers get every authorized rail in TF_ROCE_HCA.
     TF_ROCE_HCA=",".join(rails),
 )
 os.execv(ENGINE, [ENGINE, "serve", MODEL, *arguments])
