@@ -14,6 +14,7 @@ import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TextIO
 
@@ -711,11 +712,11 @@ class EvidencePublisher:
             )
         elif record.state == PublisherState.REFUSED:
             alerts.append(f"evidence publisher: failing repeatedly: {record.signature}")
-        now = time.time()
-        if record.stalled(now):
+        if record.stalled(time.time()):
+            since = datetime.fromtimestamp(record.pr_since, UTC)
             alerts.append(
                 f"evidence publisher: PR #{record.pr} has been open on head "
-                f"{record.pr_head[:12]} for {int(now - record.pr_since) // 60} min "
+                f"{record.pr_head[:12]} since {since:%Y-%m-%d %H:%M} UTC "
                 + (
                     f"(last failure: {record.signature})"
                     if record.state != PublisherState.IDLE
