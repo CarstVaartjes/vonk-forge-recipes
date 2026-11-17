@@ -54,12 +54,19 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence as Evidence,
 )
 
+from spark_sweep.evidence_publisher import (
+    ROTATED_FILE,
+    EvidencePublisher,
+    rotated_history,
+)
 from spark_sweep.lifecycle import RecipeStatus, RetestReason
 from spark_sweep.qualification import (
+    BackfillResult,
     backfill,
     current_identity,
     from_history,
     read_evidence,
+    read_history,
     scheduling_priority,
 )
 
@@ -324,6 +331,32 @@ def test_backfill_rotations_idempotent_read_only_and_sanitized(tmp_path):
     imported = from_history(legacy)
     assert imported is not None and imported.identity.runtime_image is None
     assert not imported.identity.models_resolved
+
+
+def test_rotated_logs_are_read_once_and_publish_as_reading_every_log(tmp_path):
+    work, logs = tmp_path / "work", []
+    for day in range(4):
+        row = {**historical(), "recorded_at": (NOW + timedelta(days=day)).isoformat()}
+        logs.append(tmp_path / f"results.jsonl.{day}")
+        logs[-1].write_text(json.dumps(row) + "\n")
+    rotated, live = logs[:3], logs[3]
+    every = read_history(rotated, BackfillResult())
+    full, incremental = tmp_path / "full", tmp_path / "incremental"
+    backfill(logs, full)
+    assert len(read_evidence(full, KEY).records) == 4
+    assert rotated_history(rotated[:2], work) == read_history(
+        rotated[:2], BackfillResult()
+    )
+    rotated[0].write_text("{torn")  # never read again: only the new log is
+    assert rotated_history(rotated, work) == every
+    backfill([live], incremental, None, rotated_history(rotated, work))
+    assert read_evidence(full, KEY) == read_evidence(incremental, KEY)
+    # A log that is gone, or a new sweep, rebuilds from the logs that exist.
+    assert rotated_history(rotated[1:], work) == read_history(
+        rotated[1:], BackfillResult()
+    )
+    EvidencePublisher(live, work, Path("worker"))
+    assert not (work / ROTATED_FILE).exists()
 
 
 def test_historical_infrastructure_failures_are_never_recipe_failures():
