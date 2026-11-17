@@ -150,7 +150,12 @@ def test_lane_tick_never_waits_on_github_and_timeout_is_visible(tmp_path, monkey
     worker.tick(543)
 
 
-def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
+@pytest.mark.parametrize("branch_changed", [True, False])
+def test_evidence_merge_conflict_unions_both_histories(
+    tmp_path, monkeypatch, branch_changed
+):
+    """The branch's own changes are unioned with main; a file the branch never
+    touched is main's version, so rows main removed are not brought back."""
     from datetime import timedelta
 
     from test_qualification_status import KEY, NOW, evidence, record
@@ -175,6 +180,8 @@ def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
             return "remote-branch"
         if "--diff-filter=U" in args:
             return "qualification/evidence/vonk-forge/example.json"
+        if f"origin/main...origin/{publisher.BRANCH}" in args:
+            return "qualification/evidence/vonk-forge/example.json" * branch_changed
         if args[:3] == ("git", "diff", "origin/main"):
             observed.extend(read_evidence(cwd, KEY).records)
             return "changed evidence"
@@ -193,10 +200,8 @@ def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
     monkeypatch.setattr(publisher, "command", command)
     monkeypatch.setattr(publisher.subprocess, "run", merge)
     publisher.sync(history, tmp_path / "work")
-    assert len(observed) == 3
-    assert [r.tested_at for r in observed] == [
-        NOW + timedelta(days=d) for d in range(3)
-    ]
+    days = range(3) if branch_changed else (1, 2)  # branch day 0, main 1, log 2
+    assert [r.tested_at for r in observed] == [NOW + timedelta(days=d) for d in days]
 
 
 def test_publisher_spawn_failure_is_visible_and_never_escapes_to_lanes(
@@ -338,7 +343,7 @@ def _open_pr(tmp_path, monkeypatch, rollup, behind_by):
         if args[:2] == ("gh", "api"):
             return str(behind_by)
         if args[:2] == ("git", "clone"):
-            raise RuntimeError("fresh plan reached")
+            raise subprocess.CalledProcessError(128, args)  # stop at the plan
         return ""
 
     monkeypatch.setattr(publisher, "command", command)
@@ -347,8 +352,8 @@ def _open_pr(tmp_path, monkeypatch, rollup, behind_by):
 
 def test_red_pr_with_moved_main_takes_the_fresh_plan(tmp_path, monkeypatch):
     history, calls = _open_pr(tmp_path, monkeypatch, RED, 3)
-    with pytest.raises(RuntimeError, match="fresh plan reached"):
-        publisher.sync(history, tmp_path / "work")
+    publisher.sync(history, tmp_path / "work")
+    assert any(c[:2] == ("git", "clone") for c in calls)  # the fresh plan
     assert not any(c[:3] == ("gh", "pr", "merge") for c in calls)
 
 
@@ -428,8 +433,8 @@ def test_behind_pr_replans_without_asking_how_far_main_moved(tmp_path, monkeypat
         return original(cwd, *args, **kwargs)
 
     monkeypatch.setattr(publisher, "command", behind)
-    with pytest.raises(RuntimeError, match="fresh plan reached"):
-        publisher.sync(history, tmp_path / "work")
+    publisher.sync(history, tmp_path / "work")
+    assert any(c[:2] == ("git", "clone") for c in calls)  # the fresh plan
     assert not any(c[:2] == ("gh", "api") for c in calls)
 
 
@@ -560,6 +565,7 @@ def test_the_publisher_child_receives_the_sweep_state(tmp_path, monkeypatch):
         tmp_path / "results.jsonl", tmp_path / "publisher", Path("worker"), state
     ).tick(0)
     assert argv[argv.index("--state") + 1] == str(state)
+    assert argv[argv.index("--run") + 1]  # rotated history is keyed on the run
 
 
 def test_the_sweep_wires_its_state_file_into_the_publisher(tmp_path):
@@ -744,6 +750,9 @@ def test_a_rotated_log_is_read_once_and_still_published_every_batch(
     world.open_prs.clear()  # the next batch plans a fresh PR from main again
     world.tick()
     assert [r.tested_at.day for r in world.pushed[-1]] == [20, 21, 22]
+    world.open_prs.clear()  # a new sweep run re-reads every rotated log
+    publisher.sync(world.history, world.work, run="next sweep")
+    assert [r.tested_at.day for r in world.pushed[-1]] == [21, 22]
 
 
 def test_a_slow_red_is_not_reset_by_a_pending_tick(tmp_path, monkeypatch):
@@ -1396,6 +1405,8 @@ def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monke
             )
         if args[:2] == ("git", "ls-remote"):
             return "remote-branch"
+        if f"origin/main...origin/{publisher.BRANCH}" in args:
+            return "qualification/evidence/vonk-forge/example.json"  # branch's own
         if args[:3] == ("git", "diff", "origin/main"):
             observed.extend(read_evidence(cwd, KEY).measured_memory)
             return "changed evidence"
@@ -1414,3 +1425,61 @@ def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monke
     monkeypatch.setattr(publisher.subprocess, "run", merge)
     publisher.sync(history, tmp_path / "work")
     assert observed == []
+
+
+def test_a_non_evidence_branch_conflict_takes_mains_version(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch)
+    world.open_prs.clear()
+    real = publisher.command
+
+    def conflicts(cwd, *args, **kwargs):
+        if "--diff-filter=U" in args:
+            return "recipes/example.json"
+        if args[:2] == ("git", "ls-remote"):
+            return "sha refs/heads/x"
+        if args[:3] == ("git", "checkout", "origin/main"):
+            seed_catalog(Path(cwd))  # main's clean version replaces the markers
+        return real(cwd, *args, **kwargs)
+
+    def merge(args, **kwargs):
+        # a real conflicted merge leaves markers in the recipe file
+        recipe = Path(kwargs["cwd"]) / "recipes/example.json"
+        recipe.write_text("<<<<<<< HEAD\n{}\n=======\n{}\n>>>>>>> origin/main\n")
+        return subprocess.CompletedProcess(args, 1)
+
+    monkeypatch.setattr(publisher, "command", conflicts)
+    monkeypatch.setattr(publisher.subprocess, "run", merge)
+    assert world.tick() == publisher.SweepEvidenceExit.SYNCED
+    assert ("git", "checkout", "origin/main", "--", "recipes/example.json") in (
+        world.calls
+    )
+
+
+def test_any_batch_error_on_an_open_pr_is_recorded_and_alerts_when_repeated(
+    tmp_path, monkeypatch
+):
+    """A DIRTY PR with no checks yet looks pending; the failure is still observed."""
+
+    def command(cwd, *args, **kwargs):
+        if args[:3] == ("gh", "pr", "list"):
+            return pr_list(123)
+        if args[:3] == ("gh", "pr", "view"):
+            return json.dumps(
+                {"number": 123, "mergeStateStatus": "DIRTY", "headRefOid": "A"}
+            )
+        if args[:2] == ("git", "clone"):
+            raise IndexError("unexpected")  # not a command error: the net holds
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    history, work = tmp_path / "results.jsonl", tmp_path / "work"
+    history.write_text("")
+    for state in (publisher.PublisherState.RED, publisher.PublisherState.REFUSED):
+        assert (
+            publisher.sync(history, work) == publisher.SweepEvidenceExit.COMMAND_FAILED
+        )
+        record = publisher.load_state(work)
+        assert record.state == state and record.signature == "publisher IndexError"
+    worker = publisher.EvidencePublisher(history, work, Path("worker"))
+    worker.record = publisher.load_state(work)
+    assert "failing repeatedly: publisher IndexError" in (worker.alert or "")
