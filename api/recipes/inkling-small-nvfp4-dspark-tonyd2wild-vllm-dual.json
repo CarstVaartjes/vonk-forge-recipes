@@ -28,7 +28,6 @@
         "key": "reasoning_effort",
         "kind": "levels",
         "levels": [
-          "none",
           "minimal",
           "low",
           "medium",
