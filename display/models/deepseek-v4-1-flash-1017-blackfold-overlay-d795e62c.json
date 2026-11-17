@@ -1,0 +1,25 @@
+{
+  "capabilities": [],
+  "description": "BlackwellBoy/DeepSeek-V4.1-Flash-1017-BLACKFOLD-EXL3-2.9bpw-TP2 at immutable revision d795e62c91fab64531cfe6b2b5d0c0d8a95a9295, a gated Hugging Face repository (access is approved by hand). It is not a complete checkpoint: heretic_wo_b_exl3_k5_patched.safetensors (997,172,792 bytes) holds 152 EXL3 tensors, the refusal-reduced attention wo_b of blocks 2 to 39, that replace the same-named tensors of the LibertAI DeepSeek-V4.1-Flash-1017 EXL3 2.9bpw pack (the creator builds them with apply_overlay.py; a recipe here overlays them without copying the pack). Weights are MIT. The repository is gated behind its Responsible Use Agreement (RESPONSIBLE_USE.md: adults only, no illegal use, no sexual exploitation of minors, no self-harm promotion, no harassment, no fraud; you own your prompts and outputs and add your own safety filtering when serving others). The terms are shown for information and nothing here gates on them. README images (assets/*) and .gitattributes are not catalogued: they cannot be hashed without the provider token, and the Controller verifies every listed file at ingress with it. Physical Spark acceptance is unmeasured.",
+  "family_title": "DeepSeek",
+  "identity": {
+    "publisher": "blackwellboy",
+    "slug": "deepseek-v4-1-flash-1017-blackfold-overlay-d795e62c"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Blackwellboy for the BLACKFOLD overlay (MIT); pqhaz for the refusal directions; DeepSeek-AI; LibertAI for the EXL3 pack it patches."
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/BlackwellBoy/DeepSeek-V4.1-Flash-1017-BLACKFOLD-EXL3-2.9bpw-TP2/blob/d795e62c91fab64531cfe6b2b5d0c0d8a95a9295/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "DeepSeek V4.1 Flash 1017",
+  "tags": [
+    "deepseek-ai",
+    "deepseek"
+  ]
+}
