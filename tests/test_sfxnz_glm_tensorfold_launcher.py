@@ -7,10 +7,13 @@ from pathlib import Path
 
 import pytest
 
-LAUNCHER = (
-    Path(__file__).resolve().parents[1]
-    / "adapters/glm/sfxnz-tensorfold-native-dual/tensorfold-serve"
-)
+ROOT = Path(__file__).resolve().parents[1]
+# The sfxnz pair and the Sage pair run the same stock-release launch, so one launcher body serves both.
+LAUNCHERS = [
+    ROOT / "adapters/glm/sfxnz-tensorfold-native-dual/tensorfold-serve",
+    ROOT / "adapters/glm/bizuayeu-sage-tensorfold-dual/tensorfold-serve",
+]
+LAUNCHER = LAUNCHERS[0]
 SERVE = ["--host", "0.0.0.0", "--port", "8000", "--vision", "--parallel", "8"]
 PLATFORM = [
     "--tp",
@@ -78,3 +81,10 @@ def test_a_rank_outside_the_world_is_refused(monkeypatch, tmp_path):
     arguments[arguments.index("--rank") + 1] = "2"
     with pytest.raises(SystemExit, match="--rank"):
         launch(monkeypatch, tmp_path, arguments)
+
+
+def test_the_sage_launcher_runs_the_same_code_as_the_sfxnz_launcher():
+    def code(path):
+        return path.read_text().split('"""', 2)[2]
+
+    assert code(LAUNCHERS[1]) == code(LAUNCHERS[0])
