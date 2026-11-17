@@ -1,0 +1,20 @@
+{
+  "alignment": "unspecified",
+  "description": "Bizuayeu's two-Spark Sage-S2.1-Flash Mixed NVFP4 recipe: the stock TensorFold 1.2.9 release (no fork, no patches) at TP=2 over the direct RoCE link, serving the creator's mixed checkpoint (routed experts NVFP4, MLA attention and shared experts the official FP8 bytes, KDA attention, head and vision tower BF16) with thinking on, in the launch the creator verified on release 1.2.9: a 40,960-token window for one request at a time, vision off, 16 kept prompt states (TF_KV_SHARE 16) and a 9 GiB reserve. The creator publishes no image: the image installs the checksummed release archive on NVIDIA's CUDA 13.0 base, and Controller placement supplies rank, rendezvous and RoCE rails. Memory is very tight: the creator measured 92.51 GiB of model on the first machine and 8.62 GiB free at the lowest on a pair of Sparks (the declared peak is the 121.69 GiB total less that), all estimates until tried here. Upstream figures (19.9 tok/s decode with drafts off, 6.7 s to the first token of a cold 9,600-token prompt, KL 0.0426 and 93.56% top-1 agreement against BF16) are the creator's, not measured here. Image input and a 262,144-token window were verified by the creator only on TensorFold main 077998f7d9 and are not enabled here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "sage-s2-1-flash-mixed-nvfp4-bizuayeu-tensorfold-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "sage",
+    "glm",
+    "tensorfold",
+    "nvfp4",
+    "mtp",
+    "tool-use",
+    "reasoning",
+    "spark"
+  ],
+  "title": "Sage S2.1 Flash Mixed NVFP4 TensorFold dual Spark (Bizuayeu)"
+}

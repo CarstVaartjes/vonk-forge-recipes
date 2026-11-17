@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "sage-s2-1-flash",
+          "title": "Sage S2.1 Flash"
+        }
+      ],
+      "slug": "sage-flash",
+      "title": "Sage Flash"
+    }
+  ],
+  "slug": "sage",
+  "title": "Sage"
+}
