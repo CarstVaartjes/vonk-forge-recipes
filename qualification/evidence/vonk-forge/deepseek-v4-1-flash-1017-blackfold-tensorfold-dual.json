@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-1-flash-1017-blackfold-tensorfold-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "9055ead9ddb4a252ddc64ed732dba2d26482650f18729f8656e40e26c383190f",
+        "source_bundle_sha256": "80b227dce448cff92f7bd60bd8da6f65bf586a3c8de462148d7d56c4264a8662",
+        "runtime_image": {
+          "build_key": "c740bcb86020c855977a88d44ff5bbe067c3f55d691701e3451b36e9dd32cc58",
+          "image_digest": "sha256:df2a90919f2e6344e9e5c3b2ea22b0bd20fd963d4f58e61f468572abacd3549a"
+        },
+        "model_digests": [
+          "48bcc4bdbd7f13c250797fef405f9a258b116b451374e5ff97fa8e3aa31ba78e",
+          "dfdc41c1d5ca8c8812766ad74d6438036cbe33a989557ad46809fef6fac7806e",
+          "e65ca30a5c3a5dca9b771734ef268a8cb9af7192fd79be73d334212d072e9462"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "c2be56d1148df378027de2a06941e55e477a8f0babd20e4c1a5b735154734db4"
+      ],
+      "tested_at": "2026-11-17T18:02:09.200848Z",
+      "platform": {
+        "controller_source_sha": "fce627521b4ad2c17a842768eea53bc868687669",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "9055ead9ddb4a252ddc64ed732dba2d26482650f18729f8656e40e26c383190f",
+      "role": "entrypoint",
+      "steady_bytes": 122858127360
+    },
+    {
+      "content_sha256": "9055ead9ddb4a252ddc64ed732dba2d26482650f18729f8656e40e26c383190f",
+      "role": "worker",
+      "steady_bytes": 121463898112
+    }
+  ]
+}
