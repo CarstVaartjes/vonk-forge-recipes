@@ -33,7 +33,6 @@
           "low",
           "medium",
           "high",
-          "xhigh",
           "max"
         ],
         "via": "top_level"
