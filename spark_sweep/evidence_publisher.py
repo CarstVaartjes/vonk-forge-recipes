@@ -325,11 +325,7 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
 
 
 def own_open_prs(cwd: Path) -> list[dict]:
-    """The open evidence PR from this repository, at most one.
-
-    Newest request wins: older duplicates are closed (the shared branch stays,
-    the newest PR uses it). A failed close is a command failure, retried next batch.
-    """
+    """The open evidence PR from this repository: GitHub allows one per head and base."""
     own = own_pulls(
         json.loads(
             command(
@@ -350,20 +346,7 @@ def own_open_prs(cwd: Path) -> list[dict]:
             )
         )
     )
-    own.sort(key=lambda pr: pr["number"])
-    for older in own[:-1]:
-        command(
-            cwd,
-            "gh",
-            "pr",
-            "close",
-            str(older["number"]),
-            "--repo",
-            REPOSITORY,
-            "--comment",
-            f"Superseded by #{own[-1]['number']}, the newest evidence PR.",
-        )
-    return own[-1:]
+    return own
 
 
 def sync(

@@ -63,8 +63,7 @@ keep private diagnostic artifacts in local state only. The sweep's publisher
 reads the live log every batch; a rotated log never changes, so its merged
 evidence is kept in `evidence-publisher/rotated-history.json`, keyed on the
 sweep run that built it, so each new sweep reads every log once (also after an
-orphaned publisher child of the old sweep wrote it). Duplicate own evidence PRs
-are healed: the newest stays open and the older ones are closed.
+orphaned publisher child of the old sweep wrote it).
 
 The sweep's background `tools/sync-qualification-evidence` batches evidence onto
 `qualification/evidence`, maintains one open “qualification evidence” PR and

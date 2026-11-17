@@ -1425,33 +1425,6 @@ def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monke
     assert observed == []
 
 
-def test_duplicate_evidence_prs_close_the_older_and_keep_the_newest(
-    tmp_path, monkeypatch
-):
-    open_prs, calls = [123, 125], []
-
-    def command(cwd, *args, **kwargs):
-        calls.append(args)
-        if args[:3] == ("gh", "pr", "list"):
-            return pr_list(*open_prs)
-        if args[:3] == ("gh", "pr", "close"):
-            open_prs.remove(int(args[3]))
-        if args[:3] == ("gh", "pr", "view"):
-            assert args[3] == "125"
-            return json.dumps({"number": 125, "statusCheckRollup": PENDING})
-        return ""
-
-    monkeypatch.setattr(publisher, "command", command)
-    history = tmp_path / "results.jsonl"
-    history.write_text("")
-    exit_code = publisher.sync(history, tmp_path / "work")
-    assert exit_code == publisher.SweepEvidenceExit.WAITING
-    (close,) = [c for c in calls if c[:3] == ("gh", "pr", "close")]
-    assert close[3] == "123" and "--delete-branch" not in close  # 125 uses it
-    assert open_prs == [125]
-    assert publisher.load_state(tmp_path / "work").pr == 125
-
-
 def test_a_non_evidence_branch_conflict_is_a_command_failure(tmp_path, monkeypatch):
     world = World(tmp_path, monkeypatch)
     world.open_prs.clear()
