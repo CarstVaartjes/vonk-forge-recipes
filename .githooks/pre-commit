@@ -7,7 +7,8 @@ cd "$root"
 # The catalog index, packages and coverage are build outputs (ignored by Git);
 # CI builds and validates them. This hook only runs the pinned static checks.
 # Only the staged Python files are checked, from the working tree (the index is
-# not materialised); unstaged edits elsewhere never block a commit. Extensionless
+# not materialised); unstaged edits no longer refuse the commit; lint and format check only staged
+# paths; the type gate still reads the working tree. Extensionless
 # executables count when their first line is a python shebang.
 staged_python=""
 newline='
