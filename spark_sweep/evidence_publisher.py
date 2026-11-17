@@ -51,11 +51,9 @@ TITLE = "qualification evidence"
 _deadline: float | None = None
 STATE_FILE = "publisher-state.json"
 CHILD_BUDGET = 240  # seconds a publisher child may run, as seen from the sweep
-#: How long one evidence PR head may stay open before it is reported. Its longest
-#: check path is recipe-images "Plan images" (timeout-minutes 30), then "Verify
-#: catalog index" (20); the next batch sees the outcome at most one 300s re-plan
-#: later. A head still open after that is not waiting on CI: it is stuck.
-STALL_SECONDS = (30 + 20) * 60 + 300
+#: How long one evidence PR may stay open before it is reported. Evidence PRs were
+#: observed to merge 6-14 minutes after they opened; an hour open is stuck.
+STALL_SECONDS = 3600
 
 
 def kill_group(process: subprocess.Popen) -> None:
@@ -93,11 +91,10 @@ class PublisherRecord(BaseModel):
         ""  # origin/main when they were refused; they are released when it moves
     )
     pr: int = 0  # the open evidence PR last seen; 0 when none was open
-    pr_head: str = ""  # its head then, red or not
-    pr_since: float = 0.0  # wall-clock time that head was first seen open
+    pr_since: float = 0.0  # wall-clock time that PR was first seen open
 
     def stalled(self, now: float) -> bool:
-        """The same PR head has been open past the CI bound, waiting or red."""
+        """The same PR has been open past STALL_SECONDS, waiting or red."""
         return bool(self.pr) and now - self.pr_since > STALL_SECONDS
 
 
@@ -118,8 +115,8 @@ def transition(
     refused: tuple[str, ...] | None = None,
     main: str | None = None,
     observed: bool = True,
-    open_pr: tuple[int, str] | None = None,
-    now: float = 0.0,
+    open_pr: int | None = None,
+    now: float,
 ) -> PublisherRecord:
     """The only place a record is chosen; an undeclared edge self-heals to IDLE.
 
@@ -128,9 +125,10 @@ def transition(
     a new tick. The same head seen on two ticks is one run and stays RED. A
     rollup that is still running (`observed` False) changes no red state.
 
-    `open_pr` is the (number, head) of the open PR this batch saw, (0, "") for
-    none, None when the batch failed before looking: the head's clock keeps
-    running until a different head (or no PR) is seen, also while checks run.
+    `open_pr` is the number of the open PR this batch saw, 0 for none, None when
+    the batch failed before looking. The PR's clock keeps running through pushes,
+    pending checks and failures until another PR (a refusal closes it) or none
+    is seen; `now` starts it.
     """
     if not observed:
         signature, head, command = current.signature, current.head, current.command
@@ -146,9 +144,8 @@ def transition(
     else:
         wanted = PublisherState.RED
     state = wanted if wanted in EDGES.get(current.state, ()) else PublisherState.IDLE
-    pr, pr_head = (current.pr, current.pr_head) if open_pr is None else open_pr
-    same = (pr, pr_head) == (current.pr, current.pr_head)
-    since = current.pr_since if same else now if pr else 0.0
+    pr = current.pr if open_pr is None else open_pr
+    since = current.pr_since if pr == current.pr else now if pr else 0.0
     kept = current.refused if refused is None else refused
     grew = bool(set(kept) - set(current.refused))
     red = state != PublisherState.IDLE
@@ -163,7 +160,6 @@ def transition(
         ),
         main=(current.main if main is None else main) if kept else "",
         pr=pr,
-        pr_head=pr_head if pr else "",
         pr_since=since,
     )
 
@@ -179,7 +175,7 @@ class Seen:
     main: str | None = None
     pending: bool = False  # the PR's checks are still running: nothing was observed
     closing: bool = False  # the blocked PR is being closed; a failure retries it
-    open_pr: tuple[int, str] | None = None  # (number, head); (0, "") when none is open
+    open_pr: int | None = None  # the open PR's number; 0 when none is open
 
 
 def load_state(directory: Path) -> PublisherRecord:
@@ -426,7 +422,7 @@ def _batch(
     red = False
     blocked = 0
     if not opened:
-        seen.open_pr = (0, "")  # observed: nothing is waiting
+        seen.open_pr = 0  # observed: nothing is waiting
     if opened:
         pr = PullRequest.model_validate(opened[0])
         details = PullRequest.model_validate_json(
@@ -449,7 +445,7 @@ def _batch(
         red = details.check_failed
         seen.signature = details.failure_signature if red else None
         seen.head = details.head
-        seen.open_pr = (pr.number, details.head)
+        seen.open_pr = pr.number
         # Checks still running, or none registered yet on a head we have not seen red.
         seen.pending = not red and (
             not details.settled
@@ -457,7 +453,9 @@ def _batch(
         )
         blocked = pr.number
         refusing = (
-            transition(previous, signature=seen.signature, head=seen.head).state
+            transition(
+                previous, signature=seen.signature, head=seen.head, now=time.time()
+            ).state
             == PublisherState.REFUSED
         )
         replan = (
@@ -700,8 +698,11 @@ class EvidencePublisher:
 
     @property
     def alert(self) -> str | None:
+        return self.alert_at(time.time())
+
+    def alert_at(self, now: float) -> str | None:
         """Raised when the publisher is broken: refused records, a repeated failure,
-        or an evidence PR head open past the CI bound. Report only: lanes go on."""
+        or an evidence PR open past STALL_SECONDS. Report only: lanes go on."""
         record = self.record
         alerts = []
         if record.refused:
@@ -712,11 +713,11 @@ class EvidencePublisher:
             )
         elif record.state == PublisherState.REFUSED:
             alerts.append(f"evidence publisher: failing repeatedly: {record.signature}")
-        if record.stalled(time.time()):
+        if record.stalled(now):
             since = datetime.fromtimestamp(record.pr_since, UTC)
             alerts.append(
-                f"evidence publisher: PR #{record.pr} has been open on head "
-                f"{record.pr_head[:12]} since {since:%Y-%m-%d %H:%M} UTC "
+                f"evidence publisher: PR #{record.pr} has been open "
+                f"since {since:%Y-%m-%d %H:%M} UTC "
                 + (
                     f"(last failure: {record.signature})"
                     if record.state != PublisherState.IDLE
