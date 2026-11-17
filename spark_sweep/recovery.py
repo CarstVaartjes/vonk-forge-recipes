@@ -191,10 +191,15 @@ def changed_release(
         return None
     if entry.get("release") == release:
         return None
-    if entry.get("code") in FAULT_OWNERS and isinstance(
-        entry.get("recovery_basis"), Mapping
+    owner = FAULT_OWNERS.get(entry.get("code"))
+    if (
+        owner is not None
+        and owner != "sweep"
+        and isinstance(entry.get("recovery_basis"), Mapping)
     ):
-        return None  # a fault with an observed owner is reopened by that owner's change
+        # A fault with an observed software owner is reopened by that owner's change. A sweep
+        # crash is reopened by that too, and also by a Controller release change.
+        return None
     basis = {"controller_release": release}
     history = entry.get("recovery_history", [])
     if not isinstance(history, list) or any(

@@ -2237,7 +2237,8 @@ class Sweep:
         entry.pop("exit_repeat", None)
         if "exit_cause" not in facts:
             # An unnamed class keeps its own class and code (no recipe cause is invented): it is
-            # recorded as the platform's, deferred, and reopened by a release change.
+            # recorded as the platform's, deferred, and reopened by a Controller release change (and, for
+            # a sweep crash, by a change of the sweep's own source).
             return replace(
                 failure, evidence={**failure.evidence, "identical_exits": count}
             )
@@ -3477,10 +3478,10 @@ class Sweep:
             evidence,
         )
         accepted = AcceptedRequest.read(slot)
-        # Without an accepted request the catalog's current content is the identity.
-        recipe = accepted.recipe if accepted is not None else self.recipes.get(key)
-        if recipe is not None:
-            bounded = self._bound_identical_exit(self.state.entry(key), failure, recipe)
+        if accepted is not None:
+            bounded = self._bound_identical_exit(
+                self.state.entry(key), failure, accepted.recipe
+            )
             if bounded.evidence.get("identical_exits"):
                 self._record_failure(key, bounded, slot.get("operation_id"))
                 return
