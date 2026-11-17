@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/sage-s2-1-flash-mixed-nvfp4-bizuayeu-tensorfold-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "a21ebd8e6b1cefaae677854a3459e3ea1e3f9e831750d7679251ca9e69fe106b",
+        "source_bundle_sha256": "0403bb7213cf90ce0cb385731f0e713b9f79aa0dd3d6c5ab5aa558e0639c5df6",
+        "runtime_image": {
+          "build_key": "7d671c98c57a700e6e374bdffc2752bd0368026169b4b0a844ef13b485aef105",
+          "image_digest": "sha256:294e65b39c18a47077c6b9a8877913ee9f1f0173090aa1066388d4e0e15075a7"
+        },
+        "model_digests": [
+          "825dfd11cafd263cc0bf62a65aa42c3abb75b510c39385924fa4787a291c0d98"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "efc4f92e93f3f5f204a2c9147c9490c954bb249e582ec8fe00704dca3f38d035"
+      ],
+      "tested_at": "2026-11-17T18:46:20.276573Z",
+      "platform": {
+        "controller_source_sha": "fce627521b4ad2c17a842768eea53bc868687669",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "a21ebd8e6b1cefaae677854a3459e3ea1e3f9e831750d7679251ca9e69fe106b",
+      "role": "entrypoint",
+      "steady_bytes": 122255745024
+    },
+    {
+      "content_sha256": "a21ebd8e6b1cefaae677854a3459e3ea1e3f9e831750d7679251ca9e69fe106b",
+      "role": "worker",
+      "steady_bytes": 122787520512
+    }
+  ]
+}
