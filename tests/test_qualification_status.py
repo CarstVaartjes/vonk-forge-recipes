@@ -55,8 +55,6 @@ from vonk_forge_contracts import (
 )
 
 from spark_sweep.evidence_publisher import (
-    ROTATED_FILE,
-    EvidencePublisher,
     rotated_history,
 )
 from spark_sweep.lifecycle import RecipeStatus, RetestReason
@@ -351,12 +349,16 @@ def test_rotated_logs_are_read_once_and_publish_as_reading_every_log(tmp_path):
     assert rotated_history(rotated, work) == every
     backfill([live], incremental, None, rotated_history(rotated, work))
     assert read_evidence(full, KEY) == read_evidence(incremental, KEY)
-    # A log that is gone, or a new sweep, rebuilds from the logs that exist.
+    # A log that is gone rebuilds from the logs that exist.
     assert rotated_history(rotated[1:], work) == read_history(
         rotated[1:], BackfillResult()
     )
-    EvidencePublisher(live, work, Path("worker"))
-    assert not (work / ROTATED_FILE).exists()
+    # Another sweep run rebuilds too, even when an orphaned child of the old
+    # run wrote the file after the new sweep started.
+    rotated[1].write_text("{torn")  # cached by this run; another run re-reads it
+    assert rotated_history(rotated[1:], work, "new run") == read_history(
+        rotated[1:], BackfillResult()
+    )
 
 
 def test_historical_infrastructure_failures_are_never_recipe_failures():
