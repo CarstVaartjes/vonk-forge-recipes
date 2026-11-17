@@ -150,7 +150,12 @@ def test_lane_tick_never_waits_on_github_and_timeout_is_visible(tmp_path, monkey
     worker.tick(543)
 
 
-def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
+@pytest.mark.parametrize("branch_changed", [True, False])
+def test_evidence_merge_conflict_unions_both_histories(
+    tmp_path, monkeypatch, branch_changed
+):
+    """The branch's own changes are unioned with main; a file the branch never
+    touched is main's version, so rows main removed are not brought back."""
     from datetime import timedelta
 
     from test_qualification_status import KEY, NOW, evidence, record
@@ -175,6 +180,8 @@ def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
             return "remote-branch"
         if "--diff-filter=U" in args:
             return "qualification/evidence/vonk-forge/example.json"
+        if f"origin/main...origin/{publisher.BRANCH}" in args:
+            return "qualification/evidence/vonk-forge/example.json" * branch_changed
         if args[:3] == ("git", "diff", "origin/main"):
             observed.extend(read_evidence(cwd, KEY).records)
             return "changed evidence"
@@ -193,10 +200,8 @@ def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
     monkeypatch.setattr(publisher, "command", command)
     monkeypatch.setattr(publisher.subprocess, "run", merge)
     publisher.sync(history, tmp_path / "work")
-    assert len(observed) == 3
-    assert [r.tested_at for r in observed] == [
-        NOW + timedelta(days=d) for d in range(3)
-    ]
+    days = range(3) if branch_changed else (1, 2)  # branch day 0, main 1, log 2
+    assert [r.tested_at for r in observed] == [NOW + timedelta(days=d) for d in days]
 
 
 def test_publisher_spawn_failure_is_visible_and_never_escapes_to_lanes(
@@ -560,6 +565,7 @@ def test_the_publisher_child_receives_the_sweep_state(tmp_path, monkeypatch):
         tmp_path / "results.jsonl", tmp_path / "publisher", Path("worker"), state
     ).tick(0)
     assert argv[argv.index("--state") + 1] == str(state)
+    assert argv[argv.index("--run") + 1]  # rotated history is keyed on the run
 
 
 def test_the_sweep_wires_its_state_file_into_the_publisher(tmp_path):
@@ -1414,3 +1420,54 @@ def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monke
     monkeypatch.setattr(publisher.subprocess, "run", merge)
     publisher.sync(history, tmp_path / "work")
     assert observed == []
+
+
+def test_duplicate_evidence_prs_close_the_older_and_keep_the_newest(
+    tmp_path, monkeypatch
+):
+    open_prs, calls = [123, 125], []
+
+    def command(cwd, *args, **kwargs):
+        calls.append(args)
+        if args[:3] == ("gh", "pr", "list"):
+            return pr_list(*open_prs)
+        if args[:3] == ("gh", "pr", "close"):
+            open_prs.remove(int(args[3]))
+        if args[:3] == ("gh", "pr", "view"):
+            assert args[3] == "125"
+            return json.dumps({"number": 125, "statusCheckRollup": PENDING})
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    history = tmp_path / "results.jsonl"
+    history.write_text("")
+    exit_code = publisher.sync(history, tmp_path / "work")
+    assert exit_code == publisher.SweepEvidenceExit.WAITING
+    (close,) = [c for c in calls if c[:3] == ("gh", "pr", "close")]
+    assert close[3] == "123" and "--delete-branch" not in close  # 125 uses it
+    assert open_prs == [125]
+    assert publisher.load_state(tmp_path / "work").pr == 125
+
+
+def test_a_non_evidence_branch_conflict_is_a_command_failure(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch)
+    world.open_prs.clear()
+    real = publisher.command
+
+    def conflicts(cwd, *args, **kwargs):
+        if "--diff-filter=U" in args:
+            return "recipes/example.json"
+        if args[:2] == ("git", "ls-remote"):
+            return "sha refs/heads/x"
+        return real(cwd, *args, **kwargs)
+
+    monkeypatch.setattr(publisher, "command", conflicts)
+    monkeypatch.setattr(
+        publisher.subprocess,
+        "run",
+        lambda args, **kwargs: subprocess.CompletedProcess(args, 1),
+    )
+    for state in (publisher.PublisherState.RED, publisher.PublisherState.REFUSED):
+        assert world.tick() == publisher.SweepEvidenceExit.COMMAND_FAILED
+        record = publisher.load_state(world.work)
+        assert record.state == state and record.signature == "merge main exit conflict"

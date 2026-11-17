@@ -6,7 +6,6 @@ its next attempt; no force push, unbounded wait, or sweep-state write is used.
 
 from __future__ import annotations
 
-import contextlib
 import hashlib
 import json
 import os
@@ -14,6 +13,7 @@ import signal
 import subprocess
 import tempfile
 import time
+import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -70,6 +70,10 @@ def kill_group(process: subprocess.Popen) -> None:
 
 class EvidencePublicationTimeout(TimeoutError):
     """Only the optional repository transport ends; hardware lanes continue."""
+
+
+class BranchConflict(RuntimeError):
+    """Main conflicts with the evidence branch outside evidence: a command failure."""
 
 
 _PASSED = (
@@ -198,18 +202,20 @@ class RotatedHistory(BaseModel):
     """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
+    run: str = ""  # the sweep run whose code built it; another run rebuilds it
     files: tuple[str, ...] = ()
     evidence: dict[str, RecipeQualificationEvidence] = Field(default_factory=dict)
 
 
 def rotated_history(
-    rotated: list[Path], directory: Path
+    rotated: list[Path], directory: Path, run: str = ""
 ) -> dict[str, RecipeQualificationEvidence]:
     """The rotated logs' evidence, reading only logs rotated since the last batch.
 
-    A missing or unreadable file, or one naming a log that is gone, is rebuilt
-    from every rotated log: a first run, a fresh clone and a new sweep (which
-    drops the file, so a conversion fix reaches old rows) read them all.
+    A file that is missing or unreadable, names a log that is gone, or was built
+    by another sweep run is rebuilt from every rotated log: a new sweep's code
+    re-reads old rows once, even when an orphaned child of the old sweep wrote
+    the file last. Otherwise only newly rotated logs are read and merged on top.
     """
     try:
         known = RotatedHistory.model_validate_json(
@@ -218,7 +224,7 @@ def rotated_history(
     except (OSError, ValidationError):
         known = RotatedHistory()
     names = [path.name for path in rotated]
-    if not set(known.files) <= set(names):
+    if known.run != run or not set(known.files) <= set(names):
         known = RotatedHistory()
     new = [path for path in rotated if path.name not in known.files]
     if not new:
@@ -234,7 +240,9 @@ def rotated_history(
     write_atomic(
         directory / ROTATED_FILE,
         RotatedHistory(
-            files=(*known.files, *(path.name for path in new)), evidence=evidence
+            run=run,
+            files=(*known.files, *(path.name for path in new)),
+            evidence=evidence,
         ).model_dump_json(),
     )
     return evidence
@@ -317,7 +325,11 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
 
 
 def own_open_prs(cwd: Path) -> list[dict]:
-    """Open PRs on the evidence branch that come from this repository."""
+    """The open evidence PR from this repository, at most one.
+
+    Newest request wins: older duplicates are closed (the shared branch stays,
+    the newest PR uses it). A failed close is a command failure, retried next batch.
+    """
     own = own_pulls(
         json.loads(
             command(
@@ -329,6 +341,8 @@ def own_open_prs(cwd: Path) -> list[dict]:
                 REPOSITORY,
                 "--head",
                 BRANCH,
+                "--base",
+                "main",
                 "--state",
                 "open",
                 "--json",
@@ -336,13 +350,28 @@ def own_open_prs(cwd: Path) -> list[dict]:
             )
         )
     )
-    if len(own) > 1:
-        raise RuntimeError("multiple qualification evidence PRs; needs repair")
-    return own
+    own.sort(key=lambda pr: pr["number"])
+    for older in own[:-1]:
+        command(
+            cwd,
+            "gh",
+            "pr",
+            "close",
+            str(older["number"]),
+            "--repo",
+            REPOSITORY,
+            "--comment",
+            f"Superseded by #{own[-1]['number']}, the newest evidence PR.",
+        )
+    return own[-1:]
 
 
 def sync(
-    history: Path, directory: Path, state: Path | None = None, final: bool = False
+    history: Path,
+    directory: Path,
+    state: Path | None = None,
+    final: bool = False,
+    run: str = "",
 ) -> SweepEvidenceExit:
     """One batch, then record what it saw. A failing command never crashes the child.
 
@@ -353,12 +382,13 @@ def sync(
     directory.mkdir(parents=True, exist_ok=True)
     previous = load_state(directory)
     try:
-        code = _batch(history, directory, state, seen, previous, final)
+        code = _batch(history, directory, state, seen, previous, final, run)
     except (
         subprocess.CalledProcessError,
         subprocess.TimeoutExpired,
         EvidencePublicationTimeout,
         ValueError,  # malformed evidence or provider JSON, incl. pydantic's ValidationError
+        BranchConflict,
     ) as error:
         # The signature is keyed on behaviour; the real error goes to publisher.log.
         print(f"evidence: {type(error).__name__}: {error}", flush=True)
@@ -366,6 +396,8 @@ def sync(
             print(f"evidence: stderr: {stderr}", flush=True)
         if isinstance(error, ValueError):
             seen.signature = "validate evidence exit invalid"
+        elif isinstance(error, BranchConflict):
+            seen.signature = "merge main exit conflict"
         else:
             argv = " ".join(map(str, getattr(error, "cmd", ())[:2]))
             exit_code = getattr(error, "returncode", None)
@@ -410,10 +442,9 @@ def _evidence_records(clone: Path, ref: str, name: str) -> tuple:
         return ()  # the file does not exist at that ref
 
 
-def _branch_only_ids(clone: Path) -> list[str]:
-    """Ids of the records the evidence branch carries that main does not."""
-    command(clone, "git", "fetch", "origin", f"{BRANCH}:refs/remotes/origin/{BRANCH}")
-    names = command(
+def _branch_files(clone: Path) -> list[str]:
+    """Evidence files the branch changed since it left main (read after a fetch)."""
+    return command(
         clone,
         "git",
         "diff",
@@ -422,6 +453,12 @@ def _branch_only_ids(clone: Path) -> list[str]:
         "--",
         "qualification/evidence",
     ).splitlines()
+
+
+def _branch_only_ids(clone: Path) -> list[str]:
+    """Ids of the records the evidence branch carries that main does not."""
+    command(clone, "git", "fetch", "origin", f"{BRANCH}:refs/remotes/origin/{BRANCH}")
+    names = _branch_files(clone)
     ids = []
     for name in names:
         key = (
@@ -466,6 +503,7 @@ def _batch(
     seen: Seen,
     previous: PublisherRecord,
     final: bool = False,
+    run: str = "",
 ) -> SweepEvidenceExit:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
     global _deadline
@@ -611,15 +649,18 @@ def _batch(
                 f"{BRANCH}:refs/remotes/origin/{BRANCH}",
             )
             command(clone, "git", "checkout", "-b", BRANCH, f"origin/{BRANCH}")
-            # Read both parent versions before merge; evidence conflicts are unions.
+            # Read the branch's own changes before merge; evidence conflicts are
+            # unions. A file the branch never touched is main's to keep as is.
             inherited = {}
-            for path in (clone / "qualification/evidence").rglob("*.json"):
-                key = (
-                    path.relative_to(clone / "qualification/evidence")
-                    .with_suffix("")
-                    .as_posix()
-                )
-                inherited[key] = read_evidence(clone, key)
+            for name in _branch_files(clone):
+                if (clone / name).is_file():  # not deleted on the branch
+                    key = (
+                        Path(name)
+                        .relative_to("qualification/evidence")
+                        .with_suffix("")
+                        .as_posix()
+                    )
+                    inherited[key] = read_evidence(clone, key)
             result = subprocess.run(
                 ["git", "merge", "--no-commit", "--no-ff", "origin/main"],
                 cwd=clone,
@@ -635,8 +676,8 @@ def _batch(
                 if not conflicts or any(
                     not p.startswith("qualification/evidence/") for p in conflicts
                 ):
-                    raise RuntimeError(
-                        "evidence branch has a non-evidence conflict; needs repair"
+                    raise BranchConflict(
+                        f"evidence branch conflicts outside evidence: {conflicts}"
                     )
                 keys = catalog_recipe_keys(clone)
                 for name in conflicts:
@@ -664,7 +705,7 @@ def _batch(
         else:
             command(clone, "git", "checkout", "-b", BRANCH, "origin/main")
         rotated = rotated_history(
-            sorted(history.parent.glob(history.name + ".*")), directory
+            sorted(history.parent.glob(history.name + ".*")), directory, run
         )
         live = [history] if history.exists() else []
         local = read_state_evidence(state) if state is not None else {}
@@ -744,9 +785,7 @@ class EvidencePublisher:
         self.state = state
         self.directory = directory
         # A new sweep may run new conversion code: its first batch reads every log.
-        # Best effort: a file left behind is rebuilt anyway once its logs change.
-        with contextlib.suppress(OSError):
-            (directory / ROTATED_FILE).unlink(missing_ok=True)
+        self.run = uuid.uuid4().hex
         self.script = script
         self.process: subprocess.Popen | None = None
         self.next_attempt = 0.0
@@ -826,6 +865,8 @@ class EvidencePublisher:
                     str(self.history),
                     "--work-dir",
                     str(self.directory),
+                    "--run",
+                    self.run,
                     *(["--state", str(self.state)] if self.state else []),
                     *(["--final"] if final else []),
                 ],
