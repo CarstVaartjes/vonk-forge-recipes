@@ -19,7 +19,6 @@ from typing import Any
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
 
 
 def load(name: str, module: str):
@@ -958,11 +957,11 @@ class ModelPayloadTests(unittest.TestCase):
     def test_stored_weights_that_roles_for_calls_metadata_are_compared(self) -> None:
         from tools._catalog_model import roles_for
 
-        self.assertEqual(roles_for("model.gguf"), ["metadata"])
+        self.assertEqual(roles_for("model.dat"), ["metadata"])
         old = {
-            "files": [{"path": "model.gguf", "roles": ["weights"], "sha256": "a" * 64}]
+            "files": [{"path": "model.dat", "roles": ["weights"], "sha256": "a" * 64}]
         }
-        new = [{"path": "model.gguf", "roles": ["metadata"], "sha256": "b" * 64}]
+        new = [{"path": "model.dat", "roles": ["metadata"], "sha256": "b" * 64}]
         self.assertFalse(refresh.payload_identical(old, new))
         new[0]["sha256"] = "a" * 64
         self.assertTrue(refresh.payload_identical(old, new))

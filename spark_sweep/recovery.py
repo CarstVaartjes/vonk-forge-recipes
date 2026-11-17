@@ -7,15 +7,17 @@ changed owner; they do not create another deployment or workload authority.
 
 from __future__ import annotations
 
+import hashlib
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Literal
 
 from .lifecycle import RecipeStatus
 
-Owner = Literal["client", "api", "worker", "agent"]
+Owner = Literal["client", "api", "worker", "agent", "sweep"]
 _SOURCE = re.compile(r"[0-9a-f]{40}\Z")
 _CONTRACT = re.compile(r"[0-9a-f]{64}\Z")
 OBSERVATION_SECONDS = 60.0
@@ -24,7 +26,8 @@ OBSERVATION_SECONDS = 60.0
 # _argument_error, not the API or an agent. Generic application failures,
 # transport errors, capacity and preparation waits do not identify a software
 # owner. Add a code only with evidence from its actual canonical producer.
-FAULT_OWNERS: Mapping[str, Owner] = {"arguments": "client"}
+# ``smoke.crash`` is raised by the sweep's own code (``Sweep._smoke_crashed``).
+FAULT_OWNERS: Mapping[str, Owner] = {"arguments": "client", "smoke.crash": "sweep"}
 
 
 @dataclass(frozen=True)
@@ -62,8 +65,19 @@ def _timestamp(value: Any) -> float | None:
         return None
 
 
+def sweep_source_digest() -> str:
+    """The sweep's own code identity: a digest of this package's sources (no git)."""
+    digest = hashlib.sha256()
+    for path in sorted(Path(__file__).parent.glob("*.py")):
+        digest.update(path.name.encode() + b"\0" + path.read_bytes())
+    return digest.hexdigest()
+
+
 def fingerprints(
-    platform: Mapping[str, Any], client: Mapping[str, Any], now: float
+    platform: Mapping[str, Any],
+    client: Mapping[str, Any],
+    now: float,
+    sweep_source: str,
 ) -> dict[Owner, Fingerprint | None]:
     """Project the current contract; missing/stale/mixed provenance stays unknown.
 
@@ -76,6 +90,8 @@ def fingerprints(
         "api": None,
         "worker": None,
         "agent": None,
+        # Both fields carry the digest: a fix to the sweep's code reopens its crashes.
+        "sweep": _identity("sweep", sweep_source[:40], sweep_source),
     }
     observed = _timestamp(platform.get("observed_at"))
     if observed is None or not -5.0 <= now - observed <= OBSERVATION_SECONDS:
@@ -175,10 +191,16 @@ def changed_release(
         return None
     if entry.get("release") == release:
         return None
-    if entry.get("code") in FAULT_OWNERS and isinstance(
-        entry.get("recovery_basis"), Mapping
+    code = entry.get("code")
+    owner = FAULT_OWNERS.get(code) if isinstance(code, str) else None
+    if (
+        owner is not None
+        and owner != "sweep"
+        and isinstance(entry.get("recovery_basis"), Mapping)
     ):
-        return None  # a fault with an observed owner is reopened by that owner's change
+        # A fault with an observed software owner is reopened by that owner's change. A sweep
+        # crash is reopened by that too, and also by a Controller release change.
+        return None
     basis = {"controller_release": release}
     history = entry.get("recovery_history", [])
     if not isinstance(history, list) or any(

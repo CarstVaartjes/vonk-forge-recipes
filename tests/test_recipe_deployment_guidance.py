@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from documents import recipe_display
 from generated_catalog import GENERATED
 from vonk_forge_contracts import RecipeDefinition, document_sha256
