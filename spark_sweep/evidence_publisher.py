@@ -6,6 +6,7 @@ its next attempt; no force push, unbounded wait, or sweep-state write is used.
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -714,7 +715,9 @@ class EvidencePublisher:
         self.state = state
         self.directory = directory
         # A new sweep may run new conversion code: its first batch reads every log.
-        (directory / ROTATED_FILE).unlink(missing_ok=True)
+        # Best effort: a file left behind is rebuilt anyway once its logs change.
+        with contextlib.suppress(OSError):
+            (directory / ROTATED_FILE).unlink(missing_ok=True)
         self.script = script
         self.process: subprocess.Popen | None = None
         self.next_attempt = 0.0

@@ -731,6 +731,21 @@ def test_the_real_red_sequence_ends_refused_with_a_fresh_pr_and_an_alert(
     assert "refused (red twice: lint)" in worker.message
 
 
+def test_a_rotated_log_is_read_once_and_still_published_every_batch(
+    tmp_path, monkeypatch
+):
+    world = World(tmp_path, monkeypatch)
+    rotated = world.history.with_name("results.jsonl.20261020T000000000000Z")
+    rotated.write_text(json.dumps(_row(20)) + "\n")
+    world.open_prs.clear()
+    world.tick()
+    assert [r.tested_at.day for r in world.pushed[-1]] == [20, 21, 22]
+    rotated.write_text("{torn")  # a batch that reads it again loses day 20
+    world.open_prs.clear()  # the next batch plans a fresh PR from main again
+    world.tick()
+    assert [r.tested_at.day for r in world.pushed[-1]] == [20, 21, 22]
+
+
 def test_a_slow_red_is_not_reset_by_a_pending_tick(tmp_path, monkeypatch):
     world = World(tmp_path, monkeypatch)
     world.tick()  # red on A
