@@ -300,21 +300,6 @@
       },
       "value_dim": 64
     },
-    "glm-5-2-nvfp4-aqlm-hybrid-53e0082e": {
-      "architecture": "Glm5vForConditionalGeneration",
-      "configuration_sha256": "2acea9859afcddc80e997b28eb5ec58d726f611516add37db8f81802f5c3f2ae",
-      "key_dim": 512,
-      "kv_heads": 1,
-      "layers": 78,
-      "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid/resolve/53e0082eedebd806b63e19779c47905937d768ca/config.json; per-token bytes across all layers = main-cache layers x record + indexer-cache layers x 132. Main record: 656 (fp8_ds_mla) or 400 (nvfp4_ds_mla) per layer, https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-nvfp4kv-four/LAYOUT-SPEC.md. Main layers: 78 backbone + 1 MTP layer (deepseek_v2.py:1801-1805, num_nextn_predict_layers 1). Indexer cache: DeepseekV32IndexerCache uint8, head_dim 128 + 128//128*4 = 132 per token (deepseek_v2.py:575-596,655-660), allocated as an MLAAttentionSpec at the same block size inside the kv-cache-memory-bytes pool, not beside it. Indexer layers: layers with max(layer-index_skip_topk_offset+1,0) % index_topk_freq == 0, plus every MTP layer (deepseek_v2.py:1038-1070 in https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-quanttrio-four/kernels/deepseek_v2.py). The recipe overrides index_topk_freq to 8 (hf-overrides in recipes/glm-5-2-aqlm-vllm-triple.json): 12 backbone + 1 MTP = 13 indexer layers. fp8 79*656+13*132 = 53540, nvfp4 79*400+13*132 = 33316; this geometry is bound to that override.",
-      "tensor_replicated": true,
-      "token_bytes_by_dtype": {
-        "fp8_ds_mla": 53540,
-        "nvfp4_ds_mla": 33316
-      },
-      "value_dim": 64
-    },
     "glm-5-3-flash-exl3-2-05bpw-51058cd5": {
       "architecture": "Glm5NextForConditionalGeneration",
       "configuration_sha256": "43921c0b6dd51805a243649a647417230ef9cb9ba8e26ae06a461c3f7e08d037",
@@ -1005,9 +990,6 @@
     "vonk-forge/glm-4-7-flash-awq-4bit-eugr-vllm-single": [
       "ca71b20c678fff7d95daae3713d539b655edc8c51fce74747954ff108bf00bc1",
       "6d199b277530827e46ae026b6d3c88b83a25b358409195baa3255dce676eeae6"
-    ],
-    "vonk-forge/glm-5-2-aqlm-vllm-triple": [
-      "9713928748a9c19d90869c3a1987aab477e6365c2014ecb3545f32677df0de2c"
     ],
     "vonk-forge/glm-5-2-quanttrio-200k-mtp-tonyd2wild-vllm-four": [
       "4594b8f34c488211b7c0ecf51791bcf1370e9bd2a4376f83bb3c395ae771959d"
