@@ -335,7 +335,7 @@ class BackfillResult(BaseModel):
     imported: int = 0
     rejected: int = 0
     changed_files: int = 0
-    unpublished: int = 0  # resolved sweep records the repo lacked before this batch
+    unpublished: int = 0  # resolved sweep records the repo still lacks after this batch
 
 
 def read_state_evidence(path: Path) -> dict[str, RecipeQualificationEvidence]:
@@ -390,7 +390,6 @@ def backfill(
             continue  # withdrawn recipes are pruned, never counted
         previous = read_evidence(root, key)
         lacking = resolved_missing(evidence, previous)
-        result.unpublished += len(lacking)
         if lacking:  # resolved records only; nothing is rewritten, only appended
             grouped[key] = merge_evidence(
                 previous,
@@ -415,6 +414,11 @@ def backfill(
             result.imported += 1
     for evidence in grouped.values():
         result.changed_files += int(write_evidence(root, evidence))
+    # Counted after the write: a record this batch adds is published, not missing.
+    for key, evidence in (extra or {}).items():
+        if key in grouped and key in catalog:
+            lacking = resolved_missing(evidence, read_evidence(root, key))
+            result.unpublished += len(lacking)
     return result
 
 

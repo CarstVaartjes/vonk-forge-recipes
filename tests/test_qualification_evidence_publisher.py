@@ -514,17 +514,34 @@ def test_guard_flags_repo_lacking_a_resolved_local_record():
     assert resolved_missing(local, evidence(record(A), record(B))) == ()
 
 
-def test_withdrawn_recipes_are_never_counted_as_missing(tmp_path):
+def test_a_record_the_batch_could_not_write_is_counted_and_withdrawn_never(
+    tmp_path, monkeypatch
+):
     from test_qualification_status import KEY, A, evidence, record
 
+    from spark_sweep import qualification
     from spark_sweep.qualification import backfill
 
     seed_catalog(tmp_path)
+    monkeypatch.setattr(qualification, "write_evidence", lambda root, evidence: False)
     withdrawn = evidence(record(A)).model_copy(update={"recipe_key": "vonk-forge/gone"})
     result = backfill(
         [], tmp_path, {"vonk-forge/gone": withdrawn, KEY: evidence(record(A))}
     )
     assert result.unpublished == 1  # only the catalog recipe
+
+
+def test_records_each_batch_publishes_are_not_counted_as_missing(tmp_path):
+    from test_qualification_status import KEY, A, B, evidence, record
+
+    from spark_sweep.qualification import backfill, read_evidence
+
+    seed_catalog(tmp_path)
+    # A steady sweep: every batch finds one new result and publishes it.
+    first = backfill([], tmp_path, {KEY: evidence(record(A))})
+    second = backfill([], tmp_path, {KEY: evidence(record(A), record(B, day=1))})
+    assert (first.unpublished, second.unpublished) == (0, 0)
+    assert [r.identity for r in read_evidence(tmp_path, KEY).records] == [A, B]
 
 
 def test_a_batch_that_never_reaches_backfill_leaves_no_stale_count(
