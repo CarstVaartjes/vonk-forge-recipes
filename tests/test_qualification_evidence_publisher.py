@@ -1437,14 +1437,18 @@ def test_a_non_evidence_branch_conflict_takes_mains_version(tmp_path, monkeypatc
             return "recipes/example.json"
         if args[:2] == ("git", "ls-remote"):
             return "sha refs/heads/x"
+        if args[:3] == ("git", "checkout", "origin/main"):
+            seed_catalog(Path(cwd))  # main's clean version replaces the markers
         return real(cwd, *args, **kwargs)
 
+    def merge(args, **kwargs):
+        # a real conflicted merge leaves markers in the recipe file
+        recipe = Path(kwargs["cwd"]) / "recipes/example.json"
+        recipe.write_text("<<<<<<< HEAD\n{}\n=======\n{}\n>>>>>>> origin/main\n")
+        return subprocess.CompletedProcess(args, 1)
+
     monkeypatch.setattr(publisher, "command", conflicts)
-    monkeypatch.setattr(
-        publisher.subprocess,
-        "run",
-        lambda args, **kwargs: subprocess.CompletedProcess(args, 1),
-    )
+    monkeypatch.setattr(publisher.subprocess, "run", merge)
     assert world.tick() == publisher.SweepEvidenceExit.SYNCED
     assert ("git", "checkout", "origin/main", "--", "recipes/example.json") in (
         world.calls

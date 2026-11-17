@@ -651,12 +651,17 @@ def _batch(
                     raise subprocess.CalledProcessError(
                         result.returncode, result.args, stderr=result.stderr
                     )
-                keys = catalog_recipe_keys(clone)
+                evidence = [
+                    n for n in conflicts if n.startswith("qualification/evidence/")
+                ]
                 for name in conflicts:
-                    if not name.startswith("qualification/evidence/"):
+                    if name not in evidence:
                         # The branch owns only evidence: main's version wins.
+                        # Resolve these first: a conflicted recipe file holds
+                        # markers and would break the catalog read below.
                         command(clone, "git", "checkout", "origin/main", "--", name)
-                        continue
+                keys = catalog_recipe_keys(clone)
+                for name in evidence:
                     key = (
                         Path(name)
                         .relative_to("qualification/evidence")
