@@ -27,6 +27,7 @@ SEEDING_LAUNCHERS = {"adapters/nvidia/r0b0tlab-ornith-sglang-single/sglang-serve
 # Mandatory generated kits have different failure semantics from optional prewarm seeds.
 # Their replacement/reuse boundary is exercised by test_native_kit_replacement below.
 NATIVE_KIT_BUILDERS = {
+    "adapters/deepseek/blackfold-1017-tensorfold-tp2/prepare_cache.py",
     "adapters/deepseek/tonyd2wild-1017-tensorfold-tp2/prepare_cache.py",
     "adapters/deepseek/mia-1017-tensorfold-dual/prepare_cache.py",
     "adapters/deepseek/mia-1017-tensorfold-four/prepare_cache.py",
