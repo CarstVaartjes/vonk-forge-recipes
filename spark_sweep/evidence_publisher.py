@@ -14,11 +14,10 @@ import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
-from enum import StrEnum
 from pathlib import Path
 from typing import TextIO
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from vonk_forge_contracts import (
     QualificationEvidenceRecord,
     RecipeQualificationEvidence,
@@ -49,72 +48,8 @@ from .state import write_atomic
 BRANCH = "qualification/evidence"
 TITLE = "qualification evidence"
 _deadline: float | None = None
-UNPUBLISHED_FILE = "unpublished.json"
-PERSISTENT_BATCHES = 2
 STATE_FILE = "publisher-state.json"
 CHILD_BUDGET = 240  # seconds a publisher child may run, as seen from the sweep
-
-
-class UnpublishedReport(BaseModel):
-    """What a batch counted, and the history it counted against.
-
-    The history is append-only, so its head (file names and sizes) tells a reader
-    whether anything finished after the count: a count older than the history is
-    stale, not zero.
-    """
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
-    count: int
-    head: str
-
-
-def history_head(history: Path) -> str:
-    """A digest of the rotated and live result logs: changes whenever a row is appended."""
-    paths = sorted(history.parent.glob(history.name + ".*"))
-    if history.exists():
-        paths.append(history)
-    entries = []
-    for path in paths:
-        try:
-            entries.append(f"{path.name}:{path.stat().st_size}")
-        except OSError:
-            continue  # rotated away between the listing and the stat
-    return hashlib.sha256("\n".join(entries).encode()).hexdigest()[:16]
-
-
-class UnpublishedState(StrEnum):
-    """What a reader may say about the unpublished count."""
-
-    COUNTED = "counted"  # the count was taken against the current history
-    STALE = "stale"  # results finished after the count: it says nothing
-    UNKNOWN = "unknown"  # no batch has counted yet
-
-
-class UnpublishedStatus(BaseModel):
-    """The one typed value readers (status.json, the status page, rendering) get."""
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
-    state: UnpublishedState = UnpublishedState.UNKNOWN
-    count: int | None = None  # set exactly when COUNTED
-
-    @model_validator(mode="after")
-    def _count_only_when_counted(self) -> UnpublishedStatus:
-        if (self.count is not None) != (self.state == UnpublishedState.COUNTED):
-            raise ValueError("count is set exactly when the state is counted")
-        return self
-
-
-def unpublished_report(directory: Path, history: Path) -> UnpublishedStatus:
-    """Counted, stale (the history moved past the count) or unknown."""
-    try:
-        report = UnpublishedReport.model_validate_json(
-            (directory / UNPUBLISHED_FILE).read_text()
-        )
-    except (OSError, ValueError):
-        return UnpublishedStatus()  # no batch reached backfill yet, or an unknown shape
-    if report.head != history_head(history):
-        return UnpublishedStatus(state=UnpublishedState.STALE)
-    return UnpublishedStatus(state=UnpublishedState.COUNTED, count=report.count)
 
 
 def kill_group(process: subprocess.Popen) -> None:
@@ -458,9 +393,6 @@ def _batch(
     global _deadline
     _deadline = time.monotonic() + CHILD_BUDGET
     directory.mkdir(parents=True, exist_ok=True)
-    (directory / UNPUBLISHED_FILE).unlink(
-        missing_ok=True
-    )  # only a synced batch reports
     opened = own_open_prs(directory)
     refusing = False
     red = False
@@ -648,17 +580,11 @@ def _batch(
                 )
         else:
             command(clone, "git", "checkout", "-b", BRANCH, "origin/main")
-        head = history_head(history)  # taken before the read: later rows stay stale
         paths = sorted(history.parent.glob(history.name + ".*"))
         if history.exists():
             paths.append(history)
         local = read_state_evidence(state) if state is not None else {}
         result = backfill(paths, clone, local)
-        # Counted before the merge, on the fresh clone; reported, never a blocker.
-        write_atomic(
-            directory / UNPUBLISHED_FILE,
-            UnpublishedReport(count=result.unpublished, head=head).model_dump_json(),
-        )
         if result.rejected:
             print(
                 f"evidence: rejected {result.rejected} malformed historical rows",
@@ -732,8 +658,6 @@ class EvidencePublisher:
     ) -> None:
         self.history = history
         self.state = state
-        self.unpublished = 0
-        self.unpublished_batches = 0
         self.directory = directory
         self.script = script
         self.process: subprocess.Popen | None = None
@@ -744,25 +668,8 @@ class EvidencePublisher:
         self._output: TextIO | None = None
 
     @property
-    def unpublished_report(self) -> UnpublishedStatus:
-        """The last counted gap, stale once results finished after it."""
-        return unpublished_report(self.directory, self.history)
-
-    def _read_unpublished(self) -> None:
-        try:
-            count = UnpublishedReport.model_validate_json(
-                (self.directory / UNPUBLISHED_FILE).read_text()
-            ).count
-        except (OSError, ValueError):
-            return  # this batch did not reach backfill: neither counted nor reset
-        self.unpublished = count
-        self.unpublished_batches = self.unpublished_batches + 1 if count else 0
-        if count:
-            self.message += f"; {count} resolved sweep records were missing from main"
-
-    @property
     def alert(self) -> str | None:
-        """Raised when the publisher is broken: a refused failure, or a gap that persists."""
+        """Raised when the publisher is broken: refused records or a repeated failure."""
         if self.record.refused:
             return (
                 f"evidence publisher: {len(self.record.refused)} records refused and left "
@@ -771,15 +678,10 @@ class EvidencePublisher:
             )
         if self.record.state == PublisherState.REFUSED:
             return f"evidence publisher: failing repeatedly: {self.record.signature}"
-        if self.unpublished_batches < PERSISTENT_BATCHES:
-            return None
-        return (
-            f"evidence publisher: {self.unpublished} resolved sweep records still "
-            f"missing from main after {self.unpublished_batches} batches"
-        )
+        return None
 
     def _finish(self, code: int, now: float) -> None:
-        """Reap an exited child: its message, state record and unpublished count."""
+        """Reap an exited child: its message and state record."""
         self.record = load_state(self.directory)
         signature = self.record.signature
         self.message = (
@@ -799,7 +701,6 @@ class EvidencePublisher:
             if code == SweepEvidenceExit.REFUSED
             else f"evidence publisher exited {code}; re-plan in 300s (see publisher.log)"
         )
-        self._read_unpublished()
         if self._output is not None:
             self._output.close()
         self.process = None
