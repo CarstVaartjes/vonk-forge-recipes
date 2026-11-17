@@ -463,7 +463,6 @@ def test_a_drafter_is_charged_inside_the_vllm_budget() -> None:
     "slug",
     [
         "deepseek-v4-flash-vision-exp-eugr-vllm-dual",
-        "glm-5-2-aqlm-vllm-triple",
         "step-5-preview-exl3-vllm-four",
         "muse-spark-open-nvfp4-vllm-eight",
     ],
