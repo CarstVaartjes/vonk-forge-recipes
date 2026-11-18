@@ -854,6 +854,25 @@
         "nvfp4_ds_mla": 2048
       },
       "value_dim": 0
+    },
+    "deepseek-v4-1-flash-1017-native-1bae0e10": {
+      "architecture": "DeepseekV41ForCausalLM",
+      "configuration_sha256": "8be45ce0476004a3f529fd896115a4a2e800a129ad2d3ec05b16050f52e21879",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 40,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/resolve/1bae0e1088993b9b82de08f59de5be5a34e42170/config.json (HF API revision 1bae0e1088993b9b82de08f59de5be5a34e42170); sha256 8be45ce0476004a3f529fd896115a4a2e800a129ad2d3ec05b16050f52e21879, the same configuration bytes as revision 08c8657f (deepseek-v4-1-flash-1017-native-08c8657f, whose source states the geometry derivation). Allocation estimate, not hardware proof.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 4096,
+        "fp8": 2048,
+        "fp8_ds_mla": 2048,
+        "fp8_e4m3": 2048,
+        "nvfp4_ds_mla": 2048
+      },
+      "value_dim": 0
     }
   },
   "engram_files": {

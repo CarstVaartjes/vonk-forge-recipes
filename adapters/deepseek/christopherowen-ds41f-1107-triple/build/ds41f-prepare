@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+"""ds41f-prepare --check-pins | --only PART | --all | --directory | --smoke | --versions | --export SRC DEST
+
+Drives spark-ds41f's own build preparation (spark_ds41f.build, release 1107) against its own lock. It substitutes only
+the configuration: the site node map is not needed, the lock is the repository's upstreams.lock.json, and the cluster is
+the release's shape tp3-triangle-4k, so the release's own label and note checks run in `--all`.
+"""
+import argparse
+import json
+import os
+import sys
+from pathlib import Path
+
+ROOT = Path("/work/spark-ds41f")
+SHAPE = "tp3-triangle-4k"
+sys.path.insert(0, str(ROOT))
+# The package rebinds the build functions to its own namespace, so the override below must be set on the package.
+import spark_ds41f as spark  # noqa: E402
+
+lock = json.loads((ROOT / "upstreams.lock.json").read_text(encoding="utf-8"))
+cluster = spark.cluster_recipe.resolve(json.loads((ROOT / "config/cluster.json").read_text(encoding="utf-8")), SHAPE)
+spark.configuration = lambda args=None: (cluster, {}, lock)
+command = sys.argv[1:]
+
+
+def check_pins() -> None:
+    inputs = spark.build_inputs(lock)  # refuses missing patches and unrecorded patch sets
+    want = os.environ["BASE_IMAGE"]
+    problems = []
+    if inputs["base_image"] != want:
+        problems.append(f"base image: spark-ds41f records {inputs['base_image']!r}, the Dockerfile pins {want!r}")
+    stage = spark.runtime_stage(inputs)
+    if stage != "runtime-tilelang-sparknet":
+        problems.append(f"runtime stage: spark-ds41f ends on {stage!r}, this Dockerfile builds runtime-tilelang-sparknet")
+    if list(spark.build_projects(lock["sources"])) != ["vllm", "nccl", "b12x", "tilelang", "tile_kernels", "sparknet"]:
+        problems.append(f"projects: {list(spark.build_projects(lock['sources']))}")
+    if problems:
+        raise SystemExit("pins disagree with spark-ds41f:\n  " + "\n  ".join(problems))
+    print("pins agree with upstreams.lock.json and", lock["source_manifest"])
+
+
+if command == ["--check-pins"]:
+    check_pins()
+elif command[:1] == ["--only"] and len(command) == 2:
+    sys.exit(spark.command_build_prepare(argparse.Namespace(only=command[1], cluster_config=None, shape=None)))
+elif command == ["--all"]:
+    sys.exit(spark.command_build_prepare(argparse.Namespace(only=None, cluster_config=None, shape=None)))
+elif command == ["--directory"]:
+    print(spark.build_directory(spark.build_inputs(lock)))
+elif command == ["--smoke"]:
+    sys.stdout.write(spark.smoke_script(lock))
+elif command == ["--versions"]:
+    sources = lock["sources"]
+    for name, key in (("TILELANG_VERSION", "tilelang"), ("TILE_KERNELS_VERSION", "tile_kernels"), ("SPARKNET_VERSION", "sparknet")):
+        print(f"{name}='{sources[key]['version']}'")
+elif command[:1] == ["--export"] and len(command) == 3:
+    spark.export_source(Path(command[1]), Path(command[2]))
+    spark.normalize_modes(Path(command[2]))
+else:
+    raise SystemExit(__doc__)
