@@ -1109,10 +1109,6 @@
         "value": "1"
       },
       {
-        "name": "DSV41_ENGRAM_DIR",
-        "value": "/opt/engram-empty"
-      },
-      {
         "name": "TORCH_CUDA_ARCH_LIST",
         "value": "12.1a"
       },

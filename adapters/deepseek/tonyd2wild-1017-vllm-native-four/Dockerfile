@@ -4,8 +4,10 @@ LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/DeepSeek-V4
       org.opencontainers.image.revision="74ac01362e96c1dc72df96737354ce408dceb272" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0"
 
-# Base: a prebuilt engine image of the creator's own stack (vLLM dsv41-feat at
-# e47aa780b, the tree every patch below targets, built for GB10 sm_121a).
+# Base: drowzeys' published build of the same stack (vLLM dsv41-feat at e47aa780b, the
+# tree every patch below targets, built for GB10 sm_121a). It is a third party's build,
+# NOT the creator's overlay5 image, and a creator-built replacement (docs/recipe-authoring.md,
+# "Missing creator image") is still owed; this recipe is blocked on that until then.
 # The creator bind-mounts the patch files at container start (patch/mounts.txt);
 # they are copied in here so the root filesystem can stay read-only. Six files
 # are byte-identical to the creator's patch/ set; engram.py is the creator's
@@ -24,8 +26,7 @@ COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 RUN test -x /usr/local/bin/vllm \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
-    && install --directory --owner 10001 --group 10001 /state /outputs /outputs/cache /outputs/cache/triton \
-    && install --directory /opt/engram-empty
+    && install --directory --owner 10001 --group 10001 /state /outputs /outputs/cache /outputs/cache/triton
 
 ENV HF_HUB_OFFLINE=1 \
     TRANSFORMERS_OFFLINE=1 \
