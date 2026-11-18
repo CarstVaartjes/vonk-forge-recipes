@@ -3,7 +3,7 @@
 
 The platform starts one container per rank and gives each its place through the
 environment (VONK_RANK, VONK_WORLD_SIZE, VONK_LOCAL_ADDR, VONK_MASTER_ADDR,
-VONK_MASTER_PORT, VONK_PEER_ADDRS) and a per-job secret (VONK_PEER_SECRET).
+VONK_MASTER_PORT, VONK_PEER_ADDRS).
 This one file is both ranks; each rank is an explicit state machine.
 
 Rank 0 (owner)   MAPPED -> AWAIT_AGENT -> SERVING -> HEALTHY -> RENDERING -> WRITTEN -> STOPPING -> DONE
@@ -43,12 +43,11 @@ VENV = Path("/opt/vonk/venv")
 INPUT_ROOT = Path("/inputs")
 AGENT_PORT = 18095  # the creator's default
 OUTPUT_NAME = "video.mp4"
-MIN_SECRET_BYTES = 32
 PROMPT_MAX_BYTES = 16 * 1024
 REQUEST_MAX_BYTES = 64 * 1024
 IMAGE_MAX_BYTES = 30 * 1024 * 1024  # vLLM-Omni's reference image limit
 IMAGE_SUFFIXES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
-ASPECT_RATIOS = ("21:9", "16:9", "4:3", "1:1", "3:4", "9:16")  # vLLM-Omni's named ratios
+ASPECT_RATIO = "16:9"  # what the creator's render.sh always sends; width and height decide the canvas
 REF2VA_MAX_IMAGES = 9  # vLLM-Omni: ref2va accepts at most 9 image references
 AUDIO_FLOW_SHIFT = 3.0  # the creator's render.sh default
 EXIT_DONE, EXIT_FAILED, EXIT_CONFIG, EXIT_CANCELLED = 0, 1, 2, 143
@@ -197,7 +196,6 @@ class Placement:
     master: str
     master_port: int
     peers: tuple[str, ...]
-    secret: str
     job_timeout_s: int | None
 
     @property
@@ -227,9 +225,6 @@ def read_placement(env: Mapping[str, str]) -> Placement:
     peers = tuple(part.strip() for part in _require(env, "VONK_PEER_ADDRS").split(","))
     if len(peers) != 2 or not all(peers):
         raise ConfigError("VONK_PEER_ADDRS must list the two ranks' addresses in rank order")
-    secret = env.get("VONK_PEER_SECRET", "")
-    if len(secret.encode("utf-8")) < MIN_SECRET_BYTES:
-        raise ConfigError(f"VONK_PEER_SECRET is missing or shorter than {MIN_SECRET_BYTES} bytes")
     timeout = env.get("VONK_JOB_TIMEOUT_SECONDS", "").strip()
     return Placement(
         rank=int(rank),
@@ -237,7 +232,6 @@ def read_placement(env: Mapping[str, str]) -> Placement:
         master=master,
         master_port=int(port_text),
         peers=peers,
-        secret=secret,
         job_timeout_s=int(timeout) if timeout.isdigit() else None,
     )
 
@@ -252,14 +246,13 @@ def heartbeat_interval(job_timeout_s: int | None) -> float:
 def child_environment(place: Placement, base: Mapping[str, str]) -> dict[str, str]:
     """The creator's H3_TP2_* variables (scripts/env.sh) from the platform's placement."""
     env = dict(base)
-    env.pop("VONK_PEER_SECRET", None)  # the creator's code reads H3_TP2_SECRET
+    env.pop("H3_TP2_SECRET", None)  # unset: the creator's channel then runs without HMAC, as it allows
     env.update(
         H3_TP2_HEAD_IP=place.master,
         H3_TP2_WORKER_IP=place.worker,
         H3_TP2_WORKER_AGENT=f"{place.worker}:{AGENT_PORT}",
         H3_TP2_MASTER_ADDR=place.master,
         H3_TP2_WORLD_SIZE="2",
-        H3_TP2_SECRET=place.secret,
         VLLM_HOST_IP=place.local,
     )
     if place.rank == 0:
@@ -345,7 +338,6 @@ class Settings:
     steps: int
     flow_shift: float
     seed: int
-    aspect_ratio: str
 
 
 @dataclass(frozen=True)
@@ -436,7 +428,7 @@ def _json_number(value: float) -> str:
 
 def build_request(settings: Settings, inputs: Path = INPUT_ROOT) -> RenderRequest:
     """Validate the inputs and shape them like the creator's scripts/render.sh."""
-    common = {"duration", "width", "height", "num_inference_steps", "flow_shift", "seed", "aspect_ratio"}
+    common = {"duration", "width", "height", "num_inference_steps", "flow_shift", "seed"}
     allowed = common | ({"references"} if settings.task == "ref2va" else {"first_image", "last_image"})
     if not inputs.is_dir() or inputs.is_symlink():
         raise ConfigError("the input directory is missing")
@@ -453,9 +445,6 @@ def build_request(settings: Settings, inputs: Path = INPUT_ROOT) -> RenderReques
     steps = _integer(request.get("num_inference_steps", settings.steps), "num_inference_steps", 1, 50)
     shift = _number(request.get("flow_shift", settings.flow_shift), "flow_shift", 1e-6, 1e6)
     seed = _integer(request.get("seed", settings.seed), "seed", 0, 2**63 - 1)
-    aspect = request.get("aspect_ratio", settings.aspect_ratio)
-    if aspect not in ASPECT_RATIOS:
-        raise ConfigError(f"aspect_ratio must be one of {', '.join(ASPECT_RATIOS)}")
 
     extra: dict[str, Any] = {
         "task": settings.task,
@@ -485,7 +474,7 @@ def build_request(settings: Settings, inputs: Path = INPUT_ROOT) -> RenderReques
         ("prompt", prompt),
         ("width", str(width)),
         ("height", str(height)),
-        ("aspect_ratio", aspect),
+        ("aspect_ratio", ASPECT_RATIO),
         ("fps", "24"),
         ("num_inference_steps", str(steps)),
         ("flow_shift", _json_number(shift)),
@@ -577,7 +566,7 @@ class Context:
     cancel: threading.Event = field(default_factory=threading.Event)
     clock: Clock = field(default_factory=RealClock)
     timing: Timing = field(default_factory=Timing)
-    inputs: Path = INPUT_ROOT
+    request: RenderRequest | None = None  # rank 0: validated once, by main, before any model work
     heartbeat_s: float | None = None
     log_out: Any = None  # where rank 1 copies the agent's log; stdout when None
 
@@ -700,8 +689,8 @@ class HeadJob:
 
     def _render(self, scratch: Path) -> Path:
         assert self.server is not None
-        request = build_request(self.settings, self.ctx.inputs)
-        body, content_type = encode_multipart(request)
+        assert self.ctx.request is not None
+        body, content_type = encode_multipart(self.ctx.request)
         partial = scratch / "video.partial.mp4"
         timing = self.ctx.timing
         call = RenderCall(self.port, body, content_type, partial, timing.request_s + timing.request_margin_s)
@@ -750,8 +739,6 @@ class HeadJob:
 
     def _drive(self, scratch: Path) -> None:
         ctx = self.ctx
-        # Inputs are validated before the model is touched: a bad request costs seconds, not a boot.
-        build_request(self.settings, ctx.inputs)
         self.machine.step(HeadState.AWAIT_AGENT, f"{ctx.place.worker}:{AGENT_PORT}")
         self._await_agent()
         self.port = free_loopback_port()
@@ -889,7 +876,6 @@ def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser.add_argument("--num-inference-steps", type=int, required=True)
     parser.add_argument("--flow-shift", type=float, required=True)
     parser.add_argument("--seed", type=int, required=True)
-    parser.add_argument("--aspect-ratio", required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     return parser.parse_args(argv)
 
@@ -906,7 +892,6 @@ def settings_from(args: argparse.Namespace) -> Settings:
         steps=args.num_inference_steps,
         flow_shift=args.flow_shift,
         seed=args.seed,
-        aspect_ratio=args.aspect_ratio,
     )
 
 
@@ -918,18 +903,23 @@ def install_term_handlers(cancel: threading.Event) -> None:
     signal.signal(signal.SIGINT, on_term)
 
 
-def main(argv: Sequence[str] | None = None, env: Mapping[str, str] | None = None) -> int:
+def main(
+    argv: Sequence[str] | None = None,
+    env: Mapping[str, str] | None = None,
+    inputs: Path = INPUT_ROOT,
+) -> int:
     env = os.environ if env is None else env
     try:
         args = parse_args(argv)
         place = read_placement(env)
         settings = settings_from(args)
-        if place.rank == 0:
-            build_request(settings)  # an invalid request refuses before any model work
+        request = build_request(settings, inputs) if place.rank == 0 else None  # a bad request refuses before any model work
     except ConfigError as exc:
         print(f"vllm-omni-job: refusing to start: {exc}", file=sys.stderr, flush=True)
         return EXIT_CONFIG
-    ctx = Context(place, settings, env, args.output_dir, timing=timing_from_environment(env))
+    ctx = Context(
+        place, settings, env, args.output_dir, timing=timing_from_environment(env), request=request
+    )
     install_term_handlers(ctx.cancel)
     say(f"rank {place.rank} of 2, local {place.local}, master {place.master}:{place.master_port}")
     return (HeadJob(ctx) if place.rank == 0 else WorkerJob(ctx)).run()
