@@ -230,6 +230,12 @@
       "budget_bytes": 91464262042
     },
     {
+      "content_sha256": "3acec34aa865acf5e3c46a1104fd198b6fd6cc163b2ec52a24f4c992aa616a67",
+      "role": "entrypoint",
+      "steady_bytes": 95949156352,
+      "budget_bytes": 91464262042
+    },
+    {
       "content_sha256": "ab3c73490cc34d3a06ece881be1164bc13d79f15e8f2b782a6ca376d9d23de28",
       "role": "entrypoint",
       "steady_bytes": 96547573760,

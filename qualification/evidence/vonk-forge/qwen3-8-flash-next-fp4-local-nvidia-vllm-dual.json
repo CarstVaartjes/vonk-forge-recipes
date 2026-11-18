@@ -2650,5 +2650,19 @@
         "Carried from the identical execution document"
       ]
     }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "8a1e28846178a5cdf4317a6977f1ac42d4ed51fbac0f3bdc7bf32c30875d9b05",
+      "role": "entrypoint",
+      "steady_bytes": 101065023488,
+      "budget_bytes": 91464262042
+    },
+    {
+      "content_sha256": "8a1e28846178a5cdf4317a6977f1ac42d4ed51fbac0f3bdc7bf32c30875d9b05",
+      "role": "worker",
+      "steady_bytes": 99420946432,
+      "budget_bytes": 91464262042
+    }
   ]
 }
