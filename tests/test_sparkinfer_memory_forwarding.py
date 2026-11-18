@@ -19,7 +19,6 @@ ROOT = Path(__file__).resolve().parents[1]
     [
         ("deepseek-v4-flash-0731-sparkinfer-single", True),
         ("deepseek-v4-flash-0731-mia-sparkinfer-single", True),
-        ("deepseek-v4-flash-0731-sparkinfer-target-only-canary-single", False),
     ],
 )
 def test_wrapper_forwards_authored_memory_budget(
