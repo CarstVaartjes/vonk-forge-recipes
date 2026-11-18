@@ -76,7 +76,6 @@
   "vonk-forge/nemotron-3-5-lightning-30b-a3b-sglang-dspark-mia-single": "da5327c782f8a425ba72b2eb5ab425219a2f1f3025bff30fe80259ed498dcdbc",
   "vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": "d8eba51226527300e07ef42482371658081b5b5987a14a36b54cb6ee024de214",
   "vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-single": "973951e33f795e2b3d8b1171b3e77f7999eb6822f869d0f475e9a71949fcb1f6",
-  "vonk-forge/nemotron-3-5-lightning-dspark-lowmem-canary-single": "edb74dc1d14d7bf5b23ce0bdde1f20cb0b593ff0e1f7489b6972369d89cad1b7",
   "vonk-forge/nemotron-3-5-lightning-r0b0tlab-sglang-dflash-single": "85f53643b6d4d5aaeaaecd4817d4e9cc14298f17f7f0999414cb00aa71e231e8",
   "vonk-forge/nemotron-3-5-lightning-r0b0tlab-sglang-eagle-single": "8fb9d1db517af35b482bb8d4bfdc1a328952e54e884b9e2aae691f315c3b9a5b",
   "vonk-forge/nemotron-3-5-lightning-r0b0tlab-vllm-mtp-single": "9f0ba92a91349ca2542fb5a69845fae5c3918e98b9f35a77caec05c5f4c34ed7",

@@ -1233,9 +1233,6 @@
     "vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-single": [
       "b960e9f6d75abc253136960141adf09051c9580cc31fa0e591ed23c99a6a2457"
     ],
-    "vonk-forge/nemotron-3-5-lightning-dspark-lowmem-canary-single": [
-      "f713ef053e0dd7b7f5cf644e2611d77861793f69a3b2c3c62af80c1bb879812a"
-    ],
     "vonk-forge/nemotron-3-5-lightning-r0b0tlab-sglang-dflash-single": [
       "c1b70de35f95dd4d8c20ffe38fb18aa2476fc1a6a8d1db54f30bef952d16ac00"
     ],
