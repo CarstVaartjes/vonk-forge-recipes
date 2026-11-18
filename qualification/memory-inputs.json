@@ -1094,9 +1094,6 @@
     "vonk-forge/laguna-s-2-1-nvfp4-r0b0tlab-vllm-single": [
       "7b2c74efff1cc454c11fd999c134253133d88143affa35be815cd18ab2f0f822"
     ],
-    "vonk-forge/laguna-s-2-1-nvfp4-vllm-low-memory-canary-single": [
-      "481e03551d45f76253260c70cff12d3cdb17785de0271d4ab1195779cce30134"
-    ],
     "vonk-forge/laguna-s-2-1-nvfp4-vllm-single": [
       "a39a29f3ca60f0b2279f915ac30a36c546e542149d2e18a3b83345725001dbcc"
     ],
