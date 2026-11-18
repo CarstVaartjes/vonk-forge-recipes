@@ -89,6 +89,10 @@ Shared `adapters/three-d/*/glb_validation.py` copies must remain byte-identical
 to the platform's 3.12 copy. `tests/test_three_d_glb_validation.py` compares
 local adapter copies; platform parity is a separate source comparison when
 changing them, not evidence supplied by that local test.
+Each adapter that needs a `liburing` stand-in carries a byte-identical copy of
+`tools/posix-uring/` as `posix-uring/` (contexts are self-contained, so there is
+no shared file). `tests/test_posix_uring.py` compiles and runs the canonical
+header and fails when a copy differs.
 
 Use a task-local writable uv cache when the default is unavailable. From the
 repository root, reproduce the producer environment in

@@ -493,7 +493,14 @@ and raise utilization by the table's share over the creator's budget, citing
 the sandbox io_uring block. A disk Engram table (`engram-config`
 `table_memory: disk`), or any disk table on an image that is not the b12x
 image, needs an image that installs a tested POSIX reader (see
-`adapters/deepseek/0xsero-exl3-vllm-dual/_ple_reader.c`). The recipe loader test
+`adapters/deepseek/0xsero-exl3-vllm-dual/_ple_reader.c`). So does
+`--load-format direct` (vLLM's checkpoint loader reads through io_uring bounce
+slots). For engines that compile against liburing (vLLM `engram_rows` and
+`direct_io`, B12X), copy `tools/posix-uring/` byte-identical into the context as
+`posix-uring/`, `COPY` it to `/opt/vonk/posix-uring`, put that directory on
+`PKG_CONFIG_PATH` and install no `liburing-dev`: its header does one `pread()`
+per queued read and makes no io_uring call. Replace a creator's "links liburing"
+self-check with "links no liburing" and disclose it. The recipe loader test
 (`tests/test_recipe_sandbox_loaders.py`) enforces both by the recipe's base
 image. Never request relaxed seccomp. Enforce image-owned transport policy in
 the launcher before exec, including when a kit declares an unsafe backend. b12x
