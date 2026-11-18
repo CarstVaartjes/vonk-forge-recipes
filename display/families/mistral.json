@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "mistral-large-4-1t-a52b",
+          "title": "Mistral Large 4 1T-A52B"
+        }
+      ],
+      "slug": "mistral-large",
+      "title": "Mistral Large"
+    }
+  ],
+  "slug": "mistral",
+  "title": "Mistral"
+}
