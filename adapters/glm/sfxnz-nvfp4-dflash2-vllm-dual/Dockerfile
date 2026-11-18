@@ -1,12 +1,13 @@
 # sfxnz's GLM-5.3-Flash NVFP4 two-Spark kit (072c3f68, MIT): the image chain glm53-sm121-v8 -> v9 -> v10 -> v11 -> v13 that
 # the kit documents ("Build the image") and that run.sh runs as the local tag glm53-sm121-v13. The kit publishes no image,
-# so this Dockerfile builds the same chain in one file on vllm/vllm-openai:glm53-flash-arm64-cu130 (the kit's FROM; the
-# tag was resolved once to the arm64 digest below). The kit's patch scripts and diff are vendored byte for byte under
+# so this Dockerfile builds the same chain in one file on the base the kit's FROM tag vllm/vllm-openai:glm53-flash-arm64-cu130 named when
+# its dflash2_backport.diff was made (the 2026-08-26 push, digest below; the tag was re-pushed on 2026-09-09 with the
+# backport already in it, which the diff cannot patch; kit-lock.json records this as an override). The kit's patch scripts and diff are vendored byte for byte under
 # docker/. The two inline python heredocs of the kit's Dockerfile.sm121-v8 (NoPE MLA on sm_121, PDL gate) are the files
 # patch_v8_sm121_nope_mla.py and patch_v8_sm121_pdl.py, unchanged; the kit's pip installs are requirements.lock, by hash.
 # The layer on top adds the Controller placement wrapper at the platform's launcher path, the kit's chat template and the
 # non-root user. Base: the linux/arm64 image vllm/vllm-openai, by digest.
-FROM vllm/vllm-openai:glm53-flash-arm64-cu130@sha256:b0501f99fec5136f248f78d5850977a2ec32d55cd9a665f4a9ffef24cbdf7fe5
+FROM vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce
 
 LABEL org.opencontainers.image.source="https://github.com/sfxnz/GLM-5.3-Flash-NVFP4-vLLM-2x-DGX-Spark" \
       org.opencontainers.image.revision="072c3f68fe425edb141e08cc60576f4bb0477ed2" \

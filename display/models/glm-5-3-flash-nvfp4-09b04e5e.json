@@ -8,7 +8,7 @@
     "video-understanding"
   ],
   "description": "Official NVIDIA ModelOpt NVFP4 checkpoint of Z.ai GLM 5.3 Flash, revision 09b04e5e (ModelOpt 0.47.0), the revision sfxnz and tonyd2wild pin.",
-  "family_title": "GLM 5.3 Flash NVFP4",
+  "family_title": "GLM",
   "identity": {
     "publisher": "nvidia",
     "slug": "glm-5-3-flash-nvfp4-09b04e5e"

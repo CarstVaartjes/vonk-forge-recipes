@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "b0501f99fec5136f248f78d5850977a2ec32d55cd9a665f4a9ffef24cbdf7fe5",
+        "digest": "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
         "repository": "vllm/vllm-openai"
       },
       "context": {
@@ -829,7 +829,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 120000000000,
             "reserve_bytes": 8000000000
           }
         }
@@ -846,7 +846,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 120000000000,
             "reserve_bytes": 8000000000
           }
         }
