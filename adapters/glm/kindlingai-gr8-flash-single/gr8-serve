@@ -1,0 +1,116 @@
+#!/bin/bash
+# The Vonk Forge placement wrapper for the kindlingai gr8 recipes (one Spark or two). It maps what the platform gives a
+# workload (the arguments in the recipe, the VONK_* placement environment, the read-only /models mounts and the writable
+# /outputs) onto what the creator's entrypoint reads (the creator's .env settings), then runs the creator's own
+# entrypoint, which sources the creator's knobs.sh and starts gr8's supervisor.
+#
+#   arguments    --host (accepted: the front end serves on every address), --port -> PORT,
+#                --max-model-len -> MAX_MODEL_LEN, --sess -> SESS
+#   placement    VONK_PEER_ADDRS -> PEERS (rank order, the head first), VONK_LOCAL_ADDR -> NODE_IP, VONK_MASTER_PORT ->
+#                CONTROL_PORT (gr8's supervisor port; the engine's own control port is a fixed 7341 and its fabric bootstrap
+#                uses 18600 upward, neither of them the platform's). No IPS/IPS2: gr8 finds each box's
+#                RoCE rails itself from /sys/class/infiniband.
+#   model        /models/target is the exlr8 release used in place (MODEL, a local path: nothing is fetched); the
+#                DFlash2 drafter in /models/drafter is converted here with the creator's own converter.
+#   writable     everything gr8 writes (its working directory, the prompt cache, the converted drafter and the compact
+#                expert copies) is under /outputs/cache/gr8, where the creator wrote /var/lib/gr8/{home,prompts,cache}.
+set -euo pipefail
+
+creator=$(ls -d /opt/glm53f-?x | head -n 1)
+gr8=/opt/gr8
+release=/models/target
+state=/outputs/cache/gr8
+
+host= port= max_model_len= sess=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --host) host=$2; shift 2 ;;
+    --host=*) host=${1#*=}; shift ;;
+    --port) port=$2; shift 2 ;;
+    --port=*) port=${1#*=}; shift ;;
+    --max-model-len) max_model_len=$2; shift 2 ;;
+    --max-model-len=*) max_model_len=${1#*=}; shift ;;
+    --sess) sess=$2; shift 2 ;;
+    --sess=*) sess=${1#*=}; shift ;;
+    *) echo "gr8-serve: unknown argument $1" >&2; exit 2 ;;
+  esac
+done
+: "$host"
+[ -z "$port" ] || export PORT=$port
+[ -z "$max_model_len" ] || export MAX_MODEL_LEN=$max_model_len
+[ -z "$sess" ] || export SESS=$sess
+
+mkdir -p "$state/home" "$state/cache" "$state/prompts" /outputs/tmp
+export GR8_WORK_DIR=$state/home MODEL_CACHE=$state/cache TMPDIR=/outputs/tmp
+# the creator's prompt cache (kv-store.yaml), moved from /var/lib/gr8/prompts to the writable state
+sed "s#/var/lib/gr8/prompts#$state/prompts#g" /etc/gr8/kv-store.yaml > "$state/kv-store.yaml"
+export KV_STORE=@$state/kv-store.yaml
+
+# placement
+if [ "${VONK_WORLD_SIZE:-1}" -gt 1 ]; then
+  : "${VONK_PEER_ADDRS:?gr8-serve: VONK_PEER_ADDRS is not set}" "${VONK_LOCAL_ADDR:?gr8-serve: VONK_LOCAL_ADDR is not set}"
+  export PEERS=$VONK_PEER_ADDRS NODE_IP=$VONK_LOCAL_ADDR
+  [ -z "${VONK_MASTER_PORT:-}" ] || export CONTROL_PORT=$VONK_MASTER_PORT
+  rank=${VONK_RANK:?gr8-serve: VONK_RANK is not set}
+  unset IPS IPS2
+else
+  rank=0
+fi
+
+# the release is used in place; the baked-in Hugging Face URLs are not
+export MODEL=$release
+unset DRAFTER FETCH
+
+# a width manifest named by its short name (bit201, bit349) is a file of the release; k2, k3 and k4 are gr8's own names
+if [ -z "${VARIANT:-}" ]; then
+  case "${TUNE:-speed}" in quality) VARIANT=k4 ;; *) VARIANT=bit349 ;; esac
+fi
+case "$VARIANT" in
+  k[234]|*/*) ;;
+  *) VARIANT=$release/manifests/exlr8-manifest-$VARIANT.json ;;
+esac
+export VARIANT
+
+# EXTRA_ENV: the engine environment the options add to the creator's own
+extra=${EXTRA_ENV:-}
+tp=${TP:?gr8-serve: TP is not set}
+if [ "${VISION:-1}" = 0 ]; then
+  extra="${extra:+$extra }GR8_GLM53F_VISION=0"
+fi
+if [ "${COMPACT_EXPERTS:-0}" = 1 ]; then
+  extra="${extra:+$extra }GR8_LOAD_COMPACT=$state/cache/compact-tp$tp GR8_LOAD_MERGE_KB=1"
+fi
+[ -z "$extra" ] || export EXTRA_ENV=$extra
+unset VISION COMPACT_EXPERTS
+
+# the DFlash2 drafter: converted from the mounted checkpoint into this rank's pack, as the creator's launcher does after
+# it fetches it. A finished conversion (rank<r>.COMPLETE) is reused.
+if [ "${DFLASH:-1}" != 0 ] && [ -d /models/drafter ]; then
+  drafter=$state/cache/dflash/tp$tp
+  if [ ! -f "$drafter/rank$rank.COMPLETE" ]; then
+    mkdir -p "$state/cache/dflash"
+    PYTHONPATH=$gr8/tools/launch python3 - "$drafter" "$tp" "$rank" <<'PY'
+import sys
+import hfsource
+
+out, tp, rank = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+hfsource.convert_drafter(hfsource.converter(), '/models/drafter', out, tp, rank, 'incoai/GLM-5.3-Flash-DFlash2', print,
+                         'GLM-5.3-Flash-DFlash2', scratch=out.rsplit('/', 1)[0])
+PY
+  fi
+  export DFLASH_DIR=$drafter
+fi
+
+# the creator's compact expert copies: written once by `prepare` (a boot never writes them), then read by the loader.
+# The stamp records a finished prepare for this TP, rank and width manifest, so a later start does not read them again.
+# An interrupted prepare leaves staging directories (up to 73 GiB) and a later one with the same PID fails on them.
+if [[ " $extra " == *" GR8_LOAD_COMPACT="* ]]; then
+  stamp=$state/cache/.compact-prepared-tp$tp-rank$rank-$(basename "$VARIANT")
+  if [ ! -f "$stamp" ]; then
+    rm -rf "$state/cache/".compact-tp*.partial-*
+    "$creator/bin/gr8" glm53f prepare --rank "$rank"
+    : > "$stamp"
+  fi
+fi
+
+exec "$creator/entrypoint.sh"
