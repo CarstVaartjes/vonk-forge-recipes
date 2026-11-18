@@ -22,13 +22,21 @@ SIZE = {"I16": 2, "I32": 4, "BF16": 2, "F16": 2}
 
 
 def tensor(dtype: str, shape: list[int], data: bytes | None = None) -> tuple:
-    return dtype, shape, data if data is not None else bytes(SIZE[dtype] * math.prod(shape))
+    return (
+        dtype,
+        shape,
+        data if data is not None else bytes(SIZE[dtype] * math.prod(shape)),
+    )
 
 
 def write_shard(path: Path, tensors: dict) -> None:
     header, body = {}, b""
     for name, (dtype, shape, data) in tensors.items():
-        header[name] = {"dtype": dtype, "shape": shape, "data_offsets": [len(body), len(body) + len(data)]}
+        header[name] = {
+            "dtype": dtype,
+            "shape": shape,
+            "data_offsets": [len(body), len(body) + len(data)],
+        }
         body += data
     blob = json.dumps(header).encode()
     path.write_bytes(struct.pack("<Q", len(blob)) + blob + body)
@@ -59,8 +67,15 @@ def read_shard(path: Path) -> dict:
 
 def build(pack: Path, overlay: Path) -> None:
     done = subprocess.run(
-        [sys.executable, "-I", str(ADAPTER / "make_overlay.py"), str(pack), str(overlay)],
+        [
+            sys.executable,
+            "-I",
+            str(ADAPTER / "make_overlay.py"),
+            str(pack),
+            str(overlay),
+        ],
         capture_output=True,
+        check=False,
         text=True,
         env={"PATH": os.environ.get("PATH", "")},
     )
@@ -157,11 +172,16 @@ class SplitTest(unittest.TestCase):
         a = self.attn
         for j, letter in enumerate("qkv"):
             shape, data = got[f"{a}.{letter}_conv1d.weight"]
-            self.assertEqual((shape, data), ([2, 1, 4], b"".join(bytes([2 * j + r]) * 8 for r in range(2))))
+            self.assertEqual(
+                (shape, data),
+                ([2, 1, 4], b"".join(bytes([2 * j + r]) * 8 for r in range(2))),
+            )
             shape, data = got[f"{a}.{letter}_proj.trellis"]
             self.assertEqual(shape, [2, 1, 16])
             self.assertEqual(data, b"".join(bytes([10 * r + j]) * 32 for r in range(2)))
-            self.assertEqual(got[f"{a}.{letter}_proj.svh"], ([2], bytes(range(1 + 4 * j, 5 + 4 * j))))
+            self.assertEqual(
+                got[f"{a}.{letter}_proj.svh"], ([2], bytes(range(1 + 4 * j, 5 + 4 * j)))
+            )
             self.assertEqual(got[f"{a}.{letter}_proj.suh"], ([2], b"\x01\x02\x03\x04"))
             self.assertEqual(got[f"{a}.{letter}_proj.mul1"], ([], b"\x07\x00\x00\x00"))
         self.assertEqual(len(got), 3 * 5)
@@ -173,7 +193,13 @@ class SplitTest(unittest.TestCase):
         weights = index["weight_map"]
         self.assertEqual(index["metadata"], {"x": 1})
         a = self.attn
-        for fused in ("conv1d.weight", "qkv_proj.trellis", "qkv_proj.suh", "qkv_proj.svh", "qkv_proj.mul1"):
+        for fused in (
+            "conv1d.weight",
+            "qkv_proj.trellis",
+            "qkv_proj.suh",
+            "qkv_proj.svh",
+            "qkv_proj.mul1",
+        ):
             self.assertNotIn(f"{a}.{fused}", weights)
         self.assertEqual(weights[f"{a}.k_proj.svh"], "vonk-kda-split.safetensors")
         self.assertEqual(weights[f"{a}.v_conv1d.weight"], "vonk-kda-split.safetensors")
