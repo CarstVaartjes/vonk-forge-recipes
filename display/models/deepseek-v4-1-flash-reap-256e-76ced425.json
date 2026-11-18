@@ -1,0 +1,50 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "LibertAI's REAP-pruned DeepSeek V4.1 Flash: the routed-expert pool is cut from 384 to 256 per layer with a modality-balanced router-weighted ranking (publisher-measured cost: text perplexity 3.6552 to 4.1723, +14.1%; caption perplexity 24.307 to 26.479, +8.9%), and nothing is re-quantized (experts MXFP4, dense layers FP8). 46 weight shards; the 189 GiB Engram tables (layers 1 and 14) are not in this repository and come from shards 47 and 48 of the official checkpoint, which this Model lists as a dependency. The checkpoint carries the vision tower and the DSpark draft stages.",
+  "family_title": "DeepSeek Flash",
+  "identity": {
+    "publisher": "libertaidai",
+    "slug": "deepseek-v4-1-flash-reap-256e-76ced425"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "LibertAI",
+      "DeepSeek AI",
+      "Cerebras REAP"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/LibertAIDAI/DeepSeek-V4.1-Flash-REAP-256E/blob/76ced425f1b8200e0aae6f9a926d23396275e210/LICENSE"
+  },
+  "lineage": {
+    "base_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "family": "deepseek",
+    "generation": "DeepSeek V4.1",
+    "line": "deepseek-flash",
+    "model": "deepseek-v4-1-flash",
+    "variant_kind": "derivative"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "DeepSeek V4.1 Flash REAP 256E",
+  "tags": [
+    "candidate",
+    "deepseek",
+    "deepseek-v4-1",
+    "dspark",
+    "libertaidai",
+    "multimodal",
+    "pruned",
+    "reap",
+    "spark"
+  ]
+}
