@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-0731-ds4-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "e78973a3bb6f11cd67f0ea4ef70190b3d28605d75d012dc7bc6f702d8222ff33",
+        "source_bundle_sha256": "85a392993960758ca41021ae0ad2f066ca3f4158b05ddb495a26d5b581a31c5b",
+        "runtime_image": {
+          "build_key": "deea2198ff3a3168103d9325ecd31fa863148f0ff91812948b87ea850872c719",
+          "image_digest": "sha256:d6e8f9a19b417981b916bb2afff5cd9d0eaae0377d6116df70b3805686e045d6"
+        },
+        "model_digests": [
+          "7b6c1743663a942d1c09947792c3e15b87bc8de85a4bbf41db360b78ea4a0e29"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "a379f4842fc40e76d2fc95836393a2d7510fc142bf1938d3ac5bd50891de0ad4"
+      ],
+      "tested_at": "2026-11-18T22:45:16.562341Z",
+      "platform": {
+        "controller_source_sha": "1d8683c48e65dc158ad7313cdd3772bd44faa5f8",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "e78973a3bb6f11cd67f0ea4ef70190b3d28605d75d012dc7bc6f702d8222ff33",
+      "role": "entrypoint",
+      "steady_bytes": 66312728576
+    },
+    {
+      "content_sha256": "e78973a3bb6f11cd67f0ea4ef70190b3d28605d75d012dc7bc6f702d8222ff33",
+      "role": "worker",
+      "steady_bytes": 66951385088
+    }
+  ]
+}
