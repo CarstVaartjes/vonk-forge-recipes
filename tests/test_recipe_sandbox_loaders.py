@@ -453,3 +453,12 @@ def test_posix_transport_accepts_only_the_shim_or_the_pread_reader(
         tmp_path, "COPY posix-uring /x\nRUN apt-get install liburing-dev\n"
     )
     assert not has_posix_transport(tmp_path, "RUN apt-get install liburing-dev\n")
+
+
+def test_guard_rejects_direct_checkpoint_loading_without_the_shim() -> None:
+    document = recipe()
+    for argument in document.runtime.arguments:
+        if argument.name == "load-format":
+            argument.value = "direct"
+    with pytest.raises(AssertionError, match="direct"):
+        require_sandbox_loaders(document, image_policy=False)
