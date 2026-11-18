@@ -73,22 +73,11 @@ class ModelRemover:
                 raise ValueError(
                     f"owner profile {profile.number} definition unavailable"
                 )
-            for view in profile.assignments:
-                if view.model.content_sha256:
-                    protected.add(view.model.content_sha256)
             for assignment in profile.definition.assignments:
                 recipe = recipes.get(assignment.recipe_selector)
                 if recipe is None or not recipe.model_digests:
                     raise ValueError(
                         f"owner profile {profile.number} recipe unavailable"
-                    )
-                if assignment.model_variant and not any(
-                    view.recipe_selector == assignment.recipe_selector
-                    and view.model.content_sha256
-                    for view in profile.assignments
-                ):
-                    raise ValueError(
-                        f"owner profile {profile.number} variant unavailable"
                     )
                 protected.update(recipe.model_digests)
         return protected

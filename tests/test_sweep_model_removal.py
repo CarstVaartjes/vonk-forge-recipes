@@ -193,6 +193,28 @@ def test_only_a_still_owned_sweep_profile_is_excluded(tmp_path, owned):
     assert any(args[2] in (A, B) for args in peer.submissions) is owned
 
 
+def test_owner_variant_without_list_digests_neither_blocks_nor_unprotects(tmp_path):
+    sweep, peer, _ = scenario(tmp_path)
+    peer.profiles = [
+        {
+            "number": 20,
+            "definition": {
+                "assignments": [
+                    {"recipe_selector": "vonk-forge/b", "model_variant": "int4"}
+                ]
+            },
+            "assignments": [{"recipe_selector": "vonk-forge/b", "model": {}}],
+        }
+    ]
+    for _ in range(3):
+        sweep.remove_finished_models()
+    submitted = {args[2] for args in peer.submissions}
+    assert B in submitted and A not in submitted  # A is b's digest: protected
+    assert sweep.state.data["model_removals"][A]["message"] == (
+        "referenced by an owner profile"
+    )
+
+
 def test_owner_unknown_blocks_only_removal_and_heals(tmp_path):
     sweep, peer, clock = scenario(tmp_path)
     peer.profiles = [{"number": 20, "definition": None}]
