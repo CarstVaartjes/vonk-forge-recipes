@@ -127,7 +127,8 @@ def transition(
     `signature` None means nothing failed. "Twice" means two different runs: the
     same red on a new PR head (after a re-plan push), or a command that failed on
     a new tick. The same head seen on two ticks is one run and stays RED. A
-    rollup that is still running (`observed` False) changes no red state.
+    rollup that is still running (`observed` False) changes no red state. A
+    command that keeps failing with the same signature stays REFUSED.
 
     `open_pr` is the number of the open PR this batch saw, 0 for none, None when
     the batch failed before looking. The PR's clock keeps running through pushes,
@@ -139,6 +140,13 @@ def transition(
         wanted = current.state
     elif signature is None:
         wanted = PublisherState.IDLE
+    elif (
+        current.state == PublisherState.REFUSED
+        and current.command
+        and command
+        and signature == current.signature
+    ):
+        wanted = PublisherState.REFUSED  # the same command keeps failing: alert stays
     elif (
         current.state == PublisherState.RED
         and signature == current.signature

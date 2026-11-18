@@ -868,6 +868,22 @@ def test_success_clears_the_state_and_unknown_state_self_heals(tmp_path, monkeyp
     assert publisher.load_state(work).state == publisher.PublisherState.IDLE
 
 
+def test_a_command_that_keeps_failing_stays_refused_and_alerting():
+    idle = publisher.PublisherRecord()
+    record = publisher.transition(
+        idle, signature="git push exit 1", command=True, now=0
+    )
+    states = []
+    for _ in range(3):
+        record = publisher.transition(
+            record, signature="git push exit 1", command=True, now=0
+        )
+        states.append(record.state)
+    assert states == [publisher.PublisherState.REFUSED] * 3
+    moved = publisher.transition(record, signature="gh pr exit 1", command=True, now=0)
+    assert moved.state == publisher.PublisherState.RED
+
+
 def test_refused_needs_two_runs_and_is_reachable_only_after_red():
     idle = publisher.PublisherRecord()
     red = publisher.transition(idle, signature="lint", head="h1", now=0)
