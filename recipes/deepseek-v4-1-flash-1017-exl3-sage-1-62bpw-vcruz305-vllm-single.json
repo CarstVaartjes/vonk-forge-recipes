@@ -556,10 +556,6 @@
         "value": "/outputs/cache/jit/b12x/compile"
       },
       {
-        "name": "B12X_CUTE_COMPILE_CACHE_DIR",
-        "value": "/outputs/cache/jit/b12x/cute"
-      },
-      {
         "name": "B12X_DENSE_SPLITK_TURBO",
         "value": "1"
       },
@@ -582,14 +578,6 @@
       {
         "name": "CUTE_DSL_CACHE_DIR",
         "value": "/outputs/cache/jit/cute-dsl"
-      },
-      {
-        "name": "TILELANG_CACHE_DIR",
-        "value": "/outputs/cache/jit/tilelang"
-      },
-      {
-        "name": "TRITON_CACHE_DIR",
-        "value": "/outputs/cache/jit/triton"
       },
       {
         "name": "VLLM_CACHE_ROOT",
