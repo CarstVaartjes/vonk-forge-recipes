@@ -52,6 +52,16 @@
     {
       "models": [
         {
+          "slug": "minimax-h3-ref2va",
+          "title": "MiniMax H3 Ref2VA"
+        }
+      ],
+      "slug": "minimax-h-ref2va",
+      "title": "MiniMax H Ref2VA"
+    },
+    {
+      "models": [
+        {
           "slug": "minimax-music3",
           "title": "MiniMax Music3"
         }
