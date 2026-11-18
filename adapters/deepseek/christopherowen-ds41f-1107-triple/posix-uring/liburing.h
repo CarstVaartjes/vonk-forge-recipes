@@ -98,15 +98,6 @@ static inline int io_uring_register_buffers(struct io_uring *ring, const struct 
     return 0;
 }
 
-static inline int io_uring_unregister_buffers(struct io_uring *ring)
-{
-    if (!ring->buffers) return -ENXIO;
-    free(ring->buffers);
-    ring->buffers = NULL;
-    ring->nr_buffers = 0;
-    return 0;
-}
-
 static inline int io_uring_register_files(struct io_uring *ring, const int *files, unsigned nr)
 {
     if (ring->files) return -EBUSY;

@@ -14,7 +14,8 @@ from pathlib import Path
 ROOT = Path("/work/spark-ds41f")
 SHAPE = "tp3-triangle-4k"
 sys.path.insert(0, str(ROOT))
-import spark_ds41f.build as spark  # noqa: E402
+# The package rebinds the build functions to its own namespace, so the override below must be set on the package.
+import spark_ds41f as spark  # noqa: E402
 
 lock = json.loads((ROOT / "upstreams.lock.json").read_text(encoding="utf-8"))
 cluster = spark.cluster_recipe.resolve(json.loads((ROOT / "config/cluster.json").read_text(encoding="utf-8")), SHAPE)

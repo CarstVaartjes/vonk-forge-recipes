@@ -1227,6 +1227,10 @@
         "value": "10000"
       },
       {
+        "name": "SPARKNET_ROCE_TRAFFIC_CLASS",
+        "value": "106"
+      },
+      {
         "name": "SPARK_DS41F_DSPARK_DEAD_ROWS_TAU",
         "value": "0.2"
       },
@@ -1341,6 +1345,10 @@
       {
         "name": "NCCL_IB_ROCE_VERSION_NUM",
         "value": "2"
+      },
+      {
+        "name": "NCCL_IB_TC",
+        "value": "106"
       },
       {
         "name": "NCCL_IB_SUBNET_AWARE_ROUTING",
