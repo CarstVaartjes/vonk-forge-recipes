@@ -16,6 +16,7 @@
     "whole": true
   },
   "ours": [
-    "tensorfold-serve"
+    "tensorfold-serve",
+    "patches/0001-tool-parameters-integral-number-for-integer.patch"
   ]
 }
