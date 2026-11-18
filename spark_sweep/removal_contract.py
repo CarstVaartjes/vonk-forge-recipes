@@ -105,15 +105,6 @@ class ProfileAssignment(BaseModel):
     model_variant: str | None = None
 
 
-class ProfileModel(BaseModel):
-    content_sha256: Digest | None = None
-
-
-class AssignmentView(BaseModel):
-    recipe_selector: str
-    model: ProfileModel
-
-
 class ProfileDefinition(BaseModel):
     assignments: list[ProfileAssignment] = Field(default_factory=list)
     labels: dict[str, str] = Field(default_factory=dict)
@@ -122,7 +113,6 @@ class ProfileDefinition(BaseModel):
 class OwnerProfile(BaseModel):
     number: int
     definition: ProfileDefinition | None
-    assignments: list[AssignmentView] = Field(default_factory=list)
 
 
 class ProfileList(BaseModel):
