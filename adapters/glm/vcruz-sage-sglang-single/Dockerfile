@@ -30,7 +30,7 @@ RUN set -eux; \
     TORCH_CUDA_ARCH_LIST=12.1a MAX_JOBS=${MAX_JOBS} CUDA_HOME=/usr/local/cuda \
       python3 -m pip install --no-build-isolation --no-deps .; \
     cd /; \
-    python3 -c "import exllamav3, exllamav3_ext as e; print('exllamav3', exllamav3.__version__); assert hasattr(e, 'CoopMK'), 'CoopMK missing from exllamav3_ext'"
+    python3 -c "import exllamav3, exllamav3_ext as e; print('exllamav3 imported'); assert hasattr(e, 'CoopMK'), 'CoopMK missing from exllamav3_ext'"
 
 # 2. sglang-exl3 plugin, pure Python on PYTHONPATH (the creator's measured runs did not build its sglang_exl3_c
 #    extension). The dist-info only registers the SGLang plugin entry point.
