@@ -965,9 +965,6 @@
     "vonk-forge/gemma-4-26b-a4b-vllm-single": [
       "e32406f4713a67e805eb2500af6b344adec7a786c04bd41cc13d633c1b3402b2"
     ],
-    "vonk-forge/gemma-4-26b-a4b-vllm028-single": [
-      "ba1ea34777436b3bbb59ed051d6676e06ad8f24740a398fcc39487b4fdbe1e61"
-    ],
     "vonk-forge/gemma-4-31b-it-nvfp4-nvidia-vllm-single": [
       "babdee6808f968152f340ed80564f96b0c9412e34903134f21d24dca5f1e568b"
     ],
