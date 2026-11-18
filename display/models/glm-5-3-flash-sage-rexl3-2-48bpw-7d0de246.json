@@ -4,7 +4,8 @@
     "image-understanding",
     "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "vcruz305's SAGE mixed-precision REXL3 (ExLlamaV3 trellis) quantization of zai-org/GLM-5.3-Flash at 2.48 bits per weight (320B total, about 18B active mixture of experts, 15 shards, about 96.5 GiB resident, mul1 codebook) for the vllm-exl3 plugin, with the vision tower in BF16. The card's config declares only quant_method exl3, so the recipe derives a loader overlay (per-layer K and dense EXL3 linears) at start. The card marks the repository gated with manual review; its files download anonymously at the pinned revision.",
   "family_title": "GLM",
@@ -31,7 +32,8 @@
   },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "GLM 5.3 Flash SAGE REXL3 2.48bpw",
   "tags": [
