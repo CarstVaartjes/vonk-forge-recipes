@@ -39,7 +39,6 @@
   "vonk-forge/hy-memory-30b-a3b-vllm-single": "0ef33bf19bac8856c01815e1399e968a8dfa94a53cbf7718f90c47b7f93f8bf7",
   "vonk-forge/laguna-xs-2-1-nvfp4-vllm-single": "f8d4f1b30fc6dcbf07a4e6c50fd24fa314a50dd318924f65a1f8ca5b3803d058",
   "vonk-forge/lfm2-5-vl-3b-vllm-single": "4424fb06ef1aabf9b288dd7d86c2bd6863fea8e396a032fc8c87602d98b4884d",
-  "vonk-forge/lfm2-5-vl-3b-vllm028-single": "f0c08f150a43eff4daef1d7062a8d46ba1c285de963a3ae7959670ed6024fe3b",
   "vonk-forge/lightonocr-3-0-8b-vllm-single": "9ce83ac1a57b25d9b31b1e4e5143cfbf2359f4b393b4d73dfb987b1289396546",
   "vonk-forge/lightonocr-3-1b-vllm-single": "7fa764fbf1e9bb751a643c072d75a0ace7f42e306f90ca47078bb3f820cb4579",
   "vonk-forge/lightonocr-3-4b-vllm-single": "6d5a9874718bc669454d73463cd22986adb1b27301a22c7ec083206c5f3ef5e7",
