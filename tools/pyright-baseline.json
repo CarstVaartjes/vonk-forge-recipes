@@ -296,12 +296,6 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_vllm028_model_variants.py",
-      "rule": "reportIndexIssue",
-      "count": 24,
-      "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
       "file": "tests/test_wan_dancer_adapter.py",
       "rule": "reportArgumentType",
       "count": 1,
