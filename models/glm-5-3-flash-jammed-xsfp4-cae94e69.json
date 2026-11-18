@@ -20,22 +20,22 @@
       "size_bytes": 7842
     },
     {
-      "id": "notice-c2d63b0b56b1-dfb14fbb9e",
+      "id": "notice-caa9cb79bc23-dfb14fbb9e",
       "path": "NOTICE",
       "roles": [
         "metadata"
       ],
-      "sha256": "c2d63b0b56b1aa0b8830fe3f7a18a5f110a2539ba408384deb1611c4bfa83fa6",
-      "size_bytes": 726
+      "sha256": "caa9cb79bc23ad16bee219116b1aef72442feffb7ab03c5d6654fa1426e7f2cb",
+      "size_bytes": 813
     },
     {
-      "id": "readme-5adeea1041dc-b335630551",
+      "id": "readme-fd66f1112322-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "5adeea1041dc74e5fb24fd6fbb0e2d06f8587ff1157b3c979ad597327cf41069",
-      "size_bytes": 21961
+      "sha256": "fd66f1112322a7c1f8508d4ddd11c7df716098d60b9b448ef3c70ecdd8ab3771",
+      "size_bytes": 24716
     },
     {
       "id": "readme-nvidia-2be9cb475642-2f103953c6",
@@ -65,13 +65,13 @@
       "size_bytes": 164896
     },
     {
-      "id": "jammed-scales-9f818e09e202-f6e145bc86",
+      "id": "jammed-scales-97d8c6877ae2-f6e145bc86",
       "path": "assets/jammed-scales.png",
       "roles": [
         "metadata"
       ],
-      "sha256": "9f818e09e202f10141dc38aacf84260ef3d9781def648d3d6b5d96ac4847d285",
-      "size_bytes": 210130
+      "sha256": "97d8c6877ae22b0683615a9058e7b995cd8e5736997182c44342c46627b3677d",
+      "size_bytes": 209707
     },
     {
       "id": "jammed-6ab5dbd64bf6-6519f2cd1e",
@@ -1298,13 +1298,13 @@
       "size_bytes": 1204588600
     },
     {
-      "id": "model-safetensors-index-d3e6cd60b4b8-0a05be8238",
+      "id": "model-safetensors-index-5d5670184c72-0a05be8238",
       "path": "model.safetensors.index.json",
       "roles": [
         "configuration"
       ],
-      "sha256": "d3e6cd60b4b8755222e401afb5ff1257ffc4b2fc8b620fa450ce18e9d6f4430b",
-      "size_bytes": 19447229
+      "sha256": "5d5670184c72b791d84ff9d56ad7c56332e450aa63cf37b9d633b08b21193012",
+      "size_bytes": 19447097
     },
     {
       "id": "processor-config-aae38374c94b-27f0cb76af",
@@ -1353,14 +1353,14 @@
       "slug": "glm-5-3-flash-jammed-xsfp4"
     },
     "publisher": "bizuayeu",
-    "slug": "glm-5-3-flash-jammed-xsfp4-0a22bb46",
-    "variant": "jammed-xsfp4-0a22bb46",
-    "version": "jammed-xsfp4-0a22bb46"
+    "slug": "glm-5-3-flash-jammed-xsfp4-cae94e69",
+    "variant": "jammed-xsfp4-cae94e69",
+    "version": "jammed-xsfp4-cae94e69"
   },
   "kind": "model",
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Bizuayeu/GLM-5.3-Flash-Jammed-XSFP4",
-    "revision": "0a22bb46ecef3d0f5f96e41dc6011be12974fbf1"
+    "revision": "cae94e69bcaebe4178bf48a4156cfde62e8cd932"
   }
 }
