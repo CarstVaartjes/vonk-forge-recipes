@@ -1,0 +1,42 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "text-generation"
+  ],
+  "description": "r0b0tlab's EXL3 SAGE quantization of zai-org/GLM-5.3-Flash at about 2.25 bits per weight (320B total, about 18B active mixture of experts, 98.5 GB, mul1 codebook, mixed K3/K4 tiles) for ExLlamaV3 and the sglang-exl3 plugin; quantization_config.json carries the per-tensor manifest the plugin reads. The pack also carries the BF16 vision tower (347 tensors); the SGLang recipe serves text only.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "r0b0tlab",
+    "slug": "glm-5-3-flash-exl3-sage-2-25bpw-b3194b87"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "r0b0tlab",
+      "Z.ai"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/r0b0tlab/GLM-5.3-Flash-EXL3-SAGE-2.25bpw/blob/b3194b87af5665bd8b1dd6316c99a48607fc137d/LICENSE"
+  },
+  "lineage": {
+    "base_model": "zai-org/GLM-5.3-Flash",
+    "family": "glm",
+    "generation": "GLM 5.3",
+    "line": "glm-flash-321b",
+    "model": "glm-5-3-flash",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "model_title": "GLM 5.3 Flash EXL3 SAGE 2.25bpw",
+  "tags": [
+    "r0b0tlab",
+    "glm-5.3",
+    "language",
+    "exl3",
+    "candidate"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "draft": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "e60c8f86bba18e47bb23927588df6ce31248b569",
+      "repo": "Enntity/GLM-5.3-Flash-DFlash2-enntity",
+      "revision": "e60c8f86bba18e47bb23927588df6ce31248b569"
+    },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:06441be3de19a816ddbac917535e920cbfc7fc43171abc08417394f43634ffb6",
+      "kind": "digest",
+      "ref": "sha256:e3a4f06001a29542fc4a8638536d9ffc5eb9c9942b08603c09b19a56eae4a1ae",
+      "repo": "docker.io/lmsysorg/sglang"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "b3194b87af5665bd8b1dd6316c99a48607fc137d",
+      "repo": "r0b0tlab/GLM-5.3-Flash-EXL3-SAGE-2.25bpw",
+      "revision": "b3194b87af5665bd8b1dd6316c99a48607fc137d"
+    }
+  },
+  "kit": {
+    "commit": "362fe245bc1ddd4de7bc50870ebfe3b0cb8ceb34",
+    "repo": "vcruz305/GLM-5.3-Flash-EXL3-SAGE-SGLang-Spark-recipe"
+  }
+}
