@@ -9,6 +9,8 @@ from pathlib import Path
 
 import pytest
 
+from qualification.documents import recipe as read_recipe_document
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -197,3 +199,55 @@ def test_four_rank_cache_asks_the_generator_for_parity(tmp_path, monkeypatch):
     monkeypatch.setattr(cache.subprocess, "run", generate)
     cache.prepare_rank(tmp_path, output, 0, 4, Path("generator"))
     assert "--parity" in calls[0]
+
+
+def test_tony_four_spark_launch_binds_the_dedicated_node_pool(monkeypatch):
+    """The 3.5 bpw TP4 recipe binds the recipe's dedicated-node pool on every rank."""
+    folder = ROOT / "adapters/deepseek/tonyd2wild-1017-tensorfold-tp4"
+    loaded = []
+    for name in ("prepare_cache", "launcher"):
+        spec = importlib.util.spec_from_file_location(name, folder / f"{name}.py")
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        monkeypatch.setitem(sys.modules, name, module)
+        spec.loader.exec_module(module)
+        loaded.append(module)
+    launcher = loaded[1]
+    recipe = read_recipe_document(
+        "deepseek-v4-1-flash-1017-exl3-3-5bpw-tonyd2wild-tensorfold-four"
+    )
+    pool = next(a.value for a in recipe.runtime.arguments if a.name == "pool")
+    assert recipe.topology.node_count == 4
+    environ = {
+        "VONK_TF_WORLD": "4",
+        "VONK_MODEL_REVISION": "a" * 40,
+        "VONK_MASTER_ADDR": "192.0.2.1",
+        "VONK_MASTER_PORT": "29500",
+        "NCCL_IB_HCA": "=rocep1s0:1,roceP2p1s0:1",
+        "NCCL_IB_GID_INDEX": "3",
+    }
+    for rank in (0, 1):
+        arguments = [
+            "--tp",
+            "4",
+            "--rank",
+            str(rank),
+            "--master",
+            "VONK_MASTER_ADDR",
+            "--master-port",
+            "VONK_MASTER_PORT",
+            "--context",
+            "1048576",
+            "--parallel",
+            "16",
+            "--pool",
+            str(pool),
+        ]
+        _, _, command, runtime = launcher.launch(arguments, environ)
+        assert runtime["TF_DS_WINDOW"] == str(pool) and runtime["TF_DS_STREAMS"] == "16"
+        if rank:
+            # serve.sh: --pool CONTEXT first, then FOLLOW_FLAGS' window as the later --pool, which wins.
+            positions = [i for i, item in enumerate(command) if item == "--pool"]
+            assert [command[i + 1] for i in positions] == ["1048576", str(pool)]
+    with pytest.raises(ValueError, match="full-context"):
+        launcher.launch([*arguments[:-1], "1024"], environ)
