@@ -1,0 +1,46 @@
+{
+  "api": {
+    "input_formats": [
+      "flac",
+      "m4a",
+      "mp3",
+      "mp4",
+      "mpeg",
+      "mpga",
+      "ogg",
+      "wav",
+      "webm"
+    ],
+    "languages": [
+      "ar",
+      "de",
+      "en",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "ja",
+      "ko",
+      "nl",
+      "pt",
+      "ru",
+      "zh"
+    ],
+    "max_audio_seconds": 600,
+    "max_file_bytes": 26214400,
+    "mode": "audio_transcription",
+    "prompt": false,
+    "response_formats": [
+      "json",
+      "text"
+    ],
+    "temperature": true,
+    "timestamp_granularities": []
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "voxtral-mini-4b-realtime-vllm-single"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}

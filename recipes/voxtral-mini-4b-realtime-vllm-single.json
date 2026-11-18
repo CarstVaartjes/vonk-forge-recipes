@@ -1,0 +1,269 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "befccf0e7e4089aa23926bb6f887a85c0d46c2a99e6de5c5ffdf5cb7957c5b34",
+        "repository": "vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/mistral/voxtral-mini-4b-realtime-vllm-single"
+      },
+      "dockerfile": "adapters/mistral/voxtral-mini-4b-realtime-vllm-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "pypi.org",
+          "files.pythonhosted.org"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "voxtral-mini-4b-realtime-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "voxtral-mini-4b-realtime"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-a1533fad1fb4-618cd5b83d",
+          "id": "metadata-a1533fad1fb4-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-a5f8e9f596b6-b335630551",
+          "id": "readme-a5f8e9f596b6-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-96582f5809ad-587cb980af",
+          "id": "config-96582f5809ad-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "consolidated-263f178fe752-e2816af0af",
+          "id": "consolidated-263f178fe752-e2816af0af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-1fabdbadf2e0-97dd3d578b",
+          "id": "generation-config-1fabdbadf2e0-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "params-2ace010ebf7f-7b631c57f5",
+          "id": "params-2ace010ebf7f-7b631c57f5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-5fbc4247e0b3-27f0cb76af",
+          "id": "processor-config-5fbc4247e0b3-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tekken-8434af1d39eb-1750e96afb",
+          "id": "tekken-8434af1d39eb-1750e96afb",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "71dff636e8f333c66003d354f050b35d5a0294e2f1d7876ac0c22b819786683e",
+        "kind": "model",
+        "publisher": "mistralai",
+        "slug": "voxtral-mini-4b-realtime-2602-2769294d"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Mistral AI",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/vllm-project/recipes/blob/8cbf0867ef903c11a50b5dc8c25785100f16d539/models/mistralai/Voxtral-Mini-4B-Realtime-2602.yaml"
+  },
+  "release": {
+    "released_at": "2026-10-18",
+    "version": "0.32.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "voxtral-mini-4b-realtime"
+      },
+      {
+        "name": "tokenizer-mode",
+        "setting": null,
+        "value": "mistral"
+      },
+      {
+        "name": "compilation-config",
+        "setting": null,
+        "value": "{\"cudagraph_mode\": \"PIECEWISE\"}"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_DISABLE_COMPILE_CACHE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 131072
+    },
+    "kind": "generation",
+    "knobs": {}
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 8874393091,
+            "image_bytes": 38500000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 4437196545
+          },
+          "memory": {
+            "peak_bytes": 123796908340,
+            "reserve_bytes": 6000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "transcription.nonempty"
+          ],
+          "kind": "openai.transcription",
+          "name": "transcribe",
+          "request": {
+            "fields": {
+              "language": "en",
+              "model": "voxtral-mini-4b-realtime",
+              "response_format": "json"
+            },
+            "file": {
+              "field": "file",
+              "fixture": "qualification/fixtures/jfk-inaugural-10s.wav",
+              "media_type": "audio/wav"
+            },
+            "method": "POST",
+            "path": "/v1/audio/transcriptions",
+            "transport": "http-multipart"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
