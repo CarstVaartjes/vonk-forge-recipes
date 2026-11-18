@@ -721,10 +721,10 @@ ARG FORK_REPO
 ARG FORK_REF
 ARG MOE_TILESIZE_K
 
-# MAX_JOBS is the kit's 8 lowered to 2 for the hosted builder; the architecture list is unchanged.
+# The two compiles below run with MAX_JOBS=2 (the kit's 8 lowered for the hosted builder); the image keeps the kit's MAX_JOBS=8
+# afterwards. The architecture list is unchanged.
 ENV CUDA_HOME=/usr/local/cuda \
     TORCH_CUDA_ARCH_LIST=12.1a \
-    MAX_JOBS=2 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 RUN set -eux; \
@@ -757,14 +757,16 @@ RUN set -eux; \
     if [ -z "$CUSPARSE_DIR" ]; then echo "ERROR: cusparse.h not found under NVIDIA Python packages" >&2; exit 2; fi; \
     export CPATH="$CUSPARSE_DIR${CPATH:+:$CPATH}"; \
     cd /opt/exllamav3; \
-    python3 -m pip install --no-cache-dir --no-build-isolation --no-deps .
+    MAX_JOBS=2 python3 -m pip install --no-cache-dir --no-build-isolation --no-deps .
 
 RUN set -eux; \
     CUSPARSE_DIR="$(find /usr/local/lib/python3*/dist-packages/nvidia -name cusparse.h -exec dirname {} \; 2>/dev/null | head -1)"; \
     export CPATH="$CUSPARSE_DIR${CPATH:+:$CPATH}"; \
     export EXL3_EXT_INCLUDE=/opt/exllamav3/exllamav3/exllamav3_ext; \
     cd /opt/vllm-exl3; \
-    python3 -m pip install --no-cache-dir --no-build-isolation --no-deps .
+    MAX_JOBS=2 python3 -m pip install --no-cache-dir --no-build-isolation --no-deps .
+
+ENV MAX_JOBS=8
 
 COPY docker/tp1_decode_tiles.py /opt/dsv41-tools/tp1_decode_tiles.py
 RUN python3 /opt/dsv41-tools/tp1_decode_tiles.py \
