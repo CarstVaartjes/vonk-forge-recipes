@@ -1,0 +1,16 @@
+{
+  "id": "vonk-forge/mistral-large-4-1t-a52b-exl3-2-5bpw-bertholomus-tensorfold-four",
+  "service_recipes": {
+    "alias": "mistral-large-4-1t-a52b-bertholomus-tensorfold",
+    "smoke_cases": [
+      "M0",
+      "MIS_A391"
+    ],
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start reuses each rank's completed rank cache and built CUDA extensions",
+        "A start killed during the extension build or rank-cache write recovers on the next start"
+      ]
+    }
+  }
+}
