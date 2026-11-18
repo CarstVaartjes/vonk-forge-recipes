@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf",
+      "kind": "digest",
+      "ref": "sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf",
+      "repo": "docker.io/vllm/vllm-openai"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "1bae0e1088993b9b82de08f59de5be5a34e42170",
+      "repo": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "revision": "1bae0e1088993b9b82de08f59de5be5a34e42170"
+    }
+  },
+  "kit": {
+    "commit": "8e5ea208f3d22bc69df91ace94d6975932c858a8",
+    "repo": "christopherowen/spark-ds41f"
+  }
+}
