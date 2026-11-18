@@ -1,0 +1,24 @@
+{
+  "alignment": "unspecified",
+  "description": "Candidate two-DGX Spark DeepSeek V4.1 Flash text profile on antirez/ds4 network tensor parallelism (50/50 expert split over RDMA): each Spark holds about 81 GiB of the Q2 weights, with the Engram tables read from disk. Uses the creator's two-Spark example context (32768). Physical Spark acceptance is still required.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-ds4-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "executable",
+    "deepseek",
+    "deepseek-v4-1",
+    "ds4",
+    "openai",
+    "chat",
+    "reasoning",
+    "tensor-parallel",
+    "rdma",
+    "dual",
+    "spark"
+  ],
+  "title": "DeepSeek V4.1 Flash 1017 DS4 tensor-parallel dual Spark"
+}
