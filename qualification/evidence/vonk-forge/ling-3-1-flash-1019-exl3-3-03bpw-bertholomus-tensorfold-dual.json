@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/ling-3-1-flash-1019-exl3-3-03bpw-bertholomus-tensorfold-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "0b18d0d304ccde42b041021fbaa4f5c1189b307877f8903c48153fea3d4013bf",
+        "source_bundle_sha256": "b772203f51516564f1c5c2afa75b25a360654c3c3241a3eb3cd6c76ab3bf8d34",
+        "runtime_image": {
+          "build_key": "ce6f3ed0311ec0998e601a0e5b3cd685a57dcd26c887255da6f22c36a221014b",
+          "image_digest": "sha256:c3735beb51676d4e0a88e67db862f943d79995cc578e76eb434d29b1e8971b16"
+        },
+        "model_digests": [
+          "937196704c772aa678ecb18b0f55fd31149329c04679f1e480ead5af8780a691"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "24a886bc485e2d3c511d804616030bc8f433399ad9e57d3d9999e63745c9e490"
+      ],
+      "tested_at": "2026-11-18T23:07:17.221835Z",
+      "platform": {
+        "controller_source_sha": "1d8683c48e65dc158ad7313cdd3772bd44faa5f8",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "0b18d0d304ccde42b041021fbaa4f5c1189b307877f8903c48153fea3d4013bf",
+      "role": "entrypoint",
+      "steady_bytes": 125065035776
+    },
+    {
+      "content_sha256": "0b18d0d304ccde42b041021fbaa4f5c1189b307877f8903c48153fea3d4013bf",
+      "role": "worker",
+      "steady_bytes": 125106196480
+    }
+  ]
+}
