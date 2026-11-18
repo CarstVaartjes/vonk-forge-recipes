@@ -4,7 +4,7 @@
 # The creator publishes no image, so the image is built from the creator's docker/Dockerfile: the lmsysorg/sglang:v0.5.22
 # arm64 image pinned by digest (scripts/env.sh names the multi-arch index; the lock resolves its linux/arm64 manifest),
 # the creator's exllamav3 fork (vcruz305/exllamav3 475461e9, CoopMK kernels) compiled for sm_121a, his sglang-exl3 plugin
-# (ad9c2a06) on PYTHONPATH, his eight SGLang v0.5.22 patches and his fail-closed flashinfer stub. Differences from his
+# (ad9c2a06) on PYTHONPATH, his eight SGLang v0.5.22 patches (plus our 0009 for non-greedy sampling) and his fail-closed flashinfer stub. Differences from his
 # Dockerfile: the build arguments are fixed here to the pins of his scripts/env.sh; a build-time sm_121 kernel scan of the
 # compiled extension is added; the Controller launcher, the non-root user and the engine cache paths are added.
 FROM docker.io/lmsysorg/sglang@sha256:06441be3de19a816ddbac917535e920cbfc7fc43171abc08417394f43634ffb6
