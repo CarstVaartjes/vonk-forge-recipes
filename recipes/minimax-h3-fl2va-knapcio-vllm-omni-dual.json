@@ -59,7 +59,7 @@
             "min_files": 1
           },
           {
-            "description": "Optional request.json: duration 4-15 s (default 5), width and height (multiples of 32, default 1344x768), num_inference_steps, flow_shift, seed, aspect_ratio, first_image and/or last_image keyframe paths.",
+            "description": "Optional request.json: duration 4-15 s (default 5), width and height (multiples of 32, default 1344x768), num_inference_steps, flow_shift, seed, first_image and/or last_image keyframe paths.",
             "extensions": [
               ".json"
             ],
@@ -1096,11 +1096,6 @@
         "name": "seed",
         "setting": null,
         "value": 1101
-      },
-      {
-        "name": "aspect-ratio",
-        "setting": null,
-        "value": "16:9"
       }
     ],
     "engine": "vllm-omni",

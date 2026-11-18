@@ -1,5 +1,6 @@
 {
   "ours": [
+    "requirements-setuptools.lock",
     "requirements.in",
     "requirements.lock",
     "verify-runtime.py",
