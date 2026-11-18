@@ -1,0 +1,13 @@
+--- a/python/sglang/srt/speculative/dflash_worker_v2.py
++++ b/python/sglang/srt/speculative/dflash_worker_v2.py
+@@ -728,7 +728,9 @@
+     def prewarm_sampling(self) -> SamplingPrewarmResult:
+         """Rehearse the non-greedy verify path so an undersized graph-pool
+         borrow surfaces at startup rather than under traffic."""
+-        if not is_cuda() or not is_dflash_sampling_verify_available():
++        # Greedy serving: the non-greedy rehearsal would call the flashinfer top-p stub.
++        if (not is_cuda() or not is_dflash_sampling_verify_available()
++                or __import__("os").environ.get("DF1_SKIP_DFLASH_SAMPLING_PREWARM") == "1"):
+             return self.model_runner.prewarm_sampling()
+ 
+         block_size = int(self.block_size)
