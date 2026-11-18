@@ -8,11 +8,17 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-# The sfxnz pair and the Sage pair run the same stock-release launch; every test below runs against both launchers.
-LAUNCHERS = [
-    ROOT / "adapters/glm/sfxnz-tensorfold-native-dual/tensorfold-serve",
-    ROOT / "adapters/glm/bizuayeu-sage-tensorfold-dual/tensorfold-serve",
-]
+# The sfxnz pair, the Sage pair and the XSFP4 recipes run the same stock-release launch; every test below runs against
+# every launcher. The XSFP4 image installs the engine at /usr/local/bin.
+ENGINES = {
+    ROOT
+    / "adapters/glm/sfxnz-tensorfold-native-dual/tensorfold-serve": "/opt/tensorfold/bin/tensorfold-native",
+    ROOT
+    / "adapters/glm/bizuayeu-sage-tensorfold-dual/tensorfold-serve": "/opt/tensorfold/bin/tensorfold-native",
+    ROOT
+    / "adapters/glm/bizuayeu-xsfp4-tensorfold-native/tensorfold-serve": "/usr/local/bin/tensorfold-native",
+}
+LAUNCHERS = list(ENGINES)
 SERVE = ["--host", "0.0.0.0", "--port", "8000", "--vision", "--parallel", "8"]
 PLATFORM = [
     "--tp",
@@ -55,10 +61,8 @@ def test_rank_binds_the_pair_through_the_engines_environment(
     launcher, monkeypatch, tmp_path
 ):
     (call,) = launch(launcher, monkeypatch, tmp_path, [*SERVE, *PLATFORM])
-    assert call == (
-        "/opt/tensorfold/bin/tensorfold-native",
-        ["/opt/tensorfold/bin/tensorfold-native", "serve", "/models/target", *SERVE],
-    )
+    engine = ENGINES[launcher]
+    assert call == (engine, [engine, "serve", "/models/target", *SERVE])
     assert os.environ["TF_GLM_RANK"] == "1"
     assert os.environ["TF_GLM_WORLD"] == "2"
     assert os.environ["NCCL_COMM_ID"] == "192.0.2.1:29500"
