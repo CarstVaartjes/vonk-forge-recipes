@@ -126,11 +126,12 @@ LABEL org.opencontainers.image.source="https://github.com/Bizuayeu/GLM-5.3-Flash
       org.opencontainers.image.licenses="Apache-2.0"
 # NCCL at the version the creator's host pairs measured (2.30.7), held there; rdma-core's verbs and their providers so NCCL
 # takes RoCE (NET/IB) rather than sockets; python3 for the Controller launcher. The creator's HTTP-check tools (pip,
-# tokenizers) are not installed.
-ARG NCCL_VERSION=2.30.7-1+cuda13.3
+# tokenizers) are not installed. The pin is not named NCCL_VERSION: the CUDA runtime image sets ENV NCCL_VERSION (its own
+# bare 2.30.7-1), which overrides an ARG of that name inside RUN, so the apt pin lost its +cuda13.3 suffix and was not found.
+ARG NCCL_PIN=2.30.7-1+cuda13.3
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-downgrades --allow-change-held-packages \
-      "libnccl2=${NCCL_VERSION}" libibverbs1 ibverbs-providers rdma-core ibverbs-utils \
+      "libnccl2=${NCCL_PIN}" libibverbs1 ibverbs-providers rdma-core ibverbs-utils \
       python3-minimal procps util-linux ca-certificates \
  && apt-mark hold libnccl2 \
  && rm -rf /var/lib/apt/lists/*
