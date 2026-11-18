@@ -1,0 +1,59 @@
+{
+  "api": {
+    "audio_output": false,
+    "default_output_tokens": {
+      "value": 4096
+    },
+    "endpoints": [
+      "/v1/chat/completions",
+      "/v1/completions",
+      "/v1/responses",
+      "/v1/messages"
+    ],
+    "input_modalities": {
+      "audio": false,
+      "image": false,
+      "pdf": false,
+      "text": true,
+      "video": false
+    },
+    "max_input_tokens": 868352,
+    "max_output_tokens": {
+      "value": 868352
+    },
+    "mode": "chat",
+    "reasoning": {
+      "effort": {
+        "default": "max",
+        "key": "reasoning_effort",
+        "kind": "levels",
+        "levels": [
+          "minimal",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "via": "top_level"
+      },
+      "kind": "always-on"
+    },
+    "streaming": true,
+    "structured_output": false,
+    "system_messages": true,
+    "tools": {
+      "kind": "supported",
+      "parallel_calls": true,
+      "tool_choice": [
+        "auto"
+      ]
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "beam-1-0-501b-a23b-exl3-3bpw-bertholomus-tensorfold-dual"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}
