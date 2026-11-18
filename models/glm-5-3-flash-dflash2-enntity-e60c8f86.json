@@ -1,0 +1,79 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "provenance-7aa46fa4c9b1-1a9fea295a",
+      "path": "PROVENANCE.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7aa46fa4c9b1463784079022996b7c36c45683c137f6882f33e6404b9ecee0ae",
+      "size_bytes": 1388
+    },
+    {
+      "id": "readme-b317468b2594-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "b317468b2594e28dc139fa2d3f092d58062ec80262660c37cf7c796f3e4e8d46",
+      "size_bytes": 4609
+    },
+    {
+      "id": "config-135ae31e40cd-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "135ae31e40cd7e7d0a55d17f4f67d7b4c96ddf7ab3d6738cb98c4fd32ab0cb03",
+      "size_bytes": 2586
+    },
+    {
+      "id": "model-d14e1edb0807-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d14e1edb080711d46aa507651bfd0e92c50c2a4f1082e138662f6f0274003cf6",
+      "size_bytes": 2342171064
+    },
+    {
+      "id": "rigmark-progress-light-108a12455ac1-d780664ce0",
+      "path": "rigmark-progress-light.svg",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "108a12455ac127013cbc8f3e96515f0fcd90c79edd7e03f0cc8b4429d3780518",
+      "size_bytes": 8355
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "enntity",
+      "slug": "glm-5-3-flash-dflash2-enntity"
+    },
+    "publisher": "enntity",
+    "slug": "glm-5-3-flash-dflash2-enntity-e60c8f86",
+    "variant": "GLM 5.3 Flash DFlash2 Enntity e60c8f86",
+    "version": "GLM 5.3 Flash DFlash2 Enntity e60c8f86"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/Enntity/GLM-5.3-Flash-DFlash2-enntity",
+    "revision": "e60c8f86bba18e47bb23927588df6ce31248b569"
+  }
+}
