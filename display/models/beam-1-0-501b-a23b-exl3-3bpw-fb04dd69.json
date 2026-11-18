@@ -1,0 +1,41 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "Bertholomus's ExLlamaV3 (EXL3) conversion of Reflection's Beam-1.0-501B-A23B (501B total, 23B active, 256 routed experts, 52 layers: 9 full-attention NoPE layers and 43 window-512 layers, 1,048,576-token context) for two DGX Spark (GB10) nodes: routed experts 3 bits (all 256 per layer), attention and dense MLPs 6 bits, embedding, norms, router and lm_head BF16, about 90 GiB per node at tensor parallel 2. Quantized with Diffbot's Beam EXL3 recipe on ExLlamaV3 v1.6.5; the creator measured KL 0.0121 (lower bound) and 96.87% top-1 agreement against BF16 on TensorFold. Not a Reflection release.",
+  "family_title": "Beam",
+  "identity": {
+    "publisher": "bertholomus",
+    "slug": "beam-1-0-501b-a23b-exl3-3bpw-fb04dd69"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Bertholomus",
+      "Reflection",
+      "Diffbot"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/bertholomus/Beam-1.0-501B-A23B-EXL3-3bpw-2xGB10/blob/fb04dd6990ee545185b522f8ab1d2b4e2fa68c03/LICENSE"
+  },
+  "lineage": {
+    "base_model": "reflection/Beam-1.0-501B-A23B",
+    "family": "beam",
+    "generation": "Beam 1.0",
+    "line": "beam-501b",
+    "model": "beam-1-0-501b-a23b",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "Beam-1.0-501B-A23B EXL3 3bpw (2x GB10)",
+  "tags": [
+    "reflection",
+    "beam"
+  ]
+}

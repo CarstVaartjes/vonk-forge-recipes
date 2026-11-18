@@ -1,0 +1,18 @@
+{
+  "id": "vonk-forge/beam-1-0-501b-a23b-exl3-3bpw-bertholomus-tensorfold-dual",
+  "service_recipes": {
+    "alias": "beam-1.0",
+    "higher_tiers": {
+      "recovery": [
+        "Controller-only rank-loss and warm-cache recovery (the CUDA extensions are reused from /outputs/cache)"
+      ],
+      "stress": [
+        "Long-context canary toward the KV pool the engine sizes at start (creator: 868,352 positions per node), with MemAvailable watched against the engine's 9 GiB floor (creator: 10,740 / 11,089 MiB lowest on head / worker)"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "T_PRODUCT"
+    ]
+  }
+}
