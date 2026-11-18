@@ -1,0 +1,48 @@
+{
+  "kit": {
+    "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "base/docker/Dockerfile",
+        "pattern": "^ARG SPARK_DS41F_REVISION=(?P<version>[0-9a-f]{40})$",
+        "repo": "christopherowen/spark-ds41f"
+      },
+      "exllamav3": {
+        "datasource": "git-ref",
+        "file": "scripts/env.sh",
+        "pattern": "^FORK_REF=\"\\$\\{FORK_REF:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo": "vcruz305/exllamav3"
+      },
+      "image": {
+        "datasource": "oci-image",
+        "file": "base/docker/Dockerfile",
+        "pattern": "^ARG BASE_IMAGE_DIGEST=(?P<version>sha256:[0-9a-f]{64})$",
+        "repo": "docker.io/vllm/vllm-openai"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "packs/1.62bpw/scripts/env.sh",
+        "pattern": "^MODEL_REV=\"\\$\\{MODEL_REV:-(?P<version>[0-9a-f]{40})\\}\"$",
+        "repo_pattern": "^MODEL_REPO=\"(?P<repo>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)\"$"
+      },
+      "vllm-exl3": {
+        "datasource": "git-ref",
+        "file": "scripts/env.sh",
+        "pattern": "^PLUGIN_REF=\"\\$\\{PLUGIN_REF:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo": "vcruz305/vllm-exl3"
+      }
+    },
+    "whole": false
+  },
+  "ours": [
+    "build/",
+    "posix-uring/",
+    "scan-sm121.py",
+    "vllm-launcher.py"
+  ],
+  "source": {
+    "commit": "8036aa741e2c2328035ed546f1f844b6797775f6",
+    "repo": "vcruz305/DSV4.1-Flash-1017-EXL3-Spark-recipe"
+  }
+}

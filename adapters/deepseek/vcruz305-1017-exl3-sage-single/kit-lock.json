@@ -1,0 +1,43 @@
+{
+  "dependencies": {
+    "engine": {
+      "commit": "2dc95329610188451a5c5f5af98e5c392144809c",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "2dc95329610188451a5c5f5af98e5c392144809c",
+      "repo": "christopherowen/spark-ds41f"
+    },
+    "exllamav3": {
+      "commit": "909ad8564fcb9e070caca8a65d380c741681e79c",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "909ad8564fcb9e070caca8a65d380c741681e79c",
+      "repo": "vcruz305/exllamav3"
+    },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf",
+      "kind": "digest",
+      "ref": "sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf",
+      "repo": "docker.io/vllm/vllm-openai"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "c852150e06f5e5ee8c4c14f9cd1a9afc6bb21960",
+      "repo": "vcruz305/DSV4.1-Flash-1017-SAGE-EXL3-1.62bpw",
+      "revision": "c852150e06f5e5ee8c4c14f9cd1a9afc6bb21960"
+    },
+    "vllm-exl3": {
+      "commit": "30e8b941376ce2d43bc8438439937c4809106635",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "30e8b941376ce2d43bc8438439937c4809106635",
+      "repo": "vcruz305/vllm-exl3"
+    }
+  },
+  "kit": {
+    "commit": "8036aa741e2c2328035ed546f1f844b6797775f6",
+    "repo": "vcruz305/DSV4.1-Flash-1017-EXL3-Spark-recipe"
+  }
+}
