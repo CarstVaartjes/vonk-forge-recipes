@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "engine": {
+      "commit": "f4a30b3ecc990ec760c4322653df9a6e49d91a70",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "f4a30b3e",
+      "repo": "bertholomus/TensorFold"
+    },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3",
+      "kind": "tag",
+      "ref": "26.07-py3",
+      "repo": "nvcr.io/nvidia/pytorch"
+    }
+  },
+  "kit": {
+    "commit": "de33c39c0f6fe3b29e5234628cb959a317204249",
+    "repo": "bertholomus/mistral-large-4-tensorfold-tp4-4xgb10"
+  }
+}

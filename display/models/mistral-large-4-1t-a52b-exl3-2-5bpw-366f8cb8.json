@@ -1,0 +1,40 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "bertholomus/Mistral-Large-4-1T-A52B-EXL3-2.5bpw at immutable revision 366f8cb847b73efa7d998419e9632a84b602eea9 (the repository head; it differs from 67130854, the v0.2.0 pack commit, only in the model card): bertholomus's EXL3 conversion of mistralai/Mistral-Large-4-1T-A52B at f12dabdc (routed experts 2.5 bpw; attention, shared and dense 5.0 bpw; head 6.0 bpw; mul1 codebook), 72 layers, MLA attention with a sparse indexer, 128 routed experts (4 active) plus a shared expert, and a 1,048,576-token window. Text only: the vision encoder is not in the pack. draft/mtp_dspark.safetensors is Mistral's own draft head, unchanged. All 155 hashed files match the creator's sha256.txt. Weights are under the Mistral Ecosystem Open-Weight License (a modified MIT licence; condition 2 asks a Model-as-a-Service business to obtain a separate commercial licence from Mistral before commercial use); the licence is information, not a gate. What 2.5 bits costs against the original weights is not measured by the creator or here.",
+  "family_title": "Mistral",
+  "identity": {
+    "publisher": "bertholomus",
+    "slug": "mistral-large-4-1t-a52b-exl3-2-5bpw-366f8cb8"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Mistral AI; bertholomus for the EXL3 quantization."
+    ],
+    "spdx": "LicenseRef-Mistral-Ecosystem-Open-Weight-License",
+    "url": "https://huggingface.co/bertholomus/Mistral-Large-4-1T-A52B-EXL3-2.5bpw/blob/366f8cb847b73efa7d998419e9632a84b602eea9/LICENSE"
+  },
+  "lineage": {
+    "base_model": "mistralai/Mistral-Large-4-1T-A52B",
+    "family": "mistral",
+    "generation": "Mistral Large 4",
+    "line": "mistral-large",
+    "model": "mistral-large-4-1t-a52b",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "Mistral Large 4 1T-A52B EXL3 2.5bpw",
+  "tags": [
+    "mistralai",
+    "mistral-large",
+    "exl3"
+  ]
+}
