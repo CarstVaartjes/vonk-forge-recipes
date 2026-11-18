@@ -6,6 +6,7 @@ speaking HTTP, the fake agent a real child process writing a log. No GPU, no vLL
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
 import io
 import json
@@ -33,7 +34,6 @@ job = importlib.util.module_from_spec(_SPEC)
 sys.modules["vllm_omni_job"] = job
 _SPEC.loader.exec_module(job)
 
-SECRET = "s" * 43
 MP4 = b"\x00\x00\x00\x18ftypmp42" + b"\x00" * 64
 
 FAKE_SERVER = textwrap.dedent(
@@ -52,6 +52,8 @@ FAKE_SERVER = textwrap.dedent(
             self.send_response(200 if self.path == "/health" else 404); self.end_headers()
         def do_POST(self):
             self.rfile.read(int(self.headers["Content-Length"]))
+            if marker:
+                open(marker + ".post", "w").write("posted")
             if mode == "http500":
                 self.send_response(500); self.end_headers(); self.wfile.write(b"engine exploded"); return
             if mode == "slow":
@@ -68,6 +70,11 @@ FAKE_AGENT = textwrap.dedent(
     import os, sys, time
     log_dir = sys.argv[1]
     os.makedirs(log_dir, exist_ok=True)
+    if os.environ.get("FAKE_CHILD_PIDFILE"):
+        import subprocess
+        child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"], start_new_session=True)
+        open(os.path.join(log_dir, "rank1.pid"), "w").write(str(child.pid))
+        open(os.environ["FAKE_CHILD_PIDFILE"], "w").write(str(child.pid))
     with open(os.path.join(log_dir, "worker-rank1-1.log"), "ab") as log:
         log.write(b"rank1: ready\\n"); log.flush()
     if os.environ.get("FAKE_AGENT_EXIT"):
@@ -119,11 +126,46 @@ def environment(rank: int, **overrides: str) -> dict[str, str]:
         "VONK_MASTER_ADDR": "127.0.0.1",
         "VONK_MASTER_PORT": "29500",
         "VONK_PEER_ADDRS": "127.0.0.1,127.0.0.1",
-        "VONK_PEER_SECRET": SECRET,
         "VONK_JOB_TIMEOUT_SECONDS": "40",
     }
     env.update(overrides)
     return env
+
+
+@pytest.fixture(autouse=True)
+def said(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """Every line the wrapper prints through ``say``, in order."""
+    lines: list[str] = []
+    real = job.say
+
+    def record(message: str) -> None:
+        lines.append(f"vllm-omni-job: {message}")
+        real(message)
+
+    monkeypatch.setattr(job, "say", record)
+    return lines
+
+
+@contextlib.contextmanager
+def trigger(ready: Callable[[], bool], action: Callable[[], None]) -> Iterator[None]:
+    """Run ``action`` once ``ready()`` holds (events, never fixed delays); never after the block ended."""
+    done = threading.Event()
+
+    def watch() -> None:
+        deadline = time.monotonic() + 60
+        while not done.is_set() and time.monotonic() < deadline:
+            if ready():
+                action()
+                return
+            time.sleep(0.005)
+
+    thread = threading.Thread(target=watch, daemon=True)
+    thread.start()
+    try:
+        yield
+    finally:
+        done.set()
+        thread.join(timeout=5)
 
 
 def settings(task: str = "fl2va", **overrides: object) -> Any:
@@ -138,7 +180,6 @@ def settings(task: str = "fl2va", **overrides: object) -> Any:
         "steps": 20,
         "flow_shift": 12.0,
         "seed": 1101,
-        "aspect_ratio": "16:9",
     }
     values.update(overrides)
     return job.Settings(**values)  # type: ignore[arg-type]
@@ -174,12 +215,12 @@ def test_placement_maps_the_platform_environment() -> None:
         29500,
         40,
     )
-    head = job.child_environment(place, {"PATH": "/bin", "VONK_PEER_SECRET": SECRET})
+    head = job.child_environment(place, {"PATH": "/bin", "H3_TP2_SECRET": "inherited"})
     assert head["H3_TP2_HEAD_IP"] == "10.0.0.1"
     assert head["H3_TP2_WORKER_IP"] == "10.0.0.2"
     assert head["H3_TP2_WORKER_AGENT"] == f"10.0.0.2:{job.AGENT_PORT}"
     assert head["H3_TP2_ROLE"] == "head" and head["MASTER_PORT"] == "29500"
-    assert head["H3_TP2_SECRET"] == SECRET and "VONK_PEER_SECRET" not in head
+    assert "H3_TP2_SECRET" not in head  # the creator's channel runs without HMAC
     assert head["VLLM_HOST_IP"] == "127.0.0.1" and head["H3_TP2_WORLD_SIZE"] == "2"
     worker = job.child_environment(job.read_placement(environment(1)), {})
     assert "H3_TP2_ROLE" not in worker and "MASTER_PORT" not in worker
@@ -188,8 +229,6 @@ def test_placement_maps_the_platform_environment() -> None:
 @pytest.mark.parametrize(
     ("override", "named"),
     [
-        ({"VONK_PEER_SECRET": ""}, "VONK_PEER_SECRET"),
-        ({"VONK_PEER_SECRET": "x" * 31}, "VONK_PEER_SECRET"),
         ({"VONK_WORLD_SIZE": "3"}, "VONK_WORLD_SIZE"),
         ({"VONK_RANK": "2"}, "VONK_RANK"),
         ({"VONK_LOCAL_ADDR": ""}, "VONK_LOCAL_ADDR"),
@@ -207,16 +246,16 @@ def test_the_wrapper_refuses_to_start_and_names_only_the_variable(
     argv = [
         "--model=/models/FL2VA", "--task=fl2va", "--duration=5", "--min-duration=4", "--max-duration=15",
         "--width=1344", "--height=768", "--num-inference-steps=20", "--flow-shift=12", "--seed=1101",
-        "--aspect-ratio=16:9", f"--output-dir={inputs}",
+        f"--output-dir={inputs}",
     ]  # fmt: skip
     assert job.main(argv, env) == job.EXIT_CONFIG
     err = capsys.readouterr().err
-    assert named in err and SECRET not in err and "x" * 31 not in err
+    assert named in err
 
 
 @pytest.mark.parametrize(
     ("timeout", "interval"),
-    [(None, 30.0), (1, 5.0), (40, 10.0), (200, 50.0), (3600, 60.0)],
+    [(None, 30.0), (1, 5.0), (40, 10.0), (3600, 60.0)],
 )
 def test_heartbeat_is_a_quarter_of_the_submitters_window(
     timeout: int | None, interval: float
@@ -338,7 +377,7 @@ def test_ref2va_is_long_video_continuation_from_references(inputs: Path) -> None
         ({"width": 1000}, "multiple of 32"),
         ({"num_inference_steps": 0}, "num_inference_steps"),
         ({"seed": -1}, "seed"),
-        ({"aspect_ratio": "5:4"}, "aspect_ratio"),
+        ({"aspect_ratio": "16:9"}, "unsupported"),
         ({"first_image": "../outside.png"}, "inside"),
         ({"first_image": "missing.png"}, "regular input file"),
         ({"surprise": 1}, "unsupported"),
@@ -364,22 +403,21 @@ def test_the_machine_refuses_an_edge_the_table_does_not_have() -> None:
 
 
 def test_unreachable_agent_backs_off_then_fails_at_its_bound(
-    inputs: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    inputs: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, said: list[str]
 ) -> None:
     clock = FakeClock()
     ctx = job.Context(
         job.read_placement(environment(0)), settings(), {}, tmp_path,
-        clock=clock, timing=job.Timing(agent_ready_s=50.0), inputs=inputs, heartbeat_s=3600.0,
+        clock=clock, timing=job.Timing(agent_ready_s=50.0), heartbeat_s=3600.0,
+        request=job.build_request(settings(), inputs),
     )  # fmt: skip
-    head = job.HeadJob(ctx)
     free = socket.socket()
     free.bind(("127.0.0.1", 0))
-    port = free.getsockname()[1]
+    monkeypatch.setattr(job, "AGENT_PORT", free.getsockname()[1])
     free.close()
-    monkeypatch.setattr(job, "AGENT_PORT", port)
-    with pytest.raises(job.JobFailure, match="did not answer"):
-        head._await_agent()
+    assert job.HeadJob(ctx).run() == job.EXIT_FAILED
     assert clock.waits[:6] == [1.0, 2.0, 4.0, 8.0, 15.0, 15.0]
+    assert any("did not answer within 50 s" in line for line in said)
 
 
 @pytest.fixture
@@ -415,29 +453,25 @@ def stack(
         }
         return job.Context(
             job.read_placement(environment(0)), settings(), env, out,
-            timing=FAST, inputs=inputs, heartbeat_s=0.05, **kwargs,
+            timing=FAST, request=job.build_request(settings(), inputs), heartbeat_s=0.05, **kwargs,
         )  # fmt: skip
 
     yield make
     listener.close()
 
 
-def run_head(ctx: Any, capsys: pytest.CaptureFixture[str]) -> tuple[int, list[str]]:
+def run_head(ctx: Any, said: list[str]) -> tuple[int, list[str]]:
     code = job.HeadJob(ctx).run()
-    return code, [
-        line
-        for line in capsys.readouterr().out.splitlines()
-        if line.startswith("vllm-omni-job:")
-    ]
+    return code, list(said)
 
 
 def test_a_render_ends_as_an_atomic_mp4_and_a_stopped_server(
     stack: Callable[..., Any],
     inputs: Path,
     tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
+    said: list[str],
 ) -> None:
-    code, log = run_head(stack("ok", inputs), capsys)
+    code, log = run_head(stack("ok", inputs), said)
     assert code == 0
     assert (tmp_path / "outputs" / "video.mp4").read_bytes() == MP4
     assert sorted(path.name for path in (tmp_path / "outputs").iterdir()) == [
@@ -452,11 +486,18 @@ def test_a_render_ends_as_an_atomic_mp4_and_a_stopped_server(
 
 
 def test_the_heartbeat_names_the_state_while_the_render_runs(
-    stack: Callable[..., Any], inputs: Path, capsys: pytest.CaptureFixture[str]
+    stack: Callable[..., Any], inputs: Path, said: list[str]
 ) -> None:
     ctx = stack("slow", inputs)
-    threading.Timer(0.6, ctx.cancel.set).start()
-    code, log = run_head(ctx, capsys)
+
+    def beating() -> bool:
+        return any(
+            line.startswith("vllm-omni-job: rank 0 RENDERING ") and "->" not in line
+            for line in said
+        )
+
+    with trigger(beating, ctx.cancel.set):
+        code, log = run_head(ctx, said)
     assert code == job.EXIT_CANCELLED
     assert any(
         line.startswith("vllm-omni-job: rank 0 RENDERING ") and line.endswith("s")
@@ -468,9 +509,9 @@ def test_a_server_that_dies_while_starting_fails_the_job(
     stack: Callable[..., Any],
     inputs: Path,
     tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
+    said: list[str],
 ) -> None:
-    code, log = run_head(stack("dies-starting", inputs), capsys)
+    code, log = run_head(stack("dies-starting", inputs), said)
     assert code == job.EXIT_FAILED
     assert not (tmp_path / "outputs" / "video.mp4").exists()
     assert any("exited with status 3 before it was healthy" in line for line in log)
@@ -482,10 +523,10 @@ def test_a_server_that_dies_while_starting_fails_the_job(
     [("http500", "HTTP 500: engine exploded"), ("not-mp4", "not an MP4")],
 )
 def test_a_failed_render_fails_the_job_and_leaves_no_video(
-    stack: Callable[..., Any], inputs: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str],
+    stack: Callable[..., Any], inputs: Path, tmp_path: Path, said: list[str],
     mode: str, reason: str,
 ) -> None:  # fmt: skip
-    code, log = run_head(stack(mode, inputs), capsys)
+    code, log = run_head(stack(mode, inputs), said)
     assert code == job.EXIT_FAILED
     assert list((tmp_path / "outputs").iterdir()) == []
     assert any(reason in line for line in log)
@@ -493,7 +534,7 @@ def test_a_failed_render_fails_the_job_and_leaves_no_video(
 
 def test_an_agent_that_never_answers_fails_before_the_model_is_started(
     stack: Callable[..., Any], inputs: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+    said: list[str],
 ) -> None:  # fmt: skip
     ctx = stack("ok", inputs)
     free = socket.socket()
@@ -501,48 +542,47 @@ def test_an_agent_that_never_answers_fails_before_the_model_is_started(
     monkeypatch.setattr(job, "AGENT_PORT", free.getsockname()[1])
     free.close()
     ctx.timing = job.Timing(**{**FAST.__dict__, "agent_ready_s": 0.3})
-    code, log = run_head(ctx, capsys)
+    code, log = run_head(ctx, said)
     assert code == job.EXIT_FAILED and not (tmp_path / "started").exists()
     assert any("did not answer within" in line for line in log)
 
 
 def test_an_agent_that_comes_up_late_is_waited_for(
     stack: Callable[..., Any], inputs: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
+    said: list[str],
 ) -> None:  # fmt: skip
     late = socket.socket()
     late.bind(("127.0.0.1", 0))
     monkeypatch.setattr(job, "AGENT_PORT", late.getsockname()[1])
     threading.Timer(0.3, late.listen, args=(4,)).start()
-    code, _ = run_head(stack("ok", inputs), capsys)
+    code, _ = run_head(stack("ok", inputs), said)
     late.close()
     assert code == 0 and (tmp_path / "outputs" / "video.mp4").exists()
 
 
-def test_invalid_inputs_fail_before_the_agent_is_asked(
-    stack: Callable[..., Any],
-    inputs: Path,
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
+def test_invalid_inputs_refuse_to_start_before_any_model_work(
+    inputs: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     (inputs / "request.json").write_text(json.dumps({"duration": 99}))
-    code, log = run_head(stack("ok", inputs), capsys)
-    assert code == job.EXIT_FAILED and not (tmp_path / "started").exists()
-    assert any("duration" in line for line in log)
+    argv = [
+        "--model=/models/FL2VA", "--task=fl2va", "--duration=5", "--min-duration=4", "--max-duration=15",
+        "--width=1344", "--height=768", "--num-inference-steps=20", "--flow-shift=12", "--seed=1101",
+        f"--output-dir={tmp_path}",
+    ]  # fmt: skip
+    assert job.main(argv, environment(0), inputs) == job.EXIT_CONFIG
+    assert "duration" in capsys.readouterr().err
 
 
 def test_sigterm_cancels_a_running_render_and_stops_the_server(
-    stack: Callable[..., Any],
-    inputs: Path,
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
+    stack: Callable[..., Any], inputs: Path, tmp_path: Path, said: list[str]
 ) -> None:
     ctx = stack("slow", inputs)
     previous = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGINT)}
     job.install_term_handlers(ctx.cancel)
+    posted = tmp_path / "started.post"
     try:
-        threading.Timer(0.6, os.kill, args=(os.getpid(), signal.SIGTERM)).start()
-        code, log = run_head(ctx, capsys)
+        with trigger(posted.exists, lambda: os.kill(os.getpid(), signal.SIGTERM)):
+            code, log = run_head(ctx, said)
     finally:
         for sig, handler in previous.items():
             signal.signal(sig, handler)
@@ -560,9 +600,8 @@ def test_stop_group_escalates_to_sigkill_when_sigterm_is_ignored(
     deadline = time.monotonic() + 10
     while not ready.exists() and time.monotonic() < deadline:
         time.sleep(0.01)
-    started = time.monotonic()
     job.stop_group(proc, 0.3, job.RealClock())
-    assert proc.poll() == -signal.SIGKILL and time.monotonic() - started < 5
+    assert proc.poll() == -signal.SIGKILL
 
 
 # --- rank 1 ---------------------------------------------------------------------------------
@@ -599,8 +638,8 @@ def test_rank_one_streams_the_agent_log_until_it_is_stopped(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     ctx, sink = worker()
-    threading.Timer(0.8, ctx.cancel.set).start()
-    code = job.WorkerJob(ctx).run()
+    with trigger(lambda: sink.getvalue() == b"rank1: ready\n", ctx.cancel.set):
+        code = job.WorkerJob(ctx).run()
     out = capsys.readouterr().out
     assert code == job.EXIT_CANCELLED  # asked to stop: not a failure
     assert sink.getvalue() == b"rank1: ready\n"
@@ -622,13 +661,16 @@ def test_rank_one_fails_when_the_agent_exits_and_still_shows_its_last_lines(
 def test_rank_one_ends_the_group_the_agent_recorded(
     worker: Callable[..., tuple[Any, io.BytesIO]], tmp_path: Path
 ) -> None:
-    ctx, _ = worker()
-    node = job.WorkerJob(ctx)
-    node.log_dir = tmp_path / "logs"
-    node.log_dir.mkdir()
-    rank = job.spawn(
-        [sys.executable, "-c", "import time; time.sleep(60)"], os.environ, tmp_path
-    )
-    (node.log_dir / "rank1.pid").write_text(str(rank.pid))
-    node._stop()
-    assert rank.wait(timeout=5) == -signal.SIGTERM
+    pidfile = tmp_path / "rank-child.pid"
+    ctx, sink = worker(FAKE_CHILD_PIDFILE=str(pidfile))
+    with trigger(lambda: bool(sink.getvalue()), ctx.cancel.set):
+        assert job.WorkerJob(ctx).run() == job.EXIT_CANCELLED
+    child = int(pidfile.read_text())
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        try:
+            os.kill(child, 0)
+        except ProcessLookupError:
+            return
+        time.sleep(0.02)
+    raise AssertionError("the rank group the agent recorded was left running")

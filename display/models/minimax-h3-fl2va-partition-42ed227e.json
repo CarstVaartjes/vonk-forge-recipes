@@ -3,7 +3,7 @@
     "audio-generation",
     "video-generation"
   ],
-  "description": "Exact official MiniMax H3 FL2VA partition (the original checkpoint layout under FL2VA/, the folder the creator's two-Spark vLLM-Omni stack loads) for text-to-video-and-audio and first/last-keyframe generation. The text encoder, processors and tokenizers are byte-identical to the Ref2VA partition; the transformer differs.",
+  "description": "Exact official MiniMax H3 FL2VA partition (the original checkpoint layout under FL2VA/, the folder the creator's two-Spark vLLM-Omni stack loads) for text-to-video-and-audio and first/last-keyframe generation. The text encoder, VAEs, processors and tokenizers are byte-identical to the Ref2VA partition; the transformer differs.",
   "family_title": "MiniMax H3",
   "identity": {
     "publisher": "minimax",

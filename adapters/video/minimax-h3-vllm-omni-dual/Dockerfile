@@ -30,10 +30,15 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Every wheel is hash-locked. openai-whisper (a vLLM-Omni dependency) publishes only a source
-# distribution: it is hash-locked too and built without build isolation, from the setuptools
-# in the lock, so no unpinned build requirement is fetched.
-COPY requirements.lock /opt/vonk/build/requirements.lock
+# distribution: it is hash-locked too and built without build isolation, from the locked setuptools
+# installed by the first pip run, so no unpinned build requirement is fetched.
+COPY requirements.lock requirements-setuptools.lock /opt/vonk/build/
 RUN python3 -m venv /opt/vonk/venv \
+    && /opt/vonk/venv/bin/python -m pip install --no-cache-dir \
+        --require-hashes \
+        --no-deps \
+        --only-binary=:all: \
+        --requirement /opt/vonk/build/requirements-setuptools.lock \
     && /opt/vonk/venv/bin/python -m pip install --no-cache-dir \
         --require-hashes \
         --only-binary=:all: \
