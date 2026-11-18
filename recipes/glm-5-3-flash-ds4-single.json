@@ -1,0 +1,212 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/deepseek/ds4"
+      },
+      "dockerfile": "adapters/deepseek/ds4/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-ds4-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "glm-5.3-flash"
+      ],
+      "port": 8080
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "target",
+          "id": "primary-target",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "3bd4305bc0999a52dc254d5d527d211d124e9f8db0621f93d78981d6fa06bd98",
+        "kind": "model",
+        "publisher": "antirez",
+        "slug": "glm-5-3-flash-ds4-q2-b2fa29d7"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Ordinary decoding (upstream default).",
+          "label": "Off",
+          "value": "off"
+        },
+        {
+          "args": [
+            {
+              "name": "mtp",
+              "value": true
+            }
+          ],
+          "help": "Pass --mtp: speculative decoding with the built-in MTP block.",
+          "label": "MTP",
+          "value": "mtp"
+        }
+      ],
+      "help": "Whether ds4 drafts tokens with GLM's built-in MTP block. Upstream leaves it off by default: the gain depends on the prompt and poor draft acceptance can make it slower.",
+      "label": "Speculation",
+      "name": "speculation"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Z.ai",
+      "Salvatore Sanfilippo (antirez)"
+    ],
+    "source_reference": "https://github.com/antirez/ds4/tree/b3f50180ec2c7324892be1f50bc83555ccb8d5e7"
+  },
+  "release": {
+    "released_at": "2026-11-03",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model",
+        "setting": null,
+        "value": "/models/GLM-5.3-Flash-Q2.gguf"
+      },
+      {
+        "name": "ctx",
+        "setting": "context_tokens",
+        "value": null
+      }
+    ],
+    "engine": "ds4",
+    "entrypoint": [
+      "/opt/vonk/bin/ds4-serve"
+    ],
+    "environment": [
+      {
+        "name": "DS4_LOG_LEVEL",
+        "value": "INFO"
+      },
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 16384
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 96505816384,
+            "image_bytes": 10000000000,
+            "safety_margin_bytes": 10000000000,
+            "working_bytes": 18000000000
+          },
+          "memory": {
+            "peak_bytes": 106000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "glm-5.3-flash"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
