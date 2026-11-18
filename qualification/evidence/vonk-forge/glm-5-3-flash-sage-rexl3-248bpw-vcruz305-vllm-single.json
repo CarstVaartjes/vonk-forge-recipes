@@ -32,6 +32,37 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "252c21757fa13e2da3bc74a3005a1c02d2613695366d2269024a4716c5382a2b",
+        "source_bundle_sha256": "6db99b80421bcb52c5ead62ee24f3bae260585765863af08fab8d785024b7d44",
+        "runtime_image": {
+          "build_key": "c66bf6861365a193a84c690efd8724dfd2e6bb548900f75f98e3cbb31eed6fdd",
+          "image_digest": "sha256:bb129c7e06c0973f80836b79c8ba392610e7e522c3d26eb10c90752feb36d9c2"
+        },
+        "model_digests": [
+          "3cec875511c18e494f6fdcebb40f9c8bdc76127acb1d913b85f265675e2624b0",
+          "411ff75b560cd80a3c48559fb34c660679eb6a8eb5cf7b75ded88f22daa5deb8"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_oom",
+      "cause_summary": "Recipe runtime exceeded available memory; needs fix",
+      "evidence_refs": [
+        "ba696339d21100f6134776c4d93aaadfb22ff5fc9ecff097ada4ca304a4aa5f5"
+      ],
+      "tested_at": "2026-11-18T19:41:49.530585Z",
+      "platform": {
+        "controller_source_sha": "a23c0e37315a9e85d2d8155eb60893d45d345e3b",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
     }
   ]
 }
