@@ -155,11 +155,6 @@
         "value": "{\"cudagraph_mode\": \"PIECEWISE\"}"
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.8"
-      },
-      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -219,7 +214,7 @@
             "working_bytes": 4437196545
           },
           "memory": {
-            "peak_bytes": 110800000000,
+            "peak_bytes": 123796908340,
             "reserve_bytes": 6000000000
           }
         }
