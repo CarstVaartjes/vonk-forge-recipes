@@ -443,16 +443,16 @@ def test_deepseek_declares_safe_checkpoint_loading() -> None:
     )
 
 
-def test_posix_transport_accepts_only_the_shim_or_the_pread_reader(
+def test_posix_transport_accepts_the_shim_and_rejects_liburing_dev(
     tmp_path: Path,
 ) -> None:
     (tmp_path / "posix-uring").mkdir()
-    (tmp_path / "posix-uring/liburing.h").write_text("pread(")
+    (tmp_path / "posix-uring/liburing.h").write_text("")
     assert has_posix_transport(tmp_path, "COPY posix-uring /opt/vonk/posix-uring\n")
     assert not has_posix_transport(
         tmp_path, "COPY posix-uring /x\nRUN apt-get install liburing-dev\n"
     )
-    assert not has_posix_transport(tmp_path, "RUN apt-get install liburing-dev\n")
+    assert not has_posix_transport(tmp_path, "RUN true\n")
 
 
 def test_guard_rejects_direct_checkpoint_loading_without_the_shim() -> None:
@@ -460,5 +460,5 @@ def test_guard_rejects_direct_checkpoint_loading_without_the_shim() -> None:
     for argument in document.runtime.arguments:
         if argument.name == "load-format":
             argument.value = "direct"
-    with pytest.raises(AssertionError, match="direct"):
+    with pytest.raises(AssertionError, match="load-format direct"):
         require_sandbox_loaders(document, image_policy=False)
