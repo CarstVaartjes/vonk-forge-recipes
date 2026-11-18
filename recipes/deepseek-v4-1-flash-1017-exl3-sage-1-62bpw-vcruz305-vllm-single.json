@@ -568,20 +568,12 @@
         "value": "4294967296"
       },
       {
-        "name": "CUDA_CACHE_PATH",
-        "value": "/outputs/cache/jit/nv-compute"
-      },
-      {
         "name": "CUTE_DSL_ARCH",
         "value": "sm_121a"
       },
       {
         "name": "CUTE_DSL_CACHE_DIR",
         "value": "/outputs/cache/jit/cute-dsl"
-      },
-      {
-        "name": "VLLM_CACHE_ROOT",
-        "value": "/outputs/cache/jit/vllm"
       },
       {
         "name": "CUDA_DEVICE_MAX_CONNECTIONS",

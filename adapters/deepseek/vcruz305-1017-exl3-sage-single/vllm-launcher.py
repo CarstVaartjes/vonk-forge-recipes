@@ -41,7 +41,6 @@ def main() -> None:
         "XDG_CACHE_HOME",
         "VLLM_CACHE_ROOT",
         "TRITON_CACHE_DIR",
-        "CUDA_CACHE_PATH",
         "CUTE_DSL_CACHE_DIR",
         "B12X_COMPILE_CACHE_DIR",
     ):

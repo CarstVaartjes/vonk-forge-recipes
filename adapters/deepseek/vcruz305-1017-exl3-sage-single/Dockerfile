@@ -777,14 +777,18 @@ RUN set -eux; \
 
 # Build-time sm_121 kernel scan (scan-sm121.py: cubins sm_121[af] / sm_120[f], PTX not arch-specific and <= 121, or sm_121a; every
 # file with device code needs a loadable image; each file's listing is echoed). Covered: the two extensions this layer compiles,
-# exllamav3_ext and vllm_exl3_c, each required to carry a loadable image. Not covered: the engine's other kernels (vLLM, B12X,
-# NCCL), which are the creators' own build of the same commits at the same arch flags, and TileLang kernels, which compile at run time.
+# exllamav3_ext and vllm_exl3_c, and the engine's own compiled outputs (vLLM's two stable extensions and the patched NCCL), each
+# required to carry a loadable image. Not covered: the base image's other kernels (FlashInfer, DeepGEMM, FlashMLA, Triton kernels),
+# which the creator serves as the base image publishes them, and TileLang kernels, which compile at run time.
 COPY scan-sm121.py /opt/scan-sm121.py
 RUN set -eux; \
     cd /tmp; \
     EXT_EXL3="$(python3 -c 'import torch, exllamav3_ext; print(exllamav3_ext.__file__)')"; \
     EXT_PLUGIN="$(python3 -c 'import torch, vllm_exl3_c; print(vllm_exl3_c.__file__)')"; \
-    python3 /opt/scan-sm121.py --require "$EXT_EXL3" --require "$EXT_PLUGIN"; \
+    python3 /opt/scan-sm121.py --require "$EXT_EXL3" --require "$EXT_PLUGIN" \
+      --require /opt/spark3/candidate/vllm/vllm/_C_stable_libtorch.abi3.so \
+      --require /opt/spark3/candidate/vllm/vllm/_moe_C_stable_libtorch.abi3.so \
+      --require /usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2; \
     rm /opt/scan-sm121.py
 
 LABEL local.dsv41.exl3.base="spark-ds41f r6w (this file's engine stages)" \
