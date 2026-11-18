@@ -50,6 +50,7 @@ class SourceParsingTests(unittest.TestCase):
             f"https://github.com/example/project/tree/{PINNED}",
             f"https://github.com/example/project/commit/{PINNED}",
             f"https://github.com/example/project/blob/{PINNED}/README.md",
+            f"https://github.com/example/project/tree/{PINNED}/runs/launch",
             f"https://github.com/example/project@{PINNED}",
             f"https://github.com/example/project.git@{PINNED}",
         ):
@@ -66,6 +67,12 @@ class SourceParsingTests(unittest.TestCase):
         self.assertEqual(
             drift.parse_source(
                 f"https://github.com/example/project/blob/{PINNED}/README.md"
+            ).embedded_revision,
+            PINNED,
+        )
+        self.assertEqual(
+            drift.parse_source(
+                f"https://github.com/example/project/tree/{PINNED}/runs/launch"
             ).embedded_revision,
             PINNED,
         )
@@ -87,6 +94,7 @@ class SourceParsingTests(unittest.TestCase):
             "http://github.com/example/project",
             "https://user@example.com/example/project",
             "https://github.com/example/project/blob/main/README.md",
+            "https://github.com/example/project/tree/main/runs/launch",
             "https://huggingface.co/example/project/blob/main/README.md",
         ):
             with self.assertRaises(drift.DriftInputError):
