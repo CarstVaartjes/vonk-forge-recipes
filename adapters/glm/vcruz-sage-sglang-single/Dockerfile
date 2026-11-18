@@ -44,7 +44,7 @@ RUN set -eux; \
     printf 'Metadata-Version: 2.1\nName: sglang-exl3\nVersion: 0.2.1\n' > /opt/sglang-exl3-dist/sglang_exl3-0.2.1.dist-info/METADATA; \
     printf '[sglang.srt.plugins]\nexl3 = sglang_exl3:register\n' > /opt/sglang-exl3-dist/sglang_exl3-0.2.1.dist-info/entry_points.txt
 
-# 3. The creator's SGLang v0.5.22 patches for GLM-5.3-Flash EXL3 + DFlash2 on GB10 (docker/patches/README.md).
+# 3. The creator's SGLang v0.5.22 patches for GLM-5.3-Flash EXL3 + DFlash2 on GB10 plus our 0009 for non-greedy sampling without flashinfer (docker/patches/README.md); the loop applies them in order.
 COPY docker/patches/sglang-v0.5.22/ /opt/patches/sglang-v0.5.22/
 RUN set -eux; \
     cd /sgl-workspace/sglang; \
