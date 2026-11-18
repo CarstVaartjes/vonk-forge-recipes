@@ -64,5 +64,12 @@
       },
       "quality_notes": []
     }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "12d8164e9d1051612048f3162f854d8d1e6195d6d0bb0fdd8ee4257d4170aaff",
+      "role": "entrypoint",
+      "steady_bytes": 117609381888
+    }
   ]
 }
