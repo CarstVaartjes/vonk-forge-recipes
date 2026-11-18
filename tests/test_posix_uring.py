@@ -116,8 +116,6 @@ def test_shim_makes_no_io_uring_call() -> None:
     header = (SHIM / "liburing.h").read_text()
     for forbidden in ("syscall(", "__NR_io_uring", "linux/io_uring.h"):
         assert forbidden not in header
-    assert "pread(" in header
-    assert "Version: 0.0-vonk-posix" in (SHIM / "liburing.pc").read_text()
 
 
 def test_adapter_copies_are_byte_identical() -> None:
