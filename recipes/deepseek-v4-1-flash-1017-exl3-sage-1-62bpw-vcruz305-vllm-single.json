@@ -680,10 +680,6 @@
         "value": "1"
       },
       {
-        "name": "VLLM_DS41_ROPE_TRIM_MAX_POS",
-        "value": "524288"
-      },
-      {
         "name": "VLLM_DS41_MARKOV_NVFP4",
         "value": "1"
       },

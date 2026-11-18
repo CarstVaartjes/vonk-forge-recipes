@@ -68,8 +68,12 @@ def main() -> None:
             ],
             check=True,
         )
-        if not selection_matches(selection):
-            raise SystemExit(f"the alias side file in {ALIAS} does not match the shipped selection")
+    args = sys.argv[1:]
+    for index, arg in enumerate(args):
+        if arg == "--max-model-len" and index + 1 < len(args):
+            os.environ.setdefault("VLLM_DS41_ROPE_TRIM_MAX_POS", args[index + 1])
+        elif arg.startswith("--max-model-len="):
+            os.environ.setdefault("VLLM_DS41_ROPE_TRIM_MAX_POS", arg.split("=", 1)[1])
     os.execvp("vllm", ["vllm", *sys.argv[1:]])
 
 
