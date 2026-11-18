@@ -43,9 +43,7 @@ def main() -> None:
         "TRITON_CACHE_DIR",
         "CUDA_CACHE_PATH",
         "CUTE_DSL_CACHE_DIR",
-        "TILELANG_CACHE_DIR",
         "B12X_COMPILE_CACHE_DIR",
-        "B12X_CUTE_COMPILE_CACHE_DIR",
     ):
         if os.environ.get(name):
             Path(os.environ[name]).mkdir(parents=True, exist_ok=True)
