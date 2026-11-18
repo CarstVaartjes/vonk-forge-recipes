@@ -77,6 +77,11 @@ def main(arguments, environ):
     folder.mkdir(parents=True, exist_ok=True)
     env = dict(environ, TF_TP_WORLD=str(tp))
     python = sys.executable
+    # A first build killed mid-compile leaves its lock files behind and every later start would wait on them.
+    for folder_, _, files in os.walk(environ["TORCH_EXTENSIONS_DIR"]):
+        for name in files:
+            if name in ("lock", ".ninja_lock"):
+                os.remove(os.path.join(folder_, name))
     subprocess.run([python, str(KIT / "serve/prebuild.py")], env=env, check=True)
     subprocess.run([python, str(ENGINE / "tools/ling_split_check.py"), str(MODEL), "--world", str(tp)], env=env, check=True)
     subprocess.run([python, "-m", "tensorfold.families.glm5_next.cuda.split", str(MODEL), "--rank", str(rank), str(folder)],
