@@ -20,6 +20,12 @@ MODEL_PATH = re.compile(r"(?<![\w/}~])(/models/[A-Za-z0-9][A-Za-z0-9_./-]*)")
 # exceptions fail below, so broad or unexplained exclusions cannot hide drift.
 EXCEPTION_GROUPS: tuple[tuple[tuple[str, ...], str, tuple[str, ...], str], ...] = (
     (
+        ("glm-5-3-flash-sage-rexl3-248bpw-vcruz305-vllm-single",),
+        "patches/gv_boot_patch.py",
+        ("/models/GLM-5.3-Flash-SAGE-REXL3-2.48bpw-vllm-overlay",),
+        "Creator's self-test default; the Dockerfile rewrites MODEL to VLLM_EXL3_MODEL_DIR, the overlay the launcher builds under the cache.",
+    ),
+    (
         ("glm-5-3-flash-nvfp4-vllm-four",),
         "upstream-launch-tp4-24g.sh",
         (
