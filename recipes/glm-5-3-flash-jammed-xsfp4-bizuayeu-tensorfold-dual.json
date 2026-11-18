@@ -67,8 +67,8 @@
           ]
         },
         {
-          "file_id": "notice-c2d63b0b56b1-dfb14fbb9e",
-          "id": "notice-c2d63b0b56b1-dfb14fbb9e",
+          "file_id": "notice-caa9cb79bc23-dfb14fbb9e",
+          "id": "notice-caa9cb79bc23-dfb14fbb9e",
           "mount": {
             "target": "/models/target"
           },
@@ -78,8 +78,8 @@
           ]
         },
         {
-          "file_id": "readme-5adeea1041dc-b335630551",
-          "id": "readme-5adeea1041dc-b335630551",
+          "file_id": "readme-fd66f1112322-b335630551",
+          "id": "readme-fd66f1112322-b335630551",
           "mount": {
             "target": "/models/target"
           },
@@ -122,8 +122,8 @@
           ]
         },
         {
-          "file_id": "jammed-scales-9f818e09e202-f6e145bc86",
-          "id": "jammed-scales-9f818e09e202-f6e145bc86",
+          "file_id": "jammed-scales-97d8c6877ae2-f6e145bc86",
+          "id": "jammed-scales-97d8c6877ae2-f6e145bc86",
           "mount": {
             "target": "/models/target"
           },
@@ -1629,8 +1629,8 @@
           ]
         },
         {
-          "file_id": "model-safetensors-index-d3e6cd60b4b8-0a05be8238",
-          "id": "model-safetensors-index-d3e6cd60b4b8-0a05be8238",
+          "file_id": "model-safetensors-index-5d5670184c72-0a05be8238",
+          "id": "model-safetensors-index-5d5670184c72-0a05be8238",
           "mount": {
             "target": "/models/target"
           },
@@ -1686,10 +1686,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e80942436342b26fef00b7aef4abd6619a9cdf925f7dca77564b69ff34a76a51",
+        "content_sha256": "e734baacf6f2d0d5a00931f0dfb6e0565c73aa69559162ec4d54afd0a72aeb0e",
         "kind": "model",
         "publisher": "bizuayeu",
-        "slug": "glm-5-3-flash-jammed-xsfp4-0a22bb46"
+        "slug": "glm-5-3-flash-jammed-xsfp4-cae94e69"
       }
     }
   ],
@@ -1730,7 +1730,7 @@
   },
   "release": {
     "released_at": "2026-11-13",
-    "version": "3.15.0"
+    "version": "3.15.1"
   },
   "runtime": {
     "arguments": [
@@ -1874,7 +1874,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 172022722240,
+            "artifact_bytes": 172022724527,
             "image_bytes": 6000000000,
             "safety_margin_bytes": 15000000000,
             "working_bytes": 8000000000
@@ -1891,7 +1891,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 172022722240,
+            "artifact_bytes": 172022724527,
             "image_bytes": 6000000000,
             "safety_margin_bytes": 15000000000,
             "working_bytes": 8000000000

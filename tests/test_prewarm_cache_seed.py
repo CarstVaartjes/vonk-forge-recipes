@@ -22,6 +22,8 @@ ADAPTERS = ROOT / "adapters"
 PREWARM = "/opt/vonk/prewarm"
 #: Launchers that copy a baked cache at start, each with a behavioural test here.
 SEEDING_LAUNCHERS = {"adapters/nvidia/r0b0tlab-ornith-sglang-single/sglang-serve"}
+#: Mandatory image-baked RoCE proxy library copied into the writable cache; tested below.
+PROXY_CACHE_COPIERS = {"adapters/glm/tonyd2wild-knapcio-tp2-dual/vllm-wrapper.py"}
 
 
 # Mandatory generated kits have different failure semantics from optional prewarm seeds.
@@ -69,7 +71,7 @@ def test_every_launcher_that_copies_a_cache_at_start_is_tested_here() -> None:
         for path in _own_sources()
         if "copytree(" in _text(path)
     }
-    assert copying == SEEDING_LAUNCHERS | NATIVE_KIT_BUILDERS
+    assert copying == (SEEDING_LAUNCHERS | NATIVE_KIT_BUILDERS | PROXY_CACHE_COPIERS)
 
 
 def _launcher(relative: str):
@@ -181,3 +183,37 @@ def test_native_kit_replacement_keeps_verified_cache_on_failure(
     (destination / "rope.f32").unlink()
     module.prepare_kit(tmp_path, destination, source, tmp_path, *extra)
     assert (destination / "rope.f32").read_bytes() == rope
+
+
+@pytest.mark.parametrize("relative", sorted(PROXY_CACHE_COPIERS))
+def test_proxy_cache_is_copied_once_and_kept(
+    tmp_path: Path, relative: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Only the definitions: the rest of the file validates the launch and replaces the process.
+    head = (ROOT / relative).read_text().split("\narguments = sys.argv[1:]")[0]
+    module: dict[str, object] = {"__name__": "launcher_under_test"}
+    exec(compile(head, relative, "exec"), module)  # noqa: S102
+    prebuilt = tmp_path / "image-proxy"
+    prebuilt.mkdir()
+    (prebuilt / "proxy.so").write_bytes(b"built")
+    real_path = module["Path"]
+
+    def redirect(value: str) -> Path:
+        if value == "/opt/glm-roce-b12x/proxy-cache":
+            return prebuilt
+        return real_path(value)  # type: ignore[operator]
+
+    module["Path"] = redirect
+    module["CACHE"] = tmp_path / "cache"
+    (tmp_path / "cache").mkdir()
+    monkeypatch.delenv("B12X_ROCE_CACHE_DIR", raising=False)
+
+    module["_prepare_proxy"]()  # type: ignore[operator]
+    proxy = tmp_path / "cache" / "roce-proxy"
+    assert (proxy / "proxy.so").read_bytes() == b"built"
+    assert os.environ["B12X_ROCE_CACHE_DIR"] == str(proxy)
+
+    (proxy / "proxy.so").write_bytes(b"compiled later")
+    module["_prepare_proxy"]()  # type: ignore[operator]
+    assert (proxy / "proxy.so").read_bytes() == b"compiled later"
+    assert not list((tmp_path / "cache").glob(".tmp-*"))
