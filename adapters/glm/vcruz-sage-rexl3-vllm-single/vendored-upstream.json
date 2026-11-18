@@ -1,0 +1,11 @@
+{
+  "ours": [
+    "vllm-launcher.sh",
+    "make_overlay.py",
+    "scan-sm121.py"
+  ],
+  "source": {
+    "commit": "f1d5dfa1e7bcd8465bf635b618cea220002a82d8",
+    "repo": "vcruz305/GLM-5.3-Flash-SAGE-REXL3-DGX-Spark-recipe"
+  }
+}

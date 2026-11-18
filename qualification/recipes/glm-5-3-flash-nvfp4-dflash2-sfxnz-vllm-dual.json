@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/glm-5-3-flash-nvfp4-dflash2-sfxnz-vllm-dual",
+  "service_recipes": {
+    "alias": "glm-5.3-flash-nvfp4",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "8K, 32K and 327,680-token cold-prefill ladder (the KV pin holds 372,877 tokens) plus two-stream concurrency canaries; thinking is off by default, so reasoning cases pass enable_thinking per request"
+      ],
+      "recovery": [
+        "Controller-only rank-loss and warm-cache recovery; swap enabled with vm.swappiness=0 on both ranks"
+      ]
+    }
+  }
+}
