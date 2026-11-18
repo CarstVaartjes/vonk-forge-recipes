@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/deepseek-v4-1-flash-1017-exl3-sage-1-62bpw-vcruz305-vllm-single",
+  "service_recipes": {
+    "alias": "deepseek-v4.1-flash-sage-1.62bpw",
+    "higher_tiers": {
+      "recovery": [
+        "Controller-only restart and warm-cache reuse; the first boot compiles the JIT kernels and builds the cold-expert side file"
+      ],
+      "stress": [
+        "needle retrieval at 32K, 224K and 520K prompt tokens, as the creator's longctx bench"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT"
+    ]
+  }
+}

@@ -810,6 +810,25 @@
       "value_dim": 128,
       "runtime_image_digest": "079775a8deb415d16b89a505df0795987add3395e6e63a42a885a712ccb1ddc3",
       "sglang_preload_free_bytes": 121450937713
+    },
+    "deepseek-v4-1-flash-1017-exl3-sage-1-62bpw-c852150e": {
+      "architecture": "DeepseekV41ForCausalLM",
+      "configuration_sha256": "25882944c203b1970a9187dc47334ebafbb7e95ffda888fd86c8181af9e15867",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 40,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/vcruz305/DSV4.1-Flash-1017-SAGE-EXL3-1.62bpw/resolve/c852150e06f5e5ee8c4c14f9cd1a9afc6bb21960/config.json (HF API revision c852150e06f5e5ee8c4c14f9cd1a9afc6bb21960); sha256 25882944c203b1970a9187dc47334ebafbb7e95ffda888fd86c8181af9e15867. Same attention geometry as the native 1017 config (deepseek-v4-1-flash-1017-native-08c8657f): 40 layers, DeepseekV41ForCausalLM, 1 KV head, key_dim 512, four kv_source_layer_ids (2, 8, 14, 20) and eight index_source_layer_ids sharing one compressed KV/index cache, max_position_embeddings 1,048,576. Bound 2048 bytes/token for FP8, 4096 for BF16; bounded SWA and replay state rounded to 64 MiB/request. The creator's kit (https://github.com/vcruz305/DSV4.1-Flash-1017-EXL3-Spark-recipe/blob/8036aa741e2c2328035ed546f1f844b6797775f6/packs/1.62bpw/README.md, Measured memory) reports 959,768 tokens in the 1 GiB bf16 pool at --max-model-len 524288. Allocation estimate, not hardware proof.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 4096,
+        "fp8": 2048,
+        "fp8_ds_mla": 2048,
+        "fp8_e4m3": 2048,
+        "nvfp4_ds_mla": 2048
+      },
+      "value_dim": 0
     }
   },
   "engram_files": {
