@@ -498,7 +498,7 @@ image, needs an image that installs a tested POSIX reader (see
 slots). For engines that compile against liburing (vLLM `engram_rows` and
 `direct_io`, B12X), copy `tools/posix-uring/` byte-identical into the context as
 `posix-uring/`, `COPY` it to `/opt/vonk/posix-uring`, put that directory on
-`PKG_CONFIG_PATH` and install no `liburing-dev`: its header does one `pread()`
+`PKG_CONFIG_PATH` (an `ENV` line; the writable-state check treats it as read-only) and install no `liburing-dev`: its header does one `pread()`
 per queued read and makes no io_uring call. Replace a creator's "links liburing"
 self-check with "links no liburing" and disclose it. The recipe loader test
 (`tests/test_recipe_sandbox_loaders.py`) enforces both by the recipe's base

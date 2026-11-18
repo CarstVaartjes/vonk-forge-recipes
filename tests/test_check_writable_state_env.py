@@ -89,5 +89,6 @@ def test_accepts_writable_read_only_and_earlier_stage(tmp_path: Path) -> None:
     text = (
         "FROM a AS build\nENV BUILD_DIR=/src\nFROM base\n"
         "ENV STATE_PATH=/outputs/cache/state SCRATCH_DIR=/tmp/s MODEL_PATH=/models/t\n"
+        "ENV PKG_CONFIG_PATH=/opt/vonk/posix-uring\n"
     )
     assert not _change(root, BUILT, text)
