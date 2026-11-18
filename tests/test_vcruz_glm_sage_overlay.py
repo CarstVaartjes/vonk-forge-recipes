@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import struct
 import subprocess
@@ -17,16 +18,54 @@ ADAPTER = (
 LAYER = "model.language_model.layers"
 
 
-def trellis(k: int) -> dict:
-    return {"dtype": "I16", "shape": [4, 4, 16 * k], "data_offsets": [0, 0]}
+SIZE = {"I16": 2, "I32": 4, "BF16": 2, "F16": 2}
 
 
-def marker() -> dict:
-    return {"dtype": "I32", "shape": [], "data_offsets": [0, 0]}
+def tensor(dtype: str, shape: list[int], data: bytes | None = None) -> tuple:
+    return dtype, shape, data if data is not None else bytes(SIZE[dtype] * math.prod(shape))
+
+
+def write_shard(path: Path, tensors: dict) -> None:
+    header, body = {}, b""
+    for name, (dtype, shape, data) in tensors.items():
+        header[name] = {"dtype": dtype, "shape": shape, "data_offsets": [len(body), len(body) + len(data)]}
+        body += data
+    blob = json.dumps(header).encode()
+    path.write_bytes(struct.pack("<Q", len(blob)) + blob + body)
+
+
+def trellis(k: int) -> tuple:
+    return tensor("I16", [4, 3, 16 * k])
+
+
+def marker() -> tuple:
+    return tensor("I32", [])
 
 
 def group(prefix: str, k: int) -> dict:
     return {f"{prefix}.trellis": trellis(k), f"{prefix}.mul1": marker()}
+
+
+def read_shard(path: Path) -> dict:
+    raw = path.read_bytes()
+    (length,) = struct.unpack("<Q", raw[:8])
+    header = json.loads(raw[8 : 8 + length])
+    body = raw[8 + length :]
+    return {
+        name: (meta["shape"], body[slice(*meta["data_offsets"])])
+        for name, meta in header.items()
+    }
+
+
+def build(pack: Path, overlay: Path) -> None:
+    done = subprocess.run(
+        [sys.executable, "-I", str(ADAPTER / "make_overlay.py"), str(pack), str(overlay)],
+        capture_output=True,
+        text=True,
+        env={"PATH": os.environ.get("PATH", "")},
+    )
+    if done.returncode:
+        raise AssertionError(done.stderr)
 
 
 class OverlayTest(unittest.TestCase):
@@ -42,18 +81,11 @@ class OverlayTest(unittest.TestCase):
                 tensors.update(
                     group(f"{LAYER}.{layer}.mlp.experts.{expert}.up_proj", k)
                 )
-        tensors[f"{LAYER}.0.self_attn.b_proj.weight"] = {
-            "dtype": "F16",
-            "shape": [4, 4],
-            "data_offsets": [0, 0],
-        }
+        tensors[f"{LAYER}.0.self_attn.b_proj.weight"] = tensor("F16", [4, 4])
         with tempfile.TemporaryDirectory() as root:
             pack, overlay = Path(root, "pack"), Path(root, "overlay")
             pack.mkdir()
-            header = json.dumps(tensors).encode()
-            (pack / "model-00001-of-00001.safetensors").write_bytes(
-                struct.pack("<Q", len(header)) + header
-            )
+            write_shard(pack / "model-00001-of-00001.safetensors", tensors)
             index = {
                 "weight_map": dict.fromkeys(tensors, "model-00001-of-00001.safetensors")
             }
@@ -61,18 +93,7 @@ class OverlayTest(unittest.TestCase):
             (pack / "config.json").write_text(
                 json.dumps({"quantization_config": {"quant_method": "exl3"}})
             )
-            subprocess.run(
-                [
-                    sys.executable,
-                    "-I",
-                    str(ADAPTER / "make_overlay.py"),
-                    str(pack),
-                    str(overlay),
-                ],
-                check=True,
-                capture_output=True,
-                env={"PATH": os.environ.get("PATH", "")},
-            )
+            build(pack, overlay)
             quantization = json.loads((overlay / "config.json").read_text())[
                 "quantization_config"
             ]
@@ -94,6 +115,81 @@ class OverlayTest(unittest.TestCase):
             layers["model.layers.3.mlp.shared_experts.gate_up_proj"], {"bits": 6}
         )
         self.assertNotIn("model.layers.0.self_attn.b_proj", layers)
+
+
+class SplitTest(unittest.TestCase):
+    """vLLM loads q/k/v separately; the pack holds ExLlamaV3's fused tensors."""
+
+    def setUp(self) -> None:
+        self.root = tempfile.TemporaryDirectory()
+        self.addCleanup(self.root.cleanup)
+        root = Path(self.root.name)
+        self.pack, self.overlay = root / "pack", root / "overlay"
+        self.pack.mkdir()
+        attn = f"{LAYER}.0.self_attn"
+        # conv1d [6,1,4] BF16: row r holds the bytes (r, r, ..., r) so the q/k/v rows are recognisable
+        conv = b"".join(bytes([r]) * 8 for r in range(6))
+        # trellis [rows=2, cols=3, w=16] I16: word (row, col) is filled with 10 * row + col
+        words = b"".join(bytes([10 * r + c]) * 32 for r in range(2) for c in range(3))
+        tensors = {
+            f"{attn}.conv1d.weight": tensor("BF16", [6, 1, 4], conv),
+            f"{attn}.qkv_proj.trellis": tensor("I16", [2, 3, 16], words),
+            f"{attn}.qkv_proj.suh": tensor("F16", [2], b"\x01\x02\x03\x04"),
+            f"{attn}.qkv_proj.svh": tensor("F16", [6], bytes(range(1, 13))),
+            f"{attn}.qkv_proj.mul1": tensor("I32", [], b"\x07\x00\x00\x00"),
+            f"{attn}.o_proj.trellis": trellis(1),
+            f"{attn}.o_proj.mul1": marker(),
+            f"{LAYER}.3.mlp.experts.0.up_proj.trellis": trellis(2),
+            f"{LAYER}.3.mlp.experts.0.up_proj.mul1": marker(),
+        }
+        write_shard(self.pack / "a.safetensors", tensors)
+        weight_map = dict.fromkeys(tensors, "a.safetensors")
+        (self.pack / "model.safetensors.index.json").write_text(
+            json.dumps({"metadata": {"x": 1}, "weight_map": weight_map})
+        )
+        (self.pack / "config.json").write_text("{}")
+        build(self.pack, self.overlay)
+        self.split = self.overlay / "vonk-kda-split.safetensors"
+        self.attn = attn
+
+    def test_fused_tensors_are_split_in_q_k_v_order(self) -> None:
+        got = read_shard(self.split)
+        a = self.attn
+        for j, letter in enumerate("qkv"):
+            shape, data = got[f"{a}.{letter}_conv1d.weight"]
+            self.assertEqual((shape, data), ([2, 1, 4], b"".join(bytes([2 * j + r]) * 8 for r in range(2))))
+            shape, data = got[f"{a}.{letter}_proj.trellis"]
+            self.assertEqual(shape, [2, 1, 16])
+            self.assertEqual(data, b"".join(bytes([10 * r + j]) * 32 for r in range(2)))
+            self.assertEqual(got[f"{a}.{letter}_proj.svh"], ([2], bytes(range(1 + 4 * j, 5 + 4 * j))))
+            self.assertEqual(got[f"{a}.{letter}_proj.suh"], ([2], b"\x01\x02\x03\x04"))
+            self.assertEqual(got[f"{a}.{letter}_proj.mul1"], ([], b"\x07\x00\x00\x00"))
+        self.assertEqual(len(got), 3 * 5)
+
+    def test_index_is_a_real_file_without_the_fused_names(self) -> None:
+        index_path = self.overlay / "model.safetensors.index.json"
+        self.assertFalse(index_path.is_symlink())
+        index = json.loads(index_path.read_text())
+        weights = index["weight_map"]
+        self.assertEqual(index["metadata"], {"x": 1})
+        a = self.attn
+        for fused in ("conv1d.weight", "qkv_proj.trellis", "qkv_proj.suh", "qkv_proj.svh", "qkv_proj.mul1"):
+            self.assertNotIn(f"{a}.{fused}", weights)
+        self.assertEqual(weights[f"{a}.k_proj.svh"], "vonk-kda-split.safetensors")
+        self.assertEqual(weights[f"{a}.v_conv1d.weight"], "vonk-kda-split.safetensors")
+        self.assertEqual(weights[f"{a}.o_proj.trellis"], "a.safetensors")
+        self.assertTrue((self.overlay / "a.safetensors").is_symlink())
+
+    def test_existing_file_is_kept_and_stale_partial_is_removed(self) -> None:
+        self.split.write_bytes(b"keep")
+        Path(str(self.split) + ".partial").write_bytes(b"stale")
+        build(self.pack, self.overlay)
+        self.assertEqual(self.split.read_bytes(), b"keep")
+        self.split.unlink()
+        Path(str(self.split) + ".partial").write_bytes(b"stale")
+        build(self.pack, self.overlay)
+        self.assertFalse(Path(str(self.split) + ".partial").exists())
+        self.assertEqual(len(read_shard(self.split)), 15)
 
 
 if __name__ == "__main__":
