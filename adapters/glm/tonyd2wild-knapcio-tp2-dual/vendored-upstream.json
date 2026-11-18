@@ -1,0 +1,32 @@
+{
+  "also": [
+    {
+      "commit": "770d1153062aa916b06591411c61d5c593ea0f03",
+      "files": [
+        "overlay/",
+        "profiles/",
+        "roce/",
+        "scripts/"
+      ],
+      "repo": "knapcio/GLM-5.3-Flash-4x-DGX-Spark-TP4"
+    }
+  ],
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "launch-glm53-vllm-tp2-dflash2.sh",
+        "pattern": "^IMAGE=\"(?P<repo>[^:\"]+):(?P<version>[^\"]+)\"$"
+      }
+    },
+    "whole": false
+  },
+  "ours": [
+    "licenses/",
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "commit": "d061f26ad3ec5c3c04f64aad7516dbe62a8aa6af",
+    "repo": "tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark"
+  }
+}
