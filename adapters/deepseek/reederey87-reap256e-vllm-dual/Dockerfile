@@ -15,8 +15,9 @@
 #      mask_flashinfer_aot.py            and removal of the prebuilt AOT binary that would ignore that edit; the
 #      build_flashinfer.py (ours)        patched module is compiled here at image build (the creator's
 #                                        scripts/build_flashinfer.sh prebuilds it offline for the same reason: an
-#                                        in-engine nvcc build raced memory and reset nodes) into the FlashInfer
-#                                        cache the runtime reads, FLASHINFER_WORKSPACE_BASE below.
+#                                        in-engine nvcc build raced memory and reset nodes) and copied into the
+#                                        emptied AOT slot, so FlashInfer loads it with no lock, ninja or writes
+#                                        under the read-only root.
 #   3. patch_v41_kernel_block_size.py    the V4.1 sparse-MLA backends accept a 64-token kernel block on SM121.
 #   4. patch_sm12x_indexer.py            Triton FP8 paged-MQA logits fallback (sm12x_mqa.py) for 32-state pages.
 # Engram: engram_install.py / engram_disk.py skip the 189 GiB Engram tables while loading and gather rows with
@@ -32,7 +33,6 @@ ENV TORCH_CUDA_ARCH_LIST=12.1a \
     FLASHINFER_CUDA_ARCH_LIST=12.1a \
     MAX_JOBS=2 \
     CUTE_DSL_ARCH=sm_121a \
-    FLASHINFER_WORKSPACE_BASE=/opt/vonk/flashinfer \
     CUDA_HOME=/usr/local/cuda \
     PATH=/usr/local/cuda/bin:${PATH} \
     DSV41_ENGRAM_DISK=0 \
