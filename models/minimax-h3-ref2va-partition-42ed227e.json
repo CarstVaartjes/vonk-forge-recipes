@@ -1,0 +1,763 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "license-59b99642b95e-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "59b99642b95ea21630e311198ddbfffbfe05aadba0c2f5d884cbdf4efcc90f44",
+      "size_bytes": 17604
+    },
+    {
+      "id": "config-d8f3bcc62e23-f233ea09db",
+      "path": "Ref2VA/audio_vae/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d8f3bcc62e23c7e9806970fa63cca6139c06faa3797cf9c94034f60db8512771",
+      "size_bytes": 1973
+    },
+    {
+      "id": "config-259f675c9f71-42ac39e1cb",
+      "path": "Ref2VA/audio_vae/config.yaml",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "259f675c9f71eedc24ca4f23965cd32a1b3878fc894f56664c40328d99831a5e",
+      "size_bytes": 91
+    },
+    {
+      "id": "dac-activations-74ca8bb9e803-06a3d0dc0b",
+      "path": "Ref2VA/audio_vae/dac_activations.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "74ca8bb9e8039f1ff362ca4219eee5240a7df9502f3dbdc3161d4e86fbd6dc04",
+      "size_bytes": 2189
+    },
+    {
+      "id": "dac-alias-free-act-db8761e66c0e-6859f8db1c",
+      "path": "Ref2VA/audio_vae/dac_alias_free_act.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "db8761e66c0eaf9fce2dcccb59162d52b22ca0de9f699cf7d21ec7cd507e86fd",
+      "size_bytes": 835
+    },
+    {
+      "id": "dac-alias-free-filter-a369523cd7f1-ff7211a145",
+      "path": "Ref2VA/audio_vae/dac_alias_free_filter.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "a369523cd7f14f4f299d8e2e47f3c473da76ed1910e6e9134fd7a9fce02537e8",
+      "size_bytes": 3300
+    },
+    {
+      "id": "dac-alias-free-resample-fe3505589383-68a585d73a",
+      "path": "Ref2VA/audio_vae/dac_alias_free_resample.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "fe35055893833c563e42adc5e5882cbe7628c82d48d33c300fcf0a9576997910",
+      "size_bytes": 1740
+    },
+    {
+      "id": "dac-attn-proj-0e04556fa5fd-296950c4fe",
+      "path": "Ref2VA/audio_vae/dac_attn_proj.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "0e04556fa5fd38d4a71e62fcf4d3242fd9a2464fd72ed62baef2ec0980d910c6",
+      "size_bytes": 3317
+    },
+    {
+      "id": "dac-audio-vae-ec04939602d4-e212c76766",
+      "path": "Ref2VA/audio_vae/dac_audio_vae.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "ec04939602d4710d039e83f558a7572547669652f7fa967e3de0a3b6c48cfd48",
+      "size_bytes": 7266
+    },
+    {
+      "id": "dac-bigvgan-f5df4e6f633e-9560b75556",
+      "path": "Ref2VA/audio_vae/dac_bigvgan.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "f5df4e6f633e74da479549ef7a6d2684964e4b65ac42c6765be42f9c7fcb7bd2",
+      "size_bytes": 7102
+    },
+    {
+      "id": "dac-utils-74ef0ba2c2a1-af125a1afe",
+      "path": "Ref2VA/audio_vae/dac_utils.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "74ef0ba2c2a11ca35a7c0cc166fe88e564de01230000a0bcc8429103312ad9f0",
+      "size_bytes": 362
+    },
+    {
+      "id": "metadata-755d0529d43b-d2afbd7a90",
+      "path": "Ref2VA/audio_vae/metadata.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "755d0529d43b2b5c83590f6f44ca659bc68e6a21b01d5669c93e8b2965749bff",
+      "size_bytes": 440
+    },
+    {
+      "id": "minimax-h3-audio-vae-63bc0dab6def-8f6853aa88",
+      "path": "Ref2VA/audio_vae/minimax_h3_audio_vae.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "63bc0dab6def69480cfd77ea820f9a9a84fc4bd6e56868e4f45ec1e1e200578f",
+      "size_bytes": 3532
+    },
+    {
+      "id": "model-37dddc2f3e6d-4dd9dfe16b",
+      "path": "Ref2VA/audio_vae/model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "37dddc2f3e6d5d5139d823d5ea283bbf304dadcb885b1ccda818aa13dade5ea2",
+      "size_bytes": 605429308
+    },
+    {
+      "id": "model-index-b160b13700bf-3983db5e1a",
+      "path": "Ref2VA/model_index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b160b13700bf08aea7fce1bc3dd0d3a49ea15036298c50082ec107f87843b90c",
+      "size_bytes": 707
+    },
+    {
+      "id": "chat-template-5c72a170d2a4-5da76fec9e",
+      "path": "Ref2VA/processor/chat_template.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
+      "size_bytes": 5499
+    },
+    {
+      "id": "merges-599bab540750-e258f19144",
+      "path": "Ref2VA/processor/merges.txt",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "size_bytes": 1671839
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-8830b72b07",
+      "path": "Ref2VA/processor/preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "tokenizer-a5d85b6dcc53-11fc3e2a47",
+      "path": "Ref2VA/processor/tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "size_bytes": 7032403
+    },
+    {
+      "id": "tokenizer-config-a07e942ac874-03ecb6bbac",
+      "path": "Ref2VA/processor/tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a07e942ac874baa13758de8d1fbdb186683cc03416b5589e1b6671c6b3057c68",
+      "size_bytes": 11003
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa-9ffbdbe195",
+      "path": "Ref2VA/processor/video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    },
+    {
+      "id": "vocab-ca10d7e9fb3e-80653ba783",
+      "path": "Ref2VA/processor/vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "size_bytes": 2776833
+    },
+    {
+      "id": "chat-template-5c72a170d2a4-1ffbbebb0d",
+      "path": "Ref2VA/text_encoder/chat_template.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce",
+      "size_bytes": 5499
+    },
+    {
+      "id": "config-d2dd0c60d01b-31e15edf80",
+      "path": "Ref2VA/text_encoder/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d2dd0c60d01b9e195d9447c52da61c7302d28828524914c044d9c6e1b81d0427",
+      "size_bytes": 1474
+    },
+    {
+      "id": "merges-599bab540750-f01b96d5f4",
+      "path": "Ref2VA/text_encoder/merges.txt",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "size_bytes": 1671839
+    },
+    {
+      "id": "model-00001-of-00014-6b9dfbc930e5-6202afa1fb",
+      "path": "Ref2VA/text_encoder/model-00001-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6b9dfbc930e505402ae9d7e5091a9d7d656cda5f34614f01cfe70bfb0cca27cb",
+      "size_bytes": 4932328944
+    },
+    {
+      "id": "model-00002-of-00014-d8bb44b4ff30-411a722ccc",
+      "path": "Ref2VA/text_encoder/model-00002-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d8bb44b4ff303fe76fe9e894022fb3dc71b15a2e716592790fe0e3c3e60478fa",
+      "size_bytes": 4875990528
+    },
+    {
+      "id": "model-00003-of-00014-54f22e8b3168-9c1bf70539",
+      "path": "Ref2VA/text_encoder/model-00003-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "54f22e8b3168f8dc962fac0d313607ebf52a12b433d4cf3098a0d82d9f042940",
+      "size_bytes": 4875990552
+    },
+    {
+      "id": "model-00004-of-00014-ad09c74d3c13-3cf02485e4",
+      "path": "Ref2VA/text_encoder/model-00004-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ad09c74d3c13ee29b5d0d84548fd8a3424a651564eaccd519946c296e59c557f",
+      "size_bytes": 4875990584
+    },
+    {
+      "id": "model-00005-of-00014-fc993c8a0e2a-61c8e62971",
+      "path": "Ref2VA/text_encoder/model-00005-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fc993c8a0e2a5b0570f383e1a95dc3a1281d1b224b6f3ee908f4827941e1dfc2",
+      "size_bytes": 4875990584
+    },
+    {
+      "id": "model-00006-of-00014-82f05620d1f7-acb8148576",
+      "path": "Ref2VA/text_encoder/model-00006-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "82f05620d1f718a90c362b221d6a184ff1a0f53301d706882d3df49695fa1974",
+      "size_bytes": 4875990584
+    },
+    {
+      "id": "model-00007-of-00014-fb91da8cb01f-ce6b13bb28",
+      "path": "Ref2VA/text_encoder/model-00007-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fb91da8cb01ff4de3eef0eab1c3e769a734b3a1aafc61734068638a0d6c86934",
+      "size_bytes": 4875990584
+    },
+    {
+      "id": "model-00008-of-00014-431ca56535c8-43fee1e71a",
+      "path": "Ref2VA/text_encoder/model-00008-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "431ca56535c8781944ce3801f5eb61c45531e853ecc5846d936ebaf4761b764f",
+      "size_bytes": 4875990584
+    },
+    {
+      "id": "model-00009-of-00014-3825e3f4302f-49c1b737e8",
+      "path": "Ref2VA/text_encoder/model-00009-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3825e3f4302f4d2f7d76aa7430d2ce0864fde6b9e540a5806bf0d8e38e4d9f47",
+      "size_bytes": 4875990584
+    },
+    {
+      "id": "model-00010-of-00014-aded5a4d1d5e-099eaca839",
+      "path": "Ref2VA/text_encoder/model-00010-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "aded5a4d1d5e22dbd8b6f79266b6eb88c840411b09527c53917a1419ace22e2f",
+      "size_bytes": 4875990584
+    },
+    {
+      "id": "model-00011-of-00014-3820ffe8d8d6-aa70dc36db",
+      "path": "Ref2VA/text_encoder/model-00011-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3820ffe8d8d6477f6fe8d614ef3c87abb264ee39accebf43a1507b970d80946f",
+      "size_bytes": 4875990584
+    },
+    {
+      "id": "model-00012-of-00014-05ad2d08ce71-54dfa9c17c",
+      "path": "Ref2VA/text_encoder/model-00012-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "05ad2d08ce71963121c9b03f1d9ec5d7641052f4b23c6c12b80d71065eb8e98e",
+      "size_bytes": 4875990584
+    },
+    {
+      "id": "model-00013-of-00014-b64f22898712-4447b816c4",
+      "path": "Ref2VA/text_encoder/model-00013-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b64f2289871261fdd1abbd3b78bcd66011b341de3dc8eeb2ed1a473ee7c8d95c",
+      "size_bytes": 4875990584
+    },
+    {
+      "id": "model-00014-of-00014-e45b6c9998c7-56f2c41436",
+      "path": "Ref2VA/text_encoder/model-00014-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e45b6c9998c77ee5a6577f9f47bc76416c1d4d387169e50c4c9d3134ea51b13b",
+      "size_bytes": 3270697008
+    },
+    {
+      "id": "model-safetensors-index-06c952c56928-5f715b95bd",
+      "path": "Ref2VA/text_encoder/model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "06c952c569285870b811989b794b9766493e280fb77fbcb957fc4e5fcf25403a",
+      "size_bytes": 97831
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-25f13e485f",
+      "path": "Ref2VA/text_encoder/preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "tokenizer-a5d85b6dcc53-f41fe4d740",
+      "path": "Ref2VA/text_encoder/tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "size_bytes": 7032403
+    },
+    {
+      "id": "tokenizer-config-a07e942ac874-f6e3f47e75",
+      "path": "Ref2VA/text_encoder/tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a07e942ac874baa13758de8d1fbdb186683cc03416b5589e1b6671c6b3057c68",
+      "size_bytes": 11003
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa-e60961cdd8",
+      "path": "Ref2VA/text_encoder/video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    },
+    {
+      "id": "vocab-ca10d7e9fb3e-47f31b7b51",
+      "path": "Ref2VA/text_encoder/vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "size_bytes": 2776833
+    },
+    {
+      "id": "merges-599bab540750-191ae844a9",
+      "path": "Ref2VA/tokenizer/merges.txt",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "size_bytes": 1671839
+    },
+    {
+      "id": "tokenizer-a5d85b6dcc53-f8ce8c0004",
+      "path": "Ref2VA/tokenizer/tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "size_bytes": 7032403
+    },
+    {
+      "id": "tokenizer-config-a07e942ac874-cb41531346",
+      "path": "Ref2VA/tokenizer/tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a07e942ac874baa13758de8d1fbdb186683cc03416b5589e1b6671c6b3057c68",
+      "size_bytes": 11003
+    },
+    {
+      "id": "vocab-ca10d7e9fb3e-7161bdf200",
+      "path": "Ref2VA/tokenizer/vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "size_bytes": 2776833
+    },
+    {
+      "id": "config-f619093a231f-89eaaec3cd",
+      "path": "Ref2VA/transformer/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f619093a231fcfbcc3d035bec26c50ad864e7331a500d5c519f5045dc1e50458",
+      "size_bytes": 604
+    },
+    {
+      "id": "model-00001-of-00013-902d6ae787f6-55c55c069b",
+      "path": "Ref2VA/transformer/model-00001-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "902d6ae787f6d394d0104c1ef3ce19528209715fd5b0292f09d4ef7ca19c8504",
+      "size_bytes": 5227812968
+    },
+    {
+      "id": "model-00002-of-00013-97b907e4d9b3-99136d196e",
+      "path": "Ref2VA/transformer/model-00002-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "97b907e4d9b3ba533c820827ab4a03ec0d6be2a5cb8925a7e570de849ea8b183",
+      "size_bytes": 5164578856
+    },
+    {
+      "id": "model-00003-of-00013-fbdf425e3516-b5a7af01e2",
+      "path": "Ref2VA/transformer/model-00003-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fbdf425e351622103419d8f1ddf50f2515917235588849afb365967615141f55",
+      "size_bytes": 5164578872
+    },
+    {
+      "id": "model-00004-of-00013-3831e9ff2640-a2c38e55ba",
+      "path": "Ref2VA/transformer/model-00004-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3831e9ff2640a93e3601d957c81640cc6ba7aa317dc7eae1d6ac3e2428767db3",
+      "size_bytes": 5164578896
+    },
+    {
+      "id": "model-00005-of-00013-ec7c6bdd2698-d29c94519c",
+      "path": "Ref2VA/transformer/model-00005-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ec7c6bdd26985a7ac6c83a563d5d4ad6fd961c51a2e5eeabeaaa3b45b6053e1a",
+      "size_bytes": 5164578896
+    },
+    {
+      "id": "model-00006-of-00013-536c4fe01ffd-d596fb1ccc",
+      "path": "Ref2VA/transformer/model-00006-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "536c4fe01ffdeaca8f28d8df8c53cd7deb62942ec630aa1f058d0423db4438a7",
+      "size_bytes": 5164578896
+    },
+    {
+      "id": "model-00007-of-00013-c7b80189722b-dd1563268a",
+      "path": "Ref2VA/transformer/model-00007-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c7b80189722b211af43bf04066ea98ef5ca5bc4f1f13d3b06444d4c30aafead7",
+      "size_bytes": 5164578896
+    },
+    {
+      "id": "model-00008-of-00013-1a7da8bb7477-515359066e",
+      "path": "Ref2VA/transformer/model-00008-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1a7da8bb7477d27cfcc03bd7ff81b3be015411e74006da6e542ce4ce32f7ecb4",
+      "size_bytes": 5164578896
+    },
+    {
+      "id": "model-00009-of-00013-33f44f03128b-46dfd9714d",
+      "path": "Ref2VA/transformer/model-00009-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "33f44f03128b6d47e3c17a12d3d6f9c67a06b2facdb18a7f2b2121312ba43909",
+      "size_bytes": 5164578896
+    },
+    {
+      "id": "model-00010-of-00013-adb8df74dcff-cbfa2f2075",
+      "path": "Ref2VA/transformer/model-00010-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "adb8df74dcffebed919e15ca1e99f6a21f738ac3dbcb111f27168d9b1f03a304",
+      "size_bytes": 5164578896
+    },
+    {
+      "id": "model-00011-of-00013-7175cdde6953-c704c779b5",
+      "path": "Ref2VA/transformer/model-00011-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7175cdde6953c234ba0f518e81628ae4ed97790e1eaadabaf1783bddba030c90",
+      "size_bytes": 5164578896
+    },
+    {
+      "id": "model-00012-of-00013-1c5c0bf33ab6-9756559b6c",
+      "path": "Ref2VA/transformer/model-00012-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1c5c0bf33ab63e018e5923afaa8ce0dbb0feb07dbda1671605b11b99192450b6",
+      "size_bytes": 5164578896
+    },
+    {
+      "id": "model-00013-of-00013-572e060b9b72-b0b8e76073",
+      "path": "Ref2VA/transformer/model-00013-of-00013.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "572e060b9b727bba6ee6c639e988d74978adfbf94f8bac9aa8e7f5bde88c1ec7",
+      "size_bytes": 4242305176
+    },
+    {
+      "id": "model-safetensors-index-fb457a26ffa6-6888126bb8",
+      "path": "Ref2VA/transformer/model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "fb457a26ffa6294660e249b0ddd03a337f2e5393f770b5c34c8b8f90a29a7efb",
+      "size_bytes": 38323
+    },
+    {
+      "id": "attention-c9db8465c57f-1598dd8aff",
+      "path": "Ref2VA/video_vae/attention.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "c9db8465c57f0bfb40c0194227be6e34b2c1ff7c5b5d63abca9964eed6283767",
+      "size_bytes": 5785
+    },
+    {
+      "id": "base-module-0e7ddf508617-04274259bc",
+      "path": "Ref2VA/video_vae/base_module.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "0e7ddf5086179a306298693ac461ffcbc27ccb28dbc786b1a05060de7a3357c0",
+      "size_bytes": 9520
+    },
+    {
+      "id": "config-3edd2cdd1ebc-ceff019a84",
+      "path": "Ref2VA/video_vae/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3edd2cdd1ebc823c868be55ef917e1b3b8a398fde4d3150dae44a3bf05d9f627",
+      "size_bytes": 1807
+    },
+    {
+      "id": "conv-b3adee35f27e-9e3a79799e",
+      "path": "Ref2VA/video_vae/conv.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "b3adee35f27e5d372543242aa86ce5e0138f13b794b6c81f919001e3e2346723",
+      "size_bytes": 4487
+    },
+    {
+      "id": "flash-c1918463d303-8ca93b6b4c",
+      "path": "Ref2VA/video_vae/flash.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "c1918463d303a16f278a670bb4f33d3f8d6f7653b0d473313ff5835699b86d04",
+      "size_bytes": 5763
+    },
+    {
+      "id": "func-0612c26a65f0-53f3e10e33",
+      "path": "Ref2VA/video_vae/func.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "0612c26a65f095699cc7acd51937cd153584fa5a0476956e46a4679aa575c22d",
+      "size_bytes": 5840
+    },
+    {
+      "id": "klvae-d05a22b4918a-799b0593f1",
+      "path": "Ref2VA/video_vae/klvae.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "d05a22b4918ad303f147d6b0d0ae9038bd1af1f810a5553b04f3542ab9bcff96",
+      "size_bytes": 48594
+    },
+    {
+      "id": "minimax-h3-video-vae-77fdea69a484-34d95a1246",
+      "path": "Ref2VA/video_vae/minimax_h3_video_vae.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "77fdea69a48485b5434f65d08096657b5d78b78b7cdf24e1241038f237720138",
+      "size_bytes": 5123
+    },
+    {
+      "id": "norm-258b120ca8d9-4dfb8f748b",
+      "path": "Ref2VA/video_vae/norm.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "258b120ca8d9a16366d7b811fe93eebf98fe1564db0995e8b7747229c651919a",
+      "size_bytes": 10686
+    },
+    {
+      "id": "normalize-8db651acb9eb-b9dd527450",
+      "path": "Ref2VA/video_vae/normalize.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "8db651acb9eb551c906a2850bbca8e9d851f00d07b30ccf66ceb6057da687a13",
+      "size_bytes": 1200
+    },
+    {
+      "id": "parallel-7193522beafd-63c52628ec",
+      "path": "Ref2VA/video_vae/parallel.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "7193522beafd65bc3dbe40b9843e360ab8da3a0bb211e9bfb67bb0d5d0e66919",
+      "size_bytes": 12997
+    },
+    {
+      "id": "config-66c68f541e65-b4c1837734",
+      "path": "Ref2VA/video_vae/source/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "66c68f541e6578ce613ce7a0fc985eb59097038829e49f7535e6d08e6d95ab12",
+      "size_bytes": 1164
+    },
+    {
+      "id": "model-5f0c2e161d89-9f39f51597",
+      "path": "Ref2VA/video_vae/source/model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5f0c2e161d895a9fee7645ca32d4a7e3a22b90cacfcbeba62ec999cdbbefe0d3",
+      "size_bytes": 10415548320
+    },
+    {
+      "id": "utils-309e45e9d9e3-bf7fa72d8b",
+      "path": "Ref2VA/video_vae/utils.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "309e45e9d9e33cd5516a10eac2d207eb9f940079a6d9bbe0ee80aaaf7eb42dcd",
+      "size_bytes": 764
+    },
+    {
+      "id": "vae-cnn-3949b701e689-a0dd6cb917",
+      "path": "Ref2VA/video_vae/vae_cnn.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "3949b701e6893bd2ea070cd5b18ed8135a7c21d884290df449b1997212d65b11",
+      "size_bytes": 8836
+    },
+    {
+      "id": "vae-module-9558fb302e10-aaa719f7ec",
+      "path": "Ref2VA/video_vae/vae_module.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "9558fb302e10a619f198e12e04701c68988e897d0b627f958f33d27fd2a30d94",
+      "size_bytes": 1884
+    },
+    {
+      "id": "vae-processor-32870580a180-6d28a86b6a",
+      "path": "Ref2VA/video_vae/vae_processor.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "32870580a1802d9163104a4d68170e35a4772106867181e1bd343dff11f87d2e",
+      "size_bytes": 8369
+    },
+    {
+      "id": "vae-vit-a372c28441b5-fd13e682e6",
+      "path": "Ref2VA/video_vae/vae_vit.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "a372c28441b56ec2dbc6041dbd6ce2766c64c0e61b2c69a16594a97a11da3f58",
+      "size_bytes": 13490
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "minimax",
+      "slug": "minimax-h3"
+    },
+    "publisher": "minimax",
+    "slug": "minimax-h3-ref2va-partition-42ed227e",
+    "variant": "MiniMax H3 Ref2VA partition 42ed227e",
+    "version": "MiniMax H3 Ref2VA partition 42ed227e"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/MiniMaxAI/MiniMax-H3",
+    "revision": "42ed227ee7df40d41602854ae760620d6eb651fe"
+  }
+}

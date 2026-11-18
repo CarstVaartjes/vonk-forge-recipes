@@ -287,6 +287,10 @@ MINIMAL_MEDIA_PARAMETERS = {
     "fasth3-8step-v2-drowzeys-tensorfold-single": {"num-frames": 124},
     "stable-audio-3-small-sfx-pytorch-single": {"duration-seconds": 2},
     "minimax-h3-fl2va-knapcio-vllm-omni-dual": {"num-inference-steps": 2},
+    "minimax-h3-ref2va-knapcio-vllm-omni-dual": {
+        "duration": 16,
+        "num-inference-steps": 2,
+    },
 }
 # These unproven recipes share their entire context with a hardware pass.
 # Keep the single adapter unchanged rather than fork it for smaller smokes.
