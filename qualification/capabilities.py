@@ -31,8 +31,8 @@ KIT_FLAGS = Path(__file__).resolve().parent / "kit-engine-flags.json"
 # Engines that parse tool calls and reasoning only when a flag asks them to.
 FLAG_ENGINES = frozenset({"vllm", "sglang", "tensorrt-llm"})
 # Engines whose server always parses (llama.cpp through its chat template,
-# TensorFold, the exllamav3 OpenAI server, ds4): no flag decides.
-NATIVE_ENGINES = frozenset({"llama-cpp", "tensorfold", "exllamav3", "ds4"})
+# TensorFold, the exllamav3 OpenAI server, ds4, gr8): no flag decides.
+NATIVE_ENGINES = frozenset({"llama-cpp", "tensorfold", "exllamav3", "ds4", "gr8"})
 # A generic server whose launch takes no engine flags and whose answers no engine
 # parses (a decision model generates no text): no tool or reasoning parser.
 UNPARSED_ENGINES = frozenset({"pytorch-server"})

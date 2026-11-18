@@ -13,6 +13,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -21,6 +24,55 @@ from generated_catalog import GENERATED
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE = ROOT / "recipes/deepseek-v4-flash-0731-ds4-single.json"
+
+
+WRAPPER = ROOT / "adapters/deepseek/ds4-tp2/ds4-serve"
+SERVER_ARGUMENTS = [
+    "--model",
+    "/models/m.gguf",
+    "--ctx",
+    "32768",
+    "--tensor-parallel",
+    "--transport",
+    "rdma",
+    "--batched-session",
+    "8",
+    "--host",
+    "0.0.0.0",
+    "--port",
+    "8080",
+]
+
+
+def run_wrapper(rank: str, arguments: list[str], **env: str) -> list[str]:
+    """Run the wrapper with the two ds4 binaries replaced by echoing stubs."""
+
+    with tempfile.TemporaryDirectory() as folder:
+        for name in ("ds4", "ds4-server"):
+            stub = Path(folder) / name
+            stub.write_text('#!/bin/sh\nprintf "%s\\n" "$0" "$@"\n')
+            stub.chmod(0o755)
+        script = Path(folder) / "ds4-serve"
+        script.write_text(WRAPPER.read_text().replace("/opt/vonk/bin", folder))
+        script.chmod(0o755)
+        placement = {
+            "VONK_WORLD_SIZE": "2",
+            "VONK_RANK": rank,
+            "VONK_MASTER_ADDR": "10.0.0.1",
+            "VONK_MASTER_PORT": "29500",
+        } | env
+        done = subprocess.run(
+            [str(script), *arguments],
+            env={"PATH": os.environ["PATH"]} | placement,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    if done.returncode:
+        raise subprocess.CalledProcessError(
+            done.returncode, "ds4-serve", stderr=done.stderr
+        )
+    return [Path(done.stdout.splitlines()[0]).name, *done.stdout.splitlines()[1:]]
 
 
 def load(path: Path) -> dict:
@@ -59,6 +111,38 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
         )
         names = [argument["name"] for argument in recipe["runtime"]["arguments"]]
         self.assertEqual(names, ["model", "dspark", "mtp-model", "ctx"])
+
+    def test_dual_wrapper_serves_on_rank_zero_and_joins_on_rank_one(self) -> None:
+        self.assertEqual(
+            run_wrapper("0", SERVER_ARGUMENTS),
+            [
+                "ds4-server",
+                *SERVER_ARGUMENTS,
+                "--role",
+                "coordinator",
+                "--listen",
+                "10.0.0.1",
+                "29500",
+            ],
+        )
+        self.assertEqual(
+            run_wrapper("1", SERVER_ARGUMENTS),
+            [
+                "ds4",
+                "--model",
+                "/models/m.gguf",
+                "--ctx",
+                "32768",
+                "--tensor-parallel",
+                "--transport",
+                "rdma",
+                "--role",
+                "worker",
+                "--coordinator",
+                "10.0.0.1",
+                "29500",
+            ],
+        )
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
         index = load(GENERATED / "catalog-index.json")
