@@ -35,6 +35,7 @@ READ_ONLY = frozenset(
     {
         "MODEL_PATH",
         "LD_LIBRARY_PATH",
+        "PKG_CONFIG_PATH",
         "VLLM_NCCL_SO_PATH",
         "TRITON_PTXAS_PATH",
         "VLLM_BASE_DIR",
