@@ -675,20 +675,20 @@
       "choices": [
         {
           "default": true,
-          "help": "Upstream's measured configuration: DSpark drafts 5 tokens per step with the greedy draft sampler (25.65 tokens/s against 13.16 without, publisher-measured on two Sparks).",
-          "label": "DSpark, 5 tokens",
-          "value": "dspark"
-        },
-        {
           "env": {
             "REAP256E_SPECULATION": "off"
           },
-          "help": "Upstream SPEC_METHOD=none (its first-boot shape): no speculative config, the 13.16 tokens/s baseline arm.",
+          "help": "Upstream's shipped default (env.example SPEC_METHOD=none, its first-boot shape): no speculative config, the 13.16 tokens/s baseline arm.",
           "label": "Off",
           "value": "off"
+        },
+        {
+          "help": "Upstream's measured fast arm: DSpark drafts 5 tokens per step with the greedy draft sampler (25.65 tokens/s against 13.16 without, publisher-measured on two Sparks).",
+          "label": "DSpark, 5 tokens",
+          "value": "dspark"
         }
       ],
-      "help": "DSpark drafts with the draft stages stored in the checkpoint. Upstream's block-10 arm was slower (16.84 tokens/s), so no other width is offered.",
+      "help": "DSpark drafts with the draft stages stored in the checkpoint. Upstream ships it off and measured it on as an A/B arm; its block-10 arm was slower (16.84 tokens/s), so no other width is offered.",
       "label": "Speculative decoding",
       "name": "speculation"
     }
