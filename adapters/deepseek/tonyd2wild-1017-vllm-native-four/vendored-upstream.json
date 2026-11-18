@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE",
+    "patch/engram.py": "runs/2026-09-14-speedrun/patches/dsv41-exl3-sr1/engram.py"
+  },
+  "source": {
+    "commit": "74ac01362e96c1dc72df96737354ce408dceb272",
+    "repo": "tonyd2wild/DeepSeek-V4.1-Flash-TP2-and-TP4-DGX-Sparks"
+  }
+}
