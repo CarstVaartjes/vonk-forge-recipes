@@ -13,8 +13,10 @@
 #   1. patch_swa_page_size.py            64-token SWA cache pages (FlashInfer's SM120 sparse decode needs 64).
 #   2. patch_flashinfer_prefill_pbsx.py  32-state compressed-page instantiation in the sparse-MLA prefill kernel,
 #      mask_flashinfer_aot.py            and removal of the prebuilt AOT binary that would ignore that edit; the
-#                                        patched module is JIT-compiled once at first use (upstream prebuilds it
-#                                        per node with scripts/build_flashinfer.sh; MAX_JOBS=2 bounds the build).
+#      build_flashinfer.py (ours)        patched module is compiled here at image build (the creator's
+#                                        scripts/build_flashinfer.sh prebuilds it offline for the same reason: an
+#                                        in-engine nvcc build raced memory and reset nodes) into the FlashInfer
+#                                        cache the runtime reads, FLASHINFER_WORKSPACE_BASE below.
 #   3. patch_v41_kernel_block_size.py    the V4.1 sparse-MLA backends accept a 64-token kernel block on SM121.
 #   4. patch_sm12x_indexer.py            Triton FP8 paged-MQA logits fallback (sm12x_mqa.py) for 32-state pages.
 # Engram: engram_install.py / engram_disk.py skip the 189 GiB Engram tables while loading and gather rows with
@@ -29,6 +31,8 @@ LABEL org.opencontainers.image.source="https://github.com/Reederey87/deepseek-v4
 ENV TORCH_CUDA_ARCH_LIST=12.1a \
     FLASHINFER_CUDA_ARCH_LIST=12.1a \
     MAX_JOBS=2 \
+    CUTE_DSL_ARCH=sm_121a \
+    FLASHINFER_WORKSPACE_BASE=/opt/vonk/flashinfer \
     CUDA_HOME=/usr/local/cuda \
     PATH=/usr/local/cuda/bin:${PATH} \
     DSV41_ENGRAM_DISK=0 \
@@ -44,6 +48,8 @@ COPY overlay/ /opt/dsv41/overlay/
 RUN python3 /opt/dsv41/overlay/patch_swa_page_size.py
 RUN python3 /opt/dsv41/overlay/patch_flashinfer_prefill_pbsx.py \
  && python3 /opt/dsv41/overlay/mask_flashinfer_aot.py
+COPY build_flashinfer.py /tmp/build_flashinfer.py
+RUN python3 /tmp/build_flashinfer.py && rm /tmp/build_flashinfer.py
 RUN python3 /opt/dsv41/overlay/patch_v41_kernel_block_size.py
 RUN python3 /opt/dsv41/overlay/patch_sm12x_indexer.py
 
