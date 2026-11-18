@@ -1,0 +1,43 @@
+# The creator's stack: vllm==0.30.0 from PyPI with the cu130 torch index
+# (knapcio/MiniMax-H3-2x-DGX-Spark-TP2 README, "Second runtime: vLLM-Omni v0.30.0"),
+# nvidia-cutlass-dsl at the version the creator measured, and the dependencies of
+# vLLM-Omni a8576ccb (requirements/common.txt + requirements/cuda.txt, copied
+# verbatim) because vLLM-Omni itself is installed with --no-deps.
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+vllm==0.30.0
+nvidia-cutlass-dsl==4.7.1
+
+# Build inputs of the two --no-deps --no-build-isolation source installs
+# (vLLM-Omni's setup.py imports setuptools_scm; h3_tp2 builds with setuptools).
+setuptools-scm>=8
+
+transformers >= 5.13.0, < 5.15
+av>=14.0.0
+omegaconf>=2.3.0
+diffusers==0.40.0
+kernels==0.16.1
+safetensors>=0.8.0
+accelerate==1.12.0
+soundfile>=0.13.1
+soxr>=0.5.0.post1
+cache-dit==1.5.0
+tqdm>=4.66.0
+torchsde>=0.2.6
+openai-whisper>=20250625
+imageio[ffmpeg]>=2.37.2
+x-transformers>=2.12.2
+einops>=0.8.1
+prettytable>=3.8.0
+aenum==3.1.16
+pyzmq>=25.0.0
+janus>=1.0.0
+msgpack>=1.0.0
+pydantic>=2.1.0
+pydantic-settings>=2.0.0
+gguf>=0.10.0
+cosmos-guardrail>=0.3.1
+scipy>=1.11.0
+s3tokenizer==0.3.0
+onnxruntime>=1.23.2
+fa3-fwd==0.0.3
