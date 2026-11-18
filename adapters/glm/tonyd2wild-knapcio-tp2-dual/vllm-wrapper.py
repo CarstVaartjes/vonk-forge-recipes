@@ -11,6 +11,7 @@ off to vLLM with the placement the Controller supplies.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -29,10 +30,19 @@ VIEW_KEY_FILES = (
     (DRAFTER, "config.json"),
 )
 # The kit's scripts/build_lossless8.sh uses hardlinks for its zero-copy layout. The Models are read-only mounts that
-# hardlinks cannot cross, so the same assembly links with symlinks to the real shard files instead.
+# hardlinks cannot cross, so a source under /models is linked with a symlink to the real shard file; every other link
+# (the overlay shard, which lives beside the view) stays a real hardlink, so it survives the staging directory's rename.
+MODELS = Path("/models")
 SYMLINK_RUNNER = (
     "import os, runpy, sys\n"
-    "os.link = lambda src, dst, **kw: os.symlink(os.path.realpath(src), dst)\n"
+    "link = os.link\n"
+    "def link_or_symlink(src, dst, **kw):\n"
+    "    real = os.path.realpath(src)\n"
+    "    if real.startswith({models!r}):\n"
+    "        os.symlink(real, dst)\n"
+    "    else:\n"
+    "        link(src, dst, **kw)\n"
+    "os.link = link_or_symlink\n"
     "sys.argv = sys.argv[1:]\n"
     "runpy.run_path(sys.argv[0], run_name='__main__')\n"
 )
@@ -64,16 +74,19 @@ def _run(*command: str) -> None:
 
 
 def _complete(view: Path) -> bool:
-    return all(
-        (view / name).is_file()
-        for name in (
-            "lossless8/model.safetensors.index.json",
-            "lossless8/config.json",
-            "lossless8/qmix-manifest.json",
-            "draft/model.safetensors",
-            "draft/config.json",
-        )
-    )
+    names = [
+        "lossless8/model.safetensors.index.json",
+        "lossless8/config.json",
+        "lossless8/qmix-manifest.json",
+        "draft/model.safetensors",
+        "draft/config.json",
+    ]
+    try:
+        # The overlay shard carries the re-encoded tensors; a view whose link to it is missing or dangling is broken.
+        names.append("lossless8/" + json.loads((view / names[2]).read_bytes())["overlay"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+    return all((view / name).is_file() for name in names)
 
 
 def _publish_link(name: str, destination: Path) -> None:
@@ -114,8 +127,9 @@ def _prepare_views() -> None:
             python, quant_mix, "quant", "--src", str(TARGET), "--plan", str(plan), "--arm", "lossless8",
             "--out", str(staging / "overlay"), "--skip-bf16", "--threads", "4",
         )
+        runner = SYMLINK_RUNNER.format(models=str(MODELS) + os.sep)
         _run(
-            python, "-c", SYMLINK_RUNNER, quant_mix, "assemble", "--base", str(TARGET),
+            python, "-c", runner, quant_mix, "assemble", "--base", str(TARGET),
             "--overlay", str(staging / "overlay"), "--dst", str(staging / "lossless8"),
         )
         _run(python, str(SCRIPTS / "drafter_fp8.py"), str(DRAFTER), str(staging / "draft"))
