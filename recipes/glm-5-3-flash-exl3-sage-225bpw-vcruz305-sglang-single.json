@@ -536,6 +536,56 @@
       }
     }
   ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "One running request, chunked prefill 4096, memory fraction 0.84, 8 Mamba slots, decode graph for batch 1. The creator's measured fast path: 28.6 tok/s mean single-stream decode (creator's claim).",
+          "label": "Single request",
+          "value": "single"
+        },
+        {
+          "args": [
+            {
+              "name": "chunked-prefill-size",
+              "value": 256
+            },
+            {
+              "name": "max-running-requests",
+              "value": 4
+            },
+            {
+              "name": "mem-fraction-static",
+              "value": "0.90"
+            },
+            {
+              "name": "max-mamba-cache-size",
+              "value": 20
+            },
+            {
+              "name": "cuda-graph-max-bs-decode",
+              "value": 4
+            },
+            {
+              "name": "cuda-graph-bs-decode",
+              "value": "1 2 4"
+            }
+          ],
+          "default": false,
+          "env": {
+            "EXL3_FUSED_MOE": "0"
+          },
+          "help": "Four running requests, chunked prefill 256, memory fraction 0.90 (at 0.84 the creator's KV pool was only 3,328 tokens), 20 Mamba slots, decode graphs for batch 1/2/4 and the fused MoE prefill kernel off, exactly as the creator measured: 39.0 tok/s aggregate at 4 requests, 24 to 25 tok/s for one stream (creator's claims). The higher memory fraction takes about 7.8 GB more of the unified memory; the creator measured host memory only for the single profile.",
+          "label": "4 concurrent requests",
+          "value": "concurrent"
+        }
+      ],
+      "help": "The creator's PROFILE=single or PROFILE=concurrent of scripts/serve.sh (362fe245). Both serve the same weights with DFlash2 speculation and the 8192-token window.",
+      "label": "Serving profile",
+      "name": "profile"
+    }
+  ],
   "provenance": {
     "attribution": [
       "vcruz305 (recipe, exllamav3 fork and sglang-exl3 plugin; Apache-2.0)",
