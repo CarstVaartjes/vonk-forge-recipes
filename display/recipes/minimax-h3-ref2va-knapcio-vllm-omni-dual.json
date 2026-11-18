@@ -1,0 +1,26 @@
+{
+  "alignment": "unspecified",
+  "description": "Candidate for the creator's two-Spark MiniMax H3 Ref2VA stack (knapcio/MiniMax-H3-2x-DGX-Spark-TP2 at 2845006): vLLM-Omni v0.30.0 continuing 277-frame windows from each other for 16 to 60 second clips with synchronized audio, conditioned on one to nine reference images (look and subject, not a first frame). 960x576 and 20 steps by default, reference short edge 1024 as the creator recommends for long clips. Physical two-Spark qualification is pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "minimax-h3-ref2va-knapcio-vllm-omni-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "minimax",
+    "video",
+    "audio",
+    "multimodal",
+    "ref2va",
+    "reference",
+    "long-video",
+    "vllm-omni",
+    "fp8",
+    "distributed",
+    "dual",
+    "spark"
+  ],
+  "title": "MiniMax H3 Ref2VA long clips two-Spark vLLM-Omni (knapcio)"
+}
