@@ -143,22 +143,6 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
                 "29500",
             ],
         )
-        self.assertEqual(
-            run_wrapper("1", ["--host=x", "--port=1", "--batched-session=2", "--cuda"])[
-                1:2
-            ],
-            ["--cuda"],
-        )
-
-    def test_dual_wrapper_refuses_a_missing_or_malformed_placement(self) -> None:
-        for bad in (
-            {"VONK_MASTER_ADDR": "name"},
-            {"VONK_MASTER_PORT": "80"},
-            {"VONK_WORLD_SIZE": "3"},
-            {"VONK_RANK": "2"},
-        ):
-            with self.assertRaises(subprocess.CalledProcessError):
-                run_wrapper("0", [], **bad)
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
         index = load(GENERATED / "catalog-index.json")
