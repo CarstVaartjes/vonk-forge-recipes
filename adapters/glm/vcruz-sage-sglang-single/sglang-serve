@@ -26,4 +26,10 @@ for name in ("config.json", "quantization_config.json", "model.safetensors.index
 subprocess.run([sys.executable, "/opt/vonk/make_view.py", str(MODEL), str(VIEW)], check=True)
 Path(os.environ.get("EXLLAMAV3_TUNE_CACHE", "/outputs/cache/exl3-tune")).mkdir(parents=True, exist_ok=True)
 arguments = [str(VIEW) if argument == str(MODEL) else argument for argument in arguments]
+# The recipe carries a graph list as one value ("1 2 4"); the engine takes it as separate words.
+if "--cuda-graph-bs-decode" in arguments:
+    graph_index = arguments.index("--cuda-graph-bs-decode")
+    if graph_index + 1 >= len(arguments):
+        raise SystemExit("--cuda-graph-bs-decode requires a value")
+    arguments[graph_index + 1 : graph_index + 2] = arguments[graph_index + 1].split()
 os.execv(sys.executable, (sys.executable, "-m", "sglang.launch_server", *arguments))
