@@ -1,0 +1,218 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/deepseek/ds4"
+      },
+      "dockerfile": "adapters/deepseek/ds4/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-ds4-q4-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "qwen3.8-flash-next"
+      ],
+      "port": 8080
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "target",
+          "id": "primary-target",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "4453e0e9894b9cb1131237610c43dfc14cbe897dede3e629084c04d1a6014dd6",
+        "kind": "model",
+        "publisher": "antirez",
+        "slug": "qwen3-8-flash-next-ds4-q4-d600fe1a"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Pass --mtp: speculative decoding with the built-in MTP weights (the upstream guide's command).",
+          "label": "MTP",
+          "value": "mtp"
+        },
+        {
+          "args": [
+            {
+              "name": "mtp",
+              "value": false
+            }
+          ],
+          "help": "Ordinary decoding.",
+          "label": "Off",
+          "value": "off"
+        }
+      ],
+      "help": "Whether ds4 drafts tokens with the checkpoint's MTP weights. The upstream guide starts Qwen with --mtp, but notes the gain depends on the prompt.",
+      "label": "Speculation",
+      "name": "speculation"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Qwen",
+      "Ivan Fioravanti",
+      "Salvatore Sanfilippo (antirez)"
+    ],
+    "source_reference": "https://github.com/antirez/ds4/tree/b3f50180ec2c7324892be1f50bc83555ccb8d5e7"
+  },
+  "release": {
+    "released_at": "2026-11-03",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model",
+        "setting": null,
+        "value": "/models/Qwen3.8-Flash-Next-Q4.gguf"
+      },
+      {
+        "name": "mtp",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "ctx",
+        "setting": "context_tokens",
+        "value": null
+      }
+    ],
+    "engine": "ds4",
+    "entrypoint": [
+      "/opt/vonk/bin/ds4-serve"
+    ],
+    "environment": [
+      {
+        "name": "DS4_LOG_LEVEL",
+        "value": "INFO"
+      },
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 32768
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 177280289955,
+            "image_bytes": 10000000000,
+            "safety_margin_bytes": 10000000000,
+            "working_bytes": 18000000000
+          },
+          "memory": {
+            "peak_bytes": 84000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "qwen3.8-flash-next"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
