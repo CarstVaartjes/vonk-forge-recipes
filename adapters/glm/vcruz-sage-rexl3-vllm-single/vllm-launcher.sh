@@ -4,7 +4,7 @@
 # expert K and its dense EXL3 linears (the creator served a local "overlay" directory of that kind; his scripts do not
 # build it), so make_overlay.py derives the same declaration from the pack's tensor headers into a directory under the
 # writable cache: symlinks to the pack's shards, the new config.json, one extra safetensors file with the split q/k/v
-# conv1d and projection tensors vLLM's glm5next loads (about 2.2 GiB, written once) and the index naming them.
+# conv1d and projection tensors vLLM's glm5next loads (about 2.2 GiB, rebuilt at every start) and the index naming them.
 # The creator's own self-test of the lookups his overlay must satisfy runs against it before vLLM starts. The recipe's model path is replaced by the overlay.
 set -eu
 PACK=/models/target

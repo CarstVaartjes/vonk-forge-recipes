@@ -144,11 +144,11 @@ class SplitTest(unittest.TestCase):
         attn = f"{LAYER}.0.self_attn"
         # conv1d [6,1,4] BF16: row r holds the bytes (r, r, ..., r) so the q/k/v rows are recognisable
         conv = b"".join(bytes([r]) * 8 for r in range(6))
-        # trellis [rows=2, cols=3, w=16] I16: word (row, col) is filled with 10 * row + col
-        words = b"".join(bytes([10 * r + c]) * 32 for r in range(2) for c in range(3))
+        # trellis [rows=2, cols=6, w=16] I16: word (row, col) is filled with 10 * row + col
+        words = b"".join(bytes([10 * r + c]) * 32 for r in range(2) for c in range(6))
         tensors = {
             f"{attn}.conv1d.weight": tensor("BF16", [6, 1, 4], conv),
-            f"{attn}.qkv_proj.trellis": tensor("I16", [2, 3, 16], words),
+            f"{attn}.qkv_proj.trellis": tensor("I16", [2, 6, 16], words),
             f"{attn}.qkv_proj.suh": tensor("F16", [2], b"\x01\x02\x03\x04"),
             f"{attn}.qkv_proj.svh": tensor("F16", [6], bytes(range(1, 13))),
             f"{attn}.qkv_proj.mul1": tensor("I32", [], b"\x07\x00\x00\x00"),
@@ -177,8 +177,14 @@ class SplitTest(unittest.TestCase):
                 ([2, 1, 4], b"".join(bytes([2 * j + r]) * 8 for r in range(2))),
             )
             shape, data = got[f"{a}.{letter}_proj.trellis"]
-            self.assertEqual(shape, [2, 1, 16])
-            self.assertEqual(data, b"".join(bytes([10 * r + j]) * 32 for r in range(2)))
+            self.assertEqual(shape, [2, 2, 16])
+            # columns 2j and 2j+1 of every row (an interleaved stride-3 split would give j, j+3)
+            self.assertEqual(
+                data,
+                b"".join(
+                    bytes([10 * r + 2 * j + c]) * 32 for r in range(2) for c in range(2)
+                ),
+            )
             self.assertEqual(
                 got[f"{a}.{letter}_proj.svh"], ([2], bytes(range(1 + 4 * j, 5 + 4 * j)))
             )
@@ -206,12 +212,8 @@ class SplitTest(unittest.TestCase):
         self.assertEqual(weights[f"{a}.o_proj.trellis"], "a.safetensors")
         self.assertTrue((self.overlay / "a.safetensors").is_symlink())
 
-    def test_existing_file_is_kept_and_stale_partial_is_removed(self) -> None:
-        self.split.write_bytes(b"keep")
-        Path(str(self.split) + ".partial").write_bytes(b"stale")
-        build(self.pack, self.overlay)
-        self.assertEqual(self.split.read_bytes(), b"keep")
-        self.split.unlink()
+    def test_split_file_is_rebuilt_and_stale_partial_removed(self) -> None:
+        self.split.write_bytes(b"stale model")
         Path(str(self.split) + ".partial").write_bytes(b"stale")
         build(self.pack, self.overlay)
         self.assertFalse(Path(str(self.split) + ".partial").exists())

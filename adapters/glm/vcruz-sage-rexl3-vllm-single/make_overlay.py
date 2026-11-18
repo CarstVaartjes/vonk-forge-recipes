@@ -56,11 +56,8 @@ def trellis_k(meta: dict) -> int:
     return shape[2] // 16
 
 
-def scan(pack: str) -> tuple[dict[str, int], str]:
+def scan(weight_map: dict[str, str], headers: dict[str, dict]) -> tuple[dict[str, int], str]:
     """K of every EXL3 tensor group, keyed by its module prefix, and the pack's one codebook marker."""
-    with open(os.path.join(pack, "model.safetensors.index.json")) as handle:
-        weight_map = json.load(handle)["weight_map"]
-    headers = {name: read_header(os.path.join(pack, name)) for name in sorted(set(weight_map.values()))}
     ks: dict[str, int] = {}
     markers: set[str] = set()
     for tensor, shard in weight_map.items():
@@ -122,20 +119,19 @@ def fused_kind(tensor: str) -> tuple[str, str, str] | None:
     return None
 
 
-def block(kind: str, shape: list[int], itemsize: int, blob: bytes, index: int) -> tuple[list[int], bytes]:
-    """Block `index` (q, k, v) of a fused tensor: its shape and bytes."""
+def block(kind: str, shape: list[int], itemsize: int, blob: bytes, index: int) -> bytes:
+    """Bytes of block `index` (q, k, v) of a fused tensor."""
     if kind in ("suh", "mul1", "mcg"):
-        return shape, blob
+        return blob
     if kind == "trellis":
         # [in/16, 3*out/16, 16K] row-major: block j is one contiguous run per row (dense_overlay.py download_bytes;
         # the plugin's fused load slices trellis[:, start // 16:(start + size) // 16, :])
         rows, cols, words = shape
         row, width = cols * words * itemsize, (cols // 3) * words * itemsize
-        data = b"".join(blob[r * row + index * width : r * row + (index + 1) * width] for r in range(rows))
-        return [rows, cols // 3, words], data
+        return b"".join(blob[r * row + index * width : r * row + (index + 1) * width] for r in range(rows))
     # svh and conv1d.weight: thirds along dim 0 (exllamav3 gated_delta_net.py torch.cat([q, k, v], dim=0))
     size = len(blob) // 3
-    return [shape[0] // 3, *shape[1:]], blob[index * size : (index + 1) * size]
+    return blob[index * size : (index + 1) * size]
 
 
 def block_shape(kind: str, shape: list[int]) -> list[int]:
@@ -147,7 +143,7 @@ def block_shape(kind: str, shape: list[int]) -> list[int]:
 
 
 def build_split(pack: str, weight_map: dict[str, str], headers: dict[str, dict], target: str) -> dict[str, str]:
-    """Write the split tensors to `target` (skipped when it exists); return {new tensor name: SPLIT_FILE}."""
+    """Write the split tensors to `target`, rebuilt on every start; return {new tensor name: SPLIT_FILE}."""
     plan: list[tuple[str, str, str, str, dict]] = []
     header: dict[str, dict] = {}
     offset = 0
@@ -168,8 +164,9 @@ def build_split(pack: str, weight_map: dict[str, str], headers: dict[str, dict],
             offset += count
         plan.append((tensor, weight_map[tensor], stem, template, meta))
     names = dict.fromkeys(header, SPLIT_FILE)
-    if os.path.exists(target):
-        return names
+    # /outputs/cache is not keyed by model identity: never trust an earlier file, and free its space first.
+    if os.path.lexists(target):
+        os.unlink(target)
     blob = json.dumps(header, separators=(",", ":")).encode()
     blob += b" " * (-len(blob) % 8)
     partial = target + ".partial"
@@ -185,14 +182,13 @@ def build_split(pack: str, weight_map: dict[str, str], headers: dict[str, dict],
                 data = handle.read(end - start)
             kind = fused_kind(tensor)[2]
             for index, letter in enumerate("qkv"):
-                out.write(block(kind, meta["shape"], ITEMSIZE[meta["dtype"]], data, index)[1])
+                out.write(block(kind, meta["shape"], ITEMSIZE[meta["dtype"]], data, index))
     os.replace(partial, target)
     return names
 
 
-def write_index(pack: str, overlay: str, headers: dict[str, dict], weight_map: dict[str, str]) -> None:
-    with open(os.path.join(pack, INDEX)) as handle:
-        index = json.load(handle)
+def write_index(pack: str, overlay: str, index: dict, headers: dict[str, dict]) -> None:
+    weight_map = index["weight_map"]
     index["weight_map"] = {name: shard for name, shard in weight_map.items() if not fused_kind(name)}
     index["weight_map"].update(build_split(pack, weight_map, headers, os.path.join(overlay, SPLIT_FILE)))
     target = os.path.join(overlay, INDEX)
@@ -207,7 +203,11 @@ def main() -> None:
     with open(os.path.join(pack, "config.json")) as handle:
         config = json.load(handle)
     config["native_quantization_config"] = config.get("quantization_config", {})
-    config["quantization_config"] = declaration(*scan(pack))
+    with open(os.path.join(pack, INDEX)) as handle:
+        index = json.load(handle)
+    weight_map = index["weight_map"]
+    headers = {name: read_header(os.path.join(pack, name)) for name in sorted(set(weight_map.values()))}
+    config["quantization_config"] = declaration(*scan(weight_map, headers))
     os.makedirs(overlay, exist_ok=True)
     for name in sorted(os.listdir(pack)):
         if name in ("config.json", INDEX) or name.startswith("."):
@@ -216,10 +216,7 @@ def main() -> None:
         if os.path.lexists(destination):
             os.unlink(destination)
         os.symlink(os.path.join(pack, name), destination)
-    with open(os.path.join(pack, INDEX)) as handle:
-        weight_map = json.load(handle)["weight_map"]
-    headers = {name: read_header(os.path.join(pack, name)) for name in sorted(set(weight_map.values()))}
-    write_index(pack, overlay, headers, weight_map)
+    write_index(pack, overlay, index, headers)
     target = os.path.join(overlay, "config.json")
     temporary = target + ".tmp"
     with open(temporary, "w") as handle:
