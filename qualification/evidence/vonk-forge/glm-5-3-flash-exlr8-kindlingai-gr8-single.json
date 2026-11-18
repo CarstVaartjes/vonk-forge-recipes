@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/glm-5-3-flash-exlr8-kindlingai-gr8-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "e81ed52646892dcee985c5dd6cb932289b76a08b5033d9269d8844bb309ab0b2",
+        "source_bundle_sha256": "400cef1a8f0e8ca423c5ed3eb5c3c5958a50c03faf8ad7735695691cdf0376eb",
+        "runtime_image": {
+          "build_key": "c4a9dbd4e2407893cf23734bf1c66077418f0a6d5d4385b6e2d8e40b52ea627d",
+          "image_digest": "sha256:804ee1f20ab9731dd1fd23b495f6998ae5881b86d66a43ba6f43974e832ce21f"
+        },
+        "model_digests": [
+          "3cec875511c18e494f6fdcebb40f9c8bdc76127acb1d913b85f265675e2624b0",
+          "58fd79f58e6e1b5a7767988698b48e7ffd1893725bc905d8425207083db98c5b"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "57df448dcaaecab44de9a293925068e86dbc7fdf407960fd4c48b78d9583b481"
+      ],
+      "tested_at": "2026-11-18T22:39:49.907959Z",
+      "platform": {
+        "controller_source_sha": "1d8683c48e65dc158ad7313cdd3772bd44faa5f8",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "e81ed52646892dcee985c5dd6cb932289b76a08b5033d9269d8844bb309ab0b2",
+      "role": "entrypoint",
+      "steady_bytes": 124521353216
+    }
+  ]
+}
