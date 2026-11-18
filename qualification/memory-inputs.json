@@ -882,9 +882,6 @@
     "vonk-forge/deepseek-v4-flash-0731-sparkinfer-single": [
       "923666a0571490724ab2037fe0df438747c4a52ec1c826c86250f0a3079598a3"
     ],
-    "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single": [
-      "b7ebcf811fe9b007dc650ca111e02e3f7d0f1b587c363357c98c1ce7b0e6bdf7"
-    ],
     "vonk-forge/deepseek-v4-flash-dspark-nvfp4-kv-1-5m-drowzeys-vllm-dual": [
       "a0f1e83ab45d09ace02e9c576d12cb2ec6fb39762af6f6bd6bc8a15d5de0fbef"
     ],
