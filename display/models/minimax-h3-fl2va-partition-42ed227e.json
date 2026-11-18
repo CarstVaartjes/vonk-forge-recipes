@@ -1,0 +1,53 @@
+{
+  "capabilities": [
+    "audio-generation",
+    "video-generation"
+  ],
+  "description": "Exact official MiniMax H3 FL2VA partition (the original checkpoint layout under FL2VA/, the folder the creator's two-Spark vLLM-Omni stack loads) for text-to-video-and-audio and first/last-keyframe generation. The text encoder, VAEs, processors and tokenizers are byte-identical to the Ref2VA partition; the transformer differs.",
+  "family_title": "MiniMax H3",
+  "identity": {
+    "publisher": "minimax",
+    "slug": "minimax-h3-fl2va-partition-42ed227e"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "minimax"
+    ],
+    "spdx": "LicenseRef-MiniMax-H3-Community-License",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR",
+        "US"
+      ],
+      "notice": "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."
+    },
+    "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
+  },
+  "lineage": {
+    "family": "minimax",
+    "flavor": "FL2VA",
+    "generation": "MiniMax H3",
+    "line": "minimax-h-fl2va",
+    "model": "minimax-h3-fl2va",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "audio",
+    "video"
+  ],
+  "model_title": "MiniMax",
+  "tags": [
+    "minimax",
+    "video",
+    "audio",
+    "multimodal",
+    "fl2va",
+    "t2va",
+    "keyframe",
+    "vllm-omni",
+    "candidate"
+  ]
+}
