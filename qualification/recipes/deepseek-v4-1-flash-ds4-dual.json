@@ -1,7 +1,7 @@
 {
-  "id": "vonk-forge/deepseek-v4-1-flash-1017-ds41f-1107-christopherowen-vllm-triple",
+  "id": "vonk-forge/deepseek-v4-1-flash-ds4-dual",
   "service_recipes": {
-    "alias": "deepseek-v4.1-flash",
+    "alias": "deepseek-v4-flash",
     "higher_tiers": {
       "stress": [
         "Optional bounded streaming and declared concurrency canaries"
@@ -9,9 +9,7 @@
     },
     "smoke_cases": [
       "M0",
-      "A323",
-      "T_PRODUCT",
-      "V7"
+      "A391"
     ]
   }
 }

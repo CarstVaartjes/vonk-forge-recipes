@@ -401,6 +401,11 @@ of an expired key (`tests/test_sweep_auth_refusal.py`,
 `tests/test_sweep_verdicts.py`, `tests/test_sweep_load_blame.py`). What the smoke
 actually executes is specified once in the authoring guide below.
 
+A smoke request that gets no answer (`smoke-request`, `smoke-busy`, `smoke-timeout`) while the
+run's workload has exited (`run_state: failed`) is the recipe's `runtime_exit`, like a start-time exit
+(`verdict.smoke_workload_exit`, `tests/test_sweep_failures.py`); while the run still runs it keeps
+its class.
+
 Qualification evidence binds recipe content, known image build key/digest and
 Model digests. Requeues, exact-identity revert restoration and `--retry-failed`
 use `derive_status` only. Library publication alone is not a content change.
