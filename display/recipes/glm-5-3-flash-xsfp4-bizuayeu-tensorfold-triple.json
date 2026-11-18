@@ -1,0 +1,25 @@
+{
+  "alignment": "unspecified",
+  "description": "Bizuayeu's GLM-5.3-Flash BIZ 3.x line (kit v3.15.0, 542aacc4): TensorFold's native engine (upstream v1.2.7, built from source with Zig 0.17.0 and CUDA 13.3.1 for sm_121, as the creator's image) at TP=3 over a switchless ConnectX-7 ring, serving the XSFP4 checkpoint (a derivative of NVIDIA GLM-5.3-Flash-FP4-Local; NVIDIA Open Model Agreement, commercially usable, not gated) with the checkpoint's own MTP head for drafts, images and videos, tool calls and structured output. The creator's serving defaults for this size: the model's full 1,048,576-token window, up to 8 requests at once on one BF16 KV pool with up to 32 kept prompt states, 16 GiB left to the system, a prompt's share of 0.7 beside decoding streams, prefill paused while a rank's hottest zone is above 92 C until all are at or below 88 C, 32,768-token replies and high reasoning effort when a request names none, MTP draft chains ended below 0.5 confidence and the multirank RoCE wire for the small all-gathers (needs the image's mailbox kernels). The creator publishes no image: the image builds its Dockerfile with the recipe build policy's changes, and Controller placement supplies rank, rendezvous and RoCE rails instead of its ssh/docker scripts. The creator's default at TP=3 is XSFP4 (Jammed XSFP4 at TP=3 is a one-line choice there and would be a different recipe). Creator's claims, not measured here (its reference hosts, 3.12.0 acceptance): decode check 57.94 tok/s, bench decode median 63.23 tok/s, edit 192.21 tok/s, prefill 1,940.9 tok/s at 38,960 tokens, a 1,035,295-token prompt answered after 635.3 s with every passphrase found, tool-eval-bench 93; rank 0 keeps 16 to 22 GiB MemAvailable. Memory is an estimate (the engine takes the host's memory minus the reserve; peak = 130.66 GB - reserve) until the hardware try. The creator caps the container's cores to the GB10 efficiency cores for heat; the platform does not, so a long prefill may run hotter (the heat wait still applies). The alternative engine in the same repository is vLLM (its 1.x line, NVFP4 as distributed), a different checkpoint and recipe.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-xsfp4-bizuayeu-tensorfold-triple"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "glm",
+    "tensorfold",
+    "xsfp4",
+    "mtp",
+    "vision",
+    "video-input",
+    "tool-use",
+    "reasoning",
+    "structured-outputs",
+    "long-context",
+    "roce",
+    "three-spark",
+    "spark"
+  ],
+  "title": "GLM-5.3 Flash XSFP4 TensorFold triple Spark (Bizuayeu)"
+}
