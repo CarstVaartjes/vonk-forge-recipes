@@ -860,6 +860,15 @@ Model files are mounted read-only and identical files may be hard links to one
 cached copy; a creator launcher that refuses linked or read-only files gets an
 adapter fix, never a per-install copy.
 
+An engine whose wrapper takes its placement from the platform (`gr8`, `ds4`) reads `VONK_RANK`,
+`VONK_WORLD_SIZE`, `VONK_LOCAL_ADDR`, `VONK_MASTER_ADDR`, `VONK_MASTER_PORT` and, in rank order,
+`VONK_PEER_ADDRS`; the recipe's arguments carry no rank. A wrapper over a creator's launcher maps them onto the
+creator's own settings and execs the creator's entrypoint, uses the read-only `/models` mounts in place and moves
+every `/var/lib/...` path the creator wrote to under `/outputs/cache/<engine>`
+(`adapters/glm/kindlingai-gr8-flash-*`, `tests/test_gr8_serve_wrapper.py`). A creator option the platform cannot
+run (a host daemon) is left out with no option or mention; one it can run (gr8's compact expert copies) is an option
+whose first start does the creator's prepare step into `/outputs/cache`.
+
 Bind generated rank/vision/model views to their checkpoint and engine inputs,
 reuse complete cached work and rebuild malformed/interrupted output
 (`tests/test_tony_tensorfold_cache.py`,
