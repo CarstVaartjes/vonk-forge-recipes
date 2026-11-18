@@ -12,7 +12,7 @@
 # The creator's in-container patches (patches/) are applied at build time, because the platform's root file system is
 # read-only; his launcher applied them at every boot. They are applied active, as the proven spec server runs them
 # (GV_DUMMY_SHRINK, GV_DRAFTER_SLABS, GV_INDEXER_WS). His gv_boot_patch.py ends in a self-test of the overlay config; the
-# build runs the part before it, and the launcher runs the self-test against the overlay it builds (make_overlay.py).
+# build runs the part before it, and the launcher runs the self-test against the overlay it builds (make_overlay.py: symlinks to the shards, config.json, a split-tensor safetensors file and its index).
 FROM docker.io/vllm/vllm-openai@sha256:5d76347628973fb80519a919a2f2740b6645b62cba3fe2bd87b25f111bd0e948
 
 LABEL org.opencontainers.image.source="https://github.com/vcruz305/GLM-5.3-Flash-SAGE-REXL3-DGX-Spark-recipe" \

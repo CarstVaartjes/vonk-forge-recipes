@@ -3456,7 +3456,10 @@ class Sweep:
             self._record_pass(key, slot, result)
             return
         assert result.failure is not None
-        failure = result.failure
+        failure = verdict.smoke_workload_exit(
+            result.failure,
+            [p.run_state for p in self.fleet.presences if p.run_id == slot["run_id"]],
+        )
         if failure.klass == SmokeAuthClass.REFUSAL:
             self.clear_infra("client-key")
         if verdict.disposition(failure) is Disposition.WAIT:
