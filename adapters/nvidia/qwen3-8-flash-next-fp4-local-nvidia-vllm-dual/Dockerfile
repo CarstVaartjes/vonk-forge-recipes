@@ -1,6 +1,6 @@
 FROM eugr/spark-vllm-b12x@sha256:03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595
 LABEL org.opencontainers.image.source="https://github.com/NVIDIA/local-ai-inference-recipes" \
-      org.opencontainers.image.revision="7b2ee453234617f58e1e100c195ac3be7f79e233"
+      org.opencontainers.image.revision="228fed3e236036887dcbb1a2f09d4db3c71620f9"
 COPY LICENSE /opt/vonk/LICENSE.upstream
 COPY --chmod=0755 vllm-wrapper /opt/vonk/bin/vllm
 RUN python3 -c "import vllm" \
