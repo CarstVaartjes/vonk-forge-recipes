@@ -188,3 +188,16 @@ def test_unknown_argument_is_refused(sandbox):
     done, _ = run({}, "--surprise", "1")
     assert done.returncode == 2
     assert "unknown argument" in done.stderr
+
+
+def test_a_leftover_staging_directory_does_not_stop_prepare(sandbox):
+    root, tp, run = sandbox
+    cache = root / "outputs/cache/gr8/cache"
+    stale = cache / f".compact-tp{tp}.partial-1234"
+    stale.mkdir(parents=True)
+    (stale / "half").write_text("x")
+    placement = DUAL_PLACEMENT if tp == "2" else {}
+    done, _ = run({**placement, "DFLASH": "0", "COMPACT_EXPERTS": "1"})
+    assert done.returncode == 0, done.stderr
+    assert not stale.exists()
+    assert (root / "prepare.log").read_text().startswith("glm53f prepare --rank")
