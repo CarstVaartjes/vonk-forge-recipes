@@ -789,8 +789,7 @@ def test_malformed_branch_evidence_is_a_command_failure_not_an_escape(
     out = capsys.readouterr().out  # the real error reaches publisher.log
     assert "ValidationError" in out and "recipe_key" in out
     record = publisher.load_state(world.work)
-    # a command failure never replaces the remembered check-red signature
-    assert not record.command and record.signature == "lint"
+    assert record.command and record.signature == "validate evidence exit invalid"
     assert not world.closed()
 
 
@@ -869,6 +868,22 @@ def test_success_clears_the_state_and_unknown_state_self_heals(tmp_path, monkeyp
     assert publisher.load_state(work).state == publisher.PublisherState.IDLE
 
 
+def test_a_command_that_keeps_failing_stays_refused_and_alerting():
+    idle = publisher.PublisherRecord()
+    record = publisher.transition(
+        idle, signature="git push exit 1", command=True, now=0
+    )
+    states = []
+    for _ in range(3):
+        record = publisher.transition(
+            record, signature="git push exit 1", command=True, now=0
+        )
+        states.append(record.state)
+    assert states == [publisher.PublisherState.REFUSED] * 3
+    moved = publisher.transition(record, signature="gh pr exit 1", command=True, now=0)
+    assert moved.state == publisher.PublisherState.RED
+
+
 def test_refused_needs_two_runs_and_is_reachable_only_after_red():
     idle = publisher.PublisherRecord()
     red = publisher.transition(idle, signature="lint", head="h1", now=0)
@@ -882,51 +897,9 @@ def test_refused_needs_two_runs_and_is_reachable_only_after_red():
     assert publisher.transition(red, signature=None, now=0).state == (
         publisher.PublisherState.IDLE
     )
-    # the same failure again stays refused until a different outcome moves it
-    kept = publisher.transition(again, signature="lint", head="h3", now=0)
-    assert kept.state == publisher.PublisherState.REFUSED
-    moved = publisher.transition(again, signature="other", head="h3", now=0)
-    assert moved.state == publisher.PublisherState.RED
-    assert publisher.transition(again, signature=None, now=0).state == (
-        publisher.PublisherState.IDLE
-    )
-
-
-def test_a_repeated_identical_failure_stays_refused_with_the_alert(
-    tmp_path, monkeypatch
-):
-    exits = publisher.SweepEvidenceExit
-    world = World(tmp_path, monkeypatch)
-    world.tick()
-    world.behind = 3
-    world.tick()
-    world.behind = 0
-    assert world.tick() == exits.REFUSED
-    worker = publisher.EvidencePublisher(world.history, world.work, Path("worker"))
-    for _ in range(3):
-        assert (
-            publisher.load_state(world.work).state == publisher.PublisherState.REFUSED
-        )
-        worker.record = publisher.load_state(world.work)
-        assert worker.alert_at(0)
-        assert world.tick() == exits.REFUSED
-    assert publisher.load_state(world.work).state == publisher.PublisherState.REFUSED
-    world.rollup = [{"name": "t", "status": "COMPLETED", "conclusion": "SUCCESS"}]
-    world.tick()
-    assert publisher.load_state(world.work).state != publisher.PublisherState.REFUSED
-
-
-def test_a_command_failure_keeps_the_remembered_check_red():
-    idle = publisher.PublisherRecord()
-    red = publisher.transition(idle, signature="lint", head="h1", now=0)
-    blip = publisher.transition(
-        red, signature="gh pr exit 1", command=True, head="", now=0
-    )
-    assert blip == red
-    second = publisher.transition(blip, signature="lint", head="h2", now=0)
-    assert second.state == publisher.PublisherState.REFUSED
-    first = publisher.transition(idle, signature="gh pr exit 1", command=True, now=0)
-    assert first.state == publisher.PublisherState.RED and first.command
+    # a refused batch does not count as the first of two reds for the next PR
+    fresh = publisher.transition(again, signature="lint", head="h3", now=0)
+    assert fresh.state == publisher.PublisherState.RED
 
 
 def test_the_same_red_run_seen_on_two_ticks_is_not_refused(tmp_path, monkeypatch):
