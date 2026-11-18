@@ -1,0 +1,17 @@
+{
+  "id": "vonk-forge/ling-3-1-flash-1019-exl3-3-03bpw-bertholomus-tensorfold-dual",
+  "service_recipes": {
+    "alias": "ling-3.1-flash-1019",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT"
+    ],
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start reuses the written rank folder and the built CUDA extensions",
+        "An interrupted rank-folder split resumes from the immutable checkpoint"
+      ]
+    }
+  }
+}
