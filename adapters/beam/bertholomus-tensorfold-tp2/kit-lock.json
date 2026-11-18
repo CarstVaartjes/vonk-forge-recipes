@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "engine": {
+      "commit": "d00201b420a81e467c681dc7fe8ca903e24d076b",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "d00201b420a81e467c681dc7fe8ca903e24d076b",
+      "repo": "bertholomus/TensorFold"
+    },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3",
+      "kind": "tag",
+      "ref": "26.07-py3",
+      "repo": "nvcr.io/nvidia/pytorch"
+    }
+  },
+  "kit": {
+    "commit": "bdfa59fa326be3cafb675aba3ff2a7984ab7a20f",
+    "repo": "bertholomus/beam-1.0-2x-dgx-spark"
+  }
+}

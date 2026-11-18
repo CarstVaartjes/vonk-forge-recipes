@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+"""Entrypoint for one rank of bertholomus's two-Spark TensorFold Beam-1.0-501B-A23B recipe (v0.2.0, tf/).
+
+The recipe passes named `tensorfold serve` options. The platform appends `--tp`, `--rank`, `--master VONK_MASTER_ADDR`
+and `--master-port VONK_MASTER_PORT`; this wrapper replaces the two placeholders with the rendezvous address and port
+the platform placed in the environment, and fails closed when they are missing or malformed. The Controller supplies
+NCCL_SOCKET_IFNAME, NCCL_IB_HCA and NCCL_IB_GID_INDEX for the link.
+
+Before serving, it builds (or finds current) the engine's CUDA extensions, as the creator's tf/beam-tf-build.sh does in
+a throwaway container before each rank starts, so no nvcc runs beside the loaded weights: stale locks under
+TORCH_EXTENSIONS_DIR can only be a killed build's, so they are removed first. The target is mounted at /models/pack.
+"""
+
+import os
+import subprocess
+import sys
+from ipaddress import ip_address
+
+PLACEHOLDERS = ("VONK_MASTER_ADDR", "VONK_MASTER_PORT")
+# tf/beam-tf-build.sh at bdfa59fa: the target's EXL3 layers and experts, the drafter's 4-bit weights.
+BUILD = """
+from tensorfold.cuda.exl3 import experts, linear
+from tensorfold.cuda.kernels import qmm
+
+for m in (linear, experts, qmm):
+    m._ext()
+print("BUILD_OK")
+"""
+
+
+def fail(message):
+    raise SystemExit(f"tensorfold-serve: {message}")
+
+
+def resolve(arguments):
+    if not any(argument in PLACEHOLDERS for argument in arguments):
+        return arguments
+    address = os.environ.get("VONK_MASTER_ADDR", "")
+    port = os.environ.get("VONK_MASTER_PORT", "")
+    try:
+        ip_address(address)
+    except ValueError:
+        fail("distributed TensorFold needs a valid VONK_MASTER_ADDR")
+    if not (port.isascii() and port.isdigit() and 1024 <= int(port) <= 65535):
+        fail("distributed TensorFold needs a valid VONK_MASTER_PORT")
+    values = {"VONK_MASTER_ADDR": address, "VONK_MASTER_PORT": port}
+    return [values.get(argument, argument) for argument in arguments]
+
+
+for name in ("HOME", "TORCH_EXTENSIONS_DIR", "TRITON_CACHE_DIR", "TMPDIR"):
+    if not os.environ.get(name):
+        fail(f"{name} is not set")
+# The platform binds /outputs/cache; the kernel-compile and prefix-snapshot directories below it are created here
+# (nothing else is writable).
+for path in (
+    os.path.join(os.environ["HOME"], ".cache", "tensorfold"),
+    os.environ["TORCH_EXTENSIONS_DIR"],
+    os.environ["TRITON_CACHE_DIR"],
+    os.environ["TMPDIR"],
+):
+    os.makedirs(path, exist_ok=True)
+arguments = resolve(sys.argv[1:])
+for folder, _, files in os.walk(os.environ["TORCH_EXTENSIONS_DIR"]):
+    for name in files:
+        if name in ("lock", ".ninja_lock"):
+            os.remove(os.path.join(folder, name))
+if subprocess.run([sys.executable, "-c", BUILD], check=False).returncode != 0:
+    fail("the engine's CUDA extensions did not build")
+os.execvp("tensorfold", ["tensorfold", "serve", "/models/pack", *arguments])
