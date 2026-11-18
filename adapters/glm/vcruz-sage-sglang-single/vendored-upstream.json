@@ -25,7 +25,9 @@
   },
   "ours": [
     "sglang-serve",
-    "scan-sm121.py"
+    "scan-sm121.py",
+    "docker/patches/README.md",
+    "docker/patches/sglang-v0.5.22/0009-dflash-sampling-no-flashinfer.patch"
   ],
   "source": {
     "commit": "362fe245bc1ddd4de7bc50870ebfe3b0cb8ceb34",
