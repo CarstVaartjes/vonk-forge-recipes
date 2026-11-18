@@ -260,6 +260,7 @@ def _coverage_group(engine: str, interface: str, signals: list[str]) -> str:
     if engine in {
         "ds4",
         "exllamav3",
+        "gr8",
         "llama-cpp",
         "pytorch-server",
         "tensorfold",
