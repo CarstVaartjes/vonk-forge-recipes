@@ -30,6 +30,16 @@
       ],
       "slug": "ling-flash-vl",
       "title": "Ling Flash VL"
+    },
+    {
+      "models": [
+        {
+          "slug": "ling-3-1-flash-1019",
+          "title": "Ling 3.1 Flash 1019"
+        }
+      ],
+      "slug": "ling-flash-560b",
+      "title": "Ling Flash 560B"
     }
   ],
   "slug": "ling",
