@@ -267,7 +267,7 @@ def _coverage_group(engine: str, interface: str, signals: list[str]) -> str:
         "tensorrt-llm",
     }:
         return _SPECIALIZED
-    if engine in {"diffusers", "comfyui"}:
+    if engine in {"comfyui", "diffusers", "vllm-omni"}:
         return _IMAGE_VIDEO
     if engine == "pytorch-pipeline":
         if declared_fork:
