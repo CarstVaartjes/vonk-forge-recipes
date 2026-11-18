@@ -59,7 +59,7 @@
             "min_files": 1
           },
           {
-            "description": "Required request.json: references (one to nine ordered image paths), duration 16-60 s (default 30), width and height (multiples of 32, default 960x576), num_inference_steps, flow_shift, seed, aspect_ratio.",
+            "description": "Required request.json: references (one to nine ordered image paths), duration 16-60 s (default 30), width and height (multiples of 32, default 960x576), num_inference_steps, flow_shift, seed.",
             "extensions": [
               ".json"
             ],
@@ -1096,11 +1096,6 @@
         "name": "seed",
         "setting": null,
         "value": 1101
-      },
-      {
-        "name": "aspect-ratio",
-        "setting": null,
-        "value": "16:9"
       }
     ],
     "engine": "vllm-omni",
@@ -1118,7 +1113,7 @@
       },
       {
         "name": "H3_TP2_REQUEST_TIMEOUT_S",
-        "value": "14400"
+        "value": "28800"
       },
       {
         "name": "H3_TP2_WORKER_READY_TIMEOUT",
@@ -1174,11 +1169,11 @@
       },
       {
         "name": "VLLM_OMNI_DLO_DP_WAVE_TIMEOUT",
-        "value": "14400"
+        "value": "28800"
       },
       {
         "name": "VLLM_OMNI_VIDEO_SYNC_TIMEOUT",
-        "value": "14400"
+        "value": "29400"
       }
     ],
     "lifecycle": {
