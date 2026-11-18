@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "engine": {
+      "commit": "72f16e48fc501f31d0d1239459cb53cd5e43d36a",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "72f16e48",
+      "repo": "bertholomus/TensorFold"
+    }
+  },
+  "kit": {
+    "commit": "6088f47241c434e4263043a97a25784b03b0d1df",
+    "repo": "bertholomus/ling-3.1-tensorfold-tp2-2xgb10"
+  }
+}
