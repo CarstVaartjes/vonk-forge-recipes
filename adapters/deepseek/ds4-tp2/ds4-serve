@@ -1,0 +1,61 @@
+#!/bin/sh
+# One rank of antirez/ds4 tensor parallelism across two Sparks (docs/DISTRIBUTED.md, "Tensor parallelism between two
+# Sparks"). The recipe passes the creator's shared options; the platform appends --host and --port for the HTTP endpoint
+# and places the rank in the environment (VONK_RANK, VONK_WORLD_SIZE, VONK_MASTER_ADDR, VONK_MASTER_PORT).
+#   rank 0  ds4-server, the coordinator: serves HTTP and listens for the worker on the fabric address and rendezvous port.
+#   rank 1  ds4, the worker: connects to the coordinator; it serves nothing, so --host, --port and --batched-session
+#           (server options) and their values are dropped.
+# Fails closed when the placement is missing or malformed.
+set -eu
+
+fail() {
+    echo "ds4-serve: $*" >&2
+    exit 1
+}
+
+valid_ipv4() {
+    printf '%s\n' "$1" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}$' || return 1
+    old_ifs=$IFS
+    IFS=.
+    # shellcheck disable=SC2086
+    set -- $1
+    IFS=$old_ifs
+    for octet; do
+        [ "$octet" -le 255 ] || return 1
+    done
+}
+
+[ "${VONK_WORLD_SIZE:-}" = "2" ] || fail "ds4 tensor parallelism needs VONK_WORLD_SIZE=2"
+case "${VONK_RANK:-}" in
+    0 | 1) ;;
+    *) fail "VONK_RANK must be 0 or 1" ;;
+esac
+valid_ipv4 "${VONK_MASTER_ADDR:-}" || fail "VONK_MASTER_ADDR must be an IPv4 address"
+case "${VONK_MASTER_PORT:-}" in
+    '' | *[!0-9]*) fail "VONK_MASTER_PORT must be a port number" ;;
+esac
+[ "$VONK_MASTER_PORT" -ge 1024 ] && [ "$VONK_MASTER_PORT" -le 65535 ] || fail "VONK_MASTER_PORT must be 1024..65535"
+
+if [ "$VONK_RANK" = "0" ]; then
+    exec /opt/vonk/bin/ds4-server "$@" \
+        --role coordinator --listen "$VONK_MASTER_ADDR" "$VONK_MASTER_PORT"
+fi
+
+skip=0
+for argument in "$@"; do
+    shift
+    if [ "$skip" = 1 ]; then
+        skip=0
+        continue
+    fi
+    case "$argument" in
+        --host | --port | --batched-session)
+            skip=1
+            continue
+            ;;
+        --host=* | --port=* | --batched-session=*) continue ;;
+    esac
+    set -- "$@" "$argument"
+done
+exec /opt/vonk/bin/ds4 "$@" \
+    --role worker --coordinator "$VONK_MASTER_ADDR" "$VONK_MASTER_PORT"
