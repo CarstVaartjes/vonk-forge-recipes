@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+"""One rank of bertholomus's Ling-3.1-flash-1019 TP2 launch (README "Run it", v0.2.0), bound to the Controller.
+
+The recipe passes the creator's `tensorfold serve` options; the platform appends `--tp`, `--rank`, `--master
+VONK_MASTER_ADDR` and `--master-port VONK_MASTER_PORT`, and supplies NCCL_IB_HCA, NCCL_IB_GID_INDEX and
+NCCL_SOCKET_IFNAME, which the engine's NCCL reads as the creator's launch sets them. Before serving, as the README:
+
+1. serve/prebuild.py builds the engine's CUDA extensions with no model loaded (into TORCH_EXTENSIONS_DIR, reused
+   by later starts);
+2. tools/ling_split_check.py checks the TP2 split from the shard headers, then the engine's own split writes this
+   rank's folder (the creator serves rank folders) into the managed cache; it skips shards already written, and
+   each shard lands by atomic rename, so an interrupted start resumes;
+3. the page cache of the checkpoint and the rank folder is dropped (the creator drops caches as root before each
+   start) and serve/evict_page_cache.sh keeps the rank folder out of it while the server loads and runs.
+"""
+
+import ctypes
+import os
+import re
+import subprocess
+import sys
+from ipaddress import ip_address
+from pathlib import Path
+
+ENGINE = Path("/opt/tensorfold")
+KIT = ENGINE / "kit"
+MODEL = Path("/models/target")
+ENGINE_COMMIT = "72f16e48fc501f31d0d1239459cb53cd5e43d36a"
+POSIX_FADV_DONTNEED = 4
+
+
+def fail(message):
+    raise SystemExit(f"tensorfold-serve: {message}")
+
+
+def option(arguments, name):
+    if arguments.count(name) != 1 or arguments.index(name) + 1 >= len(arguments):
+        fail(f"exactly one {name} value is required")
+    return arguments[arguments.index(name) + 1]
+
+
+def bind(arguments, environ):
+    """The rendezvous placeholders replaced by the Controller's address and port, and this rank's (tp, rank)."""
+    tp, rank = option(arguments, "--tp"), option(arguments, "--rank")
+    if tp != "2" or rank not in ("0", "1"):
+        fail("this recipe serves exactly two ranks (--tp 2)")
+    address = environ.get("VONK_MASTER_ADDR", "")
+    port = environ.get("VONK_MASTER_PORT", "")
+    try:
+        ip_address(address)
+    except ValueError:
+        fail("distributed TensorFold needs a valid VONK_MASTER_ADDR")
+    if not (port.isascii() and port.isdigit() and 1024 <= int(port) <= 65535):
+        fail("distributed TensorFold needs a valid VONK_MASTER_PORT")
+    values = {"VONK_MASTER_ADDR": address, "VONK_MASTER_PORT": port}
+    return [values.get(argument, argument) for argument in arguments], int(tp), int(rank)
+
+
+def drop_page_cache(paths):
+    libc = ctypes.CDLL("libc.so.6", use_errno=True)
+    for path in paths:
+        fd = os.open(path, os.O_RDONLY)
+        try:
+            libc.posix_fadvise(fd, 0, 0, POSIX_FADV_DONTNEED)
+        finally:
+            os.close(fd)
+
+
+def main(arguments, environ):
+    arguments, tp, rank = bind(arguments, environ)
+    revision = environ.get("VONK_MODEL_REVISION", "")
+    if not re.fullmatch(r"[0-9a-f]{40}", revision):
+        fail("missing immutable model identity")
+    for name in ("HOME", "TORCH_EXTENSIONS_DIR", "TRITON_CACHE_DIR", "TMPDIR"):
+        os.makedirs(environ[name], exist_ok=True)
+    folder = Path(environ["XDG_CACHE_HOME"]) / "ling-3.1-1019" / revision / ENGINE_COMMIT[:12] / f"tp{tp}-rank{rank}"
+    folder.mkdir(parents=True, exist_ok=True)
+    env = dict(environ, TF_TP_WORLD=str(tp))
+    python = sys.executable
+    # A first build killed mid-compile leaves its lock files behind and every later start would wait on them.
+    for folder_, _, files in os.walk(environ["TORCH_EXTENSIONS_DIR"]):
+        for name in files:
+            if name in ("lock", ".ninja_lock"):
+                os.remove(os.path.join(folder_, name))
+    subprocess.run([python, str(KIT / "serve/prebuild.py")], env=env, check=True)
+    subprocess.run([python, str(ENGINE / "tools/ling_split_check.py"), str(MODEL), "--world", str(tp)], env=env, check=True)
+    subprocess.run([python, "-m", "tensorfold.families.glm5_next.cuda.split", str(MODEL), "--rank", str(rank), str(folder)],
+                   env=env, check=True)
+    shards = sorted(folder.glob(f"*.rank{rank}.safetensors"))
+    for shard in shards:
+        with shard.open("rb") as stream:
+            os.fsync(stream.fileno())
+    drop_page_cache([*MODEL.glob("*.safetensors"), *shards])
+    subprocess.Popen(["bash", str(KIT / "serve/evict_page_cache.sh"), f"{folder}/*.safetensors", str(folder / "STOP")],
+                     env=env, stdin=subprocess.DEVNULL)
+    command = [python, "-m", "tensorfold", "serve", str(folder), *arguments]
+    os.execvpe(python, command, env)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:], os.environ)
