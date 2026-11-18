@@ -1,0 +1,45 @@
+--- a/python/sglang/kernels/ops/speculative/dspark/dspark_accept.py
++++ b/python/sglang/kernels/ops/speculative/dspark/dspark_accept.py
+@@ -1,5 +1,6 @@
+ from __future__ import annotations
+ 
++import os
+ from functools import partial
+ from typing import Optional
+ 
+@@ -267,6 +268,9 @@
+ 
+ 
+ try:
++    # flashinfer is a fail-closed stub here: None selects softmax_temp_triton.
++    if os.environ.get("SGLANG_IS_FLASHINFER_AVAILABLE") == "false":
++        raise ImportError
+     from flashinfer.sampling import softmax as _flashinfer_softmax
+ except ImportError:
+     _flashinfer_softmax = None
+--- a/python/sglang/srt/speculative/dflash_utils.py
++++ b/python/sglang/srt/speculative/dflash_utils.py
+@@ -1,6 +1,7 @@
+ from __future__ import annotations
+ 
+ import logging
++import os
+ from collections.abc import Sequence
+ from dataclasses import dataclass
+ from numbers import Integral
+@@ -42,8 +43,13 @@
+ 
+ 
+ if is_cuda():
+-    from flashinfer.sampling import top_k_renorm_probs as top_k_renorm_prob
+-    from flashinfer.sampling import top_p_renorm_probs as top_p_renorm_prob
++    # flashinfer is a fail-closed stub here: None selects the torch renorm fallbacks below.
++    if os.environ.get("SGLANG_IS_FLASHINFER_AVAILABLE") == "false":
++        top_k_renorm_prob = None
++        top_p_renorm_prob = None
++    else:
++        from flashinfer.sampling import top_k_renorm_probs as top_k_renorm_prob
++        from flashinfer.sampling import top_p_renorm_probs as top_p_renorm_prob
+ 
+     from sglang.kernels.ops.speculative.sampling import (
+         tree_speculative_sampling_target_only,
