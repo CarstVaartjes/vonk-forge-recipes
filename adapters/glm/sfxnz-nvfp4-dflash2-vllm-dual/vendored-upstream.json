@@ -1,0 +1,36 @@
+{
+  "kit": {
+    "dependencies": {
+      "draft": {
+        "binds": "dependency-glm-5-3-flash-dflash2-7d74cdd8",
+        "datasource": "hf-revision",
+        "file": "recipe.yaml",
+        "pattern": "^  draft_revision: &draft_revision (?P<version>[0-9a-f]{40})$",
+        "repo_pattern": "^  draft: (?P<repo>[^\\s]+)$"
+      },
+      "image": {
+        "datasource": "oci-image",
+        "file": "docker/Dockerfile.sm121-v8",
+        "pattern": "^FROM (?P<repo>[^:\\s]+):(?P<version>[^\\s]+)$"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "recipe.yaml",
+        "pattern": "^  revision: &revision (?P<version>[0-9a-f]{40})$",
+        "repo_pattern": "^  id: &model (?P<repo>[^\\s]+)$"
+      }
+    },
+    "whole": false
+  },
+  "ours": [
+    "patch_v8_sm121_nope_mla.py",
+    "patch_v8_sm121_pdl.py",
+    "requirements.lock",
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "commit": "072c3f68fe425edb141e08cc60576f4bb0477ed2",
+    "repo": "sfxnz/GLM-5.3-Flash-NVFP4-vLLM-2x-DGX-Spark"
+  }
+}
