@@ -13,8 +13,7 @@
     "single",
     "spark",
     "multimodal",
-    "native",
-    "build-unvalidated"
+    "native"
   ],
   "title": "Hunyuan3D-Omni pytorch-pipeline single Spark"
 }
