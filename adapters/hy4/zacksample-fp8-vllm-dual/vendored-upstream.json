@@ -1,0 +1,33 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "start.sh",
+        "pattern": "^IMAGE=\\$\\{IMAGE:-vllm/vllm-openai:(?P<version>[^}\\s]+)\\}$",
+        "repo": "docker.io/vllm/vllm-openai"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "fetch.sh",
+        "override": {
+          "reason": "fetch.sh runs hf download tencent/Hy4-flash-FP8 with no revision, so it follows main; the lock records the head main resolves to, the catalogued revision",
+          "ref": "main"
+        },
+        "pattern": "hf download (?P<version>tencent/Hy4-flash-FP8)",
+        "repo": "tencent/Hy4-flash-FP8"
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "a0e88d769cdb1f9f4bbfdc06e1a621a6a1ffe169",
+    "repo": "ZackSample/hy4-flash-dgx-sparks"
+  }
+}
