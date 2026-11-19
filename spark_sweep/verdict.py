@@ -595,6 +595,31 @@ def request_refused(reply: Reply | None) -> bool:
     )
 
 
+#: vonkctl's own check of a request document against the Controller's contract, before
+#: anything is sent: its code, with no HTTP status, decision or retry hint of an answer.
+CLIENT_DOCUMENT_REFUSAL_CODE = "control.api_error"
+
+
+def document_refused(reply: Reply | None) -> bool:
+    """Did vonkctl refuse the request document itself (``$.<field>`` violates the contract)?
+
+    Edge ``create/upload -> recipe-data``: the document is built from the recipe's own
+    definition and never reached the Controller, so asking again gets the same refusal.
+    A reply that carries an HTTP answer is not this: ``request_refused`` reads those.
+    """
+    document = _document(reply)
+    return (
+        document.get("code") == CLIENT_DOCUMENT_REFUSAL_CODE
+        and not any(document.get(name) is not None for name in _HTTP_FIELDS)
+        and document.get("retryable") is not True
+        and document.get("decision") not in CLIENT_WAIT_DECISIONS
+        and refused_field(
+            f"{document.get('detail') or ''} {document.get('error') or ''}"
+        )
+        is not None
+    )
+
+
 def http_wait(status: object) -> bool:
     return isinstance(status, int) and status in TEMPORARY_HTTP
 

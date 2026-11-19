@@ -110,3 +110,11 @@ def test_all_catalog_recipes_and_qualification_cases_use_canonical_media() -> No
         definitions["recipes"][MOSS]["output_limits"]["allowed_media_types"]
         == MOSS_MEDIA
     )
+
+
+def test_every_qualification_timeout_is_within_the_controllers_job_maximum() -> None:
+    from qualification.definitions_loader import MAX_JOB_TIMEOUT_SECONDS
+
+    for spec in load_definitions()["recipes"].values():
+        for case in [spec, *spec.get("cases", [])]:
+            assert case.get("timeout_seconds", 1) <= MAX_JOB_TIMEOUT_SECONDS
