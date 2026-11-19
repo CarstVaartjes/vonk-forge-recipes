@@ -14,14 +14,15 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from documents import recipe
+from vonk_forge_contracts.recipe import RecipeJobSettings
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests/fixtures"
 VIDEO = ROOT / "adapters/video"
 FASTH3 = VIDEO / "drowzeys-fasth3-tensorfold/comfyui_job.py"
 KEYS_HERETIC = VIDEO / "drowzeys-keys-heretic-h3/comfyui_job.py"
-MINIMAX = VIDEO / "minimax-h3-modular-diffusers/minimax_h3.py"
-MINIMAX_FL2VA = VIDEO / "minimax-h3-fl2va-modular-diffusers/minimax_h3.py"
+MINIMAX_RECIPES = ("minimax-h3-diffusers-single", "minimax-h3-fl2va-diffusers-single")
 GRID_NAMES = (
     "FRAME_GRID_STEP",
     "FRAME_GRID_OFFSET",
@@ -29,12 +30,11 @@ GRID_NAMES = (
     "FRAME_GRID_MAX",
 )
 
-# Adapters that export their grid as module constants.
+# Adapters that export their grid as module constants. The H3 diffusers grid
+# is the recipe's `num-frames` knob (minimum, maximum and step), not the adapter's.
 EXPORTED_GRID = {
     "fasth3-8step-v2-drowzeys-tensorfold-single": FASTH3,
     "minimax-h3-keys-heretic-drowzeys-comfyui-single": KEYS_HERETIC,
-    "minimax-h3-diffusers-single": MINIMAX,
-    "minimax-h3-fl2va-diffusers-single": MINIMAX_FL2VA,
 }
 # Proven adapters keep their own validation (changing them would move a proven
 # content identity). Their bounds and step are read from the adapter source:
@@ -83,6 +83,20 @@ def _on_grid(grid: dict[str, int], frames: int) -> bool:
     )
 
 
+def _knob_grid(slug: str) -> dict[str, int]:
+    settings = recipe(slug).settings
+    assert isinstance(settings, RecipeJobSettings)
+    knob = settings.knobs["num-frames"]
+    assert knob.minimum is not None and knob.maximum is not None and knob.step
+    low, high = int(knob.minimum), int(knob.maximum)
+    return {
+        "FRAME_GRID_STEP": knob.step,
+        "FRAME_GRID_OFFSET": low % knob.step,
+        "FRAME_GRID_MIN": low,
+        "FRAME_GRID_MAX": high,
+    }
+
+
 def _accepted(grid: dict[str, int]) -> list[int]:
     return [n for n in range(1, 500) if _on_grid(grid, n)]
 
@@ -99,8 +113,8 @@ def test_comfyui_grid_matches_pinned_upstream():
     assert expected[0] == 124 and expected[-1] == 362
 
 
-@pytest.mark.parametrize("path", [MINIMAX, MINIMAX_FL2VA])
-def test_diffusers_grid_matches_pinned_upstream(path):
+@pytest.mark.parametrize("slug", MINIMAX_RECIPES)
+def test_diffusers_grid_matches_pinned_upstream(slug):
     namespace: dict[str, Any] = {}
     exec((FIXTURES / "diffusers-minimax-h3-align.py.txt").read_text(), namespace)  # noqa: S102
     align = namespace["align_num_frames"]
@@ -116,7 +130,7 @@ def test_diffusers_grid_matches_pinned_upstream(path):
         if align(n, 17, 5) == n
         and components.min_duration <= n / fps <= components.max_duration
     ]
-    assert _accepted(_grid(path)) == expected
+    assert _accepted(_knob_grid(slug)) == expected
     assert expected[0] == 124 and expected[-1] == 345
 
 
@@ -171,7 +185,9 @@ def test_every_video_case_asks_for_a_frame_count_on_its_adapter_grid():
     for slug, frames in _video_cases():
         seen.add(slug)
         adapter = _adapter_dir(slug)
-        if slug in EXPORTED_GRID:
+        if slug in MINIMAX_RECIPES:
+            assert _on_grid(_knob_grid(slug), frames), (slug, frames)
+        elif slug in EXPORTED_GRID:
             assert _on_grid(_grid(EXPORTED_GRID[slug]), frames), (slug, frames)
         elif adapter in HAND_COPIED_ADAPTERS:
             maximum, step, offset = _hand_copied(HAND_COPIED_ADAPTERS[adapter])
@@ -181,7 +197,7 @@ def test_every_video_case_asks_for_a_frame_count_on_its_adapter_grid():
             assert frames == fixed, (slug, frames, fixed)
         else:
             assert slug in NO_FRAME_KNOB, f"{slug}: declare its frame grid owner"
-    assert set(EXPORTED_GRID) <= seen
+    assert set(EXPORTED_GRID) | set(MINIMAX_RECIPES) <= seen
     assert {"ltx2-sync-native", "ltx23-sync-native-disk"} <= {
         _adapter_dir(slug) for slug in seen
     }

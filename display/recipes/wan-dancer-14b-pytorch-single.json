@@ -6,6 +6,36 @@
     "slug": "wan-dancer-14b-pytorch-single"
   },
   "kind": "recipe-display",
+  "knobs": {
+    "cfg-scale": {
+      "description": "Classifier-free guidance, 1 to 20; the creator's example uses 5.",
+      "label": "Guidance scale"
+    },
+    "height": {
+      "description": "Canvas height, a multiple of 16. Height times width must be at most 262,144 pixels.",
+      "label": "Height",
+      "unit": "px"
+    },
+    "num-inference-steps-global": {
+      "description": "Denoising steps of the global planning stage; the creator's example uses 48.",
+      "label": "Global steps",
+      "unit": "steps"
+    },
+    "num-inference-steps-local": {
+      "description": "Denoising steps of the local refinement stage; the creator's example uses 24.",
+      "label": "Local steps",
+      "unit": "steps"
+    },
+    "style": {
+      "description": "The creator's prompt set for the style: chinese-classical, k-pop, street, tap or latin.",
+      "label": "Dance style"
+    },
+    "width": {
+      "description": "Canvas width, a multiple of 16. Height times width must be at most 262,144 pixels.",
+      "label": "Width",
+      "unit": "px"
+    }
+  },
   "tags": [
     "executable",
     "video",

@@ -6,6 +6,24 @@
     "slug": "hunyuan3d-omni-pytorch-single"
   },
   "kind": "recipe-display",
+  "knobs": {
+    "bbox-height": {
+      "description": "Bounding box height for control-type bbox, relative to the unit cube (0.01 to 1).",
+      "label": "Box height"
+    },
+    "bbox-length": {
+      "description": "Bounding box length for control-type bbox, relative to the unit cube (0.01 to 1).",
+      "label": "Box length"
+    },
+    "bbox-width": {
+      "description": "Bounding box width for control-type bbox, relative to the unit cube (0.01 to 1).",
+      "label": "Box width"
+    },
+    "control-type": {
+      "description": "How the mesh is guided: bbox (box size, no file), point or voxel (a geometry file), or pose (joint array file).",
+      "label": "Control type"
+    }
+  },
   "tags": [
     "executable",
     "three-d",

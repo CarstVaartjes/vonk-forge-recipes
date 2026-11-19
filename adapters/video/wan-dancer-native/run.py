@@ -16,7 +16,6 @@ from typing import Any
 INPUT_ROOT = Path("/inputs")
 MODEL_ROOT = Path("/models")
 SOURCE_ROOT = Path("/opt/wan-dancer")
-MAX_REQUEST_BYTES = 64 * 1024
 MAX_MANIFEST_BYTES = 256 * 1024
 MAX_PROMPT_BYTES = 16 * 1024
 MAX_IMAGE_BYTES = 16 * 1024 * 1024
@@ -26,18 +25,6 @@ OUTPUT_FPS = 30
 OUTPUT_TRIM_SECONDS = 0.2
 OUTPUT_AUDIO_SAMPLE_RATE = "44100"
 MAX_GENERATION_PIXELS = 512 * 512
-ALLOWED_KEYS = {
-    "reference_image",
-    "music",
-    "prompt",
-    "style",
-    "height",
-    "width",
-    "num_inference_steps_global",
-    "num_inference_steps_local",
-    "cfg_scale",
-}
-CONTROL_KEYS = ALLOWED_KEYS - {"reference_image", "music", "prompt"}
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 AUDIO_SUFFIXES = {".wav", ".flac", ".mp3", ".m4a", ".ogg"}
 SLOT_CONTRACTS = {
@@ -52,7 +39,6 @@ SLOT_CONTRACTS = {
         AUDIO_SUFFIXES,
         MAX_AUDIO_BYTES,
     ),
-    "controls": ({"application/json"}, {".json"}, MAX_REQUEST_BYTES),
 }
 REQUIRED_MODEL_FILES = {
     "global_model.safetensors",
@@ -81,16 +67,20 @@ def _arguments() -> argparse.Namespace:
         choices=("/opt/vonk/source/run.py",),
     )
     parser.add_argument("--output-mime", required=True)
+    parser.add_argument("--style", required=True)
+    parser.add_argument("--height", required=True, type=int)
+    parser.add_argument("--width", required=True, type=int)
+    parser.add_argument("--num-inference-steps-global", required=True, type=int)
+    parser.add_argument("--num-inference-steps-local", required=True, type=int)
+    parser.add_argument("--cfg-scale", required=True, type=float)
     parser.add_argument("--seed", required=True, type=int)
     parser.add_argument("--timeout-seconds", required=True, type=int)
     parser.add_argument("--output-dir", required=True, type=Path)
     return parser.parse_args()
 
 
-def _manifest() -> dict[str, Any] | None:
+def _manifest() -> dict[str, Any]:
     path = INPUT_ROOT / "manifest.json"
-    if not path.exists():
-        return None
     if (
         path.is_symlink()
         or not path.is_file()
@@ -170,32 +160,7 @@ def _slot_files(manifest: dict[str, Any], slot: str) -> list[Path]:
     ]
 
 
-def _read_request(path: Path, *, allowed_keys: set[str]) -> dict[str, Any]:
-    if path.is_symlink() or not path.is_file():
-        raise ValueError("Wan-Dancer controls must be a regular JSON file")
-    if path.stat().st_size > MAX_REQUEST_BYTES:
-        raise ValueError("Wan-Dancer controls exceed 64 KiB")
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise ValueError("Wan-Dancer controls must contain UTF-8 JSON") from error
-    if not isinstance(value, dict) or not set(value).issubset(allowed_keys):
-        raise ValueError("Wan-Dancer controls contain unsupported fields")
-    return value
-
-
-def _request(manifest: dict[str, Any] | None = None) -> dict[str, Any]:
-    if manifest is None:
-        value = _read_request(INPUT_ROOT / "request.json", allowed_keys=ALLOWED_KEYS)
-        required = {"reference_image", "music", "prompt"}
-        if not required.issubset(value):
-            raise ValueError("request.json requires reference_image, music, and prompt")
-        return value
-
-    controls = _slot_files(manifest, "controls")
-    if len(controls) > 1:
-        raise ValueError("Wan-Dancer accepts at most one controls JSON file")
-    value = _read_request(controls[0], allowed_keys=CONTROL_KEYS) if controls else {}
+def _request(manifest: dict[str, Any]) -> dict[str, Any]:
     references = _slot_files(manifest, "reference-image")
     music = _slot_files(manifest, "music")
     prompts = _slot_files(manifest, "prompt")
@@ -209,14 +174,11 @@ def _request(manifest: dict[str, Any] | None = None) -> dict[str, Any]:
         prompt = prompts[0].read_text(encoding="utf-8")
     except UnicodeDecodeError as error:
         raise ValueError("Wan-Dancer prompt must be UTF-8 text") from error
-    value.update(
-        {
-            "reference_image": references[0].name,
-            "music": music[0].name,
-            "prompt": prompt,
-        }
-    )
-    return value
+    return {
+        "reference_image": references[0].name,
+        "music": music[0].name,
+        "prompt": prompt,
+    }
 
 
 def _input_file(
@@ -244,29 +206,8 @@ def _input_file(
     return candidate
 
 
-def _integer(value: object, field: str, default: int, low: int, high: int) -> int:
-    if value is None:
-        return default
-    if type(value) is not int or not low <= value <= high:
-        raise ValueError(f"{field} must be an integer between {low} and {high}")
-    return value
-
-
-def _number(
-    value: object, field: str, default: float, low: float, high: float
-) -> float:
-    if value is None:
-        return default
-    if type(value) not in (int, float) or not low <= float(value) <= high:
-        raise ValueError(f"{field} must be between {low} and {high}")
-    return float(value)
-
-
-def _generation_dimensions(request: dict[str, Any]) -> tuple[int, int]:
-    height = _integer(request.get("height"), "height", 512, 512, 1280)
-    width = _integer(request.get("width"), "width", 512, 288, 1280)
-    if height % 16 or width % 16:
-        raise ValueError("height and width must be multiples of 16")
+def _generation_dimensions(height: int, width: int) -> tuple[int, int]:
+    # The knob ranges and the step own each side; only the product is checked here.
     if height * width > MAX_GENERATION_PIXELS:
         raise ValueError(
             f"height and width must define a canvas of at most {MAX_GENERATION_PIXELS} pixels"
@@ -483,25 +424,7 @@ def main() -> None:
     prompt = request["prompt"]
     if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 4096:
         raise ValueError("prompt must contain 1..4096 characters")
-    style = request.get("style", "k-pop")
-    if not isinstance(style, str) or style not in STYLE_PROMPTS:
-        raise ValueError(f"style must be one of {sorted(STYLE_PROMPTS)}")
-    height, width = _generation_dimensions(request)
-    global_steps = _integer(
-        request.get("num_inference_steps_global"),
-        "num_inference_steps_global",
-        48,
-        1,
-        100,
-    )
-    local_steps = _integer(
-        request.get("num_inference_steps_local"),
-        "num_inference_steps_local",
-        24,
-        1,
-        100,
-    )
-    cfg_scale = _number(request.get("cfg_scale"), "cfg_scale", 5.0, 1.0, 20.0)
+    height, width = _generation_dimensions(args.height, args.width)
     music_duration = _probe_duration(music, min(args.timeout_seconds, 60))
     output_width, output_height, output_frames, output_duration = _expected_output(
         image,
@@ -516,7 +439,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory(prefix="wan-dancer-") as value:
         work = Path(value)
         prompt_root = SOURCE_ROOT / "gen_video/prompt"
-        global_style, local_style = STYLE_PROMPTS[style]
+        global_style, local_style = STYLE_PROMPTS[args.style]
         global_prompt_path = work / "global-prompt.txt"
         local_prompt_path = work / "local-prompt.txt"
         global_prompt_path.write_text(
@@ -556,9 +479,9 @@ def main() -> None:
             "--timestamp",
             "vonk",
             "--num_inference_steps",
-            str(global_steps),
+            str(args.num_inference_steps_global),
             "--cfg_scale",
-            str(cfg_scale),
+            str(args.cfg_scale),
         ]
         _run(global_command, work, args.timeout_seconds)
         global_video = _one_mp4(global_folder, "global")
@@ -585,9 +508,9 @@ def main() -> None:
             "--timestamp",
             "vonk",
             "--num_inference_steps",
-            str(local_steps),
+            str(args.num_inference_steps_local),
             "--cfg_scale",
-            str(cfg_scale),
+            str(args.cfg_scale),
         ]
         _run(local_command, work, args.timeout_seconds)
         generated = _one_mp4(final_folder, "local")

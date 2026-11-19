@@ -34,7 +34,7 @@
   "vonk-forge/gpt-oss-20b-nvidia-vllm-single": "8b15a7823f83d3aeb542bca364c10400c65bca57d62915b2cd17654a9a460954",
   "vonk-forge/hunyuan-video-foley-xl-pytorch-single": "2ff68e6cb06cf5416e97a011c690f58eb1dd0c4577a00eb0cd26788aea4ef65a",
   "vonk-forge/hunyuan-video-foley-xxl-pytorch-single": "f59b61e93b73e6d5418ec8881f4dd3ee354b91e45b02f63f6cc6dfa05cba19e2",
-  "vonk-forge/hunyuan3d-omni-pytorch-single": "4ef9997c3752ca7034b5f696e472ffa170913642cb89706b7060730b98e44988",
+  "vonk-forge/hunyuan3d-omni-pytorch-single": "868b5f352343b5faaa8660f0521166b2066a67b0971244447e4419b0e72abd60",
   "vonk-forge/hunyuanocr-1-5-vllm-single": "abbd5ba5cf762ddf4dc55274727bfdeb0d54bc7b7cf57b80b8858dc25b9f7996",
   "vonk-forge/hy-memory-30b-a3b-vllm-single": "0ef33bf19bac8856c01815e1399e968a8dfa94a53cbf7718f90c47b7f93f8bf7",
   "vonk-forge/laguna-xs-2-1-nvfp4-vllm-single": "f8d4f1b30fc6dcbf07a4e6c50fd24fa314a50dd318924f65a1f8ca5b3803d058",

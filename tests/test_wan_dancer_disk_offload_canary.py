@@ -315,15 +315,15 @@ class WanDancerDiskOffloadInputTests(unittest.TestCase):
     def test_generation_canvas_accepts_720p_and_rejects_a_larger_canvas(self) -> None:
         runner = load_module("run.py", "wan_dancer_disk_runner")
         self.assertEqual(
-            runner._generation_dimensions({"height": 720, "width": 1280}),
+            runner._generation_dimensions(720, 1280),
             (720, 1280),
         )
         self.assertEqual(
-            runner._generation_dimensions({"height": 1280, "width": 720}),
+            runner._generation_dimensions(1280, 720),
             (1280, 720),
         )
         with self.assertRaisesRegex(ValueError, "at most 921600 pixels"):
-            runner._generation_dimensions({"height": 1280, "width": 1280})
+            runner._generation_dimensions(1280, 1280)
 
     def _local_keyframes(self, source_frames: int, output_frames: int):
         generator = load_module("generate.py", "wan_dancer_disk_generator")

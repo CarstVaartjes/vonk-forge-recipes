@@ -38,7 +38,6 @@
       "input": {
         "max_bytes": 536870912,
         "media_types": [
-          "application/json",
           "audio/flac",
           "audio/mp4",
           "audio/mpeg",
@@ -108,21 +107,6 @@
               "audio/wav"
             ],
             "min_files": 1
-          },
-          {
-            "description": "Optional JSON controls for style, dimensions, inference steps, and guidance scale. Height and width must remain within their documented per-dimension bounds, be multiples of 16, and define no more than 921,600 pixels.",
-            "extensions": [
-              ".json"
-            ],
-            "id": "controls",
-            "label": "Generation controls",
-            "max_file_bytes": 65536,
-            "max_files": 1,
-            "max_total_bytes": 65536,
-            "media_types": [
-              "application/json"
-            ],
-            "min_files": 0
           }
         ]
       },
@@ -401,8 +385,8 @@
     "source_reference": "https://github.com/modelscope/DiffSynth-Studio/tree/84f93fc4907b6c193be5501bab0b5c37f383033c"
   },
   "release": {
-    "released_at": "2026-10-25",
-    "version": "1.0.9"
+    "released_at": "2026-11-19",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [
@@ -425,6 +409,36 @@
         "name": "timeout-seconds",
         "setting": null,
         "value": 3600
+      },
+      {
+        "name": "style",
+        "setting": "style",
+        "value": null
+      },
+      {
+        "name": "height",
+        "setting": "height",
+        "value": null
+      },
+      {
+        "name": "width",
+        "setting": "width",
+        "value": null
+      },
+      {
+        "name": "num-inference-steps-global",
+        "setting": "num-inference-steps-global",
+        "value": null
+      },
+      {
+        "name": "num-inference-steps-local",
+        "setting": "num-inference-steps-local",
+        "value": null
+      },
+      {
+        "name": "cfg-scale",
+        "setting": "cfg-scale",
+        "value": null
       }
     ],
     "engine": "pytorch-pipeline",
@@ -448,7 +462,51 @@
   "settings": {
     "concurrency": null,
     "kind": "job",
-    "knobs": {}
+    "knobs": {
+      "cfg-scale": {
+        "change_effect": "none",
+        "maximum": 20.0,
+        "minimum": 1.0,
+        "value": 5.0
+      },
+      "height": {
+        "change_effect": "none",
+        "maximum": 1280,
+        "minimum": 512,
+        "step": 16,
+        "value": 1280
+      },
+      "num-inference-steps-global": {
+        "change_effect": "none",
+        "maximum": 100,
+        "minimum": 1,
+        "value": 48
+      },
+      "num-inference-steps-local": {
+        "change_effect": "none",
+        "maximum": 100,
+        "minimum": 1,
+        "value": 24
+      },
+      "style": {
+        "allowed_values": [
+          "chinese-classical",
+          "k-pop",
+          "street",
+          "tap",
+          "latin"
+        ],
+        "change_effect": "none",
+        "value": "k-pop"
+      },
+      "width": {
+        "change_effect": "none",
+        "maximum": 1280,
+        "minimum": 288,
+        "step": 16,
+        "value": 720
+      }
+    }
   },
   "topology": {
     "name": "solo",
