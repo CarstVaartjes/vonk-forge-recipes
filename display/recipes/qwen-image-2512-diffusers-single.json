@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "Candidate single-Spark Diffusers image-generation binding for the exact Qwen Image 2512 checkpoint.",
+  "description": "Single-Spark Diffusers image-generation binding for the exact Qwen Image 2512 checkpoint.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "qwen-image-2512-diffusers-single"
@@ -8,7 +8,6 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "qwen",
     "image",
     "generation",

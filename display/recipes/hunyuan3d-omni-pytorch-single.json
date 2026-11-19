@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "Candidate native Hunyuan3D-Omni single-Spark controllable 3D pipeline with exact upstream source, offline multimodal job input, and GLB output; physical GB10 acceptance remains pending.",
+  "description": "Native Hunyuan3D-Omni single-Spark controllable 3D pipeline with exact upstream source, offline multimodal job input, and GLB output.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "hunyuan3d-omni-pytorch-single"
@@ -8,14 +8,12 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "three-d",
     "pytorch-pipeline",
     "single",
     "spark",
     "multimodal",
-    "native",
-    "build-unvalidated"
+    "native"
   ],
   "title": "Hunyuan3D-Omni pytorch-pipeline single Spark"
 }
