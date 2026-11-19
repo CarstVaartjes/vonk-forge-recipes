@@ -1,13 +1,12 @@
 {
   "alignment": "unspecified",
-  "description": "Candidate one-DGX Spark Qwen3.8 Flash Next text profile on antirez/ds4 with the Q4 GGUF (Q4_K gate/up and MXFP4 down experts): 69.74 GiB of main and MTP weights stay resident, and the 95.37 GiB BF16 n-gram table is read straight from the SSD, so keep the 165 GiB file on a fast local SSD. Launch follows antirez's DGX Spark guide for Qwen (--mtp, 32K context). Vision needs a separate encoder GGUF and is not part of this profile. Memory is the resident weights plus runtime and context buffers: an estimate that fits an idle Spark; the first hardware try measures it. Physical Spark acceptance is still required.",
+  "description": "One-DGX Spark Qwen3.8 Flash Next text profile on antirez/ds4 with the Q4 GGUF (Q4_K gate/up and MXFP4 down experts): 69.74 GiB of main and MTP weights stay resident, and the 95.37 GiB BF16 n-gram table is read straight from the SSD, so keep the 165 GiB file on a fast local SSD. Launch follows antirez's DGX Spark guide for Qwen (--mtp, 32K context). Vision needs a separate encoder GGUF and is not part of this profile. Memory is the resident weights plus runtime and context buffers: an estimate that fits an idle Spark; the first hardware try measures it.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "qwen3-8-flash-next-ds4-q4-single"
   },
   "kind": "recipe-display",
   "tags": [
-    "candidate",
     "executable",
     "qwen",
     "qwen3-8",
