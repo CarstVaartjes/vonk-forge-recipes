@@ -37,6 +37,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/video/drowzeys-keys-heretic-h3",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/video/ltx2-pytorch",
       "wheel_directory": "wheels"
     },

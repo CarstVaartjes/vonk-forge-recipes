@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "sglang-serve",
+    "scan-sm121.py"
+  ],
+  "source": {
+    "commit": "f4de1bdde823dd5544f10e4e60cdce5a232562d0",
+    "repo": "vcruz305/Ripple-65B-Preview-EXL3-SGLang-recipe"
+  }
+}

@@ -9,9 +9,11 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from vonk_forge_contracts import read_recipe
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTEXT = ROOT / "adapters/video/drowzeys-fasth3-tensorfold"
+RECIPE = ROOT / "recipes/minimax-h3-keys-heretic-drowzeys-comfyui-single.json"
 Manifest = importlib.import_module(
     "vonk_agent_protocol.job_inputs"
 ).RecipeJobInputManifest
@@ -168,3 +170,47 @@ def test_num_frames_off_the_model_grid_is_rejected_before_inference(
     )
     with pytest.raises(ValueError, match=r"17k\+5 grid"):
         JOB.parse_args()
+
+
+def test_keys_heretic_workflow_hash_prompt_seed_and_frame_override(
+    tmp_path, monkeypatch
+):
+    spec = importlib.util.spec_from_file_location(
+        "keys_heretic_job",
+        ROOT / "adapters/video/drowzeys-keys-heretic-h3/comfyui_job.py",
+    )
+    assert spec and spec.loader
+    job = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(job)
+    payload = (
+        ROOT / "adapters/video/drowzeys-keys-heretic-h3/workflows/keys-heretic-h3.json"
+    ).read_bytes()
+    document = json.loads(payload)
+    recipe = read_recipe(json.loads(RECIPE.read_text(encoding="utf-8")))
+    arguments = {a.name: a.value for a in recipe.runtime.arguments}
+    assert arguments["workflow-sha256"] == hashlib.sha256(payload).hexdigest()
+    (tmp_path / "PROMPT.TXT").write_text("A quiet harbour at dawn.")
+    monkeypatch.setattr(job, "INPUT_ROOT", tmp_path)
+    manifest = {"files": [{"slot": "prompt", "name": "PROMPT.TXT"}]}
+    graph = job.substitute(
+        document["prompt"], job.workflow_replacements(document, 45, manifest)
+    )
+    assert graph["104"]["inputs"]["prompt"] == "A quiet harbour at dawn."
+    assert graph["15"]["inputs"]["noise_seed"] == 45
+
+    class Observed(Exception):
+        pass
+
+    def inspect(updated, *_):
+        assert updated["prompt"]["104"]["inputs"]["length"] == 141
+        assert updated["result"]["video"]["frames"] == 141
+        raise Observed
+
+    argv = ["job", "--workflow", "w", "--workflow-sha256", "x"]
+    argv += ["--output-mime", "video/mp4", "--seed", "45", "--num-frames", "141"]
+    monkeypatch.setattr(sys, "argv", argv)
+    monkeypatch.setattr(job, "load_workflow", lambda *_: document)
+    monkeypatch.setattr(job, "load_input_manifest", lambda: manifest)
+    monkeypatch.setattr(job, "workflow_replacements", inspect)
+    with pytest.raises(Observed):
+        job.run_job()

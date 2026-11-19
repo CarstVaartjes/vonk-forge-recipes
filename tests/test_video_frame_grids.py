@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests/fixtures"
 VIDEO = ROOT / "adapters/video"
 FASTH3 = VIDEO / "drowzeys-fasth3-tensorfold/comfyui_job.py"
+KEYS_HERETIC = VIDEO / "drowzeys-keys-heretic-h3/comfyui_job.py"
 MINIMAX = VIDEO / "minimax-h3-modular-diffusers/minimax_h3.py"
 MINIMAX_FL2VA = VIDEO / "minimax-h3-fl2va-modular-diffusers/minimax_h3.py"
 GRID_NAMES = (
@@ -31,6 +32,7 @@ GRID_NAMES = (
 # Adapters that export their grid as module constants.
 EXPORTED_GRID = {
     "fasth3-8step-v2-drowzeys-tensorfold-single": FASTH3,
+    "minimax-h3-keys-heretic-drowzeys-comfyui-single": KEYS_HERETIC,
     "minimax-h3-diffusers-single": MINIMAX,
     "minimax-h3-fl2va-diffusers-single": MINIMAX_FL2VA,
 }
