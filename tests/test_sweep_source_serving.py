@@ -104,35 +104,61 @@ def _guard(clock, start: float) -> None:
     clock.hooks.append(hang)
 
 
-def test_a_source_the_catalog_never_serves_is_waited_for_within_the_bound_only(
+def test_a_source_the_catalog_never_serves_is_deferred_after_the_bound_not_tested(
     tmp_path: Path, gateway: Gateway
 ) -> None:
+    """Skew is the sweep's own staleness: no job, no verdict, no fail evidence.
+
+    Recorded 2026-11-19: the catalog moved to a revision whose slots the sweep's own
+    qualification spec did not bind; the 409 was recorded as a recipe-data failure.
+    """
     sweep, fleet, clock = make_sweep(
         tmp_path,
         [FakeRecipe("good", ("1" * 64,), content=OLD)],
         [FakeModel("1" * 64)],
         gateway=gateway,
         authored={KEY: NEW},
-        restore_owner=2,
     )
-    start = clock.now()
-    _guard(clock, start)
+    _guard(clock, clock.now())
     assert sweep.run() == 0
 
-    # Nothing loaded within the bound; after it, the served content was tested.
-    assert _first_load_at(fleet) >= start + sweep.cfg.source_wait_seconds
-    entry = sweep.state.recipes[KEY]
-    assert entry["status"] == "passed" and entry["content_sha256"] == OLD
+    assert not [c for _, c in fleet.calls if c[:2] == ("profile", "add")]
+    assert sweep.state.recipes[KEY]["status"] == "pending"
+    assert "failure_class" not in sweep.state.recipes[KEY]
     rows = [r for r in _rows(tmp_path) if r["step"] == "catalog" and "recipe" not in r]
     assert [r["status"] for r in rows] == ["waiting", "wait-expired"]
-    expired = rows[-1]
-    assert expired["code"] == "sweep.wait_budget_exhausted"
-    assert expired["unserved"] == [{"recipe": KEY, "served": OLD, "authored": NEW}]
-    assert expired["wait_expiry"]["wait"]["reason"] == "catalog source"
+    assert rows[1]["code"] == "sweep.wait_budget_exhausted"
+    assert rows[1]["unserved"] == [{"recipe": KEY, "served": OLD, "authored": NEW}]
+    assert "restart the sweep from the newest recipes main" in rows[1]["reason"]
     assert "CATALOG DOES NOT SERVE THE SOURCE" in sweep.source_alert
-    # The run finished as usual: the owner's profile was loaded back last.
-    last = [(p, c) for p, c in fleet.calls if c[:2] == ("profile", "load")][-1]
-    assert last[0] == 2
+    assert len(sweep.skewed) == 1 and not sweep.pending()
+
+
+def test_a_catalog_that_moves_ahead_of_a_served_source_defers_the_recipe(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, fleet, _ = make_sweep(
+        tmp_path,
+        [FakeRecipe("good", ("1" * 64,), content=OLD)],
+        [FakeModel("1" * 64)],
+        gateway=gateway,
+        authored={KEY: OLD},
+    )
+    assert sweep.run() == 0 and sweep.source_serving is SourceServing.SERVED
+    sweep.state.recipes[KEY] = {"status": "pending"}
+    adds = len([c for _, c in fleet.calls if c[:2] == ("profile", "add")])
+    fleet.recipes[KEY].content = NEW  # the library published a newer revision
+    sweep.recipe_list.in_pass = False
+    sweep.recipes[KEY] = replace(sweep.recipes[KEY], content_sha256=NEW)
+    sweep.observe_source()
+    assert sweep.skewed == (Unserved(KEY, NEW, OLD),)
+    assert not sweep.pending() and not sweep._open(KEY)
+    statuses = [r["status"] for r in _rows(tmp_path) if r["step"] == "catalog"]
+    assert statuses[-1] == "skewed"
+    assert adds == len([c for _, c in fleet.calls if c[:2] == ("profile", "add")])
+    sweep.recipes[KEY] = replace(sweep.recipes[KEY], content_sha256=OLD)
+    sweep.observe_source()  # served again: released by itself
+    assert sweep.skewed == () and [r.key for r in sweep.pending()] == [KEY]
 
 
 def test_a_new_library_that_leaves_the_recipe_unchanged_keeps_it_waiting(

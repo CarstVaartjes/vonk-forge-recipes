@@ -12,7 +12,10 @@ about content (a docs-only commit publishes nothing and changes no recipe).
 
 The wait is bounded (serialized publishes plus the import). A catalog that never serves
 the source (a newer release, a checkout behind main, a failed publish or import) ends
-it at the bound; the sweep then tests what the catalog serves.
+it at the bound; the differing recipes then stay deferred (typed ``skewed`` row, never a
+verdict): the sweep's qualification spec belongs to its own source, so testing another
+revision with it would blame the recipe for the sweep's staleness. Every complete pass
+re-derives the set, so a catalog that serves the source again releases them.
 """
 
 from __future__ import annotations
@@ -34,7 +37,7 @@ class SourceServing(StrEnum):
 
     UNREAD = "unread"  # no complete library pass yet
     UNSERVED = "unserved"  # selected recipes wait for the catalog to serve the source
-    SERVED = "served"  # the sweep tests what the catalog serves, newer content included
+    SERVED = "served"  # wait over; other content stays deferred
 
 
 class SourceEvent(StrEnum):
@@ -65,6 +68,7 @@ class SourceRowStatus(StrEnum):
     SERVED = "served"
     WAIT_EXPIRED = "wait-expired"
     SOURCE_BEHIND = "source-behind"
+    SKEWED = "skewed"
 
 
 @dataclass(frozen=True)
@@ -148,4 +152,18 @@ def describe(differing: tuple[Unserved, ...], library_commit: str) -> str:
         f"library {library_commit[:12] or 'unknown'} does not serve this sweep's "
         f"source for {len(differing)} recipe(s) ({shown}{more}); they wait for the "
         "library publish and the Controller's import (`vonkctl recipe sync-status`)"
+    )
+
+
+def describe_skew(differing: tuple[Unserved, ...], library_commit: str) -> str:
+    shown = "; ".join(
+        f"{item.recipe}: served {item.served[:12]}, source {item.authored[:12]}"
+        for item in differing[:3]
+    )
+    more = f" and {len(differing) - 3} more" if len(differing) > 3 else ""
+    return (
+        f"sweep source differs from catalog revision (library "
+        f"{library_commit[:12] or 'unknown'}) for {len(differing)} recipe(s) "
+        f"({shown}{more}); not tested, no verdict: restart the sweep from the newest "
+        "recipes main"
     )
