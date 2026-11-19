@@ -2082,11 +2082,13 @@ def classify_changes(
         else []
     )
     if used_changes is not None:
-        reasons = rewritten
+        # The used files are compared blob by blob whatever the history (a rewritten
+        # one included, #1711), so a rewrite is no reason of its own here.
+        used_reasons: list[str] = []
         if comparison.status not in {"ahead", "identical", "diverged", "behind"}:
-            reasons.append(f"upstream comparison reported '{comparison.status}'")
+            used_reasons.append(f"upstream comparison reported '{comparison.status}'")
         if used_changes:
-            reasons.append(
+            used_reasons.append(
                 "files this recipe uses changed upstream: "
                 + ", ".join(f"`{name}`" for name in used_changes[:20])
                 + (
@@ -2095,7 +2097,7 @@ def classify_changes(
                     else ""
                 )
             )
-        return reasons + vendor_problems
+        return used_reasons + vendor_problems
     reasons: list[str] = list(rewritten)
     if comparison.status == "behind":
         reasons.append(
@@ -2191,6 +2193,20 @@ def mounted_unchanged(
     before = {f["path"]: f["sha256"] for f in old["files"] if f["path"] in mounted}
     after = {f["path"]: f["sha256"] for f in new_files if f["path"] in mounted}
     return before == after
+
+
+def only_sibling_weights_added(
+    old: dict[str, Any], new_files: list[dict[str, Any]]
+) -> bool:
+    """Whether the newest revision only adds weights files beside byte-identical files.
+
+    Another checkpoint of the repository (#2749): a Model whose every catalogued file is
+    unchanged; a re-shard of a catalogued checkpoint changes or removes a catalogued file.
+    """
+    catalogued = {f["path"] for f in old["files"]}
+    return mounted_unchanged(old, new_files, catalogued) and all(
+        f["roles"] == ["weights"] for f in new_files if f["path"] not in catalogued
+    )
 
 
 def model_problems(
@@ -3107,7 +3123,9 @@ class Assessor:
                     "identical weights; no move is proposed.\n"
                 )
                 return
-            if mounted is not None and mounted_unchanged(old, new_files, mounted):
+            if (mounted is not None and mounted_unchanged(old, new_files, mounted)) or (
+                not declared and only_sibling_weights_added(old, new_files)
+            ):
                 self._mounted_noop(item, result)
                 return
             problems = model_problems(old, new_files, mounted, declared=declared)
@@ -3134,7 +3152,9 @@ class Assessor:
                 )
             )
         else:
-            if mounted is not None and mounted_unchanged(old, fresh["files"], mounted):
+            if (
+                mounted is not None and mounted_unchanged(old, fresh["files"], mounted)
+            ) or (not declared and only_sibling_weights_added(old, fresh["files"])):
                 self._mounted_noop(item, result)
                 return
             result.evidence.append(
