@@ -259,10 +259,6 @@
     "quantization": "exl3"
   },
   "identity": {
-    "family": {
-      "publisher": "ornith-ai",
-      "slug": "ornith"
-    },
     "model": {
       "publisher": "ornith-ai",
       "slug": "ornith-1-5-122b"

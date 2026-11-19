@@ -1015,7 +1015,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4f03204dda078b19c33067c2e4c504029834bdbb59e50ec689b744f815bd87bd",
+        "content_sha256": "6771c6b93ef9feb3d19e7f6338006123105a5bdc94d5f238184f4b2c51e424a6",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-314113f8"

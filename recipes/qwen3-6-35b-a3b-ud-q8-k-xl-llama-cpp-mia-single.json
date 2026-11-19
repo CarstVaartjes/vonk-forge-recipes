@@ -59,7 +59,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a6132519457ab86d716e068d0e5821be46a0e4847a8de032c2d9fd4247d17f68",
+        "content_sha256": "d2bba3a57f43df2eb55279c37d8ea853fe722e07d3f69fc5a11688bf6e507774",
         "kind": "model",
         "publisher": "unsloth",
         "slug": "qwen3-6-35b-a3b-mtp-ud-q8-k-xl-gguf-5bc3e238"

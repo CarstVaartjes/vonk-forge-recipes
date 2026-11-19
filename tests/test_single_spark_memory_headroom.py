@@ -370,6 +370,9 @@ def test_real_catalog_build_warns_about_a_new_recipe_whose_pool_cannot_hold_a_re
     (tmp_path / "display/models").symlink_to(
         ROOT / "display/models", target_is_directory=True
     )
+    (tmp_path / "display/families").symlink_to(
+        ROOT / "display/families", target_is_directory=True
+    )
     monkeypatch.setitem(build.__globals__, "ROOT", tmp_path)
 
     class PackagingReached(Exception):
@@ -460,7 +463,6 @@ def test_a_drafter_is_charged_inside_the_vllm_budget() -> None:
     "slug",
     [
         "deepseek-v4-flash-vision-exp-eugr-vllm-dual",
-        "glm-5-2-aqlm-vllm-triple",
         "step-5-preview-exl3-vllm-four",
         "muse-spark-open-nvfp4-vllm-eight",
     ],

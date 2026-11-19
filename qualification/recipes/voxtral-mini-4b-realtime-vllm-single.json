@@ -1,0 +1,18 @@
+{
+  "id": "vonk-forge/voxtral-mini-4b-realtime-vllm-single",
+  "service_recipes": {
+    "alias": "voxtral-mini-4b-realtime",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ],
+      "stress": [
+        "One recording near the 600 second decode limit"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "ASR_TRANSCRIPTION_JFK"
+    ]
+  }
+}

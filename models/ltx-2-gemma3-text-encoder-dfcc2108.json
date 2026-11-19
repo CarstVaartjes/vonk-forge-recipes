@@ -205,10 +205,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "lightricks",
-      "slug": "ltx"
-    },
     "model": {
       "publisher": "lightricks",
       "slug": "ltx-2"

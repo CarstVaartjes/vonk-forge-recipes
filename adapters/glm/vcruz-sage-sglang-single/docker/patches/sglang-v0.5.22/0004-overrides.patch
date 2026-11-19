@@ -1,0 +1,13 @@
+--- a/python/sglang/srt/arg_groups/overrides.py
++++ b/python/sglang/srt/arg_groups/overrides.py
+@@ -534,7 +534,9 @@
+     """Validate DSA backend / platform / kv-cache-dtype constraints."""
+     chosen = {prefill_backend, decode_backend}
+ 
+-    rocm_only = {"triton"} & chosen
++    # Allow the triton DSA kernels on CUDA when CAMPAIGN_ALLOW_CUDA_TRITON_DSA=1 (this recipe
++    # runs the triton DSA kernels on GB10). Everything else is unchanged.
++    rocm_only = (set() if __import__("os").environ.get("CAMPAIGN_ALLOW_CUDA_TRITON_DSA") == "1" else {"triton"}) & chosen
+     if not hip and rocm_only:
+         raise ValueError(
+             f"The {'/'.join(sorted(rocm_only))} DSA backend is only supported on "

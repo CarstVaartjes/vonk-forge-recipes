@@ -20,6 +20,14 @@
     "spdx": "Apache-2.0",
     "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
   },
+  "lineage": {
+    "family": "gemma",
+    "flavor": "instruct",
+    "generation": "Gemma 4",
+    "line": "gemma-31b",
+    "model": "gemma-4-31b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image",
     "text"

@@ -1,0 +1,67 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "hunyuanvideo-foley-xl",
+          "title": "HunyuanVideo-Foley XL"
+        }
+      ],
+      "slug": "hunyuanvideo-foley-xl",
+      "title": "HunyuanVideo Foley XL"
+    },
+    {
+      "models": [
+        {
+          "slug": "hunyuanvideo-foley-xxl",
+          "title": "HunyuanVideo-Foley XXL"
+        }
+      ],
+      "slug": "hunyuanvideo-foley-xxl",
+      "title": "HunyuanVideo Foley XXL"
+    },
+    {
+      "models": [
+        {
+          "slug": "hunyuan3d-omni",
+          "title": "Hunyuan3D-Omni"
+        }
+      ],
+      "slug": "hunyuan3d-omni",
+      "title": "Hunyuan3D Omni"
+    },
+    {
+      "models": [
+        {
+          "slug": "hunyuanocr-1-5",
+          "title": "HunyuanOCR 1.5"
+        }
+      ],
+      "slug": "hunyuanocr",
+      "title": "HunyuanOCR"
+    },
+    {
+      "models": [
+        {
+          "slug": "hunyuanvideo-1-5-i2v",
+          "title": "HunyuanVideo 1.5 I2V"
+        }
+      ],
+      "slug": "hunyuanvideo-i2v",
+      "title": "HunyuanVideo I2V"
+    },
+    {
+      "models": [
+        {
+          "slug": "hunyuanvideo-1-5-t2v",
+          "title": "HunyuanVideo 1.5 T2V"
+        }
+      ],
+      "slug": "hunyuanvideo-t2v",
+      "title": "HunyuanVideo T2V"
+    }
+  ],
+  "slug": "hunyuan",
+  "title": "Hunyuan"
+}

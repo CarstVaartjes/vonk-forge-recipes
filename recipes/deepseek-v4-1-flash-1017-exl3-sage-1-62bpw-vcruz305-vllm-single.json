@@ -1,0 +1,818 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/deepseek/vcruz305-1017-exl3-sage-single"
+      },
+      "dockerfile": "adapters/deepseek/vcruz305-1017-exl3-sage-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "codeload.github.com",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-1017-exl3-sage-1-62bpw-vcruz305-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "deepseek-v4.1-flash-sage-1.62bpw"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-f90bfdfb6863-618cd5b83d",
+          "id": "primary-metadata-f90bfdfb6863-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-f2c6c6028156-c693279643",
+          "id": "primary-license-f2c6c6028156-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-1057dfd99e3e-b335630551",
+          "id": "primary-readme-1057dfd99e3e-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-adaa16cddf2e-00824420d1",
+          "id": "primary-chat-template-adaa16cddf2e-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-25882944c203-587cb980af",
+          "id": "primary-config-25882944c203-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "engram-token-map-c60a86322ec1-c661f9136f",
+          "id": "primary-engram-token-map-c60a86322ec1-c661f9136f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-96a22d3ec2d7-97dd3d578b",
+          "id": "primary-generation-config-96a22d3ec2d7-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00017-ac51ca7efe93-ccac6aef5d",
+          "id": "primary-model-00001-of-00017-ac51ca7efe93-ccac6aef5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00017-272fc820c126-83668d0d9e",
+          "id": "primary-model-00002-of-00017-272fc820c126-83668d0d9e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00017-94f9f3822ebc-a09d69e4f9",
+          "id": "primary-model-00003-of-00017-94f9f3822ebc-a09d69e4f9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00017-01b3dc660647-11d0064faa",
+          "id": "primary-model-00004-of-00017-01b3dc660647-11d0064faa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00017-dfe1970998f6-09b6a3e2b1",
+          "id": "primary-model-00005-of-00017-dfe1970998f6-09b6a3e2b1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00017-e215bfb496c9-fd793fe98a",
+          "id": "primary-model-00006-of-00017-e215bfb496c9-fd793fe98a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00017-e08d5d61cffd-770eb3c1be",
+          "id": "primary-model-00007-of-00017-e08d5d61cffd-770eb3c1be",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00017-13d9071eaedd-8a23980ca9",
+          "id": "primary-model-00008-of-00017-13d9071eaedd-8a23980ca9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00017-9d766562049a-ed03470d66",
+          "id": "primary-model-00009-of-00017-9d766562049a-ed03470d66",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00017-cd48078a47ac-f4ef57caec",
+          "id": "primary-model-00010-of-00017-cd48078a47ac-f4ef57caec",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00017-512060b23fe2-e733a97383",
+          "id": "primary-model-00011-of-00017-512060b23fe2-e733a97383",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00017-45ab31bd41e4-669405cb76",
+          "id": "primary-model-00012-of-00017-45ab31bd41e4-669405cb76",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00017-8e21d07bd569-e3931b80a4",
+          "id": "primary-model-00013-of-00017-8e21d07bd569-e3931b80a4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00017-dda9dbaab1a1-8ec08e700a",
+          "id": "primary-model-00014-of-00017-dda9dbaab1a1-8ec08e700a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00017-e1ec37b0da16-c6d65cf44c",
+          "id": "primary-model-00015-of-00017-e1ec37b0da16-c6d65cf44c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00017-76a05106ece2-7576a2cb6b",
+          "id": "primary-model-00016-of-00017-76a05106ece2-7576a2cb6b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00017-9dc51433e195-ed949168dc",
+          "id": "primary-model-00017-of-00017-9dc51433e195-ed949168dc",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-80f31f1eee3e-0a05be8238",
+          "id": "primary-model-safetensors-index-80f31f1eee3e-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-c90dfa01249d-224931eb13",
+          "id": "primary-tokenizer-c90dfa01249d-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-6ac8c8dc065e-94d5c6ba8f",
+          "id": "primary-tokenizer-config-6ac8c8dc065e-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "380d384546211da5fe2edb45d7f4c94b0650237c2789537240e66c82eea08ebf",
+        "kind": "model",
+        "publisher": "vcruz305",
+        "slug": "deepseek-v4-1-flash-1017-exl3-sage-1-62bpw-c852150e"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "vcruz305",
+      "Christopher Owen",
+      "justincasey",
+      "turboderp",
+      "DeepSeek AI",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/vcruz305/DSV4.1-Flash-1017-EXL3-Spark-recipe/tree/8036aa741e2c2328035ed546f1f844b6797775f6"
+  },
+  "release": {
+    "released_at": "2026-11-04",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "deepseek-v4.1-flash-sage-1.62bpw"
+      },
+      {
+        "name": "tokenizer-mode",
+        "setting": null,
+        "value": "deepseek_v41"
+      },
+      {
+        "name": "dtype",
+        "setting": null,
+        "value": "bfloat16"
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "distributed-executor-backend",
+        "setting": null,
+        "value": "uni"
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "exl3_dsv41"
+      },
+      {
+        "name": "block-size",
+        "setting": null,
+        "value": 256
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-chunked-prefill",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-parallel-prefills",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": "max_batch_tokens",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.90"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 1073741824
+      },
+      {
+        "name": "generation-config",
+        "setting": null,
+        "value": "vllm"
+      },
+      {
+        "name": "override-generation-config",
+        "setting": null,
+        "value": "{\"max_new_tokens\":32768,\"temperature\":0.6,\"top_p\":0.95}"
+      },
+      {
+        "name": "engram-config",
+        "setting": null,
+        "value": "{\"table_memory\":\"disk\",\"disk_resident_scales\":false,\"projection_tp\":true}"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "tilelang"
+      },
+      {
+        "name": "linear-backend",
+        "setting": null,
+        "value": "tilelang"
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "tilelang"
+      },
+      {
+        "name": "jit-monitor-mode",
+        "setting": null,
+        "value": "warn"
+      },
+      {
+        "name": "compilation-config",
+        "setting": null,
+        "value": "{\"cudagraph_mode\":\"FULL_DECODE_ONLY\",\"custom_ops\":[\"all\"],\"cudagraph_capture_sizes\":[1,2,3,4,5,6,7]}"
+      },
+      {
+        "name": "max-cudagraph-capture-size",
+        "setting": null,
+        "value": 7
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"dspark\",\"num_speculative_tokens\":5,\"draft_tensor_parallel_size\":1,\"attention_backend\":\"tilelang\",\"draft_sample_method\":\"greedy\",\"rejection_sample_method\":\"block\",\"enable_adaptive_verification\":true,\"adaptive_verification_row_cost\":0.01}"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "deepseek_v41"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "deepseek_v41"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "long-prefill-token-threshold",
+        "setting": null,
+        "value": 2047
+      },
+      {
+        "name": "async-scheduling",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "no-scheduler-reserve-full-isl",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "no-enable-flashinfer-autotune",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "language-model-only",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "mm-processor-cache-gb",
+        "setting": null,
+        "value": 0
+      },
+      {
+        "name": "hf-overrides",
+        "setting": null,
+        "value": "{\"quantization_config\":{\"quant_method\":\"exl3\",\"bits\":2,\"codebook\":\"mcg\",\"scope\":\"deepseek_v41_routed_experts\",\"non_routed_quantization\":{\"quant_method\":\"deepseek_v41_fp8\",\"weight_block_size\":[32,32],\"is_checkpoint_fp8_serialized\":true,\"activation_scheme\":\"dynamic\"},\"mtp_experts\":\"exl3\"}}"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "B12X_AUTOTUNE",
+        "value": "0"
+      },
+      {
+        "name": "B12X_BIND_COMPILE_WORKERS",
+        "value": "1"
+      },
+      {
+        "name": "B12X_STATE_COMPILE_WORKERS",
+        "value": "1"
+      },
+      {
+        "name": "B12X_WEIGHTS_COMPILE_WORKERS",
+        "value": "1"
+      },
+      {
+        "name": "TVM_NUM_THREADS",
+        "value": "1"
+      },
+      {
+        "name": "TVM_BIND_THREADS",
+        "value": "1"
+      },
+      {
+        "name": "B12X_COMPILE_CACHE_DIR",
+        "value": "/outputs/cache/jit/b12x/compile"
+      },
+      {
+        "name": "B12X_DENSE_SPLITK_TURBO",
+        "value": "1"
+      },
+      {
+        "name": "B12X_W4A8_TINY_DECODE",
+        "value": "0"
+      },
+      {
+        "name": "CUDA_CACHE_MAXSIZE",
+        "value": "4294967296"
+      },
+      {
+        "name": "CUTE_DSL_ARCH",
+        "value": "sm_121a"
+      },
+      {
+        "name": "CUTE_DSL_CACHE_DIR",
+        "value": "/outputs/cache/jit/cute-dsl"
+      },
+      {
+        "name": "CUDA_DEVICE_MAX_CONNECTIONS",
+        "value": "32"
+      },
+      {
+        "name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_DS41_ATTENTION_COMPUTE",
+        "value": "auto"
+      },
+      {
+        "name": "VLLM_DS41_KERNEL_BACKEND",
+        "value": "tilelang"
+      },
+      {
+        "name": "VLLM_DS41_HEAD_DTYPE",
+        "value": "float32"
+      },
+      {
+        "name": "VLLM_DS41_PACKED_BF16_LM_HEAD",
+        "value": "0"
+      },
+      {
+        "name": "VLLM_L2_PREFETCH_KERNELS",
+        "value": "tilelang"
+      },
+      {
+        "name": "VLLM_MULTI_STREAM_GEMM_TOKEN_THRESHOLD",
+        "value": "1024"
+      },
+      {
+        "name": "VLLM_USE_FLASHINFER_SAMPLER",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_DISABLE_PYNCCL",
+        "value": "0"
+      },
+      {
+        "name": "VLLM_ENABLE_PCIE_ALLREDUCE",
+        "value": "0"
+      },
+      {
+        "name": "VLLM_ENGINE_READY_TIMEOUT_S",
+        "value": "3600"
+      },
+      {
+        "name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS",
+        "value": "900"
+      },
+      {
+        "name": "VLLM_EXL3_MOE_KERNEL",
+        "value": "exllamav3"
+      },
+      {
+        "name": "VLLM_EXL3_V41_NATIVE_MOE",
+        "value": "0"
+      },
+      {
+        "name": "VLLM_EXL3_MIXEDK_LEGACY",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_EXL3_MIXEDK_MODE",
+        "value": "unified"
+      },
+      {
+        "name": "VLLM_EXL3_TRIM_AFTER_LAYER",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_EXL3_MODEL_DIR",
+        "value": "/models"
+      },
+      {
+        "name": "VLLM_EXL3_ATS_ALIAS",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_EXL3_ATS_ALIAS_DIR",
+        "value": "/outputs/cache/alias"
+      },
+      {
+        "name": "VLLM_EXL3_ATS_ALIAS_LAYERS",
+        "value": "38,39"
+      },
+      {
+        "name": "VLLM_EXL3_ATS_ALIAS_MTP",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_EXL3_ATS_ALIAS_EMBED",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_EXL3_ATS_PREFETCH",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_DS41_ROPE_TRIM",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_DS41_MARKOV_NVFP4",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_DS41_L2_PREFETCH",
+        "value": "0"
+      },
+      {
+        "name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_USE_BREAKABLE_CUDAGRAPH",
+        "value": "0"
+      },
+      {
+        "name": "DSV41_MEM_PROBE",
+        "value": "1"
+      },
+      {
+        "name": "DSV41_DSML_STOP",
+        "value": "1"
+      },
+      {
+        "name": "DSV41_DSML_PARAM_REPAIR",
+        "value": "1"
+      },
+      {
+        "name": "DSV41_REP_STOP",
+        "value": "64:512:8"
+      },
+      {
+        "name": "VLLM_EXL3_MEM_WATERFALL",
+        "value": "0"
+      },
+      {
+        "name": "SPARKNET_ROCE_CACHE_DIR",
+        "value": "/opt/sparknet/roce"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 524288
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": {
+      "change_effect": "restart",
+      "value": 2112
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 326590740366,
+            "image_bytes": 40000000000,
+            "safety_margin_bytes": 24000000000,
+            "working_bytes": 40000000000
+          },
+          "memory": {
+            "peak_bytes": 123300000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "deepseek-v4.1-flash-sage-1.62bpw"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

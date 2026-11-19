@@ -1330,10 +1330,6 @@
     "quantization": "exl3"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "mia-ailab",
       "slug": "glm-5-3"

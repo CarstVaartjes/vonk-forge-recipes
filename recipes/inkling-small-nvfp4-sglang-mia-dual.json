@@ -267,7 +267,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "98ab69c89490fafe0ec8603dfa529a4652ab449c65a8464a89d657904fb00377",
+        "content_sha256": "9fe715fd4ba398ecb74c29bfa80c3b7b751c08c2d8d193c6cd79cfd4fe044e28",
         "kind": "model",
         "publisher": "thinkingmachines",
         "slug": "inkling-small-nvfp4"
@@ -344,7 +344,7 @@
       ],
       "id": "dependency-inkling-small-dspark-fcc210dc",
       "model": {
-        "content_sha256": "fd48045ee7f0e061ac4d555614ee6703713e4d15d0ff9f82e84f68554bf004ff",
+        "content_sha256": "560faf91a20f50d29cd5abf613b3eb158e2a5a7269f401a5bee25bd87834d644",
         "kind": "model",
         "publisher": "radixark",
         "slug": "inkling-small-dspark-fcc210dc"

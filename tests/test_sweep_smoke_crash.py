@@ -170,3 +170,26 @@ def test_a_different_smoke_crash_restarts_the_count(
 
     assert len(calls) == 5
     assert not [r for r in _rows(tmp_path) if r.get("disposition") == "fail"]
+
+
+def test_a_fix_to_the_sweep_source_reopens_its_crash_deferral(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sweep, clock, _ = _crashing_sweep(tmp_path, gateway, monkeypatch, ["x"] * 9)
+    _tick_until(sweep, clock, lambda: sweep.state.status("vonk-forge/r") == "deferred")
+    sweep.requeue_for_changed_owner()
+    assert sweep.state.status("vonk-forge/r") == "deferred"  # same code, same wait
+    sweep.sweep_source = "f" * 64  # the sweep's code changed: a fix may have landed
+    sweep.requeue_for_changed_owner()
+    assert sweep.state.status("vonk-forge/r") == "pending"
+
+
+def test_a_controller_release_also_reopens_a_sweep_crash_deferral(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from spark_sweep import recovery
+
+    sweep, clock, _ = _crashing_sweep(tmp_path, gateway, monkeypatch, ["x"] * 9)
+    _tick_until(sweep, clock, lambda: sweep.state.status("vonk-forge/r") == "deferred")
+    entry = sweep.state.entry("vonk-forge/r")
+    assert recovery.changed_release(entry, "e" * 40) == {"controller_release": "e" * 40}

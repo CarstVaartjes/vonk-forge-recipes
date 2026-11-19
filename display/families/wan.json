@@ -1,0 +1,47 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "wan-dancer-14b",
+          "title": "Wan-Dancer 14B"
+        }
+      ],
+      "slug": "wan-dancer-14b",
+      "title": "Wan Dancer 14B"
+    },
+    {
+      "models": [
+        {
+          "slug": "wan-2-2-ti2v-5b",
+          "title": "Wan 2.2 TI2V 5B"
+        }
+      ],
+      "slug": "wan-ti2v-5b",
+      "title": "Wan TI2V 5B"
+    },
+    {
+      "models": [
+        {
+          "slug": "wan-2-2-i2v-a14b",
+          "title": "Wan 2.2 I2V A14B"
+        }
+      ],
+      "slug": "wan-i2v-14b",
+      "title": "Wan I2V 14B"
+    },
+    {
+      "models": [
+        {
+          "slug": "wan-2-2-t2v-a14b",
+          "title": "Wan 2.2 T2V A14B"
+        }
+      ],
+      "slug": "wan-t2v-14b",
+      "title": "Wan T2V 14B"
+    }
+  ],
+  "slug": "wan",
+  "title": "Wan"
+}

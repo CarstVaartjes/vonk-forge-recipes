@@ -1,0 +1,37 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "llama-3-1-405b-instruct",
+          "title": "Llama 3.1 405B Instruct"
+        }
+      ],
+      "slug": "llama-405b",
+      "title": "Llama 405B"
+    },
+    {
+      "models": [
+        {
+          "slug": "llama-3-1-8b-instruct",
+          "title": "Llama 3.1 8B Instruct"
+        }
+      ],
+      "slug": "llama-8b",
+      "title": "Llama 8B"
+    },
+    {
+      "models": [
+        {
+          "slug": "llama-3-3-70b-instruct",
+          "title": "Llama 3.3 70B Instruct"
+        }
+      ],
+      "slug": "llama-70b",
+      "title": "Llama 70B"
+    }
+  ],
+  "slug": "llama",
+  "title": "Llama"
+}

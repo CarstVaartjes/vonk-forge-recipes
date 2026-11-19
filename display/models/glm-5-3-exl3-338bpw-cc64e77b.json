@@ -20,6 +20,14 @@
     "spdx": "LicenseRef-GLM-5.3",
     "url": "https://huggingface.co/vcruz305/GLM-5.3-EXL3-3.38bpw/blob/cc64e77b1b1744c7bc71e54c838727f0db0f1a36/LICENSE"
   },
+  "lineage": {
+    "base_model": "zai-org/GLM-5.3",
+    "family": "glm",
+    "generation": "GLM 5.3",
+    "line": "glm",
+    "model": "glm-5-3",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

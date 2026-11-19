@@ -9,7 +9,11 @@ change it; a release records when its recipes were last updated instead.
 
 Consumers read published documents with ``read_model``/``read_recipe``, which
 ignore fields a newer minor release added, and identify a document by the
-``document_sha256`` of its published JSON.
+``document_sha256`` of its published JSON. A published index is read with
+``read_catalog``: it keeps every entry this release reads, keeps a word a newer
+minor added as an ``UnrecognisedWord``, drops an unreadable optional block (the
+entry stays), skips an entry whose execution data is malformed, and refuses only
+at integrity edges (``CatalogIndexRefused``).
 """
 
 from __future__ import annotations
@@ -29,9 +33,38 @@ from .api import (
 from .api_checks import RecipeApiError, check_api_models, check_recipe_api
 from .canonical import canonical_json, document_sha256, read_model, read_recipe
 from .capability import CAPABILITY_ROLES, CapabilityName, CapabilityRole
+from .catalog_index import (
+    INDEX_KIND,
+    INDEX_SCHEMA_ASSET,
+    INDEX_SCHEMA_VERSION,
+    PACKAGE_MEDIA_TYPE,
+    PACKAGE_METADATA_FIELDS,
+    PACKAGE_PATH_PREFIX,
+    PACKAGE_SCHEMA_VERSION,
+    CatalogIndex,
+    CatalogModelEntry,
+    CatalogRecipeEntry,
+    PackageContract,
+    PackageMetadata,
+    PrebuiltImage,
+    catalog_index_json_schema,
+    published_index_json,
+    read_catalog_index,
+)
+from .catalog_reader import (
+    CatalogIndexRefused,
+    CatalogRead,
+    read_catalog,
+    read_catalog_model_entry,
+    read_catalog_recipe_entry,
+)
 from .display import (
+    FamilyDisplay,
+    LineDisplay,
+    LineModel,
     ModelDisplay,
     ModelDisplayIdentity,
+    ModelLineage,
     RecipeDisplay,
     published_json,
     read_model_display,
@@ -90,6 +123,11 @@ from .qualification_status import (
     qualification_status_json_schema,
 )
 from .recipe import RecipeDefinition, RecipeOptionError
+from .unrecognised import UnrecognisedWord
+from .vocabulary import (
+    CatalogVocabulary,
+    catalog_vocabulary,
+)
 
 CONTRACT_VERSION = __version__
 CONTRACT_MAJOR = int(CONTRACT_VERSION.split(".", 1)[0])
@@ -99,20 +137,40 @@ __all__ = [
     "CONTRACT_MAJOR",
     "CONTRACT_VERSION",
     "ENDPOINT_ALIAS_PATTERN",
+    "INDEX_KIND",
+    "INDEX_SCHEMA_ASSET",
+    "INDEX_SCHEMA_VERSION",
+    "PACKAGE_MEDIA_TYPE",
+    "PACKAGE_METADATA_FIELDS",
+    "PACKAGE_PATH_PREFIX",
+    "PACKAGE_SCHEMA_VERSION",
     "ApiBlock",
     "AudioSpeechApi",
     "AudioTranscriptionApi",
     "CapabilityName",
     "CapabilityRole",
+    "CatalogIndex",
+    "CatalogIndexRefused",
+    "CatalogModelEntry",
+    "CatalogRead",
+    "CatalogRecipeEntry",
+    "CatalogVocabulary",
     "ChatApi",
     "DecisionApi",
     "EndpointAlias",
+    "FamilyDisplay",
     "GitHubLfsSource",
     "GitHubReleaseAsset",
     "GitHubReleaseSource",
+    "LineDisplay",
+    "LineModel",
     "ModelDefinition",
     "ModelDisplay",
     "ModelDisplayIdentity",
+    "ModelLineage",
+    "PackageContract",
+    "PackageMetadata",
+    "PrebuiltImage",
     "PublishedMeasuredMemory",
     "PublishedQualificationStatusView",
     "PublishedRoleMemory",
@@ -150,19 +208,27 @@ __all__ = [
     "RecoveryCoverageDefinition",
     "RecoveryCoverageMember",
     "RecoveryCoverageRef",
+    "UnrecognisedWord",
     "campaign_authority_json_schema",
     "campaign_manifest_json_schema",
     "canonical_json",
+    "catalog_index_json_schema",
+    "catalog_vocabulary",
     "check_api_models",
     "check_recipe_api",
     "derive_status",
     "document_sha256",
+    "published_index_json",
     "published_json",
     "published_measured_memory_json_schema",
     "published_qualification_status_json_schema",
     "published_status",
     "qualification_evidence_json_schema",
     "qualification_status_json_schema",
+    "read_catalog",
+    "read_catalog_index",
+    "read_catalog_model_entry",
+    "read_catalog_recipe_entry",
     "read_model",
     "read_model_display",
     "read_recipe",
@@ -179,7 +245,7 @@ def model_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/model-definition-v4.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/model-definition-v5.schema.json",
         **ModelDefinition.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -189,7 +255,7 @@ def recipe_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v4.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v5.schema.json",
         **RecipeDefinition.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -199,7 +265,7 @@ def recipe_display_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recipe-display-v4.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/recipe-display-v5.schema.json",
         **RecipeDisplay.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -209,7 +275,7 @@ def model_display_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/model-display-v4.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/model-display-v5.schema.json",
         **ModelDisplay.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -219,6 +285,6 @@ def recipe_api_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recipe-api-v4.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/recipe-api-v5.schema.json",
         **RecipeApi.model_json_schema(ref_template="#/$defs/{model}"),
     }

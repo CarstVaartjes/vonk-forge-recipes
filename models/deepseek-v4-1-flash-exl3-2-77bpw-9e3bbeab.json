@@ -2645,10 +2645,6 @@
     "quantization": "exl3-mul1-2-77bpw-k2k3k5"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-flash"
-    },
     "model": {
       "publisher": "0xsero",
       "slug": "deepseek-v4-1-flash-exl3"

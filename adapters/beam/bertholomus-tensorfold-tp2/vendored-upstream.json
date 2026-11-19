@@ -1,0 +1,22 @@
+{
+  "kit": {
+    "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "tf/beam-tf.env",
+        "pattern": "^REV=\\$\\{REV:-(?P<version>[0-9a-f]{40})\\}",
+        "repo": "bertholomus/TensorFold"
+      },
+      "image": {
+        "datasource": "oci-image",
+        "file": "tf/beam-tf.env",
+        "pattern": "^IMAGE=\\$\\{IMAGE:-(?P<repo>[^:}\\s]+):(?P<version>[^}\\s]+)\\}$"
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "tensorfold-serve",
+    "patches/0001-tool-parameters-integral-number-for-integer.patch"
+  ]
+}

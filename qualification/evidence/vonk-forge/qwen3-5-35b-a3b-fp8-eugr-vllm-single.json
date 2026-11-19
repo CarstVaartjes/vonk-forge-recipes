@@ -178,6 +178,109 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "33656d67d87d26bf77c3f4040363cc9c58a26e50d1cf61419d859d9f99af2f2a",
+        "source_bundle_sha256": "13e0e72c5c5295465a6b0be3b19689465115f71b165f3ffbe247b1213812161b",
+        "runtime_image": {
+          "build_key": "29b6164e0b7dbfc33e347d925988145194d40b9c410213bee6b040e6cafcbf14",
+          "image_digest": "sha256:c198aa85da6fed53c508b399bf520da33778aa2587e7703043cfaa938e55b41b"
+        },
+        "model_digests": [
+          "209a74a06cae02623800792d1bb88b8dfc226652679651156888ca289e11a793"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "3bf14ec310863d351333a182503a9a829a721a87dfe4646a007e5f1fd6ceda68"
+      ],
+      "tested_at": "2026-11-11T20:57:14.529905Z",
+      "platform": {
+        "controller_source_sha": "b128306efd5ad6df44a620cfa3923d95e080613c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical execution document"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "5d75cc33c6fbe0879826d2a2fe29931a52048c87f600850614752f9306d137a6",
+        "source_bundle_sha256": "13e0e72c5c5295465a6b0be3b19689465115f71b165f3ffbe247b1213812161b",
+        "runtime_image": {
+          "build_key": "29b6164e0b7dbfc33e347d925988145194d40b9c410213bee6b040e6cafcbf14",
+          "image_digest": "sha256:c198aa85da6fed53c508b399bf520da33778aa2587e7703043cfaa938e55b41b"
+        },
+        "model_digests": [
+          "c1ae86cbe3761cecd3b6c50b60d4fe36318f73c9b4636582e14e5f536e18f6f2"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "3bf14ec310863d351333a182503a9a829a721a87dfe4646a007e5f1fd6ceda68"
+      ],
+      "tested_at": "2026-11-11T20:57:14.529905Z",
+      "platform": {
+        "controller_source_sha": "b128306efd5ad6df44a620cfa3923d95e080613c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "33656d67d87d26bf77c3f4040363cc9c58a26e50d1cf61419d859d9f99af2f2a",
+        "source_bundle_sha256": "8fd1d7b0d9e75747afab0d1010ae34685618d91ca5d29248690d60985c02e82b",
+        "runtime_image": {
+          "build_key": "39d12b3f2879d62fec701cac418ac5ff95825fe8f8d065db04378f5a0c620c75",
+          "image_digest": "sha256:4f5f18a04d577a70ce2e19bd2f25e1f5eea1d6f150c55b1244052ba0797bba44"
+        },
+        "model_digests": [
+          "209a74a06cae02623800792d1bb88b8dfc226652679651156888ca289e11a793"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "510204fe2201b0deddcc6805010dd5c231a59bf2f0e87d2c118bedb0a324dc9d"
+      ],
+      "tested_at": "2026-11-17T13:12:50.985383Z",
+      "platform": {
+        "controller_source_sha": "fce627521b4ad2c17a842768eea53bc868687669",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "33656d67d87d26bf77c3f4040363cc9c58a26e50d1cf61419d859d9f99af2f2a",
+      "role": "entrypoint",
+      "steady_bytes": 113209618432,
+      "budget_bytes": 104530585191
+    },
+    {
+      "content_sha256": "5d75cc33c6fbe0879826d2a2fe29931a52048c87f600850614752f9306d137a6",
+      "role": "entrypoint",
+      "steady_bytes": 113209618432,
+      "budget_bytes": 104530585191
     }
   ]
 }

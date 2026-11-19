@@ -1,0 +1,36 @@
+{
+  "capabilities": [
+    "audio-understanding",
+    "speech-recognition"
+  ],
+  "description": "Mistral AI's 4.4B multilingual realtime speech-to-text model (13 languages): a natively streaming causal audio encoder of about 970M parameters feeding a Ministral 3B language model, both with sliding-window attention, with a transcription delay configurable from 80 ms to 2.4 s (480 ms default) and a 131,072-token window. BF16.",
+  "family_title": "Voxtral",
+  "identity": {
+    "publisher": "mistralai",
+    "slug": "voxtral-mini-4b-realtime-2602-2769294d"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Mistral AI"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/mistralai/Voxtral-Mini-4B-Realtime-2602/blob/2769294da9567371363522aac9bbcfdd19447add/README.md"
+  },
+  "lineage": {
+    "family": "voxtral",
+    "generation": "Voxtral",
+    "line": "voxtral-mini-realtime",
+    "model": "voxtral-mini-4b-realtime-2602",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "audio",
+    "text"
+  ],
+  "model_title": "Voxtral Mini 4B Realtime 2602",
+  "tags": [
+    "mistralai",
+    "voxtral"
+  ]
+}

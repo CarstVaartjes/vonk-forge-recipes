@@ -52,10 +52,6 @@
     "quantization": "rtn-int4"
   },
   "identity": {
-    "family": {
-      "publisher": "minimax",
-      "slug": "minimax"
-    },
     "model": {
       "publisher": "sebesky",
       "slug": "minimax-m3-eagle3-rtn-int4"

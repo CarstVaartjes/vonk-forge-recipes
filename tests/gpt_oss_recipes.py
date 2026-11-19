@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from documents import model_display
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -15,8 +17,8 @@ def read(path: Path) -> dict[str, Any]:
 
 def is_gpt_oss(recipe: dict[str, Any]) -> bool:
     for binding in recipe.get("models", []):
-        model = read(ROOT / "models" / f"{binding['model']['slug']}.json")
-        if model["identity"]["family"]["slug"] == "gpt-oss":
+        lineage = model_display(binding["model"]["slug"]).lineage
+        if lineage is not None and lineage.family == "gpt-oss":
             return True
     return False
 

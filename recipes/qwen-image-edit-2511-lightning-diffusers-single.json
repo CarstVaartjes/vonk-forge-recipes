@@ -118,7 +118,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "7b0ee56b5e90480e5129c1a32dc39c4efa505e745bbbf8360df5409eb41977c5",
+        "content_sha256": "717739baa653a378d3c5d5c8cd5a8535c0f2bf84a1548d2bfaa77b5ab62627d4",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-lightning"
@@ -479,7 +479,7 @@
       ],
       "id": "dependency-qwen-image-edit-2511-6f3ccc0b",
       "model": {
-        "content_sha256": "3a7e470e320b158e6e6e3b4490acb23dbb961e11b6d257a0463294c4ff4a43a9",
+        "content_sha256": "189c6808d4f89e8c4c7f0e4415cb72271a6de9c75f8081c3308fc83f9efed7d6",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-6f3ccc0b"

@@ -228,6 +228,109 @@
       "quality_notes": [
         "Carried from the identical execution document before the Model facts split"
       ]
+    },
+    {
+      "identity": {
+        "content_sha256": "916a40e412261a0597633d4139936f02af72435db5188df80b0b6aac0b79748a",
+        "source_bundle_sha256": "e7d0852c1a7288996e3da635713374896b7be41c8a36a009c93efa10ccfe7dee",
+        "runtime_image": {
+          "build_key": "b007c8b85a60cd1ef2f9a76da7e305847b22f020bca84de39b195e33ae9e7188",
+          "image_digest": "sha256:8ec51b8ae4531e3678a129c617a92e5e562724aff5edad3265b6728168c3d26f"
+        },
+        "model_digests": [
+          "37d62288f1759c4a7792e9e98920fac8ee01921833ff9060bd8d67f1e361cda3"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "9b17308a88785542b120d6d2e68a052aeddedabef15afdeac4d6743326f04b4d"
+      ],
+      "tested_at": "2026-11-11T20:43:57.352963Z",
+      "platform": {
+        "controller_source_sha": "b128306efd5ad6df44a620cfa3923d95e080613c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical execution document"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "abc56945dd667d0d64d26f3f48ddddd9cfbaf56cb6aeda507cac37a97ea78a7c",
+        "source_bundle_sha256": "e7d0852c1a7288996e3da635713374896b7be41c8a36a009c93efa10ccfe7dee",
+        "runtime_image": {
+          "build_key": "b007c8b85a60cd1ef2f9a76da7e305847b22f020bca84de39b195e33ae9e7188",
+          "image_digest": "sha256:8ec51b8ae4531e3678a129c617a92e5e562724aff5edad3265b6728168c3d26f"
+        },
+        "model_digests": [
+          "b7e2063c62dba51cbd7ef44a789c5784da4e2031ff83f29cb4c24c0b0ce5eddf"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "9b17308a88785542b120d6d2e68a052aeddedabef15afdeac4d6743326f04b4d"
+      ],
+      "tested_at": "2026-11-11T20:43:57.352963Z",
+      "platform": {
+        "controller_source_sha": "b128306efd5ad6df44a620cfa3923d95e080613c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "916a40e412261a0597633d4139936f02af72435db5188df80b0b6aac0b79748a",
+        "source_bundle_sha256": "eb64634caa0e8d55e6d4e7d502db696d2a1c0fd592b20d69609254667eb2a210",
+        "runtime_image": {
+          "build_key": "89408d34284e2d1ece2ac88027812301b05e807378838aa1e9dc0c1fc6739c38",
+          "image_digest": "sha256:bada591dd6aa343ccca4b99639fc504b8a6f548619f614d89534a415888b3495"
+        },
+        "model_digests": [
+          "37d62288f1759c4a7792e9e98920fac8ee01921833ff9060bd8d67f1e361cda3"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "5912171bffce2be6b8350a0bf1f9515800e667d62eb08c270a0c7cf01cb91b7c"
+      ],
+      "tested_at": "2026-11-17T12:54:57.594793Z",
+      "platform": {
+        "controller_source_sha": "fce627521b4ad2c17a842768eea53bc868687669",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "916a40e412261a0597633d4139936f02af72435db5188df80b0b6aac0b79748a",
+      "role": "entrypoint",
+      "steady_bytes": 99006619648,
+      "budget_bytes": 91464262042
+    },
+    {
+      "content_sha256": "abc56945dd667d0d64d26f3f48ddddd9cfbaf56cb6aeda507cac37a97ea78a7c",
+      "role": "entrypoint",
+      "steady_bytes": 99006619648,
+      "budget_bytes": 91464262042
     }
   ]
 }

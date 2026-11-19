@@ -43,10 +43,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "nvidia",
-      "slug": "motionbricks"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "motionbricks-g1"

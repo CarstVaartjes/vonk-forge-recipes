@@ -61,10 +61,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "openai",
-      "slug": "gpt-oss"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "gpt-oss-120b-eagle3-long-context"

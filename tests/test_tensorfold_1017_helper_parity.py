@@ -12,9 +12,11 @@ import pytest
 ADAPTERS = Path(__file__).resolve().parents[1] / "adapters/deepseek"
 ALL = [
     "bertholomus-1017-tensorfold-tp4",
+    "blackfold-1017-tensorfold-tp2",
     "mia-1017-tensorfold-dual",
     "mia-1017-tensorfold-four",
     "tonyd2wild-1017-tensorfold-tp2",
+    "tonyd2wild-1017-tensorfold-tp4",
 ]
 PARITY_RANK = [name for name in ALL if name != "mia-1017-tensorfold-dual"]
 

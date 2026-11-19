@@ -475,10 +475,6 @@
     "quantization": "modelopt_mixed"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "glm-5-3-flash"

@@ -151,10 +151,6 @@
     "quantization": "nvfp4-modelopt"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "qwen3-14b"

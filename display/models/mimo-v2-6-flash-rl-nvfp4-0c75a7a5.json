@@ -21,6 +21,14 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/r0b0tlab/MiMo-V2.6-Flash-RL-NVFP4/blob/b98271785a70bf9ae64484ad46e1498d78caf2cf/LICENSE"
   },
+  "lineage": {
+    "base_model": "XiaomiMiMo/MiMo-V2.6-Flash-RL",
+    "family": "mimo",
+    "generation": "MiMo V2.6",
+    "line": "mimo-flash",
+    "model": "mimo-v2-6-flash-rl",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text"

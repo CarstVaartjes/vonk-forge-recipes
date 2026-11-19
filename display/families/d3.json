@@ -1,0 +1,67 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "d3",
+          "title": "D3"
+        }
+      ],
+      "slug": "d3-27b",
+      "title": "D3 27B"
+    },
+    {
+      "models": [
+        {
+          "slug": "d3-edge",
+          "title": "D3-Edge"
+        }
+      ],
+      "slug": "d3-edge-0-8b",
+      "title": "D3 Edge 0.8B"
+    },
+    {
+      "models": [
+        {
+          "slug": "d3-flash",
+          "title": "D3-Flash"
+        }
+      ],
+      "slug": "d3-flash-9b",
+      "title": "D3 Flash 9B"
+    },
+    {
+      "models": [
+        {
+          "slug": "d3-lite",
+          "title": "D3-Lite"
+        }
+      ],
+      "slug": "d3-lite-0-8b",
+      "title": "D3 Lite 0.8B"
+    },
+    {
+      "models": [
+        {
+          "slug": "d3-mini",
+          "title": "D3-Mini"
+        }
+      ],
+      "slug": "d3-mini-4b",
+      "title": "D3 Mini 4B"
+    },
+    {
+      "models": [
+        {
+          "slug": "d3-nano",
+          "title": "D3-Nano"
+        }
+      ],
+      "slug": "d3-nano-2b",
+      "title": "D3 Nano 2B"
+    }
+  ],
+  "slug": "d3",
+  "title": "D3"
+}

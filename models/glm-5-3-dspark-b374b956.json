@@ -70,10 +70,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "redhatai",
       "slug": "glm-5-3-dspark"

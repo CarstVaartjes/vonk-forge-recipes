@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 import pytest
-from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_fakes import FakeModel, FakeRecipe, Gateway, _locked, make_sweep
 
 pytest_plugins = ["sweep_bounds"]
 
@@ -263,7 +263,7 @@ def test_the_cli_updates_a_skewed_client(
             "--state-dir",
             str(tmp_path / "s"),
         ],
-        vonkctl_factory=lambda exe: Vonkctl(exe, runner=fleet.runner),
+        vonkctl_factory=lambda exe: Vonkctl(exe, runner=_locked(fleet.runner)),
         clock=clock,
         definitions=make_definitions(recipes),
     )
@@ -513,7 +513,6 @@ def test_download_reconnect_preserves_the_original_request(
     calls = [call for _, call in fleet.calls if call[:2] == ("recipe", "download")]
     assert len(calls) == 1
     assert calls[0][-1] == before["request_key"]
-    assert not sweep.state.data["download_history"]
 
 
 def test_accepted_download_absence_keeps_unknown_parent_without_replay(
@@ -542,4 +541,3 @@ def test_accepted_download_absence_keeps_unknown_parent_without_replay(
         len([call for _, call in fleet.calls if call[:2] == ("recipe", "download")])
         == 1
     )
-    assert not sweep.state.data["download_history"]

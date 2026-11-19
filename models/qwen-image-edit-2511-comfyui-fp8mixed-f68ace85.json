@@ -16,10 +16,6 @@
     "quantization": "fp8mixed"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen-image"
-    },
     "model": {
       "publisher": "qwen",
       "slug": "qwen-image-edit"

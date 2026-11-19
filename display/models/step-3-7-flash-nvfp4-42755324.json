@@ -20,6 +20,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/stepfun-ai/Step-3.7-Flash-NVFP4/blob/4275532ffd9a9496ff36b7a2dc4a9db1048da438/README.md"
   },
+  "lineage": {
+    "base_model": "stepfun-ai/Step-3.7-Flash",
+    "family": "step",
+    "generation": "Step 3.7",
+    "line": "step-flash",
+    "model": "step-3-7-flash",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text"

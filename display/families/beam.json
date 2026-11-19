@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "beam-1-0-501b-a23b",
+          "title": "Beam-1.0-501B-A23B"
+        }
+      ],
+      "slug": "beam-501b",
+      "title": "Beam 501B"
+    }
+  ],
+  "slug": "beam",
+  "title": "Beam"
+}

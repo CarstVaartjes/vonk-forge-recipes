@@ -1,0 +1,44 @@
+{
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "Exact DS4 Qwen3.8 Flash Next Q2 GGUF for antirez/ds4: main and MTP weights stay resident and the BF16 n-gram table (95.37 GiB) is read directly from the SSD. Text only here; the vision encoder is a separate GGUF. Original weights: Qwen; quantised main/MTP release: Ivan Fioravanti; n-gram packaging: antirez.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "antirez",
+    "slug": "qwen3-8-flash-next-ds4-q2-d600fe1a"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "Ivan Fioravanti",
+      "Salvatore Sanfilippo (antirez)"
+    ],
+    "spdx": "LicenseRef-Qwen-Community-1.0",
+    "url": "https://huggingface.co/antirez/qwen3.8-flash-next-gguf/blob/d600fe1a43d2e1cdcadb85144ce3142f66f9eefe/LICENSE"
+  },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-Flash-Next",
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-flash-next",
+    "model": "qwen3-8-flash-next",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "Qwen3.8 Flash Next",
+  "tags": [
+    "ds4",
+    "gguf",
+    "q2",
+    "qwen",
+    "qwen3-8",
+    "spark"
+  ]
+}

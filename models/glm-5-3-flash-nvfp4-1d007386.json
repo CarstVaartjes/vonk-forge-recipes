@@ -403,10 +403,6 @@
     "quantization": "nvfp4"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "glm-5-3-flash-nvfp4"

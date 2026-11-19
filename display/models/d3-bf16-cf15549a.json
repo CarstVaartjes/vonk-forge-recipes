@@ -18,6 +18,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/vllm-sr/d3/blob/cf15549a78fc52598ddd1951f321c58372bbd64f/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-27B",
+    "family": "d3",
+    "generation": "Decision 3.0",
+    "line": "d3-27b",
+    "model": "d3",
+    "variant_kind": "base"
+  },
   "modalities": [
     "text",
     "image",

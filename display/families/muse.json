@@ -1,0 +1,27 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "muse-glimmer-30b",
+          "title": "Muse Glimmer 30B"
+        }
+      ],
+      "slug": "muse-glimmer-30b",
+      "title": "Muse Glimmer 30B"
+    },
+    {
+      "models": [
+        {
+          "slug": "muse-spark-open-816b-a42b",
+          "title": "Muse Spark Open 816B-A42B"
+        }
+      ],
+      "slug": "muse-spark-816b-a42b",
+      "title": "Muse Spark 816B-A42B"
+    }
+  ],
+  "slug": "muse",
+  "title": "Muse"
+}

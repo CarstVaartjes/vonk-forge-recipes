@@ -126,7 +126,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "227c0cb2d99fc6f33edc5134fbe764fa141f3d417cd4bcae8352c1b446859bc5",
+        "content_sha256": "355a635814a6d90798f620f2ef933696a4e6989813035e637b498d2b73cb1b2f",
         "kind": "model",
         "publisher": "fastvideo",
         "slug": "fasth3-8step-v2-comfy-ec1e3aa3"
@@ -142,11 +142,11 @@
       "drowzeys",
       "TensorFold contributors"
     ],
-    "source_reference": "https://github.com/drowzeys/Imagination-Studio-by-keys-Wasserman/tree/3926471d59bfe8a51a295b7bfdef6cda0b09e1de"
+    "source_reference": "https://github.com/drowzeys/Imagination-Studio-by-keys-Wasserman/tree/e7d7c6c1105045272b0f95afc5a9f71bc345f2b2"
   },
   "release": {
-    "released_at": "2026-10-30",
-    "version": "4.3.1"
+    "released_at": "2026-11-15",
+    "version": "4.5.0"
   },
   "runtime": {
     "arguments": [
@@ -156,7 +156,7 @@
       },
       {
         "name": "workflow-sha256",
-        "value": "a5d3593451edba43eb8842c42fec3f4d959cdbf1b103dc0de68ac90eb2afbe34"
+        "value": "273624b093621002227ef3116fd77ae57ac8ef8ede6ed39f213907e78884c382"
       },
       {
         "name": "output-mime",

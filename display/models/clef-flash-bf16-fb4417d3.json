@@ -18,6 +18,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Cloudflare/clef-flash/blob/fb4417d31c1d0f9e7e77f1141b40aaede7491e00/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.5-9B",
+    "family": "clef",
+    "generation": "Clef",
+    "line": "clef-flash",
+    "model": "clef-flash",
+    "variant_kind": "base"
+  },
   "modalities": [
     "text",
     "image",

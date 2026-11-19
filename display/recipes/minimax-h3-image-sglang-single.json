@@ -1,0 +1,23 @@
+{
+  "alignment": "unspecified",
+  "description": "The SGLang team's official DGX Spark recipe for MiniMax-H3-Image: text-to-image generation and ordered-reference image editing at 2048 x 2048 in one job. The job runs the creator's pinned SGLang Diffusion build and Auto resident placement, which keeps all weights resident and needs at least 106 GiB of the Spark's shared memory free (about 91 GiB CUDA peak); startup took about 281 s with cached weights. Untested on hardware: the sweep is on hold.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "minimax-h3-image-sglang-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "minimax",
+    "image",
+    "editing",
+    "text-to-image",
+    "image-to-image",
+    "sglang",
+    "single",
+    "spark",
+    "full-node",
+    "candidate"
+  ],
+  "title": "MiniMax H3 Image SGLang single Spark"
+}

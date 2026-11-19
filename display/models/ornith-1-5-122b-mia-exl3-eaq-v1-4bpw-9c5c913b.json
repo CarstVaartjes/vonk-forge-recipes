@@ -20,6 +20,14 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/Mia-AiLab/Ornith-1.5-122B-EXL3-EAQv1-4-bpw/blob/9c5c913b3de1eef901520d6fedaf450044ea0423/README.md"
   },
+  "lineage": {
+    "base_model": "ornith-ai/Ornith-1.5-122B",
+    "family": "ornith",
+    "generation": "Ornith 1.5",
+    "line": "ornith-122b",
+    "model": "ornith-1-5-122b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text",
     "image"

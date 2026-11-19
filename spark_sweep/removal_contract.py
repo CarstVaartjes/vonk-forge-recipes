@@ -105,15 +105,6 @@ class ProfileAssignment(BaseModel):
     model_variant: str | None = None
 
 
-class ProfileModel(BaseModel):
-    content_sha256: Digest | None = None
-
-
-class AssignmentView(BaseModel):
-    recipe_selector: str
-    model: ProfileModel
-
-
 class ProfileDefinition(BaseModel):
     assignments: list[ProfileAssignment] = Field(default_factory=list)
     labels: dict[str, str] = Field(default_factory=dict)
@@ -122,7 +113,6 @@ class ProfileDefinition(BaseModel):
 class OwnerProfile(BaseModel):
     number: int
     definition: ProfileDefinition | None
-    assignments: list[AssignmentView] = Field(default_factory=list)
 
 
 class ProfileList(BaseModel):
@@ -130,16 +120,12 @@ class ProfileList(BaseModel):
 
 
 class RemovalRecord(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    """Saved per model; a field this class does not know is ignored, never a reason to fail."""
 
     outcome: RemovalOutcome = RemovalOutcome.WAIT
     backoff_seconds: float = 60.0
-    needed_again: bool = False
     consumers: dict[str, str] = Field(default_factory=dict)
     request_key: str | None = None
     next_check: float = 0
     message: str = ""
-    review: dict[str, JsonValue] | None = None
-    receipt: dict[str, JsonValue] | None = None
-    last_response: JsonValue = None
-    history: list[dict[str, JsonValue]] = Field(default_factory=list)
+    receipt: RemovalReceipt | None = None

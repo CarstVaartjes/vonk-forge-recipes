@@ -223,10 +223,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen-image"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "qwen-image-flash"

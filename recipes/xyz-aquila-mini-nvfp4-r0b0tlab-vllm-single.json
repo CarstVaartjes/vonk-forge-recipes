@@ -166,7 +166,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "57368f18c4c9dd3aaaa384d8a1bb40a95ba7162537acc57d4a82f5ab97c66dd9",
+        "content_sha256": "2129b3eb0ec469e3f843e192ea7f6cfd836529edbee3cdc1ca66e27845cadda8",
         "kind": "model",
         "publisher": "r0b0tlab",
         "slug": "xyz-aquila-mini-nvfp4-39f7345d"

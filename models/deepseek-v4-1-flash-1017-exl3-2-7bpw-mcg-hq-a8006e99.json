@@ -502,10 +502,6 @@
     "quantization": "exl3-mcg-2-7bpw-mixed-k-lmhead-mxfp8"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek"
-    },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-1-flash-1017"

@@ -10,9 +10,11 @@ import sys
 import tempfile
 import unittest
 from datetime import UTC, datetime
+from email.message import Message
 from pathlib import Path
 from typing import Any
 from unittest import mock
+from urllib.error import HTTPError
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "tools/check-upstream-drift"
@@ -48,6 +50,7 @@ class SourceParsingTests(unittest.TestCase):
             f"https://github.com/example/project/tree/{PINNED}",
             f"https://github.com/example/project/commit/{PINNED}",
             f"https://github.com/example/project/blob/{PINNED}/README.md",
+            f"https://github.com/example/project/tree/{PINNED}/runs/launch",
             f"https://github.com/example/project@{PINNED}",
             f"https://github.com/example/project.git@{PINNED}",
         ):
@@ -64,6 +67,12 @@ class SourceParsingTests(unittest.TestCase):
         self.assertEqual(
             drift.parse_source(
                 f"https://github.com/example/project/blob/{PINNED}/README.md"
+            ).embedded_revision,
+            PINNED,
+        )
+        self.assertEqual(
+            drift.parse_source(
+                f"https://github.com/example/project/tree/{PINNED}/runs/launch"
             ).embedded_revision,
             PINNED,
         )
@@ -85,6 +94,7 @@ class SourceParsingTests(unittest.TestCase):
             "http://github.com/example/project",
             "https://user@example.com/example/project",
             "https://github.com/example/project/blob/main/README.md",
+            "https://github.com/example/project/tree/main/runs/launch",
             "https://huggingface.co/example/project/blob/main/README.md",
         ):
             with self.assertRaises(drift.DriftInputError):
@@ -131,8 +141,6 @@ class DiscoveryTests(unittest.TestCase):
             )
             model["identity"]["publisher"] = "example"
             model["identity"]["slug"] = "model"
-            model["identity"]["family"]["publisher"] = "example"
-            model["identity"]["family"]["slug"] = "model-family"
             model["identity"]["model"]["publisher"] = "example"
             model["identity"]["model"]["slug"] = "model"
             model["source"] = {
@@ -342,6 +350,29 @@ class ObservationTests(unittest.TestCase):
 
         self.assertEqual(observation.status, "missing")
         self.assertIn("no longer resolvable", observation.detail)
+
+    def test_only_an_anonymous_hugging_face_401_means_missing(self) -> None:
+        for provider, token, expected in (
+            ("huggingface", None, "missing"),
+            ("huggingface", "set", "error"),
+            ("github", None, "error"),
+        ):
+
+            def unauthorized(request: Any, timeout: float) -> Any:
+                error = HTTPError(
+                    request.full_url, 401, "Unauthorized", Message(), None
+                )
+                error.close()
+                raise error
+
+            client = drift.ProviderClient(
+                github_token=token, huggingface_token=token, opener=unauthorized
+            )
+            with self.subTest(provider=provider, token=token):
+                observation = drift.observe(
+                    self.watch(provider=provider, policy="default-branch"), client
+                )
+                self.assertEqual(observation.status, expected)
 
 
 class ReleaseAssetWatchTests(unittest.TestCase):

@@ -61,10 +61,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "meta",
-      "slug": "muse-glimmer"
-    },
     "model": {
       "publisher": "meta",
       "slug": "muse-glimmer-30b-assistant"

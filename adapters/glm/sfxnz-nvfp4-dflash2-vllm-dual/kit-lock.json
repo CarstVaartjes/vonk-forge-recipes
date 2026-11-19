@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "draft": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "7d74cdd881ed7e32c31175984a67823127b66cfe",
+      "repo": "incoai/GLM-5.3-Flash-DFlash2",
+      "revision": "7d74cdd881ed7e32c31175984a67823127b66cfe"
+    },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
+      "kind": "digest",
+      "overridden": "The kit's FROM tag vllm/vllm-openai:glm53-flash-arm64-cu130 was re-pushed on 2026-09-09 (b0501f99) as a vLLM build that already contains the DFlash2 backport (vLLM PR #52816), so the kit's dflash2_backport.diff (patch --fuzz=0) no longer applies to it (PR image CI 2026-11-18: hunks failed or were already applied). 905c0293 is the arm64 manifest the tag named from its original 2026-08-26 push (image config created 2026-08-26T02:42:34Z, a local dev build without the backport), the tree the kit's diff was regenerated against on 2026-08-28; same repository, still pullable by digest. Evidence: Docker Hub tag last_pushed 2026-09-09; registry manifest of 905c0293 fetched 2026-11-18; this repository pinned the tag at 905c0293 until its 2026-09-28 refresh.",
+      "ref": "sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
+      "repo": "vllm/vllm-openai"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "09b04e5e74bca08ca8549fc736d4cdd8624bfde3",
+      "repo": "nvidia/GLM-5.3-Flash-NVFP4",
+      "revision": "09b04e5e74bca08ca8549fc736d4cdd8624bfde3"
+    }
+  },
+  "kit": {
+    "commit": "072c3f68fe425edb141e08cc60576f4bb0477ed2",
+    "repo": "sfxnz/GLM-5.3-Flash-NVFP4-vLLM-2x-DGX-Spark"
+  }
+}

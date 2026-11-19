@@ -1,0 +1,39 @@
+{
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "vcruz305's SAGE EXL3 mixed-precision quantization of deepseek-ai/DeepSeek-V4.1-Flash-1017 at 1.62 bits per weight (326.6 GB, 17 shards) for ExLlamaV3 and the vllm-exl3 plugin, at the revision c852150e that the creator's kit declares (the same bytes as the later head 8cffca26 apart from the README). The creator serves it as a language model only. Source model inputs for the creator runtime; physical Spark acceptance is unmeasured.",
+  "family_title": "DeepSeek",
+  "identity": {
+    "publisher": "vcruz305",
+    "slug": "deepseek-v4-1-flash-1017-exl3-sage-1-62bpw-c852150e"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek-AI",
+      "vcruz305 for the SAGE EXL3 quantization"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/vcruz305/DSV4.1-Flash-1017-SAGE-EXL3-1.62bpw/blob/c852150e06f5e5ee8c4c14f9cd1a9afc6bb21960/LICENSE"
+  },
+  "lineage": {
+    "base_model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "family": "deepseek",
+    "generation": "DeepSeek V4.1",
+    "line": "deepseek-flash",
+    "model": "deepseek-v4-1-flash-1017",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "DeepSeek V4.1 Flash 1017",
+  "tags": [
+    "deepseek-ai",
+    "deepseek"
+  ]
+}

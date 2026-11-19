@@ -1,0 +1,19 @@
+{
+  "alignment": "unspecified",
+  "description": "bertholomus's Mistral Large 4 TensorFold TP4 recipe v0.2.0 (mistral-large-4-tensorfold-tp4-4xgb10 de33c39c, Apache-2.0) on four Sparks. Engine: bertholomus/TensorFold mistral-large-4-tp4 at the README's commit f4a30b3e (the mistral_large4 family on TensorFold 0.6.6's Python CUDA engine), run from its source tree in nvcr.io/nvidia/pytorch:26.07-py3 as the creator runs it (the creator publishes no image). Weights: bertholomus/Mistral-Large-4-1T-A52B-EXL3-2.5bpw at 366f8cb8 with Mistral's draft head draft/mtp_dspark.safetensors. Every served setting is the creator's launch line (engine tools/ml4/cp4_serve.sh): the full 1,048,576-token context (a request of up to 131,072 tokens on one rank, a longer one striped over the four), 262,144 fp8 latent cache rows per node, the draft head on, the allocator capped at 103 GiB with a 5 GiB floor, 3 GiB headroom, the CP4 prompt settings and an 8,192-token default reply. Text only. Thinking is always on (reasoning_effort low, medium or high, default high; it comes back in reasoning_content and counts against max_tokens). Tool calls with tool_choice auto or none; required or named tool choice and response_format json_object/json_schema answer 400 in this release. Deviations, all Controller bindings: the RDMA devices are the Controller's RoCE rails and its GID index (the creator's fabric uses 5), the rank cache (about 90 GiB per node, written on the first start and reused) lives in the platform cache, and the kit's serve/prebuild.py builds the CUDA extensions on each rank before the server starts instead of in a separate prebuild container. Memory: the declared peaks are the creator's measurement, not ours: 130,663,231,488 bytes minus the lowest MemAvailable the creator logged per node (6.63 GiB on the first node, 6.68-6.82 GiB on the others) minus the 4,063,231,488-byte idle host use admission charges. Creator claims, not measured here: about 29-30 tok/s single stream at 8K and 32K on code prompts, 21.7 tok/s at 1M depth, 64.4 tok/s across 8 streams. The recipe needs four Sparks; Vonk physical acceptance is pending. Licences are information only: the recipe is Apache-2.0, TensorFold is Apache-2.0, and the weights are under the Mistral Ecosystem Open-Weight License (modified MIT; condition 2 concerns commercial Model-as-a-Service use).",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "mistral-large-4-1t-a52b-exl3-2-5bpw-bertholomus-tensorfold-four"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "mistral",
+    "mistral-large",
+    "tensorfold",
+    "exl3",
+    "mtp",
+    "spark",
+    "text-only"
+  ],
+  "title": "Mistral Large 4 1T-A52B EXL3 2.5bpw TensorFold TP4 (bertholomus)"
+}

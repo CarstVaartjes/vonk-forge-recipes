@@ -1,0 +1,21 @@
+{
+  "source": {
+    "repo": "drowzeys/keys-heretic-MiniMax-H3-sol-engine-more-speed-upgrades-upscaler-finish-Single-DGX-Spark",
+    "commit": "7e8304fd8de9741119e704d1aa347534346c3a48"
+  },
+  "ours": [
+    "comfyui_job.py",
+    "runtime_smoke.py",
+    "workflows/keys-heretic-h3.json",
+    "@protocol.wheel@"
+  ],
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "docker/docker-compose.yml",
+        "pattern": "^\\s*image:\\s*(?P<repo>ghcr\\.io/drowzeys/keys-heretic-minimax-h3-sol-engine-spark):(?P<version>\\S+)$"
+      }
+    }
+  }
+}

@@ -10,7 +10,6 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import document_sha256
 
 MODEL = ROOT / "models/ui-mate-27b-3ade2378.json"

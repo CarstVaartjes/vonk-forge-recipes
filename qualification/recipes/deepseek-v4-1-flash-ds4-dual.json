@@ -1,0 +1,15 @@
+{
+  "id": "vonk-forge/deepseek-v4-1-flash-ds4-dual",
+  "service_recipes": {
+    "alias": "deepseek-v4-flash",
+    "higher_tiers": {
+      "stress": [
+        "Optional bounded streaming and declared concurrency canaries"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A391"
+    ]
+  }
+}

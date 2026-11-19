@@ -23,6 +23,14 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.5/blob/63651580ca774f8504f676040460aed3e1244ac1/README.md"
   },
+  "lineage": {
+    "base_model": "XiaomiMiMo/MiMo-V2.5",
+    "family": "mimo",
+    "generation": "MiMo V2.5",
+    "line": "mimo-311b",
+    "model": "mimo-v2-5",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "audio",
     "image",

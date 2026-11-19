@@ -1,0 +1,32 @@
+FROM lmsysorg/sglang@sha256:d4a56f6f9356539957974bb4008161b4c08d14a712805ff63eae526f36dbda71
+LABEL org.opencontainers.image.source="https://github.com/sgl-project/sglang" \
+      org.opencontainers.image.revision="539fea720b86af0508d8d20ec585f25c547e3487"
+RUN curl --fail --location --output /tmp/sglang.tar.gz https://codeload.github.com/sgl-project/sglang/tar.gz/539fea720b86af0508d8d20ec585f25c547e3487 \
+    && printf '%s  %s\n' 47f494340997cbed2815efce0da0f0e93057dbce1bea8ab8a8d103470eb7268f /tmp/sglang.tar.gz | sha256sum --check --strict \
+    && mkdir -p /opt/vonk/sglang \
+    && tar -xzf /tmp/sglang.tar.gz -C /opt/vonk/sglang --strip-components=1 \
+    && rm /tmp/sglang.tar.gz
+WORKDIR /opt/vonk/sglang
+RUN export SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SGLANG=0.0.0.dev0+g539fea720b86 CARGO_TARGET_DIR=/tmp/h3-image-spark-build \
+    && python3 -m pip install --no-cache-dir setuptools-rust setuptools-scm wheel \
+    && python3 -m pip install --no-cache-dir --no-build-isolation -e 'python[diffusion]' \
+    && python3 -m pip uninstall -y flashinfer-jit-cache-sm80 flashinfer-jit-cache-sm89 \
+        flashinfer-jit-cache-sm90a flashinfer-jit-cache-sm100a flashinfer-jit-cache-sm103a \
+        flashinfer-jit-cache-sm110a flashinfer-jit-cache-sm120f flashinfer-jit-cache-sm121a \
+    && python3 -m pip install --no-cache-dir --no-deps flash-attn-4==4.0.0b38 \
+    && python3 -m pip install --no-cache-dir --no-deps flashinfer-cubin==0.7.2 \
+        --index-url https://flashinfer.ai/whl/ \
+    && python3 -m pip install --no-cache-dir --no-deps flashinfer-jit-cache==0.7.2+cu130 \
+        --index-url https://flashinfer.ai/whl/cu130 \
+    && rm -rf /tmp/h3-image-spark-build
+COPY @protocol.wheel@ /opt/vonk/@protocol.wheel@
+RUN python3 -m pip install --no-cache-dir --no-deps /opt/vonk/@protocol.wheel@ \
+    && python3 -c 'import importlib.metadata as m, vonk_agent_protocol.job_inputs; assert (m.version("flash-attn-4"), m.version("flashinfer-cubin"), m.version("flashinfer-jit-cache")) == ("4.0.0b38", "0.7.2", "0.7.2+cu130")' \
+    && install --directory --mode=0755 /opt/vonk/bin /inputs \
+    && install --directory --mode=0770 --owner=10001 --group=10001 /state /outputs
+WORKDIR /state
+COPY job.py /opt/vonk/job.py
+COPY --chmod=0755 launcher /opt/vonk/bin/pytorch-pipeline
+ENV HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+USER 10001:10001
+ENTRYPOINT []

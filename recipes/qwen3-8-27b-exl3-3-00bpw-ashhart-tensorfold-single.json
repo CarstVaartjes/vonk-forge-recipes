@@ -211,7 +211,7 @@
       ],
       "id": "target",
       "model": {
-        "content_sha256": "0c4b8dc64a3dc315dc9191347120361b0382e31350684771b088f26ab68c7285",
+        "content_sha256": "d9c82f3dfb6a3f18dc05bb65a2f862829f3db49835d844fe2e2ed81a2324211d",
         "kind": "model",
         "publisher": "turboderp",
         "slug": "qwen3-8-27b-exl3-3-00bpw-6fe61ad6"
@@ -272,7 +272,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "abd9b4c762654ff36016c8c8520a39d113d68258813d57f1a70b4fca9fcec070",
+        "content_sha256": "1f758a945a7c7b70f0c60dd8f9da97c124c0fa33f8db6b4b0bd8990034f94eca",
         "kind": "model",
         "publisher": "z-lab",
         "slug": "qwen3-8-27b-dflash2-50307d4c"
@@ -313,11 +313,11 @@
       "z-lab",
       "IncoAI"
     ],
-    "source_reference": "https://github.com/ashhart/TensorFold/tree/6ec5fa4cb233f3606acbdad5bec433f0f8758f96"
+    "source_reference": "https://github.com/ashhart/TensorFold/tree/2a674b552498739e783a31c2573fc9ccf4d8cc0d"
   },
   "release": {
-    "released_at": "2026-11-05",
-    "version": "1.2.3"
+    "released_at": "2026-11-18",
+    "version": "1.2.10"
   },
   "runtime": {
     "arguments": [
@@ -392,7 +392,7 @@
             "working_bytes": 8000000000
           },
           "memory": {
-            "peak_bytes": 60000000000,
+            "peak_bytes": 79500000000,
             "reserve_bytes": 13100000000
           }
         }

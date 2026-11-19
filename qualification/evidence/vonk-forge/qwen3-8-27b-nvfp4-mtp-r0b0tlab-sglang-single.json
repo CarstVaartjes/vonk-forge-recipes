@@ -4,6 +4,32 @@
   "records": [
     {
       "identity": {
+        "content_sha256": "186a8556fcb9c8278231f0744df358421e105af396f507ebbc9d4ed07f7139f3",
+        "model_digests": [
+          "124f9af5edba2b7c65d46d7d7e4f5ed86cfa9ff41df3d3da4f28e9f653bc0b4b",
+          "1f758a945a7c7b70f0c60dd8f9da97c124c0fa33f8db6b4b0bd8990034f94eca",
+          "bae59dda57bded3530c85c4f906bbd91d4bf466ba5965b4e3036bd3cae4b4bf1"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "7117e8bb80809c9ef4f8839836bd475edf6b9bbb7ad9431f31cf3a9836a40c6f"
+      ],
+      "tested_at": "2026-10-17T15:01:18.436319Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split",
+        "Carried from the identical execution document"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "395cc85d1b39e028325de33ba751c6b9d6f6f212a6ad35d98281c205fd8312f3",
         "model_digests": [
           "04a722e9a8902bc635481f2e508e8c0d10f57992c168328142c910635f67a50e",
@@ -75,6 +101,32 @@
     },
     {
       "identity": {
+        "content_sha256": "186a8556fcb9c8278231f0744df358421e105af396f507ebbc9d4ed07f7139f3",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "f663cd69049729a74fa03900d050742075aa79e7d4b170d05cd547bf74871d9a"
+      ],
+      "tested_at": "2026-10-17T15:01:19.472722Z",
+      "platform": {
+        "controller_source_sha": "3637510be31668f3811004d37bc33c3e902c8bbd",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split",
+        "Carried from the identical execution document before the Model facts split",
+        "Carried from the identical execution document"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "395cc85d1b39e028325de33ba751c6b9d6f6f212a6ad35d98281c205fd8312f3",
         "model_digests": [],
         "required_sparks": 1,
@@ -142,6 +194,40 @@
       },
       "quality_notes": [
         "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "186a8556fcb9c8278231f0744df358421e105af396f507ebbc9d4ed07f7139f3",
+        "source_bundle_sha256": "93dc4bb452f23242be12823b819449b6e1287d3a6c679dccf10abff6d85c4c4c",
+        "runtime_image": {
+          "build_key": "841c0eacec8711a906916f746796ed8254ae3007a8984439da80e9c79f68beef",
+          "image_digest": "sha256:34a05eb501f91986d4e71bc78c406626d001c1364b5a98bcf5062502b271719b"
+        },
+        "model_digests": [
+          "124f9af5edba2b7c65d46d7d7e4f5ed86cfa9ff41df3d3da4f28e9f653bc0b4b",
+          "1f758a945a7c7b70f0c60dd8f9da97c124c0fa33f8db6b4b0bd8990034f94eca",
+          "bae59dda57bded3530c85c4f906bbd91d4bf466ba5965b4e3036bd3cae4b4bf1"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "f8b47e55c02a9481f55fee29226f17e81939ebe23b1465139ff8859b06787d9c"
+      ],
+      "tested_at": "2026-11-04T10:41:22.940692Z",
+      "platform": {
+        "controller_source_sha": "e07971e4c35f3e58cc967301787a367ead9dfd54",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical execution document before the Model facts split",
+        "Carried from the identical execution document"
       ]
     },
     {

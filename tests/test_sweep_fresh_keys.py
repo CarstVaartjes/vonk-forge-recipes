@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts.sweep import CleanupEnd, CleanupEndReason
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -36,7 +35,7 @@ def _load_keys(fleet, profile: int) -> list[str]:
     ]
 
 
-def test_a_second_takeover_in_the_same_state_directory_really_clears_the_fleet(
+def test_a_second_run_in_the_same_state_dir_clears_todays_owner_workload(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     recipes = [FakeRecipe("a", ("m1",))]
@@ -60,7 +59,6 @@ def test_a_second_takeover_in_the_same_state_directory_really_clears_the_fleet(
     assert all(r["alias"] != "owner-glm" for r in fleet.runs)
     keys = _load_keys(fleet, 10)
     assert len(keys) == len(set(keys))  # no key was ever sent twice
-    assert [x["kind"] for x in again.state.data["own_loads"]].count("takeover") == 2
 
 
 def test_every_attempt_has_its_own_key_recorded_in_own_loads(
@@ -78,7 +76,7 @@ def test_every_attempt_has_its_own_key_recorded_in_own_loads(
     assert len(keys) == 12 and sweep.state.data["own_seq"] == 12
 
 
-def test_ended_owned_application_keeps_audit_identity_and_admits_new_loads(
+def test_a_retired_owned_application_leaves_the_state_and_admits_new_loads(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, _ = make_sweep(
@@ -109,19 +107,11 @@ def test_ended_owned_application_keeps_audit_identity_and_admits_new_loads(
     }
     sweep.preflight()
     sweep.refresh_catalog()
-    sweep.start_takeover()
     for _ in range(6):
         sweep.tick()
         sweep.clock.sleep(300)
-    original = sweep.state.data["cleanup_loads"]["old"]
-    assert original["app_id"] == "app-0001"
-    # Its projection never became known: it retired only once fresh fleet facts
-    # showed nothing running, and it keeps its audit identity.
-    assert (
-        CleanupEnd.model_validate(original["end"]).reason
-        == CleanupEndReason.TARGET_ABSENT
-    )
-    assert original["terminal_receipt"]["id"] == "app-0001"
+    # Retired once fresh fleet facts showed nothing running; the newer clearing replaces it.
+    assert "old" not in sweep.state.data["cleanup_loads"]
     assert _load_keys(fleet, 10) and "old" not in _load_keys(fleet, 10)
     assert len(sweep.state.data["own_loads"]) > 1
     assert not any(r["alias"] == "owner-glm" for r in fleet.runs)
@@ -154,7 +144,7 @@ def test_foreign_acceptance_reconciles_only_the_original_owned_request(
     sweep.preflight()
     sweep.refresh_catalog()
     with pytest.raises(RuntimeError, match="acceptance does not match"):
-        sweep.start_takeover()
+        sweep._take_over(sweep.clock.now())
     original = sweep.state.data["own_loads"][-1]
     request = original["request_key"]
     assert original.get("application_id") is None
@@ -192,7 +182,11 @@ def test_empty_aggregate_success_reobserves_fleet_and_admits_new_clear(
     )
     sweep.preflight()
     sweep.refresh_catalog()
-    sweep.start_takeover()
+    for _ in range(20):
+        if sweep.state.data["own_loads"]:
+            break
+        sweep.tick()
+        sweep.clock.sleep(60)
     original = dict(sweep.state.data["own_loads"][-1])
     for _ in range(6):
         sweep.tick()
@@ -260,3 +254,13 @@ def test_restores_after_resumed_runs_never_reuse_a_key(
     assert (
         len(sent) == len(set(sent)) == 2
     )  # the second restore was not answered with the first one
+
+
+def test_a_sweep_with_nothing_testable_never_takes_over_the_fleet(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, fleet, _ = make_sweep(tmp_path, [], [], gateway=gateway)
+    fleet.runs.append(dict(OWNER))
+    assert sweep.run() == 0
+    assert any(r["alias"] == "owner-glm" for r in fleet.runs)
+    assert not _load_keys(fleet, 10)

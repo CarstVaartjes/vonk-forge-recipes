@@ -285,7 +285,13 @@ MINIMAL_MEDIA_PARAMETERS = {
     "hunyuan-video-15-i2v-step-distilled-diffusers-single": {"num-frames": 1},
     "ltx-2-19b-dev-fp4-pytorch-single": {"num-frames": 1, "num-inference-steps": 2},
     "fasth3-8step-v2-drowzeys-tensorfold-single": {"num-frames": 124},
+    "minimax-h3-keys-heretic-drowzeys-comfyui-single": {"num-frames": 124},
     "stable-audio-3-small-sfx-pytorch-single": {"duration-seconds": 2},
+    "minimax-h3-fl2va-knapcio-vllm-omni-dual": {"num-inference-steps": 2},
+    "minimax-h3-ref2va-knapcio-vllm-omni-dual": {
+        "duration": 16,
+        "num-inference-steps": 2,
+    },
 }
 # These unproven recipes share their entire context with a hardware pass.
 # Keep the single adapter unchanged rather than fork it for smaller smokes.
@@ -425,11 +431,11 @@ def test_qualification_parameters_do_not_enter_recipe_content_identity(built_cat
 # Recipe-only protection misses changes in a shared image build context.
 REVIEWED_SHARED_IDENTITIES = {
     "ltx-2-19b-distilled-fp8-diffusers-single": (
-        "731706b3970cee62678fc067b9fec941fc13e6bcb5f62f8ca2ad269319ae2b29",
-        "eb632ac4c1aaa31045d757ca60cea19a2268ee9610a24824dc6183f415cfb102",
+        "23b41e2cbc37217ec2e9f246267324462d8435fb3b30663e8a82114db66bd230",
+        "6e10cc06a0b61e7b53c6079efe402392a84e4924ba560d285bbd6a7e918293fb",
     ),
     "pixal3d-pytorch-single": (
-        "b440f06d4ab646519da54cea62047d3d7fac54d81d46c6846fcdf28c45bfa295",
+        "d97ae285f73edad40714c47752ab47be03f1641f52a0ea92dc30c516aec81074",
         "7d171fe64ef2da27ed5bc9d31da69a3c2ec8dd54139961bba320afd7cc81354a",
     ),
 }

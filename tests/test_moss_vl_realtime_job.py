@@ -321,14 +321,20 @@ def test_replay_preserves_qualified_timeline(
 
 
 def test_sibling_video_qualifications_check_complete_timeline():
-    """Every video case binds fps to decoded frame count and a bounded duration."""
+    """Every video case bounds its duration; a stated frame count lies inside it.
+
+    Engines that take a duration in seconds choose the frame count themselves,
+    so those cases state only the duration bounds.
+    """
     definitions = load_definitions(ROOT / "qualification")
     for recipe_id, spec in definitions["recipes"].items():
         for case in (spec, *spec.get("cases", [])):
             for assertion in case.get("assertions", []):
                 if assertion["kind"] != "video-metadata":
                     continue
-                assert assertion["frame_count"] > 0, recipe_id
-                duration = assertion["frame_count"] / assertion["fps"]
-                assert 0 < assertion["minimum_duration_seconds"] <= duration, recipe_id
-                assert duration <= assertion["maximum_duration_seconds"], recipe_id
+                minimum = assertion["minimum_duration_seconds"]
+                maximum = assertion["maximum_duration_seconds"]
+                assert 0 < minimum <= maximum, recipe_id
+                if "frame_count" in assertion:
+                    duration = assertion["frame_count"] / assertion["fps"]
+                    assert minimum <= duration <= maximum, recipe_id

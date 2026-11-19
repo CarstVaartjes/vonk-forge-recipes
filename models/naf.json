@@ -16,10 +16,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "valeoai",
-      "slug": "naf"
-    },
     "model": {
       "publisher": "valeoai",
       "slug": "naf"

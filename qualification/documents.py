@@ -2,7 +2,8 @@
 
 Documents are execution data (``recipes/<slug>.json``, ``models/<slug>.json``).
 Display is what a person reads about them (``display/recipes/<slug>.json``,
-``display/models/<slug>.json``); a display edit never changes a document digest.
+``display/models/<slug>.json``, and the catalog hierarchy in
+``display/families/<slug>.json``); a display edit never changes a document digest.
 Callers never read display fields off a document. A recipe's API facts
 (``api/recipes/<slug>.json``) are a third optional sibling, read the same way.
 """
@@ -13,6 +14,7 @@ import json
 from pathlib import Path
 
 from vonk_forge_contracts import (
+    FamilyDisplay,
     ModelDefinition,
     ModelDisplay,
     RecipeApi,
@@ -66,6 +68,17 @@ def model_display(slug: str, root: Path = ROOT) -> ModelDisplay:
     if display.identity.slug != slug:
         raise ValueError(f"{path.name} describes {display.identity.slug}")
     return display
+
+
+def families(root: Path = ROOT) -> dict[str, FamilyDisplay]:
+    """Every Family display, keyed by its file name stem (its slug)."""
+
+    return {
+        path.stem: FamilyDisplay.model_validate(
+            json.loads(path.read_text(encoding="utf-8"))
+        )
+        for path in sorted((root / "display" / "families").glob("*.json"))
+    }
 
 
 def has_recipe_api(slug: str, root: Path = ROOT) -> bool:

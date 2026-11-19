@@ -259,10 +259,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "openmoss",
-      "slug": "mova"
-    },
     "model": {
       "publisher": "openmoss",
       "slug": "mova-720p"

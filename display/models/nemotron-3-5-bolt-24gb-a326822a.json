@@ -21,6 +21,14 @@
     "spdx": "LicenseRef-OpenMDW-1.1",
     "url": "https://openmdw.ai/license/1-1/"
   },
+  "lineage": {
+    "base_model": "nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-BF16",
+    "family": "nemotron",
+    "generation": "Nemotron 3.5",
+    "line": "nemotron-bolt-74b-a9b",
+    "model": "nemotron-3-5-bolt-74b-a9b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text",

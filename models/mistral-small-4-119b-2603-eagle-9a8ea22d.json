@@ -61,10 +61,6 @@
     "quantization": "fp8_e4m3"
   },
   "identity": {
-    "family": {
-      "publisher": "mistralai",
-      "slug": "mistral-small-4"
-    },
     "model": {
       "publisher": "mistralai",
       "slug": "mistral-small-4-119b-2603-eagle"

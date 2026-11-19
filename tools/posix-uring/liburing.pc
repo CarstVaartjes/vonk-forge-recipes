@@ -1,0 +1,8 @@
+prefix=/opt/vonk/posix-uring
+includedir=${prefix}
+
+Name: liburing
+Description: POSIX pread stand-in for the io_uring subset the Spark engines use
+Version: 0.0-vonk-posix
+Cflags: -I${includedir}
+Libs:

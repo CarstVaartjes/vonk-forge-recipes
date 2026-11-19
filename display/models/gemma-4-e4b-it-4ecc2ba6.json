@@ -21,6 +21,14 @@
     "spdx": "Apache-2.0",
     "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
   },
+  "lineage": {
+    "family": "gemma",
+    "flavor": "instruct",
+    "generation": "Gemma 4",
+    "line": "gemma-e4b",
+    "model": "gemma-4-e4b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "audio",
     "image",

@@ -1303,10 +1303,6 @@
     "quantization": "nvfp4-w4a16"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "r0b0tlab",
       "slug": "qwen3-8-flash-next-nvfp4-w4a16-sm121"

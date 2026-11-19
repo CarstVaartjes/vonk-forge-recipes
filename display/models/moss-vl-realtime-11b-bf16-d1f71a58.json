@@ -18,6 +18,14 @@
     "territorial_restrictions": null,
     "url": "https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/blob/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86/README.md"
   },
+  "lineage": {
+    "family": "moss",
+    "flavor": "vision",
+    "generation": "MOSS-VL",
+    "line": "moss-vl-realtime-11b",
+    "model": "moss-vl-realtime-11b-0708",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image",
     "text",

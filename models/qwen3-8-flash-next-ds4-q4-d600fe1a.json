@@ -1,0 +1,43 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "license-a0dc42256084",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a0dc422560841fd68e06d974907f8b4c709bca44a67daad2b528437bdf676c08",
+      "size_bytes": 3235
+    },
+    {
+      "id": "target",
+      "path": "Qwen3.8-Flash-Next-Q4.gguf",
+      "roles": [
+        "target"
+      ],
+      "sha256": "680944460a8cbe93ba8b6d7b6107213ffb7e22320bd913000e563ca0a0f25a8a",
+      "size_bytes": 177280286720
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "ds4-q4"
+  },
+  "identity": {
+    "model": {
+      "publisher": "qwen",
+      "slug": "qwen3-8-flash-next"
+    },
+    "publisher": "antirez",
+    "slug": "qwen3-8-flash-next-ds4-q4-d600fe1a",
+    "variant": "Qwen3.8 Flash Next DS4 Q4",
+    "version": "ds4-q4-d600fe1a"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/antirez/qwen3.8-flash-next-gguf",
+    "revision": "d600fe1a43d2e1cdcadb85144ce3142f66f9eefe"
+  }
+}

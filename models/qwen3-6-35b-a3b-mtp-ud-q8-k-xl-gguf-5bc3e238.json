@@ -26,10 +26,6 @@
     "quantization": "ud-q8-k-xl"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "unsloth",
       "slug": "qwen3-6-35b-a3b"

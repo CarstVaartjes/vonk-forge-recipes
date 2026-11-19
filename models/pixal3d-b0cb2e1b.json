@@ -178,10 +178,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "tencentarc",
-      "slug": "pixal3d"
-    },
     "model": {
       "publisher": "tencentarc",
       "slug": "pixal3d"

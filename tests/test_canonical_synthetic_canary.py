@@ -18,7 +18,12 @@ from typing import Any
 import pytest
 from generated_catalog import GENERATED
 from pydantic import ValidationError
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
+    document_sha256,
+    read_catalog_index,
+)
 from vonk_forge_contracts.model import ModelSource
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -76,6 +81,9 @@ def test_canonical_canary_is_valid_and_excluded_from_public_catalog() -> None:
     assert recipe.identity.slug not in public_recipes
     assert model.identity.slug not in public_models
     fixture_index = json.loads((FIXTURE / "index.json").read_text(encoding="utf-8"))
+    # A published index in this release's shape: the whole index, entries
+    # included, reads through the strict contract (as a release asset would).
+    read_catalog_index(fixture_index)
     assert fixture_index["schema_version"] == 2
     assert fixture_index["kind"] == "recipe-library-index"
     assert len(fixture_index["recipes"]) == 1
@@ -84,8 +92,9 @@ def test_canonical_canary_is_valid_and_excluded_from_public_catalog() -> None:
         fixture_index["recipes"][0]["document"]["identity"]["slug"]
         == recipe.identity.slug
     )
+    # Release layout: packages/<asset>; the bytes live beside the fixture.
     assert fixture_index["recipes"][0]["package"]["path"] == (
-        "tests/fixtures/canonical-synthetic-canary/package/canonical-synthetic-canary.tar.gz"
+        f"packages/{PACKAGE.name}"
     )
 
 

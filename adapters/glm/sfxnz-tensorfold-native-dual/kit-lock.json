@@ -9,7 +9,7 @@
     }
   },
   "kit": {
-    "commit": "9e5933c085e60361104e2dc7157661bdaa8829fb",
+    "commit": "22cfa239a6d5702939e1d33472d64d631c2e300b",
     "repo": "sfxnz/GLM-5.3-Flash-EXL3-4bpw-TensorFold-2x-DGX-Spark"
   }
 }

@@ -1,0 +1,25 @@
+{
+  "alignment": "unspecified",
+  "description": "Bizuayeu's GLM-5.3-Flash BIZ 3.x line (kit v3.15.0, 542aacc4): TensorFold's native engine (upstream v1.2.7, built from source with Zig 0.17.0 and CUDA 13.3.1 for sm_121, as the creator's image) at TP=2 over the direct ConnectX-7 link, serving the Jammed XSFP4 checkpoint (a derivative of NVIDIA GLM-5.3-Flash-FP4-Local; NVIDIA Open Model Agreement, commercially usable, not gated) with the checkpoint's own MTP head for drafts, images and videos, tool calls and structured output. The creator's serving defaults for this size: the model's full 1,048,576-token window, up to 4 requests at once on one BF16 KV pool with up to 16 kept prompt states, 9 GiB left to the system, a prompt's share of 0.7 beside decoding streams, prefill paused while a rank's hottest zone is above 92 C until all are at or below 88 C, 32,768-token replies and high reasoning effort when a request names none. The creator publishes no image: the image builds its Dockerfile with the recipe build policy's changes, and Controller placement supplies rank, rendezvous and RoCE rails instead of its ssh/docker scripts. The creator's own default at TP=2 is Jammed XSFP4; XSFP4 at TP=2 is possible there but is a different checkpoint and recipe. Creator's claims, not measured here (its reference hosts, 3.12.0 acceptance): decode check 44.07 tok/s, bench decode median 58.21 tok/s, edit 144.41 tok/s, prefill 1,535.0 tok/s at 38,960 tokens, a 1,035,295-token prompt answered after 835.5 s with every passphrase found, tool-eval-bench 93; rank 0 keeps 8 to 9 GiB MemAvailable. Memory is an estimate (the engine takes the host's memory minus the reserve; peak = 130.66 GB - reserve) until the hardware try. The creator caps the container's cores to the GB10 efficiency cores for heat; the platform does not, so a long prefill may run hotter (the heat wait still applies). The alternative engine in the same repository is vLLM (its 1.x line, NVFP4 as distributed), a different checkpoint and recipe.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-jammed-xsfp4-bizuayeu-tensorfold-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "glm",
+    "tensorfold",
+    "xsfp4",
+    "mtp",
+    "vision",
+    "video-input",
+    "tool-use",
+    "reasoning",
+    "structured-outputs",
+    "long-context",
+    "roce",
+    "two-spark",
+    "spark"
+  ],
+  "title": "GLM-5.3 Flash Jammed XSFP4 TensorFold dual Spark (Bizuayeu)"
+}

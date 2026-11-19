@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""One rank of bertholomus's Mistral Large 4 TP4 lane (engine tools/ml4/cp4_serve.sh, kit v0.2.0).
+
+The recipe passes the named `tensorfold serve` options and the creator's environment. The platform
+appends `--tp`, `--rank`, `--master VONK_MASTER_ADDR` and `--master-port VONK_MASTER_PORT`; the two
+placeholders become the rendezvous address and port the platform placed in the environment, and a
+missing or malformed one fails closed. The pack is mounted at /models/target on every rank.
+
+cp4_serve.sh's per-rank bindings, translated to the Controller's: TF_RDMA_DEVICES is the RDMA device
+list (the Controller's NCCL_IB_HCA rails, as device names), the RoCE GID index stays the Controller's
+NCCL_IB_GID_INDEX (the engine reads it), and the rank cache lives in the platform's writable cache.
+Before the server starts, the kit's serve/prebuild.py builds every CUDA extension the lane loads, as
+the creator runs it before a first start (compiling while the ranks load weights costs memory).
+"""
+
+import glob
+import os
+import re
+import subprocess
+import sys
+from ipaddress import ip_address
+
+ENGINE = "/opt/tensorfold"
+# The engine keys each rank's file by the pack and its loader, and replaces a stale one itself.
+RANK_CACHE = "/outputs/cache/ml4-rank-cache"
+PLACEHOLDERS = ("VONK_MASTER_ADDR", "VONK_MASTER_PORT")
+
+
+def fail(message):
+    raise SystemExit(f"tensorfold-serve: {message}")
+
+
+def resolve(arguments, environ):
+    if not any(argument in PLACEHOLDERS for argument in arguments):
+        return arguments
+    address = environ.get("VONK_MASTER_ADDR", "")
+    port = environ.get("VONK_MASTER_PORT", "")
+    try:
+        ip_address(address)
+    except ValueError:
+        fail("distributed TensorFold needs a valid VONK_MASTER_ADDR")
+    if not (port.isascii() and port.isdigit() and 1024 <= int(port) <= 65535):
+        fail("distributed TensorFold needs a valid VONK_MASTER_PORT")
+    values = {"VONK_MASTER_ADDR": address, "VONK_MASTER_PORT": port}
+    return [values.get(argument, argument) for argument in arguments]
+
+
+def rails(environ):
+    """The Controller's port-1 RoCE rails as the device names TF_RDMA_DEVICES takes."""
+    selectors = environ.get("NCCL_IB_HCA", "").removeprefix("=").split(",")
+    names = []
+    for selector in selectors:
+        match = re.fullmatch(r"([A-Za-z0-9_.-]+):1", selector)
+        if not match or match[1] in names:
+            fail("the RDMA gather needs distinct Controller-selected port-1 RoCE rails")
+        names.append(match[1])
+    gid = environ.get("NCCL_IB_GID_INDEX", "")
+    if not (gid.isascii() and gid.isdigit() and 0 <= int(gid) <= 255):
+        fail("the Controller's RoCE GID index is absent or invalid")
+    return ",".join(names)
+
+
+def main(arguments, environ):
+    for name in ("HOME", "TORCH_EXTENSIONS_DIR", "TRITON_CACHE_DIR", "TMPDIR"):
+        if not environ.get(name):
+            fail(f"{name} is not set")
+    for path in (environ["HOME"], environ["TORCH_EXTENSIONS_DIR"], environ["TRITON_CACHE_DIR"], environ["TMPDIR"]):
+        os.makedirs(path, exist_ok=True)
+    env = dict(environ)
+    env["TF_RDMA_DEVICES"] = rails(environ)
+    env["TF_ML4_RANK_CACHE"] = RANK_CACHE
+    # This container is the only user of its cache: a build lock left here is a killed earlier start's, and the
+    # engine would wait on it forever (tensorfold/cuda/build.py HINT).
+    for lock in glob.glob(os.path.join(environ["TORCH_EXTENSIONS_DIR"], "*", "lock")):
+        os.unlink(lock)
+    subprocess.run([sys.executable, "-u", os.path.join(ENGINE, "prebuild.py")], check=True, env=env, cwd=ENGINE)
+    command = [sys.executable, "-u", "-m", "tensorfold", "serve", "/models/target", *resolve(arguments, environ)]
+    os.chdir(ENGINE)
+    os.execvpe(command[0], command, env)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:], os.environ)

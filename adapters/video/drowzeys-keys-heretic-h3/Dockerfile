@@ -1,0 +1,25 @@
+FROM ghcr.io/drowzeys/keys-heretic-minimax-h3-sol-engine-spark@sha256:1789d539f2dfc4a3f061e5577fcc680b36ae3e75e0c01f3303df79100f5dd153
+LABEL org.opencontainers.image.source="https://github.com/drowzeys/keys-heretic-MiniMax-H3-sol-engine-more-speed-upgrades-upscaler-finish-Single-DGX-Spark" \
+      org.opencontainers.image.revision="7e8304fd8de9741119e704d1aa347534346c3a48" \
+      ai.vonkforge.runtime-interface="v1"
+COPY vonk_agent_protocol-4.1.0-py3-none-any.whl /opt/vonk/vonk_agent_protocol-4.1.0-py3-none-any.whl
+RUN python3 -m pip install --no-cache-dir /opt/vonk/vonk_agent_protocol-4.1.0-py3-none-any.whl
+# The image's PyPI torchaudio 2.11 needs torch_library_impl, which its NGC torch 2.9.0a0+145a3a7
+# lacks, so ComfyUI's `import torchaudio` fails. torchaudio 2.9.0 is the release for that torch line.
+RUN curl -fsSL https://files.pythonhosted.org/packages/be/d5/25e58745defe9d05893d3cba5c0e1a76aeaac503ac5ec4d9f83c871df71c/torchaudio-2.9.0-cp312-cp312-manylinux_2_28_aarch64.whl \
+      -o /tmp/torchaudio-2.9.0-cp312-cp312-manylinux_2_28_aarch64.whl \
+ && echo '7f93388b6e536c14d6015b6f75277a8b45efc532f61b35adc1ed06c98a86003e  /tmp/torchaudio-2.9.0-cp312-cp312-manylinux_2_28_aarch64.whl' | sha256sum -c - \
+ && python3 -m pip install --no-cache-dir --no-deps /tmp/torchaudio-2.9.0-cp312-cp312-manylinux_2_28_aarch64.whl \
+ && rm /tmp/torchaudio-2.9.0-cp312-cp312-manylinux_2_28_aarch64.whl \
+ && python3 -c 'import torch, torchaudio, torchvision; print(torch.__version__, torchaudio.__version__, torchvision.__version__)'
+COPY workflows /opt/vonk/source/workflows
+COPY runtime_smoke.py /opt/vonk/runtime_smoke.py
+RUN cd /opt/comfy/ComfyUI && PYTHONPATH=/opt/comfy/ComfyUI python3 /opt/vonk/runtime_smoke.py
+RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
+ && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /outputs/cache/home --no-create-home --shell /usr/sbin/nologin vonk; fi
+COPY --chmod=0555 comfyui_job.py /opt/vonk/bin/comfyui-job
+ENV HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+    HOME=/outputs/cache/home XDG_CACHE_HOME=/outputs/cache TMPDIR=/outputs/cache/tmp PYTHONUNBUFFERED=1
+USER 10001:10001
+WORKDIR /opt/comfy/ComfyUI
+ENTRYPOINT []

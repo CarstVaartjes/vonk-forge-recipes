@@ -1276,10 +1276,6 @@
     "quantization": "nvfp4"
   },
   "identity": {
-    "family": {
-      "publisher": "meta",
-      "slug": "muse-spark"
-    },
     "model": {
       "publisher": "meta",
       "slug": "muse-spark-open-816b-a42b-nvfp4"

@@ -43,10 +43,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "vast-ai",
-      "slug": "skintokens"
-    },
     "model": {
       "publisher": "vast-ai",
       "slug": "skintokens"

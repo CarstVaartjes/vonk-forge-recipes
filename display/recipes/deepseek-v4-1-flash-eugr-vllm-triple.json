@@ -1,0 +1,26 @@
+{
+  "alignment": "standard",
+  "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker 3x-spark-cluster deepseek-v4.1-flash recipe for DeepSeek's official DeepSeek-V4.1-Flash (plain V4.1, not the 1017 build; checkpoint revision 314113f8), MIT, served by vLLM on three Sparks with tensor parallelism 3. Runs eugr's published vllm-node-b12x image (nightly-20261102, `--exp-b12x` lane, digest pinned, built from spark-vllm-docker b7f6b4cd) with upstream's launch: bfloat16, B12X linear, MoE and attention backends, block size 256, prefix caching, DSpark speculative decoding with 7 tokens (probabilistic draft sampling, adaptive verification, draft tensor parallelism 3), the deepseek_v41 reasoning and tool-call parsers, one image per prompt, two sequences, 4,096 batched tokens and memory utilisation 0.87; RoCE all-reduce environment as upstream. Upstream also sets an absolute KV pool of 0.5 GB per rank (`--kv-cache-memory-bytes 0.5g`, 500,000,000 bytes here). Upstream sets max-model-len to `auto`; this recipe binds the context setting instead (57,344 tokens, an estimate of what the 0.5 GB pool holds at about 8.35 kB of KV per token, taken from the measured V4 Flash Vision Exp geometry; the engine's automatic choice decides on hardware). Memory: the checkpoint is 510 GB, of which two Engram shards (47 and 48, about 203 GB) are read from disk row by row, which upstream does through b12x's io_uring reader. The workload sandbox blocks io_uring, so the image installs the POSIX pread transport that the 0xSero DeepSeek-V4.1-Flash adapter uses (the same _ple_reader.c, copied byte for byte over b12x's loader file) and the checkpoint loader is switched from `b12x` to `safetensors` by the launcher; B12X attention, MoE and linear kernels stay. Both are interface fixes, and whether that file fits the b12x build inside eugr's image is untested: the hardware try decides. Per-rank estimate before the first try: the non-Engram weights are about 307 GB, 102.4 GB per Spark, plus the 0.5 GB KV pool and 8 GB overhead (loading floor about 110.9 GB, predicted to fit an idle Spark). The declared peak is the startup free-memory check, 0.87 of 130,663,231,488 bytes = 113.7 GB, which vLLM requires free before loading. This is an offline estimate; physical acceptance is pending. Upstream's recipe is cluster-only. No upstream performance claims are recorded. Upstream repository MIT.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-eugr-vllm-triple"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "b12x",
+    "candidate",
+    "deepseek",
+    "deepseek-v4-1",
+    "dspark",
+    "engram",
+    "eugr",
+    "executable",
+    "reasoning",
+    "spark",
+    "tool-use",
+    "triple",
+    "vision",
+    "vllm"
+  ],
+  "title": "DeepSeek V4.1 Flash B12X DSpark vLLM three Sparks (eugr)"
+}

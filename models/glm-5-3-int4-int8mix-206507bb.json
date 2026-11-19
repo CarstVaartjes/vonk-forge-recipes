@@ -2635,10 +2635,6 @@
     "quantization": "compressed_tensors_w4a16_w8a16"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "tech2wild",
       "slug": "glm-5-3-int4-int8mix"

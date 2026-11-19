@@ -115,10 +115,6 @@
     "quantization": "awq-int4-compressed-tensors"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "cyankiwi",
       "slug": "glm-4-7-flash-awq-4bit"

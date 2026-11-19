@@ -30,24 +30,19 @@ count/topology. Unknown historical provenance stays unknown. Public evidence
 has closed summaries/codes and digest references, never raw messages, host
 names, addresses, run/request/operation ids, paths or credentials.
 
-The local sweep view uses these statuses:
-
-- **Working:** passed on the current exact identity; quality notes may remain.
-- **Re-check: worked before:** an identity changed after a pass; show recipe,
-  image and/or Model changes and the last successful test.
-- **Fix to verify:** a recipe failure preceded an identity change.
-- **Failed: recipe:** failed on the current identity; show cause and public fix
-  reference, or “needs fix”.
-- **Blocked: platform:** infrastructure/Controller fault; never recipe blame.
-- **Untested:** no hardware verdict.
-- **Can't test here:** requires more Sparks than are enrolled.
-- **Testing now:** occupies a lane; the prior proof remains visible.
+The local sweep view uses the `QualificationStatus` values. Their user-facing
+meanings, and which status counts as verified, have one owner:
+`contracts/src/vonk_forge_contracts/vocabulary.py`; do not restate them here.
+The view adds detail per status: for Re-check, the recipe, image and/or Model
+changes and the last successful test; for Failed: recipe, the cause and public
+fix reference, or “needs fix”; for Blocked: platform, never recipe blame; for
+Testing now, the prior proof stays visible.
 
 The signed catalog's per-recipe `qualification` is recomputed at publication
 against the recipe, image and Models in that release. It publishes Working,
 Re-check, Fix to verify, Failed: recipe, or **Not yet verified**, with a reason
 (never tested, needs more Sparks, platform issue under fix, or incomplete
-historical provenance). Fleet/lane states remain local. Working requires exact
+historical provenance). A recipe that passed before and then changed identity, or hit a platform fault on its current identity, publishes Re-check until re-tested, never Not yet verified. Fleet/lane states remain local. Working requires exact
 resolved identity and recorded platform provenance. The proof includes the
 Controller release, so consumers can show whether it was proven on the user's
 same, older or newer platform; it is not a claim about an untested platform.
@@ -116,8 +111,8 @@ prove that every embedded source, container, or dependency is current.
 
 The [Pydantic definitions](../contracts/src/vonk_forge_contracts) are the source
 of truth; the [generated JSON Schemas](../contracts/src/vonk_forge_contracts/schema)
-(`recipe-definition-v4`, `model-definition-v4`, `recipe-display-v4`,
-`model-display-v4`, `recipe-api-v4`) state every field's shape, bound, enum and default. Use the
+(`recipe-definition-v5`, `model-definition-v5`, `recipe-display-v5`,
+`model-display-v5`, `recipe-api-v5`) state every field's shape, bound, enum and default. Use the
 [examples](../contracts/src/vonk_forge_contracts/examples) (a Recipe, Model and
 display for each shape) for structure only; replace synthetic identities and
 data with verified inputs.
@@ -130,7 +125,8 @@ published-document readers to bypass producer validation (`tests/test_contracts.
 | Model | `identity`, `requires_token`, `dependencies`, `source`, `format`, `files`. |
 | Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
 | Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment` is optional. |
-| Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`, and the Model's declared facts: `modalities`, `capabilities`, `license`. |
+| Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`, and the Model's declared facts: `modalities`, `capabilities`, `license`; `lineage` (its place in the catalog hierarchy) is required for a Model a recipe serves first and absent for a helper. |
+| Family display | `slug`, `title`, `lines` (each `slug`, `title`, `models` oldest first). |
 | Recipe API | `identity` (the Recipe's), `api` (a `chat`, `decision`, `audio_transcription` or `audio_speech` block, every field required), `option_choices`. |
 
 A document holds execution data only. What a person or a filter reads about it
@@ -253,14 +249,19 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v4.7.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v5.0.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
-release. A change to the contract itself bumps `CONTRACT_VERSION`:
+release. A change to the contract itself bumps `CONTRACT_VERSION`: once
+`v<CONTRACT_VERSION>` is released, validate.yml refuses any change under
+`contracts/src` until `_version.py` names a new version.
 
-- **Additive (minor):** add an optional field without changing existing wire
-  requirements. The Controller reads published documents with `read_model` and
+- **Patch:** a fix that keeps every published field, meaning and public API,
+  such as a stricter check of a value producers already write.
+
+- **Additive (minor):** add an optional field or a new public API without
+  changing existing wire requirements (`4.9.0` added the `read_catalog` reader). The Controller reads published documents with `read_model` and
   `read_recipe`, which ignore fields they do not know, and identifies each
   document by the `document_sha256` of its published JSON, so an older
   Controller keeps working and picks the field up when vonk-forge upgrades.
@@ -268,14 +269,25 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`:
   `CapabilityName` set (`vonk_forge_contracts/capability.py`), each with one
   `CapabilityRole` (understanding, generator or other) that guards read instead
   of parsing names. A new capability is a contract minor release: add the name
-  and its role there, release it, and let the Controller adopt it before a
-  catalog declares the name; a reader refuses a name it does not list.
-- **Breaking (major, for example `3.0.0`, which moved display text out of the documents, and `4.0.0`, which moved a Model's modalities, capabilities and licence into its display):** remove or rename a field, make one required,
+  and its role there, and its label, description and category to `CAPABILITY_TEXT`
+  in `vocabulary.py` (import fails without it), release it, and let the Controller adopt it before a
+  catalog declares the name. Authoring refuses a name it does not list. A consumer
+  reading the index with `read_catalog` (4.9.0 and later) keeps the entry and the
+  word as an `UnrecognisedWord`, and so it does with a modality, an alignment, an
+  API endpoint, format, tool choice, request placement or reasoning default, or a
+  qualification word. An unknown discriminator (`kind`, `mode`) or API token
+  `setting` drops the API block instead (the recipe stays); an unknown word in the
+  execution document skips the entry. Closed-word lists carry no length cap, so a
+  new word never overflows one. A Controller pinned before 4.9.0 loses what it
+  cannot read, so the adoption order still applies.
+- **Breaking (major, for example `3.0.0`, which moved display text out of the documents, `4.0.0`, which moved a Model's modalities, capabilities and licence into its display, and `5.0.0`, which removed `identity.family` from the Model in favour of the display `lineage`):** remove or rename a field, make one required,
   or change a field's meaning. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
   unknown fields does not let an old reader accept a missing required field.
-  Coordinate a vonk-forge release; Controllers on
-  the previous major keep following the previous major's release.
+  Deploy it consumer-first: pin this recipes commit in vonk-forge, deploy it,
+  then move `platform_ref` here (`tools/check-platform-contracts` refuses a
+  major newer than the platform's). Controllers on the previous major keep
+  following the previous major's release until then.
 
 ### Model: the exact files and their capabilities
 
@@ -283,16 +295,30 @@ Reuse an existing exact Model when appropriate. Create a distinct version or
 variant record when the underlying model identity changes. Family names and
 new versions are data; they do not require new Python classes.
 
-`identity.family` is the upstream lineage, not the checkpoint you are adding:
-every quantization, fine-tune and republished checkpoint of Qwen carries
-`{"publisher": "qwen", "slug": "qwen"}` (its title, "Qwen", is the Model
-display's `family_title`), whoever published it; the republisher is the Model's own `identity.publisher`, and the weight
-format belongs in `version`, `variant` and `format`. Reuse the family an
-existing Model of that lineage already declares
-(`rg -l '"slug": "glm"' models/`); invent a new one only for a new lineage,
-with the upstream creator's slug as its publisher. `tools/check-model-families` fails a family
-that names a republisher or a format, or a slug that two documents describe
-differently, because the public catalog groups by this field.
+Where a Model sits in the catalog is display, never identity: the Model
+document has no family. The Model display's `lineage` places it in the
+hierarchy Family (the product brand) → Line (one size and role) → Model (one
+vendor release, plus an optional `flavor`) → variant (`variant_kind`: `base`
+for the vendor's own released checkpoint, `quantization` for the same weights in
+another format or bit-width, `derivative` for different weights such as a prune,
+distill or tune; `base_model` names the upstream Hugging Face id, which need
+not be in this catalog). `generation` is a facet across Lines. Every quantization,
+fine-tune and republished checkpoint of a release carries that release's
+lineage, whoever published it; the republisher is the Model's own
+`identity.publisher`, and the weight format belongs in `version`, `variant` and
+`format`. `display/families/<slug>.json` holds each Family's title and its
+Lines' Models; the order of a Line's `models` is its release order, oldest
+first; a branded tune of another vendor's model is its
+own Family, and a vision, omni, thinking or task checkpoint is its own Model in
+its own Line. Reuse an existing Family, Line and Model
+(`rg -l '"line": "glm-flash"' display/models/`); add a Line or Model to the
+Family file when the release is new. `tools/catalog-hf-model` and
+`tools/catalog-github-lfs-model` write it with `--lineage`. A helper (an
+encoder, a drafter, a weight part) has no lineage. `tools/check-model-families`
+fails a lineage outside `display/families`, a listed Model release no Model
+names, a served Model without lineage, and a Family or Line that names a weight
+format. Regrouping a Model is a display edit: no
+digest, evidence or status moves.
 
 Resolve an immutable source identity and enumerate the files needed to load
 the model, including configuration, tokenizer, companion data, and license.
@@ -378,8 +404,17 @@ offline (`--network=none`), so a pip/uv install that can reach an index must
 declare the index hosts. An install is exempt with `--no-index`, or when it uses
 local targets with `--no-deps` and either all `.whl` files or
 `--no-build-isolation`; without `--no-index`, a `-r`/`--requirement` install counts as fetching.
-`tests/test_build_network_hosts.py` checks this for recipes with an empty host
-list. Include all required local build inputs, patches, entrypoints,
+`tests/test_build_network_hosts.py` reads the Dockerfile and the context
+scripts its `RUN` lines execute (`bash x.sh`, `python3 x.py`, `source x`, `./x`,
+including `cd` and `WORKDIR` and `mods/*/run.sh` loops) and fails when a build
+fetches (pip/uv, curl, wget, git clone, apt, npm) with an empty host list, or
+when the declared hosts lack what the fetch needs: the PyPI pair by default, the
+`--index-url` host, `--extra-index-url` plus the PyPI pair, or a URL target's
+own host. An install that only runs after a failed probe (`python3 -c "import
+x" || pip install x`) is not a fetch. Comments, echo/print text, localhost URLs,
+`--no-index`/`--offline` and local `.deb`/`.whl` paths are exempt. It is a line
+and token reading, not a shell parser: exec-form `RUN`, `bash -c` and computed
+script paths are not followed. Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
 
@@ -458,7 +493,14 @@ and raise utilization by the table's share over the creator's budget, citing
 the sandbox io_uring block. A disk Engram table (`engram-config`
 `table_memory: disk`), or any disk table on an image that is not the b12x
 image, needs an image that installs a tested POSIX reader (see
-`adapters/deepseek/0xsero-exl3-vllm-dual/_ple_reader.c`). The recipe loader test
+`adapters/deepseek/0xsero-exl3-vllm-dual/_ple_reader.c`). So does
+`--load-format direct` (vLLM's checkpoint loader reads through io_uring bounce
+slots). For engines that compile against liburing (vLLM `engram_rows` and
+`direct_io`, B12X), copy `tools/posix-uring/` byte-identical into the context as
+`posix-uring/`, `COPY` it to `/opt/vonk/posix-uring`, put that directory on
+`PKG_CONFIG_PATH` (an `ENV` line; the writable-state check treats it as read-only)
+and install no `liburing-dev`: its header does one `pread()` per queued read and makes no io_uring call. Replace a creator's "links liburing"
+self-check with "links no liburing" and disclose it. The recipe loader test
 (`tests/test_recipe_sandbox_loaders.py`) enforces both by the recipe's base
 image. Never request relaxed seccomp. Enforce image-owned transport policy in
 the launcher before exec, including when a kit declares an unsafe backend. b12x
@@ -525,14 +567,13 @@ memory (`per_rank_need`) and record the predicted outcome, and any creator
 caveat such as "testing only", in the PR and description. The
 estimate rules are calibrated on the proven set. A KV pool holds at least one full-context request,
 not declared context × engine concurrency: engines schedule requests within it.
-Any sparse-index geometry (DSA, MSA) counts its index cache, and a draft pool if any, in the numbers (`replicated_token_bytes`).
+Any sparse-index geometry (DSA, MSA) counts its index cache, and a draft pool if any, in the numbers (`replicated_token_bytes`; on a geometry with typed `recurrent`, inside `token_bytes_by_dtype`).
 GLM DSA (sparse-MLA) pools count the indexer cache inside the same pool: bytes per
 token are (backbone + MTP layers) × the main record (656 fp8_ds_mla, 400
 nvfp4_ds_mla) plus the layers that build an indexer (the full layers of
 `index_topk_freq`/`index_skip_topk_offset`, plus the MTP layer) × 132. That
 reproduces the creators' logged pools (200,064 tokens in 10.95 GB fp8; 317,312
-nvfp4; 354,496 in 11,811,160,064 for the AQLM recipe, whose
-`index_topk_freq` 8 override leaves 13 indexer layers). The derivation is in the
+nvfp4). The derivation is in the
 `source` of each geometry in `qualification/memory-inputs.json`.
 The estimate warns unless a touched single-Spark recipe bounds KV: an absolute pool
 (vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens`), or a declared
@@ -617,7 +658,10 @@ null block; `vllm_hybrid_need` computes that bound from the recipe's prefix
 caching, cache dtypes, speculation, block size and TP and ignores any hand
 `state_bytes_per_request`, which other engines keep. A hybrid whose vLLM layout
 the formula cannot express is named, with its reason, in
-`VLLM_UNMODELED_HYBRID`.
+`VLLM_UNMODELED_HYBRID`. A geometry with typed `recurrent` may keep a hand per-token
+attention bound (`token_bytes_by_dtype`, e.g. a DSA pool's per-token bound) only when `layers`
+equals `recurrent.attention_layers`, because the formula spreads that bound over
+the attention layers it groups; the validator rejects any other `layers`.
 After a pool fails on hardware, keep the creator context if one request at it
 fits beside the selected weights and runtime overhead (check the worst option);
 otherwise cap the engine context at what fits, cite the failure and disclose the
@@ -654,8 +698,9 @@ refs. Changed content and new ids are checked by the estimate rules (warnings); 
 digest cannot exempt modified recipe bytes or a modified parsed launch. Memory
 estimates (the envelope, loading floor, KV pool, startup budget, admissibility and
 swap rules) produce **WARNING** lines in `tools/build-catalog-index` and
-`tools/check-recipe-memory-need`, in the PR step summary, and on `main` in one
-“Memory estimate mismatches” issue; they never fail a build or a PR, rewrite a recipe
+`tools/check-recipe-memory-need`, and in the PR step summary; on `main` the one
+“Memory estimate mismatches” issue lists only estimates that cannot be computed
+(missing sourced inputs), never disagreements. They never fail a build or a PR, rewrite a recipe
 or assign a “does not fit” verdict. Qualification status comes only
 from `qualification/evidence/` and the shared `derive_status` reducer. There is
 no second pass/failure list in memory inputs; that file contains numerical
@@ -814,6 +859,15 @@ and exercise actual writes and cache reuse; do not scatter recipe workarounds.
 Model files are mounted read-only and identical files may be hard links to one
 cached copy; a creator launcher that refuses linked or read-only files gets an
 adapter fix, never a per-install copy.
+
+An engine whose wrapper takes its placement from the platform (`gr8`, `ds4`) reads `VONK_RANK`,
+`VONK_WORLD_SIZE`, `VONK_LOCAL_ADDR`, `VONK_MASTER_ADDR`, `VONK_MASTER_PORT` and, in rank order,
+`VONK_PEER_ADDRS`; the recipe's arguments carry no rank. A wrapper over a creator's launcher maps them onto the
+creator's own settings and execs the creator's entrypoint, uses the read-only `/models` mounts in place and moves
+every `/var/lib/...` path the creator wrote to under `/outputs/cache/<engine>`
+(`adapters/glm/kindlingai-gr8-flash-*`, `tests/test_gr8_serve_wrapper.py`). A creator option the platform cannot
+run (a host daemon) is left out with no option or mention; one it can run (gr8's compact expert copies) is an option
+whose first start does the creator's prepare step into `/outputs/cache`.
 
 Bind generated rank/vision/model views to their checkpoint and engine inputs,
 reuse complete cached work and rebuild malformed/interrupted output
@@ -1041,12 +1095,19 @@ hold is updated/removed with working evidence (`tools/check-base-image-holds`,
 `tests/test_base_image_holds.py`). `model-revision-holds.json` declines one Model
 revision that cannot run on the recipe's Sparks, with its reason; a newer
 upstream revision is assessed again (`tools/check-model-revision-holds`,
-`tests/test_model_revision_holds.py`). Recipes in `published-images.json` follow the
+`tests/test_model_revision_holds.py`). A recipe that mounts every file of its Model follows added
+files of the repository, except weights files added beside byte-identical catalogued files: that is
+another checkpoint and does not move the recipe (#2749). Recipes in `published-images.json` follow the
 published image digest and its recorded build commit, not unrelated newer Git
 heads. `tools/check-image-provenance --base origin/main` checks changed recipes.
 An unavailable recorded commit needs the explicit unverified provenance mark
 and review; do not claim a byte comparison that could not run. Outages wait;
 missing source is unverified (`tests/test_published_image_follow.py`).
+When the refresher moves a published image it also replaces the adapter
+Dockerfile's image-description comment (between `LABEL` and the
+`# Upstream recipes start it with` line) with one version-free line, only when that
+line opens its own comment line; `FROM` and `LABEL` own the identity. A header
+without that line is kept and, like kit image pins, keeps the manual header review.
 
 ### Kit-built recipes: the kit declares what it builds on
 
@@ -1259,8 +1320,10 @@ review policies; no static guard can prove upstream completeness or honesty.
 | --- | --- |
 | `tests/test_contracts.py`, `tests/test_contract_examples.py` | Strict root/field/relationship validation, bounded paths/argv, source/file identities. Correct data to the current definitions; regenerate examples/schemas after a contract change. |
 | `tools/check-recipe-model-references`, `tests/test_recipe_model_references.py`, `tests/test_display_split.py` | Every pinned Model/file exists at the exact digest, and every Recipe and Model has exactly one display file and none is orphaned. Catalog the missing immutable Model or update all bindings together; add or remove the display with its document. |
-| `tools/check-model-families`, `tests/test_check_model_families.py` | One consistent upstream lineage. Reuse its family identity instead of republisher/format families. |
+| `tools/check-model-families`, `tests/test_check_model_families.py` | One consistent catalog hierarchy in the displays. Add the Family/Line/Model to `display/families` or correct the Model display's `lineage`; never a format in a Family or Line. |
 | `tools/check-recipe-topology --base origin/main`, `tests/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
+| validate.yml "Require a contract version bump for a changed contract" | `contracts/src` equals the released `v<__version__>` tag. Bump `__version__` in `contracts/src/vonk_forge_contracts/_version.py` (patch, minor or major as above). |
+| `tests/test_catalog_reader.py` | The consumer reader keeps every readable entry: an unknown word stays as an `UnrecognisedWord`, an unreadable optional block is dropped while its entry stays, an entry with malformed execution data is skipped, and only a wrong envelope or major or a digest mismatch refuses the index. Keep producer validation strict; change the reader's rules in `catalog_reader.py` only. |
 | `tests/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. Repair the launcher or display; do not publish placeholder tags. |
 | `tests/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
 | `tests/test_recipe_model_mounts.py`, `tests/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
@@ -1287,7 +1350,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-document-reads`, `tools/_added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
 | `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
 | `tools/check-model-modalities`, `tests/test_model_modalities.py` | A touched Model's display (or the Model a touched recipe serves) disagrees with its modalities (`image` ⇔ `image-understanding`, likewise audio and video) or with a serving recipe's API document: a chat route needs `chat` and `text-generation`, reasoning other than `none` needs `reasoning`, tools other than `none` need `tool-use`. Correct `display/models/<slug>.json`, or the API document if it claims what the launch does not serve. |
-| `tools/check-platform-contracts`, `qualification/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. |
+| `tools/check-platform-contracts`, `qualification/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. The row also fires on a contracts major newer than the platform's: pin this commit in vonk-forge, deploy, then move `platform_ref`. |
 | `tests/test_guidance_files.py` | Guidance stays in the allowlisted files and local Markdown links resolve. Consolidate the new rule here or in AGENTS; fix links in the same change. |
 | `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
 
@@ -1416,7 +1479,8 @@ Commit authored sources only. `catalog-index.json`,
 `qualification/qualification-index.json`, `packages/` and
 `qualification/coverage/` are build outputs: Git ignores them, CI builds and
 validates them for every pull request, and publication builds them from the
-release commit. Build them locally with one command when a tool or test outside
+release commit. The release also ships `catalog-index-v2.schema.json`, the generated schema of the
+`CatalogIndex` contract that `catalog-index.json` is built through. Build them locally with one command when a tool or test outside
 the suite needs them:
 
 ```bash

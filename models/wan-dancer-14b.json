@@ -214,10 +214,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "wan-ai",
-      "slug": "wan"
-    },
     "model": {
       "publisher": "wan-ai",
       "slug": "wan-dancer-14b"

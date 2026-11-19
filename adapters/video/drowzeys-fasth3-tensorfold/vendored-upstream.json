@@ -1,10 +1,13 @@
 {
   "source": {
     "repo": "drowzeys/Imagination-Studio-by-keys-Wasserman",
-    "commit": "3926471d59bfe8a51a295b7bfdef6cda0b09e1de"
+    "commit": "e7d7c6c1105045272b0f95afc5a9f71bc345f2b2"
   },
   "renamed": {
-    "tensorfold_h3/__init__.py": "spark/tensorfold_h3/__init__.py"
+    "tensorfold_h3/__init__.py": "spark/tensorfold_h3/__init__.py",
+    "tensorfold_h3/decode2.py": "spark/tensorfold_h3/decode2.py",
+    "tensorfold_h3/tp.py": "spark/tensorfold_h3/tp.py",
+    "tensorfold_h3/tp_rank.py": "spark/tensorfold_h3/tp_rank.py"
   },
   "ours": [
     "comfyui_job.py",

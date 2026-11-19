@@ -10,6 +10,12 @@ set -eu
 
 cd "$(dirname "$0")/.."
 
+# With path arguments (the pre-commit hook passes the staged Python files) only
+# those paths are checked; without, the whole repository, as CI does.
+if [ "$#" -gt 0 ]; then
+  exec uvx --from ruff==0.16.9 ruff check --force-exclude -- "$@"
+fi
+
 entry_points=""
 for path in $(git ls-files | grep -v '\.' | grep -v '^adapters/'); do
   IFS= read -r first_line < "$path" || continue

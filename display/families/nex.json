@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "nex-n2-mini",
+          "title": "Nex-N2 mini"
+        }
+      ],
+      "slug": "nex-mini",
+      "title": "Nex mini"
+    }
+  ],
+  "slug": "nex",
+  "title": "Nex"
+}

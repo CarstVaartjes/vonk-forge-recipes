@@ -583,10 +583,6 @@
     "quantization": "awq-int4-compressed-tensors"
   },
   "identity": {
-    "family": {
-      "publisher": "minimax",
-      "slug": "minimax"
-    },
     "model": {
       "publisher": "cyankiwi",
       "slug": "minimax-m2-5-awq-4bit"

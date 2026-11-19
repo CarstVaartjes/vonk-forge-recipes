@@ -17,7 +17,6 @@ from typing import Any
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from documents import recipe_display
 from generated_catalog import GENERATED
 from vonk_forge_contracts import (

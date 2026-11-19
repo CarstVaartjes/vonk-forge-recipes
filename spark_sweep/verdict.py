@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
+from vonk_forge_contracts import QualificationCauseCode
 from vonk_forge_contracts.sweep import (
     ControllerWait,
     SweepFailureClass,
@@ -42,6 +43,7 @@ from .policy import (
     SWAP_SHORT,
     Failure,
     activity,
+    classify,
     forward_marks,
 )
 from .receipt import receipt_failure
@@ -480,6 +482,31 @@ class Blame(StrEnum):
 DECLARED_CLASSES = (
     FAIL_CLASSES | SKIP_CLASSES | RECORDED_CLASSES | WAIT_CLASSES | OBSERVE_CLASSES
 ) | {"capacity"}
+
+#: What a smoke request that got no answer looks like from the client (the transport failed).
+SMOKE_TRANSPORT_CLASSES = frozenset({"smoke-request", SMOKE_BUSY, SMOKE_TIMEOUT})
+#: The run states that say the workload itself ended on its own (``stopped``/``stopping`` is an
+#: ending somebody asked for; ``lost`` is the platform losing sight of it).
+WORKLOAD_EXITED_STATES = frozenset({"failed"})
+
+
+def smoke_workload_exit(failure: Failure, run_states: Sequence[str]) -> Failure:
+    """A smoke transport failure while the run's workload had exited is the load-time runtime exit.
+
+    Decided by what the system did: the workload died, so no request could be answered. The same
+    code as a start-time exit (``RUNTIME_EXIT``) carries the recipe's blame; a transport failure
+    while the run still runs keeps its own class.
+    """
+    if failure.klass not in SMOKE_TRANSPORT_CLASSES or not any(
+        state in WORKLOAD_EXITED_STATES for state in run_states
+    ):
+        return failure
+    return classify(
+        failure.phase,
+        QualificationCauseCode.RUNTIME_EXIT,
+        failure.detail,
+        evidence={**failure.evidence, "smoke_failure_class": failure.klass},
+    )
 
 
 def blame(klass: str, code: str | None) -> Blame:

@@ -42,11 +42,10 @@ class Lfm25VlRecipeTests(unittest.TestCase):
             {"HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"},
         )
 
-    def test_both_recipes_pin_the_corrected_snapshot_and_source_bundles(self) -> None:
+    def test_recipe_pins_the_corrected_snapshot_and_source_bundles(self) -> None:
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         for slug, adapter in (
             ("lfm2-5-vl-3b-vllm-single", "adapters/liquidai/lfm25-vl-vllm"),
-            ("lfm2-5-vl-3b-vllm028-single", "adapters/liquidai/lfm25-vl-vllm-028"),
         ):
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             self.assertEqual(

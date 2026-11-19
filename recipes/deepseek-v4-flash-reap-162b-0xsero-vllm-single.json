@@ -806,7 +806,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e4f5101cd36129d227b2aadc37fa485d9fa5c0903c57190200803eb9a301e9f9",
+        "content_sha256": "b6f53db2fbe08bb43fb67489fc1dc4080813034c2b0805bcb319c953b838120d",
         "kind": "model",
         "publisher": "0xsero",
         "slug": "deepseek-v4-flash-reap-162b-k144-2b29d032"

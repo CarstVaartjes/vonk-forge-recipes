@@ -19,7 +19,7 @@ from vonk_forge_contracts import (
     document_sha256,
     published_json,
 )
-from vonk_forge_contracts.model import ModelFamily, ModelRecord
+from vonk_forge_contracts.model import ModelRecord
 from vonk_forge_contracts.resolver import ContractResolutionError, validate_library
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,7 +46,6 @@ def _library() -> tuple[
 def test_the_retired_display_paths_are_gone_from_the_documents() -> None:
     assert "metadata" not in RecipeDefinition.model_fields
     assert "metadata" not in ModelDefinition.model_fields
-    assert "title" not in ModelFamily.model_fields
     assert "title" not in ModelRecord.model_fields
     for moved in ("modalities", "capabilities", "license"):
         assert moved not in ModelDefinition.model_fields
@@ -62,7 +61,7 @@ def test_a_document_refuses_a_display_field_written_back_into_it() -> None:
         RecipeDefinition.model_validate({**recipe_document, "metadata": {"title": "x"}})
     with pytest.raises(ValueError, match="Extra inputs are not permitted"):
         ModelDefinition.model_validate({**model_document, "metadata": {"tags": []}})
-    family = {**model_document["identity"]["family"], "title": "x"}
+    family = {"publisher": "deepseek-ai", "slug": "deepseek"}
     identity = {**model_document["identity"], "family": family}
     with pytest.raises(ValueError, match="Extra inputs are not permitted"):
         ModelDefinition.model_validate({**model_document, "identity": identity})
@@ -87,6 +86,7 @@ def test_display_fields_are_exactly_the_moved_set() -> None:
         "modalities",
         "capabilities",
         "license",
+        "lineage",
     }
 
 
@@ -138,34 +138,47 @@ def test_a_display_must_name_its_own_document() -> None:
         validate_library(recipes, models, recipe_displays, model_displays)
 
 
-def _tree_with_edited_display(tmp_path: Path, slug: str) -> Path:
-    """A library whose only difference is one recipe's display file."""
+def test_editing_a_proven_recipes_displays_changes_no_identity_or_status(
+    tmp_path: Path, built_catalog: tuple[dict, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A proven recipe's display and its Model's licence and capabilities
+    are display: correcting them re-runs nothing.
 
+    One build of a library whose only difference is those two display files.
+    """
+
+    key = next(iter(sorted(PROVEN)))
+    slug = key.split("/", 1)[1]
+    model_slug = recipe(slug).models[0].model.slug
     tree = tmp_path / "tree"
     tree.mkdir()
     for entry in ROOT.iterdir():
-        if entry.name in {".git", "display"}:
-            continue
-        (tree / entry.name).symlink_to(entry)
+        if entry.name not in {".git", "display"}:
+            (tree / entry.name).symlink_to(entry)
     shutil.copytree(ROOT / "display", tree / "display")
-    path = tree / "display/recipes" / f"{slug}.json"
-    edited = recipe_display(slug).model_copy(
+    edited_display = recipe_display(slug).model_copy(
         update={
             "title": "A completely different title",
             "description": "A completely different description.",
             "tags": ["edited"],
         }
     )
-    path.write_text(json.dumps(published_json(edited), indent=2, sort_keys=True) + "\n")
-    return tree
-
-
-def test_editing_a_proven_recipes_display_changes_no_identity_or_status(
-    tmp_path: Path, built_catalog: tuple[dict, Path], monkeypatch: pytest.MonkeyPatch
-) -> None:
-    key = next(iter(sorted(PROVEN)))
-    slug = key.split("/", 1)[1]
-    tree = _tree_with_edited_display(tmp_path, slug)
+    (tree / "display/recipes" / f"{slug}.json").write_text(
+        json.dumps(published_json(edited_display), indent=2, sort_keys=True) + "\n"
+    )
+    facts = model_display(model_slug)
+    edited_facts = facts.model_copy(
+        update={
+            "capabilities": [
+                *facts.capabilities,
+                next(c for c in CapabilityName if c not in facts.capabilities),
+            ],
+            "license": facts.license.model_copy(update={"spdx": "LicenseRef-edited"}),
+        }
+    )
+    (tree / "display/models" / f"{model_slug}.json").write_text(
+        json.dumps(published_json(edited_facts), indent=2, sort_keys=True) + "\n"
+    )
     monkeypatch.setitem(TOOL["build"].__globals__, "ROOT", tree)
     # The build runs the memory gate on every recipe; it raises when it is not silent.
     edited = TOOL["build"](
@@ -206,52 +219,8 @@ def test_editing_a_proven_recipes_display_changes_no_identity_or_status(
         for row in edited["recipes"]
         if row["document"]["identity"]["slug"] == slug
     )
-
-
-def test_editing_a_proven_recipes_model_facts_changes_no_identity_or_status(
-    tmp_path: Path, built_catalog: tuple[dict, Path], monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """The licence, capabilities and modalities of a Model are display: correcting
-    one re-runs nothing."""
-
-    key = next(iter(sorted(PROVEN)))
-    model_slug = recipe(key.split("/", 1)[1]).models[0].model.slug
-    tree = tmp_path / "tree"
-    tree.mkdir()
-    for entry in ROOT.iterdir():
-        if entry.name not in {".git", "display"}:
-            (tree / entry.name).symlink_to(entry)
-    shutil.copytree(ROOT / "display", tree / "display")
-    facts = model_display(model_slug)
-    edited = facts.model_copy(
-        update={
-            "capabilities": [
-                *facts.capabilities,
-                next(c for c in CapabilityName if c not in facts.capabilities),
-            ],
-            "license": facts.license.model_copy(update={"spdx": "LicenseRef-edited"}),
-        }
-    )
-    (tree / "display/models" / f"{model_slug}.json").write_text(
-        json.dumps(published_json(edited), indent=2, sort_keys=True) + "\n"
-    )
-    monkeypatch.setitem(TOOL["build"].__globals__, "ROOT", tree)
-    changed = TOOL["build"](
-        package_dir=tmp_path / "packages", source_commit="0" * 40, source_date_epoch=0
-    )
-    original, _ = built_catalog
-    assert [
-        (r["content_sha256"], r["package"], r["qualification"])
-        for r in changed["recipes"]
-    ] == [
-        (r["content_sha256"], r["package"], r["qualification"])
-        for r in original["recipes"]
-    ]
-    assert [
-        (e["content_sha256"], e["document"]) for e in changed["catalog_entities"]
-    ] == [(e["content_sha256"], e["document"]) for e in original["catalog_entities"]]
-    shown = {
+    shown_models = {
         e["document"]["identity"]["slug"]: e["display"]
-        for e in changed["catalog_entities"]
+        for e in edited["catalog_entities"]
     }
-    assert shown[model_slug]["license"]["spdx"] == "LicenseRef-edited"
+    assert shown_models[model_slug]["license"]["spdx"] == "LicenseRef-edited"

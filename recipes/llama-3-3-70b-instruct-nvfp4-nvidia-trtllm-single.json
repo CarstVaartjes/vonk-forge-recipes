@@ -226,7 +226,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "80c01733d25141d00efaf12846b1c55e81b5282123a5a20d3e9a1b0e2de70264",
+        "content_sha256": "ffadd0bcd2a56c755a157ea81aba0305e224ee330c6c24abe54a679ccee3248a",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "llama-3-3-70b-instruct-nvfp4-f792b707"

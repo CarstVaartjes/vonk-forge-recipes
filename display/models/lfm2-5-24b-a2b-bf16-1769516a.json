@@ -19,6 +19,14 @@
     "spdx": "lfm1.0",
     "url": "https://huggingface.co/LiquidAI/LFM2.5-24B-A2B/blob/1769516ac588c4c558089c94f27d96b0dc67b183/LICENSE"
   },
+  "lineage": {
+    "family": "lfm",
+    "flavor": "instruct",
+    "generation": "LFM2.5",
+    "line": "lfm-24b-a2b",
+    "model": "lfm2-5-24b-a2b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "text"
   ],

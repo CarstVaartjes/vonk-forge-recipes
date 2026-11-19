@@ -1,0 +1,12 @@
+# The pip installs of the creator's docker/Dockerfile.sm121-v8 (sfxnz 072c3f68), pinned by hash and installed with
+# --no-deps over the base image's own dependency set (the base already ships numpy, cuda-python, protobuf and
+# nvidia-cuda-nvdisasm for FlashInfer). Python 3.12, linux/aarch64. The creator installs flashinfer-python and
+# flashinfer-cubin 0.6.18.dev20260819 from https://flashinfer.ai/whl/nightly/ (which redirects to these GitHub release
+# assets), then nvidia-nccl-cu13==2.30.7 and nvidia-cutlass-dsl==4.6.2 from PyPI.
+flashinfer-python @ https://github.com/flashinfer-ai/whl/releases/download/nightly-v0.6.18-20260819/flashinfer_python-0.6.18.dev20260819-py3-none-any.whl --hash=sha256:50ad966220b5160f17fcb9e064bdfbcda726ec779fb0c74fd3449b3c48c66600
+flashinfer-cubin @ https://github.com/flashinfer-ai/whl/releases/download/nightly-v0.6.18-20260819/flashinfer_cubin-0.6.18.dev20260819-py3-none-any.whl --hash=sha256:277c3f2ef478dd8da5f315f21c3ce56c4437dbb47b170ceb4b47185f9c46560b
+nvidia-nccl-cu13==2.30.7 --hash=sha256:ca786ffa5a647c75d4d1f5cc72a6c4f537947e2ba8823d7c8aaf768e7a7b9f77
+nvidia-cutlass-dsl==4.6.2 --hash=sha256:06ac62deb182a852dfb053032cf945bf02b9aa1bf502a18b129d280d7babb26c
+nvidia-cutlass-dsl-libs-base==4.6.2 --hash=sha256:e129db7155d56ba4478be098c0f819e37690a6ce5d43a9a9a83bf1300d32c57f
+nvidia-cutlass-dsl-libs-core==4.6.2 --hash=sha256:571d4b46fca1bfbb123d0dc348eaa7fd80af0014ddffc07b849e8195b2364333
+nvidia-cutlass-dsl-libs-cu12==4.6.2 --hash=sha256:ea3b96dd6b627fe20637acfa7876ea1adfa8d81a2b106ffff0bb2d042c0c2731

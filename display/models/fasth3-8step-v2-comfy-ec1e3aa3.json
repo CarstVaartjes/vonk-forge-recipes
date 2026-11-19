@@ -26,6 +26,14 @@
     },
     "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
   },
+  "lineage": {
+    "base_model": "MiniMaxAI/MiniMax-H3",
+    "family": "minimax",
+    "generation": "MiniMax H3",
+    "line": "minimax-h",
+    "model": "minimax-h3",
+    "variant_kind": "derivative"
+  },
   "modalities": [
     "audio",
     "video"

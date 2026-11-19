@@ -896,7 +896,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1cf2c5cfbcc13521ff62ce2fb7337f30e000a0b6f725a975bd1d518a85e1f509",
+        "content_sha256": "d453e86015af2920eecb0e666d908d150db2953555eac5081874a8340949fff9",
         "kind": "model",
         "publisher": "r0b0tlab",
         "slug": "ling-3-0-flash-vl-nvfp4-mp-093789ca"

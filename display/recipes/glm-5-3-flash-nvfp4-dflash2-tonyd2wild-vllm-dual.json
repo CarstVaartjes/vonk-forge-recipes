@@ -1,0 +1,24 @@
+{
+  "alignment": "standard",
+  "description": "tonyd2wild's two-Spark port (d061f26a, 2026-09-30; the repo carries no licence file, recorded for information) of knapcio's GLM-5.3-Flash NVFP4 DFlash2 stack (770d115, MIT, vLLM-derived files Apache-2.0): the official nvidia/GLM-5.3-Flash-NVFP4 checkpoint at 09b04e5e with its dense projections re-encoded to 8 bit (the kit's lossless8 target, built on CPU at first start and cached) and the incoai DFlash2 drafter at bf582e4e (CC-BY-NC-ND-4.0, non-commercial, no derivatives; recorded for information) re-encoded to block-128 FP8 for local use, run by vLLM tensor-parallel 2 with the stack's overlay: 8-bit dense decode kernels, certified LM head, draft truncation and device-side verify-length selection, adaptive draft scheduler, RoCE one-shot all-reduce, FlashKDA, fast weight loader. The three pieces the kit builds for four ranks are off, as in tonyd2wild's port (mHC prefill sharding, routed-MoE prefill kernels, prefill gather route). Lane A values: 262,144-token window, fp8_e4m3 KV pinned at 6 GiB per rank (560,362 tokens; tonyd2wild tried 7 GiB and 8 GiB and ran out of GPU memory or free memory), up to 32 sequences, default reasoning effort low (a request may set low, high or max), two images per prompt, no video. Runs tonyd2wild's published image ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2 (by digest) with the kit's RoCEnante layer and overlay installed at the paths start.sh bind-mounts them. Performance figures (single-stream decode 96 tok/s counting, 69 code, 101 tool call, 35 prose; 67 tok/s aggregate at 1 stream and 84 at 2; the previous tonyd2wild recipe 45 on code) are the creators' claims until measured here. Not yet tried on a Vonk Spark pair; the creator reports a lowest free memory of 1 GiB on the tightest node under two concurrent 114K-token prompts (env.tp2-low at https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark/blob/d061f26ad3ec5c3c04f64aad7516dbe62a8aa6af/runs/2026-09-29-knapcio-tp2/env.tp2-low, lines 22-23), so this is memory-tight: about 127.4 GB in use beyond the OS allowance, above what the platform can admit on one Spark. The declared per-rank peak is therefore the admission cap, 124,452,516,352 bytes; the Controller tries a need above the cap alone on an empty Spark, and the hardware try measures the real figure.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-nvfp4-dflash2-tonyd2wild-vllm-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "dflash2",
+    "glm-5.3",
+    "knapcio",
+    "modelopt",
+    "multimodal",
+    "non-commercial-drafter",
+    "nvfp4",
+    "spark",
+    "thinking",
+    "tool-use",
+    "vllm"
+  ],
+  "title": "GLM 5.3 Flash NVIDIA NVFP4 DFlash2 tonyd2wild knapcio stack vLLM two Sparks"
+}

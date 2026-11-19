@@ -1,0 +1,1905 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "6e43a6b02e5f16e4a715953be8b29c40acbe84aed11a61357ef0fc899967fbd9",
+        "repository": "docker.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/glm/bizuayeu-sage-tensorfold-dual"
+      },
+      "dockerfile": "adapters/glm/bizuayeu-sage-tensorfold-dual/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "release-assets.githubusercontent.com",
+          "objects.githubusercontent.com",
+          "storage.googleapis.com",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com",
+          "developer.download.nvidia.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "sage-s2-1-flash-mixed-nvfp4-bizuayeu-tensorfold-dual"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "sage-s2.1-flash"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-d1a8f4a1d2e3-618cd5b83d",
+          "id": "metadata-d1a8f4a1d2e3-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "license-glm-5-30b85b6b9659-cbfd48fb4c",
+          "id": "license-glm-5-30b85b6b9659-cbfd48fb4c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-fb90d1ff142c-b335630551",
+          "id": "readme-fb90d1ff142c-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "sha256sums-7575f91d932d-e6351d3766",
+          "id": "sha256sums-7575f91d932d-e6351d3766",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "chat-template-66a4b6d9bc6e-00824420d1",
+          "id": "chat-template-66a4b6d9bc6e-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-10c024386620-587cb980af",
+          "id": "config-10c024386620-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "deployment-guide-a7f12f4bf0af-a76d243e63",
+          "id": "deployment-guide-a7f12f4bf0af-a76d243e63",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l03-e74303e0d929-728bfd80e8",
+          "id": "e2m1-down-l03-e74303e0d929-728bfd80e8",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l04-e9b39dc49a0e-5dfc9b7f71",
+          "id": "e2m1-down-l04-e9b39dc49a0e-5dfc9b7f71",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l05-503a5c349fe6-ac7f89c348",
+          "id": "e2m1-down-l05-503a5c349fe6-ac7f89c348",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l06-3efa228700e5-4f09ee1f05",
+          "id": "e2m1-down-l06-3efa228700e5-4f09ee1f05",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l07-7d751458e067-e431585bf2",
+          "id": "e2m1-down-l07-7d751458e067-e431585bf2",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l08-c4ac67b0b437-392fee1ee4",
+          "id": "e2m1-down-l08-c4ac67b0b437-392fee1ee4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l09-41714f12a625-4ae15c3312",
+          "id": "e2m1-down-l09-41714f12a625-4ae15c3312",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l10-300767a65a48-5b9ccdcc13",
+          "id": "e2m1-down-l10-300767a65a48-5b9ccdcc13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l11-f998fe853554-3e6ecb5c2e",
+          "id": "e2m1-down-l11-f998fe853554-3e6ecb5c2e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l12-eabc12679680-223029e0b4",
+          "id": "e2m1-down-l12-eabc12679680-223029e0b4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l13-5323f5bf8f52-e6bd6044e3",
+          "id": "e2m1-down-l13-5323f5bf8f52-e6bd6044e3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l14-f0eb31ae21b9-24617be990",
+          "id": "e2m1-down-l14-f0eb31ae21b9-24617be990",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l15-123977e3ea09-7214033f04",
+          "id": "e2m1-down-l15-123977e3ea09-7214033f04",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l16-ce2767c41ab3-a88442af26",
+          "id": "e2m1-down-l16-ce2767c41ab3-a88442af26",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l17-57f40ff2bb90-4b0a2b2985",
+          "id": "e2m1-down-l17-57f40ff2bb90-4b0a2b2985",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l18-ab1cf3d346c6-5068a50ec6",
+          "id": "e2m1-down-l18-ab1cf3d346c6-5068a50ec6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l19-4ef63d71aa64-1c0eb7f09b",
+          "id": "e2m1-down-l19-4ef63d71aa64-1c0eb7f09b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l20-03b69245c543-bed1b0ad42",
+          "id": "e2m1-down-l20-03b69245c543-bed1b0ad42",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l21-4e55aa9b2d72-c95df7a253",
+          "id": "e2m1-down-l21-4e55aa9b2d72-c95df7a253",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l22-f2b8e93c6efc-8d700880f4",
+          "id": "e2m1-down-l22-f2b8e93c6efc-8d700880f4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l23-b315a0b58b74-77e92fde70",
+          "id": "e2m1-down-l23-b315a0b58b74-77e92fde70",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l24-bec51437dc5a-6d8feb8055",
+          "id": "e2m1-down-l24-bec51437dc5a-6d8feb8055",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l25-6a1fb60e44ab-10d0381303",
+          "id": "e2m1-down-l25-6a1fb60e44ab-10d0381303",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l26-ffec801b29e2-1ca862e489",
+          "id": "e2m1-down-l26-ffec801b29e2-1ca862e489",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l27-4900d8a3c1cb-d3bf54f152",
+          "id": "e2m1-down-l27-4900d8a3c1cb-d3bf54f152",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l28-2e21f3e4be9c-a69a1e510c",
+          "id": "e2m1-down-l28-2e21f3e4be9c-a69a1e510c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l29-df02ca0e716b-defed83aa8",
+          "id": "e2m1-down-l29-df02ca0e716b-defed83aa8",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l30-41c2f87fdc47-67eea324a9",
+          "id": "e2m1-down-l30-41c2f87fdc47-67eea324a9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l31-9998968b788c-948a1bdccb",
+          "id": "e2m1-down-l31-9998968b788c-948a1bdccb",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l32-cce34bd44a22-7d0267239e",
+          "id": "e2m1-down-l32-cce34bd44a22-7d0267239e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l33-4af5d38e4125-5de0a510a4",
+          "id": "e2m1-down-l33-4af5d38e4125-5de0a510a4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l34-85b347d582b7-f70206e521",
+          "id": "e2m1-down-l34-85b347d582b7-f70206e521",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l35-9cea55fed7cf-558784e8fb",
+          "id": "e2m1-down-l35-9cea55fed7cf-558784e8fb",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l36-195d6ba58c0a-cd8b0d7eb7",
+          "id": "e2m1-down-l36-195d6ba58c0a-cd8b0d7eb7",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l37-351049f482ef-c5b5fee8e3",
+          "id": "e2m1-down-l37-351049f482ef-c5b5fee8e3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l38-d74298964ea3-edc6ae9731",
+          "id": "e2m1-down-l38-d74298964ea3-edc6ae9731",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l39-3f752859d7e9-d274e57da3",
+          "id": "e2m1-down-l39-3f752859d7e9-d274e57da3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l40-f45b635652dd-8262d52f8e",
+          "id": "e2m1-down-l40-f45b635652dd-8262d52f8e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l41-a6c104cb1e3f-ab1621a16f",
+          "id": "e2m1-down-l41-a6c104cb1e3f-ab1621a16f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l42-d5dd7c387919-9e14c2173b",
+          "id": "e2m1-down-l42-d5dd7c387919-9e14c2173b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l43-da90d8873da4-81427a0e92",
+          "id": "e2m1-down-l43-da90d8873da4-81427a0e92",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l44-7ce3d02a6479-3d46a5d488",
+          "id": "e2m1-down-l44-7ce3d02a6479-3d46a5d488",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-down-l45-22bc46eeb17a-eb0a8bd8e9",
+          "id": "e2m1-down-l45-22bc46eeb17a-eb0a8bd8e9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l03-e0a79b73a9bc-ae2d1ad9d5",
+          "id": "e2m1-gate-l03-e0a79b73a9bc-ae2d1ad9d5",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l04-2a47feaf9a5a-532611cc73",
+          "id": "e2m1-gate-l04-2a47feaf9a5a-532611cc73",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l05-a34df1705acd-a71ac736e6",
+          "id": "e2m1-gate-l05-a34df1705acd-a71ac736e6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l06-be7270d0a77d-fca25113cc",
+          "id": "e2m1-gate-l06-be7270d0a77d-fca25113cc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l07-54f87c29fdb0-184aaa329e",
+          "id": "e2m1-gate-l07-54f87c29fdb0-184aaa329e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l08-49cb520cba1d-1cbfcfeb96",
+          "id": "e2m1-gate-l08-49cb520cba1d-1cbfcfeb96",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l09-19e8da74a302-7efae74306",
+          "id": "e2m1-gate-l09-19e8da74a302-7efae74306",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l10-6f5f20e1adfb-1c6176a67d",
+          "id": "e2m1-gate-l10-6f5f20e1adfb-1c6176a67d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l11-11311be7e78a-8f46b43667",
+          "id": "e2m1-gate-l11-11311be7e78a-8f46b43667",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l12-6c036235a00e-537f42537b",
+          "id": "e2m1-gate-l12-6c036235a00e-537f42537b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l13-f2a38965dc95-a03b9f3856",
+          "id": "e2m1-gate-l13-f2a38965dc95-a03b9f3856",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l14-33d1eaba2013-e3ecafbeb1",
+          "id": "e2m1-gate-l14-33d1eaba2013-e3ecafbeb1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l15-867c38cb6427-291a4aa369",
+          "id": "e2m1-gate-l15-867c38cb6427-291a4aa369",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l16-41b09e895410-ffa9cb6d40",
+          "id": "e2m1-gate-l16-41b09e895410-ffa9cb6d40",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l17-46693d93be0d-79bb97320c",
+          "id": "e2m1-gate-l17-46693d93be0d-79bb97320c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l18-5a3a48d45067-7525cf7991",
+          "id": "e2m1-gate-l18-5a3a48d45067-7525cf7991",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l19-4e859b292844-73364aa3d7",
+          "id": "e2m1-gate-l19-4e859b292844-73364aa3d7",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l20-833d6e72a953-e8058744b7",
+          "id": "e2m1-gate-l20-833d6e72a953-e8058744b7",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l21-b71cac68b66a-8ad2d7033f",
+          "id": "e2m1-gate-l21-b71cac68b66a-8ad2d7033f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l22-cb79cabb4216-19caf846ab",
+          "id": "e2m1-gate-l22-cb79cabb4216-19caf846ab",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l23-3b260d105562-c4922fed69",
+          "id": "e2m1-gate-l23-3b260d105562-c4922fed69",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l24-24c9901026b2-31e949ccbb",
+          "id": "e2m1-gate-l24-24c9901026b2-31e949ccbb",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l25-9746f232f0e8-9dc4a0b072",
+          "id": "e2m1-gate-l25-9746f232f0e8-9dc4a0b072",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l26-e70386d8f4cf-fd05fc4d93",
+          "id": "e2m1-gate-l26-e70386d8f4cf-fd05fc4d93",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l27-dbc4aabe7b14-beb7e31481",
+          "id": "e2m1-gate-l27-dbc4aabe7b14-beb7e31481",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l28-aa4ecf148f4d-b184ec2a36",
+          "id": "e2m1-gate-l28-aa4ecf148f4d-b184ec2a36",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l29-8545b0ca9a09-cf7fbbaa79",
+          "id": "e2m1-gate-l29-8545b0ca9a09-cf7fbbaa79",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l30-11b9c62b222b-3395cad661",
+          "id": "e2m1-gate-l30-11b9c62b222b-3395cad661",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l31-678b9dd5e835-984485b61d",
+          "id": "e2m1-gate-l31-678b9dd5e835-984485b61d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l32-b1f21040d4e5-748b8d12ce",
+          "id": "e2m1-gate-l32-b1f21040d4e5-748b8d12ce",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l33-859611510040-bcccb81134",
+          "id": "e2m1-gate-l33-859611510040-bcccb81134",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l34-75fcf2e6e383-afe8a7f204",
+          "id": "e2m1-gate-l34-75fcf2e6e383-afe8a7f204",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l35-7595e8e97494-b7765b1a79",
+          "id": "e2m1-gate-l35-7595e8e97494-b7765b1a79",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l36-71d944f3aa20-9fb2aec808",
+          "id": "e2m1-gate-l36-71d944f3aa20-9fb2aec808",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l37-6a622db0eddd-4efcbadd2c",
+          "id": "e2m1-gate-l37-6a622db0eddd-4efcbadd2c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l38-e228ecd66f00-9dacfda37c",
+          "id": "e2m1-gate-l38-e228ecd66f00-9dacfda37c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l39-c544f2afcf90-824871b938",
+          "id": "e2m1-gate-l39-c544f2afcf90-824871b938",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l40-220cc3fb24f8-ec58f29154",
+          "id": "e2m1-gate-l40-220cc3fb24f8-ec58f29154",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l41-ca64672517d3-2b630767c6",
+          "id": "e2m1-gate-l41-ca64672517d3-2b630767c6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l42-ac5a6a3b1f08-5ee00903d5",
+          "id": "e2m1-gate-l42-ac5a6a3b1f08-5ee00903d5",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l43-0fc41aa23a2a-d54f2d8a9f",
+          "id": "e2m1-gate-l43-0fc41aa23a2a-d54f2d8a9f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l44-f442609a642e-daf656a224",
+          "id": "e2m1-gate-l44-f442609a642e-daf656a224",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-gate-l45-4ff0d18fa34b-eaabe23db0",
+          "id": "e2m1-gate-l45-4ff0d18fa34b-eaabe23db0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l03-c29103e73961-9a259b5088",
+          "id": "e2m1-up-l03-c29103e73961-9a259b5088",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l04-36b4a5ff84f5-2b2397828c",
+          "id": "e2m1-up-l04-36b4a5ff84f5-2b2397828c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l05-118843f74ba1-dc2f6043b3",
+          "id": "e2m1-up-l05-118843f74ba1-dc2f6043b3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l06-194678217a32-76cb7605d1",
+          "id": "e2m1-up-l06-194678217a32-76cb7605d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l07-a7423517cc1d-3b34283fbc",
+          "id": "e2m1-up-l07-a7423517cc1d-3b34283fbc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l08-f478f56f971d-7ae806fd78",
+          "id": "e2m1-up-l08-f478f56f971d-7ae806fd78",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l09-394352b06a1a-a4de0815f1",
+          "id": "e2m1-up-l09-394352b06a1a-a4de0815f1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l10-00fe5dc0f768-0dc2c58e1b",
+          "id": "e2m1-up-l10-00fe5dc0f768-0dc2c58e1b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l11-e89b342e67d8-c30003d3a9",
+          "id": "e2m1-up-l11-e89b342e67d8-c30003d3a9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l12-37045ca2b767-21d19cbffd",
+          "id": "e2m1-up-l12-37045ca2b767-21d19cbffd",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l13-9de6f0d1b6ed-27bceb5de6",
+          "id": "e2m1-up-l13-9de6f0d1b6ed-27bceb5de6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l14-2a334dc65984-cddbcfb190",
+          "id": "e2m1-up-l14-2a334dc65984-cddbcfb190",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l15-e569a064b562-6f199a291d",
+          "id": "e2m1-up-l15-e569a064b562-6f199a291d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l16-37f1889fa09d-0589ce358b",
+          "id": "e2m1-up-l16-37f1889fa09d-0589ce358b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l17-437c3e01e523-4a0a436a13",
+          "id": "e2m1-up-l17-437c3e01e523-4a0a436a13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l18-51cb3ff96687-d1da8fec80",
+          "id": "e2m1-up-l18-51cb3ff96687-d1da8fec80",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l19-50b78e9d3da4-b5f1b89487",
+          "id": "e2m1-up-l19-50b78e9d3da4-b5f1b89487",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l20-ec0037afc349-3852fcb986",
+          "id": "e2m1-up-l20-ec0037afc349-3852fcb986",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l21-b0b980b83bfd-13f0d4cbf8",
+          "id": "e2m1-up-l21-b0b980b83bfd-13f0d4cbf8",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l22-bbaa87bc3ae7-5e7fcc5752",
+          "id": "e2m1-up-l22-bbaa87bc3ae7-5e7fcc5752",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l23-637a059af51f-c06f68be43",
+          "id": "e2m1-up-l23-637a059af51f-c06f68be43",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l24-f5af7e490286-ebc940e318",
+          "id": "e2m1-up-l24-f5af7e490286-ebc940e318",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l25-d2f40b84fef2-66b67bba11",
+          "id": "e2m1-up-l25-d2f40b84fef2-66b67bba11",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l26-e623f26869ce-2b21f46985",
+          "id": "e2m1-up-l26-e623f26869ce-2b21f46985",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l27-57e9e3240f21-fa25c57d2d",
+          "id": "e2m1-up-l27-57e9e3240f21-fa25c57d2d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l28-9602a4313c81-c2abd9f511",
+          "id": "e2m1-up-l28-9602a4313c81-c2abd9f511",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l29-853b25090e1b-b239c53cb0",
+          "id": "e2m1-up-l29-853b25090e1b-b239c53cb0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l30-75d2ffb678c0-4e09253543",
+          "id": "e2m1-up-l30-75d2ffb678c0-4e09253543",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l31-93392e40a1e7-f825141d90",
+          "id": "e2m1-up-l31-93392e40a1e7-f825141d90",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l32-e4867abafb17-9cee34001d",
+          "id": "e2m1-up-l32-e4867abafb17-9cee34001d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l33-73df2edfac28-9f56b63ab9",
+          "id": "e2m1-up-l33-73df2edfac28-9f56b63ab9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l34-f8a3334b3f54-b600697444",
+          "id": "e2m1-up-l34-f8a3334b3f54-b600697444",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l35-c4b35ba0fd2a-1924283f80",
+          "id": "e2m1-up-l35-c4b35ba0fd2a-1924283f80",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l36-b922f1d2706e-db7ee39839",
+          "id": "e2m1-up-l36-b922f1d2706e-db7ee39839",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l37-847161d630a5-04c43e0564",
+          "id": "e2m1-up-l37-847161d630a5-04c43e0564",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l38-0f3f2c3ebf89-6828430a67",
+          "id": "e2m1-up-l38-0f3f2c3ebf89-6828430a67",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l39-3be46aaf6db3-5aefe048cd",
+          "id": "e2m1-up-l39-3be46aaf6db3-5aefe048cd",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l40-3cac4b79d6d2-7dcfca0e31",
+          "id": "e2m1-up-l40-3cac4b79d6d2-7dcfca0e31",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l41-84765d3ebe06-70c3c5fd58",
+          "id": "e2m1-up-l41-84765d3ebe06-70c3c5fd58",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l42-5a805f44b901-8a646f0e62",
+          "id": "e2m1-up-l42-5a805f44b901-8a646f0e62",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l43-34d325333c26-11f2a27032",
+          "id": "e2m1-up-l43-34d325333c26-11f2a27032",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l44-2760e68f4e28-782beb130e",
+          "id": "e2m1-up-l44-2760e68f4e28-782beb130e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "e2m1-up-l45-0c8b4f556fdf-ee89c1ef8f",
+          "id": "e2m1-up-l45-0c8b4f556fdf-ee89c1ef8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "generation-config-230c30609ecb-97dd3d578b",
+          "id": "generation-config-230c30609ecb-97dd3d578b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-77555c7518d1-a481ad90fa",
+          "id": "hf-quant-config-77555c7518d1-a481ad90fa",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-shell-00001-of-00004-b523358833ec-c71b6d81dd",
+          "id": "model-shell-00001-of-00004-b523358833ec-c71b6d81dd",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-shell-00002-of-00004-cf1379ca9d6f-a9a0c19e05",
+          "id": "model-shell-00002-of-00004-cf1379ca9d6f-a9a0c19e05",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-shell-00003-of-00004-455ef90f57a5-17d06c1e5b",
+          "id": "model-shell-00003-of-00004-455ef90f57a5-17d06c1e5b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-shell-00004-of-00004-3c5cb3de5752-d691d2de76",
+          "id": "model-shell-00004-of-00004-3c5cb3de5752-d691d2de76",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-b8d0d4cc9a76-0a05be8238",
+          "id": "model-safetensors-index-b8d0d4cc9a76-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "processing-glm5-75fdd3c48996-75efc8f8cb",
+          "id": "processing-glm5-75fdd3c48996-75efc8f8cb",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "processor-config-69c45ce38a05-27f0cb76af",
+          "id": "processor-config-69c45ce38a05-27f0cb76af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenization-glm5-16125de69168-cbdd7b3a29",
+          "id": "tokenization-glm5-16125de69168-cbdd7b3a29",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-19e773648cb4-224931eb13",
+          "id": "tokenizer-19e773648cb4-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-c1a7d3e22519-94d5c6ba8f",
+          "id": "tokenizer-config-c1a7d3e22519-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "825dfd11cafd263cc0bf62a65aa42c3abb75b510c39385924fa4787a291c0d98",
+        "kind": "model",
+        "publisher": "bizuayeu",
+        "slug": "sage-s2-1-flash-mixed-nvfp4-32063d6b"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Bizuayeu",
+      "InternLM",
+      "Ash Hart (TensorFold)",
+      "Z.AI"
+    ],
+    "source_reference": "https://huggingface.co/Bizuayeu/Sage-S2.1-Flash-Mixed-NVFP4/tree/32063d6bb8eb6c38f0b54141ecb7c227013eb353"
+  },
+  "release": {
+    "released_at": "2026-11-18",
+    "version": "1.2.10"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "host",
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "value": 8000
+      },
+      {
+        "name": "name",
+        "value": "sage-s2.1-flash"
+      },
+      {
+        "name": "max-tokens",
+        "value": 32768
+      },
+      {
+        "name": "reasoning-effort",
+        "value": "high"
+      },
+      {
+        "name": "vision",
+        "value": true
+      },
+      {
+        "name": "no-update-check",
+        "value": true
+      },
+      {
+        "name": "parallel",
+        "setting": "concurrency"
+      },
+      {
+        "name": "context",
+        "setting": "context_tokens"
+      }
+    ],
+    "engine": "tensorfold",
+    "entrypoint": [
+      "/opt/vonk/bin/tensorfold-serve"
+    ],
+    "environment": [
+      {
+        "name": "TENSORFOLD_MEMORY_RESERVE_GIB",
+        "value": "11"
+      },
+      {
+        "name": "TF_KV_SHARE",
+        "value": "4"
+      },
+      {
+        "name": "TENSORFOLD_PREFILL_SHARE",
+        "value": "0.7"
+      },
+      {
+        "name": "TF_HEAT_HIGH",
+        "value": "92"
+      },
+      {
+        "name": "TF_HEAT_LOW",
+        "value": "88"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "dual",
+    "node_count": 2,
+    "parallelism": {
+      "backend": "native",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 183768451766,
+            "image_bytes": 2000000000,
+            "safety_margin_bytes": 15000000000,
+            "working_bytes": 8000000000
+          },
+          "memory": {
+            "peak_bytes": 120400000000,
+            "reserve_bytes": 11811160064
+          }
+        }
+      },
+      {
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 183768451766,
+            "image_bytes": 2000000000,
+            "safety_margin_bytes": 15000000000,
+            "working_bytes": 8000000000
+          },
+          "memory": {
+            "peak_bytes": 120400000000,
+            "reserve_bytes": 11811160064
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "worker",
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "sage-s2.1-flash"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.vision",
+          "name": "bounded-vision",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": [
+                    {
+                      "text": "describe this image",
+                      "type": "text"
+                    },
+                    {
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAYElEQVR4nO3PwQkAIBDAMAX3H/lwCB9BaCZo96y/HR3wqgGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQHtAgK6AfwYG1VIAAAAAElFTkSuQmCC"
+                      },
+                      "type": "image_url"
+                    }
+                  ],
+                  "role": "user"
+                }
+              ],
+              "model": "sage-s2.1-flash"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

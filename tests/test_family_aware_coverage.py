@@ -19,6 +19,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
+import pytest
 from generated_catalog import GENERATED
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
@@ -34,13 +35,22 @@ STOCK_IMAGES = {
 }
 
 
+_OUTPUT: list[Path] = []
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _coverage_output_dir(tmp_path_factory: pytest.TempPathFactory) -> None:
+    """Each xdist worker derives into its own directory: none shares a written file."""
+    _OUTPUT[:] = [tmp_path_factory.mktemp("coverage")]
+
+
 @cache
 def _coverage() -> Path:
-    """Derive the matrix and report once from the session's generated catalog.
+    """Derive the matrix and report once per worker from the session's generated catalog.
 
     A dead proxy makes any network fetch fail: coverage is derived offline.
     """
-    output = GENERATED / "coverage"
+    output = _OUTPUT[0]
     dead_proxy = "http://127.0.0.1:9"
     result = subprocess.run(
         [

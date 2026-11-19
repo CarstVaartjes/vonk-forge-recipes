@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "leanstral-1-5-119b-a6b",
+          "title": "Leanstral 1.5 119B-A6B"
+        }
+      ],
+      "slug": "leanstral-119b-a6b",
+      "title": "Leanstral 119B-A6B"
+    }
+  ],
+  "slug": "leanstral",
+  "title": "Leanstral"
+}

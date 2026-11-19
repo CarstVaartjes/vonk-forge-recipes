@@ -390,7 +390,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "43d1daceea59866d3d558f04fef8b32278d88b780ce92bae148c3a929a1cc0ed",
+        "content_sha256": "f01ce07022996dab0ec012c98957df33d8877dd2ba70c4e4141208387217d05f",
         "kind": "model",
         "publisher": "openmoss",
         "slug": "mova-360p"

@@ -1,0 +1,886 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.vonkforge.ai/contracts/recipe-api-v5.schema.json",
+  "$defs": {
+    "ApiInputModalities": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "boolean"
+        },
+        "image": {
+          "title": "Image",
+          "type": "boolean"
+        },
+        "video": {
+          "title": "Video",
+          "type": "boolean"
+        },
+        "audio": {
+          "title": "Audio",
+          "type": "boolean"
+        },
+        "pdf": {
+          "title": "Pdf",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "text",
+        "image",
+        "video",
+        "audio",
+        "pdf"
+      ],
+      "title": "ApiInputModalities",
+      "type": "object"
+    },
+    "ApiReasoningAlwaysOn": {
+      "additionalProperties": false,
+      "description": "No request turns reasoning off; the checkpoint may still skip it on a turn.",
+      "properties": {
+        "kind": {
+          "const": "always-on",
+          "title": "Kind",
+          "type": "string"
+        },
+        "effort": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "levels": "#/$defs/ApiReasoningEffortLevels",
+                  "text": "#/$defs/ApiReasoningEffortText"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/ApiReasoningEffortLevels"
+                },
+                {
+                  "$ref": "#/$defs/ApiReasoningEffortText"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Effort"
+        }
+      },
+      "required": [
+        "kind",
+        "effort"
+      ],
+      "title": "ApiReasoningAlwaysOn",
+      "type": "object"
+    },
+    "ApiReasoningEffortLevels": {
+      "additionalProperties": false,
+      "description": "The request names one of ``levels`` at ``key``; another value may be refused.\n\n``default`` is the level in force when the request names none. Only the\nnames a client chooses from are listed: an engine's own numeric scale behind\nthem (an integer or float alias) is not.",
+      "properties": {
+        "kind": {
+          "const": "levels",
+          "title": "Kind",
+          "type": "string"
+        },
+        "via": {
+          "enum": [
+            "chat_template_kwargs",
+            "top_level"
+          ],
+          "title": "Via",
+          "type": "string"
+        },
+        "key": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "levels": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Levels",
+          "type": "array"
+        },
+        "default": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "title": "Default"
+        }
+      },
+      "required": [
+        "kind",
+        "via",
+        "key",
+        "levels",
+        "default"
+      ],
+      "title": "ApiReasoningEffortLevels",
+      "type": "object"
+    },
+    "ApiReasoningEffortText": {
+      "additionalProperties": false,
+      "description": "The route takes any string at ``key`` (the template writes it into the prompt).\n\n``default`` is the text in force when the request sets none; ``null`` when\nthen no effort is written and the checkpoint decides.",
+      "properties": {
+        "kind": {
+          "const": "text",
+          "title": "Kind",
+          "type": "string"
+        },
+        "via": {
+          "enum": [
+            "chat_template_kwargs",
+            "top_level"
+          ],
+          "title": "Via",
+          "type": "string"
+        },
+        "key": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "default": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Default"
+        }
+      },
+      "required": [
+        "kind",
+        "via",
+        "key",
+        "default"
+      ],
+      "title": "ApiReasoningEffortText",
+      "type": "object"
+    },
+    "ApiReasoningNone": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "none",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "ApiReasoningNone",
+      "type": "object"
+    },
+    "ApiReasoningSwitch": {
+      "additionalProperties": false,
+      "description": "Thinking can be turned on and off per request.\n\n``keys`` are the alternative request keys the route reads (any one works);\n``default`` is what the route does when the request says nothing, and\n``model`` when the checkpoint decides.",
+      "properties": {
+        "kind": {
+          "const": "switch",
+          "title": "Kind",
+          "type": "string"
+        },
+        "via": {
+          "enum": [
+            "chat_template_kwargs",
+            "top_level"
+          ],
+          "title": "Via",
+          "type": "string"
+        },
+        "keys": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Keys",
+          "type": "array"
+        },
+        "on": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "On"
+        },
+        "off": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Off"
+        },
+        "default": {
+          "enum": [
+            "on",
+            "off",
+            "model"
+          ],
+          "type": "string",
+          "title": "Default"
+        },
+        "effort": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "levels": "#/$defs/ApiReasoningEffortLevels",
+                  "text": "#/$defs/ApiReasoningEffortText"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/ApiReasoningEffortLevels"
+                },
+                {
+                  "$ref": "#/$defs/ApiReasoningEffortText"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Effort"
+        }
+      },
+      "required": [
+        "kind",
+        "via",
+        "keys",
+        "on",
+        "off",
+        "default",
+        "effort"
+      ],
+      "title": "ApiReasoningSwitch",
+      "type": "object"
+    },
+    "ApiRemainingContext": {
+      "additionalProperties": false,
+      "description": "No server default: the request may use what the context still holds.",
+      "properties": {
+        "remaining": {
+          "enum": [
+            "context",
+            "slot_context"
+          ],
+          "title": "Remaining",
+          "type": "string"
+        }
+      },
+      "required": [
+        "remaining"
+      ],
+      "title": "ApiRemainingContext",
+      "type": "object"
+    },
+    "ApiTokenArgument": {
+      "additionalProperties": false,
+      "description": "The server default is the value of this runtime argument.\n\nThe number is never copied here: it is read from the recipe's arguments (as\nthe option choice in force sets them), so it cannot drift from the launch.",
+      "properties": {
+        "argument": {
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,63}$",
+          "title": "Argument",
+          "type": "string"
+        }
+      },
+      "required": [
+        "argument"
+      ],
+      "title": "ApiTokenArgument",
+      "type": "object"
+    },
+    "ApiTokenSetting": {
+      "additionalProperties": false,
+      "description": "Bound to the recipe setting of the same name, as ``RecipeRuntimeArgument``.",
+      "properties": {
+        "setting": {
+          "const": "context_tokens",
+          "title": "Setting",
+          "type": "string"
+        }
+      },
+      "required": [
+        "setting"
+      ],
+      "title": "ApiTokenSetting",
+      "type": "object"
+    },
+    "ApiTokenValue": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "minimum": 1,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "ApiTokenValue",
+      "type": "object"
+    },
+    "ApiToolsNone": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "none",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "ApiToolsNone",
+      "type": "object"
+    },
+    "ApiToolsSupported": {
+      "additionalProperties": false,
+      "description": "Function calling works.\n\n``tool_choice`` lists the choices the route enforces. ``none`` is always\nhonoured, so it is implied and never listed. An empty list means non-auto\nchoices are accepted but not enforced (a prompt nudge, or ignored). An\nunlisted value may be refused (HTTP 400).",
+      "properties": {
+        "kind": {
+          "const": "supported",
+          "title": "Kind",
+          "type": "string"
+        },
+        "tool_choice": {
+          "items": {
+            "enum": [
+              "auto",
+              "none",
+              "required",
+              "named"
+            ],
+            "type": "string"
+          },
+          "title": "Tool Choice",
+          "type": "array"
+        },
+        "parallel_calls": {
+          "title": "Parallel Calls",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "tool_choice",
+        "parallel_calls"
+      ],
+      "title": "ApiToolsSupported",
+      "type": "object"
+    },
+    "AudioSpeechApi": {
+      "additionalProperties": false,
+      "description": "A route serving ``POST /v1/audio/speech``: text in, audio bytes out.\n\n``voices`` are the values of OpenAI's ``voice`` parameter; the first is the\nroute's health-check voice. ``instructions`` and ``speed`` say whether the\nengine honours those OpenAI parameters. ``max_input_chars`` bounds ``input``.",
+      "properties": {
+        "mode": {
+          "const": "audio_speech",
+          "title": "Mode",
+          "type": "string"
+        },
+        "voices": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Voices",
+          "type": "array"
+        },
+        "response_formats": {
+          "items": {
+            "enum": [
+              "mp3",
+              "opus",
+              "aac",
+              "flac",
+              "wav",
+              "pcm"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Response Formats",
+          "type": "array"
+        },
+        "instructions": {
+          "title": "Instructions",
+          "type": "boolean"
+        },
+        "speed": {
+          "title": "Speed",
+          "type": "boolean"
+        },
+        "max_input_chars": {
+          "minimum": 1,
+          "title": "Max Input Chars",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "mode",
+        "voices",
+        "response_formats",
+        "instructions",
+        "speed",
+        "max_input_chars"
+      ],
+      "title": "AudioSpeechApi",
+      "type": "object"
+    },
+    "AudioTranscriptionApi": {
+      "additionalProperties": false,
+      "description": "A route serving ``POST /v1/audio/transcriptions``: one audio upload in.\n\nThe input is audio by mode, so the block has no modalities or token limits.\n``max_file_bytes`` and ``max_audio_seconds`` are the engine's own upload and\ndecode limits (``null``: the engine states no duration limit); ``languages``\nare the ISO 639-1 values of OpenAI's ``language`` parameter the engine\naccepts. ``prompt`` and ``temperature`` say whether the engine honours those\nOpenAI parameters; no ``timestamp_granularities`` means none are offered.",
+      "properties": {
+        "mode": {
+          "const": "audio_transcription",
+          "title": "Mode",
+          "type": "string"
+        },
+        "input_formats": {
+          "items": {
+            "enum": [
+              "flac",
+              "m4a",
+              "mp3",
+              "mp4",
+              "mpeg",
+              "mpga",
+              "ogg",
+              "wav",
+              "webm"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Input Formats",
+          "type": "array"
+        },
+        "max_file_bytes": {
+          "maximum": 268435456,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "max_audio_seconds": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Audio Seconds"
+        },
+        "languages": {
+          "items": {
+            "pattern": "^[a-z]{2}$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Languages",
+          "type": "array"
+        },
+        "response_formats": {
+          "items": {
+            "enum": [
+              "json",
+              "text",
+              "srt",
+              "verbose_json",
+              "vtt",
+              "diarized_json"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Response Formats",
+          "type": "array"
+        },
+        "prompt": {
+          "title": "Prompt",
+          "type": "boolean"
+        },
+        "timestamp_granularities": {
+          "items": {
+            "enum": [
+              "word",
+              "segment"
+            ],
+            "type": "string"
+          },
+          "title": "Timestamp Granularities",
+          "type": "array"
+        },
+        "temperature": {
+          "title": "Temperature",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "mode",
+        "input_formats",
+        "max_file_bytes",
+        "max_audio_seconds",
+        "languages",
+        "response_formats",
+        "prompt",
+        "timestamp_granularities",
+        "temperature"
+      ],
+      "title": "AudioTranscriptionApi",
+      "type": "object"
+    },
+    "ChatApi": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "chat",
+          "title": "Mode",
+          "type": "string"
+        },
+        "max_output_tokens": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ApiTokenValue"
+            },
+            {
+              "$ref": "#/$defs/ApiTokenSetting"
+            }
+          ],
+          "title": "Max Output Tokens"
+        },
+        "default_output_tokens": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ApiTokenValue"
+            },
+            {
+              "$ref": "#/$defs/ApiTokenArgument"
+            },
+            {
+              "$ref": "#/$defs/ApiRemainingContext"
+            }
+          ],
+          "title": "Default Output Tokens"
+        },
+        "max_input_tokens": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Input Tokens"
+        },
+        "input_modalities": {
+          "$ref": "#/$defs/ApiInputModalities"
+        },
+        "audio_output": {
+          "title": "Audio Output",
+          "type": "boolean"
+        },
+        "reasoning": {
+          "discriminator": {
+            "mapping": {
+              "always-on": "#/$defs/ApiReasoningAlwaysOn",
+              "none": "#/$defs/ApiReasoningNone",
+              "switch": "#/$defs/ApiReasoningSwitch"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ApiReasoningNone"
+            },
+            {
+              "$ref": "#/$defs/ApiReasoningAlwaysOn"
+            },
+            {
+              "$ref": "#/$defs/ApiReasoningSwitch"
+            }
+          ],
+          "title": "Reasoning"
+        },
+        "tools": {
+          "discriminator": {
+            "mapping": {
+              "none": "#/$defs/ApiToolsNone",
+              "supported": "#/$defs/ApiToolsSupported"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ApiToolsNone"
+            },
+            {
+              "$ref": "#/$defs/ApiToolsSupported"
+            }
+          ],
+          "title": "Tools"
+        },
+        "structured_output": {
+          "title": "Structured Output",
+          "type": "boolean"
+        },
+        "system_messages": {
+          "title": "System Messages",
+          "type": "boolean"
+        },
+        "streaming": {
+          "title": "Streaming",
+          "type": "boolean"
+        },
+        "endpoints": {
+          "items": {
+            "enum": [
+              "/v1/chat/completions",
+              "/v1/completions",
+              "/v1/responses",
+              "/v1/messages"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Endpoints",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mode",
+        "max_output_tokens",
+        "default_output_tokens",
+        "max_input_tokens",
+        "input_modalities",
+        "audio_output",
+        "reasoning",
+        "tools",
+        "structured_output",
+        "system_messages",
+        "streaming",
+        "endpoints"
+      ],
+      "title": "ChatApi",
+      "type": "object"
+    },
+    "DecisionApi": {
+      "additionalProperties": false,
+      "description": "A route serving ``POST /v1/systemone``; it has no chat-shaped facts.",
+      "properties": {
+        "mode": {
+          "const": "decision",
+          "title": "Mode",
+          "type": "string"
+        },
+        "max_input_tokens": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max Input Tokens"
+        },
+        "input_modalities": {
+          "$ref": "#/$defs/ApiInputModalities"
+        }
+      },
+      "required": [
+        "mode",
+        "max_input_tokens",
+        "input_modalities"
+      ],
+      "title": "DecisionApi",
+      "type": "object"
+    },
+    "RecipeApiOptionChoice": {
+      "additionalProperties": false,
+      "description": "The complete block that applies when ``option`` is set to ``value``.",
+      "properties": {
+        "option": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "title": "Option",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "title": "Value",
+          "type": "string"
+        },
+        "api": {
+          "discriminator": {
+            "mapping": {
+              "audio_speech": "#/$defs/AudioSpeechApi",
+              "audio_transcription": "#/$defs/AudioTranscriptionApi",
+              "chat": "#/$defs/ChatApi",
+              "decision": "#/$defs/DecisionApi"
+            },
+            "propertyName": "mode"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ChatApi"
+            },
+            {
+              "$ref": "#/$defs/DecisionApi"
+            },
+            {
+              "$ref": "#/$defs/AudioTranscriptionApi"
+            },
+            {
+              "$ref": "#/$defs/AudioSpeechApi"
+            }
+          ],
+          "title": "Api"
+        }
+      },
+      "required": [
+        "option",
+        "value",
+        "api"
+      ],
+      "title": "RecipeApiOptionChoice",
+      "type": "object"
+    },
+    "RecipeIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "publisher": {
+          "maxLength": 64,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 64,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug"
+      ],
+      "title": "RecipeIdentity",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "recipe-api",
+      "default": "recipe-api",
+      "title": "Kind",
+      "type": "string"
+    },
+    "identity": {
+      "$ref": "#/$defs/RecipeIdentity"
+    },
+    "api": {
+      "discriminator": {
+        "mapping": {
+          "audio_speech": "#/$defs/AudioSpeechApi",
+          "audio_transcription": "#/$defs/AudioTranscriptionApi",
+          "chat": "#/$defs/ChatApi",
+          "decision": "#/$defs/DecisionApi"
+        },
+        "propertyName": "mode"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ChatApi"
+        },
+        {
+          "$ref": "#/$defs/DecisionApi"
+        },
+        {
+          "$ref": "#/$defs/AudioTranscriptionApi"
+        },
+        {
+          "$ref": "#/$defs/AudioSpeechApi"
+        }
+      ],
+      "title": "Api"
+    },
+    "option_choices": {
+      "items": {
+        "$ref": "#/$defs/RecipeApiOptionChoice"
+      },
+      "maxItems": 64,
+      "title": "Option Choices",
+      "type": "array"
+    }
+  },
+  "required": [
+    "identity",
+    "api",
+    "option_choices"
+  ],
+  "title": "RecipeApi",
+  "type": "object"
+}

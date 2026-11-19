@@ -196,7 +196,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "b4ad4c86a3299f038c0458cf15e90ae0396044edfb8e3ba7f605d3035d83a3d6",
+        "content_sha256": "885c2489ec90ed830d025071f2b7ed3bfcf1c5eb014f9f3b66a7df009e45df41",
         "kind": "model",
         "publisher": "r0b0tlab",
         "slug": "nex-n2-mini-nvfp4-4387675e"

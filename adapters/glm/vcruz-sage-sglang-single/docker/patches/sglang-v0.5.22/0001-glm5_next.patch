@@ -1,0 +1,47 @@
+--- a/python/sglang/srt/models/glm5_next.py
++++ b/python/sglang/srt/models/glm5_next.py
+@@ -1807,6 +1807,21 @@
+                 continue
+             if "hc_head" in name:
+                 continue
++            # EXL3 sidecars (.trellis/.suh/.svh/.mcg/.mul1) of dense EXL3 linears go to their
++            # per-shard exl3_<i>_<suffix> params. The stacked mapping below has no sidecar names,
++            # so without this they are silently dropped.
++            from sglang_exl3.sidecar import route_exl3_sidecar
++
++            if route_exl3_sidecar(params_dict, name, loaded_weight):
++                continue
++            # The pack stores the KDA short conv as one tensor
++            # model.layers.N.self_attn.conv1d.weight [3*proj, 1, K] (q|k|v channels). SGLang's KDA
++            # module owns it as qkv_conv1d (MergedColumnParallelLinear). No stacked mapping matches
++            # "conv1d", so the 34 KDA conv weights were silently dropped and qkv_conv1d stayed torch.empty.
++            # Renaming routes it to the fused-in-checkpoint path (linear.py weight_loader, loaded_shard_id=None).
++            if name.endswith(".self_attn.conv1d.weight"):
++                name = name.replace(".self_attn.conv1d.weight", ".self_attn.qkv_conv1d.weight")
++                self._exl3_conv_loaded = getattr(self, "_exl3_conv_loaded", 0) + 1
+             for param_name, weight_name, shard_id in stacked_params_mapping:
+                 if weight_name not in name:
+                     continue
+@@ -1862,7 +1877,9 @@
+                     if name.endswith(".bias") and name not in params_dict:
+                         continue
+ 
+-                    if fuse_qkv_a_proj and (
++                    # Fuse only dense .weight tensors. EXL3 sidecars (.trellis/.suh/.svh/.mul1)
++                    # are per-suffix params loaded by their own weight_loader, and a 0-dim .mul1 cannot be cat-ed.
++                    if fuse_qkv_a_proj and name.endswith(".weight") and (
+                         "q_a_proj" in name or "kv_a_proj_with_mqa" in name
+                     ):
+                         cached_a_proj[name] = loaded_weight
+@@ -1919,6 +1936,11 @@
+                     )
+                     weight_loader(param, loaded_weight)
+ 
++        _n_loaded = getattr(self, "_exl3_conv_loaded", 0)
++        _n_params = sum(1 for _k in params_dict if _k.endswith(".qkv_conv1d.weight"))
++        print("[exl3-conv] qkv_conv1d loaded=%d params=%d" % (_n_loaded, _n_params), flush=True)
++        assert _n_loaded == _n_params, (
++            "KDA conv1d load count mismatch: loaded=%d params=%d" % (_n_loaded, _n_params))
+         if getattr(self, "encoder_only", False):
+             run_post = False
+         elif is_nextn:

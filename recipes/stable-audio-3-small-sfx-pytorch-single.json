@@ -208,7 +208,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "11de60543a0cf67d436aee87c4f2c3ab3f3b05c066b0993ff1e5d0a2ef7cac52",
+        "content_sha256": "788528e9a641c6ce46d70d47a17c8170458138fe817a56010a5ca8f9a1d56c7c",
         "kind": "model",
         "publisher": "stabilityai",
         "slug": "stable-audio-3-small-sfx-05ca3857"

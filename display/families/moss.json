@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "moss-vl-realtime-11b-0708",
+          "title": "MOSS-VL Realtime 11B 0708"
+        }
+      ],
+      "slug": "moss-vl-realtime-11b",
+      "title": "MOSS-VL Realtime 11B"
+    }
+  ],
+  "slug": "moss",
+  "title": "MOSS"
+}

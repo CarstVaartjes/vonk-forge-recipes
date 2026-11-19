@@ -151,10 +151,6 @@
     "quantization": "nvfp4-modelopt"
   },
   "identity": {
-    "family": {
-      "publisher": "r0b0tlab",
-      "slug": "nex-n2"
-    },
     "model": {
       "publisher": "r0b0tlab",
       "slug": "nex-n2-mini"

@@ -493,10 +493,6 @@
     "quantization": "nvfp4-routed-experts-bf16-attention"
   },
   "identity": {
-    "family": {
-      "publisher": "xiaomimimo",
-      "slug": "mimo"
-    },
     "model": {
       "publisher": "lukealonso",
       "slug": "mimo-v2-5-nvfp4"

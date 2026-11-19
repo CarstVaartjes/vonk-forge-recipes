@@ -664,10 +664,6 @@
     "quantization": "mxfp4-reap"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-flash"
-    },
     "model": {
       "publisher": "0xsero",
       "slug": "deepseek-v4-flash-reap-180b-k160"

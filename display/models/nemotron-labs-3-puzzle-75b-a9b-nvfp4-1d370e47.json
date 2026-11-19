@@ -19,6 +19,14 @@
     "spdx": "OpenMDW-1.1",
     "url": "https://openmdw.ai/license/1-1/"
   },
+  "lineage": {
+    "base_model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
+    "family": "nemotron",
+    "generation": "Nemotron 3",
+    "line": "nemotron-puzzle-75b-a9b",
+    "model": "nemotron-labs-3-puzzle-75b-a9b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

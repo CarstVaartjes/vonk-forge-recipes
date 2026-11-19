@@ -853,10 +853,6 @@
     "quantization": "nvfp4-routed-experts-fp8-kv"
   },
   "identity": {
-    "family": {
-      "publisher": "xiaomimimo",
-      "slug": "mimo"
-    },
     "model": {
       "publisher": "xiaomimimo",
       "slug": "mimo-v2-6-flash-rl"

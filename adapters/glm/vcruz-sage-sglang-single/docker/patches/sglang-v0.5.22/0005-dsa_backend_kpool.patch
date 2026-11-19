@@ -1,0 +1,11 @@
+--- a/python/sglang/srt/layers/attention/dsa/dsa_backend_kpool.py
++++ b/python/sglang/srt/layers/attention/dsa/dsa_backend_kpool.py
+@@ -51,7 +51,7 @@
+         if (
+             topk_indices is None
+             or self.dsa_index_kpool <= 1
+-            or dsa_impl in ("fa3", "tilelang", "trtllm")
++            or dsa_impl in ("fa3", "tilelang", "trtllm", "triton")  # generic triton takes full topk incl. tail (dsa_backend passes max_topk_length=None when kpool>1)
+         ):
+             return
+         raise NotImplementedError(

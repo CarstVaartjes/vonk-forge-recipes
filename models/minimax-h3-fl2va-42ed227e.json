@@ -565,10 +565,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "minimax",
-      "slug": "minimax-h3"
-    },
     "model": {
       "publisher": "minimax",
       "slug": "minimax-h3"

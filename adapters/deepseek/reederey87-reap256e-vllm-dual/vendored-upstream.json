@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "build_flashinfer.py",
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "commit": "4ccddc8801757e3f26b162688ddd6bcdd0668bdb",
+    "repo": "Reederey87/deepseek-v41-flash-reap-2x-dgx-spark"
+  }
+}

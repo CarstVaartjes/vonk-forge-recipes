@@ -17,6 +17,13 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/OpenMOSS-Team/MOVA-360p/blob/eab4aa91d6d5eb515e259a0c8533c90062b117a5/README.md"
   },
+  "lineage": {
+    "family": "mova",
+    "generation": "MOVA",
+    "line": "mova-360p",
+    "model": "mova-360p",
+    "variant_kind": "base"
+  },
   "modalities": [
     "audio",
     "video"

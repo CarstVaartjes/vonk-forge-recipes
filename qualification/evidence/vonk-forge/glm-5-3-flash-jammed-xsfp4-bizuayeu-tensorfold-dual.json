@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/glm-5-3-flash-jammed-xsfp4-bizuayeu-tensorfold-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "485f452a6ad66303ba2be063f9d9bfd35d7f53fea397d61659e8f461b3a59fdb",
+        "source_bundle_sha256": "b4d226f25a3d95f1395c7af59794d579e9cc61829ba3eaadbd8a2340075d46b5",
+        "runtime_image": {
+          "build_key": "03b981a0f3dc205c17320c60e57623fa319096d16a8ef07341c7986ee252f26d",
+          "image_digest": "sha256:e4f41ec4d6fca4d2e9ce4af45f919d0e2090639a78711490b7e7884579bb275f"
+        },
+        "model_digests": [
+          "e734baacf6f2d0d5a00931f0dfb6e0565c73aa69559162ec4d54afd0a72aeb0e"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "a586dfbc0c169c0376c28ba90ffa9cf9fc9740ec5bb9f04ab69225e950372cd2"
+      ],
+      "tested_at": "2026-11-18T21:13:04.234680Z",
+      "platform": {
+        "controller_source_sha": "1d8683c48e65dc158ad7313cdd3772bd44faa5f8",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "485f452a6ad66303ba2be063f9d9bfd35d7f53fea397d61659e8f461b3a59fdb",
+      "role": "entrypoint",
+      "steady_bytes": 122756276224
+    },
+    {
+      "content_sha256": "485f452a6ad66303ba2be063f9d9bfd35d7f53fea397d61659e8f461b3a59fdb",
+      "role": "worker",
+      "steady_bytes": 122269442048
+    }
+  ]
+}

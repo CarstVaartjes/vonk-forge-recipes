@@ -178,10 +178,6 @@
     "quantization": "nvfp4-modelopt"
   },
   "identity": {
-    "family": {
-      "publisher": "meta-llama",
-      "slug": "llama"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "llama-3-3-70b-instruct"

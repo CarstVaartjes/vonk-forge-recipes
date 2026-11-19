@@ -73,9 +73,11 @@ def parse_version(text: str) -> tuple[int, int, int]:
 def capability_features(display: ModelDisplay) -> dict[str, str]:
     """Each capability a Model display lists, with the version that introduced it."""
 
+    # Authored displays are validated strictly, so every name is a CapabilityName.
     return {
         f"capability {name.value}": CAPABILITY_SINCE[name]
         for name in display.capabilities
+        if isinstance(name, CapabilityName)
     }
 
 

@@ -21,6 +21,13 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen3.8-27B/blob/37561816e66b5b9153b1b64c10968c18c1e6f4a0/LICENSE"
   },
+  "lineage": {
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-27b",
+    "model": "qwen3-8-27b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image",
     "text"

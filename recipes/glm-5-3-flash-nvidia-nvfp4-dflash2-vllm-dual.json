@@ -520,7 +520,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "933356a3ecc7fde2fc27454d07f486d9e3b0e5ca2e408c9459e0257ecf2e14d1",
+        "content_sha256": "6ce40e78fb9950a3674bfde963cfb4e33150f31892cf5fcefe2e54f40fbb2f3f",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "glm-5-3-flash-nvfp4-1d007386"
@@ -586,7 +586,7 @@
       ],
       "id": "dependency-glm-5-3-flash-dflash2-bf582e4e",
       "model": {
-        "content_sha256": "007390c22d2ef2aa3113a7a4ff215f4b3dd401a1dcc04c3393b0f50c2671d752",
+        "content_sha256": "3cec875511c18e494f6fdcebb40f9c8bdc76127acb1d913b85f265675e2624b0",
         "kind": "model",
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2-bf582e4e"

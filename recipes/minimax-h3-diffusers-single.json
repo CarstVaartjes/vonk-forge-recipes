@@ -2968,7 +2968,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "77b33b6999dd527009f47e9357a21ea8783ddcdad15b6fcbe266f986389b350b",
+        "content_sha256": "15cc4cf89d531bce70ad2f28a96373c2fc49aa01ad2126c5dc8e8f73f99676a7",
         "kind": "model",
         "publisher": "minimax",
         "slug": "minimax-h3"

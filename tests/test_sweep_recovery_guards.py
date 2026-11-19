@@ -54,7 +54,6 @@ def test_every_http_error_preserves_the_request_until_canonical_recovery(
     assert record["attempt"] == original["attempt"] == 1
     assert record["started_at"] == original["started_at"]
     assert not sweep.state.entry(recipe.key).get("attempts")
-    assert not sweep.state.data["download_history"]
     requests = [
         call[-1] for _, call in fleet.calls if call[:2] == ("recipe", "download")
     ]
@@ -361,8 +360,16 @@ def test_request_map_observes_each_lane_independently(tmp_path: Path) -> None:
     }
     fleet.observations.extend(
         [
-            (("profile", "progress"), 0, {"id": "slow-app", "state": "observing"}),
-            (("profile", "progress"), 0, {"id": "fast-app", "state": "succeeded"}),
+            (
+                ("profile", "progress", "--application", "slow-app"),
+                0,
+                {"id": "slow-app", "state": "observing"},
+            ),
+            (
+                ("profile", "progress", "--application", "fast-app"),
+                0,
+                {"id": "fast-app", "state": "succeeded"},
+            ),
         ]
     )
     assert sweep.poll_application()

@@ -1,0 +1,97 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "nemotron-3-nano-30b-a3b",
+          "title": "Nemotron 3 Nano 30B-A3B"
+        }
+      ],
+      "slug": "nemotron-nano-30b-a3b",
+      "title": "Nemotron Nano 30B-A3B"
+    },
+    {
+      "models": [
+        {
+          "slug": "nemotron-3-super-120b-a12b",
+          "title": "Nemotron 3 Super 120B-A12B"
+        }
+      ],
+      "slug": "nemotron-super-120b-a12b",
+      "title": "Nemotron Super 120B-A12B"
+    },
+    {
+      "models": [
+        {
+          "slug": "nemotron-3-nano-omni-30b-a3b-reasoning",
+          "title": "Nemotron 3 Nano Omni 30B-A3B Reasoning"
+        }
+      ],
+      "slug": "nemotron-nano-omni-30b-a3b",
+      "title": "Nemotron Nano Omni 30B-A3B"
+    },
+    {
+      "models": [
+        {
+          "slug": "nemotron-3-ultra-550b-a55b",
+          "title": "Nemotron 3 Ultra 550B-A55B"
+        }
+      ],
+      "slug": "nemotron-ultra-550b-a55b",
+      "title": "Nemotron Ultra 550B-A55B"
+    },
+    {
+      "models": [
+        {
+          "slug": "nemotron-labs-3-puzzle-75b-a9b",
+          "title": "Nemotron Labs 3 Puzzle 75B-A9B"
+        }
+      ],
+      "slug": "nemotron-puzzle-75b-a9b",
+      "title": "Nemotron Puzzle 75B-A9B"
+    },
+    {
+      "models": [
+        {
+          "slug": "nemotron-3-5-lightning-30b-a3b",
+          "title": "Nemotron 3.5 Lightning 30B-A3B"
+        }
+      ],
+      "slug": "nemotron-lightning-30b-a3b",
+      "title": "Nemotron Lightning 30B-A3B"
+    },
+    {
+      "models": [
+        {
+          "slug": "nemotron-3-5-transcribe-30b-a4b",
+          "title": "Nemotron 3.5 Transcribe 30B-A4B"
+        }
+      ],
+      "slug": "nemotron-transcribe-30b-a4b",
+      "title": "Nemotron Transcribe 30B-A4B"
+    },
+    {
+      "models": [
+        {
+          "slug": "nemotron-3-5-bolt-74b-a9b",
+          "title": "Nemotron 3.5 Bolt 74B-A9B"
+        }
+      ],
+      "slug": "nemotron-bolt-74b-a9b",
+      "title": "Nemotron Bolt 74B-A9B"
+    },
+    {
+      "models": [
+        {
+          "slug": "nemotron-3-5-super-vl-120b-a12b",
+          "title": "Nemotron 3.5 Super VL 120B-A12B"
+        }
+      ],
+      "slug": "nemotron-super-vl-120b-a12b",
+      "title": "Nemotron Super VL 120B-A12B"
+    }
+  ],
+  "slug": "nemotron",
+  "title": "Nemotron"
+}

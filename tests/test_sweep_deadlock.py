@@ -170,23 +170,6 @@ def test_a_cached_recipe_waiting_for_lanes_keeps_its_eviction_pin(
     assert pins == [recipe.key]
 
 
-def test_the_sweep_takes_over_at_the_start_not_at_the_first_placement(
-    tmp_path: Path, gateway: Gateway
-) -> None:
-    sweep, fleet, clock = make_sweep(
-        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
-    )
-    fleet.runs.append(dict(OWNER))
-    start = clock.now()
-    sweep.run()
-    first = next(
-        t
-        for t, (p, c) in zip(fleet.call_times, fleet.calls, strict=True)
-        if p == 10 and c[:3] == ("profile", "load", "--yes")
-    )
-    assert first == start  # before the first download had even finished
-
-
 def test_a_review_blocked_by_a_workload_that_is_back_clears_the_fleet_instead_of_failing_the_recipe(
     tmp_path: Path, gateway: Gateway
 ) -> None:

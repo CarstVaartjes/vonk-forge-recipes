@@ -1,0 +1,27 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "gpt-oss-120b",
+          "title": "gpt-oss-120b"
+        }
+      ],
+      "slug": "gpt-oss-120b",
+      "title": "gpt-oss 120b"
+    },
+    {
+      "models": [
+        {
+          "slug": "gpt-oss-20b",
+          "title": "gpt-oss-20b"
+        }
+      ],
+      "slug": "gpt-oss-20b",
+      "title": "gpt-oss 20b"
+    }
+  ],
+  "slug": "gpt-oss",
+  "title": "gpt-oss"
+}

@@ -260,13 +260,14 @@ def _coverage_group(engine: str, interface: str, signals: list[str]) -> str:
     if engine in {
         "ds4",
         "exllamav3",
+        "gr8",
         "llama-cpp",
         "pytorch-server",
         "tensorfold",
         "tensorrt-llm",
     }:
         return _SPECIALIZED
-    if engine in {"diffusers", "comfyui"}:
+    if engine in {"comfyui", "diffusers", "vllm-omni"}:
         return _IMAGE_VIDEO
     if engine == "pytorch-pipeline":
         if declared_fork:
@@ -343,7 +344,8 @@ def _row(
             {
                 "key": model_key,
                 "selection": selection.id,
-                "family": model.identity.family.slug,
+                # The display Family; a helper (encoder, drafter) has none.
+                "family": display.lineage.family if display.lineage else None,
                 "family_title": display.family_title,
                 "model": model.identity.model.slug,
                 "variant": model.identity.variant,
@@ -389,7 +391,7 @@ def _row(
             "parallelism": recipe.topology.parallelism.model_dump(mode="json"),
             "fabric_connectivity": recipe.topology.fabric_connectivity,
         },
-        "families": sorted({item["family"] for item in selections}),
+        "families": sorted({item["family"] for item in selections} - {None}),
         "quantizations": sorted({item["quantization"] for item in selections}),
         "precisions": sorted({item["precision"] for item in selections}),
         "modalities": sorted({m for item in selections for m in item["modalities"]}),

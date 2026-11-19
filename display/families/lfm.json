@@ -1,0 +1,27 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "lfm2-5-vl-3b",
+          "title": "LFM2.5-VL 3B"
+        }
+      ],
+      "slug": "lfm-vl-3b",
+      "title": "LFM VL 3B"
+    },
+    {
+      "models": [
+        {
+          "slug": "lfm2-5-24b-a2b",
+          "title": "LFM2.5 24B-A2B"
+        }
+      ],
+      "slug": "lfm-24b-a2b",
+      "title": "LFM 24B-A2B"
+    }
+  ],
+  "slug": "lfm",
+  "title": "LFM"
+}

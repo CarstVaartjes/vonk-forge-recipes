@@ -268,10 +268,6 @@
     "quantization": "modelopt-nvfp4"
   },
   "identity": {
-    "family": {
-      "publisher": "stepfun-ai",
-      "slug": "step-3-7-flash"
-    },
     "model": {
       "publisher": "stepfun-ai",
       "slug": "step-3-7-flash-nvfp4"

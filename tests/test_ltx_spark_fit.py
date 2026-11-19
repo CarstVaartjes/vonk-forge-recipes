@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+import ltx_protocol  # noqa: F401  # puts the protocol wheel on sys.path for the adapters run below
 from documents import recipe_display
 
 ROOT = Path(__file__).resolve().parents[1]

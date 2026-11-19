@@ -186,7 +186,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c530c10fe410728b3b130964a9fb4a4833029b534b525209b412945387bc1262",
+        "content_sha256": "cae8f75ba5c3d13687f42688eff54dd1cc1f39430c2498d60e076dd9c1bb9984",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v2-lite-chat-85864749"

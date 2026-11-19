@@ -271,6 +271,7 @@ def test_the_cli_takes_retry_failed_and_only(tmp_path: Path, gateway: Gateway) -
         vonkctl_factory=lambda exe: Vonkctl(exe, runner=fleet.runner),
         clock=clock,
         definitions=make_definitions(recipes),
+        authored={key: r.content for key, r in fleet.recipes.items()},
     )
     assert code == 0
     assert (

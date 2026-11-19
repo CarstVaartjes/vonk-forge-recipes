@@ -289,11 +289,11 @@ ROTATING = [
         ],
     },
     {
-        "reason": "runtime_preflight.stale",
+        "reason": "runtime_preflight.required",
         "blockers": [
             {
-                "code": "runtime_preflight.stale",
-                "detail": "runtime_preflight.stale",
+                "code": "runtime_preflight.required",
+                "detail": "runtime_preflight.required",
                 "operation": {"kind": "fleet-profile"},
                 "severity": "warning",
             }
@@ -305,7 +305,7 @@ ROTATING = [
 def test_a_rotating_wait_on_a_retried_copy_alarms_one_window_after_its_cycle(
     tmp_path: Path, gateway: Gateway, monkeypatch
 ) -> None:
-    # receipt-missing -> run-switch.phase-retry -> runtime_preflight.stale ->
+    # receipt-missing -> run-switch.phase-retry -> runtime_preflight.required ->
     # receipt-missing ..., each copy attempt failing at 20 % and retried from 0.
     # A wait recurring is not movement: once the cycle showed every wait, the
     # Controller alarms one stall window after the last of them first showed.

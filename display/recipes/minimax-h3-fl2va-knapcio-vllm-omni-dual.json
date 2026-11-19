@@ -1,0 +1,26 @@
+{
+  "alignment": "unspecified",
+  "description": "Candidate for the creator's two-Spark MiniMax H3 stack (knapcio/MiniMax-H3-2x-DGX-Spark-TP2 at 2845006): vLLM-Omni v0.30.0 with the text encoder tensor-parallel and the DiT Ulysses sequence-parallel over two Sparks, online FP8 DiT, 1344x768 and 20 steps by default. One job renders one 4 to 15 second clip with synchronized audio from a prompt, optionally from a first and/or last keyframe; every job pays the model load. Physical two-Spark qualification is pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "minimax-h3-fl2va-knapcio-vllm-omni-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "minimax",
+    "video",
+    "audio",
+    "multimodal",
+    "fl2va",
+    "t2va",
+    "keyframe",
+    "vllm-omni",
+    "fp8",
+    "distributed",
+    "dual",
+    "spark"
+  ],
+  "title": "MiniMax H3 FL2VA two-Spark vLLM-Omni (knapcio)"
+}

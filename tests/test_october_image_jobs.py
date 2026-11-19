@@ -13,10 +13,6 @@ from unittest.mock import Mock
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-WHEEL = next(
-    (ROOT / "adapters/october-2026/qwen-image-2-1-turbo-diffusers-single").glob("*.whl")
-)
-sys.path.insert(0, str(WHEEL))
 RecipeJobInputManifest = importlib.import_module(
     "vonk_agent_protocol.job_inputs"
 ).RecipeJobInputManifest

@@ -1,0 +1,45 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use",
+    "video-understanding"
+  ],
+  "description": "Bizuayeu's XSFP4 checkpoint (revision 88736f91) of Z.ai GLM-5.3-Flash, derived from NVIDIA GLM-5.3-Flash-FP4-Local: routed experts NVFP4 blocks fitted again from the BF16 weights with a smoothing folded in (block scale every 16 inputs, layers 3 to 44 stored losslessly compressed as csf_32x2_v1), served W4A16; everything else FP4-Local's tensors as stored. Served by TensorFold's native engine (1.2.7 at the creator's pin). Licence: NVIDIA Open Model Agreement (derivative of FP4-Local), commercially usable; upstream Z.ai model is MIT. Not gated.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "bizuayeu",
+    "slug": "glm-5-3-flash-xsfp4-88736f91"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Bizuayeu",
+      "NVIDIA",
+      "Z.ai"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
+    "url": "https://huggingface.co/Bizuayeu/GLM-5.3-Flash-XSFP4/blob/88736f916f8939607fde8a4b881dcae749f7551d/LICENSE"
+  },
+  "lineage": {
+    "base_model": "zai-org/GLM-5.3-Flash",
+    "family": "glm",
+    "generation": "GLM 5.3",
+    "line": "glm-flash-321b",
+    "model": "glm-5-3-flash",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image",
+    "video"
+  ],
+  "model_title": "GLM 5.3 Flash XSFP4",
+  "tags": [
+    "bizuayeu",
+    "glm-5-3-flash-xsfp4"
+  ]
+}

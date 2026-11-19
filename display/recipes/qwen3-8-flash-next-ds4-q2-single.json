@@ -1,0 +1,22 @@
+{
+  "alignment": "unspecified",
+  "description": "Candidate one-DGX Spark Qwen3.8 Flash Next text profile on antirez/ds4 with the Q2 GGUF: 41.73 GiB of main and MTP weights stay resident, and the 95.37 GiB BF16 n-gram table is read straight from the SSD, so keep the 137 GiB file on a fast local SSD. Launch follows antirez's DGX Spark guide (--mtp, 32K context). Vision needs a separate encoder GGUF and is not part of this profile. Memory is the resident weights plus runtime and context buffers: an estimate that fits an idle Spark; the first hardware try measures it. Physical Spark acceptance is still required.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-ds4-q2-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "executable",
+    "qwen",
+    "qwen3-8",
+    "ds4",
+    "openai",
+    "chat",
+    "reasoning",
+    "single",
+    "spark"
+  ],
+  "title": "Qwen3.8 Flash Next DS4 Q2 single Spark"
+}

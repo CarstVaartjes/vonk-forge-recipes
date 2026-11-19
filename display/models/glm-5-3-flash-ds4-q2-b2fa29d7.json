@@ -1,0 +1,44 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "Exact DS4 GLM 5.3 Flash Q2 GGUF (imatrix-calibrated routed experts; about 90 GiB, resident on one Spark). Text and tool use through DwarfStar ds4-server; the separate vision encoder GGUF is not part of this Model. GLM Spark-to-Spark tensor parallelism is not implemented in ds4.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "antirez",
+    "slug": "glm-5-3-flash-ds4-q2-b2fa29d7"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Z.ai",
+      "Salvatore Sanfilippo (antirez)"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/zai-org/GLM-5.3-Flash/blob/46a050bec13002ad29ee795c16e61cf4fa3c4a9c/LICENSE"
+  },
+  "lineage": {
+    "base_model": "zai-org/GLM-5.3-Flash",
+    "family": "glm",
+    "generation": "GLM 5.3",
+    "line": "glm-flash-321b",
+    "model": "glm-5-3-flash",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "GLM 5.3 Flash",
+  "tags": [
+    "ds4",
+    "gguf",
+    "glm",
+    "glm-5-3",
+    "q2",
+    "spark"
+  ]
+}

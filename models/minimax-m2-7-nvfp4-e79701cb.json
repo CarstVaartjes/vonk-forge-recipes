@@ -277,10 +277,6 @@
     "quantization": "nvfp4"
   },
   "identity": {
-    "family": {
-      "publisher": "minimax",
-      "slug": "minimax"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "minimax-m2-7"

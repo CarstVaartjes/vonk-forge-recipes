@@ -156,7 +156,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "09b0768f5a8ee3c15d8b0d5731fdbee28dabf0ae5a903a6846ad481b1802247f",
+        "content_sha256": "5e1030fac85ce2270d74197a7b68e5d17bffe4597e48b13c0d7774c62df25100",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen3-tts-12hz-1-7b-customvoice-0c0e3051"

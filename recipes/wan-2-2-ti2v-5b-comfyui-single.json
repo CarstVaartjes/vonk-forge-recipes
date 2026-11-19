@@ -138,7 +138,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "3e9434fd0f8dd639399d65be2994f555bbef9342c7bbf3bb313e416135e35b01",
+        "content_sha256": "36f111531a1393eb6fc14c5c74621b2b0d29e05487b1ac6d4a3b4cf16f121913",
         "kind": "model",
         "publisher": "wan-ai",
         "slug": "wan-2-2-ti2v-5b-comfyui-ee6f4a40"

@@ -45,10 +45,6 @@
     "quantization": "pq2-0"
   },
   "identity": {
-    "family": {
-      "publisher": "prism-ml",
-      "slug": "ternary-bonsai"
-    },
     "model": {
       "publisher": "prism-ml",
       "slug": "ternary-bonsai-2-27b-gguf"

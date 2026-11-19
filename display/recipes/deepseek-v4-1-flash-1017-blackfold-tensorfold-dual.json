@@ -1,0 +1,20 @@
+{
+  "alignment": "unspecified",
+  "description": "Blackwellboy's BLACKFOLD TP2 serve at d905cf0b9d126da32b9f66907454c1625d78a378: the refusal-reduced DeepSeek-V4.1-Flash-1017 on TensorFold's native engine (bertholomus 6366d2c with the creator's three engine patches) across two Sparks, 1,048,576-token shared context pool, 4 streams, thinking on, drafts on, temperature 1, top-p 0.95, top-k 20, max-tokens 32768. Weights are the unchanged LibertAI EXL3 2.9bpw pack plus the gated creator overlay (997 MB, attn.wo_b of blocks 2 to 39). The per-rank cache step links the overlay into its model view under a name that sorts after every shard; TensorFold's checkpoint loader maps every *.safetensors of the folder in byte order and the last file naming a tensor wins, so the rank cache is built from the overlay's tensors without rewriting or copying the 211 GB pack. The cache is keyed by the overlay's revision, so it never reuses a stock-weight cache. Chat template: DeepSeek's official V4.1 template with its image-placeholder guards removed (lucataco's patch, sha256 13f33e7f) and the creator's one-expression rewrite for the native renderer. Engram shards stay on local NVMe. Rank-cache tooling comes from tonyd2wild's two patches because the creator's pin does not build it (the creator took the cache from lucataco's first start). Memory is the 115 GiB whole-host figure of the sibling creator lane at 1M context with drafts, an estimate until the hardware try; the creator states only that the head has a few GiB free. The weights repository is gated behind a Responsible Use Agreement, shown for information only. Not physically qualified on this fleet: the creator's measurements used two Sparks with a second RoCE rail and are not evidence here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-1017-blackfold-tensorfold-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "deepseek",
+    "1017",
+    "tensorfold",
+    "exl3",
+    "blackfold",
+    "refusal-reduced",
+    "vision",
+    "spark"
+  ],
+  "title": "DeepSeek V4.1 Flash 1017 BLACKFOLD EXL3 2.9bpw TensorFold TP2 (Blackwellboy)"
+}

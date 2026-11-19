@@ -53,7 +53,6 @@ SERO_DS41 = "https://github.com/0xSero/DeepSeek-V4.1-Flash-Two-Sparks/blob/ee688
 SERO_STEP5 = "https://github.com/0xSero/Step-5-Preview-Four-Sparks/blob/662949a6c1244c1e8a5c44ed62cedb89a207cbcc"
 REEDEREY = "https://github.com/Reederey87/glm53-flash-exl3-2x-dgx-spark/blob/aad6481c94b20ef4853ea07819f3f4ea2ec18f33"
 NVIDIA_VLLM = "https://github.com/NVIDIA/dgx-spark-playbooks/blob/98b3a473f30916ec05eef3e7a01b781aaf4daa8a/nvidia/vllm"
-MIA_AQLM = "https://github.com/MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks/blob/5c85163ccb8d98d395880e71e2dbd03976a3f4ad"
 DROWZEYS_QT = "https://github.com/drowzeys/keys-GLM5.2-Quantrio-INT4-INT8-Mixed-Abliterated-C1-30toks-4x-DGX-Sparks/blob/296699b44e024de938cb8b3251d49d4b1306a507"
 DROWZEYS_MIMO = "https://github.com/drowzeys/keys-MiMo-V2.6-Pro-MOPD-C3-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context/blob/d8a10997f2c6b1b6140b204fc5dddddd247d894b"
 DROWZEYS = "https://github.com/drowzeys/keys-Qwen3.8-27B-NVFP4-DFlash2-Ablit-Cybersecurity-Unlock-1M-Context-YARN-Single-DGXSpark/blob/fca3d18bcab52b65e4a428b883cbcbcb0a7a3443"
@@ -335,15 +334,6 @@ CREATOR = {
         },
         context_tokens=262144,
         peak=113344691542,
-    ),
-    "glm-5-2-aqlm-vllm-triple": Creator(
-        source=f"{MIA_AQLM}/.env.example#L89",
-        arguments={
-            "gpu-memory-utilization": "0.895",
-            "kv-cache-memory-bytes": "11811160064",
-        },
-        context_tokens=348160,
-        peak=119649943144,
     ),
     "glm-5-2-quanttrio-vllm-four": Creator(
         source=f"{DROWZEYS_QT}/recipe/serve.env.example#L7",

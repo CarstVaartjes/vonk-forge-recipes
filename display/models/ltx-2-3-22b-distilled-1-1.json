@@ -17,6 +17,14 @@
     "spdx": "LTX-2 Community License Agreement",
     "url": "https://huggingface.co/Lightricks/LTX-2.3/blob/5948be4ced3a4493d1f836df64378ff136ddb770/LICENSE"
   },
+  "lineage": {
+    "base_model": "Lightricks/LTX-2.3",
+    "family": "ltx",
+    "generation": "LTX-2.3",
+    "line": "ltx-22b",
+    "model": "ltx-2-3-22b",
+    "variant_kind": "derivative"
+  },
   "modalities": [
     "audio",
     "video"

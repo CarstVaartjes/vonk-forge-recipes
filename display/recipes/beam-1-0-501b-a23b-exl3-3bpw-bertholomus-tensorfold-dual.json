@@ -1,0 +1,20 @@
+{
+  "alignment": "unspecified",
+  "description": "bertholomus's two-Spark Beam-1.0-501B-A23B recipe v0.2.0, its default TensorFold lane (beam-1.0-2x-dgx-spark bdfa59fa, tf/; MIT): tensor parallel 2 over the RoCE link, rank 0 serving the OpenAI API, with Reflection's DFlash2 drafter on both ranks. Engine: bertholomus/TensorFold, branch beam-1.0-tp2, at the REV of tf/beam-tf.env (d00201b4, TensorFold 0.6.6 with the beam family), installed on the stock nvcr.io/nvidia/pytorch:26.07-py3 image the creator runs (the creator publishes no image); the engine's CUDA extensions are built for the GPU present before each rank starts, as tf/beam-tf-build.sh does. Weights: bertholomus/Beam-1.0-501B-A23B-EXL3-3bpw-2xGB10 at fb04dd69 (routed experts 3 bits, attention and dense MLPs 6 bits, about 90 GiB per node) and reflection/Beam-1.0-501B-A23B-DFlash2 at 163b276b. Every served setting is the creator's (tf/beam-tf.env): 4-bit drafter weights and draft head, 5 drafts a step adapting between 3 and 5, 16 rows a decode step, the mma3 prompt expert kernel, 4,096-token prompt chunks split in 1,024-row pieces, 4 prompt cache entries, reduce-scatter prompt sums, 4 NCCL channels, the glibc malloc thresholds, 4 sequences decoding together and --context 1,048,576 (Beam's longest, asked). The engine sizes its fp8 KV pool at each start from what a 9 GiB MemAvailable floor leaves, up to that context: the creator's served start held 868,352 positions per node, so the API facts state 868,352 tokens; that is the creator's measurement, not a floor, and the pool can come out larger or smaller on nodes with more or less free memory. Reasoning is always on (Beam always writes its analysis channel); reasoning_effort picks minimal to max (max when unset); tool calls with tool_choice auto, as Beam's harmony format; no structured output (xgrammar is not installed). Deviation from the creator: the image applies one patch to the engine (adapters/beam/bertholomus-tensorfold-tp2/patches/0001-tool-parameters-integral-number-for-integer.patch). Beam's chat template types a JSON-schema integer as number, so the model writes 17.0 and TensorFold's decode_parameter returned the text, a JSON string; on hardware the shared product case returned {\"left\":\"17.0\",\"product\":\"323.0\",\"right\":\"19.0\"} with a correct answer. With the patch an integral number for an integer parameter comes back as the integer (17); an upstream PR to bertholomus/TensorFold follows once hardware confirms. Not ported: the creator's API key file, 127.0.0.1 listen address, memguard.sh and MIN_START_GIB preflight (platform concerns); the Controller supplies NCCL_SOCKET_IFNAME, NCCL_IB_HCA and NCCL_IB_GID_INDEX (the creator's GID 5 is its own nodes'). Memory: each peak is 130,663,231,488 bytes minus the creator's lowest MemAvailable (10,740 MiB head, 11,089 MiB worker) minus the 4,063,231,488-byte idle host use admission charges: 115.34 GB on the entrypoint and 114.97 GB on the worker, estimates until tried here; selected weights per rank (96.9 GB of target plus the 3.9 GB drafter) plus 8 GB overhead are about 108.7 GB, so the load is predicted to fit with the pool taking the rest. Upstream figures (30.6 tok/s decode on ~2K prose, 45.5 tok/s on ~2K code, 64.7 tok/s aggregate over 4 code streams, about 1,400 tok/s cold prefill, KL 0.0121 and 96.87% top-1 agreement against BF16) are the creator's claims, not measured here. The repository's vLLM lane (gb10/, 655,360 tokens) is a different engine and not this recipe. Licences are information only: recipe scripts MIT, TensorFold and the Beam weights Apache-2.0.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "beam-1-0-501b-a23b-exl3-3bpw-bertholomus-tensorfold-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "beam",
+    "reflection",
+    "tensorfold",
+    "exl3",
+    "dflash2",
+    "tool-use",
+    "reasoning",
+    "spark"
+  ],
+  "title": "Beam-1.0-501B-A23B EXL3 3bpw TensorFold dual Spark (bertholomus)"
+}

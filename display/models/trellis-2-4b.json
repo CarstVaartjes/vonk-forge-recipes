@@ -16,6 +16,13 @@
     "spdx": "MIT",
     "url": "https://github.com/microsoft/TRELLIS.2/blob/75fbf0183001ed9876c8dbb35de6b68552ee08bd/LICENSE"
   },
+  "lineage": {
+    "family": "trellis",
+    "generation": "TRELLIS.2",
+    "line": "trellis-4b",
+    "model": "trellis-2-4b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "3d"
   ],

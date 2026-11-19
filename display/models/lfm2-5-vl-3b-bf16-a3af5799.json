@@ -20,6 +20,14 @@
     "spdx": "LicenseRef-LFM-1.0",
     "url": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/blob/a3af5799199acdd2a4f56ac4342816abb46c12a9/LICENSE"
   },
+  "lineage": {
+    "family": "lfm",
+    "flavor": "vision",
+    "generation": "LFM2.5",
+    "line": "lfm-vl-3b",
+    "model": "lfm2-5-vl-3b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image",
     "text"

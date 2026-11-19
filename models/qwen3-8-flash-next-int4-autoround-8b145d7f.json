@@ -1114,10 +1114,6 @@
     "quantization": "autoround"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "azampatti",
       "slug": "qwen3-8-flash-next"

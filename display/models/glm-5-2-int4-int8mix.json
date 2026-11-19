@@ -21,6 +21,14 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix/blob/main/LICENSE"
   },
+  "lineage": {
+    "base_model": "zai-org/GLM-5.2",
+    "family": "glm",
+    "generation": "GLM 5.2",
+    "line": "glm",
+    "model": "glm-5-2",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

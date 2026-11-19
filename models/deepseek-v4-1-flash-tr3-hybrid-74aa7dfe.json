@@ -520,10 +520,6 @@
     "quantization": "exl3-tr3-k3-mxfp4-hybrid"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-flash"
-    },
     "model": {
       "publisher": "drowzeys",
       "slug": "deepseek-v4-1-flash-tr3-hybrid"

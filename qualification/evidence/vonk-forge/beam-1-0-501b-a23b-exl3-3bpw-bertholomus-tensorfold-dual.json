@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/beam-1-0-501b-a23b-exl3-3bpw-bertholomus-tensorfold-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "11662b8808a264936c4f8fa791c2351c25aa269d8b0b178cf8351b63326e4349",
+        "source_bundle_sha256": "79ace0d5765e0a1b10422457c1055e52617ac9052854ec08bd7e697f0eba76fb",
+        "runtime_image": {
+          "build_key": "00c21741bd5540f8e3101c7a4124d1f329d2b08ba52126f6272db3f023da13a6",
+          "image_digest": "sha256:1259f0e665e5560d96b97ef5e88e9fec7b702d945bbf923765bb9a22147d8b21"
+        },
+        "model_digests": [
+          "045ca48827808181bbae9f401484891924de8bc5c172b6b85ef99eb3ccf125e1",
+          "5640b1a60e43aa2ab5e0872a62ac955e3a1ec1a7c49efb5e088956c3fa0c7e31"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "6fe4409db3f9e5a79fc2473393be1a846bf819e3fb2004e2e5f89c2c109621de"
+      ],
+      "tested_at": "2026-11-18T21:01:41.928055Z",
+      "platform": {
+        "controller_source_sha": "1d8683c48e65dc158ad7313cdd3772bd44faa5f8",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "11662b8808a264936c4f8fa791c2351c25aa269d8b0b178cf8351b63326e4349",
+        "source_bundle_sha256": "cc58c4a397cdd94475b459483d71e0efbd27cad515ad4603dc6301bdfcdcd7d1",
+        "runtime_image": {
+          "build_key": "55c98663f9c9ae4ae4c6a094452ced31ef9c365f0e6045160f9ec92570997bb8",
+          "image_digest": "sha256:e0d16190054282c4a9622a87f3f16b316baaa8d7c263499719d7ee96deb25680"
+        },
+        "model_digests": [
+          "045ca48827808181bbae9f401484891924de8bc5c172b6b85ef99eb3ccf125e1",
+          "5640b1a60e43aa2ab5e0872a62ac955e3a1ec1a7c49efb5e088956c3fa0c7e31"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "b7083415c9d2eeeb5a7fbcabc21260b9dfac3dd3bcd5f332f3de4258346ccc45"
+      ],
+      "tested_at": "2026-11-18T23:14:56.611117Z",
+      "platform": {
+        "controller_source_sha": "1d8683c48e65dc158ad7313cdd3772bd44faa5f8",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "11662b8808a264936c4f8fa791c2351c25aa269d8b0b178cf8351b63326e4349",
+      "role": "entrypoint",
+      "steady_bytes": 118529331200
+    },
+    {
+      "content_sha256": "11662b8808a264936c4f8fa791c2351c25aa269d8b0b178cf8351b63326e4349",
+      "role": "worker",
+      "steady_bytes": 118636052480
+    }
+  ]
+}

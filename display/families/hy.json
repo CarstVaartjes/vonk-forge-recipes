@@ -1,0 +1,27 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "hy-memory-30b-a3b",
+          "title": "Hy-Memory 30B-A3B"
+        }
+      ],
+      "slug": "hy-memory-30b-a3b",
+      "title": "Hy-Memory 30B-A3B"
+    },
+    {
+      "models": [
+        {
+          "slug": "hy3",
+          "title": "Hy3"
+        }
+      ],
+      "slug": "hy3-295b",
+      "title": "Hy3 295B"
+    }
+  ],
+  "slug": "hy",
+  "title": "Hy"
+}

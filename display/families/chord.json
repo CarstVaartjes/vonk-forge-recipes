@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "chord-v1",
+          "title": "CHORD v1"
+        }
+      ],
+      "slug": "chord",
+      "title": "CHORD"
+    }
+  ],
+  "slug": "chord",
+  "title": "CHORD"
+}

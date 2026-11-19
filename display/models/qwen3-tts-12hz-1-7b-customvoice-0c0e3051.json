@@ -17,6 +17,14 @@
     "spdx": "Apache-2.0",
     "url": "https://github.com/QwenLM/Qwen3-TTS/blob/022e286b98fbec7e1e916cb940cdf532cd9f488e/LICENSE"
   },
+  "lineage": {
+    "family": "qwen",
+    "flavor": "customvoice",
+    "generation": "Qwen3",
+    "line": "qwen-tts-customvoice-1-7b",
+    "model": "qwen3-tts-12hz-1-7b-customvoice",
+    "variant_kind": "base"
+  },
   "modalities": [
     "audio"
   ],

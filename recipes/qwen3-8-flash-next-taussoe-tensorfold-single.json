@@ -389,7 +389,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "39cb891d9c7e9509584afb99ee2712b33f30a8b83f3abb8b6302266e15fac80b",
+        "content_sha256": "876071a34ac825e02d636c1f2b5a3f78790c01184a64f0c674d6a7373bd02ba5",
         "kind": "model",
         "publisher": "vontra",
         "slug": "qwen3-8-flash-next-mlx-4bit-mtp-dadefa80"

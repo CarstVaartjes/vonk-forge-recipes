@@ -20,6 +20,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/prism-ml/Ternary-Bonsai-2-27B-gguf/blob/6ed5e12bf84b7a63069882c91dd9e9218647d17b/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-27B",
+    "family": "bonsai",
+    "generation": "Ternary Bonsai 2",
+    "line": "ternary-bonsai-27b",
+    "model": "ternary-bonsai-2-27b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image",
     "text"

@@ -1,0 +1,14 @@
+--- a/python/sglang/srt/layers/attention/trtllm_mla_backend.py
++++ b/python/sglang/srt/layers/attention/trtllm_mla_backend.py
+@@ -104,6 +104,11 @@
+ def _multi_ctas_kv_counter_bytes(
+     device: torch.device, num_q_heads: int, batch_size: int
+ ) -> int:
++    # flashinfer is a fail-closed stub here (SGLANG_IS_FLASHINFER_AVAILABLE=false). This buffer only
++    # serves the flashinfer trtllm-gen MLA kernel, which never runs; the DSA backend constructor
++    # still calls this, so allocate nothing instead of raising NameError.
++    if not is_flashinfer_available():
++        return 0
+     sm_count = flashinfer.utils.get_device_sm_count(device)
+     return flashinfer.utils.get_trtllm_gen_multi_ctas_kv_counter_bytes(
+         batch_size, num_q_heads, sm_count

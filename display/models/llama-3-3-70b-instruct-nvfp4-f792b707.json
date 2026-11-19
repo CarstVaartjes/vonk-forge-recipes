@@ -19,6 +19,15 @@
     "spdx": "LicenseRef-Llama-3.3-Community-License",
     "url": "https://www.llama.com/llama3_3/license/"
   },
+  "lineage": {
+    "base_model": "meta-llama/Llama-3.3-70B-Instruct",
+    "family": "llama",
+    "flavor": "instruct",
+    "generation": "Llama 3.3",
+    "line": "llama-70b",
+    "model": "llama-3-3-70b-instruct",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

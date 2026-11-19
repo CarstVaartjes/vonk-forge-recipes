@@ -286,7 +286,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "afadb90f6645117a1987b3a317e1f160bf73132c2ec302861b9fc40b81fddecb",
+        "content_sha256": "633dc509c025ed5c1c1554367b855fe971200b55701bfab08838725835c45335",
         "kind": "model",
         "publisher": "vonk-forge",
         "slug": "d3-bf16-cf15549a"

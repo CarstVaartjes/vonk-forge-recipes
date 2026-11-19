@@ -226,7 +226,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "8572f159a3e6b8d45185f3b58da69d7e20447a053f9eab88d422f9c83d33cf1e",
+        "content_sha256": "bae59dda57bded3530c85c4f906bbd91d4bf466ba5965b4e3036bd3cae4b4bf1",
         "kind": "model",
         "publisher": "r0b0tlab",
         "slug": "qwen3-8-27b-nvfp4-mtp-sm121-36f717a2"
@@ -267,7 +267,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "abd9b4c762654ff36016c8c8520a39d113d68258813d57f1a70b4fca9fcec070",
+        "content_sha256": "1f758a945a7c7b70f0c60dd8f9da97c124c0fa33f8db6b4b0bd8990034f94eca",
         "kind": "model",
         "publisher": "z-lab",
         "slug": "qwen3-8-27b-dflash2-50307d4c"
@@ -328,7 +328,7 @@
       ],
       "id": "dspark",
       "model": {
-        "content_sha256": "b8f9f066339b087a60ce7c1dd7d0b59c4f8d0693f719444fb01b355d4b7d9d53",
+        "content_sha256": "124f9af5edba2b7c65d46d7d7e4f5ed86cfa9ff41df3d3da4f28e9f653bc0b4b",
         "kind": "model",
         "publisher": "radixark",
         "slug": "qwen3-8-27b-dspark-b3c99101"

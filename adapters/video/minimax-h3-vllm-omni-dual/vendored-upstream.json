@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "requirements-setuptools.lock",
+    "requirements.in",
+    "requirements.lock",
+    "verify-runtime.py",
+    "vllm_omni_job.py"
+  ],
+  "source": {
+    "commit": "2845006edea296b1e1f6f9d76a5a1c13a7c1e133",
+    "repo": "knapcio/MiniMax-H3-2x-DGX-Spark-TP2"
+  }
+}

@@ -150,7 +150,12 @@ def test_lane_tick_never_waits_on_github_and_timeout_is_visible(tmp_path, monkey
     worker.tick(543)
 
 
-def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
+@pytest.mark.parametrize("branch_changed", [True, False])
+def test_evidence_merge_conflict_unions_both_histories(
+    tmp_path, monkeypatch, branch_changed
+):
+    """The branch's own changes are unioned with main; a file the branch never
+    touched is main's version, so rows main removed are not brought back."""
     from datetime import timedelta
 
     from test_qualification_status import KEY, NOW, evidence, record
@@ -175,6 +180,8 @@ def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
             return "remote-branch"
         if "--diff-filter=U" in args:
             return "qualification/evidence/vonk-forge/example.json"
+        if f"origin/main...origin/{publisher.BRANCH}" in args:
+            return "qualification/evidence/vonk-forge/example.json" * branch_changed
         if args[:3] == ("git", "diff", "origin/main"):
             observed.extend(read_evidence(cwd, KEY).records)
             return "changed evidence"
@@ -193,10 +200,8 @@ def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
     monkeypatch.setattr(publisher, "command", command)
     monkeypatch.setattr(publisher.subprocess, "run", merge)
     publisher.sync(history, tmp_path / "work")
-    assert len(observed) == 3
-    assert [r.tested_at for r in observed] == [
-        NOW + timedelta(days=d) for d in range(3)
-    ]
+    days = range(3) if branch_changed else (1, 2)  # branch day 0, main 1, log 2
+    assert [r.tested_at for r in observed] == [NOW + timedelta(days=d) for d in days]
 
 
 def test_publisher_spawn_failure_is_visible_and_never_escapes_to_lanes(
@@ -338,7 +343,7 @@ def _open_pr(tmp_path, monkeypatch, rollup, behind_by):
         if args[:2] == ("gh", "api"):
             return str(behind_by)
         if args[:2] == ("git", "clone"):
-            raise RuntimeError("fresh plan reached")
+            raise subprocess.CalledProcessError(128, args)  # stop at the plan
         return ""
 
     monkeypatch.setattr(publisher, "command", command)
@@ -347,8 +352,8 @@ def _open_pr(tmp_path, monkeypatch, rollup, behind_by):
 
 def test_red_pr_with_moved_main_takes_the_fresh_plan(tmp_path, monkeypatch):
     history, calls = _open_pr(tmp_path, monkeypatch, RED, 3)
-    with pytest.raises(RuntimeError, match="fresh plan reached"):
-        publisher.sync(history, tmp_path / "work")
+    publisher.sync(history, tmp_path / "work")
+    assert any(c[:2] == ("git", "clone") for c in calls)  # the fresh plan
     assert not any(c[:3] == ("gh", "pr", "merge") for c in calls)
 
 
@@ -428,8 +433,8 @@ def test_behind_pr_replans_without_asking_how_far_main_moved(tmp_path, monkeypat
         return original(cwd, *args, **kwargs)
 
     monkeypatch.setattr(publisher, "command", behind)
-    with pytest.raises(RuntimeError, match="fresh plan reached"):
-        publisher.sync(history, tmp_path / "work")
+    publisher.sync(history, tmp_path / "work")
+    assert any(c[:2] == ("git", "clone") for c in calls)  # the fresh plan
     assert not any(c[:2] == ("gh", "api") for c in calls)
 
 
@@ -514,37 +519,16 @@ def test_guard_flags_repo_lacking_a_resolved_local_record():
     assert resolved_missing(local, evidence(record(A), record(B))) == ()
 
 
-def test_withdrawn_recipes_are_never_counted_as_missing(tmp_path):
+def test_withdrawn_recipes_in_the_state_are_never_written(tmp_path):
     from test_qualification_status import KEY, A, evidence, record
 
-    from spark_sweep.qualification import backfill
+    from spark_sweep.qualification import backfill, evidence_path
 
     seed_catalog(tmp_path)
     withdrawn = evidence(record(A)).model_copy(update={"recipe_key": "vonk-forge/gone"})
-    result = backfill(
-        [], tmp_path, {"vonk-forge/gone": withdrawn, KEY: evidence(record(A))}
-    )
-    assert result.unpublished == 1  # only the catalog recipe
-
-
-def test_a_batch_that_never_reaches_backfill_leaves_no_stale_count(
-    tmp_path, monkeypatch
-):
-    work = tmp_path / "work"
-    work.mkdir()
-    (work / publisher.UNPUBLISHED_FILE).write_text('{"count": 5}')
-
-    def command(cwd, *args, **kwargs):
-        if args[:3] == ("gh", "pr", "list"):
-            return pr_list(9)
-        if args[:3] == ("gh", "pr", "view"):
-            return '{"number": 9, "mergeStateStatus": "CLEAN", "statusCheckRollup": []}'
-        return ""
-
-    monkeypatch.setattr(publisher, "command", command)
-    code = publisher.sync(tmp_path / "results.jsonl", work, tmp_path / "state.json")
-    assert code == publisher.SweepEvidenceExit.WAITING
-    assert not (work / publisher.UNPUBLISHED_FILE).exists()
+    backfill([], tmp_path, {"vonk-forge/gone": withdrawn, KEY: evidence(record(A))})
+    assert evidence_path(tmp_path, KEY).exists()
+    assert not evidence_path(tmp_path, "vonk-forge/gone").exists()
 
 
 def test_only_resolved_records_are_exported_and_unresolved_stay_local(
@@ -581,6 +565,7 @@ def test_the_publisher_child_receives_the_sweep_state(tmp_path, monkeypatch):
         tmp_path / "results.jsonl", tmp_path / "publisher", Path("worker"), state
     ).tick(0)
     assert argv[argv.index("--state") + 1] == str(state)
+    assert argv[argv.index("--run") + 1]  # rotated history is keyed on the run
 
 
 def test_the_sweep_wires_its_state_file_into_the_publisher(tmp_path):
@@ -588,50 +573,6 @@ def test_the_sweep_wires_its_state_file_into_the_publisher(tmp_path):
 
     sweep, _, _ = evidence_sweep(tmp_path)
     assert sweep.evidence_publisher.state == sweep.state.path
-
-
-def test_missing_records_show_in_the_publisher_message_and_alert_when_persistent(
-    tmp_path, monkeypatch
-):
-    from test_qualification_status import evidence_sweep
-
-    from spark_sweep.report import build_status, render_status
-
-    sweep, _, _ = evidence_sweep(tmp_path)
-    worker = sweep.evidence_publisher
-    worker.directory.mkdir(parents=True, exist_ok=True)
-
-    class Done:
-        def poll(self):
-            return 0
-
-        def wait(self, timeout):
-            return 0
-
-    def batch(count, now):
-        # The real child unlinks first and reports only if it reached backfill.
-        report = worker.directory / publisher.UNPUBLISHED_FILE
-        report.unlink(missing_ok=True)
-        if count is not None:
-            report.write_text(
-                publisher.UnpublishedReport(count=count, head="h").model_dump_json()
-            )
-        worker.process = Done()
-        worker.next_attempt = 1e18
-        worker.tick(now)
-
-    batch(3, 0)
-    status = build_status(sweep)
-    assert "3 resolved sweep records were missing" in status["evidence_publication"]
-    assert not any("evidence publisher" in a for a in status["alerts"])
-    batch(3, 1)
-    status = build_status(sweep)
-    assert any("3 resolved sweep records still missing" in a for a in status["alerts"])
-    assert "evidence publisher: 3 resolved" in render_status(status)
-    batch(None, 2)  # WAITING/FAILING_CHECK exit: no new report, nothing changes
-    assert worker.unpublished_batches == 2
-    batch(0, 3)
-    assert worker.alert is None
 
 
 def _row(day):
@@ -796,6 +737,24 @@ def test_the_real_red_sequence_ends_refused_with_a_fresh_pr_and_an_alert(
     assert "refused (red twice: lint)" in worker.message
 
 
+def test_a_rotated_log_is_read_once_and_still_published_every_batch(
+    tmp_path, monkeypatch
+):
+    world = World(tmp_path, monkeypatch)
+    rotated = world.history.with_name("results.jsonl.20261020T000000000000Z")
+    rotated.write_text(json.dumps(_row(20)) + "\n")
+    world.open_prs.clear()
+    world.tick()
+    assert [r.tested_at.day for r in world.pushed[-1]] == [20, 21, 22]
+    rotated.write_text("{torn")  # a batch that reads it again loses day 20
+    world.open_prs.clear()  # the next batch plans a fresh PR from main again
+    world.tick()
+    assert [r.tested_at.day for r in world.pushed[-1]] == [20, 21, 22]
+    world.open_prs.clear()  # a new sweep run re-reads every rotated log
+    publisher.sync(world.history, world.work, run="next sweep")
+    assert [r.tested_at.day for r in world.pushed[-1]] == [21, 22]
+
+
 def test_a_slow_red_is_not_reset_by_a_pending_tick(tmp_path, monkeypatch):
     world = World(tmp_path, monkeypatch)
     world.tick()  # red on A
@@ -909,21 +868,37 @@ def test_success_clears_the_state_and_unknown_state_self_heals(tmp_path, monkeyp
     assert publisher.load_state(work).state == publisher.PublisherState.IDLE
 
 
+def test_a_command_that_keeps_failing_stays_refused_and_alerting():
+    idle = publisher.PublisherRecord()
+    record = publisher.transition(
+        idle, signature="git push exit 1", command=True, now=0
+    )
+    states = []
+    for _ in range(3):
+        record = publisher.transition(
+            record, signature="git push exit 1", command=True, now=0
+        )
+        states.append(record.state)
+    assert states == [publisher.PublisherState.REFUSED] * 3
+    moved = publisher.transition(record, signature="gh pr exit 1", command=True, now=0)
+    assert moved.state == publisher.PublisherState.RED
+
+
 def test_refused_needs_two_runs_and_is_reachable_only_after_red():
     idle = publisher.PublisherRecord()
-    red = publisher.transition(idle, signature="lint", head="h1")
+    red = publisher.transition(idle, signature="lint", head="h1", now=0)
     assert red.state == publisher.PublisherState.RED
-    same_run = publisher.transition(red, signature="lint", head="h1")
+    same_run = publisher.transition(red, signature="lint", head="h1", now=0)
     assert same_run.state == publisher.PublisherState.RED  # one run seen twice
-    again = publisher.transition(red, signature="lint", head="h2")
+    again = publisher.transition(red, signature="lint", head="h2", now=0)
     assert again.state == publisher.PublisherState.REFUSED
-    other = publisher.transition(red, signature="other", head="h2")
+    other = publisher.transition(red, signature="other", head="h2", now=0)
     assert other.state == publisher.PublisherState.RED
-    assert publisher.transition(red, signature=None).state == (
+    assert publisher.transition(red, signature=None, now=0).state == (
         publisher.PublisherState.IDLE
     )
     # a refused batch does not count as the first of two reds for the next PR
-    fresh = publisher.transition(again, signature="lint", head="h3")
+    fresh = publisher.transition(again, signature="lint", head="h3", now=0)
     assert fresh.state == publisher.PublisherState.RED
 
 
@@ -938,16 +913,85 @@ def test_the_same_red_run_seen_on_two_ticks_is_not_refused(tmp_path, monkeypatch
     assert not any(c[:3] == ("gh", "pr", "close") for c in calls)
 
 
+def test_the_stall_clock_follows_the_pr_number_and_alerts_past_the_bound():
+    bound = publisher.STALL_SECONDS
+    idle = publisher.PublisherRecord()
+    seen = publisher.transition(idle, signature=None, open_pr=7, now=100)
+    # Checks never finish, a re-plan pushes a new head: the same PR's clock runs on.
+    late = publisher.transition(
+        seen, signature="lint", head="h2", observed=False, open_pr=7, now=100 + bound
+    )
+    assert late.pr_since == 100 and late.stalled(101 + bound)
+    assert not late.stalled(100 + bound)
+    # A failure before the PR was looked at keeps it; another PR or none resets it.
+    failed = publisher.transition(
+        late, signature="gh pr exit 1", command=True, now=200 + bound
+    )
+    assert failed.pr_since == 100
+    renewed = publisher.transition(late, signature=None, open_pr=8, now=200 + bound)
+    assert not renewed.stalled(201 + bound)
+    assert publisher.transition(late, signature=None, open_pr=0, now=0).pr == 0
+    # A red PR is named with its failure, also beside refused records.
+    red = publisher.transition(idle, signature="lint", head="h1", open_pr=7, now=100)
+    worker = publisher.EvidencePublisher(Path("h"), Path("w"), Path("s"))
+    worker.record = red.model_copy(update={"refused": ("k#1",)})
+    alert = worker.alert_at(101 + bound)
+    assert (
+        alert and "PR #7" in alert and "lint" in alert and "1 records refused" in alert
+    )
+    assert "PR #7" not in (worker.alert_at(100 + bound) or "")
+
+
+def test_a_stalled_pr_only_alerts_the_batch_runs_as_before(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch)
+    exits = publisher.SweepEvidenceExit
+    assert world.tick() == exits.FAILING_CHECK  # red on A, PR 123 first seen
+    record = publisher.load_state(world.work)
+    old = record.model_copy(
+        update={"pr_since": record.pr_since - 2 * publisher.STALL_SECONDS}
+    )
+    (world.work / publisher.STATE_FILE).write_text(old.model_dump_json())
+    # The same exit as an unstalled red PR: no push, no close, no new PR.
+    assert world.tick() == exits.FAILING_CHECK
+    assert world.pushes == 0 and not world.closed() and world.open_prs == [123]
+    assert publisher.load_state(world.work) == old
+
+
+def test_a_batch_gives_the_stall_clock_only_what_it_saw(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch)
+    world.tick()  # red on A
+    seen = publisher.load_state(world.work)
+    assert seen.pr == 123
+    fake = publisher.command
+
+    def view_fails(cwd, *args, **kwargs):
+        if args[:3] == ("gh", "pr", "view"):
+            raise subprocess.CalledProcessError(1, args)
+        return fake(cwd, *args, **kwargs)
+
+    monkeypatch.setattr(publisher, "command", view_fails)
+    world.tick()  # the PR was not looked at: its clock keeps running
+    assert publisher.load_state(world.work).pr_since == seen.pr_since
+    world.open_prs.clear()
+    world.tick()  # no PR open: nothing is waiting
+    assert publisher.load_state(world.work).pr == 0
+
+
 def test_refused_because_is_set_only_when_the_refused_set_grows():
     first = publisher.transition(
-        publisher.PublisherRecord(), signature="lint", refused=("a#1",)
+        publisher.PublisherRecord(), signature="lint", refused=("a#1",), now=0
     )
     assert first.refused_because == "lint"
-    later = publisher.transition(first, signature="other", refused=("a#1",))
+    later = publisher.transition(first, signature="other", refused=("a#1",), now=0)
     assert later.refused_because == "lint"
-    grown = publisher.transition(later, signature="other", refused=("a#1", "b#2"))
+    grown = publisher.transition(
+        later, signature="other", refused=("a#1", "b#2"), now=0
+    )
     assert grown.refused_because == "other"
-    assert publisher.transition(grown, signature=None, refused=()).refused_because == ""
+    assert (
+        publisher.transition(grown, signature=None, refused=(), now=0).refused_because
+        == ""
+    )
 
 
 def test_refused_records_are_released_when_main_moves(tmp_path, monkeypatch):
@@ -1148,63 +1192,6 @@ def test_a_final_batch_updates_an_open_pr_that_normal_ticks_leave_waiting(
     )  # requested, not awaited
 
 
-def test_the_unpublished_count_is_stale_once_the_history_moves_past_it(
-    tmp_path, monkeypatch
-):
-    world = World(tmp_path, monkeypatch)
-    unknown = publisher.UnpublishedStatus()
-    assert publisher.unpublished_report(world.work, world.history) == unknown
-    publisher.sync(world.history, world.work, final=True)
-    counted = publisher.unpublished_report(world.work, world.history)
-    assert counted.state == publisher.UnpublishedState.COUNTED
-    assert isinstance(counted.count, int)
-    with world.history.open("a") as stream:  # a pass finishes after the count
-        stream.write(json.dumps(_row(23)) + "\n")
-    stale = publisher.unpublished_report(world.work, world.history)
-    assert stale == publisher.UnpublishedStatus(state=publisher.UnpublishedState.STALE)
-    # A report without a head (any other shape) is unknown, never a trusted zero.
-    (world.work / publisher.UNPUBLISHED_FILE).write_text('{"count": 0}')
-    assert publisher.unpublished_report(world.work, world.history) == unknown
-
-
-def test_a_count_belongs_to_the_counted_state_only():
-    import pydantic
-
-    states = publisher.UnpublishedState
-    for state, count in (
-        (states.COUNTED, None),
-        (states.STALE, 3),
-        (states.UNKNOWN, 0),
-    ):
-        with pytest.raises(pydantic.ValidationError):
-            publisher.UnpublishedStatus(state=state, count=count)
-    assert publisher.UnpublishedStatus(state=states.COUNTED, count=0).count == 0
-
-
-def test_the_status_shows_stale_instead_of_a_count(tmp_path):
-    from test_qualification_status import evidence_sweep
-
-    from spark_sweep.report import build_status, render_status
-
-    sweep, _, _ = evidence_sweep(tmp_path)
-    worker = sweep.evidence_publisher
-    worker.directory.mkdir(parents=True, exist_ok=True)
-    worker.history.write_text(json.dumps(_row(21)) + "\n")
-    report = publisher.UnpublishedReport(
-        count=0, head=publisher.history_head(worker.history)
-    )
-    (worker.directory / publisher.UNPUBLISHED_FILE).write_text(report.model_dump_json())
-    assert build_status(sweep)["evidence_unpublished"] == {
-        "state": "counted",
-        "count": 0,
-    }
-    with worker.history.open("a") as stream:
-        stream.write(json.dumps(_row(22)) + "\n")
-    status = build_status(sweep)
-    assert status["evidence_unpublished"] == {"state": "stale", "count": None}
-    assert "evidence unpublished: stale" in render_status(status)
-
-
 class _Child:
     """A publisher child; `code` is its exit, None means it hangs until killed."""
 
@@ -1266,8 +1253,6 @@ def test_a_hung_final_batch_is_killed_and_the_results_stay_for_the_next_run(
     assert all(child.killed for child in _Child.started) and worker.process is None
     assert "exceeded" in worker.message
     assert "stop again to skip" in capsys.readouterr().out
-    # nothing was counted, so a reader sees the gap as unknown, never as zero
-    assert worker.unpublished_report == publisher.UnpublishedStatus()
 
 
 def test_flush_reports_a_held_pr_and_survives_a_second_stop(tmp_path, monkeypatch):
@@ -1369,7 +1354,7 @@ def test_a_late_stop_signal_cannot_change_the_exit_or_skip_the_release(
     assert sweep.run() == 0 and restored == [1]
     status = json.loads((sweep.cfg.state_dir / "status.json").read_text())
     assert (
-        "evidence_unpublished" in status
+        "evidence_publication" in status
     )  # the last status was written after the flush
 
 
@@ -1436,6 +1421,8 @@ def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monke
             )
         if args[:2] == ("git", "ls-remote"):
             return "remote-branch"
+        if f"origin/main...origin/{publisher.BRANCH}" in args:
+            return "qualification/evidence/vonk-forge/example.json"  # branch's own
         if args[:3] == ("git", "diff", "origin/main"):
             observed.extend(read_evidence(cwd, KEY).measured_memory)
             return "changed evidence"
@@ -1454,3 +1441,61 @@ def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monke
     monkeypatch.setattr(publisher.subprocess, "run", merge)
     publisher.sync(history, tmp_path / "work")
     assert observed == []
+
+
+def test_a_non_evidence_branch_conflict_takes_mains_version(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch)
+    world.open_prs.clear()
+    real = publisher.command
+
+    def conflicts(cwd, *args, **kwargs):
+        if "--diff-filter=U" in args:
+            return "recipes/example.json"
+        if args[:2] == ("git", "ls-remote"):
+            return "sha refs/heads/x"
+        if args[:3] == ("git", "checkout", "origin/main"):
+            seed_catalog(Path(cwd))  # main's clean version replaces the markers
+        return real(cwd, *args, **kwargs)
+
+    def merge(args, **kwargs):
+        # a real conflicted merge leaves markers in the recipe file
+        recipe = Path(kwargs["cwd"]) / "recipes/example.json"
+        recipe.write_text("<<<<<<< HEAD\n{}\n=======\n{}\n>>>>>>> origin/main\n")
+        return subprocess.CompletedProcess(args, 1)
+
+    monkeypatch.setattr(publisher, "command", conflicts)
+    monkeypatch.setattr(publisher.subprocess, "run", merge)
+    assert world.tick() == publisher.SweepEvidenceExit.SYNCED
+    assert ("git", "checkout", "origin/main", "--", "recipes/example.json") in (
+        world.calls
+    )
+
+
+def test_any_batch_error_on_an_open_pr_is_recorded_and_alerts_when_repeated(
+    tmp_path, monkeypatch
+):
+    """A DIRTY PR with no checks yet looks pending; the failure is still observed."""
+
+    def command(cwd, *args, **kwargs):
+        if args[:3] == ("gh", "pr", "list"):
+            return pr_list(123)
+        if args[:3] == ("gh", "pr", "view"):
+            return json.dumps(
+                {"number": 123, "mergeStateStatus": "DIRTY", "headRefOid": "A"}
+            )
+        if args[:2] == ("git", "clone"):
+            raise IndexError("unexpected")  # not a command error: the net holds
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    history, work = tmp_path / "results.jsonl", tmp_path / "work"
+    history.write_text("")
+    for state in (publisher.PublisherState.RED, publisher.PublisherState.REFUSED):
+        assert (
+            publisher.sync(history, work) == publisher.SweepEvidenceExit.COMMAND_FAILED
+        )
+        record = publisher.load_state(work)
+        assert record.state == state and record.signature == "publisher IndexError"
+    worker = publisher.EvidencePublisher(history, work, Path("worker"))
+    worker.record = publisher.load_state(work)
+    assert "failing repeatedly: publisher IndexError" in (worker.alert or "")

@@ -61,10 +61,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "mcgill-nlp",
-      "slug": "llm2vec"
-    },
     "model": {
       "publisher": "mcgill-nlp",
       "slug": "llm2vec-llama-3-8b-instruct-mntp"

@@ -17,7 +17,7 @@ it at the bound; the sweep then tests what the catalog serves.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
@@ -30,7 +30,7 @@ SOURCE_WAIT_SECONDS = 30 * 60.0
 
 
 class SourceServing(StrEnum):
-    """One sweep process's view of its source in the catalog (never persisted)."""
+    """One sweep process's view of its source in the catalog (only its wait budget is persisted)."""
 
     UNREAD = "unread"  # no complete library pass yet
     UNSERVED = "unserved"  # selected recipes wait for the catalog to serve the source
@@ -64,6 +64,7 @@ class SourceRowStatus(StrEnum):
     WAITING = "waiting"
     SERVED = "served"
     WAIT_EXPIRED = "wait-expired"
+    SOURCE_BEHIND = "source-behind"
 
 
 @dataclass(frozen=True)
@@ -103,6 +104,30 @@ def unserved(
         Unserved(key, served[key], authored[key])
         for key in sorted(served.keys() & authored.keys())
         if selected(key) and served[key] != authored[key]
+    )
+
+
+def missing_from_source(
+    served: Collection[str],
+    authored: Mapping[str, str],
+    selected: Callable[[str], bool],
+) -> tuple[str, ...]:
+    """Selected recipes the catalog serves that this sweep's source does not author.
+
+    The source is fixed at start and the library moves on: a recipe merged since is
+    served but has no definition here. Its missing definition is the source being
+    older, not a fault of the recipe, so it is not tested by this sweep.
+    """
+    return tuple(key for key in sorted(served) if key not in authored and selected(key))
+
+
+def describe_missing(missing: tuple[str, ...], library_commit: str) -> str:
+    shown = ", ".join(missing[:3])
+    more = f" and {len(missing) - 3} more" if len(missing) > 3 else ""
+    return (
+        f"this sweep's source is older than library {library_commit[:12] or 'unknown'}: "
+        f"it does not author {len(missing)} recipe(s) the catalog serves ({shown}{more}); "
+        "they are not tested here, restart the sweep from an updated source to test them"
     )
 
 

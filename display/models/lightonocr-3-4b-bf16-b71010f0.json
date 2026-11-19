@@ -19,6 +19,13 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/lightonai/LightOnOCR-3-4B/blob/b71010f095dc3735de7ee6b9969bff8f8f50b39a/LICENSE"
   },
+  "lineage": {
+    "family": "lightonocr",
+    "generation": "LightOnOCR 3",
+    "line": "lightonocr-4b",
+    "model": "lightonocr-3-4b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image",
     "text",

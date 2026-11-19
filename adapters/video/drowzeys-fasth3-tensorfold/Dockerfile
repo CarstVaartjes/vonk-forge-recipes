@@ -1,6 +1,6 @@
 FROM nvcr.io/nvidia/pytorch@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 LABEL org.opencontainers.image.source="https://github.com/drowzeys/Imagination-Studio-by-keys-Wasserman" \
-      org.opencontainers.image.revision="3926471d59bfe8a51a295b7bfdef6cda0b09e1de" \
+      org.opencontainers.image.revision="e7d7c6c1105045272b0f95afc5a9f71bc345f2b2" \
       ai.vonkforge.runtime-interface="v1"
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg libgl1 \
  && rm -rf /var/lib/apt/lists/*
