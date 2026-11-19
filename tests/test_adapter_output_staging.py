@@ -464,7 +464,16 @@ def test_killed_wan_dancer_leaves_no_entry_for_the_collector(tmp_path: Path) -> 
             prompt.parent.mkdir(parents=True, exist_ok=True)
             prompt.write_text("style", encoding="utf-8")
     args = SimpleNamespace(
-        output_mime="video/mp4", seed=0, timeout_seconds=600, output_dir=outputs
+        output_mime="video/mp4",
+        style="k-pop",
+        height=512,
+        width=512,
+        num_inference_steps_global=2,
+        num_inference_steps_local=2,
+        cfg_scale=5.0,
+        seed=0,
+        timeout_seconds=600,
+        output_dir=outputs,
     )
     request = {"reference_image": "a.png", "music": "a.wav", "prompt": "Dance"}
     with (

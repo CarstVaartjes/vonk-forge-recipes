@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import json
-import runpy
-import tempfile
 import unittest
 from pathlib import Path
 
@@ -51,16 +49,11 @@ class MiniMaxH3Fl2vaRecipeTests(unittest.TestCase):
         selected = {item["file_id"] for item in recipe["models"][0]["files"]}
         self.assertEqual(selected, {item["id"] for item in model["files"]})
 
-    def test_adapter_rejects_ref2va_request_before_loading(self) -> None:
-        module = runpy.run_path(str(ADAPTER_PATH))
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            module["_load_request"].__globals__["INPUT_ROOT"] = root
-            (root / "request.json").write_text(
-                '{"references":[{"type":"image","path":"subject.png"}]}'
-            )
-            with self.assertRaisesRegex(ValueError, "FL2VA-only variant"):
-                module["_load_request"]()
+    def test_variant_has_keyframe_slots_and_no_references(self) -> None:
+        slots = {
+            slot["id"] for slot in load(RECIPE_PATH)["interfaces"][0]["input"]["slots"]
+        }
+        self.assertEqual(slots, {"prompt", "first-image", "last-image"})
 
     def test_resource_contract_uses_exact_single_spark_closure(self) -> None:
         recipe = load(RECIPE_PATH)

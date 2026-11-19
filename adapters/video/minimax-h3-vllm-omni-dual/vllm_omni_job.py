@@ -44,11 +44,8 @@ INPUT_ROOT = Path("/inputs")
 AGENT_PORT = 18095  # the creator's default
 OUTPUT_NAME = "video.mp4"
 PROMPT_MAX_BYTES = 16 * 1024
-REQUEST_MAX_BYTES = 64 * 1024
-IMAGE_MAX_BYTES = 30 * 1024 * 1024  # vLLM-Omni's reference image limit
 IMAGE_SUFFIXES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
 ASPECT_RATIO = "16:9"  # what the creator's render.sh always sends; width and height decide the canvas
-REF2VA_MAX_IMAGES = 9  # vLLM-Omni: ref2va accepts at most 9 image references
 AUDIO_FLOW_SHIFT = 3.0  # the creator's render.sh default
 EXIT_DONE, EXIT_FAILED, EXIT_CONFIG, EXIT_CANCELLED = 0, 1, 2, 143
 
@@ -326,13 +323,11 @@ def free_loopback_port() -> int:
 
 @dataclass(frozen=True)
 class Settings:
-    """Defaults and bounds from the recipe's arguments; request.json may override the values."""
+    """The job's options, one typed argument each; the Controller validated their ranges at create."""
 
     task: str  # "fl2va" (FL2VA partition: t2va or fl2va) or "ref2va"
     model: str
     duration: float
-    min_duration: float
-    max_duration: float
     width: int
     height: int
     steps: int
@@ -350,45 +345,19 @@ class RenderRequest:
         return dict(self.fields)[name]
 
 
-def _number(value: object, name: str, low: float, high: float) -> float:
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
-        raise ConfigError(f"{name} must be a finite number")
-    if not low <= value <= high:
-        raise ConfigError(f"{name} must be between {low:g} and {high:g}")
-    return float(value)
-
-
-def _integer(value: object, name: str, low: int, high: int) -> int:
-    if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
-        raise ConfigError(f"{name} must be an integer between {low} and {high}")
-    return value
-
-
-def _geometry(value: object, name: str) -> int:
-    number = _integer(value, name, 64, 2048)
-    if number % 32:
-        raise ConfigError(f"{name} must be a multiple of 32")
-    return number
-
-
-def _input_file(inputs: Path, value: object, name: str) -> Path:
-    if not isinstance(value, str) or not value or len(value) > 256:
-        raise ConfigError(f"{name} must be a non-empty relative input path")
-    relative = Path(value)
-    if relative.is_absolute() or ".." in relative.parts or relative == Path("."):
-        raise ConfigError(f"{name} must stay inside the input directory")
-    candidate = inputs / relative
-    if candidate.is_symlink() or not candidate.is_file():
-        raise ConfigError(f"{name} does not name a regular input file")
+def _slot_images(inputs: Path, slot: str) -> list[Path]:
+    """The files the job put in ``slot``, in file name order (the manifest records each file's slot)."""
+    path = inputs / "manifest.json"
     try:
-        candidate.resolve(strict=True).relative_to(inputs.resolve(strict=True))
-    except ValueError:
-        raise ConfigError(f"{name} escapes the input directory") from None
-    if candidate.suffix.lower() not in IMAGE_SUFFIXES:
-        raise ConfigError(f"{name} must be a JPEG, PNG or WebP image")
-    if not 0 < candidate.stat().st_size <= IMAGE_MAX_BYTES:
-        raise ConfigError(f"{name} must be a non-empty image of at most 30 MiB")
-    return candidate
+        files = json.loads(path.read_text(encoding="utf-8"))["files"]
+        names = sorted(item["name"] for item in files if item["slot"] == slot)
+    except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError):
+        raise ConfigError("the input manifest must list each file's slot") from None
+    images = [inputs / name for name in names]
+    for image in images:
+        if image.is_symlink() or not image.is_file() or image.stat().st_size == 0:
+            raise ConfigError(f"{slot} images must be non-empty regular files")
+    return images
 
 
 def _read_prompt(inputs: Path) -> str:
@@ -407,78 +376,42 @@ def _read_prompt(inputs: Path) -> str:
     return text  # byte for byte, as the creator's client sends it
 
 
-def _read_request(inputs: Path) -> dict[str, Any]:
-    path = inputs / "request.json"
-    if not path.exists():
-        return {}
-    if path.is_symlink() or not path.is_file() or path.stat().st_size > REQUEST_MAX_BYTES:
-        raise ConfigError("request.json must be a regular file of at most 64 KiB")
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError):
-        raise ConfigError("request.json must contain UTF-8 JSON") from None
-    if not isinstance(value, dict):
-        raise ConfigError("request.json must be a JSON object")
-    return value
-
-
 def _json_number(value: float) -> str:
     return json.dumps(int(value) if float(value).is_integer() else value)
 
 
 def build_request(settings: Settings, inputs: Path = INPUT_ROOT) -> RenderRequest:
-    """Validate the inputs and shape them like the creator's scripts/render.sh."""
-    common = {"duration", "width", "height", "num_inference_steps", "flow_shift", "seed"}
-    allowed = common | ({"references"} if settings.task == "ref2va" else {"first_image", "last_image"})
+    """Shape the inputs like the creator's scripts/render.sh; the options arrive typed and range-checked."""
     if not inputs.is_dir() or inputs.is_symlink():
         raise ConfigError("the input directory is missing")
-    request = _read_request(inputs)
-    unknown = sorted(set(request) - allowed)
-    if unknown:
-        raise ConfigError(f"request.json has unsupported fields: {', '.join(unknown)}")
     prompt = _read_prompt(inputs)
-    duration = _number(
-        request.get("duration", settings.duration), "duration", settings.min_duration, settings.max_duration
-    )
-    width = _geometry(request.get("width", settings.width), "width")
-    height = _geometry(request.get("height", settings.height), "height")
-    steps = _integer(request.get("num_inference_steps", settings.steps), "num_inference_steps", 1, 50)
-    shift = _number(request.get("flow_shift", settings.flow_shift), "flow_shift", 1e-6, 1e6)
-    seed = _integer(request.get("seed", settings.seed), "seed", 0, 2**63 - 1)
-
+    duration = settings.duration
     extra: dict[str, Any] = {
         "task": settings.task,
         "duration": int(duration) if duration.is_integer() else duration,
         "audio_flow_shift": AUDIO_FLOW_SHIFT,
     }
     if settings.task == "ref2va":
-        refs = request.get("references")
-        if not isinstance(refs, list) or not 1 <= len(refs) <= REF2VA_MAX_IMAGES:
-            raise ConfigError(f"references must list 1..{REF2VA_MAX_IMAGES} relative image paths")
-        images = tuple(_input_file(inputs, ref, "references") for ref in refs)
+        images = tuple(_slot_images(inputs, "references"))
         extra.update(long_video=True, long_video_mode="continuation")
     else:
-        first = request.get("first_image")
-        last = request.get("last_image")
-        images = tuple(
-            _input_file(inputs, value, name)
-            for name, value in (("first_image", first), ("last_image", last))
-            if value is not None
-        )
+        first = _slot_images(inputs, "first-image")
+        last = _slot_images(inputs, "last-image")
+        images = (*first, *last)
         if images:
             extra["task"] = "fl2va"
-            extra["frame_indices"] = [0] if last is None else [-1] if first is None else [0, -1]
+            extra["frame_indices"] = [0] if not last else [-1] if not first else [0, -1]
         else:
             extra["task"] = "t2va"
     fields = (
         ("prompt", prompt),
-        ("width", str(width)),
-        ("height", str(height)),
+        ("width", str(settings.width)),
+        ("height", str(settings.height)),
         ("aspect_ratio", ASPECT_RATIO),
         ("fps", "24"),
-        ("num_inference_steps", str(steps)),
-        ("flow_shift", _json_number(shift)),
-        ("seed", str(seed)),
+        ("num_inference_steps", str(settings.steps)),
+        ("flow_shift", _json_number(settings.flow_shift)),
+        ("seed", str(settings.seed)),
         ("extra_params", json.dumps(extra, ensure_ascii=False)),
     )
     return RenderRequest(fields, images, "input_references" if len(images) > 1 else "input_reference")
@@ -869,8 +802,6 @@ def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser.add_argument("--model", required=True, help="the partition directory: /models/FL2VA or /models/Ref2VA")
     parser.add_argument("--task", choices=("fl2va", "ref2va"), required=True)
     parser.add_argument("--duration", type=float, required=True)
-    parser.add_argument("--min-duration", type=float, required=True)
-    parser.add_argument("--max-duration", type=float, required=True)
     parser.add_argument("--width", type=int, required=True)
     parser.add_argument("--height", type=int, required=True)
     parser.add_argument("--num-inference-steps", type=int, required=True)
@@ -885,8 +816,6 @@ def settings_from(args: argparse.Namespace) -> Settings:
         task=args.task,
         model=args.model,
         duration=args.duration,
-        min_duration=args.min_duration,
-        max_duration=args.max_duration,
         width=args.width,
         height=args.height,
         steps=args.num_inference_steps,

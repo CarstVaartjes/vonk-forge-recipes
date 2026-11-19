@@ -173,8 +173,6 @@ def settings(task: str = "fl2va", **overrides: object) -> Any:
         "task": task,
         "model": "/models/FL2VA",
         "duration": 5.0,
-        "min_duration": 4.0,
-        "max_duration": 15.0,
         "width": 1344,
         "height": 768,
         "steps": 20,
@@ -190,11 +188,22 @@ def png(path: Path) -> Path:
     return path
 
 
+def stage(root: Path, **slots: list[str]) -> None:
+    """Write the platform's input manifest: each named file belongs to its slot."""
+    files = [
+        {"slot": slot.replace("_", "-"), "name": name}
+        for slot, names in slots.items()
+        for name in names
+    ]
+    (root / "manifest.json").write_text(json.dumps({"files": files}))
+
+
 @pytest.fixture
 def inputs(tmp_path: Path) -> Path:
     root = tmp_path / "inputs"
     root.mkdir()
     (root / "prompt.txt").write_text("A quiet valley at dawn.\n", encoding="utf-8")
+    stage(root, prompt=["prompt.txt"])
     return root
 
 
@@ -244,7 +253,7 @@ def test_the_wrapper_refuses_to_start_and_names_only_the_variable(
 ) -> None:
     env = environment(0, **override)
     argv = [
-        "--model=/models/FL2VA", "--task=fl2va", "--duration=5", "--min-duration=4", "--max-duration=15",
+        "--model=/models/FL2VA", "--task=fl2va", "--duration=5",
         "--width=1344", "--height=768", "--num-inference-steps=20", "--flow-shift=12", "--seed=1101",
         f"--output-dir={inputs}",
     ]  # fmt: skip
@@ -293,20 +302,18 @@ def test_keyframes_choose_the_task_and_the_frame_indices(inputs: Path) -> None:
     png(inputs / "a.png")
     png(inputs / "b.png")
     cases = [
-        ({"first_image": "a.png"}, [0], "input_reference", 1),
-        ({"last_image": "b.png"}, [-1], "input_reference", 1),
+        ({"first_image": ["a.png"]}, [0], "input_reference", 1),
+        ({"last_image": ["b.png"]}, [-1], "input_reference", 1),
         (
-            {"first_image": "a.png", "last_image": "b.png"},
+            {"first_image": ["a.png"], "last_image": ["b.png"]},
             [0, -1],
             "input_references",
             2,
         ),
     ]
-    for body, indices, field_name, count in cases:
-        (inputs / "request.json").write_text(
-            json.dumps({**body, "duration": 10, "seed": 7})
-        )
-        request = job.build_request(settings(), inputs)
+    for slots, indices, field_name, count in cases:
+        stage(inputs, **slots)
+        request = job.build_request(settings(duration=10.0, seed=7), inputs)
         extra = json.loads(fields(request)["extra_params"])
         assert extra == {
             "task": "fl2va",
@@ -326,9 +333,7 @@ def test_multipart_carries_every_field_and_each_image_under_the_right_name(
 ) -> None:
     png(inputs / "a.png")
     png(inputs / "b.png")
-    (inputs / "request.json").write_text(
-        json.dumps({"first_image": "a.png", "last_image": "b.png"})
-    )
+    stage(inputs, first_image=["a.png"], last_image=["b.png"])
     body, content_type = job.encode_multipart(job.build_request(settings(), inputs))
     boundary = content_type.split("boundary=")[1].encode()
     assert (
@@ -340,55 +345,21 @@ def test_multipart_carries_every_field_and_each_image_under_the_right_name(
     )
 
 
-def test_ref2va_is_long_video_continuation_from_references(inputs: Path) -> None:
-    png(inputs / "scene.png")
-    (inputs / "request.json").write_text(
-        json.dumps({"references": ["scene.png"], "duration": 30})
-    )
-    cfg = settings(
-        "ref2va",
-        model="/models/Ref2VA",
-        duration=30.0,
-        min_duration=16.0,
-        max_duration=60.0,
-    )
+def test_ref2va_is_long_video_continuation_from_references(
+    inputs: Path,
+) -> None:
+    png(inputs / "1-scene.png")
+    png(inputs / "2-face.png")
+    stage(inputs, references=["2-face.png", "1-scene.png"])  # name order wins
+    cfg = settings("ref2va", model="/models/Ref2VA", duration=30.0)
     request = job.build_request(cfg, inputs)
     extra = json.loads(fields(request)["extra_params"])
     assert extra == {
         "task": "ref2va", "duration": 30, "audio_flow_shift": 3.0,
         "long_video": True, "long_video_mode": "continuation",
     }  # fmt: skip
-    assert request.image_field == "input_reference"
-    (inputs / "request.json").write_text(json.dumps({}))
-    with pytest.raises(job.ConfigError, match="references"):
-        job.build_request(cfg, inputs)
-    (inputs / "request.json").write_text(
-        json.dumps({"references": ["scene.png"], "first_image": "scene.png"})
-    )
-    with pytest.raises(job.ConfigError, match="unsupported"):
-        job.build_request(cfg, inputs)
-
-
-@pytest.mark.parametrize(
-    ("body", "message"),
-    [
-        ({"duration": 3}, "duration"),
-        ({"duration": 16}, "duration"),
-        ({"width": 1000}, "multiple of 32"),
-        ({"num_inference_steps": 0}, "num_inference_steps"),
-        ({"seed": -1}, "seed"),
-        ({"aspect_ratio": "16:9"}, "unsupported"),
-        ({"first_image": "../outside.png"}, "inside"),
-        ({"first_image": "missing.png"}, "regular input file"),
-        ({"surprise": 1}, "unsupported"),
-    ],
-)
-def test_invalid_requests_are_refused_before_any_model_work(
-    inputs: Path, body: dict[str, object], message: str
-) -> None:
-    (inputs / "request.json").write_text(json.dumps(body))
-    with pytest.raises(job.ConfigError, match=message):
-        job.build_request(settings(), inputs)
+    assert request.image_field == "input_references"
+    assert [image.name for image in request.images] == ["1-scene.png", "2-face.png"]
 
 
 # --- the state machine ----------------------------------------------------------------------
@@ -558,19 +529,6 @@ def test_an_agent_that_comes_up_late_is_waited_for(
     code, _ = run_head(stack("ok", inputs), said)
     late.close()
     assert code == 0 and (tmp_path / "outputs" / "video.mp4").exists()
-
-
-def test_invalid_inputs_refuse_to_start_before_any_model_work(
-    inputs: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
-    (inputs / "request.json").write_text(json.dumps({"duration": 99}))
-    argv = [
-        "--model=/models/FL2VA", "--task=fl2va", "--duration=5", "--min-duration=4", "--max-duration=15",
-        "--width=1344", "--height=768", "--num-inference-steps=20", "--flow-shift=12", "--seed=1101",
-        f"--output-dir={tmp_path}",
-    ]  # fmt: skip
-    assert job.main(argv, environment(0), inputs) == job.EXIT_CONFIG
-    assert "duration" in capsys.readouterr().err
 
 
 def test_sigterm_cancels_a_running_render_and_stops_the_server(

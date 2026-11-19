@@ -2,7 +2,11 @@
   "id": "vonk-forge/wan-dancer-14b-disk-offload-pytorch-single",
   "recipes": {
     "interface": "video-job",
-    "parameters": {},
+    "parameters": {
+      "style": "street",
+      "num-inference-steps-global": 2,
+      "num-inference-steps-local": 2
+    },
     "inputs": [
       {
         "slot": "prompt",
@@ -15,10 +19,6 @@
       {
         "slot": "music",
         "fixture": "wan-dancer-music-1s"
-      },
-      {
-        "slot": "controls",
-        "fixture": "wan-dancer-controls-v1"
       }
     ],
     "output_limits": {
@@ -69,29 +69,6 @@
         "minimum_container_duration_seconds": 0.7,
         "maximum_container_duration_seconds": 0.9,
         "maximum_av_sync_delta_seconds": 0.1
-      }
-    ],
-    "cases": [
-      {
-        "id": "optional-controls",
-        "inputs": [
-          {
-            "slot": "prompt",
-            "fixture": "generic-prompt-text"
-          },
-          {
-            "slot": "reference-image",
-            "fixture": "generic-image-png"
-          },
-          {
-            "slot": "music",
-            "fixture": "wan-dancer-music-1s"
-          },
-          {
-            "slot": "controls",
-            "fixture": "wan-dancer-controls-v1"
-          }
-        ]
       }
     ]
   }

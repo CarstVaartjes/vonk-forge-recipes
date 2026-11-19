@@ -459,19 +459,27 @@ class _OmniRun(Protocol):
 
     INPUTS: Path
 
-    def job(self) -> tuple[str, Path, object]: ...
+    def job(self, kind: str, bbox: list[float]) -> tuple[str, Path, object]: ...
 
 
-class HunyuanOmniBboxControlTests(unittest.TestCase):
-    """The bbox control is Omni's box size, the shape its encoder takes.
+class HunyuanOmniControlTests(unittest.TestCase):
+    """The control-type knob must agree with the files in the control slot.
 
     Sweep 2026-10-16: six min/max numbers became a (1, 1, 12) input after the
     encoder's own repeat, and the run failed with "mat1 and mat2 shapes cannot
     be multiplied (1x204 and 102x1024)". Upstream's demos/bbox/data.json gives
-    three sizes in (0, 1].
+    three sizes in (0, 1]; they are now three typed knobs with that range.
     """
 
-    def _job(self, inputs: Path) -> tuple[str, Path, object]:
+    def _job(
+        self, inputs: Path, kind: str = "bbox", **slots: list[str]
+    ) -> tuple[str, Path, object]:
+        files = [
+            {"slot": slot, "name": name}
+            for slot, names in slots.items()
+            for name in names
+        ]
+        (inputs / "manifest.json").write_text(json.dumps({"files": files}))
         heavy = ("numpy", "torch", "trimesh", "PIL", "glb_validation")
         stubs = {name: mock.MagicMock() for name in heavy}
         with mock.patch.dict(sys.modules, stubs):
@@ -483,39 +491,48 @@ class HunyuanOmniBboxControlTests(unittest.TestCase):
             spec.loader.exec_module(module)
             run = cast(_OmniRun, module)
             run.INPUTS = inputs
-            return run.job()
+            return run.job(kind, [0.8, 0.64, 1.0])
 
-    def test_the_default_and_a_job_bbox_are_three_sizes(self) -> None:
+    def test_bbox_takes_the_three_sizes_and_no_control_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             inputs = Path(directory)
             (inputs / "object.png").write_bytes(b"png")
-            self.assertEqual(self._job(inputs)[2], [1.0, 1.0, 1.0])
-            (inputs / "job.json").write_text(
-                json.dumps(
-                    {
-                        "control_type": "bbox",
-                        "image": "object.png",
-                        "control": [0.8, 0.64, 1],
-                    }
-                )
+            self.assertEqual(
+                self._job(inputs, image=["object.png"])[2], [0.8, 0.64, 1.0]
             )
-            self.assertEqual(self._job(inputs)[2], [0.8, 0.64, 1])
+            (inputs / "box.glb").write_bytes(b"glb")
+            with self.assertRaisesRegex(SystemExit, "takes no control file"):
+                self._job(inputs, image=["object.png"], control=["box.glb"])
 
-    def test_a_min_max_bbox_is_refused_before_the_model_loads(self) -> None:
+    def test_point_and_voxel_need_a_geometry_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             inputs = Path(directory)
             (inputs / "object.png").write_bytes(b"png")
-            (inputs / "job.json").write_text(
-                json.dumps(
-                    {
-                        "control_type": "bbox",
-                        "image": "object.png",
-                        "control": [-0.95, -0.95, -0.95, 0.95, 0.95, 0.95],
-                    }
-                )
+            (inputs / "cloud.ply").write_bytes(b"ply")
+            kind, _image, control = self._job(
+                inputs, "point", image=["object.png"], control=["cloud.ply"]
             )
-            with self.assertRaisesRegex(SystemExit, "three sizes"):
-                self._job(inputs)
+            self.assertEqual((kind, control), ("point", inputs / "cloud.ply"))
+            with self.assertRaisesRegex(SystemExit, "needs a control file"):
+                self._job(inputs, "voxel", image=["object.png"])
+            (inputs / "pose.json").write_text("[[0, 0, 0]]")
+            with self.assertRaisesRegex(SystemExit, "GLB, glTF, OBJ or PLY"):
+                self._job(inputs, "point", image=["object.png"], control=["pose.json"])
+
+    def test_pose_reads_xyz_triples_from_a_json_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            inputs = Path(directory)
+            (inputs / "object.png").write_bytes(b"png")
+            (inputs / "pose.json").write_text("[[0, 0.5, 1], [1, 1, 1]]")
+            self.assertEqual(
+                self._job(inputs, "pose", image=["object.png"], control=["pose.json"])[
+                    2
+                ],
+                [[0, 0.5, 1], [1, 1, 1]],
+            )
+            (inputs / "pose.json").write_text("[[0, 0]]")
+            with self.assertRaisesRegex(SystemExit, "xyz triples"):
+                self._job(inputs, "pose", image=["object.png"], control=["pose.json"])
 
 
 if __name__ == "__main__":
