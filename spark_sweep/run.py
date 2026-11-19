@@ -337,10 +337,8 @@ class Sweep:
         self.authored = dict(authored)
         self.source_serving = SourceServing.UNREAD
         self.unserved_recipes: tuple[Unserved, ...] = ()
-        self.unserved_keys: frozenset[str] = frozenset()
-        # Recipes whose served content stays other than the source after the wait (or moved
-        # on since): deferred, never tested with this sweep's own qualification spec.
-        self.skewed: tuple[Unserved, ...] = ()
+        # Served recipes whose content differs from the source, named once per change (row only).
+        self.skew_noted: frozenset[str] = frozenset()
         # Served recipes this older source does not author (named once in a results row).
         self.source_missing_keys: frozenset[str] = frozenset()
         # The bounded wait's watch lives in the state: a restart continues the budget.
@@ -773,14 +771,23 @@ class Sweep:
     def _selected(self, recipe: Recipe) -> bool:
         return self._selected_key(recipe.key)
 
-    def observe_source(self) -> None:
-        """Until the catalog serves this sweep's source, its differing recipes wait.
+    def _source_matches(self, recipe: Recipe) -> bool:
+        """The one gate: a recipe is tested only when the catalog serves the source's content.
 
-        A served recipe whose content differs from the source is not tested yet: its
-        verdict would be the old content's again, and a run with only such recipes
-        left would end having tested nothing. The wait is bounded
-        (``source_wait_seconds``, checked every poll by ``observe_source_wait``);
-        at the bound the sweep tests what the catalog serves.
+        The sweep's qualification spec belongs to its own source, so another revision
+        (older or newer) would be blamed for the sweep's staleness. Decided per recipe
+        from the rows now held, so it is right in the middle of a library pass, and a
+        catalog that serves the source again releases the recipe by itself.
+        """
+        return self.authored.get(recipe.key) == recipe.content_sha256
+
+    def observe_source(self) -> None:
+        """Say what the gate holds back; the gate itself is ``_source_matches``.
+
+        Until the catalog serves this sweep's source, its differing recipes wait and
+        the run does not end. The wait is bounded (``source_wait_seconds``, checked
+        every poll by ``observe_source_wait``); at the bound the recipes stay deferred
+        (never tested) and the rest of the run goes on.
         """
         complete = bool(self.recipe_list.passes) and not self.recipe_list.in_pass
         if not complete:
@@ -792,36 +799,22 @@ class Sweep:
             self._selected_key,
         )
         if self.source_serving is SourceServing.SERVED:
-            self._observe_skew(differing)
+            self._note_skew(differing)
             return
         self._source_transition(
             SourceEvent.UNSERVED_PASS if differing else SourceEvent.SERVED_PASS,
             differing,
         )
 
-    def _observe_skew(self, differing: tuple[Unserved, ...]) -> None:
-        """A served recipe whose content is not the source's is deferred, never tested.
-
-        The sweep's qualification spec belongs to its own source: running another
-        revision with it would blame the recipe for the sweep's staleness. The set
-        follows every complete pass, so a catalog that serves the source again (or a
-        sweep restarted from a newer source) releases the recipe by itself.
-        """
-        if differing == self.skewed:
+    def _note_skew(self, differing: tuple[Unserved, ...]) -> None:
+        """A row (once per change) for recipes the gate holds back after the wait."""
+        keys = frozenset(item.recipe for item in differing)
+        if keys == self.skew_noted:
             return
-        self.skewed = differing
-        self.unserved_keys = frozenset(item.recipe for item in differing)
+        self.skew_noted = keys
         if not differing:
-            self.source_alert = ""
-            self.record_result(
-                None,
-                "catalog",
-                SourceRowStatus.SERVED,
-                reason="the catalog serves this sweep's source again",
-            )
             return
         reason = describe_skew(differing, self.library_commit)
-        self.source_alert = "SWEEP SOURCE SKEW: " + reason
         self.record_result(
             None,
             "catalog",
@@ -893,9 +886,6 @@ class Sweep:
             self.source_watch.clear()
             self.source_watch["authored"] = self.authored_digest
         self.unserved_recipes = differing if state is SourceServing.UNSERVED else ()
-        self.unserved_keys = frozenset(item.recipe for item in self.unserved_recipes)
-        if event is not SourceEvent.WAIT_EXPIRED:
-            self.skewed = ()
         if event is SourceEvent.UNSERVED_PASS and differing == before:
             return  # the same wait, already recorded
         if event is SourceEvent.SERVED_PASS and before_state is SourceServing.UNREAD:
@@ -920,8 +910,6 @@ class Sweep:
                 "`vonkctl recipe sync-status`, or restart the sweep from the newest "
                 "recipes main"
             )
-            self.skewed = differing
-            self.unserved_keys = frozenset(item.recipe for item in differing)
             self.source_alert = (
                 f"CATALOG DOES NOT SERVE THE SOURCE: {reason} ("
                 + ", ".join(item.recipe for item in differing[:3])
@@ -1131,10 +1119,8 @@ class Sweep:
                 continue
             if not self._selected(recipe):
                 continue
-            if recipe.key in self.unserved_keys:
-                continue  # the catalog still serves other content than the source
-            if recipe.key not in self.authored:
-                continue  # this sweep's source is older than the library
+            if not self._source_matches(recipe):
+                continue  # this sweep's source is not the content the catalog serves
             out.append(recipe)
         out.sort(
             key=lambda recipe: (
@@ -1530,8 +1516,7 @@ class Sweep:
         return bool(
             entry
             and entry.get("status") == "pending"
-            and key in self.authored  # an older source cannot test what it lacks
-            and key not in self.unserved_keys  # a skewed source cannot test it either
+            and self._source_matches(self.recipes[key])
             and self._selected(self.recipes[key])
         )
 

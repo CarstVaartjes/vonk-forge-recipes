@@ -131,34 +131,80 @@ def test_a_source_the_catalog_never_serves_is_deferred_after_the_bound_not_teste
     assert rows[1]["unserved"] == [{"recipe": KEY, "served": OLD, "authored": NEW}]
     assert "restart the sweep from the newest recipes main" in rows[1]["reason"]
     assert "CATALOG DOES NOT SERVE THE SOURCE" in sweep.source_alert
-    assert len(sweep.skewed) == 1 and not sweep.pending()
+    assert not sweep.pending()
 
 
-def test_a_catalog_that_moves_ahead_of_a_served_source_defers_the_recipe(
+def _adds(fleet, key: str) -> int:
+    return len([c for _, c in fleet.calls if c[:3] == ("profile", "add", key)])
+
+
+def test_a_revision_the_catalog_changes_mid_pass_is_deferred_by_the_one_gate(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    sweep, fleet, _ = make_sweep(
+    """The incident through its production trigger: rows apply page by page.
+
+    The fake catalog pages (two rows a page); the recipe changes under a sweep that
+    already served its source. It must not be scheduled with the sweep's own spec
+    (not even before the pass completes), and is tested once the source is served.
+    """
+    keys = [f"vonk-forge/{slug}" for slug in ("a", "b", "c")]
+    recipes = [
+        FakeRecipe(s, (str(i) * 64,), content=OLD) for i, s in enumerate("abc", 1)
+    ]
+    models = [FakeModel(str(i) * 64) for i in (1, 2, 3)]
+    first, fleet, _ = make_sweep(
         tmp_path,
-        [FakeRecipe("good", ("1" * 64,), content=OLD)],
-        [FakeModel("1" * 64)],
+        recipes,
+        models,
         gateway=gateway,
-        authored={KEY: OLD},
+        authored={key: OLD for key in keys},
+        restore_owner=2,
     )
-    assert sweep.run() == 0 and sweep.source_serving is SourceServing.SERVED
-    sweep.state.recipes[KEY] = {"status": "pending"}
-    adds = len([c for _, c in fleet.calls if c[:2] == ("profile", "add")])
-    fleet.recipes[KEY].content = NEW  # the library published a newer revision
-    sweep.recipe_list.in_pass = False
-    sweep.recipes[KEY] = replace(sweep.recipes[KEY], content_sha256=NEW)
-    sweep.observe_source()
-    assert sweep.skewed == (Unserved(KEY, NEW, OLD),)
-    assert not sweep.pending() and not sweep._open(KEY)
-    statuses = [r["status"] for r in _rows(tmp_path) if r["step"] == "catalog"]
-    assert statuses[-1] == "skewed"
-    assert adds == len([c for _, c in fleet.calls if c[:2] == ("profile", "add")])
-    sweep.recipes[KEY] = replace(sweep.recipes[KEY], content_sha256=OLD)
-    sweep.observe_source()  # served again: released by itself
-    assert sweep.skewed == () and [r.key for r in sweep.pending()] == [KEY]
+    assert first.run() == 0 and first.source_serving is SourceServing.SERVED
+    changed = keys[1]
+    fleet.recipes[changed].content = NEW  # the library published a newer revision
+    adds = _adds(fleet, changed)
+    first.state.recipes[changed] = {"status": "pending"}  # due a test again
+
+    # Read the pages the way the sweep does, one a tick; the scheduler's view in
+    # between (mid-pass, the pass not complete) must never include the recipe.
+    first.recipe_list.pass_done_at = first.model_list.pass_done_at = -1e18
+    held_mid_pass = []
+    for _ in range(12):
+        first.advance_catalog(first.clock.now())
+        held_mid_pass.append(
+            first.recipe_list.in_pass
+            and changed in first.recipes
+            and first.recipes[changed].content_sha256 == NEW
+            and changed not in [r.key for r in first.pending()]
+        )
+        if (
+            not first.recipe_list.in_pass
+            and first.recipes[changed].content_sha256 == NEW
+        ):
+            break
+    assert any(held_mid_pass), "the changed row was never read mid-pass"
+    assert not [r for r in first.pending() if r.key == changed]
+
+    _guard(first.clock, first.clock.now())
+    assert first.run() == 0  # a run with deferred recipes still ends
+    assert _adds(fleet, changed) == adds
+    assert first.state.recipes[changed].get("failure_class") is None
+    last = [(p, c) for p, c in fleet.calls if c[:2] == ("profile", "load")][-1]
+    assert last[0] == 2  # the owner's profile is loaded back
+
+    served, _, clock = make_sweep(
+        tmp_path,
+        recipes,
+        models,
+        fleet=fleet,
+        gateway=gateway,
+        authored={**{key: OLD for key in keys}, changed: NEW},
+        restore_owner=2,
+    )
+    _guard(clock, clock.now())
+    assert served.run() == 0  # the source is served: the recipe is tested now
+    assert _adds(fleet, changed) > adds
 
 
 def test_a_new_library_that_leaves_the_recipe_unchanged_keeps_it_waiting(
@@ -313,6 +359,6 @@ def test_a_recipe_the_older_source_lacks_is_held_per_row_on_any_pass(
     sweep.state.recipes[newer] = {"status": "pending"}
     assert [r.key for r in sweep.pending()] == []
     assert not sweep._open(newer)
-    authored = {**sweep.authored, newer: NEW}
+    authored = {**sweep.authored, newer: OLD}
     sweep.authored = authored  # a restart from a newer source authors it
     assert [r.key for r in sweep.pending()] == [newer]

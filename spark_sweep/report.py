@@ -285,7 +285,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         "profile_edit_wait": data.get("profile_edit_wait"),
         "dual_reservation": data.get("dual_reservation"),
         "offline_lanes": offline,
-        "source_skewed": len(sweep.skewed),
+        "source_skewed": len(sweep.skew_noted),
         "waiting_for_lanes": sum(
             1
             for k in sweep.queue
@@ -473,8 +473,8 @@ def render_status(status: Mapping[str, Any]) -> str:
         lines.append(f"- Free lane {status['dual_reservation']}")
     if status.get("source_skewed"):
         lines.append(
-            f"- {status['source_skewed']} recipe(s) deferred: sweep source differs "
-            "from the catalog revision (restart the sweep from the newest recipes main)"
+            f"- {status['source_skewed']} recipe(s) deferred, not tested: sweep source "
+            "and catalog differ (`skewed` results row names them)"
         )
     if status.get("waiting_for_lanes"):
         lines.append(
