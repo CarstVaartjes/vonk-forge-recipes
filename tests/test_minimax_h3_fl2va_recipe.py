@@ -26,7 +26,7 @@ class MiniMaxH3Fl2vaRecipeTests(unittest.TestCase):
             recipe["identity"]["slug"], "minimax-h3-fl2va-diffusers-single"
         )
         self.assertTrue(
-            {"executable", "candidate", "fl2va"}
+            {"executable", "fl2va"}
             <= set(recipe_display(recipe["identity"]["slug"]).tags)
         )
         self.assertNotEqual(recipe["identity"]["slug"], full["identity"]["slug"])

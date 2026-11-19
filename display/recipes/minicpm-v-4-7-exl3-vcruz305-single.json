@@ -1,6 +1,6 @@
 {
   "alignment": "standard",
-  "description": "Native MiniCPM vision through vcruz305’s ExLlamaV3 and TabbyAPI forks, pinned to 475461e9 and 880e6b8b. A build-time TabbyAPI repair loads vision directly on the single GPU, avoiding text-shaped autosplit measuring forwards (see the packaged VISION_LOAD.md). Defaults to the creator’s 4,096-token vision profile with FP16 KV and plain decoding. Optional long-text profile uses 262,144 tokens with Q4 KV. Exact creator checkpoint, immutable CUDA 13.0 image and hash-locked Torch 2.14.0 cu130 dependencies. The memory envelope is a conservative estimate; container and physical model acceptance remain separate.",
+  "description": "Native MiniCPM vision through vcruz305’s ExLlamaV3 and TabbyAPI forks, pinned to 475461e9 and 880e6b8b. A build-time TabbyAPI repair loads vision directly on the single GPU, avoiding text-shaped autosplit measuring forwards (see the packaged VISION_LOAD.md). Defaults to the creator’s 4,096-token vision profile with FP16 KV and plain decoding. Optional long-text profile uses 262,144 tokens with Q4 KV. Exact creator checkpoint, immutable CUDA 13.0 image and hash-locked Torch 2.14.0 cu130 dependencies. The memory envelope is a conservative estimate.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "minicpm-v-4-7-exl3-vcruz305-single"
