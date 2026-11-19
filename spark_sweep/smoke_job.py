@@ -83,7 +83,7 @@ def _call(
     vk: Vonkctl, step: str, *args: str, timeout: float | None = None
 ) -> Mapping[str, Any]:
     try:
-        document = vk.call("recipe", "job", *args, timeout=timeout)
+        document = vk.call("job", *args, timeout=timeout)
     except VonkctlError as error:
         evidence = {
             "case": f"job.{step}",
@@ -119,7 +119,7 @@ def _call(
 
 
 def _binding(spec: Mapping[str, Any], definitions: Definitions, work: Path) -> Path:
-    """The ``recipe job create --file`` binding, with each fixture written beside it."""
+    """The ``job create --file`` binding, with each fixture written beside it."""
     inputs: list[dict[str, str]] = []
     paths: dict[str, str] = {}
     (work / "inputs").mkdir()

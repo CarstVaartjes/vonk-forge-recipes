@@ -78,7 +78,7 @@ def _archive(**manifest_overrides: Any) -> bytes:
 
 
 class Controller:
-    """A scripted ``vonkctl recipe job``: each step answers from its queue, in order."""
+    """A scripted ``vonkctl job``: each step answers from its queue, in order."""
 
     def __init__(
         self,
@@ -103,9 +103,9 @@ class Controller:
             Path(args[args.index("--output") + 1]).write_text(json.dumps(answer))
             document = {"operation_id": args[2], "attempt": 1, "output": "x"}
             return 0, json.dumps(document), ""
-        assert args[:2] == ["recipe", "job"]
-        self.calls.append(args[2:])
-        step = args[2]
+        assert args[:1] == ["job"]
+        self.calls.append(args[1:])
+        step = args[1]
         if step == "create":
             self.binding = json.loads(Path(args[args.index("--file") + 1]).read_text())
         if step == "download":
