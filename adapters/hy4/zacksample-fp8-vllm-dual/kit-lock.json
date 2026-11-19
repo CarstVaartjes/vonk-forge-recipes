@@ -6,14 +6,6 @@
       "kind": "tag",
       "ref": "hy4-flash",
       "repo": "docker.io/vllm/vllm-openai"
-    },
-    "model": {
-      "datasource": "hf-revision",
-      "kind": "branch",
-      "overridden": "fetch.sh runs hf download tencent/Hy4-flash-FP8 with no revision, so it follows main; the lock records the head main resolves to, the catalogued revision",
-      "ref": "main",
-      "repo": "tencent/Hy4-flash-FP8",
-      "revision": "bd0e136e89a9ecd5ea17668cd89cf54fa127e795"
     }
   },
   "kit": {
