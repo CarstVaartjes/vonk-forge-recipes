@@ -637,6 +637,11 @@ class RecipeJobInput(_RecipeContract):
     )
 
 
+#: The Controller's cap on a job's ``timeout_seconds`` (``ArtifactJobCreate``, ``le=3_600``).
+#: Qualification job definitions are bounded by it; the single owner of the number here.
+MAX_JOB_TIMEOUT_SECONDS = 3600
+
+
 class RecipeJobOutput(_RecipeContract):
     # The job writes its outputs under /outputs.
     max_total_bytes: StrictInt = Field(ge=1, le=2147483648)

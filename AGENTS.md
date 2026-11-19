@@ -398,6 +398,14 @@ download record with `request_intent` and no `accepted_content` is dropped and
 requested again
 (`tests/test_sweep_download_retests.py::test_a_legacy_download_record_without_accepted_content_is_requested_again`).
 
+A job recipe's `timeout_seconds` is at most the Controller's job maximum (3600,
+`MAX_JOB_TIMEOUT_SECONDS` in `contracts/src/vonk_forge_contracts/recipe.py`; `load_definitions`
+refuses a longer one). A job-create/upload reply with no typed wait is observed, and the same reply
+three times on one identity ends as the platform's deferral with the reply as evidence
+(`verdict.UNTYPED_REPLY`, `Sweep._bound_identical_exit`). Two exceptions: a reply with no document
+(timeout, missing binary) is a wait, and the detail poll follows a running job through anything but
+a final failure until the job budget ends.
+
 Gateway 401/403 refusals end the case with evidence; only typed LiteLLM key
 expiry/revocation waits for renewal. Unclassified policy refusal is not evidence
 of an expired key (`tests/test_sweep_auth_refusal.py`,

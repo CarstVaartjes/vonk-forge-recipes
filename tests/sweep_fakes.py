@@ -519,7 +519,7 @@ class FakeFleet:
         # Controller's admission backoff (RECOVERY, fleet_profile.py next_retry) caps
         # at 60 s.
         self.admission_retry_seconds = 60.0
-        # Artifact jobs by create request key, and every ``recipe job`` step seen.
+        # Artifact jobs by create request key, and every ``job`` step seen.
         self.jobs: dict[str, dict[str, Any]] = {}
         self.job_calls: list[tuple[str, str]] = []
         self.job_output = b""
@@ -941,8 +941,8 @@ class FakeFleet:
             return self._retry_download(a)
         if noun == "recipe" and verb == "progress":
             return self._op_progress(a)
-        if noun == "recipe" and verb == "job":
-            return self._recipe_job(a[2:])
+        if noun == "job":
+            return self._recipe_job(a[1:])
         if noun == "recipe" and verb == "detail":
             shown = self.recipes.get(a[2])
             if shown is None or shown.detail is None:
@@ -958,7 +958,7 @@ class FakeFleet:
     # -- artifact jobs -----------------------------------------------------------
 
     def _recipe_job(self, a: list[str]) -> tuple[int, Any]:
-        """``vonkctl recipe job``: a job succeeds on submit with the fixture PNG as its output."""
+        """``vonkctl job``: a job succeeds on submit with the fixture PNG as its output."""
         action = a[0]
         if action == "create":
             run_id = a[a.index("--run") + 1]

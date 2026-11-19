@@ -78,17 +78,20 @@ def _archive(**manifest_overrides: Any) -> bytes:
 
 
 class Controller:
-    """A scripted ``vonkctl recipe job``: each step answers from its queue, in order."""
+    """A scripted ``vonkctl job``: each step answers from its queue, in order."""
 
     def __init__(
         self,
         output: bytes = b"",
         evidence: tuple[int, Any] | None = None,
+        evidence_not_found: int = 0,
         **answers: Sequence[tuple[int, Any]],
     ) -> None:
         self.output = output
         # ``vonkctl fleet evidence``: (exit code, bundle written to --output or error).
         self.evidence = evidence
+        # Leading evidence reads answered not_found (the sibling rank still stopping).
+        self.evidence_not_found = evidence_not_found
         self.answers = {step: list(queue) for step, queue in answers.items()}
         self.calls: list[list[str]] = []
         self.binding: dict[str, Any] = {}
@@ -98,14 +101,24 @@ class Controller:
         if args[:2] == ["fleet", "evidence"] and self.evidence is not None:
             self.calls.append(args)
             code, answer = self.evidence
+            if self.evidence_not_found > 0:
+                self.evidence_not_found -= 1
+                code, answer = (
+                    1,
+                    {
+                        "error_type": "control_api",
+                        "code": "controller.not_found",
+                        "status": 404,
+                    },
+                )
             if code != 0:
                 return code, json.dumps(answer), ""
             Path(args[args.index("--output") + 1]).write_text(json.dumps(answer))
             document = {"operation_id": args[2], "attempt": 1, "output": "x"}
             return 0, json.dumps(document), ""
-        assert args[:2] == ["recipe", "job"]
-        self.calls.append(args[2:])
-        step = args[2]
+        assert args[:1] == ["job"]
+        self.calls.append(args[1:])
+        step = args[1]
         if step == "create":
             self.binding = json.loads(Path(args[args.index("--file") + 1]).read_text())
         if step == "download":
@@ -286,6 +299,53 @@ def test_a_failed_job_carries_its_exit_code_and_stderr_tail() -> None:
     assert controller.calls[-1][:3] == ["fleet", "evidence", OPERATION]
 
 
+def test_a_failed_stderr_keeps_the_platforms_head_and_tail_within_the_bound() -> None:
+    head = "ImportError: libxcb.so.1: cannot open shared object file\n"
+    stderr = head + "[90000 bytes omitted]\n" + "y" * 5000 + "\nlast line\n"
+    controller = Controller(
+        evidence=(0, _bundle(stderr, exit_code=1)),
+        create=[_job(None, preparation="ready")],
+        submit=[_job("failed", operation_id=OPERATION, status_reason="exit")],
+    )
+    result = _smoke(controller)
+    assert result.failure is not None
+    kept = result.failure.evidence["stderr_tail"]
+    assert kept.startswith("ImportError: libxcb.so.1")
+    assert "\n[90000 bytes omitted]\n" in kept
+    assert kept.endswith("last line\n")
+    assert len(kept.encode()) <= 2048
+
+
+@pytest.mark.parametrize(
+    "head",
+    ["", "h" * 700, "é" * 400 + "\n", "no newline " * 60],
+)
+def test_the_stderr_bound_holds_for_any_head(head: str) -> None:
+    from spark_sweep.smoke_job import _tail
+
+    text = head + "\n[7 bytes omitted]\n" + "t" * 4000 + "\nend\n"
+    kept = _tail(text)
+    assert len(kept.encode()) <= 2048
+    assert kept.endswith("end\n")
+    assert kept.startswith(head[:100].rstrip("\n")[:100])
+    assert ("\n[7 bytes omitted]\n" in kept) or kept.startswith("[7 bytes omitted]\n")
+
+
+def test_an_evidence_not_found_just_after_the_failure_is_read_again() -> None:
+    controller = Controller(
+        evidence=(0, _bundle("late cause\n", exit_code=1)),
+        evidence_not_found=2,
+        create=[_job(None, preparation="ready")],
+        submit=[_job("failed", operation_id=OPERATION, status_reason="exit")],
+    )
+    clock = [0.0]
+    result = _smoke(controller, clock=clock)
+    assert result.failure is not None
+    assert result.failure.evidence["stderr_tail"] == "late cause\n"
+    assert "evidence_unavailable" not in result.failure.evidence
+    assert [c[:2] for c in controller.calls].count(["fleet", "evidence"]) == 3
+
+
 @pytest.mark.parametrize("status", [404, 500])
 def test_an_evidence_read_that_fails_never_changes_the_verdict(status: int) -> None:
     error = {
@@ -328,11 +388,7 @@ def test_a_deferred_job_keeps_its_evidence_and_stays_observed() -> None:
 
 
 def test_a_controller_refusal_is_a_wait_never_a_verdict() -> None:
-    refusal = {
-        "error_type": "control_api",
-        "code": "controller.unavailable",
-        "detail": "down",
-    }
+    refusal = _cli_error(503, "controller.unavailable", "retry")
     controller = Controller(create=[(2, refusal)])
     result = _smoke(controller)
     assert result.failure is not None
@@ -382,8 +438,6 @@ def test_a_final_refusal_of_the_recipes_job_request_fails_the_recipe_at_once(
     [
         _cli_error(503, "controller.unavailable", "retry"),
         _cli_error(409, "controller.conflict", "defer", retry_after_seconds=5),
-        _cli_error(404, "controller.not_found", "exit"),
-        _cli_error(403, "controller.request_rejected", "exit"),
     ],
 )
 def test_a_job_request_the_controller_may_still_take_is_not_a_verdict(
@@ -394,13 +448,30 @@ def test_a_job_request_the_controller_may_still_take_is_not_a_verdict(
     assert verdict.disposition(result.failure) is verdict.Disposition.WAIT
 
 
+@pytest.mark.parametrize(
+    "answer",
+    [
+        _cli_error(404, "controller.not_found", "exit"),
+        _cli_error(403, "controller.request_rejected", "exit"),
+        {"error_type": "control_api", "code": "control.api_error", "detail": "x"},
+    ],
+)
+def test_a_reply_with_no_typed_wait_is_observed_and_bounded_not_waited_on(
+    answer: dict[str, Any],
+) -> None:
+    result = _smoke(Controller(create=[(2, answer)]))
+    assert result.failure is not None
+    assert result.failure.klass == verdict.UNTYPED_REPLY
+    assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
+
+
 def test_a_refused_submit_names_no_recipe_data_and_is_not_a_verdict() -> None:
     controller = Controller(
         create=[_job(None, preparation="ready")], submit=[(2, REFUSED)]
     )
     result = _smoke(controller)
     assert result.failure is not None
-    assert verdict.disposition(result.failure) is verdict.Disposition.WAIT
+    assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
 
 
 def test_a_transient_refusal_while_following_keeps_following() -> None:
@@ -412,6 +483,22 @@ def test_a_transient_refusal_while_following_keeps_following() -> None:
         detail=[(2, refusal), _job("succeeded", output_files=OUTPUT)],
     )
     assert _smoke(controller).ok
+
+
+def test_a_detail_read_with_no_document_keeps_following_the_job() -> None:
+    controller = Controller(
+        _archive(),
+        create=[_job(None, preparation="ready")],
+        submit=[_job("queued")],
+        detail=[(124, None), _job("succeeded", output_files=OUTPUT)],
+    )
+    assert _smoke(controller).ok
+
+
+def test_a_create_with_no_document_is_a_wait_not_an_attempt() -> None:
+    result = _smoke(Controller(create=[(124, None)]))
+    assert result.failure is not None
+    assert verdict.disposition(result.failure) is verdict.Disposition.WAIT
 
 
 def test_a_job_that_never_ends_within_its_own_timeout_is_observed_again() -> None:
