@@ -1834,11 +1834,22 @@ class ModelReExportTests(unittest.TestCase):
             f"model-{i:05d}-of-{count:05d}.safetensors" for i in range(1, count + 1)
         )
 
-    def move(self, mounted: tuple[str, ...] | None):
-        old = model_with(("config.json", "tokenizer.json", *self.shards(36)))
+    def move(
+        self,
+        mounted: tuple[str, ...] | None,
+        *,
+        old_paths: tuple[str, ...] | None = None,
+        new_inventory: list[dict[str, Any]] | None = None,
+        kit_pin: bool = False,
+    ):
+        old = model_with(
+            old_paths or ("config.json", "tokenizer.json", *self.shards(36))
+        )
         old["source"]["repository"] = "https://huggingface.co/o/r"
         new = files("config.json", "HYBRID.json", *self.shards(41), sha="e" * 64)
         new += files("tokenizer.json")
+        if new_inventory is not None:
+            new = new_inventory
         selected = [f for f in old["files"] if mounted is None or f["path"] in mounted]
         mount = {"target": "/models"}
         recipe = {
@@ -1901,7 +1912,12 @@ class ModelReExportTests(unittest.TestCase):
             refresh.Target("huggingface", "o/r", NEW, "2026-10-06", None, None, "u"),
             old["identity"]["slug"],
         )
-        inventories = {OLD: files(*(f["path"] for f in old["files"])), NEW: new}
+        if kit_pin:
+            item.kit_pin = object()
+        inventories = {
+            OLD: files(*(f["path"] for f in old["files"])),
+            NEW: new,
+        }
         result = refresh.Assessment("recipe", items=[item])
         new_recipe = json.loads(json.dumps(recipe))
         edits: dict[str, bytes | None] = {}
@@ -1926,6 +1942,39 @@ class ModelReExportTests(unittest.TestCase):
         self.assertNotIn("model-00036-of-00036.safetensors", paths)
         mounted = {s["file_id"] for s in new_recipe["models"][0]["files"]}
         self.assertEqual(mounted, {f["id"] for f in moved["files"]})
+
+    def test_a_sibling_checkpoint_beside_identical_files_is_not_a_move(self) -> None:
+        # #2749: the repository gained another text encoder; every catalogued file
+        # is the same bytes.
+        old_paths = (
+            "split_files/diffusion_models/a.safetensors",
+            "split_files/text_encoders/te_fp8.safetensors",
+            "split_files/vae/v.safetensors",
+        )
+        new = files(*old_paths, sha="c" * 64)
+        new += files("split_files/text_encoders/te_int8.safetensors", sha="d" * 64)
+        result, _, edits = self.move(None, old_paths=old_paths, new_inventory=new)
+        self.assertEqual(result.reasons, [])
+        self.assertTrue(result.items[0].noop)
+        self.assertFalse(edits)
+
+        # A kit-declared revision keeps the kit's strict shape rule: a review.
+        result, _, edits = self.move(
+            None, old_paths=old_paths, new_inventory=new, kit_pin=True
+        )
+        self.assertTrue(result.reasons)
+        self.assertFalse(result.items[0].noop)
+        self.assertFalse(edits)
+
+    def test_an_added_chat_template_still_moves_a_recipe_mounting_everything(
+        self,
+    ) -> None:
+        old_paths = ("config.json", "model-00001-of-00001.safetensors")
+        new = files(*old_paths, sha="c" * 64) + files("chat_template.jinja")
+        result, _, edits = self.move(None, old_paths=old_paths, new_inventory=new)
+        self.assertEqual(result.reasons, [])
+        self.assertFalse(result.items[0].noop)
+        self.assertTrue(edits)
 
     def test_the_models_display_moves_with_it(self) -> None:
         _, _, edits = self.move(None)

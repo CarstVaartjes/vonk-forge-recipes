@@ -1095,7 +1095,9 @@ hold is updated/removed with working evidence (`tools/check-base-image-holds`,
 `tests/test_base_image_holds.py`). `model-revision-holds.json` declines one Model
 revision that cannot run on the recipe's Sparks, with its reason; a newer
 upstream revision is assessed again (`tools/check-model-revision-holds`,
-`tests/test_model_revision_holds.py`). Recipes in `published-images.json` follow the
+`tests/test_model_revision_holds.py`). A recipe that mounts every file of its Model follows added
+files of the repository, except weights files added beside byte-identical catalogued files: that is
+another checkpoint and does not move the recipe (#2749). Recipes in `published-images.json` follow the
 published image digest and its recorded build commit, not unrelated newer Git
 heads. `tools/check-image-provenance --base origin/main` checks changed recipes.
 An unavailable recorded commit needs the explicit unverified provenance mark
