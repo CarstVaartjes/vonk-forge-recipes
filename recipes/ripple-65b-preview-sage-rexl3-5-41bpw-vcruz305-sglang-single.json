@@ -449,18 +449,6 @@
       {
         "name": "TRANSFORMERS_OFFLINE",
         "value": "1"
-      },
-      {
-        "name": "SGLANG_ALLOW_OVERWRITE_LONGER_CONTEXT_LEN",
-        "value": "1"
-      },
-      {
-        "name": "SGLANG_EXL3_DENSE",
-        "value": "1"
-      },
-      {
-        "name": "SGLANG_EXL3_MGEMM",
-        "value": "1"
       }
     ],
     "lifecycle": {
