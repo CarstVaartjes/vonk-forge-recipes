@@ -61,6 +61,36 @@
         "topology": "multi"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "e6b52c968e75320ca5a70df90c9c2c7b6b2ef7e075abeb71080e12b8fa9056b1",
+        "source_bundle_sha256": "e94f7d2129ec907c19432c9a4ceaee1920bbd34a982bad2eb62e5fc0eb52ecf7",
+        "runtime_image": {
+          "build_key": "ec5d137750edb74048a62281af8ed877b23e08ab94d61365314371b468ebfe4f",
+          "image_digest": "sha256:9c2a6266198ca714290b2c5f7a1034a9fe81a03bacea97b2cd7b8a93a611fd46"
+        },
+        "model_digests": [
+          "146d824d4f9cbdcb8649bfdb261600ab03f0824daa27fa3771403c6f1095f32e"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "245c76dce54a5ef81c77ed0d9289dda6d11edc6ee2da87cf9e863125c4a8301f"
+      ],
+      "tested_at": "2026-11-19T18:10:32.738272Z",
+      "platform": {
+        "controller_source_sha": "0dbd17a56f35b4c594032ebaf940c4fb4b96a6fd",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
     }
   ]
 }
