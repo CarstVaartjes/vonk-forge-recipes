@@ -131,7 +131,9 @@ from .source_serving import (
     Unserved,
     advance,
     describe,
+    describe_missing,
     digests,
+    missing_from_source,
     unserved,
 )
 from .state import ResultsLog, State, StateLock
@@ -335,6 +337,8 @@ class Sweep:
         self.source_serving = SourceServing.UNREAD
         self.unserved_recipes: tuple[Unserved, ...] = ()
         self.unserved_keys: frozenset[str] = frozenset()
+        # Served recipes this older source does not author: never scheduled by this sweep.
+        self.source_missing_keys: frozenset[str] = frozenset()
         # The bounded wait's watch lives in the state: a restart continues the budget.
         self.source_watch: dict[str, Any] = state.data["source_watch"]
         # The wait is for this authored content: a restart with other content waits again.
@@ -775,7 +779,10 @@ class Sweep:
         at the bound the sweep tests what the catalog serves.
         """
         complete = bool(self.recipe_list.passes) and not self.recipe_list.in_pass
-        if not complete or self.source_serving is SourceServing.SERVED:
+        if not complete:
+            return
+        self._observe_source_behind()
+        if self.source_serving is SourceServing.SERVED:
             return
         differing = unserved(
             {key: recipe.content_sha256 for key, recipe in self.recipes.items()},
@@ -786,6 +793,29 @@ class Sweep:
             SourceEvent.UNSERVED_PASS if differing else SourceEvent.SERVED_PASS,
             differing,
         )
+
+    def _observe_source_behind(self) -> None:
+        """A recipe the library serves but this sweep's source lacks is not tested here.
+
+        Not a verdict on the recipe: the sweep's source is older than the library.
+        """
+        missing = missing_from_source(
+            self.recipes.keys(), self.authored, self._selected_key
+        )
+        if frozenset(missing) == self.source_missing_keys:
+            return
+        self.source_missing_keys = frozenset(missing)
+        if not missing:
+            return
+        reason = describe_missing(missing, self.library_commit)
+        self.record_result(
+            None,
+            "catalog",
+            SourceRowStatus.SOURCE_BEHIND,
+            reason=reason,
+            library_commit=self.library_commit or None,
+        )
+        self.state.event(reason)
 
     def observe_source_wait(self) -> None:
         """Every poll of the wait: the bounded wait's budget, said through ``waiting``."""
@@ -1060,6 +1090,8 @@ class Sweep:
                 continue
             if recipe.key in self.unserved_keys:
                 continue  # the catalog still serves other content than the source
+            if recipe.key in self.source_missing_keys:
+                continue  # this sweep's source is older than the library
             out.append(recipe)
         out.sort(
             key=lambda recipe: (
@@ -1455,6 +1487,7 @@ class Sweep:
         return bool(
             entry
             and entry.get("status") == "pending"
+            and key not in self.source_missing_keys  # this older source cannot test it
             and self._selected(self.recipes[key])
         )
 

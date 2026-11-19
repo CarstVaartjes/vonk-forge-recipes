@@ -268,3 +268,27 @@ def test_watch_mode_keeps_polling_when_only_matches_nothing_yet(
 
     clock.hooks.append(stop_later)
     assert sweep.run() == 130  # interrupted while still watching, no --only error
+
+
+def test_a_recipe_the_older_source_lacks_is_not_tested_and_not_failed(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    newer = "vonk-forge/newer"
+    sweep, _, clock = make_sweep(
+        tmp_path,
+        [
+            FakeRecipe("good", ("1" * 64,), content=OLD),
+            FakeRecipe("newer", ("1" * 64,), content=NEW),
+        ],
+        [FakeModel("1" * 64)],
+        gateway=gateway,
+        authored={KEY: OLD},  # the source predates `newer`
+    )
+    _guard(clock, clock.now())
+    assert sweep.run() == 0
+    assert sweep.state.recipes[KEY]["status"] == "passed"
+    assert sweep.state.recipes[newer]["status"] == "pending"  # never a verdict
+    rows = _rows(tmp_path)
+    assert not [r for r in rows if r.get("recipe") == newer and r["status"] == "failed"]
+    behind = [r for r in rows if r["status"] == "source-behind"]
+    assert behind and "older" in behind[0]["reason"] and newer in behind[0]["reason"]
