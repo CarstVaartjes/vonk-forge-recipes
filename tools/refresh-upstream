@@ -2758,10 +2758,6 @@ class Assessor:
             )
         else:
             used_changes = self._used_changes(item, recipe, pin, patched, result)
-            if judged.rewritten and used_changes is not None:
-                used_changes, judged = self._judge_rewritten(
-                    item, declared_kit, used_changes, judged, result
-                )
         library = (
             LIBRARY_HARMLESS_DIRS
             if installs_library(context, item.repo)
@@ -2821,52 +2817,6 @@ class Assessor:
                 f"The recipe runs {repository} as published; it moves to `{digest}`, "
                 f"which records {item.repo} at `{item.target.sha}`.\n"
             )
-
-    def _judge_rewritten(
-        self,
-        item: Item,
-        declared_kit: Path | None,
-        used_changes: list[str],
-        judged: Comparison,
-        result: Assessment,
-    ) -> tuple[list[str], Comparison]:
-        """Judge a rewritten upstream history (no common ancestor) by content.
-
-        NVIDIA publishes every release as a parentless commit (#1711, #1616). The used
-        files were blob-compared; the kit's declared files and the creator's launch file
-        beside them are not "used", so their directories are compared by blob too.
-        Without such a directory, or with an incomplete tree, the rewrite stays a reason.
-        """
-        lock = None if declared_kit is None else kit_pins.read_lock(declared_kit)
-        if declared_kit is None or lock is None:
-            return used_changes, judged
-        if lock["kit"]["repo"].lower() != item.repo.lower():
-            return used_changes, judged
-        dependencies = adapter_manifest(declared_kit)["kit"].get("dependencies", {})
-        directories = {
-            PurePosixPath(d["file"]).parent.as_posix()
-            for d in dependencies.values()
-            if d.get("file")
-        } - {".", ""}
-        if not directories:
-            return used_changes, judged
-        try:
-            old = vendored.fetch_tree(item.repo, item.current)
-            new = vendored.fetch_tree(item.repo, item.target.sha)
-        except RuntimeError:
-            return used_changes, judged
-        if not (old.complete and new.complete):
-            return used_changes, judged
-        names = set(old.blobs) | set(new.blobs)
-        inside = [p for p in names if any(p.startswith(d + "/") for d in directories)]
-        extra = sorted(p for p in inside if old.blobs.get(p) != new.blobs.get(p))
-        result.evidence.append(
-            f"- {item.label}: upstream history was rewritten; judged by content: "
-            f"{len(inside)} file(s) in the creator's config directories "
-            f"({', '.join(f'`{d}`' for d in sorted(directories))}) checked by blob, "
-            f"{len(extra)} changed.\n"
-        )
-        return sorted(set(used_changes) | set(extra)), replace(judged, rewritten="")
 
     def _used_changes(
         self,
