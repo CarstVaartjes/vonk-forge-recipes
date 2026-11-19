@@ -29,10 +29,6 @@
       "filename": "RealESRGAN_x2plus.pth"
     }
   ],
-  "inputs": {
-    "minimum": 0,
-    "maximum": 0
-  },
   "text_inputs": {
     "prompt": {
       "required": true,

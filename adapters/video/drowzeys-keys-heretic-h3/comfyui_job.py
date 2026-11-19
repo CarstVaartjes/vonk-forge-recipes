@@ -29,10 +29,7 @@ MAX_INPUT_MANIFEST_BYTES = 256 * 1024
 PORT = 8188
 BASE_URL = f"http://127.0.0.1:{PORT}"
 MIME_EXTENSIONS = {
-    "image/png": (".png",),
-    "image/jpeg": (".jpg", ".jpeg"),
     "video/mp4": (".mp4",),
-    "video/webm": (".webm",),
 }
 MEDIA_EXTENSIONS = frozenset(
     extension for extensions in MIME_EXTENSIONS.values() for extension in extensions
@@ -94,8 +91,6 @@ def link_models(document: dict[str, Any], model_root: Path) -> None:
         "diffusion_models",
         "text_encoders",
         "vae",
-        "loras",
-        "diffusers",
         "upscale_models",
     }
     for category in categories:
@@ -131,21 +126,6 @@ def link_models(document: dict[str, Any], model_root: Path) -> None:
         if link.exists() or link.is_symlink():
             raise ValueError(f"cached model view differs from its immutable identity: {link}")
         link.symlink_to(source)
-    for snapshot in document.get("diffusers_snapshots", []):
-        artifact_id = snapshot["artifact_id"]
-        name = snapshot["name"]
-        if Path(name).name != name:
-            raise ValueError(f"invalid Diffusers snapshot name: {name}")
-        source = (
-            MODEL_MOUNT_ROOT
-            if artifact_id == "weights"
-            else MODEL_MOUNT_ROOT / artifact_id
-        )
-        if not (source / "model_index.json").is_file():
-            raise FileNotFoundError(
-                f"Diffusers snapshot lacks model_index.json: {source}"
-            )
-        (model_root / "diffusers" / name).symlink_to(source, target_is_directory=True)
 
 
 def load_input_manifest() -> dict[str, Any]:
@@ -172,41 +152,6 @@ def load_input_manifest() -> dict[str, Any]:
     return document.model_dump(mode="json")
 
 
-def _manifest_files(manifest: dict[str, Any], slot: str) -> list[str]:
-    return [item["name"] for item in manifest["files"] if item["slot"] == slot]
-
-
-def input_names(
-    document: dict[str, Any], manifest: dict[str, Any] | None = None
-) -> list[str]:
-    settings = document.get("inputs", {})
-    minimum = int(settings.get("minimum", 0))
-    maximum = int(settings.get("maximum", minimum))
-    slot = settings.get("slot")
-    if manifest is not None and slot is not None:
-        if not isinstance(slot, str) or not slot:
-            raise ValueError("workflow file input slot is invalid")
-        names = _manifest_files(manifest, slot)
-    else:
-        names = (
-            sorted(
-                path.name
-                for path in INPUT_ROOT.iterdir()
-                if path.is_file()
-                and not path.is_symlink()
-                and path.name != INPUT_MANIFEST_NAME
-                and path.suffix.lower() != ".txt"
-            )
-            if INPUT_ROOT.exists()
-            else []
-        )
-    if not minimum <= len(names) <= maximum:
-        raise ValueError(
-            f"workflow requires {minimum}..{maximum} input files; received {len(names)}"
-        )
-    return names
-
-
 def substitute(value: Any, replacements: dict[str, Any]) -> Any:
     if isinstance(value, dict):
         return {key: substitute(item, replacements) for key, item in value.items()}
@@ -218,77 +163,32 @@ def substitute(value: Any, replacements: dict[str, Any]) -> Any:
 
 
 def workflow_replacements(
-    document: dict[str, Any],
-    input_files: list[str],
-    seed: int,
-    manifest: dict[str, Any] | None = None,
+    document: dict[str, Any], seed: int, manifest: dict[str, Any]
 ) -> dict[str, Any]:
-    text_values = {
-        "prompt": os.environ.get("VONK_PROMPT", ""),
-        "negative_prompt": os.environ.get("VONK_NEGATIVE_PROMPT", ""),
-    }
-    text_inputs = document.get("text_inputs", {})
-    if not isinstance(text_inputs, dict) or not set(text_inputs).issubset(text_values):
-        raise ValueError("workflow text_inputs contract is invalid")
-    for name, settings in text_inputs.items():
-        if not isinstance(settings, dict):
-            raise TypeError(f"workflow text input contract is invalid: {name}")
-        slot = settings.get("slot")
-        if manifest is not None and slot is not None:
-            if not isinstance(slot, str) or not slot:
-                raise ValueError(f"workflow text input slot is invalid: {name}")
-            matches = _manifest_files(manifest, slot)
-            if len(matches) > 1:
-                raise ValueError(
-                    f"workflow accepts at most one {name.replace('_', ' ')} file"
-                )
-            value = ""
-            if matches:
-                path = INPUT_ROOT / matches[0]
-                maximum_bytes = settings.get("maximum_bytes", 16384)
-                if type(maximum_bytes) is not int or not 1 <= maximum_bytes <= 1048576:
-                    raise ValueError(
-                        f"workflow text input byte limit is invalid: {name}"
-                    )
-                if path.stat().st_size > maximum_bytes:
-                    raise ValueError(
-                        f"workflow {name.replace('_', ' ')} exceeds {maximum_bytes} bytes"
-                    )
-                try:
-                    value = path.read_text(encoding="utf-8")
-                except UnicodeDecodeError as error:
-                    raise ValueError(
-                        f"workflow {name.replace('_', ' ')} must be UTF-8 text"
-                    ) from error
-            text_values[name] = value
-        else:
-            value = text_values[name]
-        if settings.get("required", False) and not value.strip():
-            raise ValueError(f"workflow requires a non-empty {name.replace('_', ' ')}")
-        maximum = settings.get("maximum_characters", 4096)
-        if type(maximum) is not int or not 1 <= maximum <= 65536:
-            raise ValueError(f"workflow text input limit is invalid: {name}")
-        if len(value) > maximum:
-            raise ValueError(
-                f"workflow {name.replace('_', ' ')} exceeds {maximum} characters"
-            )
-
-    replacements: dict[str, Any] = {
-        "__VONK_PROMPT__": text_values["prompt"],
-        "__VONK_NEGATIVE_PROMPT__": text_values["negative_prompt"],
-        "__VONK_SEED__": seed,
-    }
-    for index, name in enumerate(input_files, start=1):
-        replacements[f"__VONK_INPUT_{index}__"] = name
-    placeholder_count = document.get("inputs", {}).get(
-        "placeholder_count", len(input_files)
-    )
-    if type(placeholder_count) is not int or not 0 <= placeholder_count <= 32:
-        raise ValueError("workflow input placeholder count is invalid")
-    if input_files:
-        for index in range(len(input_files) + 1, placeholder_count + 1):
-            replacements[f"__VONK_INPUT_{index}__"] = input_files[-1]
-    return replacements
+    settings = document["text_inputs"]["prompt"]
+    matches = [item["name"] for item in manifest["files"] if item["slot"] == "prompt"]
+    if len(matches) > 1:
+        raise ValueError("workflow accepts at most one prompt file")
+    value = ""
+    if matches:
+        path = INPUT_ROOT / matches[0]
+        maximum_bytes = settings.get("maximum_bytes", 16384)
+        if type(maximum_bytes) is not int or not 1 <= maximum_bytes <= 1048576:
+            raise ValueError("workflow text input byte limit is invalid: prompt")
+        if path.stat().st_size > maximum_bytes:
+            raise ValueError(f"workflow prompt exceeds {maximum_bytes} bytes")
+        try:
+            value = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError as error:
+            raise ValueError("workflow prompt must be UTF-8 text") from error
+    if settings.get("required", False) and not value.strip():
+        raise ValueError("workflow requires a non-empty prompt")
+    maximum = settings.get("maximum_characters", 4096)
+    if type(maximum) is not int or not 1 <= maximum <= 65536:
+        raise ValueError("workflow text input limit is invalid: prompt")
+    if len(value) > maximum:
+        raise ValueError(f"workflow prompt exceeds {maximum} characters")
+    return {"__VONK_PROMPT__": value, "__VONK_SEED__": seed}
 
 
 def request_json(path: str, *, body: dict[str, Any] | None = None) -> Any:
@@ -551,8 +451,7 @@ def run_job() -> int:
     document["prompt"]["104"]["inputs"]["length"] = args.num_frames
     document["result"]["video"]["frames"] = args.num_frames
     manifest = load_input_manifest()
-    inputs = input_names(document, manifest)
-    replacements = workflow_replacements(document, inputs, args.seed, manifest)
+    replacements = workflow_replacements(document, args.seed, manifest)
     prompt = substitute(document["prompt"], replacements)
 
     with tempfile.TemporaryDirectory(prefix="vonk-comfyui-") as temp_dir:
@@ -568,8 +467,6 @@ def run_job() -> int:
             "  diffusion_models: diffusion_models\n"
             "  text_encoders: text_encoders\n"
             "  vae: vae\n"
-            "  loras: loras\n"
-            "  diffusers: diffusers\n"
             "  upscale_models: upscale_models\n",
             encoding="utf-8",
         )
