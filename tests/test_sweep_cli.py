@@ -40,6 +40,7 @@ def _run(argv, fleet, recipes):
         vonkctl_factory=lambda exe: Vonkctl(exe, runner=_locked(fleet.runner)),
         clock=fleet.clock,
         definitions=make_definitions(recipes),
+        authored={key: r.content for key, r in fleet.recipes.items()},
     )
 
 
