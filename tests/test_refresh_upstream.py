@@ -3599,13 +3599,19 @@ class RewrittenHistoryTests(unittest.TestCase):
         )
         self.assertEqual(compared.status, "diverged")
         self.assertEqual(compared.rewritten, NEW)
-        for used in (None, []):
+        reasons = refresh.classify_changes(
+            compared, patched=set(), vendor_problems=[], used_changes=None
+        )
+        self.assertEqual(len(reasons), 1, reasons)
+        self.assertIn("history was rewritten", reasons[0])
+        self.assertIn(NEW, reasons[0])
+        # Used files are compared by content: a rewrite alone is no reason.
+        for used, expected in (([], 0), (["a.yaml"], 1)):
             reasons = refresh.classify_changes(
                 compared, patched=set(), vendor_problems=[], used_changes=used
             )
-            self.assertEqual(len(reasons), 1, reasons)
-            self.assertIn("history was rewritten", reasons[0])
-            self.assertIn(NEW, reasons[0])
+            self.assertEqual(len(reasons), expected, reasons)
+            self.assertNotIn("history was rewritten", "".join(reasons))
 
     def test_any_other_missing_comparison_is_still_unassessable(self) -> None:
         with self.assertRaises(refresh.NotFound):
