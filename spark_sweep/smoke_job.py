@@ -70,10 +70,6 @@ STDERR_HEAD_BYTES = 512
 #: The platform's marker between a retained stderr's failure lines and its tail
 #: (vonk-agent-protocol ``failure_evidence::omission_marker``: ``[<N> bytes omitted]``).
 OMISSION_MARKER = re.compile(r"^\[[0-9]+ bytes omitted\]$", re.MULTILINE)
-#: The evidence endpoint can answer not_found for a few seconds after the job shows failed
-#: (a sibling rank is still stopping): re-read this many times, this far apart, then give up.
-EVIDENCE_READ_ATTEMPTS = 4
-EVIDENCE_RETRY_SECONDS = 5.0
 
 
 def job_budget_seconds(spec: Mapping[str, Any]) -> float:
@@ -229,14 +225,8 @@ def _exit_code(bundle: Mapping[str, Any]) -> int | None:
     return None
 
 
-def _job_evidence(
-    vk: Vonkctl, job: Mapping[str, Any], sleep: Callable[[float], None] = time.sleep
-) -> dict[str, Any]:
+def _job_evidence(vk: Vonkctl, job: Mapping[str, Any]) -> dict[str, Any]:
     """The cause the Controller kept for a job that ended unsuccessfully.
-
-    A not_found answer (the sibling rank still stopping) is read again a bounded number
-    of times; delete that once the Controller serves evidence as soon as the job fails
-    (vonk-forge #2560).
 
     Fail-open: a job without an operation, a refused or unreadable evidence read is
     recorded as ``evidence_unavailable`` with its reason; it never changes the verdict.
@@ -247,14 +237,7 @@ def _job_evidence(
     ref: dict[str, Any] = {"operation_id": operation_id}
     with tempfile.TemporaryDirectory(prefix="sweep-job-evidence-") as root:
         target = Path(root) / "evidence.json"
-        for attempt in range(EVIDENCE_READ_ATTEMPTS):
-            reply = vk.run(
-                "fleet", "evidence", operation_id, "--output", str(target)
-            )  # sequential: re-reads one record until the Controller has stored it
-            if reply.ok or not reply.is_not_found:
-                break
-            if attempt + 1 < EVIDENCE_READ_ATTEMPTS:
-                sleep(EVIDENCE_RETRY_SECONDS)
+        reply = vk.run("fleet", "evidence", operation_id, "--output", str(target))
         if not reply.ok:
             return {"evidence_ref": ref, "evidence_unavailable": reply.error_text}
         try:
@@ -284,9 +267,7 @@ def _job_evidence(
     return proof
 
 
-def _ended_failure(
-    vk: Vonkctl, job: Mapping[str, Any], sleep: Callable[[float], None] = time.sleep
-) -> Failure:
+def _ended_failure(vk: Vonkctl, job: Mapping[str, Any]) -> Failure:
     """A job that ended without success: the recipe's, unless the platform names a cause."""
     state = _text(job, "state")
     evidence = _mapping(job.get("result_evidence"))
@@ -296,7 +277,7 @@ def _ended_failure(
         "state": state,
         "status_reason": _text(job, "status_reason"),
         "result_evidence": dict(evidence),
-        **_job_evidence(vk, job, sleep),
+        **_job_evidence(vk, job),
     }
     detail = f"job {state}: {_text(job, 'status_reason') or 'no reason given'}"
     platform = (
@@ -392,7 +373,7 @@ def smoke_job(
                     if verdict.disposition(refused.failure) is verdict.Disposition.FAIL:
                         raise
             if _text(job, "state") != LifecycleState.SUCCEEDED:
-                result.failure = _ended_failure(vk, job, sleep)
+                result.failure = _ended_failure(vk, job)
                 return result
             out = work / "outputs"
             out.mkdir()
