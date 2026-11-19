@@ -273,8 +273,63 @@ class RecipeEmbeddingSettings(_RecipeSettings):
     max_batch_tokens: RecipeIntegerSetting | None = None
 
 
+class RecipeJobKnob(RecipeSetting):
+    """A job option: the default plus the type and limits a form and a check read.
+
+    The JSON type of ``value`` is the knob type, so it cannot disagree with its
+    default; ``allowed_values`` makes it an enum. A knob's label, description
+    and unit are display (``RecipeDisplay.knobs``), never recipe identity.
+    ``step`` means ``minimum + k * step``, as the HTML ``step`` attribute does.
+    """
+
+    minimum: StrictInt | StrictFloat | None = None
+    maximum: StrictInt | StrictFloat | None = None
+    step: StrictInt | None = Field(default=None, ge=1)
+    allowed_values: list[Scalar] | None = Field(
+        default=None, min_length=2, max_length=64
+    )
+
+    @model_validator(mode="after")
+    def limits_fit_the_default(self) -> RecipeJobKnob:
+        kind = type(self.value)
+        numeric = kind in (int, float)
+        limits = (self.minimum, self.maximum, self.step)
+        if self.allowed_values is not None:
+            if any(item is not None for item in limits):
+                raise ValueError("an enum knob takes allowed_values and no range")
+            if any(type(item) is not kind for item in self.allowed_values):
+                raise ValueError("allowed_values must have the type of the value")
+            if len(set(self.allowed_values)) != len(self.allowed_values):
+                raise ValueError("allowed_values must be unique")
+            if self.value not in self.allowed_values:
+                raise ValueError("the default must be one of allowed_values")
+            return self
+        if any(item is not None for item in limits) and not numeric:
+            raise ValueError("minimum, maximum and step need a numeric knob")
+        for bound in (self.minimum, self.maximum):
+            if kind is int and bound is not None and type(bound) is not int:
+                raise ValueError("an integer knob takes integer bounds")
+        if self.step is not None and (kind is not int or self.minimum is None):
+            raise ValueError("step needs an integer knob with a minimum")
+        value = self.value
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            return self
+        if self.minimum is not None and value < self.minimum:
+            raise ValueError("the default is below minimum")
+        if self.maximum is not None and value > self.maximum:
+            raise ValueError("the default is above maximum")
+        if (
+            self.step is not None
+            and self.minimum is not None
+            and (value - self.minimum) % self.step
+        ):
+            raise ValueError("the default is off the step grid")
+        return self
+
+
 class RecipeJobSettings(_RecipeSettings):
     kind: Literal["job"]
+    knobs: dict[Identifier, RecipeJobKnob] = Field(default_factory=dict, max_length=64)
     concurrency: RecipeIntegerSetting | None = None
 
 
