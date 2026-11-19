@@ -2198,8 +2198,8 @@ def only_sibling_weights_added(
 ) -> bool:
     """Whether the newest revision only adds weights files beside byte-identical files.
 
-    Another checkpoint of a repository the Model catalogues a subset of (#2749); a
-    re-shard of a catalogued checkpoint changes or removes a catalogued file.
+    Another checkpoint of the repository (#2749): a Model whose every catalogued file is
+    unchanged; a re-shard of a catalogued checkpoint changes or removes a catalogued file.
     """
     catalogued = {f["path"] for f in old["files"]}
     return mounted_unchanged(old, new_files, catalogued) and all(
@@ -3122,7 +3122,7 @@ class Assessor:
                 )
                 return
             if (mounted is not None and mounted_unchanged(old, new_files, mounted)) or (
-                mounted is None and only_sibling_weights_added(old, new_files)
+                not declared and only_sibling_weights_added(old, new_files)
             ):
                 self._mounted_noop(item, result)
                 return
@@ -3152,11 +3152,7 @@ class Assessor:
         else:
             if (
                 mounted is not None and mounted_unchanged(old, fresh["files"], mounted)
-            ) or (
-                mounted is None
-                and not declared
-                and only_sibling_weights_added(old, fresh["files"])
-            ):
+            ) or (not declared and only_sibling_weights_added(old, fresh["files"])):
                 self._mounted_noop(item, result)
                 return
             result.evidence.append(

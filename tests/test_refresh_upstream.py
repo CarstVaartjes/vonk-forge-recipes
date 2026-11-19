@@ -1840,7 +1840,7 @@ class ModelReExportTests(unittest.TestCase):
         *,
         old_paths: tuple[str, ...] | None = None,
         new_inventory: list[dict[str, Any]] | None = None,
-        before: tuple[str, ...] = (),
+        kit_pin: bool = False,
     ):
         old = model_with(
             old_paths or ("config.json", "tokenizer.json", *self.shards(36))
@@ -1912,8 +1912,10 @@ class ModelReExportTests(unittest.TestCase):
             refresh.Target("huggingface", "o/r", NEW, "2026-10-06", None, None, "u"),
             old["identity"]["slug"],
         )
+        if kit_pin:
+            item.kit_pin = object()
         inventories = {
-            OLD: files(*(f["path"] for f in old["files"]), *before),
+            OLD: files(*(f["path"] for f in old["files"])),
             NEW: new,
         }
         result = refresh.Assessment("recipe", items=[item])
@@ -1942,21 +1944,26 @@ class ModelReExportTests(unittest.TestCase):
         self.assertEqual(mounted, {f["id"] for f in moved["files"]})
 
     def test_a_sibling_checkpoint_beside_identical_files_is_not_a_move(self) -> None:
-        # #2749: a subset Model of a multi-checkpoint repository; the repository
-        # gained another text encoder, every catalogued file is the same bytes.
+        # #2749: the repository gained another text encoder; every catalogued file
+        # is the same bytes.
         old_paths = (
             "split_files/diffusion_models/a.safetensors",
             "split_files/text_encoders/te_fp8.safetensors",
             "split_files/vae/v.safetensors",
         )
-        other = "split_files/diffusion_models/other.safetensors"
-        new = files(*old_paths, other, sha="c" * 64)
+        new = files(*old_paths, sha="c" * 64)
         new += files("split_files/text_encoders/te_int8.safetensors", sha="d" * 64)
-        result, _, edits = self.move(
-            None, old_paths=old_paths, new_inventory=new, before=(other,)
-        )
+        result, _, edits = self.move(None, old_paths=old_paths, new_inventory=new)
         self.assertEqual(result.reasons, [])
         self.assertTrue(result.items[0].noop)
+        self.assertFalse(edits)
+
+        # A kit-declared revision keeps the kit's strict shape rule: a review.
+        result, _, edits = self.move(
+            None, old_paths=old_paths, new_inventory=new, kit_pin=True
+        )
+        self.assertTrue(result.reasons)
+        self.assertFalse(result.items[0].noop)
         self.assertFalse(edits)
 
     def test_an_added_chat_template_still_moves_a_recipe_mounting_everything(
