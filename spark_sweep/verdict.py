@@ -150,6 +150,10 @@ PLATFORM_STALLED = "platform-stalled"
 #: The sweep's own smoke code raised (a bug, a source tree changed under it): a tool fault,
 #: never the recipe's. The lane is requeued with an ``observe`` row that spends no attempt.
 SWEEP_CRASH = "sweep-crash"
+#: A reply with no typed wait and no typed refusal (vonkctl's generic ``control.api_error``, an
+#: unknown code): an undeclared class, so it is observed and ``Sweep._bound_identical_exit`` ends
+#: the same reply on the same identity after three occurrences.
+UNTYPED_REPLY = "untyped-reply"
 #: A job recipe's smoke job ended failed and the Controller names no platform cause.
 JOB_FAILED = "job-failed"
 FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data", JOB_FAILED})
@@ -592,6 +596,20 @@ def request_refused(reply: Reply | None) -> bool:
         document.get("decision") == CLIENT_EXIT_DECISION
         and document.get("retryable") is False
         and document.get("http_status") in REQUEST_REFUSAL_HTTP
+    )
+
+
+def typed_wait(reply: Reply | None) -> bool:
+    """Does the reply itself say "ask again later" (typed decision, retryable, temporary HTTP)?
+
+    Nothing else is a wait: prose and generic codes never decide (``reply_disposition`` keeps
+    the broader reading for callers that bound their own retries).
+    """
+    document = _document(reply)
+    return (
+        str(document.get("decision") or "") in CLIENT_WAIT_DECISIONS
+        or document.get("retryable") is True
+        or any(http_wait(document.get(name)) for name in _HTTP_FIELDS)
     )
 
 

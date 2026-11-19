@@ -1,0 +1,41 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "atakann's NVFP4 build of Tencent Hy4 flash (revision 30f201ac): routed experts in NVFP4 with NVIDIA ModelOpt, Engram tables in FP8, 14 weight shards, 165 GB. Text and image input. Base model tencent/Hy4-flash.",
+  "family_title": "Hy4 flash",
+  "identity": {
+    "publisher": "atakans",
+    "slug": "hy4-flash-nvfp4-30f201ac"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Tencent",
+      "atakann"
+    ],
+    "spdx": "LicenseRef-tencent-hy-license",
+    "url": "https://huggingface.co/atakans/Hy4-flash-NVFP4/blob/30f201acf0b4f9ba178817bcbc04ccfa3ec473f9/LICENSE"
+  },
+  "lineage": {
+    "base_model": "tencent/Hy4-flash",
+    "family": "hy",
+    "generation": "Hy4",
+    "line": "hy4-flash",
+    "model": "hy4-flash",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "Hy4 flash NVFP4",
+  "tags": [
+    "tencent",
+    "hy4-flash"
+  ]
+}

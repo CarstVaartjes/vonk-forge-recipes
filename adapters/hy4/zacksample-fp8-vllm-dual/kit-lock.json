@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:5e2c1badbca60595d6591c60feb4b8547f59da96e7a91710d40239250e721aba",
+      "kind": "tag",
+      "ref": "hy4-flash",
+      "repo": "docker.io/vllm/vllm-openai"
+    }
+  },
+  "kit": {
+    "commit": "a0e88d769cdb1f9f4bbfdc06e1a621a6a1ffe169",
+    "repo": "ZackSample/hy4-flash-dgx-sparks"
+  }
+}

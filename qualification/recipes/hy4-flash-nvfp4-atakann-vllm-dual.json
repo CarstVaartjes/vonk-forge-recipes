@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/hy4-flash-nvfp4-atakann-vllm-dual",
+  "service_recipes": {
+    "alias": "hy4-flash-nvfp4",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded long-context, four-stream concurrency and single-image input canaries"
+      ],
+      "recovery": [
+        "Controller-only rank-loss, warm-cache recovery and image-input revalidation"
+      ]
+    }
+  }
+}

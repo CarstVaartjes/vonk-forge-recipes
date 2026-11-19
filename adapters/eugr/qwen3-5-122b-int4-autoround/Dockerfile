@@ -1,7 +1,7 @@
-FROM docker.io/eugr/spark-vllm@sha256:1c2b117703f45e520dfd8fe1676daa5304f6a61e6ba57cee632189c3aaa994ca
+FROM docker.io/eugr/spark-vllm@sha256:a9070bd0af702459ed8af8da88456be80853e66d6deb908b8fb08c4bca0d546c
 
 LABEL org.opencontainers.image.source="https://github.com/eugr/spark-vllm-docker" \
-      org.opencontainers.image.revision="131fd5112379e18e163a7b9f85be0fdd587505b9" \
+      org.opencontainers.image.revision="ce3257d06ebb8e3552683d59c553bfc64f43d9e7" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0"
 
 # The published docker.io/eugr/spark-vllm image, built from the revision above; the digest is what runs.

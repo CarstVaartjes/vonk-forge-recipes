@@ -31,6 +31,66 @@
         "topology": "multi"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "e6b52c968e75320ca5a70df90c9c2c7b6b2ef7e075abeb71080e12b8fa9056b1",
+        "source_bundle_sha256": "234db47166bc0c8bdab3c8c61b9a09b3774e803b79ff6d2a9ab6c03c2bd66515",
+        "runtime_image": {
+          "build_key": "37d5604add014b49700d0cfdf7f03df88473fac568cd61a064ef5ee34f819bf2",
+          "image_digest": "sha256:46f3c9f253aea3cd8a10135516ad04785c49a5f16063ca4b9587ed74602efe1c"
+        },
+        "model_digests": [
+          "146d824d4f9cbdcb8649bfdb261600ab03f0824daa27fa3771403c6f1095f32e"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "3f4dabbdc0f48e66f291c91f02784e3f31cf76c9c5da446487f32012741bbcb5"
+      ],
+      "tested_at": "2026-11-19T17:01:54.351239Z",
+      "platform": {
+        "controller_source_sha": "0dbd17a56f35b4c594032ebaf940c4fb4b96a6fd",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "e6b52c968e75320ca5a70df90c9c2c7b6b2ef7e075abeb71080e12b8fa9056b1",
+        "source_bundle_sha256": "e94f7d2129ec907c19432c9a4ceaee1920bbd34a982bad2eb62e5fc0eb52ecf7",
+        "runtime_image": {
+          "build_key": "ec5d137750edb74048a62281af8ed877b23e08ab94d61365314371b468ebfe4f",
+          "image_digest": "sha256:9c2a6266198ca714290b2c5f7a1034a9fe81a03bacea97b2cd7b8a93a611fd46"
+        },
+        "model_digests": [
+          "146d824d4f9cbdcb8649bfdb261600ab03f0824daa27fa3771403c6f1095f32e"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "245c76dce54a5ef81c77ed0d9289dda6d11edc6ee2da87cf9e863125c4a8301f"
+      ],
+      "tested_at": "2026-11-19T18:10:32.738272Z",
+      "platform": {
+        "controller_source_sha": "0dbd17a56f35b4c594032ebaf940c4fb4b96a6fd",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
     }
   ]
 }

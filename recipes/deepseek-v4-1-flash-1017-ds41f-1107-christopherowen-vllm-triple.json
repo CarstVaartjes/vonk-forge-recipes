@@ -1179,10 +1179,6 @@
         "value": "32"
       },
       {
-        "name": "DO_NOT_TRACK",
-        "value": "1"
-      },
-      {
         "name": "HF_HUB_OFFLINE",
         "value": "1"
       },
@@ -1293,10 +1289,6 @@
       {
         "name": "VLLM_MAX_IMAGE_PIXELS",
         "value": "16777216"
-      },
-      {
-        "name": "VLLM_NO_USAGE_STATS",
-        "value": "1"
       },
       {
         "name": "VLLM_PLUGINS",

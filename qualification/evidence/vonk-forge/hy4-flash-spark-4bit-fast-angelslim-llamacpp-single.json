@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/hy4-flash-spark-4bit-fast-angelslim-llamacpp-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "388925b3d2dc9f97feb28c9834093dfc4cfea8b29992c4cd7f5c2fa8ba085008",
+        "source_bundle_sha256": "15329f4d83a056f3142cd816cef3b6e083ada51f6e9d086afc3cf2d53f9d828e",
+        "runtime_image": {
+          "build_key": "e44c998052a25c7df1b5969b10c3f952b67c66c9d02f1d9b1bc01280cf1b232a",
+          "image_digest": "sha256:709bd0433e911e08325d8f0a92665b775610435a5049163967334804f463d430"
+        },
+        "model_digests": [
+          "e484e0e70e9efae26614778a607ef5d29d6e26323a8fc08f5298437c94d5e388"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_exit",
+      "cause_summary": "Recipe runtime exited; needs fix",
+      "evidence_refs": [
+        "b21c2dc623be70809cb7d1c6e483dfa7e8600c1765b42dae82d26e6090761ece"
+      ],
+      "tested_at": "2026-11-19T18:53:09.482743Z",
+      "platform": {
+        "controller_source_sha": "0dbd17a56f35b4c594032ebaf940c4fb4b96a6fd",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
