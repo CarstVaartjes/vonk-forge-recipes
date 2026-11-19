@@ -311,9 +311,24 @@ def test_a_failed_stderr_keeps_the_platforms_head_and_tail_within_the_bound() ->
     assert result.failure is not None
     kept = result.failure.evidence["stderr_tail"]
     assert kept.startswith("ImportError: libxcb.so.1")
-    assert "bytes omitted]" in kept
+    assert "\n[90000 bytes omitted]\n" in kept
     assert kept.endswith("last line\n")
     assert len(kept.encode()) <= 2048
+
+
+@pytest.mark.parametrize(
+    "head",
+    ["", "h" * 700, "é" * 400 + "\n", "no newline " * 60],
+)
+def test_the_stderr_bound_holds_for_any_head(head: str) -> None:
+    from spark_sweep.smoke_job import _tail
+
+    text = head + "\n[7 bytes omitted]\n" + "t" * 4000 + "\nend\n"
+    kept = _tail(text)
+    assert len(kept.encode()) <= 2048
+    assert kept.endswith("end\n")
+    assert kept.startswith(head[:100].rstrip("\n")[:100])
+    assert ("\n[7 bytes omitted]\n" in kept) or kept.startswith("[7 bytes omitted]\n")
 
 
 def test_an_evidence_not_found_just_after_the_failure_is_read_again() -> None:

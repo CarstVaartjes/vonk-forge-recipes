@@ -14,8 +14,10 @@ Verdicts follow ``verdict.disposition``:
 * the job succeeded and its outputs hold: pass;
 * the job failed on its own (the Controller names no platform cause): the recipe's
   failure, with the job's evidence: its exit code and stderr tail, read from its
-  operation's failure evidence (``vonkctl fleet evidence``). A read that fails is
-  recorded as ``evidence_unavailable`` and never changes the verdict;
+  operation's failure evidence (``vonkctl fleet evidence``), the head the platform keeps
+  before its omission marker included. A read answered not_found just after the failure
+  is repeated a few times; one that still fails is recorded as
+  ``evidence_unavailable`` and never changes the verdict;
 * an assertion missed: the recipe's failure (``smoke-assertion``);
 * the Controller finally refused the job's request (``create``/``upload`` carry the
   recipe's definition bound to its contract; a 409/422 with decision ``exit``): the
@@ -67,7 +69,7 @@ STDERR_TAIL_BYTES = 2048
 STDERR_HEAD_BYTES = 512
 #: The platform's marker between a retained stderr's failure lines and its tail
 #: (vonk-agent-protocol ``failure_evidence::omission_marker``: ``[<N> bytes omitted]``).
-OMISSION_MARKER = re.compile(r"^\[\d+ bytes omitted\]$", re.MULTILINE)
+OMISSION_MARKER = re.compile(r"^\[[0-9]+ bytes omitted\]$", re.MULTILINE)
 #: The evidence endpoint can answer not_found for a few seconds after the job shows failed
 #: (a sibling rank is still stopping): re-read this many times, this far apart, then give up.
 EVIDENCE_READ_ATTEMPTS = 4
@@ -186,6 +188,9 @@ _TQDM_LINE = re.compile(r".*\b\d{1,3}%\|[^|]*\|\s*\d+/\d+\s*\[[^]\r\n]*\]\s*")
 def _tail(text: str, limit: int = STDERR_TAIL_BYTES) -> str:
     """The last non-progress lines, redacted and bounded by UTF-8 bytes.
 
+    When the platform marked an omission (``[N bytes omitted]``), the head before it
+    (first error lines) is kept too: head, marker line, then the tail, within ``limit``.
+
     Split carriage-return redraws before filtering: progress after an exception
     must not push it out of the retained evidence. Keep progress if it is all we have.
     """
@@ -201,18 +206,15 @@ def _tail(text: str, limit: int = STDERR_TAIL_BYTES) -> str:
     marker = OMISSION_MARKER.search(redacted)
     if marker is None or limit <= STDERR_HEAD_BYTES:
         return redacted.encode("utf-8")[-limit:].decode("utf-8", errors="ignore")
-    # The platform put the first error lines before its marker and the tail after it:
-    # keep both sides within the same bound.
-    head = redacted[: marker.start()].encode("utf-8")[:STDERR_HEAD_BYTES]
-    rest = redacted[marker.end() :].encode("utf-8")
-    room = max(limit - len(head) - len(marker.group()), 0)
-    tail = rest[-room:] if room else b""
-    return (
-        head.decode("utf-8", errors="ignore").rstrip("\n")
-        + "\n"
-        + marker.group()
-        + tail.decode("utf-8", errors="ignore")
+    head = (
+        redacted[: marker.start()]
+        .encode("utf-8")[:STDERR_HEAD_BYTES]
+        .decode("utf-8", errors="ignore")
     )
+    line = (head.rstrip("\n") + "\n" if head else "") + marker.group() + "\n"
+    rest = redacted[marker.end() :].removeprefix("\n").encode("utf-8")
+    room = max(limit - len(line.encode("utf-8")), 0)
+    return line + rest[len(rest) - room :].decode("utf-8", errors="ignore")
 
 
 def _exit_code(bundle: Mapping[str, Any]) -> int | None:
@@ -231,6 +233,10 @@ def _job_evidence(
     vk: Vonkctl, job: Mapping[str, Any], sleep: Callable[[float], None] = time.sleep
 ) -> dict[str, Any]:
     """The cause the Controller kept for a job that ended unsuccessfully.
+
+    A not_found answer (the sibling rank still stopping) is read again a bounded number
+    of times; delete that once the Controller serves evidence as soon as the job fails
+    (vonk-forge #2560).
 
     Fail-open: a job without an operation, a refused or unreadable evidence read is
     recorded as ``evidence_unavailable`` with its reason; it never changes the verdict.
