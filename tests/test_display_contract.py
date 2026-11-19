@@ -175,7 +175,13 @@ def test_a_recipe_with_a_passing_evidence_record_does_not_say_acceptance_is_owed
         records = _json(path).get("records", [])
         if not any(record["outcome"] == "passed" for record in records):
             continue
-        description = recipe_display(path.stem).description
+        display = recipe_display(path.stem)
+        description = display.description
+        offenders += [
+            f"{path.stem}: tag {tag}"
+            for tag in ("candidate", "physical-acceptance-required")
+            if tag in display.tags
+        ]
         offenders += [
             f"{path.stem}: {sentence}"
             for sentence in re.split(r"(?<=\.)\s+", description)

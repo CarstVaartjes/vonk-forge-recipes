@@ -244,7 +244,6 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                     ],
                 )
                 tags = set(recipe_display(recipe["identity"]["slug"]).tags)
-                self.assertIn("candidate", tags)
                 self.assertFalse(
                     tags.intersection(
                         {"metadata-only", "non-executable", "integration-required"}

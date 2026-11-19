@@ -8,7 +8,6 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "nvidia",
     "kimodo",
     "motion-generation",
@@ -19,8 +18,7 @@
     "pytorch-pipeline",
     "single",
     "spark",
-    "native",
-    "physical-acceptance-required"
+    "native"
   ],
   "title": "Kimodo SOMA RP v1.2 pytorch-pipeline single Spark"
 }

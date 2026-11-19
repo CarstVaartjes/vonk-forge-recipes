@@ -8,7 +8,6 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "nvidia",
     "motionbricks",
     "motion-generation",
@@ -18,8 +17,7 @@
     "pytorch-pipeline",
     "single",
     "spark",
-    "native",
-    "physical-acceptance-required"
+    "native"
   ],
   "title": "MotionBricks G1 pytorch-pipeline single Spark"
 }

@@ -58,7 +58,6 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
         )
 
         tags = set(recipe_display(recipe["identity"]["slug"]).tags)
-        self.assertIn("candidate", tags)
         self.assertTrue({"video", "audio", "multimodal", "modular-diffusers"} <= tags)
         self.assertTrue(recipe["execution"])
 
