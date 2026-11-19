@@ -126,3 +126,22 @@ def test_a_job_timeout_above_the_controllers_maximum_is_refused_at_load(
     )
     with pytest.raises(ValueError, match="timeout_seconds 7200"):
         load_definitions(tmp_path)
+
+
+# A job input slot that accepts JSON carries a payload, never options (options are
+# typed knobs). Each entry is `<recipe slug>/<slot id>`: the reason it is a payload.
+JSON_PAYLOAD_SLOTS = {
+    "motionbricks-g1-pytorch-single/command": "motion script",
+    "moss-vl-realtime-11b-pytorch-single/session": "event schedule",
+    "hunyuan3d-omni-pytorch-single/control": "pose joint array",
+}
+
+
+def test_json_input_slots_are_payloads() -> None:
+    found = set()
+    for path in (ROOT / "recipes").glob("*.json"):
+        for interface in json.loads(path.read_bytes()).get("interfaces", []):
+            for slot in interface.get("input", {}).get("slots", []):
+                if "application/json" in slot.get("media_types", []):
+                    found.add(f"{path.stem}/{slot['id']}")
+    assert found == set(JSON_PAYLOAD_SLOTS)
