@@ -253,11 +253,11 @@
       "Vontra",
       "NVIDIA Corporation"
     ],
-    "source_reference": "https://github.com/ashhart/TensorFold/tree/93a2e93ecebff8aa52b88e58c5dd222516e69c5f"
+    "source_reference": "https://github.com/ashhart/TensorFold/tree/2a674b552498739e783a31c2573fc9ccf4d8cc0d"
   },
   "release": {
-    "released_at": "2026-11-11",
-    "version": "1.2.7"
+    "released_at": "2026-11-18",
+    "version": "1.2.10"
   },
   "runtime": {
     "arguments": [

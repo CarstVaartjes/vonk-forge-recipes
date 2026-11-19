@@ -873,6 +873,25 @@
         "nvfp4_ds_mla": 2048
       },
       "value_dim": 0
+    },
+    "deepseek-v4-1-flash-reap-256e-76ced425": {
+      "architecture": "DeepseekV41ForCausalLM",
+      "configuration_sha256": "d34ff5173d572c0f8b77b95e50308376d72d46427fbbf1c8551f950811149902",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 40,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/LibertAIDAI/DeepSeek-V4.1-Flash-REAP-256E/resolve/76ced425f1b8200e0aae6f9a926d23396275e210/config.json (sha256 d34ff5173d572c0f8b77b95e50308376d72d46427fbbf1c8551f950811149902). Identical to deepseek-ai/DeepSeek-V4.1-Flash 314113f8a7dadb388215396ba5fbee2c610a04d6 config.json (sha256 8be45ce0476004a3f529fd896115a4a2e800a129ad2d3ec05b16050f52e21879, geometry deepseek-v4-1-flash-314113f8) except text_config.n_routed_experts 384 -> 256 and an added pruned_from block (REAP expert pruning): routed-expert count changes weights, not any attention or cache dimension (40 layers, head_dim 512, 1 KV head, qk_rope_head_dim 64, index_head_dim 128, sliding_window 128, compress_ratios, num_nextn_predict_layers 3, max_position_embeddings 1048576 all unchanged). Same derivation as deepseek-v4-1-flash-314113f8: four kv_source_layer_ids and eight index_source_layer_ids, shared compressed KV/index cache; bound 2048 bytes/token for FP8, 4096 for BF16; bounded SWA and replay state rounded to 64 MiB/request. Allocation estimate, not hardware proof.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 4096,
+        "fp8": 2048,
+        "fp8_ds_mla": 2048,
+        "fp8_e4m3": 2048,
+        "nvfp4_ds_mla": 2048
+      },
+      "value_dim": 0
     }
   },
   "engram_files": {
