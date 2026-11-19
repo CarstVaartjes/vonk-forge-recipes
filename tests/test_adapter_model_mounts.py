@@ -48,6 +48,12 @@ EXCEPTION_GROUPS: tuple[tuple[tuple[str, ...], str, tuple[str, ...], str], ...] 
         "Upstream host launcher is not the recipe entrypoint; sglang-serve receives target/drafter arguments from the recipe.",
     ),
     (
+        ("ripple-65b-preview-sage-rexl3-5-41bpw-vcruz305-sglang-single",),
+        "scripts/serve_ripple.py",
+        ("/models/draft-4.55bpw",),
+        "Vendored creator docstring example (DRAFT_DIR default ./models/draft-4.55bpw); the recipe passes --speculative-draft-model-path /models/draft/4.55bpw explicitly.",
+    ),
+    (
         ("laguna-s-2-1-nvfp4-r0b0tlab-vllm-single",),
         "scripts/audit_runtime.py",
         ("/models/Laguna-S-2.1-NVFP4",),
