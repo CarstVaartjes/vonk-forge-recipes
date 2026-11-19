@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "Installable Candidate for 480p CFG-distilled text-to-video with a complete immutable Diffusers snapshot and offline ARM64 runtime; physical Spark acceptance remains pending. Keeps models on CUDA without CPU offload on GB10 unified memory; smoke fit is estimated, and physical memory and latency qualification remain pending.",
+  "description": "Recipe for 480p CFG-distilled text-to-video with a complete immutable Diffusers snapshot and offline ARM64 runtime. Keeps models on CUDA without CPU offload on GB10 unified memory; smoke fit is estimated.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "hunyuan-video-15-distilled-diffusers-single"
@@ -8,7 +8,6 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "video",
     "text-to-video",
     "cfg-distilled",

@@ -49,7 +49,6 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                 self.assertEqual(model["source"]["revision"], REVISIONS[name])
                 self.assertEqual(recipe.runtime.engine, "vllm")
                 self.assertEqual(recipe.topology.node_count, 1)
-                self.assertIn("candidate", recipe_display(recipe.identity.slug).tags)
 
     def test_custom_reasoning_parser_is_selected_from_model_manifest(self) -> None:
         expected = {

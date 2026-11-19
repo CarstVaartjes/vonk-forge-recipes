@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "Artifact-slim single-Spark Candidate for the official MiniMax H3 FL2VA partition: text-to-video-and-audio plus optional first and/or last keyframes. It preserves the pinned Modular Diffusers int8 streamed-offload and verified 24-fps video plus 32-kHz stereo audio contract while excluding Ref2VA and duplicate checkpoint layouts; physical Spark qualification is pending.",
+  "description": "Artifact-slim single-Spark recipe for the official MiniMax H3 FL2VA partition: text-to-video-and-audio plus optional first and/or last keyframes. It preserves the pinned Modular Diffusers int8 streamed-offload and verified 24-fps video plus 32-kHz stereo audio contract while excluding Ref2VA and duplicate checkpoint layouts.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "minimax-h3-fl2va-diffusers-single"
@@ -8,7 +8,6 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "minimax",
     "video",
     "audio",

@@ -1,0 +1,11 @@
+{
+  "id": "vonk-forge/hy4-flash-spark-4bit-fast-angelslim-llamacpp-single",
+  "service_recipes": {
+    "alias": "hy4-flash-spark-4bit-fast",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "V_RED"
+    ]
+  }
+}
