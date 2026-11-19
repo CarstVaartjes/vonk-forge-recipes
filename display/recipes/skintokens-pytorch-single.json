@@ -13,9 +13,7 @@
     "single",
     "spark",
     "rigging",
-    "native",
-    "build-unvalidated",
-    "native-build-required"
+    "native"
   ],
   "title": "SkinTokens / TokenRig pytorch-pipeline single Spark"
 }

@@ -270,7 +270,7 @@ class LtxSparkFitTests(unittest.TestCase):
             "adapters/video/ltx2-sync-native",
         )
 
-    def test_ltx23_disk_offload_candidate_is_admissible_but_unaccepted(self) -> None:
+    def test_ltx23_disk_offload_recipe_is_admissible(self) -> None:
         recipe = load(ROOT / f"recipes/{LTX23_SLUG}.json")
         tags = set(recipe_display(recipe["identity"]["slug"]).tags)
         self.assertTrue({"executable", "disk-offload"} <= tags)

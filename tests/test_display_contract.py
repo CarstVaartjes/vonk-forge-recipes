@@ -157,34 +157,35 @@ def test_producer_only_vectors_are_accepted_by_the_lenient_readers() -> None:
             read_model(document)
 
 
-# Display says what a recipe is, never that proof is still owed once a hardware
-# pass exists for it: the status badge and the text would contradict each other.
-_ACCEPTANCE_OWED = re.compile(
-    r"(physical|operator|vonk)[^.;]{0,60}acceptance[^.;]{0,80}(pending|required)"
-    r"|acceptance (is|remains?|are) (still )?(pending|required)"
-    r"|acceptance[^.;]{0,30}(pending|required)",
-    re.IGNORECASE,
+# The status badge owns verification status. Display text and tags describe what a
+# recipe is and does; they never say it is pending, untested, a candidate or
+# awaiting physical acceptance, qualification or retesting.
+_STATUS_WORDING = (
+    re.compile(
+        r"\b(physical|vonk|hardware|fleet|operator)\b[^.;]{0,70}"
+        r"\b(acceptance|qualification|requalification|retesting|canary|verification|execution)\b"
+        r"[^.;]{0,80}\b(pending|required|remains?|unverified|unqualified|untested|separate)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\bCandidate\b|\bPending\b|HARDWARE-UNTESTED|[Uu]ntested on hardware"
+        r"|sweep is on hold|installable but untested|not measured fleet acceptance"
+        r"|remains? untested"
+    ),
 )
+_STATUS_TAGS = {"candidate", "physical-acceptance-required"}
 
 
-def test_a_recipe_with_a_passing_evidence_record_does_not_say_acceptance_is_owed() -> (
-    None
-):
+def test_display_text_and_tags_never_state_verification_status() -> None:
     offenders = []
-    for path in sorted((ROOT / "qualification/evidence").glob("*/*.json")):
-        records = _json(path).get("records", [])
-        if not any(record["outcome"] == "passed" for record in records):
-            continue
+    for path in sorted((ROOT / "display/recipes").glob("*.json")):
         display = recipe_display(path.stem)
-        description = display.description
         offenders += [
-            f"{path.stem}: tag {tag}"
-            for tag in ("candidate", "physical-acceptance-required")
-            if tag in display.tags
+            f"{path.stem}: tag {tag}" for tag in display.tags if tag in _STATUS_TAGS
         ]
         offenders += [
             f"{path.stem}: {sentence}"
-            for sentence in re.split(r"(?<=\.)\s+", description)
-            if _ACCEPTANCE_OWED.search(sentence)
+            for sentence in re.split(r"(?<=\.)\s+", display.description)
+            if any(pattern.search(sentence) for pattern in _STATUS_WORDING)
         ]
     assert not offenders, "\n".join(offenders)
