@@ -60,6 +60,7 @@ from .catalog_reader import (
 )
 from .display import (
     FamilyDisplay,
+    KnobDisplay,
     LineDisplay,
     LineModel,
     ModelDisplay,
@@ -122,7 +123,7 @@ from .qualification_status import (
     qualification_evidence_json_schema,
     qualification_status_json_schema,
 )
-from .recipe import RecipeDefinition, RecipeOptionError
+from .recipe import RecipeDefinition, RecipeJobKnob, RecipeOptionError
 from .unrecognised import UnrecognisedWord
 from .vocabulary import (
     CatalogVocabulary,
@@ -162,6 +163,7 @@ __all__ = [
     "GitHubLfsSource",
     "GitHubReleaseAsset",
     "GitHubReleaseSource",
+    "KnobDisplay",
     "LineDisplay",
     "LineModel",
     "ModelDefinition",
@@ -202,6 +204,7 @@ __all__ = [
     "RecipeAuthorityRow",
     "RecipeDefinition",
     "RecipeDisplay",
+    "RecipeJobKnob",
     "RecipeOptionError",
     "RecipeQualificationEvidence",
     "RecoveryCoverage",
