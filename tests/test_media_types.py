@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from pydantic import TypeAdapter, ValidationError
 from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts.recipe import RecipeJobInterface
 
 from qualification.definitions_loader import load_definitions
 from qualification.media_types import (
@@ -18,6 +19,7 @@ from qualification.media_types import (
 )
 from spark_sweep.definitions import Definitions
 from spark_sweep.smoke_job import _binding
+from tests.documents import recipe
 
 ROOT = Path(__file__).resolve().parents[1]
 MOSS = "vonk-forge/moss-vl-realtime-11b-pytorch-single"
@@ -126,3 +128,27 @@ def test_a_job_timeout_above_the_controllers_maximum_is_refused_at_load(
     )
     with pytest.raises(ValueError, match="timeout_seconds 7200"):
         load_definitions(tmp_path)
+
+
+# A job input slot that accepts JSON carries a payload, never options (options are
+# typed knobs). Each entry is `<recipe slug>/<slot id>`: the reason it is a payload.
+JSON_PAYLOAD_SLOTS = {
+    "motionbricks-g1-pytorch-single/command": "motion script",
+    "moss-vl-realtime-11b-pytorch-single/session": "event schedule",
+    "hunyuan3d-omni-pytorch-single/control": "pose joint array",
+}
+
+
+def test_json_input_slots_are_payloads() -> None:
+    found = set()
+    for path in (ROOT / "recipes").glob("*.json"):
+        for interface in recipe(path.stem).interfaces:
+            if not isinstance(interface, RecipeJobInterface) or not interface.input:
+                continue
+            accepted = interface.input
+            if accepted.slots is None and "application/json" in accepted.media_types:
+                found.add(f"{path.stem}/input")
+            for slot in accepted.slots or []:
+                if "application/json" in slot.media_types:
+                    found.add(f"{path.stem}/{slot.id}")
+    assert found == set(JSON_PAYLOAD_SLOTS)
