@@ -2082,11 +2082,13 @@ def classify_changes(
         else []
     )
     if used_changes is not None:
-        reasons = rewritten
+        # The used files are compared blob by blob whatever the history (a rewritten
+        # one included, #1711), so a rewrite is no reason of its own here.
+        used_reasons: list[str] = []
         if comparison.status not in {"ahead", "identical", "diverged", "behind"}:
-            reasons.append(f"upstream comparison reported '{comparison.status}'")
+            used_reasons.append(f"upstream comparison reported '{comparison.status}'")
         if used_changes:
-            reasons.append(
+            used_reasons.append(
                 "files this recipe uses changed upstream: "
                 + ", ".join(f"`{name}`" for name in used_changes[:20])
                 + (
@@ -2095,7 +2097,7 @@ def classify_changes(
                     else ""
                 )
             )
-        return reasons + vendor_problems
+        return used_reasons + vendor_problems
     reasons: list[str] = list(rewritten)
     if comparison.status == "behind":
         reasons.append(
