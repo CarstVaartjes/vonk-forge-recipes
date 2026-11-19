@@ -315,6 +315,11 @@
       "content_sha256": "b4405b05bf3e66cec7fabffa7195f14c27ebed547c28a2c84b0318bb038a1ebb",
       "role": "entrypoint",
       "steady_bytes": 44130844672
+    },
+    {
+      "content_sha256": "c96fa01f15739215cd427f02df9456f1c8f8efdd549a31a5e38e62d91ca975b9",
+      "role": "entrypoint",
+      "steady_bytes": 43764477952
     }
   ]
 }

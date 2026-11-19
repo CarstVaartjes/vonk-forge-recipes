@@ -290,6 +290,11 @@
       "content_sha256": "e6a800c7093f18d3a74a20fa94c1c6594098c22c1ecba20deba67da9ab4b932e",
       "role": "entrypoint",
       "steady_bytes": 41708093440
+    },
+    {
+      "content_sha256": "f9d91708969e52f2353bd6ec81cc2c7a022d0ca9942a7b64f217ee3793a48432",
+      "role": "entrypoint",
+      "steady_bytes": 41340604416
     }
   ]
 }
