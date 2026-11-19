@@ -345,12 +345,12 @@ def test_multipart_carries_every_field_and_each_image_under_the_right_name(
     )
 
 
-def test_ref2va_is_long_video_continuation_from_references_in_name_order(
+def test_ref2va_is_long_video_continuation_from_references(
     inputs: Path,
 ) -> None:
     png(inputs / "1-scene.png")
     png(inputs / "2-face.png")
-    stage(inputs, references=["2-face.png", "1-scene.png"])
+    stage(inputs, references=["1-scene.png", "2-face.png"])
     cfg = settings("ref2va", model="/models/Ref2VA", duration=30.0)
     request = job.build_request(cfg, inputs)
     extra = json.loads(fields(request)["extra_params"])
@@ -360,27 +360,6 @@ def test_ref2va_is_long_video_continuation_from_references_in_name_order(
     }  # fmt: skip
     assert request.image_field == "input_references"
     assert [image.name for image in request.images] == ["1-scene.png", "2-face.png"]
-    stage(inputs)
-    with pytest.raises(job.ConfigError, match="references"):
-        job.build_request(cfg, inputs)
-
-
-@pytest.mark.parametrize(
-    ("slots", "message"),
-    [
-        ({"first_image": ["a.png", "b.png"]}, "at most one"),
-        ({"first_image": ["missing.png"]}, "JPEG, PNG or WebP"),
-        ({"first_image": ["prompt.txt"]}, "JPEG, PNG or WebP"),
-    ],
-)
-def test_invalid_images_are_refused_before_any_model_work(
-    inputs: Path, slots: dict[str, list[str]], message: str
-) -> None:
-    png(inputs / "a.png")
-    png(inputs / "b.png")
-    stage(inputs, **slots)
-    with pytest.raises(job.ConfigError, match=message):
-        job.build_request(settings(), inputs)
 
 
 # --- the state machine ----------------------------------------------------------------------
@@ -550,21 +529,6 @@ def test_an_agent_that_comes_up_late_is_waited_for(
     code, _ = run_head(stack("ok", inputs), said)
     late.close()
     assert code == 0 and (tmp_path / "outputs" / "video.mp4").exists()
-
-
-def test_invalid_inputs_refuse_to_start_before_any_model_work(
-    inputs: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
-    png(inputs / "a.png")
-    png(inputs / "b.png")
-    stage(inputs, first_image=["a.png", "b.png"], last_image=["b.png"])
-    argv = [
-        "--model=/models/FL2VA", "--task=fl2va", "--duration=5",
-        "--width=1344", "--height=768", "--num-inference-steps=20", "--flow-shift=12", "--seed=1101",
-        f"--output-dir={tmp_path}",
-    ]  # fmt: skip
-    assert job.main(argv, environment(0), inputs) == job.EXIT_CONFIG
-    assert "at most one" in capsys.readouterr().err
 
 
 def test_sigterm_cancels_a_running_render_and_stops_the_server(

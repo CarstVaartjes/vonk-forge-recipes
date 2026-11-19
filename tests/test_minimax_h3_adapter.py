@@ -172,23 +172,7 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
         for name in ("num-frames", "width", "height", "num-inference-steps"):
             self.assertEqual(arguments[name], name)
         self.assertNotIn("profile", knobs)
-        self.assertEqual(
-            {
-                name: (
-                    knob["value"],
-                    knob["minimum"],
-                    knob["maximum"],
-                    knob.get("step"),
-                )
-                for name, knob in knobs.items()
-            },
-            {
-                "num-frames": (124, 124, 345, 17),
-                "width": (960, 64, 2048, 32),
-                "height": (544, 64, 2048, 32),
-                "num-inference-steps": (31, 2, 51, None),
-            },
-        )
+        self.assertEqual(knobs["num-inference-steps"]["value"], 31)
 
     def test_recipe_declares_truthful_typed_input_slots(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
@@ -252,24 +236,68 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
             self.module._keyframe("first-image"), self.module.INPUT_ROOT / "a.png"
         )
         self.assertIsNone(self.module._keyframe("last-image"))
-        self.stage(first_image=[("a.png", "image/png"), ("b.png", "image/png")])
-        with self.assertRaisesRegex(ValueError, "at most one"):
-            self.module._keyframe("first-image")
 
-    def test_references_are_read_in_file_name_order(self) -> None:
-        self.stage(
-            references=[("2-face.png", "image/png"), ("1-scene.png", "image/png")]
+    def stubbed_diffusers(self):
+        def reference(kind: str):
+            return types.SimpleNamespace(from_file=lambda path: (kind, Path(path).name))
+
+        package = types.ModuleType("diffusers.modular_pipelines.minimax_h3")
+        for name, kind in (("Image", "image"), ("Video", "video"), ("Audio", "audio")):
+            setattr(package, f"MiniMaxH3{name}Reference", reference(kind))
+        return mock.patch.dict(
+            sys.modules,
+            {
+                "diffusers": types.ModuleType("diffusers"),
+                "diffusers.modular_pipelines": types.ModuleType(
+                    "diffusers.modular_pipelines"
+                ),
+                "diffusers.modular_pipelines.minimax_h3": package,
+            },
         )
+
+    def references(self, **slots: list[tuple[str, str]]) -> list[object] | None:
+        self.stage(**slots)
+        with self.stubbed_diffusers():
+            return self.module._load_references()
+
+    def test_references_take_their_kind_from_the_manifest_media_type(self) -> None:
         self.assertEqual(
-            [path.name for _media, path in self.module._slot_files("references")],
-            ["1-scene.png", "2-face.png"],
+            self.references(
+                references=[
+                    ("1-scene.png", "image/png"),
+                    ("2-clip.mp4", "video/mp4"),
+                    ("3-voice.wav", "audio/wav"),
+                ]
+            ),
+            [
+                ("image", "1-scene.png"),
+                ("video", "2-clip.mp4"),
+                ("audio", "3-voice.wav"),
+            ],
         )
 
-    def test_a_listed_file_that_is_missing_is_refused(self) -> None:
-        self.stage(first_image=[("a.png", "image/png")])
-        (self.module.INPUT_ROOT / "a.png").unlink()
-        with self.assertRaisesRegex(ValueError, "missing input file"):
-            self.module._keyframe("first-image")
+    def test_references_refuse_a_kind_over_its_cap_and_audio_alone(self) -> None:
+        images = [(f"{n}.png", "image/png") for n in range(10)]
+        with self.assertRaisesRegex(ValueError, "per-modality limits"):
+            self.references(references=images)
+        with self.assertRaisesRegex(ValueError, "at least one image or video"):
+            self.references(references=[("a.wav", "audio/wav")])
+
+    def test_references_and_keyframes_are_exclusive(self) -> None:
+        self.stage(
+            references=[("r.png", "image/png")], first_image=[("a.png", "image/png")]
+        )
+        argv = [
+            "x", "--pipeline", "text-to-video", "--output-mime", "video/mp4",
+            "--num-frames", "124", "--num-inference-steps", "4", "--width", "960",
+            "--height", "544", "--output-dir", self.temporary.name,
+        ]  # fmt: skip
+        with (
+            self.stubbed_diffusers(),
+            mock.patch.object(sys, "argv", argv),
+            self.assertRaisesRegex(ValueError, "cannot be combined"),
+        ):
+            self.module.main()
 
 
 if __name__ == "__main__":

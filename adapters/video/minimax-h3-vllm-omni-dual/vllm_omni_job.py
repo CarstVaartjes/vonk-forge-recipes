@@ -44,7 +44,6 @@ INPUT_ROOT = Path("/inputs")
 AGENT_PORT = 18095  # the creator's default
 OUTPUT_NAME = "video.mp4"
 PROMPT_MAX_BYTES = 16 * 1024
-MANIFEST_MAX_BYTES = 256 * 1024
 IMAGE_MAX_BYTES = 30 * 1024 * 1024  # vLLM-Omni's reference image limit
 IMAGE_SUFFIXES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
 ASPECT_RATIO = "16:9"  # what the creator's render.sh always sends; width and height decide the canvas
@@ -351,8 +350,6 @@ class RenderRequest:
 def _slot_images(inputs: Path, slot: str) -> list[Path]:
     """The files the job put in ``slot``, in file name order (the manifest records each file's slot)."""
     path = inputs / "manifest.json"
-    if path.is_symlink() or not path.is_file() or path.stat().st_size > MANIFEST_MAX_BYTES:
-        raise ConfigError("the input manifest must be a regular file of at most 256 KiB")
     try:
         files = json.loads(path.read_text(encoding="utf-8"))["files"]
         names = sorted(item["name"] for item in files if item["slot"] == slot)
@@ -406,8 +403,6 @@ def build_request(settings: Settings, inputs: Path = INPUT_ROOT) -> RenderReques
     else:
         first = _slot_images(inputs, "first-image")
         last = _slot_images(inputs, "last-image")
-        if len(first) > 1 or len(last) > 1:
-            raise ConfigError("first-image and last-image hold at most one image each")
         images = (*first, *last)
         if images:
             extra["task"] = "fl2va"

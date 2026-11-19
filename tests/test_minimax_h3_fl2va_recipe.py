@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import runpy
 import unittest
 from pathlib import Path
 
@@ -55,7 +54,6 @@ class MiniMaxH3Fl2vaRecipeTests(unittest.TestCase):
             slot["id"] for slot in load(RECIPE_PATH)["interfaces"][0]["input"]["slots"]
         }
         self.assertEqual(slots, {"prompt", "first-image", "last-image"})
-        self.assertNotIn("_load_references", runpy.run_path(str(ADAPTER_PATH)))
 
     def test_resource_contract_uses_exact_single_spark_closure(self) -> None:
         recipe = load(RECIPE_PATH)

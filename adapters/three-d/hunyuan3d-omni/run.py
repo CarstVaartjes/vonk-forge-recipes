@@ -49,8 +49,6 @@ def job(kind: str, bbox: list[float]) -> tuple[str, Path, object]:
     if len(images) != 1 or images[0].suffix.lower() not in IMAGE_SUFFIXES:
         raise SystemExit("provide exactly one source image")
     controls = slot_files("control")
-    if len(controls) > 1:
-        raise SystemExit("provide at most one control file")
     if kind == "bbox":
         if controls:
             raise SystemExit("control-type bbox takes no control file")
