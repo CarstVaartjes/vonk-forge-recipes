@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/minimax-h3-fl2va-knapcio-vllm-omni-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "88637196231dbfdaa109041f07215159001b8a804736e3341c85fc3f37a00626",
+        "source_bundle_sha256": "234db47166bc0c8bdab3c8c61b9a09b3774e803b79ff6d2a9ab6c03c2bd66515",
+        "runtime_image": {
+          "build_key": "37d5604add014b49700d0cfdf7f03df88473fac568cd61a064ef5ee34f819bf2",
+          "image_digest": "sha256:46f3c9f253aea3cd8a10135516ad04785c49a5f16063ca4b9587ed74602efe1c"
+        },
+        "model_digests": [
+          "3853a38aafa395cacc56e92047cce947ad92feccb014a9978c2f79c7fa7ecae1"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "dc2b5225a4f91c71dff56d4e47920011c4029e0e0bb969eac86cd97a2f7426ce"
+      ],
+      "tested_at": "2026-11-19T14:26:44.983229Z",
+      "platform": {
+        "controller_source_sha": "cb929960941317281ac7c623ef1d6f5521a0075d",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "88637196231dbfdaa109041f07215159001b8a804736e3341c85fc3f37a00626",
+        "source_bundle_sha256": "234db47166bc0c8bdab3c8c61b9a09b3774e803b79ff6d2a9ab6c03c2bd66515",
+        "runtime_image": {
+          "build_key": "37d5604add014b49700d0cfdf7f03df88473fac568cd61a064ef5ee34f819bf2",
+          "image_digest": "sha256:46f3c9f253aea3cd8a10135516ad04785c49a5f16063ca4b9587ed74602efe1c"
+        },
+        "model_digests": [
+          "3853a38aafa395cacc56e92047cce947ad92feccb014a9978c2f79c7fa7ecae1"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "28f65f9ba252ef50860fbcfc88f79004521bed92920cc119f134e08e6683fd94"
+      ],
+      "tested_at": "2026-11-19T17:04:03.360149Z",
+      "platform": {
+        "controller_source_sha": "0dbd17a56f35b4c594032ebaf940c4fb4b96a6fd",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}

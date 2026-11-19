@@ -1,0 +1,54 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "hy4-flash-spark-4bit-fast-b402322e6787-7db6477c73",
+      "path": "Hy4-flash-SPARK-4Bit-Fast.gguf",
+      "roles": [
+        "weights",
+        "entrypoint"
+      ],
+      "sha256": "b402322e67879ce1b65258e2dc1c3b3d6e25eeea074a391b5c29d2ac8b331613",
+      "size_bytes": 159611554144
+    },
+    {
+      "id": "license-52755a6786f2-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "52755a6786f2f4b83b48cd7246aa9e34f7aac98563e4e60808ab02390799fdbd",
+      "size_bytes": 13942
+    },
+    {
+      "id": "mmproj-hy4-flash-bf16-8c33a48ef574-ecd0591274",
+      "path": "mmproj-Hy4-flash-bf16.gguf",
+      "roles": [
+        "weights",
+        "projector"
+      ],
+      "sha256": "8c33a48ef57480abf4854126964058a2015b5da3b773b14c847c995cf8899bda",
+      "size_bytes": 1044397440
+    }
+  ],
+  "format": {
+    "precision": "4-bit",
+    "quantization": "spark-4bit-fast"
+  },
+  "identity": {
+    "model": {
+      "publisher": "tencent",
+      "slug": "hy4-flash-gguf"
+    },
+    "publisher": "angelslim",
+    "slug": "hy4-flash-spark-4bit-fast-gguf-65acb8ae",
+    "variant": "Hy4 Flash SPARK-4Bit-Fast GGUF 65acb8ae",
+    "version": "Hy4 Flash SPARK-4Bit-Fast GGUF 65acb8ae"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/AngelSlim/Hy4-flash-GGUF",
+    "revision": "65acb8ae7f59847fe03a17291f1b72b89b141a9e"
+  }
+}

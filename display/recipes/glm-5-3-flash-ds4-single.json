@@ -1,13 +1,12 @@
 {
   "alignment": "unspecified",
-  "description": "Candidate one-DGX Spark GLM 5.3 Flash text profile on antirez/ds4 with the imatrix Q2 GGUF resident in memory (about 90 GiB; antirez's DGX Spark guide gives this as the single-Spark target and runs it at 16K context). Q4 does not fit resident, and ds4 has no GLM Spark-to-Spark tensor parallelism. Vision (separate encoder GGUF) and DSpark are not part of this profile; MTP is an opt-in option as in the upstream guide. Memory is the loading floor (weights plus 8 GB runtime) with the 16K context included: an estimate that fits an idle Spark; the first hardware try measures it. Physical Spark acceptance is still required.",
+  "description": "One-DGX Spark GLM 5.3 Flash text profile on antirez/ds4 with the imatrix Q2 GGUF resident in memory (about 90 GiB; antirez's DGX Spark guide gives this as the single-Spark target and runs it at 16K context). Q4 does not fit resident, and ds4 has no GLM Spark-to-Spark tensor parallelism. Vision (separate encoder GGUF) and DSpark are not part of this profile; MTP is an opt-in option as in the upstream guide. Memory is the loading floor (weights plus 8 GB runtime) with the 16K context included: an estimate that fits an idle Spark; the first hardware try measures it.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "glm-5-3-flash-ds4-single"
   },
   "kind": "recipe-display",
   "tags": [
-    "candidate",
     "executable",
     "glm",
     "glm-5-3",

@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "Installable single-Spark Candidate for text, keyframe, and ordered multimodal-reference generation with TorchAO int8 streamed offload and a verified joint 24-fps video plus 32-kHz stereo audio MP4 export. Physical Spark qualification is pending.",
+  "description": "Installable single-Spark recipe for text, keyframe, and ordered multimodal-reference generation with TorchAO int8 streamed offload and a verified joint 24-fps video plus 32-kHz stereo audio MP4 export.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "minimax-h3-diffusers-single"
@@ -8,7 +8,6 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "minimax",
     "video",
     "audio",

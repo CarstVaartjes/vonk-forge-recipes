@@ -45,29 +45,6 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
                 self.assertEqual(memory["peak_bytes"], 118_000_000_000)
                 self.assertEqual(memory["reserve_bytes"], 8_000_000_000)
 
-    def test_native_three_d_candidates_publish_their_acceptance_gates(self) -> None:
-        for slug in ("skintokens-pytorch-single", "triposg-pytorch-single"):
-            with self.subTest(slug=slug):
-                recipe = _recipe(slug)
-                tags = set(recipe_display(recipe["identity"]["slug"]).tags)
-                self.assertGreaterEqual(
-                    tags,
-                    {
-                        "executable",
-                        "candidate",
-                        "build-unvalidated",
-                        "native-build-required",
-                        "physical-acceptance-required",
-                    },
-                )
-                description = recipe_display(
-                    recipe["identity"]["slug"]
-                ).description.lower()
-                self.assertIn("not accepted", description)
-                self.assertIn("build", description)
-                self.assertIn("physical", description)
-                self.assertIn("canary", description)
-
     def test_step1x_geometry_links_only_the_bounded_texture_stage(self) -> None:
         texture = _recipe("step1x-3d-texture-pytorch-single")
         texture_mesh = _slot(texture, "input", "mesh")

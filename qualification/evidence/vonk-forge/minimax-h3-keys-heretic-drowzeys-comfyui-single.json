@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/minimax-h3-keys-heretic-drowzeys-comfyui-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "c6f04b48c1c9edd54578d441e53eb3543eebde902a749617440b45f860f94739",
+        "source_bundle_sha256": "409ec2c1d3b7281984f15a731b9c3fab9e27dd29f8890c392446adc0f210cdcd",
+        "runtime_image": {
+          "build_key": "8529830d56d038a83afc9d36357843a937621df628acc8a468c0bab5a41415ce",
+          "image_digest": "sha256:577f75db1650d2833d5a8820a768e36f68e1f5462381d15417de3dd88a8759b6"
+        },
+        "model_digests": [
+          "b2d719d8c3f41837ec32d65ff347dcbab4b8349fc354f7afdb591084d872d95f"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "a17c1918c82e4285f63bd6494a13d3dc98e3c1737c2e8c5d194cec8a7660b8b6"
+      ],
+      "tested_at": "2026-11-19T17:35:53.136636Z",
+      "platform": {
+        "controller_source_sha": "0dbd17a56f35b4c594032ebaf940c4fb4b96a6fd",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

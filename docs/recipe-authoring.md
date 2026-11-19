@@ -137,6 +137,11 @@ or `display/models/<slug>.json`, one per document and no orphan (`RecipeDisplay`
 document, its `content_sha256`, its evidence or its proven status; a change that
 alters what runs edits the document. Read display through `qualification/documents.py`
 (`recipe_display`, `model_display`), never off a document.
+Display text and tags never state verification status; the status badge owns it.
+A description does not say a recipe is a "Candidate", pending, untested or awaiting
+physical acceptance or qualification, and no recipe carries the `candidate` or
+`physical-acceptance-required` tag (`tests/test_display_contract.py` guards all
+of display/recipes, independent of evidence).
 
 ### Recipe API facts
 
@@ -249,7 +254,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v5.0.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v5.2.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -1246,6 +1251,12 @@ native resolution, topology and output codecs; use the smallest frame count the
 model accepts and a few denoising steps (retain required distilled schedules).
 Declare per-job controls as Recipe knobs bound to runtime arguments, then select
 small values in the qualification `parameters`, or use an existing request slot.
+A job knob may also carry `minimum`, `maximum`, an integer `step` (grid
+`minimum + k*step`) or `allowed_values` (an enum; no range with it); the default's JSON
+type is the knob type. Its `label`, `description` and `unit` go in the recipe's display
+(`knobs.<name>`), so rewording never changes the digest. Each job knob must be bound by
+exactly one runtime argument and keep `change_effect: none`; the library check refuses
+others, and a display naming an unknown knob.
 Do not add undeclared parameters: the Controller refuses them. Qualification
 JSON is outside `document_sha256(recipe)`, although fixture/package bytes and
 image source identities can change. Adding knobs changes the Recipe document;
