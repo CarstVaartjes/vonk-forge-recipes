@@ -137,6 +137,9 @@ or `display/models/<slug>.json`, one per document and no orphan (`RecipeDisplay`
 document, its `content_sha256`, its evidence or its proven status; a change that
 alters what runs edits the document. Read display through `qualification/documents.py`
 (`recipe_display`, `model_display`), never off a document.
+A description never says physical acceptance is pending or required once the
+recipe has a passing evidence record (`tests/test_display_contract.py` guards
+this); a Working recipe's description does not call it a "Candidate".
 
 ### Recipe API facts
 
