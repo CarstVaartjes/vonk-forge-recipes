@@ -34,8 +34,7 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             self.assertEqual(recipe["topology"]["node_count"], nodes)
             self.assertTrue(
-                {"candidate", "executable"}
-                <= set(recipe_display(recipe["identity"]["slug"]).tags)
+                {"executable"} <= set(recipe_display(recipe["identity"]["slug"]).tags)
             )
             self.assertTrue(recipe["models"])
 

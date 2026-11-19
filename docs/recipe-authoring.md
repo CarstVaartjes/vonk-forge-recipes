@@ -139,7 +139,8 @@ alters what runs edits the document. Read display through `qualification/documen
 (`recipe_display`, `model_display`), never off a document.
 A description never says physical acceptance is pending or required once the
 recipe has a passing evidence record (`tests/test_display_contract.py` guards
-this); a Working recipe's description does not call it a "Candidate".
+this); a Working recipe's description does not call it a "Candidate" and it carries
+neither the `candidate` nor the `physical-acceptance-required` tag (guarded too).
 
 ### Recipe API facts
 

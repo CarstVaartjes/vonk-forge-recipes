@@ -8,7 +8,6 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "qwen",
     "qwen3-8",
     "bf16",

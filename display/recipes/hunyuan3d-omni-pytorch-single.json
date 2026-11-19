@@ -8,7 +8,6 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "three-d",
     "pytorch-pipeline",
     "single",

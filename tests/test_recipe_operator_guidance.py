@@ -54,10 +54,8 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
                     tags,
                     {
                         "executable",
-                        "candidate",
                         "build-unvalidated",
                         "native-build-required",
-                        "physical-acceptance-required",
                     },
                 )
 

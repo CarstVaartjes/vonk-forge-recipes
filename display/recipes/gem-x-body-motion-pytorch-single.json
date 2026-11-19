@@ -8,7 +8,6 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "nvidia",
     "gem-x",
     "motion-capture",
@@ -19,8 +18,7 @@
     "pytorch-pipeline",
     "single",
     "spark",
-    "native",
-    "physical-acceptance-required"
+    "native"
   ],
   "title": "GEM-X body motion capture pytorch-pipeline single Spark"
 }

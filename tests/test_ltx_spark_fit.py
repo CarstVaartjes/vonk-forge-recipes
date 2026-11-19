@@ -273,7 +273,7 @@ class LtxSparkFitTests(unittest.TestCase):
     def test_ltx23_disk_offload_candidate_is_admissible_but_unaccepted(self) -> None:
         recipe = load(ROOT / f"recipes/{LTX23_SLUG}.json")
         tags = set(recipe_display(recipe["identity"]["slug"]).tags)
-        self.assertTrue({"executable", "candidate", "disk-offload"} <= tags)
+        self.assertTrue({"executable", "disk-offload"} <= tags)
         self.assertNotIn("accepted", tags)
         self.assertNotIn("hardware-blocked", tags)
 

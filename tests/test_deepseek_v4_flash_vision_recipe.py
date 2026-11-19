@@ -126,7 +126,6 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
             if item["source_path"] == f"recipes/{RECIPE.name}"
         )
         self.assertEqual(entry["package"]["recipe_content_sha256"], digest(RECIPE))
-        self.assertIn("candidate", recipe_display(self.recipe["identity"]["slug"]).tags)
 
 
 if __name__ == "__main__":
