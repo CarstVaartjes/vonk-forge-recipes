@@ -2,15 +2,14 @@
   "id": "vonk-forge/minimax-h3-diffusers-single",
   "recipes": {
     "interface": "video-job",
-    "parameters": {},
+    "parameters": {
+      "num-frames": 124,
+      "num-inference-steps": 4
+    },
     "inputs": [
       {
         "slot": "prompt",
         "fixture": "generic-prompt-text"
-      },
-      {
-        "slot": "request",
-        "fixture": "minimax-smoke-request"
       }
     ],
     "output_limits": {

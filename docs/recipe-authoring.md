@@ -1250,7 +1250,13 @@ A media smoke proves one small, safe output, not full-quality generation. Keep
 native resolution, topology and output codecs; use the smallest frame count the
 model accepts and a few denoising steps (retain required distilled schedules).
 Declare per-job controls as Recipe knobs bound to runtime arguments, then select
-small values in the qualification `parameters`, or use an existing request slot.
+small values in the qualification `parameters`. A job option is never a JSON
+file slot: each image, video or audio role is its own slot, and the adapter
+selects files by the manifest's slot (`/inputs/manifest.json`), not by a path in
+JSON. Files in one slot are ordered by file name, so a slot whose order matters
+says so in its description (`1-scene.png`, `2-face.png`). Cross-field rules a
+scalar cannot state (a canvas area, a control type that must match its file)
+stay in the adapter and refuse before any model work; ranges stay in the knob.
 A job knob may also carry `minimum`, `maximum`, an integer `step` (grid
 `minimum + k*step`) or `allowed_values` (an enum; no range with it); the default's JSON
 type is the knob type. Its `label`, `description` and `unit` go in the recipe's display

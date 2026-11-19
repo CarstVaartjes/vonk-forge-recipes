@@ -252,8 +252,9 @@ def test_unparsed_cases_still_fail_an_empty_or_leaking_reply(
         _functional(case, broken)
 
 
-# These recipes have hardware passes, but no job knobs/request controls for the
-# expensive defaults. Adding them would change the proven Recipe identity.
+# These recipes have hardware passes, but no job knobs for the expensive
+# defaults. Adding them would change the proven Recipe identity. Hunyuan3D-Omni's
+# knobs choose its control, not a cheaper smoke, so it stays here.
 PROVEN_FIXED_MEDIA = {
     "hunyuan-video-foley-xl-pytorch-single",
     "hunyuan-video-foley-xxl-pytorch-single",
@@ -287,10 +288,22 @@ MINIMAL_MEDIA_PARAMETERS = {
     "fasth3-8step-v2-drowzeys-tensorfold-single": {"num-frames": 124},
     "minimax-h3-keys-heretic-drowzeys-comfyui-single": {"num-frames": 124},
     "stable-audio-3-small-sfx-pytorch-single": {"duration-seconds": 2},
+    "minimax-h3-diffusers-single": {"num-frames": 124, "num-inference-steps": 4},
+    "minimax-h3-fl2va-diffusers-single": {"num-frames": 124, "num-inference-steps": 4},
     "minimax-h3-fl2va-knapcio-vllm-omni-dual": {"num-inference-steps": 2},
     "minimax-h3-ref2va-knapcio-vllm-omni-dual": {
         "duration": 16,
         "num-inference-steps": 2,
+    },
+    "wan-dancer-14b-pytorch-single": {
+        "style": "street",
+        "num-inference-steps-global": 2,
+        "num-inference-steps-local": 2,
+    },
+    "wan-dancer-14b-disk-offload-pytorch-single": {
+        "style": "street",
+        "num-inference-steps-global": 2,
+        "num-inference-steps-local": 2,
     },
 }
 # These unproven recipes share their entire context with a hardware pass.
@@ -302,17 +315,10 @@ SHARED_PROVEN_MEDIA = {
 # The audio length follows the smoke fixture's single short sentence, so the
 # smoke is minimal by its input rather than by a generation control.
 MINIMAL_BY_FIXTURE_MEDIA = {"qwen3-tts-12hz-1-7b-pytorch-single"}
-REQUEST_CONTROLLED_MEDIA = {
-    "minimax-h3-diffusers-single",
-    "minimax-h3-fl2va-diffusers-single",
-    "wan-dancer-14b-pytorch-single",
-    "wan-dancer-14b-disk-offload-pytorch-single",
-}
 
 
 def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
     """New media cases cannot silently inherit a full-quality generation."""
-    definitions = load_definitions()
     seen: set[str] = set()
     for path in sorted((ROOT / "qualification/recipes").glob("*.json")):
         definition = json.loads(path.read_text())
@@ -327,6 +333,14 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
             bindings = {a.get("setting") for a in recipe["runtime"]["arguments"]}
             assert set(spec["parameters"]) <= bindings
             assert set(spec["parameters"]) <= recipe["settings"]["knobs"].keys()
+            for name, value in spec["parameters"].items():
+                knob = recipe["settings"]["knobs"][name]
+                if "allowed_values" in knob:
+                    assert value in knob["allowed_values"], name
+                if "minimum" in knob:
+                    assert knob["minimum"] <= value <= knob["maximum"], name
+                if "step" in knob:
+                    assert (value - knob["minimum"]) % knob["step"] == 0, name
             if "num-frames" in spec["parameters"]:
                 video = next(
                     a for a in spec["assertions"] if a["kind"] == "video-metadata"
@@ -338,33 +352,6 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
                     <= duration
                     <= video["maximum_duration_seconds"]
                 )
-        elif slug in REQUEST_CONTROLLED_MEDIA:
-            fixtures = definitions["fixtures"]
-            for case in [spec, *spec.get("cases", [])]:
-                control = next(
-                    i for i in case["inputs"] if i["slot"] in {"request", "controls"}
-                )
-                request = json.loads(
-                    (
-                        ROOT / "qualification" / fixtures[control["fixture"]]["path"]
-                    ).read_text()
-                )
-                if slug.startswith("minimax"):
-                    assert request["profile"] == "smoke-only"
-                    assert request["num_frames"] == 124
-                    video = next(
-                        a for a in spec["assertions"] if a["kind"] == "video-metadata"
-                    )
-                    assert video["frame_count"] == request["num_frames"]
-                    duration = request["num_frames"] / video["fps"]
-                    assert (
-                        video["minimum_audio_duration_seconds"]
-                        <= duration
-                        <= video["maximum_audio_duration_seconds"]
-                    )
-                else:
-                    assert request["num_inference_steps_global"] == 2
-                    assert request["num_inference_steps_local"] == 2
         elif slug in MINIMAL_BY_FIXTURE_MEDIA:
             assert not spec.get("parameters")
             # The inputs are the reviewed fixtures (their bytes are sha256-pinned
@@ -399,7 +386,6 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
         PROVEN_FIXED_MEDIA
         | MINIMAL_MEDIA_PARAMETERS.keys()
         | MINIMAL_BY_FIXTURE_MEDIA
-        | REQUEST_CONTROLLED_MEDIA
         | SHARED_PROVEN_MEDIA.keys()
         | {"skintokens-pytorch-single"}
     )
@@ -413,7 +399,6 @@ def test_qualification_parameters_do_not_enter_recipe_content_identity(built_cat
         if (
             entry["document"]["identity"]["slug"]
             in MINIMAL_MEDIA_PARAMETERS.keys()
-            | REQUEST_CONTROLLED_MEDIA
             | SHARED_PROVEN_MEDIA.keys()
             | PROVEN_FIXED_MEDIA
         ):

@@ -2,15 +2,14 @@
   "id": "vonk-forge/minimax-h3-fl2va-diffusers-single",
   "recipes": {
     "interface": "video-job",
-    "parameters": {},
+    "parameters": {
+      "num-frames": 124,
+      "num-inference-steps": 4
+    },
     "inputs": [
       {
         "slot": "prompt",
         "fixture": "generic-prompt-text"
-      },
-      {
-        "slot": "request",
-        "fixture": "minimax-smoke-request"
       }
     ],
     "output_limits": {
@@ -78,11 +77,7 @@
             "fixture": "generic-prompt-text"
           },
           {
-            "slot": "request",
-            "fixture": "minimax-first-keyframe-request"
-          },
-          {
-            "slot": "keyframes",
+            "slot": "first-image",
             "fixture": "minimax-keyframe-first-png"
           }
         ]
@@ -95,15 +90,11 @@
             "fixture": "generic-prompt-text"
           },
           {
-            "slot": "request",
-            "fixture": "minimax-first-last-keyframes-request"
-          },
-          {
-            "slot": "keyframes",
+            "slot": "first-image",
             "fixture": "minimax-keyframe-first-png"
           },
           {
-            "slot": "keyframes",
+            "slot": "last-image",
             "fixture": "minimax-keyframe-last-png"
           }
         ]

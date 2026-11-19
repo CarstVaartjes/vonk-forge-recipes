@@ -35,7 +35,6 @@
       "input": {
         "max_bytes": 1073741824,
         "media_types": [
-          "application/json",
           "audio/flac",
           "audio/mpeg",
           "audio/wav",
@@ -65,33 +64,18 @@
             "min_files": 1
           },
           {
-            "description": "Optional request.json selecting profile, geometry, keyframes, and ordered multimodal references.",
-            "extensions": [
-              ".json"
-            ],
-            "id": "request",
-            "label": "Advanced options",
-            "max_file_bytes": 65536,
-            "max_files": 1,
-            "max_total_bytes": 65536,
-            "media_types": [
-              "application/json"
-            ],
-            "min_files": 0
-          },
-          {
-            "description": "Optional first/last keyframes and ordered image references; at most nine images may be references.",
+            "description": "Optional image that becomes the first frame of the video. Fill neither image slot for text-to-video-and-audio.",
             "extensions": [
               ".jpeg",
               ".jpg",
               ".png",
               ".webp"
             ],
-            "id": "images",
-            "label": "Images and keyframes",
+            "id": "first-image",
+            "label": "First frame",
             "max_file_bytes": 536870912,
-            "max_files": 11,
-            "max_total_bytes": 1073741824,
+            "max_files": 1,
+            "max_total_bytes": 536870912,
             "media_types": [
               "image/jpeg",
               "image/png",
@@ -100,40 +84,54 @@
             "min_files": 0
           },
           {
-            "description": "Optional ordered video references declared in request.json.",
+            "description": "Optional image that becomes the last frame of the video. It can be used with or without a first frame.",
             "extensions": [
-              ".mov",
-              ".mp4",
-              ".webm"
+              ".jpeg",
+              ".jpg",
+              ".png",
+              ".webp"
             ],
-            "id": "videos",
-            "label": "Video references",
+            "id": "last-image",
+            "label": "Last frame",
             "max_file_bytes": 536870912,
-            "max_files": 3,
-            "max_total_bytes": 1073741824,
+            "max_files": 1,
+            "max_total_bytes": 536870912,
             "media_types": [
-              "video/mp4",
-              "video/quicktime",
-              "video/webm"
+              "image/jpeg",
+              "image/png",
+              "image/webp"
             ],
             "min_files": 0
           },
           {
-            "description": "Optional ordered audio references; request.json must also name an image or video reference.",
+            "description": "Images, videos and audio clips to condition on (9 images, 3 videos, 3 audio, 12 in all), read in file name order: name them 1-scene.png, 2-face.png, 3-voice.wav. Audio needs an image or video. Not with a first or last frame.",
             "extensions": [
               ".flac",
+              ".jpeg",
+              ".jpg",
+              ".mov",
               ".mp3",
-              ".wav"
+              ".mp4",
+              ".png",
+              ".wav",
+              ".webm",
+              ".webp"
             ],
-            "id": "audio",
-            "label": "Audio references",
+            "id": "references",
+            "label": "Reference media",
             "max_file_bytes": 536870912,
-            "max_files": 3,
+            "max_files": 12,
             "max_total_bytes": 1073741824,
             "media_types": [
               "audio/flac",
               "audio/mpeg",
-              "audio/wav"
+              "audio/wav",
+              "image/jpeg",
+              "image/png",
+              "image/webp",
+              "video/mp4",
+              "video/quicktime",
+              "video/webm"
             ],
             "min_files": 0
           }
@@ -2983,8 +2981,8 @@
     "source_reference": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe"
   },
   "release": {
-    "released_at": "2026-10-30",
-    "version": "3.0.10"
+    "released_at": "2026-11-19",
+    "version": "3.1.0"
   },
   "runtime": {
     "arguments": [
@@ -3005,18 +3003,23 @@
       },
       {
         "name": "num-inference-steps",
-        "setting": null,
-        "value": 31
+        "setting": "num-inference-steps",
+        "value": null
       },
       {
         "name": "width",
-        "setting": null,
-        "value": 960
+        "setting": "width",
+        "value": null
       },
       {
         "name": "height",
-        "setting": null,
-        "value": 544
+        "setting": "height",
+        "value": null
+      },
+      {
+        "name": "num-frames",
+        "setting": "num-frames",
+        "value": null
       }
     ],
     "engine": "diffusers",
@@ -3040,7 +3043,35 @@
   "settings": {
     "concurrency": null,
     "kind": "job",
-    "knobs": {}
+    "knobs": {
+      "height": {
+        "change_effect": "none",
+        "maximum": 2048,
+        "minimum": 64,
+        "step": 32,
+        "value": 544
+      },
+      "num-frames": {
+        "change_effect": "none",
+        "maximum": 345,
+        "minimum": 124,
+        "step": 17,
+        "value": 124
+      },
+      "num-inference-steps": {
+        "change_effect": "none",
+        "maximum": 51,
+        "minimum": 2,
+        "value": 31
+      },
+      "width": {
+        "change_effect": "none",
+        "maximum": 2048,
+        "minimum": 64,
+        "step": 32,
+        "value": 960
+      }
+    }
   },
   "topology": {
     "name": "solo",
