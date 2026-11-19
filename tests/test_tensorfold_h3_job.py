@@ -168,3 +168,23 @@ def test_num_frames_off_the_model_grid_is_rejected_before_inference(
     )
     with pytest.raises(ValueError, match=r"17k\+5 grid"):
         JOB.parse_args()
+
+
+def test_keys_heretic_workflow_document_is_bound_and_runnable():
+    context = ROOT / "adapters/video/drowzeys-keys-heretic-h3"
+    payload = (context / "workflows/keys-heretic-h3.json").read_bytes()
+    document = json.loads(payload)
+    prompt = document["prompt"]
+    assert prompt["104"]["inputs"]["prompt"] == "__VONK_PROMPT__"
+    assert prompt["15"]["inputs"]["noise_seed"] == "__VONK_SEED__"
+    assert prompt["7"]["inputs"]["int8_pv"] is False
+    assert prompt["7"]["inputs"]["dense_blocks"] == ""
+    categories = {m["artifact_id"]: m["category"] for m in document["models"]}
+    assert categories["upscaler"] == "upscale_models"
+    recipe = json.loads(
+        (
+            ROOT / "recipes/minimax-h3-keys-heretic-drowzeys-comfyui-single.json"
+        ).read_text()
+    )
+    arguments = {a["name"]: a.get("value") for a in recipe["runtime"]["arguments"]}
+    assert arguments["workflow-sha256"] == hashlib.sha256(payload).hexdigest()
