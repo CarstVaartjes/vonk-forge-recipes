@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/hy4-flash-nvfp4-atakann-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "f92ac046a4d47ac79af72e74ddd44b134191e7dc29c0604a6d8a85b660c80bc9",
+        "source_bundle_sha256": "fc5312777515a0412076013e18fb823537486cda578ee288ac3274f9ffd2e1ca",
+        "runtime_image": {
+          "build_key": "2c92d72badc37fe9eae7d1284192962c412c6e82719d2966abf3293598146ec7",
+          "image_digest": "sha256:10c14c781eff3ed22bc8815a1be54360e34d397e4a59c87a841ff205de7222d1"
+        },
+        "model_digests": [
+          "353947fe55a9131e3aae512110d6df2bef4f509a0cbbe63bd8ee2f7a6ea9be45"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "6dccb9ac895c742a9a85229b8a77a8b1074add8967d5a03280262e05dc3c669b"
+      ],
+      "tested_at": "2026-11-19T18:46:44.935561Z",
+      "platform": {
+        "controller_source_sha": "0dbd17a56f35b4c594032ebaf940c4fb4b96a6fd",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "f92ac046a4d47ac79af72e74ddd44b134191e7dc29c0604a6d8a85b660c80bc9",
+      "role": "entrypoint",
+      "steady_bytes": 115818569728
+    },
+    {
+      "content_sha256": "f92ac046a4d47ac79af72e74ddd44b134191e7dc29c0604a6d8a85b660c80bc9",
+      "role": "worker",
+      "steady_bytes": 114567958528
+    }
+  ]
+}
