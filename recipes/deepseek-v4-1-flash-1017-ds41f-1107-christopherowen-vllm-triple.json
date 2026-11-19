@@ -1291,10 +1291,6 @@
         "value": "16777216"
       },
       {
-        "name": "VLLM_NO_USAGE_STATS",
-        "value": "1"
-      },
-      {
         "name": "VLLM_PLUGINS",
         "value": ""
       },
