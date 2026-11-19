@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:1789d539f2dfc4a3f061e5577fcc680b36ae3e75e0c01f3303df79100f5dd153",
+      "kind": "tag",
+      "ref": "latest",
+      "repo": "ghcr.io/drowzeys/keys-heretic-minimax-h3-sol-engine-spark"
+    }
+  },
+  "kit": {
+    "commit": "7e8304fd8de9741119e704d1aa347534346c3a48",
+    "repo": "drowzeys/keys-heretic-MiniMax-H3-sol-engine-more-speed-upgrades-upscaler-finish-Single-DGX-Spark"
+  }
+}

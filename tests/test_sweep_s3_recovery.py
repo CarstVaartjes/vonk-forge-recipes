@@ -233,6 +233,7 @@ def test_held_wait_age_and_deadline_survive_json_roundtrips():
 ADAPTERS = [
     *sorted((ROOT / "adapters/media").glob("comfyui-*/comfyui_job.py")),
     ROOT / "adapters/video/drowzeys-fasth3-tensorfold/comfyui_job.py",
+    ROOT / "adapters/video/drowzeys-keys-heretic-h3/comfyui_job.py",
 ]
 
 
