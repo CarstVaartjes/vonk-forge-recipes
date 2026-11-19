@@ -85,7 +85,7 @@
       "AngelSlim (Tencent)",
       "llama.cpp contributors"
     ],
-    "source_reference": "https://huggingface.co/AngelSlim/Hy4-flash-GGUF/blob/65acb8ae7f59847fe03a17291f1b72b89b141a9e/README_SPARK-4Bit.md"
+    "source_reference": "https://huggingface.co/AngelSlim/Hy4-flash-GGUF/resolve/65acb8ae7f59847fe03a17291f1b72b89b141a9e/README_SPARK-4Bit.md"
   },
   "release": {
     "released_at": "2026-11-19",
