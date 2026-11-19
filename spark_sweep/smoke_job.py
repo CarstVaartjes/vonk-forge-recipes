@@ -24,7 +24,9 @@ Verdicts follow ``verdict.disposition``:
   temporary HTTP status): a wait, smoked again later;
 * any other reply to a step (vonkctl's generic ``control.api_error``, an unknown code): observed,
   and the same reply on the same identity three times ends as the platform's deferral with the
-  reply as evidence (``Sweep._bound_identical_exit``);
+  reply as evidence (``Sweep._bound_identical_exit``). Two exceptions: a reply with no document
+  at all (timeout, missing binary) is a wait, and the ``detail`` poll follows the job through
+  anything but a final failure, bounded by the job budget;
 * the job ended for a platform reason (agent lease lost, a scope that may remain, a
   cancel, a wait for an operator) or never ended within its own timeout: uncertain,
   observed again.
