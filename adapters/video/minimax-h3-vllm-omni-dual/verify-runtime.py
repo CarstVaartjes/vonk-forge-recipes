@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import importlib
 import importlib.metadata
+import ctypes
+import glob
 import importlib.util
 import os
 import sys
@@ -37,6 +39,11 @@ def main() -> None:
     plugins = {ep.name: ep.value for ep in importlib.metadata.entry_points(group="vllm.general_plugins")}
     if plugins.get("h3_tp2") != "h3_tp2.plugin:register":
         raise SystemExit(f"the h3_tp2 plugin entry point is missing: {sorted(plugins)}")
+    # NCCL_NET=IB has no Socket fallback: without libibverbs and the mlx5 provider the first
+    # collective fails on hardware with "Failed to initialize any NET plugin".
+    ctypes.CDLL("libibverbs.so.1")
+    if not glob.glob("/usr/lib/aarch64-linux-gnu/libibverbs/libmlx5-rdmav*.so"):
+        raise SystemExit("the libibverbs mlx5 provider (ibverbs-providers) is missing")
     import av
 
     for codec in ("h264", "aac"):  # the MP4 mux is PyAV's: no ffmpeg binary is needed

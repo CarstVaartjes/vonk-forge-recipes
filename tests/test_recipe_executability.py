@@ -59,6 +59,51 @@ class RecipeExecutabilityTests(unittest.TestCase):
                 )
                 seen[normalized] = path
 
+    def test_multi_node_nccl_ib_nvidia_cuda_adapters_install_the_rdma_verbs_provider(
+        self,
+    ) -> None:
+        # NCCL_NET=IB has no Socket fallback: a CUDA base image without ibverbs-providers
+        # (libmlx5) fails the first collective with "Failed to initialize any NET plugin".
+        missing: set[str] = set()
+        for _, document in recipe_documents():
+            topology = document.get("topology")
+            execution = document.get("execution")
+            runtime = document.get("runtime")
+            build = execution.get("build") if isinstance(execution, dict) else None
+            environment = (
+                runtime.get("environment") if isinstance(runtime, dict) else None
+            )
+            if not isinstance(topology, dict) or not isinstance(build, dict):
+                continue
+            if not isinstance(environment, list) or not build.get("dockerfile"):
+                continue
+            if int(topology.get("node_count", 1)) <= 1:
+                continue
+            if not any(
+                isinstance(e, dict)
+                and e.get("name") == "NCCL_NET"
+                and e.get("value") == "IB"
+                for e in environment
+            ):
+                continue
+            lines = [
+                line.strip()
+                for line in (ROOT / str(build["dockerfile"]))
+                .read_text(encoding="utf-8")
+                .splitlines()
+                if not line.strip().startswith("#")
+            ]
+            # Only the final stage ships: a build-stage install or a comment does not count.
+            last_from = max(
+                i for i, line in enumerate(lines) if line.upper().startswith("FROM ")
+            )
+            final_stage = lines[last_from:]
+            if "nvidia/cuda" in final_stage[0] and not any(
+                "ibverbs-providers" in line for line in final_stage
+            ):
+                missing.add(str(build["dockerfile"]))
+        self.assertEqual(set(), missing)
+
     def test_models_and_recipes_are_current_v2_documents(self) -> None:
         models: dict[tuple[str, str], ModelDefinition] = {}
         for path in sorted((ROOT / "models").glob("*.json")):
