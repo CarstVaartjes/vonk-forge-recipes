@@ -1,0 +1,31 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "description": "vcruz305's EXL3 SAGE-REXL3 quantization of ricursiveAI's DFlash2 speculative-decoding draft for Ripple-65B-Preview, the 4.55bpw pack (about 2.3 GB) the creator recommends beside the 5.41bpw target; served by SGLang's DFLASH algorithm with --speculative-draft-model-quantization exl3. The repository also holds 3.60bpw and 3.08bpw packs, which this Model leaves out.",
+  "family_title": "Ripple",
+  "identity": {
+    "publisher": "vcruz305",
+    "slug": "ripple-65b-preview-dflash2-sage-rexl3-912479f4"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "vcruz305",
+      "ricursiveAI"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/vcruz305/Ripple-65B-Preview-DFlash2-SAGE-REXL3/blob/912479f4b650f300f907b8bcfabbf682c32e1f38/LICENSE"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "Ripple 65B Preview DFlash2 SAGE-REXL3 (4.55bpw)",
+  "tags": [
+    "ricursiveai",
+    "ripple",
+    "language",
+    "exl3",
+    "candidate"
+  ]
+}
