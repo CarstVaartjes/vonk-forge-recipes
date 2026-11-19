@@ -29,9 +29,9 @@
         "reasoning_effort"
       ],
       "kind": "switch",
-      "off": "no_think",
+      "off": "none",
       "on": "high",
-      "via": "chat_template_kwargs"
+      "via": "top_level"
     },
     "streaming": true,
     "structured_output": false,
