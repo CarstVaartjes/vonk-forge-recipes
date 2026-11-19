@@ -5,19 +5,19 @@
     "slug": "synthetic-image-job"
   },
   "kind": "recipe-display",
-  "tags": [
-    "synthetic",
-    "text"
-  ],
-  "title": "Synthetic image job",
   "knobs": {
     "num-frames": {
-      "label": "Frames",
       "description": "Video length in frames.",
+      "label": "Frames",
       "unit": "frames"
     },
     "style": {
       "label": "Style"
     }
-  }
+  },
+  "tags": [
+    "synthetic",
+    "text"
+  ],
+  "title": "Synthetic image job"
 }

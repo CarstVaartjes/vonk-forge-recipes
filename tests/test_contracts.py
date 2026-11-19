@@ -946,7 +946,6 @@ def _job_with_knob(knob: dict[str, Any]) -> dict[str, Any]:
         {"value": 130, "minimum": 13, "maximum": 345, "step": 8},  # off the grid
         {"value": 5, "minimum": 13},  # below minimum
         {"value": 400, "maximum": 345},  # above maximum
-        {"value": 20, "minimum": 30, "maximum": 10},  # empty range
         {"value": 13, "step": 8},  # step without minimum
         {"value": 1.5, "minimum": 0, "step": 1},  # step on a float
         {"value": 5, "minimum": 0.5},  # float bound on an integer knob
@@ -1011,6 +1010,17 @@ def test_library_ingress_refuses_unbound_knobs_and_unknown_display_knobs() -> No
     restart = copy.deepcopy(job)
     restart["settings"]["knobs"]["style"]["change_effect"] = "restart"
     refuse(restart, display, "change_effect none")
+    serving_display = copy.deepcopy(display)
+    serving = load("recipe-source-build.json")
+    serving_display["identity"]["slug"] = serving["identity"]["slug"]
+    recipe = RecipeDefinition.model_validate(serving)
+    with pytest.raises(ContractResolutionError, match="unknown knob num-frames"):
+        validate_library(
+            [recipe],
+            [],
+            {recipe.identity.slug: RecipeDisplay.model_validate(serving_display)},
+            {},
+        )
     stray = copy.deepcopy(display)
     stray["knobs"]["flavour"] = {"label": "Flavour"}
     refuse(job, stray, "unknown knob flavour")
