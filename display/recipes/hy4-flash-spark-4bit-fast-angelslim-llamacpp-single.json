@@ -1,0 +1,22 @@
+{
+  "alignment": "standard",
+  "description": "One-DGX Spark Tencent Hy4 Flash in AngelSlim's SPARK-4Bit-Fast GGUF packing (mixture of experts with Engram tables and multi-token prediction; vision-language with the BF16 projector) on llama.cpp with Tencent's Spark patch, as in the AngelSlim Hy4-flash-GGUF Spark guide: commit 2cbca389 plus patch/hy4-flash-spark.patch, built with CUDA 13.0 for sm_121a in this recipe's own image, without the web UI. The Engram tables sit inside the GGUF and are read from the memory-mapped file on demand (lazy mode, token embeddings on the CPU). MTP drafting, 196,608 tokens of context and one request at a time, with the Spark kernel switches from the guide's Linux block. Images go through the BF16 projector. Thinking is chosen per request. The estimated peak is about 107 GB; the creator publishes no measured memory figure.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "hy4-flash-spark-4bit-fast-angelslim-llamacpp-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "angelslim",
+    "executable",
+    "gguf",
+    "llama-cpp",
+    "openai",
+    "reasoning",
+    "single",
+    "spark",
+    "tencent-hy",
+    "vision"
+  ],
+  "title": "Hy4 Flash SPARK-4Bit-Fast llama.cpp single Spark (AngelSlim)"
+}
