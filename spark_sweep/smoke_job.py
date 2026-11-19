@@ -287,7 +287,9 @@ def smoke_job(
             "smoke",
             "job.definition_missing",
             f"no qualification definition for job recipe {recipe.key}",
-            "recipe-data",
+            # The sweep's source lacks the definition: it cannot test the
+            # recipe, which says nothing about the recipe itself.
+            "catalog",
         )
         return result
     keys = {
