@@ -9,6 +9,7 @@ nothing.
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -268,3 +269,24 @@ def test_watch_mode_keeps_polling_when_only_matches_nothing_yet(
 
     clock.hooks.append(stop_later)
     assert sweep.run() == 130  # interrupted while still watching, no --only error
+
+
+def test_a_recipe_the_older_source_lacks_is_held_per_row_on_any_pass(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    newer = "vonk-forge/newer"
+    sweep, _, _ = make_sweep(
+        tmp_path,
+        [FakeRecipe("good", ("1" * 64,), content=OLD)],
+        [FakeModel("1" * 64)],
+        gateway=gateway,
+    )
+    assert sweep.run() == 0 and sweep.catalog_loaded
+    # A later pass lists a recipe merged since this sweep's source was taken.
+    sweep.recipes[newer] = replace(sweep.recipes[KEY], key=newer)
+    sweep.state.recipes[newer] = {"status": "pending"}
+    assert [r.key for r in sweep.pending()] == []
+    assert not sweep._open(newer)
+    authored = {**sweep.authored, newer: NEW}
+    sweep.authored = authored  # a restart from a newer source authors it
+    assert [r.key for r in sweep.pending()] == [newer]
