@@ -9,6 +9,7 @@ nothing.
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -270,25 +271,22 @@ def test_watch_mode_keeps_polling_when_only_matches_nothing_yet(
     assert sweep.run() == 130  # interrupted while still watching, no --only error
 
 
-def test_a_recipe_the_older_source_lacks_is_not_tested_and_not_failed(
+def test_a_recipe_the_older_source_lacks_is_held_per_row_on_any_pass(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     newer = "vonk-forge/newer"
-    sweep, _, clock = make_sweep(
+    sweep, _, _ = make_sweep(
         tmp_path,
-        [
-            FakeRecipe("good", ("1" * 64,), content=OLD),
-            FakeRecipe("newer", ("1" * 64,), content=NEW),
-        ],
+        [FakeRecipe("good", ("1" * 64,), content=OLD)],
         [FakeModel("1" * 64)],
         gateway=gateway,
-        authored={KEY: OLD},  # the source predates `newer`
     )
-    _guard(clock, clock.now())
-    assert sweep.run() == 0
-    assert sweep.state.recipes[KEY]["status"] == "passed"
-    assert sweep.state.recipes[newer]["status"] == "pending"  # never a verdict
-    rows = _rows(tmp_path)
-    assert not [r for r in rows if r.get("recipe") == newer and r["status"] == "failed"]
-    behind = [r for r in rows if r["status"] == "source-behind"]
-    assert behind and "older" in behind[0]["reason"] and newer in behind[0]["reason"]
+    assert sweep.run() == 0 and sweep.catalog_loaded
+    # A later pass lists a recipe merged since this sweep's source was taken.
+    sweep.recipes[newer] = replace(sweep.recipes[KEY], key=newer)
+    sweep.state.recipes[newer] = {"status": "pending"}
+    assert [r.key for r in sweep.pending()] == []
+    assert not sweep._open(newer)
+    authored = {**sweep.authored, newer: NEW}
+    sweep.authored = authored  # a restart from a newer source authors it
+    assert [r.key for r in sweep.pending()] == [newer]

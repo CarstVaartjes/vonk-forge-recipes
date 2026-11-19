@@ -337,7 +337,7 @@ class Sweep:
         self.source_serving = SourceServing.UNREAD
         self.unserved_recipes: tuple[Unserved, ...] = ()
         self.unserved_keys: frozenset[str] = frozenset()
-        # Served recipes this older source does not author: never scheduled by this sweep.
+        # Served recipes this older source does not author (named once in a results row).
         self.source_missing_keys: frozenset[str] = frozenset()
         # The bounded wait's watch lives in the state: a restart continues the budget.
         self.source_watch: dict[str, Any] = state.data["source_watch"]
@@ -1090,7 +1090,7 @@ class Sweep:
                 continue
             if recipe.key in self.unserved_keys:
                 continue  # the catalog still serves other content than the source
-            if recipe.key in self.source_missing_keys:
+            if recipe.key not in self.authored:
                 continue  # this sweep's source is older than the library
             out.append(recipe)
         out.sort(
@@ -1487,7 +1487,7 @@ class Sweep:
         return bool(
             entry
             and entry.get("status") == "pending"
-            and key not in self.source_missing_keys  # this older source cannot test it
+            and key in self.authored  # an older source cannot test what it lacks
             and self._selected(self.recipes[key])
         )
 
