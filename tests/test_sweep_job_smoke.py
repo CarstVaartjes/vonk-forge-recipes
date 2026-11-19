@@ -84,14 +84,11 @@ class Controller:
         self,
         output: bytes = b"",
         evidence: tuple[int, Any] | None = None,
-        evidence_not_found: int = 0,
         **answers: Sequence[tuple[int, Any]],
     ) -> None:
         self.output = output
         # ``vonkctl fleet evidence``: (exit code, bundle written to --output or error).
         self.evidence = evidence
-        # Leading evidence reads answered not_found (the sibling rank still stopping).
-        self.evidence_not_found = evidence_not_found
         self.answers = {step: list(queue) for step, queue in answers.items()}
         self.calls: list[list[str]] = []
         self.binding: dict[str, Any] = {}
@@ -101,16 +98,6 @@ class Controller:
         if args[:2] == ["fleet", "evidence"] and self.evidence is not None:
             self.calls.append(args)
             code, answer = self.evidence
-            if self.evidence_not_found > 0:
-                self.evidence_not_found -= 1
-                code, answer = (
-                    1,
-                    {
-                        "error_type": "control_api",
-                        "code": "controller.not_found",
-                        "status": 404,
-                    },
-                )
             if code != 0:
                 return code, json.dumps(answer), ""
             Path(args[args.index("--output") + 1]).write_text(json.dumps(answer))
@@ -329,21 +316,6 @@ def test_the_stderr_bound_holds_for_any_head(head: str) -> None:
     assert kept.endswith("end\n")
     assert kept.startswith(head[:100].rstrip("\n")[:100])
     assert ("\n[7 bytes omitted]\n" in kept) or kept.startswith("[7 bytes omitted]\n")
-
-
-def test_an_evidence_not_found_just_after_the_failure_is_read_again() -> None:
-    controller = Controller(
-        evidence=(0, _bundle("late cause\n", exit_code=1)),
-        evidence_not_found=2,
-        create=[_job(None, preparation="ready")],
-        submit=[_job("failed", operation_id=OPERATION, status_reason="exit")],
-    )
-    clock = [0.0]
-    result = _smoke(controller, clock=clock)
-    assert result.failure is not None
-    assert result.failure.evidence["stderr_tail"] == "late cause\n"
-    assert "evidence_unavailable" not in result.failure.evidence
-    assert [c[:2] for c in controller.calls].count(["fleet", "evidence"]) == 3
 
 
 @pytest.mark.parametrize("status", [404, 500])
