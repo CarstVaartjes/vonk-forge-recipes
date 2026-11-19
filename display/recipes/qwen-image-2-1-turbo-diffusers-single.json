@@ -1,13 +1,12 @@
 {
   "alignment": "unspecified",
-  "description": "QwenImage21Pipeline with the checkpoint's saved eight-step schedule, CFG=1 and prefix KV caching. BF16, 1024 square text-to-image; image editing is not exposed by this recipe. Estimated peak 90 GB includes 32.5 GB checkpoint, activations, workspace and host buffers. Physical Spark acceptance pending.",
+  "description": "QwenImage21Pipeline with the checkpoint's saved eight-step schedule, CFG=1 and prefix KV caching. BF16, 1024 square text-to-image; image editing is not exposed by this recipe. Estimated peak 90 GB includes 32.5 GB checkpoint, activations, workspace and host buffers.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "qwen-image-2-1-turbo-diffusers-single"
   },
   "kind": "recipe-display",
   "tags": [
-    "candidate",
     "executable",
     "spark",
     "image",
