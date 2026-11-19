@@ -350,7 +350,7 @@ def test_ref2va_is_long_video_continuation_from_references(
 ) -> None:
     png(inputs / "1-scene.png")
     png(inputs / "2-face.png")
-    stage(inputs, references=["1-scene.png", "2-face.png"])
+    stage(inputs, references=["2-face.png", "1-scene.png"])  # name order wins
     cfg = settings("ref2va", model="/models/Ref2VA", duration=30.0)
     request = job.build_request(cfg, inputs)
     extra = json.loads(fields(request)["extra_params"])

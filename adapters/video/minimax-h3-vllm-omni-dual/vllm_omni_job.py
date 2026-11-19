@@ -44,10 +44,8 @@ INPUT_ROOT = Path("/inputs")
 AGENT_PORT = 18095  # the creator's default
 OUTPUT_NAME = "video.mp4"
 PROMPT_MAX_BYTES = 16 * 1024
-IMAGE_MAX_BYTES = 30 * 1024 * 1024  # vLLM-Omni's reference image limit
 IMAGE_SUFFIXES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
 ASPECT_RATIO = "16:9"  # what the creator's render.sh always sends; width and height decide the canvas
-REF2VA_MAX_IMAGES = 9  # vLLM-Omni: ref2va accepts at most 9 image references
 AUDIO_FLOW_SHIFT = 3.0  # the creator's render.sh default
 EXIT_DONE, EXIT_FAILED, EXIT_CONFIG, EXIT_CANCELLED = 0, 1, 2, 143
 
@@ -357,10 +355,8 @@ def _slot_images(inputs: Path, slot: str) -> list[Path]:
         raise ConfigError("the input manifest must list each file's slot") from None
     images = [inputs / name for name in names]
     for image in images:
-        if image.is_symlink() or not image.is_file() or image.suffix.lower() not in IMAGE_SUFFIXES:
-            raise ConfigError(f"{slot} must hold JPEG, PNG or WebP images")
-        if not 0 < image.stat().st_size <= IMAGE_MAX_BYTES:
-            raise ConfigError(f"{slot} images must be non-empty and at most 30 MiB")
+        if image.is_symlink() or not image.is_file() or image.stat().st_size == 0:
+            raise ConfigError(f"{slot} images must be non-empty regular files")
     return images
 
 
@@ -397,8 +393,6 @@ def build_request(settings: Settings, inputs: Path = INPUT_ROOT) -> RenderReques
     }
     if settings.task == "ref2va":
         images = tuple(_slot_images(inputs, "references"))
-        if not 1 <= len(images) <= REF2VA_MAX_IMAGES:
-            raise ConfigError(f"references must hold 1..{REF2VA_MAX_IMAGES} images")
         extra.update(long_video=True, long_video_mode="continuation")
     else:
         first = _slot_images(inputs, "first-image")
