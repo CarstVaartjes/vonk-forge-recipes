@@ -89,7 +89,10 @@ def _call(
             "case": f"job.{step}",
             "body": excerpt(error.reply.document if error.reply else ""),
         }
-        if step in RECIPE_REQUEST_STEPS and verdict.request_refused(error.reply):
+        if step in RECIPE_REQUEST_STEPS and (
+            verdict.request_refused(error.reply)
+            or verdict.document_refused(error.reply)
+        ):
             failure = classify(
                 "smoke",
                 error.code or f"job.{step}",

@@ -398,6 +398,13 @@ download record with `request_intent` and no `accepted_content` is dropped and
 requested again
 (`tests/test_sweep_download_retests.py::test_a_legacy_download_record_without_accepted_content_is_requested_again`).
 
+A job recipe's `timeout_seconds` is at most the Controller's job maximum (3600,
+`MAX_JOB_TIMEOUT_SECONDS` in `qualification/definitions_loader.py`, which refuses a longer one at
+load). If vonkctl's own contract check still refuses the create/upload document (`control.api_error`
+naming a `$.` field, no HTTP answer), the sweep fails that recipe as `recipe-data` with the reply as
+evidence and moves on (`verdict.document_refused`,
+`tests/test_sweep_job_smoke.py::test_a_contract_refusal_of_the_job_document_fails_the_recipe_at_once`).
+
 Gateway 401/403 refusals end the case with evidence; only typed LiteLLM key
 expiry/revocation waits for renewal. Unclassified policy refusal is not evidence
 of an expired key (`tests/test_sweep_auth_refusal.py`,

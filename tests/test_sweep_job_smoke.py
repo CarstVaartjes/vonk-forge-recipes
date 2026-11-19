@@ -377,6 +377,23 @@ def test_a_final_refusal_of_the_recipes_job_request_fails_the_recipe_at_once(
     assert "submit" not in controller.steps
 
 
+def test_a_contract_refusal_of_the_job_document_fails_the_recipe_at_once() -> None:
+    # The incident: timeout_seconds above the Controller's cap, refused by vonkctl's own
+    # contract check (no HTTP answer), spun the sweep as "waiting" 78 times.
+    refusal = {
+        "error_type": "control_api",
+        "code": "control.api_error",
+        "detail": "document does not match the canonical ArtifactJobCreate contract: "
+        "$.timeout_seconds: violates maximum",
+    }
+    controller = Controller(create=[(2, refusal)])
+    result = _smoke(controller)
+    assert result.failure is not None
+    assert result.failure.klass == "recipe-data"
+    assert verdict.disposition(result.failure) is verdict.Disposition.FAIL
+    assert "timeout_seconds" in result.failure.evidence["body"]
+
+
 @pytest.mark.parametrize(
     "answer",
     [
