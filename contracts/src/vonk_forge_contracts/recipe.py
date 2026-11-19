@@ -1196,6 +1196,15 @@ class RecipeDefinition(_RecipeContract):
                         raise ValueError(
                             "job request input slot is not declared by the interface"
                         )
+                    required_input_ids = {
+                        slot.id
+                        for slot in interface.input.slots or []
+                        if slot.min_files >= 1
+                    }
+                    if not required_input_ids <= set(request.input_slots):
+                        raise ValueError(
+                            "job request must bind every input slot that needs a file"
+                        )
         return self
 
     def _option_rules(self) -> None:

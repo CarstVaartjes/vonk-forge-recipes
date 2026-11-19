@@ -1257,7 +1257,9 @@
           "request": {
             "fixture": "qualification/fixtures/prompt.txt",
             "input_slots": {
-              "prompt": "qualification/fixtures/prompt.txt"
+              "prompt": "qualification/fixtures/prompt.txt",
+              "references": "qualification/fixtures/triposg-example-house.png",
+              "request": "qualification/fixtures/minimax-ref2va-request.json"
             },
             "output_slot": "video",
             "transport": "job"

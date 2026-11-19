@@ -648,6 +648,9 @@ def test_job_serving_bindings_match_declared_interface_slots() -> None:
     request["input_slots"] = {"unknown": "prompt"}
     with pytest.raises(ValidationError, match="input slot"):
         RecipeDefinition.model_validate(job)
+    request["input_slots"] = {}
+    with pytest.raises(ValidationError, match="every input slot"):
+        RecipeDefinition.model_validate(job)
 
 
 def test_vision_checks_require_image_content_and_applicable_assertions() -> None:
