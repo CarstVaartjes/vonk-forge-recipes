@@ -2193,6 +2193,20 @@ def mounted_unchanged(
     return before == after
 
 
+def only_sibling_weights_added(
+    old: dict[str, Any], new_files: list[dict[str, Any]]
+) -> bool:
+    """Whether the newest revision only adds weights files beside byte-identical files.
+
+    Another checkpoint of a repository the Model catalogues a subset of (#2749); a
+    re-shard of a catalogued checkpoint changes or removes a catalogued file.
+    """
+    catalogued = {f["path"] for f in old["files"]}
+    return mounted_unchanged(old, new_files, catalogued) and all(
+        f["roles"] == ["weights"] for f in new_files if f["path"] not in catalogued
+    )
+
+
 def model_problems(
     old: dict[str, Any],
     new_files: list[dict[str, Any]],
@@ -3107,7 +3121,9 @@ class Assessor:
                     "identical weights; no move is proposed.\n"
                 )
                 return
-            if mounted is not None and mounted_unchanged(old, new_files, mounted):
+            if (mounted is not None and mounted_unchanged(old, new_files, mounted)) or (
+                mounted is None and only_sibling_weights_added(old, new_files)
+            ):
                 self._mounted_noop(item, result)
                 return
             problems = model_problems(old, new_files, mounted, declared=declared)
@@ -3134,7 +3150,13 @@ class Assessor:
                 )
             )
         else:
-            if mounted is not None and mounted_unchanged(old, fresh["files"], mounted):
+            if (
+                mounted is not None and mounted_unchanged(old, fresh["files"], mounted)
+            ) or (
+                mounted is None
+                and not declared
+                and only_sibling_weights_added(old, fresh["files"])
+            ):
                 self._mounted_noop(item, result)
                 return
             result.evidence.append(
