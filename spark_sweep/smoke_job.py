@@ -70,8 +70,6 @@ STDERR_HEAD_BYTES = 512
 #: The platform's marker between a retained stderr's failure lines and its tail
 #: (vonk-agent-protocol ``failure_evidence::omission_marker``: ``[<N> bytes omitted]``).
 OMISSION_MARKER = re.compile(r"^\[[0-9]+ bytes omitted\]$", re.MULTILINE)
-#: The evidence endpoint can answer not_found for a few seconds after the job shows failed
-#: (a sibling rank is still stopping): re-read this many times, this far apart, then give up.
 
 
 def job_budget_seconds(spec: Mapping[str, Any]) -> float:
