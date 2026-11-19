@@ -1,0 +1,260 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "1789d539f2dfc4a3f061e5577fcc680b36ae3e75e0c01f3303df79100f5dd153",
+        "repository": "ghcr.io/drowzeys/keys-heretic-minimax-h3-sol-engine-spark"
+      },
+      "context": {
+        "path": "adapters/video/drowzeys-keys-heretic-h3"
+      },
+      "dockerfile": "adapters/video/drowzeys-keys-heretic-h3/Dockerfile",
+      "network": {
+        "hosts": [
+          "pypi.org",
+          "files.pythonhosted.org"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "minimax-h3-keys-heretic-drowzeys-comfyui-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "video-job",
+      "input": {
+        "max_bytes": 16384,
+        "media_types": [
+          "text/plain"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "Text prompt describing the video to generate.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Prompt",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 536870912,
+        "slots": [
+          {
+            "description": "Generated 1728x960 H.264 MP4 with sound, 124 frames at 24 fps.",
+            "extensions": [
+              ".mp4"
+            ],
+            "id": "video",
+            "label": "Generated video",
+            "max_file_bytes": 536870912,
+            "max_files": 1,
+            "max_total_bytes": 536870912,
+            "media_types": [
+              "video/mp4"
+            ],
+            "min_files": 1
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "target",
+          "id": "primary-target",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "text-encoder",
+          "id": "primary-text-encoder",
+          "mount": {
+            "target": "/models/text-encoder"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-vae",
+          "id": "primary-video-vae",
+          "mount": {
+            "target": "/models/video-vae"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "audio-vae",
+          "id": "primary-audio-vae",
+          "mount": {
+            "target": "/models/audio-vae"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "upscaler",
+          "id": "primary-upscaler",
+          "mount": {
+            "target": "/models/upscaler"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "b2d719d8c3f41837ec32d65ff347dcbab4b8349fc354f7afdb591084d872d95f",
+        "kind": "model",
+        "publisher": "drowzeys",
+        "slug": "keys-heretic-minimax-h3-spark-weights-2e4f1dbb"
+      }
+    }
+  ],
+  "options": [],
+  "provenance": {
+    "attribution": [
+      "drowzeys",
+      "MiniMax",
+      "Comfy-Org",
+      "ComfyUI",
+      "ethanfel",
+      "llmfan46",
+      "kijai",
+      "KingGore",
+      "xmarre",
+      "xinntao"
+    ],
+    "source_reference": "https://github.com/drowzeys/keys-heretic-MiniMax-H3-sol-engine-more-speed-upgrades-upscaler-finish-Single-DGX-Spark/tree/7e8304fd8de9741119e704d1aa347534346c3a48"
+  },
+  "release": {
+    "released_at": "2026-11-19",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "workflow",
+        "value": "/opt/vonk/source/workflows/keys-heretic-h3.json"
+      },
+      {
+        "name": "workflow-sha256",
+        "value": "ceeec1c6e337445383bfbb8610cdddd06df4b3e94c0d99d84fb847d1033a1cfb"
+      },
+      {
+        "name": "output-mime",
+        "value": "video/mp4"
+      },
+      {
+        "name": "seed",
+        "value": 45
+      },
+      {
+        "name": "num-frames",
+        "setting": "num-frames",
+        "value": null
+      }
+    ],
+    "engine": "comfyui",
+    "entrypoint": [
+      "/opt/vonk/bin/comfyui-job"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "kind": "job",
+    "knobs": {
+      "num-frames": {
+        "change_effect": "none",
+        "value": 124
+      }
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 53213980796,
+            "image_bytes": 35000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 20000000000
+          },
+          "memory": {
+            "peak_bytes": 104000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "video-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_slot": "video",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "video-job"
+    }
+  }
+}
