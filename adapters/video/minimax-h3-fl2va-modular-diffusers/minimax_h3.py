@@ -32,13 +32,7 @@ def _slot_files(slot: str) -> list[tuple[str, Path]]:
         )
     except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as error:
         raise ValueError("the input manifest must list each file's slot") from error
-    result = []
-    for name, media_type in found:
-        candidate = INPUT_ROOT / name
-        if candidate.is_symlink() or not candidate.is_file():
-            raise ValueError(f"{slot} names a missing input file: {name}")
-        result.append((media_type, candidate))
-    return result
+    return [(media_type, INPUT_ROOT / name) for name, media_type in found]
 
 
 def _keyframe(slot: str) -> Path | None:

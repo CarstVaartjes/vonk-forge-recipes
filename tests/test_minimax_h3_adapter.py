@@ -264,9 +264,9 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
         self.assertEqual(
             self.references(
                 references=[
+                    ("3-voice.wav", "audio/wav"),
                     ("1-scene.png", "image/png"),
                     ("2-clip.mp4", "video/mp4"),
-                    ("3-voice.wav", "audio/wav"),
                 ]
             ),
             [
