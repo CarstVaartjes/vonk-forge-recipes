@@ -1,0 +1,456 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "532381a7bf759bbe4d9c783468bc2cc4766cf656da5814fb04e049dc58fe268b",
+        "repository": "docker.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/hy4/baekpica-ds4-dfm-rs-single"
+      },
+      "dockerfile": "adapters/hy4/baekpica-ds4-dfm-rs-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "archive.ubuntu.com",
+          "ports.ubuntu.com",
+          "security.ubuntu.com",
+          "codeload.github.com",
+          "sh.rustup.rs",
+          "static.rust-lang.org",
+          "index.crates.io",
+          "static.crates.io"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "hy4-flash-mq-q5-q8-baekpica-ds4-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "hy4-flash-mq-q5-q8"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "license-52755a6786f2-c693279643",
+          "id": "primary-00-license-52755a6786f2-c693279643",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hy4-flash-mq-q5-q8-ssd-engram-fp8-00001-4888a1e762ec-f18068311f",
+          "id": "primary-01-hy4-flash-mq-q5-q8-ssd-engram-fp8-00001-",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hy4-flash-mq-q5-q8-ssd-engram-fp8-00002-e73e00df93dd-a1bc3fb97b",
+          "id": "primary-02-hy4-flash-mq-q5-q8-ssd-engram-fp8-00002-",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hy4-flash-mq-q5-q8-ssd-engram-fp8-00003-0fd34d13cd58-88d9dc92f5",
+          "id": "primary-03-hy4-flash-mq-q5-q8-ssd-engram-fp8-00003-",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hy4-flash-mq-q5-q8-ssd-engram-fp8-00004-7f2436f4ca02-9bac9824a3",
+          "id": "primary-04-hy4-flash-mq-q5-q8-ssd-engram-fp8-00004-",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "sha256sums-ac8546178801-24a6e5b4b4",
+          "id": "primary-05-sha256sums-ac8546178801-24a6e5b4b4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-63ddd5de294d-a9da5ccdc6",
+          "id": "primary-06-chat-template-63ddd5de294d-a9da5ccdc6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-a59ea10f9868-4c95eaa400",
+          "id": "primary-07-config-a59ea10f9868-4c95eaa400",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dfly2-q8-0-ef072f9f0004-89fc3c82a2",
+          "id": "primary-08-dfly2-q8-0-ef072f9f0004-89fc3c82a2",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "embed-tokens-bf16-d0a1dcd26fa5-07bf0dd74f",
+          "id": "primary-09-embed-tokens-bf16-d0a1dcd26fa5-07bf0dd74",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "engram-fp8-layer-01-374581d404ed-2d1a1bbfcb",
+          "id": "primary-10-engram-fp8-layer-01-374581d404ed-2d1a1bb",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "engram-fp8-layer-11-329175b589ac-b3e6c9df65",
+          "id": "primary-11-engram-fp8-layer-11-329175b589ac-b3e6c9d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "engram-fp8-layer-21-c8de5f2ea6cc-d435f0fde7",
+          "id": "primary-12-engram-fp8-layer-21-c8de5f2ea6cc-d435f0f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "engram-fp8-layer-31-0d8527c6fc28-91e5bc4a18",
+          "id": "primary-13-engram-fp8-layer-31-0d8527c6fc28-91e5bc4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "engram-manifest-fa3c6e9917a6-39f0ac0b9a",
+          "id": "primary-14-engram-manifest-fa3c6e9917a6-39f0ac0b9a",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-38dbc352f801-e36d6cde3e",
+          "id": "primary-15-generation-config-38dbc352f801-e36d6cde3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mmproj-hy4-flash-bf16-7a14bb848544-4cc79cc05c",
+          "id": "primary-16-mmproj-hy4-flash-bf16-7a14bb848544-4cc79",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "precision-map-0f89acc16d97-48fd00c062",
+          "id": "primary-17-precision-map-0f89acc16d97-48fd00c062",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-cc5cc63da33e-705904be25",
+          "id": "primary-18-processor-config-cc5cc63da33e-705904be25",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "release-889d2a6a8622-bd23fbf49b",
+          "id": "primary-19-release-889d2a6a8622-bd23fbf49b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "verify-q8-03cc751872fe-66ef209730",
+          "id": "primary-20-verify-q8-03cc751872fe-66ef209730",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-2e3f3d22065c-b1ac3c7a83",
+          "id": "primary-21-tokenizer-2e3f3d22065c-b1ac3c7a83",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-99454b593e1f-0c3dbe91ad",
+          "id": "primary-22-tokenizer-config-99454b593e1f-0c3dbe91ad",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "803c04d492cbfa45a96781b958de5544132d110962d1ba2988a0e66363622c77",
+        "kind": "model",
+        "publisher": "baekpica",
+        "slug": "hy4-flash-mq-q5-q8-gguf-7c44df46"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Tencent Hy",
+      "Baekpica",
+      "Salvatore Sanfilippo (antirez, DwarfStar)"
+    ],
+    "source_reference": "https://huggingface.co/Baekpica/Hy4-flash-Mixed-Quant-GGUF/blob/7c44df461249aa233e497e1fde9564ae837e8894/README.md ; https://github.com/Baekpica/ds4-dfm-rs/tree/25bf4b8ff712b1ad5e4298b9e87ddfa031881ac1"
+  },
+  "release": {
+    "released_at": "2026-11-19",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "cuda",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "model",
+        "setting": null,
+        "value": "/models/target/MQ-Q5-Q8-SSD-ENGRAM-FP8"
+      },
+      {
+        "name": "mtp",
+        "setting": null,
+        "value": "/models/target/MQ-Q5-Q8-SSD-ENGRAM-FP8/dfly2-q8_0.gguf"
+      },
+      {
+        "name": "mtp-mode",
+        "setting": null,
+        "value": "on"
+      },
+      {
+        "name": "mtp-draft",
+        "setting": null,
+        "value": 2
+      },
+      {
+        "name": "ctx",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "kv-disk-dir",
+        "setting": null,
+        "value": "/outputs/cache/ds4/hy4-kv"
+      },
+      {
+        "name": "kv-disk-space",
+        "setting": null,
+        "value": "16G"
+      },
+      {
+        "name": "host",
+        "setting": null,
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "setting": null,
+        "value": 8000
+      }
+    ],
+    "engine": "ds4",
+    "entrypoint": [
+      "/opt/vonk/bin/ds4-serve"
+    ],
+    "environment": [
+      {
+        "name": "DS4_CUDA_NO_Q8_ALIGNED",
+        "value": "1"
+      },
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 1048576
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 172573922690,
+            "image_bytes": 10000000000,
+            "safety_margin_bytes": 10000000000,
+            "working_bytes": 20000000000
+          },
+          "memory": {
+            "peak_bytes": 122900000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "hy4-flash-mq-q5-q8"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
