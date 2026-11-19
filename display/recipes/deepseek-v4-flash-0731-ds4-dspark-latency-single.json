@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "One-DGX Spark non-batched latency profile using DS4's experimental DSpark support model.",
+  "description": "One-DGX Spark non-batched latency profile using DS4's experimental DSpark support model; bounded validation remains greedy at temperature zero.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "deepseek-v4-flash-0731-ds4-dspark-latency-single"
