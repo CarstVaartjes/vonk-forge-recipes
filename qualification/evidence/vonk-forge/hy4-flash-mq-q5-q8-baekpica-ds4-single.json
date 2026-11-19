@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/hy4-flash-mq-q5-q8-baekpica-ds4-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "29ec9f6480a4de8259fdd752948a2ea516f1dc9dea1ed698d223de53d7f3af85",
+        "source_bundle_sha256": "ed7ec8a40f5fbadb386addb4f57429a79f2f732e46d5de048880dc64ee70f283",
+        "runtime_image": {
+          "build_key": "7c6c7e4cda33cf0a9d7a44f7ffc9c6f09ea6b94030ed020450a7264e6f80afaa",
+          "image_digest": "sha256:df25971e1c6ee79d7bc2ac2ec52a76bf07349e679b0735a9f45824b46f3159c3"
+        },
+        "model_digests": [
+          "803c04d492cbfa45a96781b958de5544132d110962d1ba2988a0e66363622c77"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "144b331db4e0a3bfe1ecfc248d45cf3f97b72a130f955d4ef2250477bc6ccfc5"
+      ],
+      "tested_at": "2026-11-19T20:18:31.624059Z",
+      "platform": {
+        "controller_source_sha": "0dbd17a56f35b4c594032ebaf940c4fb4b96a6fd",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "29ec9f6480a4de8259fdd752948a2ea516f1dc9dea1ed698d223de53d7f3af85",
+      "role": "entrypoint",
+      "steady_bytes": 122994339840
+    }
+  ]
+}
