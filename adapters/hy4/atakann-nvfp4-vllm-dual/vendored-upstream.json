@@ -1,0 +1,29 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "images/vllm-hy4-flash/Dockerfile",
+        "pattern": "^FROM vllm/vllm-openai@(?P<version>sha256:[0-9a-f]{64})$",
+        "repo": "docker.io/vllm/vllm-openai"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "recipes/llm/hy4-flash-nvfp4-vllm-tp2.yaml",
+        "pattern": "^revision: (?P<version>[0-9a-f]{40})$",
+        "repo_pattern": "^model: (?P<repo>\\S+)$"
+      }
+    },
+    "whole": false
+  },
+  "ours": [
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "80320614203b8f2e40036e676c575c03de60f34a",
+    "repo": "atakann/dgx-spark-recipes"
+  }
+}
