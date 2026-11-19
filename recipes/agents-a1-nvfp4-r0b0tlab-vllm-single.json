@@ -196,7 +196,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "00b7aa63d2324df979e29ec057e2686a4dd562527bb8f5c906f9a728b80c38dd",
+        "content_sha256": "97a17ff3c96294c25f6f89b4d3331a5dc986d9f185f7051de7fd24b14ce5f574",
         "kind": "model",
         "publisher": "r0b0tlab",
         "slug": "agents-a1-nvfp4-68a7ff18"

@@ -70,10 +70,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "google",
-      "slug": "siglip2"
-    },
     "model": {
       "publisher": "google",
       "slug": "siglip2-base-patch16-512"

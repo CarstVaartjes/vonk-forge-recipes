@@ -142,10 +142,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "lightonai",
-      "slug": "lightonocr"
-    },
     "model": {
       "publisher": "lightonai",
       "slug": "lightonocr-3-0-8b-bf16"

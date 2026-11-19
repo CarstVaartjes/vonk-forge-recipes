@@ -16,6 +16,13 @@
     "spdx": "LicenseRef-NVIDIA-Open-Model-License",
     "url": "https://huggingface.co/nvidia/Kimodo-SOMA-RP-v1.2/blob/0e3c89024d896064b6851201373f7834784a386b/LICENSE"
   },
+  "lineage": {
+    "family": "kimodo",
+    "generation": "Kimodo v1.2",
+    "line": "kimodo-soma-rp",
+    "model": "kimodo-soma-rp-v1-2",
+    "variant_kind": "base"
+  },
   "modalities": [
     "3d"
   ],

@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+"""Launch the pinned SGLang for this recipe; every engine option comes from the recipe.
+
+The sglang-exl3 plugin reads the pack's per-tensor manifest (quantization_config.json) from config.json's
+quantization_config. The creator's scripts/make_view.py builds that view from the pack without editing it: a directory
+of symlinks to every pack file plus one config.json with the manifest merged in. The platform mounts the pack
+read-only at /models/target, so the view is built here, under the writable cache, and replaces the model path in the
+recipe's arguments. The creator's scripts/serve.sh does the same by mounting a prebuilt view.
+"""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+MODEL = Path("/models/target")
+VIEW = Path(os.environ.get("XDG_CACHE_HOME", "/outputs/cache")) / "sglang-view"
+arguments = sys.argv[1:]
+if str(MODEL) not in arguments:
+    raise SystemExit(f"the immutable {MODEL} checkpoint argument is required")
+for name in ("config.json", "quantization_config.json", "model.safetensors.index.json"):
+    if not (MODEL / name).is_file():
+        raise SystemExit(f"immutable model artifact is missing: {MODEL / name}")
+subprocess.run([sys.executable, "/opt/vonk/make_view.py", str(MODEL), str(VIEW)], check=True)
+Path(os.environ.get("EXLLAMAV3_TUNE_CACHE", "/outputs/cache/exl3-tune")).mkdir(parents=True, exist_ok=True)
+arguments = [str(VIEW) if argument == str(MODEL) else argument for argument in arguments]
+# The recipe carries a graph list as one value ("1 2 4"); the engine takes it as separate words.
+if "--cuda-graph-bs-decode" in arguments:
+    graph_index = arguments.index("--cuda-graph-bs-decode")
+    if graph_index + 1 >= len(arguments):
+        raise SystemExit("--cuda-graph-bs-decode requires a value")
+    arguments[graph_index + 1 : graph_index + 2] = arguments[graph_index + 1].split()
+os.execv(sys.executable, (sys.executable, "-m", "sglang.launch_server", *arguments))

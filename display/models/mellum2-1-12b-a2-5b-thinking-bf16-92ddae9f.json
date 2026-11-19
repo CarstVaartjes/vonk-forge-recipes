@@ -19,6 +19,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/JetBrains/Mellum2.1-12B-A2.5B-Thinking/blob/92ddae9fc7665e9f801d141d2e5a6b2caf2460c4/LICENSE"
   },
+  "lineage": {
+    "family": "mellum",
+    "flavor": "thinking",
+    "generation": "Mellum2.1",
+    "line": "mellum-thinking-12b-a2-5b",
+    "model": "mellum2-1-12b-a2-5b-thinking",
+    "variant_kind": "base"
+  },
   "modalities": [
     "text"
   ],

@@ -231,7 +231,7 @@
       ],
       "id": "target",
       "model": {
-        "content_sha256": "f76d8d9f57e1dc18a261b7d4c54f9c955753b0e68230369bf43d184fde93ba9f",
+        "content_sha256": "ca0d8cd8fdbe09e7c7a092c29f20a6a375cc4f4a518f32258e0bf564a8caa7f5",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen3-8-27b-nvfp4-nvidia-482ca0f3"
@@ -292,7 +292,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "abd9b4c762654ff36016c8c8520a39d113d68258813d57f1a70b4fca9fcec070",
+        "content_sha256": "1f758a945a7c7b70f0c60dd8f9da97c124c0fa33f8db6b4b0bd8990034f94eca",
         "kind": "model",
         "publisher": "z-lab",
         "slug": "qwen3-8-27b-dflash2-50307d4c"
@@ -333,11 +333,11 @@
       "z-lab",
       "IncoAI"
     ],
-    "source_reference": "https://github.com/ashhart/TensorFold/tree/6ec5fa4cb233f3606acbdad5bec433f0f8758f96"
+    "source_reference": "https://github.com/ashhart/TensorFold/tree/2a674b552498739e783a31c2573fc9ccf4d8cc0d"
   },
   "release": {
-    "released_at": "2026-11-05",
-    "version": "1.2.3"
+    "released_at": "2026-11-18",
+    "version": "1.2.10"
   },
   "runtime": {
     "arguments": [
@@ -412,7 +412,7 @@
             "working_bytes": 8000000000
           },
           "memory": {
-            "peak_bytes": 67000000000,
+            "peak_bytes": 83500000000,
             "reserve_bytes": 13100000000
           }
         }

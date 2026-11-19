@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "ripple-65b-preview",
+          "title": "Ripple 65B Preview"
+        }
+      ],
+      "slug": "ripple-65b",
+      "title": "Ripple 65B"
+    }
+  ],
+  "slug": "ripple",
+  "title": "Ripple"
+}

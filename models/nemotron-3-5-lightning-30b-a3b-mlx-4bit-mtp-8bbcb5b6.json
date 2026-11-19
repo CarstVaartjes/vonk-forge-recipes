@@ -133,10 +133,6 @@
     "quantization": "mlx-4bit-group64-mtp"
   },
   "identity": {
-    "family": {
-      "publisher": "nvidia",
-      "slug": "nemotron"
-    },
     "model": {
       "publisher": "vontra",
       "slug": "nemotron-3-5-lightning-30b-a3b-mlx-4bit-mtp"

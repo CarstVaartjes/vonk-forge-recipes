@@ -34,10 +34,6 @@
     "quantization": "gguf-q4-k-m"
   },
   "identity": {
-    "family": {
-      "publisher": "nvidia",
-      "slug": "nemotron"
-    },
     "model": {
       "publisher": "ggml-org",
       "slug": "nemotron-3-nano-30b-a3b"

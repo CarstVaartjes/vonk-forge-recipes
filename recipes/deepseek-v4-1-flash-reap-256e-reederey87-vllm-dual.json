@@ -1,0 +1,1021 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "d84a123255b822fc22508635218000187221794f59c0694c33b0650d1e377d58",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/deepseek/reederey87-reap256e-vllm-dual"
+      },
+      "dockerfile": "adapters/deepseek/reederey87-reap256e-vllm-dual/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-reap-256e-reederey87-vllm-dual"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "deepseek-v4.1-flash-reap256"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "license-f2c6c6028156-c693279643",
+          "id": "primary-license-f2c6c6028156-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-3e5ec152b9a0-b335630551",
+          "id": "primary-readme-3e5ec152b9a0-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-d34ff5173d57-587cb980af",
+          "id": "primary-config-d34ff5173d57-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-748692038264-5728b2733a",
+          "id": "primary-readme-748692038264-5728b2733a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "encoding-b4bd8a06f94a-498d5dc375",
+          "id": "primary-encoding-b4bd8a06f94a-498d5dc375",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00048-00b8a36fc5ac-7503e94149",
+          "id": "primary-model-00001-of-00048-00b8a36fc5ac-7503e94149",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00048-b79f9953e915-3129ab801a",
+          "id": "primary-model-00002-of-00048-b79f9953e915-3129ab801a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00048-640c9625f3c6-9dce6062d8",
+          "id": "primary-model-00003-of-00048-640c9625f3c6-9dce6062d8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00048-2f98378b1eca-de51bb7f11",
+          "id": "primary-model-00004-of-00048-2f98378b1eca-de51bb7f11",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00048-9791af83a0ff-f4aed197f1",
+          "id": "primary-model-00005-of-00048-9791af83a0ff-f4aed197f1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00048-ecbd136fbd5f-4aa3071889",
+          "id": "primary-model-00006-of-00048-ecbd136fbd5f-4aa3071889",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00048-ff3431f9d1e7-b313c363ec",
+          "id": "primary-model-00007-of-00048-ff3431f9d1e7-b313c363ec",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00048-90c334dc25ac-b1e9247c4c",
+          "id": "primary-model-00008-of-00048-90c334dc25ac-b1e9247c4c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00048-6913650c193d-9778952f4f",
+          "id": "primary-model-00009-of-00048-6913650c193d-9778952f4f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00048-8fcd31b48530-afedcb2470",
+          "id": "primary-model-00010-of-00048-8fcd31b48530-afedcb2470",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00048-88d14ef29d40-402f6b34e5",
+          "id": "primary-model-00011-of-00048-88d14ef29d40-402f6b34e5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00048-9d26b5d64084-816565fe3c",
+          "id": "primary-model-00012-of-00048-9d26b5d64084-816565fe3c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00048-e094241fcfff-c418f94e02",
+          "id": "primary-model-00013-of-00048-e094241fcfff-c418f94e02",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00048-c38f0c23337f-06c36c01d2",
+          "id": "primary-model-00014-of-00048-c38f0c23337f-06c36c01d2",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00048-bf8b45393529-6db0eca0da",
+          "id": "primary-model-00015-of-00048-bf8b45393529-6db0eca0da",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00048-975b46d5fe45-6f452915bf",
+          "id": "primary-model-00016-of-00048-975b46d5fe45-6f452915bf",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00048-6deaf012542e-919276ec38",
+          "id": "primary-model-00017-of-00048-6deaf012542e-919276ec38",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00048-86e23fab4bf4-77ad887f88",
+          "id": "primary-model-00018-of-00048-86e23fab4bf4-77ad887f88",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00048-b0c26acf0854-791959afb0",
+          "id": "primary-model-00019-of-00048-b0c26acf0854-791959afb0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00048-0507e995c73b-448bd8d570",
+          "id": "primary-model-00020-of-00048-0507e995c73b-448bd8d570",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00048-dda797618377-7092987a96",
+          "id": "primary-model-00021-of-00048-dda797618377-7092987a96",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00022-of-00048-4ee22be37b03-3ec9491126",
+          "id": "primary-model-00022-of-00048-4ee22be37b03-3ec9491126",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00023-of-00048-63922481970d-3d230147a1",
+          "id": "primary-model-00023-of-00048-63922481970d-3d230147a1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00024-of-00048-eccb27549f4c-5cd6f2c0a1",
+          "id": "primary-model-00024-of-00048-eccb27549f4c-5cd6f2c0a1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00025-of-00048-6e765e6198e2-f5a206308a",
+          "id": "primary-model-00025-of-00048-6e765e6198e2-f5a206308a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00026-of-00048-d76c2793db7d-1eae34d6f4",
+          "id": "primary-model-00026-of-00048-d76c2793db7d-1eae34d6f4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00027-of-00048-20d719c84242-c320f0d9b9",
+          "id": "primary-model-00027-of-00048-20d719c84242-c320f0d9b9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00028-of-00048-e32c5a15f5e5-8e5061611f",
+          "id": "primary-model-00028-of-00048-e32c5a15f5e5-8e5061611f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00029-of-00048-430d135b0f1d-e9124db7b0",
+          "id": "primary-model-00029-of-00048-430d135b0f1d-e9124db7b0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00030-of-00048-46697f225e33-e5e9dcc777",
+          "id": "primary-model-00030-of-00048-46697f225e33-e5e9dcc777",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00031-of-00048-6f89365e75a8-5e29ac41c6",
+          "id": "primary-model-00031-of-00048-6f89365e75a8-5e29ac41c6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00032-of-00048-d7e1cd4de45b-08ffad6e53",
+          "id": "primary-model-00032-of-00048-d7e1cd4de45b-08ffad6e53",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00033-of-00048-1f2525087db1-cf17d9fd38",
+          "id": "primary-model-00033-of-00048-1f2525087db1-cf17d9fd38",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00034-of-00048-51d2f84bb0fa-37b7920bb2",
+          "id": "primary-model-00034-of-00048-51d2f84bb0fa-37b7920bb2",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00035-of-00048-67da390a0514-c4628b9b35",
+          "id": "primary-model-00035-of-00048-67da390a0514-c4628b9b35",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00036-of-00048-f701eca27510-00f0b500e5",
+          "id": "primary-model-00036-of-00048-f701eca27510-00f0b500e5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00037-of-00048-ad5205b209a6-3a963e436b",
+          "id": "primary-model-00037-of-00048-ad5205b209a6-3a963e436b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00038-of-00048-eae75209ab53-d9b93682b0",
+          "id": "primary-model-00038-of-00048-eae75209ab53-d9b93682b0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00039-of-00048-cf4e69e010c2-ce14a411ca",
+          "id": "primary-model-00039-of-00048-cf4e69e010c2-ce14a411ca",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00040-of-00048-08f9decdcee1-c54b06dae5",
+          "id": "primary-model-00040-of-00048-08f9decdcee1-c54b06dae5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00041-of-00048-ee8b08cfc5c7-430b34d049",
+          "id": "primary-model-00041-of-00048-ee8b08cfc5c7-430b34d049",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00042-of-00048-c88ce1c56c07-bb5eb54519",
+          "id": "primary-model-00042-of-00048-c88ce1c56c07-bb5eb54519",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00043-of-00048-616f7c844e5c-1d4f26e371",
+          "id": "primary-model-00043-of-00048-616f7c844e5c-1d4f26e371",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00044-of-00048-f1b4c2780d69-7d0adfa649",
+          "id": "primary-model-00044-of-00048-f1b4c2780d69-7d0adfa649",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00045-of-00048-1adc78b4f76d-b3fd5b3f76",
+          "id": "primary-model-00045-of-00048-1adc78b4f76d-b3fd5b3f76",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00046-of-00048-e2f2e27ce6e0-12e46b941b",
+          "id": "primary-model-00046-of-00048-e2f2e27ce6e0-12e46b941b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-4547ea64e0e2-0a05be8238",
+          "id": "primary-model-safetensors-index-4547ea64e0e2-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-c90dfa01249d-224931eb13",
+          "id": "primary-tokenizer-c90dfa01249d-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-6ac8c8dc065e-94d5c6ba8f",
+          "id": "primary-tokenizer-config-6ac8c8dc065e-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "bc7c00662f653295d5601795fbb3ff38df933671f4cc02fa86f0d1118244df20",
+        "kind": "model",
+        "publisher": "libertaidai",
+        "slug": "deepseek-v4-1-flash-reap-256e-76ced425"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "model-00047-of-00048-824db4881320-a8608c02bd",
+          "id": "engram-model-00047-of-00048-824db4881320-a8608c02bd",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00048-of-00048-976330f49543-aff6c0ae41",
+          "id": "engram-model-00048-of-00048-976330f49543-aff6c0ae41",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "dependency-deepseek-v4-1-flash-dba1be0a",
+      "model": {
+        "content_sha256": "b4b7a6f6829c3ba874f9acda79322ea1280d3534b782e8921cbf6298d77d0fa9",
+        "kind": "model",
+        "publisher": "deepseek-ai",
+        "slug": "deepseek-v4-1-flash-dba1be0a"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "env": {
+            "REAP256E_SPECULATION": "off"
+          },
+          "help": "Upstream's shipped default (env.example SPEC_METHOD=none, its first-boot shape): no speculative config, the 13.16 tokens/s baseline arm.",
+          "label": "Off",
+          "value": "off"
+        },
+        {
+          "help": "Upstream's measured fast arm: DSpark drafts 5 tokens per step with the greedy draft sampler (25.65 tokens/s against 13.16 without, publisher-measured on two Sparks).",
+          "label": "DSpark, 5 tokens",
+          "value": "dspark"
+        }
+      ],
+      "help": "DSpark drafts with the draft stages stored in the checkpoint. Upstream ships it off and measured it on as an A/B arm; its block-10 arm was slower (16.84 tokens/s), so no other width is offered.",
+      "label": "Speculative decoding",
+      "name": "speculation"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Reederey87",
+      "LibertAI",
+      "DeepSeek AI",
+      "Cerebras REAP"
+    ],
+    "source_reference": "https://github.com/Reederey87/deepseek-v41-flash-reap-2x-dgx-spark/tree/4ccddc8801757e3f26b162688ddd6bcdd0668bdb"
+  },
+  "release": {
+    "released_at": "2026-09-13",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "deepseek-v4.1-flash-reap256"
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 2
+      },
+      {
+        "name": "distributed-executor-backend",
+        "setting": null,
+        "value": "mp"
+      },
+      {
+        "name": "tokenizer-mode",
+        "setting": null,
+        "value": "deepseek_v41"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "deepseek_v41"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "deepseek_v41"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "no-async-scheduling",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "long-prefill-token-threshold",
+        "setting": null,
+        "value": 4096
+      },
+      {
+        "name": "load-format",
+        "setting": null,
+        "value": "safetensors"
+      },
+      {
+        "name": "safetensors-load-strategy",
+        "setting": null,
+        "value": "lazy"
+      },
+      {
+        "name": "block-size",
+        "setting": null,
+        "value": 64
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.82"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 4294967296
+      },
+      {
+        "name": "engram-config",
+        "setting": null,
+        "value": "{\"cpu_offload\":false}"
+      },
+      {
+        "name": "language-model-only",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enforce-eager",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "hf-overrides",
+        "setting": null,
+        "value": "{\"vision_max_n_token\":0}"
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"dspark\",\"num_speculative_tokens\":5,\"draft_sample_method\":\"greedy\"}"
+      },
+      {
+        "name": "kernel-config",
+        "setting": null,
+        "value": "{\"enable_flashinfer_autotune\":false,\"enable_cutedsl_warmup\":false,\"enable_jit_warmup\":false}"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "DSV41_ENGRAM_DISK",
+        "value": "1"
+      },
+      {
+        "name": "DSV41_ENGRAM_STRICT",
+        "value": "1"
+      },
+      {
+        "name": "DSV41_MODEL_DIR",
+        "value": "/models"
+      },
+      {
+        "name": "VLLM_WORKER_MULTIPROC_METHOD",
+        "value": "spawn"
+      },
+      {
+        "name": "VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS",
+        "value": "1800"
+      },
+      {
+        "name": "VLLM_ENGINE_READY_TIMEOUT_S",
+        "value": "4800"
+      },
+      {
+        "name": "VLLM_DEEP_GEMM_WARMUP",
+        "value": "skip"
+      },
+      {
+        "name": "TORCH_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "CUTE_DSL_ARCH",
+        "value": "sm_121a"
+      },
+      {
+        "name": "MAX_JOBS",
+        "value": "2"
+      },
+      {
+        "name": "NCCL_CUMEM_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_P2P_DISABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CROSS_NIC",
+        "value": "0"
+      },
+      {
+        "name": "UCX_MEM_MMAP_HOOK_MODE",
+        "value": "none"
+      },
+      {
+        "name": "UCX_RCACHE_MAX_UNRELEASED",
+        "value": "1024"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 2
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 65536
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "dual",
+    "node_count": 2,
+    "parallelism": {
+      "backend": "native",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 413992884461,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 24000000000,
+            "working_bytes": 20000000000
+          },
+          "memory": {
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      },
+      {
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 413992884461,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 24000000000,
+            "working_bytes": 20000000000
+          },
+          "memory": {
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "worker",
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "deepseek-v4.1-flash-reap256"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

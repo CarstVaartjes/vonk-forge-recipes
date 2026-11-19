@@ -2,7 +2,8 @@
 
 One owner for the identity, licence and format flags, the file roles and ids,
 and the validated write of ``models/<version-slug>.json`` and the
-``display/models/<version-slug>.json`` that carries its titles, description and tags.
+``display/models/<version-slug>.json`` that carries its titles, description,
+tags and its place in the catalog hierarchy (``--lineage``).
 """
 
 from __future__ import annotations
@@ -31,9 +32,16 @@ def add_model_arguments(parser: argparse.ArgumentParser) -> None:
         help="who publishes this checkpoint (the identity and display publisher)",
     )
     parser.add_argument(
-        "--family-publisher",
-        help="the original publisher of the model lineage (default: --publisher); "
+        "--model-publisher",
+        help="the original publisher of the logical model (default: --publisher); "
         "set it when --publisher republished or quantized another creator's model",
+    )
+    parser.add_argument(
+        "--lineage",
+        type=json.loads,
+        help="the display lineage as a JSON object (family, line, model, "
+        "variant_kind, ...): required for a Model a recipe serves "
+        "first, absent for a helper; its family must be in display/families",
     )
     parser.add_argument("--model-group-slug", required=True)
     parser.add_argument("--model-group-title", required=True)
@@ -69,11 +77,16 @@ def slug(value: str) -> str:
     return text if text[:1].isalpha() else f"file-{text}"
 
 
+WEIGHT_SUFFIXES = (".safetensors", ".gguf", ".pth", ".pt", ".bin", ".onnx", ".ckpt")
+
+
 def roles_for(path: str) -> list[str]:
     lowered = path.lower()
-    if lowered.endswith(".safetensors") or "model-" in lowered:
+    if lowered.endswith(WEIGHT_SUFFIXES) or "model-" in lowered:
         return ["weights"]
-    if "token" in lowered or "vocab" in lowered or lowered.endswith(".jinja"):
+    if any(k in lowered for k in ("token", "vocab", "merges")) or lowered.endswith(
+        ".jinja"
+    ):
         return ["tokenizer"]
     if "config" in lowered or "generation" in lowered or lowered.endswith(".json"):
         return ["configuration"]
@@ -119,18 +132,14 @@ def write_model(
     for modality in modalities:
         if modality not in {"text", "image", "audio", "video", "3d", "embeddings"}:
             raise SystemExit(f"unsupported model modality: {modality}")
-    lineage_publisher = args.family_publisher or args.publisher
+    model_publisher = args.model_publisher or args.publisher
     document = {
         "kind": "model",
         "identity": {
             "publisher": args.publisher,
             "slug": args.version_slug,
-            "family": {
-                "publisher": lineage_publisher,
-                "slug": args.model_group_slug,
-            },
             "model": {
-                "publisher": lineage_publisher,
+                "publisher": model_publisher,
                 "slug": args.model_slug,
             },
             "version": args.version,
@@ -153,7 +162,7 @@ def write_model(
             "family_title": args.model_group_title,
             "model_title": args.model_title,
             "description": args.model_description,
-            "tags": list(dict.fromkeys([lineage_publisher, args.model_group_slug])),
+            "tags": list(dict.fromkeys([model_publisher, args.model_group_slug])),
             "modalities": modalities,
             "capabilities": sorted(set(args.capability)),
             "license": {
@@ -161,6 +170,7 @@ def write_model(
                 "url": args.license_url,
                 "attribution": args.attribution,
             },
+            **({"lineage": args.lineage} if args.lineage is not None else {}),
         }
     )
     root = args.root.resolve()

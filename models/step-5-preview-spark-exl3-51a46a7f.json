@@ -1780,10 +1780,6 @@
     "quantization": "exl3"
   },
   "identity": {
-    "family": {
-      "publisher": "stepfun-ai",
-      "slug": "step-5"
-    },
     "model": {
       "publisher": "stepfun-ai",
       "slug": "step-5-preview-spark-exl3"

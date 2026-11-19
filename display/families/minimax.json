@@ -1,0 +1,95 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "minimax-m2",
+          "title": "MiniMax M2"
+        },
+        {
+          "slug": "minimax-m2-5",
+          "title": "MiniMax M2.5"
+        },
+        {
+          "slug": "minimax-m2-7",
+          "title": "MiniMax M2.7"
+        }
+      ],
+      "slug": "minimax-m-229b",
+      "title": "MiniMax M 229B"
+    },
+    {
+      "models": [
+        {
+          "slug": "minimax-m3",
+          "title": "MiniMax M3"
+        }
+      ],
+      "slug": "minimax-m-427b",
+      "title": "MiniMax M 427B"
+    },
+    {
+      "models": [
+        {
+          "slug": "minimax-h3",
+          "title": "MiniMax H3"
+        }
+      ],
+      "slug": "minimax-h",
+      "title": "MiniMax H"
+    },
+    {
+      "models": [
+        {
+          "slug": "minimax-h3-fl2va",
+          "title": "MiniMax H3 FL2VA"
+        }
+      ],
+      "slug": "minimax-h-fl2va",
+      "title": "MiniMax H FL2VA"
+    },
+    {
+      "models": [
+        {
+          "slug": "minimax-h3-ref2va",
+          "title": "MiniMax H3 Ref2VA"
+        }
+      ],
+      "slug": "minimax-h-ref2va",
+      "title": "MiniMax H Ref2VA"
+    },
+    {
+      "models": [
+        {
+          "slug": "minimax-music3",
+          "title": "MiniMax Music3"
+        }
+      ],
+      "slug": "minimax-music",
+      "title": "MiniMax Music"
+    },
+    {
+      "models": [
+        {
+          "slug": "minimax-h3-image",
+          "title": "MiniMax H3 Image"
+        }
+      ],
+      "slug": "minimax-h-image",
+      "title": "MiniMax H Image"
+    },
+    {
+      "models": [
+        {
+          "slug": "minimax-m3-1-flash",
+          "title": "MiniMax M3.1 Flash"
+        }
+      ],
+      "slug": "minimax-m-flash",
+      "title": "MiniMax M Flash"
+    }
+  ],
+  "slug": "minimax",
+  "title": "MiniMax"
+}

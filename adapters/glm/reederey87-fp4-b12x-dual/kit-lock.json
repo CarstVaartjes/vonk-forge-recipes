@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595",
+      "kind": "tag",
+      "ref": "nightly-20261015",
+      "repo": "docker.io/eugr/spark-vllm-b12x"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "76348ddb2be2e35e39ecfc00e75dc07703f4f3d5",
+      "repo": "nvidia/GLM-5.3-Flash-FP4-Local",
+      "revision": "76348ddb2be2e35e39ecfc00e75dc07703f4f3d5"
+    }
+  },
+  "kit": {
+    "commit": "29d0989cf60a82f653c33a25c871d00cba9ae1fe",
+    "repo": "Reederey87/glm53-flash-fp4-b12x-2x-dgx-spark"
+  }
+}

@@ -28,9 +28,12 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
+sys.path.insert(0, str(ROOT))
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.model import GitHubReleaseSource
+
+from qualification.documents import model_display
 
 DEFAULT_MANIFEST = ROOT / "upstream-watch.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
@@ -221,7 +224,7 @@ def parse_source(value: str) -> SourceLocation:
     parts = [part for part in parsed.path.split("/") if part]
     if host == "github.com":
         supported_length = len(parts) in {2, 4} or (
-            len(parts) >= 5 and parts[2] == "blob"
+            len(parts) >= 5 and parts[2] in {"blob", "tree"}
         )
         if not supported_length or not REPOSITORY_PART.fullmatch(parts[0]):
             raise DriftInputError(f"GitHub source repository is invalid: {value}")
@@ -236,7 +239,9 @@ def parse_source(value: str) -> SourceLocation:
             len(parts) == 4
             and parts[2] in {"tree", "commit"}
             and SHA.fullmatch(parts[3])
-        ) or (len(parts) >= 5 and parts[2] == "blob" and SHA.fullmatch(parts[3])):
+        ) or (
+            len(parts) >= 5 and parts[2] in {"blob", "tree"} and SHA.fullmatch(parts[3])
+        ):
             embedded = parts[3]
         elif len(parts) != 2:
             raise DriftInputError(f"GitHub source URL form is unsupported: {value}")
@@ -372,16 +377,22 @@ def discover_watches(
 ) -> list[Watch]:
     watches: list[Watch] = []
     discovered_entities: set[str] = set()
+    # A Model's family is its display lineage's; a helper has none.
     family_of: dict[str, str] = {}
+    for path in sorted((root / "display" / "models").glob("*.json")):
+        display = model_display(path.stem, root)
+        if display.lineage is not None:
+            identity = display.identity
+            family_of[f"model/{identity.publisher}/{identity.slug}"] = (
+                display.lineage.family
+            )
     models_of: dict[str, tuple[str, ...]] = {}
     for directory, expected_kind in ENTITY_DIRECTORIES.items():
         for path in sorted((root / directory).glob("*.json")):
             document = json.loads(path.read_text(encoding="utf-8"))
-            family_slug = ""
             try:
                 if expected_kind == "model":
                     validated_model = ModelDefinition.model_validate(document)
-                    family_slug = validated_model.identity.family.slug
                     document = validated_model.model_dump(mode="json")
                 else:
                     document = RecipeDefinition.model_validate(document).model_dump(
@@ -394,7 +405,6 @@ def discover_watches(
             publisher, slug = _identity(document, path, expected_kind)
             entity = f"{expected_kind}/{publisher}/{slug}"
             discovered_entities.add(entity)
-            family_of[entity] = family_slug
             source = document.get("source")
             if not isinstance(source, dict):
                 continue
@@ -535,7 +545,11 @@ class ProviderClient:
                 self.cache[url] = value
                 return value
             except HTTPError as error:
-                if error.code == 404:
+                # Hugging Face answers an anonymous request for a deleted or
+                # private repository with 401, not 404 (gated ones still list).
+                if error.code == 404 or (
+                    error.code == 401 and provider == "huggingface" and not token
+                ):
                     raise RemoteNotFound(url) from error
                 if error.code not in {429, 500, 502, 503, 504} or attempt == 2:
                     raise RuntimeError(

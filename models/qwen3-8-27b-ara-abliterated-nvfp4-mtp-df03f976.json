@@ -205,10 +205,6 @@
     "quantization": "nvfp4-compressed-tensors-mtp-bf16"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "aday777",
       "slug": "qwen3-8-27b-ara-abliterated-nvfp4-mtp"

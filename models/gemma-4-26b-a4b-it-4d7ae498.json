@@ -115,10 +115,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "google",
-      "slug": "gemma"
-    },
     "model": {
       "publisher": "google",
       "slug": "gemma-4-26b-a4b"

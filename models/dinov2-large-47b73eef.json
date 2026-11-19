@@ -34,10 +34,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "facebook",
-      "slug": "dinov2"
-    },
     "model": {
       "publisher": "facebook",
       "slug": "dinov2-large"

@@ -43,10 +43,6 @@
     "quantization": "gguf-q4-0"
   },
   "identity": {
-    "family": {
-      "publisher": "google",
-      "slug": "gemma"
-    },
     "model": {
       "publisher": "ggml-org",
       "slug": "gemma-4-31b"

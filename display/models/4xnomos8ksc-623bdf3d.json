@@ -16,6 +16,13 @@
     "spdx": "CC-BY-4.0",
     "url": "https://huggingface.co/Phips/4xNomos8kSC/blob/623bdf3d1ec5bccb02548a79eec1b62d32ff86fd/README.md"
   },
+  "lineage": {
+    "family": "4xnomos8ksc",
+    "generation": "4xNomos8kSC",
+    "line": "4xnomos8ksc",
+    "model": "4xnomos8ksc",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image"
   ],

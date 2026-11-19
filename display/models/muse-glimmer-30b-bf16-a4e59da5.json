@@ -5,7 +5,8 @@
     "image-understanding",
     "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Exact public Muse Glimmer 30B BF16 a4e59da5 checkpoint.",
   "family_title": "Muse Glimmer",
@@ -21,9 +22,17 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B/blob/a4e59da52a7bc87ae7251dd5545c0dd437c44b68/LICENSE"
   },
+  "lineage": {
+    "family": "muse",
+    "generation": "Muse",
+    "line": "muse-glimmer-30b",
+    "model": "muse-glimmer-30b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "Muse Glimmer 30B",
   "tags": [

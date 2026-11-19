@@ -200,24 +200,6 @@
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
-      "file": "tests/test_sparkinfer_target_only_canary_recipe.py",
-      "rule": "reportArgumentType",
-      "count": 1,
-      "reason": "The test deliberately passes partial or malformed values to prove the producer refuses them."
-    },
-    {
-      "file": "tests/test_sparkinfer_target_only_canary_recipe.py",
-      "rule": "reportGeneralTypeIssues",
-      "count": 1,
-      "reason": "The fixture is intentionally ungrown so a malformed-input path can be exercised."
-    },
-    {
-      "file": "tests/test_sparkinfer_target_only_canary_recipe.py",
-      "rule": "reportIndexIssue",
-      "count": 12,
-      "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
       "file": "tests/test_three_d_glb_validation.py",
       "rule": "reportArgumentType",
       "count": 10,
@@ -293,12 +275,6 @@
       "file": "tests/test_vllm028_migration.py",
       "rule": "reportIndexIssue",
       "count": 8,
-      "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
-      "file": "tests/test_vllm028_model_variants.py",
-      "rule": "reportIndexIssue",
-      "count": 24,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {

@@ -1345,7 +1345,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c677ef767503a6364608fb8a93b5eeaf15ccc6731bbab167f503808cbdd12025",
+        "content_sha256": "f0841375182e77b8b55e449712c5f65dc4ea9b7be8b69addace942704df890f4",
         "kind": "model",
         "publisher": "libertaidai",
         "slug": "hy3-nvfp4-libertai-8a805d68"

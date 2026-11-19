@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""ds41f-prepare --check-pins | --only PART | --all | --directory | --smoke | --export SRC DEST"""
+import argparse
+import importlib.machinery
+import importlib.util
+import json
+import os
+import sys
+from pathlib import Path
+
+ROOT = Path("/work/spark-ds41f")
+loader = importlib.machinery.SourceFileLoader("spark", str(ROOT / "bin/spark"))
+spec = importlib.util.spec_from_loader("spark", loader)
+spark = importlib.util.module_from_spec(spec)
+loader.exec_module(spark)
+env = os.environ
+lock = json.loads((ROOT / env["SPARK_DS41F_LOCK"]).read_text(encoding="utf-8"))
+spark.configuration = lambda args=None: ({}, {}, lock)
+command = sys.argv[1:]
+
+
+def check_pins() -> None:
+    inputs = spark.build_inputs(lock)  # refuses missing patches and unrecorded patch sets
+    sources = lock["sources"]
+    base = sources["vllm_base_image"]
+    problems = []
+
+    def want(what, actual, expected):
+        if actual != expected:
+            problems.append(f"{what}: spark-ds41f records {actual!r}, the Dockerfile pins {expected!r}")
+
+    want("base image", inputs["base_image"], env["BASE_IMAGE"])
+    want("base image name", base["upstream"], env["BASE_IMAGE_NAME"])
+    want("base image digest", base["recorded_base_digest"], env["BASE_IMAGE_DIGEST"])
+    want("base source revision", inputs["base_source_revision"], env["VLLM_BASE_SOURCE_REVISION"])
+    want("cutlass upstream", inputs["cutlass"]["upstream"].removesuffix(".git"), env["CUTLASS_UPSTREAM"])
+    want("cutlass revision", inputs["cutlass"]["revision"], env["CUTLASS_REVISION"])
+    want("cutlass tag", inputs["cutlass"]["release_tag"], env["CUTLASS_RELEASE_TAG"])
+    projects = spark.build_projects(inputs)
+    want("projects", list(projects), ["vllm", "b12x", "nccl", "tilelang", "tile_kernels", "sparknet"])
+    want("runtime stage", spark.runtime_stage(inputs), "runtime-tilelang-sparknet")
+    want("vllm canonical upstream", inputs["vllm"]["canonical_upstream"].removesuffix(".git"),
+         env["VLLM_CANONICAL_UPSTREAM"])
+    for name in projects:
+        record, prefix = inputs[name], name.upper()
+        want(f"{name} upstream", record["upstream"].removesuffix(".git"), env[f"{prefix}_UPSTREAM"])
+        want(f"{name} ref", record["tracking_ref"].removeprefix("refs/heads/"), env[f"{prefix}_REF"])
+        want(f"{name} revision", record["revision"], env[f"{prefix}_REVISION"])
+        want(f"{name} series", record["patch_series"] or "-", env[f"{prefix}_SERIES"])
+        want(f"{name} patch set", record["patchset_sha256"], env[f"{prefix}_PATCHSET_SHA256"])
+        want(f"{name} patch head", record["patch_head"], env[f"{prefix}_PATCH_HEAD"])
+        want(f"{name} tree", record["expected_tree"], env[f"{prefix}_TREE"])
+        if "version" in record:
+            want(f"{name} version", record["version"], env[f"{prefix}_VERSION"])
+    profile = json.loads((ROOT / env["SPARK_DS41F_PROFILE"]).read_text(encoding="utf-8"))
+    want("profile lock", profile["set"]["upstreams_config"], env["SPARK_DS41F_LOCK"])
+    want("profile vLLM tree", profile["set"]["container"]["expected_labels"]["local.spark3.vllm.tree"],
+         env["VLLM_TREE"])
+    if problems:
+        raise SystemExit("pins disagree with spark-ds41f:\n  " + "\n  ".join(problems))
+    print("pins agree with", env["SPARK_DS41F_LOCK"], "and", lock["source_manifest"])
+
+
+if command == ["--check-pins"]:
+    check_pins()
+elif command[:1] == ["--only"] and len(command) == 2:
+    sys.exit(spark.command_build_prepare(argparse.Namespace(only=command[1], cluster_config=None, shape=None)))
+elif command == ["--all"]:
+    sys.exit(spark.command_build_prepare(argparse.Namespace(only=None, cluster_config=None, shape=None)))
+elif command == ["--directory"]:
+    print(spark.build_directory(spark.build_inputs(lock)))
+elif command == ["--smoke"]:
+    sys.stdout.write(spark.smoke_script(lock))
+elif command[:1] == ["--export"] and len(command) == 3:
+    spark.export_source(Path(command[1]), Path(command[2]))
+    spark.normalize_modes(Path(command[2]))
+else:
+    raise SystemExit(__doc__)

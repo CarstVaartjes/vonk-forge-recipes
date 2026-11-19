@@ -1,0 +1,7 @@
+#!/bin/sh
+# Launch the creator's scripts/serve_ripple.py; every engine option comes from the recipe and is appended after
+# the creator's defaults (argparse: the last value wins). The script registers the sglang-exl3 plugin, the
+# RicursiveForCausalLM class and the ripple parsers at import, which SGLang's spawned scheduler processes repeat
+# because they re-import the main script, so it is run as a script and never replaced by `-m sglang.launch_server`.
+set -eu
+exec python3 /opt/vonk/scripts/serve_ripple.py "$@"

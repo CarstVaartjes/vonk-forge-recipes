@@ -664,10 +664,6 @@
     "quantization": "fp8-mxfp4-experts"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-flash"
-    },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-flash"

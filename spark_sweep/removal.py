@@ -39,8 +39,11 @@ class ModelRemover:
     def __init__(self, vk: Vonkctl, state: State) -> None:
         self.vk = vk
         self.state = state
+        self._dirty = False
 
-    def _store(self, digest: str, record: RemovalRecord) -> None:
+    def _store(
+        self, digest: str, record: RemovalRecord, *, durable: bool = False
+    ) -> None:
         previous = self.state.data.setdefault("model_removals", {}).get(digest)
         value = record.model_dump(mode="json")
         self.state.data["model_removals"][digest] = value
@@ -48,7 +51,10 @@ class ModelRemover:
             self.state.event(
                 f"model removal {digest}: {record.outcome}: {record.message}"
             )
-        self.state.save()
+        self._dirty = True
+        if durable:
+            self.state.save()
+            self._dirty = False
 
     def _owners(self, recipes: Mapping[str, Recipe], own: set[int]) -> set[str]:
         reply = self.vk.run("profile", "list", timeout=30)
@@ -67,22 +73,11 @@ class ModelRemover:
                 raise ValueError(
                     f"owner profile {profile.number} definition unavailable"
                 )
-            for view in profile.assignments:
-                if view.model.content_sha256:
-                    protected.add(view.model.content_sha256)
             for assignment in profile.definition.assignments:
                 recipe = recipes.get(assignment.recipe_selector)
                 if recipe is None or not recipe.model_digests:
                     raise ValueError(
                         f"owner profile {profile.number} recipe unavailable"
-                    )
-                if assignment.model_variant and not any(
-                    view.recipe_selector == assignment.recipe_selector
-                    and view.model.content_sha256
-                    for view in profile.assignments
-                ):
-                    raise ValueError(
-                        f"owner profile {profile.number} variant unavailable"
                     )
                 protected.update(recipe.model_digests)
         return protected
@@ -94,6 +89,22 @@ class ModelRemover:
         now: float,
         *,
         final: bool = False,
+    ) -> None:
+        """One pass over the models; its changes are saved once, after the loop."""
+        self._dirty = False
+        try:
+            self._pass(recipes, own, now, final=final)
+        finally:
+            if self._dirty:
+                self.state.save()
+
+    def _pass(
+        self,
+        recipes: Mapping[str, Recipe],
+        own: set[int],
+        now: float,
+        *,
+        final: bool,
     ) -> None:
         consumers: dict[str, list[Recipe]] = {}
         for recipe in recipes.values():
@@ -114,18 +125,14 @@ class ModelRemover:
             )
         }
         records = self.state.data.setdefault("model_removals", {})
+        # A model consumers need again is removed by a fresh request once eligible
+        # again, so its record (receipt or not) holds nothing a later pass reads.
         for digest in records.keys() - eligible:
-            record = RemovalRecord.model_validate(records[digest])
-            if record.outcome == RemovalOutcome.RECEIPT:
-                if not record.needed_again:
-                    record.needed_again = True
-                    self._store(digest, record)
-            else:
-                del records[digest]
-                self.state.event(
-                    f"model removal {digest}: dropped; consumers need it again"
-                )
-                self.state.save()
+            del records[digest]
+            self.state.event(
+                f"model removal {digest}: dropped; consumers need it again"
+            )
+            self._dirty = True
         if not eligible:
             return
         try:
@@ -133,23 +140,23 @@ class ModelRemover:
             owner_error = ""
         except (ValueError, ValidationError) as error:
             protected, owner_error = set(), str(error)
-        # One model per tick bounds CLI latency; rotate by the persisted next check.
+        # One model per tick bounds CLI latency. Submitted requests reconnect first, so
+        # unsubmitted models (no record) cannot starve them; then rotate by next check.
         advanced = False
         for digest in sorted(
             eligible,
-            key=lambda item: (float(records.get(item, {}).get("next_check", 0)), item),
+            key=lambda item: (
+                records.get(item, {}).get("request_key") is None,
+                float(records.get(item, {}).get("next_check", 0)),
+                item,
+            ),
         ):
             record = RemovalRecord.model_validate(
                 self.state.data.setdefault("model_removals", {}).get(digest, {})
             )
             scope = {recipe.key: recipe.content_sha256 for recipe in consumers[digest]}
-            if record.outcome == RemovalOutcome.RECEIPT and (
-                record.needed_again or record.consumers != scope
-            ):
-                history = [*record.history]
-                if record.receipt:
-                    history.append(record.receipt)
-                record = RemovalRecord(history=history)
+            if record.outcome == RemovalOutcome.RECEIPT and record.consumers != scope:
+                record = RemovalRecord()
             record.consumers = scope
             if record.outcome == RemovalOutcome.RECEIPT:
                 continue
@@ -158,7 +165,7 @@ class ModelRemover:
                     self.state.event(
                         f"model removal {digest}: dropped request {record.request_key}; owner needs it"
                     )
-                    record = RemovalRecord(consumers=scope, history=record.history)
+                    record = RemovalRecord(consumers=scope)
                 if now < record.next_check:
                     continue
                 record.outcome = RemovalOutcome.OWNER
@@ -209,32 +216,27 @@ class ModelRemover:
                         f"review error: {_error_text(parsed)}",
                         now,
                     )
-                    record.last_response = review.document
                     self._store(digest, record)
                     return
                 if parsed.target_identity != digest:
                     raise ValueError(
                         "review names different model content; no effects requested"
                     )
-                record.review = review.document
                 if parsed.blockers:
                     raise ValueError("; ".join(item.detail for item in parsed.blockers))
                 if not review.ok:
                     raise ValueError(review.error_text)
             except (ValueError, VonkctlTransportError) as error:
                 self._retry(record, f"review refused: {error}", now)
-                record.last_response = review.document
                 self._store(digest, record)
                 return
             record.request_key = str(uuid4())
-            record.receipt = (
-                None  # prior terminal receipts belong to history, not this request
-            )
+            record.receipt = None  # a prior terminal receipt is not this request's
         record.outcome = RemovalOutcome.WAIT
         record.message = "request submitted or reconnecting; waiting for typed receipt"
         self._schedule(record, now)
         # Write-ahead: even a process death inside run() reconnects to this key.
-        self._store(digest, record)
+        self._store(digest, record, durable=True)
         reply = self.vk.run(
             "model",
             "remove",
@@ -246,7 +248,6 @@ class ModelRemover:
             record.request_key,
             timeout=30,
         )
-        record.last_response = reply.document
         try:
             receipt = _SUBMIT_REPLY.validate_python(reply.require_document())
             if isinstance(receipt, RemovalReplyError):
@@ -267,7 +268,7 @@ class ModelRemover:
             # from prose or an HTTP status: reconnect to the same owner after backoff.
             record.message = f"receipt unavailable: {reply.error_text}; {error}"[:1024]
         else:
-            record.receipt = reply.document
+            record.receipt = receipt
             record.message = f"operation {receipt.operation_id}: {receipt.state}"
             if receipt.state == LifecycleState.SUCCEEDED and receipt.result is not None:
                 record.outcome = RemovalOutcome.RECEIPT
@@ -275,7 +276,6 @@ class ModelRemover:
                     item for item in self.state.data["models_done"] if item != digest
                 ]
             elif receipt.state in TERMINAL:
-                record.history.append(record.receipt or {})
                 record.request_key = None
                 record.outcome = RemovalOutcome.RETRY
                 record.message = (

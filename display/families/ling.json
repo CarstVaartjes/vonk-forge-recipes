@@ -1,0 +1,47 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "ling-3-0-flash",
+          "title": "Ling 3.0 Flash"
+        }
+      ],
+      "slug": "ling-flash",
+      "title": "Ling Flash"
+    },
+    {
+      "models": [
+        {
+          "slug": "ling-3-0-flash-fin",
+          "title": "Ling 3.0 Flash Fin"
+        }
+      ],
+      "slug": "ling-flash-fin",
+      "title": "Ling Flash Fin"
+    },
+    {
+      "models": [
+        {
+          "slug": "ling-3-0-flash-vl",
+          "title": "Ling 3.0 Flash VL"
+        }
+      ],
+      "slug": "ling-flash-vl",
+      "title": "Ling Flash VL"
+    },
+    {
+      "models": [
+        {
+          "slug": "ling-3-1-flash-1019",
+          "title": "Ling 3.1 Flash 1019"
+        }
+      ],
+      "slug": "ling-flash-560b",
+      "title": "Ling Flash 560B"
+    }
+  ],
+  "slug": "ling",
+  "title": "Ling"
+}

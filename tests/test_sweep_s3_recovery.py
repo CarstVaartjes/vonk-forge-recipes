@@ -233,6 +233,7 @@ def test_held_wait_age_and_deadline_survive_json_roundtrips():
 ADAPTERS = [
     *sorted((ROOT / "adapters/media").glob("comfyui-*/comfyui_job.py")),
     ROOT / "adapters/video/drowzeys-fasth3-tensorfold/comfyui_job.py",
+    ROOT / "adapters/video/drowzeys-keys-heretic-h3/comfyui_job.py",
 ]
 
 
@@ -343,12 +344,10 @@ def test_final_fleet_intent_keeps_one_request_across_loss_and_restart(
     assert "finalization" not in resumed.state.data
     assert len(attempts) == (1 if accepted else 2)
     assert set(attempts) == {saved["finalization"]["request_key"]}
-    own = next(
-        row
-        for row in resumed.state.data["own_loads"]
-        if row["request_key"] == attempts[0]
+    assert any(
+        event["message"].startswith("confirmed final")
+        for event in resumed.state.data["events"]
     )
-    assert own["terminal_receipt"]["state"] == LifecycleState.SUCCEEDED
 
 
 def test_canonical_acceptance_outranks_a_refusal_shaped_lost_reply(tmp_path):

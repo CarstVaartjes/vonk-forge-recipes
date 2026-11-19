@@ -43,10 +43,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "inclusionai",
-      "slug": "ling"
-    },
     "model": {
       "publisher": "inclusionai",
       "slug": "ling-3-0-flash-dspark"

@@ -20,6 +20,13 @@
     "spdx": "Apache-2.0",
     "url": "https://www.apache.org/licenses/LICENSE-2.0"
   },
+  "lineage": {
+    "family": "gpt-oss",
+    "generation": "gpt-oss",
+    "line": "gpt-oss-20b",
+    "model": "gpt-oss-20b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "text"
   ],

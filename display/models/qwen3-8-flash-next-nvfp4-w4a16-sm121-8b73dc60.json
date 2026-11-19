@@ -18,6 +18,14 @@
     "spdx": "LicenseRef-Qwen-Community-1.0",
     "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/blob/de4b8e4d43b917e7706784d8bb445c9af86a3540/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-Flash-Next",
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-flash-next",
+    "model": "qwen3-8-flash-next",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

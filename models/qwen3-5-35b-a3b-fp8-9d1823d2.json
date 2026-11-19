@@ -259,10 +259,6 @@
     "quantization": "fp8"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "qwen",
       "slug": "qwen3-5-35b-a3b-fp8"

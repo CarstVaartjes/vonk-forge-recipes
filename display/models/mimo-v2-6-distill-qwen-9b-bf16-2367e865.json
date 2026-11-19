@@ -14,6 +14,14 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Distill-Qwen-9B/blob/2367e865d009c13ac81713a2878291d33ab28177/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.5-9B",
+    "family": "mimo",
+    "generation": "MiMo V2.6",
+    "line": "mimo-distill-9b",
+    "model": "mimo-v2-6-distill-qwen-9b",
+    "variant_kind": "base"
+  },
   "modalities": [
     "text"
   ],

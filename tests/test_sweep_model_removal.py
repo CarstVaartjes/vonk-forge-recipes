@@ -193,6 +193,28 @@ def test_only_a_still_owned_sweep_profile_is_excluded(tmp_path, owned):
     assert any(args[2] in (A, B) for args in peer.submissions) is owned
 
 
+def test_owner_variant_without_list_digests_neither_blocks_nor_unprotects(tmp_path):
+    sweep, peer, _ = scenario(tmp_path)
+    peer.profiles = [
+        {
+            "number": 20,
+            "definition": {
+                "assignments": [
+                    {"recipe_selector": "vonk-forge/b", "model_variant": "int4"}
+                ]
+            },
+            "assignments": [{"recipe_selector": "vonk-forge/b", "model": {}}],
+        }
+    ]
+    for _ in range(3):
+        sweep.remove_finished_models()
+    submitted = {args[2] for args in peer.submissions}
+    assert B in submitted and A not in submitted  # A is b's digest: protected
+    assert sweep.state.data["model_removals"][A]["message"] == (
+        "referenced by an owner profile"
+    )
+
+
 def test_owner_unknown_blocks_only_removal_and_heals(tmp_path):
     sweep, peer, clock = scenario(tmp_path)
     peer.profiles = [{"number": 20, "definition": None}]
@@ -283,8 +305,54 @@ def test_restart_reconnects_to_the_write_ahead_request(tmp_path, fault):
     assert record["outcome"] == RemovalOutcome.RECEIPT
     assert record["receipt"]["request_key"] == original
     status = build_status(sweep)
-    assert status["model_removals"][A]["receipt"] == record["receipt"]
+    assert status["model_removals"][A]["request_key"] == original
     assert original in render_status(status)
+
+
+def test_one_pass_over_many_removals_saves_once(tmp_path):
+    sweep, peer, clock = scenario(tmp_path, extra=3)
+    peer.profiles = [
+        {"number": 20}
+    ]  # unreadable: every eligible model is held, none advanced
+    saves = 0
+    save = sweep.state.save
+
+    def counting_save() -> None:
+        nonlocal saves
+        saves += 1
+        save()
+
+    sweep.state.save = counting_save
+    sweep.model_remover.tick(sweep.recipes, set(), clock.now())
+    held = list(sweep.state.data["model_removals"].values())
+    assert len(held) > 3 and all(r["outcome"] == RemovalOutcome.OWNER for r in held)
+    assert saves == 1
+
+
+def _saved_bytes_after(tmp_path: Path, cycles: int) -> tuple[int, int]:
+    """Saved state and status bytes after ``cycles`` superseded downloads and removals."""
+    tmp_path.mkdir()
+    sweep, peer, clock = scenario(tmp_path)
+    recipe = sweep.recipes["vonk-forge/later"]
+    for _ in range(cycles):
+        sweep.prefetcher._request(recipe, "model")  # supersedes the previous attempt
+        peer.lost = True  # the review passes, the submitted request's reply is lost
+        advance(sweep, clock)
+        peer.state = LifecycleState.FAILED  # the same request ends in a failed receipt
+        advance(sweep, clock)
+        peer.state = LifecycleState.SUCCEEDED
+    saved = json.loads(sweep.state.path.read_text())
+    del saved["events"]  # the event log is capped at EVENT_LIMIT by design
+    status = json.dumps(build_status(sweep), sort_keys=True, default=str)
+    return len(json.dumps(saved)), len(status)
+
+
+def test_saved_state_does_not_grow_with_superseded_attempts(tmp_path):
+    """P17 guard: each save rewrites the state, so history must not accumulate in it."""
+    few = _saved_bytes_after(tmp_path / "few", 3)
+    many = _saved_bytes_after(tmp_path / "many", 30)
+    assert many[0] - few[0] < 256, (few, many)
+    assert many[1] - few[1] < 256, (few, many)
 
 
 def test_terminal_failure_replans_but_backoff_retains_the_request(tmp_path):
@@ -297,7 +365,7 @@ def test_terminal_failure_replans_but_backoff_retains_the_request(tmp_path):
     peer.state = LifecycleState.FAILED
     advance(sweep, clock)
     record = sweep.state.data["model_removals"][A]
-    assert record["history"] and record["request_key"] is None
+    assert record["outcome"] == RemovalOutcome.RETRY and record["request_key"] is None
     peer.state = LifecycleState.SUCCEEDED
     advance(sweep, clock)
     assert sweep.state.data["model_removals"][A]["request_key"] != original
@@ -312,7 +380,6 @@ def test_a_new_request_never_adopts_the_previous_failure_receipt(tmp_path):
     advance(sweep, clock)
     record = sweep.state.data["model_removals"][A]
     assert record["receipt"] is None
-    assert record["history"] == [previous]
     assert record["request_key"] != previous["request_key"]
 
 
@@ -395,6 +462,17 @@ def test_eligibility_loss_drops_pending_removal_before_its_next_check(
     assert sweep.state.data["model_removals"][A]["request_key"] != original
 
 
+def test_an_overdue_submitted_record_reconnects_despite_unsubmitted_models(tmp_path):
+    """Catches unsubmitted digests (no record, next_check 0) taking the tick's slot."""
+    sweep, peer, clock = scenario(tmp_path)
+    peer.lost = True
+    sweep.remove_finished_models()  # A is submitted; B is still unsubmitted
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.WAIT
+    clock.t += MAX_BACKOFF_SECONDS + 1
+    sweep.remove_finished_models()  # a single tick
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.RECEIPT
+
+
 def test_partial_catalog_and_live_slots_never_authorize_removal(tmp_path):
     sweep, peer, _ = scenario(tmp_path)
     sweep.recipe_list.in_pass = True
@@ -425,7 +503,7 @@ def test_final_pass_submits_every_eligible_model_without_waiting(tmp_path):
     )
 
 
-def test_retesting_rearms_cleanup_with_new_identity_and_keeps_prior_receipt(tmp_path):
+def test_retesting_rearms_cleanup_with_a_new_request(tmp_path):
     sweep, _peer, clock = scenario(tmp_path)
     sweep.remove_finished_models()
     original = sweep.state.data["model_removals"][A]["request_key"]
@@ -435,7 +513,6 @@ def test_retesting_rearms_cleanup_with_new_identity_and_keeps_prior_receipt(tmp_
     advance(sweep, clock)
     record = sweep.state.data["model_removals"][A]
     assert record["request_key"] != original
-    assert record["history"][0]["request_key"] == original
 
 
 @pytest.mark.parametrize(

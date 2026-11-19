@@ -40,7 +40,6 @@
           "local": "cached",
           "updated_at": "",
           "base_image": "base-vllm",
-          "cache_ready": false,
           "checks": []
         },
         "library_commit": "accepted-library"
@@ -68,7 +67,6 @@
   "loads": {},
   "load_seq": 0,
   "downloads": {},
-  "download_history": {},
   "pins": [],
   "learned": {},
   "rate": {

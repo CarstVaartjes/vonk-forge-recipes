@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "xyz-aquila-mini",
+          "title": "XYZ-Aquila mini"
+        }
+      ],
+      "slug": "xyz-aquila-mini",
+      "title": "XYZ Aquila mini"
+    }
+  ],
+  "slug": "xyz-aquila",
+  "title": "XYZ Aquila"
+}

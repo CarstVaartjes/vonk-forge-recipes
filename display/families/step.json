@@ -1,0 +1,27 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "step-3-7-flash",
+          "title": "Step 3.7 Flash"
+        }
+      ],
+      "slug": "step-flash",
+      "title": "Step Flash"
+    },
+    {
+      "models": [
+        {
+          "slug": "step-5-preview",
+          "title": "Step 5 Preview"
+        }
+      ],
+      "slug": "step-5",
+      "title": "Step 5"
+    }
+  ],
+  "slug": "step",
+  "title": "Step"
+}

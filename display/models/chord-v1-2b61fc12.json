@@ -16,6 +16,13 @@
     "spdx": "LicenseRef-Ubisoft-Machine-Learning-License-Research-Only-Copyleft",
     "url": "https://github.com/ubisoft/ubisoft-laforge-chord/blob/675a29d1fee5e1b256833bd4edabd619be43d0c7/LICENSE"
   },
+  "lineage": {
+    "family": "chord",
+    "generation": "CHORD v1",
+    "line": "chord",
+    "model": "chord-v1",
+    "variant_kind": "base"
+  },
   "modalities": [
     "image"
   ],

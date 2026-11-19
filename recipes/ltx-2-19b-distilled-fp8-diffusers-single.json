@@ -106,7 +106,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "8235aa3b95c4b4a316a8636ae4ac707a2c3a7ff1f2f394c891acb23fa6c35d12",
+        "content_sha256": "f6573e50fc396ac542e02a199cc0eaa10ca1d9a00eb6e6318783b407de89cdca",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-19b-distilled-fp8"
@@ -337,7 +337,7 @@
       ],
       "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108",
       "model": {
-        "content_sha256": "da57bc35b8603753eb9e0530815e5925401596c58b9eee958b7a0061c0d41f7b",
+        "content_sha256": "16fb1f35c08e16a51b355cc7943db08373a4375df7f48669719c1fb3551d9b9d",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-gemma3-text-encoder-dfcc2108"
@@ -351,8 +351,8 @@
     "source_reference": "https://huggingface.co/Lightricks/LTX-2/tree/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c"
   },
   "release": {
-    "released_at": "2026-11-04",
-    "version": "1.6.1"
+    "released_at": "2026-11-12",
+    "version": "1.6.2"
   },
   "runtime": {
     "arguments": [

@@ -10,9 +10,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 
-@pytest.mark.parametrize(
-    "adapter", ["sparkinfer-single", "sparkinfer-target-only-single"]
-)
+@pytest.mark.parametrize("adapter", ["sparkinfer-single"])
 def test_creator_adapters_select_venv_python_via_vllm_python(adapter: str) -> None:
     """Follow the creator: VLLM_PYTHON makes serve-ds4-flash.sh run `python -m`.
 
@@ -58,15 +56,6 @@ def test_no_generated_console_script_lacks_main_guard() -> None:
             "8224",
             "6",
             "0.9465",
-        ),
-        (
-            "adapters/deepseek/sparkinfer-target-only-single/vllm-wrapper.sh",
-            "deepseek-v4-flash-0731-spark",
-            "262144",
-            "4",
-            "8192",
-            "4",
-            "0.95",
         ),
         (
             "adapters/deepseek/mia-sparkinfer-single/vllm-wrapper.sh",

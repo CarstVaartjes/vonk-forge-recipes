@@ -250,10 +250,6 @@
     "quantization": "exl3-mosaic-2-05-3-05bpw"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "0xsero",
       "slug": "glm-5-3-flash-exl3-mosaic-12l"

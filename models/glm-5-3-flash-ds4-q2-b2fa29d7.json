@@ -1,0 +1,34 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "target",
+      "path": "GLM-5.3-Flash-Q2.gguf",
+      "roles": [
+        "target"
+      ],
+      "sha256": "e81fd6241c6e55a64e1e14e47a3eab61a173fa8d7e4b5c1d1848827119705b32",
+      "size_bytes": 96505816384
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "ds4-q2-imatrix"
+  },
+  "identity": {
+    "model": {
+      "publisher": "zai-org",
+      "slug": "glm-5-3-flash"
+    },
+    "publisher": "antirez",
+    "slug": "glm-5-3-flash-ds4-q2-b2fa29d7",
+    "variant": "GLM 5.3 Flash DS4 Q2 (imatrix)",
+    "version": "ds4-q2-b2fa29d7"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/antirez/glm-5.3-flash-gguf",
+    "revision": "b2fa29d7a6b410db11221c904973967b80b760f5"
+  }
+}

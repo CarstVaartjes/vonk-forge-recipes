@@ -25,10 +25,6 @@
     "quantization": "ds4-q2-imatrix"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-flash"
-    },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-1-flash"

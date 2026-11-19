@@ -1,0 +1,70 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "target",
+      "path": "diffusion_models/minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e889202c41dafb67b10d67b97f0d8541508036a6090af23425a5c2615d03c47a",
+      "size_bytes": 20970379616
+    },
+    {
+      "id": "text-encoder",
+      "path": "text_encoders/H3/qwen3vl_32b_h3_ultra_uncensored_heretic_int8_convrot.safetensors",
+      "roles": [
+        "text-encoder"
+      ],
+      "sha256": "d84547412144b7c50a6ec77437a889b869d3ace88da77ef1775d3d2a4901c192",
+      "size_bytes": 26363476151
+    },
+    {
+      "id": "video-vae",
+      "path": "vae/minimax_h3_video_vae_fp16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522",
+      "size_bytes": 5207808496
+    },
+    {
+      "id": "audio-vae",
+      "path": "vae/minimax_h3_audio_vae_fp32.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48",
+      "size_bytes": 605254808
+    },
+    {
+      "id": "upscaler",
+      "path": "upscale_models/RealESRGAN_x2plus.pth",
+      "roles": [
+        "upscaler"
+      ],
+      "sha256": "49fafd45f8fd7aa8d31ab2a22d14d91b536c34494a5cfe31eb5d89c2fa266abb",
+      "size_bytes": 67061725
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "int8_tensorwise_convrot"
+  },
+  "identity": {
+    "model": {
+      "publisher": "minimax",
+      "slug": "minimax-h3"
+    },
+    "publisher": "drowzeys",
+    "slug": "keys-heretic-minimax-h3-spark-weights-2e4f1dbb",
+    "variant": "keys-heretic-H3-2e4f1dbb",
+    "version": "keys-heretic-H3-2e4f1dbb"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/drowzeys/keys-heretic-MiniMax-H3-sol-engine-more-DGX-Spark-weights",
+    "revision": "2e4f1dbbbc3b42a6c92ac685aa5c4a060c32b05e"
+  }
+}

@@ -2,7 +2,7 @@
   {
     "recorded_at": "2026-10-23T06:42:53.739562Z",
     "recipe": "vonk-forge/wan-2-2-i2v-14b-comfyui-single",
-    "content_sha256": "483dd3941a38e69849e1aaef1cf872c5cad7f5d87f65632bcc90a6363da30948",
+    "content_sha256": "088688cf1f33d2fd1b21ce90113df7364970c0739a9f3e7a694c4987182a6035",
     "code": "sweep.wait_budget_exhausted",
     "controller_document": {
       "id": "ac96b5eb-3396-4012-b462-4c41602207a9",
@@ -39,7 +39,7 @@
   {
     "recorded_at": "2026-10-23T10:32:56.700742Z",
     "recipe": "vonk-forge/qwen3-8b-nvfp4-nvidia-trtllm-single",
-    "content_sha256": "ff68417f3fa81e58bf86830ecb7a024d4cccc3f7acac32ee25130094ad374827",
+    "content_sha256": "5518992c8dc89381437b5780db4049139d1e0237297b69a558372e589d919443",
     "code": "sweep.wait_budget_exhausted",
     "controller_document": {
       "id": "4c1bc97b-3e47-4bf0-a344-8d8606ecff40",
@@ -77,7 +77,7 @@
   {
     "recorded_at": "2026-10-23T10:32:56.701576Z",
     "recipe": "vonk-forge/qwen3-8b-fp8-nvidia-vllm-single",
-    "content_sha256": "4aba622d1385e47bcab86221d34825dc08b10d954352265d24a7bfc2894f1a39",
+    "content_sha256": "0a1fd3a90ab8c0662755dd48775533354f4e1aaf7413917090c9e4251b2b156f",
     "code": "sweep.wait_budget_exhausted",
     "controller_document": {
       "id": "bea7fbc7-40ce-4644-a285-bb89f6dff614",
@@ -153,7 +153,7 @@
   {
     "recorded_at": "2026-10-23T11:07:16.341691Z",
     "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single",
-    "content_sha256": "c01359519fdc0368ce83f4fbcbe51dc0c53a276606ede0703caaa1d85f1071c1",
+    "content_sha256": "97a98bca2b3a45884abd201515bec4d86053403cb62cd3642f2a480454ff563d",
     "code": "sweep.wait_budget_exhausted",
     "controller_document": {
       "id": "72e3090e-030e-401d-b8aa-31c78ca08f11",
@@ -228,7 +228,7 @@
   {
     "recorded_at": "2026-10-23T12:18:03.888120Z",
     "recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
-    "content_sha256": "5fbb82c01c6cf6951c14d20a8c658515c8fbdd87e155d765a93fae1ca80b12f4",
+    "content_sha256": "7baf448d5f27fd51519034d3df85063b9302e5cfa7463d2c0611ea77639507ad",
     "code": "sweep.wait_budget_exhausted",
     "controller_document": {
       "id": "b41184f3-b215-4ac2-9c04-dabadb57b81e",

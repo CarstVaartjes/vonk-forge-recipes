@@ -1,0 +1,30 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "docker/Dockerfile",
+        "pattern": "^ARG BASE_IMAGE=docker\\.io/vllm/vllm-openai@(?P<version>sha256:[0-9a-f]{64})$",
+        "repo": "docker.io/vllm/vllm-openai"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "config/cluster.json",
+        "pattern": "\"models--deepseek-ai--DeepSeek-V4\\.1-Flash-1017/snapshots/(?P<version>[0-9a-f]{40})\"",
+        "repo": "deepseek-ai/DeepSeek-V4.1-Flash-1017"
+      }
+    },
+    "whole": false
+  },
+  "ours": [
+    "build/",
+    "posix-uring/",
+    "scan-sm121.py",
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "commit": "8e5ea208f3d22bc69df91ace94d6975932c858a8",
+    "repo": "christopherowen/spark-ds41f"
+  }
+}

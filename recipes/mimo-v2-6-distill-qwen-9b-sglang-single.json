@@ -206,7 +206,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "eb6fc67e0d24204ef624cc2478ed0905f24b8e5683b606af4ccdcee799d88397",
+        "content_sha256": "803de99f300ab23efe90ab72c5acebcf9c1f1424c18d63e930bbc29ed71088df",
         "kind": "model",
         "publisher": "xiaomimimo",
         "slug": "mimo-v2-6-distill-qwen-9b-bf16-2367e865"

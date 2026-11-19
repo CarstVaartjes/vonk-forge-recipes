@@ -1,0 +1,25 @@
+{
+  "alignment": "unspecified",
+  "description": "Mistral AI's 4.4B multilingual realtime speech-to-text model on one DGX Spark, served by vLLM 0.32.0 as the vLLM Voxtral Realtime recipe documents (`--tokenizer-mode mistral`, piecewise CUDA graphs, 131,072-token window, about three hours of audio). vLLM mounts the OpenAI transcription route, POST /v1/audio/transcriptions, which the Vonk API facts and smoke use, and also the streaming WebSocket route /v1/realtime for live audio; the Realtime route is not yet a typed Vonk interface. 13 languages, any transcription delay from 80 ms to 2.4 s set in the model's tekken.json (480 ms default). Uploads are limited by vLLM's defaults of 25 MiB and 600 seconds. Memory follows the creator, who sets no utilization: vLLM's default 0.9 applies, and the declared peak of 123.8 GB is the offline estimate for it (admissible on an idle Spark); it is an estimate until tried.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "voxtral-mini-4b-realtime-vllm-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "asr",
+    "audio",
+    "candidate",
+    "executable",
+    "mistral",
+    "openai",
+    "realtime",
+    "single",
+    "spark",
+    "speech-to-text",
+    "transcription",
+    "vllm",
+    "voxtral"
+  ],
+  "title": "Voxtral Mini 4B Realtime 2602 (vLLM, single Spark)"
+}

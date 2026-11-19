@@ -1,8 +1,10 @@
 """The public model authoring contract.
 
 The catalog stores one immutable model version/variant as one document.  The
-family, logical model, and exact version are deliberately nested so a model
-document is self describing when it is copied into a recipe package.
+logical model and exact version are deliberately nested so a model document is
+self describing when it is copied into a recipe package. Where a Model sits in
+the catalog's hierarchy (family, line, model) is display, never identity: it
+lives in the Model's display ``lineage``.
 
 Recipes reference a model by the ``document_sha256`` of its published JSON.
 """
@@ -62,22 +64,16 @@ def _https_or_http(value: str, field_name: str) -> str:
     return value
 
 
-class ModelFamily(_ModelContract):
-    publisher: Slug
-    slug: Slug
-
-
 class ModelRecord(_ModelContract):
     publisher: Slug
     slug: Slug
 
 
 class ModelIdentity(_ModelContract):
-    """The family, logical model, exact version, and selected variant."""
+    """The logical model, exact version, and selected variant."""
 
     publisher: Slug
     slug: Slug
-    family: ModelFamily
     model: ModelRecord
     version: StrictStr = Field(min_length=1, max_length=128)
     variant: StrictStr = Field(min_length=1, max_length=128)

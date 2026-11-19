@@ -1,0 +1,27 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "description": "Reflection's DFlash2 speculative drafter for Beam-1.0-501B-A23B (BF16 weights; TensorFold quantizes its linears to 4 bits at load). A helper: it drafts tokens the target verifies and is not served on its own.",
+  "family_title": "Beam",
+  "identity": {
+    "publisher": "reflection",
+    "slug": "beam-1-0-501b-a23b-dflash2-163b276b"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Reflection"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/reflection/Beam-1.0-501B-A23B-DFlash2/blob/163b276be744c8ce2b8385ea85de54edb3088211/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "Beam-1.0-501B-A23B DFlash2",
+  "tags": [
+    "reflection",
+    "beam"
+  ]
+}

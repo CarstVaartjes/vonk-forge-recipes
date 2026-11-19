@@ -12,7 +12,6 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 
 RECIPES = {
-    "glm-5-2-aqlm-vllm-triple": "adapters/glm/mia-triple/vllm-wrapper.py",
     "glm-5-2-quanttrio-vllm-four": "adapters/glm/eugr-four/vllm-wrapper.py",
     "glm-5-3-flash-exl3-dflash2-vllm-mia-four": "adapters/glm/mia-exl3-dflash2-four/vllm-wrapper.py",
     "glm-5-3-flash-exl3-dflash2-vllm-mia-triple": "adapters/glm/mia-exl3-dflash2-triple/vllm-wrapper.py",

@@ -196,7 +196,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a1752c64fded3b0dc7a6e0b16be127f8b8c3fc3188a7a58322398d3aa55c7ae2",
+        "content_sha256": "5ecd84c8adec27892c30a8a2929e500fc0d255ba249cf5074225a7fec14a5f5e",
         "kind": "model",
         "publisher": "jetbrains",
         "slug": "mellum2-1-12b-a2-5b-thinking-bf16-92ddae9f"

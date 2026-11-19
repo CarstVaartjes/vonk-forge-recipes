@@ -1,7 +1,7 @@
 {
   "dependencies": [
     {
-      "content_sha256": "27697cbe0a70d7392fc7e719264da303fd58623edef7d32b5b46771573d1b42c",
+      "content_sha256": "a299e63e04996bf7c5ecf040f119a1d01aad3198e7e5ad6adb33e0572f2b0146",
       "kind": "model",
       "publisher": "bria-ai",
       "slug": "bria-rmbg-1-4"
@@ -113,10 +113,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "vast-ai",
-      "slug": "triposg"
-    },
     "model": {
       "publisher": "vast-ai",
       "slug": "triposg"

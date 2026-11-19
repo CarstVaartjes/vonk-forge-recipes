@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "voxtral-mini-4b-realtime-2602",
+          "title": "Voxtral Mini 4B Realtime 2602"
+        }
+      ],
+      "slug": "voxtral-mini-realtime",
+      "title": "Voxtral Mini Realtime"
+    }
+  ],
+  "slug": "voxtral",
+  "title": "Voxtral"
+}

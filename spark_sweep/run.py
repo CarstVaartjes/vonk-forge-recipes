@@ -15,6 +15,7 @@ under a fake clock and a fake ``vonkctl``:
 
 from __future__ import annotations
 
+import hashlib
 import itertools
 import json
 import random
@@ -26,6 +27,7 @@ from collections.abc import Callable, Iterable, Mapping, Sequence
 from concurrent.futures import Future
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
+from functools import cache, partial
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -75,6 +77,7 @@ from .catalog import (
 from .chat_probe import ChatFacts, chat_facts
 from .definitions import CaseRenderError, Definitions
 from .evidence_publisher import EvidencePublisher
+from .fanout import DaemonExecutor, Outcome, gather
 from .finalization import FinalAction, Finalization
 from .identity import (
     AcceptedRequest,
@@ -128,7 +131,9 @@ from .source_serving import (
     Unserved,
     advance,
     describe,
+    describe_missing,
     digests,
+    missing_from_source,
     unserved,
 )
 from .state import ResultsLog, State, StateLock
@@ -183,27 +188,6 @@ class ProfilePruneOutcome:
 
 class SweepProfileOwnershipError(RuntimeError):
     """Destructive profile edits may not adopt another requester's assignments."""
-
-
-class DaemonExecutor:
-    """Smoke tests on daemon threads: a request that hangs never keeps an interrupted sweep alive."""
-
-    def submit(self, fn: Callable[..., Any], *args: Any) -> Future[Any]:
-        future: Future[Any] = Future()
-
-        def work() -> None:
-            if not future.set_running_or_notify_cancel():
-                return
-            try:
-                future.set_result(fn(*args))
-            except BaseException as error:  # noqa: BLE001 - delivered through the future
-                future.set_exception(error)
-
-        threading.Thread(target=work, daemon=True, name="smoke").start()
-        return future
-
-    def shutdown(self, **_: Any) -> None:
-        return None
 
 
 def _interrupt(_signum: int, _frame: Any) -> None:
@@ -353,7 +337,15 @@ class Sweep:
         self.source_serving = SourceServing.UNREAD
         self.unserved_recipes: tuple[Unserved, ...] = ()
         self.unserved_keys: frozenset[str] = frozenset()
-        self.source_watch: dict[str, Any] = {}  # the bounded wait's watch
+        # Served recipes this older source does not author (named once in a results row).
+        self.source_missing_keys: frozenset[str] = frozenset()
+        # The bounded wait's watch lives in the state: a restart continues the budget.
+        self.source_watch: dict[str, Any] = state.data["source_watch"]
+        # The wait is for this authored content: a restart with other content waits again.
+        self.authored_digest = hashlib.sha256(
+            json.dumps(sorted(self.authored.items())).encode()
+        ).hexdigest()
+        self.sweep_source = recovery.sweep_source_digest()
         # The status alert while the source is not served (cleared once it is).
         self.source_alert = ""
         self.vk = vk
@@ -365,6 +357,7 @@ class Sweep:
         self.futures: dict[str, Future[SmokeResult]] = {}
         self.smoke_stops: dict[str, threading.Event] = {}
         self.catalog_executor = DaemonExecutor()
+        self.read_executor = DaemonExecutor()
         self.catalog_future: Future[Reply] | None = None
         self.catalog_active: Listing[Recipe] | Listing[Model] | None = None
         # The cached listings: scheduling reads these, a refresh updates them page by page.
@@ -374,6 +367,7 @@ class Sweep:
         self.models: dict[str, Model] = self.model_list.rows
         self.fleet = Fleet((), ())
         self.release_at = self.clock.now()  # check_client has just read it
+        self.run_started_at = self.clock.now()  # --limit counts verdicts reached since
         self.status_at = -1e18
         self.owner_status = OwnerStatus()
         # Visible application alarms never reserve unrelated lanes.
@@ -398,6 +392,7 @@ class Sweep:
         self.rate.rate = float(state.data["rate"].get("ema", 0.0))
         self.rate.samples = int(state.data["rate"].get("samples", 0))
         self.guard = OwnerGuard(vk, state, config.owner_hold_seconds)
+        self._reads: dict[str, Outcome] = {}
         self.model_remover = ModelRemover(vk, state)
         # This is a projection of live catalog/owner observations, never a
         # persisted authorization or a gate to carry into a new process.
@@ -784,7 +779,10 @@ class Sweep:
         at the bound the sweep tests what the catalog serves.
         """
         complete = bool(self.recipe_list.passes) and not self.recipe_list.in_pass
-        if not complete or self.source_serving is SourceServing.SERVED:
+        if not complete:
+            return
+        self._observe_source_behind()
+        if self.source_serving is SourceServing.SERVED:
             return
         differing = unserved(
             {key: recipe.content_sha256 for key, recipe in self.recipes.items()},
@@ -795,6 +793,29 @@ class Sweep:
             SourceEvent.UNSERVED_PASS if differing else SourceEvent.SERVED_PASS,
             differing,
         )
+
+    def _observe_source_behind(self) -> None:
+        """A recipe the library serves but this sweep's source lacks is not tested here.
+
+        Not a verdict on the recipe: the sweep's source is older than the library.
+        """
+        missing = missing_from_source(
+            self.recipes.keys(), self.authored, self._selected_key
+        )
+        if frozenset(missing) == self.source_missing_keys:
+            return
+        self.source_missing_keys = frozenset(missing)
+        if not missing:
+            return
+        reason = describe_missing(missing, self.library_commit)
+        self.record_result(
+            None,
+            "catalog",
+            SourceRowStatus.SOURCE_BEHIND,
+            reason=reason,
+            library_commit=self.library_commit or None,
+        )
+        self.state.event(reason)
 
     def observe_source_wait(self) -> None:
         """Every poll of the wait: the bounded wait's budget, said through ``waiting``."""
@@ -827,8 +848,12 @@ class Sweep:
         before_state, before = self.source_serving, self.unserved_recipes
         state = advance(before_state, event)
         self.source_serving = state
-        if state is SourceServing.UNSERVED and before_state is not state:
-            self.source_watch = {}  # bounded_wait starts the budget on its first poll
+        if state is SourceServing.SERVED:
+            self.source_watch.clear()
+        elif self.source_watch.get("authored") != self.authored_digest:
+            # bounded_wait starts the budget on its first poll
+            self.source_watch.clear()
+            self.source_watch["authored"] = self.authored_digest
         self.unserved_recipes = differing if state is SourceServing.UNSERVED else ()
         self.unserved_keys = frozenset(item.recipe for item in self.unserved_recipes)
         if event is SourceEvent.UNSERVED_PASS and differing == before:
@@ -1065,6 +1090,8 @@ class Sweep:
                 continue
             if recipe.key in self.unserved_keys:
                 continue  # the catalog still serves other content than the source
+            if recipe.key not in self.authored:
+                continue  # this sweep's source is older than the library
             out.append(recipe)
         out.sort(
             key=lambda recipe: (
@@ -1083,6 +1110,7 @@ class Sweep:
                 1
                 for e in self.state.recipes.values()
                 if e.get("status") in ("passed", "failed")
+                and float(e.get("finished_at", 0)) >= self.run_started_at
             )
             out = out[: max(0, self.cfg.limit - done)]
         return out
@@ -1172,6 +1200,8 @@ class Sweep:
             )
             self._save_quietly()
         finally:
+            self._reads.clear()
+            self.guard.reads = {}
             self.done_waiting()
 
     def _save_quietly(self) -> None:
@@ -1203,7 +1233,7 @@ class Sweep:
     def _observe_owner(self, now: float) -> None:
         self.owner_status = self.guard.check(now)
         if self.owner_status.new_activity:
-            self.state.data["took_over"] = False  # their load replaced what ours ran
+            self._request_clearing(now)  # their load replaced what ours ran
             self.state.data["owner"]["seen_at"] = now
             self.preempt("an owner profile was loaded")
         if self.owner_status.paused:
@@ -1211,6 +1241,30 @@ class Sweep:
             self.state.data["owner"].setdefault("paused_at", now)
         else:
             self.state.data["owner"].pop("paused_at", None)
+
+    def _observe_concurrently(self) -> None:
+        """The independent read-only observations of a pass, all at once, right before the
+        owner check (after catalog and release work).
+
+        Run after catalog/release work (which may update vonkctl or re-read the fleet), so no
+        prefetched read predates it. Each consumer takes its outcome at its own place in
+        the pass and an error is raised there; writes stay sequential and unchanged.
+        """
+        calls: dict[str, Callable[[], Any]] = {
+            f"owner:{n}": partial(self.guard.read_latest, n)
+            for n in self.guard.profiles
+        }
+        calls["platform"] = lambda: self.vk.run("platform", timeout=30)
+        if self.state.slots:
+            calls["fleet"] = lambda: fetch_fleet(self.vk, self.cfg.default_spark_memory)
+        self._reads = gather(calls, self.read_executor)
+        self.guard.reads = {
+            n: self._reads.pop(f"owner:{n}") for n in self.guard.profiles
+        }
+
+    def _tick_read(self, name: str, fallback: Callable[[], Any]) -> Any:
+        outcome = self._reads.pop(name, None)
+        return outcome.result() if outcome is not None else fallback()
 
     def _tick(self) -> None:
         # Placement/cleanup re-derive these observations only when asked this pass.
@@ -1238,6 +1292,7 @@ class Sweep:
                     and self._selected_key(key)
                 ):
                     self._schedule_retest(key, RetestReason.SCHEDULED)
+        self._observe_concurrently()
         self._observe_owner(now)
         self.observe_platform()
         self.advance_slots(now)
@@ -1432,6 +1487,7 @@ class Sweep:
         return bool(
             entry
             and entry.get("status") == "pending"
+            and key in self.authored  # an older source cannot test what it lacks
             and self._selected(self.recipes[key])
         )
 
@@ -1463,32 +1519,28 @@ class Sweep:
                 + " (time away not counted)"
             )
 
-    def start_takeover(self) -> None:
-        """``run --yes`` means the sweep owns the fleet: clear it once, now, so reviews see idle Sparks.
-
-        While an owner load runs the clearing waits for it (``schedule`` clears once the owner
-        is done); the wait never ends the sweep.
-        """
-        if self.owner_status.paused:
-            self.state.event(
-                f"waiting for an owner load before clearing: {self.owner_status.reason}"
-            )
-            return
-        self._take_over(self.clock.now())
-
     def check_client(self) -> bool:
         """Observe deployment and let the signed CLI updater select a compatible client.
 
         True when an update was applied.
         """
-        version = self.vk.run("--version")
+        reads = gather(
+            {
+                "version": lambda: self.vk.run("--version"),
+                "platform": lambda: self.vk.run("platform", timeout=30),
+                "update": lambda: self.vk.run("update", timeout=60),
+            },
+            self.read_executor,
+        )
+        version = reads["version"].result()
         if version.ok and isinstance(version.document, dict):
             self.state.data["client"] = {
                 k: version.document.get(k)
                 for k in ("version", "source_sha", "control_contract_sha256")
             }
+        self._reads["platform"] = reads["platform"]
         self.observe_platform()
-        check = self.vk.run("update", timeout=60)
+        check = reads["update"].result()
         document = check.document if isinstance(check.document, dict) else {}
         if not check.ok or "update_available" not in document:
             self.state.event(
@@ -1545,10 +1597,11 @@ class Sweep:
             self.state.data["platform"],
             self.state.data.get("client", {}),
             self.clock.now(),
+            self.sweep_source,
         )
 
     def observe_platform(self) -> None:
-        reply = self.vk.run("platform", timeout=30)
+        reply = self._tick_read("platform", lambda: self.vk.run("platform", timeout=30))
         document = (
             reply.document if reply.ok and isinstance(reply.document, dict) else {}
         )
@@ -1610,6 +1663,10 @@ class Sweep:
             return
         self.release_at = now
         self.check_client()
+        # The client's contract fingerprint equals the Controller's: direct evidence the
+        # mismatch is gone, whichever command met it (a rare one may not run for hours).
+        if self._component_observations().get("client") is not None:
+            self.clear_infra(policy.CLIENT_CONTRACT)
 
     def _contract_alert(self) -> None:
         text = (
@@ -1863,6 +1920,7 @@ class Sweep:
             self.state.save()
             self.state.adoptions.clear()
         self.state.data.pop("end", None)
+        self._begin_run()
         # Retired sources may be forgotten, but restarting does not prove that a
         # review/adoption dependency recovered. Its first sighting and budget survive.
         self.state.data["infra"] = {
@@ -1878,24 +1936,22 @@ class Sweep:
                 self._leave_fleet()
             self.requeue_uncertain()
             started = False
+            unmatched = False
             for _ in itertools.count():
+                round_start = self.clock.now()
                 try:
                     if not started:
                         if not self._startup(self.preflight):
                             continue
                         self.adopt_in_flight()
                         started = True
-                        try:
-                            self.start_takeover()
-                        except (VonkctlError, OSError) as error:
-                            # Eager clearing is useful, but is never a startup gate.
-                            self.note_infra("clearing", str(error))
                     self.tick()
                     self.observe_source_wait()
                     if self.done():
                         self.state.data.pop("pending_idle", None)
                         self.state.data["alerts"] = []
                         if self.cfg.watch_seconds <= 0:
+                            unmatched = self._only_matches_nothing()
                             break
                         self.clock.sleep(self.cfg.watch_seconds)
                         self.recipe_list.pass_done_at = (
@@ -1924,13 +1980,33 @@ class Sweep:
                     self.state.event(
                         f"unexpected error in the loop, continuing: {type(error).__name__}: {str(error)[:150]}"
                     )
-                self.clock.sleep(self.cfg.poll_seconds)
+                self.clock.sleep(
+                    min(
+                        self.cfg.poll_seconds,
+                        max(
+                            0.0, round_start + self.cfg.poll_seconds - self.clock.now()
+                        ),
+                    )
+                )
         except KeyboardInterrupt:
             self.interrupt()
             self.finish(interrupted=True)
             return 130
         self.finish()
+        if unmatched:
+            raise RuntimeError(
+                f"--only {' '.join(self.cfg.only)} matches no recipe in the catalog"
+            )
         return 0
+
+    def _only_matches_nothing(self) -> bool:
+        """A complete catalog pass in which ``--only`` selected nothing: a typo, not an empty sweep."""
+        return (
+            bool(self.cfg.only)
+            and bool(self.recipe_list.passes)
+            and not self.recipe_list.in_pass
+            and not any(self._selected_key(key) for key in self.recipes)
+        )
 
     def _model_preparing(self, recipe: Recipe) -> bool:
         return any(
@@ -2201,7 +2277,8 @@ class Sweep:
         entry.pop("exit_repeat", None)
         if "exit_cause" not in facts:
             # An unnamed class keeps its own class and code (no recipe cause is invented): it is
-            # recorded as the platform's, deferred, and reopened by a release change.
+            # recorded as the platform's, deferred, and reopened by a Controller release change (and, for
+            # a sweep crash, by a change of the sweep's own source).
             return replace(
                 failure, evidence={**failure.evidence, "identical_exits": count}
             )
@@ -2435,22 +2512,31 @@ class Sweep:
         """Refresh the load's application; False when the Controller could not be observed."""
         observed = True
         fleet_blind = self.blind
-        for load in list(self.state.data["loads"].values()):
+        loads = list(self.state.data["loads"].values())
+        # The lanes' progress reads are independent, bounded by the live lanes (one thread
+        # each); the state they change is applied in order.
+        replies = gather(
+            {load["request_key"]: partial(self._read_progress, load) for load in loads},
+            self.read_executor,
+        )
+        for load in loads:
             self.blind = fleet_blind
-            fresh = self._poll_application(load)
+            fresh = self._poll_application(load, replies[load["request_key"]].result())
             if not fresh:
                 self.unobserved_loads.add(load["request_key"])
             observed = fresh and observed
         self.blind = fleet_blind
         return observed
 
-    def _poll_application(self, load: dict[str, Any]) -> bool:
+    def _read_progress(self, load: dict[str, Any]) -> Any:
         args = ["progress"]
         if load.get("app_id"):
             args += ["--application", load["app_id"]]
         else:
             args += ["--request-key", load["request_key"]]
-        reply = self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
+        return self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
+
+    def _poll_application(self, load: dict[str, Any], reply: Any) -> bool:
         document = reply.document
         if reply.is_not_found and not load.get("app_id"):
             # An exact fresh lookup proved there is no receipt. Replay the same request.
@@ -2668,7 +2754,9 @@ class Sweep:
                 self.clear_infra("observe")
             return
         try:
-            self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
+            self.fleet = self._tick_read(
+                "fleet", lambda: fetch_fleet(self.vk, self.cfg.default_spark_memory)
+            )
         except VonkctlError as error:
             # An unreadable fleet is unknown: nothing is judged on it this pass.
             self._blind(str(error), error.reply)
@@ -3401,7 +3489,10 @@ class Sweep:
             self._record_pass(key, slot, result)
             return
         assert result.failure is not None
-        failure = result.failure
+        failure = verdict.smoke_workload_exit(
+            result.failure,
+            [p.run_state for p in self.fleet.presences if p.run_id == slot["run_id"]],
+        )
         if failure.klass == SmokeAuthClass.REFUSAL:
             self.clear_infra("client-key")
         if verdict.disposition(failure) is Disposition.WAIT:
@@ -3527,6 +3618,7 @@ class Sweep:
         for alias, record in list(pending.items()):
             if alias in live_aliases or self.clock.now() < record["next_check"]:
                 continue
+            # sequential: every removal edits the one shared sweep profile
             reply = self.vk.run(
                 "profile", "remove", alias, "--yes", profile=self.cfg.sweep_profile
             )
@@ -3883,6 +3975,16 @@ class Sweep:
                 )
         return None
 
+    def _read_wait_receipt(self, application_id: str) -> Any:
+        return self.vk.run(
+            "profile",
+            "progress",
+            "--application",
+            application_id,
+            profile=self.cfg.sweep_profile,
+            timeout=30,
+        )
+
     def _refresh_controller_waits(self, now: float) -> None:
         """Probe live receipts with bounded reads.
 
@@ -3892,6 +3994,7 @@ class Sweep:
         documents: dict[str, Mapping[str, Any]] = {}
         recovered: set[tuple[str, frozenset[tuple[str, str]]]] = set()
         platform = self._component_observations()
+        probing: list[tuple[str, ControllerWaitHold]] = []
         for key, hold in self.controller_wait_holds().items():
             recipe = self.recipes.get(key)
             if recipe is not None and current_identity(recipe) != hold.identity:
@@ -3914,15 +4017,20 @@ class Sweep:
                 continue
             hold.next_check = now + self.cfg.defer_delay
             self.state.entry(key)["controller_wait"] = hold.model_dump(mode="json")
-            if hold.application_id not in documents:
-                reply = self.vk.run(
-                    "profile",
-                    "progress",
-                    "--application",
-                    hold.application_id,
-                    profile=self.cfg.sweep_profile,
-                    timeout=30,
+            probing.append((key, hold))
+        # The held applications' receipts are independent reads; their effects apply in order.
+        replies = gather(
+            {
+                hold.application_id: partial(
+                    self._read_wait_receipt, hold.application_id
                 )
+                for _, hold in probing
+            },
+            self.read_executor,
+        )
+        for key, hold in probing:
+            if hold.application_id not in documents:
+                reply = replies[hold.application_id].result()
                 if reply.is_not_found:
                     # The Controller's definite answer: no such receipt waits any more.
                     self._replan_ended(key, hold, "is absent at the Controller", now)
@@ -4157,12 +4265,10 @@ class Sweep:
         """The online Sparks cleanup bookkeeping keeps from placement, each with why."""
         held: dict[str, str] = {}
         for key, load in self.state.data["cleanup_loads"].items():
-            if load.get("end"):
+            if self._cleanup_settled(load):
                 continue
             name = f"cleanup {str(load.get('app_id') or key)[:8]}"
             if load.get("terminal_receipt"):
-                if load.get("projection_known") and not self._cleanup_pending(load):
-                    continue
                 # Terminal bookkeeping is not a physical occupancy certificate.
                 # Current fleet facts and the fresh Controller review own admission.
                 kept = self._own_aliases()
@@ -4196,14 +4302,22 @@ class Sweep:
         online = {s.id for s in self.sparks()}
         return {node: why for node, why in held.items() if node in online}
 
-    def _cleanup_target_absent(self, load: Mapping, *, terminal: bool = False) -> bool:
+    def _cleanup_target_absent(
+        self,
+        load: Mapping,
+        *,
+        terminal: bool = False,
+        fleet: Callable[[], Reply],
+    ) -> bool:
         """An exact absent receipt plus fresh online fleet facts ends bookkeeping.
 
         A ``terminal`` receipt is final: absence is judged against its own stop targets
         only, and one with none has nothing to wait for. An absent receipt without
         targets may have stopped anything, so only a fleet with no runs ends it.
+        A pass hands in one ``fleet`` read (``functools.cache``) for all its loads, so the
+        Controller is asked once per pass, not once per load.
         """
-        reply = self.vk.run("fleet")
+        reply = fleet()
         if not reply.ok:
             return False
         try:
@@ -4269,39 +4383,87 @@ class Sweep:
         )
         load["observation_budget"] = budget.model_dump(mode="json")
 
+    @staticmethod
+    def _cleanup_due(load: Mapping[str, Any], now: float) -> bool:
+        budget = CleanupObservationBudget.model_validate(
+            load.get("observation_budget", {})
+        )
+        return now >= budget.next_check
+
+    def _read_cleanup_progress(self, now: float) -> dict[str, Outcome]:
+        """The due observers' progress reads, at once (``observe_cleanup`` applies them)."""
+        due = [
+            load
+            for load in self.state.data["cleanup_loads"].values()
+            if not self._cleanup_settled(load)
+            and not load.get("terminal_receipt")
+            and self._cleanup_due(load, now)
+        ]
+        return gather(
+            {load["request_key"]: partial(self._read_progress, load) for load in due},
+            self.read_executor,
+        )
+
+    def _cleanup_settled(self, load: Mapping[str, Any]) -> bool:
+        """Nothing is left to observe: retired, or a terminal receipt whose projection is known
+        and has no pending stop. It reads the other observers' confirmations, so it can change
+        when they do."""
+        return bool(load.get("end")) or bool(
+            load.get("terminal_receipt")
+            and load.get("projection_known")
+            and not self._cleanup_pending(load)
+        )
+
+    def _prune_cleanup_loads(self) -> None:
+        """Keep the observers still needed and the newest settled one; drop older settled ones.
+
+        The newest settled observer stays as the marker that a clearing ran, and any a live
+        load adopted stays too. A dropped observer's stopped rows no longer confirm a survivor's
+        row; that survivor heals by retiring once fleet facts show its target absent.
+        """
+        loads = self.state.data["cleanup_loads"]
+        settled = [key for key, load in loads.items() if self._cleanup_settled(load)]
+        if len(settled) < 2:
+            return
+        order = {
+            item["request_key"]: i
+            for i, item in enumerate(self.state.data["own_loads"])
+        }
+        newest = max(settled, key=lambda key: order.get(key, -1))
+        adopted = {
+            key
+            for load in self.state.data["loads"].values()
+            for key in load.get("adopted_cleanup_requests", [])
+        }
+        for key in settled:
+            if key != newest and key not in adopted:
+                del loads[key]
+
     def observe_cleanup(self) -> None:
         """Reconcile original applications and stops; never replace intent on timeout."""
+        self._prune_cleanup_loads()
+        now = self.clock.now()
+        reads = self._read_cleanup_progress(now)
+        fleet = cache(partial(self.vk.run, "fleet"))
         for load in self.state.data["cleanup_loads"].values():
-            if load.get("end"):
+            if self._cleanup_settled(load):
                 continue
-            if (
-                load.get("terminal_receipt")
-                and load.get("projection_known")
-                and not self._cleanup_pending(load)
-            ):
-                continue  # only a retained terminal receipt is immutable history
-            now = self.clock.now()
+            if not self._cleanup_due(load, now):
+                continue
             budget = CleanupObservationBudget.model_validate(
                 load.get("observation_budget", {})
             )
-            if now < budget.next_check:
-                continue
             if load.get("terminal_receipt"):
                 # The Controller ended it with stops unconfirmed and its receipt is
                 # final: only current fleet facts retire it, once its targets are gone.
-                if self._cleanup_target_absent(load, terminal=True):
+                if self._cleanup_target_absent(load, terminal=True, fleet=fleet):
                     self._end_cleanup(load, now)
                 else:
                     self._defer_cleanup(load, budget, now)
                 continue
-            args = ["progress"]
-            if load.get("app_id"):
-                args += ["--application", load["app_id"]]
-            else:
-                args += ["--request-key", load["request_key"]]
-            reply = self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
+            reply = reads[load["request_key"]].result()
             document = reply.document
-            if reply.is_not_found and self._cleanup_target_absent(load):
+            if reply.is_not_found and self._cleanup_target_absent(load, fleet=fleet):
                 self.clear_infra("clearing")
                 self._end_cleanup(load, now)
                 continue
@@ -4429,7 +4591,7 @@ class Sweep:
             if not self._cleanup_pending(load):
                 # Child completion is not parent completion. Reconcile its exact
                 # targets with fresh fleet facts before retiring the observer.
-                if self._cleanup_target_absent(load, terminal=True):
+                if self._cleanup_target_absent(load, terminal=True, fleet=fleet):
                     self._end_cleanup(load, now)
                 else:
                     self._defer_cleanup(load, budget, now)
@@ -4477,6 +4639,7 @@ class Sweep:
             admitted = False
         if admitted:
             budget.update(attempts=0, next_check=0.0)
+            self.state.data.pop("takeover_fallback", None)
             self.state.data.pop("clearing_reason", None)
             self.state.data.pop("clearing_refusal", None)
             return True
@@ -4574,6 +4737,11 @@ class Sweep:
         self.state.data["clearing_refusal"] = why
         self.state.data["clearing_reason"] = f"clearing refused: {why}"
         return False
+
+    def _begin_run(self) -> None:
+        """A new run takes the fleet from fresh facts, never from the last run's takeover."""
+        self._request_clearing(self.clock.now())
+        self.state.data.pop("cleared_for", None)
 
     def _request_clearing(self, now: float) -> None:
         """A new clearing decision gets its own bounded budget, never an old one's exhaustion."""
@@ -5222,11 +5390,12 @@ class Sweep:
         self, review: Mapping[str, Any]
     ) -> tuple[list[str] | None, str | None]:
         requests = []
+        fleet = cache(partial(self.vk.run, "fleet"))
         for key, load in self.state.data["cleanup_loads"].items():
             if load.get("end"):
                 continue
             if load.get("terminal_receipt") or load.get("state") in SETTLED:
-                if self._cleanup_target_absent(load, terminal=True):
+                if self._cleanup_target_absent(load, terminal=True, fleet=fleet):
                     self._end_cleanup(load, self.clock.now())
                 # An ended owner cannot adopt or execute another stop. The fresh
                 # placement review admits our own stops for any remaining runs.
@@ -5244,7 +5413,7 @@ class Sweep:
                 for row in self._cleanup_pending(load)
                 if set(row["node_ids"]) & online
             ]
-            if pending and self._cleanup_target_absent(load):
+            if pending and self._cleanup_target_absent(load, fleet=fleet):
                 self._end_cleanup(load, self.clock.now())
                 continue
             for row in pending:
@@ -5376,7 +5545,7 @@ class Sweep:
 
     def _rollback(self, placements: Sequence[policy.Placement], why: str) -> None:
         for placement in placements:
-            try:
+            try:  # sequential: every removal edits the one shared sweep profile
                 self.vk.call(
                     "profile",
                     "remove",
@@ -5912,7 +6081,6 @@ class Sweep:
                                 "final receipt does not match the owned request/application"
                             )
                         if document.get("state") == LifecycleState.SUCCEEDED:
-                            own["terminal_receipt"] = dict(document)
                             # A new invocation may request a different final state. Finish
                             # observing the old accepted effect before applying the new one.
                             if final.action != action or final.profile != profile:
@@ -5929,7 +6097,6 @@ class Sweep:
                             )
                             break
                         if document.get("state") in SETTLED:
-                            own["terminal_receipt"] = dict(document)
                             final.request_key = self._own_key(
                                 final.action, final.profile
                             )

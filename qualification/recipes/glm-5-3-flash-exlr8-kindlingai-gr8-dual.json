@@ -1,0 +1,17 @@
+{
+  "id": "vonk-forge/glm-5-3-flash-exlr8-kindlingai-gr8-dual",
+  "service_recipes": {
+    "alias": "glm-5.3-flash",
+    "higher_tiers": {
+      "recovery": [
+        "Controller-only rank-loss and warm-cache recovery"
+      ],
+      "stress": [
+        "Long-context canary with the first-run drafter conversion and page-cache warm-up recorded separately; four concurrent streams, with the shared KV pool line checked"
+      ]
+    },
+    "smoke_cases": [
+      "M0"
+    ]
+  }
+}

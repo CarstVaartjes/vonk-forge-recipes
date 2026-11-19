@@ -52,7 +52,6 @@ def _fresh() -> dict[str, Any]:
         "loads": {},  # request key -> in-flight profile application
         "load_seq": 0,
         "downloads": {},  # key -> {operation_id, request_key, ...}
-        "download_history": {},  # key -> complete prior accepted attempt records
         "pins": [],  # recipe keys in the pin profile
         "learned": {},  # engine -> [[model bytes, load seconds]]
         "rate": {"ema": 0.0, "samples": 0},
@@ -71,6 +70,7 @@ def _fresh() -> dict[str, Any]:
         "own_loads": [],
         "own_aliases": [],  # workload names the sweep put in its profile: never an owner's
         "own_seq": 0,  # numbers the loads the sweep submits itself: one request key per attempt
+        "source_watch": {},  # the bounded wait for the catalog to serve the sweep's source
         "infra": {},  # source -> {message, since, count, until}: problems that are not the recipes
         "mode": "single",
         "events": [],
@@ -92,31 +92,6 @@ def _superseded(reason: object) -> bool:
 def _adopt_evidence(entry: dict[str, Any]) -> None:
     if isinstance(entry.get("evidence"), str):
         entry.setdefault("evidence_bundle", entry.pop("evidence"))
-
-
-def _drop_cache_ready(data: dict[str, Any]) -> None:
-    """The library-assessment input is gone; receipts saved with it lose that one key."""
-    for name in ("downloads", "slots", "loads"):
-        for record in data[name].values():
-            content = record.get("accepted_content")
-            recipe = content.get("recipe") if isinstance(content, dict) else None
-            if isinstance(recipe, dict):
-                recipe.pop("cache_ready", None)
-
-
-def _drop_unbound_downloads(data: dict[str, Any]) -> None:
-    """A current download record that names a request but kept no accepted content is dropped.
-
-    Only pre-#1594 records look like this (every current writer sets ``accepted_content``).
-    With no current record the prefetcher asks for the recipe again; ``download_history`` stays.
-    """
-    downloads = data["downloads"]
-    for key in [
-        key
-        for key, record in downloads.items()
-        if record.get("request_intent") and record.get("accepted_content") is None
-    ]:
-        del downloads[key]
 
 
 def _adopt(
@@ -144,8 +119,6 @@ def _adopt(
         else:
             merged[name] = value
     data = merged
-    _drop_cache_ready(data)
-    _drop_unbound_downloads(data)
     if data["schema"] == SCHEMA:
         return data
     load = data.pop("load", None)

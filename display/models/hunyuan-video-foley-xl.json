@@ -25,6 +25,13 @@
     },
     "url": "https://huggingface.co/tencent/HunyuanVideo-Foley/blob/3abd4e833b95b8db0fc9c687afc52483a48e9a97/LICENSE"
   },
+  "lineage": {
+    "family": "hunyuan",
+    "generation": "HunyuanVideo-Foley",
+    "line": "hunyuanvideo-foley-xl",
+    "model": "hunyuanvideo-foley-xl",
+    "variant_kind": "base"
+  },
   "modalities": [
     "audio",
     "video"

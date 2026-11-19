@@ -1,0 +1,57 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "diffusiongemma-26b-a4b",
+          "title": "DiffusionGemma 26B-A4B"
+        }
+      ],
+      "slug": "diffusiongemma-26b-a4b",
+      "title": "DiffusionGemma 26B-A4B"
+    },
+    {
+      "models": [
+        {
+          "slug": "gemma-4-e2b",
+          "title": "Gemma 4 E2B"
+        }
+      ],
+      "slug": "gemma-e2b",
+      "title": "Gemma E2B"
+    },
+    {
+      "models": [
+        {
+          "slug": "gemma-4-e4b",
+          "title": "Gemma 4 E4B"
+        }
+      ],
+      "slug": "gemma-e4b",
+      "title": "Gemma E4B"
+    },
+    {
+      "models": [
+        {
+          "slug": "gemma-4-26b-a4b",
+          "title": "Gemma 4 26B-A4B"
+        }
+      ],
+      "slug": "gemma-26b-a4b",
+      "title": "Gemma 26B-A4B"
+    },
+    {
+      "models": [
+        {
+          "slug": "gemma-4-31b",
+          "title": "Gemma 4 31B"
+        }
+      ],
+      "slug": "gemma-31b",
+      "title": "Gemma 31B"
+    }
+  ],
+  "slug": "gemma",
+  "title": "Gemma"
+}

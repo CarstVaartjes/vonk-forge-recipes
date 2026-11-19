@@ -16,6 +16,14 @@
     "spdx": "LicenseRef-MiniMax-Music3-Community",
     "url": "https://huggingface.co/MiniMaxAI/MiniMax-Music3/blob/fbdf52fbaaca799592917417eb05f1899f1255ec/LICENSE"
   },
+  "lineage": {
+    "base_model": "MiniMaxAI/MiniMax-Music3",
+    "family": "minimax",
+    "generation": "MiniMax Music3",
+    "line": "minimax-music",
+    "model": "minimax-music3",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text",
     "audio"

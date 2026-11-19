@@ -9,6 +9,7 @@ nothing.
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -184,3 +185,108 @@ def test_the_source_state_machine_and_what_is_judged() -> None:
         {KEY: NEW, "vonk-forge/source-only": NEW, "vonk-forge/other": NEW},
         lambda key: key != "vonk-forge/other",
     ) == (Unserved(KEY, OLD, NEW),)
+
+
+def test_a_restart_continues_the_source_wait_budget(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    recipes = [FakeRecipe("good", ("1" * 64,), content=OLD)]
+    models = [FakeModel("1" * 64)]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, models, gateway=gateway, authored={KEY: NEW}
+    )
+    sweep.preflight()
+    for _ in range(5):
+        sweep.tick()
+        sweep.observe_source_wait()
+        clock.sleep(10)
+    assert sweep.source_serving is SourceServing.UNSERVED
+    started = sweep.source_watch["wait_started_at"]
+    sweep.state.save()
+
+    again, _, _ = make_sweep(
+        tmp_path, recipes, models, fleet=fleet, authored={KEY: NEW}
+    )
+    assert again.source_watch["wait_started_at"] == started
+
+
+def test_only_that_matches_no_recipe_is_an_error_not_a_clean_exit(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    recipes = [FakeRecipe("good", ("1" * 64,), content=OLD)]
+    sweep, _, _ = make_sweep(
+        tmp_path, recipes, [FakeModel("1" * 64)], gateway=gateway, only=("typo",)
+    )
+    with pytest.raises(RuntimeError, match="--only typo matches no recipe"):
+        sweep.run()
+
+
+def test_a_restart_with_other_authored_content_waits_again(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    recipes = [FakeRecipe("good", ("1" * 64,), content=OLD)]
+    models = [FakeModel("1" * 64)]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, models, gateway=gateway, authored={KEY: NEW}
+    )
+    sweep.preflight()
+    for _ in range(5):
+        sweep.tick()
+        sweep.observe_source_wait()
+        clock.sleep(10)
+    assert "wait_started_at" in sweep.source_watch
+    sweep.state.save()
+
+    newer = "e" * 64  # the source checkout moved on while the sweep was down
+    again, _, _ = make_sweep(
+        tmp_path, recipes, models, fleet=fleet, authored={KEY: newer}
+    )
+    again.preflight()
+    again.tick()
+    assert again.source_serving is SourceServing.UNSERVED
+    assert again.source_watch.get("wait_started_at") != sweep.source_watch.get(
+        "wait_started_at"
+    )
+
+
+def test_watch_mode_keeps_polling_when_only_matches_nothing_yet(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    recipes = [FakeRecipe("good", ("1" * 64,), content=OLD)]
+    sweep, _, clock = make_sweep(
+        tmp_path,
+        recipes,
+        [FakeModel("1" * 64)],
+        gateway=gateway,
+        only=("not-yet-published",),
+        watch_seconds=60.0,
+    )
+    start = clock.now()
+
+    def stop_later(now: float) -> None:
+        if now - start >= 600:
+            raise KeyboardInterrupt
+
+    clock.hooks.append(stop_later)
+    assert sweep.run() == 130  # interrupted while still watching, no --only error
+
+
+def test_a_recipe_the_older_source_lacks_is_held_per_row_on_any_pass(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    newer = "vonk-forge/newer"
+    sweep, _, _ = make_sweep(
+        tmp_path,
+        [FakeRecipe("good", ("1" * 64,), content=OLD)],
+        [FakeModel("1" * 64)],
+        gateway=gateway,
+    )
+    assert sweep.run() == 0 and sweep.catalog_loaded
+    # A later pass lists a recipe merged since this sweep's source was taken.
+    sweep.recipes[newer] = replace(sweep.recipes[KEY], key=newer)
+    sweep.state.recipes[newer] = {"status": "pending"}
+    assert [r.key for r in sweep.pending()] == []
+    assert not sweep._open(newer)
+    authored = {**sweep.authored, newer: NEW}
+    sweep.authored = authored  # a restart from a newer source authors it
+    assert [r.key for r in sweep.pending()] == [newer]

@@ -6,9 +6,9 @@
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
-        "path": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed"
+        "path": "adapters/media/comfyui-image-controls"
       },
-      "dockerfile": "adapters/media/comfyui-qwen-image-edit-2511-fp8mixed/Dockerfile",
+      "dockerfile": "adapters/media/comfyui-image-controls/Dockerfile",
       "network": {
         "hosts": [
           "codeload.github.com",
@@ -118,7 +118,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a2690c7dbbd2b238c3d35152395592e17dbb3cdd231063b0b4586a5d9563e23e",
+        "content_sha256": "c8855cd25b66f5543759efec2b119c11515dc6a1a47bcff20eae7a03a0a8d16e",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-comfyui-fp8mixed-f68ace85"
@@ -149,7 +149,7 @@
       ],
       "id": "dependency-qwen-image-2512-comfyui-1f12b17b",
       "model": {
-        "content_sha256": "faedd2b365698b783063711a1e6dd4d35998d365de256a6dd001eb9c340501d4",
+        "content_sha256": "3dd1c90ac96f5e67550c8ecb31f8eb9f9889bff4491d180684b3ad2a5cbd7046",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-2512-comfyui-1f12b17b"
@@ -164,8 +164,8 @@
     "source_reference": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI/tree/f68ace85e60b4a02a323e394253731947657b7d2"
   },
   "release": {
-    "released_at": "2026-10-16",
-    "version": "1.1.4"
+    "released_at": "2026-11-12",
+    "version": "1.2.0"
   },
   "runtime": {
     "arguments": [
@@ -177,7 +177,7 @@
       {
         "name": "workflow-sha256",
         "setting": null,
-        "value": "4007996393e3ae582d60e0c4f4bcbdc94b1b1ae72cdcb284e863f8b2db9900c0"
+        "value": "46e6bb16bb1f917caeca458198d4ed4e7b9af4fc95678db8616ce4aecb0a31b2"
       },
       {
         "name": "output-mime",
@@ -186,8 +186,13 @@
       },
       {
         "name": "seed",
-        "setting": null,
-        "value": 0
+        "setting": "seed",
+        "value": null
+      },
+      {
+        "name": "num-inference-steps",
+        "setting": "num-inference-steps",
+        "value": null
       }
     ],
     "engine": "comfyui",
@@ -207,7 +212,16 @@
   "settings": {
     "concurrency": null,
     "kind": "job",
-    "knobs": {}
+    "knobs": {
+      "num-inference-steps": {
+        "change_effect": "none",
+        "value": 40
+      },
+      "seed": {
+        "change_effect": "none",
+        "value": 0
+      }
+    }
   },
   "topology": {
     "name": "solo",

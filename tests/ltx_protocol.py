@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import importlib
 import json
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,8 +19,6 @@ PROTOCOL_CONTEXTS = (
     ROOT / "adapters/video/ltx23-sync-native-disk",
 )
 
-wheel_path = PROTOCOL_CONTEXTS[0] / "wheels" / PROTOCOL_WHEEL
-sys.path.insert(0, str(wheel_path))
 
 # Load the exact binary fixture dynamically; type checking does not resolve
 # ZIP imports, and a handwritten contract stub would create another owner.

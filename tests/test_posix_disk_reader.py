@@ -151,3 +151,9 @@ def test_transport_cannot_call_uring_and_image_installs_it() -> None:
     dockerfile = (SOURCE.parent / "Dockerfile").read_text()
     assert "COPY _ple_reader.c /opt/vonk/_ple_reader.c" in dockerfile
     assert "p.write_bytes(Path('/opt/vonk/_ple_reader.c').read_bytes())" in dockerfile
+
+
+def test_every_adapter_copy_is_the_reference_reader() -> None:
+    copies = sorted((ROOT / "adapters").glob("**/_ple_reader.c"))
+    assert SOURCE in copies
+    assert [c for c in copies if c.read_bytes() != SOURCE.read_bytes()] == []

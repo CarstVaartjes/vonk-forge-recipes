@@ -26,7 +26,9 @@ the installable contracts. Do not add separate guidance files.
   ownership edges. Decide by content identity and observed behaviour. Fix the
   class with a guard and fault-injection or behaviour regression tests.
 - A Recipe or Model document holds execution data only; its titles, description,
-  tags and alignment, and a Model's modalities, capabilities and license, live in
+  tags and alignment, and a Model's modalities, capabilities, license and place in
+  the catalog hierarchy (`lineage`: Family → Line → Model, with the Family titles
+  and Line order in `display/families/<slug>.json`), live in
   `display/recipes/<slug>.json` / `display/models/<slug>.json`. A display edit
   never changes a digest, evidence or a proven status. Add or remove a display together with its document.
 - Use contract models and enums for structures, states, reasons and codes we
@@ -57,7 +59,11 @@ and Re-check last. `--retry-failed` never requeues Working.
 and all rotated siblings without opening or mutating sweep state. Missing image,
 Model or platform provenance must remain unknown. Never infer it from today's
 catalog. Public models forbid infrastructure identifiers and raw free text;
-keep private diagnostic artifacts in local state only.
+keep private diagnostic artifacts in local state only. The sweep's publisher
+reads the live log every batch; a rotated log never changes, so its merged
+evidence is kept in `evidence-publisher/rotated-history.json`, keyed on the
+sweep run that built it, so each new sweep reads every log once (also after an
+orphaned publisher child of the old sweep wrote it).
 
 The sweep's background `tools/sync-qualification-evidence` batches evidence onto
 `qualification/evidence`, maintains one open “qualification evidence” PR and
@@ -65,7 +71,9 @@ requests auto-merge. Each attempt has bounded subprocess waits; failures are
 visible on the status page and in `evidence-publisher/publisher.log`. A competing
 push re-plans from a fresh disposable clone on the next batch. GitHub cannot
 block lanes. Keep an open PR's head stable through CI and auto-merge; new results
-accumulate in history until it merges. A behind or conflicted PR gets a fresh
+accumulate in history until it merges. One PR still open, waiting or red, past
+`STALL_SECONDS` (an hour; evidence PRs merge in minutes) raises a report-only
+alert naming the PR. A behind or conflicted PR gets a fresh
 merge plan. `--no-publish-evidence` disables this optional transport. Never run
 it against a production sweep unless that task explicitly authorizes writing.
 Publication computes every recipe's public view from release identities and
@@ -81,6 +89,10 @@ Shared `adapters/three-d/*/glb_validation.py` copies must remain byte-identical
 to the platform's 3.12 copy. `tests/test_three_d_glb_validation.py` compares
 local adapter copies; platform parity is a separate source comparison when
 changing them, not evidence supplied by that local test.
+Each adapter that needs a `liburing` stand-in carries a byte-identical copy of
+`tools/posix-uring/` as `posix-uring/` (contexts are self-contained, so there is
+no shared file). `tests/test_posix_uring.py` compiles and runs the canonical
+header and fails when a copy differs.
 
 Use a task-local writable uv cache when the default is unavailable. From the
 repository root, reproduce the producer environment in
@@ -106,7 +118,10 @@ to the local run; report it. `control/`, `scripts/repository-guards`,
 platform repository and are not gates available in this repository.
 
 The Ruff wrappers pin **0.16.9** and discover tracked extensionless Python
-executables by shebang. Bare `ruff check .`/`format --check .` miss those files.
+executables by shebang. Given path arguments they check only those paths; the
+pre-commit hook passes the staged Python files (unstaged edits no longer refuse
+the commit; lint and format check only staged paths; the type gate still reads
+the working tree), CI passes none and checks the whole repository. Bare `ruff check .`/`format --check .` miss those files.
 Pyright **1.1.414** uses managed Python and Linux diagnostics with the pinned
 `[tool.pyright]` language version/mode. `tools/pyright-baseline.json` is a
 reviewed allowlist: unlisted errors, increased counts and missing reasons fail;
@@ -126,9 +141,13 @@ repository and accepts `--update`, not positional changed-file arguments.
 - Producer checks regenerate examples, check schemas, build release assets twice
   for byte equality, derive coverage, check topology, Model references, families,
   build context closure, vendored bytes, kit locks and image provenance, then run
-  the full producer suite. See the authoring guide's guard repair table.
-- In the producer job, recipe-data-only changes skip lint, format, types and
-  the wheel build, but still run the full suite. Tool/test/contract/workflow changes run full gates.
+  the producer suite. See the authoring guide's guard repair table.
+- `tools/select-producer-checks` owns the producer job's scope. Recipe-data-only
+  changes skip lint, format, types and the wheel build; tool/test/contract/workflow
+  changes run them. Integration batches (`integration/*`), pushes and manual runs
+  run the full suite; a member PR runs the core plus the tests its paths name,
+  because its batch runs everything before it lands. Hardware evidence and
+  refresher PRs (`refresh/*`) auto-merge without a batch, so they run the full suite.
 - Full checks build the contracts wheel and import/resolve examples from a clean
   external consumer directory. Generated indexes, packages and coverage are
   ignored build outputs, not committed state.
@@ -140,6 +159,15 @@ repository and accepts `--update`, not positional changed-file arguments.
 assets to the run's `GITHUB_SHA`; it does not rebase that run onto a newer main.
 The final publish job unconditionally repeats lint, format and types, even when
 the reusable producer job chose its light scope.
+A contracts **major** bump is deployed consumer-first: `tools/check-platform-contracts`
+refuses a `CONTRACT_MAJOR` newer than the major in the `platform_ref` lock. Pin the
+recipes commit in vonk-forge, deploy it (the Controller waits visibly for the new
+major), then move `platform_ref` here and merge. A platform major ahead of this
+repo never blocks.
+After a release that changed, the `dispatch-site` job starts the public site's `pages.yml`
+(`tools/dispatch-site-build`, the refresh App scoped to vonk-forge-web with `actions: write`). It runs
+after and apart from the signing job, with `continue-on-error`: a failed dispatch is a visible
+failed job that never fails or undoes the release (the site's schedule is the backstop).
 PR validation calls the same image workflow at the PR head, compares base/head
 build keys and builds only changed, unpublished keys (including native checks
 and the remote-code smoke); every key builds in CI, within one 360-minute job
@@ -148,6 +176,22 @@ publication promotes their digests without rebuilding. Keys without a candidate
 use the same build and smoke path at publication; scheduled/manual runs also
 recover historical missing keys.
 Changed images from forks need a trusted repository branch to push candidates.
+`catalog-index.json` is the `CatalogIndex` contract (`vonk_forge_contracts.catalog_index`): the
+build constructs it through the model, consumers read it with `read_catalog`
+(`vonk_forge_contracts.catalog_reader`), and the release ships its generated schema
+`catalog-index-v2.schema.json`. `read_catalog` verifies each entry's `content_sha256`, keeps a
+word a newer minor added as an `UnrecognisedWord`, drops an unreadable optional block (display,
+API facts, qualification, prebuilt image, measured memory; the entry stays), skips an entry whose
+execution data is malformed, and refuses the index only for a wrong envelope or contract major or
+a digest mismatch; `read_catalog_index` is
+the strict whole-index form for producers and tests. The envelope and package
+schema versions live only there; change the shape in the model and run
+`tools/generate-contract-schemas`. Once `v<CONTRACT_VERSION>` is released, validate.yml refuses a
+change under `contracts/src` until `_version.py` names a new version.
+The index also publishes the vocabulary (`vonk_forge_contracts.vocabulary`): every capability's
+label, description and category and every qualification status's meaning and whether it counts as
+verified. Change user-facing words only there; the site, Controller UI and vonkctl render the
+release's copy. A new `CapabilityName` or `QualificationStatus` without an entry fails at import.
 `tools/build-catalog-index --release-dir DIR` builds catalog/qualification
 indexes, recipe archives, coverage and `SHA256SUMS`. The signed release contains
 one deterministic `recipe-library.tar`, built by `tools/build-release-bundle`:
@@ -230,6 +274,15 @@ Profile edit conflicts remove/defer the affected candidate and re-plan a smaller
 batch in the same tick. Rollback/prune failures retain the consistency boundary.
 See `tests/test_sweep_noblock.py`, `tests/test_sweep_affinity.py`,
 `tests/test_sweep_recovery_guards.py` and `tests/test_sweep_s3_recovery.py`.
+
+Independent Controller reads in a sweep pass fan out: collect them with
+`spark_sweep.fanout.gather` (bounded by `READ_LIMIT`), then apply the replies in
+order on the main thread; worker threads never write `state.data` (only the
+contract-mismatch flags, under `_contract_lock`). A `vk.run`/
+`vk.call` that must stay serial (it writes, or depends on the previous reply)
+carries `# sequential: <reason>` on the call or the line above it.
+`tools/check-serial-reads` enforces this on added lines
+(`tests/test_sweep_tick_fanout.py`, `tests/test_check_serial_reads.py`).
 
 Profiles 1–3 cannot be edited by the sweep; sweep/pin profile numbers cannot use
 these slots. Owner loads take priority with a visible persisted hold. Owner
@@ -317,7 +370,10 @@ run does not end. The wait is a `catalog source` bounded wait (30 minutes,
 serialized publishes plus the import) shown through `waiting`, a results row and a
 status alert. It ends when a complete pass serves the source, or at the bound
 (`wait-expired` row with the digests and an alert); from then on the sweep tests
-what the catalog serves (`spark_sweep/source_serving.py`,
+what the catalog serves. A selected recipe the catalog serves but the source does
+not author (the source is older than the library) is never scheduled or failed: a
+`source-behind` results row says to restart the sweep from an updated source
+(`spark_sweep/source_serving.py`,
 `tests/test_sweep_source_serving.py`).
 
 Use the typed `Disposition` and `RecipeVerdict` contracts; never guess a recipe
@@ -347,6 +403,11 @@ expiry/revocation waits for renewal. Unclassified policy refusal is not evidence
 of an expired key (`tests/test_sweep_auth_refusal.py`,
 `tests/test_sweep_verdicts.py`, `tests/test_sweep_load_blame.py`). What the smoke
 actually executes is specified once in the authoring guide below.
+
+A smoke request that gets no answer (`smoke-request`, `smoke-busy`, `smoke-timeout`) while the
+run's workload has exited (`run_state: failed`) is the recipe's `runtime_exit`, like a start-time exit
+(`verdict.smoke_workload_exit`, `tests/test_sweep_failures.py`); while the run still runs it keeps
+its class.
 
 Qualification evidence binds recipe content, known image build key/digest and
 Model digests. Requeues, exact-identity revert restoration and `--retry-failed`

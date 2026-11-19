@@ -1,0 +1,42 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "LibertAIDAI/DeepSeek-V4.1-Flash-1017-EXL3-3.5bpw at immutable revision 04a492fc3b4d25ddbab8f2d2f07f235ec77c9010 (all matrices EXL3: routed experts 4 bpw on layers 0-9 and 30-39 and 3 bpw on 10-29, everything else 6 bpw, indexer wk 8 bpw; 240 GB). Source model inputs for the creator runtime; physical Spark acceptance is unmeasured.",
+  "family_title": "DeepSeek",
+  "identity": {
+    "publisher": "libertaidai",
+    "slug": "deepseek-v4-1-flash-1017-exl3-3-5bpw-04a492fc"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek-AI; LibertAI for the EXL3 quantization."
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/LibertAIDAI/DeepSeek-V4.1-Flash-1017-EXL3-3.5bpw/blob/04a492fc3b4d25ddbab8f2d2f07f235ec77c9010/LICENSE"
+  },
+  "lineage": {
+    "base_model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "family": "deepseek",
+    "generation": "DeepSeek V4.1",
+    "line": "deepseek-flash",
+    "model": "deepseek-v4-1-flash-1017",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "model_title": "DeepSeek V4.1 Flash 1017",
+  "tags": [
+    "deepseek",
+    "1017",
+    "exl3"
+  ]
+}

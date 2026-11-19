@@ -390,7 +390,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "0c433329a488bfe37a33f13249a70ac2ebf12fe360227e3eab2ffd9c80660dfe",
+        "content_sha256": "d9d07ec5c46ea4d994971125b792b3ed10c45f0229dbebdfe0c1bc0d4f6df9f4",
         "kind": "model",
         "publisher": "openmoss",
         "slug": "mova-720p"

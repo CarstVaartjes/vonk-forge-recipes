@@ -20,6 +20,7 @@ from qualification.memory_need import (
     load_inputs,
     memory_variants,
     positive_argument,
+    recurrent_layer_bytes,
     speculative_tokens,
 )
 from qualification.vllm_memory_fit import loads_draft_model
@@ -215,31 +216,62 @@ def test_other_engines_keep_the_hand_state_bound() -> None:
     )
 
 
+def test_glm_kda_state_is_the_upstream_per_rank_layout() -> None:
+    # vLLM kda_state_shape on TP2 with 7 speculative tokens: conv 24576 / 2
+    # channels x (4 - 1 + 7) in bf16 (245,760 B) plus 64 / 2 heads x 128 x 128
+    # fp32 (2,097,152 B) per KDA layer.
+    recipe = next(
+        recipe
+        for recipe, _ in recipes()
+        if recipe.identity.slug == "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual"
+    )
+    geometry = INPUTS.geometries[recipe.models[0].model.slug]
+    assert geometry.recurrent is not None
+    assert recurrent_layer_bytes(recipe, geometry.recurrent) == 2_342_912
+
+
 ADAY777 = "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"
 
 
 @pytest.mark.parametrize(
-    "update",
+    ("update", "message"),
     [
-        {"architecture": "UnclassifiedForCausalLM"},
-        {"architecture": "LlamaForCausalLM"},
-        {"token_bytes": 4096},
-        {"sliding_layers": 4, "sliding_window": 128},
-        {"replicated_token_bytes": 768},
-        {"state_padding": 1},
-        {"recurrent": {"mamba_prefix_caching": True, "chunk_tokens": 128}},
-        {"recurrent": {"chunk_tokens": 128}},
-        {"recurrent": {"attention_layers": 17}},
+        ({"architecture": "UnclassifiedForCausalLM"}, "classify architecture"),
+        ({"architecture": "LlamaForCausalLM"}, "needs a hybrid architecture"),
+        ({"token_bytes": 4096}, "needs plain attention layers"),
+        (
+            {"sliding_layers": 4, "sliding_window": 128},
+            "needs plain attention layers",
+        ),
+        ({"replicated_token_bytes": 768}, "needs plain attention layers"),
+        ({"state_padding": 1}, "needs plain attention layers"),
+        (
+            {"recurrent": {"mamba_prefix_caching": True, "chunk_tokens": 128}},
+            "mamba_prefix_caching must match",
+        ),
+        ({"recurrent": {"chunk_tokens": 128}}, "needs the Mamba chunk size"),
+        ({"recurrent": {"attention_layers": 17}}, "attention_layers cannot exceed"),
+        (
+            {
+                "architecture": "Glm5NextForConditionalGeneration",
+                "layers": 45,
+                "token_bytes_by_dtype": {"fp8": 12288},
+                "recurrent": {"attention_layers": 12},
+            },
+            "layers == recurrent.attention_layers",
+        ),
     ],
 )
-def test_recurrent_geometry_fields_are_exclusive(update: dict[str, object]) -> None:
+def test_recurrent_geometry_fields_are_exclusive(
+    update: dict[str, object], message: str
+) -> None:
     document = INPUTS.geometries[ADAY777].model_dump()
     for key, value in update.items():
         if isinstance(value, dict):
             document[key] |= value
         else:
             document[key] = value
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError, match=message):
         CacheGeometry.model_validate(document)
 
 

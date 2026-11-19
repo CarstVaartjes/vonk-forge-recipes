@@ -20,6 +20,15 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/bartowski/Ling-3.0-flash-Fin-GGUF/blob/a792b6bd51d2cb47b5aa8687ff5dd4f2974acdb4/README.md"
   },
+  "lineage": {
+    "base_model": "inclusionAI/Ling-3.0-flash-Fin",
+    "family": "ling",
+    "flavor": "fin",
+    "generation": "Ling 3.0",
+    "line": "ling-flash-fin",
+    "model": "ling-3-0-flash-fin",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

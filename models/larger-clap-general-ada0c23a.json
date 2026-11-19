@@ -79,10 +79,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "laion",
-      "slug": "clap"
-    },
     "model": {
       "publisher": "laion",
       "slug": "larger-clap-general"

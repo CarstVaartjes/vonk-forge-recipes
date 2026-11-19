@@ -3,10 +3,6 @@
   "identity": {
     "publisher": "vonk-forge-test",
     "slug": "canonical-synthetic-http-model-v1",
-    "family": {
-      "publisher": "vonk-forge-test",
-      "slug": "canonical-synthetic-http"
-    },
     "model": {
       "publisher": "vonk-forge-test",
       "slug": "canonical-synthetic-http"

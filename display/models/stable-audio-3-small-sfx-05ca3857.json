@@ -17,6 +17,13 @@
     "spdx": "LicenseRef-Stability-AI-Community-License AND LicenseRef-Gemma-Terms-of-Use",
     "url": "https://huggingface.co/stabilityai/stable-audio-3-small-sfx/blob/05ca3857881c94a2b84026b1111c537d78f5f9f0/LICENSE.md"
   },
+  "lineage": {
+    "family": "stable-audio",
+    "generation": "Stable Audio 3",
+    "line": "stable-audio-small-sfx",
+    "model": "stable-audio-3-small-sfx",
+    "variant_kind": "base"
+  },
   "modalities": [
     "text",
     "audio"

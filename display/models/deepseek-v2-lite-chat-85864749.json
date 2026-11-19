@@ -18,6 +18,14 @@
     "spdx": "LicenseRef-DeepSeek-Model-License",
     "url": "https://github.com/deepseek-ai/DeepSeek-V2/blob/main/LICENSE-MODEL"
   },
+  "lineage": {
+    "family": "deepseek",
+    "flavor": "chat",
+    "generation": "DeepSeek V2",
+    "line": "deepseek-v2-lite",
+    "model": "deepseek-v2-lite-chat",
+    "variant_kind": "base"
+  },
   "modalities": [
     "text"
   ],

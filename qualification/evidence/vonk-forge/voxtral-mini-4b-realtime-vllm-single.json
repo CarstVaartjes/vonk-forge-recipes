@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/voxtral-mini-4b-realtime-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "c1c88928d52833711497651d3f47c4ef6eb65dd6ed0a0e3027ac215f5697a156",
+        "source_bundle_sha256": "52cce5db941eeba9aad69e5063a2456c9413498ff43b5027ff2373fdbd9e1691",
+        "runtime_image": {
+          "build_key": "04897a5533d395aec79b29f93ecd0f2fa755d917c60af53149a4b1f753d2fb7e",
+          "image_digest": "sha256:0f657f5d5cd21a656e45f42c4bf52bc9e3abf57960a881cc87902db2a5180599"
+        },
+        "model_digests": [
+          "71dff636e8f333c66003d354f050b35d5a0294e2f1d7876ac0c22b819786683e"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "463c55289d5e4585798b1782ae850b3d2db2b75f47637fc538af6bc6a8945eaf"
+      ],
+      "tested_at": "2026-11-18T20:13:58.015920Z",
+      "platform": {
+        "controller_source_sha": "8815010c175368b8a2f06b23364ffed09c36b893",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "c1c88928d52833711497651d3f47c4ef6eb65dd6ed0a0e3027ac215f5697a156",
+      "role": "entrypoint",
+      "steady_bytes": 128969863168,
+      "budget_bytes": 117596908340
+    }
+  ]
+}

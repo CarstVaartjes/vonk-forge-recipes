@@ -673,10 +673,6 @@
     "quantization": "moe-experts-fp4-remaining-fp8"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek-flash"
-    },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-flash-dspark"

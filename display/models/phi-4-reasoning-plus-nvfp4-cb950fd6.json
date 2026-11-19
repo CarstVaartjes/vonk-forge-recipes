@@ -19,6 +19,15 @@
     "spdx": "MIT",
     "url": "https://opensource.org/license/mit"
   },
+  "lineage": {
+    "base_model": "microsoft/Phi-4-reasoning-plus",
+    "family": "phi",
+    "flavor": "thinking",
+    "generation": "Phi-4",
+    "line": "phi-reasoning-14b",
+    "model": "phi-4-reasoning-plus",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

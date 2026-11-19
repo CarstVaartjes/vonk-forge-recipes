@@ -17,6 +17,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4b-nvfp4/blob/1db2b2f776c24b76f1122e5f69ab1949fc620068/LICENSE.md"
   },
+  "lineage": {
+    "base_model": "black-forest-labs/FLUX.2-klein-4B",
+    "family": "flux",
+    "generation": "FLUX.2",
+    "line": "flux-klein-4b",
+    "model": "flux-2-klein-4b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image"
   ],

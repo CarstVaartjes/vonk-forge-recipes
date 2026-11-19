@@ -142,10 +142,6 @@
     "quantization": "modelopt"
   },
   "identity": {
-    "family": {
-      "publisher": "google",
-      "slug": "gemma"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "gemma-4-31b-it-nvfp4"

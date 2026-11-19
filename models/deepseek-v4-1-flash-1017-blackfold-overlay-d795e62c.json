@@ -1,0 +1,106 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "graft-meta-2b6d3a7766ba-fe3b173587",
+      "path": "GRAFT_META.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "2b6d3a7766bae8e22ea43ac26d949c33f1a7b095894692838c7064e9fb469db6",
+      "size_bytes": 966
+    },
+    {
+      "id": "license-47c8baa8a002-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "47c8baa8a002120c780e4bac6114e6bf5bf0b3cc134c2f780c814d0570087238",
+      "size_bytes": 1069
+    },
+    {
+      "id": "readme-57ba3fafa2dc-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "57ba3fafa2dc1744724c516abddf7608d995e769ad57d3c964cb19f04f50459d",
+      "size_bytes": 11166
+    },
+    {
+      "id": "responsible-use-8d2f0228a842-ffd3004b00",
+      "path": "RESPONSIBLE_USE.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8d2f0228a8420117f5517f9160b961db7337a42ae83e22657b9fc5333d49726a",
+      "size_bytes": 1425
+    },
+    {
+      "id": "sha256sums-e821f2b3525e-e6351d3766",
+      "path": "SHA256SUMS",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e821f2b3525ed7c64e682d630674dd18b61c6002a6e184fed0643671908bb40a",
+      "size_bytes": 4673
+    },
+    {
+      "id": "apply-overlay-2e9607e64d2c-35fba365c3",
+      "path": "apply_overlay.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "2e9607e64d2c1269c2b3b02dc3dd7f4fd2ca1190b0113e800f95d66a7f8858c2",
+      "size_bytes": 8055
+    },
+    {
+      "id": "heretic-wo-b-exl3-k5-patched-f42912922985-6481beeb27",
+      "path": "heretic_wo_b_exl3_k5_patched.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f42912922985684e7a0cd8f3f6d73efafec620399e8100f09cfdb0ab67b0e649",
+      "size_bytes": 997172792
+    },
+    {
+      "id": "setup-3450f8f5b664-4209d788ad",
+      "path": "setup.sh",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "3450f8f5b664f0b2749e9e8a066e1e4bc9966ad2a32af277047240fac323f483",
+      "size_bytes": 3995
+    },
+    {
+      "id": "stock-shards-56ba82a9bfa0-2b787e8588",
+      "path": "stock_shards.sha256",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "56ba82a9bfa0a6c6cc5a94abb757fea4929277a33c96fc4c89ef8f2f73a39503",
+      "size_bytes": 4257
+    }
+  ],
+  "format": {
+    "precision": "exl3",
+    "quantization": "exl3"
+  },
+  "identity": {
+    "model": {
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-v4-1-flash-1017"
+    },
+    "publisher": "blackwellboy",
+    "slug": "deepseek-v4-1-flash-1017-blackfold-overlay-d795e62c",
+    "variant": "1017-d795e62c",
+    "version": "1017-d795e62c"
+  },
+  "kind": "model",
+  "requires_token": true,
+  "source": {
+    "repository": "https://huggingface.co/BlackwellBoy/DeepSeek-V4.1-Flash-1017-BLACKFOLD-EXL3-2.9bpw-TP2",
+    "revision": "d795e62c91fab64531cfe6b2b5d0c0d8a95a9295"
+  }
+}

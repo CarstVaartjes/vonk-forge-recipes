@@ -1,0 +1,209 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "qwen-image-edit-2511",
+          "title": "Qwen Image Edit 2511"
+        }
+      ],
+      "slug": "qwen-image-edit",
+      "title": "Qwen Image Edit"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen-image-layered",
+          "title": "Qwen Image Layered"
+        }
+      ],
+      "slug": "qwen-image-layered",
+      "title": "Qwen Image Layered"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen-image",
+          "title": "Qwen Image"
+        },
+        {
+          "slug": "qwen-image-2512",
+          "title": "Qwen Image 2512"
+        }
+      ],
+      "slug": "qwen-image-20b",
+      "title": "Qwen Image 20B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen-image-2-1",
+          "title": "Qwen Image 2.1"
+        }
+      ],
+      "slug": "qwen-image-7b",
+      "title": "Qwen Image 7B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen2-5-vl-7b-instruct",
+          "title": "Qwen2.5-VL 7B Instruct"
+        }
+      ],
+      "slug": "qwen-vl-7b",
+      "title": "Qwen VL 7B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-14b",
+          "title": "Qwen3 14B"
+        }
+      ],
+      "slug": "qwen-14b",
+      "title": "Qwen 14B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-30b-a3b",
+          "title": "Qwen3 30B-A3B"
+        }
+      ],
+      "slug": "qwen-30b-a3b",
+      "title": "Qwen 30B-A3B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-32b",
+          "title": "Qwen3 32B"
+        }
+      ],
+      "slug": "qwen-32b",
+      "title": "Qwen 32B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-8b",
+          "title": "Qwen3 8B"
+        }
+      ],
+      "slug": "qwen-8b",
+      "title": "Qwen 8B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-tts-12hz-1-7b-customvoice",
+          "title": "Qwen3-TTS 12Hz 1.7B CustomVoice"
+        }
+      ],
+      "slug": "qwen-tts-customvoice-1-7b",
+      "title": "Qwen TTS CustomVoice 1.7B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-tts-12hz-1-7b-voicedesign",
+          "title": "Qwen3-TTS 12Hz 1.7B VoiceDesign"
+        }
+      ],
+      "slug": "qwen-tts-voicedesign-1-7b",
+      "title": "Qwen TTS VoiceDesign 1.7B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-asr-1-7b",
+          "title": "Qwen3-ASR 1.7B"
+        }
+      ],
+      "slug": "qwen-asr-1-7b",
+      "title": "Qwen ASR 1.7B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-coder-next",
+          "title": "Qwen3 Coder Next"
+        }
+      ],
+      "slug": "qwen-coder-next",
+      "title": "Qwen Coder Next"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-5-122b-a10b",
+          "title": "Qwen3.5 122B-A10B"
+        }
+      ],
+      "slug": "qwen-122b-a10b",
+      "title": "Qwen 122B-A10B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-5-9b",
+          "title": "Qwen3.5 9B"
+        }
+      ],
+      "slug": "qwen-9b",
+      "title": "Qwen 9B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-5-0-8b",
+          "title": "Qwen3.5 0.8B"
+        }
+      ],
+      "slug": "qwen-0-8b",
+      "title": "Qwen 0.8B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-5-35b-a3b",
+          "title": "Qwen3.5 35B-A3B"
+        },
+        {
+          "slug": "qwen3-6-35b-a3b",
+          "title": "Qwen3.6 35B-A3B"
+        }
+      ],
+      "slug": "qwen-35b-a3b",
+      "title": "Qwen 35B-A3B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-6-27b",
+          "title": "Qwen3.6 27B"
+        },
+        {
+          "slug": "qwen3-8-27b",
+          "title": "Qwen3.8 27B"
+        }
+      ],
+      "slug": "qwen-27b",
+      "title": "Qwen 27B"
+    },
+    {
+      "models": [
+        {
+          "slug": "qwen3-8-flash-next",
+          "title": "Qwen3.8 Flash Next"
+        }
+      ],
+      "slug": "qwen-flash-next",
+      "title": "Qwen Flash Next"
+    }
+  ],
+  "slug": "qwen",
+  "title": "Qwen"
+}

@@ -23,12 +23,10 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/three-d/motionbricks"
-WHEEL = next(ADAPTER.glob("*.whl"))
 FIXTURE = ROOT / "qualification/fixtures/motionbricks-command.json"
 RECIPE = ROOT / "recipes/motionbricks-g1-pytorch-single.json"
 MODEL = ROOT / "models/motionbricks-g1-45c03fac.json"
 QUALIFICATION = ROOT / "qualification/recipes/motionbricks-g1-pytorch-single.json"
-sys.path.insert(0, str(WHEEL))
 
 
 def _load_run():

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import textwrap
@@ -114,7 +115,8 @@ def step_script(name: str) -> str:
     workflow = (ROOT / ".github/workflows/publish.yml").read_text()
     step = workflow.split(f"      - name: {name}\n")[1]
     return textwrap.dedent(
-        step.split("        run: |\n")[1].split("\n      - name:")[0]
+        # The step ends at the next step or the next job.
+        re.split(r"\n      - name:|\n\n  \S", step.split("        run: |\n")[1])[0]
     )
 
 

@@ -322,10 +322,6 @@
     "quantization": "mlx-4bit-group32-mtp"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "vontra",
       "slug": "qwen3-8-flash-next-mlx-4bit-mtp"

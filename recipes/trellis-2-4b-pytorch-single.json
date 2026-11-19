@@ -314,7 +314,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ec26bb24b6fff7ffc3c63d8165aa28b66ef702a0edd51f85a3a234beb0585177",
+        "content_sha256": "b92e8db6ee0db260b44e6e39e3efa1ce599ddf98e86b1d13d4b543ac56e875ff",
         "kind": "model",
         "publisher": "microsoft",
         "slug": "trellis-2-4b"
@@ -345,7 +345,7 @@
       ],
       "id": "sparse-decoder",
       "model": {
-        "content_sha256": "f5e2dcf8487e7594f2dd0e3281eb22c0bc23574d3b24ad836914d7c63ff51af9",
+        "content_sha256": "82545dca2b6da7746eac235bf6792e2c3327f60aeae2b320b4382d0337e81bf2",
         "kind": "model",
         "publisher": "microsoft",
         "slug": "trellis-sparse-decoder"
@@ -416,7 +416,7 @@
       ],
       "id": "dino",
       "model": {
-        "content_sha256": "8c374b1a6645b7fba5d51db36a7a32dd541702b252148c2b81858f54aa9d1e49",
+        "content_sha256": "c5d43dc514adf8c2f8e730159349936434224fa96808e0b06ad1ebefd62656d3",
         "kind": "model",
         "publisher": "facebook",
         "slug": "dinov3-vitl16-pretrain-lvd1689m"

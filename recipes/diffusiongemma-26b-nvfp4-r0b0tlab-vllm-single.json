@@ -176,7 +176,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c2c9173c9359b96d1a2a88d1c1cbcb256292c83402bbba826a6d8bd183696827",
+        "content_sha256": "58ce79576f40a2dbee7868d1c149fe709df4d110a380717e6b4cdb5832019405",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "diffusiongemma-26b-a4b-it-nvfp4-ec4ff3df"

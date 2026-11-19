@@ -21,7 +21,6 @@ def test_model_cached_image_missing_groups_do_not_starve_model_downloads(
         prefetch=PrefetchConfig(group_window=window, pin_profile=None),
     )
     sweep.preflight()
-    sweep.start_takeover()
     sweep.refresh_catalog()
     # Models are cached; recipes are not cached because their images are missing.
     assert all(sweep.recipes[r.key].local == "not_cached" for r in warm)
@@ -57,7 +56,6 @@ def test_cached_singles_run_together_before_cached_duals_and_downloads(
         ],
     )
     sweep.preflight()
-    sweep.start_takeover()
     sweep.refresh_catalog()
     sweep.tick()
     assert sweep.queue == [
@@ -93,7 +91,6 @@ def test_dual_waits_for_both_lanes_without_refilling_a_free_lane(
         [FakeModel(r.digests[0], local="cached") for r in recipes],
     )
     sweep.preflight()
-    sweep.start_takeover()
     sweep.refresh_catalog()
     sweep.tick()
     assert set(sweep.state.slots) == {recipes[0].key, recipes[1].key}

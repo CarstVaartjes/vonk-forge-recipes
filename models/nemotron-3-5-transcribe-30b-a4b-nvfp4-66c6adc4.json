@@ -223,10 +223,6 @@
     "quantization": "modelopt-mixed"
   },
   "identity": {
-    "family": {
-      "publisher": "nvidia",
-      "slug": "nemotron"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "nemotron-3-5-transcribe-30b-a4b"

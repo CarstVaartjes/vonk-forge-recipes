@@ -493,10 +493,6 @@
     "quantization": "mlx"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "vontra",
       "slug": "glm-5-3-flash"

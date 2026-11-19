@@ -726,7 +726,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f408d7dc33a4a73cf246cb0e5444f86ca59a6163de3c234eff8d311960463caa",
+        "content_sha256": "4993648a516e63d5644245577823e79be58eb193be3b284ccf43c163f0d6e24e",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"

@@ -23,6 +23,14 @@
     "spdx": "LicenseRef-NVIDIA-Open-Model-License",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-Flash-Next",
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-flash-next",
+    "model": "qwen3-8-flash-next",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "video"

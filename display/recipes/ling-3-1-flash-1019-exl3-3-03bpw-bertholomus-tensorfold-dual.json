@@ -1,0 +1,18 @@
+{
+  "alignment": "unspecified",
+  "description": "bertholomus's Ling-3.1-flash-1019 TensorFold TP2 recipe v0.2.0 (ling-3.1-tensorfold-tp2-2xgb10 6088f472, Apache-2.0). Engine: bertholomus/TensorFold ling-3.1-tp2 at 72f16e48 (the bailing_v3 family on TensorFold v0.6.6's Python CUDA engine), run from its source tree in nvcr.io/nvidia/pytorch:26.07-py3 as the README does; the CUDA extensions are built on the Spark for its GPU by the kit's serve/prebuild.py before each start and reused from the managed cache. Weights: bertholomus/Ling-3.1-flash-1019-EXL3-3.03bpw at 15d305cc (the repository head; the README names no revision), 3.03 bpw EXL3 of inclusionAI's Ling-3.1-flash-1019 (dddfee4b), with the checkpoint's own MTP layer, which drafts decoding (the engine's adaptive depth, the default). As the README, each rank serves its own rank folder: the engine's split writes it into /outputs/cache after tools/ling_split_check.py passes (about 112 GB per Spark, written once and reused), and the page cache of the checkpoint and the rank folder is dropped before the load and kept clear by the kit's serve/evict_page_cache.sh. Every served setting is bertholomus's: the config's 262,144-token window, one request at a time (the engine refuses --parallel), max_tokens 4096 by default with a quarter (at least 1,024 tokens) kept for the answer after thinking, TENSORFOLD_MEMORY_RESERVE_GIB=4, TF_LING_CACHE_GIB=0, TF_LING_LATENT_MB=270, TF_LING_FILLED=1, TF_LING_SHARED_SCRATCH=1, TF_LING_EMBED_SPLIT=1, TF_GLM_UNPACK_CACHE_MB=0, NCCL_BUFFSIZE=1048576, NCCL_MAX_NCHANNELS=4, MALLOC_ARENA_MAX=2 and TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=0. Thinking is on by default; a request turns it off with chat_template_kwargs.enable_thinking false. Tools are parsed (GLM-style calls); structured output is not offered, because the creator's container has no xgrammar. Not carried over: the host drop_caches (root on the host) and the creator's 1.5 GiB watchdog (the platform's host memory guard is the backstop); the rendezvous, RoCE device, GID index and socket interface are the Controller's. Memory (creator claims, measured on 123.79 GiB nodes, not here): weights 103.41 GiB a rank, 107.96 GiB ready to serve, lowest free while serving 2.11 GiB (rank 0) and 1.94 GiB (rank 1). The declared peaks are on the same basis as the sibling bertholomus recipes: the creator's lowest free memory is subtracted from this platform's 130,663,231,488-byte pool (not from the creator's node total), less the 4,063,231,488-byte idle host use admission charges: 124.33 GB on the entrypoint and 124.52 GB on the worker. Nothing is trimmed to fit; they are estimates until tried, and the hardware try decides. Upstream figures (36-39 tok/s drafted decode, 224-696 tok/s prompt, 237 s start) are claims until measured here. The recipe needs two Sparks; Vonk physical acceptance is pending. Licences are information only: the recipe and TensorFold are Apache-2.0, the weights MIT. The worker peak is about 64 MB above an idle Spark's admission maximum, so the estimate warns and the hardware try decides.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "ling-3-1-flash-1019-exl3-3-03bpw-bertholomus-tensorfold-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "ling",
+    "1019",
+    "tensorfold",
+    "exl3",
+    "mtp",
+    "spark"
+  ],
+  "title": "Ling 3.1 Flash 1019 EXL3 3.03bpw TensorFold TP2 (bertholomus)"
+}

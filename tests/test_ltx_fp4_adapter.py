@@ -222,11 +222,6 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         imported = types.SimpleNamespace(PipelineOutput=pipeline_output)
         with (
             mock.patch.object(
-                self.adapter.importlib.metadata,
-                "version",
-                return_value=self.adapter.LTX_PIPELINES_VERSION,
-            ),
-            mock.patch.object(
                 self.adapter.importlib, "import_module", return_value=imported
             ),
         ):
@@ -240,11 +235,6 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             "keyframes",
         )
         with (
-            mock.patch.object(
-                self.adapter.importlib.metadata,
-                "version",
-                return_value=self.adapter.LTX_PIPELINES_VERSION,
-            ),
             mock.patch.object(
                 self.adapter.importlib, "import_module", return_value=imported
             ),

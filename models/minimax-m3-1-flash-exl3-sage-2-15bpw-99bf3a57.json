@@ -367,10 +367,6 @@
     "quantization": "exl3-sage-2-15bpw"
   },
   "identity": {
-    "family": {
-      "publisher": "minimax",
-      "slug": "minimax"
-    },
     "model": {
       "publisher": "minimax",
       "slug": "minimax-m3-1-flash-exl3-sage-2-15bpw"

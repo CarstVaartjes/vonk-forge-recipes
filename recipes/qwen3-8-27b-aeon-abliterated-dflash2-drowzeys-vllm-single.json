@@ -176,7 +176,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9fabce91f9e91898bd0b2f683bdf76ec25c4ea698551bfd12294b33ad28e64f6",
+        "content_sha256": "b5bb37ab4c73e558b083f5e01d91c5e87a043e5a780befcdf55b86ad4eed7986",
         "kind": "model",
         "publisher": "sakamakismile",
         "slug": "qwen3-8-27b-aeon-ultimate-uncensored-nvfp4-8d5a3317"
@@ -237,7 +237,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "73d9425078cd0b02b031537a7c363a969d08598ad9d6297a3b2f198a20ebf9ec",
+        "content_sha256": "efa2b2b18d74e722f46989bb29780e44ad53da6e7504693d59c6972d99068740",
         "kind": "model",
         "publisher": "incoai",
         "slug": "qwen3-8-27b-dflash2-incoai-015e7956"

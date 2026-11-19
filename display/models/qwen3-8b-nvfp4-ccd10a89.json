@@ -21,6 +21,15 @@
     "spdx": "Apache-2.0",
     "url": "https://www.apache.org/licenses/LICENSE-2.0"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3-8B",
+    "family": "qwen",
+    "flavor": "instruct",
+    "generation": "Qwen3",
+    "line": "qwen-8b",
+    "model": "qwen3-8b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

@@ -20,6 +20,14 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21/blob/bb83094e0075076cb0b553c965412e20b061b9c2/LICENSE"
   },
+  "lineage": {
+    "base_model": "XiaomiMiMo/MiMo-V2.6-Pro-MOPD",
+    "family": "mimo",
+    "generation": "MiMo V2.6",
+    "line": "mimo-pro",
+    "model": "mimo-v2-6-pro-mopd",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

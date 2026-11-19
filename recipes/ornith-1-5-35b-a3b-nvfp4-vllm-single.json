@@ -246,7 +246,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f3c8dcf6116beb6788d32beae9c67db46d2fb56edfac850b7f508bc153255bf7",
+        "content_sha256": "a2133336377cdf9723198b47f15ceb5e8bab4e7cfc36eccf95a61b1ca3fbb407",
         "kind": "model",
         "publisher": "ornith-ai",
         "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9"

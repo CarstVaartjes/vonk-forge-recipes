@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/deepseek-v4-1-flash-reap-256e-reederey87-vllm-dual",
+  "service_recipes": {
+    "alias": "deepseek-v4.1-flash-reap256",
+    "higher_tiers": {
+      "recovery": [
+        "Controller-only rank-loss and warm-cache recovery"
+      ],
+      "stress": [
+        "Bounded long-context and two-stream concurrency canaries against the 64K window"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT"
+    ]
+  }
+}

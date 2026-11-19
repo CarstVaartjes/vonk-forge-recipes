@@ -988,10 +988,6 @@
     "quantization": "nvfp4-weight-only-routed-experts"
   },
   "identity": {
-    "family": {
-      "publisher": "tencent",
-      "slug": "hy3"
-    },
     "model": {
       "publisher": "kodelow",
       "slug": "hy3-295b-nvfp4-w4a16"

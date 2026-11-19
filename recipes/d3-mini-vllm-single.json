@@ -196,7 +196,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a2f8316f9982c486155e69d42c6b488f2fb0fcc861ceedd28f5e2b8cf8eefd88",
+        "content_sha256": "cc9c945f0a7bdcf03408c6104de436e7959626b5362773e888cd283eeda4c8cf",
         "kind": "model",
         "publisher": "vonk-forge",
         "slug": "d3-mini-bf16-bd0090dd"

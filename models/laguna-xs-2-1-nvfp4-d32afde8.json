@@ -160,10 +160,6 @@
     "quantization": "nvfp4-fp8-kv-cache"
   },
   "identity": {
-    "family": {
-      "publisher": "poolside",
-      "slug": "laguna"
-    },
     "model": {
       "publisher": "poolside",
       "slug": "laguna-xs-2-1"

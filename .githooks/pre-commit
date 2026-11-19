@@ -6,15 +6,39 @@ cd "$root"
 
 # The catalog index, packages and coverage are build outputs (ignored by Git);
 # CI builds and validates them. This hook only runs the pinned static checks.
-if [ -n "$(git diff --name-only)" ]; then
-    echo "recipe hook: stage all tracked edits before committing" >&2
-    exit 1
+# Only the staged Python files are checked, from the working tree (the index is
+# not materialised); unstaged edits no longer refuse the commit; lint and format check only staged
+# paths; the type gate still reads the working tree. Extensionless
+# executables count when their first line is a python shebang.
+staged_python=""
+newline='
+'
+for path in $(git diff --cached --name-only --diff-filter=ACMR); do
+    [ -f "$path" ] || continue
+    case "$path" in
+        adapters/*) continue ;;
+        *.py) staged_python="$staged_python$path$newline" ;;
+        *.*) ;;
+        *)
+            IFS= read -r first_line < "$path" || continue
+            case "$first_line" in
+                '#!'*python*) staged_python="$staged_python$path$newline" ;;
+            esac
+            ;;
+    esac
+done
+if [ -n "$staged_python" ]; then
+    set -f
+    IFS=$newline
+    # shellcheck disable=SC2086 # newline-separated paths
+    set -- $staged_python
+    unset IFS
+    set +f
+    UV_TOOL_DIR="${UV_TOOL_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-tools}" \
+        tools/check-python-lint "$@"
+    UV_TOOL_DIR="${UV_TOOL_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-tools}" \
+        tools/check-python-format "$@"
 fi
-
-UV_TOOL_DIR="${UV_TOOL_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-tools}" \
-    tools/check-python-lint
-UV_TOOL_DIR="${UV_TOOL_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-tools}" \
-    tools/check-python-format
 # The reviewed pyright baseline is the type gate; bare pyright on changed files
 # would fail on every accepted exception in them.
 if [ -n "$(git diff --cached --name-only --diff-filter=d -- '*.py')" ]; then

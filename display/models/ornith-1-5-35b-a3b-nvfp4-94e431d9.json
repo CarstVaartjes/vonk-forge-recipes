@@ -21,6 +21,14 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4/blob/94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa/LICENSE"
   },
+  "lineage": {
+    "base_model": "ornith-ai/Ornith-1.5-35B-A3B",
+    "family": "ornith",
+    "generation": "Ornith 1.5",
+    "line": "ornith-35b-a3b",
+    "model": "ornith-1-5-35b-a3b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text",

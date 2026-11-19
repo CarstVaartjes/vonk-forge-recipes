@@ -20,6 +20,15 @@
     "spdx": "LicenseRef-NVIDIA-Open-Model-License",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
   },
+  "lineage": {
+    "base_model": "microsoft/Phi-4-multimodal-instruct",
+    "family": "phi",
+    "flavor": "instruct",
+    "generation": "Phi-4",
+    "line": "phi-multimodal",
+    "model": "phi-4-multimodal-instruct",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "audio",
     "image",

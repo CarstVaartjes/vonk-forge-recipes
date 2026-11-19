@@ -54,12 +54,17 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence as Evidence,
 )
 
+from spark_sweep.evidence_publisher import (
+    rotated_history,
+)
 from spark_sweep.lifecycle import RecipeStatus, RetestReason
 from spark_sweep.qualification import (
+    BackfillResult,
     backfill,
     current_identity,
     from_history,
     read_evidence,
+    read_history,
     scheduling_priority,
 )
 
@@ -326,6 +331,36 @@ def test_backfill_rotations_idempotent_read_only_and_sanitized(tmp_path):
     assert not imported.identity.models_resolved
 
 
+def test_rotated_logs_are_read_once_and_publish_as_reading_every_log(tmp_path):
+    work, logs = tmp_path / "work", []
+    for day in range(4):
+        row = {**historical(), "recorded_at": (NOW + timedelta(days=day)).isoformat()}
+        logs.append(tmp_path / f"results.jsonl.{day}")
+        logs[-1].write_text(json.dumps(row) + "\n")
+    rotated, live = logs[:3], logs[3]
+    every = read_history(rotated, BackfillResult())
+    full, incremental = tmp_path / "full", tmp_path / "incremental"
+    backfill(logs, full)
+    assert len(read_evidence(full, KEY).records) == 4
+    assert rotated_history(rotated[:2], work) == read_history(
+        rotated[:2], BackfillResult()
+    )
+    rotated[0].write_text("{torn")  # never read again: only the new log is
+    assert rotated_history(rotated, work) == every
+    backfill([live], incremental, None, rotated_history(rotated, work))
+    assert read_evidence(full, KEY) == read_evidence(incremental, KEY)
+    # A log that is gone rebuilds from the logs that exist.
+    assert rotated_history(rotated[1:], work) == read_history(
+        rotated[1:], BackfillResult()
+    )
+    # Another sweep run rebuilds too, even when an orphaned child of the old
+    # run wrote the file after the new sweep started.
+    rotated[1].write_text("{torn")  # cached by this run; another run re-reads it
+    assert rotated_history(rotated[1:], work, "new run") == read_history(
+        rotated[1:], BackfillResult()
+    )
+
+
 def test_historical_infrastructure_failures_are_never_recipe_failures():
     row = {**historical(), "status": Outcome.FAILED, "failure_class": "capacity"}
     imported = from_history(row)
@@ -384,11 +419,14 @@ def test_published_catalog_matches_shared_derivation(built_catalog):
         )
         if expected.status != Status.NOT_YET_VERIFIED:
             assert identity.required_sparks is not None
-            assert (
-                expected.status
-                == derive_status(
-                    read_evidence(ROOT, key), identity, identity.required_sparks, False
-                ).status
+            derived = derive_status(
+                read_evidence(ROOT, key), identity, identity.required_sparks, False
+            )
+            # A platform fault after an earlier pass publishes Re-check.
+            assert expected.status == (
+                Status.RECHECK
+                if derived.status == Status.BLOCKED_PLATFORM and derived.last_pass
+                else derived.status
             )
 
 
@@ -431,7 +469,11 @@ def test_catalog_derives_after_resolving_release_image(
         "recipe_package",
         lambda *a, **kw: (
             b"package",
-            {"path": "packages/example.tar.gz", "source_bundle_sha256": "1" * 64},
+            {
+                **built_catalog[0]["recipes"][0]["package"],
+                "path": "packages/example.tar.gz",
+                "source_bundle_sha256": "1" * 64,
+            },
         ),
     )
     images = {
@@ -640,6 +682,17 @@ def test_incomplete_later_telemetry_never_erases_complete_working_proof(suffix):
     view = published_status(evidence(proven, incomplete), A)
     assert view.status == Status.WORKING
     assert view.last_pass == proven
+
+
+def test_platform_fault_on_current_identity_after_a_pass_elsewhere_is_recheck():
+    history = evidence(record(B), record(A, Outcome.FAILED, Blame.PLATFORM, day=1))
+    view = published_status(history, A)
+    assert view.status == Status.RECHECK
+    assert view.reason is None
+    assert view.last_pass == record(B)
+    assert view.changed
+    no_pass = evidence(record(A, Outcome.FAILED, Blame.PLATFORM))
+    assert published_status(no_pass, A).status == Status.NOT_YET_VERIFIED
 
 
 def test_partial_pass_after_recipe_failure_cannot_revive_an_invalidated_public_proof():

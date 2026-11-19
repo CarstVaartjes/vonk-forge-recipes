@@ -18,6 +18,13 @@
       "spdx": "Apache-2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0"
     },
+    "lineage": {
+      "family": "synthetic",
+      "generation": "Synthetic 1",
+      "line": "synthetic-tiny",
+      "model": "synthetic-tiny-1",
+      "variant_kind": "base"
+    },
     "modalities": [
       "text",
       "image"
@@ -46,10 +53,6 @@
       "quantization": "none"
     },
     "identity": {
-      "family": {
-        "publisher": "vonk-forge",
-        "slug": "synthetic"
-      },
       "model": {
         "publisher": "vonk-forge",
         "slug": "synthetic-tiny"

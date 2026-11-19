@@ -23,6 +23,14 @@
     "spdx": "LicenseRef-Qwen-Community-1.0",
     "url": "https://huggingface.co/Vontra/Qwen3.8-Flash-Next-MLX-4bit-MTP/blob/dadefa8066e3be900a0d148d0f5a2f4eb1cf6534/LICENSE"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3.8-Flash-Next",
+    "family": "qwen",
+    "generation": "Qwen3.8",
+    "line": "qwen-flash-next",
+    "model": "qwen3-8-flash-next",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text",

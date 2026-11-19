@@ -52,6 +52,9 @@ class Gateway:
             "text": "Ask not what your country can do. Final judge. Land we love."
         }
         self.speech = (make_wav(2.0), "audio/wav")
+        # A chunked reply that stops after this many bytes (no last chunk): http.client
+        # raises IncompleteRead for it; a short Content-Length body is only read short.
+        self.truncate_at: int | None = None
 
 
 @pytest.fixture
@@ -101,6 +104,12 @@ def gateway(tmp_path: Path) -> Iterator[tuple[Gateway, str, smoke.HttpConfig]]:
             state.seen.append(record)
             self.send_response(200)
             self.send_header("Content-Type", kind)
+            if state.truncate_at is not None:
+                self.send_header("Transfer-Encoding", "chunked")
+                self.end_headers()
+                cut = reply[: state.truncate_at]
+                self.wfile.write(f"{len(cut):x}\r\n".encode() + cut + b"\r\n")
+                return
             self.send_header("Content-Length", str(len(reply)))
             self.end_headers()
             self.wfile.write(reply)
@@ -266,3 +275,17 @@ def test_a_fixture_digest_mismatch_is_a_sweep_fault_not_a_recipe_failure(
     with pytest.raises(ValueError, match="digest") as caught:
         smoke.smoke_service(recipe, definitions, base, "a", config)
     assert not isinstance(caught.value, CaseRenderError)
+
+
+def test_a_truncated_response_is_a_typed_recipe_failure_not_a_sweep_crash(
+    gateway,
+) -> None:
+    state, base, config = gateway
+    state.truncate_at = 10
+    recipe: Any = SimpleNamespace(key="k", slug="k", checks=())
+    definitions = Definitions({}, QUALIFICATION)
+    definitions.recipe_api = lambda slug: None  # type: ignore[method-assign]
+    definitions.service_cases = lambda *_a, **_k: [cases()["ASR_TRANSCRIPTION_JFK"]]  # type: ignore[method-assign]
+    result = smoke.smoke_service(recipe, definitions, base, "a", config)
+    assert not result.ok and result.failure is not None
+    assert "IncompleteRead" in result.failure.detail

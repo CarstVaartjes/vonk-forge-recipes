@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
-from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_fakes import FakeModel, FakeRecipe, Gateway, _locked, make_sweep
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -57,7 +57,7 @@ def _make(tmp_path, gateway, recipe, limit):
 
 
 def _run(sweep, fleet):
-    sweep.vk.runner = fleet.runner
+    sweep.vk.runner = _locked(fleet.runner)
     sweep.run()
     return sweep.state.recipes["vonk-forge/a"]
 

@@ -268,10 +268,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "qwen",
       "slug": "qwen3-6-27b"

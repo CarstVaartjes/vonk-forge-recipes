@@ -21,8 +21,15 @@ def main() -> None:
         action="store_true",
         help="bring an open evidence PR up to date instead of waiting for its merge",
     )
+    parser.add_argument(
+        "--run",
+        default="",
+        help="the sweep run; rotated history built by another run is rebuilt",
+    )
     args = parser.parse_args()
-    raise SystemExit(sync(args.history, args.work_dir, args.state, args.final))
+    raise SystemExit(
+        sync(args.history, args.work_dir, args.state, args.final, args.run)
+    )
 
 
 if __name__ == "__main__":

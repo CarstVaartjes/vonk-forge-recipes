@@ -115,10 +115,6 @@
     "quantization": "compressed-tensors"
   },
   "identity": {
-    "family": {
-      "publisher": "meta",
-      "slug": "muse-glimmer"
-    },
     "model": {
       "publisher": "redhatai",
       "slug": "muse-glimmer-30b"

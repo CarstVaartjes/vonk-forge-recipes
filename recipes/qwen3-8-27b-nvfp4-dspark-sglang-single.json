@@ -256,7 +256,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "6123bb42dcf623a736a68ab17706ea86db3221a4a6a310dc7392f5c4ecbebc73",
+        "content_sha256": "e67ab1dd6460c51ac268e0a914a18c733a621cd2721ef46b37d30371c055fb5f",
         "kind": "model",
         "publisher": "radixark",
         "slug": "qwen3-8-27b-nvfp4-009632fe"
@@ -327,7 +327,7 @@
       ],
       "id": "dependency-qwen3-8-27b-dspark-b3c99101",
       "model": {
-        "content_sha256": "b8f9f066339b087a60ce7c1dd7d0b59c4f8d0693f719444fb01b355d4b7d9d53",
+        "content_sha256": "124f9af5edba2b7c65d46d7d7e4f5ed86cfa9ff41df3d3da4f28e9f653bc0b4b",
         "kind": "model",
         "publisher": "radixark",
         "slug": "qwen3-8-27b-dspark-b3c99101"

@@ -115,10 +115,6 @@
     "quantization": "fp8-modelopt"
   },
   "identity": {
-    "family": {
-      "publisher": "meta-llama",
-      "slug": "llama"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "llama-3-1-8b-instruct"

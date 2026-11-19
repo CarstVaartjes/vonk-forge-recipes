@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
 
 from tools._catalog_model import add_model_arguments, write_model
 
@@ -63,18 +61,35 @@ def test_display_carries_its_kind(tmp_path: Path) -> None:
     assert display["kind"] == "model-display"
 
 
-def test_family_publisher_is_separate_from_the_republisher(tmp_path: Path) -> None:
-    model, display = _written(tmp_path, "--family-publisher", "creator")
+def test_model_publisher_is_separate_from_the_republisher(tmp_path: Path) -> None:
+    model, display = _written(tmp_path, "--model-publisher", "creator")
     identity = model["identity"]
     assert identity["publisher"] == "republisher"
-    assert identity["family"]["publisher"] == "creator"
     assert identity["model"]["publisher"] == "creator"
     assert display["identity"]["publisher"] == "republisher"
 
 
-def test_family_publisher_defaults_to_the_publisher(tmp_path: Path) -> None:
+def test_model_publisher_defaults_to_the_publisher(tmp_path: Path) -> None:
     model, _ = _written(tmp_path)
-    assert model["identity"]["family"]["publisher"] == "republisher"
+    assert model["identity"]["model"]["publisher"] == "republisher"
+
+
+def test_the_hierarchy_is_written_to_the_display_only(tmp_path: Path) -> None:
+    lineage = {
+        "family": "lineage",
+        "line": "lineage-line",
+        "model": "lineage-model",
+        "variant_kind": "quantization",
+        "base_model": "creator/Lineage-Model",
+    }
+    model, display = _written(tmp_path, "--lineage", json.dumps(lineage))
+    assert "family" not in model["identity"]
+    assert display["lineage"] == lineage
+
+
+def test_a_helper_has_no_lineage(tmp_path: Path) -> None:
+    _, display = _written(tmp_path)
+    assert "lineage" not in display
 
 
 def test_several_modalities_are_written_without_stray_tags(tmp_path: Path) -> None:
@@ -83,3 +98,19 @@ def test_several_modalities_are_written_without_stray_tags(tmp_path: Path) -> No
     assert display["modalities"] == ["text", "image"]
     assert "candidate" not in display["tags"]
     assert "language" not in display["tags"]
+
+
+def test_every_weight_format_is_classified_as_weights() -> None:
+    from tools._catalog_model import roles_for
+
+    for name in (
+        "m.safetensors",
+        "m.gguf",
+        "m.pth",
+        "m.pt",
+        "m.bin",
+        "m.onnx",
+        "m.ckpt",
+    ):
+        assert roles_for(f"sub/{name}") == ["weights"], name
+    assert roles_for("notes.txt") == ["metadata"]

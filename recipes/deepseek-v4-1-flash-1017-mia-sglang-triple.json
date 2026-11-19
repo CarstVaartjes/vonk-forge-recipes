@@ -960,7 +960,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ba3bdb6c24468b83182e2611bf7fe3904e3c210ab95edf907d8d00a2a8f1d11f",
+        "content_sha256": "bfdb5330c7109718f73fa358b9fc2f09dddbf71d21acd968a4630312d62c9f6c",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-1017-native-08c8657f"

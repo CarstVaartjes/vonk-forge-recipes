@@ -232,10 +232,6 @@
     "quantization": "autoround"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "intel",
       "slug": "qwen3-5-122b-a10b-int4-autoround"

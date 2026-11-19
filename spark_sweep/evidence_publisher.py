@@ -13,12 +13,13 @@ import signal
 import subprocess
 import tempfile
 import time
+import uuid
 from dataclasses import dataclass
-from enum import StrEnum
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TextIO
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from vonk_forge_contracts import (
     QualificationEvidenceRecord,
     RecipeQualificationEvidence,
@@ -34,12 +35,14 @@ from vonk_forge_contracts.sweep import (
 
 from .own_pulls import OWN_FIELDS, REPOSITORY, own_pulls
 from .qualification import (
+    BackfillResult,
     backfill,
     catalog_recipe_keys,
     evidence_path,
     merge_evidence,
     prune_withdrawn_evidence,
     read_evidence,
+    read_history,
     read_state_evidence,
     serving_rows,
     write_evidence,
@@ -49,72 +52,12 @@ from .state import write_atomic
 BRANCH = "qualification/evidence"
 TITLE = "qualification evidence"
 _deadline: float | None = None
-UNPUBLISHED_FILE = "unpublished.json"
-PERSISTENT_BATCHES = 2
 STATE_FILE = "publisher-state.json"
+ROTATED_FILE = "rotated-history.json"
 CHILD_BUDGET = 240  # seconds a publisher child may run, as seen from the sweep
-
-
-class UnpublishedReport(BaseModel):
-    """What a batch counted, and the history it counted against.
-
-    The history is append-only, so its head (file names and sizes) tells a reader
-    whether anything finished after the count: a count older than the history is
-    stale, not zero.
-    """
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
-    count: int
-    head: str
-
-
-def history_head(history: Path) -> str:
-    """A digest of the rotated and live result logs: changes whenever a row is appended."""
-    paths = sorted(history.parent.glob(history.name + ".*"))
-    if history.exists():
-        paths.append(history)
-    entries = []
-    for path in paths:
-        try:
-            entries.append(f"{path.name}:{path.stat().st_size}")
-        except OSError:
-            continue  # rotated away between the listing and the stat
-    return hashlib.sha256("\n".join(entries).encode()).hexdigest()[:16]
-
-
-class UnpublishedState(StrEnum):
-    """What a reader may say about the unpublished count."""
-
-    COUNTED = "counted"  # the count was taken against the current history
-    STALE = "stale"  # results finished after the count: it says nothing
-    UNKNOWN = "unknown"  # no batch has counted yet
-
-
-class UnpublishedStatus(BaseModel):
-    """The one typed value readers (status.json, the status page, rendering) get."""
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
-    state: UnpublishedState = UnpublishedState.UNKNOWN
-    count: int | None = None  # set exactly when COUNTED
-
-    @model_validator(mode="after")
-    def _count_only_when_counted(self) -> UnpublishedStatus:
-        if (self.count is not None) != (self.state == UnpublishedState.COUNTED):
-            raise ValueError("count is set exactly when the state is counted")
-        return self
-
-
-def unpublished_report(directory: Path, history: Path) -> UnpublishedStatus:
-    """Counted, stale (the history moved past the count) or unknown."""
-    try:
-        report = UnpublishedReport.model_validate_json(
-            (directory / UNPUBLISHED_FILE).read_text()
-        )
-    except (OSError, ValueError):
-        return UnpublishedStatus()  # no batch reached backfill yet, or an unknown shape
-    if report.head != history_head(history):
-        return UnpublishedStatus(state=UnpublishedState.STALE)
-    return UnpublishedStatus(state=UnpublishedState.COUNTED, count=report.count)
+#: How long one evidence PR may stay open before it is reported. Evidence PRs were
+#: observed to merge 6-14 minutes after they opened; an hour open is stuck.
+STALL_SECONDS = 3600
 
 
 def kill_group(process: subprocess.Popen) -> None:
@@ -151,6 +94,12 @@ class PublisherRecord(BaseModel):
     main: str = (
         ""  # origin/main when they were refused; they are released when it moves
     )
+    pr: int = 0  # the open evidence PR last seen; 0 when none was open
+    pr_since: float = 0.0  # wall-clock time that PR was first seen open
+
+    def stalled(self, now: float) -> bool:
+        """The same PR has been open past STALL_SECONDS, waiting or red."""
+        return bool(self.pr) and now - self.pr_since > STALL_SECONDS
 
 
 #: Declared edges. REFUSED is only reachable from a state that already saw red.
@@ -170,19 +119,34 @@ def transition(
     refused: tuple[str, ...] | None = None,
     main: str | None = None,
     observed: bool = True,
+    open_pr: int | None = None,
+    now: float,
 ) -> PublisherRecord:
     """The only place a record is chosen; an undeclared edge self-heals to IDLE.
 
     `signature` None means nothing failed. "Twice" means two different runs: the
     same red on a new PR head (after a re-plan push), or a command that failed on
     a new tick. The same head seen on two ticks is one run and stays RED. A
-    rollup that is still running (`observed` False) changes nothing.
+    rollup that is still running (`observed` False) changes no red state. A
+    command that keeps failing with the same signature stays REFUSED.
+
+    `open_pr` is the number of the open PR this batch saw, 0 for none, None when
+    the batch failed before looking. The PR's clock keeps running through pushes,
+    pending checks and failures until another PR (a refusal closes it) or none
+    is seen; `now` starts it.
     """
     if not observed:
         signature, head, command = current.signature, current.head, current.command
         wanted = current.state
     elif signature is None:
         wanted = PublisherState.IDLE
+    elif (
+        current.state == PublisherState.REFUSED
+        and current.command
+        and command
+        and signature == current.signature
+    ):
+        wanted = PublisherState.REFUSED  # the same command keeps failing: alert stays
     elif (
         current.state == PublisherState.RED
         and signature == current.signature
@@ -192,6 +156,8 @@ def transition(
     else:
         wanted = PublisherState.RED
     state = wanted if wanted in EDGES.get(current.state, ()) else PublisherState.IDLE
+    pr = current.pr if open_pr is None else open_pr
+    since = current.pr_since if pr == current.pr else now if pr else 0.0
     kept = current.refused if refused is None else refused
     grew = bool(set(kept) - set(current.refused))
     red = state != PublisherState.IDLE
@@ -205,6 +171,8 @@ def transition(
             (signature or "") if grew else current.refused_because if kept else ""
         ),
         main=(current.main if main is None else main) if kept else "",
+        pr=pr,
+        pr_since=since,
     )
 
 
@@ -219,6 +187,7 @@ class Seen:
     main: str | None = None
     pending: bool = False  # the PR's checks are still running: nothing was observed
     closing: bool = False  # the blocked PR is being closed; a failure retries it
+    open_pr: int | None = None  # the open PR's number; 0 when none is open
 
 
 def load_state(directory: Path) -> PublisherRecord:
@@ -227,6 +196,60 @@ def load_state(directory: Path) -> PublisherRecord:
         return PublisherRecord.model_validate_json((directory / STATE_FILE).read_text())
     except (OSError, ValidationError):
         return PublisherRecord()
+
+
+class RotatedHistory(BaseModel):
+    """The merged evidence of the rotated result logs, and which logs it holds.
+
+    A log never changes once rotated, so each is read once; the union merge
+    makes adding one log's rows equal to reading them all again.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    run: str = ""  # the sweep run whose code built it; another run rebuilds it
+    files: tuple[str, ...] = ()
+    evidence: dict[str, RecipeQualificationEvidence] = Field(default_factory=dict)
+
+
+def rotated_history(
+    rotated: list[Path], directory: Path, run: str = ""
+) -> dict[str, RecipeQualificationEvidence]:
+    """The rotated logs' evidence, reading only logs rotated since the last batch.
+
+    A file that is missing or unreadable, names a log that is gone, or was built
+    by another sweep run is rebuilt from every rotated log: a new sweep's code
+    re-reads old rows once, even when an orphaned child of the old sweep wrote
+    the file last. Otherwise only newly rotated logs are read and merged on top.
+    """
+    try:
+        known = RotatedHistory.model_validate_json(
+            (directory / ROTATED_FILE).read_text()
+        )
+    except (OSError, ValidationError):
+        known = RotatedHistory()
+    names = [path.name for path in rotated]
+    if known.run != run or not set(known.files) <= set(names):
+        known = RotatedHistory()
+    new = [path for path in rotated if path.name not in known.files]
+    if not new:
+        return known.evidence
+    counted = BackfillResult()
+    evidence = dict(known.evidence)
+    for key, rows in read_history(new, counted).items():
+        evidence[key] = merge_evidence(evidence[key], rows) if key in evidence else rows
+    if counted.rejected:
+        print(
+            f"evidence: rejected {counted.rejected} malformed rotated rows", flush=True
+        )
+    write_atomic(
+        directory / ROTATED_FILE,
+        RotatedHistory(
+            run=run,
+            files=(*known.files, *(path.name for path in new)),
+            evidence=evidence,
+        ).model_dump_json(),
+    )
+    return evidence
 
 
 def record_id(key: str, record: QualificationEvidenceRecord) -> str:
@@ -306,7 +329,7 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
 
 
 def own_open_prs(cwd: Path) -> list[dict]:
-    """Open PRs on the evidence branch that come from this repository."""
+    """The open evidence PR from this repository: GitHub allows one per head and base."""
     own = own_pulls(
         json.loads(
             command(
@@ -318,6 +341,8 @@ def own_open_prs(cwd: Path) -> list[dict]:
                 REPOSITORY,
                 "--head",
                 BRANCH,
+                "--base",
+                "main",
                 "--state",
                 "open",
                 "--json",
@@ -325,15 +350,18 @@ def own_open_prs(cwd: Path) -> list[dict]:
             )
         )
     )
-    if len(own) > 1:
-        raise RuntimeError("multiple qualification evidence PRs; needs repair")
     return own
 
 
 def sync(
-    history: Path, directory: Path, state: Path | None = None, final: bool = False
+    history: Path,
+    directory: Path,
+    state: Path | None = None,
+    final: bool = False,
+    run: str = "",
 ) -> SweepEvidenceExit:
-    """One batch, then record what it saw. A failing command never crashes the child.
+    """One batch, then record what it saw. Nothing a batch raises crashes the child:
+    every exception is a command failure, recorded and alerted on when repeated.
 
     `final` is the batch a sweep runs on exit: an open evidence PR is brought up
     to date with the latest results instead of waiting for its own merge.
@@ -342,33 +370,30 @@ def sync(
     directory.mkdir(parents=True, exist_ok=True)
     previous = load_state(directory)
     try:
-        code = _batch(history, directory, state, seen, previous, final)
-    except (
-        subprocess.CalledProcessError,
-        subprocess.TimeoutExpired,
-        EvidencePublicationTimeout,
-        ValueError,  # malformed evidence or provider JSON, incl. pydantic's ValidationError
-    ) as error:
+        code = _batch(history, directory, state, seen, previous, final, run)
+    except Exception as error:  # noqa: BLE001 - the runtime net: a crash writes no state
         # The signature is keyed on behaviour; the real error goes to publisher.log.
         print(f"evidence: {type(error).__name__}: {error}", flush=True)
         if stderr := getattr(error, "stderr", None):
             print(f"evidence: stderr: {stderr}", flush=True)
-        if isinstance(error, ValueError):
+        if isinstance(error, ValueError):  # malformed evidence or provider JSON
             seen.signature = "validate evidence exit invalid"
-        else:
+        elif isinstance(error, subprocess.SubprocessError | EvidencePublicationTimeout):
             argv = " ".join(map(str, getattr(error, "cmd", ())[:2]))
             exit_code = getattr(error, "returncode", None)
             seen.signature = (
                 f"{argv} exit {'timeout' if exit_code is None else exit_code}"
             )
+        else:
+            seen.signature = f"publisher {type(error).__name__}"
         seen.command = True
+        seen.pending = False  # a failed command is an observation, even mid-CI
         if seen.closing:  # the blocked PR is still open: observe it again next tick
             seen.signature, seen.head, seen.command = (
                 previous.signature,
                 previous.head,
                 False,
             )
-            seen.pending = False
             seen.refused = None
             print("evidence: closing the refused PR failed; retrying", flush=True)
         print(f"evidence: command failed: {seen.signature}", flush=True)
@@ -383,6 +408,8 @@ def sync(
             refused=seen.refused,
             main=seen.main,
             observed=not seen.pending,
+            open_pr=seen.open_pr,
+            now=time.time(),
         ).model_dump_json(),
     )
     return code
@@ -397,10 +424,9 @@ def _evidence_records(clone: Path, ref: str, name: str) -> tuple:
         return ()  # the file does not exist at that ref
 
 
-def _branch_only_ids(clone: Path) -> list[str]:
-    """Ids of the records the evidence branch carries that main does not."""
-    command(clone, "git", "fetch", "origin", f"{BRANCH}:refs/remotes/origin/{BRANCH}")
-    names = command(
+def _branch_files(clone: Path) -> list[str]:
+    """Evidence files the branch changed since it left main (read after a fetch)."""
+    return command(
         clone,
         "git",
         "diff",
@@ -409,6 +435,12 @@ def _branch_only_ids(clone: Path) -> list[str]:
         "--",
         "qualification/evidence",
     ).splitlines()
+
+
+def _branch_only_ids(clone: Path) -> list[str]:
+    """Ids of the records the evidence branch carries that main does not."""
+    command(clone, "git", "fetch", "origin", f"{BRANCH}:refs/remotes/origin/{BRANCH}")
+    names = _branch_files(clone)
     ids = []
     for name in names:
         key = (
@@ -453,18 +485,18 @@ def _batch(
     seen: Seen,
     previous: PublisherRecord,
     final: bool = False,
+    run: str = "",
 ) -> SweepEvidenceExit:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
     global _deadline
     _deadline = time.monotonic() + CHILD_BUDGET
     directory.mkdir(parents=True, exist_ok=True)
-    (directory / UNPUBLISHED_FILE).unlink(
-        missing_ok=True
-    )  # only a synced batch reports
     opened = own_open_prs(directory)
     refusing = False
     red = False
     blocked = 0
+    if not opened:
+        seen.open_pr = 0  # observed: nothing is waiting
     if opened:
         pr = PullRequest.model_validate(opened[0])
         details = PullRequest.model_validate_json(
@@ -487,6 +519,7 @@ def _batch(
         red = details.check_failed
         seen.signature = details.failure_signature if red else None
         seen.head = details.head
+        seen.open_pr = pr.number
         # Checks still running, or none registered yet on a head we have not seen red.
         seen.pending = not red and (
             not details.settled
@@ -494,7 +527,9 @@ def _batch(
         )
         blocked = pr.number
         refusing = (
-            transition(previous, signature=seen.signature, head=seen.head).state
+            transition(
+                previous, signature=seen.signature, head=seen.head, now=time.time()
+            ).state
             == PublisherState.REFUSED
         )
         replan = (
@@ -596,15 +631,18 @@ def _batch(
                 f"{BRANCH}:refs/remotes/origin/{BRANCH}",
             )
             command(clone, "git", "checkout", "-b", BRANCH, f"origin/{BRANCH}")
-            # Read both parent versions before merge; evidence conflicts are unions.
+            # Read the branch's own changes before merge; evidence conflicts are
+            # unions. A file the branch never touched is main's to keep as is.
             inherited = {}
-            for path in (clone / "qualification/evidence").rglob("*.json"):
-                key = (
-                    path.relative_to(clone / "qualification/evidence")
-                    .with_suffix("")
-                    .as_posix()
-                )
-                inherited[key] = read_evidence(clone, key)
+            for name in _branch_files(clone):
+                if (clone / name).is_file():  # not deleted on the branch
+                    key = (
+                        Path(name)
+                        .relative_to("qualification/evidence")
+                        .with_suffix("")
+                        .as_posix()
+                    )
+                    inherited[key] = read_evidence(clone, key)
             result = subprocess.run(
                 ["git", "merge", "--no-commit", "--no-ff", "origin/main"],
                 cwd=clone,
@@ -617,14 +655,21 @@ def _batch(
                 conflicts = command(
                     clone, "git", "diff", "--name-only", "--diff-filter=U"
                 ).splitlines()
-                if not conflicts or any(
-                    not p.startswith("qualification/evidence/") for p in conflicts
-                ):
-                    raise RuntimeError(
-                        "evidence branch has a non-evidence conflict; needs repair"
+                if not conflicts:
+                    raise subprocess.CalledProcessError(
+                        result.returncode, result.args, stderr=result.stderr
                     )
-                keys = catalog_recipe_keys(clone)
+                evidence = [
+                    n for n in conflicts if n.startswith("qualification/evidence/")
+                ]
                 for name in conflicts:
+                    if name not in evidence:
+                        # The branch owns only evidence: main's version wins.
+                        # Resolve these first: a conflicted recipe file holds
+                        # markers and would break the catalog read below.
+                        command(clone, "git", "checkout", "origin/main", "--", name)
+                keys = catalog_recipe_keys(clone)
+                for name in evidence:
                     key = (
                         Path(name)
                         .relative_to("qualification/evidence")
@@ -648,17 +693,12 @@ def _batch(
                 )
         else:
             command(clone, "git", "checkout", "-b", BRANCH, "origin/main")
-        head = history_head(history)  # taken before the read: later rows stay stale
-        paths = sorted(history.parent.glob(history.name + ".*"))
-        if history.exists():
-            paths.append(history)
-        local = read_state_evidence(state) if state is not None else {}
-        result = backfill(paths, clone, local)
-        # Counted before the merge, on the fresh clone; reported, never a blocker.
-        write_atomic(
-            directory / UNPUBLISHED_FILE,
-            UnpublishedReport(count=result.unpublished, head=head).model_dump_json(),
+        rotated = rotated_history(
+            sorted(history.parent.glob(history.name + ".*")), directory, run
         )
+        live = [history] if history.exists() else []
+        local = read_state_evidence(state) if state is not None else {}
+        result = backfill(live, clone, local, rotated)
         if result.rejected:
             print(
                 f"evidence: rejected {result.rejected} malformed historical rows",
@@ -732,9 +772,9 @@ class EvidencePublisher:
     ) -> None:
         self.history = history
         self.state = state
-        self.unpublished = 0
-        self.unpublished_batches = 0
         self.directory = directory
+        # A new sweep may run new conversion code: its first batch reads every log.
+        self.run = uuid.uuid4().hex
         self.script = script
         self.process: subprocess.Popen | None = None
         self.next_attempt = 0.0
@@ -744,42 +784,38 @@ class EvidencePublisher:
         self._output: TextIO | None = None
 
     @property
-    def unpublished_report(self) -> UnpublishedStatus:
-        """The last counted gap, stale once results finished after it."""
-        return unpublished_report(self.directory, self.history)
-
-    def _read_unpublished(self) -> None:
-        try:
-            count = UnpublishedReport.model_validate_json(
-                (self.directory / UNPUBLISHED_FILE).read_text()
-            ).count
-        except (OSError, ValueError):
-            return  # this batch did not reach backfill: neither counted nor reset
-        self.unpublished = count
-        self.unpublished_batches = self.unpublished_batches + 1 if count else 0
-        if count:
-            self.message += f"; {count} resolved sweep records were missing from main"
-
-    @property
     def alert(self) -> str | None:
-        """Raised when the publisher is broken: a refused failure, or a gap that persists."""
-        if self.record.refused:
-            return (
-                f"evidence publisher: {len(self.record.refused)} records refused and left "
-                f"out of the publication (red twice: {self.record.refused_because}); "
+        return self.alert_at(time.time())
+
+    def alert_at(self, now: float) -> str | None:
+        """Raised when the publisher is broken: refused records, a repeated failure,
+        or an evidence PR open past STALL_SECONDS. Report only: lanes go on."""
+        record = self.record
+        alerts = []
+        if record.refused:
+            alerts.append(
+                f"evidence publisher: {len(record.refused)} records refused and left "
+                f"out of the publication (red twice: {record.refused_because}); "
                 "they return when their content changes"
             )
-        if self.record.state == PublisherState.REFUSED:
-            return f"evidence publisher: failing repeatedly: {self.record.signature}"
-        if self.unpublished_batches < PERSISTENT_BATCHES:
-            return None
-        return (
-            f"evidence publisher: {self.unpublished} resolved sweep records still "
-            f"missing from main after {self.unpublished_batches} batches"
-        )
+        elif record.state == PublisherState.REFUSED:
+            alerts.append(f"evidence publisher: failing repeatedly: {record.signature}")
+        if record.stalled(now):
+            since = datetime.fromtimestamp(record.pr_since, UTC)
+            alerts.append(
+                f"evidence publisher: PR #{record.pr} has been open "
+                f"since {since:%Y-%m-%d %H:%M} UTC "
+                + (
+                    f"(last failure: {record.signature})"
+                    if record.state != PublisherState.IDLE
+                    else "without merging"
+                )
+                + "; new results stay in history until it merges"
+            )
+        return "; ".join(alerts) or None
 
     def _finish(self, code: int, now: float) -> None:
-        """Reap an exited child: its message, state record and unpublished count."""
+        """Reap an exited child: its message and state record."""
         self.record = load_state(self.directory)
         signature = self.record.signature
         self.message = (
@@ -799,7 +835,6 @@ class EvidencePublisher:
             if code == SweepEvidenceExit.REFUSED
             else f"evidence publisher exited {code}; re-plan in 300s (see publisher.log)"
         )
-        self._read_unpublished()
         if self._output is not None:
             self._output.close()
         self.process = None
@@ -819,6 +854,8 @@ class EvidencePublisher:
                     str(self.history),
                     "--work-dir",
                     str(self.directory),
+                    "--run",
+                    self.run,
                     *(["--state", str(self.state)] if self.state else []),
                     *(["--final"] if final else []),
                 ],

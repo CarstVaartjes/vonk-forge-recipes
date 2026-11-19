@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+"""Choose the producer job's checks: the Python gates and the tests to run.
+
+Every change lands through an integration batch (head branch ``integration/*``),
+which runs the full suite once, as do pushes, publication and manual runs. A
+member pull request runs the always-run core plus the tests its changed paths
+name; the batch it is folded into runs everything. Hardware evidence and
+refresher PRs (``refresh/*``) auto-merge without a batch, so they run
+everything too.
+
+Recipe data changes (light) skip lint, format, types and the wheel build; any
+other change runs them (full).
+
+Git runs in the workflow. This tool reads the changed paths, one per line, from
+``--changed-files FILE|-``; without it the change is unknown and everything runs.
+It prints ``gates=full|light`` and ``tests=<pytest arguments>`` for
+``$GITHUB_OUTPUT``; ``tests/`` is the whole suite.
+"""
+
+from __future__ import annotations
+
+import argparse
+import re
+from collections.abc import Iterable
+from pathlib import Path, PurePosixPath
+
+ROOT = Path(__file__).resolve().parents[1]
+FULL_SUITE = "tests/"
+# Heads that run everything: integration batches, and refresher PRs (auto-merged without a batch).
+FULL_SUITE_HEADS = ("integration/", "refresh/")
+RECIPE_DATA = re.compile(
+    r"^(recipes/|models/|display/|api/|adapters/|qualification/shared\.json$"
+    r"|qualification/recipes/|README\.md$|creators\.json$)"
+)
+# Hardware evidence lands through its own auto-merged PR, never a batch, and
+# memory admission and status derivation read it library-wide: a change there
+# runs the full suite.
+UNBATCHED = ("qualification/evidence/",)
+# Always run on a member PR: this selector, the Python gate wiring, the public
+# contract tests and the guidance allowlist.
+CORE = (
+    "tests/test_select_producer_checks.py",
+    "tests/test_python_gate_configuration.py",
+    "tests/test_guidance_files.py",
+    "tests/test_contracts.py",
+)
+
+
+def gates(changed: list[str] | None) -> str:
+    if changed is None:
+        return "full"
+    return "light" if all(RECIPE_DATA.match(path) for path in changed) else "full"
+
+
+def _named_by(path: PurePosixPath) -> re.Pattern[str]:
+    """Test source text that names this changed path."""
+
+    parts = path.parts
+    if parts[0] == "adapters" and len(parts) > 3:
+        names = ["/".join(parts[1:3])]  # the adapter directory: <group>/<name>
+    elif path.suffix == ".py":
+        # An import line naming the module: `a.module` or `from a import module`;
+        # a package's `__init__.py` is named by its package.
+        module = path.parent.name if path.stem == "__init__" else path.stem
+        word = re.escape(module)
+        return re.compile(
+            rf"^\s*(?:from|import)\s+[\w.]*\b{word}\b"
+            rf"|^\s*from\s+[\w.]+\s+import\s+[^\n]*\b{word}\b",
+            re.MULTILINE,
+        )
+    else:
+        # A document's slug or a file's name, or a directory of two or more
+        # parts (`qualification/evidence`); one part (`recipes`) names too much.
+        names = [path.stem if path.suffix == ".json" else path.name]
+        names += [str(parent) for parent in path.parents if len(parent.parts) >= 2]
+    return re.compile("|".join(map(re.escape, names)))
+
+
+def targeted(changed: Iterable[str], tests: dict[str, str]) -> list[str]:
+    """The core plus every test file a changed path names; ``tests`` maps path to text."""
+
+    selected: set[str] = set(CORE)
+    for raw in changed:
+        if raw in tests:
+            selected.add(raw)
+            continue
+        pattern = _named_by(PurePosixPath(raw))
+        selected.update(name for name, text in tests.items() if pattern.search(text))
+    return sorted(selected)
+
+
+def select(event: str, head_ref: str, changed: list[str] | None) -> dict[str, str]:
+    member = event == "pull_request" and not head_ref.startswith(FULL_SUITE_HEADS)
+    if (
+        member
+        and changed is not None
+        and not any(path.startswith(UNBATCHED) for path in changed)
+    ):
+        files = {
+            f"tests/{path.name}": path.read_text(encoding="utf-8")
+            for path in sorted((ROOT / "tests").glob("test_*.py"))
+        }
+        chosen = " ".join(targeted(changed, files))
+    else:
+        chosen = FULL_SUITE
+    return {"gates": gates(changed), "tests": chosen}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--event", required=True, help="github.event_name")
+    parser.add_argument("--head-ref", default="", help="github.head_ref")
+    parser.add_argument(
+        "--changed-files",
+        type=argparse.FileType("r"),
+        help="file (or - for stdin) listing changed paths, one per line",
+    )
+    args = parser.parse_args()
+    changed = args.changed_files.read().split() if args.changed_files else None
+    for key, value in select(args.event, args.head_ref, changed).items():
+        print(f"{key}={value}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

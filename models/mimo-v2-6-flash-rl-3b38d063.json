@@ -817,10 +817,6 @@
     "quantization": "mxfp4-routed-experts-fp8-attention"
   },
   "identity": {
-    "family": {
-      "publisher": "xiaomimimo",
-      "slug": "mimo"
-    },
     "model": {
       "publisher": "xiaomimimo",
       "slug": "mimo-v2-6-flash-rl"

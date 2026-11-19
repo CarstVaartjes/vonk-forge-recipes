@@ -357,3 +357,23 @@ def test_generic_platform_fault_never_blames_recipe_or_siblings(
     assert "vonk-forge/sibling" in [
         c[2] for _, c in fleet.calls if c[:2] == ("recipe", "download")
     ]
+
+
+def test_smoke_transport_failure_with_exited_workload_is_runtime_exit() -> None:
+    from vonk_forge_contracts import QualificationCauseCode
+
+    from spark_sweep import policy, verdict
+
+    request = policy.classify(
+        "smoke", "", "HTTP 500", "smoke-request", {"case": "stream", "http_status": 500}
+    )
+    assert verdict.blame(request.klass, request.code) is verdict.Blame.PLATFORM
+
+    exited = verdict.smoke_workload_exit(request, ["failed"])
+    assert verdict.blame(exited.klass, exited.code) is verdict.Blame.RECIPE
+    assert verdict.disposition(exited) is verdict.Disposition.FAIL
+    assert exited.code == QualificationCauseCode.RUNTIME_EXIT
+    assert exited.evidence["smoke_failure_class"] == "smoke-request"
+
+    # The workload still runs: a true transport failure keeps its class.
+    assert verdict.smoke_workload_exit(request, ["running"]) is request

@@ -214,10 +214,6 @@
     "quantization": "exl3-2-05bpw"
   },
   "identity": {
-    "family": {
-      "publisher": "zai-org",
-      "slug": "glm"
-    },
     "model": {
       "publisher": "turboderp",
       "slug": "glm-5-3-flash-exl3-2-05bpw"

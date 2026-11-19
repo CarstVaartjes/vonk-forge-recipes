@@ -19,6 +19,14 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen3-Coder-Next-FP8/blob/da6e2ed27304dd39abadd9c82ef50e8de67bdd4c/README.md"
   },
+  "lineage": {
+    "base_model": "Qwen/Qwen3-Coder-Next",
+    "family": "qwen",
+    "generation": "Qwen3",
+    "line": "qwen-coder-next",
+    "model": "qwen3-coder-next",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

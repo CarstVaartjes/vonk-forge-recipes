@@ -1,0 +1,29 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "description": "Enntity's DFlash2 speculative-decoding draft for GLM-5.3-Flash (bf16, 5 layers, 1.17B parameters, trained from scratch; embedding and lm_head are the target's), served beside the target by SGLang's DFLASH algorithm.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "enntity",
+    "slug": "glm-5-3-flash-dflash2-enntity-e60c8f86"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Enntity"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Enntity/GLM-5.3-Flash-DFlash2-enntity/blob/e60c8f86bba18e47bb23927588df6ce31248b569/README.md"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "GLM 5.3 Flash DFlash2 (Enntity)",
+  "tags": [
+    "enntity",
+    "glm-5.3",
+    "language",
+    "candidate"
+  ]
+}

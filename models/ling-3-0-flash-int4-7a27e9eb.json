@@ -322,10 +322,6 @@
     "quantization": "int4-group32"
   },
   "identity": {
-    "family": {
-      "publisher": "inclusionai",
-      "slug": "ling"
-    },
     "model": {
       "publisher": "inclusionai",
       "slug": "ling-3-0-flash"

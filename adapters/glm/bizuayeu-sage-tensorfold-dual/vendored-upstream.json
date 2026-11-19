@@ -1,0 +1,11 @@
+{
+  "ours": [
+    "licenses/",
+    "tensorfold-serve"
+  ],
+  "source": {
+    "commit": "2a674b552498739e783a31c2573fc9ccf4d8cc0d",
+    "line": "1",
+    "repo": "ashhart/TensorFold"
+  }
+}

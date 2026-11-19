@@ -1098,6 +1098,78 @@ class NeverDowngradeTests(unittest.TestCase):
         self.assertTrue(classify(result.items[0].comparison))
 
 
+class ImageHeaderMoveTests(unittest.TestCase):
+    OLD = "sha256:" + "a" * 64
+    NEW = "sha256:" + "b" * 64
+    UPSTREAM = "# Upstream recipes start it with `vllm serve`; the wrapper is the entrypoint.\n"
+
+    def move(self, header: str, result: Any = None) -> str:
+        result = result or refresh.Assessment("recipe")
+        text = (
+            f"FROM docker.io/eugr/spark-vllm@{self.OLD}\n\n"
+            'LABEL org.opencontainers.image.source="https://example.test/r" \\\n'
+            '      org.opencontainers.image.revision="42f62e34"\n\n'
+            + header
+            + "COPY vllm-wrapper.py /opt/vonk/bin/vllm\n"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "Dockerfile").write_text(text)
+            edits: dict[str, bytes | None] = {}
+            refresh.Assessor(refresh.Catalog(root), object(), None, {})._move_image(
+                root,
+                "docker.io/eugr/spark-vllm",
+                self.NEW,
+                lambda written: f"docker.io/eugr/spark-vllm@{self.NEW}",
+                {"execution": {"build": {}}},
+                edits,
+                published=True,
+                result=result,
+            )
+        written = edits["Dockerfile"]
+        assert written is not None
+        return written.decode()
+
+    def test_published_move_replaces_the_versioned_header_prose(self) -> None:
+        # Verbatim from adapters/eugr/qwen3-6-35b-a3b-fp8/Dockerfile.
+        header = (
+            "# eugr's published vllm-node image (nightly-20260929). Its /workspace/build-metadata.yaml records\n"
+            "# build_script_commit 42f62e34 (the revision above), vLLM af5b4857e and FlashInfer 4a638133, built\n"
+            "# from the repository's default Dockerfile (upstream's local `vllm-node` build) with the stock\n"
+            "# build arguments.\n" + self.UPSTREAM
+        )
+        moved = self.move(header)
+        self.assertIn(
+            "# The published docker.io/eugr/spark-vllm image, built from the revision "
+            "above; the digest is what runs.\n" + self.UPSTREAM,
+            moved,
+        )
+        self.assertNotIn("nightly", moved)
+        self.assertNotIn("42f62e34 (", moved)
+
+    def test_header_without_the_upstream_line_is_kept(self) -> None:
+        header = "# build arguments. Upstream recipes start it with `vllm serve`; the wrapper.\n"
+        self.assertIn(header, self.move(header))
+
+    def test_header_the_note_cannot_replace_is_named_for_review(self) -> None:
+        # Verbatim from adapters/eugr/qwen3-6-35b-a3b-nvfp4/Dockerfile.
+        mid_line = (
+            "# eugr's published vllm-node image (nightly-20260929). Its /workspace/build-metadata.yaml records\n"
+            "# build_script_commit 42f62e34 (the revision above), vLLM af5b4857e and FlashInfer 4a638133, built\n"
+            "# from the repository's default Dockerfile (upstream's local `vllm-node` build) with the stock\n"
+            "# build arguments. Upstream recipes start it with `vllm serve`; the wrapper is the Vonk entrypoint.\n"
+        )
+        for header, reviewed in (
+            (mid_line, True),
+            ("# Old prose.\n" + self.UPSTREAM, False),
+        ):
+            result = refresh.Assessment("recipe")
+            self.move(header, result)
+            self.assertEqual(
+                "Review the Dockerfile's header comment.\n" in result.evidence, reviewed
+            )
+
+
 class ImageLabelClaimTests(unittest.TestCase):
     """The revision label of an adapter built FROM a digest-pinned image is a claim about
     that image, never a git pin: only a new image digest (which records its own build
@@ -1762,11 +1834,22 @@ class ModelReExportTests(unittest.TestCase):
             f"model-{i:05d}-of-{count:05d}.safetensors" for i in range(1, count + 1)
         )
 
-    def move(self, mounted: tuple[str, ...] | None):
-        old = model_with(("config.json", "tokenizer.json", *self.shards(36)))
+    def move(
+        self,
+        mounted: tuple[str, ...] | None,
+        *,
+        old_paths: tuple[str, ...] | None = None,
+        new_inventory: list[dict[str, Any]] | None = None,
+        kit_pin: bool = False,
+    ):
+        old = model_with(
+            old_paths or ("config.json", "tokenizer.json", *self.shards(36))
+        )
         old["source"]["repository"] = "https://huggingface.co/o/r"
         new = files("config.json", "HYBRID.json", *self.shards(41), sha="e" * 64)
         new += files("tokenizer.json")
+        if new_inventory is not None:
+            new = new_inventory
         selected = [f for f in old["files"] if mounted is None or f["path"] in mounted]
         mount = {"target": "/models"}
         recipe = {
@@ -1829,7 +1912,12 @@ class ModelReExportTests(unittest.TestCase):
             refresh.Target("huggingface", "o/r", NEW, "2026-10-06", None, None, "u"),
             old["identity"]["slug"],
         )
-        inventories = {OLD: files(*(f["path"] for f in old["files"])), NEW: new}
+        if kit_pin:
+            item.kit_pin = object()
+        inventories = {
+            OLD: files(*(f["path"] for f in old["files"])),
+            NEW: new,
+        }
         result = refresh.Assessment("recipe", items=[item])
         new_recipe = json.loads(json.dumps(recipe))
         edits: dict[str, bytes | None] = {}
@@ -1854,6 +1942,39 @@ class ModelReExportTests(unittest.TestCase):
         self.assertNotIn("model-00036-of-00036.safetensors", paths)
         mounted = {s["file_id"] for s in new_recipe["models"][0]["files"]}
         self.assertEqual(mounted, {f["id"] for f in moved["files"]})
+
+    def test_a_sibling_checkpoint_beside_identical_files_is_not_a_move(self) -> None:
+        # #2749: the repository gained another text encoder; every catalogued file
+        # is the same bytes.
+        old_paths = (
+            "split_files/diffusion_models/a.safetensors",
+            "split_files/text_encoders/te_fp8.safetensors",
+            "split_files/vae/v.safetensors",
+        )
+        new = files(*old_paths, sha="c" * 64)
+        new += files("split_files/text_encoders/te_int8.safetensors", sha="d" * 64)
+        result, _, edits = self.move(None, old_paths=old_paths, new_inventory=new)
+        self.assertEqual(result.reasons, [])
+        self.assertTrue(result.items[0].noop)
+        self.assertFalse(edits)
+
+        # A kit-declared revision keeps the kit's strict shape rule: a review.
+        result, _, edits = self.move(
+            None, old_paths=old_paths, new_inventory=new, kit_pin=True
+        )
+        self.assertTrue(result.reasons)
+        self.assertFalse(result.items[0].noop)
+        self.assertFalse(edits)
+
+    def test_an_added_chat_template_still_moves_a_recipe_mounting_everything(
+        self,
+    ) -> None:
+        old_paths = ("config.json", "model-00001-of-00001.safetensors")
+        new = files(*old_paths, sha="c" * 64) + files("chat_template.jinja")
+        result, _, edits = self.move(None, old_paths=old_paths, new_inventory=new)
+        self.assertEqual(result.reasons, [])
+        self.assertFalse(result.items[0].noop)
+        self.assertTrue(edits)
 
     def test_the_models_display_moves_with_it(self) -> None:
         _, _, edits = self.move(None)
@@ -2835,9 +2956,12 @@ class SelfHealingTests(unittest.TestCase):
             "tools/check-image-provenance",
             "tools/_added_lines",
             "tools/check-test-git",
+            "tools/check-serial-reads",
             "tools/generate-contract-examples",
             "tools/generate-contract-schemas",
             "tools/build-release-bundle",
+            # chooses which CI checks run; it checks no data
+            "tools/select-producer-checks",
         }
         covered = {part for _, cmd in refresh.verify_steps() for part in cmd}
         self.assertEqual(sorted(t for t in ci - skipped if t not in covered), [])
@@ -3524,13 +3648,19 @@ class RewrittenHistoryTests(unittest.TestCase):
         )
         self.assertEqual(compared.status, "diverged")
         self.assertEqual(compared.rewritten, NEW)
-        for used in (None, []):
+        reasons = refresh.classify_changes(
+            compared, patched=set(), vendor_problems=[], used_changes=None
+        )
+        self.assertEqual(len(reasons), 1, reasons)
+        self.assertIn("history was rewritten", reasons[0])
+        self.assertIn(NEW, reasons[0])
+        # Used files are compared by content: a rewrite alone is no reason.
+        for used, expected in (([], 0), (["a.yaml"], 1)):
             reasons = refresh.classify_changes(
                 compared, patched=set(), vendor_problems=[], used_changes=used
             )
-            self.assertEqual(len(reasons), 1, reasons)
-            self.assertIn("history was rewritten", reasons[0])
-            self.assertIn(NEW, reasons[0])
+            self.assertEqual(len(reasons), expected, reasons)
+            self.assertNotIn("history was rewritten", "".join(reasons))
 
     def test_any_other_missing_comparison_is_still_unassessable(self) -> None:
         with self.assertRaises(refresh.NotFound):
@@ -3597,8 +3727,9 @@ class GatedRepositoryTests(unittest.TestCase):
         }
         self.assertFalse(self.gated(self.old(), [*self.trees["after"], extra]))
 
-    def test_stored_roles_decide_exactly_as_without_access(self) -> None:
-        # The document stores config.json as metadata, roles_for says configuration.
+    def test_roles_decide_exactly_as_without_access(self) -> None:
+        # The document stores config.json as metadata, roles_for says configuration:
+        # either saying payload makes it payload, with or without access.
         old = self.old()
         for entry in old["files"]:
             entry["sha256"] = "c" * 64
@@ -3619,9 +3750,13 @@ class GatedRepositoryTests(unittest.TestCase):
                             "sha256": "d" * 64 if differs else "c" * 64,
                         }
                     )
+                # The real ungated path curates the new snapshot the same way.
+                before = {e["path"] for e in self.trees["before"]}
+                curated = refresh.curate(old, before, ungated)
                 self.assertEqual(
-                    self.gated(old, after), refresh.payload_identical(old, ungated)
+                    self.gated(old, after), refresh.payload_identical(old, curated)
                 )
+                self.assertEqual(self.gated(old, after), not changed)
 
     def test_masked_lfs_digest_is_refused_not_catalogued(self) -> None:
         lfs_only = [e for e in self.trees["after"] if "lfs" in e]

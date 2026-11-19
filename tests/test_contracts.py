@@ -14,7 +14,6 @@ ROOT = Path(__file__).parents[1]
 
 import sys
 
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import (
     GitHubLfsSource,
     GitHubReleaseSource,
@@ -740,7 +739,7 @@ def test_checked_in_schemas_are_generated_from_the_same_models() -> None:
         json.loads(
             (
                 ROOT
-                / "contracts/src/vonk_forge_contracts/schema/model-definition-v4.schema.json"
+                / "contracts/src/vonk_forge_contracts/schema/model-definition-v5.schema.json"
             ).read_text()
         )
         == model_json_schema()
@@ -749,7 +748,7 @@ def test_checked_in_schemas_are_generated_from_the_same_models() -> None:
         json.loads(
             (
                 ROOT
-                / "contracts/src/vonk_forge_contracts/schema/recipe-definition-v4.schema.json"
+                / "contracts/src/vonk_forge_contracts/schema/recipe-definition-v5.schema.json"
             ).read_text()
         )
         == recipe_json_schema()

@@ -286,10 +286,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "tencent",
-      "slug": "hunyuan-video"
-    },
     "model": {
       "publisher": "tencent",
       "slug": "hunyuan-video-15"

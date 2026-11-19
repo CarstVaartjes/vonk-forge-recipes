@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""Controller launcher for one rank of Bizuayeu's GLM-5.3-Flash BIZ 3.x TensorFold launch (TP=2 or TP=3).
+
+The creator's serve.sh starts `tensorfold-native serve CHECKPOINT ...` on every rank with the same arguments, and
+gives the engine its rank, world size and rendezvous in the environment (TF_GLM_RANK, TF_GLM_WORLD, NCCL_COMM_ID),
+because this engine's parser refuses --tp, --rank, --master and --master-port. The platform appends exactly those four
+(`--master VONK_MASTER_ADDR`, `--master-port VONK_MASTER_PORT`) to the recipe's named options, so this launcher takes
+them off and sets the environment as serve.sh does. The Controller supplies the rendezvous, the interface and the RoCE
+rails; this launcher fails closed when any is missing or malformed.
+
+While the wire is on (TF_GLM_ROCE_MULTI not 0, the creator's TP=3 default) serve.sh also gives the engine rank 0's
+address, the port the ranks meet at, the planning timeout, the mailbox kernels the image carries and the rule that a
+failed setup stops the start; this launcher does the same, from the rendezvous address, and leaves any value the recipe
+sets as it is.
+"""
+
+import os
+import re
+import sys
+from ipaddress import ip_address
+
+ENGINE = "/usr/local/bin/tensorfold-native"
+MODEL = "/models/target"
+MAILBOX_KERNELS = "/opt/glm53-tf3/tp_mailbox.fatbin"
+
+
+def fail(message):
+    raise SystemExit(f"tensorfold-serve: {message}")
+
+
+def take(arguments, name):
+    if name not in arguments:
+        fail(f"the platform did not pass {name}")
+    index = arguments.index(name)
+    if index + 1 >= len(arguments):
+        fail(f"{name} has no value")
+    value = arguments[index + 1]
+    del arguments[index : index + 2]
+    return value
+
+
+def number(text, low, high, what):
+    if not (text.isascii() and text.isdigit() and low <= int(text) <= high):
+        fail(f"{what} is not a number from {low} to {high}")
+    return int(text)
+
+
+def rendezvous(arguments):
+    world = number(take(arguments, "--tp"), 2, 4, "--tp")
+    rank = number(take(arguments, "--rank"), 0, world - 1, "--rank")
+    master = take(arguments, "--master")
+    port = take(arguments, "--master-port")
+    if master == "VONK_MASTER_ADDR":
+        master = os.environ.get(master, "")
+    if port == "VONK_MASTER_PORT":
+        port = os.environ.get(port, "")
+    try:
+        ip_address(master)
+    except ValueError:
+        fail("distributed TensorFold needs a valid VONK_MASTER_ADDR")
+    return world, rank, master, number(port, 1024, 65534, "the rendezvous port")
+
+
+def fabric():
+    names = []
+    for selector in os.environ.get("NCCL_IB_HCA", "").removeprefix("=").split(","):
+        match = re.fullmatch(r"([A-Za-z0-9_.-]+):1", selector)
+        if not match or match[1] in names:
+            fail("TensorFold needs distinct Controller-authorized port-1 RoCE rails in NCCL_IB_HCA")
+        names.append(match[1])
+    if not os.environ.get("NCCL_SOCKET_IFNAME"):
+        fail("NCCL_SOCKET_IFNAME is not set")
+    return names
+
+
+for name in ("HOME", "TMPDIR"):
+    if not os.environ.get(name):
+        fail(f"{name} is not set")
+os.makedirs(os.environ["TMPDIR"], exist_ok=True)
+arguments = sys.argv[1:]
+world, rank, master, port = rendezvous(arguments)
+rails = fabric()
+os.environ.update(
+    TF_GLM_RANK=str(rank),
+    TF_GLM_WORLD=str(world),
+    NCCL_COMM_ID=f"{master}:{port}",
+)
+if world == 2:
+    # The two-rank RoCE path (TF_ROCE, on by default) stripes over at most two devices named without `=` or `:1`, and
+    # the creator's pair names both rails of its link (NCCL_IB_HCA there is the same two).
+    if len(rails) > 2:
+        fail("TP=2 takes at most two Controller-authorized RoCE rails")
+    os.environ["TF_ROCE_HCA"] = ",".join(rails)
+if os.environ.get("TF_GLM_ROCE_MULTI", "0") not in ("0", "1"):
+    fail("TF_GLM_ROCE_MULTI is 0 or 1")
+if os.environ.get("TF_GLM_ROCE_MULTI", "0") == "1":
+    os.environ.setdefault("TF_TP_MASTER", master)
+    os.environ.setdefault("TF_TP_PORT", "29640")
+    os.environ.setdefault("TF_TP_PLAN_TIMEOUT", "900")
+    os.environ.setdefault("TF_TP_KERNEL_IMAGE", MAILBOX_KERNELS)
+    os.environ.setdefault("TF_TP_ROCE_FALLBACK", "error")
+os.execv(ENGINE, [ENGINE, "serve", MODEL, *arguments])

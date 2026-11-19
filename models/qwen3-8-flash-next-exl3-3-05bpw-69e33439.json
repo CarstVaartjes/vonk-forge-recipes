@@ -232,10 +232,6 @@
     "quantization": "exl3"
   },
   "identity": {
-    "family": {
-      "publisher": "qwen",
-      "slug": "qwen"
-    },
     "model": {
       "publisher": "turboderp",
       "slug": "qwen3-8-flash-next-exl3-3-05bpw"

@@ -1,0 +1,45 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use",
+    "video-understanding"
+  ],
+  "description": "Bizuayeu's Jammed XSFP4 checkpoint (revision 0a22bb46) of Z.ai GLM-5.3-Flash, derived from NVIDIA GLM-5.3-Flash-FP4-Local: routed experts NVFP4 served W4A16 with a block scale every 32 inputs stored as one base and a 4-bit offset a row (csf0_v1), everything else FP4-Local's tensors as stored. Needs TensorFold's native engine (1.2.3 or later); vLLM and other NVFP4 loaders do not read the csf0_v1 form. Licence: NVIDIA Open Model Agreement (derivative of FP4-Local), commercially usable; upstream Z.ai model is MIT. Not gated.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "bizuayeu",
+    "slug": "glm-5-3-flash-jammed-xsfp4-cae94e69"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Bizuayeu",
+      "NVIDIA",
+      "Z.ai"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
+    "url": "https://huggingface.co/Bizuayeu/GLM-5.3-Flash-Jammed-XSFP4/blob/0a22bb46ecef3d0f5f96e41dc6011be12974fbf1/LICENSE"
+  },
+  "lineage": {
+    "base_model": "zai-org/GLM-5.3-Flash",
+    "family": "glm",
+    "generation": "GLM 5.3",
+    "line": "glm-flash-321b",
+    "model": "glm-5-3-flash",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image",
+    "video"
+  ],
+  "model_title": "GLM 5.3 Flash Jammed XSFP4",
+  "tags": [
+    "bizuayeu",
+    "glm-5-3-flash-jammed-xsfp4"
+  ]
+}

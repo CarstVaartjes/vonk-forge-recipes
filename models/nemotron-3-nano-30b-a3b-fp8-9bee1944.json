@@ -349,10 +349,6 @@
     "quantization": "fp8-modelopt"
   },
   "identity": {
-    "family": {
-      "publisher": "nvidia",
-      "slug": "nemotron"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "nemotron-3-nano-30b-a3b"

@@ -63,6 +63,26 @@ def has_bfloat16_ple(document: RecipeDefinition, inputs: MemoryInputs) -> bool:
     return False
 
 
+def has_posix_transport(context: Path, dockerfile: str) -> bool:
+    """The image installs the tested pread reader or the pread liburing shim."""
+    reader = context / "_ple_reader.c"
+    # Older b12x has no backend switch. Its image must install the single POSIX
+    # transport, which the native behaviour tests exercise.
+    if (
+        reader.is_file()
+        and "COPY _ple_reader.c" in dockerfile
+        and "pread(" in reader.read_text()
+        and "io_uring" not in reader.read_text()
+    ):
+        return True
+    # The shim answers `pkg-config liburing`; a real liburing would use io_uring.
+    return (
+        (context / "posix-uring/liburing.h").is_file()
+        and "COPY posix-uring" in dockerfile
+        and "liburing-dev" not in dockerfile
+    )
+
+
 def require_sandbox_loaders(
     document: RecipeDefinition,
     *,
@@ -160,18 +180,13 @@ def require_sandbox_loaders(
             or implicit_ple_disk
             or engram.get("table_memory") in {"disk", "io_uring"}
         ):
-            posix = context / "_ple_reader.c"
-            # Older b12x has no backend switch. Its image must install the
-            # single POSIX transport, which the native behaviour tests exercise.
-            posix_image = (
-                posix.is_file()
-                and "COPY _ple_reader.c" in dockerfile
-                and "pread(" in posix.read_text()
-                and "io_uring" not in posix.read_text()
-            )
-            assert posix_image, (
+            assert has_posix_transport(context, dockerfile), (
                 "disk PLE/Engram defaults to io_uring; install the POSIX reader"
             )
+        # vLLM's direct loader reads checkpoints through io_uring bounce slots.
+        assert load_format != "direct" or has_posix_transport(context, dockerfile), (
+            "load-format direct reads through io_uring; install the POSIX shim"
+        )
 
 
 def test_catalog_loaders_do_not_require_io_uring() -> None:
@@ -426,3 +441,24 @@ def test_deepseek_declares_safe_checkpoint_loading() -> None:
         )
         == "safetensors"
     )
+
+
+def test_posix_transport_accepts_the_shim_and_rejects_liburing_dev(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "posix-uring").mkdir()
+    (tmp_path / "posix-uring/liburing.h").write_text("")
+    assert has_posix_transport(tmp_path, "COPY posix-uring /opt/vonk/posix-uring\n")
+    assert not has_posix_transport(
+        tmp_path, "COPY posix-uring /x\nRUN apt-get install liburing-dev\n"
+    )
+    assert not has_posix_transport(tmp_path, "RUN true\n")
+
+
+def test_guard_rejects_direct_checkpoint_loading_without_the_shim() -> None:
+    document = recipe()
+    for argument in document.runtime.arguments:
+        if argument.name == "load-format":
+            argument.value = "direct"
+    with pytest.raises(AssertionError, match="load-format direct"):
+        require_sandbox_loaders(document, image_policy=False)

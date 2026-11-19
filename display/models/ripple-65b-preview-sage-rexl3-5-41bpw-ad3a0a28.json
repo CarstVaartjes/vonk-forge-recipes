@@ -1,0 +1,41 @@
+{
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "vcruz305's EXL3 SAGE-REXL3 quantization of ricursiveAI/Ripple-65B-Preview at 5.41 bits per weight (about 45.2 GB, 10 shards, RicursiveForCausalLM with the pack's own modeling_ricursive.py), for ExLlamaV3 and the sglang-exl3 plugin; text only. The creator warns not to rewrite or modify the pack: SGLang loads the native shards directly.",
+  "family_title": "Ripple",
+  "identity": {
+    "publisher": "vcruz305",
+    "slug": "ripple-65b-preview-sage-rexl3-5-41bpw-ad3a0a28"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "vcruz305",
+      "ricursiveAI"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/vcruz305/Ripple-65B-Preview-SAGE-REXL3-5.41bpw/blob/ad3a0a2816223c5a01246a5d6b739ef964e257ee/LICENSE"
+  },
+  "lineage": {
+    "base_model": "ricursiveAI/Ripple-65B-Preview",
+    "family": "ripple",
+    "line": "ripple-65b",
+    "model": "ripple-65b-preview",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "Ripple 65B Preview SAGE-REXL3 5.41bpw",
+  "tags": [
+    "ricursiveai",
+    "ripple",
+    "language",
+    "exl3",
+    "candidate"
+  ]
+}

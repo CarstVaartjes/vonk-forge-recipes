@@ -1,9 +1,10 @@
 """The closed vocabulary of Model capabilities, and what each one means.
 
 A Model display lists the capabilities its checkpoint supports, by name. The
-names are a closed set: a name this release does not list is refused, so a new
-capability is a contract minor release that readers adopt before a catalog
-declares it. Each name has exactly one ``CapabilityRole``; readers and guards ask
+names are a closed set: authoring refuses a name this release does not list, and
+the consumer reader (``catalog_reader.read_catalog``) keeps it as an
+``UnrecognisedWord``. A new capability is a contract minor release that readers
+adopt before a catalog declares it. Each name has exactly one ``CapabilityRole``; readers and guards ask
 the role instead of parsing the name.
 """
 

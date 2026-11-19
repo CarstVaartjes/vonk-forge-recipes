@@ -1,0 +1,41 @@
+#!/bin/sh
+# One rank of antirez/ds4 tensor parallelism across two Sparks (docs/DISTRIBUTED.md, "Tensor parallelism between two
+# Sparks"). The recipe passes the creator's shared options; the platform appends --host and --port for the HTTP endpoint
+# and places the rank in the environment (VONK_RANK, VONK_WORLD_SIZE, VONK_MASTER_ADDR, VONK_MASTER_PORT).
+#   rank 0  ds4-server, the coordinator: serves HTTP and listens for the worker on the fabric address and rendezvous port.
+#   rank 1  ds4, the worker: connects to the coordinator; it serves nothing, so --host, --port and --batched-session
+#           (server options) and their values are dropped.
+# Fails closed when the rank is not 0 or 1.
+set -eu
+
+fail() {
+    echo "ds4-serve: $*" >&2
+    exit 1
+}
+
+case "${VONK_RANK:-}" in
+    0 | 1) ;;
+    *) fail "VONK_RANK must be 0 or 1" ;;
+esac
+if [ "$VONK_RANK" = "0" ]; then
+    exec /opt/vonk/bin/ds4-server "$@" \
+        --role coordinator --listen "$VONK_MASTER_ADDR" "$VONK_MASTER_PORT"
+fi
+
+skip=0
+for argument in "$@"; do
+    shift
+    if [ "$skip" = 1 ]; then
+        skip=0
+        continue
+    fi
+    case "$argument" in
+        --host | --port | --batched-session)
+            skip=1
+            continue
+            ;;
+    esac
+    set -- "$@" "$argument"
+done
+exec /opt/vonk/bin/ds4 "$@" \
+    --role worker --coordinator "$VONK_MASTER_ADDR" "$VONK_MASTER_PORT"

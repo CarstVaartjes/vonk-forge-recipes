@@ -335,7 +335,6 @@ class BackfillResult(BaseModel):
     imported: int = 0
     rejected: int = 0
     changed_files: int = 0
-    unpublished: int = 0  # resolved sweep records the repo lacked before this batch
 
 
 def read_state_evidence(path: Path) -> dict[str, RecipeQualificationEvidence]:
@@ -375,29 +374,15 @@ def resolved_missing(
     )
 
 
-def backfill(
-    paths: Iterable[Path],
-    root: Path,
-    extra: Mapping[str, RecipeQualificationEvidence] | None = None,
-) -> BackfillResult:
-    """Append history rows and the sweep's merged evidence (`extra`) to the repo."""
-    result = BackfillResult()
-    jobs: dict[str, bool] = {}
-    grouped: dict[str, RecipeQualificationEvidence] = {}
-    catalog = catalog_recipe_keys(root) if extra else set()
-    for key, evidence in (extra or {}).items():
-        if key not in catalog:
-            continue  # withdrawn recipes are pruned, never counted
-        previous = read_evidence(root, key)
-        lacking = resolved_missing(evidence, previous)
-        result.unpublished += len(lacking)
-        if lacking:  # resolved records only; nothing is rewritten, only appended
-            grouped[key] = merge_evidence(
-                previous,
-                serving_rows(
-                    root, evidence.model_copy(update={"records": lacking}), jobs
-                ),
-            )
+def read_history(
+    paths: Iterable[Path], result: BackfillResult
+) -> dict[str, RecipeQualificationEvidence]:
+    """History rows merged per recipe, in file order; `result` counts them.
+
+    The merge is a union, so evidence merged here and then into the repo equals
+    merging each row into the repo.
+    """
+    merged: dict[str, RecipeQualificationEvidence] = {}
     for path in paths:
         # Read only. Never use State.load: its recovery path mutates source state.
         for line in path.read_text().splitlines():
@@ -410,9 +395,44 @@ def backfill(
             except (ValueError, TypeError, AttributeError):
                 result.rejected += 1
                 continue
+            merged[key] = (
+                merge_evidence(merged[key], evidence) if key in merged else evidence
+            )
+            result.imported += 1
+    return merged
+
+
+def backfill(
+    paths: Iterable[Path],
+    root: Path,
+    extra: Mapping[str, RecipeQualificationEvidence] | None = None,
+    read: Mapping[str, RecipeQualificationEvidence] | None = None,
+) -> BackfillResult:
+    """Append history rows and the sweep's merged evidence (`extra`) to the repo.
+
+    `read` is history merged earlier by `read_history` (rotated logs); it is
+    added before the rows of `paths`, as if those files came first.
+    """
+    result = BackfillResult()
+    jobs: dict[str, bool] = {}
+    grouped: dict[str, RecipeQualificationEvidence] = {}
+    catalog = catalog_recipe_keys(root) if extra else set()
+    for key, evidence in (extra or {}).items():
+        if key not in catalog:
+            continue  # withdrawn recipes are pruned
+        previous = read_evidence(root, key)
+        lacking = resolved_missing(evidence, previous)
+        if lacking:  # resolved records only; nothing is rewritten, only appended
+            grouped[key] = merge_evidence(
+                previous,
+                serving_rows(
+                    root, evidence.model_copy(update={"records": lacking}), jobs
+                ),
+            )
+    for history in (read or {}, read_history(paths, result)):
+        for key, evidence in history.items():
             previous = grouped.get(key) or read_evidence(root, key)
             grouped[key] = merge_evidence(previous, serving_rows(root, evidence, jobs))
-            result.imported += 1
     for evidence in grouped.values():
         result.changed_files += int(write_evidence(root, evidence))
     return result

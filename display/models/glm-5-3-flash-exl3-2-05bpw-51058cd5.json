@@ -20,6 +20,14 @@
     "spdx": "MIT",
     "url": "https://huggingface.co/turboderp/GLM-5.3-Flash-exl3/blob/51058cd551c7e570d87bd32a4adee720edce2349/LICENSE"
   },
+  "lineage": {
+    "base_model": "zai-org/GLM-5.3-Flash",
+    "family": "glm",
+    "generation": "GLM 5.3",
+    "line": "glm-flash-321b",
+    "model": "glm-5-3-flash",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
     "text"

@@ -1,0 +1,18 @@
+{
+  "kit": {
+    "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "README.md",
+        "pattern": "^\\*\\*Engine:\\*\\* commit `(?P<version>[0-9a-f]{7,40})` on$",
+        "repo": "bertholomus/TensorFold"
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "requirements.in",
+    "requirements.lock",
+    "tensorfold-serve"
+  ]
+}

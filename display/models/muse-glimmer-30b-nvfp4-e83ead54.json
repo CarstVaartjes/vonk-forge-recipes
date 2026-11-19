@@ -4,7 +4,8 @@
     "image-understanding",
     "reasoning",
     "text-generation",
-    "tool-use"
+    "tool-use",
+    "video-understanding"
   ],
   "description": "Exact public Muse Glimmer 30B NVFP4 (W4A4) e83ead54 checkpoint by RedHatAI.",
   "family_title": "Muse Glimmer",
@@ -21,9 +22,18 @@
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/RedHatAI/Muse-Glimmer-30B-NVFP4/blob/e83ead547c81973aaa09c0072c0dbc916e0d8190/README.md"
   },
+  "lineage": {
+    "base_model": "meta-models/Muse-Glimmer-30B",
+    "family": "muse",
+    "generation": "Muse",
+    "line": "muse-glimmer-30b",
+    "model": "muse-glimmer-30b",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "image",
-    "text"
+    "text",
+    "video"
   ],
   "model_title": "Muse Glimmer 30B",
   "tags": [

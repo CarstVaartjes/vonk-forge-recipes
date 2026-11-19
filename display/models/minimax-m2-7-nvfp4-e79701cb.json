@@ -20,6 +20,14 @@
     "spdx": "LicenseRef-NVIDIA-Software-and-Model-Evaluation-License",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-software-and-model-evaluation-license"
   },
+  "lineage": {
+    "base_model": "MiniMaxAI/MiniMax-M2.7",
+    "family": "minimax",
+    "generation": "MiniMax M2.7",
+    "line": "minimax-m-229b",
+    "model": "minimax-m2-7",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

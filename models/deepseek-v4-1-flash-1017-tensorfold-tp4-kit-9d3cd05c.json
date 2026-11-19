@@ -25,10 +25,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "deepseek-ai",
-      "slug": "deepseek"
-    },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-1-flash-1017"

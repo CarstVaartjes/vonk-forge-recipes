@@ -61,10 +61,6 @@
     "quantization": "w4a16-nvfp4"
   },
   "identity": {
-    "family": {
-      "publisher": "nvidia",
-      "slug": "nemotron"
-    },
     "model": {
       "publisher": "nvidia",
       "slug": "nemotron-3-5-lightning-30b-a3b-dspark"

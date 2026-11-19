@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "gem-x-body-motion",
+          "title": "GEM-X Body Motion"
+        }
+      ],
+      "slug": "gem-x-body-motion",
+      "title": "GEM-X Body Motion"
+    }
+  ],
+  "slug": "gem-x",
+  "title": "GEM-X"
+}

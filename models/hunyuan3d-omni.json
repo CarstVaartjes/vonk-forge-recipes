@@ -1,7 +1,7 @@
 {
   "dependencies": [
     {
-      "content_sha256": "2f8a86cb03d99ad29ccf57cdbd191c10b7c93efd0b187e6e644496f0ec3d9858",
+      "content_sha256": "a621243366dda70625d3bab0592840ea30fe94475f0b12231742dd6bf86c073a",
       "kind": "model",
       "publisher": "facebook",
       "slug": "dinov2-large-47b73eef"
@@ -113,10 +113,6 @@
     "quantization": "none"
   },
   "identity": {
-    "family": {
-      "publisher": "tencent",
-      "slug": "hunyuan3d"
-    },
     "model": {
       "publisher": "tencent",
       "slug": "hunyuan3d-omni"

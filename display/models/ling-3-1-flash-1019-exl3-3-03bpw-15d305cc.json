@@ -1,0 +1,40 @@
+{
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "bertholomus/Ling-3.1-flash-1019-EXL3-3.03bpw at immutable revision 15d305cc66a1fbb966f8160fc7c2791987ec64e6 (the repository head; bertholomus's README names no revision): inclusionAI's Ling-3.1-flash-1019 (560B total, 25B active, revision dddfee4b) converted to EXL3 at 3.03 bpw with bertholomus's exllamav3 ling-3.1 branch, the MTP layer (model.layers.72) included at 4 bits. Physical Spark acceptance is unmeasured.",
+  "family_title": "Ling",
+  "identity": {
+    "publisher": "bertholomus",
+    "slug": "ling-3-1-flash-1019-exl3-3-03bpw-15d305cc"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "inclusionAI; bertholomus for the EXL3 conversion."
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/inclusionAI/Ling-3.1-flash-1019/blob/dddfee4bb43519a92761fbc5cefe3f0d3ff4aded/README.md"
+  },
+  "lineage": {
+    "base_model": "inclusionAI/Ling-3.1-flash-1019",
+    "family": "ling",
+    "generation": "Ling 3.1",
+    "line": "ling-flash-560b",
+    "model": "ling-3-1-flash-1019",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text"
+  ],
+  "model_title": "Ling 3.1 Flash 1019",
+  "tags": [
+    "inclusionai",
+    "ling",
+    "1019",
+    "exl3"
+  ]
+}

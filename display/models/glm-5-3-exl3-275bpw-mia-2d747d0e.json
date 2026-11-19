@@ -20,6 +20,14 @@
     "spdx": "LicenseRef-GLM-5.3",
     "url": "https://huggingface.co/Mia-AiLab/GLM-5.3-EXL3-2.75bpw-TensorFold/blob/2d747d0e30eca6e3fe37ba63c471cdf9172faa83/LICENSE"
   },
+  "lineage": {
+    "base_model": "zai-org/GLM-5.3",
+    "family": "glm",
+    "generation": "GLM 5.3",
+    "line": "glm",
+    "model": "glm-5-3",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

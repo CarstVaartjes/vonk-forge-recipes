@@ -1,0 +1,22 @@
+{
+  "kit": {
+    "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "README.md",
+        "pattern": "^git -C \"\\$ML4_TREE/src/tensorfold\" checkout (?P<version>[0-9a-f]{7,40})$",
+        "repo": "bertholomus/TensorFold"
+      },
+      "image": {
+        "datasource": "oci-image",
+        "file": "serve/prebuild.sh",
+        "pattern": "^\\s*nvcr\\.io/nvidia/pytorch:(?P<version>[^\\s]+) python3 ",
+        "repo": "nvcr.io/nvidia/pytorch"
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "tensorfold-serve"
+  ]
+}

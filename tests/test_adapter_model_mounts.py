@@ -20,6 +20,12 @@ MODEL_PATH = re.compile(r"(?<![\w/}~])(/models/[A-Za-z0-9][A-Za-z0-9_./-]*)")
 # exceptions fail below, so broad or unexplained exclusions cannot hide drift.
 EXCEPTION_GROUPS: tuple[tuple[tuple[str, ...], str, tuple[str, ...], str], ...] = (
     (
+        ("glm-5-3-flash-sage-rexl3-248bpw-vcruz305-vllm-single",),
+        "patches/gv_boot_patch.py",
+        ("/models/GLM-5.3-Flash-SAGE-REXL3-2.48bpw-vllm-overlay",),
+        "Creator's self-test default; the Dockerfile rewrites MODEL to VLLM_EXL3_MODEL_DIR, the overlay the launcher builds under the cache.",
+    ),
+    (
         ("glm-5-3-flash-nvfp4-vllm-four",),
         "upstream-launch-tp4-24g.sh",
         (
@@ -40,6 +46,12 @@ EXCEPTION_GROUPS: tuple[tuple[tuple[str, ...], str, tuple[str, ...], str], ...] 
         "scripts/inkling-sglang-launch.sh",
         ("/models/dspark-draft", "/models/inkling-small-nvfp4"),
         "Upstream host launcher is not the recipe entrypoint; sglang-serve receives target/drafter arguments from the recipe.",
+    ),
+    (
+        ("ripple-65b-preview-sage-rexl3-5-41bpw-vcruz305-sglang-single",),
+        "scripts/serve_ripple.py",
+        ("/models/draft-4.55bpw",),
+        "Vendored creator docstring example (DRAFT_DIR default ./models/draft-4.55bpw); the recipe passes --speculative-draft-model-path /models/draft/4.55bpw explicitly.",
     ),
     (
         ("laguna-s-2-1-nvfp4-r0b0tlab-vllm-single",),

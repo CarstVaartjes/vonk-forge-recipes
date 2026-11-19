@@ -19,6 +19,14 @@
     "spdx": "LicenseRef-Swift-Open-License-1.0",
     "url": "https://huggingface.co/ukisai/Swift-Qwen3.8-Flash-Next/blob/main/LICENSE"
   },
+  "lineage": {
+    "base_model": "ukisai/Swift-Qwen3.8-Flash-Next",
+    "family": "swift",
+    "generation": "Swift 1.5",
+    "line": "swift-flash-next",
+    "model": "swift-1-5-qwen3-8-flash-next",
+    "variant_kind": "quantization"
+  },
   "modalities": [
     "text"
   ],

@@ -1,0 +1,54 @@
+--- a/python/sglang/kernels/ops/speculative/dspark/dspark_accept.py
++++ b/python/sglang/kernels/ops/speculative/dspark/dspark_accept.py
+@@ -15,7 +15,7 @@
+     build_speculative_verify_target_probs,
+     compute_dflash_correct_drafts_and_bonus,
+ )
+-from sglang.srt.utils import is_npu
++from sglang.srt.utils import is_flashinfer_available, is_npu
+ 
+ _is_npu = is_npu()
+ 
+@@ -267,6 +267,9 @@
+ 
+ 
+ try:
++    # flashinfer is a fail-closed stub here: None selects softmax_temp_triton.
++    if not is_flashinfer_available():
++        raise ImportError
+     from flashinfer.sampling import softmax as _flashinfer_softmax
+ except ImportError:
+     _flashinfer_softmax = None
+--- a/python/sglang/srt/speculative/dflash_utils.py
++++ b/python/sglang/srt/speculative/dflash_utils.py
+@@ -20,7 +20,13 @@
+ from sglang.srt.model_executor.runner_utils.pool import borrow_graph_pool
+ from sglang.srt.runtime_context import get_spec
+ from sglang.srt.speculative.spec_utils import sample_simulated_acc_len
+-from sglang.srt.utils import is_cuda, is_hip, is_musa, is_npu
++from sglang.srt.utils import (
++    is_cuda,
++    is_flashinfer_available,
++    is_hip,
++    is_musa,
++    is_npu,
++)
+ 
+ DEFAULT_DFLASH_MASK_TOKEN = "<|MASK|>"
+ 
+@@ -42,8 +48,13 @@
+ 
+ 
+ if is_cuda():
+-    from flashinfer.sampling import top_k_renorm_probs as top_k_renorm_prob
+-    from flashinfer.sampling import top_p_renorm_probs as top_p_renorm_prob
++    # flashinfer is a fail-closed stub here: None selects the torch renorm fallbacks below.
++    if not is_flashinfer_available():
++        top_k_renorm_prob = None
++        top_p_renorm_prob = None
++    else:
++        from flashinfer.sampling import top_k_renorm_probs as top_k_renorm_prob
++        from flashinfer.sampling import top_p_renorm_probs as top_p_renorm_prob
+ 
+     from sglang.kernels.ops.speculative.sampling import (
+         tree_speculative_sampling_target_only,
