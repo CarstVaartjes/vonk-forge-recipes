@@ -1,0 +1,546 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "4cba07b0c68725991890c64843403396effb7faa39ac47261166b2299095c513",
+        "repository": "docker.io/lmsysorg/sglang"
+      },
+      "context": {
+        "path": "adapters/ripple/vcruz-ripple-sglang-single"
+      },
+      "dockerfile": "adapters/ripple/vcruz-ripple-sglang-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "ripple-65b-preview-sage-rexl3-5-41bpw-vcruz305-sglang-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "ripple"
+      ],
+      "port": 30000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-11ad7efa2497-618cd5b83d",
+          "id": "primary-metadata-11ad7efa2497-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-58d1e17ffe51-c693279643",
+          "id": "primary-license-58d1e17ffe51-c693279643",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-5e7f56d15543-b335630551",
+          "id": "primary-readme-5e7f56d15543-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-877c2dbf3652-00824420d1",
+          "id": "primary-chat-template-877c2dbf3652-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-93de8d8447f2-587cb980af",
+          "id": "primary-config-93de8d8447f2-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-ricursive-002cb3915be9-bdf0cacb63",
+          "id": "primary-configuration-ricursive-002cb3915be9-bdf0cacb63",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00010-4f5614a7b4c8-abda2caf91",
+          "id": "primary-model-00001-of-00010-4f5614a7b4c8-abda2caf91",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00010-750cfb7a95a1-c78aeb3aa5",
+          "id": "primary-model-00002-of-00010-750cfb7a95a1-c78aeb3aa5",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00010-4bd9f13cad7a-3bbb02f554",
+          "id": "primary-model-00003-of-00010-4bd9f13cad7a-3bbb02f554",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00010-a4ff59b06456-9744fa3b65",
+          "id": "primary-model-00004-of-00010-a4ff59b06456-9744fa3b65",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00010-5fcf8ba6f13b-287722c574",
+          "id": "primary-model-00005-of-00010-5fcf8ba6f13b-287722c574",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00010-e8c8ea06ae01-5c0b2f8f0d",
+          "id": "primary-model-00006-of-00010-e8c8ea06ae01-5c0b2f8f0d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00010-e1169c9d730b-3028b843f1",
+          "id": "primary-model-00007-of-00010-e1169c9d730b-3028b843f1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00010-c6845fc67f31-1a97e5bd74",
+          "id": "primary-model-00008-of-00010-c6845fc67f31-1a97e5bd74",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00010-ed4826963b5c-9e545a3307",
+          "id": "primary-model-00009-of-00010-ed4826963b5c-9e545a3307",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00010-465527e01bb5-3cc422b9fe",
+          "id": "primary-model-00010-of-00010-465527e01bb5-3cc422b9fe",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-cdb909cfcab2-0a05be8238",
+          "id": "primary-model-safetensors-index-cdb909cfcab2-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-ricursive-f83865ef643e-9cf90d0d4a",
+          "id": "primary-modeling-ricursive-f83865ef643e-9cf90d0d4a",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-3f7cd7d0cfb2-c07a9be597",
+          "id": "primary-special-tokens-map-3f7cd7d0cfb2-c07a9be597",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-73fd5254624f-224931eb13",
+          "id": "primary-tokenizer-73fd5254624f-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-dbd472260538-94d5c6ba8f",
+          "id": "primary-tokenizer-config-dbd472260538-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "06a653769f526a606d2bc67633ee2b994403cf57bfb8ff37ffd79ae826f6a9f8",
+        "kind": "model",
+        "publisher": "vcruz305",
+        "slug": "ripple-65b-preview-sage-rexl3-5-41bpw-ad3a0a28"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-11ad7efa2497-618cd5b83d",
+          "id": "draft-metadata-11ad7efa2497-618cd5b83d",
+          "mount": {
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-fb4d1a231365-ab1a44aff4",
+          "id": "draft-config-fb4d1a231365-ab1a44aff4",
+          "mount": {
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-c8c129e92b2e-9aa09436f8",
+          "id": "draft-model-c8c129e92b2e-9aa09436f8",
+          "mount": {
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-58d1e17ffe51-c693279643",
+          "id": "draft-license-58d1e17ffe51-c693279643",
+          "mount": {
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-92a3e345a7fd-b335630551",
+          "id": "draft-readme-92a3e345a7fd-b335630551",
+          "mount": {
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "draft",
+      "model": {
+        "content_sha256": "f111164d95e96468a918a2cf495b396fbcae6784a301d9a2aa51ee16eec8b64d",
+        "kind": "model",
+        "publisher": "vcruz305",
+        "slug": "ripple-65b-preview-dflash2-sage-rexl3-912479f4"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "vcruz305 (recipe, sglang-exl3 plugin, SAGE-REXL3 target and draft packs; MIT recipe, Apache-2.0 packs)",
+      "ricursiveAI (Ripple-65B-Preview and its DFlash2 draft, Apache-2.0)",
+      "turboderp (ExLlamaV3, MIT)",
+      "SGLang contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/vcruz305/Ripple-65B-Preview-EXL3-SGLang-recipe/tree/f4de1bdde823dd5544f10e4e60cdce5a232562d0"
+  },
+  "release": {
+    "released_at": "2026-11-19",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model-path",
+        "setting": null,
+        "value": "/models/target"
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "ripple"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "dtype",
+        "setting": null,
+        "value": "bfloat16"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "bfloat16"
+      },
+      {
+        "name": "tp-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "triton"
+      },
+      {
+        "name": "page-size",
+        "setting": null,
+        "value": 64
+      },
+      {
+        "name": "speculative-algorithm",
+        "setting": null,
+        "value": "DFLASH"
+      },
+      {
+        "name": "speculative-draft-model-path",
+        "setting": null,
+        "value": "/models/draft/4.55bpw"
+      },
+      {
+        "name": "speculative-num-draft-tokens",
+        "setting": null,
+        "value": 16
+      },
+      {
+        "name": "speculative-draft-model-quantization",
+        "setting": null,
+        "value": "exl3"
+      },
+      {
+        "name": "speculative-draft-window-size",
+        "setting": null,
+        "value": 16384
+      },
+      {
+        "name": "speculative-draft-attention-backend",
+        "setting": null,
+        "value": "triton"
+      },
+      {
+        "name": "mem-fraction-static",
+        "setting": null,
+        "value": "0.82"
+      },
+      {
+        "name": "cuda-graph-backend-prefill",
+        "setting": null,
+        "value": "disabled"
+      },
+      {
+        "name": "max-running-requests",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "context-length",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "ripple"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "ripple"
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/opt/vonk/scripts/chat_template.jinja"
+      }
+    ],
+    "engine": "sglang",
+    "entrypoint": [
+      "/opt/vonk/bin/sglang-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 8
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 131072
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 47528319178,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 20000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 115643849821,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "ripple"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
