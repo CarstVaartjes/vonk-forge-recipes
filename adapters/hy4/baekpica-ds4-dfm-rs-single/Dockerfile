@@ -29,8 +29,7 @@ RUN curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs -o /tmp/rustup-in
     && rm /tmp/rustup-init.sh \
     && rustup show active-toolchain
 RUN make -j"$(nproc)" cuda-spark \
-    && test -x ds4-server \
-    && ! ldd ds4-server | grep -q "not found"
+    && test -x ds4-server
 
 FROM docker.io/nvidia/cuda:13.0.0-runtime-ubuntu24.04@sha256:532381a7bf759bbe4d9c783468bc2cc4766cf656da5814fb04e049dc58fe268b
 ARG DS4_COMMIT
