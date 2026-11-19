@@ -42,10 +42,7 @@ RUN set -eux; \
     cd /opt/sglang-exl3; \
     git checkout --detach "${SGLANG_EXL3_REF}"; \
     test "$(git rev-parse HEAD)" = "${SGLANG_EXL3_REF}"; \
-    rm -rf .git; \
-    mkdir -p /opt/sglang-exl3-dist/sglang_exl3-0.2.1.dist-info; \
-    printf 'Metadata-Version: 2.1\nName: sglang-exl3\nVersion: 0.2.1\n' > /opt/sglang-exl3-dist/sglang_exl3-0.2.1.dist-info/METADATA; \
-    printf '[sglang.srt.plugins]\nexl3 = sglang_exl3:register\n' > /opt/sglang-exl3-dist/sglang_exl3-0.2.1.dist-info/entry_points.txt
+    rm -rf .git
 
 # Build-time sm_121 kernel scan (scan-sm121.py: cubins sm_121[af] / sm_120[f], PTX not arch-specific and <= 121, or
 # sm_121a; every file with device code needs a loadable image; each file's listing is echoed). Covered: the compiled
@@ -65,14 +62,10 @@ COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --owner 10001 --group 10001 /state /outputs /outputs/cache \
-    && chmod -R a+rX /opt/vonk /opt/sglang-exl3 /opt/sglang-exl3-dist \
+    && chmod -R a+rX /opt/vonk /opt/sglang-exl3 \
     && test -x /opt/vonk/bin/sglang-serve
 
-# HOST and PORT are the creator's own overrides of serve_ripple.py (its default host is 127.0.0.1).
-ENV PYTHONPATH=/opt/sglang-exl3/src:/opt/sglang-exl3-dist:/opt/vonk/scripts \
-    SGLANG_PLUGINS=exl3 \
-    HOST=0.0.0.0 \
-    PORT=30000 \
+ENV PYTHONPATH=/opt/sglang-exl3/src \
     HF_HUB_OFFLINE=1 \
     TRANSFORMERS_OFFLINE=1 \
     SGLANG_DISABLE_USAGE_REPORT=1 \
