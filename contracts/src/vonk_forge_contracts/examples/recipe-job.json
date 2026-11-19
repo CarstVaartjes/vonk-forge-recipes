@@ -94,6 +94,16 @@
             0.25
           ]
         }
+      },
+      {
+        "name": "num-frames",
+        "setting": "num-frames",
+        "value": null
+      },
+      {
+        "name": "style",
+        "setting": "style",
+        "value": null
       }
     ],
     "engine": "image-job",
@@ -109,7 +119,23 @@
   },
   "settings": {
     "kind": "job",
-    "knobs": {}
+    "knobs": {
+      "num-frames": {
+        "change_effect": "none",
+        "maximum": 345,
+        "minimum": 13,
+        "step": 8,
+        "value": 141
+      },
+      "style": {
+        "allowed_values": [
+          "street",
+          "studio"
+        ],
+        "change_effect": "none",
+        "value": "street"
+      }
+    }
   },
   "topology": {
     "name": "solo",
