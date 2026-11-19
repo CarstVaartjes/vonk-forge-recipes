@@ -24,6 +24,10 @@ RUN apt-get update \
         build-essential \
         ca-certificates \
         curl \
+        libgl1 \
+        libglib2.0-0t64 \
+        libsm6 \
+        libxext6 \
         python3 \
         python3-dev \
         python3-venv \

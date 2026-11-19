@@ -18,6 +18,7 @@ MODULES = (
     "h3_tp2.wire",
     "h3_tp2.plugin",
     "av",
+    "cv2",  # the GUI opencv-python build wins over -headless and needs libGL/libxcb/libSM
 )
 SPECS = ("cutlass",)  # the CuTe DSL initialises CUDA on import: found, not imported
 WRAPPER = Path("/opt/vonk/bin/vllm-omni-job")
