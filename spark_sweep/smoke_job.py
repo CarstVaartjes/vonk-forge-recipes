@@ -20,7 +20,13 @@ Verdicts follow ``verdict.disposition``:
 * the Controller finally refused the job's request (``create``/``upload`` carry the
   recipe's definition bound to its contract; a 409/422 with decision ``exit``): the
   recipe's failure (``recipe-data``), with the reply as evidence;
-* the Controller refused otherwise or could not answer a step: a wait, smoked again later;
+* the Controller told the sweep to wait (typed: decision retry/defer, retryable, or a
+  temporary HTTP status): a wait, smoked again later;
+* any other reply to a step (vonkctl's generic ``control.api_error``, an unknown code): observed,
+  and the same reply on the same identity three times ends as the platform's deferral with the
+  reply as evidence (``Sweep._bound_identical_exit``). Two exceptions: a reply with no document
+  at all (timeout, missing binary) is a wait, and the ``detail`` poll follows the job through
+  anything but a final failure, bounded by the job budget;
 * the job ended for a platform reason (agent lease lost, a scope that may remain, a
   cancel, a wait for an operator) or never ended within its own timeout: uncertain,
   observed again.
@@ -97,13 +103,23 @@ def _call(
                 "recipe-data",
                 evidence,
             )
-        elif verdict.reply_disposition(error.reply) is verdict.Disposition.WAIT:
+        elif (
+            error.reply is None
+            or error.reply.is_transport_error
+            or verdict.typed_wait(error.reply)
+        ):
+            # A typed wait, or no document at all (timeout, missing binary): nothing was said.
             failure = classify(
                 "smoke", f"job.{step}", str(error), verdict.SMOKE_BUSY, evidence
             )
         else:
+            # No typed wait: an undeclared class, observed and bounded by identical exits.
             failure = classify(
-                "smoke", error.code or f"job.{step}", str(error), "", evidence
+                "smoke",
+                error.code or f"job.{step}",
+                str(error),
+                verdict.UNTYPED_REPLY,
+                evidence,
             )
         raise _Refused(failure) from error
     if not isinstance(document, Mapping):
@@ -332,10 +348,8 @@ def smoke_job(
                 try:
                     job = _call(vk, "detail", "detail", job_id)
                 except _Refused as refused:
-                    if (
-                        verdict.disposition(refused.failure)
-                        is not verdict.Disposition.WAIT
-                    ):
+                    # A read hiccup never abandons a running job; the budget bounds the loop.
+                    if verdict.disposition(refused.failure) is verdict.Disposition.FAIL:
                         raise
             if _text(job, "state") != LifecycleState.SUCCEEDED:
                 result.failure = _ended_failure(vk, job)
