@@ -24,16 +24,7 @@
     "mode": "chat",
     "reasoning": {
       "default": "on",
-      "effort": {
-        "default": "high",
-        "key": "reasoning_effort",
-        "kind": "levels",
-        "levels": [
-          "high",
-          "max"
-        ],
-        "via": "chat_template_kwargs"
-      },
+      "effort": null,
       "keys": [
         "reasoning_effort"
       ],
