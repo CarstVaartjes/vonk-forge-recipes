@@ -59,6 +59,40 @@ class RecipeExecutabilityTests(unittest.TestCase):
                 )
                 seen[normalized] = path
 
+    def test_multi_node_nvidia_cuda_adapters_install_the_rdma_verbs_provider(
+        self,
+    ) -> None:
+        # NCCL_NET=IB has no Socket fallback: a CUDA base image without ibverbs-providers
+        # (libmlx5) fails the first collective with "Failed to initialize any NET plugin".
+        # Before this guard only these two lacked the literal package: a3refaat installs rdma-core,
+        # vcruz libibverbs-dev. Neither is touched here; drop an entry when its adapter is fixed.
+        unchecked = {
+            "adapters/minimax/a3refaat-m3-b12x-dual/Dockerfile",
+            "adapters/glm/vcruz-full-tensorfold-four/Dockerfile",
+        }
+        missing: set[str] = set()
+        for path, document in recipe_documents():
+            topology = document.get("topology")
+            build = (document.get("execution") or {}).get("build")
+            if not isinstance(topology, dict) or not isinstance(build, dict):
+                continue
+            if int(topology.get("node_count", 1)) <= 1 or not build.get("dockerfile"):
+                continue
+            if build["dockerfile"] in unchecked:
+                continue
+            text = (ROOT / str(build["dockerfile"])).read_text(encoding="utf-8")
+            from_line = next(
+                (
+                    line
+                    for line in text.splitlines()
+                    if line.upper().startswith("FROM ")
+                ),
+                "",
+            )
+            if "nvidia/cuda" in from_line and "ibverbs-providers" not in text:
+                missing.add(str(build["dockerfile"]))
+        self.assertEqual(set(), missing)
+
     def test_models_and_recipes_are_current_v2_documents(self) -> None:
         models: dict[tuple[str, str], ModelDefinition] = {}
         for path in sorted((ROOT / "models").glob("*.json")):
