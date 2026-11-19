@@ -370,7 +370,10 @@ run does not end. The wait is a `catalog source` bounded wait (30 minutes,
 serialized publishes plus the import) shown through `waiting`, a results row and a
 status alert. It ends when a complete pass serves the source, or at the bound
 (`wait-expired` row with the digests and an alert); from then on the sweep tests
-what the catalog serves (`spark_sweep/source_serving.py`,
+what the catalog serves. A selected recipe the catalog serves but the source does
+not author (the source is older than the library) is never scheduled or failed: a
+`source-behind` results row says to restart the sweep from an updated source
+(`spark_sweep/source_serving.py`,
 `tests/test_sweep_source_serving.py`).
 
 Use the typed `Disposition` and `RecipeVerdict` contracts; never guess a recipe
