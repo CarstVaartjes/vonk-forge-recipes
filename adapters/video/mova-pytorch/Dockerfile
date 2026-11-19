@@ -22,11 +22,7 @@ RUN apt-get update \
         ca-certificates \
         curl \
         ffmpeg \
-        libgl1 \
-        libglib2.0-0t64 \
-        libsm6 \
         libsndfile1 \
-        libxext6 \
         python3 \
         python3-pip \
     && rm -rf /var/lib/apt/lists/* \
@@ -77,7 +73,6 @@ RUN python3 /opt/vonk/build/apply-build-patches.py
 RUN python3 -m pip install --break-system-packages --no-cache-dir --no-deps --no-build-isolation /opt/mova-source \
     && python3 -m pip check \
     && python3 -c 'from mova.diffusion.pipelines.pipeline_mova import MOVA; print(MOVA.__name__)' \
-    && python3 -c 'import cv2' \
     && ffprobe -version
 
 COPY NOTICE /opt/vonk/source/NOTICE
