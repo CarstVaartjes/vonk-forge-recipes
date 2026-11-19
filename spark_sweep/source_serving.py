@@ -14,8 +14,8 @@ The wait is bounded (serialized publishes plus the import). A catalog that never
 the source (a newer release, a checkout behind main, a failed publish or import) ends
 it at the bound; the differing recipes then stay deferred (typed ``skewed`` row, never a
 verdict): the sweep's qualification spec belongs to its own source, so testing another
-revision with it would blame the recipe for the sweep's staleness. Every complete pass
-re-derives the set, so a catalog that serves the source again releases them.
+revision with it would blame the recipe for the sweep's staleness. One per-recipe gate decides it from the
+rows held, so a catalog that serves the source again releases them.
 """
 
 from __future__ import annotations
@@ -162,8 +162,8 @@ def describe_skew(differing: tuple[Unserved, ...], library_commit: str) -> str:
     )
     more = f" and {len(differing) - 3} more" if len(differing) > 3 else ""
     return (
-        f"sweep source differs from catalog revision (library "
+        f"sweep source and catalog revision differ (library "
         f"{library_commit[:12] or 'unknown'}) for {len(differing)} recipe(s) "
-        f"({shown}{more}); not tested, no verdict: restart the sweep from the newest "
-        "recipes main"
+        f"({shown}{more}); not tested, no verdict; they are tested again once the "
+        "catalog serves the source (or the sweep restarts from the newest recipes main)"
     )

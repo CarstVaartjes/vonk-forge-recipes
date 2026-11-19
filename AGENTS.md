@@ -459,14 +459,18 @@ for example a publish the Controller has not imported yet: it is not tested and 
 run does not end. The wait is a `catalog source` bounded wait (30 minutes,
 serialized publishes plus the import) shown through `waiting`, a results row and a
 status alert. It ends when a complete pass serves the source, or at the bound
-(`wait-expired` row with the digests and an alert); the differing recipes then
-stay deferred, never tested: the sweep's qualification spec belongs to its own
-source, so another revision would be blamed for the sweep's staleness (2026-11-19:
-a 409 `request is undeclared` recorded as a recipe-data fail). A typed `skewed`
-results row (and the `source_skewed` count on the status page) says "restart the
-sweep from the newest recipes main"; every complete pass re-derives the set, so a
-catalog that serves the source again releases them, and a catalog that moves ahead
-of a served source defers them the same way. No verdict, no fail evidence. A selected recipe the catalog serves but the source does
+(`wait-expired` row with the digests and an alert). The one gate
+(`Sweep._source_matches`: authored digest equals the served digest, decided per
+recipe from the rows held, so it is right in the middle of a library pass) never
+schedules a recipe whose content differs, before or after the bound: the sweep's
+qualification spec belongs to its own source, so another revision would be blamed
+for the sweep's staleness (2026-11-19: a 409 `request is undeclared` recorded as a
+recipe-data fail). Rows: `wait-expired` at the bound, and a `skewed` row (plus the
+`source_skewed` count on the status page) whenever the set of differing recipes
+changes after the wait; no verdict and no fail evidence. A catalog that serves the
+source again releases the recipes by themselves. A slot already loaded binds its jobs to its
+own installation's revision, which the gate guaranteed equals the source when it was
+scheduled. A selected recipe the catalog serves but the source does
 not author (the source is older than the library) is never scheduled or failed: a
 `source-behind` results row says to restart the sweep from an updated source
 (`spark_sweep/source_serving.py`,
