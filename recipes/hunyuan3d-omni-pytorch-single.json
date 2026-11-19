@@ -47,21 +47,6 @@
         "required": true,
         "slots": [
           {
-            "description": "Optional job.json selecting the image and Omni control mode.",
-            "extensions": [
-              ".json"
-            ],
-            "id": "job",
-            "label": "Control manifest",
-            "max_file_bytes": 16384,
-            "max_files": 1,
-            "max_total_bytes": 16384,
-            "media_types": [
-              "application/json"
-            ],
-            "min_files": 0
-          },
-          {
             "description": "One object image used to generate the mesh.",
             "extensions": [
               ".jpeg",
@@ -82,19 +67,21 @@
             "min_files": 1
           },
           {
-            "description": "Optional GLB, glTF, OBJ, or PLY geometry for point-cloud or voxel conditioning.",
+            "description": "Optional control input, chosen by control-type. point and voxel take a GLB, glTF, OBJ or PLY geometry file; pose takes a JSON array of [x, y, z] joint triples; bbox takes no file.",
             "extensions": [
               ".glb",
               ".gltf",
+              ".json",
               ".obj",
               ".ply"
             ],
             "id": "control",
-            "label": "Control geometry",
+            "label": "Control input",
             "max_file_bytes": 251641856,
             "max_files": 1,
             "max_total_bytes": 251641856,
             "media_types": [
+              "application/json",
               "model/gltf+json",
               "model/gltf-binary",
               "model/obj",
@@ -299,8 +286,8 @@
     "source_reference": "https://huggingface.co/tencent/Hunyuan3D-Omni/tree/70e803bfb4e127d534049d8ab8c8cb511780d485"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "2.0.14"
+    "released_at": "2026-11-19",
+    "version": "2.1.0"
   },
   "runtime": {
     "arguments": [
@@ -323,6 +310,26 @@
         "name": "seed",
         "setting": null,
         "value": 0
+      },
+      {
+        "name": "control-type",
+        "setting": "control-type",
+        "value": null
+      },
+      {
+        "name": "bbox-length",
+        "setting": "bbox-length",
+        "value": null
+      },
+      {
+        "name": "bbox-height",
+        "setting": "bbox-height",
+        "value": null
+      },
+      {
+        "name": "bbox-width",
+        "setting": "bbox-width",
+        "value": null
       }
     ],
     "engine": "pytorch-pipeline",
@@ -342,7 +349,36 @@
   "settings": {
     "concurrency": null,
     "kind": "job",
-    "knobs": {}
+    "knobs": {
+      "bbox-height": {
+        "change_effect": "none",
+        "maximum": 1.0,
+        "minimum": 0.01,
+        "value": 1.0
+      },
+      "bbox-length": {
+        "change_effect": "none",
+        "maximum": 1.0,
+        "minimum": 0.01,
+        "value": 1.0
+      },
+      "bbox-width": {
+        "change_effect": "none",
+        "maximum": 1.0,
+        "minimum": 0.01,
+        "value": 1.0
+      },
+      "control-type": {
+        "allowed_values": [
+          "bbox",
+          "point",
+          "voxel",
+          "pose"
+        ],
+        "change_effect": "none",
+        "value": "bbox"
+      }
+    }
   },
   "topology": {
     "name": "solo",

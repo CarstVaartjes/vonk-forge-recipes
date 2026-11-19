@@ -162,12 +162,9 @@ class WanDancerAuthorityTests(unittest.TestCase):
                     self.assertEqual(payload, (ROOT / path).read_bytes())
         interface = recipe["interfaces"][0]
         slots = {slot["id"]: slot for slot in interface["input"]["slots"]}
-        self.assertEqual(set(slots), {"prompt", "reference-image", "music", "controls"})
+        self.assertEqual(set(slots), {"prompt", "reference-image", "music"})
         self.assertEqual(
             (slots["prompt"]["min_files"], slots["prompt"]["max_files"]), (1, 1)
-        )
-        self.assertEqual(
-            (slots["controls"]["min_files"], slots["controls"]["max_files"]), (0, 1)
         )
         output = interface["output"]
         self.assertEqual(output["max_total_bytes"], 536870912)
@@ -225,22 +222,17 @@ class WanDancerAuthorityTests(unittest.TestCase):
 class WanDancerInputTests(unittest.TestCase):
     def test_generation_canvas_binds_smaller_creator_dimensions(self) -> None:
         runner = load_runner()
-        self.assertEqual(runner._generation_dimensions({}), (512, 512))
-        self.assertEqual(
-            runner._generation_dimensions({"height": 720, "width": 352}), (720, 352)
-        )
-        self.assertEqual(
-            runner._generation_dimensions({"height": 512, "width": 512}), (512, 512)
-        )
+        self.assertEqual(runner._generation_dimensions(720, 352), (720, 352))
+        self.assertEqual(runner._generation_dimensions(512, 512), (512, 512))
         for height, width in ((720, 1280), (1280, 720)):
             with self.assertRaisesRegex(ValueError, "at most 262144 pixels"):
-                runner._generation_dimensions({"height": height, "width": width})
+                runner._generation_dimensions(height, width)
 
     def test_generation_canvas_rejects_1280_square(self) -> None:
         runner = load_runner()
 
         with self.assertRaisesRegex(ValueError, "at most 262144 pixels"):
-            runner._generation_dimensions({"height": 1280, "width": 1280})
+            runner._generation_dimensions(1280, 1280)
 
     def test_expected_output_is_derived_from_reference_aspect_and_music(self) -> None:
         runner = load_runner()
@@ -343,29 +335,15 @@ class WanDancerInputTests(unittest.TestCase):
                         expected_duration=0.8,
                     )
 
-    def test_request_requires_image_music_prompt_and_rejects_traversal(self) -> None:
+    def test_input_names_are_confined_to_the_input_directory(self) -> None:
         runner = load_runner()
         with tempfile.TemporaryDirectory() as value:
             inputs = Path(value)
             runner.INPUT_ROOT = inputs
             (inputs / "person.jpg").write_bytes(b"jpeg")
-            (inputs / "music.wav").write_bytes(b"wav")
-            (inputs / "request.json").write_text(
-                json.dumps(
-                    {
-                        "reference_image": "person.jpg",
-                        "music": "music.wav",
-                        "prompt": "A precise K-pop dance",
-                        "style": "k-pop",
-                    }
-                ),
-                encoding="utf-8",
-            )
-            request = runner._request()
-            self.assertEqual(request["style"], "k-pop")
             self.assertEqual(
                 runner._input_file(
-                    request["reference_image"], "reference_image", runner.IMAGE_SUFFIXES
+                    "person.jpg", "reference_image", runner.IMAGE_SUFFIXES
                 ),
                 inputs / "person.jpg",
             )
@@ -374,7 +352,7 @@ class WanDancerInputTests(unittest.TestCase):
                     "../person.jpg", "reference_image", runner.IMAGE_SUFFIXES
                 )
 
-    def test_manifest_slots_supply_prompt_image_music_and_optional_controls(
+    def test_manifest_slots_supply_prompt_image_and_music(
         self,
     ) -> None:
         runner = load_runner()
@@ -385,22 +363,16 @@ class WanDancerInputTests(unittest.TestCase):
                 "prompt": inputs / "prompt.txt",
                 "reference-image": inputs / "person.png",
                 "music": inputs / "music.wav",
-                "controls": inputs / "controls.json",
             }
             files["prompt"].write_text("A precise street dance", encoding="utf-8")
             files["reference-image"].write_bytes(b"png")
             files["music"].write_bytes(b"wav")
-            files["controls"].write_text(
-                json.dumps({"style": "street", "num_inference_steps_global": 2}),
-                encoding="utf-8",
-            )
             entries = []
             total = 0
             media_types = {
                 "prompt": "text/plain",
                 "reference-image": "image/png",
                 "music": "audio/wav",
-                "controls": "application/json",
             }
             for slot, path in files.items():
                 payload = path.read_bytes()
@@ -425,8 +397,6 @@ class WanDancerInputTests(unittest.TestCase):
             self.assertEqual(request["prompt"], "A precise street dance")
             self.assertEqual(request["reference_image"], "person.png")
             self.assertEqual(request["music"], "music.wav")
-            self.assertEqual(request["style"], "street")
-            self.assertEqual(request["num_inference_steps_global"], 2)
 
     def test_manifest_rejects_unknown_slots_and_mismatched_media_types(self) -> None:
         runner = load_runner()
@@ -712,9 +682,7 @@ class WanDancerSmokeMusicTests(unittest.TestCase):
             base64.b64decode(
                 (ROOT / "qualification" / fixtures[item["fixture"]]["path"]).read_text()
             )
-            for inputs in [definition["inputs"]]
-            + [case["inputs"] for case in definition["cases"]]
-            for item in inputs
+            for item in definition["inputs"]
             if item["slot"] == "music"
         ]
         sources.append((ROOT / validation["input_slots"]["music"]).read_bytes())

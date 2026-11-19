@@ -103,7 +103,7 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
             '"sampling_rate"',
             "encode_video(",
             "_verify_joint_av(",
-            "frame_count=frame_count",
+            "frame_count=args.num_frames",
             "audio.sample_rate != 32000",
             'audio.layout.name != "stereo"',
             "os.replace(temporary, destination)",
@@ -162,31 +162,49 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
                 Path("unused.mp4"), width=960, height=544, frame_count=124
             )
 
-    def test_recipe_runs_the_balanced_profile_by_default(self) -> None:
+    def test_recipe_binds_each_option_to_a_typed_knob(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
         arguments = {
-            argument["name"]: argument["value"]
+            argument["name"]: argument["setting"]
             for argument in recipe["runtime"]["arguments"]
         }
-        self.assertEqual(arguments["num-inference-steps"], 31)
-        self.assertNotIn("profile", arguments)
+        knobs = recipe["settings"]["knobs"]
+        for name in ("num-frames", "width", "height", "num-inference-steps"):
+            self.assertEqual(arguments[name], name)
+        self.assertNotIn("profile", knobs)
+        self.assertEqual(
+            {
+                name: (
+                    knob["value"],
+                    knob["minimum"],
+                    knob["maximum"],
+                    knob.get("step"),
+                )
+                for name, knob in knobs.items()
+            },
+            {
+                "num-frames": (124, 124, 345, 17),
+                "width": (960, 64, 2048, 32),
+                "height": (544, 64, 2048, 32),
+                "num-inference-steps": (31, 2, 51, None),
+            },
+        )
 
     def test_recipe_declares_truthful_typed_input_slots(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
         input_contract = recipe["interfaces"][0]["input"]
         slots = {slot["id"]: slot for slot in input_contract["slots"]}
-        self.assertEqual(set(slots), {"prompt", "request", "images", "videos", "audio"})
+        self.assertEqual(
+            set(slots), {"prompt", "first-image", "last-image", "references"}
+        )
         self.assertEqual(slots["prompt"]["media_types"], ["text/plain"])
         self.assertEqual(slots["prompt"]["min_files"], 1)
-        self.assertEqual(slots["request"]["media_types"], ["application/json"])
-        self.assertEqual(slots["request"]["max_files"], 1)
-        self.assertEqual(slots["request"]["max_file_bytes"], 64 * 1024)
-        self.assertEqual(slots["images"]["max_files"], 11)
-        self.assertEqual(slots["videos"]["max_files"], 3)
-        self.assertEqual(slots["audio"]["max_files"], 3)
-        self.assertEqual(slots["request"]["min_files"], 0)
-        for slot_id in ("request", "images", "videos", "audio"):
-            self.assertEqual(slots[slot_id]["min_files"], 0)
+        self.assertEqual(slots["references"]["max_files"], 12)
+        for slot_id in ("first-image", "last-image"):
+            self.assertEqual(
+                (slots[slot_id]["min_files"], slots[slot_id]["max_files"]), (0, 1)
+            )
+        self.assertEqual(slots["references"]["min_files"], 0)
         for slot in slots.values():
             self.assertLessEqual(slot["max_file_bytes"], 512 * 1024 * 1024)
             self.assertLessEqual(slot["max_total_bytes"], 1024 * 1024 * 1024)
@@ -204,8 +222,19 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.module.INPUT_ROOT = Path(self.temporary.name)
 
-    def test_prompt_is_required_and_options_json_is_optional(self) -> None:
-        self.assertEqual(self.module._load_request(), {})
+    def stage(self, **slots: list[tuple[str, str]]) -> None:
+        files = [
+            {"slot": slot.replace("_", "-"), "name": name, "media_type": media}
+            for slot, items in slots.items()
+            for name, media in items
+        ]
+        (self.module.INPUT_ROOT / "manifest.json").write_text(
+            json.dumps({"files": files}), encoding="utf-8"
+        )
+        for name, _media in (item for items in slots.values() for item in items):
+            (self.module.INPUT_ROOT / name).write_bytes(b"x")
+
+    def test_prompt_is_required(self) -> None:
         with self.assertRaisesRegex(ValueError, "exactly one UTF-8"):
             self.module._load_prompt()
         (self.module.INPUT_ROOT / "prompt.txt").write_text(
@@ -215,63 +244,32 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
             self.module._load_prompt(), "Operator supplied synchronized scene."
         )
 
-    def test_request_rejects_unknown_fields_and_traversal(self) -> None:
-        request = self.module.INPUT_ROOT / "request.json"
-        request.write_text('{"unknown": true}', encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "unsupported fields"):
-            self.module._load_request()
-        with self.assertRaisesRegex(ValueError, "inside /inputs"):
-            self.module._safe_input_path("../escape.png", "first_image")
-
-    def test_request_accepts_bounded_generation_controls(self) -> None:
-        request = self.module.INPUT_ROOT / "request.json"
-        request.write_text(
-            json.dumps({"num_frames": 124, "width": 960, "height": 544}),
-            encoding="utf-8",
-        )
-        value = self.module._load_request()
-        self.assertEqual(self.module._num_frames(value["num_frames"]), 124)
+    def test_keyframes_come_from_their_slots(self) -> None:
+        self.stage()
+        self.assertIsNone(self.module._keyframe("first-image"))
+        self.stage(first_image=[("a.png", "image/png")])
         self.assertEqual(
-            self.module._positive_multiple(value["width"], "width", 1344), 960
+            self.module._keyframe("first-image"), self.module.INPUT_ROOT / "a.png"
+        )
+        self.assertIsNone(self.module._keyframe("last-image"))
+        self.stage(first_image=[("a.png", "image/png"), ("b.png", "image/png")])
+        with self.assertRaisesRegex(ValueError, "at most one"):
+            self.module._keyframe("first-image")
+
+    def test_references_are_read_in_file_name_order(self) -> None:
+        self.stage(
+            references=[("2-face.png", "image/png"), ("1-scene.png", "image/png")]
         )
         self.assertEqual(
-            self.module._positive_multiple(value["height"], "height", 768), 544
+            [path.name for _media, path in self.module._slot_files("references")],
+            ["1-scene.png", "2-face.png"],
         )
-        self.assertEqual(self.module._num_frames(345), 345)
-        for frames in (120, 123, 125, 346, 362, True):
-            with self.assertRaisesRegex(ValueError, "17k\\+5 grid"):
-                self.module._num_frames(frames)
 
-    def test_profiles_map_named_intent_to_exact_model_evaluations(self) -> None:
-        self.assertEqual(
-            self.module.PROFILE_SIGMA_GRID_POINTS,
-            {
-                "smoke-only": 4,
-                "balanced": 31,
-                "qualification-reference": 51,
-            },
-        )
-        for profile, evaluations in (
-            ("smoke-only", 3),
-            ("balanced", 30),
-            ("qualification-reference", 50),
-        ):
-            sigma_grid_points = self.module._profile_sigma_grid_points(profile, 31)
-            self.assertEqual(sigma_grid_points - 1, evaluations)
-
-        self.assertEqual(self.module._profile_sigma_grid_points(None, 31), 31)
-        with self.assertRaisesRegex(ValueError, "profile must be one of"):
-            self.module._profile_sigma_grid_points("quick", 31)
-        with self.assertRaisesRegex(ValueError, "must match a named"):
-            self.module._profile_sigma_grid_points(None, 30)
-
-    def test_request_accepts_only_named_profiles(self) -> None:
-        request = self.module.INPUT_ROOT / "request.json"
-        request.write_text('{"profile": "qualification-reference"}', encoding="utf-8")
-        value = self.module._load_request()
-        self.assertEqual(
-            self.module._profile_sigma_grid_points(value["profile"], 31), 51
-        )
+    def test_a_listed_file_that_is_missing_is_refused(self) -> None:
+        self.stage(first_image=[("a.png", "image/png")])
+        (self.module.INPUT_ROOT / "a.png").unlink()
+        with self.assertRaisesRegex(ValueError, "missing input file"):
+            self.module._keyframe("first-image")
 
 
 if __name__ == "__main__":

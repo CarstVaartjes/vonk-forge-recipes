@@ -6,6 +6,36 @@
     "slug": "minimax-h3-fl2va-knapcio-vllm-omni-dual"
   },
   "kind": "recipe-display",
+  "knobs": {
+    "duration": {
+      "description": "Video length, 4 to 15 seconds.",
+      "label": "Duration",
+      "unit": "s"
+    },
+    "flow-shift": {
+      "description": "Noise schedule shift; the creator's default is 12. Any positive number is accepted.",
+      "label": "Flow shift"
+    },
+    "height": {
+      "description": "Output height, a multiple of 32.",
+      "label": "Height",
+      "unit": "px"
+    },
+    "num-inference-steps": {
+      "description": "More steps refine the video and take longer. The creator's example uses 20.",
+      "label": "Denoising steps",
+      "unit": "steps"
+    },
+    "seed": {
+      "description": "Random seed; the same seed and options give the same video.",
+      "label": "Seed"
+    },
+    "width": {
+      "description": "Output width, a multiple of 32.",
+      "label": "Width",
+      "unit": "px"
+    }
+  },
   "tags": [
     "executable",
     "minimax",

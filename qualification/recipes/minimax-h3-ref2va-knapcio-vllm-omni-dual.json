@@ -45,10 +45,6 @@
         "slot": "prompt"
       },
       {
-        "fixture": "minimax-ref2va-request",
-        "slot": "request"
-      },
-      {
         "fixture": "triposg-example-house-png",
         "slot": "references"
       }

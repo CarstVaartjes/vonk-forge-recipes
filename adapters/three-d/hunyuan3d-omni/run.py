@@ -24,68 +24,65 @@ IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 GEOMETRY_SUFFIXES = {".glb", ".gltf", ".obj", ".ply"}
 
 
-def safe_named_file(name: object, suffixes: set[str]) -> Path:
-    if not isinstance(name, str) or Path(name).name != name:
-        raise SystemExit("job manifest paths must be plain filenames")
-    path = INPUTS / name
-    if not path.is_file() or path.is_symlink() or path.suffix.lower() not in suffixes:
-        raise SystemExit(f"invalid job input: {name}")
-    return path
+def slot_files(slot: str) -> list[Path]:
+    """The files of ``slot`` from the input manifest, in file name order."""
+    manifest = INPUTS / "manifest.json"
+    if manifest.is_symlink() or not manifest.is_file():
+        raise SystemExit("the input manifest is missing")
+    try:
+        names = sorted(
+            item["name"]
+            for item in json.loads(manifest.read_text(encoding="utf-8"))["files"]
+            if item["slot"] == slot
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError):
+        raise SystemExit("the input manifest must list each file's slot") from None
+    paths = [INPUTS / name for name in names]
+    if any(path.is_symlink() or not path.is_file() for path in paths):
+        raise SystemExit(f"{slot} names a missing input file")
+    return paths
 
 
-def job() -> tuple[str, Path, object]:
-    manifest_path = INPUTS / "job.json"
-    if manifest_path.is_file() and not manifest_path.is_symlink():
-        document = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if not isinstance(document, dict) or set(document) - {
-            "control_type",
-            "image",
-            "control",
-        }:
-            raise SystemExit("job.json has unsupported fields")
-        kind = document.get("control_type")
-        image = safe_named_file(document.get("image"), IMAGE_SUFFIXES)
-        control = document.get("control")
-        if kind in {"point", "voxel"}:
-            control = safe_named_file(control, GEOMETRY_SUFFIXES)
-        elif kind == "pose":
-            if (
-                not isinstance(control, list)
-                or not control
-                or not all(
-                    isinstance(row, list)
-                    and len(row) == 3
-                    and all(isinstance(v, (int, float)) for v in row)
-                    for row in control
-                )
-            ):
-                raise SystemExit(
-                    "pose control must be a non-empty array of xyz triples"
-                )
-        elif kind == "bbox":
-            # Hunyuan3D-Omni's bbox is the box's [length, height, width], each in
-            # (0, 1]: its encoder takes shape (1, 1, 3) and builds the corners
-            # (upstream demos/bbox/data.json, omni_encoder.bbox_to_corners).
-            if (
-                not isinstance(control, list)
-                or len(control) != 3
-                or not all(
-                    isinstance(v, (int, float)) and 0 < v <= 1 for v in control
-                )
-            ):
-                raise SystemExit("bbox control must contain three sizes in (0, 1]")
-        else:
-            raise SystemExit("control_type must be bbox, point, pose, or voxel")
-        return kind, image, control
-
-    images = sorted(
-        path
-        for path in INPUTS.iterdir()
-        if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES
-    )
-    if len(images) != 1:
-        raise SystemExit("provide one image, or job.json plus its referenced inputs")
-    return "bbox", images[0], [1.0, 1.0, 1.0]
+def job(kind: str, bbox: list[float]) -> tuple[str, Path, object]:
+    """The image and the control input; ``kind`` must agree with the control slot."""
+    images = slot_files("image")
+    if len(images) != 1 or images[0].suffix.lower() not in IMAGE_SUFFIXES:
+        raise SystemExit("provide exactly one source image")
+    controls = slot_files("control")
+    if len(controls) > 1:
+        raise SystemExit("provide at most one control file")
+    if kind == "bbox":
+        if controls:
+            raise SystemExit("control-type bbox takes no control file")
+        # Hunyuan3D-Omni's bbox is the box's [length, height, width], each in
+        # (0, 1]: its encoder takes shape (1, 1, 3) and builds the corners
+        # (upstream demos/bbox/data.json, omni_encoder.bbox_to_corners).
+        return kind, images[0], bbox
+    if not controls:
+        raise SystemExit(f"control-type {kind} needs a control file")
+    control = controls[0]
+    if kind in {"point", "voxel"}:
+        if control.suffix.lower() not in GEOMETRY_SUFFIXES:
+            raise SystemExit(f"control-type {kind} needs a GLB, glTF, OBJ or PLY file")
+        return kind, images[0], control
+    if control.suffix.lower() != ".json":
+        raise SystemExit("control-type pose needs a JSON file")
+    try:
+        rows = json.loads(control.read_text(encoding="utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        raise SystemExit("pose control must be UTF-8 JSON") from None
+    if (
+        not isinstance(rows, list)
+        or not rows
+        or not all(
+            isinstance(row, list)
+            and len(row) == 3
+            and all(isinstance(v, (int, float)) for v in row)
+            for row in rows
+        )
+    ):
+        raise SystemExit("pose control must be a non-empty array of xyz triples")
+    return kind, images[0], rows
 
 
 def normalized_surface(path: Path, *, sample: bool, seed: int) -> torch.Tensor:
@@ -108,6 +105,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--entrypoint", required=True)
     parser.add_argument("--output-mime", required=True)
+    parser.add_argument("--control-type", required=True)
+    parser.add_argument("--bbox-length", type=float, required=True)
+    parser.add_argument("--bbox-height", type=float, required=True)
+    parser.add_argument("--bbox-width", type=float, required=True)
     parser.add_argument("--timeout-seconds", type=int, required=True)
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
@@ -126,7 +127,9 @@ def main() -> None:
     from hy3dshape.pipelines import Hunyuan3DOmniSiTFlowMatchingPipeline
     from transformers import Dinov2Model
 
-    kind, image_path, control = job()
+    kind, image_path, control = job(
+        args.control_type, [args.bbox_length, args.bbox_height, args.bbox_width]
+    )
     with Image.open(image_path) as image:
         image.verify()
     if not DINO.is_dir():

@@ -35,7 +35,6 @@
       "input": {
         "max_bytes": 1073741824,
         "media_types": [
-          "application/json",
           "image/jpeg",
           "image/png",
           "image/webp",
@@ -59,22 +58,7 @@
             "min_files": 1
           },
           {
-            "description": "Required request.json: references (one to nine ordered image paths), duration 16-60 s (default 30), width and height (multiples of 32, default 960x576), num_inference_steps, flow_shift, seed.",
-            "extensions": [
-              ".json"
-            ],
-            "id": "request",
-            "label": "Ref2VA options",
-            "max_file_bytes": 65536,
-            "max_files": 1,
-            "max_total_bytes": 65536,
-            "media_types": [
-              "application/json"
-            ],
-            "min_files": 1
-          },
-          {
-            "description": "One to nine reference images named by request.json (JPEG, PNG or WebP, at most 30 MiB each). They condition look and subject; the clip does not start from them.",
+            "description": "One to nine reference images (JPEG, PNG or WebP, 30 MiB each). They are used in file name order, so name the files to set it (for example 1-scene.png, 2-face.png).",
             "extensions": [
               ".jpeg",
               ".jpg",
@@ -1042,8 +1026,8 @@
     "source_reference": "https://github.com/knapcio/MiniMax-H3-2x-DGX-Spark-TP2/tree/2845006edea296b1e1f6f9d76a5a1c13a7c1e133"
   },
   "release": {
-    "released_at": "2026-11-18",
-    "version": "1.0.0"
+    "released_at": "2026-11-19",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [
@@ -1063,24 +1047,14 @@
         "value": null
       },
       {
-        "name": "min-duration",
-        "setting": null,
-        "value": 16
-      },
-      {
-        "name": "max-duration",
-        "setting": null,
-        "value": 60
-      },
-      {
         "name": "width",
-        "setting": null,
-        "value": 960
+        "setting": "width",
+        "value": null
       },
       {
         "name": "height",
-        "setting": null,
-        "value": 576
+        "setting": "height",
+        "value": null
       },
       {
         "name": "num-inference-steps",
@@ -1089,13 +1063,13 @@
       },
       {
         "name": "flow-shift",
-        "setting": null,
-        "value": 12
+        "setting": "flow-shift",
+        "value": null
       },
       {
         "name": "seed",
-        "setting": null,
-        "value": 1101
+        "setting": "seed",
+        "value": null
       }
     ],
     "engine": "vllm-omni",
@@ -1186,11 +1160,41 @@
     "knobs": {
       "duration": {
         "change_effect": "none",
+        "maximum": 60,
+        "minimum": 16,
         "value": 30
+      },
+      "flow-shift": {
+        "change_effect": "none",
+        "maximum": 1000000.0,
+        "minimum": 1e-06,
+        "value": 12.0
+      },
+      "height": {
+        "change_effect": "none",
+        "maximum": 2048,
+        "minimum": 64,
+        "step": 32,
+        "value": 576
       },
       "num-inference-steps": {
         "change_effect": "none",
+        "maximum": 50,
+        "minimum": 1,
         "value": 20
+      },
+      "seed": {
+        "change_effect": "none",
+        "maximum": 9223372036854775807,
+        "minimum": 0,
+        "value": 1101
+      },
+      "width": {
+        "change_effect": "none",
+        "maximum": 2048,
+        "minimum": 64,
+        "step": 32,
+        "value": 960
       }
     }
   },

@@ -6,6 +6,28 @@
     "slug": "minimax-h3-diffusers-single"
   },
   "kind": "recipe-display",
+  "knobs": {
+    "height": {
+      "description": "Output height, a multiple of 32.",
+      "label": "Height",
+      "unit": "px"
+    },
+    "num-frames": {
+      "description": "Video length at 24 fps. The model renders 17k+5 frames, 5 to 14 seconds (124 to 345).",
+      "label": "Frames",
+      "unit": "frames"
+    },
+    "num-inference-steps": {
+      "description": "More steps refine the video and take longer. The recipe default is 31.",
+      "label": "Denoising steps",
+      "unit": "steps"
+    },
+    "width": {
+      "description": "Output width, a multiple of 32.",
+      "label": "Width",
+      "unit": "px"
+    }
+  },
   "tags": [
     "executable",
     "minimax",
