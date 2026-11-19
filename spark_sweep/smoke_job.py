@@ -248,7 +248,9 @@ def _job_evidence(
     with tempfile.TemporaryDirectory(prefix="sweep-job-evidence-") as root:
         target = Path(root) / "evidence.json"
         for attempt in range(EVIDENCE_READ_ATTEMPTS):
-            reply = vk.run("fleet", "evidence", operation_id, "--output", str(target))
+            reply = vk.run(
+                "fleet", "evidence", operation_id, "--output", str(target)
+            )  # sequential: re-reads one record until the Controller has stored it
             if reply.ok or not reply.is_not_found:
                 break
             if attempt + 1 < EVIDENCE_READ_ATTEMPTS:
