@@ -162,18 +162,45 @@ def test_producer_only_vectors_are_accepted_by_the_lenient_readers() -> None:
 # awaiting physical acceptance, qualification or retesting.
 _STATUS_WORDING = (
     re.compile(
-        r"\b(physical|vonk|hardware|fleet|operator)\b[^.;]{0,70}"
-        r"\b(acceptance|qualification|requalification|retesting|canary|verification|execution)\b"
-        r"[^.;]{0,80}\b(pending|required|remains?|unverified|unqualified|untested|separate)\b",
+        r"\b(physical|physically|vonk|hardware|fleet|operator)\b[^.;]{0,70}"
+        r"\b(acceptance|qualification|requalification|retesting|canary|verification|execution|qualified)\b"
+        r"[^.;]{0,80}\b(pending|required|unverified|unqualified|untested|proven)\b"
+        r"|\bnot (physically )?(qualified|accepted)\b|\bremains? to be proven\b",
         re.IGNORECASE,
     ),
     re.compile(
-        r"\bCandidate\b|\bPending\b|HARDWARE-UNTESTED|[Uu]ntested on hardware"
-        r"|sweep is on hold|installable but untested|not measured fleet acceptance"
-        r"|remains? untested"
+        r"\b(Executable|Installable) (Candidate|Pending)\b|^Candidate\b"
+        r"|HARDWARE-UNTESTED|[Uu]ntested on hardware|sweep is on hold"
+        r"|sweep skips|installable but untested|not measured fleet acceptance"
+        r"|remains? untested here"
     ),
 )
-_STATUS_TAGS = {"candidate", "physical-acceptance-required"}
+_STATUS_TAGS = {
+    "candidate",
+    "physical-acceptance-required",
+    "pending",
+    "build-unvalidated",
+}
+
+
+def _states_status(sentence: str) -> bool:
+    return any(pattern.search(sentence) for pattern in _STATUS_WORDING)
+
+
+def test_status_guard_ignores_technical_wording() -> None:
+    for sentence in (
+        "On the physical Spark, MTP acceptance remains about 70 percent at K=3.",
+        "Pending upstream PR 1234, the recipe applies the parser patch locally.",
+        "The creator notes that the 1M-token context remains untested upstream.",
+    ):
+        assert not _states_status(sentence), sentence
+    for sentence in (
+        "Not physically qualified on this fleet.",
+        "Hardware fit remains to be proven.",
+        "Physical Spark acceptance is pending.",
+        "Executable Candidate recipe for X.",
+    ):
+        assert _states_status(sentence), sentence
 
 
 def test_display_text_and_tags_never_state_verification_status() -> None:
@@ -186,6 +213,6 @@ def test_display_text_and_tags_never_state_verification_status() -> None:
         offenders += [
             f"{path.stem}: {sentence}"
             for sentence in re.split(r"(?<=\.)\s+", display.description)
-            if any(pattern.search(sentence) for pattern in _STATUS_WORDING)
+            if _states_status(sentence)
         ]
     assert not offenders, "\n".join(offenders)
