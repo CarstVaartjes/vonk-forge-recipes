@@ -65,28 +65,42 @@ class RecipeExecutabilityTests(unittest.TestCase):
         # NCCL_NET=IB has no Socket fallback: a CUDA base image without ibverbs-providers
         # (libmlx5) fails the first collective with "Failed to initialize any NET plugin".
         missing: set[str] = set()
-        for path, document in recipe_documents():
+        for _, document in recipe_documents():
             topology = document.get("topology")
-            build = (document.get("execution") or {}).get("build")
+            execution = document.get("execution")
+            runtime = document.get("runtime")
+            build = execution.get("build") if isinstance(execution, dict) else None
+            environment = (
+                runtime.get("environment") if isinstance(runtime, dict) else None
+            )
             if not isinstance(topology, dict) or not isinstance(build, dict):
                 continue
-            if int(topology.get("node_count", 1)) <= 1 or not build.get("dockerfile"):
+            if not isinstance(environment, list) or not build.get("dockerfile"):
                 continue
-            environment = (document.get("runtime") or {}).get("environment") or []
-            if {"name": "NCCL_NET", "value": "IB"} not in [
-                {"name": e.get("name"), "value": e.get("value")} for e in environment
-            ]:
+            if int(topology.get("node_count", 1)) <= 1:
                 continue
-            text = (ROOT / str(build["dockerfile"])).read_text(encoding="utf-8")
-            from_line = next(
-                (
-                    line
-                    for line in text.splitlines()
-                    if line.upper().startswith("FROM ")
-                ),
-                "",
+            if not any(
+                isinstance(e, dict)
+                and e.get("name") == "NCCL_NET"
+                and e.get("value") == "IB"
+                for e in environment
+            ):
+                continue
+            lines = [
+                line.strip()
+                for line in (ROOT / str(build["dockerfile"]))
+                .read_text(encoding="utf-8")
+                .splitlines()
+                if not line.strip().startswith("#")
+            ]
+            # Only the final stage ships: a build-stage install or a comment does not count.
+            last_from = max(
+                i for i, line in enumerate(lines) if line.upper().startswith("FROM ")
             )
-            if "nvidia/cuda" in from_line and "ibverbs-providers" not in text:
+            final_stage = lines[last_from:]
+            if "nvidia/cuda" in final_stage[0] and not any(
+                "ibverbs-providers" in line for line in final_stage
+            ):
                 missing.add(str(build["dockerfile"]))
         self.assertEqual(set(), missing)
 
