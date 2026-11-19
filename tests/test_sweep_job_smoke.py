@@ -441,6 +441,17 @@ def test_a_waiting_or_cancelled_job_ends_the_wait_at_once(state: str) -> None:
     assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
 
 
+def test_a_job_recipe_without_a_definition_is_recipe_data() -> None:
+    result = smoke_job(
+        _recipe("vonk-forge/no-such-job"),
+        DEFINITIONS,
+        Vonkctl("vonkctl", runner=Controller()),
+        "run-1",
+        "lane-1",
+    )
+    assert result.failure is not None and result.failure.klass == "recipe-data"
+
+
 # -- assertions ------------------------------------------------------------------------
 
 
@@ -747,16 +758,3 @@ def test_a_job_run_serves_while_held_with_its_route_withdrawn() -> None:
     # A service run still needs its published route.
     assert serving_run(_fleet("withdrawn"), "ocr", ["spk_a"], 1) is None
     assert serving_run(_fleet("published"), "ocr", ["spk_a"], 1) == "run-1"
-
-
-def test_a_recipe_without_a_definition_in_this_source_is_untested_not_failed() -> None:
-    empty = Definitions({**DEFINITIONS.document, "recipes": {}})
-    result = smoke_job(
-        _recipe(),
-        empty,
-        Vonkctl("vonkctl", runner=Controller()),
-        "run-1",
-        "lane-1",
-    )
-    assert result.failure is not None
-    assert verdict.disposition(result.failure) is verdict.Disposition.SKIP
