@@ -190,7 +190,7 @@ def test_keys_heretic_workflow_hash_prompt_seed_and_frame_override(
     arguments = {a.name: a.value for a in recipe.runtime.arguments}
     assert arguments["workflow-sha256"] == hashlib.sha256(payload).hexdigest()
     (tmp_path / "PROMPT.TXT").write_text("A quiet harbour at dawn.")
-    job.INPUT_ROOT = tmp_path
+    monkeypatch.setattr(job, "INPUT_ROOT", tmp_path)
     manifest = {"files": [{"slot": "prompt", "name": "PROMPT.TXT"}]}
     graph = job.substitute(
         document["prompt"], job.workflow_replacements(document, 45, manifest)
