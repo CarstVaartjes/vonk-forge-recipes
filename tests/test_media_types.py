@@ -110,3 +110,19 @@ def test_all_catalog_recipes_and_qualification_cases_use_canonical_media() -> No
         definitions["recipes"][MOSS]["output_limits"]["allowed_media_types"]
         == MOSS_MEDIA
     )
+
+
+def test_a_job_timeout_above_the_controllers_maximum_is_refused_at_load(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "shared.json").write_text(
+        (ROOT / "qualification/shared.json").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (tmp_path / "recipes/x.json").write_text(
+        json.dumps({"id": "pub/x", "recipes": {"timeout_seconds": 7200}}),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="timeout_seconds 7200"):
+        load_definitions(tmp_path)
