@@ -78,7 +78,7 @@ def _archive(**manifest_overrides: Any) -> bytes:
 
 
 class Controller:
-    """A scripted ``vonkctl recipe job``: each step answers from its queue, in order."""
+    """A scripted ``vonkctl job``: each step answers from its queue, in order."""
 
     def __init__(
         self,
@@ -103,9 +103,9 @@ class Controller:
             Path(args[args.index("--output") + 1]).write_text(json.dumps(answer))
             document = {"operation_id": args[2], "attempt": 1, "output": "x"}
             return 0, json.dumps(document), ""
-        assert args[:2] == ["recipe", "job"]
-        self.calls.append(args[2:])
-        step = args[2]
+        assert args[:1] == ["job"]
+        self.calls.append(args[1:])
+        step = args[1]
         if step == "create":
             self.binding = json.loads(Path(args[args.index("--file") + 1]).read_text())
         if step == "download":
@@ -328,11 +328,7 @@ def test_a_deferred_job_keeps_its_evidence_and_stays_observed() -> None:
 
 
 def test_a_controller_refusal_is_a_wait_never_a_verdict() -> None:
-    refusal = {
-        "error_type": "control_api",
-        "code": "controller.unavailable",
-        "detail": "down",
-    }
+    refusal = _cli_error(503, "controller.unavailable", "retry")
     controller = Controller(create=[(2, refusal)])
     result = _smoke(controller)
     assert result.failure is not None
@@ -382,8 +378,6 @@ def test_a_final_refusal_of_the_recipes_job_request_fails_the_recipe_at_once(
     [
         _cli_error(503, "controller.unavailable", "retry"),
         _cli_error(409, "controller.conflict", "defer", retry_after_seconds=5),
-        _cli_error(404, "controller.not_found", "exit"),
-        _cli_error(403, "controller.request_rejected", "exit"),
     ],
 )
 def test_a_job_request_the_controller_may_still_take_is_not_a_verdict(
@@ -394,13 +388,30 @@ def test_a_job_request_the_controller_may_still_take_is_not_a_verdict(
     assert verdict.disposition(result.failure) is verdict.Disposition.WAIT
 
 
+@pytest.mark.parametrize(
+    "answer",
+    [
+        _cli_error(404, "controller.not_found", "exit"),
+        _cli_error(403, "controller.request_rejected", "exit"),
+        {"error_type": "control_api", "code": "control.api_error", "detail": "x"},
+    ],
+)
+def test_a_reply_with_no_typed_wait_is_observed_and_bounded_not_waited_on(
+    answer: dict[str, Any],
+) -> None:
+    result = _smoke(Controller(create=[(2, answer)]))
+    assert result.failure is not None
+    assert result.failure.klass == verdict.UNTYPED_REPLY
+    assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
+
+
 def test_a_refused_submit_names_no_recipe_data_and_is_not_a_verdict() -> None:
     controller = Controller(
         create=[_job(None, preparation="ready")], submit=[(2, REFUSED)]
     )
     result = _smoke(controller)
     assert result.failure is not None
-    assert verdict.disposition(result.failure) is verdict.Disposition.WAIT
+    assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
 
 
 def test_a_transient_refusal_while_following_keeps_following() -> None:
@@ -412,6 +423,22 @@ def test_a_transient_refusal_while_following_keeps_following() -> None:
         detail=[(2, refusal), _job("succeeded", output_files=OUTPUT)],
     )
     assert _smoke(controller).ok
+
+
+def test_a_detail_read_with_no_document_keeps_following_the_job() -> None:
+    controller = Controller(
+        _archive(),
+        create=[_job(None, preparation="ready")],
+        submit=[_job("queued")],
+        detail=[(124, None), _job("succeeded", output_files=OUTPUT)],
+    )
+    assert _smoke(controller).ok
+
+
+def test_a_create_with_no_document_is_a_wait_not_an_attempt() -> None:
+    result = _smoke(Controller(create=[(124, None)]))
+    assert result.failure is not None
+    assert verdict.disposition(result.failure) is verdict.Disposition.WAIT
 
 
 def test_a_job_that_never_ends_within_its_own_timeout_is_observed_again() -> None:

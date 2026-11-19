@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "NVIDIA's single-Spark SGLang launch with DeepSeek's documented Chat SFT checkpoint for chat completion. Uses the checkpoint's bundled chat template and EOS configuration instead of serving base weights as chat. The ARM64 image and launch flags follow the pinned playbook. Resource envelopes are estimates, not measurements; physical Spark termination verification is pending.",
+  "description": "NVIDIA's single-Spark SGLang launch with DeepSeek's documented Chat SFT checkpoint for chat completion. Uses the checkpoint's bundled chat template and EOS configuration instead of serving base weights as chat. The ARM64 image and launch flags follow the pinned playbook. Resource envelopes are estimates, not measurements.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "deepseek-v2-lite-nvidia-sglang-single"
@@ -8,7 +8,6 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "nvidia",
     "sglang",
     "openai",

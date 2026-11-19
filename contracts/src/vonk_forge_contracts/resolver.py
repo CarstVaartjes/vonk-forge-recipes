@@ -11,7 +11,7 @@ from collections.abc import Iterable, Mapping
 from .api import RecipeApi
 from .display import FamilyDisplay, ModelDisplay, RecipeDisplay
 from .model import ModelDefinition
-from .recipe import RecipeDefinition
+from .recipe import RecipeDefinition, RecipeJobSettings
 
 
 class ContractResolutionError(ValueError):
@@ -65,6 +65,31 @@ def validate_model_references(models: Mapping[str, ModelDefinition]) -> None:
         resolve(model)
 
 
+def _check_job_knobs(recipe: RecipeDefinition, display: RecipeDisplay) -> None:
+    """Ingress rules for job knobs; a stored older recipe still parses without them."""
+
+    slug = recipe.identity.slug
+    knobs = (
+        recipe.settings.knobs if isinstance(recipe.settings, RecipeJobSettings) else {}
+    )
+    if isinstance(recipe.settings, RecipeJobSettings):
+        bound = [a.setting for a in recipe.runtime.arguments if a.setting]
+        for name, knob in knobs.items():
+            if bound.count(name) != 1:
+                raise ContractResolutionError(
+                    f"recipe {slug}: job knob {name} must be bound by exactly one "
+                    "runtime argument"
+                )
+            if knob.change_effect != "none":
+                raise ContractResolutionError(
+                    f"recipe {slug}: job knob {name} must have change_effect none"
+                )
+    if unknown := sorted(set(display.knobs) - set(knobs)):
+        raise ContractResolutionError(
+            f"recipe {slug}: display describes unknown knob {unknown[0]}"
+        )
+
+
 def validate_library(
     recipes: Iterable[RecipeDefinition],
     models: Iterable[ModelDefinition],
@@ -78,6 +103,7 @@ def validate_library(
     belong to a document.
     """
 
+    recipes = list(recipes)
     for label, identities, displays in (
         ("recipe", [r.identity for r in recipes], recipe_displays),
         ("model", [m.identity for m in models], model_displays),
@@ -100,6 +126,9 @@ def validate_library(
                     f"{label} display identity differs from its document: "
                     f"{key[0]}/{key[1]}"
                 )
+        if label == "recipe":
+            for recipe in recipes:
+                _check_job_knobs(recipe, recipe_displays[recipe.identity.slug])
         for slug, display in displays.items():
             if (display.identity.publisher, slug) not in keys:
                 raise ContractResolutionError(

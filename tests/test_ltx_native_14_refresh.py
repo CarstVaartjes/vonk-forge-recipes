@@ -46,8 +46,7 @@ class LtxNative14RefreshTests(unittest.TestCase):
         for slug in RECIPES:
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             self.assertTrue(
-                {"executable", "candidate"}
-                <= set(recipe_display(recipe["identity"]["slug"]).tags)
+                {"executable"} <= set(recipe_display(recipe["identity"]["slug"]).tags)
             )
             self.assertTrue(recipe["models"])
             self.assertEqual(recipe["topology"]["node_count"], 1)

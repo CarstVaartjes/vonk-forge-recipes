@@ -20,6 +20,16 @@
       ],
       "slug": "hy3-295b",
       "title": "Hy3 295B"
+    },
+    {
+      "models": [
+        {
+          "slug": "hy4-flash",
+          "title": "Hy4 flash"
+        }
+      ],
+      "slug": "hy4-flash",
+      "title": "Hy4 flash"
     }
   ],
   "slug": "hy",
