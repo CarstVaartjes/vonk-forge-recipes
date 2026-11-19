@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -154,3 +155,30 @@ def test_producer_only_vectors_are_accepted_by_the_lenient_readers() -> None:
             read_recipe(document)
         else:
             read_model(document)
+
+
+# Display says what a recipe is, never that proof is still owed once a hardware
+# pass exists for it: the status badge and the text would contradict each other.
+_ACCEPTANCE_OWED = re.compile(
+    r"(physical|operator|vonk)[^.;]{0,60}acceptance[^.;]{0,80}(pending|required)"
+    r"|acceptance (is|remains?|are) (still )?(pending|required)"
+    r"|acceptance[^.;]{0,30}(pending|required)",
+    re.IGNORECASE,
+)
+
+
+def test_a_recipe_with_a_passing_evidence_record_does_not_say_acceptance_is_owed() -> (
+    None
+):
+    offenders = []
+    for path in sorted((ROOT / "qualification/evidence").glob("*/*.json")):
+        records = _json(path).get("records", [])
+        if not any(record["outcome"] == "passed" for record in records):
+            continue
+        description = recipe_display(path.stem).description
+        offenders += [
+            f"{path.stem}: {sentence}"
+            for sentence in re.split(r"(?<=\.)\s+", description)
+            if _ACCEPTANCE_OWED.search(sentence)
+        ]
+    assert not offenders, "\n".join(offenders)

@@ -60,13 +60,6 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
                         "physical-acceptance-required",
                     },
                 )
-                description = recipe_display(
-                    recipe["identity"]["slug"]
-                ).description.lower()
-                self.assertIn("not accepted", description)
-                self.assertIn("build", description)
-                self.assertIn("physical", description)
-                self.assertIn("canary", description)
 
     def test_step1x_geometry_links_only_the_bounded_texture_stage(self) -> None:
         texture = _recipe("step1x-3d-texture-pytorch-single")

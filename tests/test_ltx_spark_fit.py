@@ -281,10 +281,6 @@ class LtxSparkFitTests(unittest.TestCase):
         self.assertEqual(memory["peak_bytes"], 93_000_000_000)
         for fact in ("93 GB", "77 GB", "31 GB", "8 GB"):
             self.assertIn(fact, recipe_display(recipe["identity"]["slug"]).description)
-        self.assertIn(
-            "Physical Spark acceptance remains pending",
-            recipe_display(recipe["identity"]["slug"]).description,
-        )
         self.assertEqual(
             recipe["execution"]["build"]["context"]["path"],
             "adapters/video/ltx23-sync-native-disk",
