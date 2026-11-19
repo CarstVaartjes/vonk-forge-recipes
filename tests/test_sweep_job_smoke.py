@@ -84,11 +84,14 @@ class Controller:
         self,
         output: bytes = b"",
         evidence: tuple[int, Any] | None = None,
+        evidence_not_found: int = 0,
         **answers: Sequence[tuple[int, Any]],
     ) -> None:
         self.output = output
         # ``vonkctl fleet evidence``: (exit code, bundle written to --output or error).
         self.evidence = evidence
+        # Leading evidence reads answered not_found (the sibling rank still stopping).
+        self.evidence_not_found = evidence_not_found
         self.answers = {step: list(queue) for step, queue in answers.items()}
         self.calls: list[list[str]] = []
         self.binding: dict[str, Any] = {}
@@ -98,6 +101,16 @@ class Controller:
         if args[:2] == ["fleet", "evidence"] and self.evidence is not None:
             self.calls.append(args)
             code, answer = self.evidence
+            if self.evidence_not_found > 0:
+                self.evidence_not_found -= 1
+                code, answer = (
+                    1,
+                    {
+                        "error_type": "control_api",
+                        "code": "controller.not_found",
+                        "status": 404,
+                    },
+                )
             if code != 0:
                 return code, json.dumps(answer), ""
             Path(args[args.index("--output") + 1]).write_text(json.dumps(answer))
@@ -284,6 +297,38 @@ def test_a_failed_job_carries_its_exit_code_and_stderr_tail() -> None:
     assert proof["evidence_ref"] == {"operation_id": OPERATION, "attempt": 1}
     assert "evidence_unavailable" not in proof
     assert controller.calls[-1][:3] == ["fleet", "evidence", OPERATION]
+
+
+def test_a_failed_stderr_keeps_the_platforms_head_and_tail_within_the_bound() -> None:
+    head = "ImportError: libxcb.so.1: cannot open shared object file\n"
+    stderr = head + "[90000 bytes omitted]\n" + "y" * 5000 + "\nlast line\n"
+    controller = Controller(
+        evidence=(0, _bundle(stderr, exit_code=1)),
+        create=[_job(None, preparation="ready")],
+        submit=[_job("failed", operation_id=OPERATION, status_reason="exit")],
+    )
+    result = _smoke(controller)
+    assert result.failure is not None
+    kept = result.failure.evidence["stderr_tail"]
+    assert kept.startswith("ImportError: libxcb.so.1")
+    assert "bytes omitted]" in kept
+    assert kept.endswith("last line\n")
+    assert len(kept.encode()) <= 2048
+
+
+def test_an_evidence_not_found_just_after_the_failure_is_read_again() -> None:
+    controller = Controller(
+        evidence=(0, _bundle("late cause\n", exit_code=1)),
+        evidence_not_found=2,
+        create=[_job(None, preparation="ready")],
+        submit=[_job("failed", operation_id=OPERATION, status_reason="exit")],
+    )
+    clock = [0.0]
+    result = _smoke(controller, clock=clock)
+    assert result.failure is not None
+    assert result.failure.evidence["stderr_tail"] == "late cause\n"
+    assert "evidence_unavailable" not in result.failure.evidence
+    assert [c[:2] for c in controller.calls].count(["fleet", "evidence"]) == 3
 
 
 @pytest.mark.parametrize("status", [404, 500])

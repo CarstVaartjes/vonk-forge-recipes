@@ -63,6 +63,15 @@ ENDED = TERMINAL | WAITING
 RECIPE_REQUEST_STEPS = frozenset({"create", "upload"})
 #: The end of a failed job's stderr a result row keeps: what happened last.
 STDERR_TAIL_BYTES = 2048
+#: Of those bytes, the head kept ahead of the platform's omission marker: the first error lines.
+STDERR_HEAD_BYTES = 512
+#: The platform's marker between a retained stderr's failure lines and its tail
+#: (vonk-agent-protocol ``failure_evidence::omission_marker``: ``[<N> bytes omitted]``).
+OMISSION_MARKER = re.compile(r"^\[\d+ bytes omitted\]$", re.MULTILINE)
+#: The evidence endpoint can answer not_found for a few seconds after the job shows failed
+#: (a sibling rank is still stopping): re-read this many times, this far apart, then give up.
+EVIDENCE_READ_ATTEMPTS = 4
+EVIDENCE_RETRY_SECONDS = 5.0
 
 
 def job_budget_seconds(spec: Mapping[str, Any]) -> float:
@@ -188,8 +197,22 @@ def _tail(text: str, limit: int = STDERR_TAIL_BYTES) -> str:
     content = "\n".join(diagnostics) if diagnostics else plain
     if diagnostics and plain.endswith(("\n", "\r")):
         content += "\n"
-    encoded = redact(content).encode("utf-8")
-    return encoded[-limit:].decode("utf-8", errors="ignore")
+    redacted = redact(content)
+    marker = OMISSION_MARKER.search(redacted)
+    if marker is None or limit <= STDERR_HEAD_BYTES:
+        return redacted.encode("utf-8")[-limit:].decode("utf-8", errors="ignore")
+    # The platform put the first error lines before its marker and the tail after it:
+    # keep both sides within the same bound.
+    head = redacted[: marker.start()].encode("utf-8")[:STDERR_HEAD_BYTES]
+    rest = redacted[marker.end() :].encode("utf-8")
+    room = max(limit - len(head) - len(marker.group()), 0)
+    tail = rest[-room:] if room else b""
+    return (
+        head.decode("utf-8", errors="ignore").rstrip("\n")
+        + "\n"
+        + marker.group()
+        + tail.decode("utf-8", errors="ignore")
+    )
 
 
 def _exit_code(bundle: Mapping[str, Any]) -> int | None:
@@ -204,7 +227,9 @@ def _exit_code(bundle: Mapping[str, Any]) -> int | None:
     return None
 
 
-def _job_evidence(vk: Vonkctl, job: Mapping[str, Any]) -> dict[str, Any]:
+def _job_evidence(
+    vk: Vonkctl, job: Mapping[str, Any], sleep: Callable[[float], None] = time.sleep
+) -> dict[str, Any]:
     """The cause the Controller kept for a job that ended unsuccessfully.
 
     Fail-open: a job without an operation, a refused or unreadable evidence read is
@@ -216,7 +241,12 @@ def _job_evidence(vk: Vonkctl, job: Mapping[str, Any]) -> dict[str, Any]:
     ref: dict[str, Any] = {"operation_id": operation_id}
     with tempfile.TemporaryDirectory(prefix="sweep-job-evidence-") as root:
         target = Path(root) / "evidence.json"
-        reply = vk.run("fleet", "evidence", operation_id, "--output", str(target))
+        for attempt in range(EVIDENCE_READ_ATTEMPTS):
+            reply = vk.run("fleet", "evidence", operation_id, "--output", str(target))
+            if reply.ok or not reply.is_not_found:
+                break
+            if attempt + 1 < EVIDENCE_READ_ATTEMPTS:
+                sleep(EVIDENCE_RETRY_SECONDS)
         if not reply.ok:
             return {"evidence_ref": ref, "evidence_unavailable": reply.error_text}
         try:
@@ -246,7 +276,9 @@ def _job_evidence(vk: Vonkctl, job: Mapping[str, Any]) -> dict[str, Any]:
     return proof
 
 
-def _ended_failure(vk: Vonkctl, job: Mapping[str, Any]) -> Failure:
+def _ended_failure(
+    vk: Vonkctl, job: Mapping[str, Any], sleep: Callable[[float], None] = time.sleep
+) -> Failure:
     """A job that ended without success: the recipe's, unless the platform names a cause."""
     state = _text(job, "state")
     evidence = _mapping(job.get("result_evidence"))
@@ -256,7 +288,7 @@ def _ended_failure(vk: Vonkctl, job: Mapping[str, Any]) -> Failure:
         "state": state,
         "status_reason": _text(job, "status_reason"),
         "result_evidence": dict(evidence),
-        **_job_evidence(vk, job),
+        **_job_evidence(vk, job, sleep),
     }
     detail = f"job {state}: {_text(job, 'status_reason') or 'no reason given'}"
     platform = (
@@ -352,7 +384,7 @@ def smoke_job(
                     if verdict.disposition(refused.failure) is verdict.Disposition.FAIL:
                         raise
             if _text(job, "state") != LifecycleState.SUCCEEDED:
-                result.failure = _ended_failure(vk, job)
+                result.failure = _ended_failure(vk, job, sleep)
                 return result
             out = work / "outputs"
             out.mkdir()
