@@ -13,6 +13,7 @@ from vonk_forge_contracts import read_recipe
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTEXT = ROOT / "adapters/video/drowzeys-fasth3-tensorfold"
+RECIPE = ROOT / "recipes/minimax-h3-keys-heretic-drowzeys-comfyui-single.json"
 Manifest = importlib.import_module(
     "vonk_agent_protocol.job_inputs"
 ).RecipeJobInputManifest
@@ -185,13 +186,7 @@ def test_keys_heretic_workflow_hash_prompt_seed_and_frame_override(
         ROOT / "adapters/video/drowzeys-keys-heretic-h3/workflows/keys-heretic-h3.json"
     ).read_bytes()
     document = json.loads(payload)
-    recipe = read_recipe(
-        json.loads(
-            (
-                ROOT / "recipes/minimax-h3-keys-heretic-drowzeys-comfyui-single.json"
-            ).read_text(encoding="utf-8")
-        )
-    )
+    recipe = read_recipe(json.loads(RECIPE.read_text(encoding="utf-8")))
     arguments = {a.name: a.value for a in recipe.runtime.arguments}
     assert arguments["workflow-sha256"] == hashlib.sha256(payload).hexdigest()
     (tmp_path / "PROMPT.TXT").write_text("A quiet harbour at dawn.")
