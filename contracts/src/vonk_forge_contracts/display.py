@@ -36,7 +36,7 @@ from .model import (
     Tags,
     Title,
 )
-from .recipe import Alignment, RecipeIdentity, RecipeTags
+from .recipe import Alignment, Identifier, RecipeIdentity, RecipeTags
 from .unrecognised import KeepUnrecognised, UnrecognisedWord
 
 Modality = Literal["text", "image", "audio", "video", "3d", "embeddings"]
@@ -125,6 +125,14 @@ class FamilyDisplay(_DisplayContract):
         return self
 
 
+class KnobDisplay(_DisplayContract):
+    """What a form shows for one job knob; its type and limits stay in the recipe."""
+
+    label: StrictStr | None = Field(default=None, min_length=1, max_length=64)
+    description: StrictStr | None = Field(default=None, min_length=1, max_length=256)
+    unit: StrictStr | None = Field(default=None, min_length=1, max_length=16)
+
+
 class RecipeDisplay(_DisplayContract):
     kind: Literal["recipe-display"] = "recipe-display"
     identity: RecipeIdentity
@@ -132,6 +140,9 @@ class RecipeDisplay(_DisplayContract):
     description: Description
     tags: RecipeTags
     alignment: AlignmentWord | None = None
+    # Wording for a job recipe's knobs, keyed by knob name (the names the
+    # recipe's settings declare; the library check refuses any other).
+    knobs: dict[Identifier, KnobDisplay] = Field(default_factory=dict, max_length=64)
 
 
 class ModelDisplay(_DisplayContract):

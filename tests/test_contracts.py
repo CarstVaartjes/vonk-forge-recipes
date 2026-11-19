@@ -929,3 +929,88 @@ def test_option_choices_replace_or_append_and_defaults_fill_in() -> None:
         base.resolve_options({"verification": "nope"})
     with pytest.raises(RecipeOptionError):
         base.resolve_options({"unknown": "standard"})
+
+
+def _job_with_knob(knob: dict[str, Any]) -> dict[str, Any]:
+    job = load("recipe-job.json")
+    job["settings"]["knobs"] = {"num-frames": knob}
+    job["runtime"]["arguments"] = [
+        a for a in job["runtime"]["arguments"] if a.get("setting") != "style"
+    ]
+    return job
+
+
+@pytest.mark.parametrize(
+    "knob",
+    [
+        {"value": 130, "minimum": 13, "maximum": 345, "step": 8},  # off the grid
+        {"value": 5, "minimum": 13},  # below minimum
+        {"value": 400, "maximum": 345},  # above maximum
+        {"value": 20, "minimum": 30, "maximum": 10},  # empty range
+        {"value": 13, "step": 8},  # step without minimum
+        {"value": 1.5, "minimum": 0, "step": 1},  # step on a float
+        {"value": 5, "minimum": 0.5},  # float bound on an integer knob
+        {"value": "a", "minimum": 0},  # range on a string
+        {"value": True, "minimum": 0},  # a boolean is not numeric
+        {"value": 4, "allowed_values": [1, 2]},  # default not allowed
+        {"value": 1, "allowed_values": [1, True]},  # True is not an int
+        {"value": 1, "allowed_values": [1, 1.0]},  # mixed types
+        {"value": 1, "allowed_values": [1]},  # not an enum
+        {"value": 1, "allowed_values": [1, 1]},  # not unique
+        {"value": 1, "allowed_values": [1, 2], "minimum": 1},  # two owners
+    ],
+)
+def test_job_knob_refuses_inconsistent_declarations(knob: dict[str, Any]) -> None:
+    with pytest.raises(ValidationError):
+        RecipeDefinition.model_validate(
+            _job_with_knob({"change_effect": "none", **knob})
+        )
+
+
+def test_job_knob_accepts_typed_limits_and_old_plain_knobs() -> None:
+    for knob in (
+        {"value": 141, "minimum": 13, "maximum": 345, "step": 8},
+        {"value": 12.0, "minimum": 1, "maximum": 20.5},
+        {"value": "a", "allowed_values": ["a", "b"]},
+        {"value": 2, "allowed_values": [2, 4]},
+        {"value": True},
+    ):
+        recipe = RecipeDefinition.model_validate(
+            _job_with_knob({"change_effect": "none", **knob})
+        )
+        assert type(recipe.settings.knobs["num-frames"].value) is type(knob["value"])  # type: ignore[union-attr]
+
+
+def test_library_ingress_refuses_unbound_knobs_and_unknown_display_knobs() -> None:
+    from vonk_forge_contracts import RecipeDisplay
+    from vonk_forge_contracts.resolver import ContractResolutionError, validate_library
+
+    job = load("recipe-job.json")
+    display = load("recipe-display-job.json")
+    ok = RecipeDefinition.model_validate(job)
+    validate_library(
+        [ok], [], {ok.identity.slug: RecipeDisplay.model_validate(display)}, {}
+    )
+
+    def refuse(job: dict[str, Any], display: dict[str, Any], message: str) -> None:
+        recipe = RecipeDefinition.model_validate(job)
+        with pytest.raises(ContractResolutionError, match=message):
+            validate_library(
+                [recipe],
+                [],
+                {recipe.identity.slug: RecipeDisplay.model_validate(display)},
+                {},
+            )
+
+    unbound = copy.deepcopy(job)
+    unbound["runtime"]["arguments"].pop()
+    refuse(unbound, display, "exactly one runtime argument")
+    twice = copy.deepcopy(job)
+    twice["runtime"]["arguments"].append(twice["runtime"]["arguments"][-1])
+    refuse(twice, display, "exactly one runtime argument")
+    restart = copy.deepcopy(job)
+    restart["settings"]["knobs"]["style"]["change_effect"] = "restart"
+    refuse(restart, display, "change_effect none")
+    stray = copy.deepcopy(display)
+    stray["knobs"]["flavour"] = {"label": "Flavour"}
+    refuse(job, stray, "unknown knob flavour")

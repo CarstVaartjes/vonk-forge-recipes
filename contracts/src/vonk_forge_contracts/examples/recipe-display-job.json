@@ -9,5 +9,15 @@
     "synthetic",
     "text"
   ],
-  "title": "Synthetic image job"
+  "title": "Synthetic image job",
+  "knobs": {
+    "num-frames": {
+      "label": "Frames",
+      "description": "Video length in frames.",
+      "unit": "frames"
+    },
+    "style": {
+      "label": "Style"
+    }
+  }
 }
