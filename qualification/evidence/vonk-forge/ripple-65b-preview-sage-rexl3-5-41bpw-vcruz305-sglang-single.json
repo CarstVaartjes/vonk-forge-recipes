@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/ripple-65b-preview-sage-rexl3-5-41bpw-vcruz305-sglang-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "4197e235ff272e9aa6d13355584c23b688021e5d6a9501cf30c08f064733b2f5",
+        "source_bundle_sha256": "70a25a0c5177661833673b06be848d0f3e90283b51e5896710c612a169bbb25a",
+        "runtime_image": {
+          "build_key": "b344e56f12728b0f5a06084e7bcf2b20503636e60c1227929d867ecdcd3ab7ba",
+          "image_digest": "sha256:fc0f6775006f6f1bcf73e0718954f2f39c1b3b947fb00427e60dc8387b97c418"
+        },
+        "model_digests": [
+          "06a653769f526a606d2bc67633ee2b994403cf57bfb8ff37ffd79ae826f6a9f8",
+          "f111164d95e96468a918a2cf495b396fbcae6784a301d9a2aa51ee16eec8b64d"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "c00eb4cf0b94bc39458e221b3b2afeef0baed5de5e82f0b6472a0fc2bb6fb0f5"
+      ],
+      "tested_at": "2026-11-19T08:59:33.724803Z",
+      "platform": {
+        "controller_source_sha": "e50fd66a9b1c5c919b184b58cf732b2555a77ac7",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "4197e235ff272e9aa6d13355584c23b688021e5d6a9501cf30c08f064733b2f5",
+      "role": "entrypoint",
+      "steady_bytes": 115925708800
+    }
+  ]
+}

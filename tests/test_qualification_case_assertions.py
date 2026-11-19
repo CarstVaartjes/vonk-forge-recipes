@@ -285,6 +285,7 @@ MINIMAL_MEDIA_PARAMETERS = {
     "hunyuan-video-15-i2v-step-distilled-diffusers-single": {"num-frames": 1},
     "ltx-2-19b-dev-fp4-pytorch-single": {"num-frames": 1, "num-inference-steps": 2},
     "fasth3-8step-v2-drowzeys-tensorfold-single": {"num-frames": 124},
+    "minimax-h3-keys-heretic-drowzeys-comfyui-single": {"num-frames": 124},
     "stable-audio-3-small-sfx-pytorch-single": {"duration-seconds": 2},
     "minimax-h3-fl2va-knapcio-vllm-omni-dual": {"num-inference-steps": 2},
     "minimax-h3-ref2va-knapcio-vllm-omni-dual": {

@@ -1,0 +1,55 @@
+{
+  "capabilities": [
+    "audio-generation",
+    "video-generation"
+  ],
+  "description": "MiniMax H3 FL2VA int8 transformer with a refusal-reduced (abliterated) Heretic Qwen3-VL 32B text encoder, plus the official video and audio VAEs and the RealESRGAN x2 upscaler, as published by drowzeys. The text encoder is abliterated (refusal-reduced: Heretic ARA on attention output layers 31-40; upstream reports 4/100 refusals against 99/100 for the stock encoder); the video model (transformer and VAEs) is stock MiniMax H3 from Comfy-Org. The underlying MiniMax H3 Community License applies; the encoder is Apache-2.0 and the upscaler BSD-3-Clause.",
+  "family_title": "MiniMax H3",
+  "identity": {
+    "publisher": "drowzeys",
+    "slug": "keys-heretic-minimax-h3-spark-weights-2e4f1dbb"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Comfy-Org",
+      "ethanfel",
+      "llmfan46",
+      "xinntao",
+      "drowzeys",
+      "minimax"
+    ],
+    "spdx": "LicenseRef-MiniMax-H3-Community-License",
+    "territorial_restrictions": {
+      "denied_jurisdictions": [
+        "EU",
+        "GB",
+        "KR",
+        "US"
+      ],
+      "notice": "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory."
+    },
+    "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/42ed227ee7df40d41602854ae760620d6eb651fe/LICENSE"
+  },
+  "lineage": {
+    "base_model": "MiniMaxAI/MiniMax-H3",
+    "family": "minimax",
+    "flavor": "FL2VA",
+    "generation": "MiniMax H3",
+    "line": "minimax-h-fl2va",
+    "model": "minimax-h3-fl2va",
+    "variant_kind": "derivative"
+  },
+  "modalities": [
+    "audio",
+    "video"
+  ],
+  "model_title": "MiniMax",
+  "tags": [
+    "keys-heretic",
+    "abliterated",
+    "video",
+    "audio",
+    "comfyui"
+  ]
+}
