@@ -165,7 +165,7 @@ _STATUS_WORDING = (
         r"\b(physical|physically|vonk|hardware|fleet|operator)\b[^.;]{0,70}"
         r"\b(acceptance|qualification|requalification|retesting|canary|verification|execution|qualified)\b"
         r"[^.;]{0,80}\b(pending|required|unverified|unqualified|untested|proven)\b"
-        r"|\bnot (physically )?(qualified|accepted)\b|\bremains? to be proven\b",
+        r"|\bnot physically (qualified|accepted)\b|\bremains? to be proven\b",
         re.IGNORECASE,
     ),
     re.compile(
