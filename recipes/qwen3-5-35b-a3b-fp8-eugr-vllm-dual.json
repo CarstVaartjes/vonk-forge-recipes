@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "1c2b117703f45e520dfd8fe1676daa5304f6a61e6ba57cee632189c3aaa994ca",
+        "digest": "a9070bd0af702459ed8af8da88456be80853e66d6deb908b8fb08c4bca0d546c",
         "repository": "docker.io/eugr/spark-vllm"
       },
       "context": {
@@ -357,7 +357,7 @@
       "Qwen (Apache-2.0)",
       "vLLM contributors (Apache-2.0)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/131fd5112379e18e163a7b9f85be0fdd587505b9"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/ce3257d06ebb8e3552683d59c553bfc64f43d9e7"
   },
   "release": {
     "released_at": "2026-11-19",

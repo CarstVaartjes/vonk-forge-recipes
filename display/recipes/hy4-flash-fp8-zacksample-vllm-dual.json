@@ -1,0 +1,22 @@
+{
+  "alignment": "unspecified",
+  "description": "Runs Tencent's unmodified Hy4 flash FP8 checkpoint (220B parameters, 11.3B active per token, text and image input) with vLLM across two Sparks (tensor parallel 2), following ZackSample's hy4-flash-dgx-sparks kit (Apache-2.0) on Tencent's official vllm/vllm-openai hy4-flash image pinned by digest. The kit's GB10 attention patch (FlashInfer SM120 sparse-MLA kernel with Hy4's per-head sinks, FP8 KV cache fp8_ds_mla) is built into the image, and the Engram tables stay on disk and are read per step (HY4_ENGRAM_DISK=1), so each Spark holds about half of the other weights. Settings: 131,072-token context, 2 concurrent requests, up to 4 images per prompt, the built-in DFly2 drafter with 5 draft tokens, hy_v4 tool-call and reasoning parsers, GPU memory utilization 0.80. Thinking is on by default; send reasoning_effort no_think in chat_template_kwargs to turn it off. The first start autotunes kernels and takes about 10 minutes. The declared per-Spark peak is the 0.80 utilization of 130,663,231,488 bytes of unified memory plus a 10.4 GB margin. Licences are information only: model under the Tencent Hy License 1.0, kit Apache-2.0.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "hy4-flash-fp8-zacksample-vllm-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "dfly",
+    "engram",
+    "executable",
+    "fp8",
+    "hy4",
+    "reasoning",
+    "spark",
+    "tool-use",
+    "vision",
+    "vllm"
+  ],
+  "title": "Hy4 flash FP8 vLLM two Sparks (ZackSample)"
+}

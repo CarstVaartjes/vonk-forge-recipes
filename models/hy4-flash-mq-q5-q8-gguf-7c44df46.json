@@ -1,0 +1,232 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "license-52755a6786f2-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "52755a6786f2f4b83b48cd7246aa9e34f7aac98563e4e60808ab02390799fdbd",
+      "size_bytes": 13942
+    },
+    {
+      "id": "hy4-flash-mq-q5-q8-ssd-engram-fp8-00001-4888a1e762ec-f18068311f",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/Hy4-flash-MQ-Q5-Q8-SSD-ENGRAM-FP8-00001-of-00004.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4888a1e762eca1e1d697e573bccedbee36bf7725eb2f108bce557ef00bb7a708",
+      "size_bytes": 30803755264
+    },
+    {
+      "id": "hy4-flash-mq-q5-q8-ssd-engram-fp8-00002-e73e00df93dd-a1bc3fb97b",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/Hy4-flash-MQ-Q5-Q8-SSD-ENGRAM-FP8-00002-of-00004.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e73e00df93dd62b8443b2cff2a37955cceab488d821163949bb0184cbe313ade",
+      "size_bytes": 30883375360
+    },
+    {
+      "id": "hy4-flash-mq-q5-q8-ssd-engram-fp8-00003-0fd34d13cd58-88d9dc92f5",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/Hy4-flash-MQ-Q5-Q8-SSD-ENGRAM-FP8-00003-of-00004.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "0fd34d13cd58c6da8a94bafead049891002e073990d4e9f4574e522678d2c958",
+      "size_bytes": 31329432960
+    },
+    {
+      "id": "hy4-flash-mq-q5-q8-ssd-engram-fp8-00004-7f2436f4ca02-9bac9824a3",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/Hy4-flash-MQ-Q5-Q8-SSD-ENGRAM-FP8-00004-of-00004.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7f2436f4ca022e1dc6595d9414cb73883aa28bfc88fa1b8f8074f2f61b5b53e2",
+      "size_bytes": 10916471712
+    },
+    {
+      "id": "sha256sums-ac8546178801-24a6e5b4b4",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/SHA256SUMS",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "ac8546178801bdaba7e7b40d14b3b156ef3e45c69199759896e37d4e85328123",
+      "size_bytes": 1903
+    },
+    {
+      "id": "chat-template-63ddd5de294d-a9da5ccdc6",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "63ddd5de294df36f10c8f2c8e5f7b2a9dc2011c8481335422f04554256aee4ad",
+      "size_bytes": 17250
+    },
+    {
+      "id": "config-a59ea10f9868-4c95eaa400",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a59ea10f98683e83c6515e340c85e24eb2e48c91d75af491ed3d6e88c3bc1b3c",
+      "size_bytes": 10759
+    },
+    {
+      "id": "dfly2-q8-0-ef072f9f0004-89fc3c82a2",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/dfly2-q8_0.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ef072f9f000489fc72461341f1837f9ed7090d9770ee4f952079c903f066efa1",
+      "size_bytes": 1018142880
+    },
+    {
+      "id": "embed-tokens-bf16-d0a1dcd26fa5-07bf0dd74f",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/embed-tokens-bf16.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d0a1dcd26fa5829949c3157b2c9ce7f2f5fd64207c8aee9e8c10bf3341693a6b",
+      "size_bytes": 742392928
+    },
+    {
+      "id": "engram-fp8-layer-01-374581d404ed-2d1a1bbfcb",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/engram/engram-fp8-layer-01.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "374581d404ed552a87fc8d734f51ce8eafa14591ef7b530c109766d6bdbe22b0",
+      "size_bytes": 16483344384
+    },
+    {
+      "id": "engram-fp8-layer-11-329175b589ac-b3e6c9df65",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/engram/engram-fp8-layer-11.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "329175b589ac92a441669c89cc450b7120ab666bc3098d75372e2b6e1101099e",
+      "size_bytes": 16483807232
+    },
+    {
+      "id": "engram-fp8-layer-21-c8de5f2ea6cc-d435f0fde7",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/engram/engram-fp8-layer-21.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c8de5f2ea6ccb7e4b284942c31e013f6cc00606a2723b16afd0075cae2ddba7a",
+      "size_bytes": 16484311040
+    },
+    {
+      "id": "engram-fp8-layer-31-0d8527c6fc28-91e5bc4a18",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/engram/engram-fp8-layer-31.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "0d8527c6fc28a57c351d91e64f439bb90afb8ac8d6bbd5257749a49694816ab1",
+      "size_bytes": 16484798464
+    },
+    {
+      "id": "engram-manifest-fa3c6e9917a6-39f0ac0b9a",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/engram/engram-manifest.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "fa3c6e9917a66e6ebb71cf03200605790551e130d23b524e7d83612f2ab50f6e",
+      "size_bytes": 7457
+    },
+    {
+      "id": "generation-config-38dbc352f801-e36d6cde3e",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "38dbc352f8019bb74b69a3c95a32e3baf54cf636358505e2045cbef62643327a",
+      "size_bytes": 189
+    },
+    {
+      "id": "mmproj-hy4-flash-bf16-7a14bb848544-4cc79cc05c",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/mmproj-Hy4-flash-BF16.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7a14bb848544a355c005f67af5b9c00d002bc152139891f90db9256822dfda1f",
+      "size_bytes": 934097216
+    },
+    {
+      "id": "precision-map-0f89acc16d97-48fd00c062",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/precision-map.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "0f89acc16d976c6f943f790574c0fdea845182a2ad5db4f800f60fc5550df12c",
+      "size_bytes": 552474
+    },
+    {
+      "id": "processor-config-cc5cc63da33e-705904be25",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "cc5cc63da33e0ebf53b8ac035879982ba18c47965f82a5f341bc82d98759dc1d",
+      "size_bytes": 1634
+    },
+    {
+      "id": "release-889d2a6a8622-bd23fbf49b",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/release.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "889d2a6a8622a230e294dfc568caf5f80a7c557d0a8e38644432ee6f9abcbfbd",
+      "size_bytes": 4585
+    },
+    {
+      "id": "verify-q8-03cc751872fe-66ef209730",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/reports/verify-q8.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "03cc751872fec5ca243ec8a3b97f04b48964aef55d0d00e237e3a1519babd06f",
+      "size_bytes": 22589
+    },
+    {
+      "id": "tokenizer-2e3f3d22065c-b1ac3c7a83",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "2e3f3d22065c2be5765ce99ab2410411ae338b32ce809ea20dcdb61d00198e83",
+      "size_bytes": 9359191
+    },
+    {
+      "id": "tokenizer-config-99454b593e1f-0c3dbe91ad",
+      "path": "MQ-Q5-Q8-SSD-ENGRAM-FP8/tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "99454b593e1f893db010ab3d8968d32ff886e3711051e3e52243f0f6fc3b92dc",
+      "size_bytes": 1277
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "mq-q5-q8"
+  },
+  "identity": {
+    "model": {
+      "publisher": "tencent",
+      "slug": "hy4-flash-mq-q5-q8-gguf"
+    },
+    "publisher": "baekpica",
+    "slug": "hy4-flash-mq-q5-q8-gguf-7c44df46",
+    "variant": "Hy4 flash MQ-Q5-Q8 GGUF 7c44df46",
+    "version": "Hy4 flash MQ-Q5-Q8 GGUF 7c44df46"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/Baekpica/Hy4-flash-Mixed-Quant-GGUF",
+    "revision": "7c44df461249aa233e497e1fde9564ae837e8894"
+  }
+}

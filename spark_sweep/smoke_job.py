@@ -14,13 +14,21 @@ Verdicts follow ``verdict.disposition``:
 * the job succeeded and its outputs hold: pass;
 * the job failed on its own (the Controller names no platform cause): the recipe's
   failure, with the job's evidence: its exit code and stderr tail, read from its
-  operation's failure evidence (``vonkctl fleet evidence``). A read that fails is
-  recorded as ``evidence_unavailable`` and never changes the verdict;
+  operation's failure evidence (``vonkctl fleet evidence``), the head the platform keeps
+  before its omission marker included. A read answered not_found just after the failure
+  is repeated a few times; one that still fails is recorded as
+  ``evidence_unavailable`` and never changes the verdict;
 * an assertion missed: the recipe's failure (``smoke-assertion``);
 * the Controller finally refused the job's request (``create``/``upload`` carry the
   recipe's definition bound to its contract; a 409/422 with decision ``exit``): the
   recipe's failure (``recipe-data``), with the reply as evidence;
-* the Controller refused otherwise or could not answer a step: a wait, smoked again later;
+* the Controller told the sweep to wait (typed: decision retry/defer, retryable, or a
+  temporary HTTP status): a wait, smoked again later;
+* any other reply to a step (vonkctl's generic ``control.api_error``, an unknown code): observed,
+  and the same reply on the same identity three times ends as the platform's deferral with the
+  reply as evidence (``Sweep._bound_identical_exit``). Two exceptions: a reply with no document
+  at all (timeout, missing binary) is a wait, and the ``detail`` poll follows the job through
+  anything but a final failure, bounded by the job budget;
 * the job ended for a platform reason (agent lease lost, a scope that may remain, a
   cancel, a wait for an operator) or never ended within its own timeout: uncertain,
   observed again.
@@ -57,6 +65,15 @@ ENDED = TERMINAL | WAITING
 RECIPE_REQUEST_STEPS = frozenset({"create", "upload"})
 #: The end of a failed job's stderr a result row keeps: what happened last.
 STDERR_TAIL_BYTES = 2048
+#: Of those bytes, the head kept ahead of the platform's omission marker: the first error lines.
+STDERR_HEAD_BYTES = 512
+#: The platform's marker between a retained stderr's failure lines and its tail
+#: (vonk-agent-protocol ``failure_evidence::omission_marker``: ``[<N> bytes omitted]``).
+OMISSION_MARKER = re.compile(r"^\[[0-9]+ bytes omitted\]$", re.MULTILINE)
+#: The evidence endpoint can answer not_found for a few seconds after the job shows failed
+#: (a sibling rank is still stopping): re-read this many times, this far apart, then give up.
+EVIDENCE_READ_ATTEMPTS = 4
+EVIDENCE_RETRY_SECONDS = 5.0
 
 
 def job_budget_seconds(spec: Mapping[str, Any]) -> float:
@@ -83,7 +100,7 @@ def _call(
     vk: Vonkctl, step: str, *args: str, timeout: float | None = None
 ) -> Mapping[str, Any]:
     try:
-        document = vk.call("recipe", "job", *args, timeout=timeout)
+        document = vk.call("job", *args, timeout=timeout)
     except VonkctlError as error:
         evidence = {
             "case": f"job.{step}",
@@ -97,13 +114,23 @@ def _call(
                 "recipe-data",
                 evidence,
             )
-        elif verdict.reply_disposition(error.reply) is verdict.Disposition.WAIT:
+        elif (
+            error.reply is None
+            or error.reply.is_transport_error
+            or verdict.typed_wait(error.reply)
+        ):
+            # A typed wait, or no document at all (timeout, missing binary): nothing was said.
             failure = classify(
                 "smoke", f"job.{step}", str(error), verdict.SMOKE_BUSY, evidence
             )
         else:
+            # No typed wait: an undeclared class, observed and bounded by identical exits.
             failure = classify(
-                "smoke", error.code or f"job.{step}", str(error), "", evidence
+                "smoke",
+                error.code or f"job.{step}",
+                str(error),
+                verdict.UNTYPED_REPLY,
+                evidence,
             )
         raise _Refused(failure) from error
     if not isinstance(document, Mapping):
@@ -119,7 +146,7 @@ def _call(
 
 
 def _binding(spec: Mapping[str, Any], definitions: Definitions, work: Path) -> Path:
-    """The ``recipe job create --file`` binding, with each fixture written beside it."""
+    """The ``job create --file`` binding, with each fixture written beside it."""
     inputs: list[dict[str, str]] = []
     paths: dict[str, str] = {}
     (work / "inputs").mkdir()
@@ -161,6 +188,9 @@ _TQDM_LINE = re.compile(r".*\b\d{1,3}%\|[^|]*\|\s*\d+/\d+\s*\[[^]\r\n]*\]\s*")
 def _tail(text: str, limit: int = STDERR_TAIL_BYTES) -> str:
     """The last non-progress lines, redacted and bounded by UTF-8 bytes.
 
+    When the platform marked an omission (``[N bytes omitted]``), the head before it
+    (first error lines) is kept too: head, marker line, then the tail, within ``limit``.
+
     Split carriage-return redraws before filtering: progress after an exception
     must not push it out of the retained evidence. Keep progress if it is all we have.
     """
@@ -172,8 +202,19 @@ def _tail(text: str, limit: int = STDERR_TAIL_BYTES) -> str:
     content = "\n".join(diagnostics) if diagnostics else plain
     if diagnostics and plain.endswith(("\n", "\r")):
         content += "\n"
-    encoded = redact(content).encode("utf-8")
-    return encoded[-limit:].decode("utf-8", errors="ignore")
+    redacted = redact(content)
+    marker = OMISSION_MARKER.search(redacted)
+    if marker is None or limit <= STDERR_HEAD_BYTES:
+        return redacted.encode("utf-8")[-limit:].decode("utf-8", errors="ignore")
+    head = (
+        redacted[: marker.start()]
+        .encode("utf-8")[:STDERR_HEAD_BYTES]
+        .decode("utf-8", errors="ignore")
+    )
+    line = (head.rstrip("\n") + "\n" if head else "") + marker.group() + "\n"
+    rest = redacted[marker.end() :].removeprefix("\n").encode("utf-8")
+    room = max(limit - len(line.encode("utf-8")), 0)
+    return line + rest[len(rest) - room :].decode("utf-8", errors="ignore")
 
 
 def _exit_code(bundle: Mapping[str, Any]) -> int | None:
@@ -188,8 +229,14 @@ def _exit_code(bundle: Mapping[str, Any]) -> int | None:
     return None
 
 
-def _job_evidence(vk: Vonkctl, job: Mapping[str, Any]) -> dict[str, Any]:
+def _job_evidence(
+    vk: Vonkctl, job: Mapping[str, Any], sleep: Callable[[float], None] = time.sleep
+) -> dict[str, Any]:
     """The cause the Controller kept for a job that ended unsuccessfully.
+
+    A not_found answer (the sibling rank still stopping) is read again a bounded number
+    of times; delete that once the Controller serves evidence as soon as the job fails
+    (vonk-forge #2560).
 
     Fail-open: a job without an operation, a refused or unreadable evidence read is
     recorded as ``evidence_unavailable`` with its reason; it never changes the verdict.
@@ -200,7 +247,14 @@ def _job_evidence(vk: Vonkctl, job: Mapping[str, Any]) -> dict[str, Any]:
     ref: dict[str, Any] = {"operation_id": operation_id}
     with tempfile.TemporaryDirectory(prefix="sweep-job-evidence-") as root:
         target = Path(root) / "evidence.json"
-        reply = vk.run("fleet", "evidence", operation_id, "--output", str(target))
+        for attempt in range(EVIDENCE_READ_ATTEMPTS):
+            reply = vk.run(
+                "fleet", "evidence", operation_id, "--output", str(target)
+            )  # sequential: re-reads one record until the Controller has stored it
+            if reply.ok or not reply.is_not_found:
+                break
+            if attempt + 1 < EVIDENCE_READ_ATTEMPTS:
+                sleep(EVIDENCE_RETRY_SECONDS)
         if not reply.ok:
             return {"evidence_ref": ref, "evidence_unavailable": reply.error_text}
         try:
@@ -230,7 +284,9 @@ def _job_evidence(vk: Vonkctl, job: Mapping[str, Any]) -> dict[str, Any]:
     return proof
 
 
-def _ended_failure(vk: Vonkctl, job: Mapping[str, Any]) -> Failure:
+def _ended_failure(
+    vk: Vonkctl, job: Mapping[str, Any], sleep: Callable[[float], None] = time.sleep
+) -> Failure:
     """A job that ended without success: the recipe's, unless the platform names a cause."""
     state = _text(job, "state")
     evidence = _mapping(job.get("result_evidence"))
@@ -240,7 +296,7 @@ def _ended_failure(vk: Vonkctl, job: Mapping[str, Any]) -> Failure:
         "state": state,
         "status_reason": _text(job, "status_reason"),
         "result_evidence": dict(evidence),
-        **_job_evidence(vk, job),
+        **_job_evidence(vk, job, sleep),
     }
     detail = f"job {state}: {_text(job, 'status_reason') or 'no reason given'}"
     platform = (
@@ -332,13 +388,11 @@ def smoke_job(
                 try:
                     job = _call(vk, "detail", "detail", job_id)
                 except _Refused as refused:
-                    if (
-                        verdict.disposition(refused.failure)
-                        is not verdict.Disposition.WAIT
-                    ):
+                    # A read hiccup never abandons a running job; the budget bounds the loop.
+                    if verdict.disposition(refused.failure) is verdict.Disposition.FAIL:
                         raise
             if _text(job, "state") != LifecycleState.SUCCEEDED:
-                result.failure = _ended_failure(vk, job)
+                result.failure = _ended_failure(vk, job, sleep)
                 return result
             out = work / "outputs"
             out.mkdir()

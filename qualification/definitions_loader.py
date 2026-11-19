@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from pydantic import TypeAdapter
+from vonk_forge_contracts.recipe import MAX_JOB_TIMEOUT_SECONDS
 
 from qualification.media_types import CanonicalMediaTypes
 from qualification.native_dimensions import resolve_native_dimensions
@@ -86,6 +87,15 @@ def load_definitions(root: Path = QUALIFICATION_ROOT) -> dict[str, Any]:
                         )
                     resolve_native_dimensions(spec, document.get("fixtures", {}), root)
                     for case in [spec, *spec.get("cases", [])]:
+                        timeout = case.get("timeout_seconds")
+                        if timeout is not None and not (
+                            isinstance(timeout, int)
+                            and 1 <= timeout <= MAX_JOB_TIMEOUT_SECONDS
+                        ):
+                            raise ValueError(
+                                f"{path}: timeout_seconds {timeout!r} is outside "
+                                f"1..{MAX_JOB_TIMEOUT_SECONDS}, the Controller's job maximum"
+                            )
                         if "output_limits" in case:
                             try:
                                 _MEDIA_TYPES.validate_python(
