@@ -5,6 +5,16 @@
     "slug": "synthetic-image-job"
   },
   "kind": "recipe-display",
+  "knobs": {
+    "num-frames": {
+      "description": "Video length in frames.",
+      "label": "Frames",
+      "unit": "frames"
+    },
+    "style": {
+      "label": "Style"
+    }
+  },
   "tags": [
     "synthetic",
     "text"

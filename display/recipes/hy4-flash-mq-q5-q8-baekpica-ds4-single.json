@@ -1,0 +1,24 @@
+{
+  "alignment": "unspecified",
+  "description": "One-DGX Spark Tencent Hy4 flash in Baekpica's mixed-precision GGUF (Q5/Q4 experts, Q8_0 dense projections, FP8 Engram tables read from SSD) on Baekpica's ds4-dfm-rs, the Rust-host continuation of DwarfStar (antirez ds4), built from the engine commit the creator names (commit 25bf4b8f, upstream PR #159, merged, pinned by full sha). MTP drafting with the DFly2 Q8_0 head at depth 2, native 1,048,576-token context, one request at a time, KV snapshots on local disk (16 GiB), text and image input through the BF16 projector. The Engram tables are read with O_DIRECT; the sandbox blocks io_uring, so the engine falls back to serial page reads and Engram prefill reads are slower than the creator's. The KV cache directory maps the creator's ~/.cache to the platform's writable cache. The memory peak follows the creator's own MQ-Q5-Q8 run on GB10, which left at least 7.56 GiB available of 130.66 GB at a 1,048,542-token request (docs/hy4-flash-mxq.md line 37), less the 2 GiB system floor.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "hy4-flash-mq-q5-q8-baekpica-ds4-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "ds4",
+    "gguf",
+    "hy",
+    "hy4",
+    "baekpica",
+    "openai",
+    "reasoning",
+    "single",
+    "spark",
+    "vision",
+    "mtp"
+  ],
+  "title": "Hy4 flash MQ-Q5-Q8 ds4-dfm-rs single Spark (Baekpica)"
+}

@@ -1,0 +1,45 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "Baekpica's mixed-precision GGUF of Tencent Hy4 flash (Q5/Q4 experts, Q8_0 dense projections) with FP8 Engram tables on SSD, for ds4-dfm-rs.",
+  "family_title": "Hy4 flash MQ GGUF",
+  "identity": {
+    "publisher": "baekpica",
+    "slug": "hy4-flash-mq-q5-q8-gguf-7c44df46"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Tencent Hy",
+      "Baekpica"
+    ],
+    "spdx": "LicenseRef-Tencent-Hy",
+    "url": "https://huggingface.co/Baekpica/Hy4-flash-Mixed-Quant-GGUF/blob/7c44df461249aa233e497e1fde9564ae837e8894/LICENSE"
+  },
+  "lineage": {
+    "base_model": "tencent/Hy4-flash",
+    "family": "hy",
+    "generation": "Hy4",
+    "line": "hy4-flash",
+    "model": "hy4-flash",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "Hy4 flash MQ-Q5-Q8 GGUF",
+  "tags": [
+    "ds4",
+    "gguf",
+    "hy4-flash-mq-gguf",
+    "spark",
+    "tencent",
+    "vision"
+  ]
+}

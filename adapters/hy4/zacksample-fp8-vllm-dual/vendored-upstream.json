@@ -1,0 +1,22 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "start.sh",
+        "pattern": "^IMAGE=\\$\\{IMAGE:-vllm/vllm-openai:(?P<version>[^}\\s]+)\\}$",
+        "repo": "docker.io/vllm/vllm-openai"
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "a0e88d769cdb1f9f4bbfdc06e1a621a6a1ffe169",
+    "repo": "ZackSample/hy4-flash-dgx-sparks"
+  }
+}

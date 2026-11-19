@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "Installable but experimental single-DGX Spark DiffSynth disk-offload variant of Wan-Dancer's global-planning and local-refinement pipeline. Pinned DiffSynth-Studio disk-maps each safetensors expert, uses a 64 GiB device-residency threshold, and runs the two stages in separate processes. Generation is bounded to 921,600 pixels. The declared 126 GB memory envelope fits Controller admission; prefer the original recipe unless the larger canvas is needed.",
+  "description": "Single-DGX Spark DiffSynth disk-offload variant of Wan-Dancer's global-planning and local-refinement pipeline. Pinned DiffSynth-Studio disk-maps each safetensors expert, uses a 64 GiB device-residency threshold, and runs the two stages in separate processes. Generation is bounded to 921,600 pixels. The declared 126 GB memory envelope fits Controller admission; prefer the original recipe unless the larger canvas is needed.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "wan-dancer-14b-disk-offload-pytorch-single"
@@ -8,7 +8,6 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "experimental",
     "disk-offload",
     "memory-tight",

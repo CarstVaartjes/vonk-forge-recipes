@@ -1,0 +1,11 @@
+{
+  "id": "vonk-forge/hy4-flash-mq-q5-q8-baekpica-ds4-single",
+  "service_recipes": {
+    "alias": "hy4-flash-mq-q5-q8",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "V_RED"
+    ]
+  }
+}
