@@ -120,6 +120,36 @@
         "topology": "multi"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "6866398dd515db81ba1a5b6ffc592baa343ecb4e7f845632097811a38f745065",
+        "source_bundle_sha256": "efcab47e22c7acf11afb3822ff2d4097e94fa5653d34c1702771414621f77bbe",
+        "runtime_image": {
+          "build_key": "76df5aaf8031c8ed720ffee5775001bb712a935084a3d47d3b9aabb97ee9d29d",
+          "image_digest": "sha256:574fe0f91f9cdf3dc032e59d27bbc8801a6c39e5ca013e2c8e95444a1be73cd7"
+        },
+        "model_digests": [
+          "146d824d4f9cbdcb8649bfdb261600ab03f0824daa27fa3771403c6f1095f32e"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.invalid_definition",
+      "cause_summary": "Recipe definition or build policy check failed; needs fix",
+      "evidence_refs": [
+        "c0d30b116068bd2023054fe97b5ac07d5b15073bae9fe9708a2f3a6e0df1a33b"
+      ],
+      "tested_at": "2026-11-19T22:29:43.987938Z",
+      "platform": {
+        "controller_source_sha": "50bd2ebedd0ba66e8da9dc0f0b5d106305c48817",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
     }
   ]
 }
