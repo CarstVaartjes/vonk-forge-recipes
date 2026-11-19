@@ -1,0 +1,376 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "532381a7bf759bbe4d9c783468bc2cc4766cf656da5814fb04e049dc58fe268b",
+        "repository": "docker.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/llama-cpp/angelslim-hy4-flash-spark-single"
+      },
+      "dockerfile": "adapters/llama-cpp/angelslim-hy4-flash-spark-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "archive.ubuntu.com",
+          "ports.ubuntu.com",
+          "security.ubuntu.com",
+          "codeload.github.com",
+          "huggingface.co"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "hy4-flash-spark-4bit-fast-angelslim-llamacpp-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "hy4-flash-spark-4bit-fast"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "license-52755a6786f2-c693279643",
+          "id": "primary-license-52755a6786f2-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hy4-flash-spark-4bit-fast-b402322e6787-7db6477c73",
+          "id": "primary-hy4-flash-spark-4bit-fast-b402322e6787-7db6477c73",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mmproj-hy4-flash-bf16-8c33a48ef574-ecd0591274",
+          "id": "primary-mmproj-hy4-flash-bf16-8c33a48ef574-ecd0591274",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "e484e0e70e9efae26614778a607ef5d29d6e26323a8fc08f5298437c94d5e388",
+        "kind": "model",
+        "publisher": "angelslim",
+        "slug": "hy4-flash-spark-4bit-fast-gguf-65acb8ae"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Tencent Hy",
+      "AngelSlim (Tencent)",
+      "llama.cpp contributors"
+    ],
+    "source_reference": "https://huggingface.co/AngelSlim/Hy4-flash-GGUF/blob/65acb8ae7f59847fe03a17291f1b72b89b141a9e/README_SPARK-4Bit.md"
+  },
+  "release": {
+    "released_at": "2026-11-19",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model",
+        "setting": null,
+        "value": "/models/Hy4-flash-SPARK-4Bit-Fast.gguf"
+      },
+      {
+        "name": "mmproj",
+        "setting": null,
+        "value": "/models/mmproj-Hy4-flash-bf16.gguf"
+      },
+      {
+        "name": "mmproj-offload",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "alias",
+        "setting": null,
+        "value": "hy4-flash-spark-4bit-fast"
+      },
+      {
+        "name": "host",
+        "setting": null,
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "setting": null,
+        "value": 8000
+      },
+      {
+        "name": "ctx-size",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "parallel",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "n-gpu-layers",
+        "setting": null,
+        "value": 999
+      },
+      {
+        "name": "split-mode",
+        "setting": null,
+        "value": "none"
+      },
+      {
+        "name": "override-tensor",
+        "setting": null,
+        "value": "^per_layer_token_embd\\.weight$=CPU,^token_embd\\.weight$=CUDA0"
+      },
+      {
+        "name": "load-mode",
+        "setting": null,
+        "value": "mmap"
+      },
+      {
+        "name": "lazy-mode",
+        "setting": null,
+        "value": "on"
+      },
+      {
+        "name": "no-host",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "fit",
+        "setting": null,
+        "value": "off"
+      },
+      {
+        "name": "flash-attn",
+        "setting": null,
+        "value": "on"
+      },
+      {
+        "name": "batch-size",
+        "setting": null,
+        "value": 2048
+      },
+      {
+        "name": "ubatch-size",
+        "setting": null,
+        "value": 1024
+      },
+      {
+        "name": "threads",
+        "setting": null,
+        "value": 4
+      },
+      {
+        "name": "threads-batch",
+        "setting": null,
+        "value": 4
+      },
+      {
+        "name": "cache-type-k",
+        "setting": null,
+        "value": "f16"
+      },
+      {
+        "name": "cache-type-v",
+        "setting": null,
+        "value": "f16"
+      },
+      {
+        "name": "spec-type",
+        "setting": null,
+        "value": "draft-mtp"
+      },
+      {
+        "name": "metrics",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "jinja",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "llama-cpp",
+    "entrypoint": [
+      "/opt/vonk/bin/llama-server"
+    ],
+    "environment": [
+      {
+        "name": "GGML_SCHED_BATCH_HOST_INPUTS",
+        "value": "0"
+      },
+      {
+        "name": "GGML_CUDA_FUSE_HC_GATE",
+        "value": "1"
+      },
+      {
+        "name": "GGML_CUDA_FUSE_HC_CONSUMER",
+        "value": "1"
+      },
+      {
+        "name": "GGML_CUDA_REUSE_Q8",
+        "value": "1"
+      },
+      {
+        "name": "GGML_CUDA_SPARK_MMQ_FUSION",
+        "value": "1"
+      },
+      {
+        "name": "GGML_CUDA_SPARK_MMQ_COMPACT_GRID",
+        "value": "1"
+      },
+      {
+        "name": "GGML_CUDA_SPARK_MMQ_TILE",
+        "value": "64"
+      },
+      {
+        "name": "GGML_CUDA_SPARK_MMQ_TILE_FUSED",
+        "value": "64"
+      },
+      {
+        "name": "GGML_CUDA_MMQ_PREC",
+        "value": "q4"
+      },
+      {
+        "name": "GGML_CUDA_CPY_F32_VEC",
+        "value": "1"
+      },
+      {
+        "name": "GGML_CUDA_SPARK_MMVQ_2W",
+        "value": "1"
+      },
+      {
+        "name": "GGML_CUDA_MOE_CONCURRENT",
+        "value": "1"
+      },
+      {
+        "name": "GGML_CUDA_FA_576_WHOLE_TILES",
+        "value": "0"
+      },
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 196608
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 160655965526,
+            "image_bytes": 6000000000,
+            "safety_margin_bytes": 10000000000,
+            "working_bytes": 4000000000
+          },
+          "memory": {
+            "peak_bytes": 107000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 4096,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "hy4-flash-spark-4bit-fast"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
