@@ -415,7 +415,7 @@ def test_a_refused_submit_names_no_recipe_data_and_is_not_a_verdict() -> None:
 
 
 def test_a_transient_refusal_while_following_keeps_following() -> None:
-    refusal = _cli_error(503, "controller.transport_timeout", "retry")
+    refusal = {"error_type": "control_api", "code": "controller.transport_timeout"}
     controller = Controller(
         _archive(),
         create=[_job(None, preparation="ready")],
@@ -423,6 +423,22 @@ def test_a_transient_refusal_while_following_keeps_following() -> None:
         detail=[(2, refusal), _job("succeeded", output_files=OUTPUT)],
     )
     assert _smoke(controller).ok
+
+
+def test_a_detail_read_with_no_document_keeps_following_the_job() -> None:
+    controller = Controller(
+        _archive(),
+        create=[_job(None, preparation="ready")],
+        submit=[_job("queued")],
+        detail=[(124, None), _job("succeeded", output_files=OUTPUT)],
+    )
+    assert _smoke(controller).ok
+
+
+def test_a_create_with_no_document_is_a_wait_not_an_attempt() -> None:
+    result = _smoke(Controller(create=[(124, None)]))
+    assert result.failure is not None
+    assert verdict.disposition(result.failure) is verdict.Disposition.WAIT
 
 
 def test_a_job_that_never_ends_within_its_own_timeout_is_observed_again() -> None:

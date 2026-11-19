@@ -101,7 +101,12 @@ def _call(
                 "recipe-data",
                 evidence,
             )
-        elif verdict.typed_wait(error.reply):
+        elif (
+            error.reply is None
+            or error.reply.is_transport_error
+            or verdict.typed_wait(error.reply)
+        ):
+            # A typed wait, or no document at all (timeout, missing binary): nothing was said.
             failure = classify(
                 "smoke", f"job.{step}", str(error), verdict.SMOKE_BUSY, evidence
             )
@@ -341,10 +346,8 @@ def smoke_job(
                 try:
                     job = _call(vk, "detail", "detail", job_id)
                 except _Refused as refused:
-                    if (
-                        verdict.disposition(refused.failure)
-                        is not verdict.Disposition.WAIT
-                    ):
+                    # A read hiccup never abandons a running job; the budget bounds the loop.
+                    if verdict.disposition(refused.failure) is verdict.Disposition.FAIL:
                         raise
             if _text(job, "state") != LifecycleState.SUCCEEDED:
                 result.failure = _ended_failure(vk, job)

@@ -109,4 +109,4 @@ def test_three_identical_untyped_job_create_replies_defer_and_the_next_recipe_ru
     ]
     assert len(deferred) == 1
     assert deferred[0]["disposition"] == "fail"
-    assert sweep.state.status(bad.key) != "pending"
+    assert sweep.state.status(bad.key) == "deferred"
