@@ -1,13 +1,10 @@
-FROM docker.io/eugr/spark-vllm@sha256:5e59cb7efe08a99b023925a185c971c5a31868d8261b755c33d9911c3b9389aa
+FROM docker.io/eugr/spark-vllm@sha256:1c2b117703f45e520dfd8fe1676daa5304f6a61e6ba57cee632189c3aaa994ca
 
 LABEL org.opencontainers.image.source="https://github.com/eugr/spark-vllm-docker" \
-      org.opencontainers.image.revision="bc224d8126036675c6a84b698ed40919027782d2" \
+      org.opencontainers.image.revision="131fd5112379e18e163a7b9f85be0fdd587505b9" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0"
 
-# eugr's published vllm-node image (nightly-20260929). Its /workspace/build-metadata.yaml records
-# build_script_commit 42f62e34 (the revision above), vLLM af5b4857e and FlashInfer 4a638133, built
-# from the repository's default Dockerfile (upstream's local `vllm-node` build) with the stock
-# build arguments.
+# The published docker.io/eugr/spark-vllm image, built from the revision above; the digest is what runs.
 # Upstream recipes start it with `vllm serve`; the wrapper is the Vonk entrypoint.
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
