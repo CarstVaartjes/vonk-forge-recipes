@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from documents import recipe as read_recipe
+from vonk_forge_contracts.recipe import RecipeJobSettings
 
 from qualification.case_assertions import (
     invalid_case_assertions,
@@ -329,18 +331,20 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
         seen.add(slug)
         if slug in MINIMAL_MEDIA_PARAMETERS:
             assert spec["parameters"] == MINIMAL_MEDIA_PARAMETERS[slug]
-            recipe = json.loads((ROOT / "recipes" / path.name).read_text())
-            bindings = {a.get("setting") for a in recipe["runtime"]["arguments"]}
+            recipe = read_recipe(slug)
+            bindings = {a.setting for a in recipe.runtime.arguments}
             assert set(spec["parameters"]) <= bindings
-            assert set(spec["parameters"]) <= recipe["settings"]["knobs"].keys()
+            assert isinstance(recipe.settings, RecipeJobSettings)
+            knobs = recipe.settings.knobs
+            assert set(spec["parameters"]) <= knobs.keys()
             for name, value in spec["parameters"].items():
-                knob = recipe["settings"]["knobs"][name]
-                if "allowed_values" in knob:
-                    assert value in knob["allowed_values"], name
-                if "minimum" in knob:
-                    assert knob["minimum"] <= value <= knob["maximum"], name
-                if "step" in knob:
-                    assert (value - knob["minimum"]) % knob["step"] == 0, name
+                knob = knobs[name]
+                if knob.allowed_values is not None:
+                    assert value in knob.allowed_values, name
+                if knob.minimum is not None and knob.maximum is not None:
+                    assert knob.minimum <= value <= knob.maximum, name
+                    if knob.step is not None:
+                        assert (value - knob.minimum) % knob.step == 0, name
             if "num-frames" in spec["parameters"]:
                 video = next(
                     a for a in spec["assertions"] if a["kind"] == "video-metadata"

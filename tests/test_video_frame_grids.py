@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from documents import recipe
+from vonk_forge_contracts.recipe import RecipeJobSettings
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests/fixtures"
@@ -82,14 +84,16 @@ def _on_grid(grid: dict[str, int], frames: int) -> bool:
 
 
 def _knob_grid(slug: str) -> dict[str, int]:
-    knob = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())["settings"][
-        "knobs"
-    ]["num-frames"]
+    settings = recipe(slug).settings
+    assert isinstance(settings, RecipeJobSettings)
+    knob = settings.knobs["num-frames"]
+    assert knob.minimum is not None and knob.maximum is not None and knob.step
+    low, high = int(knob.minimum), int(knob.maximum)
     return {
-        "FRAME_GRID_STEP": knob["step"],
-        "FRAME_GRID_OFFSET": knob["minimum"] % knob["step"],
-        "FRAME_GRID_MIN": knob["minimum"],
-        "FRAME_GRID_MAX": knob["maximum"],
+        "FRAME_GRID_STEP": knob.step,
+        "FRAME_GRID_OFFSET": low % knob.step,
+        "FRAME_GRID_MIN": low,
+        "FRAME_GRID_MAX": high,
     }
 
 

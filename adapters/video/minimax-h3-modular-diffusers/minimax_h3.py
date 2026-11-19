@@ -8,8 +8,6 @@ from pathlib import Path
 
 MODEL_ROOT = Path("/models")
 INPUT_ROOT = Path("/inputs")
-MAX_MANIFEST_BYTES = 256 * 1024
-MAX_REFERENCES = 12
 MAX_PER_KIND = {"image": 9, "video": 3, "audio": 3}
 
 
@@ -29,8 +27,6 @@ def _parse_args() -> argparse.Namespace:
 def _slot_files(slot: str) -> list[tuple[str, Path]]:
     """(media type, path) of each file in ``slot``, in file name order."""
     path = INPUT_ROOT / "manifest.json"
-    if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_MANIFEST_BYTES:
-        raise ValueError("the input manifest must be a regular file of at most 256 KiB")
     try:
         files = json.loads(path.read_text(encoding="utf-8"))["files"]
         found = sorted(
@@ -49,8 +45,6 @@ def _slot_files(slot: str) -> list[tuple[str, Path]]:
 
 def _keyframe(slot: str) -> Path | None:
     files = _slot_files(slot)
-    if len(files) > 1:
-        raise ValueError(f"{slot} holds at most one image")
     return files[0][1] if files else None
 
 
@@ -96,9 +90,7 @@ def _load_references() -> list[object] | None:
     }
     clean = [(media_type.split("/", 1)[0], path) for media_type, path in files]
     counts = Counter(kind for kind, _ in clean)
-    if len(clean) > MAX_REFERENCES or any(
-        counts[kind] > limit for kind, limit in MAX_PER_KIND.items()
-    ):
+    if any(counts[kind] > limit for kind, limit in MAX_PER_KIND.items()):
         raise ValueError("references exceed MiniMax H3 per-modality limits")
     if counts["audio"] == len(clean):
         raise ValueError(
