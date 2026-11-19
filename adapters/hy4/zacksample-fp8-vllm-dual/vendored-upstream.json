@@ -6,17 +6,6 @@
         "file": "start.sh",
         "pattern": "^IMAGE=\\$\\{IMAGE:-vllm/vllm-openai:(?P<version>[^}\\s]+)\\}$",
         "repo": "docker.io/vllm/vllm-openai"
-      },
-      "model": {
-        "binds": "primary",
-        "datasource": "hf-revision",
-        "file": "fetch.sh",
-        "override": {
-          "reason": "fetch.sh runs hf download tencent/Hy4-flash-FP8 with no revision, so it follows main; the lock records the head main resolves to, the catalogued revision",
-          "ref": "main"
-        },
-        "pattern": "hf download (?P<version>tencent/Hy4-flash-FP8)",
-        "repo": "tencent/Hy4-flash-FP8"
       }
     },
     "whole": true
