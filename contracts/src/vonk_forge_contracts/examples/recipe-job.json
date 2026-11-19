@@ -121,19 +121,19 @@
     "kind": "job",
     "knobs": {
       "num-frames": {
-        "value": 141,
         "change_effect": "none",
-        "minimum": 13,
         "maximum": 345,
-        "step": 8
+        "minimum": 13,
+        "step": 8,
+        "value": 141
       },
       "style": {
-        "value": "street",
-        "change_effect": "none",
         "allowed_values": [
           "street",
           "studio"
-        ]
+        ],
+        "change_effect": "none",
+        "value": "street"
       }
     }
   },

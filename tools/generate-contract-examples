@@ -671,7 +671,27 @@ def main() -> int:
             ],
         },
     }
-    job["settings"] = {"kind": "job", "knobs": {}}
+    job["settings"] = {
+        "kind": "job",
+        "knobs": {
+            "num-frames": {
+                "value": 141,
+                "change_effect": "none",
+                "minimum": 13,
+                "maximum": 345,
+                "step": 8,
+            },
+            "style": {
+                "value": "street",
+                "change_effect": "none",
+                "allowed_values": ["street", "studio"],
+            },
+        },
+    }
+    job["runtime"]["arguments"] += [
+        {"name": "num-frames", "setting": "num-frames", "value": None},
+        {"name": "style", "setting": "style", "value": None},
+    ]
     job["runtime"]["engine"] = "image-job"
 
     dual = copy.deepcopy(build)
@@ -707,6 +727,14 @@ def main() -> int:
                 },
                 "title": "Synthetic image job",
                 "description": "Synthetic image job example.",
+                "knobs": {
+                    "num-frames": {
+                        "label": "Frames",
+                        "description": "Video length in frames.",
+                        "unit": "frames",
+                    },
+                    "style": {"label": "Style"},
+                },
             },
             "dual": {
                 **build_display,

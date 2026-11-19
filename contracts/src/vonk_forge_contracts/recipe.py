@@ -319,12 +319,6 @@ class RecipeJobKnob(RecipeSetting):
         if self.maximum is not None and value > self.maximum:
             raise ValueError("the default is above maximum")
         if (
-            self.minimum is not None
-            and self.maximum is not None
-            and self.minimum > self.maximum
-        ):
-            raise ValueError("minimum exceeds maximum")
-        if (
             self.step is not None
             and self.minimum is not None
             and (value - self.minimum) % self.step

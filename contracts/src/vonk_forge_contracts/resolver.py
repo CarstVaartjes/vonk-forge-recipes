@@ -69,7 +69,9 @@ def _check_job_knobs(recipe: RecipeDefinition, display: RecipeDisplay) -> None:
     """Ingress rules for job knobs; a stored older recipe still parses without them."""
 
     slug = recipe.identity.slug
-    knobs = getattr(recipe.settings, "knobs", {})
+    knobs = (
+        recipe.settings.knobs if isinstance(recipe.settings, RecipeJobSettings) else {}
+    )
     if isinstance(recipe.settings, RecipeJobSettings):
         bound = [a.setting for a in recipe.runtime.arguments if a.setting]
         for name, knob in knobs.items():
