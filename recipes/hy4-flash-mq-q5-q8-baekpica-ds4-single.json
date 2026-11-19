@@ -288,7 +288,7 @@
       "Baekpica",
       "Salvatore Sanfilippo (antirez, DwarfStar)"
     ],
-    "source_reference": "https://huggingface.co/Baekpica/Hy4-flash-Mixed-Quant-GGUF/blob/7c44df461249aa233e497e1fde9564ae837e8894/README.md ; https://github.com/Baekpica/ds4-dfm-rs/tree/25bf4b8ff712b1ad5e4298b9e87ddfa031881ac1"
+    "source_reference": "https://huggingface.co/Baekpica/Hy4-flash-Mixed-Quant-GGUF/tree/7c44df461249aa233e497e1fde9564ae837e8894"
   },
   "release": {
     "released_at": "2026-11-19",
