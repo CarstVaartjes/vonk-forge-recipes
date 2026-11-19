@@ -1179,10 +1179,6 @@
         "value": "32"
       },
       {
-        "name": "DO_NOT_TRACK",
-        "value": "1"
-      },
-      {
         "name": "HF_HUB_OFFLINE",
         "value": "1"
       },
