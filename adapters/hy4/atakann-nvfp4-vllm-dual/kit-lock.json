@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:5e2c1badbca60595d6591c60feb4b8547f59da96e7a91710d40239250e721aba",
+      "kind": "digest",
+      "ref": "sha256:5e2c1badbca60595d6591c60feb4b8547f59da96e7a91710d40239250e721aba",
+      "repo": "docker.io/vllm/vllm-openai"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "30f201acf0b4f9ba178817bcbc04ccfa3ec473f9",
+      "repo": "atakans/Hy4-flash-NVFP4",
+      "revision": "30f201acf0b4f9ba178817bcbc04ccfa3ec473f9"
+    }
+  },
+  "kit": {
+    "commit": "80320614203b8f2e40036e676c575c03de60f34a",
+    "repo": "atakann/dgx-spark-recipes"
+  }
+}
