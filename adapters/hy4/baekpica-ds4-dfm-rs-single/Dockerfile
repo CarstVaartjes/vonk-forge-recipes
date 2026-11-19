@@ -1,7 +1,7 @@
 # Baekpica/ds4-dfm-rs (Rust-host continuation of antirez ds4) for the Hy4 flash MQ-Q5-Q8 GGUF on DGX Spark.
 #
 # The creator's card (Baekpica/Hy4-flash-Mixed-Quant-GGUF @ 7c44df46, "Serving on DGX Spark") says to build
-# the engine from commit 25bf4b8ff712b1ad5e4298b9e87ddfa031881ac1, the head of the open upstream PR #159.
+# the engine from commit 25bf4b8ff712b1ad5e4298b9e87ddfa031881ac1 (upstream PR #159, merged).
 # That commit is pinned by full sha and by the sha256 of its codeload archive; the build fails closed if
 # either differs. Build follows the commit's docker/Dockerfile: CUDA 13.0 devel, rustup with the toolchain of
 # rust-toolchain.toml (1.100.0), then `make cuda-spark` (sm_121). The kit declares nothing machine-readable,
