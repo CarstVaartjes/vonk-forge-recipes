@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
+import jsonschema
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
-from spark_sweep.run import PLATFORM_SKIP
+from spark_sweep.run import IDENTICAL_EXIT_LIMIT, PLATFORM_SKIP
 
 
 def _rows(tmp_path: Path, key: str) -> list[dict]:
@@ -68,3 +70,43 @@ def test_a_job_recipe_passes_through_one_artifact_job(tmp_path: Path) -> None:
     assert row["result"]["kind"] == "job"
     assert case["outputs"][0]["name"] == "out.png"
     assert "not_evaluated" not in case
+
+
+def test_three_identical_untyped_job_create_replies_defer_and_the_next_recipe_runs(
+    tmp_path: Path,
+) -> None:
+    """vonkctl's generic ``control.api_error`` carries no typed wait: it is bounded, not endless."""
+    bad = FakeRecipe("bad", adapter="artifact-job")
+    good = FakeRecipe("good", adapter="artifact-job")
+    sweep, fleet, _ = make_sweep(tmp_path, [bad, good], [FakeModel("m1")])
+    detail = (
+        "document does not match the canonical ArtifactJobCreate contract: "
+        "$.timeout_seconds: violates maximum"
+    )
+    envelope = fleet._error("control.api_error", detail)[1]
+    schema = Path(__file__).parent / "fixtures/vonkctl-error-v2.schema.json"
+    jsonschema.Draft202012Validator(json.loads(schema.read_text())).validate(
+        {**envelope, "schema_version": 2}
+    )
+    real = fleet._recipe_job
+
+    def refuse_bad(a: list[str]) -> tuple[int, Any]:
+        if a[0] == "create":
+            run_id = a[a.index("--run") + 1]
+            if any(r["run_id"] == run_id and r["alias"] == "bad" for r in fleet.runs):
+                return fleet._error("control.api_error", detail)
+        return real(a)
+
+    fleet._recipe_job = refuse_bad  # type: ignore[method-assign]
+    for _ in range(8):
+        if sweep.run() == 0 and sweep.state.status(good.key) == "passed":
+            break
+    assert sweep.state.status(good.key) == "passed"
+    deferred = [
+        r
+        for r in _rows(tmp_path, bad.key)
+        if r.get("evidence", {}).get("identical_exits") == IDENTICAL_EXIT_LIMIT
+    ]
+    assert len(deferred) == 1
+    assert deferred[0]["disposition"] == "fail"
+    assert sweep.state.status(bad.key) != "pending"

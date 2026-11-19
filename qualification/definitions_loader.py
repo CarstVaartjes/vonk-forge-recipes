@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from pydantic import TypeAdapter
+from vonk_forge_contracts.recipe import MAX_JOB_TIMEOUT_SECONDS
 
 from qualification.media_types import CanonicalMediaTypes
 from qualification.native_dimensions import resolve_native_dimensions
@@ -28,10 +29,6 @@ from qualification.native_dimensions import resolve_native_dimensions
 QUALIFICATION_ROOT = Path(__file__).resolve().parent
 PER_RECIPE_SECTIONS = ("recipes", "service_recipes")
 _MEDIA_TYPES = TypeAdapter(CanonicalMediaTypes)
-#: The Controller's cap on a job's ``timeout_seconds`` (vonk-forge ``ArtifactJobCreate``,
-#: ``Field(ge=1, le=3_600)``; compiled contract ``max_timeout_seconds``). A longer one is
-#: refused at job create, so a recipe whose job needs more still declares this maximum.
-MAX_JOB_TIMEOUT_SECONDS = 3600
 
 
 def _read(path: Path) -> dict[str, Any]:
