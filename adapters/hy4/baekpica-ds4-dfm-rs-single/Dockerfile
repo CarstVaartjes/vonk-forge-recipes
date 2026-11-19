@@ -13,7 +13,7 @@ FROM docker.io/nvidia/cuda:13.0.0-devel-ubuntu24.04@sha256:38c2598ded0fd3ed2b0b1
 ARG DS4_COMMIT
 ARG DS4_ARCHIVE_SHA256
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential ca-certificates curl \
+    && apt-get install -y --no-install-recommends build-essential ca-certificates cmake curl \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/src
 RUN test "$(uname -m)" = aarch64 \
