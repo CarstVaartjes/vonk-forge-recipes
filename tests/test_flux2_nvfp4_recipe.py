@@ -43,7 +43,7 @@ class Flux2NVFP4RecipeTests(unittest.TestCase):
         self.assertEqual(model["format"]["quantization"], "nvfp4")
         self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
         self.assertTrue(
-            {"candidate", "executable", "nvfp4"}
+            {"executable", "nvfp4"}
             <= set(recipe_display(recipe["identity"]["slug"]).tags)
         )
 

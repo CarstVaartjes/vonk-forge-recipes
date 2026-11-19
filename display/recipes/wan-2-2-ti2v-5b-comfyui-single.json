@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "Recommended default single-Spark Wan video Candidate. This TI2V 5B profile declares a 78 GB startup peak plus 8 GB system reserve, leaving materially more headroom than the 14B profiles; physical Spark acceptance is still required.",
+  "description": "Recommended default single-Spark Wan video recipe. This TI2V 5B profile declares a 78 GB startup peak plus 8 GB system reserve, leaving materially more headroom than the 14B profiles.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "wan-2-2-ti2v-5b-comfyui-single"
@@ -8,7 +8,6 @@
   "kind": "recipe-display",
   "tags": [
     "executable",
-    "candidate",
     "wan",
     "video",
     "image-to-video",
