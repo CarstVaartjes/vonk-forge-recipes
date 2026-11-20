@@ -22,13 +22,25 @@ def main() -> None:
         help="bring an open evidence PR up to date instead of waiting for its merge",
     )
     parser.add_argument(
+        "--watch-only",
+        action="store_true",
+        help="publish nothing new: only watch, and re-plan, an open evidence PR",
+    )
+    parser.add_argument(
         "--run",
         default="",
         help="the sweep run; rotated history built by another run is rebuilt",
     )
     args = parser.parse_args()
     raise SystemExit(
-        sync(args.history, args.work_dir, args.state, args.final, args.run)
+        sync(
+            args.history,
+            args.work_dir,
+            args.state,
+            args.final,
+            args.run,
+            args.watch_only,
+        )
     )
 
 

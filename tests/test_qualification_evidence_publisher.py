@@ -681,8 +681,8 @@ class World:
             lambda *a, **k: subprocess.CompletedProcess(a[0], 0, "", ""),
         )
 
-    def tick(self):
-        return publisher.sync(self.history, self.work)
+    def tick(self, **kwargs):
+        return publisher.sync(self.history, self.work, **kwargs)
 
     def closed(self):
         return [c for c in self.calls if c[:3] == ("gh", "pr", "close")]
@@ -1503,9 +1503,11 @@ def test_any_batch_error_on_an_open_pr_is_recorded_and_alerts_when_repeated(
 
 class _QuietChild:
     pid = 1
+    started: ClassVar[list] = []
 
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(self, args, **kwargs):
+        self.args = args
+        self.started.append(self)
 
     def poll(self):
         return 0  # SYNCED
@@ -1514,61 +1516,30 @@ class _QuietChild:
         return 0
 
 
-def _publisher(tmp_path, monkeypatch, spawned):
-    def popen(*args, **kwargs):
-        spawned.append(args)
-        return _QuietChild()
-
-    monkeypatch.setattr(publisher.subprocess, "Popen", popen)
-    return publisher.EvidencePublisher(
+def test_only_the_first_batch_and_the_final_flush_publish(tmp_path, monkeypatch):
+    _QuietChild.started.clear()
+    monkeypatch.setattr(publisher.subprocess, "Popen", _QuietChild)
+    worker = publisher.EvidencePublisher(
         tmp_path / "results.jsonl", tmp_path / "publisher", Path("worker")
     )
-
-
-def test_a_run_publishes_once_until_the_safety_flush(tmp_path, monkeypatch):
-    spawned = []
-    worker = _publisher(tmp_path, monkeypatch, spawned)
-    for now in range(0, publisher.FLUSH_SECONDS, 300):  # verdicts keep arriving
+    for now in range(0, 3000, 300):
         worker.tick(now)
-    assert len(spawned) == 1
-    worker.tick(publisher.FLUSH_SECONDS + 300)  # the child reaped at 300 went quiet
-    assert len(spawned) == 2
+    flags = ["--watch-only" in child.args for child in _QuietChild.started]
+    assert flags[0] is False and all(flags[1:]) and len(flags) > 2
+    assert "published; new results queued" in worker.message
+    worker.flush(3000)
+    assert "--watch-only" not in _QuietChild.started[-1].args
+    assert "--final" in _QuietChild.started[-1].args
 
 
-def test_an_open_pr_is_still_watched_every_five_minutes(tmp_path, monkeypatch):
-    spawned = []
-    worker = _publisher(tmp_path, monkeypatch, spawned)
-    (tmp_path / "publisher").mkdir()
-    (tmp_path / "publisher" / publisher.STATE_FILE).write_text(
-        publisher.PublisherRecord(pr=7, pr_since=1.0).model_dump_json()
-    )
-    worker.tick(0)
-    worker.tick(1)  # reaps the child: PR 7 is open, so no long quiet period
-    worker.tick(publisher.RETRY_SECONDS + 1)
-    assert len(spawned) == 2
-
-
-def test_unpublished_evidence_is_picked_up_by_a_restarted_sweep(tmp_path, monkeypatch):
-    spawned = []
-    first = _publisher(tmp_path, monkeypatch, spawned)
-    first.tick(0)
-    assert len(spawned) == 1
-    # The sweep crashed before its flush; a new sweep publishes at its first tick.
-    restarted = _publisher(tmp_path, monkeypatch, spawned)
-    restarted.tick(10)
-    assert len(spawned) == 2
-
-
-def test_the_newest_verdict_of_a_content_identity_is_the_last_one_published():
-    from spark_sweep.qualification import history_evidence, merge_evidence
-
-    older = historical()
-    newer = {
-        **historical(),
-        "status": "failed",
-        "recorded_at": "2030-01-01T00:00:00+00:00",
-    }
-    first, second = history_evidence(older), history_evidence(newer)
-    assert first is not None and second is not None
-    for merged in (merge_evidence(first, second), merge_evidence(second, first)):
-        assert merged.records[-1].outcome == "failed"
+def test_new_results_wait_for_the_final_flush_even_after_a_merge(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch)
+    world.open_prs.clear()
+    assert world.tick() == publisher.SweepEvidenceExit.SYNCED  # the start publish
+    assert len(world.created) == 1
+    world.open_prs.clear()  # that PR merged
+    world.history.write_text(world.history.read_text() + json.dumps(_row(23)) + "\n")
+    assert world.tick(watch_only=True) == publisher.SweepEvidenceExit.SYNCED
+    assert len(world.created) == 1  # the watch never opens the next PR
+    world.tick(final=True)
+    assert len(world.created) == 2
