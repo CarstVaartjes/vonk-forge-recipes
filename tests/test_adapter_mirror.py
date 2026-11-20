@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import io
 import json
-import subprocess
 from pathlib import Path
 
 import pytest
@@ -21,6 +20,7 @@ DIGEST = hashlib.sha256(BLOB).hexdigest()
 
 class FakeGh:
     def __init__(self, root: Path, assets: dict[str, str | None]) -> None:
+        # name -> digest; a value of "partial" leaves a non-uploaded asset
         self.root = root
         self.assets = assets
         self.calls: list[list[str]] = []
@@ -30,11 +30,16 @@ class FakeGh:
     def __call__(self, arguments: list[str]) -> str:
         self.calls.append(arguments)
         if arguments[1] == "view":
-            listing = [{"name": n, "digest": d} for n, d in self.assets.items()]
+            listing = [
+                {"name": n, "digest": d, "state": "uploaded"}
+                if d != "partial"
+                else {"name": n, "digest": None, "state": "starter"}
+                for n, d in self.assets.items()
+            ]
             return json.dumps({"assets": listing})
         if self.upload_failures:
             self.upload_failures -= 1
-            raise subprocess.CalledProcessError(1, "gh", stderr="boom")
+            raise AdapterSourceError("boom")
         # The manifest must not name a blob before its asset exists.
         if self.fresh:
             assert DIGEST not in (self.root / "adapter-sources.json").read_text()
@@ -134,12 +139,29 @@ def test_reconcile_heals_a_lost_blob_from_origin_after_a_retry(tmp_path: Path) -
     assert problems == [] and DIGEST in gh.assets
 
 
-def test_reconcile_reports_what_it_cannot_heal_and_never_raises(tmp_path: Path) -> None:
+def test_reconcile_reports_a_blob_with_no_origin(tmp_path: Path) -> None:
     root = repo(tmp_path, declared(None))
-    gh = FakeGh(root, {})
-    assert "no origin" in reconcile(root, cache=tmp_path / "c", gh=gh)[0]
 
+    problems = reconcile(root, cache=tmp_path / "c", gh=FakeGh(root, {}))
+
+    assert "no origin" in problems[0]
+
+
+def test_reconcile_heals_a_no_origin_blob_from_the_restored_cache(
+    tmp_path: Path,
+) -> None:
+    root = repo(tmp_path, declared(None))
+    (tmp_path / "c").mkdir()
+    (tmp_path / "c" / DIGEST).write_bytes(BLOB)
+    gh = FakeGh(root, {})
+
+    assert reconcile(root, cache=tmp_path / "c", gh=gh) == []
+    assert DIGEST in gh.assets
+
+
+def test_reconcile_refuses_wrong_origin_bytes(tmp_path: Path) -> None:
     root = repo(tmp_path, declared(ORIGIN))
+    gh = FakeGh(root, {})
 
     def wrong(_: str) -> io.BytesIO:
         return io.BytesIO(b"other bytes")
@@ -147,7 +169,73 @@ def test_reconcile_reports_what_it_cannot_heal_and_never_raises(tmp_path: Path) 
     problems = reconcile(
         root, cache=tmp_path / "c", opener=wrong, sleep=lambda _: None, gh=gh
     )
-    assert "sha256:" in problems[0] and ORIGIN in problems[0] and gh.uploads == []
+
+    assert ORIGIN in problems[0] and gh.uploads == []
+
+
+def test_reconcile_reports_a_failed_upload(tmp_path: Path) -> None:
+    root = repo(tmp_path, declared(ORIGIN))
+    gh = FakeGh(root, {})
+    gh.upload_failures = 3
+
+    problems = reconcile(
+        root,
+        cache=tmp_path / "c",
+        opener=lambda _: io.BytesIO(BLOB),
+        sleep=lambda _: None,
+        gh=gh,
+    )
+
+    assert "upload of" in problems[0] and "boom" in problems[0]
+
+
+def test_reconcile_reports_a_half_uploaded_asset_as_missing(tmp_path: Path) -> None:
+    root = repo(tmp_path, declared(None))
+
+    problems = reconcile(
+        root, cache=tmp_path / "c", gh=FakeGh(root, {DIGEST: "partial"})
+    )
+
+    assert "no origin" in problems[0]
+
+
+def test_add_reuploads_a_half_uploaded_asset(tmp_path: Path) -> None:
+    root = repo(tmp_path)
+    gh = FakeGh(root, {DIGEST: "partial"})
+
+    assert add(["adapters/a/one.tar.gz"], root=root, cache=tmp_path / "c", gh=gh) == [
+        DIGEST
+    ]
+
+
+def test_a_bad_asset_under_another_digest_does_not_block_an_add(
+    tmp_path: Path,
+) -> None:
+    root = repo(tmp_path)
+    other = "1" * 64
+    gh = FakeGh(root, {other: "sha256:" + "0" * 64})
+
+    add(["adapters/a/one.tar.gz"], root=root, cache=tmp_path / "c", gh=gh)
+
+    assert DIGEST in load(root).sources
+
+
+def test_add_replaces_a_truncated_cache_entry_before_uploading(tmp_path: Path) -> None:
+    root = repo(tmp_path)
+    (tmp_path / "c").mkdir()
+    (tmp_path / "c" / DIGEST).write_bytes(BLOB[:5])
+    gh = FakeGh(root, {})
+    uploaded: list[bytes] = []
+    original = gh.__call__
+
+    def spy(arguments: list[str]) -> str:
+        if arguments[1] == "upload":
+            uploaded.append(Path(arguments[3]).read_bytes())
+        return original(arguments)
+
+    add(["adapters/a/one.tar.gz"], root=root, cache=tmp_path / "c", gh=spy)
+
+    assert uploaded == [BLOB]
 
 
 def test_reconcile_skips_present_assets_without_any_download(tmp_path: Path) -> None:

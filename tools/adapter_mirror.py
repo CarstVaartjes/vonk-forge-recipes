@@ -12,9 +12,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
+import tempfile
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -27,6 +29,7 @@ from tools.adapter_sources import (
     AdapterSourceError,
     AdapterSources,
     Opener,
+    _holds,
     default_cache,
     fetch,
     load,
@@ -35,15 +38,27 @@ from tools.adapter_sources import (
 
 Gh = Callable[[list[str]], str]
 UPLOAD_ROUNDS = 3
+GH_TIMEOUT_SECONDS = 300
 _MIRROR = re.compile(
     r"^https://github\.com/(?P<repo>[^/]+/[^/]+)/releases/download/(?P<tag>[^/]+)/$"
 )
 
 
 def run_gh(arguments: list[str]) -> str:
-    return subprocess.run(
-        ["gh", *arguments], check=True, capture_output=True, text=True
-    ).stdout
+    try:
+        return subprocess.run(
+            ["gh", *arguments],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=GH_TIMEOUT_SECONDS,
+        ).stdout
+    except subprocess.CalledProcessError as error:
+        raise AdapterSourceError(
+            f"gh {arguments[:2]}: {error.stderr.strip()}"
+        ) from error
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise AdapterSourceError(f"gh {arguments[:2]}: {error}") from error
 
 
 def _release(sources: AdapterSources) -> tuple[str, str]:
@@ -55,21 +70,32 @@ def _release(sources: AdapterSources) -> tuple[str, str]:
     return found["repo"], found["tag"]
 
 
-def _assets(sources: AdapterSources, gh: Gh) -> dict[str, str | None]:
-    """Asset name to its GitHub-reported digest (``sha256:...``) when it has one."""
+def _assets(sources: AdapterSources, gh: Gh) -> dict[str, dict[str, str | None]]:
+    """Asset name to its GitHub-reported ``digest`` and upload ``state``."""
     repo, tag = _release(sources)
     listing = gh(["release", "view", tag, "--repo", repo, "--json", "assets"])
     return {
-        asset["name"]: asset.get("digest") for asset in json.loads(listing)["assets"]
+        asset["name"]: {"digest": asset.get("digest"), "state": asset.get("state")}
+        for asset in json.loads(listing)["assets"]
     }
 
 
-def _tampered(assets: dict[str, str | None]) -> list[str]:
-    """Assets whose reported digest is not their name: refused, never overwritten."""
+def _present(assets: dict[str, dict[str, str | None]], sha256: str) -> bool:
+    """An asset counts only when fully uploaded and its digest is its name."""
+    asset = assets.get(sha256)
+    return (
+        asset is not None
+        and asset["state"] == "uploaded"
+        and asset["digest"] == f"sha256:{sha256}"
+    )
+
+
+def _tampered(assets: dict[str, dict[str, str | None]], names: list[str]) -> list[str]:
+    """Named assets whose reported digest is not their name: refused, never replaced."""
     return [
-        f"mirror asset {name} reports {digest}"
-        for name, digest in assets.items()
-        if digest is not None and digest != f"sha256:{name}"
+        f"mirror asset {name} reports {assets[name]['digest']}"
+        for name in names
+        if name in assets and assets[name]["digest"] not in (None, f"sha256:{name}")
     ]
 
 
@@ -81,10 +107,13 @@ def _upload(sources: AdapterSources, gh: Gh, sha256: str, blob: Path) -> str:
         try:
             gh(["release", "upload", tag, str(blob), "--repo", repo])
             return ""
-        except subprocess.CalledProcessError as error:
-            last = (error.stderr or str(error)).strip()
-            if sha256 in _assets(sources, gh):  # a concurrent run uploaded it
-                return ""
+        except AdapterSourceError as error:
+            last = str(error)
+            try:
+                if _present(_assets(sources, gh), sha256):  # a concurrent run won
+                    return ""
+            except (AdapterSourceError, ValueError, KeyError) as relist:
+                last = f"{last}; relist: {relist}"
     return f"upload of {sha256} failed: {last}"
 
 
@@ -121,17 +150,26 @@ def add(
         relative = resolved.relative_to(root.resolve()).as_posix()
         sha256, size = _hash(resolved)
         found.setdefault(sha256, (size, []))[1].append(relative)
-        cache.mkdir(parents=True, exist_ok=True)
-        if not (cache / sha256).is_file():
-            shutil.copyfile(resolved, cache / sha256)
+        if not _holds(cache / sha256, size):
+            cache.mkdir(parents=True, exist_ok=True)
+            descriptor, temporary = tempfile.mkstemp(dir=cache, prefix=f".{sha256}.")
+            try:
+                with (
+                    os.fdopen(descriptor, "wb") as output,
+                    resolved.open("rb") as source,
+                ):
+                    shutil.copyfileobj(source, output)
+                os.replace(temporary, cache / sha256)
+            finally:
+                Path(temporary).unlink(missing_ok=True)
     if origin is not None and len(found) != 1:
         raise AdapterSourceError("--origin names one blob, but the files differ")
     assets = _assets(sources, gh)
-    if bad := _tampered(assets):
+    if bad := _tampered(assets, list(found)):
         raise AdapterSourceError("; ".join(bad))
     uploaded = []
     for sha256 in found:
-        if sha256 not in assets:
+        if not _present(assets, sha256):
             if failure := _upload(sources, gh, sha256, cache / sha256):
                 raise AdapterSourceError(failure)
             uploaded.append(sha256)
@@ -168,18 +206,21 @@ def reconcile(
     cache = default_cache() if cache is None else cache
     try:
         assets = _assets(sources, gh)
-    except (subprocess.CalledProcessError, ValueError, KeyError) as error:
+    except (AdapterSourceError, ValueError, KeyError) as error:
         return [f"mirror listing unavailable: {error}"]
-    problems = _tampered(assets)
-    cache.mkdir(parents=True, exist_ok=True)
+    problems = _tampered(assets, list(sources.sources))
+    # sequential: healing is rare (only blobs the mirror lost) and each step is one upload
     for sha256, source in sources.sources.items():
-        if sha256 in assets:
-            continue
-        if source.origin is None:
-            problems.append(f"sha256:{sha256} is not in the mirror and has no origin")
+        if _present(assets, sha256):
             continue
         blob = cache / sha256
-        if not (blob.is_file() and blob.stat().st_size == source.size_bytes):
+        if not _holds(blob, source.size_bytes):
+            if source.origin is None:
+                problems.append(
+                    f"sha256:{sha256} is not in the mirror and has no origin"
+                )
+                continue
+            cache.mkdir(parents=True, exist_ok=True)
             failure = fetch(
                 sources, sha256, cache, opener, sleep, urls=(source.origin,)
             )

@@ -103,8 +103,9 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
-    env:
-      GH_TOKEN: ${{ github.token }}
+    timeout-minutes: 20
+    # Never marks the publish run failed: nothing depends on this job.
+    continue-on-error: true
     steps:
       - name: Check out main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -121,10 +122,20 @@ jobs:
           uv pip install --python "$venv/bin/python" -e contracts
           echo "MIRROR_PYTHON=$venv/bin/python" >> "$GITHUB_ENV"
 
+      # Restore only: a blob is already in the cache when the materializing jobs
+      # saved it; reconcile fetches from origin just for what no cache holds.
+      - name: Restore adapter source blobs
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/vonk-forge-recipes/adapter-sources
+          key: adapter-sources-${{ hashFiles('adapter-sources.json') }}
+          restore-keys: adapter-sources-
+
       - name: Re-upload declared blobs missing from the mirror
         shell: bash
-        run: |
-          "$MIRROR_PYTHON" tools/adapter-sources reconcile || echo "::warning::reconcile errored; the next main run retries"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: '"$MIRROR_PYTHON" tools/adapter-sources reconcile'
 
   publish:
     name: Create signed library release
@@ -204,6 +215,15 @@ jobs:
         with:
           name: recipe-image-plan
           path: ${{ runner.temp }}/plan
+
+      # Declared adapter sources are verified once into this cache; the key follows
+      # the manifest, and the restore prefix keeps blobs an older manifest held.
+      - name: Cache adapter source blobs
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/vonk-forge-recipes/adapter-sources
+          key: adapter-sources-${{ hashFiles('adapter-sources.json') }}
+          restore-keys: adapter-sources-
 
       - name: Build release assets from the release commit
         shell: bash
