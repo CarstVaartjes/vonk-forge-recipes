@@ -128,7 +128,7 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/vonk-forge-recipes/adapter-sources
-          key: adapter-sources-${{ hashFiles('adapter-sources.json') }}
+          key: adapter-sources-${{ hashFiles('policy/adapter-sources.json') }}
           restore-keys: adapter-sources-
 
       - name: Re-upload declared blobs missing from the mirror
@@ -222,7 +222,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/vonk-forge-recipes/adapter-sources
-          key: adapter-sources-${{ hashFiles('adapter-sources.json') }}
+          key: adapter-sources-${{ hashFiles('policy/adapter-sources.json') }}
           restore-keys: adapter-sources-
 
       - name: Build release assets from the release commit

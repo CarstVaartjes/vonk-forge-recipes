@@ -91,14 +91,14 @@ documentation, tests, evidence and CI files are not scanned, a README only for i
 ``docker run|pull`` lines; Docker Hub / GHCR / Quay references of engines and bases such as
 ``vllm/vllm-openai``, ``lmsysorg/sglang`` or ``nvcr.io/*`` are not creator images). Each
 creator image the kit references must be one the recipe's Dockerfile builds ``FROM``, or be
-recorded for that recipe in ``kit-image-exceptions.json`` with a reason::
+recorded for that recipe in ``policy/kit-image-exceptions.json`` with a reason::
 
     {"<recipe id>": {"ghcr.io/owner/name": "why the recipe does not run it"}}
 
 ``tools/kit-pins images [<recipe>...]`` prints what the scan finds.
 
 ``tools/kit-pins lock <recipe>`` also moves the consumers: it fetches the base archive for
-the locked commit, mirrors it and declares it in ``adapter-sources.json`` (origin: the
+the locked commit, mirrors it and declares it in ``policy/adapter-sources.json`` (origin: the
 codeload URL; a failed upload removes the file, and a rerun fetches and declares it
 again), and moves the Dockerfile's commit, archive file name and archive digest; it rebinds the recipe to the catalogued Model of the locked revision (the Model
 must be catalogued first, with ``tools/catalog-hf-model``); it moves the image digest in the
@@ -135,7 +135,7 @@ from tools._catalog_model import file_id
 MANIFEST = "vendored-upstream.json"
 ARCHIVE_ROUNDS = 3
 LOCK = "kit-lock.json"
-PUBLISHED_IMAGES = "published-images.json"
+PUBLISHED_IMAGES = "policy/published-images.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
 ABBREVIATED_SHA = re.compile(r"^[0-9a-f]{7,40}$")
 IMAGE_DIGEST = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -1083,7 +1083,7 @@ def followed_image(
 ) -> tuple[str, str, str] | None:
     """``(image repository, tag, pinned digest)`` when the adapter runs ``source``'s image.
 
-    ``published-images.json`` names the images a GitHub repository publishes and the tag
+    ``policy/published-images.json`` names the images a GitHub repository publishes and the tag
     it publishes as current. An adapter whose Dockerfile builds ``FROM`` such an image,
     for a recipe whose source is that repository, runs what the image is: the image is
     the pin, and the source commit is the one the image records (``Registry.provenance``).
@@ -1149,7 +1149,7 @@ def consumers(
 # Prebuilt images a kit references (the recipe runs them, or records why not)
 # ---------------------------------------------------------------------------
 
-EXCEPTIONS = "kit-image-exceptions.json"
+EXCEPTIONS = "policy/kit-image-exceptions.json"
 MAX_SCAN_FILE = 400_000
 SCANNED_NAME = re.compile(
     r"(?i)(^|/)(dockerfile[^/]*|docker-compose[^/]*|compose[^/]*\.ya?ml|makefile|"

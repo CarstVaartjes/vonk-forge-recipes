@@ -57,7 +57,8 @@ def declare(
         }
         for blob, paths in blobs.items()
     }
-    (root / "adapter-sources.json").write_text(
+    root.joinpath("policy").mkdir(exist_ok=True)
+    (root / "policy/adapter-sources.json").write_text(
         json.dumps({"mirror": MIRROR, "sources": sources})
     )
 

@@ -545,7 +545,8 @@ class ApplyLockTests(unittest.TestCase):
                 return b"new archive"
 
             declared: list[tuple[str, str]] = []
-            (root / "adapter-sources.json").write_text(
+            root.joinpath("policy").mkdir(exist_ok=True)
+            (root / "policy/adapter-sources.json").write_text(
                 json.dumps(
                     {
                         "mirror": "https://github.com/o/r/releases/download/t/",
@@ -630,7 +631,8 @@ class ApplyLockTests(unittest.TestCase):
             )
             sha256 = hashlib.sha256(b"new archive").hexdigest()
             name = f"tensorfold-{BASE_060}.tar.gz"
-            (root / "adapter-sources.json").write_text(
+            root.joinpath("policy").mkdir(exist_ok=True)
+            (root / "policy/adapter-sources.json").write_text(
                 json.dumps(
                     {
                         "mirror": "https://github.com/o/r/releases/download/t/",
@@ -643,7 +645,8 @@ class ApplyLockTests(unittest.TestCase):
             def add(paths: list[str], *, root: Path, origin: str) -> None:
                 if uploads:
                     raise uploads.pop()
-                (root / "adapter-sources.json").write_text(
+                root.joinpath("policy").mkdir(exist_ok=True)
+                (root / "policy/adapter-sources.json").write_text(
                     json.dumps(
                         {
                             "mirror": "https://github.com/o/r/releases/download/t/",
@@ -677,9 +680,9 @@ class ApplyLockTests(unittest.TestCase):
             self.assertTrue((directory / "vendor" / name).is_file())
             self.assertIn(
                 (directory / "vendor" / name).relative_to(root).as_posix(),
-                json.loads((root / "adapter-sources.json").read_text())["sources"][
-                    sha256
-                ]["paths"],
+                json.loads((root / "policy/adapter-sources.json").read_text())[
+                    "sources"
+                ][sha256]["paths"],
             )
 
 

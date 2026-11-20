@@ -71,7 +71,7 @@ engine or specialized fork, wrapper/adapter code, build dependencies, patches,
 and every external Dockerfile base image. A multi-stage Dockerfile can have
 several independent base images. For creator intake, inspect new runtime/model
 profiles inside older tracked repositories as well as newly created ones;
-`creators.json` records discovery sources. A README inventory does not establish
+`policy/creators.json` records discovery sources. A README inventory does not establish
 coverage of every branch or runtime file. This is an author review obligation,
 not an automated completeness guarantee.
 
@@ -1118,14 +1118,14 @@ Every refresh PR body carries a `## Principles` section that states only what th
 move did: pins moved (and any held), proven bytes followed when the fixture changed,
 peaks raised when they were, and the sweep re-check only when a recipe document changed.
 
-Respect `base-image-holds.json`: a held base and Dockerfile must agree until the
+Respect `policy/base-image-holds.json`: a held base and Dockerfile must agree until the
 hold is updated/removed with working evidence (`tools/check-base-image-holds`,
-`tests/test_base_image_holds.py`). `model-revision-holds.json` declines one Model
+`tests/test_base_image_holds.py`). `policy/model-revision-holds.json` declines one Model
 revision that cannot run on the recipe's Sparks, with its reason; a newer
 upstream revision is assessed again (`tools/check-model-revision-holds`,
 `tests/test_model_revision_holds.py`). A recipe that mounts every file of its Model follows added
 files of the repository, except weights files added beside byte-identical catalogued files: that is
-another checkpoint and does not move the recipe (#2749). Recipes in `published-images.json` follow the
+another checkpoint and does not move the recipe (#2749). Recipes in `policy/published-images.json` follow the
 published image digest and its recorded build commit, not unrelated newer Git
 heads. `tools/check-image-provenance --base origin/main` checks changed recipes.
 An unavailable recorded commit needs the explicit unverified provenance mark
@@ -1161,7 +1161,7 @@ repository's newest revision or an image repository's newest tag.
   Face revision, an image digest), recorded with what it named (`"kind"`: `tag`, `branch`,
   `commit` or `digest`). `kit-lock.json` is generated output and is never edited by hand.
   Builds read only the lock and never resolve a tag. `lock` also moves what follows it: the
-  vendored base archive (mirrored and declared in `adapter-sources.json` with its codeload
+  vendored base archive (mirrored and declared in `policy/adapter-sources.json` with its codeload
   URL as `origin`, never committed; a failed mirror upload names the
   `tools/adapter-sources add` command to rerun) and the Dockerfile's commit, archive file name and digest for a
   `git-ref` base; the recipe's Model binding (and the disk envelope, and removal of the old
@@ -1218,7 +1218,7 @@ repository's newest revision or an image repository's newest tag.
   assignments, `docker run|pull|create`, compose `image:`; docs, tests and CI files are not
   scanned; engine and base images such as `vllm/vllm-openai`, `lmsysorg/sglang`, `nvcr.io/*`
   are not creator images) and fails when the recipe builds `FROM` none of them. A recipe that
-  must not run the kit's image records why in `kit-image-exceptions.json`
+  must not run the kit's image records why in `policy/kit-image-exceptions.json`
   (`{"<recipe id>": "reason"}`); the check names an entry the recipe no longer needs (it runs
   a kit image, or the kit references none) so it is removed. `tools/kit-pins images [<recipe>...]` shows what
   the scan finds.
@@ -1428,7 +1428,7 @@ evidence or add an unrelated formal approval gate.
 
 ### Build-context files kept out of Git
 
-`adapter-sources.json` declares build-context files whose bytes are served by the
+`policy/adapter-sources.json` declares build-context files whose bytes are served by the
 mirror (`mirror` + SHA-256) instead of being committed: each blob's `size_bytes`,
 optional upstream `origin` (tried after the mirror) and every repository path that
 holds it, so one vendor archive several adapters share is declared once. The

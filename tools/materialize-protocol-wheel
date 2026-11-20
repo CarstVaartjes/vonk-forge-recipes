@@ -2,7 +2,7 @@
 """Render or verify the reviewed protocol-wheel adapter inputs.
 
 Rendering writes the Dockerfile templates and declares the one wheel for every
-consumer path in adapter-sources.json (uploading it to the mirror; needs `gh`).
+consumer path in policy/adapter-sources.json (uploading it to the mirror; needs `gh`).
 """
 
 import argparse
