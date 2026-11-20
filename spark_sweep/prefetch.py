@@ -849,6 +849,13 @@ class Prefetcher:
                 and accepted is not None
                 and (
                     content_identity(accepted.recipe) != content_identity(recipe)
+                    # A refusal is the Controller's word on that release; a new
+                    # release may answer differently. The new request records its
+                    # own release, so an unchanged refusal settles again.
+                    or (
+                        (current := self.release()) is not None
+                        and record.get("release") != current
+                    )
                     or (
                         isinstance(
                             retest := self.state.entry(recipe.key).get("retest"),
