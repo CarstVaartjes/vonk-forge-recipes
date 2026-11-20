@@ -5,12 +5,16 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import re
+from collections.abc import Callable
 from email.parser import BytesParser
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 
 from pydantic import BaseModel, ConfigDict, Field
 
+Gh = Callable[[list[str]], str]
+_WHEEL = re.compile(r"vonk_agent_protocol-.*\.whl")
 ROOT = Path(__file__).resolve().parents[1]
 SELECTION = "tools/protocol-wheel/selection.json"
 
@@ -113,23 +117,68 @@ def projections(root: Path = ROOT) -> dict[str, bytes]:
     return outputs
 
 
-def materialize(root: Path = ROOT, *, check: bool = False) -> None:
+def materialize(
+    root: Path = ROOT, *, check: bool = False, gh: Gh | None = None
+) -> None:
+    """Write the text projections and declare the one wheel for every consumer path.
+
+    The wheel is one blob in ``adapter-sources.json`` (uploaded to the mirror, never
+    copied into each context for commit). ``check`` proves the text projections and
+    that every wheel path of a materialized tree holds the selected bytes.
+    """
+    from tools.adapter_mirror import add, run_gh, undeclare
+    from tools.adapter_sources import load
+
+    selected = selection(root)
     outputs = projections(root)
-    for consumer in selection(root).consumers:
-        directory = root / consumer.context / consumer.wheel_directory
-        for artifact in directory.glob("vonk_agent_protocol-*.whl"):
-            if str(artifact.relative_to(root)) in outputs:
-                continue
-            if check:
-                raise ValueError(f"{artifact}: superseded protocol wheel projection")
-            artifact.unlink()
-    for path, expected in outputs.items():
-        target = root / path
-        if check:
+    wheels = [path for path in outputs if _WHEEL.fullmatch(PurePosixPath(path).name)]
+    texts = {path: data for path, data in outputs.items() if path not in wheels}
+    directories = {
+        PurePosixPath(item.context) / item.wheel_directory
+        for item in selected.consumers
+    }
+    held = [
+        str(artifact.relative_to(root))
+        for directory in directories
+        for artifact in (root / directory).glob("vonk_agent_protocol-*.whl")
+    ]
+    listed = [
+        path
+        for source in load(root).sources.values()
+        for path in source.paths
+        if PurePosixPath(path).parent in directories
+        and _WHEEL.fullmatch(PurePosixPath(path).name)
+    ]
+    stale = sorted({path for path in [*held, *listed] if path not in outputs})
+    if check:
+        if stale:
+            raise ValueError(
+                f"{', '.join(stale)}: superseded protocol wheel projection"
+            )
+        for path, expected in texts.items():
+            target = root / path
             if not target.is_file() or target.read_bytes() != expected:
                 raise ValueError(
                     f"{path}: stale protocol projection; run tools/materialize-protocol-wheel"
                 )
-        else:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(expected)
+        for path in wheels:  # a materialized tree holds every declared path
+            target = root / path
+            if not target.is_file() or target.read_bytes() != outputs[path]:
+                raise ValueError(
+                    f"{path}: missing or stale protocol wheel; run "
+                    "tools/fetch-adapter-sources, or tools/materialize-protocol-wheel"
+                )
+        return
+    for path in stale:
+        (root / path).unlink(missing_ok=True)
+    undeclare(stale, root=root)
+    for path, expected in texts.items():
+        target = root / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(expected)
+    add(
+        [selected.artifact],
+        root=root,
+        also=tuple(path for path in wheels if path != selected.artifact),
+        gh=gh or run_gh,
+    )

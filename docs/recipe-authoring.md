@@ -1161,7 +1161,9 @@ repository's newest revision or an image repository's newest tag.
   Face revision, an image digest), recorded with what it named (`"kind"`: `tag`, `branch`,
   `commit` or `digest`). `kit-lock.json` is generated output and is never edited by hand.
   Builds read only the lock and never resolve a tag. `lock` also moves what follows it: the
-  vendored base archive and the Dockerfile's commit, archive file name and digest for a
+  vendored base archive (mirrored and declared in `adapter-sources.json` with its codeload
+  URL as `origin`, never committed; a failed mirror upload names the
+  `tools/adapter-sources add` command to rerun) and the Dockerfile's commit, archive file name and digest for a
   `git-ref` base; the recipe's Model binding (and the disk envelope, and removal of the old
   Model once no recipe uses it) for an `hf-revision`, which must be catalogued first with
   `tools/catalog-hf-model`; the Dockerfile's `FROM` digest and `base_image` for an
@@ -1448,6 +1450,12 @@ bytes, which lets `publish.yml` re-upload the blob if the mirror ever loses it. 
 no origin stays visibly missing until someone with the bytes runs `add` again. Assets are
 never replaced or deleted; a mirror asset whose digest differs from its name is reported
 and refused.
+
+Producers declare instead of committing: `tools/kit-pins lock` mirrors the archive it
+downloads, and `tools/materialize-protocol-wheel` writes the Dockerfile templates and
+declares the reviewed protocol wheel once, with a path per consumer (`--check` accepts a
+path that holds the selected bytes or is declared for them). `add` also writes the
+`.gitignore` block that keeps declared paths out of commits.
 
 ### Dependency locks and build-time smokes
 

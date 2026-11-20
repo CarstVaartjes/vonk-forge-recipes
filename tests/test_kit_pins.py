@@ -8,6 +8,7 @@ tag moved on to v0.6.2. The recipe pins the kit; the base follows the kit's decl
 from __future__ import annotations
 
 import base64
+import hashlib
 import importlib.machinery
 import importlib.util
 import json
@@ -17,6 +18,8 @@ import unittest
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
+
+from tools.adapter_sources import AdapterSourceError
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -541,10 +544,36 @@ class ApplyLockTests(unittest.TestCase):
                 fetched.append((repo, commit))
                 return b"new archive"
 
+            declared: list[tuple[str, str]] = []
+            (root / "adapter-sources.json").write_text(
+                json.dumps(
+                    {
+                        "mirror": "https://github.com/o/r/releases/download/t/",
+                        "sources": {},
+                    }
+                )
+            )
             changed = kit_pins.apply_lock(
-                root, "mia", recipe_for(KIT_NEW), upstream(FakeApi()), fetch
+                root,
+                "mia",
+                recipe_for(KIT_NEW),
+                upstream(FakeApi()),
+                fetch,
+                lambda _root, archive, origin: (
+                    declared.append((archive.name, origin))
+                    or hashlib.sha256(b"new archive").hexdigest()
+                ),
             )
             self.assertEqual(fetched, [(BASE, BASE_060)])
+            self.assertEqual(
+                declared,
+                [
+                    (
+                        f"tensorfold-{BASE_060}.tar.gz",
+                        f"https://codeload.github.com/{BASE}/tar.gz/{BASE_060}",
+                    )
+                ],
+            )
             self.assertTrue(any(c.startswith("kit-lock.json") for c in changed))
             lock = json.loads((directory / "kit-lock.json").read_text())
             self.assertEqual(lock["dependencies"]["base"]["commit"], BASE_060)
@@ -583,6 +612,75 @@ class ApplyLockTests(unittest.TestCase):
             self.assertEqual(vendored._source(directory, manifest), (BASE, BASE_060))
             (directory / "kit-lock.json").unlink()
             self.assertIsNone(vendored._source(directory, manifest))
+
+    def test_a_failed_mirror_upload_removes_the_archive_and_a_rerun_declares_it(
+        self,
+    ) -> None:
+        from tools import adapter_mirror
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            directory = write_adapter(
+                root,
+                kit_commit=KIT_OLD,
+                base_commit=BASE_050,
+                base_ref="v0.5.0",
+                manifest=dict(MANIFEST, source={"repo": BASE, "commit": BASE_050}),
+                lock=False,
+            )
+            sha256 = hashlib.sha256(b"new archive").hexdigest()
+            name = f"tensorfold-{BASE_060}.tar.gz"
+            (root / "adapter-sources.json").write_text(
+                json.dumps(
+                    {
+                        "mirror": "https://github.com/o/r/releases/download/t/",
+                        "sources": {},
+                    }
+                )
+            )
+            uploads = [AdapterSourceError("upload failed")]
+
+            def add(paths: list[str], *, root: Path, origin: str) -> None:
+                if uploads:
+                    raise uploads.pop()
+                (root / "adapter-sources.json").write_text(
+                    json.dumps(
+                        {
+                            "mirror": "https://github.com/o/r/releases/download/t/",
+                            "sources": {
+                                sha256: {
+                                    "size_bytes": 11,
+                                    "origin": origin,
+                                    "paths": paths,
+                                }
+                            },
+                        }
+                    )
+                )
+
+            def lock() -> list[str]:
+                return kit_pins.apply_lock(
+                    root,
+                    "mia",
+                    recipe_for(KIT_NEW),
+                    upstream(FakeApi()),
+                    lambda repo, commit: b"new archive",
+                )
+
+            with patch.object(adapter_mirror, "add", add):
+                with self.assertRaisesRegex(
+                    kit_pins.KitError, r"upload failed.*rerun `tools/kit-pins lock"
+                ):
+                    lock()
+                self.assertFalse((directory / "vendor" / name).exists())
+                lock()  # the rerun fetches again and declares the archive
+            self.assertTrue((directory / "vendor" / name).is_file())
+            self.assertIn(
+                (directory / "vendor" / name).relative_to(root).as_posix(),
+                json.loads((root / "adapter-sources.json").read_text())["sources"][
+                    sha256
+                ]["paths"],
+            )
 
 
 def comparison(*names: str, status: str = "ahead", truncated: bool = False) -> Any:

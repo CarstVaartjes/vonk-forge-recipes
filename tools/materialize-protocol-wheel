@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
-"""Render or verify the exact reviewed protocol-wheel adapter inputs."""
+"""Render or verify the reviewed protocol-wheel adapter inputs.
+
+Rendering writes the Dockerfile templates and declares the one wheel for every
+consumer path in adapter-sources.json (uploading it to the mirror; needs `gh`).
+"""
 
 import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+sys.path.insert(0, str(ROOT))
+from tools.adapter_sources import AdapterSourceError
 from tools.protocol_wheel import materialize
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--check", action="store_true")
 args = parser.parse_args()
-materialize(check=args.check)
+try:
+    materialize(check=args.check)
+except (AdapterSourceError, ValueError, OSError) as error:
+    sys.exit(f"protocol wheel: {error}")
