@@ -307,6 +307,7 @@ identical run already runs is cleared before its test load (a kept, renamed
 run has no cold start).
 `plan` reads the catalog/fleet and estimates unique bytes/order. `run` accepts
 `--only`, `--limit`, `--spark`, `--seed-list` (JSON slugs), `--boost`,
+`--authority-id`, `--protected-profile` (default: the owner profiles 1-3),
 `--retry-failed`, `--watch` and `--no-revalidate`.
 Job recipes are always tested (one artifact job each); there is no flag.
 Read `spark_sweep/cli.py` or `--help` for current defaults.

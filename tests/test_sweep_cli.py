@@ -117,6 +117,7 @@ def test_run_refuses_without_yes_and_never_accepts_owner_profile_numbers(
         ["--sweep-profile", "2"],
         ["--pin-profile", "3"],
         ["--sweep-profile", "10", "--pin-profile", "10"],
+        ["--sweep-profile", "7", "--protected-profile", "7"],
     ):
         with pytest.raises(SystemExit):
             _run(["run", "--yes", "--state-dir", str(tmp_path), *flags], fleet, recipes)
