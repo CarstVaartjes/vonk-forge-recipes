@@ -97,7 +97,7 @@ Each adapter that needs a `liburing` stand-in carries a byte-identical copy of
 no shared file). `tests/test_posix_uring.py` compiles and runs the canonical
 header and fails when a copy differs.
 
-A new or changed final stage on a plain CUDA runtime/base image that copies a compiled
+A new or changed Dockerfile whose final stage is a plain CUDA runtime/base image that copies a compiled
 binary into `bin/` runs `ldd <binary>` and fails on `not found`, so a missing shared
 library fails the image build, not the hardware start. `tools/check-final-stage-ldd`
 checks only added or changed Dockerfiles (`tests/test_check_final_stage_ldd.py`).

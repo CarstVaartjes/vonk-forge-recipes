@@ -40,4 +40,21 @@ def test_an_added_image_without_the_step_fails_and_with_it_passes(
 ) -> None:
     assert len(_violations(tmp_path / "a", DOCKERFILE)) == 1
     assert _violations(tmp_path / "b", CHECKED) == []
-    assert guard.scan(DOCKERFILE, {1, 2}) is False  # only the build stage changed
+    assert guard.scan(DOCKERFILE, {1, 2}) is True  # a build-stage change counts too
+    assert guard.scan(DOCKERFILE, set()) is False  # untouched
+
+
+def test_the_step_must_be_the_documented_form() -> None:
+    continued = (
+        DOCKERFILE + 'RUN ! ldd /opt/vonk/bin/server \\\n    | grep "not found"\n'
+    )
+    forced = DOCKERFILE + 'RUN ldd /opt/vonk/bin/server | grep "not found" || true\n'
+    heredoc = DOCKERFILE.replace("RUN make", "RUN cat <<E\nfrom x\nE")
+    platform = DOCKERFILE.replace(
+        "FROM docker.io/nvidia/cuda:13.0.0-runtime",
+        "FROM --platform=linux/arm64 docker.io/nvidia/cuda:13.0.0-runtime",
+    )
+    assert guard.scan(continued, {1}) is False
+    assert guard.scan(forced, {1}) is True
+    assert guard.scan(heredoc, {1}) is True  # lowercase "from" is not a stage
+    assert guard.scan(platform, {1}) is True  # --platform still reads the base

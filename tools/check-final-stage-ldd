@@ -7,9 +7,8 @@ runtime lacks (libgomp for OpenMP), which fails at the hardware start with exit
 127. The final stage must run ``ldd <binary>`` and fail on ``not found`` so the
 image build fails instead.
 
-Only Dockerfiles the diff given with ``--diff FILE|-`` adds, or whose final stage
-it changes, are checked; untouched Dockerfiles are never flagged. There is no
-count and no allowlist.
+Only Dockerfiles the diff given with ``--diff FILE|-`` adds or changes are checked;
+untouched Dockerfiles are never flagged. There is no count and no allowlist.
 """
 
 from __future__ import annotations
@@ -23,23 +22,26 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from tools._added_lines import parse_added, read_diff
 
-FROM = re.compile(r"^FROM\s+(\S+)", re.IGNORECASE | re.MULTILINE)
+FROM = re.compile(r"^FROM\s+(?:--\S+\s+)*(\S+)", re.MULTILINE)
 PLAIN_CUDA = re.compile(r"nvidia/cuda:[^@\s]*-(?:runtime|base)-")
 BINARY_COPY = re.compile(
     r"^COPY\s+(?:--\S+\s+)*--from=\S+\s+(?:--\S+\s+)*\S+\s+\S*/bin/\S+\s*$",
     re.MULTILINE,
 )
-LDD_CHECK = re.compile(r"^RUN\s.*\bldd\s+\S+.*not found", re.MULTILINE)
+LDD_CHECK = re.compile(r"^RUN\s+!\s*ldd\s.*not found", re.MULTILINE)
 
 
 def scan(text: str, added: set[int]) -> bool:
-    """True when the Dockerfile text needs the ldd step and lacks it."""
-    text = text.replace("\\\n", " \n")  # keep line numbers; joins continuations
+    """True when a touched Dockerfile needs the ldd step and lacks it.
+
+    Library needs are decided in the build stage (commit, flags), so any added line
+    counts, not only a final-stage line.
+    """
+    if not added:
+        return False
+    text = re.sub(r"\\[ \t]*\n", " ", text)  # join continuations
     starts = list(FROM.finditer(text))
     if len(starts) < 2:
-        return False
-    final_line = text.count("\n", 0, starts[-1].start()) + 1
-    if not any(line >= final_line for line in added):
         return False
     final = text[starts[-1].start() :]
     return bool(
