@@ -58,6 +58,11 @@ CHILD_BUDGET = 240  # seconds a publisher child may run, as seen from the sweep
 #: How long one evidence PR may stay open before it is reported. Evidence PRs were
 #: observed to merge 6-14 minutes after they opened; an hour open is stuck.
 STALL_SECONDS = 3600
+#: Evidence accumulates in the local history log and is published as one commit:
+#: when the sweep ends (`flush`), at its start (anything a crashed run left), and
+#: at most this long after the last publication, so a crash strands at most this much.
+FLUSH_SECONDS = 6 * 3600
+RETRY_SECONDS = 300  # a publication still in flight or failing is looked at again
 
 
 def kill_group(process: subprocess.Popen) -> None:
@@ -756,6 +761,7 @@ def _batch(
             "--auto",
             "--squash",
         )
+        seen.open_pr = pr.number  # the PR just opened is watched until it merges
         print(f"evidence: PR #{pr.number}, auto-merge requested", flush=True)
         return done if changed or merging else held
 
@@ -818,6 +824,8 @@ class EvidencePublisher:
         """Reap an exited child: its message and state record."""
         self.record = load_state(self.directory)
         signature = self.record.signature
+        # Published and no PR left to watch: stay quiet until the next flush.
+        quiet = code == SweepEvidenceExit.SYNCED and not self.record.pr
         self.message = (
             "evidence sync complete"
             if code == SweepEvidenceExit.SYNCED
@@ -838,7 +846,7 @@ class EvidencePublisher:
         if self._output is not None:
             self._output.close()
         self.process = None
-        self.next_attempt = now + 300
+        self.next_attempt = now + (FLUSH_SECONDS if quiet else RETRY_SECONDS)
 
     def _spawn(self, now: float, *, final: bool = False) -> bool:
         try:
