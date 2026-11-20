@@ -183,6 +183,14 @@ below).
   packages and recipe identities stay byte-identical. Blobs are verified once, while
   downloading, into `$VONK_ADAPTER_SOURCE_CACHE`; a failed fetch retries a bounded number of
   times and fails with each URL's evidence (`tests/test_adapter_sources.py`).
+  The mirror is the `adapter-sources` release (assets named by SHA-256, never replaced or
+  deleted). Authors add a vendor file with `tools/adapter-sources add <path>... [--origin URL]`
+  (`tools/adapter_mirror.py`): it uploads the blob first and writes the manifest entry after.
+  `publish.yml`'s `adapter-source-mirror` job re-uploads declared blobs the mirror lost from
+  their `origin` (verified at ingress) and only warns about what it cannot heal; it never
+  blocks publication (timeout, `continue-on-error`). The two jobs that materialize (the
+  validate.yml catalog job and the publish job) save `~/.cache/vonk-forge-recipes/adapter-sources`
+  keyed on the manifest; the mirror job only restores it. Tests: `tests/test_adapter_mirror.py`.
 
 [publish.yml](.github/workflows/publish.yml) runs on non-Markdown changes to
 `main`, validates first, promotes PR image candidates through
