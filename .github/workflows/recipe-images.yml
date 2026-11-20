@@ -102,8 +102,12 @@ jobs:
           if [ "$EVENT_NAME" = pull_request ]; then
             git clone --shared --no-checkout . "$RUNNER_TEMP/image-base"
             git -C "$RUNNER_TEMP/image-base" checkout --detach "$BASE_SHA"
-            base_ref=$(python3 tools/prebuilt-images platform-ref \
-              --workflow "$RUNNER_TEMP/image-base/.github/workflows/publish.yml")
+            # A base without the pin file plans with the current platform.
+            base_ref=${{ steps.platform.outputs.ref }}
+            if [ -f "$RUNNER_TEMP/image-base/.github/platform-ref" ]; then
+              base_ref=$(python3 tools/prebuilt-images platform-ref \
+                --file "$RUNNER_TEMP/image-base/.github/platform-ref")
+            fi
             base_platform="$GITHUB_WORKSPACE/.vonk-forge"
             if [ "$base_ref" != "${{ steps.platform.outputs.ref }}" ]; then
               git -C .vonk-forge fetch --depth=1 origin "$base_ref"

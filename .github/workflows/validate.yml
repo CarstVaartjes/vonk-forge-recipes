@@ -32,13 +32,13 @@ jobs:
 
   validate:
     if: ${{ !inputs.producer_only }}
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@4d64d046013ddc88629ee8d14120bcd95cf71113
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@bfbd8c9048a8315cc121d8afcca2a63e7b9b0ef9
     with:
       # Keep the validator and platform checkout on the same reviewed commit.
       # It builds this checkout's index/packages, validates current contract
       # and archive contents, and checks every option choice against Forge's
       # runtime policy.
-      platform_ref: 4d64d046013ddc88629ee8d14120bcd95cf71113
+      platform_ref: bfbd8c9048a8315cc121d8afcca2a63e7b9b0ef9
 
   # Build the catalog once and prove it deterministic: two independent builds
   # of this tree must produce identical bytes (consumers reproduce a release by
@@ -209,13 +209,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          for ref in $(grep -rhoE 'vonk-forge/\.github/workflows/[a-z-]+\.yml@[0-9a-f]{40}|platform_ref: [0-9a-f]{40}' .github/workflows | grep -oE '[0-9a-f]{40}' | sort -u); do
-            status=$(gh api "repos/CarstVaartjes/vonk-forge/compare/${ref}...main" --jq .status)
-            case "$status" in
-              ahead|identical) echo "platform pin ${ref} is on vonk-forge main ($status)" ;;
-              *) echo "::error::platform pin ${ref} is not an ancestor of vonk-forge main ($status)"; exit 1 ;;
-            esac
-          done
+          ref=$(python3 tools/prebuilt-images platform-ref)
+          status=$(gh api "repos/CarstVaartjes/vonk-forge/compare/${ref}...main" --jq .status)
+          case "$status" in
+            ahead|identical) echo "platform pin ${ref} is on vonk-forge main ($status)" ;;
+            *) echo "::error::platform pin ${ref} is not an ancestor of vonk-forge main ($status)"; exit 1 ;;
+          esac
 
       # The Controller reads a recipe with the contracts version its lock pins.
       # A serving kind or Model capability newer than that is a read failure there, so
@@ -227,8 +226,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          ref=$(grep -rhoE 'platform_ref: [0-9a-f]{40}' .github/workflows | grep -oE '[0-9a-f]{40}' | sort -u)
-          test "$(echo "$ref" | wc -l)" = 1
+          ref=$(python3 tools/prebuilt-images platform-ref)
           gh api "repos/CarstVaartjes/vonk-forge/contents/control/packaging/public-contracts.lock?ref=${ref}" \
             -H 'Accept: application/vnd.github.raw+json' > "$RUNNER_TEMP/platform-contracts.lock"
           "$RECIPE_TEST_PYTHON" tools/check-platform-contracts --platform-lock "$RUNNER_TEMP/platform-contracts.lock"

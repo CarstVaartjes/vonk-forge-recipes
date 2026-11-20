@@ -17,9 +17,9 @@ revision and prefers the pinned digest over a Spark build.
 ``resolve`` looks up every recipe's ``build-<key>`` digest for the signed index.
 
 ``platform-ref`` prints the Vonk Forge commit the library is validated with
-            (``platform_ref`` in publish.yml). The image workflow plans and
-            builds with that same commit, so there is one pin and it cannot
-            drift between validation and images. Selection reconciles every
+            (``.github/platform-ref``, the one owner of the pin; a test requires
+            every workflow ``uses:``/``platform_ref`` literal to equal it). The
+            image workflow plans and builds with that same commit. Selection reconciles every
             current key on each publication, independently of release tags.
 
 ``resolve`` reports missing images; publication leaves those image pins absent
@@ -215,14 +215,14 @@ def resolve(
     return images, sorted(missing)
 
 
-PLATFORM_WORKFLOW = Path(".github/workflows/publish.yml")
-_PLATFORM_REF = re.compile(r"^\s*platform_ref:\s*([0-9a-f]{40})\s*$", re.MULTILINE)
+PLATFORM_REF_FILE = Path(".github/platform-ref")
+_PLATFORM_REF = re.compile(r"^\s*([0-9a-f]{40})\s*$")
 
 
-def platform_ref(workflow: str) -> str | None:
-    """The Vonk Forge commit a workflow pins as ``platform_ref``, if any."""
+def platform_ref(text: str) -> str | None:
+    """The Vonk Forge commit a platform-ref file holds, if it is a full SHA."""
 
-    found = _PLATFORM_REF.search(workflow)
+    found = _PLATFORM_REF.match(text)
     return found.group(1) if found else None
 
 
@@ -284,16 +284,16 @@ def main() -> int:
     choose.add_argument("--output", type=Path, required=True)
     choose.add_argument("--base-plan", type=Path)
     pin = commands.add_parser("platform-ref")
-    pin.add_argument("--workflow", type=Path, default=PLATFORM_WORKFLOW)
+    pin.add_argument("--file", type=Path, default=PLATFORM_REF_FILE)
     look = commands.add_parser("resolve")
     look.add_argument("--plan", type=Path, required=True)
     look.add_argument("--owner", required=True)
     look.add_argument("--output", type=Path, required=True)
     arguments = parser.parse_args()
     if arguments.command == "platform-ref":
-        ref = platform_ref(arguments.workflow.read_text(encoding="utf-8"))
+        ref = platform_ref(arguments.file.read_text(encoding="utf-8"))
         if ref is None:
-            print(f"{arguments.workflow} pins no platform_ref", file=sys.stderr)
+            print(f"{arguments.file} holds no full platform SHA", file=sys.stderr)
             return 1
         print(ref)
         return 0
