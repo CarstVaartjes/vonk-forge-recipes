@@ -170,7 +170,7 @@ def test_a_job_is_created_submitted_followed_downloaded_and_its_outputs_hold() -
     # The binding names the definition's fixture as the input, under its own file name.
     assert controller.binding["create"]["interface"] == "artifact-job"
     assert controller.binding["create"]["inputs"] == [
-        {"slot": "document", "name": "digit7.png", "media_type": "image/png"}
+        {"slot": "document", "name": "digit7.png"}
     ]
     assert list(controller.binding["input_paths"]) == ["digit7.png"]
     (case,) = result.cases
