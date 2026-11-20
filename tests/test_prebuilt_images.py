@@ -246,6 +246,25 @@ def test_the_platform_pin_is_read_from_the_publication_workflow() -> None:
     assert tool.platform_ref(workflow) is not None
 
 
+def test_every_platform_pin_equals_publish_workflows() -> None:
+    """`uses:` takes no expression, so every literal must equal the owner's."""
+
+    workflows = ROOT / ".github/workflows"
+    owner = tool.platform_ref((workflows / "publish.yml").read_text("utf-8"))
+    assert owner is not None
+    pins = {
+        sha
+        for workflow in workflows.glob("*.yml")
+        for found in re.findall(
+            r"vonk-forge/\.github/workflows/[\w-]+\.yml@(\S+)|platform_ref:\s*(\S+)",
+            workflow.read_text("utf-8"),
+        )
+        for sha in found
+        if sha
+    }
+    assert pins == {owner}
+
+
 def test_explicit_selection_limits_backfills_only() -> None:
     assert tool.candidate_slugs([]) is None
     assert tool.candidate_slugs(["all"]) is None
