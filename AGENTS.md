@@ -141,6 +141,16 @@ repository and accepts `--update`, not positional changed-file arguments.
 
 ## CI and publication
 
+The platform revision is owned by [.github/platform-ref](.github/platform-ref):
+one full 40-hex vonk-forge SHA that must be an ancestor of vonk-forge main.
+`tools/prebuilt-images platform-ref` and the validate.yml platform checks read
+it. GitHub takes no expression in `uses: …@ref`, so the `uses:` pins and
+`platform_ref:` inputs in publish.yml and validate.yml stay literal;
+`tests/test_prebuilt_images.py` requires every one to equal the file. To move
+the pin, check the reusable workflow's inputs and the scripts the workflows call
+at the new SHA, then replace the SHA in the file and in those four literals in
+one PR (consumer-first for contract majors, see below).
+
 [validate.yml](.github/workflows/validate.yml) is the executable check list:
 
 - The pinned platform `validate-recipe-library` validates source policy, archives

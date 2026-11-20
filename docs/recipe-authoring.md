@@ -1543,7 +1543,7 @@ Recipe runtime images are built in CI, not on a Spark.
 `.github/workflows/recipe-images.yml` runs inside every publication (and by hand
 for a backfill: `gh workflow run recipe-images.yml -f slugs=all`, or a list of
 recipe ids). Vonk Forge's `scripts/recipe-image-plan` (at the `platform_ref`
-`publish.yml` validates the library with: one pin for validation and images)
+`publish.yml` validates the library with: one pin, `.github/platform-ref`, for validation and images)
 derives each recipe's executable build key (source bundle,
 Dockerfile, pinned base images, build options and capabilities, runtime
 adapter) and the exact Spark build flags and platform adaptation stage. Recipes
