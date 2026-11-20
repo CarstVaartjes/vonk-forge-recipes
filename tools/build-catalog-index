@@ -28,8 +28,7 @@ from vonk_forge_contracts import (
 
 from spark_sweep.image_evidence import load_images, read_images
 from spark_sweep.tolerant import InputDiagnostic
-from tools.adapter_sources import AdapterSourceError
-from tools.adapter_sources import materialize as materialize_adapter_sources
+from tools.adapter_sources import materialize_or_exit
 
 
 def image_diagnostic(diagnostic: InputDiagnostic) -> None:
@@ -1032,10 +1031,7 @@ def main() -> int:
     arguments = parser.parse_args()
     # Declared files whose bytes live in the mirror are placed before any
     # build context is read, so packages hold the same bytes at the same paths.
-    try:
-        materialize_adapter_sources()
-    except AdapterSourceError as error:
-        raise SystemExit(f"adapter sources: {error}") from error
+    materialize_or_exit()
     prebuilt_images = (
         load_images(arguments.prebuilt_images, image_diagnostic)
         if arguments.prebuilt_images is not None

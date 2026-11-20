@@ -191,11 +191,20 @@ below).
   it) mirrors a newly fetched base archive with its codeload URL as `origin`, and
   `tools/materialize-protocol-wheel` declares the one protocol wheel for every consumer
   path (`tools/protocol_wheel.py`); neither leaves a binary to commit.
+  Every file under `adapters/` that is binary and over 64 KiB, or any file over 1 MiB, is
+  declared, not committed, and so is the synthetic canary's package
+  (`tests/fixtures/canonical-synthetic-canary/package/`; after regenerating it, run
+  `tools/adapter-sources add` on it). Each tool that reads those paths places them itself
+  first: `tools/check-build-context-sources`, `tools/check-vendored-upstream`,
+  `tools/kit-pins lock|check`, `tools/refresh-upstream` and `tools/materialize-protocol-wheel`;
+  validate.yml runs them with the test environment's Python for that reason.
+  `tests/test_adapter_mirror.py` keeps the `.gitignore` block equal to the manifest paths.
   `publish.yml`'s `adapter-source-mirror` job re-uploads declared blobs the mirror lost from
   their `origin` (verified at ingress) and only warns about what it cannot heal; it never
-  blocks publication (timeout, `continue-on-error`). The two jobs that materialize (the
-  validate.yml catalog job and the publish job) save `~/.cache/vonk-forge-recipes/adapter-sources`
-  keyed on the manifest; the mirror job only restores it. Tests: `tests/test_adapter_mirror.py`.
+  blocks publication (timeout, `continue-on-error`). The jobs that materialize (validate.yml's
+  catalog and producer-contracts jobs, the publish job, the recipe-images plan job and the
+  refresh job) save `~/.cache/vonk-forge-recipes/adapter-sources` keyed on the manifest; the
+  mirror job only restores it. Tests: `tests/test_adapter_mirror.py`.
 
 [publish.yml](.github/workflows/publish.yml) runs on non-Markdown changes to
 `main`, validates first, promotes PR image candidates through

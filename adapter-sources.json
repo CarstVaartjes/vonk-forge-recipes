@@ -1,4 +1,222 @@
 {
   "mirror": "https://github.com/CarstVaartjes/vonk-forge-recipes/releases/download/adapter-sources/",
-  "sources": {}
+  "sources": {
+    "0504a1411ce41470194b8c96f0a0d7b2e7b27b2fe1f2e490b8d1dbee2e3af057": {
+      "size_bytes": 8000000,
+      "paths": [
+        "adapters/video/wan-dancer-native/vendor/wan-dancer-e6c87a94ec733230dac15b924c015f6e6501e618.tar.gz.part-002"
+      ]
+    },
+    "0aa0cc7a62b187799a35216360726022645bccb4192ba7f5fbe6140f13835dde": {
+      "size_bytes": 7923710,
+      "paths": [
+        "adapters/video/wan-dancer-native/vendor/wan-dancer-e6c87a94ec733230dac15b924c015f6e6501e618.tar.gz.part-003"
+      ]
+    },
+    "10570c84b768c3a5cbe1cf5321a52286481b8786fab29d277ef80acae425b0c4": {
+      "size_bytes": 9008000,
+      "paths": [
+        "adapters/glm/vcruz-full-tensorfold-four/vendor/tensorfold.tar.gz"
+      ]
+    },
+    "15e417b5f06136f86c53455214455bdda5d17e9147b0f19a40fb9c8da2c276ca": {
+      "size_bytes": 9273304,
+      "paths": [
+        "adapters/glm/tonyd2wild-flash-tensorfold/vendor/creator-1758bc2dab8ae56bf9592b74b312b398577850cc.tar.gz"
+      ]
+    },
+    "20fa613369cdeb9d4e0292fe48ba6218170fd4445c95a8051d5e0803b1746203": {
+      "size_bytes": 8650191,
+      "origin": "https://codeload.github.com/ashhart/TensorFold/tar.gz/56e2e3ec55bc0ae1d7d5158c4fa2c79a3567ab21",
+      "paths": [
+        "adapters/qwen/sfxnz-flash-next-tensorfold-dual/vendor/tensorfold-56e2e3ec55bc0ae1d7d5158c4fa2c79a3567ab21.tar.gz"
+      ]
+    },
+    "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7": {
+      "size_bytes": 1681126,
+      "origin": "https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken",
+      "paths": [
+        "adapters/nvidia/gpt-oss-120b-eagle3-nvidia-trtllm-single/harmony-reqs/cl100k_base.tiktoken",
+        "adapters/nvidia/gpt-oss-120b-nvidia-trtllm-single/harmony-reqs/cl100k_base.tiktoken",
+        "adapters/nvidia/gpt-oss-120b-nvidia-vllm-single/harmony-reqs/cl100k_base.tiktoken",
+        "adapters/nvidia/gpt-oss-20b-nvidia-trtllm-single/harmony-reqs/cl100k_base.tiktoken",
+        "adapters/nvidia/gpt-oss-20b-nvidia-vllm-single/harmony-reqs/cl100k_base.tiktoken"
+      ]
+    },
+    "2afaf90f477b1e428540820e1e7775d884e4eb557fd3d887cb132ed0d395a9b4": {
+      "size_bytes": 121617,
+      "paths": [
+        "adapters/audio/stable-audio-3-small-sfx/vendor/stable-audio-3-790793b89ddceea612be9ce42ff6830d18f6fa57.tar.gz"
+      ]
+    },
+    "2d17624b7d56184fdfae9d2e69313a445f43674a557c992099cf15425b10cb13": {
+      "size_bytes": 118444,
+      "paths": [
+        "adapters/audio/hunyuan-video-foley-native/vendor/hunyuan-video-foley-df7b005b5023df2a9b73e1d66dd51d452799884e.tar.gz"
+      ]
+    },
+    "2fee9bd3f5f5475c4fed1ba74c1820e217e7d4698e3e89025eb38d06d98bdc37": {
+      "size_bytes": 9462252,
+      "paths": [
+        "adapters/minicpm/vcruz305-exl3-single/vendor/exllamav3.tar.gz"
+      ]
+    },
+    "3d73f08395628a12f640895885cbfe1a5dbe6db93057ce2306ac09217f4db84d": {
+      "size_bytes": 9273234,
+      "origin": "https://codeload.github.com/ashhart/TensorFold/tar.gz/19f5478ba778531ffb9a1ebb9c1ca7e06b8ceacb",
+      "paths": [
+        "adapters/deepseek/sfxnz-v41-tensorfold-dual/vendor/tensorfold-19f5478ba778531ffb9a1ebb9c1ca7e06b8ceacb.tar.gz"
+      ]
+    },
+    "42965a9a47094622eca8ace8fbf75a0767889430c84ca4c6c24ada14d5f2f43b": {
+      "size_bytes": 113499,
+      "paths": [
+        "adapters/qwen/mia-unsloth-qwen36-35b-b12x-single/benchmark.png"
+      ]
+    },
+    "446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d": {
+      "size_bytes": 3613922,
+      "origin": "https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken",
+      "paths": [
+        "adapters/nvidia/gpt-oss-120b-eagle3-nvidia-trtllm-single/harmony-reqs/o200k_base.tiktoken",
+        "adapters/nvidia/gpt-oss-120b-nvidia-trtllm-single/harmony-reqs/o200k_base.tiktoken",
+        "adapters/nvidia/gpt-oss-120b-nvidia-vllm-single/harmony-reqs/o200k_base.tiktoken",
+        "adapters/nvidia/gpt-oss-20b-nvidia-trtllm-single/harmony-reqs/o200k_base.tiktoken",
+        "adapters/nvidia/gpt-oss-20b-nvidia-vllm-single/harmony-reqs/o200k_base.tiktoken"
+      ]
+    },
+    "4af92f148fc0b1768ea3f3582fa001c52aab560edf5f56a433c087ca893b0ba5": {
+      "size_bytes": 8000000,
+      "paths": [
+        "adapters/video/wan-dancer-native/vendor/wan-dancer-e6c87a94ec733230dac15b924c015f6e6501e618.tar.gz.part-000"
+      ]
+    },
+    "575ad3745d4a92ef097f43c5796a78ec16a1fafb789265bf14301b12dfb2bd42": {
+      "size_bytes": 8868629,
+      "origin": "https://codeload.github.com/ashhart/TensorFold/tar.gz/cb2ebf0540f42604e2759b2ddef497861e928248",
+      "paths": [
+        "adapters/qwen/flash-next-exl3-tensorfold-single/vendor/tensorfold-cb2ebf0540f42604e2759b2ddef497861e928248.tar.gz",
+        "adapters/qwen/flash-next-nvfp4-tensorfold-single/vendor/tensorfold-cb2ebf0540f42604e2759b2ddef497861e928248.tar.gz"
+      ]
+    },
+    "5a4bec90b8dc8c9266558ae583f41e33ba770297bcbde031a6e868db8a4bc5a9": {
+      "size_bytes": 2505620,
+      "paths": [
+        "tests/fixtures/canonical-synthetic-canary/package/canonical-synthetic-canary.tar.gz"
+      ]
+    },
+    "5f0dfef5351341613e2c8ba96806bddb576e5e1f44aaa104c5d5c388cf44bc1b": {
+      "size_bytes": 3234101,
+      "paths": [
+        "adapters/video/wan-dancer-diffsynth-disk/vendor/diffsynth-studio-84f93fc4907b6c193be5501bab0b5c37f383033c.tar.gz"
+      ]
+    },
+    "6787714a5deeff0233a2502d881ff1bd743a10c5c0f728122b3a2b20c12c1d2e": {
+      "size_bytes": 8388608,
+      "paths": [
+        "adapters/audio/hunyuan-video-foley-native/vendor/transformers-a957b7911a758d54597914b4479fe6e81424d64f.tar.gz.part-001"
+      ]
+    },
+    "74b0686a3d2891980d5e303251b075a3bccae2c2ff650747db2620a649b98fa8": {
+      "size_bytes": 7470294,
+      "paths": [
+        "adapters/deepseek/r0b0tlab-sglang-v41-four/references/root-model-index.json"
+      ]
+    },
+    "79b670c2f3a2a2063eeb7d3659a266146b8e95d0b1493c47eb74b60bcf4770b5": {
+      "size_bytes": 8861274,
+      "origin": "https://codeload.github.com/ashhart/TensorFold/tar.gz/53ceb126d5d54e9193245bcc74130fc1d81cf46f",
+      "paths": [
+        "adapters/qwen/swift-flash-next-nvfp4-tensorfold-single/vendor/tensorfold-53ceb126d5d54e9193245bcc74130fc1d81cf46f.tar.gz",
+        "adapters/qwen/tournier-exl3-3-05-tensorfold-single/vendor/tensorfold-53ceb126d5d54e9193245bcc74130fc1d81cf46f.tar.gz",
+        "adapters/qwen/tournier-exl3-4-05-tensorfold-single/vendor/tensorfold-53ceb126d5d54e9193245bcc74130fc1d81cf46f.tar.gz",
+        "adapters/qwen/tournier-exl3-6-05-tensorfold-single/vendor/tensorfold-53ceb126d5d54e9193245bcc74130fc1d81cf46f.tar.gz"
+      ]
+    },
+    "85d83013e319e49ffb97608ba3fff0d93b8357139b6f893a8e73023f49eaf74e": {
+      "size_bytes": 303044,
+      "paths": [
+        "adapters/minicpm/vcruz305-exl3-single/vendor/tabby.tar.gz"
+      ]
+    },
+    "8bf12b9a2e44cbc78e669eb08b3d02aba8ab1e4dae0d66dfa1c5e856f7f836d4": {
+      "size_bytes": 8216841,
+      "paths": [
+        "adapters/qwen/flash-next-taussoe-tensorfold-single/vendor/tensorfold-c32abe92411eced43565a63f5be7fe3595f8e22c.tar.gz",
+        "adapters/qwen/qwen3-8-27b-taussoe-tensorfold-single/vendor/tensorfold-c32abe92411eced43565a63f5be7fe3595f8e22c.tar.gz"
+      ]
+    },
+    "8cfd2d8bf09169d00a669f72f179c54bdfc49af35b05214a5e5f0fdb1d5779d8": {
+      "size_bytes": 4304912,
+      "paths": [
+        "adapters/glm/vcruz-full-tensorfold-four/vendor/b12x.tar.gz"
+      ]
+    },
+    "90ee2cdf50f168382a7dd7e9c88b118298aba0aca4b72022080c89c4bab0ceb2": {
+      "size_bytes": 531434,
+      "paths": [
+        "adapters/three-d/kimodo/kimodo/assets/skeletons/somaskel77/skin_standard.npz"
+      ]
+    },
+    "93e93dd013ee2ec95b87ac588a8a5907d7e237c0c35b805ee89c4f6b68bec6f2": {
+      "size_bytes": 9667604,
+      "paths": [
+        "adapters/deepseek/ds4-tp2/vendor/ds4-b3f50180ec2c7324892be1f50bc83555ccb8d5e7.tar.gz",
+        "adapters/deepseek/ds4/vendor/ds4-b3f50180ec2c7324892be1f50bc83555ccb8d5e7.tar.gz"
+      ]
+    },
+    "97b1f9b02efdaf6304c05ac9a13bfd9062571292fa11973bc6fca47a744d8b24": {
+      "size_bytes": 136794,
+      "paths": [
+        "adapters/audio/hunyuan-video-foley-native/vendor/audiotools-348ebf2034ce24e2a91a553e3171cb00c0c71678.tar.gz"
+      ]
+    },
+    "9db7484767d0eaec9a0c20a6f18c1c995570c5588ffed8bee3da4a70022cc625": {
+      "size_bytes": 144233,
+      "paths": [
+        "adapters/audio/drowzeys-music3-tensorfold/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/image/minimax-h3-image-sglang/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/october-2026/flux-3-image-klein-pytorch-single/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/october-2026/qwen-image-2-1-turbo-diffusers-single/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/three-d/gem-x-motion/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/three-d/kimodo/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/three-d/motionbricks/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/video/drowzeys-fasth3-tensorfold/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/video/drowzeys-keys-heretic-h3/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/video/ltx2-pytorch/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/video/ltx2-sync-native/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/video/ltx23-sync-native-disk/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl"
+      ]
+    },
+    "b2ba24077400d8b310d6638d3a5a8ccd132d3af4004b86a18c78d0f5ee8d96a8": {
+      "size_bytes": 8629638,
+      "paths": [
+        "adapters/minicpm/r0b0tlab-exl3-single/vendor/exllamav3.tar.gz"
+      ]
+    },
+    "b38fd6701a1dec5e27aa339588e9f5359051a850b4ffe6cc2cd38f0f8a778f1a": {
+      "size_bytes": 3773914,
+      "paths": [
+        "adapters/audio/hunyuan-video-foley-native/vendor/transformers-a957b7911a758d54597914b4479fe6e81424d64f.tar.gz.part-002"
+      ]
+    },
+    "b4ea426256735091cb00938064bce2aed2d00fec6a5b49738500caa88bb00498": {
+      "size_bytes": 8388608,
+      "paths": [
+        "adapters/audio/hunyuan-video-foley-native/vendor/transformers-a957b7911a758d54597914b4479fe6e81424d64f.tar.gz.part-000"
+      ]
+    },
+    "cae05fdb1e077c83c6bb3f05ec9d40ba73ff1f381874705ce2a72fbc2a638324": {
+      "size_bytes": 8000000,
+      "paths": [
+        "adapters/video/wan-dancer-native/vendor/wan-dancer-e6c87a94ec733230dac15b924c015f6e6501e618.tar.gz.part-001"
+      ]
+    },
+    "feb85fa05c617045e9eef1124db90d1e1337b994522da315dbcb9bc0ca3f97f8": {
+      "size_bytes": 1833058,
+      "paths": [
+        "adapters/deepseek/drowzeys-ds4-dspark-port-single/vendor/ds4-80ebbc396aee40eedc1d829222f3362d10fa4c6c.tar.gz"
+      ]
+    }
+  }
 }

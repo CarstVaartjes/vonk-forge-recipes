@@ -164,6 +164,15 @@ jobs:
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" tools/generate-contract-schemas --check
 
+      # Declared adapter sources are verified once into this cache; the key follows
+      # the manifest, and the restore prefix keeps blobs an older manifest held.
+      - name: Cache adapter source blobs
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/vonk-forge-recipes/adapter-sources
+          key: adapter-sources-${{ hashFiles('adapter-sources.json') }}
+          restore-keys: adapter-sources-
+
       # The test suite's build (tests/generated_catalog.py, fixed provenance, no
       # git) is built once here, before the workers start; the release builds
       # and their byte-equality proof are the catalog job's.
@@ -280,7 +289,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/check-build-context-sources
+          "$RECIPE_TEST_PYTHON" tools/check-build-context-sources
 
       # Upstream trees are keyed by immutable commit sha; a changed pin changes
       # the key, and the restore prefix keeps every other commit's cached tree.
@@ -297,7 +306,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          python3 tools/check-vendored-upstream
+          "$RECIPE_TEST_PYTHON" tools/check-vendored-upstream
 
       # A kit-built recipe pins only its kit; the base is what the kit declares
       # at that commit. Re-reads the declaring file and fails when the committed
@@ -309,7 +318,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          python3 tools/kit-pins check
+          "$RECIPE_TEST_PYTHON" tools/kit-pins check
 
       # A recipe that runs its source's published image (published-images.json)
       # must state the build commit that image records; checked for the recipes

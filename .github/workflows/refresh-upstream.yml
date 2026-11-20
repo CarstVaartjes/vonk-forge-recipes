@@ -61,6 +61,15 @@ jobs:
           key: refresh-cache-${{ github.run_id }}
           restore-keys: refresh-cache-
 
+      # Declared adapter sources are verified once into this cache; the key follows
+      # the manifest, and the restore prefix keeps blobs an older manifest held.
+      - name: Cache adapter source blobs
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/vonk-forge-recipes/adapter-sources
+          key: adapter-sources-${{ hashFiles('adapter-sources.json') }}
+          restore-keys: adapter-sources-
+
       - name: Install the tool dependencies
         shell: bash
         run: |

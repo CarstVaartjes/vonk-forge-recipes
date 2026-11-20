@@ -55,6 +55,7 @@ from qualification.memory_need import raise_peaks_to_envelope
 from spark_sweep.own_pulls import OWN_FIELDS, own_pulls
 from spark_sweep.tolerant import InputReason, read_optional
 from tools._catalog_model import roles_for
+from tools.adapter_sources import materialize_or_exit
 
 
 def _load(name: str) -> Any:
@@ -5027,6 +5028,8 @@ def main() -> int:
                 f"Refresh App authentication verified; token restricted to {expected}."
             )
             return 0
+        # Assessments compare the adapters' files, declared vendor files included.
+        materialize_or_exit(ROOT)
         return command_run(arguments)
     finally:
         if APP_AUTH is not None:
