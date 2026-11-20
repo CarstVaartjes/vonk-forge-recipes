@@ -419,13 +419,16 @@ own host. An install that only runs after a failed probe (`python3 -c "import
 x" || pip install x`) is not a fetch. Comments, echo/print text, localhost URLs,
 `--no-index`/`--offline` and local `.deb`/`.whl` paths are exempt. It is a line
 and token reading, not a shell parser: exec-form `RUN`, `bash -c` and computed
-script paths are not followed. A new or changed final stage on a plain CUDA runtime/base image that copies a compiled
+script paths are not followed.
+
+A new or changed Dockerfile whose final stage is a plain CUDA runtime/base image that copies a compiled
 binary into `bin/` must run `ldd <binary>` and fail on `not found` (ignoring
 `libcuda`/`libnvidia`, which the host driver supplies), so a library only the devel stage
 had (libgomp for OpenMP) fails the image build, not the hardware start; install the library
 with apt rather than disabling creator build options. `tools/check-final-stage-ldd`
-checks only Dockerfiles the diff adds or whose final stage it changes; untouched images
+checks only Dockerfiles the diff adds or changes; untouched images
 are never flagged.
+
 Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
