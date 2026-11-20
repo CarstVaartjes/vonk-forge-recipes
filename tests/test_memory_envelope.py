@@ -20,7 +20,7 @@ PHYSICAL_MEMORY_BYTES = SPARK_MEMORY_BYTES
 ADMISSIBLE_PEAK_BYTES = int(
     os.environ.get("VONK_SPARK_ADMISSIBLE_PEAK_BYTES", "124000000000")
 )
-EXCEPTIONS = json.loads((ROOT / "memory-envelope-exceptions.json").read_text())
+EXCEPTIONS = json.loads((ROOT / "policy/memory-envelope-exceptions.json").read_text())
 
 
 def peaks() -> dict[str, int]:
@@ -41,7 +41,7 @@ class MemoryEnvelopeTests(unittest.TestCase):
         self.assertEqual(
             [slug for slug in EXCEPTIONS if slug not in known],
             [],
-            "memory-envelope-exceptions.json lists a recipe that is gone; remove it",
+            "policy/memory-envelope-exceptions.json lists a recipe that is gone; remove it",
         )
 
     def test_an_exception_that_now_fits_only_warns(self) -> None:
@@ -55,7 +55,7 @@ class MemoryEnvelopeTests(unittest.TestCase):
         ]
         if fits:
             warnings.warn(
-                f"memory-envelope-exceptions.json lists recipes that now fit: {fits}",
+                f"policy/memory-envelope-exceptions.json lists recipes that now fit: {fits}",
                 stacklevel=1,
             )
 

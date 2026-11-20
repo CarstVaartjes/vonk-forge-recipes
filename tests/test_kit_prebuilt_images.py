@@ -269,7 +269,7 @@ class RuleTests(unittest.TestCase):
         )
         self.assertEqual(len(problems), 1)
         self.assertIn("kit provides prebuilt image", problems[0])
-        self.assertIn("kit-image-exceptions.json", problems[0])
+        self.assertIn("policy/kit-image-exceptions.json", problems[0])
 
     def test_a_reasoned_exception_allows_it(self) -> None:
         self.assertEqual(
@@ -318,6 +318,7 @@ class CheckTests(unittest.TestCase):
             second["execution"]["build"]["context"]["path"] = "adapters/y"
             (root / "adapters/y").mkdir()
             (root / "adapters/y/Dockerfile").write_text("FROM scratch\n")
+            root.joinpath("policy").mkdir(exist_ok=True)
             (root / kit_pins.EXCEPTIONS).write_text(
                 json.dumps({"gone": "reason", "x": "was needed once"})
             )
@@ -333,7 +334,7 @@ class CheckTests(unittest.TestCase):
         self.assertEqual(
             notices,
             [
-                "remove the kit-image-exceptions.json entry of x: it runs the kit's image ghcr.io/creator/kit-image"
+                "remove the policy/kit-image-exceptions.json entry of x: it runs the kit's image ghcr.io/creator/kit-image"
             ],
         )
         self.assertTrue(any("'gone' is not a recipe" in p for p in found), found)

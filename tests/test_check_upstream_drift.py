@@ -103,7 +103,7 @@ class SourceParsingTests(unittest.TestCase):
 
 class DiscoveryTests(unittest.TestCase):
     def test_catalog_sources_are_all_discoverable(self) -> None:
-        defaults, overrides = drift.load_manifest(ROOT / "upstream-watch.json")
+        defaults, overrides = drift.load_manifest(ROOT / "policy/upstream-watch.json")
         watches = drift.discover_watches(ROOT, defaults, overrides)
         expected = set()
         for directory, kind in (("models", "model"), ("recipes", "recipe")):
@@ -122,7 +122,7 @@ class DiscoveryTests(unittest.TestCase):
         self.assertTrue(all(watch.policy != "manual" for watch in watches))
 
     def test_rejects_watch_policy_for_an_absent_document(self) -> None:
-        defaults, _ = drift.load_manifest(ROOT / "upstream-watch.json")
+        defaults, _ = drift.load_manifest(ROOT / "policy/upstream-watch.json")
         with self.assertRaisesRegex(drift.DriftInputError, "unknown entity"):
             drift.discover_watches(
                 ROOT, defaults, {"recipe/example/absent": {"policy": "default-branch"}}
@@ -377,7 +377,7 @@ class ObservationTests(unittest.TestCase):
 
 class ReleaseAssetWatchTests(unittest.TestCase):
     def watch(self):
-        defaults, overrides = drift.load_manifest(ROOT / "upstream-watch.json")
+        defaults, overrides = drift.load_manifest(ROOT / "policy/upstream-watch.json")
         return next(
             watch
             for watch in drift.discover_watches(ROOT, defaults, overrides)
@@ -500,7 +500,7 @@ class CreatorSignalTests(unittest.TestCase):
     families = FIXTURE_FAMILIES
 
     def test_live_catalog_recipe_watches_are_structurally_sound(self) -> None:
-        defaults, overrides = drift.load_manifest(ROOT / "upstream-watch.json")
+        defaults, overrides = drift.load_manifest(ROOT / "policy/upstream-watch.json")
         live = drift.discover_watches(ROOT, defaults, overrides)
         recipes = [w for w in live if w.entity.startswith("recipe/")]
         self.assertTrue(recipes)
@@ -618,7 +618,8 @@ class CreatorSignalTests(unittest.TestCase):
     def _scan_root(self, creators: str) -> Path:
         root = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, root, ignore_errors=True)
-        (root / "creators.json").write_text(creators, encoding="utf-8")
+        root.joinpath("policy").mkdir(exist_ok=True)
+        (root / "policy/creators.json").write_text(creators, encoding="utf-8")
         return root
 
     def test_scan_names_real_recipes_for_both_signals(self) -> None:
@@ -681,7 +682,9 @@ class CreatorSignalTests(unittest.TestCase):
         )
         signals = drift.scan_creator_signals(root, self.watches, client, NOW)
         self.assertEqual([f.kind for f in signals.findings], ["supersession"])
-        self.assertIn("creators.json", [e.subject for e in signals.signal_errors])
+        self.assertIn(
+            "policy/creators.json", [e.subject for e in signals.signal_errors]
+        )
 
     def test_detail_cannot_close_the_issue_fence(self) -> None:
         finding = drift._finding(
