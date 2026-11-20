@@ -127,15 +127,17 @@ def fetch(
     cache: Path,
     opener: Opener,
     sleep: Callable[[float], None],
+    urls: tuple[str, ...] | None = None,
 ) -> str:
     """Store one blob in the cache; return "" or what every attempt observed."""
     size = sources.sources[sha256].size_bytes
+    urls = sources.urls(sha256) if urls is None else urls
     evidence: list[str] = []
     for round_number in range(ROUNDS):
         if round_number:
             ceiling = min(BACKOFF_CAP_SECONDS, BACKOFF_BASE_SECONDS * 2**round_number)
             sleep(random.uniform(0, ceiling))
-        for url in sources.urls(sha256):
+        for url in urls:
             try:
                 refusal = _download(url, sha256, size, cache, opener)
             except (OSError, http.client.HTTPException) as error:
