@@ -424,11 +424,14 @@ def test_the_zip_has_fixed_members_order_timestamps_and_bytes(tmp_path: Path) ->
     for directory in (first, second):
         directory.mkdir()
     members = _members(first)
-    time.sleep(1.1)  # file modification times differ; the zip must not
     for path in members.values():
-        os.utime(path, (1, 1))
+        # file modification times differ; the zip must not
+        os.utime(path, (1_000_000_000, 1_000_000_000))
+    other = _members(second)
+    for path in other.values():
+        os.utime(path, (1_500_000_000, 1_500_000_000))
     one = run.publish(members, first, first)
-    two = run.publish(_members(second), second, second)
+    two = run.publish(other, second, second)
     assert one.read_bytes() == two.read_bytes()
     with zipfile.ZipFile(one) as archive:
         assert archive.namelist() == list(run.MEMBERS)
