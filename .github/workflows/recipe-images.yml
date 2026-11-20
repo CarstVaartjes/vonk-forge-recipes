@@ -104,7 +104,7 @@ jobs:
             git -C "$RUNNER_TEMP/image-base" checkout --detach "$BASE_SHA"
             # Transition by order: bases before .github/platform-ref pin it in
             # publish.yml; the follow-up PR reads the file here instead.
-            base_ref=$(grep -oE 'platform_ref: [0-9a-f]{40}' \
+            base_ref=$(grep -oE 'platform_ref:[[:space:]]+[0-9a-f]{40}' \
               "$RUNNER_TEMP/image-base/.github/workflows/publish.yml" | grep -oE '[0-9a-f]{40}')
             base_platform="$GITHUB_WORKSPACE/.vonk-forge"
             if [ "$base_ref" != "${{ steps.platform.outputs.ref }}" ]; then
