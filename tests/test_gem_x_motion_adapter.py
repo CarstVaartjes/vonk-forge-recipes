@@ -394,14 +394,17 @@ def test_the_publish_reserve_is_kept_back_from_the_model_run(tmp_path: Path) -> 
 # --- the NPZ and the zip -----------------------------------------------------------------
 
 
-def test_the_npz_is_byte_identical_for_identical_arrays_and_numpy_reads_it() -> None:
+def test_the_npz_is_byte_identical_for_identical_arrays_and_numpy_reads_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     numpy = _numpy()
     arrays = {
         "posed_joints": numpy.arange(24, dtype="float32").reshape(2, 4, 3),
         "fps": numpy.array([30.0], dtype="float32"),
     }
     first = export.npz_bytes(arrays)
-    time.sleep(1.1)  # the wall clock moves; the bytes must not
+    # the wall clock moves; the bytes must not
+    monkeypatch.setattr(time, "time", lambda: 4_000_000_000.0)
     assert export.npz_bytes(arrays) == first
     with zipfile.ZipFile(io.BytesIO(first)) as archive:
         assert {info.date_time for info in archive.infolist()} == {export.ZIP_TIMESTAMP}
@@ -535,11 +538,14 @@ def _members(directory: Path) -> dict[str, Path]:
 def test_the_zip_has_fixed_members_order_timestamps_and_bytes(tmp_path: Path) -> None:
     first, second = tmp_path / "a", tmp_path / "b"
     members = _members(first)
-    time.sleep(1.1)  # file modification times differ; the zip must not
     for path in members.values():
-        os.utime(path, (1, 1))
+        # file modification times differ; the zip must not
+        os.utime(path, (1_000_000_000, 1_000_000_000))
+    other = _members(second)
+    for path in other.values():
+        os.utime(path, (1_500_000_000, 1_500_000_000))
     one = run.publish(members, first, first)
-    two = run.publish(_members(second), second, second)
+    two = run.publish(other, second, second)
     assert one.read_bytes() == two.read_bytes()
     with zipfile.ZipFile(one) as archive:
         assert archive.namelist() == list(run.MEMBERS)
