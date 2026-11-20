@@ -1,4 +1,4 @@
-"""Fetch, verify and place the build-context files declared in policy/adapter-sources.json.
+"""Fetch, verify and place the build-context files declared in adapter-sources.json.
 
 Each declared blob is downloaded once into a content-addressed cache, mirror
 first and then its upstream origin. Its SHA-256 and size are checked while it
@@ -10,7 +10,7 @@ a fixed number of rounds with jittered backoff, then the tool fails with each
 URL's evidence. Each socket operation has a timeout; the total download time of
 a slow but live transfer is not capped.
 
-``policy/adapter-sources.json`` declares each blob once by content: the SHA-256 is the
+``adapter-sources.json`` declares each blob once by content: the SHA-256 is the
 key, the mirror serves it at ``mirror + sha256`` and ``origin`` optionally names
 where upstream published the same bytes. One blob may sit at several paths (a
 vendor overlay several adapters share). Only repository tooling reads the file;
@@ -37,7 +37,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, model_v
 from vonk_forge_contracts.recipe import RelativePath, Sha256
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST = "policy/adapter-sources.json"
+MANIFEST = "adapter-sources.json"
 CACHE_ENVIRONMENT = "VONK_ADAPTER_SOURCE_CACHE"
 ROUNDS = 4
 BACKOFF_BASE_SECONDS = 1.0

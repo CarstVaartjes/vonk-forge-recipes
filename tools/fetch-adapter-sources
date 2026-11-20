@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Place every file policy/adapter-sources.json declares, fetching missing blobs by digest."""
+"""Place every file adapter-sources.json declares, fetching missing blobs by digest."""
 
 import argparse
 import sys

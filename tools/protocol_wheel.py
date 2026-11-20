@@ -122,7 +122,7 @@ def materialize(
 ) -> None:
     """Write the text projections and declare the one wheel for every consumer path.
 
-    The wheel is one blob in ``policy/adapter-sources.json`` (uploaded to the mirror, never
+    The wheel is one blob in ``adapter-sources.json`` (uploaded to the mirror, never
     copied into each context for commit). ``check`` proves the text projections and
     that every wheel path of a materialized tree holds the selected bytes.
     """

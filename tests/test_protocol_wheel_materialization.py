@@ -42,8 +42,7 @@ class FakeGh:
 
 def fixture_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv(CACHE_ENVIRONMENT, str(tmp_path / "cache"))
-    tmp_path.joinpath("policy").mkdir(exist_ok=True)
-    (tmp_path / "policy/adapter-sources.json").write_text(
+    (tmp_path / "adapter-sources.json").write_text(
         json.dumps({"mirror": MIRROR, "sources": {}})
     )
     shutil.copytree(ROOT / "tools/protocol-wheel", tmp_path / "tools/protocol-wheel")
