@@ -98,13 +98,16 @@ def test_guard_rejects_independent_uv_pins(name: str, text: str) -> None:
     assert uv_pin_problems([(name, text)], "1.2.3") == [name]
 
 
-def test_ci_refreshes_trust_before_installing_tls_tools() -> None:
+def test_ci_trusts_the_pinned_certifi_bundle_not_a_per_job_apt_refresh() -> None:
     action = (ROOT / SETUP).read_text()
-    assert action.index("apt-get update") < action.index("apt-get install")
-    assert "--only-upgrade ca-certificates" in action
-    assert action.index("update-ca-certificates") < action.index(
-        "uses: astral-sh/setup-uv@"
-    )
+    assert "apt-get" not in action
+    # The uv cache is keyed by files that exist and is not redirected away.
+    assert "uv.lock" not in action
+    assert ".github/requirements-*.txt" in action
+    assert list((ROOT / ".github").glob("requirements-*.txt"))
+    for path in (ROOT / ".github/workflows").glob("*.yml"):
+        text = path.read_text()
+        assert "UV_CACHE_DIR" not in text and "UV_TOOL_DIR" not in text
     assert "-r .github/requirements-tooling.txt" in action
     for variable in ("SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE"):
         assert f'echo "{variable}=$bundle" >> "$GITHUB_ENV"' in action

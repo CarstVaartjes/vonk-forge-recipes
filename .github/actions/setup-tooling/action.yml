@@ -1,16 +1,8 @@
-name: Set up tooling with current CA certificates
-description: Refresh runner trust and install the single repository uv pin
+name: Set up tooling with the advisory-pinned trust bundle
+description: Install the single repository uv pin
 runs:
   using: composite
   steps:
-    - name: Refresh system certificates before TLS downloads
-      shell: bash
-      run: |
-        set -euo pipefail
-        sudo apt-get update
-        sudo apt-get install --yes --only-upgrade ca-certificates
-        sudo update-ca-certificates
-
     - name: Set up uv and Python
       uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
       with:
@@ -18,8 +10,7 @@ runs:
         python-version: "3.14"
         enable-cache: true
         cache-dependency-glob: |
-          uv.lock
-          .github/requirements-tooling.txt
+          .github/requirements-*.txt
         # Pull requests restore the cache main last saved; only main writes it.
         save-cache: ${{ github.ref == 'refs/heads/main' }}
 
