@@ -176,7 +176,7 @@ below).
 - Full checks build the contracts wheel and import/resolve examples from a clean
   external consumer directory. Generated indexes, packages and coverage are
   ignored build outputs, not committed state.
-- `adapter-sources.json` (`vonk_forge_contracts.adapter_sources`) declares build-context
+- `adapter-sources.json` (model in `tools/adapter_sources.py`) declares build-context
   files whose bytes live in the mirror instead of Git: SHA-256, size, optional upstream
   `origin` and every repository path that holds the blob. `tools/build-catalog-index` places
   them first (`tools/adapter_sources.py`; `tools/fetch-adapter-sources` does it alone), so

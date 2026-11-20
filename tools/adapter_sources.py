@@ -5,8 +5,16 @@ first and then its upstream origin. Its SHA-256 and size are checked while it
 streams in (the only place they are checked): a cache entry exists only after
 that check, so a present entry is used as is and a wrong-sized one is fetched
 again. A declared repository path that does not already hold a file of the
-declared size is then written from the cache. A download that fails is retried a bounded number of times with jittered backoff,
-and the tool then fails with each URL's evidence; it never waits unbounded.
+declared size is then written from the cache. A failed download is retried for
+a fixed number of rounds with jittered backoff, then the tool fails with each
+URL's evidence. Each socket operation has a timeout; the total download time of
+a slow but live transfer is not capped.
+
+``adapter-sources.json`` declares each blob once by content: the SHA-256 is the
+key, the mirror serves it at ``mirror + sha256`` and ``origin`` optionally names
+where upstream published the same bytes. One blob may sit at several paths (a
+vendor overlay several adapters share). Only repository tooling reads the file;
+packages carry the placed bytes, so no Controller or Spark ever sees it.
 """
 
 from __future__ import annotations
@@ -23,9 +31,10 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import AbstractContextManager
 from pathlib import Path
-from typing import BinaryIO
+from typing import Annotated, BinaryIO
 
-from vonk_forge_contracts.adapter_sources import AdapterSources
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, model_validator
+from vonk_forge_contracts.recipe import RelativePath, Sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = "adapter-sources.json"
@@ -38,6 +47,39 @@ PARALLEL_FETCHES = 4
 CHUNK_BYTES = 1 << 20
 
 Opener = Callable[[str], AbstractContextManager[BinaryIO]]
+HttpsUrl = Annotated[StrictStr, Field(max_length=2048, pattern=r"^https://\S+$")]
+
+
+class _Manifest(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
+
+
+class AdapterSource(_Manifest):
+    size_bytes: StrictInt = Field(gt=0)
+    origin: HttpsUrl | None = None
+    paths: tuple[RelativePath, ...] = Field(min_length=1)
+
+
+class AdapterSources(_Manifest):
+    mirror: HttpsUrl
+    sources: dict[Sha256, AdapterSource]
+
+    @model_validator(mode="after")
+    def one_content_per_path(self) -> AdapterSources:
+        if not self.mirror.endswith("/"):
+            raise ValueError("mirror must end with '/'")
+        paths = [path for source in self.sources.values() for path in source.paths]
+        if len(paths) != len(set(paths)):
+            raise ValueError("a path is declared more than once")
+        if any(".git" in path.split("/") for path in paths):
+            raise ValueError("a declared path is inside .git")
+        return self
+
+    def urls(self, sha256: str) -> tuple[str, ...]:
+        """Where the blob is fetched from, mirror first."""
+        origin = self.sources[sha256].origin
+        mirror = f"{self.mirror}{sha256}"
+        return (mirror,) if origin is None else (mirror, origin)
 
 
 class AdapterSourceError(RuntimeError):
