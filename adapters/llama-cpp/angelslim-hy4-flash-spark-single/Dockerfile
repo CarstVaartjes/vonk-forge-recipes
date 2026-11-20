@@ -68,7 +68,7 @@ RUN groupadd --gid 10001 vonk \
 COPY --from=build --chmod=0755 /opt/src/build/bin/llama-server /opt/vonk/bin/llama-server
 COPY --from=build /opt/src/llama.cpp/LICENSE /opt/vonk/LICENSE.llama.cpp
 # A shared library the runtime base lacks fails the image build, not the hardware start.
-# libcuda comes from the host driver at run time.
+# libcuda and libnvidia-* are injected by the host driver at run time, so they are not found here.
 RUN ! ldd /opt/vonk/bin/llama-server | grep "not found" | grep -v -e libcuda.so -e libnvidia
 
 ENV HOME=/state
