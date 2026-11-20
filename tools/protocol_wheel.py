@@ -124,7 +124,7 @@ def materialize(
 
     The wheel is one blob in ``adapter-sources.json`` (uploaded to the mirror, never
     copied into each context for commit). ``check`` proves the text projections and
-    that every wheel path either holds the selected bytes or is declared for them.
+    that every wheel path of a materialized tree holds the selected bytes.
     """
     from tools.adapter_mirror import add, run_gh, undeclare
     from tools.adapter_sources import load
@@ -150,12 +150,6 @@ def materialize(
         and _WHEEL.fullmatch(PurePosixPath(path).name)
     ]
     stale = sorted({path for path in [*held, *listed] if path not in outputs})
-    declared = {
-        path
-        for sha256, source in load(root).sources.items()
-        if sha256 == selected.artifact_sha256
-        for path in source.paths
-    }
     if check:
         if stale:
             raise ValueError(
@@ -167,15 +161,12 @@ def materialize(
                 raise ValueError(
                     f"{path}: stale protocol projection; run tools/materialize-protocol-wheel"
                 )
-        for path in wheels:
+        for path in wheels:  # a materialized tree holds every declared path
             target = root / path
-            if target.is_file():
-                if target.read_bytes() != outputs[path]:
-                    raise ValueError(f"{path}: stale protocol projection")
-            elif path not in declared:
+            if not target.is_file() or target.read_bytes() != outputs[path]:
                 raise ValueError(
-                    f"{path}: not declared in adapter-sources.json; "
-                    "run tools/materialize-protocol-wheel"
+                    f"{path}: missing or stale protocol wheel; run "
+                    "tools/fetch-adapter-sources, or tools/materialize-protocol-wheel"
                 )
         return
     for path in stale:
