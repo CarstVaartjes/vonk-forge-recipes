@@ -23,7 +23,6 @@ def title_for(key: str, entry: Mapping[str, Any]) -> str:
 
 
 def body_for(key: str, entry: Mapping[str, Any]) -> str:
-    timings = entry.get("timings") or {}
     lines = [
         f"Recipe `{key}` failed on the real Sparks.",
         "",
@@ -31,7 +30,6 @@ def body_for(key: str, entry: Mapping[str, Any]) -> str:
         f"- root-cause cluster: `{entry.get('cluster')}` (`{entry.get('signature')}`)",
         f"- recipe document digest: `{entry.get('content_sha256')}`",
         f"- attempts: {entry.get('attempts')}",
-        f"- timings: {json.dumps(timings, sort_keys=True)}",
         "",
         "Reason:",
         "",
