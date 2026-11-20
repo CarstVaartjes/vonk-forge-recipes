@@ -176,6 +176,13 @@ below).
 - Full checks build the contracts wheel and import/resolve examples from a clean
   external consumer directory. Generated indexes, packages and coverage are
   ignored build outputs, not committed state.
+- `adapter-sources.json` (`vonk_forge_contracts.adapter_sources`) declares build-context
+  files whose bytes live in the mirror instead of Git: SHA-256, size, optional upstream
+  `origin` and every repository path that holds the blob. `tools/build-catalog-index` places
+  them first (`tools/adapter_sources.py`; `tools/fetch-adapter-sources` does it alone), so
+  packages and recipe identities stay byte-identical. Blobs are verified once, while
+  downloading, into `$VONK_ADAPTER_SOURCE_CACHE`; a failed fetch retries a bounded number of
+  times and fails with each URL's evidence (`tests/test_adapter_sources.py`).
 
 [publish.yml](.github/workflows/publish.yml) runs on non-Markdown changes to
 `main`, validates first, promotes PR image candidates through
