@@ -188,8 +188,9 @@ below).
   (`tools/adapter_mirror.py`): it uploads the blob first and writes the manifest entry after.
   `publish.yml`'s `adapter-source-mirror` job re-uploads declared blobs the mirror lost from
   their `origin` (verified at ingress) and only warns about what it cannot heal; it never
-  blocks publication. `setup-tooling` caches `~/.cache/vonk-forge-recipes/adapter-sources`
-  keyed on the manifest. Tests: `tests/test_adapter_mirror.py`.
+  blocks publication (timeout, `continue-on-error`). The two jobs that materialize (the
+  validate.yml catalog job and the publish job) save `~/.cache/vonk-forge-recipes/adapter-sources`
+  keyed on the manifest; the mirror job only restores it. Tests: `tests/test_adapter_mirror.py`.
 
 [publish.yml](.github/workflows/publish.yml) runs on non-Markdown changes to
 `main`, validates first, promotes PR image candidates through
