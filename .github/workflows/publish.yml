@@ -94,6 +94,38 @@ jobs:
       actions: write
     uses: ./.github/workflows/recipe-images.yml
 
+  # Heals the mirror: a declared blob the release lost is re-fetched from its
+  # origin, verified, and uploaded. Nothing needs it and it never fails: what it
+  # cannot heal is a warning, and the next main run tries again.
+  adapter-source-mirror:
+    name: Keep the adapter source mirror whole
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up uv and Python
+        uses: ./.github/actions/setup-tooling
+
+      - name: Install producer contract dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          venv="$RUNNER_TEMP/mirror-venv"
+          uv venv --python 3.14 "$venv"
+          uv pip install --python "$venv/bin/python" -e contracts
+          echo "MIRROR_PYTHON=$venv/bin/python" >> "$GITHUB_ENV"
+
+      - name: Re-upload declared blobs missing from the mirror
+        shell: bash
+        run: |
+          "$MIRROR_PYTHON" tools/adapter-sources reconcile || echo "::warning::reconcile errored; the next main run retries"
+
   publish:
     name: Create signed library release
     needs: [validate, producer-contracts, images]

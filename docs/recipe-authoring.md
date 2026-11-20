@@ -1437,6 +1437,18 @@ downloading; a fetch failure retries a bounded number of times and then fails th
 build with each URL's evidence. Run `tools/fetch-adapter-sources` to place them
 in a checkout.
 
+To keep a new vendor file (an engine tarball, a vocabulary, a wheel) out of Git, put the
+file at its path in the context and run
+`tools/adapter-sources add <path>... [--origin <https URL>]` (needs `gh` signed in with
+write access). It hashes each file once, uploads it to the `adapter-sources` release as
+asset `<sha256>` unless it is already there, and only then writes or merges the manifest
+entry, so no entry points at a missing asset. Files with identical bytes become one entry
+with several paths; `--origin` (one distinct blob only) names where upstream publishes the
+bytes, which lets `publish.yml` re-upload the blob if the mirror ever loses it. A blob with
+no origin stays visibly missing until someone with the bytes runs `add` again. Assets are
+never replaced or deleted; a mirror asset whose digest differs from its name is reported
+and refused.
+
 ### Dependency locks and build-time smokes
 
 For an adapter that installs Python dependencies, keep its authored input and
