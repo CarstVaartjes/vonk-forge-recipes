@@ -377,3 +377,23 @@ def test_smoke_transport_failure_with_exited_workload_is_runtime_exit() -> None:
 
     # The workload still runs: a true transport failure keeps its class.
     assert verdict.smoke_workload_exit(request, ["running"]) is request
+
+
+def test_a_failed_attempt_row_carries_no_timings_from_an_earlier_pass(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    bad = FakeRecipe(
+        "bad", fail_load="boom: exit_cause=bad_arguments", fail_phase="start"
+    )
+    sweep, _, _ = make_sweep(tmp_path, [bad], [FakeModel("m1")], gateway=gateway)
+    sweep.state.entry(bad.key).update(timings={"load_s": 2647.5, "total_s": 3210.4})
+    sweep.run()
+    rows = [
+        json.loads(x) for x in (tmp_path / "results.jsonl").read_text().splitlines()
+    ]
+    failed = [
+        row
+        for row in rows
+        if row.get("recipe") == bad.key and row["status"] == "failed"
+    ]
+    assert failed and all("timings" not in row for row in failed)
