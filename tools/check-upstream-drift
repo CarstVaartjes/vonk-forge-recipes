@@ -35,7 +35,7 @@ from vonk_forge_contracts.model import GitHubReleaseSource
 
 from qualification.documents import model_display
 
-DEFAULT_MANIFEST = ROOT / "upstream-watch.json"
+DEFAULT_MANIFEST = ROOT / "policy/upstream-watch.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
 REPOSITORY_PART = re.compile(r"^[A-Za-z0-9_.-]+$")
 ENTITY_DIRECTORIES = {
@@ -1334,7 +1334,7 @@ def _readme_notice(client: ProviderClient, repository: str) -> CreatorFinding | 
 
 def _creator_owners(root: Path) -> list[str]:
     creators = CreatorsFile.model_validate_json(
-        (root / "creators.json").read_text(encoding="utf-8")
+        (root / "policy/creators.json").read_text(encoding="utf-8")
     )
     owners: dict[str, str] = {}
     for creator in creators.creators:
@@ -1359,7 +1359,9 @@ def scan_creator_signals(
         owners = _creator_owners(root)
     except (OSError, ValueError) as error:
         owners = []
-        owner_error = SignalError(subject="creators.json", detail=str(error)[:256])
+        owner_error = SignalError(
+            subject="policy/creators.json", detail=str(error)[:256]
+        )
     else:
         owner_error = None
 
@@ -1565,7 +1567,9 @@ def main() -> int:
         file_issues(signals)
         return 0
     root = arguments.root.resolve()
-    manifest = (arguments.manifest or root / DEFAULT_MANIFEST.name).resolve()
+    manifest = (
+        arguments.manifest or root / DEFAULT_MANIFEST.relative_to(ROOT)
+    ).resolve()
     try:
         defaults, overrides = load_manifest(manifest)
         watches = discover_watches(root, defaults, overrides)

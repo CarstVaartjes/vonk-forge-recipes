@@ -176,6 +176,9 @@ below).
 - Full checks build the contracts wheel and import/resolve examples from a clean
   external consumer directory. Generated indexes, packages and coverage are
   ignored build outputs, not committed state.
+- Repository-wide policy files (base-image and Model-revision holds, creators,
+  kit-image and memory-envelope exceptions, published images, upstream watch) live in `policy/`,
+  not the root (`adapter-sources.json` stays there).
 - `adapter-sources.json` (model in `tools/adapter_sources.py`) declares build-context
   files whose bytes live in the mirror instead of Git: SHA-256, size, optional upstream
   `origin` and every repository path that holds the blob. `tools/build-catalog-index` places

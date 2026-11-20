@@ -1,4 +1,4 @@
-"""A held Model revision (model-revision-holds.json) stays: refresh skips it, CI guards it."""
+"""A held Model revision (policy/model-revision-holds.json) stays: refresh skips it, CI guards it."""
 
 from __future__ import annotations
 
@@ -55,6 +55,7 @@ def catalog(root: Path, revision: str = HELD) -> None:
             }
         )
     )
+    root.joinpath("policy").mkdir(exist_ok=True)
     (root / holds.HOLDS).write_text(
         json.dumps(
             {
@@ -77,6 +78,7 @@ class CheckTests(unittest.TestCase):
             if change:
                 data = json.loads((root / holds.HOLDS).read_text())
                 data["held"].update(change)
+                root.joinpath("policy").mkdir(exist_ok=True)
                 (root / holds.HOLDS).write_text(json.dumps(data))
             return holds.problems(root)
 
