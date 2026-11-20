@@ -1462,7 +1462,10 @@ file over 1 MiB (vendored source tarballs and their split parts, tiktoken vocabu
 large reference JSON, the protocol wheel, model assets), plus the synthetic canary's
 package `tests/fixtures/canonical-synthetic-canary/package/canonical-synthetic-canary.tar.gz`.
 The canary package changes with every contract major: rebuild it, then run
-`tools/adapter-sources add` on its path. A declared path is ignored, not tracked: a fresh
+`tools/adapter-sources add` on its path. `tools/check-added-file-size` fails validate.yml and
+the pre-commit hook on any added or changed file over 1 MiB, anywhere in the repository, and
+its message names `tools/adapter-sources add`; there is no waiver, and files already in the
+tree are not re-flagged. A declared path is ignored, not tracked: a fresh
 clone lacks it, and a pull of the commit that stopped tracking a file deletes your copy.
 The tools that read those paths place them again first, from the local cache or the
 mirror (network): `tools/build-catalog-index`, `tools/check-build-context-sources`,

@@ -197,7 +197,10 @@ below).
   Every file under `adapters/` that is binary and over 64 KiB, or any file over 1 MiB, is
   declared, not committed, and so is the synthetic canary's package
   (`tests/fixtures/canonical-synthetic-canary/package/`; after regenerating it, run
-  `tools/adapter-sources add` on it). Each tool that reads those paths places them itself
+  `tools/adapter-sources add` on it). `tools/check-added-file-size` (validate.yml and the
+  pre-commit hook) refuses any added or changed file over 1 MiB, repository-wide, with no
+  waiver; files already in the tree are not re-flagged (`tests/test_check_added_file_size.py`).
+  Each tool that reads those paths places them itself
   first, from the cache or the mirror (network): `tools/build-catalog-index`,
   `tools/check-build-context-sources`, `tools/check-vendored-upstream`,
   `tools/kit-pins lock|check`, `tools/refresh-upstream` and `tools/materialize-protocol-wheel`.

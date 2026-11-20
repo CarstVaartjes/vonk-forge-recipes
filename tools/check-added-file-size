@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""Refuse an added or changed file over 1 MiB (owner rule, 2026-11-20).
+
+Large files do not belong in git: declare them with ``tools/adapter-sources add
+<path>...`` instead, which mirrors the bytes and keeps the path out of commits.
+
+The changed paths come in as arguments or ``--paths FILE|-`` (one per line), taken at
+the edge from ``git diff --name-only --diff-filter=AMR <base>...HEAD`` (CI) or
+``--cached`` (the pre-commit hook). A text diff carries no binary sizes, so each path
+is stat-ed in the checkout. Only changed paths are checked, repository-wide; files
+already in the tree are never re-flagged. There is no waiver and no count.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+LIMIT = 1024 * 1024
+
+
+def oversized(paths: list[str], root: Path = ROOT) -> list[str]:
+    """One error line for each existing regular file over the limit."""
+    errors = []
+    for name in paths:
+        path = root / name
+        if path.is_file() and not path.is_symlink() and path.stat().st_size > LIMIT:
+            errors.append(
+                f"{name}: {path.stat().st_size} bytes is over 1 MiB; do not commit it. "
+                f"Run `tools/adapter-sources add {name}` to mirror and declare it"
+            )
+    return errors
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("paths", nargs="*", help="changed paths")
+    parser.add_argument(
+        "--paths-from", metavar="FILE|-", help="one changed path per line"
+    )
+    arguments = parser.parse_args()
+    paths = list(arguments.paths)
+    if arguments.paths_from:
+        text = (
+            sys.stdin.read()
+            if arguments.paths_from == "-"
+            else Path(arguments.paths_from).read_text(encoding="utf-8")
+        )
+        paths += [line for line in text.splitlines() if line]
+    errors = oversized(paths)
+    for error in errors:
+        print(error, file=sys.stderr)
+    return 1 if errors else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
