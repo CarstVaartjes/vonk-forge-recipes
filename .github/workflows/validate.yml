@@ -40,60 +40,78 @@ jobs:
       # runtime policy.
       platform_ref: 4d64d046013ddc88629ee8d14120bcd95cf71113
 
-  # PR catalog checks run inside producer-contracts. Keep this existing
-  # required check as the image fan-in, so a failed matrix cannot be merged
-  # merely because the other required producer/platform checks are green.
-  catalog-index:
-    needs: images
-    if: ${{ always() && !inputs.producer_only && github.event_name != 'push' }}
-    name: Verify catalog index
+  # Build the catalog once and prove it deterministic: two independent builds
+  # of this tree must produce identical bytes (consumers reproduce a release by
+  # rebuilding its tagged commit). Both layouts are built twice and compared;
+  # on publication the proven checkout-layout build is uploaded and coverage
+  # reads it instead of building again.
+  catalog:
+    if: ${{ inputs.producer_only || github.event_name != 'workflow_call' }}
+    name: Build the catalog twice and require identical bytes
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - name: Require PR image proof
-        if: github.event_name == 'pull_request'
-        env:
-          IMAGE_RESULT: ${{ needs.images.result }}
-        run: test "$IMAGE_RESULT" = success
-
       - name: Check out recipes
-        if: github.event_name != 'pull_request'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Set up uv and Python
-        if: github.event_name != 'pull_request'
         uses: ./.github/actions/setup-tooling
 
-      # The index and packages are build outputs, not committed files.
-      # Consumers reproduce a release by rebuilding its tagged commit, so two
-      # independent builds of this tree must produce identical bytes.
       - name: Build the release asset set twice and require identical bytes
-        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
+          # Git runs here, at the CI edge; the tool takes the commit and epoch.
           epoch=$(git show -s --format=%ct "$GITHUB_SHA")
           test_venv="$RUNNER_TEMP/catalog-test-venv"
           uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" -e contracts
-          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first" \
-            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
-          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second" \
-            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
-          diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
-          echo "RECIPE_CATALOG_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
+          root="$RUNNER_TEMP/catalog-build"
+          # Two independent builds of each layout: the release asset set and the
+          # checkout-layout set that publication derives coverage from. Each PID
+          # is waited on separately so every exit code counts.
+          pids=()
+          for n in first second; do
+            "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/release-$n" \
+              --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" &
+            pids+=($!)
+            "$test_venv/bin/python" tools/build-catalog-index --output-dir "$RUNNER_TEMP/root-$n" \
+              --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" &
+            pids+=($!)
+          done
+          for pid in "${pids[@]}"; do wait "$pid"; done
+          diff -r "$RUNNER_TEMP/release-first" "$RUNNER_TEMP/release-second"
+          diff -r "$RUNNER_TEMP/root-first" "$RUNNER_TEMP/root-second"
+          mv "$RUNNER_TEMP/root-first" "$root"
 
-      - name: Derive family-aware coverage from the current catalog
-        if: github.event_name != 'pull_request'
-        shell: bash
-        run: |
-          set -euo pipefail
-          epoch=$(git show -s --format=%ct "$GITHUB_SHA")
-          "$RECIPE_CATALOG_PYTHON" tools/build-catalog-index \
-            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
-          "$RECIPE_CATALOG_PYTHON" tools/build-family-aware-coverage
+      # Only publication reads it (coverage); pull requests upload nothing.
+      - name: Upload the verified catalog build
+        if: inputs.producer_only
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: catalog-build
+          path: ${{ runner.temp }}/catalog-build
+          if-no-files-found: error
+          retention-days: 1
+
+  # Required check: the image fan-in, so a failed matrix (or a catalog that is
+  # not byte-identical) cannot be merged merely because the other required
+  # producer/platform checks are green. The producer checks run in
+  # producer-contracts.
+  catalog-index:
+    needs: [images, catalog]
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    name: Verify catalog index
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require PR image proof
+        env:
+          IMAGE_RESULT: ${{ needs.images.result }}
+          CATALOG_RESULT: ${{ needs.catalog.result }}
+        run: test "$IMAGE_RESULT" = success && test "$CATALOG_RESULT" = success
 
   producer-contracts:
     if: ${{ inputs.producer_only || github.event_name != 'workflow_call' }}
@@ -137,30 +155,15 @@ jobs:
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" tools/generate-contract-schemas --check
 
-      - name: Build the catalog index twice and require identical bytes
+      # The test suite's build (tests/generated_catalog.py, fixed provenance, no
+      # git) is built once here, before the workers start; the release builds
+      # and their byte-equality proof are the catalog job's.
+      - name: Build the test suite's catalog once
         shell: bash
         run: |
           set -euo pipefail
-          # Git runs here, at the CI edge; the tool takes the commit and epoch.
-          epoch=$(git show -s --format=%ct "$GITHUB_SHA")
-          # Independent builds: two release dirs (each builds in its own temp
-          # dir) and the test suite's build (tests/generated_catalog.py, fixed
-          # provenance, no git), which is not read by the others. The suite
-          # reuses that build instead of repeating it before its workers start.
-          # Each PID is waited on separately so every exit code counts.
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first" \
-            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" &
-          first_pid=$!
-          "$RECIPE_TEST_PYTHON" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second" \
-            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" &
-          second_pid=$!
           generated="$RUNNER_TEMP/generated"
-          "$RECIPE_TEST_PYTHON" tests/generated_catalog.py "$generated" &
-          generated_pid=$!
-          wait "$first_pid"
-          wait "$second_pid"
-          wait "$generated_pid"
-          diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
+          "$RECIPE_TEST_PYTHON" tests/generated_catalog.py "$generated"
           "$RECIPE_TEST_PYTHON" tools/build-family-aware-coverage --catalog-root "$generated"
           echo "VONK_RECIPES_GENERATED_DIR=$generated" >> "$GITHUB_ENV"
 
@@ -397,19 +400,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-lint
+          tools/check-python-lint
 
       - name: Check formatting with pinned Ruff
         shell: bash
         run: |
           set -euo pipefail
-          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-format
+          tools/check-python-format
 
       - name: Type check the repository with pinned Pyright
         shell: bash
         run: |
           set -euo pipefail
-          UV_CACHE_DIR="$RUNNER_TEMP/uv-cache" scripts/check-python-types
+          scripts/check-python-types
 
       - name: Build and externally import the contracts wheel
         shell: bash
@@ -421,66 +424,6 @@ jobs:
           uv build --wheel --out-dir "$wheel_dir" contracts
           uv venv --python 3.14 "$consumer_venv"
           uv pip install --python "$consumer_venv/bin/python" "$wheel_dir"/*.whl
-          mkdir -p "$consumer_cwd"
-          (
-            cd "$consumer_cwd"
-            "$consumer_venv/bin/python" - <<'PY'
-          from importlib.resources import files
-
-          import json
-
-          from vonk_forge_contracts import document_sha256, read_model, read_recipe
-          from vonk_forge_contracts.resolver import validate_recipe_models
-
-          examples = files("vonk_forge_contracts").joinpath("examples")
-          document = json.loads(examples.joinpath("model-definition.json").read_text())
-          models = {document_sha256(document): read_model(document)}
-          lfs = json.loads(examples.joinpath("model-definition-github-lfs.json").read_text())
-          assert read_model(lfs).source.provider == "github-lfs"
-          for name in ("recipe-source-build.json", "recipe-job.json", "recipe-dual.json"):
-              recipe = read_recipe(json.loads(examples.joinpath(name).read_text()))
-              validate_recipe_models(recipe, models)
-          print("External wheel import and three Recipe resolutions: OK")
-          PY
-          )
-
-  public-contracts:
-    if: ${{ !inputs.producer_only && github.event_name != 'pull_request' && github.event_name != 'push' }}
-    name: Verify public contracts package
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - name: Check out recipes
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up uv and Python
-        uses: ./.github/actions/setup-tooling
-
-      - name: Test, lint, and build public contracts
-        shell: bash
-        run: |
-          set -euo pipefail
-          test_venv="$RUNNER_TEMP/contracts-test-venv"
-          uv venv --python 3.14 "$test_venv"
-          uv pip install --python "$test_venv/bin/python" \
-            'pydantic>=2.13,<3' -r .github/requirements-producer-tests.txt
-          "$test_venv/bin/pytest" -q tests/test_contracts.py
-          "$test_venv/bin/python" tools/generate-contract-schemas --check
-          "$test_venv/bin/python" tools/generate-contract-examples
-          if ! git diff --quiet -- contracts/src/vonk_forge_contracts/examples; then
-            echo 'Generated contract examples are stale; run tools/generate-contract-examples' >&2
-            git diff -- contracts/src/vonk_forge_contracts/examples
-            exit 1
-          fi
-          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" \
-            tools/check-python-lint
-
-          wheel_dir="$RUNNER_TEMP/contracts-wheel"
-          uv build --wheel --out-dir "$wheel_dir" contracts
-          consumer_venv="$RUNNER_TEMP/contracts-consumer-venv"
-          uv venv --python 3.14 "$consumer_venv"
-          uv pip install --python "$consumer_venv/bin/python" "$wheel_dir"/*.whl
-          consumer_cwd="$RUNNER_TEMP/contracts-consumer"
           mkdir -p "$consumer_cwd"
           (
             cd "$consumer_cwd"
