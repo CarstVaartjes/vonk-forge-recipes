@@ -185,7 +185,12 @@ below).
   times and fails with each URL's evidence (`tests/test_adapter_sources.py`).
   The mirror is the `adapter-sources` release (assets named by SHA-256, never replaced or
   deleted). Authors add a vendor file with `tools/adapter-sources add <path>... [--origin URL]`
-  (`tools/adapter_mirror.py`): it uploads the blob first and writes the manifest entry after.
+  (`tools/adapter_mirror.py`): it uploads the blob first and writes the manifest entry after,
+  plus a generated block in `.gitignore` for every declared path. Producers declare instead of
+  committing: `tools/kit-pins lock` (and `tools/refresh-upstream`, which moves kits through
+  it) mirrors a newly fetched base archive with its codeload URL as `origin`, and
+  `tools/materialize-protocol-wheel` declares the one protocol wheel for every consumer
+  path (`tools/protocol_wheel.py`); neither leaves a binary to commit.
   `publish.yml`'s `adapter-source-mirror` job re-uploads declared blobs the mirror lost from
   their `origin` (verified at ingress) and only warns about what it cannot heal; it never
   blocks publication (timeout, `continue-on-error`). The two jobs that materialize (the

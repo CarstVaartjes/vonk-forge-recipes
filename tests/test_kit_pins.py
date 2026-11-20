@@ -541,10 +541,33 @@ class ApplyLockTests(unittest.TestCase):
                 fetched.append((repo, commit))
                 return b"new archive"
 
+            declared: list[tuple[str, str]] = []
+            (root / "adapter-sources.json").write_text(
+                json.dumps(
+                    {
+                        "mirror": "https://github.com/o/r/releases/download/t/",
+                        "sources": {},
+                    }
+                )
+            )
             changed = kit_pins.apply_lock(
-                root, "mia", recipe_for(KIT_NEW), upstream(FakeApi()), fetch
+                root,
+                "mia",
+                recipe_for(KIT_NEW),
+                upstream(FakeApi()),
+                fetch,
+                lambda _root, archive, origin: declared.append((archive.name, origin)),
             )
             self.assertEqual(fetched, [(BASE, BASE_060)])
+            self.assertEqual(
+                declared,
+                [
+                    (
+                        f"tensorfold-{BASE_060}.tar.gz",
+                        f"https://codeload.github.com/{BASE}/tar.gz/{BASE_060}",
+                    )
+                ],
+            )
             self.assertTrue(any(c.startswith("kit-lock.json") for c in changed))
             lock = json.loads((directory / "kit-lock.json").read_text())
             self.assertEqual(lock["dependencies"]["base"]["commit"], BASE_060)
