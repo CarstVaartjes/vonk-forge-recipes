@@ -2531,7 +2531,7 @@ class Sweep:
     def _read_progress(self, load: dict[str, Any]) -> Any:
         args = ["progress"]
         if load.get("app_id"):
-            args += ["--application", load["app_id"]]
+            args += ["--load", load["app_id"]]
         else:
             args += ["--request-key", load["request_key"]]
         return self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
@@ -3979,7 +3979,7 @@ class Sweep:
         return self.vk.run(
             "profile",
             "progress",
-            "--application",
+            "--load",
             application_id,
             profile=self.cfg.sweep_profile,
             timeout=30,

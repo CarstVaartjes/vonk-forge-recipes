@@ -361,12 +361,12 @@ def test_request_map_observes_each_lane_independently(tmp_path: Path) -> None:
     fleet.observations.extend(
         [
             (
-                ("profile", "progress", "--application", "slow-app"),
+                ("profile", "progress", "--load", "slow-app"),
                 0,
                 {"id": "slow-app", "state": "observing"},
             ),
             (
-                ("profile", "progress", "--application", "fast-app"),
+                ("profile", "progress", "--load", "fast-app"),
                 0,
                 {"id": "fast-app", "state": "succeeded"},
             ),
