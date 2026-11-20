@@ -2366,7 +2366,6 @@ class Sweep:
             "controller_version": self.state.data["release"].get("version"),
             "node_count": recipe.node_count if recipe else None,
             "engine": recipe.engine if recipe else None,
-            "timings": entry.get("timings"),
             "verdict_identity": content_identity(recipe).model_dump(mode="json")
             if slot and recipe is not None
             else entry.get("verdict_identity"),
@@ -2496,6 +2495,7 @@ class Sweep:
             result={"endpoint_alias": slot["alias"], **result.record()},
             memory=observed,
             measured_memory=[row.model_dump(mode="json") for row in measured] or None,
+            timings=timings,
             slot=slot,
         )
         notes = len(quality)
