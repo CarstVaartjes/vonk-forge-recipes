@@ -202,8 +202,9 @@ below).
   `publish.yml`'s `adapter-source-mirror` job re-uploads declared blobs the mirror lost from
   their `origin` (verified at ingress) and only warns about what it cannot heal; it never
   blocks publication (timeout, `continue-on-error`). The jobs that materialize (validate.yml's
-  catalog and producer-contracts jobs, the publish job, the recipe-images plan job and the
-  refresh job) save `~/.cache/vonk-forge-recipes/adapter-sources` keyed on the manifest; the
+  catalog and producer-contracts jobs, the publish job, the recipe-images plan job, the
+  refresh job and the llama.cpp loader job, which builds contexts straight from the
+  checkout and so runs `tools/fetch-adapter-sources` first) save `~/.cache/vonk-forge-recipes/adapter-sources` keyed on the manifest; the
   mirror job only restores it. Tests: `tests/test_adapter_mirror.py`.
 
 [publish.yml](.github/workflows/publish.yml) runs on non-Markdown changes to
