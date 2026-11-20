@@ -285,7 +285,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         "profile_edit_wait": data.get("profile_edit_wait"),
         "dual_reservation": data.get("dual_reservation"),
         "offline_lanes": offline,
-        "source_skewed": len(sweep.skew_noted),
+        "source_skewed": sweep.source_skewed(),
         "waiting_for_lanes": sum(
             1
             for k in sweep.queue
