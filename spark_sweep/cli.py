@@ -24,7 +24,7 @@ from .own_pulls import REPOSITORY
 from .plan import make_plan, render_plan
 from .prefetch import PrefetchConfig
 from .report import build_report, export_evidence, render_report, saved_qualification
-from .run import Clock, Sweep, SweepConfig, selects
+from .run import DEFAULT_BOOST, Clock, Sweep, SweepConfig, selects
 from .smoke import HttpConfig
 from .source_serving import authored_contents, describe, unserved
 from .state import ResultsLog, State, StateLock, StateLocked
@@ -61,7 +61,7 @@ def _parser() -> argparse.ArgumentParser:
             "--boost",
             action="append",
             default=None,
-            help="prioritise recipes matching this word (default: glm-5-3)",
+            help=f"prioritise recipes matching this word (default: {', '.join(DEFAULT_BOOST)})",
         )
         sub.add_argument(
             "--seed-list",
@@ -99,6 +99,15 @@ def _parser() -> argparse.ArgumentParser:
     )
     run.add_argument("--sweep-profile", type=int, default=10)
     run.add_argument("--pin-profile", type=int, default=13)
+    run.add_argument(
+        "--protected-profile",
+        type=int,
+        action="append",
+        default=None,
+        help="a profile number the sweep must never use (repeatable; default: "
+        + ", ".join(str(n) for n in sorted(OWNER_PROFILES))
+        + "); vonkctl still refuses writes to the owner profiles",
+    )
     run.add_argument(
         "--no-pin",
         action="store_true",
@@ -213,7 +222,7 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def _boost(args: argparse.Namespace) -> policy.Boost:
-    keywords = tuple(args.boost) if args.boost is not None else ("glm-5-3",)
+    keywords = tuple(args.boost) if args.boost is not None else DEFAULT_BOOST
     return policy.make_boost(keywords, _seed(args), time.time(), args.recent_days)
 
 
@@ -226,11 +235,17 @@ def _seed(args: argparse.Namespace) -> frozenset[str]:
 
 
 def _config(args: argparse.Namespace) -> SweepConfig:
-    if args.sweep_profile in OWNER_PROFILES or (
-        not args.no_pin and args.pin_profile in OWNER_PROFILES
+    protected = (
+        frozenset(args.protected_profile)
+        if args.protected_profile is not None
+        else OWNER_PROFILES
+    )
+    if args.sweep_profile in protected or (
+        not args.no_pin and args.pin_profile in protected
     ):
         raise SystemExit(
-            "profiles 1-3 are the owner's: choose other numbers for --sweep-profile and --pin-profile"
+            f"profiles {', '.join(str(n) for n in sorted(protected))} are protected: "
+            "choose other numbers for --sweep-profile and --pin-profile"
         )
     if not args.no_pin and args.pin_profile == args.sweep_profile:
         raise SystemExit("--pin-profile must differ from --sweep-profile")
@@ -261,7 +276,7 @@ def _config(args: argparse.Namespace) -> SweepConfig:
             multiplier=args.timeout_multiplier,
             cap_seconds=args.max_load_minutes * 60,
         ),
-        boost=tuple(args.boost) if args.boost is not None else ("glm-5-3",),
+        boost=tuple(args.boost) if args.boost is not None else DEFAULT_BOOST,
         recent_days=args.recent_days,
         seed=_seed(args),
         only=tuple(args.only),

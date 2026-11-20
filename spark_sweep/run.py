@@ -243,6 +243,9 @@ def _fleet_skip(entry: Mapping[str, Any]) -> bool:
     )
 
 
+DEFAULT_BOOST = ("glm-5-3",)
+
+
 @dataclass
 class SweepConfig:
     state_dir: Path
@@ -263,7 +266,7 @@ class SweepConfig:
     http: HttpConfig = field(default_factory=HttpConfig)
     prefetch: PrefetchConfig = field(default_factory=PrefetchConfig)
     timeouts: policy.TimeoutPolicy = field(default_factory=policy.TimeoutPolicy)
-    boost: tuple[str, ...] = ("glm-5-3",)
+    boost: tuple[str, ...] = DEFAULT_BOOST
     recent_days: float = 3.0
     seed: frozenset[str] = frozenset()
     only: tuple[str, ...] = ()
