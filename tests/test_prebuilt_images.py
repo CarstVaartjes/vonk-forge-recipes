@@ -239,17 +239,24 @@ def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:
 OLD_PIN = "1" * 40
 
 
-def test_every_platform_pin_equals_the_one_owner_file() -> None:
-    assert tool.platform_ref(f"{OLD_PIN}\n") == OLD_PIN
-    assert tool.platform_ref("not-a-commit\n") is None
-    owner = tool.platform_ref((ROOT / ".github/platform-ref").read_text("utf-8"))
+def test_the_platform_pin_is_read_from_the_publication_workflow() -> None:
+    assert tool.platform_ref(f"x:\n  platform_ref: {OLD_PIN}\n") == OLD_PIN
+    assert tool.platform_ref("platform_ref: not-a-commit\n") is None
+    workflow = (ROOT / ".github/workflows/publish.yml").read_text(encoding="utf-8")
+    assert tool.platform_ref(workflow) is not None
+
+
+def test_every_platform_pin_equals_publish_workflows() -> None:
+    """`uses:` takes no expression, so every literal must equal the owner's."""
+
+    workflows = ROOT / ".github/workflows"
+    owner = tool.platform_ref((workflows / "publish.yml").read_text("utf-8"))
     assert owner is not None
-    # `uses:` cannot take an expression, so the literals stay in the workflows.
     pins = {
         sha
-        for workflow in (ROOT / ".github/workflows").glob("*.yml")
+        for workflow in workflows.glob("*.yml")
         for found in re.findall(
-            r"vonk-forge/\.github/workflows/[\w-]+\.yml@(\S+)|platform_ref: (\S+)",
+            r"vonk-forge/\.github/workflows/[\w-]+\.yml@(\S+)|platform_ref:\s*(\S+)",
             workflow.read_text("utf-8"),
         )
         for sha in found
