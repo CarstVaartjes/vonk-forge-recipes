@@ -2548,7 +2548,7 @@ class Assessor:
             if (item.image or item.kind == "image") and base_holds.moves_held_image(
                 hold, moved
             ):
-                # A held base image stays (base-image-holds.json): no move, no review.
+                # A held base image stays (policy/base-image-holds.json): no move, no review.
                 item.noop = True
                 result.declined.append(item.label)
                 result.evidence.append(
@@ -2559,7 +2559,7 @@ class Assessor:
             if item.provider == "huggingface" and model_holds.declines(
                 model_hold, item.repo, item.target.sha
             ):
-                # The declined revision stays declined (model-revision-holds.json); a
+                # The declined revision stays declined (policy/model-revision-holds.json); a
                 # newer one is assessed again.
                 item.noop = True
                 result.declined.append(item.label)
@@ -4799,7 +4799,7 @@ def command_run(arguments: argparse.Namespace) -> int:
 
     def assess_catalog():
         catalog_ = Catalog.load(root)
-        defaults, overrides = drift.load_manifest(root / "upstream-watch.json")
+        defaults, overrides = drift.load_manifest(root / "policy/upstream-watch.json")
         watches = drift.discover_watches(root, defaults, overrides)
         embedded = drift.embedded_inventory(root, watches)
         drift.observe_embedded_heads(embedded, AnonymousHeadClient(http))

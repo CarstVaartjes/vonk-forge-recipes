@@ -1,4 +1,4 @@
-"""A held base image (base-image-holds.json) stays put: refresh skips it, CI guards it."""
+"""A held base image (policy/base-image-holds.json) stays put: refresh skips it, CI guards it."""
 
 from __future__ import annotations
 
@@ -53,6 +53,7 @@ def catalog(root: Path, digest: str, from_digest: str | None = None) -> None:
     (root / DOCKERFILE).write_text(
         f"FROM {REPOSITORY}@sha256:{from_digest or digest}\nRUN true\n"
     )
+    root.joinpath("policy").mkdir(exist_ok=True)
     (root / holds.HOLDS).write_text(
         json.dumps(
             {
@@ -97,6 +98,7 @@ class CheckTests(unittest.TestCase):
             catalog(root, HELD)
             data = json.loads((root / holds.HOLDS).read_text())
             data["held"]["reason"] = ""
+            root.joinpath("policy").mkdir(exist_ok=True)
             (root / holds.HOLDS).write_text(json.dumps(data))
             self.assertIn("needs a reason", holds.problems(root)[0])
 

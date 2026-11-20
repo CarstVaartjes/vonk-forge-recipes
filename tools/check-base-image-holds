@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Keep a held base image where it is held.
 
-``base-image-holds.json`` names recipes whose base image must not move with a refresh
+``policy/base-image-holds.json`` names recipes whose base image must not move with a refresh
 (a newer engine release breaks them), with the reason and an upstream reference::
 
     {"<recipe id>": {"base_image": {"repository": "...", "digest": "<sha256 hex>"},
@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-HOLDS = "base-image-holds.json"
+HOLDS = "policy/base-image-holds.json"
 DIGEST = re.compile(r"^[0-9a-f]{64}$")
 FROM = re.compile(
     r"^[ \t]*FROM[ \t]+(?:--\S+[ \t]+)*(?P<image>\S+)", re.MULTILINE | re.IGNORECASE

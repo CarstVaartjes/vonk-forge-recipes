@@ -2,7 +2,7 @@
 """Require a recipe that runs its source's published image to claim the commit it runs.
 
 A recipe whose adapter builds ``FROM`` an image its source repository publishes
-(``published-images.json``; see ``tools/kit-pins followed_image``) runs that image, so
+(``policy/published-images.json``; see ``tools/kit-pins followed_image``) runs that image, so
 the revision it states (``provenance.source_reference``, the Dockerfile's
 ``org.opencontainers.image.revision`` label, ``vendored-upstream.json``'s
 ``source.commit``) must be the build commit the image records about itself
