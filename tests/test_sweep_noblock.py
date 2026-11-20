@@ -84,7 +84,7 @@ def test_saved_unadmitted_storage_wait_keeps_the_same_load(
     )
     for cycle in range(4):
         fleet.observations.append(
-            (("profile", "progress", "--application", application), 0, document)
+            (("profile", "progress", "--load", application), 0, document)
         )
         sweep.tick()
         slot = sweep.state.slots[recipe.key]
@@ -105,7 +105,7 @@ def test_saved_unadmitted_storage_wait_keeps_the_same_load(
     copying = fleet._app_doc(fleet.apps[application])
     copying["progress"]["child_progress"] = {"phase": "target-copy", "bytes": 100}
     fleet.observations.append(
-        (("profile", "progress", "--application", application), 0, copying)
+        (("profile", "progress", "--load", application), 0, copying)
     )
     sweep.tick()
     assert sweep.state.slots[recipe.key]["copying"]
@@ -141,7 +141,7 @@ def test_pending_storage_expires_with_evidence_without_recipe_attempt(
     document["id"] = application
     for expired in (False, True):
         fleet.observations.append(
-            (("profile", "progress", "--application", application), 0, document)
+            (("profile", "progress", "--load", application), 0, document)
         )
         sweep.advance_slots(clock.now())
         if not expired:
@@ -250,7 +250,7 @@ def test_stuck_receipt_keeps_only_its_lane_after_restart(
     else:
         fleet.observations.append(
             (
-                ("profile", "progress", "--application", application),
+                ("profile", "progress", "--load", application),
                 2,
                 TRANSPORT_TIMEOUT,
             )
@@ -311,7 +311,7 @@ def test_saved_cleanup_on_one_spark_admits_the_other_in_one_tick(
     if fault == "unreadable":
         fleet.observations.append(
             (
-                ("profile", "progress", "--application", application),
+                ("profile", "progress", "--load", application),
                 2,
                 TRANSPORT_TIMEOUT,
             )

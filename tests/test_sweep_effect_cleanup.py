@@ -453,7 +453,7 @@ def saved_confirmed_cleanup(
 ):
     sweep, fleet, clock, recipe, key, original, app = scenario(tmp_path, dual=True)
     clock.sleep(3600)
-    reply = sweep.vk.run("profile", "progress", "--application", app["id"], profile=10)
+    reply = sweep.vk.run("profile", "progress", "--load", app["id"], profile=10)
     rows = cleanup.stop_effects(reply.document)
     assert rows and all(cleanup.stopped(row) for row in rows)
     original["effects"] = rows

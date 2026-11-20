@@ -129,7 +129,7 @@ def test_the_lane_progress_reads_of_a_poll_overlap(tmp_path: Path) -> None:
 
     def runner(argv, timeout):
         # The first read of each lane names its application; the by-key retry does not.
-        if _command(argv) == ("profile", "progress") and "--application" in argv:
+        if _command(argv) == ("profile", "progress") and "--load" in argv:
             barrier.wait()  # releases only when every lane's first read is in flight
         return inner(argv, timeout)
 
@@ -159,12 +159,12 @@ def test_a_lane_whose_read_fails_leaves_the_others_observed(tmp_path: Path) -> N
     fleet.observations.extend(
         [
             (
-                ("profile", "progress", "--application", "a-app"),
+                ("profile", "progress", "--load", "a-app"),
                 2,
                 {"error_type": "control_api", "code": "http.503", "http_status": 503},
             ),
             (
-                ("profile", "progress", "--application", "b-app"),
+                ("profile", "progress", "--load", "b-app"),
                 0,
                 {"id": "b-app", "state": "succeeded"},
             ),
