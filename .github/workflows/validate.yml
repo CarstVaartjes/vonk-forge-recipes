@@ -341,6 +341,16 @@ jobs:
           set -euo pipefail
           python3 tools/_added_lines.py --base origin/main > "$RUNNER_TEMP/added.diff"
 
+      # A file over 1 MiB is declared with tools/adapter-sources add, never committed.
+      # Only files this PR adds or changes are checked (stat-ed: a text diff has no
+      # binary sizes), repository-wide, with no waiver.
+      - name: Reject added or changed files over 1 MiB
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only --diff-filter=AMR origin/main...HEAD > "$RUNNER_TEMP/changed.txt"
+          python3 tools/check-added-file-size --paths-from "$RUNNER_TEMP/changed.txt"
+
       # GB10 shares one memory pool between CPU and CUDA: new adapter code may
       # not build a full model as real CPU tensors or pin a model constructor
       # to CUDA. Checks only lines added against main.
