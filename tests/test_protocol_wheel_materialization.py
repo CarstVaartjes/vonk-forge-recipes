@@ -11,7 +11,8 @@ from zipfile import ZipFile
 
 import pytest
 
-from tools.adapter_sources import load
+from tools.adapter_sources import CACHE_ENVIRONMENT, load
+from tools.adapter_sources import materialize as place
 from tools.protocol_wheel import ROOT, SELECTION, materialize, projections, selection
 from tools.single_source_values import check
 
@@ -39,7 +40,8 @@ class FakeGh:
         )
 
 
-def fixture_root(tmp_path: Path) -> Path:
+def fixture_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    monkeypatch.setenv(CACHE_ENVIRONMENT, str(tmp_path / "cache"))
     (tmp_path / "adapter-sources.json").write_text(
         json.dumps({"mirror": MIRROR, "sources": {}})
     )
@@ -79,8 +81,10 @@ def test_every_protocol_consumer_is_reproduced_byte_for_byte() -> None:
     )
 
 
-def test_guard_rejects_hand_edited_generated_consumer(tmp_path: Path) -> None:
-    root = fixture_root(tmp_path)
+def test_guard_rejects_hand_edited_generated_consumer(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = fixture_root(tmp_path, monkeypatch)
     assert not check(root, files(root))
     selected = selection(root)
     target = root / selected.consumers[0].context / "Dockerfile"
@@ -93,8 +97,10 @@ def test_guard_rejects_hand_edited_generated_consumer(tmp_path: Path) -> None:
     )
 
 
-def test_changed_owner_invalidates_stale_consumers(tmp_path: Path) -> None:
-    root = fixture_root(tmp_path)
+def test_changed_owner_invalidates_stale_consumers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = fixture_root(tmp_path, monkeypatch)
     selected = selection(root)
     path = root / SELECTION
     path.write_text(
@@ -108,8 +114,10 @@ def test_changed_owner_invalidates_stale_consumers(tmp_path: Path) -> None:
     )
 
 
-def test_same_filename_with_different_content_fails_closed(tmp_path: Path) -> None:
-    root = fixture_root(tmp_path)
+def test_same_filename_with_different_content_fails_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = fixture_root(tmp_path, monkeypatch)
     selected = selection(root)
     artifact = root / selected.artifact
     artifact.write_bytes(artifact.read_bytes() + b"tampered")
@@ -119,8 +127,9 @@ def test_same_filename_with_different_content_fails_closed(tmp_path: Path) -> No
 
 def test_new_reviewed_artifact_drives_filename_hash_and_metadata(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    root = fixture_root(tmp_path)
+    root = fixture_root(tmp_path, monkeypatch)
     selected = selection(root)
     old = root / selected.artifact
     version = "92.3.1"
@@ -160,9 +169,10 @@ def test_new_reviewed_artifact_drives_filename_hash_and_metadata(
 
     materialize(root, gh=FakeGh())
     assert not check(root, files(root))
-    materialize(root, check=True)
     # one wheel on disk; the manifest declares the one blob for every consumer path
     assert len(list(root.glob("adapters/**/*.whl"))) == 1
+    place(root)  # a tree materialized from the mirror cache holds every path
+    materialize(root, check=True)
     declared = load(root).sources[updated.artifact_sha256].paths
     assert sorted(declared) == sorted(
         str(Path(c.context) / c.wheel_directory / name) for c in updated.consumers
@@ -170,11 +180,11 @@ def test_new_reviewed_artifact_drives_filename_hash_and_metadata(
     assert (root / ".gitignore").read_text().count(name) == len(updated.consumers)
 
 
-def test_check_wants_each_wheel_path_present_or_declared(tmp_path: Path) -> None:
-    root = fixture_root(tmp_path)
-    materialize(root, check=True)
-    (root / "adapter-sources.json").write_text(
-        json.dumps({"mirror": MIRROR, "sources": {}})
-    )
-    with pytest.raises(ValueError, match="not declared in adapter-sources.json"):
+def test_check_needs_a_materialized_tree(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = fixture_root(tmp_path, monkeypatch)
+    with pytest.raises(ValueError, match="missing or stale protocol wheel"):
         materialize(root, check=True)
+    place(root)
+    materialize(root, check=True)

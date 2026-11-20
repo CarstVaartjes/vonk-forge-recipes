@@ -264,7 +264,13 @@ def test_also_declares_paths_without_files_and_ignores_every_declared_path(
     )
     (root / "adapters/a/other").write_bytes(b"different")
     with pytest.raises(AdapterSourceError, match="one blob"):
-        add(["adapters/a/one.tar.gz", "adapters/a/other"], root=root, also=also, gh=gh)
+        add(
+            ["adapters/a/one.tar.gz", "adapters/a/other"],
+            root=root,
+            also=also,
+            cache=tmp_path / "c",
+            gh=gh,
+        )
 
 
 def test_undeclare_drops_a_superseded_path_and_its_empty_entry(tmp_path: Path) -> None:

@@ -97,9 +97,10 @@ recorded for that recipe in ``kit-image-exceptions.json`` with a reason::
 
 ``tools/kit-pins images [<recipe>...]`` prints what the scan finds.
 
-``tools/kit-pins lock <recipe>`` also moves the consumers: it vendors the base archive for
-the locked commit and moves the Dockerfile's commit, archive file name and archive
-digest; it rebinds the recipe to the catalogued Model of the locked revision (the Model
+``tools/kit-pins lock <recipe>`` also moves the consumers: it fetches the base archive for
+the locked commit, mirrors it and declares it in ``adapter-sources.json`` (origin: the
+codeload URL; a failed upload removes the file, and a rerun fetches and declares it
+again), and moves the Dockerfile's commit, archive file name and archive digest; it rebinds the recipe to the catalogued Model of the locked revision (the Model
 must be catalogued first, with ``tools/catalog-hf-model``); it moves the image digest in the
 Dockerfile and the recipe. Prose in the Dockerfile (a header comment, licence labels) is
 the author's to review.
@@ -1551,21 +1552,30 @@ def archive_url(repo: str, commit: str) -> str:
     return f"https://codeload.github.com/{repo}/tar.gz/{commit}"
 
 
-def declare_archive(root: Path, archive: Path, origin: str) -> None:
-    """Mirror a new vendored archive and declare it (``tools/adapter-sources add``).
+def declare_archive(root: Path, archive: Path, origin: str) -> str:
+    """Mirror a new vendored archive and declare it; return its SHA-256.
 
     The file stays in the working tree for the tools that read it; the manifest's
-    generated ignore block keeps it out of commits.
+    generated ignore block keeps it out of commits. On failure the file is removed,
+    so a rerun fetches and declares it again instead of finishing with an
+    undeclared archive.
     """
     from tools.adapter_mirror import add
-    from tools.adapter_sources import AdapterSourceError
+    from tools.adapter_sources import AdapterSourceError, load
 
+    relative = archive.relative_to(root).as_posix()
     try:
-        add([archive.relative_to(root).as_posix()], root=root, origin=origin)
-    except (AdapterSourceError, OSError, ValueError) as error:
+        add([relative], root=root, origin=origin)
+        return next(
+            sha256
+            for sha256, source in load(root).sources.items()
+            if relative in source.paths
+        )
+    except (AdapterSourceError, OSError, ValueError, StopIteration) as error:
+        archive.unlink(missing_ok=True)
         raise KitError(
             f"cannot mirror {archive.name}: {error}; "
-            f"run `tools/adapter-sources add {archive.relative_to(root)} --origin {origin}`"
+            "rerun `tools/kit-pins lock <recipe>`"
         ) from error
 
 
@@ -1598,7 +1608,7 @@ def apply_lock(
     recipe: dict[str, Any],
     source: Upstream,
     fetch_archive: Callable[[str, str], bytes] = download_archive,
-    declare: Callable[[Path, Path, str], None] = declare_archive,
+    declare: Callable[[Path, Path, str], str] = declare_archive,
 ) -> list[str]:
     """Write ``kit-lock.json`` and move the consumers to it; returns what changed."""
     adapter = adapter_of(root, recipe)
@@ -1660,7 +1670,7 @@ def _move_consumers(
     base: Pin,
     kit: tuple[str, str],
     fetch_archive: Callable[[str, str], bytes],
-    declare: Callable[[Path, Path, str], None],
+    declare: Callable[[Path, Path, str], str],
 ) -> list[str]:
     changed: list[str] = []
     dockerfile = adapter / "Dockerfile"
@@ -1672,15 +1682,16 @@ def _move_consumers(
     old_archives = sorted(vendor.glob("*.tar.gz")) if vendor.is_dir() else []
     if old_archives:
         named = next((a for a in old_archives if base.immutable in a.name), None)
+        digest = ""
         if named is None:
             template = ARCHIVE_NAME.match(old_archives[0].name)
             stem = template["stem"] if template else old_archives[0].name.split(".")[0]
             data = fetch_archive(base.repo, base.immutable)
             named = vendor / f"{stem}-{base.immutable}.tar.gz"
             named.write_bytes(data)
-            declare(root, named, archive_url(base.repo, base.immutable))
+            digest = declare(root, named, archive_url(base.repo, base.immutable))
             changed.append(f"vendor/{named.name} (new base archive, mirrored)")
-        digest = hashlib.sha256(named.read_bytes()).hexdigest()
+        digest = digest or hashlib.sha256(named.read_bytes()).hexdigest()
         for old in old_archives:
             if old == named:
                 continue
