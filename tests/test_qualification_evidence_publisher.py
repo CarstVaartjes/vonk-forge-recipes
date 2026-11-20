@@ -681,8 +681,8 @@ class World:
             lambda *a, **k: subprocess.CompletedProcess(a[0], 0, "", ""),
         )
 
-    def tick(self):
-        return publisher.sync(self.history, self.work)
+    def tick(self, **kwargs):
+        return publisher.sync(self.history, self.work, **kwargs)
 
     def closed(self):
         return [c for c in self.calls if c[:3] == ("gh", "pr", "close")]
@@ -973,8 +973,8 @@ def test_a_batch_gives_the_stall_clock_only_what_it_saw(tmp_path, monkeypatch):
     world.tick()  # the PR was not looked at: its clock keeps running
     assert publisher.load_state(world.work).pr_since == seen.pr_since
     world.open_prs.clear()
-    world.tick()  # no PR open: nothing is waiting
-    assert publisher.load_state(world.work).pr == 0
+    world.tick()  # none open: the batch opens a fresh one and watches that
+    assert publisher.load_state(world.work).pr == 124
 
 
 def test_refused_because_is_set_only_when_the_refused_set_grows():
@@ -1499,3 +1499,47 @@ def test_any_batch_error_on_an_open_pr_is_recorded_and_alerts_when_repeated(
     worker = publisher.EvidencePublisher(history, work, Path("worker"))
     worker.record = publisher.load_state(work)
     assert "failing repeatedly: publisher IndexError" in (worker.alert or "")
+
+
+class _QuietChild:
+    pid = 1
+    started: ClassVar[list] = []
+
+    def __init__(self, args, **kwargs):
+        self.args = args
+        self.started.append(self)
+
+    def poll(self):
+        return 0  # SYNCED
+
+    def wait(self, timeout=None):
+        return 0
+
+
+def test_only_the_first_batch_and_the_final_flush_publish(tmp_path, monkeypatch):
+    _QuietChild.started.clear()
+    monkeypatch.setattr(publisher.subprocess, "Popen", _QuietChild)
+    worker = publisher.EvidencePublisher(
+        tmp_path / "results.jsonl", tmp_path / "publisher", Path("worker")
+    )
+    for now in range(0, 3000, 300):
+        worker.tick(now)
+    flags = ["--watch-only" in child.args for child in _QuietChild.started]
+    assert flags[0] is False and all(flags[1:]) and len(flags) > 2
+    assert "published; new results queued" in worker.message
+    worker.flush(3000)
+    assert "--watch-only" not in _QuietChild.started[-1].args
+    assert "--final" in _QuietChild.started[-1].args
+
+
+def test_new_results_wait_for_the_final_flush_even_after_a_merge(tmp_path, monkeypatch):
+    world = World(tmp_path, monkeypatch)
+    world.open_prs.clear()
+    assert world.tick() == publisher.SweepEvidenceExit.SYNCED  # the start publish
+    assert len(world.created) == 1
+    world.open_prs.clear()  # that PR merged
+    world.history.write_text(world.history.read_text() + json.dumps(_row(23)) + "\n")
+    assert world.tick(watch_only=True) == publisher.SweepEvidenceExit.SYNCED
+    assert len(world.created) == 1  # the watch never opens the next PR
+    world.tick(final=True)
+    assert len(world.created) == 2
