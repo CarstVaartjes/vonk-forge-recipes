@@ -146,8 +146,12 @@ repository and accepts `--update`, not positional changed-file arguments.
 - The pinned platform `validate-recipe-library` validates source policy, archives
   and runtime compilation, including every option choice. Producer tests alone
   do not replace this consumer check.
-- Producer checks regenerate examples, check schemas, build release assets twice
-  for byte equality, derive coverage, check topology, Model references, families,
+- The `catalog` job builds the release assets twice for byte equality and uploads
+  the verified build (`catalog-build`: `release/` and checkout-layout `root/`);
+  publication derives coverage from it instead of building again, and the
+  required `Verify catalog index` check fans in on it and the image proof.
+- Producer checks regenerate examples, check schemas, derive coverage from the
+  test suite's own build, check topology, Model references, families,
   build context closure, vendored bytes, kit locks and image provenance, then run
   the producer suite. See the authoring guide's guard repair table.
 - Every pull request, push and manual run executes the whole `tests/` suite
@@ -164,8 +168,10 @@ repository and accepts `--update`, not positional changed-file arguments.
 [recipe-images.yml](.github/workflows/recipe-images.yml), and updates
 `v<CONTRACT_VERSION>` in place. It serializes publication and binds release
 assets to the run's `GITHUB_SHA`; it does not rebase that run onto a newer main.
-The final publish job unconditionally repeats lint, format and types, even when
-the reusable producer job chose its light scope.
+The final publish job unconditionally repeats lint, format and types. The setup
+action keys the uv cache on `.github/requirements-*.txt` (only `main` saves it)
+and no job redirects `UV_CACHE_DIR`/`UV_TOOL_DIR`; Python TLS trusts the pinned
+certifi bundle, with no per-job apt certificate refresh.
 A contracts **major** bump is deployed consumer-first: `tools/check-platform-contracts`
 refuses a `CONTRACT_MAJOR` newer than the major in the `platform_ref` lock. Pin the
 recipes commit in vonk-forge, deploy it (the Controller waits visibly for the new

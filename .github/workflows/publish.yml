@@ -10,7 +10,7 @@ name: Publish recipe library release
 #
 # This is the only workflow that runs on a push to main: it orchestrates the
 # validation jobs (the platform validator, the producer checks reused from
-# validate.yml with their light/full scope logic, the catalog index) and the
+# validate.yml, including the twice-built byte-equal catalog) and the
 # recipe runtime images (recipe-images.yml), and the publish job fans in on
 # all of them. Pull requests run validate.yml directly.
 on:
@@ -50,35 +50,6 @@ jobs:
     uses: ./.github/workflows/validate.yml
     with:
       producer_only: true
-
-  catalog-index:
-    name: Verify catalog index
-    permissions:
-      contents: read
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - name: Check out recipes
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: Set up uv and Python
-        uses: ./.github/actions/setup-tooling
-
-      - name: Build the release asset set twice and require identical bytes
-        shell: bash
-        run: |
-          set -euo pipefail
-          epoch=$(git show -s --format=%ct "$GITHUB_SHA")
-          test_venv="$RUNNER_TEMP/catalog-test-venv"
-          uv venv --python 3.14 "$test_venv"
-          uv pip install --python "$test_venv/bin/python" -e contracts
-          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/first" \
-            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
-          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second" \
-            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
-          diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
 
   # The recipes are estimates until the hardware try measures them: a PR token
   # cannot edit issues, so the main run keeps one issue current. Nothing waits
@@ -125,13 +96,12 @@ jobs:
 
   publish:
     name: Create signed library release
-    needs: [validate, producer-contracts, catalog-index, images]
+    needs: [validate, producer-contracts, images]
     # Image promotion or fallback builds must complete before signing.
     if: >-
       ${{ !cancelled() && github.ref == 'refs/heads/main'
       && needs.validate.result != 'failure'
       && needs.producer-contracts.result != 'failure'
-      && needs.catalog-index.result != 'failure'
       && needs.images.result == 'success' }}
     runs-on: ubuntu-24.04
     environment: recipe-release
@@ -166,9 +136,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-lint
-          UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-format
-          UV_CACHE_DIR="$RUNNER_TEMP/uv-cache" scripts/check-python-types
+          tools/check-python-lint
+          tools/check-python-format
+          scripts/check-python-types
 
       - name: Resolve the release version and update time
         id: release
@@ -183,6 +153,12 @@ jobs:
           updated_at=$(TZ=UTC git show -s --date=format-local:%Y-%m-%dT%H:%M:%SZ --format=%cd "$GITHUB_SHA")
           echo "tag=v$version" >> "$GITHUB_OUTPUT"
           echo "updated_at=$updated_at" >> "$GITHUB_OUTPUT"
+
+      - name: Download the byte-verified catalog build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: catalog-build
+          path: ${{ runner.temp }}/catalog-build
 
       - name: Download the pinned prebuilt images
         id: prebuilt
@@ -203,9 +179,10 @@ jobs:
           set -euo pipefail
           epoch=$(git show -s --format=%ct "$GITHUB_SHA")
           test -s "$RUNNER_TEMP/prebuilt/prebuilt-images.json"
-          # Coverage is derived offline from this build (the authority is derived from it, not committed).
-          "$RELEASE_TEST_PYTHON" tools/build-catalog-index --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch"
-          "$RELEASE_TEST_PYTHON" tools/build-family-aware-coverage
+          # Coverage is derived offline from the byte-verified catalog build of
+          # this commit (the authority is derived from it, not committed).
+          "$RELEASE_TEST_PYTHON" tools/build-family-aware-coverage \
+            --catalog-root "$RUNNER_TEMP/catalog-build/root"
           "$RELEASE_TEST_PYTHON" tools/build-catalog-index \
             --release-dir "$RUNNER_TEMP/release" \
             --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" \
