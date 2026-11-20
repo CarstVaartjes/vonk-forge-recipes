@@ -423,7 +423,7 @@ def test_refused_download_is_asked_again_only_after_a_release_change(
         release="old-release",
     )
     sweep.state.entry(recipe.key).update(status="pending")
-    sweep.release_sha = "old-release"
+    sweep.prefetcher.release = lambda: "old-release"
     assert not sweep.prefetcher._can_request(recipe, clock.now())
-    sweep.release_sha = "new-release"
+    sweep.prefetcher.release = lambda: "new-release"
     assert sweep.prefetcher._can_request(recipe, clock.now())
