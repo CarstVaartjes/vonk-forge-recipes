@@ -1457,6 +1457,18 @@ declares the reviewed protocol wheel once, with a path per consumer (`--check` a
 path that holds the selected bytes or is declared for them). `add` also writes the
 `.gitignore` block that keeps declared paths out of commits.
 
+What is declared: every file under `adapters/` that is binary and over 64 KiB, or any
+file over 1 MiB (vendored source tarballs and their split parts, tiktoken vocabularies,
+large reference JSON, the protocol wheel, model assets), plus the synthetic canary's
+package `tests/fixtures/canonical-synthetic-canary/package/canonical-synthetic-canary.tar.gz`.
+The canary package changes with every contract major: rebuild it, then run
+`tools/adapter-sources add` on its path. A declared file stays in your checkout,
+ignored. The tools that read those paths place them first, so a fresh clone needs no
+separate step: `tools/build-catalog-index`, `tools/check-build-context-sources`,
+`tools/check-vendored-upstream`, `tools/kit-pins lock|check`, `tools/refresh-upstream`
+and `tools/materialize-protocol-wheel`. Tests read the placed tree; run
+`tools/fetch-adapter-sources` once in a fresh clone before running a single test file.
+
 ### Dependency locks and build-time smokes
 
 For an adapter that installs Python dependencies, keep its authored input and

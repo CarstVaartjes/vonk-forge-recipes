@@ -193,3 +193,11 @@ def materialize(
             shutil.copyfile(cache / sha256, target)
             written += 1
     return written
+
+
+def materialize_or_exit(root: Path = ROOT) -> None:
+    """Place the declared files before a tool reads the tree; exit with the evidence."""
+    try:
+        materialize(root)
+    except AdapterSourceError as error:
+        raise SystemExit(f"adapter sources: {error}") from error

@@ -2843,6 +2843,7 @@ class AppKeyLifetimeTests(unittest.TestCase):
             ),
             patch.object(refresh, "RefreshAppAuth", return_value=auth),
             patch.object(refresh, "command_run", side_effect=command),
+            patch.object(refresh, "materialize_or_exit"),
             patch.object(refresh, "APP_AUTH", None),
         ):
             self.assertEqual(refresh.main(), 0)

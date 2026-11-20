@@ -67,6 +67,9 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT)]
+from tools.adapter_sources import materialize_or_exit
+
 MANIFEST = "vendored-upstream.json"
 KIT_LOCK = "kit-lock.json"  # derived by tools/kit-pins from the kit the recipe pins
 SHA = re.compile(r"^[0-9a-f]{40}$")
@@ -466,6 +469,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", default="origin/main")
     arguments = parser.parse_args(argv)
+    materialize_or_exit(ROOT)
     touched = changed_paths(ROOT, arguments.base)
     reports = [
         check_adapter(

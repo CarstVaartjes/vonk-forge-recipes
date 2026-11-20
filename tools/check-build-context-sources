@@ -23,6 +23,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT)]
+from tools.adapter_sources import materialize_or_exit
+
 _URL = re.compile(r"^[a-z][a-z0-9+.-]*://|^git@", re.IGNORECASE)
 
 
@@ -120,6 +123,7 @@ def check_recipe(path: Path, root: Path = ROOT) -> list[str]:
 
 
 def main() -> int:
+    materialize_or_exit(ROOT)  # declared vendor files are COPY sources too
     problems: list[str] = []
     for recipe in sorted((ROOT / "recipes").glob("*.json")):
         problems.extend(check_recipe(recipe))

@@ -9,7 +9,14 @@ from pathlib import Path
 
 import pytest
 
-from tools.adapter_mirror import add, reconcile, undeclare
+from tools.adapter_mirror import (
+    IGNORE_BEGIN,
+    IGNORE_END,
+    _ignore_line,
+    add,
+    reconcile,
+    undeclare,
+)
 from tools.adapter_sources import AdapterSourceError, load
 
 MIRROR = "https://github.com/owner/repo/releases/download/adapter-sources/"
@@ -288,3 +295,15 @@ def test_undeclare_drops_a_superseded_path_and_its_empty_entry(tmp_path: Path) -
     undeclare(["adapters/a/two.tar.gz"], root=root)
     assert load(root).sources == {}
     assert ".tar.gz" not in (root / ".gitignore").read_text()
+
+
+def test_the_repository_ignore_block_is_exactly_the_declared_paths() -> None:
+    root = Path(__file__).resolve().parents[1]
+    text = (root / ".gitignore").read_text()
+    block = (
+        text.split(f"{IGNORE_BEGIN}\n", 1)[1].split(IGNORE_END, 1)[0].splitlines()
+        if IGNORE_BEGIN in text
+        else []
+    )
+    declared = sorted(p for s in load(root).sources.values() for p in s.paths)
+    assert block == [_ignore_line(path) for path in declared]
