@@ -42,7 +42,7 @@ class FakeGh:
             raise AdapterSourceError("boom")
         # The manifest must not name a blob before its asset exists.
         if self.fresh:
-            assert DIGEST not in (self.root / "policy/adapter-sources.json").read_text()
+            assert DIGEST not in (self.root / "adapter-sources.json").read_text()
         name = Path(arguments[3]).name
         self.assets[name] = f"sha256:{name}"
         return ""
@@ -57,8 +57,7 @@ def repo(tmp_path: Path, declared: dict | None = None) -> Path:
     for name in ("one", "two"):
         (tmp_path / f"adapters/a/{name}.tar.gz").write_bytes(BLOB)
     document = {"mirror": MIRROR, "sources": declared or {}}
-    tmp_path.joinpath("policy").mkdir(exist_ok=True)
-    (tmp_path / "policy/adapter-sources.json").write_text(json.dumps(document))
+    (tmp_path / "adapter-sources.json").write_text(json.dumps(document))
     return tmp_path
 
 

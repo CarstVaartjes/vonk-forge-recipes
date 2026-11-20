@@ -98,7 +98,7 @@ recorded for that recipe in ``policy/kit-image-exceptions.json`` with a reason::
 ``tools/kit-pins images [<recipe>...]`` prints what the scan finds.
 
 ``tools/kit-pins lock <recipe>`` also moves the consumers: it fetches the base archive for
-the locked commit, mirrors it and declares it in ``policy/adapter-sources.json`` (origin: the
+the locked commit, mirrors it and declares it in ``adapter-sources.json`` (origin: the
 codeload URL; a failed upload removes the file, and a rerun fetches and declares it
 again), and moves the Dockerfile's commit, archive file name and archive digest; it rebinds the recipe to the catalogued Model of the locked revision (the Model
 must be catalogued first, with ``tools/catalog-hf-model``); it moves the image digest in the

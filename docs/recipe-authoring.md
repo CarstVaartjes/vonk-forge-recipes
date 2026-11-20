@@ -1161,7 +1161,7 @@ repository's newest revision or an image repository's newest tag.
   Face revision, an image digest), recorded with what it named (`"kind"`: `tag`, `branch`,
   `commit` or `digest`). `kit-lock.json` is generated output and is never edited by hand.
   Builds read only the lock and never resolve a tag. `lock` also moves what follows it: the
-  vendored base archive (mirrored and declared in `policy/adapter-sources.json` with its codeload
+  vendored base archive (mirrored and declared in `adapter-sources.json` with its codeload
   URL as `origin`, never committed; a failed mirror upload names the
   `tools/adapter-sources add` command to rerun) and the Dockerfile's commit, archive file name and digest for a
   `git-ref` base; the recipe's Model binding (and the disk envelope, and removal of the old
@@ -1428,7 +1428,7 @@ evidence or add an unrelated formal approval gate.
 
 ### Build-context files kept out of Git
 
-`policy/adapter-sources.json` declares build-context files whose bytes are served by the
+`adapter-sources.json` declares build-context files whose bytes are served by the
 mirror (`mirror` + SHA-256) instead of being committed: each blob's `size_bytes`,
 optional upstream `origin` (tried after the mirror) and every repository path that
 holds it, so one vendor archive several adapters share is declared once. The

@@ -133,7 +133,7 @@ def owner_value(root: Path, registration: Registration) -> str | int | float:
     return value
 
 
-DECLARATIONS = frozenset({"policy/adapter-sources.json", ".gitignore"})
+DECLARATIONS = frozenset({"adapter-sources.json", ".gitignore"})
 _WHEEL = re.compile(r"vonk[_-]agent[_-]protocol-[A-Za-z0-9_.+!\-]+\.whl")
 _MEMORY_CONTEXT = re.compile(
     r"memory|spark|physical|guard|os_floor|os_allowance|capacity|\bCAP\b", re.IGNORECASE
@@ -463,7 +463,7 @@ def check(root: Path, files: list[str] | None = None) -> list[Violation]:
             except UnicodeDecodeError:
                 continue
             issues.extend(scan_source(registration, path, source, value))
-        # A wheel path is declared in policy/adapter-sources.json and may be untracked.
+        # A wheel path is declared in adapter-sources.json and may be untracked.
         for path in generated.keys() - set(files):
             if _WHEEL.search(path):
                 continue
