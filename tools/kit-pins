@@ -97,9 +97,10 @@ recorded for that recipe in ``kit-image-exceptions.json`` with a reason::
 
 ``tools/kit-pins images [<recipe>...]`` prints what the scan finds.
 
-``tools/kit-pins lock <recipe>`` also moves the consumers: it vendors the base archive for
-the locked commit and moves the Dockerfile's commit, archive file name and archive
-digest; it rebinds the recipe to the catalogued Model of the locked revision (the Model
+``tools/kit-pins lock <recipe>`` also moves the consumers: it fetches the base archive for
+the locked commit, mirrors it and declares it in ``adapter-sources.json`` (origin: the
+codeload URL; a failed upload removes the file, and a rerun fetches and declares it
+again), and moves the Dockerfile's commit, archive file name and archive digest; it rebinds the recipe to the catalogued Model of the locked revision (the Model
 must be catalogued first, with ``tools/catalog-hf-model``); it moves the image digest in the
 Dockerfile and the recipe. Prose in the Dockerfile (a header comment, licence labels) is
 the author's to review.
@@ -116,6 +117,7 @@ import os
 import re
 import sys
 import tarfile
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -131,6 +133,7 @@ sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT)]
 from tools._catalog_model import file_id
 
 MANIFEST = "vendored-upstream.json"
+ARCHIVE_ROUNDS = 3
 LOCK = "kit-lock.json"
 PUBLISHED_IMAGES = "published-images.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
@@ -1286,7 +1289,7 @@ def scan_stream(stream: Any, scope: str = "") -> list[dict[str, Any]]:
 
 def scan_download(repo: str, commit: str, scope: str = "") -> list[dict[str, Any]]:
     """Scan a commit's archive as it downloads: a large monorepo needs no size cap."""
-    url = f"https://codeload.github.com/{repo}/tar.gz/{commit}"
+    url = archive_url(repo, commit)
     request = urllib.request.Request(url, headers={"User-Agent": "vonk-forge-recipes"})
     try:
         with urllib.request.urlopen(request, timeout=120) as response:
@@ -1545,14 +1548,51 @@ def check_recipe(
 # ---------------------------------------------------------------------------
 
 
-def download_archive(repo: str, commit: str) -> bytes:
-    url = f"https://codeload.github.com/{repo}/tar.gz/{commit}"
-    request = urllib.request.Request(url, headers={"User-Agent": "vonk-forge-recipes"})
+def archive_url(repo: str, commit: str) -> str:
+    return f"https://codeload.github.com/{repo}/tar.gz/{commit}"
+
+
+def declare_archive(root: Path, archive: Path, origin: str) -> str:
+    """Mirror a new vendored archive and declare it; return its SHA-256.
+
+    The file stays in the working tree for the tools that read it; the manifest's
+    generated ignore block keeps it out of commits. On failure the file is removed,
+    so a rerun fetches and declares it again instead of finishing with an
+    undeclared archive.
+    """
+    from tools.adapter_mirror import add
+    from tools.adapter_sources import AdapterSourceError, load
+
+    relative = archive.relative_to(root).as_posix()
     try:
-        with urllib.request.urlopen(request, timeout=120) as response:
-            data = response.read(MAX_ARCHIVE_BYTES + 1)
-    except FETCH_ERRORS as error:
-        raise KitError(f"cannot fetch {url}: {error}") from error
+        add([relative], root=root, origin=origin)
+        return next(
+            sha256
+            for sha256, source in load(root).sources.items()
+            if relative in source.paths
+        )
+    except (AdapterSourceError, OSError, ValueError, StopIteration) as error:
+        archive.unlink(missing_ok=True)
+        raise KitError(
+            f"cannot mirror {archive.name}: {error}; "
+            "rerun `tools/kit-pins lock <recipe>`"
+        ) from error
+
+
+def download_archive(
+    repo: str, commit: str, sleep: Callable[[float], None] = time.sleep
+) -> bytes:
+    url = archive_url(repo, commit)
+    request = urllib.request.Request(url, headers={"User-Agent": "vonk-forge-recipes"})
+    for attempt in range(ARCHIVE_ROUNDS):
+        try:
+            with urllib.request.urlopen(request, timeout=120) as response:
+                data = response.read(MAX_ARCHIVE_BYTES + 1)
+            break
+        except FETCH_ERRORS as error:
+            if attempt == ARCHIVE_ROUNDS - 1:
+                raise KitError(f"cannot fetch {url}: {error}") from error
+            sleep(2.0**attempt)
     if len(data) > MAX_ARCHIVE_BYTES:
         raise KitError(f"{url} is larger than {MAX_ARCHIVE_BYTES} bytes")
     return data
@@ -1568,6 +1608,7 @@ def apply_lock(
     recipe: dict[str, Any],
     source: Upstream,
     fetch_archive: Callable[[str, str], bytes] = download_archive,
+    declare: Callable[[Path, Path, str], str] = declare_archive,
 ) -> list[str]:
     """Write ``kit-lock.json`` and move the consumers to it; returns what changed."""
     adapter = adapter_of(root, recipe)
@@ -1601,7 +1642,11 @@ def apply_lock(
     current = recipe
     for pin in pins:
         if pin.datasource == "git-ref" and pin.name == "base":
-            changed.extend(_move_consumers(adapter, previous, pin, kit, fetch_archive))
+            changed.extend(
+                _move_consumers(
+                    root, adapter, previous, pin, kit, fetch_archive, declare
+                )
+            )
         elif pin.datasource == "hf-revision":
             current, moved = _rebind_model(
                 root, current, by_name[pin.name], pin, source
@@ -1619,11 +1664,13 @@ def apply_lock(
 
 
 def _move_consumers(
+    root: Path,
     adapter: Path,
     previous: tuple[str, str] | None,
     base: Pin,
     kit: tuple[str, str],
     fetch_archive: Callable[[str, str], bytes],
+    declare: Callable[[Path, Path, str], str],
 ) -> list[str]:
     changed: list[str] = []
     dockerfile = adapter / "Dockerfile"
@@ -1635,14 +1682,16 @@ def _move_consumers(
     old_archives = sorted(vendor.glob("*.tar.gz")) if vendor.is_dir() else []
     if old_archives:
         named = next((a for a in old_archives if base.immutable in a.name), None)
+        digest = ""
         if named is None:
             template = ARCHIVE_NAME.match(old_archives[0].name)
             stem = template["stem"] if template else old_archives[0].name.split(".")[0]
             data = fetch_archive(base.repo, base.immutable)
             named = vendor / f"{stem}-{base.immutable}.tar.gz"
             named.write_bytes(data)
-            changed.append(f"vendor/{named.name} (new base archive)")
-        digest = hashlib.sha256(named.read_bytes()).hexdigest()
+            digest = declare(root, named, archive_url(base.repo, base.immutable))
+            changed.append(f"vendor/{named.name} (new base archive, mirrored)")
+        digest = digest or hashlib.sha256(named.read_bytes()).hexdigest()
         for old in old_archives:
             if old == named:
                 continue
@@ -1652,6 +1701,9 @@ def _move_consumers(
             if old_commit:
                 text = text.replace(old_commit["commit"], base.immutable)
             old.unlink()
+            from tools.adapter_mirror import undeclare
+
+            undeclare([old.relative_to(root).as_posix()], root=root)
             changed.append(f"vendor/{old.name} (removed)")
         found = ARCHIVE_DIGEST.search(text)
         if found and found["digest"] != digest:

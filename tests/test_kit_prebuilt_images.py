@@ -167,11 +167,23 @@ class MidStreamFailureTests(unittest.TestCase):
                     kit_pins.scan_download("o/r", COMMIT)
                 with (
                     mock.patch.object(
-                        kit_pins.urllib.request, "urlopen", return_value=fetch
+                        kit_pins.urllib.request,
+                        "urlopen",
+                        side_effect=[
+                            _Dropping(fetch.getvalue(), error) for _ in range(3)
+                        ],
                     ),
                     self.assertRaisesRegex(kit_pins.KitError, "cannot fetch .*tar.gz"),
                 ):
-                    kit_pins.download_archive("o/r", COMMIT)
+                    kit_pins.download_archive("o/r", COMMIT, lambda _seconds: None)
+
+    def test_a_broken_download_is_retried_until_it_completes(self) -> None:
+        body = archive({"Dockerfile": f"FROM {IMAGE}@{DIGEST}\n"})
+        answers = [_Dropping(body[:5], TimeoutError("timed out")), io.BytesIO(body)]
+        pauses: list[float] = []
+        with mock.patch.object(kit_pins.urllib.request, "urlopen", side_effect=answers):
+            data = kit_pins.download_archive("o/r", COMMIT, pauses.append)
+        self.assertEqual((data, len(pauses)), (body, 1))
 
     def test_scanning_does_not_retain_the_members_it_has_passed(self) -> None:
         files = {f"d/{n}.txt": "x" for n in range(200)}
