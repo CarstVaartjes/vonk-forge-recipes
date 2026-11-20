@@ -2961,8 +2961,7 @@ class SelfHealingTests(unittest.TestCase):
             "tools/generate-contract-examples",
             "tools/generate-contract-schemas",
             "tools/build-release-bundle",
-            # chooses which CI checks run; it checks no data
-            "tools/select-producer-checks",
+            "tools/prebuilt-images",  # reads the platform pin, not refresh data
         }
         covered = {part for _, cmd in refresh.verify_steps() for part in cmd}
         self.assertEqual(sorted(t for t in ci - skipped if t not in covered), [])

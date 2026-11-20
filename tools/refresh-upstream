@@ -79,8 +79,7 @@ RefreshAppAuth = _load("_refresh_auth.py").RefreshAppAuth
 APP_AUTH: Any = None
 
 SHA = re.compile(r"^[0-9a-f]{40}$")
-#: Every refresher branch is ``<BRANCH_PREFIX><recipe-id>``; tools/select-producer-checks
-#: runs the full suite for it (tests/test_select_producer_checks.py holds the two together).
+#: Every refresher branch is ``<BRANCH_PREFIX><recipe-id>``.
 BRANCH_PREFIX = "refresh/"
 LABEL_NEEDS_REVIEW = "refresh:needs-review"
 LABEL_MECHANICAL = "refresh:mechanical"

@@ -141,21 +141,34 @@ repository and accepts `--update`, not positional changed-file arguments.
 
 ## CI and publication
 
+publish.yml's `platform_ref:` is the one owner of the platform revision (a full
+vonk-forge SHA that must be an ancestor of vonk-forge main); the guard in
+`tests/test_prebuilt_images.py` keeps every other pin equal. GitHub takes no
+expression in `uses: …@ref`, so those pins stay literal. To move it, check the
+reusable workflow's inputs and the scripts the workflows call at the new SHA,
+then change every literal in one PR (consumer-first for contract majors, see
+below).
+
 [validate.yml](.github/workflows/validate.yml) is the executable check list:
 
 - The pinned platform `validate-recipe-library` validates source policy, archives
   and runtime compilation, including every option choice. Producer tests alone
   do not replace this consumer check.
-- Producer checks regenerate examples, check schemas, build release assets twice
-  for byte equality, derive coverage, check topology, Model references, families,
+- The `catalog` job builds both the release assets and the checkout-layout set
+  twice and requires identical bytes. On publication only (`producer_only`) it
+  uploads the proven checkout-layout build (`catalog-build`); publication derives
+  coverage from exactly those bytes instead of building again. Pull requests
+  upload nothing. The required `Verify catalog index` check fans in on the
+  catalog job and the image proof.
+- Producer checks regenerate examples, check schemas, derive coverage from the
+  test suite's own build, check topology, Model references, families,
   build context closure, vendored bytes, kit locks and image provenance, then run
   the producer suite. See the authoring guide's guard repair table.
-- `tools/select-producer-checks` owns the producer job's scope. Recipe-data-only
-  changes skip lint, format, types and the wheel build; tool/test/contract/workflow
-  changes run them. Integration batches (`integration/*`), pushes and manual runs
-  run the full suite; a member PR runs the core plus the tests its paths name,
-  because its batch runs everything before it lands. Hardware evidence and
-  refresher PRs (`refresh/*`) auto-merge without a batch, so they run the full suite.
+- Every pull request, push and manual run executes the whole `tests/` suite
+  (pytest-xdist, one job) and every static gate: lint, format, types, guards
+  and the contracts wheel build. Nothing is selected by path or branch, because
+  recipes PRs merge straight to `main`; a docs-only PR runs them too. The
+  `Validate producer contracts and packages` job is the required check.
 - Full checks build the contracts wheel and import/resolve examples from a clean
   external consumer directory. Generated indexes, packages and coverage are
   ignored build outputs, not committed state.
@@ -165,8 +178,10 @@ repository and accepts `--update`, not positional changed-file arguments.
 [recipe-images.yml](.github/workflows/recipe-images.yml), and updates
 `v<CONTRACT_VERSION>` in place. It serializes publication and binds release
 assets to the run's `GITHUB_SHA`; it does not rebase that run onto a newer main.
-The final publish job unconditionally repeats lint, format and types, even when
-the reusable producer job chose its light scope.
+The final publish job unconditionally repeats lint, format and types. The setup
+action keys the uv cache on `.github/requirements-*.txt` (only `main` saves it)
+and no job redirects `UV_CACHE_DIR`/`UV_TOOL_DIR`; Python TLS trusts the pinned
+certifi bundle, with no per-job apt certificate refresh.
 A contracts **major** bump is deployed consumer-first: `tools/check-platform-contracts`
 refuses a `CONTRACT_MAJOR` newer than the major in the `platform_ref` lock. Pin the
 recipes commit in vonk-forge, deploy it (the Controller waits visibly for the new

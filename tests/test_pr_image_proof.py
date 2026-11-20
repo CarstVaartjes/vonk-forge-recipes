@@ -35,14 +35,14 @@ def test_pr_and_publish_share_planner_build_and_smokes():
     assert "reuse_only" not in publish
     assert "--reuse-only" not in WORKFLOW.read_text()
     producer = publish.split("\n  producer-contracts:\n", 1)[1].split(
-        "\n  catalog-index:", 1
+        "\n  memory-estimates:", 1
     )[0]
     # GitHub validates nested workflow permissions even for skipped PR jobs.
     assert "packages: write" in producer and "actions: write" in producer
     gate = validate.split("\n  catalog-index:\n", 1)[1].split(
         "\n  producer-contracts:", 1
     )[0]
-    assert "needs: images" in gate and "always()" in gate
+    assert "needs: [images, catalog]" in gate and "always()" in gate
     assert 'test "$IMAGE_RESULT" = success' in gate
     workflow = WORKFLOW.read_text()
     assert "ref: ${{ github.event.pull_request.head.sha || github.sha }}" in workflow
@@ -141,20 +141,23 @@ else:
     assert result.stdout.count("wrote catalog-index.json") == len(plans)
 
 
+@pytest.mark.parametrize("catalog", ["success", "failure", "cancelled", "skipped"])
 @pytest.mark.parametrize("result", ["success", "failure", "cancelled", "skipped"])
-def test_required_check_rejects_every_non_success_image_result(result: str):
+def test_required_check_rejects_every_non_success_image_or_catalog_result(
+    result: str, catalog: str
+):
     workflow = (ROOT / ".github/workflows/validate.yml").read_text()
     gate = workflow.split("- name: Require PR image proof", 1)[1]
     script = gate.split("        run: ", 1)[1].splitlines()[0]
     checked = subprocess.run(
         ["bash", "-c", script],
-        env={**os.environ, "IMAGE_RESULT": result},
+        env={**os.environ, "IMAGE_RESULT": result, "CATALOG_RESULT": catalog},
         check=False,
         capture_output=True,
         text=True,
         timeout=5,
     )
-    assert (checked.returncode == 0) == (result == "success")
+    assert (checked.returncode == 0) == (result == catalog == "success")
 
 
 @pytest.mark.parametrize("event", ["pull_request", "push"])

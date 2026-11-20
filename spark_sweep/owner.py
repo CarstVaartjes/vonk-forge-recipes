@@ -107,7 +107,7 @@ class OwnerGuard:
             origin = self._own(ancestor, "")
             if origin is None:
                 reply = self.vk.run(
-                    "profile", "progress", "--application", ancestor, profile=number
+                    "profile", "progress", "--load", ancestor, profile=number
                 )
                 document = reply.document
                 if not reply.ok or not isinstance(document, dict):

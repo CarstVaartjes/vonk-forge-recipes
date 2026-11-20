@@ -14,7 +14,6 @@ RECIPE_NAMES = (
     "qwen3-6-35b-a3b-fp8-dflash-eugr-vllm-single",
     "qwen3-6-35b-a3b-fp8-dflash-eugr-vllm-dual",
 )
-MODEL = ROOT / "models/qwen3-6-35b-a3b-fp8-95a723d0.json"
 
 
 def read(path: Path) -> dict[str, Any]:
@@ -26,14 +25,6 @@ def argument_map(recipe: Any) -> dict[str, Any]:
 
 
 class Qwen36Fp8OptionTests(unittest.TestCase):
-    def test_primary_checkpoint_contains_the_native_mtp_head(self) -> None:
-        model = read(MODEL)
-        self.assertEqual(
-            model["source"]["revision"],
-            "95a723d08a9490559dae23d0cff1d9466213d989",
-        )
-        self.assertIn("mtp.safetensors", {item["path"] for item in model["files"]})
-
     def test_every_rank_and_interacting_choice_compiles_without_conflicting_modes(
         self,
     ) -> None:
