@@ -146,10 +146,12 @@ repository and accepts `--update`, not positional changed-file arguments.
 - The pinned platform `validate-recipe-library` validates source policy, archives
   and runtime compilation, including every option choice. Producer tests alone
   do not replace this consumer check.
-- The `catalog` job builds the release assets twice for byte equality and uploads
-  the verified build (`catalog-build`: `release/` and checkout-layout `root/`);
-  publication derives coverage from it instead of building again, and the
-  required `Verify catalog index` check fans in on it and the image proof.
+- The `catalog` job builds both the release assets and the checkout-layout set
+  twice and requires identical bytes. On publication only (`producer_only`) it
+  uploads the proven checkout-layout build (`catalog-build`); publication derives
+  coverage from exactly those bytes instead of building again. Pull requests
+  upload nothing. The required `Verify catalog index` check fans in on the
+  catalog job and the image proof.
 - Producer checks regenerate examples, check schemas, derive coverage from the
   test suite's own build, check topology, Model references, families,
   build context closure, vendored bytes, kit locks and image provenance, then run

@@ -42,9 +42,9 @@ jobs:
 
   # Build the catalog once and prove it deterministic: two independent builds
   # of this tree must produce identical bytes (consumers reproduce a release by
-  # rebuilding its tagged commit). The verified build is uploaded; publication
-  # coverage reads it instead of building again. `release/` is the verified
-  # release asset set, `root/` the same build in checkout layout.
+  # rebuilding its tagged commit). Both layouts are built twice and compared;
+  # on publication the proven checkout-layout build is uploaded and coverage
+  # reads it instead of building again.
   catalog:
     if: ${{ inputs.producer_only || github.event_name != 'workflow_call' }}
     name: Build the catalog twice and require identical bytes
@@ -68,24 +68,27 @@ jobs:
           test_venv="$RUNNER_TEMP/catalog-test-venv"
           uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" -e contracts
-          bundle="$RUNNER_TEMP/catalog-build"
-          mkdir -p "$bundle"
-          # Each PID is waited on separately so every exit code counts.
-          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$bundle/release" \
-            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" &
-          first_pid=$!
-          "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second" \
-            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" &
-          second_pid=$!
-          "$test_venv/bin/python" tools/build-catalog-index --output-dir "$bundle/root" \
-            --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" &
-          root_pid=$!
-          wait "$first_pid"
-          wait "$second_pid"
-          wait "$root_pid"
-          diff -r "$bundle/release" "$RUNNER_TEMP/second"
+          root="$RUNNER_TEMP/catalog-build"
+          # Two independent builds of each layout: the release asset set and the
+          # checkout-layout set that publication derives coverage from. Each PID
+          # is waited on separately so every exit code counts.
+          pids=()
+          for n in first second; do
+            "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/release-$n" \
+              --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" &
+            pids+=($!)
+            "$test_venv/bin/python" tools/build-catalog-index --output-dir "$RUNNER_TEMP/root-$n" \
+              --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" &
+            pids+=($!)
+          done
+          for pid in "${pids[@]}"; do wait "$pid"; done
+          diff -r "$RUNNER_TEMP/release-first" "$RUNNER_TEMP/release-second"
+          diff -r "$RUNNER_TEMP/root-first" "$RUNNER_TEMP/root-second"
+          mv "$RUNNER_TEMP/root-first" "$root"
 
+      # Only publication reads it (coverage); pull requests upload nothing.
       - name: Upload the verified catalog build
+        if: inputs.producer_only
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: catalog-build

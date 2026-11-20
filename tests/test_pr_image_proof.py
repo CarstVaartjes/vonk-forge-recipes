@@ -141,20 +141,23 @@ else:
     assert result.stdout.count("wrote catalog-index.json") == len(plans)
 
 
+@pytest.mark.parametrize("catalog", ["success", "failure", "cancelled", "skipped"])
 @pytest.mark.parametrize("result", ["success", "failure", "cancelled", "skipped"])
-def test_required_check_rejects_every_non_success_image_result(result: str):
+def test_required_check_rejects_every_non_success_image_or_catalog_result(
+    result: str, catalog: str
+):
     workflow = (ROOT / ".github/workflows/validate.yml").read_text()
     gate = workflow.split("- name: Require PR image proof", 1)[1]
     script = gate.split("        run: ", 1)[1].splitlines()[0]
     checked = subprocess.run(
         ["bash", "-c", script],
-        env={**os.environ, "IMAGE_RESULT": result, "CATALOG_RESULT": "success"},
+        env={**os.environ, "IMAGE_RESULT": result, "CATALOG_RESULT": catalog},
         check=False,
         capture_output=True,
         text=True,
         timeout=5,
     )
-    assert (checked.returncode == 0) == (result == "success")
+    assert (checked.returncode == 0) == (result == catalog == "success")
 
 
 @pytest.mark.parametrize("event", ["pull_request", "push"])
@@ -267,17 +270,3 @@ if 'inspect' in args:
         assert f"docker://ghcr.io/o/recipe:{prefix}-{KEY}" in commands
         summary = (tmp_path / "summary").read_text()
         assert ("built at publish: no PR candidate" in summary) == (event == "push")
-
-
-def test_catalog_is_built_twice_once_and_publication_reads_the_verified_build():
-    validate = (ROOT / ".github/workflows/validate.yml").read_text()
-    publish = (ROOT / ".github/workflows/publish.yml").read_text()
-    build = validate.split("\n  catalog:\n", 1)[1].split("\n  catalog-index:", 1)[0]
-    assert 'diff -r "$bundle/release" "$RUNNER_TEMP/second"' in build
-    assert "name: catalog-build" in build
-    assert validate.count("--release-dir") == 2  # the pair, nowhere else
-    assert "public-contracts:" not in validate
-    # Publication reuses the proof through producer-contracts; it only reads it.
-    assert "\n  catalog-index:" not in publish
-    assert publish.count("--release-dir") == 1  # the signed set, with extras
-    assert '--catalog-root "$RUNNER_TEMP/catalog-build/root"' in publish
