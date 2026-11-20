@@ -419,7 +419,13 @@ own host. An install that only runs after a failed probe (`python3 -c "import
 x" || pip install x`) is not a fetch. Comments, echo/print text, localhost URLs,
 `--no-index`/`--offline` and local `.deb`/`.whl` paths are exempt. It is a line
 and token reading, not a shell parser: exec-form `RUN`, `bash -c` and computed
-script paths are not followed. Include all required local build inputs, patches, entrypoints,
+script paths are not followed. A final stage on a plain CUDA runtime/base image that copies a compiled binary into a
+`bin/` directory must run `ldd <binary>` and fail on `not found` (ignoring `libcuda`/`libnvidia`,
+which the host driver supplies), so a library only the devel stage had (libgomp for OpenMP) fails
+the image build, not the hardware start; install the library with apt rather than disabling
+creator build options. `tests/test_build_network_hosts.py` enforces it and lists the older
+Dockerfiles that predate the rule (add the check when one next changes; never extend the list).
+Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
 

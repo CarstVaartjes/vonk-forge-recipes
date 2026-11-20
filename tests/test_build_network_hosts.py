@@ -543,6 +543,53 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
             ):
                 self.assertIn("pypi.nvidia.com", hosts, path.name)
 
+    def test_copied_runtime_binaries_are_checked_for_missing_libraries(self) -> None:
+        # A final stage on a plain CUDA runtime/base image that copies a compiled binary out
+        # of a build stage must run `ldd <binary>` and fail on "not found", so a library the
+        # devel stage had (libgomp) fails the image build, not the hardware start. The
+        # Dockerfiles below predate the rule and are unchanged until they next change.
+        for path in sorted((ROOT / "adapters").rglob("Dockerfile*")):
+            source = path.read_text(encoding="utf-8").replace("\\\n", " ")
+            starts = [
+                m.start()
+                for m in re.finditer(r"^FROM\s", source, re.MULTILINE | re.IGNORECASE)
+            ]
+            if len(starts) < 2:
+                continue
+            final = source[starts[-1] :]
+            base = final.split(None, 2)[1]
+            copies = re.findall(
+                r"^COPY\s+(?:--\S+\s+)*--from=\S+\s+(?:--\S+\s+)*(\S+)\s+\S*/bin/\S+\s*$",
+                final,
+                re.MULTILINE,
+            )
+            if not (
+                re.search(r"nvidia/cuda:[^@\s]*-(?:runtime|base)-", base) and copies
+            ):
+                continue
+            rel = path.relative_to(ROOT).parent.as_posix()
+            if rel in LDD_UNCHECKED:
+                continue
+            self.assertRegex(
+                final,
+                r"(?m)^RUN\s.*\bldd\s+\S+.*not found",
+                f"{rel}: run ldd on the copied binary and fail on 'not found'",
+            )
+
+
+# Final-stage binary images that predate the ldd rule; do not add to this list.
+LDD_UNCHECKED = frozenset(
+    {
+        "adapters/deepseek/drowzeys-ds4-dspark-port-single",
+        "adapters/deepseek/ds4",
+        "adapters/deepseek/ds4-tp2",
+        "adapters/hy4/baekpica-ds4-dfm-rs-single",
+        "adapters/llama-cpp/amarjeet-bonsai-prism-single",
+        "adapters/qwen/mia-gguf-27b-single",
+        "adapters/qwen/mia-gguf-35b-single",
+    }
+)
+
 
 if __name__ == "__main__":
     unittest.main()
