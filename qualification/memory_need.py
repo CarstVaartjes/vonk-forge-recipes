@@ -1337,7 +1337,7 @@ class EnvelopeException(BaseModel):
 
 @cache
 def envelope_exceptions() -> dict[str, EnvelopeException]:
-    document = json.loads((ROOT / "memory-envelope-exceptions.json").read_text())
+    document = json.loads((ROOT / "policy/memory-envelope-exceptions.json").read_text())
     return {
         slug: EnvelopeException.model_validate(entry)
         for slug, entry in document.items()

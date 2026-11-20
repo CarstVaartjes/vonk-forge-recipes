@@ -148,7 +148,8 @@ def write_recipe(
     pinned: str = OLD,
     mark: str | None = None,
 ) -> dict[str, Any]:
-    (root / "published-images.json").write_text(
+    root.joinpath("policy").mkdir(exist_ok=True)
+    (root / "policy/published-images.json").write_text(
         json.dumps({"images": {IMAGE: {"source": SOURCE, "tag": "latest"}}})
     )
     adapter = root / "adapters/eugr/x"
