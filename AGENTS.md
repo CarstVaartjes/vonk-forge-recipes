@@ -150,12 +150,11 @@ repository and accepts `--update`, not positional changed-file arguments.
   for byte equality, derive coverage, check topology, Model references, families,
   build context closure, vendored bytes, kit locks and image provenance, then run
   the producer suite. See the authoring guide's guard repair table.
-- `tools/select-producer-checks` owns the producer job's scope. Recipe-data-only
-  changes skip lint, format, types and the wheel build; tool/test/contract/workflow
-  changes run them. Integration batches (`integration/*`), pushes and manual runs
-  run the full suite; a member PR runs the core plus the tests its paths name,
-  because its batch runs everything before it lands. Hardware evidence and
-  refresher PRs (`refresh/*`) auto-merge without a batch, so they run the full suite.
+- Every pull request, push and manual run executes the whole `tests/` suite
+  (pytest-xdist, one job) and every static gate: lint, format, types, guards
+  and the contracts wheel build. Nothing is selected by path or branch, because
+  recipes PRs merge straight to `main`; a docs-only PR runs them too. The
+  `Validate producer contracts and packages` job is the required check.
 - Full checks build the contracts wheel and import/resolve examples from a clean
   external consumer directory. Generated indexes, packages and coverage are
   ignored build outputs, not committed state.

@@ -109,36 +109,6 @@ jobs:
       - name: Set up uv and Python
         uses: ./.github/actions/setup-tooling
 
-      # One selector owns the scope: tools/select-producer-checks decides the
-      # Python gates (light for recipe data only) and which tests run (the full
-      # suite, except the core plus named tests on a member PR, whose
-      # integration batch runs everything). Git runs here, at the CI edge.
-      - name: Select the producer checks
-        id: scope
-        shell: bash
-        env:
-          EVENT: ${{ github.event_name }}
-          HEAD_REF: ${{ github.head_ref }}
-          BASE_REF: ${{ github.base_ref }}
-          BEFORE: ${{ github.event.before }}
-        run: |
-          set -euo pipefail
-          case "$EVENT" in
-            pull_request)
-              git fetch --no-tags origin "$BASE_REF"
-              base=$(git merge-base FETCH_HEAD HEAD) ;;
-            push) base="$BEFORE" ;;
-            *) base= ;;
-          esac
-          if [[ -n "$base" ]] && git cat-file -e "$base^{commit}" 2>/dev/null; then
-            git diff --name-only "$base" HEAD > "$RUNNER_TEMP/changed.txt"
-            changed=(--changed-files "$RUNNER_TEMP/changed.txt")
-          else
-            changed=()
-          fi
-          python3 tools/select-producer-checks --event "$EVENT" --head-ref "$HEAD_REF" \
-            "${changed[@]}" | tee -a "$GITHUB_OUTPUT"
-
       - name: Install producer contract dependencies
         shell: bash
         run: |
@@ -409,12 +379,10 @@ jobs:
           set -euo pipefail
           python3 tools/check-estimate-gates --diff "$RUNNER_TEMP/added.diff"
 
-      # The selector's test list: the whole suite, or on a member PR the core
-      # plus the tests its changed paths name.
-      - name: Run the selected producer tests
+      # Every pull request, push and manual run executes the whole suite and
+      # every static gate below; nothing is selected by path.
+      - name: Run the producer tests
         shell: bash
-        env:
-          TESTS: ${{ steps.scope.outputs.tests }}
         run: |
           set -euo pipefail
           # Tests run in parallel (xdist worksteal, as vonk-forge does); a
@@ -423,32 +391,27 @@ jobs:
           # production retry or observation deadlines.
           # Only a real stall dumps: a dump racing a slow test's C code once
           # segfaulted the whole suite (exit 139).
-          # shellcheck disable=SC2086 # TESTS is a space-separated path list
-          "$RECIPE_TEST_PYTHON" -m pytest -n auto --dist worksteal -o faulthandler_timeout=300 $TESTS
+          "$RECIPE_TEST_PYTHON" -m pytest -n auto --dist worksteal -o faulthandler_timeout=300 tests/
 
       - name: Lint the repository with pinned Ruff
-        if: steps.scope.outputs.gates == 'full'
         shell: bash
         run: |
           set -euo pipefail
           UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-lint
 
       - name: Check formatting with pinned Ruff
-        if: steps.scope.outputs.gates == 'full'
         shell: bash
         run: |
           set -euo pipefail
           UV_TOOL_DIR="$RUNNER_TEMP/uv-tools" tools/check-python-format
 
       - name: Type check the repository with pinned Pyright
-        if: steps.scope.outputs.gates == 'full'
         shell: bash
         run: |
           set -euo pipefail
           UV_CACHE_DIR="$RUNNER_TEMP/uv-cache" scripts/check-python-types
 
       - name: Build and externally import the contracts wheel
-        if: steps.scope.outputs.gates == 'full'
         shell: bash
         run: |
           set -euo pipefail
