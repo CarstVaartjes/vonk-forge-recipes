@@ -973,8 +973,8 @@ def test_a_batch_gives_the_stall_clock_only_what_it_saw(tmp_path, monkeypatch):
     world.tick()  # the PR was not looked at: its clock keeps running
     assert publisher.load_state(world.work).pr_since == seen.pr_since
     world.open_prs.clear()
-    world.tick()  # no PR open: nothing is waiting
-    assert publisher.load_state(world.work).pr == 0
+    world.tick()  # none open: the batch opens a fresh one and watches that
+    assert publisher.load_state(world.work).pr == 124
 
 
 def test_refused_because_is_set_only_when_the_refused_set_grows():
@@ -1499,3 +1499,76 @@ def test_any_batch_error_on_an_open_pr_is_recorded_and_alerts_when_repeated(
     worker = publisher.EvidencePublisher(history, work, Path("worker"))
     worker.record = publisher.load_state(work)
     assert "failing repeatedly: publisher IndexError" in (worker.alert or "")
+
+
+class _QuietChild:
+    pid = 1
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def poll(self):
+        return 0  # SYNCED
+
+    def wait(self, timeout=None):
+        return 0
+
+
+def _publisher(tmp_path, monkeypatch, spawned):
+    def popen(*args, **kwargs):
+        spawned.append(args)
+        return _QuietChild()
+
+    monkeypatch.setattr(publisher.subprocess, "Popen", popen)
+    return publisher.EvidencePublisher(
+        tmp_path / "results.jsonl", tmp_path / "publisher", Path("worker")
+    )
+
+
+def test_a_run_publishes_once_until_the_safety_flush(tmp_path, monkeypatch):
+    spawned = []
+    worker = _publisher(tmp_path, monkeypatch, spawned)
+    for now in range(0, publisher.FLUSH_SECONDS, 300):  # verdicts keep arriving
+        worker.tick(now)
+    assert len(spawned) == 1
+    worker.tick(publisher.FLUSH_SECONDS + 300)  # the child reaped at 300 went quiet
+    assert len(spawned) == 2
+
+
+def test_an_open_pr_is_still_watched_every_five_minutes(tmp_path, monkeypatch):
+    spawned = []
+    worker = _publisher(tmp_path, monkeypatch, spawned)
+    (tmp_path / "publisher").mkdir()
+    (tmp_path / "publisher" / publisher.STATE_FILE).write_text(
+        publisher.PublisherRecord(pr=7, pr_since=1.0).model_dump_json()
+    )
+    worker.tick(0)
+    worker.tick(1)  # reaps the child: PR 7 is open, so no long quiet period
+    worker.tick(publisher.RETRY_SECONDS + 1)
+    assert len(spawned) == 2
+
+
+def test_unpublished_evidence_is_picked_up_by_a_restarted_sweep(tmp_path, monkeypatch):
+    spawned = []
+    first = _publisher(tmp_path, monkeypatch, spawned)
+    first.tick(0)
+    assert len(spawned) == 1
+    # The sweep crashed before its flush; a new sweep publishes at its first tick.
+    restarted = _publisher(tmp_path, monkeypatch, spawned)
+    restarted.tick(10)
+    assert len(spawned) == 2
+
+
+def test_the_newest_verdict_of_a_content_identity_is_the_last_one_published():
+    from spark_sweep.qualification import history_evidence, merge_evidence
+
+    older = historical()
+    newer = {
+        **historical(),
+        "status": "failed",
+        "recorded_at": "2030-01-01T00:00:00+00:00",
+    }
+    first, second = history_evidence(older), history_evidence(newer)
+    assert first is not None and second is not None
+    for merged in (merge_evidence(first, second), merge_evidence(second, first)):
+        assert merged.records[-1].outcome == "failed"
