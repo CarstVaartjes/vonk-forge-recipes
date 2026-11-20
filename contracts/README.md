@@ -34,6 +34,8 @@ API entry points:
 - [Qualification authority](src/vonk_forge_contracts/qualification_authority.py),
   [native decisions](src/vonk_forge_contracts/systemone.py) and
   [local sweep observations](src/vonk_forge_contracts/sweep.py).
+- [Adapter sources](src/vonk_forge_contracts/adapter_sources.py): `adapter-sources.json`,
+  the build-context files fetched by SHA-256 instead of committed (repository tooling only).
 - [Synthetic examples](src/vonk_forge_contracts/examples) and
   [generated schemas](src/vonk_forge_contracts/schema).
 

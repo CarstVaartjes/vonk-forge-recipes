@@ -50,10 +50,10 @@ def declare(root: Path) -> None:
 def test_shared_blob_is_fetched_once_and_placed_at_every_path(tmp_path: Path) -> None:
     declare(tmp_path)
     web = FakeWeb({MIRROR + DIGEST: BLOB})
-    cache = tmp_path / "cache"
 
-    assert materialize(tmp_path, cache=cache, opener=web, sleep=lambda _: None) == 2
-    assert materialize(tmp_path, cache=cache, opener=web, sleep=lambda _: None) == 2
+    assert materialize(tmp_path, cache=tmp_path / "a", opener=web, sleep=print) == 2
+    # A placed tree needs no cache and no network, even with an empty cache.
+    assert materialize(tmp_path, cache=tmp_path / "b", opener=web, sleep=print) == 0
 
     assert web.requests == [MIRROR + DIGEST]
     assert [(tmp_path / path).read_bytes() for path in PATHS] == [BLOB, BLOB]

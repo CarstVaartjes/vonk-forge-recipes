@@ -4,8 +4,8 @@ Each declared blob is downloaded once into a content-addressed cache, mirror
 first and then its upstream origin. Its SHA-256 and size are checked while it
 streams in (the only place they are checked): a cache entry exists only after
 that check, so a present entry is used as is and a wrong-sized one is fetched
-again. Every declared repository path is then written from the cache. A
-download that fails is retried a bounded number of times with jittered backoff,
+again. A declared repository path that does not already hold a file of the
+declared size is then written from the cache. A download that fails is retried a bounded number of times with jittered backoff,
 and the tool then fails with each URL's evidence; it never waits unbounded.
 """
 
@@ -104,6 +104,11 @@ def fetch(
     return f"sha256:{sha256} ({size} bytes) unavailable: " + "; ".join(evidence)
 
 
+def _holds(path: Path, size: int) -> bool:
+    """A placed or cached file of the declared size is the declared blob."""
+    return path.is_file() and path.stat().st_size == size
+
+
 def materialize(
     root: Path = ROOT,
     *,
@@ -111,14 +116,21 @@ def materialize(
     opener: Opener = open_url,
     sleep: Callable[[float], None] = time.sleep,
 ) -> int:
-    """Write every declared path from the verified cache; return the paths written."""
+    """Place every declared path not yet placed; return how many were written."""
     sources = load(root)
     cache = default_cache() if cache is None else cache
+    unplaced = {
+        sha256: [
+            root / path
+            for path in source.paths
+            if not _holds(root / path, source.size_bytes)
+        ]
+        for sha256, source in sources.sources.items()
+    }
     missing = [
         sha256
-        for sha256, source in sources.sources.items()
-        if not (cache / sha256).is_file()
-        or (cache / sha256).stat().st_size != source.size_bytes
+        for sha256, targets in unplaced.items()
+        if targets and not _holds(cache / sha256, sources.sources[sha256].size_bytes)
     ]
     if missing:
         cache.mkdir(parents=True, exist_ok=True)
@@ -130,18 +142,10 @@ def materialize(
     if failures:
         raise AdapterSourceError("\n".join(failures))
     written = 0
-    for sha256, source in sources.sources.items():
-        for path in source.paths:
-            target = root / path
+    for sha256, targets in unplaced.items():
+        for target in targets:
+            # A copy cut short has the wrong size, so the next run places it again.
             target.parent.mkdir(parents=True, exist_ok=True)
-            descriptor, temporary = tempfile.mkstemp(
-                dir=target.parent, prefix=f".{target.name}."
-            )
-            os.close(descriptor)
-            try:
-                shutil.copyfile(cache / sha256, temporary)
-                os.replace(temporary, target)
-            finally:
-                Path(temporary).unlink(missing_ok=True)
+            shutil.copyfile(cache / sha256, target)
             written += 1
     return written
