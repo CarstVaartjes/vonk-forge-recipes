@@ -55,12 +55,21 @@ LABEL org.opencontainers.image.source="https://github.com/ggml-org/llama.cpp" \
       org.opencontainers.image.revision="${LLAMA_CPP_COMMIT}" \
       org.opencontainers.image.licenses="MIT"
 
+# The creator's build keeps OpenMP on (llama.cpp's GGML_OPENMP default), and the CUDA runtime
+# base lacks libgomp.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN groupadd --gid 10001 vonk \
     && useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home \
         --shell /usr/sbin/nologin vonk \
     && install --directory --owner 10001 --group 10001 /opt/vonk/bin /state
 COPY --from=build --chmod=0755 /opt/src/build/bin/llama-server /opt/vonk/bin/llama-server
 COPY --from=build /opt/src/llama.cpp/LICENSE /opt/vonk/LICENSE.llama.cpp
+# A shared library the runtime base lacks fails the image build, not the hardware start.
+# libcuda comes from the host driver at run time.
+RUN ! ldd /opt/vonk/bin/llama-server | grep "not found" | grep -v -e libcuda.so -e libnvidia
 
 ENV HOME=/state
 WORKDIR /state
