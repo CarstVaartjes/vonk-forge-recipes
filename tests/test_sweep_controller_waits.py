@@ -291,7 +291,7 @@ def test_a_persisted_ended_hold_is_planned_at_its_time_after_restart(
     probes = len(fleet.calls)
     clock.sleep(1)
     sweep._refresh_controller_waits(clock.now())
-    assert not any("--application" in c for _, c in fleet.calls[probes:])
+    assert not any("--load" in c for _, c in fleet.calls[probes:])
     hold = sweep.controller_wait_holds()["vonk-forge/a"]
     assert not hold.live and hold.not_before == not_before
     assert not sweep.ready_candidates()

@@ -2080,8 +2080,8 @@ class FakeFleet:
         }
 
     def _app_progress(self, data: dict[str, Any], a: list[str]) -> tuple[int, Any]:
-        if "--application" in a:
-            app = self.apps.get(a[a.index("--application") + 1])
+        if "--load" in a:
+            app = self.apps.get(a[a.index("--load") + 1])
         elif "--request-key" in a:
             app = self.apps.get(
                 self.by_request.get(a[a.index("--request-key") + 1], "")

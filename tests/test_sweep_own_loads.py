@@ -227,11 +227,11 @@ def test_owner_absence_requires_native_declared_rejection(
 
 
 def _lineage_guard(state: State, latest: dict, ancestors: dict) -> OwnerGuard:
-    """Profile 2 answers ``latest``; ``--application X`` answers ``ancestors[X]``."""
+    """Profile 2 answers ``latest``; ``--load X`` answers ``ancestors[X]``."""
 
     def run(argv: Sequence[str], timeout: float) -> tuple[int, str, str]:
-        if "--application" in argv:
-            found = ancestors.get(argv[argv.index("--application") + 1])
+        if "--load" in argv:
+            found = ancestors.get(argv[argv.index("--load") + 1])
             if found is not None:
                 return 0, json.dumps(found), ""
             return (
