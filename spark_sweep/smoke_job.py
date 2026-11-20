@@ -150,13 +150,7 @@ def _binding(spec: Mapping[str, Any], definitions: Definitions, work: Path) -> P
         fixture = definitions.fixture(str(item["fixture"]))
         path = work / "inputs" / fixture.name
         path.write_bytes(fixture.content)
-        inputs.append(
-            {
-                "slot": str(item["slot"]),
-                "name": fixture.name,
-                "media_type": fixture.media_type,
-            }
-        )
+        inputs.append({"slot": str(item["slot"]), "name": fixture.name})
         paths[fixture.name] = str(path)
     create = {
         "interface": spec["interface"],
