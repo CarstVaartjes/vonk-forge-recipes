@@ -419,7 +419,17 @@ own host. An install that only runs after a failed probe (`python3 -c "import
 x" || pip install x`) is not a fetch. Comments, echo/print text, localhost URLs,
 `--no-index`/`--offline` and local `.deb`/`.whl` paths are exempt. It is a line
 and token reading, not a shell parser: exec-form `RUN`, `bash -c` and computed
-script paths are not followed. Include all required local build inputs, patches, entrypoints,
+script paths are not followed.
+
+A new or changed Dockerfile whose final stage is a plain CUDA runtime/base image that copies a compiled
+binary into `bin/` must run `ldd <binary>` and fail on `not found` (ignoring
+`libcuda`/`libnvidia`, which the host driver supplies), so a library only the devel stage
+had (libgomp for OpenMP) fails the image build, not the hardware start; install the library
+with apt rather than disabling creator build options. `tools/check-final-stage-ldd`
+checks only Dockerfiles the diff adds or changes; untouched images
+are never flagged.
+
+Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
 
@@ -1373,6 +1383,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/test_family_aware_coverage.py`, `tests/test_qualification_coverage_identity.py` | Coverage equivalence binds actual runtime/topology/content identities. Rebuild coverage and fix false equivalence. |
 | `tests/test_prebuilt_images.py`, `tests/test_publish_image_guard.py`, `tests/test_release_bundle.py`, `tests/test_release_assets.py` | Plan/source/build keys, digests, signed index and packaged bytes agree. Rebuild/resolve the correct artifacts before signing. |
 | `tools/check-test-git`, `tests/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
+| `tools/check-final-stage-ldd`, `tests/test_check_final_stage_ldd.py` | An added or final-stage-changed adapter Dockerfile on a plain CUDA runtime/base image copies a binary into `bin/` without `RUN ! ldd <binary> \| grep "not found"`. Only added lines count. |
 | `tools/check-document-reads`, `tools/_added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
 | `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
 | `tools/check-model-modalities`, `tests/test_model_modalities.py` | A touched Model's display (or the Model a touched recipe serves) disagrees with its modalities (`image` ⇔ `image-understanding`, likewise audio and video) or with a serving recipe's API document: a chat route needs `chat` and `text-generation`, reasoning other than `none` needs `reasoning`, tools other than `none` need `tool-use`. Correct `display/models/<slug>.json`, or the API document if it claims what the launch does not serve. |
