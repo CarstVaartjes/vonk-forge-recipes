@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+"""Reject a new or changed adapter image whose copied binary is not checked for libraries.
+
+A final stage on a plain ``nvidia/cuda`` runtime/base image has only the CUDA
+runtime. A binary copied out of the devel build stage can link a library the
+runtime lacks (libgomp for OpenMP), which fails at the hardware start with exit
+127. The final stage must run ``ldd <binary>`` and fail on ``not found`` so the
+image build fails instead.
+
+Only Dockerfiles the diff given with ``--diff FILE|-`` adds or changes are checked;
+untouched Dockerfiles are never flagged. There is no count and no allowlist.
+"""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools._added_lines import parse_added, read_diff
+
+FROM = re.compile(r"^FROM\s+(?:--\S+\s+)*(\S+)", re.MULTILINE)
+PLAIN_CUDA = re.compile(r"nvidia/cuda:[^@\s]*-(?:runtime|base)-")
+BINARY_COPY = re.compile(
+    r"^COPY\s+(?:--\S+\s+)*--from=\S+\s+(?:--\S+\s+)*\S+\s+\S*/bin/\S+\s*$",
+    re.MULTILINE,
+)
+LDD_CHECK = re.compile(r"^RUN\s+!\s*ldd\s.*not found", re.MULTILINE)
+
+
+def scan(text: str, added: set[int]) -> bool:
+    """True when a touched Dockerfile needs the ldd step and lacks it.
+
+    Library needs are decided in the build stage (commit, flags), so any added line
+    counts, not only a final-stage line.
+    """
+    if not added:
+        return False
+    text = re.sub(r"\\[ \t]*\n", " ", text)  # join continuations
+    starts = list(FROM.finditer(text))
+    if len(starts) < 2:
+        return False
+    final = text[starts[-1].start() :]
+    return bool(
+        PLAIN_CUDA.search(starts[-1].group(1))
+        and BINARY_COPY.search(final)
+        and not LDD_CHECK.search(final)
+    )
+
+
+def violations(diff: str, root: Path) -> list[str]:
+    found = []
+    advice = (
+        "the final stage copies a binary onto a plain CUDA runtime image; add "
+        '`RUN ! ldd <binary> | grep "not found" | grep -v -e libcuda.so -e libnvidia` '
+        "(see docs/recipe-authoring.md)."
+    )
+    for name, added in sorted(parse_added(diff).items()):
+        path = root / name
+        is_image = name.startswith("adapters/") and "Dockerfile" in path.name
+        if (
+            is_image
+            and path.is_file()
+            and scan(path.read_text(encoding="utf-8"), added)
+        ):
+            found.append(f"{name}: {advice}")
+    return found
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--diff", required=True, help="added-lines diff file, or -")
+    parser.add_argument("--root", type=Path, default=ROOT)
+    arguments = parser.parse_args()
+    found = violations(read_diff(arguments.diff), arguments.root)
+    for message in found:
+        print(message)
+    return 1 if found else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

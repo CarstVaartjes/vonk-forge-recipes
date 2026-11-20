@@ -2956,6 +2956,7 @@ class SelfHealingTests(unittest.TestCase):
             "tools/check-image-provenance",
             "tools/_added_lines",
             "tools/check-test-git",
+            "tools/check-final-stage-ldd",
             "tools/check-serial-reads",
             "tools/generate-contract-examples",
             "tools/generate-contract-schemas",
