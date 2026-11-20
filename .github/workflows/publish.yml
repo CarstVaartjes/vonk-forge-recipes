@@ -35,11 +35,11 @@ jobs:
   validate:
     permissions:
       contents: read
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@4d64d046013ddc88629ee8d14120bcd95cf71113
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@bfbd8c9048a8315cc121d8afcca2a63e7b9b0ef9
     with:
       # Use the same reviewed Forge contract/runtime-policy validator as PR
       # validation; publication remains independent of Forge release CI.
-      platform_ref: 4d64d046013ddc88629ee8d14120bcd95cf71113
+      platform_ref: bfbd8c9048a8315cc121d8afcca2a63e7b9b0ef9
 
   producer-contracts:
     name: Validate producer contracts and packages
