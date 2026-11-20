@@ -379,6 +379,14 @@ jobs:
           set -euo pipefail
           python3 tools/check-document-reads --diff "$RUNNER_TEMP/added.diff"
 
+      # A new or changed adapter image whose final stage is a plain CUDA runtime base and
+      # copies a compiled binary runs `ldd` on it, so a missing library fails the build.
+      - name: Reject new runtime images that do not check copied binaries with ldd
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-final-stage-ldd --diff "$RUNNER_TEMP/added.diff"
+
       # Tests never use git: a tool takes its changed set, commit or epoch as an
       # argument, and git runs only here, at the CI edge. Checks only added lines.
       - name: Reject new tests that run git
