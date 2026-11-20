@@ -77,6 +77,15 @@ jobs:
       - name: Set up uv
         uses: ./.github/actions/setup-tooling
 
+      # Declared adapter sources, verified once; only the catalog and publish jobs
+      # save this cache, every other job restores it (a miss fetches from the mirror).
+      - name: Restore adapter source blobs
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/vonk-forge-recipes/adapter-sources
+          key: adapter-sources-${{ hashFiles('adapter-sources.json') }}
+          restore-keys: adapter-sources-
+
       - name: Build the Controller protocol wheel
         uses: ./.vonk-forge/.github/actions/prepare-control-wheel
         with:
@@ -89,6 +98,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # build-recipe-library runs the checkout's own tools/build-catalog-index,
+          # which places its declared adapter sources first; image-base included.
           plan_library() {
             local platform=${4:-$GITHUB_WORKSPACE/.vonk-forge}
             "$platform/scripts/build-recipe-library" "$1"

@@ -2023,6 +2023,9 @@ def main(argv: list[str]) -> int:
     recipes = load_recipes(ROOT)
     if command == "images":
         return print_images(recipes, names)
+    from tools.adapter_sources import materialize_or_exit
+
+    materialize_or_exit(ROOT)  # lock and check read the vendored base archives
     targets = kit_recipes(ROOT, recipes)
     if names and names != ["--all"]:
         unknown = [n for n in names if n not in recipes]

@@ -120,6 +120,12 @@ def check_recipe(path: Path, root: Path = ROOT) -> list[str]:
 
 
 def main() -> int:
+    # Imported here so the module loads on a bare interpreter; placing the declared
+    # files (COPY sources too) needs the contracts dependencies.
+    sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT)]
+    from tools.adapter_sources import materialize_or_exit
+
+    materialize_or_exit(ROOT)
     problems: list[str] = []
     for recipe in sorted((ROOT / "recipes").glob("*.json")):
         problems.extend(check_recipe(recipe))

@@ -194,11 +194,27 @@ below).
   it) mirrors a newly fetched base archive with its codeload URL as `origin`, and
   `tools/materialize-protocol-wheel` declares the one protocol wheel for every consumer
   path (`tools/protocol_wheel.py`); neither leaves a binary to commit.
+  Every file under `adapters/` that is binary and over 64 KiB, or any file over 1 MiB, is
+  declared, not committed, and so is the synthetic canary's package
+  (`tests/fixtures/canonical-synthetic-canary/package/`; after regenerating it, run
+  `tools/adapter-sources add` on it). Each tool that reads those paths places them itself
+  first, from the cache or the mirror (network): `tools/build-catalog-index`,
+  `tools/check-build-context-sources`, `tools/check-vendored-upstream`,
+  `tools/kit-pins lock|check`, `tools/refresh-upstream` and `tools/materialize-protocol-wheel`.
+  Placing needs the contracts dependencies, so validate.yml runs them with the test
+  environment's Python, and a tool that a bare interpreter loads imports
+  `tools.adapter_sources` inside `main()`. A file is placed by rename from a staging copy at
+  the repository root (`/.adapter-source-*`, ignored), so a concurrent reader never sees a
+  partial file and no build context lists the staging copy.
+  `tests/test_adapter_mirror.py` keeps the `.gitignore` block equal to the manifest paths.
   `publish.yml`'s `adapter-source-mirror` job re-uploads declared blobs the mirror lost from
   their `origin` (verified at ingress) and only warns about what it cannot heal; it never
-  blocks publication (timeout, `continue-on-error`). The two jobs that materialize (the
-  validate.yml catalog job and the publish job) save `~/.cache/vonk-forge-recipes/adapter-sources`
-  keyed on the manifest; the mirror job only restores it. Tests: `tests/test_adapter_mirror.py`.
+  blocks publication (timeout, `continue-on-error`). Only validate.yml's catalog job and the
+  publish job save `~/.cache/vonk-forge-recipes/adapter-sources` (keyed on the manifest);
+  every other job that places files restores it only: the mirror job, validate.yml's
+  producer-contracts job, the recipe-images plan job, the refresh job and the llama.cpp
+  loader job, which builds contexts straight from the checkout and so runs
+  `tools/fetch-adapter-sources` first. Tests: `tests/test_adapter_mirror.py`.
 
 [publish.yml](.github/workflows/publish.yml) runs on non-Markdown changes to
 `main`, validates first, promotes PR image candidates through

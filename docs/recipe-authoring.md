@@ -1436,8 +1436,8 @@ package build places each path before reading contexts, so the source bundle, th
 package and the recipe identity are the same as with the bytes committed, and a
 Dockerfile keeps its own `sha256sum` check. Bytes are verified once, while
 downloading; a fetch failure retries a bounded number of times and then fails the
-build with each URL's evidence. Run `tools/fetch-adapter-sources` to place them
-in a checkout.
+build with each URL's evidence. Run `tools/fetch-adapter-sources` (with the
+contracts dependencies, as below) to place them in a checkout.
 
 To keep a new vendor file (an engine tarball, a vocabulary, a wheel) out of Git, put the
 file at its path in the context and run
@@ -1456,6 +1456,20 @@ downloads, and `tools/materialize-protocol-wheel` writes the Dockerfile template
 declares the reviewed protocol wheel once, with a path per consumer (`--check` accepts a
 path that holds the selected bytes or is declared for them). `add` also writes the
 `.gitignore` block that keeps declared paths out of commits.
+
+What is declared: every file under `adapters/` that is binary and over 64 KiB, or any
+file over 1 MiB (vendored source tarballs and their split parts, tiktoken vocabularies,
+large reference JSON, the protocol wheel, model assets), plus the synthetic canary's
+package `tests/fixtures/canonical-synthetic-canary/package/canonical-synthetic-canary.tar.gz`.
+The canary package changes with every contract major: rebuild it, then run
+`tools/adapter-sources add` on its path. A declared path is ignored, not tracked: a fresh
+clone lacks it, and a pull of the commit that stopped tracking a file deletes your copy.
+The tools that read those paths place them again first, from the local cache or the
+mirror (network): `tools/build-catalog-index`, `tools/check-build-context-sources`,
+`tools/check-vendored-upstream`, `tools/kit-pins lock|check`, `tools/refresh-upstream`
+and `tools/materialize-protocol-wheel`. Tests read the placed tree, so before running a
+single test file in such a checkout, place them with the contracts dependencies:
+`uv run --python 3.14 --no-project --with-editable contracts python tools/fetch-adapter-sources`.
 
 ### Dependency locks and build-time smokes
 
