@@ -12,6 +12,8 @@ import unittest
 import zlib
 from pathlib import Path
 
+from tools.adapter_sources import load
+
 ROOT = Path(__file__).resolve().parents[1]
 CONTEXTS = (
     "hunyuan3d-omni",
@@ -228,15 +230,17 @@ class ThreeDGlbValidationTests(unittest.TestCase):
                 builder = Glb()
                 self.validate(builder.document(profile), builder, profile)
 
-    def test_validator_copies_are_byte_identical(self) -> None:
-        values = {
-            (ROOT / "adapters/three-d" / context / "glb_validation.py").read_bytes()
-            for context in CONTEXTS
+    def test_one_declared_validator_is_placed_in_every_context(self) -> None:
+        paths = {
+            f"adapters/three-d/{context}/glb_validation.py" for context in CONTEXTS
         }
-        self.assertEqual(len(values), 1)
-        self.assertEqual(
-            hashlib.sha256(next(iter(values))).hexdigest(), VALIDATOR_SHA256
-        )
+        declared = load(ROOT).sources[VALIDATOR_SHA256]
+        self.assertEqual(set(declared.paths), paths)
+        for path in paths:
+            self.assertEqual(
+                hashlib.sha256((ROOT / path).read_bytes()).hexdigest(),
+                VALIDATOR_SHA256,
+            )
 
     def test_required_webp_source_is_the_effective_texture_source(self) -> None:
         module = load_validator(CONTEXTS[0])

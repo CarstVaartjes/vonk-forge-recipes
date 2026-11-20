@@ -92,10 +92,12 @@ Producer tools, contracts and tests use Python **3.14**. Adapter sources remain
 **3.12-compatible** because they overlay upstream images. Everything under
 `adapters/` follows upstream style and is excluded from Ruff and Pyright;
 functional tests still validate its behaviour, pins and executability.
-Shared `adapters/three-d/*/glb_validation.py` copies must remain byte-identical
-to the platform's 3.12 copy. `tests/test_three_d_glb_validation.py` compares
-local adapter copies; platform parity is a separate source comparison when
-changing them, not evidence supplied by that local test.
+`adapters/three-d/*/glb_validation.py` is one blob declared once in `adapter-sources.json`
+(five paths, one digest; no Git copy), so every context gets identical bytes. It must stay
+byte-identical to the platform's 3.12 copy; `tests/test_three_d_glb_validation.py` checks the
+declaration and the placed bytes, while platform parity is a separate source comparison when
+changing it. Change it with `tools/adapter-sources add` on all five paths (build keys of the
+five adapters change then, as for any context edit).
 Each adapter that needs a `liburing` stand-in carries a byte-identical copy of
 `tools/posix-uring/` as `posix-uring/` (contexts are self-contained, so there is
 no shared file). `tests/test_posix_uring.py` compiles and runs the canonical

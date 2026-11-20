@@ -117,6 +117,16 @@
         "adapters/audio/hunyuan-video-foley-native/vendor/transformers-a957b7911a758d54597914b4479fe6e81424d64f.tar.gz.part-001"
       ]
     },
+    "740cbcd2a36546c39eaf67d26f3485f5c31f00a946ed116e53ef2c08934cf6c1": {
+      "size_bytes": 55348,
+      "paths": [
+        "adapters/three-d/hunyuan3d-omni/glb_validation.py",
+        "adapters/three-d/skintokens/glb_validation.py",
+        "adapters/three-d/step1x-3d/glb_validation.py",
+        "adapters/three-d/trellis2-native/glb_validation.py",
+        "adapters/three-d/triposg/glb_validation.py"
+      ]
+    },
     "74b0686a3d2891980d5e303251b075a3bccae2c2ff650747db2620a649b98fa8": {
       "size_bytes": 7470294,
       "paths": [
