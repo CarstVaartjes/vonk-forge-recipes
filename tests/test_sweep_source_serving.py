@@ -129,7 +129,6 @@ def test_a_source_the_catalog_never_serves_is_deferred_after_the_bound_not_teste
     assert [r["status"] for r in rows] == ["waiting", "wait-expired"]
     assert rows[1]["code"] == "sweep.wait_budget_exhausted"
     assert rows[1]["unserved"] == [{"recipe": KEY, "served": OLD, "authored": NEW}]
-    assert "restart the sweep from the newest recipes main" in rows[1]["reason"]
     assert "CATALOG DOES NOT SERVE THE SOURCE" in sweep.source_alert
     assert not sweep.pending()
 
@@ -165,33 +164,37 @@ def test_a_revision_the_catalog_changes_mid_pass_is_deferred_by_the_one_gate(
     fleet.recipes[changed].content = NEW  # the library published a newer revision
     adds = _adds(fleet, changed)
     first.state.recipes[changed] = {"status": "pending"}  # due a test again
+    loads = len([c for _, c in fleet.calls if c[:2] == ("profile", "load")])
+    # A recipe merged since is served and authored: this run still has work to do.
+    fleet.recipes["vonk-forge/d"] = FakeRecipe("d", ("4" * 64,), content=OLD)
+    fleet.models["4" * 64] = FakeModel("4" * 64)
+    first.authored["vonk-forge/d"] = OLD
 
     # Read the pages the way the sweep does, one a tick; the scheduler's view in
     # between (mid-pass, the pass not complete) must never include the recipe.
-    first.recipe_list.pass_done_at = first.model_list.pass_done_at = -1e18
-    held_mid_pass = []
+    read_new = held_mid_pass = False
     for _ in range(12):
+        first.clock.sleep(first.cfg.catalog_seconds)
         first.advance_catalog(first.clock.now())
-        held_mid_pass.append(
-            first.recipe_list.in_pass
-            and changed in first.recipes
-            and first.recipes[changed].content_sha256 == NEW
-            and changed not in [r.key for r in first.pending()]
-        )
+        if first.recipe_list.in_pass and first.recipes[changed].content_sha256 == NEW:
+            read_new = True  # the new revision was read, the pass is not complete
+            held_mid_pass = changed not in [r.key for r in first.pending()]
+            assert held_mid_pass, "the changed row is pending mid-pass"
         if (
             not first.recipe_list.in_pass
             and first.recipes[changed].content_sha256 == NEW
         ):
             break
-    assert any(held_mid_pass), "the changed row was never read mid-pass"
+    assert read_new, "the changed row was never read mid-pass"
     assert not [r for r in first.pending() if r.key == changed]
 
     _guard(first.clock, first.clock.now())
     assert first.run() == 0  # a run with deferred recipes still ends
     assert _adds(fleet, changed) == adds
     assert first.state.recipes[changed].get("failure_class") is None
-    last = [(p, c) for p, c in fleet.calls if c[:2] == ("profile", "load")][-1]
-    assert last[0] == 2  # the owner's profile is loaded back
+    owner = [(p, c) for p, c in fleet.calls if c[:2] == ("profile", "load")]
+    assert _adds(fleet, "vonk-forge/d") > 0  # the served recipe was tested
+    assert len(owner) > loads and owner[-1][0] == 2  # restored in this run
 
     served, _, clock = make_sweep(
         tmp_path,

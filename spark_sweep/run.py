@@ -340,7 +340,7 @@ class Sweep:
         self.authored = dict(authored)
         self.source_serving = SourceServing.UNREAD
         self.unserved_recipes: tuple[Unserved, ...] = ()
-        # Served recipes whose content differs from the source, named once per change (row only).
+        # The differing recipes a results row already names (row de-duplication only; the gate decides).
         self.skew_noted: frozenset[str] = frozenset()
         # Served recipes this older source does not author (named once in a results row).
         self.source_missing_keys: frozenset[str] = frozenset()
@@ -786,6 +786,17 @@ class Sweep:
         """
         return self.authored.get(recipe.key) == recipe.content_sha256
 
+    def source_skewed(self) -> int:
+        """How many selected recipes the gate holds back for differing content (the status count)."""
+        return len(self._differing())
+
+    def _differing(self) -> tuple[Unserved, ...]:
+        return unserved(
+            {key: recipe.content_sha256 for key, recipe in self.recipes.items()},
+            self.authored,
+            self._selected_key,
+        )
+
     def observe_source(self) -> None:
         """Say what the gate holds back; the gate itself is ``_source_matches``.
 
@@ -798,11 +809,7 @@ class Sweep:
         if not complete:
             return
         self._observe_source_behind()
-        differing = unserved(
-            {key: recipe.content_sha256 for key, recipe in self.recipes.items()},
-            self.authored,
-            self._selected_key,
-        )
+        differing = self._differing()
         if self.source_serving is SourceServing.SERVED:
             self._note_skew(differing)
             return
@@ -915,6 +922,7 @@ class Sweep:
                 "`vonkctl recipe sync-status`, or restart the sweep from the newest "
                 "recipes main"
             )
+            self.skew_noted = frozenset(item.recipe for item in differing)
             self.source_alert = (
                 f"CATALOG DOES NOT SERVE THE SOURCE: {reason} ("
                 + ", ".join(item.recipe for item in differing[:3])

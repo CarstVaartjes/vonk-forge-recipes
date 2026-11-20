@@ -465,12 +465,15 @@ recipe from the rows held, so it is right in the middle of a library pass) never
 schedules a recipe whose content differs, before or after the bound: the sweep's
 qualification spec belongs to its own source, so another revision would be blamed
 for the sweep's staleness (2026-11-19: a 409 `request is undeclared` recorded as a
-recipe-data fail). Rows: `wait-expired` at the bound, and a `skewed` row (plus the
-`source_skewed` count on the status page) whenever the set of differing recipes
-changes after the wait; no verdict and no fail evidence. A catalog that serves the
-source again releases the recipes by themselves. A slot already loaded binds its jobs to its
-own installation's revision, which the gate guaranteed equals the source when it was
-scheduled. A selected recipe the catalog serves but the source does
+recipe-data fail). The gate checks the last catalog row the sweep read, not what
+the Controller installs: `profile add` pins no revision, so a small window remains
+(follow-up). During the bounded wait `observe_source` also holds the differing recipes
+in `unserved_recipes` (the run does not end). Rows: `wait-expired` at the bound
+(digests, code, alert), and a `skewed` row whenever the set of differing recipes
+changes after the wait (`skew_noted` only de-duplicates these rows and is set at the
+bound, so the first pass after it writes none); the `source_skewed` status count is
+derived from the gate. No verdict and no fail evidence. A catalog that serves the
+source again releases the recipes by themselves. A selected recipe the catalog serves but the source does
 not author (the source is older than the library) is never scheduled or failed: a
 `source-behind` results row says to restart the sweep from an updated source
 (`spark_sweep/source_serving.py`,
