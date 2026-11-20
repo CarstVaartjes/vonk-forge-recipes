@@ -254,7 +254,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v5.2.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v5.3.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -1423,6 +1423,19 @@ with a read-only root and restart reuse. Real GPU execution, multi-Spark
 communication, and model quality require the relevant hardware. Record tests
 that could not run and their missing inputs; do not manufacture passing
 evidence or add an unrelated formal approval gate.
+
+### Build-context files kept out of Git
+
+`adapter-sources.json` declares build-context files whose bytes are served by the
+mirror (`mirror` + SHA-256) instead of being committed: each blob's `size_bytes`,
+optional upstream `origin` (tried after the mirror) and every repository path that
+holds it, so one vendor archive several adapters share is declared once. The
+package build places each path before reading contexts, so the source bundle, the
+package and the recipe identity are the same as with the bytes committed, and a
+Dockerfile keeps its own `sha256sum` check. Bytes are verified once, while
+downloading; a fetch failure retries a bounded number of times and then fails the
+build with each URL's evidence. Run `tools/fetch-adapter-sources` to place them
+in a checkout.
 
 ### Dependency locks and build-time smokes
 
