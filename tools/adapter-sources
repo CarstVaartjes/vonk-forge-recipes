@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+"""Author and heal the adapter-source mirror (see tools/adapter_mirror.py)."""
+
+import argparse
+import os
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+sys.path.insert(0, str(ROOT))
+from tools.adapter_mirror import add, reconcile
+from tools.adapter_sources import AdapterSourceError
+
+parser = argparse.ArgumentParser(description=__doc__)
+commands = parser.add_subparsers(dest="command", required=True)
+adding = commands.add_parser("add", help="mirror files, then declare them")
+adding.add_argument("paths", nargs="+", help="files inside the repository")
+adding.add_argument("--origin", help="https URL where upstream publishes these bytes")
+commands.add_parser("reconcile", help="re-upload declared blobs the mirror lost")
+arguments = parser.parse_args()
+if arguments.command == "add":
+    try:
+        uploaded = add(arguments.paths, origin=arguments.origin)
+    except (AdapterSourceError, OSError, ValueError) as error:
+        sys.exit(f"adapter sources: {error}")
+    print(f"declared {len(arguments.paths)} files; uploaded {len(uploaded)} new blobs")
+else:
+    problems = reconcile()
+    for problem in problems:
+        print(f"::warning title=adapter source mirror::{problem}")
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary and problems:
+        with open(summary, "a") as handle:
+            handle.write("Adapter source mirror, not healed:\n\n")
+            handle.writelines(f"- {problem}\n" for problem in problems)
+    # Never fails: the next main run reconciles again.
+    print(f"{len(problems)} declared blobs could not be healed")
