@@ -11,11 +11,38 @@ from zipfile import ZipFile
 
 import pytest
 
+from tools.adapter_sources import load
 from tools.protocol_wheel import ROOT, SELECTION, materialize, projections, selection
 from tools.single_source_values import check
 
+MIRROR = "https://github.com/owner/repo/releases/download/adapter-sources/"
+
+
+class FakeGh:
+    """A mirror release that accepts every upload."""
+
+    def __init__(self) -> None:
+        self.assets: dict[str, str] = {}
+
+    def __call__(self, arguments: list[str]) -> str:
+        if arguments[1] == "upload":
+            name = Path(arguments[3]).name
+            self.assets[name] = f"sha256:{name}"
+            return ""
+        return json.dumps(
+            {
+                "assets": [
+                    {"name": n, "digest": d, "state": "uploaded"}
+                    for n, d in self.assets.items()
+                ]
+            }
+        )
+
 
 def fixture_root(tmp_path: Path) -> Path:
+    (tmp_path / "adapter-sources.json").write_text(
+        json.dumps({"mirror": MIRROR, "sources": {}})
+    )
     shutil.copytree(ROOT / "tools/protocol-wheel", tmp_path / "tools/protocol-wheel")
     registry = tmp_path / "tools/protocol-wheel/single-source-values.json"
     registrations = json.loads(registry.read_text())
@@ -25,7 +52,7 @@ def fixture_root(tmp_path: Path) -> Path:
     target = tmp_path / selected.artifact
     target.parent.mkdir(parents=True)
     target.write_bytes((ROOT / selected.artifact).read_bytes())
-    materialize(tmp_path)
+    materialize(tmp_path, gh=FakeGh())
     return tmp_path
 
 
@@ -131,6 +158,23 @@ def test_new_reviewed_artifact_drives_filename_hash_and_metadata(
         for issue in check(root, files(root))
     )
 
-    materialize(root)
+    materialize(root, gh=FakeGh())
     assert not check(root, files(root))
-    assert len(list(root.glob("adapters/**/*.whl"))) == len(updated.consumers)
+    materialize(root, check=True)
+    # one wheel on disk; the manifest declares the one blob for every consumer path
+    assert len(list(root.glob("adapters/**/*.whl"))) == 1
+    declared = load(root).sources[updated.artifact_sha256].paths
+    assert sorted(declared) == sorted(
+        str(Path(c.context) / c.wheel_directory / name) for c in updated.consumers
+    )
+    assert (root / ".gitignore").read_text().count(name) == len(updated.consumers)
+
+
+def test_check_wants_each_wheel_path_present_or_declared(tmp_path: Path) -> None:
+    root = fixture_root(tmp_path)
+    materialize(root, check=True)
+    (root / "adapter-sources.json").write_text(
+        json.dumps({"mirror": MIRROR, "sources": {}})
+    )
+    with pytest.raises(ValueError, match="not declared in adapter-sources.json"):
+        materialize(root, check=True)
