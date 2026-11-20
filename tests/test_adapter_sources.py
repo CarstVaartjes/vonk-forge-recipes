@@ -72,6 +72,8 @@ def test_shared_blob_is_fetched_once_and_placed_at_every_path(tmp_path: Path) ->
 
     assert web.requests == [MIRROR + DIGEST]
     assert [(tmp_path / path).read_bytes() for path in PATHS] == [BLOB, BLOB]
+    assert [(tmp_path / path).stat().st_mode & 0o777 for path in PATHS] == [0o644] * 2
+    assert not list(tmp_path.glob(".adapter-source-*"))  # staged, then renamed
 
 
 def test_wrong_mirror_bytes_are_refused_and_origin_serves(tmp_path: Path) -> None:
