@@ -182,7 +182,7 @@ jobs:
           # Coverage is derived offline from the byte-verified catalog build of
           # this commit (the authority is derived from it, not committed).
           "$RELEASE_TEST_PYTHON" tools/build-family-aware-coverage \
-            --catalog-root "$RUNNER_TEMP/catalog-build/root"
+            --catalog-root "$RUNNER_TEMP/catalog-build"
           "$RELEASE_TEST_PYTHON" tools/build-catalog-index \
             --release-dir "$RUNNER_TEMP/release" \
             --source-commit "$GITHUB_SHA" --source-date-epoch "$epoch" \
