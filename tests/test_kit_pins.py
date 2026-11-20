@@ -613,16 +613,6 @@ class ApplyLockTests(unittest.TestCase):
             (directory / "kit-lock.json").unlink()
             self.assertIsNone(vendored._source(directory, manifest))
 
-
-def comparison(*names: str, status: str = "ahead", truncated: bool = False) -> Any:
-    return refresh.Comparison(
-        status,
-        [],
-        [{"filename": n, "status": "modified"} for n in names],
-        truncated,
-        "u",
-    )
-
     def test_a_failed_mirror_upload_removes_the_archive_and_a_rerun_declares_it(
         self,
     ) -> None:
@@ -691,6 +681,16 @@ def comparison(*names: str, status: str = "ahead", truncated: bool = False) -> A
                     sha256
                 ]["paths"],
             )
+
+
+def comparison(*names: str, status: str = "ahead", truncated: bool = False) -> Any:
+    return refresh.Comparison(
+        status,
+        [],
+        [{"filename": n, "status": "modified"} for n in names],
+        truncated,
+        "u",
+    )
 
 
 class KitChangeClassificationTests(unittest.TestCase):
