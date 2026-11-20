@@ -188,11 +188,31 @@ def materialize(
     written = 0
     for sha256, targets in unplaced.items():
         for target in targets:
-            # A copy cut short has the wrong size, so the next run places it again.
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(cache / sha256, target)
+            _place(root, cache / sha256, target)
             written += 1
     return written
+
+
+STAGING_PREFIX = ".adapter-source-"
+
+
+def _place(root: Path, blob: Path, target: Path) -> None:
+    """Copy ``blob`` to ``target`` by rename, so no reader sees a partial file.
+
+    The copy is staged at the repository root: on the same filesystem as every
+    declared path (so the rename is atomic) and outside every build context (so a
+    concurrent package build never lists the staging file). A leftover from a
+    crash is ignored by ``.gitignore`` and never read.
+    """
+    descriptor, staging = tempfile.mkstemp(dir=root, prefix=STAGING_PREFIX)
+    try:
+        with os.fdopen(descriptor, "wb") as output, blob.open("rb") as source:
+            shutil.copyfileobj(source, output)
+        os.chmod(staging, 0o644)  # what a checkout writes; mkstemp makes 0600
+        os.replace(staging, target)
+    finally:
+        Path(staging).unlink(missing_ok=True)
 
 
 def materialize_or_exit(root: Path = ROOT) -> None:

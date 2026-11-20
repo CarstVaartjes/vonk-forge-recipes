@@ -40,9 +40,9 @@ jobs:
       - name: Set up tooling and current CA certificates
         uses: ./.github/actions/setup-tooling
       # The contexts are built straight from the checkout, so their declared adapter
-      # sources are placed first (verified once into this cache, keyed on the manifest).
-      - name: Cache adapter source blobs
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # sources are placed first. Only the catalog and publish jobs save this cache.
+      - name: Restore adapter source blobs
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/vonk-forge-recipes/adapter-sources
           key: adapter-sources-${{ hashFiles('adapter-sources.json') }}

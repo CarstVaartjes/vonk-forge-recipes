@@ -115,8 +115,9 @@ def write_model(
 ) -> str:
     """Validate and write the Model; return its ``document_sha256``."""
 
-    # Imported here so file_id stays usable without the contracts dependencies
-    # (tools/kit-pins runs on a bare interpreter).
+    # Imported here so file_id stays usable without the contracts dependencies:
+    # tools/check-image-provenance loads tools/kit-pins on a bare interpreter (kit-pins
+    # lock and check place adapter sources, so they run with the dependencies).
     from vonk_forge_contracts import (
         ModelDefinition,
         ModelDisplay,
