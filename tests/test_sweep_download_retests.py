@@ -410,3 +410,20 @@ def test_missing_saved_intent_cannot_authorize_a_terminal_retry(tmp_path):
     adopted = State.load(sweep.state.path)
     sweep.state.data = adopted.data
     assert sweep.prefetcher._can_request(recipe, clock.now())
+
+
+def test_refused_download_is_asked_again_only_after_a_release_change(
+    tmp_path: Path,
+) -> None:
+    sweep, _fleet, clock, recipe = _failed_download(tmp_path)
+    record = sweep.state.downloads[recipe.key]
+    record.update(
+        refusal={"code": "operator.receipt_mismatch"},
+        rejection_verified_at=clock.now(),
+        release="old-release",
+    )
+    sweep.state.entry(recipe.key).update(status="pending")
+    sweep.prefetcher.release = lambda: "old-release"
+    assert not sweep.prefetcher._can_request(recipe, clock.now())
+    sweep.prefetcher.release = lambda: "new-release"
+    assert sweep.prefetcher._can_request(recipe, clock.now())
