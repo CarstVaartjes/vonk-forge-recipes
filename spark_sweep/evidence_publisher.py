@@ -58,6 +58,10 @@ CHILD_BUDGET = 240  # seconds a publisher child may run, as seen from the sweep
 #: How long one evidence PR may stay open before it is reported. Evidence PRs were
 #: observed to merge 6-14 minutes after they opened; an hour open is stuck.
 STALL_SECONDS = 3600
+#: Evidence accumulates in the durable local history log and is published as one
+#: commit at the sweep's start (anything a crashed run left) and at its end
+#: (`flush`). In between, a child only watches the open PR.
+RETRY_SECONDS = 300  # a PR in flight or a failing command is looked at again
 
 
 def kill_group(process: subprocess.Popen) -> None:
@@ -359,18 +363,21 @@ def sync(
     state: Path | None = None,
     final: bool = False,
     run: str = "",
+    watch_only: bool = False,
 ) -> SweepEvidenceExit:
     """One batch, then record what it saw. Nothing a batch raises crashes the child:
     every exception is a command failure, recorded and alerted on when repeated.
 
     `final` is the batch a sweep runs on exit: an open evidence PR is brought up
     to date with the latest results instead of waiting for its own merge.
+    `watch_only` is a batch that publishes nothing new: with no PR open it ends
+    SYNCED at once; it still re-plans a red or behind PR.
     """
     seen = Seen()
     directory.mkdir(parents=True, exist_ok=True)
     previous = load_state(directory)
     try:
-        code = _batch(history, directory, state, seen, previous, final, run)
+        code = _batch(history, directory, state, seen, previous, final, run, watch_only)
     except Exception as error:  # noqa: BLE001 - the runtime net: a crash writes no state
         # The signature is keyed on behaviour; the real error goes to publisher.log.
         print(f"evidence: {type(error).__name__}: {error}", flush=True)
@@ -486,6 +493,7 @@ def _batch(
     previous: PublisherRecord,
     final: bool = False,
     run: str = "",
+    watch_only: bool = False,
 ) -> SweepEvidenceExit:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
     global _deadline
@@ -497,6 +505,8 @@ def _batch(
     blocked = 0
     if not opened:
         seen.open_pr = 0  # observed: nothing is waiting
+        if watch_only and not final:
+            return SweepEvidenceExit.SYNCED  # new results wait for the next publish
     if opened:
         pr = PullRequest.model_validate(opened[0])
         details = PullRequest.model_validate_json(
@@ -756,6 +766,7 @@ def _batch(
             "--auto",
             "--squash",
         )
+        seen.open_pr = pr.number  # the PR just opened is watched until it merges
         print(f"evidence: PR #{pr.number}, auto-merge requested", flush=True)
         return done if changed or merging else held
 
@@ -778,6 +789,8 @@ class EvidencePublisher:
         self.script = script
         self.process: subprocess.Popen | None = None
         self.next_attempt = 0.0
+        self.due = True  # the start publish, until a child has completed it
+        self.watching = False  # the last child only watched
         self.started_at = 0.0
         self.message = "evidence publication pending"
         self.record = PublisherRecord()
@@ -818,29 +831,38 @@ class EvidencePublisher:
         """Reap an exited child: its message and state record."""
         self.record = load_state(self.directory)
         signature = self.record.signature
+
         self.message = (
-            "evidence sync complete"
+            (
+                "published; new results queued until the sweep stops"
+                if self.watching
+                else "evidence sync complete"
+            )
             if code == SweepEvidenceExit.SYNCED
-            else "evidence PR awaiting CI/auto-merge; new results queued; check in 300s (see publisher.log)"
+            else f"evidence PR awaiting CI/auto-merge; new results queued; check in {RETRY_SECONDS}s (see publisher.log)"
             if code == SweepEvidenceExit.WAITING
             else f"evidence PR has failing checks ({signature}); waiting for main to move (see publisher.log)"
             if code == SweepEvidenceExit.FAILING_CHECK
             else (
-                f"evidence publisher command failed ({signature}); re-plan in 300s (see publisher.log)"
+                f"evidence publisher command failed ({signature}); re-plan in {RETRY_SECONDS}s (see publisher.log)"
                 if self.record.command
                 else f"evidence publisher: closing the refused PR failed, retrying (last red: {signature}; see publisher.log)"
             )
             if code == SweepEvidenceExit.COMMAND_FAILED
             else f"evidence PR refused (red twice: {signature}); {len(self.record.refused)} records left out, a fresh PR carries the rest (see publisher.log)"
             if code == SweepEvidenceExit.REFUSED
-            else f"evidence publisher exited {code}; re-plan in 300s (see publisher.log)"
+            else f"evidence publisher exited {code}; re-plan in {RETRY_SECONDS}s (see publisher.log)"
         )
         if self._output is not None:
             self._output.close()
+        if code == SweepEvidenceExit.SYNCED:
+            self.due = False
         self.process = None
-        self.next_attempt = now + 300
+        self.next_attempt = now + RETRY_SECONDS
 
     def _spawn(self, now: float, *, final: bool = False) -> bool:
+        watching = not (final or self.due)
+        self.watching = watching
         try:
             self.directory.mkdir(parents=True, exist_ok=True)
             self._output = (self.directory / "publisher.log").open("a")
@@ -858,6 +880,7 @@ class EvidencePublisher:
                     self.run,
                     *(["--state", str(self.state)] if self.state else []),
                     *(["--final"] if final else []),
+                    *(["--watch-only"] if watching else []),
                 ],
                 stdout=self._output,
                 stderr=self._output,
@@ -867,8 +890,8 @@ class EvidencePublisher:
             if self._output is not None:
                 self._output.close()
             self.process = None
-            self.next_attempt = now + 300
-            self.message = f"evidence publisher unavailable ({type(error).__name__}); retry in 300s"
+            self.next_attempt = now + RETRY_SECONDS
+            self.message = f"evidence publisher unavailable ({type(error).__name__}); retry in {RETRY_SECONDS}s"
             return False
         self.started_at = now
         self.message = f"evidence publication running ({CHILD_BUDGET}s budget)"

@@ -70,7 +70,11 @@ orphaned publisher child of the old sweep wrote it).
 
 The sweep's background `tools/sync-qualification-evidence` batches evidence onto
 `qualification/evidence`, maintains one open “qualification evidence” PR and
-requests auto-merge. Each attempt has bounded subprocess waits; failures are
+requests auto-merge. Results accumulate in the durable local history log and are published as one
+evidence commit per run: once at the sweep's start (whatever a crashed run left)
+and once on exit or stop (the final flush). In between, the five-minute child
+(`--watch-only`) only watches the open PR: it clears the record when it merges,
+re-plans a red or behind PR, and never opens the next one with new results. Each attempt has bounded subprocess waits; failures are
 visible on the status page and in `evidence-publisher/publisher.log`. A competing
 push re-plans from a fresh disposable clone on the next batch. GitHub cannot
 block lanes. Keep an open PR's head stable through CI and auto-merge; new results
