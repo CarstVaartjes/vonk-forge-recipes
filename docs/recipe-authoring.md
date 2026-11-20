@@ -1531,6 +1531,8 @@ commit time as `updated_at`; the tool itself never runs Git.
 into `qualification/coverage/`. The test suite builds its own copy once per
 session in a temporary directory and never reads outputs from the checkout.
 
+Every PR runs the whole `tests/` suite and every static gate; CI never selects tests by changed path, so run the targeted tests locally and let CI prove the rest.
+
 For CI, signing, release bundle verification and integration procedure, follow
 [AGENTS.md](../AGENTS.md#ci-and-publication). Build assets are not release evidence
 until that procedure verifies the published bytes.
