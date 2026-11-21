@@ -889,7 +889,10 @@ every `/var/lib/...` path the creator wrote to under `/outputs/cache/<engine>`
 (`adapters/glm/kindlingai-gr8-flash-*`, `tests/test_gr8_serve_wrapper.py`; `adapters/deepseek/kindlingai-gr8-*`,
 `tests/test_gr8_deepseek_wrapper.py`). A creator option the platform cannot
 run (a host daemon) is left out with no option or mention; one it can run (gr8's compact expert copies) is an option
-whose first start does the creator's prepare step into `/outputs/cache`.
+whose first start does the creator's prepare step into `/outputs/cache`. A kit with no Dockerfile that runs an engine's
+published image with its settings in `.env.example` (`adapters/glm/kindlingai-gr8-glm53-*`) declares that image from
+compose's `image:` line as an `oci-image` dependency and the Model from `.env.example`; the recipe's environment carries
+every active `.env.example` line (compose-only and placement lines excepted), its volume paths under `/outputs/cache`.
 
 Bind generated rank/vision/model views to their checkpoint and engine inputs,
 reuse complete cached work and rebuild malformed/interrupted output
