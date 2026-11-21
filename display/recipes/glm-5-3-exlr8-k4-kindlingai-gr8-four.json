@@ -1,0 +1,24 @@
+{
+  "alignment": "unspecified",
+  "description": "Quality-first full GLM-5.3 (744B MoE) on four DGX Sparks with KindlingAI's gr8, a from-scratch CUDA inference engine (no vLLM, PyTorch or NCCL at serve time), at tensor parallel 4 over the ConnectX fabric. The weights are KindlingAI's exlr8 release 0.7 at its bit387 width profile (every routed expert at K4 except the first ten MoE layers and the MTP layer at K3, about 3.87 bits a routed weight; its KL against BF16 matches the all-K4 bit400 within 1.5 standard errors, the creator's figure), int4 KV with a 442,368-token pool, requests up to 442,354 tokens, eight at once, DFlash2 plus MTP drafting and uncapped expert routing (MOE_UNION_CAP=0). The recipe runs the creator's published image of kindlingai/glm-5.3-exlr8-k4-4x-spark at edde1cc1 (gr8 v1.1.0, cdd1e093) with its .env settings and a placement wrapper that reads the platform's VONK_* environment and uses the release in place from the read-only model mounts; the DFlash2 drafter is converted for each rank on its first start. Option: DFlash2 or MTP only. Creator claims, unmeasured here: 60.8 tok/s for one request writing code, 1,570 tok/s prefill at 32K, 82.0 tok/s total at 8 requests, 3.78 GiB lowest free memory a box. About 422 GB of model files a box. Each box mounts the width files its manifest reads whole, where the creator's launcher range-fetches only the box's part from Hugging Face. Thinking is always on in GLM 5.3's template: a request that turns it off gets HTTP 400 (the creator's default), and a small max_tokens can end inside the thinking. Licences, for information: the weights are under Z.AI's GLM-5.3 License (KindlingAI's exlr8 additions also CC BY 4.0), the engine and the recipe MIT.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-exlr8-k4-kindlingai-gr8-four"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "dflash2",
+    "engine",
+    "exlr8",
+    "four-spark",
+    "glm-5.3",
+    "gr8",
+    "k4",
+    "reasoning",
+    "roce",
+    "spark",
+    "structured-outputs",
+    "tool-use"
+  ],
+  "title": "GLM 5.3 EXLR8 K4 gr8 four Sparks"
+}
