@@ -1,4 +1,4 @@
-# TensorFold v1.2.10 (Apache-2.0): Ash Hart's native Zig engine as released, the linux-aarch64 archive
+# TensorFold v1.3.2 (Apache-2.0): Ash Hart's native Zig engine as released, the linux-aarch64 archive
 # installed as the creator's Linux instructions install it (README "Linux with an NVIDIA GPU": download, sha256sum -c,
 # unpack, keep its directories together). CUDA fatbins (sm_80, sm_86, sm_120, sm_121) are embedded in the binary, so
 # nothing is compiled at start; lib/ holds libtfgrammar for structured output and required tool calls. The NVIDIA
@@ -11,16 +11,16 @@
 FROM nvcr.io/nvidia/pytorch:26.07-py3@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 
 LABEL org.opencontainers.image.source="https://github.com/ashhart/TensorFold" \
-      org.opencontainers.image.revision="2a674b552498739e783a31c2573fc9ccf4d8cc0d" \
+      org.opencontainers.image.revision="b472b9f84ca9505d1d31020bed8fb4b5c7fdc33a" \
       org.opencontainers.image.licenses="Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 
-RUN curl -fsSL -o /tmp/tensorfold.tar.gz https://github.com/ashhart/TensorFold/releases/download/v1.2.10/tensorfold-1.2.10-linux-aarch64.tar.gz \
-    && echo "c335c44f81d55847a5f81d74a94ac3d09f81bd6688247cff972cf1f63fc18105  /tmp/tensorfold.tar.gz" | sha256sum -c - \
+RUN curl -fsSL -o /tmp/tensorfold.tar.gz https://github.com/ashhart/TensorFold/releases/download/v1.3.2/tensorfold-1.3.2-linux-aarch64.tar.gz \
+    && echo "364ab50d6f8847708b843b7b0206b60d7b84e88ecf533e8373b9a825a2718911  /tmp/tensorfold.tar.gz" | sha256sum -c - \
     && mkdir /opt/tensorfold \
     && tar -xzf /tmp/tensorfold.tar.gz -C /opt/tensorfold --strip-components=1 \
     && rm /tmp/tensorfold.tar.gz \
-    && test "$(cat /opt/tensorfold/VERSION)" = 1.2.10 \
+    && test "$(cat /opt/tensorfold/VERSION)" = 1.3.2 \
     && /opt/tensorfold/bin/tensorfold-native --version
 
 RUN curl -fsSL -o /tmp/jpeg.tar.gz https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.4.1/libjpeg-turbo-3.1.4.1.tar.gz \
