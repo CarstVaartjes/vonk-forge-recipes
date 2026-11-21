@@ -100,15 +100,6 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--sweep-profile", type=int, default=10)
     run.add_argument("--pin-profile", type=int, default=13)
     run.add_argument(
-        "--protected-profile",
-        type=int,
-        action="append",
-        default=None,
-        help="a profile number the sweep must never use (repeatable; default: "
-        + ", ".join(str(n) for n in sorted(OWNER_PROFILES))
-        + "); vonkctl still refuses writes to the owner profiles",
-    )
-    run.add_argument(
         "--no-pin",
         action="store_true",
         help="do not keep a never-loaded profile that protects downloads from eviction",
@@ -235,16 +226,11 @@ def _seed(args: argparse.Namespace) -> frozenset[str]:
 
 
 def _config(args: argparse.Namespace) -> SweepConfig:
-    protected = (
-        frozenset(args.protected_profile)
-        if args.protected_profile is not None
-        else OWNER_PROFILES
-    )
-    if args.sweep_profile in protected or (
-        not args.no_pin and args.pin_profile in protected
+    if args.sweep_profile in OWNER_PROFILES or (
+        not args.no_pin and args.pin_profile in OWNER_PROFILES
     ):
         raise SystemExit(
-            f"profiles {', '.join(str(n) for n in sorted(protected))} are protected: "
+            f"profiles {', '.join(str(n) for n in sorted(OWNER_PROFILES))} are protected: "
             "choose other numbers for --sweep-profile and --pin-profile"
         )
     if not args.no_pin and args.pin_profile == args.sweep_profile:

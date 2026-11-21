@@ -139,7 +139,7 @@ from .source_serving import (
 from .state import ResultsLog, State, StateLock
 from .tolerant import InputReason, read_optional
 from .verdict import Disposition, Progress
-from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
+from .vonkctl import OWNER_PROFILES, Reply, Vonkctl, VonkctlError, request_key
 
 WAIT_EVENT_SECONDS = 60.0  # a wait says what it waits for at least this often
 # Clearing the fleet and reviewing again, for a capacity refusal (an OBSERVE outcome),
@@ -521,7 +521,9 @@ class Sweep:
                 self.cfg.prefetch.pin_profile, "Hardware sweep pins (never loaded)"
             )
         if not self.state.data["owner"]["export"]:
-            for number in sorted(OWNER_PROFILES_READ):
+            for number in sorted(
+                OWNER_PROFILES
+            ):  # sequential: three one-off start exports
                 reply = self.vk.run("profile", "export", profile=number)
                 if reply.ok and isinstance(reply.document, dict):
                     self.state.data["owner"]["export"][str(number)] = reply.document
@@ -6134,9 +6136,6 @@ class Sweep:
         self.state.data.pop("finalization", None)
         self.clear_infra("finalization")
         self.state.save()
-
-
-OWNER_PROFILES_READ = (1, 2, 3)
 
 
 def _blocker_text(document: Any) -> str:

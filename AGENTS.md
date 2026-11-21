@@ -310,10 +310,12 @@ identical run already runs is cleared before its test load (a kept, renamed
 run has no cold start).
 `plan` reads the catalog/fleet and estimates unique bytes/order. `run` accepts
 `--only`, `--limit`, `--spark`, `--seed-list` (JSON slugs), `--boost`,
-`--authority-id`, `--protected-profile` (default: the owner profiles 1-3),
+`--authority-id`,
 `--retry-failed`, `--watch` and `--no-revalidate`.
 Job recipes are always tested (one artifact job each); there is no flag.
-Read `spark_sweep/cli.py` or `--help` for current defaults.
+Read `--help` for current defaults. Each default has one owner: the authority id in
+`spark_sweep/cli.py`, the boost words in `spark_sweep/run.py`, the owner profiles the sweep
+never uses in `vonkctl.OWNER_PROFILES` (not a flag).
 SIGINT/SIGTERM interrupt owned work; rerunning with the same state directory
 resumes. One process holds the directory's exclusive `run.lock`.
 
