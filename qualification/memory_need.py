@@ -407,7 +407,7 @@ def hardware_proven(
     document_digest: str,
     evidence: RecipeQualificationEvidence | None = None,
 ) -> bool:
-    """Use the qualification reducer, including later failures and exact reverts.
+    """Use the qualification reducer, including later failures.
 
     ``evidence`` is the recipe's evidence when the caller already read it.
     """
@@ -1585,6 +1585,43 @@ def recipe_envelope(recipe: RecipeDefinition) -> int:
     )
 
 
+def _rows_by_content(
+    evidence: RecipeQualificationEvidence,
+) -> dict[str, dict[str, QualificationMeasuredRoleMemory]]:
+    by_content: dict[str, dict[str, QualificationMeasuredRoleMemory]] = {}
+    for row in evidence.measured_memory:
+        by_content.setdefault(row.content_sha256, {})[row.role] = row
+    return by_content
+
+
+def measured_budgets(
+    recipe: RecipeDefinition, evidence: RecipeQualificationEvidence
+) -> dict[str, int]:
+    """Budget per content that qualifies for ``measured_budget`` (and for retention).
+
+    A content qualifies when it is still Working (``hardware_proven``) and its rows
+    measure every declared role within its declared peak (``holds_within``); its
+    budget is the smallest over its rows. The one loop: ``measured_budget`` takes
+    the largest, evidence retention keeps the content that gives it.
+    """
+    budgets: dict[str, int] = {}
+    for content, rows in _rows_by_content(evidence).items():
+        ran = [row.budget_bytes for row in rows.values()]
+        if (
+            None not in ran
+            and all(
+                role.name in rows
+                and holds_within(
+                    role.resources.memory.peak_bytes, rows[role.name].steady_bytes
+                )
+                for role in recipe.topology.roles
+            )
+            and hardware_proven(recipe, content, evidence)
+        ):
+            budgets[content] = min(b for b in ran if b is not None)
+    return budgets
+
+
 def measured_budget(
     recipe: RecipeDefinition,
     replaced: tuple[RecipeDefinition, str] | None = None,
@@ -1604,24 +1641,8 @@ def measured_budget(
     """
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
     evidence = _evidence(key)
-    by_content: dict[str, dict[str, QualificationMeasuredRoleMemory]] = {}
-    for row in evidence.measured_memory:
-        by_content.setdefault(row.content_sha256, {})[row.role] = row
-    budgets: list[int] = []
-    for content, rows in by_content.items():
-        ran = [row.budget_bytes for row in rows.values()]
-        if (
-            None not in ran
-            and all(
-                role.name in rows
-                and holds_within(
-                    role.resources.memory.peak_bytes, rows[role.name].steady_bytes
-                )
-                for role in recipe.topology.roles
-            )
-            and hardware_proven(recipe, content, evidence)
-        ):
-            budgets.append(min(b for b in ran if b is not None))
+    by_content = _rows_by_content(evidence)
+    budgets = list(measured_budgets(recipe, evidence).values())
     if replaced is not None:
         old, digest = replaced
         before = {r.name: r.resources.memory.peak_bytes for r in old.topology.roles}

@@ -200,8 +200,8 @@ def test_evidence_merge_conflict_unions_both_histories(
     monkeypatch.setattr(publisher, "command", command)
     monkeypatch.setattr(publisher.subprocess, "run", merge)
     publisher.sync(history, tmp_path / "work")
-    days = range(3) if branch_changed else (1, 2)  # branch day 0, main 1, log 2
-    assert [r.tested_at for r in observed] == [NOW + timedelta(days=d) for d in days]
+    # Branch day 0, main 1 and log 2 are unioned, then retained: the newest pass is left.
+    assert [r.tested_at for r in observed] == [NOW + timedelta(days=2)]
 
 
 def test_publisher_spawn_failure_is_visible_and_never_escapes_to_lanes(
@@ -495,8 +495,8 @@ def test_state_evidence_is_only_appended_never_rewritten(tmp_path, monkeypatch):
     published = _publish_with_state(
         tmp_path, monkeypatch, evidence(old), evidence(record(B, day=1))
     )
-    assert published[0] == old  # existing repo record kept as it was
-    assert [r.identity for r in published] == [A, B]
+    assert [r.identity for r in published] == [B]  # newest pass only; none rewritten
+    assert old not in published
     # Re-publishing the same state adds nothing.
     (tmp_path / "again").mkdir()
     again = _publish_with_state(
@@ -742,17 +742,20 @@ def test_a_rotated_log_is_read_once_and_still_published_every_batch(
 ):
     world = World(tmp_path, monkeypatch)
     rotated = world.history.with_name("results.jsonl.20261020T000000000000Z")
-    rotated.write_text(json.dumps(_row(20)) + "\n")
+    fault = _row(20) | {
+        "status": "failed"
+    }  # a platform fault: kept as the newest failure
+    rotated.write_text(json.dumps(fault) + "\n")
     world.open_prs.clear()
     world.tick()
-    assert [r.tested_at.day for r in world.pushed[-1]] == [20, 21, 22]
+    assert [r.tested_at.day for r in world.pushed[-1]] == [20, 22]
     rotated.write_text("{torn")  # a batch that reads it again loses day 20
     world.open_prs.clear()  # the next batch plans a fresh PR from main again
     world.tick()
-    assert [r.tested_at.day for r in world.pushed[-1]] == [20, 21, 22]
+    assert [r.tested_at.day for r in world.pushed[-1]] == [20, 22]
     world.open_prs.clear()  # a new sweep run re-reads every rotated log
     publisher.sync(world.history, world.work, run="next sweep")
-    assert [r.tested_at.day for r in world.pushed[-1]] == [21, 22]
+    assert [r.tested_at.day for r in world.pushed[-1]] == [22]
 
 
 def test_a_slow_red_is_not_reset_by_a_pending_tick(tmp_path, monkeypatch):
@@ -1186,7 +1189,7 @@ def test_a_final_batch_updates_an_open_pr_that_normal_ticks_leave_waiting(
     assert code == publisher.SweepEvidenceExit.SYNCED
     assert world.pushes == 1 and world.open_prs == [123]
     (records,) = world.pushed  # the newest row is in the pushed branch content
-    assert {r.tested_at.day for r in records} == {21, 22}
+    assert {r.tested_at.day for r in records} == {22}  # the newest pass of one identity
     assert any(
         c[:3] == ("gh", "pr", "merge") for c in world.calls
     )  # requested, not awaited

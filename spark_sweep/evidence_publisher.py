@@ -40,10 +40,10 @@ from .qualification import (
     catalog_recipe_keys,
     evidence_path,
     merge_evidence,
-    prune_withdrawn_evidence,
     read_evidence,
     read_history,
     read_state_evidence,
+    retain_evidence,
     serving_rows,
     write_evidence,
 )
@@ -714,8 +714,8 @@ def _batch(
                 f"evidence: rejected {result.rejected} malformed historical rows",
                 flush=True,
             )
-        prune_withdrawn_evidence(clone)
         seen.refused = _drop_refused(clone, set(seen.refused or ()))
+        retain_evidence(clone)  # last: a refused record must not have displaced a pass
         command(clone, "git", "add", "qualification/evidence")
         if not command(
             clone, "git", "diff", "origin/main", "--", "qualification/evidence"
