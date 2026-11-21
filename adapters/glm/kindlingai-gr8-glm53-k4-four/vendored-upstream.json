@@ -1,0 +1,26 @@
+{
+  "kit": {
+    "dependencies": {
+      "drafter": {
+        "binds": "drafter",
+        "datasource": "hf-revision",
+        "file": ".env.example",
+        "pattern": "^DRAFTER=https://huggingface\\.co/(?P<repo>[\\w.-]+/[\\w.-]+)@(?P<version>[0-9a-f]{40})\\s*$"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "Dockerfile",
+        "pattern": "^[ \\t]+MODEL=https://huggingface\\.co/(?P<repo>[\\w.-]+/[\\w.-]+)@(?P<version>[0-9a-f]{40})\\s*$"
+      }
+    }
+  },
+  "ours": [
+    "gr8-serve",
+    "licenses/"
+  ],
+  "source": {
+    "commit": "edde1cc1a8f1ba8b46ec86bd51d509a85a848cf1",
+    "repo": "kindlingai/glm-5.3-exlr8-k4-4x-spark"
+  }
+}
