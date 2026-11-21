@@ -302,6 +302,7 @@ tools/sweep-recipes run --yes --limit 2 --restore-owner 2 \
   --client-key-file /path/to/client.key
 tools/sweep-recipes status
 tools/sweep-recipes report
+tools/sweep-recipes publish-evidence
 tools/sweep-recipes file-issues --dry-run
 ```
 
@@ -331,7 +332,8 @@ Default `--state-dir` is `~/.vonk-sweep`:
 | `evidence/<slug>-<n>.json` | Failed-operation evidence bundles; result rows also retain structured evidence and redacted excerpts. |
 
 Definitions contain no results and the loader does not read hardware evidence.
-`publish-evidence` is the one writer of `qualification/evidence/`. Do not confuse a replayed log
+Every write to `qualification/evidence/` goes through `spark_sweep.qualification.backfill`: the
+sweep's publisher (in `run` and `publish-evidence`) and `tools/backfill-qualification-evidence`. Do not confuse a replayed log
 row with a new inference measurement (`tests/test_sweep_evidence.py`,
 `tests/test_sweep_quality.py`, `tests/test_qualification_index.py`).
 

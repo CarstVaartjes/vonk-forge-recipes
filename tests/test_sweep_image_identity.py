@@ -117,9 +117,11 @@ def test_changed_content_is_ordered_newest_first():
 
 
 def test_history_evidence_keeps_verdicts_for_different_images():
+    from functools import reduce
+
     from spark_sweep.catalog_contract import RuntimeImageIdentity
     from spark_sweep.identity import content_identity
-    from spark_sweep.qualification import history_evidence
+    from spark_sweep.qualification import history_evidence, merge_evidence
 
     first = recipe(
         "runtime",
@@ -147,6 +149,11 @@ def test_history_evidence_keeps_verdicts_for_different_images():
         for item in (first, second)
     ]
     evidence = [history_evidence(row) for row in rows]
-    records = [item.records[0] for item in evidence if item]
-    assert len(records) == 2
-    assert records[0].identity != records[1].identity
+    merged = reduce(merge_evidence, (item for item in evidence if item))
+    assert {
+        r.identity.runtime_image and r.identity.runtime_image.image_digest
+        for r in merged.records
+    } == {
+        "sha256:" + "b" * 64,
+        "sha256:" + "d" * 64,
+    }
