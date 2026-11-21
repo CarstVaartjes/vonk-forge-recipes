@@ -522,6 +522,9 @@ image. Never request relaxed seccomp. Enforce image-owned transport policy in
 the launcher before exec, including when a kit declares an unsafe backend. b12x
 defaults a bfloat16 PLE table and a disk Engram table to io_uring even when no
 backend is specified.
+gr8's DeepSeek engine reads its disk Engram rows through io_uring by default (`GR8_DS_ENGRAM_IO_URING=128`); its
+wrapper puts `GR8_DS_ENGRAM_IO_URING=0` (the pread pool, gr8 `engine/engram/rowstore.h`) last in `EXTRA_ENV`
+(`adapters/deepseek/kindlingai-gr8-ds41f-four`, `tests/test_gr8_deepseek_wrapper.py`).
 The separate `--load-format b12x` checkpoint reader also selects io_uring bounce
 I/O on GB10; `B12X_DISK_BACKEND` does not control it. Use `--load-format safetensors`
 at the image launcher handoff for checkpoint loading while retaining the B12X
@@ -880,9 +883,11 @@ adapter fix, never a per-install copy.
 An engine whose wrapper takes its placement from the platform (`gr8`, `ds4`) reads `VONK_RANK`,
 `VONK_WORLD_SIZE`, `VONK_LOCAL_ADDR`, `VONK_MASTER_ADDR`, `VONK_MASTER_PORT` and, in rank order,
 `VONK_PEER_ADDRS`; the recipe's arguments carry no rank. A wrapper over a creator's launcher maps them onto the
-creator's own settings and execs the creator's entrypoint, uses the read-only `/models` mounts in place and moves
+creator's own settings and execs the creator's entrypoint (or, where it refuses a release it did not fetch, does
+its remaining steps and execs the engine's), uses the read-only `/models` mounts in place and moves
 every `/var/lib/...` path the creator wrote to under `/outputs/cache/<engine>`
-(`adapters/glm/kindlingai-gr8-flash-*`, `tests/test_gr8_serve_wrapper.py`). A creator option the platform cannot
+(`adapters/glm/kindlingai-gr8-flash-*`, `tests/test_gr8_serve_wrapper.py`; `adapters/deepseek/kindlingai-gr8-*`,
+`tests/test_gr8_deepseek_wrapper.py`). A creator option the platform cannot
 run (a host daemon) is left out with no option or mention; one it can run (gr8's compact expert copies) is an option
 whose first start does the creator's prepare step into `/outputs/cache`.
 
