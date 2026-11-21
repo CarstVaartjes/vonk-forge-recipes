@@ -1,0 +1,83 @@
+#!/bin/bash
+# The Vonk Forge placement wrapper for KindlingAI's DeepSeek-V4.1-Flash gr8 recipe on four Sparks (TP=4). It maps what
+# the platform gives a workload (the arguments in the recipe, the VONK_* placement environment, the read-only /models
+# mounts and the writable /outputs) onto the creator's settings, then does what the creator's entrypoint does for `up`
+# (its knobs.sh and Engram's token map) and runs gr8's own entrypoint, which starts gr8's supervisor.
+#
+#   arguments    --host (accepted: the front end serves on every address), --port -> PORT, --cap -> CAP (the longest
+#                chat; every chat slot gets this much KV), --sess -> SESS (chats at once)
+#   placement    VONK_PEER_ADDRS -> PEERS (rank order, the head first), VONK_LOCAL_ADDR -> NODE_IP, VONK_MASTER_PORT ->
+#                CONTROL_PORT (gr8's supervisor port). MENTAT=0, no IPS/IPS2: gr8 finds each box's two RoCE rails from
+#                /sys/class/infiniband (tools/launch/supervisor.py, fabric.rails).
+#   model        /models/target is the exlr8 native release used in place (MODEL, a local path: nothing is fetched).
+#                The creator's fetch-release.sh record and re-hash are skipped: the platform verified every file's
+#                digest when it downloaded it.
+#   Engram       read with gr8's pread pool (GR8_DS_ENGRAM_IO_URING=0, engine/engram/rowstore.h): the sandbox blocks
+#                io_uring. Set last in EXTRA_ENV, so no other setting can select the io_uring reader.
+#   writable     everything gr8 writes (its working directory and logs, Engram's token map and index, the loader's gen
+#                cache) is under /outputs/cache/gr8/home, where the creator wrote /var/lib/gr8/home.
+set -euo pipefail
+
+creator=/opt/ds41-4x
+release=/models/target
+home=/outputs/cache/gr8/home
+
+host= port= cap= sess=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --host) host=$2; shift 2 ;;
+    --host=*) host=${1#*=}; shift ;;
+    --port) port=$2; shift 2 ;;
+    --port=*) port=${1#*=}; shift ;;
+    --cap) cap=$2; shift 2 ;;
+    --cap=*) cap=${1#*=}; shift ;;
+    --sess) sess=$2; shift 2 ;;
+    --sess=*) sess=${1#*=}; shift ;;
+    *) echo "gr8-serve: unknown argument $1" >&2; exit 2 ;;
+  esac
+done
+: "$host"
+[ -z "$port" ] || export PORT=$port
+[ -z "$cap" ] || export CAP=$cap
+[ -z "$sess" ] || export SESS=$sess
+
+mkdir -p "$home" /outputs/tmp
+export GR8_WORK_DIR=$home TMPDIR=/outputs/tmp ENGRAM_PREFIX=$home/engram/ds41
+
+# placement
+: "${VONK_PEER_ADDRS:?gr8-serve: VONK_PEER_ADDRS is not set}" "${VONK_LOCAL_ADDR:?gr8-serve: VONK_LOCAL_ADDR is not set}"
+export PEERS=$VONK_PEER_ADDRS NODE_IP=$VONK_LOCAL_ADDR MENTAT=0
+[ -z "${VONK_MASTER_PORT:-}" ] || export CONTROL_PORT=$VONK_MASTER_PORT
+unset IPS IPS2 SHAPE
+
+# the release is used in place; the baked-in release volume path is not
+export MODEL=$release
+
+# EXTRA_ENV: the creator's gen cache (.env.example turns it on), then any engine settings already given, then the
+# pread Engram reader, last
+extra=
+if [ "${GEN_CACHE:-1}" = 1 ]; then
+  extra=GR8_GEN_CACHE=$home/gen-cache
+fi
+read -ra given <<< "${EXTRA_ENV:-}"
+for kv in ${given[@]+"${given[@]}"}; do
+  case "$kv" in
+    GR8_DS_ENGRAM_IO_URING=*|G6_DS_ENGRAM_IO_URING=*|GR8_GEN_CACHE=*) ;;
+    *) extra="${extra:+$extra }$kv" ;;
+  esac
+done
+export EXTRA_ENV="${extra:+$extra }GR8_DS_ENGRAM_IO_URING=0"
+unset GEN_CACHE given
+
+# the creator's knobs (TUNE, CAP, SESS and the engine words of each TUNE), as its entrypoint sources them
+. "$creator/knobs.sh"
+
+# Engram's token map the image carries, beside which the loader writes its index at every boot (the creator's
+# entrypoint, `up`). A copy that differs (an interrupted one, or an older image's) is replaced.
+mkdir -p "$(dirname "$ENGRAM_PREFIX")"
+if ! cmp -s "$creator/ds41.engram.cmap" "$ENGRAM_PREFIX.engram.cmap"; then
+  cp "$creator/ds41.engram.cmap" "$ENGRAM_PREFIX.engram.cmap.partial"
+  mv -f "$ENGRAM_PREFIX.engram.cmap.partial" "$ENGRAM_PREFIX.engram.cmap"
+fi
+
+exec /opt/gr8/docker/entrypoint.sh up

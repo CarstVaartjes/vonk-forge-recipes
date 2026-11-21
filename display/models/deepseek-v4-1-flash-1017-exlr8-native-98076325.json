@@ -1,0 +1,44 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "Exact public KindlingAI DeepSeek-V4.1-Flash-1017 exlr8 native release at revision 98076325: DeepSeek's official weights byte for byte (FP8 trunk, MXFP4 routed experts, the Engram tables of layers 1 and 14) in the exlr8 v2 file layout, as pinned by KindlingAI's gr8 recipe for four Sparks.",
+  "family_title": "DeepSeek",
+  "identity": {
+    "publisher": "kindlingai",
+    "slug": "deepseek-v4-1-flash-1017-exlr8-native-98076325"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "DeepSeek-AI",
+      "KindlingAI"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/kindlingai/deepseek-v4.1-flash-exlr8-native/blob/98076325aaa2c8dfec6095536d69c47bfcfbb3dc/LICENSE"
+  },
+  "lineage": {
+    "base_model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "family": "deepseek",
+    "generation": "DeepSeek V4.1",
+    "line": "deepseek-flash",
+    "model": "deepseek-v4-1-flash-1017",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "DeepSeek V4.1 Flash 1017",
+  "tags": [
+    "kindlingai",
+    "deepseek",
+    "1017",
+    "exlr8"
+  ]
+}

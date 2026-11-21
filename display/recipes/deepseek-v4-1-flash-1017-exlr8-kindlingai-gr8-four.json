@@ -1,0 +1,26 @@
+{
+  "alignment": "unspecified",
+  "description": "DeepSeek-V4.1-Flash-1017 on four DGX Sparks with KindlingAI's gr8, a from-scratch CUDA inference engine (no vLLM, PyTorch or NCCL at serve time), at tensor parallel 4 over the ConnectX fabric. The weights are KindlingAI's exlr8 native release: DeepSeek's official weights byte for byte (FP8 trunk, MXFP4 routed experts) in the exlr8 file layout, with Engram on, fp8 KV, the checkpoint's MTP layers drafting, and 32 chats at once, each up to 327,680 tokens (a request holds at most 10 tokens less), every chat slot getting its full KV at boot. The default is the creator's fast mode (TUNE=speed), whose replies are not bit-identical to the exact model's. The recipe runs the creator's published image of commit 4038bf81 (kindlingai/deepseek-v4.1-flash-exlr8-4x-spark, gr8 933c8853) with a placement wrapper that reads the platform's VONK_* environment and uses the release in place from the read-only model mounts (about 509 GB a box: every box reads the whole release, Engram tables included). Engram reads its table rows from disk with gr8's pread pool, because the sandbox blocks io_uring; the creator says the output is the same and measured its numbers with io_uring. Options: speed, long context (16 chats, one up to 1,048,576 tokens) or quality (the exact model, 5 chats); and the loader's gen cache on disk (about 80 GB a box, on by default) for faster later boots. Creator claims, unmeasured here: 137.5 tok/s for one request writing code, 83.9 prose, about 7,700-8,400 tok/s prefill from 32K to 256K, 233 tok/s aggregate at 32 streams; at least 3.25 GiB free a box under load. Thinking is on by default at effort low; a request turns it off with chat_template_kwargs thinking false or reasoning_effort none. Text only: the release's vision tower is not loaded. Licences, for information: weights and engine MIT.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-1017-exlr8-kindlingai-gr8-four"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "deepseek",
+    "deepseek-v4-1",
+    "1017",
+    "engine",
+    "engram",
+    "exlr8",
+    "four",
+    "fp8-kv",
+    "gr8",
+    "mtp",
+    "reasoning",
+    "roce",
+    "spark",
+    "tool-use"
+  ],
+  "title": "DeepSeek V4.1 Flash 1017 EXLR8 gr8 four Sparks"
+}
