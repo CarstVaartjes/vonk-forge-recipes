@@ -13,7 +13,7 @@
 #                The creator's fetch-release.sh record and re-hash are skipped: the platform verified every file's
 #                digest when it downloaded it.
 #   Engram       read with gr8's pread pool (GR8_DS_ENGRAM_IO_URING=0, engine/engram/rowstore.h): the sandbox blocks
-#                io_uring. Set last in EXTRA_ENV, so no other setting can select the io_uring reader.
+#                io_uring. knobs.sh puts EXTRA_ENV after its own engine words, so its default cannot select it.
 #   writable     everything gr8 writes (its working directory and logs, Engram's token map and index, the loader's gen
 #                cache) is under /outputs/cache/gr8/home, where the creator wrote /var/lib/gr8/home.
 set -euo pipefail
@@ -53,21 +53,14 @@ unset IPS IPS2 SHAPE
 # the release is used in place; the baked-in release volume path is not
 export MODEL=$release
 
-# EXTRA_ENV: the creator's gen cache (.env.example turns it on), then any engine settings already given, then the
-# pread Engram reader, last
+# EXTRA_ENV: the creator's gen cache (.env.example turns it on) and the pread Engram reader. The creator's knobs.sh
+# puts these after its own engine words and they replace its values, so io_uring stays off.
 extra=
 if [ "${GEN_CACHE:-1}" = 1 ]; then
   extra=GR8_GEN_CACHE=$home/gen-cache
 fi
-read -ra given <<< "${EXTRA_ENV:-}"
-for kv in ${given[@]+"${given[@]}"}; do
-  case "$kv" in
-    GR8_DS_ENGRAM_IO_URING=*|G6_DS_ENGRAM_IO_URING=*|GR8_GEN_CACHE=*) ;;
-    *) extra="${extra:+$extra }$kv" ;;
-  esac
-done
 export EXTRA_ENV="${extra:+$extra }GR8_DS_ENGRAM_IO_URING=0"
-unset GEN_CACHE given
+unset GEN_CACHE
 
 # the creator's knobs (TUNE, CAP, SESS and the engine words of each TUNE), as its entrypoint sources them
 . "$creator/knobs.sh"

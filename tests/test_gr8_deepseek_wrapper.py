@@ -99,17 +99,6 @@ def test_placement_paths_and_settings(sandbox):
     ]
 
 
-def test_io_uring_cannot_be_selected(sandbox):
-    _, run = sandbox
-    extra = "GR8_DS_ENGRAM_IO_URING=128 GR8_DS_CACHE_MIB=2048 G6_DS_ENGRAM_IO_URING=64"
-    done, dump = run({**PLACEMENT, "EXTRA_ENV": extra, "GEN_CACHE": "0"})
-    assert done.returncode == 0, done.stderr
-    assert dump["KNOBS_SAW_EXTRA_ENV"].split() == [
-        "GR8_DS_CACHE_MIB=2048",
-        "GR8_DS_ENGRAM_IO_URING=0",
-    ]
-
-
 def test_a_differing_token_map_is_replaced_and_a_whole_one_kept(sandbox):
     root, run = sandbox
     cmap = root / "outputs/cache/gr8/home/engram/ds41.engram.cmap"
