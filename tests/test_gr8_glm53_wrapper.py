@@ -12,9 +12,7 @@ GLM = ROOT / "adapters/glm"
 ADAPTERS = tuple(sorted(path.name for path in GLM.glob("kindlingai-gr8-glm53-*")))
 # the wrappers that convert a mounted DFlash2 drafter; the MTP-only ones (five, six) carry no drafter block
 DRAFTER_ADAPTERS = tuple(
-    name
-    for name in ADAPTERS
-    if "/models/drafter" in (GLM / name / "gr8-serve").read_text()
+    name for name in ADAPTERS if "DFLASH_DIR=" in (GLM / name / "gr8-serve").read_text()
 )
 
 FAKE_ENTRYPOINT = """#!/bin/bash
