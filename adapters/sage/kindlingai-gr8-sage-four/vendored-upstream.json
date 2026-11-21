@@ -1,0 +1,25 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "kindling.json",
+        "pattern": "^\\s*\"image\": \"ghcr\\.io/kindlingai/gr8:(?P<version>[A-Za-z0-9_][\\w.-]*)\"",
+        "repo": "ghcr.io/kindlingai/gr8"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "Dockerfile",
+        "pattern": "^[ \\t]+MODEL=https://huggingface\\.co/(?P<repo>[\\w.-]+/[\\w.-]+)@(?P<version>[0-9a-f]{40})"
+      }
+    }
+  },
+  "ours": [
+    "gr8-serve"
+  ],
+  "source": {
+    "commit": "1f1062775e075c1746c97cf64b38fa8f3046cd1c",
+    "repo": "kindlingai/sage-s2.1-flash-exlr8-4x-spark"
+  }
+}

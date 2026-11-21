@@ -1,0 +1,17 @@
+# The prompt cache: Flash session checkpoints (gr8 --flash-cache aligned) on disk, with a copy in spare RAM.
+#
+# A prompt's prefill keeps a checkpoint at its last prefill grid point (the KV rows before it and the KDA state after
+# them). A later prompt that starts with the same tokens, such as an agent's next turn under the same system prompt and
+# tools, is prefilled from there. The output is bit-exact against no cache.
+#
+# The checkpoints live in /var/lib/gr8/prompts (the prompts volume, compose.yaml) and stay there across restarts
+# (persist). A restart with another engine build, model release or CAP starts the folder empty.
+#
+# spare: entries are also kept in RAM the box is not using. The kernel takes that memory back whenever it needs it,
+# down to the floor of free memory, and a read whose copy it took goes to the disk.
+caches:
+  spare: {kind: spare_ram, floor: 2G}
+tiers:
+  - cache: spare
+    store:
+      ssd: {path: /var/lib/gr8/prompts, size_per_rank: 64G, persist: true}

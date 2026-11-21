@@ -1,0 +1,22 @@
+{
+  "alignment": "unspecified",
+  "description": "Sage S2.1 Flash (Shanghai AI Laboratory's model on the GLM-5.3-Flash architecture) on two DGX Sparks with KindlingAI's gr8, a from-scratch CUDA inference engine (no vLLM, PyTorch or NCCL at serve time), at tensor parallel 2 over the ConnectX fabric. The weights are KindlingAI's exlr8 K4 release (every routed and shared expert at 4 bits a weight), int4 KV, four requests at once (SESS=4) sharing a 262,208-token KV pool, requests up to 262,144 tokens, bit-exact shared-waterfill MTP=2 drafting and a prompt cache on disk, text only by default. The kit (kindlingai/sage-s2.1-flash-exlr8-2x-spark at 99f32341) publishes no image, so the recipe follows its own image path: gr8's published image of the kit's gr8 commit ca7e8745 plus the kit's knobs, entrypoint and prompt-cache file, with a placement wrapper that reads the platform's VONK_* environment and uses the release in place from the read-only model mounts. Options: speed, more sessions (eight, context-parallel KV, experimental upstream) or quality (strict MTP=1); image input (the creator's untested opt-in); and the creator's optional compact expert copies. Creator claims, unmeasured here: 55.1 tok/s for one request writing code, 1,832 tok/s prefill at 8K, 47.9 / 66.6 / 79.8 tok/s aggregate at 1 / 2 / 4 streams. Each box mounts the whole release less the other ranks' index slices (about 165 GB), where the creator's launcher range-fetches about 88 GB from Hugging Face. The model always thinks: a request that turns thinking off gets the template's lowest effort with the reasoning withheld, and a small max_tokens can end inside the thinking. Licence, for information: MIT.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "sage-s2-1-flash-exlr8-kindlingai-gr8-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "engine",
+    "exlr8",
+    "gr8",
+    "reasoning",
+    "roce",
+    "sage",
+    "spark",
+    "structured-outputs",
+    "tool-use",
+    "two-spark"
+  ],
+  "title": "Sage S2.1 Flash EXLR8 gr8 two Sparks"
+}
