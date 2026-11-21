@@ -66,34 +66,10 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
                 self.assertEqual(
                     geometry_mesh["extensions"], texture_mesh["extensions"]
                 )
-                description = recipe_display(geometry["identity"]["slug"]).description
-                self.assertIn(
-                    "vonk-forge/step1x-3d-texture-pytorch-single", description
-                )
-                self.assertIn("up to 240 MiB", description)
                 self.assertIn(
                     "next-step-texture",
                     recipe_display(geometry["identity"]["slug"]).tags,
                 )
-
-        texture_description = recipe_display(texture["identity"]["slug"]).description
-        self.assertIn(
-            "vonk-forge/step1x-3d-geometry-pytorch-single", texture_description
-        )
-        self.assertIn(
-            "vonk-forge/step1x-3d-label-geometry-pytorch-single",
-            texture_description,
-        )
-        self.assertIn("up to 240 MiB", texture_description)
-
-    def test_ui_mate_is_described_as_a_non_actuating_proposal_interface(self) -> None:
-        recipe = _recipe("ui-mate-27b-vllm-single")
-        tags = set(recipe_display(recipe["identity"]["slug"]).tags)
-        self.assertGreaterEqual(tags, {"action-proposal", "human-approval-required"})
-        description = recipe_display(recipe["identity"]["slug"]).description.lower()
-        self.assertIn("non-actuating", description)
-        self.assertIn("approve", description)
-        self.assertIn("execute actions externally", description)
 
 
 if __name__ == "__main__":

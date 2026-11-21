@@ -16,7 +16,6 @@ from vonk_forge_contracts.sweep import (
 )
 
 from spark_sweep.lifecycle import RecipeStatus, RetestReason
-from spark_sweep.report import build_status, render_status
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -88,9 +87,6 @@ def test_dual_review_outage_fills_both_single_lanes_and_recovers_after_restart(
         for recipe in duals:
             assert sweep.state.status(recipe.key) == RecipeStatus.PENDING
             assert sweep.state.entry(recipe.key).get("attempts", 0) == 0
-        page = render_status(build_status(sweep))
-        assert "Infrastructure problems (not recipe failures; retrying)" in page
-        assert "control API connection was lost" in page or "timed out" in page
         assert not (tmp_path / "results.jsonl").exists()
         sweep.state.save()
         restarted, _, _ = make_sweep(

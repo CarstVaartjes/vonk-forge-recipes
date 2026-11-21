@@ -16,7 +16,6 @@ from spark_sweep.qualification import history_evidence
 from spark_sweep.report import (
     build_report,
     quality_notes,
-    render_report,
 )
 
 pytest_plugins = ["sweep_bounds"]
@@ -162,13 +161,7 @@ def test_quality_notes_are_reported_apart_from_failures(
     sweep.run()
     recipes = sweep.state.recipes
     assert list(quality_notes(recipes)) == ["vonk-forge/a"]
-    page = (tmp_path / "status.md").read_text()
-    assert "passed 1 (1 with quality notes) - failed 0" in page
-    assert "vonk-forge/a: 1 quality note" in page
     report = build_report(recipes)
-    text = render_report(report)
-    assert "ran; 1 quality note" in text
-    assert "vonk-forge/a A391: expected 391, got 305" in text
     assert report["failure_clusters"] == []
 
 

@@ -142,8 +142,7 @@ alters what runs edits the document. Read display through `qualification/documen
 Display text and tags never state verification status; the status badge owns it.
 A description does not say a recipe is a "Candidate", pending, untested or awaiting
 physical acceptance or qualification, and no recipe carries the `candidate` or
-`physical-acceptance-required` tag (`tests/test_display_contract.py` guards all
-of display/recipes, independent of evidence).
+`physical-acceptance-required` tag.
 
 ### Recipe API facts
 
@@ -1393,7 +1392,6 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
 | `tools/check-model-modalities`, `tests/test_model_modalities.py` | A touched Model's display (or the Model a touched recipe serves) disagrees with its modalities (`image` ⇔ `image-understanding`, likewise audio and video) or with a serving recipe's API document: a chat route needs `chat` and `text-generation`, reasoning other than `none` needs `reasoning`, tools other than `none` need `tool-use`. Correct `display/models/<slug>.json`, or the API document if it claims what the launch does not serve. |
 | `tools/check-platform-contracts`, `qualification/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. The row also fires on a contracts major newer than the platform's: pin this commit in vonk-forge, deploy, then move `platform_ref`. |
-| `tests/test_guidance_files.py` | Guidance stays in the allowlisted files and local Markdown links resolve. Consolidate the new rule here or in AGENTS; fix links in the same change. |
 | `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
 
 Recipe-specific regressions under `tests/test_<family or adapter>*.py` additionally

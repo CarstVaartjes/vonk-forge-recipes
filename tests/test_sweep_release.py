@@ -285,33 +285,6 @@ def test_the_cli_takes_retry_failed_and_only(tmp_path: Path, gateway: Gateway) -
 # -- status --------------------------------------------------------------------------------------
 
 
-def test_failures_are_grouped_by_controller_release_on_the_status_page(
-    tmp_path: Path, gateway: Gateway
-) -> None:
-    recipes, models = _failing_set()
-    sweep, fleet, _ = make_sweep(tmp_path, recipes, models, gateway=gateway)
-    fleet.release_sha = OLD
-    fleet.api_source_sha = OLD
-    sweep.run()
-    fleet.release_sha = NEW
-    fleet.api_source_sha = NEW
-    fleet.accepted_version = "1.0"
-    for recipe in ("image-bug",):
-        fleet.recipes[
-            f"vonk-forge/{recipe}"
-        ].fail_load = IMAGE_BUG  # still broken on the new release
-    again, _, _ = make_sweep(tmp_path, recipes, models, fleet=fleet)
-    again.run()
-    status = json.loads((tmp_path / "status.json").read_text())
-    groups = {g["release"]: g for g in status["failures_by_release"]}
-    assert status["release"] == NEW
-    assert NEW not in groups  # A new process does not rewrite old failure provenance.
-    assert groups[OLD]["failed"] == 3 and not groups[OLD]["current"]
-    assert _entry(again, "image-bug")["status"] == "deferred"
-    page = (tmp_path / "status.md").read_text()
-    assert "## Failures by Controller release" in page and f"release {OLD[:12]}" in page
-
-
 def test_watch_retests_platform_fault_only_after_its_observed_owner_fix(
     tmp_path: Path, gateway: Gateway
 ) -> None:

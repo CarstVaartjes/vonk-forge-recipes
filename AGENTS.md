@@ -4,9 +4,8 @@ This repository owns public Model and Recipe JSON documents, their Pydantic
 contracts, producer tools and hardware qualification definitions. Create or
 change recipes using [docs/recipe-authoring.md](docs/recipe-authoring.md).
 Keep repository process here and authoring rules there; package READMEs document
-the installable contracts. Do not add separate guidance files.
-`tests/test_guidance_files.py` enforces the Markdown allowlist, excluding
-`adapters/`. Recipe memory policy lives in the authoring guide's memory section.
+the installable contracts. Do not add separate guidance files (adapters excepted).
+Recipe memory policy lives in the authoring guide's memory section.
 
 ## Work and evidence
 

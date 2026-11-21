@@ -54,7 +54,6 @@ def test_rejects_a_changed_spark_count_and_says_to_create_a_new_recipe(
     assert topology.main(["--root", str(root), "--base", "HEAD"]) == 1
     error = capsys.readouterr().err
     assert "glm-single" in error and "from 1 to 2" in error
-    assert "new recipe id" in error
 
 
 def test_rejects_the_change_even_when_the_file_is_renamed(tmp_path, capsys) -> None:

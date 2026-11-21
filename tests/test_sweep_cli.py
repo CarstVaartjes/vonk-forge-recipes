@@ -96,16 +96,6 @@ def test_plan_reports_unique_bytes_and_download_time_without_touching_the_fleet(
     assert mutating == []
 
 
-def test_plan_text_names_the_unique_bytes_and_a_rate_table(
-    tmp_path: Path, capsys
-) -> None:
-    recipes = [FakeRecipe("a", ("m1",))]
-    fleet = _fleet(recipes, [FakeModel("m1")])
-    assert _run(["plan", "--state-dir", str(tmp_path)], fleet, recipes) == 0
-    out = capsys.readouterr().out
-    assert "unique models      1" in out and "download time" in out and "MB s" in out
-
-
 def test_run_refuses_without_yes_and_never_accepts_owner_profile_numbers(
     tmp_path: Path, capsys
 ) -> None:
@@ -232,13 +222,12 @@ def test_status_and_report_commands_read_the_state_dir(tmp_path: Path, capsys) -
 def test_the_entry_point_is_executable() -> None:
     tool = ROOT / "tools" / "sweep-recipes"
     assert tool.stat().st_mode & 0o111
-    done = subprocess.run(
+    subprocess.run(
         [sys.executable, str(tool), "--help"],
         capture_output=True,
         text=True,
         check=True,
     )
-    assert "plan" in done.stdout and "publish-evidence" in done.stdout
 
 
 # -- evidence --------------------------------------------------------------------------

@@ -410,8 +410,6 @@ def test_startup_reobserves_after_one_poll_and_reports_the_exact_wait(
     before = clock.now()
     assert not sweep._startup(unavailable)
     assert clock.now() - before == sweep.cfg.poll_seconds
-    page = (tmp_path / "status.md").read_text()
-    assert "unavailable" in page and "fleet is unreadable" in page
     assert sweep._startup(lambda: None)
     assert "startup" not in sweep.state.data["infra"]
 

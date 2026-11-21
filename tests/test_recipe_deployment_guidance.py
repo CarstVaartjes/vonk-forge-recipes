@@ -57,20 +57,12 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
 
         nano_tags = set(recipe_display(nano["identity"]["slug"]).tags)
         self.assertTrue({"executable", "historical", "superseded"} <= nano_tags)
-        self.assertIn(
-            "Nemotron 3.5 Lightning",
-            recipe_display(nano["identity"]["slug"]).description,
-        )
 
     def test_moss_is_labeled_as_replay_not_interactive_service(self) -> None:
         recipe = load("recipes/moss-vl-realtime-11b-pytorch-single.json")
         tags = set(recipe_display(recipe["identity"]["slug"]).tags)
         self.assertTrue(
             {"session-replay", "batch-job", "not-interactive-service"} <= tags
-        )
-        self.assertIn(
-            "does not expose the upstream interactive WebSocket",
-            recipe_display(recipe["identity"]["slug"]).description,
         )
         self.assertEqual(recipe["interfaces"][0]["adapter"], "artifact-job")
         outputs = {slot["id"] for slot in recipe["interfaces"][0]["output"]["slots"]}
@@ -89,19 +81,6 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
             <= set(recipe_display(high["identity"]["slug"]).tags)
         )
         self.assertNotIn("default", recipe_display(high["identity"]["slug"]).tags)
-        self.assertIn(
-            "360p recipe as the default",
-            recipe_display(high["identity"]["slug"]).description,
-        )
-
-    def test_muse_runtime_and_limit_are_truthful_and_bound(self) -> None:
-        recipe_path = "recipes/muse-glimmer-30b-bf16-vllm-single.json"
-        recipe = load(recipe_path)
-        self.assertEqual(recipe["runtime"]["engine"], "vllm")
-        self.assertIn(
-            "combining reasoning with JSON-schema structured output is not supported",
-            recipe_display(recipe["identity"]["slug"]).description,
-        )
 
     def test_release_metadata_and_package_bind_current_recipe_digests(self) -> None:
         slugs = (

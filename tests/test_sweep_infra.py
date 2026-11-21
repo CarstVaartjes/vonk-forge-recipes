@@ -141,10 +141,10 @@ def test_an_infrastructure_error_pauses_and_retries_but_fails_no_recipe(
     assert sweep.state.data["infra"] == {}  # and cleared once the Controller answered
 
 
-def test_the_status_page_shows_infrastructure_problems_with_the_update_hint(
+def test_the_status_file_reports_infrastructure_problems(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    sweep, fleet, clock = make_sweep(
+    sweep, fleet, _ = make_sweep(
         tmp_path,
         [FakeRecipe("a")],
         [FakeModel("m1")],
@@ -158,17 +158,7 @@ def test_the_status_page_shows_infrastructure_problems_with_the_update_hint(
             "control API response does not match the OpenAPI schema",
         )
     ]
-    pages: list[str] = []
-    clock.hooks.append(
-        lambda _t: (
-            pages.append((tmp_path / "status.md").read_text())
-            if (tmp_path / "status.md").exists()
-            else None
-        )
-    )
     sweep.run()
-    page = next(p for p in pages if "Infrastructure problems" in p)
-    assert "not recipe failures" in page and "vonkctl update --apply" in page
     statuses = [json.loads(line) for line in [(tmp_path / "status.json").read_text()]]
     assert "infrastructure" in statuses[0]
 

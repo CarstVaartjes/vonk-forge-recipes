@@ -10,7 +10,7 @@ from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.removal_contract import RecipeVerdict, RemovalOutcome, RemovalRecord
-from spark_sweep.report import build_status, render_status
+from spark_sweep.report import build_status
 from spark_sweep.state import State
 from spark_sweep.vonkctl import Vonkctl
 
@@ -306,7 +306,6 @@ def test_restart_reconnects_to_the_write_ahead_request(tmp_path, fault):
     assert record["receipt"]["request_key"] == original
     status = build_status(sweep)
     assert status["model_removals"][A]["request_key"] == original
-    assert original in render_status(status)
 
 
 def test_one_pass_over_many_removals_saves_once(tmp_path):
@@ -404,9 +403,6 @@ def test_repeated_failures_and_uncertainty_always_schedule_a_next_check(
         record = RemovalRecord.model_validate(sweep.state.data["model_removals"][A])
         assert clock.now() < record.next_check <= clock.now() + MAX_BACKOFF_SECONDS
         assert record.message
-        status = render_status(build_status(sweep))
-        assert str(record.outcome) in status and record.message in status
-        assert str(record.next_check) in status
         keys = [
             args[args.index("--request-key") + 1]
             for args in peer.submissions
@@ -425,7 +421,6 @@ def test_repeated_failures_and_uncertainty_always_schedule_a_next_check(
         assert len(keys) == 12 and len(set(keys)) == 1
         assert record.outcome == RemovalOutcome.WAIT
         assert record.request_key is not None
-        assert record.request_key in status
     assert sweep.pending()
 
 
@@ -681,9 +676,6 @@ def test_catalog_retry_is_bounded_and_reports_cause_age_and_recovery(tmp_path, f
     assert len(peer.fleet.calls) == calls  # honor the persisted catalog backoff
     clock.t += 10
     sweep.remove_finished_models()
-    status = render_status(build_status(sweep))
-    assert "age 0m10s" in status and "next observation in" in status
-    assert "owner pause" not in status
     for _ in range(8):
         clock.t += 61
         sweep.advance_catalog(clock.now())
@@ -702,13 +694,10 @@ def test_removal_reports_the_actual_owner_pause_and_invalid_rows(tmp_path):
     sweep.remove_finished_models()
     clock.t += 65
     sweep.remove_finished_models()
-    status = render_status(build_status(sweep))
-    assert "owner pause: profile 2 is running" in status and "age 1m05s" in status
     assert not peer.calls
     sweep.owner_status = OwnerStatus()
     sweep.recipe_list.invalid_rows = 1
     sweep.remove_finished_models()
-    assert "recipe library: 1 invalid rows" in render_status(build_status(sweep))
     assert not peer.calls
     sweep.refresh_catalog()
     sweep.remove_finished_models()

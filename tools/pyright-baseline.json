@@ -148,13 +148,13 @@
     {
       "file": "tests/test_recipe_deployment_guidance.py",
       "rule": "reportIndexIssue",
-      "count": 23,
+      "count": 18,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
       "file": "tests/test_recipe_operator_guidance.py",
       "rule": "reportIndexIssue",
-      "count": 13,
+      "count": 7,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
