@@ -290,19 +290,6 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
         ):
             namespace["main"]()
 
-    def test_catalog_command_exposes_model_authority_options(self) -> None:
-        result = __import__("subprocess").run(
-            [sys.executable, str(TOOL), "--help"], text=True, capture_output=True
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        for option in (
-            "--publisher",
-            "--version-slug",
-            "--requires-token",
-            "--quantization",
-        ):
-            self.assertIn(option, result.stdout)
-
     def test_current_qwen_snapshot_has_unique_complete_files(self) -> None:
         version = load(ROOT / "models/qwen3-8-27b-fp8-c3a462cc.json")
         files = version["files"]

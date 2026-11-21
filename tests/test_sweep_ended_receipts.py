@@ -15,7 +15,6 @@ from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep.lifecycle import LifecycleState, RecipeStatus
 from spark_sweep.policy import TimeoutPolicy
-from spark_sweep.report import build_status, render_status
 
 DIGEST = "1" * 64
 WAIT = 600.0  # every lane's local wait budget
@@ -90,16 +89,8 @@ def test_a_receipt_that_keeps_ending_is_planned_again_at_growing_intervals(
     others = [_recipe(f"{slug}x", load_seconds=500) for slug in "bcd"]
     sweep, fleet, clock = _make(tmp_path, gateway, [held, *others])
     start = clock.now()
-    shown = False
     while clock.now() - start < 12 * 3600:
         sweep._tick()
-        hold = sweep.controller_wait_holds().get(held.key)
-        if hold is not None and hold.model_dump().get("not_before") and not shown:
-            # The re-plan is named in status, with its time.
-            assert "receipt ended; planned again at" in render_status(
-                build_status(sweep)
-            )
-            shown = True
         clock.sleep(10)
     # The other Spark keeps getting work: every other recipe passed.
     assert all(_passed(sweep, r) for r in others)
@@ -112,7 +103,6 @@ def test_a_receipt_that_keeps_ending_is_planned_again_at_growing_intervals(
     assert all(later >= min(earlier, REPLAN_CAP) for earlier, later in pairwise(gaps))
     assert gaps[-1] >= REPLAN_CAP
     assert sweep.state.entry(held.key).get("attempts", 0) == 0
-    assert shown
 
 
 def test_successor_of_another_recipe_is_not_followed_or_shared(

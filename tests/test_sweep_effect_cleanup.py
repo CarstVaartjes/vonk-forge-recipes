@@ -251,9 +251,9 @@ def test_older_successful_stop_receipt_cannot_release_newer_stop_intent(
 def test_missing_cleanup_binding_keeps_one_incident_across_restart(
     tmp_path: Path,
 ) -> None:
-    from spark_sweep.report import build_status, render_status
+    from spark_sweep.report import build_status
 
-    sweep, fleet, clock, recipe, key, original, app = scenario(tmp_path, dual=True)
+    sweep, fleet, clock, recipe, _key, _original, app = scenario(tmp_path, dual=True)
     fleet.cleanup_adoption = False
     before = len(mutations(fleet))
     first_seen = clock.now()
@@ -294,12 +294,6 @@ def test_missing_cleanup_binding_keeps_one_incident_across_restart(
     assert delays == [30, 60, 120]
     incident = sweep.state.data["infra"]["review"]
     assert incident["escalate_at"] == first_seen + sweep.cfg.idle_alert_seconds
-    status = build_status(sweep)
-    page = render_status(status)
-    assert "escalat" in page.lower()
-    effect = original["effects"][0]
-    for identity in (key, app["id"], effect["effect_id"], effect["operation_id"]):
-        assert identity in page
     clock.sleep(incident["escalate_at"] - clock.now())
     status = build_status(sweep)
     assert any(

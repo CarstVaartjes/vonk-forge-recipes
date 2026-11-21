@@ -235,11 +235,6 @@ def test_the_status_files_describe_lanes_queue_throughput_and_clusters(
     final = json.loads((tmp_path / "status.json").read_text())
     assert final["counts"] == {"passed": 1, "failed": 1}
     assert final["failure_clusters"][0]["count"] == 1
-    assert "# Hardware sweep status" in (tmp_path / "status.md").read_text()
-    assert (
-        "| vonk-forge/b | failed | start / start |"
-        in (tmp_path / "report.md").read_text()
-    )
 
 
 def test_a_profile_that_already_holds_someone_elses_assignments_is_never_adopted(

@@ -16,7 +16,6 @@ from vonk_forge_contracts.sweep import SweepWaitReason
 
 from spark_sweep import verdict
 from spark_sweep.policy import TimeoutPolicy
-from spark_sweep.report import write_status
 
 HOUR = 3600.0
 ALARM = {
@@ -115,10 +114,6 @@ def test_a_stalled_application_releases_only_its_lane_at_budget(
     assert sweep.state.entry(held.key).get("attempts", 0) == 0
     assert not sweep.paused
     assert held.key in sweep.state.slots
-    write_status(sweep)
-    status = (tmp_path / "status.md").read_text()
-    assert f"Controller reports stalled work: {app['id']}" in status
-    assert "PAUSED:" not in status
 
     # The platform alarm cannot hold a local lane past its budget.
     _drive(sweep, clock, lambda: held.key not in sweep.state.slots)

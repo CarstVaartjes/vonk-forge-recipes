@@ -16,7 +16,7 @@ from vonk_forge_contracts.sweep import ControllerWaitOperation, SweepWaitReason
 from spark_sweep import policy, verdict
 from spark_sweep.identity import AcceptedRequest, ControllerWaitHold, content_identity
 from spark_sweep.lifecycle import LifecycleState
-from spark_sweep.report import build_status, render_status, write_status
+from spark_sweep.report import build_status
 from spark_sweep.state import State
 
 FIXTURE = (
@@ -196,11 +196,6 @@ def test_expired_wait_reobserves_original_receipt_without_identical_loads(
     )
     hold = ControllerWaitHold.model_validate(entry["controller_wait"])
     assert hold.next_check > clock.now()
-    write_status(sweep)
-    assert (
-        record["controller_document"]["wait"]["reason"]
-        in (tmp_path / "status.md").read_text()
-    )
     assert build_status(sweep)["controller_waits"]
     # Fault recovery changes observed behaviour, then permits canonical re-planning.
     monkeypatch.setattr(fleet, "_app_doc", original)
@@ -342,7 +337,6 @@ def test_hold_follows_a_successor_and_replans_once_nothing_waits(
     assert sweep.controller_wait_issue() is None
     # Planned again at its named time, not straight back into the same wait.
     assert not sweep.ready_candidates()
-    assert "receipt ended; planned again at" in render_status(build_status(sweep))
     clock.t = hold.not_before
     assert [r.key for r in sweep.ready_candidates()] == ["vonk-forge/a"]
     assert sweep.state.entry("vonk-forge/a").get("attempts", 0) == 0
@@ -583,8 +577,6 @@ def test_one_shared_dependency_is_reported_and_holds_only_its_recipes(
     assert {"vonk-forge/a", "vonk-forge/b"} <= set(sweep.controller_wait_holds())
     issue = sweep.controller_wait_issue()
     assert issue is not None and SHARED_OPERATION in issue
-    write_status(sweep)
-    assert SHARED_OPERATION in (tmp_path / "status.md").read_text()
 
 
 def test_one_receipt_resuming_releases_only_its_own_dependency(

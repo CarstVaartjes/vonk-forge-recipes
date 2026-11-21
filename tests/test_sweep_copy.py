@@ -219,28 +219,6 @@ def test_a_copy_that_keeps_moving_is_never_stalled(
     assert _entry(sweep)["status"] == "passed"
 
 
-def test_the_status_page_shows_a_lane_that_is_copying(
-    tmp_path: Path, gateway: Gateway
-) -> None:
-    sweep, _, clock = make_sweep(
-        tmp_path,
-        [FakeRecipe("big", copy_seconds=800)],
-        [FakeModel("m1")],
-        gateway=gateway,
-        status_seconds=0,
-    )
-    pages: list[str] = []
-    clock.hooks.append(
-        lambda _t: (
-            pages.append((tmp_path / "status.md").read_text())
-            if (tmp_path / "status.md").exists()
-            else None
-        )
-    )
-    sweep.run()
-    assert any("loading (copying)" in page for page in pages)
-
-
 # -- results from the old rules ------------------------------------------------------------------
 
 

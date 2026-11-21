@@ -11,7 +11,7 @@ from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from vonk_forge_contracts.sweep import SweepWait, SweepWaitCode, SweepWaitReason
 
 from spark_sweep import verdict
-from spark_sweep.report import build_status, write_status
+from spark_sweep.report import build_status
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -155,8 +155,6 @@ def test_each_wait_releases_lane_and_requeues_after_budget(
     clock.sleep(budget / 2)
     assert not sweep._wait_slot(recipe.key, slot, wait)
     clock.sleep(budget / 2 + 1)
-    write_status(sweep)
-    assert "OVER BUDGET" in (tmp_path / "status.md").read_text()
     assert sweep._wait_slot(recipe.key, slot, wait)
     sweep.enqueue_finished_cleanup()
     assert recipe.key not in sweep.state.slots

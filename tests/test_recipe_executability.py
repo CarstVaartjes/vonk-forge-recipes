@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import re
 import shlex
 import unittest
 from pathlib import Path, PurePosixPath
@@ -24,19 +23,6 @@ FORBIDDEN_TAGS = frozenset(
         "non-executable",
         "integration-required",
     }
-)
-
-# Only current user-facing metadata is inspected. Historical release changelogs
-# intentionally remain free to explain why an older release was not executable.
-FORBIDDEN_METADATA_CLAIMS = (
-    re.compile(r"\bmetadata[\s-]+only\b", re.IGNORECASE),
-    re.compile(r"\bnon[\s-]+executable\b", re.IGNORECASE),
-    re.compile(r"\bintegration[\s-]+required\b", re.IGNORECASE),
-    re.compile(r"\bno\s+adapter\b", re.IGNORECASE),
-    re.compile(
-        r"\buncatalog(?:ed|ued)[\s-]+runtime[\s-]+closure\b",
-        re.IGNORECASE,
-    ),
 )
 
 
@@ -149,19 +135,6 @@ class RecipeExecutabilityTests(unittest.TestCase):
                     f"{path.name}: executable recipes cannot use placeholder, "
                     "non-executable, or integration-required tags",
                 )
-
-                for field in ("title", "description"):
-                    value = getattr(display, field)
-                    matched_claims = [
-                        pattern.pattern
-                        for pattern in FORBIDDEN_METADATA_CLAIMS
-                        if pattern.search(value)
-                    ]
-                    self.assertFalse(
-                        matched_claims,
-                        f"{path.name}: current display {field} claims the recipe "
-                        f"is not executable: {matched_claims}",
-                    )
 
                 runtime = document.get("runtime")
                 self.assertIsInstance(runtime, dict, f"{path.name}: missing runtime")

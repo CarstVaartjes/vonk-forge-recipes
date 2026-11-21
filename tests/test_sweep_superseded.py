@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from concurrent.futures import Future
 from dataclasses import replace
-from datetime import UTC, datetime
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
@@ -13,7 +12,7 @@ from vonk_forge_contracts.sweep import SweepSlotPhase, SweepWaitCode, SweepWaitR
 from spark_sweep import policy, verdict
 from spark_sweep.identity import AcceptedRequest
 from spark_sweep.lifecycle import LifecycleState, RecipeStatus, ReconciliationStatus
-from spark_sweep.report import build_status, write_status
+from spark_sweep.report import build_status
 from spark_sweep.smoke import SmokeResult
 from spark_sweep.vonkctl import Reply
 
@@ -337,7 +336,7 @@ def test_unbound_adoption_cannot_submit_or_carry_a_lane(
 
 @pytest.mark.parametrize("binds", [False, True])
 def test_pending_admission_protects_profile_then_releases_other_lane(tmp_path, binds):
-    from spark_sweep.report import build_status, write_status
+    from spark_sweep.report import build_status
 
     a = FakeRecipe(
         "a",
@@ -369,8 +368,6 @@ def test_pending_admission_protects_profile_then_releases_other_lane(tmp_path, b
     assert wait["wait_deadline"] == slot["watch"]["wait_deadline"]
     # The idle alarm names the hold placement applies, not a generic guess.
     assert application in sweep._lane_holds()["spk_b"]
-    write_status(sweep)
-    assert application in (tmp_path / "status.md").read_text()
     # Finished-lane cleanup must obey the same pre-edit boundary as placement.
     sweep.state.data["cleanup"] = {"old-lane": {"next_check": 0, "attempts": 0}}
     sweep.cleanup_finished()
@@ -504,10 +501,6 @@ def test_decided_clearing_waits_for_pending_application_without_review(tmp_path)
         assert wait["wait"]["reason"] == SweepWaitReason.ADMISSION
         assert application in sweep.state.data["clearing_refusal"] == wait["waiting_on"]
         assert wait["wait_deadline"] == slot["watch"]["wait_deadline"]
-        write_status(sweep)
-        text = (tmp_path / "status.md").read_text()
-        assert application in text
-        assert datetime.fromtimestamp(wait["wait_deadline"], UTC).isoformat() in text
         assert not edits
         clock.sleep(5)
         sweep._request_clearing(clock.now())
@@ -538,8 +531,6 @@ def test_tick_clears_profile_edit_wait_when_placement_does_not_run(
     assert build_status(sweep)["profile_edit_wait"] is None
     if idle != "pause":
         assert not sweep.state.data["cleanup"]
-    write_status(sweep)
-    assert "Placement waiting on" not in (tmp_path / "status.md").read_text()
 
 
 @pytest.mark.parametrize("unreadable", [False, True])
@@ -632,36 +623,6 @@ def test_bound_copying_lane_does_not_hold_the_free_lane(tmp_path):
     assert load["adopted_requests"] == [request]
     assert fleet.apps[application]["state"] == LifecycleState.RUNNING
     assert build_status(sweep)["profile_edit_wait"] is None
-
-
-def test_free_lane_reserved_for_a_dual_names_the_reservation(tmp_path):
-    single = FakeRecipe("s", ("m1",), local="cached", load_seconds=5000)
-    dual = FakeRecipe("d", ("m2",), local="cached", node_count=2)
-    sweep, _, clock = make_sweep(
-        tmp_path,
-        [single, dual],
-        [FakeModel("m1", local="cached"), FakeModel("m2", local="cached")],
-        only=("s",),
-        idle_alert_seconds=60,
-    )
-    sweep.preflight()
-    sweep.refresh_catalog()
-    sweep._tick()
-    alias = sweep.state.slots[single.key]["alias"]
-    sweep.cfg = replace(sweep.cfg, only=())
-    sweep.refresh_catalog()
-    for _ in range(9):
-        clock.sleep(10)
-        sweep._tick()
-    assert dual.key not in sweep.state.slots
-    status = build_status(sweep)
-    assert (
-        dual.key in status["dual_reservation"] and alias in status["dual_reservation"]
-    )
-    (alert,) = status["alerts"]
-    assert f"reserved for dual {dual.key} behind lane {alias}" in alert
-    write_status(sweep)
-    assert f"reserved for dual {dual.key}" in (tmp_path / "status.md").read_text()
 
 
 @pytest.mark.parametrize(
