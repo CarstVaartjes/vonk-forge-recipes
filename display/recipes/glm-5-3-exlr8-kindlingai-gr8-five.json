@@ -1,0 +1,23 @@
+{
+  "alignment": "unspecified",
+  "description": "Full GLM-5.3 (744B MoE) on five DGX Sparks with KindlingAI's gr8, a from-scratch CUDA inference engine (no vLLM, PyTorch or NCCL at serve time), at tensor parallel 5 over the ConnectX fabric (a switch). The weights are KindlingAI's exlr8 release v0.6 at its bit325 width profile (about 3.25 bits a routed weight), int4 KV with a 983,040-token pool, requests up to 983,034 tokens, eight at once, MTP=3 drafting with confidence stopping (DFlash2 does not split five ways) and the creator's tuned v1.1.0 decode and prefill settings, with the QO cache written on the first boot and read by later ones. The recipe runs gr8's published v1.1.0 image (commit cdd1e093) with the settings of kindlingai/glm-5.3-exlr8-5x-spark at 0ce2700b and a placement wrapper that reads the platform's VONK_* environment and uses the release in place from the read-only model mounts. Option: the creator's quality, fast or uncapped-exact preset (MOE_UNION_CAP 48, 32 or 0). Creator claims, unmeasured here: 68.9 tok/s for one request writing code, 1,960 tok/s prefill at 32K, 141.5 tok/s total at 8 requests, 8.77 GiB lowest free memory a box. About 654 GB of model files a box. Each box mounts the width files its manifest reads whole, where the creator's launcher range-fetches only the box's part from Hugging Face. Thinking is always on in GLM 5.3's template: a request that turns it off gets HTTP 400 (the creator's default), and a small max_tokens can end inside the thinking. Licences, for information: the weights are under Z.AI's GLM-5.3 License (KindlingAI's exlr8 additions also CC BY 4.0), the engine and the recipe MIT.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-exlr8-kindlingai-gr8-five"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "engine",
+    "exlr8",
+    "five-spark",
+    "glm-5.3",
+    "gr8",
+    "mtp",
+    "reasoning",
+    "roce",
+    "spark",
+    "structured-outputs",
+    "tool-use"
+  ],
+  "title": "GLM 5.3 EXLR8 gr8 five Sparks"
+}

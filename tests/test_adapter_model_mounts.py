@@ -42,6 +42,12 @@ EXCEPTION_GROUPS: tuple[tuple[tuple[str, ...], str, tuple[str, ...], str], ...] 
         "Retained upstream host launcher; the recipe invokes /opt/vonk/bin/vllm with target/drafter instead.",
     ),
     (
+        ("glm-5-3-exlr8-kindlingai-gr8-five", "glm-5-3-exlr8-kindlingai-gr8-six"),
+        "gr8-serve",
+        ("/models/drafter",),
+        "The gr8 GLM-5.3 wrapper converts a drafter only when one is mounted; these recipes draft with MTP only (DFLASH=0) and mount none.",
+    ),
+    (
         ("inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual",),
         "scripts/inkling-sglang-launch.sh",
         ("/models/dspark-draft", "/models/inkling-small-nvfp4"),
