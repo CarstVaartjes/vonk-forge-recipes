@@ -9,9 +9,9 @@
 #   placement    VONK_PEER_ADDRS -> PEERS (rank order, the head first), VONK_LOCAL_ADDR -> NODE_IP, VONK_MASTER_PORT ->
 #                CONTROL_PORT (gr8's supervisor port; the S2 control port is a fixed 7341 and the fabric bootstrap uses
 #                18600 upward, neither of them the platform's). No IPS/IPS2: gr8 finds each box's RoCE rails itself.
-#   model        /models/target is the exlr8 release used in place (MODEL, a local path: nothing is fetched); a DFlash2
-#                drafter in /models/drafter is converted here for this rank with gr8's own converter.
-#   writable     gr8's working directory, model cache, converted drafter and compact expert copies are under
+#   model        /models/target is the exlr8 release used in place (MODEL, a local path: nothing is fetched). MTP
+#                drafting only (DFLASH=0, as the creator's kit): no drafter is mounted or converted.
+#   writable     gr8's working directory, model cache and compact expert copies are under
 #                /outputs/cache/gr8, where the creator's compose file mounts /var/lib/gr8/{home,cache}; the recipe's
 #                own paths (KV_STORE, QO_CACHE, EXTRA_ENV) already name /outputs/cache/gr8.
 set -euo pipefail
@@ -45,7 +45,6 @@ export GR8_WORK_DIR=$state/home MODEL_CACHE=$state/cache TMPDIR=/outputs/tmp
 [ -z "${QO_CACHE:-}" ] || mkdir -p "$QO_CACHE"
 
 # placement
-tp=${TP:-${VONK_WORLD_SIZE:-1}}
 if [ "${VONK_WORLD_SIZE:-1}" -gt 1 ]; then
   : "${VONK_PEER_ADDRS:?gr8-serve: VONK_PEER_ADDRS is not set}" "${VONK_LOCAL_ADDR:?gr8-serve: VONK_LOCAL_ADDR is not set}"
   export PEERS=$VONK_PEER_ADDRS NODE_IP=$VONK_LOCAL_ADDR
@@ -59,24 +58,6 @@ fi
 # the release is used in place; the creator's Hugging Face URLs are not
 export MODEL=$release
 unset DRAFTER FETCH
-
-# the DFlash2 drafter: converted from the mounted checkpoint into this rank's pack, as gr8's launcher does after it
-# fetches it. A finished conversion (rank<r>.COMPLETE) is reused.
-if [ "${DFLASH:-1}" != 0 ] && [ -d /models/drafter ]; then
-  drafter=$state/cache/dflash/tp$tp
-  if [ ! -f "$drafter/rank$rank.COMPLETE" ]; then
-    mkdir -p "$state/cache/dflash"
-    PYTHONPATH=$gr8/tools/launch python3 - "$drafter" "$tp" "$rank" <<'PY'
-import sys
-import hfsource
-
-out, tp, rank = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
-hfsource.convert_drafter(hfsource.converter(), '/models/drafter', out, tp, rank, 'incoai/GLM-5.3-DFlash2', print,
-                         'GLM-5.3-DFlash2', scratch=out.rsplit('/', 1)[0])
-PY
-  fi
-  export DFLASH_DIR=$drafter
-fi
 
 # the creator's compact expert copies (GR8_LOAD_COMPACT in EXTRA_ENV): written once by `prepare` (a boot never writes
 # them; until they exist the loader reads the release), then read by the loader. The stamp records a finished prepare

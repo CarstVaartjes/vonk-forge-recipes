@@ -8,14 +8,13 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-ADAPTERS = tuple(
+GLM = ROOT / "adapters/glm"
+ADAPTERS = tuple(sorted(path.name for path in GLM.glob("kindlingai-gr8-glm53-*")))
+# the wrappers that convert a mounted DFlash2 drafter; the MTP-only ones (five, six) carry no drafter block
+DRAFTER_ADAPTERS = tuple(
     name
-    for name in (
-        "kindlingai-gr8-glm53-four",
-        "kindlingai-gr8-glm53-five",
-        "kindlingai-gr8-glm53-six",
-    )
-    if (ROOT / "adapters/glm" / name).is_dir()
+    for name in ADAPTERS
+    if "/models/drafter" in (GLM / name / "gr8-serve").read_text()
 )
 
 FAKE_ENTRYPOINT = """#!/bin/bash
@@ -49,10 +48,9 @@ def placement(world, rank):
     }
 
 
-@pytest.fixture(params=ADAPTERS)
-def sandbox(request, tmp_path):
+def make_sandbox(name, tmp_path):
     """The wrapper with the container's absolute paths moved under tmp_path."""
-    script = (ROOT / "adapters/glm" / request.param / "gr8-serve").read_text()
+    script = (GLM / name / "gr8-serve").read_text()
     gr8 = tmp_path / "opt/gr8"
     (gr8 / "docker").mkdir(parents=True)
     (gr8 / "tools/launch").mkdir(parents=True)
@@ -97,8 +95,23 @@ def sandbox(request, tmp_path):
     return tmp_path, run
 
 
-def test_placement_paths_and_drafter(sandbox):
-    root, run = sandbox
+@pytest.fixture(params=ADAPTERS)
+def sandbox(request, tmp_path):
+    return make_sandbox(request.param, tmp_path)
+
+
+@pytest.fixture(params=DRAFTER_ADAPTERS)
+def drafter_sandbox(request, tmp_path):
+    return make_sandbox(request.param, tmp_path)
+
+
+def test_both_wrapper_shapes_are_covered():
+    assert DRAFTER_ADAPTERS
+    assert set(ADAPTERS) - set(DRAFTER_ADAPTERS)
+
+
+def test_placement_paths_and_drafter(drafter_sandbox):
+    root, run = drafter_sandbox
     state = f"{root}/outputs/cache/gr8"
     env = {
         **placement(4, 2),
@@ -140,12 +153,16 @@ def test_placement_paths_and_drafter(sandbox):
     assert (complete["src"], complete["tp"]) == (f"{root}/models/drafter", 4)
 
 
-def test_tp_from_the_recipe_wins_and_mtp_only_converts_nothing(sandbox):
+def test_mtp_only_converts_nothing(sandbox):
     root, run = sandbox
     done, dump = run({**placement(6, 1), "TP": "6", "DFLASH": "0"})
     assert done.returncode == 0, done.stderr
     assert "DFLASH_DIR" not in dump
     assert not Path(root, "outputs/cache/gr8/cache/dflash").exists()
+
+
+def test_tp_from_the_recipe_names_the_drafter_pack(drafter_sandbox):
+    _, run = drafter_sandbox
     _, dump = run({**placement(6, 1), "TP": "6"})
     assert dump["DFLASH_DIR"].endswith("/cache/dflash/tp6")
 
