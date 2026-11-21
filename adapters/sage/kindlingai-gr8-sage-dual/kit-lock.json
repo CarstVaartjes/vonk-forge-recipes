@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:d140aca32886d2055b7ff11d88c8860c6bb9c108c626f8f3a4f3cebdfe5fcfc6",
+      "kind": "tag",
+      "ref": "sha-ca7e874",
+      "repo": "ghcr.io/kindlingai/gr8"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "e55da4682c090821efcac7f5fb85622cb06d1c54",
+      "repo": "kindlingai/sage-s2.1-flash-exlr8-k4",
+      "revision": "e55da4682c090821efcac7f5fb85622cb06d1c54"
+    }
+  },
+  "kit": {
+    "commit": "99f32341ee67401cb17f9b87697d1049791b9c95",
+    "repo": "kindlingai/sage-s2.1-flash-exlr8-2x-spark"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "KindlingAI's exlr8 v2 release of Shanghai AI Laboratory's Sage S2.1 Flash (GLM-5.3-Flash architecture) at revision e55da468, as pinned by KindlingAI's gr8 recipes: every routed and shared expert at the K4 trellis width (4 bits a weight), dense matrices in trellis K4, MXFP8, FP8 and BF16, the vision tower unchanged in BF16, width manifests and per-TP index slices. Its card reports mean KL 0.0985 and top-1 agreement 91.0% against BF16. Tested by KindlingAI with text input only.",
+  "family_title": "Sage",
+  "identity": {
+    "publisher": "kindlingai",
+    "slug": "sage-s2-1-flash-exlr8-k4-e55da468"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "KindlingAI",
+      "Shanghai Artificial Intelligence Laboratory"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/kindlingai/sage-s2.1-flash-exlr8-k4/blob/e55da4682c090821efcac7f5fb85622cb06d1c54/LICENSE"
+  },
+  "lineage": {
+    "base_model": "internlm/Sage-S2.1-Flash",
+    "family": "sage",
+    "generation": "Sage S2.1",
+    "line": "sage-flash",
+    "model": "sage-s2-1-flash",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "Sage S2.1 Flash EXLR8 K4",
+  "tags": [
+    "internlm",
+    "kindlingai",
+    "sage"
+  ]
+}

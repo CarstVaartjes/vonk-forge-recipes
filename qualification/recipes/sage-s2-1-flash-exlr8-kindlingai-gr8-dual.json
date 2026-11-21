@@ -1,0 +1,23 @@
+{
+  "id": "vonk-forge/sage-s2-1-flash-exlr8-kindlingai-gr8-dual",
+  "service_recipes": {
+    "alias": "glm-5.3-flash",
+    "higher_tiers": {
+      "recovery": [
+        "Controller-only rank-loss and warm-cache recovery"
+      ],
+      "stress": [
+        "Long-context canary with the page-cache warm-up recorded separately; concurrent streams up to the session count, with the shared KV pool line checked"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "MIS_A391",
+      "A323",
+      "T_REPORT",
+      "MIS_T_REPORT",
+      "T_PRODUCT"
+    ]
+  }
+}
