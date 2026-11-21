@@ -1,10 +1,10 @@
-# Bizuayeu's Sage-S2.1-Flash Mixed NVFP4 (HF 32063d6b): the stock TensorFold 1.2.10 release (2a674b5524), no fork and no
+# Bizuayeu's Sage-S2.1-Flash Mixed NVFP4 (HF 32063d6b): the stock TensorFold 1.3.2 release (b472b9f84c), no fork and no
 # patches. The creator publishes no image and no kit; its card verified release 1.2.9 (tag 6b9de69510) and main 077998f7d9,
-# which 1.2.10 contains, and serves the checkpoint unchanged. The image is the same stock-release build as the sfxnz GLM recipe's (NVIDIA's CUDA 13.0 base, the checksummed
-# release archive, the exact JPEG/WebP codecs the engine insists on), at 1.2.10. python3 is installed for the Controller
+# which 1.3.2 contains, and serves the checkpoint unchanged. The image is the same stock-release build as the sfxnz GLM recipe's (NVIDIA's CUDA 13.0 base, the checksummed
+# release archive, the exact JPEG/WebP codecs the engine insists on), at 1.3.2. python3 is installed for the Controller
 # launcher and the final user is numeric. The release archive carries the CUDA kernels it embeds.
-ARG TF_VERSION=1.2.10
-ARG TF_SHA256=c335c44f81d55847a5f81d74a94ac3d09f81bd6688247cff972cf1f63fc18105
+ARG TF_VERSION=1.3.2
+ARG TF_SHA256=364ab50d6f8847708b843b7b0206b60d7b84e88ecf533e8373b9a825a2718911
 
 # Every FROM pins the digest (the recipe source policy checks each one).
 # TensorFold refuses any JPEG/WebP decoder whose embedded version is not exactly libjpeg-turbo 3.1.4.1 / libwebp 1.6.0,
@@ -28,7 +28,7 @@ FROM docker.io/nvidia/cuda:13.0.0-base-ubuntu24.04@sha256:6e43a6b02e5f16e4a71595
 ARG TF_VERSION
 ARG TF_SHA256
 LABEL org.opencontainers.image.source="https://github.com/ashhart/TensorFold" \
-      org.opencontainers.image.revision="2a674b552498739e783a31c2573fc9ccf4d8cc0d" \
+      org.opencontainers.image.revision="b472b9f84ca9505d1d31020bed8fb4b5c7fdc33a" \
       org.opencontainers.image.licenses="Apache-2.0"
 # NCCL 2.30.7 is the version upstream's GLM TP receipts ran; ibverbs-providers carries the mlx5 provider for RoCE gathers.
 # curl only fetches the release archive and leaves with the apt lists.
