@@ -544,3 +544,67 @@ def test_a_failure_seen_while_the_platform_was_unreadable_heals_on_the_next_rele
     entry = _entry(again, "image-bug")
     assert entry["status"] == "passed"
     assert entry["recovery_history"][0]["basis"] == {"controller_release": NEW}
+
+
+def _refused_create(tmp_path: Path, authored: str, served_now: str | None = None):
+    """A slot accepted ``c``*64 and its job create was refused (what ``smoke_job._call`` records)."""
+    from dataclasses import replace
+
+    from spark_sweep import policy
+
+    fake = FakeRecipe("skew", digests=("1" * 64,), content="c" * 64, local="cached")
+    sweep, _, clock = make_sweep(
+        tmp_path,
+        [fake],
+        [FakeModel("1" * 64, local="cached")],
+        authored={fake.key: authored},
+    )
+    sweep.refresh_catalog()
+    sweep._open_slot(
+        policy.Placement(sweep.recipes[fake.key], ("spk_a",)), "req", clock.now()
+    )
+    if served_now:
+        sweep.recipes[fake.key] = replace(
+            sweep.recipes[fake.key], content_sha256=served_now
+        )
+    sweep._record_failure(
+        fake.key,
+        policy.classify(
+            "smoke",
+            "controller.conflict",
+            "refused",
+            "recipe-data",
+            {"case": "job.create"},
+        ),
+        None,
+    )
+    return sweep, fake.key
+
+
+def test_a_skewed_refusal_defers_with_both_digests_and_the_run_is_done(
+    tmp_path: Path,
+) -> None:
+    sweep, key = _refused_create(tmp_path, "a" * 64)
+    entry = sweep.state.entry(key)
+    assert entry["status"] == "deferred" and entry["failure_class"] == "skewed"
+    assert entry["evidence"]["source_sha256"] == "a" * 64
+    assert entry["evidence"]["served_sha256"] == "c" * 64
+    # The bounded source wait has expired: the sweep tests what the catalog serves.
+    sweep.unserved_recipes = ()
+    sweep.enqueue_finished_cleanup()
+    assert not sweep._cleanup_nodes() and sweep.done()
+
+
+def test_a_refusal_of_the_authored_content_stays_the_recipes_failure(
+    tmp_path: Path,
+) -> None:
+    # The accepted request is what the source authored; only the catalog moved since.
+    _refused_create(tmp_path, "c" * 64, served_now="d" * 64)
+    # The row of the attempt itself (the catalog's move then reopens it as an older revision).
+    assert "failed" in {r["status"] for r in _lines(tmp_path / "results.jsonl")}
+
+
+def test_a_restart_reopens_a_deferred_skew(tmp_path: Path) -> None:
+    sweep, key = _refused_create(tmp_path, "a" * 64)
+    sweep.requeue_uncertain()
+    assert sweep.state.entry(key)["status"] == "pending"

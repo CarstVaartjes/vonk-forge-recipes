@@ -156,6 +156,8 @@ SWEEP_CRASH = "sweep-crash"
 UNTYPED_REPLY = "untyped-reply"
 #: A job recipe's smoke job ended failed and the Controller names no platform cause.
 JOB_FAILED = "job-failed"
+#: A smoke refusal of content other than the sweep's source authored (``Sweep._skewed``).
+SKEWED = "skewed"
 FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data", JOB_FAILED})
 #: Outcomes the sweep ends and records now, with their evidence, without blaming the recipe:
 #: a failure named only by the phase it happened in (``policy.classify`` falls back to the
@@ -173,6 +175,7 @@ RECORDED_CLASSES = frozenset(
         "smoke-request",
         "timeout",
         "model-integrity",
+        SKEWED,
         FIT,
         SmokeAuthClass.REFUSAL,
     }
