@@ -2079,13 +2079,9 @@ class Sweep:
         """
         authored = self.authored.get(key)
         tested = accepted.recipe if accepted else self.recipes.get(key)
-        sweep_side = failure.evidence.get("case") in ("job.create", "job.upload") or (
-            failure.code == "job.definition_missing"
-        )
         if (
             failure.klass != "recipe-data"
             or failure.phase != "smoke"
-            or not sweep_side
             or authored is None
             or tested is None
             or tested.content_sha256 == authored
