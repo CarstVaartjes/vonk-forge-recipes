@@ -4,15 +4,15 @@
   "records": [
     {
       "identity": {
-        "content_sha256": "5bf0c4bdc11e218a3b3c3b4628a6394a2ba889001db76a2b49b3512fcdb65967",
+        "content_sha256": "f420d02bc7430d9e791e5a04e3008734a2d6b341cb963c9efd698f8cec050312",
         "source_bundle_sha256": "a69e2337929b65d46b63db0454b67304eb369f5c3ace7398986f5c7e22feda64",
         "runtime_image": {
           "build_key": "f599f9fc553d256e2c89590aeb71c1dca268c4a48ea0165980a2179d470e78d9",
           "image_digest": "sha256:297a1b699d7176140f4345da25bcfaed6d95e072bff7aa38cc98aa6247978595"
         },
         "model_digests": [
-          "3cec875511c18e494f6fdcebb40f9c8bdc76127acb1d913b85f265675e2624b0",
-          "b26b92942ec37978b777f2260ab5ebab3b19aa16368f6ecfdd28da53b40d26fe"
+          "007390c22d2ef2aa3113a7a4ff215f4b3dd401a1dcc04c3393b0f50c2671d752",
+          "2483782ba6552293752bdae905a58df8e7756f099f4f5282135e18470ebcc52b"
         ],
         "required_sparks": 2,
         "models_resolved": true
@@ -30,19 +30,17 @@
         "spark_count": 2,
         "topology": "multi"
       },
-      "quality_notes": [
-        "Carried from the identical execution document"
-      ]
+      "quality_notes": []
     }
   ],
   "measured_memory": [
     {
-      "content_sha256": "5bf0c4bdc11e218a3b3c3b4628a6394a2ba889001db76a2b49b3512fcdb65967",
+      "content_sha256": "f420d02bc7430d9e791e5a04e3008734a2d6b341cb963c9efd698f8cec050312",
       "role": "entrypoint",
       "steady_bytes": 121539756032
     },
     {
-      "content_sha256": "5bf0c4bdc11e218a3b3c3b4628a6394a2ba889001db76a2b49b3512fcdb65967",
+      "content_sha256": "f420d02bc7430d9e791e5a04e3008734a2d6b341cb963c9efd698f8cec050312",
       "role": "worker",
       "steady_bytes": 119539171328
     }
