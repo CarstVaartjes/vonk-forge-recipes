@@ -22,68 +22,6 @@
       "cause_code": "qualification.platform_failure",
       "cause_summary": "Platform issue under fix",
       "evidence_refs": [
-        "4453e1576c1b70f177e892a8feae54531aed9af211f5928656b104c6bbd9539d"
-      ],
-      "tested_at": "2026-11-19T19:18:59.683764Z",
-      "platform": {
-        "controller_source_sha": "0dbd17a56f35b4c594032ebaf940c4fb4b96a6fd",
-        "hardware_class": "GB10",
-        "spark_count": 2,
-        "topology": "multi"
-      },
-      "quality_notes": []
-    },
-    {
-      "identity": {
-        "content_sha256": "f3b3071edf63d5a1e029bab8de68ab6814e336a88b1e7a56d27ba620ac33918a",
-        "source_bundle_sha256": "0bb210f3af886fe55da4a0415637def7267241dde6a1f026aef330c77167998b",
-        "runtime_image": {
-          "build_key": "66b524892c63d3105ca88db1b31502f22011c678235a83a8482c5ef26ba3a73f",
-          "image_digest": "sha256:d478cf3faffc06124ac45140817b5de527c5df550c0a65040db927b6d2a7db52"
-        },
-        "model_digests": [
-          "3cec875511c18e494f6fdcebb40f9c8bdc76127acb1d913b85f265675e2624b0",
-          "58fd79f58e6e1b5a7767988698b48e7ffd1893725bc905d8425207083db98c5b"
-        ],
-        "required_sparks": 2,
-        "models_resolved": true
-      },
-      "outcome": "failed",
-      "blame": "platform",
-      "cause_code": "qualification.platform_failure",
-      "cause_summary": "Platform issue under fix",
-      "evidence_refs": [
-        "a406c8b0ae857641ec7678873ee991362e6112c62ba3da0f4a551e4c9bc2f433"
-      ],
-      "tested_at": "2026-11-20T01:53:09.976993Z",
-      "platform": {
-        "controller_source_sha": "cd2630b2ad1238c55501701cf9b356406748fa1a",
-        "hardware_class": "GB10",
-        "spark_count": 2,
-        "topology": "multi"
-      },
-      "quality_notes": []
-    },
-    {
-      "identity": {
-        "content_sha256": "f3b3071edf63d5a1e029bab8de68ab6814e336a88b1e7a56d27ba620ac33918a",
-        "source_bundle_sha256": "0bb210f3af886fe55da4a0415637def7267241dde6a1f026aef330c77167998b",
-        "runtime_image": {
-          "build_key": "66b524892c63d3105ca88db1b31502f22011c678235a83a8482c5ef26ba3a73f",
-          "image_digest": "sha256:d478cf3faffc06124ac45140817b5de527c5df550c0a65040db927b6d2a7db52"
-        },
-        "model_digests": [
-          "3cec875511c18e494f6fdcebb40f9c8bdc76127acb1d913b85f265675e2624b0",
-          "58fd79f58e6e1b5a7767988698b48e7ffd1893725bc905d8425207083db98c5b"
-        ],
-        "required_sparks": 2,
-        "models_resolved": true
-      },
-      "outcome": "failed",
-      "blame": "platform",
-      "cause_code": "qualification.platform_failure",
-      "cause_summary": "Platform issue under fix",
-      "evidence_refs": [
         "2c2fd613b4e3b24bdd2b65f39fcc3b35b414b10181bc4a07785772dad85ac9cb"
       ],
       "tested_at": "2026-11-20T08:35:47.401545Z",
