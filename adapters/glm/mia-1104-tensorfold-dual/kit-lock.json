@@ -8,10 +8,10 @@
       "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a"
     },
     "engine": {
-      "commit": "f350cd3ea253a042e205746928271f9d8f71a82d",
+      "commit": "81de26f649677aa72ae0034d4af6e010cd947038",
       "datasource": "git-ref",
       "kind": "commit",
-      "ref": "f350cd3ea253a042e205746928271f9d8f71a82d",
+      "ref": "81de26f649677aa72ae0034d4af6e010cd947038",
       "repo": "ashhart/TensorFold"
     },
     "model": {
@@ -23,7 +23,7 @@
     }
   },
   "kit": {
-    "commit": "80be4d6882837d8e0840827ae2aab6124fd48da3",
+    "commit": "a691916c16b6287ebb79ef8ee37ea182b5240a29",
     "repo": "MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104"
   }
 }

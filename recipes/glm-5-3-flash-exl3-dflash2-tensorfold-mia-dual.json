@@ -1266,12 +1266,12 @@
           "env": {
             "TF_TOOL_CALL_GUARD": "1"
           },
-          "help": "The engine's guard (the kit's patch 0111, TF_TOOL_CALL_GUARD=1): an envelope for a tool the request did not offer is dropped and its rejection logged with the reason, instead of surfacing in the reply.",
+          "help": "The engine's guard (the kit's patches 0010 and 0011, TF_TOOL_CALL_GUARD=1): an envelope for a tool the request did not offer is dropped and its rejection logged with the reason, instead of surfacing in the reply.",
           "label": "Guard unoffered calls",
           "value": "on"
         }
       ],
-      "help": "How the server treats a model-written tool call for a tool the request did not offer (the kit's engine patch 0111; both ranks run the same setting).",
+      "help": "How the server treats a model-written tool call for a tool the request did not offer (the kit's engine patches 0010 and 0011; both ranks run the same setting).",
       "label": "Tool-call guard",
       "name": "tool_call_guard"
     },
@@ -1292,7 +1292,7 @@
           "value": "checkpoint"
         }
       ],
-      "help": "Which tokens end a reply beside the checkpoint's own list (the kit's engine patch 0120, TF_EXTRA_EOS; both ranks run the same setting).",
+      "help": "Which tokens end a reply beside the checkpoint's own list (the kit's engine patch 0009, TF_EXTRA_EOS; both ranks run the same setting).",
       "label": "Reply end tokens",
       "name": "extra_eos"
     }
@@ -1310,10 +1310,10 @@
       "Z.AI",
       "wagzee"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104/tree/80be4d6882837d8e0840827ae2aab6124fd48da3"
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-DGX-Sparks-1104/tree/a691916c16b6287ebb79ef8ee37ea182b5240a29"
   },
   "release": {
-    "released_at": "2026-11-11",
+    "released_at": "2026-11-20",
     "version": "1104"
   },
   "runtime": {
