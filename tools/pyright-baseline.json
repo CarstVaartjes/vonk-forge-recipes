@@ -154,7 +154,7 @@
     {
       "file": "tests/test_recipe_operator_guidance.py",
       "rule": "reportIndexIssue",
-      "count": 7,
+      "count": 8,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {

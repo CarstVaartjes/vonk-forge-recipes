@@ -694,6 +694,13 @@ def test_removal_reports_the_actual_owner_pause_and_invalid_rows(tmp_path):
     sweep.remove_finished_models()
     clock.t += 65
     sweep.remove_finished_models()
+    from vonk_forge_contracts.sweep import SweepWaitReason
+
+    from spark_sweep.removal_contract import RemovalWait
+
+    wait = RemovalWait.model_validate(sweep.state.data["model_removal_wait"])
+    assert wait.reason == SweepWaitReason.OPERATOR
+    assert clock.now() - wait.since == 65
     assert not peer.calls
     sweep.owner_status = OwnerStatus()
     sweep.recipe_list.invalid_rows = 1

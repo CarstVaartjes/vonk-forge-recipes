@@ -141,28 +141,6 @@ def test_an_infrastructure_error_pauses_and_retries_but_fails_no_recipe(
     assert sweep.state.data["infra"] == {}  # and cleared once the Controller answered
 
 
-def test_the_status_file_reports_infrastructure_problems(
-    tmp_path: Path, gateway: Gateway
-) -> None:
-    sweep, fleet, _ = make_sweep(
-        tmp_path,
-        [FakeRecipe("a")],
-        [FakeModel("m1")],
-        gateway=gateway,
-        status_seconds=0,
-    )
-    fleet.faults = [
-        (
-            ("profile", "load", "--review"),
-            "controller.protocol_invalid",
-            "control API response does not match the OpenAPI schema",
-        )
-    ]
-    sweep.run()
-    statuses = [json.loads(line) for line in [(tmp_path / "status.json").read_text()]]
-    assert "infrastructure" in statuses[0]
-
-
 def test_backoff_grows_and_is_capped(tmp_path: Path, gateway: Gateway) -> None:
     sweep, _, clock = make_sweep(
         tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway

@@ -410,6 +410,7 @@ def test_startup_reobserves_after_one_poll_and_reports_the_exact_wait(
     before = clock.now()
     assert not sweep._startup(unavailable)
     assert clock.now() - before == sweep.cfg.poll_seconds
+    assert "startup" in sweep.state.data["infra"]
     assert sweep._startup(lambda: None)
     assert "startup" not in sweep.state.data["infra"]
 

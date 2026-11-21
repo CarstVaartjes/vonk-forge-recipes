@@ -45,9 +45,7 @@ def _repo(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def test_rejects_a_changed_spark_count_and_says_to_create_a_new_recipe(
-    tmp_path, capsys
-) -> None:
+def test_rejects_a_changed_spark_count(tmp_path, capsys) -> None:
     root = _repo(tmp_path)
     (root / "recipes/glm-single.json").write_text(_recipe("glm-single", 2))
 

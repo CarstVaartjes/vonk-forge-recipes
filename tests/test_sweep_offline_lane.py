@@ -168,6 +168,7 @@ def test_the_status_says_how_many_lanes_a_queued_recipe_waits_for(
     sweep.heal_fleet_skips()
     sweep.cached_models = sweep._cached_models()
     sweep.queue = [f"vonk-forge/{k}" for k in (*DUALS, *SINGLES)]
+    assert build_status(sweep)["waiting_for_lanes"]
     assert sweep.state.recipes[f"vonk-forge/{DUALS[0]}"]["status"] == "pending"
     # The online lane is offered the singles; the duals wait for theirs.
     assert [r.key for r in sweep.ready_candidates()] == [

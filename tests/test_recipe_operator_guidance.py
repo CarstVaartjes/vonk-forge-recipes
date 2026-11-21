@@ -71,6 +71,11 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
                     recipe_display(geometry["identity"]["slug"]).tags,
                 )
 
+    def test_ui_mate_carries_the_proposal_tags(self) -> None:
+        recipe = _recipe("ui-mate-27b-vllm-single")
+        tags = set(recipe_display(recipe["identity"]["slug"]).tags)
+        self.assertGreaterEqual(tags, {"action-proposal", "human-approval-required"})
+
 
 if __name__ == "__main__":
     unittest.main()
