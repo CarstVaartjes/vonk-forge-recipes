@@ -502,6 +502,10 @@ of an expired key (`tests/test_sweep_auth_refusal.py`,
 `tests/test_sweep_verdicts.py`, `tests/test_sweep_load_blame.py`). What the smoke
 actually executes is specified once in the authoring guide below.
 
+A `recipe-data` refusal of content other than the sweep's authored content (the catalog or the slot's
+accepted request differs from the source file) blames no recipe: a `skewed` row names both digests
+and the recipe waits (`Sweep._skewed_refusal`, `tests/test_sweep_release.py`).
+
 A smoke request that gets no answer (`smoke-request`, `smoke-busy`, `smoke-timeout`) while the
 run's workload has exited (`run_state: failed`) is the recipe's `runtime_exit`, like a start-time exit
 (`verdict.smoke_workload_exit`, `tests/test_sweep_failures.py`); while the run still runs it keeps

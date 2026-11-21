@@ -544,3 +544,34 @@ def test_a_failure_seen_while_the_platform_was_unreadable_heals_on_the_next_rele
     entry = _entry(again, "image-bug")
     assert entry["status"] == "passed"
     assert entry["recovery_history"][0]["basis"] == {"controller_release": NEW}
+
+
+@pytest.mark.parametrize("skewed", [True, False])
+def test_a_refusal_of_content_the_source_did_not_author_blames_no_recipe(
+    tmp_path: Path, skewed: bool
+) -> None:
+    from spark_sweep import policy
+
+    fake = FakeRecipe("skew", digests=("1" * 64,), content="c" * 64, local="cached")
+    sweep, _, clock = make_sweep(
+        tmp_path,
+        [fake],
+        [FakeModel("1" * 64, local="cached")],
+        authored={fake.key: "a" * 64 if skewed else "c" * 64},
+    )
+    sweep.refresh_catalog()
+    sweep._open_slot(
+        policy.Placement(sweep.recipes[fake.key], ("spk_a",)), "req", clock.now()
+    )
+    sweep._record_failure(
+        fake.key, policy.classify("smoke", "job.create", "refused", "recipe-data"), None
+    )
+    entry = sweep.state.entry(fake.key)
+    row = _lines(tmp_path / "results.jsonl")[-1]
+    if skewed:
+        assert entry["status"] == "pending" and not entry.get("attempts")
+        assert row["status"] == "skewed"
+        assert row["evidence"]["source_sha256"] == "a" * 64
+        assert row["evidence"]["served_sha256"] == "c" * 64
+    else:
+        assert entry["status"] == "failed"
