@@ -115,9 +115,9 @@ def test_qwen_image_option_arguments_reach_the_native_pipeline(
 
 
 def test_glm_mia_dual_engine_options_bind_to_the_engines_values() -> None:
-    """tool_call_guard and extra_eos reach the engine as patches 0111 and 0120 read them.
+    """tool_call_guard and extra_eos reach the engine as patches 0010 and 0009 read them.
 
-    Patch 0120 looks each TF_EXTRA_EOS name up in the tokenizer, so "none" would be token id 6697 and end replies that
+    Patch 0009 looks each TF_EXTRA_EOS name up in the tokenizer, so "none" would be token id 6697 and end replies that
     write the word; the engine's off value is unset or empty (the kit leaves the variable out).
     """
     recipe = _recipe("glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual")
