@@ -1755,6 +1755,8 @@ class Sweep:
                 entry.get("status") == RecipeStatus.DEFERRED
                 and (
                     entry.get("failure_class") in verdict.OBSERVE_CLASSES
+                    # Skew is per process: a restart re-reads the authored source.
+                    or entry.get("failure_class") == verdict.SKEWED
                     # A review refusal the sweep once ended as a fit verdict: only the
                     # Controller's final words still do (the rest are its waits). A
                     # review capacity refusal is never a verdict (stored rows are stale).
@@ -2065,52 +2067,42 @@ class Sweep:
         """Only pre-placement failures may describe the currently requested document."""
         return self.recipes.get(key)
 
-    def _skewed_refusal(
+    def _skewed(
         self, key: str, failure: policy.Failure, accepted: AcceptedRequest | None
-    ) -> bool:
-        """A recipe-data refusal of content other than this sweep authored is no verdict on it.
+    ) -> policy.Failure:
+        """A smoke create/upload or missing-definition refusal of content the source did not author.
 
-        The catalog served (or the slot accepted) other content than the source file, so the
-        Controller refused a document the sweep never meant to test: no blame, a ``skewed`` row
-        naming both digests, and the recipe waits for its next turn.
+        The tested content (the slot's accepted request, else the catalog's) differs from this
+        process's fixed authored digest, so the refusal is deterministic for the pair and no
+        verdict on the recipe: it ends deferred (platform blame), reopened by a restart that
+        re-reads the source or by a content change.
         """
         authored = self.authored.get(key)
-        recipe = self.recipes.get(key)
-        digests = {
-            d
-            for d in (
-                accepted and accepted.recipe.content_sha256,
-                recipe and recipe.content_sha256,
-            )
-            if d
-        }
-        if failure.klass != "recipe-data" or authored is None or digests <= {authored}:
-            return False
-        served = min(digests - {authored})
-        entry = self.state.entry(key)
-        slot = self.state.slots.get(key)
-        if slot is not None:
-            slot["phase"] = "finished"
-        entry.update(
-            status="pending", not_before=self.clock.now() + self.cfg.retry_delay
+        tested = accepted.recipe if accepted else self.recipes.get(key)
+        sweep_side = failure.evidence.get("case") in ("job.create", "job.upload") or (
+            failure.code == "job.definition_missing"
         )
-        self.record_result(
-            key,
-            failure.phase,
-            "skewed",
-            reason=f"the catalog served {served[:12]}, the source authored {authored[:12]}",
-            disposition=Disposition.WAIT.value,
-            failure_class=failure.klass,
-            code=failure.code,
-            evidence={
+        if (
+            failure.klass != "recipe-data"
+            or failure.phase != "smoke"
+            or not sweep_side
+            or authored is None
+            or tested is None
+            or tested.content_sha256 == authored
+        ):
+            return failure
+        return policy.classify(
+            "smoke",
+            verdict.SKEWED,
+            f"the catalog served {tested.content_sha256}, the source authored {authored}; "
+            f"refused: {failure.describe()}",
+            verdict.SKEWED,
+            {
                 **dict(failure.evidence),
                 "source_sha256": authored,
-                "served_sha256": served,
+                "served_sha256": tested.content_sha256,
             },
-            slot=slot,
         )
-        self.state.event(f"skewed {key}: refusal of content the source did not author")
-        return True
 
     def _record_failure(
         self,
@@ -2139,8 +2131,7 @@ class Sweep:
             if accepted
             else (None if slot or from_download else self._unplaced_recipe(key))
         )
-        if self._skewed_refusal(key, failure, accepted):
-            return
+        failure = self._skewed(key, failure, accepted)
         outcome = verdict.disposition(failure)
         if slot is not None and accepted is None and outcome is not Disposition.SKIP:
             self.requeue(key, IdentityReason.UNBOUND)
