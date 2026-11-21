@@ -15,7 +15,8 @@
           "codeload.github.com",
           "pypi.org",
           "files.pythonhosted.org",
-          "ports.ubuntu.com"
+          "ports.ubuntu.com",
+          "developer.download.nvidia.com"
         ]
       },
       "patches": []
@@ -969,11 +970,11 @@
       "DeepSeek AI",
       "vLLM contributors"
     ],
-    "source_reference": "https://github.com/christopherowen/spark-ds41f/tree/8e5ea208f3d22bc69df91ace94d6975932c858a8"
+    "source_reference": "https://github.com/christopherowen/spark-ds41f/tree/d3d40d941f2752fea95aa770eb10d41b5ad5aa1a"
   },
   "release": {
-    "released_at": "2026-11-07",
-    "version": "spark-ds41f-1107"
+    "released_at": "2026-11-20",
+    "version": "spark-ds41f-1120"
   },
   "runtime": {
     "arguments": [
@@ -1014,6 +1015,11 @@
       },
       {
         "name": "enable-prompt-tokens-details",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-per-request-metrics",
         "setting": null,
         "value": true
       },
@@ -1090,7 +1096,7 @@
       {
         "name": "speculative-config",
         "setting": null,
-        "value": "{\"method\":\"dspark\",\"num_speculative_tokens\":5,\"draft_tensor_parallel_size\":3,\"attention_backend\":\"TILELANG\",\"draft_sample_method\":\"greedy\",\"rejection_sample_method\":\"block\",\"enable_adaptive_verification\":true,\"adaptive_verification_row_cost\":0.035}"
+        "value": "{\"method\":\"dspark\",\"num_speculative_tokens\":5,\"draft_tensor_parallel_size\":3,\"attention_backend\":\"TILELANG\",\"draft_sample_method\":\"greedy\",\"rejection_sample_method\":\"block\",\"enable_adaptive_verification\":true,\"adaptive_verification_row_cost\":0.049,\"adaptive_verification_high_row_cost_scale\":0.75,\"adaptive_verification_single_req_row_cost_scale\":1.55,\"adaptive_verification_wide_row_cost_knee\":24,\"adaptive_verification_wide_row_cost_scale\":0.78}"
       },
       {
         "name": "jit-monitor-mode",
@@ -1215,6 +1221,10 @@
         "value": "2097152"
       },
       {
+        "name": "SPARKNET_ROCE_MAX_COLLECTIVE_BYTES",
+        "value": "4194304"
+      },
+      {
         "name": "SPARKNET_ROCE_PROXY_CPU",
         "value": "big"
       },
@@ -1257,6 +1267,22 @@
       {
         "name": "VLLM_DS41_HEAD_DTYPE",
         "value": "float32"
+      },
+      {
+        "name": "VLLM_DS41_L2_PREFETCH_FFN_MB",
+        "value": "12"
+      },
+      {
+        "name": "VLLM_DS41_L2_PREFETCH_NEXT_MB",
+        "value": "12"
+      },
+      {
+        "name": "VLLM_DS41_L2_PREFETCH_WO_BANDS",
+        "value": "17-32=12"
+      },
+      {
+        "name": "VLLM_DS41_L2_PREFETCH_WO_MB",
+        "value": "15"
       },
       {
         "name": "VLLM_DS41_PACKED_BF16_LM_HEAD",
@@ -1384,7 +1410,7 @@
       },
       {
         "name": "SPARK_DS41F_DISPLAY_CARVEOUT_WEIGHTS",
-        "value": "0"
+        "value": "1"
       },
       {
         "name": "SPARKNET_ROCE_ALLGATHER_MAX_BYTES",
@@ -1437,7 +1463,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 119000000000,
             "reserve_bytes": 6000000000
           }
         }
@@ -1454,7 +1480,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 117000000000,
             "reserve_bytes": 6000000000
           }
         }
