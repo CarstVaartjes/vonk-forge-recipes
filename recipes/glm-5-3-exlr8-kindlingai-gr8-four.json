@@ -3858,7 +3858,7 @@
             "artifact_bytes": 658911112146,
             "image_bytes": 8000000000,
             "safety_margin_bytes": 10000000000,
-            "working_bytes": 300000000000
+            "working_bytes": 320000000000
           },
           "memory": {
             "peak_bytes": 125300000000,
@@ -3875,7 +3875,7 @@
             "artifact_bytes": 659191923618,
             "image_bytes": 8000000000,
             "safety_margin_bytes": 10000000000,
-            "working_bytes": 300000000000
+            "working_bytes": 320000000000
           },
           "memory": {
             "peak_bytes": 125300000000,
