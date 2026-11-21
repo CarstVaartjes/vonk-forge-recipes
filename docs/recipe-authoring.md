@@ -1460,7 +1460,8 @@ path that holds the selected bytes or is declared for them). `add` also writes t
 What is declared: every file under `adapters/` that is binary and over 64 KiB, or any
 file over 1 MiB (vendored source tarballs and their split parts, tiktoken vocabularies,
 large reference JSON, the protocol wheel, model assets), plus the synthetic canary's
-package `tests/fixtures/canonical-synthetic-canary/package/canonical-synthetic-canary.tar.gz`.
+package `tests/fixtures/canonical-synthetic-canary/package/canonical-synthetic-canary.tar.gz`
+and its five third-party wheels in `.../context/wheels/` (declared with their PyPI `origin`).
 The canary package changes with every contract major: rebuild it, then run
 `tools/adapter-sources add` on its path. `tools/check-added-file-size` fails validate.yml and
 the pre-commit hook on any added or changed file over 1 MiB, anywhere in the repository, and

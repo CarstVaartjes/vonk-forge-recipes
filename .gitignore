@@ -72,5 +72,10 @@ secrets/
 /adapters/video/wan-dancer-native/vendor/wan-dancer-e6c87a94ec733230dac15b924c015f6e6501e618.tar.gz.part-001
 /adapters/video/wan-dancer-native/vendor/wan-dancer-e6c87a94ec733230dac15b924c015f6e6501e618.tar.gz.part-002
 /adapters/video/wan-dancer-native/vendor/wan-dancer-e6c87a94ec733230dac15b924c015f6e6501e618.tar.gz.part-003
+/tests/fixtures/canonical-synthetic-canary/context/wheels/annotated_types-0.8.0-py3-none-any.whl
+/tests/fixtures/canonical-synthetic-canary/context/wheels/pydantic-2.13.4-py3-none-any.whl
+/tests/fixtures/canonical-synthetic-canary/context/wheels/pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+/tests/fixtures/canonical-synthetic-canary/context/wheels/typing_extensions-4.16.0-py3-none-any.whl
+/tests/fixtures/canonical-synthetic-canary/context/wheels/typing_inspection-0.4.2-py3-none-any.whl
 /tests/fixtures/canonical-synthetic-canary/package/canonical-synthetic-canary.tar.gz
 # adapter-sources: end
