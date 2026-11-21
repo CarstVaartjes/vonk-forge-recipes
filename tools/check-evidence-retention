@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+"""Refuse a changed evidence file that carries more than the readers consult.
+
+Structural and independent of the tree's current recipe digests, so a recipe edit
+that does not touch evidence never fails it. For each changed
+`qualification/evidence/**/*.json` (the changed paths come in as arguments or
+`--paths-from FILE|-`, as for `tools/check-added-file-size`), with the class
+predicates of `spark_sweep.qualification.EVIDENCE_CLASSES`:
+
+- R1 every record is, within its own identity, the newest of at least one class;
+- R2 at most 5 content digests carry records (current, budget source, three newest);
+- R3 measured rows only for contents that carry records.
+
+Everything `retain_evidence` writes passes; a writer that skips it fails on its
+second record of one identity. There is no count, ratchet or waiver.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT), str(ROOT / "contracts/src")]
+from vonk_forge_contracts import RecipeQualificationEvidence
+
+from spark_sweep.qualification import EVIDENCE_CLASSES
+
+PREFIX = "qualification/evidence/"
+MAX_CONTENTS = 5
+
+
+def problems(evidence: RecipeQualificationEvidence) -> list[str]:
+    """Each violated rule of one evidence file, as a line."""
+    errors = []
+
+    def newest(record) -> tuple:
+        return (
+            record.tested_at,
+            EVIDENCE_CLASSES["failure"](record),
+            record.model_dump_json(),
+        )
+
+    by_identity: dict[str, list] = {}
+    for record in evidence.records:
+        by_identity.setdefault(record.identity.model_dump_json(), []).append(record)
+    for records in by_identity.values():
+        newest_of_class = {
+            id(max((r for r in records if predicate(r)), key=newest))
+            for predicate in EVIDENCE_CLASSES.values()
+            if any(predicate(r) for r in records)
+        }
+        for record in records:
+            if id(record) not in newest_of_class:
+                errors.append(
+                    f"R1 the record of {record.tested_at} is the newest of no class "
+                    "for its identity"
+                )
+    contents = {r.identity.content_sha256 for r in evidence.records}
+    if len(contents) > MAX_CONTENTS:
+        errors.append(f"R2 {len(contents)} content digests carry records")
+    if any(m.content_sha256 not in contents for m in evidence.measured_memory):
+        errors.append("R3 a measured row belongs to a content without records")
+    return errors
+
+
+def check(paths: list[str], root: Path = ROOT) -> list[str]:
+    errors = []
+    for name in paths:
+        path = root / name
+        if not (name.startswith(PREFIX) and name.endswith(".json") and path.is_file()):
+            continue
+        evidence = RecipeQualificationEvidence.model_validate_json(path.read_text())
+        errors += [f"{name}: {e}" for e in problems(evidence)]
+    return errors
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("paths", nargs="*", help="changed paths")
+    parser.add_argument("--paths-from", metavar="FILE|-", help="one path per line")
+    arguments = parser.parse_args()
+    paths = list(arguments.paths)
+    if arguments.paths_from:
+        text = (
+            sys.stdin.read()
+            if arguments.paths_from == "-"
+            else Path(arguments.paths_from).read_text(encoding="utf-8")
+        )
+        paths += [line for line in text.splitlines() if line]
+    errors = check(paths)
+    for error in errors:
+        print(error, file=sys.stderr)
+    if errors:
+        print(
+            "Run spark_sweep.qualification.retain_evidence (the publisher batch does).",
+            file=sys.stderr,
+        )
+    return 1 if errors else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "contracts/src")]
-from spark_sweep.qualification import backfill
+from spark_sweep.qualification import backfill, retain_evidence
 
 
 def main() -> int:
@@ -20,7 +20,9 @@ def main() -> int:
     paths = sorted(args.history.parent.glob(args.history.name + ".*"))
     if args.history.exists():
         paths.append(args.history)
-    print(backfill(paths, args.output_root).model_dump_json())
+    result = backfill(paths, args.output_root)
+    retain_evidence(args.output_root)
+    print(result.model_dump_json())
     return 0
 
 

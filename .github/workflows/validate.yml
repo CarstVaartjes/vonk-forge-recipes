@@ -351,6 +351,14 @@ jobs:
           git diff --name-only --diff-filter=AMR origin/main...HEAD > "$RUNNER_TEMP/changed.txt"
           python3 tools/check-added-file-size --paths-from "$RUNNER_TEMP/changed.txt"
 
+      # A changed evidence file keeps only what the readers consult (newest-only):
+      # R1-R3 of tools/check-evidence-retention, independent of recipe digests.
+      - name: Reject evidence files that carry more than the readers consult
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/check-evidence-retention --paths-from "$RUNNER_TEMP/changed.txt"
+
       # GB10 shares one memory pool between CPU and CUDA: new adapter code may
       # not build a full model as real CPU tensors or pin a model constructor
       # to CUDA. Checks only lines added against main.

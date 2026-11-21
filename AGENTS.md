@@ -53,10 +53,26 @@ Hardware qualification uses `RecipeQualificationEvidence` and
 `derive_status`. Store public evidence in
 `qualification/evidence/<publisher>/<recipe-slug>.json`, separate from recipes.
 Proven recipes are never broken pre-emptively: preserve the last pass during a
-re-check; an exact identity revert restores Working without another run. Only
+re-check. Evidence is newest-only: a revert to a content digest whose records were
+dropped is treated like new content and re-tested (Re-check after a pass, Fix to
+verify after a recipe failure), never restored from old evidence. Only
 hardware recipe failures count against recipes; platform faults remain separate.
 Schedule Fix to verify, Untested, platform-blocked work after its fix is observed,
 and Re-check last. `--retry-failed` never requeues Working.
+
+Evidence files keep only what the readers consult (`retained()` in
+`spark_sweep/qualification.py`): per identity of the current content the newest pass,
+resolved pass, failure, behavioural and recipe-blamed record; the file's newest pass,
+failure and behavioural record of any content; the one older content that
+`memory_need.measured_budgets` takes the measured budget from, with its rows; a
+withdrawn recipe keeps nothing. `retain_evidence(root)` is the one writer of that rule
+and runs last in the publisher batch (backfill, then refused records out, then
+retain), never inside `write_evidence`, so a refused newer record cannot have
+displaced the pass it replaced; `tools/backfill-qualification-evidence` calls it too.
+`tools/check-evidence-retention` (validate.yml) checks each changed evidence file
+structurally (R1 every record is the newest of a class for its identity, R2 at most
+five contents, R3 rows only for contents with records), independent of recipe digests.
+The first publisher batch after it lands compacts every file in one evidence commit.
 
 `tools/backfill-qualification-evidence --history <results.jsonl>` reads the log
 and all rotated siblings without opening or mutating sweep state. Missing image,
@@ -492,7 +508,7 @@ run's workload has exited (`run_state: failed`) is the recipe's `runtime_exit`, 
 its class.
 
 Qualification evidence binds recipe content, known image build key/digest and
-Model digests. Requeues, exact-identity revert restoration and `--retry-failed`
+Model digests. Requeues and `--retry-failed`
 use `derive_status` only. Library publication alone is not a content change.
 `--no-revalidate` preserves old passes on content changes.
 Keep prior verdicts visible while retesting. Record deployed API provenance
