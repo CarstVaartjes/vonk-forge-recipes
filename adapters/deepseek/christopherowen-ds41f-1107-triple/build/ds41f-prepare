@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ds41f-prepare --check-pins | --only PART | --all | --directory | --smoke | --versions | --export SRC DEST
 
-Drives spark-ds41f's own build preparation (spark_ds41f.build, release 1107) against its own lock. It substitutes only
+Drives spark-ds41f's own build preparation (spark_ds41f.build, release 1120) against its own lock. It substitutes only
 the configuration: the site node map is not needed, the lock is the repository's upstreams.lock.json, and the cluster is
 the release's shape tp3-triangle-4k, so the release's own label and note checks run in `--all`.
 """
@@ -32,8 +32,12 @@ def check_pins() -> None:
     stage = spark.runtime_stage(inputs)
     if stage != "runtime-tilelang-sparknet":
         problems.append(f"runtime stage: spark-ds41f ends on {stage!r}, this Dockerfile builds runtime-tilelang-sparknet")
-    if list(spark.build_projects(lock["sources"])) != ["vllm", "nccl", "b12x", "tilelang", "tile_kernels", "sparknet"]:
+    if list(spark.build_projects(lock["sources"])) != ["vllm", "nccl", "tilelang", "tile_kernels", "sparknet"]:
         problems.append(f"projects: {list(spark.build_projects(lock['sources']))}")
+    if spark.tilelang_base_stage(inputs) != "runtime-core-cuda-13-5":
+        problems.append(f"CUDA stages: spark-ds41f builds on {spark.cuda_stages(inputs)!r}, this Dockerfile on cuda-13-5")
+    if spark.nccl_version_code(inputs) != 23007:
+        problems.append(f"NCCL version code: spark-ds41f expects {spark.nccl_version_code(inputs)}, the Dockerfile 23007")
     if problems:
         raise SystemExit("pins disagree with spark-ds41f:\n  " + "\n  ".join(problems))
     print("pins agree with upstreams.lock.json and", lock["source_manifest"])

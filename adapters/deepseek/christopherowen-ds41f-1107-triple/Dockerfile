@@ -1,24 +1,27 @@
-# christopherowen/spark-ds41f release spark-ds41f-1107 (8e5ea208f3d22bc69df91ace94d6975932c858a8) on three DGX Sparks.
+# christopherowen/spark-ds41f release spark-ds41f-1120 (d3d40d941f2752fea95aa770eb10d41b5ad5aa1a) on three DGX Sparks.
 # The creator publishes no image: `bin/spark build prepare` clones and patches every upstream on the host and `bin/spark build image` hands
 # docker/Dockerfile the exported contexts. This file is that build, from source, converted to the platform's static build policy and otherwise
 # the release's Dockerfile:
 #   * a `fetch` stage clones spark-ds41f at the release commit and runs its own spark_ds41f.build preparation against its own
 #     upstreams.lock.json (each upstream at its pinned commit, its patch series applied with git am, the patch-set fingerprint, patch head and
 #     tree checked against the source manifest), and its exports replace the named build contexts;
-#   * every FROM is the literal base digest; the chain runtime-core, runtime, runtime-tilelang and runtime-tilelang-sparknet is one stage with
-#     the same instructions in the same order (the release's runtime-no-flashinfer-kernels experiment stage is not built);
+#   * every FROM is the literal base digest or the cuda-13-5 stage (the release's lock lists CUDA toolkit 13.5.37, so its builder stages
+#     and runtime-core start from cuda-13-5); the chain runtime-core, runtime-core-cuda-13-5, runtime-tilelang and runtime-tilelang-sparknet
+#     is one stage with the same instructions in the same order (the lock lists no B12X, so the release builds no `runtime` B12X stage; its
+#     torch and runtime-no-flashinfer-kernels stages are not built either);
 #   * every heredoc body is a file under build/ (byte for byte except the two edits below), run as `RUN python3 /tmp/<file>`;
-#   * the optional github_token secret mount is dropped; RUN --mount=type=bind,from=X became COPY --from=X into /tmp and a RUN;
-#   * the apt io_uring library is not installed: vLLM's direct loader and Engram row reader and B12X compile against posix-uring (the recipe
+#   * the optional github_token secret mount is dropped; RUN --mount=type=bind,from=X became COPY --from=X into /tmp and a RUN (the CUDA
+#     toolkit packages therefore stay in a layer of the image, about 1.5 GB);
+#   * the apt io_uring library is not installed: vLLM's direct loader and Engram row reader compile against posix-uring (the recipe
 #     library's tools/posix-uring), a header-only stand-in that does one pread per read, so default seccomp suffices; the creator's
-#     "links liburing" self-checks (build/check-runtime.py, build/check-b12x-runtime.py) assert the opposite;
+#     "links liburing" self-check (build/check-runtime.py) asserts the opposite;
 #   * image labels the release passes as build arguments are not set; the release's lock and manifest are copied to /opt/spark-ds41f instead;
 #   * compile job counts are lowered for the hosted builder (4 vCPUs, 15 GiB of RAM); architecture flags are unchanged (12.1a, NCCL compute_121);
 #   * the non-root user, the /opt/vonk/bin/vllm wrapper, ENTRYPOINT [] and the build-time sm_121 kernel scan are ours.
 
 ARG BASE_IMAGE=docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf
 ARG SPARK_DS41F_UPSTREAM=https://github.com/christopherowen/spark-ds41f
-ARG SPARK_DS41F_REVISION=8e5ea208f3d22bc69df91ace94d6975932c858a8
+ARG SPARK_DS41F_REVISION=d3d40d941f2752fea95aa770eb10d41b5ad5aa1a
 # Compile parallelism: the release sizes jobs from MemAvailable (8 GiB per job; 8 vLLM jobs on a GB10). The hosted builder has 4 vCPUs
 # and 15 GiB of RAM plus swap, so 2.
 ARG VLLM_COMPILE_JOBS=2
@@ -55,13 +58,13 @@ RUN ds41f-prepare --check-pins
 # One layer per part, so a network failure repeats only that part; `--all` then reuses every verified part, exports the contexts, lists the
 # vLLM deletions and checks everything again (build_problems).
 RUN ds41f-prepare --only vllm
-RUN ds41f-prepare --only b12x
 RUN ds41f-prepare --only nccl
 RUN ds41f-prepare --only tilelang
 RUN ds41f-prepare --only tile_kernels
 RUN ds41f-prepare --only sparknet
 RUN ds41f-prepare --only cutlass
 RUN ds41f-prepare --only wheels
+RUN ds41f-prepare --only cuda_toolkit
 RUN set -eux; \
     ds41f-prepare --all; \
     mv "$(ds41f-prepare --directory)" /work/build; \
@@ -69,7 +72,55 @@ RUN set -eux; \
     ds41f-prepare --versions > /work/out/versions.env; \
     cat /work/out/versions.env
 
-FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS vllm-native-builder
+# CUDA 13.5 (nvcc/ptxas 13.5.37, libcudart 13.5.37, libcublasLt 13.10.0.20) over the
+# base image's CUDA 13.0.2, from the lock's packages (requirements/cuda-13-5-sbsa.txt,
+# verified by `bin/spark build prepare`). dpkg installs exactly that set with no
+# network access, so a dependency the set lacks fails the build. /usr/local/cuda,
+# /usr/local/cuda-13 and the pip nvidia/cu13 directory, which libtorch_cuda.so's
+# DT_RPATH and cuda.pathfinder search ahead of /usr/local/cuda, are wired to
+# /usr/local/cuda-13.5; nvcc reads TOP from its nvcc.profile because it does not
+# resolve the nvidia/cu13/bin link it may be called through.
+FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS cuda-13-5
+
+USER root
+
+ENV CUDA_HOME=/usr/local/cuda \
+    CUDA_VERSION=13.5.0 \
+    NV_CUDA_CUDART_VERSION=13.5.37-1 \
+    NV_CUDA_LIB_VERSION=13.5.0-1 \
+    NV_LIBCUBLAS_VERSION=13.10.0.20-1 \
+    PATH=/usr/local/cuda-13.5/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    LD_LIBRARY_PATH=/usr/local/cuda-13.5/targets/sbsa-linux/lib:/usr/local/cuda/targets/sbsa-linux/lib:/usr/local/cuda/lib64
+
+COPY --from=fetch /work/build/context/cuda-toolkit-debs/ /tmp/cuda-toolkit-debs/
+RUN set -eux; \
+    DEBIAN_FRONTEND=noninteractive dpkg -i /tmp/cuda-toolkit-debs/*.deb; \
+    test -z "$(dpkg --audit)"; \
+    printf '%s\n' \
+      '#!/bin/sh' \
+      'set -eux' \
+      'ln -sfn /usr/local/cuda-13.5 /usr/local/cuda' \
+      'ln -sfn /usr/local/cuda-13.5 /usr/local/cuda-13' \
+      'ln -sfn /usr/local/cuda-13.5 /etc/alternatives/cuda' \
+      'ln -sfn /usr/local/cuda-13.5 /etc/alternatives/cuda-13' \
+      'sed -i "s|^TOP[[:space:]]*=.*|TOP = /usr/local/cuda-13.5|" /usr/local/cuda-13.5/bin/nvcc.profile' \
+      'cu13_dir=/usr/local/lib/python3.12/dist-packages/nvidia/cu13' \
+      'cuda_lib=/usr/local/cuda-13.5/targets/sbsa-linux/lib' \
+      'rm -rf "${cu13_dir}/bin" "${cu13_dir}/nvvm"' \
+      'ln -s /usr/local/cuda-13.5/bin "${cu13_dir}/bin"' \
+      'ln -s /usr/local/cuda-13.5/nvvm "${cu13_dir}/nvvm"' \
+      'for lib in libcublas.so.13 libcublasLt.so.13 libnvblas.so.13 libcudart.so.13 libcudart_static.a libcudadevrt.a libnvJitLink.so.13 libnvrtc.so.13 libnvrtc-builtins.so.13.5 libnvptxcompiler_static.a libcurand.so.10; do' \
+      '  ln -sfn "${cuda_lib}/${lib}" "${cu13_dir}/lib/${lib}"' \
+      'done' \
+      'rm -f "${cu13_dir}/lib/libnvrtc-builtins.so.13.0" "${cu13_dir}/lib/libnvrtc-builtins.so.13.2"' \
+      'ln -sfn /usr/local/cuda-13.5/nvvm/lib64/libnvvm.so.4.0.0 "${cu13_dir}/lib/libnvvm.so.4"' \
+      'ldconfig' \
+      > /usr/local/sbin/spark-wire-cuda-13-5; \
+    chmod 0755 /usr/local/sbin/spark-wire-cuda-13-5; \
+    /usr/local/sbin/spark-wire-cuda-13-5; \
+    rm -rf /tmp/cuda-toolkit-debs
+
+FROM cuda-13-5 AS vllm-native-builder
 
 USER root
 
@@ -124,7 +175,7 @@ RUN set -eu; \
 # NCCL 2.30.7 (the base image's nvidia-nccl-cu13 wheel), rebuilt from the
 # pinned release tag with patches/nccl for SM121 only. The runtime stage
 # replaces the wheel's libnccl.so.2 with it.
-FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS nccl-builder
+FROM cuda-13-5 AS nccl-builder
 
 USER root
 
@@ -145,7 +196,7 @@ RUN set -eux; \
 # the base image's z3-solver, which TileLang links and loads at run time.
 # TileKernels takes its version from setuptools-scm, which an export without
 # Git metadata cannot supply.
-FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS tilelang-builder
+FROM cuda-13-5 AS tilelang-builder
 
 USER root
 
@@ -172,7 +223,7 @@ RUN set -eux; \
 # sparknet (christopherowen/dgx-spark-networking): the one-shot RoCE
 # collectives vendored from B12X with spark's patches 0001-0011, used by the
 # TileLang family instead of b12x.comm.roce. Pure Python plus a C proxy.
-FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS sparknet-builder
+FROM cuda-13-5 AS sparknet-builder
 
 COPY --from=fetch /work/build/context/sparknet-source/ /workspace/sparknet/
 RUN python3 -m pip wheel --no-cache-dir --no-deps --wheel-dir /opt/sparknet /workspace/sparknet && \
@@ -183,7 +234,7 @@ RUN python3 -m pip wheel --no-cache-dir --no-deps --wheel-dir /opt/sparknet /wor
 # While the lock lists B12X (spark-ds41f-1025 and earlier), `runtime` adds it on
 # top; a lock without it builds the TileLang runtime on this stage directly.
 
-FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS runtime
+FROM cuda-13-5 AS runtime
 
 # No usage reporting: vLLM's usage stats (stats.vllm.ai) stay off in every image and
 # every container started from it, whatever the deployment's environment.
@@ -207,7 +258,7 @@ RUN set -eux; \
     install -m 0755 /opt/spark-ds41f/nccl/libnccl.so.2 "$target"; \
     rm /opt/spark-ds41f/nccl/libnccl.so.2
 
-# vLLM's direct loader and Engram disk row reader (and B12X) build native helpers against `pkg-config liburing`, prebuilt below into
+# vLLM's direct loader and Engram disk row reader build native helpers against `pkg-config liburing`, prebuilt below into
 # /opt/spark-ds41f/native so no compiler runs on first boot. The sandbox blocks io_uring, so that answer is posix-uring: a header-only
 # stand-in doing one pread per read (tools/posix-uring in the recipe library, a byte-identical copy here).
 COPY posix-uring /opt/vonk/posix-uring
@@ -246,23 +297,19 @@ ENV PYTHONPATH=/opt/spark-ds41f/candidate/vllm
 # The prebuilt helpers go to vLLM's default prebuilt root, /opt/spark-ds41f/native (no VLLM_NATIVE_CACHE_DIR ENV line: the writable-state
 # check cannot tell a build-time cache from state).
 
+# NCCL_VERSION_CODE of the lock's NCCL tag (v2.30.7-1, the release's default).
+ARG NCCL_VERSION_CODE=23007
 COPY build/check-runtime.py /tmp/check-runtime.py
 RUN LIBRARY_PATH=/usr/local/cuda/lib64/stubs python3 /tmp/check-runtime.py && rm /tmp/check-runtime.py
 
-# B12X, while the lock lists it (spark-ds41f-1025 and earlier): its tree on
-# PYTHONPATH, installed without dependencies (patches/b12x moves its exact CuTe
-# DSL pin to the locked wheel set's version).
+# The CUDA 13.5 build's runtime-core (runtime-core-cuda-13-5): the CuTe DSL wheel reinstall above rewrites files in nvidia/cu13 (it put a
+# 13.2 libnvrtc.so.13 back), so wire it to CUDA 13.5 again, then check the toolchain and the libraries torch, cuda.pathfinder and
+# ctypes resolve. The lock lists no B12X, so the TileLang runtime builds on this stage directly.
+LABEL local.spark-ds41f.cuda.version="13.5.37"
 
-COPY --from=fetch /work/build/context/b12x-source/ /opt/spark-ds41f/candidate/b12x/
-RUN python3 -m pip install --no-cache-dir --no-build-isolation --no-deps \
-      /opt/spark-ds41f/candidate/b12x
-COPY build/check-b12x-requirements.py /tmp/check-b12x-requirements.py
-RUN python3 /tmp/check-b12x-requirements.py && rm /tmp/check-b12x-requirements.py
-
-ENV PYTHONPATH=/opt/spark-ds41f/candidate/vllm:/opt/spark-ds41f/candidate/b12x
-
-COPY build/check-b12x-runtime.py /tmp/check-b12x-runtime.py
-RUN LIBRARY_PATH=/usr/local/cuda/lib64/stubs python3 /tmp/check-b12x-runtime.py && rm /tmp/check-b12x-runtime.py
+RUN /usr/local/sbin/spark-wire-cuda-13-5
+COPY build/check-cuda-13-5.py /tmp/check-cuda-13-5.py
+RUN python3 /tmp/check-cuda-13-5.py && rm /tmp/check-cuda-13-5.py
 
 # The TileLang kernel backend: the patched TileLang replaces the base image's
 # tilelang 0.1.12 (vLLM's pin), and TileKernels is added, both without
@@ -296,7 +343,7 @@ RUN . /tmp/versions.env \
  && rm /tmp/check-sparknet.py /tmp/versions.env
 
 LABEL org.opencontainers.image.source="https://github.com/christopherowen/spark-ds41f" \
-      org.opencontainers.image.revision="8e5ea208f3d22bc69df91ace94d6975932c858a8" \
+      org.opencontainers.image.revision="d3d40d941f2752fea95aa770eb10d41b5ad5aa1a" \
       org.opencontainers.image.licenses="Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 

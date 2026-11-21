@@ -1,6 +1,7 @@
 import ctypes
 import hashlib
 import importlib.metadata as metadata
+import os
 import subprocess
 
 assert metadata.version("nvidia-cutlass-dsl") == "4.7.1"
@@ -14,7 +15,7 @@ from vllm.models.deepseek_v4_1.engram_rows import _native as engram_native
 nccl = "/usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2"
 version = ctypes.c_int()
 assert ctypes.CDLL(nccl).ncclGetVersion(ctypes.byref(version)) == 0
-assert version.value == 23007, version.value
+assert version.value == int(os.environ["NCCL_VERSION_CODE"]), version.value
 with open(nccl, "rb") as handle:
     built = open("/opt/spark-ds41f/nccl/libnccl.so.2.sha256").read().strip()
     assert hashlib.sha256(handle.read()).hexdigest() == built, "NCCL is not the patched build"
