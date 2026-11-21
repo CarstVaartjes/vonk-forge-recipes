@@ -95,11 +95,11 @@
       "Qwen",
       "llama.cpp contributors"
     ],
-    "source_reference": "https://github.com/amarjeet/dgx-spark-recipes/tree/43697e780972fd63c1378c532b392edbe95240bc"
+    "source_reference": "https://github.com/amarjeet/dgx-spark-recipes/tree/f316a62ff6cddd0673af33f4b2cf8fa6b4bb53d1"
   },
   "release": {
-    "released_at": "2026-10-02",
-    "version": "1.0.1"
+    "released_at": "2026-11-19",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [

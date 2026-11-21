@@ -168,7 +168,7 @@
   "vonk-forge/step1x-3d-geometry-pytorch-single": "fc9a5264304e0cabdc93989db9c789f630e401da537089c6f3b0d13c1f54facd",
   "vonk-forge/step1x-3d-label-geometry-pytorch-single": "6dfc18cb0380c7817e9288728dacffaf58f1f4d00ca0d989f272adf9f907baaf",
   "vonk-forge/step1x-3d-texture-pytorch-single": "2771b3a85ee68f47460fbd3af9ca88f5f3f0818163bad7e717704b3b58abb815",
-  "vonk-forge/ternary-bonsai-2-27b-pq2-0-amarjeet-llama-cpp-single": "94380ac7c25d1dc312f2e31058742aad194668fb9486bd777914c238a947087e",
+  "vonk-forge/ternary-bonsai-2-27b-pq2-0-amarjeet-llama-cpp-single": "5386ddb7fdfc43fda19920159e197986114857fd806925edd820cbcc653fdd28",
   "vonk-forge/triposg-pytorch-single": "1ac8b3c3a2b674e0dea62f839f0893ca6a6e9bbedaa31b6f32bbfa1075babb49",
   "vonk-forge/ui-mate-27b-vllm-single": "2b2327eed125abc47ec34a393718fe13b8817ca18f33f92189c32e6429fdf7ed",
   "vonk-forge/vibethinker-3b-nvfp4-r0b0tlab-vllm-single": "b2c55b23f69800e14079b1ed7840126bb9b75b5bac7aa08ddcac1b4fe33456a2",
