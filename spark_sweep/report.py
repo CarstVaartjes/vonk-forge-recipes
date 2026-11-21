@@ -3,8 +3,7 @@
 ``build_status`` is the live view (lanes, queue, throughput, ETA, failure
 clusters) written as JSON plus a short markdown page on every cycle.
 ``build_report`` is the end-of-run summary: pass or fail per recipe with phase,
-reason, timings and tokens per second. ``export_evidence`` turns the results
-log into per-recipe evidence files for the repository.
+reason, timings and tokens per second.
 """
 
 from __future__ import annotations
@@ -21,7 +20,6 @@ from vonk_forge_contracts import (
     QualificationDerivationInput,
     QualificationStatus,
     QualificationStatusView,
-    RecipeQualificationEvidence,
     derive_status,
 )
 from vonk_forge_contracts.sweep import SweepSlotPhase, SweepWaitReason
@@ -32,7 +30,6 @@ from .identity import recorded_identity
 from .lifecycle import ACTIVE, LifecycleState
 from .qualification import (
     current_identity,
-    from_history,
     merge_evidence,
     read_evidence,
 )
@@ -757,33 +754,3 @@ def write_status(sweep: Sweep, final: bool = False) -> None:
             directory / "report.json", json.dumps(report, indent=1, sort_keys=True)
         )
         write_atomic(directory / "report.md", render_report(report))
-
-
-# -- repository evidence ------------------------------------------------------
-
-
-def export_evidence(
-    entries: Iterable[Mapping[str, Any]], out_dir: Path, known_recipes: Iterable[str]
-) -> list[Path]:
-    """Export the canonical public evidence model; raw diagnostics stay in state."""
-    known = set(known_recipes)
-    grouped: dict[str, RecipeQualificationEvidence] = {}
-    for entry in entries:
-        key = entry.get("recipe")
-        if not isinstance(key, str) or key not in known:
-            continue
-        record = from_history(entry)
-        if record is None:
-            continue
-        incoming = RecipeQualificationEvidence(recipe_key=key, records=(record,))
-        previous = grouped.get(key, RecipeQualificationEvidence(recipe_key=key))
-        grouped[key] = merge_evidence(previous, incoming)
-    written = []
-    for key, evidence in sorted(grouped.items()):
-        path = out_dir / f"{key}.json"
-        if path.exists():
-            previous = RecipeQualificationEvidence.model_validate_json(path.read_text())
-            evidence = merge_evidence(previous, evidence)
-        write_atomic(path, evidence.model_dump_json(indent=2, exclude_none=True) + "\n")
-        written.append(path)
-    return written

@@ -21,7 +21,7 @@ from sweep_fakes import (
 
 from spark_sweep.cli import main
 from spark_sweep.issues import LABEL, file_issues, title_for
-from spark_sweep.report import export_evidence
+from spark_sweep.qualification import history_evidence
 from spark_sweep.state import ResultsLog
 from spark_sweep.vonkctl import Vonkctl
 
@@ -238,7 +238,7 @@ def test_the_entry_point_is_executable() -> None:
         text=True,
         check=True,
     )
-    assert "plan" in done.stdout and "export-evidence" in done.stdout
+    assert "plan" in done.stdout and "publish-evidence" in done.stdout
 
 
 # -- evidence --------------------------------------------------------------------------
@@ -248,10 +248,10 @@ def _real_recipe() -> str:
     return f"vonk-forge/{min((ROOT / 'recipes').glob('*.json')).stem}"
 
 
-def test_evidence_files_preserve_history_in_the_sanitized_contract(
+def test_history_rows_become_sanitized_evidence_records(
     tmp_path: Path,
 ) -> None:
-    from vonk_forge_contracts import QualificationOutcome, RecipeQualificationEvidence
+    from vonk_forge_contracts import QualificationOutcome
 
     log = ResultsLog(tmp_path / "results.jsonl", "auth")
     real = _real_recipe()
@@ -270,37 +270,24 @@ def test_evidence_files_preserve_history_in_the_sanitized_contract(
         )
     log.append(
         batch="sweep",
-        recipe="vonk-forge/not-a-recipe",
-        step="smoke",
-        status="passed",
-        content_sha256="x",
-    )
-    log.append(
-        batch="sweep",
         recipe=real,
         step="stop",
         status="passed",
         content_sha256="b" * 64,
     )
-    written = export_evidence(log.entries(), tmp_path / "evidence", [real])
-    assert written == [tmp_path / "evidence" / f"{real}.json"]
-    document = RecipeQualificationEvidence.model_validate_json(written[0].read_text())
-    assert [r.outcome for r in document.records] == [
+    records = [
+        evidence.records[0]
+        for row in log.entries()
+        if (evidence := history_evidence(row))
+    ]
+    assert [r.outcome for r in records] == [
         QualificationOutcome.FAILED,
         QualificationOutcome.PASSED,
         QualificationOutcome.PASSED,
     ]
-    assert "private-host" not in written[0].read_text()
-    assert "/internal/path" not in written[0].read_text()
-    assert export_evidence(log.entries(), tmp_path / "evidence", [real]) == written
-    assert (
-        len(
-            RecipeQualificationEvidence.model_validate_json(
-                written[0].read_text()
-            ).records
-        )
-        == 3
-    )
+    text = "".join(r.model_dump_json() for r in records)
+    assert "private-host" not in text
+    assert "/internal/path" not in text
 
 
 def test_committed_hardware_evidence_validates_without_a_legacy_format() -> None:

@@ -116,10 +116,10 @@ def test_changed_content_is_ordered_newest_first():
     ) == [newest.key, older.key]
 
 
-def test_evidence_export_keeps_verdicts_for_different_images(tmp_path):
+def test_history_evidence_keeps_verdicts_for_different_images():
     from spark_sweep.catalog_contract import RuntimeImageIdentity
     from spark_sweep.identity import content_identity
-    from spark_sweep.report import export_evidence
+    from spark_sweep.qualification import history_evidence
 
     first = recipe(
         "runtime",
@@ -146,15 +146,7 @@ def test_evidence_export_keeps_verdicts_for_different_images(tmp_path):
         }
         for item in (first, second)
     ]
-    written = export_evidence(rows, tmp_path, [first.key])
-    assert len(written) == 1
-    from vonk_forge_contracts import RecipeQualificationEvidence
-
-    assert (
-        len(
-            RecipeQualificationEvidence.model_validate_json(
-                written[0].read_text()
-            ).records
-        )
-        == 2
-    )
+    evidence = [history_evidence(row) for row in rows]
+    records = [item.records[0] for item in evidence if item]
+    assert len(records) == 2
+    assert records[0].identity != records[1].identity
