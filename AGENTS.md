@@ -54,7 +54,8 @@ Hardware qualification uses `RecipeQualificationEvidence` and
 `qualification/evidence/<publisher>/<recipe-slug>.json`, separate from recipes.
 Proven recipes are never broken pre-emptively: preserve the last pass during a
 re-check. Evidence is newest-only: a revert to a content digest whose records were
-dropped shows Re-check and is re-tested, never restored from old evidence. Only
+dropped is treated like new content and re-tested (Re-check after a pass, Fix to
+verify after a recipe failure), never restored from old evidence. Only
 hardware recipe failures count against recipes; platform faults remain separate.
 Schedule Fix to verify, Untested, platform-blocked work after its fix is observed,
 and Re-check last. `--retry-failed` never requeues Working.

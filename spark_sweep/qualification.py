@@ -534,12 +534,16 @@ def retained(
     Kept: per identity of the current content, its newest record of each class; the
     file's newest pass, failure and behavioural record (any content); the one other
     content `measured_budget` takes its maximum from, with its per-identity newest;
-    measured rows only for the current content and that one. Applying it again, or
+    measured rows only for contents that keep a record. Applying it again, or
     after re-importing history, changes nothing.
     """
     budgets = measured_budgets(recipe, evidence)
-    # The current content when it ties for the maximum: it is kept anyway.
-    source = max(budgets, key=lambda c: (budgets[c], c == current, c), default=None)
+    # The best older content: a later failure of the current one must not lose the budget.
+    source = max(
+        (c for c in budgets if c != current),
+        key=lambda c: (budgets[c], c),
+        default=None,
+    )
     contents = {current} if source is None else {current, source}
     kept = _newest_of_classes(
         (r for r in evidence.records if r.identity.content_sha256 in contents),
@@ -548,6 +552,7 @@ def retained(
         True,
     ) + _newest_of_classes(evidence.records, FILE_CLASSES, current, False)
     unique = {r.model_dump_json(): r for r in kept}
+    with_records = {r.identity.content_sha256 for r in unique.values()}
     return evidence.model_copy(
         update={
             "records": tuple(
@@ -556,7 +561,7 @@ def retained(
                 )
             ),
             "measured_memory": tuple(
-                m for m in evidence.measured_memory if m.content_sha256 in contents
+                m for m in evidence.measured_memory if m.content_sha256 in with_records
             ),
         }
     )

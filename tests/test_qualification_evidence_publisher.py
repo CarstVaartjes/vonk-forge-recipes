@@ -159,9 +159,15 @@ def test_evidence_merge_conflict_unions_both_histories(
     from datetime import timedelta
 
     from test_qualification_status import KEY, NOW, evidence, record
+    from vonk_forge_contracts import QualificationBlame, QualificationOutcome
 
     from spark_sweep.qualification import read_evidence, write_evidence
 
+    # The branch's own record is a recipe failure: retention keeps it (the newest
+    # failure), so it shows in the result only if the union brought it in.
+    branch = record(
+        outcome=QualificationOutcome.FAILED, blame=QualificationBlame.RECIPE
+    )
     history = tmp_path / "results.jsonl"
     row = historical()
     row["recorded_at"] = (NOW + timedelta(days=2)).isoformat()
@@ -175,7 +181,7 @@ def test_evidence_merge_conflict_unions_both_histories(
             clone = Path(args[-1])
             (clone / ".git").mkdir()
             seed_catalog(clone)
-            write_evidence(clone, evidence(record()))
+            write_evidence(clone, evidence(branch))
         if args[:2] == ("git", "ls-remote"):
             return "remote-branch"
         if "--diff-filter=U" in args:
@@ -200,8 +206,10 @@ def test_evidence_merge_conflict_unions_both_histories(
     monkeypatch.setattr(publisher, "command", command)
     monkeypatch.setattr(publisher.subprocess, "run", merge)
     publisher.sync(history, tmp_path / "work")
-    # Branch day 0, main 1 and log 2 are unioned, then retained: the newest pass is left.
-    assert [r.tested_at for r in observed] == [NOW + timedelta(days=2)]
+    # Branch failure (day 0), main pass (1) and log pass (2) are unioned, then retained:
+    # the newest pass, and the branch's failure only when the branch changed the file.
+    days = (0, 2) if branch_changed else (2,)
+    assert [r.tested_at for r in observed] == [NOW + timedelta(days=d) for d in days]
 
 
 def test_publisher_spawn_failure_is_visible_and_never_escapes_to_lanes(
@@ -490,20 +498,22 @@ def test_resolved_state_only_record_is_published(tmp_path, monkeypatch):
 
 def test_state_evidence_is_only_appended_never_rewritten(tmp_path, monkeypatch):
     from test_qualification_status import A, B, evidence, record
+    from vonk_forge_contracts import QualificationBlame, QualificationOutcome
 
     old = record(A, day=0)
-    published = _publish_with_state(
-        tmp_path, monkeypatch, evidence(old), evidence(record(B, day=1))
+    new = record(
+        B, day=1, outcome=QualificationOutcome.FAILED, blame=QualificationBlame.RECIPE
     )
-    assert [r.identity for r in published] == [B]  # newest pass only; none rewritten
-    assert old not in published
+    published = _publish_with_state(tmp_path, monkeypatch, evidence(old), evidence(new))
+    assert published[0] == old  # existing repo record kept as it was
+    assert [r.identity for r in published] == [A, B]  # newest pass and newest failure
     # Re-publishing the same state adds nothing.
     (tmp_path / "again").mkdir()
     again = _publish_with_state(
         tmp_path / "again",
         monkeypatch,
         evidence(*published),
-        evidence(record(B, day=1)),
+        evidence(new),
     )
     assert again == published
 

@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import importlib.machinery
 import importlib.util
-import json
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
+from test_qualification_evidence_publisher import seed_catalog
 from test_qualification_status import KEY, A, evidence, record
 from test_qualification_status import NOW as T0
 from vonk_forge_contracts import (
@@ -20,13 +21,12 @@ from vonk_forge_contracts import (
 from vonk_forge_contracts import (
     QualificationOutcome as Outcome,
 )
-from vonk_forge_contracts import (
-    RecipeDefinition,
-    document_sha256,
-)
+from vonk_forge_contracts import derive_status
+from vonk_forge_contracts.qualification_status import published_status
 
 from spark_sweep import evidence_publisher as publisher
 from spark_sweep.qualification import (
+    catalog_recipes,
     merge_evidence,
     read_evidence,
     retain_evidence,
@@ -44,10 +44,10 @@ guard: Any = importlib.util.module_from_spec(SPEC)
 sys.modules[LOADER.name] = guard
 LOADER.exec_module(guard)
 
-DOCUMENT = json.loads((ROOT / "recipes/qwen3-5-9b-vllm-single.json").read_text())
-DOCUMENT["identity"]["slug"] = "example"
-RECIPE = RecipeDefinition.model_validate(DOCUMENT)
-CURRENT = document_sha256(DOCUMENT)
+CATALOG = tempfile.TemporaryDirectory()
+CATALOG_ROOT = Path(CATALOG.name)
+seed_catalog(CATALOG_ROOT)
+RECIPE, CURRENT = catalog_recipes(CATALOG_ROOT)[KEY]
 NOW = A.model_copy(update={"content_sha256": CURRENT})
 OLD = A.model_copy(update={"content_sha256": "9" * 64})
 FAIL = {"outcome": Outcome.FAILED, "blame": Blame.RECIPE}
@@ -107,8 +107,7 @@ def test_reimporting_history_is_a_fixed_point():
 
 
 def seed(root: Path) -> None:
-    (root / "recipes").mkdir()
-    (root / "recipes/example.json").write_text(json.dumps(DOCUMENT))
+    seed_catalog(root)
 
 
 def test_withdrawn_recipe_keeps_nothing_and_others_shrink(tmp_path):
@@ -127,10 +126,23 @@ def test_withdrawn_recipe_keeps_nothing_and_others_shrink(tmp_path):
 def test_a_refused_newer_pass_leaves_the_older_one(tmp_path):
     seed(tmp_path)
     first, second = record(NOW, day=1), record(NOW, day=2)
-    write_evidence(tmp_path, evidence(first, second))
+    rows = tuple(
+        Row(content_sha256=CURRENT, role=role.name, steady_bytes=0, budget_bytes=100)
+        for role in RECIPE.topology.roles
+    )
+    write_evidence(
+        tmp_path, evidence(first, second).model_copy(update={"measured_memory": rows})
+    )
     publisher._drop_refused(tmp_path, {publisher.record_id(KEY, second)})
     retain_evidence(tmp_path)
-    assert read_evidence(tmp_path, KEY).records == (first,)
+    kept = read_evidence(tmp_path, KEY)
+    assert kept.records == (first,) and kept.measured_memory == rows
+    # A refused only record leaves rows without a record: retention drops them.
+    publisher._drop_refused(tmp_path, {publisher.record_id(KEY, first)})
+    assert read_evidence(tmp_path, KEY).records == ()
+    write_evidence(tmp_path, evidence().model_copy(update={"measured_memory": rows}))
+    retain_evidence(tmp_path)
+    assert guard.problems(read_evidence(tmp_path, KEY)) == []
 
 
 def test_guard_accepts_retained_and_refuses_a_second_record_of_one_identity():
@@ -149,3 +161,14 @@ def test_guard_accepts_retained_and_refuses_a_second_record_of_one_identity():
         }
     )
     assert any(e.startswith("R3") for e in guard.problems(stray))
+
+
+def test_the_reducers_read_retained_history_as_the_whole():
+    full, kept = history(), retained(history(), RECIPE, CURRENT)
+    for identity in (NOW, NOW.model_copy(update={"runtime_image": None})):
+        identity = identity.model_copy(update={"required_sparks": 1})
+        for fleet in (0, 1, 2):
+            assert derive_status(full, identity, fleet, False) == derive_status(
+                kept, identity, fleet, False
+            )
+        assert published_status(full, identity) == published_status(kept, identity)

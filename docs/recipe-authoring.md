@@ -12,8 +12,9 @@ Qualification is derived from hardware evidence, never an authored recipe label.
 A proven recipe stays proven until a hardware test on the same identity says
 otherwise. Updating a recipe, runtime image or Model creates a re-check, never
 an advance declaration that the recipe is broken. Evidence is newest-only (AGENTS.md
-§Sweep evidence workflow): a revert to a digest whose records were dropped shows
-Re-check and is re-tested, never restored from old evidence. Quality notes do not
+§Sweep evidence workflow): a revert to a digest whose records were dropped is
+treated like new content and re-tested (Re-check after a pass, Fix to verify
+after a recipe failure), never restored from old evidence. Quality notes do not
 turn a successful hardware check into a failure. A missing historical Spark
 count does not change a matching recipe digest, which already binds topology;
 local proof survives while public certification still requires recorded platform
