@@ -443,10 +443,10 @@ def test_a_vision_case_carries_its_image_as_a_data_uri(
 
 
 def test_the_authority_id_matches_the_derived_authority() -> None:
-    from spark_sweep.cli import AUTHORITY_ID
+    from spark_sweep.defaults import DEFAULTS
 
     builder = (ROOT / "tools" / "build-qualification-authority").read_text()
-    assert f'AUTHORITY_ID = "{AUTHORITY_ID}"' in builder
+    assert f'AUTHORITY_ID = "{DEFAULTS.authority_id}"' in builder
 
 
 # -- smoke against a gateway ----------------------------------------------------------------------

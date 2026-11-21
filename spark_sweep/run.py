@@ -75,6 +75,7 @@ from .catalog import (
     serving_run,
 )
 from .chat_probe import ChatFacts, chat_facts
+from .defaults import DEFAULTS
 from .definitions import CaseRenderError, Definitions
 from .evidence_publisher import EvidencePublisher
 from .fanout import DaemonExecutor, Outcome, gather
@@ -243,9 +244,6 @@ def _fleet_skip(entry: Mapping[str, Any]) -> bool:
     )
 
 
-DEFAULT_BOOST = ("glm-5-3",)
-
-
 @dataclass
 class SweepConfig:
     state_dir: Path
@@ -266,7 +264,7 @@ class SweepConfig:
     http: HttpConfig = field(default_factory=HttpConfig)
     prefetch: PrefetchConfig = field(default_factory=PrefetchConfig)
     timeouts: policy.TimeoutPolicy = field(default_factory=policy.TimeoutPolicy)
-    boost: tuple[str, ...] = DEFAULT_BOOST
+    boost: tuple[str, ...] = DEFAULTS.priority
     recent_days: float = 3.0
     seed: frozenset[str] = frozenset()
     only: tuple[str, ...] = ()

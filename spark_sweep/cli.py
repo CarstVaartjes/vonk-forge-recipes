@@ -16,6 +16,7 @@ from qualification.memory_need import SPARK_MEMORY_BYTES
 
 from . import policy
 from .catalog import fetch_fleet, fetch_models, fetch_recipes
+from .defaults import DEFAULTS
 from .definitions import Definitions
 from .evidence_publisher import sync
 from .issues import file_issues
@@ -24,15 +25,12 @@ from .own_pulls import REPOSITORY
 from .plan import make_plan, render_plan
 from .prefetch import PrefetchConfig
 from .report import build_report, export_evidence, render_report, saved_qualification
-from .run import DEFAULT_BOOST, Clock, Sweep, SweepConfig, selects
+from .run import Clock, Sweep, SweepConfig, selects
 from .smoke import HttpConfig
 from .source_serving import authored_contents, describe, unserved
 from .state import ResultsLog, State, StateLock, StateLocked
-from .vonkctl import OWNER_PROFILES, Vonkctl, VonkctlError
+from .vonkctl import Vonkctl, VonkctlError
 
-# Kept equal to AUTHORITY_ID in tools/build-qualification-authority (a test checks it), so
-# the results log is read by `vonk-fleet-qualify-campaign status` for that authority.
-AUTHORITY_ID = "nl-family-aware-20260924"
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_STATE_DIR = Path.home() / ".vonk-sweep"
 REPO = REPOSITORY
@@ -61,7 +59,9 @@ def _parser() -> argparse.ArgumentParser:
             "--boost",
             action="append",
             default=None,
-            help=f"prioritise recipes matching this word (default: {', '.join(DEFAULT_BOOST)})",
+            help="prioritise recipes matching this word (repeatable; default: "
+            + ", ".join(DEFAULTS.priority)
+            + ")",
         )
         sub.add_argument(
             "--seed-list",
@@ -74,7 +74,7 @@ def _parser() -> argparse.ArgumentParser:
             default=3.0,
             help="boost recipes whose newest revision is this recent",
         )
-        sub.add_argument("--authority-id", default=AUTHORITY_ID)
+        sub.add_argument("--authority-id", default=DEFAULTS.authority_id)
 
     plan = commands.add_parser(
         "plan", help="read-only: unique bytes, download time and order"
@@ -105,7 +105,7 @@ def _parser() -> argparse.ArgumentParser:
         action="append",
         default=None,
         help="a profile number the sweep must never use (repeatable; default: "
-        + ", ".join(str(n) for n in sorted(OWNER_PROFILES))
+        + ", ".join(str(n) for n in sorted(DEFAULTS.protected_profiles))
         + "); vonkctl still refuses writes to the owner profiles",
     )
     run.add_argument(
@@ -222,8 +222,13 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def _boost(args: argparse.Namespace) -> policy.Boost:
-    keywords = tuple(args.boost) if args.boost is not None else DEFAULT_BOOST
-    return policy.make_boost(keywords, _seed(args), time.time(), args.recent_days)
+    return policy.make_boost(
+        _priority(args), _seed(args), time.time(), args.recent_days
+    )
+
+
+def _priority(args: argparse.Namespace) -> tuple[str, ...]:
+    return tuple(args.boost) if args.boost is not None else DEFAULTS.priority
 
 
 def _seed(args: argparse.Namespace) -> frozenset[str]:
@@ -238,7 +243,7 @@ def _config(args: argparse.Namespace) -> SweepConfig:
     protected = (
         frozenset(args.protected_profile)
         if args.protected_profile is not None
-        else OWNER_PROFILES
+        else DEFAULTS.protected_profiles
     )
     if args.sweep_profile in protected or (
         not args.no_pin and args.pin_profile in protected
@@ -276,7 +281,7 @@ def _config(args: argparse.Namespace) -> SweepConfig:
             multiplier=args.timeout_multiplier,
             cap_seconds=args.max_load_minutes * 60,
         ),
-        boost=tuple(args.boost) if args.boost is not None else DEFAULT_BOOST,
+        boost=_priority(args),
         recent_days=args.recent_days,
         seed=_seed(args),
         only=tuple(args.only),

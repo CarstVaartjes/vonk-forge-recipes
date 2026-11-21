@@ -480,3 +480,30 @@ def test_publish_evidence_runs_one_final_batch_without_a_run(
         cli, "sync", lambda *a, **k: SweepEvidenceExit.FAILING_CHECK
     )
     assert main(["publish-evidence", "--state-dir", str(tmp_path)]) == 1
+
+
+def test_operator_defaults_equal_todays_values_and_flags_override_them() -> None:
+    from spark_sweep.cli import _parser, _priority
+
+    defaults = _parser().parse_args(["run"])
+    assert defaults.authority_id == "nl-family-aware-20260924"
+    assert _priority(defaults) == ("glm-5-3",)
+    assert defaults.protected_profile is None  # resolves to profiles 1-3 in _config
+    flags = _parser().parse_args(
+        ["run", "--authority-id", "x", "--boost", "deepseek", "--boost", "glm"]
+    )
+    assert flags.authority_id == "x" and _priority(flags) == ("deepseek", "glm")
+
+
+def test_protected_profiles_default_to_the_owner_profiles_and_the_flag_replaces_them(
+    tmp_path: Path,
+) -> None:
+    recipes = [FakeRecipe("a")]
+    fleet = _fleet(recipes, [FakeModel("m1")])
+    base = ["run", "--yes", "--state-dir", str(tmp_path), "--sweep-profile"]
+    with pytest.raises(SystemExit) as refused:
+        _run([*base, "1"], fleet, recipes)
+    assert "profiles 1, 2, 3 are protected" in str(refused.value)
+    with pytest.raises(SystemExit) as refused:
+        _run([*base, "7", "--protected-profile", "7"], fleet, recipes)
+    assert "profiles 7 are protected" in str(refused.value)
