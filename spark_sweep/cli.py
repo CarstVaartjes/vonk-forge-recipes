@@ -1,4 +1,4 @@
-"""Command line: ``plan``, ``run``, ``status``, ``report``, ``export-evidence``, ``publish-evidence``, ``file-issues``."""
+"""Command line: ``plan``, ``run``, ``status``, ``report``, ``publish-evidence``, ``file-issues``."""
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ import time
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
-from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.sweep import SweepEvidenceExit
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
@@ -23,7 +22,7 @@ from .job_media import ffprobe
 from .own_pulls import REPOSITORY
 from .plan import make_plan, render_plan
 from .prefetch import PrefetchConfig
-from .report import build_report, export_evidence, render_report, saved_qualification
+from .report import build_report, render_report, saved_qualification
 from .run import DEFAULT_BOOST, Clock, Sweep, SweepConfig, selects
 from .smoke import HttpConfig
 from .source_serving import authored_contents, describe, unserved
@@ -189,14 +188,6 @@ def _parser() -> argparse.ArgumentParser:
         ("report", "write and print the report"),
     ):
         common(commands.add_parser(name, help=text))
-    export = commands.add_parser(
-        "export-evidence",
-        help="write sanitized qualification/evidence/<publisher>/<slug>.json files",
-    )
-    common(export)
-    export.add_argument(
-        "--output-dir", type=Path, default=Path("qualification/evidence")
-    )
     common(
         commands.add_parser(
             "publish-evidence",
@@ -311,7 +302,7 @@ def main(
             lock.release()
         print(f"sweep-recipes: evidence publication exit {int(code)} ({code.name})")
         return 0 if code in (SweepEvidenceExit.SYNCED, SweepEvidenceExit.WAITING) else 1
-    if args.command in ("report", "export-evidence", "file-issues"):
+    if args.command in ("report", "file-issues"):
         state = State.load(state_path)
         if args.command == "report":
             report = build_report(
@@ -325,15 +316,6 @@ def main(
             text = render_report(report)
             (args.state_dir / "report.md").write_text(text, encoding="utf-8")
             print(text)
-        elif args.command == "export-evidence":
-            known = []
-            for path in (Path(__file__).resolve().parents[1] / "recipes").glob(
-                "*.json"
-            ):
-                recipe = RecipeDefinition.model_validate_json(path.read_text())
-                known.append(f"{recipe.identity.publisher}/{recipe.identity.slug}")
-            for path in export_evidence(results.entries(), args.output_dir, known):
-                print(path)
         else:
             for item in file_issues(state.recipes, args.repo, dry_run=args.dry_run):
                 print(f"{item['recipe']}: {item['url']}")

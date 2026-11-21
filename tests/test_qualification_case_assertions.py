@@ -474,33 +474,57 @@ def test_reviewed_identity_guard_detects_shared_context_or_document_change(
 
 
 def test_protocol_refresh_preserves_prior_pass_without_certifying_new_context() -> None:
-    from datetime import UTC, datetime, timedelta
+    from datetime import timedelta
 
     from vonk_forge_contracts import (
+        QualificationEvidenceRecord,
         QualificationOutcome,
         QualificationRuntimeImage,
         QualificationStatus,
         QualificationUnverifiedReason,
+        RecipeQualificationEvidence,
         published_status,
     )
-
-    from spark_sweep.qualification import read_evidence
 
     slug = "ltx-2-19b-distilled-fp8-diffusers-single"
     historical_context = (
         "32d29663893be2ac98eeb7ef032d3e0a2fd68a61aa3c613c6b517aea5fb8e62e"
     )
     assert REVIEWED_SHARED_IDENTITIES[slug][1] != historical_context
-    proof = read_evidence(ROOT, f"vonk-forge/{slug}")
-    # Freeze the actual historical input: future evidence publication must not
-    # turn this boundary regression into a constraint on the live catalog.
-    passed = next(
-        record
-        for record in proof.records
-        if record.outcome == QualificationOutcome.PASSED
-        and record.tested_at == datetime(2026, 10, 21, 2, 47, 59, 39345, tzinfo=UTC)
+    # Freeze the actual historical input as a literal: retention drops old records.
+    passed = QualificationEvidenceRecord.model_validate(
+        {
+            "identity": {
+                "content_sha256": "5e875bed66400c52901e70c6d0480f308a71766de3e73055fe8d733edd9b3de2",
+                "model_digests": [
+                    "7bcc3f9e353351a39e3167859c2d9d4a44d71c0a27dd11420c44b7032cdcba5a",
+                    "87499d7f112bb61c3736f19f9066b6e808ce3ea0708ded89a236ba432b2bf665",
+                ],
+                "required_sparks": 1,
+                "models_resolved": True,
+            },
+            "outcome": "passed",
+            "cause_code": "qualification.hardware_pass",
+            "cause_summary": "Hardware checks passed",
+            "evidence_refs": [
+                "232803cbe0cc81f2810c6326e59b5681adc6c423027303feb45d0ad33976973f"
+            ],
+            "tested_at": "2026-10-21T02:47:59.039345Z",
+            "platform": {
+                "controller_source_sha": "a9583d00aa3b1bf57945692feba3a4a0f0be646c",
+                "hardware_class": "GB10",
+                "spark_count": 1,
+                "topology": "single",
+            },
+            "quality_notes": [
+                "Carried from the identical document before the display split"
+            ],
+        }
     )
-    history = proof.model_copy(update={"records": (passed,)})
+    assert passed.outcome == QualificationOutcome.PASSED
+    history = RecipeQualificationEvidence(
+        recipe_key=f"vonk-forge/{slug}", records=(passed,)
+    )
     assert passed.identity.runtime_image is None
     # This prospective image is a synthetic fixture, never inferred from the
     # reviewed source-bundle hash or written into public hardware evidence.
