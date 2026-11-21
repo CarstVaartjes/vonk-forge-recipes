@@ -11,8 +11,9 @@ The repository process and supported-contract policy live in AGENTS.md.
 Qualification is derived from hardware evidence, never an authored recipe label.
 A proven recipe stays proven until a hardware test on the same identity says
 otherwise. Updating a recipe, runtime image or Model creates a re-check, never
-an advance declaration that the recipe is broken. Reverting to a passed exact
-identity restores Working without running hardware again. Quality notes do not
+an advance declaration that the recipe is broken. Evidence is newest-only (AGENTS.md
+§Sweep evidence workflow): a revert to a digest whose records were dropped shows
+Re-check and is re-tested, never restored from old evidence. Quality notes do not
 turn a successful hardware check into a failure. A missing historical Spark
 count does not change a matching recipe digest, which already binds topology;
 local proof survives while public certification still requires recorded platform
@@ -705,8 +706,9 @@ above it. Never omit a failing recipe to pass the check.
 **C.** Assume an existing recipe works until hardware evidence says otherwise.
 Only new or changed recipe documents are subject to the need guard. An exact
 `content_sha256` in the committed `historical_documents` snapshot in
-`qualification/memory-inputs.json` or in any `qualification/evidence/` record
-identifies existing content, regardless of its qualification outcome. The snapshot's
+`qualification/memory-inputs.json` or in a `qualification/evidence/` record
+(evidence is newest-only, so the records of the current content) identifies
+existing content, regardless of its qualification outcome. The snapshot's
 `historical_sources` records its source commits; it is a content baseline, never
 hardware proof. Validation reads these committed identities without Git or remote
 refs. Changed content and new ids are checked by the estimate rules (warnings); supplying an old

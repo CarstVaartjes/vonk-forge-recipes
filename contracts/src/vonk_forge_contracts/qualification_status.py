@@ -480,9 +480,11 @@ def derive_status(
 ) -> QualificationStatusView:
     """Latest hardware verdict on an identity wins; platform faults never erase proof.
 
-    Exact historical proof restores on a revert, regardless of later results on
-    other identities. Simultaneous contradictory results conservatively prefer
-    the recipe failure. Input order never determines the outcome.
+    Proof on the exact identity holds regardless of later results on other
+    identities, as long as its records exist; the repository's evidence is
+    newest-only, so a revert to a dropped digest is Re-check until re-tested.
+    Simultaneous contradictory results conservatively prefer the recipe failure.
+    Input order never determines the outcome.
     """
     required_sparks = current_identity.required_sparks
     if required_sparks is None:
