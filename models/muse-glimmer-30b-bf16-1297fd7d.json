@@ -2,7 +2,7 @@
   "dependencies": [],
   "files": [
     {
-      "id": "metadata-34448b82c17d",
+      "id": "metadata-34448b82c17d-618cd5b83d",
       "path": ".gitattributes",
       "roles": [
         "metadata"
@@ -11,7 +11,7 @@
       "size_bytes": 1570
     },
     {
-      "id": "license-cfc7749b96f6",
+      "id": "license-cfc7749b96f6-c693279643",
       "path": "LICENSE",
       "roles": [
         "metadata"
@@ -20,16 +20,16 @@
       "size_bytes": 11358
     },
     {
-      "id": "readme-5894e358c58f",
+      "id": "readme-2ba646dcbe5b-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "5894e358c58f4f8425645a5b0b890468ecb3e6b049c2e941648db077c4b7df58",
-      "size_bytes": 16892
+      "sha256": "2ba646dcbe5b3b97daedc59e64ef19505312fa99b6598cacc0b82d93f4d74163",
+      "size_bytes": 17266
     },
     {
-      "id": "usage-policy-98a14dab9fd9",
+      "id": "usage-policy-98a14dab9fd9-8f847fd353",
       "path": "USAGE_POLICY.md",
       "roles": [
         "metadata"
@@ -38,16 +38,16 @@
       "size_bytes": 5230
     },
     {
-      "id": "chat-template-cfc67e5f349f",
+      "id": "chat-template-a76e17585a2e-00824420d1",
       "path": "chat_template.jinja",
       "roles": [
         "tokenizer"
       ],
-      "sha256": "cfc67e5f349f37690dfd31ed1f18bc4442a9dd32fe39a648f993cb4eb3cae678",
-      "size_bytes": 9992
+      "sha256": "a76e17585a2ec4f00a4a398a17c9cdf9b9d8a870d5939e21c7ea0b234b92df99",
+      "size_bytes": 10621
     },
     {
-      "id": "config-5a9df2d8a385",
+      "id": "config-5a9df2d8a385-587cb980af",
       "path": "config.json",
       "roles": [
         "configuration"
@@ -56,7 +56,7 @@
       "size_bytes": 5109
     },
     {
-      "id": "generation-config-1fa51889b1f8",
+      "id": "generation-config-1fa51889b1f8-97dd3d578b",
       "path": "generation_config.json",
       "roles": [
         "configuration"
@@ -65,7 +65,7 @@
       "size_bytes": 202
     },
     {
-      "id": "model-00001-of-00002-8eef61530e12",
+      "id": "model-00001-of-00002-8eef61530e12-27a6880801",
       "path": "model-00001-of-00002.safetensors",
       "roles": [
         "weights"
@@ -74,7 +74,7 @@
       "size_bytes": 49950112952
     },
     {
-      "id": "model-00002-of-00002-b58cc2144ba1",
+      "id": "model-00002-of-00002-b58cc2144ba1-2cca3b5a88",
       "path": "model-00002-of-00002.safetensors",
       "roles": [
         "weights"
@@ -83,7 +83,7 @@
       "size_bytes": 9603322320
     },
     {
-      "id": "model-safetensors-index-7d817b4dccb1",
+      "id": "model-safetensors-index-7d817b4dccb1-0a05be8238",
       "path": "model.safetensors.index.json",
       "roles": [
         "configuration"
@@ -92,7 +92,7 @@
       "size_bytes": 132674
     },
     {
-      "id": "processor-config-97e2a486dd98",
+      "id": "processor-config-97e2a486dd98-27f0cb76af",
       "path": "processor_config.json",
       "roles": [
         "configuration"
@@ -101,7 +101,7 @@
       "size_bytes": 1084
     },
     {
-      "id": "tokenizer-c9dbee66967b",
+      "id": "tokenizer-c9dbee66967b-224931eb13",
       "path": "tokenizer.json",
       "roles": [
         "tokenizer"
@@ -110,7 +110,7 @@
       "size_bytes": 28129897
     },
     {
-      "id": "tokenizer-config-781e6c74f571",
+      "id": "tokenizer-config-781e6c74f571-94d5c6ba8f",
       "path": "tokenizer_config.json",
       "roles": [
         "tokenizer"
@@ -129,14 +129,14 @@
       "slug": "muse-glimmer-30b"
     },
     "publisher": "meta",
-    "slug": "muse-glimmer-30b-bf16-a4e59da5",
-    "variant": "Muse Glimmer 30B BF16 a4e59da5",
-    "version": "Muse Glimmer 30B BF16 a4e59da5"
+    "slug": "muse-glimmer-30b-bf16-1297fd7d",
+    "variant": "Muse Glimmer 30B BF16 1297fd7d",
+    "version": "Muse Glimmer 30B BF16 1297fd7d"
   },
   "kind": "model",
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/meta-models/Muse-Glimmer-30B",
-    "revision": "a4e59da52a7bc87ae7251dd5545c0dd437c44b68"
+    "revision": "1297fd7dfeac4598948a5d15886968435c81c2b7"
   }
 }

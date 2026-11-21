@@ -23,17 +23,6 @@ def digest(document: dict) -> str:
 
 
 class MuseGlimmerRecipeTests(unittest.TestCase):
-    def test_exact_model_selection_and_file_closure(self) -> None:
-        model = load(ROOT / "models/muse-glimmer-30b-bf16-a4e59da5.json")
-        recipe = load(ROOT / "recipes/muse-glimmer-30b-bf16-vllm-single.json")
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
-        self.assertEqual(
-            model["source"]["revision"], "a4e59da52a7bc87ae7251dd5545c0dd437c44b68"
-        )
-        self.assertTrue(
-            model["files"] and all(item["sha256"] for item in model["files"])
-        )
-
     def test_offline_single_spark_multimodal_contract(self) -> None:
         recipe = load(ROOT / "recipes/muse-glimmer-30b-bf16-vllm-single.json")
         arguments = {

@@ -34,8 +34,8 @@
     {
       "files": [
         {
-          "file_id": "metadata-34448b82c17d",
-          "id": "primary-metadata-34448b82c17d",
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
           "mount": {
             "target": "/models"
           },
@@ -44,8 +44,8 @@
           ]
         },
         {
-          "file_id": "license-cfc7749b96f6",
-          "id": "primary-license-cfc7749b96f6",
+          "file_id": "license-cfc7749b96f6-c693279643",
+          "id": "primary-license-cfc7749b96f6-c693279643",
           "mount": {
             "target": "/models"
           },
@@ -54,8 +54,8 @@
           ]
         },
         {
-          "file_id": "readme-5894e358c58f",
-          "id": "primary-readme-5894e358c58f",
+          "file_id": "readme-2ba646dcbe5b-b335630551",
+          "id": "primary-readme-2ba646dcbe5b-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -64,8 +64,8 @@
           ]
         },
         {
-          "file_id": "usage-policy-98a14dab9fd9",
-          "id": "primary-usage-policy-98a14dab9fd9",
+          "file_id": "usage-policy-98a14dab9fd9-8f847fd353",
+          "id": "primary-usage-policy-98a14dab9fd9-8f847fd353",
           "mount": {
             "target": "/models"
           },
@@ -74,8 +74,8 @@
           ]
         },
         {
-          "file_id": "chat-template-cfc67e5f349f",
-          "id": "primary-chat-template-cfc67e5f349f",
+          "file_id": "chat-template-a76e17585a2e-00824420d1",
+          "id": "primary-chat-template-a76e17585a2e-00824420d1",
           "mount": {
             "target": "/models"
           },
@@ -84,8 +84,8 @@
           ]
         },
         {
-          "file_id": "config-5a9df2d8a385",
-          "id": "primary-config-5a9df2d8a385",
+          "file_id": "config-5a9df2d8a385-587cb980af",
+          "id": "primary-config-5a9df2d8a385-587cb980af",
           "mount": {
             "target": "/models"
           },
@@ -94,8 +94,8 @@
           ]
         },
         {
-          "file_id": "generation-config-1fa51889b1f8",
-          "id": "primary-generation-config-1fa51889b1f8",
+          "file_id": "generation-config-1fa51889b1f8-97dd3d578b",
+          "id": "primary-generation-config-1fa51889b1f8-97dd3d578b",
           "mount": {
             "target": "/models"
           },
@@ -104,8 +104,8 @@
           ]
         },
         {
-          "file_id": "model-00001-of-00002-8eef61530e12",
-          "id": "primary-model-00001-of-00002-8eef61530e12",
+          "file_id": "model-00001-of-00002-8eef61530e12-27a6880801",
+          "id": "primary-model-00001-of-00002-8eef61530e12-27a6880801",
           "mount": {
             "target": "/models"
           },
@@ -114,8 +114,8 @@
           ]
         },
         {
-          "file_id": "model-00002-of-00002-b58cc2144ba1",
-          "id": "primary-model-00002-of-00002-b58cc2144ba1",
+          "file_id": "model-00002-of-00002-b58cc2144ba1-2cca3b5a88",
+          "id": "primary-model-00002-of-00002-b58cc2144ba1-2cca3b5a88",
           "mount": {
             "target": "/models"
           },
@@ -124,8 +124,8 @@
           ]
         },
         {
-          "file_id": "model-safetensors-index-7d817b4dccb1",
-          "id": "primary-model-safetensors-index-7d817b4dccb1",
+          "file_id": "model-safetensors-index-7d817b4dccb1-0a05be8238",
+          "id": "primary-model-safetensors-index-7d817b4dccb1-0a05be8238",
           "mount": {
             "target": "/models"
           },
@@ -134,8 +134,8 @@
           ]
         },
         {
-          "file_id": "processor-config-97e2a486dd98",
-          "id": "primary-processor-config-97e2a486dd98",
+          "file_id": "processor-config-97e2a486dd98-27f0cb76af",
+          "id": "primary-processor-config-97e2a486dd98-27f0cb76af",
           "mount": {
             "target": "/models"
           },
@@ -144,8 +144,8 @@
           ]
         },
         {
-          "file_id": "tokenizer-c9dbee66967b",
-          "id": "primary-tokenizer-c9dbee66967b",
+          "file_id": "tokenizer-c9dbee66967b-224931eb13",
+          "id": "primary-tokenizer-c9dbee66967b-224931eb13",
           "mount": {
             "target": "/models"
           },
@@ -154,8 +154,8 @@
           ]
         },
         {
-          "file_id": "tokenizer-config-781e6c74f571",
-          "id": "primary-tokenizer-config-781e6c74f571",
+          "file_id": "tokenizer-config-781e6c74f571-94d5c6ba8f",
+          "id": "primary-tokenizer-config-781e6c74f571-94d5c6ba8f",
           "mount": {
             "target": "/models"
           },
@@ -166,10 +166,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "31cc1c811caaae65470a98ff5dc865223225e1ee74d515afcc591079797ece0b",
+        "content_sha256": "1ccc6e36f47e2179925a0305df8a9c917c8a6bf3a449cc1f32de428467649ab7",
         "kind": "model",
         "publisher": "meta",
-        "slug": "muse-glimmer-30b-bf16-a4e59da5"
+        "slug": "muse-glimmer-30b-bf16-1297fd7d"
       }
     }
   ],
@@ -177,11 +177,11 @@
     "attribution": [
       "Meta"
     ],
-    "source_reference": "https://huggingface.co/meta-models/Muse-Glimmer-30B/tree/a4e59da52a7bc87ae7251dd5545c0dd437c44b68"
+    "source_reference": "https://huggingface.co/meta-models/Muse-Glimmer-30B/tree/1297fd7dfeac4598948a5d15886968435c81c2b7"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.1.1"
+    "released_at": "2026-11-18",
+    "version": "1.1.2"
   },
   "runtime": {
     "arguments": [
@@ -295,7 +295,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 59581829216,
+            "artifact_bytes": 59581830219,
             "image_bytes": 26000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 123163658432
