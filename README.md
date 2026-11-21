@@ -19,10 +19,10 @@ recipes). This page only points to them.
    ([section 5](docs/recipe-authoring.md#5-validate-and-exercise-the-result)).
 4. Version the change and say what changed
    ([section 4](docs/recipe-authoring.md#4-version-and-explain-what-changed)).
-5. Put large vendor files behind `tools/adapter-sources add <path>...` and commit
-   `adapter-sources.json`; Git never holds files over 1 MiB.
+5. Keep large vendor files out of Git: see
+   [Build-context files kept out of Git](docs/recipe-authoring.md#build-context-files-kept-out-of-git).
 6. Run the local checks below.
-7. Open a PR against `main`. CI runs the full suites on the integration batch
+7. Open a PR against `main`. CI runs the whole suite and every gate on each pull request
    ([CI and publication](AGENTS.md#ci-and-publication)). Do not commit generated
    outputs ([section 6](docs/recipe-authoring.md#6-generate-publish-and-report)).
 
@@ -34,25 +34,13 @@ Producer tools use Python 3.14 and `uv`. Fetch the build-context sources once:
 uv run --python 3.14 --no-project --with-editable contracts python tools/fetch-adapter-sources
 ```
 
-Then, in a disposable environment outside the checkout (exact setup in
-[AGENTS.md](AGENTS.md#setup-and-producer-gates), mirroring `validate.yml`):
-
-```bash
-python -m pytest -q <targeted tests>   # CI runs the whole suite
-tools/check-python-lint
-tools/check-python-format
-scripts/check-python-types
-git diff --check
-```
-
-`scripts/install-git-hooks` installs the pre-commit hook, which runs the
-lint, format, type and added-file-size checks.
+Then follow [Setup and producer gates](AGENTS.md#setup-and-producer-gates) for
+the disposable test environment and the exact lint, format, type and test
+commands, which mirror `validate.yml`.
 
 ## How a recipe is qualified
 
-Qualification is derived from hardware evidence on an exact recipe, image and
-Model identity; it is never an authored label. Evidence records live in
-`qualification/evidence/`. A change to the recipe, image or Model means a
-re-check, not a failure. Statuses and what they mean:
-[Hardware qualification status](docs/recipe-authoring.md#hardware-qualification-status).
-How the sweep runs on hardware: [AGENTS.md](AGENTS.md#hardware-sweep-operation).
+Qualification is derived from hardware evidence on an exact identity, never
+an authored label: see
+[Hardware qualification status](docs/recipe-authoring.md#hardware-qualification-status)
+and, for the sweep, [AGENTS.md](AGENTS.md#hardware-sweep-operation).
