@@ -188,7 +188,7 @@ def test_quality_notes_file_no_issue(tmp_path: Path, gateway: Gateway) -> None:
     assert not any(c[:2] == ["issue", "create"] for c in calls)
 
 
-def test_evidence_export_keeps_the_quality_notes(
+def test_history_evidence_keeps_the_quality_notes(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     private_answer = "private model answer 305"
