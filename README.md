@@ -46,7 +46,7 @@ git diff --check
 ```
 
 `scripts/install-git-hooks` installs the pre-commit hook, which runs the
-added-file-size and lint checks on staged files.
+lint, format, type and added-file-size checks.
 
 ## How a recipe is qualified
 
