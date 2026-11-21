@@ -1,0 +1,28 @@
+#!/bin/sh
+# The body of the release's cuda-13-5 stage RUN (docker/Dockerfile at d3d40d94), byte for byte: install the lock's CUDA 13.5
+# packages, mounted at /tmp/cuda-toolkit-debs, then write and run spark-wire-cuda-13-5.
+    set -eux; \
+    DEBIAN_FRONTEND=noninteractive dpkg -i /tmp/cuda-toolkit-debs/*.deb; \
+    test -z "$(dpkg --audit)"; \
+    printf '%s\n' \
+      '#!/bin/sh' \
+      'set -eux' \
+      'ln -sfn /usr/local/cuda-13.5 /usr/local/cuda' \
+      'ln -sfn /usr/local/cuda-13.5 /usr/local/cuda-13' \
+      'ln -sfn /usr/local/cuda-13.5 /etc/alternatives/cuda' \
+      'ln -sfn /usr/local/cuda-13.5 /etc/alternatives/cuda-13' \
+      'sed -i "s|^TOP[[:space:]]*=.*|TOP = /usr/local/cuda-13.5|" /usr/local/cuda-13.5/bin/nvcc.profile' \
+      'cu13_dir=/usr/local/lib/python3.12/dist-packages/nvidia/cu13' \
+      'cuda_lib=/usr/local/cuda-13.5/targets/sbsa-linux/lib' \
+      'rm -rf "${cu13_dir}/bin" "${cu13_dir}/nvvm"' \
+      'ln -s /usr/local/cuda-13.5/bin "${cu13_dir}/bin"' \
+      'ln -s /usr/local/cuda-13.5/nvvm "${cu13_dir}/nvvm"' \
+      'for lib in libcublas.so.13 libcublasLt.so.13 libnvblas.so.13 libcudart.so.13 libcudart_static.a libcudadevrt.a libnvJitLink.so.13 libnvrtc.so.13 libnvrtc-builtins.so.13.5 libnvptxcompiler_static.a libcurand.so.10; do' \
+      '  ln -sfn "${cuda_lib}/${lib}" "${cu13_dir}/lib/${lib}"' \
+      'done' \
+      'rm -f "${cu13_dir}/lib/libnvrtc-builtins.so.13.0" "${cu13_dir}/lib/libnvrtc-builtins.so.13.2"' \
+      'ln -sfn /usr/local/cuda-13.5/nvvm/lib64/libnvvm.so.4.0.0 "${cu13_dir}/lib/libnvvm.so.4"' \
+      'ldconfig' \
+      > /usr/local/sbin/spark-wire-cuda-13-5; \
+    chmod 0755 /usr/local/sbin/spark-wire-cuda-13-5; \
+    /usr/local/sbin/spark-wire-cuda-13-5

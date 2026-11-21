@@ -1410,7 +1410,7 @@
       },
       {
         "name": "SPARK_DS41F_DISPLAY_CARVEOUT_WEIGHTS",
-        "value": "0"
+        "value": "1"
       },
       {
         "name": "SPARKNET_ROCE_ALLGATHER_MAX_BYTES",
@@ -1463,7 +1463,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 119000000000,
             "reserve_bytes": 6000000000
           }
         }
@@ -1480,7 +1480,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 117000000000,
             "reserve_bytes": 6000000000
           }
         }

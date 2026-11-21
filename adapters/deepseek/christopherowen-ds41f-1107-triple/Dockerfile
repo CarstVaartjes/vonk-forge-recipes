@@ -5,13 +5,14 @@
 #   * a `fetch` stage clones spark-ds41f at the release commit and runs its own spark_ds41f.build preparation against its own
 #     upstreams.lock.json (each upstream at its pinned commit, its patch series applied with git am, the patch-set fingerprint, patch head and
 #     tree checked against the source manifest), and its exports replace the named build contexts;
-#   * every FROM is the literal base digest or the cuda-13-5 stage (the release's lock lists CUDA toolkit 13.5.37, so its builder stages
-#     and runtime-core start from cuda-13-5); the chain runtime-core, runtime-core-cuda-13-5, runtime-tilelang and runtime-tilelang-sparknet
+#   * every FROM is the literal base digest; the release's lock lists CUDA toolkit 13.5.37, so every stage the release starts from its
+#     cuda-13-5 stage (the four builders and runtime-core) begins with that stage's instructions instead: its ENV and its RUN, whose
+#     body is build/install-cuda-13-5; the chain runtime-core, runtime-core-cuda-13-5, runtime-tilelang and runtime-tilelang-sparknet
 #     is one stage with the same instructions in the same order (the lock lists no B12X, so the release builds no `runtime` B12X stage; its
 #     torch and runtime-no-flashinfer-kernels stages are not built either);
 #   * every heredoc body is a file under build/ (byte for byte except the two edits below), run as `RUN python3 /tmp/<file>`;
-#   * the optional github_token secret mount is dropped; RUN --mount=type=bind,from=X became COPY --from=X into /tmp and a RUN (the CUDA
-#     toolkit packages therefore stay in a layer of the image, about 1.5 GB);
+#   * the optional github_token secret mount is dropped; the CUDA toolkit packages are bind-mounted from the fetch stage's export as the
+#     release mounts its cuda-toolkit-debs context (no layer keeps them); the other build contexts became COPY --from=fetch;
 #   * the apt io_uring library is not installed: vLLM's direct loader and Engram row reader compile against posix-uring (the recipe
 #     library's tools/posix-uring), a header-only stand-in that does one pread per read, so default seccomp suffices; the creator's
 #     "links liburing" self-check (build/check-runtime.py) asserts the opposite;
@@ -79,9 +80,10 @@ RUN set -eux; \
 # /usr/local/cuda-13 and the pip nvidia/cu13 directory, which libtorch_cuda.so's
 # DT_RPATH and cuda.pathfinder search ahead of /usr/local/cuda, are wired to
 # /usr/local/cuda-13.5; nvcc reads TOP from its nvcc.profile because it does not
-# resolve the nvidia/cu13/bin link it may be called through.
-FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS cuda-13-5
-
+# resolve the nvidia/cu13/bin link it may be called through. The release builds this once as its cuda-13-5 stage; the
+# platform pins every FROM by digest, so each stage below that the release starts from cuda-13-5 begins with the same ENV
+# and RUN (build/install-cuda-13-5, with the packages bind-mounted from the fetch stage).
+FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS vllm-native-builder
 USER root
 
 ENV CUDA_HOME=/usr/local/cuda \
@@ -92,37 +94,9 @@ ENV CUDA_HOME=/usr/local/cuda \
     PATH=/usr/local/cuda-13.5/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     LD_LIBRARY_PATH=/usr/local/cuda-13.5/targets/sbsa-linux/lib:/usr/local/cuda/targets/sbsa-linux/lib:/usr/local/cuda/lib64
 
-COPY --from=fetch /work/build/context/cuda-toolkit-debs/ /tmp/cuda-toolkit-debs/
-RUN set -eux; \
-    DEBIAN_FRONTEND=noninteractive dpkg -i /tmp/cuda-toolkit-debs/*.deb; \
-    test -z "$(dpkg --audit)"; \
-    printf '%s\n' \
-      '#!/bin/sh' \
-      'set -eux' \
-      'ln -sfn /usr/local/cuda-13.5 /usr/local/cuda' \
-      'ln -sfn /usr/local/cuda-13.5 /usr/local/cuda-13' \
-      'ln -sfn /usr/local/cuda-13.5 /etc/alternatives/cuda' \
-      'ln -sfn /usr/local/cuda-13.5 /etc/alternatives/cuda-13' \
-      'sed -i "s|^TOP[[:space:]]*=.*|TOP = /usr/local/cuda-13.5|" /usr/local/cuda-13.5/bin/nvcc.profile' \
-      'cu13_dir=/usr/local/lib/python3.12/dist-packages/nvidia/cu13' \
-      'cuda_lib=/usr/local/cuda-13.5/targets/sbsa-linux/lib' \
-      'rm -rf "${cu13_dir}/bin" "${cu13_dir}/nvvm"' \
-      'ln -s /usr/local/cuda-13.5/bin "${cu13_dir}/bin"' \
-      'ln -s /usr/local/cuda-13.5/nvvm "${cu13_dir}/nvvm"' \
-      'for lib in libcublas.so.13 libcublasLt.so.13 libnvblas.so.13 libcudart.so.13 libcudart_static.a libcudadevrt.a libnvJitLink.so.13 libnvrtc.so.13 libnvrtc-builtins.so.13.5 libnvptxcompiler_static.a libcurand.so.10; do' \
-      '  ln -sfn "${cuda_lib}/${lib}" "${cu13_dir}/lib/${lib}"' \
-      'done' \
-      'rm -f "${cu13_dir}/lib/libnvrtc-builtins.so.13.0" "${cu13_dir}/lib/libnvrtc-builtins.so.13.2"' \
-      'ln -sfn /usr/local/cuda-13.5/nvvm/lib64/libnvvm.so.4.0.0 "${cu13_dir}/lib/libnvvm.so.4"' \
-      'ldconfig' \
-      > /usr/local/sbin/spark-wire-cuda-13-5; \
-    chmod 0755 /usr/local/sbin/spark-wire-cuda-13-5; \
-    /usr/local/sbin/spark-wire-cuda-13-5; \
-    rm -rf /tmp/cuda-toolkit-debs
-
-FROM cuda-13-5 AS vllm-native-builder
-
-USER root
+COPY build/install-cuda-13-5 /tmp/install-cuda-13-5
+RUN --mount=type=bind,from=fetch,source=/work/build/context/cuda-toolkit-debs,target=/tmp/cuda-toolkit-debs \
+    sh /tmp/install-cuda-13-5 && rm /tmp/install-cuda-13-5
 
 COPY --from=fetch /work/build/context/vllm-source/ /workspace/vllm/
 # CUTLASS headers come from a host-side checkout of the tag vLLM pins.
@@ -175,9 +149,20 @@ RUN set -eu; \
 # NCCL 2.30.7 (the base image's nvidia-nccl-cu13 wheel), rebuilt from the
 # pinned release tag with patches/nccl for SM121 only. The runtime stage
 # replaces the wheel's libnccl.so.2 with it.
-FROM cuda-13-5 AS nccl-builder
-
+FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS nccl-builder
 USER root
+
+ENV CUDA_HOME=/usr/local/cuda \
+    CUDA_VERSION=13.5.0 \
+    NV_CUDA_CUDART_VERSION=13.5.37-1 \
+    NV_CUDA_LIB_VERSION=13.5.0-1 \
+    NV_LIBCUBLAS_VERSION=13.10.0.20-1 \
+    PATH=/usr/local/cuda-13.5/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    LD_LIBRARY_PATH=/usr/local/cuda-13.5/targets/sbsa-linux/lib:/usr/local/cuda/targets/sbsa-linux/lib:/usr/local/cuda/lib64
+
+COPY build/install-cuda-13-5 /tmp/install-cuda-13-5
+RUN --mount=type=bind,from=fetch,source=/work/build/context/cuda-toolkit-debs,target=/tmp/cuda-toolkit-debs \
+    sh /tmp/install-cuda-13-5 && rm /tmp/install-cuda-13-5
 
 COPY --from=fetch /work/build/context/nccl-source/ /workspace/nccl/
 ARG NCCL_COMPILE_JOBS
@@ -196,9 +181,20 @@ RUN set -eux; \
 # the base image's z3-solver, which TileLang links and loads at run time.
 # TileKernels takes its version from setuptools-scm, which an export without
 # Git metadata cannot supply.
-FROM cuda-13-5 AS tilelang-builder
-
+FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS tilelang-builder
 USER root
+
+ENV CUDA_HOME=/usr/local/cuda \
+    CUDA_VERSION=13.5.0 \
+    NV_CUDA_CUDART_VERSION=13.5.37-1 \
+    NV_CUDA_LIB_VERSION=13.5.0-1 \
+    NV_LIBCUBLAS_VERSION=13.10.0.20-1 \
+    PATH=/usr/local/cuda-13.5/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    LD_LIBRARY_PATH=/usr/local/cuda-13.5/targets/sbsa-linux/lib:/usr/local/cuda/targets/sbsa-linux/lib:/usr/local/cuda/lib64
+
+COPY build/install-cuda-13-5 /tmp/install-cuda-13-5
+RUN --mount=type=bind,from=fetch,source=/work/build/context/cuda-toolkit-debs,target=/tmp/cuda-toolkit-debs \
+    sh /tmp/install-cuda-13-5 && rm /tmp/install-cuda-13-5
 
 COPY --from=fetch /work/build/context/tilelang-source/ /workspace/tilelang/
 COPY --from=fetch /work/build/context/tile_kernels-source/ /workspace/tile_kernels/
@@ -223,7 +219,20 @@ RUN set -eux; \
 # sparknet (christopherowen/dgx-spark-networking): the one-shot RoCE
 # collectives vendored from B12X with spark's patches 0001-0011, used by the
 # TileLang family instead of b12x.comm.roce. Pure Python plus a C proxy.
-FROM cuda-13-5 AS sparknet-builder
+FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS sparknet-builder
+USER root
+
+ENV CUDA_HOME=/usr/local/cuda \
+    CUDA_VERSION=13.5.0 \
+    NV_CUDA_CUDART_VERSION=13.5.37-1 \
+    NV_CUDA_LIB_VERSION=13.5.0-1 \
+    NV_LIBCUBLAS_VERSION=13.10.0.20-1 \
+    PATH=/usr/local/cuda-13.5/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    LD_LIBRARY_PATH=/usr/local/cuda-13.5/targets/sbsa-linux/lib:/usr/local/cuda/targets/sbsa-linux/lib:/usr/local/cuda/lib64
+
+COPY build/install-cuda-13-5 /tmp/install-cuda-13-5
+RUN --mount=type=bind,from=fetch,source=/work/build/context/cuda-toolkit-debs,target=/tmp/cuda-toolkit-debs \
+    sh /tmp/install-cuda-13-5 && rm /tmp/install-cuda-13-5
 
 COPY --from=fetch /work/build/context/sparknet-source/ /workspace/sparknet/
 RUN python3 -m pip wheel --no-cache-dir --no-deps --wheel-dir /opt/sparknet /workspace/sparknet && \
@@ -234,7 +243,20 @@ RUN python3 -m pip wheel --no-cache-dir --no-deps --wheel-dir /opt/sparknet /wor
 # While the lock lists B12X (spark-ds41f-1025 and earlier), `runtime` adds it on
 # top; a lock without it builds the TileLang runtime on this stage directly.
 
-FROM cuda-13-5 AS runtime
+FROM docker.io/vllm/vllm-openai@sha256:3cf14c52765a0f0c2f09035e05fa79e1e4b2f9788b64afa90fa41c1ff12d29cf AS runtime
+USER root
+
+ENV CUDA_HOME=/usr/local/cuda \
+    CUDA_VERSION=13.5.0 \
+    NV_CUDA_CUDART_VERSION=13.5.37-1 \
+    NV_CUDA_LIB_VERSION=13.5.0-1 \
+    NV_LIBCUBLAS_VERSION=13.10.0.20-1 \
+    PATH=/usr/local/cuda-13.5/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    LD_LIBRARY_PATH=/usr/local/cuda-13.5/targets/sbsa-linux/lib:/usr/local/cuda/targets/sbsa-linux/lib:/usr/local/cuda/lib64
+
+COPY build/install-cuda-13-5 /tmp/install-cuda-13-5
+RUN --mount=type=bind,from=fetch,source=/work/build/context/cuda-toolkit-debs,target=/tmp/cuda-toolkit-debs \
+    sh /tmp/install-cuda-13-5 && rm /tmp/install-cuda-13-5
 
 # No usage reporting: vLLM's usage stats (stats.vllm.ai) stay off in every image and
 # every container started from it, whatever the deployment's environment.
