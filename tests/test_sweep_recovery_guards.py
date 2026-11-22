@@ -465,7 +465,7 @@ def test_unknown_platform_failure_ends_without_recipe_blame_and_releases_lane(
 
 def test_watch_keeps_platform_blocked_without_an_observed_fix(tmp_path: Path) -> None:
     from spark_sweep import policy
-    from spark_sweep.run import RETEST_SECONDS
+    from spark_sweep.sweep_support import RETEST_SECONDS
 
     sweep, _, clock = _loading(tmp_path)
     key = next(iter(sweep.state.slots))
@@ -502,7 +502,7 @@ def test_an_owner_load_is_waited_for_and_never_ends_the_sweep(
     # This owner-recovery scenario has no HTTP server; supply a successful smoke
     # instead of relying on the former count-exhaustion of connection refusals.
     monkeypatch.setattr(
-        "spark_sweep.run.smoke_service",
+        "spark_sweep.sweep_smoke.smoke_service",
         lambda *_args: SmokeResult(ok=True, kind="service"),
     )
     sweep, _, clock = _loading(tmp_path)

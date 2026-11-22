@@ -429,7 +429,7 @@ def test_sigterm_stops_a_sweep_like_sigint(tmp_path: Path, gateway: Gateway) -> 
 
 
 def test_a_hung_smoke_request_does_not_keep_an_interrupted_sweep_alive() -> None:
-    from spark_sweep.run import DaemonExecutor
+    from spark_sweep.fanout import DaemonExecutor
 
     release = threading.Event()
     future = DaemonExecutor().submit(release.wait, 30)

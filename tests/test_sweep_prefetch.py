@@ -441,7 +441,7 @@ def test_a_pin_profile_with_no_room_holds_no_download(
 ) -> None:
     """Foreign assignments fill the pin profile: no pin can protect anything, so a
     pin-capacity hold would prevent nothing and only stop the sweep."""
-    from spark_sweep.run import SWEEP_LABEL
+    from spark_sweep.prefetch import SWEEP_LABEL
 
     limit = 2
     monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)

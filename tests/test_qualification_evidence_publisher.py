@@ -7,6 +7,7 @@ from typing import ClassVar
 
 import pytest
 from repo_root import ROOT
+from sweep_sources import run_source as sweep_run_source
 from test_qualification_status import historical
 
 from spark_sweep import evidence_publisher as publisher
@@ -1333,7 +1334,7 @@ def _flushing_sweep(tmp_path, monkeypatch, publish=True):
 
 @pytest.mark.parametrize("how", ["returns", "raises"])
 def test_the_sweep_flushes_evidence_whatever_ends_it(tmp_path, monkeypatch, how):
-    from spark_sweep import run as run_module
+    from spark_sweep import sweep_failure as run_module
 
     sweep, flushed = _flushing_sweep(tmp_path, monkeypatch)
 
@@ -1364,7 +1365,7 @@ def test_no_flush_without_publication_or_evidence(tmp_path, monkeypatch):
 def test_a_late_stop_signal_cannot_change_the_exit_or_skip_the_release(
     tmp_path, monkeypatch
 ):
-    from spark_sweep import run as run_module
+    from spark_sweep import sweep_failure as run_module
 
     sweep, _ = _flushing_sweep(tmp_path, monkeypatch)
     restored = []
@@ -1404,7 +1405,7 @@ def test_every_tick_driven_child_process_worker_is_flushed_on_exit():
                 )
                 workers.add(node.name)
     assert workers == {"EvidencePublisher"}
-    run_source = (root / "run.py").read_text()
+    run_source = sweep_run_source()
     assert "self.evidence_publisher.flush(" in run_source
     assert (
         "self._flush_evidence()"
