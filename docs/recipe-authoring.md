@@ -1644,6 +1644,9 @@ and can use a Controller build. Publication reports each such recipe as image
 pending in its job summary. The signed bundle includes `plan.json`, binding the
 pending keys and recipe content identities to the release. Deferred batches and
 the daily scheduled reconciliation build missing keys and republish the pins.
+A busy or failed registry lookup does not unpin a recipe: when its content digest and
+build key equal the current published release's, `resolve` carries that release's pin
+forward (counted in the summary); changed content stays pending.
 Each build has a 360-minute deadline (a retry starts only if it still fits) and
 failures remain visible in the run.
 Publication still fails for missing artifacts, mismatched source identities,

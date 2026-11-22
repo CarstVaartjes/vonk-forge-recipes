@@ -16,6 +16,7 @@ import re
 import runpy
 import subprocess
 import sys
+import tarfile
 import time
 from pathlib import Path
 from typing import Any
@@ -265,7 +266,7 @@ def test_a_pull_request_with_a_busy_image_refuses_instead_of_skipping_its_proof(
 
 def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:
     registry = _registry({("vonk-forge-recipe-other", f"build-{OWN}"): DIGEST})
-    images, missing = tool.resolve(_plan(), owner=OWNER, lookup=registry)
+    images, missing, _carried = tool.resolve(_plan(), owner=OWNER, lookup=registry)
     assert images == {
         "e" * 64: {
             "reference": f"ghcr.io/carstvaartjes/vonk-forge-recipe-other@{DIGEST}",
@@ -281,6 +282,87 @@ def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:
         {"content_sha256": "e" * 64, "prebuilt_image": images["e" * 64]},
         {"content_sha256": "f" * 64},
     ]
+
+
+def _pin(slug: str, digest: str, key: str) -> dict[str, str]:
+    return {
+        "reference": f"ghcr.io/carstvaartjes/vonk-forge-recipe-{slug}@{digest}",
+        "build_key": key,
+    }
+
+
+def test_a_busy_lookup_keeps_the_pin_of_unchanged_content_only() -> None:
+    def busy(owner: str, name: str, tag: str) -> str | None:
+        raise OSError("429 too many requests")
+
+    previous = "sha256:" + "1" * 64
+    published = {
+        "e" * 64: _pin("other", previous, OWN),  # same content and build key
+        "f" * 64: _pin("single", previous, "9" * 64),  # build key moved on
+    }
+    images, missing, carried = tool.resolve(
+        _plan(), owner=OWNER, lookup=busy, published=published
+    )
+    assert images == {"e" * 64: published["e" * 64]}
+    assert carried == ["other"]
+    assert missing == ["dual", "single"]
+
+
+def test_a_successful_lookup_pins_the_new_digest_over_the_published_one() -> None:
+    published = {"e" * 64: _pin("other", "sha256:" + "1" * 64, OWN)}
+    registry = _registry({("vonk-forge-recipe-other", f"build-{OWN}"): DIGEST})
+    images, _missing, carried = tool.resolve(
+        _plan(), owner=OWNER, lookup=registry, published=published
+    )
+    assert images["e" * 64] == _pin("other", DIGEST, OWN)
+    assert carried == []
+
+
+def test_the_published_pins_are_read_from_the_release_bundle(tmp_path: Path) -> None:
+    pin = _pin("other", DIGEST, OWN)
+    index = {
+        "recipes": [
+            {"content_sha256": "e" * 64, "prebuilt_image": pin},
+            {"content_sha256": "f" * 64},
+        ]
+    }
+    source = tmp_path / "catalog-index.json"
+    source.write_text(json.dumps(index))
+
+    def release(arguments: list[str]) -> None:
+        with tarfile.open(arguments[arguments.index("--output") + 1], "w") as archive:
+            archive.add(source, arcname="catalog-index.json")
+
+    def unavailable(arguments: list[str]) -> None:
+        raise subprocess.CalledProcessError(1, arguments)
+
+    assert tool.published_pins("o/r", gh=release) == {"e" * 64: pin}
+    assert tool.published_pins("o/r", gh=unavailable) == {}
+
+    def not_a_tar(arguments: list[str]) -> None:
+        Path(arguments[arguments.index("--output") + 1]).write_bytes(b"not a tar")
+
+    assert tool.published_pins("o/r", gh=not_a_tar) == {}
+
+    def odd_index(arguments: list[str]) -> None:
+        source.write_text(json.dumps({"recipes": ["x"]}))
+        release(arguments)
+
+    assert tool.published_pins("o/r", gh=odd_index) == {}
+
+
+def test_a_pin_naming_a_foreign_package_is_not_carried() -> None:
+    def none_found(owner: str, name: str, tag: str) -> str | None:
+        return None
+
+    foreign = {
+        "reference": "evil.example/x/y@sha256:" + "1" * 64,
+        "build_key": OWN,
+    }
+    images, missing, carried = tool.resolve(
+        _plan(), owner=OWNER, lookup=none_found, published={"e" * 64: foreign}
+    )
+    assert images == {} and carried == [] and "other" in missing
 
 
 OLD_PIN = "1" * 40
