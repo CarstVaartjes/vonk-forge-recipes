@@ -2,9 +2,9 @@
   "dependencies": {
     "image": {
       "datasource": "oci-image",
-      "digest": "sha256:b22eedbd7902f65dbf2090897d75f5d92276cbf78a16bcde1f958aa56a306cf7",
+      "digest": "sha256:fa5c9f66fbfa55d162782578b3262893b782e6365a76562bcab951b54acc6d96",
       "kind": "digest",
-      "ref": "sha256:b22eedbd7902f65dbf2090897d75f5d92276cbf78a16bcde1f958aa56a306cf7",
+      "ref": "sha256:fa5c9f66fbfa55d162782578b3262893b782e6365a76562bcab951b54acc6d96",
       "repo": "ghcr.io/kindlingai/gr8"
     },
     "model": {
@@ -16,7 +16,7 @@
     }
   },
   "kit": {
-    "commit": "d2270fc41e7050d73cf7b17b0e7661a34ce6cc5b",
+    "commit": "b99f6f92faad33e9c9ffa883348ad20107028780",
     "repo": "kindlingai/glm-5.3-exlr8-6x-spark"
   }
 }
