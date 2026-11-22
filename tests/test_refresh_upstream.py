@@ -222,7 +222,7 @@ class ModelTests(unittest.TestCase):
         self.assertEqual([f["path"] for f in kept], ["a.safetensors"])
         self.assertEqual(refresh.model_shape_problems(old, kept), [])
 
-    def test_a_busy_history_read_leaves_the_recipe_unreachable_not_every_file_new(
+    def test_a_busy_history_read_is_not_judged_as_every_file_new(
         self,
     ) -> None:
         repository = ("a.safetensors", "b.safetensors")

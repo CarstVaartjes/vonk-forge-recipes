@@ -124,7 +124,13 @@ def test_pr_selection_uses_build_identity_and_ignores_missing_historical_images(
     assert candidates == set()
     assert tool.select(
         head, owner=OWNER, candidates=candidates, lookup=_registry({})
-    ) == {"builds": [], "copies": [], "deferred": [], "deferred_slugs": []}
+    ) == {
+        "builds": [],
+        "copies": [],
+        "deferred": [],
+        "deferred_slugs": [],
+        "busy": [],
+    }
     # A shared context change schedules every affected recipe, one ARM64 build.
     head["images"][0]["build_key"] = "c" * 64
     candidates = tool.changed_candidates(head, base)
@@ -216,46 +222,45 @@ def test_publish_builds_only_the_changed_key_without_a_pr_candidate(
     assert selection["deferred"] == []
 
 
-def test_a_busy_registry_skips_the_image_instead_of_building_or_ending_the_run(
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    def busy(_owner: str, _name: str, _tag: str) -> str | None:
+def _busy_for_shared(owner: str, name: str, tag: str) -> str | None:
+    if tag.endswith(SHARED):
         raise tool.UpstreamBusy("ghcr.io is rate limited")
-
-    selection = tool.select(_plan(), owner=OWNER, candidates=None, lookup=busy)
-    assert (selection["builds"], selection["copies"]) == ([], [])
-    assert "registry busy" in capsys.readouterr().err
+    return None
 
 
-def test_a_rate_limited_registry_lookup_is_retried_then_answers(
-    monkeypatch: pytest.MonkeyPatch,
+def test_a_busy_image_is_skipped_and_the_other_is_still_built() -> None:
+    selection = tool.select(
+        _plan(), owner=OWNER, candidates=None, lookup=_busy_for_shared
+    )
+    assert [row["build_key"] for row in selection["builds"]] == [OWN]
+    assert selection["busy"] == [SHARED]
+
+
+def test_a_pull_request_with_a_busy_image_refuses_instead_of_skipping_its_proof(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import io
-    import urllib.error
-    from email.message import Message
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_text(json.dumps(_plan()))
+    base_path = tmp_path / "base.json"
+    base_path.write_text(json.dumps({"images": []}))  # every key changed
+    real = tool.select
+    monkeypatch.setattr(
+        tool, "select", lambda plan, **kw: real(plan, **kw, lookup=_busy_for_shared)
+    )
 
-    advice = Message()
-    advice["Retry-After"] = "1"
-    answers: list[Any] = [
-        urllib.error.HTTPError("https://ghcr.io", 429, "Too Many", advice, None),
-        io.BytesIO(b'{"token": "t"}'),
-    ]
+    def run(*extra: str) -> int:
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["prebuilt-images", "select", "--plan", str(plan_path), "--owner", OWNER,
+             "--output", str(tmp_path / "out.json"), *extra],
+        )  # fmt: skip
+        return tool.main()
 
-    def urlopen(request: Any, timeout: float | None = None) -> Any:
-        answer = answers.pop(0)
-        if isinstance(answer, Exception):
-            raise answer
-        return answer
-
-    class Manifest(io.BytesIO):
-        def __init__(self) -> None:
-            super().__init__()
-            self.headers = {"Docker-Content-Digest": DIGEST}
-
-    monkeypatch.setattr("urllib.request.urlopen", urlopen)
-    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
-    answers.append(Manifest())
-    assert tool.ghcr_digest(OWNER, "vonk-forge-recipe-x", "build-k") == DIGEST
+    assert run() == 0  # publish and scheduled runs keep the skip
+    assert json.loads((tmp_path / "out.json").read_text())["busy"] == [SHARED]
+    with pytest.raises(SystemExit, match="registry busy"):
+        run("--base-plan", str(base_path))
 
 
 def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:

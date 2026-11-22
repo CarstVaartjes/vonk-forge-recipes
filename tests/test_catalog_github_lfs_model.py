@@ -152,17 +152,21 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "HTTP 404"):
             self._run(FakeGitHub({}))
 
-    def test_a_busy_github_is_not_checked_this_run_and_not_a_missing_path(self) -> None:
-        # Retry-After beyond the bound ends the wait at once: no sleeping in the test.
-        advice = Message()
-        advice["Retry-After"] = "600"
+    def test_a_rate_limited_pointer_read_is_retried_and_the_model_is_written(
+        self,
+    ) -> None:
+        github = FakeGitHub({PATH: pointer()})
+        answers = [HTTPError("u", 429, "Too Many", Message(), None)]
 
-        def busy(request, timeout: float | None = None):
-            raise HTTPError(request.full_url, 429, "Too Many", advice, None)
+        def limited(request, timeout: float | None = None):
+            if answers:
+                raise answers.pop()
+            return github(request, timeout)
 
-        with self.assertRaises(SystemExit) as raised:
-            self._run(busy)  # type: ignore[arg-type]
-        self.assertNotIn("HTTP", str(raised.exception))
+        with patch("tools._upstream_http.time.sleep"):
+            document = self._run(limited)  # type: ignore[arg-type]
+        assert document is not None
+        self.assertEqual(document["files"][0]["sha256"], OID)
 
     def test_probe_batch_confirms_the_object_without_downloading(self) -> None:
         batch = {"objects": [{"oid": OID, "size": SIZE, "actions": {"download": {}}}]}

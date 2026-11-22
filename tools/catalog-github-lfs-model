@@ -59,8 +59,8 @@ def read_pointer(repository: str, revision: str, path: str) -> tuple[str, int]:
         body = fetch(
             _request(url), lambda response: response.read(MAX_POINTER_BYTES + 1)
         )
-    except UpstreamBusy as error:
-        raise SystemExit(f"{path}: GitHub is busy, not read this run; rerun") from error
+    except (UpstreamBusy, RuntimeError) as error:  # busy, or retries exhausted
+        raise SystemExit(f"cannot read {path} at {revision}: {error}") from error
     except HTTPError as error:
         raise SystemExit(
             f"cannot read {path} at {revision} (HTTP {error.code})"

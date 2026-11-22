@@ -119,6 +119,7 @@ def select(
 
     builds: dict[str, dict[str, Any]] = {}
     copies: list[dict[str, str]] = []
+    busy: list[str] = []
     for image in plan.get("images", []):
         try:
             key = str(image["build_key"])
@@ -175,6 +176,7 @@ def select(
             }
         except UpstreamBusy as error:
             # Not looked up this run: neither built nor copied; the next run asks again.
+            busy.append(str(image["build_key"]))
             print(
                 f"{image['build_key']}: registry busy, not planned: {error}",
                 file=sys.stderr,
@@ -189,6 +191,7 @@ def select(
             for recipe in item["recipes"]
         ],
         "copies": copies,
+        "busy": busy,
     }
 
 
@@ -319,11 +322,15 @@ def main() -> int:
         selection = select(plan, owner=arguments.owner, candidates=candidates)
         if arguments.base_plan is not None and selection["deferred"]:
             raise SystemExit("PR image matrix exceeds 256 keys; split the change")
+        if arguments.base_plan is not None and selection["busy"]:
+            # A skipped key would leave the PR green without its build and smoke proof.
+            raise SystemExit(f"registry busy for {selection['busy']}; rerun")
         arguments.output.write_text(json.dumps(selection, indent=2), encoding="utf-8")
         print(
             f"{len(selection['builds'])} image build(s), "
             f"{len(selection['copies'])} copy(ies), "
-            f"{len(selection['deferred'])} deferred"
+            f"{len(selection['deferred'])} deferred, "
+            f"{len(selection['busy'])} busy (skipped)"
         )
         return 0
     images, missing = resolve(plan, owner=arguments.owner)
