@@ -24,6 +24,7 @@ from vonk_forge_contracts import ModelDisplay
 
 from qualification import documents
 from tools._catalog_model import roles_for
+from tools._upstream_http import UpstreamBusy
 
 ROOT = Path(__file__).resolve().parents[1]
 LOADER = importlib.machinery.SourceFileLoader(
@@ -3685,6 +3686,30 @@ class RewrittenHistoryTests(unittest.TestCase):
             "u", 404, "Not Found", Message(), io.BytesIO(b"<html>")
         )
         self.assertEqual(refresh._error_message(error), "")
+
+
+class RateLimitTests(unittest.TestCase):
+    """A persistent 429 leaves the recipe unreachable-this-run; it never raises a finding."""
+
+    def test_persistent_429_is_busy_after_a_bounded_number_of_waits(self) -> None:
+        calls: list[str] = []
+        naps: list[float] = []
+
+        def limited(request: Any, timeout: float) -> Any:
+            calls.append(request.full_url)
+            error = HTTPError(request.full_url, 429, "slow down", Message(), None)
+            error.close()
+            raise error
+
+        http = refresh.Http(github_token=None, hf_token=None, cache_path=None)
+        with (
+            patch("urllib.request.urlopen", limited),
+            patch("tools._upstream_http.time.sleep", naps.append),
+            self.assertRaises(RuntimeError) as raised,
+        ):
+            http.json("https://huggingface.co/api/models/o/m", "huggingface")
+        self.assertIsInstance(raised.exception, UpstreamBusy)
+        self.assertEqual(len(calls), len(naps) + 1)
 
 
 class GatedRepositoryTests(unittest.TestCase):

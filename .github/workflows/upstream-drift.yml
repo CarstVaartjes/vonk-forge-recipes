@@ -136,6 +136,7 @@ jobs:
           sections = (
               ("advanced", "Drifted pins (upstream advanced)"),
               ("missing", "Pins no longer resolvable upstream"),
+              ("unchecked", "Sources not checked this run (rate limited; asked again next run)"),
               ("error", "Sources that could not be checked"),
           )
           for status, title in sections:

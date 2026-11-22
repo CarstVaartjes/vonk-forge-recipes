@@ -1106,6 +1106,9 @@ The hourly `.github/workflows/refresh-upstream.yml` and `tools/refresh-upstream`
 implement automatic selection (`tests/test_check_upstream_drift.py`,
 `tests/test_refresh_upstream.py`): newest release/tag or head, preserving inferred
 non-default branches and declared release lines. Never downgrade an ahead pin.
+Both scanners read providers through `tools/_upstream_http.py`: a 429 or 5xx is retried with
+backoff and jitter, honouring `Retry-After`; if it persists the item is "not checked this run"
+(`unchecked`, or unreachable in refresh), never an issue or a failed run.
 A mechanical move requires compatible vendored/used bytes, retained referenced
 launch names, complete selected Model files and passing producer checks. Changes
 to patched runtime files or missing selected files need review; metadata-only

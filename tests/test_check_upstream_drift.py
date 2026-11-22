@@ -375,6 +375,71 @@ class ObservationTests(unittest.TestCase):
                 self.assertEqual(observation.status, expected)
 
 
+class RateLimitTests(unittest.TestCase):
+    """A rate limit is retried within a bound; if it persists the item is not checked."""
+
+    class Responses:
+        def __init__(self, codes: list[int], retry_after: str | None = None) -> None:
+            self.codes = codes
+            self.retry_after = retry_after
+            self.calls = 0
+
+        def __call__(self, request: Any, timeout: float) -> Any:
+            code = self.codes[min(self.calls, len(self.codes) - 1)]
+            self.calls += 1
+            if code == 200:
+                response = mock.MagicMock()
+                response.__enter__.return_value.read.return_value = b'{"sha": "x"}'
+                return response
+            headers = Message()
+            if self.retry_after is not None:
+                headers["Retry-After"] = self.retry_after
+            error = HTTPError(request.full_url, code, "busy", headers, None)
+            error.close()
+            raise error
+
+    def client(self, opener: Any, naps: list[float]) -> Any:
+        return drift.ProviderClient(opener=opener, sleep=naps.append)
+
+    def test_recovers_after_honouring_retry_after(self) -> None:
+        naps: list[float] = []
+        opener = self.Responses([429, 503, 200], retry_after="2")
+        value = self.client(opener, naps).json(
+            "https://huggingface.co/api/x", "huggingface"
+        )
+        self.assertEqual(value, {"sha": "x"})
+        self.assertEqual(naps, [2.0, 2.0])
+
+    def test_persistent_limit_is_not_checked_and_not_an_error(self) -> None:
+        naps: list[float] = []
+        opener = self.Responses([429])
+        client = self.client(opener, naps)
+        watch = drift.Watch(
+            entity="recipe/example/runtime",
+            source_path="recipes/runtime.json",
+            provider="huggingface",
+            repository="example/runtime",
+            pinned_revision=PINNED,
+            pinned_version=None,
+            policy="default-branch",
+            ref=None,
+        )
+        observation = drift.observe(watch, client)
+        self.assertEqual(observation.status, "unchecked")
+        self.assertEqual(opener.calls, len(naps) + 1)
+        counts = drift.report([observation], "now")["counts"]
+        self.assertEqual((counts["unchecked"], counts["error"]), (1, 0))
+
+    def test_retry_after_beyond_the_bound_gives_up_without_waiting(self) -> None:
+        naps: list[float] = []
+        opener = self.Responses([429], retry_after="3600")
+        with self.assertRaises(drift.UpstreamBusy):
+            self.client(opener, naps).json(
+                "https://huggingface.co/api/x", "huggingface"
+            )
+        self.assertEqual((opener.calls, naps), (1, []))
+
+
 class ReleaseAssetWatchTests(unittest.TestCase):
     def watch(self):
         defaults, overrides = drift.load_manifest(ROOT / "policy/upstream-watch.json")

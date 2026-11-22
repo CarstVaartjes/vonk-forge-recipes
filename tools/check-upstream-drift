@@ -13,7 +13,6 @@ import re
 import shlex
 import subprocess
 import sys
-import time
 from collections import Counter
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
@@ -22,7 +21,7 @@ from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal
-from urllib.error import HTTPError, URLError
+from urllib.error import HTTPError
 from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
 
@@ -34,6 +33,7 @@ from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.model import GitHubReleaseSource
 
 from qualification.documents import model_display
+from tools._upstream_http import UpstreamBusy, fetch
 
 DEFAULT_MANIFEST = ROOT / "policy/upstream-watch.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
@@ -511,10 +511,12 @@ class ProviderClient:
         github_token: str | None = None,
         huggingface_token: str | None = None,
         opener: Callable[..., AbstractContextManager[Any]] = urlopen,
+        sleep: Callable[[float], None] | None = None,
     ) -> None:
         self.github_token = github_token
         self.huggingface_token = huggingface_token
         self.opener = opener
+        self.sleep = sleep
         self.cache: dict[str, object] = {}
 
     def json(self, url: str, provider: str) -> object:
@@ -533,35 +535,29 @@ class ProviderClient:
         if provider == "github":
             headers["X-GitHub-Api-Version"] = "2022-11-28"
         request = Request(url, headers=headers)
-        for attempt in range(3):
-            try:
-                with self.opener(request, timeout=20) as response:
-                    payload = response.read(MAX_RESPONSE_BYTES + 1)
-                if len(payload) > MAX_RESPONSE_BYTES:
-                    raise RuntimeError(
-                        f"provider response exceeds {MAX_RESPONSE_BYTES} bytes"
-                    )
-                value = json.loads(payload)
-                self.cache[url] = value
-                return value
-            except HTTPError as error:
-                # Hugging Face answers an anonymous request for a deleted or
-                # private repository with 401, not 404 (gated ones still list).
-                if error.code == 404 or (
-                    error.code == 401 and provider == "huggingface" and not token
-                ):
-                    raise RemoteNotFound(url) from error
-                if error.code not in {429, 500, 502, 503, 504} or attempt == 2:
-                    raise RuntimeError(
-                        f"provider returned HTTP {error.code}"
-                    ) from error
-                retry_after = error.headers.get("Retry-After")
-                time.sleep(min(float(retry_after or attempt + 1), 5.0))
-            except (URLError, TimeoutError, json.JSONDecodeError) as error:
-                if attempt == 2:
-                    raise RuntimeError(f"provider request failed: {error}") from error
-                time.sleep(attempt + 1)
-        raise RuntimeError("provider request failed")
+
+        def read() -> bytes:
+            with self.opener(request, timeout=20) as response:
+                return response.read(MAX_RESPONSE_BYTES + 1)
+
+        try:
+            payload = fetch(read, sleep=self.sleep)
+        except HTTPError as error:
+            # Hugging Face answers an anonymous request for a deleted or
+            # private repository with 401, not 404 (gated ones still list).
+            if error.code == 404 or (
+                error.code == 401 and provider == "huggingface" and not token
+            ):
+                raise RemoteNotFound(url) from error
+            raise RuntimeError(f"provider returned HTTP {error.code}") from error
+        if len(payload) > MAX_RESPONSE_BYTES:
+            raise RuntimeError(f"provider response exceeds {MAX_RESPONSE_BYTES} bytes")
+        try:
+            value = json.loads(payload)
+        except json.JSONDecodeError as error:
+            raise RuntimeError(f"provider request failed: {error}") from error
+        self.cache[url] = value
+        return value
 
 
 def _required_string(document: object, key: str, context: str) -> str:
@@ -720,13 +716,14 @@ def observe(watch: Watch, client: ProviderClient) -> Observation:
             detail="upstream repository, release, or revision was not found",
         )
     except RuntimeError as error:
+        # A rate-limited or unreachable provider is "not checked this run", not a fault.
         return Observation(
             **common,
             observed_revision=None,
             observed_version=None,
             observed_at=None,
             upstream_url=None,
-            status="error",
+            status="unchecked" if isinstance(error, UpstreamBusy) else "error",
             detail=str(error)[:256],
         )
 
@@ -743,7 +740,14 @@ def report(
         "checked_at": checked_at,
         "counts": {
             status: counts.get(status, 0)
-            for status in ("current", "advanced", "missing", "untracked", "error")
+            for status in (
+                "current",
+                "advanced",
+                "missing",
+                "untracked",
+                "unchecked",
+                "error",
+            )
         },
         "observations": [asdict(observation) for observation in observations],
         "embedded_inputs": embedded
