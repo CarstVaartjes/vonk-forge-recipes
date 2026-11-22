@@ -78,6 +78,6 @@ def test_one_read_of_the_recipe_document_serves_the_smoke_and_the_pass(
         key = "vonk-forge/r"
         content_sha256 = "c1"
 
-    assert sweep._ran_recipe(Row()) is sentinel  # type: ignore[arg-type]
-    assert sweep._ran_recipe(Row()) is sentinel  # type: ignore[arg-type]
+    assert sweep._ran_recipe(Row()) is sentinel
+    assert sweep._ran_recipe(Row()) is sentinel
     assert len(reads) == 1

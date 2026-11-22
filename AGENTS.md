@@ -150,12 +150,10 @@ pre-commit hook passes the staged Python files (unstaged edits no longer refuse
 the commit; lint and format check only staged paths; the type gate still reads
 the working tree), CI passes none and checks the whole repository. Bare `ruff check .`/`format --check .` miss those files.
 Pyright **1.1.414** uses managed Python and Linux diagnostics with the pinned
-`[tool.pyright]` language version/mode. `tools/pyright-baseline.json` is a
-reviewed allowlist: unlisted errors, increased counts and missing reasons fail;
-shrinking counts pass with a tightening notice. Fix the code first. Use
-`scripts/check-python-types --update` only to review/tighten entries and retain
-reasons; do not baseline new errors just to pass. This script checks the whole
-repository and accepts `--update`, not positional changed-file arguments.
+`[tool.pyright]` language version/mode. The gate requires zero errors and has no baseline: a deliberate error carries a
+`# pyright: ignore[<rule>]` on its line, and an ignore that no longer suppresses
+anything fails. This script checks the whole repository and takes no positional
+changed-file arguments.
 `tests/test_python_gate_configuration.py` guards the configuration and CI wiring.
 
 ## CI and publication

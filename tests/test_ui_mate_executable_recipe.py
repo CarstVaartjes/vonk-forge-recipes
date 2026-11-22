@@ -44,11 +44,11 @@ def _arguments(recipe: dict[str, object]) -> dict[str, object]:
 class UIMateExecutableRecipeTests(unittest.TestCase):
     def test_model_snapshot_is_exact_and_complete(self) -> None:
         model = _read(MODEL)
-        self.assertEqual(model["source"]["revision"], MODEL_REVISION)
+        self.assertEqual(model["source"]["revision"], MODEL_REVISION)  # pyright: ignore[reportIndexIssue]
         artifacts = model["files"]
-        self.assertEqual(len(artifacts), 22)
+        self.assertEqual(len(artifacts), 22)  # pyright: ignore[reportArgumentType]
         self.assertEqual(
-            {item["path"] for item in artifacts if "weights" in item["roles"]},
+            {item["path"] for item in artifacts if "weights" in item["roles"]},  # pyright: ignore[reportGeneralTypeIssues]
             {f"model-{index:05d}-of-00012.safetensors" for index in range(1, 13)},
         )
 
@@ -82,10 +82,11 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
         recipe = _read(RECIPE)
         arguments = _arguments(recipe)
         self.assertEqual(
-            recipe["models"][0]["model"]["content_sha256"], _canonical_digest(MODEL)
+            recipe["models"][0]["model"]["content_sha256"],  # pyright: ignore[reportIndexIssue]
+            _canonical_digest(MODEL),
         )
         self.assertEqual(
-            recipe["execution"]["build"]["base_image"]["digest"],
+            recipe["execution"]["build"]["base_image"]["digest"],  # pyright: ignore[reportIndexIssue]
             "e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e",
         )
         self.assertEqual(arguments["served-model-name"], "UI_Mate")
@@ -96,12 +97,12 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
             {"image": 6, "video": 0},
         )
         self.assertEqual(arguments["mm-encoder-tp-mode"], "data")
-        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 32_768)
-        self.assertEqual(recipe["settings"]["concurrency"]["value"], 1)
+        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 32_768)  # pyright: ignore[reportIndexIssue]
+        self.assertEqual(recipe["settings"]["concurrency"]["value"], 1)  # pyright: ignore[reportIndexIssue]
         self.assertEqual(arguments["max-num-batched-tokens"], 8192)
         self.assertEqual(arguments["max-cudagraph-capture-size"], 4)
-        self.assertEqual(recipe["topology"]["node_count"], 1)
-        self.assertEqual(recipe["topology"]["parallelism"]["tensor"], 1)
+        self.assertEqual(recipe["topology"]["node_count"], 1)  # pyright: ignore[reportIndexIssue]
+        self.assertEqual(recipe["topology"]["parallelism"]["tensor"], 1)  # pyright: ignore[reportIndexIssue]
 
     def test_adapter_build_is_offline_and_never_executes_actions(self) -> None:
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
@@ -121,13 +122,13 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
 
     def test_recipe_binds_the_exact_offline_adapter_bundle(self) -> None:
         recipe = _read(RECIPE)
-        context = recipe["execution"]["build"]["context"]
+        context = recipe["execution"]["build"]["context"]  # pyright: ignore[reportIndexIssue]
         self.assertEqual(context["path"], "adapters/llm/ui-mate-vllm")
         self.assertGreater(len(SOURCE_BUNDLE(ADAPTER)[0]), 0)
 
     def test_vendored_parser_scales_official_actions_without_actuating(self) -> None:
         pil = types.ModuleType("PIL")
-        pil.Image = object()
+        pil.Image = object()  # pyright: ignore[reportAttributeAccessIssue]
         previous_pil = sys.modules.get("PIL")
         previous_dont_write_bytecode = sys.dont_write_bytecode
         sys.dont_write_bytecode = True

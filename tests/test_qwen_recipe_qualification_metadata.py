@@ -29,20 +29,20 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
         for slug in sorted(QWEN_RECIPES):
             with self.subTest(recipe=slug):
                 recipe = _recipe(slug)
-                tags = set(recipe_display(recipe["identity"]["slug"]).tags)
+                tags = set(recipe_display(recipe["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
                 self.assertTrue(
                     {"multimodal", "vision", "text-qualified", "vision-unproven"}
                     <= tags
                 )
                 self.assertIn(
                     "Current qualification proves bounded text chat only",
-                    recipe_display(recipe["identity"]["slug"]).description,
+                    recipe_display(recipe["identity"]["slug"]).description,  # pyright: ignore[reportIndexIssue]
                 )
                 self.assertIn(
                     "vision serving remains unproven on Spark",
-                    recipe_display(recipe["identity"]["slug"]).description,
+                    recipe_display(recipe["identity"]["slug"]).description,  # pyright: ignore[reportIndexIssue]
                 )
-                checks = recipe["validation"]["serving"]["checks"]
+                checks = recipe["validation"]["serving"]["checks"]  # pyright: ignore[reportIndexIssue]
                 self.assertEqual(
                     {check["kind"] for check in checks},
                     {"openai.health", "openai.chat"},
@@ -59,11 +59,11 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
     def test_qwen38_fp8_is_preferred_dense_default(self) -> None:
         preferred = set(
             recipe_display(
-                _recipe("qwen3-8-27b-fp8-vllm-single")["identity"]["slug"]
+                _recipe("qwen3-8-27b-fp8-vllm-single")["identity"]["slug"]  # pyright: ignore[reportIndexIssue]
             ).tags
         )
         older_dense = set(
-            recipe_display(_recipe("qwen3-6-27b-vllm-single")["identity"]["slug"]).tags
+            recipe_display(_recipe("qwen3-6-27b-vllm-single")["identity"]["slug"]).tags  # pyright: ignore[reportIndexIssue]
         )
 
         self.assertTrue({"preferred-dense", "default"} <= preferred)
@@ -76,7 +76,7 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
         ):
             with self.subTest(alternative=alternative):
                 tags = set(
-                    recipe_display(_recipe(alternative)["identity"]["slug"]).tags
+                    recipe_display(_recipe(alternative)["identity"]["slug"]).tags  # pyright: ignore[reportIndexIssue]
                 )
                 self.assertTrue({"preferred-dense", "default"}.isdisjoint(tags))
 

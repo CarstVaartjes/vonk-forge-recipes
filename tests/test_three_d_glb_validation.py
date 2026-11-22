@@ -208,7 +208,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             path.write_bytes(builder.bytes(document))
             for context in CONTEXTS:
                 with self.subTest(context=context, profile=profile):
-                    load_validator(context).validate_mesh_glb(path, profile=profile)
+                    load_validator(context).validate_mesh_glb(path, profile=profile)  # pyright: ignore[reportAttributeAccessIssue]
 
     def rejected(
         self, document: dict[str, object], builder: Glb, profile: str, pattern: str
@@ -220,7 +220,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             path = Path(directory) / "output.glb"
             path.write_bytes(content)
             with self.assertRaisesRegex(ValueError, pattern):
-                load_validator(CONTEXTS[0]).validate_mesh_glb(path, profile=profile)
+                load_validator(CONTEXTS[0]).validate_mesh_glb(path, profile=profile)  # pyright: ignore[reportAttributeAccessIssue]
 
     def test_all_copied_validators_accept_each_artifact_profile(self) -> None:
         for profile in ("geometry", "textured", "textured-pbr", "skinned"):
@@ -241,26 +241,26 @@ class ThreeDGlbValidationTests(unittest.TestCase):
     def test_required_webp_source_is_the_effective_texture_source(self) -> None:
         module = load_validator(CONTEXTS[0])
         texture = {"source": 0, "extensions": {"EXT_texture_webp": {"source": 1}}}
-        self.assertEqual(module._texture_source(texture, 2), 1)
+        self.assertEqual(module._texture_source(texture, 2), 1)  # pyright: ignore[reportAttributeAccessIssue]
 
     def test_rejects_out_of_range_indices_and_nonfinite_or_degenerate_positions(
         self,
     ) -> None:
         builder = Glb()
         document = builder.document()
-        index_view = builder.views[builder.accessors[1]["bufferView"]]
+        index_view = builder.views[builder.accessors[1]["bufferView"]]  # pyright: ignore[reportArgumentType, reportCallIssue]
         struct.pack_into("<I", builder.blob, int(index_view["byteOffset"]) + 8, 3)
         self.rejected(document, builder, "geometry", "exceeds POSITION")
 
         builder = Glb()
         document = builder.document()
-        position_view = builder.views[builder.accessors[0]["bufferView"]]
+        position_view = builder.views[builder.accessors[0]["bufferView"]]  # pyright: ignore[reportArgumentType, reportCallIssue]
         struct.pack_into("<f", builder.blob, int(position_view["byteOffset"]), math.nan)
         self.rejected(document, builder, "geometry", "non-finite")
 
         builder = Glb()
         document = builder.document()
-        position_view = builder.views[builder.accessors[0]["bufferView"]]
+        position_view = builder.views[builder.accessors[0]["bufferView"]]  # pyright: ignore[reportArgumentType, reportCallIssue]
         struct.pack_into(
             "<9f", builder.blob, int(position_view["byteOffset"]), *([0.0] * 9)
         )
@@ -275,7 +275,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
 
         builder = Glb()
         document = builder.document()
-        document["meshes"][0]["primitives"][0]["attributes"]["NORMAL"] = 99
+        document["meshes"][0]["primitives"][0]["attributes"]["NORMAL"] = 99  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "geometry", "NORMAL accessor")
 
     def test_profile_checks_reject_missing_pbr_texture_and_invalid_skin_weights(
@@ -287,7 +287,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
 
         builder = Glb()
         document = builder.document("skinned")
-        weight_view = builder.views[builder.accessors[4]["bufferView"]]
+        weight_view = builder.views[builder.accessors[4]["bufferView"]]  # pyright: ignore[reportArgumentType, reportCallIssue]
         struct.pack_into("<f", builder.blob, int(weight_view["byteOffset"]), -1.0)
         self.rejected(document, builder, "skinned", "invalid weights")
 
@@ -310,12 +310,12 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             path = Path(directory) / "output.glb"
             path.write_bytes(rebuilt)
             with self.assertRaisesRegex(ValueError, "duplicate key"):
-                load_validator(CONTEXTS[0]).validate_mesh_glb(path)
+                load_validator(CONTEXTS[0]).validate_mesh_glb(path)  # pyright: ignore[reportAttributeAccessIssue]
 
         builder = Glb()
         document = builder.document()
         content = bytearray(builder.bytes(document))
-        document["buffers"][0]["byteLength"] -= 1
+        document["buffers"][0]["byteLength"] -= 1  # pyright: ignore[reportIndexIssue]
         content = bytearray(builder.bytes(document))
         content[-1] = 1
         self.raw_rejected(bytes(content), "geometry", "padding bytes must be zero")
@@ -392,7 +392,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
 
         builder = Glb()
         document = builder.document()
-        builder.views[builder.accessors[1]["bufferView"]]["byteStride"] = 4
+        builder.views[builder.accessors[1]["bufferView"]]["byteStride"] = 4  # pyright: ignore[reportArgumentType, reportCallIssue]
         self.rejected(document, builder, "geometry", "indices must be unsigned")
 
         builder = Glb()
@@ -421,7 +421,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             count=1,
             target=34962,
         )
-        document["meshes"][0]["primitives"][0]["attributes"]["NORMAL"] = normal
+        document["meshes"][0]["primitives"][0]["attributes"]["NORMAL"] = normal  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "geometry", "attribute counts")
 
         builder = Glb()
@@ -441,23 +441,23 @@ class ThreeDGlbValidationTests(unittest.TestCase):
 
         builder = Glb()
         document = builder.document()
-        document["nodes"][0]["matrix"] = [1.0] * 16
-        document["nodes"][0]["translation"] = [0.0, 0.0, 0.0]
+        document["nodes"][0]["matrix"] = [1.0] * 16  # pyright: ignore[reportIndexIssue]
+        document["nodes"][0]["translation"] = [0.0, 0.0, 0.0]  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "geometry", "combine matrix and TRS")
 
         builder = Glb()
         document = builder.document()
-        document["nodes"][0]["scale"] = [1.0, 0.0, 1.0]
+        document["nodes"][0]["scale"] = [1.0, 0.0, 1.0]  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "geometry", "scale collapses")
 
         builder = Glb()
         document = builder.document()
-        document["nodes"][0]["matrix"] = [0.0] * 16
+        document["nodes"][0]["matrix"] = [0.0] * 16  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "geometry", "matrix")
 
         builder = Glb()
         document = builder.document()
-        document["nodes"][0]["matrix"] = [
+        document["nodes"][0]["matrix"] = [  # pyright: ignore[reportIndexIssue]
             1.0,
             0.0,
             0.0,
@@ -486,12 +486,12 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             count=3,
             target=34962,
         )
-        document["meshes"][0]["primitives"][0]["attributes"]["_CUSTOM"] = custom
+        document["meshes"][0]["primitives"][0]["attributes"]["_CUSTOM"] = custom  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "geometry", "UNSIGNED_INT")
 
         builder = Glb()
         document = builder.document()
-        document["meshes"][0]["primitives"][0]["attributes"]["NORMAL"] = len(
+        document["meshes"][0]["primitives"][0]["attributes"]["NORMAL"] = len(  # pyright: ignore[reportIndexIssue]
             builder.accessors
         )
         builder.accessors.append(
@@ -519,22 +519,22 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             with self.subTest(profile=profile, corruption="invalid secondary root"):
                 builder = Glb()
                 document = builder.document(profile)
-                document["scenes"].append({"nodes": [999]})
+                document["scenes"].append({"nodes": [999]})  # pyright: ignore[reportAttributeAccessIssue]
                 self.rejected(document, builder, profile, "scene node index is invalid")
 
             with self.subTest(profile=profile, corruption="duplicate secondary roots"):
                 builder = Glb()
                 document = builder.document(profile)
-                document["scenes"].append({"nodes": [0, 0]})
+                document["scenes"].append({"nodes": [0, 0]})  # pyright: ignore[reportAttributeAccessIssue]
                 self.rejected(document, builder, profile, "scene roots are invalid")
 
             with self.subTest(profile=profile, corruption="secondary root is a child"):
                 builder = Glb()
                 document = builder.document(profile)
-                parent = len(document["nodes"])
+                parent = len(document["nodes"])  # pyright: ignore[reportArgumentType]
                 child = parent + 1
-                document["nodes"].extend([{"children": [child]}, {"name": "child"}])
-                document["scenes"].append({"nodes": [parent, child]})
+                document["nodes"].extend([{"children": [child]}, {"name": "child"}])  # pyright: ignore[reportAttributeAccessIssue]
+                document["scenes"].append({"nodes": [parent, child]})  # pyright: ignore[reportAttributeAccessIssue]
                 self.rejected(document, builder, profile, "scene roots are invalid")
 
     def test_rejects_unsupported_scene_features_and_material_booleans(self) -> None:
@@ -542,7 +542,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             with self.subTest(profile=profile, corruption="boolean camera"):
                 builder = Glb()
                 document = builder.document(profile)
-                document["nodes"][0]["camera"] = False
+                document["nodes"][0]["camera"] = False  # pyright: ignore[reportIndexIssue]
                 self.rejected(
                     document, builder, profile, "camera nodes are not supported"
                 )
@@ -550,7 +550,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             with self.subTest(profile=profile, corruption="boolean material"):
                 builder = Glb()
                 document = builder.document(profile)
-                document["meshes"][0]["primitives"][0]["material"] = False
+                document["meshes"][0]["primitives"][0]["material"] = False  # pyright: ignore[reportIndexIssue]
                 self.rejected(
                     document, builder, profile, "primitive material index is invalid"
                 )
@@ -558,7 +558,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             with self.subTest(profile=profile, corruption="boolean morph accessor"):
                 builder = Glb()
                 document = builder.document(profile)
-                document["meshes"][0]["primitives"][0]["targets"] = [
+                document["meshes"][0]["primitives"][0]["targets"] = [  # pyright: ignore[reportIndexIssue]
                     {"POSITION": False}
                 ]
                 self.rejected(
@@ -584,7 +584,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             with self.subTest(profile=profile):
                 builder = Glb()
                 document = builder.document(profile)
-                attributes = document["meshes"][0]["primitives"][0]["attributes"]
+                attributes = document["meshes"][0]["primitives"][0]["attributes"]  # pyright: ignore[reportIndexIssue]
                 normal = attributes.get("NORMAL")
                 if normal is None:
                     normal = builder.accessor(
@@ -595,7 +595,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
                         target=34962,
                     )
                     attributes["NORMAL"] = normal
-                normal_view = builder.views[builder.accessors[normal]["bufferView"]]
+                normal_view = builder.views[builder.accessors[normal]["bufferView"]]  # pyright: ignore[reportArgumentType, reportCallIssue]
                 struct.pack_into(
                     "<f", builder.blob, int(normal_view["byteOffset"]), math.nan
                 )
@@ -606,14 +606,14 @@ class ThreeDGlbValidationTests(unittest.TestCase):
     def test_rejects_texture_coordinate_image_and_extension_corruption(self) -> None:
         builder = Glb()
         document = builder.document("textured-pbr")
-        document["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"][
+        document["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"][  # pyright: ignore[reportIndexIssue]
             "texCoord"
         ] = 1
         self.rejected(document, builder, "textured-pbr", "must use TEXCOORD_0")
 
         builder = Glb()
         document = builder.document("textured-pbr")
-        document["images"][0]["mimeType"] = "image/jpeg"
+        document["images"][0]["mimeType"] = "image/jpeg"  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "textured-pbr", "does not match its MIME")
 
         builder = Glb()
@@ -623,50 +623,50 @@ class ThreeDGlbValidationTests(unittest.TestCase):
 
         builder = Glb()
         document = builder.document("textured-pbr")
-        document["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"][
+        document["materials"][0]["pbrMetallicRoughness"]["baseColorTexture"][  # pyright: ignore[reportIndexIssue]
             "texCoord"
         ] = False
         self.rejected(document, builder, "textured-pbr", "must use TEXCOORD_0")
 
         builder = Glb()
         document = builder.document("textured-pbr")
-        document["images"][0]["mimeType"] = "image/webp"
-        document["textures"][0] = {"source": 0}
+        document["images"][0]["mimeType"] = "image/webp"  # pyright: ignore[reportIndexIssue]
+        document["textures"][0] = {"source": 0}  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "textured-pbr", "core texture source")
 
         builder = Glb()
         document = builder.document("textured-pbr")
-        image_view = document["images"][0]["bufferView"]
+        image_view = document["images"][0]["bufferView"]  # pyright: ignore[reportIndexIssue]
         builder.views[image_view]["byteStride"] = 4
         self.rejected(document, builder, "textured-pbr", "byteStride bufferView")
 
         builder = Glb()
         document = builder.document("textured-pbr")
-        image_view = document["images"][0]["bufferView"]
+        image_view = document["images"][0]["bufferView"]  # pyright: ignore[reportIndexIssue]
         raw_view = builder.views[image_view]
         start = int(raw_view["byteOffset"])
         length = int(raw_view["byteLength"])
         bogus_jpeg = b"\xff\xd8\xff\xe0\x00\x04xx" + b"x" * (length - 10) + b"\xff\xd9"
         self.assertEqual(len(bogus_jpeg), length)
         builder.blob[start : start + length] = bogus_jpeg
-        document["images"][0]["mimeType"] = "image/jpeg"
-        document["textures"][0] = {"source": 0}
+        document["images"][0]["mimeType"] = "image/jpeg"  # pyright: ignore[reportIndexIssue]
+        document["textures"][0] = {"source": 0}  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "textured-pbr", "does not match its MIME")
 
         builder = Glb()
         document = builder.document("textured-pbr")
         png_header = b"\x89PNG\r\n\x1a\n" + b"\0\0\0\rIHDR" + b"\0" * 8
-        document["images"][0]["bufferView"] = builder.view(png_header)
-        document["images"][0]["mimeType"] = "image/png"
-        document["textures"][0] = {"source": 0}
+        document["images"][0]["bufferView"] = builder.view(png_header)  # pyright: ignore[reportIndexIssue]
+        document["images"][0]["mimeType"] = "image/png"  # pyright: ignore[reportIndexIssue]
+        document["textures"][0] = {"source": 0}  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "textured-pbr", "does not match its MIME")
 
         builder = Glb()
         document = builder.document("textured-pbr")
         webp_header = b"RIFF\x08\0\0\0WEBPVP8 "
-        document["images"][0]["bufferView"] = builder.view(webp_header)
-        document["images"][0]["mimeType"] = "image/webp"
-        document["textures"][0] = {"extensions": {"EXT_texture_webp": {"source": 0}}}
+        document["images"][0]["bufferView"] = builder.view(webp_header)  # pyright: ignore[reportIndexIssue]
+        document["images"][0]["mimeType"] = "image/webp"  # pyright: ignore[reportIndexIssue]
+        document["textures"][0] = {"extensions": {"EXT_texture_webp": {"source": 0}}}  # pyright: ignore[reportIndexIssue]
         document["extensionsUsed"] = ["EXT_texture_webp"]
         document["extensionsRequired"] = ["EXT_texture_webp"]
         self.rejected(document, builder, "textured-pbr", "does not match its MIME")
@@ -685,9 +685,9 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             + webp_chunks
             + webp_chunks
         )
-        document["images"][0]["bufferView"] = builder.view(duplicate_webp)
-        document["images"][0]["mimeType"] = "image/webp"
-        document["textures"][0] = {"extensions": {"EXT_texture_webp": {"source": 0}}}
+        document["images"][0]["bufferView"] = builder.view(duplicate_webp)  # pyright: ignore[reportIndexIssue]
+        document["images"][0]["mimeType"] = "image/webp"  # pyright: ignore[reportIndexIssue]
+        document["textures"][0] = {"extensions": {"EXT_texture_webp": {"source": 0}}}  # pyright: ignore[reportIndexIssue]
         document["extensionsUsed"] = ["EXT_texture_webp"]
         document["extensionsRequired"] = ["EXT_texture_webp"]
         self.rejected(document, builder, "textured-pbr", "does not match its MIME")
@@ -702,9 +702,9 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             "EAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAABgf/xAAUEQEAAAAA"
             "AAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCLAGVxf//Z"
         )
-        document["images"][0]["bufferView"] = builder.view(jpeg + jpeg)
-        document["images"][0]["mimeType"] = "image/jpeg"
-        document["textures"][0] = {"source": 0}
+        document["images"][0]["bufferView"] = builder.view(jpeg + jpeg)  # pyright: ignore[reportIndexIssue]
+        document["images"][0]["mimeType"] = "image/jpeg"  # pyright: ignore[reportIndexIssue]
+        document["textures"][0] = {"source": 0}  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "textured-pbr", "does not match its MIME")
 
         builder = Glb()
@@ -712,9 +712,9 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         fake_webp = (
             b"RIFF\x18\0\0\0WEBPVP8 \x0b\0\0\0\x20\0\0\x9d\x01\x2a\x01\0\x01\0\0\0"
         )
-        document["images"][0]["bufferView"] = builder.view(fake_webp)
-        document["images"][0]["mimeType"] = "image/webp"
-        document["textures"][0] = {"extensions": {"EXT_texture_webp": {"source": 0}}}
+        document["images"][0]["bufferView"] = builder.view(fake_webp)  # pyright: ignore[reportIndexIssue]
+        document["images"][0]["mimeType"] = "image/webp"  # pyright: ignore[reportIndexIssue]
+        document["textures"][0] = {"extensions": {"EXT_texture_webp": {"source": 0}}}  # pyright: ignore[reportIndexIssue]
         document["extensionsUsed"] = ["EXT_texture_webp"]
         document["extensionsRequired"] = ["EXT_texture_webp"]
         self.rejected(document, builder, "textured-pbr", "does not match its MIME")
@@ -737,9 +737,9 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             + png_chunk(b"IDAT", zlib.compress(b"\0\0\0\0"))
             + png_chunk(b"IEND", b"")
         )
-        document["images"][0]["bufferView"] = builder.view(critical_png)
-        document["images"][0]["mimeType"] = "image/png"
-        document["textures"][0] = {"source": 0}
+        document["images"][0]["bufferView"] = builder.view(critical_png)  # pyright: ignore[reportIndexIssue]
+        document["images"][0]["mimeType"] = "image/png"  # pyright: ignore[reportIndexIssue]
+        document["textures"][0] = {"source": 0}  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "textured-pbr", "does not match its MIME")
 
         builder = Glb()
@@ -751,15 +751,15 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             + b"\xff\xc0\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00"
             + b"\xff\xda\x00\x08\x01\x01\x00\x00\x3f\x00\x00\xff\xd9"
         )
-        document["images"][0]["bufferView"] = builder.view(jpeg)
-        document["images"][0]["mimeType"] = "image/jpeg"
-        document["textures"][0] = {"source": 0}
+        document["images"][0]["bufferView"] = builder.view(jpeg)  # pyright: ignore[reportIndexIssue]
+        document["images"][0]["mimeType"] = "image/jpeg"  # pyright: ignore[reportIndexIssue]
+        document["textures"][0] = {"source": 0}  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "textured-pbr", "does not match its MIME")
 
         builder = Glb()
         document = builder.document("textured-pbr")
-        image_view = document["images"][0]["bufferView"]
-        document["meshes"][0]["primitives"][0]["attributes"]["_IMAGE_ALIAS"] = len(
+        image_view = document["images"][0]["bufferView"]  # pyright: ignore[reportIndexIssue]
+        document["meshes"][0]["primitives"][0]["attributes"]["_IMAGE_ALIAS"] = len(  # pyright: ignore[reportIndexIssue]
             builder.accessors
         )
         builder.accessors.append(
@@ -774,38 +774,38 @@ class ThreeDGlbValidationTests(unittest.TestCase):
 
         builder = Glb()
         document = builder.document("textured-pbr")
-        image_view = document["images"][0]["bufferView"]
+        image_view = document["images"][0]["bufferView"]  # pyright: ignore[reportIndexIssue]
         builder.views[image_view]["target"] = 34962
         self.rejected(document, builder, "textured-pbr", "byteStride or target")
 
     def test_rejects_nonunit_rotation_and_swapped_buffer_targets(self) -> None:
         builder = Glb()
         document = builder.document()
-        document["nodes"][0]["rotation"] = [0.0, 0.0, 0.0, 2.0]
+        document["nodes"][0]["rotation"] = [0.0, 0.0, 0.0, 2.0]  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "geometry", "quaternion is not normalized")
 
         builder = Glb()
         document = builder.document()
         position_view = builder.accessors[0]["bufferView"]
         index_view = builder.accessors[1]["bufferView"]
-        builder.views[position_view]["target"] = 34963
-        builder.views[index_view]["target"] = 34962
+        builder.views[position_view]["target"] = 34963  # pyright: ignore[reportArgumentType, reportCallIssue]
+        builder.views[index_view]["target"] = 34962  # pyright: ignore[reportArgumentType, reportCallIssue]
         self.rejected(document, builder, "geometry", "target must be ARRAY_BUFFER")
 
     def test_rejects_skin_binding_joint_and_inverse_bind_corruption(self) -> None:
         builder = Glb()
         document = builder.document("skinned")
-        document["nodes"][0].pop("skin")
+        document["nodes"][0].pop("skin")  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "skinned", "must bind a skin")
 
         builder = Glb()
         document = builder.document("skinned")
-        document["skins"].append(dict(document["skins"][0]))
+        document["skins"].append(dict(document["skins"][0]))  # pyright: ignore[reportAttributeAccessIssue, reportIndexIssue]
         self.rejected(document, builder, "skinned", "exactly one skin")
 
         builder = Glb()
         document = builder.document("skinned")
-        document["skins"][0]["joints"] = [1, 1]
+        document["skins"][0]["joints"] = [1, 1]  # pyright: ignore[reportIndexIssue]
         self.rejected(document, builder, "skinned", "duplicate joints")
 
         builder = Glb()
@@ -815,7 +815,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
 
         builder = Glb()
         document = builder.document("skinned")
-        joint_view = builder.views[builder.accessors[3]["bufferView"]]
+        joint_view = builder.views[builder.accessors[3]["bufferView"]]  # pyright: ignore[reportArgumentType, reportCallIssue]
         struct.pack_into("<H", builder.blob, int(joint_view["byteOffset"]), 1)
         self.rejected(document, builder, "skinned", "unknown joint")
 

@@ -180,7 +180,7 @@ def settings(task: str = "fl2va", **overrides: object) -> Any:
         "seed": 1101,
     }
     values.update(overrides)
-    return job.Settings(**values)  # type: ignore[arg-type]
+    return job.Settings(**values)
 
 
 def png(path: Path) -> Path:

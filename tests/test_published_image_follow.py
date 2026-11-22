@@ -196,7 +196,7 @@ class RefreshTests(unittest.TestCase):
             assessor = refresh.Assessor(
                 refresh.Catalog.load(root), object(), None, {"recipes": []}
             )
-            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))  # type: ignore[arg-type]
+            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))
             empty = refresh.vendored.Tree({}, True)
             with (
                 patch.object(refresh, "kit_upstream", lambda _http: source),
@@ -221,7 +221,7 @@ class RefreshTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             write_recipe(Path(tmp), SOURCE, sha(b"{}"))
             catalog = refresh.Catalog.load(Path(tmp))
-            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))  # type: ignore[arg-type]
+            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))
             newest = refresh.Target("github", SOURCE, "c" * 40, "d", "tag", "1", "u")
             result = refresh.collect_items(
                 catalog, "recipe", object(), lambda *_: newest, source
@@ -292,7 +292,7 @@ class RefreshTests(unittest.TestCase):
             assessor = refresh.Assessor(
                 refresh.Catalog.load(root), object(), None, {"recipes": []}
             )
-            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))  # type: ignore[arg-type]
+            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))
             with (
                 patch.object(refresh, "kit_upstream", lambda _http: source),
                 patch.object(refresh, "compare_commits", self.missing),
@@ -318,7 +318,7 @@ class RefreshTests(unittest.TestCase):
             assessor = refresh.Assessor(
                 refresh.Catalog.load(root), object(), None, {"recipes": []}
             )
-            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))  # type: ignore[arg-type]
+            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))
             for served in (False, True):
                 with (
                     patch.object(refresh, "kit_upstream", lambda _http: source),

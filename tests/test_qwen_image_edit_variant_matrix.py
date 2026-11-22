@@ -20,9 +20,9 @@ class QwenImageEditVariantMatrixTests(unittest.TestCase):
         for path in paths:
             with self.subTest(recipe=path.name):
                 recipe = read(path)
-                self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
-                self.assertEqual(recipe["topology"]["node_count"], 1)
-                for selection in recipe["models"]:
+                self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")  # pyright: ignore[reportIndexIssue]
+                self.assertEqual(recipe["topology"]["node_count"], 1)  # pyright: ignore[reportIndexIssue]
+                for selection in recipe["models"]:  # pyright: ignore[reportGeneralTypeIssues]
                     model = read(ROOT / "models" / f"{selection['model']['slug']}.json")
                     canonical = document_sha256(model)
                     self.assertEqual(selection["model"]["content_sha256"], canonical)

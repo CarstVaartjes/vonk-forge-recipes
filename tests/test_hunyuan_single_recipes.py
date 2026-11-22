@@ -55,12 +55,12 @@ def load_module(
 def video_module():
     torch = types.ModuleType("torch")
     diffusers = types.ModuleType("diffusers")
-    diffusers.HunyuanVideo15ImageToVideoPipeline = object
-    diffusers.HunyuanVideo15Pipeline = object
+    diffusers.HunyuanVideo15ImageToVideoPipeline = object  # pyright: ignore[reportAttributeAccessIssue]
+    diffusers.HunyuanVideo15Pipeline = object  # pyright: ignore[reportAttributeAccessIssue]
     utils = types.ModuleType("diffusers.utils")
-    utils.export_to_video = object
+    utils.export_to_video = object  # pyright: ignore[reportAttributeAccessIssue]
     pil = types.ModuleType("PIL")
-    pil.Image = object
+    pil.Image = object  # pyright: ignore[reportAttributeAccessIssue]
     return load_module(
         ROOT / "adapters/video/hunyuan-video-15-native/run.py",
         "hunyuan_video_adapter",

@@ -204,7 +204,7 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
         self.module = _adapter_module()
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
-        self.module.INPUT_ROOT = Path(self.temporary.name)
+        self.module.INPUT_ROOT = Path(self.temporary.name)  # pyright: ignore[reportAttributeAccessIssue]
 
     def stage(self, **slots: list[tuple[str, str]]) -> None:
         files = [

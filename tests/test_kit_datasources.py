@@ -829,7 +829,7 @@ class KitModelAssessmentTests(unittest.TestCase):
             "html_url": "u",
         }
         assessor = assessor_for(catalog, api, kit_head)
-        assessor._inventory = lambda repo, revision: inventories[(repo, revision)]  # type: ignore[method-assign]
+        assessor._inventory = lambda repo, revision: inventories[(repo, revision)]
         with patch.object(refresh, "pin_is_newer_by_date", return_value=False):
             return assessor.assess("mia"), world
 

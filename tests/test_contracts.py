@@ -977,7 +977,7 @@ def test_job_knob_accepts_typed_limits_and_old_plain_knobs() -> None:
         recipe = RecipeDefinition.model_validate(
             _job_with_knob({"change_effect": "none", **knob})
         )
-        assert type(recipe.settings.knobs["num-frames"].value) is type(knob["value"])  # type: ignore[union-attr]
+        assert type(recipe.settings.knobs["num-frames"].value) is type(knob["value"])
 
 
 def test_library_ingress_refuses_unbound_knobs_and_unknown_display_knobs() -> None:

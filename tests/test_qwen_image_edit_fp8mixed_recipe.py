@@ -25,19 +25,21 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
         recipe = read(self.path)
         model = model_for(recipe)
         self.assertEqual(
-            model["source"]["revision"], "f68ace85e60b4a02a323e394253731947657b7d2"
+            model["source"]["revision"],  # pyright: ignore[reportIndexIssue]
+            "f68ace85e60b4a02a323e394253731947657b7d2",
         )
-        self.assertEqual(model["format"]["quantization"], "fp8mixed")
+        self.assertEqual(model["format"]["quantization"], "fp8mixed")  # pyright: ignore[reportIndexIssue]
         models: Any = recipe["models"]
         self.assertEqual(models[0]["id"], "primary")
         self.assertEqual(len(models[0]["files"]), 1)
-        self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
-        self.assertEqual(recipe["runtime"]["engine"], "comfyui")
+        self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")  # pyright: ignore[reportIndexIssue]
+        self.assertEqual(recipe["runtime"]["engine"], "comfyui")  # pyright: ignore[reportIndexIssue]
 
     def test_comfy_workflow_is_pinned_and_offline(self) -> None:
         recipe = read(self.path)
         args = {
-            item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]
+            item["name"]: item.get("value")
+            for item in recipe["runtime"]["arguments"]  # pyright: ignore[reportIndexIssue]
         }
         self.assertTrue(args["workflow"].endswith("qwen-image-edit-2511-fp8mixed.json"))
         self.assertEqual(len(args["workflow-sha256"]), 64)
@@ -46,8 +48,8 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
         for path in sorted((ROOT / "recipes").glob("*-comfyui-single.json")):
             with self.subTest(recipe=path.name):
                 recipe = read(path)
-                self.assertEqual(recipe["runtime"]["engine"], "comfyui")
-                for selection in recipe["models"]:
+                self.assertEqual(recipe["runtime"]["engine"], "comfyui")  # pyright: ignore[reportIndexIssue]
+                for selection in recipe["models"]:  # pyright: ignore[reportGeneralTypeIssues]
                     model = read(ROOT / "models" / f"{selection['model']['slug']}.json")
                     canonical = document_sha256(model)
                     self.assertEqual(selection["model"]["content_sha256"], canonical)

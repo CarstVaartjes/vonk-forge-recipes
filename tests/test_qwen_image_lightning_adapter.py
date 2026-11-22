@@ -27,14 +27,14 @@ class QwenImageLightningAdapterTests(unittest.TestCase):
             inputs = Path(temporary)
             (inputs / "prompt.txt").write_text("  draw a red fox  \n", encoding="utf-8")
             previous = adapter._INPUT_DIR
-            adapter._INPUT_DIR = inputs
+            adapter._INPUT_DIR = inputs  # pyright: ignore[reportAttributeAccessIssue]
             try:
                 self.assertEqual(adapter._prompt(), "draw a red fox")
                 (inputs / "second.text").write_text("another", encoding="utf-8")
                 with self.assertRaisesRegex(SystemExit, "exactly one"):
                     adapter._prompt()
             finally:
-                adapter._INPUT_DIR = previous
+                adapter._INPUT_DIR = previous  # pyright: ignore[reportAttributeAccessIssue]
 
     def test_scheduler_uses_the_published_shift_three_contract(self) -> None:
         configuration = adapter._scheduler_config()

@@ -269,7 +269,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
         entries = [{"type": "file", "path": "config.json", "size": 2}]
 
         def denied(_url: str) -> bytes:
-            error = HTTPError(_url, 401, "Unauthorized", {}, None)
+            error = HTTPError(_url, 401, "Unauthorized", {}, None)  # pyright: ignore[reportArgumentType]
             error.close()
             raise error
 

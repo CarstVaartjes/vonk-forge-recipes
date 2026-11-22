@@ -28,11 +28,11 @@ def isolated_root() -> Iterator[Path]:
     previous = catalog_index.ROOT
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)
-        catalog_index.ROOT = root
+        catalog_index.ROOT = root  # pyright: ignore[reportAttributeAccessIssue]
         try:
             yield root
         finally:
-            catalog_index.ROOT = previous
+            catalog_index.ROOT = previous  # pyright: ignore[reportAttributeAccessIssue]
 
 
 class RecipeReleaseValidationTests(unittest.TestCase):
@@ -78,7 +78,7 @@ class RecipeReleaseBuildTests(unittest.TestCase):
             context.mkdir(parents=True)
             (context / "oversized.bin").write_bytes(b"four")
             previous = catalog_index.MAX_SOURCE_FILE_BYTES
-            catalog_index.MAX_SOURCE_FILE_BYTES = 3
+            catalog_index.MAX_SOURCE_FILE_BYTES = 3  # pyright: ignore[reportAttributeAccessIssue]
             try:
                 with self.assertRaisesRegex(
                     SystemExit,
@@ -86,7 +86,7 @@ class RecipeReleaseBuildTests(unittest.TestCase):
                 ):
                     catalog_index.source_bundle(context)
             finally:
-                catalog_index.MAX_SOURCE_FILE_BYTES = previous
+                catalog_index.MAX_SOURCE_FILE_BYTES = previous  # pyright: ignore[reportAttributeAccessIssue]
 
 
 if __name__ == "__main__":

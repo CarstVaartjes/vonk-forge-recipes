@@ -41,7 +41,7 @@ def recipe(slug: str, digests: tuple[str, ...] = ("m",), **kw) -> Recipe:
         "base_image": "b",
     }
     fields.update(kw)
-    return Recipe(**fields)  # type: ignore[arg-type]
+    return Recipe(**fields)
 
 
 def keys(plans: list[policy.GroupPlan]) -> list[list[str]]:

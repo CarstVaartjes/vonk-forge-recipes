@@ -209,7 +209,7 @@ def test_an_unexpected_exception_in_a_pass_is_an_infra_event_and_the_loop_contin
             raise KeyError("surprise")
         real()
 
-    sweep._tick = tick  # type: ignore[method-assign]
+    sweep._tick = tick
     assert sweep.run() == 0
     assert sweep.state.recipes["vonk-forge/good"]["status"] == "passed"
     assert any("unexpected error" in str(e) for e in sweep.state.data.get("events", []))
@@ -230,7 +230,7 @@ def test_an_unexpected_exception_outside_the_pass_does_not_end_the_loop(
             raise RuntimeError("surprise")
         return real()
 
-    sweep.done = done  # type: ignore[method-assign]
+    sweep.done = done
     assert sweep.run() == 0
     assert sweep.state.recipes["vonk-forge/good"]["status"] == "passed"
 
@@ -243,5 +243,5 @@ def test_an_interrupt_still_ends_the_loop(tmp_path: Path, gateway: Gateway) -> N
     def tick() -> None:
         raise KeyboardInterrupt
 
-    sweep._tick = tick  # type: ignore[method-assign]
+    sweep._tick = tick
     assert sweep.run() == 130

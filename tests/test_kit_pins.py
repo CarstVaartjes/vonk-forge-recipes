@@ -769,7 +769,7 @@ def assessor_for(catalog: Any, api: FakeApi, kit_head: str) -> Any:
             refuse(provider, repo)
         return original(provider, repo)
 
-    assessor.target = target  # type: ignore[method-assign]
+    assessor.target = target
     return assessor
 
 

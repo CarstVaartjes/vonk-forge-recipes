@@ -49,9 +49,9 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         self.adapter = _adapter_module()
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
-        self.adapter.INPUT_ROOT = Path(self.temporary.name) / "inputs"
+        self.adapter.INPUT_ROOT = Path(self.temporary.name) / "inputs"  # pyright: ignore[reportAttributeAccessIssue]
         self.adapter.INPUT_ROOT.mkdir()
-        self.adapter.MODEL_ROOT = Path(self.temporary.name) / "models"
+        self.adapter.MODEL_ROOT = Path(self.temporary.name) / "models"  # pyright: ignore[reportAttributeAccessIssue]
         self.adapter.MODEL_ROOT.mkdir()
         for relative in self.adapter.GEMMA_REQUIRED_PATHS:
             path = self.adapter.MODEL_ROOT / relative

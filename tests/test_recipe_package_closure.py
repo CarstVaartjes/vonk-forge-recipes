@@ -49,7 +49,7 @@ def test_archive_has_one_entrypoint_and_real_closure(
     TOOL["validate_recipe_archive"](payload, row["document"])
     with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
         names = [
-            (member.name, archive.extractfile(member).read())
+            (member.name, archive.extractfile(member).read())  # pyright: ignore[reportOptionalMemberAccess]
             for member in archive.getmembers()
             if member.isfile()
         ]

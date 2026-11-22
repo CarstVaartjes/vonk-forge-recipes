@@ -67,7 +67,7 @@ class MovaInputContractTests(unittest.TestCase):
                 "A quiet lake with synchronized water sounds", encoding="utf-8"
             )
             write_manifest(root, "prompt", prompt)
-            runner._INPUT_ROOT = root
+            runner._INPUT_ROOT = root  # pyright: ignore[reportAttributeAccessIssue]
             manifest = runner._input_manifest()
             self.assertIsNotNone(manifest)
             self.assertEqual(
@@ -86,7 +86,7 @@ class MovaInputContractTests(unittest.TestCase):
             document = json.loads((root / "manifest.json").read_text())
             document["files"][0]["sha256"] = "0" * 64
             (root / "manifest.json").write_text(json.dumps(document), encoding="utf-8")
-            runner._INPUT_ROOT = root
+            runner._INPUT_ROOT = root  # pyright: ignore[reportAttributeAccessIssue]
             with self.assertRaisesRegex(SystemExit, "digest"):
                 runner._input_manifest()
 

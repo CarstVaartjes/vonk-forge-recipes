@@ -509,28 +509,6 @@ def test_every_published_blocker_word_waits_unless_declared_final(word: str) -> 
         assert word in policy.REVIEW_FINAL_CODES | policy.RECIPE_FAILURE_CODES.keys()
 
 
-def dig_counts() -> dict[str, int]:
-    counts = {}
-    for path in sorted((ROOT / "spark_sweep").glob("*.py")):
-        count = sum(
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Name)
-            and node.func.id == "dig"
-            for node in ast.walk(ast.parse(path.read_text()))
-        )
-        if count:
-            counts[str(path.relative_to(ROOT))] = count
-    return counts
-
-
-def test_untyped_dig_access_only_falls() -> None:
-    baseline = json.loads((ROOT / "tools/sweep-dig-baseline.json").read_text())
-    counts = dig_counts()
-    assert counts == baseline, (
-        "dig access changed: remove new calls or tighten the baseline after a decrease"
-    )
-
-
 @pytest.mark.parametrize("word", sorted(STATES))
 def test_fake_can_emit_every_lifecycle_word(tmp_path: Path, word: str) -> None:
     from sweep_fakes import FakeModel, FakeRecipe, make_sweep

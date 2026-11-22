@@ -66,7 +66,7 @@ def canonical_digest(path: Path) -> str:
 
 def package_manifest() -> dict[str, object]:
     with tarfile.open(fileobj=io.BytesIO(PACKAGE.read_bytes()), mode="r:gz") as archive:
-        return json.load(archive.extractfile("manifest.json"))
+        return json.load(archive.extractfile("manifest.json"))  # pyright: ignore[reportArgumentType]
 
 
 def load_runner():
@@ -132,7 +132,7 @@ class WanDancerAuthorityTests(unittest.TestCase):
             manifest["recipe_content_sha256"],
             document_sha256(recipe),
         )
-        package_paths = {item["path"] for item in manifest["files"]}
+        package_paths = {item["path"] for item in manifest["files"]}  # pyright: ignore[reportGeneralTypeIssues]
         self.assertTrue(
             {
                 build["context"]["path"] + "/Dockerfile",
@@ -153,7 +153,7 @@ class WanDancerAuthorityTests(unittest.TestCase):
             ):
                 packaged = archive.extractfile(path)
                 self.assertIsNotNone(packaged)
-                payload = packaged.read()
+                payload = packaged.read()  # pyright: ignore[reportOptionalMemberAccess]
                 if path == "models/wan-dancer-14b.json":
                     self.assertEqual(
                         document_sha256(json.loads(payload)), canonical_digest(MODEL)
@@ -339,7 +339,7 @@ class WanDancerInputTests(unittest.TestCase):
         runner = load_runner()
         with tempfile.TemporaryDirectory() as value:
             inputs = Path(value)
-            runner.INPUT_ROOT = inputs
+            runner.INPUT_ROOT = inputs  # pyright: ignore[reportAttributeAccessIssue]
             (inputs / "person.jpg").write_bytes(b"jpeg")
             self.assertEqual(
                 runner._input_file(
@@ -358,7 +358,7 @@ class WanDancerInputTests(unittest.TestCase):
         runner = load_runner()
         with tempfile.TemporaryDirectory() as value:
             inputs = Path(value)
-            runner.INPUT_ROOT = inputs
+            runner.INPUT_ROOT = inputs  # pyright: ignore[reportAttributeAccessIssue]
             files = {
                 "prompt": inputs / "prompt.txt",
                 "reference-image": inputs / "person.png",
@@ -402,7 +402,7 @@ class WanDancerInputTests(unittest.TestCase):
         runner = load_runner()
         with tempfile.TemporaryDirectory() as value:
             inputs = Path(value)
-            runner.INPUT_ROOT = inputs
+            runner.INPUT_ROOT = inputs  # pyright: ignore[reportAttributeAccessIssue]
             prompt = inputs / "prompt.txt"
             prompt.write_text("Dance", encoding="utf-8")
 

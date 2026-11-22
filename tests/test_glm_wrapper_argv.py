@@ -97,7 +97,7 @@ class GlmWrapperArgvTests(unittest.TestCase):
                     **kwargs: object,
                 ) -> subprocess.CompletedProcess[str]:
                     return subprocess.CompletedProcess(
-                        args,
+                        args,  # pyright: ignore[reportArgumentType]
                         0,
                         stdout=f"VONK_ALIVE={_recipe['topology']['node_count']}\n",
                     )

@@ -100,14 +100,14 @@ def test_full_catalog_packages_are_self_contained_and_deterministic(
                 not name.startswith("/") and ".." not in name.split("/")
                 for name in names
             )
-            manifest = json.load(archive.extractfile("manifest.json"))
+            manifest = json.load(archive.extractfile("manifest.json"))  # pyright: ignore[reportArgumentType]
             assert manifest["schema_version"] == 2
             assert manifest["kind"] == "recipe-package"
             assert manifest["recipe_content_sha256"] == first_row["content_sha256"]
             assert manifest["package_type"] == "recipe"
             assert manifest["source_bundle_sha256"] == first_row["source_bundle_sha256"]
             for entry in manifest["files"]:
-                payload = archive.extractfile(entry["path"]).read()
+                payload = archive.extractfile(entry["path"]).read()  # pyright: ignore[reportOptionalMemberAccess]
                 assert len(payload) == entry["size"]
                 assert hashlib.sha256(payload).hexdigest() == entry["sha256"]
 
@@ -295,7 +295,7 @@ def test_ds4_multistage_package_manifests_both_digest_pinned_base_images(
     with tarfile.open(
         package_dir / Path(str(row["package"]["path"])).name, mode="r:gz"
     ) as archive:
-        manifest = json.load(archive.extractfile("manifest.json"))
+        manifest = json.load(archive.extractfile("manifest.json"))  # pyright: ignore[reportArgumentType]
     assert manifest["build_inputs"] == [
         {
             "kind": "oci-image",

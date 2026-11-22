@@ -79,7 +79,7 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
             ):
                 inputs = Path(temporary)
                 previous = adapter._INPUT_DIR
-                adapter._INPUT_DIR = inputs
+                adapter._INPUT_DIR = inputs  # pyright: ignore[reportAttributeAccessIssue]
                 try:
                     (inputs / "prompt.txt").write_text(
                         "  draw a red fox  \n", encoding="utf-8"
@@ -90,13 +90,13 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
                     with self.assertRaisesRegex(SystemExit, "exactly one"):
                         adapter._prompt()
                 finally:
-                    adapter._INPUT_DIR = previous
+                    adapter._INPUT_DIR = previous  # pyright: ignore[reportAttributeAccessIssue]
 
     def test_generation_prompt_rejects_invalid_or_oversized_utf8(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             inputs = Path(temporary)
             previous = generation._INPUT_DIR
-            generation._INPUT_DIR = inputs
+            generation._INPUT_DIR = inputs  # pyright: ignore[reportAttributeAccessIssue]
             try:
                 prompt = inputs / "prompt.txt"
                 prompt.write_bytes(b"\xff")
@@ -106,13 +106,13 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "1..16384"):
                     generation._prompt()
             finally:
-                generation._INPUT_DIR = previous
+                generation._INPUT_DIR = previous  # pyright: ignore[reportAttributeAccessIssue]
 
     def test_edit_adapter_separates_prompt_from_one_or_two_images(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             inputs = Path(temporary)
             previous = edit._INPUT_DIR
-            edit._INPUT_DIR = inputs
+            edit._INPUT_DIR = inputs  # pyright: ignore[reportAttributeAccessIssue]
             try:
                 (inputs / "prompt.txt").write_text(
                     "replace the scarf", encoding="utf-8"
@@ -135,7 +135,7 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "one or two"):
                     edit._image_inputs()
             finally:
-                edit._INPUT_DIR = previous
+                edit._INPUT_DIR = previous  # pyright: ignore[reportAttributeAccessIssue]
 
     def test_layered_adapter_requires_one_image_and_saves_every_layer(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

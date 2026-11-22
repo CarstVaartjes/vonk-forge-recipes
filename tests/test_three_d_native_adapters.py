@@ -78,7 +78,7 @@ def read_package(slug: str) -> tuple[dict[str, object], dict[str, bytes]]:
     package = GENERATED / f"packages/{slug}.tar.gz"
     with tarfile.open(package, mode="r:gz") as archive:
         payloads = {
-            member.name: archive.extractfile(member).read()
+            member.name: archive.extractfile(member).read()  # pyright: ignore[reportOptionalMemberAccess]
             for member in archive.getmembers()
             if member.isfile()
         }
@@ -127,20 +127,20 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 inputs = Path(value)
                 image = inputs / "source.png"
                 image.write_bytes(b"png")
-                self.assertEqual(module["one_input"](inputs), image)
+                self.assertEqual(module["one_input"](inputs), image)  # pyright: ignore[reportCallIssue]
                 image.unlink()
                 target = inputs / "target.bin"
                 target.write_bytes(b"png")
                 (inputs / "source.png").symlink_to(target)
                 with self.assertRaisesRegex(SystemExit, "found 0"):
-                    module["one_input"](inputs)
+                    module["one_input"](inputs)  # pyright: ignore[reportCallIssue]
                 (inputs / "source.png").unlink()
                 target.unlink()
                 oversized = inputs / "large.png"
                 with oversized.open("wb") as stream:
                     stream.truncate(16 * 1024 * 1024 + 1)
                 with self.assertRaisesRegex(SystemExit, "16 MiB"):
-                    module["one_input"](inputs)
+                    module["one_input"](inputs)  # pyright: ignore[reportCallIssue]
 
         trellis = (
             ROOT / "adapters/three-d/trellis2-native/trellis2_job.py"
@@ -177,7 +177,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
         for slug, case in CASES.items():
             with self.subTest(slug=slug):
                 recipe = read_recipe(slug)
-                build = recipe["execution"]["build"]
+                build = recipe["execution"]["build"]  # pyright: ignore[reportIndexIssue]
                 context_name = case["context"]
                 self.assertEqual(build["context"]["path"], context_name)
                 self.assertEqual(build["dockerfile"], f"{context_name}/Dockerfile")
@@ -197,7 +197,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                     hashlib.sha256(CATALOG.canonical(recipe)).hexdigest(),
                 )
                 self.assertEqual(json.loads(payloads["recipe.json"]), recipe)
-                declared = {entry["path"]: entry for entry in manifest["files"]}
+                declared = {entry["path"]: entry for entry in manifest["files"]}  # pyright: ignore[reportGeneralTypeIssues]
                 self.assertEqual(set(declared), set(payloads) - {"manifest.json"})
                 for path, content in payloads.items():
                     if path == "manifest.json":
@@ -227,7 +227,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 model = json.loads((ROOT / model_path).read_text())
                 packaged_model = json.loads(payloads[model_path])
                 self.assertEqual(
-                    recipe["models"][0]["model"]["content_sha256"],
+                    recipe["models"][0]["model"]["content_sha256"],  # pyright: ignore[reportIndexIssue]
                     hashlib.sha256(payloads[model_path]).hexdigest(),
                 )
                 self.assertEqual(packaged_model["identity"], model["identity"])
@@ -243,7 +243,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                         }
                     ],
                 )
-                tags = set(recipe_display(recipe["identity"]["slug"]).tags)
+                tags = set(recipe_display(recipe["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
                 self.assertFalse(
                     tags.intersection(
                         {"metadata-only", "non-executable", "integration-required"}
@@ -256,7 +256,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 recipe = read_recipe(slug)
                 environment = {
                     item["name"]: item["value"]
-                    for item in recipe["runtime"]["environment"]
+                    for item in recipe["runtime"]["environment"]  # pyright: ignore[reportIndexIssue]
                 }
                 self.assertEqual(environment, {"HF_HUB_OFFLINE": "1"})
 

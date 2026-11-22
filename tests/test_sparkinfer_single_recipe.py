@@ -38,7 +38,7 @@ def _catalog_entry(slug: str) -> dict[str, object]:
     catalog = _document(GENERATED / "catalog-index.json")
     return next(
         item
-        for item in catalog["recipes"]
+        for item in catalog["recipes"]  # pyright: ignore[reportGeneralTypeIssues]
         if item["document"]["identity"]["slug"] == slug
     )
 
@@ -48,16 +48,17 @@ class SparkInferSingleRecipeTests(unittest.TestCase):
         recipe = _document(RECIPE_PATH)
         model = _document(_model_path())
         self.assertEqual(
-            recipe["models"][0]["model"]["content_sha256"],
+            recipe["models"][0]["model"]["content_sha256"],  # pyright: ignore[reportIndexIssue]
             _canonical_digest(_model_path()),
         )
         # the wrapper keeps its state under the payload revision: the Model is that revision
-        self.assertEqual(model["source"]["revision"], EXECUTABLE_PAYLOAD_REVISION)
-        self.assertEqual(len(model["files"]), 190)
+        self.assertEqual(model["source"]["revision"], EXECUTABLE_PAYLOAD_REVISION)  # pyright: ignore[reportIndexIssue]
+        self.assertEqual(len(model["files"]), 190)  # pyright: ignore[reportArgumentType]
         self.assertEqual(
-            len({item["path"] for item in model["files"]}), len(model["files"])
+            len({item["path"] for item in model["files"]}),  # pyright: ignore[reportGeneralTypeIssues]
+            len(model["files"]),  # pyright: ignore[reportArgumentType]
         )
-        self.assertTrue(all(len(item["sha256"]) == 64 for item in model["files"]))
+        self.assertTrue(all(len(item["sha256"]) == 64 for item in model["files"]))  # pyright: ignore[reportGeneralTypeIssues]
 
     def test_adapter_is_offline_and_uses_the_published_launch_path(self) -> None:
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")
@@ -113,19 +114,19 @@ class SparkInferSingleRecipeTests(unittest.TestCase):
 
     def test_catalog_package_digests_match_the_recipe(self) -> None:
         recipe = _document(RECIPE_PATH)
-        context = recipe["execution"]["build"]["context"]
+        context = recipe["execution"]["build"]["context"]  # pyright: ignore[reportIndexIssue]
         self.assertEqual(context["path"], "adapters/deepseek/sparkinfer-single")
         recipe_digest = _canonical_digest(RECIPE_PATH)
-        entry = _catalog_entry(recipe["identity"]["slug"])
+        entry = _catalog_entry(recipe["identity"]["slug"])  # pyright: ignore[reportIndexIssue]
         self.assertEqual(
             entry["content_sha256"],
             recipe_digest,
         )
         package = entry["package"]
-        self.assertEqual(package["recipe_content_sha256"], recipe_digest)
-        payload = (GENERATED / package["path"]).read_bytes()
-        self.assertEqual(len(payload), package["expected_bytes"])
-        self.assertEqual(hashlib.sha256(payload).hexdigest(), package["sha256"])
+        self.assertEqual(package["recipe_content_sha256"], recipe_digest)  # pyright: ignore[reportIndexIssue]
+        payload = (GENERATED / package["path"]).read_bytes()  # pyright: ignore[reportIndexIssue]
+        self.assertEqual(len(payload), package["expected_bytes"])  # pyright: ignore[reportIndexIssue]
+        self.assertEqual(hashlib.sha256(payload).hexdigest(), package["sha256"])  # pyright: ignore[reportIndexIssue]
 
 
 if __name__ == "__main__":

@@ -271,7 +271,7 @@ def test_a_fixture_digest_mismatch_is_a_sweep_fault_not_a_recipe_failure(
     }
     recipe: Any = SimpleNamespace(key="k", slug="k", checks=())
     definitions = Definitions(document, QUALIFICATION)
-    definitions.recipe_api = lambda slug: None  # type: ignore[method-assign]
+    definitions.recipe_api = lambda slug: None
     with pytest.raises(ValueError, match="digest") as caught:
         smoke.smoke_service(recipe, definitions, base, "a", config)
     assert not isinstance(caught.value, CaseRenderError)
@@ -284,8 +284,8 @@ def test_a_truncated_response_is_a_typed_recipe_failure_not_a_sweep_crash(
     state.truncate_at = 10
     recipe: Any = SimpleNamespace(key="k", slug="k", checks=())
     definitions = Definitions({}, QUALIFICATION)
-    definitions.recipe_api = lambda slug: None  # type: ignore[method-assign]
-    definitions.service_cases = lambda *_a, **_k: [cases()["ASR_TRANSCRIPTION_JFK"]]  # type: ignore[method-assign]
+    definitions.recipe_api = lambda slug: None
+    definitions.service_cases = lambda *_a, **_k: [cases()["ASR_TRANSCRIPTION_JFK"]]
     result = smoke.smoke_service(recipe, definitions, base, "a", config)
     assert not result.ok and result.failure is not None
     assert "IncompleteRead" in result.failure.detail

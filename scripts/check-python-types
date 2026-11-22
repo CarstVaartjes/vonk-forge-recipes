@@ -1,21 +1,10 @@
 #!/usr/bin/env -S uv run --no-project --managed-python --python 3.14 --with pyright==1.1.414 --with pytest==9.1.1 --with pydantic==2.13.4 --with Pillow==13.0.0 python
-"""Fail when a Python type error appears outside the reviewed exception list.
+"""Fail on any Python type error.
 
-The repository does not type-check cleanly yet, but every surviving error is a
-deliberate one. `tools/pyright-baseline.json` lists each of them by file and
-pyright rule, with the count and the reason it is accepted, so the check is a
-reviewed allowlist rather than a per-file budget:
-
-* an error whose file and rule are not listed fails, so a new error cannot hide
-  behind an equal count in a file that already had one;
-* a listed error whose count grew fails, so a second error of the same rule in
-  the same file is caught;
-* a listed error whose count shrank (or that no longer occurs) passes with a
-  "tighten" notice on stderr, so fixing an error never blocks a commit; run
-  `scripts/check-python-types --update` to tighten the list (it keeps reasons
-  and drops entries that no longer occur);
-* a listed error without a reason fails, so `--update` is not a way to accept an
-  error without saying why.
+The gate requires zero pyright errors. There is no baseline: a test that
+deliberately passes malformed input, or reaches a dynamically loaded module,
+carries a `# pyright: ignore[<rule>]` on that line, and
+`reportUnnecessaryTypeIgnoreComment` fails the ignore once it stops being needed.
 
 pytest is installed alongside pyright because the suite declares fixtures and
 assertion helpers with it. Without it every test file that imports pytest needs
@@ -35,10 +24,8 @@ type error in an entry point cannot hide behind the glob.
 
 The shebang pins uv's managed Python (`--managed-python`) and pyright is told
 to analyze for Linux, so a Homebrew Python's own site-packages (numpy, ...) and
-the host platform cannot change the counts: local and CI runs agree.
+the host platform cannot change the findings: local and CI runs agree.
 
-Run `--update` to write the current errors, then write the reason for any new
-entry it adds.
 """
 
 from __future__ import annotations
@@ -50,7 +37,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE = ROOT / "tools/pyright-baseline.json"
 
 
 def _entry_points() -> list[str]:
@@ -117,6 +103,7 @@ def _pyright(paths: list[str]) -> list[dict[str, object]]:
             {
                 "file": Path(diagnostic["file"]).resolve().relative_to(ROOT).as_posix(),
                 "rule": diagnostic.get("rule") or "unknown",
+                "line": diagnostic["range"]["start"]["line"] + 1,
             }
         )
     return diagnostics
@@ -130,131 +117,18 @@ def _diagnostics() -> list[dict[str, object]]:
     return diagnostics
 
 
-def _counts(diagnostics: list[dict[str, object]]) -> dict[tuple[str, str], int]:
-    counts: dict[tuple[str, str], int] = {}
-    for diagnostic in diagnostics:
-        key = (str(diagnostic["file"]), str(diagnostic["rule"]))
-        counts[key] = counts.get(key, 0) + 1
-    return counts
-
-
-def _load(path: Path) -> list[dict[str, object]]:
-    document = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(document, dict) or document.get("schema_version") != 1:
-        raise SystemExit(f"{path} is not a schema_version 1 exception list")
-    exceptions = document.get("exceptions")
-    if not isinstance(exceptions, list):
-        raise SystemExit(f"{path} has no exceptions list")
-    return exceptions
-
-
-def evaluate(
-    counts: dict[tuple[str, str], int],
-    exceptions: list[dict[str, object]],
-    notices: list[str] | None = None,
-) -> list[str]:
-    """Return one message per failing disagreement between errors and the list.
-
-    Improvements (fewer errors than listed) are not problems; they are appended
-    to ``notices`` when given.
-    """
-
-    problems: list[str] = []
-    listed: set[tuple[str, str]] = set()
-    for entry in exceptions:
-        file = str(entry.get("file", ""))
-        rule = str(entry.get("rule", ""))
-        key = (file, rule)
-        if key in listed:
-            problems.append(f"duplicate exception: {file} {rule}")
-            continue
-        listed.add(key)
-        expected = entry.get("count")
-        if not isinstance(expected, int) or expected < 1:
-            problems.append(f"exception has no positive count: {file} {rule}")
-            continue
-        if not str(entry.get("reason", "")).strip():
-            problems.append(f"exception has no reason: {file} {rule}")
-        actual = counts.get(key, 0)
-        if actual > expected:
-            problems.append(
-                f"type errors increased: {file} {rule}: {expected} -> {actual}"
-            )
-        elif actual < expected and notices is not None:
-            notices.append(f"{file} {rule}: {expected} -> {actual}")
-    for key in sorted(set(counts) - listed):
-        problems.append(f"unlisted type error: {key[0]} {key[1]} ({counts[key]})")
-    return problems
-
-
-def _write(
-    counts: dict[tuple[str, str], int], previous: list[dict[str, object]]
-) -> None:
-    reasons = {
-        (str(entry.get("file", "")), str(entry.get("rule", ""))): str(
-            entry.get("reason", "")
-        )
-        for entry in previous
-    }
-    document = {
-        "schema_version": 1,
-        "exceptions": [
-            {
-                "file": file,
-                "rule": rule,
-                "count": count,
-                "reason": reasons.get((file, rule), ""),
-            }
-            for (file, rule), count in sorted(counts.items())
-        ],
-    }
-    BASELINE.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
-    missing = sorted(
-        f"{entry['file']} {entry['rule']}"
-        for entry in document["exceptions"]
-        if not entry["reason"]
-    )
-    print(
-        f"baseline updated: {sum(counts.values())} error(s) in {len(counts)} entry(s)"
-    )
-    if missing:
-        print("write a reason for:", file=sys.stderr)
-        for entry in missing:
-            print(f"  {entry}", file=sys.stderr)
-
-
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--update", action="store_true", help="rewrite the baseline")
-    args = parser.parse_args()
-
-    counts = _counts(_diagnostics())
-    if args.update:
-        _write(counts, _load(BASELINE))
-        return 0
-
-    notices: list[str] = []
-    problems = evaluate(counts, _load(BASELINE), notices)
-    if notices:
+    argparse.ArgumentParser(description=__doc__).parse_args()
+    diagnostics = _diagnostics()
+    for diagnostic in diagnostics:
         print(
-            "baseline can be tightened (run scripts/check-python-types --update):",
+            f"{diagnostic['file']}:{diagnostic['line']}: {diagnostic['rule']}",
             file=sys.stderr,
         )
-        for notice in notices:
-            print(f"  {notice}", file=sys.stderr)
-    for problem in problems:
-        print(problem, file=sys.stderr)
-    if problems:
-        print(
-            f"\n{len(problems)} problem(s); {sum(counts.values())} current type "
-            f"error(s)",
-            file=sys.stderr,
-        )
+    if diagnostics:
+        print(f"\n{len(diagnostics)} type error(s)", file=sys.stderr)
         return 1
-    print(
-        f"python types: {sum(counts.values())} reviewed exception(s), "
-        "no unlisted errors"
-    )
+    print("python types: no errors")
     return 0
 
 

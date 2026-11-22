@@ -28,10 +28,12 @@ exclude = ["adapters"]
 [tool.pyright]
 # One checker for our own code; adapters are excluded (see [tool.ruff]). The mode and the
 # language version are pinned because both change which diagnostics exist:
-# an unconfigured pyright reports hundreds of extra findings, so the reviewed
-# baseline would otherwise depend on the host interpreter and on defaults.
+# an unconfigured pyright reports hundreds of extra findings, so the zero-error
+# gate would otherwise depend on the host interpreter and on defaults.
 pythonVersion = "3.14"
 typeCheckingMode = "basic"
+# A `# pyright: ignore` that no longer suppresses anything is an error.
+reportUnnecessaryTypeIgnoreComment = "error"
 # The contracts package is not installed in the environment CI checks with, so
 # its import root is declared here exactly as the test suites add it. Without
 # it every contract import is an unresolved-import finding.

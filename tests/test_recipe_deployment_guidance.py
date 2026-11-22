@@ -38,34 +38,35 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
 
         self.assertTrue(
             {"preferred", "default", "target-only"}
-            <= set(recipe_display(standard["identity"]["slug"]).tags)
+            <= set(recipe_display(standard["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
         )
         self.assertNotIn(
-            "memory-tight", recipe_display(standard["identity"]["slug"]).tags
+            "memory-tight",
+            recipe_display(standard["identity"]["slug"]).tags,  # pyright: ignore[reportIndexIssue]
         )
 
-        latency_tags = set(recipe_display(latency["identity"]["slug"]).tags)
+        latency_tags = set(recipe_display(latency["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
         self.assertTrue(
             {"high-context", "memory-tight", "specialized", "low-concurrency"}
             <= latency_tags
         )
         self.assertNotIn("default", latency_tags)
-        self.assertEqual(latency["settings"]["context_tokens"]["value"], 1_048_576)
+        self.assertEqual(latency["settings"]["context_tokens"]["value"], 1_048_576)  # pyright: ignore[reportIndexIssue]
 
-        self.assertEqual(standard["topology"]["node_count"], 1)
-        self.assertEqual(latency["topology"]["node_count"], 1)
+        self.assertEqual(standard["topology"]["node_count"], 1)  # pyright: ignore[reportIndexIssue]
+        self.assertEqual(latency["topology"]["node_count"], 1)  # pyright: ignore[reportIndexIssue]
 
-        nano_tags = set(recipe_display(nano["identity"]["slug"]).tags)
+        nano_tags = set(recipe_display(nano["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
         self.assertTrue({"executable", "historical", "superseded"} <= nano_tags)
 
     def test_moss_is_labeled_as_replay_not_interactive_service(self) -> None:
         recipe = load("recipes/moss-vl-realtime-11b-pytorch-single.json")
-        tags = set(recipe_display(recipe["identity"]["slug"]).tags)
+        tags = set(recipe_display(recipe["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
         self.assertTrue(
             {"session-replay", "batch-job", "not-interactive-service"} <= tags
         )
-        self.assertEqual(recipe["interfaces"][0]["adapter"], "artifact-job")
-        outputs = {slot["id"] for slot in recipe["interfaces"][0]["output"]["slots"]}
+        self.assertEqual(recipe["interfaces"][0]["adapter"], "artifact-job")  # pyright: ignore[reportIndexIssue]
+        outputs = {slot["id"] for slot in recipe["interfaces"][0]["output"]["slots"]}  # pyright: ignore[reportIndexIssue]
         self.assertEqual(outputs, {"replay", "transcript"})
 
     def test_mova_360p_is_default_and_720p_is_tight(self) -> None:
@@ -73,14 +74,14 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
         high = load("recipes/mova-720p-diffusers-single.json")
         self.assertTrue(
             {"preferred", "default"}
-            <= set(recipe_display(low["identity"]["slug"]).tags)
+            <= set(recipe_display(low["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
         )
-        self.assertNotIn("memory-tight", recipe_display(low["identity"]["slug"]).tags)
+        self.assertNotIn("memory-tight", recipe_display(low["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
         self.assertTrue(
             {"memory-tight", "high-resolution"}
-            <= set(recipe_display(high["identity"]["slug"]).tags)
+            <= set(recipe_display(high["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
         )
-        self.assertNotIn("default", recipe_display(high["identity"]["slug"]).tags)
+        self.assertNotIn("default", recipe_display(high["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
 
     def test_release_metadata_and_package_bind_current_recipe_digests(self) -> None:
         slugs = (
@@ -107,11 +108,11 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
                     digest,
                 )
                 package = entry["package"]
-                self.assertEqual(package["recipe_content_sha256"], digest)
-                package_path = GENERATED / package["path"]
+                self.assertEqual(package["recipe_content_sha256"], digest)  # pyright: ignore[reportIndexIssue]
+                package_path = GENERATED / package["path"]  # pyright: ignore[reportIndexIssue]
                 payload = package_path.read_bytes()
-                self.assertEqual(len(payload), package["expected_bytes"])
-                self.assertEqual(hashlib.sha256(payload).hexdigest(), package["sha256"])
+                self.assertEqual(len(payload), package["expected_bytes"])  # pyright: ignore[reportIndexIssue]
+                self.assertEqual(hashlib.sha256(payload).hexdigest(), package["sha256"])  # pyright: ignore[reportIndexIssue]
 
 
 if __name__ == "__main__":

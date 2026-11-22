@@ -77,15 +77,15 @@ def test_idle_with_ready_work_raises_an_alert(tmp_path: Path, gateway: Gateway) 
     sweep, _, _ = make_sweep(
         tmp_path, [FakeRecipe("a", ("m1",))], [FakeModel("m1")], gateway=gateway
     )
-    sweep.sparks = lambda: [SimpleNamespace(id="spk_a", name="spark-a")]  # type: ignore[method-assign]
-    sweep.ready_candidates = lambda: [object()]  # type: ignore[method-assign]
+    sweep.sparks = lambda: [SimpleNamespace(id="spk_a", name="spark-a")]
+    sweep.ready_candidates = lambda: [object()]
     now = sweep.clock.now()
     sweep.check_idle(now)
     assert not sweep.state.data.get("alerts")
     sweep.check_idle(now + sweep.cfg.idle_alert_seconds + 1)
     assert sweep.state.data["alerts"]
     assert "IDLE WITH READY WORK" in sweep.state.data["alerts"][0]
-    sweep.ready_candidates = list  # type: ignore[method-assign]
+    sweep.ready_candidates = list
     sweep.check_idle(now + 2 * sweep.cfg.idle_alert_seconds)
     assert sweep.state.data["alerts"] == []
 
@@ -126,7 +126,7 @@ def test_an_idle_lane_names_the_cleanup_that_keeps_it_from_placement(
         "node_ids": ["spk_a"],
         "request_key": "k",
     }
-    sweep.ready_candidates = lambda: [object()]  # type: ignore[method-assign]
+    sweep.ready_candidates = lambda: [object()]
     now = clock.now()
     sweep.check_idle(now)
     sweep.check_idle(now + sweep.cfg.idle_alert_seconds + 1)

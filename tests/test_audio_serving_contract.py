@@ -68,7 +68,7 @@ def test_a_multipart_fixture_is_part_of_the_package_closure() -> None:
         lambda check: check["request"]["file"].update(fixture="/etc/passwd"),
     ],
 )
-def test_a_transcription_request_outside_the_shape_is_refused(change) -> None:  # type: ignore[no-untyped-def]
+def test_a_transcription_request_outside_the_shape_is_refused(change) -> None:
     example = _example()
     change(_checks(example)[-2])
     with pytest.raises(ValidationError):

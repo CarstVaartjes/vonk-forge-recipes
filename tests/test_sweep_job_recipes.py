@@ -97,7 +97,7 @@ def test_three_identical_untyped_job_create_replies_defer_and_the_next_recipe_ru
                 return fleet._error("control.api_error", detail)
         return real(a)
 
-    fleet._recipe_job = refuse_bad  # type: ignore[method-assign]
+    fleet._recipe_job = refuse_bad
     for _ in range(8):
         if sweep.run() == 0 and sweep.state.status(good.key) == "passed":
             break
