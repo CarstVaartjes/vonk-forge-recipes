@@ -305,6 +305,22 @@ Do not equate auto-merge or a mergeable PR with a merge. When integration is
 in scope, verify the remote commit and terminal current-head checks, then the
 published bundle/source identities. Never rerun or cancel CI for this track.
 
+## Python layers
+
+Python code in this repository forms one directed layering, checked over the whole
+tree by `tests/test_package_import_direction.py` (no counts, no exceptions):
+
+| Layer | Files | May import |
+|---|---|---|
+| `contracts` | `contracts/src/vonk_forge_contracts/**` | `contracts` |
+| `qualification` | `qualification/*.py`: documents, memory need, evidence store and retention, optional-input reading, image evidence, PR ownership | `contracts`, `qualification` |
+| `spark_sweep` | `spark_sweep/*.py`: the hardware sweep application | `contracts`, `qualification`, `spark_sweep` |
+| `tools` | `tools/*.py` helpers and the Python scripts in `tools/` | `contracts`, `qualification`, `tools`; `spark_sweep` only from `tools/sweep-recipes`, `tools/sync-qualification-evidence` and `tools/backfill-qualification-evidence` |
+
+Library code that publication or the upstream refresh reads belongs in `qualification/`,
+never in `spark_sweep/`. No runtime import cycle between files: a function-level import
+counts, a `TYPE_CHECKING` import does not. Tests may import anything.
+
 ## Hardware sweep: operation
 
 `tools/sweep-recipes` supplies Python 3.14 and pinned Pydantic; `spark_sweep/`
