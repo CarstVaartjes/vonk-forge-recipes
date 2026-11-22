@@ -6,6 +6,7 @@ import runpy
 import sys
 import tempfile
 import unittest
+from email.message import Message
 from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError
@@ -82,7 +83,7 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
             ]  # fmt: skip
             with (
                 patch.object(sys, "argv", argv),
-                patch.dict(namespace["read_pointer"].__globals__, {"urlopen": github}),
+                patch("urllib.request.urlopen", github),
             ):
                 try:
                     namespace["main"]()
@@ -150,6 +151,18 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
     def test_a_missing_path_is_refused_with_the_status(self) -> None:
         with self.assertRaisesRegex(SystemExit, "HTTP 404"):
             self._run(FakeGitHub({}))
+
+    def test_a_busy_github_is_not_checked_this_run_and_not_a_missing_path(self) -> None:
+        # Retry-After beyond the bound ends the wait at once: no sleeping in the test.
+        advice = Message()
+        advice["Retry-After"] = "600"
+
+        def busy(request, timeout: float | None = None):
+            raise HTTPError(request.full_url, 429, "Too Many", advice, None)
+
+        with self.assertRaises(SystemExit) as raised:
+            self._run(busy)  # type: ignore[arg-type]
+        self.assertNotIn("HTTP", str(raised.exception))
 
     def test_probe_batch_confirms_the_object_without_downloading(self) -> None:
         batch = {"objects": [{"oid": OID, "size": SIZE, "actions": {"download": {}}}]}

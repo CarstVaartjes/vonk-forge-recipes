@@ -216,6 +216,48 @@ def test_publish_builds_only_the_changed_key_without_a_pr_candidate(
     assert selection["deferred"] == []
 
 
+def test_a_busy_registry_skips_the_image_instead_of_building_or_ending_the_run(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    def busy(_owner: str, _name: str, _tag: str) -> str | None:
+        raise tool.UpstreamBusy("ghcr.io is rate limited")
+
+    selection = tool.select(_plan(), owner=OWNER, candidates=None, lookup=busy)
+    assert (selection["builds"], selection["copies"]) == ([], [])
+    assert "registry busy" in capsys.readouterr().err
+
+
+def test_a_rate_limited_registry_lookup_is_retried_then_answers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import io
+    import urllib.error
+    from email.message import Message
+
+    advice = Message()
+    advice["Retry-After"] = "1"
+    answers: list[Any] = [
+        urllib.error.HTTPError("https://ghcr.io", 429, "Too Many", advice, None),
+        io.BytesIO(b'{"token": "t"}'),
+    ]
+
+    def urlopen(request: Any, timeout: float | None = None) -> Any:
+        answer = answers.pop(0)
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
+
+    class Manifest(io.BytesIO):
+        def __init__(self) -> None:
+            super().__init__()
+            self.headers = {"Docker-Content-Digest": DIGEST}
+
+    monkeypatch.setattr("urllib.request.urlopen", urlopen)
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    answers.append(Manifest())
+    assert tool.ghcr_digest(OWNER, "vonk-forge-recipe-x", "build-k") == DIGEST
+
+
 def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:
     registry = _registry({("vonk-forge-recipe-other", f"build-{OWN}"): DIGEST})
     images, missing = tool.resolve(_plan(), owner=OWNER, lookup=registry)

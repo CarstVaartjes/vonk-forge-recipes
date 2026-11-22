@@ -42,6 +42,10 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools._upstream_http import UpstreamBusy, fetch
+
 REGISTRY = "ghcr.io"
 PACKAGE_PREFIX = "vonk-forge-recipe-"
 # A matrix may hold at most 256 jobs; the rest wait for the next run.
@@ -69,30 +73,28 @@ def ghcr_digest(owner: str, name: str, tag: str) -> str | None:
     """Anonymous manifest lookup; ``None`` when the tag does not exist."""
 
     scope = f"repository:{owner.lower()}/{name}:pull"
-    for attempt in range(3):
-        try:
-            with urllib.request.urlopen(
-                f"https://{REGISTRY}/token?scope={scope}", timeout=30
-            ) as response:
-                token = json.load(response)["token"]
-            request = urllib.request.Request(
-                f"https://{REGISTRY}/v2/{owner.lower()}/{name}/manifests/{tag}",
-                method="HEAD",
-                headers={"Authorization": f"Bearer {token}", "Accept": _MANIFEST_TYPES},
-            )
-            with urllib.request.urlopen(request, timeout=30) as response:
-                digest = response.headers.get("Docker-Content-Digest")
-                return digest if isinstance(digest, str) else None
-        except urllib.error.HTTPError as error:
-            # A package that was never pushed denies the token or the manifest.
-            if error.code in {401, 403, 404}:
-                return None
-            if attempt == 2:
-                raise
-        except (urllib.error.URLError, TimeoutError, OSError):
-            if attempt == 2:
-                raise
-    return None
+    try:
+        token = fetch(
+            urllib.request.Request(f"https://{REGISTRY}/token?scope={scope}"),
+            lambda response: json.load(response)["token"],
+            timeout=30,
+        )
+        request = urllib.request.Request(
+            f"https://{REGISTRY}/v2/{owner.lower()}/{name}/manifests/{tag}",
+            method="HEAD",
+            headers={"Authorization": f"Bearer {token}", "Accept": _MANIFEST_TYPES},
+        )
+        digest = fetch(
+            request,
+            lambda response: response.headers.get("Docker-Content-Digest"),
+            timeout=30,
+        )
+    except urllib.error.HTTPError as error:
+        # A package that was never pushed denies the token or the manifest.
+        if error.code in {401, 403, 404}:
+            return None
+        raise
+    return digest if isinstance(digest, str) else None
 
 
 def _recipes(plan: Mapping[str, Any]) -> Iterable[tuple[str, Mapping[str, Any]]]:
@@ -118,58 +120,65 @@ def select(
     builds: dict[str, dict[str, Any]] = {}
     copies: list[dict[str, str]] = []
     for image in plan.get("images", []):
-        key = str(image["build_key"])
-        recipes = list(image.get("recipes", []))
-        wanted = [
-            recipe
-            for recipe in recipes
-            if candidates is None or str(recipe["slug"]) in candidates
-        ]
-        if not wanted:
-            continue
-        tag = f"build-{key}"
-        present = {
-            str(recipe["slug"]): lookup(owner, package(str(recipe["slug"])), tag)
-            for recipe in recipes
-        }
-        source = next((slug for slug, digest in present.items() if digest), None)
-        missing = [recipe for recipe in wanted if not present[str(recipe["slug"])]]
-        if not missing:
-            continue
-        # Only a successful build + smoke run writes a candidate tag. Promote
-        # its immutable digest; recipe versions and commits do not affect reuse.
-        if source is None:
-            for recipe in recipes:
-                slug = str(recipe["slug"])
-                digest = lookup(owner, package(slug), f"candidate-{key}")
-                if digest:
-                    source = slug
-                    present[slug] = digest
-                    break
-        if source is not None:
-            digest = present[source]
-            assert digest is not None
-            copies.extend(
-                {
-                    "from": f"{repository(owner, source)}@{digest}",
-                    "to": f"{repository(owner, str(recipe['slug']))}:{tag}",
-                    "version_tag": f"{repository(owner, str(recipe['slug']))}:"
-                    f"{recipe.get('version') or 'latest'}",
-                }
-                for recipe in missing
+        try:
+            key = str(image["build_key"])
+            recipes = list(image.get("recipes", []))
+            wanted = [
+                recipe
+                for recipe in recipes
+                if candidates is None or str(recipe["slug"]) in candidates
+            ]
+            if not wanted:
+                continue
+            tag = f"build-{key}"
+            present = {
+                str(recipe["slug"]): lookup(owner, package(str(recipe["slug"])), tag)
+                for recipe in recipes
+            }
+            source = next((slug for slug, digest in present.items() if digest), None)
+            missing = [recipe for recipe in wanted if not present[str(recipe["slug"])]]
+            if not missing:
+                continue
+            # Only a successful build + smoke run writes a candidate tag. Promote
+            # its immutable digest; recipe versions and commits do not affect reuse.
+            if source is None:
+                for recipe in recipes:
+                    slug = str(recipe["slug"])
+                    digest = lookup(owner, package(slug), f"candidate-{key}")
+                    if digest:
+                        source = slug
+                        present[slug] = digest
+                        break
+            if source is not None:
+                digest = present[source]
+                assert digest is not None
+                copies.extend(
+                    {
+                        "from": f"{repository(owner, source)}@{digest}",
+                        "to": f"{repository(owner, str(recipe['slug']))}:{tag}",
+                        "version_tag": f"{repository(owner, str(recipe['slug']))}:"
+                        f"{recipe.get('version') or 'latest'}",
+                    }
+                    for recipe in missing
+                )
+                continue
+            builds[key] = {
+                "build_key": key,
+                "recipes": [
+                    {
+                        "slug": str(recipe["slug"]),
+                        "version": recipe.get("version"),
+                        "repository": repository(owner, str(recipe["slug"])),
+                    }
+                    for recipe in missing
+                ],
+            }
+        except UpstreamBusy as error:
+            # Not looked up this run: neither built nor copied; the next run asks again.
+            print(
+                f"{image['build_key']}: registry busy, not planned: {error}",
+                file=sys.stderr,
             )
-            continue
-        builds[key] = {
-            "build_key": key,
-            "recipes": [
-                {
-                    "slug": str(recipe["slug"]),
-                    "version": recipe.get("version"),
-                    "repository": repository(owner, str(recipe["slug"])),
-                }
-                for recipe in missing
-            ],
-        }
     ordered = sorted(builds.values(), key=lambda item: item["recipes"][0]["slug"])
     return {
         "builds": ordered[:MAX_BUILDS],
@@ -195,7 +204,7 @@ def resolve(
         slug = str(recipe["slug"])
         try:
             digest = lookup(owner, package(slug), f"build-{key}")
-        except OSError as error:
+        except (OSError, RuntimeError) as error:  # incl. UpstreamBusy
             print(f"{slug}: registry lookup failed: {error}", file=sys.stderr)
             digest = None
         return key, slug, digest
