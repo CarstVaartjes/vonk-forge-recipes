@@ -387,11 +387,13 @@ jobs:
 
       - name: Look up every recipe's image
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/resolved"
           python3 tools/prebuilt-images resolve --plan "$RUNNER_TEMP/plan/plan.json" \
-            --owner "${{ github.repository_owner }}" \
+            --owner "${{ github.repository_owner }}" --repository "$GITHUB_REPOSITORY" \
             --output "$RUNNER_TEMP/resolved/prebuilt-images.json" | tee "$RUNNER_TEMP/resolved.txt"
           {
             echo "### Prebuilt images"

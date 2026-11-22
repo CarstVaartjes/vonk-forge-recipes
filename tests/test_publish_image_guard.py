@@ -173,7 +173,7 @@ def test_lookup_noise_ships_the_recipe_pending_and_a_later_publish_pins_it(
 
     def publish(lookup: Any, attempt: Path) -> subprocess.CompletedProcess[str]:
         # The index pins exactly what resolve found (build-catalog-index).
-        images, _missing = tool.resolve(plan, owner="o", lookup=lookup)
+        images, _missing, _carried = tool.resolve(plan, owner="o", lookup=lookup)
         row = {**recipe, "prebuilt_image": images.get(CONTENT)}
         attempt.mkdir()
         return _check(
