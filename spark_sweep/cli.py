@@ -9,8 +9,6 @@ import time
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
-from vonk_forge_contracts.sweep import SweepEvidenceExit
-
 from qualification.memory_need import SPARK_MEMORY_BYTES
 
 from . import policy
@@ -27,6 +25,7 @@ from .run import DEFAULT_BOOST, Clock, Sweep, SweepConfig, selects
 from .smoke import HttpConfig
 from .source_serving import authored_contents, describe, unserved
 from .state import ResultsLog, State, StateLock, StateLocked
+from .sweep_contract import SweepEvidenceExit
 from .vonkctl import OWNER_PROFILES, Vonkctl, VonkctlError
 
 # Kept equal to AUTHORITY_ID in tools/build-qualification-authority (a test checks it), so

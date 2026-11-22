@@ -11,13 +11,13 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-from vonk_forge_contracts.sweep import SweepWaitCode, SweepWaitReason
 
 from spark_sweep import policy
 from spark_sweep.auth_contract import SmokeAuthClass
 from spark_sweep.removal_contract import RecipeVerdict
 from spark_sweep.report import build_status
 from spark_sweep.smoke import SmokeResult, _transport_failure
+from spark_sweep.sweep_contract import SweepWaitCode, SweepWaitReason
 from spark_sweep.verdict import Disposition, disposition
 
 FIXTURE = Path(__file__).parent / "fixtures/sweep-d3-route-refusal.json"

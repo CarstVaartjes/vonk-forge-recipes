@@ -651,9 +651,8 @@ def test_slow_catalog_refresh_yields_to_removal_after_a_complete_read(
 
 @pytest.mark.parametrize("fault", ["timeout", "cursor"])
 def test_catalog_retry_is_bounded_and_reports_cause_age_and_recovery(tmp_path, fault):
-    from vonk_forge_contracts.sweep import SweepWaitReason
-
     from spark_sweep.removal_contract import RemovalWait
+    from spark_sweep.sweep_contract import SweepWaitReason
 
     sweep, peer, clock = scenario(tmp_path)
     peer.fleet.library_faults = [fault]
@@ -694,9 +693,8 @@ def test_removal_reports_the_actual_owner_pause_and_invalid_rows(tmp_path):
     sweep.remove_finished_models()
     clock.t += 65
     sweep.remove_finished_models()
-    from vonk_forge_contracts.sweep import SweepWaitReason
-
     from spark_sweep.removal_contract import RemovalWait
+    from spark_sweep.sweep_contract import SweepWaitReason
 
     wait = RemovalWait.model_validate(sweep.state.data["model_removal_wait"])
     assert wait.reason == SweepWaitReason.OPERATOR

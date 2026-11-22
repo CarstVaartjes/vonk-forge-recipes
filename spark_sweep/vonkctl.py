@@ -17,7 +17,8 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from pydantic import ValidationError
-from vonk_forge_contracts.sweep import CliObservationReply
+
+from .sweep_contract import CliObservationReply
 
 OWNER_PROFILES = frozenset({1, 2, 3})
 PROFILE_WRITES = frozenset({"add", "remove", "configure", "import", "load", "cancel"})

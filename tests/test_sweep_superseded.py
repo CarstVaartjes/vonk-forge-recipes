@@ -7,13 +7,13 @@ from dataclasses import replace
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts.sweep import SweepSlotPhase, SweepWaitCode, SweepWaitReason
 
 from spark_sweep import policy, verdict
 from spark_sweep.identity import AcceptedRequest
 from spark_sweep.lifecycle import LifecycleState, RecipeStatus, ReconciliationStatus
 from spark_sweep.report import build_status
 from spark_sweep.smoke import SmokeResult
+from spark_sweep.sweep_contract import SweepSlotPhase, SweepWaitCode, SweepWaitReason
 from spark_sweep.vonkctl import Reply
 
 SID = "8cb1d3a7-0000-4000-8000-000000000001"

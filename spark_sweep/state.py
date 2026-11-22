@@ -22,8 +22,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from vonk_forge_contracts.sweep import SweepAdoptionReason, SweepAdoptionResult
-
 from .lifecycle import (
     DownloadIntentKind,
     LifecycleState,
@@ -32,6 +30,7 @@ from .lifecycle import (
     SkipReasonKind,
 )
 from .policy import LOAD_RULES, SMOKE_RULES
+from .sweep_contract import SweepAdoptionReason, SweepAdoptionResult
 
 SCHEMA = 2
 EVENT_LIMIT = 60

@@ -31,8 +31,6 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Any
 
-from vonk_forge_contracts.sweep import SweepWaitReason
-
 from .catalog import Model, Recipe
 from .fanout import DaemonExecutor, gather
 from .identity import AcceptedRequest, content_identity, verdict_matches
@@ -49,6 +47,7 @@ from .policy import (
 )
 from .receipt import receipt_failure, terminal_outcome
 from .state import State
+from .sweep_contract import SweepWaitReason
 from .verdict import (
     CONTROLLER_OWNED_WAITS,
     Disposition,

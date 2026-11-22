@@ -12,10 +12,10 @@ from typing import Any
 
 import pytest
 from sweep_fakes import FakeFleet, FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts.sweep import SweepWaitReason
 
 from spark_sweep import verdict
 from spark_sweep.policy import TimeoutPolicy
+from spark_sweep.sweep_contract import SweepWaitReason
 
 HOUR = 3600.0
 ALARM = {

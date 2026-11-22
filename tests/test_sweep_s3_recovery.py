@@ -17,13 +17,13 @@ from urllib.error import HTTPError
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-from vonk_forge_contracts.sweep import SweepWait, SweepWaitReason
 
 from spark_sweep import policy, verdict
 from spark_sweep.identity import content_identity
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.smoke import HttpConfig, stream_probe
 from spark_sweep.state import State
+from spark_sweep.sweep_contract import SweepWait, SweepWaitReason
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")

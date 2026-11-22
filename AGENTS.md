@@ -273,7 +273,13 @@ a digest mismatch; `read_catalog_index` is
 the strict whole-index form for producers and tests. The envelope and package
 schema versions live only there; change the shape in the model and run
 `tools/generate-contract-schemas`. Once `v<CONTRACT_VERSION>` is released, validate.yml refuses a
-change under `contracts/src` until `_version.py` names a new version.
+change under `contracts/src` until `_version.py` names a new version. A change
+that does not alter the published shape (a removed module, a fix) is a patch,
+never a minor or major: the Controller reads only the newest release within its
+own major. `vonk_forge_contracts` holds only documents, and the functions over
+them, that more than one process reads (Controller, vonkctl, publication, recipe
+producers). A tool's own state, and its projection of another system's wire
+shape, live in that tool (the sweep's records: `spark_sweep/sweep_contract.py`).
 The index also publishes the vocabulary (`vonk_forge_contracts.vocabulary`): every capability's
 label, description and category and every qualification status's meaning and whether it counts as
 verified. Change user-facing words only there; the site, Controller UI and vonkctl render the
@@ -522,8 +528,8 @@ changed owner fingerprint; retain attempts, cooldowns and history
 (`tests/test_sweep_image_identity.py`, `tests/test_sweep_release.py`,
 `tests/test_sweep_download_retests.py`, `tests/test_sweep_transient_causes.py`).
 
-Local sweep observation models live in `vonk_forge_contracts.sweep` and are
-registered in `tools/python-model-registry.json`: `CleanupEnd`,
+Local sweep observation models live in `spark_sweep/sweep_contract.py`, a
+pydantic and stdlib leaf that imports no other sweep module: `CleanupEnd`,
 `CleanupObservationBudget`, `CleanupFleetObservation`, `FleetNodeObservation`,
 `FleetConnectionObservation`, `LoadedRunObservation`, `ReviewedCleanupStop`.
 They ignore wire extensions but require fields used to establish absence;

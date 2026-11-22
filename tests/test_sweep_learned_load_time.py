@@ -8,9 +8,9 @@ and every no-progress window stayed at the floor.
 from pathlib import Path
 
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-from vonk_forge_contracts.sweep import ControllerWait, SweepWait, SweepWaitReason
 
 from spark_sweep.lifecycle import LifecycleState
+from spark_sweep.sweep_contract import ControllerWait, SweepWait, SweepWaitReason
 
 
 def test_copy_ticks_are_not_also_counted_as_waited(tmp_path: Path) -> None:

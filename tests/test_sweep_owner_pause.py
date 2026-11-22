@@ -7,16 +7,16 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-from vonk_forge_contracts.sweep import (
+
+from spark_sweep.lifecycle import LifecycleState
+from spark_sweep.owner import OwnerGuard
+from spark_sweep.state import State
+from spark_sweep.sweep_contract import (
     InfrastructureIncident,
     SweepWaitCode,
     SweepWaitExpiry,
     SweepWaitReason,
 )
-
-from spark_sweep.lifecycle import LifecycleState
-from spark_sweep.owner import OwnerGuard
-from spark_sweep.state import State
 from spark_sweep.vonkctl import VonkctlTimeout
 
 

@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-from vonk_forge_contracts.sweep import CleanupEnd, CleanupEndReason
 
 from spark_sweep import policy
+from spark_sweep.sweep_contract import CleanupEnd, CleanupEndReason
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -132,7 +132,7 @@ def test_transport_error_with_empty_fleet_is_not_absence(tmp_path: Path) -> None
 def test_absent_receipt_with_exact_present_run_keeps_original_clear(
     tmp_path: Path,
 ) -> None:
-    from vonk_forge_contracts.sweep import ReviewedCleanupStop
+    from spark_sweep.sweep_contract import ReviewedCleanupStop
 
     sweep, fleet, clock, recipe, record = scenario(tmp_path)
     record["reviewed_stops"] = [
@@ -205,23 +205,10 @@ def test_present_cleanup_still_observes_stop_receipt_and_admits_fresh_load(
     admit(sweep, clock, recipe)
 
 
-def test_cleanup_contract_module_is_registered() -> None:
-    from pydantic import TypeAdapter
-
-    root = Path(__file__).resolve().parents[1]
-    registered = TypeAdapter(list[str]).validate_json(
-        (root / "tools/python-model-registry.json").read_text()
-    )
-    assert CleanupEnd.__module__ in registered
-    assert CleanupEnd.model_json_schema()["$defs"]["CleanupEndReason"]["enum"] == [
-        CleanupEndReason.TARGET_ABSENT
-    ]
-
-
 def test_unrelated_offline_node_does_not_hold_absent_exact_target(
     tmp_path: Path,
 ) -> None:
-    from vonk_forge_contracts.sweep import ReviewedCleanupStop
+    from spark_sweep.sweep_contract import ReviewedCleanupStop
 
     sweep, fleet, clock, recipe, record = scenario(tmp_path)
     record["reviewed_stops"] = [

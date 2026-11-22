@@ -22,7 +22,6 @@ from vonk_forge_contracts import (
     QualificationStatusView,
     derive_status,
 )
-from vonk_forge_contracts.sweep import SweepSlotPhase, SweepWaitReason
 
 from . import policy, verdict
 from .evidence_contract import read_result
@@ -35,6 +34,7 @@ from .qualification import (
 )
 from .removal_contract import RecipeVerdict, RemovalWait
 from .state import write_atomic
+from .sweep_contract import SweepSlotPhase, SweepWaitReason
 
 if TYPE_CHECKING:
     from .run import Sweep

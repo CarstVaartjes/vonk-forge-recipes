@@ -18,16 +18,15 @@ from collections.abc import Collection
 from dataclasses import dataclass
 from typing import Any
 
-from vonk_forge_contracts.sweep import (
-    InfrastructureIncident,
-    SweepWait,
-    SweepWaitReason,
-)
-
 from . import verdict
 from .fanout import Outcome
 from .lifecycle import ACTIVE
 from .state import State
+from .sweep_contract import (
+    InfrastructureIncident,
+    SweepWait,
+    SweepWaitReason,
+)
 from .vonkctl import OWNER_PROFILES, Vonkctl, VonkctlError
 
 OWNER_OBSERVATION_SECONDS = 120.0
