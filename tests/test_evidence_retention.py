@@ -24,15 +24,14 @@ from vonk_forge_contracts import (
 from vonk_forge_contracts import derive_status
 from vonk_forge_contracts.qualification_status import published_status
 
-from spark_sweep import evidence_publisher as publisher
-from spark_sweep.qualification import (
+from qualification.evidence_retention import retain_evidence, retained
+from qualification.evidence_store import (
     catalog_recipes,
     merge_evidence,
     read_evidence,
-    retain_evidence,
-    retained,
     write_evidence,
 )
+from spark_sweep import evidence_publisher as publisher
 
 ROOT = Path(__file__).resolve().parents[1]
 LOADER = importlib.machinery.SourceFileLoader(

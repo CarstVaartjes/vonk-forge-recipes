@@ -60,7 +60,7 @@ Schedule Fix to verify, Untested, platform-blocked work after its fix is observe
 and Re-check last. `--retry-failed` never requeues Working.
 
 Evidence files keep only what the readers consult (`retained()` in
-`spark_sweep/qualification.py`): per identity of the current content the newest pass,
+`qualification/evidence_retention.py`): per identity of the current content the newest pass,
 resolved pass, failure, behavioural and recipe-blamed record; the file's newest pass,
 failure and behavioural record of any content; the one older content that
 `memory_need.measured_budgets` takes the measured budget from, with its rows; a

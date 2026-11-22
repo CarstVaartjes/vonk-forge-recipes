@@ -5,7 +5,7 @@ Structural and independent of the tree's current recipe digests, so a recipe edi
 that does not touch evidence never fails it. For each changed
 `qualification/evidence/**/*.json` (the changed paths come in as arguments or
 `--paths-from FILE|-`, as for `tools/check-added-file-size`), with the class
-predicates of `spark_sweep.qualification.EVIDENCE_CLASSES`:
+predicates of `qualification.evidence_retention.EVIDENCE_CLASSES`:
 
 - R1 every record is, within its own identity, the newest of at least one class;
 - R2 at most 5 content digests carry records (current, budget source, three newest);
@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "contracts/src")]
 from vonk_forge_contracts import RecipeQualificationEvidence
 
-from spark_sweep.qualification import EVIDENCE_CLASSES
+from qualification.evidence_retention import EVIDENCE_CLASSES
 
 PREFIX = "qualification/evidence/"
 MAX_CONTENTS = 5
@@ -94,7 +94,7 @@ def main() -> int:
         print(error, file=sys.stderr)
     if errors:
         print(
-            "Run spark_sweep.qualification.retain_evidence (the publisher batch does).",
+            "Run qualification.evidence_retention.retain_evidence (the publisher batch does).",
             file=sys.stderr,
         )
     return 1 if errors else 0

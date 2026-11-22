@@ -119,9 +119,10 @@ def test_changed_content_is_ordered_newest_first():
 def test_history_evidence_keeps_verdicts_for_different_images():
     from functools import reduce
 
+    from qualification.evidence_store import merge_evidence
     from spark_sweep.catalog_contract import RuntimeImageIdentity
     from spark_sweep.identity import content_identity
-    from spark_sweep.qualification import history_evidence, merge_evidence
+    from spark_sweep.qualification import history_evidence
 
     first = recipe(
         "runtime",

@@ -35,6 +35,8 @@ from vonk_forge_contracts.memory_admission import (
 )
 from vonk_forge_contracts.recipe import RecipeMemoryResources
 
+from qualification.evidence_store import read_evidence
+
 # The platform floor is owned by vonk_forge_contracts.memory_admission (contracts 2.8.1).
 # GUARD_BYTES below is this estimator's own headroom; the live host memory guard
 # (vonk-forge #1936 fc6059e42edb1b26416fd78493138201f427de96,
@@ -373,8 +375,6 @@ def resident_weight_bytes(
 
 def _evidence(key: str):
     """The committed hardware evidence for one recipe (tests swap the corpus here)."""
-    from spark_sweep.qualification import read_evidence
-
     return read_evidence(ROOT, key)
 
 

@@ -42,6 +42,7 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
 )
 
+from qualification.evidence_store import merge_evidence, read_evidence
 from qualification.memory_need import SPARK_MEMORY_BYTES
 
 from . import cleanup, memory, policy, recovery, verdict
@@ -87,9 +88,7 @@ from .qualification import (
     current_identity,
     history_evidence,
     local_status,
-    merge_evidence,
     pass_marker,
-    read_evidence,
     rerun_settled,
     scheduling_priority,
     unpublishable_pass,

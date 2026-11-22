@@ -57,7 +57,7 @@ def isolate_memory_evidence(request, monkeypatch, tmp_path_factory):
     if request.node.get_closest_marker("live_evidence"):
         return
     import qualification.memory_need as memory
-    from spark_sweep.qualification import read_evidence
+    from qualification.evidence_store import read_evidence
 
     live, empty = memory.ROOT, tmp_path_factory.mktemp("no-evidence")
 
