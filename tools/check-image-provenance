@@ -23,8 +23,6 @@ image moves, so older claims heal on that move rather than in an unrelated chang
 from __future__ import annotations
 
 import argparse
-import importlib.machinery
-import importlib.util
 import json
 import os
 import re
@@ -35,29 +33,20 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from recipe_tooling import vendored_upstream as vendored
+from recipe_tooling.kit_pins import consumers as kit_consumers
+from recipe_tooling.kit_pins import lock as kit_lock
+from recipe_tooling.kit_pins import model as kit_model
+from recipe_tooling.kit_pins import upstream as kit_upstream
+
 LABEL_REVISION = re.compile(r'org\.opencontainers\.image\.revision="([^"]+)"')
-
-
-def _load(name: str) -> Any:
-    loader = importlib.machinery.SourceFileLoader(
-        name.replace("-", "_"), str(ROOT / "tools" / name)
-    )
-    spec = importlib.util.spec_from_loader(loader.name, loader)
-    assert spec is not None
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[loader.name] = module
-    loader.exec_module(module)
-    return module
-
-
-kit_pins = _load("kit-pins")
-vendored = _load("check-vendored-upstream")
 
 
 def claims(root: Path, recipe: dict[str, Any], adapter: Path) -> dict[str, str]:
     """Where the recipe states its source revision -> the revision stated there."""
     found: dict[str, str] = {}
-    kit = kit_pins.kit_of(recipe)
+    kit = kit_lock.kit_of(recipe)
     if kit is not None:
         found["provenance.source_reference"] = kit[1]
     label = LABEL_REVISION.search((adapter / "Dockerfile").read_text(encoding="utf-8"))
@@ -65,7 +54,7 @@ def claims(root: Path, recipe: dict[str, Any], adapter: Path) -> dict[str, str]:
         found[f"{(adapter / 'Dockerfile').relative_to(root)} revision label"] = (
             label.group(1)
         )
-    manifest = adapter / kit_pins.MANIFEST
+    manifest = adapter / kit_model.MANIFEST
     if manifest.is_file():
         source = json.loads(manifest.read_text(encoding="utf-8")).get("source") or {}
         if "commit" in source:
@@ -88,11 +77,11 @@ def check(
         touched = path.relative_to(root).as_posix() in changed or any(
             name.startswith(context + "/") for name in changed
         )
-        kit = kit_pins.kit_of(recipe)
+        kit = kit_lock.kit_of(recipe)
         if not touched or kit is None:
             continue
         source, adapter = kit[0], root / context
-        followed = kit_pins.followed_image(root, adapter, source)
+        followed = kit_consumers.followed_image(root, adapter, source)
         if followed is None:
             continue
         repository, _, digest = followed
@@ -128,7 +117,7 @@ def unverified_problems(
     on_github: Callable[[str, str], bool | None],
 ) -> list[str]:
     """Whether the ``source.unverified`` mark says what GitHub says about ``commit``."""
-    manifest = adapter / kit_pins.MANIFEST
+    manifest = adapter / kit_model.MANIFEST
     document = (
         json.loads(manifest.read_text(encoding="utf-8")) if manifest.is_file() else {}
     )
@@ -147,14 +136,14 @@ def unverified_problems(
             (
                 f"{name}: its image's build commit {source} `{commit[:12]}` is not on "
                 f"GitHub; state it with source.unverified '{expected}' in "
-                f"{kit_pins.MANIFEST}"
+                f"{kit_model.MANIFEST}"
             )
         ]
     if served and mark is not None:
         return [
             (
                 f"{name}: {source} `{commit[:12]}` is on GitHub now; remove "
-                f"source.unverified from {kit_pins.MANIFEST}"
+                f"source.unverified from {kit_model.MANIFEST}"
             )
         ]
     return []
@@ -168,9 +157,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         changed = vendored.changed_paths(arguments.root, arguments.base)
         problems, notes = check(
-            arguments.root, changed, kit_pins.Registry(kit_pins.fetch)
+            arguments.root, changed, kit_upstream.Registry(kit_upstream.fetch)
         )
-    except (subprocess.CalledProcessError, kit_pins.KitError, RuntimeError) as error:
+    except (subprocess.CalledProcessError, kit_model.KitError, RuntimeError) as error:
         print(f"Cannot check image provenance: {error}", file=sys.stderr)
         return 2
     actions = os.environ.get("GITHUB_ACTIONS") == "true"

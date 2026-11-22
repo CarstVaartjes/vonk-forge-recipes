@@ -1103,7 +1103,7 @@ PR_OPENING_TOOLS = {
         "refused",
         "PublisherState.REFUSED: PR closed, records left out until main moves, alert",
     ),
-    "tools/refresh-upstream": (
+    "src/recipe_tooling/refresh_upstream/publish.py": (
         "follow-up",
         (
             "failed/cancelled refresh PRs wait for upstream or main to change; no alert "
@@ -1127,6 +1127,7 @@ def test_every_tool_that_opens_pull_requests_declares_its_refused_outcome():
         str(path.relative_to(root))
         for path in [
             *(root / "tools").glob("*"),
+            *(root / "src/recipe_tooling").rglob("*.py"),
             *(root / "spark_sweep").glob("*.py"),
             *(root / ".github/workflows").glob("*.yml"),
         ]

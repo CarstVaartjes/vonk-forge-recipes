@@ -9,6 +9,8 @@ from unittest.mock import patch
 from repo_root import ROOT
 
 from recipe_tooling.qualification.own_pulls import OWN_FIELDS, own_pulls
+from recipe_tooling.refresh_upstream import model as refresh_model
+from recipe_tooling.refresh_upstream import publish as refresh_publish
 
 OWN = {"isCrossRepository": False, "headRepositoryOwner": {"login": "CarstVaartjes"}}
 FORK = {"isCrossRepository": True, "headRepositoryOwner": {"login": "someone-else"}}
@@ -178,7 +180,11 @@ def unguarded_pr_calls(source: str) -> list[str]:
 
 
 def _sources():
-    for path in [*(ROOT / "tools").glob("*"), *(ROOT / "spark_sweep").glob("*.py")]:
+    for path in [
+        *(ROOT / "tools").glob("*"),
+        *(ROOT / "src/recipe_tooling").rglob("*.py"),
+        *(ROOT / "spark_sweep").glob("*.py"),
+    ]:
         if not path.is_file():
             continue
         try:
@@ -253,15 +259,7 @@ def test_the_guard_accepts_guarded_shapes():
         assert unguarded_pr_calls(source) == [], source
 
 
-def _load_refresh():
-    """The one loaded module: re-executing it would replace the object other tests patch."""
-    from test_refresh_upstream import refresh
-
-    return refresh
-
-
 def test_refresh_upstream_never_arms_merges_or_closes_a_fork_pr():
-    refresh = _load_refresh()
     pulls = [
         {
             "number": 7,
@@ -293,15 +291,15 @@ def test_refresh_upstream_never_arms_merges_or_closes_a_fork_pr():
         calls.append(arguments)
         return json.dumps([])
 
-    summary = refresh.Summary()
+    summary = refresh_publish.Summary()
     summary.healthy = True
     with (
-        patch("refresh_upstream.gh_json", side_effect=gh_json),
-        patch("refresh_upstream.gh", side_effect=gh),
+        patch("recipe_tooling.refresh_upstream.github.gh_json", side_effect=gh_json),
+        patch("recipe_tooling.refresh_upstream.github.gh", side_effect=gh),
     ):
-        refresh.arm_open_mechanical_prs(summary)
-        refresh.close_stale_refresh_prs({}, summary)
-        refresh.supersede_member_prs(["x", "z"], "z", 99, summary)
+        refresh_publish.arm_open_mechanical_prs(summary)
+        refresh_publish.close_stale_refresh_prs({}, summary)
+        refresh_publish.supersede_member_prs(["x", "z"], "z", 99, summary)
     acted = [c for c in calls if c[:2] in {("pr", "merge"), ("pr", "close")}]
     assert acted  # our own refresh/y was armed and closed
     assert all("7" not in c for c in acted)
@@ -309,7 +307,6 @@ def test_refresh_upstream_never_arms_merges_or_closes_a_fork_pr():
 
 
 def test_a_fork_pr_touching_a_recipe_does_not_block_its_refresh():
-    refresh = _load_refresh()
     pulls = [
         {
             "number": 5,
@@ -331,57 +328,55 @@ def test_a_fork_pr_touching_a_recipe_does_not_block_its_refresh():
         assert arguments[:2] == ("pr", "list") and OWN_FIELDS in arguments[-1]
         return pulls
 
-    with patch("refresh_upstream.gh_json", side_effect=gh_json):
-        open_prs = refresh.foreign_open_prs()
+    with patch("recipe_tooling.refresh_upstream.github.gh_json", side_effect=gh_json):
+        open_prs = refresh_publish.foreign_open_prs()
     assert open_prs == {6: {"recipes/y.json"}}  # one listing, no per-PR files calls
     footprint = ({"recipes/x.json"}, [])
-    assert refresh.blocking_prs(footprint, open_prs) == []
-    assert refresh.blocking_prs(({"recipes/y.json"}, []), open_prs) == [6]
+    assert refresh_publish.blocking_prs(footprint, open_prs) == []
+    assert refresh_publish.blocking_prs(({"recipes/y.json"}, []), open_prs) == [6]
 
 
 class Reached(Exception):
     pass
 
 
-def _publish_with_closed_pr(refresh, pr):
-    assessment = refresh.Assessment("x")
-    summary = refresh.Summary()
+def _publish_with_closed_pr(pr):
+    assessment = refresh_model.Assessment("x")
+    summary = refresh_publish.Summary()
     marker = f"<!-- refresh-target: {assessment.fingerprint()} -->"
     listing = [{"number": 9, "state": "CLOSED", "body": marker, **pr}]
     with (
-        patch("refresh_upstream.gh_json", return_value=listing),
-        patch("refresh_upstream.gh"),
-        patch("refresh_upstream.git", side_effect=Reached),
+        patch("recipe_tooling.refresh_upstream.github.gh_json", return_value=listing),
+        patch("recipe_tooling.refresh_upstream.github.gh"),
+        patch("recipe_tooling.refresh_upstream.github.git", side_effect=Reached),
     ):
         try:
-            refresh._publish(Path("."), assessment, summary, arm=False)
+            refresh_publish._publish(Path("."), assessment, summary, arm=False)
         except Reached:
             return summary, True
     return summary, False
 
 
 def test_a_closed_fork_pr_with_the_marker_does_not_defer_a_refresh():
-    refresh = _load_refresh()
-    summary, proceeded = _publish_with_closed_pr(refresh, FORK)
+    summary, proceeded = _publish_with_closed_pr(FORK)
     assert proceeded and not summary.deferred
-    summary, proceeded = _publish_with_closed_pr(refresh, OWN)  # our own closed PR does
+    summary, proceeded = _publish_with_closed_pr(OWN)  # our own closed PR does
     assert not proceeded and "closed unmerged" in summary.deferred[0]
 
 
 def test_an_overlapping_armed_fork_pr_does_not_defer_arming():
-    refresh = _load_refresh()
     shared = [{"path": "models/shared.json"}]
     pulls = [
         {"number": 419, "autoMergeRequest": {"x": 1}, "files": shared, **FORK},
         {"number": 421, "autoMergeRequest": None, "files": shared, **OWN},
     ]
-    summary = refresh.Summary()
+    summary = refresh_publish.Summary()
     summary.healthy = True
     with (
-        patch("refresh_upstream.gh_json", return_value=pulls),
-        patch("refresh_upstream.gh") as gh,
+        patch("recipe_tooling.refresh_upstream.github.gh_json", return_value=pulls),
+        patch("recipe_tooling.refresh_upstream.github.gh") as gh,
     ):
-        assert refresh.arm_mechanical_pr(421, "recipe-b", summary)
+        assert refresh_publish.arm_mechanical_pr(421, "recipe-b", summary)
     gh.assert_called_once_with("pr", "merge", "421", "--auto", "--squash")
     assert not summary.deferred
 
@@ -398,7 +393,6 @@ def _big_pr(number, **extra):
 
 
 def test_a_file_beyond_the_first_hundred_still_blocks_a_refresh():
-    refresh = _load_refresh()
     fetched = []
 
     def gh_json(*arguments: str):
@@ -411,27 +405,28 @@ def test_a_file_beyond_the_first_hundred_still_blocks_a_refresh():
         return "\n".join([f"docs/{n}.md" for n in range(100)] + ["recipes/x.json"])
 
     with (
-        patch("refresh_upstream.gh_json", side_effect=gh_json),
-        patch("refresh_upstream.gh", side_effect=gh),
+        patch("recipe_tooling.refresh_upstream.github.gh_json", side_effect=gh_json),
+        patch("recipe_tooling.refresh_upstream.github.gh", side_effect=gh),
     ):
-        open_prs = refresh.foreign_open_prs()
+        open_prs = refresh_publish.foreign_open_prs()
     assert list(open_prs) == [7] and len(fetched) == 1
-    assert refresh.blocking_prs(({"recipes/x.json"}, []), open_prs) == [7]
+    assert refresh_publish.blocking_prs(({"recipes/x.json"}, []), open_prs) == [7]
 
 
 def test_the_arming_overlap_check_sees_files_beyond_the_first_hundred():
-    refresh = _load_refresh()
     armed = _big_pr(419, autoMergeRequest={"x": 1}, **OWN)
     ours = {"number": 421, "files": [{"path": "models/shared.json"}], **OWN}
-    summary = refresh.Summary()
+    summary = refresh_publish.Summary()
     summary.healthy = True
     with (
-        patch("refresh_upstream.gh_json", return_value=[armed, ours]),
         patch(
-            "refresh_upstream.gh",
+            "recipe_tooling.refresh_upstream.github.gh_json", return_value=[armed, ours]
+        ),
+        patch(
+            "recipe_tooling.refresh_upstream.github.gh",
             side_effect=lambda *a, **k: "models/shared.json" if a[0] == "api" else "",
         ) as gh,
     ):
-        assert not refresh.arm_mechanical_pr(421, "recipe-b", summary)
+        assert not refresh_publish.arm_mechanical_pr(421, "recipe-b", summary)
     assert summary.deferred and "#419" in summary.deferred[0]
     assert not any(c.args[:2] == ("pr", "merge") for c in gh.call_args_list)

@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import importlib.machinery
-import importlib.util
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,16 +10,11 @@ from typing import Any
 from unittest.mock import patch
 
 from repo_root import ROOT
-from test_refresh_upstream import refresh
 
-LOADER = importlib.machinery.SourceFileLoader(
-    "check_base_image_holds", str(ROOT / "tools/check-base-image-holds")
-)
-SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
-assert SPEC is not None
-holds = importlib.util.module_from_spec(SPEC)
-sys.modules[LOADER.name] = holds
-LOADER.exec_module(holds)
+from recipe_tooling import base_image_holds as holds
+from recipe_tooling.refresh_upstream import assessment as refresh_assessment
+from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
+from recipe_tooling.refresh_upstream import model as refresh_model
 
 REPOSITORY = "docker.io/vllm/vllm-openai"
 HELD = "1" * 64
@@ -114,16 +106,19 @@ class RefreshSkipsHeldTests(unittest.TestCase):
     """A fake refresh whose upstream moved the base image proposes nothing."""
 
     def assess(self, root: Path, repository: str) -> Any:
-        catalog_ = refresh.Catalog(root, recipes={"held": recipe(HELD)})
-        target = refresh.Target(
+        catalog_ = refresh_catalog_view.Catalog(root, recipes={"held": recipe(HELD)})
+        target = refresh_model.Target(
             "oci", repository, f"sha256:{NEWER}", "2026-10-16", None, None, "u"
         )
-        item = refresh.Item("image", "oci", repository, f"sha256:{HELD}", target)
-        assessment = refresh.Assessment("held", items=[item])
-        assessor = refresh.Assessor(catalog_, object(), None, {})
+        item = refresh_model.Item("image", "oci", repository, f"sha256:{HELD}", target)
+        assessment = refresh_model.Assessment("held", items=[item])
+        assessor = refresh_assessment.Assessor(catalog_, object(), None, {})  # pyright: ignore[reportArgumentType]
         with (
-            patch("refresh_upstream.collect_items", return_value=assessment),
-            patch.object(refresh.Assessor, "_image") as move,
+            patch(
+                "recipe_tooling.refresh_upstream.items.collect_items",
+                return_value=assessment,
+            ),
+            patch.object(refresh_assessment.Assessor, "_image") as move,
         ):
             result = assessor.assess("held")
         return result, move

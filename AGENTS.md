@@ -316,6 +316,10 @@ tree by `tests/test_package_import_direction.py` (no counts, no exceptions):
 | `tooling` | `src/recipe_tooling/*.py`: the helpers the `tools/` scripts share (added lines, upstream HTTP, adapter sources, protocol wheel, ...) | `contracts`, `qualification`, `tooling` |
 | `tools` | the Python scripts in `tools/`: thin launchers over `recipe_tooling` plus the older single-file tools | `contracts`, `qualification`, `tooling`, `tools`; `spark_sweep` only from `tools/sweep-recipes`, `tools/sync-qualification-evidence` and `tools/backfill-qualification-evidence` |
 
+`tools/kit-pins`, `tools/check-upstream-drift` and `tools/refresh-upstream` are launchers over the packages
+`recipe_tooling.kit_pins`, `recipe_tooling.upstream_drift` and `recipe_tooling.refresh_upstream` (modules by topic;
+cross-module calls go through the module, `refresh_<module>.name`, so a test patches the defining module).
+
 The code lives in `src/recipe_tooling/` (imported as `recipe_tooling`); the data it reads
 (`qualification/`, `recipes/`, `models/`) stays at the repository root. Each `tools/<name>`
 script puts `src/` on `sys.path` itself and keeps its path, because workflows and the

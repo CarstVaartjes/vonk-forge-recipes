@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import runpy
 import sys
 import tempfile
 import unittest
@@ -10,6 +9,8 @@ from unittest.mock import patch
 from urllib.error import HTTPError
 
 from repo_root import ROOT
+
+from recipe_tooling import catalog_hf_model
 
 TOOL = ROOT / "tools/catalog-hf-model"
 
@@ -61,7 +62,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
         ]
 
     def test_tree_follows_every_pagination_link(self) -> None:
-        namespace = runpy.run_path(str(TOOL))
+        namespace = vars(catalog_hf_model)
         pages = {
             "https://example.test/page-1": (
                 [{"path": "first"}],
@@ -79,7 +80,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             )
 
     def test_preserves_large_complete_file_inventories(self) -> None:
-        namespace = runpy.run_path(str(TOOL))
+        namespace = vars(catalog_hf_model)
         entries = [
             {
                 "type": "file",
@@ -110,7 +111,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             self.assertEqual(display["license"]["spdx"], "MIT")
 
     def test_artifact_ids_include_full_path_for_repeated_identical_files(self) -> None:
-        namespace = runpy.run_path(str(TOOL))
+        namespace = vars(catalog_hf_model)
         entries = [
             {
                 "type": "file",
@@ -148,7 +149,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
         ] + [{"type": "file", "path": "x.bin", "size": 1, "lfs": {"oid": "f" * 64}}]
 
     def _run_main(self, entries, extra=(), manifest: bytes | None = None):
-        namespace = runpy.run_path(str(TOOL))
+        namespace = vars(catalog_hf_model)
         with (
             tempfile.TemporaryDirectory() as directory,
             patch.object(sys, "argv", [*self._arguments(Path(directory)), *extra]),
@@ -195,7 +196,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
         entries = self._split_tree() + [
             {"type": "file", "path": "sha256-manifest.txt", "size": len(manifest)}
         ]
-        namespace = runpy.run_path(str(TOOL))
+        namespace = vars(catalog_hf_model)
         with patch.dict(
             namespace["inventory"].__globals__, {"_get_bytes": lambda _u: manifest}
         ):
@@ -248,7 +249,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
         )
 
     def test_refuses_large_non_lfs_files_before_downloading(self) -> None:
-        namespace = runpy.run_path(str(TOOL))
+        namespace = vars(catalog_hf_model)
         entries = [{"type": "file", "path": "large.bin", "size": 16 * 1024 * 1024 + 1}]
         with (
             tempfile.TemporaryDirectory() as directory,
@@ -266,7 +267,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             namespace["main"]()
 
     def test_gated_non_lfs_file_reports_actionable_authentication_error(self) -> None:
-        namespace = runpy.run_path(str(TOOL))
+        namespace = vars(catalog_hf_model)
         entries = [{"type": "file", "path": "config.json", "size": 2}]
 
         def denied(_url: str) -> bytes:

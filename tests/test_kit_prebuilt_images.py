@@ -5,14 +5,23 @@ from __future__ import annotations
 import http.client
 import io
 import json
+import os
 import tarfile
 import tempfile
 import unittest
+import urllib.request
 from pathlib import Path
 from typing import Any
 from unittest import mock
 
-from test_kit_pins import KIT, kit_pins
+from test_kit_pins import KIT
+
+from recipe_tooling.kit_pins import archive as kit_archive
+from recipe_tooling.kit_pins import check as kit_check
+from recipe_tooling.kit_pins import image_scan as kit_image_scan
+from recipe_tooling.kit_pins import model as kit_model
+from recipe_tooling.kit_pins import sources as kit_sources
+from recipe_tooling.kit_pins import upstream as kit_upstream
 
 COMMIT = "a" * 40
 IMAGE = "ghcr.io/creator/kit-image"
@@ -31,7 +40,7 @@ def archive(files: dict[str, str]) -> bytes:
 
 
 def scan(files: dict[str, str], scope: str = "") -> list[str]:
-    return [f["reference"] for f in kit_pins.scan_archive(archive(files), scope)]
+    return [f["reference"] for f in kit_image_scan.scan_archive(archive(files), scope)]
 
 
 class ScanTests(unittest.TestCase):
@@ -84,11 +93,11 @@ class ScanTests(unittest.TestCase):
                 "source_reference": f"https://github.com/{KIT}/blob/{COMMIT}/two/README.md"
             }
         }
-        self.assertEqual(kit_pins.kit_scope(recipe), "two/")
+        self.assertEqual(kit_image_scan.kit_scope(recipe), "two/")
         recipe["provenance"]["source_reference"] = (
             f"https://github.com/{KIT}/tree/{COMMIT}"
         )
-        self.assertEqual(kit_pins.kit_scope(recipe), "")
+        self.assertEqual(kit_image_scan.kit_scope(recipe), "")
 
 
 def recipe(root: Path, dockerfile: str, base: str | None = None) -> dict[str, Any]:
@@ -109,12 +118,10 @@ class DownloadScanTests(unittest.TestCase):
     def _download(self, body: bytes) -> list[str]:
         response = io.BytesIO(body)
         with (
-            mock.patch.object(
-                kit_pins.urllib.request, "urlopen", return_value=response
-            ),
-            mock.patch.object(kit_pins, "MAX_ARCHIVE_BYTES", 1),
+            mock.patch.object(urllib.request, "urlopen", return_value=response),
+            mock.patch.object(kit_archive, "MAX_ARCHIVE_BYTES", 1),
         ):
-            return [f["reference"] for f in kit_pins.scan_download("o/r", COMMIT)]
+            return [f["reference"] for f in kit_image_scan.scan_download("o/r", COMMIT)]
 
     def test_an_archive_larger_than_the_vendoring_cap_is_scanned_as_it_streams(
         self,
@@ -124,7 +131,7 @@ class DownloadScanTests(unittest.TestCase):
 
     def test_a_truncated_download_fails_with_the_url(self) -> None:
         body = archive({"Dockerfile": f"FROM {IMAGE}@{DIGEST}\n"})
-        with self.assertRaisesRegex(kit_pins.KitError, "cannot scan .*tar.gz"):
+        with self.assertRaisesRegex(kit_model.KitError, "cannot scan .*tar.gz"):
             self._download(body[: len(body) // 2])
 
 
@@ -159,30 +166,28 @@ class MidStreamFailureTests(unittest.TestCase):
                 scan = _Dropping(body[: len(body) // 2], error)
                 fetch = _Dropping(body[: len(body) // 2], error)
                 with (
-                    mock.patch.object(
-                        kit_pins.urllib.request, "urlopen", return_value=scan
-                    ),
-                    self.assertRaisesRegex(kit_pins.KitError, "cannot scan .*tar.gz"),
+                    mock.patch.object(urllib.request, "urlopen", return_value=scan),
+                    self.assertRaisesRegex(kit_model.KitError, "cannot scan .*tar.gz"),
                 ):
-                    kit_pins.scan_download("o/r", COMMIT)
+                    kit_image_scan.scan_download("o/r", COMMIT)
                 with (
                     mock.patch.object(
-                        kit_pins.urllib.request,
+                        urllib.request,
                         "urlopen",
                         side_effect=[
                             _Dropping(fetch.getvalue(), error) for _ in range(3)
                         ],
                     ),
-                    self.assertRaisesRegex(kit_pins.KitError, "cannot fetch .*tar.gz"),
+                    self.assertRaisesRegex(kit_model.KitError, "cannot fetch .*tar.gz"),
                 ):
-                    kit_pins.download_archive("o/r", COMMIT, lambda _seconds: None)
+                    kit_archive.download_archive("o/r", COMMIT, lambda _seconds: None)
 
     def test_a_broken_download_is_retried_until_it_completes(self) -> None:
         body = archive({"Dockerfile": f"FROM {IMAGE}@{DIGEST}\n"})
         answers = [_Dropping(body[:5], TimeoutError("timed out")), io.BytesIO(body)]
         pauses: list[float] = []
-        with mock.patch.object(kit_pins.urllib.request, "urlopen", side_effect=answers):
-            data = kit_pins.download_archive("o/r", COMMIT, pauses.append)
+        with mock.patch.object(urllib.request, "urlopen", side_effect=answers):
+            data = kit_archive.download_archive("o/r", COMMIT, pauses.append)
         self.assertEqual((data, len(pauses)), (body, 1))
 
     def test_scanning_does_not_retain_the_members_it_has_passed(self) -> None:
@@ -190,15 +195,15 @@ class MidStreamFailureTests(unittest.TestCase):
         files["Dockerfile"] = f"FROM {IMAGE}@{DIGEST}\n"
         body = archive(files)
         retained = []
-        real = kit_pins.tarfile.open
+        real = tarfile.open
 
         def spy(*args: Any, **kwargs: Any) -> Any:
             handle = real(*args, **kwargs)
             retained.append(handle)
             return handle
 
-        with mock.patch.object(kit_pins.tarfile, "open", spy):
-            found = kit_pins.scan_stream(io.BytesIO(body))
+        with mock.patch.object(tarfile, "open", spy):
+            found = kit_image_scan.scan_stream(io.BytesIO(body))
         self.assertEqual([f["reference"] for f in found], [f"{IMAGE}@{DIGEST}"])
         self.assertLess(len(retained[0].members), 3)
 
@@ -217,15 +222,15 @@ class CliSourceTests(unittest.TestCase):
         with (
             tempfile.TemporaryDirectory() as cache,
             mock.patch.dict(
-                kit_pins.os.environ,
+                os.environ,
                 {"VONK_UPSTREAM_CACHE": cache, "GITHUB_TOKEN": "unused"},
             ),
-            mock.patch.object(kit_pins.urllib.request, "urlopen", urlopen),
-            mock.patch.object(kit_pins, "MAX_ARCHIVE_BYTES", 1),
+            mock.patch.object(urllib.request, "urlopen", urlopen),
+            mock.patch.object(kit_archive, "MAX_ARCHIVE_BYTES", 1),
         ):
-            source = kit_pins.cli_source()
-            first = kit_pins.kit_images(source, "o/r", COMMIT, "sub/")
-            second = kit_pins.kit_images(source, "o/r", COMMIT, "sub/")
+            source = kit_sources.cli_source()
+            first = kit_image_scan.kit_images(source, "o/r", COMMIT, "sub/")
+            second = kit_image_scan.kit_images(source, "o/r", COMMIT, "sub/")
         self.assertEqual([f["reference"] for f in first], [f"{IMAGE}@{DIGEST}"])
         self.assertEqual(second, first)
         self.assertEqual(opened, [f"https://codeload.github.com/o/r/tar.gz/{COMMIT}"])
@@ -244,14 +249,16 @@ class RuleTests(unittest.TestCase):
             document = recipe(root, dockerfile, base)
             found = [
                 {
-                    "repo": kit_pins.image_name(r.split(":")[0].split("@")[0]),
+                    "repo": kit_image_scan.image_name(r.split(":")[0].split("@")[0]),
                     "reference": r,
                     "file": "start.sh",
                     "line": 1,
                 }
                 for r in referenced
             ]
-            return kit_pins.image_problems(root, "x", document, found, exceptions or {})
+            return kit_image_scan.image_problems(
+                root, "x", document, found, exceptions or {}
+            )
 
     def test_a_recipe_that_builds_from_the_kits_image_passes(self) -> None:
         self.assertEqual(
@@ -319,14 +326,16 @@ class CheckTests(unittest.TestCase):
             (root / "adapters/y").mkdir()
             (root / "adapters/y/Dockerfile").write_text("FROM scratch\n")
             root.joinpath("policy").mkdir(exist_ok=True)
-            (root / kit_pins.EXCEPTIONS).write_text(
+            (root / kit_image_scan.EXCEPTIONS).write_text(
                 json.dumps({"gone": "reason", "x": "was needed once"})
             )
             notices: list[str] = []
-            found = kit_pins.check_images(
+            found = kit_check.check_images(
                 root,
                 {"x": first, "y": second},
-                kit_pins.Upstream(kit_pins.GitHub(lambda path: {}), images=images),
+                kit_upstream.Upstream(
+                    kit_upstream.GitHub(lambda path: {}), images=images
+                ),
                 notice=notices.append,
             )
         self.assertEqual(len(calls), 1)

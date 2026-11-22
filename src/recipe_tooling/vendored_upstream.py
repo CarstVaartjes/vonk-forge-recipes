@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Require vendored adapter files to be byte-identical to upstream at the pinned commit.
 
 Adapter code under ``adapters/`` follows its upstream recipe. For every adapter
@@ -66,9 +65,10 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+from recipe_tooling.paths import REPO_ROOT
 from recipe_tooling.upstream_http import UpstreamBusy, fetch
+
+ROOT = REPO_ROOT
 
 MANIFEST = "vendored-upstream.json"
 KIT_LOCK = "kit-lock.json"  # derived by tools/kit-pins from the kit the recipe pins
@@ -472,7 +472,7 @@ def main(argv: list[str] | None = None) -> int:
     arguments = parser.parse_args(argv)
     # Imported here: tools/check-image-provenance loads this module on a bare
     # interpreter; placing the declared files needs the contracts dependencies.
-    sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT / "src")]
+    sys.path.insert(0, str(ROOT / "contracts" / "src"))
     from recipe_tooling.adapter_sources import materialize_or_exit
 
     materialize_or_exit(ROOT)
@@ -509,7 +509,3 @@ def main(argv: list[str] | None = None) -> int:
         f"Vendored upstream files match their pinned commits ({compared} adapters compared)"
     )
     return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

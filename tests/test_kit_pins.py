@@ -21,7 +21,22 @@ from unittest.mock import patch
 
 from repo_root import ROOT
 
+from recipe_tooling import vendored_upstream
 from recipe_tooling.adapter_sources import AdapterSourceError
+from recipe_tooling.kit_pins import check as kit_check
+from recipe_tooling.kit_pins import cli as kit_cli
+from recipe_tooling.kit_pins import declarations as kit_declarations
+from recipe_tooling.kit_pins import lock as kit_lock
+from recipe_tooling.kit_pins import model as kit_model
+from recipe_tooling.kit_pins import resolve as kit_resolve
+from recipe_tooling.kit_pins import upstream as kit_upstream
+from recipe_tooling.kit_pins import write as kit_write
+from recipe_tooling.refresh_upstream import assessment as refresh_assessment
+from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
+from recipe_tooling.refresh_upstream import classification as refresh_classification
+from recipe_tooling.refresh_upstream import items as refresh_items
+from recipe_tooling.refresh_upstream import model as refresh_model
+from recipe_tooling.refresh_upstream import render as refresh_render
 
 
 def load(name: str, module: str):
@@ -34,9 +49,7 @@ def load(name: str, module: str):
     return loaded
 
 
-kit_pins = load("kit-pins", "kit_pins_under_test")
-refresh = load("refresh-upstream", "refresh_upstream_for_kit_tests")
-vendored = refresh.vendored
+vendored = vendored_upstream
 
 KIT = "MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold"
 BASE = "ashhart/TensorFold"
@@ -117,49 +130,55 @@ class FakeApi:
 
 
 def upstream(api: Any, **sources: Any) -> Any:
-    return kit_pins.Upstream(kit_pins.GitHub(api), **sources)
+    return kit_upstream.Upstream(kit_upstream.GitHub(api), **sources)
 
 
 def declaration(**override: Any) -> Any:
     entry = dict(MANIFEST["kit"]["dependencies"]["base"], **override)
-    return kit_pins.declarations({"kit": {"dependencies": {"base": entry}}})[0]
+    return kit_declarations.declarations({"kit": {"dependencies": {"base": entry}}})[0]
 
 
 class DeclarationTests(unittest.TestCase):
     def test_the_mia_declaration_reads_both_kit_versions(self) -> None:
         wanted = declaration()
-        self.assertEqual(kit_pins.parse_declared(CONFIG[KIT_OLD], wanted), "v0.5.0")
-        self.assertEqual(kit_pins.parse_declared(CONFIG[KIT_NEW], wanted), "v0.6.0")
+        self.assertEqual(
+            kit_declarations.parse_declared(CONFIG[KIT_OLD], wanted), "v0.5.0"
+        )
+        self.assertEqual(
+            kit_declarations.parse_declared(CONFIG[KIT_NEW], wanted), "v0.6.0"
+        )
 
     def test_nothing_matching_or_several_values_is_an_error(self) -> None:
-        with self.assertRaisesRegex(kit_pins.KitError, "nothing in scripts/config.sh"):
-            kit_pins.parse_declared("TF_VERSION=none\n", declaration())
+        with self.assertRaisesRegex(kit_model.KitError, "nothing in scripts/config.sh"):
+            kit_declarations.parse_declared("TF_VERSION=none\n", declaration())
         text = CONFIG[KIT_OLD] + CONFIG[KIT_NEW]
-        with self.assertRaisesRegex(kit_pins.KitError, "several values"):
-            kit_pins.parse_declared(text, declaration())
+        with self.assertRaisesRegex(kit_model.KitError, "several values"):
+            kit_declarations.parse_declared(text, declaration())
         # the same value twice is still one declaration
-        kit_pins.parse_declared(CONFIG[KIT_OLD] * 2, declaration())
+        kit_declarations.parse_declared(CONFIG[KIT_OLD] * 2, declaration())
 
     def test_a_pattern_needs_the_version_group_and_a_known_datasource(self) -> None:
-        with self.assertRaisesRegex(kit_pins.KitError, "version"):
+        with self.assertRaisesRegex(kit_model.KitError, "version"):
             declaration(pattern="^TF_VERSION=(.*)$")
-        with self.assertRaisesRegex(kit_pins.KitError, "datasource"):
+        with self.assertRaisesRegex(kit_model.KitError, "datasource"):
             declaration(datasource="npm-package")
-        with self.assertRaisesRegex(kit_pins.KitError, "lacks"):
-            kit_pins.declarations({"kit": {"dependencies": {"base": {"repo": BASE}}}})
+        with self.assertRaisesRegex(kit_model.KitError, "lacks"):
+            kit_declarations.declarations(
+                {"kit": {"dependencies": {"base": {"repo": BASE}}}}
+            )
 
     def test_an_override_needs_a_reason(self) -> None:
-        with self.assertRaisesRegex(kit_pins.KitError, "override needs"):
+        with self.assertRaisesRegex(kit_model.KitError, "override needs"):
             declaration(override={"ref": "v0.6.1"})
         self.assertIsNotNone(declaration(override={"ref": "v0.6.1", "reason": "x"}))
 
     def test_a_manifest_without_a_kit_block_declares_nothing(self) -> None:
-        self.assertEqual(kit_pins.declarations({"ours": []}), [])
+        self.assertEqual(kit_declarations.declarations({"ours": []}), [])
 
 
 class DerivationTests(unittest.TestCase):
     def derive(self, commit: str, **override: Any) -> Any:
-        return kit_pins.derive(
+        return kit_resolve.derive(
             KIT, commit, [declaration(**override)], upstream(FakeApi())
         )[0]
 
@@ -173,22 +192,22 @@ class DerivationTests(unittest.TestCase):
 
     def test_the_newest_release_is_information_only(self) -> None:
         self.assertEqual(
-            kit_pins.newest_release(kit_pins.GitHub(FakeApi()), BASE), "v0.6.2"
+            kit_resolve.newest_release(kit_upstream.GitHub(FakeApi()), BASE), "v0.6.2"
         )
 
     def test_an_override_replaces_the_declaration_and_is_recorded(self) -> None:
         pin = self.derive(KIT_NEW, override={"ref": "v0.6.1", "reason": "fix"})
         self.assertEqual((pin.immutable, pin.overridden), (BASE_061, "fix"))
-        lock = kit_pins.lock_document(KIT, KIT_NEW, [pin])
+        lock = kit_lock.lock_document(KIT, KIT_NEW, [pin])
         self.assertEqual(lock["dependencies"]["base"]["overridden"], "fix")
 
     def test_an_unreadable_kit_file_names_the_commit(self) -> None:
-        with self.assertRaisesRegex(kit_pins.KitError, "cannot read"):
-            kit_pins.derive(KIT, "f" * 40, [declaration()], upstream(FakeApi()))
+        with self.assertRaisesRegex(kit_model.KitError, "cannot read"):
+            kit_resolve.derive(KIT, "f" * 40, [declaration()], upstream(FakeApi()))
 
     def test_the_lock_is_deterministic(self) -> None:
         pin = self.derive(KIT_NEW)
-        text = kit_pins.lock_text(kit_pins.lock_document(KIT, KIT_NEW, [pin]))
+        text = kit_lock.lock_text(kit_lock.lock_document(KIT, KIT_NEW, [pin]))
         self.assertEqual(
             json.loads(text),
             {
@@ -238,8 +257,8 @@ class BranchDeclarationTests(unittest.TestCase):
         return api
 
     def derive(self, api: FakeApi) -> Any:
-        wanted = kit_pins.declarations(BRANCH_MANIFEST)
-        return kit_pins.derive(KIT, KIT_BRANCH, wanted, upstream(api))[0]
+        wanted = kit_declarations.declarations(BRANCH_MANIFEST)
+        return kit_resolve.derive(KIT, KIT_BRANCH, wanted, upstream(api))[0]
 
     def test_a_declared_branch_is_resolved_to_its_head_commit_and_locked_as_a_branch(
         self,
@@ -249,7 +268,7 @@ class BranchDeclarationTests(unittest.TestCase):
             (pin.ref, pin.kind, pin.immutable),
             ("glm-long-context", "branch", BRANCH_OLD),
         )
-        lock = kit_pins.lock_document(KIT, KIT_BRANCH, [pin])
+        lock = kit_lock.lock_document(KIT, KIT_BRANCH, [pin])
         self.assertEqual(
             lock["dependencies"]["base"],
             {
@@ -262,7 +281,7 @@ class BranchDeclarationTests(unittest.TestCase):
         )
 
     def test_tags_and_commits_keep_their_own_kind(self) -> None:
-        source = kit_pins.GitHub(FakeApi())
+        source = kit_upstream.GitHub(FakeApi())
         self.assertEqual(source.kind(BASE, "v0.6.0"), "tag")
         self.assertEqual(source.kind(BASE, "191188075bca"), "commit")
         self.assertEqual(source.kind(BASE, BASE_060), "commit")
@@ -270,7 +289,9 @@ class BranchDeclarationTests(unittest.TestCase):
     def test_a_branch_with_a_slash_in_its_name_is_a_branch(self) -> None:
         api = FakeApi()
         api.branches["integration/0.6.1"] = BRANCH_OLD
-        self.assertEqual(kit_pins.GitHub(api).kind(BASE, "integration/0.6.1"), "branch")
+        self.assertEqual(
+            kit_upstream.GitHub(api).kind(BASE, "integration/0.6.1"), "branch"
+        )
 
     def test_a_moved_branch_does_not_make_the_committed_lock_stale(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -285,7 +306,7 @@ class BranchDeclarationTests(unittest.TestCase):
                 base_repo="taussoe/TensorFold",
             )
             api = self.api(BRANCH_NEW)
-            problems = kit_pins.check_recipe(
+            problems = kit_check.check_recipe(
                 root, "mia", recipe_for(KIT_BRANCH), upstream(api)
             )
         self.assertEqual([p for p in problems if "stale" in p], [])
@@ -340,7 +361,7 @@ def write_adapter(
     )
     if lock:
         (directory / "kit-lock.json").write_text(
-            kit_pins.lock_text(
+            kit_lock.lock_text(
                 {
                     "dependencies": {
                         "base": {
@@ -360,7 +381,7 @@ def write_adapter(
 
 class LockCheckTests(unittest.TestCase):
     def check(self, root: Path, kit_commit: str) -> list[str]:
-        return kit_pins.check_recipe(
+        return kit_check.check_recipe(
             root, "mia", recipe_for(kit_commit), upstream(FakeApi())
         )
 
@@ -371,7 +392,7 @@ class LockCheckTests(unittest.TestCase):
             )
             api = FakeApi()
             self.assertEqual(
-                kit_pins.check_recipe(
+                kit_check.check_recipe(
                     Path(tmp), "mia", recipe_for(KIT_NEW), upstream(api)
                 ),
                 [],
@@ -476,7 +497,7 @@ class WithdrawnKitTests(unittest.TestCase):
         )
         digest = "sha256:" + "e" * 64
         (directory / "kit-lock.json").write_text(
-            kit_pins.lock_text(
+            kit_lock.lock_text(
                 {
                     "dependencies": {
                         "image": {
@@ -503,14 +524,16 @@ class WithdrawnKitTests(unittest.TestCase):
 
         def images(repo: str, commit: str, scope: str) -> list[Any]:
             scanned.append(commit)
-            raise kit_pins.KitError(f"cannot scan {repo}@{commit}: HTTP 404")
+            raise kit_model.KitError(f"cannot scan {repo}@{commit}: HTTP 404")
 
         with tempfile.TemporaryDirectory() as tmp:
             recipe = self.adapter(Path(tmp), marked=marked, built_from=built_from)
-            source = kit_pins.Upstream(kit_pins.GitHub(FakeApi()), images=images)
-            problems = kit_pins.check_recipe(
+            source = kit_upstream.Upstream(
+                kit_upstream.GitHub(FakeApi()), images=images
+            )
+            problems = kit_check.check_recipe(
                 Path(tmp), "mia", recipe, source
-            ) + kit_pins.check_images(Path(tmp), {"mia": recipe}, source)
+            ) + kit_check.check_images(Path(tmp), {"mia": recipe}, source)
         return problems, scanned
 
     def test_the_marked_kit_is_not_re_read(self) -> None:
@@ -553,7 +576,7 @@ class ApplyLockTests(unittest.TestCase):
                     }
                 )
             )
-            changed = kit_pins.apply_lock(
+            changed = kit_write.apply_lock(
                 root,
                 "mia",
                 recipe_for(KIT_NEW),
@@ -590,13 +613,13 @@ class ApplyLockTests(unittest.TestCase):
             self.assertIn(KIT_NEW, text)
             # the result is exactly what the lock check asks for, and a second run is a no-op
             self.assertEqual(
-                kit_pins.check_recipe(
+                kit_check.check_recipe(
                     root, "mia", recipe_for(KIT_NEW), upstream(FakeApi())
                 ),
                 [],
             )
             self.assertEqual(
-                kit_pins.apply_lock(
+                kit_write.apply_lock(
                     root, "mia", recipe_for(KIT_NEW), upstream(FakeApi()), fetch
                 ),
                 [],
@@ -659,7 +682,7 @@ class ApplyLockTests(unittest.TestCase):
                 )
 
             def lock() -> list[str]:
-                return kit_pins.apply_lock(
+                return kit_write.apply_lock(
                     root,
                     "mia",
                     recipe_for(KIT_NEW),
@@ -669,7 +692,7 @@ class ApplyLockTests(unittest.TestCase):
 
             with patch.object(adapter_mirror, "add", add):
                 with self.assertRaisesRegex(
-                    kit_pins.KitError, r"upload failed.*rerun `tools/kit-pins lock"
+                    kit_model.KitError, r"upload failed.*rerun `tools/kit-pins lock"
                 ):
                     lock()
                 self.assertFalse((directory / "vendor" / name).exists())
@@ -684,7 +707,7 @@ class ApplyLockTests(unittest.TestCase):
 
 
 def comparison(*names: str, status: str = "ahead", truncated: bool = False) -> Any:
-    return refresh.Comparison(
+    return refresh_model.Comparison(
         status,
         [],
         [{"filename": n, "status": "modified"} for n in names],
@@ -697,7 +720,7 @@ class KitChangeClassificationTests(unittest.TestCase):
     def judge(
         self, *names: str, mirrored: frozenset[str] = frozenset(), **kwargs: Any
     ) -> list[str]:
-        return refresh.classify_changes(
+        return refresh_classification.classify_changes(
             comparison(*names, **kwargs),
             patched=set(),
             vendor_problems=[],
@@ -743,12 +766,12 @@ class KitChangeClassificationTests(unittest.TestCase):
 def kit_catalog(root: Path, kit_commit: str, **adapter: Any) -> Any:
     write_adapter(root, kit_commit=kit_commit, **adapter)
     recipe = recipe_for(kit_commit)
-    return refresh.Catalog(root, recipes={"mia": recipe})
+    return refresh_catalog_view.Catalog(root, recipes={"mia": recipe})
 
 
 def assessor_for(catalog: Any, api: FakeApi, kit_head: str) -> Any:
-    assessor = refresh.Assessor(catalog, api, None, {})
-    assessor.targets[("github", KIT.lower())] = refresh.Target(
+    assessor = refresh_assessment.Assessor(catalog, api, None, {})  # pyright: ignore[reportArgumentType]
+    assessor.targets[("github", KIT.lower())] = refresh_model.Target(
         "github",
         KIT,
         kit_head,
@@ -797,7 +820,7 @@ class AssessmentTests(unittest.TestCase):
             "files": [{"filename": n, "status": "modified"} for n in files],
             "html_url": "u",
         }
-        with patch.object(refresh, "pin_is_newer_by_date", return_value=False):
+        with patch.object(refresh_items, "pin_is_newer_by_date", return_value=False):
             return assessor_for(catalog, api, kit_head).assess("mia")
 
     def test_a_current_kit_with_its_declared_base_is_not_drift_even_though_the_base_has_a_newer_release(
@@ -846,7 +869,9 @@ class AssessmentTests(unittest.TestCase):
                     for n in ("README.md", "tools/end_of_turn.py", "CHANGELOG.md")
                 ],
             }
-            with patch.object(refresh, "pin_is_newer_by_date", return_value=False):
+            with patch.object(
+                refresh_items, "pin_is_newer_by_date", return_value=False
+            ):
                 result = assessor_for(catalog, api, newer).assess("mia")
             self.assertTrue(result.mechanical, result.reasons)
             self.assertIn("adapters/mia/Dockerfile", result.edits)
@@ -875,7 +900,9 @@ class AssessmentTests(unittest.TestCase):
                     "html_url": "u",
                     "files": [{"filename": name, "status": "modified"}],
                 }
-                with patch.object(refresh, "pin_is_newer_by_date", return_value=False):
+                with patch.object(
+                    refresh_items, "pin_is_newer_by_date", return_value=False
+                ):
                     result = assessor_for(catalog, api, newer).assess("mia")
                 self.assertFalse(result.mechanical)
                 self.assertTrue(any(name in r for r in result.reasons), result.reasons)
@@ -894,7 +921,9 @@ class AssessmentTests(unittest.TestCase):
                 "html_url": "u",
                 "files": [{"filename": "tensorfold-serve", "status": "modified"}],
             }
-            with patch.object(refresh, "pin_is_newer_by_date", return_value=False):
+            with patch.object(
+                refresh_items, "pin_is_newer_by_date", return_value=False
+            ):
                 result = assessor_for(catalog, api, newer).assess("mia")
             self.assertTrue(
                 any("tensorfold-serve" in r for r in result.reasons), result.reasons
@@ -937,7 +966,9 @@ class AssessmentTests(unittest.TestCase):
                 "html_url": "u",
                 "files": [],
             }
-            with patch.object(refresh, "pin_is_newer_by_date", return_value=False):
+            with patch.object(
+                refresh_items, "pin_is_newer_by_date", return_value=False
+            ):
                 result = assessor_for(catalog, api, newer).assess("mia")
         self.assertFalse(result.mechanical)
         self.assertTrue(
@@ -999,7 +1030,9 @@ class CitedKitTests(unittest.TestCase):
                     manifest={"source": {"repo": BASE, "commit": BASE_060}},
                     lock=False,
                 )
-                catalog = refresh.Catalog(root, recipes={"mia": recipe_for(KIT_NEW)})
+                catalog = refresh_catalog_view.Catalog(
+                    root, recipes={"mia": recipe_for(KIT_NEW)}
+                )
                 newer = "5" * 40
                 api = FakeApi()
                 api.compare[(KIT_NEW, newer)] = {
@@ -1008,14 +1041,16 @@ class CitedKitTests(unittest.TestCase):
                     "html_url": "u",
                     "files": [{"filename": n, "status": "modified"} for n in names],
                 }
-                assessor = refresh.Assessor(catalog, api, None, {})
-                assessor.targets[("github", KIT.lower())] = refresh.Target(
+                assessor = refresh_assessment.Assessor(catalog, api, None, {})  # pyright: ignore[reportArgumentType]
+                assessor.targets[("github", KIT.lower())] = refresh_model.Target(
                     "github", KIT, newer, "2026-10-02", None, None, "u"
                 )
-                assessor.targets[("github", BASE.lower())] = refresh.Target(
+                assessor.targets[("github", BASE.lower())] = refresh_model.Target(
                     "github", BASE, BASE_060, "2026-10-01", "v0.6.0", "0.6.0", "u"
                 )
-                with patch.object(refresh, "pin_is_newer_by_date", return_value=False):
+                with patch.object(
+                    refresh_items, "pin_is_newer_by_date", return_value=False
+                ):
                     result = assessor.assess("mia")
                 self.assertEqual(result.mechanical, mechanical, result.reasons)
 
@@ -1033,8 +1068,8 @@ class ModelPayloadTests(unittest.TestCase):
             {"path": "README.md", "roles": ["metadata"], "sha256": "c" * 64},
         ]
         changed = [dict(same[0], sha256="d" * 64), same[1]]
-        self.assertTrue(refresh.payload_identical(old, same))
-        self.assertFalse(refresh.payload_identical(old, changed))
+        self.assertTrue(refresh_classification.payload_identical(old, same))
+        self.assertFalse(refresh_classification.payload_identical(old, changed))
 
     def test_stored_metadata_that_roles_for_calls_payload_is_compared(self) -> None:
         old = {
@@ -1049,8 +1084,8 @@ class ModelPayloadTests(unittest.TestCase):
         }
         same = [dict(old["files"][0]), dict(old["files"][1], sha256="c" * 64)]
         changed = [dict(old["files"][0], sha256="d" * 64), same[1]]
-        self.assertTrue(refresh.payload_identical(old, same))
-        self.assertFalse(refresh.payload_identical(old, changed))
+        self.assertTrue(refresh_classification.payload_identical(old, same))
+        self.assertFalse(refresh_classification.payload_identical(old, changed))
 
     def test_stored_weights_that_roles_for_calls_metadata_are_compared(self) -> None:
         from recipe_tooling.catalog_model import roles_for
@@ -1060,9 +1095,9 @@ class ModelPayloadTests(unittest.TestCase):
             "files": [{"path": "model.dat", "roles": ["weights"], "sha256": "a" * 64}]
         }
         new = [{"path": "model.dat", "roles": ["metadata"], "sha256": "b" * 64}]
-        self.assertFalse(refresh.payload_identical(old, new))
+        self.assertFalse(refresh_classification.payload_identical(old, new))
         new[0]["sha256"] = "a" * 64
-        self.assertTrue(refresh.payload_identical(old, new))
+        self.assertTrue(refresh_classification.payload_identical(old, new))
 
     def test_readme_only_revision_with_merges_is_a_noop_and_merges_change_a_move(
         self,
@@ -1094,20 +1129,24 @@ class ModelPayloadTests(unittest.TestCase):
                 {"path": "README.md", "roles": ["metadata"], "sha256": readme},
             ]
 
-        self.assertTrue(refresh.payload_identical(old, new("b" * 64, "d" * 64)))
-        self.assertFalse(refresh.payload_identical(old, new("e" * 64, "c" * 64)))
+        self.assertTrue(
+            refresh_classification.payload_identical(old, new("b" * 64, "d" * 64))
+        )
+        self.assertFalse(
+            refresh_classification.payload_identical(old, new("e" * 64, "c" * 64))
+        )
 
 
 def issue_assessment(heads: list[str]) -> Any:
-    result = refresh.Assessment("mia")
+    result = refresh_model.Assessment("mia")
     for head in heads:
         result.items.append(
-            refresh.Item(
+            refresh_model.Item(
                 "source",
                 "github",
                 KIT,
                 KIT_OLD,
-                refresh.Target(
+                refresh_model.Target(
                     "github",
                     KIT,
                     head,
@@ -1125,27 +1164,29 @@ def issue_assessment(heads: list[str]) -> Any:
 
 class IssueFreshnessTests(unittest.TestCase):
     def test_the_body_records_the_head_and_its_timestamp(self) -> None:
-        body = refresh.issue_body(issue_assessment([KIT_NEW]))
+        body = refresh_render.issue_body(issue_assessment([KIT_NEW]))
         self.assertIn(f"head `{KIT_NEW[:12]}`, committed 2026-10-02T10:17:45Z", body)
         self.assertNotIn("Upstream moved", body)
 
     def test_a_later_run_says_when_upstream_moved_and_keeps_saying_it(self) -> None:
-        first = refresh.issue_body(issue_assessment([KIT_NEW]))
-        second = refresh.issue_body(issue_assessment(["5" * 40]), first)
+        first = refresh_render.issue_body(issue_assessment([KIT_NEW]))
+        second = refresh_render.issue_body(issue_assessment(["5" * 40]), first)
         self.assertIn(
             f"> Upstream moved since the last check: {KIT}@{KIT_NEW[:12]} -> {KIT}@{'5' * 12}",
             second,
         )
-        third = refresh.issue_body(issue_assessment(["5" * 40]), second)
+        third = refresh_render.issue_body(issue_assessment(["5" * 40]), second)
         self.assertIn("Upstream moved since the last check", third)
         self.assertEqual(
-            refresh.MOVED_LINE.search(third).group(1),
-            refresh.MOVED_LINE.search(second).group(1),
+            refresh_render.MOVED_LINE.search(third).group(1),  # pyright: ignore[reportOptionalMemberAccess]
+            refresh_render.MOVED_LINE.search(second).group(1),  # pyright: ignore[reportOptionalMemberAccess]
         )
 
     def test_an_unchanged_upstream_keeps_the_body_stable(self) -> None:
-        first = refresh.issue_body(issue_assessment([KIT_NEW]))
-        self.assertEqual(refresh.issue_body(issue_assessment([KIT_NEW]), first), first)
+        first = refresh_render.issue_body(issue_assessment([KIT_NEW]))
+        self.assertEqual(
+            refresh_render.issue_body(issue_assessment([KIT_NEW]), first), first
+        )
 
 
 FORK = "tournierjc/TensorFold"
@@ -1171,15 +1212,15 @@ class DeclaredRepositoryTests(unittest.TestCase):
     def derive(self, text: str, manifest: dict[str, Any] = FORK_MANIFEST) -> Any:
         api = FakeApi({KIT_FORK: text})
         api.branches["integration/0.6.1"] = FORK_COMMIT
-        wanted = kit_pins.declarations(manifest)
-        return kit_pins.derive(KIT, KIT_FORK, wanted, upstream(api))[0]
+        wanted = kit_declarations.declarations(manifest)
+        return kit_resolve.derive(KIT, KIT_FORK, wanted, upstream(api))[0]
 
     def test_the_repository_and_the_ref_are_locked_together(self) -> None:
         pin = self.derive(
             f"ARG TF_REPO=https://github.com/{FORK}.git\nARG TF_REF={FORK_COMMIT}\n"
         )
         self.assertEqual((pin.repo, pin.ref, pin.kind), (FORK, FORK_COMMIT, "commit"))
-        lock = kit_pins.lock_document(KIT, KIT_FORK, [pin])
+        lock = kit_lock.lock_document(KIT, KIT_FORK, [pin])
         self.assertEqual(lock["dependencies"]["base"]["repo"], FORK)
 
     def test_a_plain_owner_name_is_accepted(self) -> None:
@@ -1187,9 +1228,9 @@ class DeclaredRepositoryTests(unittest.TestCase):
         self.assertEqual(pin.repo, FORK)
 
     def test_no_or_several_repositories_is_an_error(self) -> None:
-        with self.assertRaisesRegex(kit_pins.KitError, "repo_pattern"):
+        with self.assertRaisesRegex(kit_model.KitError, "repo_pattern"):
             self.derive(f"ARG TF_REF={FORK_COMMIT}\n")
-        with self.assertRaisesRegex(kit_pins.KitError, "several repositories"):
+        with self.assertRaisesRegex(kit_model.KitError, "several repositories"):
             self.derive(
                 f"ARG TF_REPO={FORK}\nARG TF_REPO={BASE}\nARG TF_REF={FORK_COMMIT}\n"
             )
@@ -1197,12 +1238,12 @@ class DeclaredRepositoryTests(unittest.TestCase):
     def test_repo_and_repo_pattern_are_exclusive_and_the_group_is_needed(self) -> None:
         both = json.loads(json.dumps(FORK_MANIFEST))
         both["kit"]["dependencies"]["base"]["repo"] = BASE
-        with self.assertRaisesRegex(kit_pins.KitError, "give one"):
-            kit_pins.declarations(both)
+        with self.assertRaisesRegex(kit_model.KitError, "give one"):
+            kit_declarations.declarations(both)
         bad = json.loads(json.dumps(FORK_MANIFEST))
         bad["kit"]["dependencies"]["base"]["repo_pattern"] = r"^ARG TF_REPO=\S+$"
-        with self.assertRaisesRegex(kit_pins.KitError, "no .*repo"):
-            kit_pins.declarations(bad)
+        with self.assertRaisesRegex(kit_model.KitError, "no .*repo"):
+            kit_declarations.declarations(bad)
 
     def test_a_kit_that_moves_to_another_repository_makes_the_lock_stale(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1216,7 +1257,7 @@ class DeclaredRepositoryTests(unittest.TestCase):
                 base_repo=BASE,  # the lock still says the old repository
                 manifest=FORK_MANIFEST,
             )
-            problems = kit_pins.check_recipe(
+            problems = kit_check.check_recipe(
                 root,
                 "mia",
                 recipe_for(KIT_FORK),
@@ -1250,16 +1291,18 @@ class CatalogKitTests(unittest.TestCase):
     def test_each_listed_recipe_declares_and_locks_its_base_without_a_second_pin(
         self,
     ) -> None:
-        catalog = refresh.Catalog.load(ROOT)
+        catalog = refresh_catalog_view.Catalog.load(ROOT)
         for slug, (kind, ref) in FOLLOWING_RECIPES.items():
             with self.subTest(recipe=slug):
-                directory = refresh.kit_directory(ROOT, catalog.recipes[slug])
+                directory = refresh_catalog_view.kit_directory(
+                    ROOT, catalog.recipes[slug]
+                )
                 self.assertIsNotNone(directory)  # so consider("adapter") is never asked
                 manifest = json.loads(
-                    (directory / "vendored-upstream.json").read_text()
+                    (directory / "vendored-upstream.json").read_text()  # pyright: ignore[reportOptionalOperand]
                 )
                 self.assertNotIn("source", manifest)
-                locked = kit_pins.read_lock(directory)["dependencies"]["base"]
+                locked = kit_lock.read_lock(directory)["dependencies"]["base"]  # pyright: ignore[reportArgumentType, reportOptionalSubscript]
                 self.assertEqual(locked["kind"], kind)
                 self.assertTrue(locked["ref"].startswith(ref), locked)
                 self.assertRegex(locked["commit"], r"^[0-9a-f]{40}$")
@@ -1283,9 +1326,9 @@ class BusyProviderCliTests(unittest.TestCase):
                 raise UpstreamBusy("rate limited")
             return ["second: stale"]
 
-        with patch.object(kit_pins, "check_recipe", check):
+        with patch.object(kit_cli, "check_recipe", check):
             failed = sum(
-                kit_pins.process("check", name, {}, None)
+                kit_cli.process("check", name, {}, None)  # pyright: ignore[reportArgumentType]
                 for name in ("first", "second")
             )
         self.assertEqual((seen, failed), (["first", "second"], 2))
@@ -1298,9 +1341,9 @@ class BusyProviderCliTests(unittest.TestCase):
 
         with (
             tempfile.TemporaryDirectory() as tmp,
-            patch.object(kit_pins, "kit_images", busy),
+            patch.object(kit_cli, "kit_images", busy),
         ):
-            problems = kit_pins.check_images(
+            problems = kit_check.check_images(
                 Path(tmp), {"mia": recipe_for(KIT_BRANCH)}, upstream(FakeApi())
             )
         self.assertEqual(len(problems), 1, problems)

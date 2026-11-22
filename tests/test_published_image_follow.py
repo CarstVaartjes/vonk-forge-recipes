@@ -27,6 +27,18 @@ from unittest.mock import patch
 
 from repo_root import ROOT
 
+from recipe_tooling import vendored_upstream
+from recipe_tooling.kit_pins import upstream as kit_upstream
+from recipe_tooling.refresh_upstream import assessment as refresh_assessment
+from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
+from recipe_tooling.refresh_upstream import github as refresh
+from recipe_tooling.refresh_upstream import github as refresh_github
+from recipe_tooling.refresh_upstream import http as refresh_http
+from recipe_tooling.refresh_upstream import items as refresh_items
+from recipe_tooling.refresh_upstream import model as refresh_model
+from recipe_tooling.refresh_upstream import publish as refresh_publish
+from recipe_tooling.refresh_upstream import render as refresh_render
+
 
 def load(name: str, module: str) -> Any:
     loader = importlib.machinery.SourceFileLoader(module, str(ROOT / "tools" / name))
@@ -38,8 +50,6 @@ def load(name: str, module: str) -> Any:
     return loaded
 
 
-kit_pins = load("kit-pins", "kit_pins_for_image_follow")
-refresh = load("refresh-upstream", "refresh_upstream_for_image_follow")
 guard = load("check-image-provenance", "check_image_provenance_under_test")
 
 SOURCE = "eugr/spark-vllm-docker"
@@ -104,7 +114,7 @@ def eugr_registry(commit: str = BUILT) -> FakeRegistry:
 class ProvenanceTests(unittest.TestCase):
     def test_build_metadata_of_the_last_layer_names_the_commit(self) -> None:
         fake = eugr_registry()
-        registry = kit_pins.Registry(fake)
+        registry = kit_upstream.Registry(fake)
         found = registry.provenance(IMAGE, fake.digest, SOURCE)
         self.assertEqual(found, (BUILT, "2026-10-13"))
         # Recipes sharing an image read it once a run (anonymous pulls are limited).
@@ -122,7 +132,7 @@ class ProvenanceTests(unittest.TestCase):
             },
             None,
         )
-        found = kit_pins.Registry(fake).provenance(IMAGE, fake.digest, SOURCE)
+        found = kit_upstream.Registry(fake).provenance(IMAGE, fake.digest, SOURCE)
         self.assertEqual(found, (BUILT, "2026-10-01"))
 
     def test_another_repository_or_no_record_is_never_guessed(self) -> None:
@@ -133,11 +143,11 @@ class ProvenanceTests(unittest.TestCase):
             },
             None,
         )
-        registry = kit_pins.Registry(other)
+        registry = kit_upstream.Registry(other)
         self.assertIsNone(registry.provenance(IMAGE, other.digest, SOURCE))
         bare = FakeRegistry({}, metadata_layer("build_date: 2026-10-13\n"))
         self.assertIsNone(
-            kit_pins.Registry(bare).provenance(IMAGE, bare.digest, SOURCE)
+            kit_upstream.Registry(bare).provenance(IMAGE, bare.digest, SOURCE)
         )
 
 
@@ -193,15 +203,18 @@ class RefreshTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             write_recipe(root, SOURCE)
-            assessor = refresh.Assessor(
-                refresh.Catalog.load(root), object(), None, {"recipes": []}
+            assessor = refresh_assessment.Assessor(
+                refresh_catalog_view.Catalog.load(root),
+                object(),  # pyright: ignore[reportArgumentType]
+                None,
+                {"recipes": []},
             )
-            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))
-            empty = refresh.vendored.Tree({}, True)
+            source = kit_upstream.Upstream(None, None, kit_upstream.Registry(fake))  # pyright: ignore[reportArgumentType]
+            empty = vendored_upstream.Tree({}, True)
             with (
-                patch.object(refresh, "kit_upstream", lambda _http: source),
-                patch.object(refresh, "compare_commits", compare),
-                patch.object(refresh.vendored, "fetch_tree", lambda *_: empty),
+                patch.object(refresh_http, "kit_upstream", lambda _http: source),
+                patch.object(refresh_items, "compare_commits", compare),
+                patch.object(vendored_upstream, "fetch_tree", lambda *_: empty),
             ):
                 result = assessor.assess("recipe")
             result.edits = {
@@ -211,7 +224,7 @@ class RefreshTests(unittest.TestCase):
 
     @staticmethod
     def identical(*_: Any) -> Any:
-        return refresh.Comparison("ahead", [], [], False, "u")
+        return refresh_model.Comparison("ahead", [], [], False, "u")
 
     def test_an_unchanged_image_proposes_nothing_however_far_the_source_moved(
         self,
@@ -220,11 +233,17 @@ class RefreshTests(unittest.TestCase):
         fake.objects["latest"] = b"{}"
         with tempfile.TemporaryDirectory() as tmp:
             write_recipe(Path(tmp), SOURCE, sha(b"{}"))
-            catalog = refresh.Catalog.load(Path(tmp))
-            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))
-            newest = refresh.Target("github", SOURCE, "c" * 40, "d", "tag", "1", "u")
-            result = refresh.collect_items(
-                catalog, "recipe", object(), lambda *_: newest, source
+            catalog = refresh_catalog_view.Catalog.load(Path(tmp))
+            source = kit_upstream.Upstream(None, None, kit_upstream.Registry(fake))  # pyright: ignore[reportArgumentType]
+            newest = refresh_model.Target(
+                "github", SOURCE, "c" * 40, "d", "tag", "1", "u"
+            )
+            result = refresh_items.collect_items(
+                catalog,
+                "recipe",
+                object(),  # pyright: ignore[reportArgumentType]
+                lambda *_: newest,
+                source,
             )
         self.assertFalse(result.drifted)
         self.assertIn("unchanged", result.evidence[0])
@@ -251,7 +270,7 @@ class RefreshTests(unittest.TestCase):
         raise RuntimeError("HTTP 422: No commit found")
 
     def test_github_unreadable_for_an_image_commit_waits(self) -> None:
-        with patch.object(refresh, "commit_on_github", lambda *_: None):
+        with patch.object(refresh_items, "commit_on_github", lambda *_: None):
             result = self.assess(eugr_registry(), self.missing)
         self.assertFalse(result.mechanical)
         self.assertFalse(result.reasons)
@@ -260,7 +279,7 @@ class RefreshTests(unittest.TestCase):
 
     def test_an_image_built_from_an_unpublished_commit_moves_for_review(self) -> None:
         fake = eugr_registry()
-        with patch.object(refresh, "commit_on_github", lambda *_: False):
+        with patch.object(refresh_items, "commit_on_github", lambda *_: False):
             result = self.assess(fake, self.missing)
         # Followed by digest, provenance marked, held for a person (never armed).
         self.assertTrue(result.for_review, result.reasons)
@@ -277,11 +296,11 @@ class RefreshTests(unittest.TestCase):
             f"commit {BUILT} not on github.com/{SOURCE}",
         )
         result.pull_request = 7
-        body = refresh.issue_body(result)
+        body = refresh_render.issue_body(result)
         self.assertIn("#7", body)
         self.assertIn("not on GitHub", body)
         self.assertIn("vllm_version: 0.31.1rc1", body)  # what the image itself shows
-        self.assertIn("Needs review", refresh.pr_body(result))
+        self.assertIn("Needs review", refresh_render.pr_body(result))
 
     def test_a_move_off_an_unpublished_pin_is_held_and_drops_the_mark(self) -> None:
         fake = eugr_registry("c" * 40)  # the new image's commit is published
@@ -289,14 +308,17 @@ class RefreshTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             write_recipe(root, SOURCE, pinned=BUILT, mark=mark)
-            assessor = refresh.Assessor(
-                refresh.Catalog.load(root), object(), None, {"recipes": []}
+            assessor = refresh_assessment.Assessor(
+                refresh_catalog_view.Catalog.load(root),
+                object(),  # pyright: ignore[reportArgumentType]
+                None,
+                {"recipes": []},
             )
-            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))
+            source = kit_upstream.Upstream(None, None, kit_upstream.Registry(fake))  # pyright: ignore[reportArgumentType]
             with (
-                patch.object(refresh, "kit_upstream", lambda _http: source),
-                patch.object(refresh, "compare_commits", self.missing),
-                patch.object(refresh, "commit_on_github", lambda *_: True),
+                patch.object(refresh_http, "kit_upstream", lambda _http: source),
+                patch.object(refresh_items, "compare_commits", self.missing),
+                patch.object(refresh_items, "commit_on_github", lambda *_: True),
             ):
                 result = assessor.assess("recipe")
             result.edits = {
@@ -304,9 +326,9 @@ class RefreshTests(unittest.TestCase):
             }
         self.assertTrue(result.for_review, result.reasons)
         self.assertIn("never published", result.held[0])
-        dockerfile = result.edits["adapters/eugr/x/Dockerfile"].decode()
+        dockerfile = result.edits["adapters/eugr/x/Dockerfile"].decode()  # pyright: ignore[reportOptionalMemberAccess]
         self.assertIn(f"FROM {IMAGE}@{fake.digest}", dockerfile)
-        manifest = json.loads(result.edits["adapters/eugr/x/vendored-upstream.json"])
+        manifest = json.loads(result.edits["adapters/eugr/x/vendored-upstream.json"])  # pyright: ignore[reportArgumentType]
         self.assertEqual(manifest["source"], {"commit": "c" * 40, "repo": SOURCE})
 
     def test_the_mark_goes_once_github_serves_the_commit(self) -> None:
@@ -315,14 +337,19 @@ class RefreshTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             write_recipe(root, SOURCE, fake.digest, pinned=BUILT, mark=mark)
-            assessor = refresh.Assessor(
-                refresh.Catalog.load(root), object(), None, {"recipes": []}
+            assessor = refresh_assessment.Assessor(
+                refresh_catalog_view.Catalog.load(root),
+                object(),  # pyright: ignore[reportArgumentType]
+                None,
+                {"recipes": []},
             )
-            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))
+            source = kit_upstream.Upstream(None, None, kit_upstream.Registry(fake))  # pyright: ignore[reportArgumentType]
             for served in (False, True):
                 with (
-                    patch.object(refresh, "kit_upstream", lambda _http: source),
-                    patch.object(refresh, "commit_on_github", lambda *_, s=served: s),
+                    patch.object(refresh_http, "kit_upstream", lambda _http: source),
+                    patch.object(
+                        refresh_items, "commit_on_github", lambda *_, s=served: s
+                    ),
                 ):
                     result = assessor.assess("recipe")
                 if not served:
@@ -333,7 +360,7 @@ class RefreshTests(unittest.TestCase):
                     sorted(result.edits), ["adapters/eugr/x/vendored-upstream.json"]
                 )
                 manifest = json.loads(
-                    result.edits["adapters/eugr/x/vendored-upstream.json"]
+                    result.edits["adapters/eugr/x/vendored-upstream.json"]  # pyright: ignore[reportArgumentType]
                 )
                 self.assertEqual(manifest["source"], {"commit": BUILT, "repo": SOURCE})
 
@@ -348,17 +375,20 @@ class RefreshTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             write_recipe(root, "someone/recipe")
-            assessor = refresh.Assessor(
-                refresh.Catalog.load(root), object(), None, {"recipes": []}
+            assessor = refresh_assessment.Assessor(
+                refresh_catalog_view.Catalog.load(root),
+                object(),  # pyright: ignore[reportArgumentType]
+                None,
+                {"recipes": []},
             )
-            newest = refresh.Target(
+            newest = refresh_model.Target(
                 "github", "someone/recipe", BUILT, "d", None, None, "u"
             )
-            assessor.target = lambda *_: newest
-            empty = refresh.vendored.Tree({}, True)
+            assessor.target = lambda *_: newest  # pyright: ignore[reportAttributeAccessIssue]
+            empty = vendored_upstream.Tree({}, True)
             with (
-                patch.object(refresh, "compare_commits", self.identical),
-                patch.object(refresh.vendored, "fetch_tree", lambda *_: empty),
+                patch.object(refresh_items, "compare_commits", self.identical),
+                patch.object(vendored_upstream, "fetch_tree", lambda *_: empty),
             ):
                 result = assessor.assess("recipe")
         self.assertFalse(result.drifted)
@@ -367,14 +397,18 @@ class RefreshTests(unittest.TestCase):
 
 class SharedContextTests(unittest.TestCase):
     def test_single_and_dual_held_for_review_are_prepared_together(self) -> None:
-        target = refresh.Target("github", SOURCE, BUILT, "2026-10-13", None, None, "u")
+        target = refresh_model.Target(
+            "github", SOURCE, BUILT, "2026-10-13", None, None, "u"
+        )
         parts = {}
         for name in ("x-dual", "x-single"):
-            item = refresh.Item("source", "github", SOURCE, OLD, target, unverified="m")
-            parts[name] = refresh.Assessment(
+            item = refresh_model.Item(
+                "source", "github", SOURCE, OLD, target, unverified="m"
+            )
+            parts[name] = refresh_model.Assessment(
                 name, items=[item], held=["not on GitHub"], edits={"a": b"1"}
             )
-        combined = refresh.combine_group(["x-dual", "x-single"], parts)
+        combined = refresh_publish.combine_group(["x-dual", "x-single"], parts)
         assert not isinstance(combined, str), combined
         self.assertTrue(combined.for_review)
         self.assertFalse(combined.mechanical)  # never armed
@@ -394,7 +428,7 @@ class GuardTests(unittest.TestCase):
             root = Path(tmp)
             write_recipe(root, SOURCE, fake.digest, pinned=pinned, mark=mark)
             return guard.check(
-                root, changed, kit_pins.Registry(fake), lambda *_: served
+                root, changed, kit_upstream.Registry(fake), lambda *_: served
             )
 
     def test_an_unpublished_build_commit_is_accepted_only_when_marked(self) -> None:
@@ -502,14 +536,17 @@ class PlaybookMoveTests(unittest.TestCase):
                     }
                 )
             )
-            assessor = refresh.Assessor(
-                refresh.Catalog.load(root), object(), None, {"recipes": []}
+            assessor = refresh_assessment.Assessor(
+                refresh_catalog_view.Catalog.load(root),
+                object(),  # pyright: ignore[reportArgumentType]
+                None,
+                {"recipes": []},
             )
-            newest = refresh.Target(
+            newest = refresh_model.Target(
                 "github", PLAYBOOKS, BUILT, "2026-10-12", None, None, "u"
             )
-            assessor.target = lambda *_: newest
-            readme = refresh.Comparison(
+            assessor.target = lambda *_: newest  # pyright: ignore[reportAttributeAccessIssue]
+            readme = refresh_model.Comparison(
                 "ahead",
                 [],
                 [{"filename": "nvidia/playbook-llms/README.md", "status": "modified"}],
@@ -521,8 +558,8 @@ class PlaybookMoveTests(unittest.TestCase):
                 raise RuntimeError("no upstream tree is needed for a recipe using none")
 
             with (
-                patch.object(refresh, "compare_commits", lambda *_: readme),
-                patch.object(refresh.vendored, "fetch_tree", offline),
+                patch.object(refresh_items, "compare_commits", lambda *_: readme),
+                patch.object(vendored_upstream, "fetch_tree", offline),
             ):
                 result = assessor.assess("recipe")
         self.assertFalse(result.drifted, result.reasons)
@@ -553,7 +590,7 @@ class StaleRunTests(unittest.TestCase):
             refresh.git("commit", "-qm", "Base", cwd=remote)
             refresh.git("clone", "-q", str(remote), str(work), cwd=root)
             started = refresh.git("rev-parse", "HEAD", cwd=work)
-            assessment = refresh.Assessment(
+            assessment = refresh_model.Assessment(
                 "recipe", edits={"recipe.json": b"new pin\n"}
             )
             calls: list[tuple[str, ...]] = []
@@ -565,10 +602,10 @@ class StaleRunTests(unittest.TestCase):
             for changed in ("tools/refresh-upstream", "recipe.json"):
                 (remote / changed).write_text(f"changed on main: {changed}\n")
                 refresh.git("commit", "-qam", f"Change {changed}", cwd=remote)
-                summary = refresh.Summary(started=started)
-                with patch.object(refresh, "gh", github):
+                summary = refresh_publish.Summary(started=started)
+                with patch.object(refresh_github, "gh", github):
                     self.assertIsNone(
-                        refresh.publish_mechanical(work, assessment, summary)
+                        refresh_publish.publish_mechanical(work, assessment, summary)
                     )
                 self.assertIn(changed, summary.deferred[0])
                 self.assertEqual(summary.prepared, 0)

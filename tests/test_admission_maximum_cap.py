@@ -376,7 +376,7 @@ def uses(source: str, relative: str) -> list[str]:
 
 def python_sources(root: Path) -> list[Path]:
     paths: list[Path] = []
-    for folder in ("qualification", "spark_sweep", "scripts", "tools"):
+    for folder in ("src", "spark_sweep", "scripts", "tools"):
         for path in (root / folder).rglob("*"):
             if not path.is_file() or "__pycache__" in path.parts:
                 continue

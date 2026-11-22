@@ -14,10 +14,19 @@ import pytest
 from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from test_prebuilt_images import INDEX
-from test_refresh_upstream import refresh
 
 from recipe_tooling.qualification.image_evidence import load_images
 from recipe_tooling.qualification.tolerant import InputReason, read_optional
+from recipe_tooling.refresh_upstream import assessment as refresh_assessment
+from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
+from recipe_tooling.refresh_upstream import cli as refresh_cli
+from recipe_tooling.refresh_upstream import github as refresh_github
+from recipe_tooling.refresh_upstream import http as refresh_http
+from recipe_tooling.refresh_upstream import model as refresh_model
+from recipe_tooling.refresh_upstream import publish as refresh_publish
+from recipe_tooling.upstream_drift import embedded as drift_embedded
+from recipe_tooling.upstream_drift import heads as drift_heads
+from recipe_tooling.upstream_drift import inventory as drift_inventory
 from spark_sweep.catalog import parse_recipe, recipe_listing
 from spark_sweep.catalog_contract import RecipeProjection
 from spark_sweep.policy import classify
@@ -162,6 +171,23 @@ def test_invalid_image_map_keeps_source_build_publication_path(
     assert diagnostics and diagnostics[0].reason is InputReason.INVALID_OPTIONAL
 
 
+DRIFT = {
+    "discover_watches": drift_inventory,
+    "embedded_inventory": drift_embedded,
+    "observe_embedded_heads": drift_heads,
+}
+REFRESH = {
+    "arm_open_mechanical_prs": refresh_publish,
+    "ensure_labels": refresh_github,
+    "foreign_open_prs": refresh_publish,
+    "sharing_groups": refresh_publish,
+    "close_current_issues": refresh_publish,
+    "close_stale_refresh_prs": refresh_publish,
+    "publish_if_stale": refresh_publish,
+    "write_summary": refresh_publish,
+}
+
+
 @pytest.mark.parametrize(
     "fault",
     [
@@ -180,28 +206,32 @@ def test_invalid_image_map_keeps_source_build_publication_path(
 def test_publication_repair_is_independent_of_assessment_and_housekeeping(
     fault: str,
 ) -> None:
-    render_summary = refresh.write_summary
+    render_summary = refresh_publish.write_summary
     names = {
-        "arm": (refresh, "arm_open_mechanical_prs"),
-        "load": (refresh.Catalog, "load"),
-        "manifest": (refresh.drift, "load_manifest"),
-        "inventory": (refresh.drift, "embedded_inventory"),
-        "heads": (refresh.drift, "observe_embedded_heads"),
-        "assess": (refresh.Assessor, "assess"),
-        "save": (refresh.Http, "save"),
-        "issues": (refresh, "close_current_issues"),
-        "stale": (refresh, "close_stale_refresh_prs"),
-        "publication": (refresh, "publish_if_stale"),
+        "arm": (refresh_publish, "arm_open_mechanical_prs"),
+        "load": (refresh_catalog_view.Catalog, "load"),
+        "manifest": (drift_inventory, "load_manifest"),
+        "inventory": (drift_embedded, "embedded_inventory"),
+        "heads": (drift_heads, "observe_embedded_heads"),
+        "assess": (refresh_assessment.Assessor, "assess"),
+        "save": (refresh_http.Http, "save"),
+        "issues": (refresh_publish, "close_current_issues"),
+        "stale": (refresh_publish, "close_stale_refresh_prs"),
+        "publication": (refresh_publish, "publish_if_stale"),
     }
     from contextlib import ExitStack
 
     with ExitStack() as stack:
-        stack.enter_context(patch.object(refresh, "git", return_value="head"))
+        stack.enter_context(patch.object(refresh_github, "git", return_value="head"))
         stack.enter_context(
-            patch.object(refresh.Catalog, "load", return_value=Mock(recipes={"r": {}}))
+            patch.object(
+                refresh_catalog_view.Catalog,
+                "load",
+                return_value=Mock(recipes={"r": {}}),
+            )
         )
         stack.enter_context(
-            patch.object(refresh.drift, "load_manifest", return_value=({}, {}))
+            patch.object(drift_inventory, "load_manifest", return_value=({}, {}))
         )
         for name in (
             "discover_watches",
@@ -209,27 +239,27 @@ def test_publication_repair_is_independent_of_assessment_and_housekeeping(
             "observe_embedded_heads",
         ):
             stack.enter_context(
-                patch.object(refresh.drift, name, return_value={"coverage": {}})
+                patch.object(DRIFT[name], name, return_value={"coverage": {}})
             )
         stack.enter_context(
             patch.object(
-                refresh.Assessor,
+                refresh_assessment.Assessor,
                 "assess",
                 return_value=Mock(
                     recipe_id="r", drifted=False, unreachable=[], notes=[]
                 ),
             )
         )
-        stack.enter_context(patch.object(refresh.Http, "save"))
+        stack.enter_context(patch.object(refresh_http.Http, "save"))
         for name in (
             "arm_open_mechanical_prs",
             "ensure_labels",
             "foreign_open_prs",
             "sharing_groups",
         ):
-            stack.enter_context(patch.object(refresh, name, return_value={}))
+            stack.enter_context(patch.object(REFRESH[name], name, return_value={}))
         steps = {
-            name: stack.enter_context(patch.object(refresh, name))
+            name: stack.enter_context(patch.object(REFRESH[name], name))
             for name in (
                 "close_current_issues",
                 "close_stale_refresh_prs",
@@ -243,9 +273,10 @@ def test_publication_repair_is_independent_of_assessment_and_housekeeping(
         # Exercise the real summary renderer even when assessment is unavailable.
         steps["write_summary"].side_effect = render_summary
         # The publication mock must survive the fault patch for call inspection.
-        publication = refresh.publish_if_stale
+        publication = refresh_publish.publish_if_stale
         assert (
-            refresh.command_run(argparse.Namespace(cache_dir=None, dry_run=False)) == 1
+            refresh_cli.command_run(argparse.Namespace(cache_dir=None, dry_run=False))
+            == 1
         )
         publication.assert_called_once_with()
         steps["write_summary"].assert_called_once()
@@ -394,14 +425,14 @@ def test_bad_image_entry_preserves_valid_sibling_and_release_bytes() -> None:
 
 
 def _group_assessment(recipe_id: str, edit: bytes):
-    item = refresh.Item(
+    item = refresh_model.Item(
         "source",
         "github",
         "o/r",
         "0" * 40,
-        refresh.Target("github", "o/r", "f" * 40, "d", None, None, "u"),
+        refresh_model.Target("github", "o/r", "f" * 40, "d", None, None, "u"),
     )
-    return refresh.Assessment(recipe_id, items=[item], edits={"shared": edit})
+    return refresh_model.Assessment(recipe_id, items=[item], edits={"shared": edit})
 
 
 @pytest.mark.parametrize("outcome", ["publish fails", "members disagree"])
@@ -433,33 +464,33 @@ def test_a_group_that_does_not_land_reports_to_every_member_and_keeps_its_pr(
 
     with ExitStack() as stack:
         patches: list[tuple[Any, str, dict[str, Any]]] = [
-            (refresh, "git", {"return_value": "head"}),
-            (refresh.Http, "save", {}),
-            (refresh, "arm_open_mechanical_prs", {}),
-            (refresh, "ensure_labels", {}),
-            (refresh, "foreign_open_prs", {"return_value": {}}),
-            (refresh, "sharing_groups", {"return_value": group}),
-            (refresh, "blocking_prs", {"return_value": []}),
-            (refresh, "recipe_footprint", {"return_value": (set(), [])}),
-            (refresh, "publish_if_stale", {}),
-            (refresh, "write_summary", {}),
-            (refresh, "close_current_issues", {}),
-            (refresh, "publish_group", {"return_value": None}),
-            (refresh, "sync_issue", {"side_effect": record}),
-            (refresh, "gh_json", {"side_effect": listing}),
-            (refresh, "gh", {"side_effect": lambda *a, **k: closed.append(a)}),
+            (refresh_github, "git", {"return_value": "head"}),
+            (refresh_http.Http, "save", {}),
+            (refresh_publish, "arm_open_mechanical_prs", {}),
+            (refresh_github, "ensure_labels", {}),
+            (refresh_publish, "foreign_open_prs", {"return_value": {}}),
+            (refresh_publish, "sharing_groups", {"return_value": group}),
+            (refresh_publish, "blocking_prs", {"return_value": []}),
+            (refresh_publish, "recipe_footprint", {"return_value": (set(), [])}),
+            (refresh_publish, "publish_if_stale", {}),
+            (refresh_publish, "write_summary", {}),
+            (refresh_publish, "close_current_issues", {}),
+            (refresh_publish, "publish_group", {"return_value": None}),
+            (refresh_publish, "sync_issue", {"side_effect": record}),
+            (refresh_github, "gh_json", {"side_effect": listing}),
+            (refresh_github, "gh", {"side_effect": lambda *a, **k: closed.append(a)}),
         ]
         for target, attribute, kwargs in patches:
             stack.enter_context(patch.object(target, attribute, **kwargs))
         stack.enter_context(
             patch.object(
-                refresh.Catalog,
+                refresh_catalog_view.Catalog,
                 "load",
                 return_value=Mock(recipes={"dual": {}, "single": {}}),
             )
         )
         stack.enter_context(
-            patch.object(refresh.drift, "load_manifest", return_value=({}, {}))
+            patch.object(drift_inventory, "load_manifest", return_value=({}, {}))
         )
         for name in (
             "discover_watches",
@@ -467,14 +498,16 @@ def test_a_group_that_does_not_land_reports_to_every_member_and_keeps_its_pr(
             "observe_embedded_heads",
         ):
             stack.enter_context(
-                patch.object(refresh.drift, name, return_value={"coverage": {}})
+                patch.object(DRIFT[name], name, return_value={"coverage": {}})
             )
         stack.enter_context(
             patch.object(
-                refresh.Assessor, "assess", side_effect=lambda rid: assessed[rid]
+                refresh_assessment.Assessor,
+                "assess",
+                side_effect=lambda rid: assessed[rid],
             )
         )
-        refresh.command_run(argparse.Namespace(cache_dir=None, dry_run=False))
+        refresh_cli.command_run(argparse.Namespace(cache_dir=None, dry_run=False))
     assert set(synced) == {"dual", "single"}
     assert "dual" in " ".join(synced["single"])
     assert all(synced[member] for member in synced)

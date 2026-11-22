@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import importlib.machinery
-import importlib.util
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,16 +10,11 @@ from typing import Any
 from unittest.mock import patch
 
 from repo_root import ROOT
-from test_refresh_upstream import refresh
 
-LOADER = importlib.machinery.SourceFileLoader(
-    "check_model_revision_holds", str(ROOT / "tools/check-model-revision-holds")
-)
-SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
-assert SPEC is not None
-holds = importlib.util.module_from_spec(SPEC)
-sys.modules[LOADER.name] = holds
-LOADER.exec_module(holds)
+from recipe_tooling import model_revision_holds as holds
+from recipe_tooling.refresh_upstream import assessment as refresh_assessment
+from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
+from recipe_tooling.refresh_upstream import model as refresh_model
 
 REPOSITORY = "poolside/Laguna-S-2.1-NVFP4"
 HELD = "0" * 40
@@ -114,26 +106,29 @@ class RefreshSkipsDeclinedTests(unittest.TestCase):
     """A fake refresh whose upstream Model moved proposes nothing for the declined one."""
 
     def assess(self, root: Path, newest: str) -> Any:
-        catalog_ = refresh.Catalog(root, recipes={"held": recipe()})
+        catalog_ = refresh_catalog_view.Catalog(root, recipes={"held": recipe()})
         items = [
-            refresh.Item(
+            refresh_model.Item(
                 kind,
                 "huggingface",
                 REPOSITORY,
                 HELD,
-                refresh.Target(
+                refresh_model.Target(
                     "huggingface", REPOSITORY, newest, "2026-08-25", None, None, "u"
                 ),
                 "m",
             )
             for kind in ("model", "source")
         ]
-        assessment = refresh.Assessment("held", items=items)
-        assessor = refresh.Assessor(catalog_, object(), None, {})
+        assessment = refresh_model.Assessment("held", items=items)
+        assessor = refresh_assessment.Assessor(catalog_, object(), None, {})  # pyright: ignore[reportArgumentType]
         with (
-            patch("refresh_upstream.collect_items", return_value=assessment),
-            patch.object(refresh.Assessor, "_model") as move,
-            patch.object(refresh.Assessor, "_retarget_reference"),
+            patch(
+                "recipe_tooling.refresh_upstream.items.collect_items",
+                return_value=assessment,
+            ),
+            patch.object(refresh_assessment.Assessor, "_model") as move,
+            patch.object(refresh_assessment.Assessor, "_retarget_reference"),
         ):
             result = assessor.assess("held")
         return result, move

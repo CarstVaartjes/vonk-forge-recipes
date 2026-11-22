@@ -27,11 +27,27 @@ from test_kit_pins import (
     KIT,
     FakeApi,
     assessor_for,
-    kit_pins,
-    refresh,
     upstream,
 )
 from vonk_forge_contracts import read_model
+
+from recipe_tooling import catalog_hf_model, vendored_upstream
+from recipe_tooling.catalog_model import file_id
+from recipe_tooling.kit_pins import archive as kit_archive
+from recipe_tooling.kit_pins import check as kit_check
+from recipe_tooling.kit_pins import consumers as kit_consumers
+from recipe_tooling.kit_pins import declarations as kit_declarations
+from recipe_tooling.kit_pins import lock as kit_lock
+from recipe_tooling.kit_pins import model as kit_model
+from recipe_tooling.kit_pins import resolve as kit_resolve
+from recipe_tooling.kit_pins import upstream as kit_upstream
+from recipe_tooling.kit_pins import write as kit_write
+from recipe_tooling.refresh_upstream import assessment as refresh_assessment
+from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
+from recipe_tooling.refresh_upstream import classification as refresh_classification
+from recipe_tooling.refresh_upstream import http as refresh_http
+from recipe_tooling.refresh_upstream import items as refresh_items
+from recipe_tooling.refresh_upstream import model as refresh_model
 
 EXAMPLE = json.loads(
     (
@@ -162,7 +178,7 @@ def model_document(
     }
     document["files"] = [
         {
-            "id": refresh.file_id(path, sha),
+            "id": file_id(path, sha),
             "path": path,
             "roles": [role],
             "sha256": sha,
@@ -204,7 +220,7 @@ def recipe_document(
                 "model": {
                     "publisher": "mia-ai-lab",
                     "slug": document["identity"]["slug"],
-                    "content_sha256": kit_pins.model_digest(document),
+                    "content_sha256": kit_write.model_digest(document),
                 },
                 "files": [
                     {
@@ -249,7 +265,7 @@ class World:
         for document in [*models.values(), *extra_models]:
             self.write_model(document)
         self.recipe = recipe_document(models, kit_commit)
-        (root / "recipes/mia.json").write_text(kit_pins.recipe_text(self.recipe))
+        (root / "recipes/mia.json").write_text(kit_archive.recipe_text(self.recipe))
         (self.directory / "vendored-upstream.json").write_text(
             json.dumps(manifest or HF_MANIFEST)
         )
@@ -265,7 +281,7 @@ class World:
             for name, (repo, revision) in locked.items()
         }
         (self.directory / "kit-lock.json").write_text(
-            kit_pins.lock_text(
+            kit_lock.lock_text(
                 {
                     "dependencies": dependencies,
                     "kit": {"commit": kit_commit, "repo": KIT},
@@ -306,19 +322,19 @@ class World:
         )
 
     def check(self, hub: FakeHub | None = None) -> list[str]:
-        return kit_pins.check_recipe(
+        return kit_check.check_recipe(
             self.root,
             "mia",
             self.recipe,
-            upstream(FakeApi(CONFIGS), hub=kit_pins.HuggingFace(hub or hub_for())),
+            upstream(FakeApi(CONFIGS), hub=kit_upstream.HuggingFace(hub or hub_for())),
         )
 
     def lock(self, hub: FakeHub | None = None) -> list[str]:
-        return kit_pins.apply_lock(
+        return kit_write.apply_lock(
             self.root,
             "mia",
             self.recipe,
-            upstream(FakeApi(CONFIGS), hub=kit_pins.HuggingFace(hub or hub_for())),
+            upstream(FakeApi(CONFIGS), hub=kit_upstream.HuggingFace(hub or hub_for())),
         )
 
 
@@ -337,7 +353,9 @@ def tr3_world(root: Path, kit_commit: str, *, locked: str = "tr3") -> World:
 class HfDeclarationTests(unittest.TestCase):
     def declaration(self, **override: Any) -> Any:
         entry = dict(HF_MANIFEST["kit"]["dependencies"]["model"], **override)
-        return kit_pins.declarations({"kit": {"dependencies": {"model": entry}}})[0]
+        return kit_declarations.declarations(
+            {"kit": {"dependencies": {"model": entry}}}
+        )[0]
 
     def test_a_case_line_pairs_the_repository_with_its_revision(self) -> None:
         wanted = self.declaration()
@@ -346,23 +364,25 @@ class HfDeclarationTests(unittest.TestCase):
             (KIT_NEW, NEW, NEW_REV),
         ):
             text = CONFIGS[commit]
-            self.assertEqual(kit_pins.parse_repo(text, wanted), repo)
-            self.assertEqual(kit_pins.parse_declared(text, wanted), revision)
+            self.assertEqual(kit_declarations.parse_repo(text, wanted), repo)
+            self.assertEqual(kit_declarations.parse_declared(text, wanted), revision)
 
     def test_the_drafter_is_a_second_declaration_in_the_same_file(self) -> None:
-        wanted = kit_pins.declarations(HF_MANIFEST)
+        wanted = kit_declarations.declarations(HF_MANIFEST)
         self.assertEqual([d.name for d in wanted], ["drafter", "model"])
         drafter = wanted[0]
-        self.assertEqual(kit_pins.parse_repo(CONFIGS[KIT_NEW], drafter), DRAFT)
-        self.assertEqual(kit_pins.parse_declared(CONFIGS[KIT_NEW], drafter), DRAFT_REV)
+        self.assertEqual(kit_declarations.parse_repo(CONFIGS[KIT_NEW], drafter), DRAFT)
+        self.assertEqual(
+            kit_declarations.parse_declared(CONFIGS[KIT_NEW], drafter), DRAFT_REV
+        )
 
     def test_one_place_names_the_repository_and_the_recipe_model_is_named(self) -> None:
-        with self.assertRaisesRegex(kit_pins.KitError, "give one"):
+        with self.assertRaisesRegex(kit_model.KitError, "give one"):
             self.declaration(repo=NEW)
-        with self.assertRaisesRegex(kit_pins.KitError, "lacks repo"):
+        with self.assertRaisesRegex(kit_model.KitError, "lacks repo"):
             self.declaration(pattern=r"^_rev=(?P<version>[0-9a-f]{40})$")
-        with self.assertRaisesRegex(kit_pins.KitError, "binds"):
-            kit_pins.declarations(
+        with self.assertRaisesRegex(kit_model.KitError, "binds"):
+            kit_declarations.declarations(
                 {
                     "kit": {
                         "dependencies": {
@@ -377,8 +397,8 @@ class HfDeclarationTests(unittest.TestCase):
                     }
                 }
             )
-        with self.assertRaisesRegex(kit_pins.KitError, "binds is for an hf-revision"):
-            kit_pins.declarations(
+        with self.assertRaisesRegex(kit_model.KitError, "binds is for an hf-revision"):
+            kit_declarations.declarations(
                 {
                     "kit": {
                         "dependencies": {
@@ -396,26 +416,27 @@ class HfDeclarationTests(unittest.TestCase):
 
     def test_several_models_in_the_file_are_an_error_not_a_guess(self) -> None:
         text = CONFIGS[KIT_TR3] + CONFIGS[KIT_NEW]
-        with self.assertRaisesRegex(kit_pins.KitError, "several"):
-            kit_pins.parse_repo(text, self.declaration())
+        with self.assertRaisesRegex(kit_model.KitError, "several"):
+            kit_declarations.parse_repo(text, self.declaration())
 
     def test_a_declared_repository_is_a_huggingface_owner_name(self) -> None:
         self.assertEqual(
-            kit_pins._repository("hf-revision", "https://huggingface.co/a/b/"), "a/b"
+            kit_declarations._repository("hf-revision", "https://huggingface.co/a/b/"),
+            "a/b",
         )
-        with self.assertRaises(kit_pins.KitError):
-            kit_pins._repository("hf-revision", "not-a-repo")
+        with self.assertRaises(kit_model.KitError):
+            kit_declarations._repository("hf-revision", "not-a-repo")
 
 
 class HfDerivationTests(unittest.TestCase):
     def derive(self, commit: str, hub: FakeHub | None = None, **override: Any) -> Any:
         manifest = json.loads(json.dumps(HF_MANIFEST))
         manifest["kit"]["dependencies"]["model"].update(override)
-        return kit_pins.derive(
+        return kit_resolve.derive(
             KIT,
             commit,
-            kit_pins.declarations(manifest),
-            upstream(FakeApi(CONFIGS), hub=kit_pins.HuggingFace(hub or hub_for())),
+            kit_declarations.declarations(manifest),
+            upstream(FakeApi(CONFIGS), hub=kit_upstream.HuggingFace(hub or hub_for())),
         )
 
     def test_the_kit_locks_a_revision_of_the_repository_it_declares(self) -> None:
@@ -438,7 +459,7 @@ class HfDerivationTests(unittest.TestCase):
         self,
     ) -> None:
         pins = self.derive(KIT_NEW)
-        lock = kit_pins.lock_document(KIT, KIT_NEW, pins)
+        lock = kit_lock.lock_document(KIT, KIT_NEW, pins)
         self.assertEqual(
             lock["dependencies"]["model"],
             {
@@ -459,13 +480,13 @@ class HfDerivationTests(unittest.TestCase):
                 repo=NEW,
             )
         }
-        pin = kit_pins.derive(
+        pin = kit_resolve.derive(
             KIT,
             "4" * 40,
-            kit_pins.declarations(manifest),
+            kit_declarations.declarations(manifest),
             upstream(
                 FakeApi({"4" * 40: f"REVISION={NEW_REV[:8]}\n"}),
-                hub=kit_pins.HuggingFace(hub_for()),
+                hub=kit_upstream.HuggingFace(hub_for()),
             ),
         )[0]
         self.assertEqual(
@@ -482,12 +503,12 @@ class HfDerivationTests(unittest.TestCase):
                 repo=NEW,
             )
         }
-        pin = kit_pins.derive(
+        pin = kit_resolve.derive(
             KIT,
             "4" * 40,
-            kit_pins.declarations(manifest),
+            kit_declarations.declarations(manifest),
             upstream(
-                FakeApi({"4" * 40: "BRANCH=main\n"}), hub=kit_pins.HuggingFace(hub)
+                FakeApi({"4" * 40: "BRANCH=main\n"}), hub=kit_upstream.HuggingFace(hub)
             ),
         )[0]
         self.assertEqual(
@@ -497,7 +518,7 @@ class HfDerivationTests(unittest.TestCase):
     def test_a_repository_that_is_not_anonymously_readable_cannot_be_locked(
         self,
     ) -> None:
-        with self.assertRaisesRegex(kit_pins.KitError, "cannot resolve .*TR3"):
+        with self.assertRaisesRegex(kit_model.KitError, "cannot resolve .*TR3"):
             self.derive(KIT_TR3, hub=hub_for(private=(TR3,)))
 
     def test_an_override_replaces_the_declared_repository_and_revision(self) -> None:
@@ -578,7 +599,7 @@ class HfCheckAndLockTests(unittest.TestCase):
             self.assertEqual(primary["model"]["slug"], new["identity"]["slug"])
             self.assertEqual(primary["model"]["publisher"], "public-copy")
             self.assertEqual(
-                primary["model"]["content_sha256"], kit_pins.model_digest(new)
+                primary["model"]["content_sha256"], kit_write.model_digest(new)
             )
             # a repository switch has no file in common: the whole Model stays mounted
             self.assertEqual(
@@ -616,7 +637,9 @@ class HfCheckAndLockTests(unittest.TestCase):
                 {"primary": model_document(TR3, TR3_REV, TR3_FILES)}, KIT_TR3
             )
             other["identity"]["slug"] = "other"
-            (world.root / "recipes/other.json").write_text(kit_pins.recipe_text(other))
+            (world.root / "recipes/other.json").write_text(
+                kit_archive.recipe_text(other)
+            )
             changed = world.lock()
             self.assertFalse(any("removed" in c for c in changed), changed)
             self.assertTrue(
@@ -629,7 +652,7 @@ class HfCheckAndLockTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             world = tr3_world(Path(tmp), KIT_NEW)
             with self.assertRaisesRegex(
-                kit_pins.KitError, "another repository"
+                kit_model.KitError, "another repository"
             ) as caught:
                 world.lock()
         self.assertIn(f"--repository {NEW} --revision {NEW_REV}", str(caught.exception))
@@ -655,7 +678,7 @@ class HfCheckAndLockTests(unittest.TestCase):
                 "README.md": ("metadata", "5" * 64),
                 "MODEL_CARD.md": ("metadata", "6" * 64),
             }
-            hub = kit_pins.HuggingFace(
+            hub = kit_upstream.HuggingFace(
                 hub_for(),
                 inventory=lambda repo, revision: (
                     inventory(moved, size=9)
@@ -663,7 +686,7 @@ class HfCheckAndLockTests(unittest.TestCase):
                     else []
                 ),
             )
-            changed = kit_pins.apply_lock(
+            changed = kit_write.apply_lock(
                 world.root,
                 "mia",
                 world.recipe,
@@ -725,9 +748,9 @@ class HfCheckAndLockTests(unittest.TestCase):
                 ".gitattributes",
             )
         ]
-        for item in refresh.catalog.inventory("o/n", NEW_REV, tree):
-            self.assertEqual(kit_pins.file_id(item["path"], item["sha256"]), item["id"])
-            self.assertEqual(refresh.file_id(item["path"], item["sha256"]), item["id"])
+        for item in catalog_hf_model.inventory("o/n", NEW_REV, tree):  # pyright: ignore[reportArgumentType]
+            self.assertEqual(file_id(item["path"], item["sha256"]), item["id"])
+            self.assertEqual(file_id(item["path"], item["sha256"]), item["id"])
 
     def test_a_revision_moved_within_the_repository_keeps_the_selected_files(
         self,
@@ -751,7 +774,9 @@ class HfCheckAndLockTests(unittest.TestCase):
                 f for f in primary["files"] if not f["file_id"].startswith("readme")
             ]
             world.recipe = recipe
-            (world.root / "recipes/mia.json").write_text(kit_pins.recipe_text(recipe))
+            (world.root / "recipes/mia.json").write_text(
+                kit_archive.recipe_text(recipe)
+            )
             moved = dict(old_files, **{"README.md": ("metadata", "2" * 64)})
             new = model_document(NEW, NEW_REV2, moved)
             world.write_model(new)
@@ -772,7 +797,7 @@ def refresh_world(
     locked: dict[str, tuple[str, str]],
 ) -> Any:
     world = World(root, kit_commit=kit_pinned, models=models, locked=locked)
-    catalog = refresh.Catalog(
+    catalog = refresh_catalog_view.Catalog(
         root,
         recipes={"mia": world.recipe},
         models={m["identity"]["slug"]: m for m in models.values()},
@@ -830,7 +855,7 @@ class KitModelAssessmentTests(unittest.TestCase):
         }
         assessor = assessor_for(catalog, api, kit_head)
         assessor._inventory = lambda repo, revision: inventories[(repo, revision)]
-        with patch.object(refresh, "pin_is_newer_by_date", return_value=False):
+        with patch.object(refresh_items, "pin_is_newer_by_date", return_value=False):
             return assessor.assess("mia"), world
 
     def models(self, repo: str, revision: str, files: dict[str, tuple[str, str]]):
@@ -937,7 +962,10 @@ class KitModelAssessmentTests(unittest.TestCase):
         )
         self.assertFalse(result.mechanical)
         self.assertTrue(
-            any(refresh.KIT_MODEL_FILES_CHANGED in r for r in result.reasons),
+            any(
+                refresh_classification.KIT_MODEL_FILES_CHANGED in r
+                for r in result.reasons
+            ),
             result.reasons,
         )
 
@@ -1066,22 +1094,22 @@ def registry_for() -> FakeRegistry:
 
 class RegistryTests(unittest.TestCase):
     def test_a_tag_resolves_to_the_arm64_manifest_of_its_index(self) -> None:
-        registry = kit_pins.Registry(registry_for())
+        registry = kit_upstream.Registry(registry_for())
         self.assertEqual(registry.resolve(IMAGE, "1.3.0rc13"), ARM_RC13)
         self.assertEqual(registry.resolve(IMAGE, "1.3.0rc12"), ARM_RC12)
 
     def test_a_digest_the_kit_names_resolves_to_the_same_arm64_manifest(self) -> None:
-        registry = kit_pins.Registry(registry_for())
+        registry = kit_upstream.Registry(registry_for())
         self.assertEqual(registry.resolve(IMAGE, INDEX_RC13), ARM_RC13)
 
     def test_a_single_platform_manifest_is_its_own_digest(self) -> None:
         fake = registry_for()
         digest = "sha256:" + hashlib.sha256(fake.manifests["single"]).hexdigest()
-        self.assertEqual(kit_pins.Registry(fake).resolve(IMAGE, "single"), digest)
+        self.assertEqual(kit_upstream.Registry(fake).resolve(IMAGE, "single"), digest)
 
     def test_the_anonymous_token_is_fetched_once_per_request(self) -> None:
         fake = registry_for()
-        kit_pins.Registry(fake).resolve(IMAGE, "1.3.0rc13")
+        kit_upstream.Registry(fake).resolve(IMAGE, "1.3.0rc13")
         self.assertEqual(
             [u.split("?")[0] for u, _ in fake.calls],
             [
@@ -1094,23 +1122,23 @@ class RegistryTests(unittest.TestCase):
     def test_a_missing_tag_and_an_index_without_arm64_are_errors(self) -> None:
         fake = registry_for()
         fake.manifests["amd-only"] = index((AMD, "linux", "amd64"))
-        registry = kit_pins.Registry(fake)
-        with self.assertRaisesRegex(kit_pins.KitError, "HTTP 404"):
+        registry = kit_upstream.Registry(fake)
+        with self.assertRaisesRegex(kit_model.KitError, "HTTP 404"):
             registry.resolve(IMAGE, "gone")
-        with self.assertRaisesRegex(kit_pins.KitError, "no single linux/arm64"):
+        with self.assertRaisesRegex(kit_model.KitError, "no single linux/arm64"):
             registry.resolve(IMAGE, "amd-only")
 
     def test_docker_hub_names_resolve_to_its_registry(self) -> None:
         self.assertEqual(
-            kit_pins.Registry.split("vllm/vllm-openai"),
+            kit_upstream.Registry.split("vllm/vllm-openai"),
             ("registry-1.docker.io", "vllm/vllm-openai"),
         )
         self.assertEqual(
-            kit_pins.Registry.split("ubuntu"),
+            kit_upstream.Registry.split("ubuntu"),
             ("registry-1.docker.io", "library/ubuntu"),
         )
         self.assertEqual(
-            kit_pins.Registry.split("ghcr.io/ggml-org/llama.cpp"),
+            kit_upstream.Registry.split("ghcr.io/ggml-org/llama.cpp"),
             ("ghcr.io", "ggml-org/llama.cpp"),
         )
 
@@ -1151,7 +1179,7 @@ class ImageWorld:
         self.directory.mkdir(parents=True)
         (root / "recipes").mkdir()
         self.recipe = image_recipe(kit_commit, digest)
-        (root / "recipes/trt.json").write_text(kit_pins.recipe_text(self.recipe))
+        (root / "recipes/trt.json").write_text(kit_archive.recipe_text(self.recipe))
         (self.directory / "vendored-upstream.json").write_text(json.dumps(OCI_MANIFEST))
         (self.directory / "Dockerfile").write_text(
             f'FROM {IMAGE}@{digest}\nLABEL org.opencontainers.image.version="1.3.0rc13"\n'
@@ -1159,7 +1187,7 @@ class ImageWorld:
         )
         if locked is not None:
             (self.directory / "kit-lock.json").write_text(
-                kit_pins.lock_text(
+                kit_lock.lock_text(
                     {
                         "dependencies": {
                             "image": {
@@ -1178,7 +1206,7 @@ class ImageWorld:
     def source(self, registry: FakeRegistry | None = None) -> Any:
         return upstream(
             FakeApi({}),
-            registry=kit_pins.Registry(registry or registry_for()),
+            registry=kit_upstream.Registry(registry or registry_for()),
         )
 
 
@@ -1195,31 +1223,35 @@ class ImageKitTests(unittest.TestCase):
 
     def check(self, world: ImageWorld, kit: str) -> list[str]:
         api = _ReadmeApi(README)
-        return kit_pins.check_recipe(
+        return kit_check.check_recipe(
             self.root,
             "trt",
             world.recipe,
-            upstream(api, registry=kit_pins.Registry(registry_for())),
+            upstream(api, registry=kit_upstream.Registry(registry_for())),
         )
 
     def test_the_pattern_picks_the_declared_image_among_several_tags(self) -> None:
-        wanted = kit_pins.declarations(OCI_MANIFEST)[0]
-        self.assertEqual(kit_pins.parse_repo(README[KIT_RC13], wanted), IMAGE)
-        self.assertEqual(kit_pins.parse_declared(README[KIT_RC13], wanted), "1.3.0rc13")
+        wanted = kit_declarations.declarations(OCI_MANIFEST)[0]
+        self.assertEqual(kit_declarations.parse_repo(README[KIT_RC13], wanted), IMAGE)
+        self.assertEqual(
+            kit_declarations.parse_declared(README[KIT_RC13], wanted), "1.3.0rc13"
+        )
 
     def test_the_lock_holds_the_arm64_digest_of_the_declared_tag(self) -> None:
-        pin = kit_pins.derive(
+        pin = kit_resolve.derive(
             KIT,
             KIT_RC13,
-            kit_pins.declarations(OCI_MANIFEST),
-            upstream(_ReadmeApi(README), registry=kit_pins.Registry(registry_for())),
+            kit_declarations.declarations(OCI_MANIFEST),
+            upstream(
+                _ReadmeApi(README), registry=kit_upstream.Registry(registry_for())
+            ),
         )[0]
         self.assertEqual(
             (pin.repo, pin.ref, pin.kind, pin.immutable, pin.datasource),
             (IMAGE, "1.3.0rc13", "tag", ARM_RC13, "oci-image"),
         )
         self.assertEqual(
-            kit_pins.lock_document(KIT, KIT_RC13, [pin])["dependencies"]["image"],
+            kit_lock.lock_document(KIT, KIT_RC13, [pin])["dependencies"]["image"],
             {
                 "datasource": "oci-image",
                 "repo": IMAGE,
@@ -1235,11 +1267,11 @@ class ImageKitTests(unittest.TestCase):
         world = self.world(KIT_RC13, ARM_RC13, "1.3.0rc13")
         registry = registry_for()
         api = _ReadmeApi(README)
-        problems = kit_pins.check_recipe(
+        problems = kit_check.check_recipe(
             self.root,
             "trt",
             world.recipe,
-            upstream(api, registry=kit_pins.Registry(registry)),
+            upstream(api, registry=kit_upstream.Registry(registry)),
         )
         self.assertEqual(problems, [])
         self.assertEqual(registry.calls, [])
@@ -1270,11 +1302,13 @@ class ImageKitTests(unittest.TestCase):
         self,
     ) -> None:
         world = self.world(KIT_RC12, ARM_RC13, "1.3.0rc13")  # the kit moved to rc12
-        changed = kit_pins.apply_lock(
+        changed = kit_write.apply_lock(
             self.root,
             "trt",
             world.recipe,
-            upstream(_ReadmeApi(README), registry=kit_pins.Registry(registry_for())),
+            upstream(
+                _ReadmeApi(README), registry=kit_upstream.Registry(registry_for())
+            ),
         )
         self.assertIn("Dockerfile (FROM digest)", changed)
         text = (world.directory / "Dockerfile").read_text()
@@ -1288,12 +1322,12 @@ class ImageKitTests(unittest.TestCase):
         world.recipe = recipe
         self.assertEqual(self.check(world, KIT_RC12), [])
         self.assertEqual(
-            kit_pins.apply_lock(
+            kit_write.apply_lock(
                 self.root,
                 "trt",
                 recipe,
                 upstream(
-                    _ReadmeApi(README), registry=kit_pins.Registry(registry_for())
+                    _ReadmeApi(README), registry=kit_upstream.Registry(registry_for())
                 ),
             ),
             [],
@@ -1304,11 +1338,13 @@ class ImageKitTests(unittest.TestCase):
         (world.directory / "Dockerfile").write_text(
             f"FROM {IMAGE}:1.3.0rc13@{ARM_RC13}\n"
         )
-        kit_pins.apply_lock(
+        kit_write.apply_lock(
             self.root,
             "trt",
             world.recipe,
-            upstream(_ReadmeApi(README), registry=kit_pins.Registry(registry_for())),
+            upstream(
+                _ReadmeApi(README), registry=kit_upstream.Registry(registry_for())
+            ),
         )
         self.assertEqual(
             (world.directory / "Dockerfile").read_text(),
@@ -1355,7 +1391,7 @@ class ImageAssessmentTests(unittest.TestCase):
         world = ImageWorld(
             root, kit_pinned, ARM_RC13, locked="1.3.0rc13", locked_repo=locked_repo
         )
-        catalog = refresh.Catalog(root, recipes={"trt": world.recipe})
+        catalog = refresh_catalog_view.Catalog(root, recipes={"trt": world.recipe})
         api = api or _ReadmeApi(README)
         api.compare[(kit_pinned, kit_head)] = {
             "status": "ahead",
@@ -1363,16 +1399,16 @@ class ImageAssessmentTests(unittest.TestCase):
             "files": [{"filename": "CHANGELOG.md", "status": "modified"}],
             "html_url": "u",
         }
-        assessor = refresh.Assessor(catalog, api, None, {})
-        assessor.targets[("github", KIT.lower())] = refresh.Target(
+        assessor = refresh_assessment.Assessor(catalog, api, None, {})  # pyright: ignore[reportArgumentType]
+        assessor.targets[("github", KIT.lower())] = refresh_model.Target(
             "github", KIT, kit_head, "2026-10-02", None, None, "u"
         )
         with (
-            patch.object(refresh, "pin_is_newer_by_date", return_value=False),
+            patch.object(refresh_items, "pin_is_newer_by_date", return_value=False),
             patch.object(
-                refresh,
+                refresh_http,
                 "kit_upstream",
-                lambda http: upstream(api, registry=kit_pins.Registry(registry)),
+                lambda http: upstream(api, registry=kit_upstream.Registry(registry)),
             ),
         ):
             return assessor.assess("trt")
@@ -1397,7 +1433,9 @@ class ImageAssessmentTests(unittest.TestCase):
                     error.close()
                     raise error
 
-                http = refresh.Http(github_token=None, hf_token=None, cache_path=None)
+                http = refresh_http.Http(
+                    github_token=None, hf_token=None, cache_path=None
+                )
                 with (
                     patch("urllib.request.urlopen", limited),
                     patch("recipe_tooling.upstream_http.time.sleep"),
@@ -1470,11 +1508,12 @@ class KitOnlyManifestTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             directory = self.adapter(Path(tmp), HF_MANIFEST)
             self.assertEqual(
-                refresh.vendored._source(directory, HF_MANIFEST), ("o/engine", "a" * 40)
+                vendored_upstream._source(directory, HF_MANIFEST),
+                ("o/engine", "a" * 40),
             )
             declared = dict(HF_MANIFEST, source={"repo": KIT, "commit": "b" * 40})
             self.assertEqual(
-                refresh.vendored._source(directory, declared), (KIT, "b" * 40)
+                vendored_upstream._source(directory, declared), (KIT, "b" * 40)
             )
 
     def test_a_kit_with_a_base_takes_it_from_the_lock(self) -> None:
@@ -1492,14 +1531,14 @@ class KitOnlyManifestTests(unittest.TestCase):
                 }
             }
             directory = self.adapter(Path(tmp), manifest)
-            self.assertIsNone(refresh.vendored._source(directory, manifest))
+            self.assertIsNone(vendored_upstream._source(directory, manifest))
 
     def test_the_manifest_alone_does_not_make_the_adapter_a_vendored_one(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             directory = self.adapter(root, {"kit": HF_MANIFEST["kit"]})
-            tree = refresh.vendored.Tree({"README.md": "1" * 40}, True)
-            report = refresh.vendored.check_adapter(
+            tree = vendored_upstream.Tree({"README.md": "1" * 40}, True)
+            report = vendored_upstream.check_adapter(
                 directory, root, lambda _repo, _commit: tree
             )
         self.assertEqual(report.problems, [])
@@ -1526,10 +1565,10 @@ class KitOnlyManifestTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             models = self.adapter(root, HF_MANIFEST)
-            self.assertFalse(refresh.declares_adapter_source(models))
-            self.assertTrue(refresh.whole_kit(models) is True)
+            self.assertFalse(refresh_catalog_view.declares_adapter_source(models))
+            self.assertTrue(refresh_catalog_view.whole_kit(models) is True)
             (models / "vendored-upstream.json").write_text(json.dumps(OCI_MANIFEST))
-            self.assertTrue(refresh.declares_adapter_source(models))
+            self.assertTrue(refresh_catalog_view.declares_adapter_source(models))
             (models / "vendored-upstream.json").write_text(
                 json.dumps(
                     {
@@ -1547,23 +1586,27 @@ class KitOnlyManifestTests(unittest.TestCase):
                     }
                 )
             )
-            self.assertTrue(refresh.declares_adapter_source(models))
-            self.assertFalse(refresh.whole_kit(models))
-        self.assertFalse(refresh.declares_adapter_source(None))
+            self.assertTrue(refresh_catalog_view.declares_adapter_source(models))
+            self.assertFalse(refresh_catalog_view.whole_kit(models))
+        self.assertFalse(refresh_catalog_view.declares_adapter_source(None))
 
     def test_a_kit_move_updates_the_lock_even_when_the_adapter_owns_the_source_pin(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             world = tr3_world(Path(tmp), KIT_TR3)
-            catalog = refresh.Catalog(world.root, recipes={"mia": world.recipe})
-            assessor = refresh.Assessor(catalog, object(), None, {})
-            item = refresh.Item(
+            catalog = refresh_catalog_view.Catalog(
+                world.root, recipes={"mia": world.recipe}
+            )
+            assessor = refresh_assessment.Assessor(catalog, object(), None, {})  # pyright: ignore[reportArgumentType]
+            item = refresh_model.Item(
                 "source",
                 "github",
                 KIT,
                 KIT_TR3,
-                refresh.Target("github", KIT, KIT_NEW, "2026-10-02", None, None, "u"),
+                refresh_model.Target(
+                    "github", KIT, KIT_NEW, "2026-10-02", None, None, "u"
+                ),
             )
             edits: dict[str, bytes | None] = {}
             assessor._retarget_lock(world.directory, item, edits)
@@ -1586,29 +1629,31 @@ class RecipeCatalogDeclarationTests(unittest.TestCase):
     """Every recipe whose kit declares a dependency has a lock, and the recipe follows it."""
 
     def test_each_declared_hf_revision_and_image_is_bound_to_its_lock(self) -> None:
-        catalog = refresh.Catalog.load(ROOT)
+        catalog = refresh_catalog_view.Catalog.load(ROOT)
         seen = 0
         for slug, recipe in sorted(catalog.recipes.items()):
-            directory = refresh.kit_directory(ROOT, recipe)
+            directory = refresh_catalog_view.kit_directory(ROOT, recipe)
             if directory is None:
                 continue
-            wanted = kit_pins.declarations(
+            wanted = kit_declarations.declarations(
                 json.loads((directory / "vendored-upstream.json").read_text())
             )
-            lock = kit_pins.read_lock(directory)["dependencies"]
+            lock = kit_lock.read_lock(directory)["dependencies"]  # pyright: ignore[reportOptionalSubscript]
             for declaration in wanted:
                 with self.subTest(recipe=slug, dependency=declaration.name):
                     entry = lock[declaration.name]
                     self.assertEqual(entry["datasource"], declaration.datasource)
-                    key = kit_pins.IMMUTABLE_KEYS[declaration.datasource]
+                    key = kit_model.IMMUTABLE_KEYS[declaration.datasource]
                     self.assertTrue(entry[key])
                     seen += 1
                     if declaration.datasource == "hf-revision":
-                        document = kit_pins.bound_model(
-                            ROOT, recipe, declaration.binds
+                        document = kit_consumers.bound_model(  # pyright: ignore[reportOptionalSubscript]
+                            ROOT,
+                            recipe,
+                            declaration.binds,  # pyright: ignore[reportArgumentType]
                         )[1]
                         self.assertTrue(
-                            kit_pins.model_matches(
+                            kit_consumers.model_matches(
                                 document, entry["repo"], entry["revision"]
                             )
                         )

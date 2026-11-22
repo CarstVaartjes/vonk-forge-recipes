@@ -1104,7 +1104,7 @@ make base weights chat-trained (`tests/test_chat_configuration.py`).
 
 The hourly `.github/workflows/refresh-upstream.yml` and `tools/refresh-upstream`
 implement automatic selection (`tests/test_check_upstream_drift.py`,
-`tests/test_refresh_upstream.py`): newest release/tag or head, preserving inferred
+`tests/refresh_upstream/`): newest release/tag or head, preserving inferred
 non-default branches and declared release lines. Never downgrade an ahead pin.
 Both scanners read providers through `src/recipe_tooling/upstream_http.py`: a 429 or 5xx is retried with
 backoff and jitter, honouring `Retry-After` (seconds or date); a 429/503 that persists marks

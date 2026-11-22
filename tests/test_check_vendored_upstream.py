@@ -1,23 +1,11 @@
 from __future__ import annotations
 
-import importlib.machinery
-import importlib.util
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from repo_root import ROOT
-
-LOADER = importlib.machinery.SourceFileLoader(
-    "check_vendored_upstream", str(ROOT / "tools/check-vendored-upstream")
-)
-SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
-assert SPEC is not None
-checker = importlib.util.module_from_spec(SPEC)
-sys.modules[LOADER.name] = checker
-LOADER.exec_module(checker)
+from recipe_tooling import vendored_upstream as checker
 
 COMMIT = "a" * 40
 LABELS = (
