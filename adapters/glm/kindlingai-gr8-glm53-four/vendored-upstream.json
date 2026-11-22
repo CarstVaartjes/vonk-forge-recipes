@@ -26,7 +26,7 @@
     "licenses/"
   ],
   "source": {
-    "commit": "8ffb1e06ea4e195e5fcbae0314dbc1c271b9987d",
+    "commit": "1e1ca7ee8ac4fd6b3756b6969109449c2d6ec8cd",
     "repo": "kindlingai/glm-5.3-exlr8-4x-spark"
   }
 }

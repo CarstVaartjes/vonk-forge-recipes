@@ -4,10 +4,10 @@
 # (arm64). The kit compiles nothing and names this image by tag and digest in its compose.yaml. This layer only adds
 # the Controller placement wrapper at the platform's launcher path, the licence text and the non-root user.
 # Base: the linux/arm64 image ghcr.io/kindlingai/gr8:v1.1.0, by digest.
-FROM ghcr.io/kindlingai/gr8@sha256:b22eedbd7902f65dbf2090897d75f5d92276cbf78a16bcde1f958aa56a306cf7
+FROM ghcr.io/kindlingai/gr8@sha256:fa5c9f66fbfa55d162782578b3262893b782e6365a76562bcab951b54acc6d96
 
 LABEL org.opencontainers.image.source="https://github.com/kindlingai/glm-5.3-exlr8-4x-spark" \
-      org.opencontainers.image.revision="8ffb1e06ea4e195e5fcbae0314dbc1c271b9987d" \
+      org.opencontainers.image.revision="1e1ca7ee8ac4fd6b3756b6969109449c2d6ec8cd" \
       org.opencontainers.image.licenses="MIT" \
       ai.vonkforge.runtime-interface="v1"
 
