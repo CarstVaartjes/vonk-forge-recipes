@@ -26,8 +26,8 @@ from vonk_forge_contracts import (
     PACKAGE_SCHEMA_VERSION,
 )
 
-from spark_sweep.image_evidence import load_images, read_images
-from spark_sweep.tolerant import InputDiagnostic
+from qualification.image_evidence import load_images, read_images
+from qualification.tolerant import InputDiagnostic
 from tools.adapter_sources import materialize_or_exit
 
 
@@ -770,7 +770,7 @@ def build(
         published_status,
     )
 
-    from spark_sweep.qualification import read_evidence
+    from qualification.evidence_store import read_evidence
 
     recipe_by_slug = {item.identity.slug: item for item in recipe_documents}
     for entry in recipes:

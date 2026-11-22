@@ -11,8 +11,9 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from qualification.tolerant import InputDiagnostic, InputReason, read_optional
+
 from .catalog_contract import ModelRow, RecipeRow, RuntimeImageIdentity
-from .tolerant import InputDiagnostic, InputReason, read_optional
 from .vonkctl import Reply, Vonkctl
 
 if TYPE_CHECKING:

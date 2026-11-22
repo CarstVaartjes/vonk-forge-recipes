@@ -35,7 +35,7 @@ refresh = importlib.util.module_from_spec(SPEC)
 sys.modules[LOADER.name] = refresh
 LOADER.exec_module(refresh)
 
-#: The fields a PR from this repository carries (see spark_sweep.own_pulls).
+#: The fields a PR from this repository carries (see qualification.own_pulls).
 OWN = {"isCrossRepository": False, "headRepositoryOwner": {"login": "CarstVaartjes"}}
 
 MODEL = json.loads(

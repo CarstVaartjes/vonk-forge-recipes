@@ -25,6 +25,7 @@ from vonk_forge_contracts import (
     document_sha256,
 )
 
+from qualification.evidence_store import read_evidence
 from qualification.memory_need import (
     EstimateFindingKind,
     hardware_proven,
@@ -35,7 +36,6 @@ from qualification.memory_need import (
     per_rank_need,
     unchanged_recipe,
 )
-from spark_sweep.qualification import read_evidence
 
 
 def touched_recipes(root: Path, base: str) -> list[Path]:

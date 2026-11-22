@@ -13,7 +13,6 @@ from qualification.memory_need import (
     SPARK_MEMORY_BYTES,
     VLLM_DEFAULT_UTILIZATION,
     budget_margin_bytes,
-    speculative_config,
 )
 
 # A speculative drafter holds nothing beside `gpu-memory-utilization`, whatever
@@ -34,16 +33,6 @@ from qualification.memory_need import (
 # that document that reached serving) is unexplained and 0.7 has not run since;
 # the 0.6 document passed on 431593a0 with 3.7 GB beside its budget. A term
 # beside the budget raised only the declared reservation, not what vLLM holds.
-
-
-def loads_draft_model(recipe: RecipeDefinition) -> bool:
-    """Whether the speculative config names a model other than the served target."""
-    served = set(recipe.runtime.entrypoint) | {
-        str(item.value) for item in recipe.runtime.arguments if item.name == "model"
-    }
-    config = speculative_config(recipe)
-    draft = config.get("model") if config is not None else None
-    return draft is not None and str(draft) not in served
 
 
 def assert_memory_fit(recipe: RecipeDefinition) -> None:

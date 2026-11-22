@@ -17,9 +17,10 @@ from vonk_forge_contracts import (
 
 from qualification import documents
 from qualification.documents import ROOT
+from qualification.evidence_store import merge_evidence
 from qualification.memory_need import TOTAL_BYTES, vllm_budget_bytes
 from spark_sweep import memory
-from spark_sweep.qualification import history_evidence, merge_evidence
+from spark_sweep.qualification import history_evidence
 
 pytest_plugins = ["sweep_bounds"]
 
@@ -285,7 +286,8 @@ def test_a_job_recipe_is_never_measured_its_sample_is_taken_after_the_job() -> N
 def test_a_job_pass_row_replayed_through_backfill_adds_no_measured_rows(
     tmp_path: Path,
 ) -> None:
-    from spark_sweep.qualification import backfill, read_evidence
+    from qualification.evidence_store import read_evidence
+    from spark_sweep.qualification import backfill
 
     (tmp_path / "recipes").mkdir()
     for slug in (

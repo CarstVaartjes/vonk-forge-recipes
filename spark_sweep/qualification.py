@@ -1,10 +1,10 @@
-"""Repository evidence boundary shared by backfill, sweep and publication."""
+"""The sweep's side of the repository evidence: history, state adoption and scheduling."""
 
 from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Iterable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -25,11 +25,8 @@ from vonk_forge_contracts import (
     QualificationStatusView,
     QualificationSummary,
     QualificationTopology,
-    RecipeDefinition,
     RecipeQualificationEvidence,
     derive_status,
-    document_sha256,
-    read_recipe,
 )
 from vonk_forge_contracts.qualification_status import (
     QUALIFICATION_SUMMARIES,
@@ -39,12 +36,16 @@ from vonk_forge_contracts.qualification_status import (
 )
 
 from qualification import documents
-from qualification.memory_need import measured_budgets
+from qualification.evidence_store import (
+    catalog_recipe_keys,
+    merge_evidence,
+    read_evidence,
+    write_evidence,
+)
 
 from .catalog import Recipe, never_measured
 from .identity import current_identity
 from .lifecycle import RecipeStatus
-from .state import write_atomic
 
 
 class HistoricalIdentity(BaseModel):
@@ -86,59 +87,6 @@ class HistoricalResult(BaseModel):
     measured_memory: tuple[QualificationMeasuredRoleMemory, ...] = ()
 
 
-def evidence_path(root: Path, recipe_key: str) -> Path:
-    # Validate before constructing a path; authored keys cannot traverse directories.
-    key = RecipeQualificationEvidence(recipe_key=recipe_key).recipe_key
-    return root / "qualification" / "evidence" / f"{key}.json"
-
-
-def read_evidence(root: Path, recipe_key: str) -> RecipeQualificationEvidence:
-    path = evidence_path(root, recipe_key)
-    if not path.exists():
-        return RecipeQualificationEvidence(recipe_key=recipe_key)
-    evidence = RecipeQualificationEvidence.model_validate_json(path.read_text())
-    if evidence.recipe_key != recipe_key:
-        raise ValueError(f"evidence key does not match {path.name}")
-    return evidence
-
-
-def merge_evidence(
-    left: RecipeQualificationEvidence, right: RecipeQualificationEvidence
-) -> RecipeQualificationEvidence:
-    if left.recipe_key != right.recipe_key:
-        raise ValueError("cannot merge different recipes")
-    unique = {r.model_dump_json(): r for r in (*left.records, *right.records)}
-    ordered = sorted(unique.values(), key=lambda r: (r.tested_at, r.model_dump_json()))
-    rows: dict[tuple[str, str], QualificationMeasuredRoleMemory] = {}
-    for row in (*left.measured_memory, *right.measured_memory):
-        rows[row.key] = (
-            merge_measurement(rows[row.key], row) if row.key in rows else row
-        )
-    return left.model_copy(
-        update={
-            "records": tuple(ordered),
-            "measured_memory": tuple(rows[key] for key in sorted(rows)),
-        }
-    )
-
-
-def merge_measurement(
-    left: QualificationMeasuredRoleMemory, right: QualificationMeasuredRoleMemory
-) -> QualificationMeasuredRoleMemory:
-    """One (content, role) measured twice: the larger use, the smaller budget.
-
-    Both are the conservative side for a reader asking whether a declaration
-    covers what hardware used under no smaller budget; no budget is smallest.
-    """
-    a, b = left.budget_bytes, right.budget_bytes
-    return left.model_copy(
-        update={
-            "steady_bytes": max(left.steady_bytes, right.steady_bytes),
-            "budget_bytes": None if a is None or b is None else min(a, b),
-        }
-    )
-
-
 def history_evidence(value: Mapping[str, Any]) -> RecipeQualificationEvidence | None:
     """One history row as evidence: its verdict record and, for a pass, its measurements."""
     record = from_history(value)
@@ -172,15 +120,6 @@ def serving_rows(
     return (
         evidence.model_copy(update={"measured_memory": ()}) if jobs[key] else evidence
     )
-
-
-def write_evidence(root: Path, evidence: RecipeQualificationEvidence) -> bool:
-    path = evidence_path(root, evidence.recipe_key)
-    payload = evidence.model_dump_json(indent=2, exclude_none=True) + "\n"
-    if path.exists() and path.read_text() == payload:
-        return False
-    write_atomic(path, payload)
-    return True
 
 
 def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None:
@@ -463,130 +402,6 @@ STATUS_ORDER = {
 
 def scheduling_priority(view: QualificationStatusView) -> int:
     return STATUS_ORDER.get(view.status, 4)
-
-
-def catalog_recipes(root: Path) -> dict[str, tuple[RecipeDefinition, str]]:
-    """Each authored recipe by key, with its content digest (the catalog's `content_sha256`)."""
-    directory = root / "recipes"
-    if not directory.is_dir():
-        raise ValueError("evidence retention requires the authored recipe catalog")
-    recipes = {}
-    for path in directory.glob("*.json"):
-        document = json.loads(path.read_text())
-        recipe = read_recipe(document)
-        key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-        recipes[key] = (recipe, document_sha256(document))
-    return recipes
-
-
-def catalog_recipe_keys(root: Path) -> set[str]:
-    return set(catalog_recipes(root))
-
-
-#: The classes `derive_status` and `published_status` read, each by the reducers' own
-#: predicate: the newest record of each class, per identity, is all they consult.
-EVIDENCE_CLASSES: dict[str, Callable[[QualificationEvidenceRecord], bool]] = {
-    "pass": lambda r: r.outcome == QualificationOutcome.PASSED,
-    "resolved_pass": lambda r: (
-        r.outcome == QualificationOutcome.PASSED and r.platform.resolved
-    ),
-    "failure": lambda r: r.outcome == QualificationOutcome.FAILED,
-    "behavioural": lambda r: r.blame != QualificationBlame.PLATFORM,
-    "recipe_blamed": lambda r: r.blame == QualificationBlame.RECIPE,
-}
-#: The three verdicts of the whole file the status text quotes ("worked before").
-FILE_CLASSES = ("pass", "failure", "behavioural")
-
-
-def _identity_key(record: QualificationEvidenceRecord) -> str:
-    return record.identity.model_dump_json()
-
-
-def _newest_of_classes(
-    records: Iterable[QualificationEvidenceRecord],
-    names: Iterable[str],
-    current: str,
-    per_identity: bool,
-) -> list[QualificationEvidenceRecord]:
-    """The newest record of each class (per identity or file-wide), in `derive_status` order."""
-    best: dict[tuple[str, str], tuple[tuple, QualificationEvidenceRecord]] = {}
-    for record in records:
-        for name in names:
-            if not EVIDENCE_CLASSES[name](record):
-                continue
-            slot = (_identity_key(record) if per_identity else "", name)
-            order = (
-                record.tested_at,
-                record.identity.content_sha256 == current,
-                record.outcome == QualificationOutcome.FAILED,
-                record.model_dump_json(),
-            )
-            if slot not in best or order > best[slot][0]:
-                best[slot] = (order, record)
-    return [record for _, record in best.values()]
-
-
-def retained(
-    evidence: RecipeQualificationEvidence, recipe: RecipeDefinition, current: str
-) -> RecipeQualificationEvidence:
-    """The evidence the readers consult, nothing else (newest-only).
-
-    Kept: per identity of the current content, its newest record of each class; the
-    file's newest pass, failure and behavioural record (any content); the one other
-    content `measured_budget` takes its maximum from, with its per-identity newest;
-    measured rows only for contents that keep a record. Applying it again, or
-    after re-importing history, changes nothing.
-    """
-    budgets = measured_budgets(recipe, evidence)
-    # The best older content: a later failure of the current one must not lose the budget.
-    source = max(
-        (c for c in budgets if c != current),
-        key=lambda c: (budgets[c], c),
-        default=None,
-    )
-    contents = {current} if source is None else {current, source}
-    kept = _newest_of_classes(
-        (r for r in evidence.records if r.identity.content_sha256 in contents),
-        EVIDENCE_CLASSES,
-        current,
-        True,
-    ) + _newest_of_classes(evidence.records, FILE_CLASSES, current, False)
-    unique = {r.model_dump_json(): r for r in kept}
-    with_records = {r.identity.content_sha256 for r in unique.values()}
-    return evidence.model_copy(
-        update={
-            "records": tuple(
-                sorted(
-                    unique.values(), key=lambda r: (r.tested_at, r.model_dump_json())
-                )
-            ),
-            "measured_memory": tuple(
-                m for m in evidence.measured_memory if m.content_sha256 in with_records
-            ),
-        }
-    )
-
-
-def retain_evidence(root: Path) -> list[Path]:
-    """The one walk that writes the retention: a withdrawn recipe's file goes, the rest shrinks.
-
-    Runs after every merge and refusal of a publisher batch (never inside
-    `write_evidence`: a newer record later refused must not have displaced the pass
-    it replaced), so each batch re-compacts against the main it merged.
-    """
-    recipes = catalog_recipes(root)
-    base = root / "qualification/evidence"
-    changed = []
-    for path in sorted(base.rglob("*.json")):
-        key = path.relative_to(base).with_suffix("").as_posix()
-        if key not in recipes:
-            path.unlink()
-            changed.append(path)
-            continue
-        recipe, digest = recipes[key]
-        if write_evidence(root, retained(read_evidence(root, key), recipe, digest)):
-            changed.append(path)
-    return changed
 
 
 def unpublishable_pass(

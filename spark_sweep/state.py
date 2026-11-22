@@ -14,13 +14,14 @@ import fcntl
 import json
 import os
 import socket
-import tempfile
 import time
 import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+from qualification.evidence_store import write_atomic
 
 from .lifecycle import (
     DownloadIntentKind,
@@ -231,20 +232,6 @@ def _adopt(
     del data["events"][:-EVENT_LIMIT]
     data["schema"] = SCHEMA
     return data
-
-
-def write_atomic(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    handle, temporary = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.")
-    try:
-        with os.fdopen(handle, "w", encoding="utf-8") as stream:
-            stream.write(text)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary, path)
-    except BaseException:
-        Path(temporary).unlink(missing_ok=True)
-        raise
 
 
 class StateLocked(RuntimeError):

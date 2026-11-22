@@ -101,6 +101,21 @@ class SmokeResult:
 # -- assertions (the kinds `qualification/shared.json` uses) ----------------
 
 
+def strict_json(content: bytes | str) -> Any:
+    def unique(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        value: dict[str, Any] = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError(f"duplicate JSON key: {key}")
+            value[key] = item
+        return value
+
+    def constant(value: str) -> Any:
+        raise ValueError(f"non-finite JSON number: {value}")
+
+    return json.loads(content, object_pairs_hook=unique, parse_constant=constant)
+
+
 class AssertionFailed(Exception):
     """A case that did not hold; ``value`` is what it looked at."""
 
@@ -245,8 +260,6 @@ def _evaluate(response: Any, raw: str, assertion: dict[str, Any]) -> tuple[bool,
             or value > expected
         )
     elif kind == "path.json-equals":
-        from .job_media import strict_json  # job_media imports this module
-
         try:
             bad = (strict_json(value) if isinstance(value, str) else None) != expected
         except ValueError:
@@ -655,7 +668,6 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
     if len(raw) > limit:
         raise AssertionFailed("response exceeds its bound")
     text = raw.decode("utf-8", "replace")
-    from .job_media import strict_json  # job_media imports this module
 
     try:
         if case.get("response") == "audio":

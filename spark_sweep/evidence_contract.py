@@ -5,8 +5,9 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
+from qualification.tolerant import InputDiagnostic, read_optional
+
 from .removal_contract import RecipeVerdict
-from .tolerant import InputDiagnostic, read_optional
 
 
 class ResultCore(BaseModel):

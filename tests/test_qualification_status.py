@@ -54,6 +54,7 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence as Evidence,
 )
 
+from qualification.evidence_store import read_evidence
 from spark_sweep.evidence_publisher import (
     rotated_history,
 )
@@ -63,7 +64,6 @@ from spark_sweep.qualification import (
     backfill,
     current_identity,
     from_history,
-    read_evidence,
     read_history,
     scheduling_priority,
 )
@@ -437,7 +437,7 @@ def test_catalog_derives_after_resolving_release_image(
 
     from vonk_forge_contracts import document_sha256
 
-    from spark_sweep.qualification import write_evidence
+    from qualification.evidence_store import write_evidence
 
     tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
     build = tool["build"]
@@ -1020,7 +1020,7 @@ def test_adoption_never_dates_a_sparse_previous_pass_after_a_known_failure(tmp_p
 
 
 def test_repository_evidence_only_names_current_catalog_recipes():
-    from spark_sweep.qualification import catalog_recipe_keys
+    from qualification.evidence_store import catalog_recipe_keys
 
     keys = catalog_recipe_keys(ROOT)
     for path in (ROOT / "qualification/evidence").rglob("*.json"):
