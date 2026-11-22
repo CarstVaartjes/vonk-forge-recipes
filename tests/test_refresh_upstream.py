@@ -195,7 +195,7 @@ class ModelTests(unittest.TestCase):
             )
         )
 
-    def curated(self, old_paths, before, after):
+    def curated(self, old_paths, before, after, history=None):
         old = model_with(old_paths)
         item = refresh.Item(
             "model",
@@ -205,7 +205,12 @@ class ModelTests(unittest.TestCase):
             refresh.Target("huggingface", "o/r", NEW, "2026-09-30", None, None, "u"),
         )
         assessor = refresh.Assessor(refresh.Catalog(Path(".")), object(), None, {})
-        with patch.object(refresh.Assessor, "_inventory", return_value=files(*before)):
+        with patch.object(
+            refresh.Assessor,
+            "_inventory",
+            return_value=files(*before),
+            side_effect=history,
+        ):
             kept = assessor._curated(old, item, files(*after))
         return old, kept
 
@@ -216,6 +221,23 @@ class ModelTests(unittest.TestCase):
         old, kept = self.curated(("a.safetensors",), repository, repository)
         self.assertEqual([f["path"] for f in kept], ["a.safetensors"])
         self.assertEqual(refresh.model_shape_problems(old, kept), [])
+
+    def test_a_busy_history_read_is_not_judged_as_every_file_new(
+        self,
+    ) -> None:
+        repository = ("a.safetensors", "b.safetensors")
+        with self.assertRaises(refresh.UpstreamBusy):
+            self.curated(
+                ("a.safetensors",),
+                repository,
+                repository,
+                history=refresh.UpstreamBusy(),
+            )
+        # Any other unreadable history stays "unknown": every file is judged.
+        _, kept = self.curated(
+            ("a.safetensors",), repository, repository, history=OSError("gone")
+        )
+        self.assertEqual(len(kept), 2)
 
     def test_files_added_upstream_are_still_new(self) -> None:
         old, kept = self.curated(

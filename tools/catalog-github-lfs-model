@@ -15,13 +15,14 @@ import sys
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import quote
-from urllib.request import Request, urlopen
+from urllib.request import Request
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from vonk_forge_contracts import GitHubLfsSource
 
 from tools._catalog_model import add_model_arguments, file_id, write_model
+from tools._upstream_http import UpstreamBusy, fetch
 
 MAX_POINTER_BYTES = 1024
 _LFS_MEDIA_TYPE = "application/vnd.git-lfs+json"
@@ -55,8 +56,11 @@ def read_pointer(repository: str, revision: str, path: str) -> tuple[str, int]:
         f"{quote(path, safe='/')}"
     )
     try:
-        with urlopen(_request(url), timeout=60) as response:
-            body = response.read(MAX_POINTER_BYTES + 1)
+        body = fetch(
+            _request(url), lambda response: response.read(MAX_POINTER_BYTES + 1)
+        )
+    except (UpstreamBusy, RuntimeError) as error:  # busy, or retries exhausted
+        raise SystemExit(f"cannot read {path} at {revision}: {error}") from error
     except HTTPError as error:
         raise SystemExit(
             f"cannot read {path} at {revision} (HTTP {error.code})"
@@ -88,8 +92,11 @@ def probe_batch(repository: str, oid: str, size: int, path: str) -> None:
         headers={"Accept": _LFS_MEDIA_TYPE, "Content-Type": _LFS_MEDIA_TYPE},
     )
     try:
-        with urlopen(request, timeout=60) as response:
-            answer = json.load(response)
+        answer = fetch(request, json.load)
+    except UpstreamBusy as error:
+        raise SystemExit(
+            f"{path}: GitHub is busy, not probed this run; rerun"
+        ) from error
     except HTTPError as error:
         raise SystemExit(
             f"LFS batch probe for {path} failed (HTTP {error.code})"

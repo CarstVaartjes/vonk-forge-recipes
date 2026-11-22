@@ -6,6 +6,7 @@ import runpy
 import sys
 import tempfile
 import unittest
+from email.message import Message
 from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError
@@ -82,7 +83,7 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
             ]  # fmt: skip
             with (
                 patch.object(sys, "argv", argv),
-                patch.dict(namespace["read_pointer"].__globals__, {"urlopen": github}),
+                patch("urllib.request.urlopen", github),
             ):
                 try:
                     namespace["main"]()
@@ -150,6 +151,22 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
     def test_a_missing_path_is_refused_with_the_status(self) -> None:
         with self.assertRaisesRegex(SystemExit, "HTTP 404"):
             self._run(FakeGitHub({}))
+
+    def test_a_rate_limited_pointer_read_is_retried_and_the_model_is_written(
+        self,
+    ) -> None:
+        github = FakeGitHub({PATH: pointer()})
+        answers = [HTTPError("u", 429, "Too Many", Message(), None)]
+
+        def limited(request, timeout: float | None = None):
+            if answers:
+                raise answers.pop()
+            return github(request, timeout)
+
+        with patch("tools._upstream_http.time.sleep"):
+            document = self._run(limited)  # type: ignore[arg-type]
+        assert document is not None
+        self.assertEqual(document["files"][0]["sha256"], OID)
 
     def test_probe_batch_confirms_the_object_without_downloading(self) -> None:
         batch = {"objects": [{"oid": OID, "size": SIZE, "actions": {"download": {}}}]}

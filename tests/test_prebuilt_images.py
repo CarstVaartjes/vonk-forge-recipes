@@ -124,7 +124,13 @@ def test_pr_selection_uses_build_identity_and_ignores_missing_historical_images(
     assert candidates == set()
     assert tool.select(
         head, owner=OWNER, candidates=candidates, lookup=_registry({})
-    ) == {"builds": [], "copies": [], "deferred": [], "deferred_slugs": []}
+    ) == {
+        "builds": [],
+        "copies": [],
+        "deferred": [],
+        "deferred_slugs": [],
+        "busy": [],
+    }
     # A shared context change schedules every affected recipe, one ARM64 build.
     head["images"][0]["build_key"] = "c" * 64
     candidates = tool.changed_candidates(head, base)
@@ -214,6 +220,47 @@ def test_publish_builds_only_the_changed_key_without_a_pr_candidate(
     assert len(selection["copies"]) == (3 if present else 2)
     assert all(f"@{DIGEST}" in row["from"] for row in selection["copies"])
     assert selection["deferred"] == []
+
+
+def _busy_for_shared(owner: str, name: str, tag: str) -> str | None:
+    if tag.endswith(SHARED):
+        raise tool.UpstreamBusy("ghcr.io is rate limited")
+    return None
+
+
+def test_a_busy_image_is_skipped_and_the_other_is_still_built() -> None:
+    selection = tool.select(
+        _plan(), owner=OWNER, candidates=None, lookup=_busy_for_shared
+    )
+    assert [row["build_key"] for row in selection["builds"]] == [OWN]
+    assert selection["busy"] == [SHARED]
+
+
+def test_a_pull_request_with_a_busy_image_refuses_instead_of_skipping_its_proof(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_text(json.dumps(_plan()))
+    base_path = tmp_path / "base.json"
+    base_path.write_text(json.dumps({"images": []}))  # every key changed
+    real = tool.select
+    monkeypatch.setattr(
+        tool, "select", lambda plan, **kw: real(plan, **kw, lookup=_busy_for_shared)
+    )
+
+    def run(*extra: str) -> int:
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["prebuilt-images", "select", "--plan", str(plan_path), "--owner", OWNER,
+             "--output", str(tmp_path / "out.json"), *extra],
+        )  # fmt: skip
+        return tool.main()
+
+    assert run() == 0  # publish and scheduled runs keep the skip
+    assert json.loads((tmp_path / "out.json").read_text())["busy"] == [SHARED]
+    with pytest.raises(SystemExit, match="registry busy"):
+        run("--base-plan", str(base_path))
 
 
 def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:
