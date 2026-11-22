@@ -1347,6 +1347,7 @@ class ImageAssessmentTests(unittest.TestCase):
         kit_head: str,
         registry: FakeRegistry,
         locked_repo: str = IMAGE,
+        api: _ReadmeApi | None = None,
     ) -> Any:
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
@@ -1355,7 +1356,7 @@ class ImageAssessmentTests(unittest.TestCase):
             root, kit_pinned, ARM_RC13, locked="1.3.0rc13", locked_repo=locked_repo
         )
         catalog = refresh.Catalog(root, recipes={"trt": world.recipe})
-        api = _ReadmeApi(README)
+        api = api or _ReadmeApi(README)
         api.compare[(kit_pinned, kit_head)] = {
             "status": "ahead",
             "commits": [],
@@ -1375,6 +1376,39 @@ class ImageAssessmentTests(unittest.TestCase):
             ),
         ):
             return assessor.assess("trt")
+
+    def test_a_rate_limited_kit_read_leaves_the_recipe_unreachable_not_in_review(
+        self,
+    ) -> None:
+        import urllib.error
+        from email.message import Message
+
+        class RateLimited(_ReadmeApi):
+            """Kit reads go through the real HTTP client, which GitHub answers with 429."""
+
+            def __call__(self, path: str) -> Any:
+                if path.split("?")[0].split("/")[3:4] != ["contents"]:
+                    return super().__call__(path)
+
+                def limited(request: Any, timeout: float) -> Any:
+                    error = urllib.error.HTTPError(
+                        request.full_url, 429, "limited", Message(), None
+                    )
+                    error.close()
+                    raise error
+
+                http = refresh.Http(github_token=None, hf_token=None, cache_path=None)
+                with (
+                    patch("urllib.request.urlopen", limited),
+                    patch("tools._upstream_http.time.sleep"),
+                ):
+                    return http.github(path)
+
+        result = self.assess(
+            KIT_RC13, KIT_RC12, registry_for(), api=RateLimited(README)
+        )
+        self.assertEqual(result.reasons, [])
+        self.assertTrue(result.unreachable)
 
     def test_a_current_image_declaration_is_not_drift(self) -> None:
         result = self.assess(KIT_RC13, KIT_RC13, registry_for())

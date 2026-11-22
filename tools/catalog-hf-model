@@ -8,11 +8,12 @@ import json
 import os
 import re
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError
 from urllib.parse import quote, urlparse
-from urllib.request import HTTPRedirectHandler, Request, build_opener
+from urllib.request import HTTPRedirectHandler, Request
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -23,6 +24,7 @@ from tools._catalog_model import (
     sha256_hex,
     write_model,
 )
+from tools._upstream_http import fetch
 
 MAX_INLINE_ARTIFACT_BYTES = 16 * 1024 * 1024
 
@@ -40,26 +42,30 @@ class _KeepTokenOnHuggingFace(HTTPRedirectHandler):
         return redirected
 
 
-def _open(url: str, timeout: int) -> Any:
-    """Open ``url``; an ``HF_TOKEN`` in the environment authenticates Hugging Face calls."""
+def _read[T](url: str, timeout: int, read: Callable[[Any], T]) -> T:
+    """Read ``url`` through the shared retry; an ``HF_TOKEN`` authenticates Hugging Face."""
     headers = {"User-Agent": "vonk-forge-recipe-library/1"}
     token = os.environ.get("HF_TOKEN")
     if token and urlparse(url).hostname in _HF_HOSTS:
         headers["Authorization"] = f"Bearer {token}"
-    return build_opener(_KeepTokenOnHuggingFace).open(
-        Request(url, headers=headers), timeout=timeout
+    return fetch(
+        Request(url, headers=headers),
+        read,
+        timeout=timeout,
+        handlers=(_KeepTokenOnHuggingFace,),
     )
 
 
 def _get_json(url: str) -> object:
-    with _open(url, 60) as response:
-        return json.load(response)
+    return _read(url, 60, json.load)
 
 
 def _get_json_page(url: str) -> tuple[object, str | None]:
-    with _open(url, 60) as response:
-        payload = json.load(response)
-        link = response.headers.get("Link", "")
+    payload, link = _read(
+        url,
+        60,
+        lambda response: (json.load(response), response.headers.get("Link", "")),
+    )
     match = re.search(r'<([^>]+)>;\s*rel="next"', link)
     return payload, None if match is None else match.group(1)
 
@@ -76,8 +82,7 @@ def _get_tree(url: str) -> list[object]:
 
 
 def _get_bytes(url: str) -> bytes:
-    with _open(url, 120) as response:
-        return response.read()
+    return _read(url, 120, lambda response: response.read())
 
 
 def _arguments() -> argparse.Namespace:

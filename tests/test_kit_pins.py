@@ -1267,3 +1267,40 @@ class CatalogKitTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BusyProviderCliTests(unittest.TestCase):
+    """One recipe the provider will not answer does not stop the next from being checked."""
+
+    def test_a_busy_recipe_is_counted_and_the_next_is_still_checked(self) -> None:
+        from tools._upstream_http import UpstreamBusy
+
+        seen: list[str] = []
+
+        def check(_root: Path, recipe_id: str, _recipe: Any, _source: Any) -> list[str]:
+            seen.append(recipe_id)
+            if recipe_id == "first":
+                raise UpstreamBusy("rate limited")
+            return ["second: stale"]
+
+        with patch.object(kit_pins, "check_recipe", check):
+            failed = sum(
+                kit_pins.process("check", name, {}, None)
+                for name in ("first", "second")
+            )
+        self.assertEqual((seen, failed), (["first", "second"], 2))
+
+    def test_a_busy_image_scan_is_a_problem_not_a_crash(self) -> None:
+        from tools._upstream_http import UpstreamBusy
+
+        def busy(_source: Any, *_key: str) -> list[dict[str, Any]]:
+            raise UpstreamBusy("rate limited")
+
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(kit_pins, "kit_images", busy),
+        ):
+            problems = kit_pins.check_images(
+                Path(tmp), {"mia": recipe_for(KIT_BRANCH)}, upstream(FakeApi())
+            )
+        self.assertEqual(len(problems), 1, problems)

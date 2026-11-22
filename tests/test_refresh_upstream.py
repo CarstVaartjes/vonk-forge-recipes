@@ -2959,6 +2959,7 @@ class SelfHealingTests(unittest.TestCase):
             "tools/check-test-git",
             "tools/check-final-stage-ldd",
             "tools/check-serial-reads",
+            "tools/check-raw-urlopen",
             "tools/generate-contract-examples",
             "tools/generate-contract-schemas",
             "tools/build-release-bundle",
@@ -3805,10 +3806,10 @@ class GatedRepositoryTests(unittest.TestCase):
             seen.clear()
             with (
                 patch.dict(os.environ, {"HF_TOKEN": "secret"}),
-                patch.object(refresh.catalog, "build_opener", return_value=Opener()),
+                patch("urllib.request.build_opener", return_value=Opener()),
                 self.assertRaises(OSError),
             ):
-                refresh.catalog._open(url, 5)
+                refresh.catalog._get_json(url)
             self.assertEqual(seen.get("Authorization"), expected)
 
     def test_the_token_goes_to_hugging_face_only(self) -> None:

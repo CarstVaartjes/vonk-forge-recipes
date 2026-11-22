@@ -9,14 +9,19 @@ import shutil
 import sys
 import tempfile
 import unittest
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from email.message import Message
+from email.utils import format_datetime
 from pathlib import Path
 from typing import Any
 from unittest import mock
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
+from urllib.request import Request
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools._upstream_http import UpstreamBusy, fetch, forget_busy
+
 SCRIPT = ROOT / "tools/check-upstream-drift"
 LOADER = importlib.machinery.SourceFileLoader("check_upstream_drift", str(SCRIPT))
 SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
@@ -373,6 +378,124 @@ class ObservationTests(unittest.TestCase):
                     self.watch(provider=provider, policy="default-branch"), client
                 )
                 self.assertEqual(observation.status, expected)
+
+
+class RateLimitTests(unittest.TestCase):
+    """A rate limit is retried within a bound; if it persists the item is not checked."""
+
+    class Responses:
+        def __init__(self, codes: list[Any], retry_after: str | None = None) -> None:
+            self.codes = codes
+            self.retry_after = retry_after
+            self.calls = 0
+
+        def __call__(self, request: Any, timeout: float) -> Any:
+            code = self.codes[min(self.calls, len(self.codes) - 1)]
+            self.calls += 1
+            if code == 200:
+                response = mock.MagicMock()
+                response.__enter__.return_value.read.return_value = b'{"sha": "x"}'
+                return response
+            if code == "net":
+                raise URLError("down")
+            headers = Message()
+            if self.retry_after is not None:
+                headers["Retry-After"] = self.retry_after
+            error = HTTPError(request.full_url, code, "busy", headers, None)
+            error.close()
+            raise error
+
+    def setUp(self) -> None:
+        # unittest (the daily workflow) does not run conftest's autouse fixture
+        forget_busy()
+        self.addCleanup(forget_busy)
+        self.naps: list[float] = []
+
+    def get(self, opener: Any, url: str = "https://huggingface.co/api/x") -> Any:
+        client = drift.ProviderClient(opener=opener, sleep=self.naps.append)
+        return client.json(url, "huggingface")
+
+    def observe(self, opener: Any) -> Any:
+        watch = drift.Watch(
+            entity="recipe/example/runtime",
+            source_path="recipes/runtime.json",
+            provider="huggingface",
+            repository="example/runtime",
+            pinned_revision=PINNED,
+            pinned_version=None,
+            policy="default-branch",
+            ref=None,
+        )
+        client = drift.ProviderClient(opener=opener, sleep=self.naps.append)
+        return drift.observe(watch, client)
+
+    def test_recovers_after_honouring_retry_after(self) -> None:
+        opener = self.Responses([429, 503, 200], retry_after="2")
+        self.assertEqual(self.get(opener), {"sha": "x"})
+        self.assertEqual(self.naps, [2.0, 2.0])
+
+    def test_retry_after_may_be_an_http_date(self) -> None:
+        epoch = datetime(2026, 11, 22, 12, 0, tzinfo=UTC)
+        when = format_datetime(epoch + timedelta(seconds=10), usegmt=True)
+        fetch(
+            Request("https://huggingface.co/api/x"),
+            lambda r: r,
+            opener=self.Responses([429, 200], retry_after=when),
+            sleep=self.naps.append,
+            clock=lambda: epoch.timestamp(),
+        )
+        self.assertEqual(self.naps, [10.0])
+
+    def test_persistent_limit_is_not_checked_and_not_an_error(self) -> None:
+        opener = self.Responses([429])
+        observation = self.observe(opener)
+        self.assertEqual(observation.status, "unchecked")
+        self.assertEqual(opener.calls, len(self.naps) + 1)
+        counts = drift.report([observation], "now")["counts"]
+        self.assertEqual((counts["unchecked"], counts["error"]), (1, 0))
+
+    def test_our_own_faults_stay_errors(self) -> None:
+        for codes in ([500], ["net"]):
+            with self.subTest(codes=codes):
+                self.assertEqual(self.observe(self.Responses(codes)).status, "error")
+
+    def test_a_long_retry_after_marks_the_host_busy_without_waiting(self) -> None:
+        now = [100.0]
+        opener = self.Responses([429], retry_after="3600")
+        request = Request("https://huggingface.co/api/x")
+
+        def call() -> Any:
+            return fetch(
+                request,
+                lambda r: r,
+                opener=opener,
+                sleep=self.naps.append,
+                clock=lambda: now[0],
+            )
+
+        with self.assertRaises(UpstreamBusy):
+            call()
+        with self.assertRaises(UpstreamBusy):
+            call()  # remembered: the provider is not asked again
+        self.assertEqual((opener.calls, self.naps), (1, []))
+        now[0] += 3601
+        with self.assertRaises(UpstreamBusy):
+            call()  # the memory expired: asked again
+        self.assertEqual(opener.calls, 2)
+
+    def test_an_anonymous_limit_does_not_block_an_authenticated_read(self) -> None:
+        url = "https://huggingface.co/api/x"
+        with self.assertRaises(UpstreamBusy):
+            fetch(
+                Request(url),
+                lambda r: r,
+                opener=self.Responses([429], retry_after="3600"),
+                sleep=self.naps.append,
+            )
+        authenticated = Request(url, headers={"Authorization": "Bearer t"})
+        opener = self.Responses([200])
+        fetch(authenticated, lambda r: r, opener=opener, sleep=self.naps.append)
+        self.assertEqual(opener.calls, 1)
 
 
 class ReleaseAssetWatchTests(unittest.TestCase):

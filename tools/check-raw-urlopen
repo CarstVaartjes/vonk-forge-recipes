@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""Reject new tool code that opens a provider URL outside ``tools/_upstream_http.py``.
+
+A raw ``urlopen`` or ``build_opener`` call retries nothing, so a rate limit (429) or a
+"busy" answer (503) from Hugging Face or GitHub becomes a failure, and a failure in the
+refresh or the drift scan becomes a review issue for a transient condition. Every tool
+reads provider URLs through ``tools._upstream_http.fetch`` (bounded retry with backoff and
+jitter, ``Retry-After``, per-host busy memory); it answers a persistent rate limit with
+``UpstreamBusy``, which means "not checked this run".
+
+Only lines added by the diff given with ``--diff FILE|-`` are checked, in ``tools/``
+(files without an extension too). There is no count and no allowlist.
+"""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools._added_lines import parse_added, read_diff
+
+OWNER = "tools/_upstream_http.py"
+RAW_OPEN = re.compile(r"\b(urlopen|build_opener)\(")
+ADVICE = (
+    "open provider URLs through tools._upstream_http.fetch (bounded retry, "
+    "Retry-After, UpstreamBusy = not checked this run)"
+)
+
+
+def scan(source: str, added: set[int] | None) -> list[int]:
+    """Line numbers of raw opens on added lines (every line when ``added`` is None)."""
+    return [
+        number
+        for number, line in enumerate(source.splitlines(), 1)
+        if (added is None or number in added)
+        and not line.lstrip().startswith("#")
+        and RAW_OPEN.search(line)
+    ]
+
+
+def check(root: Path, diff: str) -> list[str]:
+    problems: list[str] = []
+    for name, lines in sorted(parse_added(diff).items()):
+        if not name.startswith("tools/") or name == OWNER:
+            continue
+        source = (root / name).read_text(encoding="utf-8")
+        problems.extend(
+            f"{name}:{number}: raw urlopen/build_opener; {ADVICE}"
+            for number in scan(source, lines)
+        )
+    return problems
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
+    parser.add_argument(
+        "--diff",
+        required=True,
+        help="unified -U0 diff to judge: a file, or - for stdin",
+    )
+    parser.add_argument("--root", type=Path, default=ROOT)
+    arguments = parser.parse_args()
+    problems = check(arguments.root, read_diff(arguments.diff))
+    print("\n".join(problems))
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

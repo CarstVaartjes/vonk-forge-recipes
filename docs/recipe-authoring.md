@@ -1106,6 +1106,11 @@ The hourly `.github/workflows/refresh-upstream.yml` and `tools/refresh-upstream`
 implement automatic selection (`tests/test_check_upstream_drift.py`,
 `tests/test_refresh_upstream.py`): newest release/tag or head, preserving inferred
 non-default branches and declared release lines. Never downgrade an ahead pin.
+Both scanners read providers through `tools/_upstream_http.py`: a 429 or 5xx is retried with
+backoff and jitter, honouring `Retry-After` (seconds or date); a 429/503 that persists marks
+the host busy and the item "not checked this run" (`unchecked` in the drift report,
+unreachable in refresh), never a review issue or a failed run. Outages and network errors
+are our own faults and stay errors.
 A mechanical move requires compatible vendored/used bytes, retained referenced
 launch names, complete selected Model files and passing producer checks. Changes
 to patched runtime files or missing selected files need review; metadata-only
@@ -1399,6 +1404,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/test_family_aware_coverage.py`, `tests/test_qualification_coverage_identity.py` | Coverage equivalence binds actual runtime/topology/content identities. Rebuild coverage and fix false equivalence. |
 | `tests/test_prebuilt_images.py`, `tests/test_publish_image_guard.py`, `tests/test_release_bundle.py`, `tests/test_release_assets.py` | Plan/source/build keys, digests, signed index and packaged bytes agree. Rebuild/resolve the correct artifacts before signing. |
 | `tools/check-test-git`, `tests/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
+| `tools/check-raw-urlopen`, `tests/test_check_raw_urlopen.py` | An added `urlopen(`/`build_opener(` line in `tools/` outside `tools/_upstream_http.py`. Open provider URLs through `fetch` there (bounded retry, `Retry-After`, per-host busy memory); a persistent 429/503 is `UpstreamBusy`, "not checked this run", never an issue. Only added lines count. |
 | `tools/check-final-stage-ldd`, `tests/test_check_final_stage_ldd.py` | An added or final-stage-changed adapter Dockerfile on a plain CUDA runtime/base image copies a binary into `bin/` without `RUN ! ldd <binary> \| grep "not found"`. Only added lines count. |
 | `tools/check-document-reads`, `tools/_added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
 | `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
