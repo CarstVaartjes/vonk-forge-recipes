@@ -741,7 +741,7 @@ outside its vLLM/SGLang scope are reported explicitly. A loading floor does not
 prove full-context capacity, graph peaks, or runtime fit. Missing full-workload
 geometry is an unknown warning, never a hardware failure.
 
-[tests/qualification/test_vllm_memory_fit.py](../tests/test_vllm_memory_fit.py) retains the
+[tests/qualification/test_vllm_memory_fit.py](../tests/qualification/test_vllm_memory_fit.py) retains the
 pre-#1612 calibration guard for historical vLLM documents and options on **each
 role of each node**, including dual/multi-Spark recipes. Its shared
 implementation and constants live in `src/recipe_tooling/qualification/vllm_memory_fit.py`: utilization ×
