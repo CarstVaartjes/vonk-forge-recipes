@@ -339,6 +339,31 @@ def test_the_published_pins_are_read_from_the_release_bundle(tmp_path: Path) -> 
     assert tool.published_pins("o/r", gh=release) == {"e" * 64: pin}
     assert tool.published_pins("o/r", gh=unavailable) == {}
 
+    def not_a_tar(arguments: list[str]) -> None:
+        Path(arguments[arguments.index("--output") + 1]).write_bytes(b"not a tar")
+
+    assert tool.published_pins("o/r", gh=not_a_tar) == {}
+
+    def odd_index(arguments: list[str]) -> None:
+        source.write_text(json.dumps({"recipes": ["x"]}))
+        release(arguments)
+
+    assert tool.published_pins("o/r", gh=odd_index) == {}
+
+
+def test_a_pin_naming_a_foreign_package_is_not_carried() -> None:
+    def none_found(owner: str, name: str, tag: str) -> str | None:
+        return None
+
+    foreign = {
+        "reference": "evil.example/x/y@sha256:" + "1" * 64,
+        "build_key": OWN,
+    }
+    images, missing, carried = tool.resolve(
+        _plan(), owner=OWNER, lookup=none_found, published={"e" * 64: foreign}
+    )
+    assert images == {} and carried == [] and "other" in missing
+
 
 OLD_PIN = "1" * 40
 

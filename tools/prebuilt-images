@@ -24,7 +24,7 @@ revision and prefers the pinned digest over a Spark build.
 
 ``resolve`` reports missing images; publication leaves those image pins absent
 and reports them as pending while deferred/scheduled builds reconcile them.
-When a lookup is busy or fails, a recipe whose content digest and build key equal
+When a lookup finds nothing (busy, failed or no such tag), a recipe whose content digest and build key equal
 the current published release's keeps that release's pin (counted in the summary).
 It names the reason for every recipe without an image: refused by the
 Controller's source policy (not planned), or no image in the registry (the
@@ -238,10 +238,12 @@ def published_pins(
     except (
         OSError,
         ValueError,
-        KeyError,
+        LookupError,
         TypeError,
+        AttributeError,
+        tarfile.TarError,
         subprocess.SubprocessError,
-    ) as error:
+    ) as error:  # best effort: any unreadable release means no pins
         print(f"published release not readable: {error}", file=sys.stderr)
         return {}
 
@@ -255,8 +257,8 @@ def resolve(
 ) -> tuple[dict[str, dict[str, str]], list[str], list[str]]:
     """Map each recipe's content digest to its pinned prebuilt image.
 
-    A recipe whose lookup is busy or failed keeps the pin the current release
-    holds for the same content digest and build key: pins are keyed by content,
+    A recipe whose lookup found no digest (busy, failed or no such tag) keeps the
+    pin the current release holds for the same content digest and build key: pins are keyed by content,
     so that digest is still exactly right. Changed content stays unpinned.
     Returns the pins, the slugs without one and the slugs whose pin carried over.
     """
@@ -288,7 +290,12 @@ def resolve(
             }
             continue
         previous = published.get(content)
-        if previous is not None and previous.get("build_key") == key:
+        # Only our own package may be carried: the release asset is unverified.
+        if (
+            previous is not None
+            and previous.get("build_key") == key
+            and previous.get("reference", "").startswith(f"{repository(owner, slug)}@")
+        ):
             images[content] = dict(previous)
             carried.append(slug)
             continue
