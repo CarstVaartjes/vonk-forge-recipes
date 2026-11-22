@@ -38,6 +38,10 @@ DIFF_ARGUMENTS = (
     "--src-prefix=a/",
     "--dst-prefix=b/",
     "--diff-filter=AMRD",
+    # A rename is a deletion plus an addition, so it goes through the same
+    # relocation and judged-file rules (an exempt owner renamed into scope
+    # must not hide its content).
+    "--no-renames",
 )
 HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
@@ -97,11 +101,13 @@ def parse_added(diff: str, judged: Callable[[str], bool]) -> dict[str, set[int]]
             owed_new, line = count, start
             if path:
                 files.setdefault(path, set()).update(range(start, start + count))
+    # Each deleted file is judged once, not once per target file.
+    owners = [(owner, old) for owner, old in removed.items() if judged(owner)]
     for target, lines in added.items():
         if not judged(target):
             continue
-        for owner, old in removed.items():
-            if _kind(owner) == _kind(target) and judged(owner):
+        for owner, old in owners:
+            if _kind(owner) == _kind(target):
                 _spend_relocated(files[target], lines, old)
     return files
 
