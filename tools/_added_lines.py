@@ -15,6 +15,7 @@ import argparse
 import re
 import subprocess
 import sys
+from difflib import SequenceMatcher
 from pathlib import Path
 
 # The files the change-judging tools read.
@@ -35,22 +36,106 @@ DIFF_ARGUMENTS = (
     "--no-color",
     "--src-prefix=a/",
     "--dst-prefix=b/",
-    "--diff-filter=AMR",
+    "--diff-filter=AMRD",
 )
-HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
+
+
+def _indent(text: str) -> int:
+    return len(text) - len(text.lstrip())
 
 
 def parse_added(diff: str) -> dict[str, set[int]]:
-    """Map each file of a ``-U0`` diff to the line numbers it adds."""
-    result: dict[str, set[int]] = {}
+    """Map each file of a ``-U0`` diff to the line numbers it adds.
+
+    A relocated block is not an addition: a deleted block may account for one
+    identical added block in a file of the same type, so a verbatim move or split
+    does not re-surface old findings. Copies and edited lines stay additions, the
+    match needs a block (not an isolated common line), and it tolerates one uniform
+    indentation shift. The evidence is the diff text alone, never history.
+    """
+    files: dict[str, set[int]] = {}
+    added: dict[str, list[tuple[int, str]]] = {}
+    removed: dict[str, list[str]] = {}
     path: str | None = None
-    for line in diff.splitlines():
-        if line.startswith("+++ "):
-            path = line[4:].removeprefix("b/") if line != "+++ /dev/null" else None
-        elif path and (hunk := HUNK.match(line)):
-            start, count = int(hunk[1]), int(hunk[2] if hunk[2] is not None else 1)
-            result.setdefault(path, set()).update(range(start, start + count))
-    return result
+    old_path = ""
+    line = 0
+    # Lines the open hunk still owes: a content line that reads like a file header
+    # ("--- a/x") is content while the hunk counts say so.
+    owed_old = owed_new = 0
+    for text in diff.splitlines():
+        in_hunk = owed_old > 0 or owed_new > 0
+        if text.startswith("diff --git "):
+            owed_old = owed_new = 0
+        elif in_hunk and text.startswith("+"):
+            if path:
+                added[path].append((line, text[1:]))
+            line += 1
+            owed_new -= 1
+        elif in_hunk and text.startswith("-"):
+            removed.setdefault(old_path, []).append(text[1:])
+            owed_old -= 1
+        elif text.startswith("--- ") and not in_hunk:
+            old_path = text[4:].removeprefix("a/")
+        elif text.startswith("+++ ") and not in_hunk:
+            path = text[4:].removeprefix("b/") if text != "+++ /dev/null" else None
+            if path:
+                added.setdefault(path, [])
+        elif hunk := HUNK.match(text):
+            start, count = int(hunk[3]), int(hunk[4] if hunk[4] is not None else 1)
+            owed_old = int(hunk[2] if hunk[2] is not None else 1)
+            owed_new, line = count, start
+            if path:
+                files.setdefault(path, set()).update(range(start, start + count))
+    for target, lines in added.items():
+        for owner, old in removed.items():
+            if Path(owner).suffix == Path(target).suffix:
+                _spend_relocated(files[target], lines, old)
+    return files
+
+
+def _spend_relocated(
+    target: set[int], lines: list[tuple[int, str]], old: list[str]
+) -> None:
+    """Drop from ``target`` each added block that ``old`` deleted unchanged."""
+    # A block is three lines with two non-blank, never an isolated common line.
+    consumed = "\0consumed"
+    pairs = SequenceMatcher(
+        a=[text.lstrip() for text in old],
+        b=[text.lstrip() for _, text in lines],
+        autojunk=False,
+    ).get_matching_blocks()
+    for left, right, size in pairs:
+        shifts = {
+            _indent(old[left + i]) - _indent(lines[right + i][1])
+            for i in range(size)
+            if old[left + i].strip()
+        }
+        solid = sum(bool(old[left + i].strip()) for i in range(size))
+        if size < 3 or solid < 2 or len(shifts) != 1:
+            continue
+        if not all(lines[right + i][0] in target for i in range(size)):
+            continue
+        for i in range(size):
+            target.discard(lines[right + i][0])
+            old[left + i] = consumed
+    # Reordered extracted methods need not keep the old sequence alignment:
+    # spend the remaining exact blocks independently.
+    for _ in range(len(lines)):
+        match = SequenceMatcher(
+            a=old,
+            b=[
+                text if number in target else f"\0added:{number}"
+                for number, text in lines
+            ],
+            autojunk=False,
+        ).find_longest_match()
+        solid = sum(bool(old[match.a + i].strip()) for i in range(match.size))
+        if match.size < 3 or solid < 2:
+            break
+        for i in range(match.size):
+            target.discard(lines[match.b + i][0])
+            old[match.a + i] = consumed + str(match.a + i)
 
 
 def read_diff(source: str) -> str:

@@ -70,8 +70,8 @@ def test_the_whole_suite_is_clean() -> None:
 
 def test_a_diff_selects_the_added_test_lines() -> None:
     diff = (
-        "+++ b/tests/test_x.py\n@@ -0,0 +4,2 @@\n"
-        "+++ b/tools/check-document-reads\n@@ -1 +1 @@\n"
+        "+++ b/tests/test_x.py\n@@ -0,0 +4,2 @@\n+a\n+b\n"
+        "+++ b/tools/check-document-reads\n@@ -1 +1 @@\n-c\n+d\n"
     )
     assert gates.added_targets(diff) == {"tests/test_x.py": {4, 5}}
 
