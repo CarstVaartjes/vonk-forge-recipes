@@ -44,6 +44,7 @@ from vonk_forge_contracts import (
 
 from qualification.evidence_store import merge_evidence, read_evidence
 from qualification.memory_need import SPARK_MEMORY_BYTES
+from qualification.tolerant import InputReason, read_optional
 
 from . import cleanup, memory, policy, recovery, verdict
 from .auth_contract import SmokeAuthClass
@@ -136,7 +137,6 @@ from .sweep_contract import (
     SweepWaitReason,
     WorkloadFailureCode,
 )
-from .tolerant import InputReason, read_optional
 from .verdict import Disposition, Progress
 from .vonkctl import OWNER_PROFILES, Reply, Vonkctl, VonkctlError, request_key
 

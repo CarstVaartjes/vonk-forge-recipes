@@ -34,8 +34,8 @@ from qualification.evidence_store import (
     write_atomic,
     write_evidence,
 )
+from qualification.own_pulls import OWN_FIELDS, REPOSITORY, own_pulls
 
-from .own_pulls import OWN_FIELDS, REPOSITORY, own_pulls
 from .qualification import (
     BackfillResult,
     backfill,

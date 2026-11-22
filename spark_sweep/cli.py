@@ -10,6 +10,7 @@ from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
+from qualification.own_pulls import REPOSITORY
 
 from . import policy
 from .catalog import fetch_fleet, fetch_models, fetch_recipes
@@ -17,7 +18,6 @@ from .definitions import Definitions
 from .evidence_publisher import sync
 from .issues import file_issues
 from .job_media import ffprobe
-from .own_pulls import REPOSITORY
 from .plan import make_plan, render_plan
 from .prefetch import PrefetchConfig
 from .report import build_report, render_report, saved_qualification

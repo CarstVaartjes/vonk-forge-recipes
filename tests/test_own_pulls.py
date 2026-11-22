@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from unittest.mock import patch
 
-from spark_sweep.own_pulls import OWN_FIELDS, own_pulls
+from qualification.own_pulls import OWN_FIELDS, own_pulls
 
 ROOT = Path(__file__).resolve().parents[1]
 OWN = {"isCrossRepository": False, "headRepositoryOwner": {"login": "CarstVaartjes"}}

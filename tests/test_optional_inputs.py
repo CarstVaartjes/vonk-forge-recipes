@@ -15,13 +15,13 @@ from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from test_prebuilt_images import INDEX
 from test_refresh_upstream import refresh
 
+from qualification.image_evidence import load_images
+from qualification.tolerant import InputReason, read_optional
 from spark_sweep.catalog import parse_recipe, recipe_listing
 from spark_sweep.catalog_contract import RecipeProjection
-from spark_sweep.image_evidence import load_images
 from spark_sweep.policy import classify
 from spark_sweep.report import average_test_seconds, build_report, render_report
 from spark_sweep.state import State
-from spark_sweep.tolerant import InputReason, read_optional
 from spark_sweep.vonkctl import Reply, Vonkctl
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -309,7 +309,7 @@ def test_new_optional_report_fields_use_the_shared_typed_reader() -> None:
 def test_optional_validators_and_exports_cannot_bypass_tolerant_boundary() -> None:
     for path in (
         "spark_sweep/evidence_contract.py",
-        "spark_sweep/image_evidence.py",
+        "qualification/image_evidence.py",
         "spark_sweep/run.py",
         "spark_sweep/catalog.py",
     ):

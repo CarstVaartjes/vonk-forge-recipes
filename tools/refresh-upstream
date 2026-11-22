@@ -52,8 +52,8 @@ from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.recipe import RecipeRelease
 
 from qualification.memory_need import raise_peaks_to_envelope
-from spark_sweep.own_pulls import OWN_FIELDS, own_pulls
-from spark_sweep.tolerant import InputReason, read_optional
+from qualification.own_pulls import OWN_FIELDS, own_pulls
+from qualification.tolerant import InputReason, read_optional
 from tools._catalog_model import roles_for
 from tools._upstream_http import UpstreamBusy, fetch
 from tools.adapter_sources import materialize_or_exit
