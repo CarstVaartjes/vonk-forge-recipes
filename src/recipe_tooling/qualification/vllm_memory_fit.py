@@ -7,7 +7,7 @@ from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 
 from recipe_tooling.paths import REPO_ROOT
-from recipe_tooling.qualification.memory_need import (
+from recipe_tooling.qualification.memory_need.constants import (
     ADMISSION_IDLE_USE_BYTES,
     OS_FLOOR_BYTES,
     SPARK_MEMORY_BYTES,
@@ -52,7 +52,8 @@ def assert_memory_fit(recipe: RecipeDefinition) -> None:
     ):
         # Need-based documents omit utilization: do not invent an implicit 0.9
         # reservation. Keep explicitly authored historical budgets calibrated.
-        from recipe_tooling.qualification.memory_need import calculate_need, load_inputs
+        from recipe_tooling.qualification.memory_need.evidence import load_inputs
+        from recipe_tooling.qualification.memory_need.need import calculate_need
 
         assert recipe.topology.node_count == 1, (
             "Absolute multi-Spark pools need a per-rank need model"

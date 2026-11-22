@@ -18,7 +18,8 @@ from vonk_forge_contracts import (
 from recipe_tooling.qualification import documents
 from recipe_tooling.qualification.documents import ROOT
 from recipe_tooling.qualification.evidence_store import merge_evidence
-from recipe_tooling.qualification.memory_need import TOTAL_BYTES, vllm_budget_bytes
+from recipe_tooling.qualification.memory_need.constants import TOTAL_BYTES
+from recipe_tooling.qualification.memory_need.evidence import vllm_budget_bytes
 from spark_sweep import memory
 from spark_sweep.qualification import history_evidence
 

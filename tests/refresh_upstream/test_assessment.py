@@ -446,8 +446,8 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         from warning_asserts import assert_not_warns, assert_warns
 
         from recipe_tooling.qualification import documents as qualification_documents
-        from recipe_tooling.qualification.memory_need import (
-            load_inputs,
+        from recipe_tooling.qualification.memory_need.evidence import load_inputs
+        from recipe_tooling.qualification.memory_need.warnings import (
             memory_estimate_warnings,
         )
 

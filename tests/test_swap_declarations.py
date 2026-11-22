@@ -11,15 +11,17 @@ from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeMemoryResources
 from warning_asserts import assert_not_warns, assert_warns
 
-from recipe_tooling.qualification.memory_need import (
+from recipe_tooling.qualification.memory_need.constants import (
     SWAP_DEFAULT_BYTES,
     SWAP_MAXIMUM_BYTES,
+)
+from recipe_tooling.qualification.memory_need.swap import (
     admissible_declaration_warnings,
-    memory_warnings,
     swap_needed_bytes,
     swap_warnings,
     usable_swap_bytes,
 )
+from recipe_tooling.qualification.memory_need.warnings import memory_warnings
 
 SLUG = "agents-a1-nvfp4-r0b0tlab-vllm-single"
 GIB = 1024**3

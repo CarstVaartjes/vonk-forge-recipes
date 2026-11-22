@@ -56,16 +56,19 @@ def isolate_memory_evidence(request, monkeypatch, tmp_path_factory):
     """
     if request.node.get_closest_marker("live_evidence"):
         return
-    import recipe_tooling.qualification.memory_need as memory
     from recipe_tooling.qualification.evidence_store import read_evidence
+    from recipe_tooling.qualification.memory_need import constants as mn_constants
+    from recipe_tooling.qualification.memory_need import evidence as mn_evidence
 
-    live, empty = memory.ROOT, tmp_path_factory.mktemp("no-evidence")
+    live, empty = mn_constants.ROOT, tmp_path_factory.mktemp("no-evidence")
 
     def evidence(key):
         # A test that points the module at its own corpus keeps it.
-        return read_evidence(empty if memory.ROOT == live else memory.ROOT, key)
+        return read_evidence(
+            empty if mn_constants.ROOT == live else mn_constants.ROOT, key
+        )
 
-    monkeypatch.setattr(memory, "_evidence", evidence)
+    monkeypatch.setattr(mn_evidence, "_evidence", evidence)
 
 
 @pytest.fixture(scope="session")

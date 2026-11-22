@@ -21,12 +21,16 @@ from vonk_forge_contracts import (
 )
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from recipe_tooling.qualification.memory_need import (
-    SPARK_MEMORY_BYTES,
-    calculate_need,
-    envelope_exceptions,
+from recipe_tooling.qualification.memory_need import constants as mn_constants
+from recipe_tooling.qualification.memory_need import evidence as mn_evidence
+from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
+from recipe_tooling.qualification.memory_need.evidence import (
     hardware_proven,
     load_inputs,
+)
+from recipe_tooling.qualification.memory_need.need import calculate_need
+from recipe_tooling.qualification.memory_need.warnings import (
+    envelope_exceptions,
     memory_estimate_warnings,
 )
 
@@ -37,13 +41,12 @@ MOSAIC = "glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single"
 
 def untested_root(tmp_path: Path, monkeypatch, slug: str) -> Path:
     """Authored recipe bytes with an empty evidence corpus, whatever the live one holds."""
-    import recipe_tooling.qualification.memory_need as memory
 
     (tmp_path / "recipes").mkdir()
     (tmp_path / "recipes" / f"{slug}.json").write_text(
         (ROOT / "recipes" / f"{slug}.json").read_text()
     )
-    monkeypatch.setattr(memory, "ROOT", tmp_path)
+    monkeypatch.setattr(mn_constants, "ROOT", tmp_path)
     return tmp_path
 
 
@@ -82,7 +85,6 @@ def test_unchanged_untested_document_is_informational(tmp_path, monkeypatch) -> 
 
 @pytest.mark.parametrize("use_snapshot", [True, False])
 def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> None:
-    import recipe_tooling.qualification.memory_need as memory
 
     slug = "d3-edge-vllm-single"
     source = ROOT / "recipes" / f"{slug}.json"
@@ -121,7 +123,7 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
         target = tmp_path / "qualification/evidence" / f"{key}.json"
         target.parent.mkdir(parents=True)
         target.write_text(evidence.model_dump_json())
-    monkeypatch.setattr(memory, "ROOT", tmp_path)
+    monkeypatch.setattr(mn_constants, "ROOT", tmp_path)
 
     def forbidden(*args, **kwargs):
         pytest.fail("memory validation must not invoke Git or other subprocesses")
@@ -138,7 +140,7 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
     for role in changed.topology.roles:
         role.resources.memory.peak_bytes = SPARK_MEMORY_BYTES
     authored.write_text(changed.model_dump_json())
-    assert not memory.unchanged_recipe(recipe, digest, inputs)
+    assert not mn_evidence.unchanged_recipe(recipe, digest, inputs)
     assert_warns(
         memory_estimate_warnings(changed, {}, inputs, document_digest=digest),
         "",
@@ -162,7 +164,6 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
 
 
 def test_new_recipe_without_git_still_requires_memory_inputs(tmp_path, monkeypatch):
-    import recipe_tooling.qualification.memory_need as memory
 
     document = json.loads(
         (
@@ -172,7 +173,7 @@ def test_new_recipe_without_git_still_requires_memory_inputs(tmp_path, monkeypat
     document["identity"]["slug"] = "new-memory-need-recipe"
     recipe = RecipeDefinition.model_validate(document)
     inputs = load_inputs().model_copy(update={"geometries": {}})
-    monkeypatch.setattr(memory, "ROOT", tmp_path)
+    monkeypatch.setattr(mn_constants, "ROOT", tmp_path)
 
     def forbidden(*args, **kwargs):
         pytest.fail("new-document validation must not invoke Git")
@@ -219,7 +220,6 @@ def test_mosaic_failure_has_honest_demand_without_retuning_siblings() -> None:
 
 
 def test_qualification_evidence_is_the_only_pass_source(tmp_path, monkeypatch) -> None:
-    import recipe_tooling.qualification.memory_need as memory
 
     slug = "gpt-oss-20b-nvidia-vllm-single"
     document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
@@ -244,7 +244,7 @@ def test_qualification_evidence_is_the_only_pass_source(tmp_path, monkeypatch) -
         if record.identity.content_sha256 == document_sha256(document)
         and record.outcome == QualificationOutcome.PASSED
     )
-    monkeypatch.setattr(memory, "ROOT", tmp_path)
+    monkeypatch.setattr(mn_constants, "ROOT", tmp_path)
     assert not hardware_proven(recipe, document_sha256(document))
     path.write_text(evidence.model_dump_json())
     assert hardware_proven(recipe, document_sha256(document))

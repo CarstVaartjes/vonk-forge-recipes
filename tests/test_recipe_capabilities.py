@@ -84,7 +84,7 @@ def _uses_mistral_tokenizer(recipe: RecipeDefinition) -> bool:
         return mode == "mistral"
     primary = recipe.models[
         0
-    ]  # the served model, as src/recipe_tooling/qualification/memory_need.py
+    ]  # the served model, as src/recipe_tooling/qualification/memory_need/
     mounted = {item.file_id for item in primary.files}
     paths = {
         item.path

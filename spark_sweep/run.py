@@ -43,7 +43,7 @@ from vonk_forge_contracts import (
 )
 
 from recipe_tooling.qualification.evidence_store import merge_evidence, read_evidence
-from recipe_tooling.qualification.memory_need import SPARK_MEMORY_BYTES
+from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from recipe_tooling.qualification.tolerant import InputReason, read_optional
 
 from . import cleanup, memory, policy, recovery, verdict

@@ -9,7 +9,8 @@ import pytest
 from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
-from recipe_tooling.qualification.memory_need import argument_value, hardware_proven
+from recipe_tooling.qualification.memory_need.args import argument_value
+from recipe_tooling.qualification.memory_need.evidence import hardware_proven
 
 SLUG = "qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single"
 BACKEND = (

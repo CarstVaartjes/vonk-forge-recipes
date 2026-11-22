@@ -20,24 +20,30 @@ from vonk_forge_contracts import (
     RecipeDefinition,
     RecipeQualificationEvidence,
 )
-from vonk_forge_contracts.memory_admission import evaluate_memory_admission
+from vonk_forge_contracts.memory_admission import (
+    PLATFORM_MEMORY_FLOOR_BYTES,
+    evaluate_memory_admission,
+)
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from recipe_tooling.qualification import documents, memory_need
-from recipe_tooling.qualification.memory_need import (
+from recipe_tooling.qualification import documents
+from recipe_tooling.qualification.memory_need import constants as mn_constants
+from recipe_tooling.qualification.memory_need import evidence as mn_evidence
+from recipe_tooling.qualification.memory_need.constants import (
     ADMISSION_IDLE_USE_BYTES,
     ADMISSION_MAXIMUM_PEAK_BYTES,
-    PLATFORM_MEMORY_FLOOR_BYTES,
     SPARK_IDLE_AVAILABLE_BYTES,
     SPARK_MEMORY_BYTES,
+)
+from recipe_tooling.qualification.memory_need.evidence import (
     declarable_vllm_envelope,
     load_inputs,
-    memory_estimate_warnings,
     raise_peaks_to_envelope,
     recipe_envelope,
     vllm_budget_bytes,
     vllm_utilization_envelope,
 )
+from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
 
 INPUTS = load_inputs()
 GLM = "glm-5-3-flash-exl3-k2-0xsero-vllm-single"
@@ -163,7 +169,7 @@ def measured(
     evidence = RecipeQualificationEvidence(
         recipe_key=key, records=records, measured_memory=rows
     )
-    monkeypatch.setattr(memory_need, "_evidence", lambda _key: evidence)
+    monkeypatch.setattr(mn_evidence, "_evidence", lambda _key: evidence)
 
 
 def test_measured_move_that_raises_the_budget_raises_to_the_capped_envelope(
@@ -338,8 +344,11 @@ def test_warning_follows_the_keep_rule(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 ALLOWED = {
-    ("src/recipe_tooling/qualification/memory_need.py", "declarable_vllm_envelope"),
-    ("src/recipe_tooling/qualification/memory_need.py", "bounded_kv_warnings"),
+    (
+        "src/recipe_tooling/qualification/memory_need/evidence.py",
+        "declarable_vllm_envelope",
+    ),
+    ("src/recipe_tooling/qualification/memory_need/warnings.py", "bounded_kv_warnings"),
 }
 NAME = "vllm_utilization_envelope"
 
@@ -418,7 +427,9 @@ def test_the_guard_allows_the_listed_scopes() -> None:
     source = (
         "def declarable_vllm_envelope(r):\n    return vllm_utilization_envelope(r)\n"
     )
-    assert uses(source, "src/recipe_tooling/qualification/memory_need.py") == []
+    assert (
+        uses(source, "src/recipe_tooling/qualification/memory_need/evidence.py") == []
+    )
     assert uses(source, "tools/other.py")
 
 
@@ -428,25 +439,25 @@ def test_a_real_proven_content_keeps_peaks_once_it_is_measured(
 ) -> None:
     """The committed pass records join the table as the sweep writes it."""
     proven = None
-    for path in sorted((memory_need.ROOT / "recipes").glob("*.json")):
+    for path in sorted((mn_constants.ROOT / "recipes").glob("*.json")):
         recipe = documents.recipe(path.stem)
         digest = documents.recipe_digest(path.stem)
         if (
             recipe.runtime.engine == "vllm"
             and not recipe.options
             and recipe_envelope(recipe)
-            and memory_need.hardware_proven(recipe, digest)
+            and mn_evidence.hardware_proven(recipe, digest)
         ):
             proven = (recipe, digest)
             break
     assert proven, "no hardware-proven vLLM recipe in the committed evidence"
     previous, digest = proven
     key = f"{previous.identity.publisher}/{previous.identity.slug}"
-    real = memory_need._evidence(key)
+    real = mn_evidence._evidence(key)
     moved = previous.model_copy(deep=True)
     declare_peak(moved, 1_000_000_000)
     unmeasured = real.model_copy(update={"measured_memory": ()})
-    monkeypatch.setattr(memory_need, "_evidence", lambda _key: unmeasured)
+    monkeypatch.setattr(mn_evidence, "_evidence", lambda _key: unmeasured)
     assert raise_peaks_to_envelope(moved) is not None  # not measured: raised
     rows = tuple(
         QualificationMeasuredRoleMemory(
@@ -458,7 +469,7 @@ def test_a_real_proven_content_keeps_peaks_once_it_is_measured(
         for name in sorted({r.name for r in previous.topology.roles})
     )
     table = real.model_copy(update={"measured_memory": rows})
-    monkeypatch.setattr(memory_need, "_evidence", lambda _key: table)
+    monkeypatch.setattr(mn_evidence, "_evidence", lambda _key: table)
     assert raise_peaks_to_envelope(moved) is None
     warnings = memory_estimate_warnings(
         moved, catalog_models(), INPUTS, document_digest=""
@@ -473,7 +484,7 @@ def test_a_refresh_keeps_every_real_unmeasured_proven_vllm_recipes_peaks() -> No
     Content the sweep has measured is judged by its rows instead, so evidence
     batches that add rows never turn this red.
     """
-    for path in sorted((memory_need.ROOT / "recipes").glob("*.json")):
+    for path in sorted((mn_constants.ROOT / "recipes").glob("*.json")):
         recipe = documents.recipe(path.stem)
         digest = documents.recipe_digest(path.stem)
         key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
@@ -481,9 +492,9 @@ def test_a_refresh_keeps_every_real_unmeasured_proven_vllm_recipes_peaks() -> No
             recipe.runtime.engine != "vllm"
             or any(
                 row.content_sha256 == digest
-                for row in memory_need._evidence(key).measured_memory
+                for row in mn_evidence._evidence(key).measured_memory
             )
-            or not memory_need.hardware_proven(recipe, digest)
+            or not mn_evidence.hardware_proven(recipe, digest)
         ):
             continue
         same = recipe.model_copy(deep=True)

@@ -9,7 +9,7 @@ import time
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
-from recipe_tooling.qualification.memory_need import SPARK_MEMORY_BYTES
+from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from recipe_tooling.qualification.own_pulls import REPOSITORY
 
 from . import policy

@@ -566,7 +566,7 @@ percent steps), a `minimum_swap_bytes` below what the overshoot needs (the
 smallest whole-GiB total) or above 128 GiB, and warns when the needed swap
 exceeds the 64 GiB default (swap size is a fleet-profile setting; a recipe
 declares only its minimum). The constants are copied, with citation, in
-`src/recipe_tooling/qualification/memory_need.py`.
+`src/recipe_tooling/qualification/memory_need/`.
 
 **A.** Use the creator's memory settings and preserve those of every recipe that
 passed on real hardware; change them only after a hardware failure, citing it.
@@ -599,7 +599,7 @@ The estimate warns unless a touched single-Spark recipe bounds KV: an absolute p
 `gpu-memory-utilization`/`mem-fraction-static` whose share of physical memory
 plus the margin held beside the engine budget (plus the resident expansion of
 geometry pinned to the launch) is admissible on an idle Spark. That margin has one
-owner, `budget_margin_bytes` in `src/recipe_tooling/qualification/memory_need.py`, from the p90 of the
+owner, `budget_margin_bytes` in `src/recipe_tooling/qualification/memory_need/`, from the p90 of the
 277 sweep samples (audit 2026-11-01): vLLM 6.2 GB on one Spark and 10.4 GB on
 several (measured on 2-Spark runs; borrowed for 3, 4 and 8), SGLang 8.5 GB on one
 Spark and 8 GB on several. The loading floor, the inside-budget check and the
@@ -650,7 +650,7 @@ and warns. Job recipes are never measured (their sample is taken after the
 job). `catalog-measured-memory-v1.json` under the contract examples is the
 vector both repositories test against.
 `tests/test_absolute_kv_capacity.py` replays the recorded failures and must
-warn on each. `src/recipe_tooling/qualification/memory_need.py`
+warn on each. `src/recipe_tooling/qualification/memory_need/`
 supplies the guard and an informative full-workload calculator. For a
 multi-Spark vLLM absolute pool, also set an explicit `gpu-memory-utilization`
 startup budget whose fraction of physical memory fits every role peak: vLLM
@@ -665,7 +665,7 @@ waiver. SGLang absolute token pools must hold one context too. TRT-LLM fractiona
 pools are outside this absolute-pool check. Cache geometry binds configuration
 hashes and records padded/hybrid allocation bounds with their sources.
 Every geometry names its pinned config's `architecture`, classified as hybrid
-or attention in `src/recipe_tooling/qualification/memory_need.py`. A vLLM-pinned hybrid geometry
+or attention in `src/recipe_tooling/qualification/memory_need/`. A vLLM-pinned hybrid geometry
 records its Mamba/GDN layers as typed `recurrent` dimensions from that config
 (recurrent and attention layer counts, conv channels and kernel, temporal state
 elements and dtype, kernel block, and whether the loaded vLLM class supports
@@ -750,7 +750,7 @@ per-node peak; peak + the **2 GiB platform floor** must fit
 the **126,600,000,000-byte idle-available floor**. The 2 GiB floor follows the creators' measured 2-3 GiB of steady free memory; the swap-aware host memory guard (vonk-forge #1936, R1) is the runtime backstop. The 2026-10-15/16 incident also
 retains its measured overhead and the lower spark-3542 idle-available value above.
 
-[src/recipe_tooling/qualification/memory_need.py](../qualification/memory_need.py), exercised by
+[src/recipe_tooling/qualification/memory_need/](../src/recipe_tooling/qualification/memory_need/), exercised by
 `tests/test_single_spark_memory_headroom.py`, shares those constants; its
 single-node full-workload estimate is
 informative. An absolute vLLM KV pool overrides cache sizing by utilization.

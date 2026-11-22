@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from repo_root import ROOT
 
+from recipe_tooling.qualification.memory_need import constants as mn_constants
 from recipe_tooling.single_source_values import (
     Registration,
     ValueKind,
@@ -122,12 +123,11 @@ def test_unrelated_package_version_is_not_recipe_contract_version() -> None:
 def test_memory_guard_normalizes_expressions_and_preserves_other_domains(
     symbol: str,
 ) -> None:
-    from recipe_tooling.qualification import memory_need
 
-    value = getattr(memory_need, symbol)
+    value = getattr(mn_constants, symbol)
     registration = Registration(
         semantic_id="test.memory",
-        owner="src/recipe_tooling/qualification/memory_need.py",
+        owner="src/recipe_tooling/qualification/memory_need/constants.py",
         selector=symbol,
         kind=ValueKind.MEMORY_BYTES,
     )
@@ -150,11 +150,11 @@ def test_memory_guard_normalizes_expressions_and_preserves_other_domains(
 
 
 def test_memory_guard_reads_decorator_arguments_by_their_own_line() -> None:
-    from recipe_tooling.qualification.memory_need import OS_FLOOR_BYTES
+    from recipe_tooling.qualification.memory_need.constants import OS_FLOOR_BYTES
 
     registration = Registration(
         semantic_id="test.memory",
-        owner="src/recipe_tooling/qualification/memory_need.py",
+        owner="src/recipe_tooling/qualification/memory_need/constants.py",
         selector="OS_FLOOR_BYTES",
         kind=ValueKind.MEMORY_BYTES,
     )

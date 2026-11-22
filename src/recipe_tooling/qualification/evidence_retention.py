@@ -18,7 +18,7 @@ from recipe_tooling.qualification.evidence_store import (
     read_evidence,
     write_evidence,
 )
-from recipe_tooling.qualification.memory_need import measured_budgets
+from recipe_tooling.qualification.memory_need.evidence import measured_budgets
 
 #: The classes `derive_status` and `published_status` read, each by the reducers' own
 #: predicate: the newest record of each class, per identity, is all they consult.

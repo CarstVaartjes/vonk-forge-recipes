@@ -14,8 +14,12 @@ from vonk_forge_contracts.memory_admission import (
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns
 
-from recipe_tooling.qualification import memory_need
-from recipe_tooling.qualification.memory_need import vllm_utilization_envelope
+from recipe_tooling.qualification.memory_need import constants as mn_constants
+from recipe_tooling.qualification.memory_need import evidence as mn_evidence
+from recipe_tooling.qualification.memory_need import need as mn_need
+from recipe_tooling.qualification.memory_need import swap as mn_swap
+from recipe_tooling.qualification.memory_need import warnings as mn_warnings
+from recipe_tooling.qualification.memory_need.evidence import vllm_utilization_envelope
 
 
 def test_declaration_boundary_and_observed_host_are_distinct() -> None:
@@ -63,17 +67,16 @@ def test_recipe_guard_delegates_even_for_historical_content(monkeypatch) -> None
     recipe.topology.roles[0].resources.memory.reserve_bytes = 10**15
     for role in recipe.topology.roles:
         role.resources.memory.peak_bytes = 50_000_000_000
-    assert_not_warns(
-        memory_need.admissible_declaration_warnings(recipe), "not admissible"
-    )
-    monkeypatch.setattr(
-        memory_need,
-        "evaluate_memory_admission",
-        lambda *a, **kw: evaluate_memory_admission(100, 0),
-    )
+    assert_not_warns(mn_swap.admissible_declaration_warnings(recipe), "not admissible")
+    for owner in (mn_swap, mn_warnings):
+        monkeypatch.setattr(
+            owner,
+            "evaluate_memory_admission",
+            lambda *a, **kw: evaluate_memory_admission(100, 0),
+        )
     assert_warns(
-        memory_need.memory_estimate_warnings(
-            recipe, {}, memory_need.load_inputs(), document_digest=""
+        mn_warnings.memory_estimate_warnings(
+            recipe, {}, mn_evidence.load_inputs(), document_digest=""
         ),
         "not admissible",
     )
@@ -98,7 +101,7 @@ def _delegates_without_arithmetic(source: str) -> bool:
 
 
 def test_guard_rejects_a_second_admission_formula() -> None:
-    source = (ROOT / "src/recipe_tooling/qualification/memory_need.py").read_text()
+    source = (ROOT / "src/recipe_tooling/qualification/memory_need/swap.py").read_text()
     assert _delegates_without_arithmetic(source)
     assert not _delegates_without_arithmetic(
         source.replace(
@@ -134,13 +137,13 @@ def test_creator_utilization_088_single_is_admissible() -> None:
     """The creator's 0.88 (122,983,643,710 B) fits an idle Spark beside the 2 GiB floor."""
     recipe = _single_at_utilization("0.88")
     assert vllm_utilization_envelope(recipe) == 121_183_643_710
-    assert memory_need.admissible_declaration_warnings(recipe) == []
+    assert mn_swap.admissible_declaration_warnings(recipe) == []
 
 
 def test_utilization_090_single_is_admissible() -> None:
     recipe = _single_at_utilization("0.90")
     assert vllm_utilization_envelope(recipe) == 123_796_908_340
-    assert memory_need.admissible_declaration_warnings(recipe) == []
+    assert mn_swap.admissible_declaration_warnings(recipe) == []
 
 
 @pytest.mark.parametrize(
@@ -153,11 +156,11 @@ def test_single_spark_vllm_utilization_maximum_is_0905(
     recipe = _single_at_utilization(value)
     if admissible:
         assert_not_warns(
-            memory_need.admissible_declaration_warnings(recipe), "not admissible"
+            mn_swap.admissible_declaration_warnings(recipe), "not admissible"
         )
     else:
         assert_warns(
-            memory_need.admissible_declaration_warnings(recipe),
+            mn_swap.admissible_declaration_warnings(recipe),
             "not admissible",
         )
 
@@ -180,16 +183,16 @@ def test_multi_spark_vllm_utilization_maximum_is_08728(
     )
     envelope = vllm_utilization_envelope(recipe)
     assert envelope is not None
-    assert memory_need.budget_margin_bytes(recipe) == 10_400_000_000
+    assert mn_constants.budget_margin_bytes(recipe) == 10_400_000_000
     for role in recipe.topology.roles:
         role.resources.memory.peak_bytes = envelope
     if admissible:
         assert_not_warns(
-            memory_need.admissible_declaration_warnings(recipe), "not admissible"
+            mn_swap.admissible_declaration_warnings(recipe), "not admissible"
         )
     else:
         assert_warns(
-            memory_need.admissible_declaration_warnings(recipe),
+            mn_swap.admissible_declaration_warnings(recipe),
             "not admissible",
         )
 
@@ -199,16 +202,16 @@ def test_refresh_raises_peaks_to_the_budget_envelope_and_never_lowers() -> None:
     for role in recipe.topology.roles:
         role.resources.memory.peak_bytes = 100_000_000_000
         role.resources.memory.load_peak_bytes = 101_000_000_000
-    raised = memory_need.raise_peaks_to_envelope(recipe)
+    raised = mn_evidence.raise_peaks_to_envelope(recipe)
     assert raised is not None
     envelope = vllm_utilization_envelope(raised)
     assert envelope is not None and envelope > 100_000_000_000
     for role in raised.topology.roles:
         assert role.resources.memory.peak_bytes == envelope
         assert role.resources.memory.load_peak_bytes == envelope + 1_000_000_000
-    assert memory_need.raise_peaks_to_envelope(raised) is None
+    assert mn_evidence.raise_peaks_to_envelope(raised) is None
     raised.topology.roles[0].resources.memory.peak_bytes = envelope + 5
-    assert memory_need.raise_peaks_to_envelope(raised) is None
+    assert mn_evidence.raise_peaks_to_envelope(raised) is None
     assert raised.topology.roles[0].resources.memory.peak_bytes == envelope + 5
 
 
@@ -217,17 +220,17 @@ def test_multi_spark_peak_below_the_vllm_envelope_is_refused_untouched() -> None
     recipe = documents.recipe("deepseek-v4-flash-mtp-tonyd2wild-vllm-dual")
     envelope = vllm_utilization_envelope(recipe)
     assert envelope is not None
-    floor = memory_need.per_rank_need(
-        recipe, catalog_models(), memory_need.load_inputs()
+    floor = mn_need.per_rank_need(
+        recipe, catalog_models(), mn_evidence.load_inputs()
     ).peak_bytes
     assert floor < envelope - 1
     for role in recipe.topology.roles:
         role.resources.memory.peak_bytes = envelope - 1
     assert_warns(
-        memory_need.memory_estimate_warnings(
+        mn_warnings.memory_estimate_warnings(
             recipe,
             catalog_models(),
-            memory_need.load_inputs(),
+            mn_evidence.load_inputs(),
             document_digest="",
         ),
         "vLLM budget plus overhead",
@@ -235,8 +238,8 @@ def test_multi_spark_peak_below_the_vllm_envelope_is_refused_untouched() -> None
     for role in recipe.topology.roles:
         role.resources.memory.peak_bytes = envelope
     assert (
-        memory_need.memory_estimate_warnings(
-            recipe, catalog_models(), memory_need.load_inputs(), document_digest=""
+        mn_warnings.memory_estimate_warnings(
+            recipe, catalog_models(), mn_evidence.load_inputs(), document_digest=""
         )
         == []
     )

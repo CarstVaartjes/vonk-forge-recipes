@@ -10,15 +10,17 @@ from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from recipe_tooling.qualification.memory_need import (
+from recipe_tooling.qualification.memory_need.args import argument_value
+from recipe_tooling.qualification.memory_need.constants import (
     ADMISSION_IDLE_USE_BYTES,
     TOTAL_BYTES,
-    argument_value,
-    calculate_need,
+)
+from recipe_tooling.qualification.memory_need.evidence import (
     load_inputs,
-    memory_estimate_warnings,
     vllm_utilization_envelope,
 )
+from recipe_tooling.qualification.memory_need.need import calculate_need
+from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
 
 
 def test_full_context_need_and_absolute_pool_replace_the_failed_fraction():

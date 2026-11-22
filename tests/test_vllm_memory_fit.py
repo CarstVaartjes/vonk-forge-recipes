@@ -8,19 +8,21 @@ from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from warning_asserts import assert_not_warns, declare_peak
 
-from recipe_tooling.qualification.memory_need import (
+from recipe_tooling.qualification.memory_need.args import (
+    argument_value,
+    cache_bytes,
+    configured_draft_model,
+)
+from recipe_tooling.qualification.memory_need.constants import (
     ADMISSION_IDLE_USE_BYTES,
     OS_FLOOR_BYTES,
     SPARK_MEMORY_BYTES,
-    absolute_kv_need,
-    argument_value,
     budget_margin_bytes,
-    cache_bytes,
-    calculate_need,
-    configured_draft_model,
-    load_inputs,
-    memory_estimate_warnings,
 )
+from recipe_tooling.qualification.memory_need.evidence import load_inputs
+from recipe_tooling.qualification.memory_need.need import calculate_need
+from recipe_tooling.qualification.memory_need.vllm import absolute_kv_need
+from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
 from recipe_tooling.qualification.vllm_memory_fit import assert_memory_fit
 
 

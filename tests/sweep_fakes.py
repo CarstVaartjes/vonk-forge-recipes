@@ -28,7 +28,7 @@ from uuid import NAMESPACE_URL, uuid5
 from repo_root import FIXTURES, ROOT
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
-from recipe_tooling.qualification.memory_need import SPARK_MEMORY_BYTES
+from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from spark_sweep.definitions import Definitions
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.run import DaemonExecutor

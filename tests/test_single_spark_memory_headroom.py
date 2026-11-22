@@ -13,7 +13,12 @@ from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from recipe_tooling.qualification.memory_need import (
+from recipe_tooling.qualification.memory_need.args import (
+    argument_value,
+    cache_bytes,
+    rank_weight_bytes,
+)
+from recipe_tooling.qualification.memory_need.constants import (
     ADMISSION_IDLE_USE_BYTES,
     GUARD_BYTES,
     IDLE_USE_BYTES,
@@ -22,20 +27,21 @@ from recipe_tooling.qualification.memory_need import (
     SGLANG_MAMBA_SLOTS_PER_REQUEST,
     SPARK_MEMORY_BYTES,
     TOTAL_BYTES,
-    CacheGeometry,
-    argument_value,
     budget_margin_bytes,
-    cache_bytes,
-    calculate_need,
+)
+from recipe_tooling.qualification.memory_need.evidence import (
     hardware_proven,
     load_inputs,
-    memory_estimate_warnings,
-    rank_weight_bytes,
+    vllm_utilization_envelope,
+)
+from recipe_tooling.qualification.memory_need.geometry import CacheGeometry
+from recipe_tooling.qualification.memory_need.need import calculate_need
+from recipe_tooling.qualification.memory_need.sglang import (
     sglang_capped_static_need,
     sglang_demand,
     sglang_static_need,
-    vllm_utilization_envelope,
 )
+from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
 
 LLAMA = "llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single"
 INPUTS = load_inputs()

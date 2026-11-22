@@ -5,11 +5,12 @@ from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from recipe_tooling.qualification import documents, memory_need
-from recipe_tooling.qualification.memory_need import (
-    load_inputs,
-    memory_estimate_warnings,
-)
+from recipe_tooling.qualification import documents
+from recipe_tooling.qualification.memory_need import evidence as mn_evidence
+from recipe_tooling.qualification.memory_need import records as mn_records
+from recipe_tooling.qualification.memory_need import warnings as mn_warnings
+from recipe_tooling.qualification.memory_need.evidence import load_inputs
+from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
 
 SLUG = "deepseek-v4-flash-0731-sparkinfer-single"
 INPUTS = load_inputs()
@@ -18,7 +19,7 @@ INPUTS = load_inputs()
 @pytest.fixture(autouse=True)
 def unrecorded(monkeypatch: pytest.MonkeyPatch) -> None:
     # Judge the exception alone, even once the evidence records this digest.
-    monkeypatch.setattr(memory_need, "unchanged_recipe", lambda *_: False)
+    monkeypatch.setattr(mn_evidence, "unchanged_recipe", lambda *_: False)
 
 
 def authored(monkeypatch: pytest.MonkeyPatch) -> tuple[RecipeDefinition, str]:
@@ -26,13 +27,13 @@ def authored(monkeypatch: pytest.MonkeyPatch) -> tuple[RecipeDefinition, str]:
     recipe = documents.recipe(SLUG)
     declare_peak(recipe, 100_000_000_000)
     digest = document_sha256(recipe.model_dump(mode="json"))
-    entry = memory_need.EnvelopeException(
+    entry = mn_records.EnvelopeException(
         content_sha256=digest,
         reason="synthetic",
         owner_decision="synthetic",
         date="2026-11-02",
     )
-    monkeypatch.setattr(memory_need, "envelope_exceptions", lambda: {SLUG: entry})
+    monkeypatch.setattr(mn_warnings, "envelope_exceptions", lambda: {SLUG: entry})
     return recipe, digest
 
 
@@ -65,7 +66,7 @@ def test_unlisted_slug_gets_the_envelope_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     recipe, digest = authored(monkeypatch)
-    monkeypatch.setattr(memory_need, "envelope_exceptions", dict)
+    monkeypatch.setattr(mn_warnings, "envelope_exceptions", dict)
     assert_warns(
         check(recipe, digest),
         "peak understates vLLM budget",

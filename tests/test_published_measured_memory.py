@@ -20,12 +20,14 @@ from vonk_forge_contracts import (
 )
 
 from recipe_tooling.qualification import documents
-from recipe_tooling.qualification.memory_need import (
+from recipe_tooling.qualification.memory_need.args import memory_variants
+from recipe_tooling.qualification.memory_need.constants import (
     ADMISSION_MAXIMUM_PEAK_BYTES,
     OS_FLOOR_BYTES,
+)
+from recipe_tooling.qualification.memory_need.evidence import (
     holds_within,
     measured_peak_bytes,
-    memory_variants,
     published_measured_peaks,
     vllm_budget_bytes,
 )

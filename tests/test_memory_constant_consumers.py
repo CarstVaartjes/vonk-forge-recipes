@@ -7,7 +7,9 @@ from pathlib import Path
 import documents
 from repo_root import ROOT
 
-from recipe_tooling.qualification import memory_need, vllm_memory_fit
+from recipe_tooling.qualification import vllm_memory_fit
+from recipe_tooling.qualification.memory_need import constants as mn_constants
+from recipe_tooling.qualification.memory_need import evidence as mn_evidence
 from spark_sweep import cli, memory, run
 from spark_sweep.catalog import parse_fleet
 
@@ -16,21 +18,21 @@ def test_memory_consumers_import_one_pinned_policy() -> None:
     assert (
         memory.OS_FLOOR_BYTES
         == vllm_memory_fit.OS_FLOOR_BYTES
-        == memory_need.OS_FLOOR_BYTES
+        == mn_constants.OS_FLOOR_BYTES
     )
     assert (
         run.SweepConfig(Path("unused"), "test").default_spark_memory
-        == memory_need.SPARK_MEMORY_BYTES
+        == mn_constants.SPARK_MEMORY_BYTES
     )
     assert (
         cli.SPARK_MEMORY_BYTES
         == vllm_memory_fit.SPARK_MEMORY_BYTES
-        == memory_need.SPARK_MEMORY_BYTES
+        == mn_constants.SPARK_MEMORY_BYTES
     )
-    assert memory_need.LIMIT_BYTES == (
-        memory_need.SPARK_MEMORY_BYTES
-        - memory_need.GUARD_BYTES
-        - memory_need.IDLE_USE_BYTES
+    assert mn_constants.LIMIT_BYTES == (
+        mn_constants.SPARK_MEMORY_BYTES
+        - mn_constants.GUARD_BYTES
+        - mn_constants.IDLE_USE_BYTES
     )
 
 
@@ -39,9 +41,9 @@ def test_budget_margins_have_one_owner() -> None:
 
     The loading floor, inside-budget check and SGLang static need keep OVERHEAD_BYTES.
     """
-    source = Path(memory_need.__file__).read_text()
+    source = Path(mn_constants.__file__).read_text()
     assert source.count("def budget_margin_bytes(") == 1
-    assert memory_need.OVERHEAD_BYTES == 8_000_000_000
+    assert mn_constants.OVERHEAD_BYTES == 8_000_000_000
     cases = {
         ("deepseek-v4-flash-mtp-tonyd2wild-vllm-dual"): 10_400_000_000,
         ("qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single"): 6_200_000_000,
@@ -49,8 +51,8 @@ def test_budget_margins_have_one_owner() -> None:
         ("inkling-small-nvfp4-sglang-dual"): 8_000_000_000,
     }
     for slug, margin in cases.items():
-        assert memory_need.budget_margin_bytes(documents.recipe(slug)) == margin, slug
-    assert vllm_memory_fit.budget_margin_bytes is memory_need.budget_margin_bytes
+        assert mn_constants.budget_margin_bytes(documents.recipe(slug)) == margin, slug
+    assert vllm_memory_fit.budget_margin_bytes is mn_constants.budget_margin_bytes
     # The producer guard reads the owner; it restates no margin.
     guard = Path(vllm_memory_fit.__file__).read_text()
     assert "OVERHEAD_BYTES" not in guard.replace("INCIDENT_MEASURED_OVERHEAD_BYTES", "")
@@ -67,7 +69,7 @@ def test_quality_note_applies_the_shared_os_floor_once() -> None:
                     "telemetry": {
                         "sample": {
                             "memory_total_bytes": declared
-                            + memory_need.OS_FLOOR_BYTES
+                            + mn_constants.OS_FLOOR_BYTES
                             + 1,
                             "memory_available_bytes": 1,
                         }
@@ -86,7 +88,7 @@ def test_quality_note_applies_the_shared_os_floor_once() -> None:
 
 
 def test_observed_capacity_overrides_only_the_historical_fallback() -> None:
-    observed = memory_need.SPARK_MEMORY_BYTES // 2
+    observed = mn_constants.SPARK_MEMORY_BYTES // 2
     fleet = parse_fleet(
         {
             "nodes": [
@@ -94,15 +96,15 @@ def test_observed_capacity_overrides_only_the_historical_fallback() -> None:
                 {"id": "unknown", "inventory": {}},
             ]
         },
-        memory_need.SPARK_MEMORY_BYTES,
+        mn_constants.SPARK_MEMORY_BYTES,
     )
     assert fleet.sparks[0].memory_total == observed
-    assert fleet.sparks[1].memory_total == memory_need.SPARK_MEMORY_BYTES
+    assert fleet.sparks[1].memory_total == mn_constants.SPARK_MEMORY_BYTES
 
 
 def test_measured_peak_conversion_and_publish_rule_have_one_owner() -> None:
     """The Spark-use -> role-peak conversion and the publish rule live in memory_need only."""
-    source = Path(memory_need.__file__).read_text()
+    source = Path(mn_evidence.__file__).read_text()
     assert source.count("def measured_peak_bytes(") == 1
     assert source.count("def published_measured_peaks(") == 1
     builder = (ROOT / "tools/build-catalog-index").read_text()

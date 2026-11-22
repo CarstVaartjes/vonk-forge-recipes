@@ -16,22 +16,35 @@ from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from recipe_tooling.qualification.memory_need import (
+from recipe_tooling.qualification.memory_need import evidence as mn_evidence
+from recipe_tooling.qualification.memory_need import swap as mn_swap
+from recipe_tooling.qualification.memory_need import warnings as mn_warnings
+from recipe_tooling.qualification.memory_need.args import (
+    argument_value,
+    memory_variants,
+)
+from recipe_tooling.qualification.memory_need.constants import (
     ADMISSION_IDLE_USE_BYTES,
     IDLE_AVAILABLE_BYTES,
     OS_FLOOR_BYTES,
     TOTAL_BYTES,
-    admissible_declaration_warnings,
-    argument_value,
+)
+from recipe_tooling.qualification.memory_need.evidence import (
     declarable_vllm_envelope,
-    declaration_problems,
     load_inputs,
-    memory_estimate_warnings,
-    memory_variants,
+)
+from recipe_tooling.qualification.memory_need.need import (
+    declaration_problems,
     per_rank_need,
+)
+from recipe_tooling.qualification.memory_need.sglang import (
     sglang_demand,
     sglang_rank_budget_warnings,
 )
+from recipe_tooling.qualification.memory_need.swap import (
+    admissible_declaration_warnings,
+)
+from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
 
 PROVEN = json.loads((ROOT / "tests/fixtures/proven-recipe-bytes.json").read_text())
 
@@ -229,7 +242,6 @@ def test_tests_judge_admission_only_through_its_owner() -> None:
 
 
 def test_recorded_content_precedes_admission(monkeypatch) -> None:
-    from recipe_tooling.qualification import memory_need
 
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
     declare_peak(recipe)
@@ -240,14 +252,15 @@ def test_recorded_content_precedes_admission(monkeypatch) -> None:
         calls.append((args, kwargs))
         return evaluate_memory_admission(1, 0)
 
-    monkeypatch.setattr(memory_need, "evaluate_memory_admission", reject)
-    monkeypatch.setattr(memory_need, "unchanged_recipe", lambda *_: True)
+    for owner in (mn_swap, mn_warnings):
+        monkeypatch.setattr(owner, "evaluate_memory_admission", reject)
+    monkeypatch.setattr(mn_evidence, "unchanged_recipe", lambda *_: True)
     assert_not_warns(
         memory_estimate_warnings(recipe, {}, inputs, document_digest="recorded"),
         "not admissible",
     )
     assert not calls
-    monkeypatch.setattr(memory_need, "unchanged_recipe", lambda *_: False)
+    monkeypatch.setattr(mn_evidence, "unchanged_recipe", lambda *_: False)
     assert_warns(
         memory_estimate_warnings(recipe, {}, inputs, document_digest=""),
         "not admissible",
@@ -333,7 +346,9 @@ def _creator_startup_variant(slug: str, fraction: str, pool: str | int):
 
 
 def test_startup_budget_matches_vllms_free_memory_check() -> None:
-    from recipe_tooling.qualification.memory_need import startup_budget_warnings
+    from recipe_tooling.qualification.memory_need.warnings import (
+        startup_budget_warnings,
+    )
 
     reap = _creator_startup_variant(
         "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.88", "6G"
@@ -359,7 +374,9 @@ def test_startup_budget_matches_vllms_free_memory_check() -> None:
 
 
 def test_startup_budget_still_refuses_a_fraction_above_the_peak() -> None:
-    from recipe_tooling.qualification.memory_need import startup_budget_warnings
+    from recipe_tooling.qualification.memory_need.warnings import (
+        startup_budget_warnings,
+    )
 
     reap = _creator_startup_variant(
         "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.93", "6G"

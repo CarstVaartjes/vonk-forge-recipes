@@ -18,15 +18,19 @@ from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from recipe_tooling.qualification.memory_need import (
-    admissible_declaration_warnings,
+from recipe_tooling.qualification.memory_need.args import (
     argument_value,
-    load_inputs,
-    memory_estimate_warnings,
     memory_variants,
-    per_rank_need,
+)
+from recipe_tooling.qualification.memory_need.evidence import (
+    load_inputs,
     vllm_utilization_envelope,
 )
+from recipe_tooling.qualification.memory_need.need import per_rank_need
+from recipe_tooling.qualification.memory_need.swap import (
+    admissible_declaration_warnings,
+)
+from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
 
 MIA = "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/blob/94ae731f4619f769be1f4dfe6f6607ce0a3e869d"
 EUGR = "https://github.com/eugr/spark-vllm-docker/blob/4709188da2921c89b12ae1231a6e712c6ab536e9/recipes"

@@ -15,18 +15,24 @@ from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from recipe_tooling.qualification.memory_need import (
+from recipe_tooling.qualification.memory_need.args import (
+    argument_value,
+    memory_variants,
+)
+from recipe_tooling.qualification.memory_need.constants import (
     ADMISSION_IDLE_USE_BYTES,
     SPARK_MEMORY_BYTES,
-    absolute_kv_need,
-    absolute_kv_warnings,
-    argument_value,
+)
+from recipe_tooling.qualification.memory_need.evidence import (
     load_inputs,
-    memory_estimate_warnings,
-    memory_variants,
-    sglang_rank_budget_warnings,
     vllm_utilization_envelope,
 )
+from recipe_tooling.qualification.memory_need.sglang import sglang_rank_budget_warnings
+from recipe_tooling.qualification.memory_need.vllm import (
+    absolute_kv_need,
+    absolute_kv_warnings,
+)
+from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
 
 VISION = "deepseek-v4-flash-vision-exp-mia-dual"
 LAGUNA = "laguna-m-1-nvfp4-r0b0tlab-vllm-dual"
