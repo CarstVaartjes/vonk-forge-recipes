@@ -18,6 +18,16 @@ sys.path.insert(0, str(ROOT / selection(ROOT).artifact))
 
 
 @pytest.fixture(autouse=True)
+def no_remembered_rate_limit():
+    """A host marked busy by one test must not refuse another test's request."""
+    from tools._upstream_http import forget_busy
+
+    forget_busy()
+    yield
+    forget_busy()
+
+
+@pytest.fixture(autouse=True)
 def forbid_sweep_evidence_publication(request, monkeypatch):
     """Fake fleet tests must never start the git/GitHub publisher subprocess."""
     if request.node.path.name == "test_qualification_evidence_publisher.py":

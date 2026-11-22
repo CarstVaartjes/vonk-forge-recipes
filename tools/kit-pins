@@ -2037,6 +2037,23 @@ def print_images(recipes: dict[str, dict[str, Any]], names: list[str]) -> int:
     return 0
 
 
+def process(
+    command: str, recipe_id: str, recipe: dict[str, Any], source: Upstream
+) -> int:
+    """Lock or check one recipe; the number of problems printed (a busy provider counts)."""
+    try:
+        if command == "lock":
+            moved = apply_lock(ROOT, recipe_id, recipe, source)
+            print(f"{recipe_id}: " + ("; ".join(moved) if moved else "lock is current"))
+            return 0
+        problems = check_recipe(ROOT, recipe_id, recipe, source)
+    except (KitError, RuntimeError) as error:  # incl. UpstreamBusy: next recipe goes on
+        problems = [f"{recipe_id}: {error}"]
+    for problem in problems:
+        print(problem, file=sys.stderr)
+    return len(problems)
+
+
 def main(argv: list[str]) -> int:
     if not argv or argv[0] not in {"lock", "check", "images"}:
         print(__doc__)
@@ -2059,24 +2076,9 @@ def main(argv: list[str]) -> int:
         print("name the recipe(s) to lock, or --all", file=sys.stderr)
         return 2
     source = cli_source()
-    failed = 0
-    for recipe_id in targets:
-        try:
-            if command == "lock":
-                moved = apply_lock(ROOT, recipe_id, recipes[recipe_id], source)
-                print(
-                    f"{recipe_id}: "
-                    + ("; ".join(moved) if moved else "lock is current")
-                )
-            else:
-                for problem in check_recipe(
-                    ROOT, recipe_id, recipes[recipe_id], source
-                ):
-                    print(problem, file=sys.stderr)
-                    failed += 1
-        except KitError as error:
-            print(f"{recipe_id}: {error}", file=sys.stderr)
-            failed += 1
+    failed = sum(
+        process(command, recipe_id, recipes[recipe_id], source) for recipe_id in targets
+    )
     if command == "check":
         if not names or names == ["--all"]:
             for problem in check_images(

@@ -14,7 +14,6 @@ import threading
 import time
 import urllib.request
 from collections.abc import Callable
-from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -24,7 +23,7 @@ BUSY_CODES = frozenset({429, 503})
 ATTEMPTS = 4
 MAX_WAIT_SECONDS = 30.0
 
-_busy_until: dict[str, float] = {}
+_busy_until: dict[tuple[str, bool], float] = {}
 _lock = threading.Lock()
 
 
@@ -38,7 +37,7 @@ def forget_busy() -> None:
         _busy_until.clear()
 
 
-def _advised(error: HTTPError) -> float | None:
+def _advised(error: HTTPError, now: float) -> float | None:
     value = error.headers.get("Retry-After") if error.headers else None
     if not value:
         return None
@@ -47,9 +46,7 @@ def _advised(error: HTTPError) -> float | None:
     except ValueError:
         pass
     try:
-        return max(
-            0.0, (parsedate_to_datetime(value) - datetime.now(UTC)).total_seconds()
-        )
+        return max(0.0, parsedate_to_datetime(value).timestamp() - now)
     except (TypeError, ValueError):
         return None
 
@@ -80,18 +77,19 @@ def fetch[T](
     handlers: tuple[Any, ...] = (),
     sleep: Callable[[float], None] | None = None,
     jitter: Callable[[], float] = random.random,
-    clock: Callable[[], float] = time.monotonic,
+    clock: Callable[[], float] = time.time,
 ) -> T:
     """Open ``request`` and return ``read(response)``; retry transient answers in bounds.
 
     Raises ``UpstreamBusy`` when the host is rate limited past the bound, ``RuntimeError``
     when another transient failure outlasts it; any other HTTP error propagates unchanged.
     """
-    host = request.host
+    # An authenticated read has its own quota: one anonymous 429 must not block it.
+    host = (request.host, request.has_header("Authorization"))
     with _lock:
         waiting = _busy_until.get(host, 0.0) - clock()
     if waiting > 0:
-        raise UpstreamBusy(f"{host} is rate limited; not checked this run")
+        raise UpstreamBusy(f"{host[0]} is rate limited; not checked this run")
     for attempt in range(ATTEMPTS):
         last = attempt == ATTEMPTS - 1
         try:
@@ -99,7 +97,7 @@ def fetch[T](
         except HTTPError as error:
             if error.code not in RETRY_CODES:
                 raise
-            advised = _advised(error)
+            advised = _advised(error, clock())
             if last or (advised is not None and advised > MAX_WAIT_SECONDS):
                 if error.code in BUSY_CODES:
                     with _lock:

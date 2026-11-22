@@ -20,7 +20,7 @@ from urllib.request import Request
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from tools._upstream_http import UpstreamBusy, fetch, forget_busy
+from tools._upstream_http import UpstreamBusy, fetch
 
 SCRIPT = ROOT / "tools/check-upstream-drift"
 LOADER = importlib.machinery.SourceFileLoader("check_upstream_drift", str(SCRIPT))
@@ -406,7 +406,6 @@ class RateLimitTests(unittest.TestCase):
             raise error
 
     def setUp(self) -> None:
-        forget_busy()
         self.naps: list[float] = []
 
     def get(self, opener: Any, url: str = "https://huggingface.co/api/x") -> Any:
@@ -433,9 +432,16 @@ class RateLimitTests(unittest.TestCase):
         self.assertEqual(self.naps, [2.0, 2.0])
 
     def test_retry_after_may_be_an_http_date(self) -> None:
-        when = format_datetime(datetime.now(UTC) + timedelta(seconds=10), usegmt=True)
-        self.get(self.Responses([429, 200], retry_after=when))
-        self.assertTrue(8 <= self.naps[0] <= 10, self.naps)
+        epoch = datetime(2026, 11, 22, 12, 0, tzinfo=UTC)
+        when = format_datetime(epoch + timedelta(seconds=10), usegmt=True)
+        fetch(
+            Request("https://huggingface.co/api/x"),
+            lambda r: r,
+            opener=self.Responses([429, 200], retry_after=when),
+            sleep=self.naps.append,
+            clock=lambda: epoch.timestamp(),
+        )
+        self.assertEqual(self.naps, [10.0])
 
     def test_persistent_limit_is_not_checked_and_not_an_error(self) -> None:
         opener = self.Responses([429])
@@ -447,7 +453,6 @@ class RateLimitTests(unittest.TestCase):
 
     def test_our_own_faults_stay_errors(self) -> None:
         for codes in ([500], ["net"]):
-            forget_busy()
             with self.subTest(codes=codes):
                 self.assertEqual(self.observe(self.Responses(codes)).status, "error")
 
@@ -474,6 +479,20 @@ class RateLimitTests(unittest.TestCase):
         with self.assertRaises(UpstreamBusy):
             call()  # the memory expired: asked again
         self.assertEqual(opener.calls, 2)
+
+    def test_an_anonymous_limit_does_not_block_an_authenticated_read(self) -> None:
+        url = "https://huggingface.co/api/x"
+        with self.assertRaises(UpstreamBusy):
+            fetch(
+                Request(url),
+                lambda r: r,
+                opener=self.Responses([429], retry_after="3600"),
+                sleep=self.naps.append,
+            )
+        authenticated = Request(url, headers={"Authorization": "Bearer t"})
+        opener = self.Responses([200])
+        fetch(authenticated, lambda r: r, opener=opener, sleep=self.naps.append)
+        self.assertEqual(opener.calls, 1)
 
 
 class ReleaseAssetWatchTests(unittest.TestCase):

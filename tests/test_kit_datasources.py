@@ -32,8 +32,6 @@ from test_kit_pins import (
 )
 from vonk_forge_contracts import read_model
 
-from tools._upstream_http import forget_busy
-
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = json.loads(
     (
@@ -1406,7 +1404,6 @@ class ImageAssessmentTests(unittest.TestCase):
                 ):
                     return http.github(path)
 
-        forget_busy()
         result = self.assess(
             KIT_RC13, KIT_RC12, registry_for(), api=RateLimited(README)
         )
