@@ -4,6 +4,6 @@
 jsonschema>=4.24,<5
 pytest==9.1.1
 pytest-xdist==3.8.0
-Pillow==12.0.0
+Pillow==13.0.0
 numpy==2.3.5
 trimesh==4.10.1
