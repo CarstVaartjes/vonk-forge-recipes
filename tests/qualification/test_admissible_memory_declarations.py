@@ -234,7 +234,7 @@ def test_tests_judge_admission_only_through_its_owner() -> None:
     copies = [
         f"{folder}/{path.name}:{number}"
         for folder in ("tests", "src/recipe_tooling/qualification")
-        for path in sorted((ROOT / folder).glob("*.py"))
+        for path in sorted((ROOT / folder).rglob("*.py"))
         for number, line in enumerate(path.read_text().splitlines(), 1)
         if reserve.search(line) or (folder == "tests" and restated.search(line))
     ]

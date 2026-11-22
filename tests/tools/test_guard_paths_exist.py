@@ -59,10 +59,10 @@ def top_level(root: Path = ROOT) -> frozenset[str]:
 PATHLIKE = re.compile(r"^[\w.\-*/]+$")
 #: Tests that scope a scan to a directory of the tree (a moved directory empties them).
 TEST_SIDE_SCOPES = (
-    "tests/test_admissible_memory_declarations.py",
-    "tests/test_admission_maximum_cap.py",
-    "tests/test_own_pulls.py",
-    "tests/test_qualification_evidence_publisher.py",
+    "tests/qualification/test_admissible_memory_declarations.py",
+    "tests/qualification/test_admission_maximum_cap.py",
+    "tests/tools/test_own_pulls.py",
+    "tests/qualification/test_qualification_evidence_publisher.py",
 )
 JSON_FILES = (
     "qualification/single-source-values.json",
@@ -210,7 +210,7 @@ def test_every_path_a_guard_names_exists():
     for name in JSON_FILES:
         named[name] = path_literals(json_strings(json.loads((ROOT / name).read_text())))
     layers = [directory for directory, _ in LAYERS.values()]
-    named["tests/test_package_import_direction.py LAYERS"] = set(layers)
+    named["tests/tools/test_package_import_direction.py LAYERS"] = set(layers)
     empty = layers_without_sources(layers, tree_sources())
     assert not empty, f"LAYERS directories the walker reads nothing from: {empty}"
 

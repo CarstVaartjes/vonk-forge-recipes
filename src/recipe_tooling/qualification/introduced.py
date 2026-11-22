@@ -20,7 +20,7 @@ Gated vocabularies, one table each:
 A recipe-api ``mode`` is not gated: a new mode arrives with a new kind of
 route, which published no facts before.
 
-A value missing from a table fails ``tests/test_introduced_versions.py``, so a
+A value missing from a table fails ``tests/qualification/test_introduced_versions.py``, so a
 new kind or capability cannot ship without saying when it arrived. This module
 is used only by recipes CI, so it lives here and not in the published wheel.
 """

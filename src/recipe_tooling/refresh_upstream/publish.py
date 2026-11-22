@@ -264,7 +264,7 @@ def follow_proven_bytes(root: Path, edits: dict[str, bytes | None]) -> None:
 
     Owner (2026-10-26): proven recipes move to the newest upstream version and the sweep
     re-checks them (their evidence no longer matches the new digest). The guard
-    (``tests/test_admissible_memory_declarations.py``) still refuses any other edit.
+    (``tests/qualification/test_admissible_memory_declarations.py``) still refuses any other edit.
     """
     path = root / refresh_model.PROVEN_BYTES
     if not path.is_file():

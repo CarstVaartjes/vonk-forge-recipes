@@ -65,7 +65,7 @@ def test_only_added_lines_are_judged() -> None:
 
 
 def test_the_whole_suite_is_clean() -> None:
-    for path in sorted((ROOT / "tests").glob("test_*.py")):
+    for path in sorted((ROOT / "tests").rglob("test_*.py")):
         assert gates.scan(path.read_text(encoding="utf-8"), None) == [], path.name
 
 

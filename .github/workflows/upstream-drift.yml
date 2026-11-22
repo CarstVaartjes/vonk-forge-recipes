@@ -37,7 +37,7 @@ jobs:
           echo "UPSTREAM_AUDIT_PYTHON=$audit_venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Test the drift checker offline
-        run: '"$UPSTREAM_AUDIT_PYTHON" -m unittest discover -s tests -p test_check_upstream_drift.py'
+        run: 'PYTHONPATH=src:contracts/src:tests:tests/tools "$UPSTREAM_AUDIT_PYTHON" -m unittest discover -s tests/tools -p test_check_upstream_drift.py'
 
       # Report-only: advanced or vanished upstream pins are listed in the job
       # summary for review, never a failed run. The job fails only when the

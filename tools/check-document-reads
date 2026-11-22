@@ -37,7 +37,7 @@ EXEMPT_PREFIXES = (
     "src/recipe_tooling/qualification/documents.py",
     "tests/documents.py",
     "tools/check-document-reads",
-    "tests/test_check_document_reads.py",
+    "tests/tools/test_check_document_reads.py",
 )
 KEYS = frozenset(
     {
