@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 #: First segment that makes a string a repository path. A moved directory stays listed.
-TOP_LEVEL = frozenset(
+RETIRED_AND_LISTED = frozenset(
     {
         ".github",
         ".githooks",
@@ -29,7 +29,6 @@ TOP_LEVEL = frozenset(
         "contracts",
         "display",
         "docs",
-        "inventory",
         "models",
         "policy",
         "qualification",
@@ -40,31 +39,102 @@ TOP_LEVEL = frozenset(
         "tools",
     }
 )
-PATHLIKE = re.compile(r"^[\w.\-*/]+$")
 SKIP_DIRS = {".git", "__pycache__", "node_modules", ".venv", ".pytest_cache"}
+
+
+def top_level(root: Path = ROOT) -> frozenset[str]:
+    """The listed names (kept for retired directories) plus today's top-level directories."""
+    current = {
+        path.name
+        for path in root.iterdir()
+        if path.is_dir() and path.name not in SKIP_DIRS
+    }
+    return RETIRED_AND_LISTED | current
+
+
+PATHLIKE = re.compile(r"^[\w.\-*/]+$")
+#: Tests that scope a scan to a directory of the tree (a moved directory empties them).
+TEST_SIDE_SCOPES = (
+    "tests/test_admissible_memory_declarations.py",
+    "tests/test_admission_maximum_cap.py",
+    "tests/test_own_pulls.py",
+    "tests/test_qualification_evidence_publisher.py",
+)
 JSON_FILES = (
     "qualification/single-source-values.json",
     "tools/protocol-wheel/single-source-values.json",
 )
 
 
-def path_literals(strings) -> set[str]:
-    """The strings that name a repository path (a plain literal with a known first segment)."""
+def path_literals(strings, names: frozenset[str] | None = None) -> set[str]:
+    """Strings naming a repository path: a plain literal whose first segment is a top-level
+    name, or a bare top-level name (``RECIPES = "recipes"``)."""
+    names = top_level() if names is None else names
     return {
         text
         for text in strings
-        if "/" in text
-        and PATHLIKE.fullmatch(text)
-        and text.split("/", 1)[0] in TOP_LEVEL
+        if PATHLIKE.fullmatch(text)
+        and text.split("/", 1)[0] in names
+        and ("/" in text or text in names)
     }
 
 
+def _string_run(node: ast.expr) -> list[str]:
+    """The trailing string constants of a ``/`` chain: ``ROOT / "a" / "b"`` -> ["a", "b"]."""
+    run: list[str] = []
+    while isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+        if not (
+            isinstance(node.right, ast.Constant) and isinstance(node.right.value, str)
+        ):
+            return []
+        run.insert(0, node.right.value)
+        node = node.left
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        run.insert(0, node.value)
+    return run
+
+
+def _base(node: ast.expr) -> ast.expr:
+    while isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+        node = node.left
+    return node
+
+
+def composed_paths(source: str, bases: frozenset[str] | None = None) -> list[str]:
+    """``ROOT / "display" / "models"`` -> ``display/models`` (only chains rooted at one of
+    ``bases`` when given: a test's ``tmp_path / "x"`` is a sample, not a scope)."""
+    found = []
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+            base = _base(node)
+            if bases is not None and not (
+                isinstance(base, ast.Name) and base.id in bases
+            ):
+                continue
+            run = _string_run(node)
+            if run:
+                found.append("/".join(part.strip("/") for part in run))
+    return found
+
+
 def python_strings(source: str) -> list[str]:
-    return [
+    constants = [
         node.value
         for node in ast.walk(ast.parse(source))
         if isinstance(node, ast.Constant) and isinstance(node.value, str)
     ]
+    return constants + composed_paths(source)
+
+
+def scope_strings(source: str) -> list[str]:
+    """What scopes a scan inside a test: composed paths and bare names, never the sample
+    paths a test feeds its subject."""
+    scopes = [
+        path
+        for path in composed_paths(source, frozenset({"ROOT", "root"}))
+        if "." not in path.rsplit("/", 1)[-1]  # a directory, not a sample file
+    ]
+    return scopes + [text for text in python_strings(source) if "/" not in text]
 
 
 def shell_strings(source: str) -> list[str]:
@@ -130,9 +200,16 @@ def test_every_path_a_guard_names_exists():
     named: dict[str, set[str]] = {}
     for name, source in guard_sources().items():
         named[name] = path_literals(source_strings(source))
+    for name in TEST_SIDE_SCOPES:
+        named[name] = path_literals(scope_strings((ROOT / name).read_text()))
     for name in JSON_FILES:
         named[name] = path_literals(json_strings(json.loads((ROOT / name).read_text())))
-    named["tests/test_package_import_direction.py LAYERS"] = set(layer_directories())
+    layers = layer_directories()
+    named["tests/test_package_import_direction.py LAYERS"] = set(layers)
+    empty = [d for d in layers if not any((ROOT / d).rglob("*.py"))]
+    assert not empty, (
+        f"LAYERS directories with no Python file (the layer checks nothing): {empty}"
+    )
 
     missing = {
         name: bad
@@ -163,3 +240,23 @@ def test_a_moved_path_literal_is_reported():
         )
     )
     assert dangling(literals, paths) == ["adapters/*.nope", "tools/gone/"]
+
+
+def test_a_composed_path_is_seen():
+    source = 'DIR = ROOT / "display" / "models"\nOTHER = ROOT / "x" / name\n'
+    assert "display/models" in path_literals(python_strings(source))
+    assert dangling({"display/models"}, ["display/families/a"]) == ["display/models"]
+
+
+def test_a_bare_top_level_constant_is_seen():
+    literals = path_literals(python_strings('RECIPES = "recipes"\nword = "tools-x"\n'))
+    assert literals == {"recipes"}
+    assert dangling(literals, ["adapters/a"]) == ["recipes"]
+
+
+def test_a_new_top_level_directory_is_checked(tmp_path):
+    (tmp_path / "src").mkdir()
+    (tmp_path / ".git").mkdir()
+    names = top_level(tmp_path)
+    assert "src" in names and ".git" not in names
+    assert path_literals(["src/pkg/mod.py", "other/x"], names) == {"src/pkg/mod.py"}
