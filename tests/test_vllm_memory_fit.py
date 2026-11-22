@@ -17,10 +17,11 @@ from qualification.memory_need import (
     budget_margin_bytes,
     cache_bytes,
     calculate_need,
+    configured_draft_model,
     load_inputs,
     memory_estimate_warnings,
 )
-from qualification.vllm_memory_fit import assert_memory_fit, loads_draft_model
+from qualification.vllm_memory_fit import assert_memory_fit
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -121,7 +122,7 @@ def test_target_only_speculation_is_not_a_second_model() -> None:
     for item in recipe.runtime.arguments:
         if item.name == "speculative-config":
             item.value = '{"method":"mtp","num_speculative_tokens":2}'
-    assert not loads_draft_model(recipe)
+    assert not configured_draft_model(recipe)
 
 
 def test_self_referencing_draft_is_not_a_second_model() -> None:
@@ -129,4 +130,4 @@ def test_self_referencing_draft_is_not_a_second_model() -> None:
     for item in recipe.runtime.arguments:
         if item.name == "speculative-config":
             item.value = '{"method":"deepseek_mtp","model":"/models/target"}'
-    assert not loads_draft_model(recipe)
+    assert not configured_draft_model(recipe)

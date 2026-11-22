@@ -13,7 +13,6 @@ PNG and WAV checks are lighter than the platform's decoders.
 
 from __future__ import annotations
 
-import json
 import math
 import shutil
 import struct
@@ -26,7 +25,7 @@ from typing import Any, NoReturn, TypeIs
 
 from vonk_forge_contracts.qualification_status import QualificationGlbProfile
 
-from .smoke import AssertionFailed
+from .smoke import AssertionFailed, strict_json
 
 FFPROBE_TIMEOUT_SECONDS = 30
 #: What the platform asks ffprobe for; ``-count_frames`` yields ``nb_read_frames``.
@@ -51,21 +50,6 @@ def ffprobe() -> str | None:
 
 def _fail(kind: str, message: str, value: Any = None) -> NoReturn:
     raise AssertionFailed(message, value, kind)
-
-
-def strict_json(content: bytes | str) -> Any:
-    def unique(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-        value: dict[str, Any] = {}
-        for key, item in pairs:
-            if key in value:
-                raise ValueError(f"duplicate JSON key: {key}")
-            value[key] = item
-        return value
-
-    def constant(value: str) -> Any:
-        raise ValueError(f"non-finite JSON number: {value}")
-
-    return json.loads(content, object_pairs_hook=unique, parse_constant=constant)
 
 
 def _number(kind: str, value: Any, label: str) -> float:

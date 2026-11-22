@@ -17,13 +17,13 @@ from qualification.memory_need import (
     argument_value,
     cache_bytes,
     cache_need_for_context,
+    configured_draft_model,
     load_inputs,
     memory_variants,
     positive_argument,
     recurrent_layer_bytes,
     speculative_tokens,
 )
-from qualification.vllm_memory_fit import loads_draft_model
 
 ROOT = Path(__file__).resolve().parents[1]
 INPUTS = load_inputs()
@@ -319,10 +319,10 @@ def test_speculative_config_parses_or_fails_fast(
         )
     if isinstance(expected, int):
         assert speculative_tokens(recipe) == expected
-        assert loads_draft_model(recipe) == isinstance(value, dict)
+        assert configured_draft_model(recipe) == isinstance(value, dict)
         return
     with pytest.raises(expected, match="speculative-config"):
         speculative_tokens(recipe)
     if value != '{"method":"mtp"}':
         with pytest.raises(expected, match="speculative-config"):
-            loads_draft_model(recipe)
+            configured_draft_model(recipe)

@@ -40,10 +40,9 @@ from .job_media import (
     NotObserved,
     glb_structure,
     realtime_transcript,
-    strict_json,
     video_metadata,
 )
-from .smoke import AssertionFailed
+from .smoke import AssertionFailed, strict_json
 
 
 @dataclass(frozen=True)
