@@ -9,8 +9,8 @@ import time
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
-from qualification.memory_need import SPARK_MEMORY_BYTES
-from qualification.own_pulls import REPOSITORY
+from recipe_tooling.qualification.memory_need import SPARK_MEMORY_BYTES
+from recipe_tooling.qualification.own_pulls import REPOSITORY
 
 from . import policy
 from .catalog import fetch_fleet, fetch_models, fetch_recipes

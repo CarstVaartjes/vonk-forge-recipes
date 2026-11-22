@@ -8,7 +8,7 @@ import pytest
 from repo_root import ROOT
 from vonk_forge_contracts.recipe import RecipeGenerationSettings
 
-from qualification import documents
+from recipe_tooling.qualification import documents
 
 ADAPTER = ROOT / "adapters/eugr/nemotron-3-ultra-nvfp4"
 UPSTREAM = ADAPTER / "recipes/4x-spark-cluster/nemotron-3-ultra-nvfp4.yaml"

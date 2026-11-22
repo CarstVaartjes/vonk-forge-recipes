@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from qualification.native_buckets import (
+from recipe_tooling.qualification.native_buckets import (
     calculate_dimensions,
     generate_crop_size_list,
     get_closest_ratio,

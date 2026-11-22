@@ -15,6 +15,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from recipe_tooling.paths import REPO_ROOT
+
 _MODALITIES = {"language": "text", "multimodal": "text"}
 
 
@@ -23,9 +25,7 @@ def sha256_hex(payload: bytes) -> str:
 
 
 def add_model_arguments(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument(
-        "--root", type=Path, default=Path(__file__).resolve().parents[1]
-    )
+    parser.add_argument("--root", type=Path, default=REPO_ROOT)
     parser.add_argument(
         "--publisher",
         required=True,

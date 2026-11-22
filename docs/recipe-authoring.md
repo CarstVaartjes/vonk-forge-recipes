@@ -137,7 +137,7 @@ A document holds execution data only. What a person or a filter reads about it
 or `display/models/<slug>.json`, one per document and no orphan (`RecipeDisplay`,
 `ModelDisplay`, checked by `validate_library`). A display edit never changes a
 document, its `content_sha256`, its evidence or its proven status; a change that
-alters what runs edits the document. Read display through `qualification/documents.py`
+alters what runs edits the document. Read display through `src/recipe_tooling/qualification/documents.py`
 (`recipe_display`, `model_display`), never off a document.
 Display text and tags never state verification status; the status badge owns it.
 A description does not say a recipe is a "Candidate", pending, untested or awaiting
@@ -230,10 +230,10 @@ counts only as a named `WRAPPER_LANGUAGE_MODEL_ONLY` exemption),
 because vLLM loads every input its resolved model class supports; other engines
 need a flag or projector per modality and stay case by case. Whether the launch really enables a tool-call
 or reasoning parser is not re-derived: `tools/check-recipe-api` asks
-`qualification.capabilities.serving_capabilities` (runtime arguments, adapter
+`recipe_tooling.qualification.capabilities.serving_capabilities` (runtime arguments, adapter
 scripts, kit flags) for every variant. The guard runs all three on added or
 changed recipes and API files; there is no allowlist of gaps.
-Read the document through `qualification/documents.py` (`recipe_api`).
+Read the document through `src/recipe_tooling/qualification/documents.py` (`recipe_api`).
 
 `settings.kind` selects the typed generation, embedding, job or decision shape;
 never invent an LLM context length for an artifact job. `interfaces` contains one
@@ -540,7 +540,7 @@ The shared `vonk_forge_contracts.memory_admission.evaluate_memory_admission` own
 admission, explanatory headroom and the 2 GiB platform floor. Every recipe and
 option variant, on every role, is checked against an empty target pool: peak plus platform floor fits the
 pool (offline a warning; live admission uses real free memory). `reserve_bytes` is informational and is never charged. Offline validation
-(`admissible_declaration_warnings`, `qualification/vllm_memory_fit.py`) charges
+(`admissible_declaration_warnings`, `src/recipe_tooling/qualification/vllm_memory_fit.py`) charges
 one idle host baseline, `ADMISSION_IDLE_USE_BYTES` (130,663,231,488 −
 126,600,000,000 idle-available bytes), calibrated on the proven set: the live
 Controller admitted proven 120,370,379,081-byte peaks on both Sparks of a dual.
@@ -566,7 +566,7 @@ percent steps), a `minimum_swap_bytes` below what the overshoot needs (the
 smallest whole-GiB total) or above 128 GiB, and warns when the needed swap
 exceeds the 64 GiB default (swap size is a fleet-profile setting; a recipe
 declares only its minimum). The constants are copied, with citation, in
-`qualification/memory_need.py`.
+`src/recipe_tooling/qualification/memory_need.py`.
 
 **A.** Use the creator's memory settings and preserve those of every recipe that
 passed on real hardware; change them only after a hardware failure, citing it.
@@ -599,7 +599,7 @@ The estimate warns unless a touched single-Spark recipe bounds KV: an absolute p
 `gpu-memory-utilization`/`mem-fraction-static` whose share of physical memory
 plus the margin held beside the engine budget (plus the resident expansion of
 geometry pinned to the launch) is admissible on an idle Spark. That margin has one
-owner, `budget_margin_bytes` in `qualification/memory_need.py`, from the p90 of the
+owner, `budget_margin_bytes` in `src/recipe_tooling/qualification/memory_need.py`, from the p90 of the
 277 sweep samples (audit 2026-11-01): vLLM 6.2 GB on one Spark and 10.4 GB on
 several (measured on 2-Spark runs; borrowed for 3, 4 and 8), SGLang 8.5 GB on one
 Spark and 8 GB on several. The loading floor, the inside-budget check and the
@@ -650,7 +650,7 @@ and warns. Job recipes are never measured (their sample is taken after the
 job). `catalog-measured-memory-v1.json` under the contract examples is the
 vector both repositories test against.
 `tests/test_absolute_kv_capacity.py` replays the recorded failures and must
-warn on each. `qualification/memory_need.py`
+warn on each. `src/recipe_tooling/qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
 multi-Spark vLLM absolute pool, also set an explicit `gpu-memory-utilization`
 startup budget whose fraction of physical memory fits every role peak: vLLM
@@ -665,7 +665,7 @@ waiver. SGLang absolute token pools must hold one context too. TRT-LLM fractiona
 pools are outside this absolute-pool check. Cache geometry binds configuration
 hashes and records padded/hybrid allocation bounds with their sources.
 Every geometry names its pinned config's `architecture`, classified as hybrid
-or attention in `qualification/memory_need.py`. A vLLM-pinned hybrid geometry
+or attention in `src/recipe_tooling/qualification/memory_need.py`. A vLLM-pinned hybrid geometry
 records its Mamba/GDN layers as typed `recurrent` dimensions from that config
 (recurrent and attention layer counts, conv channels and kernel, temporal state
 elements and dtype, kernel block, and whether the loaded vLLM class supports
@@ -699,7 +699,7 @@ retained in the calculator's historical source. Runtime
 overhead currently uses an **8,000,000,000-byte estimate**, not a measurement. A vLLM
 speculative drafter adds nothing beside the budget, however it is loaded: the
 worker loads it after its free-memory snapshot and profiles it inside
-`gpu-memory-utilization` (sources in `qualification/vllm_memory_fit.py`), so its
+`gpu-memory-utilization` (sources in `src/recipe_tooling/qualification/vllm_memory_fit.py`), so its
 weights count inside the budget like the target's. Pool-less single-Spark runs
 with a separate drafter held at most 9.9 GB beside utilization × memory, OS
 included. The estimate over this limit
@@ -744,13 +744,13 @@ geometry is an unknown warning, never a hardware failure.
 [tests/test_vllm_memory_fit.py](../tests/test_vllm_memory_fit.py) retains the
 pre-#1612 calibration guard for historical vLLM documents and options on **each
 role of each node**, including dual/multi-Spark recipes. Its shared
-implementation and constants live in `qualification/vllm_memory_fit.py`: utilization ×
+implementation and constants live in `src/recipe_tooling/qualification/vllm_memory_fit.py`: utilization ×
 **130,663,231,488 bytes** + **8 GB** runtime overhead must fit the declared
 per-node peak; peak + the **2 GiB platform floor** must fit
 the **126,600,000,000-byte idle-available floor**. The 2 GiB floor follows the creators' measured 2-3 GiB of steady free memory; the swap-aware host memory guard (vonk-forge #1936, R1) is the runtime backstop. The 2026-10-15/16 incident also
 retains its measured overhead and the lower spark-3542 idle-available value above.
 
-[qualification/memory_need.py](../qualification/memory_need.py), exercised by
+[src/recipe_tooling/qualification/memory_need.py](../qualification/memory_need.py), exercised by
 `tests/test_single_spark_memory_headroom.py`, shares those constants; its
 single-node full-workload estimate is
 informative. An absolute vLLM KV pool overrides cache sizing by utilization.
@@ -818,7 +818,7 @@ inference. A smoke estimate is not full-length capacity or hardware acceptance.
 
 ### Multi-Spark memory demand and nonfitting recipes
 
-`qualification.memory_need.per_rank_need` reports an optimistic loading floor:
+`recipe_tooling.qualification.memory_need.per_rank_need` reports an optimistic loading floor:
 selected weights divided over tensor/pipeline shards, explicit KV bytes, and
 8 GB estimated runtime overhead. The complete selected auxiliary weights are
 counted once. Engram tables are never memory usage (owner, 2026-10-26): their
@@ -832,7 +832,7 @@ geometry is available; keep unknown full-workload terms visible.
 
 Calibration separates physical feasibility from planning headroom. The lower
 observed idle MemAvailable is **125,650,657,280 bytes** (spark-3542, 2026-10-15/16,
-retained in `qualification/vllm_memory_fit.py`). Subtracting the host pressure
+retained in `src/recipe_tooling/qualification/vllm_memory_fit.py`). Subtracting the host pressure
 floor leaves **108,470,788,096 bytes** for conservative new-document planning;
 that policy margin is not proof that an existing recipe cannot execute.
 
@@ -965,7 +965,7 @@ because the engine answers HTTP 400 or returns the raw `<tool_call>` text in
 assertions rather than assuming that every kind of leaked markup is allowed. Image cases need a
 multimodal recipe. When a kit's entrypoint injects the flags from inside its
 image, record them with their source in `qualification/kit-engine-flags.json`.
-`qualification/capabilities.py` derives all of this and
+`src/recipe_tooling/qualification/capabilities.py` derives all of this and
 `tests/test_recipe_capabilities.py` fails CI when a recipe's tags or smoke cases
 disagree with its launch. An SGLang recipe with `--reasoning-parser inkling`
 copies and runs the shared `inkling-forced-tool-grammar.py` build patch, so a
@@ -1106,7 +1106,7 @@ The hourly `.github/workflows/refresh-upstream.yml` and `tools/refresh-upstream`
 implement automatic selection (`tests/test_check_upstream_drift.py`,
 `tests/test_refresh_upstream.py`): newest release/tag or head, preserving inferred
 non-default branches and declared release lines. Never downgrade an ahead pin.
-Both scanners read providers through `tools/_upstream_http.py`: a 429 or 5xx is retried with
+Both scanners read providers through `src/recipe_tooling/upstream_http.py`: a 429 or 5xx is retried with
 backoff and jitter, honouring `Retry-After` (seconds or date); a 429/503 that persists marks
 the host busy and the item "not checked this run" (`unchecked` in the drift report,
 unreachable in refresh), never a review issue or a failed run. Outages and network errors
@@ -1270,16 +1270,16 @@ qualification definitions in `qualification/recipes/<slug>.json`. The latter has
 `id: "<publisher>/<slug>"` and the applicable `recipes` (artifact) and/or
 `service_recipes` (HTTP) section; either section may be omitted. It is assembled
 with shared fixtures and templates from `qualification/shared.json` by
-`qualification.definitions_loader.load_definitions`. Duplicate ids fail. Add one
+`recipe_tooling.qualification.definitions_loader.load_definitions`. Duplicate ids fail. Add one
 file for a new recipe; do not edit a generated plan, authority or catalog count.
 Declare aliases matching `ENDPOINT_ALIAS_PATTERN` (lowercase profile identifiers);
-`qualification.service_aliases` and `tests/test_qualification_service_aliases.py`
+`recipe_tooling.qualification.service_aliases` and `tests/test_qualification_service_aliases.py`
 validate them. A colliding active alias receives the sweep's stable suffix;
 use the reviewed alias in response assertions.
 
 Service entries choose applicable `smoke_cases` and request templates from the
 shared definitions; job entries declare real fixture slots, timeout and output
-assertions. Use `qualification/case_assertions.py` and the typed contract's
+assertions. Use `src/recipe_tooling/qualification/case_assertions.py` and the typed contract's
 assertion variants rather than inventing an ignored assertion. A fixture's
 extension, media type and decoded bytes must match the declared slot; include
 all referenced fixtures in the package. `tests/test_qualification_index.py`,
@@ -1404,14 +1404,14 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/test_family_aware_coverage.py`, `tests/test_qualification_coverage_identity.py` | Coverage equivalence binds actual runtime/topology/content identities. Rebuild coverage and fix false equivalence. |
 | `tests/test_prebuilt_images.py`, `tests/test_publish_image_guard.py`, `tests/test_release_bundle.py`, `tests/test_release_assets.py` | Plan/source/build keys, digests, signed index and packaged bytes agree. Rebuild/resolve the correct artifacts before signing. |
 | `tools/check-test-git`, `tests/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
-| `tools/check-raw-urlopen`, `tests/test_check_raw_urlopen.py` | An added `urlopen(`/`build_opener(` line in `tools/` outside `tools/_upstream_http.py`. Open provider URLs through `fetch` there (bounded retry, `Retry-After`, per-host busy memory); a persistent 429/503 is `UpstreamBusy`, "not checked this run", never an issue. Only added lines count. Raw opens that stay on purpose: `tools/_refresh_auth.py` (the App credential exchange: POST, a GET of `/installation` and a DELETE; a security edge, never retried), `tools/adapter_sources.py` (its own jittered retry with mirror fallback), `tools/prepare-remote-code-smoke` (the script runs inside the image), `spark_sweep/smoke.py` (the served recipe's own endpoint, not a provider). |
+| `tools/check-raw-urlopen`, `tests/test_check_raw_urlopen.py` | An added `urlopen(`/`build_opener(` line in `tools/` outside `src/recipe_tooling/upstream_http.py`. Open provider URLs through `fetch` there (bounded retry, `Retry-After`, per-host busy memory); a persistent 429/503 is `UpstreamBusy`, "not checked this run", never an issue. Only added lines count. Raw opens that stay on purpose: `src/recipe_tooling/refresh_auth.py` (the App credential exchange: POST, a GET of `/installation` and a DELETE; a security edge, never retried), `src/recipe_tooling/adapter_sources.py` (its own jittered retry with mirror fallback), `tools/prepare-remote-code-smoke` (the script runs inside the image), `spark_sweep/smoke.py` (the served recipe's own endpoint, not a provider). |
 | `tools/check-final-stage-ldd`, `tests/test_check_final_stage_ldd.py` | An added or final-stage-changed adapter Dockerfile on a plain CUDA runtime/base image copies a binary into `bin/` without `RUN ! ldd <binary> \| grep "not found"`. Only added lines count. |
-| `tools/_added_lines.py`, `tests/test_added_lines.py` | The one parser of the diff the added-line guards read (the `check-*` guards above, `check-model-construction-device`, `check-writable-state-env`). A block the same diff deletes unchanged (a verbatim move or split; one uniform indentation shift allowed; Python launchers and `.py` count as one file type) is not an addition, so moving code does not re-surface old findings. Each guard passes its own `judged` predicate, and a deletion pays only when it judges both the file the block left and the file it entered: a block leaving an exempt owner or an out-of-scope file is still new work where it lands. A deleted block pays for one copy only; an edited or copied line stays added. A guard whose verdict depends on context (`check-serial-reads` reads the loop line, `check-estimate-gates` the test function) judges again when that context gained a line. |
-| `tests/test_guard_paths_exist.py` | Every repository path a guard names matches at least one path in the tree: slash literals, `ROOT / "a" / "b"` chains and bare top-level names (`RECIPES = "recipes"`) in the `tools/check-*` scripts and `tools/_added_lines.py`; the same kinds of scope in four test-side scans (`test_admissible_memory_declarations`, `test_admission_maximum_cap`, `test_own_pulls`, `test_qualification_evidence_publisher`); both `single-source-values.json` files; and each `LAYERS` directory must also own a file the import-direction walker reads (`.py` or a shebang launcher). It catches a scope whose directory disappeared. It does NOT protect a prefix scope on a directory that survives the move (`tools/` after code leaves it still exists): a review of a move must re-point those by hand. The first segment is a listed name or a current top-level directory, so a new directory such as `src/` is covered. Write scopes as plain literals or `/` chains. No allowlist. |
-| `tools/check-document-reads`, `tools/_added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
+| `src/recipe_tooling/added_lines.py`, `tests/test_added_lines.py` | The one parser of the diff the added-line guards read (the `check-*` guards above, `check-model-construction-device`, `check-writable-state-env`). A block the same diff deletes unchanged (a verbatim move or split; one uniform indentation shift allowed; Python launchers and `.py` count as one file type) is not an addition, so moving code does not re-surface old findings. Each guard passes its own `judged` predicate, and a deletion pays only when it judges both the file the block left and the file it entered: a block leaving an exempt owner or an out-of-scope file is still new work where it lands. A deleted block pays for one copy only; an edited or copied line stays added. A guard whose verdict depends on context (`check-serial-reads` reads the loop line, `check-estimate-gates` the test function) judges again when that context gained a line. |
+| `tests/test_guard_paths_exist.py` | Every repository path a guard names matches at least one path in the tree: slash literals, `ROOT / "a" / "b"` chains and bare top-level names (`RECIPES = "recipes"`) in the `tools/check-*` scripts and `src/recipe_tooling/added_lines.py`; the same kinds of scope in four test-side scans (`test_admissible_memory_declarations`, `test_admission_maximum_cap`, `test_own_pulls`, `test_qualification_evidence_publisher`); both `single-source-values.json` files; and each `LAYERS` directory must also own a file the import-direction walker reads (`.py` or a shebang launcher). It catches a scope whose directory disappeared. It does NOT protect a prefix scope on a directory that survives the move (`tools/` after code leaves it still exists): a review of a move must re-point those by hand. The first segment is a listed name or a current top-level directory, so a new directory such as `src/` is covered. Write scopes as plain literals or `/` chains. No allowlist. |
+| `tools/check-document-reads`, `src/recipe_tooling/added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `src/recipe_tooling/qualification/documents.py`; only added lines are checked. |
 | `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
 | `tools/check-model-modalities`, `tests/test_model_modalities.py` | A touched Model's display (or the Model a touched recipe serves) disagrees with its modalities (`image` ⇔ `image-understanding`, likewise audio and video) or with a serving recipe's API document: a chat route needs `chat` and `text-generation`, reasoning other than `none` needs `reasoning`, tools other than `none` need `tool-use`. Correct `display/models/<slug>.json`, or the API document if it claims what the launch does not serve. |
-| `tools/check-platform-contracts`, `qualification/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. The row also fires on a contracts major newer than the platform's: pin this commit in vonk-forge, deploy, then move `platform_ref`. |
+| `tools/check-platform-contracts`, `src/recipe_tooling/qualification/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. The row also fires on a contracts major newer than the platform's: pin this commit in vonk-forge, deploy, then move `platform_ref`. |
 | `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
 
 Recipe-specific regressions under `tests/test_<family or adapter>*.py` additionally

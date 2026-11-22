@@ -44,7 +44,7 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
-from qualification.media_types import canonical_media_types
+from recipe_tooling.qualification.media_types import canonical_media_types
 
 from . import verdict
 from .catalog import Recipe

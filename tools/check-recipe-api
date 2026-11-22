@@ -9,7 +9,7 @@ recipe selects (``check_api_models``). An edited API document is checked
 together with its recipe.
 
 Whether the route really serves tools or a reasoning parser is not re-derived
-here: ``qualification.capabilities.serving_capabilities`` owns that fact (runtime
+here: ``recipe_tooling.qualification.capabilities.serving_capabilities`` owns that fact (runtime
 arguments, adapter launch scripts and kit flags) and is asked once per option
 variant. The context-argument table is the one in ``vonk_forge_contracts.api_checks``,
 shared with the memory estimator.
@@ -28,7 +28,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
 
 from vonk_forge_contracts import (
     ChatApi,
@@ -41,8 +41,8 @@ from vonk_forge_contracts import (
 from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone
 from vonk_forge_contracts.api_checks import api_variants, join_problems
 
-from qualification.capabilities import serving_capabilities
-from qualification.documents import (
+from recipe_tooling.qualification.capabilities import serving_capabilities
+from recipe_tooling.qualification.documents import (
     has_recipe_api,
     model_display,
     recipe,

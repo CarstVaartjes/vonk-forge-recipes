@@ -5,7 +5,12 @@ from pathlib import Path
 import pytest
 from repo_root import ROOT
 
-from tools.single_source_values import Registration, ValueKind, check, scan_source
+from recipe_tooling.single_source_values import (
+    Registration,
+    ValueKind,
+    check,
+    scan_source,
+)
 
 
 def test_registered_values_have_one_owner() -> None:
@@ -79,7 +84,7 @@ def test_rejects_protocol_wheel_family() -> None:
 
 
 def test_vendored_upstream_bytes_are_not_our_memory_policy(tmp_path: Path) -> None:
-    from tools.single_source_values import upstream_files
+    from recipe_tooling.single_source_values import upstream_files
 
     base = "adapters/x/"
     (tmp_path / base).mkdir(parents=True)
@@ -117,12 +122,12 @@ def test_unrelated_package_version_is_not_recipe_contract_version() -> None:
 def test_memory_guard_normalizes_expressions_and_preserves_other_domains(
     symbol: str,
 ) -> None:
-    from qualification import memory_need
+    from recipe_tooling.qualification import memory_need
 
     value = getattr(memory_need, symbol)
     registration = Registration(
         semantic_id="test.memory",
-        owner="qualification/memory_need.py",
+        owner="src/recipe_tooling/qualification/memory_need.py",
         selector=symbol,
         kind=ValueKind.MEMORY_BYTES,
     )
@@ -139,17 +144,17 @@ def test_memory_guard_normalizes_expressions_and_preserves_other_domains(
     assert not scan_source(
         registration,
         "consumer.py",
-        f"from qualification.memory_need import {symbol}",
+        f"from recipe_tooling.qualification.memory_need import {symbol}",
         value,
     )
 
 
 def test_memory_guard_reads_decorator_arguments_by_their_own_line() -> None:
-    from qualification.memory_need import OS_FLOOR_BYTES
+    from recipe_tooling.qualification.memory_need import OS_FLOOR_BYTES
 
     registration = Registration(
         semantic_id="test.memory",
-        owner="qualification/memory_need.py",
+        owner="src/recipe_tooling/qualification/memory_need.py",
         selector="OS_FLOOR_BYTES",
         kind=ValueKind.MEMORY_BYTES,
     )

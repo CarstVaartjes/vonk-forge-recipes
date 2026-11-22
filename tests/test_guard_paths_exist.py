@@ -3,7 +3,7 @@
 A path-scoped guard goes blind when the code it scopes moves and its path literal does
 not: it checks nothing and passes. So each path scope must match at least one path in the
 tree (a directory prefix, a file, or a glob). Sources: slash literals, ``ROOT / "a" / "b"``
-chains and bare top-level names in the ``tools/check-*`` scripts and ``tools/_added_lines.py``;
+chains and bare top-level names in the ``tools/check-*`` scripts and ``src/recipe_tooling/added_lines.py``;
 the composed paths and bare names of four test-side scans; the two
 ``single-source-values.json`` files; and the ``LAYERS`` directories of the import-direction
 test, each of which must also own a file that test's walker reads (``.py`` or a shebang
@@ -185,7 +185,9 @@ def dangling(literals, paths) -> list[str]:
 
 
 def guard_sources() -> dict[str, str]:
-    files = sorted((ROOT / "tools").glob("check-*")) + [ROOT / "tools/_added_lines.py"]
+    files = sorted((ROOT / "tools").glob("check-*")) + [
+        ROOT / "src/recipe_tooling/added_lines.py"
+    ]
     return {path.relative_to(ROOT).as_posix(): path.read_text() for path in files}
 
 
@@ -225,7 +227,7 @@ def test_every_path_a_guard_names_exists():
 def test_the_scan_sees_the_guards_it_protects():
     # A scan that finds nothing would pass forever; pin that it reads the known owners.
     sources = guard_sources()
-    assert "tools/_upstream_http.py" in path_literals(
+    assert "src/recipe_tooling/upstream_http.py" in path_literals(
         python_strings(sources["tools/check-raw-urlopen"])
     )
     assert LAYERS
@@ -233,10 +235,14 @@ def test_the_scan_sees_the_guards_it_protects():
 
 
 def test_a_moved_path_literal_is_reported():
-    paths = ["tools/_upstream_http.py", "tests/test_a.py", "adapters/x/Dockerfile.base"]
+    paths = [
+        "src/recipe_tooling/upstream_http.py",
+        "tests/test_a.py",
+        "adapters/x/Dockerfile.base",
+    ]
     literals = path_literals(
         python_strings(
-            'A = "tools/_upstream_http.py"\nB = "tools/gone/"\nC = "adapters/*Dockerfile*"\n'
+            'A = "src/recipe_tooling/upstream_http.py"\nB = "tools/gone/"\nC = "adapters/*Dockerfile*"\n'
             'D = "adapters/*.nope"\nE = "not a path/x"\nF = "tests/"\n'
         )
     )

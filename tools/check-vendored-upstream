@@ -67,8 +67,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-from tools._upstream_http import UpstreamBusy, fetch
+sys.path.insert(0, str(ROOT / "src"))
+from recipe_tooling.upstream_http import UpstreamBusy, fetch
 
 MANIFEST = "vendored-upstream.json"
 KIT_LOCK = "kit-lock.json"  # derived by tools/kit-pins from the kit the recipe pins
@@ -472,8 +472,8 @@ def main(argv: list[str] | None = None) -> int:
     arguments = parser.parse_args(argv)
     # Imported here: tools/check-image-provenance loads this module on a bare
     # interpreter; placing the declared files needs the contracts dependencies.
-    sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT)]
-    from tools.adapter_sources import materialize_or_exit
+    sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT / "src")]
+    from recipe_tooling.adapter_sources import materialize_or_exit
 
     materialize_or_exit(ROOT)
     touched = changed_paths(ROOT, arguments.base)

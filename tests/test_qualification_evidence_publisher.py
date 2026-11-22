@@ -162,7 +162,10 @@ def test_evidence_merge_conflict_unions_both_histories(
     from test_qualification_status import KEY, NOW, evidence, record
     from vonk_forge_contracts import QualificationBlame, QualificationOutcome
 
-    from qualification.evidence_store import read_evidence, write_evidence
+    from recipe_tooling.qualification.evidence_store import (
+        read_evidence,
+        write_evidence,
+    )
 
     # The branch's own record is a recipe failure: retention keeps it (the newest
     # failure), so it shows in the result only if the union brought it in.
@@ -272,7 +275,10 @@ def test_sync_removes_withdrawn_evidence_despite_branch_conflict_and_old_history
 ):
     from test_qualification_status import Evidence, evidence, record
 
-    from qualification.evidence_store import evidence_path, write_evidence
+    from recipe_tooling.qualification.evidence_store import (
+        evidence_path,
+        write_evidence,
+    )
 
     key = "vonk-forge/withdrawn"
     history = tmp_path / "results.jsonl"
@@ -451,7 +457,10 @@ def _publish_with_state(tmp_path, monkeypatch, repo_records, state_evidence):
     """Run one sync with mocked git/gh; return (state text, records the repo ends with)."""
     from test_qualification_status import KEY
 
-    from qualification.evidence_store import read_evidence, write_evidence
+    from recipe_tooling.qualification.evidence_store import (
+        read_evidence,
+        write_evidence,
+    )
 
     history = tmp_path / "results.jsonl"
     history.write_text("")
@@ -533,7 +542,7 @@ def test_guard_flags_repo_lacking_a_resolved_local_record():
 def test_withdrawn_recipes_in_the_state_are_never_written(tmp_path):
     from test_qualification_status import KEY, A, evidence, record
 
-    from qualification.evidence_store import evidence_path
+    from recipe_tooling.qualification.evidence_store import evidence_path
     from spark_sweep.qualification import backfill
 
     seed_catalog(tmp_path)
@@ -612,7 +621,7 @@ class World:
     LINT: ClassVar = [{"name": "lint", "status": "COMPLETED", "conclusion": "FAILURE"}]
 
     def __init__(self, tmp_path, monkeypatch, *, close_fails=False, branch=None):
-        from qualification.evidence_store import read_evidence
+        from recipe_tooling.qualification.evidence_store import read_evidence
 
         self.refused_row, self.new_row = _row(21), _row(22)
         self.history = tmp_path / "results.jsonl"
@@ -811,7 +820,7 @@ def test_malformed_branch_evidence_is_a_command_failure_not_an_escape(
 def test_refused_records_stay_out_until_their_content_changes(tmp_path, monkeypatch):
     from test_qualification_status import KEY
 
-    from qualification.evidence_store import read_evidence
+    from recipe_tooling.qualification.evidence_store import read_evidence
 
     old, newer = _row(21), _row(23)
     history = tmp_path / "results.jsonl"
@@ -1012,7 +1021,7 @@ def test_refused_because_is_set_only_when_the_refused_set_grows():
 def test_refused_records_are_released_when_main_moves(tmp_path, monkeypatch):
     from test_qualification_status import KEY
 
-    from qualification.evidence_store import read_evidence
+    from recipe_tooling.qualification.evidence_store import read_evidence
     from spark_sweep.qualification import from_history
 
     row = _row(21)
@@ -1058,7 +1067,7 @@ def test_dropping_refused_records_reads_only_the_files_it_names(tmp_path, monkey
     from test_qualification_status import KEY
     from vonk_forge_contracts import RecipeQualificationEvidence
 
-    from qualification.evidence_store import write_evidence
+    from recipe_tooling.qualification.evidence_store import write_evidence
     from spark_sweep.qualification import from_history
 
     record = from_history(historical())
@@ -1408,7 +1417,10 @@ def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monke
     from test_qualification_status import KEY, NOW, evidence, record
     from vonk_forge_contracts import QualificationMeasuredRoleMemory
 
-    from qualification.evidence_store import read_evidence, write_evidence
+    from recipe_tooling.qualification.evidence_store import (
+        read_evidence,
+        write_evidence,
+    )
 
     history = tmp_path / "results.jsonl"
     row = historical()

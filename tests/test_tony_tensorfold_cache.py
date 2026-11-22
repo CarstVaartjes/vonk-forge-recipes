@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from repo_root import ROOT
 
-from qualification.documents import recipe as read_recipe_document
+from recipe_tooling.qualification.documents import recipe as read_recipe_document
 
 
 @pytest.fixture(

@@ -16,8 +16,8 @@ from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from test_prebuilt_images import INDEX
 from test_refresh_upstream import refresh
 
-from qualification.image_evidence import load_images
-from qualification.tolerant import InputReason, read_optional
+from recipe_tooling.qualification.image_evidence import load_images
+from recipe_tooling.qualification.tolerant import InputReason, read_optional
 from spark_sweep.catalog import parse_recipe, recipe_listing
 from spark_sweep.catalog_contract import RecipeProjection
 from spark_sweep.policy import classify
@@ -308,7 +308,7 @@ def test_new_optional_report_fields_use_the_shared_typed_reader() -> None:
 def test_optional_validators_and_exports_cannot_bypass_tolerant_boundary() -> None:
     for path in (
         "spark_sweep/evidence_contract.py",
-        "qualification/image_evidence.py",
+        "src/recipe_tooling/qualification/image_evidence.py",
         "spark_sweep/run.py",
         "spark_sweep/catalog.py",
     ):

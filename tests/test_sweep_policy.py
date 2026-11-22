@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pytest
 
-from qualification.memory_need import SPARK_MEMORY_BYTES
+from recipe_tooling.qualification.memory_need import SPARK_MEMORY_BYTES
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")

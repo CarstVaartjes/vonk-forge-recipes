@@ -23,7 +23,7 @@ import pytest
 from repo_root import ROOT
 from sweep_fakes import production_service_cases
 
-from qualification.case_assertions import invalid_case_assertions
+from recipe_tooling.qualification.case_assertions import invalid_case_assertions
 from spark_sweep import smoke
 from spark_sweep.definitions import CaseRenderError, Definitions
 

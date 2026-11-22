@@ -20,8 +20,8 @@ from vonk_forge_contracts import (
 from vonk_forge_contracts.api import ApiReasoningEffort
 from vonk_forge_contracts.recipe import ServingKind
 
-from qualification import introduced
-from qualification.introduced import (
+from recipe_tooling.qualification import introduced
+from recipe_tooling.qualification.introduced import (
     CAPABILITY_SINCE,
     EFFORT_KIND_SINCE,
     SERVING_KIND_SINCE,

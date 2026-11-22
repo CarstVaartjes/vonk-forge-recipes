@@ -2,7 +2,7 @@
 
 The tools judge only lines a change adds. They take that change as diff text
 (``--diff FILE|-``), so a test feeds them text and needs no repository. Git runs
-once, at the edge that calls the tool: ``python3 tools/_added_lines.py --base REV``
+once, at the edge that calls the tool: ``python3 tools/added-lines --base REV``
 (or ``--cached`` for the staged change) writes the diff, and the validate.yml step
 and the pre-commit hook call it. This module is the one owner of the diff flags and
 the pathspec. ``git_diff`` also backs the developer shortcut ``--base`` of the
@@ -24,7 +24,7 @@ ADDED_PATHSPEC = (
     "*.py",
     "tools/",
     "spark_sweep/",
-    "qualification/",
+    "src/",
     "scripts/",
     "tests/",
     "adapters/*Dockerfile*",
@@ -221,7 +221,3 @@ def main() -> int:
     arguments = parser.parse_args()
     sys.stdout.write(git_diff(arguments.root, arguments.base))
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

@@ -47,16 +47,17 @@ from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.recipe import RecipeRelease
 
-from qualification.memory_need import raise_peaks_to_envelope
-from qualification.own_pulls import OWN_FIELDS, own_pulls
-from qualification.tolerant import InputReason, read_optional
-from tools._catalog_model import roles_for
-from tools._upstream_http import UpstreamBusy, fetch
-from tools.adapter_sources import materialize_or_exit
+from recipe_tooling.adapter_sources import materialize_or_exit
+from recipe_tooling.catalog_model import roles_for
+from recipe_tooling.qualification.memory_need import raise_peaks_to_envelope
+from recipe_tooling.qualification.own_pulls import OWN_FIELDS, own_pulls
+from recipe_tooling.qualification.tolerant import InputReason, read_optional
+from recipe_tooling.refresh_auth import RefreshAppAuth
+from recipe_tooling.upstream_http import UpstreamBusy, fetch
 
 
 def _load(name: str) -> Any:
@@ -77,7 +78,6 @@ kit_pins = _load("kit-pins")
 catalog = _load("catalog-hf-model")
 base_holds = _load("check-base-image-holds")
 model_holds = _load("check-model-revision-holds")
-RefreshAppAuth = _load("_refresh_auth.py").RefreshAppAuth
 APP_AUTH: Any = None
 
 SHA = re.compile(r"^[0-9a-f]{40}$")

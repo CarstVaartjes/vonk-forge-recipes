@@ -24,15 +24,15 @@ from vonk_forge_contracts import (
 )
 from vonk_forge_contracts.recipe import RecipeIdentity
 
-from qualification.capabilities import (
+from recipe_tooling.qualification.capabilities import (
     ROOT,
     UNPARSED_ARITHMETIC,
     Capabilities,
     generic_case_problems,
     serving_capabilities,
 )
-from qualification.case_assertions import invalid_case_assertions
-from qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.case_assertions import invalid_case_assertions
+from recipe_tooling.qualification.definitions_loader import load_definitions
 
 DEFINITIONS = load_definitions()
 MODELS = {
@@ -82,7 +82,9 @@ def _uses_mistral_tokenizer(recipe: RecipeDefinition) -> bool:
     mode = _tokenizer_mode(recipe)
     if mode is not None:
         return mode == "mistral"
-    primary = recipe.models[0]  # the served model, as qualification/memory_need.py
+    primary = recipe.models[
+        0
+    ]  # the served model, as src/recipe_tooling/qualification/memory_need.py
     mounted = {item.file_id for item in primary.files}
     paths = {
         item.path

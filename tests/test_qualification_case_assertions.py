@@ -14,11 +14,11 @@ from documents import recipe as read_recipe
 from repo_root import ROOT
 from vonk_forge_contracts.recipe import RecipeJobSettings
 
-from qualification.case_assertions import (
+from recipe_tooling.qualification.case_assertions import (
     invalid_case_assertions,
     require_valid_case_assertions,
 )
-from qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.definitions_loader import load_definitions
 from spark_sweep.smoke import check_assertions, check_quality
 
 TEMPLATES: dict[str, Any] = json.loads(

@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from repo_root import ROOT
 
-from qualification.own_pulls import OWN_FIELDS, own_pulls
+from recipe_tooling.qualification.own_pulls import OWN_FIELDS, own_pulls
 
 OWN = {"isCrossRepository": False, "headRepositoryOwner": {"login": "CarstVaartjes"}}
 FORK = {"isCrossRepository": True, "headRepositoryOwner": {"login": "someone-else"}}

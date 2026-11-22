@@ -21,7 +21,7 @@ import time
 from collections.abc import Callable
 from pathlib import Path
 
-from tools.adapter_sources import (
+from recipe_tooling.adapter_sources import (
     CHUNK_BYTES,
     MANIFEST,
     ROOT,

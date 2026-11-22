@@ -19,8 +19,8 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
 )
 
-from qualification import documents
-from qualification.memory_need import (
+from recipe_tooling.qualification import documents
+from recipe_tooling.qualification.memory_need import (
     ADMISSION_MAXIMUM_PEAK_BYTES,
     OS_FLOOR_BYTES,
     holds_within,

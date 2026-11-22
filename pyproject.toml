@@ -37,7 +37,7 @@ reportUnnecessaryTypeIgnoreComment = "error"
 # The contracts package is not installed in the environment CI checks with, so
 # its import root is declared here exactly as the test suites add it. Without
 # it every contract import is an unresolved-import finding.
-extraPaths = ["contracts/src"]
+extraPaths = ["contracts/src", "src", "tests"]
 exclude = [
     "**/__pycache__/**",
     "**/node_modules/**",

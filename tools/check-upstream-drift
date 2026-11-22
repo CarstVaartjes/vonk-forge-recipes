@@ -27,13 +27,13 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.model import GitHubReleaseSource
 
-from qualification.documents import model_display
-from tools._upstream_http import UpstreamBusy, fetch
+from recipe_tooling.qualification.documents import model_display
+from recipe_tooling.upstream_http import UpstreamBusy, fetch
 
 DEFAULT_MANIFEST = ROOT / "policy/upstream-watch.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")

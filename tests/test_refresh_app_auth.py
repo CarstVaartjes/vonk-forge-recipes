@@ -16,12 +16,7 @@ from unittest.mock import patch
 
 from repo_root import ROOT
 
-SPEC = importlib.util.spec_from_file_location(
-    "refresh_app_auth", ROOT / "tools/_refresh_auth.py"
-)
-assert SPEC and SPEC.loader
-module = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(module)
+from recipe_tooling import refresh_auth as module
 
 
 class AppAuthTests(unittest.TestCase):
@@ -223,9 +218,7 @@ def test_a_failed_token_revoke_does_not_hide_a_failed_dispatch(capsys) -> None:
         return subprocess.CompletedProcess(command, 1, "", "HTTP 403")
 
     with (
-        patch.object(
-            dispatch, "_load_auth", return_value=type("M", (), {"RefreshAppAuth": Auth})
-        ),
+        patch.object(module, "RefreshAppAuth", Auth),
         patch.object(dispatch.subprocess, "run", side_effect=failing),
         patch.dict(
             os.environ, {"REFRESH_APP_CLIENT_ID": "c", "REFRESH_APP_PRIVATE_KEY": "k"}

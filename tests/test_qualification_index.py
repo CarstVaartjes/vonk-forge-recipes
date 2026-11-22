@@ -15,7 +15,7 @@ from generated_catalog import GENERATED
 from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
-from qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.definitions_loader import load_definitions
 
 QUALIFICATION_ROOT = ROOT / "qualification"
 

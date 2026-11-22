@@ -21,7 +21,7 @@ from repo_root import ROOT
 from vonk_forge_contracts.model import ModelSource
 from vonk_forge_contracts.recipe import RecipeDefinition
 
-from qualification.documents import model as model_document
+from recipe_tooling.qualification.documents import model as model_document
 
 TOOL = runpy.run_path(str(ROOT / "tools/prepare-remote-code-smoke"))
 MOSS = ROOT / "adapters/video/moss-vl-realtime"

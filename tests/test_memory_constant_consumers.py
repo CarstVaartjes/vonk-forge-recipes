@@ -5,8 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import documents
+from repo_root import ROOT
 
-from qualification import memory_need, vllm_memory_fit
+from recipe_tooling.qualification import memory_need, vllm_memory_fit
 from spark_sweep import cli, memory, run
 from spark_sweep.catalog import parse_fleet
 
@@ -104,9 +105,7 @@ def test_measured_peak_conversion_and_publish_rule_have_one_owner() -> None:
     source = Path(memory_need.__file__).read_text()
     assert source.count("def measured_peak_bytes(") == 1
     assert source.count("def published_measured_peaks(") == 1
-    builder = (
-        Path(memory_need.__file__).parents[1] / "tools/build-catalog-index"
-    ).read_text()
+    builder = (ROOT / "tools/build-catalog-index").read_text()
     assert "published_measured_peaks(" in builder
     assert "OS_FLOOR_BYTES" not in builder
     assert "ADMISSION_IDLE_USE_BYTES" not in builder

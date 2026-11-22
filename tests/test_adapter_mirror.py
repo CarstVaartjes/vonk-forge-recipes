@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from repo_root import ROOT
 
-from tools.adapter_mirror import (
+from recipe_tooling.adapter_mirror import (
     IGNORE_BEGIN,
     IGNORE_END,
     _ignore_line,
@@ -18,7 +18,7 @@ from tools.adapter_mirror import (
     reconcile,
     undeclare,
 )
-from tools.adapter_sources import AdapterSourceError, load
+from recipe_tooling.adapter_sources import AdapterSourceError, load
 
 MIRROR = "https://github.com/owner/repo/releases/download/adapter-sources/"
 ORIGIN = "https://origin.test/kit.tar.gz"

@@ -10,7 +10,7 @@ from documents import recipe_display
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
-from tools.protocol_wheel import selection
+from recipe_tooling.protocol_wheel import selection
 
 RECIPES = {
     "ltx-2-19b-dev-fp4-pytorch-single": "adapters/video/ltx2-pytorch",

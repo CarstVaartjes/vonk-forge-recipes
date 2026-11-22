@@ -18,7 +18,7 @@ import pytest
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
-from qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.definitions_loader import load_definitions
 from spark_sweep.job_media import video_metadata
 from spark_sweep.smoke import AssertionFailed
 

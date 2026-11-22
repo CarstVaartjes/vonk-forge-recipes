@@ -11,10 +11,16 @@ from zipfile import ZipFile
 
 import pytest
 
-from tools.adapter_sources import CACHE_ENVIRONMENT, load
-from tools.adapter_sources import materialize as place
-from tools.protocol_wheel import ROOT, SELECTION, materialize, projections, selection
-from tools.single_source_values import check
+from recipe_tooling.adapter_sources import CACHE_ENVIRONMENT, load
+from recipe_tooling.adapter_sources import materialize as place
+from recipe_tooling.protocol_wheel import (
+    ROOT,
+    SELECTION,
+    materialize,
+    projections,
+    selection,
+)
+from recipe_tooling.single_source_values import check
 
 MIRROR = "https://github.com/owner/repo/releases/download/adapter-sources/"
 

@@ -25,8 +25,8 @@ from vonk_forge_contracts import (
 from vonk_forge_contracts import derive_status
 from vonk_forge_contracts.qualification_status import published_status
 
-from qualification.evidence_retention import retain_evidence, retained
-from qualification.evidence_store import (
+from recipe_tooling.qualification.evidence_retention import retain_evidence, retained
+from recipe_tooling.qualification.evidence_store import (
     catalog_recipes,
     merge_evidence,
     read_evidence,

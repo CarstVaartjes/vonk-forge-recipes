@@ -18,7 +18,7 @@ from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from qualification.memory_need import (
+from recipe_tooling.qualification.memory_need import (
     admissible_declaration_warnings,
     argument_value,
     load_inputs,

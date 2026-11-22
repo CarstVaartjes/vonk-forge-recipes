@@ -46,11 +46,12 @@ def test_other_lines_pass(code: str) -> None:
 
 def test_old_lines_pass_and_the_owner_is_exempt(tmp_path: Path) -> None:
     (tmp_path / "tools").mkdir()
+    (tmp_path / "src/recipe_tooling").mkdir(parents=True)
     (tmp_path / "tools/old").write_text("urlopen(a)\nurlopen(b)\n")
-    (tmp_path / "tools/_upstream_http.py").write_text("urlopen(a)\n")
+    (tmp_path / "src/recipe_tooling/upstream_http.py").write_text("urlopen(a)\n")
     diff = (
         "+++ b/tools/old\n@@ -1,0 +2 @@\n+urlopen(b)\n"
-        "+++ b/tools/_upstream_http.py\n@@ -0,0 +1 @@\n+urlopen(a)\n"
+        "+++ b/src/recipe_tooling/upstream_http.py\n@@ -0,0 +1 @@\n+urlopen(a)\n"
     )
     problems = guard.check(tmp_path, diff)
     assert [p.split(":")[1] for p in problems] == ["2"]
@@ -70,8 +71,8 @@ def test_a_block_moved_out_of_the_exempt_owner_is_still_new_work(
     gone = "".join(f"-{row}\n" for row in block)
     came = "".join(f"+{row}\n" for row in block)
     diff = (
-        "diff --git a/tools/_upstream_http.py b/tools/_upstream_http.py\n"
-        "--- a/tools/_upstream_http.py\n+++ b/tools/_upstream_http.py\n"
+        "diff --git a/src/recipe_tooling/upstream_http.py b/src/recipe_tooling/upstream_http.py\n"
+        "--- a/src/recipe_tooling/upstream_http.py\n+++ b/src/recipe_tooling/upstream_http.py\n"
         f"@@ -1,4 +0,0 @@\n{gone}"
         "diff --git a/tools/helper.py b/tools/helper.py\n"
         "--- /dev/null\n+++ b/tools/helper.py\n"

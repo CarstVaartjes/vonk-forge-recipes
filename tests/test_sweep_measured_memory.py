@@ -15,10 +15,10 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
 )
 
-from qualification import documents
-from qualification.documents import ROOT
-from qualification.evidence_store import merge_evidence
-from qualification.memory_need import TOTAL_BYTES, vllm_budget_bytes
+from recipe_tooling.qualification import documents
+from recipe_tooling.qualification.documents import ROOT
+from recipe_tooling.qualification.evidence_store import merge_evidence
+from recipe_tooling.qualification.memory_need import TOTAL_BYTES, vllm_budget_bytes
 from spark_sweep import memory
 from spark_sweep.qualification import history_evidence
 
@@ -286,7 +286,7 @@ def test_a_job_recipe_is_never_measured_its_sample_is_taken_after_the_job() -> N
 def test_a_job_pass_row_replayed_through_backfill_adds_no_measured_rows(
     tmp_path: Path,
 ) -> None:
-    from qualification.evidence_store import read_evidence
+    from recipe_tooling.qualification.evidence_store import read_evidence
     from spark_sweep.qualification import backfill
 
     (tmp_path / "recipes").mkdir()

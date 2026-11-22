@@ -5,7 +5,7 @@ The deployed vonk-forge Controller reads recipes with the contracts version its
 ``control/packaging/public-contracts.lock`` pins (``package =
 "vonk-forge-public-contracts==X.Y.Z"``). A serving kind, Model capability or
 API reasoning effort kind newer than that version is a read failure there.
-``qualification/introduced.py`` owns the version each value arrived in; this
+``src/recipe_tooling/qualification/introduced.py`` owns the version each value arrived in; this
 tool compares every recipe in the library (with the Model displays it selects
 and its API facts) against the lock of the platform commit the workflows pin, so
 a recipe cannot land ahead of the Controller that reads it. A contracts major newer than the platform's is refused
@@ -24,12 +24,17 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
 
 from vonk_forge_contracts import CONTRACT_MAJOR
 
-from qualification.documents import has_recipe_api, model_display, recipe, recipe_api
-from qualification.introduced import (
+from recipe_tooling.qualification.documents import (
+    has_recipe_api,
+    model_display,
+    recipe,
+    recipe_api,
+)
+from recipe_tooling.qualification.introduced import (
     parse_version,
     unreadable_capabilities,
     unreadable_features,

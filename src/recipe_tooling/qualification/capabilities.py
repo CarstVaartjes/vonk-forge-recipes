@@ -25,8 +25,10 @@ from typing import Any
 
 from vonk_forge_contracts import CapabilityName, ModelDisplay, RecipeDisplay
 
-ROOT = Path(__file__).resolve().parents[1]
-KIT_FLAGS = Path(__file__).resolve().parent / "kit-engine-flags.json"
+from recipe_tooling.paths import QUALIFICATION_DIR, REPO_ROOT
+
+ROOT = REPO_ROOT
+KIT_FLAGS = QUALIFICATION_DIR / "kit-engine-flags.json"
 
 # Engines that parse tool calls and reasoning only when a flag asks them to.
 FLAG_ENGINES = frozenset({"vllm", "sglang", "tensorrt-llm"})

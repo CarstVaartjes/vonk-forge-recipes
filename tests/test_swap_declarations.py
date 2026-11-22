@@ -11,7 +11,7 @@ from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeMemoryResources
 from warning_asserts import assert_not_warns, assert_warns
 
-from qualification.memory_need import (
+from recipe_tooling.qualification.memory_need import (
     SWAP_DEFAULT_BYTES,
     SWAP_MAXIMUM_BYTES,
     admissible_declaration_warnings,

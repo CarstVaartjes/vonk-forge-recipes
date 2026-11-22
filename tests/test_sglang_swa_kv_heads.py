@@ -3,8 +3,12 @@
 import pytest
 from pydantic import ValidationError
 
-from qualification import documents
-from qualification.memory_need import CacheGeometry, load_inputs, sglang_token_pools
+from recipe_tooling.qualification import documents
+from recipe_tooling.qualification.memory_need import (
+    CacheGeometry,
+    load_inputs,
+    sglang_token_pools,
+)
 
 INKLING = "inkling-975b-a41b-nvfp4-sglang-eight"  # TP8: 1 full, 2 sliding heads/rank
 

@@ -16,7 +16,7 @@ from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from qualification.memory_need import (
+from recipe_tooling.qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
     IDLE_AVAILABLE_BYTES,
     OS_FLOOR_BYTES,
@@ -229,7 +229,7 @@ def test_tests_judge_admission_only_through_its_owner() -> None:
 
 
 def test_recorded_content_precedes_admission(monkeypatch) -> None:
-    from qualification import memory_need
+    from recipe_tooling.qualification import memory_need
 
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
     declare_peak(recipe)
@@ -333,7 +333,7 @@ def _creator_startup_variant(slug: str, fraction: str, pool: str | int):
 
 
 def test_startup_budget_matches_vllms_free_memory_check() -> None:
-    from qualification.memory_need import startup_budget_warnings
+    from recipe_tooling.qualification.memory_need import startup_budget_warnings
 
     reap = _creator_startup_variant(
         "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.88", "6G"
@@ -359,7 +359,7 @@ def test_startup_budget_matches_vllms_free_memory_check() -> None:
 
 
 def test_startup_budget_still_refuses_a_fraction_above_the_peak() -> None:
-    from qualification.memory_need import startup_budget_warnings
+    from recipe_tooling.qualification.memory_need import startup_budget_warnings
 
     reap = _creator_startup_variant(
         "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.93", "6G"

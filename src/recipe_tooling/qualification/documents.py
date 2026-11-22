@@ -23,7 +23,9 @@ from vonk_forge_contracts import (
     document_sha256,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
+from recipe_tooling.paths import REPO_ROOT
+
+ROOT = REPO_ROOT
 
 
 def recipe(slug: str, root: Path = ROOT) -> RecipeDefinition:

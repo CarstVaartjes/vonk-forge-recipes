@@ -8,7 +8,7 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
 )
 
-from qualification import documents
+from recipe_tooling.qualification import documents
 
 
 def row(

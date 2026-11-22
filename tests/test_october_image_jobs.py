@@ -128,7 +128,7 @@ def test_qwen_qualification_requires_native_rgba_png(mode: str) -> None:
 
     Image = pytest.importorskip("PIL.Image")
 
-    from qualification.definitions_loader import load_definitions
+    from recipe_tooling.qualification.definitions_loader import load_definitions
     from spark_sweep.job_assertions import Output, evaluate
     from spark_sweep.smoke import AssertionFailed
 

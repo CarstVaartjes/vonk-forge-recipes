@@ -13,12 +13,12 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
 )
 
-from qualification.evidence_store import (
+from recipe_tooling.qualification.evidence_store import (
     catalog_recipes,
     read_evidence,
     write_evidence,
 )
-from qualification.memory_need import measured_budgets
+from recipe_tooling.qualification.memory_need import measured_budgets
 
 #: The classes `derive_status` and `published_status` read, each by the reducers' own
 #: predicate: the newest record of each class, per identity, is all they consult.

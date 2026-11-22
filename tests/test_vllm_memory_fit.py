@@ -8,7 +8,7 @@ from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from warning_asserts import assert_not_warns, declare_peak
 
-from qualification.memory_need import (
+from recipe_tooling.qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
     OS_FLOOR_BYTES,
     SPARK_MEMORY_BYTES,
@@ -21,7 +21,7 @@ from qualification.memory_need import (
     load_inputs,
     memory_estimate_warnings,
 )
-from qualification.vllm_memory_fit import assert_memory_fit
+from recipe_tooling.qualification.vllm_memory_fit import assert_memory_fit
 
 
 def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:

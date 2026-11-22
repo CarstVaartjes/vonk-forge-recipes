@@ -12,8 +12,8 @@ from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeJobInterface
 
-from qualification.definitions_loader import load_definitions
-from qualification.media_types import (
+from recipe_tooling.qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.media_types import (
     CanonicalMediaTypes,
     canonical_media_types,
     require_canonical_recipe_media,

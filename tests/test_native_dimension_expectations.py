@@ -13,8 +13,8 @@ import pytest
 from PIL import Image
 from repo_root import ROOT
 
-from qualification.definitions_loader import load_definitions
-from qualification.native_buckets import (
+from recipe_tooling.qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.native_buckets import (
     calculate_dimensions,
     generate_crop_size_list,
     get_closest_ratio,
@@ -44,7 +44,9 @@ def test_unchanged_bucket_bodies_match_pinned_upstream():
         "generate_crop_size_list": "49d5ef08392fe14f6deedf1e9619b974f89d81ca2608f4a3baa1697f2d993dd3",
         "calculate_dimensions": "591cae36575fcb9cbfe0f2b950fc7f7db71627360d6ecab1c6e925b2ba53e041",
     }
-    source = ast.parse((ROOT / "qualification/native_buckets.py").read_text())
+    source = ast.parse(
+        (ROOT / "src/recipe_tooling/qualification/native_buckets.py").read_text()
+    )
     actual = {
         node.name: hashlib.sha256(
             ast.dump(ast.Module(body=node.body, type_ignores=[])).encode()
@@ -130,7 +132,7 @@ def test_definitions_load_without_media_dependencies(monkeypatch):
     ],
 )
 def test_native_fixture_rejects_invalid_png_dimensions(tmp_path, content, message):
-    from qualification.native_dimensions import resolve_native_dimensions
+    from recipe_tooling.qualification.native_dimensions import resolve_native_dimensions
 
     (tmp_path / "input.png").write_bytes(content)
     fixtures = {
@@ -191,7 +193,7 @@ def test_native_hunyuan_output_passes_and_wrong_dimensions_fail(
     "kind,target", [("hunyuan-video-15", 640), ("qwen-image", 1024)]
 )
 def test_fixture_aspect_changes_resolved_assertions(tmp_path, size, kind, target):
-    from qualification.native_dimensions import resolve_native_dimensions
+    from recipe_tooling.qualification.native_dimensions import resolve_native_dimensions
 
     buffer = io.BytesIO()
     Image.new("RGB", size).save(buffer, format="PNG")

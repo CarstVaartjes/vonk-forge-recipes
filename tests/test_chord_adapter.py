@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 from repo_root import ROOT
 
-from qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.definitions_loader import load_definitions
 from spark_sweep.job_assertions import Output, evaluate
 
 Image: Any = importlib.import_module("PIL.Image")

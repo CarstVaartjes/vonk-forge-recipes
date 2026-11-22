@@ -21,7 +21,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from qualification.evidence_store import write_atomic
+from recipe_tooling.qualification.evidence_store import write_atomic
 
 from .lifecycle import (
     DownloadIntentKind,

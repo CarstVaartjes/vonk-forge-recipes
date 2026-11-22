@@ -6,8 +6,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path[:0] = [str(ROOT), str(ROOT / "contracts/src")]
-from qualification.evidence_retention import retain_evidence
+sys.path[:0] = [str(ROOT / "src"), str(ROOT), str(ROOT / "contracts/src")]
+from recipe_tooling.qualification.evidence_retention import retain_evidence
 from spark_sweep.qualification import backfill
 
 

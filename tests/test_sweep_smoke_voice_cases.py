@@ -16,7 +16,7 @@ import pytest
 from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
-from qualification.documents import recipe_api
+from recipe_tooling.qualification.documents import recipe_api
 from spark_sweep import run
 from spark_sweep.definitions import CaseRenderError, Definitions
 from spark_sweep.smoke import SmokeResult

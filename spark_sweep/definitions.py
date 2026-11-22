@@ -16,8 +16,11 @@ from typing import Any
 
 from vonk_forge_contracts.api import RecipeApi
 
-from qualification.definitions_loader import QUALIFICATION_ROOT, load_definitions
-from qualification.documents import recipe_api
+from recipe_tooling.qualification.definitions_loader import (
+    QUALIFICATION_ROOT,
+    load_definitions,
+)
+from recipe_tooling.qualification.documents import recipe_api
 
 
 class CaseRenderError(ValueError):

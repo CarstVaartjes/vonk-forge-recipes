@@ -5,7 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
-from qualification.tolerant import InputDiagnostic, read_optional
+from recipe_tooling.qualification.tolerant import InputDiagnostic, read_optional
 
 from .removal_contract import RecipeVerdict
 

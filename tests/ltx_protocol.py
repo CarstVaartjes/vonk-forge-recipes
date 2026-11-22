@@ -7,7 +7,7 @@ from pathlib import Path
 
 from repo_root import ROOT
 
-from tools.protocol_wheel import selection, verified_payload
+from recipe_tooling.protocol_wheel import selection, verified_payload
 
 SELECTED_PROTOCOL = selection(ROOT)
 PROTOCOL_WHEEL = Path(SELECTED_PROTOCOL.artifact).name

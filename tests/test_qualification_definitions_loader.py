@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from repo_root import ROOT
 
-from qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.definitions_loader import load_definitions
 
 
 def _write(path: Path, document: object) -> None:

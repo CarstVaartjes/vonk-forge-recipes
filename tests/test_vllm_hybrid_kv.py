@@ -9,7 +9,7 @@ from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument, RuntimeArgumentValue
 
-from qualification.memory_need import (
+from recipe_tooling.qualification.memory_need import (
     HYBRID_ARCHITECTURES,
     VLLM_UNMODELED_HYBRID,
     CacheGeometry,

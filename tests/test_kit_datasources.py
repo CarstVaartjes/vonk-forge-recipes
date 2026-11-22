@@ -1400,7 +1400,7 @@ class ImageAssessmentTests(unittest.TestCase):
                 http = refresh.Http(github_token=None, hf_token=None, cache_path=None)
                 with (
                     patch("urllib.request.urlopen", limited),
-                    patch("tools._upstream_http.time.sleep"),
+                    patch("recipe_tooling.upstream_http.time.sleep"),
                 ):
                     return http.github(path)
 

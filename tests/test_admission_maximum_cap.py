@@ -23,8 +23,8 @@ from vonk_forge_contracts import (
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from qualification import documents, memory_need
-from qualification.memory_need import (
+from recipe_tooling.qualification import documents, memory_need
+from recipe_tooling.qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
     ADMISSION_MAXIMUM_PEAK_BYTES,
     PLATFORM_MEMORY_FLOOR_BYTES,
@@ -338,8 +338,8 @@ def test_warning_follows_the_keep_rule(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 ALLOWED = {
-    ("qualification/memory_need.py", "declarable_vllm_envelope"),
-    ("qualification/memory_need.py", "bounded_kv_warnings"),
+    ("src/recipe_tooling/qualification/memory_need.py", "declarable_vllm_envelope"),
+    ("src/recipe_tooling/qualification/memory_need.py", "bounded_kv_warnings"),
 }
 NAME = "vllm_utilization_envelope"
 
@@ -418,7 +418,7 @@ def test_the_guard_allows_the_listed_scopes() -> None:
     source = (
         "def declarable_vllm_envelope(r):\n    return vllm_utilization_envelope(r)\n"
     )
-    assert uses(source, "qualification/memory_need.py") == []
+    assert uses(source, "src/recipe_tooling/qualification/memory_need.py") == []
     assert uses(source, "tools/other.py")
 
 

@@ -11,7 +11,11 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from qualification.tolerant import InputDiagnostic, InputReason, read_optional
+from recipe_tooling.qualification.tolerant import (
+    InputDiagnostic,
+    InputReason,
+    read_optional,
+)
 
 from .catalog_contract import ModelRow, RecipeRow, RuntimeImageIdentity
 from .vonkctl import Reply, Vonkctl

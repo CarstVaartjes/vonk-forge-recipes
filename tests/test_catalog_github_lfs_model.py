@@ -163,7 +163,7 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
                 raise answers.pop()
             return github(request, timeout)
 
-        with patch("tools._upstream_http.time.sleep"):
+        with patch("recipe_tooling.upstream_http.time.sleep"):
             document = self._run(limited)  # type: ignore[arg-type]
         assert document is not None
         self.assertEqual(document["files"][0]["sha256"], OID)

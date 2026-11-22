@@ -16,15 +16,15 @@ from urllib.parse import quote, urlparse
 from urllib.request import HTTPRedirectHandler, Request
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from tools._catalog_model import (
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from recipe_tooling.catalog_model import (
     add_model_arguments,
     file_id,
     roles_for,
     sha256_hex,
     write_model,
 )
-from tools._upstream_http import fetch
+from recipe_tooling.upstream_http import fetch
 
 MAX_INLINE_ARTIFACT_BYTES = 16 * 1024 * 1024
 

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from qualification.definitions_loader import load_definitions
-from qualification.service_aliases import (
+from recipe_tooling.qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.service_aliases import (
     invalid_service_aliases,
     require_valid_service_aliases,
 )

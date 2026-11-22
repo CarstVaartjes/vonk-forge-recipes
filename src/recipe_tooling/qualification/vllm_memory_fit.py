@@ -2,12 +2,12 @@
 
 import json
 from decimal import Decimal
-from pathlib import Path
 
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 
-from qualification.memory_need import (
+from recipe_tooling.paths import REPO_ROOT
+from recipe_tooling.qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
     OS_FLOOR_BYTES,
     SPARK_MEMORY_BYTES,
@@ -52,12 +52,12 @@ def assert_memory_fit(recipe: RecipeDefinition) -> None:
     ):
         # Need-based documents omit utilization: do not invent an implicit 0.9
         # reservation. Keep explicitly authored historical budgets calibrated.
-        from qualification.memory_need import calculate_need, load_inputs
+        from recipe_tooling.qualification.memory_need import calculate_need, load_inputs
 
         assert recipe.topology.node_count == 1, (
             "Absolute multi-Spark pools need a per-rank need model"
         )
-        root = Path(__file__).resolve().parents[1]
+        root = REPO_ROOT
         models: dict[str, ModelDefinition] = {}
         for selection in recipe.models:
             document = json.loads(

@@ -23,8 +23,8 @@ from urllib.error import HTTPError
 from repo_root import ROOT
 from vonk_forge_contracts import ModelDisplay
 
-from qualification import documents
-from tools._catalog_model import roles_for
+from recipe_tooling.catalog_model import roles_for
+from recipe_tooling.qualification import documents
 
 LOADER = importlib.machinery.SourceFileLoader(
     "refresh_upstream", str(ROOT / "tools/refresh-upstream")
@@ -35,7 +35,7 @@ refresh = importlib.util.module_from_spec(SPEC)
 sys.modules[LOADER.name] = refresh
 LOADER.exec_module(refresh)
 
-#: The fields a PR from this repository carries (see qualification.own_pulls).
+#: The fields a PR from this repository carries (see recipe_tooling.qualification.own_pulls).
 OWN = {"isCrossRepository": False, "headRepositoryOwner": {"login": "CarstVaartjes"}}
 
 MODEL = json.loads(
@@ -1690,8 +1690,11 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         from vonk_forge_contracts import RecipeDefinition
         from warning_asserts import assert_not_warns, assert_warns
 
-        from qualification import documents as qualification_documents
-        from qualification.memory_need import load_inputs, memory_estimate_warnings
+        from recipe_tooling.qualification import documents as qualification_documents
+        from recipe_tooling.qualification.memory_need import (
+            load_inputs,
+            memory_estimate_warnings,
+        )
 
         slug = "muse-spark-open-nvfp4-vllm-eight"
         before = documents.recipe(slug)
@@ -2977,7 +2980,7 @@ class SelfHealingTests(unittest.TestCase):
             "tools/build-family-aware-coverage",
             "tools/check-recipe-topology",
             "tools/check-image-provenance",
-            "tools/_added_lines",
+            "tools/added-lines",
             "tools/check-test-git",
             "tools/check-final-stage-ldd",
             "tools/check-serial-reads",

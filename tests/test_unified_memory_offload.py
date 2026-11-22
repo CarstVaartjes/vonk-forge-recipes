@@ -7,7 +7,7 @@ from catalog_documents import catalog_models
 from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 
-from qualification.memory_need import MemoryNeed
+from recipe_tooling.qualification.memory_need import MemoryNeed
 
 
 @pytest.mark.parametrize(

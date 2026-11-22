@@ -107,7 +107,7 @@ def test_contract_reads_and_unrelated_subscripts_pass(tmp_path: Path) -> None:
 
 def test_exempt_paths_pass(tmp_path: Path) -> None:
     files = {
-        "qualification/documents.py": RAW_RECIPE,
+        "src/recipe_tooling/qualification/documents.py": RAW_RECIPE,
         "tests/documents.py": RAW_MODEL,
         "adapters/x/a.py": RAW_RECIPE,
         "contracts/src/vonk_forge_contracts/r.py": RAW_RECIPE,

@@ -14,7 +14,6 @@ fails or undoes the published release.
 
 from __future__ import annotations
 
-import importlib.util
 import os
 import subprocess
 import sys
@@ -23,21 +22,12 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
 SITE_REPOSITORY = "CarstVaartjes/vonk-forge-web"
 SITE_WORKFLOW = "pages.yml"
 PERMISSIONS = {"actions": "write"}
 
 Run = Callable[..., subprocess.CompletedProcess[str]]
-
-
-def _load_auth() -> Any:
-    spec = importlib.util.spec_from_file_location(
-        "refresh_auth", ROOT / "tools" / "_refresh_auth.py"
-    )
-    assert spec and spec.loader
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
 
 
 def dispatch(auth: Any, *, run: Run | None = None) -> str:
@@ -57,7 +47,8 @@ def dispatch(auth: Any, *, run: Run | None = None) -> str:
 
 
 def main() -> int:
-    auth_module = _load_auth()
+    from recipe_tooling import refresh_auth as auth_module
+
     failure: RuntimeError | None = None
     try:
         # The key leaves the environment before any gh child process starts.

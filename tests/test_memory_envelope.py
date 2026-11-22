@@ -14,7 +14,7 @@ import warnings
 
 from repo_root import ROOT
 
-from qualification.memory_need import SPARK_MEMORY_BYTES
+from recipe_tooling.qualification.memory_need import SPARK_MEMORY_BYTES
 
 PHYSICAL_MEMORY_BYTES = SPARK_MEMORY_BYTES
 ADMISSIBLE_PEAK_BYTES = int(

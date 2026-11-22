@@ -421,7 +421,7 @@ def check(root: Path, files: list[str] | None = None) -> list[Violation]:
         families.add(family)
         generated: dict[str, bytes] = {}
         if registration.kind == ValueKind.PROTOCOL_WHEEL:
-            from tools.protocol_wheel import projections
+            from recipe_tooling.protocol_wheel import projections
 
             generated = projections(root)
         for path in files:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from added_diff import added_diff
 
-from tools._added_lines import parse_added as _parse_added
+from recipe_tooling.added_lines import parse_added as _parse_added
 
 
 def parse_added(diff: str, judged=lambda _name: True):

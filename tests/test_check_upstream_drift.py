@@ -21,7 +21,7 @@ from urllib.request import Request
 from repo_root import ROOT
 
 sys.path.insert(0, str(ROOT))
-from tools._upstream_http import UpstreamBusy, fetch, forget_busy
+from recipe_tooling.upstream_http import UpstreamBusy, fetch, forget_busy
 
 SCRIPT = ROOT / "tools/check-upstream-drift"
 LOADER = importlib.machinery.SourceFileLoader("check_upstream_drift", str(SCRIPT))

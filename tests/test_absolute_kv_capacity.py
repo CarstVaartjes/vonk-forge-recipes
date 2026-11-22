@@ -15,7 +15,7 @@ from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from qualification.memory_need import (
+from recipe_tooling.qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
     SPARK_MEMORY_BYTES,
     absolute_kv_need,

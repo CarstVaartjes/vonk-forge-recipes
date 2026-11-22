@@ -7,7 +7,7 @@ from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeRuntimeEnvironment
 from warning_asserts import assert_warns, declare_peak
 
-from qualification.memory_need import (
+from recipe_tooling.qualification.memory_need import (
     LIMIT_BYTES,
     OVERHEAD_BYTES,
     calculate_need,

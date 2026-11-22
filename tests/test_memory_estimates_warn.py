@@ -11,7 +11,7 @@ from pydantic import ValidationError
 from repo_root import ROOT
 from vonk_forge_contracts.recipe import RecipeMemoryResources
 
-from qualification.memory_need import (
+from recipe_tooling.qualification.memory_need import (
     EstimateFindingKind,
     MemoryInputs,
     estimate_problems,
@@ -167,7 +167,7 @@ def test_creator_flag_request_is_an_advisory_not_a_missing_input() -> None:
 def test_report_lists_only_the_missing_estimator_input(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from qualification.memory_need import load_inputs
+    from recipe_tooling.qualification.memory_need import load_inputs
 
     inputs = load_inputs().model_copy(update={"geometries": {}})
     body = run_report(tmp_path, monkeypatch, inputs)
@@ -207,7 +207,9 @@ def test_contract_shape_violation_fails_the_catalog_build(
 
 def test_no_estimate_rule_can_raise_or_gate() -> None:
     """The class guard: an estimate rule returns warnings; only the contract raises."""
-    tree = ast.parse((ROOT / "qualification/memory_need.py").read_text())
+    tree = ast.parse(
+        (ROOT / "src/recipe_tooling/qualification/memory_need.py").read_text()
+    )
     functions = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
     assert not [f.name for f in functions if f.name.startswith("require_")]
     rules = [f for f in functions if f.name.endswith("_warnings")]

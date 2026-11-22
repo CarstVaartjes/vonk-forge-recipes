@@ -24,7 +24,7 @@ from generated_catalog import GENERATED
 from repo_root import ROOT
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
-from qualification.coverage_identity import execution_stack_identity
+from recipe_tooling.qualification.coverage_identity import execution_stack_identity
 
 TOOL = "tools/build-family-aware-coverage"
 

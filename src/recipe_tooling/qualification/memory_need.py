@@ -35,7 +35,8 @@ from vonk_forge_contracts.memory_admission import (
 )
 from vonk_forge_contracts.recipe import RecipeMemoryResources
 
-from qualification.evidence_store import read_evidence
+from recipe_tooling.paths import REPO_ROOT
+from recipe_tooling.qualification.evidence_store import read_evidence
 
 # The platform floor is owned by vonk_forge_contracts.memory_admission (contracts 2.8.1).
 # GUARD_BYTES below is this estimator's own headroom; the live host memory guard
@@ -111,7 +112,7 @@ ENGRAM_ROW_CACHE_ENVIRONMENT = "DSV41_CACHE_GIB"
 # vLLM's gpu-memory-utilization when a launch omits it.
 VLLM_DEFAULT_UTILIZATION = Decimal("0.90")
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = REPO_ROOT
 # GB10 total and lower idle MemAvailable from spark-3542, 2026-10-15/16;
 # retained from tests/test_vllm_memory_fit.py at the historical source commit.
 TOTAL_BYTES = SPARK_MEMORY_BYTES
@@ -1565,7 +1566,7 @@ def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
     """vLLM's utilization budget plus the margin it holds beside it, if pool-less.
 
     A speculative drafter is charged inside the budget, whichever mechanism
-    loads it (qualification/vllm_memory_fit.py).
+    loads it (src/recipe_tooling/qualification/vllm_memory_fit.py).
     """
     budget = vllm_budget_bytes(recipe)
     return None if budget is None else budget + budget_margin_bytes(recipe)

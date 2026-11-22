@@ -12,7 +12,11 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from tools.adapter_sources import AdapterSourceError, AdapterSources, materialize
+from recipe_tooling.adapter_sources import (
+    AdapterSourceError,
+    AdapterSources,
+    materialize,
+)
 
 MIRROR = "https://mirror.test/adapter-sources/"
 ORIGIN = "https://origin.test/archive.tar.gz"

@@ -74,8 +74,10 @@ def test_workflow_plan_files_exclude_catalog_progress(tmp_path: Path, event: str
     builder.chmod(0o755)
     tools = workspace / "tools"
     tools.mkdir()
-    for name in ("prebuilt-images", "_upstream_http.py"):
-        shutil.copyfile(ROOT / "tools" / name, tools / name)
+    shutil.copyfile(ROOT / "tools" / "prebuilt-images", tools / "prebuilt-images")
+    shutil.copytree(
+        ROOT / "src", workspace / "src", ignore=shutil.ignore_patterns("__pycache__")
+    )
     binary = tmp_path / "bin"
     binary.mkdir()
     uv = binary / "uv"

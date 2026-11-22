@@ -10,8 +10,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, TypeAdapter
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from qualification.image_evidence import Digest, PrebuiltImage
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from recipe_tooling.qualification.image_evidence import Digest, PrebuiltImage
 
 
 class PendingReason(StrEnum):

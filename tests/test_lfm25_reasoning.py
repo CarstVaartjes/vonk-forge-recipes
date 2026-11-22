@@ -7,8 +7,11 @@ import json
 from documents import recipe_display
 from repo_root import ROOT
 
-from qualification.capabilities import generic_case_problems, serving_capabilities
-from qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.capabilities import (
+    generic_case_problems,
+    serving_capabilities,
+)
+from recipe_tooling.qualification.definitions_loader import load_definitions
 
 SLUG = "lfm2-5-24b-a2b-bf16-vllm-single"
 

@@ -22,7 +22,7 @@ from vonk_forge_contracts.recipe import (
     RecipeRuntimeEnvironment,
 )
 
-from qualification.memory_need import MemoryInputs, load_inputs
+from recipe_tooling.qualification.memory_need import MemoryInputs, load_inputs
 
 QWEN = "qwen3-8-flash-next-nvfp4-eugr-vllm-single"
 B12X_IMAGE = "eugr/spark-vllm-b12x"

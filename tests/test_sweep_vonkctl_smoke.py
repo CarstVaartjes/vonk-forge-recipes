@@ -23,7 +23,7 @@ from vonk_forge_contracts.api import (
     ChatApi,
 )
 
-from qualification.documents import recipe, recipe_api
+from recipe_tooling.qualification.documents import recipe, recipe_api
 from spark_sweep.catalog import Recipe
 from spark_sweep.chat_probe import ChatFacts, chat_facts
 from spark_sweep.definitions import Definitions

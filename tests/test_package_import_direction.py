@@ -14,22 +14,26 @@ from repo_root import ROOT
 #: Layer name -> (directory, importable top-level package).
 LAYERS = {
     "contracts": ("contracts/src/vonk_forge_contracts", "vonk_forge_contracts"),
-    "qualification": ("qualification", "qualification"),
+    "qualification": (
+        "src/recipe_tooling/qualification",
+        "recipe_tooling.qualification",
+    ),
     "spark_sweep": ("spark_sweep", "spark_sweep"),
+    "tooling": ("src/recipe_tooling", "recipe_tooling"),
     "tools": ("tools", "tools"),
 }
 ALLOWED = {
     "contracts": {"contracts"},
     "qualification": {"contracts", "qualification"},
     "spark_sweep": {"contracts", "qualification", "spark_sweep"},
-    "tools": {"contracts", "qualification", "tools"},
+    "tooling": {"contracts", "qualification", "tooling"},
+    "tools": {"contracts", "qualification", "tooling", "tools"},
 }
 LAUNCHERS = {
     "sweep-recipes",
     "sync-qualification-evidence",
     "backfill-qualification-evidence",
 }
-PACKAGE_LAYER = {package: layer for layer, (_, package) in LAYERS.items()}
 
 Node = tuple[str, str]  # (layer, dotted module; the file name for a tool script)
 Edge = tuple[Node, str, str, int]  # (source, target layer, dotted target, line)
@@ -81,10 +85,15 @@ def scan(sources: dict[str, str]) -> tuple[set[Node], list[Edge]]:
     """Nodes and runtime edges of ``{repository path: source}``."""
     nodes: dict[str, Node] = {}
     for path in sources:
-        for layer, (directory, _) in LAYERS.items():
-            if path.startswith(f"{directory}/"):
-                name = path[len(directory) + 1 :].removesuffix(".py").replace("/", ".")
-                nodes[path] = (layer, name)
+        owners = [
+            (len(directory), layer, directory)
+            for layer, (directory, _) in LAYERS.items()
+            if path.startswith(f"{directory}/")
+        ]
+        if owners:  # the deepest directory owns the file
+            _, layer, directory = max(owners)
+            name = path[len(directory) + 1 :].removesuffix(".py").replace("/", ".")
+            nodes[path] = (layer, name)
     known = set(nodes.values())
     edges: list[Edge] = []
     for path, node in nodes.items():
@@ -103,10 +112,15 @@ def scan(sources: dict[str, str]) -> tuple[set[Node], list[Edge]]:
 
 
 def _resolve(dotted: str, known: set[Node]) -> Node | None:
-    head, _, rest = dotted.partition(".")
-    layer = PACKAGE_LAYER.get(head)
-    if layer is None:
+    owners = [
+        (len(package), layer)
+        for layer, (_, package) in LAYERS.items()
+        if dotted == package or dotted.startswith(f"{package}.")
+    ]
+    if not owners:
         return None
+    length, layer = max(owners)  # the deepest package owns the name
+    rest = dotted[length + 1 :]
     parts = rest.split(".") if rest else []
     while parts:
         if (layer, ".".join(parts)) in known:
@@ -118,9 +132,11 @@ def _resolve(dotted: str, known: set[Node]) -> Node | None:
 def violations(sources: dict[str, str]) -> list[str]:
     _, edges = scan(sources)
     found = []
-    for (layer, module), target_layer, _, line in edges:
+    for (layer, module), target_layer, target_module, line in edges:
         if target_layer in ALLOWED[layer]:
             continue
+        if (target_layer, target_module) == ("tooling", "paths"):
+            continue  # the repository root owner imports nothing, so every layer may read it
         if target_layer == "spark_sweep" and module in LAUNCHERS:
             continue
         found.append(f"{layer}/{module}:{line} imports {target_layer}")
@@ -194,7 +210,7 @@ def test_every_import_points_down_the_layers_and_none_is_a_cycle() -> None:
 
 def test_a_function_level_import_counts() -> None:
     sources = {
-        "qualification/a.py": "def f():\n    import spark_sweep.b\n",
+        "src/recipe_tooling/qualification/a.py": "def f():\n    import spark_sweep.b\n",
         "spark_sweep/b.py": "",
     }
     assert violations(sources) == ["qualification/a:2 imports spark_sweep"]
@@ -202,11 +218,11 @@ def test_a_function_level_import_counts() -> None:
 
 def test_a_type_checking_import_is_free() -> None:
     sources = {
-        "qualification/a.py": (
+        "src/recipe_tooling/qualification/a.py": (
             "from typing import TYPE_CHECKING\n"
             "if TYPE_CHECKING:\n    from spark_sweep import b\n"
         ),
-        "spark_sweep/b.py": "from qualification import a\n",
+        "spark_sweep/b.py": "from recipe_tooling.qualification import a\n",
     }
     assert violations(sources) == []
     assert cycles(sources) == []

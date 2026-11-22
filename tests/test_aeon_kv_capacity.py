@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from documents import recipe as load_recipe
 
-from qualification.memory_need import TOTAL_BYTES
+from recipe_tooling.qualification.memory_need import TOTAL_BYTES
 
 
 def test_aeon_default_context_fits_observed_kv_capacity() -> None:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from qualification.documents import (
+from recipe_tooling.qualification.documents import (
     has_recipe_api,
     model,
     model_display,

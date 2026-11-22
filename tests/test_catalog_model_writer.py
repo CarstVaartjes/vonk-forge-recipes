@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from tools._catalog_model import add_model_arguments, write_model
+from recipe_tooling.catalog_model import add_model_arguments, write_model
 
 
 def _written(tmp_path: Path, *extra: str) -> tuple[dict, dict]:
@@ -99,7 +99,7 @@ def test_several_modalities_are_written_without_stray_tags(tmp_path: Path) -> No
 
 
 def test_every_weight_format_is_classified_as_weights() -> None:
-    from tools._catalog_model import roles_for
+    from recipe_tooling.catalog_model import roles_for
 
     for name in (
         "m.safetensors",

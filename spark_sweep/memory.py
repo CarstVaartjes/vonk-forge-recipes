@@ -11,7 +11,11 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 from vonk_forge_contracts import QualificationMeasuredRoleMemory, RecipeDefinition
 
-from qualification.memory_need import OS_FLOOR_BYTES, holds_within, vllm_budget_bytes
+from recipe_tooling.qualification.memory_need import (
+    OS_FLOOR_BYTES,
+    holds_within,
+    vllm_budget_bytes,
+)
 
 from .catalog import never_measured
 

@@ -5,8 +5,11 @@ from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
-from qualification import documents, memory_need
-from qualification.memory_need import load_inputs, memory_estimate_warnings
+from recipe_tooling.qualification import documents, memory_need
+from recipe_tooling.qualification.memory_need import (
+    load_inputs,
+    memory_estimate_warnings,
+)
 
 SLUG = "deepseek-v4-flash-0731-sparkinfer-single"
 INPUTS = load_inputs()

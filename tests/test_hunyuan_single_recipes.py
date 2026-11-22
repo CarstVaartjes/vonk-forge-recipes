@@ -166,7 +166,7 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
                 foley._one_video(root)
 
     def test_foley_qualification_accepts_native_mono_and_rejects_stereo(self) -> None:
-        from qualification.definitions_loader import load_definitions
+        from recipe_tooling.qualification.definitions_loader import load_definitions
         from spark_sweep.job_assertions import Output, evaluate
         from spark_sweep.smoke import AssertionFailed
 

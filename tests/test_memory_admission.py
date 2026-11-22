@@ -14,8 +14,8 @@ from vonk_forge_contracts.memory_admission import (
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns
 
-from qualification import memory_need
-from qualification.memory_need import vllm_utilization_envelope
+from recipe_tooling.qualification import memory_need
+from recipe_tooling.qualification.memory_need import vllm_utilization_envelope
 
 
 def test_declaration_boundary_and_observed_host_are_distinct() -> None:
@@ -98,7 +98,7 @@ def _delegates_without_arithmetic(source: str) -> bool:
 
 
 def test_guard_rejects_a_second_admission_formula() -> None:
-    source = (ROOT / "qualification/memory_need.py").read_text()
+    source = (ROOT / "src/recipe_tooling/qualification/memory_need.py").read_text()
     assert _delegates_without_arithmetic(source)
     assert not _delegates_without_arithmetic(
         source.replace(

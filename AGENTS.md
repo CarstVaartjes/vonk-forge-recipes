@@ -60,7 +60,7 @@ Schedule Fix to verify, Untested, platform-blocked work after its fix is observe
 and Re-check last. `--retry-failed` never requeues Working.
 
 Evidence files keep only what the readers consult (`retained()` in
-`qualification/evidence_retention.py`): per identity of the current content the newest pass,
+`src/recipe_tooling/qualification/evidence_retention.py`): per identity of the current content the newest pass,
 resolved pass, failure, behavioural and recipe-blamed record; the file's newest pass,
 failure and behavioural record of any content; the one older content that
 `memory_need.measured_budgets` takes the measured budget from, with its rows; a
@@ -192,21 +192,21 @@ below).
 - Repository-wide policy files (base-image and Model-revision holds, creators,
   kit-image and memory-envelope exceptions, published images, upstream watch) live in `policy/`,
   not the root (`adapter-sources.json` stays there).
-- `adapter-sources.json` (model in `tools/adapter_sources.py`) declares build-context
+- `adapter-sources.json` (model in `src/recipe_tooling/adapter_sources.py`) declares build-context
   files whose bytes live in the mirror instead of Git: SHA-256, size, optional upstream
   `origin` and every repository path that holds the blob. `tools/build-catalog-index` places
-  them first (`tools/adapter_sources.py`; `tools/fetch-adapter-sources` does it alone), so
+  them first (`src/recipe_tooling/adapter_sources.py`; `tools/fetch-adapter-sources` does it alone), so
   packages and recipe identities stay byte-identical. Blobs are verified once, while
   downloading, into `$VONK_ADAPTER_SOURCE_CACHE`; a failed fetch retries a bounded number of
   times and fails with each URL's evidence (`tests/test_adapter_sources.py`).
   The mirror is the `adapter-sources` release (assets named by SHA-256, never replaced or
   deleted). Authors add a vendor file with `tools/adapter-sources add <path>... [--origin URL]`
-  (`tools/adapter_mirror.py`): it uploads the blob first and writes the manifest entry after,
+  (`src/recipe_tooling/adapter_mirror.py`): it uploads the blob first and writes the manifest entry after,
   plus a generated block in `.gitignore` for every declared path. Producers declare instead of
   committing: `tools/kit-pins lock` (and `tools/refresh-upstream`, which moves kits through
   it) mirrors a newly fetched base archive with its codeload URL as `origin`, and
   `tools/materialize-protocol-wheel` declares the one protocol wheel for every consumer
-  path (`tools/protocol_wheel.py`); neither leaves a binary to commit.
+  path (`src/recipe_tooling/protocol_wheel.py`); neither leaves a binary to commit.
   Every file under `adapters/` that is binary and over 64 KiB, or any file over 1 MiB, is
   declared, not committed, and so is the synthetic canary's package
   (`tests/fixtures/canonical-synthetic-canary/package/`; after regenerating it, run
@@ -221,7 +221,7 @@ below).
   `tools/kit-pins lock|check`, `tools/refresh-upstream` and `tools/materialize-protocol-wheel`.
   Placing needs the contracts dependencies, so validate.yml runs them with the test
   environment's Python, and a tool that a bare interpreter loads imports
-  `tools.adapter_sources` inside `main()`. A file is placed by rename from a staging copy at
+  `recipe_tooling.adapter_sources` inside `main()`. A file is placed by rename from a staging copy at
   the repository root (`/.adapter-source-*`, ignored), so a concurrent reader never sees a
   partial file and no build context lists the staging copy.
   `tests/test_adapter_mirror.py` keeps the `.gitignore` block equal to the manifest paths.
@@ -311,11 +311,17 @@ tree by `tests/test_package_import_direction.py` (no counts, no exceptions):
 | Layer | Files | May import |
 |---|---|---|
 | `contracts` | `contracts/src/vonk_forge_contracts/**` | `contracts` |
-| `qualification` | `qualification/*.py`: documents, memory need, evidence store and retention, optional-input reading, image evidence, PR ownership | `contracts`, `qualification` |
+| `qualification` | `src/recipe_tooling/qualification/*.py`: documents, memory need, evidence store and retention, optional-input reading, image evidence, PR ownership | `contracts`, `qualification` (and `recipe_tooling.paths`) |
 | `spark_sweep` | `spark_sweep/*.py`: the hardware sweep application | `contracts`, `qualification`, `spark_sweep` |
-| `tools` | `tools/*.py` helpers and the Python scripts in `tools/` | `contracts`, `qualification`, `tools`; `spark_sweep` only from `tools/sweep-recipes`, `tools/sync-qualification-evidence` and `tools/backfill-qualification-evidence` |
+| `tooling` | `src/recipe_tooling/*.py`: the helpers the `tools/` scripts share (added lines, upstream HTTP, adapter sources, protocol wheel, ...) | `contracts`, `qualification`, `tooling` |
+| `tools` | the Python scripts in `tools/`: thin launchers over `recipe_tooling` plus the older single-file tools | `contracts`, `qualification`, `tooling`, `tools`; `spark_sweep` only from `tools/sweep-recipes`, `tools/sync-qualification-evidence` and `tools/backfill-qualification-evidence` |
 
-Library code that publication or the upstream refresh reads belongs in `qualification/`,
+The code lives in `src/recipe_tooling/` (imported as `recipe_tooling`); the data it reads
+(`qualification/`, `recipes/`, `models/`) stays at the repository root. Each `tools/<name>`
+script puts `src/` on `sys.path` itself and keeps its path, because workflows and the
+Controller's library build call it by path.
+
+Library code that publication or the upstream refresh reads belongs in `src/recipe_tooling/qualification/`,
 never in `spark_sweep/`. No runtime import cycle between files: a function-level import
 counts, a `TYPE_CHECKING` import does not. Tests may import anything.
 

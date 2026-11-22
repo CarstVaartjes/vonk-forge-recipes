@@ -13,9 +13,11 @@ from zipfile import ZipFile
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from recipe_tooling.paths import REPO_ROOT
+
 Gh = Callable[[list[str]], str]
 _WHEEL = re.compile(r"vonk_agent_protocol-.*\.whl")
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = REPO_ROOT
 SELECTION = "tools/protocol-wheel/selection.json"
 
 
@@ -126,8 +128,8 @@ def materialize(
     copied into each context for commit). ``check`` proves the text projections and
     that every wheel path of a materialized tree holds the selected bytes.
     """
-    from tools.adapter_mirror import add, run_gh, undeclare
-    from tools.adapter_sources import load
+    from recipe_tooling.adapter_mirror import add, run_gh, undeclare
+    from recipe_tooling.adapter_sources import load
 
     selected = selection(root)
     outputs = projections(root)
