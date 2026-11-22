@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-import json
 from collections import Counter
 from collections.abc import Callable
 from contextlib import AbstractContextManager
 from dataclasses import asdict
 from typing import Any
-from urllib.error import HTTPError
 from urllib.parse import quote
-from urllib.request import Request, urlopen
+from urllib.request import urlopen
 
+from recipe_tooling.upstream_clients import (
+    ProviderDecodeError,
+    ProviderHttpError,
+    ProviderJson,
+    ProviderTooLarge,
+)
 from recipe_tooling.upstream_drift.model import (
     MAX_RESPONSE_BYTES,
     SHA,
@@ -20,7 +24,7 @@ from recipe_tooling.upstream_drift.model import (
     RemoteNotFound,
     Watch,
 )
-from recipe_tooling.upstream_http import UpstreamBusy, fetch
+from recipe_tooling.upstream_http import UpstreamBusy
 
 
 class ProviderClient:
@@ -35,50 +39,32 @@ class ProviderClient:
         self.github_token = github_token
         self.huggingface_token = huggingface_token
         self.opener = opener
-        self.sleep = sleep
-        self.cache: dict[str, object] = {}
+        self.client = ProviderJson(
+            user_agent="vonk-forge-upstream-drift/1",
+            timeout=20,
+            tokens={"github": github_token, "huggingface": huggingface_token},
+            max_bytes=MAX_RESPONSE_BYTES,
+            github_api_version="2022-11-28",
+            opener=opener,
+            sleep=sleep,
+        )
 
     def json(self, url: str, provider: str) -> object:
-        cached = self.cache.get(url)
-        if cached is not None:
-            return cached
-        headers = {
-            "Accept": "application/vnd.github+json"
-            if provider == "github"
-            else "application/json",
-            "User-Agent": "vonk-forge-upstream-drift/1",
-        }
         token = self.github_token if provider == "github" else self.huggingface_token
-        if token:
-            headers["Authorization"] = f"Bearer {token}"
-        if provider == "github":
-            headers["X-GitHub-Api-Version"] = "2022-11-28"
-        request = Request(url, headers=headers)
-
         try:
-            payload = fetch(
-                request,
-                lambda response: response.read(MAX_RESPONSE_BYTES + 1),
-                timeout=20,
-                opener=self.opener,
-                sleep=self.sleep,
-            )
-        except HTTPError as error:
+            return self.client.get(url, provider)
+        except ProviderHttpError as error:
             # Hugging Face answers an anonymous request for a deleted or
             # private repository with 401, not 404 (gated ones still list).
             if error.code == 404 or (
                 error.code == 401 and provider == "huggingface" and not token
             ):
-                raise RemoteNotFound(url) from error
-            raise RuntimeError(f"provider returned HTTP {error.code}") from error
-        if len(payload) > MAX_RESPONSE_BYTES:
-            raise RuntimeError(f"provider response exceeds {MAX_RESPONSE_BYTES} bytes")
-        try:
-            value = json.loads(payload)
-        except json.JSONDecodeError as error:
+                raise RemoteNotFound(url) from error.error
+            raise RuntimeError(f"provider returned HTTP {error.code}") from error.error
+        except ProviderTooLarge as error:
+            raise RuntimeError(str(error)) from error
+        except ProviderDecodeError as error:
             raise RuntimeError(f"provider request failed: {error}") from error
-        self.cache[url] = value
-        return value
 
 
 def _required_string(document: object, key: str, context: str) -> str:

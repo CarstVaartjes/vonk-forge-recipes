@@ -320,6 +320,9 @@ tree by `tests/test_package_import_direction.py` (no counts, no exceptions):
 `recipe_tooling.kit_pins`, `recipe_tooling.upstream_drift` and `recipe_tooling.refresh_upstream` (modules by topic;
 cross-module calls go through the module, `refresh_<module>.name`, so a test patches the defining module).
 
+Provider JSON (GitHub, Hugging Face) is read by one client, `recipe_tooling.upstream_clients.ProviderJson`; the
+refresh's `Http` and the drift check's `ProviderClient` pass their own user agent, timeout, size bound and ETag cache.
+
 The code lives in `src/recipe_tooling/` (imported as `recipe_tooling`); the data it reads
 (`qualification/`, `recipes/`, `models/`) stays at the repository root. Each `tools/<name>`
 script puts `src/` on `sys.path` itself and keeps its path, because workflows and the
