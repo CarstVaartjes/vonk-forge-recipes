@@ -7,12 +7,12 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-from vonk_forge_contracts.sweep import SweepWaitCode
 
 from spark_sweep.lifecycle import ACTIVE
 from spark_sweep.policy import RECIPE_FAILURE_CODES
 from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS
 from spark_sweep.state import State
+from spark_sweep.sweep_contract import SweepWaitCode
 from spark_sweep.verdict import STALLED_CODE, Disposition, reply_disposition
 from spark_sweep.vonkctl import Reply
 

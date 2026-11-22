@@ -23,17 +23,17 @@ from typing import Any
 
 from pydantic import ValidationError
 from vonk_forge_contracts import QualificationCauseCode
-from vonk_forge_contracts.sweep import (
+
+from .auth_contract import SmokeAuthClass
+from .catalog import Model, Recipe
+from .lifecycle import LifecycleState
+from .sweep_contract import (
     SweepFailureClass,
     WorkloadExitCause,
     WorkloadExitFacts,
     WorkloadFailureCode,
     WorkloadMemoryTrigger,
 )
-
-from .auth_contract import SmokeAuthClass
-from .catalog import Model, Recipe
-from .lifecycle import LifecycleState
 from .vonkctl import CLIENT_CONTRACT_MISMATCH
 
 Boost = Callable[[Recipe], float]

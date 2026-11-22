@@ -24,14 +24,6 @@ from vonk_forge_contracts import (
     QualificationEvidenceRecord,
     RecipeQualificationEvidence,
 )
-from vonk_forge_contracts.sweep import (
-    PublisherState,
-    SweepCheckConclusion,
-    SweepCheckStatus,
-    SweepCommitStatusState,
-    SweepEvidenceExit,
-    SweepEvidenceMergeState,
-)
 
 from .own_pulls import OWN_FIELDS, REPOSITORY, own_pulls
 from .qualification import (
@@ -48,6 +40,14 @@ from .qualification import (
     write_evidence,
 )
 from .state import write_atomic
+from .sweep_contract import (
+    PublisherState,
+    SweepCheckConclusion,
+    SweepCheckStatus,
+    SweepCommitStatusState,
+    SweepEvidenceExit,
+    SweepEvidenceMergeState,
+)
 
 BRANCH = "qualification/evidence"
 TITLE = "qualification evidence"

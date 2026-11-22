@@ -15,9 +15,9 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts.sweep import CleanupEnd, CleanupEndReason
 
 from spark_sweep import policy
+from spark_sweep.sweep_contract import CleanupEnd, CleanupEndReason
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")

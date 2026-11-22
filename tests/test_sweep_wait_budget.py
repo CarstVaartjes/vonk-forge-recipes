@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-from vonk_forge_contracts.sweep import SweepWait, SweepWaitCode, SweepWaitReason
 
 from spark_sweep import verdict
 from spark_sweep.report import build_status
+from spark_sweep.sweep_contract import SweepWait, SweepWaitCode, SweepWaitReason
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -299,7 +299,7 @@ def test_expired_stream_stops_on_the_next_heartbeat(monkeypatch) -> None:
 
 
 def test_replanned_cases_return_newest_first_after_the_delay(tmp_path: Path) -> None:
-    from vonk_forge_contracts.sweep import SweepWaitExpiry
+    from spark_sweep.sweep_contract import SweepWaitExpiry
 
     recipes = [
         FakeRecipe("old", local="cached", updated="2026-10-01T00:00:00Z"),

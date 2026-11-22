@@ -12,9 +12,9 @@ from collections.abc import Mapping
 from typing import Any
 
 from pydantic import ValidationError
-from vonk_forge_contracts.sweep import ReviewedCleanupStop
 
 from .lifecycle import LifecycleState
+from .sweep_contract import ReviewedCleanupStop
 
 STATES = frozenset(
     {

@@ -8,14 +8,14 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts.sweep import (
+
+from spark_sweep.lifecycle import RecipeStatus, RetestReason
+from spark_sweep.sweep_contract import (
     CliObservation,
     CliObservationReply,
     CliObservationStatus,
     InfrastructureIncident,
 )
-
-from spark_sweep.lifecycle import RecipeStatus, RetestReason
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")

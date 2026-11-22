@@ -8,11 +8,11 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 from vonk_forge_contracts import QualificationIdentity, QualificationRuntimeImage
-from vonk_forge_contracts.sweep import SweepWait
 
 from .catalog import Recipe
 from .catalog_contract import RuntimeImageIdentity
 from .recovery import Fingerprint, Owner
+from .sweep_contract import SweepWait
 
 
 class VerdictIdentity(BaseModel):

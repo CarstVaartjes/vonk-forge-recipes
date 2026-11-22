@@ -21,15 +21,6 @@ from enum import StrEnum
 from typing import Any
 
 from vonk_forge_contracts import QualificationCauseCode
-from vonk_forge_contracts.sweep import (
-    ControllerWait,
-    SweepFailureClass,
-    SweepWait,
-    SweepWaitCode,
-    SweepWaitExpiry,
-    SweepWaitReason,
-)
-from vonk_forge_contracts.sweep import SweepProgress as Progress
 
 from .auth_contract import SmokeAuthClass
 from .lifecycle import ACTIVE, LifecycleState
@@ -47,6 +38,15 @@ from .policy import (
     forward_marks,
 )
 from .receipt import receipt_failure
+from .sweep_contract import (
+    ControllerWait,
+    SweepFailureClass,
+    SweepWait,
+    SweepWaitCode,
+    SweepWaitExpiry,
+    SweepWaitReason,
+)
+from .sweep_contract import SweepProgress as Progress
 from .vonkctl import Reply
 
 

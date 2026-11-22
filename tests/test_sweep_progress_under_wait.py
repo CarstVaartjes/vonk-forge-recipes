@@ -30,11 +30,11 @@ from sweep_fakes import (
     StallAlarm,
     make_sweep,
 )
-from vonk_forge_contracts.sweep import SweepWait, SweepWaitCode, SweepWaitReason
 
 from spark_sweep import verdict
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.policy import TimeoutPolicy
+from spark_sweep.sweep_contract import SweepWait, SweepWaitCode, SweepWaitReason
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")

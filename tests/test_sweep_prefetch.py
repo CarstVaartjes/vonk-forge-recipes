@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts.sweep import SweepWaitReason
 
 from spark_sweep import prefetch
 from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS, PrefetchConfig
 from spark_sweep.report import build_status
+from spark_sweep.sweep_contract import SweepWaitReason
 
 TIB = 1024**4
 

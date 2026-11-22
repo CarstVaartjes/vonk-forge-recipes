@@ -1063,11 +1063,10 @@ def test_unknown_image_library_publication_is_not_a_qualification_change(
 def test_one_load_adopts_schema_and_verdicts_without_losing_accepted_effects(
     tmp_path, monkeypatch, schema
 ):
-    from vonk_forge_contracts.sweep import SweepAdoptionReason
-
     from spark_sweep import qualification
     from spark_sweep import state as state_module
     from spark_sweep.lifecycle import RecipeStatus
+    from spark_sweep.sweep_contract import SweepAdoptionReason
 
     path = tmp_path / "state.json"
     saved = {

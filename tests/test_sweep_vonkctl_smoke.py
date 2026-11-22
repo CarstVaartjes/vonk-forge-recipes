@@ -21,7 +21,6 @@ from vonk_forge_contracts.api import (
     ApiTokenValue,
     ChatApi,
 )
-from vonk_forge_contracts.sweep import CliObservationStatus
 
 from qualification.documents import recipe, recipe_api
 from spark_sweep.catalog import Recipe
@@ -36,6 +35,7 @@ from spark_sweep.smoke import (
     smoke_service,
     stream_probe,
 )
+from spark_sweep.sweep_contract import CliObservationStatus
 from spark_sweep.vonkctl import (
     OwnerProfileError,
     Reply,

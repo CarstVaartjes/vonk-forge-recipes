@@ -41,23 +41,6 @@ from vonk_forge_contracts import (
     RecipeDefinition,
     RecipeQualificationEvidence,
 )
-from vonk_forge_contracts.sweep import (
-    CleanupEnd,
-    CleanupEndReason,
-    CleanupFleetObservation,
-    CleanupObservationBudget,
-    FleetOnlineState,
-    InfrastructureIncident,
-    ReviewInfrastructureSource,
-    SweepFailureClass,
-    SweepSlotPhase,
-    SweepStorageReview,
-    SweepStorageWait,
-    SweepWait,
-    SweepWaitCode,
-    SweepWaitReason,
-    WorkloadFailureCode,
-)
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
 
@@ -137,6 +120,23 @@ from .source_serving import (
     unserved,
 )
 from .state import ResultsLog, State, StateLock
+from .sweep_contract import (
+    CleanupEnd,
+    CleanupEndReason,
+    CleanupFleetObservation,
+    CleanupObservationBudget,
+    FleetOnlineState,
+    InfrastructureIncident,
+    ReviewInfrastructureSource,
+    SweepFailureClass,
+    SweepSlotPhase,
+    SweepStorageReview,
+    SweepStorageWait,
+    SweepWait,
+    SweepWaitCode,
+    SweepWaitReason,
+    WorkloadFailureCode,
+)
 from .tolerant import InputReason, read_optional
 from .verdict import Disposition, Progress
 from .vonkctl import OWNER_PROFILES, Reply, Vonkctl, VonkctlError, request_key

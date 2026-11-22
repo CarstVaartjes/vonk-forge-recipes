@@ -11,13 +11,13 @@ from uuid import NAMESPACE_URL, uuid5
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, StallAlarm, make_sweep
-from vonk_forge_contracts.sweep import ControllerWaitOperation, SweepWaitReason
 
 from spark_sweep import policy, verdict
 from spark_sweep.identity import AcceptedRequest, ControllerWaitHold, content_identity
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.report import build_status
 from spark_sweep.state import State
+from spark_sweep.sweep_contract import ControllerWaitOperation, SweepWaitReason
 
 FIXTURE = (
     Path(__file__).parent / "fixtures/sweep-verdicts/controller-waits-2026-10-23.json"

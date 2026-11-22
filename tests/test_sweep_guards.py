@@ -448,7 +448,7 @@ def test_verdict_codes_match_the_published_enums() -> None:
         if name != "source"
         for word in values
     }
-    from vonk_forge_contracts.sweep import SweepStorageCode
+    from spark_sweep.sweep_contract import SweepStorageCode
 
     used = {
         *SweepStorageCode,
@@ -710,7 +710,8 @@ def test_blocking_stream_reads_have_semantic_progress_evidence(path):
 
 def test_wait_record_requires_a_contract_reason_and_finite_expiry_evidence():
     from pydantic import ValidationError
-    from vonk_forge_contracts.sweep import SweepWait, SweepWaitExpiry, SweepWaitReason
+
+    from spark_sweep.sweep_contract import SweepWait, SweepWaitExpiry, SweepWaitReason
 
     fields = {
         "wait": SweepWait(reason=SweepWaitReason.BLOCKER),

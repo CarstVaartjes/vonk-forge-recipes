@@ -31,9 +31,8 @@ API entry points:
   a `content_sha256` that does not match its document, refuses the index
   (`CatalogIndexRefused`). `read_catalog_index` is the strict whole-index form.
 - [Canonical document identity](src/vonk_forge_contracts/canonical.py).
-- [Qualification authority](src/vonk_forge_contracts/qualification_authority.py),
-  [native decisions](src/vonk_forge_contracts/systemone.py) and
-  [local sweep observations](src/vonk_forge_contracts/sweep.py).
+- [Qualification authority](src/vonk_forge_contracts/qualification_authority.py) and
+  [native decisions](src/vonk_forge_contracts/systemone.py).
 - [Synthetic examples](src/vonk_forge_contracts/examples) and
   [generated schemas](src/vonk_forge_contracts/schema).
 

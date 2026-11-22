@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-from vonk_forge_contracts.sweep import SweepWait, SweepWaitReason
 
 from spark_sweep.lifecycle import LifecycleState
+from spark_sweep.sweep_contract import SweepWait, SweepWaitReason
 from spark_sweep.verdict import Progress
 
 

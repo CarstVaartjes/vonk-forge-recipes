@@ -9,13 +9,13 @@ from pathlib import Path
 
 import pytest
 from vonk_forge_contracts import QualificationCauseCode
-from vonk_forge_contracts.sweep import (
+
+from spark_sweep import policy
+from spark_sweep.sweep_contract import (
     SweepFailureClass,
     WorkloadExitFacts,
     WorkloadMemoryTrigger,
 )
-
-from spark_sweep import policy
 
 # Vendored verbatim from vonk-forge (the one owner of the trigger words: the
 # helper's Trigger::ALL, asserted against this vector by the helper's own tests).

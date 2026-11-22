@@ -12,11 +12,11 @@ import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from test_qualification_status import Blame as PublishedBlame
 from test_qualification_status import Outcome, historical
-from vonk_forge_contracts.sweep import SweepFailureClass, SweepWaitCode
 
 from spark_sweep import policy, verdict
 from spark_sweep.auth_contract import SmokeAuthClass
 from spark_sweep.qualification import from_history
+from spark_sweep.sweep_contract import SweepFailureClass, SweepWaitCode
 from spark_sweep.verdict import Blame, Disposition
 
 SOURCES = ("run.py", "smoke.py", "smoke_job.py", "prefetch.py")
