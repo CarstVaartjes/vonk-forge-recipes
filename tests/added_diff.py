@@ -21,5 +21,6 @@ def added_diff(
         parts.append(
             f"diff --git a/{name} b/{name}\n--- /dev/null\n+++ b/{name}\n"
             f"@@ -0,0 +{start},{count} @@\n"
+            + "".join(f"+{row}\n" for row in text.splitlines()[start - 1 :])
         )
     return "".join(parts)

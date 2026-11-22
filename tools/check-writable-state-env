@@ -27,6 +27,9 @@ from collections.abc import Iterator
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools._added_lines import parse_added
+
 FIXTURE = "tests/fixtures/compiled_workload_v2.json"
 WRITABLE = (PurePosixPath("/tmp"), PurePosixPath("/outputs"))
 STATE_NAME = re.compile(r"(_PATH|_DIR|_ROOT)$|CACHE", re.IGNORECASE)
@@ -43,7 +46,6 @@ READ_ONLY = frozenset(
         "TIKTOKEN_RS_CACHE_DIR",
     }
 )
-HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
 ADVICE = (
     "the root filesystem is read-only: point it under /outputs/cache (writable for "
     "every role) or /tmp; see docs/recipe-authoring.md."
@@ -82,17 +84,12 @@ def added_lines(root: Path, base: str, names: set[str]) -> dict[str, set[int]]:
             text = (root / name).read_text(encoding="utf-8", errors="replace")
             result[name] = set(range(1, text.count("\n") + 2))
     diff = _git(
-        root, "diff", "--unified=0", "--no-color", "--diff-filter=AMR",
+        root, "diff", "--unified=0", "--no-color", "--diff-filter=AMRD",
         "--merge-base", base,
     )  # fmt: skip
-    path: str | None = None
-    for line in diff.splitlines():
-        if line.startswith("+++ "):
-            name = line[4:].removeprefix("b/")
-            path = name if name in names else None
-        elif path is not None and (match := HUNK.match(line)):
-            start, count = int(match[1]), int(match[2] or "1")
-            result.setdefault(path, set()).update(range(start, start + count))
+    for name, lines in parse_added(diff, names.__contains__).items():
+        if name in names:
+            result.setdefault(name, set()).update(lines)
     return result
 
 

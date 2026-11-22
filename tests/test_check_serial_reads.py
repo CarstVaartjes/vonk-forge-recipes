@@ -43,7 +43,7 @@ def test_loops_of_any_kind_count_and_a_reason_covers_only_its_call() -> None:
 
 
 def test_only_added_lines_of_sweep_modules_count(tmp_path: Path) -> None:
-    assert guard.scan(SERIAL, {1}) == []  # the call line is old
+    assert guard.scan(SERIAL, {7}) == []  # neither the loop nor the call is new
     for name in ("spark_sweep/run.py", "tools/helper.py"):
         (tmp_path / name).parent.mkdir(exist_ok=True)
         (tmp_path / name).write_text(SERIAL)
@@ -51,3 +51,8 @@ def test_only_added_lines_of_sweep_modules_count(tmp_path: Path) -> None:
     assert [p.split(":")[0] for p in guard.check(tmp_path, diff)] == [
         "spark_sweep/run.py"
     ]
+
+
+def test_a_call_wrapped_in_a_new_loop_is_still_flagged() -> None:
+    # Only the ``for`` line is added: the call line itself is unchanged context.
+    assert guard.scan(SERIAL, {1}) == [2]

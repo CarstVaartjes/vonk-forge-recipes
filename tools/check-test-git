@@ -140,7 +140,7 @@ def is_test_file(name: str) -> bool:
 
 def check(root: Path, diff: str) -> list[str]:
     problems: list[str] = []
-    for name, lines in sorted(parse_added(diff).items()):
+    for name, lines in sorted(parse_added(diff, is_test_file).items()):
         if not is_test_file(name):
             continue
         source = (root / name).read_text(encoding="utf-8")
