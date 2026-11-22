@@ -7,7 +7,12 @@ from pathlib import Path
 from added_diff import added_diff
 
 ROOT = Path(__file__).resolve().parents[1]
-from tools._added_lines import parse_added
+from tools._added_lines import parse_added as _parse_added
+
+
+def parse_added(diff: str, judged=lambda _name: True):
+    return _parse_added(diff, judged)
+
 
 DIFF = """\
 diff --git a/tools/a.py b/tools/a.py
@@ -105,3 +110,65 @@ def test_a_move_across_file_types_is_still_added() -> None:
 def test_an_isolated_common_line_is_still_added() -> None:
     diff = _move("tools/a.py", "tools/b.py", ["return None"])
     assert parse_added(diff)["tools/b.py"] == {1}
+
+
+def test_a_deletion_pays_only_when_both_files_are_judged() -> None:
+    diff = _move("tools/a.py", "tools/b.py", BLOCK)
+    assert parse_added(diff, lambda name: name != "tools/a.py")["tools/b.py"] == {
+        1,
+        2,
+        3,
+        4,
+    }
+    assert parse_added(diff, lambda name: name != "tools/b.py")["tools/b.py"] == {
+        1,
+        2,
+        3,
+        4,
+    }
+
+
+def test_a_move_from_a_launcher_into_a_module_counts() -> None:
+    assert (
+        parse_added(_move("tools/launcher", "tools/part.py", BLOCK))["tools/part.py"]
+        == set()
+    )
+
+
+def test_a_shift_change_splits_the_block() -> None:
+    old = [
+        "def a():",
+        "    x = 1",
+        "    return x",
+        "",
+        "def b():",
+        "    y = 2",
+        "    return y",
+        "",
+    ]
+    new = [
+        "    def a():",
+        "        x = 1",
+        "        return x",
+        "",
+        "def b():",
+        "    y = 2",
+        "    return y",
+        "",
+        "extra()",
+    ]
+    diff = _move("tools/a.py", "tools/b.py", old).split("diff --git a/tools/b.py")[0]
+    came = "".join(f"+{row}\n" for row in new)
+    diff += (
+        "diff --git a/tools/b.py b/tools/b.py\n--- /dev/null\n+++ b/tools/b.py\n"
+        f"@@ -0,0 +1,{len(new)} @@\n{came}"
+    )
+    assert parse_added(diff)["tools/b.py"] == {9}
+
+
+def test_header_lookalike_content_lines_are_content() -> None:
+    diff = (
+        "diff --git a/tools/a.py b/tools/a.py\n--- a/tools/a.py\n+++ b/tools/a.py\n"
+        "@@ -1,2 +1,2 @@\n--- a/x\n-y\n+++ b/x\n+z\n"
+    )
+    assert parse_added(diff) == {"tools/a.py": {1, 2}}

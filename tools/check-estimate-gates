@@ -179,7 +179,14 @@ def scan(source: str, added: set[int] | None) -> list[tuple[int, str]]:
         if not name.startswith("test"):
             continue
         for line in gate_lines(function, estimate):
-            if added is not None and line not in added:
+            # The verdict reads the assignments before the gate, so a gate whose
+            # test function gained any line is judged again, a moved gate included.
+            if added is not None and not (
+                line in added
+                or any(
+                    function.lineno <= n <= (function.end_lineno or 0) for n in added
+                )
+            ):
                 continue
             prior = [
                 n
@@ -217,11 +224,13 @@ def check(root: Path, targets: dict[str, set[int] | None]) -> list[str]:
     ]
 
 
+def judged(path: str) -> bool:
+    return path.startswith("tests/") and path.endswith(".py")
+
+
 def added_targets(diff: str) -> dict[str, set[int] | None]:
     return {
-        path: lines
-        for path, lines in parse_added(diff).items()
-        if path.startswith("tests/") and path.endswith(".py")
+        path: lines for path, lines in parse_added(diff, judged).items() if judged(path)
     }
 
 

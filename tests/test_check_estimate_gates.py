@@ -83,3 +83,9 @@ def test_check_judges_only_the_added_lines(tmp_path: Path) -> None:
     assert gates.check(tmp_path, {"tests/test_x.py": {1}}) == []
     problems = gates.check(tmp_path, {"tests/test_x.py": {7}})
     assert [p.split(":")[1] for p in problems] == ["7"]
+
+
+def test_a_gate_moved_into_a_function_without_the_peak_is_judged() -> None:
+    source = LOADS.format(body="assert memory_estimate_warnings(recipe) == []")
+    # The gate line is relocated (not added) but its test function gained a line.
+    assert len(gates.scan(source, {6})) == 1

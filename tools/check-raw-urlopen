@@ -42,10 +42,14 @@ def scan(source: str, added: set[int] | None) -> list[int]:
     ]
 
 
+def judged(name: str) -> bool:
+    return name.startswith("tools/") and name != OWNER
+
+
 def check(root: Path, diff: str) -> list[str]:
     problems: list[str] = []
-    for name, lines in sorted(parse_added(diff).items()):
-        if not name.startswith("tools/") or name == OWNER:
+    for name, lines in sorted(parse_added(diff, judged).items()):
+        if not judged(name):
             continue
         source = (root / name).read_text(encoding="utf-8")
         problems.extend(

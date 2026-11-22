@@ -54,3 +54,27 @@ def test_old_lines_pass_and_the_owner_is_exempt(tmp_path: Path) -> None:
     )
     problems = guard.check(tmp_path, diff)
     assert [p.split(":")[1] for p in problems] == ["2"]
+
+
+def test_a_block_moved_out_of_the_exempt_owner_is_still_new_work(
+    tmp_path: Path,
+) -> None:
+    block = [
+        "def go(url):",
+        "    request = build(url)",
+        "    return urlopen(request)",
+        "",
+    ]
+    (tmp_path / "tools").mkdir()
+    (tmp_path / "tools/helper.py").write_text("\n".join(block))
+    gone = "".join(f"-{row}\n" for row in block)
+    came = "".join(f"+{row}\n" for row in block)
+    diff = (
+        "diff --git a/tools/_upstream_http.py b/tools/_upstream_http.py\n"
+        "--- a/tools/_upstream_http.py\n+++ b/tools/_upstream_http.py\n"
+        f"@@ -1,4 +0,0 @@\n{gone}"
+        "diff --git a/tools/helper.py b/tools/helper.py\n"
+        "--- /dev/null\n+++ b/tools/helper.py\n"
+        f"@@ -0,0 +1,4 @@\n{came}"
+    )
+    assert [p.split(":")[1] for p in guard.check(tmp_path, diff)] == ["3"]

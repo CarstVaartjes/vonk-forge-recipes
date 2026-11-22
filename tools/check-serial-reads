@@ -64,7 +64,13 @@ def scan(source: str, added: set[int] | None) -> list[int]:
             if not is_controller_call(call):
                 continue
             assert isinstance(call, ast.Call)
-            if added is not None and call.lineno not in added:
+            # A loop wrapped around old calls is new work for them too: the
+            # call line itself is unchanged, the loop line is the addition.
+            if (
+                added is not None
+                and call.lineno not in added
+                and loop.lineno not in added
+            ):
                 continue
             span = lines[max(call.lineno - 2, 0) : call.end_lineno]
             if not any(SEQUENTIAL.search(line) for line in span):
@@ -72,10 +78,14 @@ def scan(source: str, added: set[int] | None) -> list[int]:
     return sorted(hits)
 
 
+def judged(name: str) -> bool:
+    return name.startswith("spark_sweep/") and name.endswith(".py")
+
+
 def check(root: Path, diff: str) -> list[str]:
     problems: list[str] = []
-    for name, added in sorted(parse_added(diff).items()):
-        if not (name.startswith("spark_sweep/") and name.endswith(".py")):
+    for name, added in sorted(parse_added(diff, judged).items()):
+        if not judged(name):
             continue
         source = (root / name).read_text(encoding="utf-8")
         problems.extend(

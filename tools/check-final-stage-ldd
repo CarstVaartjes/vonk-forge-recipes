@@ -51,6 +51,10 @@ def scan(text: str, added: set[int]) -> bool:
     )
 
 
+def judged(name: str) -> bool:
+    return name.startswith("adapters/") and "Dockerfile" in Path(name).name
+
+
 def violations(diff: str, root: Path) -> list[str]:
     found = []
     advice = (
@@ -58,7 +62,7 @@ def violations(diff: str, root: Path) -> list[str]:
         '`RUN ! ldd <binary> | grep "not found" | grep -v -e libcuda.so -e libnvidia` '
         "(see docs/recipe-authoring.md)."
     )
-    for name, added in sorted(parse_added(diff).items()):
+    for name, added in sorted(parse_added(diff, judged).items()):
         path = root / name
         is_image = name.startswith("adapters/") and "Dockerfile" in path.name
         if (

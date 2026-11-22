@@ -392,7 +392,9 @@ order on the main thread; worker threads never write `state.data` (only the
 contract-mismatch flags, under `_contract_lock`). A `vk.run`/
 `vk.call` that must stay serial (it writes, or depends on the previous reply)
 carries `# sequential: <reason>` on the call or the line above it.
-`tools/check-serial-reads` enforces this on added lines
+`tools/check-serial-reads` enforces this on added lines: a call is new work when
+its own line or the line of the loop around it is added, so wrapping old calls in a
+new loop is flagged, while a block moved verbatim between sweep modules is not
 (`tests/test_sweep_tick_fanout.py`, `tests/test_check_serial_reads.py`).
 
 Profiles 1–3 cannot be edited by the sweep; sweep/pin profile numbers cannot use

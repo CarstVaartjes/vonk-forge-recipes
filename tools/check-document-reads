@@ -241,9 +241,15 @@ def document_access(node: ast.AST) -> tuple[int, object, ast.expr] | None:
 
 
 def check(root: Path, diff: str) -> list[str]:
+    def judged(name: str) -> bool:
+        try:
+            return not name.startswith(EXEMPT_PREFIXES) and names_python(root, name)
+        except OSError:  # a deleted file: judged only by its name
+            return name.endswith(".py")
+
     problems: list[str] = []
-    for name, lines in sorted(parse_added(diff).items()):
-        if name.startswith(EXEMPT_PREFIXES) or not names_python(root, name):
+    for name, lines in sorted(parse_added(diff, judged).items()):
+        if not judged(name):
             continue
         source = (root / name).read_text(encoding="utf-8")
         problems.extend(
