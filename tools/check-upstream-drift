@@ -536,12 +536,14 @@ class ProviderClient:
             headers["X-GitHub-Api-Version"] = "2022-11-28"
         request = Request(url, headers=headers)
 
-        def read() -> bytes:
-            with self.opener(request, timeout=20) as response:
-                return response.read(MAX_RESPONSE_BYTES + 1)
-
         try:
-            payload = fetch(read, sleep=self.sleep)
+            payload = fetch(
+                request,
+                lambda response: response.read(MAX_RESPONSE_BYTES + 1),
+                timeout=20,
+                opener=self.opener,
+                sleep=self.sleep,
+            )
         except HTTPError as error:
             # Hugging Face answers an anonymous request for a deleted or
             # private repository with 401, not 404 (gated ones still list).

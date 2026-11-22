@@ -55,7 +55,7 @@ from qualification.memory_need import raise_peaks_to_envelope
 from spark_sweep.own_pulls import OWN_FIELDS, own_pulls
 from spark_sweep.tolerant import InputReason, read_optional
 from tools._catalog_model import roles_for
-from tools._upstream_http import fetch
+from tools._upstream_http import UpstreamBusy, fetch
 from tools.adapter_sources import materialize_or_exit
 
 
@@ -287,12 +287,12 @@ class Http:
             headers["If-None-Match"] = cached["etag"]
         request = urllib.request.Request(url, headers=headers)
 
-        def read() -> tuple[bytes, str | None]:
-            with urllib.request.urlopen(request, timeout=30) as response:
-                return response.read(), response.headers.get("ETag")
-
         try:
-            payload, etag = fetch(read)
+            payload, etag = fetch(
+                request,
+                lambda response: (response.read(), response.headers.get("ETag")),
+                timeout=30,
+            )
         except urllib.error.HTTPError as error:
             if anonymous and error.code in {401, 403}:
                 raise AccessRestricted(
@@ -1125,6 +1125,9 @@ def check_kit_dependencies(
     try:
         wanted = kit_pins.declarations(adapter_manifest(directory))
         pins = kit_pins.derive(kit[0], kit_head, wanted, kit_source)
+    except UpstreamBusy as error:
+        result.unreachable.append(f"kit dependencies: {str(error)[:200]}")
+        return
     except kit_pins.KitError as error:
         result.reasons.append(
             f"the kit's declared dependencies cannot be read at {kit_head[:12]}: "
@@ -1836,15 +1839,17 @@ def archive_sha256(repo: str, commit: str) -> str:
     total = 0
     url = f"https://codeload.github.com/{repo}/tar.gz/{commit}"
     request = urllib.request.Request(url, headers={"User-Agent": "vonk-forge-recipes"})
+
+    def hash_stream(response: Any) -> None:
+        nonlocal total
+        while chunk := response.read(1 << 20):
+            total += len(chunk)
+            if total > MAX_ARCHIVE_BYTES:
+                raise RuntimeError(f"{url} is larger than {MAX_ARCHIVE_BYTES} bytes")
+            digest.update(chunk)
+
     try:
-        with urllib.request.urlopen(request, timeout=120) as response:
-            while chunk := response.read(1 << 20):
-                total += len(chunk)
-                if total > MAX_ARCHIVE_BYTES:
-                    raise RuntimeError(
-                        f"{url} is larger than {MAX_ARCHIVE_BYTES} bytes"
-                    )
-                digest.update(chunk)
+        fetch(request, hash_stream, timeout=120)
     except (urllib.error.HTTPError, urllib.error.URLError) as error:
         raise RuntimeError(f"cannot fetch {url}: {error}") from error
     return digest.hexdigest()
@@ -1897,8 +1902,7 @@ def download_text(url: str) -> str:
     """A small published text file (a release's ``.sha256``), bounded in size."""
     request = urllib.request.Request(url, headers={"User-Agent": "vonk-forge-recipes"})
     try:
-        with urllib.request.urlopen(request, timeout=60) as response:
-            data = response.read(MAX_DIGEST_FILE_BYTES + 1)
+        data = fetch(request, lambda response: response.read(MAX_DIGEST_FILE_BYTES + 1))
     except (urllib.error.URLError, OSError) as error:
         raise ReleaseAssetError(f"{url}: {error}") from error
     if len(data) > MAX_DIGEST_FILE_BYTES:
@@ -2586,6 +2590,8 @@ class Assessor:
                         "- the source reference alone is not a refresh.\n"
                     )
                     self._retarget_reference(new_recipe, item)
+            except UpstreamBusy as error:
+                result.unreachable.append(f"{item.label}: {str(error)[:200]}")
             except (RuntimeError, SystemExit, KeyError, ValueError, OSError) as error:
                 result.reasons.append(
                     f"{item.label}: could not be assessed: {str(error)[:300]}"

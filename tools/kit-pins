@@ -131,6 +131,8 @@ ROOT = Path(__file__).resolve().parents[1]
 # The contracts import lazily (this tool starts on a bare interpreter); the path is set once.
 sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT)]
 from tools._catalog_model import file_id
+from tools._upstream_http import UpstreamBusy
+from tools._upstream_http import fetch as fetch_url
 
 MANIFEST = "vendored-upstream.json"
 ARCHIVE_ROUNDS = 3
@@ -215,6 +217,8 @@ class GitHub:
     def read(self, repo: str, commit: str, path: str) -> str:
         try:
             document = self.api(f"repos/{repo}/contents/{path}?ref={commit}")
+        except UpstreamBusy:
+            raise
         except (RuntimeError, KeyError) as error:
             raise KitError(
                 f"cannot read {repo}@{commit[:12]}:{path}: {error}"
@@ -227,6 +231,8 @@ class GitHub:
         """``(commit, date)`` of a tag, branch or commit (annotated tags dereferenced)."""
         try:
             document = self.api(f"repos/{repo}/commits/{ref}")
+        except UpstreamBusy:
+            raise
         except (RuntimeError, KeyError) as error:
             raise KitError(f"cannot resolve {repo}@{ref}: {error}") from error
         commit = document["sha"]
@@ -245,6 +251,8 @@ class GitHub:
             return "commit"
         try:
             self.api(f"repos/{repo}/git/ref/heads/{ref}")
+        except UpstreamBusy:
+            raise
         except (RuntimeError, KeyError):
             return "tag"
         return "branch"
@@ -277,6 +285,8 @@ class HuggingFace:
             document = self.api(
                 f"models/{repo}/revision/{urllib.parse.quote(ref, safe='')}"
             )
+        except UpstreamBusy:
+            raise
         except (RuntimeError, KeyError) as error:
             raise KitError(f"cannot resolve {repo}@{ref}: {error}") from error
         revision = document.get("sha")
@@ -289,6 +299,8 @@ class HuggingFace:
             return "commit"
         try:
             refs = self.api(f"models/{repo}/refs")
+        except UpstreamBusy:
+            raise
         except (RuntimeError, KeyError):
             return "tag"
         branches = {b.get("name") for b in refs.get("branches", [])}
@@ -297,6 +309,8 @@ class HuggingFace:
     def head(self, repo: str) -> str | None:
         try:
             document = self.api(f"models/{repo}")
+        except UpstreamBusy:
+            raise
         except (RuntimeError, KeyError):
             return None
         sha = document.get("sha")
@@ -494,12 +508,14 @@ def fetch(url: str, headers: dict[str, str]) -> tuple[int, dict[str, str], bytes
         url, headers={"User-Agent": "vonk-forge-recipes", **headers}
     )
     try:
-        with urllib.request.urlopen(request, timeout=60) as response:
-            return (
+        return fetch_url(
+            request,
+            lambda response: (
                 response.status,
                 {k.lower(): v for k, v in response.headers.items()},
                 response.read(50_000_000),
-            )
+            ),
+        )
     except urllib.error.HTTPError as error:
         return (
             error.code,
@@ -859,6 +875,8 @@ def newest_release(source: GitHub, repo: str) -> str | None:
     """The repository's newest version tag, for information in issues only."""
     try:
         tags = source.api(f"repos/{repo}/tags?per_page=100")
+    except UpstreamBusy:
+        raise
     except (RuntimeError, KeyError):
         return None
     best: tuple[tuple[int, ...], str] | None = None
@@ -1292,8 +1310,9 @@ def scan_download(repo: str, commit: str, scope: str = "") -> list[dict[str, Any
     url = archive_url(repo, commit)
     request = urllib.request.Request(url, headers={"User-Agent": "vonk-forge-recipes"})
     try:
-        with urllib.request.urlopen(request, timeout=120) as response:
-            return scan_stream(response, scope)
+        return fetch_url(
+            request, lambda response: scan_stream(response, scope), timeout=120
+        )
     except (*FETCH_ERRORS, tarfile.TarError) as error:
         raise KitError(f"cannot scan {url}: {error}") from error
 
@@ -1586,8 +1605,11 @@ def download_archive(
     request = urllib.request.Request(url, headers={"User-Agent": "vonk-forge-recipes"})
     for attempt in range(ARCHIVE_ROUNDS):
         try:
-            with urllib.request.urlopen(request, timeout=120) as response:
-                data = response.read(MAX_ARCHIVE_BYTES + 1)
+            data = fetch_url(
+                request,
+                lambda response: response.read(MAX_ARCHIVE_BYTES + 1),
+                timeout=120,
+            )
             break
         except FETCH_ERRORS as error:
             if attempt == ARCHIVE_ROUNDS - 1:

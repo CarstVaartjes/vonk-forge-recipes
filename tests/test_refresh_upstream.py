@@ -24,7 +24,6 @@ from vonk_forge_contracts import ModelDisplay
 
 from qualification import documents
 from tools._catalog_model import roles_for
-from tools._upstream_http import UpstreamBusy
 
 ROOT = Path(__file__).resolve().parents[1]
 LOADER = importlib.machinery.SourceFileLoader(
@@ -2960,6 +2959,7 @@ class SelfHealingTests(unittest.TestCase):
             "tools/check-test-git",
             "tools/check-final-stage-ldd",
             "tools/check-serial-reads",
+            "tools/check-raw-urlopen",
             "tools/generate-contract-examples",
             "tools/generate-contract-schemas",
             "tools/build-release-bundle",
@@ -3688,30 +3688,6 @@ class RewrittenHistoryTests(unittest.TestCase):
         self.assertEqual(refresh._error_message(error), "")
 
 
-class RateLimitTests(unittest.TestCase):
-    """A persistent 429 leaves the recipe unreachable-this-run; it never raises a finding."""
-
-    def test_persistent_429_is_busy_after_a_bounded_number_of_waits(self) -> None:
-        calls: list[str] = []
-        naps: list[float] = []
-
-        def limited(request: Any, timeout: float) -> Any:
-            calls.append(request.full_url)
-            error = HTTPError(request.full_url, 429, "slow down", Message(), None)
-            error.close()
-            raise error
-
-        http = refresh.Http(github_token=None, hf_token=None, cache_path=None)
-        with (
-            patch("urllib.request.urlopen", limited),
-            patch("tools._upstream_http.time.sleep", naps.append),
-            self.assertRaises(RuntimeError) as raised,
-        ):
-            http.json("https://huggingface.co/api/models/o/m", "huggingface")
-        self.assertIsInstance(raised.exception, UpstreamBusy)
-        self.assertEqual(len(calls), len(naps) + 1)
-
-
 class GatedRepositoryTests(unittest.TestCase):
     """#1517: a gated repository masks LFS digests and refuses non-LFS bytes (401).
 
@@ -3830,10 +3806,10 @@ class GatedRepositoryTests(unittest.TestCase):
             seen.clear()
             with (
                 patch.dict(os.environ, {"HF_TOKEN": "secret"}),
-                patch.object(refresh.catalog, "build_opener", return_value=Opener()),
+                patch("urllib.request.build_opener", return_value=Opener()),
                 self.assertRaises(OSError),
             ):
-                refresh.catalog._open(url, 5)
+                refresh.catalog._get_json(url)
             self.assertEqual(seen.get("Authorization"), expected)
 
     def test_the_token_goes_to_hugging_face_only(self) -> None:

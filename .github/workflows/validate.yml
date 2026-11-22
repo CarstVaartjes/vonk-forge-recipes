@@ -410,6 +410,14 @@ jobs:
           set -euo pipefail
           python3 tools/check-serial-reads --diff "$RUNNER_TEMP/added.diff"
 
+      # Provider URLs are opened only through tools/_upstream_http.fetch: a 429 is
+      # retried and then "not checked this run", never a failure or an issue.
+      - name: Reject new raw urlopen in tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-raw-urlopen --diff "$RUNNER_TEMP/added.diff"
+
       - name: Reject new tests that gate on a real recipe's declared memory
         shell: bash
         run: |

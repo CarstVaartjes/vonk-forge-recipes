@@ -64,9 +64,12 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import Request
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools._upstream_http import UpstreamBusy, fetch
+
 MANIFEST = "vendored-upstream.json"
 KIT_LOCK = "kit-lock.json"  # derived by tools/kit-pins from the kit the recipe pins
 SHA = re.compile(r"^[0-9a-f]{40}$")
@@ -183,10 +186,12 @@ def _api(path: str, token: str | None) -> Any:
     if token:
         headers["Authorization"] = f"Bearer {token}"
     try:
-        with urlopen(
-            Request(f"https://api.github.com/{path}", headers=headers), timeout=60
-        ) as r:
-            return json.loads(r.read())
+        return json.loads(
+            fetch(
+                Request(f"https://api.github.com/{path}", headers=headers),
+                lambda response: response.read(),
+            )
+        )
     except (HTTPError, URLError) as error:
         raise RuntimeError(f"GitHub API request failed for {path}: {error}") from error
 
@@ -217,11 +222,10 @@ def commit_on_github(repo: str, commit: str) -> bool | None:
         headers["Authorization"] = f"Bearer {token}"
     url = f"https://api.github.com/repos/{repo}/commits/{commit}"
     try:
-        with urlopen(Request(url, headers=headers), timeout=60):
-            return True
+        return fetch(Request(url, headers=headers), lambda response: True)
     except HTTPError as error:
         return False if error.code in {404, 422} else None
-    except OSError:  # unreachable, timed out
+    except (OSError, UpstreamBusy):  # unreachable, timed out, rate limited
         return None
 
 
