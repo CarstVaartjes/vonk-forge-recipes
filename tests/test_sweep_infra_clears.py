@@ -12,12 +12,13 @@ import ast
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
-SWEEP = Path(__file__).resolve().parents[1] / "spark_sweep"
+SWEEP = ROOT / "spark_sweep"
 
 
 @pytest.fixture

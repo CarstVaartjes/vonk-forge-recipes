@@ -3,14 +3,13 @@
 import json
 import re
 import runpy
-from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 from vonk_forge_contracts.recipe import RecipeGenerationSettings
 
 from qualification import documents
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/eugr/nemotron-3-ultra-nvfp4"
 UPSTREAM = ADAPTER / "recipes/4x-spark-cluster/nemotron-3-ultra-nvfp4.yaml"
 RECIPE = "nemotron-3-ultra-550b-a55b-nvfp4-eugr-vllm-four"

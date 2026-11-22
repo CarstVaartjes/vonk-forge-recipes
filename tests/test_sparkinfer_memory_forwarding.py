@@ -7,11 +7,10 @@ import sys
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 
 from qualification.memory_need import loads_draft_model
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize(

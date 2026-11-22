@@ -14,6 +14,7 @@ import time
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, _locked, make_sweep
 
 pytest_plugins = ["sweep_bounds"]
@@ -299,7 +300,7 @@ def test_the_lock_survives_in_another_process(tmp_path: Path) -> None:
                 "l = StateLock(Path(sys.argv[2])); l.acquire(); "
                 "print('held', flush=True); time.sleep(30)"
             ),
-            str(Path(__file__).resolve().parents[1]),
+            str(ROOT),
             str(tmp_path),
         ],
         stdout=subprocess.PIPE,

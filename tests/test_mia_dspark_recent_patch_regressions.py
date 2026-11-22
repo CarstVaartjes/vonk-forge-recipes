@@ -14,7 +14,8 @@ from types import SimpleNamespace
 from typing import Any
 from unittest.mock import patch
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 DEEPSEEK_ADAPTERS = (ROOT / "adapters/deepseek/mia-vllm-vision",)
 ISSUE27_MARK = "# [issue27-hotfix] enforce max_num_partial_prefills on admission"
 ISSUE27_SCRIPT_PATH = 'P = Path("/usr/local/lib/python3.12/dist-packages/vllm/v1/core/sched/scheduler.py")'

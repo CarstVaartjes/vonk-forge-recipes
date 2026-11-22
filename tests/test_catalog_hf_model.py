@@ -9,7 +9,8 @@ from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 TOOL = ROOT / "tools/catalog-hf-model"
 
 

@@ -13,7 +13,8 @@ from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 COMFY_RECIPES = (
     "flux-2-klein-4b-comfyui-single",
     "flux-2-klein-4b-nvfp4-comfyui-single",

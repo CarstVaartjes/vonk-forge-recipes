@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
@@ -36,7 +37,6 @@ from qualification.memory_need import (
     vllm_utilization_envelope,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 LLAMA = "llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single"
 INPUTS = load_inputs()
 

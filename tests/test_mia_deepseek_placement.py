@@ -1,14 +1,13 @@
 """The native Engram adapter must account for one local rank, preserving authorized fabric."""
 
 import importlib.util
-from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
 SPEC = importlib.util.spec_from_file_location(
     "mia_deepseek_placement",
-    Path(__file__).resolve().parents[1]
-    / "adapters/deepseek/mia-1017-sglang/distributed.py",
+    ROOT / "adapters/deepseek/mia-1017-sglang/distributed.py",
 )
 assert SPEC and SPEC.loader
 PLACEMENT = importlib.util.module_from_spec(SPEC)

@@ -9,8 +9,8 @@ from pathlib import Path
 from unittest import mock
 
 from ltx_protocol import assert_streaming_quantization_supported, manifest_bytes
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 RECIPE_SLUGS = (
     "ltx-2-19b-dev-bf16-diffusers-single",
     "ltx-2-19b-distilled-diffusers-single",

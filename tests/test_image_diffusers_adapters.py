@@ -8,7 +8,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 DIFFUSERS_REVISION = "c5469b7ceb606edd7ba6570dcd17d38590a18db6"
 
 

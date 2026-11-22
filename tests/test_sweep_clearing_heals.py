@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 
 import pytest
+from repo_root import FIXTURES, ROOT
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy
@@ -23,9 +24,7 @@ pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 FIXTURE = json.loads(
-    (
-        Path(__file__).parent / "fixtures" / "sweep-exhausted-clearing-2026-10-13.json"
-    ).read_text(encoding="utf-8")
+    (FIXTURES / "sweep-exhausted-clearing-2026-10-13.json").read_text(encoding="utf-8")
 )
 SWEPT = ("fastcontext", "hunyuanocr")
 ORPHANS = {row["assignment_name"] for row in FIXTURE["profile_assignments"]}
@@ -254,9 +253,7 @@ def test_every_review_of_a_new_intent_reconciles_the_profile_first() -> None:
     """Guard for the class: no load of the sweep profile carries what no lane needs."""
     import ast
 
-    source = (Path(__file__).parents[1] / "spark_sweep" / "run.py").read_text(
-        encoding="utf-8"
-    )
+    source = (ROOT / "spark_sweep" / "run.py").read_text(encoding="utf-8")
     missing = []
     for node in ast.walk(ast.parse(source)):
         if not isinstance(node, ast.FunctionDef) or node.name in REVIEW_WITHOUT_PRUNE:
@@ -282,7 +279,7 @@ def test_every_review_of_a_new_intent_reconciles_the_profile_first() -> None:
     assert missing == []
 
     # Include starred CLI args: _apply builds ["add", recipe.key] before its call.
-    for path in (Path(__file__).parents[1] / "spark_sweep").glob("*.py"):
+    for path in (ROOT / "spark_sweep").glob("*.py"):
         for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             if not isinstance(node, ast.FunctionDef):
                 continue

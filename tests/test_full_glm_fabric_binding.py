@@ -4,11 +4,10 @@ import ast
 import importlib.util
 import os
 import tarfile
-from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/glm/vcruz-full-tensorfold-four"
 
 

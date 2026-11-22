@@ -7,8 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from documents import model_display
-
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
 
 
 def read(path: Path) -> dict[str, Any]:

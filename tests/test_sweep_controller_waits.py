@@ -6,10 +6,10 @@ import json
 from copy import deepcopy
 from dataclasses import replace
 from datetime import datetime
-from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, StallAlarm, make_sweep
 
 from spark_sweep import policy, verdict
@@ -19,9 +19,7 @@ from spark_sweep.report import build_status
 from spark_sweep.state import State
 from spark_sweep.sweep_contract import ControllerWaitOperation, SweepWaitReason
 
-FIXTURE = (
-    Path(__file__).parent / "fixtures/sweep-verdicts/controller-waits-2026-10-23.json"
-)
+FIXTURE = FIXTURES / "sweep-verdicts/controller-waits-2026-10-23.json"
 RECORDS = json.loads(FIXTURE.read_text())
 COPY = next(row for row in RECORDS if row["code"] == "copy.stalled")
 RECEIPT = RECORDS[0]

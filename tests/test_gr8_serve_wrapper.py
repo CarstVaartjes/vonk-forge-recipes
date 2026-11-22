@@ -6,8 +6,8 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTERS = tuple(
     name
     for name in ("kindlingai-gr8-flash-single", "kindlingai-gr8-flash-dual")

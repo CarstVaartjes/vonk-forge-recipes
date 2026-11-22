@@ -9,12 +9,11 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path
 from typing import Any
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES: dict[str, Any] = json.loads(
     (ROOT / "qualification" / "shared.json").read_text(encoding="utf-8")
 )["service_case_templates"]

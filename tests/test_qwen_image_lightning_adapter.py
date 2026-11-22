@@ -10,8 +10,8 @@ import unittest
 from pathlib import Path
 
 from documents import recipe_display
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "adapters/image/qwen-image-lightning-diffusers/qwen_image_lightning.py"
 LOADER = importlib.machinery.SourceFileLoader("qwen_image_lightning", str(SCRIPT))
 SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)

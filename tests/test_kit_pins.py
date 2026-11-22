@@ -19,9 +19,9 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
-from tools.adapter_sources import AdapterSourceError
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
+from tools.adapter_sources import AdapterSourceError
 
 
 def load(name: str, module: str):

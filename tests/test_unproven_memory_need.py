@@ -9,6 +9,7 @@ import pytest
 from catalog_documents import catalog_models
 from documents import recipe as recipe_of
 from documents import recipe_display
+from repo_root import ROOT
 from vonk_forge_contracts import (
     QualificationBlame,
     QualificationCauseCode,
@@ -29,7 +30,6 @@ from qualification.memory_need import (
     memory_estimate_warnings,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 # Read before a test points the module root at a temporary directory.
 envelope_exceptions()
 MOSAIC = "glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single"

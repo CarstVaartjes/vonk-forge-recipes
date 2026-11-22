@@ -3,12 +3,10 @@ from __future__ import annotations
 import hashlib
 import json
 import unittest
-from pathlib import Path
 
 from documents import recipe_display
 from generated_catalog import GENERATED
-
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
 
 
 def load(relative: str) -> dict:

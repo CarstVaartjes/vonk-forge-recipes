@@ -18,13 +18,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from repo_root import ROOT
 
 from spark_sweep import policy, verdict
 from spark_sweep.lifecycle import ACTIVE, STATES, TERMINAL, WAITING, RecipeStatus
 from spark_sweep.verdict import Disposition
 from spark_sweep.vonkctl import CLIENT_CONTRACT_MISMATCH
 
-ROOT = Path(__file__).resolve().parents[1]
 SWEEP = [*sorted((ROOT / "spark_sweep").glob("*.py")), ROOT / "tools/sweep-recipes"]
 
 

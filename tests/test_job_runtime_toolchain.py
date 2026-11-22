@@ -6,8 +6,7 @@ import re
 from pathlib import Path
 
 import pytest
-
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
 
 
 def python_cuda_runtimes() -> list[Path]:

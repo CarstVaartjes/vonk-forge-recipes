@@ -18,7 +18,8 @@ from unittest import mock
 from urllib.error import HTTPError, URLError
 from urllib.request import Request
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 sys.path.insert(0, str(ROOT))
 from tools._upstream_http import UpstreamBusy, fetch, forget_busy
 

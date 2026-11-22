@@ -11,8 +11,8 @@ from pathlib import Path
 from unittest import mock
 
 from documents import model_display, recipe_display
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/minimax-h3-modular-diffusers"
 ADAPTER_PATH = ADAPTER_ROOT / "minimax_h3.py"
 RECIPE_PATH = ROOT / "recipes/minimax-h3-diffusers-single.json"

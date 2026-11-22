@@ -7,6 +7,7 @@ import json
 
 import pytest
 from pydantic import ValidationError
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.systemone import (
     SystemOneRequest,
@@ -122,9 +123,8 @@ def test_decision_result_rejects_invalid_probability_values(value: float) -> Non
 
 
 def test_recipe_roundtrip_preserves_decision_settings_and_native_probe() -> None:
-    from pathlib import Path
 
-    root = Path(__file__).resolve().parents[1]
+    root = ROOT
     document = json.loads(
         (
             root

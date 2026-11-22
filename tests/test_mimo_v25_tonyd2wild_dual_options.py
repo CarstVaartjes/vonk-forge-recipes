@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import json
 import unittest
-from pathlib import Path
 
+from repo_root import ROOT
 from vonk_forge_contracts import read_recipe
 
-ROOT = Path(__file__).resolve().parents[1]
 RECIPE = ROOT / "recipes/mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual.json"
 
 

@@ -8,12 +8,10 @@ hyphenated adapter directory importable without changing the package layout.
 from __future__ import annotations
 
 import importlib.util
-from pathlib import Path
 
-_SOURCE_TEST = (
-    Path(__file__).parents[1]
-    / "adapters/qwen/flash-next-vllm-dual/test_qwen38_wrapper.py"
-)
+from repo_root import ROOT
+
+_SOURCE_TEST = ROOT / "adapters/qwen/flash-next-vllm-dual/test_qwen38_wrapper.py"
 _SPEC = importlib.util.spec_from_file_location(
     "qwen38_adapter_source_tests", _SOURCE_TEST
 )

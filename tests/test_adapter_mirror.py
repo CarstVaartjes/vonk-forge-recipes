@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
 from tools.adapter_mirror import (
     IGNORE_BEGIN,
@@ -298,7 +299,7 @@ def test_undeclare_drops_a_superseded_path_and_its_empty_entry(tmp_path: Path) -
 
 
 def test_the_repository_ignore_block_is_exactly_the_declared_paths() -> None:
-    root = Path(__file__).resolve().parents[1]
+    root = ROOT
     text = (root / ".gitignore").read_text()
     block = (
         text.split(f"{IGNORE_BEGIN}\n", 1)[1].split(IGNORE_END, 1)[0].splitlines()

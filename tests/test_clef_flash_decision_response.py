@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import importlib.util
-from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 from vonk_forge_contracts.systemone import (
     SystemOneRequest,
     SystemOneResponse,
     validate_decision_result,
 )
 
-ADAPTER = Path(__file__).resolve().parents[1] / "adapters/llm/clef-flash-transformers"
+ADAPTER = ROOT / "adapters/llm/clef-flash-transformers"
 
 
 def _load():

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import jsonschema
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep.run import IDENTICAL_EXIT_LIMIT, PLATFORM_SKIP
@@ -84,7 +85,7 @@ def test_three_identical_untyped_job_create_replies_defer_and_the_next_recipe_ru
         "$.timeout_seconds: violates maximum"
     )
     envelope = fleet._error("control.api_error", detail)[1]
-    schema = Path(__file__).parent / "fixtures/vonkctl-error-v2.schema.json"
+    schema = FIXTURES / "vonkctl-error-v2.schema.json"
     jsonschema.Draft202012Validator(json.loads(schema.read_text())).validate(
         {**envelope, "schema_version": 2}
     )

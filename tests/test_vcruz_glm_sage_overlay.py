@@ -12,9 +12,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-ADAPTER = (
-    Path(__file__).resolve().parents[1] / "adapters/glm/vcruz-sage-rexl3-vllm-single"
-)
+from repo_root import ROOT
+
+ADAPTER = ROOT / "adapters/glm/vcruz-sage-rexl3-vllm-single"
 LAYER = "model.language_model.layers"
 
 

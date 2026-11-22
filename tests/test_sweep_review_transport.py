@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep.lifecycle import RecipeStatus, RetestReason
@@ -28,9 +29,7 @@ OBSERVATION = CliObservationReply(
     result={},
 ).model_dump(mode="json")
 TRANSPORT = json.loads(
-    (
-        Path(__file__).parent / "fixtures/sweep-verdicts/cli-transport-timeout.json"
-    ).read_text()
+    (FIXTURES / "sweep-verdicts/cli-transport-timeout.json").read_text()
 )
 
 

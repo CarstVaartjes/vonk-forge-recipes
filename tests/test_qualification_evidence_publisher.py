@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import ClassVar
 
 import pytest
+from repo_root import ROOT
 from test_qualification_status import historical
 
 from spark_sweep import evidence_publisher as publisher
@@ -26,7 +27,7 @@ def pr_list(*numbers):
 
 
 def seed_catalog(root):
-    source = Path(__file__).resolve().parents[1] / "recipes/qwen3-5-9b-vllm-single.json"
+    source = ROOT / "recipes/qwen3-5-9b-vllm-single.json"
     document = json.loads(source.read_text())
     document["identity"]["slug"] = "example"
     (root / "recipes").mkdir(exist_ok=True)
@@ -1111,7 +1112,7 @@ OPENS_NO_PR = {
 def test_every_tool_that_opens_pull_requests_declares_its_refused_outcome():
     import re
 
-    root = Path(__file__).resolve().parents[1]
+    root = ROOT
     opens = re.compile(r'"pr",\s*"create"|\bgh\s+pr\s+create\b')
     found = {
         str(path.relative_to(root))
@@ -1413,7 +1414,7 @@ def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monke
     row = historical()
     row["recorded_at"] = (NOW + timedelta(days=2)).isoformat()
     history.write_text(json.dumps(row) + "\n")
-    job = Path(__file__).resolve().parents[1] / "recipes"
+    job = ROOT / "recipes"
     job = job / "ltx-2-19b-distilled-diffusers-single.json"
     steady = QualificationMeasuredRoleMemory(
         content_sha256="a" * 64, role="entrypoint", steady_bytes=1

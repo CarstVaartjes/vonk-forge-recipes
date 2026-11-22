@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 from pydantic import TypeAdapter, ValidationError
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeJobInterface
 
@@ -21,7 +22,6 @@ from spark_sweep.definitions import Definitions
 from spark_sweep.smoke_job import _binding
 from tests.documents import recipe
 
-ROOT = Path(__file__).resolve().parents[1]
 MOSS = "vonk-forge/moss-vl-realtime-11b-pytorch-single"
 MOSS_MEDIA = ["application/x-ndjson", "video/mp4"]
 

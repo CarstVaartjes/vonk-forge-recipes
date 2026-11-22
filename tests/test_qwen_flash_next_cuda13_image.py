@@ -11,11 +11,10 @@ from __future__ import annotations
 
 import importlib.util
 import struct
-from pathlib import Path
 
 from documents import recipe
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/qwen/flash-next-tonyd2wild-vllm"
 CUDA13_BASE = "5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6"
 WHEEL_SHA256 = "5132d531c0ef9cee849f8a2f3262da2ad0d62dd7a404e1108092cd08a3bc00a3"

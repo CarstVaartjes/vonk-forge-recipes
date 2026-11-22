@@ -7,14 +7,12 @@ from concurrent.futures import Future
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep import verdict
 from spark_sweep.report import build_status
 from spark_sweep.sweep_contract import SweepWait, SweepWaitCode, SweepWaitReason
-
-ROOT = Path(__file__).resolve().parents[1]
-
 
 # Who may write a wait: bounded_wait writes all of it; only progress_verdict renews a
 # wait's window (forward movement), so only it may also move the start or drop the deadline.

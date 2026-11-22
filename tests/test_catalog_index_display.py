@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any
 
 from generated_catalog import GENERATED
+from repo_root import ROOT
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,
@@ -16,7 +16,6 @@ from vonk_forge_contracts import (
     require_display_of,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 INDEX = GENERATED / "catalog-index.json"
 
 

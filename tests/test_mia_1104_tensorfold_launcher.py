@@ -6,11 +6,9 @@ import sys
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-WRAPPER = (
-    Path(__file__).resolve().parents[1]
-    / "adapters/glm/mia-1104-tensorfold-dual/tensorfold-serve"
-)
+WRAPPER = ROOT / "adapters/glm/mia-1104-tensorfold-dual/tensorfold-serve"
 VENDORED_TEMPLATE = WRAPPER.parent / "chat_template.jinja"
 # The two template paths the wrapper reads inside the container.
 IMAGE_TEMPLATE_PATH = "/opt/vonk/templates/chat_template.jinja"

@@ -16,12 +16,12 @@ from unittest import mock
 
 import pytest
 from generated_catalog import GENERATED
+from repo_root import ROOT
 
 from qualification.definitions_loader import load_definitions
 from spark_sweep.job_media import video_metadata
 from spark_sweep.smoke import AssertionFailed
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/moss-vl-realtime"
 CONTRACT_PATH = ADAPTER_ROOT / "input_contract.py"
 RECIPE_PATH = ROOT / "recipes/moss-vl-realtime-11b-pytorch-single.json"

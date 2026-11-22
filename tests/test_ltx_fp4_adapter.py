@@ -15,8 +15,8 @@ from unittest import mock
 from documents import recipe_display
 from generated_catalog import GENERATED
 from ltx_protocol import assert_streaming_quantization_supported, manifest_bytes
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/ltx2-pytorch"
 ADAPTER_PATH = ADAPTER_ROOT / "pipelines/run.py"
 RECIPE = ROOT / "recipes/ltx-2-19b-dev-fp4-pytorch-single.json"

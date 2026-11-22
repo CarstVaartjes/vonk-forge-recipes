@@ -4,11 +4,10 @@ import importlib.machinery
 import importlib.util
 import json
 import unittest
-from pathlib import Path
 
 from documents import recipe_display
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 IMAGE = (
     "docker.io/vllm/vllm-openai@sha256:"
     "e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e"

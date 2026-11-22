@@ -9,8 +9,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/three-d/trellis2-native"
 
 

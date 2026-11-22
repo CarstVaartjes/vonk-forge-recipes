@@ -10,6 +10,7 @@ from typing import get_args
 
 import pytest
 from documents import model_display
+from repo_root import ROOT
 from vonk_forge_contracts import (
     CapabilityName,
     RecipeApi,
@@ -28,7 +29,6 @@ from qualification.introduced import (
     unreadable_features,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 GUARD = runpy.run_path(str(ROOT / "tools/check-platform-contracts"))
 

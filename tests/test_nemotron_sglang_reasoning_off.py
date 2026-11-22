@@ -8,9 +8,9 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 
-ROOT = Path(__file__).resolve().parents[1]
 # Exact source from SGLang commit 6a4216edb6d25f669ea81de146f86c01eab31128,
 # extracted from the pinned ARM64 image's source layer:
 # sha256:24ecc38e842ad2cdee50f8704f4e01afabcc825da878ed36d9b476edf8aefc39.

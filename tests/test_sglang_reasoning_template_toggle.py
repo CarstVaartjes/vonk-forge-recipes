@@ -33,8 +33,8 @@ import re
 from pathlib import Path
 
 from documents import model, recipe
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 GENERATION_PROMPT = re.compile(
     r"add_generation_prompt\s*-?%\}(?P<tail>.*?)\{%-?\s*endif", re.DOTALL
 )

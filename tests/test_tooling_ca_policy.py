@@ -5,11 +5,10 @@ from __future__ import annotations
 import re
 import subprocess
 import tomllib
-from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 SETUP = ".github/actions/setup-tooling/action.yml"
 UV_PIN = re.compile(
     r"\buv(?:x|[_-]version)?[\"' \t]*(?:==|=|@|:)[\"' \t]*v?\d+\.\d+\.\d+"

@@ -5,8 +5,8 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/deepseek/kindlingai-gr8-ds41f-four"
 
 FAKE_KNOBS = """KNOBS_SAW_EXTRA_ENV=$EXTRA_ENV

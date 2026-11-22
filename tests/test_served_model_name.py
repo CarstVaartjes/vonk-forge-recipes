@@ -12,8 +12,9 @@ import re
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-RECIPES = sorted((Path(__file__).resolve().parents[1] / "recipes").glob("*.json"))
+RECIPES = sorted((ROOT / "recipes").glob("*.json"))
 
 # vLLM and SGLang take the name from the same runtime argument.
 CHECKED_ENGINES = {"vllm", "sglang"}

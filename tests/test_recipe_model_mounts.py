@@ -12,9 +12,10 @@ from __future__ import annotations
 
 import json
 import unittest
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 RECIPES = ROOT / "recipes"
 MODEL_ROOT = PurePosixPath("/models")
 

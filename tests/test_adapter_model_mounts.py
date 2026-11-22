@@ -12,9 +12,9 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 
-ROOT = Path(__file__).resolve().parents[1]
 MODEL_PATH = re.compile(r"(?<![\w/}~])(/models/[A-Za-z0-9][A-Za-z0-9_./-]*)")
 # Each exception is limited to a recipe, source file and literal path. Stale
 # exceptions fail below, so broad or unexplained exclusions cannot hide drift.

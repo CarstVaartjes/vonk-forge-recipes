@@ -15,9 +15,9 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
+from repo_root import ROOT
 from test_job_writable_paths import _WRITABLE
 
-ROOT = Path(__file__).resolve().parents[1]
 REPAIRED_ADAPTERS = ("video/mova-pytorch/run.py",)
 # Entries the platform's output collector leaves to the runtime: its scratch
 # (TMPDIR=/outputs/tmp) and the cache mount. Everything else must be a file.

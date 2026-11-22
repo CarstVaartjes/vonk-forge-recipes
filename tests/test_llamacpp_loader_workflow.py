@@ -11,9 +11,9 @@ adapter must also be added to its paths.
 from __future__ import annotations
 
 import re
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 WORKFLOW = ROOT / ".github" / "workflows" / "llamacpp-loader.yml"
 GGML_ORG_BASE = re.compile(
     r"^FROM ghcr\.io/ggml-org/llama\.cpp@sha256:[0-9a-f]{64}$", re.MULTILINE

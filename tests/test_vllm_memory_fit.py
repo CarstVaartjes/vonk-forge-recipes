@@ -1,10 +1,10 @@
 """vLLM's GPU budget excludes unified-memory overhead on each GB10 node."""
 
 import math
-from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from warning_asserts import assert_not_warns, declare_peak
 
@@ -22,8 +22,6 @@ from qualification.memory_need import (
     memory_estimate_warnings,
 )
 from qualification.vllm_memory_fit import assert_memory_fit
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:

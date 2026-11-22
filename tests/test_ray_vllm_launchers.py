@@ -17,7 +17,8 @@ import shlex
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 NVIDIA_405B = "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four"
 
 

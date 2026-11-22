@@ -3,10 +3,9 @@
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
 from tools.single_source_values import Registration, ValueKind, check, scan_source
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_registered_values_have_one_owner() -> None:

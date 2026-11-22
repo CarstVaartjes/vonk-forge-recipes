@@ -5,7 +5,8 @@ import shlex
 import unittest
 from pathlib import Path, PurePosixPath
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 RECIPES = ROOT / "recipes"
 
 from catalog_documents import catalog_models

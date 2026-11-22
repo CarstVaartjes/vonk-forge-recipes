@@ -7,11 +7,9 @@ import sys
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-LAUNCHER = (
-    Path(__file__).resolve().parents[1]
-    / "adapters/qwen/tournier-exl3-4-05-tensorfold-single/tensorfold-serve"
-)
+LAUNCHER = ROOT / "adapters/qwen/tournier-exl3-4-05-tensorfold-single/tensorfold-serve"
 
 
 @pytest.mark.parametrize("conversion_fails", [False, True])

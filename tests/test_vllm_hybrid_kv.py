@@ -1,11 +1,11 @@
 """vLLM's hybrid allocator sizes Mamba/GDN state; a hand state bound does not."""
 
 import json
-from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
 from pydantic import ValidationError
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument, RuntimeArgumentValue
 
@@ -25,7 +25,6 @@ from qualification.memory_need import (
     speculative_tokens,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 INPUTS = load_inputs()
 DTYPE_BYTES = {"float32": 4, "float16": 2, "bfloat16": 2}
 

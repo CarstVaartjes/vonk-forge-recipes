@@ -13,6 +13,7 @@ from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import (
     RecipeOption,
@@ -23,7 +24,6 @@ from vonk_forge_contracts.recipe import (
 
 from qualification.memory_need import MemoryInputs, load_inputs
 
-ROOT = Path(__file__).resolve().parents[1]
 QWEN = "qwen3-8-flash-next-nvfp4-eugr-vllm-single"
 B12X_IMAGE = "eugr/spark-vllm-b12x"
 # Absent from memory-inputs ple_embedding_dtypes = bfloat16 (b12x's getattr default).

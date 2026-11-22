@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from documents import recipe_display
+from repo_root import ROOT
 
 from qualification.capabilities import generic_case_problems, serving_capabilities
 from qualification.definitions_loader import load_definitions
 
-ROOT = Path(__file__).resolve().parents[1]
 SLUG = "lfm2-5-24b-a2b-bf16-vllm-single"
 
 

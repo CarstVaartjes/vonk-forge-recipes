@@ -5,8 +5,8 @@ import unittest
 from pathlib import Path
 
 from documents import recipe_display
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 RECIPE_PATH = ROOT / "recipes/minimax-h3-fl2va-diffusers-single.json"
 FULL_RECIPE_PATH = ROOT / "recipes/minimax-h3-diffusers-single.json"
 MODEL_PATH = ROOT / "models/minimax-h3-fl2va-42ed227e.json"

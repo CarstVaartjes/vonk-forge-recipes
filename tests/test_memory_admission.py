@@ -1,11 +1,11 @@
 """Catch reserve double charging, guessed host use and divergent consumers."""
 
 import ast
-from pathlib import Path
 
 import documents
 import pytest
 from catalog_documents import catalog_models
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
@@ -16,8 +16,6 @@ from warning_asserts import assert_not_warns, assert_warns
 
 from qualification import memory_need
 from qualification.memory_need import vllm_utilization_envelope
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_declaration_boundary_and_observed_host_are_distinct() -> None:

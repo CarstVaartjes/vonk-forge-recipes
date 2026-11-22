@@ -13,13 +13,14 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import run, verdict
 from spark_sweep.definitions import Definitions
 
 DIFFUSIONGEMMA = "vonk-forge/diffusiongemma-26b-nvfp4-r0b0tlab-vllm-single"
-QUALIFICATION = Path(__file__).resolve().parents[1] / "qualification"
+QUALIFICATION = ROOT / "qualification"
 
 
 @pytest.fixture

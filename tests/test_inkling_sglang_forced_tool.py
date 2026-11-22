@@ -28,11 +28,10 @@ from typing import Any
 
 import jsonschema
 import pytest
+from repo_root import FIXTURES, ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 PATCH = "inkling-forced-tool-grammar.py"
 CANONICAL = ROOT / "adapters/inkling/small-dual" / PATCH
-FIXTURES = ROOT / "tests/fixtures"
 MESSAGE_MODEL = "<|message_model|>"
 INVOKE_JSON = "<|content_invoke_tool_json|>"
 END_MESSAGE = "<|end_message|>"

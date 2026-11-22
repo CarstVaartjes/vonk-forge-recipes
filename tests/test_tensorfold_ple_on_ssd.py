@@ -8,12 +8,10 @@ so drop --ple-on-ssd").  A recipe may pass it, in its arguments or an option
 choice, only when every Model it runs is an MLX checkpoint.
 """
 
-from pathlib import Path
-
 from documents import model, recipe
+from repo_root import ROOT
 from vonk_forge_contracts.recipe import RecipeDefinition
 
-ROOT = Path(__file__).resolve().parents[1]
 FLAG = "ple-on-ssd"
 
 

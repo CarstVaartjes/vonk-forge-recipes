@@ -14,12 +14,11 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy
 from spark_sweep.catalog import fetch_fleet
-
-FIXTURES = Path(__file__).parent / "fixtures"
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")

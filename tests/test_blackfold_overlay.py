@@ -2,13 +2,12 @@
 
 import importlib.util
 import sys
-from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
 from tests.documents import model, recipe
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/deepseek/blackfold-1017-tensorfold-tp2"
 SLUG = "deepseek-v4-1-flash-1017-blackfold-tensorfold-dual"
 

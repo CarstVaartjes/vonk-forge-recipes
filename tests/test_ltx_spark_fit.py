@@ -10,8 +10,8 @@ from unittest import mock
 
 import ltx_protocol  # noqa: F401  # puts the protocol wheel on sys.path for the adapters run below
 from documents import recipe_display
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 LTX23_SLUG = "ltx-2-3-22b-distilled-1-1-diffusers-single"
 FP4_SLUG = "ltx-2-19b-dev-fp4-pytorch-single"
 BF16_SLUG = "ltx-2-19b-dev-bf16-diffusers-single"

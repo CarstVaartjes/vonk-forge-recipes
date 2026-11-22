@@ -21,8 +21,8 @@ from types import SimpleNamespace
 from typing import Any, ClassVar
 from unittest import mock
 
-ROOT = Path(__file__).resolve().parents[1]
 from generated_catalog import GENERATED
+from repo_root import ROOT
 from vonk_forge_contracts import (
     document_sha256,
 )

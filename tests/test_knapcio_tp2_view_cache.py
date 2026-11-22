@@ -5,9 +5,9 @@ import textwrap
 from pathlib import Path
 from typing import Any
 
-ADAPTER = (
-    Path(__file__).resolve().parents[1] / "adapters/glm/tonyd2wild-knapcio-tp2-dual"
-)
+from repo_root import ROOT
+
+ADAPTER = ROOT / "adapters/glm/tonyd2wild-knapcio-tp2-dual"
 
 # Stands in for scripts/glm_quant_mix.py: plan and quant write the overlay, assemble links like the real one (os.link).
 FAKE_QUANT_MIX = textwrap.dedent(

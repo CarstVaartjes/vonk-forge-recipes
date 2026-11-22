@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any
 
 import pytest
 from generated_catalog import GENERATED
 from pydantic import ValidationError
+from repo_root import ROOT
 from test_admission_maximum_cap import record
 from vonk_forge_contracts import (
     PublishedMeasuredMemory,
@@ -30,7 +30,6 @@ from qualification.memory_need import (
     vllm_budget_bytes,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 VECTOR = json.loads(
     (
         ROOT

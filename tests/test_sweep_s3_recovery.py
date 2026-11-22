@@ -11,11 +11,11 @@ import threading
 import time
 from contextlib import AbstractContextManager
 from email.message import Message
-from pathlib import Path
 from types import SimpleNamespace
 from urllib.error import HTTPError
 
 import pytest
+from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep import policy, verdict
@@ -28,7 +28,6 @@ from spark_sweep.sweep_contract import SweepWait, SweepWaitReason
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
-ROOT = Path(__file__).resolve().parents[1]
 SAVED = json.loads((ROOT / "tests/fixtures/sweep-s3-recovery.json").read_text())
 
 

@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import runpy
-from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/llm/r0b0tlab-diffusiongemma-vllm-single"
 SANITIZER = (
     ADAPTER

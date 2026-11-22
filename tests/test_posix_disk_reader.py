@@ -12,8 +12,8 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "adapters/deepseek/0xsero-exl3-vllm-dual/_ple_reader.c"
 
 

@@ -7,8 +7,8 @@ import sys
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 LAUNCHERS = [
     ("qwen/qwen3-8-27b-taussoe-tensorfold-single", "/models/target", "tensorfold"),
     ("qwen/flash-next-taussoe-tensorfold-single", "/models", "tensorfold"),

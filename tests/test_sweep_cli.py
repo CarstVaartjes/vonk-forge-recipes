@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 from sweep_fakes import (
     GB,
     FakeClock,
@@ -24,8 +25,6 @@ from spark_sweep.issues import LABEL, file_issues, title_for
 from spark_sweep.qualification import history_evidence
 from spark_sweep.state import ResultsLog
 from spark_sweep.vonkctl import Vonkctl
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def _fleet(recipes, models, root="http://127.0.0.1:1"):

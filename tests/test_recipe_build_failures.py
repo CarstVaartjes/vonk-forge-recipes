@@ -13,8 +13,8 @@ from typing import Any
 from urllib.parse import urlsplit
 
 import pytest
+from repo_root import FIXTURES, ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 MINIMAX_DUAL = ROOT / "adapters/minimax/a3refaat-m3-b12x-dual"
 SKIN_CONTEXT = ROOT / "adapters/three-d/skintokens"
 
@@ -234,9 +234,6 @@ def test_skintokens_verifies_download_before_use(tmp_path: Path, corrupt: bool) 
     )
     assert (result.returncode == 0) is not corrupt, result.stderr
     assert (tmp_path / "consumed").exists() is not corrupt
-
-
-FIXTURES = ROOT / "tests/fixtures"
 
 
 @pytest.mark.parametrize(

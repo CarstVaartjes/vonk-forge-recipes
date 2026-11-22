@@ -10,9 +10,9 @@ import sys
 from pathlib import Path
 
 from documents import model
+from repo_root import ROOT
 from vonk_forge_contracts import document_sha256, published_json
 
-ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "tools/check-recipe-model-references"
 LOADER = importlib.machinery.SourceFileLoader(
     "check_recipe_model_references", str(SCRIPT)

@@ -11,6 +11,7 @@ from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
+from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from test_prebuilt_images import INDEX
 from test_refresh_upstream import refresh
@@ -23,8 +24,6 @@ from spark_sweep.policy import classify
 from spark_sweep.report import average_test_seconds, build_report, render_report
 from spark_sweep.state import State
 from spark_sweep.vonkctl import Reply, Vonkctl
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize("position", [0, 1, 2])

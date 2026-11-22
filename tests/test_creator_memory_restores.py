@@ -9,12 +9,12 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
 from documents import recipe as load_recipe
 from documents import recipe_display
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
@@ -28,7 +28,6 @@ from qualification.memory_need import (
     vllm_utilization_envelope,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 MIA = "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/blob/94ae731f4619f769be1f4dfe6f6607ce0a3e869d"
 EUGR = "https://github.com/eugr/spark-vllm-docker/blob/4709188da2921c89b12ae1231a6e712c6ab536e9/recipes"
 MIA_G26 = "https://github.com/MiaAI-Lab/Gemma-4-26B-A4B-DGX-Spark-18-concurrencies/blob/39e94192bd6f114a222d434cf2bf4dcf173248a5"

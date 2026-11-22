@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import json
 import unittest
-from pathlib import Path
 
 from documents import recipe_display
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 QWEN_RECIPES = {
     "qwen3-5-9b-vllm-single",
     "qwen3-6-27b-vllm-single",

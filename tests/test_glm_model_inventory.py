@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import json
 import unittest
-from pathlib import Path
 
+from repo_root import ROOT
 from vonk_forge_contracts import document_sha256
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def load(path: str) -> dict:

@@ -6,10 +6,10 @@ from pathlib import Path
 
 from catalog_documents import model_digest
 from documents import model_display
+from repo_root import ROOT
 from vonk_forge_contracts.model import ModelDefinition, ModelSource
 from vonk_forge_contracts.recipe import RecipeDefinition
 
-ROOT = Path(__file__).resolve().parents[1]
 PRIMARY_MODELS = {
     "mova-360p-diffusers-single": "mova-360p",
     "mova-720p-diffusers-single": "mova-720p",

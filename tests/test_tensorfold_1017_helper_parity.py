@@ -5,11 +5,11 @@ Functions are compared by AST (docstrings included), whole files by bytes. Only 
 asserted: the dual-Spark Mia adapter differs in `prepare_rank` (no parity layout), and bertholomus differs in the rest."""
 
 import ast
-from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ADAPTERS = Path(__file__).resolve().parents[1] / "adapters/deepseek"
+ADAPTERS = ROOT / "adapters/deepseek"
 ALL = [
     "bertholomus-1017-tensorfold-tp4",
     "blackfold-1017-tensorfold-tp2",

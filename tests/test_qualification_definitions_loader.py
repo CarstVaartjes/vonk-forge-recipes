@@ -4,10 +4,9 @@ import json
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
 from qualification.definitions_loader import load_definitions
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def _write(path: Path, document: object) -> None:

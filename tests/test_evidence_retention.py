@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from repo_root import ROOT
 from test_qualification_evidence_publisher import seed_catalog
 from test_qualification_status import KEY, A, evidence, record
 from test_qualification_status import NOW as T0
@@ -33,7 +34,6 @@ from qualification.evidence_store import (
 )
 from spark_sweep import evidence_publisher as publisher
 
-ROOT = Path(__file__).resolve().parents[1]
 LOADER = importlib.machinery.SourceFileLoader(
     "check_evidence_retention", str(ROOT / "tools/check-evidence-retention")
 )

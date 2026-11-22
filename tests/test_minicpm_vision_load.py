@@ -13,8 +13,8 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/minicpm/vcruz305-exl3-single"
 
 

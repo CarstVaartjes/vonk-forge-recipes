@@ -16,8 +16,8 @@ import re
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTERS = ROOT / "adapters"
 PREWARM = "/opt/vonk/prewarm"
 #: Launchers that copy a baked cache at start, each with a behavioural test here.

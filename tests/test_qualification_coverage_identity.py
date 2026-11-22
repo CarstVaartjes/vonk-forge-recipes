@@ -6,12 +6,11 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pytest
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeBuildDefinition
 
 from qualification.coverage_identity import execution_stack_identity
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def _recipe_for_root(root: Path) -> RecipeDefinition:

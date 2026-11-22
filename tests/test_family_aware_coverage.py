@@ -21,11 +21,11 @@ from typing import Any
 
 import pytest
 from generated_catalog import GENERATED
+from repo_root import ROOT
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
 from qualification.coverage_identity import execution_stack_identity
 
-ROOT = Path(__file__).resolve().parents[1]
 TOOL = "tools/build-family-aware-coverage"
 
 # The stock upstream image per engine. Any other image is a declared fork.

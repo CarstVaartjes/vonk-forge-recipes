@@ -5,9 +5,9 @@ import unittest
 from pathlib import Path
 from typing import Any
 
+from repo_root import ROOT
 from vonk_forge_contracts import read_recipe
 
-ROOT = Path(__file__).resolve().parents[1]
 RECIPE_NAMES = (
     "qwen3-6-35b-a3b-fp8-eugr-vllm-single",
     "qwen3-6-35b-a3b-fp8-eugr-vllm-dual",

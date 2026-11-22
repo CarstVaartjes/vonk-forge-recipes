@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 RECIPE = ROOT / "recipes/qwen3-8-flash-next-nvfp4-vllm-dual.json"
 ADAPTER = ROOT / "adapters/qwen/flash-next-vllm-dual"
 

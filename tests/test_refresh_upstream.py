@@ -20,12 +20,12 @@ from typing import Any, ClassVar
 from unittest.mock import patch
 from urllib.error import HTTPError
 
+from repo_root import ROOT
 from vonk_forge_contracts import ModelDisplay
 
 from qualification import documents
 from tools._catalog_model import roles_for
 
-ROOT = Path(__file__).resolve().parents[1]
 LOADER = importlib.machinery.SourceFileLoader(
     "refresh_upstream", str(ROOT / "tools/refresh-upstream")
 )

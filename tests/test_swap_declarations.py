@@ -2,11 +2,11 @@
 
 import hashlib
 import json
-from pathlib import Path
 from typing import Any
 
 import pytest
 from pydantic import ValidationError
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeMemoryResources
 from warning_asserts import assert_not_warns, assert_warns
@@ -21,7 +21,6 @@ from qualification.memory_need import (
     usable_swap_bytes,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 SLUG = "agents-a1-nvfp4-r0b0tlab-vllm-single"
 GIB = 1024**3
 USABLE_MAX = usable_swap_bytes(SWAP_MAXIMUM_BYTES)

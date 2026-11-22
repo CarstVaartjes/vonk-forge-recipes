@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 from documents import model_display, recipe_display
 from pydantic import ValidationError
+from repo_root import ROOT
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,
@@ -22,7 +23,6 @@ from vonk_forge_contracts import (
     require_display_of,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 INVALID = ROOT / "contracts/src/vonk_forge_contracts/examples/invalid"
 RECIPES = sorted((ROOT / "recipes").glob("*.json"))
 MODELS = sorted((ROOT / "models").glob("*.json"))

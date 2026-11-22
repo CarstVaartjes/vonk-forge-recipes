@@ -7,9 +7,8 @@ diffusers' ``from_pretrained`` raises ``ValueError`` for that combination; the d
 from __future__ import annotations
 
 import ast
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
 
 
 def _eager_quantized_loads(source: str) -> list[int]:

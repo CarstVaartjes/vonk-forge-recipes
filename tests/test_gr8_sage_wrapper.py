@@ -5,8 +5,8 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTERS = {"kindlingai-gr8-sage-dual": 2, "kindlingai-gr8-sage-four": 4}
 
 FAKE_ENTRYPOINT = """#!/bin/bash

@@ -23,8 +23,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/video/minimax-h3-vllm-omni-dual"
 _SPEC = importlib.util.spec_from_file_location(
     "vllm_omni_job", ADAPTER / "vllm_omni_job.py"

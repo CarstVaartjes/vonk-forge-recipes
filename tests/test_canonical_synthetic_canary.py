@@ -18,6 +18,7 @@ from typing import Any
 import pytest
 from generated_catalog import GENERATED
 from pydantic import ValidationError
+from repo_root import ROOT
 from vonk_forge_contracts import (
     ModelDefinition,
     RecipeDefinition,
@@ -26,7 +27,6 @@ from vonk_forge_contracts import (
 )
 from vonk_forge_contracts.model import ModelSource
 
-ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests/fixtures/canonical-synthetic-canary"
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
 PACKAGE = FIXTURE / "package/canonical-synthetic-canary.tar.gz"

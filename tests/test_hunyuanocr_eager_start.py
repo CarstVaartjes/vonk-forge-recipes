@@ -1,10 +1,7 @@
 """HunyuanOCR's GB10 recipe must not enter the failing graph-capture path."""
 
-from pathlib import Path
-
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_hunyuanocr_selects_eager_execution_before_gpu_initialization() -> None:

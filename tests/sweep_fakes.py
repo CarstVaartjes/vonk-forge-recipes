@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
+from repo_root import FIXTURES, ROOT
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
@@ -38,9 +39,7 @@ SPARK_MEMORY = SPARK_MEMORY_BYTES
 GB = 10**9
 
 
-CONTRACT_MISMATCH_FIXTURE = (
-    Path(__file__).parent / "fixtures/sweep-verdicts/cli-contract-mismatch.json"
-)
+CONTRACT_MISMATCH_FIXTURE = FIXTURES / "sweep-verdicts/cli-contract-mismatch.json"
 
 
 class FakeClock:
@@ -2094,8 +2093,6 @@ class FakeFleet:
 
 
 # -- harness -----------------------------------------------------------------------
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def _is_job(fleet: FakeFleet, run: dict[str, Any]) -> bool:

@@ -7,9 +7,10 @@ preparations were re-requested forever. No other module may read ``failure`` off
 from __future__ import annotations
 
 import ast
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1] / "spark_sweep"
+from repo_root import ROOT
+
+ROOT = ROOT / "spark_sweep"
 
 
 def _reads(tree: ast.AST):

@@ -4,11 +4,11 @@ import hashlib
 import json
 import re
 from decimal import Decimal
-from pathlib import Path
 
 import documents
 import pytest
 from catalog_documents import catalog_models
+from repo_root import ROOT
 from vonk_forge_contracts import (
     RecipeDefinition,
 )
@@ -33,7 +33,6 @@ from qualification.memory_need import (
     sglang_rank_budget_warnings,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 PROVEN = json.loads((ROOT / "tests/fixtures/proven-recipe-bytes.json").read_text())
 
 

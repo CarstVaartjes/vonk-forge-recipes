@@ -11,10 +11,10 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
+from repo_root import ROOT
 
 from tests.documents import recipe
 
-ROOT = Path(__file__).resolve().parents[1]
 MOVA = "video/mova-pytorch/run.py"
 CALIBRATION = (
     "deepseek/drowzeys-tr3-hybrid-four/serve/hybrid-port/"

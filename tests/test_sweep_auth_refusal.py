@@ -10,6 +10,7 @@ from email.message import Message
 from pathlib import Path
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep import policy
@@ -20,7 +21,7 @@ from spark_sweep.smoke import SmokeResult, _transport_failure
 from spark_sweep.sweep_contract import SweepWaitCode, SweepWaitReason
 from spark_sweep.verdict import Disposition, disposition
 
-FIXTURE = Path(__file__).parent / "fixtures/sweep-d3-route-refusal.json"
+FIXTURE = FIXTURES / "sweep-d3-route-refusal.json"
 
 
 def _failure(status: int, body: object):

@@ -12,11 +12,11 @@ from typing import Any
 
 import pytest
 from generated_catalog import GENERATED
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 from qualification.definitions_loader import load_definitions
 
-ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION_ROOT = ROOT / "qualification"
 
 

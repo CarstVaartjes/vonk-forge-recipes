@@ -12,8 +12,7 @@ from typing import NamedTuple
 from urllib.parse import urlparse
 
 from documents import recipe as document_recipe
-
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
 
 
 def load(path: Path) -> dict:

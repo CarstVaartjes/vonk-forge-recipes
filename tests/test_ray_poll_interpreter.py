@@ -23,7 +23,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 PLACEMENT = {
     "VONK_LOCAL_ADDR": "10.0.0.1",
     "VONK_MASTER_ADDR": "10.0.0.1",

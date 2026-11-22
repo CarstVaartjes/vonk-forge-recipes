@@ -2,16 +2,15 @@
 
 import ast
 import json
-from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
 import pytest
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 from qualification.memory_need import argument_value, hardware_proven
 
-ROOT = Path(__file__).resolve().parents[1]
 SLUG = "qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single"
 BACKEND = (
     ROOT

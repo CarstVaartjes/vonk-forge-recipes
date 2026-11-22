@@ -1,17 +1,14 @@
 """Measured memory is its own evidence table, keyed by (content_sha256, role)."""
 
-from pathlib import Path
-
 import pytest
 from pydantic import ValidationError
+from repo_root import ROOT
 from vonk_forge_contracts import (
     QualificationMeasuredRoleMemory,
     RecipeQualificationEvidence,
 )
 
 from qualification import documents
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def row(

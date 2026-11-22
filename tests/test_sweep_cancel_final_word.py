@@ -17,16 +17,12 @@ import json
 from pathlib import Path
 from typing import Any
 
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep.prefetch import PIN_RETRY_MAX_SECONDS, PrefetchConfig
 
-RECEIPT = (
-    Path(__file__).parent
-    / "fixtures"
-    / "sweep-verdicts"
-    / "k2-preparation-exhausted-cancel.json"
-)
+RECEIPT = FIXTURES / "sweep-verdicts" / "k2-preparation-exhausted-cancel.json"
 SUPERSEDED = {
     "code": "recipe_image.superseded_by_newer_revision",
     "retryable": False,

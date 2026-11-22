@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
+from repo_root import ROOT
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,
@@ -10,8 +10,6 @@ from vonk_forge_contracts import (
     RecipeDefinition,
     RecipeDisplay,
 )
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_representative_contract_examples_validate() -> None:

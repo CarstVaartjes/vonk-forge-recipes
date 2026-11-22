@@ -5,13 +5,12 @@ from __future__ import annotations
 import json
 import runpy
 import sys
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTERS = (
     "deepseek/mia-vllm-vision",
     "deepseek/sfxnz-vllm-vision-dual",

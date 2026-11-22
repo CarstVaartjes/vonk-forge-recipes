@@ -10,9 +10,9 @@ import sys
 from pathlib import Path, PurePosixPath
 
 import pytest
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 
-ROOT = Path(__file__).resolve().parents[1]
 # The only paths a job may write: every job runs with a read-only root, a tmpfs
 # /tmp and the /outputs mount (its cache/ included). The rest of the image is
 # read-only and root-owned, while the job runs as an unprivileged user.

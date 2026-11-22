@@ -20,6 +20,7 @@ from itertools import pairwise
 from pathlib import Path
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import (
     GB,
     PROGRESS_STALL_WINDOW,
@@ -42,10 +43,7 @@ pytestmark = pytest.mark.usefixtures("bounded_clock")
 WINDOW = 600.0
 MODEL = "1" * 64
 RECORDS = json.loads(
-    (
-        Path(__file__).parent
-        / "fixtures/sweep-verdicts/controller-waits-2026-10-23.json"
-    ).read_text()
+    (FIXTURES / "sweep-verdicts/controller-waits-2026-10-23.json").read_text()
 )
 # The recorded info receipt-missing wait without a Controller dependency deadline.
 RECEIPT_WAIT = next(

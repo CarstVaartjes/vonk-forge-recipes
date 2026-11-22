@@ -5,9 +5,9 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 
-ROOT = Path(__file__).resolve().parents[1]
 RC9_IMAGE = "3f293455e9450298f548c5c3268186f80703dfc490926f398aec9a746422e840"
 RC9_RECIPES = [
     RecipeDefinition.model_validate_json(path.read_text())

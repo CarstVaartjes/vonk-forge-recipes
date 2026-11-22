@@ -6,10 +6,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeGenerationSettings
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_qwen_uses_demand_growth_instead_of_pinning_the_maximum_pool(

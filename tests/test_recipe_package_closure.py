@@ -20,7 +20,8 @@ import runpy
 import tarfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
 
 

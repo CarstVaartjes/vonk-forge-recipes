@@ -5,11 +5,11 @@ from __future__ import annotations
 import hashlib
 import json
 import struct
-from pathlib import Path
 from typing import Any
 
 import pytest
 from pydantic import ValidationError
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import (
     MIN_SPEECH_SECONDS,
@@ -22,7 +22,6 @@ from vonk_forge_contracts.resolver import (
     validate_recipe_package_paths,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 FIXTURE = "qualification/fixtures/jfk-inaugural-10s.wav"
 

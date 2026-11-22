@@ -9,9 +9,8 @@ supported because _workflow_map is not set``.
 from __future__ import annotations
 
 import ast
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
 
 
 def _passes_workflow(call: ast.Call) -> bool:

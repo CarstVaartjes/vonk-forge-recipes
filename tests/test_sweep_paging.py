@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep.catalog import (
@@ -126,9 +127,7 @@ def test_shared_platform_list_vector_keeps_pins_ports_and_serving_checks():
 
     from spark_sweep.catalog import parse_recipe
 
-    page = json.loads(
-        (Path(__file__).parent / "fixtures/library-list.json").read_text()
-    )
+    page = json.loads((FIXTURES / "library-list.json").read_text())
     row = page["recipes"][0]
     recipe = parse_recipe(row, page["library"]["commit"])
     assert recipe is not None

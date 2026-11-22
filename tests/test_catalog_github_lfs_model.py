@@ -12,9 +12,9 @@ from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.parse import quote
 
+from repo_root import ROOT
 from vonk_forge_contracts import ModelDefinition, document_sha256
 
-ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / "tools/catalog-github-lfs-model"
 REVISION = "45c03facbf848e0c743091b7d9c17952096ff908"
 REPOSITORY = "https://github.com/NVlabs/GR00T-WholeBodyControl"

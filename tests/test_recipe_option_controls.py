@@ -3,9 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition, read_recipe
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def _recipe(slug: str) -> RecipeDefinition:

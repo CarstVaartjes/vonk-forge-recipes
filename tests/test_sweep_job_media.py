@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from repo_root import FIXTURES, ROOT
 from test_three_d_glb_validation import CONTEXTS, Glb, load_validator
 from vonk_forge_contracts.qualification_status import QualificationGlbProfile
 
@@ -301,7 +302,7 @@ def test_a_skinned_glb_requires_a_bound_skin_with_joints_and_vertex_weights(
 
 def test_skintokens_mesh_only_input_is_a_mesh_but_not_skinned() -> None:
     """The job's input fixture has no rig: only the job's output can pass ``skinned``."""
-    fixtures = Path(__file__).resolve().parents[1] / "qualification/fixtures"
+    fixtures = ROOT / "qualification/fixtures"
     content = (fixtures / "skintokens-rigged-figure.glb").read_bytes()
     assert evaluate([TRIANGLE_MESH], _glb_output(content)) == {}
     with pytest.raises(AssertionFailed, match="skins"):
@@ -350,9 +351,7 @@ def test_the_sweep_accepts_what_the_adapter_validator_publishes(
 @pytest.mark.parametrize("fallback", [False, True])
 def test_pixal3d_webp_export_passes_the_sweep(fallback: bool) -> None:
     """Catches the sweep rejecting the adapter's required WebP texture sources."""
-    content = (
-        Path(__file__).parent / "fixtures/pixal3d-trimesh-4.10.1-padded.glb"
-    ).read_bytes()
+    content = (FIXTURES / "pixal3d-trimesh-4.10.1-padded.glb").read_bytes()
     document, blob = job_media._glb_chunks(content)
     if fallback:
         document["images"].append({"bufferView": 2, "mimeType": "image/png"})
@@ -375,9 +374,7 @@ def _repack_glb(document: dict[str, Any], blob: bytes) -> bytes:
 )
 def test_sweep_rejects_broken_webp_texture_references(damage: str) -> None:
     """Extension support must preserve declaration, source and distinct-image checks."""
-    content = (
-        Path(__file__).parent / "fixtures/pixal3d-trimesh-4.10.1-padded.glb"
-    ).read_bytes()
+    content = (FIXTURES / "pixal3d-trimesh-4.10.1-padded.glb").read_bytes()
     document, blob = job_media._glb_chunks(content)
     if damage == "used":
         document["extensionsUsed"] = []

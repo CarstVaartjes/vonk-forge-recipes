@@ -8,10 +8,10 @@ import builtins
 import hashlib
 import io
 import json
-from pathlib import Path
 
 import pytest
 from PIL import Image
+from repo_root import ROOT
 
 from qualification.definitions_loader import load_definitions
 from qualification.native_buckets import (
@@ -22,7 +22,6 @@ from qualification.native_buckets import (
 from spark_sweep.job_assertions import Output, evaluate
 from spark_sweep.smoke import AssertionFailed
 
-ROOT = Path(__file__).resolve().parents[1]
 HUNYUAN = {
     "hunyuan-video-15-distilled-diffusers-single": (848, 480),
     "hunyuan-video-15-i2v-step-distilled-diffusers-single": (640, 640),

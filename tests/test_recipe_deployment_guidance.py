@@ -3,11 +3,10 @@ from __future__ import annotations
 import hashlib
 import json
 import unittest
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
 from documents import recipe_display
 from generated_catalog import GENERATED
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 

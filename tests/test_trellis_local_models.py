@@ -10,8 +10,8 @@ from types import ModuleType
 from unittest import mock
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/three-d/trellis2-native"
 PATCH = runpy.run_path(str(ADAPTER / "patches/apply-local-models.py"))
 

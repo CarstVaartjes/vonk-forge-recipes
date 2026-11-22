@@ -4,10 +4,10 @@ import json
 import shutil
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
+from repo_root import ROOT
 from vonk_forge_contracts import (
     PublishedQualificationStatusView,
     derive_status,
@@ -68,7 +68,6 @@ from spark_sweep.qualification import (
     scheduling_priority,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 NOW = datetime(2026, 10, 21, tzinfo=UTC)
 KEY = "vonk-forge/example"
 A = Identity(

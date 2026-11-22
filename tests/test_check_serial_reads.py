@@ -8,8 +8,8 @@ import sys
 from pathlib import Path
 
 from added_diff import added_diff
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 LOADER = importlib.machinery.SourceFileLoader(
     "check_serial_reads", str(ROOT / "tools/check-serial-reads")
 )

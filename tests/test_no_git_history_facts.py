@@ -13,8 +13,8 @@ import re
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 HISTORY = ("show", "log", "archive", "cat-file", "blame", "rev-list", "restore")
 # A git command naming a history verb on one source line, in any form: an argv
 # list, a starred prefix, a shell string or a helper's arguments.

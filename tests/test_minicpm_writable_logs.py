@@ -7,8 +7,7 @@ import sys
 from pathlib import Path
 
 import pytest
-
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
 
 
 def _tabby_launchers() -> list[Path]:

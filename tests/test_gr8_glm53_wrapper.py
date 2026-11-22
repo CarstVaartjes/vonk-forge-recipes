@@ -6,8 +6,8 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 GLM = ROOT / "adapters/glm"
 ADAPTERS = tuple(sorted(path.name for path in GLM.glob("kindlingai-gr8-glm53-*")))
 # the wrappers that convert a mounted DFlash2 drafter; the MTP-only ones (five, six) carry no drafter block

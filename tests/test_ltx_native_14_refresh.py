@@ -8,10 +8,10 @@ from pathlib import Path
 
 from documents import recipe_display
 from generated_catalog import GENERATED
+from repo_root import ROOT
 
 from tools.protocol_wheel import selection
 
-ROOT = Path(__file__).resolve().parents[1]
 RECIPES = {
     "ltx-2-19b-dev-fp4-pytorch-single": "adapters/video/ltx2-pytorch",
     "ltx-2-19b-dev-bf16-diffusers-single": "adapters/video/ltx23-sync-native-disk",

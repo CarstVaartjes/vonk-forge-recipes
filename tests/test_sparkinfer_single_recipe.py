@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
 from generated_catalog import GENERATED
+from repo_root import ROOT
 from vonk_forge_contracts import (
     document_sha256,
 )

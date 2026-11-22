@@ -15,6 +15,7 @@ from unittest import mock
 
 from catalog_documents import catalog_models, model_digest
 from documents import model_display
+from repo_root import ROOT
 from vonk_forge_contracts.model import ModelDefinition
 from vonk_forge_contracts.recipe import RecipeDefinition
 from vonk_forge_contracts.resolver import (
@@ -22,7 +23,6 @@ from vonk_forge_contracts.resolver import (
     validate_recipe_models,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/three-d/step1x-3d"
 PREPARE_PATH = ADAPTER_ROOT / "prepare_upstream.py"
 RUN_PATH = ADAPTER_ROOT / "run.py"

@@ -5,13 +5,12 @@ import importlib
 import importlib.util
 import json
 import sys
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from repo_root import ROOT
 from vonk_forge_contracts import read_recipe
 
-ROOT = Path(__file__).resolve().parents[1]
 CONTEXT = ROOT / "adapters/video/drowzeys-fasth3-tensorfold"
 RECIPE = ROOT / "recipes/minimax-h3-keys-heretic-drowzeys-comfyui-single.json"
 Manifest = importlib.import_module(

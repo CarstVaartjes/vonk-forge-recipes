@@ -7,8 +7,8 @@ from pathlib import Path
 
 from documents import recipe_display
 from generated_catalog import GENERATED
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 MODEL = ROOT / "models/deepseek-v4-flash-vision-exp-6821d6ad.json"
 RECIPE = ROOT / "recipes/deepseek-v4-flash-vision-exp-mia-dual.json"
 ADAPTER = ROOT / "adapters/deepseek/mia-vllm-vision"

@@ -15,10 +15,9 @@ from typing import Any
 
 import pytest
 from documents import recipe
+from repo_root import FIXTURES, ROOT
 from vonk_forge_contracts.recipe import RecipeJobSettings
 
-ROOT = Path(__file__).resolve().parents[1]
-FIXTURES = ROOT / "tests/fixtures"
 VIDEO = ROOT / "adapters/video"
 FASTH3 = VIDEO / "drowzeys-fasth3-tensorfold/comfyui_job.py"
 KEYS_HERETIC = VIDEO / "drowzeys-keys-heretic-h3/comfyui_job.py"

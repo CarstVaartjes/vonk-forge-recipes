@@ -23,12 +23,12 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 import pytest
+from repo_root import ROOT
 
 from qualification import documents
 from spark_sweep.definitions import Definitions
 from spark_sweep.job_assertions import Output, evaluate
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/three-d/gem-x-motion"
 SLUG = "gem-x-body-motion-pytorch-single"
 FIXTURE = ROOT / "qualification/fixtures/gemx-person-2s.mp4"

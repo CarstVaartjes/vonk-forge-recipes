@@ -12,6 +12,7 @@ import pytest
 from documents import model_display, recipe, recipe_api
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
+from repo_root import ROOT
 from vonk_forge_contracts import (
     RecipeApi,
     RecipeApiError,
@@ -29,7 +30,6 @@ from vonk_forge_contracts.api_checks import (
 )
 from vonk_forge_contracts.resolver import ContractResolutionError, validate_recipe_apis
 
-ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 INVALID = EXAMPLES / "invalid"
 APIS = sorted((ROOT / "api/recipes").glob("*.json"))

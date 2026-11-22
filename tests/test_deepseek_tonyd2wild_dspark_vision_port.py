@@ -11,11 +11,10 @@ from __future__ import annotations
 import json
 import re
 import unittest
-from pathlib import Path
 
 from documents import recipe_display
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 CONTEXT = "adapters/deepseek/tonyd2wild-dspark-dual"
 VISION_TAGS = {"vision", "multimodal", "image", "native-vision"}
 PORT_STEPS = ("patch_vision.py", "patch_registry.py", "ds4v_mm.py")

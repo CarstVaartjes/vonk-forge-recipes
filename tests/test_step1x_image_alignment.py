@@ -7,9 +7,9 @@ import sys
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 from test_three_d_glb_validation import Glb
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/three-d/step1x-3d"
 
 

@@ -5,9 +5,9 @@ from __future__ import annotations
 
 import importlib.util
 import unittest
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 PATCH = (
     ROOT
     / "adapters/deepseek/mia-vllm-vision/patches/hotfix-dsv4-issue133-triton-specialization.py"

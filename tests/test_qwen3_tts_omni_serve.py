@@ -4,14 +4,12 @@ from __future__ import annotations
 
 import importlib.util
 import json
-from pathlib import Path
 from types import ModuleType
 
 import pytest
+from repo_root import ROOT
 
-ADAPTER = Path(__file__).resolve().parents[1] / (
-    "adapters/qwen/qwen3-tts-customvoice-vllm-omni-single"
-)
+ADAPTER = ROOT / ("adapters/qwen/qwen3-tts-customvoice-vllm-omni-single")
 
 
 def _launcher() -> ModuleType:

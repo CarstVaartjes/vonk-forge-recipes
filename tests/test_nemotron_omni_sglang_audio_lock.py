@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import runpy
 import unittest
-from pathlib import Path
 from unittest.mock import patch
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 VERIFIER = (
     ROOT
     / "adapters/nvidia/nemotron-3-nano-omni-30b-a3b-bf16-nvidia-sglang-single/verify-runtime.py"

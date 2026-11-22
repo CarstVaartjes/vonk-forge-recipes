@@ -10,6 +10,7 @@ from typing import Any
 
 import pytest
 from documents import model, model_display, recipe, recipe_display
+from repo_root import ROOT
 from vonk_forge_contracts import (
     CapabilityName,
     ModelDefinition,
@@ -22,7 +23,6 @@ from vonk_forge_contracts import (
 from vonk_forge_contracts.model import ModelRecord
 from vonk_forge_contracts.resolver import ContractResolutionError, validate_library
 
-ROOT = Path(__file__).resolve().parents[1]
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
 PROVEN = json.loads((ROOT / "tests/fixtures/proven-recipe-bytes.json").read_text())
 

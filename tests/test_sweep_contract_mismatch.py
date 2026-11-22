@@ -17,6 +17,7 @@ from pathlib import Path
 
 import jsonschema
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import (
     CONTRACT_MISMATCH_FIXTURE,
     FakeModel,
@@ -34,7 +35,7 @@ from spark_sweep.vonkctl import CLIENT_CONTRACT_MISMATCH
 
 LIBRARY = ("recipe", "library", "--limit", "1")
 FAULT = (LIBRARY, CLIENT_CONTRACT_MISMATCH, "")
-SCHEMA = Path(__file__).parent / "fixtures/vonkctl-error-v2.schema.json"
+SCHEMA = FIXTURES / "vonkctl-error-v2.schema.json"
 
 
 @pytest.fixture

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep.lifecycle import LifecycleState
@@ -14,7 +15,7 @@ from spark_sweep.report import build_status
 from spark_sweep.state import State
 from spark_sweep.vonkctl import Vonkctl
 
-FIXTURES = Path(__file__).parent / "fixtures/sweep-removal"
+FIXTURES = FIXTURES / "sweep-removal"
 MAX_BACKOFF_SECONDS = 3600.0
 A, B, C, D = (letter * 64 for letter in "abcd")
 

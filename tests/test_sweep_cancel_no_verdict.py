@@ -15,14 +15,10 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
-INCIDENT = (
-    Path(__file__).parent
-    / "fixtures"
-    / "sweep-verdicts"
-    / "hunyuanocr-cancelled-copy-retry.json"
-)
+INCIDENT = FIXTURES / "sweep-verdicts" / "hunyuanocr-cancelled-copy-retry.json"
 
 
 def _incident() -> dict[str, Any]:

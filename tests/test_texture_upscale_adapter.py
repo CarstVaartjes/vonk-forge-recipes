@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from repo_root import ROOT
 
 from qualification.definitions_loader import load_definitions
 from spark_sweep.job_assertions import Output, evaluate
@@ -16,7 +17,6 @@ from spark_sweep.job_assertions import Output, evaluate
 np: Any = importlib.import_module("numpy")
 Image: Any = importlib.import_module("PIL.Image")
 
-ROOT = Path(__file__).resolve().parents[1]
 SLUG = "texture-upscale-4x-nomos8ksc-pytorch-single"
 RUNNER = ROOT / "adapters/image/texture-upscale-pytorch/run.py"
 FIXTURE = ROOT / "qualification/fixtures/tiny.png"

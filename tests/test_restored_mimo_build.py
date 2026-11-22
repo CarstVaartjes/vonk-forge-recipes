@@ -5,15 +5,14 @@ from __future__ import annotations
 import re
 import runpy
 import sys
-from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+from repo_root import ROOT
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.model import ModelSource
 
-ROOT = Path(__file__).resolve().parents[1]
 VERIFIER = ROOT / "adapters/mimo/mia-sglang-dual/verify-runtime.py"
 
 

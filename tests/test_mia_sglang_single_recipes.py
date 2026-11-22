@@ -9,8 +9,7 @@ import unittest
 from pathlib import Path
 
 from documents import recipe_display
-
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
 
 
 def load(path: str) -> dict:

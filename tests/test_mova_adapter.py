@@ -10,7 +10,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT, TESTS
+
 ADAPTER = ROOT / "adapters/video/mova-pytorch"
 RECIPES = (
     ROOT / "recipes/mova-360p-diffusers-single.json",
@@ -220,7 +221,7 @@ def test_minimal_job_reaches_official_runner_with_native_resolution(tmp_path: Pa
             mock.patch.object(runner, "_input_manifest", return_value=None),
             mock.patch.object(runner, "_prompt", return_value="A small sample"),
             mock.patch.object(runner, "_variant", return_value=dimensions),
-            mock.patch.object(runner, "_OFFICIAL_RUNNER", Path(__file__)),
+            mock.patch.object(runner, "_OFFICIAL_RUNNER", TESTS / "repo_root.py"),
             mock.patch.object(
                 runner, "_reference_frame", return_value=tmp_path / "reference.png"
             ),

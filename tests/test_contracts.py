@@ -3,17 +3,13 @@ from __future__ import annotations
 import copy
 import json
 import subprocess
-from pathlib import Path
+import sys
 from typing import Any, cast
 
 import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
-
-ROOT = Path(__file__).parents[1]
-
-import sys
-
+from repo_root import ROOT
 from vonk_forge_contracts import (
     GitHubLfsSource,
     GitHubReleaseSource,

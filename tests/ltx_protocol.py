@@ -5,7 +5,8 @@ import importlib
 import json
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 from tools.protocol_wheel import selection, verified_payload
 
 SELECTED_PROTOCOL = selection(ROOT)

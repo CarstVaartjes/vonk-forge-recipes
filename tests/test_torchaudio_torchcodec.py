@@ -13,7 +13,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 ADAPTERS = ROOT / "adapters"
 TORCHAUDIO_PIN = re.compile(r"\btorchaudio\s*==\s*(\d+)\.(\d+)")
 TORCHCODEC_PIN = re.compile(r"\btorchcodec\s*==")

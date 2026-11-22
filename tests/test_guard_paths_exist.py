@@ -20,9 +20,8 @@ import os
 import re
 from pathlib import Path
 
+from repo_root import ROOT
 from test_package_import_direction import LAYERS, tree_sources
-
-ROOT = Path(__file__).resolve().parents[1]
 
 #: First segment that makes a string a repository path. A moved directory stays listed.
 RETIRED_AND_LISTED = frozenset(

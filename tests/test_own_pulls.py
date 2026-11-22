@@ -6,9 +6,10 @@ import re
 from pathlib import Path
 from unittest.mock import patch
 
+from repo_root import ROOT
+
 from qualification.own_pulls import OWN_FIELDS, own_pulls
 
-ROOT = Path(__file__).resolve().parents[1]
 OWN = {"isCrossRepository": False, "headRepositoryOwner": {"login": "CarstVaartjes"}}
 FORK = {"isCrossRepository": True, "headRepositoryOwner": {"login": "someone-else"}}
 WRAPPERS = {"own_pulls", "with_all_files"}

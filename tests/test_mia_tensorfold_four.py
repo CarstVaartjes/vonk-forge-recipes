@@ -7,11 +7,11 @@ import sys
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 from vonk_forge_contracts.recipe import RecipeGenerationSettings
 
 from qualification import documents
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/deepseek/mia-1017-tensorfold-four"
 RECIPE = "deepseek-v4-1-flash-1017-mia-tensorfold-four"
 ENVIRON = {

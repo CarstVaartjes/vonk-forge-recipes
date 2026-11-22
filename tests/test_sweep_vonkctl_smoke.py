@@ -10,6 +10,7 @@ import textwrap
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 from sweep_fakes import Gateway, production_service_cases
 from vonk_forge_contracts.api import (
     ApiReasoningAlwaysOn,
@@ -43,8 +44,6 @@ from spark_sweep.vonkctl import (
     VonkctlError,
     request_key,
 )
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def reply(code: int, document: object, argv: tuple[str, ...] = ()) -> Reply:

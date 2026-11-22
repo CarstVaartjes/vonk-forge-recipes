@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import json
 from dataclasses import replace
-from pathlib import Path
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 pytest_plugins = ["sweep_bounds"]
@@ -608,7 +608,7 @@ def _recipes(first, second=None):
     )
 
 
-FIXTURE = Path(__file__).parent / "fixtures" / "sweep-verdicts"
+FIXTURE = FIXTURES / "sweep-verdicts"
 
 
 def test_the_real_failed_application_resolves_each_failure_to_its_lane() -> None:

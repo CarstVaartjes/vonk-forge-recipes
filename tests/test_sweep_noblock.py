@@ -7,6 +7,7 @@ from concurrent.futures import Future
 from pathlib import Path
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep import policy, verdict
@@ -22,7 +23,7 @@ from spark_sweep.sweep_contract import (
 )
 from spark_sweep.vonkctl import VonkctlError
 
-FIXTURE = Path(__file__).parent / "fixtures/sweep-noblock.json"
+FIXTURE = FIXTURES / "sweep-noblock.json"
 TRANSPORT_TIMEOUT = json.loads(
     (FIXTURE.parent / "sweep-verdicts/cli-transport-timeout.json").read_text()
 )

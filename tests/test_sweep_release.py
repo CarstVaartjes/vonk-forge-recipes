@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 pytest_plugins = ["sweep_bounds"]
@@ -413,7 +414,7 @@ def test_saved_lane_fixture_never_certifies_the_catalog_at_restart(
 ) -> None:
     from spark_sweep.identity import IdentityReason
 
-    fixture = Path(__file__).parent / "fixtures/sweep-accepted-content-state.json"
+    fixture = FIXTURES / "sweep-accepted-content-state.json"
     saved = json.loads(fixture.read_text())
     key = "vonk-forge/changing"
     if not bound:

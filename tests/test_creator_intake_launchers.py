@@ -11,8 +11,7 @@ import types
 from pathlib import Path
 
 import pytest
-
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
 
 
 @pytest.mark.parametrize("profile", ["c2", "c4", "c2-vit-off"])

@@ -18,8 +18,8 @@ from pathlib import Path, PurePosixPath
 import pytest
 from generated_catalog import SOURCE_COMMIT as SESSION_COMMIT
 from generated_catalog import SOURCE_DATE_EPOCH as SESSION_EPOCH
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
 SOURCE_COMMIT = "0123456789abcdef0123456789abcdef01234567"
 SOURCE_DATE_EPOCH = 0

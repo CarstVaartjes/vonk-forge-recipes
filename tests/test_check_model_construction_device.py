@@ -8,7 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 SCRIPT = ROOT / "tools/check-model-construction-device"
 LOADER = importlib.machinery.SourceFileLoader("check_model_construction", str(SCRIPT))
 SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)

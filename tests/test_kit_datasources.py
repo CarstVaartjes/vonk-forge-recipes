@@ -21,6 +21,7 @@ from typing import Any
 from unittest.mock import patch
 
 from documents import model_display
+from repo_root import ROOT
 from test_kit_pins import (
     BASE,
     KIT,
@@ -32,7 +33,6 @@ from test_kit_pins import (
 )
 from vonk_forge_contracts import read_model
 
-ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = json.loads(
     (
         ROOT / "contracts/src/vonk_forge_contracts/examples/model-definition.json"

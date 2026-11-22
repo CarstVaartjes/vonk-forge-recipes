@@ -17,8 +17,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY = "owner/recipes"
 TAG = "v3.0.0"
 SHA = "a" * 40

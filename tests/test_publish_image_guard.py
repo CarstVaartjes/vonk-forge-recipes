@@ -14,8 +14,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 COMMIT = "1" * 40
 CONTENT = "2" * 64
 KEY = "3" * 64

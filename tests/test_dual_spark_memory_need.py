@@ -1,9 +1,8 @@
 """Nonfitting dual recipes must expose their demand instead of waiving it."""
 
-from pathlib import Path
-
 import pytest
 from catalog_documents import catalog_models
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeRuntimeEnvironment
 from warning_asserts import assert_warns, declare_peak
@@ -20,7 +19,6 @@ from qualification.memory_need import (
     rank_weight_bytes,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 RECIPES = ("glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",)
 POOLED = RECIPES
 

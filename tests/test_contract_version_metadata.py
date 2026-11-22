@@ -11,10 +11,8 @@ import tomllib
 from pathlib import Path
 from zipfile import ZipFile
 
+from repo_root import ROOT
 from vonk_forge_contracts import CONTRACT_MAJOR, CONTRACT_VERSION, __version__
-
-ROOT = Path(__file__).resolve().parents[1]
-
 
 OWNER = "src/vonk_forge_contracts/_version.py"
 

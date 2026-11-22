@@ -8,11 +8,10 @@ from __future__ import annotations
 
 import re
 import unittest
-from pathlib import Path
 
 from documents import recipe as document_recipe
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 MIA_DOCKERFILE = ROOT / "adapters/deepseek/mia-sparkinfer-single/Dockerfile"
 BASE_DIGEST = document_recipe(
     "deepseek-v4-flash-0731-mia-sparkinfer-single"

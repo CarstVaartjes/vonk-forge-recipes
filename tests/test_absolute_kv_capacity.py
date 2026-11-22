@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from catalog_documents import catalog_models
 from documents import recipe as document_recipe
+from repo_root import ROOT
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
@@ -27,7 +28,6 @@ from qualification.memory_need import (
     vllm_utilization_envelope,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 VISION = "deepseek-v4-flash-vision-exp-mia-dual"
 LAGUNA = "laguna-m-1-nvfp4-r0b0tlab-vllm-dual"
 QWEN_NEXT = "qwen3-8-flash-next-w4a16-r0b0tlab-sglang-dual"

@@ -6,6 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from repo_root import ROOT
+
 
 def test_fp4_launcher_preserves_canonical_serve_command(tmp_path: Path) -> None:
     package = tmp_path / "vllm/entrypoints/cli"
@@ -15,8 +17,7 @@ def test_fp4_launcher_preserves_canonical_serve_command(tmp_path: Path) -> None:
     )
     recipe = json.loads(
         (
-            Path(__file__).resolve().parents[1]
-            / "recipes/qwen3-8-flash-next-fp4-local-vcruz-vllm-single.json"
+            ROOT / "recipes/qwen3-8-flash-next-fp4-local-vcruz-vllm-single.json"
         ).read_text()
     )
     command = recipe["runtime"]["entrypoint"][1:] + [
@@ -24,10 +25,7 @@ def test_fp4_launcher_preserves_canonical_serve_command(tmp_path: Path) -> None:
         "name with spaces",
     ]
     assert command[:2] == ["serve", "/models"]
-    wrapper = (
-        Path(__file__).resolve().parents[1]
-        / "adapters/qwen/vcruz-fp4-local-vllm-single/vllm-serve"
-    )
+    wrapper = ROOT / "adapters/qwen/vcruz-fp4-local-vllm-single/vllm-serve"
     result = subprocess.run(
         [sys.executable, str(wrapper), *command],
         env=dict(os.environ, PYTHONPATH=str(tmp_path)),

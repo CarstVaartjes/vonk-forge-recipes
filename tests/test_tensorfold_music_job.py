@@ -5,11 +5,10 @@ import importlib
 import importlib.util
 import json
 import wave
-from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 CONTEXT = ROOT / "adapters/audio/drowzeys-music3-tensorfold"
 Manifest = importlib.import_module(
     "vonk_agent_protocol.job_inputs"

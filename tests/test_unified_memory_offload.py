@@ -1,15 +1,13 @@
 """Bound resident smoke planning by the same GB10 limit as the catalog guard."""
 
 import json
-from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 
 from qualification.memory_need import MemoryNeed
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize(

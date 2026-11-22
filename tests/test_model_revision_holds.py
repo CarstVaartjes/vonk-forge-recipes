@@ -12,9 +12,9 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
+from repo_root import ROOT
 from test_refresh_upstream import refresh
 
-ROOT = Path(__file__).resolve().parents[1]
 LOADER = importlib.machinery.SourceFileLoader(
     "check_model_revision_holds", str(ROOT / "tools/check-model-revision-holds")
 )

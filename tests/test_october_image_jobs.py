@@ -6,13 +6,12 @@ import hashlib
 import importlib.util
 import json
 import sys
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 RecipeJobInputManifest = importlib.import_module(
     "vonk_agent_protocol.job_inputs"
 ).RecipeJobInputManifest

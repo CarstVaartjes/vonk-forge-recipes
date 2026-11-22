@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import unittest
-from pathlib import Path
 
 from catalog_documents import model_digest
 from documents import model_display
+from repo_root import ROOT
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
-ROOT = Path(__file__).resolve().parents[1]
 MODEL_RECIPE_PAIRS = {
     "hunyuan-video-15-t2v": "hunyuan-video-15-t2v-diffusers-single",
     "hunyuan-video-15-distilled": "hunyuan-video-15-distilled-diffusers-single",

@@ -12,9 +12,9 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
 
-ROOT = Path(__file__).resolve().parents[1]
 RECIPE_SLUGS = (
     "hunyuan-video-15-distilled-diffusers-single",
     "hunyuan-video-15-i2v-step-distilled-diffusers-single",

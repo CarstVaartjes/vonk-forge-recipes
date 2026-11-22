@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 
 from generated_catalog import GENERATED
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 DOCKERFILES = (
     ROOT / "adapters/llm/laguna-vllm/Dockerfile",
     ROOT / "adapters/llm/laguna-s-vllm/Dockerfile",

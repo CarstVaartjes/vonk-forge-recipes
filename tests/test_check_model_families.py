@@ -7,7 +7,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 LOADER = importlib.machinery.SourceFileLoader(
     "check_model_families", str(ROOT / "tools/check-model-families")
 )

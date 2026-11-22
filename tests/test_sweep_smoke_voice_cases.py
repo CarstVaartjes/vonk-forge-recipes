@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from qualification.documents import recipe_api
@@ -20,7 +21,6 @@ from spark_sweep import run
 from spark_sweep.definitions import CaseRenderError, Definitions
 from spark_sweep.smoke import SmokeResult
 
-ROOT = Path(__file__).resolve().parents[1]
 SLUG = "qwen3-tts-12hz-1-7b-customvoice-vllm-omni-single"
 
 

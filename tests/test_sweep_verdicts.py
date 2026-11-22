@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy, verdict
@@ -20,7 +21,7 @@ from spark_sweep.sweep_contract import SweepWaitReason
 from spark_sweep.verdict import Disposition, Progress
 from spark_sweep.vonkctl import Reply
 
-FIXTURES = Path(__file__).parent / "fixtures" / "sweep-verdicts"
+FIXTURES = FIXTURES / "sweep-verdicts"
 HOUR = 3600.0
 
 

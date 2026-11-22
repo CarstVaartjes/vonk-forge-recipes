@@ -13,8 +13,8 @@ import time
 from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github/workflows/recipe-images.yml"
 KEY = "a" * 64
 

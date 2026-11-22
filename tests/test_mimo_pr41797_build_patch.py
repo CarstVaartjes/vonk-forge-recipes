@@ -10,7 +10,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 FIXTURE = ROOT / "tests/fixtures/vllm-pr41797-base"
 EXPECTED_PATCH_SHA256 = (
     "01ace84baef35fea8d337f5b44623286fd150367140ae383cef846cfdd028a83"

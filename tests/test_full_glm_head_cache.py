@@ -4,11 +4,10 @@ import hashlib
 import importlib.util
 import json
 import struct
-from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
     "full_glm_view", ROOT / "adapters/glm/vcruz-full-tensorfold-four/prepare_view.py"
 )

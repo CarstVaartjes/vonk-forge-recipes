@@ -7,8 +7,8 @@ from pathlib import Path
 
 from documents import recipe_display
 from generated_catalog import GENERATED
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 RECIPES = {
     "glm-5-2-quanttrio-vllm-four": 4,
     "glm-5-3-flash-nvfp4-vllm-four": 4,

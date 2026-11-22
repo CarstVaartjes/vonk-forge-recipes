@@ -1,11 +1,8 @@
 """Keep the plain OCR path independent of speculative-decoding support."""
 
-from pathlib import Path
-
 from catalog_documents import catalog_models
+from repo_root import ROOT
 from vonk_forge_contracts import RecipeDefinition
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_plain_hunyuanocr_resolves_only_target_files() -> None:

@@ -9,8 +9,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/three-d/trellis2-native"
 # Trimesh 4.10.1 + Pillow 12.0.0, box with two PBR textures. The first WebP
 # contains 78 encoded bytes but its exported view includes two alignment spaces.

@@ -11,10 +11,10 @@ from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_model_displays, catalog_models
+from repo_root import ROOT
 from vonk_forge_contracts import ModelDisplay, RecipeDefinition, read_recipe
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
-ROOT = Path(__file__).resolve().parents[1]
 RECIPES = [
     read_recipe(json.loads(path.read_text(encoding="utf-8")))
     for path in sorted((ROOT / "recipes").glob("*.json"))

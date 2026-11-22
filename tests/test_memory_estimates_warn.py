@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from documents import recipe
 from pydantic import ValidationError
+from repo_root import ROOT
 from vonk_forge_contracts.recipe import RecipeMemoryResources
 
 from qualification.memory_need import (
@@ -16,7 +17,6 @@ from qualification.memory_need import (
     estimate_problems,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 LLAMA = "llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single"
 
 

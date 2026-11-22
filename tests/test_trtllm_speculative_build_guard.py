@@ -5,12 +5,11 @@ import runpy
 import subprocess
 import sys
 import types
-from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = (
     ROOT
     / "adapters/nvidia/llama-3-3-70b-instruct-nvfp4-draft-target-nvidia-trtllm-single"

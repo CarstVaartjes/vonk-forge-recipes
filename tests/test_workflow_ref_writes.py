@@ -13,9 +13,9 @@ outside this guard.
 from __future__ import annotations
 
 import re
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 REF_WRITE = re.compile(r"\bgit\s+(?:push|tag)\b|\bgit/refs\b|\bupdateRef\b")
 
 

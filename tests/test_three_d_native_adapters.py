@@ -16,8 +16,8 @@ from unittest import mock
 
 from documents import model_display, recipe_display
 from generated_catalog import GENERATED
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 CATALOG_TOOL = ROOT / "tools/build-catalog-index"
 LOADER = importlib.machinery.SourceFileLoader("three_d_catalog_tool", str(CATALOG_TOOL))
 SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)

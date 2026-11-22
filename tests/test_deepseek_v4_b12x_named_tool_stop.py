@@ -23,13 +23,12 @@ from __future__ import annotations
 import json
 import os
 import sys
-from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from typing import Any
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests/fixtures/vllm-b5f995e7-forced-tool-grammar.py.txt"
 # The base image whose vLLM is b5f995e7 (content identity, not repository name).
 B5F995E7_BASE = "7dc02f162929943ba2e14514066ed2a04bb7e9ed3592d4eb460ebcbb1f8376bd"

@@ -3,11 +3,10 @@
 import os
 import runpy
 import sys
-from pathlib import Path
 
 import pytest
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 # The sfxnz pair, the Sage pair and the XSFP4 recipes run the same stock-release launch; every test below runs against
 # every launcher. The XSFP4 image installs the engine at /usr/local/bin.
 ENGINES = {

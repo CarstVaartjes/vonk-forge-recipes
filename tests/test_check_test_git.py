@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 from added_diff import added_diff
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 LOADER = importlib.machinery.SourceFileLoader(
     "check_test_git", str(ROOT / "tools/check-test-git")
 )

@@ -11,8 +11,8 @@ from ltx_protocol import (
     manifest_bytes,
     verify_bundled_wheels,
 )
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 ADAPTERS = (
     "ltx2-pytorch/pipelines/run.py",
     "ltx2-sync-native/run.py",

@@ -21,8 +21,8 @@ from pathlib import Path
 
 from documents import recipe_display
 from generated_catalog import GENERATED
+from repo_root import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
 RECIPE = ROOT / "recipes/deepseek-v4-flash-0731-ds4-single.json"
 
 

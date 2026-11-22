@@ -15,6 +15,7 @@ import json
 from pathlib import Path
 
 import pytest
+from repo_root import FIXTURES
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy
@@ -24,9 +25,7 @@ pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 FIXTURE = json.loads(
-    (
-        Path(__file__).parent / "fixtures" / "sweep-offline-lane-2026-10-13.json"
-    ).read_text(encoding="utf-8")
+    (FIXTURES / "sweep-offline-lane-2026-10-13.json").read_text(encoding="utf-8")
 )
 OFFLINE, ONLINE = FIXTURE["nodes"]  # spark-3542 (offline, stale), spark-2297
 ORPHAN = OFFLINE["loaded"][0]  # the failed application's run, still starting

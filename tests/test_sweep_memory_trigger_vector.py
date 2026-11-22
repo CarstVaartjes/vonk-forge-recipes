@@ -5,9 +5,9 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from pathlib import Path
 
 import pytest
+from repo_root import FIXTURES
 from vonk_forge_contracts import QualificationCauseCode
 
 from spark_sweep import policy
@@ -19,7 +19,7 @@ from spark_sweep.sweep_contract import (
 
 # Vendored verbatim from vonk-forge (the one owner of the trigger words: the
 # helper's Trigger::ALL, asserted against this vector by the helper's own tests).
-VECTOR = Path(__file__).parent / "fixtures" / "host-memory-guard-summary-v1.json"
+VECTOR = FIXTURES / "host-memory-guard-summary-v1.json"
 VECTOR_SOURCE = (
     "https://github.com/CarstVaartjes/vonk-forge/blob/27d09b02cc0f757b3522c317fa94bffe220bcb9d/"
     "agent_protocol/src/vonk_agent_protocol/vectors/host-memory-guard-summary-v1.json"

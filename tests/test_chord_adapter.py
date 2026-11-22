@@ -9,13 +9,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from repo_root import ROOT
 
 from qualification.definitions_loader import load_definitions
 from spark_sweep.job_assertions import Output, evaluate
 
 Image: Any = importlib.import_module("PIL.Image")
 
-ROOT = Path(__file__).resolve().parents[1]
 SLUG = "chord-pbr-material-pytorch-single"
 RUNNER = ROOT / "adapters/image/chord-pbr-pytorch/pipelines/run.py"
 FIXTURE = ROOT / "qualification/fixtures/tiny.png"

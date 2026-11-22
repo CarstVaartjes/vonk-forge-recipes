@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
+from repo_root import ROOT
 from vonk_forge_contracts import (
     QualificationBlame,
     QualificationCauseCode,
@@ -389,7 +390,7 @@ def python_sources(root: Path) -> list[Path]:
 
 
 def test_only_the_admissibility_check_reads_the_uncapped_envelope() -> None:
-    root = Path(__file__).resolve().parents[1]
+    root = ROOT
     found = [
         item
         for path in python_sources(root)

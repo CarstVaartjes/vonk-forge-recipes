@@ -1,15 +1,11 @@
 from __future__ import annotations
 
 import copy
-from pathlib import Path
 from typing import Any
 
 import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
-
-ROOT = Path(__file__).resolve().parents[1]
-
 from vonk_forge_contracts import (
     QualificationAuthority,
     RecoveryCoverage,

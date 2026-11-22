@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import json
 from functools import cache
-from pathlib import Path
 
+from repo_root import ROOT
 from vonk_forge_contracts import ModelDefinition, ModelDisplay, document_sha256
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def model_digest(slug: str) -> str:

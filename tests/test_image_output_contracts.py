@@ -10,6 +10,7 @@ from typing import Any
 from unittest.mock import Mock
 
 import pytest
+from repo_root import ROOT
 from vonk_forge_contracts.recipe import RecipeDefinition
 
 from qualification.definitions_loader import load_definitions
@@ -17,7 +18,6 @@ from spark_sweep.job_assertions import Output, evaluate
 
 Image: Any = importlib.import_module("PIL.Image")
 
-ROOT = Path(__file__).resolve().parents[1]
 RECIPES = [
     (path, recipe)
     for path in sorted((ROOT / "recipes").glob("*.json"))

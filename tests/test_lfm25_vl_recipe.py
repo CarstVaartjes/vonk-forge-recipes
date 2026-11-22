@@ -5,7 +5,8 @@ import runpy
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 REVISION = "a3af5799199acdd2a4f56ac4342816abb46c12a9"
 
 

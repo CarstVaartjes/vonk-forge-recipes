@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from added_diff import added_diff
 
-ROOT = Path(__file__).resolve().parents[1]
 from tools._added_lines import parse_added as _parse_added
 
 

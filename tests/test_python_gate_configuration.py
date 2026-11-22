@@ -12,9 +12,9 @@ import re
 import runpy
 import subprocess
 import tomllib
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from repo_root import ROOT
+
 PYPROJECT = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 WORKFLOWS = tuple(sorted((ROOT / ".github" / "workflows").glob("*.yml")))
 
