@@ -1434,8 +1434,8 @@ def check_images(
     def scan(key: tuple[str, str, str]) -> list[dict[str, Any]] | KitError:
         try:
             return kit_images(source, *key)
-        except KitError as error:
-            return error
+        except (KitError, RuntimeError) as error:  # incl. UpstreamBusy
+            return KitError(str(error))
 
     keys = sorted(set(wanted.values()))
     with ThreadPoolExecutor(max_workers=8) as pool:

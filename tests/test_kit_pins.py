@@ -1289,3 +1289,18 @@ class BusyProviderCliTests(unittest.TestCase):
                 for name in ("first", "second")
             )
         self.assertEqual((seen, failed), (["first", "second"], 2))
+
+    def test_a_busy_image_scan_is_a_problem_not_a_crash(self) -> None:
+        from tools._upstream_http import UpstreamBusy
+
+        def busy(_source: Any, *_key: str) -> list[dict[str, Any]]:
+            raise UpstreamBusy("rate limited")
+
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            patch.object(kit_pins, "kit_images", busy),
+        ):
+            problems = kit_pins.check_images(
+                Path(tmp), {"mia": recipe_for(KIT_BRANCH)}, upstream(FakeApi())
+            )
+        self.assertEqual(len(problems), 1, problems)

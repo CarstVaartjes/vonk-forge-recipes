@@ -20,7 +20,7 @@ from urllib.request import Request
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from tools._upstream_http import UpstreamBusy, fetch
+from tools._upstream_http import UpstreamBusy, fetch, forget_busy
 
 SCRIPT = ROOT / "tools/check-upstream-drift"
 LOADER = importlib.machinery.SourceFileLoader("check_upstream_drift", str(SCRIPT))
@@ -406,6 +406,9 @@ class RateLimitTests(unittest.TestCase):
             raise error
 
     def setUp(self) -> None:
+        # unittest (the daily workflow) does not run conftest's autouse fixture
+        forget_busy()
+        self.addCleanup(forget_busy)
         self.naps: list[float] = []
 
     def get(self, opener: Any, url: str = "https://huggingface.co/api/x") -> Any:
