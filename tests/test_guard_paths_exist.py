@@ -1,11 +1,14 @@
 """Every repository path a guard names exists.
 
 A path-scoped guard goes blind when the code it scopes moves and its path literal does
-not: it checks nothing and passes. So each path literal in the ``tools/check-*`` scripts,
-``tools/_added_lines.py``, the two ``single-source-values.json`` files and the
-``LAYERS`` directories of the import-direction test must match at least one path in the
-tree (a directory prefix, a file, or a glob). No allowlist: when a path moves, move its
-literal.
+not: it checks nothing and passes. So each path scope must match at least one path in the
+tree (a directory prefix, a file, or a glob). Sources: slash literals, ``ROOT / "a" / "b"``
+chains and bare top-level names in the ``tools/check-*`` scripts and ``tools/_added_lines.py``;
+the composed paths and bare names of four test-side scans; the two
+``single-source-values.json`` files; and the ``LAYERS`` directories of the import-direction
+test, each of which must also own a file that test's walker reads (``.py`` or a shebang
+launcher). A prefix scope on a directory that survives a move is not detected. No allowlist:
+when a path moves, move its literal.
 """
 
 from __future__ import annotations
@@ -16,6 +19,8 @@ import json
 import os
 import re
 from pathlib import Path
+
+from test_package_import_direction import LAYERS, tree_sources
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -185,14 +190,13 @@ def guard_sources() -> dict[str, str]:
     return {path.relative_to(ROOT).as_posix(): path.read_text() for path in files}
 
 
-def layer_directories() -> list[str]:
-    source = (ROOT / "tests/test_package_import_direction.py").read_text()
-    for node in ast.parse(source).body:
-        if isinstance(node, ast.Assign) and any(
-            getattr(t, "id", None) == "LAYERS" for t in node.targets
-        ):
-            return [directory for directory, _ in ast.literal_eval(node.value).values()]
-    return []
+def layers_without_sources(directories, walked) -> list[str]:
+    """Layer directories that own no file the import-direction walker reads."""
+    return [
+        directory
+        for directory in directories
+        if not any(name.startswith(directory.rstrip("/") + "/") for name in walked)
+    ]
 
 
 def test_every_path_a_guard_names_exists():
@@ -204,12 +208,10 @@ def test_every_path_a_guard_names_exists():
         named[name] = path_literals(scope_strings((ROOT / name).read_text()))
     for name in JSON_FILES:
         named[name] = path_literals(json_strings(json.loads((ROOT / name).read_text())))
-    layers = layer_directories()
+    layers = [directory for directory, _ in LAYERS.values()]
     named["tests/test_package_import_direction.py LAYERS"] = set(layers)
-    empty = [d for d in layers if not any((ROOT / d).rglob("*.py"))]
-    assert not empty, (
-        f"LAYERS directories with no Python file (the layer checks nothing): {empty}"
-    )
+    empty = layers_without_sources(layers, tree_sources())
+    assert not empty, f"LAYERS directories the walker reads nothing from: {empty}"
 
     missing = {
         name: bad
@@ -227,7 +229,7 @@ def test_the_scan_sees_the_guards_it_protects():
     assert "tools/_upstream_http.py" in path_literals(
         python_strings(sources["tools/check-raw-urlopen"])
     )
-    assert layer_directories()
+    assert LAYERS
     assert path_literals(json_strings(json.loads((ROOT / JSON_FILES[0]).read_text())))
 
 
@@ -260,3 +262,10 @@ def test_a_new_top_level_directory_is_checked(tmp_path):
     names = top_level(tmp_path)
     assert "src" in names and ".git" not in names
     assert path_literals(["src/pkg/mod.py", "other/x"], names) == {"src/pkg/mod.py"}
+
+
+def test_a_layer_directory_holding_only_data_is_reported():
+    walked = {"tools/launcher": "#!/usr/bin/env python3", "qualification/a.py": ""}
+    assert layers_without_sources(["tools", "qualification", "docs"], walked) == [
+        "docs"
+    ]

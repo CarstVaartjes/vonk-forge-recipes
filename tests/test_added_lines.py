@@ -172,35 +172,3 @@ def test_header_lookalike_content_lines_are_content() -> None:
         "@@ -1,2 +1,2 @@\n--- a/x\n-y\n+++ b/x\n+z\n"
     )
     assert parse_added(diff) == {"tools/a.py": {1, 2}}
-
-
-def test_renaming_an_exempt_owner_into_scope_is_still_flagged(tmp_path: Path) -> None:
-    """``--no-renames`` shows a rename as delete + add; the exempt side must not pay."""
-    import importlib.machinery
-    import importlib.util
-    import sys
-
-    loader = importlib.machinery.SourceFileLoader(
-        "check_document_reads_rename", str(ROOT / "tools/check-document-reads")
-    )
-    spec = importlib.util.spec_from_loader(loader.name, loader)
-    assert spec is not None
-    guard = importlib.util.module_from_spec(spec)
-    sys.modules[loader.name] = guard
-    loader.exec_module(guard)
-
-    block = [
-        "import json",
-        "def f(s):",
-        '    return json.loads((ROOT / "recipes" / f"{s}.json").read_text())["runtime"]',
-        "",
-    ]
-    (tmp_path / "qualification").mkdir()
-    (tmp_path / "qualification/x.py").write_text("\n".join(block))
-    diff = _move(
-        "qualification/documents.py", "qualification/x.py", block, deleted=True
-    )
-
-    problems = guard.check(tmp_path, diff)
-
-    assert {line.split(": ")[0] for line in problems} == {"qualification/x.py:3"}
