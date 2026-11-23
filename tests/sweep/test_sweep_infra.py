@@ -343,7 +343,9 @@ def test_sigint_kills_a_blocked_vonkctl_and_returns_promptly(tmp_path: Path) -> 
     pidfile = tmp_path / "pid"
     command = _script(
         tmp_path,
-        f"import os, time\nopen({str(pidfile)!r}, 'w').write(str(os.getpid()))\ntime.sleep(60)\n",
+        # Ready = the pid file exists with its whole content (renamed into place).
+        f"import os, time\nopen({str(pidfile)!r} + '.tmp', 'w').write(str(os.getpid()))\n"
+        f"os.replace({str(pidfile)!r} + '.tmp', {str(pidfile)!r})\ntime.sleep(60)\n",
     )
     interrupted_at: list[float] = []
 
@@ -360,10 +362,11 @@ def test_sigint_kills_a_blocked_vonkctl_and_returns_promptly(tmp_path: Path) -> 
         subprocess_runner([command], 60)
     interrupter.join(timeout=1)
     assert interrupted_at and time.monotonic() - interrupted_at[0] < 5
-    time.sleep(0.2)
-    assert not _alive(
-        int(pidfile.read_text())
-    )  # the child did not outlive the interrupt
+    pid = int(pidfile.read_text())
+    deadline = time.monotonic() + 10
+    while _alive(pid) and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert not _alive(pid)  # the child did not outlive the interrupt
     code, stdout, _ = subprocess_runner([sys.executable, "-c", "print('fresh')"], 5)
     assert code == 0 and stdout.strip() == "fresh"
 
