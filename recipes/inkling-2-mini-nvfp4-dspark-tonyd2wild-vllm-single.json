@@ -196,7 +196,7 @@
           "args": [
             {
               "name": "gpu-memory-utilization",
-              "value": "0.90"
+              "value": "0.92"
             },
             {
               "name": "kv-cache-memory-bytes",
@@ -211,7 +211,7 @@
           "args": [
             {
               "name": "gpu-memory-utilization",
-              "value": "0.90"
+              "value": "0.92"
             },
             {
               "name": "kv-cache-memory-bytes",
