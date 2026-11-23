@@ -50,7 +50,7 @@ class _Bad:
                 self.end_headers()
                 self.wfile.write(outer.body)
 
-            do_GET = do_POST = _go
+            do_GET = do_POST = _go  # noqa: N815 - http.server dispatches on the do_<METHOD> names
 
         self.status, self.body = status, body
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)

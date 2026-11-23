@@ -109,7 +109,7 @@ def check_recipe(path: Path, root: Path = ROOT) -> list[str]:
     for line, instruction in _instructions(dockerfile.read_text()):
         for source in _sources(instruction):
             relative = source.lstrip("/")
-            matches = glob.glob(str(context / relative))
+            matches = glob.glob(str(context / relative))  # noqa: PTH207 - glob.glob and Path.glob differ on dotfiles; behaviour is kept
             usable = [
                 m
                 for m in matches

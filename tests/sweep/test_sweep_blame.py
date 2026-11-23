@@ -33,7 +33,7 @@ def _values(expr: ast.expr, scope: dict, name: str) -> set[str]:
     # A name that cannot be resolved here (a variable, an attribute of a runtime value) is
     # skipped; the scan only counts classes it can read from the source.
     with contextlib.suppress(Exception):
-        value = eval(compile(ast.Expression(expr), name, "eval"), scope)
+        value = eval(compile(ast.Expression(expr), name, "eval"), scope)  # noqa: S307 - evaluates an expression taken from the repository's own sweep source
     return {str(value)} if isinstance(value, str) and value else set()
 
 

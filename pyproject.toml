@@ -52,9 +52,56 @@ exclude = ["adapters"]
 extend-include = ["tools/*", "scripts/check-python-types"]
 extend-exclude = ["tools/*.*"]
 
+[tool.ruff.lint]
+extend-select = [
+    "E4", "E7", "E9",  # E402 is the companion of PLC0415; E731 lambda assignment
+    "PLC", "PLE", "PLR", "PLW",  # incl. PLC0415 import-outside-top-level
+    "TID252",  # with ban-relative-imports = "all": one import spelling
+    "TID251",  # banned-api (below)
+    "B", "C4", "RET", "SIM", "PERF", "PT", "PTH", "FURB", "PYI", "RSE", "RUF",
+    "N", "A", "ERA", "FAST", "ASYNC", "LOG", "PGH", "S", "ARG", "FBT001", "FBT002",
+]
+ignore = [
+    "PLR0904", "PLR0911", "PLR0912", "PLR0913", "PLR0914", "PLR0915", "PLR0916", "PLR0917", "PLR1702",
+    # size/complexity ceilings: numeric thresholds are count-ceilings
+    "PLR2004",  # magic-value-comparison: mostly tests asserting literal expected values
+    "PLR6301",  # no-self-use: methods on protocol/fake classes keep self for the interface
+    "PLC2701",  # private import: package-private _modules are the layering convention
+    "PLW1514",  # unspecified-encoding: UTF-8 mode is the 3.15 default
+    "PT011",    # pytest.raises too broad: the fix is match="..." on message text (wording test)
+    "RUF043",   # ambiguous match= pattern: polishes wording asserts that should not exist
+    "RUF001", "RUF002", "RUF003",  # ambiguous unicode is intentional in user-facing text
+    "N818",     # exception names without Error suffix: renames of wire-visible names
+    "A002",     # argument shadows builtin: wire names (id, type)
+    "S101",     # assert: pytest's assertion style
+    "S104", "S105", "S106", "S108", "S311",  # bind-all/hardcoded-secret/tmp/random: fixture noise
+    "S603", "S607",  # subprocess audit: flags every call; the git-in-tests guard is the real rule
+    "S310",     # urlopen scheme audit: urlopen is banned via TID251
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests: unused fixture/monkeypatch parameters and bool test parameters are pytest idiom.
+# PLC0415 in tests is pending the owner's decision (hoist: the last commit of the series).
+"**/tests/**" = ["ARG", "FBT001", "FBT002", "PLC0415"]
+# Six assertions compare real git results (and one test builds a git argv); tests never use
+# git, and rewriting them would re-add those git lines for the added-line guard.
+"tests/refresh_upstream/test_apply.py" = ["PT009"]
+"tests/qualification/test_absolute_kv_capacity.py" = ["RUF005"]  # the same, one git argv
+# Relative imports are banned only inside the installable packages.
+"!{src,contracts/src}/**" = ["TID252"]
+# The one module that opens provider URLs.
+"src/recipe_tooling/upstream_http.py" = ["TID251"]
+
 [tool.ruff.lint.isort]
 # Classification must not depend on what is installed.
 known-first-party = ["vonk_forge_contracts", "recipe_tooling", "spark_sweep"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"urllib.request.urlopen".msg = "use recipe_tooling.upstream_http"
+"urllib.request.build_opener".msg = "use recipe_tooling.upstream_http"
 
 [tool.pyright]
 # One checker for our own code; adapters are excluded (see [tool.ruff]). The mode and the

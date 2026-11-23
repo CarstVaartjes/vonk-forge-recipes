@@ -356,7 +356,7 @@ def encode_multipart(spec: dict[str, Any]) -> tuple[bytes, str]:
 def _open(
     request: urllib.request.Request, timeout: float, context: ssl.SSLContext | None
 ) -> Any:
-    return urllib.request.urlopen(request, timeout=timeout, context=context)
+    return urllib.request.urlopen(request, timeout=timeout, context=context)  # noqa: TID251 - the served recipe's own endpoint, not a provider; the sweep layer may not import recipe_tooling
 
 
 # Request fields that steer sampling. A model family may not accept them (diffusion models

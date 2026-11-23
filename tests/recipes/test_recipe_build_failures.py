@@ -133,7 +133,7 @@ def test_minimax_dual_verifier_requires_the_mesh_nccl(
         def __init__(self, path: str) -> None:
             loaded.append(path)
 
-        def ncclGetVersion(self, version: Any) -> int:
+        def ncclGetVersion(self, version: Any) -> int:  # noqa: N802 - mirrors the libnccl symbol the code under test calls
             version._obj.value = 22907
             return 0
 

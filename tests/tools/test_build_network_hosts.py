@@ -270,7 +270,7 @@ def _copied(
             into_dir = raw.endswith("/") or raw in {".", ".."} or len(sources) > 1
             dest = posixpath.join(workdir, raw)
             for source in sources:
-                for match in sorted(glob.glob(str(context / source))):
+                for match in sorted(glob.glob(str(context / source))):  # noqa: PTH207 - glob.glob and Path.glob differ on dotfiles; behaviour is kept
                     base = Path(match)
                     files = (
                         [f for f in sorted(base.rglob("*")) if f.is_file()]
