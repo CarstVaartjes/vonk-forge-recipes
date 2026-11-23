@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 from repo_root import FIXTURES, ROOT
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_sources import run_source
 
 from spark_sweep import policy
 from spark_sweep.sweep_contract import CleanupEnd, CleanupEndReason
@@ -233,11 +234,11 @@ def test_a_refused_clearing_is_the_recorded_wait_and_is_decided_again(
 REVIEW_WITHOUT_PRUNE = {"observe_cleanup"}
 PROFILE_EDIT_WITHOUT_GUARD = {
     (
-        "run.py",
+        "sweep_adopt.py",
         "_rollback",
     ): "Only undoes edits after guarded placement; no new load is submitted.",
     (
-        "run.py",
+        "sweep_fleet.py",
         "claim_profile",
     ): "Configures only an empty, newly claimed profile before lanes start.",
     (
@@ -253,7 +254,7 @@ def test_every_review_of_a_new_intent_reconciles_the_profile_first() -> None:
     """Guard for the class: no load of the sweep profile carries what no lane needs."""
     import ast
 
-    source = (ROOT / "spark_sweep" / "run.py").read_text(encoding="utf-8")
+    source = run_source()
     missing = []
     for node in ast.walk(ast.parse(source)):
         if not isinstance(node, ast.FunctionDef) or node.name in REVIEW_WITHOUT_PRUNE:

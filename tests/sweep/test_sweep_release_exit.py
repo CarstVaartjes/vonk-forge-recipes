@@ -99,9 +99,9 @@ def test_a_named_owner_fault_without_an_observed_basis_still_has_an_exit():
 def test_a_download_that_fails_after_a_release_flip_is_retested_once_on_the_new_release(
     tmp_path, monkeypatch
 ):
+    from spark_sweep.identity import AcceptedRequest
     from spark_sweep.lifecycle import RetestReason
     from spark_sweep.prefetch import Prefetcher
-    from spark_sweep.run import AcceptedRequest
 
     sweep, key, entry = _deferred(tmp_path, monkeypatch, "1" * 40)
     recipe = sweep.recipes[key]
