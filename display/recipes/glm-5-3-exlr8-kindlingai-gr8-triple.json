@@ -1,0 +1,23 @@
+{
+  "alignment": "unspecified",
+  "description": "Full GLM-5.3 (744B MoE) on three DGX Sparks with KindlingAI's gr8, a from-scratch CUDA inference engine (no vLLM, PyTorch or NCCL at serve time), at tensor parallel 3 over the ConnectX fabric (a switch). The weights are KindlingAI's exlr8 release v0.6 at its bit273 width profile (about 2.73 bits a routed weight), int4 KV with a 393,216-token pool, requests up to 393,210 tokens, eight at once (the first 32,768 tokens of each chat on every box), MTP=3 drafting with confidence stopping (DFlash2 does not split three ways), zero-copy shared prefix pages, distributed prefill with owned-row attention (no QO cache) and the creator's tuned v1.1.1 decode and prefill settings. The recipe runs gr8's published v1.1.1 image (commit a3f44a07) with the settings of kindlingai/glm-5.3-exlr8-3x-spark at 8c455f20 and a placement wrapper that reads the platform's VONK_* environment and uses the release in place from the read-only model mounts. Options: the creator's quality, fast or uncapped-exact preset (MOE_UNION_CAP 48, 32 or 0), and the creator's 512K switch (bit260 experts with a 524,288-token pool). Creator claims, unmeasured here: 51.6 tok/s for one request writing code, 646 tok/s prefill at 32K, 106.5 tok/s total at 8 requests, 3.64 GiB lowest free memory a box (after a 359K-token and 4x87K stress run). About 763 GB of model files a box. Each box mounts the width files its manifests read whole, where the creator's launcher range-fetches only the box's part (about 97 GB) from Hugging Face. Thinking is always on in GLM 5.3's template: a request that turns it off gets HTTP 400 (the creator's default), and a small max_tokens can end inside the thinking. Licences, for information: the weights are under Z.AI's GLM-5.3 License (KindlingAI's exlr8 additions also CC BY 4.0), the engine and the recipe MIT.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-exlr8-kindlingai-gr8-triple"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "engine",
+    "exlr8",
+    "glm-5.3",
+    "gr8",
+    "mtp",
+    "reasoning",
+    "roce",
+    "spark",
+    "structured-outputs",
+    "three-spark",
+    "tool-use"
+  ],
+  "title": "GLM 5.3 EXLR8 gr8 three Sparks"
+}

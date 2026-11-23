@@ -1,0 +1,81 @@
+#!/bin/bash
+# The Vonk Forge placement wrapper for KindlingAI's GLM-5.3 gr8 recipes (three to six Sparks). It maps what the
+# platform gives a workload (the arguments in the recipe, the VONK_* placement environment, the read-only /models
+# mounts and the writable /outputs) onto the options gr8's launcher reads (the creator's .env lines, which the recipe's
+# environment carries), then runs gr8's own image entrypoint, which starts this box's supervisor.
+#
+#   arguments    --host (accepted: the front end serves on every address), --port -> PORT,
+#                --max-model-len -> MAX_MODEL_LEN, --sess -> SESS
+#   placement    VONK_PEER_ADDRS -> PEERS (rank order, the head first), VONK_LOCAL_ADDR -> NODE_IP, VONK_MASTER_PORT ->
+#                CONTROL_PORT (gr8's supervisor port; the S2 control port is a fixed 7341 and the fabric bootstrap uses
+#                18600 upward, neither of them the platform's). No IPS/IPS2: gr8 finds each box's RoCE rails itself.
+#   model        /models/target is the exlr8 release used in place (MODEL, a local path: nothing is fetched). MTP
+#                drafting only (DFLASH=0, as the creator's kit): no drafter is mounted or converted.
+#   writable     gr8's working directory, model cache and compact expert copies are under
+#                /outputs/cache/gr8, where the creator's compose file mounts /var/lib/gr8/{home,cache}; the recipe's
+#                own paths (KV_STORE, QO_CACHE, EXTRA_ENV) already name /outputs/cache/gr8.
+set -euo pipefail
+
+gr8=/opt/gr8
+release=/models/target
+state=/outputs/cache/gr8
+
+host= port= max_model_len= sess=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --host) host=$2; shift 2 ;;
+    --host=*) host=${1#*=}; shift ;;
+    --port) port=$2; shift 2 ;;
+    --port=*) port=${1#*=}; shift ;;
+    --max-model-len) max_model_len=$2; shift 2 ;;
+    --max-model-len=*) max_model_len=${1#*=}; shift ;;
+    --sess) sess=$2; shift 2 ;;
+    --sess=*) sess=${1#*=}; shift ;;
+    *) echo "gr8-serve: unknown argument $1" >&2; exit 2 ;;
+  esac
+done
+: "$host"
+[ -z "$port" ] || export PORT=$port
+[ -z "$max_model_len" ] || export MAX_MODEL_LEN=$max_model_len
+[ -z "$sess" ] || export SESS=$sess
+
+mkdir -p "$state/home" "$state/cache" /outputs/tmp
+export GR8_WORK_DIR=$state/home MODEL_CACHE=$state/cache TMPDIR=/outputs/tmp
+# the QO cache (PF_OWN=3): the engine writes it on the first boot but does not create its directory
+[ -z "${QO_CACHE:-}" ] || mkdir -p "$QO_CACHE"
+
+# placement
+if [ "${VONK_WORLD_SIZE:-1}" -gt 1 ]; then
+  : "${VONK_PEER_ADDRS:?gr8-serve: VONK_PEER_ADDRS is not set}" "${VONK_LOCAL_ADDR:?gr8-serve: VONK_LOCAL_ADDR is not set}"
+  export PEERS=$VONK_PEER_ADDRS NODE_IP=$VONK_LOCAL_ADDR
+  [ -z "${VONK_MASTER_PORT:-}" ] || export CONTROL_PORT=$VONK_MASTER_PORT
+  rank=${VONK_RANK:?gr8-serve: VONK_RANK is not set}
+  unset IPS IPS2
+else
+  rank=0
+fi
+
+# the release is used in place; the creator's Hugging Face URLs are not
+export MODEL=$release
+unset DRAFTER FETCH
+
+# the creator's compact expert copies (GR8_LOAD_COMPACT in EXTRA_ENV): written once by `prepare` (a boot never writes
+# them; until they exist the loader reads the release), then read by the loader. The stamp records a finished prepare
+# for this rank and width manifest, so a later start does not read them again. An interrupted prepare leaves a staging
+# directory, and a later one with the same PID fails on it.
+if [ "${COMPACT_EXPERTS:-0}" = 1 ]; then
+  compact=
+  for word in ${EXTRA_ENV:-}; do
+    case "$word" in GR8_LOAD_COMPACT=*) compact=${word#*=} ;; esac
+  done
+  [ -n "$compact" ] || { echo "gr8-serve: COMPACT_EXPERTS=1 needs GR8_LOAD_COMPACT in EXTRA_ENV" >&2; exit 2; }
+  stamp=$(dirname "$compact")/.$(basename "$compact")-prepared-rank$rank-$(basename "${VARIANT:-default}")
+  if [ ! -f "$stamp" ]; then
+    rm -rf "$(dirname "$compact")/.$(basename "$compact")".partial-*
+    "$gr8/gr8" glm53 prepare --rank "$rank"
+    : > "$stamp"
+  fi
+fi
+unset COMPACT_EXPERTS
+
+exec "$gr8/docker/entrypoint.sh"
