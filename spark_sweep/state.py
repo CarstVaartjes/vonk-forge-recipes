@@ -23,6 +23,7 @@ from typing import Any
 
 from recipe_tooling.qualification.evidence_store import write_atomic
 
+from . import qualification
 from .lifecycle import (
     DownloadIntentKind,
     LifecycleState,
@@ -31,7 +32,6 @@ from .lifecycle import (
     SkipReasonKind,
 )
 from .policy import LOAD_RULES, SMOKE_RULES
-from .qualification import adopt_state_evidence
 from .sweep_contract import SweepAdoptionReason, SweepAdoptionResult
 
 SCHEMA = 2
@@ -109,7 +109,7 @@ def _adopt(
     if "qualification_evidence" not in data:
         data["qualification_evidence"] = {
             key: evidence.model_dump(mode="json")
-            for key, evidence in adopt_state_evidence(data).items()
+            for key, evidence in qualification.adopt_state_evidence(data).items()
         }
     merged = _fresh()
     for name, value in data.items():
