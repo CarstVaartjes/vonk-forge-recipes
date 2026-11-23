@@ -50,12 +50,12 @@ def problems(evidence: RecipeQualificationEvidence) -> list[str]:
             for predicate in EVIDENCE_CLASSES.values()
             if any(predicate(r) for r in records)
         }
-        for record in records:
-            if id(record) not in newest_of_class:
-                errors.append(
-                    f"R1 the record of {record.tested_at} is the newest of no class "
-                    "for its identity"
-                )
+        errors.extend(
+            f"R1 the record of {record.tested_at} is the newest of no class "
+            "for its identity"
+            for record in records
+            if id(record) not in newest_of_class
+        )
     contents = {r.identity.content_sha256 for r in evidence.records}
     if len(contents) > MAX_CONTENTS:
         errors.append(f"R2 {len(contents)} content digests carry records")

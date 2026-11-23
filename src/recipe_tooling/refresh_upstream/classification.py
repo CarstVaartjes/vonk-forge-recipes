@@ -357,9 +357,11 @@ def model_shape_problems(
     problems: list[str] = []
     by_path = {f["path"]: f for f in new_files}
     old_by = {f["path"]: f for f in old["files"]}
-    for removed in sorted(set(old_by) - set(by_path)):
-        if not set(old_by[removed]["roles"]) <= refresh_model.METADATA_ONLY:
-            problems.append(f"file removed or renamed upstream: `{removed}`")
+    problems.extend(
+        f"file removed or renamed upstream: `{removed}`"
+        for removed in sorted(set(old_by) - set(by_path))
+        if not set(old_by[removed]["roles"]) <= refresh_model.METADATA_ONLY
+    )
     for added in sorted(set(by_path) - set(old_by)):
         roles = by_path[added]["roles"]
         if roles != ["metadata"]:

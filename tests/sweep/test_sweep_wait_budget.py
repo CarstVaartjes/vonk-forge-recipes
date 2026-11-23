@@ -80,12 +80,14 @@ def wait_bypasses(source: str, *, primitive: bool = False) -> list[int]:
     for function in ast.walk(ast.parse(source)):
         if not isinstance(function, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
-        for node in ast.walk(function):
+        bad.extend(
+            getattr(node, "lineno", function.lineno)
+            for node in ast.walk(function)
             if any(
                 not (primitive and function.name in WAIT_WRITERS[key])
                 for key in _written_keys(node)
-            ):
-                bad.append(getattr(node, "lineno", function.lineno))
+            )
+        )
     return bad
 
 

@@ -201,9 +201,11 @@ def moved_model(
             identity[key] = identity[key].replace(old_revision[:8], revision[:8])
     known = {entry["path"] for entry in old["files"]}
     files = [dict(entry) for entry in old["files"] if entry["path"] in by_path]
-    for path in sorted(set(by_path) - known):
-        if by_path[path]["roles"] != ["metadata"]:
-            files.append({"path": path, "roles": by_path[path]["roles"]})
+    files.extend(
+        {"path": path, "roles": by_path[path]["roles"]}
+        for path in sorted(set(by_path) - known)
+        if by_path[path]["roles"] != ["metadata"]
+    )
     for entry in files:
         fresh = by_path[entry["path"]]
         entry["sha256"] = fresh["sha256"]

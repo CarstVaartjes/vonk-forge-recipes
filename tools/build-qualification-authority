@@ -193,8 +193,7 @@ def _execution_batches(
             "paired-single" if len(assignments) == 2 else "single"
         )
         pending.append((assignments[0]["sequence"], mode, assignments))
-    for row in duals:
-        pending.append((row["sequence"], "exclusive-dual", [row]))
+    pending.extend((row["sequence"], "exclusive-dual", [row]) for row in duals)
     pending.sort(key=lambda item: (item[0], item[1]))
 
     batches: list[QualificationBatch] = []

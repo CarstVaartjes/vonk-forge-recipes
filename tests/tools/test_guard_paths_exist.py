@@ -165,8 +165,9 @@ def tree_paths(root: Path) -> list[str]:
     for directory, names, files in os.walk(root):
         names[:] = [name for name in names if name not in SKIP_DIRS]
         base = Path(directory).relative_to(root).as_posix()
-        for name in [*names, *files]:
-            found.append(name if base == "." else f"{base}/{name}")
+        found.extend(
+            name if base == "." else f"{base}/{name}" for name in [*names, *files]
+        )
     return found
 
 

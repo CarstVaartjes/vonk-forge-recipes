@@ -214,9 +214,11 @@ def _scratch_sites(tree: ast.Module) -> list[tuple[int, set[int]]]:
             if _output_root_child(receiver):
                 sites.append((node.lineno, lines))
             elif isinstance(receiver, ast.Name):
-                for assignment in assigned.get(receiver.id, []):
-                    if _output_root_child(assignment.value):
-                        sites.append((node.lineno, lines | {assignment.lineno}))
+                sites.extend(
+                    (node.lineno, lines | {assignment.lineno})
+                    for assignment in assigned.get(receiver.id, [])
+                    if _output_root_child(assignment.value)
+                )
     return sites
 
 

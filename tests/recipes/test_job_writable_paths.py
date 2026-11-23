@@ -54,18 +54,18 @@ def _violations(path: Path) -> list[str]:
         if not isinstance(node, (ast.Assign, ast.AnnAssign, ast.Call)):
             continue
         name = ast.unparse(node).split("=", 1)[0]
-        for child in ast.walk(node):
-            if (
-                isinstance(child, ast.Constant)
-                and isinstance(child.value, str)
-                and not (
-                    child.value == "/"
-                    and isinstance(parent := parents.get(child), ast.JoinedStr)
-                    and parent.values[0] is not child
-                )
-                and _bad_path(name, child.value)
-            ):
-                found.append(f"{child.lineno}: {child.value}")
+        found.extend(
+            f"{child.lineno}: {child.value}"
+            for child in ast.walk(node)
+            if isinstance(child, ast.Constant)
+            and isinstance(child.value, str)
+            and not (
+                child.value == "/"
+                and isinstance(parent := parents.get(child), ast.JoinedStr)
+                and parent.values[0] is not child
+            )
+            and _bad_path(name, child.value)
+        )
     return found
 
 

@@ -226,11 +226,11 @@ def _problems(recipe: RecipeDefinition, block: ApiBlock) -> list[str]:
     found: list[str] = []
     names = CONTEXT_ARGUMENTS.get(engine, ())
     present = [a for a in recipe.runtime.arguments if a.name in names]
-    for argument in present:
-        if argument.setting != "context_tokens":
-            found.append(
-                f"--{argument.name} must be bound to the context_tokens setting"
-            )
+    found.extend(
+        f"--{argument.name} must be bound to the context_tokens setting"
+        for argument in present
+        if argument.setting != "context_tokens"
+    )
     if names and not present and block.max_input_tokens is None:
         found.append(
             f"no context argument (--{names[0]}) is bound to context_tokens; "

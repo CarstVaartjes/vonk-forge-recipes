@@ -280,8 +280,9 @@ def inventory(
         )
 
     artifacts: list[dict[str, Any]] = []
-    for item in whole:
-        artifacts.append(_artifact(repository, revision, item, item["sha256"], None))
+    artifacts.extend(
+        _artifact(repository, revision, item, item["sha256"], None) for item in whole
+    )
     for path, parts in split_sets.items():
         digest = assembled.get(path)
         if digest is None:

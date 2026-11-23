@@ -292,16 +292,21 @@ def _increments(function: ast.AST) -> list[tuple[int, str]]:
             isinstance(part, ast.BinOp) and isinstance(part.op, ast.Add)
             for part in ast.walk(item.value)
         ):
-            for target in item.targets:
-                if (name := _name(target)) in FATE_COUNTERS:
-                    found.append((item.lineno, name))
+            found.extend(
+                (item.lineno, name)
+                for target in item.targets
+                if (name := _name(target)) in FATE_COUNTERS
+            )
         elif isinstance(item, ast.Call):
-            for keyword in item.keywords:
-                if keyword.arg in FATE_COUNTERS and any(
+            found.extend(
+                (item.lineno, keyword.arg)
+                for keyword in item.keywords
+                if keyword.arg in FATE_COUNTERS
+                and any(
                     isinstance(part, ast.BinOp) and isinstance(part.op, ast.Add)
                     for part in ast.walk(keyword.value)
-                ):
-                    found.append((item.lineno, keyword.arg))
+                )
+            )
     return found
 
 

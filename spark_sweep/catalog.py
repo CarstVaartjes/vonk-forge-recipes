@@ -399,18 +399,18 @@ def parse_fleet(document: Any, default_memory: int) -> Fleet:
                 ),
             )
         )
-        for item in dig(node, "loaded", default=[]):
-            if isinstance(item, dict):
-                presences.append(
-                    Presence(
-                        node_id=node_id,
-                        alias=str(item.get("alias", "")),
-                        run_id=str(item.get("run_id", "")),
-                        healthy=item.get("healthy") is True,
-                        route_state=str(item.get("route_state", "")),
-                        run_state=str(item.get("run_state", "")),
-                    )
-                )
+        presences.extend(
+            Presence(
+                node_id=node_id,
+                alias=str(item.get("alias", "")),
+                run_id=str(item.get("run_id", "")),
+                healthy=item.get("healthy") is True,
+                route_state=str(item.get("route_state", "")),
+                run_state=str(item.get("run_state", "")),
+            )
+            for item in dig(node, "loaded", default=[])
+            if isinstance(item, dict)
+        )
     return Fleet(tuple(sparks), tuple(presences))
 
 

@@ -582,19 +582,19 @@ def _authority_batches(
 
 def _excluded_schedule(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     excluded: list[dict[str, Any]] = []
-    for row in sorted(
-        (item for item in rows if not item["in_scope"]),
-        key=lambda item: (item["node_count"], item["key"]),
-    ):
-        excluded.append(
-            {
-                "kind": "outside-available-capacity",
-                "recipe": row["key"],
-                "node_count": row["node_count"],
-                "coverage_group": row["coverage_group"],
-                "reason": "requires more than two Sparks; catalog audit only",
-            }
+    excluded.extend(
+        {
+            "kind": "outside-available-capacity",
+            "recipe": row["key"],
+            "node_count": row["node_count"],
+            "coverage_group": row["coverage_group"],
+            "reason": "requires more than two Sparks; catalog audit only",
+        }
+        for row in sorted(
+            (item for item in rows if not item["in_scope"]),
+            key=lambda item: (item["node_count"], item["key"]),
         )
+    )
     return excluded
 
 
@@ -945,12 +945,12 @@ def _render_report(matrix: dict[str, Any]) -> str:
             "|---|---|---|---:|---:|",
         ]
     )
-    for entry in matrix["representatives"]:
-        lines.append(
-            f"| `{entry['risk_group_id']}` | `{entry['coverage_group']}` | "
-            f"`{entry['representative']}` | {len(entry['members'])} | "
-            f"{_gib(entry['declared_artifact_bytes'])} |"
-        )
+    lines.extend(
+        f"| `{entry['risk_group_id']}` | `{entry['coverage_group']}` | "
+        f"`{entry['representative']}` | {len(entry['members'])} | "
+        f"{_gib(entry['declared_artifact_bytes'])} |"
+        for entry in matrix["representatives"]
+    )
 
     lines.extend(
         [
@@ -992,11 +992,11 @@ def _render_report(matrix: dict[str, Any]) -> str:
             "|---|---:|---|---|",
         ]
     )
-    for entry in matrix["excluded_schedule"]:
-        lines.append(
-            f"| `{entry['recipe']}` | {entry['node_count']} | "
-            f"`{entry['coverage_group']}` | {entry['reason']} |"
-        )
+    lines.extend(
+        f"| `{entry['recipe']}` | {entry['node_count']} | "
+        f"`{entry['coverage_group']}` | {entry['reason']} |"
+        for entry in matrix["excluded_schedule"]
+    )
 
     lines.extend(
         [
@@ -1013,13 +1013,13 @@ def _render_report(matrix: dict[str, Any]) -> str:
             "|---|---|---|---:|---|---|",
         ]
     )
-    for entry in matrix["recovery_coverage"]["definitions"]:
-        lines.append(
-            f"| `{entry['coverage_id'][:16]}` | `{entry['failure_mode']}` | "
-            f"`{entry['representative_recipe']}` | {len(entry['members'])} | "
-            f"{'yes' if entry['shared'] else 'no'} | "
-            f"{'required' if entry['model_specific_review_required'] else 'n/a'} |"
-        )
+    lines.extend(
+        f"| `{entry['coverage_id'][:16]}` | `{entry['failure_mode']}` | "
+        f"`{entry['representative_recipe']}` | {len(entry['members'])} | "
+        f"{'yes' if entry['shared'] else 'no'} | "
+        f"{'required' if entry['model_specific_review_required'] else 'n/a'} |"
+        for entry in matrix["recovery_coverage"]["definitions"]
+    )
 
     divergences = [row for row in rows if row["authority_divergence"]]
     lines.extend(["", "## Indexed package comparison", ""])

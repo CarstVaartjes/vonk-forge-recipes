@@ -51,9 +51,11 @@ def _rendezvous_errors(source: str) -> list[str]:
     elif "--rdzv-backend=c10d" in source:
         if "--local-addr=127.0.0.1" not in source:
             errors.append("c10d worker store must also use numeric loopback")
-        for setting in ("join_timeout", "read_timeout"):
-            if not re.search(rf"{setting}=(?:[1-9]|[12][0-9]|30)\b", source):
-                errors.append(f"c10d needs a short {setting}")
+        errors.extend(
+            f"c10d needs a short {setting}"
+            for setting in ("join_timeout", "read_timeout")
+            if not re.search(rf"{setting}=(?:[1-9]|[12][0-9]|30)\b", source)
+        )
     else:
         errors.append("launcher needs an explicit rendezvous backend")
     return errors
@@ -69,8 +71,9 @@ def test_adapter_sources_use_loopback_rendezvous() -> None:
         if not path.is_file() or path.suffix not in {"", ".py", ".sh", ".md", ".patch"}:
             continue
         source = path.read_text(encoding="utf-8")
-        for error in _rendezvous_errors(source):
-            violations.append(f"{path.relative_to(ROOT)}: {error}")
+        violations.extend(
+            f"{path.relative_to(ROOT)}: {error}" for error in _rendezvous_errors(source)
+        )
     assert not violations, "\n".join(violations)
 
 

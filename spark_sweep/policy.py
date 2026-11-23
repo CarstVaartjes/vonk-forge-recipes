@@ -627,9 +627,11 @@ class Failure:
     def describe(self) -> str:
         """The result row's error text: the detail plus the evidence that explains it."""
         extra = []
-        for name in ("case", "http_status", "operation_id"):
-            if self.evidence.get(name) not in (None, ""):
-                extra.append(f"{name}={self.evidence[name]}")
+        extra.extend(
+            f"{name}={self.evidence[name]}"
+            for name in ("case", "http_status", "operation_id")
+            if self.evidence.get(name) not in (None, "")
+        )
         body = self.evidence.get("body")
         if body:
             extra.append("body=" + " ".join(str(body).split())[:300])
