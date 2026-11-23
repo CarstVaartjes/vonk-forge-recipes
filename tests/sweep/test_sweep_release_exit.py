@@ -126,7 +126,10 @@ def test_a_download_that_fails_after_a_release_flip_is_retested_once_on_the_new_
     entry["status"] = "pending"
     _deploy(sweep, "2" * 40)  # the release flips while the download runs
     sweep._download_failed(
-        key, policy.classify("download", "download.failed", "unknown"), "op-1", False
+        key,
+        policy.classify("download", "download.failed", "unknown"),
+        "op-1",
+        model_level=False,
     )
     assert entry["status"] == "deferred"
     assert entry["release"] == "1" * 40
