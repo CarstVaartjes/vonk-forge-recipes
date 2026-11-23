@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import json
 import runpy
+import shutil
 from pathlib import Path
 from types import ModuleType
 from unittest import mock
@@ -118,7 +119,6 @@ def test_trellis_decoder_uses_manifest_relative_paths(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Stage real recipe selectors with the agent's selection/path layout."""
-    import shutil
 
     monkeypatch.syspath_prepend(str(ADAPTER))
     adapter = runpy.run_path(str(ADAPTER / "trellis2_job.py"))

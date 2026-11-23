@@ -3,16 +3,22 @@
 from __future__ import annotations
 
 import json
+from concurrent.futures import Future
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
 import pytest
 from repo_root import FIXTURES
-from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_definitions, make_sweep
 
+from spark_sweep import policy
 from spark_sweep.cli import main
+from spark_sweep.identity import IdentityReason, content_identity
 from spark_sweep.lifecycle import RetestReason
 from spark_sweep.sweep_contract import WorkloadFailureCode
+from spark_sweep.sweep_support import RETEST_SECONDS
+from spark_sweep.vonkctl import Vonkctl
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -248,9 +254,6 @@ def test_retry_failed_can_be_limited_to_a_selector(
 
 
 def test_the_cli_takes_retry_failed_and_only(tmp_path: Path, gateway: Gateway) -> None:
-    from sweep_fakes import make_definitions
-
-    from spark_sweep.vonkctl import Vonkctl
 
     recipes, models = _failing_set()
     sweep, fleet, clock = make_sweep(tmp_path, recipes, models, gateway=gateway)
@@ -314,8 +317,6 @@ def test_failures_are_grouped_by_controller_release_in_the_status_file(
 def test_watch_retests_platform_fault_only_after_its_observed_owner_fix(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    from spark_sweep.identity import content_identity
-    from spark_sweep.sweep_support import RETEST_SECONDS
 
     recipe = FakeRecipe("recovering")
     sweep, fleet, clock = make_sweep(
@@ -362,9 +363,6 @@ def test_watch_retests_platform_fault_only_after_its_observed_owner_fix(
 def test_catalog_change_during_lane_keeps_the_verdict_bound_to_accepted_content(
     tmp_path: Path, phase: str, restart: bool
 ) -> None:
-    from dataclasses import replace
-
-    from spark_sweep import policy
 
     fake = FakeRecipe(
         "changing",
@@ -414,7 +412,6 @@ def test_catalog_change_during_lane_keeps_the_verdict_bound_to_accepted_content(
 def test_saved_lane_fixture_never_certifies_the_catalog_at_restart(
     tmp_path: Path, bound: bool
 ) -> None:
-    from spark_sweep.identity import IdentityReason
 
     fixture = FIXTURES / "sweep-accepted-content-state.json"
     saved = json.loads(fixture.read_text())
@@ -453,9 +450,6 @@ def test_saved_lane_fixture_never_certifies_the_catalog_at_restart(
 def test_lane_failure_and_its_evidence_bind_to_the_accepted_content(
     tmp_path: Path,
 ) -> None:
-    from dataclasses import replace
-
-    from spark_sweep import policy
 
     fake = FakeRecipe("changing", digests=("1" * 64,), content="c" * 64, local="cached")
     sweep, _, clock = make_sweep(
@@ -491,10 +485,6 @@ def test_lane_failure_and_its_evidence_bind_to_the_accepted_content(
 def test_smoke_submission_uses_the_accepted_adapter_and_checks(
     tmp_path: Path, monkeypatch
 ) -> None:
-    from concurrent.futures import Future
-    from dataclasses import replace
-
-    from spark_sweep import policy
 
     fake = FakeRecipe("changing", local="cached")
     sweep, _, clock = make_sweep(tmp_path, [fake], [FakeModel("m1", local="cached")])
@@ -548,9 +538,6 @@ def test_a_failure_seen_while_the_platform_was_unreadable_heals_on_the_next_rele
 
 def _refused_create(tmp_path: Path, authored: str, served_now: str | None = None):
     """A slot accepted ``c``*64 and its job create was refused (what ``smoke_job._call`` records)."""
-    from dataclasses import replace
-
-    from spark_sweep import policy
 
     fake = FakeRecipe("skew", digests=("1" * 64,), content="c" * 64, local="cached")
     sweep, _, clock = make_sweep(

@@ -20,11 +20,14 @@ from sweep_fakes import (
     make_definitions,
 )
 
+from spark_sweep import cli, job_media
 from spark_sweep.cli import main
+from spark_sweep.evidence_publisher import SweepEvidenceExit
 from spark_sweep.issues import LABEL, file_issues, title_for
 from spark_sweep.qualification import history_evidence
-from spark_sweep.state import ResultsLog
+from spark_sweep.state import ResultsLog, StateLock
 from spark_sweep.vonkctl import Vonkctl
+from vonk_forge_contracts import QualificationOutcome, RecipeQualificationEvidence
 
 
 def _fleet(recipes, models, root="http://127.0.0.1:1"):
@@ -132,7 +135,6 @@ def test_run_refuses_to_start_without_a_client_key_for_the_gateway(
 def test_without_ffprobe_the_sweep_warns_once_at_startup(
     tmp_path: Path, capsys, monkeypatch
 ) -> None:
-    from spark_sweep import job_media
 
     monkeypatch.setattr(job_media.shutil, "which", lambda name: None)
     fleet = _fleet([], [FakeModel("m1")])
@@ -238,7 +240,6 @@ def _real_recipe() -> str:
 def test_history_rows_become_sanitized_evidence_records(
     tmp_path: Path,
 ) -> None:
-    from vonk_forge_contracts import QualificationOutcome
 
     log = ResultsLog(tmp_path / "results.jsonl", "auth")
     real = _real_recipe()
@@ -278,7 +279,6 @@ def test_history_rows_become_sanitized_evidence_records(
 
 
 def test_committed_hardware_evidence_validates_without_a_legacy_format() -> None:
-    from vonk_forge_contracts import RecipeQualificationEvidence
 
     directory = ROOT / "qualification" / "evidence"
     paths = sorted(directory.rglob("*.json"))
@@ -424,9 +424,6 @@ def test_unknown_issue_close_keeps_identity_for_later_reconciliation() -> None:
 def test_publish_evidence_runs_one_final_batch_without_a_run(
     tmp_path: Path, monkeypatch
 ) -> None:
-    from spark_sweep import cli
-    from spark_sweep.evidence_publisher import SweepEvidenceExit
-    from spark_sweep.state import StateLock
 
     calls = []
 

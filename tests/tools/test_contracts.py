@@ -17,6 +17,8 @@ from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,
     RecipeDefinition,
+    RecipeDisplay,
+    RecipeOptionError,
     document_sha256,
     model_display_json_schema,
     model_json_schema,
@@ -34,6 +36,8 @@ from vonk_forge_contracts.recipe import (
     _runtime_argument_tokens,
 )
 from vonk_forge_contracts.resolver import (
+    ContractResolutionError,
+    validate_library,
     validate_model_references,
     validate_recipe_models,
     validate_recipe_package_paths,
@@ -908,7 +912,6 @@ def test_option_names_are_unique_and_do_not_share_runtime_changes() -> None:
 
 
 def test_option_choices_replace_or_append_and_defaults_fill_in() -> None:
-    from vonk_forge_contracts import RecipeOptionError
 
     document = _recipe_with_options()
     base = RecipeDefinition.model_validate(document)
@@ -984,8 +987,6 @@ def test_job_knob_accepts_typed_limits_and_old_plain_knobs() -> None:
 
 
 def test_library_ingress_refuses_unbound_knobs_and_unknown_display_knobs() -> None:
-    from vonk_forge_contracts import RecipeDisplay
-    from vonk_forge_contracts.resolver import ContractResolutionError, validate_library
 
     job = load("recipe-job.json")
     display = load("recipe-display-job.json")

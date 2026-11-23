@@ -10,8 +10,9 @@ from typing import Any
 from repo_root import ROOT
 
 from recipe_tooling.qualification.documents import has_recipe_api, recipe, recipe_api
-from vonk_forge_contracts import ChatApi, DecisionApi
+from vonk_forge_contracts import CapabilityName, CapabilityRole, ChatApi, DecisionApi
 from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone
+from vonk_forge_contracts.capability import CAPABILITY_ROLES
 
 GUARD = runpy.run_path(str(ROOT / "tools/check-model-modalities"))
 
@@ -42,7 +43,6 @@ def test_a_text_generating_model_is_judged_not_skipped() -> None:
 
 
 def test_roles_come_from_the_contract_not_from_name_suffixes() -> None:
-    from vonk_forge_contracts import CapabilityName, CapabilityRole
 
     assert CapabilityName("text-to-speech").role is CapabilityRole.GENERATOR
     assert CapabilityName("image-upscaling").role is CapabilityRole.GENERATOR
@@ -54,8 +54,6 @@ def test_roles_come_from_the_contract_not_from_name_suffixes() -> None:
 
 
 def test_every_capability_has_an_explicit_role() -> None:
-    from vonk_forge_contracts import CapabilityName
-    from vonk_forge_contracts.capability import CAPABILITY_ROLES
 
     assert set(CAPABILITY_ROLES) == set(CapabilityName)
 

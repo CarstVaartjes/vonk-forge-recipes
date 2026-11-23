@@ -13,8 +13,12 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+from catalog_documents import model_digest
 from repo_root import ROOT
 
+from recipe_tooling.qualification.definitions_loader import load_definitions
+from spark_sweep.job_assertions import Output, evaluate
+from spark_sweep.smoke import AssertionFailed
 from vonk_forge_contracts import RecipeDefinition
 
 RECIPE_SLUGS = (
@@ -72,7 +76,6 @@ def video_module():
 
 class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
     def test_hunyuan_recipes_select_exact_models_and_job_interface(self) -> None:
-        from catalog_documents import model_digest
 
         expected_model_counts = {
             "hunyuan-video-foley-xl-pytorch-single": 3,
@@ -166,9 +169,6 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
                 foley._one_video(root)
 
     def test_foley_qualification_accepts_native_mono_and_rejects_stereo(self) -> None:
-        from recipe_tooling.qualification.definitions_loader import load_definitions
-        from spark_sweep.job_assertions import Output, evaluate
-        from spark_sweep.smoke import AssertionFailed
 
         # Pinned upstream DAC Decoder(d_out=1); infer.py saves it unchanged.
         definitions = load_definitions()["recipes"]

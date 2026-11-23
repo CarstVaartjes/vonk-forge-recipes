@@ -9,6 +9,7 @@ import json
 import sys
 import threading
 import time
+from concurrent.futures import Future
 from contextlib import AbstractContextManager
 from email.message import Message
 from types import SimpleNamespace
@@ -20,8 +21,11 @@ from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep import policy, verdict
+from spark_sweep.fanout import DaemonExecutor
 from spark_sweep.identity import content_identity
 from spark_sweep.lifecycle import LifecycleState
+from spark_sweep.owner import OwnerStatus
+from spark_sweep.report import build_status
 from spark_sweep.smoke import HttpConfig, stream_probe
 from spark_sweep.state import State
 from spark_sweep.sweep_contract import SweepWait, SweepWaitReason
@@ -177,7 +181,6 @@ def test_catalog_read_timeout_does_not_hold_live_observation_or_status(
     recipe = FakeRecipe("a", local="cached")
     sweep, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1", local="cached")])
     sweep.refresh_catalog()
-    from spark_sweep.fanout import DaemonExecutor
 
     sweep.catalog_executor = DaemonExecutor()
     entered, release = threading.Event(), threading.Event()
@@ -379,8 +382,6 @@ def test_canonical_acceptance_outranks_a_refusal_shaped_lost_reply(tmp_path):
 
 
 def test_lane_supervision_releases_a_stuck_stream_with_the_shared_budget(tmp_path):
-    import threading
-    from concurrent.futures import Future
 
     recipe = FakeRecipe("a", local="cached")
     sweep, _, clock = make_sweep(tmp_path, [recipe], [FakeModel("m1", local="cached")])
@@ -405,7 +406,6 @@ def test_lane_supervision_releases_a_stuck_stream_with_the_shared_budget(tmp_pat
 
 
 def test_an_unchanged_held_lane_preserves_its_request_and_publishes_its_age(tmp_path):
-    from spark_sweep.report import build_status
 
     recipe = FakeRecipe("a", local="cached")
     sweep, _, clock = make_sweep(tmp_path, [recipe], [FakeModel("m1", local="cached")])
@@ -555,7 +555,6 @@ def test_finalization_needs_its_exact_receipt_after_acceptance(tmp_path, bad_rec
 def test_a_new_owner_load_supersedes_final_stop_without_another_write(
     tmp_path, monkeypatch
 ):
-    from spark_sweep.owner import OwnerStatus
 
     recipe = FakeRecipe("a", local="cached")
     sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1", local="cached")])

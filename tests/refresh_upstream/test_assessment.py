@@ -3,24 +3,35 @@
 from __future__ import annotations
 
 import copy
+import io
 import json
 import os
 import shutil
 import tempfile
 import unittest
+import urllib.error
 from email.message import Message
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 from urllib.error import HTTPError
+from urllib.request import Request
 
+import documents
 import pytest
+from catalog_documents import catalog_models
 from refresh_helpers import NEW, OLD, OLD_YAML, comparison, model_with
 from repo_root import ROOT
+from warning_asserts import assert_not_warns, assert_warns
 
 from recipe_tooling import catalog_hf_model, vendored_upstream
 from recipe_tooling.catalog_model import roles_for
 from recipe_tooling.kit_pins import consumers as kit_consumers
+from recipe_tooling.qualification import documents as qualification_documents
+from recipe_tooling.qualification.memory_need.evidence import load_inputs
+from recipe_tooling.qualification.memory_need.warnings import (
+    memory_estimate_warnings,
+)
 from recipe_tooling.refresh_upstream import assessment as refresh_assessment
 from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
 from recipe_tooling.refresh_upstream import classification as refresh_classification
@@ -29,6 +40,7 @@ from recipe_tooling.refresh_upstream import http as refresh_http
 from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.upstream_drift import heads as drift_heads
+from vonk_forge_contracts import RecipeDefinition
 
 
 class EmbeddedSourceReviewTests(unittest.TestCase):
@@ -436,16 +448,6 @@ class VendoredCreatorMoveTests(unittest.TestCase):
     def test_real_unproven_dual_is_raised_and_then_passes_the_touched_check(
         self,
     ) -> None:
-        import documents
-        from catalog_documents import catalog_models
-        from warning_asserts import assert_not_warns, assert_warns
-
-        from recipe_tooling.qualification import documents as qualification_documents
-        from recipe_tooling.qualification.memory_need.evidence import load_inputs
-        from recipe_tooling.qualification.memory_need.warnings import (
-            memory_estimate_warnings,
-        )
-        from vonk_forge_contracts import RecipeDefinition
 
         slug = "muse-spark-open-nvfp4-vllm-eight"
         before = documents.recipe(slug)
@@ -637,9 +639,6 @@ class RewrittenHistoryTests(unittest.TestCase):
             refresh_items.compare_commits(self.Http("Not Found"), "o/r", OLD, NEW)  # pyright: ignore[reportArgumentType]
 
     def test_the_provider_message_is_read_from_the_error_body(self) -> None:
-        import io
-        import urllib.error
-        from email.message import Message
 
         error = urllib.error.HTTPError(
             "u",
@@ -782,7 +781,6 @@ class GatedRepositoryTests(unittest.TestCase):
             assert seen.get("Authorization") == expected
 
     def test_the_token_goes_to_hugging_face_only(self) -> None:
-        from urllib.request import Request
 
         request = Request(
             "https://cdn.example/x", headers={"Authorization": "Bearer t"}

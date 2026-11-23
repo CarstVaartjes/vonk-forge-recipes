@@ -10,6 +10,8 @@ from documents import json_document
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
+from vonk_forge_contracts import read_recipe
+
 
 def load(path: Path) -> dict[str, Any]:
     return json_document(path.read_text(encoding="utf-8"))
@@ -52,7 +54,6 @@ class MuseGlimmerRecipeTests(unittest.TestCase):
         assert entry["package"]["recipe_content_sha256"] == digest(recipe)
 
     def test_nvfp4_dflash_option_compiles_vllm_none_sentinel(self) -> None:
-        from vonk_forge_contracts import read_recipe
 
         recipe = read_recipe(
             load(ROOT / "recipes/muse-glimmer-30b-nvfp4-vllm-mia-single.json")

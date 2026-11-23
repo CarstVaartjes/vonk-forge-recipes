@@ -16,6 +16,7 @@ from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy, verdict
+from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.policy import TimeoutPolicy
 from spark_sweep.sweep_contract import SweepWaitReason
 from spark_sweep.verdict import Disposition, Progress
@@ -373,8 +374,6 @@ def test_every_requeue_leaves_a_results_row(tmp_path: Path, gateway: Gateway) ->
 
 
 def test_profile_retry_wait_has_one_current_location() -> None:
-    from spark_sweep.lifecycle import LifecycleState
-    from spark_sweep.sweep_contract import SweepWaitReason
 
     due = "2026-10-21T07:00:00Z"
     signal = verdict.application_signal(

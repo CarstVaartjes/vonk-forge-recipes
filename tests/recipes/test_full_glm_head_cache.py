@@ -4,6 +4,8 @@ import hashlib
 import importlib.util
 import json
 import struct
+import sys
+from types import SimpleNamespace
 
 import pytest
 from repo_root import ROOT
@@ -60,8 +62,6 @@ def test_invalid_tensor_bounds_never_publish(tmp_path):
 
 
 def test_cached_view_recovers_corrupt_index_and_missing_link(tmp_path, monkeypatch):
-    import sys
-    from types import SimpleNamespace
 
     pack = tmp_path / "pack"
     pack.mkdir()

@@ -1,9 +1,12 @@
 """Exercise actual catalog rejection and bounded KV without retuning known recipes."""
 
 import json
+import logging
+import math
 import runpy
 from decimal import Decimal
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from catalog_documents import catalog_models
@@ -490,10 +493,6 @@ def test_multispark_delegates_every_role_even_for_historical_identity(
 
 
 def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> None:
-    import logging
-    import math
-    import runpy
-    from types import SimpleNamespace
 
     recipe = RecipeDefinition.model_validate_json(
         (

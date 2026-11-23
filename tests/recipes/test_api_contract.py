@@ -10,6 +10,7 @@ from typing import Any
 
 import pytest
 from documents import model_display, recipe, recipe_api
+from generated_catalog import GENERATED
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from repo_root import ROOT
@@ -20,12 +21,14 @@ from vonk_forge_contracts import (
     RecipeDefinition,
     check_api_models,
     check_recipe_api,
+    document_sha256,
     published_json,
     read_recipe_api,
     recipe_api_json_schema,
 )
 from vonk_forge_contracts.api import ApiTokenArgument
 from vonk_forge_contracts.api_checks import (
+    CONTEXT_ARGUMENTS,
     INPUT_MODALITY_CAPABILITIES,
     accepted_modalities,
 )
@@ -228,7 +231,6 @@ def test_the_guard_checks_an_option_choice_against_its_own_runtime(
 
 
 def test_the_catalog_index_carries_each_recipes_api_or_null() -> None:
-    from generated_catalog import GENERATED
 
     entries = _json(GENERATED / "catalog-index.json")["recipes"]
     with_api = {
@@ -247,7 +249,6 @@ def test_the_catalog_index_carries_each_recipes_api_or_null() -> None:
 
 
 def _json_digest(source_path: str) -> str:
-    from vonk_forge_contracts import document_sha256
 
     return document_sha256(_json(ROOT / source_path))
 
@@ -553,7 +554,6 @@ def test_a_changed_model_display_rechecks_the_recipes_that_serve_it() -> None:
 
 
 def test_exllamav3_context_arguments_name_per_request_context_only() -> None:
-    from vonk_forge_contracts.api_checks import CONTEXT_ARGUMENTS
 
     row = CONTEXT_ARGUMENTS["exllamav3"]
     # TabbyAPI's cache-size is the shared KV pool, not a request's context.

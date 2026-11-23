@@ -16,7 +16,9 @@ from sweep_fakes import Gateway, production_service_cases
 from recipe_tooling.qualification.documents import recipe, recipe_api
 from spark_sweep.catalog import Recipe
 from spark_sweep.chat_probe import ChatFacts, chat_facts
+from spark_sweep.cli import AUTHORITY_ID
 from spark_sweep.definitions import Definitions
+from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.smoke import (
     AssertionFailed,
     HttpConfig,
@@ -27,11 +29,14 @@ from spark_sweep.smoke import (
     stream_probe,
 )
 from spark_sweep.sweep_contract import CliObservationStatus
+from spark_sweep.verdict import Disposition, reply_disposition
 from spark_sweep.vonkctl import (
     OwnerProfileError,
     Reply,
     Vonkctl,
     VonkctlError,
+    VonkctlTimeout,
+    VonkctlTransportError,
     request_key,
 )
 from vonk_forge_contracts.api import (
@@ -150,8 +155,6 @@ def test_only_a_single_stdout_json_document_is_a_receipt(out: str, err: str) -> 
 @pytest.mark.parametrize("code", [0, 2, 124])
 @pytest.mark.parametrize("out", ["", "null", "not JSON"])
 def test_missing_json_is_transport_with_exit_and_stderr(code: int, out: str) -> None:
-    from spark_sweep.verdict import Disposition, reply_disposition
-    from spark_sweep.vonkctl import VonkctlTransportError
 
     run, _ = runner_returning(code, out, "injected connection failure")
     vk = Vonkctl(runner=run)
@@ -170,15 +173,12 @@ def test_real_cli_observation_envelope_is_not_a_controller_reply(
     tmp_path: Path,
 ) -> None:
     """Captured GET remove-review output from cli_outcome.Observation.document()."""
-    from spark_sweep.verdict import Disposition, reply_disposition
-    from spark_sweep.vonkctl import VonkctlTransportError
 
     document = json.loads(
         (ROOT / "tests/fixtures/sweep-removal/observation.json").read_text()
     )
     # Even a retained successful receipt is stale observation evidence, not a
     # fresh response that can authorize effects or settle an outstanding request.
-    from spark_sweep.lifecycle import LifecycleState
 
     document["result"] = {"state": LifecycleState.SUCCEEDED}
     script = tmp_path / "vonkctl"
@@ -201,7 +201,6 @@ def test_real_cli_observation_envelope_is_not_a_controller_reply(
 
 def test_controller_error_keeps_its_cause_when_observation_is_attached() -> None:
     """cli._control_error attaches observation metadata to final refusals too."""
-    from spark_sweep.vonkctl import VonkctlTransportError
 
     error = {
         "error_type": "control_api",
@@ -443,7 +442,6 @@ def test_a_vision_case_carries_its_image_as_a_data_uri(
 
 
 def test_the_authority_id_matches_the_derived_authority() -> None:
-    from spark_sweep.cli import AUTHORITY_ID
 
     builder = (ROOT / "tools" / "build-qualification-authority").read_text()
     assert f'AUTHORITY_ID = "{AUTHORITY_ID}"' in builder
@@ -600,7 +598,6 @@ def test_non_openai_recipes_are_checked_for_readiness_only() -> None:
 
 
 def test_a_timeout_is_a_failed_reply_for_reads_and_an_error_for_calls() -> None:
-    from spark_sweep.vonkctl import VonkctlTimeout
 
     def run(argv, timeout):
         raise VonkctlTimeout(argv, None, "vonkctl timed out after 5s")

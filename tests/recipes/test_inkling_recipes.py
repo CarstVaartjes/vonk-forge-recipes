@@ -1,17 +1,43 @@
 from __future__ import annotations
 
 import contextlib
+import gc
 import json
+import logging
+import math
 import os
+import re
+import runpy
 import subprocess
 import sys
 import tempfile
 import unittest
 from decimal import Decimal
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
+import pytest
+from catalog_documents import catalog_models
+from documents import recipe, recipe_display
 from repo_root import ROOT
+
+from recipe_tooling.qualification.memory_need.constants import (
+    SGLANG_PRELOAD_FREE_BYTES,
+    TOTAL_BYTES,
+    budget_margin_bytes,
+)
+from recipe_tooling.qualification.memory_need.evidence import load_inputs
+from recipe_tooling.qualification.memory_need.sglang import (
+    sglang_demand,
+    sglang_rank_budget_warnings,
+)
+from recipe_tooling.qualification.memory_need.vllm import attention_token_bytes
+from recipe_tooling.qualification.memory_need.warnings import (
+    memory_estimate_warnings,
+    memory_warnings,
+)
+from vonk_forge_contracts import RecipeDefinition, document_sha256, read_recipe
 
 
 def load(path: str) -> dict[str, Any]:
@@ -92,13 +118,6 @@ FAILED_REST_GIB = 6.49
 
 def _sglang_sizer(available_bytes: list[int], schedule: object) -> Any:
     """The pinned image's sizing methods with the Inkling TP2 runtime around them."""
-    import gc
-    import logging
-    import math
-    import runpy
-    from types import SimpleNamespace
-
-    from recipe_tooling.qualification.memory_need.evidence import load_inputs
 
     def override(_reason: str, **values: int) -> None:
         for name, value in values.items():
@@ -159,15 +178,6 @@ def test_pinned_sglang_sizing_rejects_failed_fraction_and_holds_the_caps() -> No
     the pre-load free memory of that start, taken as the one owned
     SGLANG_PRELOAD_FREE_BYTES; the geometry's expansion is derived from it.
     """
-    from decimal import Decimal
-    from types import SimpleNamespace
-
-    import pytest
-
-    from recipe_tooling.qualification.memory_need.constants import (
-        SGLANG_PRELOAD_FREE_BYTES,
-    )
-    from recipe_tooling.qualification.memory_need.evidence import load_inputs
 
     gib = 1 << 30
     recipe = load(DUAL)
@@ -244,21 +254,12 @@ def test_pinned_sglang_sizing_rejects_failed_fraction_and_holds_the_caps() -> No
 
 def _static_demand(document: dict[str, Any]) -> Decimal | None:
     """The fraction demand, owned by memory_need.sglang_demand (margin included)."""
-    from recipe_tooling.qualification.memory_need.sglang import sglang_demand
-    from vonk_forge_contracts import RecipeDefinition
 
     return sglang_demand(RecipeDefinition.model_validate(document), None)
 
 
 def _rank_budget_error(path: str = DUAL, **changes: object) -> str | None:
     """The changed-document estimate warnings; the empty digest skips the waiver."""
-    from catalog_documents import catalog_models
-
-    from recipe_tooling.qualification.memory_need.evidence import load_inputs
-    from recipe_tooling.qualification.memory_need.warnings import (
-        memory_estimate_warnings,
-    )
-    from vonk_forge_contracts import RecipeDefinition
 
     document = load(path)
     arguments = document["runtime"]["arguments"]
@@ -327,10 +328,6 @@ KV_1M_AFTER_DRAFT_GIB = 22.74
 
 def _dspark_sizer(fraction: float, available_gib: float) -> Any:
     """sglang b7252cc6's sizing methods around the kvquant image's TP2 start."""
-    import runpy
-    from types import SimpleNamespace
-
-    from recipe_tooling.qualification.memory_need.evidence import load_inputs
 
     arguments = {
         item["name"]: item["value"] for item in load(KV_1M)["runtime"]["arguments"]
@@ -387,7 +384,6 @@ def _dspark_sizer(fraction: float, available_gib: float) -> Any:
 
 
 def test_dspark_sizing_replay_matches_the_10_28_failure_and_the_fix() -> None:
-    import pytest
 
     pre = KV_1M_PRE_LOAD_GIB
     # The printed 0.12 GB residual fixes the available figure at the failed fraction.
@@ -408,13 +404,6 @@ def test_dspark_sizing_replay_matches_the_10_28_failure_and_the_fix() -> None:
 
 
 def test_uncapped_startup_room_refuses_the_10_28_fraction_and_accepts_the_fix() -> None:
-    from decimal import Decimal
-
-    from recipe_tooling.qualification.memory_need.constants import (
-        TOTAL_BYTES,
-        budget_margin_bytes,
-    )
-    from vonk_forge_contracts import RecipeDefinition
 
     margin = budget_margin_bytes(RecipeDefinition.model_validate(load(KV_1M)))
 
@@ -439,11 +428,6 @@ def test_uncapped_startup_room_refuses_the_10_28_fraction_and_accepts_the_fix() 
 
 
 def test_fp4_mx_block16_costs_what_nvfp4_costs() -> None:
-    from catalog_documents import catalog_models  # noqa: F401
-
-    from recipe_tooling.qualification.memory_need.evidence import load_inputs
-    from recipe_tooling.qualification.memory_need.vllm import attention_token_bytes
-    from vonk_forge_contracts import RecipeDefinition
 
     inputs = load_inputs()
     geometry = next(
@@ -469,11 +453,6 @@ def test_fp4_mx_block16_costs_what_nvfp4_costs() -> None:
 
 
 def test_unproven_unchanged_document_reports_its_startup_room() -> None:
-    from catalog_documents import catalog_models
-
-    from recipe_tooling.qualification.memory_need.evidence import load_inputs
-    from recipe_tooling.qualification.memory_need.warnings import memory_warnings
-    from vonk_forge_contracts import RecipeDefinition, document_sha256
 
     document = load("recipes/inkling-small-nvfp4-sglang-mia-dual.json")
     warnings = memory_warnings(
@@ -495,7 +474,6 @@ def _fraction(recipe: dict[str, Any]) -> Decimal:
 
 
 def _creator_default(path: str, pattern: str) -> Decimal:
-    import re
 
     match = re.search(pattern, (ROOT / path).read_text(encoding="utf-8"))
     assert match, (path, pattern)
@@ -556,7 +534,6 @@ def _replayed_slots(fraction: float) -> int:
 
 def test_startup_room_boundary_is_the_replays_fifth_slot() -> None:
     """One request needs five slots: the check flips where the replay reaches K = 5."""
-    from decimal import Decimal
 
     low, high = 0.8002, 0.85
     assert _replayed_slots(low) < 5 <= _replayed_slots(high)
@@ -571,13 +548,6 @@ def test_startup_room_boundary_is_the_replays_fifth_slot() -> None:
 
     def error(fraction: float) -> bool:
         """Whether the base launch (block size 7, the replay's) is refused."""
-        from catalog_documents import catalog_models
-
-        from recipe_tooling.qualification.memory_need.evidence import load_inputs
-        from recipe_tooling.qualification.memory_need.sglang import (
-            sglang_rank_budget_warnings,
-        )
-        from vonk_forge_contracts import RecipeDefinition
 
         document = load(KV_1M)
         for item in document["runtime"]["arguments"]:
@@ -605,7 +575,6 @@ def test_dspark_dual_follows_the_creators_settings_and_declares_load_peaks() -> 
     The 2026-10-25 Controller-measured whole-run peaks are the load peaks; they
     exceed the steady peak and are served from swap.
     """
-    from documents import recipe
 
     definition = recipe(DSPARK_DUAL)
     arguments = {
@@ -642,9 +611,6 @@ class InklingTonyd2wildLauncherEnvironmentTests(unittest.TestCase):
     )
 
     def test_recipes_restore_the_launcher_environment(self) -> None:
-        from documents import recipe_display
-
-        from vonk_forge_contracts import read_recipe
 
         for path in self.RECIPES:
             with self.subTest(recipe=path):

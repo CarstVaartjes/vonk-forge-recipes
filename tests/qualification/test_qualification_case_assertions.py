@@ -6,6 +6,7 @@ import hashlib
 import json
 import runpy
 import shutil
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +20,16 @@ from recipe_tooling.qualification.case_assertions import (
 )
 from recipe_tooling.qualification.definitions_loader import load_definitions
 from spark_sweep.smoke import check_assertions, check_quality
+from vonk_forge_contracts import (
+    QualificationEvidenceRecord,
+    QualificationOutcome,
+    QualificationRuntimeImage,
+    QualificationStatus,
+    QualificationUnverifiedReason,
+    RecipeQualificationEvidence,
+    published_status,
+)
+from vonk_forge_contracts.canonical import document_sha256
 from vonk_forge_contracts.recipe import RecipeJobSettings
 
 TEMPLATES: dict[str, Any] = json.loads(
@@ -398,7 +409,6 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
 
 
 def test_qualification_parameters_do_not_enter_recipe_content_identity(built_catalog):
-    from vonk_forge_contracts.canonical import document_sha256
 
     catalog, _ = built_catalog
     for entry in catalog["recipes"]:
@@ -476,17 +486,6 @@ def test_reviewed_identity_guard_detects_shared_context_or_document_change(
 
 
 def test_protocol_refresh_preserves_prior_pass_without_certifying_new_context() -> None:
-    from datetime import timedelta
-
-    from vonk_forge_contracts import (
-        QualificationEvidenceRecord,
-        QualificationOutcome,
-        QualificationRuntimeImage,
-        QualificationStatus,
-        QualificationUnverifiedReason,
-        RecipeQualificationEvidence,
-        published_status,
-    )
 
     slug = "ltx-2-19b-distilled-fp8-diffusers-single"
     historical_context = (

@@ -19,6 +19,7 @@ from spark_sweep import policy, verdict
 from spark_sweep.auth_contract import SmokeAuthClass
 from spark_sweep.qualification import from_history
 from spark_sweep.sweep_contract import SweepFailureClass, SweepWaitCode
+from spark_sweep.sweep_support import IDENTICAL_EXIT_LIMIT
 from spark_sweep.verdict import Blame, Disposition
 
 SOURCES = (*RUN_FILES, "smoke.py", "smoke_job.py", "prefetch.py")
@@ -195,7 +196,6 @@ def test_the_sweep_status_and_the_published_blame_agree(tmp_path, klass, code):
 
 
 def test_an_unnamed_class_on_one_identity_ends_after_three_identical_outcomes(tmp_path):
-    from spark_sweep.sweep_support import IDENTICAL_EXIT_LIMIT
 
     recipe = FakeRecipe("a", ("1" * 64,), content="a" * 64)
     sweep, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("1" * 64)])
@@ -217,7 +217,6 @@ def test_an_unnamed_class_on_one_identity_ends_after_three_identical_outcomes(tm
 
 
 def test_a_different_unnamed_class_restarts_the_count(tmp_path):
-    from spark_sweep.sweep_support import IDENTICAL_EXIT_LIMIT
 
     recipe = FakeRecipe("a", ("1" * 64,), content="a" * 64)
     sweep, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("1" * 64)])

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import io
 import json
 import sys
 from types import SimpleNamespace
@@ -11,6 +12,10 @@ from unittest.mock import Mock
 
 import pytest
 from repo_root import ROOT
+
+from recipe_tooling.qualification.definitions_loader import load_definitions
+from spark_sweep.job_assertions import Output, evaluate
+from spark_sweep.smoke import AssertionFailed
 
 RecipeJobInputManifest = importlib.import_module(
     "vonk_agent_protocol.job_inputs"
@@ -126,13 +131,8 @@ def test_pipeline_receives_offline_assets_and_checkpoint_sampling(job, monkeypat
 def test_qwen_qualification_requires_native_rgba_png(mode: str) -> None:
     # The pinned QwenImage21 VAE decodes four channels; preserve its alpha.
     # https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo/blob/fc13ba1986fcb905854dc8de2f52eee395f49b5b/vae/config.json
-    import io
 
     image_module = pytest.importorskip("PIL.Image")
-
-    from recipe_tooling.qualification.definitions_loader import load_definitions
-    from spark_sweep.job_assertions import Output, evaluate
-    from spark_sweep.smoke import AssertionFailed
 
     assertions = load_definitions()["recipes"][
         "vonk-forge/qwen-image-2-1-turbo-diffusers-single"

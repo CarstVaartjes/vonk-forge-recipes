@@ -15,9 +15,11 @@ from sweep_fakes import FakeModel, FakeRecipe, StallAlarm, make_sweep
 from spark_sweep import policy, verdict
 from spark_sweep.identity import AcceptedRequest, ControllerWaitHold, content_identity
 from spark_sweep.lifecycle import LifecycleState
+from spark_sweep.recovery import Fingerprint
 from spark_sweep.report import build_status
 from spark_sweep.state import State
 from spark_sweep.sweep_contract import ControllerWaitOperation, SweepWaitReason
+from spark_sweep.vonkctl import Reply
 
 FIXTURE = FIXTURES / "sweep-verdicts/controller-waits-2026-10-23.json"
 RECORDS = json.loads(FIXTURE.read_text())
@@ -400,7 +402,6 @@ def test_same_reason_with_different_operation_kind_is_not_shared(
 def test_unavailable_receipt_keeps_a_visible_next_observation(
     tmp_path, monkeypatch
 ) -> None:
-    from spark_sweep.vonkctl import Reply
 
     sweep, _, clock, _ = prepare(tmp_path, monkeypatch)
     expire(sweep, clock)
@@ -415,7 +416,6 @@ def test_unavailable_receipt_keeps_a_visible_next_observation(
 def test_observed_platform_content_change_replans_without_counting_attempts(
     tmp_path, monkeypatch
 ) -> None:
-    from spark_sweep.recovery import Fingerprint
 
     sweep, _, clock, _ = prepare(tmp_path, monkeypatch)
     before = Fingerprint("worker", "a" * 40, "c" * 64)

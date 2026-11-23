@@ -18,11 +18,20 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from pydantic import ValidationError
 from repo_root import ROOT
+from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from sweep_sources import run_source
 
 from spark_sweep import policy, verdict
+from spark_sweep.evidence_publisher import EvidencePublisher, SweepEvidenceExit
 from spark_sweep.lifecycle import ACTIVE, STATES, TERMINAL, WAITING, RecipeStatus
+from spark_sweep.sweep_contract import (
+    SweepStorageCode,
+    SweepWait,
+    SweepWaitExpiry,
+    SweepWaitReason,
+)
 from spark_sweep.verdict import Disposition
 from spark_sweep.vonkctl import CLIENT_CONTRACT_MISMATCH
 
@@ -30,7 +39,6 @@ SWEEP = [*sorted((ROOT / "spark_sweep").glob("*.py")), ROOT / "tools/sweep-recip
 
 
 def test_fake_sweeps_cannot_launch_the_live_evidence_publisher(tmp_path, monkeypatch):
-    from spark_sweep.evidence_publisher import EvidencePublisher
 
     def subprocess_forbidden(*args, **kwargs):
         raise AssertionError("a publisher subprocess escaped test isolation")
@@ -455,7 +463,6 @@ def test_verdict_codes_match_the_published_enums() -> None:
         if name != "source"
         for word in values
     }
-    from spark_sweep.sweep_contract import SweepStorageCode
 
     used = {
         *SweepStorageCode,
@@ -518,7 +525,6 @@ def test_every_published_blocker_word_waits_unless_declared_final(word: str) -> 
 
 @pytest.mark.parametrize("word", sorted(STATES))
 def test_fake_can_emit_every_lifecycle_word(tmp_path: Path, word: str) -> None:
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
     sweep, fleet, _ = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
     fleet.observations.append((("recipe", "progress"), 0, {"id": "op", "state": word}))
@@ -694,9 +700,6 @@ def test_blocking_stream_reads_have_semantic_progress_evidence(path):
 
 
 def test_wait_record_requires_a_contract_reason_and_finite_expiry_evidence():
-    from pydantic import ValidationError
-
-    from spark_sweep.sweep_contract import SweepWait, SweepWaitExpiry, SweepWaitReason
 
     fields = {
         "wait": SweepWait(reason=SweepWaitReason.BLOCKER),
@@ -777,7 +780,6 @@ def test_assignment_failures_are_read_only_through_the_typed_resolver() -> None:
 
 def test_every_evidence_exit_has_its_own_status_message():
     """A new SweepEvidenceExit member must not fall into the generic 'exited N'."""
-    from spark_sweep.evidence_publisher import SweepEvidenceExit
 
     tree = ast.parse((ROOT / "spark_sweep/evidence_publisher.py").read_text())
     tick = next(

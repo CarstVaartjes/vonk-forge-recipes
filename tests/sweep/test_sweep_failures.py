@@ -9,7 +9,11 @@ from typing import Any
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
+from spark_sweep import policy, verdict
 from spark_sweep.policy import TimeoutPolicy
+from spark_sweep.smoke import HttpConfig
+from spark_sweep.vonkctl import VonkctlTimeout
+from vonk_forge_contracts import QualificationCauseCode
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -131,7 +135,6 @@ def test_smoke_failure_is_a_smoke_phase_failure(
 def test_an_expired_gateway_key_is_not_the_recipes_fault_and_heals_with_a_new_key(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    from spark_sweep.smoke import HttpConfig
 
     key_file = tmp_path / "sweep.key"
     key_file.write_text("sk-expired\n")
@@ -315,8 +318,6 @@ def test_a_controller_that_stops_answering_costs_a_pass_not_the_sweep(
 
     def runner(argv, timeout):
         if clock.now() < outage["until"] and "library" in argv:
-            from spark_sweep.vonkctl import VonkctlTimeout
-
             raise VonkctlTimeout(argv, None, "vonkctl timed out")
         return real(argv, timeout)
 
@@ -360,8 +361,6 @@ def test_generic_platform_fault_never_blames_recipe_or_siblings(
 
 
 def test_smoke_transport_failure_with_exited_workload_is_runtime_exit() -> None:
-    from spark_sweep import policy, verdict
-    from vonk_forge_contracts import QualificationCauseCode
 
     request = policy.classify(
         "smoke", "", "HTTP 500", "smoke-request", {"case": "stream", "http_status": 500}

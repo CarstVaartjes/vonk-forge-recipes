@@ -3,16 +3,24 @@
 from __future__ import annotations
 
 import ast
+import threading
 from concurrent.futures import Future
+from contextlib import contextmanager
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
-from spark_sweep import verdict
+from spark_sweep import smoke, verdict
 from spark_sweep.report import build_status
-from spark_sweep.sweep_contract import SweepWait, SweepWaitCode, SweepWaitReason
+from spark_sweep.sweep_contract import (
+    SweepWait,
+    SweepWaitCode,
+    SweepWaitExpiry,
+    SweepWaitReason,
+)
 
 # Who may write a wait: bounded_wait writes all of it; only progress_verdict renews a
 # wait's window (forward movement), so only it may also move the start or drop the deadline.
@@ -202,7 +210,6 @@ def test_sse_heartbeats_cannot_hold_smoking_lane_forever(tmp_path: Path) -> None
     slot.update(phase="smoking", ready_at=clock.now())
     # A running worker cannot be stopped by Future.cancel(); the lane must release
     # independently and signal the stream to close cooperatively.
-    import threading
 
     future = Future()
     future.set_running_or_notify_cancel()
@@ -268,11 +275,6 @@ def test_unavailable_observation_releases_even_during_a_blind_pass(
 
 
 def test_expired_stream_stops_on_the_next_heartbeat(monkeypatch) -> None:
-    import threading
-    from contextlib import contextmanager
-    from types import SimpleNamespace
-
-    from spark_sweep import smoke
 
     stopped = threading.Event()
     closed = []
@@ -298,7 +300,6 @@ def test_expired_stream_stops_on_the_next_heartbeat(monkeypatch) -> None:
 
 
 def test_replanned_cases_return_newest_first_after_the_delay(tmp_path: Path) -> None:
-    from spark_sweep.sweep_contract import SweepWaitExpiry
 
     recipes = [
         FakeRecipe("old", local="cached", updated="2026-10-01T00:00:00Z"),

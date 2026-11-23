@@ -8,6 +8,8 @@ from typing import Any
 from documents import recipe_display
 from repo_root import ROOT
 
+from vonk_forge_contracts import ModelDefinition
+
 RECIPE_PATH = ROOT / "recipes/minimax-h3-fl2va-diffusers-single.json"
 FULL_RECIPE_PATH = ROOT / "recipes/minimax-h3-diffusers-single.json"
 MODEL_PATH = ROOT / "models/minimax-h3-fl2va-42ed227e.json"
@@ -30,7 +32,6 @@ class MiniMaxH3Fl2vaRecipeTests(unittest.TestCase):
 
     def test_model_authority_and_filtered_selection_are_exact(self) -> None:
         model, recipe = load(MODEL_PATH), load(RECIPE_PATH)
-        from vonk_forge_contracts import ModelDefinition
 
         canonical = ModelDefinition.model_validate(model).model_dump(mode="json")
         digest = (

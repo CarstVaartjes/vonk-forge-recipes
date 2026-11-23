@@ -10,7 +10,7 @@ import os
 import subprocess
 import tempfile
 import unittest
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
@@ -144,7 +144,6 @@ class RefusedAppAuthTests(unittest.TestCase):
 
 
 def test_the_site_dispatch_token_is_scoped_to_the_site_and_actions_only() -> None:
-    from datetime import timedelta
 
     loader = importlib.machinery.SourceFileLoader(
         "dispatch_site_build", str(ROOT / "tools/dispatch-site-build")

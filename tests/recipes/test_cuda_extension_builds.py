@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import runpy
 import subprocess
 import sys
@@ -101,7 +102,6 @@ def test_other_simple_three_d_extension_builds_check_spark_kernels(
 
 def _run_guard_main() -> None:
     # The guard's subprocess mock calls this failing inspector.
-    import importlib.util
 
     spec = importlib.util.spec_from_file_location("cuda_guard", GUARD)
     assert spec is not None

@@ -338,7 +338,6 @@ def test_unbound_adoption_cannot_submit_or_carry_a_lane(
 
 @pytest.mark.parametrize("binds", [False, True])
 def test_pending_admission_protects_profile_then_releases_other_lane(tmp_path, binds):
-    from spark_sweep.report import build_status
 
     a = FakeRecipe(
         "a",

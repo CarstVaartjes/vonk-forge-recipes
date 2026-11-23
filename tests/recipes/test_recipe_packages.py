@@ -11,6 +11,8 @@ from typing import Any
 
 from repo_root import ROOT
 
+from vonk_forge_contracts import RecipeDefinition
+
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
 PLATFORM_OWNED_ENVIRONMENT = {
     "FLASHINFER_WORKSPACE_BASE",
@@ -316,7 +318,6 @@ def test_ds4_multistage_package_manifests_both_digest_pinned_base_images(
 def test_adapter_only_change_is_published_as_new_source_identity(monkeypatch):
     # Guard the actual producer boundary: source repairs must be visible before
     # hydration even when recipe JSON and the set of base images stay identical.
-    from vonk_forge_contracts import RecipeDefinition
 
     namespace = TOOL["recipe_package"].__globals__
     document = json.loads(

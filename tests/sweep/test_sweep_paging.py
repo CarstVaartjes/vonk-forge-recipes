@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 from repo_root import FIXTURES
-from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_fakes import FakeClock, FakeFleet, FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep.catalog import (
     PAGE_LIMIT,
     fetch_models,
     fetch_recipes,
+    parse_recipe,
     recipe_listing,
 )
 from spark_sweep.catalog_contract import RecipeProjection, RecipeRow
@@ -26,7 +28,6 @@ def gateway():
 
 
 def _fleet_with(n: int):
-    from sweep_fakes import FakeClock, FakeFleet
 
     recipes = [FakeRecipe(f"r{i}", (f"m{i}",)) for i in range(n)]
     return FakeFleet(FakeClock(), recipes, [FakeModel(f"m{i}") for i in range(n)])
@@ -126,9 +127,6 @@ def test_scheduling_continues_on_the_cached_listing_while_pages_fail(
 
 def test_shared_platform_list_vector_keeps_pins_ports_and_serving_checks():
     """Consume the same projection-only list vector as vonkctl's renderer."""
-    import json
-
-    from spark_sweep.catalog import parse_recipe
 
     page = json.loads((FIXTURES / "library-list.json").read_text())
     row = page["recipes"][0]

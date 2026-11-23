@@ -13,6 +13,7 @@ from typing import Any
 
 import pytest
 from repo_root import ROOT
+from sweep_fakes import FakeRecipe, make_definitions
 
 TEMPLATES: dict[str, Any] = json.loads(
     (ROOT / "qualification" / "shared.json").read_text(encoding="utf-8")
@@ -140,7 +141,6 @@ def test_the_cases_that_choose_their_own_thinking_are_left_alone() -> None:
 
 
 def test_the_sweep_sends_the_switch_with_the_rendered_case() -> None:
-    from sweep_fakes import FakeRecipe, make_definitions
 
     recipe = FakeRecipe("glm")
     cases = make_definitions([recipe]).service_cases(recipe.key, "glm-alias")

@@ -19,6 +19,7 @@ from recipe_tooling.qualification.native_buckets import (
     generate_crop_size_list,
     get_closest_ratio,
 )
+from recipe_tooling.qualification.native_dimensions import resolve_native_dimensions
 from spark_sweep.job_assertions import Output, evaluate
 from spark_sweep.smoke import AssertionFailed
 
@@ -132,7 +133,6 @@ def test_definitions_load_without_media_dependencies(monkeypatch):
     ],
 )
 def test_native_fixture_rejects_invalid_png_dimensions(tmp_path, content, message):
-    from recipe_tooling.qualification.native_dimensions import resolve_native_dimensions
 
     (tmp_path / "input.png").write_bytes(content)
     fixtures = {
@@ -193,7 +193,6 @@ def test_native_hunyuan_output_passes_and_wrong_dimensions_fail(
     ("kind", "target"), [("hunyuan-video-15", 640), ("qwen-image", 1024)]
 )
 def test_fixture_aspect_changes_resolved_assertions(tmp_path, size, kind, target):
-    from recipe_tooling.qualification.native_dimensions import resolve_native_dimensions
 
     buffer = io.BytesIO()
     Image.new("RGB", size).save(buffer, format="PNG")

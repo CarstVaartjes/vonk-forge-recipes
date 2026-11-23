@@ -8,7 +8,9 @@ replaced at runtime need a recipe/file/path exception with an explicit reason.
 
 from __future__ import annotations
 
+import json
 import re
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -194,7 +196,6 @@ def test_catalog_adapter_model_mounts() -> None:
 def test_scan_covers_python_shell_patches_and_exact_path_boundaries(
     tmp_path: Path,
 ) -> None:
-    import json
 
     recipe = json.loads((ROOT / "recipes/trellis-2-4b-pytorch-single.json").read_text())
     recipe["models"] = [recipe["models"][0]]
@@ -230,7 +231,6 @@ def test_scan_covers_python_shell_patches_and_exact_path_boundaries(
 
 def test_removing_each_declared_companion_breaks_the_guard(tmp_path: Path) -> None:
     """Fault injection: each repaired mount remains mandatory."""
-    import shutil
 
     cases = (
         (

@@ -3,14 +3,17 @@
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 from repo_root import ROOT
 
 from recipe_tooling.qualification.memory_need import constants as mn_constants
+from recipe_tooling.qualification.memory_need.constants import OS_FLOOR_BYTES
 from recipe_tooling.single_source_values import (
     Registration,
     ValueKind,
     check,
     scan_source,
+    upstream_files,
 )
 
 
@@ -86,7 +89,6 @@ def test_rejects_protocol_wheel_family() -> None:
 
 
 def test_vendored_upstream_bytes_are_not_our_memory_policy(tmp_path: Path) -> None:
-    from recipe_tooling.single_source_values import upstream_files
 
     base = "adapters/x/"
     (tmp_path / base).mkdir(parents=True)
@@ -151,7 +153,6 @@ def test_memory_guard_normalizes_expressions_and_preserves_other_domains(
 
 
 def test_memory_guard_reads_decorator_arguments_by_their_own_line() -> None:
-    from recipe_tooling.qualification.memory_need.constants import OS_FLOOR_BYTES
 
     registration = Registration(
         semantic_id="test.memory",
@@ -190,7 +191,6 @@ def test_stale_memory_default_is_rejected_after_owner_changes() -> None:
 
 
 def test_registry_rejects_duplicate_allowances_and_broad_exceptions() -> None:
-    from pydantic import ValidationError
 
     registration = Registration(
         semantic_id="test.memory",

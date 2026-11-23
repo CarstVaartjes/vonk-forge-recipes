@@ -10,7 +10,7 @@ import sys
 import types
 import unittest
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from refresh_helpers import NEW, OLD, PATCH_HOME
@@ -31,7 +31,6 @@ from recipe_tooling.upstream_drift import inventory as drift_inventory
 
 class AppCommandBoundaryTests(unittest.TestCase):
     def test_renewed_app_token_reaches_both_gh_and_git(self) -> None:
-        from unittest.mock import Mock
 
         auth = Mock()
         auth.environment.side_effect = [
@@ -204,7 +203,6 @@ class AppKeyLifetimeTests(unittest.TestCase):
     def test_signing_key_is_removed_before_recipe_subprocesses_and_auth_is_closed(
         self,
     ) -> None:
-        from unittest.mock import Mock
 
         auth = Mock()
 
@@ -234,7 +232,6 @@ class AppKeyLifetimeTests(unittest.TestCase):
 
 class AppVerificationTests(unittest.TestCase):
     def test_live_verification_does_not_start_recipe_work(self) -> None:
-        from unittest.mock import Mock
 
         auth = Mock()
         with (
@@ -263,7 +260,6 @@ class AppVerificationTests(unittest.TestCase):
             auth.close.assert_called_once()
 
     def test_broader_token_scope_is_refused(self) -> None:
-        from unittest.mock import Mock
 
         auth = Mock()
         with (

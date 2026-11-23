@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from spark_sweep import policy, verdict
-from spark_sweep.catalog import Recipe
+from spark_sweep.catalog import Model, Recipe
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -100,7 +100,6 @@ def test_owner_priority_boost_outranks_a_cheaper_group() -> None:
 def test_build_sizes_prefers_the_model_size_and_falls_back_to_declared_artifact_bytes() -> (
     None
 ):
-    from spark_sweep.catalog import Model
 
     recipes = [
         recipe("a", ("A",), artifact_bytes=7 * GB),
@@ -111,7 +110,6 @@ def test_build_sizes_prefers_the_model_size_and_falls_back_to_declared_artifact_
 
 
 def test_in_flight_and_cached_models_count_as_present() -> None:
-    from spark_sweep.catalog import Model
 
     models = {
         "A": Model("a", "A", 1, "cached"),
@@ -494,7 +492,6 @@ def test_planning_the_whole_catalog_places_every_recipe_once() -> None:
 
 
 def test_recently_updated_recipes_and_seed_lists_are_boosted() -> None:
-    from datetime import UTC, datetime
 
     now = datetime(2026, 10, 2, tzinfo=UTC).timestamp()
     boost = policy.make_boost(["glm-5-3"], {"seeded"}, now, recent_days=3)

@@ -24,8 +24,9 @@ import pytest
 from documents import json_document
 from repo_root import ROOT
 
-from recipe_tooling import vendored_upstream
+from recipe_tooling import adapter_mirror, vendored_upstream
 from recipe_tooling.adapter_sources import AdapterSourceError
+from recipe_tooling.catalog_model import roles_for
 from recipe_tooling.kit_pins import check as kit_check
 from recipe_tooling.kit_pins import cli as kit_cli
 from recipe_tooling.kit_pins import declarations as kit_declarations
@@ -40,6 +41,7 @@ from recipe_tooling.refresh_upstream import classification as refresh_classifica
 from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.refresh_upstream import render as refresh_render
+from recipe_tooling.upstream_http import UpstreamBusy
 
 
 def load(name: str, module: str):
@@ -329,7 +331,6 @@ def write_adapter(
     base_kind: str = "tag",
     base_repo: str = BASE,
 ) -> Path:
-    import hashlib
 
     directory = root / "adapters/mia"
     (directory / "vendor").mkdir(parents=True)
@@ -621,7 +622,6 @@ class ApplyLockTests(unittest.TestCase):
     def test_a_failed_mirror_upload_removes_the_archive_and_a_rerun_declares_it(
         self,
     ) -> None:
-        from recipe_tooling import adapter_mirror
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -1052,7 +1052,6 @@ class ModelPayloadTests(unittest.TestCase):
         assert not refresh_classification.payload_identical(old, changed)
 
     def test_stored_weights_that_roles_for_calls_metadata_are_compared(self) -> None:
-        from recipe_tooling.catalog_model import roles_for
 
         assert roles_for("model.dat") == ["metadata"]
         old = {
@@ -1066,7 +1065,6 @@ class ModelPayloadTests(unittest.TestCase):
     def test_readme_only_revision_with_merges_is_a_noop_and_merges_change_a_move(
         self,
     ) -> None:
-        from recipe_tooling.catalog_model import roles_for
 
         assert roles_for("processor/merges.txt") == ["tokenizer"]
         old = {
@@ -1276,7 +1274,6 @@ class BusyProviderCliTests(unittest.TestCase):
     """One recipe the provider will not answer does not stop the next from being checked."""
 
     def test_a_busy_recipe_is_counted_and_the_next_is_still_checked(self) -> None:
-        from recipe_tooling.upstream_http import UpstreamBusy
 
         seen: list[str] = []
 
@@ -1294,7 +1291,6 @@ class BusyProviderCliTests(unittest.TestCase):
         assert (seen, failed) == (["first", "second"], 2)
 
     def test_a_busy_image_scan_is_a_problem_not_a_crash(self) -> None:
-        from recipe_tooling.upstream_http import UpstreamBusy
 
         def busy(_source: Any, *_key: str) -> list[dict[str, Any]]:
             raise UpstreamBusy("rate limited")

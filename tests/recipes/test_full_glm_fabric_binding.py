@@ -3,6 +3,8 @@
 import ast
 import importlib.util
 import os
+import runpy
+import sys
 import tarfile
 
 import pytest
@@ -85,8 +87,6 @@ def test_pinned_kernel_consumes_b12x_device_and_leaves_nccl_selector(
 def test_drowzeys_launcher_translates_all_authorized_rails(
     tmp_path, monkeypatch, selector
 ):
-    import runpy
-    import sys
 
     for name in ("HOME", "TORCH_EXTENSIONS_DIR", "TRITON_CACHE_DIR", "TMPDIR"):
         monkeypatch.setenv(name, str(tmp_path / name))

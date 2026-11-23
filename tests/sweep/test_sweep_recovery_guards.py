@@ -3,16 +3,22 @@
 from __future__ import annotations
 
 import json
+from concurrent.futures import Future
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
+from spark_sweep import policy
 from spark_sweep.lifecycle import ACTIVE
+from spark_sweep.owner import OwnerStatus
 from spark_sweep.policy import RECIPE_FAILURE_CODES
 from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS
-from spark_sweep.state import State
+from spark_sweep.smoke import SmokeResult
+from spark_sweep.state import ResultsLog, State
 from spark_sweep.sweep_contract import SweepWaitCode
+from spark_sweep.sweep_support import RETEST_SECONDS
 from spark_sweep.verdict import STALLED_CODE, Disposition, reply_disposition
 from spark_sweep.vonkctl import Reply
 
@@ -263,7 +269,6 @@ def test_external_download_is_waited_for_and_lands_without_cancelling_it(
     sweep, fleet, clock = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
     sweep.refresh_catalog()
     recipe = next(iter(sweep.recipes.values()))
-    from dataclasses import replace
 
     recipes = {recipe.key: replace(recipe, local="preparing")}
     sweep.prefetcher._track_external(recipes, clock.now())
@@ -309,7 +314,6 @@ def test_application_history_is_bounded_and_keeps_live_requests(tmp_path: Path) 
 def test_dual_does_not_use_a_busy_spark_and_singles_get_distinct_sparks(
     tmp_path: Path,
 ) -> None:
-    from spark_sweep import policy
 
     recipes = [
         FakeRecipe("a", local="cached", port=8000),
@@ -333,9 +337,6 @@ def test_dual_does_not_use_a_busy_spark_and_singles_get_distinct_sparks(
 def test_a_running_smoke_expires_and_its_late_result_cannot_pass_the_case(
     tmp_path: Path,
 ) -> None:
-    from concurrent.futures import Future
-
-    from spark_sweep.smoke import SmokeResult
 
     sweep, _, clock = _loading(tmp_path)
     key = next(iter(sweep.state.slots))
@@ -381,7 +382,6 @@ def test_request_map_observes_each_lane_independently(tmp_path: Path) -> None:
 def test_unknown_load_receipt_is_observed_without_rolling_back_accepted_work(
     tmp_path: Path,
 ) -> None:
-    from sweep_fakes import Gateway
 
     gateway = Gateway()
     gateway.start()
@@ -446,7 +446,6 @@ def test_unreadable_state_is_preserved_and_fresh_request_can_be_recorded(
 def test_unknown_platform_failure_ends_without_recipe_blame_and_releases_lane(
     tmp_path: Path,
 ) -> None:
-    from spark_sweep import policy
 
     sweep, _, clock = _loading(tmp_path)
     key = next(iter(sweep.state.slots))
@@ -467,8 +466,6 @@ def test_unknown_platform_failure_ends_without_recipe_blame_and_releases_lane(
 
 
 def test_watch_keeps_platform_blocked_without_an_observed_fix(tmp_path: Path) -> None:
-    from spark_sweep import policy
-    from spark_sweep.sweep_support import RETEST_SECONDS
 
     sweep, _, clock = _loading(tmp_path)
     key = next(iter(sweep.state.slots))
@@ -500,8 +497,6 @@ def test_unreadable_owner_never_looks_like_absent_owner(tmp_path: Path) -> None:
 def test_an_owner_load_is_waited_for_and_never_ends_the_sweep(
     tmp_path: Path, monkeypatch
 ) -> None:
-    from spark_sweep.owner import OwnerStatus
-    from spark_sweep.smoke import SmokeResult
 
     # This owner-recovery scenario has no HTTP server; supply a successful smoke
     # instead of relying on the former count-exhaustion of connection refusals.
@@ -546,7 +541,6 @@ def test_removed_catalog_recipe_releases_lane_and_fresh_recipe_is_admitted(
 def test_results_log_rotates_and_keeps_every_outcome(
     tmp_path: Path,
 ) -> None:
-    from spark_sweep.state import ResultsLog
 
     path = tmp_path / "results.jsonl"
     line = json.dumps({"authority_id": "auth", "recipe": "old", "padding": "x" * 5000})
@@ -645,7 +639,6 @@ def test_saved_provenance_skip_and_evidence_have_one_runtime_shape(tmp_path):
 
 
 def test_current_failure_is_not_repaired_by_saved_rule_adoption(tmp_path):
-    from spark_sweep import policy
 
     path = tmp_path / "state.json"
     state = State(path)
@@ -712,7 +705,6 @@ def test_read_only_adoption_leaves_state_and_logs_unchanged(tmp_path):
 def test_adoption_log_failure_prevents_state_save_and_remote_work(
     tmp_path, monkeypatch
 ):
-    from spark_sweep.state import ResultsLog
 
     path = tmp_path / "state.json"
     original = json.dumps(

@@ -6,7 +6,7 @@ from typing import Any
 
 from repo_root import ROOT
 
-from vonk_forge_contracts import document_sha256
+from vonk_forge_contracts import document_sha256, read_recipe
 
 
 def load(path: str) -> dict[str, Any]:
@@ -87,7 +87,6 @@ class GlmModelInventoryTests(unittest.TestCase):
         assert "model.safetensors.index.json" in files
 
     def test_native_mtp_choice_reaches_the_mia_triple_and_four_runtimes(self) -> None:
-        from vonk_forge_contracts import read_recipe
 
         for slug in (
             "glm-5-3-flash-exl3-dflash2-vllm-mia-four",

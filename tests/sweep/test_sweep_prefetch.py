@@ -9,7 +9,7 @@ import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import prefetch
-from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS, PrefetchConfig
+from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS, SWEEP_LABEL, PrefetchConfig
 from spark_sweep.report import build_status
 from spark_sweep.sweep_contract import SweepWaitReason
 
@@ -446,7 +446,6 @@ def test_a_pin_profile_with_no_room_holds_no_download(
 ) -> None:
     """Foreign assignments fill the pin profile: no pin can protect anything, so a
     pin-capacity hold would prevent nothing and only stop the sweep."""
-    from spark_sweep.prefetch import SWEEP_LABEL
 
     limit = 2
     monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)

@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import math
 import re
 from decimal import Decimal
 
@@ -39,7 +40,10 @@ from recipe_tooling.qualification.memory_need.sglang import (
 from recipe_tooling.qualification.memory_need.swap import (
     admissible_declaration_warnings,
 )
-from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
+from recipe_tooling.qualification.memory_need.warnings import (
+    memory_estimate_warnings,
+    startup_budget_warnings,
+)
 from vonk_forge_contracts import (
     RecipeDefinition,
 )
@@ -287,7 +291,6 @@ def test_wrapper_cache_alias_counts_toward_actual_rank_demand() -> None:
 
 @pytest.mark.parametrize("rank", [0, 1])
 def test_absolute_kv_launch_survives_observed_startup_memory(rank: int) -> None:
-    import math
 
     recipe = recipe_for("deepseek-v4-flash-fp8-r0b0tlab-vllm-dual")
 
@@ -347,9 +350,6 @@ def _creator_startup_variant(slug: str, fraction: str, pool: str | int):
 
 
 def test_startup_budget_matches_vllms_free_memory_check() -> None:
-    from recipe_tooling.qualification.memory_need.warnings import (
-        startup_budget_warnings,
-    )
 
     reap = _creator_startup_variant(
         "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.88", "6G"
@@ -375,9 +375,6 @@ def test_startup_budget_matches_vllms_free_memory_check() -> None:
 
 
 def test_startup_budget_still_refuses_a_fraction_above_the_peak() -> None:
-    from recipe_tooling.qualification.memory_need.warnings import (
-        startup_budget_warnings,
-    )
 
     reap = _creator_startup_variant(
         "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.93", "6G"

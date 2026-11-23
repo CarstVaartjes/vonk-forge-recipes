@@ -1,16 +1,47 @@
 """Fault injection proves evidence transport cannot hold hardware lanes."""
 
+import ast
 import json
+import re
 import subprocess
+from datetime import timedelta
 from pathlib import Path
 from typing import Any, ClassVar
 
 import pytest
 from repo_root import ROOT
 from sweep_sources import run_source as sweep_run_source
-from test_qualification_status import historical
+from test_qualification_status import (
+    KEY,
+    NOW,
+    A,
+    B,
+    Evidence,
+    evidence,
+    evidence_sweep,
+    historical,
+    record,
+)
 
+from recipe_tooling.qualification.evidence_store import (
+    evidence_path,
+    read_evidence,
+    write_evidence,
+)
 from spark_sweep import evidence_publisher as publisher
+from spark_sweep import sweep_failure as run_module
+from spark_sweep.qualification import (
+    backfill,
+    from_history,
+    read_state_evidence,
+    resolved_missing,
+)
+from vonk_forge_contracts import (
+    QualificationBlame,
+    QualificationMeasuredRoleMemory,
+    QualificationOutcome,
+    RecipeQualificationEvidence,
+)
 
 
 def pr_list(*numbers):
@@ -160,15 +191,6 @@ def test_evidence_merge_conflict_unions_both_histories(
 ):
     """The branch's own changes are unioned with main; a file the branch never
     touched is main's version, so rows main removed are not brought back."""
-    from datetime import timedelta
-
-    from test_qualification_status import KEY, NOW, evidence, record
-
-    from recipe_tooling.qualification.evidence_store import (
-        read_evidence,
-        write_evidence,
-    )
-    from vonk_forge_contracts import QualificationBlame, QualificationOutcome
 
     # The branch's own record is a recipe failure: retention keeps it (the newest
     # failure), so it shows in the result only if the union brought it in.
@@ -277,12 +299,6 @@ def test_open_pr_has_a_quiet_head_for_ci_and_auto_merge(tmp_path, monkeypatch, s
 def test_sync_removes_withdrawn_evidence_despite_branch_conflict_and_old_history(
     tmp_path, monkeypatch
 ):
-    from test_qualification_status import Evidence, evidence, record
-
-    from recipe_tooling.qualification.evidence_store import (
-        evidence_path,
-        write_evidence,
-    )
 
     key = "vonk-forge/withdrawn"
     history = tmp_path / "results.jsonl"
@@ -459,12 +475,6 @@ def test_behind_pr_replans_without_asking_how_far_main_moved(tmp_path, monkeypat
 
 def _publish_with_state(tmp_path, monkeypatch, repo_records, state_evidence):
     """Run one sync with mocked git/gh; return (state text, records the repo ends with)."""
-    from test_qualification_status import KEY
-
-    from recipe_tooling.qualification.evidence_store import (
-        read_evidence,
-        write_evidence,
-    )
 
     history = tmp_path / "results.jsonl"
     history.write_text("")
@@ -503,7 +513,6 @@ def _publish_with_state(tmp_path, monkeypatch, repo_records, state_evidence):
 
 
 def test_resolved_state_only_record_is_published(tmp_path, monkeypatch):
-    from test_qualification_status import B, evidence, record
 
     published = _publish_with_state(tmp_path, monkeypatch, None, evidence(record(B)))
     assert [r.identity for r in published] == [B]
@@ -512,9 +521,6 @@ def test_resolved_state_only_record_is_published(tmp_path, monkeypatch):
 
 
 def test_state_evidence_is_only_appended_never_rewritten(tmp_path, monkeypatch):
-    from test_qualification_status import A, B, evidence, record
-
-    from vonk_forge_contracts import QualificationBlame, QualificationOutcome
 
     old = record(A, day=0)
     new = record(
@@ -535,9 +541,6 @@ def test_state_evidence_is_only_appended_never_rewritten(tmp_path, monkeypatch):
 
 
 def test_guard_flags_repo_lacking_a_resolved_local_record():
-    from test_qualification_status import A, B, evidence, record
-
-    from spark_sweep.qualification import resolved_missing
 
     unresolved = A.model_copy(update={"models_resolved": False, "model_digests": ()})
     local = evidence(record(A), record(B), record(unresolved))
@@ -546,10 +549,6 @@ def test_guard_flags_repo_lacking_a_resolved_local_record():
 
 
 def test_withdrawn_recipes_in_the_state_are_never_written(tmp_path):
-    from test_qualification_status import KEY, A, evidence, record
-
-    from recipe_tooling.qualification.evidence_store import evidence_path
-    from spark_sweep.qualification import backfill
 
     seed_catalog(tmp_path)
     withdrawn = evidence(record(A)).model_copy(update={"recipe_key": "vonk-forge/gone"})
@@ -561,7 +560,6 @@ def test_withdrawn_recipes_in_the_state_are_never_written(tmp_path):
 def test_only_resolved_records_are_exported_and_unresolved_stay_local(
     tmp_path, monkeypatch
 ):
-    from test_qualification_status import A, B, evidence, record
 
     unresolved = B.model_copy(update={"models_resolved": False, "model_digests": ()})
     published = _publish_with_state(
@@ -571,7 +569,6 @@ def test_only_resolved_records_are_exported_and_unresolved_stay_local(
 
 
 def test_unreadable_state_prints_its_cause_and_returns_nothing(tmp_path, capsys):
-    from spark_sweep.qualification import read_state_evidence
 
     broken = tmp_path / "state.json"
     broken.write_text("{not json")
@@ -596,7 +593,6 @@ def test_the_publisher_child_receives_the_sweep_state(tmp_path, monkeypatch):
 
 
 def test_the_sweep_wires_its_state_file_into_the_publisher(tmp_path):
-    from test_qualification_status import evidence_sweep
 
     sweep, _, _ = evidence_sweep(tmp_path)
     assert sweep.evidence_publisher.state == sweep.state.path
@@ -609,10 +605,6 @@ def _row(day):
 
 
 def _evidence_json(rows):
-    from test_qualification_status import KEY
-
-    from spark_sweep.qualification import from_history
-    from vonk_forge_contracts import RecipeQualificationEvidence
 
     records = tuple(r for r in map(from_history, rows) if r)
     return RecipeQualificationEvidence(
@@ -627,7 +619,6 @@ class World:
     LINT: ClassVar = [{"name": "lint", "status": "COMPLETED", "conclusion": "FAILURE"}]
 
     def __init__(self, tmp_path, monkeypatch, *, close_fails=False, branch=None):
-        from recipe_tooling.qualification.evidence_store import read_evidence
 
         self.refused_row, self.new_row = _row(21), _row(22)
         self.history = tmp_path / "results.jsonl"
@@ -647,7 +638,6 @@ class World:
         self.pushed = []
 
         def command(cwd, *args, **kwargs):
-            from test_qualification_status import KEY
 
             self.calls.append(args)
             if args[:3] == ("gh", "pr", "list"):
@@ -835,16 +825,12 @@ def test_malformed_branch_evidence_is_a_command_failure_not_an_escape(
 
 
 def test_refused_records_stay_out_until_their_content_changes(tmp_path, monkeypatch):
-    from test_qualification_status import KEY
-
-    from recipe_tooling.qualification.evidence_store import read_evidence
 
     old, newer = _row(21), _row(23)
     history = tmp_path / "results.jsonl"
     history.write_text(json.dumps(old) + "\n")
     work = tmp_path / "work"
     work.mkdir()
-    from spark_sweep.qualification import from_history
 
     record = from_history(old)
     assert record
@@ -1040,10 +1026,6 @@ def test_refused_because_is_set_only_when_the_refused_set_grows():
 
 
 def test_refused_records_are_released_when_main_moves(tmp_path, monkeypatch):
-    from test_qualification_status import KEY
-
-    from recipe_tooling.qualification.evidence_store import read_evidence
-    from spark_sweep.qualification import from_history
 
     row = _row(21)
     record = from_history(row)
@@ -1087,11 +1069,6 @@ def test_refused_records_are_released_when_main_moves(tmp_path, monkeypatch):
 
 
 def test_dropping_refused_records_reads_only_the_files_it_names(tmp_path, monkeypatch):
-    from test_qualification_status import KEY
-
-    from recipe_tooling.qualification.evidence_store import write_evidence
-    from spark_sweep.qualification import from_history
-    from vonk_forge_contracts import RecipeQualificationEvidence
 
     record = from_history(historical())
     assert record
@@ -1142,7 +1119,6 @@ OPENS_NO_PR = {
 
 
 def test_every_tool_that_opens_pull_requests_declares_its_refused_outcome():
-    import re
 
     root = ROOT
     opens = re.compile(r'"pr",\s*"create"|\bgh\s+pr\s+create\b')
@@ -1353,7 +1329,6 @@ def test_a_final_batch_on_a_red_pr_that_pushes_nothing_reports_failing_check(
 
 
 def _flushing_sweep(tmp_path, monkeypatch, publish=True):
-    from test_qualification_status import evidence_sweep
 
     sweep, _, _ = evidence_sweep(tmp_path)
     sweep.cfg.publish_evidence = publish
@@ -1365,7 +1340,6 @@ def _flushing_sweep(tmp_path, monkeypatch, publish=True):
 
 @pytest.mark.parametrize("how", ["returns", "raises"])
 def test_the_sweep_flushes_evidence_whatever_ends_it(tmp_path, monkeypatch, how):
-    from spark_sweep import sweep_failure as run_module
 
     sweep, flushed = _flushing_sweep(tmp_path, monkeypatch)
 
@@ -1396,7 +1370,6 @@ def test_no_flush_without_publication_or_evidence(tmp_path, monkeypatch):
 def test_a_late_stop_signal_cannot_change_the_exit_or_skip_the_release(
     tmp_path, monkeypatch
 ):
-    from spark_sweep import sweep_failure as run_module
 
     sweep, _ = _flushing_sweep(tmp_path, monkeypatch)
     restored = []
@@ -1421,7 +1394,6 @@ def test_a_late_stop_signal_cannot_change_the_exit_or_skip_the_release(
 def test_every_tick_driven_child_process_worker_is_flushed_on_exit():
     """Net for the class: a worker that starts child processes from tick() must be
     flushed by Sweep.run(); only the evidence publisher strands results today."""
-    import ast
 
     root = Path(publisher.__file__).parent
     workers = set()
@@ -1446,15 +1418,6 @@ def test_every_tick_driven_child_process_worker_is_flushed_on_exit():
 
 
 def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monkeypatch):
-    from datetime import timedelta
-
-    from test_qualification_status import KEY, NOW, evidence, record
-
-    from recipe_tooling.qualification.evidence_store import (
-        read_evidence,
-        write_evidence,
-    )
-    from vonk_forge_contracts import QualificationMeasuredRoleMemory
 
     history = tmp_path / "results.jsonl"
     row = historical()

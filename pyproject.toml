@@ -81,8 +81,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # Tests: unused fixture/monkeypatch parameters and bool test parameters are pytest idiom.
-# PLC0415 in tests is pending the owner's decision (hoist: the last commit of the series).
-"**/tests/**" = ["ARG", "FBT001", "FBT002", "PLC0415"]
+"**/tests/**" = ["ARG", "FBT001", "FBT002"]
 # Six assertions compare real git results (and one test builds a git argv); tests never use
 # git, and rewriting them would re-add those git lines for the added-line guard.
 "tests/refresh_upstream/test_apply.py" = ["PT009"]

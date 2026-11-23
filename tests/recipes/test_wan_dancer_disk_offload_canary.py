@@ -19,6 +19,7 @@ from unittest import mock
 import pytest
 from documents import recipe_display, repository_bytes
 from generated_catalog import GENERATED
+from PIL import Image
 from repo_root import ROOT
 
 from vonk_forge_contracts import (
@@ -336,7 +337,6 @@ class WanDancerDiskOffloadInputTests(unittest.TestCase):
     ) -> None:
         generator = load_module("generate.py", "wan_dancer_disk_generator")
         runner = load_module("run.py", "wan_dancer_disk_runner")
-        from PIL import Image
 
         with tempfile.TemporaryDirectory() as value:
             image = Path(value) / "reference.png"

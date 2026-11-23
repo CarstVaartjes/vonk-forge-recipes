@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -324,7 +325,6 @@ def test_operator_retest_replaces_confirmed_cancelled_parent(
 def test_terminal_retry_uses_content_identity_despite_changed_revision(
     tmp_path: Path,
 ) -> None:
-    from dataclasses import replace
 
     sweep, _, clock, recipe = _failed_download(tmp_path)
     sweep._schedule_retest(recipe.key, "scheduled-retest")
@@ -337,7 +337,6 @@ def test_terminal_retry_uses_content_identity_despite_changed_revision(
 def test_download_completion_credits_only_accepted_models_after_catalog_change(
     tmp_path: Path, restart: bool
 ) -> None:
-    from dataclasses import replace
 
     fake = FakeRecipe("changing")
     sweep, fleet, clock = make_sweep(
@@ -374,7 +373,6 @@ def test_download_completion_credits_only_accepted_models_after_catalog_change(
 def test_changed_content_after_terminal_download_gets_a_fresh_selector_request(
     tmp_path: Path, ending: LifecycleState
 ) -> None:
-    from dataclasses import replace
 
     fake = FakeRecipe("changing")
     sweep, fleet, clock = make_sweep(

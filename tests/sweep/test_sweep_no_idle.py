@@ -8,6 +8,7 @@ lane was scheduled again for over an hour.
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
@@ -19,6 +20,7 @@ from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy
 from spark_sweep.catalog import fetch_fleet
+from spark_sweep.vonkctl import VonkctlError, VonkctlTimeout
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -258,7 +260,6 @@ def test_cached_lane_starts_before_blocked_preparation_maintenance(
     monkeypatch: pytest.MonkeyPatch,
     previous_lane: str,
 ) -> None:
-    from spark_sweep.vonkctl import VonkctlError
 
     recipes = [
         FakeRecipe("slow", ("m1",), local="cached", load_seconds=1200),
@@ -327,9 +328,6 @@ def test_cached_lane_starts_before_blocked_preparation_maintenance(
 def test_cached_lane_starts_before_blocked_cleanup_and_reused_alias_is_retained(
     tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from collections.abc import Sequence
-
-    from spark_sweep.vonkctl import VonkctlTimeout
 
     recipe = FakeRecipe("ready", local="cached", load_seconds=60)
     sweep, fleet, clock = make_sweep(
@@ -355,7 +353,6 @@ def test_cached_lane_starts_before_blocked_cleanup_and_reused_alias_is_retained(
                 observed.append(command[2])
                 if command[2] == "old-unused":
                     # The receipt and released occupancy are on disk before this wait.
-                    import json
 
                     saved = json.loads(sweep.state.path.read_text())
                     slot = saved["slots"][recipe.key]

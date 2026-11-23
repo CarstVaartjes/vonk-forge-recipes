@@ -11,11 +11,14 @@ fixture for the model is the switch that exposed the gap: MiaAI-Lab's GLM kit pi
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import tempfile
 import unittest
+import urllib.error
 import urllib.parse
+from email.message import Message
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -1310,7 +1313,6 @@ class _ReadmeApi(FakeApi):
         self.readmes = readmes
 
     def __call__(self, path: str) -> Any:
-        import base64
 
         route = path.split("?", maxsplit=1)[0].split("/")
         if route[:1] == ["repos"] and route[3] == "contents":
@@ -1366,8 +1368,6 @@ class ImageAssessmentTests(unittest.TestCase):
     def test_a_rate_limited_kit_read_leaves_the_recipe_unreachable_not_in_review(
         self,
     ) -> None:
-        import urllib.error
-        from email.message import Message
 
         class RateLimited(_ReadmeApi):
             """Kit reads go through the real HTTP client, which GitHub answers with 429."""

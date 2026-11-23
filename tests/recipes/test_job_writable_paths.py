@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import ast
+import builtins
 import importlib.util
+import os
 import re
 import shlex
 import sys
@@ -145,8 +147,6 @@ def test_pixal_sets_writable_cache_before_loading_flexgemm(
         monkeypatch.setenv(key, str(tmp_path / "custom-cache.json"))
 
     # Stop exactly where the model stack starts, after the real env defaults run.
-    import builtins
-    import os
 
     original_import = builtins.__import__
 

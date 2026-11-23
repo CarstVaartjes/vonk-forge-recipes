@@ -9,11 +9,22 @@ import pytest
 from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
+from spark_sweep import removal
+from spark_sweep.catalog import parse_recipe
+from spark_sweep.identity import content_identity
 from spark_sweep.lifecycle import LifecycleState
-from spark_sweep.removal_contract import RecipeVerdict, RemovalOutcome, RemovalRecord
+from spark_sweep.owner import OwnerStatus
+from spark_sweep.removal_contract import (
+    RecipeVerdict,
+    RemovalOutcome,
+    RemovalRecord,
+    RemovalReplyError,
+    RemovalWait,
+)
 from spark_sweep.report import build_status
 from spark_sweep.state import State
-from spark_sweep.vonkctl import Vonkctl
+from spark_sweep.sweep_contract import SweepWaitReason
+from spark_sweep.vonkctl import Vonkctl, VonkctlTimeout
 
 FIXTURES = FIXTURES / "sweep-removal"
 MAX_BACKOFF_SECONDS = 3600.0
@@ -111,8 +122,6 @@ def scenario(tmp_path, *, extra: int = 0):
         ],
         [FakeModel(digest, local="cached") for digest in (A, B, C, D, *extra_digests)],
     )
-    from spark_sweep.catalog import parse_recipe
-    from spark_sweep.identity import content_identity
 
     # These fixtures represent current verdicts, with accepted runtime evidence.
     for key, entry in sweep.state.recipes.items():
@@ -255,7 +264,6 @@ def test_a_submit_refusal_keeps_its_typed_cause_and_the_key_then_heals(tmp_path)
 def test_many_due_records_rotate_by_their_persisted_next_check(tmp_path, monkeypatch):
     """Catches a pass that always starts at the lowest digest: records that come due again
     first keep the single slot per tick while the later ones stay overdue."""
-    from spark_sweep import removal
 
     # The earliest retry the schedule allows, so a refused record is due again soon.
     monkeypatch.setattr(removal, "uniform", lambda low, _high: low)
@@ -525,7 +533,6 @@ def test_review_error_keeps_typed_cause_and_backoff_then_heals(
     tmp_path, retryable, http_status
 ):
     """Catches parsing a Controller error as a review and losing its cause."""
-    from spark_sweep.removal_contract import RemovalReplyError
 
     sweep, peer, clock = scenario(tmp_path)
     document = fixture("error")
@@ -571,7 +578,6 @@ def test_review_error_keeps_typed_cause_and_backoff_then_heals(
 def test_transport_reply_backs_off_with_cause_and_heals_after_restart(
     tmp_path, stage, out
 ):
-    from spark_sweep.vonkctl import VonkctlTimeout
 
     sweep, peer, clock = scenario(tmp_path)
     original_runner = peer.runner
@@ -661,8 +667,6 @@ def test_slow_catalog_refresh_yields_to_removal_after_a_complete_read(
 
 @pytest.mark.parametrize("fault", ["timeout", "cursor"])
 def test_catalog_retry_is_bounded_and_reports_cause_age_and_recovery(tmp_path, fault):
-    from spark_sweep.removal_contract import RemovalWait
-    from spark_sweep.sweep_contract import SweepWaitReason
 
     sweep, peer, clock = scenario(tmp_path)
     peer.fleet.library_faults = [fault]
@@ -696,15 +700,12 @@ def test_catalog_retry_is_bounded_and_reports_cause_age_and_recovery(tmp_path, f
 
 
 def test_removal_reports_the_actual_owner_pause_and_invalid_rows(tmp_path):
-    from spark_sweep.owner import OwnerStatus
 
     sweep, peer, clock = scenario(tmp_path)
     sweep.owner_status = OwnerStatus(paused=True, reason="profile 2 is running")
     sweep.remove_finished_models()
     clock.t += 65
     sweep.remove_finished_models()
-    from spark_sweep.removal_contract import RemovalWait
-    from spark_sweep.sweep_contract import SweepWaitReason
 
     wait = RemovalWait.model_validate(sweep.state.data["model_removal_wait"])
     assert wait.reason == SweepWaitReason.OPERATOR

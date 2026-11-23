@@ -31,7 +31,12 @@ from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTE
 from spark_sweep.definitions import Definitions
 from spark_sweep.fanout import DaemonExecutor
 from spark_sweep.lifecycle import LifecycleState
+from spark_sweep.prefetch import PrefetchConfig
+from spark_sweep.run import Sweep
 from spark_sweep.smoke import speech_voice
+from spark_sweep.state import ResultsLog, State
+from spark_sweep.sweep_support import SweepConfig
+from spark_sweep.vonkctl import Vonkctl
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
 _ALIAS = re.compile(ENDPOINT_ALIAS_PATTERN)
@@ -2109,7 +2114,6 @@ def make_definitions(recipes: list[FakeRecipe]) -> Any:
 
     A job recipe gets one job: the digit PNG fixture in, one PNG out.
     """
-    from spark_sweep.definitions import Definitions
 
     shared = json.loads(
         (ROOT / "qualification" / "shared.json").read_text(encoding="utf-8")
@@ -2175,11 +2179,6 @@ def make_sweep(
     fleet: FakeFleet | None = None,
     **overrides: Any,
 ) -> tuple[Any, FakeFleet, FakeClock]:
-    from spark_sweep.prefetch import PrefetchConfig
-    from spark_sweep.run import Sweep
-    from spark_sweep.state import ResultsLog, State
-    from spark_sweep.sweep_support import SweepConfig
-    from spark_sweep.vonkctl import Vonkctl
 
     if fleet is None:
         clock = FakeClock()

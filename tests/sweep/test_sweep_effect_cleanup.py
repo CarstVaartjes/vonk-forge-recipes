@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,7 @@ from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep import cleanup, policy
 from spark_sweep.lifecycle import LifecycleState
+from spark_sweep.report import build_status
 from spark_sweep.sweep_contract import CleanupEnd, CleanupEndReason
 
 pytest_plugins = ["sweep_bounds"]
@@ -254,7 +256,6 @@ def test_older_successful_stop_receipt_cannot_release_newer_stop_intent(
 def test_missing_cleanup_binding_keeps_one_incident_across_restart(
     tmp_path: Path,
 ) -> None:
-    from spark_sweep.report import build_status
 
     sweep, fleet, clock, recipe, _key, _original, app = scenario(tmp_path, dual=True)
     fleet.cleanup_adoption = False
@@ -561,7 +562,6 @@ def test_empty_queued_cleanup_has_no_targets_beside_a_foreign_run(
 def test_catalog_change_preserves_accepted_sibling_lane_and_load(
     tmp_path: Path,
 ) -> None:
-    from dataclasses import replace
 
     recipes = [
         FakeRecipe("changing", local="cached"),

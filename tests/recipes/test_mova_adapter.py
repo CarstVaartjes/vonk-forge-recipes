@@ -3,7 +3,10 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import signal
+import sys
 import tempfile
+import time
 import types
 import unittest
 from pathlib import Path
@@ -174,9 +177,6 @@ if __name__ == "__main__":
 
 def test_minimal_job_reaches_official_runner_with_native_resolution(tmp_path: Path):
     """The reviewed case must survive argv, generation and output validation."""
-    import sys
-
-    import pytest
 
     for recipe_path, dimensions in zip(RECIPES, ((352, 640), (720, 1280)), strict=True):
         runner = load_runner()
@@ -247,11 +247,6 @@ def test_minimal_job_reaches_official_runner_with_native_resolution(tmp_path: Pa
 
 def test_job_budget_expiry_kills_generation_with_evidence(tmp_path: Path):
     """Inject a stuck real subprocess; it must leave no artifact or live worker."""
-    import signal
-    import sys
-    import time
-
-    import pytest
 
     runner = load_runner()
     artifact = tmp_path / "late.mp4"
@@ -273,7 +268,6 @@ def test_job_budget_expiry_kills_generation_with_evidence(tmp_path: Path):
 
 
 def test_missing_or_invalid_job_budget_fails_before_generation():
-    import pytest
 
     runner = load_runner()
     for value in (None, "", "0", "3601", "forever"):

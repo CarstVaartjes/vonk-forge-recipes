@@ -19,7 +19,7 @@ from spark_sweep.catalog import Fleet, Presence, parse_recipe, serving_run
 from spark_sweep.definitions import Definitions
 from spark_sweep.job_assertions import EVALUATED, NOT_EVALUATED, Output, evaluate
 from spark_sweep.smoke import AssertionFailed
-from spark_sweep.smoke_job import job_budget_seconds, smoke_job
+from spark_sweep.smoke_job import _tail, job_budget_seconds, smoke_job
 from spark_sweep.vonkctl import Vonkctl
 from vonk_forge_contracts.qualification_status import QualificationGlbProfile
 
@@ -310,7 +310,6 @@ def test_a_failed_stderr_keeps_the_platforms_head_and_tail_within_the_bound() ->
     ["", "h" * 700, "é" * 400 + "\n", "no newline " * 60],
 )
 def test_the_stderr_bound_holds_for_any_head(head: str) -> None:
-    from spark_sweep.smoke_job import _tail
 
     text = head + "\n[7 bytes omitted]\n" + "t" * 4000 + "\nend\n"
     kept = _tail(text)

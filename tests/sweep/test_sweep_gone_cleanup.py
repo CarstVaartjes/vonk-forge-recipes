@@ -5,9 +5,10 @@ from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+from test_sweep_effect_cleanup import scenario as present_scenario
 
 from spark_sweep import policy
-from spark_sweep.sweep_contract import CleanupEnd, CleanupEndReason
+from spark_sweep.sweep_contract import CleanupEnd, CleanupEndReason, ReviewedCleanupStop
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -133,7 +134,6 @@ def test_transport_error_with_empty_fleet_is_not_absence(tmp_path: Path) -> None
 def test_absent_receipt_with_exact_present_run_keeps_original_clear(
     tmp_path: Path,
 ) -> None:
-    from spark_sweep.sweep_contract import ReviewedCleanupStop
 
     sweep, fleet, clock, recipe, record = scenario(tmp_path)
     record["reviewed_stops"] = [
@@ -190,7 +190,6 @@ def test_gone_clear_releases_existing_backoff_and_schedules_immediately(
 def test_present_cleanup_still_observes_stop_receipt_and_admits_fresh_load(
     tmp_path: Path,
 ) -> None:
-    from test_sweep_effect_cleanup import scenario as present_scenario
 
     sweep, _fleet, clock, recipe, _key, record, _app = present_scenario(
         tmp_path, dual=True
@@ -209,7 +208,6 @@ def test_present_cleanup_still_observes_stop_receipt_and_admits_fresh_load(
 def test_unrelated_offline_node_does_not_hold_absent_exact_target(
     tmp_path: Path,
 ) -> None:
-    from spark_sweep.sweep_contract import ReviewedCleanupStop
 
     sweep, fleet, clock, recipe, record = scenario(tmp_path)
     record["reviewed_stops"] = [

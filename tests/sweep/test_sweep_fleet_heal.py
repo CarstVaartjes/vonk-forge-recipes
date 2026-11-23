@@ -9,7 +9,11 @@ import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import prefetch
-from spark_sweep.prefetch import PIN_PROFILE_MAX_ASSIGNMENTS, PrefetchConfig
+from spark_sweep.prefetch import (
+    PIN_PROFILE_MAX_ASSIGNMENTS,
+    SWEEP_LABEL,
+    PrefetchConfig,
+)
 
 
 @pytest.fixture
@@ -119,7 +123,6 @@ def test_the_pin_profile_is_counted_on_the_real_document_not_on_our_bookkeeping(
 ) -> None:
     """Untracked leftovers (a timed-out add the Controller applied, a lost state) and foreign
     assignments count against the contract limit: the submitted document never exceeds it."""
-    from spark_sweep.prefetch import SWEEP_LABEL
 
     limit = 6
     monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)

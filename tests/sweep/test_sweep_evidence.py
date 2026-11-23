@@ -24,6 +24,7 @@ from spark_sweep.smoke import (
     _transport_failure,
     smoke_service,
 )
+from spark_sweep.verdict import Disposition, reply_disposition
 from spark_sweep.vonkctl import Vonkctl
 
 
@@ -174,7 +175,6 @@ def test_a_missing_vonkctl_is_infrastructure_not_a_crash() -> None:
     reply = Vonkctl("vonkctl", runner=missing).run("fleet", "show")
     assert reply.document is None
     assert "FileNotFoundError" in reply.error_text
-    from spark_sweep.verdict import Disposition, reply_disposition
 
     assert reply_disposition(reply) is Disposition.WAIT
 

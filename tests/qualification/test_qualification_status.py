@@ -1,19 +1,40 @@
 """Hardware proof survives rechecks, reverts and infrastructure faults."""
 
+import ast
 import json
+import runpy
 import shutil
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from jsonschema import Draft202012Validator
+from jsonschema import ValidationError as SchemaValidationError
 from pydantic import ValidationError
 from repo_root import ROOT
+from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from sweep_sources import run_source
 
-from recipe_tooling.qualification.evidence_store import read_evidence
+from recipe_tooling.qualification.evidence_store import (
+    catalog_recipe_keys,
+    read_evidence,
+    write_evidence,
+)
+from spark_sweep import (
+    policy,
+    qualification,
+    sweep_loading,
+    sweep_reconcile,
+    sweep_schedule,
+    sweep_smoke,
+)
+from spark_sweep import state as state_module
+from spark_sweep.auth_contract import SmokeAuthClass
+from spark_sweep.catalog_contract import RuntimeImageIdentity
 from spark_sweep.evidence_publisher import (
     rotated_history,
 )
+from spark_sweep.identity import content_identity
 from spark_sweep.lifecycle import RecipeStatus, RetestReason
 from spark_sweep.qualification import (
     BackfillResult,
@@ -23,9 +44,21 @@ from spark_sweep.qualification import (
     read_history,
     scheduling_priority,
 )
+from spark_sweep.report import (
+    _qualification_text,
+    build_report,
+    render_report,
+    saved_qualification,
+)
+from spark_sweep.state import State
+from spark_sweep.sweep_contract import SweepAdoptionReason
+from spark_sweep.sweep_support import RETEST_SECONDS
+from spark_sweep.vonkctl import Reply
 from vonk_forge_contracts import (
     PublishedQualificationStatusView,
+    QualificationDerivationInput,
     derive_status,
+    document_sha256,
     published_qualification_status_json_schema,
     published_status,
 )
@@ -380,10 +413,6 @@ def test_historical_infrastructure_failures_are_never_recipe_failures():
 
 
 def test_sweep_restore_and_retry_failed_use_evidence(tmp_path):
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-
-    from spark_sweep.catalog_contract import RuntimeImageIdentity
-    from spark_sweep.lifecycle import RecipeStatus
 
     fake = FakeRecipe("example")
     sweep, _, _ = make_sweep(tmp_path, [fake], [FakeModel("m1")])
@@ -445,10 +474,6 @@ def test_published_catalog_matches_shared_derivation(built_catalog):
 def test_catalog_derives_after_resolving_release_image(
     tmp_path, monkeypatch, built_catalog
 ):
-    import runpy
-
-    from recipe_tooling.qualification.evidence_store import write_evidence
-    from vonk_forge_contracts import document_sha256
 
     tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
     build = tool["build"]
@@ -517,8 +542,6 @@ def test_catalog_derives_after_resolving_release_image(
 
 
 def test_saved_report_recomputes_from_inputs_and_keeps_prior_proof():
-    from spark_sweep.report import _qualification_text, saved_qualification
-    from vonk_forge_contracts import QualificationDerivationInput
 
     snapshot = QualificationDerivationInput(
         evidence=evidence(record()), current_identity=B, fleet_size=2, testing_now=True
@@ -544,9 +567,6 @@ def test_public_topology_requirement_is_not_the_publishers_fleet():
 
 
 def test_fix_to_verify_precedes_untested_even_with_a_limit(tmp_path):
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-
-    from spark_sweep.catalog_contract import RuntimeImageIdentity
 
     untested, fixed = FakeRecipe("untested"), FakeRecipe("fixed")
     sweep, _, _ = make_sweep(tmp_path, [untested, fixed], [FakeModel("m1")])
@@ -569,7 +589,6 @@ def test_fix_to_verify_precedes_untested_even_with_a_limit(tmp_path):
 
 
 def test_authorization_faults_are_platform_evidence_and_preserve_recipe_proof():
-    from spark_sweep.auth_contract import SmokeAuthClass
 
     row = {
         **historical(),
@@ -586,8 +605,6 @@ def test_authorization_faults_are_platform_evidence_and_preserve_recipe_proof():
 
 
 def test_platform_faults_do_not_count_against_recipes_in_report_headline():
-    from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.report import build_report, render_report
 
     view = derive_status(
         evidence(record(A, Outcome.FAILED, Blame.PLATFORM)), A, 2, testing_now=False
@@ -601,11 +618,6 @@ def test_platform_faults_do_not_count_against_recipes_in_report_headline():
 def test_elapsed_time_never_retries_a_failure_with_platform_blame(
     tmp_path, monkeypatch
 ):
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-
-    from spark_sweep.identity import content_identity
-    from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.sweep_support import RETEST_SECONDS
 
     fake = FakeRecipe("example")
     sweep, _, clock = make_sweep(tmp_path, [fake], [FakeModel("m1")], watch_seconds=60)
@@ -641,8 +653,6 @@ def test_elapsed_time_never_retries_a_failure_with_platform_blame(
     ],
 )
 def test_public_versions_cannot_be_used_to_carry_infrastructure_details(field, unsafe):
-    from jsonschema import Draft202012Validator
-    from jsonschema import ValidationError as SchemaValidationError
 
     with pytest.raises(ValidationError):
         Platform.model_validate({**PLATFORM.model_dump(), field: unsafe})
@@ -723,7 +733,6 @@ def test_partial_pass_after_recipe_failure_cannot_revive_an_invalidated_public_p
 
 
 def evidence_sweep(tmp_path, names=("example",), **kwargs):
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
     fakes = [
         FakeRecipe(name, digests=A.model_digests, content=A.content_sha256)
@@ -755,7 +764,6 @@ def evidence_sweep(tmp_path, names=("example",), **kwargs):
     ],
 )
 def test_evidence_identity_drives_requeue(tmp_path, changed, outcome, blame):
-    from spark_sweep.lifecycle import RecipeStatus
 
     sweep, _, _ = evidence_sweep(tmp_path)
     current = sweep.recipes[KEY]
@@ -796,8 +804,6 @@ def test_evidence_identity_drives_requeue(tmp_path, changed, outcome, blame):
 
 
 def test_evidence_revalidation_of_newest_cached_pass_is_last_even_with_limit(tmp_path):
-    from spark_sweep import policy
-    from spark_sweep.lifecycle import RecipeStatus
 
     sweep, _, _ = evidence_sweep(tmp_path, ("passed", "untested", "failed", "deferred"))
     for slug, records in (
@@ -846,10 +852,6 @@ def test_evidence_revalidation_of_newest_cached_pass_is_last_even_with_limit(tmp
 def test_saved_verdict_adoption_restores_without_rerun_and_survives_interrupted_save(
     tmp_path, active
 ):
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-
-    from spark_sweep.identity import content_identity
-    from spark_sweep.lifecycle import RecipeStatus
 
     sweep, fleet, _ = evidence_sweep(tmp_path)
     accepted = sweep.recipes[KEY]
@@ -902,8 +904,6 @@ def test_saved_verdict_adoption_restores_without_rerun_and_survives_interrupted_
 def test_adopted_unknown_image_pass_keeps_proof_but_cannot_hide_known_changes(
     tmp_path, changed
 ):
-    from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.state import State
 
     sweep, _, clock = evidence_sweep(tmp_path)
     historical_identity = A.model_copy(update={"runtime_image": None})
@@ -939,8 +939,6 @@ def test_adopted_unknown_image_pass_keeps_proof_but_cannot_hide_known_changes(
 
 
 def test_adoption_is_once_and_retry_failed_never_requeues_proven_pass(tmp_path):
-    from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.state import State
 
     sweep, _, clock = evidence_sweep(tmp_path)
     sweep.state.data["qualification_evidence"] = {
@@ -963,7 +961,6 @@ def test_adoption_is_once_and_retry_failed_never_requeues_proven_pass(tmp_path):
 
 @pytest.mark.parametrize("blame", [Blame.RECIPE, Blame.PLATFORM])
 def test_retry_failed_uses_adopted_failure_evidence(tmp_path, blame):
-    from spark_sweep.lifecycle import RecipeStatus
 
     sweep, _, _ = evidence_sweep(tmp_path)
     sweep.qualification_evidence[KEY] = evidence(record(A, Outcome.FAILED, blame))
@@ -975,7 +972,6 @@ def test_retry_failed_uses_adopted_failure_evidence(tmp_path, blame):
 
 
 def test_superseded_verdict_paths_cannot_return():
-    import ast
 
     for name in ("identity.py", "lifecycle.py", "policy.py", "run.py"):
         tree = ast.parse((ROOT / "spark_sweep" / name).read_text())
@@ -1010,8 +1006,6 @@ def test_superseded_verdict_paths_cannot_return():
 
 
 def test_adoption_never_dates_a_sparse_previous_pass_after_a_known_failure(tmp_path):
-    from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.state import State
 
     sweep, _, clock = evidence_sweep(tmp_path)
     saved = historical()
@@ -1038,7 +1032,6 @@ def test_adoption_never_dates_a_sparse_previous_pass_after_a_known_failure(tmp_p
 
 
 def test_repository_evidence_only_names_current_catalog_recipes():
-    from recipe_tooling.qualification.evidence_store import catalog_recipe_keys
 
     keys = catalog_recipe_keys(ROOT)
     for path in (ROOT / "qualification/evidence").rglob("*.json"):
@@ -1059,7 +1052,6 @@ def test_repository_evidence_only_names_current_catalog_recipes():
 def test_unknown_image_library_publication_is_not_a_qualification_change(
     tmp_path, outcome, blame
 ):
-    from spark_sweep.lifecycle import RecipeStatus
 
     sweep, _, _ = evidence_sweep(tmp_path)
     current = replace(
@@ -1082,10 +1074,6 @@ def test_unknown_image_library_publication_is_not_a_qualification_change(
 def test_one_load_adopts_schema_and_verdicts_without_losing_accepted_effects(
     tmp_path, monkeypatch, schema
 ):
-    from spark_sweep import qualification
-    from spark_sweep import state as state_module
-    from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.sweep_contract import SweepAdoptionReason
 
     path = tmp_path / "state.json"
     saved = {
@@ -1194,12 +1182,6 @@ def test_sparse_topology_failure_invalidates_older_public_proof():
 
 
 def test_real_projected_library_and_evidence_restore_requeued_pass(tmp_path):
-    from sweep_fakes import make_sweep
-
-    from spark_sweep.identity import content_identity
-    from spark_sweep.lifecycle import RecipeStatus, RetestReason
-    from spark_sweep.state import State
-    from spark_sweep.vonkctl import Reply
 
     # Identity-only slices of the owner's five-row Controller GET, plus a d3 GET
     # row from the same projected API. No document-shaped compatibility reader.
@@ -1395,7 +1377,6 @@ def test_later_catalog_passes_and_a_restart_keep_the_requeue(tmp_path):
             == RetestReason.UNPUBLISHABLE_PASS
         )
     sweep.state.save()
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
     again, _, _ = make_sweep(
         tmp_path, [FakeRecipe("example")], [FakeModel("m1")], fleet=fleet
@@ -1416,13 +1397,6 @@ def test_a_publishing_pass_is_not_requeued(tmp_path):
 
 def test_without_a_catalog_image_the_pass_is_left_alone(tmp_path, monkeypatch):
     """A re-run could not publish either: no loop."""
-    from spark_sweep import (
-        qualification,
-        sweep_loading,
-        sweep_reconcile,
-        sweep_schedule,
-        sweep_smoke,
-    )
 
     sweep, _, _ = evidence_sweep(tmp_path)
     key = next(iter(sweep.recipes))

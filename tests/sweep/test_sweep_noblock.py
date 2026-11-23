@@ -17,6 +17,8 @@ from spark_sweep.report import build_status
 from spark_sweep.smoke import SmokeResult
 from spark_sweep.sweep_contract import (
     SweepSlotPhase,
+    SweepStorageCode,
+    SweepStorageWait,
     SweepWait,
     SweepWaitCode,
     SweepWaitReason,
@@ -446,7 +448,6 @@ def test_fleet_outage_blocks_submission_only_until_the_next_fresh_tick(
 
 def test_storage_shortfall_never_submits_an_impossible_lane(tmp_path: Path) -> None:
     """A waitable batch must not admit a Spark whose free plus evictable disk is short."""
-    from spark_sweep.sweep_contract import SweepStorageCode, SweepStorageWait
 
     (tmp_path / "state.json").write_text(FIXTURE.read_text())
     recipes = [FakeRecipe("a", local="cached"), FakeRecipe("b", local="cached")]

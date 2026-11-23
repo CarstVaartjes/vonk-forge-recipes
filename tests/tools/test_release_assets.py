@@ -21,6 +21,8 @@ from generated_catalog import SOURCE_COMMIT as SESSION_COMMIT
 from generated_catalog import SOURCE_DATE_EPOCH as SESSION_EPOCH
 from repo_root import ROOT
 
+from vonk_forge_contracts import read_catalog_index
+
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
 SOURCE_COMMIT = "0123456789abcdef0123456789abcdef01234567"
 SOURCE_DATE_EPOCH = 0
@@ -135,7 +137,6 @@ def test_release_refuses_to_mix_with_existing_files(tmp_path: Path) -> None:
 def test_a_reader_ignores_what_a_newer_minor_adds_but_refuses_another_envelope(
     built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
-    from vonk_forge_contracts import read_catalog_index
 
     catalog = built_catalog[0]
     assert read_catalog_index({**catalog, "added_later": 1}).kind == catalog["kind"]

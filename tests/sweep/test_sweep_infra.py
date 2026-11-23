@@ -16,8 +16,17 @@ from typing import Any
 
 import pytest
 from repo_root import ROOT
-from sweep_fakes import FakeModel, FakeRecipe, Gateway, _locked, make_sweep
+from sweep_fakes import (
+    FakeModel,
+    FakeRecipe,
+    Gateway,
+    _locked,
+    make_definitions,
+    make_sweep,
+)
 
+from spark_sweep.cli import main
+from spark_sweep.fanout import DaemonExecutor
 from spark_sweep.state import State, StateLock, StateLocked
 from spark_sweep.verdict import Disposition, reply_disposition
 from spark_sweep.vonkctl import (
@@ -216,9 +225,6 @@ def test_an_unanswered_version_check_warns_but_does_not_block(
 def test_the_cli_updates_a_skewed_client(
     tmp_path: Path, gateway: Gateway, capsys
 ) -> None:
-    from sweep_fakes import make_definitions
-
-    from spark_sweep.cli import main
 
     recipes = [FakeRecipe("a")]
     _, fleet, clock = make_sweep(
@@ -438,7 +444,6 @@ def test_sigterm_stops_a_sweep_like_sigint(tmp_path: Path, gateway: Gateway) -> 
 
 
 def test_a_hung_smoke_request_does_not_keep_an_interrupted_sweep_alive() -> None:
-    from spark_sweep.fanout import DaemonExecutor
 
     release = threading.Event()
     future = DaemonExecutor().submit(release.wait, 30)

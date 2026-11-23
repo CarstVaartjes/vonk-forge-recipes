@@ -10,6 +10,8 @@ from documents import recipe_display
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
+from vonk_forge_contracts import read_recipe
+
 MODEL = ROOT / "models/deepseek-v4-flash-vision-exp-6821d6ad.json"
 RECIPE = ROOT / "recipes/deepseek-v4-flash-vision-exp-mia-dual.json"
 ADAPTER = ROOT / "adapters/deepseek/mia-vllm-vision"
@@ -75,7 +77,6 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         assert self.recipe["interfaces"][0]["adapter"] == "openai"
 
     def test_options_default_to_the_upstream_defaults(self) -> None:
-        from vonk_forge_contracts import read_recipe
 
         recipe = read_recipe(load(RECIPE))
         assert recipe.resolve_options() == {
@@ -100,7 +101,6 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         )
 
     def test_non_default_choices_change_only_their_binding(self) -> None:
-        from vonk_forge_contracts import read_recipe
 
         recipe = read_recipe(load(RECIPE))
         chosen = recipe.with_option_choices(

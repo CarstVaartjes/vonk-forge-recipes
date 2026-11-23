@@ -9,6 +9,7 @@ from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import verdict
 from spark_sweep.identity import content_identity
+from spark_sweep.policy import Placement
 from spark_sweep.sweep_support import MAX_REVIEW_FREEING
 
 pytest_plugins = ["sweep_bounds"]
@@ -172,7 +173,6 @@ def test_one_refused_lane_does_not_starve_an_admitted_sibling(
         return real(n, data, a)
 
     fleet._load = load
-    from spark_sweep.policy import Placement
 
     fleet.runs.clear()
     sweep.preflight()

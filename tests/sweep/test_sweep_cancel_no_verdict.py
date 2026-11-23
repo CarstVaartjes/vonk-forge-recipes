@@ -11,6 +11,7 @@ with the copy child's effect unknown and the sweep deferred the recipe on its ow
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -123,7 +124,6 @@ def test_a_request_a_newer_load_adopted_is_not_cancelled(tmp_path: Path) -> None
 
 def _adopted_pair(tmp_path: Path, gateway, *extra: FakeRecipe):
     """Two lanes in one application: the whole-profile load adopted the first lane's load."""
-    from dataclasses import replace
 
     bad = FakeRecipe("bad", ("m1",), local="cached", copy_seconds=0, load_seconds=9000)
     other = FakeRecipe("good", ("m2",), local="cached", load_seconds=9000)

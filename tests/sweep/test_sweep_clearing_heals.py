@@ -10,6 +10,7 @@ that was never submitted, and both lanes idled with ready work.
 
 from __future__ import annotations
 
+import ast
 import json
 from pathlib import Path
 from typing import Any
@@ -255,7 +256,6 @@ PROFILE_EDIT_WITHOUT_GUARD = {
 
 def test_every_review_of_a_new_intent_reconciles_the_profile_first() -> None:
     """Guard for the class: no load of the sweep profile carries what no lane needs."""
-    import ast
 
     source = run_source()
     missing = []

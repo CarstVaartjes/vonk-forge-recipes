@@ -1,5 +1,6 @@
 """Exercise managed configuration and native placement at new launcher boundaries."""
 
+import argparse
 import importlib.util
 import json
 import os
@@ -18,7 +19,6 @@ from repo_root import ROOT
 def test_flash_next_profile_receives_platform_endpoint(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, profile: str
 ) -> None:
-    import argparse
 
     # The pinned upstream parser accepts only profile, sources and print. The
     # platform appends only --host and --port to every SGLang load (canonical.py);

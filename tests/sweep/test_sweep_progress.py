@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
+from spark_sweep import policy, verdict
 from spark_sweep.policy import TimeoutPolicy
 
 pytest_plugins = ["sweep_bounds"]
@@ -90,7 +91,6 @@ def test_a_given_up_lane_is_not_reused_until_its_workload_is_gone(
 
 
 def test_progress_is_what_the_controller_shows_moving_not_when_it_was_asked() -> None:
-    from spark_sweep import policy
 
     def application(**progress):
         return {"state": "running", "progress": progress}
@@ -106,7 +106,6 @@ def test_progress_is_what_the_controller_shows_moving_not_when_it_was_asked() ->
     )
     assert policy.activity(base) == policy.activity(later)
     assert policy.activity(base) != policy.activity(moved)
-    from spark_sweep import verdict
 
     def waiting(document):
         return verdict.application_signal(document).waiting_on is not None
@@ -118,7 +117,6 @@ def test_progress_is_what_the_controller_shows_moving_not_when_it_was_asked() ->
 
 
 def test_retries_and_timestamps_are_not_progress_but_bytes_are() -> None:
-    from spark_sweep import policy
 
     def application(attempt, **operation):
         return {
@@ -144,7 +142,6 @@ def test_retries_and_timestamps_are_not_progress_but_bytes_are() -> None:
 
 
 def test_controller_last_progress_time_counts_as_progress() -> None:
-    from spark_sweep import policy
 
     def application(stamp):
         return {

@@ -16,8 +16,9 @@ import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy
-from spark_sweep.identity import content_identity
+from spark_sweep.identity import AcceptedRequest, content_identity
 from spark_sweep.prefetch import PrefetchConfig
+from spark_sweep.report import build_status
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -225,7 +226,6 @@ def test_a_state_file_with_finished_downloads_resumes_without_asking_again(
     first, fleet, _ = make_sweep(
         tmp_path, recipes, [FakeModel("m1")], gateway=gateway, limit=0
     )
-    from spark_sweep.identity import AcceptedRequest
 
     first.refresh_catalog()
     first.state.downloads["vonk-forge/a1"] = {
@@ -482,7 +482,6 @@ def test_a_final_word_decides_in_any_order(
 def test_a_long_review_wait_escalates_and_clears_when_the_review_admits(
     tmp_path: Path, gateway: Gateway, live_reading: bool
 ) -> None:
-    from spark_sweep.report import build_status
 
     codes = ("resource.resident_usage_unknown", "run-switch.run_admission_blocked")
     sweep, fleet, clock = make_sweep(

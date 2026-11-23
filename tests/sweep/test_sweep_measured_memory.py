@@ -13,11 +13,11 @@ from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
 from recipe_tooling.qualification import documents
 from recipe_tooling.qualification.documents import ROOT
-from recipe_tooling.qualification.evidence_store import merge_evidence
+from recipe_tooling.qualification.evidence_store import merge_evidence, read_evidence
 from recipe_tooling.qualification.memory_need.constants import TOTAL_BYTES
 from recipe_tooling.qualification.memory_need.evidence import vllm_budget_bytes
 from spark_sweep import memory
-from spark_sweep.qualification import history_evidence
+from spark_sweep.qualification import backfill, history_evidence
 from vonk_forge_contracts import (
     QualificationMeasuredRoleMemory,
     RecipeQualificationEvidence,
@@ -290,8 +290,6 @@ def test_a_job_recipe_is_never_measured_its_sample_is_taken_after_the_job() -> N
 def test_a_job_pass_row_replayed_through_backfill_adds_no_measured_rows(
     tmp_path: Path,
 ) -> None:
-    from recipe_tooling.qualification.evidence_store import read_evidence
-    from spark_sweep.qualification import backfill
 
     (tmp_path / "recipes").mkdir()
     for slug in (
@@ -325,7 +323,6 @@ def test_a_job_pass_row_replayed_through_backfill_adds_no_measured_rows(
 def test_backfill_decides_each_recipe_once_however_many_rows_it_reads(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from spark_sweep.qualification import backfill
 
     slug = "ltx-2-19b-distilled-diffusers-single"
     (tmp_path / "recipes").mkdir()

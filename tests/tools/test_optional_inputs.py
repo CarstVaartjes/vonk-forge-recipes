@@ -6,13 +6,14 @@ import argparse
 import ast
 import copy
 import json
+from contextlib import ExitStack
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
 from repo_root import ROOT
-from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 from sweep_sources import RUN_FILES
 from test_prebuilt_images import INDEX
 
@@ -30,6 +31,7 @@ from recipe_tooling.upstream_drift import heads as drift_heads
 from recipe_tooling.upstream_drift import inventory as drift_inventory
 from spark_sweep.catalog import parse_recipe, recipe_listing
 from spark_sweep.catalog_contract import RecipeProjection
+from spark_sweep.evidence_contract import ResultEvidence
 from spark_sweep.policy import classify
 from spark_sweep.report import average_test_seconds, build_report, render_report
 from spark_sweep.state import State
@@ -222,7 +224,6 @@ def test_publication_repair_is_independent_of_assessment_and_housekeeping(
         "stale": (refresh_publish, "close_stale_refresh_prs"),
         "publication": (refresh_publish, "publish_if_stale"),
     }
-    from contextlib import ExitStack
 
     with ExitStack() as stack:
         stack.enter_context(patch.object(refresh_github, "git", return_value="head"))
@@ -323,7 +324,6 @@ def bypassed_optional_reads(source: str, fields: set[str]) -> list[int]:
 
 
 def test_new_optional_report_fields_use_the_shared_typed_reader() -> None:
-    from spark_sweep.evidence_contract import ResultEvidence
 
     fields = set(ResultEvidence.model_fields) - {"core", "diagnostics"}
     assert not bypassed_optional_reads(
@@ -378,7 +378,6 @@ def test_optional_validators_and_exports_cannot_bypass_tolerant_boundary() -> No
 def test_poison_refresh_keeps_a_healthy_lane_and_status_advancing(
     tmp_path: Path, position: int
 ) -> None:
-    from sweep_fakes import Gateway
 
     gateway = Gateway()
     try:
@@ -447,7 +446,6 @@ def test_a_group_that_does_not_land_reports_to_every_member_and_keeps_its_pr(
     outcome: str,
 ) -> None:
     """Dual and single share a build context; the group's open PR must survive."""
-    from contextlib import ExitStack
 
     disagree = outcome == "members disagree"
     assessed = {

@@ -9,6 +9,11 @@ import pytest
 from generated_catalog import GENERATED
 
 from recipe_tooling.protocol_wheel import selection
+from recipe_tooling.qualification.evidence_store import read_evidence
+from recipe_tooling.qualification.memory_need import constants as mn_constants
+from recipe_tooling.qualification.memory_need import evidence as mn_evidence
+from recipe_tooling.upstream_http import forget_busy
+from spark_sweep.evidence_publisher import EvidencePublisher
 
 ROOT = Path(__file__).resolve().parents[1]
 # The test import path is `[tool.pytest.ini_options] pythonpath` (the repository, the
@@ -20,7 +25,6 @@ sys.path.insert(0, str(ROOT / selection(ROOT).artifact))
 @pytest.fixture(autouse=True)
 def no_remembered_rate_limit():
     """A host marked busy by one test must not refuse another test's request."""
-    from recipe_tooling.upstream_http import forget_busy
 
     forget_busy()
     yield
@@ -32,7 +36,6 @@ def forbid_sweep_evidence_publication(request, monkeypatch):
     """Fake fleet tests must never start the git/GitHub publisher subprocess."""
     if request.node.path.name == "test_qualification_evidence_publisher.py":
         return  # publisher unit tests supply their own fake subprocesses
-    from spark_sweep.evidence_publisher import EvidencePublisher
 
     def forbidden(self, now):
         pytest.fail("sweep tests must disable evidence publication")
@@ -56,9 +59,6 @@ def isolate_memory_evidence(request, monkeypatch, tmp_path_factory):
     """
     if request.node.get_closest_marker("live_evidence"):
         return
-    from recipe_tooling.qualification.evidence_store import read_evidence
-    from recipe_tooling.qualification.memory_need import constants as mn_constants
-    from recipe_tooling.qualification.memory_need import evidence as mn_evidence
 
     live, empty = mn_constants.ROOT, tmp_path_factory.mktemp("no-evidence")
 
