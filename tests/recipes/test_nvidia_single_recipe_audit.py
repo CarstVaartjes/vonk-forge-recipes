@@ -44,8 +44,7 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
         recipe = read(FLASH_RECIPE)
         model = model_for(recipe)
         self.assertEqual(
-            model["source"]["revision"],
-            "eafac15f6140e6dd9c6031217d658ac10bfb604b",
+            model["source"]["revision"], "eafac15f6140e6dd9c6031217d658ac10bfb604b"
         )
         self.assertEqual(len(model["files"]), 24)
         self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
@@ -71,19 +70,16 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
         target = model_for(recipe)
         drafter = model_for(recipe, 1)
         self.assertEqual(
-            target["source"]["revision"],
-            "ff433f5493e25d631c9f12b5d55c674229923d02",
+            target["source"]["revision"], "ff433f5493e25d631c9f12b5d55c674229923d02"
         )
         self.assertEqual(
-            drafter["source"]["revision"],
-            "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
+            drafter["source"]["revision"], "c929f8a55d0527fea9f58b4cedc9e0c855cfc421"
         )
         self.assertEqual(len(recipe["models"]), 2)
         self.assertEqual(args(recipe)["quantization"], "modelopt_fp4")
         self.assertEqual(args(recipe)["moe-backend"], "marlin")
         self.assertEqual(
-            json.loads(args(recipe)["speculative-config"])["model"],
-            "/models/drafter",
+            json.loads(args(recipe)["speculative-config"])["model"], "/models/drafter"
         )
 
     def test_single_spark_memory_admission_and_representative_checks(self) -> None:

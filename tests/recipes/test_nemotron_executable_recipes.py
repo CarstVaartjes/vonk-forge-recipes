@@ -65,8 +65,7 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                 recipe: dict[str, Any] = read(RECIPES[name])
                 args = arguments(recipe)
                 self.assertEqual(
-                    args["reasoning-parser-plugin"].split("/")[-1],
-                    filename,
+                    args["reasoning-parser-plugin"].split("/")[-1], filename
                 )
                 model = recipe_model(recipe)
                 selected = {item["file_id"] for item in recipe["models"][0]["files"]}

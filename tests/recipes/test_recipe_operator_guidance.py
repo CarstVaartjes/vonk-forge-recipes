@@ -50,8 +50,7 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
         texture_mesh = _slot(texture, "input", "mesh")
         self.assertEqual(texture_mesh["max_file_bytes"], 240 * 1024 * 1024)
         self.assertIn(
-            "accepts-step1x-geometry",
-            recipe_display(texture["identity"]["slug"]).tags,
+            "accepts-step1x-geometry", recipe_display(texture["identity"]["slug"]).tags
         )
 
         for slug in (
