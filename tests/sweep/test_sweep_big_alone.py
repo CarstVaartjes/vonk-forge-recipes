@@ -5,6 +5,7 @@ on spark-2297; with the reserve that is beyond one Spark, so the load looped for
 """
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, make_sweep
@@ -39,7 +40,7 @@ def scenario(tmp_path: Path, beside: FakeRecipe):
     return sweep, fleet, gemma, fleet.calls[before:]
 
 
-def loads(sweep, calls, *, review: bool = False) -> list:
+def loads(sweep, calls, *, review: bool = False) -> list[Any]:
     return [
         command
         for profile, command in calls

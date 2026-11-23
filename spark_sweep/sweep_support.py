@@ -13,13 +13,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
+from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from vonk_forge_contracts import (
     QualificationIdentity,
     QualificationStatus,
     QualificationStatusView,
 )
-
-from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 
 from . import policy
 from .catalog import (
@@ -62,6 +61,7 @@ DOCUMENT_EVIDENCE_LIMIT = 65536
 def retest_reason(
     view: QualificationStatusView | None,
     current: Callable[[], QualificationIdentity],
+    *,
     unpublishable: bool = False,
 ) -> RetestReason | None:
     """Why a recorded verdict asks for a new run, from the derived status alone."""

@@ -1,11 +1,13 @@
 """A Controller retry cannot conceal a copy that stopped moving."""
 
+import json
 from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep.lifecycle import LifecycleState
+from spark_sweep.report import build_status
 from spark_sweep.sweep_contract import SweepWait, SweepWaitReason
 from spark_sweep.verdict import Progress
 
@@ -52,7 +54,6 @@ def test_copy_retry_ages_by_real_progress_across_restart(
 def test_stalled_copy_retry_releases_and_requeues_instead_of_holding_lane(
     tmp_path: Path,
 ) -> None:
-    import json
 
     # Real content identities: the held-receipt check compares them.
     stuck = FakeRecipe(
@@ -93,7 +94,6 @@ def test_stalled_copy_retry_releases_and_requeues_instead_of_holding_lane(
 
 
 def test_copy_status_shows_the_enforced_inactivity_window(tmp_path: Path) -> None:
-    from spark_sweep.report import build_status
 
     job = FakeRecipe("copy", copy_seconds=3000)
     sweep, _, clock = make_sweep(tmp_path, [job], [FakeModel("m1")])

@@ -20,10 +20,10 @@ import sys
 from pathlib import Path
 from typing import Any, Literal
 
-ROOT = Path(__file__).resolve().parents[1]
-QUALIFICATION = ROOT / "qualification"
-sys.path.insert(0, str(ROOT / "src"))
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
+from recipe_tooling.qualification.catalog_source import current_catalog_package_tree
+from recipe_tooling.qualification.coverage_identity import execution_stack_identity
 from vonk_forge_contracts import (
     RecipeDefinition,
     read_model_display,
@@ -41,8 +41,9 @@ from vonk_forge_contracts.qualification_authority import (
     recovery_coverage_id,
 )
 
-from recipe_tooling.qualification.catalog_source import current_catalog_package_tree
-from recipe_tooling.qualification.coverage_identity import execution_stack_identity
+ROOT = Path(__file__).resolve().parents[1]
+
+QUALIFICATION = ROOT / "qualification"
 
 AUTHORITY_ID = "nl-family-aware-20260924"
 _RECIPE_ROW = re.compile(r"[a-z0-9][a-z0-9-]{0,62}/[a-z0-9][a-z0-9-]{0,62}\Z")
@@ -194,8 +195,7 @@ def _execution_batches(
             "paired-single" if len(assignments) == 2 else "single"
         )
         pending.append((assignments[0]["sequence"], mode, assignments))
-    for row in duals:
-        pending.append((row["sequence"], "exclusive-dual", [row]))
+    pending.extend((row["sequence"], "exclusive-dual", [row]) for row in duals)
     pending.sort(key=lambda item: (item[0], item[1]))
 
     batches: list[QualificationBatch] = []

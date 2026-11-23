@@ -16,6 +16,7 @@ from typing import Any
 import pytest
 from documents import recipe
 from repo_root import FIXTURES, ROOT
+
 from vonk_forge_contracts.recipe import RecipeJobSettings
 
 VIDEO = ROOT / "adapters/video"
@@ -86,7 +87,9 @@ def _knob_grid(slug: str) -> dict[str, int]:
     settings = recipe(slug).settings
     assert isinstance(settings, RecipeJobSettings)
     knob = settings.knobs["num-frames"]
-    assert knob.minimum is not None and knob.maximum is not None and knob.step
+    assert knob.minimum is not None
+    assert knob.maximum is not None
+    assert knob.step
     low, high = int(knob.minimum), int(knob.maximum)
     return {
         "FRAME_GRID_STEP": knob.step,
@@ -109,7 +112,8 @@ def test_comfyui_grid_matches_pinned_upstream():
     assert "124-362" in source
     expected = [n for n in range(124, 363) if align(n) == n]
     assert _accepted(_grid(FASTH3)) == expected
-    assert expected[0] == 124 and expected[-1] == 362
+    assert expected[0] == 124
+    assert expected[-1] == 362
 
 
 @pytest.mark.parametrize("slug", MINIMAX_RECIPES)
@@ -130,7 +134,8 @@ def test_diffusers_grid_matches_pinned_upstream(slug):
         and components.min_duration <= n / fps <= components.max_duration
     ]
     assert _accepted(_knob_grid(slug)) == expected
-    assert expected[0] == 124 and expected[-1] == 345
+    assert expected[0] == 124
+    assert expected[-1] == 345
 
 
 def _video_cases():
@@ -190,7 +195,8 @@ def test_every_video_case_asks_for_a_frame_count_on_its_adapter_grid():
             assert _on_grid(_grid(EXPORTED_GRID[slug]), frames), (slug, frames)
         elif adapter in HAND_COPIED_ADAPTERS:
             maximum, step, offset = _hand_copied(HAND_COPIED_ADAPTERS[adapter])
-            assert 1 <= frames <= maximum and frames % step == offset, (slug, frames)
+            assert 1 <= frames <= maximum, (slug, frames)
+            assert frames % step == offset, (slug, frames)
         elif adapter in FIXED_COUNT_ADAPTERS:
             fixed = _int_constant(FIXED_COUNT_ADAPTERS[adapter], "FRAME_COUNT")
             assert frames == fixed, (slug, frames, fixed)

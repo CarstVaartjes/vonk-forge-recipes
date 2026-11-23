@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep import policy, recovery, verdict
+from spark_sweep.identity import AcceptedRequest
+from spark_sweep.lifecycle import RetestReason
+from spark_sweep.prefetch import Prefetcher
 
 
 def _deferred(tmp_path: Path, _monkeypatch, release: str):
@@ -32,7 +36,7 @@ def _deferred(tmp_path: Path, _monkeypatch, release: str):
     return sweep, key, entry
 
 
-release_box: list = []
+release_box: list[Any] = []
 
 
 def _deploy(sweep, release: str) -> None:
@@ -43,7 +47,8 @@ def _deploy(sweep, release: str) -> None:
 def test_a_deferred_recipe_is_not_retried_on_the_same_release(tmp_path, monkeypatch):
     sweep, _key, entry = _deferred(tmp_path, monkeypatch, "1" * 40)
     sweep.requeue_for_changed_owner()
-    assert entry["status"] == "deferred" and not entry.get("recovery_history")
+    assert entry["status"] == "deferred"
+    assert not entry.get("recovery_history")
 
 
 def test_a_deferred_recipe_is_requeued_once_when_the_release_changes(
@@ -65,7 +70,8 @@ def test_a_failed_recipe_is_unaffected_by_a_release_change(tmp_path, monkeypatch
     entry["status"] = "failed"
     _deploy(sweep, "2" * 40)
     sweep.requeue_for_changed_owner()
-    assert entry["status"] == "failed" and not entry.get("recovery_history")
+    assert entry["status"] == "failed"
+    assert not entry.get("recovery_history")
 
 
 @pytest.mark.parametrize(
@@ -99,9 +105,6 @@ def test_a_named_owner_fault_without_an_observed_basis_still_has_an_exit():
 def test_a_download_that_fails_after_a_release_flip_is_retested_once_on_the_new_release(
     tmp_path, monkeypatch
 ):
-    from spark_sweep.identity import AcceptedRequest
-    from spark_sweep.lifecycle import RetestReason
-    from spark_sweep.prefetch import Prefetcher
 
     sweep, key, entry = _deferred(tmp_path, monkeypatch, "1" * 40)
     recipe = sweep.recipes[key]
@@ -124,9 +127,13 @@ def test_a_download_that_fails_after_a_release_flip_is_retested_once_on_the_new_
     entry["status"] = "pending"
     _deploy(sweep, "2" * 40)  # the release flips while the download runs
     sweep._download_failed(
-        key, policy.classify("download", "download.failed", "unknown"), "op-1", False
+        key,
+        policy.classify("download", "download.failed", "unknown"),
+        "op-1",
+        model_level=False,
     )
-    assert entry["status"] == "deferred" and entry["release"] == "1" * 40
+    assert entry["status"] == "deferred"
+    assert entry["release"] == "1" * 40
     sweep.requeue_for_changed_owner()
     assert entry["status"] == "pending"
     assert entry["retest"]["reason"] == RetestReason.RELEASE_CHANGED
@@ -166,7 +173,8 @@ def test_a_load_started_while_the_platform_was_unreadable_is_retested_once(tmp_p
         key, policy.classify("start", "application.failed", "unknown"), None
     )
     entry = sweep.state.entry(key)
-    assert entry["status"] == "deferred" and entry["release"] is None
+    assert entry["status"] == "deferred"
+    assert entry["release"] is None
     sweep.requeue_for_changed_owner()
     assert entry["status"] == "pending"
     assert entry["recovery_history"][-1]["basis"] == {"controller_release": "2" * 40}
@@ -198,7 +206,8 @@ def test_a_release_that_flips_mid_load_is_recorded_against_the_one_the_load_star
         key, policy.classify("start", "application.failed", "unknown"), None
     )
     entry = sweep.state.entry(key)
-    assert entry["status"] == "deferred" and entry["release"] == "1" * 40
+    assert entry["status"] == "deferred"
+    assert entry["release"] == "1" * 40
     sweep.requeue_for_changed_owner()
     assert entry["status"] == "pending"
     assert entry["recovery_history"][-1]["basis"] == {"controller_release": "2" * 40}

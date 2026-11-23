@@ -10,18 +10,18 @@ from typing import Any
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
+
+from recipe_tooling.qualification import documents
+from recipe_tooling.qualification.documents import ROOT
+from recipe_tooling.qualification.evidence_store import merge_evidence, read_evidence
+from recipe_tooling.qualification.memory_need.constants import TOTAL_BYTES
+from recipe_tooling.qualification.memory_need.evidence import vllm_budget_bytes
+from spark_sweep import memory
+from spark_sweep.qualification import backfill, history_evidence
 from vonk_forge_contracts import (
     QualificationMeasuredRoleMemory,
     RecipeQualificationEvidence,
 )
-
-from recipe_tooling.qualification import documents
-from recipe_tooling.qualification.documents import ROOT
-from recipe_tooling.qualification.evidence_store import merge_evidence
-from recipe_tooling.qualification.memory_need.constants import TOTAL_BYTES
-from recipe_tooling.qualification.memory_need.evidence import vllm_budget_bytes
-from spark_sweep import memory
-from spark_sweep.qualification import history_evidence
 
 pytest_plugins = ["sweep_bounds"]
 
@@ -108,7 +108,7 @@ def test_the_budget_follows_the_option_choices_that_ran() -> None:
 
 
 @pytest.mark.parametrize(
-    "sample,placed,recipe",
+    ("sample", "placed", "recipe"),
     [
         (None, application(("n1", "entrypoint")), SINGLE),
         (observed(("n1", GB, False)), application(("n1", "entrypoint")), SINGLE),
@@ -174,7 +174,8 @@ def test_a_pass_row_puts_its_measurement_in_the_table() -> None:
 def test_rows_without_a_measurement_publish_the_same_evidence() -> None:
     """Old rows are "not measured": republishing them never changes a file."""
     evidence = history_evidence(history())
-    assert evidence is not None and evidence.measured_memory == ()
+    assert evidence is not None
+    assert evidence.measured_memory == ()
     assert "measured_memory" not in evidence.model_dump(mode="json", exclude_none=True)
 
 
@@ -182,7 +183,8 @@ def test_a_failed_row_measures_nothing() -> None:
     evidence = history_evidence(
         history(status="failed", measured_memory=[MEASURED.model_dump(mode="json")])
     )
-    assert evidence is not None and evidence.measured_memory == ()
+    assert evidence is not None
+    assert evidence.measured_memory == ()
 
 
 def test_the_same_content_and_role_merge_to_the_conservative_side() -> None:
@@ -266,7 +268,8 @@ def test_a_measurement_that_raises_never_costs_the_pass(
     sweep.run()
     assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
     smoke = smoke_row(tmp_path)
-    assert smoke["status"] == "passed" and "measured_memory" not in smoke
+    assert smoke["status"] == "passed"
+    assert "measured_memory" not in smoke
 
 
 def test_a_job_recipe_is_never_measured_its_sample_is_taken_after_the_job() -> None:
@@ -287,8 +290,6 @@ def test_a_job_recipe_is_never_measured_its_sample_is_taken_after_the_job() -> N
 def test_a_job_pass_row_replayed_through_backfill_adds_no_measured_rows(
     tmp_path: Path,
 ) -> None:
-    from recipe_tooling.qualification.evidence_store import read_evidence
-    from spark_sweep.qualification import backfill
 
     (tmp_path / "recipes").mkdir()
     for slug in (
@@ -322,7 +323,6 @@ def test_a_job_pass_row_replayed_through_backfill_adds_no_measured_rows(
 def test_backfill_decides_each_recipe_once_however_many_rows_it_reads(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from spark_sweep.qualification import backfill
 
     slug = "ltx-2-19b-distilled-diffusers-single"
     (tmp_path / "recipes").mkdir()

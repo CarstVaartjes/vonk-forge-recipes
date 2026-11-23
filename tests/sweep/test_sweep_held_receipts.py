@@ -277,7 +277,8 @@ def test_the_fake_alarm_has_the_controllers_shape(tmp_path, monkeypatch) -> None
             ": receipt-missing: Waiting for the exact Run/Switch child receipt"
         )
     assert view["state"] == LifecycleState.RUNNING
-    assert app["state"] == LifecycleState.RUNNING and "stalled" not in app
+    assert app["state"] == LifecycleState.RUNNING
+    assert "stalled" not in app
     assert alarm.alarmed
 
 

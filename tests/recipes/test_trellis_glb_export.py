@@ -22,10 +22,10 @@ def test_trimesh_webp_padding_is_outside_the_embedded_image(tmp_path: Path) -> N
     # their full type trees to check our callback regression.
     np = importlib.import_module("numpy")
     trimesh = importlib.import_module("trimesh")
-    Image = importlib.import_module("PIL.Image")
+    image_module = importlib.import_module("PIL.Image")
     material = trimesh.visual.material.PBRMaterial(
-        baseColorTexture=Image.new("RGB", (16, 16), (50, 10, 1)),
-        metallicRoughnessTexture=Image.new("RGB", (16, 16), (90, 90, 90)),
+        baseColorTexture=image_module.new("RGB", (16, 16), (50, 10, 1)),
+        metallicRoughnessTexture=image_module.new("RGB", (16, 16), (90, 90, 90)),
     )
     mesh = trimesh.Trimesh(
         vertices=[[0, 0, 0], [1, 0, 0], [0, 1, 0]],

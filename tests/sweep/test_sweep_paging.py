@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
 from repo_root import FIXTURES
-from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_fakes import FakeClock, FakeFleet, FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep.catalog import (
     PAGE_LIMIT,
     fetch_models,
     fetch_recipes,
+    parse_recipe,
     recipe_listing,
 )
 from spark_sweep.catalog_contract import RecipeProjection, RecipeRow
@@ -26,7 +28,6 @@ def gateway():
 
 
 def _fleet_with(n: int):
-    from sweep_fakes import FakeClock, FakeFleet
 
     recipes = [FakeRecipe(f"r{i}", (f"m{i}",)) for i in range(n)]
     return FakeFleet(FakeClock(), recipes, [FakeModel(f"m{i}") for i in range(n)])
@@ -68,10 +69,10 @@ def test_an_invalid_cursor_restarts_the_pass_from_the_first_page() -> None:
     fleet = _fleet_with(6)  # three pages of two
     fleet.library_faults = [None, "cursor"]  # page 2 finds its cursor invalidated
     recipes, commit = fetch_recipes(Vonkctl("vonkctl", runner=fleet.runner))
-    assert (
-        sorted(r.key for r in recipes) == sorted(f"vonk-forge/r{i}" for i in range(6))
-        and commit == "lib-commit-1"
+    assert sorted(r.key for r in recipes) == sorted(
+        f"vonk-forge/r{i}" for i in range(6)
     )
+    assert commit == "lib-commit-1"
     library_calls = [c for _, c in fleet.calls if c[:2] == ("recipe", "library")]
     assert "--cursor" not in library_calls[2]  # the restart began at the first page
 
@@ -91,9 +92,12 @@ def test_rows_already_read_survive_a_failed_page_and_a_complete_pass_prunes_the_
     listing.begin(0)
     assert not listing.step()  # page 1: two rows
     fleet.library_faults = ["timeout"]
-    assert not listing.step() and "transport_timeout" in listing.last_error
+    assert not listing.step()
+    assert "transport_timeout" in listing.last_error
     assert len(listing.rows) == 2  # still usable
-    assert listing.step(1.0) and len(listing.rows) == 4 and listing.passes == 1
+    assert listing.step(1.0)
+    assert len(listing.rows) == 4
+    assert listing.passes == 1
     del fleet.recipes["vonk-forge/r3"]
     listing.begin(2)
     while not listing.step(3.0):
@@ -123,9 +127,6 @@ def test_scheduling_continues_on_the_cached_listing_while_pages_fail(
 
 def test_shared_platform_list_vector_keeps_pins_ports_and_serving_checks():
     """Consume the same projection-only list vector as vonkctl's renderer."""
-    import json
-
-    from spark_sweep.catalog import parse_recipe
 
     page = json.loads((FIXTURES / "library-list.json").read_text())
     row = page["recipes"][0]

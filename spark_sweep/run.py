@@ -23,14 +23,13 @@ from concurrent.futures import Future
 from pathlib import Path
 from typing import Any
 
+from recipe_tooling.qualification.evidence_store import merge_evidence, read_evidence
 from vonk_forge_contracts import (
     QualificationIdentity,
     QualificationStatusView,
     RecipeDefinition,
     RecipeQualificationEvidence,
 )
-
-from recipe_tooling.qualification.evidence_store import merge_evidence, read_evidence
 
 from . import policy, recovery
 from .catalog import (
@@ -261,10 +260,10 @@ class Sweep(
                 evidence,
                 recipe,
                 len(self.enrolled()),
-                recipe.key in self.state.slots
+                testing_now=recipe.key in self.state.slots
                 and self.state.slots[recipe.key].get("phase")
                 != SweepSlotPhase.FINISHED,
-                identity,
+                identity=identity,
             )
         except (ValueError, TypeError, OSError):
             return None  # malformed observed identity cannot certify public proof

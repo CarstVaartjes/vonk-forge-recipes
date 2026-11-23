@@ -15,8 +15,8 @@ class _Reply(io.BytesIO):
     def __enter__(self):
         return self
 
-    def __exit__(self, *_):
-        return False
+    def __exit__(self, *_) -> None:
+        return None
 
 
 STRICT_REFUSED = [

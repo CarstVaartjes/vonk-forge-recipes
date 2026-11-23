@@ -15,9 +15,11 @@ from sweep_fakes import FakeModel, FakeRecipe, StallAlarm, make_sweep
 from spark_sweep import policy, verdict
 from spark_sweep.identity import AcceptedRequest, ControllerWaitHold, content_identity
 from spark_sweep.lifecycle import LifecycleState
+from spark_sweep.recovery import Fingerprint
 from spark_sweep.report import build_status
 from spark_sweep.state import State
 from spark_sweep.sweep_contract import ControllerWaitOperation, SweepWaitReason
+from spark_sweep.vonkctl import Reply
 
 FIXTURE = FIXTURES / "sweep-verdicts/controller-waits-2026-10-23.json"
 RECORDS = json.loads(FIXTURE.read_text())
@@ -254,7 +256,8 @@ def test_ended_shared_receipts_release_the_incident_and_replan(
     holds = sweep.controller_wait_holds()
     assert holds["vonk-forge/a"].application_id == a
     for hold in holds.values():
-        assert not hold.live and hold.not_before is not None
+        assert not hold.live
+        assert hold.not_before is not None
         assert hold.not_before > clock.now()
     assert not sweep.ready_candidates()
     clock.t = max(hold.not_before or 0.0 for hold in holds.values())
@@ -275,7 +278,8 @@ def test_a_persisted_ended_hold_is_planned_at_its_time_after_restart(
     clock.sleep(sweep.cfg.defer_delay + 1)
     sweep._refresh_controller_waits(clock.now())
     hold = sweep.controller_wait_holds()["vonk-forge/a"]
-    assert not hold.live and hold.not_before is not None
+    assert not hold.live
+    assert hold.not_before is not None
     not_before = hold.not_before
     assert not_before > clock.now()
     # A restart reloads the ended hold: it is planned at its time, not at once.
@@ -286,7 +290,8 @@ def test_a_persisted_ended_hold_is_planned_at_its_time_after_restart(
     sweep._refresh_controller_waits(clock.now())
     assert not any("--load" in c for _, c in fleet.calls[probes:])
     hold = sweep.controller_wait_holds()["vonk-forge/a"]
-    assert not hold.live and hold.not_before == not_before
+    assert not hold.live
+    assert hold.not_before == not_before
     assert not sweep.ready_candidates()
     clock.t = not_before
     assert [r.key for r in sweep.ready_candidates()] == ["vonk-forge/a"]
@@ -330,7 +335,8 @@ def test_hold_follows_a_successor_and_replans_once_nothing_waits(
     clock.sleep(sweep.cfg.defer_delay + 1)
     sweep._refresh_controller_waits(clock.now())
     hold = sweep.controller_wait_holds()["vonk-forge/a"]
-    assert not hold.live and hold.not_before is not None
+    assert not hold.live
+    assert hold.not_before is not None
     assert hold.not_before >= clock.now() + sweep.cfg.defer_delay
     assert sweep.controller_wait_issue() is None
     # Planned again at its named time, not straight back into the same wait.
@@ -353,14 +359,16 @@ def test_an_absent_receipt_replans_and_a_failed_read_probes_again(
         sweep._refresh_controller_waits(clock.now())
         hold = sweep.controller_wait_holds()["vonk-forge/a"]
         # Unknown is no ending: the receipt stays live and is observed again.
-        assert hold.live and hold.next_check > clock.now()
+        assert hold.live
+        assert hold.next_check > clock.now()
     # The Controller's definite answer: the application no longer exists.
     answer = fleet._error("controller.not_found", "no application")
     clock.sleep(sweep.cfg.defer_delay + 1)
     sweep._refresh_controller_waits(clock.now())
     hold = sweep.controller_wait_holds()["vonk-forge/a"]
     assert hold.application_id == first
-    assert not hold.live and hold.not_before is not None
+    assert not hold.live
+    assert hold.not_before is not None
     assert "is absent at the Controller" in str(sweep.state.data["events"])
     assert not sweep.ready_candidates()
     clock.t = hold.not_before
@@ -394,7 +402,6 @@ def test_same_reason_with_different_operation_kind_is_not_shared(
 def test_unavailable_receipt_keeps_a_visible_next_observation(
     tmp_path, monkeypatch
 ) -> None:
-    from spark_sweep.vonkctl import Reply
 
     sweep, _, clock, _ = prepare(tmp_path, monkeypatch)
     expire(sweep, clock)
@@ -409,7 +416,6 @@ def test_unavailable_receipt_keeps_a_visible_next_observation(
 def test_observed_platform_content_change_replans_without_counting_attempts(
     tmp_path, monkeypatch
 ) -> None:
-    from spark_sweep.recovery import Fingerprint
 
     sweep, _, clock, _ = prepare(tmp_path, monkeypatch)
     before = Fingerprint("worker", "a" * 40, "c" * 64)
@@ -462,7 +468,8 @@ def test_operation_identity_does_not_depend_on_blocker_code_spelling() -> None:
     document = controller_document(SHARED, {"id": "app"})
     document["wait"]["reason"] = "dependency-pending"
     signal = verdict.application_signal(document)
-    assert signal.wait is not None and signal.wait.controller is not None
+    assert signal.wait is not None
+    assert signal.wait.controller is not None
     assert signal.wait.controller.identity == (
         "dependency-pending",
         frozenset({("recipe.run-switch.v2", SHARED_OPERATION)}),
@@ -473,7 +480,8 @@ def test_every_operation_field_separates_wait_identity() -> None:
     # Guard: a correlating identity that drops an operation field (as it once
     # dropped the id) makes unrelated waits look like one shared dependency.
     signal = verdict.application_signal(controller_document(SHARED, {"id": "app"}))
-    assert signal.wait is not None and signal.wait.controller is not None
+    assert signal.wait is not None
+    assert signal.wait.controller is not None
     wait = signal.wait.controller
     for name in ControllerWaitOperation.model_fields:
         other = wait.model_copy(deep=True)
@@ -574,7 +582,8 @@ def test_one_shared_dependency_is_reported_and_holds_only_its_recipes(
     assert places(sweep, clock, "vonk-forge/c")
     assert {"vonk-forge/a", "vonk-forge/b"} <= set(sweep.controller_wait_holds())
     issue = sweep.controller_wait_issue()
-    assert issue is not None and SHARED_OPERATION in issue
+    assert issue is not None
+    assert SHARED_OPERATION in issue
 
 
 def test_one_receipt_resuming_releases_only_its_own_dependency(
@@ -631,9 +640,11 @@ def test_a_retry_successor_with_new_children_keeps_the_hold(
     successor = verdict.application_signal(
         fleet._app_doc(fleet.apps[first["superseded_by"]])
     )
-    assert successor.wait is not None and successor.wait.controller is not None
+    assert successor.wait is not None
+    assert successor.wait.controller is not None
     identity = successor.wait.controller.identity
-    assert identity is not None and not {op for _, op in identity[1]} & before
+    assert identity is not None
+    assert not {op for _, op in identity[1]} & before
     assert not places(sweep, clock, "vonk-forge/a")
     assert "vonk-forge/a" in sweep.controller_wait_holds()
     assert sweep.state.entry("vonk-forge/a").get("attempts", 0) == 0

@@ -5,6 +5,7 @@ import unittest
 from catalog_documents import model_digest
 from documents import model_display
 from repo_root import ROOT
+
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
 MODEL_RECIPE_PAIRS = {
@@ -40,23 +41,18 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
                     )
                 )
                 selection = next(item for item in recipe.models if item.id == "primary")
-                self.assertEqual(
-                    selection.model.content_sha256, model_digest(model_slug)
-                )
+                assert selection.model.content_sha256 == model_digest(model_slug)
                 by_id = {item.id: item for item in model.files}
                 selected_ids = {item.file_id for item in selection.files}
-                self.assertEqual(len(selected_ids), len(selection.files))
-                self.assertTrue(selected_ids <= set(by_id))
-                self.assertNotIn("snapshot", selected_ids)
-                self.assertTrue(
-                    all(
-                        set(selector.roles)
-                        == {role.name for role in recipe.topology.roles}
-                        for selector in selection.files
-                    )
+                assert len(selected_ids) == len(selection.files)
+                assert selected_ids <= set(by_id)
+                assert "snapshot" not in selected_ids
+                assert all(
+                    set(selector.roles) == {role.name for role in recipe.topology.roles}
+                    for selector in selection.files
                 )
                 if model_slug in FULL_MODEL_SELECTIONS:
-                    self.assertEqual(selected_ids, set(by_id))
+                    assert selected_ids == set(by_id)
 
     def test_skintokens_selects_both_required_checkpoints(self) -> None:
         recipe = RecipeDefinition.model_validate_json(
@@ -67,13 +63,10 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
         )
         files = {item.id: item.path for item in model.files}
         selected = {files[item.file_id] for item in recipe.models[0].files}
-        self.assertEqual(
-            selected,
-            {
-                "experiments/articulation_xl_quantization_256_token_4/grpo_1400.ckpt",
-                "experiments/skin_vae_2_10_32768/last.ckpt",
-            },
-        )
+        assert selected == {
+            "experiments/articulation_xl_quantization_256_token_4/grpo_1400.ckpt",
+            "experiments/skin_vae_2_10_32768/last.ckpt",
+        }
 
     def test_triposg_binds_bria_config_and_weights_with_license_gate(self) -> None:
         recipe = RecipeDefinition.model_validate_json(
@@ -86,34 +79,27 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
             (ROOT / "models/bria-rmbg-1-4.json").read_text(encoding="utf-8")
         )
         selections = {item.id: item for item in recipe.models}
-        self.assertEqual(set(selections), {"primary", "background-removal"})
+        assert set(selections) == {"primary", "background-removal"}
         bria_selection = selections["background-removal"]
-        self.assertEqual(
-            bria_selection.model.content_sha256, model_digest("bria-rmbg-1-4")
-        )
-        self.assertEqual(
-            bria_selection.model.content_sha256,
-            next(
-                dependency.content_sha256
-                for dependency in triposg.dependencies
-                if dependency.slug == bria.identity.slug
-            ),
+        assert bria_selection.model.content_sha256 == model_digest("bria-rmbg-1-4")
+        assert bria_selection.model.content_sha256 == next(
+            dependency.content_sha256
+            for dependency in triposg.dependencies
+            if dependency.slug == bria.identity.slug
         )
         by_id = {item.id: item for item in bria.files}
         selected_paths = {by_id[item.file_id].path for item in bria_selection.files}
-        self.assertEqual(selected_paths, {"config.json", "model.safetensors"})
-        self.assertTrue(
-            all(
-                item.mount.target == "/models/rmbg" and item.roles == ["entrypoint"]
-                for item in bria_selection.files
-            )
+        assert selected_paths == {"config.json", "model.safetensors"}
+        assert all(
+            item.mount.target == "/models/rmbg" and item.roles == ["entrypoint"]
+            for item in bria_selection.files
         )
-        self.assertFalse(bria.requires_token)
-        license = model_display("bria-rmbg-1-4").license
-        self.assertEqual(license.spdx, "other")
-        self.assertEqual(
-            license.url,
-            "https://bria.ai/bria-huggingface-model-license-agreement/",
+        assert not bria.requires_token
+        model_license = model_display("bria-rmbg-1-4").license
+        assert model_license.spdx == "other"
+        assert (
+            model_license.url
+            == "https://bria.ai/bria-huggingface-model-license-agreement/"
         )
 
 

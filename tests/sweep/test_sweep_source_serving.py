@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 from dataclasses import replace
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
@@ -35,7 +36,7 @@ def gateway():
     gateway.stop()
 
 
-def _rows(tmp_path: Path) -> list[dict]:
+def _rows(tmp_path: Path) -> list[dict[str, Any]]:
     return [
         json.loads(line)
         for line in (tmp_path / "results.jsonl").read_text().splitlines()
@@ -73,25 +74,28 @@ def test_a_refreshed_proven_recipe_waits_for_the_catalog_then_is_retested(
     # Before the import: not done, nothing loaded, and the wait names the recipe.
     assert before_import, "the run ended before the catalog served its source"
     done, adds, waiting = before_import[0]
-    assert not done and adds == adds_before
+    assert not done
+    assert adds == adds_before
     assert waiting == (Unserved(KEY, OLD, NEW),)
     # After the import: the proven recipe moved, so it is re-checked on the new content.
     entry = sweep.state.recipes[KEY]
-    assert entry["status"] == "passed" and entry["content_sha256"] == NEW
+    assert entry["status"] == "passed"
+    assert entry["content_sha256"] == NEW
     rows = _rows(tmp_path)
     catalog = [
         r["status"] for r in rows if r["step"] == "catalog" and "recipe" not in r
     ]
     assert catalog == ["waiting", "served"]
     requeue = [r for r in rows if r.get("recipe") == KEY and r["step"] == "requeue"]
-    assert requeue and requeue[-1]["reason"] == "passed-on-older-revision"
+    assert requeue
+    assert requeue[-1]["reason"] == "passed-on-older-revision"
     assert sweep.source_serving is SourceServing.SERVED
 
 
 def _first_load_at(fleet) -> float:
     return next(
         t
-        for t, (_, c) in zip(fleet.call_times, fleet.calls)
+        for t, (_, c) in zip(fleet.call_times, fleet.calls, strict=False)
         if c[:2] == ("profile", "add")
     )
 
@@ -122,7 +126,8 @@ def test_a_source_the_catalog_never_serves_is_waited_for_within_the_bound_only(
     # Nothing loaded within the bound; after it, the served content was tested.
     assert _first_load_at(fleet) >= start + sweep.cfg.source_wait_seconds
     entry = sweep.state.recipes[KEY]
-    assert entry["status"] == "passed" and entry["content_sha256"] == OLD
+    assert entry["status"] == "passed"
+    assert entry["content_sha256"] == OLD
     rows = [r for r in _rows(tmp_path) if r["step"] == "catalog" and "recipe" not in r]
     assert [r["status"] for r in rows] == ["waiting", "wait-expired"]
     expired = rows[-1]
@@ -163,22 +168,23 @@ def test_a_new_library_that_leaves_the_recipe_unchanged_keeps_it_waiting(
 
     assert seen == [(False, 0)]  # still waiting across the unrelated release
     entry = sweep.state.recipes[KEY]
-    assert entry["status"] == "passed" and entry["content_sha256"] == NEW
+    assert entry["status"] == "passed"
+    assert entry["content_sha256"] == NEW
     rows = [r for r in _rows(tmp_path) if r["step"] == "catalog" and "recipe" not in r]
     assert [r["status"] for r in rows] == ["waiting", "served"]
     assert not sweep.source_alert
 
 
 def test_the_source_state_machine_and_what_is_judged() -> None:
-    S, E = SourceServing, SourceEvent
-    assert advance(S.UNREAD, E.UNSERVED_PASS) is S.UNSERVED
-    assert advance(S.UNREAD, E.SERVED_PASS) is S.SERVED
-    assert advance(S.UNSERVED, E.UNSERVED_PASS) is S.UNSERVED
-    for ending in (E.SERVED_PASS, E.WAIT_EXPIRED):
-        assert advance(S.UNSERVED, ending) is S.SERVED
+    states, events = SourceServing, SourceEvent
+    assert advance(states.UNREAD, events.UNSERVED_PASS) is states.UNSERVED
+    assert advance(states.UNREAD, events.SERVED_PASS) is states.SERVED
+    assert advance(states.UNSERVED, events.UNSERVED_PASS) is states.UNSERVED
+    for ending in (events.SERVED_PASS, events.WAIT_EXPIRED):
+        assert advance(states.UNSERVED, ending) is states.SERVED
     # Once following the catalog, newer library content is tested, never awaited.
-    for event in E:
-        assert advance(S.SERVED, event) is S.SERVED
+    for event in events:
+        assert advance(states.SERVED, event) is states.SERVED
     # A recipe on one side only, or outside --only, is not a difference.
     assert unserved(
         {KEY: OLD, "vonk-forge/listed-only": OLD, "vonk-forge/other": OLD},
@@ -281,7 +287,8 @@ def test_a_recipe_the_older_source_lacks_is_held_per_row_on_any_pass(
         [FakeModel("1" * 64)],
         gateway=gateway,
     )
-    assert sweep.run() == 0 and sweep.catalog_loaded
+    assert sweep.run() == 0
+    assert sweep.catalog_loaded
     # A later pass lists a recipe merged since this sweep's source was taken.
     sweep.recipes[newer] = replace(sweep.recipes[KEY], key=newer)
     sweep.state.recipes[newer] = {"status": "pending"}

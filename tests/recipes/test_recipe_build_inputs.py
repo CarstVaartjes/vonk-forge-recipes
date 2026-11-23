@@ -31,7 +31,7 @@ FROM registry.example/base:runtime@sha256:%s
 
 
 @pytest.mark.parametrize(
-    "content, message",
+    ("content", "message"),
     [
         (b"FROM registry.example/base:latest\n", "digest pinned"),
         (b"FROM ${BASE}\n", "digest pinned"),

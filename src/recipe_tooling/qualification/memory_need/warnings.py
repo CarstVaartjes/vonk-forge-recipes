@@ -7,14 +7,6 @@ from collections.abc import Callable, Mapping
 from decimal import Decimal
 from functools import cache
 
-from vonk_forge_contracts import (
-    ModelDefinition,
-    RecipeDefinition,
-)
-from vonk_forge_contracts.memory_admission import (
-    evaluate_memory_admission,
-)
-
 from recipe_tooling.qualification.memory_need import args as mn_args
 from recipe_tooling.qualification.memory_need import constants as mn_constants
 from recipe_tooling.qualification.memory_need import evidence as mn_evidence
@@ -38,6 +30,13 @@ from recipe_tooling.qualification.memory_need.records import (
     EstimateFinding,
     EstimateFindingKind,
     MissingEstimateInput,
+)
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
+)
+from vonk_forge_contracts.memory_admission import (
+    evaluate_memory_admission,
 )
 
 
@@ -156,9 +155,9 @@ def memory_estimate_findings(
                 inputs,
                 key,
                 document_digest,
-                touched,
-                single,
-                mn_evidence.keeps_measured_peaks(variant, measured),
+                touched=touched,
+                single=single,
+                keep=mn_evidence.keeps_measured_peaks(variant, measured),
             ),
         )
     return warnings
@@ -171,6 +170,7 @@ def variant_estimate_warnings(
     inputs: MemoryInputs,
     key: str,
     document_digest: str,
+    *,
     touched: bool,
     single: bool,
     keep: bool = False,
@@ -434,8 +434,9 @@ def memory_notes(
             (
                 f"WARNING {recipe.identity.slug}: memory estimate unavailable; "
                 f"missing Model inputs: {', '.join(sorted(missing))}"
-            )
-        ] + mn_swap.swap_warnings(recipe)
+            ),
+            *mn_swap.swap_warnings(recipe),
+        ]
     warnings = mn_swap.swap_warnings(recipe)
     for index, variant in enumerate(mn_args.memory_variants(recipe)):
         prefix = f"WARNING {recipe.identity.slug} [{index}]"

@@ -9,7 +9,8 @@ SPEC = importlib.util.spec_from_file_location(
     "mia_deepseek_placement",
     ROOT / "adapters/deepseek/mia-1017-sglang/distributed.py",
 )
-assert SPEC and SPEC.loader
+assert SPEC
+assert SPEC.loader
 PLACEMENT = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(PLACEMENT)
 

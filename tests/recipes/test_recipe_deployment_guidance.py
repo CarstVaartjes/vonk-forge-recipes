@@ -7,6 +7,7 @@ import unittest
 from documents import recipe_display
 from generated_catalog import GENERATED
 from repo_root import ROOT
+
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 
@@ -35,52 +36,51 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
         )
         nano = load("recipes/nemotron-3-nano-30b-a3b-vllm-single.json")
 
-        self.assertTrue(
+        assert (
             {"preferred", "default", "target-only"}
             <= set(recipe_display(standard["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
         )
-        self.assertNotIn(
-            "memory-tight",
-            recipe_display(standard["identity"]["slug"]).tags,  # pyright: ignore[reportIndexIssue]
+        assert (
+            "memory-tight" not in recipe_display(standard["identity"]["slug"]).tags  # pyright: ignore[reportIndexIssue]
         )
 
         latency_tags = set(recipe_display(latency["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
-        self.assertTrue(
-            {"high-context", "memory-tight", "specialized", "low-concurrency"}
-            <= latency_tags
-        )
-        self.assertNotIn("default", latency_tags)
-        self.assertEqual(latency["settings"]["context_tokens"]["value"], 1_048_576)  # pyright: ignore[reportIndexIssue]
+        assert {
+            "high-context",
+            "memory-tight",
+            "specialized",
+            "low-concurrency",
+        } <= latency_tags
+        assert "default" not in latency_tags
+        assert latency["settings"]["context_tokens"]["value"] == 1048576  # pyright: ignore[reportIndexIssue]
 
-        self.assertEqual(standard["topology"]["node_count"], 1)  # pyright: ignore[reportIndexIssue]
-        self.assertEqual(latency["topology"]["node_count"], 1)  # pyright: ignore[reportIndexIssue]
+        assert standard["topology"]["node_count"] == 1  # pyright: ignore[reportIndexIssue]
+        assert latency["topology"]["node_count"] == 1  # pyright: ignore[reportIndexIssue]
 
         nano_tags = set(recipe_display(nano["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
-        self.assertTrue({"executable", "historical", "superseded"} <= nano_tags)
+        assert {"executable", "historical", "superseded"} <= nano_tags
 
     def test_moss_is_labeled_as_replay_not_interactive_service(self) -> None:
         recipe = load("recipes/moss-vl-realtime-11b-pytorch-single.json")
         tags = set(recipe_display(recipe["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
-        self.assertTrue(
-            {"session-replay", "batch-job", "not-interactive-service"} <= tags
-        )
-        self.assertEqual(recipe["interfaces"][0]["adapter"], "artifact-job")  # pyright: ignore[reportIndexIssue]
+        assert {"session-replay", "batch-job", "not-interactive-service"} <= tags
+        assert recipe["interfaces"][0]["adapter"] == "artifact-job"  # pyright: ignore[reportIndexIssue]
         outputs = {slot["id"] for slot in recipe["interfaces"][0]["output"]["slots"]}  # pyright: ignore[reportIndexIssue]
-        self.assertEqual(outputs, {"replay", "transcript"})
+        assert outputs == {"replay", "transcript"}
 
     def test_mova_360p_is_default_and_720p_is_tight(self) -> None:
         low = load("recipes/mova-360p-diffusers-single.json")
         high = load("recipes/mova-720p-diffusers-single.json")
-        self.assertTrue(
+        assert (
             {"preferred", "default"}
             <= set(recipe_display(low["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
         )
-        self.assertNotIn("memory-tight", recipe_display(low["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
-        self.assertTrue(
+        assert "memory-tight" not in recipe_display(low["identity"]["slug"]).tags  # pyright: ignore[reportIndexIssue]
+        assert (
             {"memory-tight", "high-resolution"}
             <= set(recipe_display(high["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
         )
-        self.assertNotIn("default", recipe_display(high["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
+        assert "default" not in recipe_display(high["identity"]["slug"]).tags  # pyright: ignore[reportIndexIssue]
 
     def test_release_metadata_and_package_bind_current_recipe_digests(self) -> None:
         slugs = (
@@ -97,21 +97,18 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
                 recipe_path = f"recipes/{slug}.json"
                 recipe = RecipeDefinition.model_validate(load(recipe_path))
                 entry = catalog_entry(slug)
-                self.assertEqual(
-                    RecipeDefinition.model_validate(entry["document"]).release,
-                    recipe.release,
+                assert (
+                    RecipeDefinition.model_validate(entry["document"]).release
+                    == recipe.release
                 )
                 digest = canonical_digest(recipe_path)
-                self.assertEqual(
-                    entry["content_sha256"],
-                    digest,
-                )
+                assert entry["content_sha256"] == digest
                 package = entry["package"]
-                self.assertEqual(package["recipe_content_sha256"], digest)  # pyright: ignore[reportIndexIssue]
+                assert package["recipe_content_sha256"] == digest  # pyright: ignore[reportIndexIssue]
                 package_path = GENERATED / package["path"]  # pyright: ignore[reportIndexIssue]
                 payload = package_path.read_bytes()
-                self.assertEqual(len(payload), package["expected_bytes"])  # pyright: ignore[reportIndexIssue]
-                self.assertEqual(hashlib.sha256(payload).hexdigest(), package["sha256"])  # pyright: ignore[reportIndexIssue]
+                assert len(payload) == package["expected_bytes"]  # pyright: ignore[reportIndexIssue]
+                assert hashlib.sha256(payload).hexdigest() == package["sha256"]  # pyright: ignore[reportIndexIssue]
 
 
 if __name__ == "__main__":

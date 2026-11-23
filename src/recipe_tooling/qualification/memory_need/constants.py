@@ -4,14 +4,13 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from recipe_tooling.paths import REPO_ROOT
 from vonk_forge_contracts import (
     RecipeDefinition,
 )
 from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
 )
-
-from recipe_tooling.paths import REPO_ROOT
 
 # The platform floor is owned by vonk_forge_contracts.memory_admission (contracts 2.8.1).
 # GUARD_BYTES below is this estimator's own headroom; the live host memory guard
@@ -64,7 +63,7 @@ def budget_margin_bytes(recipe: RecipeDefinition) -> int:
 # Offline copy of the swap policy pinned to vonk-forge fc6059e42edb1b26416fd78493138201f427de96
 # (#1936 swap-aware memory guard): rust/crates/vonk-agent-protocol/src/
 # host_memory_guard_policy.rs::SWAP_EXHAUSTED_FREE_FLOOR_BYTES (2 GiB),
-# SWAP_EXHAUSTED_FREE_PERCENT (10) and SWAP_FILLING_USED_PERCENT (90). R1
+# SWAP_EXHAUSTED_FREE_PERCENT is 10 and SWAP_FILLING_USED_PERCENT is 90. R1
 # (vonk-agent-helper/src/host_memory_guard/decision.rs:185) keeps max(floor, total / 100 * 10) free;
 # R2 (decision.rs:191) allows at most total / 100 * 90 used. Also
 # agent_protocol/src/vonk_agent_protocol/swap.py::SwapPolicy maximum_gib 128,

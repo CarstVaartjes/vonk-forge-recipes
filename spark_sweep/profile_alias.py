@@ -32,6 +32,8 @@ def unique_profile_alias(alias: str, recipe_key: str) -> str:
     Two variants of one model share a service alias; a profile cannot hold two
     running assignments with the same name.
     """
-    suffix = hashlib.sha1(recipe_key.encode()).hexdigest()[:_SUFFIX_LENGTH]
+    suffix = hashlib.sha1(recipe_key.encode(), usedforsecurity=False).hexdigest()[
+        :_SUFFIX_LENGTH
+    ]
     head = alias[: _MAX_LENGTH - _SUFFIX_LENGTH - 1].rstrip("-_.") or _FALLBACK
     return f"{head}-{suffix}"

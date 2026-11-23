@@ -18,10 +18,10 @@ from unittest.mock import patch
 
 import pytest
 from repo_root import ROOT
-from vonk_forge_contracts.model import ModelSource
-from vonk_forge_contracts.recipe import RecipeDefinition
 
 from recipe_tooling.qualification.documents import model as model_document
+from vonk_forge_contracts.model import ModelSource
+from vonk_forge_contracts.recipe import RecipeDefinition
 
 TOOL = runpy.run_path(str(ROOT / "tools/prepare-remote-code-smoke"))
 MOSS = ROOT / "adapters/video/moss-vl-realtime"
@@ -344,7 +344,8 @@ def test_transient_download_errors_are_retried_and_client_errors_are_not(
 
     with patch("urllib.request.urlopen", urlopen), patch("time.sleep") as sleep:
         assert execute_smoke(tmp_path, files, []) == []
-    assert len(calls) == 5 and sleep.call_count == 4
+    assert len(calls) == 5
+    assert sleep.call_count == 4
 
     def missing(requested: str, timeout: int) -> Response:
         calls.append(requested)

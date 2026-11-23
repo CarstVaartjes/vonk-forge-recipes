@@ -77,7 +77,7 @@ def image_name(name: str) -> str:
     return lowered if "." in first or ":" in first else f"docker.io/{lowered}"
 
 
-def _candidates(line: str, markdown: bool) -> Iterable[str]:
+def _candidates(line: str, *, markdown: bool) -> Iterable[str]:
     """The tokens of a line that sit where an image reference does."""
     if not markdown:
         for lead in (_FROM, _ARG):
@@ -111,7 +111,7 @@ def scan_text(path: str, text: str, scope: str = "") -> list[dict[str, Any]]:
     for number, line in enumerate(text.splitlines(), 1):
         if not markdown and line.lstrip().startswith("#"):
             continue
-        for token in _candidates(line, markdown):
+        for token in _candidates(line, markdown=markdown):
             match = _IMAGE.match(token)
             if match is None or "$" in token:
                 continue

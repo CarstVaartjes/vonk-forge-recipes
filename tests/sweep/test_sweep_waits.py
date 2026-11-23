@@ -5,6 +5,7 @@ from __future__ import annotations
 import itertools
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
@@ -19,7 +20,7 @@ def gateway():
     gateway.stop()
 
 
-def _run(alias: str) -> dict:
+def _run(alias: str) -> dict[str, Any]:
     return {
         "alias": alias,
         "recipe": "x",

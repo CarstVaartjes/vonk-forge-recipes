@@ -388,7 +388,7 @@ def _publish(
                 + ("" if arm else " (review, not armed)")
             )
         return number
-    failure = refresh_apply.verify(root, recipe_id)
+    failure = refresh_apply.verify(root)
     if failure is not None:
         assessment.reasons.append(
             f"checks failed after applying the refresh: {failure}"
@@ -711,6 +711,7 @@ def sync_titled_issue(
     title: str,
     render: Callable[[str | None], str],
     label: str = refresh_model.LABEL_NEEDS_REVIEW,
+    *,
     create: bool = True,
 ) -> None:
     """Keep the one issue titled ``title`` showing ``render(previous body)``.
@@ -735,7 +736,7 @@ def sync_titled_issue(
 
 
 def sync_issue(
-    assessment: refresh_model.Assessment, summary: Summary, create: bool = True
+    assessment: refresh_model.Assessment, summary: Summary, *, create: bool = True
 ) -> None:
     """Keep the recipe's one review issue showing the current assessment."""
     sync_titled_issue(
@@ -964,7 +965,7 @@ def command_guard(arguments: argparse.Namespace) -> int:
             )
     output = os.environ.get("GITHUB_OUTPUT")
     if output:
-        with open(output, "a", encoding="utf-8") as handle:
+        with Path(output).open("a", encoding="utf-8") as handle:
             handle.write(f"run={'true' if run else 'false'}\n")
     print(f"refresh {'proceeds' if run else 'skipped by the chain guard'}")
     return 0
@@ -1079,5 +1080,5 @@ def write_summary(
     text = "\n".join(lines)
     print(text)
     if path:
-        with open(path, "a", encoding="utf-8") as handle:
+        with Path(path).open("a", encoding="utf-8") as handle:
             handle.write(text + "\n")

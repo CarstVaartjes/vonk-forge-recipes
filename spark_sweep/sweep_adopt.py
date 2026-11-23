@@ -339,14 +339,14 @@ class SweepAdopt:
         labels = labels if labels is not None else holders
         if self.state.data.get("cleared_for") != holders:
             self.state.data["cleared_for"] = holders
-            self._request_clearing(now)
+            self._request_clearing()
             self.state.event(event)
             return
         if not self.state.data.get("cleared_by"):
             # Decided, never submitted: nothing has outlived anything. The refusal is
             # the evidence; decide the clearing again with a budget of its own.
             why = self.state.data.get("clearing_reason") or "not submitted"
-            self._request_clearing(now)
+            self._request_clearing()
             for placement in blocked:
                 self.record_result(
                     placement.recipe.key,
@@ -460,7 +460,7 @@ class SweepAdopt:
                 # attempts in its evidence).
                 entry["review_freeing"] = freeing + 1
                 entry["defer_until"] = now + self.cfg.defer_delay
-                self._request_clearing(now)
+                self._request_clearing()
                 self.record_result(
                     key,
                     "review",
@@ -496,7 +496,7 @@ class SweepAdopt:
                 )
             if verdict.disposition(failure) is Disposition.WAIT:
                 codes = tuple(sorted({c for c, _ in blockers}))
-                self._watch_review_wait(key, entry, placement, failure, codes, now)
+                self._watch_review_wait(entry, placement, failure, codes, now)
             elif verdict.disposition(failure) is Disposition.FAIL:
                 self._clear_review_wait(entry)
             # Only the observed demand, never a clearing count, can settle capacity.
@@ -504,7 +504,6 @@ class SweepAdopt:
 
     def _watch_review_wait(
         self: Sweep,  # pyright: ignore[reportGeneralTypeIssues]
-        key: str,
         entry: dict[str, Any],
         placement: policy.Placement,
         failure: policy.Failure,

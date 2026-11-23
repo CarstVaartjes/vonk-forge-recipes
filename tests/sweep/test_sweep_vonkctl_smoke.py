@@ -12,21 +12,13 @@ from pathlib import Path
 import pytest
 from repo_root import ROOT
 from sweep_fakes import Gateway, production_service_cases
-from vonk_forge_contracts.api import (
-    ApiReasoningAlwaysOn,
-    ApiReasoningNone,
-    ApiReasoningSwitch,
-    ApiRemainingContext,
-    ApiTokenArgument,
-    ApiTokenSetting,
-    ApiTokenValue,
-    ChatApi,
-)
 
 from recipe_tooling.qualification.documents import recipe, recipe_api
 from spark_sweep.catalog import Recipe
 from spark_sweep.chat_probe import ChatFacts, chat_facts
+from spark_sweep.cli import AUTHORITY_ID
 from spark_sweep.definitions import Definitions
+from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.smoke import (
     AssertionFailed,
     HttpConfig,
@@ -37,12 +29,25 @@ from spark_sweep.smoke import (
     stream_probe,
 )
 from spark_sweep.sweep_contract import CliObservationStatus
+from spark_sweep.verdict import Disposition, reply_disposition
 from spark_sweep.vonkctl import (
     OwnerProfileError,
     Reply,
     Vonkctl,
     VonkctlError,
+    VonkctlTimeout,
+    VonkctlTransportError,
     request_key,
+)
+from vonk_forge_contracts.api import (
+    ApiReasoningAlwaysOn,
+    ApiReasoningNone,
+    ApiReasoningSwitch,
+    ApiRemainingContext,
+    ApiTokenArgument,
+    ApiTokenSetting,
+    ApiTokenValue,
+    ChatApi,
 )
 
 
@@ -138,7 +143,8 @@ def test_error_documents_are_parsed_from_stdout() -> None:
 
 
 @pytest.mark.parametrize(
-    "out, err", [('queued\n{"state": "running"}\n', ""), ("", '{"state": "running"}')]
+    ("out", "err"),
+    [('queued\n{"state": "running"}\n', ""), ("", '{"state": "running"}')],
 )
 def test_only_a_single_stdout_json_document_is_a_receipt(out: str, err: str) -> None:
     run, _ = runner_returning(0, out, err)
@@ -149,8 +155,6 @@ def test_only_a_single_stdout_json_document_is_a_receipt(out: str, err: str) -> 
 @pytest.mark.parametrize("code", [0, 2, 124])
 @pytest.mark.parametrize("out", ["", "null", "not JSON"])
 def test_missing_json_is_transport_with_exit_and_stderr(code: int, out: str) -> None:
-    from spark_sweep.verdict import Disposition, reply_disposition
-    from spark_sweep.vonkctl import VonkctlTransportError
 
     run, _ = runner_returning(code, out, "injected connection failure")
     vk = Vonkctl(runner=run)
@@ -169,15 +173,12 @@ def test_real_cli_observation_envelope_is_not_a_controller_reply(
     tmp_path: Path,
 ) -> None:
     """Captured GET remove-review output from cli_outcome.Observation.document()."""
-    from spark_sweep.verdict import Disposition, reply_disposition
-    from spark_sweep.vonkctl import VonkctlTransportError
 
     document = json.loads(
         (ROOT / "tests/fixtures/sweep-removal/observation.json").read_text()
     )
     # Even a retained successful receipt is stale observation evidence, not a
     # fresh response that can authorize effects or settle an outstanding request.
-    from spark_sweep.lifecycle import LifecycleState
 
     document["result"] = {"state": LifecycleState.SUCCEEDED}
     script = tmp_path / "vonkctl"
@@ -200,7 +201,6 @@ def test_real_cli_observation_envelope_is_not_a_controller_reply(
 
 def test_controller_error_keeps_its_cause_when_observation_is_attached() -> None:
     """cli._control_error attaches observation metadata to final refusals too."""
-    from spark_sweep.vonkctl import VonkctlTransportError
 
     error = {
         "error_type": "control_api",
@@ -421,9 +421,8 @@ def test_every_reviewed_service_case_renders_with_its_fixtures(
     for key, service in services.items():
         cases = production_service_cases(definitions, key, service["alias"])
         assert [c["id"] for c in cases] == service["smoke_cases"], key
-        assert json.dumps(cases).count("$ALIAS") == 0 and "$fixture" not in json.dumps(
-            cases
-        )
+        assert json.dumps(cases).count("$ALIAS") == 0
+        assert "$fixture" not in json.dumps(cases)
 
 
 def test_a_vision_case_carries_its_image_as_a_data_uri(
@@ -438,11 +437,11 @@ def test_a_vision_case_carries_its_image_as_a_data_uri(
         c for c in production_service_cases(definitions, key, "x") if c["id"] == "V_RED"
     )
     url = case["body"]["messages"][0]["content"][0]["image_url"]["url"]
-    assert url.startswith("data:image/png;base64,") and len(url) > 100
+    assert url.startswith("data:image/png;base64,")
+    assert len(url) > 100
 
 
 def test_the_authority_id_matches_the_derived_authority() -> None:
-    from spark_sweep.cli import AUTHORITY_ID
 
     builder = (ROOT / "tools" / "build-qualification-authority").read_text()
     assert f'AUTHORITY_ID = "{AUTHORITY_ID}"' in builder
@@ -500,11 +499,9 @@ def test_the_stream_probe_measures_time_to_first_token_and_tokens_per_second(
 ) -> None:
     _, root = gateway
     probe = stream_probe(f"{root}/x/v1", "x", HttpConfig())
-    assert (
-        probe["tokens"] == 8
-        and probe["ttft_ms"] >= 0
-        and probe["tokens_per_second"] > 0
-    )
+    assert probe["tokens"] == 8
+    assert probe["ttft_ms"] >= 0
+    assert probe["tokens_per_second"] > 0
 
 
 def test_a_serving_recipe_runs_its_reviewed_cases_with_perf(
@@ -524,12 +521,10 @@ def test_a_serving_recipe_runs_its_reviewed_cases_with_perf(
         "x",
         HttpConfig(),
     )
-    assert (
-        result.ok
-        and result.kind == "service"
-        and result.perf
-        and [c["case_id"] for c in result.cases] == ["M0", "A391"]
-    )
+    assert result.ok
+    assert result.kind == "service"
+    assert result.perf
+    assert [c["case_id"] for c in result.cases] == ["M0", "A391"]
 
 
 def test_without_reviewed_cases_the_recipes_own_declared_checks_run(
@@ -540,7 +535,8 @@ def test_without_reviewed_cases_the_recipes_own_declared_checks_run(
         {**definitions.document, "service_recipes": {}}, definitions.root
     )
     result = smoke_service(_recipe(), bare, f"{root}/x/v1", "x", HttpConfig())
-    assert result.ok and [c["case_id"] for c in result.cases] == [
+    assert result.ok
+    assert [c["case_id"] for c in result.cases] == [
         "models",
         "bounded-chat",
     ]
@@ -562,7 +558,8 @@ def test_a_gateway_error_is_a_smoke_failure_with_a_class(
         "x",
         HttpConfig(),
     )
-    assert not result.ok and result.failure is not None
+    assert not result.ok
+    assert result.failure is not None
     assert (result.failure.phase, result.failure.klass) == ("smoke", "smoke-request")
 
 
@@ -595,11 +592,12 @@ def test_the_client_key_is_sent_as_a_bearer_token(tmp_path: Path) -> None:
 
 def test_non_openai_recipes_are_checked_for_readiness_only() -> None:
     result = smoke_readiness("run-1")
-    assert result.ok and result.kind == "readiness-only" and result.perf is None
+    assert result.ok
+    assert result.kind == "readiness-only"
+    assert result.perf is None
 
 
 def test_a_timeout_is_a_failed_reply_for_reads_and_an_error_for_calls() -> None:
-    from spark_sweep.vonkctl import VonkctlTimeout
 
     def run(argv, timeout):
         raise VonkctlTimeout(argv, None, "vonkctl timed out after 5s")
@@ -762,7 +760,8 @@ def test_the_option_choice_of_the_run_selects_the_block(
     choice = {api.option_choices[0].option: api.option_choices[0].value}
     base = chat_facts(definition, api, {})
     chosen = chat_facts(definition, api, choice)
-    assert base is not None and chosen is not None
+    assert base is not None
+    assert chosen is not None
     assert isinstance(base.api.reasoning, ApiReasoningSwitch)
     assert isinstance(chosen.api.reasoning, ApiReasoningAlwaysOn)
 
@@ -776,7 +775,8 @@ def test_without_facts_the_declared_check_runs_as_written_with_its_old_assertion
     """
     result, sent = _bounded_chat_smoke(gateway, definitions, None, thinking=200)
     assert result.ok, result.failure
-    assert "chat_template_kwargs" not in sent and sent["max_tokens"] == 64
+    assert "chat_template_kwargs" not in sent
+    assert sent["max_tokens"] == 64
 
 
 def test_with_facts_a_reply_that_is_all_thinking_fails_the_case() -> None:

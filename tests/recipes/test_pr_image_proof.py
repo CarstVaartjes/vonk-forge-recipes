@@ -38,11 +38,13 @@ def test_pr_and_publish_share_planner_build_and_smokes():
         "\n  memory-estimates:", 1
     )[0]
     # GitHub validates nested workflow permissions even for skipped PR jobs.
-    assert "packages: write" in producer and "actions: write" in producer
+    assert "packages: write" in producer
+    assert "actions: write" in producer
     gate = validate.split("\n  catalog-index:\n", 1)[1].split(
         "\n  producer-contracts:", 1
     )[0]
-    assert "needs: [images, catalog]" in gate and "always()" in gate
+    assert "needs: [images, catalog]" in gate
+    assert "always()" in gate
     assert 'test "$IMAGE_RESULT" = success' in gate
     workflow = WORKFLOW.read_text()
     assert "ref: ${{ github.event.pull_request.head.sha || github.sha }}" in workflow
@@ -262,8 +264,8 @@ if 'inspect' in args:
         if result.returncode:
             break
         for line in (tmp_path / "env").read_text().splitlines():
-            name, value = line.split("=", 1)
-            environment[name] = value
+            variable, value = line.split("=", 1)
+            environment[variable] = value
     assert result is not None
     assert (result.returncode == 0) == (not fault), result.stderr
     commands = log.read_text()

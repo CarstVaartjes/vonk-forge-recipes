@@ -71,6 +71,8 @@ def test_no_adapter_selects_a_workflow_twice() -> None:
     for path in sorted((ROOT / "adapters").rglob("*.py")):
         if any(part in {"vendor", "vendored"} for part in path.parts):
             continue
-        for line in _double_selections(path.read_text(encoding="utf-8")):
-            offenders.append(f"{path.relative_to(ROOT)}:{line}")
+        offenders.extend(
+            f"{path.relative_to(ROOT)}:{line}"
+            for line in _double_selections(path.read_text(encoding="utf-8"))
+        )
     assert offenders == []

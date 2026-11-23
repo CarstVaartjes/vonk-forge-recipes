@@ -356,7 +356,7 @@ def encode_multipart(spec: dict[str, Any]) -> tuple[bytes, str]:
 def _open(
     request: urllib.request.Request, timeout: float, context: ssl.SSLContext | None
 ) -> Any:
-    return urllib.request.urlopen(request, timeout=timeout, context=context)
+    return urllib.request.urlopen(request, timeout=timeout, context=context)  # noqa: TID251 - the served recipe's own endpoint, not a provider; the sweep layer may not import recipe_tooling
 
 
 # Request fields that steer sampling. A model family may not accept them (diffusion models
@@ -585,7 +585,7 @@ def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
                         config.on_progress()
     if first is None or last is None:
         raise AssertionFailed("the stream produced no tokens")
-    tokens = usage_tokens if usage_tokens else pieces
+    tokens = usage_tokens or pieces
     span = last - first
     return {
         "ttft_ms": round((first - started) * 1000, 1),
@@ -673,10 +673,7 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
         if case.get("response") == "audio":
             # A binary reply is judged by its type and what decodes from it. A body
             # that is not audio (an error page, JSON) stays in the failure row.
-            if not content_type.lower().startswith("audio/"):
-                text = text[:4096]
-            else:
-                text = ""
+            text = text[:4096] if not content_type.lower().startswith("audio/") else ""
             facts = wav_facts(raw)
             document: Any = {
                 "content_type": content_type,

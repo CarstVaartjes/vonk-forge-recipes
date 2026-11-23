@@ -7,6 +7,7 @@ from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
+
 from vonk_forge_contracts import QualificationIdentity, QualificationRuntimeImage
 
 from .catalog import Recipe

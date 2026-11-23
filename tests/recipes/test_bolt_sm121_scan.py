@@ -9,7 +9,8 @@ from repo_root import ROOT
 
 SCRIPT = ROOT / "adapters/nemotron/mia-bolt-tensorfold-single/scan-sm121.py"
 spec = importlib.util.spec_from_file_location("scan_sm121", SCRIPT)
-assert spec and spec.loader
+assert spec
+assert spec.loader
 scan = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(scan)
 
@@ -52,7 +53,8 @@ def test_verdicts(listing_elf: str, listing_ptx: str, passes: bool) -> None:
 
 def test_other_targets_are_not_loadable_even_when_required() -> None:
     ok, why = scan.verdict(elf("sm_90"), "", required=True)
-    assert not ok and "no image loads" in why
+    assert not ok
+    assert "no image loads" in why
 
 
 def test_a_file_without_device_code_is_reported_and_required_ones_fail() -> None:
@@ -66,7 +68,9 @@ def test_cuobjdump_errors_are_failures_but_missing_device_code_is_not() -> None:
     assert scan.interpret("", message, 1) == ("", None)
     assert scan.interpret("ELF file 1: x.sm_121.cubin", "", 0)[1] is None
     text, error = scan.interpret("", "cuobjdump fatal : Unrecognized file", 1)
-    assert text == "" and error and "exited 1" in error
+    assert text == ""
+    assert error
+    assert "exited 1" in error
 
 
 def test_every_adapter_copy_of_the_scan_is_this_one() -> None:

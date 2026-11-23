@@ -14,6 +14,9 @@ required-version = ">=0.13.5"
 norecursedirs = ["adapters", ".git", "node_modules", ".venv"]
 # Tests import their helpers and each other by bare module name; every test folder is a root.
 pythonpath = [
+    "contracts/src",
+    ".",
+    "src",
     "tests",
     "tests/qualification",
     "tests/recipes",
@@ -22,17 +25,89 @@ pythonpath = [
     "tests/tools",
 ]
 
+[dependency-groups]
+# The one owner of the lint and type-check tool versions is uv.lock. pytest, pydantic and
+# Pillow are here because the type gate must resolve the suite's fixtures and the
+# canonical contract types against their real classes, not unresolved imports.
+dev = [
+    "ruff>=0.16.9",
+    "pyright[nodejs]>=1.1.414",
+    "pytest>=9.1.1",
+    "pydantic>=2.13.4",
+    "Pillow>=13.0.0",
+]
+
 [tool.ruff]
-# The pinned formatter and linter are the repository's formatting authority for
-# our own code: tools/, scripts/, tests/, contracts/ and platform helpers.
-# Everything under adapters/ follows its upstream recipe (vendored patches,
-# launch scripts, wrappers derived from upstream creators), so a recipe is never
-# blocked because upstream code does not match our style. Adapter behavior stays
-# covered by the functional tests (contract validation, executability, pins).
-required-version = "==0.16.9"
+# Ruff is the repository's lint and formatting authority for our own code: tools/,
+# scripts/, tests/, contracts/ and platform helpers. Everything under adapters/
+# follows its upstream recipe (vendored patches, launch scripts, wrappers derived
+# from upstream creators), so a recipe is never blocked because upstream code does
+# not match our style. Adapter behavior stays covered by the functional tests.
+# Stays 3.12: the CI jobs run tools/ launchers with the runner's own python3 and import
+# recipe_tooling, so the source must parse there (the 3.14 `except A, B:` form does not).
 target-version = "py312"
 force-exclude = true
 exclude = ["adapters"]
+# Every extensionless entry point in tools/ (and the type-gate script) is Python by
+# shebang; every other file in tools/ has a suffix, so `tools/*.*` is excluded.
+# `ruff check --show-files` is the one owner of "which files are Python".
+extend-include = ["tools/*", "scripts/check-python-types"]
+extend-exclude = ["tools/*.*"]
+
+[tool.ruff.lint]
+extend-select = [
+    "E4", "E7", "E9",  # E402 is the companion of PLC0415; E731 lambda assignment
+    "PLC", "PLE", "PLR", "PLW",  # incl. PLC0415 import-outside-top-level
+    "TID252",  # with ban-relative-imports = "all": one import spelling
+    "TID251",  # banned-api (below)
+    "B", "C4", "RET", "SIM", "PERF", "PT", "PTH", "FURB", "PYI", "RSE", "RUF",
+    "N", "A", "ERA", "FAST", "ASYNC", "LOG", "PGH", "S", "ARG", "FBT001", "FBT002",
+]
+ignore = [
+    "PLR0904", "PLR0911", "PLR0912", "PLR0913", "PLR0914", "PLR0915", "PLR0916", "PLR0917", "PLR1702",
+    # size/complexity ceilings: numeric thresholds are count-ceilings
+    "PLR2004",  # magic-value-comparison: mostly tests asserting literal expected values
+    "PLR6301",  # no-self-use: methods on protocol/fake classes keep self for the interface
+    "PLC2701",  # private import: package-private _modules are the layering convention
+    "PLW1514",  # unspecified-encoding: UTF-8 mode is the 3.15 default
+    "PT011",    # pytest.raises too broad: the fix is match="..." on message text (wording test)
+    "RUF043",   # ambiguous match= pattern: polishes wording asserts that should not exist
+    "RUF001", "RUF002", "RUF003",  # ambiguous unicode is intentional in user-facing text
+    "N818",     # exception names without Error suffix: renames of wire-visible names
+    "A002",     # argument shadows builtin: wire names (id, type)
+    "S101",     # assert: pytest's assertion style
+    "S104", "S105", "S106", "S108", "S311",  # bind-all/hardcoded-secret/tmp/random: fixture noise
+    "S603", "S607",  # subprocess audit: flags every call; the git-in-tests guard is the real rule
+    "S310",     # urlopen scheme audit: urlopen is banned via TID251
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests: unused fixture/monkeypatch parameters and bool test parameters are pytest idiom.
+"**/tests/**" = ["ARG", "FBT001", "FBT002"]
+# Six assertions compare real git results (and one test builds a git argv); tests never use
+# git, and rewriting them would re-add those git lines for the added-line guard.
+"tests/refresh_upstream/test_apply.py" = ["PT009"]
+"tests/qualification/test_absolute_kv_capacity.py" = ["RUF005"]  # the same, one git argv
+# Relative imports are banned only inside the installable recipe_tooling package.
+"!src/**" = ["TID252"]
+# The released contract package keeps its source as released: CI refuses any change under
+# contracts/src without a new contract version (validate.yml), a keyword-only flag would
+# break callers of a public function, and reordering a type alias changes the published
+# schemas. These findings stay listed here; they are the rules' only hits in it.
+"contracts/src/**" = ["TID252", "PERF401", "FBT001", "PLC0415", "RUF021", "RUF036"]
+# The one module that opens provider URLs.
+"src/recipe_tooling/upstream_http.py" = ["TID251"]
+
+[tool.ruff.lint.isort]
+# Classification must not depend on what is installed.
+known-first-party = ["vonk_forge_contracts", "recipe_tooling", "spark_sweep"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"urllib.request.urlopen".msg = "use recipe_tooling.upstream_http"
+"urllib.request.build_opener".msg = "use recipe_tooling.upstream_http"
 
 [tool.pyright]
 # One checker for our own code; adapters are excluded (see [tool.ruff]). The mode and the
@@ -40,9 +115,23 @@ exclude = ["adapters"]
 # an unconfigured pyright reports hundreds of extra findings, so the zero-error
 # gate would otherwise depend on the host interpreter and on defaults.
 pythonVersion = "3.14"
-typeCheckingMode = "basic"
-# A `# pyright: ignore` that no longer suppresses anything is an error.
+# The diagnostics are defined for Linux, where CI runs: a Mac hook and the CI agree.
+pythonPlatform = "Linux"
+typeCheckingMode = "standard"
+# Strict-mode checks with behaviour value, on everywhere:
+# a `# pyright: ignore` that no longer suppresses anything is an error,
 reportUnnecessaryTypeIgnoreComment = "error"
+# a `match` over an enum or union covers every case (explicit state machines),
+reportMatchNotExhaustive = "error"
+# and a check that can never fail, a cast that changes nothing, a deprecated API, a
+# generic without arguments or a method without self/cls is a mistake or dead code.
+reportUnnecessaryIsInstance = "error"
+reportUnnecessaryComparison = "error"
+reportUnnecessaryContains = "error"
+reportUnnecessaryCast = "error"
+reportDeprecated = "error"
+reportMissingTypeArgument = "error"
+reportSelfClsParameterName = "error"
 # The contracts package is not installed in the environment CI checks with, so
 # its import root is declared here exactly as the test suites add it. Without
 # it every contract import is an unresolved-import finding.
@@ -62,4 +151,12 @@ exclude = [
     "**/.venv/**",
     # Adapters follow their upstream recipe; see [tool.ruff].
     "adapters",
+]
+# contracts/src is the released contract package: CI refuses any change under it without a
+# new contract version (validate.yml, "Require a contract version bump"), and four of these
+# findings sit on public signatures and schema-visible definitions. Its source is therefore
+# not edited for the stricter checks; the four rules below are off for it only.
+executionEnvironments = [
+    { root = "contracts/src", extraPaths = ["contracts/src"], reportUnnecessaryIsInstance = "none", reportIncompatibleMethodOverride = "none", reportIncompatibleVariableOverride = "none", reportFunctionMemberAccess = "none" },
+    { root = "." },
 ]

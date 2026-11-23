@@ -7,10 +7,10 @@ import json
 
 import pytest
 from repo_root import FIXTURES
-from vonk_forge_contracts import QualificationCauseCode
 
 from spark_sweep import policy
 from spark_sweep.sweep_contract import SweepFailureClass, WorkloadExitCause
+from vonk_forge_contracts import QualificationCauseCode
 
 # Vendored verbatim from vonk-forge (the one owner of the exit-cause tokens:
 # its agent_protocol tests prove the vector equals ExitCause::token()).

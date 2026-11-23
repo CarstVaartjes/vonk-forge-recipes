@@ -11,12 +11,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from decimal import Decimal
 
-from vonk_forge_contracts import (
-    ModelDefinition,
-    RecipeDefinition,
-)
-from vonk_forge_contracts.api_checks import CONTEXT_ARGUMENTS
-
 from recipe_tooling.qualification.memory_need import args as mn_args
 from recipe_tooling.qualification.memory_need import sglang as mn_sglang
 from recipe_tooling.qualification.memory_need import vllm as mn_vllm
@@ -33,6 +27,11 @@ from recipe_tooling.qualification.memory_need.records import (
     MemoryNeed,
     PerRankMemoryNeed,
 )
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
+)
+from vonk_forge_contracts.api_checks import CONTEXT_ARGUMENTS
 
 
 def calculate_need(

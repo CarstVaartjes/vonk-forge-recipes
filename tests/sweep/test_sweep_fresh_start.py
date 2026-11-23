@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
@@ -59,7 +60,7 @@ def test_an_identical_running_run_is_cleared_and_the_recipe_starts_cold(
     assert not renamed  # the owner's run was never kept under the sweep's name
 
 
-def _rows(tmp_path: Path) -> list[dict]:
+def _rows(tmp_path: Path) -> list[dict[str, Any]]:
     path = tmp_path / "results.jsonl"
     lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
     return [json.loads(line) for line in lines]

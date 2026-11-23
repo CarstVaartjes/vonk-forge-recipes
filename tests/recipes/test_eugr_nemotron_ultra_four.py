@@ -6,9 +6,9 @@ import runpy
 
 import pytest
 from repo_root import ROOT
-from vonk_forge_contracts.recipe import RecipeGenerationSettings
 
 from recipe_tooling.qualification import documents
+from vonk_forge_contracts.recipe import RecipeGenerationSettings
 
 ADAPTER = ROOT / "adapters/eugr/nemotron-3-ultra-nvfp4"
 UPSTREAM = ADAPTER / "recipes/4x-spark-cluster/nemotron-3-ultra-nvfp4.yaml"
@@ -54,14 +54,14 @@ def test_every_upstream_flag_is_in_the_recipe_or_reworded_for_a_stated_reason():
     assert set(REWORDED) <= seen
     settings = recipe.settings
     assert isinstance(settings, RecipeGenerationSettings)
-    assert settings.concurrency is not None and settings.max_batch_tokens is not None
+    assert settings.concurrency is not None
+    assert settings.max_batch_tokens is not None
     assert settings.context_tokens.value == 262144
     assert settings.concurrency.value == 2
     assert settings.max_batch_tokens.value == 16384
     assert arguments["tensor-parallel-size"].value == 4
-    assert (
-        recipe.topology.node_count == 4 and recipe.topology.parallelism.backend == "mp"
-    )
+    assert recipe.topology.node_count == 4
+    assert recipe.topology.parallelism.backend == "mp"
 
 
 def test_upstream_applies_no_mod_and_so_does_the_recipe():
@@ -119,7 +119,8 @@ def launch(nodes, rank):
 @pytest.mark.parametrize("rank", [0, 1, 3])
 def test_wrapper_starts_four_node_ranks(monkeypatch, rank):
     started = run_wrapper(monkeypatch, launch(4, rank))
-    assert started and started[0][started[0].index("--nnodes") + 1] == "4"
+    assert started
+    assert started[0][started[0].index("--nnodes") + 1] == "4"
     assert list(started[0][-4:]) == [
         "--master-addr",
         "192.0.2.1",

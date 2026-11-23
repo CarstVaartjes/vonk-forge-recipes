@@ -2,6 +2,7 @@
 
 from catalog_documents import catalog_models
 from repo_root import ROOT
+
 from vonk_forge_contracts import RecipeDefinition
 
 

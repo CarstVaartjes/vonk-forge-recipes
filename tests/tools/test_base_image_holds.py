@@ -68,21 +68,21 @@ class CheckTests(unittest.TestCase):
             return holds.problems(root)
 
     def test_the_catalog_keeps_every_held_base_image(self) -> None:
-        self.assertEqual(holds.problems(ROOT), [])
+        assert holds.problems(ROOT) == []
 
     def test_held_digest_passes(self) -> None:
-        self.assertEqual(self.problems(HELD), [])
+        assert self.problems(HELD) == []
 
     def test_moving_a_held_recipe_without_its_hold_fails(self) -> None:
         found = self.problems(NEWER)
-        self.assertEqual(len(found), 2)  # base_image and the Dockerfile FROM
-        self.assertIn("update/remove the hold", found[0])
-        self.assertIn(DOCKERFILE, found[1])
+        assert len(found) == 2  # base_image and the Dockerfile FROM
+        assert "update/remove the hold" in found[0]
+        assert DOCKERFILE in found[1]
 
     def test_dockerfile_alone_moving_fails(self) -> None:
         found = self.problems(HELD, from_digest=NEWER)
-        self.assertEqual(len(found), 1)
-        self.assertIn(f"sha256:{NEWER}", found[0])
+        assert len(found) == 1
+        assert f"sha256:{NEWER}" in found[0]
 
     def test_hold_needs_reason_and_upstream(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -92,14 +92,14 @@ class CheckTests(unittest.TestCase):
             data["held"]["reason"] = ""
             root.joinpath("policy").mkdir(exist_ok=True)
             (root / holds.HOLDS).write_text(json.dumps(data))
-            self.assertIn("needs a reason", holds.problems(root)[0])
+            assert "needs a reason" in holds.problems(root)[0]
 
     def test_hold_for_a_missing_recipe_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             catalog(root, HELD)
             (root / "recipes/held.json").unlink()
-            self.assertIn("remove the hold", holds.problems(root)[0])
+            assert "remove the hold" in holds.problems(root)[0]
 
 
 class RefreshSkipsHeldTests(unittest.TestCase):
@@ -129,10 +129,10 @@ class RefreshSkipsHeldTests(unittest.TestCase):
             catalog(root, HELD)
             result, move = self.assess(root, REPOSITORY)
         move.assert_not_called()
-        self.assertFalse(result.drifted)
-        self.assertFalse(result.reasons)
-        self.assertFalse(result.edits)
-        self.assertIn("is held", "".join(result.evidence))
+        assert not result.drifted
+        assert not result.reasons
+        assert not result.edits
+        assert "is held" in "".join(result.evidence)
 
     def test_other_image_still_moves(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -28,20 +28,20 @@ class MiaIssue133PatchTest(unittest.TestCase):
         patch = load_patch()
         source = "from triton import language as tl\n" + patch.OLD + "    pass\n"
         updated, status = patch.patch_text(source)
-        self.assertEqual(status, "applied")
-        self.assertIn(patch.MARK, updated)
-        self.assertIn("do_not_specialize_on_alignment", updated)
-        self.assertIn("block_size: tl.constexpr", updated)
+        assert status == "applied"
+        assert patch.MARK in updated
+        assert "do_not_specialize_on_alignment" in updated
+        assert "block_size: tl.constexpr" in updated
 
         second, second_status = patch.patch_text(updated)
-        self.assertEqual(second_status, "skipped")
-        self.assertEqual(second, updated)
+        assert second_status == "skipped"
+        assert second == updated
 
     def test_refuses_source_drift(self) -> None:
         patch = load_patch()
         source, status = patch.patch_text("def unrelated():\n    pass\n")
-        self.assertEqual(status, "drift:old=0")
-        self.assertNotIn(patch.MARK, source)
+        assert status == "drift:old=0"
+        assert patch.MARK not in source
 
 
 if __name__ == "__main__":

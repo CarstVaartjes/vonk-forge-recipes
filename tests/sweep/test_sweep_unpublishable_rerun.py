@@ -5,11 +5,11 @@ from __future__ import annotations
 import pytest
 import test_qualification_status as q
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts import QualificationStatus as Status
-from vonk_forge_contracts.qualification_status import published_status
 
 from spark_sweep.lifecycle import RecipeStatus, RetestReason
 from spark_sweep.qualification import current_identity
+from vonk_forge_contracts import QualificationStatus as Status
+from vonk_forge_contracts.qualification_status import published_status
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -52,5 +52,6 @@ def test_the_rerun_gets_a_lane_records_the_catalog_image_and_publishes_working(
     )
     assert published.status == Status.WORKING
     last = published.last_pass
-    assert last is not None and last.platform.resolved
+    assert last is not None
+    assert last.platform.resolved
     assert last.identity.runtime_image is not None

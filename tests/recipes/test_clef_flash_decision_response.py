@@ -6,6 +6,7 @@ import importlib.util
 
 import pytest
 from repo_root import ROOT
+
 from vonk_forge_contracts.systemone import (
     SystemOneRequest,
     SystemOneResponse,
@@ -19,7 +20,8 @@ def _load():
     spec = importlib.util.spec_from_file_location(
         "clef_decision_response", ADAPTER / "decision_response.py"
     )
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

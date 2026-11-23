@@ -13,15 +13,15 @@ from typing import Any
 
 import pytest
 from repo_root import ROOT
-from vonk_forge_contracts.qualification_status import QualificationGlbProfile
 
 from spark_sweep import verdict
 from spark_sweep.catalog import Fleet, Presence, parse_recipe, serving_run
 from spark_sweep.definitions import Definitions
 from spark_sweep.job_assertions import EVALUATED, NOT_EVALUATED, Output, evaluate
 from spark_sweep.smoke import AssertionFailed
-from spark_sweep.smoke_job import job_budget_seconds, smoke_job
+from spark_sweep.smoke_job import _tail, job_budget_seconds, smoke_job
 from spark_sweep.vonkctl import Vonkctl
+from vonk_forge_contracts.qualification_status import QualificationGlbProfile
 
 # An OCR artifact job with a document-archive output: the definition the withdrawn
 # HunyuanOCR recipe carried, kept as test data so the job smoke stays exercised.
@@ -49,7 +49,8 @@ def _recipe(key: str = OCR, adapter: str = "artifact-job") -> Any:
         "projected": {"interfaces": [{"adapter": adapter, "model_aliases": ["ocr"]}]},
     }
     recipe = parse_recipe(row)
-    assert recipe is not None and recipe.is_job
+    assert recipe is not None
+    assert recipe.is_job
     return recipe
 
 
@@ -174,7 +175,8 @@ def test_a_job_is_created_submitted_followed_downloaded_and_its_outputs_hold() -
     ]
     assert list(controller.binding["input_paths"]) == ["digit7.png"]
     (case,) = result.cases
-    assert case["job_id"] == JOB["id"] and case["elapsed_ms"] == 5
+    assert case["job_id"] == JOB["id"]
+    assert case["elapsed_ms"] == 5
     assert "not_evaluated" not in case
 
 
@@ -308,7 +310,6 @@ def test_a_failed_stderr_keeps_the_platforms_head_and_tail_within_the_bound() ->
     ["", "h" * 700, "é" * 400 + "\n", "no newline " * 60],
 )
 def test_the_stderr_bound_holds_for_any_head(head: str) -> None:
-    from spark_sweep.smoke_job import _tail
 
     text = head + "\n[7 bytes omitted]\n" + "t" * 4000 + "\nend\n"
     kept = _tail(text)
@@ -480,7 +481,8 @@ def test_a_job_that_never_ends_within_its_own_timeout_is_observed_again() -> Non
         detail=[_job("running")],
     )
     result = _smoke(controller)
-    assert result.failure is not None and result.failure.code == "job.not_ended"
+    assert result.failure is not None
+    assert result.failure.code == "job.not_ended"
     assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
 
 
@@ -508,7 +510,8 @@ def test_a_job_recipe_without_a_definition_is_recipe_data() -> None:
         "run-1",
         "lane-1",
     )
-    assert result.failure is not None and result.failure.klass == "recipe-data"
+    assert result.failure is not None
+    assert result.failure.klass == "recipe-data"
 
 
 # -- assertions ------------------------------------------------------------------------

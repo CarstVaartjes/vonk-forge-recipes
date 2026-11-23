@@ -3,18 +3,25 @@
 from __future__ import annotations
 
 import json
+from concurrent.futures import Future
+from dataclasses import replace
 from pathlib import Path
+from typing import Any
 
 import pytest
 from repo_root import FIXTURES
-from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_definitions, make_sweep
+
+from spark_sweep import policy
+from spark_sweep.cli import main
+from spark_sweep.identity import IdentityReason, content_identity
+from spark_sweep.lifecycle import RetestReason
+from spark_sweep.sweep_contract import WorkloadFailureCode
+from spark_sweep.sweep_support import RETEST_SECONDS
+from spark_sweep.vonkctl import Vonkctl
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
-
-from spark_sweep.cli import main
-from spark_sweep.lifecycle import RetestReason
-from spark_sweep.sweep_contract import WorkloadFailureCode
 
 OLD, NEW = "1" * 40, "2" * 40
 IMAGE_BUG = "runtime image no longer matches the approved recipe"
@@ -27,11 +34,11 @@ def gateway():
     gateway.stop()
 
 
-def _lines(path: Path) -> list[dict]:
+def _lines(path: Path) -> list[dict[str, Any]]:
     return [json.loads(x) for x in path.read_text().splitlines()]
 
 
-def _entry(sweep, slug: str) -> dict:
+def _entry(sweep, slug: str) -> dict[str, Any]:
     return sweep.state.recipes[f"vonk-forge/{slug}"]
 
 
@@ -181,7 +188,8 @@ def test_stale_or_contract_mismatched_observation_cannot_trigger_a_retest(
     assert entry["status"] == "deferred"
     fleet.api_contract_sha256 = fleet.client_build["control_contract_sha256"]
     sweep.check_client()
-    assert entry["status"] == "pending" and entry["attempts"] == 3
+    assert entry["status"] == "pending"
+    assert entry["attempts"] == 3
 
 
 def test_historical_publication_only_failure_without_an_observed_owner_heals_on_the_release(
@@ -197,7 +205,8 @@ def test_historical_publication_only_failure_without_an_observed_owner_heals_on_
     fleet.client_build["source_sha"] = NEW
     sweep.check_client()
     # No observed owner basis: the release change is the entry's only exit.
-    assert entry["status"] == "pending" and entry["attempts"] == 7
+    assert entry["status"] == "pending"
+    assert entry["attempts"] == 7
     assert entry["retest"]["reason"] == RetestReason.RELEASE_CHANGED
 
 
@@ -219,9 +228,8 @@ def test_retry_failed_requeues_everything_that_failed_whatever_the_cause(
     assert again.run() == 0
     assert {e["status"] for e in again.state.recipes.values()} == {"passed"}
     requeues = [x for x in _lines(tmp_path / "results.jsonl") if x["step"] == "requeue"]
-    assert len(requeues) == 4 and {x["reason"] for x in requeues} == {
-        "operator: --retry-failed"
-    }
+    assert len(requeues) == 4
+    assert {x["reason"] for x in requeues} == {"operator: --retry-failed"}
 
 
 def test_retry_failed_can_be_limited_to_a_selector(
@@ -236,10 +244,8 @@ def test_retry_failed_can_be_limited_to_a_selector(
     )
     again.run()
     assert _entry(again, "oom")["status"] == "passed"
-    assert (
-        _entry(again, "corrupt")["status"] == "failed"
-        and _entry(again, "image-bug")["status"] == "deferred"
-    )
+    assert _entry(again, "corrupt")["status"] == "failed"
+    assert _entry(again, "image-bug")["status"] == "deferred"
     assert [
         x["recipe"]
         for x in _lines(tmp_path / "results.jsonl")
@@ -248,9 +254,6 @@ def test_retry_failed_can_be_limited_to_a_selector(
 
 
 def test_the_cli_takes_retry_failed_and_only(tmp_path: Path, gateway: Gateway) -> None:
-    from sweep_fakes import make_definitions
-
-    from spark_sweep.vonkctl import Vonkctl
 
     recipes, models = _failing_set()
     sweep, fleet, clock = make_sweep(tmp_path, recipes, models, gateway=gateway)
@@ -306,15 +309,14 @@ def test_failures_are_grouped_by_controller_release_in_the_status_file(
     groups = {g["release"]: g for g in status["failures_by_release"]}
     assert status["release"] == NEW
     assert NEW not in groups  # A new process does not rewrite old failure provenance.
-    assert groups[OLD]["failed"] == 3 and not groups[OLD]["current"]
+    assert groups[OLD]["failed"] == 3
+    assert not groups[OLD]["current"]
     assert _entry(again, "image-bug")["status"] == "deferred"
 
 
 def test_watch_retests_platform_fault_only_after_its_observed_owner_fix(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    from spark_sweep.identity import content_identity
-    from spark_sweep.sweep_support import RETEST_SECONDS
 
     recipe = FakeRecipe("recovering")
     sweep, fleet, clock = make_sweep(
@@ -340,7 +342,8 @@ def test_watch_retests_platform_fault_only_after_its_observed_owner_fix(
                 fleet.client_build["source_sha"] = NEW
                 fixed.append(now)
         if entry.get("status") == "passed":
-            assert fixed and now >= fixed[0]
+            assert fixed
+            assert now >= fixed[0]
             clock.hooks.remove(repair_and_stop)
             raise KeyboardInterrupt
 
@@ -360,9 +363,6 @@ def test_watch_retests_platform_fault_only_after_its_observed_owner_fix(
 def test_catalog_change_during_lane_keeps_the_verdict_bound_to_accepted_content(
     tmp_path: Path, phase: str, restart: bool
 ) -> None:
-    from dataclasses import replace
-
-    from spark_sweep import policy
 
     fake = FakeRecipe(
         "changing",
@@ -412,7 +412,6 @@ def test_catalog_change_during_lane_keeps_the_verdict_bound_to_accepted_content(
 def test_saved_lane_fixture_never_certifies_the_catalog_at_restart(
     tmp_path: Path, bound: bool
 ) -> None:
-    from spark_sweep.identity import IdentityReason
 
     fixture = FIXTURES / "sweep-accepted-content-state.json"
     saved = json.loads(fixture.read_text())
@@ -451,9 +450,6 @@ def test_saved_lane_fixture_never_certifies_the_catalog_at_restart(
 def test_lane_failure_and_its_evidence_bind_to_the_accepted_content(
     tmp_path: Path,
 ) -> None:
-    from dataclasses import replace
-
-    from spark_sweep import policy
 
     fake = FakeRecipe("changing", digests=("1" * 64,), content="c" * 64, local="cached")
     sweep, _, clock = make_sweep(
@@ -489,10 +485,6 @@ def test_lane_failure_and_its_evidence_bind_to_the_accepted_content(
 def test_smoke_submission_uses_the_accepted_adapter_and_checks(
     tmp_path: Path, monkeypatch
 ) -> None:
-    from concurrent.futures import Future
-    from dataclasses import replace
-
-    from spark_sweep import policy
 
     fake = FakeRecipe("changing", local="cached")
     sweep, _, clock = make_sweep(tmp_path, [fake], [FakeModel("m1", local="cached")])
@@ -546,9 +538,6 @@ def test_a_failure_seen_while_the_platform_was_unreadable_heals_on_the_next_rele
 
 def _refused_create(tmp_path: Path, authored: str, served_now: str | None = None):
     """A slot accepted ``c``*64 and its job create was refused (what ``smoke_job._call`` records)."""
-    from dataclasses import replace
-
-    from spark_sweep import policy
 
     fake = FakeRecipe("skew", digests=("1" * 64,), content="c" * 64, local="cached")
     sweep, _, clock = make_sweep(
@@ -584,13 +573,15 @@ def test_a_skewed_refusal_defers_with_both_digests_and_the_run_is_done(
 ) -> None:
     sweep, key = _refused_create(tmp_path, "a" * 64)
     entry = sweep.state.entry(key)
-    assert entry["status"] == "deferred" and entry["failure_class"] == "skewed"
+    assert entry["status"] == "deferred"
+    assert entry["failure_class"] == "skewed"
     assert entry["evidence"]["source_sha256"] == "a" * 64
     assert entry["evidence"]["served_sha256"] == "c" * 64
     # The bounded source wait has expired: the sweep tests what the catalog serves.
     sweep.unserved_recipes = ()
     sweep.enqueue_finished_cleanup()
-    assert not sweep._cleanup_nodes() and sweep.done()
+    assert not sweep._cleanup_nodes()
+    assert sweep.done()
 
 
 def test_a_refusal_of_the_authored_content_stays_the_recipes_failure(

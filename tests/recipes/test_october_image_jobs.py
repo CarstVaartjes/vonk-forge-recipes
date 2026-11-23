@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import io
 import json
 import sys
 from types import SimpleNamespace
@@ -11,6 +12,10 @@ from unittest.mock import Mock
 
 import pytest
 from repo_root import ROOT
+
+from recipe_tooling.qualification.definitions_loader import load_definitions
+from spark_sweep.job_assertions import Output, evaluate
+from spark_sweep.smoke import AssertionFailed
 
 RecipeJobInputManifest = importlib.import_module(
     "vonk_agent_protocol.job_inputs"
@@ -26,7 +31,8 @@ RecipeJobInputManifest = importlib.import_module(
 def job(request, tmp_path, monkeypatch):
     path = ROOT / "adapters/october-2026" / request.param / "job.py"
     spec = importlib.util.spec_from_file_location("october_job", path)
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     monkeypatch.setattr(module, "INPUT_ROOT", tmp_path)
@@ -100,7 +106,8 @@ def test_pipeline_receives_offline_assets_and_checkpoint_sampling(job, monkeypat
         assert factory.from_pretrained.call_args.kwargs["local_files_only"] is True
         call = pipe.call_args.kwargs
         assert call["use_kv_cache"] is True
-        assert "num_inference_steps" not in call and "sigmas" not in call
+        assert "num_inference_steps" not in call
+        assert "sigmas" not in call
     else:
         models = Mock()
         generate = Mock(return_value=(image, {}))
@@ -124,19 +131,14 @@ def test_pipeline_receives_offline_assets_and_checkpoint_sampling(job, monkeypat
 def test_qwen_qualification_requires_native_rgba_png(mode: str) -> None:
     # The pinned QwenImage21 VAE decodes four channels; preserve its alpha.
     # https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo/blob/fc13ba1986fcb905854dc8de2f52eee395f49b5b/vae/config.json
-    import io
 
-    Image = pytest.importorskip("PIL.Image")
-
-    from recipe_tooling.qualification.definitions_loader import load_definitions
-    from spark_sweep.job_assertions import Output, evaluate
-    from spark_sweep.smoke import AssertionFailed
+    image_module = pytest.importorskip("PIL.Image")
 
     assertions = load_definitions()["recipes"][
         "vonk-forge/qwen-image-2-1-turbo-diffusers-single"
     ]["assertions"]
     content = io.BytesIO()
-    Image.new(mode, (1024, 1024)).save(content, format="PNG")
+    image_module.new(mode, (1024, 1024)).save(content, format="PNG")
     output = Output("image.png", "image/png", content.getvalue())
     if mode == "RGBA":
         assert evaluate(assertions, [output]) == {}

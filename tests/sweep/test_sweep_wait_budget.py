@@ -3,16 +3,24 @@
 from __future__ import annotations
 
 import ast
+import threading
 from concurrent.futures import Future
+from contextlib import contextmanager
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
-from spark_sweep import verdict
+from spark_sweep import smoke, verdict
 from spark_sweep.report import build_status
-from spark_sweep.sweep_contract import SweepWait, SweepWaitCode, SweepWaitReason
+from spark_sweep.sweep_contract import (
+    SweepWait,
+    SweepWaitCode,
+    SweepWaitExpiry,
+    SweepWaitReason,
+)
 
 # Who may write a wait: bounded_wait writes all of it; only progress_verdict renews a
 # wait's window (forward movement), so only it may also move the start or drop the deadline.
@@ -61,7 +69,7 @@ def _written_keys(node: ast.AST) -> set[str]:
     if isinstance(node, ast.Dict):
         keys |= {
             key
-            for k, v in zip(node.keys, node.values)
+            for k, v in zip(node.keys, node.values, strict=False)
             if k is not None
             and (key := _key(k)) is not None
             and (key != "waiting_on" or isinstance(v, (ast.Constant, ast.JoinedStr)))
@@ -80,12 +88,14 @@ def wait_bypasses(source: str, *, primitive: bool = False) -> list[int]:
     for function in ast.walk(ast.parse(source)):
         if not isinstance(function, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
-        for node in ast.walk(function):
+        bad.extend(
+            getattr(node, "lineno", function.lineno)
+            for node in ast.walk(function)
             if any(
                 not (primitive and function.name in WAIT_WRITERS[key])
                 for key in _written_keys(node)
-            ):
-                bad.append(getattr(node, "lineno", function.lineno))
+            )
+        )
     return bad
 
 
@@ -125,11 +135,9 @@ def test_every_waiting_on_producer_uses_the_primitive() -> None:
                 and node.func.id == "SweepWait"
             ):
                 reason = next(k.value for k in node.keywords if k.arg == "reason")
-                assert (
-                    isinstance(reason, ast.Attribute)
-                    and isinstance(reason.value, ast.Name)
-                    and reason.value.id == "SweepWaitReason"
-                )
+                assert isinstance(reason, ast.Attribute)
+                assert isinstance(reason.value, ast.Name)
+                assert reason.value.id == "SweepWaitReason"
 
 
 @pytest.mark.parametrize("reason", list(SweepWaitReason))
@@ -202,7 +210,6 @@ def test_sse_heartbeats_cannot_hold_smoking_lane_forever(tmp_path: Path) -> None
     slot.update(phase="smoking", ready_at=clock.now())
     # A running worker cannot be stopped by Future.cancel(); the lane must release
     # independently and signal the stream to close cooperatively.
-    import threading
 
     future = Future()
     future.set_running_or_notify_cancel()
@@ -214,7 +221,8 @@ def test_sse_heartbeats_cannot_hold_smoking_lane_forever(tmp_path: Path) -> None
     sweep._advance_smoking(recipe.key, slot)
     sweep.enqueue_finished_cleanup()
     assert recipe.key not in sweep.state.slots
-    assert stop.is_set() and not future.cancelled()
+    assert stop.is_set()
+    assert not future.cancelled()
     assert (
         sweep.state.entry(recipe.key)["wait_deferral"]["wait"]["reason"]
         == SweepWaitReason.SMOKE_RESPONSE
@@ -267,11 +275,6 @@ def test_unavailable_observation_releases_even_during_a_blind_pass(
 
 
 def test_expired_stream_stops_on_the_next_heartbeat(monkeypatch) -> None:
-    import threading
-    from contextlib import contextmanager
-    from types import SimpleNamespace
-
-    from spark_sweep import smoke
 
     stopped = threading.Event()
     closed = []
@@ -297,7 +300,6 @@ def test_expired_stream_stops_on_the_next_heartbeat(monkeypatch) -> None:
 
 
 def test_replanned_cases_return_newest_first_after_the_delay(tmp_path: Path) -> None:
-    from spark_sweep.sweep_contract import SweepWaitExpiry
 
     recipes = [
         FakeRecipe("old", local="cached", updated="2026-10-01T00:00:00Z"),

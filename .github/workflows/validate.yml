@@ -329,7 +329,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          python3 tools/check-image-provenance --base origin/main
+          uv run --frozen python tools/check-image-provenance --base origin/main
 
       # The change's added lines, written once for the "Reject new ..." tools
       # that judge only added lines. Git runs here, at the edge, through the one
@@ -410,14 +410,6 @@ jobs:
           set -euo pipefail
           python3 tools/check-serial-reads --diff "$RUNNER_TEMP/added.diff"
 
-      # Provider URLs are opened only through src/recipe_tooling/upstream_http.fetch: a 429 is
-      # retried and then "not checked this run", never a failure or an issue.
-      - name: Reject new raw urlopen in tools
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 tools/check-raw-urlopen --diff "$RUNNER_TEMP/added.diff"
-
       # An adapter never sets its own NCCL_IB_HCA: the platform names both RDMA devices of a
       # 200 Gb/s port, and a single device halves the link. Checks only added lines.
       - name: Reject adapter lines that narrow NCCL_IB_HCA
@@ -446,19 +438,19 @@ jobs:
           # segfaulted the whole suite (exit 139).
           "$RECIPE_TEST_PYTHON" -m pytest -n auto --dist worksteal -o faulthandler_timeout=300 tests/
 
-      - name: Lint the repository with pinned Ruff
+      - name: Lint the repository with Ruff
         shell: bash
         run: |
           set -euo pipefail
-          tools/check-python-lint
+          uv run --frozen ruff check --force-exclude -- .
 
-      - name: Check formatting with pinned Ruff
+      - name: Check formatting with Ruff
         shell: bash
         run: |
           set -euo pipefail
-          tools/check-python-format
+          uv run --frozen ruff format --check --force-exclude -- .
 
-      - name: Type check the repository with pinned Pyright
+      - name: Type check the repository with Pyright
         shell: bash
         run: |
           set -euo pipefail

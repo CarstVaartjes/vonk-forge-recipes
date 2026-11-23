@@ -3,12 +3,12 @@
 import pytest
 from pydantic import ValidationError
 from repo_root import ROOT
+
+from recipe_tooling.qualification import documents
 from vonk_forge_contracts import (
     QualificationMeasuredRoleMemory,
     RecipeQualificationEvidence,
 )
-
-from recipe_tooling.qualification import documents
 
 
 def row(
@@ -57,7 +57,7 @@ def test_rows_are_sorted_and_unique_by_content_and_role(rows) -> None:
 
 
 @pytest.mark.parametrize(
-    "field,value",
+    ("field", "value"),
     [
         ("node_id", "spk_private"),
         ("hostname", "spark-1"),

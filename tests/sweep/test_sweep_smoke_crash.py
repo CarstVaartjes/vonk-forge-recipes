@@ -16,7 +16,7 @@ import pytest
 from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
-from spark_sweep import sweep_smoke, sweep_support, verdict
+from spark_sweep import recovery, sweep_smoke, sweep_support, verdict
 from spark_sweep.definitions import Definitions
 
 DIFFUSIONGEMMA = "vonk-forge/diffusiongemma-26b-nvfp4-r0b0tlab-vllm-single"
@@ -188,7 +188,6 @@ def test_a_fix_to_the_sweep_source_reopens_its_crash_deferral(
 def test_a_controller_release_also_reopens_a_sweep_crash_deferral(
     tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from spark_sweep import recovery
 
     sweep, clock, _ = _crashing_sweep(tmp_path, gateway, monkeypatch, ["x"] * 9)
     _tick_until(sweep, clock, lambda: sweep.state.status("vonk-forge/r") == "deferred")

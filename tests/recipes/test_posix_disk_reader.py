@@ -79,7 +79,8 @@ PyMODINIT_FUNC PyInit_posix_reader(void) { return PyModule_Create(&module); }
         command.extend(["-undefined", "dynamic_lookup"])
     subprocess.run(command, check=True, capture_output=True, text=True, timeout=60)
     spec = importlib.util.spec_from_file_location("posix_reader", output)
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

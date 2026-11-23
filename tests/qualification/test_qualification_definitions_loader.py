@@ -53,4 +53,5 @@ def test_rejects_per_recipe_map_in_shared_file(tmp_path: Path) -> None:
 
 def test_repository_definitions_load() -> None:
     document = load_definitions(ROOT / "qualification")
-    assert document["recipes"] and document["service_recipes"]
+    assert document["recipes"]
+    assert document["service_recipes"]

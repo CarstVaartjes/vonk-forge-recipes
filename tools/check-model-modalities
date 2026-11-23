@@ -32,9 +32,15 @@ from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import get_args
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from recipe_tooling.added_lines import read_diff
+from recipe_tooling.qualification.documents import (
+    has_recipe_api,
+    model_display,
+    recipe,
+    recipe_api,
+)
 from vonk_forge_contracts import (
     CapabilityName,
     CapabilityRole,
@@ -45,12 +51,7 @@ from vonk_forge_contracts import (
 from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone, Endpoint
 from vonk_forge_contracts.api_checks import INPUT_MODALITY_CAPABILITIES, api_variants
 
-from recipe_tooling.qualification.documents import (
-    has_recipe_api,
-    model_display,
-    recipe,
-    recipe_api,
-)
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def is_generator(capabilities: set[str]) -> bool:
@@ -167,13 +168,13 @@ def main() -> int:
     parser.add_argument("slugs", nargs="*", help="Model slugs; default: library")
     parser.add_argument(
         "--changed-files",
-        type=argparse.FileType("r"),
+        type=str,
         help="file (or - for stdin) listing changed paths, one per line; "
         "only their Models (and changed recipes' served Models) are checked",
     )
     args = parser.parse_args()
     slugs = (
-        changed_slugs(args.changed_files.read().split())
+        changed_slugs(read_diff(args.changed_files).split())
         if args.changed_files
         else args.slugs
         or sorted(p.stem for p in (ROOT / "display" / "models").glob("*.json"))

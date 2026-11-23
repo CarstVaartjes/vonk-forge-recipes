@@ -44,14 +44,12 @@ from vonk_forge_contracts.recipe import ServingKind
 ORIGINAL = "0.0.0"
 
 SERVING_KIND_SINCE: Mapping[str, str] = {
-    **{kind: ORIGINAL for kind in get_args(ServingKind)},
+    **dict.fromkeys(get_args(ServingKind), ORIGINAL),
     "openai.transcription": "4.4.0",
     "openai.speech": "4.4.0",
 }
 
-CAPABILITY_SINCE: Mapping[CapabilityName, str] = {
-    name: ORIGINAL for name in CapabilityName
-}
+CAPABILITY_SINCE: Mapping[CapabilityName, str] = dict.fromkeys(CapabilityName, ORIGINAL)
 
 # ``levels`` documents gained their ``kind`` in 4.7.0; older readers ignore it.
 EFFORT_KIND_SINCE: Mapping[str, str] = {

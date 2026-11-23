@@ -16,17 +16,16 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from recipe_tooling.qualification.evidence_store import (
+    merge_evidence,
+    read_evidence,
+    write_atomic,
+)
 from vonk_forge_contracts import (
     QualificationDerivationInput,
     QualificationStatus,
     QualificationStatusView,
     derive_status,
-)
-
-from recipe_tooling.qualification.evidence_store import (
-    merge_evidence,
-    read_evidence,
-    write_atomic,
 )
 
 from . import policy, verdict
@@ -721,12 +720,12 @@ def saved_qualification(inputs: Mapping[str, Any]) -> dict[str, Any]:
             evidence,
             observed.current_identity,
             observed.fleet_size,
-            observed.testing_now,
+            testing_now=observed.testing_now,
         ).model_dump(mode="json", exclude_none=True)
     return views
 
 
-def write_status(sweep: Sweep, final: bool = False) -> None:
+def write_status(sweep: Sweep, *, final: bool = False) -> None:
     directory = sweep.cfg.state_dir
     status = build_status(sweep)
     inputs = {}

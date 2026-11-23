@@ -198,7 +198,7 @@ def add(
                     resolved.open("rb") as source,
                 ):
                     shutil.copyfileobj(source, output)
-                os.replace(temporary, cache / sha256)
+                Path(temporary).replace(cache / sha256)
             finally:
                 Path(temporary).unlink(missing_ok=True)
     if (origin is not None or also) and len(found) != 1:

@@ -5,14 +5,6 @@ from __future__ import annotations
 from decimal import ROUND_CEILING, Decimal
 from pathlib import Path
 
-from vonk_forge_contracts import (
-    PublishedRoleMemory,
-    QualificationMeasuredRoleMemory,
-    RecipeDefinition,
-    RecipeQualificationEvidence,
-    document_sha256,
-)
-
 from recipe_tooling.qualification.documents import recipe_document
 from recipe_tooling.qualification.evidence_store import read_evidence
 from recipe_tooling.qualification.memory_need import args as mn_args
@@ -25,6 +17,15 @@ from recipe_tooling.qualification.memory_need.constants import (
     budget_margin_bytes,
 )
 from recipe_tooling.qualification.memory_need.geometry import MemoryInputs
+from vonk_forge_contracts import (
+    PublishedRoleMemory,
+    QualificationMeasuredRoleMemory,
+    QualificationStatus,
+    RecipeDefinition,
+    RecipeQualificationEvidence,
+    derive_status,
+    document_sha256,
+)
 
 
 def _evidence(key: str):
@@ -63,7 +64,6 @@ def hardware_proven(
 
     ``evidence`` is the recipe's evidence when the caller already read it.
     """
-    from vonk_forge_contracts import QualificationStatus, derive_status
 
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
     evidence = evidence if evidence is not None else _evidence(key)
@@ -74,7 +74,9 @@ def hardware_proven(
             update={"required_sparks": recipe.topology.node_count}
         )
         if (
-            derive_status(evidence, identity, recipe.topology.node_count, False).status
+            derive_status(
+                evidence, identity, recipe.topology.node_count, testing_now=False
+            ).status
             == QualificationStatus.WORKING
         ):
             return True

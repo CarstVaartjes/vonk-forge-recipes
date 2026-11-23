@@ -12,6 +12,7 @@ import unittest
 import zlib
 from pathlib import Path
 
+import pytest
 from repo_root import ROOT
 
 CONTEXTS = (
@@ -220,7 +221,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "output.glb"
             path.write_bytes(content)
-            with self.assertRaisesRegex(ValueError, pattern):
+            with pytest.raises(ValueError, match=pattern):
                 load_validator(CONTEXTS[0]).validate_mesh_glb(path, profile=profile)  # pyright: ignore[reportAttributeAccessIssue]
 
     def test_all_copied_validators_accept_each_artifact_profile(self) -> None:
@@ -234,15 +235,13 @@ class ThreeDGlbValidationTests(unittest.TestCase):
             (ROOT / "adapters/three-d" / context / "glb_validation.py").read_bytes()
             for context in CONTEXTS
         }
-        self.assertEqual(len(values), 1)
-        self.assertEqual(
-            hashlib.sha256(next(iter(values))).hexdigest(), VALIDATOR_SHA256
-        )
+        assert len(values) == 1
+        assert hashlib.sha256(next(iter(values))).hexdigest() == VALIDATOR_SHA256
 
     def test_required_webp_source_is_the_effective_texture_source(self) -> None:
         module = load_validator(CONTEXTS[0])
         texture = {"source": 0, "extensions": {"EXT_texture_webp": {"source": 1}}}
-        self.assertEqual(module._texture_source(texture, 2), 1)  # pyright: ignore[reportAttributeAccessIssue]
+        assert module._texture_source(texture, 2) == 1  # pyright: ignore[reportAttributeAccessIssue]
 
     def test_rejects_out_of_range_indices_and_nonfinite_or_degenerate_positions(
         self,
@@ -310,7 +309,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "output.glb"
             path.write_bytes(rebuilt)
-            with self.assertRaisesRegex(ValueError, "duplicate key"):
+            with pytest.raises(ValueError, match="duplicate key"):
                 load_validator(CONTEXTS[0]).validate_mesh_glb(path)  # pyright: ignore[reportAttributeAccessIssue]
 
         builder = Glb()
@@ -648,7 +647,7 @@ class ThreeDGlbValidationTests(unittest.TestCase):
         start = int(raw_view["byteOffset"])
         length = int(raw_view["byteLength"])
         bogus_jpeg = b"\xff\xd8\xff\xe0\x00\x04xx" + b"x" * (length - 10) + b"\xff\xd9"
-        self.assertEqual(len(bogus_jpeg), length)
+        assert len(bogus_jpeg) == length
         builder.blob[start : start + length] = bogus_jpeg
         document["images"][0]["mimeType"] = "image/jpeg"  # pyright: ignore[reportIndexIssue]
         document["textures"][0] = {"source": 0}  # pyright: ignore[reportIndexIssue]

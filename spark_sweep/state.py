@@ -23,6 +23,7 @@ from typing import Any
 
 from recipe_tooling.qualification.evidence_store import write_atomic
 
+from . import qualification
 from .lifecycle import (
     DownloadIntentKind,
     LifecycleState,
@@ -106,11 +107,9 @@ def _adopt(
     requeue/cleanup, which retains its original request for observation.
     """
     if "qualification_evidence" not in data:
-        from .qualification import adopt_state_evidence
-
         data["qualification_evidence"] = {
             key: evidence.model_dump(mode="json")
-            for key, evidence in adopt_state_evidence(data).items()
+            for key, evidence in qualification.adopt_state_evidence(data).items()
         }
     merged = _fresh()
     for name, value in data.items():
@@ -434,7 +433,7 @@ class ResultsLog:
             os.fsync(stream.fileno())
         if self.path.stat().st_size > RESULT_ROTATE_BYTES:
             stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
-            os.replace(self.path, self.path.with_name(f"{self.path.name}.{stamp}"))
+            self.path.replace(self.path.with_name(f"{self.path.name}.{stamp}"))
         return record
 
     def files(self) -> list[Path]:

@@ -105,9 +105,11 @@ def scan(sources: dict[str, str]) -> tuple[set[Node], list[Edge]]:
                 target and target[1] != "__init__" for target in resolved[1:]
             ):
                 resolved = resolved[1:]
-            for target in resolved:
-                if target and target != node:
-                    edges.append((node, target[0], target[1], statement.lineno))
+            edges.extend(
+                (node, target[0], target[1], statement.lineno)
+                for target in resolved
+                if target and target != node
+            )
     return set(nodes.values()), edges
 
 

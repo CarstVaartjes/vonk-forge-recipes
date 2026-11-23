@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytest
 from repo_root import ROOT
-from vonk_forge_contracts.recipe import RecipeGenerationSettings
 
 from recipe_tooling.qualification import documents
+from vonk_forge_contracts.recipe import RecipeGenerationSettings
 
 ADAPTER = ROOT / "adapters/deepseek/mia-1017-tensorfold-four"
 RECIPE = "deepseek-v4-1-flash-1017-mia-tensorfold-four"
@@ -29,7 +29,8 @@ def modules(monkeypatch):
     loaded = []
     for name in ("prepare_cache", "launcher"):
         spec = importlib.util.spec_from_file_location(name, ADAPTER / f"{name}.py")
-        assert spec and spec.loader
+        assert spec
+        assert spec.loader
         module = importlib.util.module_from_spec(spec)
         monkeypatch.setitem(sys.modules, name, module)
         spec.loader.exec_module(module)
@@ -65,15 +66,19 @@ def test_every_rank_runs_the_kit_settings_on_the_controller_fabric(modules, rank
     pool = next(a.value for a in recipe.runtime.arguments if a.name == "pool")
     # the README's served pool (PARALLEL 16 x CONTEXT 1,048,576), not scripts/config.sh's 2,097,152
     assert pool == 16 * 1_048_576
-    assert env["TF_DS_WINDOW"] == str(pool) and env["TF_DS_STREAMS"] == "16"
+    assert env["TF_DS_WINDOW"] == str(pool)
+    assert env["TF_DS_STREAMS"] == "16"
     assert env["TF_RDMA_DEVICES"] == "rocep1s0f0,roceP2p1s0f0"
-    assert env["TF_DS_RDMA_GID"] == "3" and env["NCCL_IB_HCA"] == ENVIRON["NCCL_IB_HCA"]
-    assert (
-        env["TF_DS_ROUND_ROWS"] == "48" and len(env["TF_DS_ROUND_MS"].split(",")) == 48
-    )
-    assert env["TF_DS_DRAFT_MS"] == "25" and env["TF_DS_SERVED_K"] == "solo"
-    assert env["TF_DS_2D_GU"] == "parity" and env["TF_DS_2D_ORDER"] == "0,1,2,3"
-    assert env["NCCL_CROSS_NIC"] == "1" and env["NCCL_MAX_NCHANNELS"] == "4"
+    assert env["TF_DS_RDMA_GID"] == "3"
+    assert env["NCCL_IB_HCA"] == ENVIRON["NCCL_IB_HCA"]
+    assert env["TF_DS_ROUND_ROWS"] == "48"
+    assert len(env["TF_DS_ROUND_MS"].split(",")) == 48
+    assert env["TF_DS_DRAFT_MS"] == "25"
+    assert env["TF_DS_SERVED_K"] == "solo"
+    assert env["TF_DS_2D_GU"] == "parity"
+    assert env["TF_DS_2D_ORDER"] == "0,1,2,3"
+    assert env["NCCL_CROSS_NIC"] == "1"
+    assert env["NCCL_MAX_NCHANNELS"] == "4"
     assert env["NCCL_P2P_DISABLE"] == env["NCCL_SHM_DISABLE"] == "1"
     # the Controller's own NCCL settings are never replaced by the kit's
     assert (
@@ -88,10 +93,13 @@ def test_every_rank_runs_the_kit_settings_on_the_controller_fabric(modules, rank
         assert command[command.index("--context") + 1] == "1048576"
         assert command[command.index("--parallel") + 1] == "16"
         assert command[command.index("--reasoning-effort") + 1] == "max"
-        assert "--pool" not in command and "--thinking" in command
+        assert "--pool" not in command
+        assert "--thinking" in command
         assert "--no-drafts" not in command
-        assert env["TF_TP_MASTER"] == "192.0.2.1" and env["TF_TP_PORT"] == "29500"
-        assert env["TF_DS_ENGRAM"] == "/models/target" and "TF_TP_LISTEN" not in env
+        assert env["TF_TP_MASTER"] == "192.0.2.1"
+        assert env["TF_TP_PORT"] == "29500"
+        assert env["TF_DS_ENGRAM"] == "/models/target"
+        assert "TF_TP_LISTEN" not in env
         assert env["TENSORFOLD_CUDA_KERNELS"] == str(cache / "kit/aot")
     else:
         assert command[1:8] == [
@@ -140,7 +148,8 @@ def test_the_node_weight_file_is_baked_in_the_parity_layout(
     monkeypatch.setattr(cache.subprocess, "run", bake)
     with pytest.raises(RuntimeError):
         cache.prepare_rank(tmp_path, tmp_path / "rank-cache", 2, 4, Path("generator"))
-    assert calls[0][-1] == "--parity" and calls[0][3:5] == ["2", "4"]
+    assert calls[0][-1] == "--parity"
+    assert calls[0][3:5] == ["2", "4"]
 
 
 def test_the_kit_tools_make_the_rope_tables_and_the_bias_from_the_checkpoint(
@@ -175,10 +184,8 @@ def test_the_kit_tools_make_the_rope_tables_and_the_bias_from_the_checkpoint(
         ("make_bias_vl.py", str(tmp_path / "checkpoint")),
     ]
     records = json.loads((destination / "vonk-generated.json").read_text())
-    assert (
-        records["rope.f32"]["size"] == 4
-        and records["vision/gate_bias_vl.safetensors"]["size"] == 4
-    )
+    assert records["rope.f32"]["size"] == 4
+    assert records["vision/gate_bias_vl.safetensors"]["size"] == 4
     cache.prepare_kit(tmp_path / "checkpoint", destination, source, tmp_path)
     assert len(made) == 2
     payload["make_bias_vl.py"] = b"other"

@@ -10,12 +10,15 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from repo_root import ROOT
+
 from vonk_forge_contracts import (
     GitHubLfsSource,
     GitHubReleaseSource,
     ModelDefinition,
     ModelDisplay,
     RecipeDefinition,
+    RecipeDisplay,
+    RecipeOptionError,
     document_sha256,
     model_display_json_schema,
     model_json_schema,
@@ -33,6 +36,8 @@ from vonk_forge_contracts.recipe import (
     _runtime_argument_tokens,
 )
 from vonk_forge_contracts.resolver import (
+    ContractResolutionError,
+    validate_library,
     validate_model_references,
     validate_recipe_models,
     validate_recipe_package_paths,
@@ -271,7 +276,7 @@ def test_zero_byte_model_file_requires_the_empty_content_digest() -> None:
         ModelDefinition.model_validate(document)
 
 
-def _split_document() -> dict:
+def _split_document() -> dict[str, Any]:
     document = load("model-definition.json")
     whole = document["files"][0]
     whole["size_bytes"] = 30
@@ -704,6 +709,13 @@ def test_source_build_closure_requires_context_dockerfile_and_patches() -> None:
         validate_recipe_package_paths(recipe, ["Dockerfile"])
 
 
+def _validate_recipe_against(
+    recipe_document: dict[str, Any], digest: str, model: ModelDefinition
+) -> None:
+    candidate = RecipeDefinition.model_validate(recipe_document)
+    validate_recipe_models(candidate, {digest: model})
+
+
 def test_pure_model_resolver_binds_identity_version_file_and_selector_digest() -> None:
     model_document = load("model-definition.json")
     model = ModelDefinition.model_validate(model_document)
@@ -721,8 +733,7 @@ def test_pure_model_resolver_binds_identity_version_file_and_selector_digest() -
         invalid = copy.deepcopy(recipe_document)
         mutation(invalid)
         with pytest.raises((ValidationError, ValueError)):
-            candidate = RecipeDefinition.model_validate(invalid)
-            validate_recipe_models(candidate, {digest: model})
+            _validate_recipe_against(invalid, digest, model)
     changed_model = copy.deepcopy(model_document)
     changed_model["files"][0]["sha256"] = "a" * 64
     changed = ModelDefinition.model_validate(changed_model)
@@ -811,7 +822,7 @@ def test_model_license_rejects_duplicate_territories() -> None:
 
 
 @pytest.mark.parametrize(
-    "restrictions, message",
+    ("restrictions", "message"),
     [
         (
             {"denied_jurisdictions": ["e1"], "notice": "Invalid code."},
@@ -901,7 +912,6 @@ def test_option_names_are_unique_and_do_not_share_runtime_changes() -> None:
 
 
 def test_option_choices_replace_or_append_and_defaults_fill_in() -> None:
-    from vonk_forge_contracts import RecipeOptionError
 
     document = _recipe_with_options()
     base = RecipeDefinition.model_validate(document)
@@ -977,8 +987,6 @@ def test_job_knob_accepts_typed_limits_and_old_plain_knobs() -> None:
 
 
 def test_library_ingress_refuses_unbound_knobs_and_unknown_display_knobs() -> None:
-    from vonk_forge_contracts import RecipeDisplay
-    from vonk_forge_contracts.resolver import ContractResolutionError, validate_library
 
     job = load("recipe-job.json")
     display = load("recipe-display-job.json")

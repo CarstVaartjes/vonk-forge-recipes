@@ -504,7 +504,9 @@ class SweepReconcile:
         if recipe.node_count > enrolled_sparks:
             return  # a Spark leaving the fleet must not rewrite a recorded result
         why = retest_reason(
-            view, lambda: identity or current_identity(recipe), unpublishable
+            view,
+            lambda: identity or current_identity(recipe),
+            unpublishable=unpublishable,
         )
         if entry.get("status") == RecipeStatus.PENDING:
             return

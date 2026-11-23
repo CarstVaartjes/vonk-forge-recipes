@@ -7,12 +7,11 @@ from collections.abc import Mapping
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
+from recipe_tooling.qualification.tolerant import InputReason, read_optional
 from vonk_forge_contracts import (
     QualificationCauseCode,
     RecipeDefinition,
 )
-
-from recipe_tooling.qualification.tolerant import InputReason, read_optional
 
 from . import memory, policy, recovery, verdict
 from .catalog import (
@@ -236,6 +235,7 @@ class SweepFailure:
         key: str,
         failure: policy.Failure,
         op_id: str | None,
+        *,
         model_level: bool,
     ) -> None:
         accepted = AcceptedRequest.read(self.state.downloads.get(key))

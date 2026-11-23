@@ -4,6 +4,7 @@ import json
 import unittest
 
 from repo_root import ROOT
+
 from vonk_forge_contracts import read_recipe
 
 RECIPE = ROOT / "recipes/mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual.json"
@@ -29,17 +30,16 @@ class MimoV25TonyD2WildDualOptionTests(unittest.TestCase):
                     if item.name == "speculative-config"
                 ]
                 if tokens is None:
-                    self.assertEqual(speculative, [])
+                    assert speculative == []
                 else:
-                    self.assertEqual(
-                        [json.loads(str(value)) for value in speculative],
-                        [{"method": "mtp", "num_speculative_tokens": tokens}],
-                    )
+                    assert [json.loads(str(value)) for value in speculative] == [
+                        {"method": "mtp", "num_speculative_tokens": tokens}
+                    ]
                 environment = {
                     item.name: item.value for item in selected.runtime.environment
                 }
-                self.assertEqual(environment["VLLM_MIMO_MTP1_GREEDY_FAST"], greedy_fast)
-                self.assertNotIn("VONK_MIMO_SPEC", environment)
+                assert environment["VLLM_MIMO_MTP1_GREEDY_FAST"] == greedy_fast
+                assert "VONK_MIMO_SPEC" not in environment
 
 
 if __name__ == "__main__":

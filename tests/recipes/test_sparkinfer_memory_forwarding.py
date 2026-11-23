@@ -8,13 +8,13 @@ from pathlib import Path
 
 import pytest
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition
 
 from recipe_tooling.qualification.memory_need.args import loads_draft_model
+from vonk_forge_contracts import RecipeDefinition
 
 
 @pytest.mark.parametrize(
-    "slug,draft",
+    ("slug", "draft"),
     [
         ("deepseek-v4-flash-0731-sparkinfer-single", True),
         ("deepseek-v4-flash-0731-mia-sparkinfer-single", True),

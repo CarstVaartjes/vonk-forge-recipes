@@ -22,6 +22,7 @@ from datetime import datetime
 from typing import Any
 
 from pydantic import ValidationError
+
 from vonk_forge_contracts import QualificationCauseCode
 
 from .auth_contract import SmokeAuthClass
@@ -626,9 +627,11 @@ class Failure:
     def describe(self) -> str:
         """The result row's error text: the detail plus the evidence that explains it."""
         extra = []
-        for name in ("case", "http_status", "operation_id"):
-            if self.evidence.get(name) not in (None, ""):
-                extra.append(f"{name}={self.evidence[name]}")
+        extra.extend(
+            f"{name}={self.evidence[name]}"
+            for name in ("case", "http_status", "operation_id")
+            if self.evidence.get(name) not in (None, "")
+        )
         body = self.evidence.get("body")
         if body:
             extra.append("body=" + " ".join(str(body).split())[:300])
@@ -810,7 +813,7 @@ def blamed(
     named: set[str] = set()
     placed: set[str] = set()
     for item in items:
-        refs = {r for r in (item.get("refs") or _leaves(item, _NOT_REFS))}
+        refs = set(item.get("refs") or _leaves(item, _NOT_REFS))
         text = " ".join(
             str(item.get(f, "")) for f in ("detail", "message", "reason", "error")
         )
@@ -935,7 +938,7 @@ def classify(
     if not klass:
         klass = {"smoke": "smoke", "review": CONTROLLER_WAIT}.get(phase, phase)
     signature = f"{phase}|{klass}|{code or '-'}|{_normalise(detail)}"
-    cluster = hashlib.sha1(signature.encode()).hexdigest()[:10]
+    cluster = hashlib.sha1(signature.encode(), usedforsecurity=False).hexdigest()[:10]
     proof: dict[str, Any] = {
         k: v for k, v in (evidence or {}).items() if v not in (None, "", [], {})
     }
@@ -1000,7 +1003,7 @@ class RateTracker:
             else self.alpha * bytes_per_second + (1 - self.alpha) * self.rate
         )
         self.samples += 1
-        self.history = (self.history + [bytes_per_second])[-50:]
+        self.history = ([*self.history, bytes_per_second])[-50:]
 
     def eta_seconds(self, remaining_bytes: int) -> float | None:
         return remaining_bytes / self.rate if self.rate > 0 else None

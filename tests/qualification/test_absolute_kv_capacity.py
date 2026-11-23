@@ -10,9 +10,6 @@ import pytest
 from catalog_documents import catalog_models
 from documents import recipe as document_recipe
 from repo_root import ROOT
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
-from vonk_forge_contracts.memory_admission import evaluate_memory_admission
-from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from recipe_tooling.qualification.memory_need.args import (
@@ -33,6 +30,9 @@ from recipe_tooling.qualification.memory_need.vllm import (
     absolute_kv_warnings,
 )
 from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+from vonk_forge_contracts.memory_admission import evaluate_memory_admission
+from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 VISION = "deepseek-v4-flash-vision-exp-mia-dual"
 LAGUNA = "laguna-m-1-nvfp4-r0b0tlab-vllm-dual"
@@ -306,7 +306,7 @@ FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
 
 
 @pytest.mark.parametrize(
-    "name,match,image_of",
+    ("name", "match", "image_of"),
     [
         # Exhausted host memory 2026-10-21: 0.85 beside a 10 GB Marlin repack.
         # Judged on the image its geometry now pins (same Marlin expansion).
@@ -552,7 +552,7 @@ def creator_dual(slug: str, utilization: str) -> RecipeDefinition:
     [
         # sparkfix.yaml#L16 at 050f1ba3.
         (JASL, "0.825"),
-        # boot_dflash2.sh#L14 at 22269731; passed on hardware, pool-less (7cb340f9).
+        # boot_dflash2.sh line 14 at 22269731; passed on hardware, pool-less (7cb340f9).
         (GLM_DFLASH2, "0.86"),
     ],
 )
@@ -628,7 +628,9 @@ def set_pool(recipe: RecipeDefinition, pool: int) -> None:
     ).value = pool
 
 
-@pytest.mark.parametrize("slug,dtype,context,pool,logged", GLM_DSA_CREATOR_POOLS)
+@pytest.mark.parametrize(
+    ("slug", "dtype", "context", "pool", "logged"), GLM_DSA_CREATOR_POOLS
+)
 def test_glm_dsa_creator_pools_hold_their_logged_context(
     slug: str, dtype: str, context: int, pool: int, logged: int
 ) -> None:
@@ -643,7 +645,9 @@ def test_glm_dsa_creator_pools_hold_their_logged_context(
     assert pool // (need // context) >= logged
 
 
-@pytest.mark.parametrize("slug,dtype,context,pool,logged", GLM_DSA_CREATOR_POOLS)
+@pytest.mark.parametrize(
+    ("slug", "dtype", "context", "pool", "logged"), GLM_DSA_CREATOR_POOLS
+)
 def test_glm_dsa_pool_one_byte_below_the_need_is_still_refused(
     slug: str, dtype: str, context: int, pool: int, logged: int
 ) -> None:

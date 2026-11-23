@@ -2,15 +2,6 @@
 
 from __future__ import annotations
 
-from vonk_forge_contracts import (
-    RecipeDefinition,
-)
-from vonk_forge_contracts.memory_admission import (
-    PLATFORM_MEMORY_FLOOR_BYTES,
-    evaluate_memory_admission,
-)
-from vonk_forge_contracts.recipe import RecipeMemoryResources
-
 from recipe_tooling.qualification.memory_need import args as mn_args
 from recipe_tooling.qualification.memory_need.constants import (
     ADMISSION_IDLE_USE_BYTES,
@@ -22,6 +13,14 @@ from recipe_tooling.qualification.memory_need.constants import (
     SWAP_FREE_PERCENT,
     SWAP_MAXIMUM_BYTES,
 )
+from vonk_forge_contracts import (
+    RecipeDefinition,
+)
+from vonk_forge_contracts.memory_admission import (
+    PLATFORM_MEMORY_FLOOR_BYTES,
+    evaluate_memory_admission,
+)
+from vonk_forge_contracts.recipe import RecipeMemoryResources
 
 
 def usable_swap_bytes(total_bytes: int) -> int:

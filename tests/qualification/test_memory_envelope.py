@@ -38,10 +38,8 @@ def peaks() -> dict[str, int]:
 class MemoryEnvelopeTests(unittest.TestCase):
     def test_exceptions_name_existing_recipes(self) -> None:
         known = peaks()
-        self.assertEqual(
-            [slug for slug in EXCEPTIONS if slug not in known],
-            [],
-            "policy/memory-envelope-exceptions.json lists a recipe that is gone; remove it",
+        assert [slug for slug in EXCEPTIONS if slug not in known] == [], (
+            "policy/memory-envelope-exceptions.json lists a recipe that is gone; remove it"
         )
 
     def test_an_exception_that_now_fits_only_warns(self) -> None:

@@ -4,6 +4,8 @@ import hashlib
 import importlib.util
 import json
 import struct
+import sys
+from types import SimpleNamespace
 
 import pytest
 from repo_root import ROOT
@@ -11,7 +13,8 @@ from repo_root import ROOT
 SPEC = importlib.util.spec_from_file_location(
     "full_glm_view", ROOT / "adapters/glm/vcruz-full-tensorfold-four/prepare_view.py"
 )
-assert SPEC and SPEC.loader
+assert SPEC
+assert SPEC.loader
 VIEW = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(VIEW)
 
@@ -59,8 +62,6 @@ def test_invalid_tensor_bounds_never_publish(tmp_path):
 
 
 def test_cached_view_recovers_corrupt_index_and_missing_link(tmp_path, monkeypatch):
-    import sys
-    from types import SimpleNamespace
 
     pack = tmp_path / "pack"
     pack.mkdir()

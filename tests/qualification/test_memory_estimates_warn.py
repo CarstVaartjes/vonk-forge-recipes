@@ -9,11 +9,12 @@ import pytest
 from documents import recipe
 from pydantic import ValidationError
 from repo_root import ROOT
-from vonk_forge_contracts.recipe import RecipeMemoryResources
 
+from recipe_tooling.qualification.memory_need.evidence import load_inputs
 from recipe_tooling.qualification.memory_need.geometry import MemoryInputs
 from recipe_tooling.qualification.memory_need.records import EstimateFindingKind
 from recipe_tooling.qualification.memory_need.warnings import estimate_problems
+from vonk_forge_contracts.recipe import RecipeMemoryResources
 
 LLAMA = "llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single"
 
@@ -165,7 +166,6 @@ def test_creator_flag_request_is_an_advisory_not_a_missing_input() -> None:
 def test_report_lists_only_the_missing_estimator_input(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from recipe_tooling.qualification.memory_need.evidence import load_inputs
 
     inputs = load_inputs().model_copy(update={"geometries": {}})
     body = run_report(tmp_path, monkeypatch, inputs)

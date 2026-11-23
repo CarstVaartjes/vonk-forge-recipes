@@ -12,6 +12,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from pydantic import TypeAdapter, ValidationError
+
 from vonk_forge_contracts import EndpointAlias
 
 _ALIAS = TypeAdapter(EndpointAlias)

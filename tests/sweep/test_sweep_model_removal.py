@@ -9,11 +9,22 @@ import pytest
 from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
+from spark_sweep import removal
+from spark_sweep.catalog import parse_recipe
+from spark_sweep.identity import content_identity
 from spark_sweep.lifecycle import LifecycleState
-from spark_sweep.removal_contract import RecipeVerdict, RemovalOutcome, RemovalRecord
+from spark_sweep.owner import OwnerStatus
+from spark_sweep.removal_contract import (
+    RecipeVerdict,
+    RemovalOutcome,
+    RemovalRecord,
+    RemovalReplyError,
+    RemovalWait,
+)
 from spark_sweep.report import build_status
 from spark_sweep.state import State
-from spark_sweep.vonkctl import Vonkctl
+from spark_sweep.sweep_contract import SweepWaitReason
+from spark_sweep.vonkctl import Vonkctl, VonkctlTimeout
 
 FIXTURES = FIXTURES / "sweep-removal"
 MAX_BACKOFF_SECONDS = 3600.0
@@ -111,8 +122,6 @@ def scenario(tmp_path, *, extra: int = 0):
         ],
         [FakeModel(digest, local="cached") for digest in (A, B, C, D, *extra_digests)],
     )
-    from spark_sweep.catalog import parse_recipe
-    from spark_sweep.identity import content_identity
 
     # These fixtures represent current verdicts, with accepted runtime evidence.
     for key, entry in sweep.state.recipes.items():
@@ -210,7 +219,8 @@ def test_owner_variant_without_list_digests_neither_blocks_nor_unprotects(tmp_pa
     for _ in range(3):
         sweep.remove_finished_models()
     submitted = {args[2] for args in peer.submissions}
-    assert B in submitted and A not in submitted  # A is b's digest: protected
+    assert B in submitted
+    assert A not in submitted
     assert sweep.state.data["model_removals"][A]["message"] == (
         "referenced by an owner profile"
     )
@@ -254,7 +264,6 @@ def test_a_submit_refusal_keeps_its_typed_cause_and_the_key_then_heals(tmp_path)
 def test_many_due_records_rotate_by_their_persisted_next_check(tmp_path, monkeypatch):
     """Catches a pass that always starts at the lowest digest: records that come due again
     first keep the single slot per tick while the later ones stay overdue."""
-    from spark_sweep import removal
 
     # The earliest retry the schedule allows, so a refused record is due again soon.
     monkeypatch.setattr(removal, "uniform", lambda low, _high: low)
@@ -325,7 +334,8 @@ def test_one_pass_over_many_removals_saves_once(tmp_path):
     sweep.state.save = counting_save
     sweep.model_remover.tick(sweep.recipes, set(), clock.now())
     held = list(sweep.state.data["model_removals"].values())
-    assert len(held) > 3 and all(r["outcome"] == RemovalOutcome.OWNER for r in held)
+    assert len(held) > 3
+    assert all(r["outcome"] == RemovalOutcome.OWNER for r in held)
     assert saves == 1
 
 
@@ -365,7 +375,8 @@ def test_terminal_failure_replans_but_backoff_retains_the_request(tmp_path):
     peer.state = LifecycleState.FAILED
     advance(sweep, clock)
     record = sweep.state.data["model_removals"][A]
-    assert record["outcome"] == RemovalOutcome.RETRY and record["request_key"] is None
+    assert record["outcome"] == RemovalOutcome.RETRY
+    assert record["request_key"] is None
     peer.state = LifecycleState.SUCCEEDED
     advance(sweep, clock)
     assert sweep.state.data["model_removals"][A]["request_key"] != original
@@ -397,6 +408,7 @@ def test_repeated_failures_and_uncertainty_always_schedule_a_next_check(
     else:
         setattr(peer, fault, True)
     keys = []
+    record: RemovalRecord | None = None
     for _ in range(12):
         peer.lost = fault == "lost"
         clock.t += 24 * 3600  # Controller deadlines never end local reconciliation.
@@ -411,6 +423,7 @@ def test_repeated_failures_and_uncertainty_always_schedule_a_next_check(
         ]
         sweep.state = State.load(sweep.state.path, clock.now)
         sweep.model_remover.state = sweep.state
+    assert record is not None
     if fault in ("blocked", "mismatch"):
         assert not peer.submissions
         assert record.outcome == RemovalOutcome.RETRY
@@ -419,7 +432,8 @@ def test_repeated_failures_and_uncertainty_always_schedule_a_next_check(
         reviews = [args for args in peer.calls if "--review" in args and args[2] == A]
         assert len(reviews) >= 12
     else:
-        assert len(keys) == 12 and len(set(keys)) == 1
+        assert len(keys) == 12
+        assert len(set(keys)) == 1
         assert record.outcome == RemovalOutcome.WAIT
         assert record.request_key is not None
     assert sweep.pending()
@@ -512,14 +526,13 @@ def test_retesting_rearms_cleanup_with_a_new_request(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "retryable,http_status",
+    ("retryable", "http_status"),
     [(False, 500), (True, 503), (True, None), (True, "omitted")],
 )
 def test_review_error_keeps_typed_cause_and_backoff_then_heals(
     tmp_path, retryable, http_status
 ):
     """Catches parsing a Controller error as a review and losing its cause."""
-    from spark_sweep.removal_contract import RemovalReplyError
 
     sweep, peer, clock = scenario(tmp_path)
     document = fixture("error")
@@ -565,7 +578,6 @@ def test_review_error_keeps_typed_cause_and_backoff_then_heals(
 def test_transport_reply_backs_off_with_cause_and_heals_after_restart(
     tmp_path, stage, out
 ):
-    from spark_sweep.vonkctl import VonkctlTimeout
 
     sweep, peer, clock = scenario(tmp_path)
     original_runner = peer.runner
@@ -644,16 +656,17 @@ def test_slow_catalog_refresh_yields_to_removal_after_a_complete_read(
         if peer.submissions:
             break
     assert peer.submissions
-    assert not sweep.recipe_list.in_pass and not sweep.model_list.in_pass
-    assert not sweep.recipe_list.last_error and not sweep.model_list.last_error
-    assert sweep.recipe_list.passes > 1 and sweep.model_list.passes > 1
+    assert not sweep.recipe_list.in_pass
+    assert not sweep.model_list.in_pass
+    assert not sweep.recipe_list.last_error
+    assert not sweep.model_list.last_error
+    assert sweep.recipe_list.passes > 1
+    assert sweep.model_list.passes > 1
     assert not sweep.state.data.get("model_removal_wait")
 
 
 @pytest.mark.parametrize("fault", ["timeout", "cursor"])
 def test_catalog_retry_is_bounded_and_reports_cause_age_and_recovery(tmp_path, fault):
-    from spark_sweep.removal_contract import RemovalWait
-    from spark_sweep.sweep_contract import SweepWaitReason
 
     sweep, peer, clock = scenario(tmp_path)
     peer.fleet.library_faults = [fault]
@@ -687,15 +700,12 @@ def test_catalog_retry_is_bounded_and_reports_cause_age_and_recovery(tmp_path, f
 
 
 def test_removal_reports_the_actual_owner_pause_and_invalid_rows(tmp_path):
-    from spark_sweep.owner import OwnerStatus
 
     sweep, peer, clock = scenario(tmp_path)
     sweep.owner_status = OwnerStatus(paused=True, reason="profile 2 is running")
     sweep.remove_finished_models()
     clock.t += 65
     sweep.remove_finished_models()
-    from spark_sweep.removal_contract import RemovalWait
-    from spark_sweep.sweep_contract import SweepWaitReason
 
     wait = RemovalWait.model_validate(sweep.state.data["model_removal_wait"])
     assert wait.reason == SweepWaitReason.OPERATOR

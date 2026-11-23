@@ -15,7 +15,7 @@ def test_model_cached_image_missing_groups_do_not_starve_model_downloads(
     cold = FakeRecipe("cold", ("missing",))
     sweep, fleet, clock = make_sweep(
         tmp_path,
-        warm + [cold],
+        [*warm, cold],
         [FakeModel(f"m{i}", local="cached") for i in range(window + 1)]
         + [FakeModel("missing")],
         prefetch=PrefetchConfig(group_window=window, pin_profile=None),

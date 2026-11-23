@@ -180,12 +180,12 @@ def image_consumers(adapter: Path, recipe: dict[str, Any], pin: Pin) -> list[str
     ]
     if not named:
         problems.append(f"Dockerfile has no FROM of the kit's image {pin.repo}")
-    for image in named:
-        if image != image_reference(pin, image):
-            problems.append(
-                f"Dockerfile's FROM {image} is not the kit's locked image "
-                f"{image_reference(pin, image)}"
-            )
+    problems.extend(
+        f"Dockerfile's FROM {image} is not the kit's locked image "
+        f"{image_reference(pin, image)}"
+        for image in named
+        if image != image_reference(pin, image)
+    )
     base = recipe.get("execution", {}).get("build", {}).get("base_image") or {}
     if str(base.get("repository", "")).lower() == pin.repo.lower():
         locked = pin.immutable.removeprefix("sha256:")

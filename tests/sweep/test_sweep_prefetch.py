@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import prefetch
-from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS, PrefetchConfig
+from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS, SWEEP_LABEL, PrefetchConfig
 from spark_sweep.report import build_status
 from spark_sweep.sweep_contract import SweepWaitReason
 
@@ -121,7 +122,8 @@ def test_a_gated_access_wait_is_the_owners_and_pauses_no_download(
 
     assert all("download" not in infra for infra, *_ in seen)
     denied = [row for row in seen if row[2] == SweepWaitReason.ACCESS_TERMS]
-    assert denied and all(row[3] == 0 for row in denied)
+    assert denied
+    assert all(row[3] == 0 for row in denied)
     owner = (
         "owner: grant Hugging Face access at "
         "https://huggingface.co/stabilityai/stable-audio-3-small-sfx "
@@ -171,7 +173,8 @@ def test_gated_sets_hold_no_download_slot(tmp_path: Path, gateway: Gateway) -> N
     clock.hooks.append(observe)
     sweep.run()
 
-    assert gated_waiting and free_started  # started while every gated set still waited
+    assert gated_waiting
+    assert free_started
     assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
 
 
@@ -202,7 +205,9 @@ def test_a_controller_space_hold_longer_than_the_window_pauses_no_other_work(
     fleet.download_seconds = 1500.0
     fleet.page_size = 100  # the first catalog view is complete: plan order is fixed
     start = clock.now()
-    during: list[tuple[float, dict, set[str], set[str], list[dict]]] = []
+    during: list[
+        tuple[float, dict[str, Any], set[str], set[str], list[dict[str, Any]]]
+    ] = []
     runaway: list[float] = []
 
     def observe(now: float) -> None:
@@ -263,9 +268,8 @@ def test_a_controller_space_hold_longer_than_the_window_pauses_no_other_work(
     ]
     while shown and shown[0] is None:
         shown.pop(0)  # requested, not yet observed
-    assert shown and all(
-        w is not None and w.startswith(SweepWaitReason.NAS_SPACE) for w in shown
-    )
+    assert shown
+    assert all(w is not None and w.startswith(SweepWaitReason.NAS_SPACE) for w in shown)
     downloads = [c for _, c in fleet.calls if c[:2] == ("recipe", "download")]
     assert [c[2] for c in downloads].count(blocked.key) == 1
     # Eviction freed the space: the download ran and the recipe was tested.
@@ -292,7 +296,7 @@ def test_new_model_downloads_wait_for_pin_capacity_and_resume_as_pins_drain(
     )
     fleet.max_assignments = limit
     unprotected: list[set[str]] = []
-    holds: list[dict] = []
+    holds: list[dict[str, Any]] = []
 
     def observe(_now: float) -> None:
         pinned = {
@@ -319,7 +323,8 @@ def test_new_model_downloads_wait_for_pin_capacity_and_resume_as_pins_drain(
     sweep.run()
 
     assert not any(unprotected), [u for u in unprotected if u][:3]
-    assert holds and {h["reason"] for h in holds} == {SweepWaitReason.PIN_CAPACITY}
+    assert holds
+    assert {h["reason"] for h in holds} == {SweepWaitReason.PIN_CAPACITY}
     assert sweep.prefetcher.pin_hold is None  # released as the pins drained
     downloads = [c[2] for _, c in fleet.calls if c[:2] == ("recipe", "download")]
     assert sorted(downloads) == sorted(r.key for r in recipes)  # each fetched once
@@ -441,7 +446,6 @@ def test_a_pin_profile_with_no_room_holds_no_download(
 ) -> None:
     """Foreign assignments fill the pin profile: no pin can protect anything, so a
     pin-capacity hold would prevent nothing and only stop the sweep."""
-    from spark_sweep.prefetch import SWEEP_LABEL
 
     limit = 2
     monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)
@@ -500,7 +504,8 @@ def test_a_download_someone_else_started_is_not_requested_again(
     }
     sweep.run()
     requested = [c[2] for _, c in fleet.calls if c[:2] == ("recipe", "download")]
-    assert "vonk-forge/r0" not in requested and "vonk-forge/r1" in requested
+    assert "vonk-forge/r0" not in requested
+    assert "vonk-forge/r1" in requested
     assert (
         sweep.state.recipes["vonk-forge/r0"]["status"] == "passed"
     )  # tested once it landed
@@ -702,7 +707,8 @@ def test_the_flag_clears_when_the_library_reads_the_recipe_cached(
     fleet.library_lag = False
     _passes(sweep, clock, 1)
     record = sweep.state.downloads[key]
-    assert "contradiction" not in record and "previous_result" not in record
+    assert "contradiction" not in record
+    assert "previous_result" not in record
     assert not any("contradiction" in a for a in build_status(sweep)["alerts"])
 
 

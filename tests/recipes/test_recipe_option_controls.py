@@ -1,9 +1,14 @@
 from __future__ import annotations
 
 import json
+import runpy
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 from repo_root import ROOT
+from test_hunyuan_single_recipes import video_module
+
 from vonk_forge_contracts import RecipeDefinition, read_recipe
 
 
@@ -39,7 +44,6 @@ def test_qwen_image_2512_options_keep_square_default_and_resolve_supported_canva
 
 def test_hunyuan_i2v_option_resolves_to_checkpoint_supported_native_steps() -> None:
     recipe = _recipe("hunyuan-video-15-i2v-step-distilled-diffusers-single")
-    from test_hunyuan_single_recipes import video_module
 
     module = video_module()
     default = _arguments(recipe.with_option_choices({}))
@@ -55,9 +59,6 @@ def test_hunyuan_i2v_option_resolves_to_checkpoint_supported_native_steps() -> N
 def test_qwen_image_option_arguments_reach_the_native_pipeline(
     tmp_path, monkeypatch
 ) -> None:
-    import runpy
-    import sys
-    from types import SimpleNamespace
 
     recipe = _recipe("qwen-image-2512-diffusers-single")
     inputs = tmp_path / "inputs"

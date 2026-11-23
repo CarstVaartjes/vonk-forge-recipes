@@ -14,6 +14,7 @@ creation and file probes faked.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import runpy
@@ -21,6 +22,7 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 from repo_root import ROOT
@@ -41,7 +43,7 @@ class Exec(Exception):
     pass
 
 
-def launcher_source(recipe: dict) -> Path | None:
+def launcher_source(recipe: dict[str, Any]) -> Path | None:
     """The build-context file the Dockerfile copies to the runtime entrypoint."""
     build = recipe["execution"]["build"]
     target = recipe["runtime"]["entrypoint"][0]
@@ -52,7 +54,7 @@ def launcher_source(recipe: dict) -> Path | None:
     return None
 
 
-def ray_launchers() -> list[tuple[str, dict, Path]]:
+def ray_launchers() -> list[tuple[str, dict[str, Any], Path]]:
     """Every multi-node recipe whose entrypoint can start a Ray head, by content."""
     found = []
     for path in sorted((ROOT / "recipes").glob("*.json")):
@@ -65,7 +67,7 @@ def ray_launchers() -> list[tuple[str, dict, Path]]:
     return found
 
 
-def ray_poll_commands(recipe: dict, launcher: Path) -> list[list[str]]:
+def ray_poll_commands(recipe: dict[str, Any], launcher: Path) -> list[list[str]]:
     node_count = recipe["topology"]["node_count"]
     commands: list[list[str]] = []
 
@@ -93,11 +95,9 @@ def ray_poll_commands(recipe: dict, launcher: Path) -> list[list[str]]:
         patch("os.access", return_value=True),
         patch("shutil.which", side_effect=lambda name: f"/image/bin/{name}"),
         patch("time.sleep"),
+        contextlib.suppress(Exec),
     ):
-        try:
-            runpy.run_path(str(launcher), run_name="__main__")
-        except Exec:
-            pass
+        runpy.run_path(str(launcher), run_name="__main__")
     return [
         command
         for command in commands
@@ -115,18 +115,16 @@ class RayPollInterpreterTest(unittest.TestCase):
                 topology.get("node_count", 1) > 1
                 and topology["parallelism"]["backend"] == "ray"
             ):
-                self.assertIn(path.stem, launchers)
+                assert path.stem in launchers
 
     def test_every_ray_launcher_polls_ray_with_its_own_interpreter(self) -> None:
         for slug, recipe, launcher in ray_launchers():
             with self.subTest(recipe=slug, launcher=str(launcher.relative_to(ROOT))):
                 polls = ray_poll_commands(recipe, launcher)
-                self.assertTrue(polls, "rank 0 never polled the Ray cluster")
-                self.assertEqual(
-                    {command[0] for command in polls},
-                    {sys.executable},
+                assert polls, "rank 0 never polled the Ray cluster"
+                assert {command[0] for command in polls} == {sys.executable}, (
                     "poll Ray with sys.executable, not a hard-coded interpreter "
-                    "path the image may not have",
+                    "path the image may not have"
                 )
 
 

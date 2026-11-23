@@ -132,8 +132,8 @@ uv venv --python 3.14 "$recipe_test_env"
 uv pip install --python "$recipe_test_env/bin/python" -e contracts \
   -r .github/requirements-producer-tests.txt
 "$recipe_test_env/bin/python" -m pytest -q
-tools/check-python-lint
-tools/check-python-format
+uv run --frozen ruff check --force-exclude -- .
+uv run --frozen ruff format --check --force-exclude -- .
 scripts/check-python-types
 git diff --check
 ```
@@ -144,16 +144,20 @@ to the local run; report it. `control/`, `scripts/repository-guards`,
 `scripts/check-added-lines` and `scripts/build-control-wheel` belong to the
 platform repository and are not gates available in this repository.
 
-The Ruff wrappers pin **0.16.9** and discover tracked extensionless Python
-executables by shebang. Given path arguments they check only those paths; the
-pre-commit hook passes the staged Python files (unstaged edits no longer refuse
-the commit; lint and format check only staged paths; the type gate still reads
-the working tree), CI passes none and checks the whole repository. Bare `ruff check .`/`format --check .` miss those files.
-Pyright **1.1.414** uses managed Python and Linux diagnostics with the pinned
-`[tool.pyright]` language version/mode. The gate requires zero errors and has no baseline: a deliberate error carries a
+Ruff and pyright versions live only in `uv.lock` (`dev` dependency group); the
+hook and CI run the same `uv run --frozen` commands. The single `[tool.ruff]`
+config selects the rules (defaults plus `extend-select`), includes the extensionless
+Python entry points in `tools/` and `scripts/check-python-types` through
+`extend-include`, and excludes `adapters/`; `ruff check --show-files` is the one
+owner of "which files are Python". There is no blanket per-file ignore or
+baseline: a narrow ignore carries its reason in `pyproject.toml`. The pre-commit
+hook passes the staged files Ruff selects (unstaged edits do not refuse the
+commit); CI passes `.`. The type gate (`scripts/check-python-types`, pyright
+`standard` plus nine strict-only checks, Linux diagnostics) always reads the
+whole working tree and requires zero errors: a deliberate error carries a
 `# pyright: ignore[<rule>]` on its line, and an ignore that no longer suppresses
-anything fails. This script checks the whole repository and takes no positional
-changed-file arguments.
+anything fails. Provider URLs open only through `recipe_tooling.upstream_http`
+(`TID251` bans `urlopen` and `build_opener` elsewhere).
 `tests/tools/test_python_gate_configuration.py` guards the configuration and CI wiring.
 
 ## CI and publication
@@ -223,8 +227,8 @@ below).
   `tools/check-build-context-sources`, `tools/check-vendored-upstream`,
   `tools/kit-pins lock|check`, `tools/refresh-upstream` and `tools/materialize-protocol-wheel`.
   Placing needs the contracts dependencies, so validate.yml runs them with the test
-  environment's Python, and a tool that a bare interpreter loads imports
-  `recipe_tooling.adapter_sources` inside `main()`. A file is placed by rename from a staging copy at
+  environment's Python (`tools/check-image-provenance` runs with `uv run --frozen`); a tool that
+  runs on the runner's bare python3 imports only the standard library at module level. A file is placed by rename from a staging copy at
   the repository root (`/.adapter-source-*`, ignored), so a concurrent reader never sees a
   partial file and no build context lists the staging copy.
   `tests/tools/test_adapter_mirror.py` keeps the `.gitignore` block equal to the manifest paths.

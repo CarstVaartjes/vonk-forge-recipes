@@ -21,6 +21,7 @@ import time
 import types
 import zipfile
 from pathlib import Path, PurePosixPath
+from typing import Any
 
 import pytest
 from repo_root import ROOT
@@ -36,7 +37,8 @@ FIXTURE = ROOT / "qualification/fixtures/gemx-person-2s.mp4"
 
 def _load(name: str):
     spec = importlib.util.spec_from_file_location(name, ADAPTER / f"{name}.py")
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     sys.modules[f"gem_x_{name}"] = module
     spec.loader.exec_module(module)
@@ -188,7 +190,7 @@ def test_every_declared_video_container_is_accepted(
     ],
 )
 def test_an_input_outside_the_declared_slot_is_refused(
-    tmp_path: Path, stage: dict
+    tmp_path: Path, stage: dict[str, Any]
 ) -> None:
     _stage_inputs(tmp_path, **stage)
     with pytest.raises(SystemExit):
@@ -227,7 +229,7 @@ def test_a_symlinked_video_is_refused(tmp_path: Path) -> None:
     [{"entrypoint": "/other.py"}, {"output-mime": "model/gltf-binary"}],
 )
 def test_job_arguments_outside_the_contract_are_refused(
-    tmp_path: Path, override: dict
+    tmp_path: Path, override: dict[str, Any]
 ) -> None:
     values = {
         "entrypoint": run.ENTRYPOINT,
@@ -435,10 +437,10 @@ def _stub_torch(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setitem(sys.modules, name, module)
 
 
-def _result(**changes: object) -> dict:
+def _result(**changes: object) -> dict[str, Any]:
     numpy = _numpy()
     frames = 4
-    result: dict = {
+    result: dict[str, Any] = {
         "format": export.RESULT_FORMAT,
         "postprocessing": {"contact_ik": True},
         "sampling_fps": 30.0,

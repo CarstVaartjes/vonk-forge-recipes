@@ -50,7 +50,8 @@ def test_the_facts_are_resolved_off_the_tick_thread(
     release.set()
     # While the read was outstanding the scheduler kept ticking, on its own thread.
     assert blocked_ticks >= 20
-    assert seen and seen[0] is not main
+    assert seen
+    assert seen[0] is not main
     for _ in range(4000):
         sweep.tick()
         if sweep.state.status(recipe.key) == "passed":

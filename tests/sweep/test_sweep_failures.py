@@ -4,14 +4,19 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
+from spark_sweep import policy, verdict
+from spark_sweep.policy import TimeoutPolicy
+from spark_sweep.smoke import HttpConfig
+from spark_sweep.vonkctl import VonkctlTimeout
+from vonk_forge_contracts import QualificationCauseCode
+
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
-
-from spark_sweep.policy import TimeoutPolicy
 
 
 @pytest.fixture
@@ -21,7 +26,7 @@ def gateway():
     gateway.stop()
 
 
-def _entry(sweep, slug: str) -> dict:
+def _entry(sweep, slug: str) -> dict[str, Any]:
     return sweep.state.recipes[f"vonk-forge/{slug}"]
 
 
@@ -50,11 +55,9 @@ def test_failed_load_is_recorded_with_phase_class_and_evidence(
         for x in (tmp_path / "results.jsonl").read_text().splitlines()
         if '"failed"' in x
     )
-    assert (
-        line["recipe"] == "vonk-forge/bad"
-        and line["phase"] == "start"
-        and line["evidence"]
-    )
+    assert line["recipe"] == "vonk-forge/bad"
+    assert line["phase"] == "start"
+    assert line["evidence"]
     # A failed recipe is stopped and removed from the lane profile.
     assert fleet.profiles[10]["assignments"] == []
 
@@ -82,7 +85,8 @@ def test_transient_failure_recovers_beyond_the_old_attempt_limit(
     clock.hooks.append(recover)
     sweep.run()
     entry = _entry(sweep, "flaky")
-    assert entry["status"] == "passed" and entry["attempts"] >= 4
+    assert entry["status"] == "passed"
+    assert entry["attempts"] >= 4
 
 
 def test_non_transient_failure_is_not_retried(tmp_path: Path, gateway: Gateway) -> None:
@@ -93,10 +97,8 @@ def test_non_transient_failure_is_not_retried(tmp_path: Path, gateway: Gateway) 
     )
     sweep, _, _ = make_sweep(tmp_path, [oom], [FakeModel("m1")], gateway=gateway)
     sweep.run()
-    assert (
-        _entry(sweep, "oom")["attempts"] == 1
-        and _entry(sweep, "oom")["failure_class"] == "oom"
-    )
+    assert _entry(sweep, "oom")["attempts"] == 1
+    assert _entry(sweep, "oom")["failure_class"] == "oom"
 
 
 def test_load_timeout_cancels_the_application(tmp_path: Path, gateway: Gateway) -> None:
@@ -133,7 +135,6 @@ def test_smoke_failure_is_a_smoke_phase_failure(
 def test_an_expired_gateway_key_is_not_the_recipes_fault_and_heals_with_a_new_key(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    from spark_sweep.smoke import HttpConfig
 
     key_file = tmp_path / "sweep.key"
     key_file.write_text("sk-expired\n")
@@ -157,7 +158,9 @@ def test_an_expired_gateway_key_is_not_the_recipes_fault_and_heals_with_a_new_ke
     clock.hooks.append(operator)
     sweep.run()
 
-    assert gateway.refused and seen and seen[0] not in ("failed", "deferred")
+    assert gateway.refused
+    assert seen
+    assert seen[0] not in ("failed", "deferred")
     assert _entry(sweep, "good")["status"] == "passed"
     assert not sweep.state.data["infra"]
 
@@ -315,8 +318,6 @@ def test_a_controller_that_stops_answering_costs_a_pass_not_the_sweep(
 
     def runner(argv, timeout):
         if clock.now() < outage["until"] and "library" in argv:
-            from spark_sweep.vonkctl import VonkctlTimeout
-
             raise VonkctlTimeout(argv, None, "vonkctl timed out")
         return real(argv, timeout)
 
@@ -360,9 +361,6 @@ def test_generic_platform_fault_never_blames_recipe_or_siblings(
 
 
 def test_smoke_transport_failure_with_exited_workload_is_runtime_exit() -> None:
-    from vonk_forge_contracts import QualificationCauseCode
-
-    from spark_sweep import policy, verdict
 
     request = policy.classify(
         "smoke", "", "HTTP 500", "smoke-request", {"case": "stream", "http_status": 500}
@@ -396,4 +394,5 @@ def test_a_failed_attempt_row_carries_no_timings_from_an_earlier_pass(
         for row in rows
         if row.get("recipe") == bad.key and row["status"] == "failed"
     ]
-    assert failed and all("timings" not in row for row in failed)
+    assert failed
+    assert all("timings" not in row for row in failed)

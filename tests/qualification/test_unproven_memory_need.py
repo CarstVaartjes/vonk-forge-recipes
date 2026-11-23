@@ -10,15 +10,6 @@ from catalog_documents import catalog_models
 from documents import recipe as recipe_of
 from documents import recipe_display
 from repo_root import ROOT
-from vonk_forge_contracts import (
-    QualificationBlame,
-    QualificationCauseCode,
-    QualificationOutcome,
-    QualificationSummary,
-    RecipeDefinition,
-    RecipeQualificationEvidence,
-    document_sha256,
-)
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from recipe_tooling.qualification.memory_need import constants as mn_constants
@@ -32,6 +23,15 @@ from recipe_tooling.qualification.memory_need.need import calculate_need
 from recipe_tooling.qualification.memory_need.warnings import (
     envelope_exceptions,
     memory_estimate_warnings,
+)
+from vonk_forge_contracts import (
+    QualificationBlame,
+    QualificationCauseCode,
+    QualificationOutcome,
+    QualificationSummary,
+    RecipeDefinition,
+    RecipeQualificationEvidence,
+    document_sha256,
 )
 
 # Read before a test points the module root at a temporary directory.

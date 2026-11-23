@@ -31,23 +31,23 @@ class SparkInferBaseXgrammarTests(unittest.TestCase):
                 re.MULTILINE,
             )
         ]
-        self.assertIn(MIA_DOCKERFILE, dockerfiles)
+        assert MIA_DOCKERFILE in dockerfiles
         for path in dockerfiles:
             text = path.read_text(encoding="utf-8")
             where = str(path.relative_to(ROOT))
-            self.assertRegex(text, INSTALLED, f"{where}: no xgrammar >= 0.2 install")
-            self.assertIn(ASSERTED, text, f"{where}: no normalize_tool_choice assert")
+            assert re.search(INSTALLED, text), f"{where}: no xgrammar >= 0.2 install"
+            assert ASSERTED in text, f"{where}: no normalize_tool_choice assert"
 
     def test_mia_adapter_install_is_hash_pinned_and_keeps_transformers(self) -> None:
         text = (ROOT / "adapters/deepseek/mia-sparkinfer-single/Dockerfile").read_text(
             encoding="utf-8"
         )
-        self.assertIn("--require-hashes", text)
-        self.assertIn(
-            "--hash=sha256:b1d2bef13aec8122dfa6b96e3ece2cc0a42a732685f1d44f6248c305274e8eae",
-            text,
+        assert "--require-hashes" in text
+        assert (
+            "--hash=sha256:b1d2bef13aec8122dfa6b96e3ece2cc0a42a732685f1d44f6248c305274e8eae"
+            in text
         )
-        self.assertIn('m.version("transformers") == "5.13.1"', text)
+        assert 'm.version("transformers") == "5.13.1"' in text
 
 
 if __name__ == "__main__":

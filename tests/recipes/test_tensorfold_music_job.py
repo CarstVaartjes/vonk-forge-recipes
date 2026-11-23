@@ -14,7 +14,8 @@ Manifest = importlib.import_module(
     "vonk_agent_protocol.job_inputs"
 ).RecipeJobInputManifest
 SPEC = importlib.util.spec_from_file_location("music3_job", CONTEXT / "job.py")
-assert SPEC and SPEC.loader
+assert SPEC
+assert SPEC.loader
 JOB = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(JOB)
 

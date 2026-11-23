@@ -9,15 +9,16 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Any
 
 import pytest
 from pydantic import TypeAdapter
 from sweep_fakes import FakeFleet, FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN, EndpointAlias
 
 from spark_sweep.catalog import Fleet, Presence, serving_run
 from spark_sweep.profile_alias import profile_alias, unique_profile_alias
 from spark_sweep.verdict import refused_field
+from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN, EndpointAlias
 
 _CONTRACT = TypeAdapter(EndpointAlias)
 _CONTRACT_PATTERN = re.compile(ENDPOINT_ALIAS_PATTERN)
@@ -30,7 +31,7 @@ def gateway():
     gateway.stop()
 
 
-def _entry(sweep, slug: str) -> dict:
+def _entry(sweep, slug: str) -> dict[str, Any]:
     return sweep.state.recipes[f"vonk-forge/{slug}"]
 
 

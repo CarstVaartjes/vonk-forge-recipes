@@ -124,7 +124,8 @@ def test_both_ranks_get_the_kits_placement(tmp_path: Path, rank: str) -> None:
     assert env["NCCL_COMM_ID"] == "192.0.2.10:29500"
     assert env["TF_ROCE_HCA"] == "rocep1s0f0,roceP2p1s0f0"
     assert env["NCCL_IB_HCA"] == FABRIC["NCCL_IB_HCA"]
-    assert (tmp_path / "home").is_dir() and (tmp_path / "tmp").is_dir()
+    assert (tmp_path / "home").is_dir()
+    assert (tmp_path / "tmp").is_dir()
 
 
 def served_template(tmp_path: Path, args: list[str]) -> str:
@@ -144,7 +145,8 @@ def test_the_served_template_takes_the_effort_line_from_reasoning_effort(
     original = VENDORED_TEMPLATE.read_text(encoding="utf-8")
     served = served_template(tmp_path, args)
     assert served == original.replace(EFFORT_BASE, EFFORT_LINE)
-    assert EFFORT_BASE not in served and served.count(EFFORT_LINE) == 1
+    assert EFFORT_BASE not in served
+    assert served.count(EFFORT_LINE) == 1
     # Thinking off passes no reasoning_effort: the line then sets none, so the template's `is not none` guard drops the
     # `Reasoning Effort` system line; thinking on keeps low/high and maps anything else to max.
     assert (
@@ -169,7 +171,8 @@ def test_a_template_without_the_known_effort_line_does_not_start_the_engine(
         checkpoint_template="{{ messages }}",
         **FABRIC,
     )
-    assert result.returncode != 0 and result.stdout == ""
+    assert result.returncode != 0
+    assert result.stdout == ""
     assert "no effort line" in result.stderr
 
 
@@ -209,9 +212,11 @@ def test_malformed_placement_does_not_start_the_engine(
     tmp_path: Path, bad: dict[str, str]
 ) -> None:
     result = run(tmp_path, list(PLACEMENT), **{**FABRIC, **bad})
-    assert result.returncode != 0 and result.stdout == ""
+    assert result.returncode != 0
+    assert result.stdout == ""
 
 
 def test_other_topologies_are_refused(tmp_path: Path) -> None:
     result = run(tmp_path, ["--tp", "3", *PLACEMENT[2:]], **FABRIC)
-    assert result.returncode != 0 and result.stdout == ""
+    assert result.returncode != 0
+    assert result.stdout == ""

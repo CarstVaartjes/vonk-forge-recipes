@@ -7,6 +7,7 @@ from __future__ import annotations
 import ast
 import contextlib
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
@@ -18,6 +19,7 @@ from spark_sweep import policy, verdict
 from spark_sweep.auth_contract import SmokeAuthClass
 from spark_sweep.qualification import from_history
 from spark_sweep.sweep_contract import SweepFailureClass, SweepWaitCode
+from spark_sweep.sweep_support import IDENTICAL_EXIT_LIMIT
 from spark_sweep.verdict import Blame, Disposition
 
 SOURCES = (*RUN_FILES, "smoke.py", "smoke_job.py", "prefetch.py")
@@ -25,7 +27,7 @@ CALLS = {"classify", "classify_application_failure"}
 UNNAMED = "a-class-nobody-named"
 
 
-def _values(expr: ast.expr, scope: dict, name: str) -> set[str]:
+def _values(expr: ast.expr, scope: dict[str, Any], name: str) -> set[str]:
     """The string classes an expression can evaluate to (both arms of a conditional)."""
     if isinstance(expr, ast.IfExp):
         return _values(expr.body, scope, name) | _values(expr.orelse, scope, name)
@@ -33,7 +35,7 @@ def _values(expr: ast.expr, scope: dict, name: str) -> set[str]:
     # A name that cannot be resolved here (a variable, an attribute of a runtime value) is
     # skipped; the scan only counts classes it can read from the source.
     with contextlib.suppress(Exception):
-        value = eval(compile(ast.Expression(expr), name, "eval"), scope)
+        value = eval(compile(ast.Expression(expr), name, "eval"), scope)  # noqa: S307 - evaluates an expression taken from the repository's own sweep source
     return {str(value)} if isinstance(value, str) and value else set()
 
 
@@ -194,7 +196,6 @@ def test_the_sweep_status_and_the_published_blame_agree(tmp_path, klass, code):
 
 
 def test_an_unnamed_class_on_one_identity_ends_after_three_identical_outcomes(tmp_path):
-    from spark_sweep.sweep_support import IDENTICAL_EXIT_LIMIT
 
     recipe = FakeRecipe("a", ("1" * 64,), content="a" * 64)
     sweep, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("1" * 64)])
@@ -207,14 +208,15 @@ def test_an_unnamed_class_on_one_identity_ends_after_three_identical_outcomes(tm
     sweep._record_failure(key, failure, None)
     (row,) = _verdict_rows(sweep, key)
     assert row["evidence"]["identical_exits"] == IDENTICAL_EXIT_LIMIT
-    assert row["failure_class"] == UNNAMED and row["code"] == "x.code"
+    assert row["failure_class"] == UNNAMED
+    assert row["code"] == "x.code"
     assert row["status"] == "deferred"  # the platform's, reopened by a release change
     imported = from_history({**historical(), **row, "recipe": historical()["recipe"]})
-    assert imported is not None and imported.blame == PublishedBlame.PLATFORM
+    assert imported is not None
+    assert imported.blame == PublishedBlame.PLATFORM
 
 
 def test_a_different_unnamed_class_restarts_the_count(tmp_path):
-    from spark_sweep.sweep_support import IDENTICAL_EXIT_LIMIT
 
     recipe = FakeRecipe("a", ("1" * 64,), content="a" * 64)
     sweep, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("1" * 64)])

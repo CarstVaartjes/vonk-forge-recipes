@@ -6,11 +6,12 @@ import os
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
-sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from recipe_tooling.adapter_mirror import add, reconcile
 from recipe_tooling.adapter_sources import AdapterSourceError
+
+ROOT = Path(__file__).resolve().parents[1]
 
 parser = argparse.ArgumentParser(description=__doc__)
 commands = parser.add_subparsers(dest="command", required=True)
@@ -31,7 +32,7 @@ else:
         print(f"::warning title=adapter source mirror::{problem}")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary and problems:
-        with open(summary, "a") as handle:
+        with Path(summary).open("a") as handle:
             handle.write("Adapter source mirror, not healed:\n\n")
             handle.writelines(f"- {problem}\n" for problem in problems)
     # Never fails: the next main run reconciles again.

@@ -139,13 +139,15 @@ def test_placement_and_paths(sandbox):
         assert dump["PEERS"] == "10.9.0.1,10.9.0.2"
         assert dump["NODE_IP"] == "10.9.0.2"
         assert dump["CONTROL_PORT"] == "29555"
-        assert "IPS" not in dump and "IPS2" not in dump
+        assert "IPS" not in dump
+        assert "IPS2" not in dump
         assert (
             dump["VARIANT"]
             == f"{root}/models/target/manifests/exlr8-manifest-bit349.json"
         )
     else:
-        assert "PEERS" not in dump and "NODE_IP" not in dump
+        assert "PEERS" not in dump
+        assert "NODE_IP" not in dump
 
 
 def test_variant_names_and_tune(sandbox):
@@ -175,7 +177,8 @@ def test_compact_copies_are_prepared_once(sandbox):
     assert f"GR8_LOAD_COMPACT={root}/outputs/cache/gr8/cache/compact-tp{tp}" in extra
     assert "GR8_LOAD_MERGE_KB=1" in extra
     log = (root / "prepare.log").read_text().splitlines()
-    assert len(log) == 1 and log[0].startswith("glm53f prepare --rank")
+    assert len(log) == 1
+    assert log[0].startswith("glm53f prepare --rank")
     run(env)
     assert len((root / "prepare.log").read_text().splitlines()) == 1
     _, dump = run({**env, "COMPACT_EXPERTS": "0", "VISION": "0"})

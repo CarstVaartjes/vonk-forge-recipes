@@ -17,6 +17,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from recipe_tooling.protocol_wheel import projections
+
 
 class ValueKind(StrEnum):
     CONTRACT_VERSION = "contract-version"
@@ -196,10 +198,8 @@ def scan_source(
     ):
         return []
     tree = None
-    if (
-        path.endswith(".py")
-        or text.startswith("#!/")
-        and "python" in text.splitlines()[0]
+    if path.endswith(".py") or (
+        text.startswith("#!/") and "python" in text.splitlines()[0]
     ):
         tree = ast.parse(text)
     owned_expression = (
@@ -381,8 +381,7 @@ def upstream_files(root: Path, files: list[str]) -> set[str]:
             and path not in (base + "Dockerfile", manifest)
             and not any(
                 path == base + item
-                or item.endswith("/")
-                and path.startswith(base + item)
+                or (item.endswith("/") and path.startswith(base + item))
                 for item in ours
             )
         )
@@ -421,8 +420,6 @@ def check(root: Path, files: list[str] | None = None) -> list[Violation]:
         families.add(family)
         generated: dict[str, bytes] = {}
         if registration.kind == ValueKind.PROTOCOL_WHEEL:
-            from recipe_tooling.protocol_wheel import projections
-
             generated = projections(root)
         for path in files:
             if registration.kind == ValueKind.MEMORY_BYTES and path in vendored:

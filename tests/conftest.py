@@ -3,24 +3,28 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 from generated_catalog import GENERATED
 
-ROOT = Path(__file__).resolve().parents[1]
-# The one owner of the test import path: the repository, the contracts source and the
-# selected agent-protocol wheel (the adapters overlay the same wheel).
-sys.path[:0] = [str(ROOT), str(ROOT / "src")]
 from recipe_tooling.protocol_wheel import selection
+from recipe_tooling.qualification.evidence_store import read_evidence
+from recipe_tooling.qualification.memory_need import constants as mn_constants
+from recipe_tooling.qualification.memory_need import evidence as mn_evidence
+from recipe_tooling.upstream_http import forget_busy
+from spark_sweep.evidence_publisher import EvidencePublisher
 
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
+ROOT = Path(__file__).resolve().parents[1]
+# The test import path is `[tool.pytest.ini_options] pythonpath` (the repository, the
+# contracts source and src); the selected agent-protocol wheel is added here (the
+# adapters overlay the same wheel).
 sys.path.insert(0, str(ROOT / selection(ROOT).artifact))
 
 
 @pytest.fixture(autouse=True)
 def no_remembered_rate_limit():
     """A host marked busy by one test must not refuse another test's request."""
-    from recipe_tooling.upstream_http import forget_busy
 
     forget_busy()
     yield
@@ -32,7 +36,6 @@ def forbid_sweep_evidence_publication(request, monkeypatch):
     """Fake fleet tests must never start the git/GitHub publisher subprocess."""
     if request.node.path.name == "test_qualification_evidence_publisher.py":
         return  # publisher unit tests supply their own fake subprocesses
-    from spark_sweep.evidence_publisher import EvidencePublisher
 
     def forbidden(self, now):
         pytest.fail("sweep tests must disable evidence publication")
@@ -56,23 +59,20 @@ def isolate_memory_evidence(request, monkeypatch, tmp_path_factory):
     """
     if request.node.get_closest_marker("live_evidence"):
         return
-    from recipe_tooling.qualification.evidence_store import read_evidence
-    from recipe_tooling.qualification.memory_need import constants as mn_constants
-    from recipe_tooling.qualification.memory_need import evidence as mn_evidence
 
     live, empty = mn_constants.ROOT, tmp_path_factory.mktemp("no-evidence")
 
     def evidence(key):
         # A test that points the module at its own corpus keeps it.
         return read_evidence(
-            empty if mn_constants.ROOT == live else mn_constants.ROOT, key
+            empty if live == mn_constants.ROOT else mn_constants.ROOT, key
         )
 
     monkeypatch.setattr(mn_evidence, "_evidence", evidence)
 
 
 @pytest.fixture(scope="session")
-def built_catalog() -> tuple[dict, Path]:
+def built_catalog() -> tuple[dict[str, Any], Path]:
     """The catalog and package directory built once for the whole session.
 
     One build reads, hashes and gzips the closure of all recipes, which is the

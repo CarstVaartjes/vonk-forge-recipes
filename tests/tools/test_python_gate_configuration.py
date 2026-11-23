@@ -9,8 +9,6 @@ already happened once: the repository shipped the pyright baseline but no
 from __future__ import annotations
 
 import re
-import runpy
-import subprocess
 import tomllib
 
 from repo_root import ROOT
@@ -25,17 +23,19 @@ def test_pyright_configuration_is_pinned() -> None:
     # Both settings change the diagnostic set, so the baseline is only
     # meaningful while they are pinned.
     assert pyright.get("pythonVersion") == "3.14"
-    assert pyright.get("typeCheckingMode") == "basic"
+    assert pyright.get("typeCheckingMode") == "standard"
     extra_paths = pyright.get("extraPaths")
-    assert isinstance(extra_paths, list) and "contracts/src" in extra_paths
+    assert isinstance(extra_paths, list)
+    assert "contracts/src" in extra_paths
 
 
 def test_ruff_configuration_is_pinned_and_documented() -> None:
     ruff = PYPROJECT.get("tool", {}).get("ruff")
     assert isinstance(ruff, dict), "pyproject.toml has no [tool.ruff] section"
-    assert ruff.get("required-version") == "==0.16.9"
-    # Adapter sources are executed by the 3.12 interpreter inside the pinned
-    # upstream images, so the formatter must keep emitting 3.12 syntax.
+    # The version has one owner, uv.lock; a second pin here would drift from it.
+    assert "required-version" not in ruff
+    # CI runs tools/ launchers with the runner's python3 (3.12), so the formatter must keep
+    # emitting 3.12 syntax (no `except A, B:`).
     assert ruff.get("target-version") == "py312"
 
 
@@ -48,12 +48,9 @@ def test_adapters_are_excluded_from_both_gates() -> None:
 
 
 def test_every_python_gate_runs_in_ci() -> None:
-    # Every gate is named through its wrapper. A bare `ruff check .` or
-    # `ruff format --check .` resolves files by extension and silently skips
-    # the extensionless executables, so requiring the wrapper is the point.
     checks = {
-        "lint": re.compile(r"tools/check-python-lint"),
-        "format": re.compile(r"tools/check-python-format"),
+        "lint": re.compile(r"ruff check --force-exclude -- \."),
+        "format": re.compile(r"ruff format --check --force-exclude -- \."),
         "types": re.compile(r"scripts/check-python-types"),
     }
     for name, pattern in checks.items():
@@ -62,47 +59,14 @@ def test_every_python_gate_runs_in_ci() -> None:
         ), f"no workflow runs the {name} gate"
 
 
-def _entry_points() -> set[str]:
-    """Return our tracked extensionless Python executables, from the shebang."""
-
-    listed = subprocess.run(
-        ["git", "ls-files"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    entry_points: set[str] = set()
-    for name in listed.stdout.splitlines():
-        if not name or "." in name or name.startswith("adapters/"):
-            continue
-        path = ROOT / name
-        if not path.is_file():
-            continue
-        with path.open("r", encoding="utf-8") as handle:
-            first_line = handle.readline()
-        if first_line.startswith("#!") and "python" in first_line:
-            entry_points.add(name)
-    return entry_points
-
-
 def test_extensionless_entry_points_stay_inside_every_gate() -> None:
-    """A gate that regresses to a bare `.` scan must fail, not pass quietly."""
+    """Ruff's own file selection, not a shebang scan, owns the entry points."""
 
-    entry_points = _entry_points()
-    assert "tools/build-catalog-index" in entry_points
-
-    # The type gate is importable, so its discovery is checked directly rather
-    # than by matching its source text.
-    types_tool = runpy.run_path(str(ROOT / "scripts/check-python-types"))
-    assert set(types_tool["_entry_points"]()) == entry_points
-
-    # A shell wrapper cannot be imported, so its discovery contract is asserted
-    # on the two commands that implement it.
-    for name in ("tools/check-python-lint", "tools/check-python-format"):
-        text = (ROOT / name).read_text(encoding="utf-8")
-        assert "git ls-files" in text, f"{name} no longer discovers entry points"
-        assert "'#!'*python*" in text, f"{name} no longer matches the shebang"
+    ruff = PYPROJECT["tool"]["ruff"]
+    assert "tools/*" in ruff["extend-include"]
+    assert "scripts/check-python-types" in ruff["extend-include"]
+    assert "tools/*.*" in ruff["extend-exclude"]
+    assert (ROOT / "tools" / "build-catalog-index").is_file()
 
 
 def test_producer_test_environment_has_one_owner() -> None:

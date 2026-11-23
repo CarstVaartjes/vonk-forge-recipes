@@ -4,14 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from pathlib import Path
-
-from vonk_forge_contracts import (
-    QualificationBlame,
-    QualificationEvidenceRecord,
-    QualificationOutcome,
-    RecipeDefinition,
-    RecipeQualificationEvidence,
-)
+from typing import Any
 
 from recipe_tooling.qualification.evidence_store import (
     catalog_recipes,
@@ -19,6 +12,13 @@ from recipe_tooling.qualification.evidence_store import (
     write_evidence,
 )
 from recipe_tooling.qualification.memory_need.evidence import measured_budgets
+from vonk_forge_contracts import (
+    QualificationBlame,
+    QualificationEvidenceRecord,
+    QualificationOutcome,
+    RecipeDefinition,
+    RecipeQualificationEvidence,
+)
 
 #: The classes `derive_status` and `published_status` read, each by the reducers' own
 #: predicate: the newest record of each class, per identity, is all they consult.
@@ -45,10 +45,13 @@ def _newest_of_classes(
     records: Iterable[QualificationEvidenceRecord],
     names: Iterable[str],
     current: str,
+    *,
     per_identity: bool,
 ) -> list[QualificationEvidenceRecord]:
     """The newest record of each class (per identity or file-wide), in `derive_status` order."""
-    best: dict[tuple[str, str], tuple[tuple, QualificationEvidenceRecord]] = {}
+    best: dict[
+        tuple[str, str], tuple[tuple[Any, ...], QualificationEvidenceRecord]
+    ] = {}
     for record in records:
         for name in names:
             if not EVIDENCE_CLASSES[name](record):
@@ -88,8 +91,8 @@ def retained(
         (r for r in evidence.records if r.identity.content_sha256 in contents),
         EVIDENCE_CLASSES,
         current,
-        True,
-    ) + _newest_of_classes(evidence.records, FILE_CLASSES, current, False)
+        per_identity=True,
+    ) + _newest_of_classes(evidence.records, FILE_CLASSES, current, per_identity=False)
     unique = {r.model_dump_json(): r for r in kept}
     with_records = {r.identity.content_sha256 for r in unique.values()}
     return evidence.model_copy(

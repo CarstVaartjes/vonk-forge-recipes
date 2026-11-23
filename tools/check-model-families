@@ -19,12 +19,12 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
+from recipe_tooling.qualification.documents import families, model_display, recipe
 from vonk_forge_contracts.resolver import ContractResolutionError, validate_families
 
-from recipe_tooling.qualification.documents import families, model_display, recipe
+ROOT = Path(__file__).resolve().parents[1]
 
 # Weight formats, quantizers and packaging words that belong to a version or
 # variant, never to a Family or Line.

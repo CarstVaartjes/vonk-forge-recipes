@@ -19,10 +19,9 @@ from urllib.request import Request
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from vonk_forge_contracts import GitHubLfsSource
-
 from recipe_tooling.catalog_model import add_model_arguments, file_id, write_model
 from recipe_tooling.upstream_http import UpstreamBusy, fetch
+from vonk_forge_contracts import GitHubLfsSource
 
 MAX_POINTER_BYTES = 1024
 _LFS_MEDIA_TYPE = "application/vnd.git-lfs+json"

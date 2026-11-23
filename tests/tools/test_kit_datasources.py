@@ -11,16 +11,22 @@ fixture for the model is the switch that exposed the gap: MiaAI-Lab's GLM kit pi
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import tempfile
 import unittest
+import urllib.error
 import urllib.parse
+from email.message import Message
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
-from documents import model_display
+import pytest
+from documents import json_document, model_display
+from documents import model_document as authored_model
+from documents import recipe_document as authored_recipe
 from repo_root import ROOT
 from test_kit_pins import (
     BASE,
@@ -29,7 +35,6 @@ from test_kit_pins import (
     assessor_for,
     upstream,
 )
-from vonk_forge_contracts import read_model
 
 from recipe_tooling import catalog_hf_model, vendored_upstream
 from recipe_tooling.catalog_model import file_id
@@ -48,6 +53,7 @@ from recipe_tooling.refresh_upstream import classification as refresh_classifica
 from recipe_tooling.refresh_upstream import http as refresh_http
 from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
+from vonk_forge_contracts import read_model
 
 EXAMPLE = json.loads(
     (
@@ -364,24 +370,22 @@ class HfDeclarationTests(unittest.TestCase):
             (KIT_NEW, NEW, NEW_REV),
         ):
             text = CONFIGS[commit]
-            self.assertEqual(kit_declarations.parse_repo(text, wanted), repo)
-            self.assertEqual(kit_declarations.parse_declared(text, wanted), revision)
+            assert kit_declarations.parse_repo(text, wanted) == repo
+            assert kit_declarations.parse_declared(text, wanted) == revision
 
     def test_the_drafter_is_a_second_declaration_in_the_same_file(self) -> None:
         wanted = kit_declarations.declarations(HF_MANIFEST)
-        self.assertEqual([d.name for d in wanted], ["drafter", "model"])
+        assert [d.name for d in wanted] == ["drafter", "model"]
         drafter = wanted[0]
-        self.assertEqual(kit_declarations.parse_repo(CONFIGS[KIT_NEW], drafter), DRAFT)
-        self.assertEqual(
-            kit_declarations.parse_declared(CONFIGS[KIT_NEW], drafter), DRAFT_REV
-        )
+        assert kit_declarations.parse_repo(CONFIGS[KIT_NEW], drafter) == DRAFT
+        assert kit_declarations.parse_declared(CONFIGS[KIT_NEW], drafter) == DRAFT_REV
 
     def test_one_place_names_the_repository_and_the_recipe_model_is_named(self) -> None:
-        with self.assertRaisesRegex(kit_model.KitError, "give one"):
+        with pytest.raises(kit_model.KitError, match="give one"):
             self.declaration(repo=NEW)
-        with self.assertRaisesRegex(kit_model.KitError, "lacks repo"):
+        with pytest.raises(kit_model.KitError, match="lacks repo"):
             self.declaration(pattern=r"^_rev=(?P<version>[0-9a-f]{40})$")
-        with self.assertRaisesRegex(kit_model.KitError, "binds"):
+        with pytest.raises(kit_model.KitError, match="binds"):
             kit_declarations.declarations(
                 {
                     "kit": {
@@ -397,7 +401,7 @@ class HfDeclarationTests(unittest.TestCase):
                     }
                 }
             )
-        with self.assertRaisesRegex(kit_model.KitError, "binds is for an hf-revision"):
+        with pytest.raises(kit_model.KitError, match="binds is for an hf-revision"):
             kit_declarations.declarations(
                 {
                     "kit": {
@@ -416,15 +420,15 @@ class HfDeclarationTests(unittest.TestCase):
 
     def test_several_models_in_the_file_are_an_error_not_a_guess(self) -> None:
         text = CONFIGS[KIT_TR3] + CONFIGS[KIT_NEW]
-        with self.assertRaisesRegex(kit_model.KitError, "several"):
+        with pytest.raises(kit_model.KitError, match="several"):
             kit_declarations.parse_repo(text, self.declaration())
 
     def test_a_declared_repository_is_a_huggingface_owner_name(self) -> None:
-        self.assertEqual(
-            kit_declarations._repository("hf-revision", "https://huggingface.co/a/b/"),
-            "a/b",
+        assert (
+            kit_declarations._repository("hf-revision", "https://huggingface.co/a/b/")
+            == "a/b"
         )
-        with self.assertRaises(kit_model.KitError):
+        with pytest.raises(kit_model.KitError):
             kit_declarations._repository("hf-revision", "not-a-repo")
 
 
@@ -441,35 +445,35 @@ class HfDerivationTests(unittest.TestCase):
 
     def test_the_kit_locks_a_revision_of_the_repository_it_declares(self) -> None:
         drafter, model = self.derive(KIT_NEW)
-        self.assertEqual(
-            (model.repo, model.ref, model.immutable, model.kind, model.datasource),
-            (NEW, NEW_REV, NEW_REV, "commit", "hf-revision"),
-        )
-        self.assertEqual((drafter.repo, drafter.immutable), (DRAFT, DRAFT_REV))
+        assert (
+            model.repo,
+            model.ref,
+            model.immutable,
+            model.kind,
+            model.datasource,
+        ) == (NEW, NEW_REV, NEW_REV, "commit", "hf-revision")
+        assert (drafter.repo, drafter.immutable) == (DRAFT, DRAFT_REV)
 
     def test_the_tr3_to_4bpw_tensorfold_switch_changes_repository_and_revision(
         self,
     ) -> None:
         old = self.derive(KIT_TR3)[1]
         new = self.derive(KIT_NEW)[1]
-        self.assertEqual((old.repo, old.immutable), (TR3, TR3_REV))
-        self.assertEqual((new.repo, new.immutable), (NEW, NEW_REV))
+        assert (old.repo, old.immutable) == (TR3, TR3_REV)
+        assert (new.repo, new.immutable) == (NEW, NEW_REV)
 
     def test_the_lock_names_the_datasource_and_keeps_the_revision_under_its_own_key(
         self,
     ) -> None:
         pins = self.derive(KIT_NEW)
         lock = kit_lock.lock_document(KIT, KIT_NEW, pins)
-        self.assertEqual(
-            lock["dependencies"]["model"],
-            {
-                "datasource": "hf-revision",
-                "repo": NEW,
-                "ref": NEW_REV,
-                "kind": "commit",
-                "revision": NEW_REV,
-            },
-        )
+        assert lock["dependencies"]["model"] == {
+            "datasource": "hf-revision",
+            "repo": NEW,
+            "ref": NEW_REV,
+            "kind": "commit",
+            "revision": NEW_REV,
+        }
 
     def test_an_abbreviated_revision_locks_the_full_commit(self) -> None:
         manifest = json.loads(json.dumps(HF_MANIFEST))
@@ -489,9 +493,7 @@ class HfDerivationTests(unittest.TestCase):
                 hub=kit_upstream.HuggingFace(hub_for()),
             ),
         )[0]
-        self.assertEqual(
-            (pin.ref, pin.kind, pin.immutable), (NEW_REV[:8], "commit", NEW_REV)
-        )
+        assert (pin.ref, pin.kind, pin.immutable) == (NEW_REV[:8], "commit", NEW_REV)
 
     def test_a_branch_the_kit_declares_is_followed_like_a_git_branch(self) -> None:
         hub = hub_for(heads={"main": NEW_REV2})
@@ -511,14 +513,12 @@ class HfDerivationTests(unittest.TestCase):
                 FakeApi({"4" * 40: "BRANCH=main\n"}), hub=kit_upstream.HuggingFace(hub)
             ),
         )[0]
-        self.assertEqual(
-            (pin.ref, pin.kind, pin.immutable), ("main", "branch", NEW_REV2)
-        )
+        assert (pin.ref, pin.kind, pin.immutable) == ("main", "branch", NEW_REV2)
 
     def test_a_repository_that_is_not_anonymously_readable_cannot_be_locked(
         self,
     ) -> None:
-        with self.assertRaisesRegex(kit_model.KitError, "cannot resolve .*TR3"):
+        with pytest.raises(kit_model.KitError, match="cannot resolve .*TR3"):
             self.derive(KIT_TR3, hub=hub_for(private=(TR3,)))
 
     def test_an_override_replaces_the_declared_repository_and_revision(self) -> None:
@@ -526,9 +526,7 @@ class HfDerivationTests(unittest.TestCase):
             KIT_NEW,
             override={"repo": TR3, "revision": TR3_REV, "reason": "why"},
         )[1]
-        self.assertEqual(
-            (pin.repo, pin.immutable, pin.overridden), (TR3, TR3_REV, "why")
-        )
+        assert (pin.repo, pin.immutable, pin.overridden) == (TR3, TR3_REV, "why")
 
 
 class HfCheckAndLockTests(unittest.TestCase):
@@ -543,17 +541,17 @@ class HfCheckAndLockTests(unittest.TestCase):
                 KIT_NEW,
             )
             world.write_model(model_document(NEW, NEW_REV, NEW_FILES))
-            self.assertEqual(world.check(), [])
+            assert world.check() == []
 
     def test_a_recipe_on_another_repository_than_the_kits_is_a_problem(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             world = tr3_world(Path(tmp), KIT_NEW, locked="new")
             problems = world.check()
-        self.assertEqual(len(problems), 1, problems)
-        self.assertIn("'primary'", problems[0])
-        self.assertIn(f"{TR3}@{TR3_REV[:12]}", problems[0])
-        self.assertIn(f"{NEW}@{NEW_REV[:12]}", problems[0])
-        self.assertIn("tools/catalog-hf-model", problems[0])
+        assert len(problems) == 1, problems
+        assert "'primary'" in problems[0]
+        assert f"{TR3}@{TR3_REV[:12]}" in problems[0]
+        assert f"{NEW}@{NEW_REV[:12]}" in problems[0]
+        assert "tools/catalog-hf-model" in problems[0]
 
     def test_a_hand_pinned_revision_of_the_same_repository_is_a_problem(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -568,22 +566,22 @@ class HfCheckAndLockTests(unittest.TestCase):
                 locked={"model": (NEW, NEW_REV), "drafter": (DRAFT, DRAFT_REV)},
             )
             problems = world.check()
-        self.assertEqual(len(problems), 1, problems)
-        self.assertIn(f"{NEW}@{NEW_REV2[:12]}", problems[0])
-        self.assertIn(f"kit locks {NEW}@{NEW_REV[:12]}", problems[0])
+        assert len(problems) == 1, problems
+        assert f"{NEW}@{NEW_REV2[:12]}" in problems[0]
+        assert f"kit locks {NEW}@{NEW_REV[:12]}" in problems[0]
 
     def test_a_stale_lock_names_the_kit_declaration(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             world = tr3_world(Path(tmp), KIT_NEW)  # the lock still says TR3
             problems = world.check()
-        self.assertTrue(any("stale" in p for p in problems), problems)
+        assert any("stale" in p for p in problems), problems
 
     def test_the_check_resolves_nothing_it_has_locked(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             world = tr3_world(Path(tmp), KIT_TR3)
             hub = hub_for()
-            self.assertEqual(world.check(hub), [])
-        self.assertEqual(hub.calls, [])
+            assert world.check(hub) == []
+        assert hub.calls == []
 
     def test_lock_rebinds_the_recipe_to_the_catalogued_new_model(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -593,41 +591,31 @@ class HfCheckAndLockTests(unittest.TestCase):
             new["identity"]["publisher"] = "public-copy"
             world.write_model(new)
             changed = world.lock()
-            self.assertIn("recipes/mia.json", changed)
-            recipe = json.loads((world.root / "recipes/mia.json").read_text())
+            assert "recipes/mia.json" in changed
+            recipe = authored_recipe("mia", world.root)
             primary = next(m for m in recipe["models"] if m["id"] == "primary")
-            self.assertEqual(primary["model"]["slug"], new["identity"]["slug"])
-            self.assertEqual(primary["model"]["publisher"], "public-copy")
-            self.assertEqual(
-                primary["model"]["content_sha256"], kit_write.model_digest(new)
-            )
+            assert primary["model"]["slug"] == new["identity"]["slug"]
+            assert primary["model"]["publisher"] == "public-copy"
+            assert primary["model"]["content_sha256"] == kit_write.model_digest(new)
             # a repository switch has no file in common: the whole Model stays mounted
-            self.assertEqual(
-                [f["file_id"] for f in primary["files"]],
-                [f["id"] for f in new["files"]],
-            )
-            self.assertTrue(
-                all(f["id"].startswith("primary-") for f in primary["files"])
-            )
+            assert [f["file_id"] for f in primary["files"]] == [
+                f["id"] for f in new["files"]
+            ]
+            assert all(f["id"].startswith("primary-") for f in primary["files"])
             # the disk envelope follows the size of what is selected (4 files -> 3 files)
-            self.assertEqual(
-                [
-                    r["resources"]["disk"]["artifact_bytes"]
-                    for r in recipe["topology"]["roles"]
-                ],
-                [1000 - 10 * 4 + 7 * 3] * 2,
-            )
+            assert [
+                r["resources"]["disk"]["artifact_bytes"]
+                for r in recipe["topology"]["roles"]
+            ] == [1000 - 10 * 4 + 7 * 3] * 2
             # no recipe uses the TR3 document any more: the newest-only rule removes it
-            self.assertFalse(
-                (
-                    world.root / "models" / f"{slug_name(TR3)}-{TR3_REV[:8]}.json"
-                ).exists()
-            )
+            assert not (
+                world.root / "models" / f"{slug_name(TR3)}-{TR3_REV[:8]}.json"
+            ).exists()
             lock = json.loads((world.directory / "kit-lock.json").read_text())
-            self.assertEqual(lock["dependencies"]["model"]["repo"], NEW)
+            assert lock["dependencies"]["model"]["repo"] == NEW
             world.recipe = recipe
-            self.assertEqual(world.check(), [])
-            self.assertEqual(world.lock(), [])
+            assert world.check() == []
+            assert world.lock() == []
 
     def test_lock_keeps_a_model_another_recipe_still_uses(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -641,21 +629,19 @@ class HfCheckAndLockTests(unittest.TestCase):
                 kit_archive.recipe_text(other)
             )
             changed = world.lock()
-            self.assertFalse(any("removed" in c for c in changed), changed)
-            self.assertTrue(
-                (
-                    world.root / "models" / f"{slug_name(TR3)}-{TR3_REV[:8]}.json"
-                ).exists()
-            )
+            assert not any("removed" in c for c in changed), changed
+            assert (
+                world.root / "models" / f"{slug_name(TR3)}-{TR3_REV[:8]}.json"
+            ).exists()
 
     def test_lock_asks_for_another_repository_to_be_catalogued_first(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             world = tr3_world(Path(tmp), KIT_NEW)
-            with self.assertRaisesRegex(
-                kit_model.KitError, "another repository"
+            with pytest.raises(
+                kit_model.KitError, match="another repository"
             ) as caught:
                 world.lock()
-        self.assertIn(f"--repository {NEW} --revision {NEW_REV}", str(caught.exception))
+        assert f"--repository {NEW} --revision {NEW_REV}" in str(caught.value)
 
     def test_lock_catalogues_another_revision_of_the_same_repository_itself(
         self,
@@ -693,49 +679,38 @@ class HfCheckAndLockTests(unittest.TestCase):
                 upstream(FakeApi(CONFIGS), hub=hub),
             )
             new_slug = f"{slug_name(NEW)}-{NEW_REV2[:8]}"
-            self.assertIn(f"models/{new_slug}.json (catalogued)", changed)
-            document = json.loads(
-                (world.root / "models" / f"{new_slug}.json").read_text()
-            )
-            self.assertEqual(document["source"]["revision"], NEW_REV2)
+            assert f"models/{new_slug}.json (catalogued)" in changed
+            document = authored_model(new_slug, world.root)
+            assert document["source"]["revision"] == NEW_REV2
             # the old curation moved along: the weights are the new snapshot's (two
             # shards, not one), a new metadata file is left out, the README is kept
-            self.assertEqual(
-                sorted(f["path"] for f in document["files"]),
-                [
-                    "README.md",
-                    "config.json",
-                    "model-00001-of-00002.safetensors",
-                    "model-00002-of-00002.safetensors",
-                ],
-            )
-            self.assertEqual(
-                {f["path"]: f["sha256"] for f in document["files"]}["README.md"],
-                "5" * 64,
-            )
-            recipe = json.loads((world.root / "recipes/mia.json").read_text())
+            assert sorted(f["path"] for f in document["files"]) == [
+                "README.md",
+                "config.json",
+                "model-00001-of-00002.safetensors",
+                "model-00002-of-00002.safetensors",
+            ]
+            assert {f["path"]: f["sha256"] for f in document["files"]}[
+                "README.md"
+            ] == "5" * 64
+            recipe = authored_recipe("mia", world.root)
             primary = next(m for m in recipe["models"] if m["id"] == "primary")
-            self.assertEqual(primary["model"]["slug"], new_slug)
-            self.assertEqual(
-                [f["file_id"] for f in primary["files"]],
-                [f["id"] for f in document["files"]],
-            )
+            assert primary["model"]["slug"] == new_slug
+            assert [f["file_id"] for f in primary["files"]] == [
+                f["id"] for f in document["files"]
+            ]
             world.recipe = recipe
-            self.assertEqual(world.check(), [])
-            self.assertFalse(
-                (
-                    world.root / "models" / f"{slug_name(NEW)}-{NEW_REV[:8]}.json"
-                ).exists()
-            )
+            assert world.check() == []
+            assert not (
+                world.root / "models" / f"{slug_name(NEW)}-{NEW_REV[:8]}.json"
+            ).exists()
             # the display (with the licence, capabilities and modalities) moves too
             old_slug = f"{slug_name(NEW)}-{NEW_REV[:8]}"
             shown = model_display(new_slug, world.root)
-            self.assertEqual(shown.identity.slug, new_slug)
-            self.assertEqual(shown.license.spdx, "MIT")
-            self.assertEqual(shown.modalities, ["text"])
-            self.assertFalse(
-                (world.root / "display/models" / f"{old_slug}.json").exists()
-            )
+            assert shown.identity.slug == new_slug
+            assert shown.license.spdx == "MIT"
+            assert shown.modalities == ["text"]
+            assert not (world.root / "display/models" / f"{old_slug}.json").exists()
 
     def test_the_file_ids_are_the_ones_the_catalog_tool_gives(self) -> None:
         tree = [
@@ -749,8 +724,8 @@ class HfCheckAndLockTests(unittest.TestCase):
             )
         ]
         for item in catalog_hf_model.inventory("o/n", NEW_REV, tree):  # pyright: ignore[reportArgumentType]
-            self.assertEqual(file_id(item["path"], item["sha256"]), item["id"])
-            self.assertEqual(file_id(item["path"], item["sha256"]), item["id"])
+            assert file_id(item["path"], item["sha256"]) == item["id"]
+            assert file_id(item["path"], item["sha256"]) == item["id"]
 
     def test_a_revision_moved_within_the_repository_keeps_the_selected_files(
         self,
@@ -781,12 +756,11 @@ class HfCheckAndLockTests(unittest.TestCase):
             new = model_document(NEW, NEW_REV2, moved)
             world.write_model(new)
             world.lock()
-            result = json.loads((world.root / "recipes/mia.json").read_text())
+            result = authored_recipe("mia", world.root)
             selected = next(m for m in result["models"] if m["id"] == "primary")
-            self.assertEqual(selected["model"]["slug"], new["identity"]["slug"])
-            self.assertEqual(
-                sorted(f["file_id"] for f in selected["files"]),
-                sorted(f["id"] for f in new["files"] if f["path"] != "README.md"),
+            assert selected["model"]["slug"] == new["identity"]["slug"]
+            assert sorted(f["file_id"] for f in selected["files"]) == sorted(
+                f["id"] for f in new["files"] if f["path"] != "README.md"
             )
 
 
@@ -827,7 +801,8 @@ class HubApi(FakeApi):
         self.hub = hub
 
     def json(self, url: str, provider: str, *, anonymous: bool = False) -> Any:
-        assert provider == "huggingface" and anonymous, (provider, anonymous)
+        assert provider == "huggingface", (provider, anonymous)
+        assert anonymous, (provider, anonymous)
         return self.hub(url.removeprefix("https://huggingface.co/api/"))
 
 
@@ -875,15 +850,12 @@ class KitModelAssessmentTests(unittest.TestCase):
             {},
             hub=hub_for(),
         )
-        self.assertFalse(result.drifted, result.reasons)
-        self.assertFalse([i for i in result.items if i.kind == "model"])
-        self.assertTrue(
-            any(
-                "information" in e and NEW_REV2[:12] in e and "follows the kit" in e
-                for e in result.evidence
-            ),
-            result.evidence,
-        )
+        assert not result.drifted, result.reasons
+        assert not [i for i in result.items if i.kind == "model"]
+        assert any(
+            "information" in e and NEW_REV2[:12] in e and "follows the kit" in e
+            for e in result.evidence
+        ), result.evidence
 
     def test_the_newest_revision_of_a_kit_declared_model_is_never_proposed(
         self,
@@ -900,8 +872,8 @@ class KitModelAssessmentTests(unittest.TestCase):
             {},
             hub=hub,
         )
-        self.assertFalse(result.drifted)
-        self.assertFalse(result.items)
+        assert not result.drifted
+        assert not result.items
 
     def test_a_kit_that_switches_model_repository_is_a_review(self) -> None:
         result, _ = self.assess(
@@ -911,15 +883,12 @@ class KitModelAssessmentTests(unittest.TestCase):
             {"model": (TR3, TR3_REV), "drafter": (DRAFT, DRAFT_REV)},
             {},
         )
-        self.assertFalse(result.mechanical)
-        self.assertTrue(
-            any(
-                "another model repository is a review" in r and NEW in r and TR3 in r
-                for r in result.reasons
-            ),
-            result.reasons,
-        )
-        self.assertTrue(any("(model) moved" in e for e in result.evidence))
+        assert not result.mechanical
+        assert any(
+            "another model repository is a review" in r and NEW in r and TR3 in r
+            for r in result.reasons
+        ), result.reasons
+        assert any("(model) moved" in e for e in result.evidence)
 
     def test_a_declared_revision_with_the_same_files_is_a_mechanical_move(self) -> None:
         moved = dict(NEW_FILES, **{"README.md": ("metadata", "2" * 64)})
@@ -930,24 +899,22 @@ class KitModelAssessmentTests(unittest.TestCase):
             {"model": (NEW, NEW_REV), "drafter": (DRAFT, DRAFT_REV)},
             {(NEW, NEW_REV2): inventory(moved)},
         )
-        self.assertTrue(result.mechanical, result.reasons)
+        assert result.mechanical, result.reasons
         new_slug = f"{slug_name(NEW)}-{NEW_REV2[:8]}"
         old_slug = f"{slug_name(NEW)}-{NEW_REV[:8]}"
-        self.assertIn(f"models/{new_slug}.json", result.edits)
-        self.assertIsNone(result.edits[f"models/{old_slug}.json"])
-        recipe = json.loads(result.edits["recipes/mia.json"])
-        self.assertEqual(
-            next(m for m in recipe["models"] if m["id"] == "primary")["model"]["slug"],
-            new_slug,
+        assert f"models/{new_slug}.json" in result.edits
+        assert result.edits[f"models/{old_slug}.json"] is None
+        recipe = json_document(result.edits["recipes/mia.json"])
+        assert (
+            next(m for m in recipe["models"] if m["id"] == "primary")["model"]["slug"]
+            == new_slug
         )
         lock = json.loads(result.edits["adapters/mia/kit-lock.json"])
-        self.assertEqual(lock["dependencies"]["model"]["revision"], NEW_REV2)
-        self.assertEqual(lock["dependencies"]["model"]["datasource"], "hf-revision")
-        self.assertEqual(lock["kit"]["commit"], KIT_NEXT)
+        assert lock["dependencies"]["model"]["revision"] == NEW_REV2
+        assert lock["dependencies"]["model"]["datasource"] == "hf-revision"
+        assert lock["kit"]["commit"] == KIT_NEXT
         # the repository's own newest revision played no part: the kit's revision was used
-        self.assertEqual(
-            [i.target.sha for i in result.items if i.kind == "model"], [NEW_REV2]
-        )
+        assert [i.target.sha for i in result.items if i.kind == "model"] == [NEW_REV2]
 
     def test_a_declared_revision_with_other_weights_is_a_review(self) -> None:
         changed = dict(
@@ -960,14 +927,10 @@ class KitModelAssessmentTests(unittest.TestCase):
             {"model": (NEW, NEW_REV), "drafter": (DRAFT, DRAFT_REV)},
             {(NEW, NEW_REV2): inventory(changed)},
         )
-        self.assertFalse(result.mechanical)
-        self.assertTrue(
-            any(
-                refresh_classification.KIT_MODEL_FILES_CHANGED in r
-                for r in result.reasons
-            ),
-            result.reasons,
-        )
+        assert not result.mechanical
+        assert any(
+            refresh_classification.KIT_MODEL_FILES_CHANGED in r for r in result.reasons
+        ), result.reasons
 
     def test_a_declared_revision_with_a_changed_configuration_is_a_review(self) -> None:
         changed = dict(NEW_FILES, **{"config.json": ("configuration", "8" * 64)})
@@ -978,7 +941,7 @@ class KitModelAssessmentTests(unittest.TestCase):
             {"model": (NEW, NEW_REV), "drafter": (DRAFT, DRAFT_REV)},
             {(NEW, NEW_REV2): inventory(changed)},
         )
-        self.assertFalse(result.mechanical)
+        assert not result.mechanical
 
     def test_a_declared_model_that_stopped_being_readable_is_a_review(self) -> None:
         result, _ = self.assess(
@@ -989,10 +952,9 @@ class KitModelAssessmentTests(unittest.TestCase):
             {},
             hub=hub_for(private=(NEW,)),
         )
-        self.assertFalse(result.mechanical)
-        self.assertTrue(
-            any("cannot be read" in r and "HTTP 401" in r for r in result.reasons),
-            result.reasons,
+        assert not result.mechanical
+        assert any("cannot be read" in r and "HTTP 401" in r for r in result.reasons), (
+            result.reasons
         )
 
 
@@ -1095,51 +1057,48 @@ def registry_for() -> FakeRegistry:
 class RegistryTests(unittest.TestCase):
     def test_a_tag_resolves_to_the_arm64_manifest_of_its_index(self) -> None:
         registry = kit_upstream.Registry(registry_for())
-        self.assertEqual(registry.resolve(IMAGE, "1.3.0rc13"), ARM_RC13)
-        self.assertEqual(registry.resolve(IMAGE, "1.3.0rc12"), ARM_RC12)
+        assert registry.resolve(IMAGE, "1.3.0rc13") == ARM_RC13
+        assert registry.resolve(IMAGE, "1.3.0rc12") == ARM_RC12
 
     def test_a_digest_the_kit_names_resolves_to_the_same_arm64_manifest(self) -> None:
         registry = kit_upstream.Registry(registry_for())
-        self.assertEqual(registry.resolve(IMAGE, INDEX_RC13), ARM_RC13)
+        assert registry.resolve(IMAGE, INDEX_RC13) == ARM_RC13
 
     def test_a_single_platform_manifest_is_its_own_digest(self) -> None:
         fake = registry_for()
         digest = "sha256:" + hashlib.sha256(fake.manifests["single"]).hexdigest()
-        self.assertEqual(kit_upstream.Registry(fake).resolve(IMAGE, "single"), digest)
+        assert kit_upstream.Registry(fake).resolve(IMAGE, "single") == digest
 
     def test_the_anonymous_token_is_fetched_once_per_request(self) -> None:
         fake = registry_for()
         kit_upstream.Registry(fake).resolve(IMAGE, "1.3.0rc13")
-        self.assertEqual(
-            [u.split("?")[0] for u, _ in fake.calls],
-            [
-                f"https://nvcr.io/v2/{IMAGE.removeprefix('nvcr.io/')}/manifests/1.3.0rc13",
-                "https://nvcr.io/proxy_auth",
-                f"https://nvcr.io/v2/{IMAGE.removeprefix('nvcr.io/')}/manifests/1.3.0rc13",
-            ],
-        )
+        assert [u.split("?")[0] for u, _ in fake.calls] == [
+            f"https://nvcr.io/v2/{IMAGE.removeprefix('nvcr.io/')}/manifests/1.3.0rc13",
+            "https://nvcr.io/proxy_auth",
+            f"https://nvcr.io/v2/{IMAGE.removeprefix('nvcr.io/')}/manifests/1.3.0rc13",
+        ]
 
     def test_a_missing_tag_and_an_index_without_arm64_are_errors(self) -> None:
         fake = registry_for()
         fake.manifests["amd-only"] = index((AMD, "linux", "amd64"))
         registry = kit_upstream.Registry(fake)
-        with self.assertRaisesRegex(kit_model.KitError, "HTTP 404"):
+        with pytest.raises(kit_model.KitError, match="HTTP 404"):
             registry.resolve(IMAGE, "gone")
-        with self.assertRaisesRegex(kit_model.KitError, "no single linux/arm64"):
+        with pytest.raises(kit_model.KitError, match="no single linux/arm64"):
             registry.resolve(IMAGE, "amd-only")
 
     def test_docker_hub_names_resolve_to_its_registry(self) -> None:
-        self.assertEqual(
-            kit_upstream.Registry.split("vllm/vllm-openai"),
-            ("registry-1.docker.io", "vllm/vllm-openai"),
+        assert kit_upstream.Registry.split("vllm/vllm-openai") == (
+            "registry-1.docker.io",
+            "vllm/vllm-openai",
         )
-        self.assertEqual(
-            kit_upstream.Registry.split("ubuntu"),
-            ("registry-1.docker.io", "library/ubuntu"),
+        assert kit_upstream.Registry.split("ubuntu") == (
+            "registry-1.docker.io",
+            "library/ubuntu",
         )
-        self.assertEqual(
-            kit_upstream.Registry.split("ghcr.io/ggml-org/llama.cpp"),
-            ("ghcr.io", "ggml-org/llama.cpp"),
+        assert kit_upstream.Registry.split("ghcr.io/ggml-org/llama.cpp") == (
+            "ghcr.io",
+            "ggml-org/llama.cpp",
         )
 
 
@@ -1232,10 +1191,8 @@ class ImageKitTests(unittest.TestCase):
 
     def test_the_pattern_picks_the_declared_image_among_several_tags(self) -> None:
         wanted = kit_declarations.declarations(OCI_MANIFEST)[0]
-        self.assertEqual(kit_declarations.parse_repo(README[KIT_RC13], wanted), IMAGE)
-        self.assertEqual(
-            kit_declarations.parse_declared(README[KIT_RC13], wanted), "1.3.0rc13"
-        )
+        assert kit_declarations.parse_repo(README[KIT_RC13], wanted) == IMAGE
+        assert kit_declarations.parse_declared(README[KIT_RC13], wanted) == "1.3.0rc13"
 
     def test_the_lock_holds_the_arm64_digest_of_the_declared_tag(self) -> None:
         pin = kit_resolve.derive(
@@ -1246,20 +1203,22 @@ class ImageKitTests(unittest.TestCase):
                 _ReadmeApi(README), registry=kit_upstream.Registry(registry_for())
             ),
         )[0]
-        self.assertEqual(
-            (pin.repo, pin.ref, pin.kind, pin.immutable, pin.datasource),
-            (IMAGE, "1.3.0rc13", "tag", ARM_RC13, "oci-image"),
+        assert (pin.repo, pin.ref, pin.kind, pin.immutable, pin.datasource) == (
+            IMAGE,
+            "1.3.0rc13",
+            "tag",
+            ARM_RC13,
+            "oci-image",
         )
-        self.assertEqual(
-            kit_lock.lock_document(KIT, KIT_RC13, [pin])["dependencies"]["image"],
-            {
-                "datasource": "oci-image",
-                "repo": IMAGE,
-                "ref": "1.3.0rc13",
-                "kind": "tag",
-                "digest": ARM_RC13,
-            },
-        )
+        assert kit_lock.lock_document(KIT, KIT_RC13, [pin])["dependencies"][
+            "image"
+        ] == {
+            "datasource": "oci-image",
+            "repo": IMAGE,
+            "ref": "1.3.0rc13",
+            "kind": "tag",
+            "digest": ARM_RC13,
+        }
 
     def test_a_recipe_on_the_locked_digest_passes_without_asking_the_registry(
         self,
@@ -1273,30 +1232,26 @@ class ImageKitTests(unittest.TestCase):
             world.recipe,
             upstream(api, registry=kit_upstream.Registry(registry)),
         )
-        self.assertEqual(problems, [])
-        self.assertEqual(registry.calls, [])
+        assert problems == []
+        assert registry.calls == []
 
     def test_a_dockerfile_on_another_digest_than_the_lock_is_a_problem(self) -> None:
         world = self.world(KIT_RC13, ARM_RC13, "1.3.0rc13")
         (world.directory / "Dockerfile").write_text(f"FROM {IMAGE}@{ARM_RC12}\n")
         problems = self.check(world, KIT_RC13)
-        self.assertTrue(
-            any("not the kit's locked image" in p for p in problems), problems
-        )
+        assert any("not the kit's locked image" in p for p in problems), problems
 
     def test_a_base_image_digest_that_is_not_the_lock_is_a_problem(self) -> None:
         world = self.world(KIT_RC13, ARM_RC13, "1.3.0rc13")
         world.recipe["execution"]["build"]["base_image"]["digest"] = "0" * 64
         problems = self.check(world, KIT_RC13)
-        self.assertTrue(any("base_image digest" in p for p in problems), problems)
+        assert any("base_image digest" in p for p in problems), problems
 
     def test_a_dockerfile_without_the_kits_image_is_a_problem(self) -> None:
         world = self.world(KIT_RC13, ARM_RC13, "1.3.0rc13")
         (world.directory / "Dockerfile").write_text("FROM scratch\n")
         problems = self.check(world, KIT_RC13)
-        self.assertTrue(
-            any("no FROM of the kit's image" in p for p in problems), problems
-        )
+        assert any("no FROM of the kit's image" in p for p in problems), problems
 
     def test_lock_moves_the_from_and_the_base_image_to_the_tag_the_kit_names(
         self,
@@ -1310,18 +1265,17 @@ class ImageKitTests(unittest.TestCase):
                 _ReadmeApi(README), registry=kit_upstream.Registry(registry_for())
             ),
         )
-        self.assertIn("Dockerfile (FROM digest)", changed)
+        assert "Dockerfile (FROM digest)" in changed
         text = (world.directory / "Dockerfile").read_text()
-        self.assertIn(f"FROM {IMAGE}@{ARM_RC12}\n", text)
-        self.assertIn("FROM scratch AS other", text)
-        recipe = json.loads((self.root / "recipes/trt.json").read_text())
-        self.assertEqual(
-            recipe["execution"]["build"]["base_image"]["digest"],
-            ARM_RC12.removeprefix("sha256:"),
-        )
+        assert f"FROM {IMAGE}@{ARM_RC12}\n" in text
+        assert "FROM scratch AS other" in text
+        recipe = authored_recipe("trt", self.root)
+        assert recipe["execution"]["build"]["base_image"][
+            "digest"
+        ] == ARM_RC12.removeprefix("sha256:")
         world.recipe = recipe
-        self.assertEqual(self.check(world, KIT_RC12), [])
-        self.assertEqual(
+        assert self.check(world, KIT_RC12) == []
+        assert (
             kit_write.apply_lock(
                 self.root,
                 "trt",
@@ -1329,8 +1283,8 @@ class ImageKitTests(unittest.TestCase):
                 upstream(
                     _ReadmeApi(README), registry=kit_upstream.Registry(registry_for())
                 ),
-            ),
-            [],
+            )
+            == []
         )
 
     def test_a_tag_the_dockerfile_names_keeps_being_named(self) -> None:
@@ -1346,10 +1300,9 @@ class ImageKitTests(unittest.TestCase):
                 _ReadmeApi(README), registry=kit_upstream.Registry(registry_for())
             ),
         )
-        self.assertEqual(
-            (world.directory / "Dockerfile").read_text(),
-            f"FROM {IMAGE}:1.3.0rc12@{ARM_RC12}\n",
-        )
+        assert (
+            world.directory / "Dockerfile"
+        ).read_text() == f"FROM {IMAGE}:1.3.0rc12@{ARM_RC12}\n"
 
 
 class _ReadmeApi(FakeApi):
@@ -1360,9 +1313,8 @@ class _ReadmeApi(FakeApi):
         self.readmes = readmes
 
     def __call__(self, path: str) -> Any:
-        import base64
 
-        route = path.split("?")[0].split("/")
+        route = path.split("?", maxsplit=1)[0].split("/")
         if route[:1] == ["repos"] and route[3] == "contents":
             text = self.readmes.get(path.split("ref=")[1])
             if text is None or "/".join(route[4:]) != "README.md":
@@ -1416,14 +1368,12 @@ class ImageAssessmentTests(unittest.TestCase):
     def test_a_rate_limited_kit_read_leaves_the_recipe_unreachable_not_in_review(
         self,
     ) -> None:
-        import urllib.error
-        from email.message import Message
 
         class RateLimited(_ReadmeApi):
             """Kit reads go through the real HTTP client, which GitHub answers with 429."""
 
             def __call__(self, path: str) -> Any:
-                if path.split("?")[0].split("/")[3:4] != ["contents"]:
+                if path.split("?", maxsplit=1)[0].split("/")[3:4] != ["contents"]:
                     return super().__call__(path)
 
                 def limited(request: Any, timeout: float) -> Any:
@@ -1445,37 +1395,36 @@ class ImageAssessmentTests(unittest.TestCase):
         result = self.assess(
             KIT_RC13, KIT_RC12, registry_for(), api=RateLimited(README)
         )
-        self.assertEqual(result.reasons, [])
-        self.assertTrue(result.unreachable)
+        assert result.reasons == []
+        assert result.unreachable
 
     def test_a_current_image_declaration_is_not_drift(self) -> None:
         result = self.assess(KIT_RC13, KIT_RC13, registry_for())
-        self.assertFalse(result.drifted, result.reasons)
+        assert not result.drifted, result.reasons
 
     def test_a_kit_that_names_another_tag_moves_the_image(self) -> None:
         result = self.assess(KIT_RC13, KIT_RC12, registry_for())
-        self.assertTrue(result.mechanical, result.reasons)
-        self.assertEqual([i.kind for i in result.items if i.kind == "image"], ["image"])
+        assert result.mechanical, result.reasons
+        assert [i.kind for i in result.items if i.kind == "image"] == ["image"]
         dockerfile = result.edits["adapters/trt/Dockerfile"].decode()
-        self.assertIn(f"{IMAGE}@{ARM_RC12}", dockerfile)
-        self.assertNotIn(ARM_RC13, dockerfile)
+        assert f"{IMAGE}@{ARM_RC12}" in dockerfile
+        assert ARM_RC13 not in dockerfile
         lock = json.loads(result.edits["adapters/trt/kit-lock.json"])
-        self.assertEqual(lock["dependencies"]["image"]["digest"], ARM_RC12)
-        recipe = json.loads(result.edits["recipes/trt.json"])
-        self.assertEqual(
-            recipe["execution"]["build"]["base_image"]["digest"],
-            ARM_RC12.removeprefix("sha256:"),
-        )
+        assert lock["dependencies"]["image"]["digest"] == ARM_RC12
+        recipe = json_document(result.edits["recipes/trt.json"])
+        assert recipe["execution"]["build"]["base_image"][
+            "digest"
+        ] == ARM_RC12.removeprefix("sha256:")
 
     def test_a_tag_that_moved_to_a_new_digest_moves_the_image(self) -> None:
         registry = registry_for()
         moved = "sha256:" + "cc" * 32
         registry.manifests["1.3.0rc13"] = index((moved, "linux", "arm64"))
         result = self.assess(KIT_RC13, KIT_RC13, registry)
-        self.assertTrue(result.mechanical, result.reasons)
-        self.assertIn(moved, result.edits["adapters/trt/Dockerfile"].decode())
+        assert result.mechanical, result.reasons
+        assert moved in result.edits["adapters/trt/Dockerfile"].decode()
         lock = json.loads(result.edits["adapters/trt/kit-lock.json"])
-        self.assertEqual(lock["dependencies"]["image"]["digest"], moved)
+        assert lock["dependencies"]["image"]["digest"] == moved
 
     def test_another_image_repository_is_a_review(self) -> None:
         registry = registry_for()
@@ -1484,9 +1433,9 @@ class ImageAssessmentTests(unittest.TestCase):
         result = self.assess(
             KIT_RC13, KIT_RC13, registry, locked_repo="ghcr.io/other/engine"
         )
-        self.assertFalse(result.mechanical)
-        self.assertTrue(
-            any("another image repository" in r for r in result.reasons), result.reasons
+        assert not result.mechanical
+        assert any("another image repository" in r for r in result.reasons), (
+            result.reasons
         )
 
 
@@ -1507,14 +1456,12 @@ class KitOnlyManifestTests(unittest.TestCase):
     def test_a_kit_without_a_base_leaves_the_adapters_own_source(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             directory = self.adapter(Path(tmp), HF_MANIFEST)
-            self.assertEqual(
-                vendored_upstream._source(directory, HF_MANIFEST),
-                ("o/engine", "a" * 40),
+            assert vendored_upstream._source(directory, HF_MANIFEST) == (
+                "o/engine",
+                "a" * 40,
             )
             declared = dict(HF_MANIFEST, source={"repo": KIT, "commit": "b" * 40})
-            self.assertEqual(
-                vendored_upstream._source(directory, declared), (KIT, "b" * 40)
-            )
+            assert vendored_upstream._source(directory, declared) == (KIT, "b" * 40)
 
     def test_a_kit_with_a_base_takes_it_from_the_lock(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1531,7 +1478,7 @@ class KitOnlyManifestTests(unittest.TestCase):
                 }
             }
             directory = self.adapter(Path(tmp), manifest)
-            self.assertIsNone(vendored_upstream._source(directory, manifest))
+            assert vendored_upstream._source(directory, manifest) is None
 
     def test_the_manifest_alone_does_not_make_the_adapter_a_vendored_one(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1541,8 +1488,8 @@ class KitOnlyManifestTests(unittest.TestCase):
             report = vendored_upstream.check_adapter(
                 directory, root, lambda _repo, _commit: tree
             )
-        self.assertEqual(report.problems, [])
-        self.assertIn("no upstream-derived files", report.note)
+        assert report.problems == []
+        assert "no upstream-derived files" in report.note
 
     def test_a_hand_authored_source_beside_a_model_declaration_is_the_kits_own_pin(
         self,
@@ -1557,7 +1504,7 @@ class KitOnlyManifestTests(unittest.TestCase):
                 json.dumps(manifest)
             )
             problems = world.check()
-        self.assertFalse(any("hand-authored" in p for p in problems), problems)
+        assert not any("hand-authored" in p for p in problems), problems
 
     def test_the_scanner_follows_the_adapter_source_unless_the_kit_declares_it(
         self,
@@ -1565,10 +1512,10 @@ class KitOnlyManifestTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             models = self.adapter(root, HF_MANIFEST)
-            self.assertFalse(refresh_catalog_view.declares_adapter_source(models))
-            self.assertTrue(refresh_catalog_view.whole_kit(models) is True)
+            assert not refresh_catalog_view.declares_adapter_source(models)
+            assert refresh_catalog_view.whole_kit(models) is True
             (models / "vendored-upstream.json").write_text(json.dumps(OCI_MANIFEST))
-            self.assertTrue(refresh_catalog_view.declares_adapter_source(models))
+            assert refresh_catalog_view.declares_adapter_source(models)
             (models / "vendored-upstream.json").write_text(
                 json.dumps(
                     {
@@ -1586,9 +1533,9 @@ class KitOnlyManifestTests(unittest.TestCase):
                     }
                 )
             )
-            self.assertTrue(refresh_catalog_view.declares_adapter_source(models))
-            self.assertFalse(refresh_catalog_view.whole_kit(models))
-        self.assertFalse(refresh_catalog_view.declares_adapter_source(None))
+            assert refresh_catalog_view.declares_adapter_source(models)
+            assert not refresh_catalog_view.whole_kit(models)
+        assert not refresh_catalog_view.declares_adapter_source(None)
 
     def test_a_kit_move_updates_the_lock_even_when_the_adapter_owns_the_source_pin(
         self,
@@ -1613,7 +1560,7 @@ class KitOnlyManifestTests(unittest.TestCase):
             key = "adapters/mia/kit-lock.json"
             pending = edits[key]
             assert pending is not None
-            self.assertEqual(json.loads(pending)["kit"]["commit"], KIT_NEW)
+            assert json.loads(pending)["kit"]["commit"] == KIT_NEW
             # a later edit to the same lock (a model moved) merges with it
             lock = assessor._lock(world.directory, edits)
             lock["dependencies"]["model"]["ref"] = "moved"
@@ -1621,8 +1568,8 @@ class KitOnlyManifestTests(unittest.TestCase):
             written = edits[key]
             assert written is not None
             merged = json.loads(written)
-            self.assertEqual(merged["kit"]["commit"], KIT_NEW)
-            self.assertEqual(merged["dependencies"]["model"]["ref"], "moved")
+            assert merged["kit"]["commit"] == KIT_NEW
+            assert merged["dependencies"]["model"]["ref"] == "moved"
 
 
 class RecipeCatalogDeclarationTests(unittest.TestCase):
@@ -1642,9 +1589,9 @@ class RecipeCatalogDeclarationTests(unittest.TestCase):
             for declaration in wanted:
                 with self.subTest(recipe=slug, dependency=declaration.name):
                     entry = lock[declaration.name]
-                    self.assertEqual(entry["datasource"], declaration.datasource)
+                    assert entry["datasource"] == declaration.datasource
                     key = kit_model.IMMUTABLE_KEYS[declaration.datasource]
-                    self.assertTrue(entry[key])
+                    assert entry[key]
                     seen += 1
                     if declaration.datasource == "hf-revision":
                         document = kit_consumers.bound_model(  # pyright: ignore[reportOptionalSubscript]
@@ -1652,17 +1599,13 @@ class RecipeCatalogDeclarationTests(unittest.TestCase):
                             recipe,
                             declaration.binds,  # pyright: ignore[reportArgumentType]
                         )[1]
-                        self.assertTrue(
-                            kit_consumers.model_matches(
-                                document, entry["repo"], entry["revision"]
-                            )
+                        assert kit_consumers.model_matches(
+                            document, entry["repo"], entry["revision"]
                         )
                     if declaration.datasource == "oci-image":
                         base = recipe["execution"]["build"]["base_image"]
-                        self.assertEqual(
-                            base["digest"], entry["digest"].removeprefix("sha256:")
-                        )
-        self.assertGreater(seen, 0)
+                        assert base["digest"] == entry["digest"].removeprefix("sha256:")
+        assert seen > 0
 
 
 if __name__ == "__main__":

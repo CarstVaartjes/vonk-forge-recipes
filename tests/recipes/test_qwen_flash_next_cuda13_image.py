@@ -22,7 +22,8 @@ WHEEL_SHA256 = "5132d531c0ef9cee849f8a2f3262da2ad0d62dd7a404e1108092cd08a3bc00a3
 spec = importlib.util.spec_from_file_location(
     "verify_runtime", ADAPTER / "verify-runtime.py"
 )
-assert spec and spec.loader
+assert spec
+assert spec.loader
 verify = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(verify)
 

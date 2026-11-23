@@ -12,6 +12,7 @@ import hashlib
 import importlib.machinery
 import importlib.util
 import json
+import re
 import sys
 import tempfile
 import unittest
@@ -19,10 +20,13 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
+import pytest
+from documents import json_document
 from repo_root import ROOT
 
-from recipe_tooling import vendored_upstream
+from recipe_tooling import adapter_mirror, vendored_upstream
 from recipe_tooling.adapter_sources import AdapterSourceError
+from recipe_tooling.catalog_model import roles_for
 from recipe_tooling.kit_pins import check as kit_check
 from recipe_tooling.kit_pins import cli as kit_cli
 from recipe_tooling.kit_pins import declarations as kit_declarations
@@ -37,6 +41,7 @@ from recipe_tooling.refresh_upstream import classification as refresh_classifica
 from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.refresh_upstream import render as refresh_render
+from recipe_tooling.upstream_http import UpstreamBusy
 
 
 def load(name: str, module: str):
@@ -93,7 +98,7 @@ class FakeApi:
 
     def __call__(self, path: str) -> Any:
         self.calls.append(path)
-        route = path.split("?")[0].split("/")
+        route = path.split("?", maxsplit=1)[0].split("/")
         if route[:1] == ["repos"] and route[3] == "contents":
             commit = path.split("ref=")[1]
             text = self.config.get(commit)
@@ -141,39 +146,35 @@ def declaration(**override: Any) -> Any:
 class DeclarationTests(unittest.TestCase):
     def test_the_mia_declaration_reads_both_kit_versions(self) -> None:
         wanted = declaration()
-        self.assertEqual(
-            kit_declarations.parse_declared(CONFIG[KIT_OLD], wanted), "v0.5.0"
-        )
-        self.assertEqual(
-            kit_declarations.parse_declared(CONFIG[KIT_NEW], wanted), "v0.6.0"
-        )
+        assert kit_declarations.parse_declared(CONFIG[KIT_OLD], wanted) == "v0.5.0"
+        assert kit_declarations.parse_declared(CONFIG[KIT_NEW], wanted) == "v0.6.0"
 
     def test_nothing_matching_or_several_values_is_an_error(self) -> None:
-        with self.assertRaisesRegex(kit_model.KitError, "nothing in scripts/config.sh"):
+        with pytest.raises(kit_model.KitError, match="nothing in scripts/config.sh"):
             kit_declarations.parse_declared("TF_VERSION=none\n", declaration())
         text = CONFIG[KIT_OLD] + CONFIG[KIT_NEW]
-        with self.assertRaisesRegex(kit_model.KitError, "several values"):
+        with pytest.raises(kit_model.KitError, match="several values"):
             kit_declarations.parse_declared(text, declaration())
         # the same value twice is still one declaration
         kit_declarations.parse_declared(CONFIG[KIT_OLD] * 2, declaration())
 
     def test_a_pattern_needs_the_version_group_and_a_known_datasource(self) -> None:
-        with self.assertRaisesRegex(kit_model.KitError, "version"):
+        with pytest.raises(kit_model.KitError, match="version"):
             declaration(pattern="^TF_VERSION=(.*)$")
-        with self.assertRaisesRegex(kit_model.KitError, "datasource"):
+        with pytest.raises(kit_model.KitError, match="datasource"):
             declaration(datasource="npm-package")
-        with self.assertRaisesRegex(kit_model.KitError, "lacks"):
+        with pytest.raises(kit_model.KitError, match="lacks"):
             kit_declarations.declarations(
                 {"kit": {"dependencies": {"base": {"repo": BASE}}}}
             )
 
     def test_an_override_needs_a_reason(self) -> None:
-        with self.assertRaisesRegex(kit_model.KitError, "override needs"):
+        with pytest.raises(kit_model.KitError, match="override needs"):
             declaration(override={"ref": "v0.6.1"})
-        self.assertIsNotNone(declaration(override={"ref": "v0.6.1", "reason": "x"}))
+        assert declaration(override={"ref": "v0.6.1", "reason": "x"}) is not None
 
     def test_a_manifest_without_a_kit_block_declares_nothing(self) -> None:
-        self.assertEqual(kit_declarations.declarations({"ours": []}), [])
+        assert kit_declarations.declarations({"ours": []}) == []
 
 
 class DerivationTests(unittest.TestCase):
@@ -184,48 +185,43 @@ class DerivationTests(unittest.TestCase):
 
     def test_mia_v050_to_v060_follows_the_kit_not_the_newest_tag(self) -> None:
         old, new = self.derive(KIT_OLD), self.derive(KIT_NEW)
-        self.assertEqual((old.ref, old.immutable), ("v0.5.0", BASE_050))
-        self.assertEqual((new.ref, new.immutable), ("v0.6.0", BASE_060))
-        self.assertEqual(new.version, "0.6.0")
-        self.assertNotIn(new.immutable, {BASE_061, BASE_062})
-        self.assertEqual(new.date, "2026-10-01")
+        assert (old.ref, old.immutable) == ("v0.5.0", BASE_050)
+        assert (new.ref, new.immutable) == ("v0.6.0", BASE_060)
+        assert new.version == "0.6.0"
+        assert new.immutable not in {BASE_061, BASE_062}
+        assert new.date == "2026-10-01"
 
     def test_the_newest_release_is_information_only(self) -> None:
-        self.assertEqual(
-            kit_resolve.newest_release(kit_upstream.GitHub(FakeApi()), BASE), "v0.6.2"
+        assert (
+            kit_resolve.newest_release(kit_upstream.GitHub(FakeApi()), BASE) == "v0.6.2"
         )
 
     def test_an_override_replaces_the_declaration_and_is_recorded(self) -> None:
         pin = self.derive(KIT_NEW, override={"ref": "v0.6.1", "reason": "fix"})
-        self.assertEqual((pin.immutable, pin.overridden), (BASE_061, "fix"))
+        assert (pin.immutable, pin.overridden) == (BASE_061, "fix")
         lock = kit_lock.lock_document(KIT, KIT_NEW, [pin])
-        self.assertEqual(lock["dependencies"]["base"]["overridden"], "fix")
+        assert lock["dependencies"]["base"]["overridden"] == "fix"
 
     def test_an_unreadable_kit_file_names_the_commit(self) -> None:
-        with self.assertRaisesRegex(kit_model.KitError, "cannot read"):
+        with pytest.raises(kit_model.KitError, match="cannot read"):
             kit_resolve.derive(KIT, "f" * 40, [declaration()], upstream(FakeApi()))
 
     def test_the_lock_is_deterministic(self) -> None:
         pin = self.derive(KIT_NEW)
         text = kit_lock.lock_text(kit_lock.lock_document(KIT, KIT_NEW, [pin]))
-        self.assertEqual(
-            json.loads(text),
-            {
-                "dependencies": {
-                    "base": {
-                        "commit": BASE_060,
-                        "datasource": "git-ref",
-                        "kind": "tag",
-                        "ref": "v0.6.0",
-                        "repo": BASE,
-                    }
-                },
-                "kit": {"commit": KIT_NEW, "repo": KIT},
+        assert json.loads(text) == {
+            "dependencies": {
+                "base": {
+                    "commit": BASE_060,
+                    "datasource": "git-ref",
+                    "kind": "tag",
+                    "ref": "v0.6.0",
+                    "repo": BASE,
+                }
             },
-        )
-        self.assertEqual(
-            text, json.dumps(json.loads(text), indent=2, sort_keys=True) + "\n"
-        )
+            "kit": {"commit": KIT_NEW, "repo": KIT},
+        }
+        assert text == json.dumps(json.loads(text), indent=2, sort_keys=True) + "\n"
 
 
 KIT_BRANCH = "d" * 40  # declares the branch glm-long-context
@@ -264,34 +260,30 @@ class BranchDeclarationTests(unittest.TestCase):
         self,
     ) -> None:
         pin = self.derive(self.api())
-        self.assertEqual(
-            (pin.ref, pin.kind, pin.immutable),
-            ("glm-long-context", "branch", BRANCH_OLD),
+        assert (pin.ref, pin.kind, pin.immutable) == (
+            "glm-long-context",
+            "branch",
+            BRANCH_OLD,
         )
         lock = kit_lock.lock_document(KIT, KIT_BRANCH, [pin])
-        self.assertEqual(
-            lock["dependencies"]["base"],
-            {
-                "datasource": "git-ref",
-                "repo": "taussoe/TensorFold",
-                "ref": "glm-long-context",
-                "kind": "branch",
-                "commit": BRANCH_OLD,
-            },
-        )
+        assert lock["dependencies"]["base"] == {
+            "datasource": "git-ref",
+            "repo": "taussoe/TensorFold",
+            "ref": "glm-long-context",
+            "kind": "branch",
+            "commit": BRANCH_OLD,
+        }
 
     def test_tags_and_commits_keep_their_own_kind(self) -> None:
         source = kit_upstream.GitHub(FakeApi())
-        self.assertEqual(source.kind(BASE, "v0.6.0"), "tag")
-        self.assertEqual(source.kind(BASE, "191188075bca"), "commit")
-        self.assertEqual(source.kind(BASE, BASE_060), "commit")
+        assert source.kind(BASE, "v0.6.0") == "tag"
+        assert source.kind(BASE, "191188075bca") == "commit"
+        assert source.kind(BASE, BASE_060) == "commit"
 
     def test_a_branch_with_a_slash_in_its_name_is_a_branch(self) -> None:
         api = FakeApi()
         api.branches["integration/0.6.1"] = BRANCH_OLD
-        self.assertEqual(
-            kit_upstream.GitHub(api).kind(BASE, "integration/0.6.1"), "branch"
-        )
+        assert kit_upstream.GitHub(api).kind(BASE, "integration/0.6.1") == "branch"
 
     def test_a_moved_branch_does_not_make_the_committed_lock_stale(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -309,8 +301,8 @@ class BranchDeclarationTests(unittest.TestCase):
             problems = kit_check.check_recipe(
                 root, "mia", recipe_for(KIT_BRANCH), upstream(api)
             )
-        self.assertEqual([p for p in problems if "stale" in p], [])
-        self.assertFalse(any("heads" in call for call in api.calls), api.calls)
+        assert [p for p in problems if "stale" in p] == []
+        assert not any("heads" in call for call in api.calls), api.calls
 
 
 def recipe_for(kit_commit: str, context: str = "adapters/mia") -> dict[str, Any]:
@@ -339,7 +331,6 @@ def write_adapter(
     base_kind: str = "tag",
     base_repo: str = BASE,
 ) -> Path:
-    import hashlib
 
     directory = root / "adapters/mia"
     (directory / "vendor").mkdir(parents=True)
@@ -391,14 +382,14 @@ class LockCheckTests(unittest.TestCase):
                 Path(tmp), kit_commit=KIT_NEW, base_commit=BASE_060, base_ref="v0.6.0"
             )
             api = FakeApi()
-            self.assertEqual(
+            assert (
                 kit_check.check_recipe(
                     Path(tmp), "mia", recipe_for(KIT_NEW), upstream(api)
-                ),
-                [],
+                )
+                == []
             )
-            self.assertEqual(
-                [c for c in api.calls if "/commits/" in c or "/tags" in c], []
+            assert (
+                [c for c in api.calls if "/commits/" in c or "/tags" in c] == []
             )  # no tag lookups: the lock's commit is trusted, the declaration is re-read
 
     def test_a_kit_that_moved_its_base_makes_the_lock_stale(self) -> None:
@@ -408,8 +399,8 @@ class LockCheckTests(unittest.TestCase):
                 Path(tmp), kit_commit=KIT_OLD, base_commit=BASE_050, base_ref="v0.5.0"
             )
             problems = self.check(Path(tmp), KIT_NEW)
-        self.assertTrue(any("kit-lock.json is stale" in p for p in problems), problems)
-        self.assertTrue(any("tools/kit-pins lock mia" in p for p in problems))
+        assert any("kit-lock.json is stale" in p for p in problems), problems
+        assert any("tools/kit-pins lock mia" in p for p in problems)
 
     def test_a_hand_authored_pin_beside_the_declaration_is_rejected(self) -> None:
         manifest = dict(MANIFEST, source={"repo": BASE, "commit": BASE_050})
@@ -422,9 +413,7 @@ class LockCheckTests(unittest.TestCase):
                 manifest=manifest,
             )
             problems = self.check(Path(tmp), KIT_NEW)
-        self.assertTrue(
-            any("hand-authored 'source' pin" in p for p in problems), problems
-        )
+        assert any("hand-authored 'source' pin" in p for p in problems), problems
 
     def test_consumers_must_follow_the_lock(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -436,7 +425,7 @@ class LockCheckTests(unittest.TestCase):
                 dockerfile_commit=BASE_050,
             )
             problems = self.check(Path(tmp), KIT_NEW)
-        self.assertTrue(any("image revision label" in p for p in problems), problems)
+        assert any("image revision label" in p for p in problems), problems
         with tempfile.TemporaryDirectory() as tmp:
             directory = write_adapter(
                 Path(tmp), kit_commit=KIT_NEW, base_commit=BASE_060, base_ref="v0.6.0"
@@ -445,7 +434,7 @@ class LockCheckTests(unittest.TestCase):
                 b"edited"
             )
             problems = self.check(Path(tmp), KIT_NEW)
-        self.assertTrue(any("does not verify" in p for p in problems), problems)
+        assert any("does not verify" in p for p in problems), problems
 
     def test_a_missing_lock_is_named(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -456,9 +445,7 @@ class LockCheckTests(unittest.TestCase):
                 base_ref="v0.6.0",
                 lock=False,
             )
-            self.assertTrue(
-                any("no kit-lock.json" in p for p in self.check(Path(tmp), KIT_NEW))
-            )
+            assert any("no kit-lock.json" in p for p in self.check(Path(tmp), KIT_NEW))
 
     def test_a_recipe_without_a_declaration_is_not_checked(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -470,7 +457,7 @@ class LockCheckTests(unittest.TestCase):
                 manifest={"source": {"repo": BASE, "commit": BASE_060}},
                 lock=False,
             )
-            self.assertEqual(self.check(Path(tmp), KIT_NEW), [])
+            assert self.check(Path(tmp), KIT_NEW) == []
 
 
 class WithdrawnKitTests(unittest.TestCase):
@@ -537,16 +524,16 @@ class WithdrawnKitTests(unittest.TestCase):
         return problems, scanned
 
     def test_the_marked_kit_is_not_re_read(self) -> None:
-        self.assertEqual(self.problems(marked=True), ([], []))
+        assert self.problems(marked=True) == ([], [])
 
     def test_the_lock_still_binds_a_marked_recipe(self) -> None:
         problems, _ = self.problems(marked=True, built_from="f" * 64)
-        self.assertTrue(problems, "a Dockerfile that left the lock must still fail")
+        assert problems, "a Dockerfile that left the lock must still fail"
 
     def test_an_unmarked_deleted_kit_still_fails_with_evidence(self) -> None:
         problems, _ = self.problems(marked=False)
-        self.assertTrue(any("cannot read" in p for p in problems), problems)
-        self.assertTrue(any("cannot scan" in p for p in problems), problems)
+        assert any("cannot read" in p for p in problems), problems
+        assert any("cannot scan" in p for p in problems), problems
 
 
 class ApplyLockTests(unittest.TestCase):
@@ -587,44 +574,40 @@ class ApplyLockTests(unittest.TestCase):
                     or hashlib.sha256(b"new archive").hexdigest()
                 ),
             )
-            self.assertEqual(fetched, [(BASE, BASE_060)])
-            self.assertEqual(
-                declared,
-                [
-                    (
-                        f"tensorfold-{BASE_060}.tar.gz",
-                        f"https://codeload.github.com/{BASE}/tar.gz/{BASE_060}",
-                    )
-                ],
-            )
-            self.assertTrue(any(c.startswith("kit-lock.json") for c in changed))
+            assert fetched == [(BASE, BASE_060)]
+            assert declared == [
+                (
+                    f"tensorfold-{BASE_060}.tar.gz",
+                    f"https://codeload.github.com/{BASE}/tar.gz/{BASE_060}",
+                )
+            ]
+            assert any(c.startswith("kit-lock.json") for c in changed)
             lock = json.loads((directory / "kit-lock.json").read_text())
-            self.assertEqual(lock["dependencies"]["base"]["commit"], BASE_060)
-            self.assertNotIn(
-                "source", json.loads((directory / "vendored-upstream.json").read_text())
+            assert lock["dependencies"]["base"]["commit"] == BASE_060
+            assert "source" not in json.loads(
+                (directory / "vendored-upstream.json").read_text()
             )
-            self.assertEqual(
-                [p.name for p in (directory / "vendor").iterdir()],
-                [f"tensorfold-{BASE_060}.tar.gz"],
-            )
+            assert [p.name for p in (directory / "vendor").iterdir()] == [
+                f"tensorfold-{BASE_060}.tar.gz"
+            ]
             text = (directory / "Dockerfile").read_text()
-            self.assertNotIn(BASE_050, text)
-            self.assertNotIn(KIT_OLD, text)
-            self.assertIn(KIT_NEW, text)
+            assert BASE_050 not in text
+            assert KIT_OLD not in text
+            assert KIT_NEW in text
             # the result is exactly what the lock check asks for, and a second run is a no-op
-            self.assertEqual(
+            assert (
                 kit_check.check_recipe(
                     root, "mia", recipe_for(KIT_NEW), upstream(FakeApi())
-                ),
-                [],
+                )
+                == []
             )
-            self.assertEqual(
+            assert (
                 kit_write.apply_lock(
                     root, "mia", recipe_for(KIT_NEW), upstream(FakeApi()), fetch
-                ),
-                [],
+                )
+                == []
             )
-            self.assertEqual(len(fetched), 1)
+            assert len(fetched) == 1
 
     def test_the_manifest_reader_of_the_base_follows_the_lock(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -632,14 +615,13 @@ class ApplyLockTests(unittest.TestCase):
                 Path(tmp), kit_commit=KIT_NEW, base_commit=BASE_060, base_ref="v0.6.0"
             )
             manifest = json.loads((directory / "vendored-upstream.json").read_text())
-            self.assertEqual(vendored._source(directory, manifest), (BASE, BASE_060))
+            assert vendored._source(directory, manifest) == (BASE, BASE_060)
             (directory / "kit-lock.json").unlink()
-            self.assertIsNone(vendored._source(directory, manifest))
+            assert vendored._source(directory, manifest) is None
 
     def test_a_failed_mirror_upload_removes_the_archive_and_a_rerun_declares_it(
         self,
     ) -> None:
-        from recipe_tooling import adapter_mirror
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -691,19 +673,19 @@ class ApplyLockTests(unittest.TestCase):
                 )
 
             with patch.object(adapter_mirror, "add", add):
-                with self.assertRaisesRegex(
-                    kit_model.KitError, r"upload failed.*rerun `tools/kit-pins lock"
+                with pytest.raises(
+                    kit_model.KitError,
+                    match=r"upload failed.*rerun `tools/kit-pins lock",
                 ):
                     lock()
-                self.assertFalse((directory / "vendor" / name).exists())
+                assert not (directory / "vendor" / name).exists()
                 lock()  # the rerun fetches again and declares the archive
-            self.assertTrue((directory / "vendor" / name).is_file())
-            self.assertIn(
-                (directory / "vendor" / name).relative_to(root).as_posix(),
-                json.loads((root / "adapter-sources.json").read_text())["sources"][
-                    sha256
-                ]["paths"],
-            )
+            assert (directory / "vendor" / name).is_file()
+            assert (directory / "vendor" / name).relative_to(
+                root
+            ).as_posix() in json.loads((root / "adapter-sources.json").read_text())[
+                "sources"
+            ][sha256]["paths"]
 
 
 def comparison(*names: str, status: str = "ahead", truncated: bool = False) -> Any:
@@ -729,15 +711,15 @@ class KitChangeClassificationTests(unittest.TestCase):
         )
 
     def test_docs_and_new_client_helpers_are_not_runtime(self) -> None:
-        self.assertEqual(
+        assert (
             self.judge(
                 "README.md",
                 "CHANGELOG.md",
                 "CREDITS.md",
                 "NOTICE",
                 "tools/end_of_turn.py",
-            ),
-            [],
+            )
+            == []
         )
 
     def test_patches_launch_scripts_and_configuration_are_runtime(self) -> None:
@@ -750,17 +732,15 @@ class KitChangeClassificationTests(unittest.TestCase):
             "config.yaml",
         ):
             with self.subTest(name=name):
-                self.assertTrue(self.judge(name))
+                assert self.judge(name)
 
     def test_a_file_the_adapter_copies_is_runtime_whatever_it_is_called(self) -> None:
-        self.assertEqual(self.judge("tools/data.bin"), [])
-        self.assertTrue(
-            self.judge("tools/data.bin", mirrored=frozenset({"tools/data.bin"}))
-        )
+        assert self.judge("tools/data.bin") == []
+        assert self.judge("tools/data.bin", mirrored=frozenset({"tools/data.bin"}))
 
     def test_truncated_or_diverged_comparisons_are_not_trusted(self) -> None:
-        self.assertTrue(self.judge("README.md", truncated=True))
-        self.assertTrue(self.judge("README.md", status="diverged"))
+        assert self.judge("README.md", truncated=True)
+        assert self.judge("README.md", status="diverged")
 
 
 def kit_catalog(root: Path, kit_commit: str, **adapter: Any) -> Any:
@@ -827,28 +807,21 @@ class AssessmentTests(unittest.TestCase):
         self,
     ) -> None:
         result = self.assess(KIT_NEW, KIT_NEW, base=("v0.6.0", BASE_060))
-        self.assertFalse(result.drifted)
-        self.assertTrue(
-            any("v0.6.2" in e and "information" in e for e in result.evidence)
-        )
+        assert not result.drifted
+        assert any("v0.6.2" in e and "information" in e for e in result.evidence)
 
     def test_the_v050_to_v060_move_is_a_review_naming_the_declared_base(self) -> None:
         result = self.assess(
             KIT_OLD, KIT_NEW, base=("v0.5.0", BASE_050), files=("patches/0002.patch",)
         )
-        self.assertTrue(result.drifted)
-        self.assertFalse(result.mechanical)
-        self.assertEqual(
-            [i.kind for i in result.items], ["source"]
-        )  # no adapter candidate
-        self.assertTrue(
-            any(
-                "kit declares" in r and "v0.6.0" in r and "v0.5.0" in r
-                for r in result.reasons
-            ),
-            result.reasons,
-        )
-        self.assertFalse(any("v0.6.2" in r or "0.6.1" in r for r in result.reasons))
+        assert result.drifted
+        assert not result.mechanical
+        assert [i.kind for i in result.items] == ["source"]  # no adapter candidate
+        assert any(
+            "kit declares" in r and "v0.6.0" in r and "v0.5.0" in r
+            for r in result.reasons
+        ), result.reasons
+        assert not any("v0.6.2" in r or "0.6.1" in r for r in result.reasons)
 
     def test_a_docs_and_tools_only_kit_move_is_mechanical_and_moves_every_citation(
         self,
@@ -873,15 +846,15 @@ class AssessmentTests(unittest.TestCase):
                 refresh_items, "pin_is_newer_by_date", return_value=False
             ):
                 result = assessor_for(catalog, api, newer).assess("mia")
-            self.assertTrue(result.mechanical, result.reasons)
-            self.assertIn("adapters/mia/Dockerfile", result.edits)
-            self.assertIn(newer, result.edits["adapters/mia/Dockerfile"].decode())
-            self.assertNotIn(KIT_NEW, result.edits["adapters/mia/Dockerfile"].decode())
+            assert result.mechanical, result.reasons
+            assert "adapters/mia/Dockerfile" in result.edits
+            assert newer in result.edits["adapters/mia/Dockerfile"].decode()
+            assert KIT_NEW not in result.edits["adapters/mia/Dockerfile"].decode()
             lock = json.loads(result.edits["adapters/mia/kit-lock.json"])
-            self.assertEqual(lock["kit"]["commit"], newer)
-            self.assertEqual(lock["dependencies"]["base"]["commit"], BASE_060)
-            recipe = json.loads(result.edits["recipes/mia.json"])
-            self.assertTrue(recipe["provenance"]["source_reference"].endswith(newer))
+            assert lock["kit"]["commit"] == newer
+            assert lock["dependencies"]["base"]["commit"] == BASE_060
+            recipe = json_document(result.edits["recipes/mia.json"])
+            assert recipe["provenance"]["source_reference"].endswith(newer)
 
     def test_a_kit_move_that_changes_patches_or_launch_configuration_is_a_review(
         self,
@@ -904,8 +877,8 @@ class AssessmentTests(unittest.TestCase):
                     refresh_items, "pin_is_newer_by_date", return_value=False
                 ):
                     result = assessor_for(catalog, api, newer).assess("mia")
-                self.assertFalse(result.mechanical)
-                self.assertTrue(any(name in r for r in result.reasons), result.reasons)
+                assert not result.mechanical
+                assert any(name in r for r in result.reasons), result.reasons
 
     def test_a_file_the_adapter_copies_from_the_kit_is_a_review(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -925,9 +898,7 @@ class AssessmentTests(unittest.TestCase):
                 refresh_items, "pin_is_newer_by_date", return_value=False
             ):
                 result = assessor_for(catalog, api, newer).assess("mia")
-            self.assertTrue(
-                any("tensorfold-serve" in r for r in result.reasons), result.reasons
-            )
+            assert any("tensorfold-serve" in r for r in result.reasons), result.reasons
 
     def test_an_overridden_base_is_reported_not_changed(self) -> None:
         manifest = json.loads(json.dumps(MANIFEST))
@@ -945,10 +916,8 @@ class AssessmentTests(unittest.TestCase):
                 manifest=manifest,
             )
             result = assessor_for(catalog, FakeApi(), KIT_NEW).assess("mia")
-        self.assertFalse(result.drifted)
-        self.assertTrue(
-            any("overridden" in e and "security fix" in e for e in result.evidence)
-        )
+        assert not result.drifted
+        assert any("overridden" in e and "security fix" in e for e in result.evidence)
 
     def test_a_kit_whose_declaration_stops_matching_is_a_review_not_a_guess(
         self,
@@ -970,10 +939,8 @@ class AssessmentTests(unittest.TestCase):
                 refresh_items, "pin_is_newer_by_date", return_value=False
             ):
                 result = assessor_for(catalog, api, newer).assess("mia")
-        self.assertFalse(result.mechanical)
-        self.assertTrue(
-            any("cannot be read" in r for r in result.reasons), result.reasons
-        )
+        assert not result.mechanical
+        assert any("cannot be read" in r for r in result.reasons), result.reasons
 
 
 class BranchAssessmentTests(unittest.TestCase):
@@ -994,22 +961,19 @@ class BranchAssessmentTests(unittest.TestCase):
 
     def test_a_branch_at_its_locked_commit_is_not_drift(self) -> None:
         result = self.assess(BRANCH_OLD, BRANCH_OLD)
-        self.assertFalse(result.drifted)
+        assert not result.drifted
 
     def test_a_moved_branch_head_is_a_kit_dependency_change_for_review(self) -> None:
         result = self.assess(BRANCH_OLD, BRANCH_NEW)
-        self.assertTrue(result.drifted)
-        self.assertFalse(result.mechanical)
-        self.assertEqual(result.items, [])
-        self.assertTrue(
-            any(
-                "branch `glm-long-context`" in r
-                and BRANCH_OLD[:12] in r
-                and BRANCH_NEW[:12] in r
-                for r in result.reasons
-            ),
-            result.reasons,
-        )
+        assert result.drifted
+        assert not result.mechanical
+        assert result.items == []
+        assert any(
+            "branch `glm-long-context`" in r
+            and BRANCH_OLD[:12] in r
+            and BRANCH_NEW[:12] in r
+            for r in result.reasons
+        ), result.reasons
 
 
 class CitedKitTests(unittest.TestCase):
@@ -1052,7 +1016,7 @@ class CitedKitTests(unittest.TestCase):
                     refresh_items, "pin_is_newer_by_date", return_value=False
                 ):
                     result = assessor.assess("mia")
-                self.assertEqual(result.mechanical, mechanical, result.reasons)
+                assert result.mechanical == mechanical, result.reasons
 
 
 class ModelPayloadTests(unittest.TestCase):
@@ -1068,8 +1032,8 @@ class ModelPayloadTests(unittest.TestCase):
             {"path": "README.md", "roles": ["metadata"], "sha256": "c" * 64},
         ]
         changed = [dict(same[0], sha256="d" * 64), same[1]]
-        self.assertTrue(refresh_classification.payload_identical(old, same))
-        self.assertFalse(refresh_classification.payload_identical(old, changed))
+        assert refresh_classification.payload_identical(old, same)
+        assert not refresh_classification.payload_identical(old, changed)
 
     def test_stored_metadata_that_roles_for_calls_payload_is_compared(self) -> None:
         old = {
@@ -1084,27 +1048,25 @@ class ModelPayloadTests(unittest.TestCase):
         }
         same = [dict(old["files"][0]), dict(old["files"][1], sha256="c" * 64)]
         changed = [dict(old["files"][0], sha256="d" * 64), same[1]]
-        self.assertTrue(refresh_classification.payload_identical(old, same))
-        self.assertFalse(refresh_classification.payload_identical(old, changed))
+        assert refresh_classification.payload_identical(old, same)
+        assert not refresh_classification.payload_identical(old, changed)
 
     def test_stored_weights_that_roles_for_calls_metadata_are_compared(self) -> None:
-        from recipe_tooling.catalog_model import roles_for
 
-        self.assertEqual(roles_for("model.dat"), ["metadata"])
+        assert roles_for("model.dat") == ["metadata"]
         old = {
             "files": [{"path": "model.dat", "roles": ["weights"], "sha256": "a" * 64}]
         }
         new = [{"path": "model.dat", "roles": ["metadata"], "sha256": "b" * 64}]
-        self.assertFalse(refresh_classification.payload_identical(old, new))
+        assert not refresh_classification.payload_identical(old, new)
         new[0]["sha256"] = "a" * 64
-        self.assertTrue(refresh_classification.payload_identical(old, new))
+        assert refresh_classification.payload_identical(old, new)
 
     def test_readme_only_revision_with_merges_is_a_noop_and_merges_change_a_move(
         self,
     ) -> None:
-        from recipe_tooling.catalog_model import roles_for
 
-        self.assertEqual(roles_for("processor/merges.txt"), ["tokenizer"])
+        assert roles_for("processor/merges.txt") == ["tokenizer"]
         old = {
             "files": [
                 {"path": "model.safetensors", "roles": ["weights"], "sha256": "a" * 64},
@@ -1129,11 +1091,9 @@ class ModelPayloadTests(unittest.TestCase):
                 {"path": "README.md", "roles": ["metadata"], "sha256": readme},
             ]
 
-        self.assertTrue(
-            refresh_classification.payload_identical(old, new("b" * 64, "d" * 64))
-        )
-        self.assertFalse(
-            refresh_classification.payload_identical(old, new("e" * 64, "c" * 64))
+        assert refresh_classification.payload_identical(old, new("b" * 64, "d" * 64))
+        assert not refresh_classification.payload_identical(
+            old, new("e" * 64, "c" * 64)
         )
 
 
@@ -1165,28 +1125,26 @@ def issue_assessment(heads: list[str]) -> Any:
 class IssueFreshnessTests(unittest.TestCase):
     def test_the_body_records_the_head_and_its_timestamp(self) -> None:
         body = refresh_render.issue_body(issue_assessment([KIT_NEW]))
-        self.assertIn(f"head `{KIT_NEW[:12]}`, committed 2026-10-02T10:17:45Z", body)
-        self.assertNotIn("Upstream moved", body)
+        assert f"head `{KIT_NEW[:12]}`, committed 2026-10-02T10:17:45Z" in body
+        assert "Upstream moved" not in body
 
     def test_a_later_run_says_when_upstream_moved_and_keeps_saying_it(self) -> None:
         first = refresh_render.issue_body(issue_assessment([KIT_NEW]))
         second = refresh_render.issue_body(issue_assessment(["5" * 40]), first)
-        self.assertIn(
-            f"> Upstream moved since the last check: {KIT}@{KIT_NEW[:12]} -> {KIT}@{'5' * 12}",
-            second,
+        assert (
+            f"> Upstream moved since the last check: {KIT}@{KIT_NEW[:12]} -> {KIT}@{'5' * 12}"
+            in second
         )
         third = refresh_render.issue_body(issue_assessment(["5" * 40]), second)
-        self.assertIn("Upstream moved since the last check", third)
-        self.assertEqual(
-            refresh_render.MOVED_LINE.search(third).group(1),  # pyright: ignore[reportOptionalMemberAccess]
-            refresh_render.MOVED_LINE.search(second).group(1),  # pyright: ignore[reportOptionalMemberAccess]
+        assert "Upstream moved since the last check" in third
+        assert (
+            refresh_render.MOVED_LINE.search(third).group(1)  # pyright: ignore[reportOptionalMemberAccess]
+            == refresh_render.MOVED_LINE.search(second).group(1)  # pyright: ignore[reportOptionalMemberAccess]
         )
 
     def test_an_unchanged_upstream_keeps_the_body_stable(self) -> None:
         first = refresh_render.issue_body(issue_assessment([KIT_NEW]))
-        self.assertEqual(
-            refresh_render.issue_body(issue_assessment([KIT_NEW]), first), first
-        )
+        assert refresh_render.issue_body(issue_assessment([KIT_NEW]), first) == first
 
 
 FORK = "tournierjc/TensorFold"
@@ -1219,18 +1177,18 @@ class DeclaredRepositoryTests(unittest.TestCase):
         pin = self.derive(
             f"ARG TF_REPO=https://github.com/{FORK}.git\nARG TF_REF={FORK_COMMIT}\n"
         )
-        self.assertEqual((pin.repo, pin.ref, pin.kind), (FORK, FORK_COMMIT, "commit"))
+        assert (pin.repo, pin.ref, pin.kind) == (FORK, FORK_COMMIT, "commit")
         lock = kit_lock.lock_document(KIT, KIT_FORK, [pin])
-        self.assertEqual(lock["dependencies"]["base"]["repo"], FORK)
+        assert lock["dependencies"]["base"]["repo"] == FORK
 
     def test_a_plain_owner_name_is_accepted(self) -> None:
         pin = self.derive(f"ARG TF_REPO={FORK}\nARG TF_REF={FORK_COMMIT}\n")
-        self.assertEqual(pin.repo, FORK)
+        assert pin.repo == FORK
 
     def test_no_or_several_repositories_is_an_error(self) -> None:
-        with self.assertRaisesRegex(kit_model.KitError, "repo_pattern"):
+        with pytest.raises(kit_model.KitError, match="repo_pattern"):
             self.derive(f"ARG TF_REF={FORK_COMMIT}\n")
-        with self.assertRaisesRegex(kit_model.KitError, "several repositories"):
+        with pytest.raises(kit_model.KitError, match="several repositories"):
             self.derive(
                 f"ARG TF_REPO={FORK}\nARG TF_REPO={BASE}\nARG TF_REF={FORK_COMMIT}\n"
             )
@@ -1238,11 +1196,11 @@ class DeclaredRepositoryTests(unittest.TestCase):
     def test_repo_and_repo_pattern_are_exclusive_and_the_group_is_needed(self) -> None:
         both = json.loads(json.dumps(FORK_MANIFEST))
         both["kit"]["dependencies"]["base"]["repo"] = BASE
-        with self.assertRaisesRegex(kit_model.KitError, "give one"):
+        with pytest.raises(kit_model.KitError, match="give one"):
             kit_declarations.declarations(both)
         bad = json.loads(json.dumps(FORK_MANIFEST))
         bad["kit"]["dependencies"]["base"]["repo_pattern"] = r"^ARG TF_REPO=\S+$"
-        with self.assertRaisesRegex(kit_model.KitError, "no .*repo"):
+        with pytest.raises(kit_model.KitError, match="no .*repo"):
             kit_declarations.declarations(bad)
 
     def test_a_kit_that_moves_to_another_repository_makes_the_lock_stale(self) -> None:
@@ -1269,7 +1227,7 @@ class DeclaredRepositoryTests(unittest.TestCase):
                     )
                 ),
             )
-        self.assertTrue(any("stale" in p for p in problems), problems)
+        assert any("stale" in p for p in problems), problems
 
 
 FOLLOWING_RECIPES = {
@@ -1297,15 +1255,15 @@ class CatalogKitTests(unittest.TestCase):
                 directory = refresh_catalog_view.kit_directory(
                     ROOT, catalog.recipes[slug]
                 )
-                self.assertIsNotNone(directory)  # so consider("adapter") is never asked
+                assert directory is not None  # so consider("adapter") is never asked
                 manifest = json.loads(
-                    (directory / "vendored-upstream.json").read_text()  # pyright: ignore[reportOptionalOperand]
+                    (directory / "vendored-upstream.json").read_text()
                 )
-                self.assertNotIn("source", manifest)
-                locked = kit_lock.read_lock(directory)["dependencies"]["base"]  # pyright: ignore[reportArgumentType, reportOptionalSubscript]
-                self.assertEqual(locked["kind"], kind)
-                self.assertTrue(locked["ref"].startswith(ref), locked)
-                self.assertRegex(locked["commit"], r"^[0-9a-f]{40}$")
+                assert "source" not in manifest
+                locked = kit_lock.read_lock(directory)["dependencies"]["base"]  # pyright: ignore[reportOptionalSubscript]
+                assert locked["kind"] == kind
+                assert locked["ref"].startswith(ref), locked
+                assert re.search(r"^[0-9a-f]{40}$", locked["commit"])
 
 
 if __name__ == "__main__":
@@ -1316,7 +1274,6 @@ class BusyProviderCliTests(unittest.TestCase):
     """One recipe the provider will not answer does not stop the next from being checked."""
 
     def test_a_busy_recipe_is_counted_and_the_next_is_still_checked(self) -> None:
-        from recipe_tooling.upstream_http import UpstreamBusy
 
         seen: list[str] = []
 
@@ -1331,10 +1288,9 @@ class BusyProviderCliTests(unittest.TestCase):
                 kit_cli.process("check", name, {}, None)  # pyright: ignore[reportArgumentType]
                 for name in ("first", "second")
             )
-        self.assertEqual((seen, failed), (["first", "second"], 2))
+        assert (seen, failed) == (["first", "second"], 2)
 
     def test_a_busy_image_scan_is_a_problem_not_a_crash(self) -> None:
-        from recipe_tooling.upstream_http import UpstreamBusy
 
         def busy(_source: Any, *_key: str) -> list[dict[str, Any]]:
             raise UpstreamBusy("rate limited")
@@ -1346,5 +1302,5 @@ class BusyProviderCliTests(unittest.TestCase):
             problems = kit_check.check_images(
                 Path(tmp), {"mia": recipe_for(KIT_BRANCH)}, upstream(FakeApi())
             )
-        self.assertEqual(len(problems), 1, problems)
-        self.assertIn("rate limited", problems[0])
+        assert len(problems) == 1, problems
+        assert "rate limited" in problems[0]

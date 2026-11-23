@@ -209,8 +209,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tools/check-python-lint
-          tools/check-python-format
+          uv run --frozen ruff check --force-exclude -- .
+          uv run --frozen ruff format --check --force-exclude -- .
           scripts/check-python-types
 
       - name: Resolve the release version and update time

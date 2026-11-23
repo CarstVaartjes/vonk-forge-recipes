@@ -11,6 +11,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 from repo_root import ROOT
 
@@ -21,7 +22,7 @@ LAYER = "model.language_model.layers"
 SIZE = {"I16": 2, "I32": 4, "BF16": 2, "F16": 2}
 
 
-def tensor(dtype: str, shape: list[int], data: bytes | None = None) -> tuple:
+def tensor(dtype: str, shape: list[int], data: bytes | None = None) -> tuple[Any, ...]:
     return (
         dtype,
         shape,
@@ -29,7 +30,7 @@ def tensor(dtype: str, shape: list[int], data: bytes | None = None) -> tuple:
     )
 
 
-def write_shard(path: Path, tensors: dict) -> None:
+def write_shard(path: Path, tensors: dict[str, Any]) -> None:
     header, body = {}, b""
     for name, (dtype, shape, data) in tensors.items():
         header[name] = {
@@ -42,19 +43,19 @@ def write_shard(path: Path, tensors: dict) -> None:
     path.write_bytes(struct.pack("<Q", len(blob)) + blob + body)
 
 
-def trellis(k: int) -> tuple:
+def trellis(k: int) -> tuple[Any, ...]:
     return tensor("I16", [4, 3, 16 * k])
 
 
-def marker() -> tuple:
+def marker() -> tuple[Any, ...]:
     return tensor("I32", [])
 
 
-def group(prefix: str, k: int) -> dict:
+def group(prefix: str, k: int) -> dict[str, Any]:
     return {f"{prefix}.trellis": trellis(k), f"{prefix}.mul1": marker()}
 
 
-def read_shard(path: Path) -> dict:
+def read_shard(path: Path) -> dict[str, Any]:
     raw = path.read_bytes()
     (length,) = struct.unpack("<Q", raw[:8])
     header = json.loads(raw[8 : 8 + length])
@@ -85,7 +86,7 @@ def build(pack: Path, overlay: Path) -> None:
 
 class OverlayTest(unittest.TestCase):
     def test_overlay_declares_the_lookups_the_creators_self_test_makes(self) -> None:
-        tensors: dict = {}
+        tensors: dict[str, Any] = {}
         tensors.update(group(f"{LAYER}.0.self_attn.qkv_proj", 8))
         tensors.update(group(f"{LAYER}.0.self_attn.o_proj", 8))
         tensors.update(group(f"{LAYER}.3.self_attn.o_proj", 7))
@@ -112,24 +113,20 @@ class OverlayTest(unittest.TestCase):
             quantization = json.loads((overlay / "config.json").read_text())[
                 "quantization_config"
             ]
-            self.assertTrue((overlay / "model-00001-of-00001.safetensors").is_symlink())
-        self.assertEqual((quantization["bits"], quantization["codebook"]), (2, "mul1"))
-        self.assertEqual(quantization["layer_bits"], {"3": 3})
+            assert (overlay / "model-00001-of-00001.safetensors").is_symlink()
+        assert (quantization["bits"], quantization["codebook"]) == (2, "mul1")
+        assert quantization["layer_bits"] == {"3": 3}
         layers = quantization["non_routed_exl3"]["layers"]
         for prefix in ("model.layers.0", "language_model.model.layers.0"):
-            self.assertEqual(
-                layers[f"{prefix}.self_attn.in_proj_qkvbfg_a"],
-                {"bits": 8, "bf16_shards": [3, 4, 5]},
-            )
-        self.assertEqual(layers["model.layers.0.self_attn.o_proj"], {"bits": 8})
-        self.assertEqual(layers["model.layers.3.self_attn.o_proj"], {"bits": 7})
-        self.assertEqual(
-            layers["model.layers.3.self_attn.fused_qkv_a_proj"], {"bits": 8}
-        )
-        self.assertEqual(
-            layers["model.layers.3.mlp.shared_experts.gate_up_proj"], {"bits": 6}
-        )
-        self.assertNotIn("model.layers.0.self_attn.b_proj", layers)
+            assert layers[f"{prefix}.self_attn.in_proj_qkvbfg_a"] == {
+                "bits": 8,
+                "bf16_shards": [3, 4, 5],
+            }
+        assert layers["model.layers.0.self_attn.o_proj"] == {"bits": 8}
+        assert layers["model.layers.3.self_attn.o_proj"] == {"bits": 7}
+        assert layers["model.layers.3.self_attn.fused_qkv_a_proj"] == {"bits": 8}
+        assert layers["model.layers.3.mlp.shared_experts.gate_up_proj"] == {"bits": 6}
+        assert "model.layers.0.self_attn.b_proj" not in layers
 
 
 class SplitTest(unittest.TestCase):
@@ -172,32 +169,30 @@ class SplitTest(unittest.TestCase):
         a = self.attn
         for j, letter in enumerate("qkv"):
             shape, data = got[f"{a}.{letter}_conv1d.weight"]
-            self.assertEqual(
-                (shape, data),
-                ([2, 1, 4], b"".join(bytes([2 * j + r]) * 8 for r in range(2))),
+            assert (shape, data) == (
+                [2, 1, 4],
+                b"".join(bytes([2 * j + r]) * 8 for r in range(2)),
             )
             shape, data = got[f"{a}.{letter}_proj.trellis"]
-            self.assertEqual(shape, [2, 2, 16])
+            assert shape == [2, 2, 16]
             # columns 2j and 2j+1 of every row (an interleaved stride-3 split would give j, j+3)
-            self.assertEqual(
-                data,
-                b"".join(
-                    bytes([10 * r + 2 * j + c]) * 32 for r in range(2) for c in range(2)
-                ),
+            assert data == b"".join(
+                bytes([10 * r + 2 * j + c]) * 32 for r in range(2) for c in range(2)
             )
-            self.assertEqual(
-                got[f"{a}.{letter}_proj.svh"], ([2], bytes(range(1 + 4 * j, 5 + 4 * j)))
+            assert got[f"{a}.{letter}_proj.svh"] == (
+                [2],
+                bytes(range(1 + 4 * j, 5 + 4 * j)),
             )
-            self.assertEqual(got[f"{a}.{letter}_proj.suh"], ([2], b"\x01\x02\x03\x04"))
-            self.assertEqual(got[f"{a}.{letter}_proj.mul1"], ([], b"\x07\x00\x00\x00"))
-        self.assertEqual(len(got), 3 * 5)
+            assert got[f"{a}.{letter}_proj.suh"] == ([2], b"\x01\x02\x03\x04")
+            assert got[f"{a}.{letter}_proj.mul1"] == ([], b"\x07\x00\x00\x00")
+        assert len(got) == 3 * 5
 
     def test_index_is_a_real_file_without_the_fused_names(self) -> None:
         index_path = self.overlay / "model.safetensors.index.json"
-        self.assertFalse(index_path.is_symlink())
+        assert not index_path.is_symlink()
         index = json.loads(index_path.read_text())
         weights = index["weight_map"]
-        self.assertEqual(index["metadata"], {"x": 1})
+        assert index["metadata"] == {"x": 1}
         a = self.attn
         for fused in (
             "conv1d.weight",
@@ -206,18 +201,18 @@ class SplitTest(unittest.TestCase):
             "qkv_proj.svh",
             "qkv_proj.mul1",
         ):
-            self.assertNotIn(f"{a}.{fused}", weights)
-        self.assertEqual(weights[f"{a}.k_proj.svh"], "vonk-kda-split.safetensors")
-        self.assertEqual(weights[f"{a}.v_conv1d.weight"], "vonk-kda-split.safetensors")
-        self.assertEqual(weights[f"{a}.o_proj.trellis"], "a.safetensors")
-        self.assertTrue((self.overlay / "a.safetensors").is_symlink())
+            assert f"{a}.{fused}" not in weights
+        assert weights[f"{a}.k_proj.svh"] == "vonk-kda-split.safetensors"
+        assert weights[f"{a}.v_conv1d.weight"] == "vonk-kda-split.safetensors"
+        assert weights[f"{a}.o_proj.trellis"] == "a.safetensors"
+        assert (self.overlay / "a.safetensors").is_symlink()
 
     def test_split_file_is_rebuilt_and_stale_partial_removed(self) -> None:
         self.split.write_bytes(b"stale model")
         Path(str(self.split) + ".partial").write_bytes(b"stale")
         build(self.pack, self.overlay)
-        self.assertFalse(Path(str(self.split) + ".partial").exists())
-        self.assertEqual(len(read_shard(self.split)), 15)
+        assert not Path(str(self.split) + ".partial").exists()
+        assert len(read_shard(self.split)) == 15
 
 
 if __name__ == "__main__":

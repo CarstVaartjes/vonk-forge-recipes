@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --no-project --managed-python --python 3.14 --with pyright==1.1.414 --with pytest==9.1.1 --with pydantic==2.13.4 --with Pillow==13.0.0 python
+#!/usr/bin/env -S uv run --frozen python
 """Fail on any Python type error.
 
 The gate requires zero pyright errors. There is no baseline: a test that
@@ -6,25 +6,20 @@ deliberately passes malformed input, or reaches a dynamically loaded module,
 carries a `# pyright: ignore[<rule>]` on that line, and
 `reportUnnecessaryTypeIgnoreComment` fails the ignore once it stops being needed.
 
-pytest is installed alongside pyright because the suite declares fixtures and
-assertion helpers with it. Without it every test file that imports pytest needs
-a `reportMissingImports` exception, so simply adding a test module failed this
-gate and the fix was to baseline an import that was never missing. Modules that
-genuinely live only in the control environment (`vonk_control`) still need their exceptions.
-
-Pydantic is installed too: canonical contract types must be checked against
-their actual base classes and validators, not unresolved imports.
+pyright, pytest, pydantic and Pillow come from the `dev` dependency group in
+`pyproject.toml` (locked in `uv.lock`, the one owner of their versions): the suite
+declares fixtures and assertion helpers with pytest, and canonical contract types
+must be checked against their actual base classes, not unresolved imports.
 
 Adapters follow their upstream recipe and are excluded from this gate.
 
 pyright's default program only includes `**/*.py`, so the extensionless Python
-executables under `tools/` were never analyzed. They are
-discovered by shebang and analyzed explicitly, alongside the project run, so a
-type error in an entry point cannot hide behind the glob.
+executables under `tools/` are passed explicitly, alongside the project run. The
+list comes from `ruff check --show-files` (the entries without a suffix), so
+Ruff's `extend-include` stays the one owner of "which files are Python".
 
-The shebang pins uv's managed Python (`--managed-python`) and pyright is told
-to analyze for Linux, so a Homebrew Python's own site-packages (numpy, ...) and
-the host platform cannot change the findings: local and CI runs agree.
+`[tool.pyright]` pins the platform to Linux, so the host cannot change the findings:
+local and CI runs agree.
 
 """
 
@@ -40,47 +35,31 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _entry_points() -> list[str]:
-    """Return the tracked extensionless Python executables pyright's glob skips.
-
-    ``pyright`` defaults to ``**/*.py``, so an entry point named
-    ``tools/build-catalog-index`` is only analyzed when it is named explicitly.
-    The discovery matches ``tools/check-python-format``.
-    """
+    """Return the extensionless Python executables pyright's glob skips."""
 
     listed = subprocess.run(
-        ["git", "ls-files"],
+        [sys.executable, "-m", "ruff", "check", "--show-files"],
         cwd=ROOT,
         capture_output=True,
         text=True,
-        check=False,
+        check=True,
     )
     entry_points: list[str] = []
-    for name in listed.stdout.splitlines():
-        if not name or "." in name or name.startswith("adapters/"):
-            continue
-        path = ROOT / name
-        if not path.is_file():
-            continue
-        try:
-            with path.open("r", encoding="utf-8") as handle:
-                first_line = handle.readline()
-        except OSError:
-            continue
-        if first_line.startswith("#!") and "python" in first_line:
-            entry_points.append(name)
+    for line in listed.stdout.splitlines():
+        relative = Path(line).resolve().relative_to(ROOT)
+        if not relative.suffix:
+            entry_points.append(relative.as_posix())
     return sorted(entry_points)
 
 
 def _pyright(paths: list[str]) -> list[dict[str, object]]:
     completed = subprocess.run(
         [
+            sys.executable,
+            "-m",
             "pyright",
             "--pythonpath",
             sys.executable,
-            # Counts are defined for Linux, where CI runs; without this a
-            # macOS run sees os.posix_fadvise as unknown and differs from CI.
-            "--pythonplatform",
-            "Linux",
             "--outputjson",
             *paths,
         ],
@@ -91,10 +70,10 @@ def _pyright(paths: list[str]) -> list[dict[str, object]]:
     )
     try:
         payload = json.loads(completed.stdout)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as error:
         print(completed.stdout[-4000:], file=sys.stderr)
         print(completed.stderr[-4000:], file=sys.stderr)
-        raise SystemExit("pyright did not return a JSON report")
+        raise SystemExit("pyright did not return a JSON report") from error
     diagnostics = []
     for diagnostic in payload.get("generalDiagnostics", []):
         if diagnostic.get("severity") != "error":

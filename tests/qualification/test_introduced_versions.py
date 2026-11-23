@@ -6,19 +6,11 @@ import json
 import runpy
 import shutil
 from pathlib import Path
-from typing import get_args
+from typing import Any, get_args
 
 import pytest
 from documents import model_display
 from repo_root import ROOT
-from vonk_forge_contracts import (
-    CapabilityName,
-    RecipeApi,
-    RecipeDefinition,
-    read_recipe,
-)
-from vonk_forge_contracts.api import ApiReasoningEffort
-from vonk_forge_contracts.recipe import ServingKind
 
 from recipe_tooling.qualification import introduced
 from recipe_tooling.qualification.introduced import (
@@ -28,6 +20,14 @@ from recipe_tooling.qualification.introduced import (
     parse_version,
     unreadable_features,
 )
+from vonk_forge_contracts import (
+    CapabilityName,
+    RecipeApi,
+    RecipeDefinition,
+    read_recipe,
+)
+from vonk_forge_contracts.api import ApiReasoningEffort
+from vonk_forge_contracts.recipe import ServingKind
 
 EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 GUARD = runpy.run_path(str(ROOT / "tools/check-platform-contracts"))
@@ -96,7 +96,7 @@ def test_a_capability_newer_than_the_platform_is_refused(monkeypatch) -> None:
     assert unreadable_features(recipe, [display], None, "4.9.0") == []
 
 
-def _options_api(effort: dict | None) -> tuple[RecipeDefinition, RecipeApi]:
+def _options_api(effort: dict[str, Any] | None) -> tuple[RecipeDefinition, RecipeApi]:
     """The options example; ``effort`` goes on its option choice's block only."""
 
     recipe = read_recipe(
@@ -183,6 +183,7 @@ def test_models_no_recipe_selects_are_gated_too(tmp_path: Path, monkeypatch) -> 
 def test_a_contracts_major_ahead_of_the_platform_is_refused_one_way_only() -> None:
     major_problem = GUARD["major_problem"]
     refused = major_problem(5, "4.7.0")
-    assert refused and "pin this recipes commit in vonk-forge" in refused
+    assert refused
+    assert "pin this recipes commit in vonk-forge" in refused
     assert major_problem(4, "4.7.0") is None
     assert major_problem(4, "5.0.0") is None

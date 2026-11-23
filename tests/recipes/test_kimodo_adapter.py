@@ -20,6 +20,7 @@ import tempfile
 import time
 import zipfile
 from pathlib import Path, PurePosixPath
+from typing import Any
 
 import pytest
 from repo_root import ROOT
@@ -35,7 +36,8 @@ FIXTURE = ROOT / "qualification/fixtures/kimodo-motion-prompt.txt"
 
 def _load_run():
     spec = importlib.util.spec_from_file_location("kimodo_run", ADAPTER / "run.py")
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
@@ -151,7 +153,8 @@ def test_the_models_declare_the_text_encoder_as_dependencies() -> None:
 
 def test_the_fixture_prompt_is_one_sentence_of_valid_input() -> None:
     text = FIXTURE.read_text(encoding="utf-8")
-    assert text.strip() and "." not in text
+    assert text.strip()
+    assert "." not in text
     assert len(text.encode()) <= run.MAX_PROMPT_BYTES
 
 
@@ -177,7 +180,7 @@ def test_the_declared_prompt_is_loaded_and_stripped(tmp_path: Path) -> None:
     ],
 )
 def test_an_input_outside_the_declared_slot_is_refused(
-    tmp_path: Path, stage: dict
+    tmp_path: Path, stage: dict[str, Any]
 ) -> None:
     _stage_inputs(tmp_path, **stage)
     with pytest.raises(SystemExit):
@@ -227,7 +230,7 @@ def _argv(outputs: Path, **overrides: str) -> list[str]:
     ],
 )
 def test_job_arguments_outside_the_contract_are_refused(
-    tmp_path: Path, override: dict
+    tmp_path: Path, override: dict[str, Any]
 ) -> None:
     with pytest.raises(SystemExit):
         run._arguments(_argv(tmp_path, **override))

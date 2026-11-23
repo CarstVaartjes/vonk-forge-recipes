@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import re
 import unittest
+from typing import Any
 
 from documents import recipe_display
 from repo_root import ROOT
@@ -20,7 +21,7 @@ VISION_TAGS = {"vision", "multimodal", "image", "native-vision"}
 PORT_STEPS = ("patch_vision.py", "patch_registry.py", "ds4v_mm.py")
 
 
-def _recipes() -> list[dict]:
+def _recipes() -> list[dict[str, Any]]:
     recipes = [
         json.loads(path.read_text(encoding="utf-8"))
         for path in sorted((ROOT / "recipes").glob("*.json"))
@@ -38,7 +39,7 @@ class TonyDSparkVisionPortTests(unittest.TestCase):
             bool(VISION_TAGS & set(recipe_display(recipe["identity"]["slug"]).tags))
             for recipe in _recipes()
         }
-        self.assertEqual(kinds, {False, True})
+        assert kinds == {False, True}
 
     def test_build_applies_the_port_exactly_for_vision_checkpoints(self) -> None:
         for recipe in _recipes():
@@ -56,11 +57,11 @@ class TonyDSparkVisionPortTests(unittest.TestCase):
             )
             with self.subTest(slug=slug):
                 for step in PORT_STEPS:
-                    self.assertEqual(step in run, vision, step)
+                    assert (step in run) == vision, step
                 verify = re.search(r'verify-runtime\.py"?([^;\n]*);', run)
-                self.assertIsNotNone(verify)
                 assert verify is not None
-                self.assertEqual(verify.group(1).split(), [] if vision else ["--text"])
+                assert verify is not None
+                assert verify.group(1).split() == ([] if vision else ["--text"])
 
 
 if __name__ == "__main__":

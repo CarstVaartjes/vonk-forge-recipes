@@ -3,23 +3,35 @@
 from __future__ import annotations
 
 import copy
+import io
 import json
 import os
 import shutil
 import tempfile
 import unittest
+import urllib.error
 from email.message import Message
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 from urllib.error import HTTPError
+from urllib.request import Request
 
+import documents
+import pytest
+from catalog_documents import catalog_models
 from refresh_helpers import NEW, OLD, OLD_YAML, comparison, model_with
 from repo_root import ROOT
+from warning_asserts import assert_not_warns, assert_warns
 
 from recipe_tooling import catalog_hf_model, vendored_upstream
 from recipe_tooling.catalog_model import roles_for
 from recipe_tooling.kit_pins import consumers as kit_consumers
+from recipe_tooling.qualification import documents as qualification_documents
+from recipe_tooling.qualification.memory_need.evidence import load_inputs
+from recipe_tooling.qualification.memory_need.warnings import (
+    memory_estimate_warnings,
+)
 from recipe_tooling.refresh_upstream import assessment as refresh_assessment
 from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
 from recipe_tooling.refresh_upstream import classification as refresh_classification
@@ -28,6 +40,7 @@ from recipe_tooling.refresh_upstream import http as refresh_http
 from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.upstream_drift import heads as drift_heads
+from vonk_forge_contracts import RecipeDefinition
 
 
 class EmbeddedSourceReviewTests(unittest.TestCase):
@@ -61,7 +74,7 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
                 }
             ],
         }
-        drift_heads.observe_embedded_heads(embedded, FakeProvider())  # pyright: ignore[reportArgumentType]
+        drift_heads.observe_embedded_heads(embedded, FakeProvider())
         catalog = refresh_catalog_view.Catalog(
             Path(tempfile.gettempdir()),
             recipes={
@@ -111,15 +124,11 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
         ):
             result = assessor.assess("recipe")
 
-        self.assertEqual(
-            embedded["recipes"][0]["inputs"][0]["candidate_status"], "advanced"
-        )
-        self.assertFalse(result.reasons)
-        self.assertTrue(result.mechanical)
-        self.assertIn(
-            "review evidence, not a configured upgrade channel", result.evidence[0]
-        )
-        self.assertIn(NEW, result.edits["recipes/recipe.json"].decode())  # pyright: ignore[reportOptionalMemberAccess]
+        assert embedded["recipes"][0]["inputs"][0]["candidate_status"] == "advanced"
+        assert not result.reasons
+        assert result.mechanical
+        assert "review evidence, not a configured upgrade channel" in result.evidence[0]
+        assert NEW in result.edits["recipes/recipe.json"].decode()  # pyright: ignore[reportOptionalMemberAccess]
 
 
 class ImageHeaderMoveTests(unittest.TestCase):
@@ -168,17 +177,16 @@ class ImageHeaderMoveTests(unittest.TestCase):
             "# build arguments.\n" + self.UPSTREAM
         )
         moved = self.move(header)
-        self.assertIn(
+        assert (
             "# The published docker.io/eugr/spark-vllm image, built from the revision "
-            "above; the digest is what runs.\n" + self.UPSTREAM,
-            moved,
+            "above; the digest is what runs.\n" + self.UPSTREAM in moved
         )
-        self.assertNotIn("nightly", moved)
-        self.assertNotIn("42f62e34 (", moved)
+        assert "nightly" not in moved
+        assert "42f62e34 (" not in moved
 
     def test_header_without_the_upstream_line_is_kept(self) -> None:
         header = "# build arguments. Upstream recipes start it with `vllm serve`; the wrapper.\n"
-        self.assertIn(header, self.move(header))
+        assert header in self.move(header)
 
     def test_header_the_note_cannot_replace_is_named_for_review(self) -> None:
         # Verbatim from adapters/eugr/qwen3-6-35b-a3b-nvfp4/Dockerfile.
@@ -194,9 +202,9 @@ class ImageHeaderMoveTests(unittest.TestCase):
         ):
             result = refresh_model.Assessment("recipe")
             self.move(header, result)
-            self.assertEqual(
-                "Review the Dockerfile's header comment.\n" in result.evidence, reviewed
-            )
+            assert (
+                "Review the Dockerfile's header comment.\n" in result.evidence
+            ) == reviewed
 
 
 class ImageLabelClaimTests(unittest.TestCase):
@@ -248,10 +256,10 @@ class ImageLabelClaimTests(unittest.TestCase):
             self.adapter(root, self.DOCKERFILE)
             asked: list[str] = []
             result = self.collect(root, asked)
-            self.assertEqual(result.items, [])
-            self.assertFalse(result.drifted)
-            self.assertEqual(asked, [])
-            self.assertIn("describes the digest-pinned image", result.evidence[0])
+            assert result.items == []
+            assert not result.drifted
+            assert asked == []
+            assert "describes the digest-pinned image" in result.evidence[0]
 
     def test_pin_the_build_uses_is_still_followed(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -275,7 +283,7 @@ class ImageLabelClaimTests(unittest.TestCase):
                     shutil.rmtree(root / "adapter", ignore_errors=True)
                     self.adapter(root, dockerfile, manifest)
                     result = self.collect(root, [])
-                    self.assertEqual([i.kind for i in result.items], ["adapter"])
+                    assert [i.kind for i in result.items] == ["adapter"]
 
     def test_twin_label_and_notice_do_not_make_the_pin_used(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -292,8 +300,8 @@ class ImageLabelClaimTests(unittest.TestCase):
             )
             asked: list[str] = []
             result = self.collect(root, asked)
-            self.assertEqual(result.items, [])
-            self.assertEqual(asked, [])
+            assert result.items == []
+            assert asked == []
 
     def test_no_catalog_adapter_of_the_shape_moves_with_a_release(self) -> None:
         # Selected by shape alone, independently of image_label_claim.
@@ -352,9 +360,9 @@ class ImageLabelClaimTests(unittest.TestCase):
                     object(),  # pyright: ignore[reportArgumentType]
                     targets,
                 )
-                self.assertEqual(result.items, [])
-                self.assertEqual(asked, [])
-        self.assertGreater(covered, 0)
+                assert result.items == []
+                assert asked == []
+        assert covered > 0
 
 
 class VendoredCreatorMoveTests(unittest.TestCase):
@@ -440,16 +448,6 @@ class VendoredCreatorMoveTests(unittest.TestCase):
     def test_real_unproven_dual_is_raised_and_then_passes_the_touched_check(
         self,
     ) -> None:
-        import documents
-        from catalog_documents import catalog_models
-        from vonk_forge_contracts import RecipeDefinition
-        from warning_asserts import assert_not_warns, assert_warns
-
-        from recipe_tooling.qualification import documents as qualification_documents
-        from recipe_tooling.qualification.memory_need.evidence import load_inputs
-        from recipe_tooling.qualification.memory_need.warnings import (
-            memory_estimate_warnings,
-        )
 
         slug = "muse-spark-open-nvfp4-vllm-eight"
         before = documents.recipe(slug)
@@ -471,10 +469,9 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             qualification_documents.recipe_digest(slug),
         )
         after = RecipeDefinition.model_validate(payload)
-        self.assertEqual(
-            {r.resources.memory.peak_bytes for r in after.topology.roles},
-            {114_930_585_191},
-        )
+        assert {r.resources.memory.peak_bytes for r in after.topology.roles} == {
+            114930585191
+        }
         assert_not_warns(
             memory_estimate_warnings(
                 after, models, inputs, document_digest="", touched=True
@@ -488,8 +485,8 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         # The eugr group that moves the image and pin only (no yaml change): nothing a
         # reviewer must judge, and the file itself is never rewritten.
         result = self.assess(OLD_YAML)
-        self.assertEqual(result.reasons, [])
-        self.assertNotIn("adapters/x/recipes/r.yaml", result.edits)
+        assert result.reasons == []
+        assert "adapters/x/recipes/r.yaml" not in result.edits
 
     def test_any_other_change_to_a_vendored_creator_file_needs_review(self) -> None:
         quoted = (
@@ -573,10 +570,10 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         for label, (old, new, name) in cases.items():
             with self.subTest(label):
                 result = self.assess(new, old_yaml=old, name=name)
-                self.assertFalse(result.mechanical)
-                self.assertIn("changed", " ".join(result.reasons))
-                self.assertNotIn(f"adapters/x/{name}", result.edits)
-                self.assertIn(f"b/{name}", " ".join(result.evidence))
+                assert not result.mechanical
+                assert "changed" in " ".join(result.reasons)
+                assert f"adapters/x/{name}" not in result.edits
+                assert f"b/{name}" in " ".join(result.evidence)
 
     def test_a_patched_or_edited_file_stays_a_review(self) -> None:
         new_yaml = self.NOTE + OLD_YAML
@@ -592,9 +589,9 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         for name, case in cases.items():
             with self.subTest(name=name):
                 result = self.assess(new_yaml, **case)
-                self.assertFalse(result.mechanical)
-                self.assertIn("not vendored verbatim", " ".join(result.reasons))
-                self.assertNotIn("adapters/x/recipes/r.yaml", result.edits)
+                assert not result.mechanical
+                assert "not vendored verbatim" in " ".join(result.reasons)
+                assert "adapters/x/recipes/r.yaml" not in result.edits
 
     def test_running_the_file_is_not_editing_it(self) -> None:
         result = self.assess(
@@ -602,8 +599,8 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             dockerfile="RUN cd /app && bash ./recipes/r.yaml 2>/dev/null\n",
         )
         reasons = " ".join(result.reasons)
-        self.assertIn("changed", reasons)
-        self.assertNotIn("not vendored verbatim", reasons)
+        assert "changed" in reasons
+        assert "not vendored verbatim" not in reasons
 
 
 class RewrittenHistoryTests(unittest.TestCase):
@@ -621,30 +618,27 @@ class RewrittenHistoryTests(unittest.TestCase):
             OLD,
             NEW,
         )
-        self.assertEqual(compared.status, "diverged")
-        self.assertEqual(compared.rewritten, NEW)
+        assert compared.status == "diverged"
+        assert compared.rewritten == NEW
         reasons = refresh_classification.classify_changes(
             compared, patched=set(), vendor_problems=[], used_changes=None
         )
-        self.assertEqual(len(reasons), 1, reasons)
-        self.assertIn("history was rewritten", reasons[0])
-        self.assertIn(NEW, reasons[0])
+        assert len(reasons) == 1, reasons
+        assert "history was rewritten" in reasons[0]
+        assert NEW in reasons[0]
         # Used files are compared by content: a rewrite alone is no reason.
         for used, expected in (([], 0), (["a.yaml"], 1)):
             reasons = refresh_classification.classify_changes(
                 compared, patched=set(), vendor_problems=[], used_changes=used
             )
-            self.assertEqual(len(reasons), expected, reasons)
-            self.assertNotIn("history was rewritten", "".join(reasons))
+            assert len(reasons) == expected, reasons
+            assert "history was rewritten" not in "".join(reasons)
 
     def test_any_other_missing_comparison_is_still_unassessable(self) -> None:
-        with self.assertRaises(refresh_http.NotFound):
+        with pytest.raises(refresh_http.NotFound):
             refresh_items.compare_commits(self.Http("Not Found"), "o/r", OLD, NEW)  # pyright: ignore[reportArgumentType]
 
     def test_the_provider_message_is_read_from_the_error_body(self) -> None:
-        import io
-        import urllib.error
-        from email.message import Message
 
         error = urllib.error.HTTPError(
             "u",
@@ -653,11 +647,11 @@ class RewrittenHistoryTests(unittest.TestCase):
             Message(),
             io.BytesIO(b'{"message": "No common ancestor"}'),
         )
-        self.assertEqual(refresh_http._error_message(error), "No common ancestor")
+        assert refresh_http._error_message(error) == "No common ancestor"
         error = urllib.error.HTTPError(
             "u", 404, "Not Found", Message(), io.BytesIO(b"<html>")
         )
-        self.assertEqual(refresh_http._error_message(error), "")
+        assert refresh_http._error_message(error) == ""
 
 
 class GatedRepositoryTests(unittest.TestCase):
@@ -686,14 +680,14 @@ class GatedRepositoryTests(unittest.TestCase):
         )
 
     def test_same_blob_ids_and_sizes_are_unchanged_weights(self) -> None:
-        self.assertTrue(self.gated(self.old(), self.trees["after"]))
+        assert self.gated(self.old(), self.trees["after"])
 
     def test_a_changed_weights_pointer_is_a_change(self) -> None:
         after = json.loads(json.dumps(self.trees["after"]))
         for entry in after:
             if entry["path"] == "model.safetensors":
                 entry["oid"] = "0" * 40
-        self.assertFalse(self.gated(self.old(), after))
+        assert not self.gated(self.old(), after)
 
     def test_a_new_non_metadata_file_is_a_change(self) -> None:
         extra = {
@@ -702,7 +696,7 @@ class GatedRepositoryTests(unittest.TestCase):
             "oid": "1" * 40,
             "size": 5,
         }
-        self.assertFalse(self.gated(self.old(), [*self.trees["after"], extra]))
+        assert not self.gated(self.old(), [*self.trees["after"], extra])
 
     def test_roles_decide_exactly_as_without_access(self) -> None:
         # The document stores config.json as metadata, roles_for says configuration:
@@ -730,15 +724,14 @@ class GatedRepositoryTests(unittest.TestCase):
                 # The real ungated path curates the new snapshot the same way.
                 before = {e["path"] for e in self.trees["before"]}
                 curated = refresh_classification.curate(old, before, ungated)
-                self.assertEqual(
-                    self.gated(old, after),
-                    refresh_classification.payload_identical(old, curated),
-                )
-                self.assertEqual(self.gated(old, after), not changed)
+                assert self.gated(
+                    old, after
+                ) == refresh_classification.payload_identical(old, curated)
+                assert self.gated(old, after) == (not changed)
 
     def test_masked_lfs_digest_is_refused_not_catalogued(self) -> None:
         lfs_only = [e for e in self.trees["after"] if "lfs" in e]
-        with self.assertRaises(catalog_hf_model.AccessDenied):
+        with pytest.raises(catalog_hf_model.AccessDenied):
             catalog_hf_model.inventory("o/r", NEW, lfs_only)
 
     def test_only_401_and_403_are_access_denied(self) -> None:
@@ -758,7 +751,7 @@ class GatedRepositoryTests(unittest.TestCase):
             with (
                 self.subTest(code=code),
                 patch.object(catalog_hf_model, "_get_bytes", fail),
-                self.assertRaises(
+                pytest.raises(
                     catalog_hf_model.AccessDenied
                     if expected == "AccessDenied"
                     else HTTPError
@@ -782,13 +775,12 @@ class GatedRepositoryTests(unittest.TestCase):
             with (
                 patch.dict(os.environ, {"HF_TOKEN": "secret"}),
                 patch("urllib.request.build_opener", return_value=Opener()),
-                self.assertRaises(OSError),
+                pytest.raises(OSError),
             ):
                 catalog_hf_model._get_json(url)
-            self.assertEqual(seen.get("Authorization"), expected)
+            assert seen.get("Authorization") == expected
 
     def test_the_token_goes_to_hugging_face_only(self) -> None:
-        from urllib.request import Request
 
         request = Request(
             "https://cdn.example/x", headers={"Authorization": "Bearer t"}
@@ -802,7 +794,7 @@ class GatedRepositoryTests(unittest.TestCase):
             {},  # pyright: ignore[reportArgumentType]
             "https://cdn.example/x",
         )
-        self.assertFalse(moved.has_header("Authorization"))  # pyright: ignore[reportOptionalMemberAccess]
+        assert not moved.has_header("Authorization")  # pyright: ignore[reportOptionalMemberAccess]
         del request
 
     def test_a_gated_metadata_only_revision_is_not_a_move(self) -> None:
@@ -811,7 +803,7 @@ class GatedRepositoryTests(unittest.TestCase):
         recipe = {"identity": {"slug": "recipe"}, "models": []}
         assessor = refresh_assessment.Assessor(
             refresh_catalog_view.Catalog(
-                Path("."),
+                Path(),
                 recipes={"recipe": recipe},
                 models={old["identity"]["slug"]: old},
             ),
@@ -833,7 +825,7 @@ class GatedRepositoryTests(unittest.TestCase):
         trees = {OLD: self.trees["before"], NEW: self.trees["after"]}
         fetched: list[str] = []
 
-        def tree(url: str) -> list:
+        def tree(url: str) -> list[Any]:
             fetched.append(url)
             return trees[next(r for r in trees if f"/tree/{r}?" in url)]
 
@@ -847,6 +839,6 @@ class GatedRepositoryTests(unittest.TestCase):
             patch.object(catalog_hf_model, "_get_bytes", denied),
         ):
             assessor._model(item, recipe, copy.deepcopy(recipe), result, {})
-        self.assertEqual(result.reasons, [])
-        self.assertTrue(item.noop)
-        self.assertEqual(len(fetched), len(set(fetched)))  # each tree once
+        assert result.reasons == []
+        assert item.noop
+        assert len(fetched) == len(set(fetched))  # each tree once

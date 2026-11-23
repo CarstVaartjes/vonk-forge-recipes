@@ -10,6 +10,14 @@ from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field
+
+from recipe_tooling.qualification import documents
+from recipe_tooling.qualification.evidence_store import (
+    catalog_recipe_keys,
+    merge_evidence,
+    read_evidence,
+    write_evidence,
+)
 from vonk_forge_contracts import (
     QualificationBlame,
     QualificationCauseCode,
@@ -35,17 +43,11 @@ from vonk_forge_contracts.qualification_status import (
     published_status,
 )
 
-from recipe_tooling.qualification import documents
-from recipe_tooling.qualification.evidence_store import (
-    catalog_recipe_keys,
-    merge_evidence,
-    read_evidence,
-    write_evidence,
-)
-
 from .catalog import Recipe, never_measured
 from .identity import current_identity
 from .lifecycle import RecipeStatus
+from .verdict import Blame
+from .verdict import blame as sweep_blame
 
 
 class HistoricalIdentity(BaseModel):
@@ -149,8 +151,6 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         models_resolved=models is not None,
         required_sparks=row.node_count or len(row.node_ids) or None,
     )
-    from .verdict import Blame
-    from .verdict import blame as sweep_blame
 
     passed = row.status == RecipeStatus.PASSED
     blame = (
@@ -386,11 +386,15 @@ def local_status(
     evidence: RecipeQualificationEvidence,
     recipe: Recipe,
     fleet_size: int,
+    *,
     testing_now: bool = False,
     identity: QualificationIdentity | None = None,
 ) -> QualificationStatusView:
     return derive_status(
-        evidence, identity or current_identity(recipe), fleet_size, testing_now
+        evidence,
+        identity or current_identity(recipe),
+        fleet_size,
+        testing_now=testing_now,
     )
 
 

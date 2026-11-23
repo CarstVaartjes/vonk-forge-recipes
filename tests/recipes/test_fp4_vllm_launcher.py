@@ -6,6 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from documents import recipe_document
 from repo_root import ROOT
 
 
@@ -15,12 +16,9 @@ def test_fp4_launcher_preserves_canonical_serve_command(tmp_path: Path) -> None:
     (package / "main.py").write_text(
         "import json, sys\nprint(json.dumps(sys.argv[1:]))\n"
     )
-    recipe = json.loads(
-        (
-            ROOT / "recipes/qwen3-8-flash-next-fp4-local-vcruz-vllm-single.json"
-        ).read_text()
-    )
-    command = recipe["runtime"]["entrypoint"][1:] + [
+    recipe = recipe_document("qwen3-8-flash-next-fp4-local-vcruz-vllm-single")
+    command = [
+        *recipe["runtime"]["entrypoint"][1:],
         "--served-model-name",
         "name with spaces",
     ]

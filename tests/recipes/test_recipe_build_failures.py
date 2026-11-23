@@ -103,7 +103,8 @@ def load_minimax_dual_verifier() -> ModuleType:
     spec = importlib.util.spec_from_file_location(
         "minimax_dual_verify_runtime", MINIMAX_DUAL / "verify-runtime.py"
     )
-    assert spec is not None and spec.loader is not None
+    assert spec is not None
+    assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -132,7 +133,7 @@ def test_minimax_dual_verifier_requires_the_mesh_nccl(
         def __init__(self, path: str) -> None:
             loaded.append(path)
 
-        def ncclGetVersion(self, version: Any) -> int:
+        def ncclGetVersion(self, version: Any) -> int:  # noqa: N802 - mirrors the libnccl symbol the code under test calls
             version._obj.value = 22907
             return 0
 

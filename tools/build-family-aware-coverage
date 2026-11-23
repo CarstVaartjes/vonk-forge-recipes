@@ -34,9 +34,11 @@ import sys
 from pathlib import Path
 from typing import Any, assert_never
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
+from recipe_tooling.qualification.catalog_source import current_catalog_package_tree
+from recipe_tooling.qualification.coverage_identity import execution_stack_identity
+from recipe_tooling.qualification.documents import model_display
 from vonk_forge_contracts import (
     GitHubLfsSource,
     GitHubReleaseSource,
@@ -48,9 +50,7 @@ from vonk_forge_contracts.model import ModelSource
 from vonk_forge_contracts.qualification_authority import QualificationAuthority
 from vonk_forge_contracts.recipe import RecipeBuildDefinition
 
-from recipe_tooling.qualification.catalog_source import current_catalog_package_tree
-from recipe_tooling.qualification.coverage_identity import execution_stack_identity
-from recipe_tooling.qualification.documents import model_display
+ROOT = Path(__file__).resolve().parents[1]
 
 RECIPE_DIRECTORY = ROOT / "recipes"
 MODEL_DIRECTORY = ROOT / "models"
@@ -117,11 +117,13 @@ def _model_source_projection(model: ModelDefinition) -> tuple[str, str]:
     """Project exact source identity without presenting a release as a commit."""
 
     source = model.source
-    if isinstance(source, GitHubReleaseSource):
-        return source.repository, f"github-release:{source.release_id}"
-    if isinstance(source, GitHubLfsSource | ModelSource):
-        return source.repository, source.revision
-    assert_never(source)
+    match source:
+        case GitHubReleaseSource():
+            return source.repository, f"github-release:{source.release_id}"
+        case GitHubLfsSource() | ModelSource():
+            return source.repository, source.revision
+        case _:
+            assert_never(source)
 
 
 def _require_object(value: Any, description: str) -> dict[str, Any]:
@@ -583,19 +585,19 @@ def _authority_batches(
 
 def _excluded_schedule(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     excluded: list[dict[str, Any]] = []
-    for row in sorted(
-        (item for item in rows if not item["in_scope"]),
-        key=lambda item: (item["node_count"], item["key"]),
-    ):
-        excluded.append(
-            {
-                "kind": "outside-available-capacity",
-                "recipe": row["key"],
-                "node_count": row["node_count"],
-                "coverage_group": row["coverage_group"],
-                "reason": "requires more than two Sparks; catalog audit only",
-            }
+    excluded.extend(
+        {
+            "kind": "outside-available-capacity",
+            "recipe": row["key"],
+            "node_count": row["node_count"],
+            "coverage_group": row["coverage_group"],
+            "reason": "requires more than two Sparks; catalog audit only",
+        }
+        for row in sorted(
+            (item for item in rows if not item["in_scope"]),
+            key=lambda item: (item["node_count"], item["key"]),
         )
+    )
     return excluded
 
 
@@ -796,7 +798,7 @@ def _gib(value: int) -> str:
     return f"{value / 1024**3:.1f} GiB"
 
 
-def _yes_no(value: bool | None) -> str:
+def _yes_no(*, value: bool | None) -> str:
     return "—" if value is None else "yes" if value else "no"
 
 
@@ -927,7 +929,7 @@ def _render_report(matrix: dict[str, Any]) -> str:
             f"`{row['stack']['build_context']}` | {_row_group(row)} | "
             f"{', '.join(row['quantizations'])} | {_gib(row['declared_artifact_bytes'])} | "
             f"{representative} | {batch_label} | "
-            f"{_yes_no(row['stack_matches_authority'])} |"
+            f"{_yes_no(value=row['stack_matches_authority'])} |"
         )
 
     lines.extend(
@@ -946,12 +948,12 @@ def _render_report(matrix: dict[str, Any]) -> str:
             "|---|---|---|---:|---:|",
         ]
     )
-    for entry in matrix["representatives"]:
-        lines.append(
-            f"| `{entry['risk_group_id']}` | `{entry['coverage_group']}` | "
-            f"`{entry['representative']}` | {len(entry['members'])} | "
-            f"{_gib(entry['declared_artifact_bytes'])} |"
-        )
+    lines.extend(
+        f"| `{entry['risk_group_id']}` | `{entry['coverage_group']}` | "
+        f"`{entry['representative']}` | {len(entry['members'])} | "
+        f"{_gib(entry['declared_artifact_bytes'])} |"
+        for entry in matrix["representatives"]
+    )
 
     lines.extend(
         [
@@ -993,11 +995,11 @@ def _render_report(matrix: dict[str, Any]) -> str:
             "|---|---:|---|---|",
         ]
     )
-    for entry in matrix["excluded_schedule"]:
-        lines.append(
-            f"| `{entry['recipe']}` | {entry['node_count']} | "
-            f"`{entry['coverage_group']}` | {entry['reason']} |"
-        )
+    lines.extend(
+        f"| `{entry['recipe']}` | {entry['node_count']} | "
+        f"`{entry['coverage_group']}` | {entry['reason']} |"
+        for entry in matrix["excluded_schedule"]
+    )
 
     lines.extend(
         [
@@ -1014,13 +1016,13 @@ def _render_report(matrix: dict[str, Any]) -> str:
             "|---|---|---|---:|---|---|",
         ]
     )
-    for entry in matrix["recovery_coverage"]["definitions"]:
-        lines.append(
-            f"| `{entry['coverage_id'][:16]}` | `{entry['failure_mode']}` | "
-            f"`{entry['representative_recipe']}` | {len(entry['members'])} | "
-            f"{'yes' if entry['shared'] else 'no'} | "
-            f"{'required' if entry['model_specific_review_required'] else 'n/a'} |"
-        )
+    lines.extend(
+        f"| `{entry['coverage_id'][:16]}` | `{entry['failure_mode']}` | "
+        f"`{entry['representative_recipe']}` | {len(entry['members'])} | "
+        f"{'yes' if entry['shared'] else 'no'} | "
+        f"{'required' if entry['model_specific_review_required'] else 'n/a'} |"
+        for entry in matrix["recovery_coverage"]["definitions"]
+    )
 
     divergences = [row for row in rows if row["authority_divergence"]]
     lines.extend(["", "## Indexed package comparison", ""])
