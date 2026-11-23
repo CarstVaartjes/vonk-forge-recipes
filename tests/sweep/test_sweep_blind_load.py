@@ -8,12 +8,12 @@ from pathlib import Path
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, _locked, make_sweep
 
-pytest_plugins = ["sweep_bounds"]
-pytestmark = pytest.mark.usefixtures("bounded_clock")
-
 from spark_sweep.policy import TimeoutPolicy
 from spark_sweep.verdict import Disposition, reply_disposition
 from spark_sweep.vonkctl import Reply
+
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 
 @pytest.fixture

@@ -20,8 +20,10 @@ from recipe_tooling.qualification.memory_need.geometry import MemoryInputs
 from vonk_forge_contracts import (
     PublishedRoleMemory,
     QualificationMeasuredRoleMemory,
+    QualificationStatus,
     RecipeDefinition,
     RecipeQualificationEvidence,
+    derive_status,
     document_sha256,
 )
 
@@ -62,7 +64,6 @@ def hardware_proven(
 
     ``evidence`` is the recipe's evidence when the caller already read it.
     """
-    from vonk_forge_contracts import QualificationStatus, derive_status
 
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
     evidence = evidence if evidence is not None else _evidence(key)

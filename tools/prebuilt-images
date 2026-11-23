@@ -47,9 +47,10 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from recipe_tooling.upstream_http import UpstreamBusy, fetch
+
+ROOT = Path(__file__).resolve().parents[1]
 
 REGISTRY = "ghcr.io"
 BUNDLE = "recipe-library.tar"

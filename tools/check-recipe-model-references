@@ -18,8 +18,7 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,
@@ -27,6 +26,8 @@ from vonk_forge_contracts import (
     RecipeDisplay,
 )
 from vonk_forge_contracts.resolver import validate_library
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def document_sha256(document: object) -> str:

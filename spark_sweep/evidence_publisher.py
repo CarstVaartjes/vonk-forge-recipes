@@ -11,6 +11,7 @@ import json
 import os
 import signal
 import subprocess
+import sys
 import tempfile
 import time
 import uuid
@@ -888,7 +889,6 @@ class EvidencePublisher:
         try:
             self.directory.mkdir(parents=True, exist_ok=True)
             self._output = (self.directory / "publisher.log").open("a")
-            import sys
 
             self.process = subprocess.Popen(
                 [

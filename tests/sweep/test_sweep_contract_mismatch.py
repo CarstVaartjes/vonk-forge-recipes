@@ -26,12 +26,12 @@ from sweep_fakes import (
     make_sweep,
 )
 
-pytest_plugins = ["sweep_bounds"]
-
 from spark_sweep.policy import CLIENT_CONTRACT
 from spark_sweep.sweep_support import INFRA_BASE
 from spark_sweep.verdict import Disposition, reply_disposition
 from spark_sweep.vonkctl import CLIENT_CONTRACT_MISMATCH
+
+pytest_plugins = ["sweep_bounds"]
 
 LIBRARY = ("recipe", "library", "--limit", "1")
 FAULT = (LIBRARY, CLIENT_CONTRACT_MISMATCH, "")

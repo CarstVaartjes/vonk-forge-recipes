@@ -17,6 +17,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from recipe_tooling.protocol_wheel import projections
+
 
 class ValueKind(StrEnum):
     CONTRACT_VERSION = "contract-version"
@@ -418,8 +420,6 @@ def check(root: Path, files: list[str] | None = None) -> list[Violation]:
         families.add(family)
         generated: dict[str, bytes] = {}
         if registration.kind == ValueKind.PROTOCOL_WHEEL:
-            from recipe_tooling.protocol_wheel import projections
-
             generated = projections(root)
         for path in files:
             if registration.kind == ValueKind.MEMORY_BYTES and path in vendored:

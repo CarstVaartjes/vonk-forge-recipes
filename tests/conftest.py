@@ -7,13 +7,12 @@ from pathlib import Path
 import pytest
 from generated_catalog import GENERATED
 
-ROOT = Path(__file__).resolve().parents[1]
-# The one owner of the test import path: the repository, the contracts source and the
-# selected agent-protocol wheel (the adapters overlay the same wheel).
-sys.path[:0] = [str(ROOT), str(ROOT / "src")]
 from recipe_tooling.protocol_wheel import selection
 
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
+ROOT = Path(__file__).resolve().parents[1]
+# The test import path is `[tool.pytest.ini_options] pythonpath` (the repository, the
+# contracts source and src); the selected agent-protocol wheel is added here (the
+# adapters overlay the same wheel).
 sys.path.insert(0, str(ROOT / selection(ROOT).artifact))
 
 

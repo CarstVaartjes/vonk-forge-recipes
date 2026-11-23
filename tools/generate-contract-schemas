@@ -8,8 +8,7 @@ import json
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
 from vonk_forge_contracts import (
     INDEX_SCHEMA_ASSET,
     campaign_authority_json_schema,
@@ -25,6 +24,8 @@ from vonk_forge_contracts import (
     recipe_display_json_schema,
     recipe_json_schema,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _write(path: Path, document: dict[str, object], *, check: bool) -> bool:

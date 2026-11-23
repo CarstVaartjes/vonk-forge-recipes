@@ -5,10 +5,13 @@ import argparse
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path[:0] = [str(ROOT / "src"), str(ROOT), str(ROOT / "contracts/src")]
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts/src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from spark_sweep.evidence_publisher import sync
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> None:

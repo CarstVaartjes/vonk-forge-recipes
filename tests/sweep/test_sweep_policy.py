@@ -7,12 +7,11 @@ from datetime import datetime
 import pytest
 
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
+from spark_sweep import policy, verdict
+from spark_sweep.catalog import Recipe
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
-
-from spark_sweep import policy, verdict
-from spark_sweep.catalog import Recipe
 
 GB = 10**9
 CAP = SPARK_MEMORY_BYTES

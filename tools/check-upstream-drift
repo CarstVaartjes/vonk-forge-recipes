@@ -4,9 +4,11 @@
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT / "src")]
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
 from recipe_tooling.upstream_drift.cli import main
+
+ROOT = Path(__file__).resolve().parents[1]
 
 if __name__ == "__main__":
     raise SystemExit(main())

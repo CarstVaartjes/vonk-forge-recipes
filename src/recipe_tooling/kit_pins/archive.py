@@ -11,6 +11,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from recipe_tooling.adapter_mirror import add
+from recipe_tooling.adapter_sources import AdapterSourceError, load
 from recipe_tooling.kit_pins.model import (
     ARCHIVE_ROUNDS,
     FETCH_ERRORS,
@@ -34,8 +36,6 @@ def declare_archive(root: Path, archive: Path, origin: str) -> str:
     so a rerun fetches and declares it again instead of finishing with an
     undeclared archive.
     """
-    from recipe_tooling.adapter_mirror import add
-    from recipe_tooling.adapter_sources import AdapterSourceError, load
 
     relative = archive.relative_to(root).as_posix()
     try:

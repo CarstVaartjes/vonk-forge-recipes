@@ -27,6 +27,7 @@ from pydantic import (
 )
 
 from vonk_forge_contracts.model import ModelReference
+from vonk_forge_contracts.systemone import SystemOneRequest
 
 
 class _RecipeContract(BaseModel):
@@ -910,8 +911,6 @@ class RecipeValidationCheck(_RecipeContract):
                         "completion checks require a prompt and completion.nonempty"
                     )
             elif self.kind == "openai.systemone":
-                from vonk_forge_contracts.systemone import SystemOneRequest
-
                 if (
                     self.request.path != "/v1/systemone"
                     or "decision.probabilities" not in self.assertions

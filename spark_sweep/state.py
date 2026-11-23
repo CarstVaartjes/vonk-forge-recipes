@@ -31,6 +31,7 @@ from .lifecycle import (
     SkipReasonKind,
 )
 from .policy import LOAD_RULES, SMOKE_RULES
+from .qualification import adopt_state_evidence
 from .sweep_contract import SweepAdoptionReason, SweepAdoptionResult
 
 SCHEMA = 2
@@ -106,8 +107,6 @@ def _adopt(
     requeue/cleanup, which retains its original request for observation.
     """
     if "qualification_evidence" not in data:
-        from .qualification import adopt_state_evidence
-
         data["qualification_evidence"] = {
             key: evidence.model_dump(mode="json")
             for key, evidence in adopt_state_evidence(data).items()

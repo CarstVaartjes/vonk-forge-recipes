@@ -9,12 +9,12 @@ import pytest
 from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
-pytest_plugins = ["sweep_bounds"]
-pytestmark = pytest.mark.usefixtures("bounded_clock")
-
 from spark_sweep.cli import main
 from spark_sweep.lifecycle import RetestReason
 from spark_sweep.sweep_contract import WorkloadFailureCode
+
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 OLD, NEW = "1" * 40, "2" * 40
 IMAGE_BUG = "runtime image no longer matches the approved recipe"

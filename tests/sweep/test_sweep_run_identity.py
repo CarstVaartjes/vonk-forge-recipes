@@ -8,11 +8,11 @@ from pathlib import Path
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
-pytest_plugins = ["sweep_bounds"]
-pytestmark = pytest.mark.usefixtures("bounded_clock")
-
 from spark_sweep import policy
 from spark_sweep.qualification import backfill, from_history
+
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 OOM = (
     "runtime_process_exited: exit_cause=oom_killed exception=CUDA error: out of memory"

@@ -17,8 +17,6 @@ import pytest
 from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, _locked, make_sweep
 
-pytest_plugins = ["sweep_bounds"]
-
 from spark_sweep.state import State, StateLock, StateLocked
 from spark_sweep.verdict import Disposition, reply_disposition
 from spark_sweep.vonkctl import (
@@ -27,6 +25,8 @@ from spark_sweep.vonkctl import (
     VonkctlTimeout,
     subprocess_runner,
 )
+
+pytest_plugins = ["sweep_bounds"]
 
 
 @pytest.fixture

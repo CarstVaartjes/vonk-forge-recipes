@@ -5,12 +5,12 @@ from __future__ import annotations
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
-pytest_plugins = ["sweep_bounds"]
-pytestmark = pytest.mark.usefixtures("bounded_clock")
-
 from spark_sweep import verdict
 from spark_sweep.identity import content_identity
 from spark_sweep.sweep_support import MAX_REVIEW_FREEING
+
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 
 @pytest.fixture

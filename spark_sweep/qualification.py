@@ -46,6 +46,8 @@ from vonk_forge_contracts.qualification_status import (
 from .catalog import Recipe, never_measured
 from .identity import current_identity
 from .lifecycle import RecipeStatus
+from .verdict import Blame
+from .verdict import blame as sweep_blame
 
 
 class HistoricalIdentity(BaseModel):
@@ -149,8 +151,6 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         models_resolved=models is not None,
         required_sparks=row.node_count or len(row.node_ids) or None,
     )
-    from .verdict import Blame
-    from .verdict import blame as sweep_blame
 
     passed = row.status == RecipeStatus.PASSED
     blame = (

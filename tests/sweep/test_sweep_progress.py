@@ -7,10 +7,10 @@ from pathlib import Path
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
+from spark_sweep.policy import TimeoutPolicy
+
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
-
-from spark_sweep.policy import TimeoutPolicy
 
 WINDOW = 600.0
 

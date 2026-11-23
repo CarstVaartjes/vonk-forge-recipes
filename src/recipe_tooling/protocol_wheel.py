@@ -13,6 +13,8 @@ from zipfile import ZipFile
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from recipe_tooling.adapter_mirror import add, run_gh, undeclare
+from recipe_tooling.adapter_sources import load
 from recipe_tooling.paths import REPO_ROOT
 
 Gh = Callable[[list[str]], str]
@@ -128,8 +130,6 @@ def materialize(
     copied into each context for commit). ``check`` proves the text projections and
     that every wheel path of a materialized tree holds the selected bytes.
     """
-    from recipe_tooling.adapter_mirror import add, run_gh, undeclare
-    from recipe_tooling.adapter_sources import load
 
     selected = selection(root)
     outputs = projections(root)

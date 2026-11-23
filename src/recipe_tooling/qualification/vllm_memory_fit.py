@@ -11,6 +11,8 @@ from recipe_tooling.qualification.memory_need.constants import (
     VLLM_DEFAULT_UTILIZATION,
     budget_margin_bytes,
 )
+from recipe_tooling.qualification.memory_need.evidence import load_inputs
+from recipe_tooling.qualification.memory_need.need import calculate_need
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 
@@ -51,8 +53,6 @@ def assert_memory_fit(recipe: RecipeDefinition) -> None:
     ):
         # Need-based documents omit utilization: do not invent an implicit 0.9
         # reservation. Keep explicitly authored historical budgets calibrated.
-        from recipe_tooling.qualification.memory_need.evidence import load_inputs
-        from recipe_tooling.qualification.memory_need.need import calculate_need
 
         assert recipe.topology.node_count == 1, (
             "Absolute multi-Spark pools need a per-rank need model"

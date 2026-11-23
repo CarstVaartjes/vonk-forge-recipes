@@ -5,12 +5,9 @@ import shlex
 import unittest
 from pathlib import Path, PurePosixPath
 
-from repo_root import ROOT
-
-RECIPES = ROOT / "recipes"
-
 from catalog_documents import catalog_models
 from documents import recipe_display
+from repo_root import ROOT
 
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeBuildDefinition
@@ -18,6 +15,8 @@ from vonk_forge_contracts.resolver import (
     validate_recipe_models,
     validate_recipe_package_paths,
 )
+
+RECIPES = ROOT / "recipes"
 
 FORBIDDEN_TAGS = frozenset(
     {

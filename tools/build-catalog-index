@@ -16,26 +16,20 @@ from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
-sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from recipe_tooling.adapter_sources import materialize_or_exit
-from recipe_tooling.qualification.image_evidence import load_images, read_images
-from recipe_tooling.qualification.tolerant import InputDiagnostic
-from vonk_forge_contracts import (
-    INDEX_SCHEMA_ASSET,
-    PACKAGE_MEDIA_TYPE,
-    PACKAGE_SCHEMA_VERSION,
-)
-
-
-def image_diagnostic(diagnostic: InputDiagnostic) -> None:
-    print(diagnostic.model_dump_json(), file=sys.stderr)
-
-
 from recipe_tooling.qualification.case_assertions import require_valid_case_assertions
 from recipe_tooling.qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.documents import (
+    families,
+    model_display,
+    recipe_api,
+    recipe_display,
+)
+from recipe_tooling.qualification.documents import recipe as recipe_of
+from recipe_tooling.qualification.evidence_store import read_evidence
+from recipe_tooling.qualification.image_evidence import load_images, read_images
 from recipe_tooling.qualification.media_types import require_canonical_recipe_media
 from recipe_tooling.qualification.memory_need.evidence import (
     load_inputs,
@@ -43,6 +37,44 @@ from recipe_tooling.qualification.memory_need.evidence import (
 )
 from recipe_tooling.qualification.memory_need.warnings import memory_warnings
 from recipe_tooling.qualification.service_aliases import require_valid_service_aliases
+from recipe_tooling.qualification.tolerant import InputDiagnostic
+from vonk_forge_contracts import (
+    CONTRACT_VERSION,
+    INDEX_KIND,
+    INDEX_SCHEMA_ASSET,
+    INDEX_SCHEMA_VERSION,
+    PACKAGE_MEDIA_TYPE,
+    PACKAGE_METADATA_FIELDS,
+    PACKAGE_PATH_PREFIX,
+    PACKAGE_SCHEMA_VERSION,
+    CatalogIndex,
+    ModelDefinition,
+    PackageContract,
+    PublishedMeasuredMemory,
+    QualificationIdentity,
+    QualificationRuntimeImage,
+    RecipeDefinition,
+    catalog_vocabulary,
+    document_sha256,
+    published_index_json,
+    published_json,
+    published_status,
+)
+from vonk_forge_contracts.resolver import (
+    validate_families,
+    validate_library,
+    validate_model_references,
+    validate_recipe_apis,
+)
+
+REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def image_diagnostic(diagnostic: InputDiagnostic) -> None:
+    print(diagnostic.model_dump_json(), file=sys.stderr)
+
 
 QUALIFICATION_ROOT = ROOT / "qualification"
 # Control planes fetch oversized Contents API entries by immutable Git blob SHA.
@@ -170,7 +202,6 @@ def _updated_at(source_date_epoch: int) -> str:
 
 def _catalog_entity_documents() -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
-    from vonk_forge_contracts import ModelDefinition
 
     for path in sorted((ROOT / "models").glob("*.json")):
         # Publish the authored document itself: its digest is the identity
@@ -342,8 +373,6 @@ def validate_recipe_archive(
     that side meets an adversary.
     """
     entities = entities or _catalog_entity_documents()
-    from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
-    from vonk_forge_contracts.resolver import validate_model_references
 
     expected_recipe = RecipeDefinition.model_validate(recipe)
     validate_model_references(
@@ -584,7 +613,6 @@ def recipe_package(
     recipe_path: Path | None = None,
     entity_documents: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[bytes, dict[str, object]]:
-    from vonk_forge_contracts import RecipeDefinition, document_sha256
 
     validated = RecipeDefinition.model_validate(document)
     require_canonical_recipe_media(validated)
@@ -668,24 +696,6 @@ def build(
 ) -> dict[str, Any]:
     package_dir.mkdir(parents=True, exist_ok=True)
     entities = _catalog_entity_documents()
-    from recipe_tooling.qualification.documents import (
-        families,
-        model_display,
-        recipe_api,
-        recipe_display,
-    )
-    from recipe_tooling.qualification.documents import recipe as recipe_of
-    from vonk_forge_contracts import (
-        ModelDefinition,
-        RecipeDefinition,
-        document_sha256,
-        published_json,
-    )
-    from vonk_forge_contracts.resolver import (
-        validate_families,
-        validate_library,
-        validate_recipe_apis,
-    )
 
     memory_models = {
         document_sha256(document): ModelDefinition.model_validate(document)
@@ -756,13 +766,6 @@ def build(
             }
         )
     pin_prebuilt_images(recipes, prebuilt_images or {})
-    from recipe_tooling.qualification.evidence_store import read_evidence
-    from vonk_forge_contracts import (
-        PublishedMeasuredMemory,
-        QualificationIdentity,
-        QualificationRuntimeImage,
-        published_status,
-    )
 
     recipe_by_slug = {item.identity.slug: item for item in recipe_documents}
     for entry in recipes:
@@ -803,19 +806,6 @@ def build(
             entry["measured_memory"] = PublishedMeasuredMemory(roles=peaks).model_dump(
                 mode="json"
             )
-
-    from vonk_forge_contracts import (
-        CONTRACT_VERSION,
-        INDEX_KIND,
-        INDEX_SCHEMA_VERSION,
-        PACKAGE_METADATA_FIELDS,
-        PACKAGE_PATH_PREFIX,
-        CatalogIndex,
-        PackageContract,
-        catalog_vocabulary,
-        document_sha256,
-        published_index_json,
-    )
 
     catalog_entities = [
         {
