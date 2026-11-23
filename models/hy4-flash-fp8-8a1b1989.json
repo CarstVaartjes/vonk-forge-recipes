@@ -20,13 +20,13 @@
       "size_bytes": 17235
     },
     {
-      "id": "config-25c33298be04-587cb980af",
+      "id": "config-617a2b86e568-587cb980af",
       "path": "config.json",
       "roles": [
         "configuration"
       ],
-      "sha256": "25c33298be04f349f3220fbd73b5024c7943cb5a8b17747951d3d2a1cd69d2e7",
-      "size_bytes": 60968
+      "sha256": "617a2b86e568195c3ad41b98af7be15cfc4820260921966846dab7a354d2c7db",
+      "size_bytes": 60969
     },
     {
       "id": "generation-config-38dbc352f801-97dd3d578b",
@@ -1416,14 +1416,14 @@
       "slug": "hy4-flash-fp8"
     },
     "publisher": "tencent",
-    "slug": "hy4-flash-fp8-bd0e136e",
-    "variant": "Hy4 flash FP8 bd0e136e",
-    "version": "Hy4 flash FP8 bd0e136e"
+    "slug": "hy4-flash-fp8-8a1b1989",
+    "variant": "Hy4 flash FP8 8a1b1989",
+    "version": "Hy4 flash FP8 8a1b1989"
   },
   "kind": "model",
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/tencent/Hy4-flash-FP8",
-    "revision": "bd0e136e89a9ecd5ea17668cd89cf54fa127e795"
+    "revision": "8a1b19890d3533aefc730f8b41f4b55f50cc31c0"
   }
 }

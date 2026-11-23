@@ -88,13 +88,8 @@ ignore = [
 # git, and rewriting them would re-add those git lines for the added-line guard.
 "tests/refresh_upstream/test_apply.py" = ["PT009"]
 "tests/qualification/test_absolute_kv_capacity.py" = ["RUF005"]  # the same, one git argv
-# Relative imports are banned only inside the installable recipe_tooling package.
-"!src/**" = ["TID252"]
-# The released contract package keeps its source as released: CI refuses any change under
-# contracts/src without a new contract version (validate.yml), a keyword-only flag would
-# break callers of a public function, and reordering a type alias changes the published
-# schemas. These findings stay listed here; they are the rules' only hits in it.
-"contracts/src/**" = ["TID252", "PERF401", "FBT001", "PLC0415", "RUF021", "RUF036"]
+# Relative imports are banned only inside the installable packages: recipe_tooling and the contracts.
+"!{src,contracts/src}/**" = ["TID252"]
 # The one module that opens provider URLs.
 "src/recipe_tooling/upstream_http.py" = ["TID251"]
 
@@ -151,12 +146,4 @@ exclude = [
     "**/.venv/**",
     # Adapters follow their upstream recipe; see [tool.ruff].
     "adapters",
-]
-# contracts/src is the released contract package: CI refuses any change under it without a
-# new contract version (validate.yml, "Require a contract version bump"), and four of these
-# findings sit on public signatures and schema-visible definitions. Its source is therefore
-# not edited for the stricter checks; the four rules below are off for it only.
-executionEnvironments = [
-    { root = "contracts/src", extraPaths = ["contracts/src"], reportUnnecessaryIsInstance = "none", reportIncompatibleMethodOverride = "none", reportIncompatibleVariableOverride = "none", reportFunctionMemberAccess = "none" },
-    { root = "." },
 ]
