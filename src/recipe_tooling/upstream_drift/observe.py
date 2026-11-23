@@ -6,7 +6,7 @@ from collections import Counter
 from collections.abc import Callable
 from contextlib import AbstractContextManager
 from dataclasses import asdict
-from typing import Any
+from typing import Any, Protocol
 from urllib.parse import quote
 
 from recipe_tooling.upstream_clients import (
@@ -24,6 +24,12 @@ from recipe_tooling.upstream_drift.model import (
     Watch,
 )
 from recipe_tooling.upstream_http import UpstreamBusy, open_once
+
+
+class JsonClient(Protocol):
+    """What the head observations need of a client: one provider JSON read."""
+
+    def json(self, url: str, provider: str, /) -> object: ...
 
 
 class ProviderClient:
@@ -74,7 +80,7 @@ def _required_string(document: object, key: str, context: str) -> str:
 
 
 def _github_commit(
-    client: ProviderClient, repository: str, ref: str
+    client: JsonClient, repository: str, ref: str
 ) -> tuple[str, str | None, str]:
     encoded = quote(ref, safe="")
     document = client.json(

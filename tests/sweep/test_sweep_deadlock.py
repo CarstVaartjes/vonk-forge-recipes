@@ -78,7 +78,7 @@ def test_a_cached_recipe_of_a_partly_fetched_model_runs_without_any_download(
     assert _downloads(fleet) == []
 
 
-def _download_requests(fleet) -> list[tuple]:
+def _download_requests(fleet) -> list[tuple[Any, ...]]:
     return [
         c
         for _, c in fleet.calls

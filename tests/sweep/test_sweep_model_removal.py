@@ -400,6 +400,7 @@ def test_repeated_failures_and_uncertainty_always_schedule_a_next_check(
     else:
         setattr(peer, fault, True)
     keys = []
+    record: RemovalRecord | None = None
     for _ in range(12):
         peer.lost = fault == "lost"
         clock.t += 24 * 3600  # Controller deadlines never end local reconciliation.
@@ -414,6 +415,7 @@ def test_repeated_failures_and_uncertainty_always_schedule_a_next_check(
         ]
         sweep.state = State.load(sweep.state.path, clock.now)
         sweep.model_remover.state = sweep.state
+    assert record is not None
     if fault in ("blocked", "mismatch"):
         assert not peer.submissions
         assert record.outcome == RemovalOutcome.RETRY

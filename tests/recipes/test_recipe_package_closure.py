@@ -19,13 +19,16 @@ import io
 import runpy
 import tarfile
 from pathlib import Path
+from typing import Any
 
 from repo_root import ROOT
 
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
 
 
-def _job_row(built_catalog: tuple[dict, Path]) -> tuple[dict, bytes]:
+def _job_row(
+    built_catalog: tuple[dict[str, Any], Path],
+) -> tuple[dict[str, Any], bytes]:
     catalog, package_dir = built_catalog
     row = next(
         row
@@ -35,7 +38,9 @@ def _job_row(built_catalog: tuple[dict, Path]) -> tuple[dict, bytes]:
     return row, (package_dir / Path(row["package"]["path"]).name).read_bytes()
 
 
-def _row_for_slug(built_catalog: tuple[dict, Path], slug: str) -> tuple[dict, bytes]:
+def _row_for_slug(
+    built_catalog: tuple[dict[str, Any], Path], slug: str
+) -> tuple[dict[str, Any], bytes]:
     catalog, package_dir = built_catalog
     row = next(
         row for row in catalog["recipes"] if row["document"]["identity"]["slug"] == slug
@@ -44,7 +49,7 @@ def _row_for_slug(built_catalog: tuple[dict, Path], slug: str) -> tuple[dict, by
 
 
 def test_archive_has_one_entrypoint_and_real_closure(
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     row, payload = _job_row(built_catalog)
     TOOL["validate_recipe_archive"](payload, row["document"])
@@ -58,7 +63,7 @@ def test_archive_has_one_entrypoint_and_real_closure(
 
 
 def test_archive_allows_bounded_recipe_owned_direction_tensor(
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     row, payload = _row_for_slug(
         built_catalog,

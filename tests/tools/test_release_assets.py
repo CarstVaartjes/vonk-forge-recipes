@@ -14,6 +14,7 @@ import json
 import runpy
 import shutil
 from pathlib import Path, PurePosixPath
+from typing import Any
 
 import pytest
 from generated_catalog import SOURCE_COMMIT as SESSION_COMMIT
@@ -27,7 +28,7 @@ SOURCE_DATE_EPOCH = 0
 
 def test_release_manifest_covers_every_asset_and_matches_the_index(
     tmp_path: Path,
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     release = tmp_path / "release"
     report = tmp_path / "coverage.md"
@@ -71,8 +72,8 @@ def test_release_manifest_covers_every_asset_and_matches_the_index(
 
 @pytest.fixture
 def session_build(
-    monkeypatch: pytest.MonkeyPatch, built_catalog: tuple[dict, Path]
-) -> dict:
+    monkeypatch: pytest.MonkeyPatch, built_catalog: tuple[dict[str, Any], Path]
+) -> dict[str, Any]:
     """``build`` answers with the session's real build output.
 
     These cases test what the writers do with a build's index and packages, so
@@ -81,7 +82,7 @@ def session_build(
     """
     catalog, packages = built_catalog
 
-    def build(*, package_dir: Path, **_: object) -> dict:
+    def build(*, package_dir: Path, **_: object) -> dict[str, Any]:
         package_dir.mkdir(parents=True, exist_ok=True)
         for path in packages.glob("*.tar.gz"):
             shutil.copyfile(path, package_dir / path.name)
@@ -92,7 +93,7 @@ def session_build(
 
 
 def test_an_included_file_cannot_shadow_an_asset(
-    tmp_path: Path, session_build: dict
+    tmp_path: Path, session_build: dict[str, Any]
 ) -> None:
     shadow = tmp_path / "catalog-index.json"
     shadow.write_text("{}", encoding="utf-8")
@@ -106,7 +107,7 @@ def test_an_included_file_cannot_shadow_an_asset(
 
 
 def test_checkout_outputs_drop_packages_of_removed_recipes(
-    tmp_path: Path, session_build: dict
+    tmp_path: Path, session_build: dict[str, Any]
 ) -> None:
     stale = tmp_path / "packages" / "removed-recipe.tar.gz"
     stale.parent.mkdir()
@@ -132,7 +133,7 @@ def test_release_refuses_to_mix_with_existing_files(tmp_path: Path) -> None:
 
 
 def test_a_reader_ignores_what_a_newer_minor_adds_but_refuses_another_envelope(
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     from vonk_forge_contracts import read_catalog_index
 

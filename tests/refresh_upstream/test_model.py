@@ -654,7 +654,7 @@ class KitScopeTests(unittest.TestCase):
         assert refresh_model.is_blocking("examples/text/requirements.txt")
         assert refresh_model.is_blocking("docker/cuda/Dockerfile")
 
-    def used(self, files: dict[str, str], manifest: dict, trees=None):
+    def used(self, files: dict[str, str], manifest: dict[str, Any], trees=None):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         directory = Path(temporary.name)

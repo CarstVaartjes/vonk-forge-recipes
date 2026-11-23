@@ -138,7 +138,7 @@ def _detector(source: str) -> Any:
     @dataclass
     class Result:
         normal_text: str = ""
-        calls: list = field(default_factory=list)
+        calls: list[Any] = field(default_factory=list)
 
     @dataclass
     class Call:
@@ -224,7 +224,7 @@ class TagGrammar:
     literals are exact, the content must satisfy the tool's JSON schema, and
     after the end only the stop token is accepted."""
 
-    def __init__(self, structural_tag: dict) -> None:
+    def __init__(self, structural_tag: dict[str, Any]) -> None:
         frame = structural_tag["format"]
         self.tags = frame["elements"] if frame["type"] == "or" else [frame]
         assert all(tag["type"] == "tag" for tag in self.tags)
@@ -254,7 +254,7 @@ class TagGrammar:
             for tag in self.tags
         )
 
-    def fill_vocab_mask(self, vocab_mask: dict, idx: int) -> None:
+    def fill_vocab_mask(self, vocab_mask: dict[int, Any], idx: int) -> None:
         vocab_mask[idx] = self.allows
 
     def accept_token(self, token: str) -> None:
@@ -331,7 +331,9 @@ def _t_report() -> tuple[SimpleNamespace, list[SimpleNamespace]]:
     return request, tools
 
 
-def _calls(output: list[str], detector: Any, tools: list) -> list[tuple[str, dict]]:
+def _calls(
+    output: list[str], detector: Any, tools: list[Any]
+) -> list[tuple[str, dict[str, Any]]]:
     text = "".join(token for token in output if token != END_SAMPLING)
     result = detector.detect_and_parse(text, tools)
     return [(call.name, json.loads(call.parameters)) for call in result.calls]

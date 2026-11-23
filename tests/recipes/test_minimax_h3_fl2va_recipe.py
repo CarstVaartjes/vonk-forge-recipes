@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import unittest
 from pathlib import Path
+from typing import Any
 
 from documents import recipe_display
 from repo_root import ROOT
@@ -13,7 +14,7 @@ MODEL_PATH = ROOT / "models/minimax-h3-fl2va-42ed227e.json"
 ADAPTER_PATH = ROOT / "adapters/video/minimax-h3-fl2va-modular-diffusers/minimax_h3.py"
 
 
-def load(path: Path) -> dict:
+def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 

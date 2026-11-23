@@ -44,7 +44,7 @@ def _load_run():
 run = _load_run()
 
 
-def _command(*segments: dict) -> bytes:
+def _command(*segments: dict[str, typing.Any]) -> bytes:
     return json.dumps({"schema_version": 1, "segments": list(segments)}).encode()
 
 
@@ -105,7 +105,7 @@ def test_styles_are_the_upstream_clips_without_the_blendspace_targets() -> None:
         {"schema_version": 1, "segments": [WALK], "prompt": "dance"},
     ],
 )
-def test_the_command_contract_rejects(document: dict) -> None:
+def test_the_command_contract_rejects(document: dict[str, typing.Any]) -> None:
     with pytest.raises(ValueError):
         run.Command.model_validate_json(json.dumps(document))
 
@@ -230,13 +230,18 @@ def test_every_path_the_vendored_configs_name_is_in_the_merged_tree(
     out = run.build_out_tree(
         scratch, sidecars=ADAPTER / "motionbricks/out", models=models
     )
+    hparams_files = list(
+        (ADAPTER / "motionbricks/out").glob("*/version_1/hparams.yaml")
+    )
     named = set()
-    for hparams in (ADAPTER / "motionbricks/out").glob("*/version_1/hparams.yaml"):
+    for hparams in hparams_files:
         named.update(re.findall(r"\bout/[A-Za-z0-9_./=-]+", hparams.read_text()))
     assert named
     for path in sorted(named):
         target = scratch / path.rstrip("/")
-        assert target.exists(), f"{path} named by {hparams.parent} is not in the tree"
+        assert target.exists(), (
+            f"{path} named by {hparams_files[-1].parent} is not in the tree"
+        )
     assert (out / "G1-clip.ckpt").is_file()
 
 

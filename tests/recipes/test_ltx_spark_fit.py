@@ -6,6 +6,7 @@ import runpy
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
 import ltx_protocol  # noqa: F401  # puts the protocol wheel on sys.path for the adapters run below
@@ -18,18 +19,18 @@ FP4_SLUG = "ltx-2-19b-dev-fp4-pytorch-single"
 BF16_SLUG = "ltx-2-19b-dev-bf16-diffusers-single"
 
 
-def load(path: Path) -> dict:
+def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def plan_document(artifacts: list[dict]) -> dict:
+def plan_document(artifacts: list[dict[str, Any]]) -> dict[str, Any]:
     """A compiled plan carrying only the fields the adapters read."""
     return {"artifacts": artifacts}
 
 
 def plan_artifact(
     mount_name: str, relative_path: str, size_bytes: int, **extra: object
-) -> dict:
+) -> dict[str, Any]:
     return {
         "selection_id": mount_name,
         "path": relative_path,

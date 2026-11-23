@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
@@ -29,11 +30,11 @@ def gateway():
     gateway.stop()
 
 
-def _entry(sweep, slug: str = "a") -> dict:
+def _entry(sweep, slug: str = "a") -> dict[str, Any]:
     return sweep.state.recipes[f"vonk-forge/{slug}"]
 
 
-def _smoke_line(tmp_path: Path) -> dict:
+def _smoke_line(tmp_path: Path) -> dict[str, Any]:
     return next(
         json.loads(x)
         for x in (tmp_path / "results.jsonl").read_text().splitlines()
@@ -137,7 +138,7 @@ def test_the_expected_answer_leaves_no_note(tmp_path: Path, gateway: Gateway) ->
     ids=["empty", "no-content", "leaked-think-tag"],
 )
 def test_a_malformed_or_leaking_reply_still_fails_the_recipe(
-    tmp_path: Path, gateway: Gateway, message: dict
+    tmp_path: Path, gateway: Gateway, message: dict[str, Any]
 ) -> None:
     gateway.messages["a"] = message
     sweep, _, _ = make_sweep(

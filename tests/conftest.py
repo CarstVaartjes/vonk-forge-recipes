@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 from generated_catalog import GENERATED
@@ -71,7 +72,7 @@ def isolate_memory_evidence(request, monkeypatch, tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def built_catalog() -> tuple[dict, Path]:
+def built_catalog() -> tuple[dict[str, Any], Path]:
     """The catalog and package directory built once for the whole session.
 
     One build reads, hashes and gzips the closure of all recipes, which is the

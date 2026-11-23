@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from email.message import Message
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.parse import quote
@@ -37,10 +38,12 @@ FakeResponse = io.BytesIO  # a context manager with read(), like urlopen
 class FakeGitHub:
     """Recorded-shape answers; every request is kept so tests can inspect it."""
 
-    def __init__(self, files: dict[str, bytes], batch: dict | None = None) -> None:
+    def __init__(
+        self, files: dict[str, bytes], batch: dict[str, Any] | None = None
+    ) -> None:
         self.files = files
         self.batch = batch
-        self.requests: list = []
+        self.requests: list[Any] = []
 
     def __call__(self, request, timeout: float | None = None):
         self.requests.append(request)

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from repo_root import FIXTURES
@@ -49,7 +50,7 @@ def gateway():
     gateway.stop()
 
 
-def _results(tmp_path: Path) -> list[dict]:
+def _results(tmp_path: Path) -> list[dict[str, Any]]:
     path = tmp_path / "results.jsonl"
     if not path.exists():
         return []
@@ -102,7 +103,7 @@ def test_the_recorded_offline_spark_is_a_wait_and_its_lane_returns(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, clock = _recorded_world(tmp_path, gateway)
-    seen: list[dict] = []
+    seen: list[dict[str, Any]] = []
 
     def watch(_now: float) -> None:
         if not sweep.catalog_loaded:

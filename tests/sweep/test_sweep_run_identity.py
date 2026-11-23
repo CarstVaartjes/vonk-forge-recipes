@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
@@ -26,11 +27,11 @@ def gateway():
     gateway.stop()
 
 
-def _rows(path: Path) -> list[dict]:
+def _rows(path: Path) -> list[dict[str, Any]]:
     return [json.loads(x) for x in (path / "results.jsonl").read_text().splitlines()]
 
 
-def _loads(sweep, calls) -> list:
+def _loads(sweep, calls) -> list[Any]:
     return [
         command
         for profile, command in calls

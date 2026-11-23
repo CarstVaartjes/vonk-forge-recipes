@@ -109,9 +109,23 @@ ban-relative-imports = "all"
 # an unconfigured pyright reports hundreds of extra findings, so the zero-error
 # gate would otherwise depend on the host interpreter and on defaults.
 pythonVersion = "3.14"
-typeCheckingMode = "basic"
-# A `# pyright: ignore` that no longer suppresses anything is an error.
+# The diagnostics are defined for Linux, where CI runs: a Mac hook and the CI agree.
+pythonPlatform = "Linux"
+typeCheckingMode = "standard"
+# Strict-mode checks with behaviour value, on everywhere:
+# a `# pyright: ignore` that no longer suppresses anything is an error,
 reportUnnecessaryTypeIgnoreComment = "error"
+# a `match` over an enum or union covers every case (explicit state machines),
+reportMatchNotExhaustive = "error"
+# and a check that can never fail, a cast that changes nothing, a deprecated API, a
+# generic without arguments or a method without self/cls is a mistake or dead code.
+reportUnnecessaryIsInstance = "error"
+reportUnnecessaryComparison = "error"
+reportUnnecessaryContains = "error"
+reportUnnecessaryCast = "error"
+reportDeprecated = "error"
+reportMissingTypeArgument = "error"
+reportSelfClsParameterName = "error"
 # The contracts package is not installed in the environment CI checks with, so
 # its import root is declared here exactly as the test suites add it. Without
 # it every contract import is an unresolved-import finding.

@@ -18,7 +18,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TextIO
+from typing import Any, TextIO
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -76,7 +76,7 @@ STALL_SECONDS = 3600
 RETRY_SECONDS = 300  # a PR in flight or a failing command is looked at again
 
 
-def kill_group(process: subprocess.Popen) -> None:
+def kill_group(process: subprocess.Popen[bytes]) -> None:
     """End the child and its git/gh children: it runs in a session of its own."""
     try:
         os.killpg(process.pid, signal.SIGKILL)
@@ -344,7 +344,7 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     return result.stdout.strip()
 
 
-def own_open_prs(cwd: Path) -> list[dict]:
+def own_open_prs(cwd: Path) -> list[dict[str, Any]]:
     """The open evidence PR from this repository: GitHub allows one per head and base."""
     return own_pulls(
         json.loads(
@@ -443,7 +443,7 @@ def sync(
     return code
 
 
-def _evidence_records(clone: Path, ref: str, name: str) -> tuple:
+def _evidence_records(clone: Path, ref: str, name: str) -> tuple[Any, ...]:
     try:
         return RecipeQualificationEvidence.model_validate_json(
             command(clone, "git", "show", f"{ref}:{name}")
@@ -810,7 +810,7 @@ class EvidencePublisher:
         # A new sweep may run new conversion code: its first batch reads every log.
         self.run = uuid.uuid4().hex
         self.script = script
-        self.process: subprocess.Popen | None = None
+        self.process: subprocess.Popen[bytes] | None = None
         self.next_attempt = 0.0
         self.due = True  # the start publish, until a child has completed it
         self.watching = False  # the last child only watched

@@ -184,7 +184,8 @@ class EntryRead[E: (CatalogModelEntry, CatalogRecipeEntry)]:
 class CatalogRead(NamedTuple):
     """The entries this release reads, and what it left out or did not recognise."""
 
-    index: CatalogIndex
+    # The published field name; nothing calls tuple.index on a CatalogRead.
+    index: CatalogIndex  # pyright: ignore[reportIncompatibleMethodOverride]
     problems: tuple[CatalogProblem, ...]
 
 
@@ -232,7 +233,8 @@ def read_catalog_recipe_entry(
 def read_catalog(document: Mapping[str, object]) -> CatalogRead:
     """Read a published index: every readable entry, and a report of the rest."""
 
-    if not isinstance(document, Mapping):
+    # The published JSON is untrusted: refuse a non-object whatever the annotation says.
+    if not isinstance(document, Mapping):  # pyright: ignore[reportUnnecessaryIsInstance]
         raise CatalogIndexRefused(
             RefusalReason.ENVELOPE_INVALID, "the index is not a JSON object"
         )

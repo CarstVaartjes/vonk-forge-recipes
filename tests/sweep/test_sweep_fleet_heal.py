@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
@@ -134,7 +135,7 @@ def test_the_pin_profile_is_counted_on_the_real_document_not_on_our_bookkeeping(
         ),
     )
 
-    def assignment(name: str, key: str) -> dict:
+    def assignment(name: str, key: str) -> dict[str, Any]:
         return {
             "recipe_selector": key,
             "spark_ids": ["spark-a"],

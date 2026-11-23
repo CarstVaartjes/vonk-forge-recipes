@@ -11,6 +11,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 from repo_root import ROOT
 
@@ -21,7 +22,7 @@ LAYER = "model.language_model.layers"
 SIZE = {"I16": 2, "I32": 4, "BF16": 2, "F16": 2}
 
 
-def tensor(dtype: str, shape: list[int], data: bytes | None = None) -> tuple:
+def tensor(dtype: str, shape: list[int], data: bytes | None = None) -> tuple[Any, ...]:
     return (
         dtype,
         shape,
@@ -29,7 +30,7 @@ def tensor(dtype: str, shape: list[int], data: bytes | None = None) -> tuple:
     )
 
 
-def write_shard(path: Path, tensors: dict) -> None:
+def write_shard(path: Path, tensors: dict[str, Any]) -> None:
     header, body = {}, b""
     for name, (dtype, shape, data) in tensors.items():
         header[name] = {
@@ -42,19 +43,19 @@ def write_shard(path: Path, tensors: dict) -> None:
     path.write_bytes(struct.pack("<Q", len(blob)) + blob + body)
 
 
-def trellis(k: int) -> tuple:
+def trellis(k: int) -> tuple[Any, ...]:
     return tensor("I16", [4, 3, 16 * k])
 
 
-def marker() -> tuple:
+def marker() -> tuple[Any, ...]:
     return tensor("I32", [])
 
 
-def group(prefix: str, k: int) -> dict:
+def group(prefix: str, k: int) -> dict[str, Any]:
     return {f"{prefix}.trellis": trellis(k), f"{prefix}.mul1": marker()}
 
 
-def read_shard(path: Path) -> dict:
+def read_shard(path: Path) -> dict[str, Any]:
     raw = path.read_bytes()
     (length,) = struct.unpack("<Q", raw[:8])
     header = json.loads(raw[8 : 8 + length])
@@ -85,7 +86,7 @@ def build(pack: Path, overlay: Path) -> None:
 
 class OverlayTest(unittest.TestCase):
     def test_overlay_declares_the_lookups_the_creators_self_test_makes(self) -> None:
-        tensors: dict = {}
+        tensors: dict[str, Any] = {}
         tensors.update(group(f"{LAYER}.0.self_attn.qkv_proj", 8))
         tensors.update(group(f"{LAYER}.0.self_attn.o_proj", 8))
         tensors.update(group(f"{LAYER}.3.self_attn.o_proj", 7))

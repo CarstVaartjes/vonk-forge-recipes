@@ -5,6 +5,7 @@ import json
 import runpy
 import unittest
 from pathlib import Path
+from typing import Any
 
 from generated_catalog import GENERATED
 from repo_root import ROOT
@@ -17,11 +18,11 @@ RECIPE = ROOT / "recipes/laguna-xs-2-1-nvfp4-vllm-single.json"
 S_RECIPE = ROOT / "recipes/laguna-s-2-1-nvfp4-vllm-single.json"
 
 
-def load(path: Path) -> dict:
+def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def digest(document: dict) -> str:
+def digest(document: dict[str, Any]) -> str:
     return hashlib.sha256(
         json.dumps(
             document, sort_keys=True, separators=(",", ":"), ensure_ascii=False

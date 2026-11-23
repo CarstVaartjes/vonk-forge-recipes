@@ -96,6 +96,10 @@ def attention_token_bytes(
                 for dim in (geometry.key_dim, geometry.value_dim)
             )
         )
+    else:
+        raise MissingEstimateInput(
+            f"{recipe.identity.slug}: supply cache layout calibration for dtype {dtype}"
+        )
     return layers, token_bytes
 
 

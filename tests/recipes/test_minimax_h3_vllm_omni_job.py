@@ -18,7 +18,7 @@ import tempfile
 import textwrap
 import threading
 import time
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Generator, Iterator
 from pathlib import Path
 from typing import Any
 
@@ -148,7 +148,7 @@ def said(monkeypatch: pytest.MonkeyPatch) -> list[str]:
 
 
 @contextlib.contextmanager
-def trigger(ready: Callable[[], bool], action: Callable[[], None]) -> Iterator[None]:
+def trigger(ready: Callable[[], bool], action: Callable[[], None]) -> Generator[None]:
     """Run ``action`` once ``ready()`` holds (events, never fixed delays); never after the block ended."""
     done = threading.Event()
 

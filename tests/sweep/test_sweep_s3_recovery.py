@@ -12,6 +12,7 @@ import time
 from contextlib import AbstractContextManager
 from email.message import Message
 from types import SimpleNamespace
+from typing import Any
 from urllib.error import HTTPError
 
 import pytest
@@ -31,7 +32,7 @@ pytestmark = pytest.mark.usefixtures("bounded_clock")
 SAVED = json.loads((ROOT / "tests/fixtures/sweep-s3-recovery.json").read_text())
 
 
-class Stream(AbstractContextManager):
+class Stream(AbstractContextManager[Any]):
     """A byte stream that bounds an otherwise infinite heartbeat reproducer."""
 
     def __init__(self, chunks, clock):

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
@@ -221,7 +222,7 @@ def test_the_status_files_describe_lanes_queue_throughput_and_clusters(
         gateway=gateway,
         status_seconds=0,
     )
-    seen: list[dict] = []
+    seen: list[dict[str, Any]] = []
 
     def watch(_now: float) -> None:
         if (tmp_path / "status.json").exists():

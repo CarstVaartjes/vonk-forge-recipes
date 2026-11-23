@@ -31,7 +31,7 @@ from vonk_forge_contracts.catalog_reader import (
 Index = dict[str, Any]
 
 
-def _name(entry: dict) -> str:
+def _name(entry: dict[str, Any]) -> str:
     identity = entry["document"]["identity"]
     return f"{identity['publisher']}/{identity['slug']}"
 
@@ -43,12 +43,12 @@ def _names(entries: tuple[Any, ...]) -> list[str]:
 
 
 @pytest.fixture
-def index(built_catalog: tuple[dict, Path]) -> Index:
+def index(built_catalog: tuple[dict[str, Any], Path]) -> Index:
     return copy.deepcopy(built_catalog[0])
 
 
 def test_the_built_index_reads_whole_and_publishes_the_same_bytes(
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     read = read_catalog(built_catalog[0])
     assert read.problems == ()
@@ -148,18 +148,18 @@ def test_a_new_variant_kind_keeps_the_model_and_its_display(index: Index) -> Non
     )
 
 
-def _mutable_image_tag(recipe: dict) -> None:
+def _mutable_image_tag(recipe: dict[str, Any]) -> None:
     recipe["prebuilt_image"] = {
         "reference": "ghcr.io/example/runtime:latest",
         "build_key": "0" * 64,
     }
 
 
-def _unknown_api_mode(recipe: dict) -> None:
+def _unknown_api_mode(recipe: dict[str, Any]) -> None:
     recipe["api"]["api"]["mode"] = "realtime"
 
 
-def _display_title_not_text(recipe: dict) -> None:
+def _display_title_not_text(recipe: dict[str, Any]) -> None:
     recipe["display"]["title"] = 5
 
 
@@ -183,7 +183,7 @@ def _display_title_not_text(recipe: dict) -> None:
 )
 def test_an_unreadable_optional_block_is_dropped_and_its_recipe_stays(
     index: Index,
-    damage: Callable[[dict], None],
+    damage: Callable[[dict[str, Any]], None],
     block: CatalogBlock,
     field: str,
     reason: FaultReason,

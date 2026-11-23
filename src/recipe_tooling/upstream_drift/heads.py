@@ -6,15 +6,14 @@ from collections import Counter
 
 from recipe_tooling.upstream_drift.model import RemoteNotFound
 from recipe_tooling.upstream_drift.observe import (
+    JsonClient,
     ProviderClient,
     _github_commit,
     _required_string,
 )
 
 
-def observe_embedded_heads(
-    inventory: dict[str, object], client: ProviderClient
-) -> None:
+def observe_embedded_heads(inventory: dict[str, object], client: JsonClient) -> None:
     """Attach advertised GitHub default-branch candidates without retargeting pins."""
     head_client = (
         ProviderClient(opener=client.opener)

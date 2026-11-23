@@ -6,7 +6,7 @@ import json
 import sys
 import tempfile
 import unittest
-from collections.abc import Iterator, Mapping
+from collections.abc import Generator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -26,7 +26,7 @@ LOADER.exec_module(catalog_index)
 
 
 @contextmanager
-def isolated_root() -> Iterator[Path]:
+def isolated_root() -> Generator[Path]:
     previous = catalog_index.ROOT
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)

@@ -7,6 +7,7 @@ from __future__ import annotations
 import ast
 import contextlib
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
@@ -25,7 +26,7 @@ CALLS = {"classify", "classify_application_failure"}
 UNNAMED = "a-class-nobody-named"
 
 
-def _values(expr: ast.expr, scope: dict, name: str) -> set[str]:
+def _values(expr: ast.expr, scope: dict[str, Any], name: str) -> set[str]:
     """The string classes an expression can evaluate to (both arms of a conditional)."""
     if isinstance(expr, ast.IfExp):
         return _values(expr.body, scope, name) | _values(expr.orelse, scope, name)

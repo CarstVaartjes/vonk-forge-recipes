@@ -7,12 +7,13 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 from documents import recipe_display
 from repo_root import ROOT
 
 
-def load(path: str) -> dict:
+def load(path: str) -> dict[str, Any]:
     return json.loads((ROOT / path).read_text(encoding="utf-8"))
 
 

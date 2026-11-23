@@ -6,6 +6,7 @@ import hashlib
 import io
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from repo_root import ROOT
@@ -60,7 +61,7 @@ class FakeGh:
         return [c[3] for c in self.calls if c[1] == "upload"]
 
 
-def repo(tmp_path: Path, declared: dict | None = None) -> Path:
+def repo(tmp_path: Path, declared: dict[str, Any] | None = None) -> Path:
     (tmp_path / "adapters/a").mkdir(parents=True, exist_ok=True)
     for name in ("one", "two"):
         (tmp_path / f"adapters/a/{name}.tar.gz").write_bytes(BLOB)
@@ -118,7 +119,7 @@ def test_tampered_asset_is_refused_not_replaced(tmp_path: Path) -> None:
     assert gh.uploads == []
 
 
-def declared(origin: str | None) -> dict:
+def declared(origin: str | None) -> dict[str, Any]:
     return {
         DIGEST: {
             "size_bytes": len(BLOB),

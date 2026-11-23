@@ -84,7 +84,7 @@ def _setup(tmp_path: Path):
     return sweep, fleet, clock, key, mode
 
 
-def _requests(fleet) -> list[tuple]:
+def _requests(fleet) -> list[tuple[Any, ...]]:
     return [c for _, c in fleet.calls if c[:2] == ("recipe", "download")]
 
 

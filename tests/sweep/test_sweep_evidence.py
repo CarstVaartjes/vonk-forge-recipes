@@ -39,7 +39,7 @@ class _Bad:
         outer = self
 
         class Handler(BaseHTTPRequestHandler):
-            def log_message(self, *_: object) -> None:
+            def log_message(self, format: str, *args: object) -> None:
                 return
 
             def _go(self) -> None:

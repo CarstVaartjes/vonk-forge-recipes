@@ -29,6 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from recipe_tooling.added_lines import read_diff
 from recipe_tooling.qualification.capabilities import serving_capabilities
 from recipe_tooling.qualification.documents import (
     has_recipe_api,
@@ -164,13 +165,13 @@ def main() -> int:
     parser.add_argument("slugs", nargs="*", help="recipe slugs; default: catalog")
     parser.add_argument(
         "--changed-files",
-        type=argparse.FileType("r"),
+        type=str,
         help="file (or - for stdin) listing changed paths, one per line; "
         "only their recipes and API documents are checked",
     )
     args = parser.parse_args()
     slugs = (
-        changed_slugs(args.changed_files.read().split())
+        changed_slugs(read_diff(args.changed_files).split())
         if args.changed_files
         else args.slugs or sorted(p.stem for p in (ROOT / "recipes").glob("*.json"))
     )

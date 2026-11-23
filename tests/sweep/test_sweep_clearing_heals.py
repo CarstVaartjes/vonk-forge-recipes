@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from repo_root import FIXTURES, ROOT
@@ -67,7 +68,7 @@ def _recorded_world(tmp_path: Path, gateway: Gateway):
     return sweep, fleet, clock
 
 
-def _results(tmp_path: Path) -> list[dict]:
+def _results(tmp_path: Path) -> list[dict[str, Any]]:
     path = tmp_path / "results.jsonl"
     if not path.exists():
         return []

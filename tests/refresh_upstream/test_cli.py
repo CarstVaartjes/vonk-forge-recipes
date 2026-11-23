@@ -9,6 +9,7 @@ import subprocess
 import sys
 import types
 import unittest
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -79,7 +80,7 @@ class PerRecipeFaultTests(unittest.TestCase):
         GitHub is never reached: ``gh`` and ``sync_issue`` are patched unless a test
         passes its own; ``self.synced`` lists the recipes whose issue was synced.
         """
-        written: list = []
+        written: list[Any] = []
         self.synced: list[str] = []
         patches = {
             "gh": lambda *_arguments, **_keywords: "",

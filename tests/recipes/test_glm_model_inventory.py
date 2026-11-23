@@ -2,17 +2,18 @@ from __future__ import annotations
 
 import json
 import unittest
+from typing import Any
 
 from repo_root import ROOT
 
 from vonk_forge_contracts import document_sha256
 
 
-def load(path: str) -> dict:
+def load(path: str) -> dict[str, Any]:
     return json.loads((ROOT / path).read_text(encoding="utf-8"))
 
 
-def digest(model: dict) -> str:
+def digest(model: dict[str, Any]) -> str:
     return document_sha256(model)
 
 

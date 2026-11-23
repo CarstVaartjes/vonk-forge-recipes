@@ -62,7 +62,7 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
                 }
             ],
         }
-        drift_heads.observe_embedded_heads(embedded, FakeProvider())  # pyright: ignore[reportArgumentType]
+        drift_heads.observe_embedded_heads(embedded, FakeProvider())
         catalog = refresh_catalog_view.Catalog(
             Path(tempfile.gettempdir()),
             recipes={
@@ -827,7 +827,7 @@ class GatedRepositoryTests(unittest.TestCase):
         trees = {OLD: self.trees["before"], NEW: self.trees["after"]}
         fetched: list[str] = []
 
-        def tree(url: str) -> list:
+        def tree(url: str) -> list[Any]:
             fetched.append(url)
             return trees[next(r for r in trees if f"/tree/{r}?" in url)]
 

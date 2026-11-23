@@ -7,6 +7,7 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -23,11 +24,11 @@ RECIPES = {
 }
 
 
-def load(slug: str) -> dict:
+def load(slug: str) -> dict[str, Any]:
     return json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
 
 
-def compile_authored_argv(recipe: dict) -> list[str]:
+def compile_authored_argv(recipe: dict[str, Any]) -> list[str]:
     """Render the recipe's scalar runtime arguments as the vLLM argv contract."""
     settings = recipe["settings"]
     arguments = list(recipe["runtime"]["entrypoint"][1:])
@@ -94,7 +95,7 @@ class GlmWrapperArgvTests(unittest.TestCase):
 
                 def fake_run(
                     *args: object,
-                    _recipe: dict = recipe,
+                    _recipe: dict[str, Any] = recipe,
                     **kwargs: object,
                 ) -> subprocess.CompletedProcess[str]:
                     return subprocess.CompletedProcess(

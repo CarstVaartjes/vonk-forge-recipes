@@ -14,7 +14,7 @@ from typing import Any
 from repo_root import ROOT
 
 
-def load(path: str) -> dict:
+def load(path: str) -> dict[str, Any]:
     return json.loads((ROOT / path).read_text(encoding="utf-8"))
 
 
@@ -242,7 +242,7 @@ def test_pinned_sglang_sizing_rejects_failed_fraction_and_holds_the_caps() -> No
         sizer._profile_available_bytes(SGLANG_PRELOAD_FREE_BYTES / gib)
 
 
-def _static_demand(document: dict) -> Decimal | None:
+def _static_demand(document: dict[str, Any]) -> Decimal | None:
     """The fraction demand, owned by memory_need.sglang_demand (margin included)."""
     from recipe_tooling.qualification.memory_need.sglang import sglang_demand
     from vonk_forge_contracts import RecipeDefinition
@@ -486,7 +486,7 @@ def test_unproven_unchanged_document_reports_its_startup_room() -> None:
     assert not any("WARNING" in item[len("WARNING") :] for item in warnings)
 
 
-def _fraction(recipe: dict) -> Decimal:
+def _fraction(recipe: dict[str, Any]) -> Decimal:
     return next(
         Decimal(str(item["value"]))
         for item in recipe["runtime"]["arguments"]

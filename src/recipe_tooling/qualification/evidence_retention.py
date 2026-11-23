@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from pathlib import Path
+from typing import Any
 
 from recipe_tooling.qualification.evidence_store import (
     catalog_recipes,
@@ -48,7 +49,9 @@ def _newest_of_classes(
     per_identity: bool,
 ) -> list[QualificationEvidenceRecord]:
     """The newest record of each class (per identity or file-wide), in `derive_status` order."""
-    best: dict[tuple[str, str], tuple[tuple, QualificationEvidenceRecord]] = {}
+    best: dict[
+        tuple[str, str], tuple[tuple[Any, ...], QualificationEvidenceRecord]
+    ] = {}
     for record in records:
         for name in names:
             if not EVIDENCE_CLASSES[name](record):

@@ -193,10 +193,9 @@ def _binds_placement(slug: str) -> bool:
         for value in entry.model_dump().values()
     )
     build = document.execution.build
-    if build is not None:
-        for path in sorted((ROOT / build.context.path).rglob("*")):
-            if path.is_file():
-                text += path.read_text(encoding="utf-8", errors="ignore")
+    for path in sorted((ROOT / build.context.path).rglob("*")):
+        if path.is_file():
+            text += path.read_text(encoding="utf-8", errors="ignore")
     return all(name in text for name in PLACEMENT)
 
 

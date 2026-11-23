@@ -11,7 +11,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from recipe_tooling.adapter_mirror import add
+from recipe_tooling import adapter_mirror
 from recipe_tooling.adapter_sources import AdapterSourceError, load
 from recipe_tooling.kit_pins.model import (
     ARCHIVE_ROUNDS,
@@ -39,7 +39,7 @@ def declare_archive(root: Path, archive: Path, origin: str) -> str:
 
     relative = archive.relative_to(root).as_posix()
     try:
-        add([relative], root=root, origin=origin)
+        adapter_mirror.add([relative], root=root, origin=origin)
         return next(
             sha256
             for sha256, source in load(root).sources.items()
@@ -70,6 +70,8 @@ def download_archive(
             if attempt == ARCHIVE_ROUNDS - 1:
                 raise KitError(f"cannot fetch {url}: {error}") from error
             sleep(2.0**attempt)
+    else:
+        raise KitError(f"cannot fetch {url}: no attempt was made")
     if len(data) > MAX_ARCHIVE_BYTES:
         raise KitError(f"{url} is larger than {MAX_ARCHIVE_BYTES} bytes")
     return data

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
@@ -22,7 +23,7 @@ def gateway():
     gateway.stop()
 
 
-def _entry(sweep, slug: str) -> dict:
+def _entry(sweep, slug: str) -> dict[str, Any]:
     return sweep.state.recipes[f"vonk-forge/{slug}"]
 
 

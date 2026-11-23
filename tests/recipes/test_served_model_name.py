@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 import pytest
 from repo_root import ROOT
@@ -22,7 +23,7 @@ CHECKED_ENGINES = {"vllm", "sglang"}
 # launchers do not route on the request's model name.
 
 
-def _served_names(runtime: dict) -> set[str]:
+def _served_names(runtime: dict[str, Any]) -> set[str]:
     names = {
         argument["value"]
         for argument in runtime["arguments"]

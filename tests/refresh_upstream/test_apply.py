@@ -433,7 +433,7 @@ class SelfHealingTests(unittest.TestCase):
 
     def republish(
         self, rollup, *, pin: bytes = b"new pin\n", main_change: str | None = None
-    ) -> tuple[list, str, str, Any, bool]:
+    ) -> tuple[list[Any], str, str, Any, bool]:
         """A refresh PR prepared earlier; this run assesses ``pin`` against main."""
         assessment = refresh_model.Assessment("recipe", edits={"recipe.json": pin})
         calls: list[tuple[str, ...]] = []

@@ -15,7 +15,7 @@ import tempfile
 import types
 import unittest
 import wave
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Generator, Iterator
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, ClassVar
@@ -437,7 +437,7 @@ class _Construction:
 
     @classmethod
     @contextlib.contextmanager
-    def init_weights_on_device(cls, device: _Device) -> Iterator[None]:
+    def init_weights_on_device(cls, device: _Device) -> Generator[None]:
         cls.devices.append(device.type)
         yield
 

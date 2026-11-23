@@ -23,7 +23,7 @@ def test_pyright_configuration_is_pinned() -> None:
     # Both settings change the diagnostic set, so the baseline is only
     # meaningful while they are pinned.
     assert pyright.get("pythonVersion") == "3.14"
-    assert pyright.get("typeCheckingMode") == "basic"
+    assert pyright.get("typeCheckingMode") == "standard"
     extra_paths = pyright.get("extraPaths")
     assert isinstance(extra_paths, list)
     assert "contracts/src" in extra_paths

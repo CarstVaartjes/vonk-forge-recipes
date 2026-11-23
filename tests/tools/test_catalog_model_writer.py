@@ -3,12 +3,13 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 from recipe_tooling.catalog_model import add_model_arguments, write_model
 
 
-def _written(tmp_path: Path, *extra: str) -> tuple[dict, dict]:
+def _written(tmp_path: Path, *extra: str) -> tuple[dict[str, Any], dict[str, Any]]:
     parser = argparse.ArgumentParser()
     add_model_arguments(parser)
     args = parser.parse_args(

@@ -272,7 +272,7 @@ def test_zero_byte_model_file_requires_the_empty_content_digest() -> None:
         ModelDefinition.model_validate(document)
 
 
-def _split_document() -> dict:
+def _split_document() -> dict[str, Any]:
     document = load("model-definition.json")
     whole = document["files"][0]
     whole["size_bytes"] = 30

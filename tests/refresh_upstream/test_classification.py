@@ -6,6 +6,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 from refresh_helpers import (
@@ -465,7 +466,7 @@ class ArchiveLabelTests(unittest.TestCase):
             )
             pin = refresh_catalog_view.AdapterPin("o/r", OLD, directory)
             result = refresh_model.Assessment("recipe")
-            edits: dict = {}
+            edits: dict[str, Any] = {}
             with patch(
                 "recipe_tooling.refresh_upstream.classification.archive_sha256", broken
             ):

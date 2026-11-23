@@ -9,7 +9,7 @@ import subprocess
 import sys
 import tempfile
 import types
-from collections.abc import Iterator
+from collections.abc import Generator
 from pathlib import Path, PurePosixPath
 from types import SimpleNamespace
 from unittest import mock
@@ -425,7 +425,7 @@ class _Killed(BaseException):
 
 
 @contextlib.contextmanager
-def _killed_run(outputs: Path) -> Iterator[None]:
+def _killed_run(outputs: Path) -> Generator[None]:
     """Run with the platform's TMPDIR and with every cleanup path skipped."""
 
     @contextlib.contextmanager
@@ -434,7 +434,7 @@ def _killed_run(outputs: Path) -> Iterator[None]:
         prefix: str | None = None,
         dir: str | Path | None = None,
         **_options: object,
-    ) -> Iterator[str]:
+    ) -> Generator[str]:
         yield tempfile.mkdtemp(suffix, prefix, dir)
 
     (outputs / "tmp").mkdir(parents=True, exist_ok=True)

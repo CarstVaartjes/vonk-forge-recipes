@@ -276,7 +276,7 @@ def test_publication_repair_is_independent_of_assessment_and_housekeeping(
         # Exercise the real summary renderer even when assessment is unavailable.
         steps["write_summary"].side_effect = render_summary
         # The publication mock must survive the fault patch for call inspection.
-        publication = refresh_publish.publish_if_stale
+        publication: Any = refresh_publish.publish_if_stale
         assert (
             refresh_cli.command_run(argparse.Namespace(cache_dir=None, dry_run=False))
             == 1
@@ -462,7 +462,7 @@ def test_a_group_that_does_not_land_reports_to_every_member_and_keeps_its_pr(
             assessment.reasons + assessment.group_outcome
         )
 
-    closed: list[tuple] = []
+    closed: list[tuple[Any, ...]] = []
 
     def listing(*arguments):
         if arguments[0] == "pr" and "needs-review" not in arguments:

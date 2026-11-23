@@ -18,6 +18,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 from documents import recipe_display
 from generated_catalog import GENERATED
@@ -75,7 +76,7 @@ def run_wrapper(rank: str, arguments: list[str], **env: str) -> list[str]:
     return [Path(done.stdout.splitlines()[0]).name, *done.stdout.splitlines()[1:]]
 
 
-def load(path: Path) -> dict:
+def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 

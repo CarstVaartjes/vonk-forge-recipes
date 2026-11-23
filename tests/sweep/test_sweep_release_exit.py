@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
@@ -32,7 +33,7 @@ def _deferred(tmp_path: Path, _monkeypatch, release: str):
     return sweep, key, entry
 
 
-release_box: list = []
+release_box: list[Any] = []
 
 
 def _deploy(sweep, release: str) -> None:

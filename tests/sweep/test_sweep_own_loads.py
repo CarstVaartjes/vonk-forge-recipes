@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
@@ -223,7 +224,9 @@ def test_owner_absence_requires_native_declared_rejection(
         assert state.data["owner"]["baseline"]["1"] == {"id": "", "state": ""}
 
 
-def _lineage_guard(state: State, latest: dict, ancestors: dict) -> OwnerGuard:
+def _lineage_guard(
+    state: State, latest: dict[str, Any], ancestors: dict[str, Any]
+) -> OwnerGuard:
     """Profile 2 answers ``latest``; ``--load X`` answers ``ancestors[X]``."""
 
     def run(argv: Sequence[str], timeout: float) -> tuple[int, str, str]:

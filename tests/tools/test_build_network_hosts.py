@@ -8,14 +8,14 @@ import shlex
 import tempfile
 import unittest
 from pathlib import Path
-from typing import NamedTuple
+from typing import Any, NamedTuple
 from urllib.parse import urlparse
 
 from documents import recipe as document_recipe
 from repo_root import ROOT
 
 
-def load(path: Path) -> dict:
+def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 

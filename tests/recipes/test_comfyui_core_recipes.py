@@ -10,6 +10,7 @@ import traceback
 import unittest
 from email.message import Message
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 from urllib.error import HTTPError
 
@@ -67,7 +68,7 @@ COMFY_ARCHIVE_SHA256 = (
 )
 
 
-def load(path: Path) -> dict:
+def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -371,7 +372,7 @@ def _controlled_adapter():
     return module
 
 
-def _default_job(slug: str) -> tuple[dict, dict]:
+def _default_job(slug: str) -> tuple[dict[str, Any], dict[str, Any]]:
     """The recipe's workflow and the argument values a job with no parameters passes."""
 
     recipe = load(ROOT / "recipes" / f"{slug}.json")
@@ -386,7 +387,9 @@ def _default_job(slug: str) -> tuple[dict, dict]:
     return load(context / "workflows" / Path(arguments["workflow"]).name), arguments
 
 
-def _prompt(adapter, workflow: dict, arguments: dict) -> dict:
+def _prompt(
+    adapter, workflow: dict[str, Any], arguments: dict[str, Any]
+) -> dict[str, Any]:
     inputs = [f"input-{index}.png" for index in range(workflow["inputs"]["minimum"])]
     controls = {name: arguments.get(name) for name in adapter.WORKFLOW_CONTROLS}
     with patch.dict("os.environ", {"VONK_PROMPT": "A lantern in fog."}):

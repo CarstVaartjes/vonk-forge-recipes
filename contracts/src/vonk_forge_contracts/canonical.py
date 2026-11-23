@@ -36,7 +36,8 @@ def document_sha256(document: Mapping[str, object]) -> str:
     that digest with it; never recompute it from a parsed model.
     """
 
-    if not isinstance(document, Mapping):
+    # The published JSON is untrusted: refuse a non-object whatever the annotation says.
+    if not isinstance(document, Mapping):  # pyright: ignore[reportUnnecessaryIsInstance]
         raise TypeError("document_sha256 requires the published JSON object")
     return hashlib.sha256(canonical_json(document)).hexdigest()
 

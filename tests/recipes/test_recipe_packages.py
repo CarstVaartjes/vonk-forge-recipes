@@ -7,6 +7,7 @@ import json
 import runpy
 import tarfile
 from pathlib import Path
+from typing import Any
 
 from repo_root import ROOT
 
@@ -22,7 +23,7 @@ PLATFORM_OWNED_ENVIRONMENT = {
 
 
 def test_full_catalog_packages_are_self_contained_and_deterministic(
-    tmp_path: Path, built_catalog: tuple[dict, Path]
+    tmp_path: Path, built_catalog: tuple[dict[str, Any], Path]
 ) -> None:
     """A second build with other provenance reproduces every byte but the index's
     provenance: the build is deterministic, and the supplied commit and commit
@@ -127,7 +128,7 @@ def test_source_bundle_ignores_generated_python_cache_files(tmp_path: Path) -> N
 
 
 def test_editing_one_recipe_changes_only_that_package(
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     catalog, package_dir = built_catalog
     rows = catalog["recipes"]
@@ -180,7 +181,7 @@ def test_platform_owned_cache_variables_are_not_recipe_inputs() -> None:
 
 
 def test_model_territorial_restrictions_preserve_all_published_records(
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     expected = {
         "hunyuanocr-1-5-47644ecc": (
@@ -245,7 +246,7 @@ def test_model_territorial_restrictions_preserve_all_published_records(
 
 
 def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     """Model weights and image layers remain separately cached artifacts."""
 
@@ -286,7 +287,7 @@ def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
 
 
 def test_ds4_multistage_package_manifests_both_digest_pinned_base_images(
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     catalog, package_dir = built_catalog
     row = next(

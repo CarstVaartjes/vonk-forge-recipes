@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
@@ -24,7 +25,7 @@ def _smoking(tmp_path: Path):
     return sweep, fleet, clock, key, slot
 
 
-def _unpublished(slot) -> dict:
+def _unpublished(slot) -> dict[str, Any]:
     return {"assignments": [{"alias": slot["alias"], "state": "unavailable"}]}
 
 

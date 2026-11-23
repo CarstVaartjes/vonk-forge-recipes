@@ -20,6 +20,7 @@ import tempfile
 import time
 import zipfile
 from pathlib import Path, PurePosixPath
+from typing import Any
 
 import pytest
 from repo_root import ROOT
@@ -179,7 +180,7 @@ def test_the_declared_prompt_is_loaded_and_stripped(tmp_path: Path) -> None:
     ],
 )
 def test_an_input_outside_the_declared_slot_is_refused(
-    tmp_path: Path, stage: dict
+    tmp_path: Path, stage: dict[str, Any]
 ) -> None:
     _stage_inputs(tmp_path, **stage)
     with pytest.raises(SystemExit):
@@ -229,7 +230,7 @@ def _argv(outputs: Path, **overrides: str) -> list[str]:
     ],
 )
 def test_job_arguments_outside_the_contract_are_refused(
-    tmp_path: Path, override: dict
+    tmp_path: Path, override: dict[str, Any]
 ) -> None:
     with pytest.raises(SystemExit):
         run._arguments(_argv(tmp_path, **override))

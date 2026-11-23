@@ -4,6 +4,7 @@ import hashlib
 import json
 import unittest
 from pathlib import Path
+from typing import Any
 
 from documents import recipe_display
 from generated_catalog import GENERATED
@@ -14,7 +15,7 @@ RECIPE = ROOT / "recipes/deepseek-v4-flash-vision-exp-mia-dual.json"
 ADAPTER = ROOT / "adapters/deepseek/mia-vllm-vision"
 
 
-def load(path: Path) -> dict:
+def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -23,7 +24,7 @@ def digest(path: Path) -> str:
     return hashlib.sha256(body.encode()).hexdigest()
 
 
-def digest_dict(document: dict) -> str:
+def digest_dict(document: dict[str, Any]) -> str:
     return hashlib.sha256(
         json.dumps(
             document, sort_keys=True, separators=(",", ":"), ensure_ascii=False

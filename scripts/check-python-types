@@ -18,8 +18,8 @@ executables under `tools/` are passed explicitly, alongside the project run. The
 list comes from `ruff check --show-files` (the entries without a suffix), so
 Ruff's `extend-include` stays the one owner of "which files are Python".
 
-pyright is told to analyze for Linux, so the host platform cannot change the
-findings: local and CI runs agree.
+`[tool.pyright]` pins the platform to Linux, so the host cannot change the findings:
+local and CI runs agree.
 
 """
 
@@ -60,10 +60,6 @@ def _pyright(paths: list[str]) -> list[dict[str, object]]:
             "pyright",
             "--pythonpath",
             sys.executable,
-            # Counts are defined for Linux, where CI runs; without this a
-            # macOS run sees os.posix_fadvise as unknown and differs from CI.
-            "--pythonplatform",
-            "Linux",
             "--outputjson",
             *paths,
         ],

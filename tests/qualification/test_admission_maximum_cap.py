@@ -3,6 +3,7 @@
 import ast
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import pytest
 from catalog_documents import catalog_models
@@ -218,7 +219,7 @@ def test_measured_move_that_keeps_the_budget_keeps_the_peaks(
     ],
 )
 def test_peaks_not_covered_by_measured_evidence_are_raised(
-    monkeypatch: pytest.MonkeyPatch, measurement: dict
+    monkeypatch: pytest.MonkeyPatch, measurement: dict[str, Any]
 ) -> None:
     previous = documents.recipe(PROVEN)
     declare_peak(previous, 1_000_000_000)

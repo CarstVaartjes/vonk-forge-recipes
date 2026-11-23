@@ -117,11 +117,13 @@ def _model_source_projection(model: ModelDefinition) -> tuple[str, str]:
     """Project exact source identity without presenting a release as a commit."""
 
     source = model.source
-    if isinstance(source, GitHubReleaseSource):
-        return source.repository, f"github-release:{source.release_id}"
-    if isinstance(source, GitHubLfsSource | ModelSource):
-        return source.repository, source.revision
-    assert_never(source)
+    match source:
+        case GitHubReleaseSource():
+            return source.repository, f"github-release:{source.release_id}"
+        case GitHubLfsSource() | ModelSource():
+            return source.repository, source.revision
+        case _:
+            assert_never(source)
 
 
 def _require_object(value: Any, description: str) -> dict[str, Any]:

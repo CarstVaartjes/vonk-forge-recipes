@@ -5,6 +5,7 @@ from __future__ import annotations
 import runpy
 import shutil
 from pathlib import Path
+from typing import Any
 
 from repo_root import ROOT
 
@@ -87,7 +88,7 @@ def _chat_recipe() -> str:
     )
 
 
-def _with_blocks(api, base: dict, choices: list[dict]):
+def _with_blocks(api, base: dict[str, Any], choices: list[dict[str, Any]]):
     """The API document with its base block and option blocks replaced."""
 
     return type(api).model_validate(

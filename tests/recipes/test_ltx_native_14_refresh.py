@@ -5,6 +5,7 @@ import re
 import runpy
 import unittest
 from pathlib import Path
+from typing import Any
 
 from documents import recipe_display
 from generated_catalog import GENERATED
@@ -21,7 +22,7 @@ RECIPES = {
 }
 
 
-def load(path: Path) -> dict:
+def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 

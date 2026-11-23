@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
@@ -16,7 +17,7 @@ pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 
-def run(alias: str, nodes: list[str]) -> dict:
+def run(alias: str, nodes: list[str]) -> dict[str, Any]:
     return {
         "alias": alias,
         "recipe": "external",
@@ -49,7 +50,7 @@ def scenario(tmp_path: Path, *, dual: bool = False):
     return sweep, fleet, clock, recipe, key, original, app
 
 
-def mutations(fleet) -> list[tuple]:
+def mutations(fleet) -> list[tuple[Any, ...]]:
     return [
         command
         for profile, command in fleet.calls

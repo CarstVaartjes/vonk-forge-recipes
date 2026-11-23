@@ -1,6 +1,7 @@
 """Gone cleanup bookkeeping releases admission; unavailable reads never invent absence."""
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
@@ -224,7 +225,7 @@ def test_unrelated_offline_node_does_not_hold_absent_exact_target(
     admit(sweep, clock, recipe)
 
 
-def _cleanup_loads_after(tmp_path: Path, cycles: int) -> dict:
+def _cleanup_loads_after(tmp_path: Path, cycles: int) -> dict[str, Any]:
     """The cleanup bookkeeping after ``cycles`` clearings, each retired once its targets left."""
     sweep, *_ = scenario(tmp_path)
     ended = CleanupEnd(reason=CleanupEndReason.TARGET_ABSENT, observed_at=1.0)

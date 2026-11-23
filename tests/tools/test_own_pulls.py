@@ -4,6 +4,7 @@ import ast
 import json
 import re
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 from repo_root import ROOT
@@ -278,7 +279,7 @@ def test_refresh_upstream_never_arms_merges_or_closes_a_fork_pr():
             **OWN,
         },
     ]
-    calls: list[tuple] = []
+    calls: list[tuple[Any, ...]] = []
 
     def gh_json(*arguments: str):
         calls.append(arguments)
@@ -321,7 +322,7 @@ def test_a_fork_pr_touching_a_recipe_does_not_block_its_refresh():
             **OWN,
         },
     ]
-    calls: list[tuple] = []
+    calls: list[tuple[Any, ...]] = []
 
     def gh_json(*arguments: str):
         calls.append(arguments)

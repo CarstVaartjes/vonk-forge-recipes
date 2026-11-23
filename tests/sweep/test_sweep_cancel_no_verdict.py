@@ -41,7 +41,7 @@ def _loading(tmp_path: Path):
     return sweep, fleet, clock, live
 
 
-def _cancels(fleet) -> list[tuple]:
+def _cancels(fleet) -> list[tuple[Any, ...]]:
     return [c for _, c in fleet.calls if c[:2] == ("profile", "cancel")]
 
 

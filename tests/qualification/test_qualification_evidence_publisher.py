@@ -3,7 +3,7 @@
 import json
 import subprocess
 from pathlib import Path
-from typing import ClassVar
+from typing import Any, ClassVar
 
 import pytest
 from repo_root import ROOT
@@ -1249,7 +1249,7 @@ def test_a_final_batch_updates_an_open_pr_that_normal_ticks_leave_waiting(
 class _Child:
     """A publisher child; `code` is its exit, None means it hangs until killed."""
 
-    started: ClassVar[list] = []
+    started: ClassVar[list[Any]] = []
     code: ClassVar[int | None] = 0
     pid = 4243
 
@@ -1567,7 +1567,7 @@ def test_any_batch_error_on_an_open_pr_is_recorded_and_alerts_when_repeated(
 
 class _QuietChild:
     pid = 1
-    started: ClassVar[list] = []
+    started: ClassVar[list[Any]] = []
 
     def __init__(self, args, **kwargs):
         self.args = args

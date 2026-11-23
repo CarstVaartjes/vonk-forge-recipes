@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
@@ -237,7 +238,7 @@ def test_restores_after_resumed_runs_never_reuse_a_key(
         )
         start, fired = clock.now(), []
 
-        def hook(now: float, start: float = start, fired: list = fired) -> None:
+        def hook(now: float, start: float = start, fired: list[Any] = fired) -> None:
             if now - start >= 200 and not fired:
                 fired.append(True)
                 raise KeyboardInterrupt

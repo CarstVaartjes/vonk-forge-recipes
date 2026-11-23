@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from concurrent.futures import Future
 from dataclasses import replace
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
@@ -26,7 +27,7 @@ def gateway():
     gateway.stop()
 
 
-def _entry(sweep, slug: str) -> dict:
+def _entry(sweep, slug: str) -> dict[str, Any]:
     return sweep.state.recipes[f"vonk-forge/{slug}"]
 
 
@@ -99,7 +100,7 @@ OLD_APP = "8cb1d3a7-0000-4000-8000-0000000000a1"
 NEW_APP = "8cb1d3a7-0000-4000-8000-0000000000a2"
 
 
-def _two_own_loads(sweep, observed: dict) -> dict:
+def _two_own_loads(sweep, observed: dict[str, Any]) -> dict[str, Any]:
     """An older load of ours and the later load of ours whose placement replaced it."""
     sweep.state.data["own_loads"] = [
         {"application_id": OLD_APP, "kind": "placement", "request_key": "key-old"},

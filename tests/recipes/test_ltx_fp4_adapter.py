@@ -10,6 +10,7 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -23,7 +24,7 @@ ADAPTER_PATH = ADAPTER_ROOT / "pipelines/run.py"
 RECIPE = ROOT / "recipes/ltx-2-19b-dev-fp4-pytorch-single.json"
 
 
-def _document(path: Path) -> dict:
+def _document(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 

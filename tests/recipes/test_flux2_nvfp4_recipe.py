@@ -3,17 +3,18 @@ from __future__ import annotations
 import hashlib
 import json
 import unittest
+from typing import Any
 
 from documents import recipe_display
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
 
-def load(relative: str) -> dict:
+def load(relative: str) -> dict[str, Any]:
     return json.loads((ROOT / relative).read_text(encoding="utf-8"))
 
 
-def digest(document: dict) -> str:
+def digest(document: dict[str, Any]) -> str:
     return hashlib.sha256(
         json.dumps(
             document, sort_keys=True, separators=(",", ":"), ensure_ascii=False
@@ -21,7 +22,7 @@ def digest(document: dict) -> str:
     ).hexdigest()
 
 
-def catalog_digest(recipe: dict) -> str:
+def catalog_digest(recipe: dict[str, Any]) -> str:
     index = json.loads((GENERATED / "catalog-index.json").read_text(encoding="utf-8"))
     entry = next(
         item

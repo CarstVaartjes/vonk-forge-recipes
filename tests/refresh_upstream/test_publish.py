@@ -6,6 +6,7 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 from refresh_helpers import NEW, OLD, OWN
@@ -50,7 +51,7 @@ class OpenPullRequestTests(unittest.TestCase):
 
 class SharedContextTests(unittest.TestCase):
     def catalog(self):
-        def recipe(path: str) -> dict:
+        def recipe(path: str) -> dict[str, Any]:
             return {"execution": {"build": {"context": {"path": path}}}}
 
         return types.SimpleNamespace(
@@ -192,7 +193,9 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
             result.unreachable.append(unreachable)
         return result
 
-    def run_gh(self, issues: dict[str, list[dict]], call, *arguments, **keywords):
+    def run_gh(
+        self, issues: dict[str, list[dict[str, Any]]], call, *arguments, **keywords
+    ):
         calls: list[tuple[str, ...]] = []
 
         def gh_json(*args: str):

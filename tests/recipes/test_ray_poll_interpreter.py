@@ -22,6 +22,7 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 from repo_root import ROOT
@@ -42,7 +43,7 @@ class Exec(Exception):
     pass
 
 
-def launcher_source(recipe: dict) -> Path | None:
+def launcher_source(recipe: dict[str, Any]) -> Path | None:
     """The build-context file the Dockerfile copies to the runtime entrypoint."""
     build = recipe["execution"]["build"]
     target = recipe["runtime"]["entrypoint"][0]
@@ -53,7 +54,7 @@ def launcher_source(recipe: dict) -> Path | None:
     return None
 
 
-def ray_launchers() -> list[tuple[str, dict, Path]]:
+def ray_launchers() -> list[tuple[str, dict[str, Any], Path]]:
     """Every multi-node recipe whose entrypoint can start a Ray head, by content."""
     found = []
     for path in sorted((ROOT / "recipes").glob("*.json")):
@@ -66,7 +67,7 @@ def ray_launchers() -> list[tuple[str, dict, Path]]:
     return found
 
 
-def ray_poll_commands(recipe: dict, launcher: Path) -> list[list[str]]:
+def ray_poll_commands(recipe: dict[str, Any], launcher: Path) -> list[list[str]]:
     node_count = recipe["topology"]["node_count"]
     commands: list[list[str]] = []
 

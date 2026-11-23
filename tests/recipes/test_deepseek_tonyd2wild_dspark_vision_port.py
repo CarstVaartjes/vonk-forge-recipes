@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import re
 import unittest
+from typing import Any
 
 from documents import recipe_display
 from repo_root import ROOT
@@ -20,7 +21,7 @@ VISION_TAGS = {"vision", "multimodal", "image", "native-vision"}
 PORT_STEPS = ("patch_vision.py", "patch_registry.py", "ds4v_mm.py")
 
 
-def _recipes() -> list[dict]:
+def _recipes() -> list[dict[str, Any]]:
     recipes = [
         json.loads(path.read_text(encoding="utf-8"))
         for path in sorted((ROOT / "recipes").glob("*.json"))

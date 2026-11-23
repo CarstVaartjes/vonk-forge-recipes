@@ -4,13 +4,14 @@ import json
 import runpy
 import unittest
 from pathlib import Path
+from typing import Any
 
 from repo_root import ROOT
 
 REVISION = "a3af5799199acdd2a4f56ac4342816abb46c12a9"
 
 
-def load(path: Path) -> dict:
+def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 

@@ -114,6 +114,7 @@ def test_review_condition_backoff_grows_is_durable_and_does_not_blame_recipe(
     recipe = FakeRecipe("dual", node_count=2, local="cached")
     models = [FakeModel("m1", local="cached")]
     sweep, fleet, clock = make_sweep(tmp_path, [recipe], models, retry_delay=300)
+    source: str | None = None
     for attempt in range(1, 4):
         fleet.observations.append((("profile", "load", "--review"), 2, OBSERVATION))
         sweep.tick()
@@ -134,6 +135,7 @@ def test_review_condition_backoff_grows_is_durable_and_does_not_blame_recipe(
         assert not sweep.state.slots
         clock.sleep(incident.until - clock.now())
     # A fresh allowed canonical review clears exactly this incident.
+    assert source is not None
     sweep.tick()
     assert recipe.key in sweep.state.slots
     assert source not in sweep.state.data["infra"]

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal, cast
 
 from pydantic import (
     BaseModel,
@@ -496,5 +496,5 @@ def campaign_manifest_json_schema() -> dict[str, object]:
     }
 
 
-campaign_authority_json_schema.__test__ = False
-campaign_manifest_json_schema.__test__ = False
+cast(Any, campaign_authority_json_schema).__test__ = False
+cast(Any, campaign_manifest_json_schema).__test__ = False

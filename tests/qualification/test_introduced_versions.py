@@ -6,7 +6,7 @@ import json
 import runpy
 import shutil
 from pathlib import Path
-from typing import get_args
+from typing import Any, get_args
 
 import pytest
 from documents import model_display
@@ -96,7 +96,7 @@ def test_a_capability_newer_than_the_platform_is_refused(monkeypatch) -> None:
     assert unreadable_features(recipe, [display], None, "4.9.0") == []
 
 
-def _options_api(effort: dict | None) -> tuple[RecipeDefinition, RecipeApi]:
+def _options_api(effort: dict[str, Any] | None) -> tuple[RecipeDefinition, RecipeApi]:
     """The options example; ``effort`` goes on its option choice's block only."""
 
     recipe = read_recipe(

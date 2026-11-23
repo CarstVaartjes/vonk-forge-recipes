@@ -106,7 +106,7 @@ def command_run(arguments: argparse.Namespace) -> int:
         )
         watches = drift_inventory.discover_watches(root, defaults, overrides)
         embedded = drift_embedded.embedded_inventory(root, watches)
-        drift_heads.observe_embedded_heads(embedded, AnonymousHeadClient(http))  # pyright: ignore[reportArgumentType]
+        drift_heads.observe_embedded_heads(embedded, AnonymousHeadClient(http))
         assessor = refresh_assessment.Assessor(catalog_, http, cache_dir, embedded)
 
         def assess_one(recipe_id: str) -> refresh_model.Assessment:

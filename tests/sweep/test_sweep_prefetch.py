@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
@@ -204,7 +205,9 @@ def test_a_controller_space_hold_longer_than_the_window_pauses_no_other_work(
     fleet.download_seconds = 1500.0
     fleet.page_size = 100  # the first catalog view is complete: plan order is fixed
     start = clock.now()
-    during: list[tuple[float, dict, set[str], set[str], list[dict]]] = []
+    during: list[
+        tuple[float, dict[str, Any], set[str], set[str], list[dict[str, Any]]]
+    ] = []
     runaway: list[float] = []
 
     def observe(now: float) -> None:
@@ -293,7 +296,7 @@ def test_new_model_downloads_wait_for_pin_capacity_and_resume_as_pins_drain(
     )
     fleet.max_assignments = limit
     unprotected: list[set[str]] = []
-    holds: list[dict] = []
+    holds: list[dict[str, Any]] = []
 
     def observe(_now: float) -> None:
         pinned = {

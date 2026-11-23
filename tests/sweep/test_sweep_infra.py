@@ -12,6 +12,7 @@ import textwrap
 import threading
 import time
 from pathlib import Path
+from typing import Any
 
 import pytest
 from repo_root import ROOT
@@ -87,7 +88,7 @@ def test_client_protocol_and_transport_errors_are_infrastructure(
 # -- they never fail a recipe ----------------------------------------------------------------
 
 
-def _entry(sweep, slug: str) -> dict:
+def _entry(sweep, slug: str) -> dict[str, Any]:
     return sweep.state.recipes[f"vonk-forge/{slug}"]
 
 
@@ -131,7 +132,7 @@ def test_an_infrastructure_error_pauses_and_retries_but_fails_no_recipe(
         tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
     )
     fleet.faults = [(prefix, code, detail)] * 2
-    seen: list[dict] = []
+    seen: list[dict[str, Any]] = []
     clock.hooks.append(
         lambda _t: seen.append(json.loads(json.dumps(sweep.state.data["infra"])))
     )

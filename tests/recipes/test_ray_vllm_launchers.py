@@ -16,13 +16,14 @@ import re
 import shlex
 import unittest
 from pathlib import Path
+from typing import Any
 
 from repo_root import ROOT
 
 NVIDIA_405B = "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four"
 
 
-def ray_vllm_recipes() -> list[tuple[str, dict]]:
+def ray_vllm_recipes() -> list[tuple[str, dict[str, Any]]]:
     found = []
     for path in sorted((ROOT / "recipes").glob("*.json")):
         recipe = json.loads(path.read_text())
@@ -36,7 +37,7 @@ def ray_vllm_recipes() -> list[tuple[str, dict]]:
     return found
 
 
-def context_files(recipe: dict) -> list[Path]:
+def context_files(recipe: dict[str, Any]) -> list[Path]:
     context = ROOT / recipe["execution"]["build"]["context"]["path"]
     return [path for path in context.rglob("*") if path.is_file()]
 
@@ -49,7 +50,7 @@ RAY_BUILD_CHECK = re.compile(
 )
 
 
-def build_time_text(recipe: dict) -> str:
+def build_time_text(recipe: dict[str, Any]) -> str:
     """The Dockerfile's RUN steps plus the copied files those steps name.
 
     The launcher mentions Ray too (it starts the cluster), but it runs only

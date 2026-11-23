@@ -330,12 +330,16 @@ class RecipeJobKnob(RecipeSetting):
 
 class RecipeJobSettings(_RecipeSettings):
     kind: Literal["job"]
-    knobs: dict[Identifier, RecipeJobKnob] = Field(default_factory=dict, max_length=64)
+    # The job kind narrows the knob type of its parent; the discriminated union keeps the kinds apart.
+    knobs: dict[Identifier, RecipeJobKnob] = Field(  # pyright: ignore[reportIncompatibleVariableOverride]
+        default_factory=dict, max_length=64
+    )
     concurrency: RecipeIntegerSetting | None = None
 
 
 class RecipeIntegerSetting(RecipeSetting):
-    value: StrictInt = Field(ge=1)
+    # Narrows the parent's value type to a positive integer.
+    value: StrictInt = Field(ge=1)  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
 RecipeSettings = Annotated[

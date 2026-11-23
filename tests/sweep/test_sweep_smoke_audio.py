@@ -62,7 +62,7 @@ def gateway(tmp_path: Path) -> Iterator[tuple[Gateway, str, smoke.HttpConfig]]:
     state = Gateway()
 
     class Handler(BaseHTTPRequestHandler):
-        def log_message(self, *args: object) -> None:
+        def log_message(self, format: str, *args: object) -> None:
             pass
 
         def do_POST(self) -> None:

@@ -337,7 +337,7 @@ class Gateway:
         gateway = self
 
         class Handler(BaseHTTPRequestHandler):
-            def log_message(self, *_: Any) -> None:
+            def log_message(self, format: str, *args: Any) -> None:
                 return
 
             def _send(
@@ -796,6 +796,7 @@ class FakeFleet:
 
     def _supersede(self, app: dict[str, Any], mode: str) -> None:
         """The Controller replaces a running application, as an automatic retry or a later intent."""
+        successor: dict[str, Any] = {}
         if mode in ("retry", "failed-repeated"):
             successor = dict(
                 app, id=self._id("app"), state="running", successor_of=app["id"]

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
@@ -20,7 +22,7 @@ def gateway():
     gateway.stop()
 
 
-def _entry(sweep, slug: str) -> dict:
+def _entry(sweep, slug: str) -> dict[str, Any]:
     return sweep.state.recipes[f"vonk-forge/{slug}"]
 
 
@@ -69,7 +71,7 @@ def test_a_capacity_refusal_that_clearing_undoes_is_requeued_not_failed(
     assert "clearing the fleet and trying again" in str(sweep.state.data["events"])
 
 
-def _waits(sweep, key: str) -> list[dict]:
+def _waits(sweep, key: str) -> list[dict[str, Any]]:
     return [
         r
         for r in sweep.log.entries()
