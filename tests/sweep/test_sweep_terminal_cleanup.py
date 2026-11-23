@@ -13,7 +13,7 @@ import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep import policy
-from spark_sweep.catalog import fetch_fleet
+from spark_sweep.run import fetch_fleet
 from spark_sweep.sweep_contract import CleanupEnd, CleanupEndReason, ReviewedCleanupStop
 
 pytest_plugins = ["sweep_bounds"]

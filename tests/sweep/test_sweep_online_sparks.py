@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
-from spark_sweep.sweep_support import TAKEOVER_RETRY_SECONDS
+from spark_sweep.run import TAKEOVER_RETRY_SECONDS
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")

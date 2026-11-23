@@ -16,7 +16,7 @@ import pytest
 from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
-from spark_sweep import sweep_smoke, sweep_support, verdict
+from spark_sweep import run, verdict
 from spark_sweep.definitions import Definitions
 
 DIFFUSIONGEMMA = "vonk-forge/diffusiongemma-26b-nvfp4-r0b0tlab-vllm-single"
@@ -48,8 +48,8 @@ def test_a_crashing_smoke_keeps_its_evidence_and_spends_no_attempt(
 ) -> None:
     recipe = FakeRecipe("r")
     sweep, _, clock = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
-    real_smoke = sweep_smoke.smoke_service
-    monkeypatch.setattr(sweep_smoke, "smoke_service", _read_missing_fixture)
+    real_smoke = run.smoke_service
+    monkeypatch.setattr(run, "smoke_service", _read_missing_fixture)
 
     def crashed() -> list[dict[str, Any]]:
         return [r for r in _rows(tmp_path) if r.get("code") == "smoke.crash"]
@@ -67,7 +67,7 @@ def test_a_crashing_smoke_keeps_its_evidence_and_spends_no_attempt(
     assert evidence["type"] == "FileNotFoundError"
     assert evidence["filename"] == "/nonexistent-sweep-src/fixtures/tiny.png.b64"
     assert "tiny.png.b64" in evidence["message"]
-    assert 1 <= len(evidence["frames"]) <= sweep_support.CRASH_FRAMES
+    assert 1 <= len(evidence["frames"]) <= run.CRASH_FRAMES
     # The worker thread's frames survive ``future.result()``: where it raised is named.
     assert any("_read_missing_fixture" in frame for frame in evidence["frames"])
     assert sweep.state.status(recipe.key) == "pending"
@@ -79,7 +79,7 @@ def test_a_crashing_smoke_keeps_its_evidence_and_spends_no_attempt(
     assert "smoke-tool" in sweep.state.data["infra"]
 
     # The tool is fixed: the recipe gets its run, and the tool fault clears on a pass.
-    monkeypatch.setattr(sweep_smoke, "smoke_service", real_smoke)
+    monkeypatch.setattr(run, "smoke_service", real_smoke)
     for _ in range(4000):
         sweep.tick()
         if sweep.state.status(recipe.key) == "passed":
@@ -119,7 +119,7 @@ def _crashing_sweep(
     """A sweep whose smoke raises ``KeyError(message)`` for each message in turn, then passes."""
     recipe = FakeRecipe("r")
     sweep, _, clock = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
-    real_smoke = sweep_smoke.smoke_service
+    real_smoke = run.smoke_service
     calls: list[int] = []
 
     def smoke(*args: Any) -> Any:
@@ -128,7 +128,7 @@ def _crashing_sweep(
             raise KeyError(messages[len(calls) - 1])
         return real_smoke(*args)
 
-    monkeypatch.setattr(sweep_smoke, "smoke_service", smoke)
+    monkeypatch.setattr(run, "smoke_service", smoke)
     return sweep, clock, calls
 
 
@@ -155,8 +155,8 @@ def test_three_identical_smoke_crashes_are_one_fail_with_evidence(
         clock.sleep(sweep.cfg.poll_seconds)
 
     (failed,) = [r for r in _rows(tmp_path) if r.get("disposition") == "fail"]
-    assert len(calls) == sweep_support.IDENTICAL_EXIT_LIMIT
-    assert failed["evidence"]["identical_exits"] == sweep_support.IDENTICAL_EXIT_LIMIT
+    assert len(calls) == run.IDENTICAL_EXIT_LIMIT
+    assert failed["evidence"]["identical_exits"] == run.IDENTICAL_EXIT_LIMIT
     assert failed["evidence"]["type"] == "KeyError"
     assert sweep.state.status("vonk-forge/r") != "pending"
 

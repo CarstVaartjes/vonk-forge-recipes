@@ -17,7 +17,7 @@ from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from recipe_tooling.qualification.documents import recipe_api
-from spark_sweep import sweep_smoke
+from spark_sweep import run
 from spark_sweep.definitions import CaseRenderError, Definitions
 from spark_sweep.smoke import SmokeResult
 
@@ -76,7 +76,7 @@ def test_a_tts_recipe_with_voices_passes_the_chat_facts_check(
         smoked.append(args[5])  # the facts the sweep resolved
         return SmokeResult(ok=True, kind="service")
 
-    monkeypatch.setattr(sweep_smoke, "smoke_service", stub)
+    monkeypatch.setattr(run, "smoke_service", stub)
     _drive(sweep, clock, lambda: smoked)
 
     assert smoked == [None]  # reviewed cases carry their own request: no fallback facts
@@ -113,7 +113,7 @@ def test_a_case_render_error_from_the_smoke_is_one_typed_failure(
         calls.append(1)
         raise CaseRenderError("a $VOICE case needs the recipe's audio_speech voices")
 
-    monkeypatch.setattr(sweep_smoke, "smoke_service", raising)
+    monkeypatch.setattr(run, "smoke_service", raising)
     _drive(sweep, clock, lambda: "case.cases" in _codes(tmp_path))
     for _ in range(300):
         sweep.tick()

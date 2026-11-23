@@ -10,7 +10,7 @@ from repo_root import ROOT
 from recipe_tooling.qualification import vllm_memory_fit
 from recipe_tooling.qualification.memory_need import constants as mn_constants
 from recipe_tooling.qualification.memory_need import evidence as mn_evidence
-from spark_sweep import cli, memory, sweep_support
+from spark_sweep import cli, memory, run
 from spark_sweep.catalog import parse_fleet
 
 
@@ -21,7 +21,7 @@ def test_memory_consumers_import_one_pinned_policy() -> None:
         == mn_constants.OS_FLOOR_BYTES
     )
     assert (
-        sweep_support.SweepConfig(Path("unused"), "test").default_spark_memory
+        run.SweepConfig(Path("unused"), "test").default_spark_memory
         == mn_constants.SPARK_MEMORY_BYTES
     )
     assert (

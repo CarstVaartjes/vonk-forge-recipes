@@ -29,7 +29,7 @@ from sweep_fakes import (
 pytest_plugins = ["sweep_bounds"]
 
 from spark_sweep.policy import CLIENT_CONTRACT
-from spark_sweep.sweep_support import INFRA_BASE
+from spark_sweep.run import INFRA_BASE
 from spark_sweep.verdict import Disposition, reply_disposition
 from spark_sweep.vonkctl import CLIENT_CONTRACT_MISMATCH
 

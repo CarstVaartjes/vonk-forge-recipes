@@ -8,7 +8,8 @@ from pathlib import Path
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
-from spark_sweep.fanout import DaemonExecutor, gather
+from spark_sweep.fanout import gather
+from spark_sweep.run import DaemonExecutor
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")

@@ -10,7 +10,7 @@ pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 from spark_sweep import verdict
 from spark_sweep.identity import content_identity
-from spark_sweep.sweep_support import MAX_REVIEW_FREEING
+from spark_sweep.run import MAX_REVIEW_FREEING
 
 
 @pytest.fixture

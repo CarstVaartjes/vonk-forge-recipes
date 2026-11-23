@@ -8,7 +8,6 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from pydantic import ValidationError
 from repo_root import ROOT
-from sweep_sources import run_source
 from vonk_forge_contracts import (
     PublishedQualificationStatusView,
     derive_status,
@@ -593,7 +592,7 @@ def test_elapsed_time_never_retries_a_failure_with_platform_blame(
 
     from spark_sweep.identity import content_identity
     from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.sweep_support import RETEST_SECONDS
+    from spark_sweep.run import RETEST_SECONDS
 
     fake = FakeRecipe("example")
     sweep, _, clock = make_sweep(tmp_path, [fake], [FakeModel("m1")], watch_seconds=60)
@@ -973,7 +972,7 @@ def test_superseded_verdict_paths_cannot_return():
             "PassReconciliationRecord",
             "LegacyPassedVerdict",
         }
-    run = ast.parse(run_source())
+    run = ast.parse((ROOT / "spark_sweep/run.py").read_text())
     for name in ("_reconcile_entry", "requeue_failed"):
         function = next(
             n
@@ -1394,24 +1393,12 @@ def test_a_publishing_pass_is_not_requeued(tmp_path):
 
 def test_without_a_catalog_image_the_pass_is_left_alone(tmp_path, monkeypatch):
     """A re-run could not publish either: no loop."""
-    from spark_sweep import (
-        qualification,
-        sweep_loading,
-        sweep_reconcile,
-        sweep_schedule,
-        sweep_smoke,
-    )
+    from spark_sweep import qualification, run
 
     sweep, _, _ = evidence_sweep(tmp_path)
     key = next(iter(sweep.recipes))
     unimaged = A.model_copy(update={"runtime_image": None})
-    for module in (
-        qualification,
-        sweep_loading,
-        sweep_reconcile,
-        sweep_schedule,
-        sweep_smoke,
-    ):
+    for module in (qualification, run):
         monkeypatch.setattr(module, "current_identity", lambda recipe: unimaged)
     _passed(sweep, key, record(unimaged).model_copy(update={"platform": NO_CONTROLLER}))
     sweep.refresh_catalog()

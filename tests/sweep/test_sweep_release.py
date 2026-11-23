@@ -314,7 +314,7 @@ def test_watch_retests_platform_fault_only_after_its_observed_owner_fix(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     from spark_sweep.identity import content_identity
-    from spark_sweep.sweep_support import RETEST_SECONDS
+    from spark_sweep.run import RETEST_SECONDS
 
     recipe = FakeRecipe("recovering")
     sweep, fleet, clock = make_sweep(

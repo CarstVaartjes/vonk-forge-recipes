@@ -15,7 +15,7 @@ import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep.profile_alias import unique_profile_alias
-from spark_sweep.sweep_support import alias_for
+from spark_sweep.run import alias_for
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")

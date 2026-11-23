@@ -10,7 +10,7 @@ import jsonschema
 from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
-from spark_sweep.sweep_support import IDENTICAL_EXIT_LIMIT, PLATFORM_SKIP
+from spark_sweep.run import IDENTICAL_EXIT_LIMIT, PLATFORM_SKIP
 
 
 def _rows(tmp_path: Path, key: str) -> list[dict]:

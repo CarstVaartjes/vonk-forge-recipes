@@ -175,7 +175,7 @@ def test_catalog_read_timeout_does_not_hold_live_observation_or_status(
     recipe = FakeRecipe("a", local="cached")
     sweep, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1", local="cached")])
     sweep.refresh_catalog()
-    from spark_sweep.fanout import DaemonExecutor
+    from spark_sweep.run import DaemonExecutor
 
     sweep.catalog_executor = DaemonExecutor()
     entered, release = threading.Event(), threading.Event()
@@ -191,11 +191,9 @@ def test_catalog_read_timeout_does_not_hold_live_observation_or_status(
     observed, statuses = [], []
     monkeypatch.setattr(sweep.vk, "runner", page)
     monkeypatch.setattr(sweep, "observe_lanes", lambda: observed.append(True))
-    for module in ("tick", "failure", "exit"):
-        monkeypatch.setattr(
-            f"spark_sweep.sweep_{module}.write_status",
-            lambda *_a, **_k: statuses.append(True),
-        )
+    monkeypatch.setattr(
+        "spark_sweep.run.write_status", lambda *_a, **_k: statuses.append(True)
+    )
     sweep.recipe_list.pass_done_at = -1e18
     started = time.monotonic()
     try:

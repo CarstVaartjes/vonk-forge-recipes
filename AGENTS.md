@@ -343,12 +343,6 @@ counts, a `TYPE_CHECKING` import does not. Tests may import anything.
 
 ## Hardware sweep: operation
 
-`Sweep` (`spark_sweep/run.py`) is assembled from mixins that hold only methods and no state: `sweep_fleet`,
-`sweep_reconcile`, `sweep_tick`, `sweep_platform`, `sweep_failure`, `sweep_loading`, `sweep_smoke`, `sweep_schedule`,
-`sweep_cleanup`, `sweep_takeover`, `sweep_apply`, `sweep_adopt` and `sweep_exit`; `__init__` stays in `run.py` and the
-constants, records and helpers are in `sweep_support.py`. Keep them flat siblings: `recovery.py` globs `*.py`.
-A test that scans the Sweep source uses `tests/sweep_sources.py`, and a patch targets the module whose method reads the name.
-
 `tools/sweep-recipes` supplies Python 3.14 and pinned Pydantic; `spark_sweep/`
 drives the Controller through JSON `vonkctl`. Tests use a fake CLI and never
 require a fleet. The sweep reuses authored qualification cases, adds prefetch,
@@ -379,7 +373,7 @@ run has no cold start).
 `--retry-failed`, `--watch` and `--no-revalidate`.
 Job recipes are always tested (one artifact job each); there is no flag.
 Read `--help` for current defaults. Each default has one owner: the authority id in
-`spark_sweep/cli.py`, the boost words in `spark_sweep/sweep_support.py`, the owner profiles the sweep
+`spark_sweep/cli.py`, the boost words in `spark_sweep/run.py`, the owner profiles the sweep
 never uses in `vonkctl.OWNER_PROFILES` (not a flag).
 SIGINT/SIGTERM interrupt owned work; rerunning with the same state directory
 resumes. One process holds the directory's exclusive `run.lock`.
