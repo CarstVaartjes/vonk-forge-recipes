@@ -5,7 +5,6 @@
 # The tests index recipe documents loaded as plain JSON.
 from __future__ import annotations
 
-import json
 import re
 import runpy
 import unittest
@@ -13,7 +12,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from catalog_documents import catalog_models
-from documents import model_display, recipe_display
+from documents import json_document, model_display, recipe_display
 from repo_root import ROOT
 
 from vonk_forge_contracts import RecipeDefinition
@@ -35,7 +34,7 @@ REVISIONS = {
 
 
 def read(path: Path) -> dict[str, object]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json_document(path.read_text(encoding="utf-8"))
 
 
 def recipe_model(recipe: dict[str, Any], index: int = 0) -> dict[str, object]:
@@ -81,7 +80,7 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
         assert args["quantization"] == "modelopt_fp4"
         assert args["moe-backend"] == "marlin"
         assert args["mamba-ssm-cache-dtype"] == "float16"
-        assert json.loads(args["speculative-config"]) == {
+        assert json_document(args["speculative-config"]) == {
             "method": "mtp",
             "num_speculative_tokens": 3,
             "model": "/models/drafter",

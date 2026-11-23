@@ -15,7 +15,7 @@ from unittest import mock
 
 import pytest
 from catalog_documents import catalog_models, model_digest
-from documents import model_display
+from documents import model_display, recipe_document
 from repo_root import ROOT
 
 from vonk_forge_contracts.model import ModelDefinition
@@ -417,7 +417,7 @@ class LabelEncoder:
         )
 
     def test_triposg_diso_license_matches_pypi_metadata(self) -> None:
-        recipe = json.loads((ROOT / "recipes/triposg-pytorch-single.json").read_text())
+        recipe = recipe_document("triposg-pytorch-single")
         assert recipe["models"][0]["model"]["slug"] == "triposg"
         assert model_display("triposg").license.spdx == "MIT"
 

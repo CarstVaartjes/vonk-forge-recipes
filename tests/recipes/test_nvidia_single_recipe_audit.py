@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 from typing import Any
 
+from documents import json_document
 from repo_root import ROOT
 
 from vonk_forge_contracts import document_sha256
@@ -72,12 +73,13 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
         assert args(recipe)["quantization"] == "modelopt_fp4"
         assert args(recipe)["moe-backend"] == "marlin"
         assert (
-            json.loads(args(recipe)["speculative-config"])["model"] == "/models/drafter"
+            json_document(args(recipe)["speculative-config"])["model"]
+            == "/models/drafter"
         )
 
     def test_single_spark_memory_admission_and_representative_checks(self) -> None:
         for path in (SUPER_RECIPE, FLASH_RECIPE):
-            recipe: dict[str, Any] = read(path)
+            recipe = read(path)
             assert len(recipe["validation"]["serving"]["checks"]) >= 1
 
 

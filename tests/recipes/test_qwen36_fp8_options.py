@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
 import unittest
 from pathlib import Path
 from typing import Any
 
+from documents import json_document
 from repo_root import ROOT
 
 from vonk_forge_contracts import read_recipe
@@ -18,7 +18,7 @@ RECIPE_NAMES = (
 
 
 def read(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json_document(path.read_text(encoding="utf-8"))
 
 
 def argument_map(recipe: Any) -> dict[str, Any]:
@@ -61,12 +61,16 @@ class Qwen36Fp8OptionTests(unittest.TestCase):
                         ]
                         assert len(speculative) <= 1
                         if speculation == "native-mtp":
-                            assert json.loads(str(arguments["speculative-config"])) == {
+                            assert json_document(
+                                str(arguments["speculative-config"])
+                            ) == {
                                 "method": "qwen3_next_mtp",
                                 "num_speculative_tokens": 2,
                             }
                         elif speculation == "dflash":
-                            assert json.loads(str(arguments["speculative-config"])) == {
+                            assert json_document(
+                                str(arguments["speculative-config"])
+                            ) == {
                                 "method": "dflash",
                                 "model": "/models/drafter",
                                 "num_speculative_tokens": 15,

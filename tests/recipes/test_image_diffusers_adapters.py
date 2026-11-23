@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 import pytest
+from documents import recipe_document
 from repo_root import ROOT
 
 DIFFUSERS_REVISION = "c5469b7ceb606edd7ba6570dcd17d38590a18db6"
@@ -166,7 +167,7 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
             "qwen-image-2512-diffusers-single",
         )
         for slug in generation_slugs:
-            recipe = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
+            recipe = recipe_document(slug)
             interface = recipe["interfaces"][0]
             assert interface["input"]["media_types"] == ["text/plain"]
             assert interface["input"]["max_bytes"] == 16 * 1024
@@ -192,9 +193,7 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
         )["topology"]["roles"][0]["resources"]["memory"]
         assert flash_memory["peak_bytes"] == 118000000000
 
-        edit_recipe = json.loads(
-            (ROOT / "recipes/qwen-image-edit-2511-diffusers-single.json").read_text()
-        )
+        edit_recipe = recipe_document("qwen-image-edit-2511-diffusers-single")
         assert edit_recipe["interfaces"][0]["input"]["media_types"] == [
             "image/jpeg",
             "image/png",
@@ -213,9 +212,7 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
             2,
         )
 
-        layered_recipe = json.loads(
-            (ROOT / "recipes/qwen-image-layered-diffusers-single.json").read_text()
-        )
+        layered_recipe = recipe_document("qwen-image-layered-diffusers-single")
         layered_output = layered_recipe["interfaces"][0]["output"]["slots"][0]
         assert (layered_output["min_files"], layered_output["max_files"]) == (1, 4)
         assert layered_output["max_total_bytes"] == 4 * 8 * 1024 * 1024

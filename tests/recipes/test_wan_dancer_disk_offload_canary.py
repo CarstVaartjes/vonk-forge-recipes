@@ -17,7 +17,7 @@ from typing import Any
 from unittest import mock
 
 import pytest
-from documents import recipe_display
+from documents import recipe_display, repository_bytes
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
@@ -166,7 +166,7 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
                         MODEL
                     )
                 else:
-                    assert payload == (ROOT / path).read_bytes()
+                    assert payload == repository_bytes(path)
 
     def test_vendored_diffsynth_source_is_exact_and_offline_patch_applies(self) -> None:
         assert hashlib.sha256(ARCHIVE.read_bytes()).hexdigest() == ARCHIVE_SHA256

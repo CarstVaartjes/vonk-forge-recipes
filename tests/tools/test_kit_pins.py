@@ -21,6 +21,7 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
+from documents import json_document
 from repo_root import ROOT
 
 from recipe_tooling import vendored_upstream
@@ -852,7 +853,7 @@ class AssessmentTests(unittest.TestCase):
             lock = json.loads(result.edits["adapters/mia/kit-lock.json"])
             assert lock["kit"]["commit"] == newer
             assert lock["dependencies"]["base"]["commit"] == BASE_060
-            recipe = json.loads(result.edits["recipes/mia.json"])
+            recipe = json_document(result.edits["recipes/mia.json"])
             assert recipe["provenance"]["source_reference"].endswith(newer)
 
     def test_a_kit_move_that_changes_patches_or_launch_configuration_is_a_review(

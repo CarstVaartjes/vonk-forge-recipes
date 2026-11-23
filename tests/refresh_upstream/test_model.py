@@ -11,6 +11,7 @@ from typing import Any, ClassVar
 from unittest.mock import patch
 
 import pytest
+from documents import json_document
 from refresh_helpers import NEW, OLD, classify, comparison, files, model_with
 
 from recipe_tooling import catalog_hf_model, vendored_upstream
@@ -495,7 +496,7 @@ class ModelReExportTests(unittest.TestCase):
         assert not result.items[0].noop
         written = edits[f"models/demo-{NEW[:8]}.json"]
         assert written is not None
-        moved = json.loads(written)
+        moved = json_document(written)
         paths = {f["path"] for f in moved["files"]}
         assert "HYBRID.json" in paths
         assert "model-00041-of-00041.safetensors" in paths

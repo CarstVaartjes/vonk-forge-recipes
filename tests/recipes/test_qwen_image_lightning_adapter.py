@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import importlib.machinery
 import importlib.util
-import json
 import math
 import sys
 import tempfile
@@ -10,7 +9,7 @@ import unittest
 from pathlib import Path
 
 import pytest
-from documents import recipe_display
+from documents import model_document, recipe_display, recipe_document
 from repo_root import ROOT
 
 SCRIPT = ROOT / "adapters/image/qwen-image-lightning-diffusers/qwen_image_lightning.py"
@@ -50,15 +49,13 @@ class QwenImageLightningAdapterTests(unittest.TestCase):
             "qwen-image-2512-lightning-diffusers-single",
             "qwen-image-edit-2511-lightning-diffusers-single",
         ):
-            recipe = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
+            recipe = recipe_document(slug)
 
             assert len(recipe["models"]) == 2
             target = recipe["models"][0]
             assert target["files"]
             assert target["files"][0]["mount"]["target"] == "/models/target"
-            model = json.loads(
-                (ROOT / "models" / f"{target['model']['slug']}.json").read_text()
-            )
+            model = model_document(target["model"]["slug"])
             assert model["files"][0]["roles"]
             assert (
                 "metadata-only" not in recipe_display(recipe["identity"]["slug"]).tags

@@ -6,12 +6,13 @@ import unittest
 from pathlib import Path
 from typing import Any
 
+from documents import json_document
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
 
 def load(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json_document(path.read_text(encoding="utf-8"))
 
 
 def digest(document: dict[str, Any]) -> str:
@@ -30,7 +31,10 @@ class MuseGlimmerRecipeTests(unittest.TestCase):
         }
         assert recipe["settings"]["context_tokens"]["value"] == 32768
         assert arguments["generation-config"] == "auto"
-        assert json.loads(arguments["limit-mm-per-prompt"]) == {"image": 4, "video": 0}
+        assert json_document(arguments["limit-mm-per-prompt"]) == {
+            "image": 4,
+            "video": 0,
+        }
         assert recipe["interfaces"][0]["adapter"] == "openai"
         assert recipe["topology"]["node_count"] == 1
 
@@ -59,7 +63,7 @@ class MuseGlimmerRecipeTests(unittest.TestCase):
             for item in default.runtime.arguments
             if item.name == "speculative-config"
         )
-        assert json.loads(str(default_value)) == {
+        assert json_document(str(default_value)) == {
             "method": "dflash",
             "model": "/models/drafter",
             "num_speculative_tokens": 16,
@@ -80,7 +84,7 @@ class MuseGlimmerRecipeTests(unittest.TestCase):
             )
             == "auto"
         )
-        assert json.loads(
+        assert json_document(
             str(
                 next(
                     item.value

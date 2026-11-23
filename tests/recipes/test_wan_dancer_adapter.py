@@ -22,6 +22,7 @@ from typing import Any, ClassVar
 from unittest import mock
 
 import pytest
+from documents import repository_bytes
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
@@ -150,7 +151,7 @@ class WanDancerAuthorityTests(unittest.TestCase):
                         MODEL
                     )
                 else:
-                    assert payload == (ROOT / path).read_bytes()
+                    assert payload == repository_bytes(path)
         interface = recipe["interfaces"][0]
         slots = {slot["id"]: slot for slot in interface["input"]["slots"]}
         assert set(slots) == {"prompt", "reference-image", "music"}

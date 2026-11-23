@@ -15,7 +15,13 @@ from typing import Protocol, cast
 from unittest import mock
 
 import pytest
-from documents import model_display, recipe_display
+from documents import (
+    json_document,
+    model_display,
+    model_document,
+    recipe_display,
+    recipe_document,
+)
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
@@ -154,7 +160,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
     ) -> None:
         for slug in SLOTTED_RECIPES:
             with self.subTest(slug=slug):
-                recipe = json.loads((ROOT / f"recipes/{slug}.json").read_text())
+                recipe = recipe_document(slug)
                 interface = recipe["interfaces"][0]
                 input_contract = interface["input"]
                 output_contract = interface["output"]
@@ -191,7 +197,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                     manifest["recipe_content_sha256"]
                     == hashlib.sha256(CATALOG.canonical(recipe)).hexdigest()
                 )
-                assert json.loads(payloads["recipe.json"]) == recipe
+                assert json_document(payloads["recipe.json"]) == recipe
                 declared = {entry["path"]: entry for entry in manifest["files"]}  # pyright: ignore[reportGeneralTypeIssues]
                 assert set(declared) == set(payloads) - {"manifest.json"}
                 for path, content in payloads.items():
@@ -341,10 +347,8 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 assert deferred > 0
 
     def test_hunyuan_declares_and_forces_exact_local_dinov2(self) -> None:
-        recipe = json.loads(
-            (ROOT / "recipes/hunyuan3d-omni-pytorch-single.json").read_text()
-        )
-        model_version = json.loads((ROOT / "models/hunyuan3d-omni.json").read_text())
+        recipe = recipe_document("hunyuan3d-omni-pytorch-single")
+        model_version = model_document("hunyuan3d-omni")
         model_license = model_display("hunyuan3d-omni").license
         assert (
             model_license.spdx == "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License"
@@ -364,9 +368,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
             for selection in primary_files
         )
         dinov2 = recipe["models"][1]
-        dinov2_model = json.loads(
-            (ROOT / "models/dinov2-large-47b73eef.json").read_text()
-        )
+        dinov2_model = model_document("dinov2-large-47b73eef")
         assert dinov2["model"]["slug"] == "dinov2-large-47b73eef"
         assert {selection["file_id"] for selection in dinov2["files"]} == {
             file["id"] for file in dinov2_model["files"]

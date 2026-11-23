@@ -21,7 +21,9 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
-from documents import model_display
+from documents import json_document, model_display
+from documents import model_document as authored_model
+from documents import recipe_document as authored_recipe
 from repo_root import ROOT
 from test_kit_pins import (
     BASE,
@@ -587,7 +589,7 @@ class HfCheckAndLockTests(unittest.TestCase):
             world.write_model(new)
             changed = world.lock()
             assert "recipes/mia.json" in changed
-            recipe = json.loads((world.root / "recipes/mia.json").read_text())
+            recipe = authored_recipe("mia", world.root)
             primary = next(m for m in recipe["models"] if m["id"] == "primary")
             assert primary["model"]["slug"] == new["identity"]["slug"]
             assert primary["model"]["publisher"] == "public-copy"
@@ -675,9 +677,7 @@ class HfCheckAndLockTests(unittest.TestCase):
             )
             new_slug = f"{slug_name(NEW)}-{NEW_REV2[:8]}"
             assert f"models/{new_slug}.json (catalogued)" in changed
-            document = json.loads(
-                (world.root / "models" / f"{new_slug}.json").read_text()
-            )
+            document = authored_model(new_slug, world.root)
             assert document["source"]["revision"] == NEW_REV2
             # the old curation moved along: the weights are the new snapshot's (two
             # shards, not one), a new metadata file is left out, the README is kept
@@ -690,7 +690,7 @@ class HfCheckAndLockTests(unittest.TestCase):
             assert {f["path"]: f["sha256"] for f in document["files"]}[
                 "README.md"
             ] == "5" * 64
-            recipe = json.loads((world.root / "recipes/mia.json").read_text())
+            recipe = authored_recipe("mia", world.root)
             primary = next(m for m in recipe["models"] if m["id"] == "primary")
             assert primary["model"]["slug"] == new_slug
             assert [f["file_id"] for f in primary["files"]] == [
@@ -753,7 +753,7 @@ class HfCheckAndLockTests(unittest.TestCase):
             new = model_document(NEW, NEW_REV2, moved)
             world.write_model(new)
             world.lock()
-            result = json.loads((world.root / "recipes/mia.json").read_text())
+            result = authored_recipe("mia", world.root)
             selected = next(m for m in result["models"] if m["id"] == "primary")
             assert selected["model"]["slug"] == new["identity"]["slug"]
             assert sorted(f["file_id"] for f in selected["files"]) == sorted(
@@ -901,7 +901,7 @@ class KitModelAssessmentTests(unittest.TestCase):
         old_slug = f"{slug_name(NEW)}-{NEW_REV[:8]}"
         assert f"models/{new_slug}.json" in result.edits
         assert result.edits[f"models/{old_slug}.json"] is None
-        recipe = json.loads(result.edits["recipes/mia.json"])
+        recipe = json_document(result.edits["recipes/mia.json"])
         assert (
             next(m for m in recipe["models"] if m["id"] == "primary")["model"]["slug"]
             == new_slug
@@ -1266,7 +1266,7 @@ class ImageKitTests(unittest.TestCase):
         text = (world.directory / "Dockerfile").read_text()
         assert f"FROM {IMAGE}@{ARM_RC12}\n" in text
         assert "FROM scratch AS other" in text
-        recipe = json.loads((self.root / "recipes/trt.json").read_text())
+        recipe = authored_recipe("trt", self.root)
         assert recipe["execution"]["build"]["base_image"][
             "digest"
         ] == ARM_RC12.removeprefix("sha256:")
@@ -1411,7 +1411,7 @@ class ImageAssessmentTests(unittest.TestCase):
         assert ARM_RC13 not in dockerfile
         lock = json.loads(result.edits["adapters/trt/kit-lock.json"])
         assert lock["dependencies"]["image"]["digest"] == ARM_RC12
-        recipe = json.loads(result.edits["recipes/trt.json"])
+        recipe = json_document(result.edits["recipes/trt.json"])
         assert recipe["execution"]["build"]["base_image"][
             "digest"
         ] == ARM_RC12.removeprefix("sha256:")

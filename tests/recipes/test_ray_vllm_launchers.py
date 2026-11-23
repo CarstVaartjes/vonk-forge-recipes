@@ -18,6 +18,7 @@ import unittest
 from pathlib import Path
 from typing import Any
 
+from documents import recipe_document
 from repo_root import ROOT
 
 NVIDIA_405B = "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four"
@@ -142,7 +143,7 @@ class Llama405bNativeLaunchTest(unittest.TestCase):
     """
 
     def test_it_uses_the_native_multi_node_launch(self) -> None:
-        recipe = json.loads((ROOT / "recipes" / f"{NVIDIA_405B}.json").read_text())
+        recipe = recipe_document(NVIDIA_405B)
         assert recipe["topology"]["parallelism"]["backend"] == "mp"
         assert NVIDIA_405B not in {slug for slug, _ in ray_vllm_recipes()}
 

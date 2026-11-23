@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
+from documents import json_document
 from repo_root import ROOT
 
 from recipe_tooling import vendored_upstream
@@ -257,7 +258,7 @@ class RefreshTests(unittest.TestCase):
         dockerfile = result.edits["adapters/eugr/x/Dockerfile"].decode()
         assert f"FROM {IMAGE}@{fake.digest}" in dockerfile
         assert f'revision="{BUILT}"' in dockerfile
-        recipe = json.loads(result.edits["recipes/recipe.json"])
+        recipe = json_document(result.edits["recipes/recipe.json"])
         assert recipe["provenance"]["source_reference"].endswith(BUILT)
         assert recipe["execution"]["build"]["base_image"][
             "digest"
@@ -286,7 +287,7 @@ class RefreshTests(unittest.TestCase):
         dockerfile = result.edits["adapters/eugr/x/Dockerfile"].decode()
         assert f"FROM {IMAGE}@{fake.digest}" in dockerfile
         assert f'revision="{BUILT}"' in dockerfile
-        recipe = json.loads(result.edits["recipes/recipe.json"])
+        recipe = json_document(result.edits["recipes/recipe.json"])
         assert recipe["provenance"]["source_reference"].endswith(BUILT)
         manifest = json.loads(result.edits["adapters/eugr/x/vendored-upstream.json"])
         assert manifest["source"]["commit"] == BUILT
