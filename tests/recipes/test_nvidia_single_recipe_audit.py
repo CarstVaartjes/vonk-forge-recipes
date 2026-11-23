@@ -1,6 +1,3 @@
-# pyright: reportArgumentType=false
-# pyright: reportIndexIssue=false
-# The tests index recipe documents loaded as plain JSON.
 from __future__ import annotations
 
 import json
@@ -15,20 +12,20 @@ SUPER_RECIPE = ROOT / "recipes/nemotron-3-super-120b-a12b-vllm-single.json"
 FLASH_RECIPE = ROOT / "recipes/nvidia-qwen-image-flash-diffusers-single.json"
 
 
-def read(path: Path) -> dict[str, object]:
+def read(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def digest(document: dict[str, object]) -> str:
+def digest(document: dict[str, Any]) -> str:
     return document_sha256(document)
 
 
-def model_for(recipe: dict[str, Any], index: int = 0) -> dict[str, object]:
+def model_for(recipe: dict[str, Any], index: int = 0) -> dict[str, Any]:
     slug = recipe["models"][index]["model"]["slug"]
     return read(ROOT / "models" / f"{slug}.json")
 
 
-def args(recipe: dict[str, Any]) -> dict[str, object]:
+def args(recipe: dict[str, Any]) -> dict[str, Any]:
     return {item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]}
 
 

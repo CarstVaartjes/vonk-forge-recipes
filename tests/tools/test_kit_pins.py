@@ -1341,9 +1341,10 @@ class BusyProviderCliTests(unittest.TestCase):
 
         with (
             tempfile.TemporaryDirectory() as tmp,
-            patch.object(kit_cli, "kit_images", busy),
+            patch.object(kit_check, "kit_images", busy),
         ):
             problems = kit_check.check_images(
                 Path(tmp), {"mia": recipe_for(KIT_BRANCH)}, upstream(FakeApi())
             )
         self.assertEqual(len(problems), 1, problems)
+        self.assertIn("rate limited", problems[0])

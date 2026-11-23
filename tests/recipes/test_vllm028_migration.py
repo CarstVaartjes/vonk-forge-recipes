@@ -1,11 +1,10 @@
-# pyright: reportIndexIssue=false
-# The tests index recipe documents loaded as plain JSON.
 from __future__ import annotations
 
 import importlib.machinery
 import importlib.util
 import json
 import unittest
+from typing import Any
 
 from documents import recipe_display
 from repo_root import ROOT
@@ -22,7 +21,7 @@ MIGRATED = {
 }
 
 
-def load(path: str) -> dict[str, object]:
+def load(path: str) -> dict[str, Any]:
     return json.loads((ROOT / path).read_text(encoding="utf-8"))
 
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import tempfile
-import unittest
 from pathlib import Path
 from typing import Any
 
@@ -107,10 +106,6 @@ def single_recipe_catalog(source_reference: str) -> Any:
             }
         },
     )
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 OLD_YAML = """defaults:

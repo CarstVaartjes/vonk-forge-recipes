@@ -23,6 +23,17 @@ from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.refresh_upstream import publish as refresh_publish
 
 
+def _branch_tip(root: Path, branch: str) -> str:
+    """The commit a local branch points at, read from the ref files (loose, then packed)."""
+    loose = root / ".git/refs/heads" / branch
+    if loose.is_file():
+        return loose.read_text().strip()
+    for line in (root / ".git/packed-refs").read_text().splitlines():
+        if line.endswith(f" refs/heads/{branch}"):
+            return line.split()[0]
+    raise AssertionError(f"no branch {branch}")
+
+
 class MergeGateTests(unittest.TestCase):
     main_head = "a" * 40
 
@@ -491,7 +502,7 @@ class SelfHealingTests(unittest.TestCase):
                 refresh_publish.publish_mechanical(
                     root, assessment, refresh_publish.Summary()
                 )
-            after = (root / ".git/refs/heads/refresh/recipe").read_text().strip()
+            after = _branch_tip(root, "refresh/recipe")
             forward = (
                 refresh_apply.run(
                     ["git", "merge-base", "--is-ancestor", before, after],

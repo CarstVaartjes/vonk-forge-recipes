@@ -1,19 +1,18 @@
-# pyright: reportIndexIssue=false
-# The tests index recipe documents loaded as plain JSON.
 from __future__ import annotations
 
-import json
 import unittest
+from typing import Any
 
 from documents import recipe_display
-from repo_root import ROOT
+
+from recipe_tooling.qualification.documents import recipe_document
 
 
-def _recipe(slug: str) -> dict[str, object]:
-    return json.loads((ROOT / "recipes" / f"{slug}.json").read_text(encoding="utf-8"))
+def _recipe(slug: str) -> dict[str, Any]:
+    return recipe_document(slug)
 
 
-def _slot(recipe: dict[str, object], direction: str, slot_id: str) -> dict[str, object]:
+def _slot(recipe: dict[str, Any], direction: str, slot_id: str) -> dict[str, Any]:
     interface = recipe["interfaces"][0]
     return next(slot for slot in interface[direction]["slots"] if slot["id"] == slot_id)
 
