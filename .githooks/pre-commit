@@ -49,6 +49,7 @@ fi
 # a failure of the diff writer aborts the hook (a pipe has no pipefail under sh).
 staged=$(python3 tools/added-lines --cached)
 printf '%s\n' "$staged" | python3 tools/check-test-git --diff -
+printf '%s\n' "$staged" | python3 tools/check-nccl-ib-hca --diff -
 # A file over 1 MiB is declared with tools/adapter-sources add, never committed.
 changed=$(git diff --cached --name-only --diff-filter=AMR)
 printf '%s\n' "$changed" | python3 tools/check-added-file-size --paths-from -

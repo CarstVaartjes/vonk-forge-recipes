@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+"""Reject an added adapter line that sets NCCL_IB_HCA to anything but the platform's value.
+
+On DGX Spark each 200 Gb/s port shows up as two RDMA devices, and the helper launches
+multi-node runs with ``NCCL_IB_HCA`` naming both (``=rocep1s0f1:1,roceP2p1s0f1:1``). An
+adapter that sets its own single device cuts the link to about 112 of 200 Gb/s (a 26-28%
+slower prefill was measured). Adapters read the inherited value (``environ["NCCL_IB_HCA"]``,
+``$NCCL_IB_HCA``) or list the name to forward it; they never assign it.
+
+An assignment (``NCCL_IB_HCA=x``, ``NCCL_IB_HCA: x``, ``environ["NCCL_IB_HCA"] = x``) passes
+only when ``x`` is the inherited variable itself, optionally with a ``${NCCL_IB_HCA:-...}``
+default. Comment lines and prose files (``.md``, ``.rst``, ``.txt``) are not judged.
+
+Only lines added by the diff given with ``--diff FILE|-`` are checked, under ``adapters/``
+(shell scripts and extensionless launchers too). There is no count and no allowlist.
+"""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from recipe_tooling.added_lines import parse_added, read_diff
+
+PROSE = (".md", ".rst", ".txt")
+# NCCL_IB_HCA as the assigned name (not "${NCCL_IB_HCA:-x}", "$NCCL_IB_HCA" or "== "), then the value.
+ASSIGNED = re.compile(
+    r"""(?<![\w$\{])NCCL_IB_HCA["']?\]?\s*(?:=(?![=~])|:(?![=\-]))\s*(?P<value>.*)"""
+)
+INHERITED = re.compile(
+    r"""^["']?(?:
+        \$NCCL_IB_HCA\b | \$\{NCCL_IB_HCA(?::-[^}]*)?\}
+      | (?:os\.)?environ\[["']NCCL_IB_HCA["']\]
+    )["']?\s*(?:[;,)\\]|$)""",
+    re.VERBOSE,
+)
+ADVICE = (
+    "pass the platform's NCCL_IB_HCA through unchanged (read environ['NCCL_IB_HCA'] or "
+    "$NCCL_IB_HCA); a narrower list cuts the 200 Gb/s link"
+)
+
+
+def scan(source: str, added: set[int] | None) -> list[int]:
+    """Line numbers of added lines that assign a narrower or foreign NCCL_IB_HCA."""
+    hits: list[int] = []
+    for number, line in enumerate(source.splitlines(), 1):
+        if added is not None and number not in added:
+            continue
+        if line.lstrip().startswith(("#", "//")):
+            continue
+        for match in ASSIGNED.finditer(line):
+            if not INHERITED.match(match["value"].strip()):
+                hits.append(number)
+                break
+    return hits
+
+
+def judged(name: str) -> bool:
+    return name.startswith("adapters/") and not name.endswith(PROSE)
+
+
+def check(root: Path, diff: str) -> list[str]:
+    problems: list[str] = []
+    for name, lines in sorted(parse_added(diff, judged).items()):
+        if not judged(name):
+            continue
+        source = (root / name).read_text(encoding="utf-8")
+        problems.extend(
+            f"{name}:{number}: assigns NCCL_IB_HCA; {ADVICE}"
+            for number in scan(source, lines)
+        )
+    return problems
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
+    parser.add_argument(
+        "--diff",
+        required=True,
+        help="unified -U0 diff to judge: a file, or - for stdin",
+    )
+    parser.add_argument("--root", type=Path, default=ROOT)
+    arguments = parser.parse_args()
+    problems = check(arguments.root, read_diff(arguments.diff))
+    print("\n".join(problems))
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

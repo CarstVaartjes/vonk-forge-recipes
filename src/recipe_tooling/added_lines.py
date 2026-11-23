@@ -27,7 +27,7 @@ ADDED_PATHSPEC = (
     "src/",
     "scripts/",
     "tests/",
-    "adapters/*Dockerfile*",
+    "adapters/",
 )
 # Explicit prefixes: a developer's diff.mnemonicPrefix or diff.noprefix must not
 # change how paths are parsed.
