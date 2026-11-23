@@ -16,12 +16,6 @@ from pathlib import Path
 from typing import Any
 
 from recipe_tooling.paths import REPO_ROOT
-from vonk_forge_contracts import (
-    ModelDefinition,
-    ModelDisplay,
-    document_sha256,
-    published_json,
-)
 
 _MODALITIES = {"language": "text", "multimodal": "text"}
 
@@ -120,6 +114,16 @@ def write_model(
     requires_token: bool,
 ) -> str:
     """Validate and write the Model; return its ``document_sha256``."""
+
+    # Imported here so file_id stays usable without the contracts dependencies:
+    # tools/check-image-provenance loads tools/kit-pins on a bare interpreter (kit-pins
+    # lock and check place adapter sources, so they run with the dependencies).
+    from vonk_forge_contracts import (  # noqa: PLC0415 - a bare interpreter must load this module
+        ModelDefinition,
+        ModelDisplay,
+        document_sha256,
+        published_json,
+    )
 
     # Imported here so file_id stays usable without the contracts dependencies:
     # tools/check-image-provenance loads tools/kit-pins on a bare interpreter (kit-pins

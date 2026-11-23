@@ -22,10 +22,6 @@ import shlex
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from recipe_tooling.adapter_sources import materialize_or_exit
-
 ROOT = Path(__file__).resolve().parents[1]
 _URL = re.compile(r"^[a-z][a-z0-9+.-]*://|^git@", re.IGNORECASE)
 
@@ -124,6 +120,13 @@ def check_recipe(path: Path, root: Path = ROOT) -> list[str]:
 
 
 def main() -> int:
+    # Imported here so the module loads on a bare interpreter; placing the declared
+    # files (COPY sources too) needs the contracts dependencies.
+    sys.path[:0] = [str(ROOT / "contracts" / "src"), str(ROOT / "src")]
+    from recipe_tooling.adapter_sources import (  # noqa: PLC0415 - a bare interpreter must load this module
+        materialize_or_exit,
+    )
+
     materialize_or_exit(ROOT)
     problems: list[str] = []
     for recipe in sorted((ROOT / "recipes").glob("*.json")):

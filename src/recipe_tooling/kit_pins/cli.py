@@ -112,7 +112,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from recipe_tooling.adapter_sources import materialize_or_exit
 from recipe_tooling.kit_pins.check import check_images, check_recipe
 from recipe_tooling.kit_pins.image_scan import dockerfile_images, kit_images, kit_scope
 from recipe_tooling.kit_pins.lock import adapter_of, kit_of, manifest_of
@@ -121,6 +120,10 @@ from recipe_tooling.kit_pins.sources import cli_source
 from recipe_tooling.kit_pins.upstream import Upstream
 from recipe_tooling.kit_pins.write import apply_lock
 from recipe_tooling.paths import REPO_ROOT
+
+# The imports inside functions below are deliberate (noqa: PLC0415): tools/check-image-provenance
+# loads kit-pins on a bare interpreter without pydantic; placing sources and writing
+# documents need the dependencies, and those commands run with them.
 
 ROOT = REPO_ROOT
 
@@ -193,6 +196,7 @@ def main(argv: list[str]) -> int:
     recipes = load_recipes(ROOT)
     if command == "images":
         return print_images(recipes, names)
+    from recipe_tooling.adapter_sources import materialize_or_exit  # noqa: PLC0415
 
     materialize_or_exit(ROOT)  # lock and check read the vendored base archives
     targets = kit_recipes(ROOT, recipes)
