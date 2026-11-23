@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from vonk_forge_contracts import (
     FamilyDisplay,
@@ -37,6 +38,12 @@ def recipe_digest(slug: str, root: Path = ROOT) -> str:
     """The digest of the authored document, as qualification evidence records it."""
     path = root / "recipes" / f"{slug}.json"
     return document_sha256(json.loads(path.read_text(encoding="utf-8")))
+
+
+def recipe_document(slug: str, root: Path = ROOT) -> dict[str, Any]:
+    """The authored recipe document as written, for callers that bind a digest to it."""
+    path = root / "recipes" / f"{slug}.json"
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def recipe_key_digest(slug: str, root: Path = ROOT) -> tuple[str, str]:

@@ -1,3 +1,5 @@
+# pyright: reportIndexIssue=false
+# The tests index recipe documents loaded as plain JSON.
 from __future__ import annotations
 
 import json
@@ -12,19 +14,19 @@ def _recipe(slug: str) -> dict[str, object]:
 
 
 def _slot(recipe: dict[str, object], direction: str, slot_id: str) -> dict[str, object]:
-    interface = recipe["interfaces"][0]  # pyright: ignore[reportIndexIssue]
+    interface = recipe["interfaces"][0]
     return next(slot for slot in interface[direction]["slots"] if slot["id"] == slot_id)
 
 
 class RecipeOperatorGuidanceTests(unittest.TestCase):
     def test_wan_default_preserves_memory_headroom(self) -> None:
         recommended = _recipe("wan-2-2-ti2v-5b-comfyui-single")
-        recommended_tags = set(recipe_display(recommended["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
+        recommended_tags = set(recipe_display(recommended["identity"]["slug"]).tags)
         self.assertGreaterEqual(
             recommended_tags, {"recommended", "default", "memory-headroom"}
         )
         self.assertNotIn("physical-oom-gated", recommended_tags)
-        recommended_memory = recommended["topology"]["roles"][0]["resources"]["memory"]  # pyright: ignore[reportIndexIssue]
+        recommended_memory = recommended["topology"]["roles"][0]["resources"]["memory"]
         self.assertEqual(recommended_memory["peak_bytes"], 78_000_000_000)
         self.assertEqual(recommended_memory["reserve_bytes"], 8_000_000_000)
 
@@ -34,12 +36,12 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
         ):
             with self.subTest(slug=slug):
                 recipe = _recipe(slug)
-                tags = set(recipe_display(recipe["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
+                tags = set(recipe_display(recipe["identity"]["slug"]).tags)
                 self.assertGreaterEqual(
                     tags, {"memory-tight", "physical-oom-gated", "not-default"}
                 )
                 self.assertNotIn("recommended", tags)
-                memory = recipe["topology"]["roles"][0]["resources"]["memory"]  # pyright: ignore[reportIndexIssue]
+                memory = recipe["topology"]["roles"][0]["resources"]["memory"]
                 self.assertEqual(memory["peak_bytes"], 118_000_000_000)
                 self.assertEqual(memory["reserve_bytes"], 8_000_000_000)
 
@@ -49,7 +51,7 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
         self.assertEqual(texture_mesh["max_file_bytes"], 240 * 1024 * 1024)
         self.assertIn(
             "accepts-step1x-geometry",
-            recipe_display(texture["identity"]["slug"]).tags,  # pyright: ignore[reportIndexIssue]
+            recipe_display(texture["identity"]["slug"]).tags,
         )
 
         for slug in (
@@ -67,12 +69,12 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
                 )
                 self.assertIn(
                     "next-step-texture",
-                    recipe_display(geometry["identity"]["slug"]).tags,  # pyright: ignore[reportIndexIssue]
+                    recipe_display(geometry["identity"]["slug"]).tags,
                 )
 
     def test_ui_mate_carries_the_proposal_tags(self) -> None:
         recipe = _recipe("ui-mate-27b-vllm-single")
-        tags = set(recipe_display(recipe["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
+        tags = set(recipe_display(recipe["identity"]["slug"]).tags)
         self.assertGreaterEqual(tags, {"action-proposal", "human-approval-required"})
 
 

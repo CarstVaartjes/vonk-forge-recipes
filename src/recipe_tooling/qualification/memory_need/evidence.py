@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from decimal import ROUND_CEILING, Decimal
 from pathlib import Path
 
@@ -14,6 +13,7 @@ from vonk_forge_contracts import (
     document_sha256,
 )
 
+from recipe_tooling.qualification.documents import recipe_document
 from recipe_tooling.qualification.evidence_store import read_evidence
 from recipe_tooling.qualification.memory_need import args as mn_args
 from recipe_tooling.qualification.memory_need import constants as mn_constants
@@ -47,9 +47,7 @@ def unchanged_recipe(
         return False
     # Bind the caller's digest AND parsed recipe to the authored bytes. An old
     # digest cannot waive an edited file or an in-memory launch mutation.
-    document = json.loads(
-        (mn_constants.ROOT / "recipes" / f"{recipe.identity.slug}.json").read_text()
-    )
+    document = recipe_document(recipe.identity.slug, mn_constants.ROOT)
     return (
         document_sha256(document) == document_digest
         and RecipeDefinition.model_validate(document) == recipe

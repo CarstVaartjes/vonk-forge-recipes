@@ -1,3 +1,6 @@
+# pyright: reportArgumentType=false
+# pyright: reportIndexIssue=false
+# The tests index recipe documents loaded as plain JSON.
 from __future__ import annotations
 
 import json
@@ -35,22 +38,22 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
             recipe = read(recipe_path)
             with self.subTest(recipe=recipe_path.name):
                 model = model_for(recipe)
-                self.assertRegex(model["source"]["revision"], r"^[a-f0-9]{40,64}$")  # pyright: ignore[reportIndexIssue]
+                self.assertRegex(model["source"]["revision"], r"^[a-f0-9]{40,64}$")
 
     def test_qwen_flash_snapshot_and_job_contract(self) -> None:
         recipe = read(FLASH_RECIPE)
         model = model_for(recipe)
         self.assertEqual(
-            model["source"]["revision"],  # pyright: ignore[reportIndexIssue]
+            model["source"]["revision"],
             "eafac15f6140e6dd9c6031217d658ac10bfb604b",
         )
-        self.assertEqual(len(model["files"]), 24)  # pyright: ignore[reportArgumentType]
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))  # pyright: ignore[reportIndexIssue]
-        self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")  # pyright: ignore[reportIndexIssue]
+        self.assertEqual(len(model["files"]), 24)
+        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
+        self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
         self.assertEqual(
             {
                 item["name"]: item.get("value")
-                for item in recipe["runtime"]["arguments"]  # pyright: ignore[reportIndexIssue]
+                for item in recipe["runtime"]["arguments"]
             },
             {
                 "output-mime": "image/png",
@@ -68,18 +71,18 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
         target = model_for(recipe)
         drafter = model_for(recipe, 1)
         self.assertEqual(
-            target["source"]["revision"],  # pyright: ignore[reportIndexIssue]
+            target["source"]["revision"],
             "ff433f5493e25d631c9f12b5d55c674229923d02",
         )
         self.assertEqual(
-            drafter["source"]["revision"],  # pyright: ignore[reportIndexIssue]
+            drafter["source"]["revision"],
             "c929f8a55d0527fea9f58b4cedc9e0c855cfc421",
         )
-        self.assertEqual(len(recipe["models"]), 2)  # pyright: ignore[reportArgumentType]
+        self.assertEqual(len(recipe["models"]), 2)
         self.assertEqual(args(recipe)["quantization"], "modelopt_fp4")
         self.assertEqual(args(recipe)["moe-backend"], "marlin")
         self.assertEqual(
-            json.loads(args(recipe)["speculative-config"])["model"],  # pyright: ignore[reportArgumentType]
+            json.loads(args(recipe)["speculative-config"])["model"],
             "/models/drafter",
         )
 

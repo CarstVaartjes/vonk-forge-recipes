@@ -1,3 +1,5 @@
+# pyright: reportIndexIssue=false
+# The tests index recipe documents loaded as plain JSON.
 from __future__ import annotations
 
 import importlib.machinery
@@ -38,9 +40,9 @@ def catalog_index_module():
 class Vllm028MigrationTests(unittest.TestCase):
     def test_official_arm64_runtime_authority_is_immutable(self) -> None:
         recipe = load("recipes/qwen3-6-27b-vllm-single.json")
-        base = recipe["execution"]["build"]["base_image"]  # pyright: ignore[reportIndexIssue]
+        base = recipe["execution"]["build"]["base_image"]
         self.assertEqual(f"{base['repository']}@sha256:{base['digest']}", IMAGE)
-        dockerfile = (ROOT / recipe["execution"]["build"]["dockerfile"]).read_text()  # pyright: ignore[reportIndexIssue]
+        dockerfile = (ROOT / recipe["execution"]["build"]["dockerfile"]).read_text()
         self.assertIn("ced6857afa0ea7b2e3f0846a62e1394e90f15607", dockerfile)
         self.assertIn("vllm-openai", base["repository"])
 
@@ -49,14 +51,14 @@ class Vllm028MigrationTests(unittest.TestCase):
         for slug, (context_path, batched_tokens, graph_size) in MIGRATED.items():
             with self.subTest(recipe=slug):
                 recipe = load(f"recipes/{slug}.json")
-                self.assertEqual(recipe["runtime"]["engine"], "vllm")  # pyright: ignore[reportIndexIssue]
-                context = recipe["execution"]["build"]["context"]  # pyright: ignore[reportIndexIssue]
+                self.assertEqual(recipe["runtime"]["engine"], "vllm")
+                context = recipe["execution"]["build"]["context"]
                 self.assertEqual(context["path"], context_path)
                 _archive, _, digest = module.source_bundle(ROOT / context_path)
                 self.assertRegex(digest, r"^[a-f0-9]{64}$")
                 arguments = {
                     argument["name"]: argument["value"]
-                    for argument in recipe["runtime"]["arguments"]  # pyright: ignore[reportIndexIssue]
+                    for argument in recipe["runtime"]["arguments"]
                 }
                 self.assertEqual(arguments["max-num-batched-tokens"], batched_tokens)
                 self.assertEqual(arguments["max-cudagraph-capture-size"], graph_size)
@@ -68,16 +70,16 @@ class Vllm028MigrationTests(unittest.TestCase):
         recipe = load("recipes/gemma-4-26b-a4b-vllm-single.json")
         dockerfile = (ROOT / "adapters/llm/vllm-openai/Dockerfile").read_text()
         self.assertIn("ced6857afa0ea7b2e3f0846a62e1394e90f15607", dockerfile)
-        self.assertIn("tool-use", recipe_display(recipe["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
+        self.assertIn("tool-use", recipe_display(recipe["identity"]["slug"]).tags)
         arguments = {
             argument["name"]: argument["value"]
-            for argument in recipe["runtime"]["arguments"]  # pyright: ignore[reportIndexIssue]
+            for argument in recipe["runtime"]["arguments"]
         }
         self.assertEqual(arguments["tool-call-parser"], "gemma4")
         self.assertIs(arguments["enable-auto-tool-choice"], True)
         self.assertEqual(arguments["reasoning-parser"], "gemma4")
         self.assertEqual(
-            recipe["runtime"]["engine"],  # pyright: ignore[reportIndexIssue]
+            recipe["runtime"]["engine"],
             "vllm",
         )
 

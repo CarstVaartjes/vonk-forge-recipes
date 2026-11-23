@@ -1,3 +1,8 @@
+# pyright: reportArgumentType=false
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportGeneralTypeIssues=false
+# pyright: reportIndexIssue=false
+# The tests index recipe documents loaded as plain JSON.
 from __future__ import annotations
 
 import json
@@ -46,7 +51,7 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                 recipe = RecipeDefinition.model_validate(read(path))
                 validate_recipe_models(recipe, catalog_models())
                 model = recipe_model(read(path))
-                self.assertEqual(model["source"]["revision"], REVISIONS[name])  # pyright: ignore[reportIndexIssue]
+                self.assertEqual(model["source"]["revision"], REVISIONS[name])
                 self.assertEqual(recipe.runtime.engine, "vllm")
                 self.assertEqual(recipe.topology.node_count, 1)
 
@@ -60,15 +65,13 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                 recipe: dict[str, Any] = read(RECIPES[name])
                 args = arguments(recipe)
                 self.assertEqual(
-                    args["reasoning-parser-plugin"].split("/")[-1],  # pyright: ignore[reportAttributeAccessIssue]
+                    args["reasoning-parser-plugin"].split("/")[-1],
                     filename,
                 )
                 model = recipe_model(recipe)
                 selected = {item["file_id"] for item in recipe["models"][0]["files"]}
                 manifest = next(
-                    item
-                    for item in model["files"]  # pyright: ignore[reportGeneralTypeIssues]
-                    if item["path"] == filename
+                    item for item in model["files"] if item["path"] == filename
                 )
                 self.assertIn(manifest["id"], selected)
                 self.assertIn("runtime", manifest["roles"])
@@ -80,7 +83,7 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
         self.assertEqual(args["moe-backend"], "marlin")
         self.assertEqual(args["mamba-ssm-cache-dtype"], "float16")
         self.assertEqual(
-            json.loads(args["speculative-config"]),  # pyright: ignore[reportArgumentType]
+            json.loads(args["speculative-config"]),
             {
                 "method": "mtp",
                 "num_speculative_tokens": 3,
@@ -88,7 +91,7 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                 "moe_backend": "triton",
             },
         )
-        self.assertEqual(len(recipe["models"]), 2)  # pyright: ignore[reportArgumentType]
+        self.assertEqual(len(recipe["models"]), 2)
         models: Any = recipe["models"]
         drafter = models[1]["files"][0]
         self.assertEqual(drafter["mount"]["target"], "/models/drafter")
@@ -98,9 +101,9 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
         self.assertTrue(arguments(recipe)["language-model-only"])
         self.assertTrue(
             {"text", "text-only"}
-            <= set(recipe_display(recipe["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
+            <= set(recipe_display(recipe["identity"]["slug"]).tags)
         )
-        self.assertEqual(recipe["interfaces"][0]["adapter"], "openai")  # pyright: ignore[reportIndexIssue]
+        self.assertEqual(recipe["interfaces"][0]["adapter"], "openai")
         facts = model_display(cast(Any, recipe)["models"][0]["model"]["slug"])
         self.assertEqual(facts.modalities, ["text"])
         self.assertFalse(
@@ -112,7 +115,7 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
         for path in RECIPES.values():
             recipe = read(path)
-            build = recipe["execution"]["build"]  # pyright: ignore[reportIndexIssue]
+            build = recipe["execution"]["build"]
             context = ROOT / build["context"]["path"]
             _archive, _, digest = tool["source_bundle"](context)
             self.assertEqual(build["network"]["hosts"], [])
