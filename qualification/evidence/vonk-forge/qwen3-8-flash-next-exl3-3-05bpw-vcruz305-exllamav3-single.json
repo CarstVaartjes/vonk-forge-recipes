@@ -31,14 +31,14 @@
     },
     {
       "identity": {
-        "content_sha256": "8dc0c3c631f77bce6ed6f0e76331facac96a80de02d654f499d2b1e87321be23",
+        "content_sha256": "b5d36b3ccb990e04bba0132cc6ae7538f80d0012aeee17df51cbd5a7ed3f8eff",
         "source_bundle_sha256": "d4eae7e8c061cce41174432e8e96803d1810e58067c3ae08d8e75a6b3495763c",
         "runtime_image": {
           "build_key": "0a2b192f20346bdb49838c84a654963530e1059bd062cd017926c0650bb5f723",
           "image_digest": "sha256:03b69ab3010f661f87cb247728626b3aa35f29a03acbbd291b32f37d6a050809"
         },
         "model_digests": [
-          "b2a84adf0fbecda1978e06b84ff4479390752ecd24b340f921de6f729bc9fd53"
+          "6ce39b04e90f2d73139cd99c6df9ea28f1afdf2974ae3d572b76f818ea4221af"
         ],
         "required_sparks": 1,
         "models_resolved": true
@@ -56,10 +56,7 @@
         "spark_count": 1,
         "topology": "single"
       },
-      "quality_notes": [
-        "Carried from the identical execution document before the Model facts split",
-        "Carried from the identical execution document"
-      ]
+      "quality_notes": []
     }
   ]
 }
