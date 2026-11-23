@@ -137,15 +137,45 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: '"$MIRROR_PYTHON" tools/adapter-sources reconcile'
 
+  # Runs are queued in merge order. When main has moved on, the newer run
+  # publishes (it contains this commit), so this one skips instead of
+  # publishing older content over a newer release.
+  head-of-main:
+    name: Check this commit is still the head of main
+    needs: [validate, producer-contracts, images]
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      current: ${{ steps.head.outputs.current }}
+    steps:
+      - name: Compare with the head of main
+        id: head
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+          if [ "$head" = "$GITHUB_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "main moved to $head; the newer run publishes, skipping $GITHUB_SHA"
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
+
   publish:
     name: Create signed library release
-    needs: [validate, producer-contracts, images]
+    needs: [validate, producer-contracts, images, head-of-main]
     # Image promotion or fallback builds must complete before signing.
     if: >-
       ${{ !cancelled() && github.ref == 'refs/heads/main'
       && needs.validate.result != 'failure'
       && needs.producer-contracts.result != 'failure'
-      && needs.images.result == 'success' }}
+      && needs.images.result == 'success'
+      && needs.head-of-main.outputs.current == 'true' }}
     runs-on: ubuntu-24.04
     environment: recipe-release
     outputs:

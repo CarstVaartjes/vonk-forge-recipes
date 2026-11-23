@@ -158,6 +158,9 @@ changed-file arguments.
 
 ## CI and publication
 
+The publish job runs only while its commit is still the head of main (job `head-of-main`);
+when main has moved on, the newer run publishes.
+
 publish.yml's `platform_ref:` is the one owner of the platform revision (a full
 vonk-forge SHA that must be an ancestor of vonk-forge main); the guard in
 `tests/recipes/test_prebuilt_images.py` keeps every other pin equal. GitHub takes no
