@@ -14,6 +14,7 @@ from collections.abc import Iterable
 from typing import Annotated
 
 from pydantic import AfterValidator, Field, StrictStr, TypeAdapter
+
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeJobInterface
 

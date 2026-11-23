@@ -222,9 +222,8 @@ def moved_model(
 
 def moved_model_display(root: Path, old_slug: str, new_slug: str) -> bytes:
     """The display of ``old_slug`` written for the Model that replaces it as ``new_slug``."""
-    from vonk_forge_contracts import published_json
-
     from recipe_tooling.qualification.documents import model_display
+    from vonk_forge_contracts import published_json
 
     display = model_display(old_slug, root)
     moved = display.model_copy(

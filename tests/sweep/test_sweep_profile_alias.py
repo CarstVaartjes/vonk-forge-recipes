@@ -13,11 +13,11 @@ from pathlib import Path
 import pytest
 from pydantic import TypeAdapter
 from sweep_fakes import FakeFleet, FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN, EndpointAlias
 
 from spark_sweep.catalog import Fleet, Presence, serving_run
 from spark_sweep.profile_alias import profile_alias, unique_profile_alias
 from spark_sweep.verdict import refused_field
+from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN, EndpointAlias
 
 _CONTRACT = TypeAdapter(EndpointAlias)
 _CONTRACT_PATTERN = re.compile(ENDPOINT_ALIAS_PATTERN)

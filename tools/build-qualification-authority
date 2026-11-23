@@ -24,6 +24,8 @@ ROOT = Path(__file__).resolve().parents[1]
 QUALIFICATION = ROOT / "qualification"
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from recipe_tooling.qualification.catalog_source import current_catalog_package_tree
+from recipe_tooling.qualification.coverage_identity import execution_stack_identity
 from vonk_forge_contracts import (
     RecipeDefinition,
     read_model_display,
@@ -40,9 +42,6 @@ from vonk_forge_contracts.qualification_authority import (
     RecoveryFailureMode,
     recovery_coverage_id,
 )
-
-from recipe_tooling.qualification.catalog_source import current_catalog_package_tree
-from recipe_tooling.qualification.coverage_identity import execution_stack_identity
 
 AUTHORITY_ID = "nl-family-aware-20260924"
 _RECIPE_ROW = re.compile(r"[a-z0-9][a-z0-9-]{0,62}/[a-z0-9][a-z0-9-]{0,62}\Z")

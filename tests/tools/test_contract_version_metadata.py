@@ -12,6 +12,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 from repo_root import ROOT
+
 from vonk_forge_contracts import CONTRACT_MAJOR, CONTRACT_VERSION, __version__
 
 OWNER = "src/vonk_forge_contracts/_version.py"

@@ -23,14 +23,13 @@ from concurrent.futures import Future
 from pathlib import Path
 from typing import Any
 
+from recipe_tooling.qualification.evidence_store import merge_evidence, read_evidence
 from vonk_forge_contracts import (
     QualificationIdentity,
     QualificationStatusView,
     RecipeDefinition,
     RecipeQualificationEvidence,
 )
-
-from recipe_tooling.qualification.evidence_store import merge_evidence, read_evidence
 
 from . import policy, recovery
 from .catalog import (
@@ -244,7 +243,7 @@ class Sweep(
             return self.qualification_evidence.get(recipe.key) or read_evidence(
                 Path(__file__).resolve().parents[1], recipe.key
             )
-        except (ValueError, TypeError, OSError):
+        except ValueError, TypeError, OSError:
             return None
 
     def qualification_view(
@@ -266,7 +265,7 @@ class Sweep(
                 != SweepSlotPhase.FINISHED,
                 identity,
             )
-        except (ValueError, TypeError, OSError):
+        except ValueError, TypeError, OSError:
             return None  # malformed observed identity cannot certify public proof
 
     # ------------------------------------------------------------------ setup

@@ -6,6 +6,7 @@ from enum import StrEnum
 from typing import Annotated, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
 from vonk_forge_contracts import (
     RecipeDefinition,
 )

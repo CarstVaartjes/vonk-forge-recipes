@@ -11,6 +11,7 @@ from pathlib import Path, PurePosixPath
 
 import pytest
 from repo_root import ROOT
+
 from vonk_forge_contracts import RecipeDefinition
 
 # The only paths a job may write: every job runs with a read-only root, a tmpfs

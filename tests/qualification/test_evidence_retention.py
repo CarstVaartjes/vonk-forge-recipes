@@ -13,6 +13,15 @@ from repo_root import ROOT
 from test_qualification_evidence_publisher import seed_catalog
 from test_qualification_status import KEY, A, evidence, record
 from test_qualification_status import NOW as T0
+
+from recipe_tooling.qualification.evidence_retention import retain_evidence, retained
+from recipe_tooling.qualification.evidence_store import (
+    catalog_recipes,
+    merge_evidence,
+    read_evidence,
+    write_evidence,
+)
+from spark_sweep import evidence_publisher as publisher
 from vonk_forge_contracts import (
     QualificationBlame as Blame,
 )
@@ -24,15 +33,6 @@ from vonk_forge_contracts import (
 )
 from vonk_forge_contracts import derive_status
 from vonk_forge_contracts.qualification_status import published_status
-
-from recipe_tooling.qualification.evidence_retention import retain_evidence, retained
-from recipe_tooling.qualification.evidence_store import (
-    catalog_recipes,
-    merge_evidence,
-    read_evidence,
-    write_evidence,
-)
-from spark_sweep import evidence_publisher as publisher
 
 LOADER = importlib.machinery.SourceFileLoader(
     "check_evidence_retention", str(ROOT / "tools/check-evidence-retention")

@@ -10,6 +10,14 @@ from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field
+
+from recipe_tooling.qualification import documents
+from recipe_tooling.qualification.evidence_store import (
+    catalog_recipe_keys,
+    merge_evidence,
+    read_evidence,
+    write_evidence,
+)
 from vonk_forge_contracts import (
     QualificationBlame,
     QualificationCauseCode,
@@ -33,14 +41,6 @@ from vonk_forge_contracts.qualification_status import (
     QualificationEvidenceStep,
     QualificationSourceFailureClass,
     published_status,
-)
-
-from recipe_tooling.qualification import documents
-from recipe_tooling.qualification.evidence_store import (
-    catalog_recipe_keys,
-    merge_evidence,
-    read_evidence,
-    write_evidence,
 )
 
 from .catalog import Recipe, never_measured
@@ -261,7 +261,7 @@ def adopt_state_evidence(
                         ).isoformat(),
                     }
                 )
-            except (ValueError, TypeError, OverflowError):
+            except ValueError, TypeError, OverflowError:
                 continue  # unusable provenance cannot certify a recipe
             if record is not None:
                 evidence = RecipeQualificationEvidence(
@@ -336,7 +336,7 @@ def read_history(
                 if evidence is None:
                     continue
                 key = evidence.recipe_key
-            except (ValueError, TypeError, AttributeError):
+            except ValueError, TypeError, AttributeError:
                 result.rejected += 1
                 continue
             merged[key] = (
@@ -430,7 +430,7 @@ def unpublishable_pass(
         return False
     try:
         published = published_status(evidence, identity)
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         return False
     return published.status != QualificationStatus.WORKING
 

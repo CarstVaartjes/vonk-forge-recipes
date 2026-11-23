@@ -13,7 +13,6 @@ from typing import Any
 
 import pytest
 from repo_root import ROOT
-from vonk_forge_contracts.qualification_status import QualificationGlbProfile
 
 from spark_sweep import verdict
 from spark_sweep.catalog import Fleet, Presence, parse_recipe, serving_run
@@ -22,6 +21,7 @@ from spark_sweep.job_assertions import EVALUATED, NOT_EVALUATED, Output, evaluat
 from spark_sweep.smoke import AssertionFailed
 from spark_sweep.smoke_job import job_budget_seconds, smoke_job
 from spark_sweep.vonkctl import Vonkctl
+from vonk_forge_contracts.qualification_status import QualificationGlbProfile
 
 # An OCR artifact job with a document-archive output: the definition the withdrawn
 # HunyuanOCR recipe carried, kept as test data so the job smoke stays exercised.

@@ -3,9 +3,6 @@
 import json
 from decimal import Decimal
 
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
-from vonk_forge_contracts.memory_admission import evaluate_memory_admission
-
 from recipe_tooling.paths import REPO_ROOT
 from recipe_tooling.qualification.memory_need.constants import (
     ADMISSION_IDLE_USE_BYTES,
@@ -14,6 +11,8 @@ from recipe_tooling.qualification.memory_need.constants import (
     VLLM_DEFAULT_UTILIZATION,
     budget_margin_bytes,
 )
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 
 # A speculative drafter holds nothing beside `gpu-memory-utilization`, whatever
 # mechanism loads it (vLLM v0.30.0 lines; the same accounting at af5b4857e,

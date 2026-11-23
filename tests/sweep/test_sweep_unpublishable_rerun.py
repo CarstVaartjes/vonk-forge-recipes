@@ -5,11 +5,11 @@ from __future__ import annotations
 import pytest
 import test_qualification_status as q
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts import QualificationStatus as Status
-from vonk_forge_contracts.qualification_status import published_status
 
 from spark_sweep.lifecycle import RecipeStatus, RetestReason
 from spark_sweep.qualification import current_identity
+from vonk_forge_contracts import QualificationStatus as Status
+from vonk_forge_contracts.qualification_status import published_status
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")

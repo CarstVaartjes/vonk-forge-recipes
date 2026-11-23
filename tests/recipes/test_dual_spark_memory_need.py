@@ -3,8 +3,6 @@
 import pytest
 from catalog_documents import catalog_models
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition
-from vonk_forge_contracts.recipe import RecipeRuntimeEnvironment
 from warning_asserts import assert_warns, declare_peak
 
 from recipe_tooling.qualification.memory_need.args import (
@@ -22,6 +20,8 @@ from recipe_tooling.qualification.memory_need.need import (
     per_rank_need,
 )
 from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
+from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts.recipe import RecipeRuntimeEnvironment
 
 RECIPES = ("glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",)
 POOLED = RECIPES

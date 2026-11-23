@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from repo_root import ROOT
+
 from vonk_forge_contracts import RecipeDefinition
 
 MODEL_PATH = re.compile(r"(?<![\w/}~])(/models/[A-Za-z0-9][A-Za-z0-9_./-]*)")

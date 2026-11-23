@@ -1,6 +1,7 @@
 """HunyuanOCR's GB10 recipe must not enter the failing graph-capture path."""
 
 from repo_root import ROOT
+
 from vonk_forge_contracts import RecipeDefinition
 
 

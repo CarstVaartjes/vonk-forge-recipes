@@ -8,7 +8,6 @@ import re
 
 import pytest
 from repo_root import FIXTURES
-from vonk_forge_contracts import QualificationCauseCode
 
 from spark_sweep import policy
 from spark_sweep.sweep_contract import (
@@ -16,6 +15,7 @@ from spark_sweep.sweep_contract import (
     WorkloadExitFacts,
     WorkloadMemoryTrigger,
 )
+from vonk_forge_contracts import QualificationCauseCode
 
 # Vendored verbatim from vonk-forge (the one owner of the trigger words: the
 # helper's Trigger::ALL, asserted against this vector by the helper's own tests).

@@ -26,13 +26,13 @@ from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
 from repo_root import FIXTURES, ROOT
-from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from spark_sweep.definitions import Definitions
 from spark_sweep.fanout import DaemonExecutor
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.smoke import speech_voice
+from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
 _ALIAS = re.compile(ENDPOINT_ALIAS_PATTERN)
 SPARK_MEMORY = SPARK_MEMORY_BYTES

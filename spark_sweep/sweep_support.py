@@ -13,13 +13,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
+from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from vonk_forge_contracts import (
     QualificationIdentity,
     QualificationStatus,
     QualificationStatusView,
 )
-
-from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 
 from . import policy
 from .catalog import (

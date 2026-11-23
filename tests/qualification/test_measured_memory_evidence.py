@@ -3,12 +3,12 @@
 import pytest
 from pydantic import ValidationError
 from repo_root import ROOT
+
+from recipe_tooling.qualification import documents
 from vonk_forge_contracts import (
     QualificationMeasuredRoleMemory,
     RecipeQualificationEvidence,
 )
-
-from recipe_tooling.qualification import documents
 
 
 def row(

@@ -6,6 +6,7 @@ import json
 from functools import cache
 
 from repo_root import ROOT
+
 from vonk_forge_contracts import ModelDefinition, ModelDisplay, document_sha256
 
 

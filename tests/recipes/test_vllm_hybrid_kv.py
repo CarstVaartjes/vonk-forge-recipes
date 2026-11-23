@@ -6,8 +6,6 @@ import pytest
 from catalog_documents import catalog_models
 from pydantic import ValidationError
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition, document_sha256
-from vonk_forge_contracts.recipe import RecipeRuntimeArgument, RuntimeArgumentValue
 
 from recipe_tooling.qualification.memory_need.args import (
     argument_value,
@@ -28,6 +26,8 @@ from recipe_tooling.qualification.memory_need.vllm import (
     cache_need_for_context,
     recurrent_layer_bytes,
 )
+from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts.recipe import RecipeRuntimeArgument, RuntimeArgumentValue
 
 INPUTS = load_inputs()
 DTYPE_BYTES = {"float32": 4, "float16": 2, "bfloat16": 2}

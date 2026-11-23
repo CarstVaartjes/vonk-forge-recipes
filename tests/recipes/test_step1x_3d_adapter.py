@@ -16,6 +16,7 @@ from unittest import mock
 from catalog_documents import catalog_models, model_digest
 from documents import model_display
 from repo_root import ROOT
+
 from vonk_forge_contracts.model import ModelDefinition
 from vonk_forge_contracts.recipe import RecipeDefinition
 from vonk_forge_contracts.resolver import (

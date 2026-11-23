@@ -16,13 +16,6 @@ from typing import Any
 
 import pytest
 from documents import model_display, recipe_display
-from vonk_forge_contracts import (
-    RecipeDefinition,
-    RecipeDisplay,
-    read_model,
-    read_recipe,
-)
-from vonk_forge_contracts.recipe import RecipeIdentity
 
 from recipe_tooling.qualification.capabilities import (
     ROOT,
@@ -33,6 +26,13 @@ from recipe_tooling.qualification.capabilities import (
 )
 from recipe_tooling.qualification.case_assertions import invalid_case_assertions
 from recipe_tooling.qualification.definitions_loader import load_definitions
+from vonk_forge_contracts import (
+    RecipeDefinition,
+    RecipeDisplay,
+    read_model,
+    read_recipe,
+)
+from vonk_forge_contracts.recipe import RecipeIdentity
 
 DEFINITIONS = load_definitions()
 MODELS = {

@@ -4,14 +4,13 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from recipe_tooling.paths import REPO_ROOT
 from vonk_forge_contracts import (
     RecipeDefinition,
 )
 from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
 )
-
-from recipe_tooling.paths import REPO_ROOT
 
 # The platform floor is owned by vonk_forge_contracts.memory_admission (contracts 2.8.1).
 # GUARD_BYTES below is this estimator's own headroom; the live host memory guard

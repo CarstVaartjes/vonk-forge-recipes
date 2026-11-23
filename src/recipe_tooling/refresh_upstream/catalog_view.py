@@ -148,7 +148,7 @@ def adapter_pin(root: Path, recipe: dict[str, Any]) -> AdapterPin | None:
     manifest = adapter_manifest(directory)
     try:
         found = vendored._source(directory, manifest)
-    except (KeyError, OSError):
+    except KeyError, OSError:
         return None
     if found is None:
         return None

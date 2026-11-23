@@ -11,8 +11,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-from vonk_forge_contracts import RecipeDefinition, document_sha256
-
 from recipe_tooling import base_image_holds as base_holds
 from recipe_tooling import catalog_hf_model as catalog
 from recipe_tooling import model_revision_holds as model_holds
@@ -28,6 +26,7 @@ from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.refresh_upstream import pinning as refresh_pinning
 from recipe_tooling.upstream_http import UpstreamBusy
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 # ---------------------------------------------------------------------------
 # Assessment: decide, and prepare the edits for a mechanical refresh
@@ -810,7 +809,7 @@ class Assessor:
             before = {f["path"] for f in self._inventory(item.repo, item.current)}
         except UpstreamBusy:
             raise  # not read this run: every file would look new
-        except (RuntimeError, SystemExit, KeyError, ValueError, OSError):
+        except RuntimeError, SystemExit, KeyError, ValueError, OSError:
             return new_files  # unknown history: judge every file
         return refresh_classification.curate(old, before, new_files)
 

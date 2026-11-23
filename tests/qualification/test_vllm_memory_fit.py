@@ -5,7 +5,6 @@ import math
 import pytest
 from catalog_documents import catalog_models
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition
 from warning_asserts import assert_not_warns, declare_peak
 
 from recipe_tooling.qualification.memory_need.args import (
@@ -24,6 +23,7 @@ from recipe_tooling.qualification.memory_need.need import calculate_need
 from recipe_tooling.qualification.memory_need.vllm import absolute_kv_need
 from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
 from recipe_tooling.qualification.vllm_memory_fit import assert_memory_fit
+from vonk_forge_contracts import RecipeDefinition
 
 
 def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:

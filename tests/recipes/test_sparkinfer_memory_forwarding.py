@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytest
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition
 
 from recipe_tooling.qualification.memory_need.args import loads_draft_model
+from vonk_forge_contracts import RecipeDefinition
 
 
 @pytest.mark.parametrize(

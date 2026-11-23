@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts.qualification_status import QualificationQualityNote
 
 from spark_sweep import policy
 from spark_sweep.issues import file_issues
@@ -17,6 +16,7 @@ from spark_sweep.report import (
     build_report,
     quality_notes,
 )
+from vonk_forge_contracts.qualification_status import QualificationQualityNote
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")

@@ -261,7 +261,7 @@ def follow_github_branch(
             committed_at=commit["commit"]["committer"]["date"],
         )
         return _prefer_branch_release(http, repo, target)
-    except (refresh_http.NotFound, RuntimeError, KeyError, TypeError, AttributeError):
+    except refresh_http.NotFound, RuntimeError, KeyError, TypeError, AttributeError:
         return None
 
 
@@ -290,7 +290,7 @@ def _prefer_branch_release(
             branch=target.branch,
             committed_at=commit["commit"]["committer"]["date"],
         )
-    except (refresh_http.NotFound, RuntimeError, KeyError, TypeError):
+    except refresh_http.NotFound, RuntimeError, KeyError, TypeError:
         return target
 
 
@@ -355,7 +355,7 @@ def follow_huggingface_branch(
             access_status=default.access_status,
             branch=name,
         )
-    except (refresh_http.NotFound, RuntimeError, KeyError, TypeError, AttributeError):
+    except refresh_http.NotFound, RuntimeError, KeyError, TypeError, AttributeError:
         return None
 
 

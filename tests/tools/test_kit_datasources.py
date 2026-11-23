@@ -29,7 +29,6 @@ from test_kit_pins import (
     assessor_for,
     upstream,
 )
-from vonk_forge_contracts import read_model
 
 from recipe_tooling import catalog_hf_model, vendored_upstream
 from recipe_tooling.catalog_model import file_id
@@ -48,6 +47,7 @@ from recipe_tooling.refresh_upstream import classification as refresh_classifica
 from recipe_tooling.refresh_upstream import http as refresh_http
 from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
+from vonk_forge_contracts import read_model
 
 EXAMPLE = json.loads(
     (

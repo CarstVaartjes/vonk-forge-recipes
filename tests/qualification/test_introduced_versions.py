@@ -11,14 +11,6 @@ from typing import get_args
 import pytest
 from documents import model_display
 from repo_root import ROOT
-from vonk_forge_contracts import (
-    CapabilityName,
-    RecipeApi,
-    RecipeDefinition,
-    read_recipe,
-)
-from vonk_forge_contracts.api import ApiReasoningEffort
-from vonk_forge_contracts.recipe import ServingKind
 
 from recipe_tooling.qualification import introduced
 from recipe_tooling.qualification.introduced import (
@@ -28,6 +20,14 @@ from recipe_tooling.qualification.introduced import (
     parse_version,
     unreadable_features,
 )
+from vonk_forge_contracts import (
+    CapabilityName,
+    RecipeApi,
+    RecipeDefinition,
+    read_recipe,
+)
+from vonk_forge_contracts.api import ApiReasoningEffort
+from vonk_forge_contracts.recipe import ServingKind
 
 EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
 GUARD = runpy.run_path(str(ROOT / "tools/check-platform-contracts"))

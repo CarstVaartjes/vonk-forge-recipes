@@ -7,10 +7,10 @@ from typing import Any
 
 import pytest
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 from recipe_tooling.qualification.memory_need.args import argument_value
 from recipe_tooling.qualification.memory_need.evidence import hardware_proven
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 SLUG = "qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single"
 BACKEND = (

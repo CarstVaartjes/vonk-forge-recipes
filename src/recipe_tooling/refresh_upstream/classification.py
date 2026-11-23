@@ -11,8 +11,6 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import quote
 
-from vonk_forge_contracts.recipe import RecipeRelease
-
 from recipe_tooling import vendored_upstream as vendored
 from recipe_tooling.catalog_model import roles_for
 from recipe_tooling.kit_pins import write as kit_write
@@ -21,6 +19,7 @@ from recipe_tooling.refresh_upstream import evidence as refresh_evidence
 from recipe_tooling.refresh_upstream import http as refresh_http
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.upstream_http import fetch
+from vonk_forge_contracts.recipe import RecipeRelease
 
 ARCHIVE_LABEL = re.compile(r'([\w.-]*archive-sha256="?)([0-9a-f]{64})("?)')
 MAX_ARCHIVE_BYTES = 400_000_000

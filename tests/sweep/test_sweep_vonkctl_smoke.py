@@ -12,16 +12,6 @@ from pathlib import Path
 import pytest
 from repo_root import ROOT
 from sweep_fakes import Gateway, production_service_cases
-from vonk_forge_contracts.api import (
-    ApiReasoningAlwaysOn,
-    ApiReasoningNone,
-    ApiReasoningSwitch,
-    ApiRemainingContext,
-    ApiTokenArgument,
-    ApiTokenSetting,
-    ApiTokenValue,
-    ChatApi,
-)
 
 from recipe_tooling.qualification.documents import recipe, recipe_api
 from spark_sweep.catalog import Recipe
@@ -43,6 +33,16 @@ from spark_sweep.vonkctl import (
     Vonkctl,
     VonkctlError,
     request_key,
+)
+from vonk_forge_contracts.api import (
+    ApiReasoningAlwaysOn,
+    ApiReasoningNone,
+    ApiReasoningSwitch,
+    ApiRemainingContext,
+    ApiTokenArgument,
+    ApiTokenSetting,
+    ApiTokenValue,
+    ChatApi,
 )
 
 

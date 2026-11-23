@@ -7,6 +7,7 @@ from typing import Any
 
 from generated_catalog import GENERATED
 from repo_root import ROOT
+
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,

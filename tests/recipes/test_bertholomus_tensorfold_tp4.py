@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytest
 from repo_root import ROOT
-from vonk_forge_contracts.recipe import RecipeGenerationSettings
 
 from recipe_tooling.qualification import documents
+from vonk_forge_contracts.recipe import RecipeGenerationSettings
 
 ADAPTER = ROOT / "adapters/deepseek/bertholomus-1017-tensorfold-tp4"
 RECIPE = "deepseek-v4-1-flash-1017-exl3-4bpw-bertholomus-tensorfold-four"

@@ -7,23 +7,6 @@ from pathlib import Path
 import pytest
 from catalog_documents import catalog_models
 from repo_root import ROOT
-from vonk_forge_contracts import (
-    QualificationBlame,
-    QualificationCauseCode,
-    QualificationEvidenceRecord,
-    QualificationIdentity,
-    QualificationMeasuredRoleMemory,
-    QualificationOutcome,
-    QualificationPlatform,
-    QualificationSummary,
-    QualificationTopology,
-    RecipeDefinition,
-    RecipeQualificationEvidence,
-)
-from vonk_forge_contracts.memory_admission import (
-    PLATFORM_MEMORY_FLOOR_BYTES,
-    evaluate_memory_admission,
-)
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from recipe_tooling.qualification import documents
@@ -44,6 +27,23 @@ from recipe_tooling.qualification.memory_need.evidence import (
     vllm_utilization_envelope,
 )
 from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
+from vonk_forge_contracts import (
+    QualificationBlame,
+    QualificationCauseCode,
+    QualificationEvidenceRecord,
+    QualificationIdentity,
+    QualificationMeasuredRoleMemory,
+    QualificationOutcome,
+    QualificationPlatform,
+    QualificationSummary,
+    QualificationTopology,
+    RecipeDefinition,
+    RecipeQualificationEvidence,
+)
+from vonk_forge_contracts.memory_admission import (
+    PLATFORM_MEMORY_FLOOR_BYTES,
+    evaluate_memory_admission,
+)
 
 INPUTS = load_inputs()
 GLM = "glm-5-3-flash-exl3-k2-0xsero-vllm-single"

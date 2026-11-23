@@ -26,8 +26,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from vonk_forge_contracts import CONTRACT_MAJOR
-
 from recipe_tooling.qualification.documents import (
     has_recipe_api,
     model_display,
@@ -39,6 +37,7 @@ from recipe_tooling.qualification.introduced import (
     unreadable_capabilities,
     unreadable_features,
 )
+from vonk_forge_contracts import CONTRACT_MAJOR
 
 LOCK_PACKAGE = re.compile(
     r'^package\s*=\s*"vonk-forge-public-contracts==([0-9]+\.[0-9]+\.[0-9]+)"\s*$',

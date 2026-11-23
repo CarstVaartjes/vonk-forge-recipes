@@ -10,10 +10,6 @@ from typing import Any
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts import (
-    QualificationMeasuredRoleMemory,
-    RecipeQualificationEvidence,
-)
 
 from recipe_tooling.qualification import documents
 from recipe_tooling.qualification.documents import ROOT
@@ -22,6 +18,10 @@ from recipe_tooling.qualification.memory_need.constants import TOTAL_BYTES
 from recipe_tooling.qualification.memory_need.evidence import vllm_budget_bytes
 from spark_sweep import memory
 from spark_sweep.qualification import history_evidence
+from vonk_forge_contracts import (
+    QualificationMeasuredRoleMemory,
+    RecipeQualificationEvidence,
+)
 
 pytest_plugins = ["sweep_bounds"]
 

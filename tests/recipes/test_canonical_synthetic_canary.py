@@ -19,6 +19,7 @@ import pytest
 from generated_catalog import GENERATED
 from pydantic import ValidationError
 from repo_root import ROOT
+
 from vonk_forge_contracts import (
     ModelDefinition,
     RecipeDefinition,
@@ -201,7 +202,7 @@ def test_canonical_canary_server_behaves_without_gpu() -> None:
                         == json.loads((FIXTURE / "expected.json").read_text())["health"]
                     )
                 break
-            except (OSError, urllib.error.URLError):
+            except OSError, urllib.error.URLError:
                 if time.monotonic() >= deadline:
                     raise
                 time.sleep(0.02)

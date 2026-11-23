@@ -11,6 +11,7 @@ RECIPES = ROOT / "recipes"
 
 from catalog_documents import catalog_models
 from documents import recipe_display
+
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeBuildDefinition
 from vonk_forge_contracts.resolver import (

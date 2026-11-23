@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from vonk_forge_contracts import (
     CapabilityName,
     catalog_vocabulary,

@@ -10,14 +10,6 @@ from generated_catalog import GENERATED
 from pydantic import ValidationError
 from repo_root import ROOT
 from test_admission_maximum_cap import record
-from vonk_forge_contracts import (
-    PublishedMeasuredMemory,
-    PublishedQualificationStatusView,
-    PublishedRoleMemory,
-    QualificationMeasuredRoleMemory,
-    RecipeDefinition,
-    RecipeQualificationEvidence,
-)
 
 from recipe_tooling.qualification import documents
 from recipe_tooling.qualification.memory_need.args import memory_variants
@@ -30,6 +22,14 @@ from recipe_tooling.qualification.memory_need.evidence import (
     measured_peak_bytes,
     published_measured_peaks,
     vllm_budget_bytes,
+)
+from vonk_forge_contracts import (
+    PublishedMeasuredMemory,
+    PublishedQualificationStatusView,
+    PublishedRoleMemory,
+    QualificationMeasuredRoleMemory,
+    RecipeDefinition,
+    RecipeQualificationEvidence,
 )
 
 VECTOR = json.loads(

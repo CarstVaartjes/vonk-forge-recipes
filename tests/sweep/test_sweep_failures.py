@@ -360,9 +360,8 @@ def test_generic_platform_fault_never_blames_recipe_or_siblings(
 
 
 def test_smoke_transport_failure_with_exited_workload_is_runtime_exit() -> None:
-    from vonk_forge_contracts import QualificationCauseCode
-
     from spark_sweep import policy, verdict
+    from vonk_forge_contracts import QualificationCauseCode
 
     request = policy.classify(
         "smoke", "", "HTTP 500", "smoke-request", {"case": "stream", "http_status": 500}

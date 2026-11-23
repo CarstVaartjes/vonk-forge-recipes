@@ -96,7 +96,7 @@ class LoadedRunObservation(BaseModel):
 
 class FleetNodeObservation(BaseModel):
     id: str
-    connection: "FleetConnectionObservation"
+    connection: FleetConnectionObservation
     loaded: list[LoadedRunObservation]
 
 

@@ -9,6 +9,20 @@ import pytest
 from pydantic import ValidationError
 from repo_root import ROOT
 from sweep_sources import run_source
+
+from recipe_tooling.qualification.evidence_store import read_evidence
+from spark_sweep.evidence_publisher import (
+    rotated_history,
+)
+from spark_sweep.lifecycle import RecipeStatus, RetestReason
+from spark_sweep.qualification import (
+    BackfillResult,
+    backfill,
+    current_identity,
+    from_history,
+    read_history,
+    scheduling_priority,
+)
 from vonk_forge_contracts import (
     PublishedQualificationStatusView,
     derive_status,
@@ -53,20 +67,6 @@ from vonk_forge_contracts import (
 )
 from vonk_forge_contracts import (
     RecipeQualificationEvidence as Evidence,
-)
-
-from recipe_tooling.qualification.evidence_store import read_evidence
-from spark_sweep.evidence_publisher import (
-    rotated_history,
-)
-from spark_sweep.lifecycle import RecipeStatus, RetestReason
-from spark_sweep.qualification import (
-    BackfillResult,
-    backfill,
-    current_identity,
-    from_history,
-    read_history,
-    scheduling_priority,
 )
 
 NOW = datetime(2026, 10, 21, tzinfo=UTC)
@@ -435,9 +435,8 @@ def test_catalog_derives_after_resolving_release_image(
 ):
     import runpy
 
-    from vonk_forge_contracts import document_sha256
-
     from recipe_tooling.qualification.evidence_store import write_evidence
+    from vonk_forge_contracts import document_sha256
 
     tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
     build = tool["build"]
@@ -506,9 +505,8 @@ def test_catalog_derives_after_resolving_release_image(
 
 
 def test_saved_report_recomputes_from_inputs_and_keeps_prior_proof():
-    from vonk_forge_contracts import QualificationDerivationInput
-
     from spark_sweep.report import _qualification_text, saved_qualification
+    from vonk_forge_contracts import QualificationDerivationInput
 
     snapshot = QualificationDerivationInput(
         evidence=evidence(record()), current_identity=B, fleet_size=2, testing_now=True

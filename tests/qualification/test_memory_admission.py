@@ -6,12 +6,6 @@ import documents
 import pytest
 from catalog_documents import catalog_models
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition
-from vonk_forge_contracts.memory_admission import (
-    PLATFORM_MEMORY_FLOOR_BYTES,
-    evaluate_memory_admission,
-)
-from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns
 
 from recipe_tooling.qualification.memory_need import constants as mn_constants
@@ -20,6 +14,12 @@ from recipe_tooling.qualification.memory_need import need as mn_need
 from recipe_tooling.qualification.memory_need import swap as mn_swap
 from recipe_tooling.qualification.memory_need import warnings as mn_warnings
 from recipe_tooling.qualification.memory_need.evidence import vllm_utilization_envelope
+from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts.memory_admission import (
+    PLATFORM_MEMORY_FLOOR_BYTES,
+    evaluate_memory_admission,
+)
+from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 
 def test_declaration_boundary_and_observed_host_are_distinct() -> None:

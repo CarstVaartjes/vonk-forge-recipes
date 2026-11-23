@@ -10,6 +10,7 @@ import pytest
 from documents import model_display, recipe_display
 from pydantic import ValidationError
 from repo_root import ROOT
+
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,

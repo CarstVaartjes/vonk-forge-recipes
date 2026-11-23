@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 
 from repo_root import ROOT
+
 from vonk_forge_contracts import document_sha256
 
 MODEL = ROOT / "models/ui-mate-27b-3ade2378.json"

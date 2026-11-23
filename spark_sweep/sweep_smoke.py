@@ -272,7 +272,7 @@ class SweepSmoke:
         try:
             choices = memory.intended_assignment(application, alias).option_choices
             return chat_facts(definition, api, choices)
-        except (StopIteration, ValueError, TypeError):
+        except StopIteration, ValueError, TypeError:
             return None
 
     def _advance_smoking(self: Sweep, key: str, slot: dict[str, Any]) -> None:  # pyright: ignore[reportGeneralTypeIssues]

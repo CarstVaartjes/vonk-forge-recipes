@@ -11,10 +11,10 @@ from unittest.mock import Mock
 
 import pytest
 from repo_root import ROOT
-from vonk_forge_contracts.recipe import RecipeDefinition
 
 from recipe_tooling.qualification.definitions_loader import load_definitions
 from spark_sweep.job_assertions import Output, evaluate
+from vonk_forge_contracts.recipe import RecipeDefinition
 
 Image: Any = importlib.import_module("PIL.Image")
 

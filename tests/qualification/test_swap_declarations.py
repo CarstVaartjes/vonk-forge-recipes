@@ -7,8 +7,6 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition
-from vonk_forge_contracts.recipe import RecipeMemoryResources
 from warning_asserts import assert_not_warns, assert_warns
 
 from recipe_tooling.qualification.memory_need.constants import (
@@ -22,6 +20,8 @@ from recipe_tooling.qualification.memory_need.swap import (
     usable_swap_bytes,
 )
 from recipe_tooling.qualification.memory_need.warnings import memory_warnings
+from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts.recipe import RecipeMemoryResources
 
 SLUG = "agents-a1-nvfp4-r0b0tlab-vllm-single"
 GIB = 1024**3

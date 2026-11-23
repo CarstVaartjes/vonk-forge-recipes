@@ -5,14 +5,6 @@ from __future__ import annotations
 from decimal import ROUND_CEILING, Decimal
 from pathlib import Path
 
-from vonk_forge_contracts import (
-    PublishedRoleMemory,
-    QualificationMeasuredRoleMemory,
-    RecipeDefinition,
-    RecipeQualificationEvidence,
-    document_sha256,
-)
-
 from recipe_tooling.qualification.documents import recipe_document
 from recipe_tooling.qualification.evidence_store import read_evidence
 from recipe_tooling.qualification.memory_need import args as mn_args
@@ -25,6 +17,13 @@ from recipe_tooling.qualification.memory_need.constants import (
     budget_margin_bytes,
 )
 from recipe_tooling.qualification.memory_need.geometry import MemoryInputs
+from vonk_forge_contracts import (
+    PublishedRoleMemory,
+    QualificationMeasuredRoleMemory,
+    RecipeDefinition,
+    RecipeQualificationEvidence,
+    document_sha256,
+)
 
 
 def _evidence(key: str):

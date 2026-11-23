@@ -11,7 +11,6 @@ from typing import Any, ClassVar
 from unittest.mock import patch
 
 from refresh_helpers import NEW, OLD, classify, comparison, files, model_with
-from vonk_forge_contracts import ModelDisplay
 
 from recipe_tooling import catalog_hf_model, vendored_upstream
 from recipe_tooling.catalog_model import file_id
@@ -24,6 +23,7 @@ from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.refresh_upstream import pinning as refresh_pinning
 from recipe_tooling.upstream_http import UpstreamBusy
+from vonk_forge_contracts import ModelDisplay
 
 
 class ModelTests(unittest.TestCase):

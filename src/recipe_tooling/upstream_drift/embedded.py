@@ -10,10 +10,9 @@ from collections import Counter
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition
-
 from recipe_tooling.upstream_drift.inventory import _identity
 from recipe_tooling.upstream_drift.model import SHA, DriftInputError, Watch
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
 
 def _logical_dockerfile_lines(text: str) -> list[tuple[int, str]]:

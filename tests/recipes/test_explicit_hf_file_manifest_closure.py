@@ -5,6 +5,7 @@ import unittest
 from catalog_documents import model_digest
 from documents import model_display
 from repo_root import ROOT
+
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
 MODEL_RECIPE_PAIRS = {

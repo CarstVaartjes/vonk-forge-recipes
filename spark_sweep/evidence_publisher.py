@@ -20,10 +20,6 @@ from pathlib import Path
 from typing import TextIO
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
-from vonk_forge_contracts import (
-    QualificationEvidenceRecord,
-    RecipeQualificationEvidence,
-)
 
 from recipe_tooling.qualification.evidence_retention import retain_evidence
 from recipe_tooling.qualification.evidence_store import (
@@ -35,6 +31,10 @@ from recipe_tooling.qualification.evidence_store import (
     write_evidence,
 )
 from recipe_tooling.qualification.own_pulls import OWN_FIELDS, REPOSITORY, own_pulls
+from vonk_forge_contracts import (
+    QualificationEvidenceRecord,
+    RecipeQualificationEvidence,
+)
 
 from .qualification import (
     BackfillResult,
@@ -71,7 +71,7 @@ def kill_group(process: subprocess.Popen) -> None:
     """End the child and its git/gh children: it runs in a session of its own."""
     try:
         os.killpg(process.pid, signal.SIGKILL)
-    except (ProcessLookupError, PermissionError):
+    except ProcessLookupError, PermissionError:
         process.kill()
 
 
@@ -201,7 +201,7 @@ def load_state(directory: Path) -> PublisherRecord:
     """Missing, unreadable or unknown state is IDLE: the next batch re-observes."""
     try:
         return PublisherRecord.model_validate_json((directory / STATE_FILE).read_text())
-    except (OSError, ValidationError):
+    except OSError, ValidationError:
         return PublisherRecord()
 
 
@@ -232,7 +232,7 @@ def rotated_history(
         known = RotatedHistory.model_validate_json(
             (directory / ROTATED_FILE).read_text()
         )
-    except (OSError, ValidationError):
+    except OSError, ValidationError:
         known = RotatedHistory()
     names = [path.name for path in rotated]
     if known.run != run or not set(known.files) <= set(names):

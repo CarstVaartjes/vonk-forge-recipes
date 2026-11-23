@@ -7,6 +7,7 @@ from pathlib import Path
 from catalog_documents import model_digest
 from documents import model_display
 from repo_root import ROOT
+
 from vonk_forge_contracts.model import ModelDefinition, ModelSource
 from vonk_forge_contracts.recipe import RecipeDefinition
 

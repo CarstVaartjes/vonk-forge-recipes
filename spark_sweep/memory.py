@@ -9,13 +9,13 @@ from collections.abc import Iterable, Mapping
 from typing import Any
 
 from pydantic import BaseModel, ValidationError
-from vonk_forge_contracts import QualificationMeasuredRoleMemory, RecipeDefinition
 
 from recipe_tooling.qualification.memory_need.constants import OS_FLOOR_BYTES
 from recipe_tooling.qualification.memory_need.evidence import (
     holds_within,
     vllm_budget_bytes,
 )
+from vonk_forge_contracts import QualificationMeasuredRoleMemory, RecipeDefinition
 
 from .catalog import never_measured
 
@@ -214,7 +214,7 @@ def measurement(
         assignment = intended_assignment(application, alias)
         launch = recipe.with_option_choices(assignment.option_choices)
         budget = vllm_budget_bytes(launch)
-    except (StopIteration, ValueError, TypeError, ArithmeticError):
+    except StopIteration, ValueError, TypeError, ArithmeticError:
         return ()
     declared = {role.name for role in launch.topology.roles}
     role_of = {item.node_id: item.role for item in assignment.nodes}

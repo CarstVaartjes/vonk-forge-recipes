@@ -13,6 +13,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 from repo_root import ROOT
+
 from vonk_forge_contracts import RecipeDefinition
 
 RECIPE_SLUGS = (

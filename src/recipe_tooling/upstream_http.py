@@ -47,7 +47,7 @@ def _advised(error: HTTPError, now: float) -> float | None:
         pass
     try:
         return max(0.0, parsedate_to_datetime(value).timestamp() - now)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 

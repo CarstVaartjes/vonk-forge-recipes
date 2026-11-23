@@ -462,7 +462,7 @@ def _digest_check(section: CatalogSection, raw: object) -> DigestCheck:
         return DigestCheck.UNREADABLE
     try:
         actual = document_sha256(document)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return DigestCheck.UNREADABLE
     if actual != claimed:
         return DigestCheck.MISMATCH

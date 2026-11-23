@@ -7,6 +7,7 @@ from typing import Any
 
 from documents import recipe_display
 from repo_root import ROOT
+
 from vonk_forge_contracts import RecipeDefinition, RecipeOptionError, document_sha256
 
 HY3 = ROOT / "recipes/hy3-295b-nvfp4-mtp-tonyd2wild-vllm-dual.json"

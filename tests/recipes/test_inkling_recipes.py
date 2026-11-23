@@ -247,9 +247,8 @@ def test_pinned_sglang_sizing_rejects_failed_fraction_and_holds_the_caps() -> No
 
 def _static_demand(document: dict) -> Decimal | None:
     """The fraction demand, owned by memory_need.sglang_demand (margin included)."""
-    from vonk_forge_contracts import RecipeDefinition
-
     from recipe_tooling.qualification.memory_need.sglang import sglang_demand
+    from vonk_forge_contracts import RecipeDefinition
 
     return sglang_demand(RecipeDefinition.model_validate(document), None)
 
@@ -257,12 +256,12 @@ def _static_demand(document: dict) -> Decimal | None:
 def _rank_budget_error(path: str = DUAL, **changes: object) -> str | None:
     """The changed-document estimate warnings; the empty digest skips the waiver."""
     from catalog_documents import catalog_models
-    from vonk_forge_contracts import RecipeDefinition
 
     from recipe_tooling.qualification.memory_need.evidence import load_inputs
     from recipe_tooling.qualification.memory_need.warnings import (
         memory_estimate_warnings,
     )
+    from vonk_forge_contracts import RecipeDefinition
 
     document = load(path)
     arguments = document["runtime"]["arguments"]
@@ -412,12 +411,11 @@ def test_dspark_sizing_replay_matches_the_10_28_failure_and_the_fix() -> None:
 def test_uncapped_startup_room_refuses_the_10_28_fraction_and_accepts_the_fix() -> None:
     from decimal import Decimal
 
-    from vonk_forge_contracts import RecipeDefinition
-
     from recipe_tooling.qualification.memory_need.constants import (
         TOTAL_BYTES,
         budget_margin_bytes,
     )
+    from vonk_forge_contracts import RecipeDefinition
 
     margin = budget_margin_bytes(RecipeDefinition.model_validate(load(KV_1M)))
 
@@ -442,10 +440,10 @@ def test_uncapped_startup_room_refuses_the_10_28_fraction_and_accepts_the_fix() 
 
 def test_fp4_mx_block16_costs_what_nvfp4_costs() -> None:
     from catalog_documents import catalog_models  # noqa: F401
-    from vonk_forge_contracts import RecipeDefinition
 
     from recipe_tooling.qualification.memory_need.evidence import load_inputs
     from recipe_tooling.qualification.memory_need.vllm import attention_token_bytes
+    from vonk_forge_contracts import RecipeDefinition
 
     inputs = load_inputs()
     geometry = next(
@@ -472,10 +470,10 @@ def test_fp4_mx_block16_costs_what_nvfp4_costs() -> None:
 
 def test_unproven_unchanged_document_reports_its_startup_room() -> None:
     from catalog_documents import catalog_models
-    from vonk_forge_contracts import RecipeDefinition, document_sha256
 
     from recipe_tooling.qualification.memory_need.evidence import load_inputs
     from recipe_tooling.qualification.memory_need.warnings import memory_warnings
+    from vonk_forge_contracts import RecipeDefinition, document_sha256
 
     document = load("recipes/inkling-small-nvfp4-sglang-mia-dual.json")
     warnings = memory_warnings(
@@ -575,12 +573,12 @@ def test_startup_room_boundary_is_the_replays_fifth_slot() -> None:
     def error(fraction: float) -> bool:
         """Whether the base launch (block size 7, the replay's) is refused."""
         from catalog_documents import catalog_models
-        from vonk_forge_contracts import RecipeDefinition
 
         from recipe_tooling.qualification.memory_need.evidence import load_inputs
         from recipe_tooling.qualification.memory_need.sglang import (
             sglang_rank_budget_warnings,
         )
+        from vonk_forge_contracts import RecipeDefinition
 
         document = load(KV_1M)
         for item in document["runtime"]["arguments"]:
@@ -646,6 +644,7 @@ class InklingTonyd2wildLauncherEnvironmentTests(unittest.TestCase):
 
     def test_recipes_restore_the_launcher_environment(self) -> None:
         from documents import recipe_display
+
         from vonk_forge_contracts import read_recipe
 
         for path in self.RECIPES:

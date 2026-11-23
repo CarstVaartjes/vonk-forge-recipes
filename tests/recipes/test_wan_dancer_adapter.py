@@ -23,6 +23,7 @@ from unittest import mock
 
 from generated_catalog import GENERATED
 from repo_root import ROOT
+
 from vonk_forge_contracts import (
     document_sha256,
 )

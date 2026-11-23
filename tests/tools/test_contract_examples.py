@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 from repo_root import ROOT
+
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,

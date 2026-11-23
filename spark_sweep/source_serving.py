@@ -83,7 +83,7 @@ def authored_contents(root: Path) -> dict[str, str]:
     for path in sorted((root / "recipes").glob("*.json")):
         try:
             key, digest = recipe_key_digest(path.stem, root)
-        except (OSError, ValueError, KeyError, TypeError):
+        except OSError, ValueError, KeyError, TypeError:
             continue
         contents[key] = digest
     return contents

@@ -8,9 +8,6 @@ from pathlib import Path
 import pytest
 from catalog_documents import catalog_models
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition, document_sha256
-from vonk_forge_contracts.memory_admission import evaluate_memory_admission
-from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from recipe_tooling.qualification.memory_need.args import (
@@ -42,6 +39,9 @@ from recipe_tooling.qualification.memory_need.sglang import (
     sglang_static_need,
 )
 from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
+from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts.memory_admission import evaluate_memory_admission
+from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 LLAMA = "llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single"
 INPUTS = load_inputs()

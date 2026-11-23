@@ -14,6 +14,7 @@ from typing import Any, cast
 from catalog_documents import catalog_models
 from documents import model_display, recipe_display
 from repo_root import ROOT
+
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.resolver import validate_recipe_models
 

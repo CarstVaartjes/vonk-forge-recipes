@@ -12,7 +12,6 @@ from typing import Any
 import pytest
 from documents import recipe as read_recipe
 from repo_root import ROOT
-from vonk_forge_contracts.recipe import RecipeJobSettings
 
 from recipe_tooling.qualification.case_assertions import (
     invalid_case_assertions,
@@ -20,6 +19,7 @@ from recipe_tooling.qualification.case_assertions import (
 )
 from recipe_tooling.qualification.definitions_loader import load_definitions
 from spark_sweep.smoke import check_assertions, check_quality
+from vonk_forge_contracts.recipe import RecipeJobSettings
 
 TEMPLATES: dict[str, Any] = json.loads(
     (ROOT / "qualification" / "shared.json").read_text(encoding="utf-8")

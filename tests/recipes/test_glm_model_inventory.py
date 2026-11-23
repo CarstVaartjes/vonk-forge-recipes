@@ -4,6 +4,7 @@ import json
 import unittest
 
 from repo_root import ROOT
+
 from vonk_forge_contracts import document_sha256
 
 

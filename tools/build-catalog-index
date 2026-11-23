@@ -20,15 +20,14 @@ REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 sys.path.insert(0, str(ROOT / "src"))
+from recipe_tooling.adapter_sources import materialize_or_exit
+from recipe_tooling.qualification.image_evidence import load_images, read_images
+from recipe_tooling.qualification.tolerant import InputDiagnostic
 from vonk_forge_contracts import (
     INDEX_SCHEMA_ASSET,
     PACKAGE_MEDIA_TYPE,
     PACKAGE_SCHEMA_VERSION,
 )
-
-from recipe_tooling.adapter_sources import materialize_or_exit
-from recipe_tooling.qualification.image_evidence import load_images, read_images
-from recipe_tooling.qualification.tolerant import InputDiagnostic
 
 
 def image_diagnostic(diagnostic: InputDiagnostic) -> None:
@@ -674,6 +673,13 @@ def build(
 ) -> dict[str, Any]:
     package_dir.mkdir(parents=True, exist_ok=True)
     entities = _catalog_entity_documents()
+    from recipe_tooling.qualification.documents import (
+        families,
+        model_display,
+        recipe_api,
+        recipe_display,
+    )
+    from recipe_tooling.qualification.documents import recipe as recipe_of
     from vonk_forge_contracts import (
         ModelDefinition,
         RecipeDefinition,
@@ -685,14 +691,6 @@ def build(
         validate_library,
         validate_recipe_apis,
     )
-
-    from recipe_tooling.qualification.documents import (
-        families,
-        model_display,
-        recipe_api,
-        recipe_display,
-    )
-    from recipe_tooling.qualification.documents import recipe as recipe_of
 
     memory_models = {
         document_sha256(document): ModelDefinition.model_validate(document)
@@ -763,14 +761,13 @@ def build(
             }
         )
     pin_prebuilt_images(recipes, prebuilt_images or {})
+    from recipe_tooling.qualification.evidence_store import read_evidence
     from vonk_forge_contracts import (
         PublishedMeasuredMemory,
         QualificationIdentity,
         QualificationRuntimeImage,
         published_status,
     )
-
-    from recipe_tooling.qualification.evidence_store import read_evidence
 
     recipe_by_slug = {item.identity.slug: item for item in recipe_documents}
     for entry in recipes:

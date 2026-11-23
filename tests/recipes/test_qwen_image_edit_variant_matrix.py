@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from repo_root import ROOT
+
 from vonk_forge_contracts import document_sha256
 
 

@@ -23,9 +23,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "src"), str(ROOT / "contracts/src")]
-from vonk_forge_contracts import RecipeQualificationEvidence
-
 from recipe_tooling.qualification.evidence_retention import EVIDENCE_CLASSES
+from vonk_forge_contracts import RecipeQualificationEvidence
 
 PREFIX = "qualification/evidence/"
 MAX_CONTENTS = 5

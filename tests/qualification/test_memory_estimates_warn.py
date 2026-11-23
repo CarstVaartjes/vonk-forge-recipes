@@ -9,11 +9,11 @@ import pytest
 from documents import recipe
 from pydantic import ValidationError
 from repo_root import ROOT
-from vonk_forge_contracts.recipe import RecipeMemoryResources
 
 from recipe_tooling.qualification.memory_need.geometry import MemoryInputs
 from recipe_tooling.qualification.memory_need.records import EstimateFindingKind
 from recipe_tooling.qualification.memory_need.warnings import estimate_problems
+from vonk_forge_contracts.recipe import RecipeMemoryResources
 
 LLAMA = "llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single"
 

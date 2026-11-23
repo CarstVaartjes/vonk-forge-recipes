@@ -161,12 +161,12 @@ def test_evidence_merge_conflict_unions_both_histories(
     from datetime import timedelta
 
     from test_qualification_status import KEY, NOW, evidence, record
-    from vonk_forge_contracts import QualificationBlame, QualificationOutcome
 
     from recipe_tooling.qualification.evidence_store import (
         read_evidence,
         write_evidence,
     )
+    from vonk_forge_contracts import QualificationBlame, QualificationOutcome
 
     # The branch's own record is a recipe failure: retention keeps it (the newest
     # failure), so it shows in the result only if the union brought it in.
@@ -509,6 +509,7 @@ def test_resolved_state_only_record_is_published(tmp_path, monkeypatch):
 
 def test_state_evidence_is_only_appended_never_rewritten(tmp_path, monkeypatch):
     from test_qualification_status import A, B, evidence, record
+
     from vonk_forge_contracts import QualificationBlame, QualificationOutcome
 
     old = record(A, day=0)
@@ -605,9 +606,9 @@ def _row(day):
 
 def _evidence_json(rows):
     from test_qualification_status import KEY
-    from vonk_forge_contracts import RecipeQualificationEvidence
 
     from spark_sweep.qualification import from_history
+    from vonk_forge_contracts import RecipeQualificationEvidence
 
     records = tuple(r for r in map(from_history, rows) if r)
     return RecipeQualificationEvidence(
@@ -1066,10 +1067,10 @@ def test_refused_records_are_released_when_main_moves(tmp_path, monkeypatch):
 
 def test_dropping_refused_records_reads_only_the_files_it_names(tmp_path, monkeypatch):
     from test_qualification_status import KEY
-    from vonk_forge_contracts import RecipeQualificationEvidence
 
     from recipe_tooling.qualification.evidence_store import write_evidence
     from spark_sweep.qualification import from_history
+    from vonk_forge_contracts import RecipeQualificationEvidence
 
     record = from_history(historical())
     assert record
@@ -1417,12 +1418,12 @@ def test_an_inherited_evidence_branch_cannot_bring_job_rows_back(tmp_path, monke
     from datetime import timedelta
 
     from test_qualification_status import KEY, NOW, evidence, record
-    from vonk_forge_contracts import QualificationMeasuredRoleMemory
 
     from recipe_tooling.qualification.evidence_store import (
         read_evidence,
         write_evidence,
     )
+    from vonk_forge_contracts import QualificationMeasuredRoleMemory
 
     history = tmp_path / "results.jsonl"
     row = historical()

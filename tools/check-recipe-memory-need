@@ -18,13 +18,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from vonk_forge_contracts import (
-    ModelDefinition,
-    QualificationOutcome,
-    RecipeDefinition,
-    document_sha256,
-)
-
 from recipe_tooling.qualification.evidence_store import read_evidence
 from recipe_tooling.qualification.memory_need.args import memory_variants
 from recipe_tooling.qualification.memory_need.evidence import (
@@ -37,6 +30,12 @@ from recipe_tooling.qualification.memory_need.records import EstimateFindingKind
 from recipe_tooling.qualification.memory_need.warnings import (
     memory_estimate_findings,
     memory_notes,
+)
+from vonk_forge_contracts import (
+    ModelDefinition,
+    QualificationOutcome,
+    RecipeDefinition,
+    document_sha256,
 )
 
 

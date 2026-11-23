@@ -9,6 +9,7 @@ from types import SimpleNamespace
 
 import pytest
 from repo_root import ROOT
+
 from vonk_forge_contracts import read_recipe
 
 CONTEXT = ROOT / "adapters/video/drowzeys-fasth3-tensorfold"

@@ -16,6 +16,7 @@ from typing import Any
 import pytest
 from documents import recipe
 from repo_root import FIXTURES, ROOT
+
 from vonk_forge_contracts.recipe import RecipeJobSettings
 
 VIDEO = ROOT / "adapters/video"

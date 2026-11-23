@@ -12,15 +12,14 @@ from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
-from vonk_forge_contracts import QualificationBlame
-from vonk_forge_contracts import QualificationCauseCode as Code
-
 from spark_sweep import policy
 from spark_sweep.lifecycle import RecipeStatus
 from spark_sweep.policy import TimeoutPolicy
 from spark_sweep.qualification import from_history
 from spark_sweep.sweep_contract import WorkloadExitCause
 from spark_sweep.verdict import Disposition, disposition
+from vonk_forge_contracts import QualificationBlame
+from vonk_forge_contracts import QualificationCauseCode as Code
 
 PREP = "profile.preparation_unavailable"
 

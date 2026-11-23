@@ -7,10 +7,10 @@ import shutil
 from pathlib import Path
 
 from repo_root import ROOT
-from vonk_forge_contracts import ChatApi, DecisionApi
-from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone
 
 from recipe_tooling.qualification.documents import has_recipe_api, recipe, recipe_api
+from vonk_forge_contracts import ChatApi, DecisionApi
+from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone
 
 GUARD = runpy.run_path(str(ROOT / "tools/check-model-modalities"))
 

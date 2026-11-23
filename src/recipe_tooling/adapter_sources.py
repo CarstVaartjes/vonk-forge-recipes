@@ -34,9 +34,9 @@ from pathlib import Path
 from typing import Annotated, BinaryIO
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, model_validator
-from vonk_forge_contracts.recipe import RelativePath, Sha256
 
 from recipe_tooling.paths import REPO_ROOT
+from vonk_forge_contracts.recipe import RelativePath, Sha256
 
 ROOT = REPO_ROOT
 MANIFEST = "adapter-sources.json"

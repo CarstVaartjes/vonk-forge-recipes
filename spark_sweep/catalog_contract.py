@@ -5,6 +5,7 @@ invalidates only its row; unavailable assessments still use their defaults.
 """
 
 from pydantic import BaseModel, ConfigDict, Field
+
 from vonk_forge_contracts.recipe import RecipeValidationCheck
 
 

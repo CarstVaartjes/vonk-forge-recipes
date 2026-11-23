@@ -173,7 +173,7 @@ def _token() -> str | None:
             timeout=20,
             check=False,
         )
-    except (OSError, subprocess.SubprocessError):
+    except OSError, subprocess.SubprocessError:
         return None
     return result.stdout.strip() or None
 
@@ -225,7 +225,7 @@ def commit_on_github(repo: str, commit: str) -> bool | None:
         return fetch(Request(url, headers=headers), lambda response: True)
     except HTTPError as error:
         return False if error.code in {404, 422} else None
-    except (OSError, UpstreamBusy):  # unreachable, timed out, rate limited
+    except OSError, UpstreamBusy:  # unreachable, timed out, rate limited
         return None
 
 

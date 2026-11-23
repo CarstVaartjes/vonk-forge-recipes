@@ -7,10 +7,10 @@ from tempfile import TemporaryDirectory
 
 import pytest
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition
-from vonk_forge_contracts.recipe import RecipeBuildDefinition
 
 from recipe_tooling.qualification.coverage_identity import execution_stack_identity
+from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts.recipe import RecipeBuildDefinition
 
 
 def _recipe_for_root(root: Path) -> RecipeDefinition:

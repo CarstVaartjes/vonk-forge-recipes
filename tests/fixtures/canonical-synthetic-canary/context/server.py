@@ -69,7 +69,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.rfile.read(int(self.headers.get("Content-Length", "0"))) or b"{}"
             )
             request = ChatRequest.model_validate(payload)
-        except (ValueError, ValidationError):
+        except ValueError, ValidationError:
             self._write_json(
                 400,
                 {

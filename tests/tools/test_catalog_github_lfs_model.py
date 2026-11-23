@@ -13,6 +13,7 @@ from urllib.error import HTTPError
 from urllib.parse import quote
 
 from repo_root import ROOT
+
 from vonk_forge_contracts import ModelDefinition, document_sha256
 
 TOOL = ROOT / "tools/catalog-github-lfs-model"

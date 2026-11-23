@@ -62,7 +62,7 @@ def newest_release(source: GitHub, repo: str) -> str | None:
         tags = source.api(f"repos/{repo}/tags?per_page=100")
     except UpstreamBusy:
         raise
-    except (RuntimeError, KeyError):
+    except RuntimeError, KeyError:
         return None
     best: tuple[tuple[int, ...], str] | None = None
     for tag in tags:

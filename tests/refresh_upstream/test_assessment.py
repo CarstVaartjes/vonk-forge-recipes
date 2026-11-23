@@ -442,7 +442,6 @@ class VendoredCreatorMoveTests(unittest.TestCase):
     ) -> None:
         import documents
         from catalog_documents import catalog_models
-        from vonk_forge_contracts import RecipeDefinition
         from warning_asserts import assert_not_warns, assert_warns
 
         from recipe_tooling.qualification import documents as qualification_documents
@@ -450,6 +449,7 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         from recipe_tooling.qualification.memory_need.warnings import (
             memory_estimate_warnings,
         )
+        from vonk_forge_contracts import RecipeDefinition
 
         slug = "muse-spark-open-nvfp4-vllm-eight"
         before = documents.recipe(slug)

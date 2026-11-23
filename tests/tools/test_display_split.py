@@ -11,6 +11,7 @@ from typing import Any
 import pytest
 from documents import model, model_display, recipe, recipe_display
 from repo_root import ROOT
+
 from vonk_forge_contracts import (
     CapabilityName,
     ModelDefinition,

@@ -5,6 +5,12 @@ from __future__ import annotations
 from collections.abc import Callable, Iterable
 from pathlib import Path
 
+from recipe_tooling.qualification.evidence_store import (
+    catalog_recipes,
+    read_evidence,
+    write_evidence,
+)
+from recipe_tooling.qualification.memory_need.evidence import measured_budgets
 from vonk_forge_contracts import (
     QualificationBlame,
     QualificationEvidenceRecord,
@@ -12,13 +18,6 @@ from vonk_forge_contracts import (
     RecipeDefinition,
     RecipeQualificationEvidence,
 )
-
-from recipe_tooling.qualification.evidence_store import (
-    catalog_recipes,
-    read_evidence,
-    write_evidence,
-)
-from recipe_tooling.qualification.memory_need.evidence import measured_budgets
 
 #: The classes `derive_status` and `published_status` read, each by the reducers' own
 #: predicate: the newest record of each class, per identity, is all they consult.
