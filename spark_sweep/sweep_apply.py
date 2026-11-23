@@ -36,13 +36,13 @@ class SweepApply:
                 if index:
                     self._observe_owner(self.clock.now())
                     if self.paused or self.owner_status.new_activity:
-                        return
+                        return None
                 if self._apply([placement], now) is False:
                     return False
                 # Resolve a first lane's admission wait before reviewing the
                 # next snapshot; a pending application has no effect to adopt.
                 self.advance_slots(now)
-            return
+            return None
         profile = self.cfg.sweep_profile
         if self._prune_profile().waiting_on is not None:
             return False
@@ -80,7 +80,7 @@ class SweepApply:
                     remaining = [p for p in placements if p.recipe.key != recipe.key]
                     if remaining:
                         self._apply(remaining, now)
-                    return
+                    return None
                 # An explicit recipe-data code on the recipe's own data.
                 refused = verdict.refused_field(str(error))
                 self._record_failure(
@@ -95,7 +95,7 @@ class SweepApply:
                 )
                 continue
         if not added:
-            return
+            return None
         overfull = self._overfull_sparks()
         crowded = [p for p in added if overfull & set(p.spark_ids)]
         if crowded:
@@ -103,7 +103,7 @@ class SweepApply:
             self._rollback(crowded, f"would overfill Spark(s) {sorted(overfull)}")
             added = [p for p in added if p not in crowded]
             if not added:
-                return
+                return None
         aliases = {self._alias(p.recipe): p for p in added}
         kept = {
             s["alias"]
@@ -124,7 +124,7 @@ class SweepApply:
                         review.error_text,
                     )
                 self.state.save()
-                return
+                return None
             # A recipe-data refusal of the review: a deterministic verdict, recorded once,
             # never the same plan reviewed again and again.
             failure = policy.classify(
@@ -135,7 +135,7 @@ class SweepApply:
             )
             for placement in added:
                 self._record_failure(placement.recipe.key, failure, None)
-            return
+            return None
         for placement in added:
             self.clear_infra(self._review_transport_source(placement.recipe))
         # The revision comes first: every reply that names assignments (blocked ones too)
@@ -169,7 +169,7 @@ class SweepApply:
             remaining = [p for p in added if p not in unnamed + wrong]
             if remaining:
                 self._apply(remaining, now)
-            return
+            return None
         runs = dig(document, "effects", "runs", default=[])
         stopped = [
             r["alias"]
@@ -180,7 +180,7 @@ class SweepApply:
         ]
         if stopped:
             self._rollback(added, f"review would stop running lanes {stopped}")
-            return
+            return None
         # A test needs a cold start (startup peak, real load). The Controller keeps a run
         # whose execution identity matches and only renames it: clear it first, then load.
         # A holder is the kept run itself (its run_id): a later run is a new holder.
@@ -208,7 +208,7 @@ class SweepApply:
             remaining = [p for alias, p in aliases.items() if alias not in reused]
             if remaining:
                 self._apply(remaining, now)
-            return
+            return None
         cleanup_requests, dependency = self._cleanup_adoption(document)
         if cleanup_requests is None:
             self._rollback(
@@ -219,7 +219,7 @@ class SweepApply:
                 "waiting for exact original cleanup adoption",
                 dependency=dependency,
             )
-            return
+            return None
         adopted_requests = self._adopted_requests(document)
         if adopted_requests is None:
             self._rollback(
@@ -243,7 +243,7 @@ class SweepApply:
             self.adoption_holds.update(
                 {node: why for p in added for node in p.spark_ids}
             )
-            return
+            return None
         # The Controller's disk decision includes reservations, reused objects
         # and evictable installations. Preparation being waitable cannot turn
         # a proven storage shortfall into a placement on that Spark.
@@ -281,7 +281,7 @@ class SweepApply:
             remaining = [p for p in added if p not in storage_blocked]
             if remaining:
                 self._apply(remaining, now)
-            return
+            return None
         if not (
             document.get("allowed") is True
             or document.get("waits_for_preparation") is True
@@ -300,7 +300,7 @@ class SweepApply:
                 # including a fresh review and binding, so one held Spark cannot
                 # starve an independent lane. Each re-plan removes an assignment.
                 self._apply(remaining, now)
-            return
+            return None
         self.clear_infra("review")
         for placement in added:
             self._clear_review_wait(self.state.entry(placement.recipe.key))
@@ -337,7 +337,7 @@ class SweepApply:
                 self.note_infra("load-submit", str(error))
                 # Unknown admission is resolved by request UUID before any edit or replay.
                 self.state.data["loads"][key]["state"] = "observing"
-                return
+                return None
             # A recipe-data refusal of the reviewed load: record the verdict with the
             # refusal as evidence; the same placement is never resubmitted unchanged.
             self.state.data["loads"].pop(key, None)
@@ -352,7 +352,7 @@ class SweepApply:
                 self._record_failure(placement.recipe.key, failure, None)
                 self.state.slots.pop(placement.recipe.key, None)
             self._rollback(added, f"load refused: {error}")
-            return
+            return None
         self.state.data["loads"][key]["app_id"] = submitted.get("id")
         if isinstance(submitted, Mapping):
             self.documents[key] = submitted
@@ -362,3 +362,4 @@ class SweepApply:
         self.state.data["dirty"] = True
         self.state.event("load submitted: " + ", ".join(p.recipe.key for p in added))
         self.state.save()
+        return None

@@ -27,7 +27,7 @@ def owned_version(contracts: Path) -> str:
 def test_contract_exports_the_owned_version() -> None:
     expected = owned_version(ROOT / "contracts")
     assert CONTRACT_VERSION == __version__ == expected
-    assert CONTRACT_MAJOR == int(expected.split(".", 1)[0])
+    assert int(expected.split(".", 1)[0]) == CONTRACT_MAJOR
     project = tomllib.loads((ROOT / "contracts/pyproject.toml").read_text())
     assert "version" not in project["project"]
     assert project["tool"]["hatch"]["version"]["path"] == OWNER

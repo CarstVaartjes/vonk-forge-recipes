@@ -337,7 +337,7 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
 
 def own_open_prs(cwd: Path) -> list[dict]:
     """The open evidence PR from this repository: GitHub allows one per head and base."""
-    own = own_pulls(
+    return own_pulls(
         json.loads(
             command(
                 cwd,
@@ -357,7 +357,6 @@ def own_open_prs(cwd: Path) -> list[dict]:
             )
         )
     )
-    return own
 
 
 def sync(

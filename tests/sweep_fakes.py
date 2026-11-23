@@ -1951,7 +1951,7 @@ class FakeFleet:
         def stamp(at: float) -> str:
             return datetime.fromtimestamp(at, UTC).isoformat()
 
-        if app["state"] in ("queued", "running") and 0 < copy and elapsed < copy:
+        if app["state"] in ("queued", "running") and copy > 0 and elapsed < copy:
             moved_at = now
             done = int(total * elapsed / copy)
             attempt_bytes, retry, key = done, None, None

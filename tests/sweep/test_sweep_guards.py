@@ -434,7 +434,7 @@ def test_the_lane_exits_exist() -> None:
 
 def test_vocabulary_matches_published_controller_contract() -> None:
     published = json.loads((ROOT / "tests/fixtures/sweep-lifecycle.json").read_text())
-    assert STATES == frozenset(published["LifecycleState"]["enum"])
+    assert frozenset(published["LifecycleState"]["enum"]) == STATES
     assert ACTIVE | TERMINAL | WAITING == STATES
     assert not ACTIVE & TERMINAL
     assert not WAITING & TERMINAL

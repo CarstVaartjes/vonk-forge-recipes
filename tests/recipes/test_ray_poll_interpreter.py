@@ -14,6 +14,7 @@ creation and file probes faked.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import runpy
@@ -93,11 +94,9 @@ def ray_poll_commands(recipe: dict, launcher: Path) -> list[list[str]]:
         patch("os.access", return_value=True),
         patch("shutil.which", side_effect=lambda name: f"/image/bin/{name}"),
         patch("time.sleep"),
+        contextlib.suppress(Exec),
     ):
-        try:
-            runpy.run_path(str(launcher), run_name="__main__")
-        except Exec:
-            pass
+        runpy.run_path(str(launcher), run_name="__main__")
     return [
         command
         for command in commands

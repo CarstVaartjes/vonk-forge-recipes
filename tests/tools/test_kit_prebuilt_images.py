@@ -142,7 +142,7 @@ class _Dropping(io.BytesIO):
 
     def read(self, size: int | None = -1) -> bytes:
         data = super().read(size)
-        if not data or (size is not None and 0 < size and len(data) < size):
+        if not data or (size is not None and size > 0 and len(data) < size):
             raise self._error
         return data
 

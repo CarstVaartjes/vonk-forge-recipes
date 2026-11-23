@@ -682,7 +682,7 @@ class WanDancerSmokeMusicTests(unittest.TestCase):
             rows = 1 + math.ceil(frames * 30 * 512 / rate) // 512
             assert int(rows / 149.0 + 0.5) >= 1, (duration, rows)
             assert duration < 149 / 30
-            assert 1.0 <= duration
+            assert duration >= 1.0
             output_frames = int(
                 (duration - runner.OUTPUT_TRIM_SECONDS) * runner.OUTPUT_FPS
             )

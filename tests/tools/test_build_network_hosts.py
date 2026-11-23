@@ -363,14 +363,14 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
                     problems.setdefault(path.stem, []).append(
                         f"{fetch.command} needs {sorted(fetch.hosts - declared)}"
                     )
-        assert {} == problems
+        assert problems == {}
 
     def test_fetching_install_detection(self) -> None:
         def hosts(text: str) -> list[frozenset[str]]:
             return [f.hosts for f in fetches(text)]
 
-        assert [PYPI] == hosts("RUN pip install foo")
-        assert [PYPI] == hosts("RUN python -m pip install -r /tmp/a.txt")
+        assert hosts("RUN pip install foo") == [PYPI]
+        assert hosts("RUN python -m pip install -r /tmp/a.txt") == [PYPI]
         assert not fetches("RUN pip install --no-index /tmp/a.whl")
         assert not fetches("RUN uv pip install --offline foo")
         assert not fetches("ENV PIP_NO_INDEX=1\nRUN pip install foo")
@@ -406,7 +406,7 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
         # a block ends at `fi` with or without a suffix; what follows is not guarded
         for end in ("fi)", "fi 2>/dev/null", "fi >>log", "fi"):
             text = f"if ! python3 -c 'import av'; then pip install av; {end}\npip install b"
-            assert 1 == len(fetches(text)), end
+            assert len(fetches(text)) == 1, end
         # a failure of anything else does not guard it
         assert fetches("make build || pip install av")
         assert fetches("if true; then pip install av; fi")
@@ -431,7 +431,7 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
         assert PYPI | {torch} == hosts(
             f"pip install --extra-index-url https://{torch}/whl/cu130 torch"
         )
-        assert PYPI == hosts("pip install --index-url=https://pypi.org/simple foo")
+        assert hosts("pip install --index-url=https://pypi.org/simple foo") == PYPI
         assert frozenset({"github.com"}) == hosts(
             "pip install --no-deps git+https://github.com/a/b@c"
         )
@@ -463,8 +463,8 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
                 assert "mods/a/unused.sh" not in scripts, name
             (context / "Dockerfile").write_text(dockerfiles["for"], encoding="utf-8")
             found = build_fetches(context / "Dockerfile", context)
-            assert ["mods/a/run.sh: uv pip install --quiet soundfile"] == [
-                f.command for f in found
+            assert [f.command for f in found] == [
+                "mods/a/run.sh: uv pip install --quiet soundfile"
             ]
             # executed by name from a run script, but not merely mentioned or chmod'ed
             (module / "run.sh").write_text(
@@ -481,7 +481,7 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
                 "python3 -c 'import av' || uv pip install av\n# pip install x\n",
                 encoding="utf-8",
             )
-            assert [] == build_fetches(context / "Dockerfile", context)
+            assert build_fetches(context / "Dockerfile", context) == []
 
     def test_nvcr_is_only_a_base_image_registry(self) -> None:
         for path in sorted((ROOT / "recipes").glob("*.json")):

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import subprocess
@@ -548,10 +549,8 @@ def _replayed_slots(fraction: float) -> int:
     pre = KV_1M_PRE_LOAD_GIB
     resident_gib = 89.10 + 1.30
     sizer, schedule = _dspark_sizer(fraction, pre - resident_gib)
-    try:
+    with contextlib.suppress(RuntimeError):
         sizer._profile_available_bytes(pre)
-    except RuntimeError:
-        pass
     return schedule.max_mamba_cache_size or 0
 
 

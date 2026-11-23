@@ -42,12 +42,11 @@ DIGEST = "1" * 64
 
 
 def _trio(**held):
-    recipes = [
+    return [
         FakeRecipe("bad", (DIGEST,), content="b" * 64, local="cached", **held),
         FakeRecipe("good1", (DIGEST,), content="c" * 64, local="cached"),
         FakeRecipe("good2", (DIGEST,), content="d" * 64, local="cached"),
     ]
-    return recipes
 
 
 def _make(tmp_path, gateway, recipes, **overrides):
@@ -650,7 +649,7 @@ def test_the_fake_matches_the_real_documents_shape(tmp_path, gateway) -> None:
     (real_owner, _) = real["intended_profile"]["assignments"]
     for owner in fake["intended_profile"]["assignments"]:
         assert set(owner) <= set(real_owner)
-        assert {k for k in owner["nodes"][0]} <= set(real_owner["nodes"][0])
+        assert set(owner["nodes"][0]) <= set(real_owner["nodes"][0])
     # Both directions: what the sweep reads from the real document exists in the fake's.
     for failure in policy.assignment_failures({"progress": fake}):
         assert failure.alias

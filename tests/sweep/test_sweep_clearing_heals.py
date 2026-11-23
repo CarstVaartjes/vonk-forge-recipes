@@ -142,7 +142,7 @@ def test_ready_lane_submits_a_decided_clearing_before_its_shortcut(
         fleet.runs.append(
             dict(LEFTOVER, alias=alias, run_id=f"run-{alias}", node_ids=[node])
         )
-    fleet.cleanup_stop_seconds.update({alias: 600 for alias in holders})
+    fleet.cleanup_stop_seconds.update(dict.fromkeys(holders, 600))
     sweep.state.data["own_aliases"].extend(holders)
     sweep.state.data.pop("cleared_for", None)
     if ended is None:

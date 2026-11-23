@@ -101,6 +101,7 @@ class PerRecipeFaultTests(unittest.TestCase):
         def read_optional(source, action, *_arguments, **_keywords):
             if source == "catalog assessment":
                 return action()
+            return None
 
         catalog = types.SimpleNamespace(recipes=dict.fromkeys(assessments))
         arguments = argparse.Namespace(cache_dir=None, dry_run=False)

@@ -65,7 +65,7 @@ def test_runtime_https_image_refreshes_and_checks_both_stores(adapter: str) -> N
         if recipe["execution"]["build"]["context"]["path"] == f"adapters/{adapter}"
     ]
     assert builds
-    assert all(BUILD_HOSTS <= set(build["network"]["hosts"]) for build in builds)
+    assert all(set(build["network"]["hosts"]) >= BUILD_HOSTS for build in builds)
 
 
 def run_guard(

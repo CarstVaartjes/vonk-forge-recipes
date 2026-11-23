@@ -65,7 +65,7 @@ def isolate_memory_evidence(request, monkeypatch, tmp_path_factory):
     def evidence(key):
         # A test that points the module at its own corpus keeps it.
         return read_evidence(
-            empty if mn_constants.ROOT == live else mn_constants.ROOT, key
+            empty if live == mn_constants.ROOT else mn_constants.ROOT, key
         )
 
     monkeypatch.setattr(mn_evidence, "_evidence", evidence)

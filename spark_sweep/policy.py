@@ -811,7 +811,7 @@ def blamed(
     named: set[str] = set()
     placed: set[str] = set()
     for item in items:
-        refs = {r for r in (item.get("refs") or _leaves(item, _NOT_REFS))}
+        refs = set(item.get("refs") or _leaves(item, _NOT_REFS))
         text = " ".join(
             str(item.get(f, "")) for f in ("detail", "message", "reason", "error")
         )
