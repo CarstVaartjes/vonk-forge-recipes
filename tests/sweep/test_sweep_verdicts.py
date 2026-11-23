@@ -1,0 +1,449 @@
+"""The sweep follows the Controller's verdicts: waits expire into a re-plan, never a recipe failure.
+
+Unit cases drive ``progress_verdict`` and ``disposition`` on vonkctl JSON in the published
+shapes (``tests/fixtures/sweep-verdicts``: ``FleetProfileApplicationView`` and the CLI's
+error document); behaviour cases run the whole sweep on a fake clock.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+import pytest
+from repo_root import FIXTURES
+from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+
+from spark_sweep import policy, verdict
+from spark_sweep.policy import TimeoutPolicy
+from spark_sweep.sweep_contract import SweepWaitReason
+from spark_sweep.verdict import Disposition, Progress
+from spark_sweep.vonkctl import Reply
+
+FIXTURES = FIXTURES / "sweep-verdicts"
+HOUR = 3600.0
+
+
+def _document(name: str) -> dict[str, Any]:
+    return json.loads((FIXTURES / f"{name}.json").read_text())
+
+
+@pytest.fixture
+def gateway():
+    gateway = Gateway()
+    yield gateway
+    gateway.stop()
+
+
+def _timeouts(seconds: float = 600.0) -> TimeoutPolicy:
+    return TimeoutPolicy(
+        first_start_seconds=seconds, floor_seconds=seconds, cap_seconds=seconds
+    )
+
+
+def _drive(sweep, clock, *, until, limit: int = 2000) -> None:
+    """Tick on the fake clock until ``until()`` holds (a bounded number of steps)."""
+    for _ in range(limit):
+        sweep.tick()
+        if until():
+            return
+        clock.sleep(sweep.cfg.poll_seconds)
+    raise AssertionError("the scenario did not settle")
+
+
+# -- a gated model download ---------------------------------------------------------------
+
+
+def test_a_model_cache_access_denial_is_the_owners_wait_with_the_page_to_visit() -> (
+    None
+):
+    signal = verdict.download_signal(_document("recipe-operation-access-denied"))
+    assert signal.wait is not None
+    assert signal.wait.reason is SweepWaitReason.ACCESS_TERMS
+    assert signal.wait.detail == (
+        "https://huggingface.co/stabilityai/stable-audio-3-small-sfx"
+    )
+    assert signal.wait.reason in verdict.CONTROLLER_OWNED_WAITS
+
+
+def test_access_required_is_the_same_wait() -> None:
+    """``access_required`` (no token, or the credentials_missing remap) is the owner's too."""
+    document = _document("recipe-operation-access-denied")
+    failure = next(c for c in document["children"] if c["kind"] == "model-cache")[
+        "failure"
+    ]
+    failure["code"] = "access_required"
+    signal = verdict.download_signal(document)
+    assert signal.wait is not None
+    assert signal.wait.reason is SweepWaitReason.ACCESS_TERMS
+    assert signal.wait.detail.startswith("https://huggingface.co/stabilityai/")
+
+
+def test_an_access_wait_without_a_page_keeps_the_controllers_words() -> None:
+    document = _document("recipe-operation-access-denied")
+    failure = next(c for c in document["children"] if c["kind"] == "model-cache")[
+        "failure"
+    ]
+    failure["detail"] = "the token lacks access"
+    signal = verdict.download_signal(document)
+    assert signal.wait is not None and signal.wait.detail == "the token lacks access"
+
+
+# -- progress_verdict on Controller documents --------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "name", ["queued-retry", "backoff", "admission-pending", "needs-operator"]
+)
+def test_a_controller_owned_wait_expires_within_its_budget(name: str) -> None:
+    watch: dict[str, Any] = {}
+    signal = verdict.application_signal(_document(name))
+    assert signal.waiting_on
+    assert (
+        verdict.progress_verdict(signal, watch, window=600, now=0) is Progress.WAITING
+    )
+    assert (
+        verdict.progress_verdict(signal, watch, window=600, now=600) is Progress.WAITING
+    )
+    assert (
+        verdict.progress_verdict(signal, watch, window=600, now=601)
+        is Progress.WAIT_EXPIRED
+    )
+    assert watch["waiting_on"] == signal.waiting_on
+    assert watch["wait_started_at"] == 0
+    assert watch["wait_deadline"] == 600
+
+
+@pytest.mark.parametrize("name", ["running-silent", "phase-retry"])
+def test_the_works_own_silence_for_a_window_is_stalled(name: str) -> None:
+    watch: dict[str, Any] = {}
+    signal = verdict.application_signal(_document(name))
+    assert signal.waiting_on is None  # a retried phase is the load's own work
+    assert verdict.progress_verdict(signal, watch, window=600, now=0) is (
+        Progress.PROGRESSING
+    )
+    assert verdict.progress_verdict(signal, watch, window=600, now=600) is (
+        Progress.PROGRESSING
+    )
+    assert verdict.progress_verdict(signal, watch, window=600, now=601) is (
+        Progress.STALLED
+    )
+
+
+def test_a_warning_blocker_is_a_brief_hold_not_a_wait() -> None:
+    document = _document("running-silent")
+    document["progress"]["blockers"] = [
+        {"code": "run-switch.something", "detail": "brief", "severity": "warning"}
+    ]
+    assert verdict.application_signal(document).waiting_on is None
+
+
+def test_movement_restarts_own_progress_but_waits_have_a_separate_budget() -> None:
+    watch: dict[str, Any] = {}
+    silent = verdict.application_signal(_document("running-silent"))
+    moved = verdict.application_signal(_document("running-moved"))
+    queued = verdict.application_signal(_document("queued-retry"))
+    verdict.progress_verdict(silent, watch, window=600, now=0)
+    assert verdict.progress_verdict(moved, watch, window=600, now=500) is (
+        Progress.PROGRESSING
+    )
+    # Queuing cannot rewrite the last own-work progress timestamp.
+    assert verdict.progress_verdict(queued, watch, window=600, now=10 * HOUR) is (
+        Progress.WAITING
+    )
+    assert (
+        verdict.progress_verdict(moved, watch, window=600, now=10 * HOUR + 599)
+        is Progress.STALLED
+    )
+
+
+def test_an_unreadable_observation_is_unknown_and_waits() -> None:
+    watch: dict[str, Any] = {"signature": [1], "progressed_at": 0.0}
+    assert verdict.progress_verdict(None, watch, window=600, now=5000) is (
+        Progress.WAITING
+    )
+    assert watch["progressed_at"] == 0.0
+    assert (
+        verdict.progress_verdict(None, watch, window=600, now=5601)
+        is Progress.WAIT_EXPIRED
+    )
+
+
+# -- disposition ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("cli-transport-timeout", Disposition.WAIT),
+        ("cli-busy-429", Disposition.WAIT),
+        ("cli-own-field-refusal", Disposition.WAIT),  # the sweep's own field
+        ("cli-recipe-refusal", Disposition.FAIL),  # the recipe's own data
+    ],
+)
+def test_cli_errors_are_decided_by_their_published_fields(
+    name: str, expected: Disposition
+) -> None:
+    reply = Reply(("vonkctl",), 2, _document(name), "")
+    assert verdict.reply_disposition(reply) is expected
+
+
+@pytest.mark.parametrize(
+    ("failure", "expected"),
+    [
+        (policy.classify("smoke", "case.M0", "HTTP 503", verdict.SMOKE_BUSY), "wait"),
+        (policy.classify("smoke", "case.M0", "401", policy.CLIENT_CREDENTIAL), "wait"),
+        (policy.classify("download", "storage.insufficient_capacity", "full"), "wait"),
+        (
+            policy.classify("smoke", "case.M0", "socket timed out", "smoke-timeout"),
+            "observe",
+        ),
+        (policy.classify("install", "copy.stalled", "x", "copy-stalled"), "observe"),
+        (
+            policy.classify("review", "run-switch.resource.insufficient_capacity", "x"),
+            "observe",
+        ),
+        (
+            policy.classify("review", "run-switch.resource.insufficient_swap", "x"),
+            "wait",
+        ),
+        (policy.classify("start", "run.insufficient_swap", "x"), "wait"),
+        (
+            policy.classify(
+                "review", "run-switch.resource.demand_exceeds_capacity", "x"
+            ),
+            "fail",
+        ),
+        (policy.classify("review", "run.inventory_missing", "x"), "wait"),
+        (policy.classify("review", "node.gpu_unavailable", "x"), "wait"),
+        (policy.classify("review", "run.target_membership_changed", "x"), "wait"),
+        (policy.classify("review", "run.mapping_not_ready", "x"), "wait"),
+        (policy.classify("review", "run.capacity_busy", "x"), "wait"),
+        (
+            policy.classify("review", "run-switch.run_admission_unavailable", "x"),
+            "wait",
+        ),
+        (policy.classify("review", "resource.resident_usage_unknown", "x"), "wait"),
+        (policy.classify("review", "run.insufficient_memory", "x"), "observe"),
+        (policy.classify("start", "recipe.runtime_oom", "x"), "fail"),
+        (
+            policy.classify("start", "recipe.runtime_oom", "x", verdict.UNATTRIBUTED),
+            "observe",
+        ),
+        (policy.classify("smoke", "case.M0", "wrong", "smoke-assertion"), "fail"),
+        (policy.classify("timeout", "load.timeout", "silent"), "fail"),
+    ],
+)
+def test_outcomes_spend_attempts_only_when_uncertain(
+    failure: policy.Failure, expected: str
+) -> None:
+    assert verdict.disposition(failure).value == expected
+
+
+# -- behaviour on a fake clock -------------------------------------------------------------
+
+
+def test_a_controller_hold_releases_and_replans_without_an_attempt(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    # A held admission's wait is the Controller's: its expiry records the content identity.
+    held = FakeRecipe(
+        "big", ("1" * 64,), content="b" * 64, blocked=True, blocked_for=30 * HOUR
+    )
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [held],
+        [FakeModel("1" * 64)],
+        gateway=gateway,
+        timeouts=_timeouts(600),
+        poll_seconds=300.0,
+    )
+    _drive(
+        sweep,
+        clock,
+        until=lambda: any(r["step"] == "requeue" for r in sweep.log.entries()),
+    )
+    assert held.key not in sweep.state.slots
+    assert sweep.state.status(held.key) == "pending"
+    assert sweep.state.entry(held.key).get("attempts", 0) == 0
+    assert sweep.state.entry(held.key)["not_before"] > clock.now()
+    assert not any(c[:2] == ("profile", "cancel") for _, c in fleet.calls)
+
+
+def test_a_lane_whose_own_progress_is_silent_ends_stalled_with_evidence(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    silent = FakeRecipe("silent", load_seconds=10**7)
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [silent],
+        [FakeModel("m1")],
+        gateway=gateway,
+        timeouts=_timeouts(600),
+    )
+    _drive(sweep, clock, until=lambda: sweep.state.status(silent.key) == "deferred")
+    entry = sweep.state.entry(silent.key)
+    assert entry["failure_class"] == "timeout"
+    assert "no progress for" in entry["error"]
+    row = next(
+        r
+        for r in sweep.log.entries()
+        if r["recipe"] == silent.key and r["status"] == "deferred"
+    )
+    assert row["controller_document"]["state"] == "running"  # the document it ended on
+    assert any(c[:2] == ("profile", "cancel") for _, c in fleet.calls)
+
+
+def test_a_busy_smoke_spends_no_attempt(tmp_path: Path, gateway: Gateway) -> None:
+    gateway.busy = 3  # 503 three times, then the engine answers
+    sweep, _, clock = make_sweep(
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+    )
+    _drive(sweep, clock, until=lambda: sweep.state.status("vonk-forge/a") == "passed")
+    entry = sweep.state.entry("vonk-forge/a")
+    assert entry["attempts"] == 1  # only the pass
+    waits = [
+        r
+        for r in sweep.log.entries()
+        if r["step"] == "smoke" and r["status"] == "waiting"
+    ]
+    assert waits and all(r["failure_class"] == verdict.SMOKE_BUSY for r in waits)
+    assert waits[0]["evidence"]["http_status"] == 503
+
+
+def test_a_refused_load_is_recorded_never_resubmitted_identically(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+    )
+    real = fleet.runner
+    refusal = _document("cli-recipe-refusal")
+
+    def runner(argv, timeout):
+        args = list(argv)
+        placement = (
+            "load" in args
+            and "--request-key" in args
+            and "--review" not in args
+            and args[args.index("--profile") + 1] == str(sweep.cfg.sweep_profile)
+        )
+        if placement:
+            fleet.calls.append((sweep.cfg.sweep_profile, ("profile", "load")))
+            return 2, json.dumps(refusal), ""
+        return real(argv, timeout)
+
+    sweep.vk.runner = runner
+    _drive(sweep, clock, until=lambda: sweep.state.status("vonk-forge/a") == "failed")
+    for _ in range(30):  # the sweep keeps running: nothing places the same plan again
+        sweep.tick()
+        clock.sleep(sweep.cfg.poll_seconds)
+    submits = [c for p, c in fleet.calls if c == ("profile", "load")]
+    assert len(submits) == 1
+    entry = sweep.state.entry("vonk-forge/a")
+    assert entry["code"] == "recipe.invalid_option"
+    assert "option_choices" in entry["evidence"]["reply"]
+
+
+def test_every_requeue_leaves_a_results_row(tmp_path: Path, gateway: Gateway) -> None:
+    recipes = [FakeRecipe("a", load_seconds=600), FakeRecipe("b", load_seconds=600)]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, [FakeModel("m1")], gateway=gateway
+    )
+
+    def owner_takes_the_fleet(_now: float) -> None:
+        if sweep.state.slots and not fleet.profiles.get(2, {}).get("latest"):
+            fleet.owner_load(2, duration=300)
+
+    clock.hooks.append(owner_takes_the_fleet)
+    _drive(
+        sweep,
+        clock,
+        until=lambda: any(r["step"] == "requeue" for r in sweep.log.entries()),
+    )
+    requeues = [r for r in sweep.log.entries() if r["step"] == "requeue"]
+    assert requeues
+    for row in requeues:
+        assert row["reason"] and row["status"] == "requeued"
+        assert row["controller_document"]["id"]  # the application it was last seen in
+
+
+def test_profile_retry_wait_has_one_current_location() -> None:
+    from spark_sweep.lifecycle import LifecycleState
+    from spark_sweep.sweep_contract import SweepWaitReason
+
+    due = "2026-10-21T07:00:00Z"
+    signal = verdict.application_signal(
+        {"state": LifecycleState.RUNNING, "next_attempt_at": due}
+    )
+    assert signal.wait is not None
+    assert signal.wait.reason == SweepWaitReason.CONTROLLER_RETRY
+    assert (
+        verdict.application_signal(
+            {"state": LifecycleState.RUNNING, "progress": {"retry_due_at": due}}
+        ).wait
+        is None
+    )
+
+
+@pytest.mark.parametrize(
+    ("blockers", "expected"),
+    [
+        (
+            ["resource.resident_usage_unknown", "run-switch.run_admission_blocked"],
+            "resource.resident_usage_unknown",
+        ),
+        (
+            ["run-switch.run_admission_blocked", "run.stale_inventory"],
+            "run.stale_inventory",
+        ),
+        (
+            ["run-switch.run_admission_blocked", "run.insufficient_memory"],
+            "run.insufficient_memory",
+        ),
+        (
+            ["run-switch.run_admission_blocked", "run.insufficient_swap"],
+            "run.insufficient_swap",
+        ),
+        (
+            ["run-switch.resource.insufficient_swap", "run.insufficient_memory"],
+            "run.insufficient_memory",
+        ),
+        (
+            ["node.gpu_requires_reset", "run-switch.resource.demand_exceeds_capacity"],
+            "run-switch.resource.demand_exceeds_capacity",
+        ),
+        ([], "review.blocked"),
+    ],
+)
+def test_the_deciding_review_blocker_is_picked_over_the_whole_set(
+    blockers: list[str], expected: str
+) -> None:
+    pairs = [(code, f"{code} detail") for code in blockers]
+    for ordered in (pairs, pairs[::-1]):
+        code, detail = policy.review_blocker(ordered)
+        assert code == expected
+        assert all(f"{c}: {d}" in detail for c, d in ordered)
+
+
+def test_a_preparation_blocker_outranks_a_swap_wait_but_not_a_final_word() -> None:
+    prep = next(iter(sorted(verdict.PREPARATION_CODES)))
+    swap = "run-switch.resource.insufficient_swap"
+    final = "resource.demand_exceeds_capacity"
+    assert (
+        policy.review_blocker([(swap, ""), (prep, "")], verdict.PREPARATION_CODES)[0]
+        == prep
+    )
+    assert (
+        policy.review_blocker([(prep, ""), (final, "")], verdict.PREPARATION_CODES)[0]
+        == final
+    )
+
+
+def test_a_review_with_only_wrappers_takes_the_first_word() -> None:
+    pairs = [
+        ("run-switch.run_admission_blocked", "a"),
+        ("run-switch.run_admission_unavailable", "b"),
+    ]
+    assert policy.review_blocker(pairs)[0] == "run-switch.run_admission_blocked"

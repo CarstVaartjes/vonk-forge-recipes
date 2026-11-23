@@ -1,0 +1,511 @@
+"""Require vendored adapter files to be byte-identical to upstream at the pinned commit.
+
+Adapter code under ``adapters/`` follows its upstream recipe. For every adapter
+whose Dockerfile names a GitHub source and a pinned commit
+(``org.opencontainers.image.source`` / ``org.opencontainers.image.revision``, or
+the ``source`` block of the adapter's ``vendored-upstream.json``), each local
+file is classified:
+
+* the ``Dockerfile`` and the manifest itself are ours;
+* files listed under ``ours`` in ``vendored-upstream.json`` (or under a
+  directory listed there with a trailing ``/``) are platform additions and are
+  not compared;
+* a file whose path (or ``renamed`` target, or ``upstream-<name>`` /
+  ``<name>.upstream`` provenance spelling) exists upstream must have the same
+  git blob sha as upstream's file at the commit;
+* a file that is not at any upstream path but is byte-identical to an upstream
+  file elsewhere must be added to ``renamed``; one that shares a unique
+  basename with an upstream file has drifted after a rename and fails;
+* in an adapter that vendors upstream files, any other file must be listed
+  under ``ours``;
+* files under a path prefix of an ``also`` entry come from that second upstream
+  (``repo`` at ``commit``) and must have the same git blob sha at the same path.
+
+Adapters that carry no upstream-derived file and have no manifest (they only
+add our wrapper on top of a published image) are reported, not compared.
+Adapters without a GitHub source and commit are skipped and named in the output.
+
+Upstream trees are fetched by commit through the GitHub API (``GITHUB_TOKEN`` or
+``GH_TOKEN`` when set) and cached under ``$VONK_UPSTREAM_CACHE`` (default
+``~/.cache/vonk-forge-upstream``), keyed by commit sha; commits are immutable so
+the cache never needs invalidation.
+
+For a recipe built from a creator's kit the base is not authored here: the manifest's
+``kit`` block says where the kit declares it and ``kit-lock.json`` (derived by
+``tools/kit-pins``) holds the resolved commit that is compared below. A ``kit`` block
+that declares no base (only a model, a drafter or an image) leaves the adapter's own
+``source`` (or labels) as its source, and a manifest that holds only a ``kit`` block
+claims no vendored files.
+
+Manifest ``vendored-upstream.json``::
+
+    {
+      "source": {"repo": "owner/name", "commit": "<40 hex>"},   // optional
+      "ours": ["vllm-wrapper.py", "verify-runtime.py"],
+      "renamed": {"local/path.py": "upstream/path.py"},
+      "renamed_dirs": {"overlays/": "image-patch/"},
+      "also": [{"repo": "o/other", "commit": "<40 hex>", "files": ["other/"]}]
+    }
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+from collections import defaultdict
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from pathlib import Path, PurePosixPath
+from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.request import Request
+
+from recipe_tooling.paths import REPO_ROOT
+from recipe_tooling.upstream_http import UpstreamBusy, fetch
+
+ROOT = REPO_ROOT
+
+MANIFEST = "vendored-upstream.json"
+KIT_LOCK = "kit-lock.json"  # derived by tools/kit-pins from the kit the recipe pins
+SHA = re.compile(r"^[0-9a-f]{40}$")
+GITHUB = re.compile(
+    r"^https://github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?$"
+)
+LABEL_SOURCE = re.compile(r'org\.opencontainers\.image\.source="([^"]+)"')
+LABEL_REVISION = re.compile(r'org\.opencontainers\.image\.revision="([^"]+)"')
+# Basenames too generic to identify a renamed upstream file.
+GENERIC_BASENAMES = frozenset(
+    {
+        "__init__.py",
+        "README.md",
+        "LICENSE",
+        "LICENSE.md",
+        "NOTICE",
+        "requirements.txt",
+        "pyproject.toml",
+        "run.py",
+        "setup.py",
+        "config.json",
+    }
+)
+
+
+@dataclass(frozen=True, slots=True)
+class Tree:
+    """Blob shas of an upstream commit; ``complete`` is false when GitHub truncated it."""
+
+    blobs: dict[str, str]
+    complete: bool
+
+
+@dataclass(frozen=True, slots=True)
+class AlsoSource:
+    """One ``also`` manifest entry: a second upstream and the path prefixes taken from it."""
+
+    repo: str
+    commit: str
+    files: tuple[str, ...]
+
+
+def parse_also(raw: object) -> tuple[list[AlsoSource], list[str]]:
+    """The typed ``also`` entries and a message for each malformed one."""
+    if not isinstance(raw, list):
+        return [], ["must be a list of {repo, commit, files} objects"]
+    sources: list[AlsoSource] = []
+    problems: list[str] = []
+    for index, entry in enumerate(raw):
+        where = f"entry {index}"
+        if not isinstance(entry, dict):
+            problems.append(f"{where} must be an object, not {type(entry).__name__}")
+            continue
+        repo, commit, files = entry.get("repo"), entry.get("commit"), entry.get("files")
+        if not isinstance(repo, str) or not repo:
+            problems.append(f"{where} needs a repo string 'owner/name'")
+        elif not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+            problems.append(f"{where} ({repo}) needs a 40-hex commit string")
+        elif (
+            not isinstance(files, list)
+            or not files
+            or not all(isinstance(f, str) and f for f in files)
+        ):
+            problems.append(
+                f"{where} ({repo}) needs files: a non-empty list of path prefixes"
+            )
+        else:
+            sources.append(AlsoSource(repo, commit, tuple(files)))
+    return sources, problems
+
+
+TreeLoader = Callable[[str, str], Tree]
+
+
+@dataclass(slots=True)
+class Report:
+    adapter: str
+    source: str = ""
+    problems: list[str] = field(default_factory=list)
+    checked: int = 0
+    note: str = ""
+    # (problem, adapter path, upstream path) of every vendored copy that differs
+    stale: list[tuple[str, str, str]] = field(default_factory=list)
+
+
+def git_blob_sha(data: bytes) -> str:
+    return hashlib.sha1(
+        b"blob %d\0" % len(data) + data, usedforsecurity=False
+    ).hexdigest()
+
+
+def _token() -> str | None:
+    for name in ("GITHUB_TOKEN", "GH_TOKEN"):
+        if os.environ.get(name):
+            return os.environ[name]
+    try:
+        result = subprocess.run(
+            ["gh", "auth", "token"],
+            capture_output=True,
+            text=True,
+            timeout=20,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return result.stdout.strip() or None
+
+
+def _api(path: str, token: str | None) -> Any:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "vonk-forge-recipes",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    try:
+        return json.loads(
+            fetch(
+                Request(f"https://api.github.com/{path}", headers=headers),
+                lambda response: response.read(),
+            )
+        )
+    except (HTTPError, URLError) as error:
+        raise RuntimeError(f"GitHub API request failed for {path}: {error}") from error
+
+
+def unverified_mark(repo: str, commit: str) -> str:
+    """The provenance mark of a pin whose commit GitHub does not serve.
+
+    A recipe that runs a published image follows the image's digest; when the build
+    commit the image records is not on GitHub, ``vendored-upstream.json`` states the
+    commit with ``"unverified": unverified_mark(repo, commit)`` beside it, so the claim
+    is explicit rather than silent (tools/check-image-provenance, tools/refresh-upstream).
+    """
+    return f"commit {commit} not on github.com/{repo}"
+
+
+def commit_on_github(repo: str, commit: str) -> bool | None:
+    """Whether GitHub serves ``commit`` of ``repo``: ``None`` when it cannot be told.
+
+    Only a definitive answer counts: 200 is present, 404 or 422 ("No commit found") is
+    absent; rate limits, server errors and network failures are unknown.
+    """
+    token = _token()
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "vonk-forge-recipes",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    url = f"https://api.github.com/repos/{repo}/commits/{commit}"
+    try:
+        return fetch(Request(url, headers=headers), lambda response: True)
+    except HTTPError as error:
+        return False if error.code in {404, 422} else None
+    except (OSError, UpstreamBusy):  # unreachable, timed out, rate limited
+        return None
+
+
+def fetch_tree(repo: str, commit: str) -> Tree:
+    cache_dir = Path(
+        os.environ.get(
+            "VONK_UPSTREAM_CACHE", Path.home() / ".cache" / "vonk-forge-upstream"
+        )
+    )
+    cache = cache_dir / f"{repo.replace('/', '__')}@{commit}.json"
+    if cache.is_file():
+        cached = json.loads(cache.read_text())
+        return Tree(cached["blobs"], cached["complete"])
+    token = _token()
+    tree_sha = _api(f"repos/{repo}/commits/{commit}", token)["commit"]["tree"]["sha"]
+    listing = _api(f"repos/{repo}/git/trees/{tree_sha}?recursive=1", token)
+    blobs = {t["path"]: t["sha"] for t in listing["tree"] if t["type"] == "blob"}
+    complete = not listing.get("truncated", False)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache.write_text(json.dumps({"blobs": blobs, "complete": complete}, sort_keys=True))
+    return Tree(blobs, complete)
+
+
+def _source(adapter: Path, manifest: dict[str, Any]) -> tuple[str, str] | None:
+    if "base" in (manifest.get("kit") or {}).get("dependencies", {}):
+        # The base is what the kit declares, locked by tools/kit-pins; a hand-authored
+        # ``source`` beside a declaration is a duplicate pin and is rejected there. (A kit
+        # that declares only a model or an image has no base: ``source`` is the kit's own.)
+        lock = adapter / KIT_LOCK
+        if not lock.is_file():
+            return None
+        entry = json.loads(lock.read_text(encoding="utf-8"))["dependencies"].get("base")
+        return None if entry is None else (entry["repo"], entry["commit"])
+    declared = manifest.get("source")
+    if declared:
+        return declared["repo"], declared["commit"]
+    dockerfile = adapter / "Dockerfile"
+    text = dockerfile.read_text(encoding="utf-8", errors="replace")
+    source, revision = LABEL_SOURCE.search(text), LABEL_REVISION.search(text)
+    if not source or not revision:
+        return None
+    match = GITHUB.match(source.group(1))
+    if not match or not SHA.match(revision.group(1)):
+        return None
+    return match.group(1), revision.group(1)
+
+
+def _candidates(
+    rel: str, renamed: dict[str, str], renamed_dirs: dict[str, str]
+) -> list[str]:
+    if rel in renamed:
+        return [renamed[rel]]
+    for local_dir, upstream_dir in renamed_dirs.items():
+        if rel.startswith(local_dir):
+            return [upstream_dir + rel[len(local_dir) :]]
+    path = PurePosixPath(rel)
+    names = [rel]
+    name = path.name
+    if name.startswith("upstream-"):
+        names.append(str(path.with_name(name.removeprefix("upstream-"))))
+    if ".upstream" in name:
+        names.append(str(path.with_name(name.replace(".upstream", "", 1))))
+    return names
+
+
+def _local_files(adapter: Path, root: Path) -> list[str]:
+    nested = [p.parent for p in adapter.rglob("Dockerfile") if p.parent != adapter]
+    files: list[str] = []
+    for path in sorted(adapter.rglob("*")):
+        if not path.is_file() or path.is_symlink():
+            continue
+        if any(parent in path.parents for parent in nested):
+            continue
+        rel = path.relative_to(adapter).as_posix()
+        if "__pycache__" in path.parts or rel in {"Dockerfile", MANIFEST, KIT_LOCK}:
+            continue
+        files.append(rel)
+    return files
+
+
+def changed_paths(root: Path, base: str) -> set[str]:
+    """Paths this change touches against ``base`` (``base...HEAD``)."""
+    completed = subprocess.run(
+        ["git", "-C", str(root), "diff", "--name-only", f"{base}...HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return set(completed.stdout.split())
+
+
+def check_adapter(
+    adapter: Path,
+    root: Path,
+    load_tree: TreeLoader,
+    on_github: Callable[[str, str], bool | None] = commit_on_github,
+    changed: bool = False,
+) -> Report:
+    """Problems and notes of one adapter; ``changed``: this change touches it."""
+    label = adapter.relative_to(root).as_posix()
+    report = Report(label)
+    manifest_path = adapter / MANIFEST
+    manifest: dict[str, Any] = (
+        json.loads(manifest_path.read_text()) if manifest_path.is_file() else {}
+    )
+    source = _source(adapter, manifest)
+    if source is None:
+        report.note = "skipped: no GitHub source and pinned commit"
+        return report
+    repo, commit = source
+    report.source = f"{repo}@{commit[:12]}"
+    mark = (manifest.get("source") or {}).get("unverified")
+    if mark is not None:
+        if mark != unverified_mark(repo, commit):
+            report.problems.append(
+                f"{label}: {MANIFEST} source.unverified must read "
+                f"'{unverified_mark(repo, commit)}', not '{mark}'"
+            )
+        elif on_github(repo, commit):
+            # GitHub serves the commit again. A change to this adapter must drop the mark
+            # (kit-pins skips the lock re-read while it stands); any other change only
+            # sees a note, so the stale mark never blames an unrelated PR or refresh.
+            served = (
+                f"{repo}@{commit[:12]} is on GitHub now; remove source.unverified "
+                f"from {MANIFEST}"
+            )
+            if changed:
+                report.problems.append(f"{label}: {served}")
+            else:
+                report.note = served
+        else:
+            report.note = f"provenance unverified ({mark}): vendored files not judged"
+        return report
+    try:
+        tree = load_tree(repo, commit)
+    except RuntimeError as error:
+        report.problems.append(
+            f"{label}: cannot read upstream {repo}@{commit}: {error}"
+        )
+        return report
+    ours = set(manifest.get("ours", []))
+    renamed: dict[str, str] = manifest.get("renamed", {})
+    renamed_dirs: dict[str, str] = manifest.get("renamed_dirs", {})
+    files = _local_files(adapter, root)
+    also_sources, malformed = parse_also(manifest.get("also", []))
+    if malformed:
+        report.problems.extend(f"{label}: {MANIFEST} also {m}" for m in malformed)
+        return report
+    also: list[tuple[AlsoSource, Tree]] = []
+    for extra in also_sources:
+        try:
+            also.append((extra, load_tree(extra.repo, extra.commit)))
+        except RuntimeError as error:
+            report.problems.append(
+                f"{label}: cannot read upstream {extra.repo}@{extra.commit}: {error}"
+            )
+            return report
+    for entry in sorted(ours | set(renamed) | {p for e, _ in also for p in e.files}):
+        if not any(
+            f == entry or (entry.endswith("/") and f.startswith(entry)) for f in files
+        ):
+            report.problems.append(
+                f"{label}: {MANIFEST} names '{entry}', which is not in the adapter"
+            )
+    by_sha: dict[str, list[str]] = defaultdict(list)
+    by_name: dict[str, list[str]] = defaultdict(list)
+    for path, sha in tree.blobs.items():
+        by_sha[sha].append(path)
+        by_name[PurePosixPath(path).name].append(path)
+    # A manifest that only says where the kit declares its dependencies claims no files.
+    vendored = bool(set(manifest) - {"kit"})
+    unclassified: list[str] = []
+    weak_problems: list[str] = []
+    for rel in files:
+        if rel in ours or any(o.endswith("/") and rel.startswith(o) for o in ours):
+            continue
+        local_sha = git_blob_sha((adapter / rel).read_bytes())
+        second = next(((e, t) for e, t in also if rel.startswith(e.files)), None)
+        if second is not None:
+            vendored = True
+            report.checked += 1
+            extra, extra_tree = second
+            if extra_tree.blobs.get(rel) != local_sha:
+                message = (
+                    f"{label}: {rel}: differs from upstream {extra.repo} {rel} "
+                    f"at {extra.commit[:12]}"
+                )
+                report.problems.append(message)
+            continue
+        candidates = _candidates(rel, renamed, renamed_dirs)
+        present = [c for c in candidates if c in tree.blobs]
+        if rel in renamed and not present:
+            report.problems.append(
+                f"{label}: {rel}: renamed target '{renamed[rel]}' is missing upstream at {commit[:12]}"
+            )
+            continue
+        if present:
+            weak = PurePosixPath(rel).name in GENERIC_BASENAMES
+            vendored = vendored or not weak
+            report.checked += 1
+            if not any(tree.blobs[c] == local_sha for c in present):
+                message = f"{label}: {rel}: differs from upstream {present[0]} at {commit[:12]}"
+                (weak_problems if weak else report.problems).append(message)
+                report.stale.append((message, rel, present[0]))
+            continue
+        if tree.complete and local_sha in by_sha:
+            vendored = True
+            report.problems.append(
+                f"{label}: {rel}: identical to upstream {by_sha[local_sha][0]}; "
+                f"add it to 'renamed' in {MANIFEST}"
+            )
+            continue
+        name = PurePosixPath(rel).name
+        same_name = by_name.get(name, [])
+        if tree.complete and name not in GENERIC_BASENAMES and len(same_name) == 1:
+            vendored = True
+            report.problems.append(
+                f"{label}: {rel}: differs from upstream {same_name[0]} "
+                f"(renamed and drifted?) at {commit[:12]}"
+            )
+            continue
+        unclassified.append(rel)
+    if vendored:
+        report.problems.extend(weak_problems)
+        for rel in unclassified:
+            report.problems.append(
+                f"{label}: {rel}: not in upstream at {commit[:12]} and not listed under "
+                f"'ours' in {MANIFEST}"
+            )
+    else:
+        report.note = "no upstream-derived files (wrapper on a published image)"
+    return report
+
+
+def adapter_dirs(root: Path) -> list[Path]:
+    found = sorted(p.parent for p in (root / "adapters").rglob("Dockerfile"))
+    # A nested Dockerfile belongs to the enclosing adapter's context.
+    return [p for p in found if not any(q != p and q in p.parents for q in found)]
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--base", default="origin/main")
+    arguments = parser.parse_args(argv)
+    # Imported here: tools/check-image-provenance loads this module on a bare
+    # interpreter; placing the declared files needs the contracts dependencies.
+    sys.path.insert(0, str(ROOT / "contracts" / "src"))
+    from recipe_tooling.adapter_sources import materialize_or_exit
+
+    materialize_or_exit(ROOT)
+    touched = changed_paths(ROOT, arguments.base)
+    reports = [
+        check_adapter(
+            adapter,
+            ROOT,
+            fetch_tree,
+            changed=any(
+                name.startswith(adapter.relative_to(ROOT).as_posix() + "/")
+                for name in touched
+            ),
+        )
+        for adapter in adapter_dirs(ROOT)
+    ]
+    failed = 0
+    for report in reports:
+        for problem in report.problems:
+            print(problem, file=sys.stderr)
+        failed += len(report.problems)
+    for report in reports:
+        if report.note:
+            print(f"note: {report.adapter}: {report.note}")
+    compared = sum(1 for r in reports if r.checked)
+    if failed:
+        print(
+            f"{failed} vendored-upstream problem(s) across "
+            f"{sum(1 for r in reports if r.problems)} adapter(s)",
+            file=sys.stderr,
+        )
+        return 1
+    print(
+        f"Vendored upstream files match their pinned commits ({compared} adapters compared)"
+    )
+    return 0

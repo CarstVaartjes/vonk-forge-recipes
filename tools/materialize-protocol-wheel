@@ -11,10 +11,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-sys.path.insert(0, str(ROOT))
-from tools.adapter_sources import AdapterSourceError
-from tools.adapter_sources import materialize as place_declared
-from tools.protocol_wheel import materialize
+sys.path.insert(0, str(ROOT / "src"))
+from recipe_tooling.adapter_sources import AdapterSourceError
+from recipe_tooling.adapter_sources import materialize as place_declared
+from recipe_tooling.protocol_wheel import materialize
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--check", action="store_true")

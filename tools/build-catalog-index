@@ -19,31 +19,31 @@ from typing import Any
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
 from vonk_forge_contracts import (
     INDEX_SCHEMA_ASSET,
     PACKAGE_MEDIA_TYPE,
     PACKAGE_SCHEMA_VERSION,
 )
 
-from qualification.image_evidence import load_images, read_images
-from qualification.tolerant import InputDiagnostic
-from tools.adapter_sources import materialize_or_exit
+from recipe_tooling.adapter_sources import materialize_or_exit
+from recipe_tooling.qualification.image_evidence import load_images, read_images
+from recipe_tooling.qualification.tolerant import InputDiagnostic
 
 
 def image_diagnostic(diagnostic: InputDiagnostic) -> None:
     print(diagnostic.model_dump_json(), file=sys.stderr)
 
 
-from qualification.case_assertions import require_valid_case_assertions
-from qualification.definitions_loader import load_definitions
-from qualification.media_types import require_canonical_recipe_media
-from qualification.memory_need import (
+from recipe_tooling.qualification.case_assertions import require_valid_case_assertions
+from recipe_tooling.qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.media_types import require_canonical_recipe_media
+from recipe_tooling.qualification.memory_need.evidence import (
     load_inputs,
-    memory_warnings,
     published_measured_peaks,
 )
-from qualification.service_aliases import require_valid_service_aliases
+from recipe_tooling.qualification.memory_need.warnings import memory_warnings
+from recipe_tooling.qualification.service_aliases import require_valid_service_aliases
 
 QUALIFICATION_ROOT = ROOT / "qualification"
 # Control planes fetch oversized Contents API entries by immutable Git blob SHA.
@@ -686,13 +686,13 @@ def build(
         validate_recipe_apis,
     )
 
-    from qualification.documents import (
+    from recipe_tooling.qualification.documents import (
         families,
         model_display,
         recipe_api,
         recipe_display,
     )
-    from qualification.documents import recipe as recipe_of
+    from recipe_tooling.qualification.documents import recipe as recipe_of
 
     memory_models = {
         document_sha256(document): ModelDefinition.model_validate(document)
@@ -770,7 +770,7 @@ def build(
         published_status,
     )
 
-    from qualification.evidence_store import read_evidence
+    from recipe_tooling.qualification.evidence_store import read_evidence
 
     recipe_by_slug = {item.identity.slug: item for item in recipe_documents}
     for entry in recipes:

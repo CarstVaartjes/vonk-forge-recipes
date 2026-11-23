@@ -1,0 +1,94 @@
+"""Hardware-calibrated per-node vLLM envelopes, shared by producer guards."""
+
+import json
+from decimal import Decimal
+
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+from vonk_forge_contracts.memory_admission import evaluate_memory_admission
+
+from recipe_tooling.paths import REPO_ROOT
+from recipe_tooling.qualification.memory_need.constants import (
+    ADMISSION_IDLE_USE_BYTES,
+    OS_FLOOR_BYTES,
+    SPARK_MEMORY_BYTES,
+    VLLM_DEFAULT_UTILIZATION,
+    budget_margin_bytes,
+)
+
+# A speculative drafter holds nothing beside `gpu-memory-utilization`, whatever
+# mechanism loads it (vLLM v0.30.0 lines; the same accounting at af5b4857e,
+# the DFlash2 image's vLLM): the worker snapshots free memory (gpu_worker.py:451, psutil
+# available on unified memory, mem_utils.py:143-150) before load_model loads the
+# target and then the drafter (gpu_model_runner.py:5347-5350, every
+# speculative-config method incl. custom proposers, :629-682); profile_run runs
+# drafter.dummy_run (:6225) and the CUDA graph estimate captures it (default
+# on, envs.py:2109); the KV budget is the requested share less everything
+# consumed since the snapshot (mem_utils.py:312-321, gpu_worker.py:621-625), and
+# the drafter's attention layers draw on that pool. Its weights therefore count
+# inside the budget (memory_need.bounded_kv_warnings). On hardware the
+# pool-less single-Spark runs with a separate drafter held at most 9.9 GB beside
+# utilization x memory with the OS included, inside the 8 GB overhead plus the
+# 6 GB OS floor (the proven DFlash single Nemotron 3.5 Bolt at 0.7 held 1.4 and
+# 3.0 GB). The 2026-10-13 DFlash2 freeze at 0.7 (image 155ce16b, the one run of
+# that document that reached serving) is unexplained and 0.7 has not run since;
+# the 0.6 document passed on 431593a0 with 3.7 GB beside its budget. A term
+# beside the budget raised only the declared reservation, not what vLLM holds.
+
+
+def assert_memory_fit(recipe: RecipeDefinition) -> None:
+    arguments = [
+        argument
+        for argument in recipe.runtime.arguments
+        if argument.name == "gpu-memory-utilization"
+    ]
+    utilization = VLLM_DEFAULT_UTILIZATION
+    if arguments:
+        argument = arguments[-1]
+        assert argument.setting is None, "Memory utilization must be a fixed budget"
+        utilization = Decimal(str(argument.value))
+    assert 0 < utilization <= 1
+    if not arguments and any(
+        item.name == "kv-cache-memory-bytes" for item in recipe.runtime.arguments
+    ):
+        # Need-based documents omit utilization: do not invent an implicit 0.9
+        # reservation. Keep explicitly authored historical budgets calibrated.
+        from recipe_tooling.qualification.memory_need.evidence import load_inputs
+        from recipe_tooling.qualification.memory_need.need import calculate_need
+
+        assert recipe.topology.node_count == 1, (
+            "Absolute multi-Spark pools need a per-rank need model"
+        )
+        root = REPO_ROOT
+        models: dict[str, ModelDefinition] = {}
+        for selection in recipe.models:
+            document = json.loads(
+                (root / "models" / f"{selection.model.slug}.json").read_text()
+            )
+            models[document_sha256(document)] = ModelDefinition.model_validate(document)
+        need = calculate_need(recipe, models, load_inputs())
+        required_peak = Decimal(need.total_bytes)
+    else:
+        required_peak = utilization * SPARK_MEMORY_BYTES + budget_margin_bytes(recipe)
+    for role in recipe.topology.roles:
+        memory = role.resources.memory
+        label = f"{recipe.identity.slug}/{role.name} at utilization {utilization}"
+        assert memory.peak_bytes >= required_peak, (
+            f"{label}: peak {memory.peak_bytes} understates GPU budget plus overhead "
+            f"{required_peak}"
+        )
+        assert evaluate_memory_admission(
+            memory.peak_bytes,
+            SPARK_MEMORY_BYTES,
+            occupied_bytes=ADMISSION_IDLE_USE_BYTES,
+            memory_floor_bytes=OS_FLOOR_BYTES,
+        ).admissible, (
+            f"{label}: peak plus OS floor exceeds an idle Spark's available memory"
+        )
+
+
+# The incident recipe at 0.85 measured 122_005_303_296 bytes on spark-3542
+# (2026-10-15/16): its overhead beside the utilization share, and the idle
+# available memory of that Spark, which the peak and the OS floor must fit.
+INCIDENT_MEASURED_OVERHEAD_BYTES = 122_005_303_296 - int(
+    Decimal("0.85") * SPARK_MEMORY_BYTES
+)

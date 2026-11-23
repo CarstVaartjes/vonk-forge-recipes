@@ -1,0 +1,710 @@
+"""Saved verdicts drive content-bound fleet removal, independent of recipe work."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+from repo_root import FIXTURES
+from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+
+from spark_sweep.lifecycle import LifecycleState
+from spark_sweep.removal_contract import RecipeVerdict, RemovalOutcome, RemovalRecord
+from spark_sweep.report import build_status
+from spark_sweep.state import State
+from spark_sweep.vonkctl import Vonkctl
+
+FIXTURES = FIXTURES / "sweep-removal"
+MAX_BACKOFF_SECONDS = 3600.0
+A, B, C, D = (letter * 64 for letter in "abcd")
+
+
+def fixture(name: str):
+    return json.loads((FIXTURES / f"{name}.json").read_text())
+
+
+class RemovalPeer:
+    def __init__(self, sweep, fleet):
+        self.sweep = sweep
+        self.fleet = fleet
+        self.calls = []
+        self.state = LifecycleState.SUCCEEDED
+        self.profiles = [
+            {
+                "number": 20,
+                "definition": {
+                    "assignments": [{"recipe_selector": "vonk-forge/owner"}]
+                },
+            }
+        ]
+        self.lost = False
+        self.conflict = False
+        self.crash = False
+        self.blocked = False
+        self.mismatch = False
+
+    def runner(self, argv, timeout):
+        args = list(argv)[3:]
+        if args == ["profile", "list"]:
+            return 0, json.dumps({"profiles": self.profiles}), ""
+        if args[:2] != ["model", "remove"]:
+            return self.fleet.runner(argv, timeout)
+        self.calls.append(args)
+        digest = args[2]
+        if "--review" in args:
+            review = fixture("review")
+            review.update(
+                selector=digest, target_identity=C if self.mismatch else digest
+            )
+            if self.blocked:
+                review["blockers"] = [fixture("blocker")]
+            return 2 if self.blocked else 0, json.dumps(review), ""
+        request = args[args.index("--request-key") + 1]
+        persisted = State.load(self.sweep.state.path).data["model_removals"][digest]
+        assert persisted["request_key"] == request  # write-ahead before effects
+        if self.crash and digest == A:  # faults hit the model under test, A
+            self.crash = False
+            raise KeyboardInterrupt
+        if self.conflict and digest == A:
+            self.conflict = False
+            return 2, json.dumps(fixture("conflict")), ""
+        if self.lost and digest == A:
+            self.lost = False
+            return 124, "", "connection lost after acceptance"
+        receipt = fixture("receipt")
+        receipt.update(
+            request_key=request, model_content_sha256=digest, state=self.state
+        )
+        receipt["result"]["removed_entries"] = [digest]
+        if self.state != LifecycleState.SUCCEEDED:
+            receipt["result"] = None
+            receipt["failure"] = fixture("failure")
+        return 0, json.dumps(receipt), ""
+
+    @property
+    def submissions(self):
+        return [args for args in self.calls if "--review" not in args]
+
+
+def scenario(tmp_path, *, extra: int = 0):
+    """The saved campaign, plus ``extra`` passed recipes that each own one more model."""
+    extra_digests = [f"{0xE0 + index:064x}" for index in range(extra)]
+    state = fixture("state")
+    for index in range(extra):
+        state["recipes"][f"vonk-forge/x{index}"] = {
+            "status": "passed",
+            "content_sha256": "c1",
+        }
+    (tmp_path / "state.json").write_text(json.dumps(state))
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [
+            FakeRecipe("a", digests=(A, B)),
+            FakeRecipe("b", digests=(A,)),
+            FakeRecipe("owner", digests=(C,)),
+            FakeRecipe("later", digests=(D,)),
+            *(
+                FakeRecipe(f"x{index}", digests=(digest,))
+                for index, digest in enumerate(extra_digests)
+            ),
+        ],
+        [FakeModel(digest, local="cached") for digest in (A, B, C, D, *extra_digests)],
+    )
+    from spark_sweep.catalog import parse_recipe
+    from spark_sweep.identity import content_identity
+
+    # These fixtures represent current verdicts, with accepted runtime evidence.
+    for key, entry in sweep.state.recipes.items():
+        accepted = parse_recipe(fleet._recipe_row(fleet.recipes[key]))
+        assert accepted is not None
+        entry["verdict_identity"] = content_identity(accepted).model_dump(mode="json")
+    sweep.refresh_catalog()
+    peer = RemovalPeer(sweep, fleet)
+    sweep.vk = Vonkctl(runner=peer.runner)
+    if hasattr(sweep, "model_remover"):
+        sweep.model_remover.vk = sweep.vk
+    return sweep, peer, clock
+
+
+def advance(sweep, clock):
+    """Everything is due again: one tick per record, each advancing the oldest due one."""
+    clock.t += MAX_BACKOFF_SECONDS + 1
+    for _ in range(4):  # the scenario's eligible models (A, B), with room to spare
+        sweep.remove_finished_models()
+
+
+def test_shared_and_secondary_models_wait_for_every_current_verdict(tmp_path):
+    sweep, peer, clock = scenario(tmp_path)
+    sweep.state.recipes["vonk-forge/b"]["status"] = RecipeVerdict.PENDING
+    sweep.remove_finished_models()
+    assert [args[2] for args in peer.submissions] == [B]
+    sweep.state.recipes["vonk-forge/b"]["status"] = RecipeVerdict.FAILED
+    advance(sweep, clock)
+    assert [args[2] for args in peer.submissions] == [B, A]
+    assert C not in [args[2] for args in peer.submissions]
+    assert D not in sweep.state.data["model_removals"]
+    assert sweep.state.data["model_removals"][C]["outcome"] == RemovalOutcome.OWNER
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"status": RecipeVerdict.PENDING},
+        {"status": RecipeVerdict.DEFERRED},
+        {"status": RecipeVerdict.SKIPPED},
+        {"content_sha256": "old-content"},
+        {"not_before": 1e20},
+        {"defer_until": 1e20},
+    ],
+)
+def test_nonfinal_or_old_content_never_authorizes_removal(tmp_path, change):
+    sweep, peer, _ = scenario(tmp_path)
+    sweep.state.recipes["vonk-forge/a"].update(change)
+    sweep.remove_finished_models()
+    assert not peer.submissions
+
+
+@pytest.mark.parametrize("number", [1, 2, 3, 20, 87])
+def test_all_owner_profile_numbers_protect_every_role(tmp_path, number):
+    sweep, peer, _ = scenario(tmp_path)
+    peer.profiles = [
+        {
+            "number": number,
+            "definition": {"assignments": [{"recipe_selector": "vonk-forge/a"}]},
+        }
+    ]
+    sweep.remove_finished_models()
+    assert all(args[2] not in (A, B) for args in peer.submissions)
+
+
+@pytest.mark.parametrize("owned", [False, True])
+def test_only_a_still_owned_sweep_profile_is_excluded(tmp_path, owned):
+    sweep, peer, _ = scenario(tmp_path)
+    peer.profiles = [
+        {
+            "number": sweep.cfg.sweep_profile,
+            "definition": {
+                "labels": {"purpose": "hardware-sweep"} if owned else {},
+                "assignments": [{"recipe_selector": "vonk-forge/a"}],
+            },
+        }
+    ]
+    sweep.remove_finished_models()
+    assert any(args[2] in (A, B) for args in peer.submissions) is owned
+
+
+def test_owner_variant_without_list_digests_neither_blocks_nor_unprotects(tmp_path):
+    sweep, peer, _ = scenario(tmp_path)
+    peer.profiles = [
+        {
+            "number": 20,
+            "definition": {
+                "assignments": [
+                    {"recipe_selector": "vonk-forge/b", "model_variant": "int4"}
+                ]
+            },
+            "assignments": [{"recipe_selector": "vonk-forge/b", "model": {}}],
+        }
+    ]
+    for _ in range(3):
+        sweep.remove_finished_models()
+    submitted = {args[2] for args in peer.submissions}
+    assert B in submitted and A not in submitted  # A is b's digest: protected
+    assert sweep.state.data["model_removals"][A]["message"] == (
+        "referenced by an owner profile"
+    )
+
+
+def test_owner_unknown_blocks_only_removal_and_heals(tmp_path):
+    sweep, peer, clock = scenario(tmp_path)
+    peer.profiles = [{"number": 20, "definition": None}]
+    sweep.remove_finished_models()
+    assert not peer.calls
+    assert "unavailable" in sweep.state.data["model_removals"][A]["message"]
+    assert sweep.pending()  # unfinished recipe work remains schedulable
+    peer.profiles = []
+    advance(sweep, clock)
+    assert peer.submissions
+
+
+def test_a_submit_refusal_keeps_its_typed_cause_and_the_key_then_heals(tmp_path):
+    """Catches validating a Controller error document as a receipt (a pydantic dump)."""
+    sweep, peer, clock = scenario(tmp_path)
+    peer.conflict = True
+    sweep.remove_finished_models()
+    record = sweep.state.data["model_removals"][A]
+    original = record["request_key"]
+    assert original is not None
+    conflict = fixture("conflict")
+    assert conflict["code"] in record["message"]
+    assert "http_status=409" in record["message"]
+    assert conflict["detail"] in record["message"]
+    assert "validation error" not in record["message"]
+    assert record["next_check"] > clock.now()
+    advance(sweep, clock)
+    assert [
+        args[args.index("--request-key") + 1]
+        for args in peer.submissions
+        if args[2] == A
+    ] == [original, original]
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.RECEIPT
+
+
+def test_many_due_records_rotate_by_their_persisted_next_check(tmp_path, monkeypatch):
+    """Catches a pass that always starts at the lowest digest: records that come due again
+    first keep the single slot per tick while the later ones stay overdue."""
+    from spark_sweep import removal
+
+    # The earliest retry the schedule allows, so a refused record is due again soon.
+    monkeypatch.setattr(removal, "uniform", lambda low, _high: low)
+    sweep, peer, clock = scenario(tmp_path, extra=8)
+    refused = fixture("error")
+    original_runner = peer.runner
+
+    def runner(argv, timeout):
+        if "--review" in argv:
+            peer.calls.append(list(argv)[3:])
+            return 2, json.dumps(refused), ""
+        return original_runner(argv, timeout)
+
+    sweep.model_remover.vk = Vonkctl(runner=runner)
+    for _ in range(30):
+        sweep.remove_finished_models()
+        clock.t += 20
+    reviewed = [args[2] for args in peer.calls if "--review" in args]
+    eligible = {
+        digest
+        for digest, record in sweep.state.data["model_removals"].items()
+        if record["outcome"] == RemovalOutcome.RETRY
+    }
+    assert len(eligible) >= 9
+    # Every record is reviewed before any is reviewed a second time.
+    first_round = reviewed[: len(eligible)]
+    assert set(first_round) == eligible
+
+
+@pytest.mark.parametrize("fault", ["lost", "crash"])
+def test_restart_reconnects_to_the_write_ahead_request(tmp_path, fault):
+    sweep, peer, clock = scenario(tmp_path)
+    setattr(peer, fault, True)
+    if fault == "crash":
+        with pytest.raises(KeyboardInterrupt):
+            sweep.remove_finished_models()
+    else:
+        sweep.remove_finished_models()
+    original = sweep.state.data["model_removals"][A]["request_key"]
+    sweep.state = State.load(sweep.state.path, clock.now)
+    sweep.model_remover.state = sweep.state
+    advance(sweep, clock)
+    submissions = [args for args in peer.submissions if args[2] == A]
+    assert len(submissions) == 2
+    assert all(
+        args[args.index("--request-key") + 1] == original for args in submissions
+    )
+    record = sweep.state.data["model_removals"][A]
+    assert record["outcome"] == RemovalOutcome.RECEIPT
+    assert record["receipt"]["request_key"] == original
+    status = build_status(sweep)
+    assert status["model_removals"][A]["request_key"] == original
+
+
+def test_one_pass_over_many_removals_saves_once(tmp_path):
+    sweep, peer, clock = scenario(tmp_path, extra=3)
+    peer.profiles = [
+        {"number": 20}
+    ]  # unreadable: every eligible model is held, none advanced
+    saves = 0
+    save = sweep.state.save
+
+    def counting_save() -> None:
+        nonlocal saves
+        saves += 1
+        save()
+
+    sweep.state.save = counting_save
+    sweep.model_remover.tick(sweep.recipes, set(), clock.now())
+    held = list(sweep.state.data["model_removals"].values())
+    assert len(held) > 3 and all(r["outcome"] == RemovalOutcome.OWNER for r in held)
+    assert saves == 1
+
+
+def _saved_bytes_after(tmp_path: Path, cycles: int) -> tuple[int, int]:
+    """Saved state and status bytes after ``cycles`` superseded downloads and removals."""
+    tmp_path.mkdir()
+    sweep, peer, clock = scenario(tmp_path)
+    recipe = sweep.recipes["vonk-forge/later"]
+    for _ in range(cycles):
+        sweep.prefetcher._request(recipe, "model")  # supersedes the previous attempt
+        peer.lost = True  # the review passes, the submitted request's reply is lost
+        advance(sweep, clock)
+        peer.state = LifecycleState.FAILED  # the same request ends in a failed receipt
+        advance(sweep, clock)
+        peer.state = LifecycleState.SUCCEEDED
+    saved = json.loads(sweep.state.path.read_text())
+    del saved["events"]  # the event log is capped at EVENT_LIMIT by design
+    status = json.dumps(build_status(sweep), sort_keys=True, default=str)
+    return len(json.dumps(saved)), len(status)
+
+
+def test_saved_state_does_not_grow_with_superseded_attempts(tmp_path):
+    """P17 guard: each save rewrites the state, so history must not accumulate in it."""
+    few = _saved_bytes_after(tmp_path / "few", 3)
+    many = _saved_bytes_after(tmp_path / "many", 30)
+    assert many[0] - few[0] < 256, (few, many)
+    assert many[1] - few[1] < 256, (few, many)
+
+
+def test_terminal_failure_replans_but_backoff_retains_the_request(tmp_path):
+    sweep, peer, clock = scenario(tmp_path)
+    peer.state = LifecycleState.BACKOFF
+    sweep.remove_finished_models()
+    original = sweep.state.data["model_removals"][A]["request_key"]
+    advance(sweep, clock)
+    assert sweep.state.data["model_removals"][A]["request_key"] == original
+    peer.state = LifecycleState.FAILED
+    advance(sweep, clock)
+    record = sweep.state.data["model_removals"][A]
+    assert record["outcome"] == RemovalOutcome.RETRY and record["request_key"] is None
+    peer.state = LifecycleState.SUCCEEDED
+    advance(sweep, clock)
+    assert sweep.state.data["model_removals"][A]["request_key"] != original
+
+
+def test_a_new_request_never_adopts_the_previous_failure_receipt(tmp_path):
+    sweep, peer, clock = scenario(tmp_path)
+    peer.state = LifecycleState.FAILED
+    sweep.remove_finished_models()
+    previous = sweep.state.data["model_removals"][A]["receipt"]
+    peer.lost = True
+    advance(sweep, clock)
+    record = sweep.state.data["model_removals"][A]
+    assert record["receipt"] is None
+    assert record["request_key"] != previous["request_key"]
+
+
+@pytest.mark.parametrize(
+    "fault", ["blocked", "mismatch", "terminal", "lost", "running"]
+)
+def test_repeated_failures_and_uncertainty_always_schedule_a_next_check(
+    tmp_path, fault
+):
+    sweep, peer, clock = scenario(tmp_path)
+    if fault == "terminal":
+        peer.state = LifecycleState.FAILED
+    elif fault == "running":
+        peer.state = LifecycleState.RUNNING
+    else:
+        setattr(peer, fault, True)
+    keys = []
+    for _ in range(12):
+        peer.lost = fault == "lost"
+        clock.t += 24 * 3600  # Controller deadlines never end local reconciliation.
+        advance(sweep, clock)
+        record = RemovalRecord.model_validate(sweep.state.data["model_removals"][A])
+        assert clock.now() < record.next_check <= clock.now() + MAX_BACKOFF_SECONDS
+        assert record.message
+        keys = [
+            args[args.index("--request-key") + 1]
+            for args in peer.submissions
+            if args[2] == A
+        ]
+        sweep.state = State.load(sweep.state.path, clock.now)
+        sweep.model_remover.state = sweep.state
+    if fault in ("blocked", "mismatch"):
+        assert not peer.submissions
+        assert record.outcome == RemovalOutcome.RETRY
+    elif fault == "terminal":
+        assert len(set(keys)) == 12
+        reviews = [args for args in peer.calls if "--review" in args and args[2] == A]
+        assert len(reviews) >= 12
+    else:
+        assert len(keys) == 12 and len(set(keys)) == 1
+        assert record.outcome == RemovalOutcome.WAIT
+        assert record.request_key is not None
+    assert sweep.pending()
+
+
+@pytest.mark.parametrize("change", ["pending", "retrying", "owner"])
+@pytest.mark.parametrize("uncertain", [False, True])
+def test_eligibility_loss_drops_pending_removal_before_its_next_check(
+    tmp_path, change, uncertain
+):
+    sweep, peer, clock = scenario(tmp_path)
+    peer.state = LifecycleState.RUNNING
+    peer.lost = uncertain
+    sweep.remove_finished_models()
+    original = sweep.state.data["model_removals"][A]["request_key"]
+    submissions = len([args for args in peer.submissions if args[2] == A])
+    if change == "owner":
+        peer.profiles[0]["definition"]["assignments"] = [
+            {"recipe_selector": "vonk-forge/a"}
+        ]
+    elif change == "retrying":
+        sweep.state.recipes["vonk-forge/a"]["not_before"] = clock.now() + 1e6
+    else:
+        sweep.state.recipes["vonk-forge/a"]["status"] = RecipeVerdict.PENDING
+    sweep.remove_finished_models()
+    record = sweep.state.data["model_removals"].get(A)
+    assert record is None or record["request_key"] is None
+    advance(sweep, clock)
+    assert len([args for args in peer.submissions if args[2] == A]) == submissions
+    peer.profiles = []
+    sweep.state.recipes["vonk-forge/a"].update(
+        status=RecipeVerdict.PASSED, not_before=0
+    )
+    peer.state = LifecycleState.SUCCEEDED
+    advance(sweep, clock)
+    assert sweep.state.data["model_removals"][A]["request_key"] != original
+
+
+def test_an_overdue_submitted_record_reconnects_despite_unsubmitted_models(tmp_path):
+    """Catches unsubmitted digests (no record, next_check 0) taking the tick's slot."""
+    sweep, peer, clock = scenario(tmp_path)
+    peer.lost = True
+    sweep.remove_finished_models()  # A is submitted; B is still unsubmitted
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.WAIT
+    clock.t += MAX_BACKOFF_SECONDS + 1
+    sweep.remove_finished_models()  # a single tick
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.RECEIPT
+
+
+def test_partial_catalog_and_live_slots_never_authorize_removal(tmp_path):
+    sweep, peer, _ = scenario(tmp_path)
+    sweep.recipe_list.in_pass = True
+    sweep.remove_finished_models()
+    assert not peer.calls
+    sweep.recipe_list.in_pass = False
+    sweep.state.slots["vonk-forge/a"] = {}
+    sweep.remove_finished_models()
+    assert not peer.submissions
+
+
+def test_the_scheduler_requests_removal_from_saved_verdicts(tmp_path):
+    sweep, peer, clock = scenario(tmp_path)
+    # Keep the remaining recipe queued while the normal tick runs all its work.
+    sweep.state.entry("vonk-forge/later")["not_before"] = clock.now() + 10000
+    sweep.tick()
+    assert peer.submissions
+
+
+def test_final_pass_submits_every_eligible_model_without_waiting(tmp_path):
+    sweep, peer, _ = scenario(tmp_path)
+    peer.state = LifecycleState.RUNNING
+    sweep.remove_finished_models(final=True)
+    assert {args[2] for args in peer.submissions} == {A, B}
+    assert all(
+        item["outcome"] != RemovalOutcome.RECEIPT
+        for item in sweep.state.data["model_removals"].values()
+    )
+
+
+def test_retesting_rearms_cleanup_with_a_new_request(tmp_path):
+    sweep, _peer, clock = scenario(tmp_path)
+    sweep.remove_finished_models()
+    original = sweep.state.data["model_removals"][A]["request_key"]
+    sweep.state.recipes["vonk-forge/a"]["status"] = RecipeVerdict.PENDING
+    advance(sweep, clock)
+    sweep.state.recipes["vonk-forge/a"]["status"] = RecipeVerdict.PASSED
+    advance(sweep, clock)
+    record = sweep.state.data["model_removals"][A]
+    assert record["request_key"] != original
+
+
+@pytest.mark.parametrize(
+    "retryable,http_status",
+    [(False, 500), (True, 503), (True, None), (True, "omitted")],
+)
+def test_review_error_keeps_typed_cause_and_backoff_then_heals(
+    tmp_path, retryable, http_status
+):
+    """Catches parsing a Controller error as a review and losing its cause."""
+    from spark_sweep.removal_contract import RemovalReplyError
+
+    sweep, peer, clock = scenario(tmp_path)
+    document = fixture("error")
+    document["retryable"] = retryable
+    if http_status == "omitted":
+        del document["http_status"]
+    else:
+        document["http_status"] = http_status
+    fault = RemovalReplyError.model_validate(document)
+    original_runner = peer.runner
+
+    def runner(argv, timeout):
+        if "--review" in argv:
+            peer.calls.append(list(argv)[3:])
+            return 2, json.dumps(document), ""
+        return original_runner(argv, timeout)
+
+    sweep.model_remover.vk = Vonkctl(runner=runner)
+    sweep.remove_finished_models()
+    record = RemovalRecord.model_validate(sweep.state.data["model_removals"][A])
+    assert record.outcome == RemovalOutcome.RETRY
+    assert record.request_key is None
+    assert fault.code in record.message
+    assert f"http_status={fault.http_status}" in record.message
+    assert f"retryable={retryable}" in record.message
+    assert fault.detail in record.message
+    assert "validation error" not in record.message
+    assert not peer.submissions
+    assert clock.now() < record.next_check <= clock.now() + record.backoff_seconds
+    calls = sum(args[2] == A for args in peer.calls)
+    sweep.remove_finished_models()
+    assert sum(args[2] == A for args in peer.calls) == calls
+    sweep.state = State.load(sweep.state.path, clock.now)
+    sweep.model_remover.state = sweep.state
+    sweep.model_remover.vk = Vonkctl(runner=original_runner)
+    advance(sweep, clock)
+    assert peer.submissions
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.RECEIPT
+
+
+@pytest.mark.parametrize("stage", ["review", "receipt", "owners"])
+@pytest.mark.parametrize("out", ["", "null", "invalid", "observation"])
+def test_transport_reply_backs_off_with_cause_and_heals_after_restart(
+    tmp_path, stage, out
+):
+    from spark_sweep.vonkctl import VonkctlTimeout
+
+    sweep, peer, clock = scenario(tmp_path)
+    original_runner = peer.runner
+
+    def runner(argv, timeout):
+        args = list(argv)[3:]
+        if (
+            (stage == "review" and "--review" in args)
+            or (
+                stage == "receipt"
+                and args[:2] == ["model", "remove"]
+                and "--yes" in args
+            )
+            or (stage == "owners" and args == ["profile", "list"])
+        ):
+            if out == "":
+                raise VonkctlTimeout(
+                    argv, None, "vonkctl timed out after 30s", stderr="connection lost"
+                )
+            if out == "observation":
+                return 2, json.dumps(fixture("observation")), ""
+            return 2, out, "connection lost"
+        return original_runner(argv, timeout)
+
+    sweep.model_remover.vk = Vonkctl(runner=runner)
+    sweep.remove_finished_models()
+    record = RemovalRecord.model_validate(sweep.state.data["model_removals"][A])
+    assert "connection" in record.message
+    assert "exit 124" in record.message if out == "" else "exit 2" in record.message
+    assert "validation error" not in record.message
+    assert (
+        record.outcome
+        == {
+            "review": RemovalOutcome.RETRY,
+            "receipt": RemovalOutcome.WAIT,
+            "owners": RemovalOutcome.OWNER,
+        }[stage]
+    )
+    assert bool(record.request_key) is (stage == "receipt")
+    assert clock.now() < record.next_check <= clock.now() + record.backoff_seconds
+    assert not peer.submissions
+    calls = sum(args[2] == A for args in peer.calls)
+    sweep.remove_finished_models()
+    assert sum(args[2] == A for args in peer.calls) == calls
+    sweep.state = State.load(sweep.state.path, clock.now)
+    sweep.model_remover.state = sweep.state
+    sweep.model_remover.vk = Vonkctl(runner=original_runner)
+    advance(sweep, clock)
+    healed = RemovalRecord.model_validate(sweep.state.data["model_removals"][A])
+    assert healed.outcome == RemovalOutcome.RECEIPT
+    if record.request_key:
+        assert healed.request_key == record.request_key
+
+
+@pytest.mark.parametrize("timeout_once", [False, True])
+def test_slow_catalog_refresh_yields_to_removal_after_a_complete_read(
+    tmp_path, timeout_once
+):
+    """A refresh takes longer than its interval, as in the saved sweep incident.
+
+    Each library has two pages. The previous pass is already due when the
+    other library finishes; starting it inline starves removal forever.
+    """
+    sweep, peer, clock = scenario(tmp_path)
+    sweep.cfg.catalog_seconds = 60
+    if timeout_once:
+        peer.fleet.library_faults = [None, "timeout"]
+    # Keep scheduling out of this observation/removal reproduction. All removal
+    # effects go exclusively through RemovalPeer, never a real CLI.
+    for _ in range(12):
+        clock.t += 61
+        sweep.advance_catalog(clock.now())
+        sweep.remove_finished_models()
+        if sweep.recipe_list.in_pass or sweep.model_list.in_pass:
+            assert not peer.submissions
+        if peer.submissions:
+            break
+    assert peer.submissions
+    assert not sweep.recipe_list.in_pass and not sweep.model_list.in_pass
+    assert not sweep.recipe_list.last_error and not sweep.model_list.last_error
+    assert sweep.recipe_list.passes > 1 and sweep.model_list.passes > 1
+    assert not sweep.state.data.get("model_removal_wait")
+
+
+@pytest.mark.parametrize("fault", ["timeout", "cursor"])
+def test_catalog_retry_is_bounded_and_reports_cause_age_and_recovery(tmp_path, fault):
+    from spark_sweep.removal_contract import RemovalWait
+    from spark_sweep.sweep_contract import SweepWaitReason
+
+    sweep, peer, clock = scenario(tmp_path)
+    peer.fleet.library_faults = [fault]
+    clock.t += sweep.cfg.catalog_seconds + 1
+    sweep.advance_catalog(clock.now())
+    sweep.advance_catalog(clock.now())  # observe the failed page
+    sweep.remove_finished_models()
+    assert not peer.calls
+    wait = RemovalWait.model_validate(sweep.state.data["model_removal_wait"])
+    assert wait.reason == SweepWaitReason.OBSERVATION
+    assert "recipe library" in wait.detail
+    assert (
+        "transport_timeout" in wait.detail
+        if fault == "timeout"
+        else "cursor" in wait.detail
+    )
+    assert wait.next_check > clock.now()
+    calls = len(peer.fleet.calls)
+    sweep.advance_catalog(clock.now())
+    assert len(peer.fleet.calls) == calls  # honor the persisted catalog backoff
+    clock.t += 10
+    sweep.remove_finished_models()
+    for _ in range(8):
+        clock.t += 61
+        sweep.advance_catalog(clock.now())
+        sweep.remove_finished_models()
+        if peer.submissions:
+            break
+    assert peer.submissions
+    assert not sweep.state.data.get("model_removal_wait")
+
+
+def test_removal_reports_the_actual_owner_pause_and_invalid_rows(tmp_path):
+    from spark_sweep.owner import OwnerStatus
+
+    sweep, peer, clock = scenario(tmp_path)
+    sweep.owner_status = OwnerStatus(paused=True, reason="profile 2 is running")
+    sweep.remove_finished_models()
+    clock.t += 65
+    sweep.remove_finished_models()
+    from spark_sweep.removal_contract import RemovalWait
+    from spark_sweep.sweep_contract import SweepWaitReason
+
+    wait = RemovalWait.model_validate(sweep.state.data["model_removal_wait"])
+    assert wait.reason == SweepWaitReason.OPERATOR
+    assert clock.now() - wait.since == 65
+    assert not peer.calls
+    sweep.owner_status = OwnerStatus()
+    sweep.recipe_list.invalid_rows = 1
+    sweep.remove_finished_models()
+    assert not peer.calls
+    sweep.refresh_catalog()
+    sweep.remove_finished_models()
+    assert peer.submissions

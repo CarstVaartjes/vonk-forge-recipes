@@ -1,0 +1,50 @@
+from __future__ import annotations
+
+import json
+import unittest
+from pathlib import Path
+from typing import Any
+
+from repo_root import ROOT
+from vonk_forge_contracts import document_sha256
+
+
+def read(path: Path) -> dict[str, object]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+class QwenImageEditINT8ConvRotRecipeTests(unittest.TestCase):
+    path = ROOT / "recipes/qwen-image-edit-2511-int8-convrot-comfyui-single.json"
+
+    def test_exact_official_int8_convrot_model_is_bound(self) -> None:
+        recipe = read(self.path)
+        selection = recipe["models"][0]  # pyright: ignore[reportIndexIssue]
+        model = read(ROOT / "models" / f"{selection['model']['slug']}.json")
+        self.assertEqual(
+            model["source"]["revision"],  # pyright: ignore[reportIndexIssue]
+            "f68ace85e60b4a02a323e394253731947657b7d2",
+        )
+        self.assertEqual(model["format"]["quantization"], "int8_tensorwise_convrot")  # pyright: ignore[reportIndexIssue]
+        self.assertEqual(
+            selection["model"]["content_sha256"],
+            document_sha256(model),
+        )
+
+    def test_workflow_resource_and_job_contract(self) -> None:
+        recipe = read(self.path)
+        args = {
+            item["name"]: item.get("value")
+            for item in recipe["runtime"]["arguments"]  # pyright: ignore[reportIndexIssue]
+        }
+        self.assertTrue(
+            args["workflow"].endswith("qwen-image-edit-2511-int8-convrot.json")
+        )
+        self.assertEqual(len(args["workflow-sha256"]), 64)
+        self.assertEqual(recipe["runtime"]["engine"], "comfyui")  # pyright: ignore[reportIndexIssue]
+        self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")  # pyright: ignore[reportIndexIssue]
+        validation: Any = recipe["validation"]
+        self.assertTrue(validation["serving"]["checks"])
+
+
+if __name__ == "__main__":
+    unittest.main()

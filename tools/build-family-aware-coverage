@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import Any, assert_never
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import (
     GitHubLfsSource,
@@ -48,9 +48,9 @@ from vonk_forge_contracts.model import ModelSource
 from vonk_forge_contracts.qualification_authority import QualificationAuthority
 from vonk_forge_contracts.recipe import RecipeBuildDefinition
 
-from qualification.catalog_source import current_catalog_package_tree
-from qualification.coverage_identity import execution_stack_identity
-from qualification.documents import model_display
+from recipe_tooling.qualification.catalog_source import current_catalog_package_tree
+from recipe_tooling.qualification.coverage_identity import execution_stack_identity
+from recipe_tooling.qualification.documents import model_display
 
 RECIPE_DIRECTORY = ROOT / "recipes"
 MODEL_DIRECTORY = ROOT / "models"

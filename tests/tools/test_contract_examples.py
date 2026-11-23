@@ -1,0 +1,37 @@
+from __future__ import annotations
+
+import json
+
+from repo_root import ROOT
+from vonk_forge_contracts import (
+    ModelDefinition,
+    ModelDisplay,
+    RecipeApi,
+    RecipeDefinition,
+    RecipeDisplay,
+)
+
+
+def test_representative_contract_examples_validate() -> None:
+    examples = sorted(
+        (ROOT / "contracts/src/vonk_forge_contracts/examples").glob("*.json")
+    )
+    assert {path.name for path in examples} >= {
+        "model-definition.json",
+        "recipe-source-build.json",
+        "recipe-job.json",
+        "recipe-dual.json",
+        "model-display.json",
+        "recipe-display-source-build.json",
+        "recipe-api-source-build.json",
+    }
+    contracts = {
+        "model": ModelDefinition,
+        "recipe": RecipeDefinition,
+        "model-display": ModelDisplay,
+        "recipe-display": RecipeDisplay,
+        "recipe-api": RecipeApi,
+    }
+    for path in examples:
+        document = json.loads(path.read_text(encoding="utf-8"))
+        contracts[document["kind"]].model_validate(document)

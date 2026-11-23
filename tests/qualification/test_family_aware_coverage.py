@@ -1,0 +1,322 @@
+"""Guards for the derived family-aware coverage matrix.
+
+Each guard names the wrong implementation it rejects: a hand-edited or stale
+matrix, a dropped or duplicated recipe, a schedule that loses a lane, a vendor
+fork image graded as generic engine evidence, shared recovery evidence promoted
+into an enforceable claim, and a representative that is not the cheapest member
+of its own risk group.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import runpy
+import subprocess
+import sys
+from functools import cache
+from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
+
+import pytest
+from generated_catalog import GENERATED
+from repo_root import ROOT
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition
+
+from recipe_tooling.qualification.coverage_identity import execution_stack_identity
+
+TOOL = "tools/build-family-aware-coverage"
+
+# The stock upstream image per engine. Any other image is a declared fork.
+STOCK_IMAGES = {
+    "vllm": "docker.io/vllm/vllm-openai",
+    "sglang": "docker.io/lmsysorg/sglang",
+}
+
+
+_OUTPUT: list[Path] = []
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _coverage_output_dir(tmp_path_factory: pytest.TempPathFactory) -> None:
+    """Each xdist worker derives into its own directory: none shares a written file."""
+    _OUTPUT[:] = [tmp_path_factory.mktemp("coverage")]
+
+
+@cache
+def _coverage() -> Path:
+    """Derive the matrix and report once per worker from the session's generated catalog.
+
+    A dead proxy makes any network fetch fail: coverage is derived offline.
+    """
+    output = _OUTPUT[0]
+    dead_proxy = "http://127.0.0.1:9"
+    result = subprocess.run(
+        [
+            sys.executable,
+            TOOL,
+            "--catalog-root",
+            str(GENERATED),
+            "--output-dir",
+            str(output),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=180,
+        env={**os.environ, "https_proxy": dead_proxy, "HTTPS_PROXY": dead_proxy},
+    )
+    assert result.returncode == 0, result.stderr
+    return output
+
+
+def _matrix() -> dict[str, Any]:
+    value = json.loads(
+        (_coverage() / "family-aware-coverage-2026-09-24.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert isinstance(value, dict)
+    return value
+
+
+def _rows() -> dict[str, dict[str, Any]]:
+    return {row["key"]: row for row in _matrix()["rows"]}
+
+
+def _catalog() -> dict[str, RecipeDefinition]:
+    recipes: dict[str, RecipeDefinition] = {}
+    for path in sorted((ROOT / "recipes").glob("*.json")):
+        recipe = RecipeDefinition.model_validate_json(path.read_text(encoding="utf-8"))
+        recipes[f"{recipe.identity.publisher}/{recipe.identity.slug}"] = recipe
+    return recipes
+
+
+def test_matrix_derives_offline_from_the_generated_catalog() -> None:
+    """The derivation needs only the current catalog and the committed authority."""
+    matrix = _matrix()
+    assert (_coverage() / "family-aware-coverage-2026-09-24.md").is_file()
+    assert matrix["catalog"]["catalog_binding_current"] is True
+
+
+def test_coverage_source_projection_keeps_release_identity_out_of_commit_field() -> (
+    None
+):
+    example_path = (
+        ROOT / "contracts/src/vonk_forge_contracts/examples/model-definition.json"
+    )
+    document = json.loads(example_path.read_text(encoding="utf-8"))
+    document["source"] = {
+        "provider": "github-release",
+        "repository": "https://github.com/valeoai/NAF",
+        "release_id": 264676230,
+        "assets": [{"file_id": document["files"][0]["id"], "asset_id": 320107386}],
+    }
+    model = ModelDefinition.model_validate(document)
+    tool = runpy.run_path(str(ROOT / TOOL))
+
+    assert tool["_model_source_projection"](model) == (
+        "https://github.com/valeoai/NAF",
+        "github-release:264676230",
+    )
+
+
+def test_every_catalog_recipe_appears_once_with_its_topology() -> None:
+    """A dropped, duplicated or mislabelled recipe must fail."""
+    matrix = _matrix()
+    rows = _rows()
+    catalog = _catalog()
+    assert set(rows) == set(catalog)
+    in_scope_count = sum(r.topology.node_count <= 2 for r in catalog.values())
+    assert len(rows) == len(catalog)
+    assert matrix["catalog"]["recipe_count"] == len(catalog)
+    assert matrix["catalog"]["in_scope_recipe_count"] == in_scope_count
+    assert matrix["catalog"]["out_of_scope_recipe_count"] == (
+        len(catalog) - in_scope_count
+    )
+    groups = set(matrix["coverage_group_order"])
+    assert sorted(row["matrix_row"] for row in rows.values()) == list(
+        range(1, len(catalog) + 1)
+    )
+    for key, recipe in catalog.items():
+        row = rows[key]
+        assert row["node_count"] == recipe.topology.node_count
+        assert row["in_scope"] is (recipe.topology.node_count <= 2)
+        assert row["coverage_group"] in groups
+        assert len(row["runtime_stack_sha256"]) == 64
+        assert len(row["topology_sha256"]) == 64
+        assert len(row["build_source_sha256"]) == 64
+        assert row["build_source_file_count"] > 0
+        assert row["stack_matches_authority"] in (True, False, None)
+    assert sorted(row["node_count"] for row in rows.values()) == sorted(
+        recipe.topology.node_count for recipe in catalog.values()
+    )
+
+
+def test_schedule_covers_every_in_scope_recipe_exactly_once() -> None:
+    """A batch plan that drops, duplicates or mis-sizes a lane must fail."""
+    matrix = _matrix()
+    rows = _rows()
+    assignments = [
+        lane["recipe"] for batch in matrix["batches"] for lane in batch["assignments"]
+    ]
+    lanes = [
+        lane["recipe"]
+        for batch in matrix["batches"]
+        if batch["mode"] in {"paired-single", "single"}
+        for lane in batch["assignments"]
+    ]
+    singles = sorted(
+        row["key"]
+        for row in rows.values()
+        if row["in_scope"] and row["node_count"] == 1
+    )
+    assert sorted(lanes) == singles
+    in_scope = [row for row in rows.values() if row["in_scope"]]
+    assert len(assignments) == len(set(assignments)) == len(in_scope)
+    batches = matrix["batches"]
+    assert [batch["sequence"] for batch in batches] == list(range(1, len(batches) + 1))
+    for batch in batches:
+        if batch["mode"] == "paired-single":
+            assert len(batch["assignments"]) == 2
+            assert {lane["lane"] for lane in batch["assignments"]} == {1, 2}
+            assert {lane["node_count"] for lane in batch["assignments"]} == {1}
+        elif batch["mode"] == "single":
+            assert len(batch["assignments"]) == 1
+            assert batch["assignments"][0]["node_count"] == 1
+        elif batch["mode"] == "exclusive-dual":
+            assert len(batch["assignments"]) == 1
+            assert batch["assignments"][0]["node_count"] == 2
+        else:
+            raise AssertionError(f"unexpected current batch mode: {batch['mode']}")
+    duals = sorted(
+        lane["recipe"]
+        for batch in batches
+        if batch["mode"] == "exclusive-dual"
+        for lane in batch["assignments"]
+    )
+    assert duals == sorted(
+        row["key"] for row in rows.values() if row["in_scope"] and row["node_count"] > 1
+    )
+    outside = sorted(entry["recipe"] for entry in matrix["excluded_schedule"])
+    assert outside == sorted(row["key"] for row in rows.values() if not row["in_scope"])
+
+
+def test_declared_fork_images_are_never_graded_as_generic_engines() -> None:
+    """A vendor fork image graded as generic engine evidence must fail."""
+    for row in _rows().values():
+        repository = row["stack"]["base_image"]["repository"]
+        stock = STOCK_IMAGES.get(row["engine"])
+        if stock is None or repository == stock:
+            continue
+        assert f"image:{repository}" in row["specialized_forks"]
+        assert row["coverage_group"] == "specialized-fork-engines"
+
+
+def test_recovery_coverage_is_typed_and_exactly_referenced() -> None:
+    """A recovery ref outside its exact member and failure mode must fail."""
+    matrix = _matrix()
+    rows = _rows()
+    definitions = matrix["recovery_coverage"]["definitions"]
+    assert definitions
+    definitions_by_id = {item["coverage_id"]: item for item in definitions}
+    assert len(definitions_by_id) == len(definitions)
+    refs_by_recipe: dict[str, list[dict[str, Any]]] = {
+        key: row["recovery_coverage_refs"]
+        for key, row in rows.items()
+        if row["in_scope"]
+    }
+    for key, row in rows.items():
+        if not row["in_scope"]:
+            assert row["recovery_coverage_refs"] == []
+            continue
+        required_modes = (
+            {"single-host-restart"}
+            if row["node_count"] == 1
+            else {"dual-rank-loss-recovery", "dual-host-restart"}
+        )
+        refs = refs_by_recipe[key]
+        assert {ref["failure_mode"] for ref in refs} == required_modes
+        for ref in refs:
+            definition = definitions_by_id[ref["coverage_id"]]
+            assert definition["failure_mode"] == ref["failure_mode"]
+            assert key in {member["recipe"] for member in definition["members"]}
+            assert ref["representative_recipe"] == definition["representative_recipe"]
+    for definition in definitions:
+        member_keys = [member["recipe"] for member in definition["members"]]
+        assert member_keys == sorted(set(member_keys))
+        assert definition["representative_recipe"] in member_keys
+        assert definition["shared"] is (len(member_keys) > 1)
+        if definition["failure_mode"] == "dual-rank-loss-recovery":
+            assert definition["shared"] is False
+        identity_pairs = {
+            (member["runtime_stack_sha256"], member["topology_sha256"])
+            for member in definition["members"]
+        }
+        if definition["shared"]:
+            assert len(identity_pairs) == 1
+            assert definition["physical_receipts_required"] is True
+
+
+def test_build_source_bytes_at_the_same_path_change_stack_identity(
+    tmp_path: Path,
+) -> None:
+    """A changed build input must invalidate the exact execution-stack identity."""
+    context = tmp_path / "adapters" / "fixture"
+    context.mkdir(parents=True)
+    source_file = context / "Dockerfile"
+    source_file.write_bytes(b"FROM example@sha256:one\n")
+
+    def model_dump(value: dict[str, Any]):
+        return lambda **_: value
+
+    recipe = SimpleNamespace(
+        runtime=SimpleNamespace(
+            model_dump=model_dump({"engine": "test"}),
+            lifecycle=SimpleNamespace(failure=None),
+        ),
+        topology=SimpleNamespace(model_dump=model_dump({"mode": "single"})),
+    )
+    build = SimpleNamespace(
+        context=SimpleNamespace(path="adapters/fixture"),
+        dockerfile="adapters/fixture/Dockerfile",
+        patches=(),
+        model_dump=model_dump(
+            {
+                "context": {"path": "adapters/fixture"},
+                "dockerfile": "adapters/fixture/Dockerfile",
+                "patches": [],
+            }
+        ),
+    )
+
+    before = execution_stack_identity(tmp_path, recipe, build)
+    source_file.write_bytes(b"FROM example@sha256:two\n")
+    after = execution_stack_identity(tmp_path, recipe, build)
+
+    assert before["build_source_sha256"] != after["build_source_sha256"]
+    assert before["runtime_stack_sha256"] != after["runtime_stack_sha256"]
+
+
+def test_representatives_are_the_cheapest_member_of_their_risk_group() -> None:
+    """A representative that is not the cheapest member of its own group must fail."""
+    matrix = _matrix()
+    rows = _rows()
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for row in rows.values():
+        if row["in_scope"]:
+            grouped.setdefault(row["risk_group_id"], []).append(row)
+    assert len(matrix["representatives"]) == len(grouped)
+    for entry in matrix["representatives"]:
+        members = grouped[entry["risk_group_id"]]
+        marked = sorted(row["key"] for row in members if row["representative"])
+        assert marked == [entry["representative"]]
+        cheapest = min(
+            members, key=lambda row: (row["declared_artifact_bytes"], row["key"])
+        )
+        assert cheapest["key"] == entry["representative"]
+        for row in members:
+            if row["key"] != entry["representative"]:
+                assert row["representative_for"] == entry["representative"]

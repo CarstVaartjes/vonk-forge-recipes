@@ -35,8 +35,8 @@ from vonk_forge_contracts.qualification_status import (
     published_status,
 )
 
-from qualification import documents
-from qualification.evidence_store import (
+from recipe_tooling.qualification import documents
+from recipe_tooling.qualification.evidence_store import (
     catalog_recipe_keys,
     merge_evidence,
     read_evidence,

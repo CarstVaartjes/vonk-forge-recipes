@@ -120,7 +120,7 @@ display for each shape) for structure only; replace synthetic identities and
 data with verified inputs.
 
 The roots are strict: authoring rejects unknown fields. Do not use lenient
-published-document readers to bypass producer validation (`tests/test_contracts.py`).
+published-document readers to bypass producer validation (`tests/tools/test_contracts.py`).
 
 | Document | Required structure (read the definitions for typed variants); every document also writes its defaulted `kind` (`model`, `recipe`, `recipe-display`, `model-display`, `recipe-api`) |
 | --- | --- |
@@ -137,7 +137,7 @@ A document holds execution data only. What a person or a filter reads about it
 or `display/models/<slug>.json`, one per document and no orphan (`RecipeDisplay`,
 `ModelDisplay`, checked by `validate_library`). A display edit never changes a
 document, its `content_sha256`, its evidence or its proven status; a change that
-alters what runs edits the document. Read display through `qualification/documents.py`
+alters what runs edits the document. Read display through `src/recipe_tooling/qualification/documents.py`
 (`recipe_display`, `model_display`), never off a document.
 Display text and tags never state verification status; the status badge owns it.
 A description does not say a recipe is a "Candidate", pending, untested or awaiting
@@ -230,17 +230,17 @@ counts only as a named `WRAPPER_LANGUAGE_MODEL_ONLY` exemption),
 because vLLM loads every input its resolved model class supports; other engines
 need a flag or projector per modality and stay case by case. Whether the launch really enables a tool-call
 or reasoning parser is not re-derived: `tools/check-recipe-api` asks
-`qualification.capabilities.serving_capabilities` (runtime arguments, adapter
+`recipe_tooling.qualification.capabilities.serving_capabilities` (runtime arguments, adapter
 scripts, kit flags) for every variant. The guard runs all three on added or
 changed recipes and API files; there is no allowlist of gaps.
-Read the document through `qualification/documents.py` (`recipe_api`).
+Read the document through `src/recipe_tooling/qualification/documents.py` (`recipe_api`).
 
 `settings.kind` selects the typed generation, embedding, job or decision shape;
 never invent an LLM context length for an artifact job. `interfaces` contains one
 OpenAI-compatible HTTP or filesystem job interface. Native decision models use
 `POST /v1/systemone`, `openai.systemone` and `decision.probabilities`; use the
 `systemone.py` typed requests/responses, preserving native result shapes and
-extensions (`tests/test_systemone_contract.py`).
+extensions (`tests/recipes/test_systemone_contract.py`).
 Audio routes have their own serving kinds. `openai.transcription` is the only
 check with the `http-multipart` request: `POST /v1/audio/transcriptions` with
 string `fields` (at least `model`; also `language`, `response_format`) and one
@@ -252,7 +252,7 @@ unless the recipe needs another clip. `openai.speech` is a JSON `http` request t
 `speech.audio` (a decodable WAV of at least `MIN_SPEECH_SECONDS` with an `audio/*` content
 type; `wav_facts` is the one reader, and a `data` chunk of size 0 or 0xFFFFFFFF means the rest of the body). A kind that an older reader does not know is a hard read failure there,
 so a recipe uses a new kind only after the Controller reads this contract
-version. Examples: `recipe-audio-serving.json` (`tests/test_audio_serving_contract.py`).
+version. Examples: `recipe-audio-serving.json` (`tests/recipes/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
 semantic version (`CONTRACT_VERSION`, release `v5.2.1`). New or changed models
@@ -410,7 +410,7 @@ offline (`--network=none`), so a pip/uv install that can reach an index must
 declare the index hosts. An install is exempt with `--no-index`, or when it uses
 local targets with `--no-deps` and either all `.whl` files or
 `--no-build-isolation`; without `--no-index`, a `-r`/`--requirement` install counts as fetching.
-`tests/test_build_network_hosts.py` reads the Dockerfile and the context
+`tests/tools/test_build_network_hosts.py` reads the Dockerfile and the context
 scripts its `RUN` lines execute (`bash x.sh`, `python3 x.py`, `source x`, `./x`,
 including `cd` and `WORKDIR` and `mods/*/run.sh` loops) and fails when a build
 fetches (pip/uv, curl, wget, git clone, apt, npm) with an empty host list, or
@@ -446,7 +446,7 @@ launcher in the built image (`/opt/vonk/bin/vllm`, `sglang-serve`,
 `exllamav3-serve`, and so on), so the Dockerfile installs your wrapper at that
 exact path and `runtime.entrypoint` names it. A launcher for the `ray`
 parallelism backend starts Ray, so a build step must check the Ray CLI or
-package it uses (`tests/test_ray_vllm_launchers.py`). When the parent image
+package it uses (`tests/recipes/test_ray_vllm_launchers.py`). When the parent image
 has no Ray, install it from a hash lock as described in
 [Dependency locks and build-time smokes](#dependency-locks-and-build-time-smokes). The image workflow lists, in each
 run summary, why a recipe has no prebuilt image. Every image builds on a hosted
@@ -461,21 +461,21 @@ and whitespace aside), so any value change changes it. Keep documents in the
 repository's sorted, two-space-indented form. Do not add hand-maintained digests
 for files authored in the same change; tooling owns package/source digests.
 Recorded upstream artifact checksums remain valid inputs
-(`tools/build-catalog-index`, `tests/test_recipe_packages.py`).
+(`tools/build-catalog-index`, `tests/recipes/test_recipe_packages.py`).
 
 Mirror the creator's recipe: its utilization, context, flags, loader and
 topology are the starting point, because it should work. Deviate only after an
 observed hardware failure and cite that evidence in the description; an
-estimate is never the reason (`tests/test_creator_memory_restores.py`). A launch
+estimate is never the reason (`tests/recipes/test_creator_memory_restores.py`). A launch
 broken for our interface is fixed instead (see Refresh selection and repair).
 
 Preserve launch behavior: executable, ordered arguments, environment, topology,
 ports, model aliases, resource envelope, and stop timeout. Model targets stay
 under `/models`; every distributed role needs selected model files
-(`tests/test_recipe_model_mounts.py`). Multi-node topology derives one connected
+(`tests/recipes/test_recipe_model_mounts.py`). Multi-node topology derives one connected
 fabric with a 200 Gbit/s floor, endpoint withdrawal on rank loss, worker-first
 recovery and endpoint-owner-first stopping; do not author contradictory copies
-of those derived properties (`RecipeTopology`, `tests/test_contracts.py`).
+of those derived properties (`RecipeTopology`, `tests/tools/test_contracts.py`).
 Declare per-role
 unified memory as `peak_bytes` (the most the workload uses while serving; a
 higher load-time peak goes in `load_peak_bytes`) plus `reserve_bytes`, and disk as image, artifact,
@@ -517,14 +517,14 @@ slots). For engines that compile against liburing (vLLM `engram_rows` and
 `PKG_CONFIG_PATH` (an `ENV` line; the writable-state check treats it as read-only)
 and install no `liburing-dev`: its header does one `pread()` per queued read and makes no io_uring call. Replace a creator's "links liburing"
 self-check with "links no liburing" and disclose it. The recipe loader test
-(`tests/test_recipe_sandbox_loaders.py`) enforces both by the recipe's base
+(`tests/recipes/test_recipe_sandbox_loaders.py`) enforces both by the recipe's base
 image. Never request relaxed seccomp. Enforce image-owned transport policy in
 the launcher before exec, including when a kit declares an unsafe backend. b12x
 defaults a bfloat16 PLE table and a disk Engram table to io_uring even when no
 backend is specified.
 gr8's DeepSeek engine reads its disk Engram rows through io_uring by default (`GR8_DS_ENGRAM_IO_URING=128`); its
 wrapper puts `GR8_DS_ENGRAM_IO_URING=0` (the pread pool, gr8 `engine/engram/rowstore.h`) last in `EXTRA_ENV`
-(`adapters/deepseek/kindlingai-gr8-ds41f-four`, `tests/test_gr8_deepseek_wrapper.py`).
+(`adapters/deepseek/kindlingai-gr8-ds41f-four`, `tests/recipes/test_gr8_deepseek_wrapper.py`).
 The separate `--load-format b12x` checkpoint reader also selects io_uring bounce
 I/O on GB10; `B12X_DISK_BACKEND` does not control it. Use `--load-format safetensors`
 at the image launcher handoff for checkpoint loading while retaining the B12X
@@ -540,7 +540,7 @@ The shared `vonk_forge_contracts.memory_admission.evaluate_memory_admission` own
 admission, explanatory headroom and the 2 GiB platform floor. Every recipe and
 option variant, on every role, is checked against an empty target pool: peak plus platform floor fits the
 pool (offline a warning; live admission uses real free memory). `reserve_bytes` is informational and is never charged. Offline validation
-(`admissible_declaration_warnings`, `qualification/vllm_memory_fit.py`) charges
+(`admissible_declaration_warnings`, `src/recipe_tooling/qualification/vllm_memory_fit.py`) charges
 one idle host baseline, `ADMISSION_IDLE_USE_BYTES` (130,663,231,488 −
 126,600,000,000 idle-available bytes), calibrated on the proven set: the live
 Controller admitted proven 120,370,379,081-byte peaks on both Sparks of a dual.
@@ -566,7 +566,7 @@ percent steps), a `minimum_swap_bytes` below what the overshoot needs (the
 smallest whole-GiB total) or above 128 GiB, and warns when the needed swap
 exceeds the 64 GiB default (swap size is a fleet-profile setting; a recipe
 declares only its minimum). The constants are copied, with citation, in
-`qualification/memory_need.py`.
+`src/recipe_tooling/qualification/memory_need/`.
 
 **A.** Use the creator's memory settings and preserve those of every recipe that
 passed on real hardware; change them only after a hardware failure, citing it.
@@ -599,7 +599,7 @@ The estimate warns unless a touched single-Spark recipe bounds KV: an absolute p
 `gpu-memory-utilization`/`mem-fraction-static` whose share of physical memory
 plus the margin held beside the engine budget (plus the resident expansion of
 geometry pinned to the launch) is admissible on an idle Spark. That margin has one
-owner, `budget_margin_bytes` in `qualification/memory_need.py`, from the p90 of the
+owner, `budget_margin_bytes` in `src/recipe_tooling/qualification/memory_need/`, from the p90 of the
 277 sweep samples (audit 2026-11-01): vLLM 6.2 GB on one Spark and 10.4 GB on
 several (measured on 2-Spark runs; borrowed for 3, 4 and 8), SGLang 8.5 GB on one
 Spark and 8 GB on several. The loading floor, the inside-budget check and the
@@ -649,8 +649,8 @@ and sets `exceeds_admission_maximum`: the Controller admits on the declaration
 and warns. Job recipes are never measured (their sample is taken after the
 job). `catalog-measured-memory-v1.json` under the contract examples is the
 vector both repositories test against.
-`tests/test_absolute_kv_capacity.py` replays the recorded failures and must
-warn on each. `qualification/memory_need.py`
+`tests/qualification/test_absolute_kv_capacity.py` replays the recorded failures and must
+warn on each. `src/recipe_tooling/qualification/memory_need/`
 supplies the guard and an informative full-workload calculator. For a
 multi-Spark vLLM absolute pool, also set an explicit `gpu-memory-utilization`
 startup budget whose fraction of physical memory fits every role peak: vLLM
@@ -665,7 +665,7 @@ waiver. SGLang absolute token pools must hold one context too. TRT-LLM fractiona
 pools are outside this absolute-pool check. Cache geometry binds configuration
 hashes and records padded/hybrid allocation bounds with their sources.
 Every geometry names its pinned config's `architecture`, classified as hybrid
-or attention in `qualification/memory_need.py`. A vLLM-pinned hybrid geometry
+or attention in `src/recipe_tooling/qualification/memory_need/`. A vLLM-pinned hybrid geometry
 records its Mamba/GDN layers as typed `recurrent` dimensions from that config
 (recurrent and attention layer counts, conv channels and kernel, temporal state
 elements and dtype, kernel block, and whether the loaded vLLM class supports
@@ -699,7 +699,7 @@ retained in the calculator's historical source. Runtime
 overhead currently uses an **8,000,000,000-byte estimate**, not a measurement. A vLLM
 speculative drafter adds nothing beside the budget, however it is loaded: the
 worker loads it after its free-memory snapshot and profiles it inside
-`gpu-memory-utilization` (sources in `qualification/vllm_memory_fit.py`), so its
+`gpu-memory-utilization` (sources in `src/recipe_tooling/qualification/vllm_memory_fit.py`), so its
 weights count inside the budget like the target's. Pool-less single-Spark runs
 with a separate drafter held at most 9.9 GB beside utilization × memory, OS
 included. The estimate over this limit
@@ -741,17 +741,17 @@ outside its vLLM/SGLang scope are reported explicitly. A loading floor does not
 prove full-context capacity, graph peaks, or runtime fit. Missing full-workload
 geometry is an unknown warning, never a hardware failure.
 
-[tests/test_vllm_memory_fit.py](../tests/test_vllm_memory_fit.py) retains the
+[tests/qualification/test_vllm_memory_fit.py](../tests/qualification/test_vllm_memory_fit.py) retains the
 pre-#1612 calibration guard for historical vLLM documents and options on **each
 role of each node**, including dual/multi-Spark recipes. Its shared
-implementation and constants live in `qualification/vllm_memory_fit.py`: utilization ×
+implementation and constants live in `src/recipe_tooling/qualification/vllm_memory_fit.py`: utilization ×
 **130,663,231,488 bytes** + **8 GB** runtime overhead must fit the declared
 per-node peak; peak + the **2 GiB platform floor** must fit
 the **126,600,000,000-byte idle-available floor**. The 2 GiB floor follows the creators' measured 2-3 GiB of steady free memory; the swap-aware host memory guard (vonk-forge #1936, R1) is the runtime backstop. The 2026-10-15/16 incident also
 retains its measured overhead and the lower spark-3542 idle-available value above.
 
-[qualification/memory_need.py](../qualification/memory_need.py), exercised by
-`tests/test_single_spark_memory_headroom.py`, shares those constants; its
+[src/recipe_tooling/qualification/memory_need/](../src/recipe_tooling/qualification/memory_need/), exercised by
+`tests/qualification/test_single_spark_memory_headroom.py`, shares those constants; its
 single-node full-workload estimate is
 informative. An absolute vLLM KV pool overrides cache sizing by utilization.
 Changed multi-Spark documents use the per-rank demand declaration below;
@@ -803,7 +803,7 @@ its strict DeepSeek V4 tool grammar with a reasoning block even for
 `thinking: false`, so a named or required call cannot stop and runs to
 `max_tokens`. A `deepseek_v4` recipe on that base sets
 `VLLM_ENFORCE_STRICT_TOOL_CALLING=0`
-(`tests/test_deepseek_v4_b12x_named_tool_stop.py`). Newer B12X builds, such as
+(`tests/recipes/test_deepseek_v4_b12x_named_tool_stop.py`). Newer B12X builds, such as
 vLLM 8244d1c4 in base `sha256:03a956544e9f...`, pass `reasoning=False` and need
 no setting. The SparkInfer base `sha256:2e077489a83a...` (vLLM 30038602) builds
 the same forced-call tag: a recipe on it that declares `T_REPORT` also sets
@@ -818,7 +818,7 @@ inference. A smoke estimate is not full-length capacity or hardware acceptance.
 
 ### Multi-Spark memory demand and nonfitting recipes
 
-`qualification.memory_need.per_rank_need` reports an optimistic loading floor:
+`recipe_tooling.qualification.memory_need.per_rank_need` reports an optimistic loading floor:
 selected weights divided over tensor/pipeline shards, explicit KV bytes, and
 8 GB estimated runtime overhead. The complete selected auxiliary weights are
 counted once. Engram tables are never memory usage (owner, 2026-10-26): their
@@ -832,7 +832,7 @@ geometry is available; keep unknown full-workload terms visible.
 
 Calibration separates physical feasibility from planning headroom. The lower
 observed idle MemAvailable is **125,650,657,280 bytes** (spark-3542, 2026-10-15/16,
-retained in `qualification/vllm_memory_fit.py`). Subtracting the host pressure
+retained in `src/recipe_tooling/qualification/vllm_memory_fit.py`). Subtracting the host pressure
 floor leaves **108,470,788,096 bytes** for conservative new-document planning;
 that policy margin is not proof that an existing recipe cannot execute.
 
@@ -860,7 +860,7 @@ order; an empty string remains an argv token; literal `true` emits a flag and
 `false` omits it. `value: null` requires a setting binding. Structured values
 render as deterministic compact JSON. The contract bounds argument names at 64
 characters, values at 65,536 UTF-8 bytes, rendered argv at 1 MiB and argument
-count at 128 (`tests/test_contracts.py`).
+count at 128 (`tests/tools/test_contracts.py`).
 
 Trusted recipe options pass through to the pinned engine even when the
 Controller has no label, enum entry, or specialized validator for them. Known
@@ -886,8 +886,8 @@ An engine whose wrapper takes its placement from the platform (`gr8`, `ds4`) rea
 creator's own settings and execs the creator's entrypoint (or, where it refuses a release it did not fetch, does
 its remaining steps and execs the engine's), uses the read-only `/models` mounts in place and moves
 every `/var/lib/...` path the creator wrote to under `/outputs/cache/<engine>`
-(`adapters/glm/kindlingai-gr8-flash-*`, `tests/test_gr8_serve_wrapper.py`; `adapters/deepseek/kindlingai-gr8-*`,
-`tests/test_gr8_deepseek_wrapper.py`). A creator option the platform cannot
+(`adapters/glm/kindlingai-gr8-flash-*`, `tests/recipes/test_gr8_serve_wrapper.py`; `adapters/deepseek/kindlingai-gr8-*`,
+`tests/recipes/test_gr8_deepseek_wrapper.py`). A creator option the platform cannot
 run (a host daemon) is left out with no option or mention; one it can run (gr8's compact expert copies) is an option
 whose first start does the creator's prepare step into `/outputs/cache`. A kit with no Dockerfile that runs an engine's
 published image with its settings in `.env.example` (`adapters/glm/kindlingai-gr8-glm53-*`) declares that image from
@@ -896,8 +896,8 @@ every active `.env.example` line (compose-only and placement lines excepted), it
 
 Bind generated rank/vision/model views to their checkpoint and engine inputs,
 reuse complete cached work and rebuild malformed/interrupted output
-(`tests/test_tony_tensorfold_cache.py`,
-`tests/test_tensorfold_vision_cache_launcher.py`, `tests/test_prewarm_cache_seed.py`).
+(`tests/recipes/test_tony_tensorfold_cache.py`,
+`tests/recipes/test_tensorfold_vision_cache_launcher.py`, `tests/recipes/test_prewarm_cache_seed.py`).
 
 Artifact jobs receive their declared files under `/inputs`, plus
 `/inputs/manifest.json`, and write their outputs under `/outputs`. Read
@@ -924,10 +924,10 @@ cleanup, and any non-file entry left there fails output collection. Export only
 plain files matching signed output slots. Clean up only the scratch directory
 you created; preserve caches, other scratch and existing final output on failed
 generation, validation or rename. Retries may retain all those entries.
-`tests/test_adapter_output_staging.py` rejects output-root emptiness checks and
+`tests/recipes/test_adapter_output_staging.py` rejects output-root emptiness checks and
 newly added output-root scratch or image working directories, and exercises
 atomic publication, killed jobs, failures and retries with retained entries.
-`tests/test_job_writable_paths.py` catches cache/lock/temp writes into image paths.
+`tests/recipes/test_job_writable_paths.py` catches cache/lock/temp writes into image paths.
 
 A delivery-only retry observes a durable exit receipt and retained outputs; it
 cannot launch a second process. Missing local evidence does not authorize a
@@ -947,7 +947,7 @@ The output collector excludes platform-owned scratch/cache entries; see its
 - Files in one slot are ordered by file name, so a slot whose order matters says so
   in its description (`1-scene.png`, `2-face.png`).
 - JSON is for payloads only. A slot that accepts `application/json` must be in the
-  named payload set in `tests/test_media_types.py` (guard "JSON input slots are
+  named payload set in `tests/recipes/test_media_types.py` (guard "JSON input slots are
   payloads"), with a reason; adding one needs the owner's approval.
 
 ### Tool calling, reasoning and images: claim only what the launch serves
@@ -965,20 +965,20 @@ because the engine answers HTTP 400 or returns the raw `<tool_call>` text in
 assertions rather than assuming that every kind of leaked markup is allowed. Image cases need a
 multimodal recipe. When a kit's entrypoint injects the flags from inside its
 image, record them with their source in `qualification/kit-engine-flags.json`.
-`qualification/capabilities.py` derives all of this and
-`tests/test_recipe_capabilities.py` fails CI when a recipe's tags or smoke cases
+`src/recipe_tooling/qualification/capabilities.py` derives all of this and
+`tests/qualification/test_recipe_capabilities.py` fails CI when a recipe's tags or smoke cases
 disagree with its launch. An SGLang recipe with `--reasoning-parser inkling`
 copies and runs the shared `inkling-forced-tool-grammar.py` build patch, so a
 required or named tool choice is one call; without it the reasoning wrapper
 defers the grammar past Inkling's first call and forces a second
-(`tests/test_inkling_sglang_forced_tool.py`).
+(`tests/recipes/test_inkling_sglang_forced_tool.py`).
 
 An SGLang reasoning recipe that names a `chat-template` serves it as a
 repository file `COPY`ed into the image, so the thinking switch can be checked.
 Its `add_generation_prompt` branch must honour `enable_thinking is defined and
 not enable_thinking`: SGLang forces its reasoning parser from that branch, and a
 creator template that always opens `<think>` leaks `</think>` into `content`
-when a request turns thinking off (`tests/test_sglang_reasoning_template_toggle.py`).
+when a request turns thinking off (`tests/recipes/test_sglang_reasoning_template_toggle.py`).
 The same rule covers a vLLM recipe with `--reasoning-parser glm47` that serves a
 repository template. Its vendored template is the Model's own `chat_template.jinja` (sha256 from the Model document)
 plus only the thinking-switch line, so a model refresh that changes the template
@@ -1091,22 +1091,22 @@ Follow newest applicable upstream revisions, not a history of old revisions
 under one id. Reuse an exact Model already catalogued; delete an old Model only
 when no recipe references it. A distinct weight/runtime variant or topology is
 still a distinct recipe. `release` contains only the current version/date;
-`tests/test_recipe_releases.py` rejects embedded history.
+`tests/recipes/test_recipe_releases.py` rejects embedded history.
 
 Fix a broken creator recipe instead of preserving a broken launch for fidelity.
 Keep required specialized implementation, but repair missing imports, invalid
 chat weights, output handling or unreproducible build closure with a regression
 that fails before the fix. Do not hide defects with non-executable placeholders
-(`tests/test_recipe_executability.py`). A chat validation needs an explicit
+(`tests/recipes/test_recipe_executability.py`). A chat validation needs an explicit
 runtime chat template, a selected template file, or a served Model declaring
 `chat`; a drafter's capability and an embedded tokenizer template alone cannot
-make base weights chat-trained (`tests/test_chat_configuration.py`).
+make base weights chat-trained (`tests/recipes/test_chat_configuration.py`).
 
 The hourly `.github/workflows/refresh-upstream.yml` and `tools/refresh-upstream`
-implement automatic selection (`tests/test_check_upstream_drift.py`,
-`tests/test_refresh_upstream.py`): newest release/tag or head, preserving inferred
+implement automatic selection (`tests/tools/test_check_upstream_drift.py`,
+`tests/refresh_upstream/`): newest release/tag or head, preserving inferred
 non-default branches and declared release lines. Never downgrade an ahead pin.
-Both scanners read providers through `tools/_upstream_http.py`: a 429 or 5xx is retried with
+Both scanners read providers through `src/recipe_tooling/upstream_http.py`: a 429 or 5xx is retried with
 backoff and jitter, honouring `Retry-After` (seconds or date); a 429/503 that persists marks
 the host busy and the item "not checked this run" (`unchecked` in the drift report,
 unreachable in refresh), never a review issue or a failed run. Outages and network errors
@@ -1135,17 +1135,17 @@ peaks raised when they were, and the sweep re-check only when a recipe document 
 
 Respect `policy/base-image-holds.json`: a held base and Dockerfile must agree until the
 hold is updated/removed with working evidence (`tools/check-base-image-holds`,
-`tests/test_base_image_holds.py`). `policy/model-revision-holds.json` declines one Model
+`tests/tools/test_base_image_holds.py`). `policy/model-revision-holds.json` declines one Model
 revision that cannot run on the recipe's Sparks, with its reason; a newer
 upstream revision is assessed again (`tools/check-model-revision-holds`,
-`tests/test_model_revision_holds.py`). A recipe that mounts every file of its Model follows added
+`tests/tools/test_model_revision_holds.py`). A recipe that mounts every file of its Model follows added
 files of the repository, except weights files added beside byte-identical catalogued files: that is
 another checkpoint and does not move the recipe (#2749). Recipes in `policy/published-images.json` follow the
 published image digest and its recorded build commit, not unrelated newer Git
 heads. `tools/check-image-provenance --base origin/main` checks changed recipes.
 An unavailable recorded commit needs the explicit unverified provenance mark
 and review; do not claim a byte comparison that could not run. Outages wait;
-missing source is unverified (`tests/test_published_image_follow.py`).
+missing source is unverified (`tests/tools/test_published_image_follow.py`).
 When the refresher moves a published image it also replaces the adapter
 Dockerfile's image-description comment (between `LABEL` and the
 `# Upstream recipes start it with` line) with one version-free line, only when that
@@ -1270,21 +1270,21 @@ qualification definitions in `qualification/recipes/<slug>.json`. The latter has
 `id: "<publisher>/<slug>"` and the applicable `recipes` (artifact) and/or
 `service_recipes` (HTTP) section; either section may be omitted. It is assembled
 with shared fixtures and templates from `qualification/shared.json` by
-`qualification.definitions_loader.load_definitions`. Duplicate ids fail. Add one
+`recipe_tooling.qualification.definitions_loader.load_definitions`. Duplicate ids fail. Add one
 file for a new recipe; do not edit a generated plan, authority or catalog count.
 Declare aliases matching `ENDPOINT_ALIAS_PATTERN` (lowercase profile identifiers);
-`qualification.service_aliases` and `tests/test_qualification_service_aliases.py`
+`recipe_tooling.qualification.service_aliases` and `tests/qualification/test_qualification_service_aliases.py`
 validate them. A colliding active alias receives the sweep's stable suffix;
 use the reviewed alias in response assertions.
 
 Service entries choose applicable `smoke_cases` and request templates from the
 shared definitions; job entries declare real fixture slots, timeout and output
-assertions. Use `qualification/case_assertions.py` and the typed contract's
+assertions. Use `src/recipe_tooling/qualification/case_assertions.py` and the typed contract's
 assertion variants rather than inventing an ignored assertion. A fixture's
 extension, media type and decoded bytes must match the declared slot; include
-all referenced fixtures in the package. `tests/test_qualification_index.py`,
-`tests/test_qualification_case_assertions.py`, `tests/test_optional_inputs.py`
-and `tests/test_media_types.py` enforce closure and slot consistency.
+all referenced fixtures in the package. `tests/qualification/test_qualification_index.py`,
+`tests/qualification/test_qualification_case_assertions.py`, `tests/tools/test_optional_inputs.py`
+and `tests/recipes/test_media_types.py` enforce closure and slot consistency.
 
 A creator's own smoke proves only what it sends: compare its requests with the
 shared cases the recipe selects (A391 turns thinking off per request; MIS_A391
@@ -1314,7 +1314,7 @@ fork these adapters to introduce smaller smokes.
 An explicitly requested source change, such as a reviewed protocol-wheel
 refresh, updates the reviewed source pin without creating hardware evidence.
 Keep prior passes and unknown image provenance unchanged; reviewed source bytes
-do not certify the new runtime image. `tests/test_qualification_case_assertions.py`
+do not certify the new runtime image. `tests/qualification/test_qualification_case_assertions.py`
 guards every reviewed shared context and verifies that historical passes do not
 become public proof of the refreshed context.
 
@@ -1323,7 +1323,7 @@ For pipelines that select native buckets, metadata assertions declare
 width/height. The shared loader uses a stdlib translation of the pinned upstream
 bucket rule and reads the digest-checked PNG fixture's IHDR dimensions for I2V.
 Only resolved width/height
-reach consumers. `tests/test_native_dimension_expectations.py` guards the
+reach consumers. `tests/recipes/test_native_dimension_expectations.py` guards the
 source pins, automatic-sizing contexts and wrong-dimension rejection.
 
 A job adapter reads the platform's `VONK_JOB_TIMEOUT_SECONDS`, shares one
@@ -1341,8 +1341,8 @@ The sweep process and verdict meanings live in
   parsers, bounded content). `quality_assertions` record expected-answer misses
   as notes without failing a runnable recipe or filing a defect. Generic chat
   cases switch thinking off per request, while markup rules still apply. Keep
-  the two assertion classes separate (`tests/test_sweep_quality.py`,
-  `tests/test_qualification_chat_cases.py`, `tests/test_sweep_vonkctl_smoke.py`).
+  the two assertion classes separate (`tests/sweep/test_sweep_quality.py`,
+  `tests/qualification/test_qualification_chat_cases.py`, `tests/sweep/test_sweep_vonkctl_smoke.py`).
 - **Artifact job:** create/upload/submit one job against the
   held run, follow its receipt, download outputs and evaluate output count,
   names, media/format, size, image/audio/video metadata, GLB structure, ZIP entries
@@ -1350,20 +1350,20 @@ The sweep process and verdict meanings live in
   `spark_sweep/job_assertions.py` are the executors. Host-unobservable assertions
   are recorded as `not_evaluated` with a reason, never silently passed. Video
   inspection needs ffprobe; inspect any missing observation before claiming
-  coverage (`tests/test_sweep_job_smoke.py`, `tests/test_sweep_job_media.py`,
-  `tests/test_image_output_contracts.py`, `tests/test_sweep_job_recipes.py`).
+  coverage (`tests/sweep/test_sweep_job_smoke.py`, `tests/sweep/test_sweep_job_media.py`,
+  `tests/recipes/test_image_output_contracts.py`, `tests/sweep/test_sweep_job_recipes.py`).
 - **Other non-OpenAI services:** `readiness-only` proves health/routing only;
   never call it successful generation (`spark_sweep/smoke.py`).
 
 The sweep records telemetry as total minus available memory per node, including
 the OS. A run observed alone above its declared bytes plus
 `spark_sweep.memory.OS_ALLOWANCE_BYTES` gets a quality note, not a failure
-(`tests/test_sweep_quality.py`). These observations and upstream performance
+(`tests/sweep/test_sweep_quality.py`). These observations and upstream performance
 are not measurements of every topology/configuration. Test the selected runtime,
 not merely a Model capability. Full qualification also needs restart/cache reuse
 and relevant fault recovery; structural checks and hosted builds cannot prove
-CUDA inference or fabric behaviour (`tests/test_family_aware_coverage.py`,
-`tests/test_qualification_authority_contract.py`).
+CUDA inference or fabric behaviour (`tests/qualification/test_family_aware_coverage.py`,
+`tests/qualification/test_qualification_authority_contract.py`).
 
 ### Catalog guard repair map
 
@@ -1375,43 +1375,43 @@ review policies; no static guard can prove upstream completeness or honesty.
 
 | Guard/test | Required invariant and repair |
 | --- | --- |
-| `tests/test_contracts.py`, `tests/test_contract_examples.py` | Strict root/field/relationship validation, bounded paths/argv, source/file identities. Correct data to the current definitions; regenerate examples/schemas after a contract change. |
-| `tools/check-recipe-model-references`, `tests/test_recipe_model_references.py`, `tests/test_display_split.py` | Every pinned Model/file exists at the exact digest, and every Recipe and Model has exactly one display file and none is orphaned. Catalog the missing immutable Model or update all bindings together; add or remove the display with its document. |
-| `tools/check-model-families`, `tests/test_check_model_families.py` | One consistent catalog hierarchy in the displays. Add the Family/Line/Model to `display/families` or correct the Model display's `lineage`; never a format in a Family or Line. |
-| `tools/check-recipe-topology --base origin/main`, `tests/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
+| `tests/tools/test_contracts.py`, `tests/tools/test_contract_examples.py` | Strict root/field/relationship validation, bounded paths/argv, source/file identities. Correct data to the current definitions; regenerate examples/schemas after a contract change. |
+| `tools/check-recipe-model-references`, `tests/recipes/test_recipe_model_references.py`, `tests/tools/test_display_split.py` | Every pinned Model/file exists at the exact digest, and every Recipe and Model has exactly one display file and none is orphaned. Catalog the missing immutable Model or update all bindings together; add or remove the display with its document. |
+| `tools/check-model-families`, `tests/tools/test_check_model_families.py` | One consistent catalog hierarchy in the displays. Add the Family/Line/Model to `display/families` or correct the Model display's `lineage`; never a format in a Family or Line. |
+| `tools/check-recipe-topology --base origin/main`, `tests/recipes/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
 | validate.yml "Require a contract version bump for a changed contract" | `contracts/src` equals the released `v<__version__>` tag. Bump `__version__` in `contracts/src/vonk_forge_contracts/_version.py` (patch, minor or major as above). |
-| `tests/test_catalog_reader.py` | The consumer reader keeps every readable entry: an unknown word stays as an `UnrecognisedWord`, an unreadable optional block is dropped while its entry stays, an entry with malformed execution data is skipped, and only a wrong envelope or major or a digest mismatch refuses the index. Keep producer validation strict; change the reader's rules in `catalog_reader.py` only. |
-| `tests/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. A multi-node recipe that sets `NCCL_NET=IB` (no socket fallback) on an `nvidia/cuda` adapter must install `ibverbs-providers` in the Dockerfile's final stage. Repair the launcher, display or image packages; do not publish placeholder tags. |
-| `tests/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
-| `tests/test_recipe_model_mounts.py`, `tests/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
-| `tools/check-build-context-sources`, `tests/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
-| `tests/test_recipe_build_inputs.py`, `tests/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress. |
-| `tools/check-vendored-upstream`, `tests/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. An adapter that also vendors a directory of a second upstream lists it under `also` (`repo`, `commit`, `files` prefixes). |
-| `tools/check-model-construction-device --base origin/main`, `tests/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and `vendored-upstream.json` verbatim creator copies excluded) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
-| `tools/kit-pins check`, `tests/test_kit_pins.py`, `tests/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
-| `tools/check-image-provenance`, `tests/test_published_image_follow.py` | Claimed build commit matches the selected source image. Fix provenance or supply the supported explicit unavailable-commit evidence. |
-| `tools/check-base-image-holds`, `tests/test_base_image_holds.py` | A held digest stays consistent. Change/remove the hold only with replacement evidence. |
-| `tools/check-model-revision-holds`, `tests/test_model_revision_holds.py` | No recipe uses the Model revision its hold declines. Remove the hold only with evidence that the declined revision runs. |
-| `tests/test_memory_envelope.py`, `tests/test_single_spark_memory_headroom.py` | Memory consistency, component accounting and need checks. Repair the reported launch/envelope inconsistency; follow the memory section above. |
-| `tests/test_recipe_capabilities.py`, `tests/test_chat_configuration.py`, `tests/test_served_model_name.py` | Served Model, parser flags, aliases, tags and cases agree. Enable the real launch support or stop claiming the capability; use chat-trained weights or an explicit supported template. |
-| `tests/test_recipe_option_controls.py`, `tests/test_qwen36_fp8_options.py` | Deployment choices and base defaults execute as declared. Bind actual runtime differences, keep request controls per request. |
-| `tests/test_recipe_releases.py`, `tests/test_recipe_refresh_repairs.py` | Current release metadata, valid dates/version shape and bounded source closure. Correct release data or repair the specific refresh regression. |
-| `tests/test_job_writable_paths.py`, `tests/test_adapter_output_staging.py`, `tests/test_local_media_path_exists.py` | Managed writable paths, atomic outputs, existing local media inputs. Fix path handling; do not add root/broad-write workarounds. |
-| `tests/test_job_runtime_toolchain.py`, `tests/test_cuda_extension_builds.py`, `tests/test_torchaudio_torchcodec.py` | Required compilers, ABI-compatible media/native dependencies and build flags exist. Fix the locked image environment and import/build smoke. |
-| `tools/prepare-remote-code-smoke`, `tests/test_remote_code_build_smoke.py` | Pinned selected remote Python modules that the recipe's engine imports pass check_imports in the installed image. Add hash-locked dependencies and build-time native import checks, not runtime installation. |
-| `tests/test_recipe_packages.py`, `tests/test_recipe_package_closure.py`, `tests/test_exact_model_file_closure.py`, `tests/test_explicit_hf_file_manifest_closure.py` | Self-contained source/fixture/Model closure, deterministic bytes, no weights/OCI payloads. Include required local inputs and recalculate generated manifests through the builder. |
-| `tests/test_qualification_definitions_loader.py`, `tests/test_qualification_index.py`, `tests/test_qualification_case_assertions.py`, `tests/test_qualification_service_aliases.py` | Every recipe is defined/scheduled; ids, aliases, fixtures and assertions resolve. Repair the per-recipe source definition, not generated outputs. |
-| `tests/test_family_aware_coverage.py`, `tests/test_qualification_coverage_identity.py` | Coverage equivalence binds actual runtime/topology/content identities. Rebuild coverage and fix false equivalence. |
-| `tests/test_prebuilt_images.py`, `tests/test_publish_image_guard.py`, `tests/test_release_bundle.py`, `tests/test_release_assets.py` | Plan/source/build keys, digests, signed index and packaged bytes agree. Rebuild/resolve the correct artifacts before signing. |
-| `tools/check-test-git`, `tests/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
-| `tools/check-raw-urlopen`, `tests/test_check_raw_urlopen.py` | An added `urlopen(`/`build_opener(` line in `tools/` outside `tools/_upstream_http.py`. Open provider URLs through `fetch` there (bounded retry, `Retry-After`, per-host busy memory); a persistent 429/503 is `UpstreamBusy`, "not checked this run", never an issue. Only added lines count. Raw opens that stay on purpose: `tools/_refresh_auth.py` (the App credential exchange: POST, a GET of `/installation` and a DELETE; a security edge, never retried), `tools/adapter_sources.py` (its own jittered retry with mirror fallback), `tools/prepare-remote-code-smoke` (the script runs inside the image), `spark_sweep/smoke.py` (the served recipe's own endpoint, not a provider). |
-| `tools/check-final-stage-ldd`, `tests/test_check_final_stage_ldd.py` | An added or final-stage-changed adapter Dockerfile on a plain CUDA runtime/base image copies a binary into `bin/` without `RUN ! ldd <binary> \| grep "not found"`. Only added lines count. |
-| `tools/_added_lines.py`, `tests/test_added_lines.py` | The one parser of the diff the added-line guards read (the `check-*` guards above, `check-model-construction-device`, `check-writable-state-env`). A block the same diff deletes unchanged (a verbatim move or split; one uniform indentation shift allowed; Python launchers and `.py` count as one file type) is not an addition, so moving code does not re-surface old findings. Each guard passes its own `judged` predicate, and a deletion pays only when it judges both the file the block left and the file it entered: a block leaving an exempt owner or an out-of-scope file is still new work where it lands. A deleted block pays for one copy only; an edited or copied line stays added. A guard whose verdict depends on context (`check-serial-reads` reads the loop line, `check-estimate-gates` the test function) judges again when that context gained a line. |
-| `tests/test_guard_paths_exist.py` | Every repository path a guard names matches at least one path in the tree: slash literals, `ROOT / "a" / "b"` chains and bare top-level names (`RECIPES = "recipes"`) in the `tools/check-*` scripts and `tools/_added_lines.py`; the same kinds of scope in four test-side scans (`test_admissible_memory_declarations`, `test_admission_maximum_cap`, `test_own_pulls`, `test_qualification_evidence_publisher`); both `single-source-values.json` files; and each `LAYERS` directory must also own a file the import-direction walker reads (`.py` or a shebang launcher). It catches a scope whose directory disappeared. It does NOT protect a prefix scope on a directory that survives the move (`tools/` after code leaves it still exists): a review of a move must re-point those by hand. The first segment is a listed name or a current top-level directory, so a new directory such as `src/` is covered. Write scopes as plain literals or `/` chains. No allowlist. |
-| `tools/check-document-reads`, `tools/_added_lines.py`, `tests/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `qualification/documents.py`; only added lines are checked. |
-| `tools/check-recipe-api`, `tests/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
-| `tools/check-model-modalities`, `tests/test_model_modalities.py` | A touched Model's display (or the Model a touched recipe serves) disagrees with its modalities (`image` ⇔ `image-understanding`, likewise audio and video) or with a serving recipe's API document: a chat route needs `chat` and `text-generation`, reasoning other than `none` needs `reasoning`, tools other than `none` need `tool-use`. Correct `display/models/<slug>.json`, or the API document if it claims what the launch does not serve. |
-| `tools/check-platform-contracts`, `qualification/introduced.py`, `tests/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. The row also fires on a contracts major newer than the platform's: pin this commit in vonk-forge, deploy, then move `platform_ref`. |
+| `tests/tools/test_catalog_reader.py` | The consumer reader keeps every readable entry: an unknown word stays as an `UnrecognisedWord`, an unreadable optional block is dropped while its entry stays, an entry with malformed execution data is skipped, and only a wrong envelope or major or a digest mismatch refuses the index. Keep producer validation strict; change the reader's rules in `catalog_reader.py` only. |
+| `tests/recipes/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. A multi-node recipe that sets `NCCL_NET=IB` (no socket fallback) on an `nvidia/cuda` adapter must install `ibverbs-providers` in the Dockerfile's final stage. Repair the launcher, display or image packages; do not publish placeholder tags. |
+| `tests/recipes/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
+| `tests/recipes/test_recipe_model_mounts.py`, `tests/recipes/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
+| `tools/check-build-context-sources`, `tests/tools/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
+| `tests/recipes/test_recipe_build_inputs.py`, `tests/tools/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress. |
+| `tools/check-vendored-upstream`, `tests/tools/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. An adapter that also vendors a directory of a second upstream lists it under `also` (`repo`, `commit`, `files` prefixes). |
+| `tools/check-model-construction-device --base origin/main`, `tests/tools/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and `vendored-upstream.json` verbatim creator copies excluded) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
+| `tools/kit-pins check`, `tests/tools/test_kit_pins.py`, `tests/tools/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
+| `tools/check-image-provenance`, `tests/tools/test_published_image_follow.py` | Claimed build commit matches the selected source image. Fix provenance or supply the supported explicit unavailable-commit evidence. |
+| `tools/check-base-image-holds`, `tests/tools/test_base_image_holds.py` | A held digest stays consistent. Change/remove the hold only with replacement evidence. |
+| `tools/check-model-revision-holds`, `tests/tools/test_model_revision_holds.py` | No recipe uses the Model revision its hold declines. Remove the hold only with evidence that the declined revision runs. |
+| `tests/qualification/test_memory_envelope.py`, `tests/qualification/test_single_spark_memory_headroom.py` | Memory consistency, component accounting and need checks. Repair the reported launch/envelope inconsistency; follow the memory section above. |
+| `tests/qualification/test_recipe_capabilities.py`, `tests/recipes/test_chat_configuration.py`, `tests/recipes/test_served_model_name.py` | Served Model, parser flags, aliases, tags and cases agree. Enable the real launch support or stop claiming the capability; use chat-trained weights or an explicit supported template. |
+| `tests/recipes/test_recipe_option_controls.py`, `tests/recipes/test_qwen36_fp8_options.py` | Deployment choices and base defaults execute as declared. Bind actual runtime differences, keep request controls per request. |
+| `tests/recipes/test_recipe_releases.py`, `tests/recipes/test_recipe_refresh_repairs.py` | Current release metadata, valid dates/version shape and bounded source closure. Correct release data or repair the specific refresh regression. |
+| `tests/recipes/test_job_writable_paths.py`, `tests/recipes/test_adapter_output_staging.py`, `tests/recipes/test_local_media_path_exists.py` | Managed writable paths, atomic outputs, existing local media inputs. Fix path handling; do not add root/broad-write workarounds. |
+| `tests/recipes/test_job_runtime_toolchain.py`, `tests/recipes/test_cuda_extension_builds.py`, `tests/recipes/test_torchaudio_torchcodec.py` | Required compilers, ABI-compatible media/native dependencies and build flags exist. Fix the locked image environment and import/build smoke. |
+| `tools/prepare-remote-code-smoke`, `tests/recipes/test_remote_code_build_smoke.py` | Pinned selected remote Python modules that the recipe's engine imports pass check_imports in the installed image. Add hash-locked dependencies and build-time native import checks, not runtime installation. |
+| `tests/recipes/test_recipe_packages.py`, `tests/recipes/test_recipe_package_closure.py`, `tests/recipes/test_exact_model_file_closure.py`, `tests/recipes/test_explicit_hf_file_manifest_closure.py` | Self-contained source/fixture/Model closure, deterministic bytes, no weights/OCI payloads. Include required local inputs and recalculate generated manifests through the builder. |
+| `tests/qualification/test_qualification_definitions_loader.py`, `tests/qualification/test_qualification_index.py`, `tests/qualification/test_qualification_case_assertions.py`, `tests/qualification/test_qualification_service_aliases.py` | Every recipe is defined/scheduled; ids, aliases, fixtures and assertions resolve. Repair the per-recipe source definition, not generated outputs. |
+| `tests/qualification/test_family_aware_coverage.py`, `tests/qualification/test_qualification_coverage_identity.py` | Coverage equivalence binds actual runtime/topology/content identities. Rebuild coverage and fix false equivalence. |
+| `tests/recipes/test_prebuilt_images.py`, `tests/tools/test_publish_image_guard.py`, `tests/tools/test_release_bundle.py`, `tests/tools/test_release_assets.py` | Plan/source/build keys, digests, signed index and packaged bytes agree. Rebuild/resolve the correct artifacts before signing. |
+| `tools/check-test-git`, `tests/tools/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
+| `tools/check-raw-urlopen`, `tests/tools/test_check_raw_urlopen.py` | An added `urlopen(`/`build_opener(` line in `tools/` outside `src/recipe_tooling/upstream_http.py`. Open provider URLs through `fetch` there (bounded retry, `Retry-After`, per-host busy memory); a persistent 429/503 is `UpstreamBusy`, "not checked this run", never an issue. Only added lines count. Raw opens that stay on purpose: `src/recipe_tooling/refresh_auth.py` (the App credential exchange: POST, a GET of `/installation` and a DELETE; a security edge, never retried), `src/recipe_tooling/adapter_sources.py` (its own jittered retry with mirror fallback), `tools/prepare-remote-code-smoke` (the script runs inside the image), `spark_sweep/smoke.py` (the served recipe's own endpoint, not a provider). |
+| `tools/check-final-stage-ldd`, `tests/tools/test_check_final_stage_ldd.py` | An added or final-stage-changed adapter Dockerfile on a plain CUDA runtime/base image copies a binary into `bin/` without `RUN ! ldd <binary> \| grep "not found"`. Only added lines count. |
+| `src/recipe_tooling/added_lines.py`, `tests/tools/test_added_lines.py` | The one parser of the diff the added-line guards read (the `check-*` guards above, `check-model-construction-device`, `check-writable-state-env`). A block the same diff deletes unchanged (a verbatim move or split; one uniform indentation shift allowed; Python launchers and `.py` count as one file type) is not an addition, so moving code does not re-surface old findings. Each guard passes its own `judged` predicate, and a deletion pays only when it judges both the file the block left and the file it entered: a block leaving an exempt owner or an out-of-scope file is still new work where it lands. A deleted block pays for one copy only; an edited or copied line stays added. A guard whose verdict depends on context (`check-serial-reads` reads the loop line, `check-estimate-gates` the test function) judges again when that context gained a line. |
+| `tests/tools/test_guard_paths_exist.py` | Every repository path a guard names matches at least one path in the tree: slash literals, `ROOT / "a" / "b"` chains and bare top-level names (`RECIPES = "recipes"`) in the `tools/check-*` scripts and `src/recipe_tooling/added_lines.py`; the same kinds of scope in four test-side scans (`test_admissible_memory_declarations`, `test_admission_maximum_cap`, `test_own_pulls`, `test_qualification_evidence_publisher`); both `single-source-values.json` files; and each `LAYERS` directory must also own a file the import-direction walker reads (`.py` or a shebang launcher). It catches a scope whose directory disappeared. It does NOT protect a prefix scope on a directory that survives the move (`tools/` after code leaves it still exists): a review of a move must re-point those by hand. The first segment is a listed name or a current top-level directory, so a new directory such as `src/` is covered. Write scopes as plain literals or `/` chains. No allowlist. |
+| `tools/check-document-reads`, `src/recipe_tooling/added_lines.py`, `tests/tools/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `src/recipe_tooling/qualification/documents.py`; only added lines are checked. |
+| `tools/check-recipe-api`, `tests/recipes/test_api_contract.py` | A touched OpenAI-interface recipe has no `api/recipes/<slug>.json`, or its facts contradict the runtime (parser, vision, context binding) or the Models. Fix the document, or the recipe if the runtime is what is wrong; a choice that changes a fact carries its own block. |
+| `tools/check-model-modalities`, `tests/recipes/test_model_modalities.py` | A touched Model's display (or the Model a touched recipe serves) disagrees with its modalities (`image` ⇔ `image-understanding`, likewise audio and video) or with a serving recipe's API document: a chat route needs `chat` and `text-generation`, reasoning other than `none` needs `reasoning`, tools other than `none` need `tool-use`. Correct `display/models/<slug>.json`, or the API document if it claims what the launch does not serve. |
+| `tools/check-platform-contracts`, `src/recipe_tooling/qualification/introduced.py`, `tests/qualification/test_introduced_versions.py` | A recipe uses a serving kind, or selects a Model with a capability, newer than the contracts version the pinned platform (`platform_ref` lock) reads. Hold the recipe until the platform pin moves to a vonk-forge commit that pins a newer contracts version; a new kind or capability gets its minimum in `introduced.py`. The row also fires on a contracts major newer than the platform's: pin this commit in vonk-forge, deploy, then move `platform_ref`. |
 | `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
 
 Recipe-specific regressions under `tests/test_<family or adapter>*.py` additionally
@@ -1507,22 +1507,22 @@ lock header rather than editing resolved hashes. For example,
 lock. Resolve Python dependencies from the creator's stated stack (their
 torch/CUDA versions), never by copying another recipe's lock; when a lock pins
 torch over a base image that already ships torchvision, pin the matching
-torchvision too (`tests/test_torchvision_pinned_with_torch.py`). Include the
+torchvision too (`tests/recipes/test_torchvision_pinned_with_torch.py`). Include the
 lock and any vendored wheels/sources in build closure. Existing creator images
 may already supply dependencies; do not reinstall a different engine over them
 merely to impose a lock format. There is no global lock-format
 guard: lock/content checks are recipe-specific, including
-`tests/test_remote_code_build_smoke.py` and `tests/test_nemotron_omni_sglang_audio_lock.py`.
+`tests/recipes/test_remote_code_build_smoke.py` and `tests/recipes/test_nemotron_omni_sglang_audio_lock.py`.
 
 Python CUDA runtime bases need the host compiler/libc and Python headers that
-Triton uses at inference time (`tests/test_job_runtime_toolchain.py`). Native
+Triton uses at inference time (`tests/recipes/test_job_runtime_toolchain.py`). Native
 CUDA extensions need explicit target architecture/CUDA build verification
-(`tests/test_cuda_extension_builds.py`). Audio paths using torchaudio 2.9+ need
+(`tests/recipes/test_cuda_extension_builds.py`). Audio paths using torchaudio 2.9+ need
 a compatible pinned TorchCodec or an evidence-backed unused-audio exemption
-(`tests/test_torchaudio_torchcodec.py`). Import native decoders during the image
+(`tests/recipes/test_torchaudio_torchcodec.py`). Import native decoders during the image
 build to catch missing wheels/shared libraries before qualification. Driverless
 build smokes must not replace runtime engine-schema validation: retain the
-installed engine's refusal before serving (`tests/test_trtllm_speculative_build_guard.py`).
+installed engine's refusal before serving (`tests/recipes/test_trtllm_speculative_build_guard.py`).
 
 The hosted image build runs `tools/prepare-remote-code-smoke` against its plan.
 For every image whose Models select Python modules, it calls Transformers

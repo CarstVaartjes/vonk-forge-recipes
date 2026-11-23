@@ -1,0 +1,274 @@
+"""What a serving recipe's engine configuration really enables.
+
+A recipe may claim tool calling (the ``tool-use`` tag) and the sweep may run
+tool-call smoke cases only when the serving configuration turns the engine's
+tool-call parser on. Engines that parse nothing unless asked (vLLM, SGLang,
+TensorRT-LLM) answer a tool request with HTTP 400 or with the raw tool-call
+text in ``content``; that is the creator's or the playbook's configuration, not
+a failure of the model, so the recipe must not promise what it does not serve.
+
+``serving_capabilities`` reads the flags the recipe launches the engine with:
+its ``runtime.arguments``, the default choice of each option, the adapter's own
+launch scripts, and, for a creator kit whose entrypoint injects flags from
+inside the image, ``qualification/kit-engine-flags.json`` (each entry cites
+where the kit sets them).
+"""
+
+from __future__ import annotations
+
+import json
+import re
+from collections.abc import Iterable, Mapping
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+from vonk_forge_contracts import CapabilityName, ModelDisplay, RecipeDisplay
+
+from recipe_tooling.paths import QUALIFICATION_DIR, REPO_ROOT
+
+ROOT = REPO_ROOT
+KIT_FLAGS = QUALIFICATION_DIR / "kit-engine-flags.json"
+
+# Engines that parse tool calls and reasoning only when a flag asks them to.
+FLAG_ENGINES = frozenset({"vllm", "sglang", "tensorrt-llm"})
+# Engines whose server always parses (llama.cpp through its chat template,
+# TensorFold, the exllamav3 OpenAI server, ds4, gr8): no flag decides.
+NATIVE_ENGINES = frozenset({"llama-cpp", "tensorfold", "exllamav3", "ds4", "gr8"})
+# A generic server whose launch takes no engine flags and whose answers no engine
+# parses (a decision model generates no text): no tool or reasoning parser.
+UNPARSED_ENGINES = frozenset({"pytorch-server"})
+
+TOOL_CASES = frozenset({"T_REPORT", "T_PRODUCT", "NEM_TOOL", "MIS_T_REPORT"})
+VISION_CASES = frozenset({"V_RED", "V7", "MIS_V_RED"})
+STRICT_ARITHMETIC = ("A391", "A323", "MIS_A391")
+UNPARSED_ARITHMETIC = {"A391": "A391_UNPARSED", "A323": "A323_UNPARSED"}
+
+_TOOL_PARSER = re.compile(r"(?<![\w-])--?tool[-_](?:call[-_])?parser\b")
+_AUTO_TOOL = re.compile(r"(?<![\w-])--enable-auto-tool-choice\b")
+# A reasoning-parser flag and, when written as one, its value.
+_REASONING_PARSER = re.compile(
+    r"(?<![\w-])--?reasoning[-_]parser\b(?:[=\s]+[\"']?([^\s\"']+))?"
+)
+# Engine parsers that keep the thinking in ``content`` instead of splitting it
+# out, per engine because the same name can mean different things:
+# - vLLM ad7125a4 vllm/reasoning/minimax_m2_reasoning_parser.py:
+#   MiniMaxM2AppendThinkReasoningParser returns (None, "<think>" + output).
+# - SGLang 6a4216ed python/sglang/srt/parser/reasoning_parser.py
+#   (tests/fixtures/sglang-nemotron-reasoning-parser.txt): "minimax-append-think"
+#   is MiniMaxAppendThinkDetector, which prepends <think> to normal_text.
+# - TensorRT-LLM 14765c7d tensorrt_llm/llmapi/reasoning_parser.py registers
+#   "minimax_m2_append_think" as DeepSeekR1Parser, which splits; none listed.
+CONTENT_REASONING_PARSERS: Mapping[str, frozenset[str]] = {
+    "vllm": frozenset({"minimax_m2_append_think"}),
+    "sglang": frozenset({"minimax-append-think"}),
+    "tensorrt-llm": frozenset(),
+}
+_YAML_TOOL = re.compile(r"^\s*tool_parser\s*:", re.MULTILINE)
+_YAML_REASONING = re.compile(r"^\s*reasoning_parser\s*:", re.MULTILINE)
+_SKIPPED_DIRS = frozenset({"vendor", "patches", "tests", "licenses", "model-cards"})
+_SKIPPED_SUFFIXES = frozenset({".md", ".patch", ".gz", ".json", ".lock", ".txt"})
+_VISION_TAGS = frozenset(
+    {"vision", "multimodal", "image-input", "vision-language", "native-vision"}
+)
+_VISION_OFF = re.compile(r"language-model-only|limit-mm-per-prompt\W+\{?\W*image\W+0\b")
+
+
+@dataclass(frozen=True)
+class Capabilities:
+    tools: bool
+    reasoning_parser: bool
+    vision: bool
+    flags_from: str
+
+
+def _arguments(recipe: Mapping[str, Any]) -> list[tuple[str, Any]]:
+    found = [
+        (str(item["name"]), item.get("value"))
+        for item in recipe["runtime"].get("arguments", [])
+    ]
+    for option in recipe.get("options", []) or []:
+        for choice in option.get("choices", []):
+            if choice.get("default"):
+                found += [
+                    (str(item["name"]), item.get("value"))
+                    for item in choice.get("args", [])
+                ]
+    return found
+
+
+def _flag_text(arguments: Iterable[tuple[str, Any]]) -> str:
+    """Arguments as a command line, so one pattern reads recipes and scripts."""
+    parts: list[str] = []
+    for name, value in arguments:
+        if value is False:
+            continue
+        parts.append(name if name.startswith("-") else f"--{name}")
+        if value is not None and value is not True:
+            parts.append(str(value))
+    return " ".join(parts)
+
+
+def _adapter_text(recipe: Mapping[str, Any], root: Path) -> str:
+    build = recipe.get("execution", {}).get("build")
+    if not build:
+        return ""
+    base = root / build["context"]["path"]
+    text: list[str] = []
+    if base.is_dir():
+        for path in sorted(base.rglob("*")):
+            relative = path.relative_to(base)
+            if (
+                not path.is_file()
+                or _SKIPPED_DIRS & set(relative.parts)
+                or path.name.startswith(("Dockerfile", "LICENSE"))
+                or path.suffix in _SKIPPED_SUFFIXES
+                or path.stat().st_size > 200_000
+            ):
+                continue
+            try:
+                text.append(path.read_text(encoding="utf-8"))
+            except UnicodeDecodeError:
+                continue
+    return "\n".join(text)
+
+
+def _kit_flags() -> dict[str, Any]:
+    if not KIT_FLAGS.exists():
+        return {}
+    return json.loads(KIT_FLAGS.read_text(encoding="utf-8"))
+
+
+def tags(display: RecipeDisplay) -> set[str]:
+    return set(display.tags)
+
+
+def multimodal(
+    recipe: Mapping[str, Any],
+    models: Mapping[str, ModelDisplay],
+    display: RecipeDisplay,
+) -> bool:
+    """The recipe serves images: declared by its tags or by a model it loads.
+
+    ``models`` maps a model slug to its display, where modalities and
+    capabilities are declared.
+    """
+    arguments = _flag_text(_arguments(recipe))
+    if _VISION_OFF.search(arguments):
+        return False
+    if tags(display) & _VISION_TAGS:
+        return True
+    for entry in recipe["models"]:
+        model = models.get(entry["model"]["slug"])
+        if model is not None and (
+            "image" in model.modalities
+            or CapabilityName.IMAGE_UNDERSTANDING in model.capabilities
+        ):
+            return True
+    return False
+
+
+def serving_capabilities(
+    recipe: Mapping[str, Any],
+    slug: str,
+    models: Mapping[str, ModelDisplay],
+    display: RecipeDisplay,
+    root: Path = ROOT,
+) -> Capabilities:
+    engine = recipe["runtime"]["engine"]
+    if engine in NATIVE_ENGINES:
+        jinja_off = "--no-jinja" in _flag_text(_arguments(recipe))
+        return Capabilities(
+            tools=not jinja_off,
+            reasoning_parser=True,
+            vision=multimodal(recipe, models, display),
+            flags_from="native",
+        )
+    if engine in UNPARSED_ENGINES:
+        return Capabilities(
+            tools=False,
+            reasoning_parser=False,
+            vision=multimodal(recipe, models, display),
+            flags_from="server code",
+        )
+    if engine not in FLAG_ENGINES:
+        raise ValueError(f"{slug}: engine {engine!r} has no capability rule")
+    text = _flag_text(_arguments(recipe))
+    scripts = _adapter_text(recipe, root)
+    source = "runtime arguments" if _TOOL_PARSER.search(text) else "adapter scripts"
+    both = text + "\n" + scripts
+    if engine == "vllm":
+        tools = bool(_TOOL_PARSER.search(both) and _AUTO_TOOL.search(both))
+    else:
+        tools = bool(_TOOL_PARSER.search(both) or _YAML_TOOL.search(both))
+    content_parsers = CONTENT_REASONING_PARSERS[engine]
+    reasoning = any(
+        match.group(1) not in content_parsers
+        for match in _REASONING_PARSER.finditer(both)
+    ) or bool(_YAML_REASONING.search(both))
+    kit = _kit_flags().get(slug)
+    if kit:
+        tools = tools or bool(kit.get("tool_parser"))
+        reasoning = reasoning or bool(kit.get("reasoning_parser"))
+        source = f"kit: {kit['source']}"
+    return Capabilities(
+        tools=tools,
+        reasoning_parser=reasoning,
+        vision=multimodal(recipe, models, display),
+        flags_from=source,
+    )
+
+
+def generic_case_problems(
+    slug: str,
+    recipe: Mapping[str, Any],
+    smoke_cases: list[str],
+    caps: Capabilities,
+    display: RecipeDisplay,
+) -> list[str]:
+    """Every way a recipe's smoke cases or tags claim more (or less) than it serves."""
+    engine = recipe["runtime"]["engine"]
+    cases = set(smoke_cases)
+    problems: list[str] = []
+    asks_tools = bool(cases & TOOL_CASES)
+    tagged = "tool-use" in tags(display)
+    if engine in FLAG_ENGINES:
+        if asks_tools != caps.tools:
+            problems.append(
+                f"{slug}: tool cases {sorted(cases & TOOL_CASES)} but the "
+                f"{engine} launch {'enables' if caps.tools else 'does not enable'} "
+                "a tool-call parser (tools need --enable-auto-tool-choice and "
+                "--tool-call-parser on vLLM, --tool-call-parser on SGLang, "
+                "tool_parser on TensorRT-LLM)"
+            )
+        if tagged != caps.tools:
+            problems.append(
+                f"{slug}: tag tool-use is {'set' if tagged else 'missing'} but "
+                f"the launch {'enables' if caps.tools else 'does not enable'} "
+                "a tool-call parser"
+            )
+    else:
+        if asks_tools and not caps.tools:
+            problems.append(f"{slug}: tool cases but {engine} runs without tools")
+        if tagged and not caps.tools:
+            problems.append(f"{slug}: tag tool-use but {engine} runs without tools")
+    if "NEM_REASON" in cases and not caps.reasoning_parser:
+        problems.append(f"{slug}: NEM_REASON needs a reasoning parser")
+    arithmetic = [c for c in smoke_cases if c in STRICT_ARITHMETIC]
+    unparsed = [c for c in smoke_cases if c in UNPARSED_ARITHMETIC.values()]
+    if (
+        engine in FLAG_ENGINES
+        and not caps.reasoning_parser
+        and "reasoning" in tags(display)
+        and arithmetic
+    ):
+        problems.append(
+            f"{slug}: a reasoning model without a reasoning parser may answer "
+            f"with its thinking in content; {arithmetic} must be the _UNPARSED "
+            "variant"
+        )
+    if (caps.reasoning_parser or engine not in FLAG_ENGINES) and unparsed:
+        problems.append(f"{slug}: {unparsed} but the engine parses reasoning")
+    if cases & VISION_CASES and not caps.vision:
+        problems.append(f"{slug}: image cases but the recipe is not multimodal")
+    return problems

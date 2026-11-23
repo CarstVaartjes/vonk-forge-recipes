@@ -13,7 +13,7 @@ import struct
 import sys
 from pathlib import Path
 
-import trimesh
+import trimesh  # pyright: ignore[reportMissingImports]
 
 SOURCE_SHA256 = "d6be85417d3e256861ee733eea6916093a7af7c79c16366181fd8abcaeb38cf5"
 

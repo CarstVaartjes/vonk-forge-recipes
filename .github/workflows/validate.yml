@@ -237,7 +237,7 @@ jobs:
       # The Controller reads a recipe with the contracts version its lock pins.
       # A serving kind or Model capability newer than that is a read failure there, so
       # it may not land until the pinned platform reads it. The minimum per
-      # value is owned by qualification/introduced.py.
+      # value is owned by src/recipe_tooling/qualification/introduced.py.
       - name: Require every recipe to be readable by the pinned platform
         shell: bash
         env:
@@ -339,7 +339,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/_added_lines.py --base origin/main > "$RUNNER_TEMP/added.diff"
+          python3 tools/added-lines --base origin/main > "$RUNNER_TEMP/added.diff"
 
       # A file over 1 MiB is declared with tools/adapter-sources add, never committed.
       # Only files this PR adds or changes are checked (stat-ed: a text diff has no
@@ -378,7 +378,7 @@ jobs:
           python3 tools/check-writable-state-env --base origin/main
 
       # Recipe, Model and display JSON are read through the contract package
-      # (vonk_forge_contracts, qualification/documents.py). Checks only lines
+      # (vonk_forge_contracts, src/recipe_tooling/qualification/documents.py). Checks only lines
       # added against main.
       - name: Reject new raw reads of recipe, Model or display documents
         shell: bash
@@ -410,7 +410,7 @@ jobs:
           set -euo pipefail
           python3 tools/check-serial-reads --diff "$RUNNER_TEMP/added.diff"
 
-      # Provider URLs are opened only through tools/_upstream_http.fetch: a 429 is
+      # Provider URLs are opened only through src/recipe_tooling/upstream_http.fetch: a 429 is
       # retried and then "not checked this run", never a failure or an issue.
       - name: Reject new raw urlopen in tools
         shell: bash

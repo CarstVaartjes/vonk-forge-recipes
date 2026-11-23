@@ -25,9 +25,10 @@ from pathlib import Path
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
+from repo_root import FIXTURES, ROOT
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
-from qualification.memory_need import SPARK_MEMORY_BYTES
+from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from spark_sweep.definitions import Definitions
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.run import DaemonExecutor
@@ -38,9 +39,7 @@ SPARK_MEMORY = SPARK_MEMORY_BYTES
 GB = 10**9
 
 
-CONTRACT_MISMATCH_FIXTURE = (
-    Path(__file__).parent / "fixtures/sweep-verdicts/cli-contract-mismatch.json"
-)
+CONTRACT_MISMATCH_FIXTURE = FIXTURES / "sweep-verdicts/cli-contract-mismatch.json"
 
 
 class FakeClock:
@@ -895,7 +894,7 @@ class FakeFleet:
 
     def _error(self, code: str, detail: str) -> tuple[int, dict[str, Any]]:
         if code == "client.contract_mismatch":
-            # The recorded vonkctl document (see tests/test_sweep_contract_mismatch.py).
+            # The recorded vonkctl document (see tests/sweep/test_sweep_contract_mismatch.py).
             return 2, json.loads(CONTRACT_MISMATCH_FIXTURE.read_text())
         return 2, {
             "error": detail,
@@ -2094,8 +2093,6 @@ class FakeFleet:
 
 
 # -- harness -----------------------------------------------------------------------
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def _is_job(fleet: FakeFleet, run: dict[str, Any]) -> bool:

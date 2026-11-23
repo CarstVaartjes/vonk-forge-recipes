@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import json
 from functools import cache
-from pathlib import Path
 
+from repo_root import ROOT
 from vonk_forge_contracts import ModelDefinition, ModelDisplay, document_sha256
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def model_digest(slug: str) -> str:
@@ -37,7 +35,7 @@ def catalog_model_displays() -> dict[str, ModelDisplay]:
     licence), so a test that reads one goes through here, not the document.
     """
 
-    from qualification.documents import model_display
+    from recipe_tooling.qualification.documents import model_display
 
     return {
         digest: model_display(model.identity.slug, ROOT)

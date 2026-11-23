@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-from qualification.documents import recipe_key_digest
+from recipe_tooling.qualification.documents import recipe_key_digest
 
 # Publishes run one at a time (about 14 min each on 2026-11-08), then the Controller
 # imports (under 2 min): room for one publish queued behind another.

@@ -25,8 +25,8 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
 )
 
-from qualification.evidence_retention import retain_evidence
-from qualification.evidence_store import (
+from recipe_tooling.qualification.evidence_retention import retain_evidence
+from recipe_tooling.qualification.evidence_store import (
     catalog_recipe_keys,
     evidence_path,
     merge_evidence,
@@ -34,7 +34,7 @@ from qualification.evidence_store import (
     write_atomic,
     write_evidence,
 )
-from qualification.own_pulls import OWN_FIELDS, REPOSITORY, own_pulls
+from recipe_tooling.qualification.own_pulls import OWN_FIELDS, REPOSITORY, own_pulls
 
 from .qualification import (
     BackfillResult,

@@ -1,0 +1,129 @@
+"""The Python gates must stay configured, deterministic and wired to CI.
+
+Every finding here changes which diagnostics exist, so a dropped setting makes
+the reviewed baseline disagree with the checker without any source change. That
+already happened once: the repository shipped the pyright baseline but no
+`[tool.pyright]` section, so CI resolved pyright's defaults instead.
+"""
+
+from __future__ import annotations
+
+import re
+import runpy
+import subprocess
+import tomllib
+
+from repo_root import ROOT
+
+PYPROJECT = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+WORKFLOWS = tuple(sorted((ROOT / ".github" / "workflows").glob("*.yml")))
+
+
+def test_pyright_configuration_is_pinned() -> None:
+    pyright = PYPROJECT.get("tool", {}).get("pyright")
+    assert isinstance(pyright, dict), "pyproject.toml has no [tool.pyright] section"
+    # Both settings change the diagnostic set, so the baseline is only
+    # meaningful while they are pinned.
+    assert pyright.get("pythonVersion") == "3.14"
+    assert pyright.get("typeCheckingMode") == "basic"
+    extra_paths = pyright.get("extraPaths")
+    assert isinstance(extra_paths, list) and "contracts/src" in extra_paths
+
+
+def test_ruff_configuration_is_pinned_and_documented() -> None:
+    ruff = PYPROJECT.get("tool", {}).get("ruff")
+    assert isinstance(ruff, dict), "pyproject.toml has no [tool.ruff] section"
+    assert ruff.get("required-version") == "==0.16.9"
+    # Adapter sources are executed by the 3.12 interpreter inside the pinned
+    # upstream images, so the formatter must keep emitting 3.12 syntax.
+    assert ruff.get("target-version") == "py312"
+
+
+def test_adapters_are_excluded_from_both_gates() -> None:
+    """Adapter code follows its upstream recipe, not our style."""
+
+    assert "adapters" in PYPROJECT["tool"]["ruff"].get("exclude", [])
+    assert PYPROJECT["tool"]["ruff"].get("force-exclude") is True
+    assert "adapters" in PYPROJECT["tool"]["pyright"].get("exclude", [])
+
+
+def test_every_python_gate_runs_in_ci() -> None:
+    # Every gate is named through its wrapper. A bare `ruff check .` or
+    # `ruff format --check .` resolves files by extension and silently skips
+    # the extensionless executables, so requiring the wrapper is the point.
+    checks = {
+        "lint": re.compile(r"tools/check-python-lint"),
+        "format": re.compile(r"tools/check-python-format"),
+        "types": re.compile(r"scripts/check-python-types"),
+    }
+    for name, pattern in checks.items():
+        assert any(
+            pattern.search(path.read_text(encoding="utf-8")) for path in WORKFLOWS
+        ), f"no workflow runs the {name} gate"
+
+
+def _entry_points() -> set[str]:
+    """Return our tracked extensionless Python executables, from the shebang."""
+
+    listed = subprocess.run(
+        ["git", "ls-files"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    entry_points: set[str] = set()
+    for name in listed.stdout.splitlines():
+        if not name or "." in name or name.startswith("adapters/"):
+            continue
+        path = ROOT / name
+        if not path.is_file():
+            continue
+        with path.open("r", encoding="utf-8") as handle:
+            first_line = handle.readline()
+        if first_line.startswith("#!") and "python" in first_line:
+            entry_points.add(name)
+    return entry_points
+
+
+def test_extensionless_entry_points_stay_inside_every_gate() -> None:
+    """A gate that regresses to a bare `.` scan must fail, not pass quietly."""
+
+    entry_points = _entry_points()
+    assert "tools/build-catalog-index" in entry_points
+
+    # The type gate is importable, so its discovery is checked directly rather
+    # than by matching its source text.
+    types_tool = runpy.run_path(str(ROOT / "scripts/check-python-types"))
+    assert set(types_tool["_entry_points"]()) == entry_points
+
+    # A shell wrapper cannot be imported, so its discovery contract is asserted
+    # on the two commands that implement it.
+    for name in ("tools/check-python-lint", "tools/check-python-format"):
+        text = (ROOT / name).read_text(encoding="utf-8")
+        assert "git ls-files" in text, f"{name} no longer discovers entry points"
+        assert "'#!'*python*" in text, f"{name} no longer matches the shebang"
+
+
+def test_producer_test_environment_has_one_owner() -> None:
+    """No workflow pins a producer test dependency itself.
+
+    The refresh workflow once installed its own shorter list, so the full-suite step
+    died at collection on `import PIL` for every refresh. The one list lives in
+    `.github/requirements-producer-tests.txt`; a workflow installs it with `-r`.
+    """
+
+    shared = ROOT / ".github" / "requirements-producer-tests.txt"
+    requirements = shared.read_text(encoding="utf-8")
+    for package in ("Pillow", "numpy", "trimesh", "jsonschema", "pytest"):
+        assert package in requirements
+    for path in WORKFLOWS:
+        text = path.read_text(encoding="utf-8")
+        for copied in ("pytest", "jsonschema", "Pillow", "trimesh", "numpy"):
+            pin = re.search(
+                rf"['\" ]{copied}[\w-]*\s*(==|>=|<=|~=|<|>)", text, re.IGNORECASE
+            )
+            assert pin is None, f"{path.name} pins {pin and pin.group(0)} itself"
+    for name in ("validate.yml", "refresh-upstream.yml", "publish.yml"):
+        text = (ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8")
+        assert "-r .github/requirements-producer-tests.txt" in text, name

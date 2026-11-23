@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Author and heal the adapter-source mirror (see tools/adapter_mirror.py)."""
+"""Author and heal the adapter-source mirror (see src/recipe_tooling/adapter_mirror.py)."""
 
 import argparse
 import os
@@ -8,9 +8,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-sys.path.insert(0, str(ROOT))
-from tools.adapter_mirror import add, reconcile
-from tools.adapter_sources import AdapterSourceError
+sys.path.insert(0, str(ROOT / "src"))
+from recipe_tooling.adapter_mirror import add, reconcile
+from recipe_tooling.adapter_sources import AdapterSourceError
 
 parser = argparse.ArgumentParser(description=__doc__)
 commands = parser.add_subparsers(dest="command", required=True)

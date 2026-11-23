@@ -21,8 +21,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-from tools._added_lines import git_diff, parse_added, read_diff
+sys.path.insert(0, str(ROOT / "src"))
+from recipe_tooling.added_lines import git_diff, parse_added, read_diff
 
 PEAK = "peak_bytes"
 PEAK_SETTERS = frozenset({"declare_peak"})
@@ -248,7 +248,7 @@ def main() -> int:
     if arguments.all:
         targets: dict[str, set[int] | None] = {
             p.relative_to(ROOT).as_posix(): None
-            for p in sorted((ROOT / "tests").glob("test_*.py"))
+            for p in sorted((ROOT / "tests").rglob("test_*.py"))
         }
     else:
         diff = (

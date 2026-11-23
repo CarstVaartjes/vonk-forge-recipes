@@ -1,0 +1,102 @@
+"""The one place tools and tests get a Recipe, a Model and their display.
+
+Documents are execution data (``recipes/<slug>.json``, ``models/<slug>.json``).
+Display is what a person reads about them (``display/recipes/<slug>.json``,
+``display/models/<slug>.json``, and the catalog hierarchy in
+``display/families/<slug>.json``); a display edit never changes a document digest.
+Callers never read display fields off a document. A recipe's API facts
+(``api/recipes/<slug>.json``) are a third optional sibling, read the same way.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+from vonk_forge_contracts import (
+    FamilyDisplay,
+    ModelDefinition,
+    ModelDisplay,
+    RecipeApi,
+    RecipeDefinition,
+    RecipeDisplay,
+    document_sha256,
+)
+
+from recipe_tooling.paths import REPO_ROOT
+
+ROOT = REPO_ROOT
+
+
+def recipe(slug: str, root: Path = ROOT) -> RecipeDefinition:
+    path = root / "recipes" / f"{slug}.json"
+    return RecipeDefinition.model_validate(json.loads(path.read_text(encoding="utf-8")))
+
+
+def recipe_digest(slug: str, root: Path = ROOT) -> str:
+    """The digest of the authored document, as qualification evidence records it."""
+    path = root / "recipes" / f"{slug}.json"
+    return document_sha256(json.loads(path.read_text(encoding="utf-8")))
+
+
+def recipe_document(slug: str, root: Path = ROOT) -> dict[str, Any]:
+    """The authored recipe document as written, for callers that bind a digest to it."""
+    path = root / "recipes" / f"{slug}.json"
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def recipe_key_digest(slug: str, root: Path = ROOT) -> tuple[str, str]:
+    """The authored recipe's ``publisher/slug`` and document digest, from one read.
+
+    Not validated: the sweep only compares this digest with the one the catalog
+    serves, and the library publish validated the same document.
+    """
+    path = root / "recipes" / f"{slug}.json"
+    document = json.loads(path.read_text(encoding="utf-8"))
+    identity = document["identity"]
+    return f"{identity['publisher']}/{identity['slug']}", document_sha256(document)
+
+
+def model(slug: str, root: Path = ROOT) -> ModelDefinition:
+    path = root / "models" / f"{slug}.json"
+    return ModelDefinition.model_validate(json.loads(path.read_text(encoding="utf-8")))
+
+
+def recipe_display(slug: str, root: Path = ROOT) -> RecipeDisplay:
+    path = root / "display" / "recipes" / f"{slug}.json"
+    display = RecipeDisplay.model_validate(json.loads(path.read_text(encoding="utf-8")))
+    if display.identity.slug != slug:
+        raise ValueError(f"{path.name} describes {display.identity.slug}")
+    return display
+
+
+def model_display(slug: str, root: Path = ROOT) -> ModelDisplay:
+    path = root / "display" / "models" / f"{slug}.json"
+    display = ModelDisplay.model_validate(json.loads(path.read_text(encoding="utf-8")))
+    if display.identity.slug != slug:
+        raise ValueError(f"{path.name} describes {display.identity.slug}")
+    return display
+
+
+def families(root: Path = ROOT) -> dict[str, FamilyDisplay]:
+    """Every Family display, keyed by its file name stem (its slug)."""
+
+    return {
+        path.stem: FamilyDisplay.model_validate(
+            json.loads(path.read_text(encoding="utf-8"))
+        )
+        for path in sorted((root / "display" / "families").glob("*.json"))
+    }
+
+
+def has_recipe_api(slug: str, root: Path = ROOT) -> bool:
+    return (root / "api" / "recipes" / f"{slug}.json").is_file()
+
+
+def recipe_api(slug: str, root: Path = ROOT) -> RecipeApi:
+    path = root / "api" / "recipes" / f"{slug}.json"
+    api = RecipeApi.model_validate(json.loads(path.read_text(encoding="utf-8")))
+    if api.identity.slug != slug:
+        raise ValueError(f"{path.name} describes {api.identity.slug}")
+    return api

@@ -2,7 +2,7 @@
 
 A receipt's lifecycle word is not its whole story: the Controller ends an exhausted image
 preparation as ``cancelled`` (keeping the model download) with a failure, and a superseded
-one as ``cancelled`` with a recovery action. ``tests/test_sweep_receipt_reader.py`` keeps
+one as ``cancelled`` with a recovery action. ``tests/sweep/test_sweep_receipt_reader.py`` keeps
 every other module from reading a receipt's ``failure`` directly.
 """
 

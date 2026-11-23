@@ -12,6 +12,15 @@ required-version = ">=0.13.5"
 # Adapter tests are upstream's (they need torch/vllm) and run only in upstream's
 # image build, never in our CI. Our tests/ validate adapter files from outside.
 norecursedirs = ["adapters", ".git", "node_modules", ".venv"]
+# Tests import their helpers and each other by bare module name; every test folder is a root.
+pythonpath = [
+    "tests",
+    "tests/qualification",
+    "tests/recipes",
+    "tests/refresh_upstream",
+    "tests/sweep",
+    "tests/tools",
+]
 
 [tool.ruff]
 # The pinned formatter and linter are the repository's formatting authority for
@@ -28,14 +37,25 @@ exclude = ["adapters"]
 [tool.pyright]
 # One checker for our own code; adapters are excluded (see [tool.ruff]). The mode and the
 # language version are pinned because both change which diagnostics exist:
-# an unconfigured pyright reports hundreds of extra findings, so the reviewed
-# baseline would otherwise depend on the host interpreter and on defaults.
+# an unconfigured pyright reports hundreds of extra findings, so the zero-error
+# gate would otherwise depend on the host interpreter and on defaults.
 pythonVersion = "3.14"
 typeCheckingMode = "basic"
+# A `# pyright: ignore` that no longer suppresses anything is an error.
+reportUnnecessaryTypeIgnoreComment = "error"
 # The contracts package is not installed in the environment CI checks with, so
 # its import root is declared here exactly as the test suites add it. Without
 # it every contract import is an unresolved-import finding.
-extraPaths = ["contracts/src"]
+extraPaths = [
+    "contracts/src",
+    "src",
+    "tests",
+    "tests/qualification",
+    "tests/recipes",
+    "tests/refresh_upstream",
+    "tests/sweep",
+    "tests/tools",
+]
 exclude = [
     "**/__pycache__/**",
     "**/node_modules/**",

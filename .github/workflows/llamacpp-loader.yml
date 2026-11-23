@@ -3,7 +3,7 @@ name: llama.cpp native loader proof
 # The ggml-org llama.cpp image keeps its shared libraries beside /app/llama-server
 # and only resolves them from WorkingDir /app; Vonk runs workloads from /tmp,
 # where the loader exits 127. Every adapter built on that image must run there.
-# tests/test_llamacpp_loader_workflow.py keeps the paths below complete.
+# tests/recipes/test_llamacpp_loader_workflow.py keeps the paths below complete.
 on:
   pull_request:
     paths:

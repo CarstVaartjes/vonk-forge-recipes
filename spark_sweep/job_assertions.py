@@ -5,7 +5,7 @@ files, their names, media types, sizes and formats, and for some kinds what is
 inside them. The sweep checks every kind the same way the platform's qualification
 does (the media kinds in ``job_media``). What the sweep host cannot observe (a
 ``video-metadata`` without ``ffprobe`` installed) is reported as not evaluated with
-its reason, never passed and never failed. ``tests/test_sweep_job_smoke.py`` keeps
+its reason, never passed and never failed. ``tests/sweep/test_sweep_job_smoke.py`` keeps
 every kind the definitions use in exactly one of the two sets.
 
 ``zip-entries`` is the platform's assertion of the same name (vonk-forge

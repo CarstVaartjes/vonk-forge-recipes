@@ -7,8 +7,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-sys.path.insert(0, str(ROOT))
-from tools.adapter_sources import AdapterSourceError, materialize
+sys.path.insert(0, str(ROOT / "src"))
+from recipe_tooling.adapter_sources import AdapterSourceError, materialize
 
 argparse.ArgumentParser(description=__doc__).parse_args()
 try:
