@@ -192,7 +192,7 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
             result.unreachable.append(unreachable)
         return result
 
-    def run_gh(self, issues: dict[str, list[dict]], call, *arguments):
+    def run_gh(self, issues: dict[str, list[dict]], call, *arguments, **keywords):
         calls: list[tuple[str, ...]] = []
 
         def gh_json(*args: str):
@@ -208,7 +208,7 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
             ),
             patch("recipe_tooling.refresh_upstream.github.gh", side_effect=gh),
         ):
-            call(*arguments)
+            call(*arguments, **keywords)
         return calls
 
     def test_only_current_gone_or_handled_recipes_close(self) -> None:
@@ -288,7 +288,7 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
             refresh_publish.sync_issue,
             result,
             refresh_publish.Summary(),
-            False,
+            create=False,
         )
         assert none == []
         calls = self.run_gh(
@@ -296,7 +296,7 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
             refresh_publish.sync_issue,
             result,
             refresh_publish.Summary(),
-            False,
+            create=False,
         )
         assert calls[0][:3] == ("issue", "edit", "4")
         body = calls[0][4]

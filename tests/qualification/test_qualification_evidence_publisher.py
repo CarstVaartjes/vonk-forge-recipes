@@ -903,7 +903,7 @@ def test_success_clears_the_state_and_unknown_state_self_heals(tmp_path, monkeyp
     (work / publisher.STATE_FILE).write_text('{"state":"bogus"}')
     assert publisher.load_state(work) == publisher.PublisherRecord()
     monkeypatch.setattr(
-        publisher, "_batch", lambda *a: publisher.SweepEvidenceExit.SYNCED
+        publisher, "_batch", lambda *a, **k: publisher.SweepEvidenceExit.SYNCED
     )
     publisher.sync(tmp_path / "results.jsonl", work)
     assert publisher.load_state(work).state == publisher.PublisherState.IDLE
