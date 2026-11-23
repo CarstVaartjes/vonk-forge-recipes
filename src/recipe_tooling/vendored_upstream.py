@@ -65,6 +65,9 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request
 
+from recipe_tooling.adapter_sources import (
+    materialize_or_exit,
+)
 from recipe_tooling.paths import REPO_ROOT
 from recipe_tooling.upstream_http import UpstreamBusy, fetch
 
@@ -471,12 +474,6 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", default="origin/main")
     arguments = parser.parse_args(argv)
-    # Imported here: tools/check-image-provenance loads this module on a bare
-    # interpreter; placing the declared files needs the contracts dependencies.
-    sys.path.insert(0, str(ROOT / "contracts" / "src"))
-    from recipe_tooling.adapter_sources import (  # noqa: PLC0415 - a bare interpreter must load this module
-        materialize_or_exit,
-    )
 
     materialize_or_exit(ROOT)
     touched = changed_paths(ROOT, arguments.base)

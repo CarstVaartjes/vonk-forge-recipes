@@ -10,6 +10,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from recipe_tooling.adapter_mirror import undeclare
 from recipe_tooling.catalog_model import file_id
 from recipe_tooling.kit_pins.archive import (
     archive_url,
@@ -47,10 +48,8 @@ from recipe_tooling.kit_pins.model import (
 from recipe_tooling.kit_pins.resolve import derive
 from recipe_tooling.kit_pins.upstream import Upstream
 from recipe_tooling.paths import REPO_ROOT
-
-# The imports inside functions below are deliberate (noqa: PLC0415): tools/check-image-provenance
-# loads kit-pins on a bare interpreter without pydantic; placing sources and writing
-# documents need the dependencies, and those commands run with them.
+from recipe_tooling.qualification.documents import model_display
+from vonk_forge_contracts import ModelDefinition, document_sha256, published_json
 
 ROOT = REPO_ROOT
 
@@ -154,7 +153,6 @@ def _move_consumers(
             if old_commit:
                 text = text.replace(old_commit["commit"], base.immutable)
             old.unlink()
-            from recipe_tooling.adapter_mirror import undeclare  # noqa: PLC0415
 
             undeclare([old.relative_to(root).as_posix()], root=root)
             changed.append(f"vendor/{old.name} (removed)")
@@ -188,7 +186,6 @@ def moved_model(
     catalogued unless it is metadata (a README), as the old document may have left such
     files out on purpose. The slug, version and variant follow the revision.
     """
-    from vonk_forge_contracts import ModelDefinition  # noqa: PLC0415
 
     by_path = {f["path"]: f for f in inventory}
     document = json.loads(json.dumps(old))
@@ -228,8 +225,6 @@ def moved_model(
 
 def moved_model_display(root: Path, old_slug: str, new_slug: str) -> bytes:
     """The display of ``old_slug`` written for the Model that replaces it as ``new_slug``."""
-    from recipe_tooling.qualification.documents import model_display  # noqa: PLC0415
-    from vonk_forge_contracts import published_json  # noqa: PLC0415
 
     display = model_display(old_slug, root)
     moved = display.model_copy(
@@ -336,7 +331,6 @@ def rebind(
 
 def model_digest(document: dict[str, Any]) -> str:
     sys.path.insert(0, str(ROOT / "contracts" / "src"))
-    from vonk_forge_contracts import document_sha256  # noqa: PLC0415
 
     return document_sha256(document)
 

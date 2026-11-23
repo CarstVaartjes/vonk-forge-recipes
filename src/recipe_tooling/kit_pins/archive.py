@@ -11,6 +11,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from recipe_tooling import adapter_mirror
+from recipe_tooling.adapter_sources import AdapterSourceError, load
 from recipe_tooling.kit_pins.model import (
     ARCHIVE_ROUNDS,
     FETCH_ERRORS,
@@ -18,10 +20,6 @@ from recipe_tooling.kit_pins.model import (
     KitError,
 )
 from recipe_tooling.upstream_http import fetch as fetch_url
-
-# The imports inside functions below are deliberate (noqa: PLC0415): tools/check-image-provenance
-# loads kit-pins on a bare interpreter without pydantic; placing sources and writing
-# documents need the dependencies, and those commands run with them.
 
 # Writing the lock
 
@@ -38,12 +36,10 @@ def declare_archive(root: Path, archive: Path, origin: str) -> str:
     so a rerun fetches and declares it again instead of finishing with an
     undeclared archive.
     """
-    from recipe_tooling.adapter_mirror import add  # noqa: PLC0415
-    from recipe_tooling.adapter_sources import AdapterSourceError, load  # noqa: PLC0415
 
     relative = archive.relative_to(root).as_posix()
     try:
-        add([relative], root=root, origin=origin)
+        adapter_mirror.add([relative], root=root, origin=origin)
         return next(
             sha256
             for sha256, source in load(root).sources.items()

@@ -329,7 +329,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          python3 tools/check-image-provenance --base origin/main
+          uv run --frozen python tools/check-image-provenance --base origin/main
 
       # The change's added lines, written once for the "Reject new ..." tools
       # that judge only added lines. Git runs here, at the edge, through the one

@@ -32,6 +32,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from recipe_tooling import vendored_upstream as vendored
 from recipe_tooling.kit_pins import consumers as kit_consumers
