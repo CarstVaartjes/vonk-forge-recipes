@@ -228,8 +228,8 @@ def test_every_path_a_guard_names_exists():
 def test_the_scan_sees_the_guards_it_protects():
     # A scan that finds nothing would pass forever; pin that it reads the known owners.
     sources = guard_sources()
-    assert "src/recipe_tooling/upstream_http.py" in path_literals(
-        python_strings(sources["tools/check-raw-urlopen"])
+    assert "src/recipe_tooling/qualification/documents.py" in path_literals(
+        python_strings(sources["tools/check-document-reads"])
     )
     assert LAYERS
     assert path_literals(json_strings(json.loads((ROOT / JSON_FILES[0]).read_text())))

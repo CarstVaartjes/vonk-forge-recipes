@@ -8,7 +8,6 @@ from contextlib import AbstractContextManager
 from dataclasses import asdict
 from typing import Any
 from urllib.parse import quote
-from urllib.request import urlopen
 
 from recipe_tooling.upstream_clients import (
     ProviderDecodeError,
@@ -24,7 +23,7 @@ from recipe_tooling.upstream_drift.model import (
     RemoteNotFound,
     Watch,
 )
-from recipe_tooling.upstream_http import UpstreamBusy
+from recipe_tooling.upstream_http import UpstreamBusy, open_once
 
 
 class ProviderClient:
@@ -33,7 +32,7 @@ class ProviderClient:
         *,
         github_token: str | None = None,
         huggingface_token: str | None = None,
-        opener: Callable[..., AbstractContextManager[Any]] = urlopen,
+        opener: Callable[..., AbstractContextManager[Any]] = open_once,
         sleep: Callable[[float], None] | None = None,
     ) -> None:
         self.github_token = github_token

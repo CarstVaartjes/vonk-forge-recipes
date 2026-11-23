@@ -36,6 +36,7 @@ from typing import Annotated, BinaryIO
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, model_validator
 
 from recipe_tooling.paths import REPO_ROOT
+from recipe_tooling.upstream_http import open_once
 from vonk_forge_contracts.recipe import RelativePath, Sha256
 
 ROOT = REPO_ROOT
@@ -90,7 +91,7 @@ class AdapterSourceError(RuntimeError):
 
 def open_url(url: str) -> AbstractContextManager[BinaryIO]:
     request = urllib.request.Request(url, headers={"User-Agent": "vonk-forge-recipes"})
-    return urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS)
+    return open_once(request, timeout=TIMEOUT_SECONDS)
 
 
 def default_cache() -> Path:

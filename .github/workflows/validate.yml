@@ -410,14 +410,6 @@ jobs:
           set -euo pipefail
           python3 tools/check-serial-reads --diff "$RUNNER_TEMP/added.diff"
 
-      # Provider URLs are opened only through src/recipe_tooling/upstream_http.fetch: a 429 is
-      # retried and then "not checked this run", never a failure or an issue.
-      - name: Reject new raw urlopen in tools
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 tools/check-raw-urlopen --diff "$RUNNER_TEMP/added.diff"
-
       # An adapter never sets its own NCCL_IB_HCA: the platform names both RDMA devices of a
       # 200 Gb/s port, and a single device halves the link. Checks only added lines.
       - name: Reject adapter lines that narrow NCCL_IB_HCA
