@@ -34,8 +34,8 @@
     {
       "files": [
         {
-          "file_id": "metadata-451d293fc3bf-618cd5b83d",
-          "id": "metadata-451d293fc3bf-618cd5b83d",
+          "file_id": "metadata-76b90cf69b42-618cd5b83d",
+          "id": "metadata-76b90cf69b42-618cd5b83d",
           "mount": {
             "target": "/models"
           },
@@ -44,8 +44,8 @@
           ]
         },
         {
-          "file_id": "nvidia-nemotron-3-5-lightning-30b-a3b-q-61f87e75974e-755241d9c5",
-          "id": "nvidia-nemotron-3-5-lightning-30b-a3b-q-61f87e75974e-755241d9c5",
+          "file_id": "nvidia-nemotron-3-5-lightning-30b-a3b-q-b09a3de2c745-755241d9c5",
+          "id": "nvidia-nemotron-3-5-lightning-30b-a3b-q-b09a3de2c745-755241d9c5",
           "mount": {
             "target": "/models"
           },
@@ -54,8 +54,8 @@
           ]
         },
         {
-          "file_id": "readme-0e5c29476662-b335630551",
-          "id": "readme-0e5c29476662-b335630551",
+          "file_id": "readme-71af3853e74f-b335630551",
+          "id": "readme-71af3853e74f-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -66,10 +66,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e5cf9e30961a9ae4f9e7d8601b7f9e6130c7848b78ee06ff6c6f01b8ab9d8b18",
+        "content_sha256": "293a63a7543b55f0a460b031617dd317e4eedb4dcb348f40718934c315fe3282",
         "kind": "model",
         "publisher": "ggml-org",
-        "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-8cd08217"
+        "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-ba87dd8a"
       }
     }
   ],
@@ -84,8 +84,8 @@
     "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16/tree/a9904d24bcc1d289a1950fa9d2b978c47cf903b9"
   },
   "release": {
-    "released_at": "2026-10-19",
-    "version": "0.6.1"
+    "released_at": "2026-11-22",
+    "version": "0.6.2"
   },
   "runtime": {
     "arguments": [
@@ -175,7 +175,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 18898094588,
+            "artifact_bytes": 18898094794,
             "image_bytes": 8000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 16000000000

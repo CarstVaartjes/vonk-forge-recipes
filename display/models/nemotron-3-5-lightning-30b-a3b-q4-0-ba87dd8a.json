@@ -9,7 +9,7 @@
   "family_title": "NVIDIA Nemotron",
   "identity": {
     "publisher": "ggml-org",
-    "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-8cd08217"
+    "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-ba87dd8a"
   },
   "kind": "model-display",
   "license": {

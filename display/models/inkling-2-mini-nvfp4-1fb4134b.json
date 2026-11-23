@@ -1,0 +1,44 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "Exact public Inkling 2 Mini checkpoint (NVFP4 experts in layers 0-19, MXFP8 experts in layers 20-23, BF16 attention and embeddings), including its built-in DSpark drafter (mtp.safetensors) and its text and image processor contract.",
+  "family_title": "Inkling",
+  "identity": {
+    "publisher": "thinkingmachines",
+    "slug": "inkling-2-mini-nvfp4-1fb4134b"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Thinking Machines Lab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/thinkingmachines/Inkling-2-Mini/blob/1fb4134b9a74f9681054f4ef82e4bf1f458a2337/README.md"
+  },
+  "lineage": {
+    "family": "inkling",
+    "generation": "Inkling 2",
+    "line": "inkling-2-mini",
+    "model": "inkling-2-mini",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "Inkling 2 Mini",
+  "tags": [
+    "thinkingmachines",
+    "inkling",
+    "multimodal",
+    "text",
+    "vision",
+    "reasoning",
+    "tool-use"
+  ]
+}

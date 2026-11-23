@@ -313,11 +313,11 @@
       "z-lab",
       "IncoAI"
     ],
-    "source_reference": "https://github.com/ashhart/TensorFold/tree/b472b9f84ca9505d1d31020bed8fb4b5c7fdc33a"
+    "source_reference": "https://github.com/ashhart/TensorFold/tree/12ebd414de443485d281768036ac4835e5abe8fe"
   },
   "release": {
-    "released_at": "2026-11-20",
-    "version": "1.3.2"
+    "released_at": "2026-11-22",
+    "version": "1.3.4"
   },
   "runtime": {
     "arguments": [

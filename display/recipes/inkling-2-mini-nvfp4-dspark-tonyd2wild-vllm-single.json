@@ -1,0 +1,21 @@
+{
+  "alignment": "standard",
+  "description": "tonyd2wild's Inkling 2 Mini kit on one Spark: thinkingmachines/Inkling-2-Mini (26.4B total, 3.4B active looped MoE; NVFP4 experts in layers 0-19, MXFP8 in 20-23, BF16 attention) on vLLM's published vllm/vllm-openai:inkling-2-mini image (digest-pinned, only the Vonk launcher and a non-root user added), tensor parallel 1, DSpark speculative decoding from the checkpoint's own mtp.safetensors drafter (seven speculative tokens, probabilistic draft sampling), the inkling reasoning and tool-call parsers, and image input. Three memory tiers, as the kit's three launch scripts: standard (default) runs the 262,144-token context with gpu-memory-utilization 0.80 and a BF16 KV cache vLLM sizes after warmup (upstream: 68.89 GiB, 1,346,671 tokens, about 20 GiB MemAvailable left); max BF16 sets an exact 80 GiB BF16 KV pool and max FP8 an exact 74 GiB FP8 (E4M3, unit scales) pool for the model's native 1,048,576-token context, which the user selects with the context setting (upstream: 2,075,828 and 3,308,911 pool tokens, about 7 and 8 GiB MemAvailable left, so nothing else should share the Spark). Upstream figures (40 to 45 tok/s for one user on short chats, ~1,690 tok/s prefill over 200K, a 949,953-token needle passed on the FP8 tier in 26.5 minutes to first token, 88.4 and 87.0 on its 69-scenario tool eval) are claims until measured here. Memory: the declared peak covers the worst tier, max BF16: the kit's lowest MemAvailable while serving was 7.0 GiB of 127,533,040 kB (README section 6), so 123,077,640,192 bytes in use, declared less the 2 GiB OS allowance as 120,930,156,544 bytes; standard's 0.80 budget plus the 6.2 GB single-Spark margin (110.7 GB) and max FP8 (7.5 GiB lowest) fit inside it. The load peak is the kit's worst startup row, max FP8: 7.3 GiB lowest MemAvailable with 3.0 GiB of swap left in use from startup, so 125,976,743,117 bytes, declared less the 2 GiB OS allowance as 123,829,259,469 bytes; the minimum swap is 5,368,709,120 bytes (5 GiB), the smallest swap whose usable part holds that 2.9 GB overshoot. The max tiers run vLLM's default gpu-memory-utilization 0.92 (exact KV pool, extensible KV cache off), as the kit's max scripts pass none; their 1,048,576-token context is chosen with the context setting, which defaults to 262,144. The kit's second served name thinkingmachines/Inkling-2-Mini is not served (one alias per route). Licences (information only): model Apache-2.0; vLLM Apache-2.0; tonyd2wild's kit MIT.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-2-mini-nvfp4-dspark-tonyd2wild-vllm-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "dspark",
+    "inkling",
+    "multimodal",
+    "nvfp4",
+    "reasoning",
+    "single",
+    "spark",
+    "tool-use",
+    "vllm"
+  ],
+  "title": "Inkling 2 Mini NVFP4 DSpark vLLM single Spark (tonyd2wild)"
+}
