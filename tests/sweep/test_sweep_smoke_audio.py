@@ -236,7 +236,8 @@ def test_a_missing_voice_is_a_typed_recipe_failure(gateway) -> None:
     result = smoke.smoke_service(
         recipe, Definitions(document, QUALIFICATION), base, "a", config
     )
-    assert not result.ok and result.failure is not None
+    assert not result.ok
+    assert result.failure is not None
     assert result.failure.evidence["case"] == "cases"
 
 
@@ -287,5 +288,6 @@ def test_a_truncated_response_is_a_typed_recipe_failure_not_a_sweep_crash(
     definitions.recipe_api = lambda slug: None
     definitions.service_cases = lambda *_a, **_k: [cases()["ASR_TRANSCRIPTION_JFK"]]
     result = smoke.smoke_service(recipe, definitions, base, "a", config)
-    assert not result.ok and result.failure is not None
+    assert not result.ok
+    assert result.failure is not None
     assert "IncompleteRead" in result.failure.detail

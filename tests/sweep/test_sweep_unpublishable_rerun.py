@@ -52,5 +52,6 @@ def test_the_rerun_gets_a_lane_records_the_catalog_image_and_publishes_working(
     )
     assert published.status == Status.WORKING
     last = published.last_pass
-    assert last is not None and last.platform.resolved
+    assert last is not None
+    assert last.platform.resolved
     assert last.identity.runtime_image is not None

@@ -127,7 +127,8 @@ def test_uncertain_recipe_recovery_after_the_old_attempt_limit_and_restart(tmp_p
             None,
         )
         entry = restored.state.entry(recipe.key)
-        assert entry["status"] == "pending" and restored._open(recipe.key)
+        assert entry["status"] == "pending"
+        assert restored._open(recipe.key)
         assert clock.now() < entry["not_before"] <= clock.now() + 600
         clock.sleep(600)
     # A definite later outcome is still recorded, even after the former limit.
@@ -206,7 +207,8 @@ def test_catalog_read_timeout_does_not_hold_live_observation_or_status(
         for _ in range(5):
             sweep.tick()
             assert sweep.catalog_future is future  # one owner, no thread fan-out
-        assert observed and statuses
+        assert observed
+        assert statuses
         assert time.monotonic() - started < 1
     finally:
         release.set()
@@ -246,7 +248,8 @@ def adapter(request):
         sys.path.insert(0, str(wheel))
     try:
         spec = importlib.util.spec_from_file_location("s3_comfy_job", path)
-        assert spec and spec.loader
+        assert spec
+        assert spec.loader
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         yield module
@@ -368,7 +371,8 @@ def test_canonical_acceptance_outranks_a_refusal_shaped_lost_reply(tmp_path):
     assert sweep.state.status(recipe.key) == "pending"
     sweep.prefetcher._poll()
     record = sweep.state.downloads[recipe.key]
-    assert record["operation_id"] and record["state"] == LifecycleState.RUNNING
+    assert record["operation_id"]
+    assert record["state"] == LifecycleState.RUNNING
     assert "refusal" not in record
     assert sweep.state.status(recipe.key) == "pending"
 
@@ -428,7 +432,8 @@ def test_an_unchanged_held_lane_preserves_its_request_and_publishes_its_age(tmp_
     saved = State.load(tmp_path / "state.json", clock.now)
     assert saved.slots[recipe.key]["watch"] == watch
     lanes = [lane for items in build_status(sweep)["lanes"].values() for lane in items]
-    assert lanes and all(lane["wait"] == watch["wait"] for lane in lanes)
+    assert lanes
+    assert all(lane["wait"] == watch["wait"] for lane in lanes)
     assert slot["request_key"] == request
     slot["ready_watch"] = json.loads(json.dumps(watch))
     clock.sleep(sweep.cfg.poll_seconds)
@@ -540,7 +545,8 @@ def test_finalization_needs_its_exact_receipt_after_acceptance(tmp_path, bad_rec
 
     sweep.vk.runner = runner
     sweep._leave_fleet()
-    assert len(submissions) == 1 and len(observations) >= 2
+    assert len(submissions) == 1
+    assert len(observations) >= 2
     assert set(observations) == set(submissions)
     assert not sweep.state.data["dirty"]
 
@@ -593,7 +599,8 @@ def test_final_stop_keeps_owning_a_queued_offline_effect_until_recovery(tmp_path
 
     clock.hooks.append(recover)
     sweep._leave_fleet()
-    assert len(waiting) >= 3 and len(set(waiting)) == 1
+    assert len(waiting) >= 3
+    assert len(set(waiting)) == 1
     assert not sweep.state.data["dirty"]
     assert not any(run["run_id"] == "offline-run" for run in fleet.runs)
     submissions = [

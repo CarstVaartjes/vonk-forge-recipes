@@ -58,16 +58,16 @@ def test_resume_after_a_crash_skips_finished_recipes_and_adopts_the_load(
         sweep.run()
     saved = json.loads((tmp_path / "state.json").read_text())
     passed_before = {k for k, e in saved["recipes"].items() if e["status"] == "passed"}
-    assert (
-        passed_before and saved["slots"]
-    )  # work was finished, and a lane was mid-flight
+    assert passed_before
+    assert saved["slots"]
     clock.hooks.clear()
     again, _, _ = make_sweep(tmp_path, _recipes(), _models(), fleet=fleet)
     assert again.run() == 0
     assert {e["status"] for e in again.state.recipes.values()} == {"passed"}
     # Each recipe was tested exactly once: a recipe qualified before the crash is never added again.
     adds = [c[2] for p, c in fleet.calls if p == 10 and c[:2] == ("profile", "add")]
-    assert sorted(adds) == sorted({f"vonk-forge/{s}" for s in "abc"}) and len(adds) == 3
+    assert sorted(adds) == sorted({f"vonk-forge/{s}" for s in "abc"})
+    assert len(adds) == 3
     lines = [
         json.loads(x) for x in (tmp_path / "results.jsonl").read_text().splitlines()
     ]
@@ -88,14 +88,13 @@ def test_ctrl_c_cancels_the_lane_load_and_requeues(
     _crash_after(clock, 200, KeyboardInterrupt())
     assert sweep.run() == 130
     cancels = [c for p, c in fleet.calls if c[:2] == ("profile", "cancel")]
-    assert (
-        cancels
-        and cancels[0][3:] == ("--yes", "--detach")
-        and {p for p, c in fleet.calls if c[:2] == ("profile", "cancel")} == {10}
-    )
+    assert cancels
+    assert cancels[0][3:] == ("--yes", "--detach")
+    assert {p for p, c in fleet.calls if c[:2] == ("profile", "cancel")} == {10}
     state = json.loads((tmp_path / "state.json").read_text())
     assert state["recipes"]["vonk-forge/a"]["status"] == "pending"  # not blamed
-    assert state["slots"] == {} and state["loads"] == {}
+    assert state["slots"] == {}
+    assert state["loads"] == {}
     assert fleet.profiles[10]["assignments"] == []
 
 
@@ -135,7 +134,8 @@ def test_restore_owner_profile_loads_it_last(tmp_path: Path, gateway: Gateway) -
     )
     sweep.run()
     last = [(p, c) for p, c in fleet.calls if c[:2] == ("profile", "load")][-1]
-    assert last[0] == 2 and "--yes" in last[1]
+    assert last[0] == 2
+    assert "--yes" in last[1]
     assert not [
         c for p, c in fleet.calls if p == 10 and c[:3] == ("profile", "load", "--yes")
     ][1:]  # no stop load: restoring replaces it
@@ -231,7 +231,9 @@ def test_the_status_files_describe_lanes_queue_throughput_and_clusters(
     sweep.run()
     midway = next(s for s in seen if any(lane for lane in s["lanes"].values()))
     assert set(midway["lanes"]) == {"spark-a", "spark-b"}
-    assert "downloads" in midway and "eta" in midway and "queue" in midway
+    assert "downloads" in midway
+    assert "eta" in midway
+    assert "queue" in midway
     final = json.loads((tmp_path / "status.json").read_text())
     assert final["counts"] == {"passed": 1, "failed": 1}
     assert final["failure_clusters"][0]["count"] == 1
@@ -315,9 +317,8 @@ def test_a_fresh_state_directory_never_replays_an_old_runs_requests(
 
     loads = keys(("profile", "load", "--yes"))
     downloads = keys(("recipe", "download"))
-    assert len(set(loads)) == len(loads) and len(set(downloads)) == len(
-        downloads
-    )  # no key was reused
+    assert len(set(loads)) == len(loads)
+    assert len(set(downloads)) == len(downloads)
     assert (
         second.state.recipes["vonk-forge/a"]["status"] == "passed"
     )  # and the replayed answer was not mistaken for new work
@@ -355,9 +356,8 @@ def test_the_first_placement_clears_what_else_the_sparks_run(
         for p, c in fleet.calls
         if p == 10 and c[0] == "profile" and c[1] in ("load", "add")
     ]
-    assert (
-        ops[0][0] == "load" and ("add", "vonk-forge/a") in ops
-    )  # cleared first, then placed
+    assert ops[0][0] == "load"
+    assert ("add", "vonk-forge/a") in ops
     assert all(r["alias"] != "owner-glm" for r in fleet.runs)
     assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
 

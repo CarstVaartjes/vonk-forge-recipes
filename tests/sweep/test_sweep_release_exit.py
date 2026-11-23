@@ -43,7 +43,8 @@ def _deploy(sweep, release: str) -> None:
 def test_a_deferred_recipe_is_not_retried_on_the_same_release(tmp_path, monkeypatch):
     sweep, _key, entry = _deferred(tmp_path, monkeypatch, "1" * 40)
     sweep.requeue_for_changed_owner()
-    assert entry["status"] == "deferred" and not entry.get("recovery_history")
+    assert entry["status"] == "deferred"
+    assert not entry.get("recovery_history")
 
 
 def test_a_deferred_recipe_is_requeued_once_when_the_release_changes(
@@ -65,7 +66,8 @@ def test_a_failed_recipe_is_unaffected_by_a_release_change(tmp_path, monkeypatch
     entry["status"] = "failed"
     _deploy(sweep, "2" * 40)
     sweep.requeue_for_changed_owner()
-    assert entry["status"] == "failed" and not entry.get("recovery_history")
+    assert entry["status"] == "failed"
+    assert not entry.get("recovery_history")
 
 
 @pytest.mark.parametrize(
@@ -126,7 +128,8 @@ def test_a_download_that_fails_after_a_release_flip_is_retested_once_on_the_new_
     sweep._download_failed(
         key, policy.classify("download", "download.failed", "unknown"), "op-1", False
     )
-    assert entry["status"] == "deferred" and entry["release"] == "1" * 40
+    assert entry["status"] == "deferred"
+    assert entry["release"] == "1" * 40
     sweep.requeue_for_changed_owner()
     assert entry["status"] == "pending"
     assert entry["retest"]["reason"] == RetestReason.RELEASE_CHANGED
@@ -166,7 +169,8 @@ def test_a_load_started_while_the_platform_was_unreadable_is_retested_once(tmp_p
         key, policy.classify("start", "application.failed", "unknown"), None
     )
     entry = sweep.state.entry(key)
-    assert entry["status"] == "deferred" and entry["release"] is None
+    assert entry["status"] == "deferred"
+    assert entry["release"] is None
     sweep.requeue_for_changed_owner()
     assert entry["status"] == "pending"
     assert entry["recovery_history"][-1]["basis"] == {"controller_release": "2" * 40}
@@ -198,7 +202,8 @@ def test_a_release_that_flips_mid_load_is_recorded_against_the_one_the_load_star
         key, policy.classify("start", "application.failed", "unknown"), None
     )
     entry = sweep.state.entry(key)
-    assert entry["status"] == "deferred" and entry["release"] == "1" * 40
+    assert entry["status"] == "deferred"
+    assert entry["release"] == "1" * 40
     sweep.requeue_for_changed_owner()
     assert entry["status"] == "pending"
     assert entry["recovery_history"][-1]["basis"] == {"controller_release": "2" * 40}

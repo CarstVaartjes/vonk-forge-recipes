@@ -96,7 +96,7 @@ def test_ratio_selection_filters_direction_and_keeps_first_tie(height):
     )
 
 
-@pytest.mark.parametrize("side,expected", [(80, 64), (112, 128)])
+@pytest.mark.parametrize(("side", "expected"), [(80, 64), (112, 128)])
 def test_qwen_rounds_halfway_dimensions_to_even(side, expected):
     assert calculate_dimensions(side**2, 1) == (expected, expected)
 
@@ -121,7 +121,7 @@ def test_definitions_load_without_media_dependencies(monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "content,message",
+    ("content", "message"),
     [
         (b"not a PNG", "PNG IHDR header"),
         (b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR", "PNG IHDR header"),
@@ -153,7 +153,7 @@ def test_native_fixture_rejects_invalid_png_dimensions(tmp_path, content, messag
         resolve_native_dimensions(case, fixtures, tmp_path)
 
 
-@pytest.mark.parametrize("slug,size", HUNYUAN.items())
+@pytest.mark.parametrize(("slug", "size"), HUNYUAN.items())
 def test_native_hunyuan_output_passes_and_wrong_dimensions_fail(
     slug, size, monkeypatch
 ):
@@ -190,7 +190,7 @@ def test_native_hunyuan_output_passes_and_wrong_dimensions_fail(
 
 @pytest.mark.parametrize("size", [(64, 64), (192, 108), (108, 192)])
 @pytest.mark.parametrize(
-    "kind,target", [("hunyuan-video-15", 640), ("qwen-image", 1024)]
+    ("kind", "target"), [("hunyuan-video-15", 640), ("qwen-image", 1024)]
 )
 def test_fixture_aspect_changes_resolved_assertions(tmp_path, size, kind, target):
     from recipe_tooling.qualification.native_dimensions import resolve_native_dimensions

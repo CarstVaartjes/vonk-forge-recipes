@@ -300,7 +300,8 @@ def test_a_swap_shortfall_in_a_review_waits_instead_of_failing_the_recipe(
         for line in (tmp_path / "results.jsonl").read_text().splitlines()
     ]
     waits = [r for r in rows if r.get("status") == "waiting"]
-    assert len(waits) >= 2 and {r.get("disposition") for r in waits} == {"wait"}
+    assert len(waits) >= 2
+    assert {r.get("disposition") for r in waits} == {"wait"}
     assert not any(r.get("status") == "failed" for r in rows)
     assert not any(r.get("status") == "deferred" for r in rows)
     # no fleet clearing was requested for it
@@ -405,7 +406,8 @@ def _waits_then_admits(
     assert len(refusals) == 2
     rows = _rows(tmp_path)
     waits = [r for r in rows if r.get("status") == "waiting"]
-    assert len(waits) >= 2 and {r.get("disposition") for r in waits} == {"wait"}
+    assert len(waits) >= 2
+    assert {r.get("disposition") for r in waits} == {"wait"}
     assert not any(r.get("status") in ("failed", "deferred") for r in rows)
     assert not entry.get("review_freeing")
     assert not any("clearing the fleet" in str(r.get("reason")) for r in rows)
@@ -470,10 +472,12 @@ def test_a_final_word_decides_in_any_order(
     _refuse_reviews(fleet, codes[::-1] if reverse else codes, times=None)
     sweep.run()
     entry = sweep.state.recipes["vonk-forge/a"]
-    assert entry["status"] == "deferred" and entry["attempts"] == 1
+    assert entry["status"] == "deferred"
+    assert entry["attempts"] == 1
     assert entry["code"] == "run-switch.resource.demand_exceeds_capacity"
     ended = [r for r in _rows(tmp_path) if r.get("status") == "deferred"]
-    assert ended and {r.get("disposition") for r in ended} == {"fail"}
+    assert ended
+    assert {r.get("disposition") for r in ended} == {"fail"}
 
 
 @pytest.mark.parametrize("live_reading", [False, True])

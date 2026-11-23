@@ -93,10 +93,12 @@ def test_a_wrong_answer_passes_the_functional_check_and_misses_quality(
 ) -> None:
     _functional(case, wrong)
     [miss] = [note for note in _quality(case, wrong) if not note["ok"]]
-    assert miss["case"] == case and miss["got"]
+    assert miss["case"] == case
+    assert miss["got"]
     _functional(case, right)
     hits = _quality(case, right)
-    assert hits and all(hit["ok"] and hit["expected"] for hit in hits)
+    assert hits
+    assert all(hit["ok"] and hit["expected"] for hit in hits)
 
 
 def test_a_correct_answer_in_prose_runs_with_a_format_note() -> None:

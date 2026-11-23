@@ -108,7 +108,7 @@ def test_the_budget_follows_the_option_choices_that_ran() -> None:
 
 
 @pytest.mark.parametrize(
-    "sample,placed,recipe",
+    ("sample", "placed", "recipe"),
     [
         (None, application(("n1", "entrypoint")), SINGLE),
         (observed(("n1", GB, False)), application(("n1", "entrypoint")), SINGLE),
@@ -174,7 +174,8 @@ def test_a_pass_row_puts_its_measurement_in_the_table() -> None:
 def test_rows_without_a_measurement_publish_the_same_evidence() -> None:
     """Old rows are "not measured": republishing them never changes a file."""
     evidence = history_evidence(history())
-    assert evidence is not None and evidence.measured_memory == ()
+    assert evidence is not None
+    assert evidence.measured_memory == ()
     assert "measured_memory" not in evidence.model_dump(mode="json", exclude_none=True)
 
 
@@ -182,7 +183,8 @@ def test_a_failed_row_measures_nothing() -> None:
     evidence = history_evidence(
         history(status="failed", measured_memory=[MEASURED.model_dump(mode="json")])
     )
-    assert evidence is not None and evidence.measured_memory == ()
+    assert evidence is not None
+    assert evidence.measured_memory == ()
 
 
 def test_the_same_content_and_role_merge_to_the_conservative_side() -> None:
@@ -266,7 +268,8 @@ def test_a_measurement_that_raises_never_costs_the_pass(
     sweep.run()
     assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
     smoke = smoke_row(tmp_path)
-    assert smoke["status"] == "passed" and "measured_memory" not in smoke
+    assert smoke["status"] == "passed"
+    assert "measured_memory" not in smoke
 
 
 def test_a_job_recipe_is_never_measured_its_sample_is_taken_after_the_job() -> None:

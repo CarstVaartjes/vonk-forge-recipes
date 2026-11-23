@@ -16,7 +16,8 @@ def _launcher() -> ModuleType:
     spec = importlib.util.spec_from_file_location(
         "qwen3_tts_omni_serve", ADAPTER / "qwen3-tts-omni-serve.py"
     )
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

@@ -228,4 +228,5 @@ def test_a_failed_token_revoke_does_not_hide_a_failed_dispatch(capsys) -> None:
         assert dispatch.main() == 1
         assert "REFRESH_APP_PRIVATE_KEY" not in os.environ
     output = capsys.readouterr().out
-    assert "403" in output and "revoke refused" in output
+    assert "403" in output
+    assert "revoke refused" in output

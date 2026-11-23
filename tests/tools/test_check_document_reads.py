@@ -74,7 +74,8 @@ def _check(tmp_path: Path, files: dict[str, str], old: dict[str, str] | None = N
 def test_added_raw_recipe_read_fails(tmp_path: Path) -> None:
     problems = _check(tmp_path, {"tools/new.py": RAW_RECIPE})
     assert [p.split(":")[1] for p in problems] == ["4", "4"]
-    assert "raw load read" in problems[0] and "raw subscript read" in problems[1]
+    assert "raw load read" in problems[0]
+    assert "raw subscript read" in problems[1]
 
 
 def test_added_raw_model_read_fails(tmp_path: Path) -> None:
@@ -90,7 +91,8 @@ def test_annotated_document_parameter_fails(tmp_path: Path) -> None:
 
 def test_added_display_read_fails(tmp_path: Path) -> None:
     problems = _check(tmp_path, {"tests/test_new.py": RAW_DISPLAY})
-    assert problems and all(":4: raw load" in p for p in problems)
+    assert problems
+    assert all(":4: raw load" in p for p in problems)
 
 
 def test_extensionless_python_tool_is_checked(tmp_path: Path) -> None:
@@ -138,4 +140,5 @@ def test_cli_reads_the_diff_from_stdin_and_exits_one_on_a_hit(tmp_path: Path) ->
         text=True,
         check=False,
     )
-    assert run.returncode == 1 and "tools/new.py:4" in run.stdout
+    assert run.returncode == 1
+    assert "tools/new.py:4" in run.stdout

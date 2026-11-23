@@ -11,7 +11,8 @@ from repo_root import ROOT
 SPEC = importlib.util.spec_from_file_location(
     "full_glm_view", ROOT / "adapters/glm/vcruz-full-tensorfold-four/prepare_view.py"
 )
-assert SPEC and SPEC.loader
+assert SPEC
+assert SPEC.loader
 VIEW = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(VIEW)
 

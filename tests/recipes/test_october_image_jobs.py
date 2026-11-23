@@ -26,7 +26,8 @@ RecipeJobInputManifest = importlib.import_module(
 def job(request, tmp_path, monkeypatch):
     path = ROOT / "adapters/october-2026" / request.param / "job.py"
     spec = importlib.util.spec_from_file_location("october_job", path)
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     monkeypatch.setattr(module, "INPUT_ROOT", tmp_path)
@@ -100,7 +101,8 @@ def test_pipeline_receives_offline_assets_and_checkpoint_sampling(job, monkeypat
         assert factory.from_pretrained.call_args.kwargs["local_files_only"] is True
         call = pipe.call_args.kwargs
         assert call["use_kv_cache"] is True
-        assert "num_inference_steps" not in call and "sigmas" not in call
+        assert "num_inference_steps" not in call
+        assert "sigmas" not in call
     else:
         models = Mock()
         generate = Mock(return_value=(image, {}))

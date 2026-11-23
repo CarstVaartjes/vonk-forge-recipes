@@ -468,7 +468,8 @@ class _Model:
     def load_state_dict(
         self, state_dict: dict[str, object], *, assign: bool, strict: bool
     ) -> None:
-        assert assign and not strict  # the pinned call
+        assert assign
+        assert not strict
         for name in state_dict:
             if name in self.parameters:
                 self.parameters[name] = _Parameter(is_meta=False)

@@ -93,7 +93,8 @@ def test_image_projection_reads_signed_pin_and_ignores_registry_alias():
         },
     }
     first = parse_recipe(row)
-    assert first is not None and first.runtime_image is not None
+    assert first is not None
+    assert first.runtime_image is not None
     assert first.runtime_image.build_key == "a" * 64
     row = {
         **row,
@@ -103,7 +104,8 @@ def test_image_projection_reads_signed_pin_and_ignores_registry_alias():
         },
     }
     second = parse_recipe(row)
-    assert second is not None and second.runtime_image == first.runtime_image
+    assert second is not None
+    assert second.runtime_image == first.runtime_image
 
 
 def test_changed_content_is_ordered_newest_first():

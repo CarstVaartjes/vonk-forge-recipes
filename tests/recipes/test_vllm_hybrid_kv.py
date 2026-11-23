@@ -298,7 +298,7 @@ def test_omitted_prefix_caching_flag_is_sized_as_enabled() -> None:
 
 
 @pytest.mark.parametrize(
-    "value,expected",
+    ("value", "expected"),
     [
         (None, 0),
         ("None", 0),

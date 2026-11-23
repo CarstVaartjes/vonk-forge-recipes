@@ -705,6 +705,13 @@ def test_source_build_closure_requires_context_dockerfile_and_patches() -> None:
         validate_recipe_package_paths(recipe, ["Dockerfile"])
 
 
+def _validate_recipe_against(
+    recipe_document: dict[str, Any], digest: str, model: ModelDefinition
+) -> None:
+    candidate = RecipeDefinition.model_validate(recipe_document)
+    validate_recipe_models(candidate, {digest: model})
+
+
 def test_pure_model_resolver_binds_identity_version_file_and_selector_digest() -> None:
     model_document = load("model-definition.json")
     model = ModelDefinition.model_validate(model_document)
@@ -722,8 +729,7 @@ def test_pure_model_resolver_binds_identity_version_file_and_selector_digest() -
         invalid = copy.deepcopy(recipe_document)
         mutation(invalid)
         with pytest.raises((ValidationError, ValueError)):
-            candidate = RecipeDefinition.model_validate(invalid)
-            validate_recipe_models(candidate, {digest: model})
+            _validate_recipe_against(invalid, digest, model)
     changed_model = copy.deepcopy(model_document)
     changed_model["files"][0]["sha256"] = "a" * 64
     changed = ModelDefinition.model_validate(changed_model)
@@ -812,7 +818,7 @@ def test_model_license_rejects_duplicate_territories() -> None:
 
 
 @pytest.mark.parametrize(
-    "restrictions, message",
+    ("restrictions", "message"),
     [
         (
             {"denied_jurisdictions": ["e1"], "notice": "Invalid code."},

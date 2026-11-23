@@ -110,7 +110,7 @@ def test_guard_rejects_old_certifi() -> None:
         run_guard(version="2026.10.18")
 
 
-@pytest.mark.parametrize("store", ("system_root", "certifi_root"))
+@pytest.mark.parametrize("store", ["system_root", "certifi_root"])
 def test_guard_rejects_compromised_root_in_either_store(store: str) -> None:
     with pytest.raises(AssertionError, match="compromised emSign root"):
         run_guard(

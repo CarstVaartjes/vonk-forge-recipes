@@ -150,7 +150,8 @@ def test_backoff_grows_and_is_capped(tmp_path: Path, gateway: Gateway) -> None:
     for _ in range(8):
         sweep.note_infra("review", "controller.protocol_invalid")
         waits.append(sweep.state.data["infra"]["review"]["until"] - clock.now())
-    assert waits[:3] == [30, 60, 120] and waits[-1] == 600
+    assert waits[:3] == [30, 60, 120]
+    assert waits[-1] == 600
 
 
 def test_a_recipe_specific_refusal_still_fails_the_recipe(
@@ -236,7 +237,8 @@ def test_the_cli_updates_a_skewed_client(
         clock=clock,
         definitions=make_definitions(recipes),
     )
-    assert code == 0 and fleet.client_build["version"] == "1.1"
+    assert code == 0
+    assert fleet.client_build["version"] == "1.1"
 
 
 # -- one sweep per state directory -------------------------------------------------------------
@@ -262,9 +264,8 @@ def test_a_second_sweep_on_the_same_state_directory_refuses_to_start(
 
     clock.hooks.append(start_second)
     assert first.run() == 0
-    assert (
-        f"pid {os.getpid()}" in outcome[0] and "another sweep is running" in outcome[0]
-    )
+    assert f"pid {os.getpid()}" in outcome[0]
+    assert "another sweep is running" in outcome[0]
     # The refused sweep touched nothing, and once the first one ended the lock is free again.
     third, _, _ = make_sweep(
         tmp_path, [FakeRecipe("a")], [FakeModel("m1")], fleet=fleet
@@ -277,10 +278,8 @@ def test_the_lock_is_released_when_a_run_crashes_and_names_its_holder(
 ) -> None:
     lock = StateLock(tmp_path)
     lock.acquire()
-    assert (
-        "pid " in (tmp_path / "run.lock").read_text()
-        and "on " in (tmp_path / "run.lock").read_text()
-    )
+    assert "pid " in (tmp_path / "run.lock").read_text()
+    assert "on " in (tmp_path / "run.lock").read_text()
     with pytest.raises(StateLocked):
         StateLock(tmp_path).acquire()
     lock.release()
@@ -310,7 +309,8 @@ def test_the_lock_survives_in_another_process(tmp_path: Path) -> None:
         text=True,
     )
     try:
-        assert holder.stdout is not None and holder.stdout.readline().strip() == "held"
+        assert holder.stdout is not None
+        assert holder.stdout.readline().strip() == "held"
         with pytest.raises(StateLocked, match=f"pid {holder.pid}"):
             StateLock(tmp_path).acquire()
     finally:
@@ -361,14 +361,16 @@ def test_sigint_kills_a_blocked_vonkctl_and_returns_promptly(tmp_path: Path) -> 
     with pytest.raises(KeyboardInterrupt):
         subprocess_runner([command], 60)
     interrupter.join(timeout=1)
-    assert interrupted_at and time.monotonic() - interrupted_at[0] < 5
+    assert interrupted_at
+    assert time.monotonic() - interrupted_at[0] < 5
     pid = int(pidfile.read_text())
     deadline = time.monotonic() + 10
     while _alive(pid) and time.monotonic() < deadline:
         time.sleep(0.01)
     assert not _alive(pid)  # the child did not outlive the interrupt
     code, stdout, _ = subprocess_runner([sys.executable, "-c", "print('fresh')"], 5)
-    assert code == 0 and stdout.strip() == "fresh"
+    assert code == 0
+    assert stdout.strip() == "fresh"
 
 
 def test_a_vonkctl_that_ignores_sigint_and_hangs_is_killed_at_the_timeout(
@@ -476,7 +478,8 @@ def test_download_reconnect_preserves_the_original_request(
     sweep.vk.runner = run
     sweep.prefetcher._request(recipe, "model")
     before = dict(sweep.state.downloads[recipe.key])
-    assert before["state"] == "observing" and not before.get("operation_id")
+    assert before["state"] == "observing"
+    assert not before.get("operation_id")
     clock.sleep(60)
     sweep.prefetcher._poll()
     after = sweep.state.downloads[recipe.key]
@@ -539,4 +542,5 @@ def test_an_older_state_file_with_unreadable_inputs_is_adopted_not_failed(
     )
     state = State.load(path)
     assert state.status("vonk-forge/a") == "passed"
-    assert not state.adoptions and state.data["schema"] == 2
+    assert not state.adoptions
+    assert state.data["schema"] == 2

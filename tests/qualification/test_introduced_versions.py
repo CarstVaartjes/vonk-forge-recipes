@@ -183,6 +183,7 @@ def test_models_no_recipe_selects_are_gated_too(tmp_path: Path, monkeypatch) -> 
 def test_a_contracts_major_ahead_of_the_platform_is_refused_one_way_only() -> None:
     major_problem = GUARD["major_problem"]
     refused = major_problem(5, "4.7.0")
-    assert refused and "pin this recipes commit in vonk-forge" in refused
+    assert refused
+    assert "pin this recipes commit in vonk-forge" in refused
     assert major_problem(4, "4.7.0") is None
     assert major_problem(4, "5.0.0") is None

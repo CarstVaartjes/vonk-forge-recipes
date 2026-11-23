@@ -251,7 +251,8 @@ def test_row_cached_during_a_scheduled_retest_never_gets_a_retry(
     fleet.recipes[recipe.key].local = "cached"
     sweep.refresh_catalog()
     current = sweep.recipes[recipe.key]
-    assert current.local == "cached" and sweep.models["m1"].local == "not_cached"
+    assert current.local == "cached"
+    assert sweep.models["m1"].local == "not_cached"
     sweep.prefetcher.tick(
         sweep.recipes,
         sweep.models,

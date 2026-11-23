@@ -122,7 +122,8 @@ def test_pixal_sets_writable_cache_before_loading_flexgemm(
     spec = importlib.util.spec_from_file_location(
         "pixal_cache_test", adapter / "pixal3d_job.py"
     )
-    assert spec is not None and spec.loader is not None
+    assert spec is not None
+    assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     monkeypatch.setattr(module, "one_input", lambda path: tmp_path / "input.png")

@@ -17,7 +17,8 @@ def modules(monkeypatch):
     loaded = []
     for name in ("prepare_cache", "launcher"):
         spec = importlib.util.spec_from_file_location(name, ADAPTER / f"{name}.py")
-        assert spec and spec.loader
+        assert spec
+        assert spec.loader
         module = importlib.util.module_from_spec(spec)
         monkeypatch.setitem(sys.modules, name, module)
         spec.loader.exec_module(module)
@@ -51,7 +52,8 @@ def test_no_stock_shard_sorts_after_the_overlay_link(modules):
     primary = next(m for m in recipe(SLUG).models if m.id == "primary")
     stock = model(primary.model.slug)
     paths = [f.path for f in stock.files if f.path.endswith(".safetensors")]
-    assert paths and all(path < cache.OVERLAY_LINK for path in paths)
+    assert paths
+    assert all(path < cache.OVERLAY_LINK for path in paths)
 
 
 def test_rank_caches_are_keyed_by_the_overlay_revision(modules):

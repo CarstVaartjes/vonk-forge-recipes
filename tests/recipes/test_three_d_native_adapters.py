@@ -332,7 +332,10 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                         if isinstance(node, (ast.Import, ast.ImportFrom)):
                             deferred += 1
                             for call, first in zip(required, firsts, strict=True):
-                                assert first is not None and first < node.lineno, (
+                                assert first is not None, (
+                                    f"{ast.unparse(node)} precedes {call}"
+                                )
+                                assert first < node.lineno, (
                                     f"{ast.unparse(node)} precedes {call}"
                                 )
                 assert deferred > 0
@@ -456,7 +459,8 @@ class HunyuanOmniControlTests(unittest.TestCase):
             spec = importlib.util.spec_from_file_location(
                 "hunyuan3d_omni_run", ROOT / "adapters/three-d/hunyuan3d-omni/run.py"
             )
-            assert spec is not None and spec.loader is not None
+            assert spec is not None
+            assert spec.loader is not None
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             run = cast(_OmniRun, module)

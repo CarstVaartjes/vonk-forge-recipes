@@ -55,7 +55,8 @@ def test_a_superseded_intent_without_successor_is_requeued_not_failed(
 
 def test_supersession_uses_only_the_controller_state_and_successor() -> None:
     first = policy.supersession({"state": "superseded", "superseded_by": SID})
-    assert first is not None and first.successor == SID
+    assert first is not None
+    assert first.successor == SID
     assert (
         policy.supersession({"state": "failed", "reason_code": "superseded-by-retry"})
         is None
@@ -297,7 +298,7 @@ def test_alternating_lane_loads_make_progress_without_supersede_churn(
 
 
 @pytest.mark.parametrize(
-    "field,value",
+    ("field", "value"),
     [
         ("application_id", SID),
         ("node_ids", ["spk_b"]),
@@ -404,7 +405,8 @@ def test_pending_admission_protects_profile_then_releases_other_lane(tmp_path, b
         assert fleet.apps[application]["state"] == LifecycleState.SUPERSEDED
         hold = sweep.controller_wait_holds()[a.key]
         assert hold.application_id == application
-        assert not hold.live and hold.not_before is not None
+        assert not hold.live
+        assert hold.not_before is not None
         assert a.key not in {r.key for r in sweep.ready_candidates()}
         clock.t = hold.not_before
         assert a.key in {r.key for r in sweep.ready_candidates()}
@@ -688,7 +690,8 @@ def test_unadopted_bound_lane_names_its_hold_and_stops_the_pass(tmp_path, monkey
         assert len(adds) <= 1
         assert set(sweep.state.slots) == {a.key}
     hold = sweep._lane_holds()["spk_b"]
-    assert f"loading lane(s) {alias} not adopted" in hold and "retry at" in hold
+    assert f"loading lane(s) {alias} not adopted" in hold
+    assert "retry at" in hold
     (alert,) = build_status(sweep)["alerts"]
     assert f"{alias} not adopted by the review of the edited profile" in alert
     # Adoption binds again: the free Spark is placed in the next pass.
@@ -715,7 +718,8 @@ def test_a_followed_successor_holds_edits_until_its_admission_is_observed(tmp_pa
     sweep._tick()
     slot = sweep.state.slots[a.key]
     load = sweep.state.data["loads"][slot["request_key"]]
-    assert slot["copying"] and load["admission_unbound"] is False
+    assert slot["copying"]
+    assert load["admission_unbound"] is False
     # The Controller continues A as a successor the sweep has not observed yet.
     fleet.supersede = ["retry"]
     sweep.cfg = replace(sweep.cfg, only=())

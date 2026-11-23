@@ -438,7 +438,8 @@ def test_vocabulary_matches_published_controller_contract() -> None:
     assert ACTIVE | TERMINAL | WAITING == STATES
     assert not ACTIVE & TERMINAL
     assert not WAITING & TERMINAL
-    assert "backoff" in ACTIVE and "observing" in ACTIVE
+    assert "backoff" in ACTIVE
+    assert "observing" in ACTIVE
 
 
 def test_verdict_codes_match_the_published_enums() -> None:

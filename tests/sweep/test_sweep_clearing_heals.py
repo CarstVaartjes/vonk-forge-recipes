@@ -112,7 +112,8 @@ def test_a_clearing_decision_submits_a_cleanup_after_an_old_budget_was_spent(
     # The recorded decision (cleared_for == the holders) was never submitted.
     _blocked_by_leftover(sweep, clock)
     waits = [r for r in _results(tmp_path) if r.get("status") == "waiting"]
-    assert waits and "was not submitted" in waits[-1]["reason"]
+    assert waits
+    assert "was not submitted" in waits[-1]["reason"]
     assert not any("outlived" in str(r.get("reason")) for r in _results(tmp_path))
     assert not sweep.state.data.get("takeover_fallback")
 
@@ -216,7 +217,8 @@ def test_a_refused_clearing_is_the_recorded_wait_and_is_decided_again(
     assert sweep.state.data["takeover_fallback"]
     assert not any(i["kind"] == "takeover" for i in sweep.state.data["own_loads"])
     reason = sweep.state.data["clearing_reason"]
-    assert reason.startswith("clearing refused") and blocker["code"] in reason
+    assert reason.startswith("clearing refused")
+    assert blocker["code"] in reason
     events = [e["message"] for e in sweep.state.data["events"]]
     assert sum(blocker["code"] in m for m in events) == 1
 

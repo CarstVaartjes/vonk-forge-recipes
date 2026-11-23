@@ -137,7 +137,8 @@ def test_the_ready_recipes_are_released_early_and_pass(tmp_path, gateway) -> Non
     assert _status(sweep, "good1")["status"] == "passed"
     assert _status(sweep, "good2")["status"] == "passed"
     bad = _status(sweep, "bad")
-    assert bad["status"] == "passed" and bad["attempts"] == 1
+    assert bad["status"] == "passed"
+    assert bad["attempts"] == 1
     assert all(
         _status(sweep, key)["finished_at"] < bad["finished_at"]
         for key in ("good1", "good2")
@@ -508,7 +509,8 @@ def test_real_assignment_failure_shape_uses_its_exit_reason(
         row for row in sweep.log.entries() if row.get("status") == RecipeStatus.FAILED
     )
     record = from_history(row)
-    assert record is not None and record.blame == QualificationBlame.RECIPE
+    assert record is not None
+    assert record.blame == QualificationBlame.RECIPE
 
 
 # The Controller's FleetProfileAssignmentFailure, field for field
@@ -651,7 +653,8 @@ def test_the_fake_matches_the_real_documents_shape(tmp_path, gateway) -> None:
         assert {k for k in owner["nodes"][0]} <= set(real_owner["nodes"][0])
     # Both directions: what the sweep reads from the real document exists in the fake's.
     for failure in policy.assignment_failures({"progress": fake}):
-        assert failure.alias and failure.node_ids
+        assert failure.alias
+        assert failure.node_ids
 
 
 def test_each_failing_lane_of_a_shared_application_gets_its_own_verdict(
@@ -705,7 +708,8 @@ def test_an_adopted_lanes_own_failed_run_effect_is_its_own_result(
     fleet._app_doc = controller_reply
     _settle(sweep, clock)
     entry = _status(sweep, "good")
-    assert entry["status"] == RecipeStatus.FAILED and entry["attempts"] == 1
+    assert entry["status"] == RecipeStatus.FAILED
+    assert entry["attempts"] == 1
     assert "exception=fault2" in entry["error"]
     assert _status(sweep, "bad")["attempts"] == 1
 

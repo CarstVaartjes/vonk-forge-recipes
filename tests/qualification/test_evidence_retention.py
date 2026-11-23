@@ -135,7 +135,8 @@ def test_a_refused_newer_pass_leaves_the_older_one(tmp_path):
     publisher._drop_refused(tmp_path, {publisher.record_id(KEY, second)})
     retain_evidence(tmp_path)
     kept = read_evidence(tmp_path, KEY)
-    assert kept.records == (first,) and kept.measured_memory == rows
+    assert kept.records == (first,)
+    assert kept.measured_memory == rows
     # A refused only record leaves rows without a record: retention drops them.
     publisher._drop_refused(tmp_path, {publisher.record_id(KEY, first)})
     assert read_evidence(tmp_path, KEY).records == ()

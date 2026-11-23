@@ -76,12 +76,11 @@ def test_plan_reports_unique_bytes_and_download_time_without_touching_the_fleet(
         == 0
     )
     plan = json.loads(capsys.readouterr().out)
-    assert plan["testable_recipes"] == 4 and plan["skipped_recipes"] == ["vonk-forge/e"]
+    assert plan["testable_recipes"] == 4
+    assert plan["skipped_recipes"] == ["vonk-forge/e"]
     assert plan["unique_models"] == 3  # m1 is shared by two recipes: downloaded once
-    assert (
-        plan["unique_model_bytes"] == 3 * 20 * GB
-        and plan["bytes_to_download"] == 2 * 20 * GB
-    )
+    assert plan["unique_model_bytes"] == 3 * 20 * GB
+    assert plan["bytes_to_download"] == 2 * 20 * GB
     assert plan["download_eta_seconds"]["measured"] == pytest.approx(40 * GB / 400e6)
     assert (
         plan["next_models"][0]["cached"] is True
@@ -142,7 +141,8 @@ def test_without_ffprobe_the_sweep_warns_once_at_startup(
     warnings = [
         line for line in capsys.readouterr().err.splitlines() if "ffprobe" in line
     ]
-    assert len(warnings) == 1 and "brew install ffmpeg" in warnings[0]
+    assert len(warnings) == 1
+    assert "brew install ffmpeg" in warnings[0]
 
 
 def test_a_full_run_writes_state_results_status_and_report(
@@ -176,14 +176,13 @@ def test_a_full_run_writes_state_results_status_and_report(
     report = json.loads((tmp_path / "report.json").read_text())
     assert report["summary"] == {"passed": 1, "failed": 1}
     row = next(r for r in report["recipes"] if r["recipe"] == "vonk-forge/a")
-    assert (
-        row["tokens_per_second"] > 0
-        and row["ttft_ms"] is not None
-        and row["load_s"]
-        and row["download_s"]
-    )
+    assert row["tokens_per_second"] > 0
+    assert row["ttft_ms"] is not None
+    assert row["load_s"]
+    assert row["download_s"]
     loads = [(p, c) for p, c in fleet.calls if c[:2] == ("profile", "load")]
-    assert loads and loads[-1][0] == 2
+    assert loads
+    assert loads[-1][0] == 2
     # Rerunning resumes: nothing left to do and nothing is tested again.
     before = len(fleet.calls)
     assert _run(["run", "--yes", "--state-dir", str(tmp_path)], fleet, recipes) == 0
@@ -343,7 +342,8 @@ def test_one_issue_per_failure_with_the_hardware_test_label_and_no_duplicates() 
         "vonk-forge/known": "https://github.com/o/r/issues/5",
     }
     creates = [c for c in calls if c[:2] == ["issue", "create"]]
-    assert len(creates) == 1 and creates[0][creates[0].index("--label") + 1] == LABEL
+    assert len(creates) == 1
+    assert creates[0][creates[0].index("--label") + 1] == LABEL
     assert recipes["vonk-forge/bad"]["issue"].endswith("/7")
     assert file_issues(recipes, "o/r", gh) == []  # a rerun files nothing new
 
@@ -362,7 +362,8 @@ def test_dry_run_files_nothing() -> None:
         lambda a: called.append(a) or (0, ""),
         dry_run=True,
     )
-    assert called == [] and filed[0]["url"] == "(dry run)"
+    assert called == []
+    assert filed[0]["url"] == "(dry run)"
 
 
 def test_reclassified_platform_and_inherited_issues_close_without_new_recipe_blame() -> (

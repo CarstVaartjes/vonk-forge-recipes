@@ -57,7 +57,7 @@ def test_rows_are_sorted_and_unique_by_content_and_role(rows) -> None:
 
 
 @pytest.mark.parametrize(
-    "field,value",
+    ("field", "value"),
     [
         ("node_id", "spk_private"),
         ("hostname", "spark-1"),

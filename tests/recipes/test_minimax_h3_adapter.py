@@ -74,7 +74,8 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
         archive, _, digest = source_bundle(ADAPTER_ROOT)
         context = recipe["execution"]["build"]["context"]
         assert context["path"] == "adapters/video/minimax-h3-modular-diffusers"
-        assert digest and archive
+        assert digest
+        assert archive
 
     def test_container_and_adapter_forbid_hidden_runtime_downloads(self) -> None:
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")

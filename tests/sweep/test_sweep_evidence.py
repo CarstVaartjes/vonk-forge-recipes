@@ -84,16 +84,20 @@ def test_http_400_keeps_case_status_and_a_redacted_bounded_body(tmp_path: Path) 
     assert failure.evidence["case"] == "stream"
     assert failure.evidence["http_status"] == 400
     text = failure.evidence["body"]
-    assert "bad request" in text and len(text) <= 2048
-    assert "abc.def-123" not in text and "s3cr3t-key-value" not in text
-    assert "HTTP 400" in failure.describe() and "case=stream" in failure.describe()
+    assert "bad request" in text
+    assert len(text) <= 2048
+    assert "abc.def-123" not in text
+    assert "s3cr3t-key-value" not in text
+    assert "HTTP 400" in failure.describe()
+    assert "case=stream" in failure.describe()
 
 
 def test_assertion_failure_keeps_the_offending_value() -> None:
     failure = _assertion_failure(
         AssertionFailed("path.equals failed", "wrong", "path.equals"), "A391"
     )
-    assert failure.evidence["case"] == "A391" and failure.evidence["value"] == "wrong"
+    assert failure.evidence["case"] == "A391"
+    assert failure.evidence["value"] == "wrong"
 
 
 def test_redaction() -> None:
@@ -140,10 +144,12 @@ def test_failed_load_row_carries_operation_and_reason(
     row = sweep.state.recipes["vonk-forge/bad"]
     proof = policy.evidence_of(row)
     assert row["status"] == "failed"
-    assert proof["operation_id"] and "fleet evidence" in proof["evidence_command"]
+    assert proof["operation_id"]
+    assert "fleet evidence" in proof["evidence_command"]
     assert "container exited" in json.dumps(proof)
     status = (tmp_path / "status.md").read_text()
-    assert "evidence:" in status and "operation_id=" in status
+    assert "evidence:" in status
+    assert "operation_id=" in status
 
 
 def test_a_failed_smoke_row_and_status_carry_the_evidence(
@@ -166,7 +172,8 @@ def test_a_missing_vonkctl_is_infrastructure_not_a_crash() -> None:
         raise FileNotFoundError(2, "No such file or directory", "vonkctl")
 
     reply = Vonkctl("vonkctl", runner=missing).run("fleet", "show")
-    assert reply.document is None and "FileNotFoundError" in reply.error_text
+    assert reply.document is None
+    assert "FileNotFoundError" in reply.error_text
     from spark_sweep.verdict import Disposition, reply_disposition
 
     assert reply_disposition(reply) is Disposition.WAIT

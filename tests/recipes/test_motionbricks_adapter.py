@@ -33,7 +33,8 @@ def _load_run():
     spec = importlib.util.spec_from_file_location(
         "motionbricks_run", ADAPTER / "run.py"
     )
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
@@ -375,7 +376,8 @@ def test_the_job_publishes_one_plain_file_and_leaves_no_scratch(
     assert sorted(path.name for path in outputs.iterdir()) == ["motion.json", "tmp"]
     assert list((outputs / "tmp").iterdir()) == []
     document = json.loads((outputs / "motion.json").read_text())
-    assert document["frame_count"] == 90 and document["seed"] == 7
+    assert document["frame_count"] == 90
+    assert document["seed"] == 7
 
 
 def test_a_failed_publication_leaves_no_partial_output_and_a_retry_succeeds(
@@ -392,7 +394,8 @@ def test_a_failed_publication_leaves_no_partial_output_and_a_retry_succeeds(
     try:
         with pytest.raises(OSError, match="injected"):
             run.main(_argv(outputs))
-        assert Path.cwd() == before and tempfile.tempdir is None
+        assert Path.cwd() == before
+        assert tempfile.tempdir is None
         assert calls == [("motion.json", "motion.json")]
         assert [path.name for path in outputs.iterdir()] == ["tmp"]
         assert list((outputs / "tmp").iterdir()) == []

@@ -112,7 +112,7 @@ def evidence(*records):
 
 
 @pytest.mark.parametrize(
-    "records,current,fleet,testing,status",
+    ("records", "current", "fleet", "testing", "status"),
     [
         ((), A, 2, False, Status.UNTESTED),
         ((record(),), A, 2, False, Status.WORKING),
@@ -327,7 +327,8 @@ def test_backfill_rotations_idempotent_read_only_and_sanitized(tmp_path):
     legacy = historical()
     del legacy["verdict_identity"]
     imported = from_history(legacy)
-    assert imported is not None and imported.identity.runtime_image is None
+    assert imported is not None
+    assert imported.identity.runtime_image is None
     assert not imported.identity.models_resolved
 
 
@@ -364,10 +365,12 @@ def test_rotated_logs_are_read_once_and_publish_as_reading_every_log(tmp_path):
 def test_historical_infrastructure_failures_are_never_recipe_failures():
     row = {**historical(), "status": Outcome.FAILED, "failure_class": "capacity"}
     imported = from_history(row)
-    assert imported is not None and imported.blame == Blame.PLATFORM
+    assert imported is not None
+    assert imported.blame == Blame.PLATFORM
     row.update(failure_class="smoke-assertion")
     imported = from_history(row)
-    assert imported is not None and imported.blame == Blame.RECIPE
+    assert imported is not None
+    assert imported.blame == Blame.RECIPE
 
 
 def test_sweep_restore_and_retry_failed_use_evidence(tmp_path):
@@ -525,7 +528,8 @@ def test_public_topology_requirement_is_not_the_publishers_fleet():
     assert local.status == Status.CANNOT_TEST
     public = published_status(evidence(), current)
     assert public.status == Status.NOT_YET_VERIFIED
-    assert public.reason == Reason.NEEDS_SPARKS and public.required_sparks == 4
+    assert public.reason == Reason.NEEDS_SPARKS
+    assert public.required_sparks == 4
     with pytest.raises(ValidationError, match="required Spark count"):
         record(current)
 
@@ -564,7 +568,8 @@ def test_authorization_faults_are_platform_evidence_and_preserve_recipe_proof():
         "failure_class": SmokeAuthClass.REFUSAL,
     }
     imported = from_history(row)
-    assert imported is not None and imported.blame == Blame.PLATFORM
+    assert imported is not None
+    assert imported.blame == Blame.PLATFORM
     assert (
         derive_status(evidence(record(), imported), A, 2, False).status
         == Status.WORKING
@@ -656,7 +661,8 @@ def test_missing_historical_topology_stays_unknown_and_roundtrips():
     imported = from_history(row)
     assert imported is not None
     assert imported.identity.required_sparks is None
-    assert imported.platform.spark_count is None and imported.platform.topology is None
+    assert imported.platform.spark_count is None
+    assert imported.platform.topology is None
     restored = Record.model_validate_json(imported.model_dump_json(exclude_none=True))
     assert restored == imported
     with pytest.raises(ValueError, match="Spark count"):
@@ -729,7 +735,7 @@ def evidence_sweep(tmp_path, names=("example",), **kwargs):
     "changed", ["document", "model", "image", "build", "library", "unchanged"]
 )
 @pytest.mark.parametrize(
-    "outcome,blame",
+    ("outcome", "blame"),
     [
         (Outcome.PASSED, None),
         (Outcome.FAILED, Blame.RECIPE),
@@ -911,7 +917,8 @@ def test_adopted_unknown_image_pass_keeps_proof_but_cannot_hide_known_changes(
     sweep._reconcile_entry(sweep.recipes[KEY], 2)
     assert sweep.state.status(KEY) == RecipeStatus.PENDING
     view = sweep.qualification_view(sweep.recipes[KEY])
-    assert view is not None and view.last_pass is not None
+    assert view is not None
+    assert view.last_pass is not None
     assert view.last_pass.identity == historical_identity.model_copy(
         update={"required_sparks": None}
     )
@@ -1013,7 +1020,8 @@ def test_adoption_never_dates_a_sparse_previous_pass_after_a_known_failure(tmp_p
         sweep.state.data["qualification_evidence"][KEY]
     )
     view = sweep.qualification_view(sweep.recipes[KEY])
-    assert view is not None and view.status == Status.FAILED_RECIPE
+    assert view is not None
+    assert view.status == Status.FAILED_RECIPE
     assert view.last_pass is not None
 
 
@@ -1029,7 +1037,7 @@ def test_repository_evidence_only_names_current_catalog_recipes():
 
 
 @pytest.mark.parametrize(
-    "outcome,blame",
+    ("outcome", "blame"),
     [
         (Outcome.PASSED, None),
         (Outcome.FAILED, Blame.RECIPE),
@@ -1052,7 +1060,8 @@ def test_unknown_image_library_publication_is_not_a_qualification_change(
     sweep._reconcile_entry(current, 2)
     assert sweep.state.status(KEY) == status
     view = sweep.qualification_view(current)
-    assert view is not None and not view.changed
+    assert view is not None
+    assert not view.changed
     if view.last_pass is not None:
         assert view.last_pass.identity.runtime_image is None
 

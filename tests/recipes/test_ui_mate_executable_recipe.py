@@ -137,7 +137,8 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
             spec = importlib.util.spec_from_file_location(
                 "ui_mate_agent_test", ADAPTER / "agents/ui_mate_agent.py"
             )
-            assert spec is not None and spec.loader is not None
+            assert spec is not None
+            assert spec.loader is not None
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             response = """<think>Inspect.</think><action>Click.</action>

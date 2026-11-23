@@ -80,7 +80,8 @@ def test_rejects_protocol_wheel_family() -> None:
             ("docs/recipe-authoring.md", f"```sh\npip install {name}\n```\n"),
         ):
             issues = scan_source(registration, path, source, "selected.whl")
-            assert issues and all(issue.semantic_id == "test.wheel" for issue in issues)
+            assert issues
+            assert all(issue.semantic_id == "test.wheel" for issue in issues)
             assert all("selection.json" in str(issue) for issue in issues)
 
 

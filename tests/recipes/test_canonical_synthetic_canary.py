@@ -296,7 +296,8 @@ def test_request_contract_preserves_extensions_and_separates_structure_from_fixt
     request = ChatRequest.model_validate(body)
     assert request.model_dump()["provider_options"] == body["provider_options"]
     assert request.messages[0].model_dump()["future_message_option"] == {"value": None}
-    assert request.stream is False and request.max_tokens is None
+    assert request.stream is False
+    assert request.max_tokens is None
     assert ChatRequest.model_validate({**body, "stream": None}).stream is None
     for invalid in [
         {"messages": body["messages"]},

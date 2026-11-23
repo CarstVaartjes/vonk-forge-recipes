@@ -48,11 +48,9 @@ def test_a_restart_after_an_interrupted_restore_does_not_hold_for_the_owner(
     assert first.run() == 130  # the interrupt restored the owner's profile 2
     saved = json.loads((tmp_path / "state.json").read_text())
     restores = [x for x in saved["own_loads"] if x["kind"] == "restore-owner"]
-    assert (
-        len(restores) == 1
-        and restores[0]["profile"] == 2
-        and restores[0]["application_id"]
-    )
+    assert len(restores) == 1
+    assert restores[0]["profile"] == 2
+    assert restores[0]["application_id"]
 
     clock.hooks.clear()
     fleet.recipes["vonk-forge/a"].load_seconds = 120
@@ -152,15 +150,14 @@ def test_a_load_the_sweep_started_is_recognised_by_request_key_even_without_its_
 
     guard = OwnerGuard(Vonkctl("vonkctl", runner=run), state, hold_seconds=1800)
     status = guard.check(100.0)
-    assert (
-        not status.paused
-        and not status.new_activity
-        and state.data["owner"]["hold_until"] == 0
-    )
+    assert not status.paused
+    assert not status.new_activity
+    assert state.data["owner"]["hold_until"] == 0
     # The same shape of application with someone else's key is an owner load.
     answers["id"], answers["request_key"] = "other-app", "someone-elses"
     status = guard.check(200.0)
-    assert status.new_activity and state.data["owner"]["hold_until"] == 200.0 + 1800
+    assert status.new_activity
+    assert state.data["owner"]["hold_until"] == 200.0 + 1800
 
 
 def test_every_load_the_sweep_submits_is_remembered(
@@ -283,14 +280,16 @@ def test_a_controller_continuation_of_an_own_restore_is_our_own_load(
         "retry_of_application_id": "retry-1",
     }
     status = _lineage_guard(state, latest, ancestors).check(100.0)
-    assert status.paused and "our own load" in status.reason
+    assert status.paused
+    assert "our own load" in status.reason
     assert not status.new_activity
     latest["state"] = "succeeded"
     state.save()
     # A fresh guard (the next process) knows the continuation without walking the lineage.
     fresh = State.load(tmp_path / "state.json")
     status = _lineage_guard(fresh, latest, {}).check(200.0)
-    assert not status.paused and not status.new_activity
+    assert not status.paused
+    assert not status.new_activity
     assert fresh.data["owner"]["hold_until"] == 0
     recorded = [x for x in fresh.data["own_loads"] if x.get("continuation_of")]
     assert recorded == [
@@ -328,5 +327,6 @@ def test_an_application_continuing_someone_elses_load_still_holds(
         "retry_of_application_id": "theirs",
     }
     status = _lineage_guard(state, latest, ancestors).check(100.0)
-    assert status.new_activity and state.data["owner"]["hold_until"] == 100.0 + 1800
+    assert status.new_activity
+    assert state.data["owner"]["hold_until"] == 100.0 + 1800
     assert not any(x.get("continuation_of") for x in state.data["own_loads"])

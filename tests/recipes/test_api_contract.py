@@ -96,7 +96,8 @@ def test_an_option_choice_replaces_the_whole_block() -> None:
     default = api.for_choices(document, {})
     text_only = api.for_choices(document, {"images_video": "text-only"})
     seen = accepted_modalities(default)
-    assert seen.image and not seen.video
+    assert seen.image
+    assert not seen.video
     assert not accepted_modalities(text_only).image
     assert api.for_choices(document, {"drafter": "mtp"}) == default
 
@@ -195,7 +196,8 @@ def test_the_guard_refuses_a_modality_no_model_declares(tmp_path: Path) -> None:
     document["api"]["input_modalities"]["audio"] = True
     path.write_text(json.dumps(document), encoding="utf-8")
     found = GUARD["problems"](root, [slug])
-    assert len(found) == 1 and "audio input needs a Model" in found[0]
+    assert len(found) == 1
+    assert "audio input needs a Model" in found[0]
 
 
 def test_the_guard_refuses_an_image_the_model_does_not_declare(tmp_path: Path) -> None:
@@ -206,7 +208,8 @@ def test_the_guard_refuses_an_image_the_model_does_not_declare(tmp_path: Path) -
     document["api"]["input_modalities"]["image"] = True
     path.write_text(json.dumps(document), encoding="utf-8")
     found = GUARD["problems"](root, [slug])
-    assert len(found) == 1 and "image input needs a Model" in found[0]
+    assert len(found) == 1
+    assert "image input needs a Model" in found[0]
 
 
 def test_the_guard_checks_an_option_choice_against_its_own_runtime(
@@ -219,7 +222,8 @@ def test_the_guard_checks_an_option_choice_against_its_own_runtime(
     document["option_choices"][0]["api"]["max_input_tokens"] = 2**30
     path.write_text(json.dumps(document), encoding="utf-8")
     found = GUARD["problems"](root, [slug])
-    assert len(found) == 1 and "option images_video=text-only" in found[0]
+    assert len(found) == 1
+    assert "option images_video=text-only" in found[0]
     assert "max_input_tokens exceeds context_tokens" in found[0]
 
 
@@ -313,7 +317,8 @@ def test_the_guard_refuses_tools_and_reasoning_a_trtllm_launch_does_not_enable()
     assert "reasoning needs a reasoning parser" in found[0]
     tools_only = _chat_api(slug, reasoning={"kind": "none"})
     found = GUARD["parser_problems"](ROOT, slug, recipe(slug), tools_only)
-    assert "reasoning" not in found[0] and "tools need" in found[0]
+    assert "reasoning" not in found[0]
+    assert "tools need" in found[0]
 
 
 @pytest.mark.parametrize(

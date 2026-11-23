@@ -188,7 +188,8 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
     def test_http_failure_evidence_keeps_node_errors_for_every_adapter(self) -> None:
         for path in sorted((ROOT / "adapters/media").glob("comfyui-*/comfyui_job.py")):
             spec = importlib.util.spec_from_file_location("comfyui_http_test", path)
-            assert spec is not None and spec.loader is not None
+            assert spec is not None
+            assert spec.loader is not None
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             bodies = (
@@ -228,7 +229,8 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
     def test_model_links_point_to_files_inside_artifact_mounts(self) -> None:
         for path in sorted((ROOT / "adapters/media").glob("comfyui-*/comfyui_job.py")):
             spec = importlib.util.spec_from_file_location("comfyui_mount_test", path)
-            assert spec is not None and spec.loader is not None
+            assert spec is not None
+            assert spec.loader is not None
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             for directory_mount, source_name in (
@@ -275,7 +277,8 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
             spec = importlib.util.spec_from_file_location(
                 "comfyui_invalid_mount_test", path
             )
-            assert spec is not None and spec.loader is not None
+            assert spec is not None
+            assert spec.loader is not None
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             for count in (0, 2):
@@ -311,7 +314,8 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
     def test_successful_http_response_is_unchanged(self) -> None:
         path = ROOT / "adapters/media/comfyui-core/comfyui_job.py"
         spec = importlib.util.spec_from_file_location("comfyui_success_test", path)
-        assert spec is not None and spec.loader is not None
+        assert spec is not None
+        assert spec.loader is not None
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         with patch.object(
@@ -333,7 +337,8 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
                 spec = importlib.util.spec_from_file_location(
                     f"comfyui_job_{path.parent.name.replace('-', '_')}", path
                 )
-                assert spec is not None and spec.loader is not None
+                assert spec is not None
+                assert spec.loader is not None
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
                 with tempfile.TemporaryDirectory() as directory:
@@ -359,7 +364,8 @@ def _controlled_adapter():
     spec = importlib.util.spec_from_file_location(
         "comfyui_controls", CONTROLLED_CONTEXT / "comfyui_job.py"
     )
-    assert spec is not None and spec.loader is not None
+    assert spec is not None
+    assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

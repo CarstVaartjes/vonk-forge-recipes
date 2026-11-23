@@ -205,7 +205,8 @@ def test_refresh_raises_peaks_to_the_budget_envelope_and_never_lowers() -> None:
     raised = mn_evidence.raise_peaks_to_envelope(recipe)
     assert raised is not None
     envelope = vllm_utilization_envelope(raised)
-    assert envelope is not None and envelope > 100_000_000_000
+    assert envelope is not None
+    assert envelope > 100_000_000_000
     for role in raised.topology.roles:
         assert role.resources.memory.peak_bytes == envelope
         assert role.resources.memory.load_peak_bytes == envelope + 1_000_000_000

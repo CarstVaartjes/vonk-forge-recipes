@@ -13,7 +13,8 @@ ADAPTER = ROOT / "adapters/glm/vcruz-full-tensorfold-four"
 
 def load(name):
     spec = importlib.util.spec_from_file_location(name, ADAPTER / f"{name}.py")
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -115,7 +116,8 @@ def test_drowzeys_launcher_translates_all_authorized_rails(
         "rocep1s0f1,roceP2p1s0f1" if "," in selector else "rocep1s0f1"
     )
     assert os.environ["TF_GLM53_ROCE_GIDS"] == ("3,3" if "," in selector else "3")
-    assert calls and calls[0][-4:] == [
+    assert calls
+    assert calls[0][-4:] == [
         "--master",
         "192.0.2.1",
         "--master-port",

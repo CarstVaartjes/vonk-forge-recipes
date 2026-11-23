@@ -68,7 +68,8 @@ def test_poison_row_advances_cursor_retains_cache_and_cannot_authorize_removal(
     assert cached is not None
     listing.rows["cached"] = cached
     listing.begin(0)
-    assert not listing.step() and listing.cursor == "page2"
+    assert not listing.step()
+    assert listing.cursor == "page2"
     assert listing.step(1)
     assert listing.invalid_rows == 1
     assert listing.diagnostics[0].reason is InputReason.INVALID_ROW
@@ -169,7 +170,8 @@ def test_invalid_image_map_keeps_source_build_publication_path(
     if damage != "{":
         INDEX["pin_prebuilt_images"](rows, json.loads(damage))
     assert rows == [{"content_sha256": "a" * 64}]
-    assert diagnostics and diagnostics[0].reason is InputReason.INVALID_OPTIONAL
+    assert diagnostics
+    assert diagnostics[0].reason is InputReason.INVALID_OPTIONAL
 
 
 DRIFT = {
@@ -517,5 +519,6 @@ def test_a_group_that_does_not_land_reports_to_every_member_and_keeps_its_pr(
     assert "dual" in " ".join(synced["single"])
     assert all(synced[member] for member in synced)
     # The members stay prepared: the group's open refresh PR is not judged stale.
-    assert assessed["single"].prepared and assessed["dual"].prepared
+    assert assessed["single"].prepared
+    assert assessed["dual"].prepared
     assert not [call for call in closed if call[:2] == ("pr", "close")], closed

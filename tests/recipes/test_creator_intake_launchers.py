@@ -154,7 +154,7 @@ def test_flash_next_profile_receives_platform_endpoint(
 
 
 @pytest.mark.parametrize(
-    "profile,context,vision,cache",
+    ("profile", "context", "vision", "cache"),
     [("vision", 4096, True, "FP16"), ("long", 262144, False, "Q4")],
 )
 def test_minicpm_profile_writes_cache_without_mutating_model(
@@ -167,7 +167,8 @@ def test_minicpm_profile_writes_cache_without_mutating_model(
 ) -> None:
     adapter = ROOT / "adapters/minicpm/vcruz305-exl3-single"
     spec = importlib.util.spec_from_file_location("common", adapter / "tools/common.py")
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     monkeypatch.setitem(sys.modules, "common", module)

@@ -123,7 +123,8 @@ def test_the_expected_answer_leaves_no_note(tmp_path: Path, gateway: Gateway) ->
     assert _entry(sweep)["status"] == "passed"
     assert "quality" not in _entry(sweep)
     checks = _smoke_line(tmp_path)["result"]["quality"]
-    assert checks and all(check["ok"] is True for check in checks)
+    assert checks
+    assert all(check["ok"] is True for check in checks)
 
 
 @pytest.mark.parametrize(

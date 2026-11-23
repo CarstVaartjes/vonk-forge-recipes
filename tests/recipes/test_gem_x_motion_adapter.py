@@ -36,7 +36,8 @@ FIXTURE = ROOT / "qualification/fixtures/gemx-person-2s.mp4"
 
 def _load(name: str):
     spec = importlib.util.spec_from_file_location(name, ADAPTER / f"{name}.py")
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     sys.modules[f"gem_x_{name}"] = module
     spec.loader.exec_module(module)

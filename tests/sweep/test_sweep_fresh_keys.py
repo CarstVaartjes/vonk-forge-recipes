@@ -73,7 +73,8 @@ def test_every_attempt_has_its_own_key_recorded_in_own_loads(
         for profile in (2, 10)
         for _ in range(3)
     }
-    assert len(keys) == 12 and sweep.state.data["own_seq"] == 12
+    assert len(keys) == 12
+    assert sweep.state.data["own_seq"] == 12
 
 
 def test_a_retired_owned_application_leaves_the_state_and_admits_new_loads(
@@ -112,7 +113,8 @@ def test_a_retired_owned_application_leaves_the_state_and_admits_new_loads(
         sweep.clock.sleep(300)
     # Retired once fresh fleet facts showed nothing running; the newer clearing replaces it.
     assert "old" not in sweep.state.data["cleanup_loads"]
-    assert _load_keys(fleet, 10) and "old" not in _load_keys(fleet, 10)
+    assert _load_keys(fleet, 10)
+    assert "old" not in _load_keys(fleet, 10)
     assert len(sweep.state.data["own_loads"]) > 1
     assert not any(r["alias"] == "owner-glm" for r in fleet.runs)
     assert sweep.state.recipes["vonk-forge/a"]["status"] != "failed"
@@ -247,9 +249,8 @@ def test_restores_after_resumed_runs_never_reuse_a_key(
         for x in json.loads((tmp_path / "state.json").read_text())["own_loads"]
         if x["kind"] == "restore-owner"
     ]
-    assert (
-        len(restores) == 2 and restores[0]["request_key"] != restores[1]["request_key"]
-    )
+    assert len(restores) == 2
+    assert restores[0]["request_key"] != restores[1]["request_key"]
     sent = _load_keys(fleet, 2)
     assert (
         len(sent) == len(set(sent)) == 2

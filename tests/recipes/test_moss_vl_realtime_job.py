@@ -201,7 +201,8 @@ class MossRealtimeJobTests(unittest.TestCase):
             "build"
         ]["context"]
         assert context["path"] == "adapters/video/moss-vl-realtime"
-        assert digest and archive
+        assert digest
+        assert archive
 
         index = json.loads(
             (GENERATED / "catalog-index.json").read_text(encoding="utf-8")

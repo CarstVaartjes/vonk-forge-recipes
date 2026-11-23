@@ -265,7 +265,8 @@ def test_a_new_top_level_directory_is_checked(tmp_path):
     (tmp_path / "src").mkdir()
     (tmp_path / ".git").mkdir()
     names = top_level(tmp_path)
-    assert "src" in names and ".git" not in names
+    assert "src" in names
+    assert ".git" not in names
     assert path_literals(["src/pkg/mod.py", "other/x"], names) == {"src/pkg/mod.py"}
 
 

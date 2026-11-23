@@ -98,7 +98,8 @@ def test_unset_fields_leave_documents_unchanged() -> None:
     assert "minimum_swap_bytes" not in raw_memory
     parsed = RecipeDefinition.model_validate(raw)
     memory = parsed.topology.roles[0].resources.memory
-    assert memory.load_peak_bytes is None and memory.minimum_swap_bytes == 0
+    assert memory.load_peak_bytes is None
+    assert memory.minimum_swap_bytes == 0
     dumped = parsed.model_dump(mode="json")["topology"]["roles"][0]["resources"]
     assert dumped["memory"] == raw_memory
 

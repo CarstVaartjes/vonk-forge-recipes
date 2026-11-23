@@ -106,7 +106,8 @@ def test_the_raw_jfk_fixture_is_the_recorded_public_domain_clip() -> None:
     raw = (ROOT / FIXTURE).read_bytes()
     assert len(raw) == entry["size_bytes"]
     assert hashlib.sha256(raw).hexdigest() == entry["sha256"]
-    assert raw[:4] == b"RIFF" and raw[8:12] == b"WAVE"
+    assert raw[:4] == b"RIFF"
+    assert raw[8:12] == b"WAVE"
     assert entry["provenance"]["license_spdx"] == "LicenseRef-PD-USGov"
     assert "commons.wikimedia.org" in entry["provenance"]["source_url"]
 

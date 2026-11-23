@@ -67,7 +67,8 @@ class LtxNative14RefreshTests(unittest.TestCase):
             )
             assert commit is not None, slug
             assert digest is not None, slug
-            assert commit is not None and digest is not None
+            assert commit is not None
+            assert digest is not None
             assert dockerfile.count(commit.group(1)) == 2, slug
             assert dockerfile.count(digest.group(1)) == 2, slug
             assert "sha256sum --check --strict" in dockerfile
@@ -90,7 +91,8 @@ def test_native_images_resolve_one_compatible_pytorch_release() -> None:
         dockerfile = (root / "Dockerfile").read_text()
         torch = re.search(r"\btorch==([\d.]+)", dockerfile)
         audio = re.search(r"\btorchaudio==([\d.]+)", dockerfile)
-        assert torch is not None and audio is not None
+        assert torch is not None
+        assert audio is not None
         assert torch.group(1) == audio.group(1), adapter
         assert "--no-deps" not in dockerfile.split("COPY requirements.lock")[0]
         lock = (root / "requirements.lock").read_text()

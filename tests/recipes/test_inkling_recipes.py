@@ -301,14 +301,16 @@ def test_rank_budget_guard_rejects_the_failed_settings() -> None:
             "peak_bytes": 99_003_761_392,
         }
     )
-    assert failed is not None and "SGLang needs to start" in failed
+    assert failed is not None
+    assert "SGLang needs to start" in failed
     cases = {
         "static budget": {"mem-fraction-static": FAILED_FRACTION},
         "max-mamba-cache-size": {"max-mamba-cache-size": 4},
     }
     for message, changes in cases.items():
         error = _rank_budget_error(**changes)
-        assert error is not None and message in error, (changes, error)
+        assert error is not None, (changes, error)
+        assert message in error, (changes, error)
 
 
 KV_1M = "recipes/inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual.json"
@@ -425,7 +427,8 @@ def test_uncapped_startup_room_refuses_the_10_28_fraction_and_accepts_the_fix() 
             "peak_bytes": peak(KV_1M_FAILED_FRACTION),
         },
     )
-    assert failed is not None and "SGLang needs to start" in failed, failed
+    assert failed is not None, failed
+    assert "SGLang needs to start" in failed, failed
     assert (
         _rank_budget_error(
             KV_1M, **{"mem-fraction-static": "0.85", "peak_bytes": peak("0.85")}
@@ -564,7 +567,8 @@ def test_startup_room_boundary_is_the_replays_fifth_slot() -> None:
             high = middle
         else:
             low = middle
-    assert _replayed_slots(low) == 4 and _replayed_slots(high) == 5
+    assert _replayed_slots(low) == 4
+    assert _replayed_slots(high) == 5
 
     def error(fraction: float) -> bool:
         """Whether the base launch (block size 7, the replay's) is refused."""

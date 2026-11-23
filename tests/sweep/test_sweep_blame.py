@@ -207,10 +207,12 @@ def test_an_unnamed_class_on_one_identity_ends_after_three_identical_outcomes(tm
     sweep._record_failure(key, failure, None)
     (row,) = _verdict_rows(sweep, key)
     assert row["evidence"]["identical_exits"] == IDENTICAL_EXIT_LIMIT
-    assert row["failure_class"] == UNNAMED and row["code"] == "x.code"
+    assert row["failure_class"] == UNNAMED
+    assert row["code"] == "x.code"
     assert row["status"] == "deferred"  # the platform's, reopened by a release change
     imported = from_history({**historical(), **row, "recipe": historical()["recipe"]})
-    assert imported is not None and imported.blame == PublishedBlame.PLATFORM
+    assert imported is not None
+    assert imported.blame == PublishedBlame.PLATFORM
 
 
 def test_a_different_unnamed_class_restarts_the_count(tmp_path):

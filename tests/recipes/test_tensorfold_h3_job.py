@@ -18,7 +18,8 @@ Manifest = importlib.import_module(
     "vonk_agent_protocol.job_inputs"
 ).RecipeJobInputManifest
 SPEC = importlib.util.spec_from_file_location("h3_job", CONTEXT / "comfyui_job.py")
-assert SPEC and SPEC.loader
+assert SPEC
+assert SPEC.loader
 JOB = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(JOB)
 
@@ -179,7 +180,8 @@ def test_keys_heretic_workflow_hash_prompt_seed_and_frame_override(
         "keys_heretic_job",
         ROOT / "adapters/video/drowzeys-keys-heretic-h3/comfyui_job.py",
     )
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     job = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(job)
     payload = (

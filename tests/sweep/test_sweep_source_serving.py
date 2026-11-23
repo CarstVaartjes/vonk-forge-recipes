@@ -73,18 +73,21 @@ def test_a_refreshed_proven_recipe_waits_for_the_catalog_then_is_retested(
     # Before the import: not done, nothing loaded, and the wait names the recipe.
     assert before_import, "the run ended before the catalog served its source"
     done, adds, waiting = before_import[0]
-    assert not done and adds == adds_before
+    assert not done
+    assert adds == adds_before
     assert waiting == (Unserved(KEY, OLD, NEW),)
     # After the import: the proven recipe moved, so it is re-checked on the new content.
     entry = sweep.state.recipes[KEY]
-    assert entry["status"] == "passed" and entry["content_sha256"] == NEW
+    assert entry["status"] == "passed"
+    assert entry["content_sha256"] == NEW
     rows = _rows(tmp_path)
     catalog = [
         r["status"] for r in rows if r["step"] == "catalog" and "recipe" not in r
     ]
     assert catalog == ["waiting", "served"]
     requeue = [r for r in rows if r.get("recipe") == KEY and r["step"] == "requeue"]
-    assert requeue and requeue[-1]["reason"] == "passed-on-older-revision"
+    assert requeue
+    assert requeue[-1]["reason"] == "passed-on-older-revision"
     assert sweep.source_serving is SourceServing.SERVED
 
 
@@ -122,7 +125,8 @@ def test_a_source_the_catalog_never_serves_is_waited_for_within_the_bound_only(
     # Nothing loaded within the bound; after it, the served content was tested.
     assert _first_load_at(fleet) >= start + sweep.cfg.source_wait_seconds
     entry = sweep.state.recipes[KEY]
-    assert entry["status"] == "passed" and entry["content_sha256"] == OLD
+    assert entry["status"] == "passed"
+    assert entry["content_sha256"] == OLD
     rows = [r for r in _rows(tmp_path) if r["step"] == "catalog" and "recipe" not in r]
     assert [r["status"] for r in rows] == ["waiting", "wait-expired"]
     expired = rows[-1]
@@ -163,7 +167,8 @@ def test_a_new_library_that_leaves_the_recipe_unchanged_keeps_it_waiting(
 
     assert seen == [(False, 0)]  # still waiting across the unrelated release
     entry = sweep.state.recipes[KEY]
-    assert entry["status"] == "passed" and entry["content_sha256"] == NEW
+    assert entry["status"] == "passed"
+    assert entry["content_sha256"] == NEW
     rows = [r for r in _rows(tmp_path) if r["step"] == "catalog" and "recipe" not in r]
     assert [r["status"] for r in rows] == ["waiting", "served"]
     assert not sweep.source_alert
@@ -281,7 +286,8 @@ def test_a_recipe_the_older_source_lacks_is_held_per_row_on_any_pass(
         [FakeModel("1" * 64)],
         gateway=gateway,
     )
-    assert sweep.run() == 0 and sweep.catalog_loaded
+    assert sweep.run() == 0
+    assert sweep.catalog_loaded
     # A later pass lists a recipe merged since this sweep's source was taken.
     sweep.recipes[newer] = replace(sweep.recipes[KEY], key=newer)
     sweep.state.recipes[newer] = {"status": "pending"}

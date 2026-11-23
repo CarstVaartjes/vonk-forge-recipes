@@ -149,7 +149,11 @@ class RecipeExecutabilityTests(unittest.TestCase):
                 executable = entrypoint[0]
                 assert isinstance(executable, str)
                 executable_path = PurePosixPath(executable)
-                assert executable_path.is_absolute() and executable_path.name, (
+                assert executable_path.is_absolute(), (
+                    f"{path.name}: runtime.entrypoint must name a concrete "
+                    "absolute executable"
+                )
+                assert executable_path.name, (
                     f"{path.name}: runtime.entrypoint must name a concrete "
                     "absolute executable"
                 )

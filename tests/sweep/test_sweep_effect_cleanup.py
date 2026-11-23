@@ -70,7 +70,8 @@ def test_healthy_lane_does_not_require_offline_cleanup_adoption(
     assert sweep._cleanup_nodes() == set()
     stopped, pending = original["effects"]
     assert cleanup.stopped(stopped)
-    assert pending["state"] == "pending" and pending["target_id"] == "run-offline"
+    assert pending["state"] == "pending"
+    assert pending["target_id"] == "run-offline"
     apply_healthy(sweep, clock, recipe)
     slot = sweep.state.slots[recipe.key]
     current = sweep.state.data["loads"][slot["request_key"]]
@@ -147,7 +148,8 @@ def test_pending_root_keeps_exact_child_identity_beyond_old_wait_budget_and_rest
         assert sweep._take_over(clock.now())
     assert len(mutations(fleet)) == before
     assert original["effects"] == previous
-    assert original["request_key"] == key and original["app_id"] == app["id"]
+    assert original["request_key"] == key
+    assert original["app_id"] == app["id"]
     assert not any(command[:2] == ("profile", "cancel") for _, command in fleet.calls)
     sweep.state.save()
     restarted, _, _ = make_sweep(
@@ -449,7 +451,8 @@ def saved_confirmed_cleanup(
     clock.sleep(3600)
     reply = sweep.vk.run("profile", "progress", "--load", app["id"], profile=10)
     rows = cleanup.stop_effects(reply.document)
-    assert rows and all(cleanup.stopped(row) for row in rows)
+    assert rows
+    assert all(cleanup.stopped(row) for row in rows)
     original["effects"] = rows
     if empty:
         original.update(effects=[], reviewed_stops=[])
@@ -498,7 +501,8 @@ def test_saved_confirmed_cleanup_reobserves_owner_and_retires(
         is CleanupEndReason.TARGET_ABSENT
     )
     reads = [c for _, c in fleet.calls if c[:2] == ("profile", "progress")]
-    assert len(reads) == 1 and app["id"] in reads[0]
+    assert len(reads) == 1
+    assert app["id"] in reads[0]
     assert not mutations(fleet)
     assert not any(c[:2] == ("profile", "cancel") for _, c in fleet.calls)
     calls = len(fleet.calls)

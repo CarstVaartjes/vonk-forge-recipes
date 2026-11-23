@@ -55,7 +55,8 @@ def test_full_catalog_packages_are_self_contained_and_deterministic(
         )
         for path in ROOT.joinpath("recipes").glob("*.json")
     }
-    assert source_models and source_recipes
+    assert source_models
+    assert source_recipes
     assert len(source_models) == len(list(ROOT.joinpath("models").glob("*.json")))
     assert len(source_recipes) == len(list(ROOT.joinpath("recipes").glob("*.json")))
     for catalog in (first, second):

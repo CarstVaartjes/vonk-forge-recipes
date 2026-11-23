@@ -101,7 +101,8 @@ def test_unknown_words_keep_their_entries_and_one_malformed_entry_is_skipped(
     display = read.index.catalog_entities[0].display
     assert display is not None
     capability = display.capabilities[-1]
-    assert isinstance(capability, UnrecognisedWord) and capability == "telepathy"
+    assert isinstance(capability, UnrecognisedWord)
+    assert capability == "telepathy"
     # The raw word survives a re-publication of what was read.
     recipes = published_index_json(read.index)["recipes"]
     assert isinstance(recipes, list)

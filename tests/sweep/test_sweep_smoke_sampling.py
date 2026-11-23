@@ -61,8 +61,10 @@ def test_a_refused_sampling_parameter_is_retried_without_them(
     }
     record = smoke.run_case("http://x/v1", case, smoke.HttpConfig())
     assert record["http_status"] == 200
-    assert "temperature" not in seen[-1] and "seed" not in seen[-1]
-    assert seen[-1]["model"] == "m" and len(seen) == 2
+    assert "temperature" not in seen[-1]
+    assert "seed" not in seen[-1]
+    assert seen[-1]["model"] == "m"
+    assert len(seen) == 2
 
 
 def test_other_errors_still_fail_and_keep_their_body(monkeypatch) -> None:

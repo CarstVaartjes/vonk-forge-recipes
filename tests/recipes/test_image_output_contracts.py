@@ -29,7 +29,7 @@ RECIPES = [
 ]
 
 
-@pytest.mark.parametrize("path,recipe", RECIPES, ids=[p.stem for p, _ in RECIPES])
+@pytest.mark.parametrize(("path", "recipe"), RECIPES, ids=[p.stem for p, _ in RECIPES])
 def test_image_adapter_outputs_satisfy_sweep(
     path: Path,
     recipe: RecipeDefinition,
@@ -39,7 +39,8 @@ def test_image_adapter_outputs_satisfy_sweep(
     scripts = list((ROOT / recipe.execution.build.context.path).glob("*.py"))
     assert len(scripts) == 1, "cover each image job's executable adapter"
     spec = importlib.util.spec_from_file_location("image_output_contract", scripts[0])
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     adapter: Any = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(adapter)
 
@@ -109,14 +110,15 @@ COMFY_RECIPES = [
 
 
 @pytest.mark.parametrize(
-    "path,recipe", COMFY_RECIPES, ids=[p.stem for p, _ in COMFY_RECIPES]
+    ("path", "recipe"), COMFY_RECIPES, ids=[p.stem for p, _ in COMFY_RECIPES]
 )
 def test_comfy_image_output_names_satisfy_sweep(
     path: Path, recipe: RecipeDefinition, tmp_path: Path
 ) -> None:
     script = ROOT / recipe.execution.build.context.path / "comfyui_job.py"
     spec = importlib.util.spec_from_file_location("comfy_output_contract", script)
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     adapter: Any = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(adapter)
     rendered = tmp_path / "rendered"

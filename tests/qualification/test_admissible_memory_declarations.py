@@ -104,7 +104,8 @@ def require_repaired_declaration(slug: str, variant: RecipeDefinition) -> None:
         fraction = argument_value(variant, "mem-fraction-static")
         assert fraction is not None
         allocated = sglang_demand(variant, None)
-        assert allocated is not None and all(
+        assert allocated is not None
+        assert all(
             allocated <= role.resources.memory.peak_bytes
             for role in variant.topology.roles
         )

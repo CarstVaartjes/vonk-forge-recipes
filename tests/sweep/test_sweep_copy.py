@@ -48,11 +48,9 @@ def test_copying_is_recognised_from_moving_bytes_or_the_operation_phase() -> Non
         },
         previous_bytes=8,
     )
-    assert (
-        copying.copying
-        and copying.phase == "target-copy"
-        and copying.signature == (9, "t1")
-    )
+    assert copying.copying
+    assert copying.phase == "target-copy"
+    assert copying.signature == (9, "t1")
     by_operation = policy.distribution(
         {
             "progress": {
@@ -75,7 +73,8 @@ def test_copying_is_recognised_from_moving_bytes_or_the_operation_phase() -> Non
                 }
             }
         )
-        assert not moving.copying and moving.signature is None, phase
+        assert not moving.copying, phase
+        assert moving.signature is None, phase
     assert not policy.distribution({}).copying
 
 
@@ -152,7 +151,8 @@ def test_a_copy_stall_keeps_retrying_until_copy_recovery(
     clock.hooks.append(recover)
     sweep.run()
     entry = _entry(sweep)
-    assert entry["status"] == "passed" and entry["attempts"] >= 4
+    assert entry["status"] == "passed"
+    assert entry["attempts"] >= 4
 
 
 def test_an_application_the_controller_holds_back_is_waited_for_not_a_load_timeout(
@@ -299,10 +299,8 @@ def test_a_sweep_killed_mid_copy_adopts_its_load_on_restart_and_passes(
     with pytest.raises(RuntimeError):
         sweep.run()
     saved = json.loads((tmp_path / "state.json").read_text())
-    assert (
-        saved["slots"]["vonk-forge/big"]["phase"] == "loading"
-        and next(iter(saved["loads"].values()))["app_id"]
-    )
+    assert saved["slots"]["vonk-forge/big"]["phase"] == "loading"
+    assert next(iter(saved["loads"].values()))["app_id"]
     application = next(iter(saved["loads"].values()))["app_id"]
     assert (
         fleet.apps[application]["state"] == "running"
@@ -315,7 +313,8 @@ def test_a_sweep_killed_mid_copy_adopts_its_load_on_restart_and_passes(
         tmp_path, [big], [FakeModel("m1")], fleet=fleet, timeouts=_timeouts(600)
     )
     assert again.run() == 0
-    assert _entry(again)["status"] == "passed" and _entry(again)["attempts"] == 1
+    assert _entry(again)["status"] == "passed"
+    assert _entry(again)["attempts"] == 1
     later = [c for _, c in fleet.calls[calls_before:]]
     assert not [
         c for c in later if c[:2] == ("profile", "cancel")

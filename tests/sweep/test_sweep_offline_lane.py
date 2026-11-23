@@ -143,7 +143,8 @@ def test_the_recorded_offline_spark_is_a_wait_and_its_lane_returns(
         and r.get("status") == "pending"
         and r["recipe"].endswith(DUALS[0])
     ]
-    assert healed and "waiting for 1 more lane" in healed[0]["reason"]
+    assert healed
+    assert "waiting for 1 more lane" in healed[0]["reason"]
     assert "controller_document" in healed[0]
     assert not [
         r
@@ -193,7 +194,8 @@ def test_a_spark_that_is_not_enrolled_is_a_topology_verdict(
         for r in _results(tmp_path)
         if r.get("status") == "skipped" and r.get("step") == "reconcile"
     ]
-    assert skips and all("controller_document" in r for r in skips)
+    assert skips
+    assert all("controller_document" in r for r in skips)
 
 
 # -- 22:29Z: the online lane idled behind a clearing refused for the offline Spark ----------
@@ -254,7 +256,8 @@ def test_an_undeliverable_stop_of_ours_does_not_hold_the_online_lane(
     recipe = sweep.recipes[LATER["blocked_recipe"]]
     sweep._blocked({}, {}, [policy.Placement(recipe, (online["id"],))], clock.now())
     waits = [r for r in _results(tmp_path) if r.get("status") == "waiting"]
-    assert waits and "clearing again" in waits[-1]["reason"]
+    assert waits
+    assert "clearing again" in waits[-1]["reason"]
     # The clearing is submitted: its stop on the offline Spark is queued, not a refusal.
     sweep._take_over(clock.now())
     assert sweep.state.data.get("cleared_by")
@@ -277,7 +280,8 @@ def test_an_undeliverable_stop_of_ours_does_not_hold_the_online_lane(
         for effect in app.get("effects", [])
         if effect["target_id"] == orphan["run_id"]
     ]
-    assert queued and all(effect["state"] == "pending" for effect in queued)
+    assert queued
+    assert all(effect["state"] == "pending" for effect in queued)
     fleet.offline_nodes.clear()  # the Spark answers: the queued stop is delivered
     clock.sleep(600)
     sweep.vk.run("fleet")

@@ -79,7 +79,8 @@ FORMAT_NOTED = ["A391", "A323", "NEM_A391_OFF", "NEM_REASON", "V_RED", "V7", "LF
 @pytest.mark.parametrize("case", FORMAT_NOTED)
 def test_the_answer_format_stays_strictly_matched_as_quality(case: str) -> None:
     [answer, format_note] = _content_regexes(case)
-    assert format_note.startswith("^") and format_note.endswith("$")
+    assert format_note.startswith("^")
+    assert format_note.endswith("$")
     assert not answer.startswith("^")
 
 
@@ -124,7 +125,8 @@ def test_reasoning_tags_still_fail_the_case(case: str) -> None:
         if a["kind"] == "raw.not-contains"
         for value in a["values"]
     ]
-    assert "<think>" in forbidden and "</think>" in forbidden
+    assert "<think>" in forbidden
+    assert "</think>" in forbidden
 
 
 def test_the_cases_that_choose_their_own_thinking_are_left_alone() -> None:

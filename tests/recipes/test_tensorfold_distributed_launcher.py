@@ -81,7 +81,7 @@ def test_launcher_preserves_arguments_and_resolves_placement(
 
 
 @pytest.mark.parametrize(
-    "address,port",
+    ("address", "port"),
     [("bad-address", "29500"), ("192.0.2.10", "80"), ("192.0.2.10", "65536")],
 )
 def test_invalid_placement_never_executes_engine(

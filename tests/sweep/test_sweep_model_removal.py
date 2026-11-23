@@ -210,7 +210,8 @@ def test_owner_variant_without_list_digests_neither_blocks_nor_unprotects(tmp_pa
     for _ in range(3):
         sweep.remove_finished_models()
     submitted = {args[2] for args in peer.submissions}
-    assert B in submitted and A not in submitted  # A is b's digest: protected
+    assert B in submitted
+    assert A not in submitted
     assert sweep.state.data["model_removals"][A]["message"] == (
         "referenced by an owner profile"
     )
@@ -325,7 +326,8 @@ def test_one_pass_over_many_removals_saves_once(tmp_path):
     sweep.state.save = counting_save
     sweep.model_remover.tick(sweep.recipes, set(), clock.now())
     held = list(sweep.state.data["model_removals"].values())
-    assert len(held) > 3 and all(r["outcome"] == RemovalOutcome.OWNER for r in held)
+    assert len(held) > 3
+    assert all(r["outcome"] == RemovalOutcome.OWNER for r in held)
     assert saves == 1
 
 
@@ -365,7 +367,8 @@ def test_terminal_failure_replans_but_backoff_retains_the_request(tmp_path):
     peer.state = LifecycleState.FAILED
     advance(sweep, clock)
     record = sweep.state.data["model_removals"][A]
-    assert record["outcome"] == RemovalOutcome.RETRY and record["request_key"] is None
+    assert record["outcome"] == RemovalOutcome.RETRY
+    assert record["request_key"] is None
     peer.state = LifecycleState.SUCCEEDED
     advance(sweep, clock)
     assert sweep.state.data["model_removals"][A]["request_key"] != original
@@ -419,7 +422,8 @@ def test_repeated_failures_and_uncertainty_always_schedule_a_next_check(
         reviews = [args for args in peer.calls if "--review" in args and args[2] == A]
         assert len(reviews) >= 12
     else:
-        assert len(keys) == 12 and len(set(keys)) == 1
+        assert len(keys) == 12
+        assert len(set(keys)) == 1
         assert record.outcome == RemovalOutcome.WAIT
         assert record.request_key is not None
     assert sweep.pending()
@@ -512,7 +516,7 @@ def test_retesting_rearms_cleanup_with_a_new_request(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "retryable,http_status",
+    ("retryable", "http_status"),
     [(False, 500), (True, 503), (True, None), (True, "omitted")],
 )
 def test_review_error_keeps_typed_cause_and_backoff_then_heals(
@@ -644,9 +648,12 @@ def test_slow_catalog_refresh_yields_to_removal_after_a_complete_read(
         if peer.submissions:
             break
     assert peer.submissions
-    assert not sweep.recipe_list.in_pass and not sweep.model_list.in_pass
-    assert not sweep.recipe_list.last_error and not sweep.model_list.last_error
-    assert sweep.recipe_list.passes > 1 and sweep.model_list.passes > 1
+    assert not sweep.recipe_list.in_pass
+    assert not sweep.model_list.in_pass
+    assert not sweep.recipe_list.last_error
+    assert not sweep.model_list.last_error
+    assert sweep.recipe_list.passes > 1
+    assert sweep.model_list.passes > 1
     assert not sweep.state.data.get("model_removal_wait")
 
 

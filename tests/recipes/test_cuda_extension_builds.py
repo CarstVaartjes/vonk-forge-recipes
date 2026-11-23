@@ -99,6 +99,31 @@ def test_other_simple_three_d_extension_builds_check_spark_kernels(
     )
 
 
+def _run_guard_main() -> None:
+    # The guard's subprocess mock calls this failing inspector.
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("cuda_guard", GUARD)
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    native = ModuleType("pytorch3d._C")
+    native.__file__ = "/site-packages/pytorch3d/_C.so"
+    native.__dict__["knn_check_version"] = lambda: None
+    pytorch3d = ModuleType("pytorch3d")
+    pytorch3d.__dict__["_C"] = native
+    with mock.patch.dict(
+        sys.modules,
+        {
+            "torch": ModuleType("torch"),
+            "pytorch3d": pytorch3d,
+            "pytorch3d._C": native,
+        },
+    ):
+        module.__dict__["main"]()
+
+
 def test_cuda_inspector_failure_fails_the_image_build() -> None:
     with (
         mock.patch(
@@ -106,24 +131,4 @@ def test_cuda_inspector_failure_fails_the_image_build() -> None:
         ),
         pytest.raises(subprocess.CalledProcessError),
     ):
-        # The guard's subprocess mock calls this failing inspector.
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("cuda_guard", GUARD)
-        assert spec is not None and spec.loader is not None
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        native = ModuleType("pytorch3d._C")
-        native.__file__ = "/site-packages/pytorch3d/_C.so"
-        native.__dict__["knn_check_version"] = lambda: None
-        pytorch3d = ModuleType("pytorch3d")
-        pytorch3d.__dict__["_C"] = native
-        with mock.patch.dict(
-            sys.modules,
-            {
-                "torch": ModuleType("torch"),
-                "pytorch3d": pytorch3d,
-                "pytorch3d._C": native,
-            },
-        ):
-            module.__dict__["main"]()
+        _run_guard_main()

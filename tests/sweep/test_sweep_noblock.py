@@ -55,7 +55,7 @@ def test_new_single_lanes_have_independent_application_receipts(tmp_path: Path) 
 
 
 @pytest.mark.parametrize(
-    "admitted,reclaimable", [(False, 0), (False, 300_000_000_000), (True, 0)]
+    ("admitted", "reclaimable"), [(False, 0), (False, 300_000_000_000), (True, 0)]
 )
 def test_saved_unadmitted_storage_wait_keeps_the_same_load(
     tmp_path: Path, admitted: bool, reclaimable: int

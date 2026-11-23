@@ -103,4 +103,5 @@ def test_cli_reads_the_diff_from_stdin_and_exits_one_on_a_hit(tmp_path: Path) ->
         text=True,
         check=False,
     )
-    assert run.returncode == 1 and "tests/test_x.py:1" in run.stdout
+    assert run.returncode == 1
+    assert "tests/test_x.py:1" in run.stdout

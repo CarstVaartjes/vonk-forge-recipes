@@ -29,7 +29,8 @@ ADAPTER = ROOT / "adapters/video/minimax-h3-vllm-omni-dual"
 _SPEC = importlib.util.spec_from_file_location(
     "vllm_omni_job", ADAPTER / "vllm_omni_job.py"
 )
-assert _SPEC is not None and _SPEC.loader is not None
+assert _SPEC is not None
+assert _SPEC.loader is not None
 job = importlib.util.module_from_spec(_SPEC)
 sys.modules["vllm_omni_job"] = job
 _SPEC.loader.exec_module(job)
@@ -228,11 +229,14 @@ def test_placement_maps_the_platform_environment() -> None:
     assert head["H3_TP2_HEAD_IP"] == "10.0.0.1"
     assert head["H3_TP2_WORKER_IP"] == "10.0.0.2"
     assert head["H3_TP2_WORKER_AGENT"] == f"10.0.0.2:{job.AGENT_PORT}"
-    assert head["H3_TP2_ROLE"] == "head" and head["MASTER_PORT"] == "29500"
+    assert head["H3_TP2_ROLE"] == "head"
+    assert head["MASTER_PORT"] == "29500"
     assert "H3_TP2_SECRET" not in head  # the creator's channel runs without HMAC
-    assert head["VLLM_HOST_IP"] == "127.0.0.1" and head["H3_TP2_WORLD_SIZE"] == "2"
+    assert head["VLLM_HOST_IP"] == "127.0.0.1"
+    assert head["H3_TP2_WORLD_SIZE"] == "2"
     worker = job.child_environment(job.read_placement(environment(1)), {})
-    assert "H3_TP2_ROLE" not in worker and "MASTER_PORT" not in worker
+    assert "H3_TP2_ROLE" not in worker
+    assert "MASTER_PORT" not in worker
 
 
 @pytest.mark.parametrize(
@@ -336,13 +340,10 @@ def test_multipart_carries_every_field_and_each_image_under_the_right_name(
     stage(inputs, first_image=["a.png"], last_image=["b.png"])
     body, content_type = job.encode_multipart(job.build_request(settings(), inputs))
     boundary = content_type.split("boundary=")[1].encode()
-    assert (
-        body.count(b'name="input_references"') == 2 and b'name="extra_params"' in body
-    )
-    assert (
-        body.endswith(b"--" + boundary + b"--\r\n")
-        and b"Content-Type: image/png" in body
-    )
+    assert body.count(b'name="input_references"') == 2
+    assert b'name="extra_params"' in body
+    assert body.endswith(b"--" + boundary + b"--\r\n")
+    assert b"Content-Type: image/png" in body
 
 
 def test_ref2va_is_long_video_continuation_from_references(
@@ -514,7 +515,8 @@ def test_an_agent_that_never_answers_fails_before_the_model_is_started(
     free.close()
     ctx.timing = job.Timing(**{**FAST.__dict__, "agent_ready_s": 0.3})
     code, log = run_head(ctx, said)
-    assert code == job.EXIT_FAILED and not (tmp_path / "started").exists()
+    assert code == job.EXIT_FAILED
+    assert not (tmp_path / "started").exists()
     assert any("did not answer within" in line for line in log)
 
 
@@ -528,7 +530,8 @@ def test_an_agent_that_comes_up_late_is_waited_for(
     threading.Timer(0.3, late.listen, args=(4,)).start()
     code, _ = run_head(stack("ok", inputs), said)
     late.close()
-    assert code == 0 and (tmp_path / "outputs" / "video.mp4").exists()
+    assert code == 0
+    assert (tmp_path / "outputs" / "video.mp4").exists()
 
 
 def test_sigterm_cancels_a_running_render_and_stops_the_server(

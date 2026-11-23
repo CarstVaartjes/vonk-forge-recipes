@@ -798,7 +798,8 @@ class HubApi(FakeApi):
         self.hub = hub
 
     def json(self, url: str, provider: str, *, anonymous: bool = False) -> Any:
-        assert provider == "huggingface" and anonymous, (provider, anonymous)
+        assert provider == "huggingface", (provider, anonymous)
+        assert anonymous, (provider, anonymous)
         return self.hub(url.removeprefix("https://huggingface.co/api/"))
 
 

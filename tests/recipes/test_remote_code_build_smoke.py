@@ -344,7 +344,8 @@ def test_transient_download_errors_are_retried_and_client_errors_are_not(
 
     with patch("urllib.request.urlopen", urlopen), patch("time.sleep") as sleep:
         assert execute_smoke(tmp_path, files, []) == []
-    assert len(calls) == 5 and sleep.call_count == 4
+    assert len(calls) == 5
+    assert sleep.call_count == 4
 
     def missing(requested: str, timeout: int) -> Response:
         calls.append(requested)

@@ -64,7 +64,8 @@ def test_every_inkling_sglang_recipe_applies_the_shared_patch() -> None:
         dockerfile = (context / "Dockerfile").read_text()
         copy = f"COPY {PATCH} /opt/vonk/build/{PATCH}"
         run = f"python3 /opt/vonk/build/{PATCH}"
-        assert copy in dockerfile and run in dockerfile, context
+        assert copy in dockerfile, context
+        assert run in dockerfile, context
         assert dockerfile.index(copy) < dockerfile.index(run), context
 
 
@@ -427,7 +428,8 @@ def test_changed_upstream_code_fails_the_build_and_writes_nothing(
     assert _apply(package).returncode == 0
     patched = {path: path.read_bytes() for path in package.rglob("*.py")}
     again = _apply(package)
-    assert again.returncode != 0 and "pinned SGLang code changed" in again.stderr
+    assert again.returncode != 0
+    assert "pinned SGLang code changed" in again.stderr
     assert {path: path.read_bytes() for path in package.rglob("*.py")} == patched
 
     detector = (FIXTURES / "inkling-detector.py.txt").read_text()
@@ -435,7 +437,8 @@ def test_changed_upstream_code_fails_the_build_and_writes_nothing(
     package = _tree(tmp_path / "drifted", detector=drifted)
     chat = (package / CHAT).read_bytes()
     result = _apply(package)
-    assert result.returncode != 0 and "pinned SGLang code changed" in result.stderr
+    assert result.returncode != 0
+    assert "pinned SGLang code changed" in result.stderr
     assert (package / CHAT).read_bytes() == chat
 
 

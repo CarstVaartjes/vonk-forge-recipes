@@ -71,7 +71,8 @@ def test_the_shared_vector_is_the_published_error_document() -> None:
     document = json.loads(CONTRACT_MISMATCH_FIXTURE.read_text())
     jsonschema.Draft202012Validator(json.loads(SCHEMA.read_text())).validate(document)
     assert document["code"] == CLIENT_CONTRACT_MISMATCH
-    assert document["decision"] == "exit" and document["retryable"] is False
+    assert document["decision"] == "exit"
+    assert document["retryable"] is False
     assert document["recovery_actions"] == ["vonkctl update --apply"]
     assert (
         "OpenAPI" in document["detail"]
@@ -115,7 +116,8 @@ def test_the_main_loop_updates_once_and_the_next_pass_succeeds(
         fleet.faults = [FAULT]
         assert sweep.vk.run(*LIBRARY).is_contract_mismatch
     _pass(sweep, clock)
-    assert _applies(fleet) == 1 and fleet.client_build["version"] == "1.1"
+    assert _applies(fleet) == 1
+    assert fleet.client_build["version"] == "1.1"
     assert sweep.state.data["client"]["version"] == "1.1"
     assert sweep.vk.run(*LIBRARY).ok  # the failed operation retries on its next pass
 
@@ -127,7 +129,8 @@ def test_two_deploys_in_one_process_both_heal(tmp_path: Path, gateway: Gateway) 
         fleet.faults = [FAULT]
         assert sweep.vk.run(*LIBRARY).is_contract_mismatch
         _pass(sweep, clock)
-        assert sweep.vk.run(*LIBRARY).ok and fleet.client_build["version"] == version
+        assert sweep.vk.run(*LIBRARY).ok
+        assert fleet.client_build["version"] == version
         _pass(sweep, clock)
     assert _applies(fleet) == 2
     assert CLIENT_CONTRACT not in sweep.state.data["infra"]
@@ -144,7 +147,8 @@ def test_no_update_available_alerts_with_bounded_reads_and_only_the_failed_comma
     clock.t += INFRA_BASE + 1
     sweep.check_release(clock.now())
     sweep.check_release(clock.now())  # nothing new flagged: no second check
-    assert _count(fleet, "update") == reads + 1 and _applies(fleet) == 0
+    assert _count(fleet, "update") == reads + 1
+    assert _applies(fleet) == 0
     assert sweep.state.data["infra"][CLIENT_CONTRACT]["escalate_at"] is not None
     # Still stuck: a flag inside the gap waits for it, so reads stay bounded per pass.
     fleet.faults = [FAULT]
@@ -152,7 +156,8 @@ def test_no_update_available_alerts_with_bounded_reads_and_only_the_failed_comma
     sweep.check_release(clock.now() + 1)
     assert _count(fleet, "update") == reads + 1
     # Another command succeeding is no evidence: the mismatch is per response shape.
-    assert sweep.vk.run("--version").ok and sweep.vk.run("update").ok
+    assert sweep.vk.run("--version").ok
+    assert sweep.vk.run("update").ok
     assert sweep.vk.run("platform").ok
     _pass(sweep, clock)
     assert CLIENT_CONTRACT in sweep.state.data["infra"]
@@ -224,6 +229,8 @@ def test_the_sweep_run_updates_and_passes_the_recipe(
     clock.hooks.append(lambda _t: setattr(fleet, "accepted_version", "1.1"))
     assert sweep.run() == 0
     entry = sweep.state.recipes["vonk-forge/a"]
-    assert entry["status"] == "passed" and entry["attempts"] == 1
+    assert entry["status"] == "passed"
+    assert entry["attempts"] == 1
     assert CLIENT_CONTRACT not in sweep.state.data["infra"]
-    assert _applies(fleet) == 1 and fleet.client_build["version"] == "1.1"
+    assert _applies(fleet) == 1
+    assert fleet.client_build["version"] == "1.1"

@@ -176,7 +176,8 @@ def test_sglang_and_trtllm_use_their_own_flag_spelling() -> None:
     trtllm["runtime"]["engine"] = "tensorrt-llm"
     for recipe in (sglang, trtllm):
         caps = serving_capabilities(recipe, "x", {}, _display())
-        assert caps.tools and caps.reasoning_parser
+        assert caps.tools
+        assert caps.reasoning_parser
 
 
 def test_a_tool_case_without_a_parser_is_reported() -> None:
@@ -268,7 +269,8 @@ def test_unparsed_reasoning_is_valid_content_not_a_functional_failure() -> None:
     templates = DEFINITIONS["service_case_templates"]
     for strict, relaxed in UNPARSED_ARITHMETIC.items():
         functional = json.dumps(templates[relaxed]["assertions"])
-        assert "<think>" not in functional and "</think>" not in functional
+        assert "<think>" not in functional
+        assert "</think>" not in functional
         assert "finish_reason" not in functional
         quality = json.dumps(templates[relaxed]["quality_assertions"])
         assert "<think>" in quality
@@ -282,6 +284,5 @@ def test_every_kit_flag_entry_cites_its_source_and_names_a_recipe() -> None:
     )
     for slug, entry in entries.items():
         assert (ROOT / "recipes" / f"{slug}.json").exists(), slug
-        assert entry["source"] and (
-            entry.get("tool_parser") or entry.get("reasoning_parser")
-        )
+        assert entry["source"]
+        assert entry.get("tool_parser") or entry.get("reasoning_parser")

@@ -203,7 +203,8 @@ def test_a_later_recipe_failure_withdraws_the_value() -> None:
 def test_vllm_variants_within_the_measured_budget_publish_a_lower_value() -> None:
     recipe = declaring(VLLM_DUAL, 110 * GB, ("0.80", "0.90"))
     budgets = [vllm_budget_bytes(variant) for variant in memory_variants(recipe)]
-    assert len(budgets) > 1 and None not in budgets
+    assert len(budgets) > 1
+    assert None not in budgets
     used = 60 * GB
     covered = max(b for b in budgets if b is not None)
     [entry, *_] = published(

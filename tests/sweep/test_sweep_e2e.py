@@ -41,7 +41,8 @@ def test_two_lanes_share_a_model_and_all_pass(tmp_path: Path, gateway: Gateway) 
     assert first["result"]["perf"]["tokens_per_second"] > 0
     assert first["result"]["perf"]["ttft_ms"] >= 0
     assert [c["case_id"] for c in first["result"]["cases"]] == ["M0", "A391"]
-    assert first["content_sha256"] == "c1" and first["library_commit"] == "lib-commit-1"
+    assert first["content_sha256"] == "c1"
+    assert first["library_commit"] == "lib-commit-1"
     # The model was downloaded once, then its sibling pulled only an image.
     downloads = [c for _, c in fleet.calls if c[:2] == ("recipe", "download")]
     assert len(downloads) == 3
@@ -51,7 +52,8 @@ def test_two_lanes_share_a_model_and_all_pass(tmp_path: Path, gateway: Gateway) 
         for p, c in fleet.calls
         if c[0] == "profile" and c[1] in ("add", "remove", "load", "cancel")
     )
-    assert fleet.writes(10) and fleet.writes(13)
+    assert fleet.writes(10)
+    assert fleet.writes(13)
 
 
 def test_lanes_run_in_parallel_one_per_spark(tmp_path: Path, gateway: Gateway) -> None:

@@ -49,7 +49,8 @@ def _recipe(key: str = OCR, adapter: str = "artifact-job") -> Any:
         "projected": {"interfaces": [{"adapter": adapter, "model_aliases": ["ocr"]}]},
     }
     recipe = parse_recipe(row)
-    assert recipe is not None and recipe.is_job
+    assert recipe is not None
+    assert recipe.is_job
     return recipe
 
 
@@ -174,7 +175,8 @@ def test_a_job_is_created_submitted_followed_downloaded_and_its_outputs_hold() -
     ]
     assert list(controller.binding["input_paths"]) == ["digit7.png"]
     (case,) = result.cases
-    assert case["job_id"] == JOB["id"] and case["elapsed_ms"] == 5
+    assert case["job_id"] == JOB["id"]
+    assert case["elapsed_ms"] == 5
     assert "not_evaluated" not in case
 
 
@@ -480,7 +482,8 @@ def test_a_job_that_never_ends_within_its_own_timeout_is_observed_again() -> Non
         detail=[_job("running")],
     )
     result = _smoke(controller)
-    assert result.failure is not None and result.failure.code == "job.not_ended"
+    assert result.failure is not None
+    assert result.failure.code == "job.not_ended"
     assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
 
 
@@ -508,7 +511,8 @@ def test_a_job_recipe_without_a_definition_is_recipe_data() -> None:
         "run-1",
         "lane-1",
     )
-    assert result.failure is not None and result.failure.klass == "recipe-data"
+    assert result.failure is not None
+    assert result.failure.klass == "recipe-data"
 
 
 # -- assertions ------------------------------------------------------------------------

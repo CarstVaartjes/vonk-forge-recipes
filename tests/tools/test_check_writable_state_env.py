@@ -60,7 +60,8 @@ def test_flags_added_image_state_path(tmp_path: Path) -> None:
     found = _change(
         _repo(tmp_path), BUILT, EXISTING + "ENV STATE_PATH=/state \\\n    X=1\n"
     )
-    assert len(found) == 1 and "STATE_PATH=/state" in found[0]
+    assert len(found) == 1
+    assert "STATE_PATH=/state" in found[0]
 
 
 def test_flags_the_mimo_dockerfile_lines_as_added(tmp_path: Path) -> None:

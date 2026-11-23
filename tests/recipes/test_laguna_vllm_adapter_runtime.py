@@ -54,7 +54,8 @@ class LagunaVllmAdapterRuntimeTests(unittest.TestCase):
             recipe = load(path)
             context = recipe["execution"]["build"]["context"]
             archive, _, bundle_digest = tool["source_bundle"](ROOT / context["path"])
-            assert bundle_digest and archive
+            assert bundle_digest
+            assert archive
             index = load(GENERATED / "catalog-index.json")
             entry = next(
                 item

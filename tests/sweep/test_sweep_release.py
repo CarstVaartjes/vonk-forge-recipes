@@ -181,7 +181,8 @@ def test_stale_or_contract_mismatched_observation_cannot_trigger_a_retest(
     assert entry["status"] == "deferred"
     fleet.api_contract_sha256 = fleet.client_build["control_contract_sha256"]
     sweep.check_client()
-    assert entry["status"] == "pending" and entry["attempts"] == 3
+    assert entry["status"] == "pending"
+    assert entry["attempts"] == 3
 
 
 def test_historical_publication_only_failure_without_an_observed_owner_heals_on_the_release(
@@ -197,7 +198,8 @@ def test_historical_publication_only_failure_without_an_observed_owner_heals_on_
     fleet.client_build["source_sha"] = NEW
     sweep.check_client()
     # No observed owner basis: the release change is the entry's only exit.
-    assert entry["status"] == "pending" and entry["attempts"] == 7
+    assert entry["status"] == "pending"
+    assert entry["attempts"] == 7
     assert entry["retest"]["reason"] == RetestReason.RELEASE_CHANGED
 
 
@@ -219,9 +221,8 @@ def test_retry_failed_requeues_everything_that_failed_whatever_the_cause(
     assert again.run() == 0
     assert {e["status"] for e in again.state.recipes.values()} == {"passed"}
     requeues = [x for x in _lines(tmp_path / "results.jsonl") if x["step"] == "requeue"]
-    assert len(requeues) == 4 and {x["reason"] for x in requeues} == {
-        "operator: --retry-failed"
-    }
+    assert len(requeues) == 4
+    assert {x["reason"] for x in requeues} == {"operator: --retry-failed"}
 
 
 def test_retry_failed_can_be_limited_to_a_selector(
@@ -236,10 +237,8 @@ def test_retry_failed_can_be_limited_to_a_selector(
     )
     again.run()
     assert _entry(again, "oom")["status"] == "passed"
-    assert (
-        _entry(again, "corrupt")["status"] == "failed"
-        and _entry(again, "image-bug")["status"] == "deferred"
-    )
+    assert _entry(again, "corrupt")["status"] == "failed"
+    assert _entry(again, "image-bug")["status"] == "deferred"
     assert [
         x["recipe"]
         for x in _lines(tmp_path / "results.jsonl")
@@ -306,7 +305,8 @@ def test_failures_are_grouped_by_controller_release_in_the_status_file(
     groups = {g["release"]: g for g in status["failures_by_release"]}
     assert status["release"] == NEW
     assert NEW not in groups  # A new process does not rewrite old failure provenance.
-    assert groups[OLD]["failed"] == 3 and not groups[OLD]["current"]
+    assert groups[OLD]["failed"] == 3
+    assert not groups[OLD]["current"]
     assert _entry(again, "image-bug")["status"] == "deferred"
 
 
@@ -340,7 +340,8 @@ def test_watch_retests_platform_fault_only_after_its_observed_owner_fix(
                 fleet.client_build["source_sha"] = NEW
                 fixed.append(now)
         if entry.get("status") == "passed":
-            assert fixed and now >= fixed[0]
+            assert fixed
+            assert now >= fixed[0]
             clock.hooks.remove(repair_and_stop)
             raise KeyboardInterrupt
 
@@ -584,13 +585,15 @@ def test_a_skewed_refusal_defers_with_both_digests_and_the_run_is_done(
 ) -> None:
     sweep, key = _refused_create(tmp_path, "a" * 64)
     entry = sweep.state.entry(key)
-    assert entry["status"] == "deferred" and entry["failure_class"] == "skewed"
+    assert entry["status"] == "deferred"
+    assert entry["failure_class"] == "skewed"
     assert entry["evidence"]["source_sha256"] == "a" * 64
     assert entry["evidence"]["served_sha256"] == "c" * 64
     # The bounded source wait has expired: the sweep tests what the catalog serves.
     sweep.unserved_recipes = ()
     sweep.enqueue_finished_cleanup()
-    assert not sweep._cleanup_nodes() and sweep.done()
+    assert not sweep._cleanup_nodes()
+    assert sweep.done()
 
 
 def test_a_refusal_of_the_authored_content_stays_the_recipes_failure(

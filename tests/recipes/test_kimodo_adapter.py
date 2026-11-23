@@ -35,7 +35,8 @@ FIXTURE = ROOT / "qualification/fixtures/kimodo-motion-prompt.txt"
 
 def _load_run():
     spec = importlib.util.spec_from_file_location("kimodo_run", ADAPTER / "run.py")
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
@@ -151,7 +152,8 @@ def test_the_models_declare_the_text_encoder_as_dependencies() -> None:
 
 def test_the_fixture_prompt_is_one_sentence_of_valid_input() -> None:
     text = FIXTURE.read_text(encoding="utf-8")
-    assert text.strip() and "." not in text
+    assert text.strip()
+    assert "." not in text
     assert len(text.encode()) <= run.MAX_PROMPT_BYTES
 
 

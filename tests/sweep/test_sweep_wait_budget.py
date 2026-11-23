@@ -125,11 +125,9 @@ def test_every_waiting_on_producer_uses_the_primitive() -> None:
                 and node.func.id == "SweepWait"
             ):
                 reason = next(k.value for k in node.keywords if k.arg == "reason")
-                assert (
-                    isinstance(reason, ast.Attribute)
-                    and isinstance(reason.value, ast.Name)
-                    and reason.value.id == "SweepWaitReason"
-                )
+                assert isinstance(reason, ast.Attribute)
+                assert isinstance(reason.value, ast.Name)
+                assert reason.value.id == "SweepWaitReason"
 
 
 @pytest.mark.parametrize("reason", list(SweepWaitReason))
@@ -214,7 +212,8 @@ def test_sse_heartbeats_cannot_hold_smoking_lane_forever(tmp_path: Path) -> None
     sweep._advance_smoking(recipe.key, slot)
     sweep.enqueue_finished_cleanup()
     assert recipe.key not in sweep.state.slots
-    assert stop.is_set() and not future.cancelled()
+    assert stop.is_set()
+    assert not future.cancelled()
     assert (
         sweep.state.entry(recipe.key)["wait_deferral"]["wait"]["reason"]
         == SweepWaitReason.SMOKE_RESPONSE

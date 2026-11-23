@@ -306,7 +306,7 @@ FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
 
 
 @pytest.mark.parametrize(
-    "name,match,image_of",
+    ("name", "match", "image_of"),
     [
         # Exhausted host memory 2026-10-21: 0.85 beside a 10 GB Marlin repack.
         # Judged on the image its geometry now pins (same Marlin expansion).
@@ -628,7 +628,9 @@ def set_pool(recipe: RecipeDefinition, pool: int) -> None:
     ).value = pool
 
 
-@pytest.mark.parametrize("slug,dtype,context,pool,logged", GLM_DSA_CREATOR_POOLS)
+@pytest.mark.parametrize(
+    ("slug", "dtype", "context", "pool", "logged"), GLM_DSA_CREATOR_POOLS
+)
 def test_glm_dsa_creator_pools_hold_their_logged_context(
     slug: str, dtype: str, context: int, pool: int, logged: int
 ) -> None:
@@ -643,7 +645,9 @@ def test_glm_dsa_creator_pools_hold_their_logged_context(
     assert pool // (need // context) >= logged
 
 
-@pytest.mark.parametrize("slug,dtype,context,pool,logged", GLM_DSA_CREATOR_POOLS)
+@pytest.mark.parametrize(
+    ("slug", "dtype", "context", "pool", "logged"), GLM_DSA_CREATOR_POOLS
+)
 def test_glm_dsa_pool_one_byte_below_the_need_is_still_refused(
     slug: str, dtype: str, context: int, pool: int, logged: int
 ) -> None:

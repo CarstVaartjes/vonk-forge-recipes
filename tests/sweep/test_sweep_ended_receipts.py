@@ -142,7 +142,8 @@ def test_successor_of_another_recipe_is_not_followed_or_shared(
     assert first is not None
     holds = sweep.controller_wait_holds()
     slot = sweep.state.slots[taker.key]
-    assert slot["phase"] == "loading" and taker.key not in holds
+    assert slot["phase"] == "loading"
+    assert taker.key not in holds
     assert fleet.apps[first]["state"] == LifecycleState.SUPERSEDED
     assert (
         fleet.apps[first]["superseded_by"]

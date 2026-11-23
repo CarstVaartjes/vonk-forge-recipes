@@ -48,7 +48,8 @@ class Lfm25VlRecipeTests(unittest.TestCase):
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             assert recipe["models"][0]["model"]["slug"] == "lfm2-5-vl-3b-bf16-a3af5799"
             archive, _, bundle_digest = tool["source_bundle"](ROOT / adapter)
-            assert archive and bundle_digest
+            assert archive
+            assert bundle_digest
             assert recipe["execution"]["build"]["context"]["path"] == adapter
 
     def test_adapter_uses_pinned_cuda13_arm64_image(self) -> None:

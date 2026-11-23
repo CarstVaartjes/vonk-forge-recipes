@@ -362,7 +362,9 @@ def test_a_pin_naming_a_foreign_package_is_not_carried() -> None:
     images, missing, carried = tool.resolve(
         _plan(), owner=OWNER, lookup=none_found, published={"e" * 64: foreign}
     )
-    assert images == {} and carried == [] and "other" in missing
+    assert images == {}
+    assert carried == []
+    assert "other" in missing
 
 
 OLD_PIN = "1" * 40
@@ -473,7 +475,8 @@ def test_a_build_retry_starts_only_if_it_fits_the_job_timeout(
     budget = re.search(
         r"deadline=\$\(\(JOB_START \+ \((\d+) - (\d+)\) \* 60\)\)", build
     )
-    assert timeout is not None and budget is not None
+    assert timeout is not None
+    assert budget is not None
     assert int(budget.group(1)) == int(timeout.group(1))
     margin = int(budget.group(2))
     assert 0 < margin < int(timeout.group(1))
@@ -533,19 +536,17 @@ def test_matrix_overflow_continues_after_publication_and_failed_first_batch():
         candidates=set(second["deferred_slugs"]),
         lookup=_registry({}),
     )
-    assert len(second["builds"]) == tool.MAX_BUILDS and len(third["builds"]) == 8
+    assert len(second["builds"]) == tool.MAX_BUILDS
+    assert len(third["builds"]) == 8
     covered = {
         row["build_key"] for batch in (first, second, third) for row in batch["builds"]
     }
-    assert len(covered) == 520 and not third["deferred"]
+    assert len(covered) == 520
+    assert not third["deferred"]
     workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
-    assert (
-        "schedule:" in workflow
-        and "github.event_name == 'schedule' && 'all'" in workflow
-    )
+    assert "schedule:" in workflow
+    assert "github.event_name == 'schedule' && 'all'" in workflow
     assert "needs.plan.outputs.deferred_slugs" in workflow
-    assert (
-        "gh workflow run recipe-images.yml" in workflow
-        and '-f slugs="$DEFERRED"' in workflow
-    )
+    assert "gh workflow run recipe-images.yml" in workflow
+    assert '-f slugs="$DEFERRED"' in workflow
     assert "needs.build.result == 'success'" not in workflow

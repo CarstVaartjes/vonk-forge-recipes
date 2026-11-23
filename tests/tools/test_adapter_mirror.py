@@ -144,7 +144,8 @@ def test_reconcile_heals_a_lost_blob_from_origin_after_a_retry(tmp_path: Path) -
         root, cache=tmp_path / "c", opener=opener, sleep=lambda _: None, gh=gh
     )
 
-    assert problems == [] and DIGEST in gh.assets
+    assert problems == []
+    assert DIGEST in gh.assets
 
 
 def test_reconcile_reports_a_blob_with_no_origin(tmp_path: Path) -> None:
@@ -178,7 +179,8 @@ def test_reconcile_refuses_wrong_origin_bytes(tmp_path: Path) -> None:
         root, cache=tmp_path / "c", opener=wrong, sleep=lambda _: None, gh=gh
     )
 
-    assert ORIGIN in problems[0] and gh.uploads == []
+    assert ORIGIN in problems[0]
+    assert gh.uploads == []
 
 
 def test_reconcile_reports_a_failed_upload(tmp_path: Path) -> None:
@@ -194,7 +196,8 @@ def test_reconcile_reports_a_failed_upload(tmp_path: Path) -> None:
         gh=gh,
     )
 
-    assert "upload of" in problems[0] and "boom" in problems[0]
+    assert "upload of" in problems[0]
+    assert "boom" in problems[0]
 
 
 def test_reconcile_reports_a_half_uploaded_asset_as_missing(tmp_path: Path) -> None:

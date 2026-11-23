@@ -333,7 +333,8 @@ class LtxSparkFitTests(unittest.TestCase):
             recipe["execution"]["build"]["context"]["path"]
             == "adapters/video/ltx23-sync-native-disk"
         )
-        assert digest and archive
+        assert digest
+        assert archive
 
     def test_fp4_snapshot_selects_exactly_the_runtime_inventory(self) -> None:
         recipe = load(ROOT / f"recipes/{FP4_SLUG}.json")

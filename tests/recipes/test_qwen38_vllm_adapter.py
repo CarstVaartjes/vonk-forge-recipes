@@ -15,7 +15,8 @@ _SOURCE_TEST = ROOT / "adapters/qwen/flash-next-vllm-dual/test_qwen38_wrapper.py
 _SPEC = importlib.util.spec_from_file_location(
     "qwen38_adapter_source_tests", _SOURCE_TEST
 )
-assert _SPEC and _SPEC.loader
+assert _SPEC
+assert _SPEC.loader
 _SOURCE = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(_SOURCE)
 

@@ -29,7 +29,8 @@ MAPS = {
 
 def _load() -> Any:
     spec = importlib.util.spec_from_file_location("chord_run", RUNNER)
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

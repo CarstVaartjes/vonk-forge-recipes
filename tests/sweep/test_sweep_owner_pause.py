@@ -60,7 +60,8 @@ def test_two_hour_owner_outage_does_not_stop_scheduling(
     sweep.refresh_catalog()
     start = clock.now()
     sweep._tick()
-    assert sweep.paused and not sweep.state.slots
+    assert sweep.paused
+    assert not sweep.state.slots
     initial_reason = sweep.pause_reason
     # Watch history survives a restart; transport failures cannot renew it.
     sweep.state.save()
@@ -73,13 +74,15 @@ def test_two_hour_owner_outage_does_not_stop_scheduling(
             assert not sweep.paused
     assert "until" in initial_reason
     assert clock.now() - start == 7200
-    assert reads.count(2) > 120 and reads.count(3) > 120
+    assert reads.count(2) > 120
+    assert reads.count(3) > 120
     submissions = [
         at
         for (_, args), at in zip(fleet.calls, fleet.call_times)
         if args[:2] == ("profile", "load") and "--yes" in args
     ]
-    assert submissions and min(submissions) <= start + 180
+    assert submissions
+    assert min(submissions) <= start + 180
     assert max(submissions) > start + 3600
     for number in (2, 3):
         watch = sweep.guard.state.data["owner"]["unreadable"][str(number)]

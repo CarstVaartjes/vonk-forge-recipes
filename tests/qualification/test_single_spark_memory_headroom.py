@@ -105,7 +105,7 @@ def test_proven_identity_is_not_an_exemption_for_a_mutated_recipe() -> None:
 
 
 @pytest.mark.parametrize(
-    "value,match",
+    ("value", "match"),
     [("120G", "peak understates need"), ("1G", "one full-context request")],
 )
 def test_guard_rejects_pool_drift(value: str, match: str) -> None:
@@ -327,7 +327,7 @@ def test_sliding_layers_use_their_window_and_recurrent_state_uses_concurrency() 
 
 
 @pytest.mark.parametrize(
-    "value,expected",
+    ("value", "expected"),
     [("8G", 8 * 1024**3), ("8g", 8_000_000_000), (8589934592, 8589934592)],
 )
 def test_absolute_cache_units(value: str | int, expected: int) -> None:
@@ -603,7 +603,7 @@ def glm_a0() -> RecipeDefinition:
 
 
 @pytest.mark.parametrize(
-    "name,value,match",
+    ("name", "value", "match"),
     [
         # 116.8 GB of weights, expansion and capped pools: beyond the declared
         # peak and the 106.8 GB static budget of 0.85 x 125.65 GB.

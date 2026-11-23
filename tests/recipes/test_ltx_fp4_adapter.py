@@ -300,7 +300,8 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             recipe["execution"]["build"]["context"]["path"]
             == "adapters/video/ltx2-pytorch"
         )
-        assert digest and archive
+        assert digest
+        assert archive
         index = _document(GENERATED / "catalog-index.json")
         entry = next(
             item

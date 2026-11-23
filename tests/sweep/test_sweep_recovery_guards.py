@@ -346,7 +346,8 @@ def test_a_running_smoke_expires_and_its_late_result_cannot_pass_the_case(
     sweep.futures[key] = future
     clock.t += 30 * 3600.0  # heartbeats can defeat a socket inactivity bound
     sweep._advance_smoking(key, slot)
-    assert slot["phase"] == "finished" and key not in sweep.futures
+    assert slot["phase"] == "finished"
+    assert key not in sweep.futures
     future.set_result(SmokeResult(ok=True, kind="readiness"))
     assert sweep.state.status(key) == "pending"
     assert sweep.log.entries()[-1]["code"] == SweepWaitCode.BUDGET_EXHAUSTED
@@ -407,7 +408,8 @@ def test_unknown_load_receipt_is_observed_without_rolling_back_accepted_work(
         assert sweep.run() == 0
         assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
         assert sweep.state.recipes["vonk-forge/a"]["attempts"] == 1
-        assert not sweep.state.data["loads"] and not sweep.state.data["dirty"]
+        assert not sweep.state.data["loads"]
+        assert not sweep.state.data["dirty"]
         placements = [
             item
             for item in sweep.state.data["own_loads"]
@@ -457,7 +459,8 @@ def test_unknown_platform_failure_ends_without_recipe_blame_and_releases_lane(
     assert sweep.state.entry(key)["failure_class"] == "start"
     sweep.cleanup_finished()
     sweep.release_orphan_load()
-    assert not sweep.state.slots and not sweep.state.data["loads"]
+    assert not sweep.state.slots
+    assert not sweep.state.data["loads"]
     sweep._requeue_failed(key, "fresh-request")
     sweep.schedule(clock.now())
     assert sweep.state.data["loads"]
@@ -490,7 +493,8 @@ def test_unreadable_owner_never_looks_like_absent_owner(tmp_path: Path) -> None:
     sweep, fleet, clock = _loading(tmp_path)
     fleet.observations.append((("profile", "progress"), 2, {"code": "http.503"}))
     status = sweep.guard.check(clock.now())
-    assert status.paused and "unreadable" in status.reason
+    assert status.paused
+    assert "unreadable" in status.reason
 
 
 def test_an_owner_load_is_waited_for_and_never_ends_the_sweep(
@@ -528,13 +532,15 @@ def test_removed_catalog_recipe_releases_lane_and_fresh_recipe_is_admitted(
     assert sweep.state.status(key) == "skipped"
     sweep.cleanup_finished()
     sweep.release_orphan_load()
-    assert not sweep.state.slots and not sweep.state.data["loads"]
+    assert not sweep.state.slots
+    assert not sweep.state.data["loads"]
     fresh = FakeRecipe("fresh", ("1" * 64,), content="f" * 64, local="cached")
     fleet.recipes[fresh.key] = fresh
     sweep.refresh_catalog()
     sweep.queue = list(sweep.recipes)
     sweep.schedule(clock.now())
-    assert sweep.state.slots and sweep.state.data["loads"]
+    assert sweep.state.slots
+    assert sweep.state.data["loads"]
 
 
 def test_results_log_rotates_and_keeps_every_outcome(
@@ -557,7 +563,7 @@ def test_results_log_rotates_and_keeps_every_outcome(
 
 
 @pytest.mark.parametrize(
-    "fields, reason",
+    ("fields", "reason"),
     [
         (
             {"error": "Automatically reconciled by profile retry app-next"},

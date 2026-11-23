@@ -29,7 +29,8 @@ def modules(monkeypatch):
     loaded = []
     for name in ("prepare_cache", "launcher"):
         spec = importlib.util.spec_from_file_location(name, ADAPTER / f"{name}.py")
-        assert spec and spec.loader
+        assert spec
+        assert spec.loader
         module = importlib.util.module_from_spec(spec)
         monkeypatch.setitem(sys.modules, name, module)
         spec.loader.exec_module(module)
@@ -65,25 +66,30 @@ def test_every_rank_runs_the_served_settings_on_the_controller_fabric(modules, r
     pool = next(a.value for a in recipe.runtime.arguments if a.name == "pool")
     # tonyd2wild's dedicated-node pool (run README at 74ac0136), the owner's rule
     assert pool == 29_360_128
-    assert env["TF_DS_WINDOW"] == str(pool) and env["TF_DS_STREAMS"] == "32"
+    assert env["TF_DS_WINDOW"] == str(pool)
+    assert env["TF_DS_STREAMS"] == "32"
     assert env["TF_RDMA_DEVICES"] == "rocep1s0f0,roceP2p1s0f0"
-    assert env["TF_RDMA_GID"] == "3" and env["NCCL_IB_HCA"] == ENVIRON["NCCL_IB_HCA"]
-    assert (
-        env["TF_DS_ROUND_ROWS"] == "64" and len(env["TF_DS_ROUND_MS"].split(",")) == 64
-    )
+    assert env["TF_RDMA_GID"] == "3"
+    assert env["NCCL_IB_HCA"] == ENVIRON["NCCL_IB_HCA"]
+    assert env["TF_DS_ROUND_ROWS"] == "64"
+    assert len(env["TF_DS_ROUND_MS"].split(",")) == 64
     assert env["TF_DS_WAVES"] == env["TF_DS_2D_YX"] == env["TF_FILL_MANY"] == "1"
-    assert env["NCCL_MAX_NCHANNELS"] == "4" and env["TF_DS_IDX_SPLIT"] == "8192"
+    assert env["NCCL_MAX_NCHANNELS"] == "4"
+    assert env["TF_DS_IDX_SPLIT"] == "8192"
     # v0.3.7 serves with its sampling opt-ins unset
-    assert "TF_SEED_RANDOM" not in env and "TF_TOP_K_MAX" not in env
+    assert "TF_SEED_RANDOM" not in env
+    assert "TF_TOP_K_MAX" not in env
     assert env["TENSORFOLD_GRAMMAR_LIB"] == str(cache / "kit/grammar/libtfgrammar.so")
     if rank == 0:
         assert command[1:3] == ["serve", str(cache / "model")]
         assert command[-2:] == ["--backend", "cuda"]
         assert command[command.index("--prompt-cache-gib") + 1] == "2"
         assert command[command.index("--context") + 1] == "1048576"
-        assert "--pool" not in command and "--thinking" in command
+        assert "--pool" not in command
+        assert "--thinking" in command
         assert env["TF_DS_RDMA_KERNELS"].endswith("fatbin/dsv41_rdma.fatbin")
-        assert env["TF_TP_MASTER"] == "192.0.2.1" and env["TF_TP_PORT"] == "29500"
+        assert env["TF_TP_MASTER"] == "192.0.2.1"
+        assert env["TF_TP_PORT"] == "29500"
     else:
         assert command[3:9] == [
             str(rank),
@@ -129,7 +135,8 @@ def test_serving_file_is_hashed_once_and_reused_by_receipt(
 
     def tool(command, check):
         # tools/serving_1017.py writes <file>.partial and renames it into place
-        assert check and command[2] == str(view)
+        assert check
+        assert command[2] == str(view)
         assert command[3:] == ["--template", str(view / "chat_template.jinja")]
         calls.append(command)
         partial = view / (cache.SERVING_FILE + ".partial")
@@ -151,12 +158,14 @@ def test_serving_file_is_hashed_once_and_reused_by_receipt(
     # a file whose size no longer matches its receipt is made again
     (view / cache.SERVING_FILE).write_bytes(good + b"!")
     cache.serving_file(view, Path("serving_1017.py"), receipt)
-    assert len(calls) == 2 and (view / cache.SERVING_FILE).read_bytes() == good
+    assert len(calls) == 2
+    assert (view / cache.SERVING_FILE).read_bytes() == good
     receipt.unlink()
     payload = b"other bytes"
     with pytest.raises(ValueError, match="recorded digest"):
         cache.serving_file(view, Path("serving_1017.py"), receipt)
-    assert not (view / cache.SERVING_FILE).exists() and not receipt.exists()
+    assert not (view / cache.SERVING_FILE).exists()
+    assert not receipt.exists()
 
 
 def test_kit_bias_copy_is_checked_by_size_not_hashed(modules, tmp_path, monkeypatch):
