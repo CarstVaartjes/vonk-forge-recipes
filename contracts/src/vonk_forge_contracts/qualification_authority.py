@@ -21,11 +21,11 @@ from pydantic import (
     model_validator,
 )
 
-from ._schema_version import (
+from vonk_forge_contracts._schema_version import (
     QualificationAuthoritySchemaVersion,
     QualificationCampaignSchemaVersion,
 )
-from .model import ModelTerritorialRestrictions
+from vonk_forge_contracts.model import ModelTerritorialRestrictions
 
 Sha256 = Annotated[StrictStr, Field(pattern=r"^[a-f0-9]{64}$")]
 GitSha = Annotated[StrictStr, Field(pattern=r"^[a-f0-9]{40}$")]

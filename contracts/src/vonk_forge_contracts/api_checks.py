@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 from collections.abc import Iterable
 
-from .api import (
+from vonk_forge_contracts.api import (
     ApiBlock,
     ApiInputModalities,
     ApiTokenArgument,
@@ -29,9 +29,13 @@ from .api import (
     RecipeApi,
     require_api_of,
 )
-from .capability import CapabilityName
-from .display import ModelDisplay
-from .recipe import RecipeDecisionSettings, RecipeDefinition, RecipeGenerationSettings
+from vonk_forge_contracts.capability import CapabilityName
+from vonk_forge_contracts.display import ModelDisplay
+from vonk_forge_contracts.recipe import (
+    RecipeDecisionSettings,
+    RecipeDefinition,
+    RecipeGenerationSettings,
+)
 
 # The argument each engine takes its context window from; the one table, also
 # used by the memory estimator. It must be present and bound to the recipe's

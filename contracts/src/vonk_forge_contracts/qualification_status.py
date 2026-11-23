@@ -17,9 +17,9 @@ from pydantic import (
     model_validator,
 )
 
-from ._schema_version import QualificationEvidenceSchemaVersion
-from .recipe import Identifier
-from .unrecognised import KeepUnrecognised, UnrecognisedWord
+from vonk_forge_contracts._schema_version import QualificationEvidenceSchemaVersion
+from vonk_forge_contracts.recipe import Identifier
+from vonk_forge_contracts.unrecognised import KeepUnrecognised, UnrecognisedWord
 
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 SourceSHA = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]

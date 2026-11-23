@@ -47,11 +47,19 @@ from typing import Annotated, Final, Literal, NamedTuple
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError
 from pydantic_core import ErrorDetails
 
-from ._version import __version__
-from .canonical import document_sha256
-from .catalog_index import CatalogIndex, CatalogModelEntry, CatalogRecipeEntry
-from .display import FamilyDisplay
-from .unrecognised import UnrecognisedWord, dropped_context, read_context
+from vonk_forge_contracts._version import __version__
+from vonk_forge_contracts.canonical import document_sha256
+from vonk_forge_contracts.catalog_index import (
+    CatalogIndex,
+    CatalogModelEntry,
+    CatalogRecipeEntry,
+)
+from vonk_forge_contracts.display import FamilyDisplay
+from vonk_forge_contracts.unrecognised import (
+    UnrecognisedWord,
+    dropped_context,
+    read_context,
+)
 
 _CONTRACT_MAJOR: Final = int(__version__.split(".", 1)[0])
 _SHA256: Final = re.compile(r"[0-9a-f]{64}")
