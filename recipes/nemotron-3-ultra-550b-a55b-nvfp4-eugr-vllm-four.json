@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "2d52dbf7603bc3e35aa5141a298abcfb5512853ddd8b469860cf64da27f2c14c",
+        "digest": "47e38c78ef713f28b693e195d7c999b11a430a662194b626fdfac51f803f5d84",
         "repository": "docker.io/eugr/spark-vllm"
       },
       "context": {
@@ -1479,7 +1479,7 @@
       "NVIDIA (OpenMDW-1.1)",
       "vLLM contributors (Apache-2.0)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/e8969e267b09b24d59a0293aa252c27069446f9b"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/948f59477072b248109540e5ef11a4bd57cea804"
   },
   "release": {
     "released_at": "2026-11-23",
