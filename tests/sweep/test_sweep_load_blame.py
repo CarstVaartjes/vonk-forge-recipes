@@ -741,9 +741,9 @@ def test_assignment_reason_alone_supplies_the_lane_code(
     observed = []
     fail_slot = sweep._fail_slot
 
-    def record_failure(key, slot, failure, app):
+    def record_failure(key, failure, app):
         observed.append(dict(app))
-        return fail_slot(key, slot, failure, app)
+        return fail_slot(key, failure, app)
 
     sweep._fail_slot = record_failure
     _settle(sweep, clock)
