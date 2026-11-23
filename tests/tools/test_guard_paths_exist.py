@@ -185,8 +185,9 @@ def dangling(literals, paths) -> list[str]:
 
 
 def guard_sources() -> dict[str, str]:
-    files = sorted((ROOT / "tools").glob("check-*")) + [
-        ROOT / "src/recipe_tooling/added_lines.py"
+    files = [
+        *sorted((ROOT / "tools").glob("check-*")),
+        ROOT / "src/recipe_tooling/added_lines.py",
     ]
     return {path.relative_to(ROOT).as_posix(): path.read_text() for path in files}
 

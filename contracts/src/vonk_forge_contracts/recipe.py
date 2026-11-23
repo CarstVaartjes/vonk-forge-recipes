@@ -45,7 +45,7 @@ RelativePath = Annotated[
     StrictStr, Field(max_length=256, pattern=rf"^{_SEGMENT}(?:/{_SEGMENT})*$")
 ]
 Scalar = StrictStr | StrictInt | StrictBool | StrictFloat
-type JsonValue = Scalar | None | list[JsonValue] | dict[StrictStr, JsonValue]
+type JsonValue = Scalar | list[JsonValue] | dict[StrictStr, JsonValue] | None
 type RuntimeArgumentValue = Scalar | list[JsonValue] | dict[StrictStr, JsonValue]
 ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
 
@@ -894,10 +894,8 @@ class RecipeValidationCheck(_RecipeContract):
                 required = (
                     "tools.called" if self.kind == "openai.tools" else "chat.nonempty"
                 )
-                if (
-                    required not in self.assertions
-                    or self.kind == "openai.tools"
-                    and not body.get("tools")
+                if required not in self.assertions or (
+                    self.kind == "openai.tools" and not body.get("tools")
                 ):
                     raise ValueError(
                         "OpenAI check does not exercise its declared behavior"

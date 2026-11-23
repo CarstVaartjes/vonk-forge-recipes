@@ -61,7 +61,7 @@ def _written_keys(node: ast.AST) -> set[str]:
     if isinstance(node, ast.Dict):
         keys |= {
             key
-            for k, v in zip(node.keys, node.values)
+            for k, v in zip(node.keys, node.values, strict=False)
             if k is not None
             and (key := _key(k)) is not None
             and (key != "waiting_on" or isinstance(v, (ast.Constant, ast.JoinedStr)))

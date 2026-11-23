@@ -52,7 +52,7 @@ def _placed(fleet, key: str) -> list[float]:
     return sorted(
         {
             at
-            for (profile, args), at in zip(fleet.calls, fleet.call_times)
+            for (profile, args), at in zip(fleet.calls, fleet.call_times, strict=False)
             if profile == 10 and args[:3] == ("profile", "add", key)
         }
     )

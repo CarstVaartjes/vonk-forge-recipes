@@ -1118,7 +1118,7 @@ def test_one_load_adopts_schema_and_verdicts_without_losing_accepted_effects(
 
     monkeypatch.setattr(state_module, "_adopt", adopt)
     monkeypatch.setattr(qualification, "adopt_state_evidence", adopt_evidence)
-    adopted = state_module.State.load(path, clock=lambda: NOW.timestamp())
+    adopted = state_module.State.load(path, clock=NOW.timestamp)
     assert calls == ["state", "evidence"]
     assert path.read_bytes() == before
     assert adopted.data["schema"] == state_module.SCHEMA
@@ -1133,11 +1133,11 @@ def test_one_load_adopts_schema_and_verdicts_without_losing_accepted_effects(
         assert adopted.adoptions[0].reason == SweepAdoptionReason.LOAD_RULES
         assert adopted.adoptions[0].previous["attempts"] == 7
     # A crash before save repeats the same adoption without manufacturing proof.
-    interrupted = state_module.State.load(path, clock=lambda: NOW.timestamp())
+    interrupted = state_module.State.load(path, clock=NOW.timestamp)
     assert interrupted.data == adopted.data
     adopted.save()
     calls.clear()
-    reloaded = state_module.State.load(path, clock=lambda: NOW.timestamp())
+    reloaded = state_module.State.load(path, clock=NOW.timestamp)
     assert calls == ["state"]
     assert reloaded.data == adopted.data
     assert not reloaded.adoptions

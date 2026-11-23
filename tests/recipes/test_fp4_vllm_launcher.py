@@ -20,7 +20,8 @@ def test_fp4_launcher_preserves_canonical_serve_command(tmp_path: Path) -> None:
             ROOT / "recipes/qwen3-8-flash-next-fp4-local-vcruz-vllm-single.json"
         ).read_text()
     )
-    command = recipe["runtime"]["entrypoint"][1:] + [
+    command = [
+        *recipe["runtime"]["entrypoint"][1:],
         "--served-model-name",
         "name with spaces",
     ]

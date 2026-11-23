@@ -133,8 +133,8 @@ def test_group_members_are_back_to_back_with_engine_and_base_image_locality() ->
         recipe("v3", engine="vllm", base_image="b3"),
     ]
     other = recipe("o", ("O",))
-    by_key = {r.key: r for r in members + [other]}
-    plans = policy.plan_groups(members + [other], {"m": GB, "O": 2 * GB}, {"m", "O"})
+    by_key = {r.key: r for r in [*members, other]}
+    plans = policy.plan_groups([*members, other], {"m": GB, "O": 2 * GB}, {"m", "O"})
     order = [
         k.split("/")[1]
         for k in policy.order_queue(

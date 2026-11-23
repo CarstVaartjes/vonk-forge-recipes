@@ -474,11 +474,7 @@ def validate_recipe_archive(
             ):
                 raise SystemExit(f"recipe package manifest digest is stale: {name}")
         for name in names:
-            if (
-                name == "manifest.json"
-                or name == "recipe.json"
-                or name in expected_model_paths
-            ):
+            if name in {"manifest.json", "recipe.json"} or name in expected_model_paths:
                 continue
             if is_source_member(name) or name in expected_fixture_paths:
                 continue

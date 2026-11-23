@@ -226,7 +226,7 @@ def test_restores_after_resumed_runs_never_reuse_a_key(
 ) -> None:
     recipes = [FakeRecipe("a", load_seconds=900)]
     fleet = None
-    for round_ in range(2):
+    for _ in range(2):
         sweep, fleet, clock = make_sweep(
             tmp_path,
             recipes,

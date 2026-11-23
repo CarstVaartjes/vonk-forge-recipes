@@ -95,7 +95,7 @@ class FakeApi:
 
     def __call__(self, path: str) -> Any:
         self.calls.append(path)
-        route = path.split("?")[0].split("/")
+        route = path.split("?", maxsplit=1)[0].split("/")
         if route[:1] == ["repos"] and route[3] == "contents":
             commit = path.split("ref=")[1]
             text = self.config.get(commit)

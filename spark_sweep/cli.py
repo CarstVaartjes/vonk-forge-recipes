@@ -273,7 +273,7 @@ def _config(args: argparse.Namespace) -> SweepConfig:
 def main(
     argv: Sequence[str] | None = None,
     *,
-    vonkctl_factory: Callable[[str], Vonkctl] = lambda exe: Vonkctl(exe),
+    vonkctl_factory: Callable[[str], Vonkctl] = Vonkctl,
     clock: Clock | None = None,
     definitions: Definitions | None = None,
     authored: Mapping[str, str] | None = None,

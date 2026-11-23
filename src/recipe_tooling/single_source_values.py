@@ -196,10 +196,8 @@ def scan_source(
     ):
         return []
     tree = None
-    if (
-        path.endswith(".py")
-        or text.startswith("#!/")
-        and "python" in text.splitlines()[0]
+    if path.endswith(".py") or (
+        text.startswith("#!/") and "python" in text.splitlines()[0]
     ):
         tree = ast.parse(text)
     owned_expression = (
@@ -381,8 +379,7 @@ def upstream_files(root: Path, files: list[str]) -> set[str]:
             and path not in (base + "Dockerfile", manifest)
             and not any(
                 path == base + item
-                or item.endswith("/")
-                and path.startswith(base + item)
+                or (item.endswith("/") and path.startswith(base + item))
                 for item in ours
             )
         )

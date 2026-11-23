@@ -33,7 +33,7 @@ SUPERSEDED = {
 class Mode:
     """What the Controller answers: the recorded receipt shape, or the fake's own."""
 
-    failure: dict[str, Any] | None | str = "recorded"  # None: no failure at all
+    failure: dict[str, Any] | str | None = "recorded"  # None: no failure at all
     real = False
 
 

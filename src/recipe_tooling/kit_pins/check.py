@@ -146,7 +146,7 @@ def check_recipe(
         )
     lock = read_lock(adapter)
     if lock is None:
-        return problems + [f"{label}: no {LOCK}; run tools/kit-pins lock {recipe_id}"]
+        return [*problems, f"{label}: no {LOCK}; run tools/kit-pins lock {recipe_id}"]
     # A withdrawn kit (GitHub no longer serves its commit) is not re-read: the lock's own
     # declaration stands, and everything below still checks it against the recipe.
     gone = withdrawn(root, recipe)

@@ -219,8 +219,16 @@ def published_pins(
         with tempfile.TemporaryDirectory() as directory:
             bundle = Path(directory) / BUNDLE
             gh(
-                ["release", "download", "--repo", repository, "--pattern", BUNDLE]
-                + ["--output", str(bundle)]
+                [
+                    "release",
+                    "download",
+                    "--repo",
+                    repository,
+                    "--pattern",
+                    BUNDLE,
+                    "--output",
+                    str(bundle),
+                ]
             )
             with tarfile.open(bundle) as archive:
                 member = archive.extractfile(INDEX_MEMBER)

@@ -230,9 +230,10 @@ class NothingRunsTests(unittest.TestCase):
             "source", "github", "example/recipe", OLD, self.TARGET, unmark=True
         )
         found = refresh_model.Assessment("recipe", items=[item])
-        stub = lambda _self, _item, _recipe, _new, _result, edits: edits.update(
-            {"adapters/x/vendored-upstream.json": b"{}"}
-        )
+
+        def stub(_self, _item, _recipe, _new, _result, edits):
+            return edits.update({"adapters/x/vendored-upstream.json": b"{}"})
+
         with (
             patch(
                 "recipe_tooling.refresh_upstream.items.collect_items",

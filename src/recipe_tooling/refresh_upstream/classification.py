@@ -180,7 +180,8 @@ def retarget_release_assets(
         return dockerfile, False
     project = item.repo.split("/", 1)[1].lower()
     lines = []
-    for line in dockerfile.splitlines(keepends=True):
+    for original in dockerfile.splitlines(keepends=True):
+        line = original
         if "VERSION" in line or (
             line.lstrip().startswith("#") and project in line.lower()
         ):

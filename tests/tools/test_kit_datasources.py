@@ -1312,7 +1312,7 @@ class _ReadmeApi(FakeApi):
     def __call__(self, path: str) -> Any:
         import base64
 
-        route = path.split("?")[0].split("/")
+        route = path.split("?", maxsplit=1)[0].split("/")
         if route[:1] == ["repos"] and route[3] == "contents":
             text = self.readmes.get(path.split("ref=")[1])
             if text is None or "/".join(route[4:]) != "README.md":
@@ -1373,7 +1373,7 @@ class ImageAssessmentTests(unittest.TestCase):
             """Kit reads go through the real HTTP client, which GitHub answers with 429."""
 
             def __call__(self, path: str) -> Any:
-                if path.split("?")[0].split("/")[3:4] != ["contents"]:
+                if path.split("?", maxsplit=1)[0].split("/")[3:4] != ["contents"]:
                     return super().__call__(path)
 
                 def limited(request: Any, timeout: float) -> Any:

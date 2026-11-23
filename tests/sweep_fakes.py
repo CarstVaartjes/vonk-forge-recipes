@@ -1277,7 +1277,10 @@ class FakeFleet:
 
     def _platform(self) -> dict[str, Any]:
         observed = self.clock.now() - self.platform_observation_age
-        timestamp = lambda value: datetime.fromtimestamp(value, UTC).isoformat()
+
+        def timestamp(value):
+            return datetime.fromtimestamp(value, UTC).isoformat()
+
         return {
             "observed_at": timestamp(observed),
             "api": {

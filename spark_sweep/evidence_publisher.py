@@ -54,10 +54,18 @@ from .sweep_contract import (
 
 BRANCH = "qualification/evidence"
 TITLE = "qualification evidence"
-_deadline: float | None = None
+
 STATE_FILE = "publisher-state.json"
 ROTATED_FILE = "rotated-history.json"
 CHILD_BUDGET = 240  # seconds a publisher child may run, as seen from the sweep
+
+
+class _ChildDeadline:
+    """The monotonic time the running batch's child processes must finish by."""
+
+    at: float | None = None
+
+
 #: How long one evidence PR may stay open before it is reported. Evidence PRs were
 #: observed to merge 6-14 minutes after they opened; an hour open is stuck.
 STALL_SECONDS = 3600
@@ -324,8 +332,8 @@ class PullRequest(BaseModel):
 
 def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     """One bounded subprocess. No retry here: the next tick re-plans from a fresh clone."""
-    if _deadline is not None:
-        remaining = _deadline - time.monotonic()
+    if _ChildDeadline.at is not None:
+        remaining = _ChildDeadline.at - time.monotonic()
         if remaining <= 0:
             raise EvidencePublicationTimeout(f"evidence batch exceeded {CHILD_BUDGET}s")
         timeout = min(timeout, max(1, int(remaining)))
@@ -479,7 +487,9 @@ def _drop_refused(clone: Path, refused: set[str]) -> tuple[str, ...]:
         if not dropped:
             continue
         found += dropped
-        kept = tuple(r for r, i in zip(evidence.records, ids) if i not in refused)
+        kept = tuple(
+            r for r, i in zip(evidence.records, ids, strict=False) if i not in refused
+        )
         if kept:
             write_evidence(clone, evidence.model_copy(update={"records": kept}))
         else:
@@ -498,8 +508,7 @@ def _batch(
     watch_only: bool = False,
 ) -> SweepEvidenceExit:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
-    global _deadline
-    _deadline = time.monotonic() + CHILD_BUDGET
+    _ChildDeadline.at = time.monotonic() + CHILD_BUDGET
     directory.mkdir(parents=True, exist_ok=True)
     opened = own_open_prs(directory)
     refusing = False
@@ -660,7 +669,7 @@ def _batch(
                 cwd=clone,
                 capture_output=True,
                 text=True,
-                timeout=min(60, max(1, int(_deadline - time.monotonic()))),
+                timeout=min(60, max(1, int(_ChildDeadline.at - time.monotonic()))),
                 check=False,
             )
             if result.returncode:

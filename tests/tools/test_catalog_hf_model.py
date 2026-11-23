@@ -191,8 +191,9 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
     def test_split_digest_comes_from_the_repository_manifest(self) -> None:
         whole = "8" * 64
         manifest = f"{whole}  ./model-00005.safetensors\n".encode()
-        entries = self._split_tree() + [
-            {"type": "file", "path": "sha256-manifest.txt", "size": len(manifest)}
+        entries = [
+            *self._split_tree(),
+            {"type": "file", "path": "sha256-manifest.txt", "size": len(manifest)},
         ]
         namespace = vars(catalog_hf_model)
         with patch.dict(
@@ -213,13 +214,14 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             self._run_main(
                 tree, ["--assembled-sha256", f"model-00005.safetensors={'9' * 64}"]
             )
-        both = self._split_tree() + [
+        both = [
+            *self._split_tree(),
             {
                 "type": "file",
                 "path": "model-00005.safetensors",
                 "size": 1,
                 "lfs": {"oid": "e" * 64},
-            }
+            },
         ]
         with pytest.raises(SystemExit, match="both whole and as parts"):
             self._run_main(both)

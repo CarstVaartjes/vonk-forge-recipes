@@ -74,9 +74,9 @@ def _sources(instruction: str) -> list[str]:
 
 def _ignored(relative: str, patterns: list[str]) -> bool:
     ignored = False
-    for pattern in patterns:
-        negate = pattern.startswith("!")
-        pattern = pattern.lstrip("!").strip("/")
+    for raw in patterns:
+        negate = raw.startswith("!")
+        pattern = raw.lstrip("!").strip("/")
         if fnmatch.fnmatch(relative, pattern) or relative.startswith(pattern + "/"):
             ignored = not negate
     return ignored

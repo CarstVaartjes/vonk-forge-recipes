@@ -363,7 +363,8 @@ CREATOR = {
 @pytest.mark.parametrize("slug", sorted(CREATOR))
 def test_recipe_follows_the_creators_memory_settings(slug: str) -> None:
     row, recipe = CREATOR[slug], load_recipe(slug)
-    for name, expected in row.arguments.items():
+    for name, declared in row.arguments.items():
+        expected = declared
         if row.vendored is not None:
             path, pattern = row.vendored
             match = re.search(pattern, (ROOT / path).read_text(encoding="utf-8"))
@@ -377,7 +378,8 @@ def test_recipe_follows_the_creators_memory_settings(slug: str) -> None:
     for choice, values in row.options.items():
         option, value = choice.split("/")
         chosen = recipe.with_option_choices({option: value})
-        for name, expected in values.items():
+        for name, declared in values.items():
+            expected = declared
             if choice in row.vendored_options:
                 path, pattern = row.vendored_options[choice]
                 match = re.search(pattern, (ROOT / path).read_text(encoding="utf-8"))

@@ -264,8 +264,8 @@ if 'inspect' in args:
         if result.returncode:
             break
         for line in (tmp_path / "env").read_text().splitlines():
-            name, value = line.split("=", 1)
-            environment[name] = value
+            variable, value = line.split("=", 1)
+            environment[variable] = value
     assert result is not None
     assert (result.returncode == 0) == (not fault), result.stderr
     commands = log.read_text()

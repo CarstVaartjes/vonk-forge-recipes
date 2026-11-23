@@ -444,7 +444,7 @@ class RateLimitTests(unittest.TestCase):
             lambda r: r,
             opener=self.Responses([429, 200], retry_after=when),
             sleep=self.naps.append,
-            clock=lambda: epoch.timestamp(),
+            clock=epoch.timestamp,
         )
         assert self.naps == [10.0]
 

@@ -677,7 +677,7 @@ class _FakeTexturePipeline:
 
     def __call__(self, image: str, mesh: object, **kwargs: object) -> object:
         # Upstream derives the image extension with .split(), not os.fspath().
-        assert image.split(".")[-1] == "png"
+        assert image.rsplit(".", maxsplit=1)[-1] == "png"
         # Upstream: `if isinstance(mesh, trimesh.Scene): mesh = mesh.to_geometry()`
         if isinstance(mesh, _FakeScene):
             mesh = mesh.to_geometry()  # type: ignore[attr-defined]

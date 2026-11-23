@@ -1001,7 +1001,7 @@ class RateTracker:
             else self.alpha * bytes_per_second + (1 - self.alpha) * self.rate
         )
         self.samples += 1
-        self.history = (self.history + [bytes_per_second])[-50:]
+        self.history = ([*self.history, bytes_per_second])[-50:]
 
     def eta_seconds(self, remaining_bytes: int) -> float | None:
         return remaining_bytes / self.rate if self.rate > 0 else None

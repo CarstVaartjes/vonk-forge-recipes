@@ -71,8 +71,8 @@ def commands(text: str) -> list[tuple[str, bool]]:
     text = re.sub(r"(?m)(?:^|\s)#.*$", "", text)
     text = re.sub(r"\\\n", " ", text)
     lines: list[str] = []
-    for line in text.splitlines():
-        line = line.strip()
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
         if re.match(rf"(?:{DOCKERFILE_KEYWORDS})\s", line, re.IGNORECASE):
             continue
         lines.append(re.sub(r"^RUN\s+(?:--\S+\s+)*", "", line))

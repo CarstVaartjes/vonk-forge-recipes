@@ -433,8 +433,9 @@ def memory_notes(
             (
                 f"WARNING {recipe.identity.slug}: memory estimate unavailable; "
                 f"missing Model inputs: {', '.join(sorted(missing))}"
-            )
-        ] + mn_swap.swap_warnings(recipe)
+            ),
+            *mn_swap.swap_warnings(recipe),
+        ]
     warnings = mn_swap.swap_warnings(recipe)
     for index, variant in enumerate(mn_args.memory_variants(recipe)):
         prefix = f"WARNING {recipe.identity.slug} [{index}]"

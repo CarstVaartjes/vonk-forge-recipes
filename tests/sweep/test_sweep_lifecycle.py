@@ -121,7 +121,7 @@ def test_owner_load_pauses_the_sweep_and_requeues_without_blame(
     # No load was submitted while the owner's application ran (and the hold after it).
     submitted = [
         t
-        for t, (p, c) in zip(fleet.call_times, fleet.calls)
+        for t, (p, c) in zip(fleet.call_times, fleet.calls, strict=False)
         if p == 10 and c[:3] == ("profile", "load", "--yes")
     ]
     assert not [t for t in submitted if window[0] < t < window[0] + 1000 + 100]

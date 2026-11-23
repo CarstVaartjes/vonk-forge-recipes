@@ -13,7 +13,7 @@ from typing import Any
 
 #: The one repository constant; the evidence publisher and the sweep CLI import it.
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
-OWNER = REPOSITORY.split("/")[0]
+OWNER = REPOSITORY.split("/", maxsplit=1)[0]
 #: Add to the `--json` fields of every `gh pr list`; `own_pulls` needs them.
 OWN_FIELDS = "isCrossRepository,headRepositoryOwner"
 

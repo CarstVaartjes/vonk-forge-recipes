@@ -78,7 +78,7 @@ def test_two_hour_owner_outage_does_not_stop_scheduling(
     assert reads.count(3) > 120
     submissions = [
         at
-        for (_, args), at in zip(fleet.calls, fleet.call_times)
+        for (_, args), at in zip(fleet.calls, fleet.call_times, strict=False)
         if args[:2] == ("profile", "load") and "--yes" in args
     ]
     assert submissions

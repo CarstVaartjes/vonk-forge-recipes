@@ -94,7 +94,7 @@ def test_a_refreshed_proven_recipe_waits_for_the_catalog_then_is_retested(
 def _first_load_at(fleet) -> float:
     return next(
         t
-        for t, (_, c) in zip(fleet.call_times, fleet.calls)
+        for t, (_, c) in zip(fleet.call_times, fleet.calls, strict=False)
         if c[:2] == ("profile", "add")
     )
 
