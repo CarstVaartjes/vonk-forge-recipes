@@ -295,13 +295,16 @@ def test_the_lock_survives_in_another_process(tmp_path: Path) -> None:
             sys.executable,
             "-c",
             (
-                "import sys, time; sys.path.insert(0, sys.argv[1]); "
+                "import sys, time; sys.path[:0] = sys.argv[3:]; "
                 "from pathlib import Path; from spark_sweep.state import StateLock; "
                 "l = StateLock(Path(sys.argv[2])); l.acquire(); "
                 "print('held', flush=True); time.sleep(30)"
             ),
             str(ROOT),
             str(tmp_path),
+            str(ROOT),
+            str(ROOT / "src"),
+            str(ROOT / "contracts/src"),
         ],
         stdout=subprocess.PIPE,
         text=True,
