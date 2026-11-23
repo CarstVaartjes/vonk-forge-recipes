@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:ecdf0ccc663d86332459f5a50a38c30861a5079bc3924aa08fdc657ef10dd648",
+      "kind": "tag",
+      "ref": "inkling-2-mini",
+      "repo": "vllm/vllm-openai"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "1fb4134b9a74f9681054f4ef82e4bf1f458a2337",
+      "repo": "thinkingmachines/Inkling-2-Mini",
+      "revision": "1fb4134b9a74f9681054f4ef82e4bf1f458a2337"
+    }
+  },
+  "kit": {
+    "commit": "300942daf6be61f39a7e6c6055bd7cb6e49c4e7c",
+    "repo": "tonyd2wild/Inkling-2-Mini-NVFP4-DGX-Spark"
+  }
+}

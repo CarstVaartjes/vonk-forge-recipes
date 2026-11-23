@@ -1,0 +1,387 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "ecdf0ccc663d86332459f5a50a38c30861a5079bc3924aa08fdc657ef10dd648",
+        "repository": "vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/inkling/tonyd2wild-inkling2-mini-single"
+      },
+      "dockerfile": "adapters/inkling/tonyd2wild-inkling2-mini-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-2-mini-nvfp4-dspark-tonyd2wild-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "inkling-2-mini"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-02f4cd9085ae-b335630551",
+          "id": "readme-02f4cd9085ae-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-53a9035f3255-00824420d1",
+          "id": "chat-template-53a9035f3255-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-8216dd43157f-587cb980af",
+          "id": "config-8216dd43157f-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-a08737c07a65-97dd3d578b",
+          "id": "generation-config-a08737c07a65-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-7c656207d3ce-a481ad90fa",
+          "id": "hf-quant-config-7c656207d3ce-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00001-65e60f51aa12-914d077e93",
+          "id": "model-00001-of-00001-65e60f51aa12-914d077e93",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-c1631065b7b0-0a05be8238",
+          "id": "model-safetensors-index-c1631065b7b0-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mtp-7c3b651317f0-265929bffe",
+          "id": "mtp-7c3b651317f0-265929bffe",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d7350adce18c-27f0cb76af",
+          "id": "processor-config-d7350adce18c-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-c16f44b35945-c07a9be597",
+          "id": "special-tokens-map-c16f44b35945-c07a9be597",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-f170372dd655-86f223d688",
+          "id": "tokenizer-f170372dd655-86f223d688",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-7f332727f9a3-224931eb13",
+          "id": "tokenizer-7f332727f9a3-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-bf09342d2851-94d5c6ba8f",
+          "id": "tokenizer-config-bf09342d2851-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "ab2b3d76ea9855994f7775f352a0a443d993e16f4df36ab24d7e24199472e68a",
+        "kind": "model",
+        "publisher": "thinkingmachines",
+        "slug": "inkling-2-mini-nvfp4-1fb4134b"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "BF16 KV sized by gpu-memory-utilization 0.80 (68.89 GiB measured upstream, 5.14 full 262K requests at once). The creator's default for chat, agents and tool use.",
+          "label": "Standard (default)",
+          "value": "standard"
+        },
+        {
+          "args": [
+            {
+              "name": "kv-cache-memory-bytes",
+              "value": 85899345920
+            }
+          ],
+          "help": "Exact 80 GiB BF16 KV pool (2,075,828 tokens at 1,048,576 context, 1.98 full 1M requests at once, measured upstream). Upstream measured 7.2 to 7.4 GiB MemAvailable idle.",
+          "label": "Max BF16 KV",
+          "value": "max-bf16"
+        },
+        {
+          "args": [
+            {
+              "name": "kv-cache-memory-bytes",
+              "value": 79456894976
+            },
+            {
+              "name": "kv-cache-dtype",
+              "value": "fp8"
+            }
+          ],
+          "help": "Exact 74 GiB FP8 (E4M3, unit scales, uncalibrated) KV pool (3,308,911 tokens at 1,048,576 context, 3.16 full 1M requests at once, measured upstream). FP8 KV needs about 5 GiB more outside the pool, hence 74 GiB; upstream passed a 949,953-token needle and scored 87.0 against 88.4 for BF16 on its 69-scenario tool eval.",
+          "label": "Max FP8 KV",
+          "value": "max-fp8"
+        }
+      ],
+      "help": "The creator's three launch tiers on one Spark. Standard sizes a BF16 KV cache from gpu-memory-utilization 0.80 after warmup (1,346,671 tokens at 262,144 context, about 20 GiB MemAvailable left). The two max tiers set an exact KV pool for the model's native 1,048,576-token context (set the context setting to 1048576) and leave only about 7 to 8 GiB MemAvailable, so nothing else should run on the Spark.",
+      "label": "Memory tier",
+      "name": "tier"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Thinking Machines Lab (model, Apache-2.0)",
+      "tonyd2wild (recipe, MIT)",
+      "vLLM contributors (vllm/vllm-openai:inkling-2-mini image, Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/tonyd2wild/Inkling-2-Mini-NVFP4-DGX-Spark/tree/300942daf6be61f39a7e6c6055bd7cb6e49c4e7c"
+  },
+  "release": {
+    "released_at": "2026-11-21",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "inkling-2-mini"
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.80"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "inkling"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "inkling"
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"dspark\",\"num_speculative_tokens\":7,\"draft_sample_method\":\"probabilistic\"}"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 30
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 20191643271,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 10095821635
+          },
+          "memory": {
+            "peak_bytes": 120930156544,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "inkling-2-mini"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "launch_standard.sh",
+        "pattern": "^IMAGE=\"\\$\\{IMAGE:\\-(?P<repo>vllm/vllm\\-openai):(?P<version>[A-Za-z0-9_][\\w.-]*)\\}\"\\s*$"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "README.md",
+        "pattern": "^\\| Weights \\| Hugging Face revision `(?P<version>[0-9a-f]{40})`",
+        "repo": "thinkingmachines/Inkling-2-Mini"
+      }
+    }
+  },
+  "ours": [
+    "verify-runtime.py",
+    "vllm"
+  ]
+}
