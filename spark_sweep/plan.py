@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from pathlib import Path
 from typing import Any
-
-from recipe_tooling.qualification.evidence_store import read_evidence
-from vonk_forge_contracts.qualification_status import QualificationStatusView
 
 from . import policy
 from .catalog import Model, Recipe
 from .identity import current_identity
-from .qualification import local_status
+from .qualification import (
+    local_status,
+    merged_state_evidence,
+    recipe_evidence,
+    unpublishable_requeue_due,
+)
 from .sweep_support import retest_reason
 
 RATES_MB_S = (100, 250, 500, 1000)
@@ -27,22 +29,15 @@ def make_plan(
     measured_rate: float = 0.0,
     top: int = 25,
     *,
-    views: Mapping[str, QualificationStatusView | None] | None = None,
-    revalidate_passes: bool = True,
+    retesting: Collection[str] = (),
 ) -> dict[str, Any]:
     testable = [r for r in recipes if r.node_count <= enrolled_sparks]
     skipped = [r.key for r in recipes if r.node_count > enrolled_sparks]
-    views = views or {}
     pending = [
         r
         for r in testable
         if done.get(r.key, {}).get("status") not in ("passed", "failed")
-        or retest_reason(
-            views.get(r.key),
-            lambda r=r: current_identity(r),
-            revalidate_passes=revalidate_passes,
-        )
-        is not None
+        or r.key in retesting
     ]
     sizes = policy.build_sizes(testable, models)
     present = policy.present_models(models)
@@ -120,16 +115,34 @@ def render_plan(plan: Mapping[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def status_views(
-    recipes: Sequence[Recipe], enrolled_sparks: int, root: Path
-) -> dict[str, QualificationStatusView | None]:
-    """The derived status `run` schedules by, from the same stored evidence."""
-    views: dict[str, QualificationStatusView | None] = {}
+def retesting(
+    recipes: Sequence[Recipe],
+    enrolled_sparks: int,
+    state_data: Mapping[str, Any],
+    root: Path,
+) -> set[str]:
+    """The recipes `run` would requeue, by its evidence and its due-rule."""
+    saved = merged_state_evidence(state_data.get("qualification_evidence", {}), root)
+    api = state_data.get("platform", {}).get("api")
+    release = api.get("source_sha") if isinstance(api, Mapping) else None
+    due: set[str] = set()
     for recipe in recipes:
+        evidence = recipe_evidence(saved, root, recipe.key)
+        if evidence is None:
+            continue
         try:
-            views[recipe.key] = local_status(
-                read_evidence(root, recipe.key), recipe, enrolled_sparks
-            )
-        except (ValueError, TypeError, OSError):
-            views[recipe.key] = None  # malformed evidence certifies nothing
-    return views
+            identity = current_identity(recipe)
+            view = local_status(evidence, recipe, enrolled_sparks, identity=identity)
+        except (ValueError, TypeError):
+            continue  # malformed observed identity certifies nothing
+        entry = state_data.get("recipes", {}).get(recipe.key, {})
+        why = retest_reason(
+            view,
+            lambda identity=identity: identity,
+            unpublishable=unpublishable_requeue_due(
+                view, evidence, identity, recipe, entry, release
+            ),
+        )
+        if why is not None:
+            due.add(recipe.key)
+    return due

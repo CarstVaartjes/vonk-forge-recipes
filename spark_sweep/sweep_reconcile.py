@@ -26,8 +26,7 @@ from .lifecycle import (
 from .qualification import (
     current_identity,
     pass_marker,
-    rerun_settled,
-    unpublishable_pass,
+    unpublishable_requeue_due,
 )
 from .source_serving import (
     SourceEvent,
@@ -406,15 +405,8 @@ class SweepReconcile:
         # A local pass the catalog would not publish is asked for again, once per content
         # and catalog image, until the re-run records a verdict (then it stands).
         marker = pass_marker(recipe, identity) if identity is not None else ""
-        unpublishable = (
-            identity is not None
-            and unpublishable_pass(
-                view, evidence, identity, release_known=self.release_sha is not None
-            )
-            and evidence is not None
-            and not rerun_settled(
-                evidence, entry.get("unpublishable_requeue"), marker, self.release_sha
-            )
+        unpublishable = unpublishable_requeue_due(
+            view, evidence, identity, recipe, entry, self.release_sha
         )
         requeued = (
             entry.get("status") == RecipeStatus.PENDING

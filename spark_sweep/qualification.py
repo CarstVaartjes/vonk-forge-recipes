@@ -444,6 +444,52 @@ def pass_marker(recipe: Recipe, identity: QualificationIdentity) -> str:
     return f"{recipe.content_sha256}:{image.image_digest if image else ''}"
 
 
+def unpublishable_requeue_due(
+    view: QualificationStatusView | None,
+    evidence: RecipeQualificationEvidence | None,
+    identity: QualificationIdentity | None,
+    recipe: Recipe,
+    entry: Mapping[str, Any],
+    release: str | None,
+) -> bool:
+    """A local pass the catalog would not publish, whose asked-for re-run has not settled."""
+    return (
+        identity is not None
+        and evidence is not None
+        and unpublishable_pass(
+            view, evidence, identity, release_known=release is not None
+        )
+        and not rerun_settled(
+            evidence,
+            entry.get("unpublishable_requeue"),
+            pass_marker(recipe, identity),
+            release,
+        )
+    )
+
+
+def merged_state_evidence(
+    saved: Mapping[str, Any], root: Path
+) -> dict[str, RecipeQualificationEvidence]:
+    """The state's saved evidence merged over the checkout file: the one evidence `run` reads."""
+    return {
+        key: merge_evidence(
+            read_evidence(root, key), RecipeQualificationEvidence.model_validate(value)
+        )
+        for key, value in saved.items()
+    }
+
+
+def recipe_evidence(
+    state_evidence: Mapping[str, RecipeQualificationEvidence], root: Path, key: str
+) -> RecipeQualificationEvidence | None:
+    """The merged state evidence of a recipe, else its checkout file; unreadable is none."""
+    try:
+        return state_evidence.get(key) or read_evidence(root, key)
+    except (ValueError, TypeError, OSError):
+        return None
+
+
 def rerun_settled(
     evidence: RecipeQualificationEvidence,
     requeue: object,
