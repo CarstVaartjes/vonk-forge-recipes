@@ -63,8 +63,12 @@ def retest_reason(
     current: Callable[[], QualificationIdentity],
     *,
     unpublishable: bool = False,
+    revalidate_passes: bool = True,
 ) -> RetestReason | None:
-    """Why a recorded verdict asks for a new run, from the derived status alone."""
+    """Why a recorded verdict asks for a new run, from the derived status alone.
+
+    The one due-rule: `run` requeues by it and `plan` counts by it.
+    """
     if view is None:
         return None
     if unpublishable:
@@ -75,10 +79,13 @@ def retest_reason(
         and view.last_failure.identity != current()
     ):
         return RetestReason.DEFERRED_OLDER_REVISION
-    return {
+    why = {
         QualificationStatus.RECHECK: RetestReason.PASSED_OLDER_REVISION,
         QualificationStatus.FIX_TO_VERIFY: RetestReason.FAILED_OLDER_REVISION,
     }.get(view.status)
+    if why == RetestReason.PASSED_OLDER_REVISION and not revalidate_passes:
+        return None
+    return why
 
 
 @dataclass(frozen=True)
