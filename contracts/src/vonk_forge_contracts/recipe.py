@@ -26,7 +26,8 @@ from pydantic import (
     model_validator,
 )
 
-from .model import ModelReference
+from vonk_forge_contracts.model import ModelReference
+from vonk_forge_contracts.systemone import SystemOneRequest
 
 
 class _RecipeContract(BaseModel):
@@ -45,7 +46,7 @@ RelativePath = Annotated[
     StrictStr, Field(max_length=256, pattern=rf"^{_SEGMENT}(?:/{_SEGMENT})*$")
 ]
 Scalar = StrictStr | StrictInt | StrictBool | StrictFloat
-type JsonValue = Scalar | None | list[JsonValue] | dict[StrictStr, JsonValue]
+type JsonValue = Scalar | list[JsonValue] | dict[StrictStr, JsonValue] | None
 type RuntimeArgumentValue = Scalar | list[JsonValue] | dict[StrictStr, JsonValue]
 ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
 
@@ -243,7 +244,7 @@ class RecipeExecution(_RecipeContract):
 
 
 class _RecipeSettings(_RecipeContract):
-    knobs: dict[Identifier, RecipeSetting] = Field(default_factory=dict, max_length=64)
+    """Marker base of the settings variants; each declares its own knobs."""
 
 
 class RecipeSetting(_RecipeContract):
@@ -252,6 +253,7 @@ class RecipeSetting(_RecipeContract):
 
 
 class RecipeGenerationSettings(_RecipeSettings):
+    knobs: dict[Identifier, RecipeSetting] = Field(default_factory=dict, max_length=64)
     kind: Literal["generation"]
     context_tokens: RecipeIntegerSetting
     # Some engines leave scheduler capacity automatic. Null records that
@@ -261,6 +263,7 @@ class RecipeGenerationSettings(_RecipeSettings):
 
 
 class RecipeDecisionSettings(_RecipeSettings):
+    knobs: dict[Identifier, RecipeSetting] = Field(default_factory=dict, max_length=64)
     kind: Literal["decision"]
     context_tokens: RecipeIntegerSetting
     concurrency: RecipeIntegerSetting | None = None
@@ -268,6 +271,7 @@ class RecipeDecisionSettings(_RecipeSettings):
 
 
 class RecipeEmbeddingSettings(_RecipeSettings):
+    knobs: dict[Identifier, RecipeSetting] = Field(default_factory=dict, max_length=64)
     kind: Literal["embedding"]
     concurrency: RecipeIntegerSetting | None = None
     max_batch_tokens: RecipeIntegerSetting | None = None
@@ -328,13 +332,15 @@ class RecipeJobKnob(RecipeSetting):
 
 
 class RecipeJobSettings(_RecipeSettings):
-    kind: Literal["job"]
     knobs: dict[Identifier, RecipeJobKnob] = Field(default_factory=dict, max_length=64)
+    kind: Literal["job"]
     concurrency: RecipeIntegerSetting | None = None
 
 
 class RecipeIntegerSetting(RecipeSetting):
-    value: StrictInt = Field(ge=1)
+    # A narrower value type keeps `isinstance(setting, RecipeSetting)` true for every
+    # setting (the Controller reads them through it); the base type is not widened.
+    value: StrictInt = Field(ge=1)  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
 RecipeSettings = Annotated[
@@ -894,10 +900,8 @@ class RecipeValidationCheck(_RecipeContract):
                 required = (
                     "tools.called" if self.kind == "openai.tools" else "chat.nonempty"
                 )
-                if (
-                    required not in self.assertions
-                    or self.kind == "openai.tools"
-                    and not body.get("tools")
+                if required not in self.assertions or (
+                    self.kind == "openai.tools" and not body.get("tools")
                 ):
                     raise ValueError(
                         "OpenAI check does not exercise its declared behavior"
@@ -912,8 +916,6 @@ class RecipeValidationCheck(_RecipeContract):
                         "completion checks require a prompt and completion.nonempty"
                     )
             elif self.kind == "openai.systemone":
-                from .systemone import SystemOneRequest
-
                 if (
                     self.request.path != "/v1/systemone"
                     or "decision.probabilities" not in self.assertions
