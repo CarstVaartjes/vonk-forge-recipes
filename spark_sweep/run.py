@@ -48,6 +48,8 @@ from .prefetch import Prefetcher
 from .qualification import (
     history_evidence,
     local_status,
+    merged_state_evidence,
+    recipe_evidence,
 )
 from .removal import ModelRemover
 from .smoke import (
@@ -203,13 +205,10 @@ class Sweep(
         # The recipe documents that ran, by content: written by smoke threads, read on the tick.
         self.ran_recipes: dict[str, RecipeDefinition] = {}
         self.retry_failed_pending = config.retry_failed
-        self.qualification_evidence = {
-            key: merge_evidence(
-                read_evidence(Path(__file__).resolve().parents[1], key),
-                RecipeQualificationEvidence.model_validate(value),
-            )
-            for key, value in state.data.get("qualification_evidence", {}).items()
-        }
+        self.qualification_evidence = merged_state_evidence(
+            state.data.get("qualification_evidence", {}),
+            Path(__file__).resolve().parents[1],
+        )
         self.evidence_publisher = EvidencePublisher(
             log.path,
             config.state_dir / "evidence-publisher",
@@ -239,12 +238,11 @@ class Sweep(
             )
 
     def _recipe_evidence(self, recipe: Recipe) -> RecipeQualificationEvidence | None:
-        try:
-            return self.qualification_evidence.get(recipe.key) or read_evidence(
-                Path(__file__).resolve().parents[1], recipe.key
-            )
-        except (ValueError, TypeError, OSError):
-            return None
+        return recipe_evidence(
+            self.qualification_evidence,
+            Path(__file__).resolve().parents[1],
+            recipe.key,
+        )
 
     def qualification_view(
         self,
