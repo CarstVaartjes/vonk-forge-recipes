@@ -19,7 +19,7 @@ from sweep_fakes import FakeModel, FakeRecipe, Gateway, _locked, make_sweep
 
 pytest_plugins = ["sweep_bounds"]
 
-from spark_sweep.state import StateLock, StateLocked
+from spark_sweep.state import State, StateLock, StateLocked
 from spark_sweep.verdict import Disposition, reply_disposition
 from spark_sweep.vonkctl import (
     Reply,
@@ -516,3 +516,27 @@ def test_accepted_download_absence_keeps_unknown_parent_without_replay(
         len([call for _, call in fleet.calls if call[:2] == ("recipe", "download")])
         == 1
     )
+
+
+def test_an_older_state_file_with_unreadable_inputs_is_adopted_not_failed(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "state.json"
+    path.write_text(
+        json.dumps(
+            {
+                "schema": 1,
+                "qualification_inputs": {"vonk-forge/a": {"old": "shape"}},
+                "recipes": {
+                    "vonk-forge/a": {
+                        "status": "passed",
+                        "attempts": 1,
+                        "finished_at": 5,
+                    }
+                },
+            }
+        )
+    )
+    state = State.load(path)
+    assert state.status("vonk-forge/a") == "passed"
+    assert not state.adoptions and state.data["schema"] == 2

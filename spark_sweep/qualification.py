@@ -231,10 +231,12 @@ def adopt_state_evidence(
     (or, if absent, the state's observation time) orders them; this is not a new
     hardware measurement. Subsequent loads consume only the adopted evidence.
     """
-    adopted = {
-        key: QualificationDerivationInput.model_validate(value).evidence
-        for key, value in data.get("qualification_inputs", {}).items()
-    }
+    adopted: dict[str, RecipeQualificationEvidence] = {}
+    for key, value in data.get("qualification_inputs", {}).items():
+        try:
+            adopted[key] = QualificationDerivationInput.model_validate(value).evidence
+        except ValueError:
+            continue  # an older shape cannot certify a recipe; the loop below still adopts its verdict
     for key, entry in data.get("recipes", {}).items():
         for saved in (entry.get("previous", {}), entry):
             if saved.get("status") not in (
