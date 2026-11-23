@@ -552,7 +552,7 @@ def creator_dual(slug: str, utilization: str) -> RecipeDefinition:
     [
         # sparkfix.yaml#L16 at 050f1ba3.
         (JASL, "0.825"),
-        # boot_dflash2.sh#L14 at 22269731; passed on hardware, pool-less (7cb340f9).
+        # boot_dflash2.sh line 14 at 22269731; passed on hardware, pool-less (7cb340f9).
         (GLM_DFLASH2, "0.86"),
     ],
 )

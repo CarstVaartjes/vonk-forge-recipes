@@ -222,7 +222,7 @@ def commit_on_github(repo: str, commit: str) -> bool | None:
         headers["Authorization"] = f"Bearer {token}"
     url = f"https://api.github.com/repos/{repo}/commits/{commit}"
     try:
-        return fetch(Request(url, headers=headers), lambda response: True)
+        return fetch(Request(url, headers=headers), lambda _response: True)
     except HTTPError as error:
         return False if error.code in {404, 422} else None
     except OSError, UpstreamBusy:  # unreachable, timed out, rate limited
@@ -291,7 +291,7 @@ def _candidates(
     return names
 
 
-def _local_files(adapter: Path, root: Path) -> list[str]:
+def _local_files(adapter: Path) -> list[str]:
     nested = [p.parent for p in adapter.rglob("Dockerfile") if p.parent != adapter]
     files: list[str] = []
     for path in sorted(adapter.rglob("*")):
@@ -370,7 +370,7 @@ def check_adapter(
     ours = set(manifest.get("ours", []))
     renamed: dict[str, str] = manifest.get("renamed", {})
     renamed_dirs: dict[str, str] = manifest.get("renamed_dirs", {})
-    files = _local_files(adapter, root)
+    files = _local_files(adapter)
     also_sources, malformed = parse_also(manifest.get("also", []))
     if malformed:
         report.problems.extend(f"{label}: {MANIFEST} also {m}" for m in malformed)

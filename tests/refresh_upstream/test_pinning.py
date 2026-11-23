@@ -257,12 +257,12 @@ class BranchFollowingTests(unittest.TestCase):
                     return []
                 sha = path.rsplit("/", 1)[1]
                 return {
-                    "sha": MainSha.get(sha, sha),
+                    "sha": main_sha.get(sha, sha),
                     "html_url": "u/" + sha,
                     "commit": {"committer": {"date": "2026-10-01T00:00:00Z"}},
                 }
 
-        MainSha: dict[str, str] = {"main": self.MAIN_HEAD}
+        main_sha: dict[str, str] = {"main": self.MAIN_HEAD}
         catalog = refresh_catalog_view.Catalog(
             Path(tempfile.gettempdir()),
             recipes={

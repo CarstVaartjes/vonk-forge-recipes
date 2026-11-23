@@ -487,7 +487,7 @@ def test_decided_clearing_waits_for_pending_application_without_review(tmp_path)
     sweep, fleet, clock, slot, application, edits = _pending_lane(tmp_path)
     # The capacity review already decided to clear. No cleanup receipt exists yet.
     sweep.state.data["cleared_for"] = ["vonk-forge/b"]
-    sweep._request_clearing(clock.now())
+    sweep._request_clearing()
     for _ in range(2):
         fleet.calls.clear()
         sweep._tick()
@@ -505,7 +505,7 @@ def test_decided_clearing_waits_for_pending_application_without_review(tmp_path)
         assert wait["wait_deadline"] == slot["watch"]["wait_deadline"]
         assert not edits
         clock.sleep(5)
-        sweep._request_clearing(clock.now())
+        sweep._request_clearing()
 
 
 @pytest.mark.parametrize("idle", ["pause", "empty", "takeover"])

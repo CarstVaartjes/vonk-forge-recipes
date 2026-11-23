@@ -203,7 +203,6 @@ def _safe_file(path: Path) -> bool:
 
 def _recipe_closure(
     recipe: dict[str, Any],
-    recipe_path: Path,
     entities: dict[str, dict[str, Any]],
     fixture_paths: list[str],
 ) -> list[tuple[str, bytes]]:
@@ -599,7 +598,7 @@ def recipe_package(
         for check in validated.validation.serving.checks
         for name in check.fixture_paths()
     ]
-    files = _recipe_closure(document, recipe_path, entities, fixtures)
+    files = _recipe_closure(document, entities, fixtures)
     manifest_files = [
         {
             "path": name,

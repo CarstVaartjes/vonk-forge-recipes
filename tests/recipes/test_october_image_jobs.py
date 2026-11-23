@@ -128,7 +128,7 @@ def test_qwen_qualification_requires_native_rgba_png(mode: str) -> None:
     # https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo/blob/fc13ba1986fcb905854dc8de2f52eee395f49b5b/vae/config.json
     import io
 
-    Image = pytest.importorskip("PIL.Image")
+    image_module = pytest.importorskip("PIL.Image")
 
     from recipe_tooling.qualification.definitions_loader import load_definitions
     from spark_sweep.job_assertions import Output, evaluate
@@ -138,7 +138,7 @@ def test_qwen_qualification_requires_native_rgba_png(mode: str) -> None:
         "vonk-forge/qwen-image-2-1-turbo-diffusers-single"
     ]["assertions"]
     content = io.BytesIO()
-    Image.new(mode, (1024, 1024)).save(content, format="PNG")
+    image_module.new(mode, (1024, 1024)).save(content, format="PNG")
     output = Output("image.png", "image/png", content.getvalue())
     if mode == "RGBA":
         assert evaluate(assertions, [output]) == {}

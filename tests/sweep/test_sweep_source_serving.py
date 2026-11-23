@@ -175,15 +175,15 @@ def test_a_new_library_that_leaves_the_recipe_unchanged_keeps_it_waiting(
 
 
 def test_the_source_state_machine_and_what_is_judged() -> None:
-    S, E = SourceServing, SourceEvent
-    assert advance(S.UNREAD, E.UNSERVED_PASS) is S.UNSERVED
-    assert advance(S.UNREAD, E.SERVED_PASS) is S.SERVED
-    assert advance(S.UNSERVED, E.UNSERVED_PASS) is S.UNSERVED
-    for ending in (E.SERVED_PASS, E.WAIT_EXPIRED):
-        assert advance(S.UNSERVED, ending) is S.SERVED
+    states, events = SourceServing, SourceEvent
+    assert advance(states.UNREAD, events.UNSERVED_PASS) is states.UNSERVED
+    assert advance(states.UNREAD, events.SERVED_PASS) is states.SERVED
+    assert advance(states.UNSERVED, events.UNSERVED_PASS) is states.UNSERVED
+    for ending in (events.SERVED_PASS, events.WAIT_EXPIRED):
+        assert advance(states.UNSERVED, ending) is states.SERVED
     # Once following the catalog, newer library content is tested, never awaited.
-    for event in E:
-        assert advance(S.SERVED, event) is S.SERVED
+    for event in events:
+        assert advance(states.SERVED, event) is states.SERVED
     # A recipe on one side only, or outside --only, is not a difference.
     assert unserved(
         {KEY: OLD, "vonk-forge/listed-only": OLD, "vonk-forge/other": OLD},

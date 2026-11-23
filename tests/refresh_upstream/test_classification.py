@@ -687,7 +687,7 @@ class EnvelopeTests(unittest.TestCase):
             None,
             {"recipes": []},
         )
-        assessor._retarget_model(recipe, recipe, old, fresh, result)
+        assessor._retarget_model(recipe, old, fresh, result)
         self.selected = recipe["models"][0]["files"][0]
         return recipe["topology"]["roles"][0]["resources"]["disk"], result
 
@@ -735,7 +735,7 @@ class EnvelopeTests(unittest.TestCase):
             None,
             {"recipes": []},
         )
-        assessor._retarget_model(recipe, recipe, old, fresh, result)
+        assessor._retarget_model(recipe, old, fresh, result)
         assert not result.reasons
         selected = recipe["models"][0]["files"]
         assert sorted(s["file_id"] for s in selected) == sorted(

@@ -76,11 +76,11 @@ class ExactModelFileClosureTests(unittest.TestCase):
                 model = ModelDefinition.model_validate(
                     load_json(ROOT / "models" / f"{model_slug}.json")
                 )
-                license = model_display(model_slug).license
-                assert license.spdx == "Apache-2.0"
+                model_license = model_display(model_slug).license
+                assert model_license.spdx == "Apache-2.0"
                 assert isinstance(model.source, ModelSource)
                 assert (
-                    license.url
+                    model_license.url
                     == f"{model.source.repository}/blob/{model.source.revision}/README.md"
                 )
 

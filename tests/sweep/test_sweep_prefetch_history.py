@@ -45,7 +45,7 @@ def test_an_evicted_models_old_receipt_cannot_starve_new_models(
     assert any(c[2] == new.key for c in calls)
     assert sweep.state.downloads[old.key]["state"] == state
     plans = sweep.prefetcher.last_plans
-    pins = sweep.prefetcher.desired_pins(plans, sweep.recipes, sweep.models, set())
+    pins = sweep.prefetcher.desired_pins(plans, sweep.recipes, set())
     assert old.key not in pins
     assert new.key in pins
 

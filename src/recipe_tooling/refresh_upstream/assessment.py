@@ -773,7 +773,7 @@ class Assessor:
             if problems:
                 result.reasons.extend(f"{item.label}: {p}" for p in problems)
                 return
-        self._retarget_model(recipe, new_recipe, old, fresh, result)
+        self._retarget_model(new_recipe, old, fresh, result)
         if declared:
             directory = (
                 self.catalog.root / recipe["execution"]["build"]["context"]["path"]
@@ -851,7 +851,6 @@ class Assessor:
 
     def _retarget_model(
         self,
-        recipe: dict[str, Any],
         new_recipe: dict[str, Any],
         old: dict[str, Any],
         fresh: dict[str, Any],

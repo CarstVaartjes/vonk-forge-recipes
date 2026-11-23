@@ -122,7 +122,10 @@ def result_identity(document: Mapping[str, Any]) -> dict[str, str]:
 
 
 def pin_alias(key: str) -> str:
-    return PIN_ALIAS_PREFIX + hashlib.sha1(key.encode()).hexdigest()[:12]
+    return (
+        PIN_ALIAS_PREFIX
+        + hashlib.sha1(key.encode(), usedforsecurity=False).hexdigest()[:12]
+    )
 
 
 class Prefetcher:
@@ -754,7 +757,7 @@ class Prefetcher:
         # lasts while a set the online lanes can test will drain the profile.
         pinning = self.config.pin_profile is not None and bool(self.config.pin_spark)
         room = PIN_PROFILE_MAX_ASSIGNMENTS if self.pin_room is None else self.pin_room
-        desired = self.desired_pins(plans, by_key, models, present)
+        desired = self.desired_pins(plans, by_key, present)
         wanted = len(desired)
         drainable = sum(placeable(k) for k in desired)
         held = None
@@ -828,7 +831,7 @@ class Prefetcher:
                 f"new model downloads wait for pin capacity: {held[0]} sets to protect, {held[1]} pins"
             )
         self.pin_hold = held
-        self._reconcile_pins(plans, by_key, models, present)
+        self._reconcile_pins(plans, by_key, present)
         return {
             "model_ops": model_ops,
             "image_ops": image_ops,
@@ -1087,7 +1090,6 @@ class Prefetcher:
         self,
         plans: Sequence[Any],
         by_key: Mapping[str, Recipe],
-        models: Mapping[str, Model],
         present: set[str],
     ) -> list[str]:
         """One pin per model set that is on (or heading to) the NAS and not yet tested."""
@@ -1121,7 +1123,6 @@ class Prefetcher:
         self,
         plans: Sequence[Any],
         by_key: Mapping[str, Recipe],
-        models: Mapping[str, Model],
         present: set[str],
     ) -> None:
         number = self.config.pin_profile
@@ -1139,7 +1140,7 @@ class Prefetcher:
         foreign = [n for n in live if not n.startswith(PIN_ALIAS_PREFIX)]
         cap = max(PIN_PROFILE_MAX_ASSIGNMENTS - len(foreign), 0)
         self.pin_room = cap
-        wanted = self.desired_pins(plans, by_key, models, present)[:cap]
+        wanted = self.desired_pins(plans, by_key, present)[:cap]
         wanted_aliases = {pin_alias(k): k for k in wanted}
         held = [n for n in live if n.startswith(PIN_ALIAS_PREFIX)]
         budget = self.config.pins_per_tick

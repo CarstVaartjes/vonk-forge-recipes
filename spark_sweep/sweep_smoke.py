@@ -196,7 +196,7 @@ class SweepSmoke:
                 slot["smoke_not_before"] = self.clock.now() + ENDPOINT_RECHECK_SECONDS
                 return  # the run is up: look the endpoint up again on the next pass
             self._fail_slot(
-                key, slot, policy.classify("readiness", "endpoint", str(error)), {}
+                key, policy.classify("readiness", "endpoint", str(error)), {}
             )
             return
         self.clear_infra("endpoint")

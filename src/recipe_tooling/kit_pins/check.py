@@ -41,7 +41,7 @@ def check_images(
     recipes: dict[str, dict[str, Any]],
     source: Upstream,
     names: Iterable[str] | None = None,
-    notice: Callable[[str], None] = lambda message: None,
+    notice: Callable[[str], None] = lambda _message: None,
 ) -> list[str]:
     """The prebuilt-image rule over recipes built from a kit (one scan per kit commit).
 
@@ -88,9 +88,7 @@ def check_images(
     return problems
 
 
-# ---------------------------------------------------------------------------
-# Check ("is the lock up to date")
-# ---------------------------------------------------------------------------
+# Checking that the lock is up to date
 
 
 def declares_base(wanted: Iterable[Declaration]) -> bool:

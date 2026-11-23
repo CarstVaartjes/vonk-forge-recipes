@@ -203,7 +203,7 @@ class SweepTick:
     def _observe_owner(self: Sweep, now: float) -> None:  # pyright: ignore[reportGeneralTypeIssues]
         self.owner_status = self.guard.check(now)
         if self.owner_status.new_activity:
-            self._request_clearing(now)  # their load replaced what ours ran
+            self._request_clearing()  # their load replaced what ours ran
             self.state.data["owner"]["seen_at"] = now
             self.preempt("an owner profile was loaded")
         if self.owner_status.paused:

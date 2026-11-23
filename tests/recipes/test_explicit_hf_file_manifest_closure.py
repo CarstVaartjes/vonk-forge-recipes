@@ -95,10 +95,11 @@ class ExplicitHuggingFaceManifestTests(unittest.TestCase):
             for item in bria_selection.files
         )
         assert not bria.requires_token
-        license = model_display("bria-rmbg-1-4").license
-        assert license.spdx == "other"
+        model_license = model_display("bria-rmbg-1-4").license
+        assert model_license.spdx == "other"
         assert (
-            license.url == "https://bria.ai/bria-huggingface-model-license-agreement/"
+            model_license.url
+            == "https://bria.ai/bria-huggingface-model-license-agreement/"
         )
 
 

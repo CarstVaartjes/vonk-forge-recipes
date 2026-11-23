@@ -938,7 +938,7 @@ def classify(
     if not klass:
         klass = {"smoke": "smoke", "review": CONTROLLER_WAIT}.get(phase, phase)
     signature = f"{phase}|{klass}|{code or '-'}|{_normalise(detail)}"
-    cluster = hashlib.sha1(signature.encode()).hexdigest()[:10]
+    cluster = hashlib.sha1(signature.encode(), usedforsecurity=False).hexdigest()[:10]
     proof: dict[str, Any] = {
         k: v for k, v in (evidence or {}).items() if v not in (None, "", [], {})
     }

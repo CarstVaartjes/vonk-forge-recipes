@@ -69,7 +69,7 @@ class SweepTakeover:
         )
         self.state.save()
         try:
-            admitted = self._attempt_takeover(now, place_ready=place_ready)
+            admitted = self._attempt_takeover(place_ready=place_ready)
         except VonkctlError as error:
             self.state.event(f"clearing attempt unanswered: {str(error)[:120]}")
             admitted = False
@@ -89,7 +89,6 @@ class SweepTakeover:
 
     def _attempt_takeover(
         self: Sweep,  # pyright: ignore[reportGeneralTypeIssues]
-        now: float,
         *,
         place_ready: bool = False,
     ) -> bool:
@@ -105,7 +104,7 @@ class SweepTakeover:
         ):
             # A decided clearing precedes ready-lane shortcuts. In-flight intent
             # still follows its original receipt instead of being submitted again.
-            return self._renew_cleanup(now)
+            return self._renew_cleanup()
         if loads:
             if all(
                 load.get("terminal_receipt") or load.get("end")
@@ -118,7 +117,7 @@ class SweepTakeover:
                     # Prefer the ready lane's fresh reviewed load to an empty
                     # clearing that would introduce another adoption dependency.
                     return True
-                return self._renew_cleanup(now)
+                return self._renew_cleanup()
             if not all(
                 load.get("projection_known")
                 or load.get("terminal_receipt")
@@ -141,7 +140,7 @@ class SweepTakeover:
                 return True
             # Only observed terminal intent or an explicit new clearing decision may
             # enter normal admission again. A read timeout never reaches this branch.
-            return self._renew_cleanup(now)
+            return self._renew_cleanup()
         if self.state.data.get("took_over") or self.state.slots:
             return True
         # Recover the latest canonical owned cleanup before creating any new intent.
@@ -169,7 +168,7 @@ class SweepTakeover:
             # This permits a fresh review, not a claim that an old stop succeeded.
             self.state.data["took_over"] = True
             return True
-        return self._renew_cleanup(now)
+        return self._renew_cleanup()
 
     def _clearing_refused(self: Sweep, why: str) -> bool:  # pyright: ignore[reportGeneralTypeIssues]
         """A clearing that is not submitted says why: in the status, once in the events."""
@@ -181,10 +180,10 @@ class SweepTakeover:
 
     def _begin_run(self: Sweep) -> None:  # pyright: ignore[reportGeneralTypeIssues]
         """A new run takes the fleet from fresh facts, never from the last run's takeover."""
-        self._request_clearing(self.clock.now())
+        self._request_clearing()
         self.state.data.pop("cleared_for", None)
 
-    def _request_clearing(self: Sweep, now: float) -> None:  # pyright: ignore[reportGeneralTypeIssues]
+    def _request_clearing(self: Sweep) -> None:  # pyright: ignore[reportGeneralTypeIssues]
         """A new clearing decision gets its own bounded budget, never an old one's exhaustion."""
         self.state.data["took_over"] = False
         self.state.data["takeover_budget"] = {"attempts": 0, "next_check": 0.0}
@@ -289,7 +288,7 @@ class SweepTakeover:
             else None
         )
 
-    def _renew_cleanup(self: Sweep, now: float) -> bool:  # pyright: ignore[reportGeneralTypeIssues]
+    def _renew_cleanup(self: Sweep) -> bool:  # pyright: ignore[reportGeneralTypeIssues]
         # Every new clear starts from current physical facts, including after
         # a terminal receipt with an absent or incomplete child projection.
         self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)

@@ -388,7 +388,7 @@ def _publish(
                 + ("" if arm else " (review, not armed)")
             )
         return number
-    failure = refresh_apply.verify(root, recipe_id)
+    failure = refresh_apply.verify(root)
     if failure is not None:
         assessment.reasons.append(
             f"checks failed after applying the refresh: {failure}"

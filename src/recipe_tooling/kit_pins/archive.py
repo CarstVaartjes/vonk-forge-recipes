@@ -19,9 +19,7 @@ from recipe_tooling.kit_pins.model import (
 )
 from recipe_tooling.upstream_http import fetch as fetch_url
 
-# ---------------------------------------------------------------------------
-# Lock (write)
-# ---------------------------------------------------------------------------
+# Writing the lock
 
 
 def archive_url(repo: str, commit: str) -> str:

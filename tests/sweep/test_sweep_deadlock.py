@@ -164,9 +164,7 @@ def test_a_cached_recipe_waiting_for_lanes_keeps_its_eviction_pin(
     plans = sweep.prefetcher.plan_queue(
         [recipe], sweep.sizes, sweep._present(), sweep.boost
     )
-    pins = sweep.prefetcher.desired_pins(
-        plans, sweep.recipes, sweep.models, sweep._present()
-    )
+    pins = sweep.prefetcher.desired_pins(plans, sweep.recipes, sweep._present())
     assert pins == [recipe.key]
 
 
