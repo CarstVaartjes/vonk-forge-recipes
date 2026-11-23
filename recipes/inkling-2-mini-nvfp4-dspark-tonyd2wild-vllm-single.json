@@ -195,6 +195,10 @@
         {
           "args": [
             {
+              "name": "gpu-memory-utilization",
+              "value": "0.90"
+            },
+            {
               "name": "kv-cache-memory-bytes",
               "value": 85899345920
             }
@@ -205,6 +209,10 @@
         },
         {
           "args": [
+            {
+              "name": "gpu-memory-utilization",
+              "value": "0.90"
+            },
             {
               "name": "kv-cache-memory-bytes",
               "value": 79456894976
@@ -331,6 +339,8 @@
             "working_bytes": 10095821635
           },
           "memory": {
+            "load_peak_bytes": 123829259469,
+            "minimum_swap_bytes": 5368709120,
             "peak_bytes": 120930156544,
             "reserve_bytes": 8000000000
           }
