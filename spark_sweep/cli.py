@@ -18,7 +18,7 @@ from .definitions import Definitions
 from .evidence_publisher import sync
 from .issues import file_issues
 from .job_media import ffprobe
-from .plan import make_plan, render_plan
+from .plan import make_plan, render_plan, status_views
 from .prefetch import PrefetchConfig
 from .report import build_report, render_report, saved_qualification
 from .run import Sweep
@@ -339,7 +339,13 @@ def main(
         state = State.load(state_path)
         rate = args.rate_mb_s * 1e6 or float(state.data["rate"].get("ema", 0.0))
         plan = make_plan(
-            recipes, fetch_models(vk), enrolled, state.recipes, _boost(args), rate
+            recipes,
+            fetch_models(vk),
+            enrolled,
+            state.recipes,
+            _boost(args),
+            rate,
+            views=status_views(recipes, enrolled, SOURCE_ROOT),
         )
         print(json.dumps(plan, indent=1) if args.json else render_plan(plan))
         return 0

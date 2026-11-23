@@ -9,6 +9,11 @@ import pytest
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from spark_sweep import policy, verdict
 from spark_sweep.catalog import Model, Recipe
+from spark_sweep.plan import make_plan
+from vonk_forge_contracts.qualification_status import (
+    QualificationStatus,
+    QualificationStatusView,
+)
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -522,3 +527,26 @@ def test_ready_single_is_not_hidden_behind_duals_or_oversized_queue_heads() -> N
     candidates.append(fitting)
     placed = policy.place_singles(candidates, bins(0), alias)
     assert [item.recipe for item in placed] == [fitting]
+
+
+def test_plan_counts_a_pass_the_catalog_says_to_recheck_as_pending() -> None:
+    old = {"status": "passed", "content_sha256": "old"}
+    rechecked = recipe("rechecked")
+    working = recipe("working")
+    views = {
+        rechecked.key: QualificationStatusView(
+            status=QualificationStatus.RECHECK, required_sparks=1
+        ),
+        working.key: QualificationStatusView(
+            status=QualificationStatus.WORKING, required_sparks=1
+        ),
+    }
+    plan = make_plan(
+        [rechecked, working],
+        {},
+        1,
+        {rechecked.key: old, working.key: old},
+        policy.make_boost([], (), 0.0),
+        views=views,
+    )
+    assert plan["pending_recipes"] == 1

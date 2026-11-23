@@ -507,6 +507,7 @@ class SweepReconcile:
             view,
             lambda: identity or current_identity(recipe),
             unpublishable=unpublishable,
+            revalidate_passes=self.cfg.revalidate_passes,
         )
         if entry.get("status") == RecipeStatus.PENDING:
             return
@@ -514,8 +515,6 @@ class SweepReconcile:
             return
         if why == RetestReason.UNPUBLISHABLE_PASS:
             entry["unpublishable_requeue"] = {"at": self.clock.now(), "marker": marker}
-        if why == RetestReason.PASSED_OLDER_REVISION and not self.cfg.revalidate_passes:
-            return
         entry["previous"] = {
             k: entry.get(k)
             for k in (

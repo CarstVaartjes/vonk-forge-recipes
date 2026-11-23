@@ -3,10 +3,17 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Any
+
+from recipe_tooling.qualification.evidence_store import read_evidence
+from vonk_forge_contracts.qualification_status import QualificationStatusView
 
 from . import policy
 from .catalog import Model, Recipe
+from .identity import current_identity
+from .qualification import local_status
+from .sweep_support import retest_reason
 
 RATES_MB_S = (100, 250, 500, 1000)
 
@@ -19,13 +26,23 @@ def make_plan(
     boost: policy.Boost,
     measured_rate: float = 0.0,
     top: int = 25,
+    *,
+    views: Mapping[str, QualificationStatusView | None] | None = None,
+    revalidate_passes: bool = True,
 ) -> dict[str, Any]:
     testable = [r for r in recipes if r.node_count <= enrolled_sparks]
     skipped = [r.key for r in recipes if r.node_count > enrolled_sparks]
+    views = views or {}
     pending = [
         r
         for r in testable
         if done.get(r.key, {}).get("status") not in ("passed", "failed")
+        or retest_reason(
+            views.get(r.key),
+            lambda r=r: current_identity(r),
+            revalidate_passes=revalidate_passes,
+        )
+        is not None
     ]
     sizes = policy.build_sizes(testable, models)
     present = policy.present_models(models)
@@ -101,3 +118,18 @@ def render_plan(plan: Mapping[str, Any]) -> str:
             f"  {where:>12}  {len(item['recipes']):>3} recipes  {item['recipes'][0]}"
         )
     return "\n".join(lines) + "\n"
+
+
+def status_views(
+    recipes: Sequence[Recipe], enrolled_sparks: int, root: Path
+) -> dict[str, QualificationStatusView | None]:
+    """The derived status `run` schedules by, from the same stored evidence."""
+    views: dict[str, QualificationStatusView | None] = {}
+    for recipe in recipes:
+        try:
+            views[recipe.key] = local_status(
+                read_evidence(root, recipe.key), recipe, enrolled_sparks
+            )
+        except (ValueError, TypeError, OSError):
+            views[recipe.key] = None  # malformed evidence certifies nothing
+    return views
