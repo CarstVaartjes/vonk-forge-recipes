@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/inkling-2-mini-nvfp4-dspark-tonyd2wild-vllm-single",
+  "service_recipes": {
+    "alias": "inkling-2-mini",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ],
+      "stress": [
+        "Bounded long-context canaries at the 262K default context and, on the max tiers, at 1,048,576 tokens"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "MIS_A391",
+      "MIS_T_REPORT",
+      "MIS_V_RED"
+    ]
+  }
+}

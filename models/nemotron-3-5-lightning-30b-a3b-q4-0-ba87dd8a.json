@@ -2,31 +2,31 @@
   "dependencies": [],
   "files": [
     {
-      "id": "metadata-451d293fc3bf-618cd5b83d",
+      "id": "metadata-76b90cf69b42-618cd5b83d",
       "path": ".gitattributes",
       "roles": [
         "metadata"
       ],
-      "sha256": "451d293fc3bfea44e05c815e697fa816a507ca8a92ba8c0f75d5daa60eb76576",
-      "size_bytes": 2206
+      "sha256": "76b90cf69b42c3bf3b7454964531d26397537caafab321ab0ca63a00e7c171b8",
+      "size_bytes": 2390
     },
     {
-      "id": "nvidia-nemotron-3-5-lightning-30b-a3b-q-61f87e75974e-755241d9c5",
+      "id": "nvidia-nemotron-3-5-lightning-30b-a3b-q-b09a3de2c745-755241d9c5",
       "path": "NVIDIA-Nemotron-3.5-Lightning-30B-A3B-Q4_0.gguf",
       "roles": [
         "weights"
       ],
-      "sha256": "61f87e75974e4b535dcdf9aad056541a9514f1dfa4538b463b081d19b7a00e3c",
-      "size_bytes": 18898091584
+      "sha256": "b09a3de2c7459c63590e23f4ddc52670d12dc7c28fd834e71cb6c917423b133b",
+      "size_bytes": 18898091616
     },
     {
-      "id": "readme-0e5c29476662-b335630551",
+      "id": "readme-71af3853e74f-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "0e5c29476662f6bf54da70f46e318c44692cd2a9da4f8c3b092c41bce3b4e76a",
-      "size_bytes": 798
+      "sha256": "71af3853e74f901bf936f845e62d229719873a0c63e24916d981eba15a3e4ad4",
+      "size_bytes": 788
     }
   ],
   "format": {
@@ -39,14 +39,14 @@
       "slug": "nemotron-3-5-lightning-30b-a3b"
     },
     "publisher": "ggml-org",
-    "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-8cd08217",
-    "variant": "Q4_0 8cd08217",
-    "version": "Q4_0 8cd08217"
+    "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-ba87dd8a",
+    "variant": "Q4_0 ba87dd8a",
+    "version": "Q4_0 ba87dd8a"
   },
   "kind": "model",
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/ggml-org/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-GGUF",
-    "revision": "8cd082170ed313484be1cf44f256a5caa2cfdad3"
+    "revision": "ba87dd8ac28f400a9be28f6ab7f9a51e984180b8"
   }
 }

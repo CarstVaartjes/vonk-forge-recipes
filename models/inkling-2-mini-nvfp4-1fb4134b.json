@@ -1,0 +1,151 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-02f4cd9085ae-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "02f4cd9085aebde693ba95bfefca487eb6c098fccce6fe826fd8e90dfac56034",
+      "size_bytes": 54831
+    },
+    {
+      "id": "chat-template-53a9035f3255-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "53a9035f3255945704b5857657cfb00c1165090c0641c4f782a0cbf268cc16dc",
+      "size_bytes": 6868
+    },
+    {
+      "id": "config-8216dd43157f-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "8216dd43157f5474cfff88f486a1e433fef703c674f694e485a86a761c412b1e",
+      "size_bytes": 2699
+    },
+    {
+      "id": "generation-config-a08737c07a65-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a08737c07a65a8fdf69f7cf086576210e5aad4b241437090b26d7b0c4f7905f7",
+      "size_bytes": 98
+    },
+    {
+      "id": "hf-quant-config-7c656207d3ce-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7c656207d3ce37879c7be209a036b0dde43bf01f78159bff06880b868ed57143",
+      "size_bytes": 67924
+    },
+    {
+      "id": "model-00001-of-00001-65e60f51aa12-914d077e93",
+      "path": "model-00001-of-00001.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "65e60f51aa1284d4fb022584908c315270334d991828bb774af60584523539d1",
+      "size_bytes": 19526019168
+    },
+    {
+      "id": "model-safetensors-index-c1631065b7b0-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c1631065b7b00787993522dddc66a68b3abee869192977fb3dcb796e63bc5838",
+      "size_bytes": 109300
+    },
+    {
+      "id": "mtp-7c3b651317f0-265929bffe",
+      "path": "mtp.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7c3b651317f01f73bcf4e1dceba66ef8b7e1a1eac6bc171e882e690a4b10a1d2",
+      "size_bytes": 635801416
+    },
+    {
+      "id": "processor-config-d7350adce18c-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d7350adce18c8be4b607f261c8f0f7eabbf720bb7aaf648a43d4f8372bbacc2d",
+      "size_bytes": 461
+    },
+    {
+      "id": "special-tokens-map-c16f44b35945-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c16f44b3594563d82743ddb0417a2be1bfe3e2000dfad2da4b8f32554593e1a0",
+      "size_bytes": 529
+    },
+    {
+      "id": "tokenizer-f170372dd655-86f223d688",
+      "path": "tiktoken/tokenizer.model",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "f170372dd655728909228220d77cf6b8104a59f38a91262a7d2c4027906ec0d8",
+      "size_bytes": 3386494
+    },
+    {
+      "id": "tokenizer-7f332727f9a3-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "7f332727f9a3f093dd452a39cc978e6757627e5dad1b0673aa4e75174f236dd6",
+      "size_bytes": 26178678
+    },
+    {
+      "id": "tokenizer-config-bf09342d2851-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "bf09342d285139fd37ce10c70878af1d52cb390e9901e10248654293a80ee636",
+      "size_bytes": 13235
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4"
+  },
+  "identity": {
+    "model": {
+      "publisher": "thinkingmachines",
+      "slug": "inkling-2-mini"
+    },
+    "publisher": "thinkingmachines",
+    "slug": "inkling-2-mini-nvfp4-1fb4134b",
+    "variant": "NVFP4 1fb4134b",
+    "version": "NVFP4 1fb4134b"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/thinkingmachines/Inkling-2-Mini",
+    "revision": "1fb4134b9a74f9681054f4ef82e4bf1f458a2337"
+  }
+}
