@@ -805,7 +805,7 @@ class GatedRepositoryTests(unittest.TestCase):
         recipe = {"identity": {"slug": "recipe"}, "models": []}
         assessor = refresh_assessment.Assessor(
             refresh_catalog_view.Catalog(
-                Path("."),
+                Path(),
                 recipes={"recipe": recipe},
                 models={old["identity"]["slug"]: old},
             ),

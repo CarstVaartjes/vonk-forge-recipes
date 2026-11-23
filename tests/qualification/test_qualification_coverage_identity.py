@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -77,7 +76,7 @@ def test_source_bytes_and_file_modes_invalidate_the_execution_stack() -> None:
         )
 
         previous_mode_digest = after_patch_change["build_source_sha256"]
-        os.chmod(adapter, 0o755)
+        adapter.chmod(0o755)
         after_mode_change = execution_stack_identity(repository, recipe, build)
         assert after_mode_change["build_source_sha256"] != previous_mode_digest
 

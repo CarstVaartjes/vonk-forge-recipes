@@ -964,7 +964,7 @@ def command_guard(arguments: argparse.Namespace) -> int:
             )
     output = os.environ.get("GITHUB_OUTPUT")
     if output:
-        with open(output, "a", encoding="utf-8") as handle:
+        with Path(output).open("a", encoding="utf-8") as handle:
             handle.write(f"run={'true' if run else 'false'}\n")
     print(f"refresh {'proceeds' if run else 'skipped by the chain guard'}")
     return 0
@@ -1079,5 +1079,5 @@ def write_summary(
     text = "\n".join(lines)
     print(text)
     if path:
-        with open(path, "a", encoding="utf-8") as handle:
+        with Path(path).open("a", encoding="utf-8") as handle:
             handle.write(text + "\n")

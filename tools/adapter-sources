@@ -31,7 +31,7 @@ else:
         print(f"::warning title=adapter source mirror::{problem}")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary and problems:
-        with open(summary, "a") as handle:
+        with Path(summary).open("a") as handle:
             handle.write("Adapter source mirror, not healed:\n\n")
             handle.writelines(f"- {problem}\n" for problem in problems)
     # Never fails: the next main run reconciles again.

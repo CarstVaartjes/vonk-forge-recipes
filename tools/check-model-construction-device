@@ -118,7 +118,7 @@ def _is_verbatim_copy(root: Path, name: str) -> bool:
     """A file the nearest vendored-upstream.json does not list under ``ours``."""
     path = Path(name)
     for adapter in path.parents:
-        if adapter == Path(ADAPTERS) or adapter == Path("."):
+        if adapter == Path(ADAPTERS) or adapter == Path():
             return False
         manifest_path = root / adapter / MANIFEST
         if not manifest_path.is_file():

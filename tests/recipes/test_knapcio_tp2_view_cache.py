@@ -1,6 +1,5 @@
 """The derived target view must keep a working link to the overlay shard after the staging directory is renamed."""
 
-import os
 import textwrap
 from pathlib import Path
 from typing import Any
@@ -89,7 +88,7 @@ def test_view_keeps_overlay_link_after_rename_and_is_reused(tmp_path, monkeypatc
     overlay = lossless8 / "model-qmix-lossless8.safetensors"
     assert not overlay.is_symlink()
     assert overlay.read_bytes() == b"overlay"
-    assert os.stat(overlay).st_nlink == 2
+    assert overlay.stat().st_nlink == 2
     built = len(runs)
     wrapper["_prepare_views"]()
     assert len(runs) == built

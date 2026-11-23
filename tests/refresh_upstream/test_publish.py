@@ -161,7 +161,7 @@ class SharedContextTests(unittest.TestCase):
             side_effect=publish,
         ):
             number = refresh_publish.publish_group(
-                Path("."), combined, moving, refresh_publish.Summary()
+                Path(), combined, moving, refresh_publish.Summary()
             )
         assert number == 5
         assert "### Failed checks of PR #5" in moving.evidence

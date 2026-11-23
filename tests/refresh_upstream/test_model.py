@@ -66,7 +66,7 @@ class ModelTests(unittest.TestCase):
             ),
         )
         assessor = refresh_assessment.Assessor(
-            refresh_catalog_view.Catalog(Path(".")),
+            refresh_catalog_view.Catalog(Path()),
             object(),  # pyright: ignore[reportArgumentType]
             None,
             {},

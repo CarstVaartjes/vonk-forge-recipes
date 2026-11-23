@@ -117,7 +117,7 @@ def _download(url: str, sha256: str, size: int, cache: Path, opener: Opener) -> 
                 received += len(chunk)
         if received != size or digest.hexdigest() != sha256:
             return f"got sha256:{digest.hexdigest()} ({received} bytes)"
-        os.replace(temporary, cache / sha256)
+        Path(temporary).replace(cache / sha256)
         return ""
     finally:
         Path(temporary).unlink(missing_ok=True)
@@ -211,8 +211,8 @@ def _place(root: Path, blob: Path, target: Path) -> None:
     try:
         with os.fdopen(descriptor, "wb") as output, blob.open("rb") as source:
             shutil.copyfileobj(source, output)
-        os.chmod(staging, 0o644)  # what a checkout writes; mkstemp makes 0600
-        os.replace(staging, target)
+        Path(staging).chmod(0o644)  # what a checkout writes; mkstemp makes 0600
+        Path(staging).replace(target)
     finally:
         Path(staging).unlink(missing_ok=True)
 

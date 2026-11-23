@@ -134,7 +134,7 @@ def test_flash_next_profile_receives_platform_endpoint(
     linked = tmp_path / "linked"
     linked.touch()
     os.link(linked, tmp_path / "linked-again")
-    shared = os.stat(linked)
+    shared = linked.stat()
     assert shared.st_nlink == 2
     ple_cache._require_regular_single_link(shared, "source")
     with pytest.raises(PleCacheError):

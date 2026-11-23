@@ -352,7 +352,7 @@ def _publish_with_closed_pr(pr):
         patch("recipe_tooling.refresh_upstream.github.git", side_effect=Reached),
     ):
         try:
-            refresh_publish._publish(Path("."), assessment, summary, arm=False)
+            refresh_publish._publish(Path(), assessment, summary, arm=False)
         except Reached:
             return summary, True
     return summary, False

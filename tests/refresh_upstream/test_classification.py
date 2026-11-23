@@ -682,7 +682,7 @@ class EnvelopeTests(unittest.TestCase):
         }
         result = refresh_model.Assessment("recipe")
         assessor = refresh_assessment.Assessor(
-            refresh_catalog_view.Catalog(Path(".")),
+            refresh_catalog_view.Catalog(Path()),
             object(),  # pyright: ignore[reportArgumentType]
             None,
             {"recipes": []},
@@ -730,7 +730,7 @@ class EnvelopeTests(unittest.TestCase):
         }
         result = refresh_model.Assessment("recipe")
         assessor = refresh_assessment.Assessor(
-            refresh_catalog_view.Catalog(Path(".")),
+            refresh_catalog_view.Catalog(Path()),
             object(),  # pyright: ignore[reportArgumentType]
             None,
             {"recipes": []},

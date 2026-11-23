@@ -434,7 +434,7 @@ class ResultsLog:
             os.fsync(stream.fileno())
         if self.path.stat().st_size > RESULT_ROTATE_BYTES:
             stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
-            os.replace(self.path, self.path.with_name(f"{self.path.name}.{stamp}"))
+            self.path.replace(self.path.with_name(f"{self.path.name}.{stamp}"))
         return record
 
     def files(self) -> list[Path]:
