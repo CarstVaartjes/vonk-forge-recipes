@@ -1,14 +1,14 @@
 {
   "dependencies": {
     "engine": {
-      "commit": "bccada041d3236c5b710f8154ad9e3bf669d99f3",
+      "commit": "cd37fded85c4e1f561368b74cb5d237aae1c1cd6",
       "datasource": "git-ref",
       "kind": "branch",
       "ref": "master",
       "repo": "vcruz305/exllamav3"
     },
     "server": {
-      "commit": "880e6b8bbdeda83090eb6cb5eabdbf8623fc4426",
+      "commit": "a2898191eed710b55066d699ce829a976b4b3272",
       "datasource": "git-ref",
       "kind": "branch",
       "ref": "main",
