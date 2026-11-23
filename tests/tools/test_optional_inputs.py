@@ -13,6 +13,7 @@ from unittest.mock import Mock, patch
 import pytest
 from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+from sweep_sources import RUN_FILES
 from test_prebuilt_images import INDEX
 
 from recipe_tooling.qualification.image_evidence import load_images
@@ -340,7 +341,7 @@ def test_optional_validators_and_exports_cannot_bypass_tolerant_boundary() -> No
     for path in (
         "spark_sweep/evidence_contract.py",
         "src/recipe_tooling/qualification/image_evidence.py",
-        "spark_sweep/run.py",
+        *(f"spark_sweep/{name}" for name in RUN_FILES),
         "spark_sweep/catalog.py",
     ):
         tree = ast.parse((ROOT / path).read_text())
@@ -359,7 +360,11 @@ def test_optional_validators_and_exports_cannot_bypass_tolerant_boundary() -> No
                 continue
             name = ast.unparse(call.func)
             optional = name in {"self._evidence", "self.parse"} or (
-                path not in {"spark_sweep/run.py", "spark_sweep/catalog.py"}
+                path
+                not in {
+                    *(f"spark_sweep/{name}" for name in RUN_FILES),
+                    "spark_sweep/catalog.py",
+                }
                 and call.func.attr in {"model_validate", "validate_python", "read_text"}
                 and name != "ResultCore.model_validate"
             )

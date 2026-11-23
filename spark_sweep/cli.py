@@ -21,11 +21,12 @@ from .job_media import ffprobe
 from .plan import make_plan, render_plan
 from .prefetch import PrefetchConfig
 from .report import build_report, render_report, saved_qualification
-from .run import DEFAULT_BOOST, Clock, Sweep, SweepConfig, selects
+from .run import Sweep
 from .smoke import HttpConfig
 from .source_serving import authored_contents, describe, unserved
 from .state import ResultsLog, State, StateLock, StateLocked
 from .sweep_contract import SweepEvidenceExit
+from .sweep_support import DEFAULT_BOOST, Clock, SweepConfig, selects
 from .vonkctl import OWNER_PROFILES, Vonkctl, VonkctlError
 
 # Kept equal to AUTHORITY_ID in tools/build-qualification-authority (a test checks it), so

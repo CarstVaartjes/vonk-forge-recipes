@@ -19,6 +19,7 @@ from typing import Any
 
 import pytest
 from repo_root import ROOT
+from sweep_sources import run_source
 
 from spark_sweep import policy, verdict
 from spark_sweep.lifecycle import ACTIVE, STATES, TERMINAL, WAITING, RecipeStatus
@@ -423,7 +424,7 @@ def test_every_lane_exit_writes_a_results_row(path: Path) -> None:
 
 
 def test_the_lane_exits_exist() -> None:
-    source = (ROOT / "spark_sweep/run.py").read_text()
+    source = run_source()
     names = {function.name for function in _functions(ast.parse(source))}
     assert LANE_EXITS | {"record_result"} <= names
 
@@ -555,13 +556,13 @@ def test_the_online_guard_finds_a_skip_from_the_online_count() -> None:
 
 
 def test_testable_is_decided_from_enrolled_sparks_only() -> None:
-    run = (ROOT / "spark_sweep/run.py").read_text()
+    run = run_source()
     assert online_reads(run, TOPOLOGY) == []
     assert online_reads((ROOT / "spark_sweep/cli.py").read_text()) == []
 
 
 def test_verdict_writers_do_not_select_identity_from_the_live_catalog() -> None:
-    tree = ast.parse((ROOT / "spark_sweep/run.py").read_text())
+    tree = ast.parse(run_source())
     writers = {"_record_pass", "_record_failure", "_facts", "_download_done"}
     checked = set()
     for function in _functions(tree):

@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_sources import run_source
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -86,7 +87,7 @@ def test_every_infrastructure_source_is_cleared_when_its_work_succeeds() -> None
 
 
 def test_review_recovery_follows_all_admission_and_adoption_checks() -> None:
-    tree = ast.parse((SWEEP / "run.py").read_text(encoding="utf-8"))
+    tree = ast.parse(run_source())
     apply = next(
         node
         for node in ast.walk(tree)
