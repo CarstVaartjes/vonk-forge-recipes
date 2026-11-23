@@ -8,9 +8,6 @@ from dataclasses import replace
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition
-from vonk_forge_contracts.model import GitHubReleaseSource
-
 from recipe_tooling.qualification.documents import model_display
 from recipe_tooling.upstream_drift.model import (
     ENTITY_DIRECTORIES,
@@ -21,6 +18,8 @@ from recipe_tooling.upstream_drift.model import (
     SourceLocation,
     Watch,
 )
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition
+from vonk_forge_contracts.model import GitHubReleaseSource
 
 
 def _repository_parts(path: str) -> tuple[str, str] | None:

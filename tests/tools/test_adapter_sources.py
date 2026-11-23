@@ -101,10 +101,12 @@ def test_unavailable_blob_fails_after_four_rounds_with_evidence(tmp_path: Path) 
     with pytest.raises(AdapterSourceError) as raised:
         materialize(tmp_path, cache=cache, opener=web, sleep=sleeps.append)
 
-    assert len(web.requests) == 8 and len(sleeps) == 3
+    assert len(web.requests) == 8
+    assert len(sleeps) == 3
     assert "unreachable" in str(raised.value)
     assert f"({len(BLOB) + 4} bytes)" in str(raised.value)
-    assert not (tmp_path / PATHS[0]).exists() and list(cache.iterdir()) == []
+    assert not (tmp_path / PATHS[0]).exists()
+    assert list(cache.iterdir()) == []
 
 
 def test_missing_blobs_are_fetched_four_at_a_time(tmp_path: Path) -> None:

@@ -7,8 +7,11 @@ import json
 import runpy
 import tarfile
 from pathlib import Path
+from typing import Any
 
 from repo_root import ROOT
+
+from vonk_forge_contracts import RecipeDefinition
 
 TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
 PLATFORM_OWNED_ENVIRONMENT = {
@@ -22,7 +25,7 @@ PLATFORM_OWNED_ENVIRONMENT = {
 
 
 def test_full_catalog_packages_are_self_contained_and_deterministic(
-    tmp_path: Path, built_catalog: tuple[dict, Path]
+    tmp_path: Path, built_catalog: tuple[dict[str, Any], Path]
 ) -> None:
     """A second build with other provenance reproduces every byte but the index's
     provenance: the build is deterministic, and the supplied commit and commit
@@ -55,7 +58,8 @@ def test_full_catalog_packages_are_self_contained_and_deterministic(
         )
         for path in ROOT.joinpath("recipes").glob("*.json")
     }
-    assert source_models and source_recipes
+    assert source_models
+    assert source_recipes
     assert len(source_models) == len(list(ROOT.joinpath("models").glob("*.json")))
     assert len(source_recipes) == len(list(ROOT.joinpath("recipes").glob("*.json")))
     for catalog in (first, second):
@@ -126,7 +130,7 @@ def test_source_bundle_ignores_generated_python_cache_files(tmp_path: Path) -> N
 
 
 def test_editing_one_recipe_changes_only_that_package(
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     catalog, package_dir = built_catalog
     rows = catalog["recipes"]
@@ -179,7 +183,7 @@ def test_platform_owned_cache_variables_are_not_recipe_inputs() -> None:
 
 
 def test_model_territorial_restrictions_preserve_all_published_records(
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     expected = {
         "hunyuanocr-1-5-47644ecc": (
@@ -244,7 +248,7 @@ def test_model_territorial_restrictions_preserve_all_published_records(
 
 
 def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     """Model weights and image layers remain separately cached artifacts."""
 
@@ -285,7 +289,7 @@ def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(
 
 
 def test_ds4_multistage_package_manifests_both_digest_pinned_base_images(
-    built_catalog: tuple[dict, Path],
+    built_catalog: tuple[dict[str, Any], Path],
 ) -> None:
     catalog, package_dir = built_catalog
     row = next(
@@ -314,7 +318,6 @@ def test_ds4_multistage_package_manifests_both_digest_pinned_base_images(
 def test_adapter_only_change_is_published_as_new_source_identity(monkeypatch):
     # Guard the actual producer boundary: source repairs must be visible before
     # hydration even when recipe JSON and the set of base images stay identical.
-    from vonk_forge_contracts import RecipeDefinition
 
     namespace = TOOL["recipe_package"].__globals__
     document = json.loads(
@@ -327,12 +330,7 @@ def test_adapter_only_change_is_published_as_new_source_identity(monkeypatch):
         for check in RecipeDefinition.model_validate(document).validation.serving.checks
         for name in check.fixture_paths()
     ]
-    closure = original(
-        document,
-        ROOT / "recipes/skintokens-pytorch-single.json",
-        TOOL["_catalog_entity_documents"](),
-        fixtures,
-    )
+    closure = original(document, TOOL["_catalog_entity_documents"](), fixtures)
     adapter = document["execution"]["build"]["context"]["path"] + "/run.py"
     assert adapter in dict(closure)
     changed = [

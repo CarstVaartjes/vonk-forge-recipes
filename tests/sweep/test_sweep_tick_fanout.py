@@ -73,9 +73,8 @@ def test_a_tick_reads_each_observation_once_and_errors_reach_their_consumers(
     # The unreadable owner profile reached guard.check as an unreadable profile.
     assert "owner-profile-2" in sweep.state.data["infra"]
     assert seen.count(("profile", "progress")) >= 3
-    assert (
-        not sweep._reads and not sweep.guard.reads
-    )  # nothing leaks into the next pass
+    assert not sweep._reads
+    assert not sweep.guard.reads
     assert "tick" not in sweep.state.data["infra"]  # the pass ran to its end
 
 
@@ -172,7 +171,8 @@ def test_a_lane_whose_read_fails_leaves_the_others_observed(tmp_path: Path) -> N
     assert not sweep.poll_application()
     assert sweep.state.data["apps"]["b"]["state"] == "succeeded"
     assert "b" not in sweep.state.data["loads"]
-    assert "a" in sweep.state.data["loads"] and sweep.unobserved_loads == {"a"}
+    assert "a" in sweep.state.data["loads"]
+    assert sweep.unobserved_loads == {"a"}
 
 
 def test_the_download_progress_reads_of_a_poll_overlap(tmp_path: Path) -> None:

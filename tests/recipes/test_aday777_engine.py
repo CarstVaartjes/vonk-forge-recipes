@@ -7,10 +7,10 @@ from typing import Any
 
 import pytest
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 from recipe_tooling.qualification.memory_need.args import argument_value
 from recipe_tooling.qualification.memory_need.evidence import hardware_proven
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 SLUG = "qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single"
 BACKEND = (
@@ -62,12 +62,12 @@ def test_aday777_avoids_failed_cuda_paths(monkeypatch: pytest.MonkeyPatch) -> No
     )
     namespace["self"] = state
     expression = compile(ast.Expression(body=routing), str(BACKEND), "eval")
-    assert eval(expression, namespace) is False
+    assert eval(expression, namespace) is False  # noqa: S307 - evaluates an expression taken from the repository's own adapter source
     # Inject the old settings: prove the same engine expression selects the
     # custom QK CUDA kernel with this checkpoint's geometry.
     monkeypatch.setenv("VLLM_NVFP4_A4Q", "1")
     state.use_fa2_nvfp4_kv = True
-    assert eval(expression, namespace) is True
+    assert eval(expression, namespace) is True  # noqa: S307 - evaluates an expression taken from the repository's own adapter source
 
 
 @pytest.mark.live_evidence

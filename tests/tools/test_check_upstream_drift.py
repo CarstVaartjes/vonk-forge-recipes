@@ -16,6 +16,7 @@ from unittest import mock
 from urllib.error import HTTPError, URLError
 from urllib.request import Request
 
+import pytest
 from repo_root import ROOT
 
 from recipe_tooling.upstream_drift import embedded as drift_embedded
@@ -57,25 +58,25 @@ class SourceParsingTests(unittest.TestCase):
         ):
             with self.subTest(source=source):
                 location = drift_inventory.parse_source(source)
-                self.assertEqual(location.provider, "github")
-                self.assertEqual(location.repository, "example/project")
-        self.assertEqual(
+                assert location.provider == "github"
+                assert location.repository == "example/project"
+        assert (
             drift_inventory.parse_source(
                 f"https://github.com/example/project/tree/{PINNED}"
-            ).embedded_revision,
-            PINNED,
+            ).embedded_revision
+            == PINNED
         )
-        self.assertEqual(
+        assert (
             drift_inventory.parse_source(
                 f"https://github.com/example/project/blob/{PINNED}/README.md"
-            ).embedded_revision,
-            PINNED,
+            ).embedded_revision
+            == PINNED
         )
-        self.assertEqual(
+        assert (
             drift_inventory.parse_source(
                 f"https://github.com/example/project/tree/{PINNED}/runs/launch"
-            ).embedded_revision,
-            PINNED,
+            ).embedded_revision
+            == PINNED
         )
 
     def test_normalizes_supported_hugging_face_forms(self) -> None:
@@ -87,8 +88,8 @@ class SourceParsingTests(unittest.TestCase):
         ):
             with self.subTest(source=source):
                 location = drift_inventory.parse_source(source)
-                self.assertEqual(location.provider, "huggingface")
-                self.assertEqual(location.repository, "example/project")
+                assert location.provider == "huggingface"
+                assert location.repository == "example/project"
 
     def test_rejects_credentials_and_non_https_sources(self) -> None:
         for source in (
@@ -98,7 +99,7 @@ class SourceParsingTests(unittest.TestCase):
             "https://github.com/example/project/tree/main/runs/launch",
             "https://huggingface.co/example/project/blob/main/README.md",
         ):
-            with self.assertRaises(drift_model.DriftInputError):
+            with pytest.raises(drift_model.DriftInputError):
                 drift_inventory.parse_source(source)
 
 
@@ -120,13 +121,13 @@ class DiscoveryTests(unittest.TestCase):
                 )
                 if source:
                     expected.add(f"{kind}/{identity['publisher']}/{identity['slug']}")
-        self.assertEqual({watch.entity for watch in watches}, expected)
-        self.assertEqual(len(watches), len(expected))
-        self.assertTrue(all(watch.policy != "manual" for watch in watches))
+        assert {watch.entity for watch in watches} == expected
+        assert len(watches) == len(expected)
+        assert all(watch.policy != "manual" for watch in watches)
 
     def test_rejects_watch_policy_for_an_absent_document(self) -> None:
         defaults, _ = drift_inventory.load_manifest(ROOT / "policy/upstream-watch.json")
-        with self.assertRaisesRegex(drift_model.DriftInputError, "unknown entity"):
+        with pytest.raises(drift_model.DriftInputError, match="unknown entity"):
             drift_inventory.discover_watches(
                 ROOT, defaults, {"recipe/example/absent": {"policy": "default-branch"}}
             )
@@ -170,15 +171,12 @@ class DiscoveryTests(unittest.TestCase):
 
             watches = drift_inventory.discover_watches(root, defaults, overrides)
 
-            self.assertEqual(
-                [watch.entity for watch in watches],
-                [
-                    "model/example/model",
-                    "recipe/example/recipe",
-                ],
-            )
-            self.assertIsNone(watches[0].pinned_version)
-            self.assertEqual(watches[1].ref, "stable")
+            assert [watch.entity for watch in watches] == [
+                "model/example/model",
+                "recipe/example/recipe",
+            ]
+            assert watches[0].pinned_version is None
+            assert watches[1].ref == "stable"
 
     def test_github_lfs_model_is_a_git_commit_watch_on_its_repository(self) -> None:
         example = (
@@ -195,12 +193,12 @@ class DiscoveryTests(unittest.TestCase):
 
             (watch,) = drift_inventory.discover_watches(root, defaults, {})
 
-        self.assertEqual(watch.provider, "github")
-        self.assertEqual(
-            watch.repository, source["repository"].removeprefix("https://github.com/")
+        assert watch.provider == "github"
+        assert watch.repository == source["repository"].removeprefix(
+            "https://github.com/"
         )
-        self.assertEqual(watch.pinned_revision, source["revision"])
-        self.assertIsNone(watch.release_source)
+        assert watch.pinned_revision == source["revision"]
+        assert watch.release_source is None
 
     def test_rejects_mismatched_embedded_revision(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -216,7 +214,7 @@ class DiscoveryTests(unittest.TestCase):
                 },
             }
             (root / "models/model.json").write_text(json.dumps(document))
-            with self.assertRaises(drift_model.DriftInputError):
+            with pytest.raises(drift_model.DriftInputError):
                 drift_inventory.discover_watches(
                     root, {"huggingface": "default-branch"}, {}
                 )
@@ -261,7 +259,7 @@ class DiscoveryTests(unittest.TestCase):
                 for item in first["recipes"][0]["inputs"]  # pyright: ignore[reportIndexIssue]
                 if item["kind"] == "docker-image"
             )
-            self.assertEqual(first_input["status"], "mutable")
+            assert first_input["status"] == "mutable"
 
             dockerfile.write_text(
                 "ARG BASE_IMAGE=registry.example/runtime@sha256:"
@@ -274,8 +272,8 @@ class DiscoveryTests(unittest.TestCase):
                 for item in second["recipes"][0]["inputs"]  # pyright: ignore[reportIndexIssue]
                 if item["kind"] == "docker-image"
             )
-            self.assertEqual(second_input["status"], "pin_only")
-            self.assertIn("no configured moving channel", second_input["reason"])
+            assert second_input["status"] == "pin_only"
+            assert "no configured moving channel" in second_input["reason"]
 
 
 class ObservationTests(unittest.TestCase):
@@ -316,9 +314,9 @@ class ObservationTests(unittest.TestCase):
             client,  # pyright: ignore[reportArgumentType]
         )
 
-        self.assertEqual(observation.status, "advanced")
-        self.assertEqual(observation.observed_version, "v2.0.0")
-        self.assertEqual(observation.observed_revision, OBSERVED)
+        assert observation.status == "advanced"
+        assert observation.observed_version == "v2.0.0"
+        assert observation.observed_revision == OBSERVED
 
     def test_hugging_face_default_branch_reports_current(self) -> None:
         url = "https://huggingface.co/api/models/example/runtime"
@@ -331,9 +329,9 @@ class ObservationTests(unittest.TestCase):
             client,  # pyright: ignore[reportArgumentType]
         )
 
-        self.assertEqual(observation.status, "current")
-        self.assertEqual(observation.observed_revision, PINNED)
-        self.assertEqual(client.requests, [(url, "huggingface")])
+        assert observation.status == "current"
+        assert observation.observed_revision == PINNED
+        assert client.requests == [(url, "huggingface")]
 
     def test_missing_pinned_revision_is_distinct_from_drift(self) -> None:
         repository_url = "https://api.github.com/repos/example/runtime"
@@ -356,8 +354,9 @@ class ObservationTests(unittest.TestCase):
             client,  # pyright: ignore[reportArgumentType]
         )
 
-        self.assertEqual(observation.status, "missing")
-        self.assertIn("no longer resolvable", observation.detail)  # pyright: ignore[reportArgumentType]
+        assert observation.status == "missing"
+        assert observation.detail is not None
+        assert "no longer resolvable" in observation.detail
 
     def test_only_an_anonymous_hugging_face_401_means_missing(self) -> None:
         for provider, token, expected in (
@@ -380,7 +379,7 @@ class ObservationTests(unittest.TestCase):
                 observation = drift_observe.observe(
                     self.watch(provider=provider, policy="default-branch"), client
                 )
-                self.assertEqual(observation.status, expected)
+                assert observation.status == expected
 
 
 class RateLimitTests(unittest.TestCase):
@@ -434,8 +433,8 @@ class RateLimitTests(unittest.TestCase):
 
     def test_recovers_after_honouring_retry_after(self) -> None:
         opener = self.Responses([429, 503, 200], retry_after="2")
-        self.assertEqual(self.get(opener), {"sha": "x"})
-        self.assertEqual(self.naps, [2.0, 2.0])
+        assert self.get(opener) == {"sha": "x"}
+        assert self.naps == [2.0, 2.0]
 
     def test_retry_after_may_be_an_http_date(self) -> None:
         epoch = datetime(2026, 11, 22, 12, 0, tzinfo=UTC)
@@ -445,22 +444,22 @@ class RateLimitTests(unittest.TestCase):
             lambda r: r,
             opener=self.Responses([429, 200], retry_after=when),
             sleep=self.naps.append,
-            clock=lambda: epoch.timestamp(),
+            clock=epoch.timestamp,
         )
-        self.assertEqual(self.naps, [10.0])
+        assert self.naps == [10.0]
 
     def test_persistent_limit_is_not_checked_and_not_an_error(self) -> None:
         opener = self.Responses([429])
         observation = self.observe(opener)
-        self.assertEqual(observation.status, "unchecked")
-        self.assertEqual(opener.calls, len(self.naps) + 1)
+        assert observation.status == "unchecked"
+        assert opener.calls == len(self.naps) + 1
         counts = drift_observe.report([observation], "now")["counts"]
-        self.assertEqual((counts["unchecked"], counts["error"]), (1, 0))  # pyright: ignore[reportIndexIssue]
+        assert (counts["unchecked"], counts["error"]) == (1, 0)  # pyright: ignore[reportIndexIssue]
 
     def test_our_own_faults_stay_errors(self) -> None:
         for codes in ([500], ["net"]):
             with self.subTest(codes=codes):
-                self.assertEqual(self.observe(self.Responses(codes)).status, "error")
+                assert self.observe(self.Responses(codes)).status == "error"
 
     def test_a_long_retry_after_marks_the_host_busy_without_waiting(self) -> None:
         now = [100.0]
@@ -476,19 +475,19 @@ class RateLimitTests(unittest.TestCase):
                 clock=lambda: now[0],
             )
 
-        with self.assertRaises(UpstreamBusy):
+        with pytest.raises(UpstreamBusy):
             call()
-        with self.assertRaises(UpstreamBusy):
+        with pytest.raises(UpstreamBusy):
             call()  # remembered: the provider is not asked again
-        self.assertEqual((opener.calls, self.naps), (1, []))
+        assert (opener.calls, self.naps) == (1, [])
         now[0] += 3601
-        with self.assertRaises(UpstreamBusy):
+        with pytest.raises(UpstreamBusy):
             call()  # the memory expired: asked again
-        self.assertEqual(opener.calls, 2)
+        assert opener.calls == 2
 
     def test_an_anonymous_limit_does_not_block_an_authenticated_read(self) -> None:
         url = "https://huggingface.co/api/x"
-        with self.assertRaises(UpstreamBusy):
+        with pytest.raises(UpstreamBusy):
             fetch(
                 Request(url),
                 lambda r: r,
@@ -498,7 +497,7 @@ class RateLimitTests(unittest.TestCase):
         authenticated = Request(url, headers={"Authorization": "Bearer t"})
         opener = self.Responses([200])
         fetch(authenticated, lambda r: r, opener=opener, sleep=self.naps.append)
-        self.assertEqual(opener.calls, 1)
+        assert opener.calls == 1
 
 
 class ReleaseAssetWatchTests(unittest.TestCase):
@@ -514,9 +513,9 @@ class ReleaseAssetWatchTests(unittest.TestCase):
 
     def test_release_source_keeps_release_and_asset_identity(self) -> None:
         watch = self.watch()
-        self.assertEqual(watch.pinned_revision, "264676230")
-        self.assertEqual(watch.policy, "latest-release")
-        self.assertEqual(watch.release_source.assets[0].asset_id, 320107386)  # pyright: ignore[reportOptionalMemberAccess]
+        assert watch.pinned_revision == "264676230"
+        assert watch.policy == "latest-release"
+        assert watch.release_source.assets[0].asset_id == 320107386  # pyright: ignore[reportOptionalMemberAccess]
 
     def test_release_observation_uses_ids_without_git_commit_lookups(self) -> None:
         watch = self.watch()
@@ -529,17 +528,17 @@ class ReleaseAssetWatchTests(unittest.TestCase):
             "published_at": "2025-11-24T12:00:00Z",
         }
         client = FakeClient({f"{base}/264676230": pinned, f"{base}/latest": latest})
-        self.assertEqual(drift_observe.observe(watch, client).status, "current")  # pyright: ignore[reportArgumentType]
-        self.assertEqual(len(client.requests), 2)
+        assert drift_observe.observe(watch, client).status == "current"  # pyright: ignore[reportArgumentType]
+        assert len(client.requests) == 2
         client.responses[f"{base}/latest"] = {**latest, "id": 264676231}
-        self.assertEqual(drift_observe.observe(watch, client).status, "advanced")  # pyright: ignore[reportArgumentType]
+        assert drift_observe.observe(watch, client).status == "advanced"  # pyright: ignore[reportArgumentType]
         # A release tag still existing cannot hide a deleted/replaced asset.
         client.responses[f"{base}/264676230"] = {**pinned, "assets": []}
-        self.assertEqual(drift_observe.observe(watch, client).status, "missing")  # pyright: ignore[reportArgumentType]
+        assert drift_observe.observe(watch, client).status == "missing"  # pyright: ignore[reportArgumentType]
         client.responses[f"{base}/264676230"] = drift_model.RemoteNotFound(
             "deleted release"
         )
-        self.assertEqual(drift_observe.observe(watch, client).status, "missing")  # pyright: ignore[reportArgumentType]
+        assert drift_observe.observe(watch, client).status == "missing"  # pyright: ignore[reportArgumentType]
 
 
 MIA_BANNER = """# 🚨 NEW, BETTER RECIPE AVAILABLE — EVERYONE SHOULD USE IT 🚨
@@ -635,21 +634,21 @@ class CreatorSignalTests(unittest.TestCase):
         )
         live = drift_inventory.discover_watches(ROOT, defaults, overrides)
         recipes = [w for w in live if w.entity.startswith("recipe/")]
-        self.assertTrue(recipes)
+        assert recipes
         for watch in recipes:
             slug = watch.entity.split("/")[2]
-            self.assertTrue((ROOT / "recipes" / f"{slug}.json").is_file(), slug)
-            self.assertTrue(watch.models, slug)
-        self.assertTrue(any(w.family for w in live if w.entity.startswith("model/")))
+            assert (ROOT / "recipes" / f"{slug}.json").is_file(), slug
+            assert watch.models, slug
+        assert any(w.family for w in live if w.entity.startswith("model/"))
 
     def test_mia_banner_names_the_successor(self) -> None:
         notice = drift_signals.find_supersession(MIA_BANNER, MIA_OLD, PINNED)
         assert notice is not None
-        self.assertEqual(notice.kind, "supersession")
-        self.assertEqual(notice.label, "upstream-superseded")
-        self.assertEqual(notice.linked_repo, MIA_NEW)
-        self.assertEqual(notice.source_commit, PINNED)
-        self.assertEqual(notice.dedupe_key, f"supersession:{MIA_OLD}:{MIA_NEW}".lower())
+        assert notice.kind == "supersession"
+        assert notice.label == "upstream-superseded"
+        assert notice.linked_repo == MIA_NEW
+        assert notice.source_commit == PINNED
+        assert notice.dedupe_key == f"supersession:{MIA_OLD}:{MIA_NEW}".lower()
 
     def test_ordinary_readmes_and_non_repo_links_are_not_notices(self) -> None:
         for readme in (
@@ -663,9 +662,7 @@ class CreatorSignalTests(unittest.TestCase):
             "> Deprecated, see https://github.com/a/b/issues/3 and https://github.com/orgs/x/y",
         ):
             with self.subTest(readme=readme):
-                self.assertIsNone(
-                    drift_signals.find_supersession(readme, "a/c", PINNED)
-                )
+                assert drift_signals.find_supersession(readme, "a/c", PINNED) is None
 
     def test_new_repos_match_whole_family_slugs_inside_the_window(self) -> None:
         for owner, name, created, description in NOISE_LISTINGS:
@@ -673,11 +670,11 @@ class CreatorSignalTests(unittest.TestCase):
                 listing = [
                     {"name": name, "created_at": created, "description": description}
                 ]
-                self.assertEqual(
+                assert (
                     drift_signals.match_new_repos(
                         owner, listing, NOW, self.families, set()
-                    ),
-                    [],
+                    )
+                    == []
                 )
         listing = [
             MIA_LISTING,
@@ -692,11 +689,9 @@ class CreatorSignalTests(unittest.TestCase):
         found = drift_signals.match_new_repos(
             "MiaAI-Lab", listing, NOW, self.families, {"miaai-lab/glm-pinned"}
         )
-        self.assertEqual(
-            [(f.linked_repo, f.matched_family) for f in found], [(MIA_NEW, "glm")]
-        )
-        self.assertEqual(found[0].label, "upstream-new-repo")
-        with self.assertRaises(TypeError):
+        assert [(f.linked_repo, f.matched_family) for f in found] == [(MIA_NEW, "glm")]
+        assert found[0].label == "upstream-new-repo"
+        with pytest.raises(TypeError):
             drift_signals.match_new_repos(
                 "x", {"message": "rate limited"}, NOW, set(), set()
             )
@@ -713,18 +708,18 @@ class CreatorSignalTests(unittest.TestCase):
                 _listing_url("o", 3): [],
             }
         )
-        self.assertEqual(len(drift_signals._recent_repos(client, "o", NOW)[0]), 101)  # pyright: ignore[reportArgumentType]
-        self.assertEqual(
-            [u for u, _ in client.requests],
-            [_listing_url("o", 1), _listing_url("o", 2)],
-        )
+        assert len(drift_signals._recent_repos(client, "o", NOW)[0]) == 101  # pyright: ignore[reportArgumentType]
+        assert [u for u, _ in client.requests] == [
+            _listing_url("o", 1),
+            _listing_url("o", 2),
+        ]
 
     def test_paging_cap_is_a_signal_error(self) -> None:
         full = [
             {"name": f"r{i}", "created_at": "2026-11-05T00:00:00Z"} for i in range(100)
         ]
         client = FakeClient({_listing_url("o", n): full for n in range(1, 6)})
-        self.assertTrue(drift_signals._recent_repos(client, "o", NOW)[1])  # pyright: ignore[reportArgumentType]
+        assert drift_signals._recent_repos(client, "o", NOW)[1]  # pyright: ignore[reportArgumentType]
         root = self._scan_root(
             json.dumps(
                 {
@@ -741,17 +736,17 @@ class CreatorSignalTests(unittest.TestCase):
             )
         )
         signals = drift_signals.scan_creator_signals(root, [], client, NOW)  # pyright: ignore[reportArgumentType]
-        self.assertEqual([e.subject for e in signals.signal_errors], ["o"])
-        self.assertIn("5 pages", signals.signal_errors[0].detail)
+        assert [e.subject for e in signals.signal_errors] == ["o"]
+        assert "5 pages" in signals.signal_errors[0].detail
 
     def test_label_is_derived_from_kind(self) -> None:
         finding = drift_signals._finding(
             "new-repo", "o", "o/r", source_repo=None, source_commit=None,
             linked_commit=None, recipe_slugs=[], matched_family="glm", detail="d",
         )  # fmt: skip
-        self.assertEqual(finding.label, "upstream-new-repo")
+        assert finding.label == "upstream-new-repo"
         record = {**finding.model_dump(), "label": "upstream-superseded"}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             drift_model.CreatorFinding.model_validate(record)
 
     def _scan_root(self, creators: str) -> Path:
@@ -794,16 +789,15 @@ class CreatorSignalTests(unittest.TestCase):
         )
         signals = drift_signals.scan_creator_signals(root, self.watches, client, NOW)  # pyright: ignore[reportArgumentType]
         by_kind = {f.kind: f for f in signals.findings}
-        self.assertEqual(set(by_kind), {"supersession", "new-repo"})
+        assert set(by_kind) == {"supersession", "new-repo"}
         old, new = by_kind["supersession"], by_kind["new-repo"]
-        self.assertEqual((old.source_commit, old.linked_commit), (OBSERVED, NEWHEAD))
-        self.assertEqual(new.linked_commit, NEWHEAD)
-        self.assertEqual(old.recipe_slugs, ["glm-old-a", "glm-old-b"])
-        self.assertEqual(new.recipe_slugs, ["glm-old-a", "glm-old-b", "glm-other"])
-        self.assertEqual(
-            drift_observe.report([], "t", None, signals)["creator_signals"],
-            signals.model_dump(mode="json"),
-        )
+        assert (old.source_commit, old.linked_commit) == (OBSERVED, NEWHEAD)
+        assert new.linked_commit == NEWHEAD
+        assert old.recipe_slugs == ["glm-old-a", "glm-old-b"]
+        assert new.recipe_slugs == ["glm-old-a", "glm-old-b", "glm-other"]
+        assert drift_observe.report([], "t", None, signals)[
+            "creator_signals"
+        ] == signals.model_dump(mode="json")
 
     def test_bad_creators_file_is_a_signal_error_not_a_lost_scan(self) -> None:
         root = self._scan_root(
@@ -820,17 +814,15 @@ class CreatorSignalTests(unittest.TestCase):
             }
         )
         signals = drift_signals.scan_creator_signals(root, self.watches, client, NOW)  # pyright: ignore[reportArgumentType]
-        self.assertEqual([f.kind for f in signals.findings], ["supersession"])
-        self.assertIn(
-            "policy/creators.json", [e.subject for e in signals.signal_errors]
-        )
+        assert [f.kind for f in signals.findings] == ["supersession"]
+        assert "policy/creators.json" in [e.subject for e in signals.signal_errors]
 
     def test_detail_cannot_close_the_issue_fence(self) -> None:
         finding = drift_signals._finding(
             "supersession", "a/b", "a/c", source_repo="a/b", source_commit=PINNED,
             linked_commit=None, recipe_slugs=[], matched_family=None, detail="x ``` y",
         )  # fmt: skip
-        self.assertNotIn("```", finding.detail)
+        assert "```" not in finding.detail
 
 
 FAKE_GH = """#!{python}
@@ -912,27 +904,25 @@ class IssueWritingTests(unittest.TestCase):
         ):
             failures = drift_issues.file_issues(signals)
         state = json.loads(state_path.read_text())
-        self.assertEqual(failures, 1)
+        assert failures == 1
         by_title = {i["title"]: i for i in state["issues"]}
         created = by_title[f"[upstream-superseded] {fresh.dedupe_key}"]
-        self.assertIn(f"<!-- dedupe-key: {fresh.dedupe_key} -->", created["body"])
-        self.assertEqual(drift_issues.parse_issue_body(created["body"]), fresh)
-        self.assertEqual(
-            by_title[f"[upstream-superseded] {open_one.dedupe_key}"]["state"], "OPEN"
+        assert f"<!-- dedupe-key: {fresh.dedupe_key} -->" in created["body"]
+        assert drift_issues.parse_issue_body(created["body"]) == fresh
+        assert (
+            by_title[f"[upstream-superseded] {open_one.dedupe_key}"]["state"] == "OPEN"
         )
-        self.assertIn(
-            "dedupe-key",
-            by_title[f"[upstream-superseded] {open_one.dedupe_key}"]["body"],
+        assert (
+            "dedupe-key"
+            in by_title[f"[upstream-superseded] {open_one.dedupe_key}"]["body"]
         )
-        self.assertEqual(
-            by_title[f"[upstream-superseded] {closed.dedupe_key}"]["state"], "CLOSED"
+        assert (
+            by_title[f"[upstream-superseded] {closed.dedupe_key}"]["state"] == "CLOSED"
         )
-        self.assertNotIn(f"[upstream-new-repo] {refused.dedupe_key}", by_title)
-        self.assertNotIn(
-            "close", [call[1] for call in state["log"] if call[0] == "issue"]
-        )
-        self.assertEqual(
-            sum(1 for call in state["log"] if call[:2] == ["issue", "create"]), 2
+        assert f"[upstream-new-repo] {refused.dedupe_key}" not in by_title
+        assert "close" not in [call[1] for call in state["log"] if call[0] == "issue"]
+        assert (
+            sum(1 for call in state["log"] if call[:2] == ["issue", "create"]) == 2
         )  # the refused write did not stop the fresh one
 
 

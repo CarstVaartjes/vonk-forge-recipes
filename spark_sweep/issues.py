@@ -57,6 +57,7 @@ def file_issues(
     recipes: dict[str, dict[str, Any]],
     repo: str,
     gh: Gh = gh_runner,
+    *,
     dry_run: bool = False,
 ) -> list[dict[str, str]]:
     """Create the missing issues; record each URL on its entry so a rerun never duplicates."""

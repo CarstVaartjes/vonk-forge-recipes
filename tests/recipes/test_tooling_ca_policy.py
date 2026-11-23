@@ -66,7 +66,7 @@ def test_uv_has_one_exact_owner() -> None:
 
 
 @pytest.mark.parametrize(
-    "name,text",
+    ("name", "text"),
     [
         (
             ".github/workflows/test.yml",
@@ -106,7 +106,8 @@ def test_ci_trusts_the_pinned_certifi_bundle_not_a_per_job_apt_refresh() -> None
     assert list((ROOT / ".github").glob("requirements-*.txt"))
     for path in (ROOT / ".github/workflows").glob("*.yml"):
         text = path.read_text()
-        assert "UV_CACHE_DIR" not in text and "UV_TOOL_DIR" not in text
+        assert "UV_CACHE_DIR" not in text
+        assert "UV_TOOL_DIR" not in text
     assert "-r .github/requirements-tooling.txt" in action
     for variable in ("SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE"):
         assert f'echo "{variable}=$bundle" >> "$GITHUB_ENV"' in action

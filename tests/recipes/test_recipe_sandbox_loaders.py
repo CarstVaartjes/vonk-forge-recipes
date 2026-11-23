@@ -14,6 +14,9 @@ from pathlib import Path
 import pytest
 from catalog_documents import catalog_models
 from repo_root import ROOT
+
+from recipe_tooling.qualification.memory_need.evidence import load_inputs
+from recipe_tooling.qualification.memory_need.geometry import MemoryInputs
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import (
     RecipeOption,
@@ -21,9 +24,6 @@ from vonk_forge_contracts.recipe import (
     RecipeRuntimeArgument,
     RecipeRuntimeEnvironment,
 )
-
-from recipe_tooling.qualification.memory_need.evidence import load_inputs
-from recipe_tooling.qualification.memory_need.geometry import MemoryInputs
 
 QWEN = "qwen3-8-flash-next-nvfp4-eugr-vllm-single"
 B12X_IMAGE = "eugr/spark-vllm-b12x"

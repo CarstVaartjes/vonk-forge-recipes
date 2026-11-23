@@ -16,6 +16,7 @@ from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy, verdict
+from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.policy import TimeoutPolicy
 from spark_sweep.sweep_contract import SweepWaitReason
 from spark_sweep.verdict import Disposition, Progress
@@ -87,7 +88,8 @@ def test_an_access_wait_without_a_page_keeps_the_controllers_words() -> None:
     ]
     failure["detail"] = "the token lacks access"
     signal = verdict.download_signal(document)
-    assert signal.wait is not None and signal.wait.detail == "the token lacks access"
+    assert signal.wait is not None
+    assert signal.wait.detail == "the token lacks access"
 
 
 # -- progress_verdict on Controller documents --------------------------------------------
@@ -308,7 +310,8 @@ def test_a_busy_smoke_spends_no_attempt(tmp_path: Path, gateway: Gateway) -> Non
         for r in sweep.log.entries()
         if r["step"] == "smoke" and r["status"] == "waiting"
     ]
-    assert waits and all(r["failure_class"] == verdict.SMOKE_BUSY for r in waits)
+    assert waits
+    assert all(r["failure_class"] == verdict.SMOKE_BUSY for r in waits)
     assert waits[0]["evidence"]["http_status"] == 503
 
 
@@ -365,13 +368,12 @@ def test_every_requeue_leaves_a_results_row(tmp_path: Path, gateway: Gateway) ->
     requeues = [r for r in sweep.log.entries() if r["step"] == "requeue"]
     assert requeues
     for row in requeues:
-        assert row["reason"] and row["status"] == "requeued"
+        assert row["reason"]
+        assert row["status"] == "requeued"
         assert row["controller_document"]["id"]  # the application it was last seen in
 
 
 def test_profile_retry_wait_has_one_current_location() -> None:
-    from spark_sweep.lifecycle import LifecycleState
-    from spark_sweep.sweep_contract import SweepWaitReason
 
     due = "2026-10-21T07:00:00Z"
     signal = verdict.application_signal(

@@ -26,6 +26,7 @@ Kept outside image contexts: qualification changes must not rebuild images.
 """
 
 import math
+from typing import Any
 
 
 def generate_crop_size_list(base_size=256, patch_size=16, max_ratio=4.0):
@@ -43,7 +44,7 @@ def generate_crop_size_list(base_size=256, patch_size=16, max_ratio=4.0):
     return crop_size_list
 
 
-def get_closest_ratio(height: float, width: float, ratios, buckets: list):
+def get_closest_ratio(height: float, width: float, ratios, buckets: list[Any]):
     """
     Get the closest ratio in the buckets.
 

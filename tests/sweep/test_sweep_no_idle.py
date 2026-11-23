@@ -8,6 +8,7 @@ lane was scheduled again for over an hour.
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
@@ -19,6 +20,7 @@ from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy
 from spark_sweep.catalog import fetch_fleet
+from spark_sweep.vonkctl import VonkctlError, VonkctlTimeout
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -55,7 +57,8 @@ def test_a_load_whose_lanes_ended_does_not_block_scheduling(
     # The Controller has no such application (by id or by request key): it is forgotten,
     # there is nothing to cancel.
     reads = [c for _, c in fleet.calls if "stale-request" in c]
-    assert reads and not [c for c in reads if c[:2] == ("profile", "cancel")]
+    assert reads
+    assert not [c for c in reads if c[:2] == ("profile", "cancel")]
 
 
 def test_a_load_with_a_live_lane_is_kept(tmp_path: Path, gateway: Gateway) -> None:
@@ -131,7 +134,8 @@ def test_an_idle_lane_names_the_cleanup_that_keeps_it_from_placement(
     sweep.check_idle(now + sweep.cfg.idle_alert_seconds + 1)
     (alert,) = sweep.state.data["alerts"]
     assert "1 idle lane(s)" in alert
-    assert "c1eanup0" in alert and "owners-model" in alert
+    assert "c1eanup0" in alert
+    assert "owners-model" in alert
 
 
 def test_incremental_profile_fake_preserves_and_waits_for_exact_running_child(
@@ -256,7 +260,6 @@ def test_cached_lane_starts_before_blocked_preparation_maintenance(
     monkeypatch: pytest.MonkeyPatch,
     previous_lane: str,
 ) -> None:
-    from spark_sweep.vonkctl import VonkctlError
 
     recipes = [
         FakeRecipe("slow", ("m1",), local="cached", load_seconds=1200),
@@ -302,7 +305,8 @@ def test_cached_lane_starts_before_blocked_preparation_maintenance(
 
     monkeypatch.setattr(sweep.prefetcher, "tick", blocked_maintenance)
     sweep.tick()
-    assert observed and recipes[1].key in observed[0]
+    assert observed
+    assert recipes[1].key in observed[0]
     slot = sweep.state.slots[recipes[1].key]
     request = slot["request_key"]
     load = sweep.state.data["loads"][request]
@@ -324,9 +328,6 @@ def test_cached_lane_starts_before_blocked_preparation_maintenance(
 def test_cached_lane_starts_before_blocked_cleanup_and_reused_alias_is_retained(
     tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from collections.abc import Sequence
-
-    from spark_sweep.vonkctl import VonkctlTimeout
 
     recipe = FakeRecipe("ready", local="cached", load_seconds=60)
     sweep, fleet, clock = make_sweep(
@@ -352,7 +353,6 @@ def test_cached_lane_starts_before_blocked_cleanup_and_reused_alias_is_retained(
                 observed.append(command[2])
                 if command[2] == "old-unused":
                     # The receipt and released occupancy are on disk before this wait.
-                    import json
 
                     saved = json.loads(sweep.state.path.read_text())
                     slot = saved["slots"][recipe.key]

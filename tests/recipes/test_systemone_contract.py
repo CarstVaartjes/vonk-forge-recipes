@@ -8,6 +8,7 @@ import json
 import pytest
 from pydantic import ValidationError
 from repo_root import ROOT
+
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.systemone import (
     SystemOneRequest,

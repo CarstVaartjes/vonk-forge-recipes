@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import json
+import re
 import unittest
 from pathlib import Path
 from typing import Any
 
+from documents import json_document
 from repo_root import ROOT
+
 from vonk_forge_contracts import document_sha256
 
 SUPER_RECIPE = ROOT / "recipes/nemotron-3-super-120b-a12b-vllm-single.json"
@@ -35,54 +38,49 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
             recipe = read(recipe_path)
             with self.subTest(recipe=recipe_path.name):
                 model = model_for(recipe)
-                self.assertRegex(model["source"]["revision"], r"^[a-f0-9]{40,64}$")
+                assert re.search(r"^[a-f0-9]{40,64}$", model["source"]["revision"])
 
     def test_qwen_flash_snapshot_and_job_contract(self) -> None:
         recipe = read(FLASH_RECIPE)
         model = model_for(recipe)
-        self.assertEqual(
-            model["source"]["revision"], "eafac15f6140e6dd9c6031217d658ac10bfb604b"
-        )
-        self.assertEqual(len(model["files"]), 24)
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
-        self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
-        self.assertEqual(
-            {
-                item["name"]: item.get("value")
-                for item in recipe["runtime"]["arguments"]
-            },
-            {
-                "output-mime": "image/png",
-                "pipeline": "text-to-image",
-                "seed": 42,
-                "num-inference-steps": 4,
-                "true-cfg-scale": "1",
-                "width": 1024,
-                "height": 1024,
-            },
-        )
+        assert model["source"]["revision"] == "eafac15f6140e6dd9c6031217d658ac10bfb604b"
+        assert len(model["files"]) == 24
+        assert recipe["models"][0]["model"]["content_sha256"] == digest(model)
+        assert recipe["interfaces"][0]["adapter"] == "image-job"
+        assert {
+            item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]
+        } == {
+            "output-mime": "image/png",
+            "pipeline": "text-to-image",
+            "seed": 42,
+            "num-inference-steps": 4,
+            "true-cfg-scale": "1",
+            "width": 1024,
+            "height": 1024,
+        }
 
     def test_super_binds_target_and_drafter_files_with_mtp_runtime(self) -> None:
         recipe = read(SUPER_RECIPE)
         target = model_for(recipe)
         drafter = model_for(recipe, 1)
-        self.assertEqual(
-            target["source"]["revision"], "ff433f5493e25d631c9f12b5d55c674229923d02"
+        assert (
+            target["source"]["revision"] == "ff433f5493e25d631c9f12b5d55c674229923d02"
         )
-        self.assertEqual(
-            drafter["source"]["revision"], "c929f8a55d0527fea9f58b4cedc9e0c855cfc421"
+        assert (
+            drafter["source"]["revision"] == "c929f8a55d0527fea9f58b4cedc9e0c855cfc421"
         )
-        self.assertEqual(len(recipe["models"]), 2)
-        self.assertEqual(args(recipe)["quantization"], "modelopt_fp4")
-        self.assertEqual(args(recipe)["moe-backend"], "marlin")
-        self.assertEqual(
-            json.loads(args(recipe)["speculative-config"])["model"], "/models/drafter"
+        assert len(recipe["models"]) == 2
+        assert args(recipe)["quantization"] == "modelopt_fp4"
+        assert args(recipe)["moe-backend"] == "marlin"
+        assert (
+            json_document(args(recipe)["speculative-config"])["model"]
+            == "/models/drafter"
         )
 
     def test_single_spark_memory_admission_and_representative_checks(self) -> None:
         for path in (SUPER_RECIPE, FLASH_RECIPE):
-            recipe: dict[str, Any] = read(path)
-            self.assertGreaterEqual(len(recipe["validation"]["serving"]["checks"]), 1)
+            recipe = read(path)
+            assert len(recipe["validation"]["serving"]["checks"]) >= 1
 
 
 if __name__ == "__main__":

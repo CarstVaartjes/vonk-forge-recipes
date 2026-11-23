@@ -106,7 +106,8 @@ def test_typed_key_failure_wait_is_visible_durable_and_releases_lane_at_deadline
         item for items in build_status(sweep)["lanes"].values() for item in items
     ]
     assert lane["waiting_on"].startswith(SweepWaitReason.CLIENT_KEY)
-    assert lane["elapsed_s"] == 0 and lane["limit_s"] == 1200
+    assert lane["elapsed_s"] == 0
+    assert lane["limit_s"] == 1200
     sweep.state.save()
     resumed, _, _ = make_sweep(
         tmp_path,

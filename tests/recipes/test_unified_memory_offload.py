@@ -5,13 +5,13 @@ import json
 import pytest
 from catalog_documents import catalog_models
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition
 
 from recipe_tooling.qualification.memory_need.records import MemoryNeed
+from vonk_forge_contracts import RecipeDefinition
 
 
 @pytest.mark.parametrize(
-    "slug,activation_bytes,loading_bytes",
+    ("slug", "activation_bytes", "loading_bytes"),
     [
         ("mova-360p-diffusers-single", 2_000_000_000, 10_000_000_000),
         ("mova-720p-diffusers-single", 8_000_000_000, 10_000_000_000),

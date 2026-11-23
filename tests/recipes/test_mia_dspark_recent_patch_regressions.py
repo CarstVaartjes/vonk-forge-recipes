@@ -14,6 +14,7 @@ from types import SimpleNamespace
 from typing import Any
 from unittest.mock import patch
 
+import pytest
 from repo_root import ROOT
 
 DEEPSEEK_ADAPTERS = (ROOT / "adapters/deepseek/mia-vllm-vision",)
@@ -169,31 +170,26 @@ class MiaDeepSeekRecentPatchTests(unittest.TestCase):
             with self.subTest(recipe=recipe_path.name):
                 recipe = json.loads(recipe_path.read_text(encoding="utf-8"))
                 dockerfile = dockerfile_path.read_text(encoding="utf-8")
-                self.assertEqual(recipe["release"]["version"], version)
-                self.assertTrue(
-                    recipe["provenance"]["source_reference"].endswith(source_pin)
+                assert recipe["release"]["version"] == version
+                assert recipe["provenance"]["source_reference"].endswith(source_pin)
+                assert (
+                    recipe["execution"]["build"]["base_image"]["digest"]
+                    == "a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8"
                 )
-                self.assertEqual(
-                    recipe["execution"]["build"]["base_image"]["digest"],
-                    "a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8",
-                )
-                self.assertNotIn("patch-tree-sha256", dockerfile)
+                assert "patch-tree-sha256" not in dockerfile
         vanilla_apply = (DEEPSEEK_ADAPTERS[0] / "apply-build-patches.py").read_text()
-        self.assertLess(
-            vanilla_apply.index('run("hotfix-gb10-spin-wait.sh"'),
-            vanilla_apply.index('run("hotfix-vllm-issue117-shm-ring-buffer.py")'),
-        )
+        assert vanilla_apply.index(
+            'run("hotfix-gb10-spin-wait.sh"'
+        ) < vanilla_apply.index('run("hotfix-vllm-issue117-shm-ring-buffer.py")')
         issue117 = (
             DEEPSEEK_ADAPTERS[0] / "patches/hotfix-vllm-issue117-shm-ring-buffer.py"
         ).read_text()
-        self.assertIn(
-            'UPSTREAM_MERGE = "10c75477b07c2f1a361f54b7357af1019bba5fd8"', issue117
-        )
-        self.assertIn("SHM_READER_RECHECK_INTERVAL_MS = 5000", issue117)
+        assert 'UPSTREAM_MERGE = "10c75477b07c2f1a361f54b7357af1019bba5fd8"' in issue117
+        assert "SHM_READER_RECHECK_INTERVAL_MS = 5000" in issue117
         for adapter in DEEPSEEK_ADAPTERS:
-            self.assertIn(
-                'run("hotfix-vllm-issue136-xgrammar-termination.py")',
-                (adapter / "apply-build-patches.py").read_text(),
+            assert (
+                'run("hotfix-vllm-issue136-xgrammar-termination.py")'
+                in (adapter / "apply-build-patches.py").read_text()
             )
 
     def test_issue27_r3_counts_running_prefills_not_the_async_tracking_set(
@@ -210,10 +206,10 @@ class MiaDeepSeekRecentPatchTests(unittest.TestCase):
                     patch_path,
                     running=[_request("prefill", 1024, 22829)],
                 )
-                self.assertIn("# [issue27-r3]", patched)
-                self.assertEqual(scheduler.schedule(), 0)
-                self.assertEqual(len(logger.warnings), 1)
-                self.assertIn("tracked=0 running=1", logger.warnings[0])
+                assert "# [issue27-r3]" in patched
+                assert scheduler.schedule() == 0
+                assert len(logger.warnings) == 1
+                assert "tracked=0 running=1" in logger.warnings[0]
 
                 # An async KV reservation can leave a tracked object that is not
                 # in the running list; it must not consume an admission slot.
@@ -221,7 +217,7 @@ class MiaDeepSeekRecentPatchTests(unittest.TestCase):
                     patch_path,
                     tracked=[object()],
                 )
-                self.assertEqual(scheduler.schedule(), 1)
+                assert scheduler.schedule() == 1
 
     def test_issue27_r3_does_not_count_decoders_or_output_placeholders(self) -> None:
         for adapter in DEEPSEEK_ADAPTERS:
@@ -235,7 +231,7 @@ class MiaDeepSeekRecentPatchTests(unittest.TestCase):
                     running=[decoder],
                     tracked=[decoder],
                 )
-                self.assertEqual(scheduler.schedule(), 1)
+                assert scheduler.schedule() == 1
 
     def test_issue27_r3_is_idempotent_and_refuses_an_older_gate(self) -> None:
         for adapter in DEEPSEEK_ADAPTERS:
@@ -251,7 +247,7 @@ class MiaDeepSeekRecentPatchTests(unittest.TestCase):
                 _apply_issue27(patch_path, path)
                 once = path.read_bytes()
                 _apply_issue27(patch_path, path)
-                self.assertEqual(path.read_bytes(), once)
+                assert path.read_bytes() == once
 
                 stale = Path(directory) / "stale-scheduler.py"
                 stale_bytes = (ISSUE27_MARK + "\n" + ISSUE27_FIXTURE).encode()
@@ -263,15 +259,15 @@ class MiaDeepSeekRecentPatchTests(unittest.TestCase):
                 with (
                     patch.object(sys, "argv", [str(patch_path)]),
                     contextlib.redirect_stdout(io.StringIO()),
-                    self.assertRaises(SystemExit) as raised,
+                    pytest.raises(SystemExit) as raised,
                 ):
                     # Execute the CLI entrypoint to assert a stale patch exits closed.
                     exec(  # noqa: S102
                         compile(source, str(patch_path), "exec"),
                         {"__name__": "__main__"},
                     )
-                self.assertEqual(raised.exception.code, 1)
-                self.assertEqual(stale.read_bytes(), stale_bytes)
+                assert raised.value.code == 1
+                assert stale.read_bytes() == stale_bytes
 
     def test_issue55_truncation_keeps_empty_lists_serializable_and_upgrades_old_patch(
         self,
@@ -313,21 +309,20 @@ class MiaDeepSeekRecentPatchTests(unittest.TestCase):
                         )
                         # Evaluate the generated replacement in its fixture namespace.
                         exec(textwrap.dedent(source), namespace)  # noqa: S102
-                        self.assertEqual(message.tool_calls, expected)
+                        assert message.tool_calls == expected
                         finish = (
                             namespace["finish_reason_"]
                             if streaming
                             else namespace["choice_data"].finish_reason
                         )
-                        self.assertEqual(
-                            finish,
-                            "length" if reason == "length" else "tool_calls",
+                        assert finish == (
+                            "length" if reason == "length" else "tool_calls"
                         )
                         data = {"tool_calls": message.tool_calls}
                         if len(data.get("tool_calls", [])) == 0:
                             data.pop("tool_calls", None)
                         encoded = json.dumps(data, default=vars)
-                        self.assertNotIn('"tool_calls": null', encoded)
+                        assert '"tool_calls": null' not in encoded
 
                 # Upgrade every mixed streaming/non-streaming predecessor without
                 # leaving the old `or None` forms behind, then remain idempotent.
@@ -360,16 +355,14 @@ class MiaDeepSeekRecentPatchTests(unittest.TestCase):
                         )
                         serving.write_text(source, encoding="utf-8")
                         with patch.object(sys, "argv", [str(patch_path), str(root)]):
-                            self.assertEqual(hotfix["main"](), 0)
+                            assert hotfix["main"]() == 0
                             upgraded = serving.read_text(encoding="utf-8")
-                            self.assertNotIn(hotfix["STREAMING_PREVIOUS"], upgraded)
-                            self.assertNotIn(hotfix["NOSTREAM_PREVIOUS"], upgraded)
-                            self.assertIn(hotfix["STREAMING_NEW"], upgraded)
-                            self.assertIn(hotfix["NOSTREAM_NEW"], upgraded)
-                            self.assertEqual(hotfix["main"](), 0)
-                            self.assertEqual(
-                                serving.read_text(encoding="utf-8"), upgraded
-                            )
+                            assert hotfix["STREAMING_PREVIOUS"] not in upgraded
+                            assert hotfix["NOSTREAM_PREVIOUS"] not in upgraded
+                            assert hotfix["STREAMING_NEW"] in upgraded
+                            assert hotfix["NOSTREAM_NEW"] in upgraded
+                            assert hotfix["main"]() == 0
+                            assert serving.read_text(encoding="utf-8") == upgraded
 
 
 if __name__ == "__main__":

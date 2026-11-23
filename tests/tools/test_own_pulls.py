@@ -4,6 +4,7 @@ import ast
 import json
 import re
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 from repo_root import ROOT
@@ -278,7 +279,7 @@ def test_refresh_upstream_never_arms_merges_or_closes_a_fork_pr():
             **OWN,
         },
     ]
-    calls: list[tuple] = []
+    calls: list[tuple[Any, ...]] = []
 
     def gh_json(*arguments: str):
         calls.append(arguments)
@@ -321,11 +322,12 @@ def test_a_fork_pr_touching_a_recipe_does_not_block_its_refresh():
             **OWN,
         },
     ]
-    calls: list[tuple] = []
+    calls: list[tuple[Any, ...]] = []
 
     def gh_json(*arguments: str):
         calls.append(arguments)
-        assert arguments[:2] == ("pr", "list") and OWN_FIELDS in arguments[-1]
+        assert arguments[:2] == ("pr", "list")
+        assert OWN_FIELDS in arguments[-1]
         return pulls
 
     with patch("recipe_tooling.refresh_upstream.github.gh_json", side_effect=gh_json):
@@ -351,7 +353,7 @@ def _publish_with_closed_pr(pr):
         patch("recipe_tooling.refresh_upstream.github.git", side_effect=Reached),
     ):
         try:
-            refresh_publish._publish(Path("."), assessment, summary, arm=False)
+            refresh_publish._publish(Path(), assessment, summary, arm=False)
         except Reached:
             return summary, True
     return summary, False
@@ -359,9 +361,11 @@ def _publish_with_closed_pr(pr):
 
 def test_a_closed_fork_pr_with_the_marker_does_not_defer_a_refresh():
     summary, proceeded = _publish_with_closed_pr(FORK)
-    assert proceeded and not summary.deferred
+    assert proceeded
+    assert not summary.deferred
     summary, proceeded = _publish_with_closed_pr(OWN)  # our own closed PR does
-    assert not proceeded and "closed unmerged" in summary.deferred[0]
+    assert not proceeded
+    assert "closed unmerged" in summary.deferred[0]
 
 
 def test_an_overlapping_armed_fork_pr_does_not_defer_arming():
@@ -409,7 +413,8 @@ def test_a_file_beyond_the_first_hundred_still_blocks_a_refresh():
         patch("recipe_tooling.refresh_upstream.github.gh", side_effect=gh),
     ):
         open_prs = refresh_publish.foreign_open_prs()
-    assert list(open_prs) == [7] and len(fetched) == 1
+    assert list(open_prs) == [7]
+    assert len(fetched) == 1
     assert refresh_publish.blocking_prs(({"recipes/x.json"}, []), open_prs) == [7]
 
 
@@ -428,5 +433,6 @@ def test_the_arming_overlap_check_sees_files_beyond_the_first_hundred():
         ) as gh,
     ):
         assert not refresh_publish.arm_mechanical_pr(421, "recipe-b", summary)
-    assert summary.deferred and "#419" in summary.deferred[0]
+    assert summary.deferred
+    assert "#419" in summary.deferred[0]
     assert not any(c.args[:2] == ("pr", "merge") for c in gh.call_args_list)

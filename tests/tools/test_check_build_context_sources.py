@@ -59,21 +59,21 @@ class BuildContextSourcesTest(unittest.TestCase):
             root = Path(tmp)
             recipe = self._recipe(root, dockerfile, ["a.py", "b/c.py", "tests/one.txt"])
             problems = checker.check_recipe(recipe, root)
-        self.assertEqual(len(problems), 1, problems)
-        self.assertIn("tests/missing.py", problems[0])
-        self.assertIn("Dockerfile:4", problems[0])
+        assert len(problems) == 1, problems
+        assert "tests/missing.py" in problems[0]
+        assert "Dockerfile:4" in problems[0]
 
     def test_glob_without_match_is_missing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             recipe = self._recipe(root, "COPY none/*.py /dst/\n", [])
-            self.assertEqual(len(checker.check_recipe(recipe, root)), 1)
+            assert len(checker.check_recipe(recipe, root)) == 1
 
     def test_catalog_has_no_missing_sources(self) -> None:
         problems: list[str] = []
         for recipe in sorted((ROOT / "recipes").glob("*.json")):
             problems.extend(checker.check_recipe(recipe))
-        self.assertEqual(problems, [])
+        assert problems == []
 
 
 if __name__ == "__main__":

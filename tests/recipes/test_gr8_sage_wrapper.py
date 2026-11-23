@@ -99,7 +99,8 @@ def test_placement_paths_and_model_in_place(sandbox):
     assert len(dump["PEERS"].split(",")) == tp
     assert dump["NODE_IP"] == placement["VONK_LOCAL_ADDR"]
     assert dump["CONTROL_PORT"] == "29555"
-    assert "IPS" not in dump and "IPS2" not in dump
+    assert "IPS" not in dump
+    assert "IPS2" not in dump
     # text only unless the vision option asks: gr8's own default, nothing added
     assert "EXTRA_ENV" not in dump
 
@@ -114,7 +115,8 @@ def test_vision_and_compact_copies_compose_one_extra_env(sandbox):
         f"GR8_LOAD_COMPACT={root}/outputs/cache/gr8/cache/compact-tp{tp}",
         "GR8_LOAD_MERGE_KB=1",
     ]
-    assert "VISION" not in dump and "COMPACT_EXPERTS" not in dump
+    assert "VISION" not in dump
+    assert "COMPACT_EXPERTS" not in dump
     assert (root / "prepare.log").read_text().splitlines() == [
         f"glm53f prepare --rank {tp - 1}"
     ]

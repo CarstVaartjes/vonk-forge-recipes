@@ -18,6 +18,7 @@ from copy import deepcopy
 from datetime import datetime
 from itertools import pairwise
 from pathlib import Path
+from typing import Any
 
 import pytest
 from repo_root import FIXTURES
@@ -74,13 +75,15 @@ def _timeouts() -> TimeoutPolicy:
     )
 
 
-def _held_by_receipt_wait(fleet, monkeypatch, wait=RECEIPT_WAIT) -> list[dict]:
+def _held_by_receipt_wait(
+    fleet, monkeypatch, wait=RECEIPT_WAIT
+) -> list[dict[str, Any]]:
     """The Controller declares its wait on every running application, as recorded.
 
     Returns the child progress the sweep was shown, in order.
     """
     original = fleet._app_doc
-    shown: list[dict] = []
+    shown: list[dict[str, Any]] = []
 
     def held(app):
         document = original(app)
@@ -102,7 +105,7 @@ def _until(sweep, clock, done) -> None:
     raise AssertionError("the sweep never got there")
 
 
-def _expired(tmp_path: Path, key: str) -> list[dict]:
+def _expired(tmp_path: Path, key: str) -> list[dict[str, Any]]:
     if not (tmp_path / "results.jsonl").exists():
         return []
     return [
@@ -113,7 +116,7 @@ def _expired(tmp_path: Path, key: str) -> list[dict]:
     ]
 
 
-def _rows(tmp_path: Path) -> list[dict]:
+def _rows(tmp_path: Path) -> list[dict[str, Any]]:
     return [
         json.loads(line)
         for line in (tmp_path / "results.jsonl").read_text().splitlines()
@@ -158,7 +161,7 @@ def test_bytes_moving_under_a_controller_wait_outlast_the_lane_budget(
     assert not any(c[:2] == ("profile", "cancel") for _, c in fleet.calls)
 
 
-def _alarm_since(evidence: dict) -> float:
+def _alarm_since(evidence: dict[str, Any]) -> float:
     """When the Controller's alarm says the wait last moved (``No progress since``)."""
     (alarm,) = [
         b for b in evidence["wait"]["controller"]["blockers"] if b["code"] == STALLED
@@ -460,7 +463,7 @@ def test_a_restart_adopts_a_moving_wait(
 
 def test_only_a_rising_mark_renews_a_wait() -> None:
     receipt = SweepWait(reason=SweepWaitReason.CONTROLLER_RETRY)
-    watch: dict = {}
+    watch: dict[str, Any] = {}
 
     def observe(marks, now, wait=receipt, signature=None):
         signal = verdict.Signal((now,) if signature is None else signature, wait, marks)

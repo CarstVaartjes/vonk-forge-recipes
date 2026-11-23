@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from repo_root import ROOT
+
 from vonk_forge_contracts import document_sha256
 
 
@@ -16,17 +17,17 @@ def read(path: Path) -> dict[str, object]:
 class QwenImageEditVariantMatrixTests(unittest.TestCase):
     def test_every_edit_variant_resolves_exact_model_and_job_interface(self) -> None:
         paths = sorted((ROOT / "recipes").glob("qwen-image-edit-2511-*.json"))
-        self.assertGreaterEqual(len(paths), 5)
+        assert len(paths) >= 5
         for path in paths:
             with self.subTest(recipe=path.name):
                 recipe = read(path)
-                self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")  # pyright: ignore[reportIndexIssue]
-                self.assertEqual(recipe["topology"]["node_count"], 1)  # pyright: ignore[reportIndexIssue]
+                assert recipe["interfaces"][0]["adapter"] == "image-job"  # pyright: ignore[reportIndexIssue]
+                assert recipe["topology"]["node_count"] == 1  # pyright: ignore[reportIndexIssue]
                 for selection in recipe["models"]:  # pyright: ignore[reportGeneralTypeIssues]
                     model = read(ROOT / "models" / f"{selection['model']['slug']}.json")
                     canonical = document_sha256(model)
-                    self.assertEqual(selection["model"]["content_sha256"], canonical)
-                    self.assertTrue(selection["files"])
+                    assert selection["model"]["content_sha256"] == canonical
+                    assert selection["files"]
 
     def test_edit_variants_have_bounded_offline_resources_and_output_checks(
         self,
@@ -36,9 +37,7 @@ class QwenImageEditVariantMatrixTests(unittest.TestCase):
             with self.subTest(recipe=path.name):
                 validation: Any = recipe["validation"]
                 checks = validation["serving"]["checks"]
-                self.assertTrue(
-                    any("artifact.output" in check["assertions"] for check in checks)
-                )
+                assert any("artifact.output" in check["assertions"] for check in checks)
 
 
 if __name__ == "__main__":

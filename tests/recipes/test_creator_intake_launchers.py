@@ -1,5 +1,6 @@
 """Exercise managed configuration and native placement at new launcher boundaries."""
 
+import argparse
 import importlib.util
 import json
 import os
@@ -18,7 +19,6 @@ from repo_root import ROOT
 def test_flash_next_profile_receives_platform_endpoint(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, profile: str
 ) -> None:
-    import argparse
 
     # The pinned upstream parser accepts only profile, sources and print. The
     # platform appends only --host and --port to every SGLang load (canonical.py);
@@ -134,7 +134,7 @@ def test_flash_next_profile_receives_platform_endpoint(
     linked = tmp_path / "linked"
     linked.touch()
     os.link(linked, tmp_path / "linked-again")
-    shared = os.stat(linked)
+    shared = linked.stat()
     assert shared.st_nlink == 2
     ple_cache._require_regular_single_link(shared, "source")
     with pytest.raises(PleCacheError):
@@ -154,7 +154,7 @@ def test_flash_next_profile_receives_platform_endpoint(
 
 
 @pytest.mark.parametrize(
-    "profile,context,vision,cache",
+    ("profile", "context", "vision", "cache"),
     [("vision", 4096, True, "FP16"), ("long", 262144, False, "Q4")],
 )
 def test_minicpm_profile_writes_cache_without_mutating_model(
@@ -167,7 +167,8 @@ def test_minicpm_profile_writes_cache_without_mutating_model(
 ) -> None:
     adapter = ROOT / "adapters/minicpm/vcruz305-exl3-single"
     spec = importlib.util.spec_from_file_location("common", adapter / "tools/common.py")
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     monkeypatch.setitem(sys.modules, "common", module)

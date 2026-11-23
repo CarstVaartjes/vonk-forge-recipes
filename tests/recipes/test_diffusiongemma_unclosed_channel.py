@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import runpy
+from typing import Any
 
 import pytest
 from repo_root import ROOT
@@ -50,7 +51,7 @@ def _strip_thought_label(text):
     full = "from __future__ import annotations\n" + CONSTANTS + helper + source
     if patched:
         full = PATCHER["patch_text"](full)
-    namespace: dict = {}
+    namespace: dict[str, Any] = {}
     exec(compile(full, "<creator-gemma4-parser>", "exec"), namespace)  # noqa: S102
     return namespace["_strip_disabled_thinking_channel"]
 

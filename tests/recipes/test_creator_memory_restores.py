@@ -15,7 +15,6 @@ from catalog_documents import catalog_models
 from documents import recipe as load_recipe
 from documents import recipe_display
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition, document_sha256
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from recipe_tooling.qualification.memory_need.args import (
@@ -31,6 +30,7 @@ from recipe_tooling.qualification.memory_need.swap import (
     admissible_declaration_warnings,
 )
 from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 MIA = "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/blob/94ae731f4619f769be1f4dfe6f6607ce0a3e869d"
 EUGR = "https://github.com/eugr/spark-vllm-docker/blob/4709188da2921c89b12ae1231a6e712c6ab536e9/recipes"
@@ -363,7 +363,8 @@ CREATOR = {
 @pytest.mark.parametrize("slug", sorted(CREATOR))
 def test_recipe_follows_the_creators_memory_settings(slug: str) -> None:
     row, recipe = CREATOR[slug], load_recipe(slug)
-    for name, expected in row.arguments.items():
+    for name, declared in row.arguments.items():
+        expected = declared
         if row.vendored is not None:
             path, pattern = row.vendored
             match = re.search(pattern, (ROOT / path).read_text(encoding="utf-8"))
@@ -377,7 +378,8 @@ def test_recipe_follows_the_creators_memory_settings(slug: str) -> None:
     for choice, values in row.options.items():
         option, value = choice.split("/")
         chosen = recipe.with_option_choices({option: value})
-        for name, expected in values.items():
+        for name, declared in values.items():
+            expected = declared
             if choice in row.vendored_options:
                 path, pattern = row.vendored_options[choice]
                 match = re.search(pattern, (ROOT / path).read_text(encoding="utf-8"))

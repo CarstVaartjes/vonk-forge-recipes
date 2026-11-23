@@ -22,9 +22,10 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from recipe_tooling.added_lines import parse_added, read_diff
+
+ROOT = Path(__file__).resolve().parents[1]
 
 PROSE = (".md", ".rst", ".txt")
 # NCCL_IB_HCA as the assigned name (not "${NCCL_IB_HCA:-x}", "$NCCL_IB_HCA" or "== "), then the value.

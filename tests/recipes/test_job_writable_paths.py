@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import ast
+import builtins
 import importlib.util
+import os
 import re
 import shlex
 import sys
@@ -11,6 +13,7 @@ from pathlib import Path, PurePosixPath
 
 import pytest
 from repo_root import ROOT
+
 from vonk_forge_contracts import RecipeDefinition
 
 # The only paths a job may write: every job runs with a read-only root, a tmpfs
@@ -53,18 +56,18 @@ def _violations(path: Path) -> list[str]:
         if not isinstance(node, (ast.Assign, ast.AnnAssign, ast.Call)):
             continue
         name = ast.unparse(node).split("=", 1)[0]
-        for child in ast.walk(node):
-            if (
-                isinstance(child, ast.Constant)
-                and isinstance(child.value, str)
-                and not (
-                    child.value == "/"
-                    and isinstance(parent := parents.get(child), ast.JoinedStr)
-                    and parent.values[0] is not child
-                )
-                and _bad_path(name, child.value)
-            ):
-                found.append(f"{child.lineno}: {child.value}")
+        found.extend(
+            f"{child.lineno}: {child.value}"
+            for child in ast.walk(node)
+            if isinstance(child, ast.Constant)
+            and isinstance(child.value, str)
+            and not (
+                child.value == "/"
+                and isinstance(parent := parents.get(child), ast.JoinedStr)
+                and parent.values[0] is not child
+            )
+            and _bad_path(name, child.value)
+        )
     return found
 
 
@@ -121,7 +124,8 @@ def test_pixal_sets_writable_cache_before_loading_flexgemm(
     spec = importlib.util.spec_from_file_location(
         "pixal_cache_test", adapter / "pixal3d_job.py"
     )
-    assert spec is not None and spec.loader is not None
+    assert spec is not None
+    assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     monkeypatch.setattr(module, "one_input", lambda path: tmp_path / "input.png")
@@ -143,8 +147,6 @@ def test_pixal_sets_writable_cache_before_loading_flexgemm(
         monkeypatch.setenv(key, str(tmp_path / "custom-cache.json"))
 
     # Stop exactly where the model stack starts, after the real env defaults run.
-    import builtins
-    import os
 
     original_import = builtins.__import__
 

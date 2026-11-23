@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+import pytest
 from documents import model_display, recipe_display
 from repo_root import ROOT
 
@@ -47,26 +48,23 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
     def test_recipe_resolves_exact_local_authorities(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
         model = json.loads(MODEL_PATH.read_text(encoding="utf-8"))
-        self.assertEqual(
-            recipe["models"][0]["model"]["content_sha256"],
-            _canonical_digest(MODEL_PATH),
+        assert recipe["models"][0]["model"]["content_sha256"] == _canonical_digest(
+            MODEL_PATH
         )
-        self.assertEqual(model["source"]["revision"], MODEL_REVISION)
-        self.assertEqual(
-            {item["name"] for item in recipe["runtime"]["environment"]},
-            {"HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"},
-        )
+        assert model["source"]["revision"] == MODEL_REVISION
+        assert {item["name"] for item in recipe["runtime"]["environment"]} == {
+            "HF_HUB_OFFLINE",
+            "TRANSFORMERS_OFFLINE",
+        }
 
         tags = set(recipe_display(recipe["identity"]["slug"]).tags)
-        self.assertTrue({"video", "audio", "multimodal", "modular-diffusers"} <= tags)
-        self.assertTrue(recipe["execution"])
+        assert {"video", "audio", "multimodal", "modular-diffusers"} <= tags
+        assert recipe["execution"]
 
     def test_license_records_excluded_territories(self) -> None:
         restrictions = model_display("minimax-h3").license.territorial_restrictions
         assert restrictions is not None
-        self.assertTrue(
-            {"EU", "GB", "KR", "US"} <= set(restrictions.denied_jurisdictions)
-        )
+        assert {"EU", "GB", "KR", "US"} <= set(restrictions.denied_jurisdictions)
 
     def test_signed_source_bundle_matches_recipe(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
@@ -75,25 +73,24 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
         ]
         archive, _, digest = source_bundle(ADAPTER_ROOT)
         context = recipe["execution"]["build"]["context"]
-        self.assertEqual(context["path"], "adapters/video/minimax-h3-modular-diffusers")
-        self.assertTrue(digest and archive)
+        assert context["path"] == "adapters/video/minimax-h3-modular-diffusers"
+        assert digest
+        assert archive
 
     def test_container_and_adapter_forbid_hidden_runtime_downloads(self) -> None:
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")
         source = ADAPTER_PATH.read_text(encoding="utf-8")
-        self.assertIn(f"diffusers.git@{DIFFUSERS_REVISION}", dockerfile)
-        self.assertIn(
-            f'org.opencontainers.image.revision="{MODEL_REVISION}"', dockerfile
+        assert f"diffusers.git@{DIFFUSERS_REVISION}" in dockerfile
+        assert f'org.opencontainers.image.revision="{MODEL_REVISION}"' in dockerfile
+        assert source.count("local_files_only=True") >= 4
+        assert "pretrained_model_name_or_path=str(MODEL_ROOT)" in source
+        assert (
+            'transformer_name = "transformer_ref" if workflow == "ref2va" else "transformer"'
+            in source
         )
-        self.assertGreaterEqual(source.count("local_files_only=True"), 4)
-        self.assertIn("pretrained_model_name_or_path=str(MODEL_ROOT)", source)
-        self.assertIn(
-            'transformer_name = "transformer_ref" if workflow == "ref2va" else "transformer"',
-            source,
-        )
-        self.assertIn("**{transformer_name: transformer}", source)
-        self.assertNotIn("huggingface.co", source)
-        self.assertNotIn("MiniMaxAI/MiniMax-H3", source)
+        assert "**{transformer_name: transformer}" in source
+        assert "huggingface.co" not in source
+        assert "MiniMaxAI/MiniMax-H3" not in source
 
     def test_export_is_atomic_and_joint_audio_video_is_verified(self) -> None:
         source = ADAPTER_PATH.read_text(encoding="utf-8")
@@ -108,7 +105,7 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
             'audio.layout.name != "stereo"',
             "os.replace(temporary, destination)",
         ):
-            self.assertIn(required, source)
+            assert required in source
 
     def test_output_media_contract_is_exact(self) -> None:
         module = _adapter_module()
@@ -156,7 +153,7 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
                 sys.modules,
                 {"av": types.SimpleNamespace(open=lambda *_a, **_k: Container())},
             ),
-            self.assertRaisesRegex(RuntimeError, "H.264 video and AAC audio"),
+            pytest.raises(RuntimeError, match="H.264 video and AAC audio"),
         ):
             module._verify_joint_av(
                 Path("unused.mp4"), width=960, height=544, frame_count=124
@@ -170,33 +167,29 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
         }
         knobs = recipe["settings"]["knobs"]
         for name in ("num-frames", "width", "height", "num-inference-steps"):
-            self.assertEqual(arguments[name], name)
-        self.assertNotIn("profile", knobs)
-        self.assertEqual(knobs["num-inference-steps"]["value"], 31)
+            assert arguments[name] == name
+        assert "profile" not in knobs
+        assert knobs["num-inference-steps"]["value"] == 31
 
     def test_recipe_declares_truthful_typed_input_slots(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
         input_contract = recipe["interfaces"][0]["input"]
         slots = {slot["id"]: slot for slot in input_contract["slots"]}
-        self.assertEqual(
-            set(slots), {"prompt", "first-image", "last-image", "references"}
-        )
-        self.assertEqual(slots["prompt"]["media_types"], ["text/plain"])
-        self.assertEqual(slots["prompt"]["min_files"], 1)
-        self.assertEqual(slots["references"]["max_files"], 12)
+        assert set(slots) == {"prompt", "first-image", "last-image", "references"}
+        assert slots["prompt"]["media_types"] == ["text/plain"]
+        assert slots["prompt"]["min_files"] == 1
+        assert slots["references"]["max_files"] == 12
         for slot_id in ("first-image", "last-image"):
-            self.assertEqual(
-                (slots[slot_id]["min_files"], slots[slot_id]["max_files"]), (0, 1)
-            )
-        self.assertEqual(slots["references"]["min_files"], 0)
+            assert (slots[slot_id]["min_files"], slots[slot_id]["max_files"]) == (0, 1)
+        assert slots["references"]["min_files"] == 0
         for slot in slots.values():
-            self.assertLessEqual(slot["max_file_bytes"], 512 * 1024 * 1024)
-            self.assertLessEqual(slot["max_total_bytes"], 1024 * 1024 * 1024)
+            assert slot["max_file_bytes"] <= 512 * 1024 * 1024
+            assert slot["max_total_bytes"] <= 1024 * 1024 * 1024
         output = recipe["interfaces"][0]["output"]
-        self.assertEqual(output["max_total_bytes"], 1024**3)
-        self.assertEqual(output["slots"][0]["media_types"], ["video/mp4"])
-        self.assertEqual(output["slots"][0]["min_files"], 1)
-        self.assertEqual(output["slots"][0]["max_files"], 1)
+        assert output["max_total_bytes"] == 1024**3
+        assert output["slots"][0]["media_types"] == ["video/mp4"]
+        assert output["slots"][0]["min_files"] == 1
+        assert output["slots"][0]["max_files"] == 1
 
 
 class MiniMaxH3InputContractTests(unittest.TestCase):
@@ -219,23 +212,19 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
             (self.module.INPUT_ROOT / name).write_bytes(b"x")
 
     def test_prompt_is_required(self) -> None:
-        with self.assertRaisesRegex(ValueError, "exactly one UTF-8"):
+        with pytest.raises(ValueError, match="exactly one UTF-8"):
             self.module._load_prompt()
         (self.module.INPUT_ROOT / "prompt.txt").write_text(
             "  Operator supplied synchronized scene.  ", encoding="utf-8"
         )
-        self.assertEqual(
-            self.module._load_prompt(), "Operator supplied synchronized scene."
-        )
+        assert self.module._load_prompt() == "Operator supplied synchronized scene."
 
     def test_keyframes_come_from_their_slots(self) -> None:
         self.stage()
-        self.assertIsNone(self.module._keyframe("first-image"))
+        assert self.module._keyframe("first-image") is None
         self.stage(first_image=[("a.png", "image/png")])
-        self.assertEqual(
-            self.module._keyframe("first-image"), self.module.INPUT_ROOT / "a.png"
-        )
-        self.assertIsNone(self.module._keyframe("last-image"))
+        assert self.module._keyframe("first-image") == self.module.INPUT_ROOT / "a.png"
+        assert self.module._keyframe("last-image") is None
 
     def stubbed_diffusers(self):
         def reference(kind: str):
@@ -261,26 +250,23 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
             return self.module._load_references()
 
     def test_references_take_their_kind_from_the_manifest_media_type(self) -> None:
-        self.assertEqual(
-            self.references(
-                references=[
-                    ("3-voice.wav", "audio/wav"),
-                    ("1-scene.png", "image/png"),
-                    ("2-clip.mp4", "video/mp4"),
-                ]
-            ),
-            [
-                ("image", "1-scene.png"),
-                ("video", "2-clip.mp4"),
-                ("audio", "3-voice.wav"),
-            ],
-        )
+        assert self.references(
+            references=[
+                ("3-voice.wav", "audio/wav"),
+                ("1-scene.png", "image/png"),
+                ("2-clip.mp4", "video/mp4"),
+            ]
+        ) == [
+            ("image", "1-scene.png"),
+            ("video", "2-clip.mp4"),
+            ("audio", "3-voice.wav"),
+        ]
 
     def test_references_refuse_a_kind_over_its_cap_and_audio_alone(self) -> None:
         images = [(f"{n}.png", "image/png") for n in range(10)]
-        with self.assertRaisesRegex(ValueError, "per-modality limits"):
+        with pytest.raises(ValueError, match="per-modality limits"):
             self.references(references=images)
-        with self.assertRaisesRegex(ValueError, "at least one image or video"):
+        with pytest.raises(ValueError, match="at least one image or video"):
             self.references(references=[("a.wav", "audio/wav")])
 
     def test_references_and_keyframes_are_exclusive(self) -> None:
@@ -295,7 +281,7 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
         with (
             self.stubbed_diffusers(),
             mock.patch.object(sys, "argv", argv),
-            self.assertRaisesRegex(ValueError, "cannot be combined"),
+            pytest.raises(ValueError, match="cannot be combined"),
         ):
             self.module.main()
 

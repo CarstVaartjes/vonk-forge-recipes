@@ -25,7 +25,8 @@ def modules(request, monkeypatch):
     loaded = []
     for name in ("prepare_cache", "launcher"):
         spec = importlib.util.spec_from_file_location(name, folder / f"{name}.py")
-        assert spec and spec.loader
+        assert spec
+        assert spec.loader
         module = importlib.util.module_from_spec(spec)
         monkeypatch.setitem(sys.modules, name, module)
         spec.loader.exec_module(module)
@@ -53,10 +54,12 @@ def test_rank_cache_reuses_complete_and_rebuilds_truncated(
     result = cache.prepare_rank(tmp_path, output, 0, world, Path("generator"))
     before = result.stat().st_mtime_ns
     assert cache.prepare_rank(tmp_path, output, 0, world, Path("generator")) == result
-    assert len(calls) == 1 and result.stat().st_mtime_ns == before
+    assert len(calls) == 1
+    assert result.stat().st_mtime_ns == before
     result.write_bytes(b"interrupted")
     cache.prepare_rank(tmp_path, output, 0, world, Path("generator"))
-    assert len(calls) == 2 and cache.rank_cache_valid(result, expected)
+    assert len(calls) == 2
+    assert cache.rank_cache_valid(result, expected)
     assert "--parity" not in calls[0]
     assert not cache.rank_cache_valid(result, [["different", "uint8", [4], 0, 4]])
 
@@ -180,7 +183,8 @@ def test_four_rank_cache_asks_the_generator_for_parity(tmp_path, monkeypatch):
     spec = importlib.util.spec_from_file_location(
         "prepare_cache", folder / "prepare_cache.py"
     )
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     cache = importlib.util.module_from_spec(spec)
     monkeypatch.setitem(sys.modules, "prepare_cache", cache)
     spec.loader.exec_module(cache)
@@ -206,7 +210,8 @@ def test_tony_four_spark_launch_binds_the_dedicated_node_pool(monkeypatch):
     loaded = []
     for name in ("prepare_cache", "launcher"):
         spec = importlib.util.spec_from_file_location(name, folder / f"{name}.py")
-        assert spec and spec.loader
+        assert spec
+        assert spec.loader
         module = importlib.util.module_from_spec(spec)
         monkeypatch.setitem(sys.modules, name, module)
         spec.loader.exec_module(module)
@@ -243,7 +248,8 @@ def test_tony_four_spark_launch_binds_the_dedicated_node_pool(monkeypatch):
             str(pool),
         ]
         _, _, command, runtime = launcher.launch(arguments, environ)
-        assert runtime["TF_DS_WINDOW"] == str(pool) and runtime["TF_DS_STREAMS"] == "16"
+        assert runtime["TF_DS_WINDOW"] == str(pool)
+        assert runtime["TF_DS_STREAMS"] == "16"
         if rank:
             # serve.sh: --pool CONTEXT first, then FOLLOW_FLAGS' window as the later --pool, which wins.
             positions = [i for i, item in enumerate(command) if item == "--pool"]

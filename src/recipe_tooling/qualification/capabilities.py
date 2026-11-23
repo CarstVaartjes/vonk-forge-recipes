@@ -23,9 +23,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from vonk_forge_contracts import CapabilityName, ModelDisplay, RecipeDisplay
-
 from recipe_tooling.paths import QUALIFICATION_DIR, REPO_ROOT
+from vonk_forge_contracts import CapabilityName, ModelDisplay, RecipeDisplay
 
 ROOT = REPO_ROOT
 KIT_FLAGS = QUALIFICATION_DIR / "kit-engine-flags.json"

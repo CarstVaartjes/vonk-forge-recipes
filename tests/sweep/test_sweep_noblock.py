@@ -17,6 +17,8 @@ from spark_sweep.report import build_status
 from spark_sweep.smoke import SmokeResult
 from spark_sweep.sweep_contract import (
     SweepSlotPhase,
+    SweepStorageCode,
+    SweepStorageWait,
     SweepWait,
     SweepWaitCode,
     SweepWaitReason,
@@ -55,7 +57,7 @@ def test_new_single_lanes_have_independent_application_receipts(tmp_path: Path) 
 
 
 @pytest.mark.parametrize(
-    "admitted,reclaimable", [(False, 0), (False, 300_000_000_000), (True, 0)]
+    ("admitted", "reclaimable"), [(False, 0), (False, 300_000_000_000), (True, 0)]
 )
 def test_saved_unadmitted_storage_wait_keeps_the_same_load(
     tmp_path: Path, admitted: bool, reclaimable: int
@@ -446,7 +448,6 @@ def test_fleet_outage_blocks_submission_only_until_the_next_fresh_tick(
 
 def test_storage_shortfall_never_submits_an_impossible_lane(tmp_path: Path) -> None:
     """A waitable batch must not admit a Spark whose free plus evictable disk is short."""
-    from spark_sweep.sweep_contract import SweepStorageCode, SweepStorageWait
 
     (tmp_path / "state.json").write_text(FIXTURE.read_text())
     recipes = [FakeRecipe("a", local="cached"), FakeRecipe("b", local="cached")]

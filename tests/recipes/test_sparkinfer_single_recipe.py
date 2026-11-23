@@ -9,6 +9,7 @@ from typing import Any
 
 from generated_catalog import GENERATED
 from repo_root import ROOT
+
 from vonk_forge_contracts import (
     document_sha256,
 )
@@ -47,41 +48,37 @@ class SparkInferSingleRecipeTests(unittest.TestCase):
     def test_complete_immutable_authority_closure(self) -> None:
         recipe = _document(RECIPE_PATH)
         model = _document(_model_path())
-        self.assertEqual(
-            recipe["models"][0]["model"]["content_sha256"],  # pyright: ignore[reportIndexIssue]
-            _canonical_digest(_model_path()),
+        assert (
+            recipe["models"][0]["model"]["content_sha256"]  # pyright: ignore[reportIndexIssue]
+            == _canonical_digest(_model_path())
         )
         # the wrapper keeps its state under the payload revision: the Model is that revision
-        self.assertEqual(model["source"]["revision"], EXECUTABLE_PAYLOAD_REVISION)  # pyright: ignore[reportIndexIssue]
-        self.assertEqual(len(model["files"]), 190)  # pyright: ignore[reportArgumentType]
-        self.assertEqual(
-            len({item["path"] for item in model["files"]}),  # pyright: ignore[reportGeneralTypeIssues]
-            len(model["files"]),  # pyright: ignore[reportArgumentType]
+        assert model["source"]["revision"] == EXECUTABLE_PAYLOAD_REVISION  # pyright: ignore[reportIndexIssue]
+        assert len(model["files"]) == 190  # pyright: ignore[reportArgumentType]
+        assert (
+            len({item["path"] for item in model["files"]})  # pyright: ignore[reportGeneralTypeIssues]
+            == len(model["files"])  # pyright: ignore[reportArgumentType]
         )
-        self.assertTrue(all(len(item["sha256"]) == 64 for item in model["files"]))  # pyright: ignore[reportGeneralTypeIssues]
+        assert all(len(item["sha256"]) == 64 for item in model["files"])  # pyright: ignore[reportGeneralTypeIssues]
 
     def test_adapter_is_offline_and_uses_the_published_launch_path(self) -> None:
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")
         wrapper = (ADAPTER_ROOT / "vllm-wrapper.sh").read_text(encoding="utf-8")
         recipe_text = RECIPE_PATH.read_text(encoding="utf-8")
 
-        self.assertIn(f"@sha256:{IMAGE_DIGEST}", dockerfile)
-        self.assertIn(
-            f'org.opencontainers.image.revision="{RUNTIME_REVISION}"', dockerfile
+        assert f"@sha256:{IMAGE_DIGEST}" in dockerfile
+        assert f'org.opencontainers.image.revision="{RUNTIME_REVISION}"' in dockerfile
+        assert "ENTRYPOINT []" in dockerfile
+        assert "/opt/recipe/scripts/coalesce_rank_sliced_exl3.py" in wrapper
+        assert "/opt/recipe/scripts/verify_tp1_manifest.py" in wrapper
+        assert "/opt/recipe/scripts/build_dspark_draft.py" in wrapper
+        assert "/opt/recipe/scripts/selftest.py" in wrapper
+        assert "exec /opt/vllm/serve-ds4-flash.sh" in wrapper
+        assert (
+            f"readonly executable_payload_revision={EXECUTABLE_PAYLOAD_REVISION}"
+            in wrapper
         )
-        self.assertIn("ENTRYPOINT []", dockerfile)
-        self.assertIn("/opt/recipe/scripts/coalesce_rank_sliced_exl3.py", wrapper)
-        self.assertIn("/opt/recipe/scripts/verify_tp1_manifest.py", wrapper)
-        self.assertIn("/opt/recipe/scripts/build_dspark_draft.py", wrapper)
-        self.assertIn("/opt/recipe/scripts/selftest.py", wrapper)
-        self.assertIn("exec /opt/vllm/serve-ds4-flash.sh", wrapper)
-        self.assertIn(
-            f"readonly executable_payload_revision={EXECUTABLE_PAYLOAD_REVISION}",
-            wrapper,
-        )
-        self.assertIn(
-            "readonly state_root=/outputs/${executable_payload_revision}", wrapper
-        )
+        assert "readonly state_root=/outputs/${executable_payload_revision}" in wrapper
 
         for forbidden in (
             "snapshot_download",
@@ -90,7 +87,7 @@ class SparkInferSingleRecipeTests(unittest.TestCase):
             "wget ",
             "git clone",
         ):
-            self.assertNotIn(forbidden, wrapper)
+            assert forbidden not in wrapper
         for forbidden in (
             "metadata-only",
             "non-executable",
@@ -98,14 +95,14 @@ class SparkInferSingleRecipeTests(unittest.TestCase):
             "/bin/false",
             "exit 78",
         ):
-            self.assertNotIn(forbidden, recipe_text)
+            assert forbidden not in recipe_text
         for forbidden in (
             "non-executable",
             "integration-required",
             "/bin/false",
             "exit 78",
         ):
-            self.assertNotIn(forbidden, recipe_text)
+            assert forbidden not in recipe_text
 
         subprocess.run(
             ["bash", "-n", str(ADAPTER_ROOT / "vllm-wrapper.sh")],
@@ -115,18 +112,15 @@ class SparkInferSingleRecipeTests(unittest.TestCase):
     def test_catalog_package_digests_match_the_recipe(self) -> None:
         recipe = _document(RECIPE_PATH)
         context = recipe["execution"]["build"]["context"]  # pyright: ignore[reportIndexIssue]
-        self.assertEqual(context["path"], "adapters/deepseek/sparkinfer-single")
+        assert context["path"] == "adapters/deepseek/sparkinfer-single"
         recipe_digest = _canonical_digest(RECIPE_PATH)
         entry = _catalog_entry(recipe["identity"]["slug"])  # pyright: ignore[reportIndexIssue]
-        self.assertEqual(
-            entry["content_sha256"],
-            recipe_digest,
-        )
+        assert entry["content_sha256"] == recipe_digest
         package = entry["package"]
-        self.assertEqual(package["recipe_content_sha256"], recipe_digest)  # pyright: ignore[reportIndexIssue]
+        assert package["recipe_content_sha256"] == recipe_digest  # pyright: ignore[reportIndexIssue]
         payload = (GENERATED / package["path"]).read_bytes()  # pyright: ignore[reportIndexIssue]
-        self.assertEqual(len(payload), package["expected_bytes"])  # pyright: ignore[reportIndexIssue]
-        self.assertEqual(hashlib.sha256(payload).hexdigest(), package["sha256"])  # pyright: ignore[reportIndexIssue]
+        assert len(payload) == package["expected_bytes"]  # pyright: ignore[reportIndexIssue]
+        assert hashlib.sha256(payload).hexdigest() == package["sha256"]  # pyright: ignore[reportIndexIssue]
 
 
 if __name__ == "__main__":

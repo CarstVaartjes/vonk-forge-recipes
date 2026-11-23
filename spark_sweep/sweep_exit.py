@@ -58,7 +58,7 @@ class SweepExit:
                 profile=self.cfg.sweep_profile,
             )
 
-    def finish(self: Sweep, interrupted: bool = False) -> None:  # pyright: ignore[reportGeneralTypeIssues]
+    def finish(self: Sweep, *, interrupted: bool = False) -> None:  # pyright: ignore[reportGeneralTypeIssues]
         self.executor.shutdown(wait=False, cancel_futures=True)
         if not interrupted:
             self.cleanup_finished()

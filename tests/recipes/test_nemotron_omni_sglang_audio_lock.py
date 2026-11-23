@@ -4,6 +4,7 @@ import runpy
 import unittest
 from unittest.mock import patch
 
+import pytest
 from repo_root import ROOT
 
 VERIFIER = (
@@ -26,7 +27,7 @@ class NemotronOmniSglangAudioLockTests(unittest.TestCase):
                     patch("os.access", return_value=True),
                     patch("importlib.util.find_spec", return_value=object()),
                     patch("importlib.import_module", side_effect=import_dependency),
-                    self.assertRaisesRegex(SystemExit, f"broken {dependency}"),
+                    pytest.raises(SystemExit, match=f"broken {dependency}"),
                 ):
                     runpy.run_path(str(VERIFIER), run_name="__main__")
 

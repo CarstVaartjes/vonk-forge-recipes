@@ -29,9 +29,10 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from recipe_tooling.added_lines import parse_added
+
+ROOT = Path(__file__).resolve().parents[1]
 
 ADAPTERS = "adapters"
 MANIFEST = "vendored-upstream.json"
@@ -118,7 +119,7 @@ def _is_verbatim_copy(root: Path, name: str) -> bool:
     """A file the nearest vendored-upstream.json does not list under ``ours``."""
     path = Path(name)
     for adapter in path.parents:
-        if adapter == Path(ADAPTERS) or adapter == Path("."):
+        if adapter == Path(ADAPTERS) or adapter == Path():
             return False
         manifest_path = root / adapter / MANIFEST
         if not manifest_path.is_file():

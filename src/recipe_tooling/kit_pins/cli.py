@@ -112,6 +112,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from recipe_tooling.adapter_sources import materialize_or_exit
 from recipe_tooling.kit_pins.check import check_images, check_recipe
 from recipe_tooling.kit_pins.image_scan import dockerfile_images, kit_images, kit_scope
 from recipe_tooling.kit_pins.lock import adapter_of, kit_of, manifest_of
@@ -192,7 +193,6 @@ def main(argv: list[str]) -> int:
     recipes = load_recipes(ROOT)
     if command == "images":
         return print_images(recipes, names)
-    from recipe_tooling.adapter_sources import materialize_or_exit
 
     materialize_or_exit(ROOT)  # lock and check read the vendored base archives
     targets = kit_recipes(ROOT, recipes)

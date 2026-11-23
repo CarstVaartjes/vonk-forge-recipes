@@ -499,7 +499,6 @@ class SweepLoading:
                     silent = verdict.silent_seconds(slot["ready_watch"], now)
                     self._fail_slot(
                         key,
-                        slot,
                         policy.classify(
                             "readiness",
                             "run.not_published",
@@ -548,7 +547,7 @@ class SweepLoading:
                     # Nothing the Controller said names this lane: an uncertain outcome,
                     # observed again (one attempt each), never a verdict on one of them.
                     failure = replace(failure, klass=verdict.UNATTRIBUTED)
-                self._fail_slot(member, self.state.slots[member], failure, app)
+                self._fail_slot(member, failure, app)
             return
         load = self.state.data["loads"].get(slot["request_key"]) or {}
         if load.get("stalled"):
@@ -704,7 +703,6 @@ class SweepLoading:
         seconds = round(verdict.silent_seconds(slot.get("watch", {}), self.clock.now()))
         self._fail_slot(
             key,
-            slot,
             failure
             or policy.classify(
                 "timeout",
@@ -721,7 +719,6 @@ class SweepLoading:
     def _fail_slot(
         self: Sweep,  # pyright: ignore[reportGeneralTypeIssues]
         key: str,
-        slot: dict[str, Any],
         failure: policy.Failure,
         app: Mapping[str, Any],
     ) -> None:

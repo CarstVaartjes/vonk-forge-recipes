@@ -21,11 +21,11 @@ from pathlib import Path
 from typing import Any
 
 from pydantic import TypeAdapter
-from vonk_forge_contracts.recipe import MAX_JOB_TIMEOUT_SECONDS
 
 from recipe_tooling.paths import QUALIFICATION_DIR
 from recipe_tooling.qualification.media_types import CanonicalMediaTypes
 from recipe_tooling.qualification.native_dimensions import resolve_native_dimensions
+from vonk_forge_contracts.recipe import MAX_JOB_TIMEOUT_SECONDS
 
 QUALIFICATION_ROOT = QUALIFICATION_DIR
 PER_RECIPE_SECTIONS = ("recipes", "service_recipes")

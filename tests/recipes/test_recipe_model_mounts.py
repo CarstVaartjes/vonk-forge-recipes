@@ -34,10 +34,9 @@ class RecipeModelMountTests(unittest.TestCase):
                 for selection in recipe["models"]:  # type: ignore[attr-defined]
                     for file in selection["files"]:
                         target = PurePosixPath(file["mount"]["target"])
-                        self.assertTrue(
-                            target == MODEL_ROOT or MODEL_ROOT in target.parents,
+                        assert target == MODEL_ROOT or MODEL_ROOT in target.parents, (
                             f"{name}: {selection['id']}/{file['id']} mounts at "
-                            f"{target}, outside {MODEL_ROOT}",
+                            f"{target}, outside {MODEL_ROOT}"
                         )
 
     def test_every_rank_of_a_multi_node_recipe_mounts_the_model_files(self) -> None:
@@ -51,10 +50,9 @@ class RecipeModelMountTests(unittest.TestCase):
                     mounted = {
                         role for file in selection["files"] for role in file["roles"]
                     }
-                    self.assertFalse(
-                        roles - mounted,
+                    assert not roles - mounted, (
                         f"{name}: model {selection['id']} has no files for "
-                        f"role(s) {sorted(roles - mounted)}",
+                        f"role(s) {sorted(roles - mounted)}"
                     )
 
 

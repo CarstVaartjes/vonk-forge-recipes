@@ -9,6 +9,7 @@ from typing import Any
 
 import pytest
 from repo_root import ROOT
+
 from vonk_forge_contracts import RecipeDefinition
 
 # Exact source from SGLang commit 6a4216edb6d25f669ea81de146f86c01eab31128,

@@ -23,10 +23,8 @@ def _calls_lora(path: Path) -> bool:
     return any(
         isinstance(node, ast.Call)
         and (
-            isinstance(node.func, ast.Attribute)
-            and node.func.attr in LORA_APIS
-            or isinstance(node.func, ast.Name)
-            and node.func.id in LORA_APIS
+            (isinstance(node.func, ast.Attribute) and node.func.attr in LORA_APIS)
+            or (isinstance(node.func, ast.Name) and node.func.id in LORA_APIS)
         )
         for node in ast.walk(ast.parse(source))
     )

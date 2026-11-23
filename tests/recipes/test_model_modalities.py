@@ -5,12 +5,14 @@ from __future__ import annotations
 import runpy
 import shutil
 from pathlib import Path
+from typing import Any
 
 from repo_root import ROOT
-from vonk_forge_contracts import ChatApi, DecisionApi
-from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone
 
 from recipe_tooling.qualification.documents import has_recipe_api, recipe, recipe_api
+from vonk_forge_contracts import CapabilityName, CapabilityRole, ChatApi, DecisionApi
+from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone
+from vonk_forge_contracts.capability import CAPABILITY_ROLES
 
 GUARD = runpy.run_path(str(ROOT / "tools/check-model-modalities"))
 
@@ -41,7 +43,6 @@ def test_a_text_generating_model_is_judged_not_skipped() -> None:
 
 
 def test_roles_come_from_the_contract_not_from_name_suffixes() -> None:
-    from vonk_forge_contracts import CapabilityName, CapabilityRole
 
     assert CapabilityName("text-to-speech").role is CapabilityRole.GENERATOR
     assert CapabilityName("image-upscaling").role is CapabilityRole.GENERATOR
@@ -53,8 +54,6 @@ def test_roles_come_from_the_contract_not_from_name_suffixes() -> None:
 
 
 def test_every_capability_has_an_explicit_role() -> None:
-    from vonk_forge_contracts import CapabilityName
-    from vonk_forge_contracts.capability import CAPABILITY_ROLES
 
     assert set(CAPABILITY_ROLES) == set(CapabilityName)
 
@@ -87,7 +86,7 @@ def _chat_recipe() -> str:
     )
 
 
-def _with_blocks(api, base: dict, choices: list[dict]):
+def _with_blocks(api, base: dict[str, Any], choices: list[dict[str, Any]]):
     """The API document with its base block and option blocks replaced."""
 
     return type(api).model_validate(

@@ -1,17 +1,64 @@
 """Hardware proof survives rechecks, reverts and infrastructure faults."""
 
+import ast
 import json
+import runpy
 import shutil
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from jsonschema import Draft202012Validator
+from jsonschema import ValidationError as SchemaValidationError
 from pydantic import ValidationError
 from repo_root import ROOT
+from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from sweep_sources import run_source
+
+from recipe_tooling.qualification.evidence_store import (
+    catalog_recipe_keys,
+    read_evidence,
+    write_evidence,
+)
+from spark_sweep import (
+    policy,
+    qualification,
+    sweep_loading,
+    sweep_reconcile,
+    sweep_schedule,
+    sweep_smoke,
+)
+from spark_sweep import state as state_module
+from spark_sweep.auth_contract import SmokeAuthClass
+from spark_sweep.catalog_contract import RuntimeImageIdentity
+from spark_sweep.evidence_publisher import (
+    rotated_history,
+)
+from spark_sweep.identity import content_identity
+from spark_sweep.lifecycle import RecipeStatus, RetestReason
+from spark_sweep.qualification import (
+    BackfillResult,
+    backfill,
+    current_identity,
+    from_history,
+    read_history,
+    scheduling_priority,
+)
+from spark_sweep.report import (
+    _qualification_text,
+    build_report,
+    render_report,
+    saved_qualification,
+)
+from spark_sweep.state import State
+from spark_sweep.sweep_contract import SweepAdoptionReason
+from spark_sweep.sweep_support import RETEST_SECONDS
+from spark_sweep.vonkctl import Reply
 from vonk_forge_contracts import (
     PublishedQualificationStatusView,
+    QualificationDerivationInput,
     derive_status,
+    document_sha256,
     published_qualification_status_json_schema,
     published_status,
 )
@@ -53,20 +100,6 @@ from vonk_forge_contracts import (
 )
 from vonk_forge_contracts import (
     RecipeQualificationEvidence as Evidence,
-)
-
-from recipe_tooling.qualification.evidence_store import read_evidence
-from spark_sweep.evidence_publisher import (
-    rotated_history,
-)
-from spark_sweep.lifecycle import RecipeStatus, RetestReason
-from spark_sweep.qualification import (
-    BackfillResult,
-    backfill,
-    current_identity,
-    from_history,
-    read_history,
-    scheduling_priority,
 )
 
 NOW = datetime(2026, 10, 21, tzinfo=UTC)
@@ -112,7 +145,7 @@ def evidence(*records):
 
 
 @pytest.mark.parametrize(
-    "records,current,fleet,testing,status",
+    ("records", "current", "fleet", "testing", "status"),
     [
         ((), A, 2, False, Status.UNTESTED),
         ((record(),), A, 2, False, Status.WORKING),
@@ -143,7 +176,7 @@ def evidence(*records):
     ],
 )
 def test_status_table(records, current, fleet, testing, status):
-    view = derive_status(evidence(*records), current, fleet, testing)
+    view = derive_status(evidence(*records), current, fleet, testing_now=testing)
     assert view.status == status
     if records and records[0].outcome == Outcome.PASSED:
         assert view.last_pass == records[0]
@@ -153,16 +186,20 @@ def test_restore_on_revert_and_newest_exact_hardware_verdict_wins():
     passed = record()
     failed_other = record(B, Outcome.FAILED, Blame.RECIPE, 1)
     history = evidence(failed_other, passed)
-    assert derive_status(history, A, 0, False).status == Status.WORKING
-    assert derive_status(history, B, 2, False).status == Status.FAILED_RECIPE
+    assert derive_status(history, A, 0, testing_now=False).status == Status.WORKING
+    assert (
+        derive_status(history, B, 2, testing_now=False).status == Status.FAILED_RECIPE
+    )
     failed_same = record(A, Outcome.FAILED, Blame.RECIPE, 2)
     assert (
-        derive_status(evidence(passed, failed_same), A, 2, False).status
+        derive_status(evidence(passed, failed_same), A, 2, testing_now=False).status
         == Status.FAILED_RECIPE
     )
     repassed = record(day=3)
     assert (
-        derive_status(evidence(repassed, failed_same, passed), A, 2, False).status
+        derive_status(
+            evidence(repassed, failed_same, passed), A, 2, testing_now=False
+        ).status
         == Status.WORKING
     )
 
@@ -170,10 +207,10 @@ def test_restore_on_revert_and_newest_exact_hardware_verdict_wins():
 def test_platform_failure_never_invalidates_proof_or_creates_recipe_blame():
     failed = record(outcome=Outcome.FAILED, blame=Blame.PLATFORM, day=1)
     history = evidence(record(), failed)
-    view = derive_status(history, A, 2, False)
+    view = derive_status(history, A, 2, testing_now=False)
     assert view.status == Status.WORKING
     assert view.last_failure == failed
-    assert derive_status(history, B, 2, False).status == Status.RECHECK
+    assert derive_status(history, B, 2, testing_now=False).status == Status.RECHECK
     assert published_status(evidence(failed), A).status == Status.NOT_YET_VERIFIED
     assert published_status(evidence(failed), A).reason == Reason.PLATFORM_ISSUE
 
@@ -187,7 +224,7 @@ def test_changes_are_precise_and_prior_proof_visible_in_lane():
             "model_digests": ("1" * 64,),
         }
     )
-    view = derive_status(evidence(record()), current, 2, True)
+    view = derive_status(evidence(record()), current, 2, testing_now=True)
     assert view.status == Status.TESTING
     assert view.changed == (Change.RECIPE, Change.IMAGE, Change.MODEL)
     assert view.last_pass is not None
@@ -227,7 +264,9 @@ def test_ordering():
         Status.FIX_TO_VERIFY,
     ]
     views = [
-        derive_status(evidence(), A, 2, False).model_copy(update={"status": s})
+        derive_status(evidence(), A, 2, testing_now=False).model_copy(
+            update={"status": s}
+        )
         for s in statuses
     ]
     assert [v.status for v in sorted(views, key=scheduling_priority)] == list(
@@ -327,7 +366,8 @@ def test_backfill_rotations_idempotent_read_only_and_sanitized(tmp_path):
     legacy = historical()
     del legacy["verdict_identity"]
     imported = from_history(legacy)
-    assert imported is not None and imported.identity.runtime_image is None
+    assert imported is not None
+    assert imported.identity.runtime_image is None
     assert not imported.identity.models_resolved
 
 
@@ -364,17 +404,15 @@ def test_rotated_logs_are_read_once_and_publish_as_reading_every_log(tmp_path):
 def test_historical_infrastructure_failures_are_never_recipe_failures():
     row = {**historical(), "status": Outcome.FAILED, "failure_class": "capacity"}
     imported = from_history(row)
-    assert imported is not None and imported.blame == Blame.PLATFORM
+    assert imported is not None
+    assert imported.blame == Blame.PLATFORM
     row.update(failure_class="smoke-assertion")
     imported = from_history(row)
-    assert imported is not None and imported.blame == Blame.RECIPE
+    assert imported is not None
+    assert imported.blame == Blame.RECIPE
 
 
 def test_sweep_restore_and_retry_failed_use_evidence(tmp_path):
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-
-    from spark_sweep.catalog_contract import RuntimeImageIdentity
-    from spark_sweep.lifecycle import RecipeStatus
 
     fake = FakeRecipe("example")
     sweep, _, _ = make_sweep(tmp_path, [fake], [FakeModel("m1")])
@@ -420,7 +458,10 @@ def test_published_catalog_matches_shared_derivation(built_catalog):
         if expected.status != Status.NOT_YET_VERIFIED:
             assert identity.required_sparks is not None
             derived = derive_status(
-                read_evidence(ROOT, key), identity, identity.required_sparks, False
+                read_evidence(ROOT, key),
+                identity,
+                identity.required_sparks,
+                testing_now=False,
             )
             # A platform fault after an earlier pass publishes Re-check.
             assert expected.status == (
@@ -433,11 +474,6 @@ def test_published_catalog_matches_shared_derivation(built_catalog):
 def test_catalog_derives_after_resolving_release_image(
     tmp_path, monkeypatch, built_catalog
 ):
-    import runpy
-
-    from vonk_forge_contracts import document_sha256
-
-    from recipe_tooling.qualification.evidence_store import write_evidence
 
     tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
     build = tool["build"]
@@ -506,9 +542,6 @@ def test_catalog_derives_after_resolving_release_image(
 
 
 def test_saved_report_recomputes_from_inputs_and_keeps_prior_proof():
-    from vonk_forge_contracts import QualificationDerivationInput
-
-    from spark_sweep.report import _qualification_text, saved_qualification
 
     snapshot = QualificationDerivationInput(
         evidence=evidence(record()), current_identity=B, fleet_size=2, testing_now=True
@@ -523,19 +556,17 @@ def test_saved_report_recomputes_from_inputs_and_keeps_prior_proof():
 
 def test_public_topology_requirement_is_not_the_publishers_fleet():
     current = A.model_copy(update={"required_sparks": 4})
-    local = derive_status(evidence(), current, 2, False)
+    local = derive_status(evidence(), current, 2, testing_now=False)
     assert local.status == Status.CANNOT_TEST
     public = published_status(evidence(), current)
     assert public.status == Status.NOT_YET_VERIFIED
-    assert public.reason == Reason.NEEDS_SPARKS and public.required_sparks == 4
+    assert public.reason == Reason.NEEDS_SPARKS
+    assert public.required_sparks == 4
     with pytest.raises(ValidationError, match="required Spark count"):
         record(current)
 
 
 def test_fix_to_verify_precedes_untested_even_with_a_limit(tmp_path):
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-
-    from spark_sweep.catalog_contract import RuntimeImageIdentity
 
     untested, fixed = FakeRecipe("untested"), FakeRecipe("fixed")
     sweep, _, _ = make_sweep(tmp_path, [untested, fixed], [FakeModel("m1")])
@@ -558,7 +589,6 @@ def test_fix_to_verify_precedes_untested_even_with_a_limit(tmp_path):
 
 
 def test_authorization_faults_are_platform_evidence_and_preserve_recipe_proof():
-    from spark_sweep.auth_contract import SmokeAuthClass
 
     row = {
         **historical(),
@@ -566,19 +596,18 @@ def test_authorization_faults_are_platform_evidence_and_preserve_recipe_proof():
         "failure_class": SmokeAuthClass.REFUSAL,
     }
     imported = from_history(row)
-    assert imported is not None and imported.blame == Blame.PLATFORM
+    assert imported is not None
+    assert imported.blame == Blame.PLATFORM
     assert (
-        derive_status(evidence(record(), imported), A, 2, False).status
+        derive_status(evidence(record(), imported), A, 2, testing_now=False).status
         == Status.WORKING
     )
 
 
 def test_platform_faults_do_not_count_against_recipes_in_report_headline():
-    from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.report import build_report, render_report
 
     view = derive_status(
-        evidence(record(A, Outcome.FAILED, Blame.PLATFORM)), A, 2, False
+        evidence(record(A, Outcome.FAILED, Blame.PLATFORM)), A, 2, testing_now=False
     )
     report = build_report(
         {KEY: {"status": RecipeStatus.FAILED}}, {KEY: view.model_dump(mode="json")}
@@ -589,11 +618,6 @@ def test_platform_faults_do_not_count_against_recipes_in_report_headline():
 def test_elapsed_time_never_retries_a_failure_with_platform_blame(
     tmp_path, monkeypatch
 ):
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-
-    from spark_sweep.identity import content_identity
-    from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.sweep_support import RETEST_SECONDS
 
     fake = FakeRecipe("example")
     sweep, _, clock = make_sweep(tmp_path, [fake], [FakeModel("m1")], watch_seconds=60)
@@ -606,7 +630,7 @@ def test_elapsed_time_never_retries_a_failure_with_platform_blame(
         finished_at=clock.now() - RETEST_SECONDS,
     )
     view = derive_status(
-        evidence(record(A, Outcome.FAILED, Blame.PLATFORM)), A, 2, False
+        evidence(record(A, Outcome.FAILED, Blame.PLATFORM)), A, 2, testing_now=False
     )
     monkeypatch.setattr(sweep, "qualification_view", lambda recipe: view)
     sweep.tick()
@@ -629,8 +653,6 @@ def test_elapsed_time_never_retries_a_failure_with_platform_blame(
     ],
 )
 def test_public_versions_cannot_be_used_to_carry_infrastructure_details(field, unsafe):
-    from jsonschema import Draft202012Validator
-    from jsonschema import ValidationError as SchemaValidationError
 
     with pytest.raises(ValidationError):
         Platform.model_validate({**PLATFORM.model_dump(), field: unsafe})
@@ -658,12 +680,16 @@ def test_missing_historical_topology_stays_unknown_and_roundtrips():
     imported = from_history(row)
     assert imported is not None
     assert imported.identity.required_sparks is None
-    assert imported.platform.spark_count is None and imported.platform.topology is None
+    assert imported.platform.spark_count is None
+    assert imported.platform.topology is None
     restored = Record.model_validate_json(imported.model_dump_json(exclude_none=True))
     assert restored == imported
     with pytest.raises(ValueError, match="Spark count"):
         derive_status(
-            evidence(), A.model_copy(update={"required_sparks": None}), 2, False
+            evidence(),
+            A.model_copy(update={"required_sparks": None}),
+            2,
+            testing_now=False,
         )
 
 
@@ -707,7 +733,6 @@ def test_partial_pass_after_recipe_failure_cannot_revive_an_invalidated_public_p
 
 
 def evidence_sweep(tmp_path, names=("example",), **kwargs):
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
     fakes = [
         FakeRecipe(name, digests=A.model_digests, content=A.content_sha256)
@@ -731,7 +756,7 @@ def evidence_sweep(tmp_path, names=("example",), **kwargs):
     "changed", ["document", "model", "image", "build", "library", "unchanged"]
 )
 @pytest.mark.parametrize(
-    "outcome,blame",
+    ("outcome", "blame"),
     [
         (Outcome.PASSED, None),
         (Outcome.FAILED, Blame.RECIPE),
@@ -739,7 +764,6 @@ def evidence_sweep(tmp_path, names=("example",), **kwargs):
     ],
 )
 def test_evidence_identity_drives_requeue(tmp_path, changed, outcome, blame):
-    from spark_sweep.lifecycle import RecipeStatus
 
     sweep, _, _ = evidence_sweep(tmp_path)
     current = sweep.recipes[KEY]
@@ -780,8 +804,6 @@ def test_evidence_identity_drives_requeue(tmp_path, changed, outcome, blame):
 
 
 def test_evidence_revalidation_of_newest_cached_pass_is_last_even_with_limit(tmp_path):
-    from spark_sweep import policy
-    from spark_sweep.lifecycle import RecipeStatus
 
     sweep, _, _ = evidence_sweep(tmp_path, ("passed", "untested", "failed", "deferred"))
     for slug, records in (
@@ -830,10 +852,6 @@ def test_evidence_revalidation_of_newest_cached_pass_is_last_even_with_limit(tmp
 def test_saved_verdict_adoption_restores_without_rerun_and_survives_interrupted_save(
     tmp_path, active
 ):
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-
-    from spark_sweep.identity import content_identity
-    from spark_sweep.lifecycle import RecipeStatus
 
     sweep, fleet, _ = evidence_sweep(tmp_path)
     accepted = sweep.recipes[KEY]
@@ -886,8 +904,6 @@ def test_saved_verdict_adoption_restores_without_rerun_and_survives_interrupted_
 def test_adopted_unknown_image_pass_keeps_proof_but_cannot_hide_known_changes(
     tmp_path, changed
 ):
-    from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.state import State
 
     sweep, _, clock = evidence_sweep(tmp_path)
     historical_identity = A.model_copy(update={"runtime_image": None})
@@ -913,7 +929,8 @@ def test_adopted_unknown_image_pass_keeps_proof_but_cannot_hide_known_changes(
     sweep._reconcile_entry(sweep.recipes[KEY], 2)
     assert sweep.state.status(KEY) == RecipeStatus.PENDING
     view = sweep.qualification_view(sweep.recipes[KEY])
-    assert view is not None and view.last_pass is not None
+    assert view is not None
+    assert view.last_pass is not None
     assert view.last_pass.identity == historical_identity.model_copy(
         update={"required_sparks": None}
     )
@@ -922,8 +939,6 @@ def test_adopted_unknown_image_pass_keeps_proof_but_cannot_hide_known_changes(
 
 
 def test_adoption_is_once_and_retry_failed_never_requeues_proven_pass(tmp_path):
-    from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.state import State
 
     sweep, _, clock = evidence_sweep(tmp_path)
     sweep.state.data["qualification_evidence"] = {
@@ -946,7 +961,6 @@ def test_adoption_is_once_and_retry_failed_never_requeues_proven_pass(tmp_path):
 
 @pytest.mark.parametrize("blame", [Blame.RECIPE, Blame.PLATFORM])
 def test_retry_failed_uses_adopted_failure_evidence(tmp_path, blame):
-    from spark_sweep.lifecycle import RecipeStatus
 
     sweep, _, _ = evidence_sweep(tmp_path)
     sweep.qualification_evidence[KEY] = evidence(record(A, Outcome.FAILED, blame))
@@ -958,7 +972,6 @@ def test_retry_failed_uses_adopted_failure_evidence(tmp_path, blame):
 
 
 def test_superseded_verdict_paths_cannot_return():
-    import ast
 
     for name in ("identity.py", "lifecycle.py", "policy.py", "run.py"):
         tree = ast.parse((ROOT / "spark_sweep" / name).read_text())
@@ -993,8 +1006,6 @@ def test_superseded_verdict_paths_cannot_return():
 
 
 def test_adoption_never_dates_a_sparse_previous_pass_after_a_known_failure(tmp_path):
-    from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.state import State
 
     sweep, _, clock = evidence_sweep(tmp_path)
     saved = historical()
@@ -1015,12 +1026,12 @@ def test_adoption_never_dates_a_sparse_previous_pass_after_a_known_failure(tmp_p
         sweep.state.data["qualification_evidence"][KEY]
     )
     view = sweep.qualification_view(sweep.recipes[KEY])
-    assert view is not None and view.status == Status.FAILED_RECIPE
+    assert view is not None
+    assert view.status == Status.FAILED_RECIPE
     assert view.last_pass is not None
 
 
 def test_repository_evidence_only_names_current_catalog_recipes():
-    from recipe_tooling.qualification.evidence_store import catalog_recipe_keys
 
     keys = catalog_recipe_keys(ROOT)
     for path in (ROOT / "qualification/evidence").rglob("*.json"):
@@ -1031,7 +1042,7 @@ def test_repository_evidence_only_names_current_catalog_recipes():
 
 
 @pytest.mark.parametrize(
-    "outcome,blame",
+    ("outcome", "blame"),
     [
         (Outcome.PASSED, None),
         (Outcome.FAILED, Blame.RECIPE),
@@ -1041,7 +1052,6 @@ def test_repository_evidence_only_names_current_catalog_recipes():
 def test_unknown_image_library_publication_is_not_a_qualification_change(
     tmp_path, outcome, blame
 ):
-    from spark_sweep.lifecycle import RecipeStatus
 
     sweep, _, _ = evidence_sweep(tmp_path)
     current = replace(
@@ -1054,7 +1064,8 @@ def test_unknown_image_library_publication_is_not_a_qualification_change(
     sweep._reconcile_entry(current, 2)
     assert sweep.state.status(KEY) == status
     view = sweep.qualification_view(current)
-    assert view is not None and not view.changed
+    assert view is not None
+    assert not view.changed
     if view.last_pass is not None:
         assert view.last_pass.identity.runtime_image is None
 
@@ -1063,10 +1074,6 @@ def test_unknown_image_library_publication_is_not_a_qualification_change(
 def test_one_load_adopts_schema_and_verdicts_without_losing_accepted_effects(
     tmp_path, monkeypatch, schema
 ):
-    from spark_sweep import qualification
-    from spark_sweep import state as state_module
-    from spark_sweep.lifecycle import RecipeStatus
-    from spark_sweep.sweep_contract import SweepAdoptionReason
 
     path = tmp_path / "state.json"
     saved = {
@@ -1111,7 +1118,7 @@ def test_one_load_adopts_schema_and_verdicts_without_losing_accepted_effects(
 
     monkeypatch.setattr(state_module, "_adopt", adopt)
     monkeypatch.setattr(qualification, "adopt_state_evidence", adopt_evidence)
-    adopted = state_module.State.load(path, clock=lambda: NOW.timestamp())
+    adopted = state_module.State.load(path, clock=NOW.timestamp)
     assert calls == ["state", "evidence"]
     assert path.read_bytes() == before
     assert adopted.data["schema"] == state_module.SCHEMA
@@ -1120,17 +1127,17 @@ def test_one_load_adopts_schema_and_verdicts_without_losing_accepted_effects(
     }
     assert adopted.downloads == saved["downloads"]
     imported = Evidence.model_validate(adopted.data["qualification_evidence"][KEY])
-    assert derive_status(imported, A, 2, False).status == Status.WORKING
+    assert derive_status(imported, A, 2, testing_now=False).status == Status.WORKING
     if schema == 1:
         assert adopted.entry("vonk-forge/obsolete")["status"] == RecipeStatus.PENDING
         assert adopted.adoptions[0].reason == SweepAdoptionReason.LOAD_RULES
         assert adopted.adoptions[0].previous["attempts"] == 7
     # A crash before save repeats the same adoption without manufacturing proof.
-    interrupted = state_module.State.load(path, clock=lambda: NOW.timestamp())
+    interrupted = state_module.State.load(path, clock=NOW.timestamp)
     assert interrupted.data == adopted.data
     adopted.save()
     calls.clear()
-    reloaded = state_module.State.load(path, clock=lambda: NOW.timestamp())
+    reloaded = state_module.State.load(path, clock=NOW.timestamp)
     assert calls == ["state"]
     assert reloaded.data == adopted.data
     assert not reloaded.adoptions
@@ -1148,7 +1155,7 @@ def test_missing_historical_spark_count_preserves_only_matching_content(field):
         # A real topology change changes the recipe content digest too.
         "topology": B.model_copy(update={"required_sparks": 2}),
     }[field]
-    view = derive_status(evidence(saved), current, 2, False)
+    view = derive_status(evidence(saved), current, 2, testing_now=False)
     assert (view.status == Status.WORKING) == (field == "unchanged")
     assert view.last_pass == saved
     # Missing historical provenance never becomes public certification.
@@ -1158,7 +1165,10 @@ def test_missing_historical_spark_count_preserves_only_matching_content(field):
 def test_explicit_historical_topology_mismatch_cannot_restore_working():
     saved = record()
     current = A.model_copy(update={"required_sparks": 2})
-    assert derive_status(evidence(saved), current, 2, False).status == Status.RECHECK
+    assert (
+        derive_status(evidence(saved), current, 2, testing_now=False).status
+        == Status.RECHECK
+    )
 
 
 def test_sparse_topology_failure_invalidates_older_public_proof():
@@ -1167,17 +1177,11 @@ def test_sparse_topology_failure_invalidates_older_public_proof():
     )
     partial = record(day=2).model_copy(update={"platform": NO_CONTROLLER})
     history = evidence(record(), failed, partial)
-    assert derive_status(history, A, 2, False).status == Status.WORKING
+    assert derive_status(history, A, 2, testing_now=False).status == Status.WORKING
     assert published_status(history, A).status == Status.NOT_YET_VERIFIED
 
 
 def test_real_projected_library_and_evidence_restore_requeued_pass(tmp_path):
-    from sweep_fakes import make_sweep
-
-    from spark_sweep.identity import content_identity
-    from spark_sweep.lifecycle import RecipeStatus, RetestReason
-    from spark_sweep.state import State
-    from spark_sweep.vonkctl import Reply
 
     # Identity-only slices of the owner's five-row Controller GET, plus a d3 GET
     # row from the same projected API. No document-shaped compatibility reader.
@@ -1259,7 +1263,7 @@ def test_unrecorded_image_is_not_a_change_or_invented_provenance(changed):
         "topology": A.model_copy(update={"required_sparks": 2}),
         "unknown-models": A.model_copy(update={"models_resolved": False}),
     }[changed]
-    view = derive_status(evidence(saved), current, 2, False)
+    view = derive_status(evidence(saved), current, 2, testing_now=False)
     assert (view.status == Status.WORKING) == (changed == "unchanged")
     assert view.last_pass == saved
     assert Change.IMAGE not in view.changed
@@ -1276,11 +1280,11 @@ def test_unbound_pass_cannot_hide_a_recorded_image_change():
             )
         }
     )
-    view = derive_status(evidence(unbound, pinned), current, 2, False)
+    view = derive_status(evidence(unbound, pinned), current, 2, testing_now=False)
     assert view.status == Status.RECHECK
     assert view.changed == (Change.IMAGE,)
     # Exact pin revert restores the original measurement, not the unbound pass.
-    restored = derive_status(evidence(unbound, pinned), A, 2, False)
+    restored = derive_status(evidence(unbound, pinned), A, 2, testing_now=False)
     assert restored.status == Status.WORKING
     assert restored.last_pass == pinned
 
@@ -1293,11 +1297,11 @@ def test_adapter_only_fix_invalidates_a_failure_without_a_prebuilt_image():
     )
     current = previous.model_copy(update={"source_bundle_sha256": "2" * 64})
     failed = record(previous, Outcome.FAILED, Blame.RECIPE)
-    view = derive_status(evidence(failed), current, 1, False)
+    view = derive_status(evidence(failed), current, 1, testing_now=False)
     assert view.status == Status.FIX_TO_VERIFY
     assert view.changed == (Change.SOURCE,)
     assert (
-        derive_status(evidence(failed), previous, 1, False).status
+        derive_status(evidence(failed), previous, 1, testing_now=False).status
         == Status.FAILED_RECIPE
     )
 
@@ -1308,13 +1312,13 @@ def test_pass_recorded_before_source_digests_stays_working():
     legacy = A.model_copy(update={"source_bundle_sha256": None})
     current = A.model_copy(update={"source_bundle_sha256": "1" * 64})
     passed = record(legacy)
-    view = derive_status(evidence(passed), current, 2, False)
+    view = derive_status(evidence(passed), current, 2, testing_now=False)
     assert view.status == Status.WORKING
     assert view.changed == ()
     # Once a digest is recorded, a later adapter-only change is a change.
     bound = record(current)
     moved = current.model_copy(update={"source_bundle_sha256": "2" * 64})
-    changed = derive_status(evidence(bound), moved, 2, False)
+    changed = derive_status(evidence(bound), moved, 2, testing_now=False)
     assert changed.status == Status.RECHECK
     assert changed.changed == (Change.SOURCE,)
 
@@ -1373,7 +1377,6 @@ def test_later_catalog_passes_and_a_restart_keep_the_requeue(tmp_path):
             == RetestReason.UNPUBLISHABLE_PASS
         )
     sweep.state.save()
-    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
     again, _, _ = make_sweep(
         tmp_path, [FakeRecipe("example")], [FakeModel("m1")], fleet=fleet
@@ -1394,13 +1397,6 @@ def test_a_publishing_pass_is_not_requeued(tmp_path):
 
 def test_without_a_catalog_image_the_pass_is_left_alone(tmp_path, monkeypatch):
     """A re-run could not publish either: no loop."""
-    from spark_sweep import (
-        qualification,
-        sweep_loading,
-        sweep_reconcile,
-        sweep_schedule,
-        sweep_smoke,
-    )
 
     sweep, _, _ = evidence_sweep(tmp_path)
     key = next(iter(sweep.recipes))

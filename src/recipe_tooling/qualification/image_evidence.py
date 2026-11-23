@@ -7,7 +7,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, TypeAdapter
 
-from .tolerant import InputDiagnostic, read_optional
+from recipe_tooling.qualification.tolerant import InputDiagnostic, read_optional
 
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 

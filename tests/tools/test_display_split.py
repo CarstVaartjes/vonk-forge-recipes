@@ -11,6 +11,7 @@ from typing import Any
 import pytest
 from documents import model, model_display, recipe, recipe_display
 from repo_root import ROOT
+
 from vonk_forge_contracts import (
     CapabilityName,
     ModelDefinition,
@@ -140,7 +141,9 @@ def test_a_display_must_name_its_own_document() -> None:
 
 
 def test_editing_a_proven_recipes_displays_changes_no_identity_or_status(
-    tmp_path: Path, built_catalog: tuple[dict, Path], monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path,
+    built_catalog: tuple[dict[str, Any], Path],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A proven recipe's display and its Model's licence and capabilities
     are display: correcting them re-runs nothing.
@@ -187,7 +190,7 @@ def test_editing_a_proven_recipes_displays_changes_no_identity_or_status(
     )
     original, _ = built_catalog
 
-    def projection(catalog: dict) -> list[tuple[object, ...]]:
+    def projection(catalog: dict[str, Any]) -> list[tuple[object, ...]]:
         return [
             (
                 row["source_path"],

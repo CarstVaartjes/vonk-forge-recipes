@@ -112,7 +112,7 @@ def test_unknown_inventory_preserves_queue_and_id_order(tmp_path: Path) -> None:
     ]
 
 
-@pytest.mark.parametrize("complete,width", [(False, 1), (None, 1), (True, 2)])
+@pytest.mark.parametrize(("complete", "width"), [(False, 1), (None, 1), (True, 2)])
 def test_incomplete_or_dual_installations_do_not_claim_a_whole_model(
     tmp_path: Path, complete: bool | None, width: int
 ) -> None:

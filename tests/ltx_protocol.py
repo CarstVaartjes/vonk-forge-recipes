@@ -65,7 +65,10 @@ def assert_streaming_quantization_supported(command: list[str]) -> None:
         else ""
     )
     if "-fp4" in Path(checkpoint).stem:
-        assert offload in ("none", "cpu") and quantization == "nvfp4-prequant", (
+        assert offload in ("none", "cpu"), (
+            "NVFP4 checkpoints require nvfp4-prequant with --offload none or cpu"
+        )
+        assert quantization == "nvfp4-prequant", (
             "NVFP4 checkpoints require nvfp4-prequant with --offload none or cpu"
         )
         return

@@ -13,7 +13,7 @@ from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from spark_sweep.sweep_support import IDENTICAL_EXIT_LIMIT, PLATFORM_SKIP
 
 
-def _rows(tmp_path: Path, key: str) -> list[dict]:
+def _rows(tmp_path: Path, key: str) -> list[dict[str, Any]]:
     path = tmp_path / "results.jsonl"
     if not path.exists():
         return []
@@ -41,7 +41,8 @@ def test_an_older_platform_skip_returns_to_pending(tmp_path: Path) -> None:
     sweep.refresh_catalog()
     entry = sweep.state.recipes[job.key]
     assert entry["status"] == "pending"
-    assert "reason" not in entry and "reason_kind" not in entry
+    assert "reason" not in entry
+    assert "reason_kind" not in entry
     assert [r.key for r in sweep.pending()] == [job.key]
 
 

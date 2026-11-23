@@ -14,13 +14,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from vonk_forge_contracts.api import RecipeApi
-
 from recipe_tooling.qualification.definitions_loader import (
     QUALIFICATION_ROOT,
     load_definitions,
 )
 from recipe_tooling.qualification.documents import recipe_api
+from vonk_forge_contracts.api import RecipeApi
 
 
 class CaseRenderError(ValueError):

@@ -23,11 +23,9 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from vonk_forge_contracts import CONTRACT_MAJOR
-
+from recipe_tooling.added_lines import read_diff
 from recipe_tooling.qualification.documents import (
     has_recipe_api,
     model_display,
@@ -39,6 +37,9 @@ from recipe_tooling.qualification.introduced import (
     unreadable_capabilities,
     unreadable_features,
 )
+from vonk_forge_contracts import CONTRACT_MAJOR
+
+ROOT = Path(__file__).resolve().parents[1]
 
 LOCK_PACKAGE = re.compile(
     r'^package\s*=\s*"vonk-forge-public-contracts==([0-9]+\.[0-9]+\.[0-9]+)"\s*$',
@@ -106,12 +107,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--platform-lock",
-        type=argparse.FileType("r"),
+        type=str,
         required=True,
         help="the platform's control/packaging/public-contracts.lock (- for stdin)",
     )
     args = parser.parse_args()
-    version = platform_contracts_version(args.platform_lock.read())
+    version = platform_contracts_version(read_diff(args.platform_lock))
     slugs = sorted(p.stem for p in (ROOT / "recipes").glob("*.json"))
     found = problems(ROOT, slugs, version) + model_problems(ROOT, version)
     found += [m for m in [major_problem(CONTRACT_MAJOR, version)] if m]

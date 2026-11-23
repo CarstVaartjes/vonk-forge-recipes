@@ -41,7 +41,7 @@ def check_images(
     recipes: dict[str, dict[str, Any]],
     source: Upstream,
     names: Iterable[str] | None = None,
-    notice: Callable[[str], None] = lambda message: None,
+    notice: Callable[[str], None] = lambda _message: None,
 ) -> list[str]:
     """The prebuilt-image rule over recipes built from a kit (one scan per kit commit).
 
@@ -88,9 +88,7 @@ def check_images(
     return problems
 
 
-# ---------------------------------------------------------------------------
-# Check ("is the lock up to date")
-# ---------------------------------------------------------------------------
+# Checking that the lock is up to date
 
 
 def declares_base(wanted: Iterable[Declaration]) -> bool:
@@ -146,7 +144,7 @@ def check_recipe(
         )
     lock = read_lock(adapter)
     if lock is None:
-        return problems + [f"{label}: no {LOCK}; run tools/kit-pins lock {recipe_id}"]
+        return [*problems, f"{label}: no {LOCK}; run tools/kit-pins lock {recipe_id}"]
     # A withdrawn kit (GitHub no longer serves its commit) is not re-read: the lock's own
     # declaration stands, and everything below still checks it against the recipe.
     gone = withdrawn(root, recipe)

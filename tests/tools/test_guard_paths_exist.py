@@ -165,8 +165,9 @@ def tree_paths(root: Path) -> list[str]:
     for directory, names, files in os.walk(root):
         names[:] = [name for name in names if name not in SKIP_DIRS]
         base = Path(directory).relative_to(root).as_posix()
-        for name in [*names, *files]:
-            found.append(name if base == "." else f"{base}/{name}")
+        found.extend(
+            name if base == "." else f"{base}/{name}" for name in [*names, *files]
+        )
     return found
 
 
@@ -185,8 +186,9 @@ def dangling(literals, paths) -> list[str]:
 
 
 def guard_sources() -> dict[str, str]:
-    files = sorted((ROOT / "tools").glob("check-*")) + [
-        ROOT / "src/recipe_tooling/added_lines.py"
+    files = [
+        *sorted((ROOT / "tools").glob("check-*")),
+        ROOT / "src/recipe_tooling/added_lines.py",
     ]
     return {path.relative_to(ROOT).as_posix(): path.read_text() for path in files}
 
@@ -227,8 +229,8 @@ def test_every_path_a_guard_names_exists():
 def test_the_scan_sees_the_guards_it_protects():
     # A scan that finds nothing would pass forever; pin that it reads the known owners.
     sources = guard_sources()
-    assert "src/recipe_tooling/upstream_http.py" in path_literals(
-        python_strings(sources["tools/check-raw-urlopen"])
+    assert "src/recipe_tooling/qualification/documents.py" in path_literals(
+        python_strings(sources["tools/check-document-reads"])
     )
     assert LAYERS
     assert path_literals(json_strings(json.loads((ROOT / JSON_FILES[0]).read_text())))
@@ -265,7 +267,8 @@ def test_a_new_top_level_directory_is_checked(tmp_path):
     (tmp_path / "src").mkdir()
     (tmp_path / ".git").mkdir()
     names = top_level(tmp_path)
-    assert "src" in names and ".git" not in names
+    assert "src" in names
+    assert ".git" not in names
     assert path_literals(["src/pkg/mod.py", "other/x"], names) == {"src/pkg/mod.py"}
 
 

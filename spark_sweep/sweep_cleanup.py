@@ -101,7 +101,7 @@ class SweepCleanup:
 
     def _cleanup_target_absent(
         self: Sweep,  # pyright: ignore[reportGeneralTypeIssues]
-        load: Mapping,
+        load: Mapping[str, Any],
         *,
         terminal: bool = False,
         fleet: Callable[[], Reply],

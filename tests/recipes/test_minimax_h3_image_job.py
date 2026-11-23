@@ -17,7 +17,8 @@ CONTEXT = ROOT / "adapters/image/minimax-h3-image-sglang"
 @pytest.fixture
 def job(tmp_path, monkeypatch):
     spec = importlib.util.spec_from_file_location("h3_image_job", CONTEXT / "job.py")
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     monkeypatch.setattr(module, "INPUT_ROOT", tmp_path)

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from concurrent.futures import Future
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
@@ -24,7 +25,7 @@ pytestmark = pytest.mark.usefixtures("bounded_clock")
 class _Following:
     """An executor whose job smokes are still following their jobs."""
 
-    def submit(self, *_args, **_kwargs) -> Future:
+    def submit(self, *_args, **_kwargs) -> Future[Any]:
         return Future()
 
 

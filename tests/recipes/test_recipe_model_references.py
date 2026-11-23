@@ -11,6 +11,7 @@ from pathlib import Path
 
 from documents import model
 from repo_root import ROOT
+
 from vonk_forge_contracts import document_sha256, published_json
 
 SCRIPT = ROOT / "tools/check-recipe-model-references"

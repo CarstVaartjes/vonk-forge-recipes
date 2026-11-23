@@ -8,9 +8,9 @@ from datetime import timedelta
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from vonk_forge_contracts.model import GitHubReleaseSource
 
 from recipe_tooling.paths import REPO_ROOT
+from vonk_forge_contracts.model import GitHubReleaseSource
 
 ROOT = REPO_ROOT
 

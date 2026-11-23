@@ -22,9 +22,9 @@ from typing import Any
 import pytest
 from generated_catalog import GENERATED
 from repo_root import ROOT
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
 from recipe_tooling.qualification.coverage_identity import execution_stack_identity
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
 TOOL = "tools/build-family-aware-coverage"
 

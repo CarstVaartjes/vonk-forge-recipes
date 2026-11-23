@@ -19,6 +19,8 @@ import pytest
 from generated_catalog import GENERATED
 from pydantic import ValidationError
 from repo_root import ROOT
+
+from recipe_tooling.upstream_http import open_once
 from vonk_forge_contracts import (
     ModelDefinition,
     RecipeDefinition,
@@ -193,9 +195,7 @@ def test_canonical_canary_server_behaves_without_gpu() -> None:
         deadline = time.monotonic() + 5
         while True:
             try:
-                with urllib.request.urlopen(
-                    f"{base_url}/health", timeout=0.2
-                ) as response:
+                with open_once(f"{base_url}/health", timeout=0.2) as response:
                     assert (
                         json.load(response)
                         == json.loads((FIXTURE / "expected.json").read_text())["health"]
@@ -238,11 +238,11 @@ def test_canonical_canary_server_behaves_without_gpu() -> None:
             )
             if success:
                 ChatRequest.model_validate(body)
-                with urllib.request.urlopen(request, timeout=2) as response:
+                with open_once(request, timeout=2) as response:
                     assert json.load(response) == expected["response"]
             else:
                 with pytest.raises(urllib.error.HTTPError) as rejected:
-                    urllib.request.urlopen(request, timeout=2)
+                    open_once(request, timeout=2)
                 assert rejected.value.code == 400
                 assert (
                     json.load(rejected.value)["error"]["type"]
@@ -255,7 +255,7 @@ def test_canonical_canary_server_behaves_without_gpu() -> None:
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        with urllib.request.urlopen(request, timeout=2) as response:
+        with open_once(request, timeout=2) as response:
             assert response.headers.get_content_type() == "text/event-stream"
             events = [
                 event.removeprefix("data: ")
@@ -295,7 +295,8 @@ def test_request_contract_preserves_extensions_and_separates_structure_from_fixt
     request = ChatRequest.model_validate(body)
     assert request.model_dump()["provider_options"] == body["provider_options"]
     assert request.messages[0].model_dump()["future_message_option"] == {"value": None}
-    assert request.stream is False and request.max_tokens is None
+    assert request.stream is False
+    assert request.max_tokens is None
     assert ChatRequest.model_validate({**body, "stream": None}).stream is None
     for invalid in [
         {"messages": body["messages"]},

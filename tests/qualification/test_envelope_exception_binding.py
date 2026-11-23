@@ -2,7 +2,6 @@
 
 import pytest
 from catalog_documents import catalog_models
-from vonk_forge_contracts import RecipeDefinition, document_sha256
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from recipe_tooling.qualification import documents
@@ -11,6 +10,7 @@ from recipe_tooling.qualification.memory_need import records as mn_records
 from recipe_tooling.qualification.memory_need import warnings as mn_warnings
 from recipe_tooling.qualification.memory_need.evidence import load_inputs
 from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 SLUG = "deepseek-v4-flash-0731-sparkinfer-single"
 INPUTS = load_inputs()

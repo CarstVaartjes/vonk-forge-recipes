@@ -122,7 +122,7 @@ def verify_steps() -> list[tuple[str, list[str]]]:
     ]
 
 
-def verify(root: Path, recipe_id: str) -> str | None:
+def verify(root: Path) -> str | None:
     """Run the producer checks; returns a failure description."""
     steps = verify_steps()
     for name, command in steps:

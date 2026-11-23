@@ -6,6 +6,7 @@ import email.message
 import io
 import json
 import urllib.error
+from typing import Any
 
 import pytest
 
@@ -23,12 +24,12 @@ class _Reply(io.BytesIO):
     def __enter__(self):
         return self
 
-    def __exit__(self, *_):
-        return False
+    def __exit__(self, *_) -> None:
+        return None
 
 
 def _server(monkeypatch, refuse: bool, status: int = 500):
-    seen: list[dict] = []
+    seen: list[dict[str, Any]] = []
 
     def fake(request, timeout, context):
         body = json.loads(request.data)
@@ -61,8 +62,10 @@ def test_a_refused_sampling_parameter_is_retried_without_them(
     }
     record = smoke.run_case("http://x/v1", case, smoke.HttpConfig())
     assert record["http_status"] == 200
-    assert "temperature" not in seen[-1] and "seed" not in seen[-1]
-    assert seen[-1]["model"] == "m" and len(seen) == 2
+    assert "temperature" not in seen[-1]
+    assert "seed" not in seen[-1]
+    assert seen[-1]["model"] == "m"
+    assert len(seen) == 2
 
 
 def test_other_errors_still_fail_and_keep_their_body(monkeypatch) -> None:
@@ -83,7 +86,7 @@ def test_other_errors_still_fail_and_keep_their_body(monkeypatch) -> None:
 
 
 def test_the_stream_probe_sends_no_sampling_parameters(monkeypatch) -> None:
-    sent: list[dict] = []
+    sent: list[dict[str, Any]] = []
 
     def fake(request, timeout, context):
         sent.append(json.loads(request.data))

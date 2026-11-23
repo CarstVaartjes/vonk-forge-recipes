@@ -34,9 +34,10 @@ from pathlib import Path
 from typing import Annotated, BinaryIO
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, model_validator
-from vonk_forge_contracts.recipe import RelativePath, Sha256
 
 from recipe_tooling.paths import REPO_ROOT
+from recipe_tooling.upstream_http import open_once
+from vonk_forge_contracts.recipe import RelativePath, Sha256
 
 ROOT = REPO_ROOT
 MANIFEST = "adapter-sources.json"
@@ -90,7 +91,7 @@ class AdapterSourceError(RuntimeError):
 
 def open_url(url: str) -> AbstractContextManager[BinaryIO]:
     request = urllib.request.Request(url, headers={"User-Agent": "vonk-forge-recipes"})
-    return urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS)
+    return open_once(request, timeout=TIMEOUT_SECONDS)
 
 
 def default_cache() -> Path:
@@ -117,7 +118,7 @@ def _download(url: str, sha256: str, size: int, cache: Path, opener: Opener) -> 
                 received += len(chunk)
         if received != size or digest.hexdigest() != sha256:
             return f"got sha256:{digest.hexdigest()} ({received} bytes)"
-        os.replace(temporary, cache / sha256)
+        Path(temporary).replace(cache / sha256)
         return ""
     finally:
         Path(temporary).unlink(missing_ok=True)
@@ -211,8 +212,8 @@ def _place(root: Path, blob: Path, target: Path) -> None:
     try:
         with os.fdopen(descriptor, "wb") as output, blob.open("rb") as source:
             shutil.copyfileobj(source, output)
-        os.chmod(staging, 0o644)  # what a checkout writes; mkstemp makes 0600
-        os.replace(staging, target)
+        Path(staging).chmod(0o644)  # what a checkout writes; mkstemp makes 0600
+        Path(staging).replace(target)
     finally:
         Path(staging).unlink(missing_ok=True)
 

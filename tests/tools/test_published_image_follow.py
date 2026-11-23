@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
+from documents import json_document
 from repo_root import ROOT
 
 from recipe_tooling import vendored_upstream
@@ -116,12 +117,12 @@ class ProvenanceTests(unittest.TestCase):
         fake = eugr_registry()
         registry = kit_upstream.Registry(fake)
         found = registry.provenance(IMAGE, fake.digest, SOURCE)
-        self.assertEqual(found, (BUILT, "2026-10-13"))
+        assert found == (BUILT, "2026-10-13")
         # Recipes sharing an image read it once a run (anonymous pulls are limited).
         calls = fake.calls
         registry.provenance(IMAGE, fake.digest, SOURCE)
         registry.resolve(IMAGE, fake.digest)
-        self.assertEqual(fake.calls, calls)
+        assert fake.calls == calls
 
     def test_an_oci_revision_label_of_the_source_names_the_commit(self) -> None:
         fake = FakeRegistry(
@@ -133,7 +134,7 @@ class ProvenanceTests(unittest.TestCase):
             None,
         )
         found = kit_upstream.Registry(fake).provenance(IMAGE, fake.digest, SOURCE)
-        self.assertEqual(found, (BUILT, "2026-10-01"))
+        assert found == (BUILT, "2026-10-01")
 
     def test_another_repository_or_no_record_is_never_guessed(self) -> None:
         other = FakeRegistry(
@@ -144,10 +145,10 @@ class ProvenanceTests(unittest.TestCase):
             None,
         )
         registry = kit_upstream.Registry(other)
-        self.assertIsNone(registry.provenance(IMAGE, other.digest, SOURCE))
+        assert registry.provenance(IMAGE, other.digest, SOURCE) is None
         bare = FakeRegistry({}, metadata_layer("build_date: 2026-10-13\n"))
-        self.assertIsNone(
-            kit_upstream.Registry(bare).provenance(IMAGE, bare.digest, SOURCE)
+        assert (
+            kit_upstream.Registry(bare).provenance(IMAGE, bare.digest, SOURCE) is None
         )
 
 
@@ -245,25 +246,24 @@ class RefreshTests(unittest.TestCase):
                 lambda *_: newest,
                 source,
             )
-        self.assertFalse(result.drifted)
-        self.assertIn("unchanged", result.evidence[0])
+        assert not result.drifted
+        assert "unchanged" in result.evidence[0]
 
     def test_a_new_image_moves_from_labels_and_reference_to_its_build_commit(
         self,
     ) -> None:
         fake = eugr_registry()
         result = self.assess(fake, self.identical)
-        self.assertTrue(result.mechanical, result.reasons)
+        assert result.mechanical, result.reasons
         dockerfile = result.edits["adapters/eugr/x/Dockerfile"].decode()
-        self.assertIn(f"FROM {IMAGE}@{fake.digest}", dockerfile)
-        self.assertIn(f'revision="{BUILT}"', dockerfile)
-        recipe = json.loads(result.edits["recipes/recipe.json"])
-        self.assertTrue(recipe["provenance"]["source_reference"].endswith(BUILT))
-        self.assertEqual(
-            recipe["execution"]["build"]["base_image"]["digest"],
-            fake.digest.removeprefix("sha256:"),
-        )
-        self.assertEqual(recipe["release"]["version"], "prebuilt-vllm-current")
+        assert f"FROM {IMAGE}@{fake.digest}" in dockerfile
+        assert f'revision="{BUILT}"' in dockerfile
+        recipe = json_document(result.edits["recipes/recipe.json"])
+        assert recipe["provenance"]["source_reference"].endswith(BUILT)
+        assert recipe["execution"]["build"]["base_image"][
+            "digest"
+        ] == fake.digest.removeprefix("sha256:")
+        assert recipe["release"]["version"] == "prebuilt-vllm-current"
 
     @staticmethod
     def missing(*_: Any) -> Any:
@@ -272,35 +272,35 @@ class RefreshTests(unittest.TestCase):
     def test_github_unreadable_for_an_image_commit_waits(self) -> None:
         with patch.object(refresh_items, "commit_on_github", lambda *_: None):
             result = self.assess(eugr_registry(), self.missing)
-        self.assertFalse(result.mechanical)
-        self.assertFalse(result.reasons)
-        self.assertTrue(result.unreachable)
-        self.assertEqual(result.edits, {})
+        assert not result.mechanical
+        assert not result.reasons
+        assert result.unreachable
+        assert result.edits == {}
 
     def test_an_image_built_from_an_unpublished_commit_moves_for_review(self) -> None:
         fake = eugr_registry()
         with patch.object(refresh_items, "commit_on_github", lambda *_: False):
             result = self.assess(fake, self.missing)
         # Followed by digest, provenance marked, held for a person (never armed).
-        self.assertTrue(result.for_review, result.reasons)
-        self.assertFalse(result.mechanical)
+        assert result.for_review, result.reasons
+        assert not result.mechanical
         dockerfile = result.edits["adapters/eugr/x/Dockerfile"].decode()
-        self.assertIn(f"FROM {IMAGE}@{fake.digest}", dockerfile)
-        self.assertIn(f'revision="{BUILT}"', dockerfile)
-        recipe = json.loads(result.edits["recipes/recipe.json"])
-        self.assertTrue(recipe["provenance"]["source_reference"].endswith(BUILT))
+        assert f"FROM {IMAGE}@{fake.digest}" in dockerfile
+        assert f'revision="{BUILT}"' in dockerfile
+        recipe = json_document(result.edits["recipes/recipe.json"])
+        assert recipe["provenance"]["source_reference"].endswith(BUILT)
         manifest = json.loads(result.edits["adapters/eugr/x/vendored-upstream.json"])
-        self.assertEqual(manifest["source"]["commit"], BUILT)
-        self.assertEqual(
-            manifest["source"]["unverified"],
-            f"commit {BUILT} not on github.com/{SOURCE}",
+        assert manifest["source"]["commit"] == BUILT
+        assert (
+            manifest["source"]["unverified"]
+            == f"commit {BUILT} not on github.com/{SOURCE}"
         )
         result.pull_request = 7
         body = refresh_render.issue_body(result)
-        self.assertIn("#7", body)
-        self.assertIn("not on GitHub", body)
-        self.assertIn("vllm_version: 0.31.1rc1", body)  # what the image itself shows
-        self.assertIn("Needs review", refresh_render.pr_body(result))
+        assert "#7" in body
+        assert "not on GitHub" in body
+        assert "vllm_version: 0.31.1rc1" in body  # what the image itself shows
+        assert "Needs review" in refresh_render.pr_body(result)
 
     def test_a_move_off_an_unpublished_pin_is_held_and_drops_the_mark(self) -> None:
         fake = eugr_registry("c" * 40)  # the new image's commit is published
@@ -324,12 +324,12 @@ class RefreshTests(unittest.TestCase):
             result.edits = {
                 k: v for k, v in result.edits.items() if v != (root / k).read_bytes()
             }
-        self.assertTrue(result.for_review, result.reasons)
-        self.assertIn("never published", result.held[0])
+        assert result.for_review, result.reasons
+        assert "never published" in result.held[0]
         dockerfile = result.edits["adapters/eugr/x/Dockerfile"].decode()  # pyright: ignore[reportOptionalMemberAccess]
-        self.assertIn(f"FROM {IMAGE}@{fake.digest}", dockerfile)
+        assert f"FROM {IMAGE}@{fake.digest}" in dockerfile
         manifest = json.loads(result.edits["adapters/eugr/x/vendored-upstream.json"])  # pyright: ignore[reportArgumentType]
-        self.assertEqual(manifest["source"], {"commit": "c" * 40, "repo": SOURCE})
+        assert manifest["source"] == {"commit": "c" * 40, "repo": SOURCE}
 
     def test_the_mark_goes_once_github_serves_the_commit(self) -> None:
         fake = eugr_registry()
@@ -353,21 +353,21 @@ class RefreshTests(unittest.TestCase):
                 ):
                     result = assessor.assess("recipe")
                 if not served:
-                    self.assertFalse(result.drifted)  # still unpublished: nothing to do
+                    assert not result.drifted  # still unpublished: nothing to do
                     continue
-                self.assertTrue(result.mechanical, result.reasons)
-                self.assertEqual(
-                    sorted(result.edits), ["adapters/eugr/x/vendored-upstream.json"]
-                )
+                assert result.mechanical, result.reasons
+                assert sorted(result.edits) == [
+                    "adapters/eugr/x/vendored-upstream.json"
+                ]
                 manifest = json.loads(
                     result.edits["adapters/eugr/x/vendored-upstream.json"]  # pyright: ignore[reportArgumentType]
                 )
-                self.assertEqual(manifest["source"], {"commit": BUILT, "repo": SOURCE})
+                assert manifest["source"] == {"commit": BUILT, "repo": SOURCE}
 
     def test_an_image_without_a_build_record_is_a_review(self) -> None:
         result = self.assess(FakeRegistry({}, None), self.identical)
-        self.assertFalse(result.mechanical)
-        self.assertIn("records no build commit", result.reasons[0])
+        assert not result.mechanical
+        assert "records no build commit" in result.reasons[0]
 
     def test_a_commit_move_that_changes_no_used_file_is_not_a_refresh(self) -> None:
         # Not a followed image (another source): the classic source pin, whose newest
@@ -391,8 +391,8 @@ class RefreshTests(unittest.TestCase):
                 patch.object(vendored_upstream, "fetch_tree", lambda *_: empty),
             ):
                 result = assessor.assess("recipe")
-        self.assertFalse(result.drifted)
-        self.assertEqual(result.edits, {})
+        assert not result.drifted
+        assert result.edits == {}
 
 
 class SharedContextTests(unittest.TestCase):
@@ -410,9 +410,9 @@ class SharedContextTests(unittest.TestCase):
             )
         combined = refresh_publish.combine_group(["x-dual", "x-single"], parts)
         assert not isinstance(combined, str), combined
-        self.assertTrue(combined.for_review)
-        self.assertFalse(combined.mechanical)  # never armed
-        self.assertEqual(combined.held, ["not on GitHub"])
+        assert combined.for_review
+        assert not combined.mechanical  # never armed
+        assert combined.held == ["not on GitHub"]
 
 
 class GuardTests(unittest.TestCase):
@@ -435,17 +435,15 @@ class GuardTests(unittest.TestCase):
         mark = f"commit {BUILT} not on github.com/{SOURCE}"
         changed = {"recipes/recipe.json"}
         problems, _ = self.check(changed, eugr_registry(), False, BUILT)
-        self.assertIn("source.unverified", problems[0])
-        self.assertEqual(
-            self.check(changed, eugr_registry(), False, BUILT, mark), ([], [])
-        )
+        assert "source.unverified" in problems[0]
+        assert self.check(changed, eugr_registry(), False, BUILT, mark) == ([], [])
         problems, _ = self.check(changed, eugr_registry(), True, BUILT, mark)
-        self.assertIn("remove source.unverified", problems[0])  # stale mark
+        assert "remove source.unverified" in problems[0]  # stale mark
         problems, _ = self.check(changed, eugr_registry(), False, BUILT, "unverified")
-        self.assertIn("must read", problems[0])
+        assert "must read" in problems[0]
         problems, notes = self.check(changed, eugr_registry(), None, BUILT)
-        self.assertEqual(problems, [])
-        self.assertIn("could not tell", notes[0])
+        assert problems == []
+        assert "could not tell" in notes[0]
 
     def test_the_vendored_check_skips_only_a_correctly_marked_pin(self) -> None:
         vendored = guard.vendored
@@ -459,43 +457,41 @@ class GuardTests(unittest.TestCase):
 
             adapter = root / "adapters/eugr/x"
             report = vendored.check_adapter(adapter, root, unreadable, lambda *_: False)
-            self.assertEqual(report.problems, [])
-            self.assertIn("unverified", report.note)
+            assert report.problems == []
+            assert "unverified" in report.note
             # GitHub serves the commit again: an unrelated change stays green, a change
             # to this adapter must drop the mark.
             unrelated = vendored.check_adapter(
                 adapter, root, unreadable, lambda *_: True
             )
-            self.assertEqual(unrelated.problems, [])
-            self.assertIn("remove source.unverified", unrelated.note)
+            assert unrelated.problems == []
+            assert "remove source.unverified" in unrelated.note
             touched = vendored.check_adapter(
                 adapter, root, unreadable, lambda *_: True, changed=True
             )
-            self.assertIn("remove source.unverified", touched.problems[0])
+            assert "remove source.unverified" in touched.problems[0]
             manifest = adapter / "vendored-upstream.json"
             document = json.loads(manifest.read_text())
             document["source"]["unverified"] = "trust me"
             manifest.write_text(json.dumps(document))
             report = vendored.check_adapter(adapter, root, unreadable, lambda *_: False)
-            self.assertIn("must read", report.problems[0])
+            assert "must read" in report.problems[0]
 
     def test_a_changed_recipe_must_claim_its_images_build_commit(self) -> None:
         problems, _ = self.check({"adapters/eugr/x/Dockerfile"}, eugr_registry())
-        self.assertEqual(len(problems), 1)
-        self.assertIn(BUILT, problems[0])
-        self.assertIn("revision label", problems[0])
-        self.assertIn("source_reference", problems[0])
-        self.assertEqual(
-            self.check({"recipes/recipe.json"}, eugr_registry(OLD)), ([], [])
-        )
+        assert len(problems) == 1
+        assert BUILT in problems[0]
+        assert "revision label" in problems[0]
+        assert "source_reference" in problems[0]
+        assert self.check({"recipes/recipe.json"}, eugr_registry(OLD)) == ([], [])
 
     def test_unchanged_recipes_are_not_checked_and_unreadable_images_are_noted(
         self,
     ) -> None:
-        self.assertEqual(self.check({"README.md"}, eugr_registry()), ([], []))
+        assert self.check({"README.md"}, eugr_registry()) == ([], [])
         problems, notes = self.check({"recipes/recipe.json"}, FakeRegistry({}, None))
-        self.assertEqual(problems, [])
-        self.assertIn("cannot be checked", notes[0])
+        assert problems == []
+        assert "cannot be checked" in notes[0]
 
 
 if __name__ == "__main__":
@@ -562,8 +558,8 @@ class PlaybookMoveTests(unittest.TestCase):
                 patch.object(vendored_upstream, "fetch_tree", offline),
             ):
                 result = assessor.assess("recipe")
-        self.assertFalse(result.drifted, result.reasons)
-        self.assertEqual(result.edits, {})  # no source_reference, date or 0.6.3 bump
+        assert not result.drifted, result.reasons
+        assert result.edits == {}  # no source_reference, date or 0.6.3 bump
 
 
 class StaleRunTests(unittest.TestCase):
@@ -604,10 +600,11 @@ class StaleRunTests(unittest.TestCase):
                 refresh.git("commit", "-qam", f"Change {changed}", cwd=remote)
                 summary = refresh_publish.Summary(started=started)
                 with patch.object(refresh_github, "gh", github):
-                    self.assertIsNone(
+                    assert (
                         refresh_publish.publish_mechanical(work, assessment, summary)
+                        is None
                     )
-                self.assertIn(changed, summary.deferred[0])
-                self.assertEqual(summary.prepared, 0)
+                assert changed in summary.deferred[0]
+                assert summary.prepared == 0
                 refresh.git("reset", "-q", "--hard", f"{started}", cwd=remote)
-            self.assertFalse([c for c in calls if c[:2] == ("pr", "create")])
+            assert not [c for c in calls if c[:2] == ("pr", "create")]

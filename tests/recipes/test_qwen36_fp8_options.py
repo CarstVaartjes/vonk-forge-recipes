@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-import json
 import unittest
 from pathlib import Path
 from typing import Any
 
+from documents import json_document
 from repo_root import ROOT
+
 from vonk_forge_contracts import read_recipe
 
 RECIPE_NAMES = (
@@ -17,7 +18,7 @@ RECIPE_NAMES = (
 
 
 def read(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json_document(path.read_text(encoding="utf-8"))
 
 
 def argument_map(recipe: Any) -> dict[str, Any]:
@@ -34,15 +35,13 @@ class Qwen36Fp8OptionTests(unittest.TestCase):
             is_dflash = "-dflash-" in name
             baseline = recipe.runtime
             default_speculation = "dflash" if is_dflash else "off"
-            self.assertEqual(
-                recipe.resolve_options(),
-                {"speculation": default_speculation, "modality": "multimodal"},
-            )
-            self.assertEqual(
-                recipe.with_option_choices(recipe.resolve_options()).runtime,
-                baseline,
-                f"default option selection changed the current runtime for {name}",
-            )
+            assert recipe.resolve_options() == {
+                "speculation": default_speculation,
+                "modality": "multimodal",
+            }
+            assert (
+                recipe.with_option_choices(recipe.resolve_options()).runtime == baseline
+            ), f"default option selection changed the current runtime for {name}"
 
             for speculation in (
                 ("dflash", "native-mtp") if is_dflash else ("off", "native-mtp")
@@ -60,34 +59,31 @@ class Qwen36Fp8OptionTests(unittest.TestCase):
                             for item in selected.runtime.arguments
                             if item.name == "speculative-config"
                         ]
-                        self.assertLessEqual(len(speculative), 1)
+                        assert len(speculative) <= 1
                         if speculation == "native-mtp":
-                            self.assertEqual(
-                                json.loads(str(arguments["speculative-config"])),
-                                {
-                                    "method": "qwen3_next_mtp",
-                                    "num_speculative_tokens": 2,
-                                },
-                            )
+                            assert json_document(
+                                str(arguments["speculative-config"])
+                            ) == {
+                                "method": "qwen3_next_mtp",
+                                "num_speculative_tokens": 2,
+                            }
                         elif speculation == "dflash":
-                            self.assertEqual(
-                                json.loads(str(arguments["speculative-config"])),
-                                {
-                                    "method": "dflash",
-                                    "model": "/models/drafter",
-                                    "num_speculative_tokens": 15,
-                                },
-                            )
+                            assert json_document(
+                                str(arguments["speculative-config"])
+                            ) == {
+                                "method": "dflash",
+                                "model": "/models/drafter",
+                                "num_speculative_tokens": 15,
+                            }
                         else:
-                            self.assertNotIn("speculative-config", arguments)
-                        self.assertEqual(
-                            arguments.get("language-model-only"),
-                            modality == "text-only" or None,
+                            assert "speculative-config" not in arguments
+                        assert arguments.get("language-model-only") == (
+                            modality == "text-only" or None
                         )
-                        self.assertEqual(selected.topology, recipe.topology)
-                        self.assertEqual(selected.models, recipe.models)
-                        self.assertEqual(selected.execution, recipe.execution)
-                        self.assertEqual(selected.interfaces, recipe.interfaces)
+                        assert selected.topology == recipe.topology
+                        assert selected.models == recipe.models
+                        assert selected.execution == recipe.execution
+                        assert selected.interfaces == recipe.interfaces
 
 
 if __name__ == "__main__":

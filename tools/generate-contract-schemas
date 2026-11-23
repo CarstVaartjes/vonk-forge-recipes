@@ -8,8 +8,7 @@ import json
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "contracts" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
 from vonk_forge_contracts import (
     INDEX_SCHEMA_ASSET,
     campaign_authority_json_schema,
@@ -26,8 +25,10 @@ from vonk_forge_contracts import (
     recipe_json_schema,
 )
 
+ROOT = Path(__file__).resolve().parents[1]
 
-def _write(path: Path, document: dict[str, object], check: bool) -> bool:
+
+def _write(path: Path, document: dict[str, object], *, check: bool) -> bool:
     expected = json.dumps(document, indent=2, ensure_ascii=False) + "\n"
     if check:
         return path.is_file() and path.read_text(encoding="utf-8") == expected
@@ -101,7 +102,7 @@ def main() -> int:
             catalog_index_json_schema(),
         ),
     )
-    ok = all(_write(path, schema, args.check) for path, schema in targets)
+    ok = all(_write(path, schema, check=args.check) for path, schema in targets)
     if not ok:
         print(
             "Generated contract schema is stale; run tools/generate-contract-schemas",

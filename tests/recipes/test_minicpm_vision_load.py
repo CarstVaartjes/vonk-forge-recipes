@@ -10,6 +10,7 @@ import tarfile
 from collections.abc import Iterator
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -28,7 +29,7 @@ def _source(archive: str, suffix: str) -> str:
         return stream.read().decode()
 
 
-def _load_method(source: str, name: str, namespace: dict):
+def _load_method(source: str, name: str, namespace: dict[str, Any]):
     tree = ast.parse(source)
     method = next(
         node

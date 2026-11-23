@@ -5,6 +5,7 @@ import json
 import runpy
 import unittest
 from pathlib import Path
+from typing import Any
 
 from generated_catalog import GENERATED
 from repo_root import ROOT
@@ -17,11 +18,11 @@ RECIPE = ROOT / "recipes/laguna-xs-2-1-nvfp4-vllm-single.json"
 S_RECIPE = ROOT / "recipes/laguna-s-2-1-nvfp4-vllm-single.json"
 
 
-def load(path: Path) -> dict:
+def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def digest(document: dict) -> str:
+def digest(document: dict[str, Any]) -> str:
     return hashlib.sha256(
         json.dumps(
             document, sort_keys=True, separators=(",", ":"), ensure_ascii=False
@@ -33,22 +34,20 @@ class LagunaVllmAdapterRuntimeTests(unittest.TestCase):
     def test_adapter_oci_labels_and_cache_contract_are_immutable(self) -> None:
         for path in DOCKERFILES:
             source = path.read_text(encoding="utf-8")
-            self.assertIn(
-                'org.opencontainers.image.source="https://github.com/vllm-project/vllm"',
-                source,
+            assert (
+                'org.opencontainers.image.source="https://github.com/vllm-project/vllm"'
+                in source
             )
-            self.assertIn('org.opencontainers.image.licenses="Apache-2.0"', source)
-            self.assertIn("USER 10001:10001", source)
-            self.assertIn("/outputs/cache", source)
+            assert 'org.opencontainers.image.licenses="Apache-2.0"' in source
+            assert "USER 10001:10001" in source
+            assert "/outputs/cache" in source
 
     def test_model_selection_stays_outside_the_runtime_image(self) -> None:
         for path in (RECIPE, S_RECIPE):
             recipe = load(path)
-            self.assertEqual(
-                recipe["models"][0]["files"][0]["mount"]["target"], "/models"
-            )
-            self.assertTrue(recipe["models"][0]["model"]["content_sha256"])
-            self.assertEqual(recipe["topology"]["node_count"], 1)
+            assert recipe["models"][0]["files"][0]["mount"]["target"] == "/models"
+            assert recipe["models"][0]["model"]["content_sha256"]
+            assert recipe["topology"]["node_count"] == 1
 
     def test_recipe_package_binds_the_source_bundle(self) -> None:
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
@@ -56,23 +55,24 @@ class LagunaVllmAdapterRuntimeTests(unittest.TestCase):
             recipe = load(path)
             context = recipe["execution"]["build"]["context"]
             archive, _, bundle_digest = tool["source_bundle"](ROOT / context["path"])
-            self.assertTrue(bundle_digest and archive)
+            assert bundle_digest
+            assert archive
             index = load(GENERATED / "catalog-index.json")
             entry = next(
                 item
                 for item in index["recipes"]
                 if item["source_path"] == f"recipes/{path.name}"
             )
-            self.assertEqual(entry["package"]["recipe_content_sha256"], digest(recipe))
+            assert entry["package"]["recipe_content_sha256"] == digest(recipe)
 
     def test_runtime_is_offline_and_non_root(self) -> None:
         for path in (RECIPE, S_RECIPE):
             recipe = load(path)
-            self.assertEqual(
-                {item["name"] for item in recipe["runtime"]["environment"]},
-                {"HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"},
-            )
-            self.assertEqual(recipe["runtime"]["engine"], "vllm")
+            assert {item["name"] for item in recipe["runtime"]["environment"]} == {
+                "HF_HUB_OFFLINE",
+                "TRANSFORMERS_OFFLINE",
+            }
+            assert recipe["runtime"]["engine"] == "vllm"
 
 
 if __name__ == "__main__":

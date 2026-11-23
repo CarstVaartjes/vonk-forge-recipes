@@ -1,16 +1,16 @@
 """Exercise actual catalog rejection and bounded KV without retuning known recipes."""
 
 import json
+import logging
+import math
 import runpy
 from decimal import Decimal
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from catalog_documents import catalog_models
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition, document_sha256
-from vonk_forge_contracts.memory_admission import evaluate_memory_admission
-from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from recipe_tooling.qualification.memory_need.args import (
@@ -42,6 +42,9 @@ from recipe_tooling.qualification.memory_need.sglang import (
     sglang_static_need,
 )
 from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
+from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts.memory_admission import evaluate_memory_admission
+from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 LLAMA = "llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single"
 INPUTS = load_inputs()
@@ -105,7 +108,7 @@ def test_proven_identity_is_not_an_exemption_for_a_mutated_recipe() -> None:
 
 
 @pytest.mark.parametrize(
-    "value,match",
+    ("value", "match"),
     [("120G", "peak understates need"), ("1G", "one full-context request")],
 )
 def test_guard_rejects_pool_drift(value: str, match: str) -> None:
@@ -327,7 +330,7 @@ def test_sliding_layers_use_their_window_and_recurrent_state_uses_concurrency() 
 
 
 @pytest.mark.parametrize(
-    "value,expected",
+    ("value", "expected"),
     [("8G", 8 * 1024**3), ("8g", 8_000_000_000), (8589934592, 8589934592)],
 )
 def test_absolute_cache_units(value: str | int, expected: int) -> None:
@@ -490,10 +493,6 @@ def test_multispark_delegates_every_role_even_for_historical_identity(
 
 
 def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> None:
-    import logging
-    import math
-    import runpy
-    from types import SimpleNamespace
 
     recipe = RecipeDefinition.model_validate_json(
         (
@@ -603,7 +602,7 @@ def glm_a0() -> RecipeDefinition:
 
 
 @pytest.mark.parametrize(
-    "name,value,match",
+    ("name", "value", "match"),
     [
         # 116.8 GB of weights, expansion and capped pools: beyond the declared
         # peak and the 106.8 GB static budget of 0.85 x 125.65 GB.

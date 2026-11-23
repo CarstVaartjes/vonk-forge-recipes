@@ -5,10 +5,9 @@ from __future__ import annotations
 from pathlib import PurePosixPath
 from typing import Any
 
-from vonk_forge_contracts import RecipeDefinition
-
 from recipe_tooling.qualification.memory_need.evidence import raise_peaks_to_envelope
 from recipe_tooling.refresh_upstream import model as refresh_model
+from vonk_forge_contracts import RecipeDefinition
 
 # ---------------------------------------------------------------------------
 # Evidence for people (and the later AI step) reading an issue or pull request

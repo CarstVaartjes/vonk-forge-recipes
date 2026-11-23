@@ -5,18 +5,18 @@ import shlex
 import unittest
 from pathlib import Path, PurePosixPath
 
-from repo_root import ROOT
-
-RECIPES = ROOT / "recipes"
-
 from catalog_documents import catalog_models
 from documents import recipe_display
+from repo_root import ROOT
+
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeBuildDefinition
 from vonk_forge_contracts.resolver import (
     validate_recipe_models,
     validate_recipe_package_paths,
 )
+
+RECIPES = ROOT / "recipes"
 
 FORBIDDEN_TAGS = frozenset(
     {
@@ -39,10 +39,8 @@ class RecipeExecutabilityTests(unittest.TestCase):
             for path in sorted((ROOT / directory).glob("*.json")):
                 title = recipe_display(path.stem).title
                 normalized = " ".join(title.split()).casefold()
-                self.assertNotIn(
-                    normalized,
-                    seen,
-                    f"{path.name}: title duplicates {seen.get(normalized)}",
+                assert normalized not in seen, (
+                    f"{path.name}: title duplicates {seen.get(normalized)}"
                 )
                 seen[normalized] = path
 
@@ -89,7 +87,7 @@ class RecipeExecutabilityTests(unittest.TestCase):
                 "ibverbs-providers" in line for line in final_stage
             ):
                 missing.add(str(build["dockerfile"]))
-        self.assertEqual(set(), missing)
+        assert set() == missing
 
     def test_models_and_recipes_are_current_v2_documents(self) -> None:
         models: dict[tuple[str, str], ModelDefinition] = {}
@@ -98,10 +96,10 @@ class RecipeExecutabilityTests(unittest.TestCase):
                 json.loads(path.read_text(encoding="utf-8"))
             )
             key = (model.identity.publisher, model.identity.slug)
-            self.assertNotIn(key, models, path.name)
+            assert key not in models, path.name
             models[key] = model
-        self.assertTrue(models)
-        self.assertTrue(list(RECIPES.glob("*.json")))
+        assert models
+        assert list(RECIPES.glob("*.json"))
         # One walk of the tree and one Model set serve every recipe.
         by_digest = catalog_models()
         package_paths = {
@@ -120,53 +118,46 @@ class RecipeExecutabilityTests(unittest.TestCase):
 
     def test_every_recipe_has_an_executable_contract(self) -> None:
         recipes = recipe_documents()
-        self.assertTrue(recipes, "recipes/*.json must contain at least one recipe")
+        assert recipes, "recipes/*.json must contain at least one recipe"
 
         for path, document in recipes:
             with self.subTest(recipe=path.name):
                 display = recipe_display(path.stem)
                 tags = display.tags
-                self.assertTrue(
-                    all(tag.strip() for tag in tags),
-                    f"{path.name}: display tags must contain nonempty strings",
+                assert all(tag.strip() for tag in tags), (
+                    f"{path.name}: display tags must contain nonempty strings"
                 )
                 normalized_tags = {tag.casefold() for tag in tags}
-                self.assertFalse(
-                    normalized_tags & FORBIDDEN_TAGS,
+                assert not normalized_tags & FORBIDDEN_TAGS, (
                     f"{path.name}: executable recipes cannot use placeholder, "
-                    "non-executable, or integration-required tags",
+                    "non-executable, or integration-required tags"
                 )
 
                 runtime = document.get("runtime")
-                self.assertIsInstance(runtime, dict, f"{path.name}: missing runtime")
+                assert isinstance(runtime, dict), f"{path.name}: missing runtime"
                 assert isinstance(runtime, dict)
                 entrypoint = runtime.get("entrypoint")
-                self.assertIsInstance(
-                    entrypoint,
-                    list,
-                    f"{path.name}: runtime.entrypoint must be a list",
+                assert isinstance(entrypoint, list), (
+                    f"{path.name}: runtime.entrypoint must be a list"
                 )
                 assert isinstance(entrypoint, list)
-                self.assertTrue(
-                    entrypoint,
-                    f"{path.name}: runtime.entrypoint must not be empty",
-                )
-                self.assertTrue(
-                    all(isinstance(part, str) and part.strip() for part in entrypoint),
-                    f"{path.name}: runtime.entrypoint must contain nonempty strings",
-                )
+                assert entrypoint, f"{path.name}: runtime.entrypoint must not be empty"
+                assert all(
+                    isinstance(part, str) and part.strip() for part in entrypoint
+                ), f"{path.name}: runtime.entrypoint must contain nonempty strings"
                 executable = entrypoint[0]
                 assert isinstance(executable, str)
                 executable_path = PurePosixPath(executable)
-                self.assertTrue(
-                    executable_path.is_absolute() and executable_path.name,
+                assert executable_path.is_absolute(), (
                     f"{path.name}: runtime.entrypoint must name a concrete "
-                    "absolute executable",
+                    "absolute executable"
                 )
-                self.assertNotIn(
-                    "/bin/false",
-                    entrypoint,
-                    f"{path.name}: /bin/false is not an executable recipe entrypoint",
+                assert executable_path.name, (
+                    f"{path.name}: runtime.entrypoint must name a concrete "
+                    "absolute executable"
+                )
+                assert "/bin/false" not in entrypoint, (
+                    f"{path.name}: /bin/false is not an executable recipe entrypoint"
                 )
 
     def test_entrypoint_copied_from_the_build_context_is_directly_executable(
@@ -185,10 +176,9 @@ class RecipeExecutabilityTests(unittest.TestCase):
             for source in copied_context_sources(recipe.execution.build, executable):
                 with self.subTest(recipe=path.name, source=source):
                     head = (ROOT / source).read_bytes()[:4]
-                    self.assertTrue(
-                        head.startswith(b"#!") or head == b"\x7fELF",
+                    assert head.startswith(b"#!") or head == b"\x7fELF", (
                         f"{path.name}: {source} is installed as the entrypoint "
-                        f"{executable} but has no #! line",
+                        f"{executable} but has no #! line"
                     )
 
 

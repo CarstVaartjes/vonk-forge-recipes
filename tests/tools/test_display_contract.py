@@ -10,6 +10,7 @@ import pytest
 from documents import model_display, recipe_display
 from pydantic import ValidationError
 from repo_root import ROOT
+
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,
@@ -33,7 +34,8 @@ def _json(path: Path) -> Any:
 
 
 def test_the_library_is_not_empty() -> None:
-    assert RECIPES and MODELS
+    assert RECIPES
+    assert MODELS
 
 
 def test_every_committed_document_round_trips_through_its_contract() -> None:

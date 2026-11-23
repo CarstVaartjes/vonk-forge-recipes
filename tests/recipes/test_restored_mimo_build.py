@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 import pytest
 from repo_root import ROOT
+
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.model import ModelSource
 

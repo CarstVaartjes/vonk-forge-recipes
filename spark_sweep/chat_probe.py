@@ -73,26 +73,32 @@ def _allowance(facts: ChatFacts) -> int | None:
     """The route's own default output allowance; None when it is the remaining context."""
     api = facts.api
     default = api.default_output_tokens
-    if isinstance(default, ApiRemainingContext):
-        return None
-    if isinstance(default, ApiTokenValue):
-        tokens = default.value
-    elif isinstance(default, ApiTokenArgument):
-        settings = facts.launch.settings
-        if not isinstance(settings, RecipeGenerationSettings | RecipeDecisionSettings):
+    match default:
+        case ApiRemainingContext():
             return None
-        tokens = integer_argument(facts.launch, default.argument, settings)
-        if tokens is None:
+        case ApiTokenValue():
+            tokens = default.value
+        case ApiTokenArgument():
+            settings = facts.launch.settings
+            if not isinstance(
+                settings, RecipeGenerationSettings | RecipeDecisionSettings
+            ):
+                return None
+            argument_tokens = integer_argument(facts.launch, default.argument, settings)
+            if argument_tokens is None:
+                return None
+            tokens = argument_tokens
+        case _:
             return None
-    else:
-        return None
     ceiling = api.max_output_tokens
-    if isinstance(ceiling, ApiTokenValue):
-        return min(tokens, ceiling.value)
-    if isinstance(ceiling, ApiTokenSetting):
-        context = _context_tokens(facts.launch)
-        return tokens if context is None else min(tokens, context)
-    return tokens
+    match ceiling:
+        case ApiTokenValue():
+            return min(tokens, ceiling.value)
+        case ApiTokenSetting():
+            context = _context_tokens(facts.launch)
+            return tokens if context is None else min(tokens, context)
+        case _:
+            return tokens
 
 
 def bounded_chat_body(body: dict[str, Any], facts: ChatFacts | None) -> dict[str, Any]:

@@ -16,6 +16,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from types import ModuleType
 
+import pytest
 from repo_root import ROOT
 
 
@@ -75,21 +76,21 @@ class ReleaseBundleTests(unittest.TestCase):
         }
         with tarfile.open(output) as archive:
             names = archive.getnames()
-            self.assertEqual(names, sorted(names))
-            self.assertEqual(
-                set(names), listed | {"SHA256SUMS", "SHA256SUMS.sigstore.json"}
-            )
+            assert names == sorted(names)
+            assert set(names) == listed | {"SHA256SUMS", "SHA256SUMS.sigstore.json"}
             for member in archive.getmembers():
-                self.assertTrue(member.isreg(), member.name)
-                self.assertNotIn("/", member.name)
-                self.assertEqual(
-                    (member.mode, member.uid, member.gid, member.mtime),
-                    (0o644, 0, 0, 0),
+                assert member.isreg(), member.name
+                assert "/" not in member.name
+                assert (member.mode, member.uid, member.gid, member.mtime) == (
+                    420,
+                    0,
+                    0,
+                    0,
                 )
-                self.assertEqual((member.uname, member.gname), ("", ""))
+                assert (member.uname, member.gname) == ("", "")
                 extracted = archive.extractfile(member)
                 assert extracted is not None
-                self.assertEqual(extracted.read(), (release / member.name).read_bytes())
+                assert extracted.read() == (release / member.name).read_bytes()
 
     def test_bytes_do_not_depend_on_directory_state(self) -> None:
         first = write_release(self.tmp / "first")
@@ -99,21 +100,19 @@ class ReleaseBundleTests(unittest.TestCase):
         one, two = self.tmp / "one.tar", self.tmp / "two.tar"
         bundle_tool.build(first, one)
         bundle_tool.build(second, two)
-        self.assertEqual(one.read_bytes(), two.read_bytes())
+        assert one.read_bytes() == two.read_bytes()
 
     def test_names_beyond_ustar_are_refused_not_extended(self) -> None:
         exact = f"{'a' * 93}.tar.gz"
         release = write_release(self.tmp / "ok", {**FILES, exact: b"\x1f\x8bok"})
         bundle_tool.build(release, self.tmp / "ok.tar")
         with tarfile.open(self.tmp / "ok.tar") as archive:
-            self.assertIn(exact, archive.getnames())
-            self.assertEqual(
-                {member.type for member in archive.getmembers()}, {tarfile.REGTYPE}
-            )
+            assert exact in archive.getnames()
+            assert {member.type for member in archive.getmembers()} == {tarfile.REGTYPE}
         release = write_release(
             self.tmp / "long", {**FILES, f"{'a' * 94}.tar.gz": b"\x1f\x8blong"}
         )
-        with self.assertRaises(SystemExit):
+        with pytest.raises(SystemExit):
             bundle_tool.build(release, self.tmp / "long.tar")
 
     def test_inconsistent_release_directories_are_refused(self) -> None:
@@ -133,7 +132,7 @@ class ReleaseBundleTests(unittest.TestCase):
             with self.subTest(label):
                 release = write_release(self.tmp / label.replace(" ", "-"))
                 damage(release)
-                with self.assertRaises(SystemExit):
+                with pytest.raises(SystemExit):
                     bundle_tool.build(release, self.tmp / f"{label}.tar")
 
     def test_manifest_must_not_list_itself_or_repeat_names(self) -> None:
@@ -145,7 +144,7 @@ class ReleaseBundleTests(unittest.TestCase):
             f"{digest}  dir/a.json\n",
             "",
         ):
-            with self.subTest(text=text), self.assertRaises(SystemExit):
+            with self.subTest(text=text), pytest.raises(SystemExit):
                 bundle_tool.parse_checksums(text)
 
 
@@ -216,26 +215,24 @@ class SyncReleaseAssetsTests(unittest.TestCase):
         )
 
     def test_only_the_bundle_is_expected(self) -> None:
-        self.assertEqual(list(self.expected), ["recipe-library.tar"])
+        assert list(self.expected) == ["recipe-library.tar"]
 
     def test_uploads_only_the_bundle_into_an_empty_release(self) -> None:
         github = FakeGitHub()
-        self.assertTrue(self.converge(github))
-        self.assertEqual(github.uploads, [["recipe-library.tar"]])
-        self.assertEqual(list(github.assets), ["recipe-library.tar"])
+        assert self.converge(github)
+        assert github.uploads == [["recipe-library.tar"]]
+        assert list(github.assets) == ["recipe-library.tar"]
 
     def test_a_server_error_mid_update_is_retried_until_it_converges(self) -> None:
         github = FakeGitHub(failures=["500"])
-        self.assertTrue(self.converge(github))
-        self.assertTrue(
-            sync_tool.compare(
-                self.expected, sync_tool.published_assets(github, "o/r", "v1")
-            ).clean
-        )
+        assert self.converge(github)
+        assert sync_tool.compare(
+            self.expected, sync_tool.published_assets(github, "o/r", "v1")
+        ).clean
 
     def test_a_corrupted_asset_is_detected_by_digest_and_replaced(self) -> None:
         github = FakeGitHub(failures=["corrupt"])
-        self.assertTrue(self.converge(github))
+        assert self.converge(github)
 
     def test_the_old_individual_assets_are_deleted_after_the_bundle_lands(self) -> None:
         github = FakeGitHub()
@@ -243,19 +240,19 @@ class SyncReleaseAssetsTests(unittest.TestCase):
             github.put(name, payload)
         github.put("SHA256SUMS", b"old")
         github.put("SHA256SUMS.sigstore.json", b"old")
-        self.assertTrue(self.converge(github))
-        self.assertEqual(list(github.assets), ["recipe-library.tar"])
-        self.assertEqual(github.uploads, [["recipe-library.tar"]])
+        assert self.converge(github)
+        assert list(github.assets) == ["recipe-library.tar"]
+        assert github.uploads == [["recipe-library.tar"]]
 
     def test_an_unconvergeable_release_fails_visibly(self) -> None:
         github = FakeGitHub(failures=["500"] * 20)
-        self.assertFalse(self.converge(github))
+        assert not self.converge(github)
 
     def test_extra_assets_are_kept_while_the_bundle_cannot_be_uploaded(self) -> None:
         github = FakeGitHub(failures=["500"] * 20)
         github.put("alpha-recipe.tar.gz", b"old")
         self.converge(github)
-        self.assertNotIn("recipe-library.tar", github.assets)
+        assert "recipe-library.tar" not in github.assets
 
     def test_a_missing_digest_falls_back_to_size_only_when_the_size_is_known(
         self,
@@ -273,7 +270,7 @@ class SyncReleaseAssetsTests(unittest.TestCase):
             },
             github.assets,
         )
-        self.assertTrue(difference.clean)
+        assert difference.clean
         difference = sync_tool.compare(
             {
                 name: sync_tool.Expected(hashlib.sha256(payload).hexdigest())
@@ -281,17 +278,15 @@ class SyncReleaseAssetsTests(unittest.TestCase):
             },
             github.assets,
         )
-        self.assertFalse(difference.clean)
+        assert not difference.clean
 
     def test_check_needs_the_bundle_to_carry_the_manifest(self) -> None:
         manifest = self.release / "SHA256SUMS"
-        self.assertTrue(sync_tool.bundle_matches_manifest(self.bundle, manifest))
+        assert sync_tool.bundle_matches_manifest(self.bundle, manifest)
         other = write_release(
             self.tmp / "other", {**FILES, "extra.tar.gz": b"\x1f\x8bextra"}
         )
-        self.assertFalse(
-            sync_tool.bundle_matches_manifest(self.bundle, other / "SHA256SUMS")
-        )
+        assert not sync_tool.bundle_matches_manifest(self.bundle, other / "SHA256SUMS")
 
     def test_check_rejects_a_bundle_with_a_tampered_member(self) -> None:
         tampered = self.tmp / "tampered.tar"
@@ -305,8 +300,8 @@ class SyncReleaseAssetsTests(unittest.TestCase):
                     payload = b"tampered"
                     member.size = len(payload)
                 target.addfile(member, io.BytesIO(payload))
-        self.assertFalse(
-            sync_tool.bundle_matches_manifest(tampered, self.release / "SHA256SUMS")
+        assert not sync_tool.bundle_matches_manifest(
+            tampered, self.release / "SHA256SUMS"
         )
 
 

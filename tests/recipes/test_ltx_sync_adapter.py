@@ -6,8 +6,10 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
+import pytest
 from ltx_protocol import assert_streaming_quantization_supported, manifest_bytes
 from repo_root import ROOT
 
@@ -17,7 +19,7 @@ RECIPE_SLUGS = (
 )
 
 
-def load(path: Path) -> dict:
+def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -49,10 +51,10 @@ class LtxSyncAuthorityTests(unittest.TestCase):
                         )
                     assert_streaming_quantization_supported(command)
                     if checkpoint == "ltx-2-19b-distilled-fp8.safetensors":
-                        self.assertNotIn("--offload", command)
-                        self.assertEqual(
-                            command[command.index("--quantization") + 1],
-                            "fp8-scaled-mm",
+                        assert "--offload" not in command
+                        assert (
+                            command[command.index("--quantization") + 1]
+                            == "fp8-scaled-mm"
                         )
 
     def test_streaming_guard_rejects_incompatible_quantization_policies(self) -> None:
@@ -60,7 +62,7 @@ class LtxSyncAuthorityTests(unittest.TestCase):
             for policy in ("fp8-scaled-mm", "nvfp4-cast", "nvfp4-prequant"):
                 with (
                     self.subTest(offload=offload, policy=policy),
-                    self.assertRaisesRegex(AssertionError, "block streaming"),
+                    pytest.raises(AssertionError, match="block streaming"),
                 ):
                     assert_streaming_quantization_supported(
                         ["--offload", offload, "--quantization", policy]
@@ -77,17 +79,17 @@ class LtxSyncAuthorityTests(unittest.TestCase):
     def test_recipes_resolve_exact_runnable_authorities_and_closure(self) -> None:
         for slug in RECIPE_SLUGS:
             recipe = load(ROOT / "recipes" / f"{slug}.json")
-            self.assertTrue(recipe["models"])
-            self.assertEqual(recipe["runtime"]["engine"], "pytorch-pipeline")
-            self.assertEqual(recipe["interfaces"][0]["adapter"], "video-job")
-            self.assertEqual(recipe["topology"]["node_count"], 1)
+            assert recipe["models"]
+            assert recipe["runtime"]["engine"] == "pytorch-pipeline"
+            assert recipe["interfaces"][0]["adapter"] == "video-job"
+            assert recipe["topology"]["node_count"] == 1
 
     def test_container_is_pinned_and_runtime_is_offline(self) -> None:
         for path in (
             ROOT / "adapters/video/ltx23-sync-native-disk/Dockerfile",
             ROOT / "adapters/video/ltx2-sync-native/Dockerfile",
         ):
-            self.assertIn("@sha256:", path.read_text())
+            assert "@sha256:" in path.read_text()
         for slug in RECIPE_SLUGS:
             environment = {
                 item["name"]
@@ -95,7 +97,7 @@ class LtxSyncAuthorityTests(unittest.TestCase):
                     "environment"
                 ]
             }
-            self.assertIn("HF_HUB_OFFLINE", environment)
+            assert "HF_HUB_OFFLINE" in environment
 
     def test_signed_source_bundle_matches_each_recipe_context(self) -> None:
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
@@ -103,7 +105,7 @@ class LtxSyncAuthorityTests(unittest.TestCase):
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             context = recipe["execution"]["build"]["context"]
             _, _, digest = tool["source_bundle"](ROOT / context["path"])
-            self.assertTrue(digest)
+            assert digest
 
     def test_runtime_output_contract_rejects_wrong_streams_and_keeps_atomic_publish(
         self,
@@ -150,16 +152,14 @@ class LtxSyncAuthorityTests(unittest.TestCase):
                     "run",
                     return_value=types.SimpleNamespace(stdout=json.dumps(probe)),
                 ),
-                self.assertRaisesRegex(SystemExit, "video properties changed"),
+                pytest.raises(SystemExit, match="video properties changed"),
             ):
                 module["_verify_synchronized_mp4"](
                     output, 3600, audio_sample_rate=24_000
                 )
         source = (ROOT / "adapters/video/ltx23-sync-native-disk/run.py").read_text()
-        self.assertLess(
-            source.index("_verify_synchronized_mp4("), source.index("os.replace(")
-        )
-        self.assertIn(".ltx-synchronized.partial.mp4", source)
+        assert source.index("_verify_synchronized_mp4(") < source.index("os.replace(")
+        assert ".ltx-synchronized.partial.mp4" in source
 
     def test_prompt_is_bounded_before_runtime_and_gemma_reassembly_is_explicit(
         self,
@@ -178,11 +178,11 @@ class LtxSyncAuthorityTests(unittest.TestCase):
                 )
 
             stage_prompt("  bounded prompt  ")
-            self.assertEqual(module["_load_prompt"](), "bounded prompt")
+            assert module["_load_prompt"]() == "bounded prompt"
             stage_prompt("x" * 4097)
-            with self.assertRaisesRegex(SystemExit, "1..4096"):
+            with pytest.raises(SystemExit, match="1..4096"):
                 module["_load_prompt"]()
-        self.assertEqual(len(module["GEMMA_FILES"]), 22)
+        assert len(module["GEMMA_FILES"]) == 22
 
     def test_all_native_runners_match_the_ltx_output_contract(self) -> None:
         expected = ("video", "audio", "num_frames", "tiling_config")
@@ -193,7 +193,7 @@ class LtxSyncAuthorityTests(unittest.TestCase):
         )
         for relative in adapters:
             module = runpy.run_path(str(ROOT / relative))
-            self.assertEqual(module["PIPELINE_OUTPUT_FIELDS"], expected)
+            assert module["PIPELINE_OUTPUT_FIELDS"] == expected
             pipeline = types.SimpleNamespace(_fields=expected)
             with (
                 mock.patch.object(
@@ -210,7 +210,7 @@ class LtxSyncAuthorityTests(unittest.TestCase):
                     "import_module",
                     return_value=types.SimpleNamespace(PipelineOutput=pipeline),
                 ),
-                self.assertRaisesRegex(SystemExit, "PipelineOutput contract changed"),
+                pytest.raises(SystemExit, match="PipelineOutput contract changed"),
             ):
                 module["_verify_ltx_runtime_contract"]()
 

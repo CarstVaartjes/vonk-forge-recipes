@@ -13,6 +13,15 @@ from repo_root import ROOT
 from test_qualification_evidence_publisher import seed_catalog
 from test_qualification_status import KEY, A, evidence, record
 from test_qualification_status import NOW as T0
+
+from recipe_tooling.qualification.evidence_retention import retain_evidence, retained
+from recipe_tooling.qualification.evidence_store import (
+    catalog_recipes,
+    merge_evidence,
+    read_evidence,
+    write_evidence,
+)
+from spark_sweep import evidence_publisher as publisher
 from vonk_forge_contracts import (
     QualificationBlame as Blame,
 )
@@ -24,15 +33,6 @@ from vonk_forge_contracts import (
 )
 from vonk_forge_contracts import derive_status
 from vonk_forge_contracts.qualification_status import published_status
-
-from recipe_tooling.qualification.evidence_retention import retain_evidence, retained
-from recipe_tooling.qualification.evidence_store import (
-    catalog_recipes,
-    merge_evidence,
-    read_evidence,
-    write_evidence,
-)
-from spark_sweep import evidence_publisher as publisher
 
 LOADER = importlib.machinery.SourceFileLoader(
     "check_evidence_retention", str(ROOT / "tools/check-evidence-retention")
@@ -135,7 +135,8 @@ def test_a_refused_newer_pass_leaves_the_older_one(tmp_path):
     publisher._drop_refused(tmp_path, {publisher.record_id(KEY, second)})
     retain_evidence(tmp_path)
     kept = read_evidence(tmp_path, KEY)
-    assert kept.records == (first,) and kept.measured_memory == rows
+    assert kept.records == (first,)
+    assert kept.measured_memory == rows
     # A refused only record leaves rows without a record: retention drops them.
     publisher._drop_refused(tmp_path, {publisher.record_id(KEY, first)})
     assert read_evidence(tmp_path, KEY).records == ()
@@ -164,10 +165,10 @@ def test_guard_accepts_retained_and_refuses_a_second_record_of_one_identity():
 
 def test_the_reducers_read_retained_history_as_the_whole():
     full, kept = history(), retained(history(), RECIPE, CURRENT)
-    for identity in (NOW, NOW.model_copy(update={"runtime_image": None})):
-        identity = identity.model_copy(update={"required_sparks": 1})
+    for variant in (NOW, NOW.model_copy(update={"runtime_image": None})):
+        identity = variant.model_copy(update={"required_sparks": 1})
         for fleet in (0, 1, 2):
-            assert derive_status(full, identity, fleet, False) == derive_status(
-                kept, identity, fleet, False
-            )
+            assert derive_status(
+                full, identity, fleet, testing_now=False
+            ) == derive_status(kept, identity, fleet, testing_now=False)
         assert published_status(full, identity) == published_status(kept, identity)

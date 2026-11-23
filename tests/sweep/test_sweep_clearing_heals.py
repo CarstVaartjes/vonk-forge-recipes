@@ -10,8 +10,10 @@ that was never submitted, and both lanes idled with ready work.
 
 from __future__ import annotations
 
+import ast
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from repo_root import FIXTURES, ROOT
@@ -67,7 +69,7 @@ def _recorded_world(tmp_path: Path, gateway: Gateway):
     return sweep, fleet, clock
 
 
-def _results(tmp_path: Path) -> list[dict]:
+def _results(tmp_path: Path) -> list[dict[str, Any]]:
     path = tmp_path / "results.jsonl"
     if not path.exists():
         return []
@@ -112,7 +114,8 @@ def test_a_clearing_decision_submits_a_cleanup_after_an_old_budget_was_spent(
     # The recorded decision (cleared_for == the holders) was never submitted.
     _blocked_by_leftover(sweep, clock)
     waits = [r for r in _results(tmp_path) if r.get("status") == "waiting"]
-    assert waits and "was not submitted" in waits[-1]["reason"]
+    assert waits
+    assert "was not submitted" in waits[-1]["reason"]
     assert not any("outlived" in str(r.get("reason")) for r in _results(tmp_path))
     assert not sweep.state.data.get("takeover_fallback")
 
@@ -141,7 +144,7 @@ def test_ready_lane_submits_a_decided_clearing_before_its_shortcut(
         fleet.runs.append(
             dict(LEFTOVER, alias=alias, run_id=f"run-{alias}", node_ids=[node])
         )
-    fleet.cleanup_stop_seconds.update({alias: 600 for alias in holders})
+    fleet.cleanup_stop_seconds.update(dict.fromkeys(holders, 600))
     sweep.state.data["own_aliases"].extend(holders)
     sweep.state.data.pop("cleared_for", None)
     if ended is None:
@@ -216,7 +219,8 @@ def test_a_refused_clearing_is_the_recorded_wait_and_is_decided_again(
     assert sweep.state.data["takeover_fallback"]
     assert not any(i["kind"] == "takeover" for i in sweep.state.data["own_loads"])
     reason = sweep.state.data["clearing_reason"]
-    assert reason.startswith("clearing refused") and blocker["code"] in reason
+    assert reason.startswith("clearing refused")
+    assert blocker["code"] in reason
     events = [e["message"] for e in sweep.state.data["events"]]
     assert sum(blocker["code"] in m for m in events) == 1
 
@@ -252,7 +256,6 @@ PROFILE_EDIT_WITHOUT_GUARD = {
 
 def test_every_review_of_a_new_intent_reconciles_the_profile_first() -> None:
     """Guard for the class: no load of the sweep profile carries what no lane needs."""
-    import ast
 
     source = run_source()
     missing = []

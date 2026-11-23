@@ -7,8 +7,6 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 from repo_root import ROOT
-from vonk_forge_contracts import RecipeDefinition
-from vonk_forge_contracts.recipe import RecipeMemoryResources
 from warning_asserts import assert_not_warns, assert_warns
 
 from recipe_tooling.qualification.memory_need.constants import (
@@ -22,6 +20,8 @@ from recipe_tooling.qualification.memory_need.swap import (
     usable_swap_bytes,
 )
 from recipe_tooling.qualification.memory_need.warnings import memory_warnings
+from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts.recipe import RecipeMemoryResources
 
 SLUG = "agents-a1-nvfp4-r0b0tlab-vllm-single"
 GIB = 1024**3
@@ -98,7 +98,8 @@ def test_unset_fields_leave_documents_unchanged() -> None:
     assert "minimum_swap_bytes" not in raw_memory
     parsed = RecipeDefinition.model_validate(raw)
     memory = parsed.topology.roles[0].resources.memory
-    assert memory.load_peak_bytes is None and memory.minimum_swap_bytes == 0
+    assert memory.load_peak_bytes is None
+    assert memory.minimum_swap_bytes == 0
     dumped = parsed.model_dump(mode="json")["topology"]["roles"][0]["resources"]
     assert dumped["memory"] == raw_memory
 

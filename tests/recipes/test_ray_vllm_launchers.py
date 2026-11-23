@@ -16,13 +16,15 @@ import re
 import shlex
 import unittest
 from pathlib import Path
+from typing import Any
 
+from documents import recipe_document
 from repo_root import ROOT
 
 NVIDIA_405B = "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four"
 
 
-def ray_vllm_recipes() -> list[tuple[str, dict]]:
+def ray_vllm_recipes() -> list[tuple[str, dict[str, Any]]]:
     found = []
     for path in sorted((ROOT / "recipes").glob("*.json")):
         recipe = json.loads(path.read_text())
@@ -36,7 +38,7 @@ def ray_vllm_recipes() -> list[tuple[str, dict]]:
     return found
 
 
-def context_files(recipe: dict) -> list[Path]:
+def context_files(recipe: dict[str, Any]) -> list[Path]:
     context = ROOT / recipe["execution"]["build"]["context"]["path"]
     return [path for path in context.rglob("*") if path.is_file()]
 
@@ -49,7 +51,7 @@ RAY_BUILD_CHECK = re.compile(
 )
 
 
-def build_time_text(recipe: dict) -> str:
+def build_time_text(recipe: dict[str, Any]) -> str:
     """The Dockerfile's RUN steps plus the copied files those steps name.
 
     The launcher mentions Ray too (it starts the cluster), but it runs only
@@ -83,7 +85,7 @@ def build_time_text(recipe: dict) -> str:
 
 class RayVllmLauncherTest(unittest.TestCase):
     def test_the_class_is_not_empty(self) -> None:
-        self.assertTrue(ray_vllm_recipes())
+        assert ray_vllm_recipes()
 
     def test_every_ray_recipe_ships_a_launcher_that_consumes_the_placement_options(
         self,
@@ -99,11 +101,10 @@ class RayVllmLauncherTest(unittest.TestCase):
                     and "ray" in text
                     and "start" in text
                 ]
-                self.assertTrue(
-                    launchers,
+                assert launchers, (
                     f"{slug} declares the Ray backend but ships no launcher that "
                     "consumes --nnodes and starts the Ray cluster; vLLM exits at "
-                    "configuration time with --nnodes and the Ray executor",
+                    "configuration time with --nnodes and the Ray executor"
                 )
 
     def test_every_ray_recipe_checks_for_ray_when_its_image_is_built(self) -> None:
@@ -112,11 +113,9 @@ class RayVllmLauncherTest(unittest.TestCase):
         # missing: ray" (MiniMax M2.7 r0b0tlab dual, 2026-10-25).
         for slug, recipe in ray_vllm_recipes():
             with self.subTest(recipe=slug):
-                self.assertRegex(
-                    build_time_text(recipe),
-                    RAY_BUILD_CHECK,
+                assert re.search(RAY_BUILD_CHECK, build_time_text(recipe)), (
                     f"{slug} declares the Ray backend but no build step checks "
-                    "that the image has Ray; install it or check the image's own",
+                    "that the image has Ray; install it or check the image's own"
                 )
 
     def test_the_405b_context_fits_the_bounded_chat_check(self) -> None:
@@ -130,8 +129,8 @@ class RayVllmLauncherTest(unittest.TestCase):
         )
         # The check asks for up to max_tokens completion tokens on top of the
         # chat-templated prompt (the playbook's 64-token context cannot hold both).
-        self.assertGreater(context, check["request"]["body"]["max_tokens"] + 32)
-        self.assertGreaterEqual(arguments["max-num-batched-tokens"]["value"], context)
+        assert context > check["request"]["body"]["max_tokens"] + 32
+        assert arguments["max-num-batched-tokens"]["value"] >= context
 
 
 class Llama405bNativeLaunchTest(unittest.TestCase):
@@ -144,18 +143,18 @@ class Llama405bNativeLaunchTest(unittest.TestCase):
     """
 
     def test_it_uses_the_native_multi_node_launch(self) -> None:
-        recipe = json.loads((ROOT / "recipes" / f"{NVIDIA_405B}.json").read_text())
-        self.assertEqual(recipe["topology"]["parallelism"]["backend"], "mp")
-        self.assertNotIn(NVIDIA_405B, {slug for slug, _ in ray_vllm_recipes()})
+        recipe = recipe_document(NVIDIA_405B)
+        assert recipe["topology"]["parallelism"]["backend"] == "mp"
+        assert NVIDIA_405B not in {slug for slug, _ in ray_vllm_recipes()}
 
     def test_its_image_check_does_not_require_ray(self) -> None:
         context = ROOT / "adapters/nvidia" / NVIDIA_405B
-        self.assertNotIn("ray", (context / "verify-runtime.py").read_text())
-        self.assertIn(
-            "COPY --chmod=0755 vllm /opt/vonk/bin/vllm",
-            (context / "Dockerfile").read_text(),
+        assert "ray" not in (context / "verify-runtime.py").read_text()
+        assert (
+            "COPY --chmod=0755 vllm /opt/vonk/bin/vllm"
+            in (context / "Dockerfile").read_text()
         )
-        self.assertTrue(os.access(context / "vllm", os.X_OK))
+        assert os.access(context / "vllm", os.X_OK)
 
 
 if __name__ == "__main__":

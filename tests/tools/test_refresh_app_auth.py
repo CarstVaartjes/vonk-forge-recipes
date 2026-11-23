@@ -10,10 +10,11 @@ import os
 import subprocess
 import tempfile
 import unittest
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
 from repo_root import ROOT
 
 from recipe_tooling import refresh_auth as module
@@ -23,7 +24,7 @@ class AppAuthTests(unittest.TestCase):
     def test_missing_configuration_refuses_instead_of_using_actions_token(self) -> None:
         with (
             patch.dict(os.environ, {"GH_TOKEN": "actions-token"}),
-            self.assertRaisesRegex(RuntimeError, "not configured"),
+            pytest.raises(RuntimeError, match="not configured"),
         ):
             module.RefreshAppAuth("", "", "CarstVaartjes/vonk-forge-recipes")
 
@@ -56,25 +57,25 @@ class AppAuthTests(unittest.TestCase):
         ):
             first = auth.environment()
             clock[0] += 3200
-            self.assertEqual(first, auth.environment())
+            assert first == auth.environment()
             clock[0] += 200
             second = auth.environment()
-            self.assertNotEqual(first["GH_TOKEN"], second["GH_TOKEN"])
-            self.assertEqual(second["GIT_CONFIG_VALUE_0"], "")
-            self.assertEqual(second["GIT_CONFIG_VALUE_1"], "!gh auth git-credential")
+            assert first["GH_TOKEN"] != second["GH_TOKEN"]
+            assert second["GIT_CONFIG_VALUE_0"] == ""
+            assert second["GIT_CONFIG_VALUE_1"] == "!gh auth git-credential"
             auth.close()
         posts = [r for r in requests if r[0] == "POST"]
-        self.assertEqual(len(posts), 2)
-        self.assertEqual(posts[0][2]["repositories"], ["vonk-forge-recipes"])
-        self.assertNotIn("administration", posts[0][2]["permissions"])
-        self.assertEqual(requests[-1][:2], ("DELETE", "/installation/token"))
-        self.assertEqual(auth.private_key, "")
+        assert len(posts) == 2
+        assert posts[0][2]["repositories"] == ["vonk-forge-recipes"]
+        assert "administration" not in posts[0][2]["permissions"]
+        assert requests[-1][:2] == ("DELETE", "/installation/token")
+        assert auth.private_key == ""
 
     def test_invalid_key_never_leaks_openssl_diagnostics(self) -> None:
         auth = module.RefreshAppAuth("client", "THIS IS SECRET", "owner/repo")
-        with self.assertRaisesRegex(RuntimeError, "could not sign") as caught:
+        with pytest.raises(RuntimeError, match="could not sign") as caught:
             auth._jwt()
-        self.assertNotIn("THIS IS SECRET", str(caught.exception))
+        assert "THIS IS SECRET" not in str(caught.value)
 
     def test_jwt_is_really_rsa_signed_and_key_file_is_removed(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -96,7 +97,7 @@ class AppAuthTests(unittest.TestCase):
 
             def tracked_run(command, **kwargs):
                 signed_paths.append(Path(command[-1]))
-                self.assertEqual(signed_paths[-1].stat().st_mode & 0o777, 0o600)
+                assert signed_paths[-1].stat().st_mode & 511 == 384
                 return original_run(command, **kwargs)
 
             with patch.object(module.subprocess, "run", side_effect=tracked_run):
@@ -105,8 +106,8 @@ class AppAuthTests(unittest.TestCase):
             decoded = json.loads(
                 base64.urlsafe_b64decode(claims + "=" * (-len(claims) % 4))
             )
-            self.assertEqual(decoded["iss"], "client")
-            self.assertLessEqual(decoded["exp"] - decoded["iat"], 660)
+            assert decoded["iss"] == "client"
+            assert decoded["exp"] - decoded["iat"] <= 660
             sig = Path(temp) / "signature"
             sig.write_bytes(
                 base64.urlsafe_b64decode(signature + "=" * (-len(signature) % 4))
@@ -124,8 +125,8 @@ class AppAuthTests(unittest.TestCase):
                 input=f"{header}.{claims}".encode(),
                 capture_output=True,
             )
-            self.assertEqual(verified.returncode, 0, verified.stderr)
-            self.assertFalse(signed_paths[0].exists())
+            assert verified.returncode == 0, verified.stderr
+            assert not signed_paths[0].exists()
 
 
 class RefusedAppAuthTests(unittest.TestCase):
@@ -137,13 +138,12 @@ class RefusedAppAuthTests(unittest.TestCase):
             patch.dict(os.environ, {"GH_TOKEN": "personal-token"}),
             patch.object(auth, "_jwt", return_value="jwt"),
             patch.object(auth, "_request", side_effect=RuntimeError("HTTP 403")),
-            self.assertRaisesRegex(RuntimeError, "HTTP 403"),
+            pytest.raises(RuntimeError, match="HTTP 403"),
         ):
             auth.environment()
 
 
 def test_the_site_dispatch_token_is_scoped_to_the_site_and_actions_only() -> None:
-    from datetime import timedelta
 
     loader = importlib.machinery.SourceFileLoader(
         "dispatch_site_build", str(ROOT / "tools/dispatch-site-build")
@@ -190,7 +190,7 @@ def test_the_site_dispatch_token_is_scoped_to_the_site_and_actions_only() -> Non
     with (
         patch.object(auth, "_jwt", return_value="jwt"),
         patch.object(auth, "_request", side_effect=request),
-        unittest.TestCase().assertRaisesRegex(RuntimeError, "403"),
+        pytest.raises(RuntimeError, match="403"),
     ):
         dispatch.dispatch(auth, run=failing)
 
@@ -227,4 +227,5 @@ def test_a_failed_token_revoke_does_not_hide_a_failed_dispatch(capsys) -> None:
         assert dispatch.main() == 1
         assert "REFRESH_APP_PRIVATE_KEY" not in os.environ
     output = capsys.readouterr().out
-    assert "403" in output and "revoke refused" in output
+    assert "403" in output
+    assert "revoke refused" in output

@@ -9,18 +9,17 @@ import pytest
 from repo_root import FIXTURES
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
-pytest_plugins = ["sweep_bounds"]
-pytestmark = pytest.mark.usefixtures("bounded_clock")
-
-from vonk_forge_contracts import QualificationBlame
-from vonk_forge_contracts import QualificationCauseCode as Code
-
 from spark_sweep import policy
 from spark_sweep.lifecycle import RecipeStatus
 from spark_sweep.policy import TimeoutPolicy
 from spark_sweep.qualification import from_history
 from spark_sweep.sweep_contract import WorkloadExitCause
 from spark_sweep.verdict import Disposition, disposition
+from vonk_forge_contracts import QualificationBlame
+from vonk_forge_contracts import QualificationCauseCode as Code
+
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 PREP = "profile.preparation_unavailable"
 
@@ -43,12 +42,11 @@ DIGEST = "1" * 64
 
 
 def _trio(**held):
-    recipes = [
+    return [
         FakeRecipe("bad", (DIGEST,), content="b" * 64, local="cached", **held),
         FakeRecipe("good1", (DIGEST,), content="c" * 64, local="cached"),
         FakeRecipe("good2", (DIGEST,), content="d" * 64, local="cached"),
     ]
-    return recipes
 
 
 def _make(tmp_path, gateway, recipes, **overrides):
@@ -138,7 +136,8 @@ def test_the_ready_recipes_are_released_early_and_pass(tmp_path, gateway) -> Non
     assert _status(sweep, "good1")["status"] == "passed"
     assert _status(sweep, "good2")["status"] == "passed"
     bad = _status(sweep, "bad")
-    assert bad["status"] == "passed" and bad["attempts"] == 1
+    assert bad["status"] == "passed"
+    assert bad["attempts"] == 1
     assert all(
         _status(sweep, key)["finished_at"] < bad["finished_at"]
         for key in ("good1", "good2")
@@ -509,7 +508,8 @@ def test_real_assignment_failure_shape_uses_its_exit_reason(
         row for row in sweep.log.entries() if row.get("status") == RecipeStatus.FAILED
     )
     record = from_history(row)
-    assert record is not None and record.blame == QualificationBlame.RECIPE
+    assert record is not None
+    assert record.blame == QualificationBlame.RECIPE
 
 
 # The Controller's FleetProfileAssignmentFailure, field for field
@@ -649,10 +649,11 @@ def test_the_fake_matches_the_real_documents_shape(tmp_path, gateway) -> None:
     (real_owner, _) = real["intended_profile"]["assignments"]
     for owner in fake["intended_profile"]["assignments"]:
         assert set(owner) <= set(real_owner)
-        assert {k for k in owner["nodes"][0]} <= set(real_owner["nodes"][0])
+        assert set(owner["nodes"][0]) <= set(real_owner["nodes"][0])
     # Both directions: what the sweep reads from the real document exists in the fake's.
     for failure in policy.assignment_failures({"progress": fake}):
-        assert failure.alias and failure.node_ids
+        assert failure.alias
+        assert failure.node_ids
 
 
 def test_each_failing_lane_of_a_shared_application_gets_its_own_verdict(
@@ -706,7 +707,8 @@ def test_an_adopted_lanes_own_failed_run_effect_is_its_own_result(
     fleet._app_doc = controller_reply
     _settle(sweep, clock)
     entry = _status(sweep, "good")
-    assert entry["status"] == RecipeStatus.FAILED and entry["attempts"] == 1
+    assert entry["status"] == RecipeStatus.FAILED
+    assert entry["attempts"] == 1
     assert "exception=fault2" in entry["error"]
     assert _status(sweep, "bad")["attempts"] == 1
 
@@ -739,9 +741,9 @@ def test_assignment_reason_alone_supplies_the_lane_code(
     observed = []
     fail_slot = sweep._fail_slot
 
-    def record_failure(key, slot, failure, app):
+    def record_failure(key, failure, app):
         observed.append(dict(app))
-        return fail_slot(key, slot, failure, app)
+        return fail_slot(key, failure, app)
 
     sweep._fail_slot = record_failure
     _settle(sweep, clock)

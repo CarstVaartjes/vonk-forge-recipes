@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
-pytest_plugins = ["sweep_bounds"]
-pytestmark = pytest.mark.usefixtures("bounded_clock")
-
 from spark_sweep import verdict
 from spark_sweep.identity import content_identity
+from spark_sweep.policy import Placement
 from spark_sweep.sweep_support import MAX_REVIEW_FREEING
+
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 
 @pytest.fixture
@@ -20,7 +23,7 @@ def gateway():
     gateway.stop()
 
 
-def _entry(sweep, slug: str) -> dict:
+def _entry(sweep, slug: str) -> dict[str, Any]:
     return sweep.state.recipes[f"vonk-forge/{slug}"]
 
 
@@ -69,7 +72,7 @@ def test_a_capacity_refusal_that_clearing_undoes_is_requeued_not_failed(
     assert "clearing the fleet and trying again" in str(sweep.state.data["events"])
 
 
-def _waits(sweep, key: str) -> list[dict]:
+def _waits(sweep, key: str) -> list[dict[str, Any]]:
     return [
         r
         for r in sweep.log.entries()
@@ -170,7 +173,6 @@ def test_one_refused_lane_does_not_starve_an_admitted_sibling(
         return real(n, data, a)
 
     fleet._load = load
-    from spark_sweep.policy import Placement
 
     fleet.runs.clear()
     sweep.preflight()

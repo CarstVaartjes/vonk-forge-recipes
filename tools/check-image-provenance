@@ -32,13 +32,15 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from recipe_tooling import vendored_upstream as vendored
 from recipe_tooling.kit_pins import consumers as kit_consumers
 from recipe_tooling.kit_pins import lock as kit_lock
 from recipe_tooling.kit_pins import model as kit_model
 from recipe_tooling.kit_pins import upstream as kit_upstream
+
+ROOT = Path(__file__).resolve().parents[1]
 
 LABEL_REVISION = re.compile(r'org\.opencontainers\.image\.revision="([^"]+)"')
 

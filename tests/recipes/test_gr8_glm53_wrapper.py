@@ -142,7 +142,8 @@ def test_placement_paths_and_drafter(drafter_sandbox):
         "10.9.0.3",
         "29555",
     )
-    assert "IPS" not in dump and "IPS2" not in dump
+    assert "IPS" not in dump
+    assert "IPS2" not in dump
     assert dump["GR8_WORK_DIR"] == f"{state}/home"
     assert dump["MODEL_CACHE"] == f"{state}/cache"
     assert Path(state, "cache/qocache").is_dir()
@@ -191,7 +192,8 @@ def test_compact_copies_need_a_directory(sandbox):
     root, run = sandbox
     done, dump = run({**placement(4, 0), "DFLASH": "0", "COMPACT_EXPERTS": "1"})
     assert done.returncode == 2
-    assert not dump and not (root / "prepare.log").exists()
+    assert not dump
+    assert not (root / "prepare.log").exists()
 
 
 def test_unknown_argument_is_refused(sandbox):

@@ -65,7 +65,7 @@ def test_runtime_https_image_refreshes_and_checks_both_stores(adapter: str) -> N
         if recipe["execution"]["build"]["context"]["path"] == f"adapters/{adapter}"
     ]
     assert builds
-    assert all(BUILD_HOSTS <= set(build["network"]["hosts"]) for build in builds)
+    assert all(set(build["network"]["hosts"]) >= BUILD_HOSTS for build in builds)
 
 
 def run_guard(
@@ -110,7 +110,7 @@ def test_guard_rejects_old_certifi() -> None:
         run_guard(version="2026.10.18")
 
 
-@pytest.mark.parametrize("store", ("system_root", "certifi_root"))
+@pytest.mark.parametrize("store", ["system_root", "certifi_root"])
 def test_guard_rejects_compromised_root_in_either_store(store: str) -> None:
     with pytest.raises(AssertionError, match="compromised emSign root"):
         run_guard(

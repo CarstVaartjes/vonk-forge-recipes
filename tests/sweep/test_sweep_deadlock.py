@@ -16,8 +16,9 @@ import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy
-from spark_sweep.identity import content_identity
+from spark_sweep.identity import AcceptedRequest, content_identity
 from spark_sweep.prefetch import PrefetchConfig
+from spark_sweep.report import build_status
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -78,7 +79,7 @@ def test_a_cached_recipe_of_a_partly_fetched_model_runs_without_any_download(
     assert _downloads(fleet) == []
 
 
-def _download_requests(fleet) -> list[tuple]:
+def _download_requests(fleet) -> list[tuple[Any, ...]]:
     return [
         c
         for _, c in fleet.calls
@@ -164,9 +165,7 @@ def test_a_cached_recipe_waiting_for_lanes_keeps_its_eviction_pin(
     plans = sweep.prefetcher.plan_queue(
         [recipe], sweep.sizes, sweep._present(), sweep.boost
     )
-    pins = sweep.prefetcher.desired_pins(
-        plans, sweep.recipes, sweep.models, sweep._present()
-    )
+    pins = sweep.prefetcher.desired_pins(plans, sweep.recipes, sweep._present())
     assert pins == [recipe.key]
 
 
@@ -227,7 +226,6 @@ def test_a_state_file_with_finished_downloads_resumes_without_asking_again(
     first, fleet, _ = make_sweep(
         tmp_path, recipes, [FakeModel("m1")], gateway=gateway, limit=0
     )
-    from spark_sweep.identity import AcceptedRequest
 
     first.refresh_catalog()
     first.state.downloads["vonk-forge/a1"] = {
@@ -300,7 +298,8 @@ def test_a_swap_shortfall_in_a_review_waits_instead_of_failing_the_recipe(
         for line in (tmp_path / "results.jsonl").read_text().splitlines()
     ]
     waits = [r for r in rows if r.get("status") == "waiting"]
-    assert len(waits) >= 2 and {r.get("disposition") for r in waits} == {"wait"}
+    assert len(waits) >= 2
+    assert {r.get("disposition") for r in waits} == {"wait"}
     assert not any(r.get("status") == "failed" for r in rows)
     assert not any(r.get("status") == "deferred" for r in rows)
     # no fleet clearing was requested for it
@@ -405,7 +404,8 @@ def _waits_then_admits(
     assert len(refusals) == 2
     rows = _rows(tmp_path)
     waits = [r for r in rows if r.get("status") == "waiting"]
-    assert len(waits) >= 2 and {r.get("disposition") for r in waits} == {"wait"}
+    assert len(waits) >= 2
+    assert {r.get("disposition") for r in waits} == {"wait"}
     assert not any(r.get("status") in ("failed", "deferred") for r in rows)
     assert not entry.get("review_freeing")
     assert not any("clearing the fleet" in str(r.get("reason")) for r in rows)
@@ -470,17 +470,18 @@ def test_a_final_word_decides_in_any_order(
     _refuse_reviews(fleet, codes[::-1] if reverse else codes, times=None)
     sweep.run()
     entry = sweep.state.recipes["vonk-forge/a"]
-    assert entry["status"] == "deferred" and entry["attempts"] == 1
+    assert entry["status"] == "deferred"
+    assert entry["attempts"] == 1
     assert entry["code"] == "run-switch.resource.demand_exceeds_capacity"
     ended = [r for r in _rows(tmp_path) if r.get("status") == "deferred"]
-    assert ended and {r.get("disposition") for r in ended} == {"fail"}
+    assert ended
+    assert {r.get("disposition") for r in ended} == {"fail"}
 
 
 @pytest.mark.parametrize("live_reading", [False, True])
 def test_a_long_review_wait_escalates_and_clears_when_the_review_admits(
     tmp_path: Path, gateway: Gateway, live_reading: bool
 ) -> None:
-    from spark_sweep.report import build_status
 
     codes = ("resource.resident_usage_unknown", "run-switch.run_admission_blocked")
     sweep, fleet, clock = make_sweep(

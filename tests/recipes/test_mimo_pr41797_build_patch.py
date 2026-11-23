@@ -79,21 +79,19 @@ class MimoPr41797BuildPatchTests(unittest.TestCase):
             patch = mod / "pr41797-vllm.diff"
             helper = mod / "apply-pr41797.sh"
             metadata = mod / "pr41797-source.txt"
-            self.assertTrue(helper.is_file())
-            self.assertTrue(os.access(helper, os.X_OK))
-            self.assertTrue(metadata.is_file())
+            assert helper.is_file()
+            assert os.access(helper, os.X_OK)
+            assert metadata.is_file()
             helper_digests.add(hashlib.sha256(helper.read_bytes()).hexdigest())
-            self.assertIn(
-                "ab10addb603ac17611d55aa88b64acbf1da71373", metadata.read_text()
-            )
+            assert "ab10addb603ac17611d55aa88b64acbf1da71373" in metadata.read_text()
             digest = hashlib.sha256(patch.read_bytes()).hexdigest()
             digests.add(digest)
-            self.assertEqual(digest, EXPECTED_PATCH_SHA256)
-            self.assertNotIn(
-                "patch-diff.githubusercontent.com", (mod / "run.sh").read_text()
+            assert digest == EXPECTED_PATCH_SHA256
+            assert (
+                "patch-diff.githubusercontent.com" not in (mod / "run.sh").read_text()
             )
-        self.assertEqual(len(digests), 1)
-        self.assertEqual(len(helper_digests), 1)
+        assert len(digests) == 1
+        assert len(helper_digests) == 1
 
     def test_complete_postimage_skips_without_changing_any_patch_file(self) -> None:
         for relative in MOD_PATHS:
@@ -106,19 +104,18 @@ class MimoPr41797BuildPatchTests(unittest.TestCase):
                 unpack_base_fixture(site)
                 helper = ROOT / relative / "apply-pr41797.sh"
                 first = run_helper(helper, site)
-                self.assertEqual(first.returncode, 0, first.stderr)
+                assert first.returncode == 0, first.stderr
                 postimage = {path: (site / path).read_bytes() for path in PATCH_PATHS}
 
                 second = run_helper(helper, site)
-                self.assertEqual(second.returncode, 0, second.stderr)
-                self.assertIn(
-                    "Complete pinned PR #41797 patch is already applied",
-                    second.stdout,
+                assert second.returncode == 0, second.stderr
+                assert (
+                    "Complete pinned PR #41797 patch is already applied"
+                    in second.stdout
                 )
-                self.assertEqual(
-                    postimage,
-                    {path: (site / path).read_bytes() for path in PATCH_PATHS},
-                )
+                assert postimage == {
+                    path: (site / path).read_bytes() for path in PATCH_PATHS
+                }
 
     def test_backend_module_only_is_partial_and_fails_closed(self) -> None:
         for relative in MOD_PATHS:
@@ -136,7 +133,7 @@ class MimoPr41797BuildPatchTests(unittest.TestCase):
                 unpack_base_fixture(complete)
                 helper = ROOT / relative / "apply-pr41797.sh"
                 applied = run_helper(helper, complete)
-                self.assertEqual(applied.returncode, 0, applied.stderr)
+                assert applied.returncode == 0, applied.stderr
                 partial_backend = partial / BACKEND
                 partial_backend.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(complete / BACKEND, partial_backend)
@@ -147,16 +144,13 @@ class MimoPr41797BuildPatchTests(unittest.TestCase):
                 }
 
                 result = run_helper(helper, partial)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertIn("neither the exact patch base", result.stderr)
-                self.assertEqual(
-                    before,
-                    {
-                        path: (partial / path).read_bytes()
-                        for path in PATCH_PATHS
-                        if (partial / path).is_file()
-                    },
-                )
+                assert result.returncode != 0
+                assert "neither the exact patch base" in result.stderr
+                assert before == {
+                    path: (partial / path).read_bytes()
+                    for path in PATCH_PATHS
+                    if (partial / path).is_file()
+                }
 
     def test_missing_backend_applies_exact_patch_to_pinned_base_preimages(self) -> None:
         for relative in MOD_PATHS:
@@ -168,15 +162,13 @@ class MimoPr41797BuildPatchTests(unittest.TestCase):
                 site.mkdir()
                 unpack_base_fixture(site)
                 result = run_helper(ROOT / relative / "apply-pr41797.sh", site)
-                self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertTrue((site / BACKEND).is_file())
+                assert result.returncode == 0, result.stderr
+                assert (site / BACKEND).is_file()
                 registry = (site / "vllm/v1/attention/backends/registry.py").read_text()
                 model = (site / "vllm/model_executor/models/mimo_v2.py").read_text()
-                self.assertIn("TRITON_ATTN_DIFFKV", registry)
-                self.assertIn(
-                    "backend_enum = AttentionBackendEnum.TRITON_ATTN_DIFFKV", model
-                )
-                self.assertIn("Auto-pick FA-DiffKV", model)
+                assert "TRITON_ATTN_DIFFKV" in registry
+                assert "backend_enum = AttentionBackendEnum.TRITON_ATTN_DIFFKV" in model
+                assert "Auto-pick FA-DiffKV" in model
 
     def test_incompatible_patch_anchor_fails_before_applying_any_file(self) -> None:
         with tempfile.TemporaryDirectory(prefix="vonk-pr41797-anchor-") as temp:
@@ -189,10 +181,10 @@ class MimoPr41797BuildPatchTests(unittest.TestCase):
                 registry.replace('TRITON_ATTN = "', 'TRITON_ATTN = "broken-', 1)
             )
             result = run_helper(ROOT / MOD_PATHS[0] / "apply-pr41797.sh", site)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("neither the exact patch base", result.stderr)
-            self.assertFalse((site / BACKEND).exists())
-            self.assertNotIn("TRITON_ATTN_DIFFKV", registry_path.read_text())
+            assert result.returncode != 0
+            assert "neither the exact patch base" in result.stderr
+            assert not (site / BACKEND).exists()
+            assert "TRITON_ATTN_DIFFKV" not in registry_path.read_text()
 
     def test_changed_vendored_patch_bytes_fail_before_applying(self) -> None:
         with tempfile.TemporaryDirectory(prefix="vonk-pr41797-bytes-") as temp:
@@ -205,9 +197,9 @@ class MimoPr41797BuildPatchTests(unittest.TestCase):
             site.mkdir()
             unpack_base_fixture(site)
             result = run_helper(mod / "apply-pr41797.sh", site)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("SHA-256 mismatch", result.stderr)
-            self.assertFalse((site / BACKEND).exists())
+            assert result.returncode != 0
+            assert "SHA-256 mismatch" in result.stderr
+            assert not (site / BACKEND).exists()
 
 
 if __name__ == "__main__":

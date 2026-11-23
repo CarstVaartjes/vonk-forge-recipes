@@ -65,6 +65,9 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request
 
+from recipe_tooling.adapter_sources import (
+    materialize_or_exit,
+)
 from recipe_tooling.paths import REPO_ROOT
 from recipe_tooling.upstream_http import UpstreamBusy, fetch
 
@@ -222,7 +225,7 @@ def commit_on_github(repo: str, commit: str) -> bool | None:
         headers["Authorization"] = f"Bearer {token}"
     url = f"https://api.github.com/repos/{repo}/commits/{commit}"
     try:
-        return fetch(Request(url, headers=headers), lambda response: True)
+        return fetch(Request(url, headers=headers), lambda _response: True)
     except HTTPError as error:
         return False if error.code in {404, 422} else None
     except (OSError, UpstreamBusy):  # unreachable, timed out, rate limited
@@ -291,7 +294,7 @@ def _candidates(
     return names
 
 
-def _local_files(adapter: Path, root: Path) -> list[str]:
+def _local_files(adapter: Path) -> list[str]:
     nested = [p.parent for p in adapter.rglob("Dockerfile") if p.parent != adapter]
     files: list[str] = []
     for path in sorted(adapter.rglob("*")):
@@ -322,6 +325,7 @@ def check_adapter(
     root: Path,
     load_tree: TreeLoader,
     on_github: Callable[[str, str], bool | None] = commit_on_github,
+    *,
     changed: bool = False,
 ) -> Report:
     """Problems and notes of one adapter; ``changed``: this change touches it."""
@@ -369,7 +373,7 @@ def check_adapter(
     ours = set(manifest.get("ours", []))
     renamed: dict[str, str] = manifest.get("renamed", {})
     renamed_dirs: dict[str, str] = manifest.get("renamed_dirs", {})
-    files = _local_files(adapter, root)
+    files = _local_files(adapter)
     also_sources, malformed = parse_also(manifest.get("also", []))
     if malformed:
         report.problems.extend(f"{label}: {MANIFEST} also {m}" for m in malformed)
@@ -470,10 +474,6 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", default="origin/main")
     arguments = parser.parse_args(argv)
-    # Imported here: tools/check-image-provenance loads this module on a bare
-    # interpreter; placing the declared files needs the contracts dependencies.
-    sys.path.insert(0, str(ROOT / "contracts" / "src"))
-    from recipe_tooling.adapter_sources import materialize_or_exit
 
     materialize_or_exit(ROOT)
     touched = changed_paths(ROOT, arguments.base)

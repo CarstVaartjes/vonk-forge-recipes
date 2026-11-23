@@ -9,10 +9,14 @@ ornith-1-5-35b-a3b-nvfp4-w4a16-r0b0tlab-sglang-single).
 
 from __future__ import annotations
 
+import hashlib
 import importlib.machinery
 import importlib.util
+import inspect
+import json
 import os
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -125,10 +129,6 @@ def test_an_unreadable_seed_starts_without_it(
 def test_native_kit_replacement_keeps_verified_cache_on_failure(
     tmp_path, relative, monkeypatch
 ):
-    import hashlib
-    import inspect
-    import json
-    import subprocess
 
     module = _launcher(relative)
     source = tmp_path / "source"

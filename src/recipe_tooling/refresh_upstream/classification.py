@@ -11,8 +11,6 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import quote
 
-from vonk_forge_contracts.recipe import RecipeRelease
-
 from recipe_tooling import vendored_upstream as vendored
 from recipe_tooling.catalog_model import roles_for
 from recipe_tooling.kit_pins import write as kit_write
@@ -21,6 +19,7 @@ from recipe_tooling.refresh_upstream import evidence as refresh_evidence
 from recipe_tooling.refresh_upstream import http as refresh_http
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.upstream_http import fetch
+from vonk_forge_contracts.recipe import RecipeRelease
 
 ARCHIVE_LABEL = re.compile(r'([\w.-]*archive-sha256="?)([0-9a-f]{64})("?)')
 MAX_ARCHIVE_BYTES = 400_000_000
@@ -181,7 +180,8 @@ def retarget_release_assets(
         return dockerfile, False
     project = item.repo.split("/", 1)[1].lower()
     lines = []
-    for line in dockerfile.splitlines(keepends=True):
+    for original in dockerfile.splitlines(keepends=True):
+        line = original
         if "VERSION" in line or (
             line.lstrip().startswith("#") and project in line.lower()
         ):
@@ -357,9 +357,11 @@ def model_shape_problems(
     problems: list[str] = []
     by_path = {f["path"]: f for f in new_files}
     old_by = {f["path"]: f for f in old["files"]}
-    for removed in sorted(set(old_by) - set(by_path)):
-        if not set(old_by[removed]["roles"]) <= refresh_model.METADATA_ONLY:
-            problems.append(f"file removed or renamed upstream: `{removed}`")
+    problems.extend(
+        f"file removed or renamed upstream: `{removed}`"
+        for removed in sorted(set(old_by) - set(by_path))
+        if not set(old_by[removed]["roles"]) <= refresh_model.METADATA_ONLY
+    )
     for added in sorted(set(by_path) - set(old_by)):
         roles = by_path[added]["roles"]
         if roles != ["metadata"]:

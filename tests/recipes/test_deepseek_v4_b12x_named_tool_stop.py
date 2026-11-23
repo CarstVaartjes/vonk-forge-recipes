@@ -76,7 +76,7 @@ class ParserEngine:
         return raw_args
 
 
-def _named_tool_schema(*, tool_choice, tools) -> dict | None:
+def _named_tool_schema(*, tool_choice, tools) -> dict[str, Any] | None:
     """vLLM's get_json_schema_from_tools for a named choice: that tool's parameters."""
     if isinstance(tool_choice, ChatCompletionNamedToolChoiceParam):
         name = tool_choice.function.name
@@ -94,13 +94,13 @@ class _Envs:
         return self._namespace["environment_variables"][name]()
 
 
-def _load_vllm(monkeypatch: pytest.MonkeyPatch, strict: str | None) -> dict:
+def _load_vllm(monkeypatch: pytest.MonkeyPatch, strict: str | None) -> dict[str, Any]:
     """Execute the pinned vLLM code with the environment a recipe launches."""
     if strict is None:
         monkeypatch.delenv(STRICT, raising=False)
     else:
         monkeypatch.setenv(STRICT, strict)
-    requested: list[dict] = []
+    requested: list[dict[str, Any]] = []
 
     def get_model_structural_tag(**kwargs: Any) -> Any:
         requested.append(kwargs)
@@ -133,11 +133,11 @@ def _load_vllm(monkeypatch: pytest.MonkeyPatch, strict: str | None) -> dict:
     return namespace
 
 
-def _recipe(slug: str) -> dict:
+def _recipe(slug: str) -> dict[str, Any]:
     return json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
 
 
-def _t_report(recipe: dict) -> ChatCompletionRequest:
+def _t_report(recipe: dict[str, Any]) -> ChatCompletionRequest:
     """T_REPORT as this recipe's server receives it (server kwargs, then request)."""
     shared = json.loads((ROOT / "qualification/shared.json").read_text())
     body = shared["service_case_templates"]["T_REPORT"]["body"]
@@ -161,7 +161,9 @@ def _t_report(recipe: dict) -> ChatCompletionRequest:
     )
 
 
-def _serve(vllm: dict, request: ChatCompletionRequest) -> ChatCompletionRequest:
+def _serve(
+    vllm: dict[str, Any], request: ChatCompletionRequest
+) -> ChatCompletionRequest:
     """DelegatingParser.adjust_request with the deepseek_v4 parsers, as serving runs it."""
     engine = vllm["DeepSeekV4Parser"](
         None, request.tools, chat_template_kwargs=dict(request.chat_template_kwargs)
@@ -176,7 +178,7 @@ def _serve(vllm: dict, request: ChatCompletionRequest) -> ChatCompletionRequest:
     return parser.adjust_request(request)
 
 
-def _environment(recipe: dict) -> dict[str, str]:
+def _environment(recipe: dict[str, Any]) -> dict[str, str]:
     return {e["name"]: e.get("value") for e in recipe["runtime"].get("environment", [])}
 
 

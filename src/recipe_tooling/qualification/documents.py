@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from recipe_tooling.paths import REPO_ROOT
 from vonk_forge_contracts import (
     FamilyDisplay,
     ModelDefinition,
@@ -23,8 +24,6 @@ from vonk_forge_contracts import (
     RecipeDisplay,
     document_sha256,
 )
-
-from recipe_tooling.paths import REPO_ROOT
 
 ROOT = REPO_ROOT
 

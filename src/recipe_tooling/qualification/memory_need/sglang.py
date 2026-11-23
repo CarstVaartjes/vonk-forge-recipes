@@ -5,11 +5,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from decimal import ROUND_CEILING, Decimal
 
-from vonk_forge_contracts import (
-    ModelDefinition,
-    RecipeDefinition,
-)
-
 from recipe_tooling.qualification.memory_need import args as mn_args
 from recipe_tooling.qualification.memory_need import vllm as mn_vllm
 from recipe_tooling.qualification.memory_need.constants import (
@@ -24,6 +19,10 @@ from recipe_tooling.qualification.memory_need.geometry import (
     HYBRID_ARCHITECTURES,
     CacheGeometry,
     MemoryInputs,
+)
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
 )
 
 

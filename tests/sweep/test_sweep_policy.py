@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
+from spark_sweep import policy, verdict
+from spark_sweep.catalog import Model, Recipe
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
-
-from spark_sweep import policy, verdict
-from spark_sweep.catalog import Recipe
 
 GB = 10**9
 CAP = SPARK_MEMORY_BYTES
@@ -94,13 +93,13 @@ def test_owner_priority_boost_outranks_a_cheaper_group() -> None:
     boosted = policy.plan_groups(
         pending, sizes, set(), policy.keyword_boost(["glm-5-3"], factor=100)
     )
-    assert keys(plain)[0] == ["cheap"] and keys(boosted)[0] == ["glm-5-3-flash"]
+    assert keys(plain)[0] == ["cheap"]
+    assert keys(boosted)[0] == ["glm-5-3-flash"]
 
 
 def test_build_sizes_prefers_the_model_size_and_falls_back_to_declared_artifact_bytes() -> (
     None
 ):
-    from spark_sweep.catalog import Model
 
     recipes = [
         recipe("a", ("A",), artifact_bytes=7 * GB),
@@ -111,7 +110,6 @@ def test_build_sizes_prefers_the_model_size_and_falls_back_to_declared_artifact_
 
 
 def test_in_flight_and_cached_models_count_as_present() -> None:
-    from spark_sweep.catalog import Model
 
     models = {
         "A": Model("a", "A", 1, "cached"),
@@ -132,8 +130,8 @@ def test_group_members_are_back_to_back_with_engine_and_base_image_locality() ->
         recipe("v3", engine="vllm", base_image="b3"),
     ]
     other = recipe("o", ("O",))
-    by_key = {r.key: r for r in members + [other]}
-    plans = policy.plan_groups(members + [other], {"m": GB, "O": 2 * GB}, {"m", "O"})
+    by_key = {r.key: r for r in [*members, other]}
+    plans = policy.plan_groups([*members, other], {"m": GB, "O": 2 * GB}, {"m", "O"})
     order = [
         k.split("/")[1]
         for k in policy.order_queue(
@@ -316,11 +314,9 @@ def test_a_dual_needs_every_spark_empty() -> None:
     d = recipe("d", node_count=2, memory_bytes=60 * GB)
     assert policy.place_dual([d], bins(0, 1)) is None
     placed = policy.place_dual([recipe("single"), d], bins(0, 0))
-    assert (
-        placed is not None
-        and placed.recipe.slug == "d"
-        and placed.spark_ids == ("s0", "s1")
-    )
+    assert placed is not None
+    assert placed.recipe.slug == "d"
+    assert placed.spark_ids == ("s0", "s1")
 
 
 # -- timeouts -------------------------------------------------------------------------------
@@ -337,7 +333,8 @@ def test_timeout_learns_per_engine_and_scales_with_model_size() -> None:
     policy.learn(samples, "vllm", 20 * policy.GIB, 600)  # 30 s per GiB
     small = policy.load_timeout(samples, "vllm", 20 * policy.GIB)
     large = policy.load_timeout(samples, "vllm", 40 * policy.GIB)
-    assert small == pytest.approx(1800) and large == pytest.approx(3600)  # 3 x expected
+    assert small == pytest.approx(1800)
+    assert large == pytest.approx(3600)
     # An engine never seen falls back to what the others taught.
     assert policy.load_timeout(samples, "sglang", 20 * policy.GIB) == pytest.approx(
         1800
@@ -355,7 +352,8 @@ def test_learning_keeps_only_recent_samples() -> None:
     samples: dict[str, list[list[float]]] = {}
     for i in range(30):
         policy.learn(samples, "e", GB, float(i + 1))
-    assert len(samples["e"]) == 20 and samples["e"][0][1] == 11.0
+    assert len(samples["e"]) == 20
+    assert samples["e"][0][1] == 11.0
 
 
 # -- failures --------------------------------------------------------------------------------
@@ -494,7 +492,6 @@ def test_planning_the_whole_catalog_places_every_recipe_once() -> None:
 
 
 def test_recently_updated_recipes_and_seed_lists_are_boosted() -> None:
-    from datetime import UTC, datetime
 
     now = datetime(2026, 10, 2, tzinfo=UTC).timestamp()
     boost = policy.make_boost(["glm-5-3"], {"seeded"}, now, recent_days=3)

@@ -11,8 +11,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-from vonk_forge_contracts import RecipeDefinition, document_sha256
-
 from recipe_tooling import base_image_holds as base_holds
 from recipe_tooling import catalog_hf_model as catalog
 from recipe_tooling import model_revision_holds as model_holds
@@ -28,6 +26,7 @@ from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.refresh_upstream import pinning as refresh_pinning
 from recipe_tooling.upstream_http import UpstreamBusy
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 # ---------------------------------------------------------------------------
 # Assessment: decide, and prepare the edits for a mechanical refresh
@@ -625,8 +624,8 @@ class Assessor:
         reference: Callable[[str], str],
         new_recipe: dict[str, Any],
         edits: dict[str, bytes | None],
-        published: bool = False,
         *,
+        published: bool = False,
         result: refresh_model.Assessment,
     ) -> None:
         """Move the Dockerfile's FROM of ``repository`` and the recorded base image.
@@ -774,7 +773,7 @@ class Assessor:
             if problems:
                 result.reasons.extend(f"{item.label}: {p}" for p in problems)
                 return
-        self._retarget_model(recipe, new_recipe, old, fresh, result)
+        self._retarget_model(new_recipe, old, fresh, result)
         if declared:
             directory = (
                 self.catalog.root / recipe["execution"]["build"]["context"]["path"]
@@ -852,7 +851,6 @@ class Assessor:
 
     def _retarget_model(
         self,
-        recipe: dict[str, Any],
         new_recipe: dict[str, Any],
         old: dict[str, Any],
         fresh: dict[str, Any],

@@ -6,6 +6,7 @@ import hashlib
 import io
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from repo_root import ROOT
@@ -60,7 +61,7 @@ class FakeGh:
         return [c[3] for c in self.calls if c[1] == "upload"]
 
 
-def repo(tmp_path: Path, declared: dict | None = None) -> Path:
+def repo(tmp_path: Path, declared: dict[str, Any] | None = None) -> Path:
     (tmp_path / "adapters/a").mkdir(parents=True, exist_ok=True)
     for name in ("one", "two"):
         (tmp_path / f"adapters/a/{name}.tar.gz").write_bytes(BLOB)
@@ -118,7 +119,7 @@ def test_tampered_asset_is_refused_not_replaced(tmp_path: Path) -> None:
     assert gh.uploads == []
 
 
-def declared(origin: str | None) -> dict:
+def declared(origin: str | None) -> dict[str, Any]:
     return {
         DIGEST: {
             "size_bytes": len(BLOB),
@@ -144,7 +145,8 @@ def test_reconcile_heals_a_lost_blob_from_origin_after_a_retry(tmp_path: Path) -
         root, cache=tmp_path / "c", opener=opener, sleep=lambda _: None, gh=gh
     )
 
-    assert problems == [] and DIGEST in gh.assets
+    assert problems == []
+    assert DIGEST in gh.assets
 
 
 def test_reconcile_reports_a_blob_with_no_origin(tmp_path: Path) -> None:
@@ -178,7 +180,8 @@ def test_reconcile_refuses_wrong_origin_bytes(tmp_path: Path) -> None:
         root, cache=tmp_path / "c", opener=wrong, sleep=lambda _: None, gh=gh
     )
 
-    assert ORIGIN in problems[0] and gh.uploads == []
+    assert ORIGIN in problems[0]
+    assert gh.uploads == []
 
 
 def test_reconcile_reports_a_failed_upload(tmp_path: Path) -> None:
@@ -194,7 +197,8 @@ def test_reconcile_reports_a_failed_upload(tmp_path: Path) -> None:
         gh=gh,
     )
 
-    assert "upload of" in problems[0] and "boom" in problems[0]
+    assert "upload of" in problems[0]
+    assert "boom" in problems[0]
 
 
 def test_reconcile_reports_a_half_uploaded_asset_as_missing(tmp_path: Path) -> None:

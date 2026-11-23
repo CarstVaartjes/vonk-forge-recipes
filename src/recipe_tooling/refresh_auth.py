@@ -13,6 +13,8 @@ import urllib.request
 from datetime import datetime
 from typing import Any
 
+from recipe_tooling.upstream_http import open_once
+
 #: What the recipe refresh needs on the recipe repository.
 REFRESH_PERMISSIONS = {
     "contents": "write",
@@ -59,7 +61,7 @@ class RefreshAppAuth:
             },
         )
         try:
-            with urllib.request.urlopen(request, timeout=30) as response:
+            with open_once(request, timeout=30) as response:
                 data = response.read()
         except urllib.error.HTTPError as error:
             raise RuntimeError(

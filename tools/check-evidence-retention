@@ -21,11 +21,14 @@ import argparse
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path[:0] = [str(ROOT / "src"), str(ROOT / "contracts/src")]
-from vonk_forge_contracts import RecipeQualificationEvidence
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts/src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from typing import Any
 
 from recipe_tooling.qualification.evidence_retention import EVIDENCE_CLASSES
+from vonk_forge_contracts import RecipeQualificationEvidence
+
+ROOT = Path(__file__).resolve().parents[1]
 
 PREFIX = "qualification/evidence/"
 MAX_CONTENTS = 5
@@ -35,14 +38,14 @@ def problems(evidence: RecipeQualificationEvidence) -> list[str]:
     """Each violated rule of one evidence file, as a line."""
     errors = []
 
-    def newest(record) -> tuple:
+    def newest(record) -> tuple[Any, ...]:
         return (
             record.tested_at,
             EVIDENCE_CLASSES["failure"](record),
             record.model_dump_json(),
         )
 
-    by_identity: dict[str, list] = {}
+    by_identity: dict[str, list[Any]] = {}
     for record in evidence.records:
         by_identity.setdefault(record.identity.model_dump_json(), []).append(record)
     for records in by_identity.values():
@@ -51,12 +54,12 @@ def problems(evidence: RecipeQualificationEvidence) -> list[str]:
             for predicate in EVIDENCE_CLASSES.values()
             if any(predicate(r) for r in records)
         }
-        for record in records:
-            if id(record) not in newest_of_class:
-                errors.append(
-                    f"R1 the record of {record.tested_at} is the newest of no class "
-                    "for its identity"
-                )
+        errors.extend(
+            f"R1 the record of {record.tested_at} is the newest of no class "
+            "for its identity"
+            for record in records
+            if id(record) not in newest_of_class
+        )
     contents = {r.identity.content_sha256 for r in evidence.records}
     if len(contents) > MAX_CONTENTS:
         errors.append(f"R2 {len(contents)} content digests carry records")

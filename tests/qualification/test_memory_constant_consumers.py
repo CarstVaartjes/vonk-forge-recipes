@@ -113,4 +113,5 @@ def test_measured_peak_conversion_and_publish_rule_have_one_owner() -> None:
     assert "ADMISSION_IDLE_USE_BYTES" not in builder
     # The sweep states the floor in its note; it never converts a use itself.
     sweep = Path(memory.__file__).read_text()
-    assert "- OS_FLOOR_BYTES" not in sweep and "OS_FLOOR_BYTES +" not in sweep
+    assert "- OS_FLOOR_BYTES" not in sweep
+    assert "OS_FLOOR_BYTES +" not in sweep

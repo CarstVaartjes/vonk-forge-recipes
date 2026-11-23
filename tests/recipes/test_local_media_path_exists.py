@@ -49,24 +49,17 @@ class LocalMediaPathTests(unittest.TestCase):
             for value in values:
                 checked += 1
                 with self.subTest(recipe=recipe_path.stem, path=value):
-                    self.assertIsInstance(value, str)
-                    self.assertTrue(value.startswith("/"), "must be absolute")
-                    self.assertIn(
-                        value.rstrip("/"),
-                        created,
-                        f"{dockerfile.relative_to(ROOT)} must create {value}",
+                    assert isinstance(value, str)
+                    assert value.startswith("/"), "must be absolute"
+                    assert value.rstrip("/") in created, (
+                        f"{dockerfile.relative_to(ROOT)} must create {value}"
                     )
-        self.assertGreater(checked, 0)
+        assert checked > 0
 
     def test_checker_detects_a_missing_directory(self) -> None:
-        self.assertNotIn(
-            "/inputs", _created_directories("RUN install --directory /state\n")
-        )
-        self.assertIn(
-            "/inputs",
-            _created_directories(
-                "RUN a \\\n && install --directory --mode=0755 /inputs \\\n && b\n"
-            ),
+        assert "/inputs" not in _created_directories("RUN install --directory /state\n")
+        assert "/inputs" in _created_directories(
+            "RUN a \\\n && install --directory --mode=0755 /inputs \\\n && b\n"
         )
 
 

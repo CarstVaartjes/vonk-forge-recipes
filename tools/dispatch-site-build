@@ -21,8 +21,10 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from recipe_tooling import refresh_auth as auth_module
+
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
 SITE_REPOSITORY = "CarstVaartjes/vonk-forge-web"
 SITE_WORKFLOW = "pages.yml"
 PERMISSIONS = {"actions": "write"}
@@ -47,8 +49,6 @@ def dispatch(auth: Any, *, run: Run | None = None) -> str:
 
 
 def main() -> int:
-    from recipe_tooling import refresh_auth as auth_module
-
     failure: RuntimeError | None = None
     try:
         # The key leaves the environment before any gh child process starts.

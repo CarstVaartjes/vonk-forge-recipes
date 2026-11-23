@@ -9,11 +9,6 @@ from functools import cache
 from itertools import product
 from pathlib import Path
 
-from vonk_forge_contracts import (
-    ModelDefinition,
-    RecipeDefinition,
-)
-
 from recipe_tooling.qualification.memory_need import constants as mn_constants
 from recipe_tooling.qualification.memory_need.constants import (
     ENGRAM_ROW_CACHE_ENVIRONMENT,
@@ -24,6 +19,10 @@ from recipe_tooling.qualification.memory_need.geometry import (
     resident_weight_bytes,
 )
 from recipe_tooling.qualification.memory_need.records import MissingEstimateInput
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
+)
 
 
 def cache_bytes(value: object) -> int:

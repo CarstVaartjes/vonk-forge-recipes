@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
+
 from vonk_forge_contracts import (
     CapabilityName,
     catalog_vocabulary,
@@ -23,7 +26,7 @@ def test_only_working_counts_as_verified() -> None:
 
 
 def test_the_built_index_carries_the_vocabulary(
-    built_catalog: tuple[dict, object],
+    built_catalog: tuple[dict[str, Any], object],
 ) -> None:
     index = read_catalog_index(built_catalog[0])
     assert index.vocabulary == catalog_vocabulary()

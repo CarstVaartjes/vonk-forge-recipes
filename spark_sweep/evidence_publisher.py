@@ -11,19 +11,16 @@ import json
 import os
 import signal
 import subprocess
+import sys
 import tempfile
 import time
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TextIO
+from typing import Any, TextIO
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
-from vonk_forge_contracts import (
-    QualificationEvidenceRecord,
-    RecipeQualificationEvidence,
-)
 
 from recipe_tooling.qualification.evidence_retention import retain_evidence
 from recipe_tooling.qualification.evidence_store import (
@@ -35,6 +32,10 @@ from recipe_tooling.qualification.evidence_store import (
     write_evidence,
 )
 from recipe_tooling.qualification.own_pulls import OWN_FIELDS, REPOSITORY, own_pulls
+from vonk_forge_contracts import (
+    QualificationEvidenceRecord,
+    RecipeQualificationEvidence,
+)
 
 from .qualification import (
     BackfillResult,
@@ -54,10 +55,18 @@ from .sweep_contract import (
 
 BRANCH = "qualification/evidence"
 TITLE = "qualification evidence"
-_deadline: float | None = None
+
 STATE_FILE = "publisher-state.json"
 ROTATED_FILE = "rotated-history.json"
 CHILD_BUDGET = 240  # seconds a publisher child may run, as seen from the sweep
+
+
+class _ChildDeadline:
+    """The monotonic time the running batch's child processes must finish by."""
+
+    at: float | None = None
+
+
 #: How long one evidence PR may stay open before it is reported. Evidence PRs were
 #: observed to merge 6-14 minutes after they opened; an hour open is stuck.
 STALL_SECONDS = 3600
@@ -67,7 +76,7 @@ STALL_SECONDS = 3600
 RETRY_SECONDS = 300  # a PR in flight or a failing command is looked at again
 
 
-def kill_group(process: subprocess.Popen) -> None:
+def kill_group(process: subprocess.Popen[bytes]) -> None:
     """End the child and its git/gh children: it runs in a session of its own."""
     try:
         os.killpg(process.pid, signal.SIGKILL)
@@ -324,8 +333,8 @@ class PullRequest(BaseModel):
 
 def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     """One bounded subprocess. No retry here: the next tick re-plans from a fresh clone."""
-    if _deadline is not None:
-        remaining = _deadline - time.monotonic()
+    if _ChildDeadline.at is not None:
+        remaining = _ChildDeadline.at - time.monotonic()
         if remaining <= 0:
             raise EvidencePublicationTimeout(f"evidence batch exceeded {CHILD_BUDGET}s")
         timeout = min(timeout, max(1, int(remaining)))
@@ -335,9 +344,9 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     return result.stdout.strip()
 
 
-def own_open_prs(cwd: Path) -> list[dict]:
+def own_open_prs(cwd: Path) -> list[dict[str, Any]]:
     """The open evidence PR from this repository: GitHub allows one per head and base."""
-    own = own_pulls(
+    return own_pulls(
         json.loads(
             command(
                 cwd,
@@ -357,13 +366,13 @@ def own_open_prs(cwd: Path) -> list[dict]:
             )
         )
     )
-    return own
 
 
 def sync(
     history: Path,
     directory: Path,
     state: Path | None = None,
+    *,
     final: bool = False,
     run: str = "",
     watch_only: bool = False,
@@ -380,7 +389,16 @@ def sync(
     directory.mkdir(parents=True, exist_ok=True)
     previous = load_state(directory)
     try:
-        code = _batch(history, directory, state, seen, previous, final, run, watch_only)
+        code = _batch(
+            history,
+            directory,
+            state,
+            seen,
+            previous,
+            final=final,
+            run=run,
+            watch_only=watch_only,
+        )
     except Exception as error:  # noqa: BLE001 - the runtime net: a crash writes no state
         # The signature is keyed on behaviour; the real error goes to publisher.log.
         print(f"evidence: {type(error).__name__}: {error}", flush=True)
@@ -425,7 +443,7 @@ def sync(
     return code
 
 
-def _evidence_records(clone: Path, ref: str, name: str) -> tuple:
+def _evidence_records(clone: Path, ref: str, name: str) -> tuple[Any, ...]:
     try:
         return RecipeQualificationEvidence.model_validate_json(
             command(clone, "git", "show", f"{ref}:{name}")
@@ -480,7 +498,9 @@ def _drop_refused(clone: Path, refused: set[str]) -> tuple[str, ...]:
         if not dropped:
             continue
         found += dropped
-        kept = tuple(r for r, i in zip(evidence.records, ids) if i not in refused)
+        kept = tuple(
+            r for r, i in zip(evidence.records, ids, strict=False) if i not in refused
+        )
         if kept:
             write_evidence(clone, evidence.model_copy(update={"records": kept}))
         else:
@@ -494,13 +514,13 @@ def _batch(
     state: Path | None,
     seen: Seen,
     previous: PublisherRecord,
+    *,
     final: bool = False,
     run: str = "",
     watch_only: bool = False,
 ) -> SweepEvidenceExit:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
-    global _deadline
-    _deadline = time.monotonic() + CHILD_BUDGET
+    _ChildDeadline.at = time.monotonic() + CHILD_BUDGET
     directory.mkdir(parents=True, exist_ok=True)
     opened = own_open_prs(directory)
     refusing = False
@@ -661,7 +681,7 @@ def _batch(
                 cwd=clone,
                 capture_output=True,
                 text=True,
-                timeout=min(60, max(1, int(_deadline - time.monotonic()))),
+                timeout=min(60, max(1, int(_ChildDeadline.at - time.monotonic()))),
                 check=False,
             )
             if result.returncode:
@@ -790,7 +810,7 @@ class EvidencePublisher:
         # A new sweep may run new conversion code: its first batch reads every log.
         self.run = uuid.uuid4().hex
         self.script = script
-        self.process: subprocess.Popen | None = None
+        self.process: subprocess.Popen[bytes] | None = None
         self.next_attempt = 0.0
         self.due = True  # the start publish, until a child has completed it
         self.watching = False  # the last child only watched
@@ -869,7 +889,6 @@ class EvidencePublisher:
         try:
             self.directory.mkdir(parents=True, exist_ok=True)
             self._output = (self.directory / "publisher.log").open("a")
-            import sys
 
             self.process = subprocess.Popen(
                 [

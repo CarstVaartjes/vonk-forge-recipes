@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
@@ -12,7 +13,7 @@ from spark_sweep.prefetch import PrefetchConfig
 from spark_sweep.verdict import Disposition, disposition
 
 
-def _rows(tmp_path: Path) -> list[dict]:
+def _rows(tmp_path: Path) -> list[dict[str, Any]]:
     path = tmp_path / "results.jsonl"
     return (
         [json.loads(line) for line in path.read_text().splitlines()]

@@ -136,7 +136,8 @@ def test_muse_template_differs_from_upstream_only_in_the_switch() -> None:
         for _, _, _, template, source in _reasoning_templates()[0]
         if template == MUSE_SERVED_PATH
     }
-    assert served and served == set(MUSE_TEMPLATES)
+    assert served
+    assert served == set(MUSE_TEMPLATES)
     for path in MUSE_TEMPLATES:
         ours = path.read_bytes()
         assert ours.count(MUSE_SWITCHED_RS.encode()) == 1

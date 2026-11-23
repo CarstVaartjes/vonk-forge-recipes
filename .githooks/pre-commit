@@ -5,26 +5,19 @@ root=$(git rev-parse --show-toplevel)
 cd "$root"
 
 # The catalog index, packages and coverage are build outputs (ignored by Git);
-# CI builds and validates them. This hook only runs the pinned static checks.
-# Only the staged Python files are checked, from the working tree (the index is
-# not materialised); unstaged edits no longer refuse the commit; lint and format check only staged
-# paths; the type gate still reads the working tree. Extensionless
-# executables count when their first line is a python shebang.
+# CI builds and validates them. This hook runs the same lint, format and type
+# commands as CI (.github/workflows/validate.yml). Only the staged files that
+# Ruff selects are checked, from the working tree (the index is not
+# materialised); `ruff check --show-files` is the one owner of "which files are
+# Python", including the extensionless executables in tools/.
+export UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-cache}"
+python_files=$(uv run --frozen ruff check --show-files)
 staged_python=""
 newline='
 '
 for path in $(git diff --cached --name-only --diff-filter=ACMR); do
-    [ -f "$path" ] || continue
-    case "$path" in
-        adapters/*) continue ;;
-        *.py) staged_python="$staged_python$path$newline" ;;
-        *.*) ;;
-        *)
-            IFS= read -r first_line < "$path" || continue
-            case "$first_line" in
-                '#!'*python*) staged_python="$staged_python$path$newline" ;;
-            esac
-            ;;
+    case "$newline$python_files$newline" in
+        *"/$path$newline"*) staged_python="$staged_python$path$newline" ;;
     esac
 done
 if [ -n "$staged_python" ]; then
@@ -34,16 +27,12 @@ if [ -n "$staged_python" ]; then
     set -- $staged_python
     unset IFS
     set +f
-    UV_TOOL_DIR="${UV_TOOL_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-tools}" \
-        tools/check-python-lint "$@"
-    UV_TOOL_DIR="${UV_TOOL_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-tools}" \
-        tools/check-python-format "$@"
+    uv run --frozen ruff check --force-exclude -- "$@"
+    uv run --frozen ruff format --check --force-exclude -- "$@"
 fi
-# The reviewed pyright baseline is the type gate; bare pyright on changed files
-# would fail on every accepted exception in them.
+# The type gate reads the whole working tree (no baseline): any type error fails.
 if [ -n "$(git diff --cached --name-only --diff-filter=d -- '*.py')" ]; then
-    UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-cache}" \
-        scripts/check-python-types
+    scripts/check-python-types
 fi
 # Tests never use git (tools/check-test-git). The staged diff is captured first so
 # a failure of the diff writer aborts the hook (a pipe has no pipefail under sh).

@@ -10,8 +10,9 @@ from pathlib import Path
 from typing import Any, ClassVar
 from unittest.mock import patch
 
+import pytest
+from documents import json_document
 from refresh_helpers import NEW, OLD, classify, comparison, files, model_with
-from vonk_forge_contracts import ModelDisplay
 
 from recipe_tooling import catalog_hf_model, vendored_upstream
 from recipe_tooling.catalog_model import file_id
@@ -24,37 +25,34 @@ from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.refresh_upstream import pinning as refresh_pinning
 from recipe_tooling.upstream_http import UpstreamBusy
+from vonk_forge_contracts import ModelDisplay
 
 
 class ModelTests(unittest.TestCase):
     def test_same_paths_with_new_weight_digests_is_compatible(self) -> None:
         old = model_with(("model.safetensors", "README.md"))
-        self.assertEqual(
+        assert (
             refresh_classification.model_shape_problems(
                 old, files("model.safetensors", "README.md", "NOTES.md")
-            ),
-            [],
+            )
+            == []
         )
 
     def test_changed_configuration_tokenizer_or_runtime_file_is_not(self) -> None:
         for path in ("config.json", "tokenizer.json", "dspark.py"):
             with self.subTest(path=path):
                 old = model_with(("model.safetensors", path))
-                self.assertTrue(
-                    refresh_classification.model_shape_problems(
-                        old, files("model.safetensors", path)
-                    )
+                assert refresh_classification.model_shape_problems(
+                    old, files("model.safetensors", path)
                 )
 
     def test_removed_and_new_weight_files_are_not(self) -> None:
         old = model_with(("model.safetensors", "config.json"))
-        self.assertTrue(
-            refresh_classification.model_shape_problems(old, files("model.safetensors"))
+        assert refresh_classification.model_shape_problems(
+            old, files("model.safetensors")
         )
-        self.assertTrue(
-            refresh_classification.model_shape_problems(
-                old, files("model.safetensors", "config.json", "model-2.safetensors")
-            )
+        assert refresh_classification.model_shape_problems(
+            old, files("model.safetensors", "config.json", "model-2.safetensors")
         )
 
     def curated(self, old_paths, before, after, history=None):
@@ -69,7 +67,7 @@ class ModelTests(unittest.TestCase):
             ),
         )
         assessor = refresh_assessment.Assessor(
-            refresh_catalog_view.Catalog(Path(".")),
+            refresh_catalog_view.Catalog(Path()),
             object(),  # pyright: ignore[reportArgumentType]
             None,
             {},
@@ -88,14 +86,14 @@ class ModelTests(unittest.TestCase):
         # revision is not "six new weights files".
         repository = ("a.safetensors", "b.safetensors", "README.md")
         old, kept = self.curated(("a.safetensors",), repository, repository)
-        self.assertEqual([f["path"] for f in kept], ["a.safetensors"])
-        self.assertEqual(refresh_classification.model_shape_problems(old, kept), [])
+        assert [f["path"] for f in kept] == ["a.safetensors"]
+        assert refresh_classification.model_shape_problems(old, kept) == []
 
     def test_a_busy_history_read_is_not_judged_as_every_file_new(
         self,
     ) -> None:
         repository = ("a.safetensors", "b.safetensors")
-        with self.assertRaises(UpstreamBusy):
+        with pytest.raises(UpstreamBusy):
             self.curated(
                 ("a.safetensors",),
                 repository,
@@ -106,7 +104,7 @@ class ModelTests(unittest.TestCase):
         _, kept = self.curated(
             ("a.safetensors",), repository, repository, history=OSError("gone")
         )
-        self.assertEqual(len(kept), 2)
+        assert len(kept) == 2
 
     def test_files_added_upstream_are_still_new(self) -> None:
         old, kept = self.curated(
@@ -114,10 +112,9 @@ class ModelTests(unittest.TestCase):
             ("a.safetensors", "b.safetensors"),
             ("a.safetensors", "b.safetensors", "c.safetensors"),
         )
-        self.assertEqual([f["path"] for f in kept], ["a.safetensors", "c.safetensors"])
-        self.assertIn(
-            "new weights file",
-            " ".join(refresh_classification.model_shape_problems(old, kept)),
+        assert [f["path"] for f in kept] == ["a.safetensors", "c.safetensors"]
+        assert "new weights file" in " ".join(
+            refresh_classification.model_shape_problems(old, kept)
         )
 
     def test_a_recipe_is_moved_only_by_files_it_mounts(self) -> None:
@@ -132,23 +129,17 @@ class ModelTests(unittest.TestCase):
                 }
             ]
         }
-        self.assertEqual(
-            refresh_classification.mounted_paths(recipe, old), {"config.json"}
-        )
+        assert refresh_classification.mounted_paths(recipe, old) == {"config.json"}
         new = files("config.json", "model.safetensors", "inference/model.py")
         for entry in new:
             entry["sha256"] = "c" * 64 if entry["path"] == "config.json" else "e" * 64
         new += files("chat_template.jinja")
-        self.assertTrue(
-            refresh_classification.mounted_unchanged(old, new, {"config.json"})
-        )
+        assert refresh_classification.mounted_unchanged(old, new, {"config.json"})
         new[0]["sha256"] = "f" * 64
-        self.assertFalse(
-            refresh_classification.mounted_unchanged(old, new, {"config.json"})
-        )
+        assert not refresh_classification.mounted_unchanged(old, new, {"config.json"})
         everything = [{"file_id": f["id"]} for f in old["files"]]
         recipe["models"][0]["files"] = everything
-        self.assertIsNone(refresh_classification.mounted_paths(recipe, old))
+        assert refresh_classification.mounted_paths(recipe, old) is None
 
     def test_refreshed_model_renames_and_remaps_ids(self) -> None:
         old = model_with(("model.safetensors",))
@@ -158,9 +149,9 @@ class ModelTests(unittest.TestCase):
         new = refresh_classification.refreshed_model(
             old, files("model.safetensors"), target
         )
-        self.assertEqual(new["identity"]["slug"], "demo-ffffffff")
-        self.assertEqual(new["source"]["revision"], NEW)
-        self.assertEqual(new["files"][0]["id"], file_id("model.safetensors", "a" * 64))
+        assert new["identity"]["slug"] == "demo-ffffffff"
+        assert new["source"]["revision"] == NEW
+        assert new["files"][0]["id"] == file_id("model.safetensors", "a" * 64)
 
     def test_refreshed_model_follows_the_source_between_split_and_whole(self) -> None:
         old = model_with(("model.safetensors",))
@@ -178,11 +169,11 @@ class ModelTests(unittest.TestCase):
             for i in range(2)
         ]
         moved = refresh_classification.refreshed_model(old, split, target)
-        self.assertEqual(len(moved["files"][0]["parts"]), 2)
+        assert len(moved["files"][0]["parts"]) == 2
         back = refresh_classification.refreshed_model(
             moved, files("model.safetensors"), target
         )
-        self.assertNotIn("parts", back["files"][0])
+        assert "parts" not in back["files"][0]
 
     def test_provider_gate_change_creates_review_without_retargeting_model(
         self,
@@ -223,9 +214,9 @@ class ModelTests(unittest.TestCase):
                 lambda _provider, _repo: target,
             )
 
-            self.assertFalse(result.items)
-            self.assertTrue(result.drifted)
-            self.assertIn("provider access changed to gated", result.reasons[0])
+            assert not result.items
+            assert result.drifted
+            assert "provider access changed to gated" in result.reasons[0]
 
     def test_restricted_token_required_or_unspecified_model_is_unverified(self) -> None:
         for requires_token in (True, None):
@@ -264,11 +255,11 @@ class ModelTests(unittest.TestCase):
                     restricted,
                 )
 
-                self.assertFalse(result.items)
-                self.assertFalse(result.reasons)
-                self.assertFalse(result.drifted)
-                self.assertTrue(result.unreachable)
-                self.assertIn("no credentials were requested", result.unreachable[0])
+                assert not result.items
+                assert not result.reasons
+                assert not result.drifted
+                assert result.unreachable
+                assert "no credentials were requested" in result.unreachable[0]
 
     def test_unknown_anonymous_access_status_is_unverified(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -307,11 +298,11 @@ class ModelTests(unittest.TestCase):
                 lambda _provider, _repo: target,
             )
 
-            self.assertFalse(result.items)
-            self.assertFalse(result.reasons)
-            self.assertFalse(result.drifted)
-            self.assertTrue(result.unreachable)
-            self.assertIn("access status is unknown", result.unreachable[0])
+            assert not result.items
+            assert not result.reasons
+            assert not result.drifted
+            assert result.unreachable
+            assert "access status is unknown" in result.unreachable[0]
 
     def test_huggingface_resolver_records_explicit_access_status(self) -> None:
         class FakeHttp:
@@ -321,8 +312,8 @@ class ModelTests(unittest.TestCase):
 
         http = FakeHttp()
         target = refresh_pinning.resolve_huggingface(http, "example/model")  # pyright: ignore[reportArgumentType]
-        self.assertEqual(target.access_status, "gated")
-        self.assertTrue(http.anonymous)
+        assert target.access_status == "gated"
+        assert http.anonymous
 
 
 class ModelScopeTests(unittest.TestCase):
@@ -340,7 +331,7 @@ class ModelScopeTests(unittest.TestCase):
         new = files(".gitattributes", "config.json", "model.safetensors", "README.md")
         for entry in new:
             entry["sha256"] = "c" * 64 if entry["path"] != "README.md" else "d" * 64
-        self.assertEqual(refresh_classification.model_shape_problems(old, new), [])
+        assert refresh_classification.model_shape_problems(old, new) == []
 
     def test_same_fixture_with_config_digest_change_needs_review(self) -> None:
         old = self.old_model(("README.md", "config.json", "model.safetensors"))
@@ -348,22 +339,22 @@ class ModelScopeTests(unittest.TestCase):
         for entry in new:
             entry["sha256"] = "d" * 64 if entry["path"] == "config.json" else "c" * 64
         problems = refresh_classification.model_shape_problems(old, new)
-        self.assertEqual(len(problems), 1)
-        self.assertIn("config.json", problems[0])
+        assert len(problems) == 1
+        assert "config.json" in problems[0]
 
     def test_removed_licence_and_readme_are_informational(self) -> None:
         old = self.old_model(("LICENSE", "README.md", "model.safetensors"))
         new = files("model.safetensors")
         for entry in new:
             entry["sha256"] = "c" * 64
-        self.assertEqual(refresh_classification.model_shape_problems(old, new), [])
+        assert refresh_classification.model_shape_problems(old, new) == []
         target = refresh_model.Target(
             "huggingface", "o/r", NEW, "2026-09-30", None, None, "u"
         )
         refreshed = refresh_classification.refreshed_model(old, new, target)
-        self.assertEqual([f["path"] for f in refreshed["files"]], ["model.safetensors"])
+        assert [f["path"] for f in refreshed["files"]] == ["model.safetensors"]
         item = refresh_model.Item("model", "huggingface", "o/r", OLD, target)
-        self.assertIn("never gate", refresh_evidence.model_evidence(item, old, new))
+        assert "never gate" in refresh_evidence.model_evidence(item, old, new)
 
     def test_restructured_repository_needs_review(self) -> None:
         # #473: turboderp moved its files; config.json and shards are gone, new weights.
@@ -372,14 +363,14 @@ class ModelScopeTests(unittest.TestCase):
         )
         new = files("cal_trace.safetensors", "measurement.json")
         joined = " ".join(refresh_classification.model_shape_problems(old, new))
-        self.assertIn("config.json", joined)
-        self.assertIn("model-00001-of-00002.safetensors", joined)
-        self.assertIn("new weights file", joined)
+        assert "config.json" in joined
+        assert "model-00001-of-00002.safetensors" in joined
+        assert "new weights file" in joined
 
     def test_tensorfold_whole_repo_adapter_keeps_judging_every_file(self) -> None:
         cmp = comparison(files=("src/tensorfold/cuda/server.py", "pyproject.toml"))
         reasons = classify(cmp)  # used_changes=None: the adapter uses the whole repo
-        self.assertIn("server.py", " ".join(reasons))
+        assert "server.py" in " ".join(reasons)
 
     def test_file_id_matches_a_fresh_catalog(self) -> None:
         tree = [
@@ -391,7 +382,7 @@ class ModelScopeTests(unittest.TestCase):
             }
         ]
         (entry,) = catalog_hf_model.inventory("o/r", NEW, tree)  # pyright: ignore[reportArgumentType]
-        self.assertEqual(entry["id"], file_id(entry["path"], "e" * 64))
+        assert entry["id"] == file_id(entry["path"], "e" * 64)
 
 
 class ModelReExportTests(unittest.TestCase):
@@ -501,17 +492,17 @@ class ModelReExportTests(unittest.TestCase):
 
     def test_resharded_re_export_moves_a_recipe_mounting_everything(self) -> None:
         result, new_recipe, edits = self.move(None)
-        self.assertEqual(result.reasons, [])
-        self.assertFalse(result.items[0].noop)
+        assert result.reasons == []
+        assert not result.items[0].noop
         written = edits[f"models/demo-{NEW[:8]}.json"]
         assert written is not None
-        moved = json.loads(written)
+        moved = json_document(written)
         paths = {f["path"] for f in moved["files"]}
-        self.assertIn("HYBRID.json", paths)
-        self.assertIn("model-00041-of-00041.safetensors", paths)
-        self.assertNotIn("model-00036-of-00036.safetensors", paths)
+        assert "HYBRID.json" in paths
+        assert "model-00041-of-00041.safetensors" in paths
+        assert "model-00036-of-00036.safetensors" not in paths
         mounted = {s["file_id"] for s in new_recipe["models"][0]["files"]}
-        self.assertEqual(mounted, {f["id"] for f in moved["files"]})
+        assert mounted == {f["id"] for f in moved["files"]}
 
     def test_a_sibling_checkpoint_beside_identical_files_is_not_a_move(self) -> None:
         # #2749: the repository gained another text encoder; every catalogued file
@@ -524,17 +515,17 @@ class ModelReExportTests(unittest.TestCase):
         new = files(*old_paths, sha="c" * 64)
         new += files("split_files/text_encoders/te_int8.safetensors", sha="d" * 64)
         result, _, edits = self.move(None, old_paths=old_paths, new_inventory=new)
-        self.assertEqual(result.reasons, [])
-        self.assertTrue(result.items[0].noop)
-        self.assertFalse(edits)
+        assert result.reasons == []
+        assert result.items[0].noop
+        assert not edits
 
         # A kit-declared revision keeps the kit's strict shape rule: a review.
         result, _, edits = self.move(
             None, old_paths=old_paths, new_inventory=new, kit_pin=True
         )
-        self.assertTrue(result.reasons)
-        self.assertFalse(result.items[0].noop)
-        self.assertFalse(edits)
+        assert result.reasons
+        assert not result.items[0].noop
+        assert not edits
 
     def test_an_added_chat_template_still_moves_a_recipe_mounting_everything(
         self,
@@ -542,9 +533,9 @@ class ModelReExportTests(unittest.TestCase):
         old_paths = ("config.json", "model-00001-of-00001.safetensors")
         new = files(*old_paths, sha="c" * 64) + files("chat_template.jinja")
         result, _, edits = self.move(None, old_paths=old_paths, new_inventory=new)
-        self.assertEqual(result.reasons, [])
-        self.assertFalse(result.items[0].noop)
-        self.assertTrue(edits)
+        assert result.reasons == []
+        assert not result.items[0].noop
+        assert edits
 
     def test_the_models_display_moves_with_it(self) -> None:
         _, _, edits = self.move(None)
@@ -553,29 +544,26 @@ class ModelReExportTests(unittest.TestCase):
         shown = written_displays.pop(f"display/models/demo-{NEW[:8]}.json")
         assert shown is not None
         moved_display = ModelDisplay.model_validate_json(shown)
-        self.assertEqual(moved_display.identity.slug, f"demo-{NEW[:8]}")
-        self.assertEqual(moved_display.description, "A demo model.")
-        self.assertIsNone(written_displays[f"display/models/demo-{OLD[:8]}.json"])
+        assert moved_display.identity.slug == f"demo-{NEW[:8]}"
+        assert moved_display.description == "A demo model."
+        assert written_displays[f"display/models/demo-{OLD[:8]}.json"] is None
 
     def test_a_named_mounted_file_gone_stays_a_review_naming_it(self) -> None:
         result, _, edits = self.move(
             ("config.json", "model-00036-of-00036.safetensors")
         )
-        self.assertIn(
+        assert (
             "file this recipe mounts is gone upstream: "
-            "`model-00036-of-00036.safetensors`",
-            result.reasons[0],
+            "`model-00036-of-00036.safetensors`" in result.reasons[0]
         )
-        self.assertFalse(edits)
+        assert not edits
 
     def test_a_kit_declared_revision_keeps_its_file_set(self) -> None:
         old = model_with(("config.json", *self.shards(2)))
         new = files("config.json", *self.shards(3))
-        self.assertTrue(
-            refresh_classification.model_problems(old, new, None, declared=True)
-        )
-        self.assertEqual(
-            refresh_classification.model_problems(old, new, None, declared=False), []
+        assert refresh_classification.model_problems(old, new, None, declared=True)
+        assert (
+            refresh_classification.model_problems(old, new, None, declared=False) == []
         )
 
 
@@ -618,18 +606,18 @@ class KitScopeTests(unittest.TestCase):
     def test_a_citation_scopes_the_kit_to_its_subdirectory(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "NOTICE").write_text(self.cite("/models/vllm-sr"))
-            self.assertEqual(
-                refresh_catalog_view.kit_citation_scope(Path(tmp), "example/recipes"),
-                ("models/vllm-sr",),
-            )
+            assert refresh_catalog_view.kit_citation_scope(
+                Path(tmp), "example/recipes"
+            ) == ("models/vllm-sr",)
             (Path(tmp) / "NOTICE").write_text(self.cite())
-            self.assertEqual(
-                refresh_catalog_view.kit_citation_scope(Path(tmp), "example/recipes"),
-                (),
+            assert (
+                refresh_catalog_view.kit_citation_scope(Path(tmp), "example/recipes")
+                == ()
             )
             (Path(tmp) / "NOTICE").write_text("nothing\n")
-            self.assertIsNone(
+            assert (
                 refresh_catalog_view.kit_citation_scope(Path(tmp), "example/recipes")
+                is None
             )
 
     def test_changes_outside_the_cited_subdirectory_are_not_a_refresh(self) -> None:
@@ -637,21 +625,21 @@ class KitScopeTests(unittest.TestCase):
             ("models/other/serve.yaml", "recipes/x.json"),
             notice=self.cite("/models/vllm-sr"),
         )
-        self.assertFalse(result.drifted, result.reasons)
+        assert not result.drifted, result.reasons
 
     def test_changes_inside_the_cited_subdirectory_need_review(self) -> None:
         result = self.assess(
             ("models/other/serve.yaml", "models/vllm-sr/serve.yaml"),
             notice=self.cite("/models/vllm-sr"),
         )
-        self.assertFalse(result.mechanical)
+        assert not result.mechanical
         reasons = " ".join(result.reasons)
-        self.assertIn("models/vllm-sr/serve.yaml", reasons)
-        self.assertNotIn("models/other", reasons)
+        assert "models/vllm-sr/serve.yaml" in reasons
+        assert "models/other" not in reasons
 
     def test_a_citation_of_the_whole_repository_still_judges_everything(self) -> None:
         result = self.assess(("models/other/serve.yaml",), notice=self.cite())
-        self.assertIn("models/other/serve.yaml", " ".join(result.reasons))
+        assert "models/other/serve.yaml" in " ".join(result.reasons)
 
     def test_a_pip_installed_library_ignores_examples_and_its_own_docker(self) -> None:
         install = (
@@ -659,15 +647,15 @@ class KitScopeTests(unittest.TestCase):
         )
         harmless = ("examples/text/requirements.txt", "docker/cuda/Dockerfile")
         result = self.assess(harmless, dockerfile=install)
-        self.assertFalse(result.drifted, result.reasons)
+        assert not result.drifted, result.reasons
         result = self.assess((*harmless, "src/serve.sh"), dockerfile=install)
-        self.assertIn("src/serve.sh", " ".join(result.reasons))
-        self.assertNotIn("examples/", " ".join(result.reasons))
+        assert "src/serve.sh" in " ".join(result.reasons)
+        assert "examples/" not in " ".join(result.reasons)
         # Without a pip install of the library those files stay judged.
-        self.assertTrue(refresh_model.is_blocking("examples/text/requirements.txt"))
-        self.assertTrue(refresh_model.is_blocking("docker/cuda/Dockerfile"))
+        assert refresh_model.is_blocking("examples/text/requirements.txt")
+        assert refresh_model.is_blocking("docker/cuda/Dockerfile")
 
-    def used(self, files: dict[str, str], manifest: dict, trees=None):
+    def used(self, files: dict[str, str], manifest: dict[str, Any], trees=None):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         directory = Path(temporary.name)
@@ -710,13 +698,13 @@ class KitScopeTests(unittest.TestCase):
     def test_a_mapped_subset_does_not_use_the_whole_repository(self) -> None:
         # A bare git checkout beside a mention of the repository is not a clone of it.
         text = "# https://github.com/example/recipes\ngit checkout abc\n"
-        self.assertEqual(self.used({"Dockerfile": text}, self.MAPPED), [])
+        assert self.used({"Dockerfile": text}, self.MAPPED) == []
         unmapped = {"source": self.MAPPED["source"]}
-        self.assertIsNone(self.used({"Dockerfile": text}, unmapped))
+        assert self.used({"Dockerfile": text}, unmapped) is None
 
     def test_a_genuine_clone_beats_the_mapped_subset(self) -> None:
         clone = "RUN git clone https://github.com/example/recipes /src\n"
-        self.assertIsNone(self.used({"Dockerfile": clone}, self.MAPPED))
+        assert self.used({"Dockerfile": clone}, self.MAPPED) is None
 
     def test_a_mod_the_creator_yaml_activates_but_the_adapter_lacks_is_used(
         self,
@@ -727,11 +715,11 @@ class KitScopeTests(unittest.TestCase):
         trees = {OLD: old, NEW: new}
         files = {"recipes/r.yaml": yaml, "mods/vendored/run.sh": "x"}
         changed = self.used(files, {"source": self.MAPPED["source"]}, trees)
-        self.assertEqual(changed, ["mods/nemotron-nano/run.sh"])
+        assert changed == ["mods/nemotron-nano/run.sh"]
         # Unchanged upstream: nothing used changed; a vendored mod is not double counted.
         same = {OLD: old, NEW: old}
-        self.assertEqual(self.used(files, {"source": self.MAPPED["source"]}, same), [])
-        self.assertEqual(refresh_catalog_view.active_mods(None), set())
+        assert self.used(files, {"source": self.MAPPED["source"]}, same) == []
+        assert refresh_catalog_view.active_mods(None) == set()
 
     def test_every_spelling_of_a_mod_list_counts(self) -> None:
         spellings = {
@@ -746,7 +734,7 @@ class KitScopeTests(unittest.TestCase):
         for label, text in spellings.items():
             with self.subTest(label), tempfile.TemporaryDirectory() as tmp:
                 (Path(tmp) / "r.yaml").write_text(text)
-                self.assertIn("mods/a", refresh_catalog_view.active_mods(Path(tmp)))
+                assert "mods/a" in refresh_catalog_view.active_mods(Path(tmp))
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "r.yaml").write_text("mods: []\n")
-            self.assertEqual(refresh_catalog_view.active_mods(Path(tmp)), set())
+            assert refresh_catalog_view.active_mods(Path(tmp)) == set()

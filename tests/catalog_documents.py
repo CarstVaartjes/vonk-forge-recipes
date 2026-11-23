@@ -6,6 +6,8 @@ import json
 from functools import cache
 
 from repo_root import ROOT
+
+from recipe_tooling.qualification.documents import model_display
 from vonk_forge_contracts import ModelDefinition, ModelDisplay, document_sha256
 
 
@@ -34,8 +36,6 @@ def catalog_model_displays() -> dict[str, ModelDisplay]:
     The display holds the Model's declared facts (modalities, capabilities,
     licence), so a test that reads one goes through here, not the document.
     """
-
-    from recipe_tooling.qualification.documents import model_display
 
     return {
         digest: model_display(model.identity.slug, ROOT)

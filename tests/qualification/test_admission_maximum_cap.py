@@ -3,27 +3,11 @@
 import ast
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import pytest
 from catalog_documents import catalog_models
 from repo_root import ROOT
-from vonk_forge_contracts import (
-    QualificationBlame,
-    QualificationCauseCode,
-    QualificationEvidenceRecord,
-    QualificationIdentity,
-    QualificationMeasuredRoleMemory,
-    QualificationOutcome,
-    QualificationPlatform,
-    QualificationSummary,
-    QualificationTopology,
-    RecipeDefinition,
-    RecipeQualificationEvidence,
-)
-from vonk_forge_contracts.memory_admission import (
-    PLATFORM_MEMORY_FLOOR_BYTES,
-    evaluate_memory_admission,
-)
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from recipe_tooling.qualification import documents
@@ -44,6 +28,23 @@ from recipe_tooling.qualification.memory_need.evidence import (
     vllm_utilization_envelope,
 )
 from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
+from vonk_forge_contracts import (
+    QualificationBlame,
+    QualificationCauseCode,
+    QualificationEvidenceRecord,
+    QualificationIdentity,
+    QualificationMeasuredRoleMemory,
+    QualificationOutcome,
+    QualificationPlatform,
+    QualificationSummary,
+    QualificationTopology,
+    RecipeDefinition,
+    RecipeQualificationEvidence,
+)
+from vonk_forge_contracts.memory_admission import (
+    PLATFORM_MEMORY_FLOOR_BYTES,
+    evaluate_memory_admission,
+)
 
 INPUTS = load_inputs()
 GLM = "glm-5-3-flash-exl3-k2-0xsero-vllm-single"
@@ -218,7 +219,7 @@ def test_measured_move_that_keeps_the_budget_keeps_the_peaks(
     ],
 )
 def test_peaks_not_covered_by_measured_evidence_are_raised(
-    monkeypatch: pytest.MonkeyPatch, measurement: dict
+    monkeypatch: pytest.MonkeyPatch, measurement: dict[str, Any]
 ) -> None:
     previous = documents.recipe(PROVEN)
     declare_peak(previous, 1_000_000_000)

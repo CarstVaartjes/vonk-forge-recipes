@@ -12,7 +12,7 @@ import io
 import re
 import tarfile
 import tempfile
-from collections.abc import Iterator, Mapping
+from collections.abc import Generator, Mapping
 from contextlib import contextmanager
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -58,7 +58,7 @@ def _checked_package_payload(
 def _materialized_package_tree(
     package_path: str,
     payload: bytes,
-) -> Iterator[Path]:
+) -> Generator[Path]:
     with tempfile.TemporaryDirectory(prefix="vonk-qualification-package-") as temp:
         tree_root = Path(temp) / "tree"
         tree_root.mkdir()
@@ -78,7 +78,7 @@ def package_tree(
     recipe: Any,
     recipe_sha256: str,
     payload: bytes,
-) -> Iterator[Path]:
+) -> Generator[Path]:
     """Yield the source files of verified package bytes for ``recipe``.
 
     ``recipe_sha256`` is the document digest the catalog index records.
@@ -97,7 +97,7 @@ def current_catalog_package_tree(
     package: Mapping[str, Any],
     recipe: Any,
     recipe_sha256: str,
-) -> Iterator[Path]:
+) -> Generator[Path]:
     """Yield source files from the generated index's digest-verified package."""
 
     package_path = package.get("path")

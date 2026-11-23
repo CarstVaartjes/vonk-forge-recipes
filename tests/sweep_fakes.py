@@ -26,13 +26,18 @@ from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
 from repo_root import FIXTURES, ROOT
-from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from spark_sweep.definitions import Definitions
 from spark_sweep.fanout import DaemonExecutor
 from spark_sweep.lifecycle import LifecycleState
+from spark_sweep.prefetch import PrefetchConfig
+from spark_sweep.run import Sweep
 from spark_sweep.smoke import speech_voice
+from spark_sweep.state import ResultsLog, State
+from spark_sweep.sweep_support import SweepConfig
+from spark_sweep.vonkctl import Vonkctl
+from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
 _ALIAS = re.compile(ENDPOINT_ALIAS_PATTERN)
 SPARK_MEMORY = SPARK_MEMORY_BYTES
@@ -337,7 +342,7 @@ class Gateway:
         gateway = self
 
         class Handler(BaseHTTPRequestHandler):
-            def log_message(self, *_: Any) -> None:
+            def log_message(self, format: str, *args: Any) -> None:
                 return
 
             def _send(
@@ -796,6 +801,7 @@ class FakeFleet:
 
     def _supersede(self, app: dict[str, Any], mode: str) -> None:
         """The Controller replaces a running application, as an automatic retry or a later intent."""
+        successor: dict[str, Any] = {}
         if mode in ("retry", "failed-repeated"):
             successor = dict(
                 app, id=self._id("app"), state="running", successor_of=app["id"]
@@ -1277,7 +1283,10 @@ class FakeFleet:
 
     def _platform(self) -> dict[str, Any]:
         observed = self.clock.now() - self.platform_observation_age
-        timestamp = lambda value: datetime.fromtimestamp(value, UTC).isoformat()
+
+        def timestamp(value):
+            return datetime.fromtimestamp(value, UTC).isoformat()
+
         return {
             "observed_at": timestamp(observed),
             "api": {
@@ -1951,7 +1960,7 @@ class FakeFleet:
         def stamp(at: float) -> str:
             return datetime.fromtimestamp(at, UTC).isoformat()
 
-        if app["state"] in ("queued", "running") and 0 < copy and elapsed < copy:
+        if app["state"] in ("queued", "running") and copy > 0 and elapsed < copy:
             moved_at = now
             done = int(total * elapsed / copy)
             attempt_bytes, retry, key = done, None, None
@@ -2105,7 +2114,6 @@ def make_definitions(recipes: list[FakeRecipe]) -> Any:
 
     A job recipe gets one job: the digit PNG fixture in, one PNG out.
     """
-    from spark_sweep.definitions import Definitions
 
     shared = json.loads(
         (ROOT / "qualification" / "shared.json").read_text(encoding="utf-8")
@@ -2171,11 +2179,6 @@ def make_sweep(
     fleet: FakeFleet | None = None,
     **overrides: Any,
 ) -> tuple[Any, FakeFleet, FakeClock]:
-    from spark_sweep.prefetch import PrefetchConfig
-    from spark_sweep.run import Sweep
-    from spark_sweep.state import ResultsLog, State
-    from spark_sweep.sweep_support import SweepConfig
-    from spark_sweep.vonkctl import Vonkctl
 
     if fleet is None:
         clock = FakeClock()

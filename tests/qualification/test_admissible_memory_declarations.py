@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import math
 import re
 from decimal import Decimal
 
@@ -9,11 +10,6 @@ import documents
 import pytest
 from catalog_documents import catalog_models
 from repo_root import ROOT
-from vonk_forge_contracts import (
-    RecipeDefinition,
-)
-from vonk_forge_contracts.memory_admission import evaluate_memory_admission
-from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from recipe_tooling.qualification.memory_need import evidence as mn_evidence
@@ -44,7 +40,15 @@ from recipe_tooling.qualification.memory_need.sglang import (
 from recipe_tooling.qualification.memory_need.swap import (
     admissible_declaration_warnings,
 )
-from recipe_tooling.qualification.memory_need.warnings import memory_estimate_warnings
+from recipe_tooling.qualification.memory_need.warnings import (
+    memory_estimate_warnings,
+    startup_budget_warnings,
+)
+from vonk_forge_contracts import (
+    RecipeDefinition,
+)
+from vonk_forge_contracts.memory_admission import evaluate_memory_admission
+from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 PROVEN = json.loads((ROOT / "tests/fixtures/proven-recipe-bytes.json").read_text())
 
@@ -104,7 +108,8 @@ def require_repaired_declaration(slug: str, variant: RecipeDefinition) -> None:
         fraction = argument_value(variant, "mem-fraction-static")
         assert fraction is not None
         allocated = sglang_demand(variant, None)
-        assert allocated is not None and all(
+        assert allocated is not None
+        assert all(
             allocated <= role.resources.memory.peak_bytes
             for role in variant.topology.roles
         )
@@ -286,7 +291,6 @@ def test_wrapper_cache_alias_counts_toward_actual_rank_demand() -> None:
 
 @pytest.mark.parametrize("rank", [0, 1])
 def test_absolute_kv_launch_survives_observed_startup_memory(rank: int) -> None:
-    import math
 
     recipe = recipe_for("deepseek-v4-flash-fp8-r0b0tlab-vllm-dual")
 
@@ -346,9 +350,6 @@ def _creator_startup_variant(slug: str, fraction: str, pool: str | int):
 
 
 def test_startup_budget_matches_vllms_free_memory_check() -> None:
-    from recipe_tooling.qualification.memory_need.warnings import (
-        startup_budget_warnings,
-    )
 
     reap = _creator_startup_variant(
         "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.88", "6G"
@@ -374,9 +375,6 @@ def test_startup_budget_matches_vllms_free_memory_check() -> None:
 
 
 def test_startup_budget_still_refuses_a_fraction_above_the_peak() -> None:
-    from recipe_tooling.qualification.memory_need.warnings import (
-        startup_budget_warnings,
-    )
 
     reap = _creator_startup_variant(
         "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.93", "6G"
