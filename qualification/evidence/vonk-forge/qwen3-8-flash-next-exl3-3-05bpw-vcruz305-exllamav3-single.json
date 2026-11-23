@@ -31,14 +31,14 @@
     },
     {
       "identity": {
-        "content_sha256": "b5d36b3ccb990e04bba0132cc6ae7538f80d0012aeee17df51cbd5a7ed3f8eff",
-        "source_bundle_sha256": "d4eae7e8c061cce41174432e8e96803d1810e58067c3ae08d8e75a6b3495763c",
+        "content_sha256": "94dad8c6eaa120bcc2f1f54d0df7f34976a3c87e93879bddebb60bf162bb3605",
+        "source_bundle_sha256": "946528edc5c6901339fa39f1f39e3a3271f30f833720ae6b434ba11d7fe2cb7c",
         "runtime_image": {
-          "build_key": "0a2b192f20346bdb49838c84a654963530e1059bd062cd017926c0650bb5f723",
-          "image_digest": "sha256:03b69ab3010f661f87cb247728626b3aa35f29a03acbbd291b32f37d6a050809"
+          "build_key": "a47911d364a712e060f5541b919c404c72268d01057a540c10651cb60919acdb",
+          "image_digest": "sha256:8a1d4df5fd618695afe332c04ed82b95aa547337209d66785632a26eb20159a3"
         },
         "model_digests": [
-          "6ce39b04e90f2d73139cd99c6df9ea28f1afdf2974ae3d572b76f818ea4221af"
+          "b2a84adf0fbecda1978e06b84ff4479390752ecd24b340f921de6f729bc9fd53"
         ],
         "required_sparks": 1,
         "models_resolved": true
@@ -47,16 +47,23 @@
       "cause_code": "qualification.hardware_pass",
       "cause_summary": "Hardware checks passed",
       "evidence_refs": [
-        "aa4a04065a5b8b0da3627fb7e0503e2cefca3f076128e14fc2fcc168e3c45cd2"
+        "8df18ae67016a1bb948d316c5ebcc16fad67fa4afaa9d1fb7ccd8066c1ca41f1"
       ],
-      "tested_at": "2026-11-05T07:31:49.410743Z",
+      "tested_at": "2026-11-23T11:48:53.816675Z",
       "platform": {
-        "controller_source_sha": "0dbe7a620d809e6add87e17b67584c6b799d3cbf",
+        "controller_source_sha": "20a8c841831a4657f687b8e0ec6ffdd179e28108",
         "hardware_class": "GB10",
         "spark_count": 1,
         "topology": "single"
       },
       "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "94dad8c6eaa120bcc2f1f54d0df7f34976a3c87e93879bddebb60bf162bb3605",
+      "role": "entrypoint",
+      "steady_bytes": 82172108800
     }
   ]
 }
