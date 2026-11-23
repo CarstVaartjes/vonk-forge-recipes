@@ -227,8 +227,8 @@ below).
   `tools/check-build-context-sources`, `tools/check-vendored-upstream`,
   `tools/kit-pins lock|check`, `tools/refresh-upstream` and `tools/materialize-protocol-wheel`.
   Placing needs the contracts dependencies, so validate.yml runs them with the test
-  environment's Python, and a tool that a bare interpreter loads imports
-  `recipe_tooling.adapter_sources` inside `main()`. A file is placed by rename from a staging copy at
+  environment's Python (`tools/check-image-provenance` runs with `uv run --frozen`); a tool that
+  runs on the runner's bare python3 imports only the standard library at module level. A file is placed by rename from a staging copy at
   the repository root (`/.adapter-source-*`, ignored), so a concurrent reader never sees a
   partial file and no build context lists the staging copy.
   `tests/tools/test_adapter_mirror.py` keeps the `.gitignore` block equal to the manifest paths.
