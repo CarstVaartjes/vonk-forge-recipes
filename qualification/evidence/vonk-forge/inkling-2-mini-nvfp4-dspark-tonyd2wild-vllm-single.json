@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/inkling-2-mini-nvfp4-dspark-tonyd2wild-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "18c1eed3d8ace076735a38debd7f29ce780e3bd0bb0199eeaf18df1d3043314c",
+        "source_bundle_sha256": "5ebd4cb5454c7dd5e83d134a97f99e621f93e2dbe430cc2741483f8d4b961b2d",
+        "runtime_image": {
+          "build_key": "85c0cd238e3a1ac2f1eb45e2e1ad342e33ff87be0837cf79cdc3989fedbe3858",
+          "image_digest": "sha256:4f93c964827d82422c5b3005daef9de51a0f32a81e292ae743a770b8b60d783f"
+        },
+        "model_digests": [
+          "ab2b3d76ea9855994f7775f352a0a443d993e16f4df36ab24d7e24199472e68a"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "251ab46fc101772ba379b9807e43cd99f6c274abe6617c4a52005290b6b2e90c"
+      ],
+      "tested_at": "2026-11-23T11:42:52.378844Z",
+      "platform": {
+        "controller_source_sha": "20a8c841831a4657f687b8e0ec6ffdd179e28108",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "18c1eed3d8ace076735a38debd7f29ce780e3bd0bb0199eeaf18df1d3043314c",
+      "role": "entrypoint",
+      "steady_bytes": 110902259712,
+      "budget_bytes": 104530585191
+    }
+  ]
+}

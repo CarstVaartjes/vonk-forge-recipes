@@ -27,11 +27,11 @@
     },
     {
       "identity": {
-        "content_sha256": "b933d4798ddcb8711ae25322e10c4c0bfcca956c3daaf6abf3fabc0e704c3300",
-        "source_bundle_sha256": "e15c29bb5f3050be4d4d113321c9f5719e4702e79eca98b6191fc93a9d90757f",
+        "content_sha256": "8975cbe2d06578e95e48827f4c556e4e557cc3f10b38ee2689e6f98552840a26",
+        "source_bundle_sha256": "68a7ea6737da962ec1af3c429b5cb69e1017c916a0b0e0c6e883344124ac6813",
         "runtime_image": {
-          "build_key": "6cd07a6cfae3a53c8d691db1411b554ae4764e6dba0e274f0b82859a59d8c281",
-          "image_digest": "sha256:112006b0c5775dfc860b33641d8cb7a5d3c41f58489fc85c57e229d07aa9cb56"
+          "build_key": "69962974eee801f902b80bf1e5419fded967e9052277193613e47562d434c546",
+          "image_digest": "sha256:6baf22aed72885176a56d79523c355c5728a2f401611f8d13a9c48e56aa78ceb"
         },
         "model_digests": [
           "1f758a945a7c7b70f0c60dd8f9da97c124c0fa33f8db6b4b0bd8990034f94eca",
@@ -44,11 +44,11 @@
       "cause_code": "qualification.hardware_pass",
       "cause_summary": "Hardware checks passed",
       "evidence_refs": [
-        "46389567c980cdc5db73457ebfcb7b76d409dcd96bb923a362ef7364c5a99847"
+        "83ed082746accda1f1fcbffe3b6bf3251124e20a068a8a28b5232d79af6a4b64"
       ],
-      "tested_at": "2026-11-21T15:50:50.780877Z",
+      "tested_at": "2026-11-23T11:24:24.535040Z",
       "platform": {
-        "controller_source_sha": "d50db9a42447a1a3ee58b24b08f6b3ad7d84d410",
+        "controller_source_sha": "20a8c841831a4657f687b8e0ec6ffdd179e28108",
         "hardware_class": "GB10",
         "spark_count": 1,
         "topology": "single"
@@ -58,9 +58,9 @@
   ],
   "measured_memory": [
     {
-      "content_sha256": "b933d4798ddcb8711ae25322e10c4c0bfcca956c3daaf6abf3fabc0e704c3300",
+      "content_sha256": "8975cbe2d06578e95e48827f4c556e4e557cc3f10b38ee2689e6f98552840a26",
       "role": "entrypoint",
-      "steady_bytes": 41356353536
+      "steady_bytes": 41309675520
     }
   ]
 }
