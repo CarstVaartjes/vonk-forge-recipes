@@ -42,16 +42,24 @@ from collections import Counter
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Annotated, Final, Literal, NamedTuple
+from typing import Annotated, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError
 from pydantic_core import ErrorDetails
 
-from ._version import __version__
-from .canonical import document_sha256
-from .catalog_index import CatalogIndex, CatalogModelEntry, CatalogRecipeEntry
-from .display import FamilyDisplay
-from .unrecognised import UnrecognisedWord, dropped_context, read_context
+from vonk_forge_contracts._version import __version__
+from vonk_forge_contracts.canonical import document_sha256
+from vonk_forge_contracts.catalog_index import (
+    CatalogIndex,
+    CatalogModelEntry,
+    CatalogRecipeEntry,
+)
+from vonk_forge_contracts.display import FamilyDisplay
+from vonk_forge_contracts.unrecognised import (
+    UnrecognisedWord,
+    dropped_context,
+    read_context,
+)
 
 _CONTRACT_MAJOR: Final = int(__version__.split(".", 1)[0])
 _SHA256: Final = re.compile(r"[0-9a-f]{64}")
@@ -173,7 +181,8 @@ class EntryRead[E: (CatalogModelEntry, CatalogRecipeEntry)]:
     problems: tuple[CatalogProblem, ...]
 
 
-class CatalogRead(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class CatalogRead:
     """The entries this release reads, and what it left out or did not recognise."""
 
     index: CatalogIndex
@@ -221,7 +230,7 @@ def read_catalog_recipe_entry(
     return _read_entry(CatalogRecipeEntry, CatalogSection.RECIPES, raw, position)
 
 
-def read_catalog(document: Mapping[str, object]) -> CatalogRead:
+def read_catalog(document: object) -> CatalogRead:
     """Read a published index: every readable entry, and a report of the rest."""
 
     if not isinstance(document, Mapping):

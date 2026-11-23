@@ -6,8 +6,8 @@ import hashlib
 import json
 from collections.abc import Mapping
 
-from .model import ModelDefinition
-from .recipe import RecipeDefinition
+from vonk_forge_contracts.model import ModelDefinition
+from vonk_forge_contracts.recipe import RecipeDefinition
 
 
 def canonical_json(document: Mapping[str, object]) -> bytes:
@@ -26,7 +26,7 @@ def canonical_json(document: Mapping[str, object]) -> bytes:
     ).encode("utf-8")
 
 
-def document_sha256(document: Mapping[str, object]) -> str:
+def document_sha256(document: object) -> str:
     """Return the content identity of one published Model or Recipe document.
 
     The digest covers the document exactly as published, not a re-serialized
