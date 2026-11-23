@@ -22,17 +22,36 @@ pythonpath = [
     "tests/tools",
 ]
 
+[dependency-groups]
+# The one owner of the lint and type-check tool versions is uv.lock. pytest, pydantic and
+# Pillow are here because the type gate must resolve the suite's fixtures and the
+# canonical contract types against their real classes, not unresolved imports.
+dev = [
+    "ruff>=0.16.9",
+    "pyright[nodejs]>=1.1.414",
+    "pytest>=9.1.1",
+    "pydantic>=2.13.4",
+    "Pillow>=13.0.0",
+]
+
 [tool.ruff]
-# The pinned formatter and linter are the repository's formatting authority for
-# our own code: tools/, scripts/, tests/, contracts/ and platform helpers.
-# Everything under adapters/ follows its upstream recipe (vendored patches,
-# launch scripts, wrappers derived from upstream creators), so a recipe is never
-# blocked because upstream code does not match our style. Adapter behavior stays
-# covered by the functional tests (contract validation, executability, pins).
-required-version = "==0.16.9"
-target-version = "py312"
+# Ruff is the repository's lint and formatting authority for our own code: tools/,
+# scripts/, tests/, contracts/ and platform helpers. Everything under adapters/
+# follows its upstream recipe (vendored patches, launch scripts, wrappers derived
+# from upstream creators), so a recipe is never blocked because upstream code does
+# not match our style. Adapter behavior stays covered by the functional tests.
+target-version = "py314"
 force-exclude = true
 exclude = ["adapters"]
+# Every extensionless entry point in tools/ (and the type-gate script) is Python by
+# shebang; every other file in tools/ has a suffix, so `tools/*.*` is excluded.
+# `ruff check --show-files` is the one owner of "which files are Python".
+extend-include = ["tools/*", "scripts/check-python-types"]
+extend-exclude = ["tools/*.*"]
+
+[tool.ruff.lint.isort]
+# Classification must not depend on what is installed.
+known-first-party = ["vonk_forge_contracts", "recipe_tooling", "spark_sweep"]
 
 [tool.pyright]
 # One checker for our own code; adapters are excluded (see [tool.ruff]). The mode and the

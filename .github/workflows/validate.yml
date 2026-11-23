@@ -446,19 +446,19 @@ jobs:
           # segfaulted the whole suite (exit 139).
           "$RECIPE_TEST_PYTHON" -m pytest -n auto --dist worksteal -o faulthandler_timeout=300 tests/
 
-      - name: Lint the repository with pinned Ruff
+      - name: Lint the repository with Ruff
         shell: bash
         run: |
           set -euo pipefail
-          tools/check-python-lint
+          uv run --frozen ruff check --force-exclude -- .
 
-      - name: Check formatting with pinned Ruff
+      - name: Check formatting with Ruff
         shell: bash
         run: |
           set -euo pipefail
-          tools/check-python-format
+          uv run --frozen ruff format --check --force-exclude -- .
 
-      - name: Type check the repository with pinned Pyright
+      - name: Type check the repository with Pyright
         shell: bash
         run: |
           set -euo pipefail
