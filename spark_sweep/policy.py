@@ -885,7 +885,7 @@ def classify_application_failure(
         if len({name for name, _ in facts}) != len(facts):
             raise ValueError("ambiguous exit facts")
         exit_facts = WorkloadExitFacts.model_validate(dict(facts))
-    except ValidationError, ValueError:
+    except (ValidationError, ValueError):
         exit_facts = None
     recipe_code = None
     if exit_facts is not None:

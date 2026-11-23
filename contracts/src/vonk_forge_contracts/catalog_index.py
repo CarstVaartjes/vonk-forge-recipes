@@ -39,21 +39,16 @@ from pydantic import (
 from pydantic.json_schema import models_json_schema
 from pydantic_core import PydanticCustomError
 
-from vonk_forge_contracts.api import RecipeApi, require_api_of
-from vonk_forge_contracts.display import (
-    FamilyDisplay,
-    ModelDisplay,
-    RecipeDisplay,
-    require_display_of,
-)
-from vonk_forge_contracts.model import ModelDefinition
-from vonk_forge_contracts.qualification_status import (
+from .api import RecipeApi, require_api_of
+from .display import FamilyDisplay, ModelDisplay, RecipeDisplay, require_display_of
+from .model import ModelDefinition
+from .qualification_status import (
     PublishedMeasuredMemory,
     PublishedQualificationStatusView,
 )
-from vonk_forge_contracts.recipe import RecipeDefinition, RecipeRelease
-from vonk_forge_contracts.unrecognised import is_dropping
-from vonk_forge_contracts.vocabulary import CatalogVocabulary
+from .recipe import RecipeDefinition, RecipeRelease
+from .unrecognised import is_dropping
+from .vocabulary import CatalogVocabulary
 
 IndexSchemaVersion = Literal[2]
 IndexKind = Literal["recipe-library-index"]

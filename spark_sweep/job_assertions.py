@@ -118,7 +118,7 @@ def _check_format(content: bytes, name: str) -> bool:
         try:
             with zipfile.ZipFile(io.BytesIO(content)) as archive:
                 return bool(archive.namelist()) and archive.testzip() is None
-        except ValueError, zipfile.BadZipFile:
+        except (ValueError, zipfile.BadZipFile):
             return False
     raise AssertionFailed(f"unknown format {name!r}", name, "format")
 

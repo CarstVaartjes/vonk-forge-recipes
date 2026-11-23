@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Annotated, Any, Literal, cast
+from typing import Annotated, Literal
 
 from pydantic import (
     BaseModel,
@@ -21,11 +21,11 @@ from pydantic import (
     model_validator,
 )
 
-from vonk_forge_contracts._schema_version import (
+from ._schema_version import (
     QualificationAuthoritySchemaVersion,
     QualificationCampaignSchemaVersion,
 )
-from vonk_forge_contracts.model import ModelTerritorialRestrictions
+from .model import ModelTerritorialRestrictions
 
 Sha256 = Annotated[StrictStr, Field(pattern=r"^[a-f0-9]{64}$")]
 GitSha = Annotated[StrictStr, Field(pattern=r"^[a-f0-9]{40}$")]
@@ -496,5 +496,5 @@ def campaign_manifest_json_schema() -> dict[str, object]:
     }
 
 
-cast(Any, campaign_authority_json_schema).__test__ = False
-cast(Any, campaign_manifest_json_schema).__test__ = False
+campaign_authority_json_schema.__test__ = False
+campaign_manifest_json_schema.__test__ = False

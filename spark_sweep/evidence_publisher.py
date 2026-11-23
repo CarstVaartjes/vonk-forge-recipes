@@ -80,7 +80,7 @@ def kill_group(process: subprocess.Popen[bytes]) -> None:
     """End the child and its git/gh children: it runs in a session of its own."""
     try:
         os.killpg(process.pid, signal.SIGKILL)
-    except ProcessLookupError, PermissionError:
+    except (ProcessLookupError, PermissionError):
         process.kill()
 
 
@@ -210,7 +210,7 @@ def load_state(directory: Path) -> PublisherRecord:
     """Missing, unreadable or unknown state is IDLE: the next batch re-observes."""
     try:
         return PublisherRecord.model_validate_json((directory / STATE_FILE).read_text())
-    except OSError, ValidationError:
+    except (OSError, ValidationError):
         return PublisherRecord()
 
 
@@ -241,7 +241,7 @@ def rotated_history(
         known = RotatedHistory.model_validate_json(
             (directory / ROTATED_FILE).read_text()
         )
-    except OSError, ValidationError:
+    except (OSError, ValidationError):
         known = RotatedHistory()
     names = [path.name for path in rotated]
     if known.run != run or not set(known.files) <= set(names):

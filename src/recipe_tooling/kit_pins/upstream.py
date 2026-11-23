@@ -79,7 +79,7 @@ class GitHub:
             self.api(f"repos/{repo}/git/ref/heads/{ref}")
         except UpstreamBusy:
             raise
-        except RuntimeError, KeyError:
+        except (RuntimeError, KeyError):
             return "tag"
         return "branch"
 
@@ -127,7 +127,7 @@ class HuggingFace:
             refs = self.api(f"models/{repo}/refs")
         except UpstreamBusy:
             raise
-        except RuntimeError, KeyError:
+        except (RuntimeError, KeyError):
             return "tag"
         branches = {b.get("name") for b in refs.get("branches", [])}
         return "branch" if ref in branches else "tag"
@@ -137,7 +137,7 @@ class HuggingFace:
             document = self.api(f"models/{repo}")
         except UpstreamBusy:
             raise
-        except RuntimeError, KeyError:
+        except (RuntimeError, KeyError):
             return None
         sha = document.get("sha")
         return sha if isinstance(sha, str) and SHA.match(sha) else None
@@ -282,7 +282,7 @@ class Registry:
                 )
                 handle = None if member is None else archive.extractfile(member)
                 return None if handle is None else handle.read().decode()
-        except tarfile.TarError, OSError, UnicodeDecodeError:
+        except (tarfile.TarError, OSError, UnicodeDecodeError):
             return None
 
     def _token(self, challenge: str, path: str) -> str:

@@ -417,7 +417,7 @@ def unverified_image(
     )
     try:
         metadata = source.oci().build_metadata(repository, digest)
-    except kit_model.KitError, RuntimeError, KeyError, ValueError:
+    except (kit_model.KitError, RuntimeError, KeyError, ValueError):
         metadata = None
     result.evidence.append(
         f"### What the image {repository}@{digest} shows\n\n"
@@ -542,7 +542,7 @@ def collect_items(
         if provider == "github":
             try:
                 compared = compare_commits(http, repo, current, target.sha)
-            except RuntimeError, KeyError, TypeError:
+            except (RuntimeError, KeyError, TypeError):
                 compared = None  # assessed (and reported) later
             if compared is not None and compared.status == "diverged" and line is None:
                 followed = refresh_pinning.follow_github_branch(http, repo, current)
@@ -552,7 +552,7 @@ def collect_items(
                         return  # at the head of the branch it follows
                     try:
                         compared = compare_commits(http, repo, current, target.sha)
-                    except RuntimeError, KeyError, TypeError:
+                    except (RuntimeError, KeyError, TypeError):
                         compared = None
             if compared is not None and (
                 pin_is_current(compared)
@@ -644,7 +644,7 @@ def collect_items(
                     f"revision `{newest.sha}` ({newest.date}) is shown for information; the "
                     "pin follows the kit's declaration\n"
                 )
-            except RuntimeError, KeyError, TypeError:
+            except (RuntimeError, KeyError, TypeError):
                 pass
             continue
         if location.provider == "huggingface":
@@ -711,6 +711,6 @@ def pin_is_newer_by_date(
             http.github(f"repos/{repo}/commits/{sha}")["commit"]["committer"]["date"]
             for sha in (pin, release)
         ]
-    except RuntimeError, KeyError, TypeError, AttributeError:
+    except (RuntimeError, KeyError, TypeError, AttributeError):
         return False
     return dates[0] >= dates[1]

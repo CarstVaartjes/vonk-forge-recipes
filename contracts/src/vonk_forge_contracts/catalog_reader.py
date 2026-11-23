@@ -47,19 +47,11 @@ from typing import Annotated, Final, Literal, NamedTuple
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError
 from pydantic_core import ErrorDetails
 
-from vonk_forge_contracts._version import __version__
-from vonk_forge_contracts.canonical import document_sha256
-from vonk_forge_contracts.catalog_index import (
-    CatalogIndex,
-    CatalogModelEntry,
-    CatalogRecipeEntry,
-)
-from vonk_forge_contracts.display import FamilyDisplay
-from vonk_forge_contracts.unrecognised import (
-    UnrecognisedWord,
-    dropped_context,
-    read_context,
-)
+from ._version import __version__
+from .canonical import document_sha256
+from .catalog_index import CatalogIndex, CatalogModelEntry, CatalogRecipeEntry
+from .display import FamilyDisplay
+from .unrecognised import UnrecognisedWord, dropped_context, read_context
 
 _CONTRACT_MAJOR: Final = int(__version__.split(".", 1)[0])
 _SHA256: Final = re.compile(r"[0-9a-f]{64}")
@@ -184,8 +176,7 @@ class EntryRead[E: (CatalogModelEntry, CatalogRecipeEntry)]:
 class CatalogRead(NamedTuple):
     """The entries this release reads, and what it left out or did not recognise."""
 
-    # The published field name; nothing calls tuple.index on a CatalogRead.
-    index: CatalogIndex  # pyright: ignore[reportIncompatibleMethodOverride]
+    index: CatalogIndex
     problems: tuple[CatalogProblem, ...]
 
 
@@ -233,8 +224,7 @@ def read_catalog_recipe_entry(
 def read_catalog(document: Mapping[str, object]) -> CatalogRead:
     """Read a published index: every readable entry, and a report of the rest."""
 
-    # The published JSON is untrusted: refuse a non-object whatever the annotation says.
-    if not isinstance(document, Mapping):  # pyright: ignore[reportUnnecessaryIsInstance]
+    if not isinstance(document, Mapping):
         raise CatalogIndexRefused(
             RefusalReason.ENVELOPE_INVALID, "the index is not a JSON object"
         )
@@ -472,7 +462,7 @@ def _digest_check(section: CatalogSection, raw: object) -> DigestCheck:
         return DigestCheck.UNREADABLE
     try:
         actual = document_sha256(document)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return DigestCheck.UNREADABLE
     if actual != claimed:
         return DigestCheck.MISMATCH

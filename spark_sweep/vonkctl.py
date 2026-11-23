@@ -180,7 +180,7 @@ class Reply:
 def _kill_group(process: subprocess.Popen[str]) -> None:
     try:
         os.killpg(process.pid, signal.SIGKILL)
-    except ProcessLookupError, PermissionError:
+    except (ProcessLookupError, PermissionError):
         process.kill()
 
 

@@ -18,8 +18,8 @@ at integrity edges (``CatalogIndexRefused``).
 
 from __future__ import annotations
 
-from vonk_forge_contracts._version import __version__
-from vonk_forge_contracts.api import (
+from ._version import __version__
+from .api import (
     ApiBlock,
     AudioSpeechApi,
     AudioTranscriptionApi,
@@ -30,23 +30,10 @@ from vonk_forge_contracts.api import (
     read_recipe_api,
     require_api_of,
 )
-from vonk_forge_contracts.api_checks import (
-    RecipeApiError,
-    check_api_models,
-    check_recipe_api,
-)
-from vonk_forge_contracts.canonical import (
-    canonical_json,
-    document_sha256,
-    read_model,
-    read_recipe,
-)
-from vonk_forge_contracts.capability import (
-    CAPABILITY_ROLES,
-    CapabilityName,
-    CapabilityRole,
-)
-from vonk_forge_contracts.catalog_index import (
+from .api_checks import RecipeApiError, check_api_models, check_recipe_api
+from .canonical import canonical_json, document_sha256, read_model, read_recipe
+from .capability import CAPABILITY_ROLES, CapabilityName, CapabilityRole
+from .catalog_index import (
     INDEX_KIND,
     INDEX_SCHEMA_ASSET,
     INDEX_SCHEMA_VERSION,
@@ -64,14 +51,14 @@ from vonk_forge_contracts.catalog_index import (
     published_index_json,
     read_catalog_index,
 )
-from vonk_forge_contracts.catalog_reader import (
+from .catalog_reader import (
     CatalogIndexRefused,
     CatalogRead,
     read_catalog,
     read_catalog_model_entry,
     read_catalog_recipe_entry,
 )
-from vonk_forge_contracts.display import (
+from .display import (
     FamilyDisplay,
     KnobDisplay,
     LineDisplay,
@@ -85,14 +72,14 @@ from vonk_forge_contracts.display import (
     read_recipe_display,
     require_display_of,
 )
-from vonk_forge_contracts.endpoint_alias import ENDPOINT_ALIAS_PATTERN, EndpointAlias
-from vonk_forge_contracts.model import (
+from .endpoint_alias import ENDPOINT_ALIAS_PATTERN, EndpointAlias
+from .model import (
     GitHubLfsSource,
     GitHubReleaseAsset,
     GitHubReleaseSource,
     ModelDefinition,
 )
-from vonk_forge_contracts.qualification_authority import (
+from .qualification_authority import (
     QualificationAuthority,
     QualificationBatch,
     QualificationBatchAssignment,
@@ -106,7 +93,7 @@ from vonk_forge_contracts.qualification_authority import (
     campaign_manifest_json_schema,
     recovery_coverage_id,
 )
-from vonk_forge_contracts.qualification_status import (
+from .qualification_status import (
     PublishedMeasuredMemory,
     PublishedQualificationStatusView,
     PublishedRoleMemory,
@@ -136,13 +123,12 @@ from vonk_forge_contracts.qualification_status import (
     qualification_evidence_json_schema,
     qualification_status_json_schema,
 )
-from vonk_forge_contracts.recipe import (
-    RecipeDefinition,
-    RecipeJobKnob,
-    RecipeOptionError,
+from .recipe import RecipeDefinition, RecipeJobKnob, RecipeOptionError
+from .unrecognised import UnrecognisedWord
+from .vocabulary import (
+    CatalogVocabulary,
+    catalog_vocabulary,
 )
-from vonk_forge_contracts.unrecognised import UnrecognisedWord
-from vonk_forge_contracts.vocabulary import CatalogVocabulary, catalog_vocabulary
 
 CONTRACT_VERSION = __version__
 CONTRACT_MAJOR = int(CONTRACT_VERSION.split(".", 1)[0])

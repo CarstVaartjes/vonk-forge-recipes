@@ -396,7 +396,7 @@ class SweepReconcile:
         evidence = self._recipe_evidence(recipe)
         try:
             identity: QualificationIdentity | None = current_identity(recipe)
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             identity = None  # malformed observed identity cannot certify public proof
         view = (
             self.qualification_view(recipe, evidence, identity)

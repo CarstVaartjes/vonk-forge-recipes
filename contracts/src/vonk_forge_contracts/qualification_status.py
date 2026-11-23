@@ -17,9 +17,9 @@ from pydantic import (
     model_validator,
 )
 
-from vonk_forge_contracts._schema_version import QualificationEvidenceSchemaVersion
-from vonk_forge_contracts.recipe import Identifier
-from vonk_forge_contracts.unrecognised import KeepUnrecognised, UnrecognisedWord
+from ._schema_version import QualificationEvidenceSchemaVersion
+from .recipe import Identifier
+from .unrecognised import KeepUnrecognised, UnrecognisedWord
 
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 SourceSHA = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
@@ -476,7 +476,6 @@ def derive_status(
     evidence: RecipeQualificationEvidence,
     current_identity: QualificationIdentity,
     fleet_size: int,
-    *,
     testing_now: bool,
 ) -> QualificationStatusView:
     """Latest hardware verdict on an identity wins; platform faults never erase proof.
@@ -582,7 +581,7 @@ def published_status(
     required_sparks = current_identity.required_sparks
     if required_sparks is None:
         raise ValueError("current identity requires the recipe's Spark count")
-    view = derive_status(evidence, current_identity, required_sparks, testing_now=False)
+    view = derive_status(evidence, current_identity, required_sparks, False)
     certified: list[QualificationEvidenceRecord] = []
     if view.status == QualificationStatus.WORKING:
         # A later successful test with incomplete telemetry does not erase a

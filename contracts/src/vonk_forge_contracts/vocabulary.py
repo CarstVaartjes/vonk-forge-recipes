@@ -21,8 +21,8 @@ from typing import NamedTuple
 
 from pydantic import BaseModel, ConfigDict, StrictBool, StrictStr
 
-from vonk_forge_contracts.capability import CapabilityName
-from vonk_forge_contracts.qualification_status import QualificationStatus
+from .capability import CapabilityName
+from .qualification_status import QualificationStatus
 
 
 class CapabilityCategory(StrEnum):

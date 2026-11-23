@@ -34,7 +34,9 @@ def test_ruff_configuration_is_pinned_and_documented() -> None:
     assert isinstance(ruff, dict), "pyproject.toml has no [tool.ruff] section"
     # The version has one owner, uv.lock; a second pin here would drift from it.
     assert "required-version" not in ruff
-    assert ruff.get("target-version") == "py314"
+    # CI runs tools/ launchers with the runner's python3 (3.12), so the formatter must keep
+    # emitting 3.12 syntax (no `except A, B:`).
+    assert ruff.get("target-version") == "py312"
 
 
 def test_adapters_are_excluded_from_both_gates() -> None:

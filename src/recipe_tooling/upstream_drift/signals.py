@@ -212,7 +212,7 @@ def scan_creator_signals(
     def head(repository: str) -> str | None:
         try:
             return _github_commit(client, repository, "HEAD")[0]
-        except RemoteNotFound, RuntimeError, KeyError, TypeError:
+        except (RemoteNotFound, RuntimeError, KeyError, TypeError):
             return None
 
     def notice(repository: str) -> list[CreatorFinding] | SignalError:

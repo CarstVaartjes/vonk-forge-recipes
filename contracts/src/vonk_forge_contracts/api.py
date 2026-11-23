@@ -44,13 +44,8 @@ from pydantic import (
     model_validator,
 )
 
-from vonk_forge_contracts.recipe import (
-    Identifier,
-    RecipeDefinition,
-    RecipeIdentity,
-    Scalar,
-)
-from vonk_forge_contracts.unrecognised import KeepUnrecognised, UnrecognisedWord
+from .recipe import Identifier, RecipeDefinition, RecipeIdentity, Scalar
+from .unrecognised import KeepUnrecognised, UnrecognisedWord
 
 
 class _ApiContract(BaseModel):

@@ -6,8 +6,8 @@ import hashlib
 import json
 from collections.abc import Mapping
 
-from vonk_forge_contracts.model import ModelDefinition
-from vonk_forge_contracts.recipe import RecipeDefinition
+from .model import ModelDefinition
+from .recipe import RecipeDefinition
 
 
 def canonical_json(document: Mapping[str, object]) -> bytes:
@@ -36,8 +36,7 @@ def document_sha256(document: Mapping[str, object]) -> str:
     that digest with it; never recompute it from a parsed model.
     """
 
-    # The published JSON is untrusted: refuse a non-object whatever the annotation says.
-    if not isinstance(document, Mapping):  # pyright: ignore[reportUnnecessaryIsInstance]
+    if not isinstance(document, Mapping):
         raise TypeError("document_sha256 requires the published JSON object")
     return hashlib.sha256(canonical_json(document)).hexdigest()
 

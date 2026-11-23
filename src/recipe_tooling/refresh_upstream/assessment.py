@@ -809,7 +809,7 @@ class Assessor:
             before = {f["path"] for f in self._inventory(item.repo, item.current)}
         except UpstreamBusy:
             raise  # not read this run: every file would look new
-        except RuntimeError, SystemExit, KeyError, ValueError, OSError:
+        except (RuntimeError, SystemExit, KeyError, ValueError, OSError):
             return new_files  # unknown history: judge every file
         return refresh_classification.curate(old, before, new_files)
 

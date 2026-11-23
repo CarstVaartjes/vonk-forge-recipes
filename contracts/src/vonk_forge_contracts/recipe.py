@@ -26,8 +26,7 @@ from pydantic import (
     model_validator,
 )
 
-from vonk_forge_contracts.model import ModelReference
-from vonk_forge_contracts.systemone import SystemOneRequest
+from .model import ModelReference
 
 
 class _RecipeContract(BaseModel):
@@ -46,7 +45,7 @@ RelativePath = Annotated[
     StrictStr, Field(max_length=256, pattern=rf"^{_SEGMENT}(?:/{_SEGMENT})*$")
 ]
 Scalar = StrictStr | StrictInt | StrictBool | StrictFloat
-type JsonValue = Scalar | list[JsonValue] | dict[StrictStr, JsonValue] | None
+type JsonValue = Scalar | None | list[JsonValue] | dict[StrictStr, JsonValue]
 type RuntimeArgumentValue = Scalar | list[JsonValue] | dict[StrictStr, JsonValue]
 ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
 
@@ -330,16 +329,12 @@ class RecipeJobKnob(RecipeSetting):
 
 class RecipeJobSettings(_RecipeSettings):
     kind: Literal["job"]
-    # The job kind narrows the knob type of its parent; the discriminated union keeps the kinds apart.
-    knobs: dict[Identifier, RecipeJobKnob] = Field(  # pyright: ignore[reportIncompatibleVariableOverride]
-        default_factory=dict, max_length=64
-    )
+    knobs: dict[Identifier, RecipeJobKnob] = Field(default_factory=dict, max_length=64)
     concurrency: RecipeIntegerSetting | None = None
 
 
 class RecipeIntegerSetting(RecipeSetting):
-    # Narrows the parent's value type to a positive integer.
-    value: StrictInt = Field(ge=1)  # pyright: ignore[reportIncompatibleVariableOverride]
+    value: StrictInt = Field(ge=1)
 
 
 RecipeSettings = Annotated[
@@ -899,8 +894,10 @@ class RecipeValidationCheck(_RecipeContract):
                 required = (
                     "tools.called" if self.kind == "openai.tools" else "chat.nonempty"
                 )
-                if required not in self.assertions or (
-                    self.kind == "openai.tools" and not body.get("tools")
+                if (
+                    required not in self.assertions
+                    or self.kind == "openai.tools"
+                    and not body.get("tools")
                 ):
                     raise ValueError(
                         "OpenAI check does not exercise its declared behavior"
@@ -915,6 +912,8 @@ class RecipeValidationCheck(_RecipeContract):
                         "completion checks require a prompt and completion.nonempty"
                     )
             elif self.kind == "openai.systemone":
+                from .systemone import SystemOneRequest
+
                 if (
                     self.request.path != "/v1/systemone"
                     or "decision.probabilities" not in self.assertions

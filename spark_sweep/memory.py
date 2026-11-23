@@ -214,7 +214,7 @@ def measurement(
         assignment = intended_assignment(application, alias)
         launch = recipe.with_option_choices(assignment.option_choices)
         budget = vllm_budget_bytes(launch)
-    except StopIteration, ValueError, TypeError, ArithmeticError:
+    except (StopIteration, ValueError, TypeError, ArithmeticError):
         return ()
     declared = {role.name for role in launch.topology.roles}
     role_of = {item.node_id: item.role for item in assignment.nodes}

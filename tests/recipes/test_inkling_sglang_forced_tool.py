@@ -238,7 +238,7 @@ class TagGrammar:
                 try:
                     payload = json.loads(text[len(begin) : -len(end)])
                     jsonschema.validate(payload, tag["content"]["json_schema"])
-                except ValueError, jsonschema.ValidationError:
+                except (ValueError, jsonschema.ValidationError):
                     continue
                 return True
         return False

@@ -27,8 +27,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, Strict, StrictStr, model_validator
 
-from vonk_forge_contracts.capability import CapabilityName
-from vonk_forge_contracts.model import (
+from .capability import CapabilityName
+from .model import (
     Description,
     ModelIdentity,
     ModelLicense,
@@ -36,13 +36,8 @@ from vonk_forge_contracts.model import (
     Tags,
     Title,
 )
-from vonk_forge_contracts.recipe import (
-    Alignment,
-    Identifier,
-    RecipeIdentity,
-    RecipeTags,
-)
-from vonk_forge_contracts.unrecognised import KeepUnrecognised, UnrecognisedWord
+from .recipe import Alignment, Identifier, RecipeIdentity, RecipeTags
+from .unrecognised import KeepUnrecognised, UnrecognisedWord
 
 Modality = Literal["text", "image", "audio", "video", "3d", "embeddings"]
 # A word a newer minor may add: a consumer reader keeps it (``UnrecognisedWord``).

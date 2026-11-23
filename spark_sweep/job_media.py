@@ -130,7 +130,7 @@ def _fps(value: Any) -> float:
     numerator, _, denominator = str(value).partition("/")
     try:
         fps = float(numerator) / float(denominator)
-    except ValueError, ZeroDivisionError:
+    except (ValueError, ZeroDivisionError):
         fps = 0.0
     if fps <= 0:
         _fail("video-metadata", "MP4 frame rate is invalid", value)
@@ -510,7 +510,7 @@ def glb_structure(content: bytes, assertion: Mapping[str, Any]) -> None:
     value = assertion.get("profile", QualificationGlbProfile.TRIANGLE_MESH)
     try:
         check = GLB_PROFILE_CHECKS[QualificationGlbProfile(value)]
-    except KeyError, ValueError:
+    except (KeyError, ValueError):
         _glb_fail(f"profile {value!r} is not checked by the sweep", value)
     document, blob = _glb_chunks(content)
     accessors = _glb_accessors(document, blob)

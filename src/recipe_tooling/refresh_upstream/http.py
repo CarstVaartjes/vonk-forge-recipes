@@ -33,7 +33,7 @@ def _error_message(error: urllib.error.HTTPError) -> str:
     try:
         body = json.loads(error.read())
         return str(body.get("message", "")) if isinstance(body, dict) else ""
-    except OSError, ValueError:
+    except (OSError, ValueError):
         return ""
 
 
@@ -56,7 +56,7 @@ class Http:
         if cache_path and cache_path.is_file():
             try:
                 self.cache = json.loads(cache_path.read_text(encoding="utf-8"))
-            except OSError, json.JSONDecodeError:
+            except (OSError, json.JSONDecodeError):
                 self.cache = {}
         self.client = ProviderJson(
             user_agent="vonk-forge-refresh-upstream/1",

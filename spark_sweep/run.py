@@ -243,7 +243,7 @@ class Sweep(
             return self.qualification_evidence.get(recipe.key) or read_evidence(
                 Path(__file__).resolve().parents[1], recipe.key
             )
-        except ValueError, TypeError, OSError:
+        except (ValueError, TypeError, OSError):
             return None
 
     def qualification_view(
@@ -265,7 +265,7 @@ class Sweep(
                 != SweepSlotPhase.FINISHED,
                 identity=identity,
             )
-        except ValueError, TypeError, OSError:
+        except (ValueError, TypeError, OSError):
             return None  # malformed observed identity cannot certify public proof
 
     # ------------------------------------------------------------------ setup

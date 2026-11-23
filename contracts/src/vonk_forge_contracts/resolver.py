@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 
-from vonk_forge_contracts.api import RecipeApi
-from vonk_forge_contracts.display import FamilyDisplay, ModelDisplay, RecipeDisplay
-from vonk_forge_contracts.model import ModelDefinition
-from vonk_forge_contracts.recipe import RecipeDefinition, RecipeJobSettings
+from .api import RecipeApi
+from .display import FamilyDisplay, ModelDisplay, RecipeDisplay
+from .model import ModelDefinition
+from .recipe import RecipeDefinition, RecipeJobSettings
 
 
 class ContractResolutionError(ValueError):
