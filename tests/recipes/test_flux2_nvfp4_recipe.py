@@ -35,14 +35,11 @@ class Flux2NVFP4RecipeTests(unittest.TestCase):
     def test_official_nvfp4_model_and_recipe_are_exactly_bound(self) -> None:
         model = load("models/flux-2-klein-4b-nvfp4-1db2b2f7.json")
         recipe = load("recipes/flux-2-klein-4b-nvfp4-comfyui-single.json")
-        self.assertEqual(
-            model["source"]["revision"], "1db2b2f776c24b76f1122e5f69ab1949fc620068"
-        )
-        self.assertEqual(model["format"]["quantization"], "nvfp4")
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
-        self.assertTrue(
-            {"executable", "nvfp4"}
-            <= set(recipe_display(recipe["identity"]["slug"]).tags)
+        assert model["source"]["revision"] == "1db2b2f776c24b76f1122e5f69ab1949fc620068"
+        assert model["format"]["quantization"] == "nvfp4"
+        assert recipe["models"][0]["model"]["content_sha256"] == digest(model)
+        assert {"executable", "nvfp4"} <= set(
+            recipe_display(recipe["identity"]["slug"]).tags
         )
 
     def test_comfy_workflow_and_interface_remain_hash_locked(self) -> None:
@@ -54,16 +51,16 @@ class Flux2NVFP4RecipeTests(unittest.TestCase):
             ROOT
             / "adapters/media/comfyui-image-controls/workflows/flux-2-klein-4b-controls.json"
         )
-        self.assertEqual(
-            arguments["workflow-sha256"],
-            hashlib.sha256(workflow.read_bytes()).hexdigest(),
+        assert (
+            arguments["workflow-sha256"]
+            == hashlib.sha256(workflow.read_bytes()).hexdigest()
         )
-        self.assertEqual(recipe["interfaces"][0]["adapter"], "image-job")
-        self.assertEqual(recipe["topology"]["node_count"], 1)
+        assert recipe["interfaces"][0]["adapter"] == "image-job"
+        assert recipe["topology"]["node_count"] == 1
 
     def test_catalog_package_binds_current_recipe(self) -> None:
         recipe = load("recipes/flux-2-klein-4b-nvfp4-comfyui-single.json")
-        self.assertEqual(catalog_digest(recipe), digest(recipe))
+        assert catalog_digest(recipe) == digest(recipe)
 
 
 if __name__ == "__main__":

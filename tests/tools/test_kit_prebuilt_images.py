@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 from unittest import mock
 
+import pytest
 from test_kit_pins import KIT
 
 from recipe_tooling.kit_pins import archive as kit_archive
@@ -54,17 +55,14 @@ class ScanTests(unittest.TestCase):
                 "README.md": "docker pull ghcr.io/creator/readme:latest\nsee ghcr.io/creator/prose:1\n",
             }
         )
-        self.assertEqual(
-            sorted(found),
-            sorted(
-                [
-                    f"{IMAGE}@{DIGEST}",
-                    "ghcr.io/creator/other:v1",
-                    "creator/hub-image:tag",
-                    "quay.io/creator/third:1",
-                    "ghcr.io/creator/readme:latest",
-                ]
-            ),
+        assert sorted(found) == sorted(
+            [
+                f"{IMAGE}@{DIGEST}",
+                "ghcr.io/creator/other:v1",
+                "creator/hub-image:tag",
+                "quay.io/creator/third:1",
+                "ghcr.io/creator/readme:latest",
+            ]
         )
 
     def test_engines_bases_and_documentation_are_not_creator_images(self) -> None:
@@ -80,24 +78,24 @@ class ScanTests(unittest.TestCase):
                 "model.sh": "MODEL_IMAGE_ID=Qwen/Qwen-Image:file\n",
             }
         )
-        self.assertEqual(found, [], found)
+        assert found == [], found
 
     def test_a_monorepo_kit_is_scoped_to_the_cited_directory(self) -> None:
         files = {
             "one/start.sh": f"docker run {IMAGE}:a\n",
             "two/start.sh": "docker run ghcr.io/creator/two:a\n",
         }
-        self.assertEqual(scan(files, "two/"), ["ghcr.io/creator/two:a"])
+        assert scan(files, "two/") == ["ghcr.io/creator/two:a"]
         recipe = {
             "provenance": {
                 "source_reference": f"https://github.com/{KIT}/blob/{COMMIT}/two/README.md"
             }
         }
-        self.assertEqual(kit_image_scan.kit_scope(recipe), "two/")
+        assert kit_image_scan.kit_scope(recipe) == "two/"
         recipe["provenance"]["source_reference"] = (
             f"https://github.com/{KIT}/tree/{COMMIT}"
         )
-        self.assertEqual(kit_image_scan.kit_scope(recipe), "")
+        assert kit_image_scan.kit_scope(recipe) == ""
 
 
 def recipe(root: Path, dockerfile: str, base: str | None = None) -> dict[str, Any]:
@@ -127,11 +125,11 @@ class DownloadScanTests(unittest.TestCase):
         self,
     ) -> None:
         body = archive({"Dockerfile": f"FROM {IMAGE}@{DIGEST}\n"})
-        self.assertEqual(self._download(body), [f"{IMAGE}@{DIGEST}"])
+        assert self._download(body) == [f"{IMAGE}@{DIGEST}"]
 
     def test_a_truncated_download_fails_with_the_url(self) -> None:
         body = archive({"Dockerfile": f"FROM {IMAGE}@{DIGEST}\n"})
-        with self.assertRaisesRegex(kit_model.KitError, "cannot scan .*tar.gz"):
+        with pytest.raises(kit_model.KitError, match="cannot scan .*tar.gz"):
             self._download(body[: len(body) // 2])
 
 
@@ -167,7 +165,7 @@ class MidStreamFailureTests(unittest.TestCase):
                 fetch = _Dropping(body[: len(body) // 2], error)
                 with (
                     mock.patch.object(urllib.request, "urlopen", return_value=scan),
-                    self.assertRaisesRegex(kit_model.KitError, "cannot scan .*tar.gz"),
+                    pytest.raises(kit_model.KitError, match="cannot scan .*tar.gz"),
                 ):
                     kit_image_scan.scan_download("o/r", COMMIT)
                 with (
@@ -178,7 +176,7 @@ class MidStreamFailureTests(unittest.TestCase):
                             _Dropping(fetch.getvalue(), error) for _ in range(3)
                         ],
                     ),
-                    self.assertRaisesRegex(kit_model.KitError, "cannot fetch .*tar.gz"),
+                    pytest.raises(kit_model.KitError, match="cannot fetch .*tar.gz"),
                 ):
                     kit_archive.download_archive("o/r", COMMIT, lambda _seconds: None)
 
@@ -188,7 +186,7 @@ class MidStreamFailureTests(unittest.TestCase):
         pauses: list[float] = []
         with mock.patch.object(urllib.request, "urlopen", side_effect=answers):
             data = kit_archive.download_archive("o/r", COMMIT, pauses.append)
-        self.assertEqual((data, len(pauses)), (body, 1))
+        assert (data, len(pauses)) == (body, 1)
 
     def test_scanning_does_not_retain_the_members_it_has_passed(self) -> None:
         files = {f"d/{n}.txt": "x" for n in range(200)}
@@ -204,8 +202,8 @@ class MidStreamFailureTests(unittest.TestCase):
 
         with mock.patch.object(tarfile, "open", spy):
             found = kit_image_scan.scan_stream(io.BytesIO(body))
-        self.assertEqual([f["reference"] for f in found], [f"{IMAGE}@{DIGEST}"])
-        self.assertLess(len(retained[0].members), 3)
+        assert [f["reference"] for f in found] == [f"{IMAGE}@{DIGEST}"]
+        assert len(retained[0].members) < 3
 
 
 class CliSourceTests(unittest.TestCase):
@@ -231,9 +229,9 @@ class CliSourceTests(unittest.TestCase):
             source = kit_sources.cli_source()
             first = kit_image_scan.kit_images(source, "o/r", COMMIT, "sub/")
             second = kit_image_scan.kit_images(source, "o/r", COMMIT, "sub/")
-        self.assertEqual([f["reference"] for f in first], [f"{IMAGE}@{DIGEST}"])
-        self.assertEqual(second, first)
-        self.assertEqual(opened, [f"https://codeload.github.com/o/r/tar.gz/{COMMIT}"])
+        assert [f["reference"] for f in first] == [f"{IMAGE}@{DIGEST}"]
+        assert second == first
+        assert opened == [f"https://codeload.github.com/o/r/tar.gz/{COMMIT}"]
 
 
 class RuleTests(unittest.TestCase):
@@ -261,42 +259,38 @@ class RuleTests(unittest.TestCase):
             )
 
     def test_a_recipe_that_builds_from_the_kits_image_passes(self) -> None:
-        self.assertEqual(
-            self.problems(f"FROM {IMAGE}@{DIGEST}\n", [f"{IMAGE}:tag"]), []
-        )
+        assert self.problems(f"FROM {IMAGE}@{DIGEST}\n", [f"{IMAGE}:tag"]) == []
 
     def test_the_recorded_base_image_counts_as_running_it(self) -> None:
-        self.assertEqual(
-            self.problems("FROM scratch\n", [f"{IMAGE}:tag"], base=IMAGE), []
-        )
+        assert self.problems("FROM scratch\n", [f"{IMAGE}:tag"], base=IMAGE) == []
 
     def test_a_self_build_beside_a_published_image_is_a_problem(self) -> None:
         problems = self.problems(
             "FROM docker.io/vllm/vllm-openai@" + DIGEST + "\n", [f"{IMAGE}:tag"]
         )
-        self.assertEqual(len(problems), 1)
-        self.assertIn("kit provides prebuilt image", problems[0])
-        self.assertIn("policy/kit-image-exceptions.json", problems[0])
+        assert len(problems) == 1
+        assert "kit provides prebuilt image" in problems[0]
+        assert "policy/kit-image-exceptions.json" in problems[0]
 
     def test_a_reasoned_exception_allows_it(self) -> None:
-        self.assertEqual(
+        assert (
             self.problems(
                 "FROM docker.io/vllm/vllm-openai@" + DIGEST + "\n",
                 [f"{IMAGE}:tag"],
                 {"x": "the kit's image is another engine lane than this recipe"},
-            ),
-            [],
+            )
+            == []
         )
 
     def test_an_exception_needs_a_reason(self) -> None:
-        self.assertIn(
-            "no reason",
-            self.problems("FROM scratch\n", [f"{IMAGE}:tag"], {"x": " "})[0],
+        assert (
+            "no reason"
+            in self.problems("FROM scratch\n", [f"{IMAGE}:tag"], {"x": " "})[0]
         )
 
     def test_a_kit_without_an_image_needs_nothing(self) -> None:
-        self.assertEqual(
-            self.problems("FROM docker.io/vllm/vllm-openai@" + DIGEST + "\n", []), []
+        assert (
+            self.problems("FROM docker.io/vllm/vllm-openai@" + DIGEST + "\n", []) == []
         )
 
 
@@ -338,16 +332,13 @@ class CheckTests(unittest.TestCase):
                 ),
                 notice=notices.append,
             )
-        self.assertEqual(len(calls), 1)
-        self.assertEqual(len(found), 2, found)
-        self.assertEqual(
-            notices,
-            [
-                "remove the policy/kit-image-exceptions.json entry of x: it runs the kit's image ghcr.io/creator/kit-image"
-            ],
-        )
-        self.assertTrue(any("'gone' is not a recipe" in p for p in found), found)
-        self.assertTrue(any(p.startswith("y: the kit provides") for p in found), found)
+        assert len(calls) == 1
+        assert len(found) == 2, found
+        assert notices == [
+            "remove the policy/kit-image-exceptions.json entry of x: it runs the kit's image ghcr.io/creator/kit-image"
+        ]
+        assert any("'gone' is not a recipe" in p for p in found), found
+        assert any(p.startswith("y: the kit provides") for p in found), found
 
 
 if __name__ == "__main__":

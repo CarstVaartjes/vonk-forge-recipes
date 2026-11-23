@@ -45,31 +45,27 @@ class QwenVllmAdapterRuntimeTests(unittest.TestCase):
         for dockerfile in ADAPTERS:
             with self.subTest(adapter=dockerfile.parent.name):
                 source = dockerfile.read_text(encoding="utf-8")
-                self.assertIn("useradd --uid 10001 --gid 10001", source)
-                self.assertIn(
+                assert "useradd --uid 10001 --gid 10001" in source
+                assert (
                     "install --directory --owner=10001 --group=10001 "
-                    "/outputs /outputs/cache",
-                    source,
+                    "/outputs /outputs/cache" in source
                 )
                 for name, path in CACHE_ENVIRONMENT.items():
-                    self.assertIn(f"{name}={path}", source)
-                    self.assertIn(f'"${name}"', source)
-                self.assertIn("'set -eu'", source)
-                self.assertIn("'mkdir -p ", source)
-                self.assertIn("WORKDIR /tmp", source)
-                self.assertIn("USER 10001:10001", source)
+                    assert f"{name}={path}" in source
+                    assert f'"${name}"' in source
+                assert "'set -eu'" in source
+                assert "'mkdir -p " in source
+                assert "WORKDIR /tmp" in source
+                assert "USER 10001:10001" in source
 
     def test_runtime_cache_paths_do_not_target_the_read_only_image(self) -> None:
         for dockerfile in ADAPTERS:
             with self.subTest(adapter=dockerfile.parent.name):
                 source = dockerfile.read_text(encoding="utf-8")
                 assignments = docker_environment(source)
-                self.assertEqual(assignments, CACHE_ENVIRONMENT)
-                self.assertTrue(
-                    all(
-                        path.startswith("/outputs/cache/")
-                        for path in assignments.values()
-                    )
+                assert assignments == CACHE_ENVIRONMENT
+                assert all(
+                    path.startswith("/outputs/cache/") for path in assignments.values()
                 )
 
 

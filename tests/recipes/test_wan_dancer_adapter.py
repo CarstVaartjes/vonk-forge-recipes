@@ -21,6 +21,7 @@ from types import SimpleNamespace
 from typing import Any, ClassVar
 from unittest import mock
 
+import pytest
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
@@ -80,70 +81,59 @@ def load_runner():
 class WanDancerAuthorityTests(unittest.TestCase):
     def test_recipe_resolves_complete_immutable_authorities(self) -> None:
         recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
-        self.assertEqual(
-            recipe["models"][0]["model"]["content_sha256"], canonical_digest(MODEL)
-        )
+        assert recipe["models"][0]["model"]["content_sha256"] == canonical_digest(MODEL)
         build = recipe["execution"]["build"]
-        self.assertEqual(build["base_image"], BASE_IMAGE)
-        self.assertEqual(build["context"], {"path": "adapters/video/wan-dancer-native"})
-        self.assertEqual(
-            build["dockerfile"], "adapters/video/wan-dancer-native/Dockerfile"
+        assert build["base_image"] == BASE_IMAGE
+        assert build["context"] == {"path": "adapters/video/wan-dancer-native"}
+        assert build["dockerfile"] == "adapters/video/wan-dancer-native/Dockerfile"
+        assert build["patches"] == [
+            {"path": "adapters/video/wan-dancer-native/patch-upstream.py"}
+        ]
+        assert build["network"] == {"hosts": BUILD_NETWORK_HOSTS}
+        assert (
+            json.loads(MODEL.read_text())["source"]["revision"]
+            == "85ce88dd8d025459dcf0fe93982d6da8b9002957"
         )
-        self.assertEqual(
-            build["patches"],
-            [{"path": "adapters/video/wan-dancer-native/patch-upstream.py"}],
+        assert (
+            recipe["provenance"]["source_reference"]
+            == "https://github.com/Wan-Video/Wan-Dancer/tree/"
+            "e6c87a94ec733230dac15b924c015f6e6501e618"
         )
-        self.assertEqual(build["network"], {"hosts": BUILD_NETWORK_HOSTS})
-        self.assertEqual(
-            json.loads(MODEL.read_text())["source"]["revision"],
-            "85ce88dd8d025459dcf0fe93982d6da8b9002957",
-        )
-        self.assertEqual(
-            recipe["provenance"]["source_reference"],
-            "https://github.com/Wan-Video/Wan-Dancer/tree/"
-            "e6c87a94ec733230dac15b924c015f6e6501e618",
-        )
-        self.assertEqual(recipe["topology"]["node_count"], 1)
+        assert recipe["topology"]["node_count"] == 1
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(memory["peak_bytes"], 106132436089)
-        self.assertEqual(memory["reserve_bytes"], 8000000000)
+        assert memory["peak_bytes"] == 106132436089
+        assert memory["reserve_bytes"] == 8000000000
         runtime = recipe["runtime"]
-        self.assertEqual(
-            set(runtime),
-            {"engine", "entrypoint", "arguments", "environment", "lifecycle"},
-        )
-        self.assertEqual(runtime["engine"], "pytorch-pipeline")
+        assert set(runtime) == {
+            "engine",
+            "entrypoint",
+            "arguments",
+            "environment",
+            "lifecycle",
+        }
+        assert runtime["engine"] == "pytorch-pipeline"
         environment_names = {item["name"] for item in runtime["environment"]}
-        self.assertFalse(PLATFORM_OWNED_CACHE_ENVIRONMENT & environment_names)
+        assert not PLATFORM_OWNED_CACHE_ENVIRONMENT & environment_names
         manifest = package_manifest()
-        self.assertEqual(manifest["schema_version"], 2)
-        self.assertEqual(manifest["package_type"], "recipe")
-        self.assertEqual(
-            manifest["build_inputs"],
-            [
-                {
-                    "kind": "oci-image",
-                    "platform": "linux/arm64",
-                    "reference": "nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:"
-                    "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-                }
-            ],
-        )
-        self.assertEqual(
-            manifest["recipe_content_sha256"],
-            document_sha256(recipe),
-        )
-        package_paths = {item["path"] for item in manifest["files"]}  # pyright: ignore[reportGeneralTypeIssues]
-        self.assertTrue(
+        assert manifest["schema_version"] == 2
+        assert manifest["package_type"] == "recipe"
+        assert manifest["build_inputs"] == [
             {
-                build["context"]["path"] + "/Dockerfile",
-                build["dockerfile"],
-                build["patches"][0]["path"],
-                "models/wan-dancer-14b.json",
-                "recipe.json",
+                "kind": "oci-image",
+                "platform": "linux/arm64",
+                "reference": "nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:"
+                "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
             }
-            <= package_paths
-        )
+        ]
+        assert manifest["recipe_content_sha256"] == document_sha256(recipe)
+        package_paths = {item["path"] for item in manifest["files"]}  # pyright: ignore[reportGeneralTypeIssues]
+        assert {
+            build["context"]["path"] + "/Dockerfile",
+            build["dockerfile"],
+            build["patches"][0]["path"],
+            "models/wan-dancer-14b.json",
+            "recipe.json",
+        } <= package_paths
         with tarfile.open(
             fileobj=io.BytesIO(PACKAGE.read_bytes()), mode="r:gz"
         ) as archive:
@@ -153,31 +143,29 @@ class WanDancerAuthorityTests(unittest.TestCase):
                 "models/wan-dancer-14b.json",
             ):
                 packaged = archive.extractfile(path)
-                self.assertIsNotNone(packaged)
-                payload = packaged.read()  # pyright: ignore[reportOptionalMemberAccess]
+                assert packaged is not None
+                payload = packaged.read()
                 if path == "models/wan-dancer-14b.json":
-                    self.assertEqual(
-                        document_sha256(json.loads(payload)), canonical_digest(MODEL)
+                    assert document_sha256(json.loads(payload)) == canonical_digest(
+                        MODEL
                     )
                 else:
-                    self.assertEqual(payload, (ROOT / path).read_bytes())
+                    assert payload == (ROOT / path).read_bytes()
         interface = recipe["interfaces"][0]
         slots = {slot["id"]: slot for slot in interface["input"]["slots"]}
-        self.assertEqual(set(slots), {"prompt", "reference-image", "music"})
-        self.assertEqual(
-            (slots["prompt"]["min_files"], slots["prompt"]["max_files"]), (1, 1)
-        )
+        assert set(slots) == {"prompt", "reference-image", "music"}
+        assert (slots["prompt"]["min_files"], slots["prompt"]["max_files"]) == (1, 1)
         output = interface["output"]
-        self.assertEqual(output["max_total_bytes"], 536870912)
-        self.assertEqual(output["slots"][0]["media_types"], ["video/mp4"])
-        self.assertIn("H.264/AAC", output["slots"][0]["description"])
+        assert output["max_total_bytes"] == 536870912
+        assert output["slots"][0]["media_types"] == ["video/mp4"]
+        assert "H.264/AAC" in output["slots"][0]["description"]
 
     def test_vendored_source_is_bounded_and_fail_closed_patch_applies(self) -> None:
         parts = sorted((ADAPTER / "vendor").glob("*.part-*"))
-        self.assertEqual(len(parts), 4)
-        self.assertTrue(all(part.stat().st_size < 12 * 1024 * 1024 for part in parts))
+        assert len(parts) == 4
+        assert all(part.stat().st_size < 12 * 1024 * 1024 for part in parts)
         archive = b"".join(part.read_bytes() for part in parts)
-        self.assertEqual(hashlib.sha256(archive).hexdigest(), ARCHIVE_SHA256)
+        assert hashlib.sha256(archive).hexdigest() == ARCHIVE_SHA256
 
         with tempfile.TemporaryDirectory() as value:
             root = Path(value)
@@ -192,47 +180,43 @@ class WanDancerAuthorityTests(unittest.TestCase):
             )
             global_stage = (source_root / "gen_video/gen_video_global.py").read_text()
             local_stage = (source_root / "gen_video/gen_video_local.py").read_text()
-            self.assertIn(
-                'ModelConfig(path="/models/global_model.safetensors"', global_stage
-            )
-            self.assertIn(
-                'ModelConfig(path="/models/local_model.safetensors"', local_stage
-            )
-            self.assertNotIn('offload_device="cpu"', global_stage + local_stage)
-            self.assertNotIn("enable_vram_management()", global_stage + local_stage)
-            self.assertNotIn("use_usp=True", global_stage + local_stage)
-            self.assertNotIn("dist.get_rank()", global_stage + local_stage)
-            self.assertIn("cfg_scale=args.cfg_scale", local_stage)
+            assert 'ModelConfig(path="/models/global_model.safetensors"' in global_stage
+            assert 'ModelConfig(path="/models/local_model.safetensors"' in local_stage
+            assert 'offload_device="cpu"' not in global_stage + local_stage
+            assert "enable_vram_management()" not in global_stage + local_stage
+            assert "use_usp=True" not in global_stage + local_stage
+            assert "dist.get_rank()" not in global_stage + local_stage
+            assert "cfg_scale=args.cfg_scale" in local_stage
             for stage in (global_stage, local_stage):
-                self.assertIn('"--cfg_scale",\n        type=float,', stage)
+                assert '"--cfg_scale",\n        type=float,' in stage
 
     def test_runtime_has_no_model_download_path(self) -> None:
         runner = (ADAPTER / "run.py").read_text(encoding="utf-8")
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
-        self.assertIn(
-            'org.opencontainers.image.revision="e6c87a94ec733230dac15b924c015f6e6501e618"',
-            dockerfile,
+        assert (
+            'org.opencontainers.image.revision="e6c87a94ec733230dac15b924c015f6e6501e618"'
+            in dockerfile
         )
-        self.assertNotIn("snapshot_download", runner)
-        self.assertNotIn("from_pretrained", runner)
-        self.assertIn("HF_HUB_OFFLINE=1", dockerfile)
-        self.assertIn("TRANSFORMERS_OFFLINE=1", dockerfile)
-        self.assertIn("USER 10001:10001", dockerfile)
+        assert "snapshot_download" not in runner
+        assert "from_pretrained" not in runner
+        assert "HF_HUB_OFFLINE=1" in dockerfile
+        assert "TRANSFORMERS_OFFLINE=1" in dockerfile
+        assert "USER 10001:10001" in dockerfile
 
 
 class WanDancerInputTests(unittest.TestCase):
     def test_generation_canvas_binds_smaller_creator_dimensions(self) -> None:
         runner = load_runner()
-        self.assertEqual(runner._generation_dimensions(720, 352), (720, 352))
-        self.assertEqual(runner._generation_dimensions(512, 512), (512, 512))
+        assert runner._generation_dimensions(720, 352) == (720, 352)
+        assert runner._generation_dimensions(512, 512) == (512, 512)
         for height, width in ((720, 1280), (1280, 720)):
-            with self.assertRaisesRegex(ValueError, "at most 262144 pixels"):
+            with pytest.raises(ValueError, match="at most 262144 pixels"):
                 runner._generation_dimensions(height, width)
 
     def test_generation_canvas_rejects_1280_square(self) -> None:
         runner = load_runner()
 
-        with self.assertRaisesRegex(ValueError, "at most 262144 pixels"):
+        with pytest.raises(ValueError, match="at most 262144 pixels"):
             runner._generation_dimensions(1280, 1280)
 
     def test_expected_output_is_derived_from_reference_aspect_and_music(self) -> None:
@@ -261,7 +245,7 @@ class WanDancerInputTests(unittest.TestCase):
                 target_width=720,
                 music_duration=1.0,
             )
-        self.assertEqual(output, (720, 720, 24, 0.8))
+        assert output == (720, 720, 24, 0.8)
 
     def test_output_requires_derived_h264_aac_media_contract(self) -> None:
         runner = load_runner()
@@ -298,7 +282,7 @@ class WanDancerInputTests(unittest.TestCase):
                 expected_frames=24,
                 expected_duration=0.8,
             )
-        self.assertIn("-count_frames", run.call_args.args[0])
+        assert "-count_frames" in run.call_args.args[0]
 
         invalid_cases = (
             (("format", "format_name"), "matroska", "MP4 container"),
@@ -325,7 +309,7 @@ class WanDancerInputTests(unittest.TestCase):
                         "run",
                         return_value=SimpleNamespace(stdout=json.dumps(invalid)),
                     ),
-                    self.assertRaisesRegex(RuntimeError, message),
+                    pytest.raises(RuntimeError, match=message),
                 ):
                     runner._verify_output(
                         Path("dance.mp4"),
@@ -342,13 +326,13 @@ class WanDancerInputTests(unittest.TestCase):
             inputs = Path(value)
             runner.INPUT_ROOT = inputs  # pyright: ignore[reportAttributeAccessIssue]
             (inputs / "person.jpg").write_bytes(b"jpeg")
-            self.assertEqual(
+            assert (
                 runner._input_file(
                     "person.jpg", "reference_image", runner.IMAGE_SUFFIXES
-                ),
-                inputs / "person.jpg",
+                )
+                == inputs / "person.jpg"
             )
-            with self.assertRaises(ValueError):
+            with pytest.raises(ValueError):
                 runner._input_file(
                     "../person.jpg", "reference_image", runner.IMAGE_SUFFIXES
                 )
@@ -395,9 +379,9 @@ class WanDancerInputTests(unittest.TestCase):
             )
             manifest = runner._manifest()
             request = runner._request(manifest)
-            self.assertEqual(request["prompt"], "A precise street dance")
-            self.assertEqual(request["reference_image"], "person.png")
-            self.assertEqual(request["music"], "music.wav")
+            assert request["prompt"] == "A precise street dance"
+            assert request["reference_image"] == "person.png"
+            assert request["music"] == "music.wav"
 
     def test_manifest_rejects_unknown_slots_and_mismatched_media_types(self) -> None:
         runner = load_runner()
@@ -429,10 +413,10 @@ class WanDancerInputTests(unittest.TestCase):
                 )
 
             write_manifest("extra", "text/plain")
-            with self.assertRaisesRegex(ValueError, "unsupported slot"):
+            with pytest.raises(ValueError, match="unsupported slot"):
                 runner._manifest()
             write_manifest("prompt", "application/json")
-            with self.assertRaisesRegex(ValueError, "prompt slot contract"):
+            with pytest.raises(ValueError, match="prompt slot contract"):
                 runner._manifest()
 
 
@@ -551,13 +535,13 @@ class WanDancerLoaderTests(unittest.TestCase):
 
     def test_models_are_built_on_meta_and_moved_once_loaded(self) -> None:
         model = self._load({name: object() for name in _Model.PARAMETERS})
-        self.assertEqual(_Construction.devices, ["meta"])
-        self.assertTrue(model.moved)
+        assert _Construction.devices == ["meta"]
+        assert model.moved
 
     def test_parameter_missing_from_the_checkpoint_fails_with_its_name(self) -> None:
         missing = "music_encoder.0.self_attn.in_proj_weight"
         complete = {name: object() for name in _Model.PARAMETERS}
-        with self.assertRaisesRegex(RuntimeError, re.escape(missing)):
+        with pytest.raises(RuntimeError, match=re.escape(missing)):
             self._load({k: v for k, v in complete.items() if k != missing})
 
     def test_dit_constructor_leaves_device_placement_to_the_loader(self) -> None:
@@ -573,9 +557,9 @@ class WanDancerLoaderTests(unittest.TestCase):
             and isinstance(node.func, ast.Name)
             and node.func.id == "MusicEncoderLayer"
         ]
-        self.assertTrue(calls)
+        assert calls
         for call in calls:
-            self.assertNotIn("device", {keyword.arg for keyword in call.keywords})
+            assert "device" not in {keyword.arg for keyword in call.keywords}
 
     def test_sequence_parallel_names_are_read_only_where_they_are_bound(
         self,
@@ -592,12 +576,10 @@ class WanDancerLoaderTests(unittest.TestCase):
         ]
         model_fn = next(f for f in functions if f.name == "model_fn_wan_video")
         bound, _ = _sequence_parallel_reads(model_fn)
-        self.assertIn("get_sequence_parallel_world_size", bound)
+        assert "get_sequence_parallel_world_size" in bound
         for function in functions:
-            self.assertEqual(
-                _sequence_parallel_reads(function)[1],
-                [],
-                f"{function.name}:{function.lineno}",
+            assert _sequence_parallel_reads(function)[1] == [], (
+                f"{function.name}:{function.lineno}"
             )
 
 
@@ -697,13 +679,13 @@ class WanDancerSmokeMusicTests(unittest.TestCase):
                 frames, rate = source.getnframes(), source.getframerate()
             duration = frames / rate
             rows = 1 + math.ceil(frames * 30 * 512 / rate) // 512
-            self.assertGreaterEqual(int(rows / 149.0 + 0.5), 1, (duration, rows))
-            self.assertLess(duration, 149 / 30)
-            self.assertLessEqual(1.0, duration)
+            assert int(rows / 149.0 + 0.5) >= 1, (duration, rows)
+            assert duration < 149 / 30
+            assert 1.0 <= duration
             output_frames = int(
                 (duration - runner.OUTPUT_TRIM_SECONDS) * runner.OUTPUT_FPS
             )
-            self.assertEqual(metadata["frame_count"], output_frames)
+            assert metadata["frame_count"] == output_frames
 
 
 class WanDancerStageWorkingDirectoryTests(unittest.TestCase):
@@ -726,8 +708,8 @@ class WanDancerStageWorkingDirectoryTests(unittest.TestCase):
                     work,
                     30,
                 )
-            self.assertTrue((work / "probe_snd.mp4").is_file())
-            self.assertFalse((source / "probe_snd.mp4").exists())
+            assert (work / "probe_snd.mp4").is_file()
+            assert not (source / "probe_snd.mp4").exists()
 
 
 if __name__ == "__main__":

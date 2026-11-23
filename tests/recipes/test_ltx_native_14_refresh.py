@@ -31,25 +31,25 @@ class LtxNative14RefreshTests(unittest.TestCase):
         for slug, adapter in RECIPES.items():
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             context = recipe["execution"]["build"]["context"]
-            self.assertEqual(context["path"], adapter)
+            assert context["path"] == adapter
             _, _, bundle_digest = tool["source_bundle"](ROOT / adapter)
-            self.assertTrue(bundle_digest)
+            assert bundle_digest
             index = load(GENERATED / "catalog-index.json")
             entry = next(
                 item
                 for item in index["recipes"]
                 if item["source_path"] == f"recipes/{slug}.json"
             )
-            self.assertEqual(len(entry["package"]["recipe_content_sha256"]), 64)
+            assert len(entry["package"]["recipe_content_sha256"]) == 64
 
     def test_historical_recipes_keep_explicit_candidate_metadata(self) -> None:
         for slug in RECIPES:
             recipe = load(ROOT / "recipes" / f"{slug}.json")
-            self.assertTrue(
-                {"executable"} <= set(recipe_display(recipe["identity"]["slug"]).tags)
+            assert {"executable"} <= set(
+                recipe_display(recipe["identity"]["slug"]).tags
             )
-            self.assertTrue(recipe["models"])
-            self.assertEqual(recipe["topology"]["node_count"], 1)
+            assert recipe["models"]
+            assert recipe["topology"]["node_count"] == 1
 
     def test_runtime_sources_are_pinned_and_pipeline_runners_verify_shape(self) -> None:
         for slug, adapter in RECIPES.items():
@@ -65,23 +65,18 @@ class LtxNative14RefreshTests(unittest.TestCase):
             digest = re.search(
                 r'ltx2\.source-archive-sha256="([0-9a-f]{64})"', dockerfile
             )
-            self.assertIsNotNone(commit, slug)
-            self.assertIsNotNone(digest, slug)
+            assert commit is not None, slug
+            assert digest is not None, slug
             assert commit is not None and digest is not None
-            self.assertEqual(dockerfile.count(commit.group(1)), 2, slug)
-            self.assertEqual(dockerfile.count(digest.group(1)), 2, slug)
-            self.assertIn("sha256sum --check --strict", dockerfile)
-            self.assertIn(selection(ROOT).platform_source_commit, dockerfile)
-            self.assertIn(
-                selection(ROOT).artifact_sha256,
-                dockerfile,
-            )
-            self.assertIn(
-                "colour-science==0.4.7", (root / "requirements.lock").read_text()
-            )
-            self.assertIn("_verify_ltx_runtime_contract()", runner, slug)
-            self.assertIn('"tiling_config",\n)', runner, slug)
-            self.assertNotIn('"video_latent"', runner, slug)
+            assert dockerfile.count(commit.group(1)) == 2, slug
+            assert dockerfile.count(digest.group(1)) == 2, slug
+            assert "sha256sum --check --strict" in dockerfile
+            assert selection(ROOT).platform_source_commit in dockerfile
+            assert selection(ROOT).artifact_sha256 in dockerfile
+            assert "colour-science==0.4.7" in (root / "requirements.lock").read_text()
+            assert "_verify_ltx_runtime_contract()" in runner, slug
+            assert '"tiling_config",\n)' in runner, slug
+            assert '"video_latent"' not in runner, slug
 
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@ class TonyDSparkVisionPortTests(unittest.TestCase):
             bool(VISION_TAGS & set(recipe_display(recipe["identity"]["slug"]).tags))
             for recipe in _recipes()
         }
-        self.assertEqual(kinds, {False, True})
+        assert kinds == {False, True}
 
     def test_build_applies_the_port_exactly_for_vision_checkpoints(self) -> None:
         for recipe in _recipes():
@@ -56,11 +56,11 @@ class TonyDSparkVisionPortTests(unittest.TestCase):
             )
             with self.subTest(slug=slug):
                 for step in PORT_STEPS:
-                    self.assertEqual(step in run, vision, step)
+                    assert (step in run) == vision, step
                 verify = re.search(r'verify-runtime\.py"?([^;\n]*);', run)
-                self.assertIsNotNone(verify)
                 assert verify is not None
-                self.assertEqual(verify.group(1).split(), [] if vision else ["--text"])
+                assert verify is not None
+                assert verify.group(1).split() == ([] if vision else ["--text"])
 
 
 if __name__ == "__main__":

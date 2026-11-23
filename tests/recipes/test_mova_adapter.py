@@ -10,6 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+import pytest
 from repo_root import ROOT, TESTS
 
 ADAPTER = ROOT / "adapters/video/mova-pytorch"
@@ -53,7 +54,7 @@ class MovaInputContractTests(unittest.TestCase):
         runner = load_runner()
         previous = os.environ.pop("VONK_PROMPT", None)
         try:
-            with self.assertRaisesRegex(SystemExit, "between 1 and 4096"):
+            with pytest.raises(SystemExit, match="between 1 and 4096"):
                 runner._prompt(None)
         finally:
             if previous is not None:
@@ -70,12 +71,12 @@ class MovaInputContractTests(unittest.TestCase):
             write_manifest(root, "prompt", prompt)
             runner._INPUT_ROOT = root  # pyright: ignore[reportAttributeAccessIssue]
             manifest = runner._input_manifest()
-            self.assertIsNotNone(manifest)
-            self.assertEqual(
-                runner._prompt(manifest),
-                "A quiet lake with synchronized water sounds",
+            assert manifest is not None
+            assert (
+                runner._prompt(manifest)
+                == "A quiet lake with synchronized water sounds"
             )
-            self.assertEqual(runner._slot_files(manifest, "reference-image"), [])
+            assert runner._slot_files(manifest, "reference-image") == []
 
     def test_manifest_digest_mismatch_fails_closed(self) -> None:
         runner = load_runner()
@@ -88,7 +89,7 @@ class MovaInputContractTests(unittest.TestCase):
             document["files"][0]["sha256"] = "0" * 64
             (root / "manifest.json").write_text(json.dumps(document), encoding="utf-8")
             runner._INPUT_ROOT = root  # pyright: ignore[reportAttributeAccessIssue]
-            with self.assertRaisesRegex(SystemExit, "digest"):
+            with pytest.raises(SystemExit, match="digest"):
                 runner._input_manifest()
 
     def test_output_requires_exact_h264_aac_stream_contract(self) -> None:
@@ -124,7 +125,7 @@ class MovaInputContractTests(unittest.TestCase):
                 return_value=SimpleNamespace(stdout=json.dumps(probe)),
             ) as run:
                 runner._verify_synchronized_mp4(Path(media.name), height=352, width=640)
-            self.assertIn("-count_frames", run.call_args.args[0])
+            assert "-count_frames" in run.call_args.args[0]
 
             for stream, codec in ((0, "vp9"), (1, "opus")):
                 invalid = json.loads(json.dumps(probe))
@@ -135,7 +136,7 @@ class MovaInputContractTests(unittest.TestCase):
                         "run",
                         return_value=SimpleNamespace(stdout=json.dumps(invalid)),
                     ),
-                    self.assertRaisesRegex(SystemExit, "H.264 video and AAC audio"),
+                    pytest.raises(SystemExit, match="H.264 video and AAC audio"),
                 ):
                     runner._verify_synchronized_mp4(
                         Path(media.name), height=352, width=640
@@ -147,29 +148,24 @@ class MovaInputContractTests(unittest.TestCase):
                 recipe = json.loads(path.read_text(encoding="utf-8"))
                 interface = recipe["interfaces"][0]
                 slots = {slot["id"]: slot for slot in interface["input"]["slots"]}
-                self.assertEqual(
-                    (slots["prompt"]["min_files"], slots["prompt"]["max_files"]), (1, 1)
+                assert (slots["prompt"]["min_files"], slots["prompt"]["max_files"]) == (
+                    1,
+                    1,
                 )
-                self.assertEqual(slots["prompt"]["media_types"], ["text/plain"])
-                self.assertEqual(
-                    (
-                        slots["reference-image"]["min_files"],
-                        slots["reference-image"]["max_files"],
-                    ),
-                    (0, 1),
-                )
+                assert slots["prompt"]["media_types"] == ["text/plain"]
+                assert (
+                    slots["reference-image"]["min_files"],
+                    slots["reference-image"]["max_files"],
+                ) == (0, 1)
                 output = interface["output"]
-                self.assertEqual(output["max_total_bytes"], 536870912)
-                self.assertEqual(output["slots"][0]["media_types"], ["video/mp4"])
-                self.assertIn("H.264", output["slots"][0]["description"])
-                self.assertIn("AAC", output["slots"][0]["description"])
-                self.assertEqual(
-                    (
-                        output["slots"][0]["min_files"],
-                        output["slots"][0]["max_files"],
-                    ),
-                    (1, 1),
-                )
+                assert output["max_total_bytes"] == 536870912
+                assert output["slots"][0]["media_types"] == ["video/mp4"]
+                assert "H.264" in output["slots"][0]["description"]
+                assert "AAC" in output["slots"][0]["description"]
+                assert (
+                    output["slots"][0]["min_files"],
+                    output["slots"][0]["max_files"],
+                ) == (1, 1)
 
 
 if __name__ == "__main__":

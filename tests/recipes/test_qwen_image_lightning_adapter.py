@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import pytest
 from documents import recipe_display
 from repo_root import ROOT
 
@@ -29,9 +30,9 @@ class QwenImageLightningAdapterTests(unittest.TestCase):
             previous = adapter._INPUT_DIR
             adapter._INPUT_DIR = inputs  # pyright: ignore[reportAttributeAccessIssue]
             try:
-                self.assertEqual(adapter._prompt(), "draw a red fox")
+                assert adapter._prompt() == "draw a red fox"
                 (inputs / "second.text").write_text("another", encoding="utf-8")
-                with self.assertRaisesRegex(SystemExit, "exactly one"):
+                with pytest.raises(SystemExit, match="exactly one"):
                     adapter._prompt()
             finally:
                 adapter._INPUT_DIR = previous  # pyright: ignore[reportAttributeAccessIssue]
@@ -39,10 +40,10 @@ class QwenImageLightningAdapterTests(unittest.TestCase):
     def test_scheduler_uses_the_published_shift_three_contract(self) -> None:
         configuration = adapter._scheduler_config()
 
-        self.assertEqual(configuration["base_shift"], math.log(3))
-        self.assertEqual(configuration["max_shift"], math.log(3))
-        self.assertEqual(configuration["time_shift_type"], "exponential")
-        self.assertTrue(configuration["use_dynamic_shifting"])
+        assert configuration["base_shift"] == math.log(3)
+        assert configuration["max_shift"] == math.log(3)
+        assert configuration["time_shift_type"] == "exponential"
+        assert configuration["use_dynamic_shifting"]
 
     def test_recipes_bind_one_exact_base_and_selected_lora(self) -> None:
         for slug in (
@@ -51,19 +52,19 @@ class QwenImageLightningAdapterTests(unittest.TestCase):
         ):
             recipe = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
 
-            self.assertEqual(len(recipe["models"]), 2)
+            assert len(recipe["models"]) == 2
             target = recipe["models"][0]
-            self.assertTrue(target["files"])
-            self.assertEqual(target["files"][0]["mount"]["target"], "/models/target")
+            assert target["files"]
+            assert target["files"][0]["mount"]["target"] == "/models/target"
             model = json.loads(
                 (ROOT / "models" / f"{target['model']['slug']}.json").read_text()
             )
-            self.assertTrue(model["files"][0]["roles"])
-            self.assertNotIn(
-                "metadata-only", recipe_display(recipe["identity"]["slug"]).tags
+            assert model["files"][0]["roles"]
+            assert (
+                "metadata-only" not in recipe_display(recipe["identity"]["slug"]).tags
             )
-            self.assertNotIn(
-                "non-executable", recipe_display(recipe["identity"]["slug"]).tags
+            assert (
+                "non-executable" not in recipe_display(recipe["identity"]["slug"]).tags
             )
 
 

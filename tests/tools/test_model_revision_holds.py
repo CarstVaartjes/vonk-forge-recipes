@@ -75,31 +75,31 @@ class CheckTests(unittest.TestCase):
             return holds.problems(root)
 
     def test_the_catalog_keeps_every_held_model_revision(self) -> None:
-        self.assertEqual(holds.problems(ROOT), [])
+        assert holds.problems(ROOT) == []
 
     def test_held_revision_passes(self) -> None:
-        self.assertEqual(self.problems(), [])
+        assert self.problems() == []
 
     def test_moving_a_held_recipe_without_its_hold_fails(self) -> None:
         found = self.problems(DECLINED)
-        self.assertEqual(len(found), 1)
-        self.assertIn("remove the hold", found[0])
+        assert len(found) == 1
+        assert "remove the hold" in found[0]
 
     def test_a_newer_revision_passes_so_the_hold_lapses(self) -> None:
-        self.assertEqual(self.problems(NEWER), [])
+        assert self.problems(NEWER) == []
 
     def test_hold_needs_reason_upstream_and_revision(self) -> None:
-        self.assertIn("reason", self.problems(reason="")[0])
-        self.assertIn("upstream", self.problems(upstream="#1850")[0])
-        self.assertIn("declined", self.problems(declined="826aacdf")[0])
-        self.assertIn("extra", self.problems(note="x")[0])
+        assert "reason" in self.problems(reason="")[0]
+        assert "upstream" in self.problems(upstream="#1850")[0]
+        assert "declined" in self.problems(declined="826aacdf")[0]
+        assert "extra" in self.problems(note="x")[0]
 
     def test_hold_for_a_missing_recipe_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             catalog(root)
             (root / "recipes/held.json").unlink()
-            self.assertIn("remove the hold", holds.problems(root)[0])
+            assert "remove the hold" in holds.problems(root)[0]
 
 
 class RefreshSkipsDeclinedTests(unittest.TestCase):
@@ -139,10 +139,10 @@ class RefreshSkipsDeclinedTests(unittest.TestCase):
             catalog(root)
             result, move = self.assess(root, DECLINED)
         move.assert_not_called()
-        self.assertFalse(result.drifted)  # its review issue closes as current
-        self.assertFalse(result.reasons)
-        self.assertFalse(result.edits)
-        self.assertIn("is declined", "".join(result.evidence))
+        assert not result.drifted  # its review issue closes as current
+        assert not result.reasons
+        assert not result.edits
+        assert "is declined" in "".join(result.evidence)
 
     def test_a_newer_revision_is_assessed_again(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

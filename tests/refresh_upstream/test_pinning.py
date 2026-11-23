@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import ClassVar
 from unittest.mock import patch
 
+import pytest
 from refresh_helpers import NEW, OLD, classify, comparison, model_with
 
 from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
@@ -24,11 +25,12 @@ class PinningRuleTests(unittest.TestCase):
         tags = [
             {"name": n} for n in ("v1.9.0", "v1.10.0", "v1.10.0-rc1", "nightly", "v0.3")
         ]
-        self.assertEqual(refresh_pinning.pick_version_tag(tags)["name"], "v1.10.0")  # pyright: ignore[reportOptionalSubscript]
+        assert refresh_pinning.pick_version_tag(tags)["name"] == "v1.10.0"  # pyright: ignore[reportOptionalSubscript]
 
     def test_no_version_tag_means_follow_the_head(self) -> None:
-        self.assertIsNone(
+        assert (
             refresh_pinning.pick_version_tag([{"name": "latest"}, {"name": "x"}])
+            is None
         )
 
 
@@ -65,14 +67,14 @@ class NeverDowngradeTests(unittest.TestCase):
 
     def test_pin_ahead_of_release_is_current(self) -> None:
         result = self.collect("behind")
-        self.assertFalse(result.drifted)
-        self.assertFalse(result.reasons)
+        assert not result.drifted
+        assert not result.reasons
 
     def test_release_ahead_of_pin_is_refreshed(self) -> None:
         result = self.collect("ahead")
-        self.assertEqual(len(result.items), 1)
-        self.assertEqual(result.items[0].comparison.status, "ahead")  # pyright: ignore[reportOptionalMemberAccess]
-        self.assertEqual(classify(result.items[0].comparison), [])
+        assert len(result.items) == 1
+        assert result.items[0].comparison.status == "ahead"  # pyright: ignore[reportOptionalMemberAccess]
+        assert classify(result.items[0].comparison) == []
 
     def test_diverged_history_needs_review(self) -> None:
         with patch(
@@ -80,8 +82,8 @@ class NeverDowngradeTests(unittest.TestCase):
             return_value=False,
         ):
             result = self.collect("diverged")
-        self.assertEqual(len(result.items), 1)
-        self.assertTrue(classify(result.items[0].comparison))
+        assert len(result.items) == 1
+        assert classify(result.items[0].comparison)
 
 
 class ReleaseTests(unittest.TestCase):
@@ -94,21 +96,21 @@ class ReleaseTests(unittest.TestCase):
         return refresh_model.Item(kind, "github", "o/r", OLD, target)
 
     def test_upstream_version_and_date_when_published(self) -> None:
-        self.assertEqual(
-            refresh_classification.released(self.recipe, [self.item("2.4.1")]),
-            ("2.4.1", "2026-09-01"),
+        assert refresh_classification.released(self.recipe, [self.item("2.4.1")]) == (
+            "2.4.1",
+            "2026-09-01",
         )
 
     def test_own_version_is_bumped_when_upstream_has_none(self) -> None:
-        self.assertEqual(
-            refresh_classification.released(self.recipe, [self.item()]),
-            ("1.0.1", "2026-09-01"),
+        assert refresh_classification.released(self.recipe, [self.item()]) == (
+            "1.0.1",
+            "2026-09-01",
         )
 
     def test_invalid_upstream_spelling_falls_back_to_own_version(self) -> None:
-        self.assertEqual(
-            refresh_classification.released(self.recipe, [self.item("1.6 beta")])[0],
-            "1.0.1",
+        assert (
+            refresh_classification.released(self.recipe, [self.item("1.6 beta")])[0]
+            == "1.0.1"
         )
 
 
@@ -125,14 +127,14 @@ class DivergedReleaseTests(unittest.TestCase):
     def test_pin_on_main_newer_than_release_branch_commit(self) -> None:
         # #485: pin b9ce4b69 on main (1.3.0rc13) against release 1.2.1 on a release branch.
         http = self.FakeHttp("2026-09-01T00:00:00Z", "2026-04-20T00:00:00Z")
-        self.assertTrue(refresh_items.pin_is_newer_by_date(http, "o/r", OLD, NEW))  # pyright: ignore[reportArgumentType]
+        assert refresh_items.pin_is_newer_by_date(http, "o/r", OLD, NEW)  # pyright: ignore[reportArgumentType]
 
     def test_release_newer_than_pin_is_not_current(self) -> None:
         http = self.FakeHttp("2026-04-01T00:00:00Z", "2026-04-20T00:00:00Z")
-        self.assertFalse(refresh_items.pin_is_newer_by_date(http, "o/r", OLD, NEW))  # pyright: ignore[reportArgumentType]
+        assert not refresh_items.pin_is_newer_by_date(http, "o/r", OLD, NEW)  # pyright: ignore[reportArgumentType]
 
     def test_unreadable_dates_are_not_current(self) -> None:
-        self.assertFalse(refresh_items.pin_is_newer_by_date(object(), "o/r", OLD, NEW))  # pyright: ignore[reportArgumentType]
+        assert not refresh_items.pin_is_newer_by_date(object(), "o/r", OLD, NEW)  # pyright: ignore[reportArgumentType]
 
     def test_image_wrapper_diverged_release_behind_pin_is_current(self) -> None:
         collector = NeverDowngradeTests()
@@ -140,12 +142,12 @@ class DivergedReleaseTests(unittest.TestCase):
             "recipe_tooling.refresh_upstream.items.pin_is_newer_by_date",
             return_value=True,
         ):
-            self.assertFalse(collector.collect("diverged").drifted)
+            assert not collector.collect("diverged").drifted
         with patch(
             "recipe_tooling.refresh_upstream.items.pin_is_newer_by_date",
             return_value=False,
         ):
-            self.assertEqual(len(collector.collect("diverged").items), 1)
+            assert len(collector.collect("diverged").items) == 1
 
 
 class BranchFollowingTests(unittest.TestCase):
@@ -204,8 +206,8 @@ class BranchFollowingTests(unittest.TestCase):
             ],
             {},
         )
-        self.assertFalse(result.items)
-        self.assertFalse(result.drifted)
+        assert not result.items
+        assert not result.drifted
 
     def test_huggingface_branch_that_moved_ahead_is_the_target(self) -> None:
         result = self.hf_collect(
@@ -223,9 +225,9 @@ class BranchFollowingTests(unittest.TestCase):
                 "2.00bpw": [{"id": "c" * 40}],
             },
         )
-        self.assertEqual(len(result.items), 1)
-        self.assertEqual(result.items[0].target.sha, self.BRANCH_HEAD)
-        self.assertEqual(result.items[0].target.branch, "3.00bpw")
+        assert len(result.items) == 1
+        assert result.items[0].target.sha == self.BRANCH_HEAD
+        assert result.items[0].target.branch == "3.00bpw"
 
     def test_huggingface_pin_in_the_default_history_follows_the_default(self) -> None:
         result = self.hf_collect(
@@ -235,9 +237,9 @@ class BranchFollowingTests(unittest.TestCase):
             ],
             {"main": [{"id": self.MAIN_HEAD}, {"id": OLD}]},
         )
-        self.assertEqual(len(result.items), 1)
-        self.assertEqual(result.items[0].target.sha, self.MAIN_HEAD)
-        self.assertIsNone(result.items[0].target.branch)
+        assert len(result.items) == 1
+        assert result.items[0].target.sha == self.MAIN_HEAD
+        assert result.items[0].target.branch is None
 
     def github_collect(self, *, heads, branches, statuses):
         class FakeHttp:
@@ -304,8 +306,8 @@ class BranchFollowingTests(unittest.TestCase):
             branches=[],
             statuses={self.MAIN_HEAD: "diverged"},
         )
-        self.assertFalse(result.items)
-        self.assertFalse(result.drifted)
+        assert not result.items
+        assert not result.drifted
 
     def test_github_feature_branch_that_moved_ahead_is_the_target(self) -> None:
         result = self.github_collect(
@@ -313,9 +315,9 @@ class BranchFollowingTests(unittest.TestCase):
             branches=[("main", self.MAIN_HEAD), ("feature", self.BRANCH_HEAD)],
             statuses={self.MAIN_HEAD: "diverged", self.BRANCH_HEAD: "ahead"},
         )
-        self.assertEqual(len(result.items), 1)
-        self.assertEqual(result.items[0].target.sha, self.BRANCH_HEAD)
-        self.assertEqual(result.items[0].target.branch, "feature")
+        assert len(result.items) == 1
+        assert result.items[0].target.sha == self.BRANCH_HEAD
+        assert result.items[0].target.branch == "feature"
 
     def test_github_pin_in_the_default_history_is_not_a_branch(self) -> None:
         result = self.github_collect(
@@ -323,8 +325,8 @@ class BranchFollowingTests(unittest.TestCase):
             branches=[("feature", self.BRANCH_HEAD)],
             statuses={self.MAIN_HEAD: "ahead", self.BRANCH_HEAD: "ahead"},
         )
-        self.assertEqual(len(result.items), 1)
-        self.assertIsNone(result.items[0].target.branch)
+        assert len(result.items) == 1
+        assert result.items[0].target.branch is None
 
 
 class ReleaseLineTests(unittest.TestCase):
@@ -402,45 +404,42 @@ class ReleaseLineTests(unittest.TestCase):
 
     def test_newest_release_inside_the_line_is_the_target(self) -> None:
         result = self.collect(OLD)
-        self.assertEqual([i.target.sha for i in result.items], [self.V066])
-        self.assertEqual(result.items[0].target.version, "0.6.6")
-        self.assertEqual(len(result.notes), 1)
-        self.assertIn("example/engine 1.0", result.notes[0])
+        assert [i.target.sha for i in result.items] == [self.V066]
+        assert result.items[0].target.version == "0.6.6"
+        assert len(result.notes) == 1
+        assert "example/engine 1.0" in result.notes[0]
 
     def test_pin_at_the_newest_of_its_line_is_current(self) -> None:
         result = self.collect(self.V066)
-        self.assertFalse(result.items)
-        self.assertFalse(result.drifted)
-        self.assertEqual(len(result.notes), 1)  # reported, never a move
+        assert not result.items
+        assert not result.drifted
+        assert len(result.notes) == 1  # reported, never a move
 
     def test_without_a_line_the_newest_release_wins(self) -> None:
         result = self.collect(OLD, line=None)
-        self.assertEqual([i.target.sha for i in result.items], [self.V109])
-        self.assertFalse(result.notes)
+        assert [i.target.sha for i in result.items] == [self.V109]
+        assert not result.notes
 
     def test_newer_line_is_reported_once_and_stays_stable(self) -> None:
         result = self.collect(OLD)
         first = refresh_render.issue_body(result)
-        self.assertEqual(first.count("Newer release line available"), 1)
-        self.assertEqual(refresh_render.issue_body(result, first), first)
-        self.assertNotIn("Upstream moved", refresh_render.issue_body(result, first))
+        assert first.count("Newer release line available") == 1
+        assert refresh_render.issue_body(result, first) == first
+        assert "Upstream moved" not in refresh_render.issue_body(result, first)
         later = refresh_model.Target(
             "github", self.REPO, "c" * 40, "", "v1.0.10", "1.0.10", "u"
         )
         newest = refresh_model.Target(
             "github", self.REPO, self.V109, "", "v1.0.9", "1.0.9", "u"
         )
-        self.assertEqual(
-            refresh_pinning.newer_line_note(self.REPO, "0.6", later),
-            refresh_pinning.newer_line_note(self.REPO, "0.6", newest),
-        )
+        assert refresh_pinning.newer_line_note(
+            self.REPO, "0.6", later
+        ) == refresh_pinning.newer_line_note(self.REPO, "0.6", newest)
 
     def test_a_line_is_a_version_prefix_not_a_string_prefix(self) -> None:
-        self.assertFalse(
-            refresh_pinning.in_line((0, 60, 1), refresh_pinning.line_parts("0.6"))
+        assert not refresh_pinning.in_line(
+            (0, 60, 1), refresh_pinning.line_parts("0.6")
         )
-        self.assertTrue(
-            refresh_pinning.in_line((0, 6, 6), refresh_pinning.line_parts("0.6"))
-        )
-        with self.assertRaises(RuntimeError):
+        assert refresh_pinning.in_line((0, 6, 6), refresh_pinning.line_parts("0.6"))
+        with pytest.raises(RuntimeError):
             refresh_pinning.line_parts("0.6.x")

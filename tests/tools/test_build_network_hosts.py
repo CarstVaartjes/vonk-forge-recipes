@@ -343,11 +343,9 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
         for path in sorted((ROOT / "recipes").glob("*.json")):
             recipe = load(path)
             network = recipe["execution"]["build"]["network"]
-            self.assertEqual(
-                len(network["hosts"]), len(set(network["hosts"])), path.name
-            )
+            assert len(network["hosts"]) == len(set(network["hosts"])), path.name
             dockerfile = ROOT / recipe["execution"]["build"]["dockerfile"]
-            self.assertTrue(dockerfile.is_file(), path.name)
+            assert dockerfile.is_file(), path.name
 
     def test_build_fetches_are_covered_by_declared_hosts(self) -> None:
         """The Spark builder gives an empty host list --network=none; a declared list must also
@@ -365,67 +363,61 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
                     problems.setdefault(path.stem, []).append(
                         f"{fetch.command} needs {sorted(fetch.hosts - declared)}"
                     )
-        self.assertEqual({}, problems)
+        assert {} == problems
 
     def test_fetching_install_detection(self) -> None:
         def hosts(text: str) -> list[frozenset[str]]:
             return [f.hosts for f in fetches(text)]
 
-        self.assertEqual([PYPI], hosts("RUN pip install foo"))
-        self.assertEqual([PYPI], hosts("RUN python -m pip install -r /tmp/a.txt"))
-        self.assertFalse(fetches("RUN pip install --no-index /tmp/a.whl"))
-        self.assertFalse(fetches("RUN uv pip install --offline foo"))
-        self.assertFalse(fetches("ENV PIP_NO_INDEX=1\nRUN pip install foo"))
-        self.assertFalse(
-            fetches(
-                "RUN python -m pip install --no-deps --no-build-isolation /s && pip show x"
-            )
+        assert [PYPI] == hosts("RUN pip install foo")
+        assert [PYPI] == hosts("RUN python -m pip install -r /tmp/a.txt")
+        assert not fetches("RUN pip install --no-index /tmp/a.whl")
+        assert not fetches("RUN uv pip install --offline foo")
+        assert not fetches("ENV PIP_NO_INDEX=1\nRUN pip install foo")
+        assert not fetches(
+            "RUN python -m pip install --no-deps --no-build-isolation /s && pip show x"
         )
-        self.assertFalse(fetches("RUN pip install --no-deps /tmp/a.whl"))
-        self.assertFalse(fetches("RUN apt-get install -y ./a.deb"))
-        self.assertFalse(fetches("RUN curl -fsS http://localhost:8000/health"))
+        assert not fetches("RUN pip install --no-deps /tmp/a.whl")
+        assert not fetches("RUN apt-get install -y ./a.deb")
+        assert not fetches("RUN curl -fsS http://localhost:8000/health")
         # an isolated source build downloads its build backend
-        self.assertTrue(fetches("RUN pip install --no-deps /tmp/src"))
+        assert fetches("RUN pip install --no-deps /tmp/src")
         # the command ends at the line: a later --no-index or apostrophe is not ours
-        self.assertTrue(fetches("RUN pip install foo\nRUN echo --no-index"))
-        self.assertTrue(fetches("RUN pip install foo\n# it's a comment"))
+        assert fetches("RUN pip install foo\nRUN echo --no-index")
+        assert fetches("RUN pip install foo\n# it's a comment")
         for other in (
             "curl -O https://x/y",
             "wget https://x/y",
             "git clone https://x/y",
             "apt-get update",
         ):
-            self.assertTrue(fetches(f"RUN {other}"), other)
+            assert fetches(f"RUN {other}"), other
 
     def test_comments_and_printed_text_are_not_fetches(self) -> None:
-        self.assertFalse(fetches("RUN echo 'pip install foo' && true"))
-        self.assertFalse(fetches("# pip install foo\nRUN true # curl https://x"))
-        self.assertFalse(fetches('print("run pip install foo first")'))
+        assert not fetches("RUN echo 'pip install foo' && true")
+        assert not fetches("# pip install foo\nRUN true # curl https://x")
+        assert not fetches('print("run pip install foo first")')
 
     def test_probe_guarded_install_is_not_a_fetch(self) -> None:
-        self.assertFalse(fetches("python3 -c 'import av' || uv pip install av"))
-        self.assertFalse(fetches("python3 - <<'PY' || pip install av\nimport av\nPY"))
-        self.assertFalse(fetches("command -v git || apt-get install -y git"))
-        self.assertFalse(
-            fetches("if ! python3 -c 'import av'; then pip install av; fi")
-        )
+        assert not fetches("python3 -c 'import av' || uv pip install av")
+        assert not fetches("python3 - <<'PY' || pip install av\nimport av\nPY")
+        assert not fetches("command -v git || apt-get install -y git")
+        assert not fetches("if ! python3 -c 'import av'; then pip install av; fi")
         # a block ends at `fi` with or without a suffix; what follows is not guarded
         for end in ("fi)", "fi 2>/dev/null", "fi >>log", "fi"):
             text = f"if ! python3 -c 'import av'; then pip install av; {end}\npip install b"
-            self.assertEqual(1, len(fetches(text)), end)
+            assert 1 == len(fetches(text)), end
         # a failure of anything else does not guard it
-        self.assertTrue(fetches("make build || pip install av"))
-        self.assertTrue(fetches("if true; then pip install av; fi"))
+        assert fetches("make build || pip install av")
+        assert fetches("if true; then pip install av; fi")
         # file tests and a probe without `!` guard nothing
-        self.assertTrue(
-            fetches("[ -d /w/repo ] || git clone https://github.com/a/b /w/repo")
-        )
-        self.assertTrue(fetches("test -f x || curl -O https://x/y"))
-        self.assertTrue(fetches("if [ ! -f m ]; then pip install foo; fi"))
-        self.assertTrue(fetches('if python3 -c "import x"; then pip install -U x; fi'))
-        self.assertEqual(
-            frozenset({"github.com"}),
-            fetches("git clone https://github.com/a/b")[0].hosts,
+        assert fetches("[ -d /w/repo ] || git clone https://github.com/a/b /w/repo")
+        assert fetches("test -f x || curl -O https://x/y")
+        assert fetches("if [ ! -f m ]; then pip install foo; fi")
+        assert fetches('if python3 -c "import x"; then pip install -U x; fi')
+        assert (
+            frozenset({"github.com"})
+            == fetches("git clone https://github.com/a/b")[0].hosts
         )
 
     def test_hosts_follow_the_index(self) -> None:
@@ -433,23 +425,18 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
             return fetches(text)[0].hosts
 
         torch = "download.pytorch.org"
-        self.assertEqual(
-            frozenset({torch}),
-            hosts(f"pip install --index-url https://{torch}/whl/cu130 torch"),
+        assert frozenset({torch}) == hosts(
+            f"pip install --index-url https://{torch}/whl/cu130 torch"
         )
-        self.assertEqual(
-            PYPI | {torch},
-            hosts(f"pip install --extra-index-url https://{torch}/whl/cu130 torch"),
+        assert PYPI | {torch} == hosts(
+            f"pip install --extra-index-url https://{torch}/whl/cu130 torch"
         )
-        self.assertEqual(
-            PYPI, hosts("pip install --index-url=https://pypi.org/simple foo")
+        assert PYPI == hosts("pip install --index-url=https://pypi.org/simple foo")
+        assert frozenset({"github.com"}) == hosts(
+            "pip install --no-deps git+https://github.com/a/b@c"
         )
-        self.assertEqual(
-            frozenset({"github.com"}),
-            hosts("pip install --no-deps git+https://github.com/a/b@c"),
-        )
-        self.assertEqual(
-            PYPI | {"github.com"}, hosts("pip install git+https://github.com/a/b@c")
+        assert PYPI | {"github.com"} == hosts(
+            "pip install git+https://github.com/a/b@c"
         )
 
     def test_script_fetch_detection(self) -> None:
@@ -472,14 +459,13 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
                 (module / name).write_text(body, encoding="utf-8")
             for name, dockerfile in dockerfiles.items():
                 scripts = run_scripts(dockerfile, context)
-                self.assertIn("mods/a/run.sh", scripts, name)
-                self.assertNotIn("mods/a/unused.sh", scripts, name)
+                assert "mods/a/run.sh" in scripts, name
+                assert "mods/a/unused.sh" not in scripts, name
             (context / "Dockerfile").write_text(dockerfiles["for"], encoding="utf-8")
             found = build_fetches(context / "Dockerfile", context)
-            self.assertEqual(
-                ["mods/a/run.sh: uv pip install --quiet soundfile"],
-                [f.command for f in found],
-            )
+            assert ["mods/a/run.sh: uv pip install --quiet soundfile"] == [
+                f.command for f in found
+            ]
             # executed by name from a run script, but not merely mentioned or chmod'ed
             (module / "run.sh").write_text(
                 "chmod +x helper.sh\ncat unused.sh\n$DIR/helper.sh\n# bash unused.sh\n",
@@ -489,13 +475,13 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
                 "curl -fsSL https://x/y | sh\n", encoding="utf-8"
             )
             scripts = run_scripts(dockerfiles["for"], context)
-            self.assertEqual({"mods/a/run.sh", "mods/a/helper.sh"}, set(scripts))
+            assert {"mods/a/run.sh", "mods/a/helper.sh"} == set(scripts)
             # a probe-guarded install and a commented one are clean
             (module / "helper.sh").write_text(
                 "python3 -c 'import av' || uv pip install av\n# pip install x\n",
                 encoding="utf-8",
             )
-            self.assertEqual([], build_fetches(context / "Dockerfile", context))
+            assert [] == build_fetches(context / "Dockerfile", context)
 
     def test_nvcr_is_only_a_base_image_registry(self) -> None:
         for path in sorted((ROOT / "recipes").glob("*.json")):
@@ -510,7 +496,7 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
                 for line in dockerfile.read_text().splitlines()
                 if not line.lstrip().upper().startswith("FROM ")
             )
-            self.assertIn("https://nvcr.io", steps, path.name)
+            assert "https://nvcr.io" in steps, path.name
 
     def test_security_and_redirect_hosts_remain_explicit(self) -> None:
         for slug in (
@@ -521,9 +507,9 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
         ):
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             hosts = recipe["execution"]["build"]["network"]["hosts"]
-            self.assertTrue(hosts, slug)
+            assert hosts, slug
             if slug.startswith("step1x"):
-                self.assertIn("security.ubuntu.com", hosts)
+                assert "security.ubuntu.com" in hosts
 
     def test_pytorch_index_object_host_is_explicit(self) -> None:
         for path in sorted((ROOT / "recipes").glob("*.json")):
@@ -534,13 +520,13 @@ class BuildNetworkHostMetadataTests(unittest.TestCase):
             if "https://download.pytorch.org/whl/" not in source:
                 continue
             hosts = build["network"]["hosts"]
-            self.assertIn("download.pytorch.org", hosts, path.name)
-            self.assertIn("download-r2.pytorch.org", hosts, path.name)
+            assert "download.pytorch.org" in hosts, path.name
+            assert "download-r2.pytorch.org" in hosts, path.name
             if any(
                 f"https://download.pytorch.org/whl/{flavor}" in source
                 for flavor in ("cu130", "cu132")
             ):
-                self.assertIn("pypi.nvidia.com", hosts, path.name)
+                assert "pypi.nvidia.com" in hosts, path.name
 
 
 if __name__ == "__main__":

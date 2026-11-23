@@ -45,87 +45,85 @@ def _arguments(recipe: dict[str, object]) -> dict[str, object]:
 class UIMateExecutableRecipeTests(unittest.TestCase):
     def test_model_snapshot_is_exact_and_complete(self) -> None:
         model = _read(MODEL)
-        self.assertEqual(model["source"]["revision"], MODEL_REVISION)  # pyright: ignore[reportIndexIssue]
+        assert model["source"]["revision"] == MODEL_REVISION  # pyright: ignore[reportIndexIssue]
         artifacts = model["files"]
-        self.assertEqual(len(artifacts), 22)  # pyright: ignore[reportArgumentType]
-        self.assertEqual(
-            {item["path"] for item in artifacts if "weights" in item["roles"]},  # pyright: ignore[reportGeneralTypeIssues]
-            {f"model-{index:05d}-of-00012.safetensors" for index in range(1, 13)},
+        assert len(artifacts) == 22  # pyright: ignore[reportArgumentType]
+        assert (
+            {item["path"] for item in artifacts if "weights" in item["roles"]}  # pyright: ignore[reportGeneralTypeIssues]
+            == {f"model-{index:05d}-of-00012.safetensors" for index in range(1, 13)}
         )
 
     def test_official_agent_sources_are_vendored_byte_for_byte(self) -> None:
-        self.assertEqual(
-            _sha256(ADAPTER / "agents/__init__.py"),
-            "e7cd2a9ff9e93cde70d9c0cbe6d475a9707cf6c9849effb27285739b6cb77c46",
+        assert (
+            _sha256(ADAPTER / "agents/__init__.py")
+            == "e7cd2a9ff9e93cde70d9c0cbe6d475a9707cf6c9849effb27285739b6cb77c46"
         )
-        self.assertEqual(
-            _sha256(ADAPTER / "agents/ui_mate_agent.py"),
-            "60e1f6924745333dcb0d363e7187d9045d04c06924a1150f02d334311fc38d77",
+        assert (
+            _sha256(ADAPTER / "agents/ui_mate_agent.py")
+            == "60e1f6924745333dcb0d363e7187d9045d04c06924a1150f02d334311fc38d77"
         )
-        self.assertEqual(
-            _sha256(ADAPTER / "agents/demo_workflow.py"),
-            "4939d179bc15035661819efa149c3e1a7a5075a2f2334478e3c53e49991fd0a4",
+        assert (
+            _sha256(ADAPTER / "agents/demo_workflow.py")
+            == "4939d179bc15035661819efa149c3e1a7a5075a2f2334478e3c53e49991fd0a4"
         )
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
-        self.assertIn(
-            f'org.opencontainers.image.revision="{HARNESS_REVISION}"', dockerfile
+        assert f'org.opencontainers.image.revision="{HARNESS_REVISION}"' in dockerfile
+        assert (
+            'io.vonk.vllm.build-commit="ced6857afa0ea7b2e3f0846a62e1394e90f15607"'
+            in dockerfile
         )
-        self.assertIn(
-            'io.vonk.vllm.build-commit="ced6857afa0ea7b2e3f0846a62e1394e90f15607"',
-            dockerfile,
-        )
-        self.assertIn(
-            'io.vonk.ui-mate.upstream-archive-sha256="12046e80b390539417bfc803d1effcd7b867a4bb95ac8a20a5631ce60db9ab4d"',
-            dockerfile,
+        assert (
+            'io.vonk.ui-mate.upstream-archive-sha256="12046e80b390539417bfc803d1effcd7b867a4bb95ac8a20a5631ce60db9ab4d"'
+            in dockerfile
         )
 
     def test_recipe_uses_official_protocol_with_bounded_spark_resources(self) -> None:
         recipe = _read(RECIPE)
         arguments = _arguments(recipe)
-        self.assertEqual(
-            recipe["models"][0]["model"]["content_sha256"],  # pyright: ignore[reportIndexIssue]
-            _canonical_digest(MODEL),
+        assert (
+            recipe["models"][0]["model"]["content_sha256"]  # pyright: ignore[reportIndexIssue]
+            == _canonical_digest(MODEL)
         )
-        self.assertEqual(
-            recipe["execution"]["build"]["base_image"]["digest"],  # pyright: ignore[reportIndexIssue]
-            "e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e",
+        assert (
+            recipe["execution"]["build"]["base_image"]["digest"]  # pyright: ignore[reportIndexIssue]
+            == "e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e"
         )
-        self.assertEqual(arguments["served-model-name"], "UI_Mate")
-        self.assertIs(arguments["trust-remote-code"], True)
-        self.assertEqual(arguments["chat-template-content-format"], "openai")
-        self.assertEqual(
-            json.loads(str(arguments["limit-mm-per-prompt"])),
-            {"image": 6, "video": 0},
-        )
-        self.assertEqual(arguments["mm-encoder-tp-mode"], "data")
-        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 32_768)  # pyright: ignore[reportIndexIssue]
-        self.assertEqual(recipe["settings"]["concurrency"]["value"], 1)  # pyright: ignore[reportIndexIssue]
-        self.assertEqual(arguments["max-num-batched-tokens"], 8192)
-        self.assertEqual(arguments["max-cudagraph-capture-size"], 4)
-        self.assertEqual(recipe["topology"]["node_count"], 1)  # pyright: ignore[reportIndexIssue]
-        self.assertEqual(recipe["topology"]["parallelism"]["tensor"], 1)  # pyright: ignore[reportIndexIssue]
+        assert arguments["served-model-name"] == "UI_Mate"
+        assert arguments["trust-remote-code"] is True
+        assert arguments["chat-template-content-format"] == "openai"
+        assert json.loads(str(arguments["limit-mm-per-prompt"])) == {
+            "image": 6,
+            "video": 0,
+        }
+        assert arguments["mm-encoder-tp-mode"] == "data"
+        assert recipe["settings"]["context_tokens"]["value"] == 32768  # pyright: ignore[reportIndexIssue]
+        assert recipe["settings"]["concurrency"]["value"] == 1  # pyright: ignore[reportIndexIssue]
+        assert arguments["max-num-batched-tokens"] == 8192
+        assert arguments["max-cudagraph-capture-size"] == 4
+        assert recipe["topology"]["node_count"] == 1  # pyright: ignore[reportIndexIssue]
+        assert recipe["topology"]["parallelism"]["tensor"] == 1  # pyright: ignore[reportIndexIssue]
 
     def test_adapter_build_is_offline_and_never_executes_actions(self) -> None:
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
-        self.assertIn(
-            "FROM docker.io/vllm/vllm-openai@sha256:e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e",
-            dockerfile,
+        assert (
+            "FROM docker.io/vllm/vllm-openai@sha256:e06f024cf1dd864a2f4b6e033b496807c55952404c14cf8c1b08e4ca9888597e"
+            in dockerfile
         )
         for cache in ("HOME", "HF_HOME", "VLLM_CACHE_ROOT", "TRITON_CACHE_DIR"):
-            self.assertIn(cache, dockerfile)
+            assert cache in dockerfile
         runtime_wrapper = (ADAPTER / "vllm-wrapper.sh").read_text(encoding="utf-8")
-        self.assertIn('mkdir -p \\\n  "$HOME"', runtime_wrapper)
+        assert 'mkdir -p \\\n  "$HOME"' in runtime_wrapper
         for forbidden in ("curl ", "wget ", "git clone", "pip install", "uv pip"):
-            self.assertNotIn(forbidden, dockerfile)
+            assert forbidden not in dockerfile
         wrapper = (ADAPTER / "ui-mate-step.py").read_text(encoding="utf-8")
-        self.assertNotIn("exec(", wrapper)
-        self.assertNotIn("pyautogui.", wrapper)
+        assert "exec(" not in wrapper
+        assert "pyautogui." not in wrapper
 
     def test_recipe_binds_the_exact_offline_adapter_bundle(self) -> None:
         recipe = _read(RECIPE)
         context = recipe["execution"]["build"]["context"]  # pyright: ignore[reportIndexIssue]
-        self.assertEqual(context["path"], "adapters/llm/ui-mate-vllm")
-        self.assertGreater(len(SOURCE_BUNDLE(ADAPTER)[0]), 0)
+        assert context["path"] == "adapters/llm/ui-mate-vllm"
+        assert len(SOURCE_BUNDLE(ADAPTER)[0]) > 0
 
     def test_vendored_parser_scales_official_actions_without_actuating(self) -> None:
         pil = types.ModuleType("PIL")
@@ -154,8 +152,8 @@ left_click
 </function>
 </tool_call>"""
             action, code = module.parse_response(response, 1920, 1080)
-            self.assertEqual(action, "Click.")
-            self.assertEqual(code, ["pyautogui.click(960, 270)"])
+            assert action == "Click."
+            assert code == ["pyautogui.click(960, 270)"]
         finally:
             sys.dont_write_bytecode = previous_dont_write_bytecode
             sys.path.remove(str(ADAPTER))

@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Protocol, cast
 from unittest import mock
 
+import pytest
 from documents import model_display, recipe_display
 from generated_catalog import GENERATED
 from repo_root import ROOT
@@ -93,21 +94,20 @@ class NativeThreeDAdapterTests(unittest.TestCase):
         ):
             with self.subTest(context=context):
                 dockerfile = (ROOT / context / "Dockerfile").read_text()
-                self.assertIn(
-                    "--index-url https://download.pytorch.org/whl/cu132",
-                    dockerfile,
+                assert (
+                    "--index-url https://download.pytorch.org/whl/cu132" in dockerfile
                 )
-                self.assertNotIn("torchaudio", dockerfile)
+                assert "torchaudio" not in dockerfile
 
     def test_triposg_builds_diso_cuda_kernels_for_spark(self) -> None:
         # diso ships only an sdist whose setup.py builds CUDA kernels only when
         # a GPU is visible or FORCE_CUDA=1, and imports the installed torch.
         dockerfile = (ROOT / "adapters/three-d/triposg/Dockerfile").read_text()
-        self.assertIn("TORCH_CUDA_ARCH_LIST=12.1", dockerfile)
+        assert "TORCH_CUDA_ARCH_LIST=12.1" in dockerfile
         install = dockerfile.index("--no-build-isolation diso==0.1.4")
-        self.assertLess(dockerfile.index("torch==2.14.0"), install)
-        self.assertIn("FORCE_CUDA=1 python3 -m pip install", dockerfile)
-        self.assertIn("grep --quiet sm_121", dockerfile)
+        assert dockerfile.index("torch==2.14.0") < install
+        assert "FORCE_CUDA=1 python3 -m pip install" in dockerfile
+        assert "grep --quiet sm_121" in dockerfile
 
     def test_trellis_and_pixal_reject_unsafe_or_oversized_images_before_model_load(
         self,
@@ -127,27 +127,26 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 inputs = Path(value)
                 image = inputs / "source.png"
                 image.write_bytes(b"png")
-                self.assertEqual(module["one_input"](inputs), image)  # pyright: ignore[reportCallIssue]
+                assert module["one_input"](inputs) == image  # pyright: ignore[reportCallIssue]
                 image.unlink()
                 target = inputs / "target.bin"
                 target.write_bytes(b"png")
                 (inputs / "source.png").symlink_to(target)
-                with self.assertRaisesRegex(SystemExit, "found 0"):
+                with pytest.raises(SystemExit, match="found 0"):
                     module["one_input"](inputs)  # pyright: ignore[reportCallIssue]
                 (inputs / "source.png").unlink()
                 target.unlink()
                 oversized = inputs / "large.png"
                 with oversized.open("wb") as stream:
                     stream.truncate(16 * 1024 * 1024 + 1)
-                with self.assertRaisesRegex(SystemExit, "16 MiB"):
+                with pytest.raises(SystemExit, match="16 MiB"):
                     module["one_input"](inputs)  # pyright: ignore[reportCallIssue]
 
         trellis = (
             ROOT / "adapters/three-d/trellis2-native/trellis2_job.py"
         ).read_text()
-        self.assertLess(
-            trellis.index("input_image = validated_input"),
-            trellis.index("    import o_voxel"),
+        assert trellis.index("input_image = validated_input") < trellis.index(
+            "    import o_voxel"
         )
 
     def test_three_d_job_contracts_have_truthful_bounded_input_and_glb_output_slots(
@@ -159,19 +158,17 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 interface = recipe["interfaces"][0]
                 input_contract = interface["input"]
                 output_contract = interface["output"]
-                self.assertTrue(input_contract["slots"])
-                self.assertLessEqual(
-                    sum(slot["max_total_bytes"] for slot in input_contract["slots"]),
-                    input_contract["max_bytes"],
+                assert input_contract["slots"]
+                assert (
+                    sum(slot["max_total_bytes"] for slot in input_contract["slots"])
+                    <= input_contract["max_bytes"]
                 )
-                self.assertEqual(len(output_contract["slots"]), 1)
+                assert len(output_contract["slots"]) == 1
                 output = output_contract["slots"][0]
-                self.assertEqual(output["media_types"], ["model/gltf-binary"])
-                self.assertEqual(output["extensions"], [".glb"])
-                self.assertEqual((output["min_files"], output["max_files"]), (1, 1))
-                self.assertLessEqual(
-                    output["max_total_bytes"], output_contract["max_total_bytes"]
-                )
+                assert output["media_types"] == ["model/gltf-binary"]
+                assert output["extensions"] == [".glb"]
+                assert (output["min_files"], output["max_files"]) == (1, 1)
+                assert output["max_total_bytes"] <= output_contract["max_total_bytes"]
 
     def test_recipes_bind_exact_native_context_and_runtime(self) -> None:
         for slug, case in CASES.items():
@@ -179,32 +176,30 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 recipe = read_recipe(slug)
                 build = recipe["execution"]["build"]  # pyright: ignore[reportIndexIssue]
                 context_name = case["context"]
-                self.assertEqual(build["context"]["path"], context_name)
-                self.assertEqual(build["dockerfile"], f"{context_name}/Dockerfile")
-                self.assertEqual(build["patches"], [])
+                assert build["context"]["path"] == context_name
+                assert build["dockerfile"] == f"{context_name}/Dockerfile"
+                assert build["patches"] == []
                 repository, digest = case["base_image"].split("@sha256:", 1)
-                self.assertEqual(
-                    build["base_image"]["repository"], repository.split(":", 1)[0]
-                )
-                self.assertEqual(build["base_image"]["digest"], digest)
+                assert build["base_image"]["repository"] == repository.split(":", 1)[0]
+                assert build["base_image"]["digest"] == digest
 
                 manifest, payloads = read_package(slug)
-                self.assertEqual(manifest["schema_version"], 2)
-                self.assertEqual(manifest["kind"], "recipe-package")
-                self.assertEqual(manifest["package_type"], "recipe")
-                self.assertEqual(
-                    manifest["recipe_content_sha256"],
-                    hashlib.sha256(CATALOG.canonical(recipe)).hexdigest(),
+                assert manifest["schema_version"] == 2
+                assert manifest["kind"] == "recipe-package"
+                assert manifest["package_type"] == "recipe"
+                assert (
+                    manifest["recipe_content_sha256"]
+                    == hashlib.sha256(CATALOG.canonical(recipe)).hexdigest()
                 )
-                self.assertEqual(json.loads(payloads["recipe.json"]), recipe)
+                assert json.loads(payloads["recipe.json"]) == recipe
                 declared = {entry["path"]: entry for entry in manifest["files"]}  # pyright: ignore[reportGeneralTypeIssues]
-                self.assertEqual(set(declared), set(payloads) - {"manifest.json"})
+                assert set(declared) == set(payloads) - {"manifest.json"}
                 for path, content in payloads.items():
                     if path == "manifest.json":
                         continue
-                    self.assertEqual(declared[path]["size"], len(content))
-                    self.assertEqual(
-                        declared[path]["sha256"], hashlib.sha256(content).hexdigest()
+                    assert declared[path]["size"] == len(content)
+                    assert (
+                        declared[path]["sha256"] == hashlib.sha256(content).hexdigest()
                     )
 
                 context_files = {
@@ -222,32 +217,27 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                     for path, content in payloads.items()
                     if path.startswith(f"{context_name}/")
                 }
-                self.assertEqual(packaged_context, context_files)
+                assert packaged_context == context_files
                 model_path = case["model"]
                 model = json.loads((ROOT / model_path).read_text())
                 packaged_model = json.loads(payloads[model_path])
-                self.assertEqual(
-                    recipe["models"][0]["model"]["content_sha256"],  # pyright: ignore[reportIndexIssue]
-                    hashlib.sha256(payloads[model_path]).hexdigest(),
+                assert (
+                    recipe["models"][0]["model"]["content_sha256"]  # pyright: ignore[reportIndexIssue]
+                    == hashlib.sha256(payloads[model_path]).hexdigest()
                 )
-                self.assertEqual(packaged_model["identity"], model["identity"])
-                self.assertEqual(packaged_model["source"], model["source"])
-                self.assertEqual(packaged_model["files"], model["files"])
-                self.assertEqual(
-                    manifest["build_inputs"],
-                    [
-                        {
-                            "kind": "oci-image",
-                            "platform": "linux/arm64",
-                            "reference": case["base_image"],
-                        }
-                    ],
-                )
+                assert packaged_model["identity"] == model["identity"]
+                assert packaged_model["source"] == model["source"]
+                assert packaged_model["files"] == model["files"]
+                assert manifest["build_inputs"] == [
+                    {
+                        "kind": "oci-image",
+                        "platform": "linux/arm64",
+                        "reference": case["base_image"],
+                    }
+                ]
                 tags = set(recipe_display(recipe["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
-                self.assertFalse(
-                    tags.intersection(
-                        {"metadata-only", "non-executable", "integration-required"}
-                    )
+                assert not tags.intersection(
+                    {"metadata-only", "non-executable", "integration-required"}
                 )
 
     def test_runtime_is_offline_and_source_authorities_are_immutable(self) -> None:
@@ -258,25 +248,20 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                     item["name"]: item["value"]
                     for item in recipe["runtime"]["environment"]  # pyright: ignore[reportIndexIssue]
                 }
-                self.assertEqual(environment, {"HF_HUB_OFFLINE": "1"})
+                assert environment == {"HF_HUB_OFFLINE": "1"}
 
                 _manifest, payloads = read_package(slug)
                 dockerfile = payloads[f"{case['context']}/Dockerfile"].decode()
                 revision = case["source_revision"]
                 archive = case["source_archive"]
-                self.assertIn(
-                    f'org.opencontainers.image.revision="{revision}"', dockerfile
+                assert f'org.opencontainers.image.revision="{revision}"' in dockerfile
+                assert case["source_archive_url"] in dockerfile
+                assert (
+                    f'echo "{case["source_archive_sha256"]}  /tmp/{archive}" | sha256sum --check --strict'
+                    in dockerfile
                 )
-                self.assertIn(
-                    case["source_archive_url"],
-                    dockerfile,
-                )
-                self.assertIn(
-                    f'echo "{case["source_archive_sha256"]}  /tmp/{archive}" | sha256sum --check --strict',
-                    dockerfile,
-                )
-                self.assertNotIn("HF_HUB_OFFLINE=1", dockerfile)
-                self.assertNotIn("TRANSFORMERS_OFFLINE=1", dockerfile)
+                assert "HF_HUB_OFFLINE=1" not in dockerfile
+                assert "TRANSFORMERS_OFFLINE=1" not in dockerfile
 
     def test_entrypoints_are_syntax_valid_and_have_no_runtime_downloads(self) -> None:
         forbidden = (
@@ -293,9 +278,9 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 source = (ROOT / context_name / "run.py").read_text()
                 ast.parse(source)
                 for marker in forbidden:
-                    self.assertNotIn(marker, source)
-                self.assertIn("output.glb", source)
-                self.assertIn("validate_mesh_glb(", source)
+                    assert marker not in source
+                assert "output.glb" in source
+                assert "validate_mesh_glb(" in source
 
     def test_entrypoints_put_the_extracted_upstream_tree_on_sys_path_first(
         self,
@@ -322,10 +307,9 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                     if isinstance(node, ast.Assign)
                     and [ast.unparse(target) for target in node.targets] == ["SOURCE"]
                 ]
-                self.assertEqual(
-                    [ast.unparse(value) for value in roots],
-                    [f"Path({extracted.group(1)!r})"],
-                )
+                assert [ast.unparse(value) for value in roots] == [
+                    f"Path({extracted.group(1)!r})"
+                ]
                 deferred = 0
                 for function in ast.walk(tree):
                     if not isinstance(function, ast.FunctionDef):
@@ -348,11 +332,10 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                         if isinstance(node, (ast.Import, ast.ImportFrom)):
                             deferred += 1
                             for call, first in zip(required, firsts, strict=True):
-                                self.assertTrue(
-                                    first is not None and first < node.lineno,
-                                    f"{ast.unparse(node)} precedes {call}",
+                                assert first is not None and first < node.lineno, (
+                                    f"{ast.unparse(node)} precedes {call}"
                                 )
-                self.assertGreater(deferred, 0)
+                assert deferred > 0
 
     def test_hunyuan_declares_and_forces_exact_local_dinov2(self) -> None:
         recipe = json.loads(
@@ -360,68 +343,57 @@ class NativeThreeDAdapterTests(unittest.TestCase):
         )
         model_version = json.loads((ROOT / "models/hunyuan3d-omni.json").read_text())
         license = model_display("hunyuan3d-omni").license
-        self.assertEqual(
-            license.spdx,
-            "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License",
-        )
-        self.assertTrue(license.url.startswith("https://"))
-        self.assertEqual(
-            recipe["models"][0]["model"]["content_sha256"],
-            hashlib.sha256(CATALOG.canonical(model_version)).hexdigest(),
+        assert license.spdx == "LicenseRef-Tencent-Hunyuan-3D-Omni-Community-License"
+        assert license.url.startswith("https://")
+        assert (
+            recipe["models"][0]["model"]["content_sha256"]
+            == hashlib.sha256(CATALOG.canonical(model_version)).hexdigest()
         )
         primary_files = recipe["models"][0]["files"]
-        self.assertEqual(
-            {selection["file_id"] for selection in primary_files},
-            {file["id"] for file in model_version["files"]},
-        )
-        self.assertTrue(
-            all(
-                selection["mount"]["target"] == "/models/target"
-                and selection["roles"] == ["entrypoint"]
-                for selection in primary_files
-            )
+        assert {selection["file_id"] for selection in primary_files} == {
+            file["id"] for file in model_version["files"]
+        }
+        assert all(
+            selection["mount"]["target"] == "/models/target"
+            and selection["roles"] == ["entrypoint"]
+            for selection in primary_files
         )
         dinov2 = recipe["models"][1]
         dinov2_model = json.loads(
             (ROOT / "models/dinov2-large-47b73eef.json").read_text()
         )
-        self.assertEqual(dinov2["model"]["slug"], "dinov2-large-47b73eef")
-        self.assertEqual(
-            {selection["file_id"] for selection in dinov2["files"]},
-            {file["id"] for file in dinov2_model["files"]},
-        )
-        self.assertTrue(
-            all(
-                selection["mount"]["target"] == "/models/dinov2-large"
-                and selection["roles"] == ["entrypoint"]
-                for selection in dinov2["files"]
-            )
+        assert dinov2["model"]["slug"] == "dinov2-large-47b73eef"
+        assert {selection["file_id"] for selection in dinov2["files"]} == {
+            file["id"] for file in dinov2_model["files"]
+        }
+        assert all(
+            selection["mount"]["target"] == "/models/dinov2-large"
+            and selection["roles"] == ["entrypoint"]
+            for selection in dinov2["files"]
         )
         source = (ROOT / "adapters/three-d/hunyuan3d-omni/run.py").read_text()
-        self.assertIn('identifier != "facebook/dinov2-large"', source)
-        self.assertIn('loader_kwargs["local_files_only"] = True', source)
-        self.assertIn("np.random.seed(args.seed)", source)
-        self.assertIn("sample_surface(loaded, 81920, seed=seed)", source)
+        assert 'identifier != "facebook/dinov2-large"' in source
+        assert 'loader_kwargs["local_files_only"] = True' in source
+        assert "np.random.seed(args.seed)" in source
+        assert "sample_surface(loaded, 81920, seed=seed)" in source
 
     def test_pixal_validates_input_before_model_load_and_uses_writable_cache(
         self,
     ) -> None:
         source = (ROOT / "adapters/three-d/trellis2-native/pixal3d_job.py").read_text()
         dockerfile = (ROOT / "adapters/three-d/trellis2-native/Dockerfile").read_text()
-        self.assertLess(
-            source.index("input_image = validated_input"),
-            source.index("    import torch"),
+        assert source.index("input_image = validated_input") < source.index(
+            "    import torch"
         )
-        self.assertIn(
-            'FLEX_GEMM_AUTOTUNE_CACHE_PATH="/tmp/flexgemm-autotune-cache.json"',
-            dockerfile,
+        assert (
+            'FLEX_GEMM_AUTOTUNE_CACHE_PATH="/tmp/flexgemm-autotune-cache.json"'
+            in dockerfile
         )
-        self.assertIn('FLEX_GEMM_AUTOSAVE_AUTOTUNE_CACHE="0"', dockerfile)
-        self.assertIn('validate_mesh_glb(temporary, profile="textured-pbr")', source)
-        self.assertLess(
-            source.index('validate_mesh_glb(temporary, profile="textured-pbr")'),
-            source.index("os.replace(temporary"),
-        )
+        assert 'FLEX_GEMM_AUTOSAVE_AUTOTUNE_CACHE="0"' in dockerfile
+        assert 'validate_mesh_glb(temporary, profile="textured-pbr")' in source
+        assert source.index(
+            'validate_mesh_glb(temporary, profile="textured-pbr")'
+        ) < source.index("os.replace(temporary")
 
     def test_all_native_adapters_validate_before_atomic_publication(self) -> None:
         cases = {
@@ -435,23 +407,21 @@ class NativeThreeDAdapterTests(unittest.TestCase):
         for relative, validation in cases.items():
             with self.subTest(adapter=relative):
                 source = (ROOT / "adapters/three-d" / relative).read_text()
-                self.assertIn(validation, source)
-                self.assertIn("os.replace(", source)
+                assert validation in source
+                assert "os.replace(" in source
 
     def test_mesh_conditioned_adapters_validate_inputs_before_model_work(self) -> None:
         step = (ROOT / "adapters/three-d/step1x-3d/run.py").read_text()
         skin = (ROOT / "adapters/three-d/skintokens/run.py").read_text()
 
-        self.assertIn('validate_mesh_glb(path, profile="geometry")', step)
-        self.assertLess(
-            step.index("mesh_path = _validated_input_glb("),
-            step.index("pipeline = Step1X3DTexturePipeline(config)"),
+        assert 'validate_mesh_glb(path, profile="geometry")' in step
+        assert step.index("mesh_path = _validated_input_glb(") < step.index(
+            "pipeline = Step1X3DTexturePipeline(config)"
         )
-        self.assertIn('validate_mesh_glb(candidate, profile="geometry")', skin)
-        self.assertLess(
-            skin.index('validate_mesh_glb(candidate, profile="geometry")'),
-            skin.index("model = get_model(str(CHECKPOINT))"),
-        )
+        assert 'validate_mesh_glb(candidate, profile="geometry")' in skin
+        assert skin.index(
+            'validate_mesh_glb(candidate, profile="geometry")'
+        ) < skin.index("model = get_model(str(CHECKPOINT))")
 
 
 class _OmniRun(Protocol):
@@ -497,11 +467,9 @@ class HunyuanOmniControlTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             inputs = Path(directory)
             (inputs / "object.png").write_bytes(b"png")
-            self.assertEqual(
-                self._job(inputs, image=["object.png"])[2], [0.8, 0.64, 1.0]
-            )
+            assert self._job(inputs, image=["object.png"])[2] == [0.8, 0.64, 1.0]
             (inputs / "box.glb").write_bytes(b"glb")
-            with self.assertRaisesRegex(SystemExit, "takes no control file"):
+            with pytest.raises(SystemExit, match="takes no control file"):
                 self._job(inputs, image=["object.png"], control=["box.glb"])
 
     def test_point_and_voxel_need_a_geometry_file(self) -> None:
@@ -512,11 +480,11 @@ class HunyuanOmniControlTests(unittest.TestCase):
             kind, _image, control = self._job(
                 inputs, "point", image=["object.png"], control=["cloud.ply"]
             )
-            self.assertEqual((kind, control), ("point", inputs / "cloud.ply"))
-            with self.assertRaisesRegex(SystemExit, "needs a control file"):
+            assert (kind, control) == ("point", inputs / "cloud.ply")
+            with pytest.raises(SystemExit, match="needs a control file"):
                 self._job(inputs, "voxel", image=["object.png"])
             (inputs / "pose.json").write_text("[[0, 0, 0]]")
-            with self.assertRaisesRegex(SystemExit, "GLB, glTF, OBJ or PLY"):
+            with pytest.raises(SystemExit, match="GLB, glTF, OBJ or PLY"):
                 self._job(inputs, "point", image=["object.png"], control=["pose.json"])
 
     def test_pose_reads_xyz_triples_from_a_json_file(self) -> None:
@@ -524,14 +492,11 @@ class HunyuanOmniControlTests(unittest.TestCase):
             inputs = Path(directory)
             (inputs / "object.png").write_bytes(b"png")
             (inputs / "pose.json").write_text("[[0, 0.5, 1], [1, 1, 1]]")
-            self.assertEqual(
-                self._job(inputs, "pose", image=["object.png"], control=["pose.json"])[
-                    2
-                ],
-                [[0, 0.5, 1], [1, 1, 1]],
-            )
+            assert self._job(
+                inputs, "pose", image=["object.png"], control=["pose.json"]
+            )[2] == [[0, 0.5, 1], [1, 1, 1]]
             (inputs / "pose.json").write_text("[[0, 0]]")
-            with self.assertRaisesRegex(SystemExit, "xyz triples"):
+            with pytest.raises(SystemExit, match="xyz triples"):
                 self._job(inputs, "pose", image=["object.png"], control=["pose.json"])
 
 

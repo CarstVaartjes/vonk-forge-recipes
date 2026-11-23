@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
 from repo_root import ROOT
 
 RECIPES = {
@@ -129,40 +130,42 @@ class GlmWrapperArgvTests(unittest.TestCase):
                     patch.object(Path, "write_text"),
                     patch.object(Path, "replace"),
                     patch.object(Path, "read_text", new=fake_read_text),
-                    self.assertRaises(StopExec),
+                    pytest.raises(StopExec),
                 ):
                     runpy.run_path(str(ROOT / wrapper))
 
-                self.assertEqual(len(captured), 1)
+                assert len(captured) == 1
                 final = list(captured[0][1:])
                 expected = authored_engine
-                self.assertEqual(final[: len(expected)], expected)
+                assert final[: len(expected)] == expected
                 if recipe["topology"]["parallelism"]["backend"] == "mp":
-                    self.assertEqual(
-                        final[-4:],
-                        ["--master-addr", "10.0.0.2", "--master-port", "29500"],
-                    )
-                self.assertEqual(final.count("--opaque-engine-option"), 2)
-                self.assertEqual(final[final.index("--opaque-engine-option") + 1], "")
+                    assert final[-4:] == [
+                        "--master-addr",
+                        "10.0.0.2",
+                        "--master-port",
+                        "29500",
+                    ]
+                assert final.count("--opaque-engine-option") == 2
+                assert final[final.index("--opaque-engine-option") + 1] == ""
                 last_opaque = max(
                     index
                     for index, value in enumerate(final)
                     if value == "--opaque-engine-option"
                 )
-                self.assertEqual(final[last_opaque + 1], "second")
+                assert final[last_opaque + 1] == "second"
                 utilization = [
                     index
                     for index, value in enumerate(final)
                     if value == "--gpu-memory-utilization"
                 ]
-                self.assertGreaterEqual(len(utilization), 2)
-                self.assertEqual(final[utilization[-1] + 1], "0.71")
+                assert len(utilization) >= 2
+                assert final[utilization[-1] + 1] == "0.71"
                 speculative = [
                     index
                     for index, value in enumerate(final)
                     if value == "--speculative-config"
                 ]
-                self.assertEqual(final[speculative[-1] + 1], '{"user_override":true}')
+                assert final[speculative[-1] + 1] == '{"user_override":true}'
 
 
 if __name__ == "__main__":

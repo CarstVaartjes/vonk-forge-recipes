@@ -23,23 +23,19 @@ class InklingSmallRecipeTests(unittest.TestCase):
             load("models/inkling-small-nvfp4.json"),
             load("recipes/inkling-small-nvfp4-sglang-dual.json"),
         )
-        self.assertEqual(
-            model["source"]["revision"], "b6a99534467840620d411e4cd4ad5819b2610d9c"
-        )
-        self.assertEqual(
-            len({item["id"] for item in model["files"]}), len(model["files"])
-        )
-        self.assertEqual(recipe["topology"]["node_count"], 2)
-        self.assertEqual(recipe["topology"]["parallelism"]["tensor"], 2)
-        self.assertEqual(recipe["topology"]["parallelism"]["backend"], "native")
+        assert model["source"]["revision"] == "b6a99534467840620d411e4cd4ad5819b2610d9c"
+        assert len({item["id"] for item in model["files"]}) == len(model["files"])
+        assert recipe["topology"]["node_count"] == 2
+        assert recipe["topology"]["parallelism"]["tensor"] == 2
+        assert recipe["topology"]["parallelism"]["backend"] == "native"
 
     def test_runtime_is_offline_and_multimodal_api_is_named(self) -> None:
         recipe = load("recipes/inkling-small-nvfp4-sglang-dual.json")
         interface = recipe["interfaces"][0]
-        self.assertEqual(interface["adapter"], "openai")
-        self.assertEqual(interface["model_aliases"], ["inkling-small"])
-        self.assertEqual(recipe["runtime"]["engine"], "sglang")
-        self.assertTrue(recipe["models"])
+        assert interface["adapter"] == "openai"
+        assert interface["model_aliases"] == ["inkling-small"]
+        assert recipe["runtime"]["engine"] == "sglang"
+        assert recipe["models"]
 
     def test_wrapper_resolves_only_the_compiler_rendezvous_sentinel(self) -> None:
         wrapper = ROOT / "adapters/inkling/small-dual/sglang-serve"
@@ -77,8 +73,8 @@ class InklingSmallRecipeTests(unittest.TestCase):
                 env=env,
                 check=False,
             )
-            self.assertEqual(result.returncode, 0)
-            self.assertEqual(json.loads(capture.read_text())[-1], "192.0.2.10:29500")
+            assert result.returncode == 0
+            assert json.loads(capture.read_text())[-1] == "192.0.2.10:29500"
 
 
 if __name__ == "__main__":
@@ -652,7 +648,7 @@ class InklingTonyd2wildLauncherEnvironmentTests(unittest.TestCase):
                 recipe = read_recipe(load(path))
                 env = [(e.name, e.value) for e in recipe.runtime.environment]
                 for entry in self.LAUNCHER_LINES_10_11:
-                    self.assertEqual(env.count(entry), 1, entry)
+                    assert env.count(entry) == 1, entry
                 description = recipe_display(Path(path).stem).description
-                self.assertIn(self.LAUNCHER_PIN, description)
-                self.assertIn("(lines 10-11)", description)
+                assert self.LAUNCHER_PIN in description
+                assert "(lines 10-11)" in description

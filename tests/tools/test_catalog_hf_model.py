@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError
 
+import pytest
 from repo_root import ROOT
 
 from recipe_tooling import catalog_hf_model
@@ -74,10 +75,10 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             namespace["_get_tree"].__globals__,
             {"_get_json_page": lambda url: pages[url]},
         ):
-            self.assertEqual(
-                namespace["_get_tree"]("https://example.test/page-1"),
-                [{"path": "first"}, {"path": "second"}],
-            )
+            assert namespace["_get_tree"]("https://example.test/page-1") == [
+                {"path": "first"},
+                {"path": "second"},
+            ]
 
     def test_preserves_large_complete_file_inventories(self) -> None:
         namespace = vars(catalog_hf_model)
@@ -101,14 +102,14 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
                 },
             ),
         ):
-            self.assertEqual(namespace["main"](), 0)
+            assert namespace["main"]() == 0
             model = load(Path(directory) / "models/test-version.json")
-            self.assertEqual(len(model["files"]), 419)
-            self.assertFalse(model["requires_token"])
-            self.assertNotIn("capabilities", model)
+            assert len(model["files"]) == 419
+            assert not model["requires_token"]
+            assert "capabilities" not in model
             display = load(Path(directory) / "display/models/test-version.json")
-            self.assertEqual(display["capabilities"], ["text-generation"])
-            self.assertEqual(display["license"]["spdx"], "MIT")
+            assert display["capabilities"] == ["text-generation"]
+            assert display["license"]["spdx"] == "MIT"
 
     def test_artifact_ids_include_full_path_for_repeated_identical_files(self) -> None:
         namespace = vars(catalog_hf_model)
@@ -132,10 +133,10 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
                 },
             ),
         ):
-            self.assertEqual(namespace["main"](), 0)
+            assert namespace["main"]() == 0
             model = load(Path(directory) / "models/test-version.json")
             ids = [item["id"] for item in model["files"]]
-            self.assertEqual(len(ids), len(set(ids)))
+            assert len(ids) == len(set(ids))
 
     def _split_tree(self, count: int = 3, base: str = "model-00005.safetensors"):
         return [
@@ -172,23 +173,20 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
             ["--assembled-sha256", f"model-00005.safetensors={whole}"],
         )
         by_path = {item["path"]: item for item in model["files"]}
-        self.assertEqual(sorted(by_path), ["model-00005.safetensors", "x.bin"])
+        assert sorted(by_path) == ["model-00005.safetensors", "x.bin"]
         entry = by_path["model-00005.safetensors"]
-        self.assertEqual(entry["sha256"], whole)
-        self.assertEqual(entry["size_bytes"], 10 + 11 + 12)
-        self.assertEqual(entry["roles"], ["weights"])
-        self.assertEqual(
-            entry["parts"],
-            [
-                {
-                    "path": f"model-00005.safetensors.part{index:02d}",
-                    "sha256": f"{index + 1:064x}",
-                    "size_bytes": 10 + index,
-                }
-                for index in range(3)
-            ],
-        )
-        self.assertNotIn("parts", by_path["x.bin"])
+        assert entry["sha256"] == whole
+        assert entry["size_bytes"] == 10 + 11 + 12
+        assert entry["roles"] == ["weights"]
+        assert entry["parts"] == [
+            {
+                "path": f"model-00005.safetensors.part{index:02d}",
+                "sha256": f"{index + 1:064x}",
+                "size_bytes": 10 + index,
+            }
+            for index in range(3)
+        ]
+        assert "parts" not in by_path["x.bin"]
 
     def test_split_digest_comes_from_the_repository_manifest(self) -> None:
         whole = "8" * 64
@@ -202,18 +200,16 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
         ):
             artifacts = namespace["inventory"]("o/n", "a" * 40, entries)
         entry = next(a for a in artifacts if a["path"] == "model-00005.safetensors")
-        self.assertEqual(entry["sha256"], whole)
+        assert entry["sha256"] == whole
 
     def test_split_without_an_assembled_digest_is_refused(self) -> None:
-        with self.assertRaisesRegex(
-            SystemExit, "--assembled-sha256.*refusing to guess"
-        ):
+        with pytest.raises(SystemExit, match="--assembled-sha256.*refusing to guess"):
             self._run_main(self._split_tree())
 
     def test_split_refuses_gaps_conflicts_and_unrelated_digests(self) -> None:
         tree = self._split_tree(3)
         del tree[1]
-        with self.assertRaisesRegex(SystemExit, "missing or repeated parts"):
+        with pytest.raises(SystemExit, match="missing or repeated parts"):
             self._run_main(
                 tree, ["--assembled-sha256", f"model-00005.safetensors={'9' * 64}"]
             )
@@ -225,9 +221,9 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
                 "lfs": {"oid": "e" * 64},
             }
         ]
-        with self.assertRaisesRegex(SystemExit, "both whole and as parts"):
+        with pytest.raises(SystemExit, match="both whole and as parts"):
             self._run_main(both)
-        with self.assertRaisesRegex(SystemExit, "not split sets"):
+        with pytest.raises(SystemExit, match="not split sets"):
             self._run_main(
                 self._split_tree(),
                 [
@@ -237,16 +233,14 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
                     f"x.bin={'9' * 64}",
                 ],
             )
-        with self.assertRaisesRegex(SystemExit, "expects PATH"):
+        with pytest.raises(SystemExit, match="expects PATH"):
             self._run_main(
                 self._split_tree(), ["--assembled-sha256", "model-00005.safetensors=zz"]
             )
 
     def test_a_lone_part_name_is_an_ordinary_file(self) -> None:
         model = self._run_main(self._split_tree(1))
-        self.assertIn(
-            "model-00005.safetensors.part00", [f["path"] for f in model["files"]]
-        )
+        assert "model-00005.safetensors.part00" in [f["path"] for f in model["files"]]
 
     def test_refuses_large_non_lfs_files_before_downloading(self) -> None:
         namespace = vars(catalog_hf_model)
@@ -262,7 +256,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
                     "_get_bytes": lambda _url: self.fail("must not download"),
                 },
             ),
-            self.assertRaisesRegex(SystemExit, "refusing to download"),
+            pytest.raises(SystemExit, match="refusing to download"),
         ):
             namespace["main"]()
 
@@ -286,8 +280,9 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
                     "_get_bytes": denied,
                 },
             ),
-            self.assertRaisesRegex(
-                SystemExit, r"config\.json \(HTTP 401\); authenticate to Hugging Face"
+            pytest.raises(
+                SystemExit,
+                match=r"config\.json \(HTTP 401\); authenticate to Hugging Face",
             ),
         ):
             namespace["main"]()
@@ -295,9 +290,9 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
     def test_current_qwen_snapshot_has_unique_complete_files(self) -> None:
         version = load(ROOT / "models/qwen3-8-27b-fp8-c3a462cc.json")
         files = version["files"]
-        self.assertGreater(len(files), 70)
-        self.assertEqual(len({item["id"] for item in files}), len(files))
-        self.assertEqual(len({item["path"] for item in files}), len(files))
+        assert len(files) > 70
+        assert len({item["id"] for item in files}) == len(files)
+        assert len({item["path"] for item in files}) == len(files)
 
     def test_qwen_dense_models_advertise_native_multimodal_capabilities(self) -> None:
         for slug in (
@@ -307,9 +302,7 @@ class CatalogHfModelSafetyTests(unittest.TestCase):
         ):
             display = load(ROOT / f"display/models/{slug}.json")
             capabilities = set(display["capabilities"])
-            self.assertTrue(
-                capabilities & {"text-generation", "image-understanding"}, slug
-            )
+            assert capabilities & {"text-generation", "image-understanding"}, slug
 
 
 if __name__ == "__main__":

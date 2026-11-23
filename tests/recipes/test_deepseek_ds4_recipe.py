@@ -89,60 +89,55 @@ def digest(path: Path) -> str:
 class DeepseekDs4RecipeTests(unittest.TestCase):
     def test_cuda_profile_describes_ordered_two_session_fallback(self) -> None:
         recipe = load(RECIPE)
-        self.assertIn(
-            "two-session concurrency", recipe_display(recipe["identity"]["slug"]).title
+        assert (
+            "two-session concurrency"
+            in recipe_display(recipe["identity"]["slug"]).title
         )
-        self.assertEqual(
+        assert (
             next(
                 a["setting"]
                 for a in recipe["runtime"]["arguments"]
                 if a["name"] == "batched-session"
-            ),
-            "concurrency",
+            )
+            == "concurrency"
         )
-        self.assertEqual(recipe["settings"]["kind"], "generation")
-        self.assertEqual(recipe["topology"]["node_count"], 1)
+        assert recipe["settings"]["kind"] == "generation"
+        assert recipe["topology"]["node_count"] == 1
         names = [argument["name"] for argument in recipe["runtime"]["arguments"]]
-        self.assertEqual(names, ["model", "ctx", "batched-session"])
+        assert names == ["model", "ctx", "batched-session"]
 
     def test_dspark_declares_target_drafter_and_context_arguments(self) -> None:
         recipe = load(
             ROOT / "recipes/deepseek-v4-flash-0731-ds4-dspark-latency-single.json"
         )
         names = [argument["name"] for argument in recipe["runtime"]["arguments"]]
-        self.assertEqual(names, ["model", "dspark", "mtp-model", "ctx"])
+        assert names == ["model", "dspark", "mtp-model", "ctx"]
 
     def test_dual_wrapper_serves_on_rank_zero_and_joins_on_rank_one(self) -> None:
-        self.assertEqual(
-            run_wrapper("0", SERVER_ARGUMENTS),
-            [
-                "ds4-server",
-                *SERVER_ARGUMENTS,
-                "--role",
-                "coordinator",
-                "--listen",
-                "10.0.0.1",
-                "29500",
-            ],
-        )
-        self.assertEqual(
-            run_wrapper("1", SERVER_ARGUMENTS),
-            [
-                "ds4",
-                "--model",
-                "/models/m.gguf",
-                "--ctx",
-                "32768",
-                "--tensor-parallel",
-                "--transport",
-                "rdma",
-                "--role",
-                "worker",
-                "--coordinator",
-                "10.0.0.1",
-                "29500",
-            ],
-        )
+        assert run_wrapper("0", SERVER_ARGUMENTS) == [
+            "ds4-server",
+            *SERVER_ARGUMENTS,
+            "--role",
+            "coordinator",
+            "--listen",
+            "10.0.0.1",
+            "29500",
+        ]
+        assert run_wrapper("1", SERVER_ARGUMENTS) == [
+            "ds4",
+            "--model",
+            "/models/m.gguf",
+            "--ctx",
+            "32768",
+            "--tensor-parallel",
+            "--transport",
+            "rdma",
+            "--role",
+            "worker",
+            "--coordinator",
+            "10.0.0.1",
+            "29500",
+        ]
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
         index = load(GENERATED / "catalog-index.json")
@@ -151,7 +146,7 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
             for item in index["recipes"]
             if item["source_path"] == f"recipes/{RECIPE.name}"
         )
-        self.assertEqual(entry["package"]["recipe_content_sha256"], digest(RECIPE))
+        assert entry["package"]["recipe_content_sha256"] == digest(RECIPE)
 
 
 if __name__ == "__main__":

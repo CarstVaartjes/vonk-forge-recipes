@@ -31,16 +31,13 @@ class OpenPullRequestTests(unittest.TestCase):
             "adapters/llm/a/Dockerfile",
         ):
             with self.subTest(name=name):
-                self.assertEqual(
-                    refresh_publish.blocking_prs(
-                        self.footprint, {7: {name, "README.md"}}
-                    ),
-                    [7],
-                )
+                assert refresh_publish.blocking_prs(
+                    self.footprint, {7: {name, "README.md"}}
+                ) == [7]
 
     def test_unrelated_pr_does_not_block(self) -> None:
         opens = {7: {"recipes/b.json", "adapters/llm/ab/Dockerfile", "README.md"}}
-        self.assertEqual(refresh_publish.blocking_prs(self.footprint, opens), [])
+        assert refresh_publish.blocking_prs(self.footprint, opens) == []
 
     def test_footprint_covers_recipe_models_and_context(self) -> None:
         catalog = refresh_catalog_view.Catalog(ROOT)
@@ -48,7 +45,7 @@ class OpenPullRequestTests(unittest.TestCase):
             "models": [{"model": {"slug": "m-1"}}],
             "execution": {"build": {"context": {"path": "adapters/llm/a"}}},
         }
-        self.assertEqual(refresh_publish.recipe_footprint(catalog, "a"), self.footprint)
+        assert refresh_publish.recipe_footprint(catalog, "a") == self.footprint
 
 
 class SharedContextTests(unittest.TestCase):
@@ -65,9 +62,9 @@ class SharedContextTests(unittest.TestCase):
         )
 
     def test_recipes_sharing_a_context_are_grouped_sorted(self) -> None:
-        self.assertEqual(
-            refresh_publish.sharing_groups(self.catalog()),  # pyright: ignore[reportArgumentType]
-            {"a": ["a", "b"], "b": ["a", "b"]},
+        assert (
+            refresh_publish.sharing_groups(self.catalog())  # pyright: ignore[reportArgumentType]
+            == {"a": ["a", "b"], "b": ["a", "b"]}
         )
 
     def assessment(self, recipe_id: str, **kwargs):
@@ -87,19 +84,17 @@ class SharedContextTests(unittest.TestCase):
         }
         combined = refresh_publish.combine_group(["a", "b"], assessed)
         assert not isinstance(combined, str)
-        self.assertEqual(combined.recipe_id, "a")
-        self.assertEqual(
-            set(combined.edits), {"recipes/a.json", "recipes/b.json", "lock"}
-        )
-        self.assertIn("a, b", refresh_render.pr_body(combined))
+        assert combined.recipe_id == "a"
+        assert set(combined.edits) == {"recipes/a.json", "recipes/b.json", "lock"}
+        assert "a, b" in refresh_render.pr_body(combined)
 
     def test_group_waits_when_a_sibling_is_not_mechanical(self) -> None:
         assessed = {
             "a": self.assessment("a", edits={"lock": b"L"}),
             "b": self.assessment("b", reasons=["needs review"]),
         }
-        self.assertIsInstance(refresh_publish.combine_group(["a", "b"], assessed), str)
-        self.assertIsInstance(
+        assert isinstance(refresh_publish.combine_group(["a", "b"], assessed), str)
+        assert isinstance(
             refresh_publish.combine_group(["a", "b"], {"a": assessed["a"]}), str
         )
 
@@ -114,10 +109,10 @@ class SharedContextTests(unittest.TestCase):
         }
         combined = refresh_publish.combine_group(["a", "b", "c"], assessed)
         assert not isinstance(combined, str), combined
-        self.assertEqual(combined.recipe_id, "a")
-        self.assertEqual(set(combined.edits), {"recipes/b.json", "recipes/c.json"})
-        self.assertEqual(combined.label, "b, c")
-        self.assertIsInstance(refresh_publish.combine_group(["a"], {"a": current}), str)
+        assert combined.recipe_id == "a"
+        assert set(combined.edits) == {"recipes/b.json", "recipes/c.json"}
+        assert combined.label == "b, c"
+        assert isinstance(refresh_publish.combine_group(["a"], {"a": current}), str)
 
     def test_a_group_pr_survives_a_run_that_did_not_republish_it(self) -> None:
         # Lead "a" is current; "b" still moves but this run deferred it (cap, open PR).
@@ -143,7 +138,7 @@ class SharedContextTests(unittest.TestCase):
                 {"a": ["a", "b"], "b": ["a", "b"]},
                 set(),
             )
-        self.assertFalse([c for c in calls if c[:2] == ("pr", "close")])
+        assert not [c for c in calls if c[:2] == ("pr", "close")]
 
     def test_a_group_issue_keeps_the_failed_check_evidence(self) -> None:
         # A current sibling with evidence of its own must not shift the slice that
@@ -168,16 +163,16 @@ class SharedContextTests(unittest.TestCase):
             number = refresh_publish.publish_group(
                 Path("."), combined, moving, refresh_publish.Summary()
             )
-        self.assertEqual(number, 5)
-        self.assertIn("### Failed checks of PR #5", moving.evidence)
-        self.assertIn("refresh PR #5 checks failed", moving.reasons)
+        assert number == 5
+        assert "### Failed checks of PR #5" in moving.evidence
+        assert "refresh PR #5 checks failed" in moving.reasons
 
     def test_group_rejects_conflicting_shared_edits(self) -> None:
         assessed = {
             "a": self.assessment("a", edits={"lock": b"L1"}),
             "b": self.assessment("b", edits={"lock": b"L2"}),
         }
-        self.assertIsInstance(refresh_publish.combine_group(["a", "b"], assessed), str)
+        assert isinstance(refresh_publish.combine_group(["a", "b"], assessed), str)
 
 
 class ReviewIssueLifecycleTests(unittest.TestCase):
@@ -235,7 +230,7 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
             issues, refresh_publish.close_current_issues, assessed, {"handled"}, summary
         )
         closed = [c[2] for c in calls if c[:2] == ("issue", "close")]
-        self.assertEqual(closed, ["1", "3", "5"])
+        assert closed == ["1", "3", "5"]
 
     def test_an_older_duplicate_issue_closes_in_favour_of_the_newest(self) -> None:
         # #1563/#1714: two open issues for one recipe; only the newest is kept current.
@@ -255,8 +250,8 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
             refresh_publish.Summary(),
         )
         closes = [c for c in calls if c[:2] == ("issue", "close")]
-        self.assertEqual([c[2] for c in closes], ["1563"])
-        self.assertIn("#1714", closes[0][-1])
+        assert [c[2] for c in closes] == ["1563"]
+        assert "#1714" in closes[0][-1]
 
     def test_a_recipe_that_needs_review_again_reopens_its_issue(self) -> None:
         title = refresh_render.issue_title("recipe")
@@ -271,9 +266,9 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
         calls = self.run_gh(
             issues, refresh_publish.sync_issue, result, refresh_publish.Summary()
         )
-        self.assertEqual(calls[0], ("issue", "reopen", "9"))
-        self.assertEqual(calls[1][:3], ("issue", "edit", "9"))
-        self.assertFalse([c for c in calls if c[:2] == ("issue", "create")])
+        assert calls[0] == ("issue", "reopen", "9")
+        assert calls[1][:3] == ("issue", "edit", "9")
+        assert not [c for c in calls if c[:2] == ("issue", "create")]
 
     def test_first_review_creates_one_issue(self) -> None:
         result = self.assessment("recipe", item=True, reason="run.sh changed")
@@ -283,7 +278,7 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
             result,
             refresh_publish.Summary(),
         )
-        self.assertEqual([c[:2] for c in calls], [("issue", "create")])
+        assert [c[:2] for c in calls] == [("issue", "create")]
 
     def test_a_waiting_recipe_updates_only_an_open_issue(self) -> None:
         result = self.assessment("recipe", unreachable="commit not on GitHub")
@@ -295,7 +290,7 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
             refresh_publish.Summary(),
             False,
         )
-        self.assertEqual(none, [])
+        assert none == []
         calls = self.run_gh(
             {"open": [{"number": 4, "title": title, "body": "stale reason"}]},
             refresh_publish.sync_issue,
@@ -303,11 +298,11 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
             refresh_publish.Summary(),
             False,
         )
-        self.assertEqual(calls[0][:3], ("issue", "edit", "4"))
+        assert calls[0][:3] == ("issue", "edit", "4")
         body = calls[0][4]
-        self.assertIn("waits for an upstream", body)
-        self.assertIn("## Why it waits", body)
-        self.assertIn("- commit not on GitHub", body)
+        assert "waits for an upstream" in body
+        assert "## Why it waits" in body
+        assert "- commit not on GitHub" in body
 
     def test_memory_estimate_report_keeps_one_issue_current(self) -> None:
         title = refresh_model.MEMORY_ESTIMATE_TITLE
@@ -330,17 +325,13 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
                 refresh_publish.command_memory_estimate_issue,
                 report,
             )
-        self.assertEqual(
-            [c[:2] for c in created if c[0] == "issue"], [("issue", "create")]
-        )
-        self.assertIn(refresh_model.LABEL_MEMORY_ESTIMATE, created[-1])
-        self.assertEqual(
-            [c[:3] for c in reopened if c[0] == "issue"],
-            [("issue", "reopen", "5"), ("issue", "edit", "5")],
-        )
-        self.assertEqual(
-            [c[:3] for c in closed if c[0] == "issue"], [("issue", "close", "5")]
-        )
+        assert [c[:2] for c in created if c[0] == "issue"] == [("issue", "create")]
+        assert refresh_model.LABEL_MEMORY_ESTIMATE in created[-1]
+        assert [c[:3] for c in reopened if c[0] == "issue"] == [
+            ("issue", "reopen", "5"),
+            ("issue", "edit", "5"),
+        ]
+        assert [c[:3] for c in closed if c[0] == "issue"] == [("issue", "close", "5")]
 
 
 class StalePullRequestTests(unittest.TestCase):
@@ -388,16 +379,16 @@ class StalePullRequestTests(unittest.TestCase):
         closed = self.close(
             assessed, issues=[{"number": 77, "title": refresh_render.issue_title("b")}]
         )
-        self.assertIn("current again", closed["1"])
-        self.assertIn("#77", closed["2"])
-        self.assertIn("no longer exists", self.close({})["1"])
+        assert "current again" in closed["1"]
+        assert "#77" in closed["2"]
+        assert "no longer exists" in self.close({})["1"]
 
     def test_mechanical_published_and_unreachable_prs_stay(self) -> None:
         mech = refresh_model.Assessment("a", items=[self.item()])
         down = refresh_model.Assessment("b", items=[self.item()], unreachable=["x"])
-        self.assertEqual(self.close({"a": mech, "b": down}), {})
+        assert self.close({"a": mech, "b": down}) == {}
         review = refresh_model.Assessment("a", items=[self.item()], reasons=["ci"])
-        self.assertEqual(self.close({"a": review, "b": down}, published={"a"}), {})
+        assert self.close({"a": review, "b": down}, published={"a"}) == {}
 
     def test_a_sibling_pr_of_a_shared_context_is_closed(self) -> None:
         mech = {
@@ -405,5 +396,5 @@ class StalePullRequestTests(unittest.TestCase):
             "b": refresh_model.Assessment("b", items=[self.item()]),
         }
         closed = self.close(mech, groups={"a": ["a", "b"], "b": ["a", "b"]})
-        self.assertEqual(list(closed), ["2"])
-        self.assertIn("shares its build context", closed["2"])
+        assert list(closed) == ["2"]
+        assert "shares its build context" in closed["2"]

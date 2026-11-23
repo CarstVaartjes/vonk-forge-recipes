@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.machinery
 import importlib.util
 import json
+import re
 import unittest
 from typing import Any
 
@@ -40,27 +41,27 @@ class Vllm028MigrationTests(unittest.TestCase):
     def test_official_arm64_runtime_authority_is_immutable(self) -> None:
         recipe = load("recipes/qwen3-6-27b-vllm-single.json")
         base = recipe["execution"]["build"]["base_image"]
-        self.assertEqual(f"{base['repository']}@sha256:{base['digest']}", IMAGE)
+        assert f"{base['repository']}@sha256:{base['digest']}" == IMAGE
         dockerfile = (ROOT / recipe["execution"]["build"]["dockerfile"]).read_text()
-        self.assertIn("ced6857afa0ea7b2e3f0846a62e1394e90f15607", dockerfile)
-        self.assertIn("vllm-openai", base["repository"])
+        assert "ced6857afa0ea7b2e3f0846a62e1394e90f15607" in dockerfile
+        assert "vllm-openai" in base["repository"]
 
     def test_migrated_recipes_pin_changed_vllm_defaults(self) -> None:
         module = catalog_index_module()
         for slug, (context_path, batched_tokens, graph_size) in MIGRATED.items():
             with self.subTest(recipe=slug):
                 recipe = load(f"recipes/{slug}.json")
-                self.assertEqual(recipe["runtime"]["engine"], "vllm")
+                assert recipe["runtime"]["engine"] == "vllm"
                 context = recipe["execution"]["build"]["context"]
-                self.assertEqual(context["path"], context_path)
+                assert context["path"] == context_path
                 _archive, _, digest = module.source_bundle(ROOT / context_path)
-                self.assertRegex(digest, r"^[a-f0-9]{64}$")
+                assert re.search(r"^[a-f0-9]{64}$", digest)
                 arguments = {
                     argument["name"]: argument["value"]
                     for argument in recipe["runtime"]["arguments"]
                 }
-                self.assertEqual(arguments["max-num-batched-tokens"], batched_tokens)
-                self.assertEqual(arguments["max-cudagraph-capture-size"], graph_size)
+                assert arguments["max-num-batched-tokens"] == batched_tokens
+                assert arguments["max-cudagraph-capture-size"] == graph_size
 
     def test_gemma_tool_contract_requires_the_bare_opener_fix(self) -> None:
         # vLLM issue #53431: Gemma's canonical bare `:function` opener was
@@ -68,19 +69,16 @@ class Vllm028MigrationTests(unittest.TestCase):
         # 0.30.0, the first runtime allowed to advertise the tool contract.
         recipe = load("recipes/gemma-4-26b-a4b-vllm-single.json")
         dockerfile = (ROOT / "adapters/llm/vllm-openai/Dockerfile").read_text()
-        self.assertIn("ced6857afa0ea7b2e3f0846a62e1394e90f15607", dockerfile)
-        self.assertIn("tool-use", recipe_display(recipe["identity"]["slug"]).tags)
+        assert "ced6857afa0ea7b2e3f0846a62e1394e90f15607" in dockerfile
+        assert "tool-use" in recipe_display(recipe["identity"]["slug"]).tags
         arguments = {
             argument["name"]: argument["value"]
             for argument in recipe["runtime"]["arguments"]
         }
-        self.assertEqual(arguments["tool-call-parser"], "gemma4")
-        self.assertIs(arguments["enable-auto-tool-choice"], True)
-        self.assertEqual(arguments["reasoning-parser"], "gemma4")
-        self.assertEqual(
-            recipe["runtime"]["engine"],
-            "vllm",
-        )
+        assert arguments["tool-call-parser"] == "gemma4"
+        assert arguments["enable-auto-tool-choice"] is True
+        assert arguments["reasoning-parser"] == "gemma4"
+        assert recipe["runtime"]["engine"] == "vllm"
 
 
 if __name__ == "__main__":

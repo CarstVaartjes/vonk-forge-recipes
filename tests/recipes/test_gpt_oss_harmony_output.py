@@ -53,8 +53,8 @@ def copied_sources(recipe: dict[str, Any], destination: str) -> list[Path]:
 
 class GptOssHarmonyOutputTests(unittest.TestCase):
     def test_guard_finds_recipes(self) -> None:
-        self.assertTrue(gpt_oss_recipes("sglang"))
-        self.assertTrue(gpt_oss_recipes("vllm", "tensorrt-llm"))
+        assert gpt_oss_recipes("sglang")
+        assert gpt_oss_recipes("vllm", "tensorrt-llm")
 
     def test_sglang_parses_harmony_output(self) -> None:
         for path in gpt_oss_recipes("sglang"):
@@ -63,8 +63,8 @@ class GptOssHarmonyOutputTests(unittest.TestCase):
                 for argument in all_arguments(read(path))
             }
             with self.subTest(recipe=path.name):
-                self.assertEqual(arguments.get("reasoning-parser"), "gpt-oss")
-                self.assertEqual(arguments.get("tool-call-parser"), "gpt-oss")
+                assert arguments.get("reasoning-parser") == "gpt-oss"
+                assert arguments.get("tool-call-parser") == "gpt-oss"
 
     def test_sglang_renders_tools_without_a_description(self) -> None:
         for path in gpt_oss_recipes("sglang"):
@@ -75,15 +75,15 @@ class GptOssHarmonyOutputTests(unittest.TestCase):
             }
             with self.subTest(recipe=path.name):
                 template = arguments.get("chat-template")
-                self.assertIsNotNone(template)
+                assert template is not None
                 sources = copied_sources(recipe, template or "")
-                self.assertEqual(len(sources), 1)
+                assert len(sources) == 1
                 content = sources[0].read_bytes()
-                self.assertRegex(content.decode("utf-8"), GUARDED_TOOL_DESCRIPTION)
+                assert re.search(GUARDED_TOOL_DESCRIPTION, content.decode("utf-8"))
                 dockerfile = ROOT / recipe["execution"]["build"]["dockerfile"]
-                self.assertIn(
-                    f"{hashlib.sha256(content).hexdigest()}  {template}",
-                    dockerfile.read_text(encoding="utf-8"),
+                assert (
+                    f"{hashlib.sha256(content).hexdigest()}  {template}"
+                    in dockerfile.read_text(encoding="utf-8")
                 )
 
     def test_harmony_vocab_is_baked_into_the_image(self) -> None:
@@ -91,11 +91,11 @@ class GptOssHarmonyOutputTests(unittest.TestCase):
             recipe = read(path)
             with self.subTest(recipe=path.name):
                 base = environment(recipe).get("TIKTOKEN_ENCODINGS_BASE")
-                self.assertIsNotNone(base)
+                assert base is not None
                 sources = copied_sources(recipe, base or "")
-                self.assertEqual(len(sources), 1)
+                assert len(sources) == 1
                 for name in HARMONY_ENCODINGS:
-                    self.assertTrue((sources[0] / name).is_file(), name)
+                    assert (sources[0] / name).is_file(), name
 
 
 if __name__ == "__main__":

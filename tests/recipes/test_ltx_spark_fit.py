@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest import mock
 
 import ltx_protocol  # noqa: F401  # puts the protocol wheel on sys.path for the adapters run below
+import pytest
 from documents import recipe_display
 from repo_root import ROOT
 
@@ -65,11 +66,11 @@ class LtxSparkFitTests(unittest.TestCase):
         platform_fixture = (
             Path(platform_root) / "control/tests/fixtures/compiled_workload_v2.json"
         )
-        self.assertTrue(platform_fixture.is_file(), platform_fixture)
-        self.assertEqual(
-            (ROOT / "tests/fixtures/compiled_workload_v2.json").read_bytes(),
-            platform_fixture.read_bytes(),
-            "recipe fixture drifted from the platform's emitted schema-2 envelope",
+        assert platform_fixture.is_file(), platform_fixture
+        assert (
+            ROOT / "tests/fixtures/compiled_workload_v2.json"
+        ).read_bytes() == platform_fixture.read_bytes(), (
+            "recipe fixture drifted from the platform's emitted schema-2 envelope"
         )
 
     def test_both_sync_adapters_accept_schema2_nested_materialization(self) -> None:
@@ -95,9 +96,10 @@ class LtxSparkFitTests(unittest.TestCase):
                 globals_ = namespace["_target_checkpoint"].__globals__
                 globals_["MODEL_ROOT"] = model_root
                 globals_["RUNTIME_SPEC"] = runtime_spec
-                self.assertEqual(
-                    namespace["_target_checkpoint"](),
-                    model_root / "target/nested/ltx-2.3-22b-distilled-1.1.safetensors",
+                assert (
+                    namespace["_target_checkpoint"]()
+                    == model_root
+                    / "target/nested/ltx-2.3-22b-distilled-1.1.safetensors"
                 )
 
     def test_schema2_selected_file_materialization_checks_nested_path_and_size(
@@ -115,12 +117,12 @@ class LtxSparkFitTests(unittest.TestCase):
             globals_ = namespace["_target_checkpoint"].__globals__
             globals_["MODEL_ROOT"] = model_root
             globals_["RUNTIME_SPEC"] = runtime_spec
-            self.assertEqual(
-                namespace["_target_checkpoint"](),
-                model_root
+            assert (
+                namespace["_target_checkpoint"]()
+                == model_root
                 / "target"
                 / "nested"
-                / "ltx-2.3-22b-distilled-1.1.safetensors",
+                / "ltx-2.3-22b-distilled-1.1.safetensors"
             )
             target = (
                 model_root
@@ -129,7 +131,7 @@ class LtxSparkFitTests(unittest.TestCase):
                 / "ltx-2.3-22b-distilled-1.1.safetensors"
             )
             target.write_bytes(b"tampered")
-            with self.assertRaisesRegex(SystemExit, "size changed"):
+            with pytest.raises(SystemExit, match="size changed"):
                 namespace["_target_checkpoint"]()
 
     def test_schema2_allows_reused_content_across_selection_mounts(self) -> None:
@@ -161,7 +163,7 @@ class LtxSparkFitTests(unittest.TestCase):
             globals_["MODEL_ROOT"] = model_root
             globals_["RUNTIME_SPEC"] = runtime_spec
             artifacts = namespace["_runtime_artifacts"]()
-            self.assertEqual(len(artifacts), 2)
+            assert len(artifacts) == 2
 
     def test_schema2_rejects_legacy_artifact_size_shape(self) -> None:
         namespace = runpy.run_path(
@@ -180,7 +182,7 @@ class LtxSparkFitTests(unittest.TestCase):
             globals_ = namespace["_runtime_artifacts"].__globals__
             globals_["MODEL_ROOT"] = model_root
             globals_["RUNTIME_SPEC"] = runtime_spec
-            with self.assertRaisesRegex(SystemExit, "invalid Vonk runtime contract"):
+            with pytest.raises(SystemExit, match="invalid Vonk runtime contract"):
                 namespace["_runtime_artifacts"]()
 
     def test_pipeline_command_reuses_one_parsed_runtime_plan(self) -> None:
@@ -217,7 +219,7 @@ class LtxSparkFitTests(unittest.TestCase):
                 namespace["_pipeline_command"](
                     target, root / "gemma", root / "output.mp4", 7, "prompt"
                 )
-            self.assertEqual(read_text.call_count, 1)
+            assert read_text.call_count == 1
 
     def test_ltx2_dev_bf16_has_dedicated_disk_offload_and_89gb_peak(self) -> None:
         adapter_root = ROOT / "adapters/video/ltx23-sync-native-disk"
@@ -253,37 +255,37 @@ class LtxSparkFitTests(unittest.TestCase):
                 "Operator supplied prompt",
             )
 
-        self.assertEqual(command[command.index("--offload") + 1], "disk")
-        self.assertEqual(command[2], "ltx_pipelines.ti2vid_two_stages")
+        assert command[command.index("--offload") + 1] == "disk"
+        assert command[2] == "ltx_pipelines.ti2vid_two_stages"
         recipe = load(ROOT / f"recipes/{BF16_SLUG}.json")
-        self.assertEqual(
-            recipe["execution"]["build"]["context"]["path"],
-            "adapters/video/ltx23-sync-native-disk",
+        assert (
+            recipe["execution"]["build"]["context"]["path"]
+            == "adapters/video/ltx23-sync-native-disk"
         )
-        self.assertIn("disk-offload", recipe_display(recipe["identity"]["slug"]).tags)
+        assert "disk-offload" in recipe_display(recipe["identity"]["slug"]).tags
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(memory["peak_bytes"], 89_000_000_000)
+        assert memory["peak_bytes"] == 89000000000
 
         distilled = load(ROOT / "recipes/ltx-2-19b-distilled-diffusers-single.json")
-        self.assertEqual(
-            distilled["execution"]["build"]["context"]["path"],
-            "adapters/video/ltx2-sync-native",
+        assert (
+            distilled["execution"]["build"]["context"]["path"]
+            == "adapters/video/ltx2-sync-native"
         )
 
     def test_ltx23_disk_offload_recipe_is_admissible(self) -> None:
         recipe = load(ROOT / f"recipes/{LTX23_SLUG}.json")
         tags = set(recipe_display(recipe["identity"]["slug"]).tags)
-        self.assertTrue({"executable", "disk-offload"} <= tags)
-        self.assertNotIn("accepted", tags)
-        self.assertNotIn("hardware-blocked", tags)
+        assert {"executable", "disk-offload"} <= tags
+        assert "accepted" not in tags
+        assert "hardware-blocked" not in tags
 
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(memory["peak_bytes"], 93_000_000_000)
+        assert memory["peak_bytes"] == 93000000000
         for fact in ("93 GB", "77 GB", "31 GB", "8 GB"):
-            self.assertIn(fact, recipe_display(recipe["identity"]["slug"]).description)
-        self.assertEqual(
-            recipe["execution"]["build"]["context"]["path"],
-            "adapters/video/ltx23-sync-native-disk",
+            assert fact in recipe_display(recipe["identity"]["slug"]).description
+        assert (
+            recipe["execution"]["build"]["context"]["path"]
+            == "adapters/video/ltx23-sync-native-disk"
         )
 
     def test_ltx23_dedicated_adapter_uses_disk_offload_and_is_bound(self) -> None:
@@ -315,11 +317,11 @@ class LtxSparkFitTests(unittest.TestCase):
                 "Operator supplied prompt",
             )
 
-        self.assertEqual(command[command.index("--offload") + 1], "disk")
-        self.assertEqual(command[2], "ltx_pipelines.distilled")
-        self.assertEqual(
-            Path(command[command.index("--spatial-upsampler-path") + 1]).name,
-            "ltx-2.3-spatial-upscaler-x2-1.1.safetensors",
+        assert command[command.index("--offload") + 1] == "disk"
+        assert command[2] == "ltx_pipelines.distilled"
+        assert (
+            Path(command[command.index("--spatial-upsampler-path") + 1]).name
+            == "ltx-2.3-spatial-upscaler-x2-1.1.safetensors"
         )
 
         recipe = load(ROOT / f"recipes/{LTX23_SLUG}.json")
@@ -327,11 +329,11 @@ class LtxSparkFitTests(unittest.TestCase):
             "source_bundle"
         ]
         archive, _, digest = source_bundle(adapter_root)
-        self.assertEqual(
-            recipe["execution"]["build"]["context"]["path"],
-            "adapters/video/ltx23-sync-native-disk",
+        assert (
+            recipe["execution"]["build"]["context"]["path"]
+            == "adapters/video/ltx23-sync-native-disk"
         )
-        self.assertTrue(digest and archive)
+        assert digest and archive
 
     def test_fp4_snapshot_selects_exactly_the_runtime_inventory(self) -> None:
         recipe = load(ROOT / f"recipes/{FP4_SLUG}.json")
@@ -341,15 +343,14 @@ class LtxSparkFitTests(unittest.TestCase):
             item for item in model["files"] if item["roles"] != ["metadata"]
         ]
         expected_bytes = sum(item["size_bytes"] for item in runtime_files)
-        self.assertEqual(
-            {item["file_id"] for item in selected},
-            {item["id"] for item in model["files"]},
-        )
-        self.assertGreater(expected_bytes, 0)
+        assert {item["file_id"] for item in selected} == {
+            item["id"] for item in model["files"]
+        }
+        assert expected_bytes > 0
 
         disk = recipe["topology"]["roles"][0]["resources"]["disk"]
-        self.assertGreaterEqual(disk["artifact_bytes"], expected_bytes)
-        self.assertGreater(disk["working_bytes"], 0)
+        assert disk["artifact_bytes"] >= expected_bytes
+        assert disk["working_bytes"] > 0
 
 
 if __name__ == "__main__":

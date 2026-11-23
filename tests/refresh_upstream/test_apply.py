@@ -101,14 +101,14 @@ class MergeGateTests(unittest.TestCase):
             with patch("recipe_tooling.refresh_upstream.github.gh", side_effect=github):
                 waiting = refresh_publish.Summary()
                 refresh_publish.publish_mechanical(root, assessment, waiting)
-                self.assertEqual(waiting.armed, [])
-                self.assertEqual(merges, [])
+                assert waiting.armed == []
+                assert merges == []
                 published = True
                 resumed = refresh_publish.Summary()
                 refresh_publish.publish_mechanical(root, assessment, resumed)
 
-            self.assertEqual(resumed.armed, [421])
-            self.assertEqual(merges, [("pr", "merge", "421", "--auto", "--squash")])
+            assert resumed.armed == [421]
+            assert merges == [("pr", "merge", "421", "--auto", "--squash")]
             self.assertEqual(
                 refresh.git("rev-parse", "refs/heads/refresh/recipe", cwd=root),
                 prepared,
@@ -168,12 +168,12 @@ class MergeGateTests(unittest.TestCase):
             )
 
             self.assertEqual(refresh.git("rev-parse", "HEAD", cwd=root), main)
-            self.assertEqual((root / "added.json").read_bytes(), b"main adds\n")
+            assert (root / "added.json").read_bytes() == b"main adds\n"
             self.assertEqual(
                 refresh.git("diff", "--name-only", "origin/main", cwd=root),
                 "recipe.json",
             )
-            self.assertEqual(number, 7)
+            assert number == 7
 
     def test_existing_armed_pr_does_not_block_a_disjoint_mechanical_merge(self) -> None:
         summary = refresh_publish.Summary()
@@ -193,8 +193,8 @@ class MergeGateTests(unittest.TestCase):
         ):
             allowed = refresh_publish.arm_mechanical_pr(421, "recipe-b", summary)
 
-        self.assertTrue(allowed)
-        self.assertEqual(summary.armed, [421])
+        assert allowed
+        assert summary.armed == [421]
         gh.assert_called_once_with("pr", "merge", "421", "--auto", "--squash")
 
     def test_shared_model_file_defers_the_second_pr(self) -> None:
@@ -219,9 +219,9 @@ class MergeGateTests(unittest.TestCase):
         ):
             allowed = refresh_publish.arm_mechanical_pr(421, "recipe-b", summary)
 
-        self.assertFalse(allowed)
-        self.assertEqual(summary.armed, [])
-        self.assertIn("shares files with armed PR #419", summary.deferred[0])
+        assert not allowed
+        assert summary.armed == []
+        assert "shares files with armed PR #419" in summary.deferred[0]
         gh.assert_not_called()
 
     def test_file_overlap_counts_prs_armed_earlier_in_the_run(self) -> None:
@@ -230,8 +230,8 @@ class MergeGateTests(unittest.TestCase):
             {"number": 2, **OWN, "files": [{"path": "models/m.json"}]},
             {"number": 3, **OWN, "files": [{"path": "models/m.json"}]},
         ]
-        self.assertEqual(refresh_publish.file_overlaps(2, pulls, armed=[1]), [1])
-        self.assertEqual(refresh_publish.file_overlaps(2, pulls), [])
+        assert refresh_publish.file_overlaps(2, pulls, armed=[1]) == [1]
+        assert refresh_publish.file_overlaps(2, pulls) == []
 
     def test_pending_publication_keeps_prepared_pr_unarmed(self) -> None:
         summary = refresh_publish.Summary()
@@ -243,10 +243,10 @@ class MergeGateTests(unittest.TestCase):
         ):
             allowed = refresh_publish.arm_mechanical_pr(421, "recipe", summary)
 
-        self.assertFalse(allowed)
-        self.assertEqual(summary.armed, [])
-        self.assertIn("did not succeed", summary.deferred[0])
-        self.assertFalse(any("merge" in call.args for call in gh.call_args_list))
+        assert not allowed
+        assert summary.armed == []
+        assert "did not succeed" in summary.deferred[0]
+        assert not any("merge" in call.args for call in gh.call_args_list)
 
     def test_successful_publication_arms_every_green_pr_in_one_run(self) -> None:
         summary = refresh_publish.Summary()
@@ -275,21 +275,19 @@ class MergeGateTests(unittest.TestCase):
                 for n in (421, 422, 423)
             ]
 
-        self.assertEqual(results, [True, True, True])
-        self.assertEqual(summary.armed, [421, 422, 423])
+        assert results == [True, True, True]
+        assert summary.armed == [421, 422, 423]
         merges = [call for call in gh.call_args_list if "merge" in call.args]
-        self.assertEqual(len(merges), 3)
+        assert len(merges) == 3
 
     def test_inflight_publication_does_not_block_but_failure_does(self) -> None:
         done = {"status": "completed", "conclusion": "success"}
         inflight = {"status": "in_progress", "conclusion": ""}
         cancelled = {"status": "completed", "conclusion": "cancelled"}
         failed = {"status": "completed", "conclusion": "failure"}
-        self.assertTrue(
-            refresh_publish.publication_healthy([inflight, cancelled, done])
-        )
-        self.assertFalse(refresh_publish.publication_healthy([inflight, failed, done]))
-        self.assertFalse(refresh_publish.publication_healthy([]))
+        assert refresh_publish.publication_healthy([inflight, cancelled, done])
+        assert not refresh_publish.publication_healthy([inflight, failed, done])
+        assert not refresh_publish.publication_healthy([])
 
     def test_open_refresh_prs_are_armed_up_front(self) -> None:
         summary = refresh_publish.Summary()
@@ -320,13 +318,13 @@ class MergeGateTests(unittest.TestCase):
         ):
             refresh_publish.arm_open_mechanical_prs(summary)
 
-        self.assertEqual(summary.armed, [1])
+        assert summary.armed == [1]
         gh.assert_called_once_with("pr", "merge", "1", "--auto", "--squash")
 
     def test_prepare_bound_counts_pushed_prs_only(self) -> None:
-        self.assertEqual(refresh_model.MAX_MECHANICAL_PER_RUN, 6)
+        assert refresh_model.MAX_MECHANICAL_PER_RUN == 6
         summary = refresh_publish.Summary()
-        self.assertEqual(summary.prepared, 0)
+        assert summary.prepared == 0
 
     def test_chain_guard_detects_a_burst_not_a_single_recent_run(self) -> None:
         now = datetime(2026, 10, 2, 12, 0, tzinfo=UTC)
@@ -341,13 +339,11 @@ class MergeGateTests(unittest.TestCase):
             } | extra
 
         burst = [run(m) for m in (1, 5, 9, 14)]
-        self.assertTrue(refresh_publish.refresh_is_spinning(burst, 99, now))
+        assert refresh_publish.refresh_is_spinning(burst, 99, now)
         # One run that just finished (the one ahead in the queue) does not skip us.
-        self.assertFalse(refresh_publish.refresh_is_spinning([run(1)], 99, now))
-        self.assertFalse(
-            refresh_publish.refresh_is_spinning(
-                [run(m) for m in (40, 50, 60, 70)], 99, now
-            )
+        assert not refresh_publish.refresh_is_spinning([run(1)], 99, now)
+        assert not refresh_publish.refresh_is_spinning(
+            [run(m) for m in (40, 50, 60, 70)], 99, now
         )
         # Active, cancelled and the current run never count.
         mixed = [
@@ -356,9 +352,7 @@ class MergeGateTests(unittest.TestCase):
             run(3, databaseId=99),
             run(4),
         ]
-        self.assertFalse(
-            refresh_publish.refresh_is_spinning(mixed + burst[:2], 99, now)
-        )
+        assert not refresh_publish.refresh_is_spinning(mixed + burst[:2], 99, now)
 
     def test_chain_guard_command(self) -> None:
         def decide(event: str, conclusion: str, runs: list[dict[str, object]]) -> str:
@@ -385,32 +379,32 @@ class MergeGateTests(unittest.TestCase):
             }
             for n in range(4)
         ]
-        self.assertEqual(decide("schedule", "", recent), "run=true")
-        self.assertEqual(decide("workflow_dispatch", "", recent), "run=true")
-        self.assertEqual(decide("workflow_run", "success", []), "run=true")
-        self.assertEqual(decide("workflow_run", "failure", []), "run=false")
-        self.assertEqual(decide("workflow_run", "success", recent), "run=false")
+        assert decide("schedule", "", recent) == "run=true"
+        assert decide("workflow_dispatch", "", recent) == "run=true"
+        assert decide("workflow_run", "success", []) == "run=true"
+        assert decide("workflow_run", "failure", []) == "run=false"
+        assert decide("workflow_run", "success", recent) == "run=false"
 
 
 class SelfHealingTests(unittest.TestCase):
     def test_check_state(self) -> None:
-        self.assertEqual(refresh_publish.check_state(None), "none")
-        self.assertEqual(refresh_publish.check_state(failing()), "failed")
-        self.assertEqual(
+        assert refresh_publish.check_state(None) == "none"
+        assert refresh_publish.check_state(failing()) == "failed"
+        assert (
             refresh_publish.check_state(
                 [{"conclusion": "CANCELLED"}, {"conclusion": "SUCCESS"}]
-            ),
-            "cancelled",
+            )
+            == "cancelled"
         )
-        self.assertEqual(
-            refresh_publish.check_state([{"status": "IN_PROGRESS", "conclusion": ""}]),
-            "pending",
+        assert (
+            refresh_publish.check_state([{"status": "IN_PROGRESS", "conclusion": ""}])
+            == "pending"
         )
-        self.assertEqual(
+        assert (
             refresh_publish.check_state(
                 [{"conclusion": "SUCCESS"}, {"conclusion": "SKIPPED"}]
-            ),
-            "passed",
+            )
+            == "passed"
         )
 
     def test_verify_runs_every_data_check_of_validate_yml(self) -> None:
@@ -435,8 +429,8 @@ class SelfHealingTests(unittest.TestCase):
             "tools/check-added-file-size",  # checks a PR diff, not refresh data
         }
         covered = {part for _, cmd in refresh_apply.verify_steps() for part in cmd}
-        self.assertEqual(sorted(t for t in ci - skipped if t not in covered), [])
-        self.assertIn("check", dict(refresh_apply.verify_steps())["kit-declared pins"])
+        assert sorted(t for t in ci - skipped if t not in covered) == []
+        assert "check" in dict(refresh_apply.verify_steps())["kit-declared pins"]
 
     def republish(
         self, rollup, *, pin: bytes = b"new pin\n", main_change: str | None = None
@@ -531,29 +525,27 @@ class SelfHealingTests(unittest.TestCase):
         self,
     ) -> None:
         calls, before, after, assessment, _ = self.republish(failing())
-        self.assertEqual(before, after)
-        self.assertFalse(
-            [c for c in calls if c[:2] in {("pr", "edit"), ("pr", "merge")}]
-        )
-        self.assertIn("#9", assessment.reasons[0])
-        self.assertIn("BOOM: kit lock is stale", "".join(assessment.evidence))
+        assert before == after
+        assert not [c for c in calls if c[:2] in {("pr", "edit"), ("pr", "merge")}]
+        assert "#9" in assessment.reasons[0]
+        assert "BOOM: kit lock is stale" in "".join(assessment.evidence)
 
     def test_cancelled_checks_are_reported_not_pushed(self) -> None:
         _, before, after, assessment, _ = self.republish([{"conclusion": "CANCELLED"}])
-        self.assertEqual(before, after)
-        self.assertIn("cancelled", assessment.reasons[0])
+        assert before == after
+        assert "cancelled" in assessment.reasons[0]
 
     def test_passing_unchanged_pr_is_left_alone(self) -> None:
         calls, before, after, _, _ = self.republish([{"conclusion": "SUCCESS"}])
-        self.assertEqual(before, after)
-        self.assertFalse([c for c in calls if c[:2] == ("pr", "edit")])
+        assert before == after
+        assert not [c for c in calls if c[:2] == ("pr", "edit")]
 
     def test_main_moving_elsewhere_pushes_nothing(self) -> None:
         _, before, after, assessment, _ = self.republish(
             [{"conclusion": "SUCCESS"}], main_change="other.json"
         )
-        self.assertEqual(before, after)
-        self.assertEqual(assessment.reasons, [])
+        assert before == after
+        assert assessment.reasons == []
 
     def test_a_newer_refresh_moves_the_branch_forward_without_force(self) -> None:
         for rollup in ([{"conclusion": "SUCCESS"}], failing()):
@@ -561,18 +553,18 @@ class SelfHealingTests(unittest.TestCase):
                 calls, before, after, assessment, forward = self.republish(
                     rollup, pin=b"newer pin\n", main_change="other.json"
                 )
-                self.assertNotEqual(before, after)
-                self.assertTrue(forward, "the push must be a fast-forward")
-                self.assertEqual(assessment.reasons, [])
-                self.assertTrue([c for c in calls if c[:2] == ("pr", "edit")])
+                assert before != after
+                assert forward, "the push must be a fast-forward"
+                assert assessment.reasons == []
+                assert [c for c in calls if c[:2] == ("pr", "edit")]
 
     def test_main_touching_the_refreshed_file_moves_the_branch_forward(self) -> None:
         _, before, after, assessment, forward = self.republish(
             [{"conclusion": "SUCCESS"}], main_change="recipe.json"
         )
-        self.assertNotEqual(before, after)
-        self.assertTrue(forward)
-        self.assertEqual(assessment.reasons, [])
+        assert before != after
+        assert forward
+        assert assessment.reasons == []
 
     def test_a_failed_pr_moves_forward_once_main_changes_its_checks(self) -> None:
         for rollup in (failing(), [{"conclusion": "CANCELLED"}]):
@@ -580,9 +572,9 @@ class SelfHealingTests(unittest.TestCase):
                 _, before, after, assessment, forward = self.republish(
                     rollup, main_change="tests/test_fixed.py"
                 )
-                self.assertNotEqual(before, after)
-                self.assertTrue(forward)
-                self.assertEqual(assessment.reasons, [])
+                assert before != after
+                assert forward
+                assert assessment.reasons == []
 
     def test_refresh_branches_are_never_force_pushed_or_updated_in_place(
         self,
@@ -594,9 +586,9 @@ class SelfHealingTests(unittest.TestCase):
             )
         )
         pushes = re.findall(r'"push",[^)]*\)', source)
-        self.assertTrue(pushes)
-        self.assertFalse([p for p in pushes if "force" in p], pushes)
-        self.assertNotIn('"update-branch"', source)
+        assert pushes
+        assert not [p for p in pushes if "force" in p], pushes
+        assert '"update-branch"' not in source
 
     def test_a_refreshed_proven_recipe_rewrites_its_guard_entry(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -608,18 +600,16 @@ class SelfHealingTests(unittest.TestCase):
             edits: dict[str, bytes | None] = {"recipes/a.json": b"moved\n"}
             refresh_publish.follow_proven_bytes(root, edits)
             guard = json.loads(edits[refresh_model.PROVEN_BYTES] or b"")
-            self.assertEqual(
-                guard["vonk-forge/a"], hashlib.sha256(b"moved\n").hexdigest()
-            )
-            self.assertEqual(guard["vonk-forge/b"], "1" * 64)
+            assert guard["vonk-forge/a"] == hashlib.sha256(b"moved\n").hexdigest()
+            assert guard["vonk-forge/b"] == "1" * 64
             unproven: dict[str, bytes | None] = {"recipes/c.json": b"moved\n"}
             refresh_publish.follow_proven_bytes(root, unproven)
-            self.assertNotIn(refresh_model.PROVEN_BYTES, unproven)
+            assert refresh_model.PROVEN_BYTES not in unproven
 
     def test_failure_evidence_has_the_log_tail(self) -> None:
         with patch(
             "recipe_tooling.refresh_upstream.github.gh", return_value="x\nBOOM: stale\n"
         ):
             text = refresh_publish.failed_check_evidence(failing())
-        self.assertIn("BOOM: stale", text)
-        self.assertIn("actions/runs/7", text)
+        assert "BOOM: stale" in text
+        assert "actions/runs/7" in text

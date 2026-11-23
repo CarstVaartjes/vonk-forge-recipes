@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import ClassVar, Protocol, cast
 from unittest import mock
 
+import pytest
 from catalog_documents import catalog_models, model_digest
 from documents import model_display
 from repo_root import ROOT
@@ -130,12 +131,12 @@ class RuntimeModel:
             sys.modules.pop(name, None)
         try:
             package = importlib.import_module("step1x3d_geometry")
-            self.assertIs(
-                package.find("runtime-model"),
-                package.models.runtime_models.RuntimeModel,
+            assert (
+                package.find("runtime-model")
+                is package.models.runtime_models.RuntimeModel
             )
-            self.assertNotIn("step1x3d_geometry.data", sys.modules)
-            self.assertNotIn("step1x3d_geometry.systems", sys.modules)
+            assert "step1x3d_geometry.data" not in sys.modules
+            assert "step1x3d_geometry.systems" not in sys.modules
         finally:
             for name in tuple(sys.modules):
                 if name == "step1x3d_geometry" or name.startswith("step1x3d_geometry."):
@@ -153,10 +154,10 @@ class RuntimeModel:
         for source in (changed_layout, duplicate_layout):
             with self.subTest(source=source):
                 initializer.write_text(source, encoding="utf-8")
-                with self.assertRaisesRegex(SystemExit, "unexpected Step1X"):
+                with pytest.raises(SystemExit, match="unexpected Step1X"):
                     self.module.patch_inference_import_boundary(self.root)
 
-                self.assertEqual(initializer.read_text(encoding="utf-8"), source)
+                assert initializer.read_text(encoding="utf-8") == source
 
     def test_texture_plot_imports_are_deferred_until_a_plotting_color_map(self) -> None:
         saving_path = self.root / "step1x3d_texture/utils/saving.py"
@@ -196,7 +197,7 @@ class Saver:
             and node.module is not None
             and node.module.startswith("matplotlib")
         )
-        self.assertEqual(top_level_matplotlib_imports, set())
+        assert top_level_matplotlib_imports == set()
 
         matplotlib_modules = (
             "matplotlib",
@@ -219,12 +220,12 @@ class Saver:
             module = types.ModuleType("step1x_texture_saving")
             exec(compile(source, str(saving_path), "exec"), module.__dict__)
             saver = module.__dict__["Saver"]()
-            self.assertEqual(saver.get_grayscale_image_("jet"), "jet")
+            assert saver.get_grayscale_image_("jet") == "jet"
             for color_map in ("magma", "spectral"):
                 with (
                     self.subTest(color_map=color_map),
-                    self.assertRaisesRegex(
-                        ModuleNotFoundError, "plotting dependencies are optional"
+                    pytest.raises(
+                        ModuleNotFoundError, match="plotting dependencies are optional"
                     ),
                 ):
                     saver.get_grayscale_image_(color_map)
@@ -250,13 +251,11 @@ class Saver:
             }
         )
         try:
-            self.assertEqual(
-                saver.get_grayscale_image_("magma"),
-                ("magma-color-map", colormap_type),
+            assert saver.get_grayscale_image_("magma") == (
+                "magma-color-map",
+                colormap_type,
             )
-            self.assertEqual(
-                saver.get_grayscale_image_("spectral"), "Spectral-color-map"
-            )
+            assert saver.get_grayscale_image_("spectral") == "Spectral-color-map"
         finally:
             for name in matplotlib_modules:
                 sys.modules.pop(name, None)
@@ -283,10 +282,10 @@ class Saver:
         )
         saving_path.write_text(changed_layout, encoding="utf-8")
 
-        with self.assertRaisesRegex(SystemExit, "unexpected Step1X texture saving"):
+        with pytest.raises(SystemExit, match="unexpected Step1X texture saving"):
             self.module.patch_texture_saving_plot_imports(self.root)
 
-        self.assertEqual(saving_path.read_text(encoding="utf-8"), changed_layout)
+        assert saving_path.read_text(encoding="utf-8") == changed_layout
 
     def test_pipeline_import_does_not_require_pymeshlab(self) -> None:
         pipeline_path = (
@@ -318,14 +317,14 @@ def remove_degenerate_face(mesh):
 
         source = pipeline_path.read_text(encoding="utf-8")
         tree = ast.parse(source)
-        self.assertTrue(source.startswith("from __future__ import annotations\n"))
+        assert source.startswith("from __future__ import annotations\n")
         top_level_imports = {
             alias.name
             for node in tree.body
             if isinstance(node, ast.Import)
             for alias in node.names
         }
-        self.assertNotIn("pymeshlab", top_level_imports)
+        assert "pymeshlab" not in top_level_imports
         functions = {
             node.name: node for node in tree.body if isinstance(node, ast.FunctionDef)
         }
@@ -337,13 +336,13 @@ def remove_degenerate_face(mesh):
             "remove_degenerate_face",
         ):
             first_statement = functions[name].body[0]
-            self.assertIsInstance(first_statement, ast.Import)
             assert isinstance(first_statement, ast.Import)
-            self.assertEqual(first_statement.names[0].name, "pymeshlab")
+            assert isinstance(first_statement, ast.Import)
+            assert first_statement.names[0].name == "pymeshlab"
 
         namespace: dict[str, object] = {}
         exec(compile(source, str(pipeline_path), "exec"), namespace)
-        self.assertIn("pymeshlab2trimesh", namespace)
+        assert "pymeshlab2trimesh" in namespace
 
     def test_sharp_and_normal_select_different_geometry_embeddings(self) -> None:
         encoder_path = (
@@ -374,19 +373,19 @@ class LabelEncoder:
         source = encoder_path.read_text(encoding="utf-8")
         exec(compile(source, str(encoder_path), "exec"), namespace)
         label_encoder = namespace["LabelEncoder"]
-        self.assertTrue(callable(label_encoder))
+        assert callable(label_encoder)
         assert callable(label_encoder)
         encoder_value = label_encoder()
         encode_label = getattr(encoder_value, "encode_label", None)
-        self.assertTrue(callable(encode_label))
+        assert callable(encode_label)
         assert callable(encode_label)
         encoder = cast(GeometryLabelEncoder, encoder_value)
         normal = encoder.encode_label({"geometry_type": "normal"})
         sharp = encoder.encode_label({"geometry_type": "sharp"})
-        self.assertNotEqual(normal, sharp)
+        assert normal != sharp
         runner = RUN_PATH.read_text(encoding="utf-8")
-        self.assertIn('"geometry_type": "sharp"', runner)
-        self.assertNotIn('"edge_type": "sharp"', runner)
+        assert '"geometry_type": "sharp"' in runner
+        assert '"edge_type": "sharp"' not in runner
 
     def test_cupy_cuda13_arm64_wheels_are_exact_and_import_smoked(self) -> None:
         dockerfile = DOCKERFILE_PATH.read_text(encoding="utf-8")
@@ -400,28 +399,27 @@ class LabelEncoder:
             ),
         }
         for filename, digest in expected.items():
-            self.assertIn(filename, dockerfile)
-            self.assertIn(f"#sha256={digest}", dockerfile)
-        self.assertIn(
+            assert filename in dockerfile
+            assert f"#sha256={digest}" in dockerfile
+        assert (
             "from step1x3d_geometry.models.pipelines.pipeline import "
-            "Step1X3DGeometryPipeline",
-            dockerfile,
+            "Step1X3DGeometryPipeline" in dockerfile
         )
-        self.assertIn(
+        assert (
             "from step1x3d_texture.pipelines."
-            "step1x_3d_texture_synthesis_pipeline import Step1X3DTexturePipeline",
-            dockerfile,
+            "step1x_3d_texture_synthesis_pipeline import Step1X3DTexturePipeline"
+            in dockerfile
         )
 
-        self.assertIn(
-            'org.opencontainers.image.revision="cb5ac944709c6c913109070c7b90c3447f57f3d4"',
-            dockerfile,
+        assert (
+            'org.opencontainers.image.revision="cb5ac944709c6c913109070c7b90c3447f57f3d4"'
+            in dockerfile
         )
 
     def test_triposg_diso_license_matches_pypi_metadata(self) -> None:
         recipe = json.loads((ROOT / "recipes/triposg-pytorch-single.json").read_text())
-        self.assertEqual(recipe["models"][0]["model"]["slug"], "triposg")
-        self.assertEqual(model_display("triposg").license.spdx, "MIT")
+        assert recipe["models"][0]["model"]["slug"] == "triposg"
+        assert model_display("triposg").license.spdx == "MIT"
 
     def test_texture_validates_input_before_importing_upstream(self) -> None:
         source = RUN_PATH.read_text(encoding="utf-8")
@@ -433,9 +431,9 @@ class LabelEncoder:
             "pipeline = Step1X3DTexturePipeline(config)"
         )
 
-        self.assertLess(validation, upstream_import)
-        self.assertLess(validation, pipeline_construction)
-        self.assertIn('validate_mesh_glb(path, profile="geometry")', source)
+        assert validation < upstream_import
+        assert validation < pipeline_construction
+        assert 'validate_mesh_glb(path, profile="geometry")' in source
 
     def test_step1x_model_and_auxiliary_files_form_complete_offline_closure(
         self,
@@ -484,28 +482,20 @@ class LabelEncoder:
                     )
                 )
                 selections = {selection.id: selection for selection in recipe.models}
-                self.assertEqual(set(selections), set(expected_mounts))
+                assert set(selections) == set(expected_mounts)
                 validate_recipe_models(recipe, catalog_models())
 
                 primary = selections["primary"]
                 primary_model = models[("stepfun-ai", primary_slug)]
-                self.assertEqual(
-                    primary.model.content_sha256, model_digest(primary_slug)
+                assert primary.model.content_sha256 == model_digest(primary_slug)
+                assert {selector.file_id for selector in primary.files} == {
+                    model_file.id for model_file in primary_model.files
+                }, "the installed Step1X subfolder must include every manifest file"
+                assert all(
+                    model_file.path.startswith(subfolder)
+                    for model_file in primary_model.files
                 )
-                self.assertEqual(
-                    {selector.file_id for selector in primary.files},
-                    {model_file.id for model_file in primary_model.files},
-                    "the installed Step1X subfolder must include every manifest file",
-                )
-                self.assertTrue(
-                    all(
-                        model_file.path.startswith(subfolder)
-                        for model_file in primary_model.files
-                    )
-                )
-                self.assertNotIn(
-                    "snapshot", {item.path for item in primary_model.files}
-                )
+                assert "snapshot" not in {item.path for item in primary_model.files}
 
                 selected_dependencies = {
                     (
@@ -520,68 +510,58 @@ class LabelEncoder:
                     (item.publisher, item.slug, item.content_sha256)
                     for item in primary_model.dependencies
                 }
-                self.assertEqual(selected_dependencies, declared_dependencies)
+                assert selected_dependencies == declared_dependencies
 
                 for selection_id, expected_target in expected_mounts.items():
                     selection = selections[selection_id]
-                    self.assertEqual(
-                        {selector.mount.target for selector in selection.files},
-                        {expected_target},
-                    )
-                    self.assertIn(expected_target, adapter_sources)
+                    assert {selector.mount.target for selector in selection.files} == {
+                        expected_target
+                    }
+                    assert expected_target in adapter_sources
                     model = models[(selection.model.publisher, selection.model.slug)]
-                    self.assertEqual(
-                        {selector.file_id for selector in selection.files},
-                        {model_file.id for model_file in model.files},
-                    )
+                    assert {selector.file_id for selector in selection.files} == {
+                        model_file.id for model_file in model.files
+                    }
 
         dinov2 = models[("facebook", "dinov2-with-registers-large")]
-        self.assertEqual(
-            {item.path for item in dinov2.files},
-            {"config.json", "preprocessor_config.json"},
-        )
-        self.assertNotIn(
-            "weights", {role for item in dinov2.files for role in item.roles}
-        )
+        assert {item.path for item in dinov2.files} == {
+            "config.json",
+            "preprocessor_config.json",
+        }
+        assert "weights" not in {role for item in dinov2.files for role in item.roles}
 
         clip = models[("openai", "clip-vit-large-patch14")]
-        self.assertEqual({item.path for item in clip.files}, {"config.json"})
-        self.assertNotIn(
-            "weights", {role for item in clip.files for role in item.roles}
-        )
-        self.assertEqual(model_display(clip.identity.slug).license.spdx, "MIT")
-        self.assertIn(
-            "cautions against deployed use",
-            model_display(clip.identity.slug).description,
+        assert {item.path for item in clip.files} == {"config.json"}
+        assert "weights" not in {role for item in clip.files for role in item.roles}
+        assert model_display(clip.identity.slug).license.spdx == "MIT"
+        assert (
+            "cautions against deployed use"
+            in model_display(clip.identity.slug).description
         )
 
         sdxl = models[("stabilityai", "stable-diffusion-xl-base-1-0")]
-        self.assertEqual(
-            {item.path for item in sdxl.files},
-            {
-                "model_index.json",
-                "scheduler/scheduler_config.json",
-                "text_encoder/config.json",
-                "text_encoder/model.safetensors",
-                "text_encoder_2/config.json",
-                "text_encoder_2/model.safetensors",
-                "tokenizer/merges.txt",
-                "tokenizer/special_tokens_map.json",
-                "tokenizer/tokenizer_config.json",
-                "tokenizer/vocab.json",
-                "tokenizer_2/merges.txt",
-                "tokenizer_2/special_tokens_map.json",
-                "tokenizer_2/tokenizer_config.json",
-                "tokenizer_2/vocab.json",
-                "unet/config.json",
-                "unet/diffusion_pytorch_model.safetensors",
-            },
-        )
-        self.assertFalse(sdxl.requires_token)
-        self.assertEqual(
-            {item.path for item in models[("madebyollin", "sdxl-vae-fp16-fix")].files},
-            {"config.json", "diffusion_pytorch_model.safetensors"},
-        )
+        assert {item.path for item in sdxl.files} == {
+            "model_index.json",
+            "scheduler/scheduler_config.json",
+            "text_encoder/config.json",
+            "text_encoder/model.safetensors",
+            "text_encoder_2/config.json",
+            "text_encoder_2/model.safetensors",
+            "tokenizer/merges.txt",
+            "tokenizer/special_tokens_map.json",
+            "tokenizer/tokenizer_config.json",
+            "tokenizer/vocab.json",
+            "tokenizer_2/merges.txt",
+            "tokenizer_2/special_tokens_map.json",
+            "tokenizer_2/tokenizer_config.json",
+            "tokenizer_2/vocab.json",
+            "unet/config.json",
+            "unet/diffusion_pytorch_model.safetensors",
+        }
+        assert not sdxl.requires_token
+        assert {
+            item.path for item in models["madebyollin", "sdxl-vae-fp16-fix"].files
+        } == {"config.json", "diffusion_pytorch_model.safetensors"}
 
 
 class _FakeImage:
@@ -674,11 +654,10 @@ class Step1XGeometryOutputTests(unittest.TestCase):
                 module._geometry(
                     label_control=label_control, seed=0, output_dir=outputs
                 )
-                self.assertEqual(
-                    sorted(path.name for path in outputs.iterdir()),
-                    ["step1x-geometry.glb"],
-                )
-                self.assertNotEqual(_FakePipeline.seen[0].parent, outputs)
+                assert sorted(path.name for path in outputs.iterdir()) == [
+                    "step1x-geometry.glb"
+                ]
+                assert _FakePipeline.seen[0].parent != outputs
 
 
 class _FakeScene:
@@ -754,12 +733,11 @@ class Step1XTextureInputTests(unittest.TestCase):
             )
             _FakeTexturePipeline.received.clear()
             module._texture(seed=0, output_dir=outputs)
-            self.assertEqual(len(_FakeTexturePipeline.received), 1)
-            self.assertIsInstance(_FakeTexturePipeline.received[0], _FakeTrimesh)
-            self.assertEqual(
-                sorted(path.name for path in outputs.iterdir()),
-                ["step1x-textured.glb"],
-            )
+            assert len(_FakeTexturePipeline.received) == 1
+            assert isinstance(_FakeTexturePipeline.received[0], _FakeTrimesh)
+            assert sorted(path.name for path in outputs.iterdir()) == [
+                "step1x-textured.glb"
+            ]
 
 
 if __name__ == "__main__":

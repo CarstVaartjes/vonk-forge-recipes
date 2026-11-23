@@ -51,28 +51,24 @@ class ExactModelFileClosureTests(unittest.TestCase):
                 files_by_id = {item.id: item for item in model.files}
                 manifest_paths = {item.path for item in model.files}
                 omitted_paths = OMITTED_PRIMARY_PATHS.get(recipe_slug, set())
-                self.assertFalse(omitted_paths & manifest_paths)
+                assert not omitted_paths & manifest_paths
                 selected_ids = {item.file_id for item in primary.files}
-                self.assertTrue(selected_ids <= set(files_by_id))
+                assert selected_ids <= set(files_by_id)
                 selected_paths = {files_by_id[file_id].path for file_id in selected_ids}
 
-                self.assertEqual(primary.model.slug, model_slug)
-                self.assertEqual(primary.model.content_sha256, model_digest(model_slug))
-                self.assertGreater(len(manifest_paths), 1)
-                self.assertNotIn("snapshot", manifest_paths)
-                self.assertEqual(selected_paths, manifest_paths)
-                self.assertEqual(
-                    len(primary.files),
-                    len(selected_ids),
-                    "no manifest file may be selected twice",
+                assert primary.model.slug == model_slug
+                assert primary.model.content_sha256 == model_digest(model_slug)
+                assert len(manifest_paths) > 1
+                assert "snapshot" not in manifest_paths
+                assert selected_paths == manifest_paths
+                assert len(primary.files) == len(selected_ids), (
+                    "no manifest file may be selected twice"
                 )
-                self.assertTrue(
-                    all(item.roles == ["entrypoint"] for item in primary.files)
-                )
+                assert all(item.roles == ["entrypoint"] for item in primary.files)
                 required_checkpoint = REQUIRED_PRIMARY_CHECKPOINTS.get(recipe_slug)
                 if required_checkpoint is not None:
-                    self.assertIn(required_checkpoint, manifest_paths)
-                    self.assertIn(required_checkpoint, selected_paths)
+                    assert required_checkpoint in manifest_paths
+                    assert required_checkpoint in selected_paths
 
     def test_mova_license_links_target_the_pinned_model_cards(self) -> None:
         for model_slug in ("mova-360p", "mova-720p"):
@@ -81,11 +77,11 @@ class ExactModelFileClosureTests(unittest.TestCase):
                     load_json(ROOT / "models" / f"{model_slug}.json")
                 )
                 license = model_display(model_slug).license
-                self.assertEqual(license.spdx, "Apache-2.0")
+                assert license.spdx == "Apache-2.0"
                 assert isinstance(model.source, ModelSource)
-                self.assertEqual(
-                    license.url,
-                    f"{model.source.repository}/blob/{model.source.revision}/README.md",
+                assert (
+                    license.url
+                    == f"{model.source.repository}/blob/{model.source.revision}/README.md"
                 )
 
     def test_pytorch_checkpoint_models_do_not_claim_safetensors(self) -> None:
@@ -101,9 +97,9 @@ class ExactModelFileClosureTests(unittest.TestCase):
                 weight_paths = {
                     item.path for item in model.files if "weights" in item.roles
                 }
-                self.assertTrue(weight_paths)
-                self.assertTrue(
-                    all(Path(path).suffix in {".bin", ".pth"} for path in weight_paths)
+                assert weight_paths
+                assert all(
+                    Path(path).suffix in {".bin", ".pth"} for path in weight_paths
                 )
 
     def test_required_offline_dependencies_are_bound_to_adapter_mounts(self) -> None:
@@ -151,33 +147,28 @@ class ExactModelFileClosureTests(unittest.TestCase):
                         selection.model.content_sha256,
                     )
                     selected_refs.add(selected_ref)
-                    self.assertEqual(selection.model.slug, doc_slug)
-                    self.assertEqual(
-                        selection.model.content_sha256, model_digest(doc_slug)
+                    assert selection.model.slug == doc_slug
+                    assert selection.model.content_sha256 == model_digest(doc_slug)
+                    assert {item.file_id for item in selection.files} == {
+                        item.id for item in aux_model.files
+                    }
+                    assert all(
+                        item.mount.target == expected_mounts[auxiliary_id]
+                        and item.roles == ["entrypoint"]
+                        for item in selection.files
                     )
-                    self.assertEqual(
-                        {item.file_id for item in selection.files},
-                        {item.id for item in aux_model.files},
-                    )
-                    self.assertTrue(
-                        all(
-                            item.mount.target == expected_mounts[auxiliary_id]
-                            and item.roles == ["entrypoint"]
-                            for item in selection.files
-                        )
-                    )
-                self.assertEqual(selected_refs, dependency_refs)
+                assert selected_refs == dependency_refs
 
         hunyuan_source = (ROOT / "adapters/three-d/hunyuan3d-omni/run.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn('DINO = Path("/models/dinov2-large")', hunyuan_source)
+        assert 'DINO = Path("/models/dinov2-large")' in hunyuan_source
 
         foley_source = (
             ROOT / "adapters/audio/hunyuan-video-foley-native/pipelines/run.py"
         ).read_text(encoding="utf-8")
-        self.assertIn('Path("/models/siglip2/config.json")', foley_source)
-        self.assertIn('Path("/models/clap/config.json")', foley_source)
+        assert 'Path("/models/siglip2/config.json")' in foley_source
+        assert 'Path("/models/clap/config.json")' in foley_source
 
 
 if __name__ == "__main__":

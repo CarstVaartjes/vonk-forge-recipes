@@ -16,6 +16,7 @@ from types import SimpleNamespace
 from typing import Any
 from unittest import mock
 
+import pytest
 from documents import recipe_display
 from generated_catalog import GENERATED
 from repo_root import ROOT
@@ -79,85 +80,76 @@ def load_module(filename: str, name: str):
 class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
     def test_canary_resolves_pinned_model_runtime_and_bounded_memory(self) -> None:
         recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
-        self.assertEqual(
-            recipe["models"][0]["model"]["content_sha256"], canonical_digest(MODEL)
-        )
+        assert recipe["models"][0]["model"]["content_sha256"] == canonical_digest(MODEL)
         build = recipe["execution"]["build"]
-        self.assertEqual(build["base_image"], BASE_IMAGE)
-        self.assertEqual(
-            build["context"], {"path": "adapters/video/wan-dancer-diffsynth-disk"}
+        assert build["base_image"] == BASE_IMAGE
+        assert build["context"] == {"path": "adapters/video/wan-dancer-diffsynth-disk"}
+        assert (
+            build["dockerfile"] == "adapters/video/wan-dancer-diffsynth-disk/Dockerfile"
         )
-        self.assertEqual(
-            build["dockerfile"], "adapters/video/wan-dancer-diffsynth-disk/Dockerfile"
-        )
-        self.assertEqual(
-            build["patches"],
-            [{"path": "adapters/video/wan-dancer-diffsynth-disk/patch-runtime.py"}],
-        )
-        self.assertEqual(build["network"], {"hosts": BUILD_NETWORK_HOSTS})
+        assert build["patches"] == [
+            {"path": "adapters/video/wan-dancer-diffsynth-disk/patch-runtime.py"}
+        ]
+        assert build["network"] == {"hosts": BUILD_NETWORK_HOSTS}
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
-        self.assertIn(
-            'org.opencontainers.image.revision="84f93fc4907b6c193be5501bab0b5c37f383033c"',
-            dockerfile,
+        assert (
+            'org.opencontainers.image.revision="84f93fc4907b6c193be5501bab0b5c37f383033c"'
+            in dockerfile
         )
-        self.assertIn(
-            "diffsynth-studio-84f93fc4907b6c193be5501bab0b5c37f383033c.tar.gz",
-            dockerfile,
+        assert (
+            "diffsynth-studio-84f93fc4907b6c193be5501bab0b5c37f383033c.tar.gz"
+            in dockerfile
         )
-        self.assertEqual(
-            json.loads(MODEL.read_text())["source"]["revision"],
-            "85ce88dd8d025459dcf0fe93982d6da8b9002957",
+        assert (
+            json.loads(MODEL.read_text())["source"]["revision"]
+            == "85ce88dd8d025459dcf0fe93982d6da8b9002957"
         )
-        self.assertEqual(
-            recipe["provenance"]["source_reference"],
-            "https://github.com/modelscope/DiffSynth-Studio/tree/"
-            "84f93fc4907b6c193be5501bab0b5c37f383033c",
+        assert (
+            recipe["provenance"]["source_reference"]
+            == "https://github.com/modelscope/DiffSynth-Studio/tree/"
+            "84f93fc4907b6c193be5501bab0b5c37f383033c"
         )
-        self.assertTrue(
-            {"experimental", "disk-offload", "physical-oom-gated", "not-default"}
-            <= set(recipe_display(recipe["identity"]["slug"]).tags)
-        )
+        assert {
+            "experimental",
+            "disk-offload",
+            "physical-oom-gated",
+            "not-default",
+        } <= set(recipe_display(recipe["identity"]["slug"]).tags)
 
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(memory["peak_bytes"], 118_000_000_000)
+        assert memory["peak_bytes"] == 118000000000
 
         runtime = recipe["runtime"]
-        self.assertEqual(
-            set(runtime),
-            {"engine", "entrypoint", "arguments", "environment", "lifecycle"},
-        )
-        self.assertEqual(runtime["engine"], "pytorch-pipeline")
+        assert set(runtime) == {
+            "engine",
+            "entrypoint",
+            "arguments",
+            "environment",
+            "lifecycle",
+        }
+        assert runtime["engine"] == "pytorch-pipeline"
         environment_names = {item["name"] for item in runtime["environment"]}
-        self.assertFalse(PLATFORM_OWNED_CACHE_ENVIRONMENT & environment_names)
+        assert not PLATFORM_OWNED_CACHE_ENVIRONMENT & environment_names
         manifest = package_manifest()
-        self.assertEqual(manifest["schema_version"], 2)
-        self.assertEqual(manifest["package_type"], "recipe")
-        self.assertEqual(
-            manifest["build_inputs"],
-            [
-                {
-                    "kind": "oci-image",
-                    "platform": "linux/arm64",
-                    "reference": "nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:"
-                    "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
-                }
-            ],
-        )
-        self.assertEqual(
-            manifest["recipe_content_sha256"],
-            document_sha256(recipe),
-        )
-        package_paths = {item["path"] for item in manifest["files"]}  # pyright: ignore[reportGeneralTypeIssues]
-        self.assertTrue(
+        assert manifest["schema_version"] == 2
+        assert manifest["package_type"] == "recipe"
+        assert manifest["build_inputs"] == [
             {
-                build["context"]["path"] + "/Dockerfile",
-                build["dockerfile"],
-                build["patches"][0]["path"],
-                "models/wan-dancer-14b.json",
-                "recipe.json",
+                "kind": "oci-image",
+                "platform": "linux/arm64",
+                "reference": "nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:"
+                "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
             }
-            <= package_paths
-        )
+        ]
+        assert manifest["recipe_content_sha256"] == document_sha256(recipe)
+        package_paths = {item["path"] for item in manifest["files"]}  # pyright: ignore[reportGeneralTypeIssues]
+        assert {
+            build["context"]["path"] + "/Dockerfile",
+            build["dockerfile"],
+            build["patches"][0]["path"],
+            "models/wan-dancer-14b.json",
+            "recipe.json",
+        } <= package_paths
         with tarfile.open(
             fileobj=io.BytesIO(PACKAGE.read_bytes()), mode="r:gz"
         ) as archive:
@@ -167,28 +159,20 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
                 "models/wan-dancer-14b.json",
             ):
                 packaged = archive.extractfile(path)
-                self.assertIsNotNone(packaged)
-                payload = packaged.read()  # pyright: ignore[reportOptionalMemberAccess]
+                assert packaged is not None
+                payload = packaged.read()
                 if path == "models/wan-dancer-14b.json":
-                    self.assertEqual(
-                        document_sha256(json.loads(payload)), canonical_digest(MODEL)
+                    assert document_sha256(json.loads(payload)) == canonical_digest(
+                        MODEL
                     )
                 else:
-                    self.assertEqual(payload, (ROOT / path).read_bytes())
+                    assert payload == (ROOT / path).read_bytes()
 
     def test_vendored_diffsynth_source_is_exact_and_offline_patch_applies(self) -> None:
-        self.assertEqual(
-            hashlib.sha256(ARCHIVE.read_bytes()).hexdigest(), ARCHIVE_SHA256
-        )
+        assert hashlib.sha256(ARCHIVE.read_bytes()).hexdigest() == ARCHIVE_SHA256
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
-        self.assertIn(
-            f'org.opencontainers.image.revision="{DIFFSYNTH_REVISION}"',
-            dockerfile,
-        )
-        self.assertIn(
-            f"diffsynth-studio-{DIFFSYNTH_REVISION}.tar.gz",
-            dockerfile,
-        )
+        assert f'org.opencontainers.image.revision="{DIFFSYNTH_REVISION}"' in dockerfile
+        assert f"diffsynth-studio-{DIFFSYNTH_REVISION}.tar.gz" in dockerfile
 
         with tempfile.TemporaryDirectory() as value:
             source_root = Path(value) / "source"
@@ -202,24 +186,24 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
             )
             config = (unpacked / "diffsynth/core/loader/config.py").read_text()
             data_init = (unpacked / "diffsynth/core/data/__init__.py").read_text()
-            self.assertNotIn("from modelscope import", config)
-            self.assertNotIn("from huggingface_hub import", config)
-            self.assertIn("network model loading is disabled", config)
-            self.assertNotIn("UnifiedDataset", data_init)
+            assert "from modelscope import" not in config
+            assert "from huggingface_hub import" not in config
+            assert "network model loading is disabled" in config
+            assert "UnifiedDataset" not in data_init
 
             # Disk offload materializes only wrapped modules; the music encoder's
             # attention must be wrapped or its in_proj params stay on meta.
             music_encoder = (unpacked / "diffsynth/models/wantodance.py").read_text()
-            self.assertIn("self.self_attn = nn.MultiheadAttention(", music_encoder)
+            assert "self.self_attn = nn.MultiheadAttention(" in music_encoder
             maps_path = unpacked / "diffsynth/configs/vram_management_module_maps.py"
             maps: dict[str, dict[str, dict[str, str]]] = {}
             exec(compile(maps_path.read_bytes(), str(maps_path), "exec"), maps)  # noqa: S102
             wan_model_map = maps["VRAM_MANAGEMENT_MODULE_MAPS"][
                 "diffsynth.models.wan_video_dit.WanModel"
             ]
-            self.assertEqual(
-                wan_model_map["torch.nn.MultiheadAttention"],
-                "diffsynth.core.vram.layers.AutoWrappedModule",
+            assert (
+                wan_model_map["torch.nn.MultiheadAttention"]
+                == "diffsynth.core.vram.layers.AutoWrappedModule"
             )
 
     def test_pinned_global_stage_emits_one_keyframe_per_latent(self) -> None:
@@ -279,7 +263,7 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
         noise = initialize_noise(
             None, pipe, 1280, 720, generator.FRAME_COUNT, 0, "cpu", None, None
         )["noise"]
-        self.assertEqual(noise[2], generator.GLOBAL_KEYFRAMES)
+        assert noise[2] == generator.GLOBAL_KEYFRAMES
 
         class Latents:
             shape = noise
@@ -292,38 +276,30 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
             single_decode=lambda latent, _device: decoded.append(latent[2]) or [latent]
         )
         frames = decode_framewise(vae, Latents(), "cuda")
-        self.assertEqual(len(frames), generator.GLOBAL_KEYFRAMES)
-        self.assertEqual(
-            decoded, [slice(k, k + 1) for k in range(generator.GLOBAL_KEYFRAMES)]
-        )
+        assert len(frames) == generator.GLOBAL_KEYFRAMES
+        assert decoded == [slice(k, k + 1) for k in range(generator.GLOBAL_KEYFRAMES)]
 
     def test_runtime_uses_disk_mapping_process_isolation_and_no_downloads(self) -> None:
         generator = (ADAPTER / "generate.py").read_text(encoding="utf-8")
         runner = (ADAPTER / "run.py").read_text(encoding="utf-8")
         dockerfile = (ADAPTER / "Dockerfile").read_text(encoding="utf-8")
-        self.assertIn('"offload_dtype": "disk"', generator)
-        self.assertIn('"offload_device": "disk"', generator)
-        self.assertIn("VRAM_LIMIT_GIB = 64.0", generator)
-        self.assertIn('"--stage",\n            "global"', runner)
-        self.assertIn('"--stage",\n            "local"', runner)
-        self.assertIn("DIFFSYNTH_SKIP_DOWNLOAD=True", dockerfile)
-        self.assertIn("HF_HUB_OFFLINE=1", dockerfile)
-        self.assertIn("USER 10001:10001", dockerfile)
-        self.assertNotIn("git clone", dockerfile)
+        assert '"offload_dtype": "disk"' in generator
+        assert '"offload_device": "disk"' in generator
+        assert "VRAM_LIMIT_GIB = 64.0" in generator
+        assert '"--stage",\n            "global"' in runner
+        assert '"--stage",\n            "local"' in runner
+        assert "DIFFSYNTH_SKIP_DOWNLOAD=True" in dockerfile
+        assert "HF_HUB_OFFLINE=1" in dockerfile
+        assert "USER 10001:10001" in dockerfile
+        assert "git clone" not in dockerfile
 
 
 class WanDancerDiskOffloadInputTests(unittest.TestCase):
     def test_generation_canvas_accepts_720p_and_rejects_a_larger_canvas(self) -> None:
         runner = load_module("run.py", "wan_dancer_disk_runner")
-        self.assertEqual(
-            runner._generation_dimensions(720, 1280),
-            (720, 1280),
-        )
-        self.assertEqual(
-            runner._generation_dimensions(1280, 720),
-            (1280, 720),
-        )
-        with self.assertRaisesRegex(ValueError, "at most 921600 pixels"):
+        assert runner._generation_dimensions(720, 1280) == (720, 1280)
+        assert runner._generation_dimensions(1280, 720) == (1280, 720)
+        with pytest.raises(ValueError, match="at most 921600 pixels"):
             runner._generation_dimensions(1280, 1280)
 
     def _local_keyframes(self, source_frames: int, output_frames: int):
@@ -369,27 +345,25 @@ class WanDancerDiskOffloadInputTests(unittest.TestCase):
             *_, output_frames, _ = runner._expected_output(
                 image, target_height=1280, target_width=720, music_duration=5.0
             )
-        self.assertEqual(output_frames, 144)
+        assert output_frames == 144
 
         frames, mask = self._local_keyframes(generator.GLOBAL_KEYFRAMES, output_frames)
         positions = [index for index, flag in enumerate(mask) if flag]
-        self.assertEqual(len(mask), generator.FRAME_COUNT)
-        self.assertEqual(positions, [4 * k for k in range(38)])
-        self.assertEqual(positions[-1], generator.FRAME_COUNT - 1)
-        self.assertEqual(
-            [frames[index] for index in positions],
-            [f"keyframe-{k}" for k in range(38)],
-        )
-        self.assertEqual(
-            {frames[index] for index in range(len(frames)) if not mask[index]},
-            {"black"},
-        )
+        assert len(mask) == generator.FRAME_COUNT
+        assert positions == [4 * k for k in range(38)]
+        assert positions[-1] == generator.FRAME_COUNT - 1
+        assert [frames[index] for index in positions] == [
+            f"keyframe-{k}" for k in range(38)
+        ]
+        assert {frames[index] for index in range(len(frames)) if not mask[index]} == {
+            "black"
+        }
 
     def test_local_stage_rejects_a_global_video_with_one_frame_per_local_frame(
         self,
     ) -> None:
         generator = load_module("generate.py", "wan_dancer_disk_generator")
-        with self.assertRaisesRegex(SystemExit, "expected 38"):
+        with pytest.raises(SystemExit, match="expected 38"):
             self._local_keyframes(generator.FRAME_COUNT, 24)
 
 
@@ -503,29 +477,29 @@ class WanDancerDiskLoadableNetTests(unittest.TestCase):
         )
 
     def test_unwrapped_nested_parameter_fails_with_its_names(self) -> None:
-        with self.assertRaises(SystemExit) as raised:
+        with pytest.raises(SystemExit) as raised:
             self._require(self._pipe(self._attention()))
-        message = str(raised.exception)
-        self.assertIn("dit.music_encoder.0.self_attn.in_proj_weight", message)
-        self.assertIn("dit.music_encoder.0.self_attn.in_proj_bias", message)
-        self.assertNotIn("out_proj", message)
-        self.assertNotIn("log_scale", message)
+        message = str(raised.value)
+        assert "dit.music_encoder.0.self_attn.in_proj_weight" in message
+        assert "dit.music_encoder.0.self_attn.in_proj_bias" in message
+        assert "out_proj" not in message
+        assert "log_scale" not in message
 
     def test_wrapped_parameters_pass(self) -> None:
         self._require(self._pipe(_AutoWrappedModule(self._attention())))
 
     def test_wrapper_without_disk_offload_does_not_cover(self) -> None:
-        with self.assertRaises(SystemExit) as raised:
+        with pytest.raises(SystemExit) as raised:
             self._require(self._pipe(_AutoWrappedModule(self._attention(), disk=False)))
-        self.assertIn("self_attn.module.in_proj_weight", str(raised.exception))
+        assert "self_attn.module.in_proj_weight" in str(raised.value)
 
     def test_only_reviewed_unread_parameters_may_stay_meta(self) -> None:
         pipe = self._pipe(_AutoWrappedModule(self._attention()))
         pipe.image_encoder.model.logit_bias = _FakeParameter(is_meta=True)
-        with self.assertRaises(SystemExit) as raised:
+        with pytest.raises(SystemExit) as raised:
             self._require(pipe)
-        self.assertIn("image_encoder.model.logit_bias", str(raised.exception))
-        self.assertNotIn("log_scale", str(raised.exception))
+        assert "image_encoder.model.logit_bias" in str(raised.value)
+        assert "log_scale" not in str(raised.value)
 
 
 if __name__ == "__main__":

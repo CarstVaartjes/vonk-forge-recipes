@@ -115,18 +115,16 @@ class RayPollInterpreterTest(unittest.TestCase):
                 topology.get("node_count", 1) > 1
                 and topology["parallelism"]["backend"] == "ray"
             ):
-                self.assertIn(path.stem, launchers)
+                assert path.stem in launchers
 
     def test_every_ray_launcher_polls_ray_with_its_own_interpreter(self) -> None:
         for slug, recipe, launcher in ray_launchers():
             with self.subTest(recipe=slug, launcher=str(launcher.relative_to(ROOT))):
                 polls = ray_poll_commands(recipe, launcher)
-                self.assertTrue(polls, "rank 0 never polled the Ray cluster")
-                self.assertEqual(
-                    {command[0] for command in polls},
-                    {sys.executable},
+                assert polls, "rank 0 never polled the Ray cluster"
+                assert {command[0] for command in polls} == {sys.executable}, (
                     "poll Ray with sys.executable, not a hard-coded interpreter "
-                    "path the image may not have",
+                    "path the image may not have"
                 )
 
 

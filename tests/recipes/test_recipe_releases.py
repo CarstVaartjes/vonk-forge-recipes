@@ -10,6 +10,7 @@ from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 
+import pytest
 from repo_root import ROOT
 
 from vonk_forge_contracts import RecipeDefinition
@@ -53,7 +54,7 @@ class RecipeReleaseValidationTests(unittest.TestCase):
                 release = self.validate(
                     {"version": version, "released_at": "2026-09-17"}
                 )
-                self.assertEqual(release.version, version)
+                assert release.version == version
 
     def test_rejects_invalid_dates_and_versions(self) -> None:
         for document in (
@@ -62,11 +63,11 @@ class RecipeReleaseValidationTests(unittest.TestCase):
             {"version": "", "released_at": "2026-09-17"},
             {"version": "1.6 beta", "released_at": "2026-09-17"},
         ):
-            with self.subTest(document=document), self.assertRaises(ValueError):
+            with self.subTest(document=document), pytest.raises(ValueError):
                 self.validate(document)
 
     def test_release_carries_no_history(self) -> None:
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             self.validate(
                 {"version": "1.6", "released_at": "2026-09-17", "history": []}
             )
@@ -81,9 +82,9 @@ class RecipeReleaseBuildTests(unittest.TestCase):
             previous = catalog_index.MAX_SOURCE_FILE_BYTES
             catalog_index.MAX_SOURCE_FILE_BYTES = 3  # pyright: ignore[reportAttributeAccessIssue]
             try:
-                with self.assertRaisesRegex(
+                with pytest.raises(
                     SystemExit,
-                    "source bundle file exceeds the Git blob hydration limit",
+                    match="source bundle file exceeds the Git blob hydration limit",
                 ):
                     catalog_index.source_bundle(context)
             finally:

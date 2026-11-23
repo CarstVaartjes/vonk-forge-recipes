@@ -23,18 +23,18 @@ BACKEND_FLAGS = (
 
 class SglangGptOssAttentionBackendTests(unittest.TestCase):
     def test_guard_finds_recipes(self) -> None:
-        self.assertTrue(gpt_oss_recipes("sglang"))
+        assert gpt_oss_recipes("sglang")
 
     def test_backends_are_allowed_for_gpt_oss(self) -> None:
         for path in gpt_oss_recipes("sglang"):
             arguments = all_arguments(read(path))
             with self.subTest(recipe=path.name):
-                self.assertIn(
-                    "attention-backend", {argument["name"] for argument in arguments}
-                )
+                assert "attention-backend" in {
+                    argument["name"] for argument in arguments
+                }
                 for argument in arguments:
                     if argument["name"] in BACKEND_FLAGS:
-                        self.assertIn(argument.get("value"), GPT_OSS_ATTENTION_BACKENDS)
+                        assert argument.get("value") in GPT_OSS_ATTENTION_BACKENDS
 
 
 if __name__ == "__main__":

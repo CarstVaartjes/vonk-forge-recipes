@@ -12,6 +12,7 @@ from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.parse import quote
 
+import pytest
 from repo_root import ROOT
 
 from vonk_forge_contracts import ModelDefinition, document_sha256
@@ -100,21 +101,24 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
         document = self._run(github)
         assert document is not None
         ModelDefinition.model_validate(document)
-        self.assertEqual(
-            document["source"],
-            {"provider": "github-lfs", "repository": REPOSITORY, "revision": REVISION},
-        )
-        self.assertFalse(document["requires_token"])
+        assert document["source"] == {
+            "provider": "github-lfs",
+            "repository": REPOSITORY,
+            "revision": REVISION,
+        }
+        assert not document["requires_token"]
         (item,) = document["files"]
-        self.assertEqual(
-            (item["path"], item["sha256"], item["size_bytes"], item["roles"]),
-            (PATH, OID, SIZE, ["weights"]),
+        assert (item["path"], item["sha256"], item["size_bytes"], item["roles"]) == (
+            PATH,
+            OID,
+            SIZE,
+            ["weights"],
         )
-        self.assertEqual(len(github.requests), 1)
+        assert len(github.requests) == 1
         for request in github.requests:
             names = {name.lower() for name in request.headers}
-            self.assertFalse(names & {"authorization", "cookie"})
-        self.assertEqual(len(document_sha256(document)), 64)
+            assert not names & {"authorization", "cookie"}
+        assert len(document_sha256(document)) == 64
 
     def test_a_path_with_an_equals_sign_gets_a_valid_file_id(self) -> None:
         path = "motionbricks/out/pose/checkpoints/model-step=2000000.ckpt"
@@ -123,13 +127,13 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
         )
         assert document is not None
         (item,) = document["files"]
-        self.assertTrue(item["id"].startswith("model-step-2000000-"))
+        assert item["id"].startswith("model-step-2000000-")
         ModelDefinition.model_validate(document)
 
     def test_a_plain_git_file_is_refused(self) -> None:
-        with self.assertRaisesRegex(SystemExit, "vendor it in the recipe package"):
+        with pytest.raises(SystemExit, match="vendor it in the recipe package"):
             self._run(FakeGitHub({PATH: b'{"plain": true}\n'}))
-        with self.assertRaisesRegex(SystemExit, "vendor it in the recipe package"):
+        with pytest.raises(SystemExit, match="vendor it in the recipe package"):
             self._run(FakeGitHub({PATH: b"x" * 5000}))
 
     def test_malformed_pointers_are_refused(self) -> None:
@@ -143,14 +147,12 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
         ):
             with (
                 self.subTest(body=body),
-                self.assertRaisesRegex(
-                    SystemExit, "not a valid LFS pointer|never empty"
-                ),
+                pytest.raises(SystemExit, match="not a valid LFS pointer|never empty"),
             ):
                 self._run(FakeGitHub({PATH: body}))
 
     def test_a_missing_path_is_refused_with_the_status(self) -> None:
-        with self.assertRaisesRegex(SystemExit, "HTTP 404"):
+        with pytest.raises(SystemExit, match="HTTP 404"):
             self._run(FakeGitHub({}))
 
     def test_a_rate_limited_pointer_read_is_retried_and_the_model_is_written(
@@ -167,33 +169,30 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
         with patch("recipe_tooling.upstream_http.time.sleep"):
             document = self._run(limited)  # type: ignore[arg-type]
         assert document is not None
-        self.assertEqual(document["files"][0]["sha256"], OID)
+        assert document["files"][0]["sha256"] == OID
 
     def test_probe_batch_confirms_the_object_without_downloading(self) -> None:
         batch = {"objects": [{"oid": OID, "size": SIZE, "actions": {"download": {}}}]}
         github = FakeGitHub({PATH: pointer()}, batch)
         self._run(github, ("--probe-batch",))
         probe = github.requests[-1]
-        self.assertEqual(probe.get_method(), "POST")
-        self.assertEqual(
-            json.loads(probe.data),
-            {
-                "operation": "download",
-                "transfers": ["basic"],
-                "objects": [{"oid": OID, "size": SIZE}],
-            },
-        )
+        assert probe.get_method() == "POST"
+        assert json.loads(probe.data) == {
+            "operation": "download",
+            "transfers": ["basic"],
+            "objects": [{"oid": OID, "size": SIZE}],
+        }
 
     def test_probe_batch_refuses_a_missing_object(self) -> None:
         batch = {"objects": [{"oid": OID, "size": SIZE, "error": {"code": 404}}]}
-        with self.assertRaisesRegex(SystemExit, "not available"):
+        with pytest.raises(SystemExit, match="not available"):
             self._run(FakeGitHub({PATH: pointer()}, batch), ("--probe-batch",))
 
     def test_paths_and_roles_must_pair(self) -> None:
         github = FakeGitHub({PATH: pointer()})
-        with self.assertRaisesRegex(SystemExit, "one --role for every --path"):
+        with pytest.raises(SystemExit, match="one --role for every --path"):
             self._run(github, ("--path", "other"))
-        self.assertEqual(github.requests, [])
+        assert github.requests == []
 
 
 if __name__ == "__main__":

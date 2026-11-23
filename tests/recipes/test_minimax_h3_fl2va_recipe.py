@@ -20,15 +20,12 @@ def load(path: Path) -> dict:
 class MiniMaxH3Fl2vaRecipeTests(unittest.TestCase):
     def test_variant_is_separate_candidate_with_bounded_input_contract(self) -> None:
         recipe, full = load(RECIPE_PATH), load(FULL_RECIPE_PATH)
-        self.assertEqual(
-            recipe["identity"]["slug"], "minimax-h3-fl2va-diffusers-single"
+        assert recipe["identity"]["slug"] == "minimax-h3-fl2va-diffusers-single"
+        assert {"executable", "fl2va"} <= set(
+            recipe_display(recipe["identity"]["slug"]).tags
         )
-        self.assertTrue(
-            {"executable", "fl2va"}
-            <= set(recipe_display(recipe["identity"]["slug"]).tags)
-        )
-        self.assertNotEqual(recipe["identity"]["slug"], full["identity"]["slug"])
-        self.assertEqual(recipe["interfaces"][0]["adapter"], "video-job")
+        assert recipe["identity"]["slug"] != full["identity"]["slug"]
+        assert recipe["interfaces"][0]["adapter"] == "video-job"
 
     def test_model_authority_and_filtered_selection_are_exact(self) -> None:
         model, recipe = load(MODEL_PATH), load(RECIPE_PATH)
@@ -42,24 +39,22 @@ class MiniMaxH3Fl2vaRecipeTests(unittest.TestCase):
             )
             .hexdigest()
         )
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest)
-        self.assertEqual(
-            model["source"]["revision"], "42ed227ee7df40d41602854ae760620d6eb651fe"
-        )
+        assert recipe["models"][0]["model"]["content_sha256"] == digest
+        assert model["source"]["revision"] == "42ed227ee7df40d41602854ae760620d6eb651fe"
         selected = {item["file_id"] for item in recipe["models"][0]["files"]}
-        self.assertEqual(selected, {item["id"] for item in model["files"]})
+        assert selected == {item["id"] for item in model["files"]}
 
     def test_variant_has_keyframe_slots_and_no_references(self) -> None:
         slots = {
             slot["id"] for slot in load(RECIPE_PATH)["interfaces"][0]["input"]["slots"]
         }
-        self.assertEqual(slots, {"prompt", "first-image", "last-image"})
+        assert slots == {"prompt", "first-image", "last-image"}
 
     def test_resource_contract_uses_exact_single_spark_closure(self) -> None:
         recipe = load(RECIPE_PATH)
         role = recipe["topology"]["roles"][0]
-        self.assertEqual(recipe["topology"]["node_count"], 1)
-        self.assertGreater(role["resources"]["disk"]["artifact_bytes"], 0)
+        assert recipe["topology"]["node_count"] == 1
+        assert role["resources"]["disk"]["artifact_bytes"] > 0
 
 
 if __name__ == "__main__":

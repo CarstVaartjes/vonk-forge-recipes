@@ -29,30 +29,29 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
             with self.subTest(recipe=slug):
                 recipe = _recipe(slug)
                 tags = set(recipe_display(recipe["identity"]["slug"]).tags)  # pyright: ignore[reportIndexIssue]
-                self.assertTrue(
-                    {"multimodal", "vision", "text-qualified", "vision-unproven"}
-                    <= tags
+                assert {
+                    "multimodal",
+                    "vision",
+                    "text-qualified",
+                    "vision-unproven",
+                } <= tags
+                assert (
+                    "Current qualification proves bounded text chat only"
+                    in recipe_display(recipe["identity"]["slug"]).description  # pyright: ignore[reportIndexIssue]
                 )
-                self.assertIn(
-                    "Current qualification proves bounded text chat only",
-                    recipe_display(recipe["identity"]["slug"]).description,  # pyright: ignore[reportIndexIssue]
-                )
-                self.assertIn(
-                    "vision serving remains unproven on Spark",
-                    recipe_display(recipe["identity"]["slug"]).description,  # pyright: ignore[reportIndexIssue]
+                assert (
+                    "vision serving remains unproven on Spark"
+                    in recipe_display(recipe["identity"]["slug"]).description  # pyright: ignore[reportIndexIssue]
                 )
                 checks = recipe["validation"]["serving"]["checks"]  # pyright: ignore[reportIndexIssue]
-                self.assertEqual(
-                    {check["kind"] for check in checks},
-                    {"openai.health", "openai.chat"},
-                )
-                self.assertIn(
-                    "chat.nonempty",
-                    next(
-                        check["assertions"]
-                        for check in checks
-                        if check["kind"] == "openai.chat"
-                    ),
+                assert {check["kind"] for check in checks} == {
+                    "openai.health",
+                    "openai.chat",
+                }
+                assert "chat.nonempty" in next(
+                    check["assertions"]
+                    for check in checks
+                    if check["kind"] == "openai.chat"
                 )
 
     def test_qwen38_fp8_is_preferred_dense_default(self) -> None:
@@ -65,10 +64,10 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
             recipe_display(_recipe("qwen3-6-27b-vllm-single")["identity"]["slug"]).tags  # pyright: ignore[reportIndexIssue]
         )
 
-        self.assertTrue({"preferred-dense", "default"} <= preferred)
-        self.assertNotIn("superseded", preferred)
-        self.assertIn("superseded", older_dense)
-        self.assertTrue({"preferred-dense", "default"}.isdisjoint(older_dense))
+        assert {"preferred-dense", "default"} <= preferred
+        assert "superseded" not in preferred
+        assert "superseded" in older_dense
+        assert {"preferred-dense", "default"}.isdisjoint(older_dense)
         for alternative in (
             "qwen3-8-27b-vllm-single",
             "qwen3-8-27b-nvfp4-dspark-sglang-single",
@@ -77,7 +76,7 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
                 tags = set(
                     recipe_display(_recipe(alternative)["identity"]["slug"]).tags  # pyright: ignore[reportIndexIssue]
                 )
-                self.assertTrue({"preferred-dense", "default"}.isdisjoint(tags))
+                assert {"preferred-dense", "default"}.isdisjoint(tags)
 
 
 if __name__ == "__main__":

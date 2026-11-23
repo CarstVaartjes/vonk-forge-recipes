@@ -35,7 +35,7 @@ class ClassificationTests(unittest.TestCase):
         cmp = comparison(
             files=("src/model.py", "docs/guide.md", ".github/ci.yml", "logo.png")
         )
-        self.assertEqual(classify(cmp), [])
+        assert classify(cmp) == []
 
     def test_launch_script_config_readme_and_patches_are_not(self) -> None:
         for name in (
@@ -46,7 +46,7 @@ class ClassificationTests(unittest.TestCase):
             "x.patch",
         ):
             with self.subTest(name=name):
-                self.assertTrue(classify(comparison(files=(name,))))
+                assert classify(comparison(files=(name,)))
 
     def test_downgrade_divergence_and_truncation_are_not(self) -> None:
         for cmp in (
@@ -54,14 +54,12 @@ class ClassificationTests(unittest.TestCase):
             comparison("diverged"),
             comparison(truncated=True),
         ):
-            self.assertTrue(classify(cmp))
+            assert classify(cmp)
 
     def test_patch_target_change_and_vendor_problems_are_not(self) -> None:
-        self.assertTrue(classify(comparison(files=("lib/a.py",)), patched={"lib/a.py"}))
-        self.assertTrue(classify(comparison(), problems=["x differs"]))
-        self.assertEqual(
-            classify(comparison(files=("lib/b.py",)), patched={"lib/a.py"}), []
-        )
+        assert classify(comparison(files=("lib/a.py",)), patched={"lib/a.py"})
+        assert classify(comparison(), problems=["x differs"])
+        assert classify(comparison(files=("lib/b.py",)), patched={"lib/a.py"}) == []
 
     def test_renamed_away_blocking_file_counts(self) -> None:
         cmp = refresh_model.Comparison(
@@ -77,14 +75,12 @@ class ClassificationTests(unittest.TestCase):
             False,
             "u",
         )
-        self.assertTrue(classify(cmp))
+        assert classify(cmp)
 
     def test_patch_targets_are_read_from_diff_headers(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "a.patch").write_text("--- a/lib/x.py\n+++ b/lib/x.py\n@@\n")
-            self.assertEqual(
-                refresh_classification.patch_targets(Path(tmp)), {"lib/x.py"}
-            )
+            assert refresh_classification.patch_targets(Path(tmp)) == {"lib/x.py"}
 
 
 class NothingRunsTests(unittest.TestCase):
@@ -109,26 +105,20 @@ class NothingRunsTests(unittest.TestCase):
             "assets/chart.svg",
         ):
             with self.subTest(name=name):
-                self.assertFalse(refresh_model.runs(name))
+                assert not refresh_model.runs(name)
         for name in ("src/model.py", "requirements.txt", "run.sh", "Makefile", "a.c"):
             with self.subTest(name=name):
-                self.assertTrue(refresh_model.runs(name))
+                assert refresh_model.runs(name)
 
     def test_only_complete_docs_comparisons_change_nothing(self) -> None:
         docs = comparison(files=("README.md", "bench/results/a.json", "LICENSE"))
-        self.assertTrue(refresh_model.nothing_runs(docs, frozenset()))
-        self.assertFalse(
-            refresh_model.nothing_runs(docs, {"README.md"})
-        )  # adapter copies it
-        self.assertFalse(
-            refresh_model.nothing_runs(
-                comparison(files=("README.md", "src/a.py")), set()
-            )
+        assert refresh_model.nothing_runs(docs, frozenset())
+        assert not refresh_model.nothing_runs(docs, {"README.md"})  # adapter copies it
+        assert not refresh_model.nothing_runs(
+            comparison(files=("README.md", "src/a.py")), set()
         )
-        self.assertFalse(
-            refresh_model.nothing_runs(
-                comparison(files=("README.md",), truncated=True), set()
-            )
+        assert not refresh_model.nothing_runs(
+            comparison(files=("README.md",), truncated=True), set()
         )
 
     def assess(
@@ -187,8 +177,8 @@ class NothingRunsTests(unittest.TestCase):
         result = self.assess(
             comparison(files=("README.md", "bench/results/a.json", "AGENTS.md"))
         )
-        self.assertFalse(result.drifted)
-        self.assertFalse(result.reasons)
+        assert not result.drifted
+        assert not result.reasons
 
     def test_a_moved_vllm_document_meets_the_budget_envelope(self) -> None:
         moved = comparison(files=("src/engine.py",))
@@ -201,9 +191,9 @@ class NothingRunsTests(unittest.TestCase):
             self.assess(moved, engine="vllm")
             raised.assert_called_once()
             roles, _recipe, replaced, digest = raised.call_args.args
-            self.assertEqual(roles, [])
-            self.assertEqual(len(digest), 64)  # the replaced document, in hand
-            self.assertIsNotNone(replaced)
+            assert roles == []
+            assert len(digest) == 64  # the replaced document, in hand
+            assert replaced is not None
         with patch(
             "recipe_tooling.refresh_upstream.evidence.raise_role_peaks"
         ) as raised:
@@ -217,21 +207,21 @@ class NothingRunsTests(unittest.TestCase):
             ),
         ):
             result = self.assess(moved, engine="vllm")
-        self.assertFalse(result.mechanical)
-        self.assertIn("memory envelope", " ".join(result.reasons))
+        assert not result.mechanical
+        assert "memory envelope" in " ".join(result.reasons)
 
     def body(self, result) -> str:
-        self.assertTrue(result.mechanical)
+        assert result.mechanical
         return refresh_render.pr_body(result)
 
     def test_body_of_a_non_vllm_move_claims_no_peaks(self) -> None:
         body = self.body(
             self.assess(comparison(files=("src/engine.py",)), engine="sglang")
         )
-        self.assertIn("## Principles", body)
-        self.assertNotIn("peaks", body)
-        self.assertIn("re-checks the new digest", body)
-        self.assertIn("The sweep proves the recipe runs.", body)
+        assert "## Principles" in body
+        assert "peaks" not in body
+        assert "re-checks the new digest" in body
+        assert "The sweep proves the recipe runs." in body
 
     def test_body_of_an_unmark_only_drift_claims_no_move_and_no_new_digest(
         self,
@@ -252,11 +242,11 @@ class NothingRunsTests(unittest.TestCase):
         ):
             result = self.assess(comparison(files=("src/engine.py",)))
         body = self.body(result)
-        self.assertIn("## Principles", body)
-        self.assertNotIn("pins move", body)
-        self.assertNotIn("new digest", body)
-        self.assertNotIn("sweep proves", body)
-        self.assertNotIn("peaks", body)
+        assert "## Principles" in body
+        assert "pins move" not in body
+        assert "new digest" not in body
+        assert "sweep proves" not in body
+        assert "peaks" not in body
 
     def test_body_of_a_poolless_vllm_move_states_the_raised_peaks(self) -> None:
         recipe = documents.recipe("d3-lite-vllm-single", ROOT).model_copy(deep=True)
@@ -269,9 +259,9 @@ class NothingRunsTests(unittest.TestCase):
             role.resources.memory.load_peak_bytes = None
         document = recipe.model_dump(mode="json", exclude_none=True)
         result = self.assess(comparison(files=("src/engine.py",)), document=document)
-        self.assertTrue(result.peaks_raised)
+        assert result.peaks_raised
         body = self.body(result)
-        self.assertIn("raised to the vLLM budget envelope", body)
+        assert "raised to the vLLM budget envelope" in body
 
     def test_body_names_held_pins_and_does_not_claim_they_moved(self) -> None:
         result = refresh_model.Assessment(
@@ -283,12 +273,12 @@ class NothingRunsTests(unittest.TestCase):
             edits={"recipes/recipe.json": b"x"},
         )
         body = refresh_render.pr_body(result)
-        self.assertIn("pins that moved go", body)
-        self.assertIn("image o/base", body)
+        assert "pins that moved go" in body
+        assert "image o/base" in body
 
     def test_whole_repository_code_move_is_still_a_refresh(self) -> None:
         result = self.assess(comparison(files=("README.md", "src/engine.py")))
-        self.assertTrue(result.mechanical)
+        assert result.mechanical
 
     def test_stale_vendored_readme_copy_alone_is_current(self) -> None:
         message = "adapters/x: upstream-README.md: differs from upstream README.md at f"
@@ -296,7 +286,7 @@ class NothingRunsTests(unittest.TestCase):
         report.problems.append(message)
         report.stale.append((message, "upstream-README.md", "README.md"))
         result = self.assess(comparison(files=("README.md",)), used=[], report=report)
-        self.assertFalse(result.drifted)
+        assert not result.drifted
 
     def test_huggingface_source_reference_alone_is_current(self) -> None:
         catalog = single_recipe_catalog(
@@ -311,15 +301,15 @@ class NothingRunsTests(unittest.TestCase):
             return_value=None,
         ):
             result = assessor.assess("recipe")
-        self.assertFalse(result.drifted)
-        self.assertFalse(result.edits)
+        assert not result.drifted
+        assert not result.edits
 
 
 class ReadmeAndScopeTests(unittest.TestCase):
     def test_readme_is_not_a_blocking_file(self) -> None:
-        self.assertFalse(refresh_model.is_blocking("README.md"))
-        self.assertFalse(refresh_model.is_blocking("models/readme.rst"))
-        self.assertTrue(refresh_model.is_blocking("run.sh"))
+        assert not refresh_model.is_blocking("README.md")
+        assert not refresh_model.is_blocking("models/readme.rst")
+        assert refresh_model.is_blocking("run.sh")
 
     def test_ui_mate_unrelated_upstream_changes_are_mechanical(self) -> None:
         # #491: 3 commits, 300+ files (truncated), none of them used by the recipe.
@@ -336,21 +326,17 @@ class ReadmeAndScopeTests(unittest.TestCase):
             True,
             "u",
         )
-        self.assertEqual(classify(cmp, used_changes=[]), [])
+        assert classify(cmp, used_changes=[]) == []
         # Without a verified used set the same change is judged file by file.
-        self.assertTrue(classify(cmp))
+        assert classify(cmp)
 
     def test_used_file_change_is_a_reason(self) -> None:
-        self.assertTrue(
-            classify(comparison(), used_changes=["agents/ui_mate_agent.py"])
-        )
+        assert classify(comparison(), used_changes=["agents/ui_mate_agent.py"])
 
     def test_diverged_is_not_a_reason_once_used_files_are_verified(self) -> None:
-        self.assertEqual(classify(comparison("diverged"), used_changes=[]), [])
-        self.assertTrue(classify(comparison("diverged")))
-        self.assertTrue(
-            classify(comparison("diverged"), used_changes=[], problems=["x differs"])
-        )
+        assert classify(comparison("diverged"), used_changes=[]) == []
+        assert classify(comparison("diverged"))
+        assert classify(comparison("diverged"), used_changes=[], problems=["x differs"])
 
     def test_licence_removal_is_informational(self) -> None:
         cmp = refresh_model.Comparison(
@@ -363,8 +349,8 @@ class ReadmeAndScopeTests(unittest.TestCase):
             OLD,
             refresh_model.Target("github", "o/r", NEW, "2026-09-30", None, None, "u"),
         )
-        self.assertEqual(classify(cmp, used_changes=[]), [])
-        self.assertIn("never gate", refresh_evidence.github_evidence(item, cmp, set()))
+        assert classify(cmp, used_changes=[]) == []
+        assert "never gate" in refresh_evidence.github_evidence(item, cmp, set())
 
 
 class AdapterUsageTests(unittest.TestCase):
@@ -375,25 +361,21 @@ class AdapterUsageTests(unittest.TestCase):
             return refresh_catalog_view.adapter_usage(Path(tmp), "o/Repo", OLD)
 
     def test_wrapper_without_references_uses_nothing(self) -> None:
-        self.assertEqual(
-            self.usage({"Dockerfile": "FROM x\nCOPY a /a\n"}), (set(), False)
-        )
+        assert self.usage({"Dockerfile": "FROM x\nCOPY a /a\n"}) == (set(), False)
 
     def test_explicit_urls_name_files(self) -> None:
         text = (
             "curl https://raw.githubusercontent.com/o/repo/main/cfg/a.yaml\n"
             "# https://github.com/o/Repo/blob/v1/docs/b.md\n"
         )
-        self.assertEqual(
-            self.usage({"setup.sh": text}), ({"cfg/a.yaml", "docs/b.md"}, False)
-        )
+        assert self.usage({"setup.sh": text}) == ({"cfg/a.yaml", "docs/b.md"}, False)
 
     def test_clone_or_commit_named_archive_uses_the_whole_repository(self) -> None:
         clone = "RUN git clone https://github.com/o/Repo /src\n"
-        self.assertTrue(self.usage({"Dockerfile": clone})[1])
-        self.assertTrue(self.usage({f"tensorfold-{OLD}.tar.gz": ""})[1])
+        assert self.usage({"Dockerfile": clone})[1]
+        assert self.usage({f"tensorfold-{OLD}.tar.gz": ""})[1]
         codeload = f"ADD https://codeload.github.com/o/Repo/tar.gz/{OLD} /src.tgz\n"
-        self.assertTrue(self.usage({"Dockerfile": codeload})[1])
+        assert self.usage({"Dockerfile": codeload})[1]
 
     def test_another_repositorys_download_does_not_make_this_one_whole(self) -> None:
         dockerfile = (
@@ -402,7 +384,7 @@ class AdapterUsageTests(unittest.TestCase):
             "RUN git clone https://github.com/comfy/Comfy /c\n"
             "RUN pip install https://github.com/other/lib/archive/v1.zip\n"
         )
-        self.assertEqual(self.usage({"Dockerfile": dockerfile}), (set(), False))
+        assert self.usage({"Dockerfile": dockerfile}) == (set(), False)
 
 
 class ArchiveLabelTests(unittest.TestCase):
@@ -430,9 +412,9 @@ class ArchiveLabelTests(unittest.TestCase):
             moved, changed = refresh_classification.retarget_archive_labels(
                 text, self.item()
             )
-        self.assertTrue(changed)
-        self.assertIn(f'a.archive-sha256="{self.NEW_DIGEST}"', moved)
-        self.assertIn(f'mia-source-archive-sha256="{self.OTHER}"', moved)
+        assert changed
+        assert f'a.archive-sha256="{self.NEW_DIGEST}"' in moved
+        assert f'mia-source-archive-sha256="{self.OTHER}"' in moved
 
     def test_the_download_check_moves_with_the_label(self) -> None:
         # The LTX adapters state the digest twice; moving only the label left the
@@ -449,20 +431,19 @@ class ArchiveLabelTests(unittest.TestCase):
             moved, changed = refresh_classification.retarget_archive_labels(
                 text, self.item()
             )
-        self.assertTrue(changed)
-        self.assertNotIn(self.OLD_DIGEST, moved)
-        self.assertEqual(moved.count(self.NEW_DIGEST), 2)
-        self.assertIn(self.OTHER, moved)
+        assert changed
+        assert self.OLD_DIGEST not in moved
+        assert moved.count(self.NEW_DIGEST) == 2
+        assert self.OTHER in moved
 
     def test_unrelated_archive_labels_are_left_alone(self) -> None:
         text = f'LABEL b.archive-sha256="{self.OTHER}"\n'
         with patch(
             "recipe_tooling.refresh_upstream.classification.archive_sha256", self.digest
         ):
-            self.assertEqual(
-                refresh_classification.retarget_archive_labels(text, self.item()),
-                (text, False),
-            )
+            assert refresh_classification.retarget_archive_labels(
+                text, self.item()
+            ) == (text, False)
 
     def test_fetch_failure_is_a_review_reason_not_a_stale_label(self) -> None:
         def broken(_repo: str, _commit: str) -> str:
@@ -488,7 +469,7 @@ class ArchiveLabelTests(unittest.TestCase):
                 "recipe_tooling.refresh_upstream.classification.archive_sha256", broken
             ):
                 assessor._retarget_adapter(pin, self.item(), edits, result)
-            self.assertTrue(result.reasons)
+            assert result.reasons
             with patch(
                 "recipe_tooling.refresh_upstream.classification.archive_sha256",
                 self.digest,
@@ -496,9 +477,9 @@ class ArchiveLabelTests(unittest.TestCase):
                 result = refresh_model.Assessment("recipe")
                 assessor._retarget_adapter(pin, self.item(), edits, result)
             new = edits["adapter/Dockerfile"].decode()
-            self.assertIn(self.NEW_DIGEST, new)
-            self.assertIn(NEW, new)
-            self.assertFalse(result.reasons)
+            assert self.NEW_DIGEST in new
+            assert NEW in new
+            assert not result.reasons
 
 
 class ReleaseAssetTests(unittest.TestCase):
@@ -642,34 +623,31 @@ class ReleaseAssetTests(unittest.TestCase):
 
     def test_a_code_only_release_re_pins_url_version_and_sha(self) -> None:
         result = self.assess()
-        self.assertTrue(result.mechanical, result.reasons)
+        assert result.mechanical, result.reasons
         moved = result.edits["adapters/tf/Dockerfile"].decode()  # pyright: ignore[reportOptionalMemberAccess]
-        self.assertIn(
-            f"https://github.com/{self.REPO}/releases/download/v1.2.4/{self.asset('1.2.4')}",
-            moved,
+        assert (
+            f"https://github.com/{self.REPO}/releases/download/v1.2.4/{self.asset('1.2.4')}"
+            in moved
         )
-        self.assertIn(f'echo "{self.NEW_SHA256}  /tmp/tf.tar.gz"', moved)
-        self.assertIn('test "$(cat /opt/tensorfold/VERSION)" = 1.2.4', moved)
-        self.assertIn("# TensorFold v1.2.4 (Apache-2.0)", moved)
-        self.assertIn(f'revision="{NEW}"', moved)
-        self.assertNotIn("1.2.3", moved)
-        self.assertNotIn(self.OLD_SHA256, moved)
+        assert f'echo "{self.NEW_SHA256}  /tmp/tf.tar.gz"' in moved
+        assert 'test "$(cat /opt/tensorfold/VERSION)" = 1.2.4' in moved
+        assert "# TensorFold v1.2.4 (Apache-2.0)" in moved
+        assert f'revision="{NEW}"' in moved
+        assert "1.2.3" not in moved
+        assert self.OLD_SHA256 not in moved
         # Another project's download and digest are not this release's.
-        self.assertIn("libjpeg-turbo/releases/download/3.1.4.1/j.tar.gz", moved)
-        self.assertIn(self.OTHER, moved)
-        self.assertIn("recipes/recipe.json", result.edits)
-        self.assertEqual(result.version, ("1.2.4", "2026-11-07"))
+        assert "libjpeg-turbo/releases/download/3.1.4.1/j.tar.gz" in moved
+        assert self.OTHER in moved
+        assert "recipes/recipe.json" in result.edits
+        assert result.version == ("1.2.4", "2026-11-07")
 
     def test_a_release_without_its_sha256_file_is_a_review(self) -> None:
         result = self.assess(new_has_sha256=False)
-        self.assertFalse(result.mechanical)
-        self.assertTrue(
-            any(
-                "release asset pinned by version and sha; re-pin by hand" in reason
-                for reason in result.reasons
-            ),
-            result.reasons,
-        )
+        assert not result.mechanical
+        assert any(
+            "release asset pinned by version and sha; re-pin by hand" in reason
+            for reason in result.reasons
+        ), result.reasons
 
 
 class EnvelopeTests(unittest.TestCase):
@@ -757,15 +735,14 @@ class EnvelopeTests(unittest.TestCase):
             {"recipes": []},
         )
         assessor._retarget_model(recipe, recipe, old, fresh, result)
-        self.assertFalse(result.reasons)
+        assert not result.reasons
         selected = recipe["models"][0]["files"]
-        self.assertEqual(
-            sorted(s["file_id"] for s in selected),
-            sorted(f["id"] for f in fresh["files"]),
+        assert sorted(s["file_id"] for s in selected) == sorted(
+            f["id"] for f in fresh["files"]
         )
-        self.assertTrue(all(s["mount"] == mount for s in selected))
+        assert all(s["mount"] == mount for s in selected)
         disk = recipe["topology"]["roles"][0]["resources"]["disk"]
-        self.assertEqual(disk["artifact_bytes"], 1_000_000 - 10 + 7)
+        assert disk["artifact_bytes"] == 1000000 - 10 + 7
 
     def test_selected_file_id_follows_the_new_file_within_the_contract_bound(
         self,
@@ -773,25 +750,25 @@ class EnvelopeTests(unittest.TestCase):
         # #1290: a long model-reference prefix plus the new file id overflowed 64.
         prefix = "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-"
         _disk, result = self.retarget(10_000_000, 10_000_000, 10_000_000, prefix)
-        self.assertFalse(result.reasons)
+        assert not result.reasons
         new_id = file_id("model.safetensors", "d" * 64)
-        self.assertEqual(self.selected["file_id"], new_id)
-        self.assertLessEqual(len(self.selected["id"]), 64)
-        self.assertTrue(self.selected["id"].startswith(prefix + new_id[:5]))
+        assert self.selected["file_id"] == new_id
+        assert len(self.selected["id"]) <= 64
+        assert self.selected["id"].startswith(prefix + new_id[:5])
         _disk, _result = self.retarget(10_000_000, 10_000_000, 10_000_000)
-        self.assertEqual(self.selected["id"], "sel-" + new_id)
+        assert self.selected["id"] == "sel-" + new_id
 
     def test_small_size_change_shifts_a_derived_envelope(self) -> None:
         disk, result = self.retarget(10_000_000, 10_000_000, 9_999_600)
-        self.assertEqual(disk["artifact_bytes"], 9_999_600)
-        self.assertFalse(result.reasons)
+        assert disk["artifact_bytes"] == 9999600
+        assert not result.reasons
 
     def test_small_size_change_keeps_a_declared_allowance(self) -> None:
         disk, result = self.retarget(10_500_000, 10_000_000, 9_999_600)
-        self.assertEqual(disk["artifact_bytes"], 10_499_600)
-        self.assertFalse(result.reasons)
+        assert disk["artifact_bytes"] == 10499600
+        assert not result.reasons
 
     def test_material_size_change_needs_review(self) -> None:
         _disk, result = self.retarget(10_000_000, 10_000_000, 10_200_000)
-        self.assertTrue(result.reasons)
-        self.assertIn("more than 1%", result.reasons[0])
+        assert result.reasons
+        assert "more than 1%" in result.reasons[0]

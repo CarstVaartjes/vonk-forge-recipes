@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import pytest
 from repo_root import ROOT
 
 DIFFUSERS_REVISION = "c5469b7ceb606edd7ba6570dcd17d38590a18db6"
@@ -69,8 +70,8 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
         for relative in dockerfiles:
             with self.subTest(relative=relative):
                 source = (ROOT / relative).read_text(encoding="utf-8")
-                self.assertIn(DIFFUSERS_REVISION, source)
-                self.assertNotIn("d035dcd7cc7c88e0a154609b62887d50bba9fdc2", source)
+                assert DIFFUSERS_REVISION in source
+                assert "d035dcd7cc7c88e0a154609b62887d50bba9fdc2" not in source
 
     def test_generation_adapters_require_one_bounded_utf8_prompt_file(self) -> None:
         for adapter in (flash, generation):
@@ -85,10 +86,10 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
                     (inputs / "prompt.txt").write_text(
                         "  draw a red fox  \n", encoding="utf-8"
                     )
-                    self.assertEqual(adapter._prompt(), "draw a red fox")
+                    assert adapter._prompt() == "draw a red fox"
 
                     (inputs / "second.text").write_text("another", encoding="utf-8")
-                    with self.assertRaisesRegex(SystemExit, "exactly one"):
+                    with pytest.raises(SystemExit, match="exactly one"):
                         adapter._prompt()
                 finally:
                     adapter._INPUT_DIR = previous  # pyright: ignore[reportAttributeAccessIssue]
@@ -101,10 +102,10 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
             try:
                 prompt = inputs / "prompt.txt"
                 prompt.write_bytes(b"\xff")
-                with self.assertRaisesRegex(SystemExit, "valid UTF-8"):
+                with pytest.raises(SystemExit, match="valid UTF-8"):
                     generation._prompt()
                 prompt.write_bytes(b"x" * (generation._MAX_PROMPT_BYTES + 1))
-                with self.assertRaisesRegex(SystemExit, "1..16384"):
+                with pytest.raises(SystemExit, match="1..16384"):
                     generation._prompt()
             finally:
                 generation._INPUT_DIR = previous  # pyright: ignore[reportAttributeAccessIssue]
@@ -119,21 +120,20 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
                     "replace the scarf", encoding="utf-8"
                 )
                 (inputs / "reference-1.png").write_bytes(b"png")
-                self.assertEqual(edit._prompt(), "replace the scarf")
-                self.assertEqual(
-                    [path.name for path in edit._image_inputs()],
-                    ["reference-1.png"],
-                )
+                assert edit._prompt() == "replace the scarf"
+                assert [path.name for path in edit._image_inputs()] == [
+                    "reference-1.png"
+                ]
 
                 (inputs / "second.text").write_text("another", encoding="utf-8")
-                with self.assertRaisesRegex(SystemExit, "exactly one"):
+                with pytest.raises(SystemExit, match="exactly one"):
                     edit._prompt()
                 (inputs / "second.text").unlink()
 
                 (inputs / "reference-2.webp").write_bytes(b"webp")
-                self.assertEqual(len(edit._image_inputs()), 2)
+                assert len(edit._image_inputs()) == 2
                 (inputs / "reference-3.jpg").write_bytes(b"jpg")
-                with self.assertRaisesRegex(SystemExit, "one or two"):
+                with pytest.raises(SystemExit, match="one or two"):
                     edit._image_inputs()
             finally:
                 edit._INPUT_DIR = previous  # pyright: ignore[reportAttributeAccessIssue]
@@ -145,20 +145,19 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
             inputs.mkdir()
             image = inputs / "composition.png"
             image.write_bytes(b"png")
-            self.assertEqual(layered._image_input(inputs), image)
+            assert layered._image_input(inputs) == image
 
             for count in range(1, 9):
                 with self.subTest(count=count):
                     count_outputs = outputs / str(count)
                     layers = [_Layer() for _ in range(count)]
                     paths = layered._save_layers(layers, count_outputs, count)
-                    self.assertEqual(
-                        [path.name for path in paths],
-                        [f"layer-{index:02d}.png" for index in range(count)],
-                    )
-                    self.assertTrue(all(path.is_file() for path in paths))
-                    self.assertTrue(all(layer.saved[0][1] == "PNG" for layer in layers))
-                    with self.assertRaisesRegex(SystemExit, f"expected {count + 1}"):
+                    assert [path.name for path in paths] == [
+                        f"layer-{index:02d}.png" for index in range(count)
+                    ]
+                    assert all(path.is_file() for path in paths)
+                    assert all(layer.saved[0][1] == "PNG" for layer in layers)
+                    with pytest.raises(SystemExit, match=f"expected {count + 1}"):
                         layered._save_layers(layers, count_outputs, count + 1)
 
     def test_recipes_declare_matching_prompt_and_memory_contracts(self) -> None:
@@ -169,85 +168,78 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
         for slug in generation_slugs:
             recipe = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
             interface = recipe["interfaces"][0]
-            self.assertEqual(interface["input"]["media_types"], ["text/plain"])
-            self.assertEqual(interface["input"]["max_bytes"], 16 * 1024)
-            self.assertEqual(
-                interface["input"]["slots"],
-                [
-                    {
-                        "id": "prompt",
-                        "label": "Prompt",
-                        "description": "UTF-8 text prompt for image generation.",
-                        "media_types": ["text/plain"],
-                        "extensions": [".txt"],
-                        "min_files": 1,
-                        "max_files": 1,
-                        "max_file_bytes": 16 * 1024,
-                        "max_total_bytes": 16 * 1024,
-                    }
-                ],
-            )
-            self.assertEqual(
-                interface["output"]["slots"][0]["media_types"], ["image/png"]
-            )
-            self.assertEqual(interface["output"]["slots"][0]["min_files"], 1)
-            self.assertEqual(interface["output"]["slots"][0]["max_files"], 1)
+            assert interface["input"]["media_types"] == ["text/plain"]
+            assert interface["input"]["max_bytes"] == 16 * 1024
+            assert interface["input"]["slots"] == [
+                {
+                    "id": "prompt",
+                    "label": "Prompt",
+                    "description": "UTF-8 text prompt for image generation.",
+                    "media_types": ["text/plain"],
+                    "extensions": [".txt"],
+                    "min_files": 1,
+                    "max_files": 1,
+                    "max_file_bytes": 16 * 1024,
+                    "max_total_bytes": 16 * 1024,
+                }
+            ]
+            assert interface["output"]["slots"][0]["media_types"] == ["image/png"]
+            assert interface["output"]["slots"][0]["min_files"] == 1
+            assert interface["output"]["slots"][0]["max_files"] == 1
 
         flash_memory = json.loads(
             (ROOT / "recipes/nvidia-qwen-image-flash-diffusers-single.json").read_text()
         )["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(flash_memory["peak_bytes"], 118_000_000_000)
+        assert flash_memory["peak_bytes"] == 118000000000
 
         edit_recipe = json.loads(
             (ROOT / "recipes/qwen-image-edit-2511-diffusers-single.json").read_text()
         )
-        self.assertEqual(
-            edit_recipe["interfaces"][0]["input"]["media_types"],
-            ["image/jpeg", "image/png", "image/webp", "text/plain"],
-        )
+        assert edit_recipe["interfaces"][0]["input"]["media_types"] == [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "text/plain",
+        ]
         edit_slots = {
             slot["id"]: slot for slot in edit_recipe["interfaces"][0]["input"]["slots"]
         }
-        self.assertEqual(
-            (edit_slots["prompt"]["min_files"], edit_slots["prompt"]["max_files"]),
-            (1, 1),
-        )
-        self.assertEqual(
-            (edit_slots["image"]["min_files"], edit_slots["image"]["max_files"]), (1, 2)
+        assert (
+            edit_slots["prompt"]["min_files"],
+            edit_slots["prompt"]["max_files"],
+        ) == (1, 1)
+        assert (edit_slots["image"]["min_files"], edit_slots["image"]["max_files"]) == (
+            1,
+            2,
         )
 
         layered_recipe = json.loads(
             (ROOT / "recipes/qwen-image-layered-diffusers-single.json").read_text()
         )
         layered_output = layered_recipe["interfaces"][0]["output"]["slots"][0]
-        self.assertEqual(
-            (layered_output["min_files"], layered_output["max_files"]), (1, 4)
-        )
-        self.assertEqual(layered_output["max_total_bytes"], 4 * 8 * 1024 * 1024)
-        self.assertEqual(
-            layered_recipe["interfaces"][0]["output"]["max_total_bytes"],
-            layered_output["max_total_bytes"],
+        assert (layered_output["min_files"], layered_output["max_files"]) == (1, 4)
+        assert layered_output["max_total_bytes"] == 4 * 8 * 1024 * 1024
+        assert (
+            layered_recipe["interfaces"][0]["output"]["max_total_bytes"]
+            == layered_output["max_total_bytes"]
         )
         layered_arguments = {
             item["name"]: item["value"]
             for item in layered_recipe["runtime"]["arguments"]
         }
-        self.assertEqual(layered_arguments["layers"], 4)
+        assert layered_arguments["layers"] == 4
         option = next(
             item for item in layered_recipe["options"] if item["name"] == "layers"
         )
         choices = {choice["label"]: choice for choice in option["choices"]}
-        self.assertEqual(len(choices), 4)
-        self.assertEqual(
-            [
-                choice["args"][0]["value"]
-                for label, choice in choices.items()
-                if label != "4 layers"
-            ],
-            [1, 2, 3],
-        )
-        self.assertTrue(choices["4 layers"]["default"])
-        self.assertIn("latent batch", option["help"])
+        assert len(choices) == 4
+        assert [
+            choice["args"][0]["value"]
+            for label, choice in choices.items()
+            if label != "4 layers"
+        ] == [1, 2, 3]
+        assert choices["4 layers"]["default"]
+        assert "latent batch" in option["help"]
 
 
 if __name__ == "__main__":

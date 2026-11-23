@@ -44,10 +44,8 @@ class GlmModelInventoryTests(unittest.TestCase):
                 for item in candidate["files"]
                 if item["roles"] != ["metadata"]
             }
-            self.assertNotEqual(
-                payload,
-                other_payload,
-                f"{path.name} duplicates the recipe's model payload",
+            assert payload != other_payload, (
+                f"{path.name} duplicates the recipe's model payload"
             )
 
     def test_exl3_serving_closure_does_not_prepare_an_unselected_drafter(self) -> None:
@@ -72,24 +70,20 @@ class GlmModelInventoryTests(unittest.TestCase):
                 pending.extend(
                     item["content_sha256"] for item in models[current]["dependencies"]
                 )
-            self.assertEqual(
-                closure,
-                selected,
-                f"{path.name} prepares an unselected companion checkpoint",
+            assert closure == selected, (
+                f"{path.name} prepares an unselected companion checkpoint"
             )
 
     def test_current_inventory_and_recipe_select_the_calibrated_snapshot(self) -> None:
         model = load("models/glm-5-3-flash-nvfp4-caca4e6a.json")
         recipe = load("recipes/glm-5-3-flash-nvfp4-vllm-dual.json")
-        self.assertEqual(
-            model["source"]["revision"], "caca4e6a4ebbd66f159d3d2fc256683fd6e27177"
-        )
-        self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
-        self.assertEqual(recipe["topology"]["parallelism"]["backend"], "ray")
-        self.assertEqual(recipe["topology"]["node_count"], 2)
+        assert model["source"]["revision"] == "caca4e6a4ebbd66f159d3d2fc256683fd6e27177"
+        assert recipe["models"][0]["model"]["content_sha256"] == digest(model)
+        assert recipe["topology"]["parallelism"]["backend"] == "ray"
+        assert recipe["topology"]["node_count"] == 2
         files = {item["path"]: item for item in model["files"]}
-        self.assertIn("model-input-scales.safetensors", files)
-        self.assertIn("model.safetensors.index.json", files)
+        assert "model-input-scales.safetensors" in files
+        assert "model.safetensors.index.json" in files
 
     def test_native_mtp_choice_reaches_the_mia_triple_and_four_runtimes(self) -> None:
         from vonk_forge_contracts import read_recipe
@@ -99,7 +93,7 @@ class GlmModelInventoryTests(unittest.TestCase):
             "glm-5-3-flash-exl3-dflash2-vllm-mia-triple",
         ):
             recipe = read_recipe(load(f"recipes/{slug}.json"))
-            self.assertEqual(recipe.resolve_options()["speculation"], "dflash2")
+            assert recipe.resolve_options()["speculation"] == "dflash2"
             arguments = recipe.with_option_choices(
                 {"speculation": "native-mtp-k2"}
             ).runtime.arguments
@@ -109,9 +103,10 @@ class GlmModelInventoryTests(unittest.TestCase):
                 if argument.name == "speculative-config"
             )
             assert isinstance(selected, str)
-            self.assertEqual(
-                json.loads(selected), {"method": "mtp", "num_speculative_tokens": 2}
-            )
+            assert json.loads(selected) == {
+                "method": "mtp",
+                "num_speculative_tokens": 2,
+            }
 
 
 if __name__ == "__main__":

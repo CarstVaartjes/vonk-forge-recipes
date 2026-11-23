@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+import re
 import runpy
 import unittest
 from pathlib import Path
@@ -52,9 +53,9 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                 recipe = RecipeDefinition.model_validate(read(path))
                 validate_recipe_models(recipe, catalog_models())
                 model = recipe_model(read(path))
-                self.assertEqual(model["source"]["revision"], REVISIONS[name])
-                self.assertEqual(recipe.runtime.engine, "vllm")
-                self.assertEqual(recipe.topology.node_count, 1)
+                assert model["source"]["revision"] == REVISIONS[name]
+                assert recipe.runtime.engine == "vllm"
+                assert recipe.topology.node_count == 1
 
     def test_custom_reasoning_parser_is_selected_from_model_manifest(self) -> None:
         expected = {
@@ -65,51 +66,46 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
             with self.subTest(profile=name):
                 recipe: dict[str, Any] = read(RECIPES[name])
                 args = arguments(recipe)
-                self.assertEqual(
-                    args["reasoning-parser-plugin"].split("/")[-1], filename
-                )
+                assert args["reasoning-parser-plugin"].split("/")[-1] == filename
                 model = recipe_model(recipe)
                 selected = {item["file_id"] for item in recipe["models"][0]["files"]}
                 manifest = next(
                     item for item in model["files"] if item["path"] == filename
                 )
-                self.assertIn(manifest["id"], selected)
-                self.assertIn("runtime", manifest["roles"])
+                assert manifest["id"] in selected
+                assert "runtime" in manifest["roles"]
 
     def test_super_uses_fp4_mamba_and_mtp_contract(self) -> None:
         recipe = read(RECIPES["super"])
         args = arguments(recipe)
-        self.assertEqual(args["quantization"], "modelopt_fp4")
-        self.assertEqual(args["moe-backend"], "marlin")
-        self.assertEqual(args["mamba-ssm-cache-dtype"], "float16")
-        self.assertEqual(
-            json.loads(args["speculative-config"]),
-            {
-                "method": "mtp",
-                "num_speculative_tokens": 3,
-                "model": "/models/drafter",
-                "moe_backend": "triton",
-            },
-        )
-        self.assertEqual(len(recipe["models"]), 2)
+        assert args["quantization"] == "modelopt_fp4"
+        assert args["moe-backend"] == "marlin"
+        assert args["mamba-ssm-cache-dtype"] == "float16"
+        assert json.loads(args["speculative-config"]) == {
+            "method": "mtp",
+            "num_speculative_tokens": 3,
+            "model": "/models/drafter",
+            "moe_backend": "triton",
+        }
+        assert len(recipe["models"]) == 2
         models: Any = recipe["models"]
         drafter = models[1]["files"][0]
-        self.assertEqual(drafter["mount"]["target"], "/models/drafter")
+        assert drafter["mount"]["target"] == "/models/drafter"
 
     def test_omni_is_explicitly_text_only(self) -> None:
         recipe = read(RECIPES["omni"])
-        self.assertTrue(arguments(recipe)["language-model-only"])
-        self.assertTrue(
-            {"text", "text-only"}
-            <= set(recipe_display(recipe["identity"]["slug"]).tags)
+        assert arguments(recipe)["language-model-only"]
+        assert {"text", "text-only"} <= set(
+            recipe_display(recipe["identity"]["slug"]).tags
         )
-        self.assertEqual(recipe["interfaces"][0]["adapter"], "openai")
+        assert recipe["interfaces"][0]["adapter"] == "openai"
         facts = model_display(cast(Any, recipe)["models"][0]["model"]["slug"])
-        self.assertEqual(facts.modalities, ["text"])
-        self.assertFalse(
-            {"image-understanding", "audio-understanding", "video-understanding"}
-            & set(facts.capabilities)
-        )
+        assert facts.modalities == ["text"]
+        assert not {
+            "image-understanding",
+            "audio-understanding",
+            "video-understanding",
+        } & set(facts.capabilities)
 
     def test_source_builds_are_offline_and_digest_pinned(self) -> None:
         tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
@@ -118,11 +114,11 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
             build = recipe["execution"]["build"]
             context = ROOT / build["context"]["path"]
             _archive, _, digest = tool["source_bundle"](context)
-            self.assertEqual(build["network"]["hosts"], [])
-            self.assertRegex(digest, r"^[a-f0-9]{64}$")
+            assert build["network"]["hosts"] == []
+            assert re.search(r"^[a-f0-9]{64}$", digest)
             dockerfile = (ROOT / build["dockerfile"]).read_text(encoding="utf-8")
-            self.assertNotIn("pip install", dockerfile)
-            self.assertNotIn("apt-get", dockerfile)
+            assert "pip install" not in dockerfile
+            assert "apt-get" not in dockerfile
 
 
 if __name__ == "__main__":

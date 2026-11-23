@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+import pytest
 from repo_root import ROOT
 
 from vonk_forge_contracts import RecipeDefinition
@@ -82,14 +83,12 @@ class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
             with self.subTest(slug=slug):
                 recipe = load(ROOT / "recipes" / f"{slug}.json")
                 RecipeDefinition.model_validate(recipe)
-                self.assertEqual(
-                    len(recipe["models"]), expected_model_counts.get(slug, 1)
-                )
-                self.assertEqual(recipe["topology"]["node_count"], 1)
+                assert len(recipe["models"]) == expected_model_counts.get(slug, 1)
+                assert recipe["topology"]["node_count"] == 1
                 for selection in recipe["models"]:
                     model_slug = selection["model"]["slug"]
-                    self.assertEqual(
-                        selection["model"]["content_sha256"], model_digest(model_slug)
+                    assert selection["model"]["content_sha256"] == model_digest(
+                        model_slug
                     )
 
     def test_current_upstream_revisions_are_pinned(self) -> None:
@@ -102,8 +101,8 @@ class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
             "hunyuan3d-omni": "70e803bfb4e127d534049d8ab8c8cb511780d485",
         }
         for slug, revision in expected.items():
-            self.assertEqual(
-                load(ROOT / "models" / f"{slug}.json")["source"]["revision"], revision
+            assert (
+                load(ROOT / "models" / f"{slug}.json")["source"]["revision"] == revision
             )
 
 
@@ -143,10 +142,10 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
                         stdout=json.dumps(valid), stderr=""
                     ),
                 ),
-                self.assertRaisesRegex(SystemExit, "invalid 121-frame MP4.*") as error,
+                pytest.raises(SystemExit, match="invalid 121-frame MP4.*") as error,
             ):
                 module._validate_video(output, (848, 480), metrics)
-            self.assertIn('"nb_read_frames": "120"', str(error.exception))
+            assert '"nb_read_frames": "120"' in str(error.value)
 
     def test_video_and_foley_reject_wrong_signed_input_extensions(self) -> None:
         video = video_module()
@@ -158,12 +157,12 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
             (root / "manifest.json").write_text(
                 json.dumps({"files": [{"slot": "image", "name": "payload.bin"}]})
             )
-            with self.assertRaisesRegex(SystemExit, "one supported file"):
+            with pytest.raises(SystemExit, match="one supported file"):
                 video._one_image(root)
             (root / "manifest.json").write_text(
                 json.dumps({"files": [{"slot": "video", "name": "payload.bin"}]})
             )
-            with self.assertRaisesRegex(SystemExit, "one supported video"):
+            with pytest.raises(SystemExit, match="one supported video"):
                 foley._one_video(root)
 
     def test_foley_qualification_accepts_native_mono_and_rejects_stereo(self) -> None:
@@ -196,9 +195,9 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
                         f"vonk-forge/hunyuan-video-foley-{size}-pytorch-single"
                     ]["assertions"]
                     if channels == 1 and frames in (46080, 48000):
-                        self.assertEqual(evaluate(assertions, [output]), {})
+                        assert evaluate(assertions, [output]) == {}
                     else:
-                        with self.assertRaises(AssertionFailed):
+                        with pytest.raises(AssertionFailed):
                             evaluate(assertions, [output])
 
     def test_pinned_foley_sampler_explains_short_audio(self) -> None:
@@ -244,8 +243,8 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
             namespace,
         )
         sampled, duration = namespace["get_frames_av"]("foley-video-1s.mp4", 25)
-        self.assertEqual(len(sampled), 24)
-        self.assertEqual(duration, 0.96)
+        assert len(sampled) == 24
+        assert duration == 0.96
 
     def test_foley_validates_invalid_wav_and_timeout_before_atomic_publish(
         self,
@@ -264,14 +263,12 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
             foley._validate_wav(valid)
             invalid = Path(directory) / "invalid.wav"
             invalid.write_bytes(b"not a wav")
-            with self.assertRaisesRegex(SystemExit, "invalid WAV"):
+            with pytest.raises(SystemExit, match="invalid WAV"):
                 foley._validate_wav(invalid)
         source = adapter_path.read_text(encoding="utf-8")
-        self.assertIn("timeout=args.timeout_seconds", source)
-        self.assertLess(
-            source.index("_validate_wav(outputs[0])"), source.index("os.replace(")
-        )
-        self.assertIn('staging = args.output_dir / ".staging"', source)
+        assert "timeout=args.timeout_seconds" in source
+        assert source.index("_validate_wav(outputs[0])") < source.index("os.replace(")
+        assert 'staging = args.output_dir / ".staging"' in source
 
     def test_foley_validates_wav_before_atomic_publish(self) -> None:
         path = ROOT / "adapters/audio/hunyuan-video-foley-native/pipelines/run.py"
@@ -285,9 +282,7 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
                 audio.writeframes(b"\0\0" * 10)
             module._validate_wav(valid)
         source = path.read_text(encoding="utf-8")
-        self.assertLess(
-            source.index("_validate_wav(outputs[0])"), source.index("os.replace(")
-        )
+        assert source.index("_validate_wav(outputs[0])") < source.index("os.replace(")
 
 
 if __name__ == "__main__":

@@ -99,19 +99,19 @@ class MossRealtimeJobTests(unittest.TestCase):
     def test_recipe_declares_truthful_typed_slots(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
         interface = recipe["interfaces"][0]
-        self.assertEqual(interface["adapter"], "artifact-job")
+        assert interface["adapter"] == "artifact-job"
         contract = interface["input"]
-        self.assertEqual(contract["max_bytes"], 249 * 1024 * 1024)
+        assert contract["max_bytes"] == 249 * 1024 * 1024
         slots = {slot["id"]: slot for slot in contract["slots"]}
-        self.assertEqual(set(slots), {"frames", "session"})
-        self.assertEqual(slots["session"]["max_files"], 1)
-        self.assertEqual(slots["session"]["max_file_bytes"], 1024 * 1024)
-        self.assertEqual(slots["frames"]["max_files"], 31)
-        self.assertEqual(slots["frames"]["max_file_bytes"], 8 * 1024 * 1024)
+        assert set(slots) == {"frames", "session"}
+        assert slots["session"]["max_files"] == 1
+        assert slots["session"]["max_file_bytes"] == 1024 * 1024
+        assert slots["frames"]["max_files"] == 31
+        assert slots["frames"]["max_file_bytes"] == 8 * 1024 * 1024
         outputs = {slot["id"]: slot for slot in interface["output"]["slots"]}
-        self.assertEqual(set(outputs), {"replay", "transcript"})
-        self.assertEqual(outputs["replay"]["media_types"], ["video/mp4"])
-        self.assertEqual(outputs["transcript"]["media_types"], ["application/x-ndjson"])
+        assert set(outputs) == {"replay", "transcript"}
+        assert outputs["replay"]["media_types"] == ["video/mp4"]
+        assert outputs["transcript"]["media_types"] == ["application/x-ndjson"]
 
     def test_transcript_and_notice_follow_current_model_sources(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
@@ -122,7 +122,7 @@ class MossRealtimeJobTests(unittest.TestCase):
         source_revision = model["source"]["revision"]
         source_url = model["source"]["repository"]
         notice = (ADAPTER_ROOT / "NOTICE").read_text(encoding="utf-8")
-        self.assertIn(f"{source_url}/tree/{source_revision}", notice)
+        assert f"{source_url}/tree/{source_revision}" in notice
 
         qualification = load_definitions(ROOT / "qualification")["recipes"][
             "vonk-forge/moss-vl-realtime-11b-pytorch-single"
@@ -138,8 +138,8 @@ class MossRealtimeJobTests(unittest.TestCase):
                 for assertion in case.get("assertions", [])
                 if assertion.get("kind") == "realtime-transcript"
             )
-        self.assertTrue(expected_revisions)
-        self.assertEqual(len(set(expected_revisions)), 1)
+        assert expected_revisions
+        assert len(set(expected_revisions)) == 1
         expected_revision = expected_revisions[0]
 
         module = ast.parse((ADAPTER_ROOT / "run.py").read_text(encoding="utf-8"))
@@ -153,13 +153,13 @@ class MossRealtimeJobTests(unittest.TestCase):
             and isinstance(node.args[0], ast.Constant)
             and node.args[0].value == "session-start"
         ]
-        self.assertEqual(len(start_records), 1)
+        assert len(start_records) == 1
         revision_values = [
             keyword.value
             for keyword in start_records[0].keywords
             if keyword.arg == "model_revision"
         ]
-        self.assertEqual(len(revision_values), 1)
+        assert len(revision_values) == 1
         revision_value = revision_values[0]
         if isinstance(revision_value, ast.Name):
             revision_assignments = [
@@ -170,26 +170,26 @@ class MossRealtimeJobTests(unittest.TestCase):
                 and isinstance(node.targets[0], ast.Name)
                 and node.targets[0].id == revision_value.id
             ]
-            self.assertEqual(len(revision_assignments), 1)
+            assert len(revision_assignments) == 1
             actual_revision = revision_assignments[0]
         else:
             actual_revision = ast.literal_eval(revision_value)
-        self.assertEqual(actual_revision, expected_revision)
+        assert actual_revision == expected_revision
 
     def test_adapter_discovers_arbitrary_names_from_authenticated_slots(self) -> None:
         self._write_inputs()
         session, frames = self.module.resolve_moss_inputs(self.inputs)
-        self.assertEqual(session.name, "events.json")
-        self.assertEqual(frames, frozenset({"opening.png"}))
+        assert session.name == "events.json"
+        assert frames == frozenset({"opening.png"})
 
     def test_adapter_rejects_unmanifested_and_changed_inputs(self) -> None:
         self._write_inputs()
         (self.inputs / "extra.png").write_bytes(b"extra")
-        with self.assertRaisesRegex(ValueError, "outside the authenticated manifest"):
+        with pytest.raises(ValueError, match="outside the authenticated manifest"):
             self.module.resolve_moss_inputs(self.inputs)
         (self.inputs / "extra.png").unlink()
         (self.inputs / "opening.png").write_bytes(b"changed")
-        with self.assertRaisesRegex(ValueError, "missing or changed"):
+        with pytest.raises(ValueError, match="missing or changed"):
             self.module.resolve_moss_inputs(self.inputs)
 
     def test_signed_source_bundle_matches_recipe_package(self) -> None:
@@ -200,8 +200,8 @@ class MossRealtimeJobTests(unittest.TestCase):
         context = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))["execution"][
             "build"
         ]["context"]
-        self.assertEqual(context["path"], "adapters/video/moss-vl-realtime")
-        self.assertTrue(digest and archive)
+        assert context["path"] == "adapters/video/moss-vl-realtime"
+        assert digest and archive
 
         index = json.loads(
             (GENERATED / "catalog-index.json").read_text(encoding="utf-8")
@@ -211,8 +211,8 @@ class MossRealtimeJobTests(unittest.TestCase):
             for item in index["recipes"]
             if item["source_path"] == f"recipes/{RECIPE_PATH.name}"
         )
-        self.assertEqual(
-            entry["package"]["recipe_content_sha256"], _canonical_digest(RECIPE_PATH)
+        assert entry["package"]["recipe_content_sha256"] == _canonical_digest(
+            RECIPE_PATH
         )
 
 
