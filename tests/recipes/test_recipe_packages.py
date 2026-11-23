@@ -329,12 +329,7 @@ def test_adapter_only_change_is_published_as_new_source_identity(monkeypatch):
         for check in RecipeDefinition.model_validate(document).validation.serving.checks
         for name in check.fixture_paths()
     ]
-    closure = original(
-        document,
-        ROOT / "recipes/skintokens-pytorch-single.json",
-        TOOL["_catalog_entity_documents"](),
-        fixtures,
-    )
+    closure = original(document, TOOL["_catalog_entity_documents"](), fixtures)
     adapter = document["execution"]["build"]["context"]["path"] + "/run.py"
     assert adapter in dict(closure)
     changed = [
