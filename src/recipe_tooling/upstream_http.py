@@ -77,8 +77,8 @@ def open_once(
     """One raw open with no retry and no busy memory.
 
     For the callers that must not be retried: the App credential exchange (a security
-    edge), a download that has its own jittered retry and mirror fallback, a served
-    recipe's own endpoint, and a local fixture. Every `urlopen` of the repository is here.
+    edge), a download that has its own jittered retry and mirror fallback, and a local
+    fixture. Every `urlopen` of the repository is here.
     """
     if context is None:
         return urllib.request.urlopen(request, timeout=timeout)

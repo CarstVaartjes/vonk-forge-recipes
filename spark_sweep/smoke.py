@@ -29,7 +29,6 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from recipe_tooling.upstream_http import open_once
 from vonk_forge_contracts import AudioSpeechApi, RecipeApi
 from vonk_forge_contracts.recipe import MIN_SPEECH_SECONDS, wav_facts
 
@@ -357,7 +356,7 @@ def encode_multipart(spec: dict[str, Any]) -> tuple[bytes, str]:
 def _open(
     request: urllib.request.Request, timeout: float, context: ssl.SSLContext | None
 ) -> Any:
-    return open_once(request, timeout=timeout, context=context)
+    return urllib.request.urlopen(request, timeout=timeout, context=context)
 
 
 # Request fields that steer sampling. A model family may not accept them (diffusion models
