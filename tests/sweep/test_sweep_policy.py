@@ -6,9 +6,21 @@ from datetime import UTC, datetime
 
 import pytest
 
+from recipe_tooling.qualification.evidence_store import write_evidence
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from spark_sweep import policy, verdict
 from spark_sweep.catalog import Model, Recipe
+from spark_sweep.identity import current_identity
+from spark_sweep.plan import make_plan, retesting
+from vonk_forge_contracts import (
+    QualificationCauseCode,
+    QualificationEvidenceRecord,
+    QualificationOutcome,
+    QualificationPlatform,
+    QualificationSummary,
+    QualificationTopology,
+    RecipeQualificationEvidence,
+)
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -522,3 +534,52 @@ def test_ready_single_is_not_hidden_behind_duals_or_oversized_queue_heads() -> N
     candidates.append(fitting)
     placed = policy.place_singles(candidates, bins(0), alias)
     assert [item.recipe for item in placed] == [fitting]
+
+
+def test_plan_counts_a_pass_the_catalog_says_to_recheck_as_pending() -> None:
+    old = {"status": "passed", "content_sha256": "old"}
+    rechecked = recipe("rechecked")
+    working = recipe("working")
+    plan = make_plan(
+        [rechecked, working],
+        {},
+        1,
+        {rechecked.key: old, working.key: old},
+        policy.make_boost([], (), 0.0),
+        retesting={rechecked.key},
+    )
+    assert plan["pending_recipes"] == 1
+    assert [p["recipes"] for p in plan["next_models"]] == [[rechecked.key]]
+
+
+def _pass(identity, day: int) -> RecipeQualificationEvidence:
+    return RecipeQualificationEvidence(
+        recipe_key="vonk-forge/x",
+        records=(
+            QualificationEvidenceRecord(
+                identity=identity,
+                outcome=QualificationOutcome.PASSED,
+                blame=None,
+                cause_code=QualificationCauseCode.HARDWARE_PASS,
+                cause_summary=QualificationSummary.PASSED,
+                tested_at=datetime(2026, 10, 21 + day, tzinfo=UTC),
+                platform=QualificationPlatform(
+                    controller_source_sha="a" * 40,
+                    controller_version="2.0.0",
+                    agent_version="2.0.0",
+                    spark_count=1,
+                    topology=QualificationTopology.SINGLE,
+                ),
+            ),
+        ),
+    )
+
+
+def test_retesting_reads_the_state_evidence_over_the_checkout_file(tmp_path) -> None:
+    x = recipe("x", ("d" * 64,), content_sha256="e" * 64)
+    current = current_identity(x)
+    stale = current.model_copy(update={"content_sha256": "f" * 64})
+    write_evidence(tmp_path, _pass(stale, 0))
+    assert retesting([x], 1, {}, tmp_path) == {x.key}
+    saved = {x.key: _pass(current, 1).model_dump(mode="json")}
+    assert retesting([x], 1, {"qualification_evidence": saved}, tmp_path) == set()
