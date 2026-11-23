@@ -37,9 +37,9 @@ def main() -> None:
             args.history,
             args.work_dir,
             args.state,
-            args.final,
-            args.run,
-            args.watch_only,
+            final=args.final,
+            run=args.run,
+            watch_only=args.watch_only,
         )
     )
 

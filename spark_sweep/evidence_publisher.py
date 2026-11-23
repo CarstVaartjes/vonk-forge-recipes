@@ -371,6 +371,7 @@ def sync(
     history: Path,
     directory: Path,
     state: Path | None = None,
+    *,
     final: bool = False,
     run: str = "",
     watch_only: bool = False,
@@ -387,7 +388,16 @@ def sync(
     directory.mkdir(parents=True, exist_ok=True)
     previous = load_state(directory)
     try:
-        code = _batch(history, directory, state, seen, previous, final, run, watch_only)
+        code = _batch(
+            history,
+            directory,
+            state,
+            seen,
+            previous,
+            final=final,
+            run=run,
+            watch_only=watch_only,
+        )
     except Exception as error:  # noqa: BLE001 - the runtime net: a crash writes no state
         # The signature is keyed on behaviour; the real error goes to publisher.log.
         print(f"evidence: {type(error).__name__}: {error}", flush=True)
@@ -503,6 +513,7 @@ def _batch(
     state: Path | None,
     seen: Seen,
     previous: PublisherRecord,
+    *,
     final: bool = False,
     run: str = "",
     watch_only: bool = False,

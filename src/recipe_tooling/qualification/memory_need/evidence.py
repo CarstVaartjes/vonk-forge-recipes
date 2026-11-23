@@ -73,7 +73,9 @@ def hardware_proven(
             update={"required_sparks": recipe.topology.node_count}
         )
         if (
-            derive_status(evidence, identity, recipe.topology.node_count, False).status
+            derive_status(
+                evidence, identity, recipe.topology.node_count, testing_now=False
+            ).status
             == QualificationStatus.WORKING
         ):
             return True

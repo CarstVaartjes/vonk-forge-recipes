@@ -29,7 +29,7 @@ import hashlib
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from functools import partial
-from typing import Any
+from typing import Any, Protocol
 
 from .catalog import Model, Recipe
 from .fanout import DaemonExecutor, gather
@@ -65,7 +65,14 @@ from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
 
 # The stall window of a download: no bytes, items, phase or last-progress change for this long.
 DOWNLOAD_STALL_SECONDS = 3600.0
-FailureHandler = Callable[[str, Failure, str | None, bool], None]
+
+
+class FailureHandler(Protocol):
+    def __call__(
+        self, key: str, failure: Failure, op_id: str | None, *, model_level: bool
+    ) -> None: ...
+
+
 DoneHandler = Callable[[str], None]
 
 
@@ -365,7 +372,10 @@ class Prefetcher:
                     # outcomes ends a repeat; the retry above stands until then.
                     record["failure"] = cancelled.signature
                     self.on_failure(
-                        key, cancelled, str(document.get("id") or ""), False
+                        key,
+                        cancelled,
+                        str(document.get("id") or ""),
+                        model_level=False,
                     )
             if record["state"] == LifecycleState.SUCCEEDED and not record.get(
                 "done_at"
@@ -484,7 +494,7 @@ class Prefetcher:
             key,
             failure,
             str(document.get("id") or ""),
-            model_child or failure.model_level,
+            model_level=model_child or failure.model_level,
         )
 
     def _refused(self, key: str, record: dict[str, Any], reply: Reply) -> None:
@@ -497,7 +507,7 @@ class Prefetcher:
             str(document.get("detail") or reply.error_text),
             evidence={"request_key": record["request_key"], "refusal": document},
         )
-        self.on_failure(key, failure, None, failure.model_level)
+        self.on_failure(key, failure, None, model_level=failure.model_level)
 
     def _request(self, recipe: Recipe, kind: str) -> None:
         if self.clock() < self.pause_until:
@@ -619,7 +629,9 @@ class Prefetcher:
                         int(record.get("observe_failures", 0)) + 1
                     )
             else:
-                self.on_failure(recipe.key, failure, None, failure.model_level)
+                self.on_failure(
+                    recipe.key, failure, None, model_level=failure.model_level
+                )
             return
         self.on_ok("download")
         op_state = str(document.get("state", "queued"))

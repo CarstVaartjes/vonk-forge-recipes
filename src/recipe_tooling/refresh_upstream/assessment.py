@@ -624,8 +624,8 @@ class Assessor:
         reference: Callable[[str], str],
         new_recipe: dict[str, Any],
         edits: dict[str, bytes | None],
-        published: bool = False,
         *,
+        published: bool = False,
         result: refresh_model.Assessment,
     ) -> None:
         """Move the Dockerfile's FROM of ``repository`` and the recorded base image.

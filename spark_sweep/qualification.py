@@ -386,11 +386,15 @@ def local_status(
     evidence: RecipeQualificationEvidence,
     recipe: Recipe,
     fleet_size: int,
+    *,
     testing_now: bool = False,
     identity: QualificationIdentity | None = None,
 ) -> QualificationStatusView:
     return derive_status(
-        evidence, identity or current_identity(recipe), fleet_size, testing_now
+        evidence,
+        identity or current_identity(recipe),
+        fleet_size,
+        testing_now=testing_now,
     )
 
 

@@ -235,6 +235,7 @@ class SweepFailure:
         key: str,
         failure: policy.Failure,
         op_id: str | None,
+        *,
         model_level: bool,
     ) -> None:
         accepted = AcceptedRequest.read(self.state.downloads.get(key))

@@ -61,6 +61,7 @@ DOCUMENT_EVIDENCE_LIMIT = 65536
 def retest_reason(
     view: QualificationStatusView | None,
     current: Callable[[], QualificationIdentity],
+    *,
     unpublishable: bool = False,
 ) -> RetestReason | None:
     """Why a recorded verdict asks for a new run, from the derived status alone."""

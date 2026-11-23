@@ -405,7 +405,9 @@ def _textured(
     pbr_required: bool = False,
 ) -> None:
     for primitive, vertex_count in primitives:
-        _textured_primitive(document, primitive, accessors, vertex_count, pbr_required)
+        _textured_primitive(
+            document, primitive, accessors, vertex_count, pbr_required=pbr_required
+        )
 
 
 def _textured_primitive(
@@ -413,6 +415,7 @@ def _textured_primitive(
     primitive: Mapping[str, Any],
     accessors: list[tuple[int, str, int]],
     vertex_count: int,
+    *,
     pbr_required: bool,
 ) -> None:
     attributes = primitive["attributes"]

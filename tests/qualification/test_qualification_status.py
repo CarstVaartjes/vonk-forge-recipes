@@ -143,7 +143,7 @@ def evidence(*records):
     ],
 )
 def test_status_table(records, current, fleet, testing, status):
-    view = derive_status(evidence(*records), current, fleet, testing)
+    view = derive_status(evidence(*records), current, fleet, testing_now=testing)
     assert view.status == status
     if records and records[0].outcome == Outcome.PASSED:
         assert view.last_pass == records[0]
@@ -153,16 +153,20 @@ def test_restore_on_revert_and_newest_exact_hardware_verdict_wins():
     passed = record()
     failed_other = record(B, Outcome.FAILED, Blame.RECIPE, 1)
     history = evidence(failed_other, passed)
-    assert derive_status(history, A, 0, False).status == Status.WORKING
-    assert derive_status(history, B, 2, False).status == Status.FAILED_RECIPE
+    assert derive_status(history, A, 0, testing_now=False).status == Status.WORKING
+    assert (
+        derive_status(history, B, 2, testing_now=False).status == Status.FAILED_RECIPE
+    )
     failed_same = record(A, Outcome.FAILED, Blame.RECIPE, 2)
     assert (
-        derive_status(evidence(passed, failed_same), A, 2, False).status
+        derive_status(evidence(passed, failed_same), A, 2, testing_now=False).status
         == Status.FAILED_RECIPE
     )
     repassed = record(day=3)
     assert (
-        derive_status(evidence(repassed, failed_same, passed), A, 2, False).status
+        derive_status(
+            evidence(repassed, failed_same, passed), A, 2, testing_now=False
+        ).status
         == Status.WORKING
     )
 
@@ -170,10 +174,10 @@ def test_restore_on_revert_and_newest_exact_hardware_verdict_wins():
 def test_platform_failure_never_invalidates_proof_or_creates_recipe_blame():
     failed = record(outcome=Outcome.FAILED, blame=Blame.PLATFORM, day=1)
     history = evidence(record(), failed)
-    view = derive_status(history, A, 2, False)
+    view = derive_status(history, A, 2, testing_now=False)
     assert view.status == Status.WORKING
     assert view.last_failure == failed
-    assert derive_status(history, B, 2, False).status == Status.RECHECK
+    assert derive_status(history, B, 2, testing_now=False).status == Status.RECHECK
     assert published_status(evidence(failed), A).status == Status.NOT_YET_VERIFIED
     assert published_status(evidence(failed), A).reason == Reason.PLATFORM_ISSUE
 
@@ -187,7 +191,7 @@ def test_changes_are_precise_and_prior_proof_visible_in_lane():
             "model_digests": ("1" * 64,),
         }
     )
-    view = derive_status(evidence(record()), current, 2, True)
+    view = derive_status(evidence(record()), current, 2, testing_now=True)
     assert view.status == Status.TESTING
     assert view.changed == (Change.RECIPE, Change.IMAGE, Change.MODEL)
     assert view.last_pass is not None
@@ -227,7 +231,9 @@ def test_ordering():
         Status.FIX_TO_VERIFY,
     ]
     views = [
-        derive_status(evidence(), A, 2, False).model_copy(update={"status": s})
+        derive_status(evidence(), A, 2, testing_now=False).model_copy(
+            update={"status": s}
+        )
         for s in statuses
     ]
     assert [v.status for v in sorted(views, key=scheduling_priority)] == list(
@@ -423,7 +429,10 @@ def test_published_catalog_matches_shared_derivation(built_catalog):
         if expected.status != Status.NOT_YET_VERIFIED:
             assert identity.required_sparks is not None
             derived = derive_status(
-                read_evidence(ROOT, key), identity, identity.required_sparks, False
+                read_evidence(ROOT, key),
+                identity,
+                identity.required_sparks,
+                testing_now=False,
             )
             # A platform fault after an earlier pass publishes Re-check.
             assert expected.status == (
@@ -524,7 +533,7 @@ def test_saved_report_recomputes_from_inputs_and_keeps_prior_proof():
 
 def test_public_topology_requirement_is_not_the_publishers_fleet():
     current = A.model_copy(update={"required_sparks": 4})
-    local = derive_status(evidence(), current, 2, False)
+    local = derive_status(evidence(), current, 2, testing_now=False)
     assert local.status == Status.CANNOT_TEST
     public = published_status(evidence(), current)
     assert public.status == Status.NOT_YET_VERIFIED
@@ -571,7 +580,7 @@ def test_authorization_faults_are_platform_evidence_and_preserve_recipe_proof():
     assert imported is not None
     assert imported.blame == Blame.PLATFORM
     assert (
-        derive_status(evidence(record(), imported), A, 2, False).status
+        derive_status(evidence(record(), imported), A, 2, testing_now=False).status
         == Status.WORKING
     )
 
@@ -581,7 +590,7 @@ def test_platform_faults_do_not_count_against_recipes_in_report_headline():
     from spark_sweep.report import build_report, render_report
 
     view = derive_status(
-        evidence(record(A, Outcome.FAILED, Blame.PLATFORM)), A, 2, False
+        evidence(record(A, Outcome.FAILED, Blame.PLATFORM)), A, 2, testing_now=False
     )
     report = build_report(
         {KEY: {"status": RecipeStatus.FAILED}}, {KEY: view.model_dump(mode="json")}
@@ -609,7 +618,7 @@ def test_elapsed_time_never_retries_a_failure_with_platform_blame(
         finished_at=clock.now() - RETEST_SECONDS,
     )
     view = derive_status(
-        evidence(record(A, Outcome.FAILED, Blame.PLATFORM)), A, 2, False
+        evidence(record(A, Outcome.FAILED, Blame.PLATFORM)), A, 2, testing_now=False
     )
     monkeypatch.setattr(sweep, "qualification_view", lambda recipe: view)
     sweep.tick()
@@ -667,7 +676,10 @@ def test_missing_historical_topology_stays_unknown_and_roundtrips():
     assert restored == imported
     with pytest.raises(ValueError, match="Spark count"):
         derive_status(
-            evidence(), A.model_copy(update={"required_sparks": None}), 2, False
+            evidence(),
+            A.model_copy(update={"required_sparks": None}),
+            2,
+            testing_now=False,
         )
 
 
@@ -1127,7 +1139,7 @@ def test_one_load_adopts_schema_and_verdicts_without_losing_accepted_effects(
     }
     assert adopted.downloads == saved["downloads"]
     imported = Evidence.model_validate(adopted.data["qualification_evidence"][KEY])
-    assert derive_status(imported, A, 2, False).status == Status.WORKING
+    assert derive_status(imported, A, 2, testing_now=False).status == Status.WORKING
     if schema == 1:
         assert adopted.entry("vonk-forge/obsolete")["status"] == RecipeStatus.PENDING
         assert adopted.adoptions[0].reason == SweepAdoptionReason.LOAD_RULES
@@ -1155,7 +1167,7 @@ def test_missing_historical_spark_count_preserves_only_matching_content(field):
         # A real topology change changes the recipe content digest too.
         "topology": B.model_copy(update={"required_sparks": 2}),
     }[field]
-    view = derive_status(evidence(saved), current, 2, False)
+    view = derive_status(evidence(saved), current, 2, testing_now=False)
     assert (view.status == Status.WORKING) == (field == "unchanged")
     assert view.last_pass == saved
     # Missing historical provenance never becomes public certification.
@@ -1165,7 +1177,10 @@ def test_missing_historical_spark_count_preserves_only_matching_content(field):
 def test_explicit_historical_topology_mismatch_cannot_restore_working():
     saved = record()
     current = A.model_copy(update={"required_sparks": 2})
-    assert derive_status(evidence(saved), current, 2, False).status == Status.RECHECK
+    assert (
+        derive_status(evidence(saved), current, 2, testing_now=False).status
+        == Status.RECHECK
+    )
 
 
 def test_sparse_topology_failure_invalidates_older_public_proof():
@@ -1174,7 +1189,7 @@ def test_sparse_topology_failure_invalidates_older_public_proof():
     )
     partial = record(day=2).model_copy(update={"platform": NO_CONTROLLER})
     history = evidence(record(), failed, partial)
-    assert derive_status(history, A, 2, False).status == Status.WORKING
+    assert derive_status(history, A, 2, testing_now=False).status == Status.WORKING
     assert published_status(history, A).status == Status.NOT_YET_VERIFIED
 
 
@@ -1266,7 +1281,7 @@ def test_unrecorded_image_is_not_a_change_or_invented_provenance(changed):
         "topology": A.model_copy(update={"required_sparks": 2}),
         "unknown-models": A.model_copy(update={"models_resolved": False}),
     }[changed]
-    view = derive_status(evidence(saved), current, 2, False)
+    view = derive_status(evidence(saved), current, 2, testing_now=False)
     assert (view.status == Status.WORKING) == (changed == "unchanged")
     assert view.last_pass == saved
     assert Change.IMAGE not in view.changed
@@ -1283,11 +1298,11 @@ def test_unbound_pass_cannot_hide_a_recorded_image_change():
             )
         }
     )
-    view = derive_status(evidence(unbound, pinned), current, 2, False)
+    view = derive_status(evidence(unbound, pinned), current, 2, testing_now=False)
     assert view.status == Status.RECHECK
     assert view.changed == (Change.IMAGE,)
     # Exact pin revert restores the original measurement, not the unbound pass.
-    restored = derive_status(evidence(unbound, pinned), A, 2, False)
+    restored = derive_status(evidence(unbound, pinned), A, 2, testing_now=False)
     assert restored.status == Status.WORKING
     assert restored.last_pass == pinned
 
@@ -1300,11 +1315,11 @@ def test_adapter_only_fix_invalidates_a_failure_without_a_prebuilt_image():
     )
     current = previous.model_copy(update={"source_bundle_sha256": "2" * 64})
     failed = record(previous, Outcome.FAILED, Blame.RECIPE)
-    view = derive_status(evidence(failed), current, 1, False)
+    view = derive_status(evidence(failed), current, 1, testing_now=False)
     assert view.status == Status.FIX_TO_VERIFY
     assert view.changed == (Change.SOURCE,)
     assert (
-        derive_status(evidence(failed), previous, 1, False).status
+        derive_status(evidence(failed), previous, 1, testing_now=False).status
         == Status.FAILED_RECIPE
     )
 
@@ -1315,13 +1330,13 @@ def test_pass_recorded_before_source_digests_stays_working():
     legacy = A.model_copy(update={"source_bundle_sha256": None})
     current = A.model_copy(update={"source_bundle_sha256": "1" * 64})
     passed = record(legacy)
-    view = derive_status(evidence(passed), current, 2, False)
+    view = derive_status(evidence(passed), current, 2, testing_now=False)
     assert view.status == Status.WORKING
     assert view.changed == ()
     # Once a digest is recorded, a later adapter-only change is a change.
     bound = record(current)
     moved = current.model_copy(update={"source_bundle_sha256": "2" * 64})
-    changed = derive_status(evidence(bound), moved, 2, False)
+    changed = derive_status(evidence(bound), moved, 2, testing_now=False)
     assert changed.status == Status.RECHECK
     assert changed.changed == (Change.SOURCE,)
 

@@ -155,9 +155,9 @@ def memory_estimate_findings(
                 inputs,
                 key,
                 document_digest,
-                touched,
-                single,
-                mn_evidence.keeps_measured_peaks(variant, measured),
+                touched=touched,
+                single=single,
+                keep=mn_evidence.keeps_measured_peaks(variant, measured),
             ),
         )
     return warnings
@@ -170,6 +170,7 @@ def variant_estimate_warnings(
     inputs: MemoryInputs,
     key: str,
     document_digest: str,
+    *,
     touched: bool,
     single: bool,
     keep: bool = False,

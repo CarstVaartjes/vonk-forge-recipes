@@ -27,7 +27,7 @@ from vonk_forge_contracts import (
 )
 
 
-def _write(path: Path, document: dict[str, object], check: bool) -> bool:
+def _write(path: Path, document: dict[str, object], *, check: bool) -> bool:
     expected = json.dumps(document, indent=2, ensure_ascii=False) + "\n"
     if check:
         return path.is_file() and path.read_text(encoding="utf-8") == expected
@@ -101,7 +101,7 @@ def main() -> int:
             catalog_index_json_schema(),
         ),
     )
-    ok = all(_write(path, schema, args.check) for path, schema in targets)
+    ok = all(_write(path, schema, check=args.check) for path, schema in targets)
     if not ok:
         print(
             "Generated contract schema is stale; run tools/generate-contract-schemas",

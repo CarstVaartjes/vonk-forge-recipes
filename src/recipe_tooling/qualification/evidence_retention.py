@@ -44,6 +44,7 @@ def _newest_of_classes(
     records: Iterable[QualificationEvidenceRecord],
     names: Iterable[str],
     current: str,
+    *,
     per_identity: bool,
 ) -> list[QualificationEvidenceRecord]:
     """The newest record of each class (per identity or file-wide), in `derive_status` order."""
@@ -87,8 +88,8 @@ def retained(
         (r for r in evidence.records if r.identity.content_sha256 in contents),
         EVIDENCE_CLASSES,
         current,
-        True,
-    ) + _newest_of_classes(evidence.records, FILE_CLASSES, current, False)
+        per_identity=True,
+    ) + _newest_of_classes(evidence.records, FILE_CLASSES, current, per_identity=False)
     unique = {r.model_dump_json(): r for r in kept}
     with_records = {r.identity.content_sha256 for r in unique.values()}
     return evidence.model_copy(

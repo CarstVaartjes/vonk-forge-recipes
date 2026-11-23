@@ -267,7 +267,7 @@ class Vonkctl:
         timeout: float | None = None,
         allow_owner_write: bool = False,
     ) -> Reply:
-        self._guard(args, profile, allow_owner_write)
+        self._guard(args, profile, allow_owner_write=allow_owner_write)
         argv = [self.executable, "--json", "--no-input"]
         if profile is not None:
             argv += ["--profile", str(profile)]
@@ -312,7 +312,7 @@ class Vonkctl:
 
     @staticmethod
     def _guard(
-        args: Sequence[str], profile: int | None, allow_owner_write: bool
+        args: Sequence[str], profile: int | None, *, allow_owner_write: bool
     ) -> None:
         if len(args) >= 2 and args[0] == "profile" and args[1] in PROFILE_WRITES:
             if profile is None:

@@ -476,6 +476,7 @@ def derive_status(
     evidence: RecipeQualificationEvidence,
     current_identity: QualificationIdentity,
     fleet_size: int,
+    *,
     testing_now: bool,
 ) -> QualificationStatusView:
     """Latest hardware verdict on an identity wins; platform faults never erase proof.
@@ -581,7 +582,7 @@ def published_status(
     required_sparks = current_identity.required_sparks
     if required_sparks is None:
         raise ValueError("current identity requires the recipe's Spark count")
-    view = derive_status(evidence, current_identity, required_sparks, False)
+    view = derive_status(evidence, current_identity, required_sparks, testing_now=False)
     certified: list[QualificationEvidenceRecord] = []
     if view.status == QualificationStatus.WORKING:
         # A later successful test with incomplete telemetry does not erase a

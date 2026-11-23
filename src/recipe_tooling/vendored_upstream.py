@@ -322,6 +322,7 @@ def check_adapter(
     root: Path,
     load_tree: TreeLoader,
     on_github: Callable[[str, str], bool | None] = commit_on_github,
+    *,
     changed: bool = False,
 ) -> Report:
     """Problems and notes of one adapter; ``changed``: this change touches it."""

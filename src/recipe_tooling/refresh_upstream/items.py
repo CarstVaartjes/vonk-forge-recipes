@@ -382,6 +382,7 @@ def unverified_image(
     repository: str,
     digest: str,
     source: Any,
+    *,
     published: bool = False,
 ) -> None:
     """Follow an image for review when its commit cannot be compared with the pin.

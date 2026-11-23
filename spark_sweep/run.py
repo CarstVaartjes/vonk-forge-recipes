@@ -260,10 +260,10 @@ class Sweep(
                 evidence,
                 recipe,
                 len(self.enrolled()),
-                recipe.key in self.state.slots
+                testing_now=recipe.key in self.state.slots
                 and self.state.slots[recipe.key].get("phase")
                 != SweepSlotPhase.FINISHED,
-                identity,
+                identity=identity,
             )
         except ValueError, TypeError, OSError:
             return None  # malformed observed identity cannot certify public proof

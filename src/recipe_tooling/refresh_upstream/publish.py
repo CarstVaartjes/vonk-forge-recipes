@@ -711,6 +711,7 @@ def sync_titled_issue(
     title: str,
     render: Callable[[str | None], str],
     label: str = refresh_model.LABEL_NEEDS_REVIEW,
+    *,
     create: bool = True,
 ) -> None:
     """Keep the one issue titled ``title`` showing ``render(previous body)``.
@@ -735,7 +736,7 @@ def sync_titled_issue(
 
 
 def sync_issue(
-    assessment: refresh_model.Assessment, summary: Summary, create: bool = True
+    assessment: refresh_model.Assessment, summary: Summary, *, create: bool = True
 ) -> None:
     """Keep the recipe's one review issue showing the current assessment."""
     sync_titled_issue(

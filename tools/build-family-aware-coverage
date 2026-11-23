@@ -795,7 +795,7 @@ def _gib(value: int) -> str:
     return f"{value / 1024**3:.1f} GiB"
 
 
-def _yes_no(value: bool | None) -> str:
+def _yes_no(*, value: bool | None) -> str:
     return "—" if value is None else "yes" if value else "no"
 
 
@@ -926,7 +926,7 @@ def _render_report(matrix: dict[str, Any]) -> str:
             f"`{row['stack']['build_context']}` | {_row_group(row)} | "
             f"{', '.join(row['quantizations'])} | {_gib(row['declared_artifact_bytes'])} | "
             f"{representative} | {batch_label} | "
-            f"{_yes_no(row['stack_matches_authority'])} |"
+            f"{_yes_no(value=row['stack_matches_authority'])} |"
         )
 
     lines.extend(

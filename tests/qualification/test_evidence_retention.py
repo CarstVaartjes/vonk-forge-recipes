@@ -168,7 +168,7 @@ def test_the_reducers_read_retained_history_as_the_whole():
     for variant in (NOW, NOW.model_copy(update={"runtime_image": None})):
         identity = variant.model_copy(update={"required_sparks": 1})
         for fleet in (0, 1, 2):
-            assert derive_status(full, identity, fleet, False) == derive_status(
-                kept, identity, fleet, False
-            )
+            assert derive_status(
+                full, identity, fleet, testing_now=False
+            ) == derive_status(kept, identity, fleet, testing_now=False)
         assert published_status(full, identity) == published_status(kept, identity)
