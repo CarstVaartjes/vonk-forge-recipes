@@ -18,7 +18,8 @@ from typing import Any, Protocol
 
 from pydantic import ValidationError
 
-from .settings import SETTINGS
+from recipe_tooling.qualification.sweep_settings import SETTINGS
+
 from .sweep_contract import CliObservationReply
 
 OWNER_PROFILES = SETTINGS.owner_profiles

@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
+from recipe_tooling.qualification.sweep_settings import SETTINGS
 from vonk_forge_contracts import (
     QualificationIdentity,
     QualificationStatus,
@@ -32,7 +33,6 @@ from .lifecycle import (
 )
 from .prefetch import PrefetchConfig
 from .profile_alias import profile_alias
-from .settings import SETTINGS
 from .smoke import (
     HttpConfig,
     SmokeResult,

@@ -127,7 +127,7 @@ repository root, reproduce the producer environment in
 
 ```bash
 export UV_CACHE_DIR="$(mktemp -d)"
-uv sync --frozen --group producer-tests   # the one locked environment (uv.lock)
+uv sync --frozen   # the one locked environment (uv.lock, default groups)
 uv run --frozen python -m pytest -q
 uv run --frozen ruff check --force-exclude -- .
 uv run --frozen ruff format --check --force-exclude -- .
@@ -391,7 +391,7 @@ run has no cold start).
 `--retry-failed`, `--watch` and `--no-revalidate`.
 Job recipes are always tested (one artifact job each); there is no flag.
 Read `--help` for current defaults. Each default has one owner, `policy/sweep.json`
-(read by `spark_sweep/settings.py`): the authority id (the catalog build derives the same
+(read by `recipe_tooling/qualification/sweep_settings.py`, used by the sweep and the authority build): the authority id (the catalog build derives the same
 authority from it), the boost words and the owner profiles the sweep never uses (not a flag).
 SIGINT/SIGTERM interrupt owned work; rerunning with the same state directory
 resumes. One process holds the directory's exclusive `run.lock`.

@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          uv sync --frozen --group producer-tests
+          uv sync --frozen
           .venv/bin/python tools/check-recipe-memory-need --report "$RUNNER_TEMP/memory-estimates.md"
           .venv/bin/python tools/refresh-upstream --memory-estimate-issue "$RUNNER_TEMP/memory-estimates.md"
 

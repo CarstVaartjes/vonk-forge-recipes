@@ -8,11 +8,11 @@ profiles a sweep never writes.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from pydantic import BaseModel, ConfigDict
 
-SETTINGS_PATH = Path(__file__).resolve().parents[1] / "policy" / "sweep.json"
+from recipe_tooling.paths import REPO_ROOT
+
+SETTINGS_PATH = REPO_ROOT / "policy" / "sweep.json"
 
 
 class SweepSettings(BaseModel):

@@ -74,7 +74,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          uv sync --frozen --group producer-tests
+          uv sync --frozen
           echo "REFRESH_PYTHON=$GITHUB_WORKSPACE/.venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Chain guard

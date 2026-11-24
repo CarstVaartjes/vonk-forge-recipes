@@ -40,7 +40,7 @@ dev = [
     "Pillow>=13.0.0",
 ]
 # The producer test environment (validate.yml, publish.yml, refresh-upstream.yml):
-# `uv sync --frozen --group producer-tests`; uv.lock is the one owner of every version.
+# `uv sync --frozen` (a default group); uv.lock is the one owner of every version.
 producer-tests = [
     "vonk-forge-public-contracts",
     "jsonschema>=4.24,<5",

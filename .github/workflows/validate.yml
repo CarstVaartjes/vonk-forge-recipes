@@ -142,7 +142,7 @@ jobs:
           set -euo pipefail
           # One environment: the locked dev and producer-tests groups (ruff, pyright and
           # the suite share it).
-          uv sync --frozen --group producer-tests
+          uv sync --frozen
           echo "RECIPE_TEST_PYTHON=$GITHUB_WORKSPACE/.venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Verify generated contract examples are current

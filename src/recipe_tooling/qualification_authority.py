@@ -22,6 +22,7 @@ from typing import Any, Literal
 from recipe_tooling.paths import REPO_ROOT
 from recipe_tooling.qualification.catalog_source import current_catalog_package_tree
 from recipe_tooling.qualification.coverage_identity import execution_stack_identity
+from recipe_tooling.qualification.sweep_settings import SETTINGS
 from vonk_forge_contracts import (
     RecipeDefinition,
     read_model_display,
@@ -43,7 +44,7 @@ ROOT = REPO_ROOT
 
 QUALIFICATION = ROOT / "qualification"
 
-AUTHORITY_ID = json.loads((ROOT / "policy/sweep.json").read_text())["authority_id"]
+AUTHORITY_ID = SETTINGS.authority_id
 _RECIPE_ROW = re.compile(r"[a-z0-9][a-z0-9-]{0,62}/[a-z0-9][a-z0-9-]{0,62}\Z")
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 _COMMIT = re.compile(r"[0-9a-f]{40}\Z")

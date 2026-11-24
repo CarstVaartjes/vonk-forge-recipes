@@ -75,7 +75,7 @@ def test_producer_test_environment_has_one_owner() -> None:
     The refresh workflow once installed its own shorter list, so the full-suite step
     died at collection on `import PIL` for every refresh. The one list is the
     `producer-tests` dependency group in `pyproject.toml` (locked in `uv.lock`); a
-    workflow installs it with `uv sync --frozen --group producer-tests`.
+    workflow installs it with `uv sync --frozen` (default groups).
     """
 
     group = " ".join(PYPROJECT["dependency-groups"]["producer-tests"])
@@ -90,4 +90,4 @@ def test_producer_test_environment_has_one_owner() -> None:
             assert pin is None, f"{path.name} pins {pin and pin.group(0)} itself"
     for name in ("validate.yml", "refresh-upstream.yml", "publish.yml"):
         text = (ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8")
-        assert "uv sync --frozen --group producer-tests" in text, name
+        assert "uv sync --frozen" in text, name

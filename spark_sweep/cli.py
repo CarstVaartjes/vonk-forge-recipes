@@ -11,6 +11,7 @@ from pathlib import Path
 
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from recipe_tooling.qualification.own_pulls import REPOSITORY
+from recipe_tooling.qualification.sweep_settings import SETTINGS
 
 from . import policy
 from .catalog import fetch_fleet, fetch_models, fetch_recipes
@@ -22,7 +23,6 @@ from .plan import make_plan, render_plan, retesting
 from .prefetch import PrefetchConfig
 from .report import build_report, render_report, saved_qualification
 from .run import Sweep
-from .settings import SETTINGS
 from .smoke import HttpConfig
 from .source_serving import authored_contents, describe, unserved
 from .state import ResultsLog, State, StateLock, StateLocked

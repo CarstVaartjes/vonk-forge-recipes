@@ -8,6 +8,9 @@ updates:
       - "/.github/actions/setup-tooling"
     schedule:
       interval: weekly
+    ignore:
+      # The SHA-pinned platform workflow moves only by owner decision.
+      - dependency-name: "CarstVaartjes/vonk-forge*"
     groups:
       actions:
         patterns: ["*"]
