@@ -6,11 +6,11 @@
     "text-generation",
     "tool-use"
   ],
-  "description": "Tencent Hy4 Flash (mixture of experts with Engram tables and multi-token prediction) in AngelSlim's SPARK-4Bit GGUF packing for one DGX Spark, with the BF16 vision projector. It needs the llama.cpp commit and Spark patch Tencent publishes beside the weights. Only the SPARK-4Bit file, the projector and the licence are cataloged.",
+  "description": "Tencent Hy4 Flash (mixture of experts with Engram tables and multi-token prediction) in AngelSlim's SPARK-4Bit-Fast GGUF packing for one DGX Spark, 2.7 GiB smaller than SPARK-4Bit, with the BF16 vision projector. It needs the llama.cpp commit and Spark patch Tencent publishes beside the weights. Only the SPARK-4Bit-Fast file, the projector and the licence are cataloged.",
   "family_title": "Hy4 Flash",
   "identity": {
     "publisher": "angelslim",
-    "slug": "hy4-flash-spark-4bit-gguf-65acb8ae"
+    "slug": "hy4-flash-spark-4bit-fast-gguf-9f1d9ac2"
   },
   "kind": "model-display",
   "license": {
