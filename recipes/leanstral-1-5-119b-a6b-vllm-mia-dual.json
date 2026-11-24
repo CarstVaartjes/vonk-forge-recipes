@@ -213,8 +213,8 @@
           ]
         },
         {
-          "file_id": "chat-template-de56319deee1-00824420d1",
-          "id": "draft-chat-template-de56319deee1-00824420d1",
+          "file_id": "chat-template-89f895912fa0-00824420d1",
+          "id": "draft-chat-template-89f895912fa0-00824420d1",
           "mount": {
             "target": "/models/eagle"
           },
@@ -259,10 +259,10 @@
       ],
       "id": "draft",
       "model": {
-        "content_sha256": "a6cd5582616f6fc05aae6fe87d94a9f8d93cac16dc9938cb4fb060a81e4e318a",
+        "content_sha256": "24b5ee2411ebb776aade177a8c8762f6325d1947c840b1c6d9f8934bf89d1f65",
         "kind": "model",
         "publisher": "mistralai",
-        "slug": "mistral-small-4-119b-2603-eagle-9a8ea22d"
+        "slug": "mistral-small-4-119b-2603-eagle-452014fa"
       }
     }
   ],
@@ -352,8 +352,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/Leanstral-1.5-119B-A6B_2x_DGX_Sparks_vLLM/tree/94d729896226db3eaf7f584e79b7c1f0028bab1d"
   },
   "release": {
-    "released_at": "2026-10-06",
-    "version": "1.0.3"
+    "released_at": "2026-11-24",
+    "version": "1.0.4"
   },
   "runtime": {
     "arguments": [
@@ -475,7 +475,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 121355133768,
+            "artifact_bytes": 121355136717,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 65000000000
@@ -492,7 +492,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 121355133768,
+            "artifact_bytes": 121355136717,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 65000000000
