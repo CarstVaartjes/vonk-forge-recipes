@@ -460,6 +460,7 @@ requires-dist = [{ name = "pydantic", specifier = ">=2.13,<3" }]
 name = "vonk-forge-recipes"
 version = "0.0.0"
 source = { virtual = "." }
+default-groups = ["dev", "producer-tests"]
 
 [package.dev-dependencies]
 dev = [

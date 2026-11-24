@@ -22,6 +22,7 @@ from .plan import make_plan, render_plan, retesting
 from .prefetch import PrefetchConfig
 from .report import build_report, render_report, saved_qualification
 from .run import Sweep
+from .settings import SETTINGS
 from .smoke import HttpConfig
 from .source_serving import authored_contents, describe, unserved
 from .state import ResultsLog, State, StateLock, StateLocked
@@ -29,9 +30,9 @@ from .sweep_contract import SweepEvidenceExit
 from .sweep_support import DEFAULT_BOOST, Clock, SweepConfig, selects
 from .vonkctl import OWNER_PROFILES, Vonkctl, VonkctlError
 
-# Kept equal to AUTHORITY_ID in tools/build-qualification-authority (a test checks it), so
-# the results log is read by `vonk-fleet-qualify-campaign status` for that authority.
-AUTHORITY_ID = "nl-family-aware-20260924"
+# The results log is read by `vonk-fleet-qualify-campaign status` for this authority; the
+# catalog build derives the same authority from the same file (policy/sweep.json).
+AUTHORITY_ID = SETTINGS.authority_id
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_STATE_DIR = Path.home() / ".vonk-sweep"
 REPO = REPOSITORY

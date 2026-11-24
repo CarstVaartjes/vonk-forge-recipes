@@ -7,6 +7,9 @@ requires-python = ">=3.14"
 
 [tool.uv]
 required-version = ">=0.13.5"
+# One environment for the type gate, lint, tests and tools: the gate resolves the same
+# packages everywhere, so `uv run` agrees with CI.
+default-groups = ["dev", "producer-tests"]
 
 [tool.pytest.ini_options]
 # Adapter tests are upstream's (they need torch/vllm) and run only in upstream's

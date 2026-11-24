@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import re
-import runpy
 import unittest
 from pathlib import Path
 from typing import Any
@@ -11,6 +10,7 @@ from documents import recipe_display
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from recipe_tooling.protocol_wheel import selection
 
 RECIPES = {
@@ -28,7 +28,7 @@ def load(path: Path) -> dict[str, Any]:
 
 class LtxNative14RefreshTests(unittest.TestCase):
     def test_all_native_recipes_bind_source_bundle_and_package(self) -> None:
-        tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+        tool = vars(catalog_index)
         for slug, adapter in RECIPES.items():
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             context = recipe["execution"]["build"]["context"]

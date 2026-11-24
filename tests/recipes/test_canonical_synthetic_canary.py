@@ -20,6 +20,7 @@ from generated_catalog import GENERATED
 from pydantic import ValidationError
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from recipe_tooling.upstream_http import open_once
 from vonk_forge_contracts import (
     ModelDefinition,
@@ -30,7 +31,7 @@ from vonk_forge_contracts import (
 from vonk_forge_contracts.model import ModelSource
 
 FIXTURE = ROOT / "tests/fixtures/canonical-synthetic-canary"
-TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+TOOL = vars(catalog_index)
 PACKAGE = FIXTURE / "package/canonical-synthetic-canary.tar.gz"
 ChatRequest = runpy.run_path(str(FIXTURE / "context/request_contract.py"))[
     "ChatRequest"

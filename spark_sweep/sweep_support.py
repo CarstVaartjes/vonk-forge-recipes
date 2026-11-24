@@ -32,6 +32,7 @@ from .lifecycle import (
 )
 from .prefetch import PrefetchConfig
 from .profile_alias import profile_alias
+from .settings import SETTINGS
 from .smoke import (
     HttpConfig,
     SmokeResult,
@@ -150,7 +151,7 @@ def _fleet_skip(entry: Mapping[str, Any]) -> bool:
     )
 
 
-DEFAULT_BOOST = ("glm-5-3",)
+DEFAULT_BOOST = SETTINGS.default_boost
 
 
 @dataclass

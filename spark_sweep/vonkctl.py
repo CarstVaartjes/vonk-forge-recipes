@@ -18,9 +18,10 @@ from typing import Any, Protocol
 
 from pydantic import ValidationError
 
+from .settings import SETTINGS
 from .sweep_contract import CliObservationReply
 
-OWNER_PROFILES = frozenset({1, 2, 3})
+OWNER_PROFILES = SETTINGS.owner_profiles
 PROFILE_WRITES = frozenset({"add", "remove", "configure", "import", "load", "cancel"})
 _KEY_NAMESPACE = uuid.UUID("6f1d1a5e-5b0c-4d7e-9a53-0d6c5b2a7e11")
 

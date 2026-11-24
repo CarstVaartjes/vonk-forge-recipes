@@ -13,6 +13,7 @@ import pytest
 from repo_root import ROOT
 from sweep_fakes import Gateway, production_service_cases
 
+from recipe_tooling import qualification_authority
 from recipe_tooling.qualification.documents import recipe, recipe_api
 from spark_sweep.catalog import Recipe
 from spark_sweep.chat_probe import ChatFacts, chat_facts
@@ -443,8 +444,7 @@ def test_a_vision_case_carries_its_image_as_a_data_uri(
 
 def test_the_authority_id_matches_the_derived_authority() -> None:
 
-    builder = (ROOT / "tools" / "build-qualification-authority").read_text()
-    assert f'AUTHORITY_ID = "{AUTHORITY_ID}"' in builder
+    assert qualification_authority.AUTHORITY_ID == AUTHORITY_ID
 
 
 # -- smoke against a gateway ----------------------------------------------------------------------

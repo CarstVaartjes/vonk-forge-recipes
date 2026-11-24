@@ -194,7 +194,8 @@ below).
   external consumer directory. Generated indexes, packages and coverage are
   ignored build outputs, not committed state.
 - Repository-wide policy files (base-image and Model-revision holds, creators,
-  kit-image and memory-envelope exceptions, published images, upstream watch) live in `policy/`,
+  kit-image and memory-envelope exceptions, published images, upstream watch, the sweep's
+  authority id, boost words and owner profiles) live in `policy/`,
   not the root (`adapter-sources.json` stays there).
 - `adapter-sources.json` (model in `src/recipe_tooling/adapter_sources.py`) declares build-context
   files whose bytes live in the mirror instead of Git: SHA-256, size, optional upstream
@@ -332,6 +333,9 @@ tree by `tests/tools/test_package_import_direction.py` (no counts, no exceptions
 `tools/kit-pins`, `tools/check-upstream-drift` and `tools/refresh-upstream` are launchers over the packages
 `recipe_tooling.kit_pins`, `recipe_tooling.upstream_drift` and `recipe_tooling.refresh_upstream` (modules by topic;
 cross-module calls go through the module, `refresh_<module>.name`, so a test patches the defining module).
+`tools/build-catalog-index`, `tools/build-family-aware-coverage`, `tools/build-qualification-authority`,
+`tools/generate-contract-examples`, `tools/prebuilt-images` and `tools/prepare-remote-code-smoke` are launchers over
+modules of the same names in `src/recipe_tooling/` (underscores); tests import the module, never load the script.
 
 Provider JSON (GitHub, Hugging Face) is read by one client, `recipe_tooling.upstream_clients.ProviderJson`; the
 refresh's `Http` and the drift check's `ProviderClient` pass their own user agent, timeout, size bound and ETag cache.
@@ -386,9 +390,9 @@ run has no cold start).
 `--authority-id`,
 `--retry-failed`, `--watch` and `--no-revalidate`.
 Job recipes are always tested (one artifact job each); there is no flag.
-Read `--help` for current defaults. Each default has one owner: the authority id in
-`spark_sweep/cli.py`, the boost words in `spark_sweep/sweep_support.py`, the owner profiles the sweep
-never uses in `vonkctl.OWNER_PROFILES` (not a flag).
+Read `--help` for current defaults. Each default has one owner, `policy/sweep.json`
+(read by `spark_sweep/settings.py`): the authority id (the catalog build derives the same
+authority from it), the boost words and the owner profiles the sweep never uses (not a flag).
 SIGINT/SIGTERM interrupt owned work; rerunning with the same state directory
 resumes. One process holds the directory's exclusive `run.lock`.
 
