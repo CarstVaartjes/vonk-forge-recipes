@@ -13,7 +13,6 @@
         "hosts": [
           "ziglang.org",
           "github.com",
-          "codeload.github.com",
           "objects.githubusercontent.com",
           "release-assets.githubusercontent.com",
           "storage.googleapis.com"
