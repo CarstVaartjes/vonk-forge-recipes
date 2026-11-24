@@ -108,10 +108,10 @@ def test_canonical_canary_huggingface_source_is_accepted_by_model_cache() -> Non
     sys.path.insert(0, str(control_source))
     try:
         try:
-            model_cache = import_module("vonk_control.model_cache")
+            catalog_helpers = import_module("vonk_control.model_cache.catalog_helpers")
         except ImportError:
             pytest.skip("platform ModelCache dependencies are unavailable")
-        source_for_catalog_artifact = model_cache._source_for_catalog_artifact
+        source_for_catalog_artifact = catalog_helpers._source_for_catalog_artifact
         model_document, _, _ = _documents()
         model = ModelDefinition.model_validate(model_document)
         assert isinstance(model.source, ModelSource)
