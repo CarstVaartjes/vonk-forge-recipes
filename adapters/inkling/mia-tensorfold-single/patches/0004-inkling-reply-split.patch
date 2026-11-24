@@ -1,0 +1,1054 @@
+diff --git a/THIRD_PARTY_NOTICES.md b/THIRD_PARTY_NOTICES.md
+index 02fa97af9..9ad13c676 100644
+--- a/THIRD_PARTY_NOTICES.md
++++ b/THIRD_PARTY_NOTICES.md
+@@ -572,3 +572,10 @@ these layers of Hugging Face transformers' `src/transformers/models/inkling2/mod
+ `Inkling2NormedEmbedding`, `Inkling2BlockAttentionResidual`, `Inkling2ShortConvolution`,
+ `Inkling2DynamicShortConvolution`, `Inkling2TopKRouter`, `Inkling2SoftcappedSwiGLU` and `Inkling2Softcap`. The kernels
+ are TensorFold's own.
++
++## Inkling 2 reply blocks
++
++`zig/src/server/inkling_reply.zig` and `zig/src/server/chat_inkling.zig` follow the state table of vLLM's Inkling
++parser, `vllm/parser/inkling.py` at commit `abb8194dc35e` of [vllm-project/vllm](https://github.com/vllm-project/vllm)
++(Apache-2.0). The table says which marker opens which block in each state, which markers stay text, and that a block
++header's text counts as content only when the header closes without a block. The code is TensorFold's own.
+diff --git a/zig/src/server/chat_generation.zig b/zig/src/server/chat_generation.zig
+index c8ea99516..ab1aacf9e 100644
+--- a/zig/src/server/chat_generation.zig
++++ b/zig/src/server/chat_generation.zig
+@@ -61,6 +61,7 @@ pub const Generation = struct {
+     collected: std.ArrayList(u32) = .empty,
+     visible: reply_text.Incremental = .{},
+     kimi: ?@import("kimi_reply.zig").Stream = null,
++    inkling: ?@import("inkling_reply.zig").Stream = null,
+     hidden: std.ArrayList(u8) = .empty, // reused for the answer without its call blocks
+     streamed: reply_text.Shown = .{}, // what content streamed, kept apart from the decode buffer that grows under slices
+     streamed_reasoning: reply_text.Shown = .{},
+@@ -152,6 +153,7 @@ pub const Generation = struct {
+         const all = try g.visible.extend(g.a, g.srv.text, reply_text.decodeText, fresh.items);
+         if (g.visible.pending()) return; // a character still split across tokens
+         if (g.srv.text.vtable.format == .kimi) return @import("chat_kimi.zig").stream(g, sink);
++        if (g.srv.text.vtable.format == .inkling) return @import("chat_inkling.zig").stream(g, sink);
+         const raw_visible = g.stops.visible(all, true);
+         const text = try @import("tool_minimax.zig").dsml(g.a, raw_visible, g.tools); // MiniMax-M3's calls as DSML
+         var answer = text;
+@@ -310,7 +312,7 @@ pub const Generation = struct {
+         const finished_ns = nowNs(g.srv.io);
+         const content_tokens = if (g.ignore_eos) g.collected.items else reply_text.stripTrailing(g.collected.items, g.srv.eos);
+         const raw = try g.srv.text.decode(a, content_tokens);
+-        const native = if (g.srv.text.vtable.format == .kimi) try @import("chat_kimi.zig").read(g, content_tokens, true) else null;
++        const native = if (g.srv.text.vtable.format == .kimi) try @import("chat_kimi.zig").read(g, content_tokens, true) else if (g.srv.text.vtable.format == .inkling) try @import("chat_inkling.zig").read(g, content_tokens, true) else null;
+         const raw_visible = g.stops.visible(raw, false);
+         const visible = if (native) |n| n.content else try @import("tool_minimax.zig").dsml(a, raw_visible, g.tools);
+         const close_at: ?reply_text.Close = if (native == null and g.thinking)
+diff --git a/zig/src/server/chat_inkling.zig b/zig/src/server/chat_inkling.zig
+new file mode 100644
+index 000000000..534e7e930
+--- /dev/null
++++ b/zig/src/server/chat_inkling.zig
+@@ -0,0 +1,46 @@
++//! Inkling 2's reply blocks (inkling_reply.zig) as reasoning, content and calls, in whole and streamed replies.
++const std = @import("std");
++const json = @import("json");
++const split = @import("inkling_reply.zig");
++const chat = @import("chat.zig");
++const Result = @import("kimi_reply.zig").Result;
++const Value = json.Value;
++
++/// The reply so far (ids past the prompt, specials spelled out) split as vLLM's Inkling parser splits it.
++pub fn read(g: anytype, ids: []const u32, finished: bool) std.mem.Allocator.Error!Result {
++    const raw = try g.srv.text.decode(g.a, ids);
++    if (!g.chat) return .{ .content = g.stops.visible(raw, !finished), .reasoning = "", .calls = null, .reasoning_tokens = 0 };
++    const r = try split.split(g.a, raw, finished, g.tools); // the request's tools, narrowed by tool_choice
++    var calls: ?[]Value = null; // a raw completion stays unsplit above; a reply a stop string ended keeps no calls
++    if (r.calls.len > 0 and g.stops.matched(raw) == null) {
++        const list = try g.a.alloc(Value, r.calls.len); // no ids: the model writes none (openai_calls.zig keys them)
++        for (r.calls, list) |c, *v| {
++            const f = try json.newObject(g.a);
++            try f.put(g.a, "name", .{ .string = c.name });
++            try f.put(g.a, "arguments", .{ .string = c.arguments });
++            const o = try json.newObject(g.a);
++            try o.put(g.a, "type", .{ .string = "function" });
++            try o.put(g.a, "function", .{ .object = f });
++            v.* = .{ .object = o };
++        }
++        calls = list;
++    }
++    return .{
++        .content = g.stops.visible(r.content, !finished),
++        .reasoning = g.stops.visible(r.reasoning, !finished),
++        .calls = calls,
++        .reasoning_tokens = split.thinkingTokens(g.srv.text, ids),
++    };
++}
++
++/// A streamed reply's new reasoning and content, split only past the text the last step read; calls wait.
++pub fn stream(g: anytype, sink: chat.Sink) chat.Failure!void {
++    const all = g.visible.text.items; // the reply's decode so far, append-only (chat_generation.zig decodes it)
++    if (!g.chat) return @import("chat_kimi.zig").emitDeltas(g, sink, .{ .content = g.stops.visible(all, true), .reasoning = "", .calls = null, .reasoning_tokens = 0 }, true);
++    if (g.inkling == null) g.inkling = .{ .a = g.a, .offered = g.tools };
++    const s = &g.inkling.?;
++    try s.feed(all, true);
++    const r = try s.result(all, false);
++    const shown: Result = .{ .content = g.stops.visible(r.content, true), .reasoning = g.stops.visible(r.reasoning, true), .calls = null, .reasoning_tokens = 0 };
++    try @import("chat_kimi.zig").emitDeltas(g, sink, shown, s.fed == all.len);
++}
+diff --git a/zig/src/server/chat_kimi.zig b/zig/src/server/chat_kimi.zig
+index c88fad3a4..2649c6b07 100644
+--- a/zig/src/server/chat_kimi.zig
++++ b/zig/src/server/chat_kimi.zig
+@@ -26,6 +26,12 @@ pub fn stream(g: anytype, sink: chat.Sink) chat.Failure!void {
+         break :blk parsed;
+     } else try read(g, ids, false);
+     const stable = if (g.kimi) |k| !k.revised and !k.fallback else false;
++    try emitDeltas(g, sink, result, stable);
++    // Calls wait for the finished native parse; later malformed controls cannot retract an executed call.
++}
++
++/// A native split's new reasoning and content as stream deltas; `stable`: both lie in append-only buffers.
++pub fn emitDeltas(g: anytype, sink: chat.Sink, result: native.Result, stable: bool) chat.Failure!void {
+     const thought = reply_text.pyStrip(result.reasoning);
+     const reason = g.streamed_reasoning.after(thought, stable);
+     if (reason.len > 0) {
+@@ -37,5 +43,4 @@ pub fn stream(g: anytype, sink: chat.Sink) chat.Failure!void {
+         try g.streamed.set(g.a, result.content, delta);
+         try g.emit(sink, .{ .string = delta });
+     }
+-    // Calls wait for the finished native parse; later malformed controls cannot retract an executed call.
+ }
+diff --git a/zig/src/server/fields.zig b/zig/src/server/fields.zig
+index c1449a84b..a590420c6 100644
+--- a/zig/src/server/fields.zig
++++ b/zig/src/server/fields.zig
+@@ -361,3 +361,22 @@ test "efforts and numbers" {
+     try std.testing.expectEqualStrings("-12", (try pyIntText(arena.allocator(), " -0_12 ")).?);
+     try std.testing.expect(try pyIntText(arena.allocator(), "8.0") == null);
+ }
++
++test "chat_template_kwargs.clear_thinking: a bool, null as unset, anything else refused" {
++    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    var cx: Cx = .{ .a = a };
++    const cases = [_]struct { body: []const u8, want: ?bool }{
++        .{ .body = "{}", .want = null },
++        .{ .body = "{\"chat_template_kwargs\":{\"clear_thinking\":null}}", .want = null },
++        .{ .body = "{\"chat_template_kwargs\":{\"clear_thinking\":true}}", .want = true },
++        .{ .body = "{\"chat_template_kwargs\":{\"clear_thinking\":false,\"enable_thinking\":true}}", .want = false },
++    };
++    for (cases) |c| try std.testing.expectEqual(c.want, (try thinkingFields(&cx, (try json.parse(a, c.body)).ok, &.{})).clear);
++    for ([_][]const u8{ "1", "\"true\"", "{}" }) |bad| {
++        const body = try std.fmt.allocPrint(a, "{{\"chat_template_kwargs\":{{\"clear_thinking\":{s}}}}}", .{bad});
++        try std.testing.expectError(error.Refused, thinkingFields(&cx, (try json.parse(a, body)).ok, &.{}));
++        try std.testing.expectEqualStrings("chat_template_kwargs.clear_thinking must be true or false", cx.message);
++    }
++}
+diff --git a/zig/src/server/hf_eos_test.zig b/zig/src/server/hf_eos_test.zig
+index 62eead3e3..3b3c7291e 100644
+--- a/zig/src/server/hf_eos_test.zig
++++ b/zig/src/server/hf_eos_test.zig
+@@ -44,3 +44,27 @@ test "EOS policy: HfText validates present model EOS and the model head bound as
+         try std.testing.expect(std.mem.indexOf(u8, problem, "EOS") != null);
+     }
+ }
++
++test "HfText opens a tokenizer holding Inkling 2's markers as the .inkling format and any other as .template" {
++    const a = std.testing.allocator;
++    const io = std.testing.io;
++    const markers = @import("inkling_reply.zig").markers;
++    var tmp = std.testing.tmpDir(.{});
++    defer tmp.cleanup();
++    const dir = try std.fmt.allocPrint(a, ".zig-cache/tmp/{s}", .{tmp.sub_path});
++    defer a.free(dir);
++    const plain = "{\"model\":{\"type\":\"BPE\",\"vocab\":{\"H\":0},\"merges\":[]},\"added_tokens\":[]}";
++    const inkling = "{\"model\":{\"type\":\"BPE\",\"vocab\":{\"H\":0},\"merges\":[]},\"added_tokens\":[" ++
++        "{\"id\":1,\"content\":\"" ++ markers.model ++ "\",\"special\":true}," ++
++        "{\"id\":2,\"content\":\"" ++ markers.end_sampling ++ "\",\"special\":true}]}";
++    for ([_]struct { json: []const u8, want: @import("model_text.zig").Text.Format }{
++        .{ .json = plain, .want = .template },
++        .{ .json = inkling, .want = .inkling },
++    }) |c| {
++        try tmp.dir.writeFile(io, .{ .sub_path = "tokenizer.json", .data = c.json });
++        var problem: []const u8 = "";
++        const t = try HfText.load(a, io, dir, null, a, &problem);
++        defer t.deinit();
++        try std.testing.expectEqual(c.want, t.text().vtable.format);
++    }
++}
+diff --git a/zig/src/server/hf_text.zig b/zig/src/server/hf_text.zig
+index 204046b33..ed93e4b0d 100644
+--- a/zig/src/server/hf_text.zig
++++ b/zig/src/server/hf_text.zig
+@@ -31,6 +31,7 @@ pub const HfText = struct {
+     native_kimi: ?*KimiText = null,
+     source: []const u8 = "",
+     native_deepseek: bool = false,
++    inkling: bool = false, // the tokenizer holds Inkling 2's block markers: replies read as .inkling
+     schema_prompt: bool = true, // TF_DSV41_SCHEMA_PROMPT: response_format's schema as the encoder's ``## Response Format``
+     overridden: bool = false, // the chat template is --chat-template's file
+     unread_template: bool = false, // a native DeepSeek checkpoint's own Jinja, which its encoder replaces
+@@ -135,6 +136,7 @@ pub const HfText = struct {
+             };
+         }
+         if (t.tool_source.len > 0) t.tool_compiled = template.compile(gpa, t.tool_source, null) catch null;
++        t.inkling = @import("inkling_reply.zig").speaks(t.text());
+         return t;
+     }
+ 
+@@ -287,7 +289,12 @@ pub const HfText = struct {
+ 
+     pub fn text(t: *HfText) model_text.Text {
+         if (t.native_kimi) |kimi| return kimi.text();
+-        return .{ .native_deepseek = t.native_deepseek and t.compiled == null, .deferred_native = @import("deferred_tools.zig").native(if (t.tool_source.len > 0) t.tool_source else t.source), .ctx = t, .vtable = &.{
++        return .{ .native_deepseek = t.native_deepseek and t.compiled == null, .deferred_native = @import("deferred_tools.zig").native(if (t.tool_source.len > 0) t.tool_source else t.source), .ctx = t, .vtable = if (t.inkling) &comptime table(.inkling) else &comptime table(.template) };
++    }
++
++    fn table(comptime format: model_text.Text.Format) model_text.Text.VTable {
++        return .{
++            .format = format,
+             .encode = encodeFn,
+             .decode = decodeFn,
+             .token_id = tokenIdFn,
+@@ -301,7 +308,7 @@ pub const HfText = struct {
+             .token_bytes = tokenBytesFn,
+             .encode_plain = encodePlainFn,
+             .encode_masked = encodeMaskedFn,
+-        } };
++        };
+     }
+ 
+     pub fn identity(t: *const HfText, a: Allocator) Allocator.Error![32]u8 {
+@@ -572,26 +579,6 @@ test "GLM-5.3 gives its template clear_thinking: earlier reasoning kept unless T
+     try std.testing.expectEqualStrings("uav", (try other.text().render(a, messages, .{ .clear_thinking = false }, &problem)).text);
+ }
+ 
+-test "chat_template_kwargs.clear_thinking: a bool, null as unset, anything else refused" {
+-    const fields = @import("fields.zig");
+-    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+-    defer arena.deinit();
+-    const a = arena.allocator();
+-    var cx: @import("errors.zig").Cx = .{ .a = a };
+-    const cases = [_]struct { body: []const u8, want: ?bool }{
+-        .{ .body = "{}", .want = null },
+-        .{ .body = "{\"chat_template_kwargs\":{\"clear_thinking\":null}}", .want = null },
+-        .{ .body = "{\"chat_template_kwargs\":{\"clear_thinking\":true}}", .want = true },
+-        .{ .body = "{\"chat_template_kwargs\":{\"clear_thinking\":false,\"enable_thinking\":true}}", .want = false },
+-    };
+-    for (cases) |c| try std.testing.expectEqual(c.want, (try fields.thinkingFields(&cx, (try json.parse(a, c.body)).ok, &.{})).clear);
+-    for ([_][]const u8{ "1", "\"true\"", "{}" }) |bad| {
+-        const body = try std.fmt.allocPrint(a, "{{\"chat_template_kwargs\":{{\"clear_thinking\":{s}}}}}", .{bad});
+-        try std.testing.expectError(error.Refused, fields.thinkingFields(&cx, (try json.parse(a, body)).ok, &.{}));
+-        try std.testing.expectEqualStrings("chat_template_kwargs.clear_thinking must be true or false", cx.message);
+-    }
+-}
+-
+ test {
+     _ = @import("hf_eos_test.zig");
+     _ = @import("hf_text_regex_test.zig");
+diff --git a/zig/src/server/inkling_reply.zig b/zig/src/server/inkling_reply.zig
+new file mode 100644
+index 000000000..073ce1c5b
+--- /dev/null
++++ b/zig/src/server/inkling_reply.zig
+@@ -0,0 +1,355 @@
++//! Inkling 2's reply blocks split into reasoning, visible text and tool calls, as vLLM's Inkling parser reads them.
++const std = @import("std");
++const json = @import("json");
++const json_cut = @import("tool_json_cut.zig");
++const tool_parse = @import("tool_parse.zig");
++
++/// The release's block markers (special tokens in tokenizer_config.json).
++pub const markers = struct {
++    pub const model = "<|message_model|>";
++    pub const text = "<|content_text|>";
++    pub const thinking = "<|content_thinking|>";
++    pub const end = "<|end_message|>";
++    pub const end_sampling = "<|content_model_end_sampling|>";
++    pub const tool_json = "<|content_invoke_tool_json|>";
++    pub const tool_text = "<|content_invoke_tool_text|>";
++    pub const tool_error = "<|content_tool_error|>";
++};
++
++/// Inkling 2's replies end their sampling with this marker; a tokenizer that holds it speaks the block format.
++pub fn speaks(text: anytype) bool {
++    return text.vtable.token_id(text.ctx, markers.end_sampling) != null and text.vtable.token_id(text.ctx, markers.model) != null;
++}
++
++const Marker = enum { model, text, thinking, end, end_sampling, tool_json, tool_text, tool_error };
++const State = enum { header, content, reasoning, tool };
++
++pub const Call = struct { name: []const u8, arguments: []const u8 };
++
++pub const Reply = struct {
++    reasoning: []const u8,
++    content: []const u8,
++    calls: []const Call,
++    /// A tool block the reply ended inside (max_tokens): its name when the payload got that far, never raw markup.
++    cut: ?[]const u8 = null,
++};
++
++fn markerAt(s: []const u8) ?struct { m: Marker, len: usize } {
++    inline for (comptime std.enums.values(Marker)) |m| {
++        const text = @field(markers, @tagName(m));
++        if (std.mem.startsWith(u8, s, text)) return .{ .m = m, .len = text.len };
++    }
++    return null;
++}
++
++/// The next state for a marker in a state, or null where vLLM's table has no entry (the marker is then plain text).
++fn next(s: State, m: Marker) ?State {
++    return switch (m) {
++        .end, .end_sampling => .content,
++        .model => if (s == .content or s == .header) .header else null,
++        .text, .tool_text, .tool_error => if (s == .content or s == .header) .content else null,
++        .thinking => if (s == .tool) null else .reasoning,
++        .tool_json => if (s == .tool) null else .tool,
++    };
++}
++
++/// Split one reply (specials spelled out) into `a`; unfinished, it holds back an open header that may name a tool.
++pub fn split(a: std.mem.Allocator, reply: []const u8, finished: bool, offered: []const json.Value) !Reply {
++    var s: Stream = .{ .a = a, .offered = offered };
++    try s.feed(reply, false);
++    return s.result(reply, finished);
++}
++
++/// The split kept across a stream's steps: each step reads only the text past `fed`.
++pub const Stream = struct {
++    a: std.mem.Allocator,
++    offered: []const json.Value = &.{}, // the request's tools: a block that calls none of them is content
++    state: State = .header,
++    reasoning: std.ArrayList(u8) = .empty,
++    content: std.ArrayList(u8) = .empty,
++    header: std.ArrayList(u8) = .empty,
++    payload: std.ArrayList(u8) = .empty,
++    calls: std.ArrayList(Call) = .empty,
++    fed: usize = 0,
++    cut: ?[]const u8 = null, // the open tool block's name, once its payload holds it whole
++
++    /// Read `reply`, which only grows, past `fed`; `hold` keeps back an end that may still become a marker.
++    pub fn feed(s: *Stream, reply: []const u8, hold: bool) !void {
++        const a = s.a;
++        var i = s.fed;
++        while (i < reply.len) {
++            if (reply[i] == '<') {
++                if (markerAt(reply[i..])) |hit| if (next(s.state, hit.m)) |to| {
++                    i += hit.len;
++                    if (s.state == .tool and to == .content) try s.close();
++                    if (s.state == .header and (hit.m == .end or hit.m == .end_sampling)) try s.content.appendSlice(a, s.header.items);
++                    if (to == .header or s.state == .header) s.header.clearRetainingCapacity();
++                    if (to == .tool) s.payload.clearRetainingCapacity();
++                    if (to == .tool) s.cut = null;
++                    s.state = to;
++                    continue;
++                };
++                if (hold and opens(reply[i..])) break;
++            }
++            const stop = std.mem.indexOfScalarPos(u8, reply, i + 1, '<') orelse reply.len;
++            try s.open().appendSlice(a, reply[i..stop]);
++            i = stop;
++        }
++        s.fed = i;
++    }
++
++    /// A finished tool block: a call to an offered tool, else its payload as written, kept as content.
++    fn close(s: *Stream) !void {
++        if (try call(s.a, s.payload.items, s.offered)) |c| return s.calls.append(s.a, c);
++        try s.content.appendSlice(s.a, s.payload.items);
++    }
++
++    fn open(s: *Stream) *std.ArrayList(u8) {
++        return switch (s.state) {
++            .header => &s.header,
++            .content => &s.content,
++            .reasoning => &s.reasoning,
++            .tool => &s.payload,
++        };
++    }
++
++    /// The split of `reply` so far, a held end read as text in the open block, as `split` reads it.
++    pub fn result(s: *Stream, reply: []const u8, finished: bool) !Reply {
++        const a = s.a;
++        const tail = reply[s.fed..];
++        var reasoning = s.reasoning.items;
++        var content = s.content.items;
++        var header = s.header.items;
++        var payload = s.payload.items;
++        if (tail.len > 0) {
++            const held = switch (s.state) {
++                .header => &header,
++                .content => &content,
++                .reasoning => &reasoning,
++                .tool => &payload,
++            };
++            held.* = try std.mem.concat(a, u8, &.{ held.*, tail });
++        }
++        if (s.state == .tool and s.cut == null) s.cut = try name(a, payload);
++        var out: Reply = .{
++            .reasoning = std.mem.trimEnd(u8, reasoning, " \t\r\n"),
++            .content = content,
++            .calls = s.calls.items,
++        };
++        if (s.state == .tool) out.cut = s.cut;
++        if (finished and s.state == .header and header.len > 0) out.content = try std.mem.concat(a, u8, &.{ content, header });
++        const blank = std.mem.trim(u8, out.content, " \t\r\n").len == 0;
++        if (blank and (out.calls.len > 0 or out.cut != null)) out.content = "";
++        return out;
++    }
++};
++
++/// Whether `s` (from a `<`) is a marker's start cut short, so later text may complete it.
++fn opens(s: []const u8) bool {
++    inline for (comptime std.enums.values(Marker)) |m| {
++        const text = @field(markers, @tagName(m));
++        if (s.len < text.len and std.mem.startsWith(u8, text, s)) return true;
++    }
++    return false;
++}
++
++/// How many of `ids` lie inside thinking blocks, reading the markers' token ids as `split` reads their text.
++pub fn thinkingTokens(text: anytype, ids: []const u32) usize {
++    const all = comptime std.enums.values(Marker);
++    var marker_ids: [all.len]u32 = undefined;
++    inline for (all, 0..) |m, k| marker_ids[k] = text.tokenId(@field(markers, @tagName(m))) orelse std.math.maxInt(u32);
++    var state: State = .header;
++    var n: usize = 0;
++    for (ids) |id| {
++        if (std.mem.indexOfScalar(u32, &marker_ids, id)) |k| if (next(state, all[k])) |to| {
++            state = to;
++            continue;
++        };
++        if (state == .reasoning) n += 1;
++    }
++    return n;
++}
++
++/// A tool block's `{"name": ..., "args": {...}}` naming an offered tool, under its spelling; null for anything else.
++fn call(a: std.mem.Allocator, payload: []const u8, offered: []const json.Value) !?Call {
++    var doc = std.json.parseFromSlice(std.json.Value, a, payload, .{}) catch return null;
++    defer doc.deinit();
++    if (doc.value != .object) return null;
++    const n = doc.value.object.get("name") orelse return null;
++    if (n != .string) return null;
++    var known = try tool_parse.knownNames(a, offered);
++    const own = try tool_parse.callName(a, n.string, &known) orelse return null;
++    const args = json_cut.find(try json_cut.members(a, std.mem.trimStart(u8, payload, " \t\r\n")), "args");
++    return .{ .name = own, .arguments = try a.dupe(u8, if (args) |m| m.value else "{}") };
++}
++
++/// The name of a cut tool block, when its payload already holds a whole top-level "name" string.
++fn name(a: std.mem.Allocator, payload: []const u8) !?[]const u8 {
++    const body = std.mem.trimStart(u8, payload, " \t\r\n");
++    if (body.len == 0 or body[0] != '{') return null;
++    const m = json_cut.find(try json_cut.members(a, body), "name") orelse return null;
++    if (m.cut or m.value.len < 2 or m.value[0] != '"') return null;
++    return m.value[1 .. m.value.len - 1];
++}
++
++const t = std.testing;
++
++/// The tools a request offers, from their JSON list.
++fn toolsT(a: std.mem.Allocator, list: []const u8) ![]const json.Value {
++    return (try json.parse(a, list)).ok.items().?;
++}
++
++const offered_t = "[{\"name\":\"get_weather\"},{\"name\":\"a\"},{\"name\":\"b\"},{\"name\":\"f\"},{\"name\":\"g\"}," ++
++    "{\"type\":\"function\",\"function\":{\"name\":\"run_shell_command\"}}]";
++
++fn splitT(arena: *std.heap.ArenaAllocator, text: []const u8) !Reply {
++    const a = arena.allocator();
++    return split(a, text, true, try toolsT(a, offered_t));
++}
++
++test "inkling2 reply: a chat turn gives its reasoning and its answer" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const r = try splitT(&arena, "<|message_model|><|content_thinking|>The user says hello. \n<|end_message|>" ++
++        "<|message_model|><|content_text|>Hello! How can I help?<|end_message|><|content_model_end_sampling|>");
++    try t.expectEqualStrings("The user says hello.", r.reasoning);
++    try t.expectEqualStrings("Hello! How can I help?", r.content);
++    try t.expectEqual(@as(usize, 0), r.calls.len);
++    try t.expect(r.cut == null);
++}
++
++test "inkling2 reply: a tool call takes its name from the payload and its arguments verbatim" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const r = try splitT(&arena, "<|message_model|><|content_thinking|>Need the weather.<|end_message|>" ++
++        "<|message_model|>get_weather<|content_invoke_tool_json|>{\"name\":\"get_weather\",\"args\":{\"city\":\"S<F>\",\"days\":2}}" ++
++        "<|end_message|><|content_model_end_sampling|>");
++    try t.expectEqualStrings("Need the weather.", r.reasoning);
++    try t.expectEqualStrings("", r.content);
++    try t.expectEqual(@as(usize, 1), r.calls.len);
++    try t.expectEqualStrings("get_weather", r.calls[0].name);
++    try t.expectEqualStrings("{\"city\":\"S<F>\",\"days\":2}", r.calls[0].arguments);
++}
++
++test "inkling2 reply: two calls, a call without args, and text between blocks" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const r = try splitT(&arena, "<|message_model|><|content_text|>Checking both.<|end_message|>" ++
++        "<|message_model|>a<|content_invoke_tool_json|>{\"name\":\"a\",\"args\":{\"x\":[1,{\"y\":\"}\"}]}}<|end_message|>" ++
++        "<|message_model|>b<|content_invoke_tool_json|>{\"name\":\"b\"}<|end_message|>");
++    try t.expectEqualStrings("Checking both.", r.content);
++    try t.expectEqual(@as(usize, 2), r.calls.len);
++    try t.expectEqualStrings("{\"x\":[1,{\"y\":\"}\"}]}", r.calls[0].arguments);
++    try t.expectEqualStrings("b", r.calls[1].name);
++    try t.expectEqualStrings("{}", r.calls[1].arguments);
++}
++
++test "inkling2 reply: thinking off, a header with no block, and a cut call" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const plain = try splitT(&arena, "<|message_model|><|content_text|>4<|end_message|><|content_model_end_sampling|>");
++    try t.expectEqualStrings("", plain.reasoning);
++    try t.expectEqualStrings("4", plain.content);
++    const bare = try splitT(&arena, "Hi there<|end_message|>");
++    try t.expectEqualStrings("Hi there", bare.content);
++    const cut = try splitT(&arena, "<|message_model|><|content_thinking|>x<|end_message|><|message_model|>get_weather" ++
++        "<|content_invoke_tool_json|>{\"name\":\"get_weather\",\"args\":{\"ci");
++    try t.expectEqualStrings("get_weather", cut.cut.?);
++    try t.expectEqualStrings("", cut.content);
++    try t.expectEqual(@as(usize, 0), cut.calls.len);
++}
++
++test "inkling2 reply: a marker vLLM's table does not take in a state stays text" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const r = try splitT(&arena, "<|message_model|><|content_thinking|>a<|content_text|>b<|end_message|>");
++    try t.expectEqualStrings("a<|content_text|>b", r.reasoning);
++    try t.expectEqualStrings("", r.content);
++}
++
++test "inkling2 reply: a stream holds back a header until its block says what it is" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    const tools = try toolsT(a, offered_t);
++    const so_far = "<|message_model|><|content_thinking|>List /tmp.<|end_message|><|message_model|>run_shell";
++    try t.expectEqualStrings("", (try split(a, so_far, false, tools)).content);
++    const named = try split(a, so_far ++ "_command<|content_invoke_tool_json|>{\"name\":\"run_shell_command\"}<|end_message|>", false, tools);
++    try t.expectEqualStrings("", named.content);
++    try t.expectEqualStrings("run_shell_command", named.calls[0].name);
++    try t.expectEqualStrings("Hi", (try split(a, "<|message_model|>Hi", true, tools)).content);
++}
++
++test "inkling2 reply: thinking tokens are the ids inside thinking blocks" {
++    const Ids = struct {
++        fn tokenId(_: @This(), piece: []const u8) ?u32 {
++            for ([_][]const u8{ markers.model, markers.thinking, markers.end }, 1..) |m, id| if (std.mem.eql(u8, m, piece)) return @intCast(id);
++            return null;
++        }
++    };
++    try t.expectEqual(@as(usize, 3), thinkingTokens(Ids{}, &.{ 1, 2, 70, 71, 72, 3, 1, 80 }));
++    try t.expectEqual(@as(usize, 0), thinkingTokens(Ids{}, &.{ 1, 80, 81 }));
++}
++
++test "inkling2 reply: a stream fed a byte at a time splits each prefix as the whole split does" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    const tools = try toolsT(a, offered_t);
++    const reply = "<|message_model|><|content_thinking|>a \u{e9}<|content_text|>b<|end_message|><|message_model|><|content_text|>" ++
++        "x <|content_te y\u{1f600}<|end_message|><|message_model|>f<|content_invoke_tool_json|>{\"name\":\"f\",\"args\":{\"k\":1}}" ++
++        "<|end_message|><|message_model|>h<|content_invoke_tool_json|>{\"name\":\"h\"}<|end_message|><|message_model|>f" ++
++        "<|content_invoke_tool_json|>{\"name\":<|end_message|><|message_model|>g<|content_invoke_tool_json|>{\"name\":\"g\",\"args\":{\"q\":\"<|\"";
++    var s: Stream = .{ .a = a, .offered = tools };
++    for (1..reply.len + 1) |n| {
++        try s.feed(reply[0..n], true);
++        const got = try s.result(reply[0..n], false);
++        const want = try split(a, reply[0..n], false, tools);
++        try t.expectEqualStrings(want.reasoning, got.reasoning);
++        try t.expectEqualStrings(want.content, got.content);
++        try t.expectEqual(want.calls.len, got.calls.len);
++        try t.expectEqualStrings(want.cut orelse "-", got.cut orelse "-");
++    }
++}
++
++test "inkling2 reply: a call takes the offered spelling, and a call to a tool not offered stays content" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    const block = "<|message_model|>get_weather<|content_invoke_tool_json|>{\"name\":\" get_weather\",\"args\":{}}<|end_message|>";
++    const spelled = try split(a, block, true, try toolsT(a, "[{\"name\":\"Get_Weather\"}]"));
++    try t.expectEqual(@as(usize, 1), spelled.calls.len);
++    try t.expectEqualStrings("Get_Weather", spelled.calls[0].name);
++    // a named tool_choice leaves only that tool offered (tool_specs.active), so a call to another one is content
++    for ([_][]const u8{ "[{\"name\":\"send_mail\"}]", "[]" }) |list| {
++        const r = try split(a, block, true, try toolsT(a, list));
++        try t.expectEqual(@as(usize, 0), r.calls.len);
++        try t.expectEqualStrings("{\"name\":\" get_weather\",\"args\":{}}", r.content);
++    }
++}
++
++test "inkling2 reply: a tool block that is not a call stays content" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    for ([_][]const u8{ "{\"name\":\"f\",\"args\":{", "{\"args\":{}}", "{\"name\":7}", "[\"f\"]", "" }) |payload| {
++        const r = try splitT(&arena, try std.mem.concat(arena.allocator(), u8, &.{ "<|message_model|>f<|content_invoke_tool_json|>", payload, "<|end_message|>" }));
++        try t.expectEqual(@as(usize, 0), r.calls.len);
++        try t.expectEqualStrings(payload, r.content);
++    }
++}
++
++test "inkling2 reply: args are the member keyed args, whatever the values, key escapes and whitespace" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const cases = [_][2][]const u8{
++        .{ "{\"name\":\"f\",\"why\":\"args\",\"args\":{\"k\":\"name\"}}", "{\"k\":\"name\"}" },
++        .{ "{\"why\":\"args\",\"name\":\"f\",\"args\":[\"args\"]}", "[\"args\"]" },
++        .{ "{\"name\":\"f\",\"\\u0061rgs\":{\"k\":2}}", "{\"k\":2}" },
++        .{ "{\n\t\"name\"\t:\t\"f\" ,\r\n\t\"args\"\n:\t{\"k\":\t3}\n}", "{\"k\":\t3}" },
++    };
++    for (cases) |c| {
++        const r = try splitT(&arena, try std.mem.concat(arena.allocator(), u8, &.{ "<|message_model|>f<|content_invoke_tool_json|>", c[0], "<|end_message|>" }));
++        try t.expectEqual(@as(usize, 1), r.calls.len);
++        try t.expectEqualStrings(c[1], r.calls[0].arguments);
++    }
++}
+diff --git a/zig/src/server/inkling_route_test.zig b/zig/src/server/inkling_route_test.zig
+new file mode 100644
+index 000000000..24e94034a
+--- /dev/null
++++ b/zig/src/server/inkling_route_test.zig
+@@ -0,0 +1,312 @@
++//! Inkling 2 tool calls through /v1/chat/completions, whole and streamed: one keyed call, no header shown as text.
++const std = @import("std");
++const api = @import("engine_api");
++const server = @import("root.zig");
++const json = server.json;
++const model_text = @import("model_text.zig");
++const openai = @import("openai.zig");
++const preflight = @import("stream_preflight_test.zig");
++const Conn = @import("http_conn.zig").Conn;
++const call_ids = @import("ids.zig");
++const markers = @import("inkling_reply.zig").markers;
++const A = std.mem.Allocator;
++const t = std.testing;
++
++/// Ids 256.. in this order; below 256 an id is its byte.
++const specials = [_][]const u8{ markers.model, markers.text, markers.thinking, markers.end, markers.end_sampling, markers.tool_json };
++
++/// Bytes as tokens plus Inkling 2's markers as whole tokens, read as the .inkling format.
++const Text = struct {
++    fn text(x: *Text) model_text.Text {
++        return .{ .ctx = x, .vtable = &.{ .format = .inkling, .encode = preflight.TestText.encode, .decode = decode, .token_id = tokenId, .token_string = tokenString, .vocab_size = vocabSize, .eos_ids = eosIds, .render = render, .template_source = templateSource } };
++    }
++    /// A character the ids end inside reads as U+FFFD, as a byte-level tokenizer's decode reads it.
++    fn decode(_: *anyopaque, a: A, ids: []const u32) A.Error![]u8 {
++        var out: std.ArrayList(u8) = .empty;
++        for (ids) |id| try out.appendSlice(a, if (id < 256) &[_]u8{@intCast(id)} else specials[id - 256]);
++        var lead = out.items.len;
++        while (lead > 0 and lead + 4 > out.items.len and out.items[lead - 1] & 0xc0 == 0x80) lead -= 1;
++        const n = if (lead > 0) std.unicode.utf8ByteSequenceLength(out.items[lead - 1]) catch 1 else 0;
++        if (lead > 0 and lead - 1 + n > out.items.len) {
++            out.shrinkRetainingCapacity(lead - 1);
++            try out.appendSlice(a, "\u{fffd}");
++        }
++        return out.toOwnedSlice(a);
++    }
++    fn tokenId(_: *anyopaque, piece: []const u8) ?u32 {
++        for (specials, 0..) |s, i| if (std.mem.eql(u8, s, piece)) return @intCast(256 + i);
++        return null;
++    }
++    fn tokenString(_: *anyopaque, a: A, id: u32) A.Error![]u8 {
++        return if (id >= 256) a.dupe(u8, specials[id - 256]) else std.fmt.allocPrint(a, "{d}", .{id});
++    }
++    fn vocabSize(_: *anyopaque) u32 {
++        return 256 + specials.len;
++    }
++    fn eosIds(_: *anyopaque) []const u32 {
++        return &.{};
++    }
++    fn render(_: *anyopaque, a: A, _: json.Value, _: model_text.RenderOptions, _: *[]const u8) model_text.Error!model_text.Rendered {
++        return .{ .text = try a.dupe(u8, "prompt") };
++    }
++    fn templateSource(_: *anyopaque) []const u8 {
++        return "";
++    }
++};
++
++const payload = "{\"name\":\"run_shell_command\",\"args\":{\"command\":\"ls /tmp\"}}";
++const reply_parts = [_][]const u8{ markers.thinking, "Need the files.", markers.end, markers.model, "run_shell_command", markers.tool_json, payload, markers.end, markers.end_sampling };
++
++/// A scripted reply as ids: each marker one token, every other byte its own.
++fn script(a: A, parts: []const []const u8) ![]const u32 {
++    var out: std.ArrayList(u32) = .empty;
++    for (parts) |p| if (Text.tokenId(undefined, p)) |id| try out.append(a, id) else for (p) |b| try out.append(a, b);
++    return out.items;
++}
++
++/// Sends its tokens one per event, then stops.
++const OneByOne = struct {
++    tokens: []const u32,
++
++    fn engine(e: *OneByOne) api.Engine {
++        return .{ .ctx = e, .vtable = &.{ .info = info, .submit = submit, .cancel = cancel, .status = status, .memory = memory } };
++    }
++    fn info(_: *anyopaque) api.Info {
++        return .{ .context_window = 4096 };
++    }
++    fn submit(ctx: *anyopaque, id: api.Id, _: *const api.Request, sink: api.Sink) api.SubmitError!void {
++        const e: *OneByOne = @ptrCast(@alignCast(ctx));
++        sink.event(sink.ctx, id, &.{ .prefilled = 0 });
++        for (0..e.tokens.len) |i| sink.event(sink.ctx, id, &.{ .tokens = e.tokens[i..][0..1] });
++        sink.event(sink.ctx, id, &.{ .finished = .{ .reason = .stop } });
++    }
++    fn cancel(_: *anyopaque, _: api.Id) void {}
++    fn status(_: *anyopaque, out: *api.Status, _: []u32) void {
++        out.* = .{};
++    }
++    fn memory(_: *anyopaque, _: bool) ?api.Memory {
++        return null;
++    }
++};
++
++const Wire = struct {
++    a: A,
++    bytes: std.ArrayList(u8) = .empty,
++    fn write(p: *anyopaque, bytes: []const u8) error{Closed}!void {
++        const w: *@This() = @ptrCast(@alignCast(p));
++        w.bytes.appendSlice(w.a, bytes) catch return error.Closed;
++    }
++};
++
++/// What a chat client read: its calls (id, name, arguments), reasoning, content and last finish_reason.
++const Got = struct {
++    ids: std.ArrayList([]const u8) = .empty,
++    names: std.ArrayList(u8) = .empty,
++    arguments: std.ArrayList(u8) = .empty,
++    reasoning: std.ArrayList(u8) = .empty,
++    content: std.ArrayList(u8) = .empty,
++    finish: []const u8 = "",
++
++    fn keep(g: *Got, a: A, choice: json.Value, part: []const u8) !void {
++        if (choice.strField("finish_reason")) |f| g.finish = f;
++        if (choice.strField("text")) |x| try g.content.appendSlice(a, x);
++        const m = choice.get(part) orelse return;
++        if (m.strField("reasoning_content")) |r| try g.reasoning.appendSlice(a, r);
++        if (m.strField("content")) |c| try g.content.appendSlice(a, c);
++        for ((m.get("tool_calls") orelse return).items() orelse return) |c| {
++            if (c.strField("id")) |id| try g.ids.append(a, id);
++            const f = c.get("function") orelse continue;
++            if (f.strField("name")) |n| try g.names.appendSlice(a, n);
++            if (f.strField("arguments")) |x| try g.arguments.appendSlice(a, x);
++        }
++    }
++};
++
++const tools = ",\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"run_shell_command\",\"parameters\":{\"type\":\"object\"}}}]";
++
++fn request(a: A, word: []const u8, stream: bool) ![]const u8 {
++    return std.mem.concat(a, u8, &.{ "{\"model\":\"test-model\",\"max_tokens\":400,\"messages\":[{\"role\":\"user\",\"content\":\"", word, "\"}]", tools, ",\"stream\":", if (stream) "true" else "false", "}" });
++}
++
++/// ``body`` to the chat route of a fresh server under the fixed test key, read as a whole reply or a stream.
++fn post(a: A, body: []const u8, stream: bool) !Got {
++    return postTo(a, body, stream, true);
++}
++
++/// ``post`` to the chat route or, with ``is_chat`` false, the raw completions route.
++fn postTo(a: A, body: []const u8, stream: bool, is_chat: bool) !Got {
++    return postReply(a, &reply_parts, body, stream, is_chat);
++}
++
++/// ``postTo`` with the model writing `parts` instead of the scripted call.
++fn postReply(a: A, parts: []const []const u8, body: []const u8, stream: bool, is_chat: bool) !Got {
++    var backend: OneByOne = .{ .tokens = try script(a, parts) };
++    var text: Text = .{};
++    var key: call_ids.Key = .of(call_ids.test_key_text);
++    const srv = try server.Server.init(t.allocator, t.io, backend.engine(), text.text(), .{ .served_name = "test-model", .model_ids = &.{"test-model"}, .enable_thinking = false, .use_drafts = false, .tool_id_key = &key }, null);
++    defer srv.deinit();
++    var wire: Wire = .{ .a = a };
++    var headers = [_]@import("http_conn.zig").Header{.{ .name = "Content-Length", .value = try std.fmt.allocPrint(a, "{d}", .{body.len}) }};
++    var c: Conn = .{ .fd = -1, .peer = "", .buf = try a.dupe(u8, body), .end = body.len, .gpa = a, .version = "HTTP/1.1", .method = "POST", .path = "", .headers = &headers, .write_hooks = .{ .ctx = &wire, .write = Wire.write } };
++    openai.post(srv, &c, a, is_chat);
++    const bytes = wire.bytes.items;
++    try t.expect(std.mem.startsWith(u8, bytes, "HTTP/1.1 200 "));
++    var got: Got = .{};
++    var frames: std.ArrayList([]const u8) = .empty;
++    if (stream) {
++        var at: usize = 0;
++        while (std.mem.indexOfPos(u8, bytes, at, "data: ")) |d| {
++            const end = std.mem.indexOfPos(u8, bytes, d, "\n\n") orelse bytes.len;
++            if (!std.mem.eql(u8, bytes[d + 6 .. end], "[DONE]")) try frames.append(a, bytes[d + 6 .. end]);
++            at = end;
++        }
++    } else try frames.append(a, bytes[(std.mem.indexOf(u8, bytes, "\r\n\r\n") orelse return error.NoBody) + 4 ..]);
++    for (frames.items) |f| {
++        const choices = ((try json.parse(a, f)).ok.get("choices") orelse continue).items() orelse continue;
++        if (choices.len > 0) try got.keep(a, choices[0], if (stream) "delta" else "message");
++    }
++    return got;
++}
++
++fn expectCallId(id: []const u8) !void {
++    try t.expect(std.mem.startsWith(u8, id, "call_"));
++    try t.expectEqual(@as(usize, 5 + 24), id.len);
++    for (id[5..]) |ch| try t.expect(std.ascii.isDigit(ch) or (ch >= 'a' and ch <= 'f'));
++}
++
++test "an Inkling 2 tool call reaches the chat route as one call with its arguments and reasoning, whole and streamed" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    for ([_]bool{ false, true }) |stream| {
++        const got = try post(a, try request(a, "x", stream), stream);
++        try t.expectEqual(@as(usize, 1), got.ids.items.len);
++        try t.expectEqualStrings("run_shell_command", got.names.items);
++        try t.expectEqualStrings("{\"command\":\"ls /tmp\"}", got.arguments.items);
++        try t.expectEqualStrings("tool_calls", got.finish);
++        try t.expectEqualStrings("Need the files.", got.reasoning.items);
++    }
++}
++
++test "an Inkling 2 reply never shows a tool block's header as content, whole or streamed" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    for ([_]bool{ false, true }) |stream| {
++        const got = try post(a, try request(a, "x", stream), stream);
++        try t.expect(std.mem.indexOf(u8, got.content.items, "run_shell") == null);
++    }
++}
++
++test "an Inkling 2 call id is the request's own: call_ and 24 hex, whole as streamed, apart for another request" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    var ids: [3][]const u8 = undefined;
++    for (&ids, [_][]const u8{ "x", "x", "y" }, [_]bool{ false, true, false }) |*id, word, stream| {
++        const got = try post(a, try request(a, word, stream), stream);
++        try t.expectEqual(@as(usize, 1), got.ids.items.len);
++        try expectCallId(got.ids.items[0]);
++        id.* = got.ids.items[0];
++    }
++    try t.expectEqualStrings(ids[0], ids[1]);
++    try t.expect(!std.mem.eql(u8, ids[0], ids[2]));
++}
++
++test "a raw Inkling 2 completion comes back unsplit, markers and all, whole and streamed" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    const want = try std.mem.concat(a, u8, &reply_parts);
++    for ([_]bool{ false, true }) |stream| {
++        const body = try std.mem.concat(a, u8, &.{ "{\"model\":\"test-model\",\"max_tokens\":400,\"prompt\":\"x\",\"stream\":", if (stream) "true" else "false", "}" });
++        const got = try postTo(a, body, stream, false);
++        try t.expectEqualStrings(want, got.content.items);
++        try t.expectEqualStrings("", got.reasoning.items);
++        try t.expectEqual(@as(usize, 0), got.ids.items.len);
++    }
++}
++
++test "an Inkling 2 reply a stop string ended keeps no tool calls, whole and streamed" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    for ([_]bool{ false, true }) |stream| {
++        const plain = try request(a, "x", stream);
++        const body = try std.mem.concat(a, u8, &.{ plain[0 .. plain.len - 1], ",\"stop\":[\"", markers.end_sampling, "\"]}" });
++        const got = try post(a, body, stream);
++        try t.expectEqual(@as(usize, 0), got.ids.items.len);
++        try t.expectEqualStrings("Need the files.", got.reasoning.items);
++    }
++}
++
++/// A chat request offering `list` (the JSON after `"tools":`) with `extra` members after it.
++fn offering(a: A, list: []const u8, extra: []const u8, stream: bool) ![]const u8 {
++    const head = "{\"model\":\"test-model\",\"max_tokens\":400,\"messages\":[{\"role\":\"user\",\"content\":\"x\"}],\"tools\":";
++    return std.mem.concat(a, u8, &.{ head, list, extra, ",\"stream\":", if (stream) "true" else "false", "}" });
++}
++
++/// A tools list offering the one function `name`.
++fn offer(comptime name: []const u8) []const u8 {
++    return "[{\"type\":\"function\",\"function\":{\"name\":\"" ++ name ++ "\",\"parameters\":{\"type\":\"object\"}}}]";
++}
++
++test "an Inkling 2 call takes the offered tool's spelling, and one to a tool not offered is content, whole and streamed" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    for ([_]bool{ false, true }) |stream| {
++        const spelled = try post(a, try offering(a, comptime offer("Run_Shell_Command"), "", stream), stream);
++        try t.expectEqualStrings("Run_Shell_Command", spelled.names.items);
++        const none = ",\"tool_choice\":\"none\"";
++        for ([_][]const u8{ try offering(a, comptime offer("read_file"), "", stream), try offering(a, comptime offer("run_shell_command"), none, stream) }) |body| {
++            const got = try post(a, body, stream);
++            try t.expectEqual(@as(usize, 0), got.ids.items.len);
++            try t.expectEqualStrings(payload, got.content.items);
++            try t.expectEqualStrings("stop", got.finish);
++        }
++    }
++}
++
++test "an Inkling 2 reply a stop string ended at a block's end keeps no tool calls, whole and streamed" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    const call_first = [_][]const u8{ markers.model, "run_shell_command", markers.tool_json, payload, markers.end, markers.end_sampling };
++    for ([_]bool{ false, true }) |stream| {
++        for ([_][]const []const u8{ &reply_parts, &call_first }) |parts| {
++            const plain = try request(a, "x", stream);
++            const body = try std.mem.concat(a, u8, &.{ plain[0 .. plain.len - 1], ",\"stop\":[\"", markers.end, "\"]}" });
++            const got = try postReply(a, parts, body, stream, true);
++            try t.expectEqual(@as(usize, 0), got.ids.items.len);
++            try t.expectEqualStrings("", got.content.items);
++            try t.expectEqualStrings("stop", got.finish);
++        }
++    }
++}
++
++test "an Inkling 2 tool block that is not JSON is content, not a call, whole and streamed" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    const broken = payload[0 .. payload.len - 1];
++    const parts = [_][]const u8{ markers.model, "run_shell_command", markers.tool_json, broken, markers.end, markers.end_sampling };
++    for ([_]bool{ false, true }) |stream| {
++        const got = try postReply(a, &parts, try request(a, "x", stream), stream, true);
++        try t.expectEqual(@as(usize, 0), got.ids.items.len);
++        try t.expectEqualStrings(broken, got.content.items);
++        try t.expectEqualStrings("stop", got.finish);
++    }
++}
++
++test "an Inkling 2 stream fed a byte at a time keeps a character split across steps whole" {
++    var arena = std.heap.ArenaAllocator.init(t.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    const parts = [_][]const u8{ markers.thinking, "Caf\u{e9} \u{1f600}.", markers.end, markers.model, markers.text, "D\u{e9}j\u{e0} vu \u{1f600}", markers.end, markers.end_sampling };
++    for ([_]bool{ false, true }) |stream| {
++        const got = try postReply(a, &parts, try request(a, "x", stream), stream, true);
++        try t.expectEqualStrings("Caf\u{e9} \u{1f600}.", got.reasoning.items);
++        try t.expectEqualStrings("D\u{e9}j\u{e0} vu \u{1f600}", got.content.items);
++    }
++}
+diff --git a/zig/src/server/model_text.zig b/zig/src/server/model_text.zig
+index cc5a61552..048f66f0a 100644
+--- a/zig/src/server/model_text.zig
++++ b/zig/src/server/model_text.zig
+@@ -150,8 +150,11 @@ pub const Text = struct {
+     ctx: *anyopaque,
+     vtable: *const VTable,
+ 
++    /// How replies read: a chat template's markup, Kimi's XTML, or Inkling 2's blocks (chat_inkling.zig).
++    pub const Format = enum { template, kimi, inkling };
++
+     pub const VTable = struct {
+-        format: enum { template, kimi } = .template,
++        format: Format = .template,
+         /// Ids of ``text``, special-token text included as its token; ``add_special`` adds what the tokenizer prepends.
+         encode: *const fn (ctx: *anyopaque, a: Allocator, text: []const u8, add_special: bool) Error![]u32,
+         /// UTF-8 of ``ids`` with special tokens; bytes ending mid-character decode as U+FFFD, as Python's replace does.
+diff --git a/zig/src/server/openai_calls.zig b/zig/src/server/openai_calls.zig
+index 1199212da..8f072650b 100644
+--- a/zig/src/server/openai_calls.zig
++++ b/zig/src/server/openai_calls.zig
+@@ -21,6 +21,8 @@ pub fn attach(r: anytype, reply: *chat.Reply) Allocator.Error!?[]Value {
+         reply.content = try r.plan.policy.parsedContent(r.a, reply.content);
+         reply.finish_reason = "tool_calls";
+         reply.tool_calls_streamed = false;
++        // calls the model wrote no ids for (Inkling 2) take the request's, as parsed calls do; Kimi's keep their own
++        for (calls, 0..) |c, i| if (c == .object and !c.object.contains("id")) try c.object.put(r.a, "id", .{ .string = try r.call_ids.id(r.a, choice, i) });
+         return if (r.plan.policy.single and calls.len > 1) calls[0..1] else calls;
+     }
+     const parsed = try tool_parse.parse(r.a, reply.content, tools, r.plan.policy.maxCalls());
+diff --git a/zig/src/server/root.zig b/zig/src/server/root.zig
+index 4f3fe6b75..baae3b400 100644
+--- a/zig/src/server/root.zig
++++ b/zig/src/server/root.zig
+@@ -70,6 +70,8 @@ test {
+     _ = @import("tool_lfm2.zig");
+     _ = @import("tool_lfm2_stream_test.zig");
+     _ = @import("tool_minimax.zig");
++    _ = @import("inkling_reply.zig");
++    _ = @import("inkling_route_test.zig");
+     _ = @import("tool_stream.zig");
+     _ = @import("tool_params.zig");
+     _ = @import("tool_grammar.zig");
+diff --git a/zig/src/server/tool_json_cut.zig b/zig/src/server/tool_json_cut.zig
+index 79320bb21..5b4f9c4ab 100644
+--- a/zig/src/server/tool_json_cut.zig
++++ b/zig/src/server/tool_json_cut.zig
+@@ -56,10 +56,10 @@ fn valueEnd(s: []const u8) ?usize {
+ }
+ 
+ /// A member of a written object: its key, its value as far as written, and whether the cut came inside the value.
+-const Member = struct { key: []const u8, value: []const u8, cut: bool };
++pub const Member = struct { key: []const u8, value: []const u8, cut: bool };
+ 
+ /// The members the object text `body` (from its `{`) writes before the cut, in order.
+-fn members(a: Allocator, body: []const u8) Allocator.Error![]const Member {
++pub fn members(a: Allocator, body: []const u8) Allocator.Error![]const Member {
+     var out: std.ArrayList(Member) = .empty;
+     var i = skip(body, 1);
+     while (i < body.len and body[i] == '"') {
+@@ -91,7 +91,7 @@ fn skip(s: []const u8, from: usize) usize {
+ }
+ 
+ /// The first written member named `key`.
+-fn find(ms: []const Member, key: []const u8) ?Member {
++pub fn find(ms: []const Member, key: []const u8) ?Member {
+     for (ms) |m| if (std.mem.eql(u8, m.key, key)) return m;
+     return null;
+ }
+diff --git a/zig/src/server/tool_parse.zig b/zig/src/server/tool_parse.zig
+index 0ec7795e7..796820f81 100644
+--- a/zig/src/server/tool_parse.zig
++++ b/zig/src/server/tool_parse.zig
+@@ -103,11 +103,7 @@ pub fn envelopes(a: Allocator, text: []const u8) Allocator.Error![]Envelope {
+ /// ``parse_tool_calls_from_content``: the reply's content and its calls (null when it makes none).
+ pub fn parse(a: Allocator, text: []const u8, tools: []const Value, max_calls: ?usize) Allocator.Error!Parsed {
+     if (tools.len == 0) return .{ .content = text, .calls = null };
+-    var known: std.StringArrayHashMapUnmanaged([]const u8) = .empty;
+-    for (tools) |tool| {
+-        const name = try tool_specs.toolName(a, tool);
+-        try known.put(a, try std.ascii.allocLowerString(a, name), name);
+-    }
++    var known = try knownNames(a, tools);
+     if (try bareCalls(a, text, &known, max_calls)) |calls| return .{ .content = "", .calls = calls };
+     const schemas = try tool_params.schemas(a, tools);
+     const envs = try envelopes(a, text);
+@@ -149,7 +145,7 @@ pub fn parse(a: Allocator, text: []const u8, tools: []const Value, max_calls: ?u
+             const list = parsed orelse break :blk .malformed;
+             if (list.len == 0) break :blk .malformed;
+             var unoffered = false;
+-            for (list) |c| if ((try callName(a, c, &known)) == null) {
++            for (list) |c| if ((try callName(a, c.name, &known)) == null) {
+                 unoffered = true;
+                 try keepName(a, &kept_names, strip(c.name));
+             };
+@@ -162,7 +158,7 @@ pub fn parse(a: Allocator, text: []const u8, tools: []const Value, max_calls: ?u
+             continue;
+         }
+         for (parsed.?) |c| {
+-            if (max_calls == null or calls.items.len < max_calls.?) try calls.append(a, try openaiCall(a, (try callName(a, c, &known)).?, c.arguments));
++            if (max_calls == null or calls.items.len < max_calls.?) try calls.append(a, try openaiCall(a, (try callName(a, c.name, &known)).?, c.arguments));
+         }
+     }
+     try residue.appendSlice(a, text[cursor..]);
+@@ -235,9 +231,19 @@ fn argumentsClose(a: Allocator, body: []const u8) Allocator.Error![]const u8 {
+     return closed[body.len..];
+ }
+ 
+-/// The offered tool's spelling, or null when the request did not declare that name.
+-fn callName(a: Allocator, c: Call, known: *const std.StringArrayHashMapUnmanaged([]const u8)) Allocator.Error!?[]const u8 {
+-    const name = strip(c.name);
++/// The offered tools' names, each under its lowercase spelling, for ``callName``.
++pub fn knownNames(a: Allocator, tools: []const Value) Allocator.Error!std.StringArrayHashMapUnmanaged([]const u8) {
++    var known: std.StringArrayHashMapUnmanaged([]const u8) = .empty;
++    for (tools) |tool| {
++        const name = try tool_specs.toolName(a, tool);
++        try known.put(a, try std.ascii.allocLowerString(a, name), name);
++    }
++    return known;
++}
++
++/// The offered tool's spelling of a written name, or null when the request did not declare that name.
++pub fn callName(a: Allocator, written: []const u8, known: *const std.StringArrayHashMapUnmanaged([]const u8)) Allocator.Error!?[]const u8 {
++    const name = strip(written);
+     return if (known.get(try std.ascii.allocLowerString(a, name))) |offered| offered else null;
+ }
+ 

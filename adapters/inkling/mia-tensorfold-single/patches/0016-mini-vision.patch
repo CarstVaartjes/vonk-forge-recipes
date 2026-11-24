@@ -1,0 +1,1115 @@
+diff --git a/zig/kernels/cuda/inkling2/ops.cu b/zig/kernels/cuda/inkling2/ops.cu
+index 4d97eb8..2a1235c 100644
+--- a/zig/kernels/cuda/inkling2/ops.cu
++++ b/zig/kernels/cuda/inkling2/ops.cu
+@@ -1019,3 +1019,151 @@ extern "C" __global__ void __launch_bounds__(256) tf_ink2_grammar_scrub(__nv_bfl
+         else if (!__hisinf(v) && __hlt(v, floor)) x[t] = floor;
+     }
+ }
++
++// Vision embeddings: row 0 = bf16(cls_emb + cls_pos); row 1+p = bf16(patch_emb[p] + bf16(bilinear(pos_tab, (r,c)))).
++// Patch index p is in spatial-merge-block order (block_row, block_col, in_row, in_col) over (gh, gw).
++extern "C" __global__ void __launch_bounds__(256) tf_ink2_vis_embed(
++    const __nv_bfloat16* __restrict__ patch_emb,
++    const __nv_bfloat16* __restrict__ pos_tab,
++    const __nv_bfloat16* __restrict__ cls_emb,
++    const __nv_bfloat16* __restrict__ cls_pos,
++    __nv_bfloat16* __restrict__ out,
++    int gh, int gw, int merge, int grid, int H)
++{
++    const int row_idx = blockIdx.x;
++    __nv_bfloat16* dst = out + static_cast<size_t>(row_idx) * H;
++    if (row_idx == 0) {
++        for (int c = threadIdx.x; c < H; c += blockDim.x) {
++            dst[c] = __float2bfloat16(__bfloat162float(cls_emb[c]) + __bfloat162float(cls_pos[c]));
++        }
++        return;
++    }
++    const int p = row_idx - 1;
++    const int blocks_w = gw / merge;
++    const int m2 = merge * merge;
++    const int in_col = p % merge;
++    const int in_row = (p / merge) % merge;
++    const int block_col = (p / m2) % blocks_w;
++    const int block_row = p / (m2 * blocks_w);
++    const int r = block_row * merge + in_row;
++    const int col = block_col * merge + in_col;
++
++    const float src_h = (static_cast<float>(r) + 0.5f) * static_cast<float>(grid) / static_cast<float>(gh) - 0.5f;
++    const float src_w = (static_cast<float>(col) + 0.5f) * static_cast<float>(grid) / static_cast<float>(gw) - 0.5f;
++    const float fh = floorf(src_h);
++    const float fw = floorf(src_w);
++    const float dh = src_h - fh;
++    const float dw = src_w - fw;
++    const int ih = static_cast<int>(fh);
++    const int iw = static_cast<int>(fw);
++    const int h0 = max(0, min(grid - 1, ih));
++    const int h1 = max(0, min(grid - 1, ih + 1));
++    const int w0 = max(0, min(grid - 1, iw));
++    const int w1 = max(0, min(grid - 1, iw + 1));
++    const float wh0 = 1.0f - dh, wh1 = dh;
++    const float ww0 = 1.0f - dw, ww1 = dw;
++    const float wt00 = wh0 * ww0, wt01 = wh0 * ww1, wt10 = wh1 * ww0, wt11 = wh1 * ww1;
++
++    const __nv_bfloat16* p00 = pos_tab + static_cast<size_t>(h0 * grid + w0) * H;
++    const __nv_bfloat16* p01 = pos_tab + static_cast<size_t>(h0 * grid + w1) * H;
++    const __nv_bfloat16* p10 = pos_tab + static_cast<size_t>(h1 * grid + w0) * H;
++    const __nv_bfloat16* p11 = pos_tab + static_cast<size_t>(h1 * grid + w1) * H;
++    const __nv_bfloat16* pe = patch_emb + static_cast<size_t>(p) * H;
++
++    for (int c = threadIdx.x; c < H; c += blockDim.x) {
++        const float pos = wt00 * __bfloat162float(p00[c]) + wt01 * __bfloat162float(p01[c])
++                        + wt10 * __bfloat162float(p10[c]) + wt11 * __bfloat162float(p11[c]);
++        const float pos16 = __bfloat162float(__float2bfloat16(pos));
++        dst[c] = __float2bfloat16(__bfloat162float(pe[c]) + pos16);
++    }
++}
++
++// Pack separate Q, K, V [S, H] into QKV [S, 3*H] with 2D pairwise axial RoPE on Q and K.
++// Row 0 (CLS) has (pos_h=0, pos_w=0); row 1+p has (row+1, col+1). Channels [0..hd/2) rotate by pos_w, [hd/2..hd) by pos_h.
++extern "C" __global__ void __launch_bounds__(256) tf_ink2_vis_pack_qkv_rope(
++    const __nv_bfloat16* __restrict__ q,
++    const __nv_bfloat16* __restrict__ k,
++    const __nv_bfloat16* __restrict__ v,
++    __nv_bfloat16* __restrict__ qkv,
++    int gh, int gw, int merge, int heads, int hd, float theta)
++{
++    const int s = blockIdx.x;
++    const int H = heads * hd;
++    float pos_h = 0.0f, pos_w = 0.0f;
++    if (s > 0) {
++        const int p = s - 1;
++        const int blocks_w = gw / merge;
++        const int m2 = merge * merge;
++        const int in_col = p % merge;
++        const int in_row = (p / merge) % merge;
++        const int block_col = (p / m2) % blocks_w;
++        const int block_row = p / (m2 * blocks_w);
++        pos_h = static_cast<float>(block_row * merge + in_row + 1);
++        pos_w = static_cast<float>(block_col * merge + in_col + 1);
++    }
++    const int pairs_per_head = hd / 2;
++    const int half_pairs = hd / 4;
++    const float spatial_dim = static_cast<float>(hd / 2);
++    const int total_pairs = heads * pairs_per_head;
++
++    const __nv_bfloat16* qs = q + static_cast<size_t>(s) * H;
++    const __nv_bfloat16* ks = k + static_cast<size_t>(s) * H;
++    const __nv_bfloat16* vs = v + static_cast<size_t>(s) * H;
++    __nv_bfloat16* qd = qkv + static_cast<size_t>(s) * (3 * H);
++    __nv_bfloat16* kd = qd + H;
++    __nv_bfloat16* vd = kd + H;
++
++    for (int idx = threadIdx.x; idx < total_pairs; idx += blockDim.x) {
++        const int pair = idx % pairs_per_head;
++        const int c0 = idx * 2;
++        const int c1 = c0 + 1;
++        const bool is_w = pair < half_pairs;
++        const int freq_idx = is_w ? pair : (pair - half_pairs);
++        const float inv_f = powf(theta, -static_cast<float>(2 * freq_idx) / spatial_dim);
++        const float angle = (is_w ? pos_w : pos_h) * inv_f;
++        float sn, cs;
++        __sincosf(angle, &sn, &cs);
++
++        const float q0 = __bfloat162float(qs[c0]), q1 = __bfloat162float(qs[c1]);
++        qd[c0] = __float2bfloat16(q0 * cs - q1 * sn);
++        qd[c1] = __float2bfloat16(q1 * cs + q0 * sn);
++
++        const float k0 = __bfloat162float(ks[c0]), k1 = __bfloat162float(ks[c1]);
++        kd[c0] = __float2bfloat16(k0 * cs - k1 * sn);
++        kd[c1] = __float2bfloat16(k1 * cs + k0 * sn);
++
++        vd[c0] = vs[c0];
++        vd[c1] = vs[c1];
++    }
++}
++
++// LayerScale residual add: x[r, c] = bf16(x[r, c] + gamma[c] * y[r, c]).
++extern "C" __global__ void __launch_bounds__(256) tf_ink2_vis_ls_add(
++    __nv_bfloat16* __restrict__ x,
++    const __nv_bfloat16* __restrict__ y,
++    const __nv_bfloat16* __restrict__ gamma,
++    int H)
++{
++    const size_t base = static_cast<size_t>(blockIdx.x) * H;
++    for (int c = threadIdx.x; c < H; c += blockDim.x) {
++        const float xv = __bfloat162float(x[base + c]);
++        const float yv = __bfloat162float(y[base + c]);
++        const float gv = __bfloat162float(gamma[c]);
++        x[base + c] = __float2bfloat16(xv + gv * yv);
++    }
++}
++
++// Splice vision features into the language model's embedded rows: for each row r with map[r] >= 0, copy src[map[r], :] to dst[r, :].
++extern "C" __global__ void __launch_bounds__(256) tf_ink2_vis_splice(
++    __nv_bfloat16* __restrict__ dst,
++    const __nv_bfloat16* __restrict__ src,
++    const int* __restrict__ map,
++    int H)
++{
++    const int r = blockIdx.x;
++    const int m = map[r];
++    if (m < 0) return;
++    __nv_bfloat16* d = dst + static_cast<size_t>(r) * H;
++    const __nv_bfloat16* s = src + static_cast<size_t>(m) * H;
++    for (int c = threadIdx.x; c < H; c += blockDim.x) d[c] = s[c];
++}
+diff --git a/zig/kernels/cuda/prefill_attention.cu b/zig/kernels/cuda/prefill_attention.cu
+index 1c6e0f0..8648b95 100644
+--- a/zig/kernels/cuda/prefill_attention.cu
++++ b/zig/kernels/cuda/prefill_attention.cu
+@@ -332,6 +332,9 @@ template __global__ void tf_prefill_attention::tree_kernel<64, 8, 4, 8>(const __
+ // Head dim 72, eight warps of one head, eight staging slots (SigLIP2's tower, 72 dims padded to 80 inside).
+ template __global__ void tf_prefill_attention::full_kernel<72, 8, 8>(const __nv_bfloat16* __restrict__, __nv_bfloat16* __restrict__, int, int,
+     float);
++// Head dim 64, eight warps (Inkling 2's vision tower, 16 heads of 64).
++template __global__ void tf_prefill_attention::vision_kernel<64, 8>(const __nv_bfloat16* __restrict__, __nv_bfloat16* __restrict__, int, int,
++    float);
+ // Head dim 80, eight warps, two blocks an SM (RADIO's tower, 16 heads of 80): full_kernel<80>'s bits, 1.35x faster.
+ template __global__ void tf_prefill_attention::vision_kernel<80, 8>(const __nv_bfloat16* __restrict__, __nv_bfloat16* __restrict__, int, int,
+     float);
+diff --git a/zig/src/cuda/vit.zig b/zig/src/cuda/vit.zig
+index 4f765f5..ec1d366 100644
+--- a/zig/src/cuda/vit.zig
++++ b/zig/src/cuda/vit.zig
+@@ -272,8 +272,9 @@ const Full = struct {
+     }
+ };
+ 
+-/// Full attention by head dim: SigLIP2's 72, RADIO's 80 (full_kernel's bits in one barrier a tile), MOSS-Image's 128.
++/// Full attention by head dim: Inkling 2's 64, SigLIP2's 72, RADIO's 80 (full_kernel's bits in one barrier a tile), MOSS-Image's 128.
+ const fulls = [_]Full{
++    .{ .dim = 64, .warps = 8 },
+     .{ .dim = 72, .warps = 8, .slots = 8 },
+     .{ .dim = 80, .warps = 8 },
+     .{ .dim = 128, .warps = 8 },
+diff --git a/zig/src/families/inkling2/inkling2.zig b/zig/src/families/inkling2/inkling2.zig
+index 9c91ff2..c47b288 100644
+--- a/zig/src/families/inkling2/inkling2.zig
++++ b/zig/src/families/inkling2/inkling2.zig
+@@ -11,6 +11,8 @@ pub const mini_weights = @import("mini_weights.zig");
+ pub const mini_model = @import("mini_model.zig");
+ pub const mini_backend = @import("mini_backend.zig");
+ pub const mini_snap = @import("mini_snap.zig");
++pub const mini_image = @import("mini_image.zig");
++pub const mini_vision = @import("mini_vision.zig");
+ /// The DSpark drafter (mtp.safetensors) on the target's stream.
+ pub const mini_dspark = @import("mini_dspark.zig");
+ /// The float64 reference the CUDA forward's greedy tokens are checked against.
+@@ -33,6 +35,8 @@ test {
+     _ = mini_dspark;
+     _ = mini_backend;
+     _ = mini_snap;
++    _ = mini_image;
++    _ = mini_vision;
+     _ = mini_ref;
+     _ = native;
+ }
+diff --git a/zig/src/families/inkling2/mini_backend.zig b/zig/src/families/inkling2/mini_backend.zig
+index ab4ae46..94cbc10 100644
+--- a/zig/src/families/inkling2/mini_backend.zig
++++ b/zig/src/families/inkling2/mini_backend.zig
+@@ -7,6 +7,7 @@ const lanes = @import("lanes");
+ const mm = @import("mini_model.zig");
+ const ops = @import("ops.zig");
+ const snap = @import("mini_snap.zig");
++const mini_vision = @import("mini_vision.zig");
+ 
+ const be = lanes.backend;
+ const Stream = lanes.Stream;
+@@ -130,6 +131,7 @@ pub const Mini = struct {
+     guard: cuda.DeviceBuffer, // a sampled grammar round's masked argmax a row (0xFFFFFFFF: nothing usable)
+     next: u64 = 0,
+     held: ?cuda.DeviceBuffer = null, // every slot's own tapped rows, verify_rows a slot (once prepare_features)
++    vision: ?*mini_vision.Images = null,
+ 
+     fn vocab(x: *const Mini) usize {
+         return x.m.c.unpadded_vocab;
+@@ -306,11 +308,12 @@ pub const Mini = struct {
+         return x.freeSlot() != null;
+     }
+ 
+-    /// A prompt pass begins: a slot and the stream's rule; images are refused by name until the vision slice (C6).
++    /// A prompt pass begins: a slot and the stream's rule; images encode through the vision tower when --vision is on.
+     fn opening(x: *Mini, s: *Stream) !*Lane {
+         const p = s.prompt();
+         if (p.len == 0) return error.EmptyPrompt;
+-        if (std.mem.indexOfScalar(u32, p, x.image_token) != null) return error.Inkling2MiniImages;
++        if (s.images.len > 0 and x.vision == null) return error.Inkling2MiniImages;
++        if (s.images.len == 0 and std.mem.indexOfScalar(u32, p, x.image_token) != null) return error.Inkling2MiniImages;
+         if (!fits(x.m.context, p.len, @as(usize, s.max_new))) return error.PastContext;
+         const got = try x.lanes.getOrPut(x.gpa, s);
+         if (!got.found_existing) {
+@@ -330,6 +333,13 @@ pub const Mini = struct {
+         }
+         s.cached = 0;
+         l.fill = x.resumeAt(s, l, p.len);
++        if (x.vision) |v| {
++            if (s.images.len > 0) {
++                try v.begin(&x.k.ops, x.s, l.slot, s.images, l.fill.?);
++            } else {
++                v.clear(l.slot);
++            }
++        }
+         s.fill_at.store(@intCast(l.fill.?), .monotonic);
+         return l;
+     }
+@@ -379,6 +389,9 @@ pub const Mini = struct {
+             end = mk;
+         };
+         const done = end == p.len;
++        x.m.vision_slot = if (s.images.len > 0) l.slot else null;
++        x.m.vision_p0 = at;
++        defer x.m.vision_slot = null;
+         try x.m.forward(x.k, x.s, &.{.{ .slot = l.slot, .p0 = at, .tokens = p[at..end] }}, true, end - at - 1, @intFromBool(done));
+         if (done) try x.d.check(x.d.api.cuMemcpyDtoDAsync_v2(l.last, x.m.s.logits, x.vocab() * 4, x.s.handle), "cuMemcpyDtoDAsync");
+         if (x.m.taps_on) {
+@@ -639,6 +652,7 @@ pub const Mini = struct {
+     fn dropLane(x: *Mini, s: *const Stream) void {
+         if (x.lanes.fetchRemove(s)) |entry| {
+             var l = entry.value;
++            if (x.vision) |v| v.clear(l.slot);
+             x.free[l.slot] = true;
+             l.rows.deinit(x.gpa);
+         }
+diff --git a/zig/src/families/inkling2/mini_image.zig b/zig/src/families/inkling2/mini_image.zig
+new file mode 100644
+index 0000000..f0a919c
+--- /dev/null
++++ b/zig/src/families/inkling2/mini_image.zig
+@@ -0,0 +1,190 @@
++//! Inkling 2's image processor (Inkling2ImageProcessor): PNG/JPEG/WebP decode, EXIF transpose, 8x8 checkerboard
++//! alpha composite, optional aspect-preserving downscale to fit max_tokens, -1.0 pad to 40x40 tiles, [-1, 1] scale,
++//! and spatial-merge-block patch packing [gh * gw, 1200] in f32.
++const std = @import("std");
++const core = @import("core");
++
++const Allocator = std.mem.Allocator;
++const picture = core.picture;
++
++pub const patch_size: u32 = 20;
++pub const merge_size: u32 = 2;
++pub const tile_size: u32 = patch_size * merge_size; // 40 px per language model image token
++pub const patch_width: usize = 3 * patch_size * patch_size; // 1200 f32 per native patch
++
++/// One prepared image ready for the vision tower.
++pub const Prepared = struct {
++    pixels: []f32, // [gh * gw, 1200]
++    gh: u32,
++    gw: u32,
++    tokens: u32,
++    hash: u64,
++};
++
++pub const Error = picture.Error || error{ImageTooSmall};
++
++/// Oriented RGB with Inkling2's 8x8 checkerboard (204 / 153) for RGBA alpha.
++fn orientAndComposite(a: Allocator, s: picture.Samples) Allocator.Error!picture.Rgb {
++    const o = if (s.orientation >= 2 and s.orientation <= 8) s.orientation else 1;
++    const turned = o >= 5;
++    const w, const h = if (turned) .{ s.height, s.width } else .{ s.width, s.height };
++    const out = try a.alloc(u8, w * h * 3);
++    for (0..h) |y| for (0..w) |x| {
++        const sx, const sy = switch (o) {
++            2 => .{ s.width - 1 - x, y },
++            3 => .{ s.width - 1 - x, s.height - 1 - y },
++            4 => .{ x, s.height - 1 - y },
++            5 => .{ y, x },
++            6 => .{ y, s.height - 1 - x },
++            7 => .{ s.width - 1 - y, s.height - 1 - x },
++            8 => .{ s.width - 1 - y, x },
++            else => .{ x, y },
++        };
++        const px = s.data[(sy * s.width + sx) * s.channels ..][0..s.channels];
++        const dst = out[(y * w + x) * 3 ..][0..3];
++        if (s.channels == 4) {
++            const alpha: u32 = px[3];
++            const bg: u32 = if (((y / 8) + (x / 8)) % 2 == 0) 204 else 153;
++            for (dst, px[0..3]) |*c, v| {
++                c.* = @intCast((@as(u32, v) * alpha + bg * (255 - alpha) + 127) / 255);
++            }
++        } else {
++            @memcpy(dst, px[0..3]);
++        }
++    };
++    return .{ .width = w, .height = h, .pixels = out };
++}
++
++fn ceilDiv(a: usize, b: usize) usize {
++    return (a + b - 1) / b;
++}
++
++/// If ceil(h/40) * ceil(w/40) exceeds max_tokens, find the largest aspect-preserving (ch, cw) that fits.
++fn fitDimensions(h: usize, w: usize, max_tokens: u32) error{ImageTooSmall}!struct { h: usize, w: usize } {
++    if (max_tokens == 0) return error.ImageTooSmall;
++    if (ceilDiv(h, tile_size) * ceilDiv(w, tile_size) <= max_tokens) return .{ .h = h, .w = w };
++    var low: usize = 1;
++    var high: usize = h;
++    var best_h: usize = 1;
++    var best_w: usize = 1;
++    while (low <= high) {
++        const mid = low + (high - low) / 2;
++        const cw = @max(@as(usize, 1), (w * mid) / h);
++        if (ceilDiv(mid, tile_size) * ceilDiv(cw, tile_size) <= max_tokens) {
++            best_h = mid;
++            best_w = cw;
++            low = mid + 1;
++        } else {
++            if (mid == 1) break;
++            high = mid - 1;
++        }
++    }
++    if (ceilDiv(best_h, tile_size) * ceilDiv(best_w, tile_size) > max_tokens) return error.ImageTooSmall;
++    return .{ .h = best_h, .w = best_w };
++}
++
++/// Pack RGB image into [rows * cols * 4, 1200] f32 patches in (block_row, block_col, my, mx, py, px, ch) order.
++/// Pixels past (height, width) are filled with -1.0 on the 0-255 scale before rescaling to [-1, 1].
++pub fn packPatches(a: Allocator, rgb: picture.Rgb) Allocator.Error!struct { pixels: []f32, gh: u32, gw: u32, tokens: u32 } {
++    const rows = ceilDiv(rgb.height, tile_size);
++    const cols = ceilDiv(rgb.width, tile_size);
++    const tokens = rows * cols;
++    const gh: u32 = @intCast(rows * merge_size);
++    const gw: u32 = @intCast(cols * merge_size);
++    const patches = tokens * merge_size * merge_size;
++    const out = try a.alloc(f32, patches * patch_width);
++
++    const scale: f32 = 2.0 / 255.0;
++    const pad_val: f32 = (-1.0) * scale - 1.0;
++
++    var patch_idx: usize = 0;
++    for (0..rows) |br| {
++        for (0..cols) |bc| {
++            for (0..merge_size) |my| {
++                for (0..merge_size) |mx| {
++                    const y0 = (br * merge_size + my) * patch_size;
++                    const x0 = (bc * merge_size + mx) * patch_size;
++                    const dst = out[patch_idx * patch_width ..][0..patch_width];
++                    var off: usize = 0;
++                    for (0..patch_size) |dy| {
++                        const y = y0 + dy;
++                        for (0..patch_size) |dx| {
++                            const x = x0 + dx;
++                            if (y < rgb.height and x < rgb.width) {
++                                const src = rgb.pixels[(y * rgb.width + x) * 3 ..][0..3];
++                                dst[off + 0] = @as(f32, @floatFromInt(src[0])) * scale - 1.0;
++                                dst[off + 1] = @as(f32, @floatFromInt(src[1])) * scale - 1.0;
++                                dst[off + 2] = @as(f32, @floatFromInt(src[2])) * scale - 1.0;
++                            } else {
++                                dst[off + 0] = pad_val;
++                                dst[off + 1] = pad_val;
++                                dst[off + 2] = pad_val;
++                            }
++                            off += 3;
++                        }
++                    }
++                    patch_idx += 1;
++                }
++            }
++        }
++    }
++    return .{ .pixels = out, .gh = gh, .gw = gw, .tokens = @intCast(tokens) };
++}
++
++/// Decode image bytes (PNG, JPEG or WebP), composite alpha over checkerboard, fit max_tokens, and pack patches.
++pub fn prepare(io: std.Io, a: Allocator, bytes: []const u8, max_tokens: u32) Error!Prepared {
++    if (max_tokens == 0) return error.ImageTooSmall;
++    const limits: picture.Limits = .{};
++    const samples = switch (picture.sniff(bytes)) {
++        .png => try picture.png.decodeWithLimits(a, bytes, limits),
++        .jpeg => try picture.jpeg.decodeWithLimits(io, a, bytes, limits),
++        .webp => try picture.webp.decodeWithLimits(io, a, bytes, limits),
++        .unknown => return error.Invalid,
++    };
++    defer a.free(samples.data);
++
++    var rgb = try orientAndComposite(a, samples);
++    defer rgb.deinit(a);
++
++    const fit = try fitDimensions(rgb.height, rgb.width, max_tokens);
++    var resized: ?picture.Rgb = null;
++    defer if (resized) |*r| r.deinit(a);
++    const active = if (fit.h != rgb.height or fit.w != rgb.width) blk: {
++        const px = try picture.resample.resize(a, .pillow, picture.resample.View.of(rgb.pixels, rgb.width, rgb.height), fit.w, fit.h);
++        resized = .{ .width = fit.w, .height = fit.h, .pixels = px };
++        break :blk resized.?;
++    } else rgb;
++
++    const packed_ = try packPatches(a, active);
++    const hash = picture.identity.withGrid(picture.identity.ofBytes(0x494e4b3256495331, bytes), .{ packed_.gh, packed_.gw });
++    return .{
++        .pixels = packed_.pixels,
++        .gh = packed_.gh,
++        .gw = packed_.gw,
++        .tokens = packed_.tokens,
++        .hash = hash,
++    };
++}
++
++test "Inkling2ImageProcessor: checkerboard alpha, -1.0 pad, and patch order" {
++    const a = std.testing.allocator;
++    // 10x10 RGBA: fully transparent (alpha=0) -> checkerboard 204 at (0,0) and 153 at (0,8)
++    const rgba = try a.alloc(u8, 10 * 10 * 4);
++    defer a.free(rgba);
++    @memset(rgba, 0);
++    var rgb = try orientAndComposite(a, .{ .width = 10, .height = 10, .channels = 4, .data = rgba });
++    defer rgb.deinit(a);
++    try std.testing.expectEqual(@as(u8, 204), rgb.pixels[0]);
++    try std.testing.expectEqual(@as(u8, 153), rgb.pixels[8 * 3]);
++
++    const p = try packPatches(a, rgb);
++    defer a.free(p.pixels);
++    try std.testing.expectEqual(@as(u32, 1), p.tokens);
++    try std.testing.expectEqual(@as(u32, 2), p.gh);
++    try std.testing.expectEqual(@as(u32, 2), p.gw);
++    try std.testing.expectEqual(@as(usize, 4 * 1200), p.pixels.len);
++    // (0,0) is 204 -> 204*(2/255) - 1 = 0.6
++    try std.testing.expectApproxEqAbs(@as(f32, 0.6), p.pixels[0], 1e-5);
++    // (0, 20) is padded (-1.0) -> -1.0*(2/255) - 1.0 = -1.0078431
++    try std.testing.expectApproxEqAbs(@as(f32, -2.0 / 255.0 - 1.0), p.pixels[1 * 1200], 1e-5);
++}
+diff --git a/zig/src/families/inkling2/mini_model.zig b/zig/src/families/inkling2/mini_model.zig
+index d3aef20..f79cafe 100644
+--- a/zig/src/families/inkling2/mini_model.zig
++++ b/zig/src/families/inkling2/mini_model.zig
+@@ -8,6 +8,7 @@ const attn = @import("kernels.zig");
+ const ops = @import("ops.zig");
+ const loop = @import("loop.zig");
+ const visit = @import("mini_visit.zig");
++const mini_vision = @import("mini_vision.zig");
+ 
+ const DeviceBuffer = cuda.DeviceBuffer;
+ 
+@@ -210,6 +211,10 @@ pub const Model = struct {
+     taps_on: bool = false,
+     /// Forwards run so far: a view of `taps` or `hist` is valid only within its forward's generation.
+     gen: u64 = 0,
++    /// Optional vision tower/image rows manager and the active prompt chunk's slot & starting position.
++    vision: ?*mini_vision.Images = null,
++    vision_slot: ?usize = null,
++    vision_p0: usize = 0,
+ 
+     fn alloc(m: *Model, bytes: usize) !u64 {
+         if (m.planned) |*p| {
+diff --git a/zig/src/families/inkling2/mini_native.zig b/zig/src/families/inkling2/mini_native.zig
+index 55730be..7b1f0b5 100644
+--- a/zig/src/families/inkling2/mini_native.zig
++++ b/zig/src/families/inkling2/mini_native.zig
+@@ -9,10 +9,12 @@ const mm = @import("mini_model.zig");
+ const be = @import("mini_backend.zig");
+ const snap = @import("mini_snap.zig");
+ const dspark = @import("mini_dspark.zig");
++const mini_vision = @import("mini_vision.zig");
+ 
+ pub const model_type = "inkling2_loop";
+ pub const formats: []const []const u8 = &.{"modelopt-nvfp4"};
+ pub const default_context: i64 = 32768;
++pub const default_image_tokens: u32 = mini_vision.default_image_tokens;
+ pub const max_segments: u32 = 1;
+ pub const prompt_rows: u32 = be.prompt_rows;
+ /// --drafter: the checkpoint folder (its mtp.safetensors) or the .safetensors file itself.
+@@ -24,7 +26,7 @@ pub const snap_lookahead: u32 = 0;
+ /// The server's reading of the room left after the weights; null if unreadable.
+ pub const Room = struct { ctx: *anyopaque, read: *const fn (*anyopaque) ?u64 };
+ /// `loops` is here to refuse it by name: the pass count is the checkpoint's loop_config.
+-pub const Options = struct { context: usize, drafts: bool, segments: usize = 1, slide: bool = false, lanes: u32 = 4, lanes_fixed: bool = false, room: ?Room = null, loops: ?u32 = null, kv8: bool = false };
++pub const Options = struct { context: usize, drafts: bool, segments: usize = 1, slide: bool = false, lanes: u32 = 4, lanes_fixed: bool = false, room: ?Room = null, loops: ?u32 = null, kv8: bool = false, vision: ?mini_vision.Limits = null };
+ 
+ pub const Loaded = struct {
+     backend: lanes.backend.Backend,
+@@ -35,9 +37,10 @@ pub const Loaded = struct {
+     ctx: *anyopaque,
+     deinit: *const fn (*anyopaque) void,
+     target: *be.Mini,
++    vision: ?*mini_vision.Images = null,
+ };
+ 
+-const Owned = struct { gpa: std.mem.Allocator, w: wts.Weights, k: mm.Kernels, x: be.Draws, s: cuda.Stream, m: mm.Model, b: be.Mini };
++const Owned = struct { gpa: std.mem.Allocator, w: wts.Weights, k: mm.Kernels, x: be.Draws, s: cuda.Stream, m: mm.Model, b: be.Mini, v: ?*mini_vision.Images = null };
+ 
+ /// Streams to allocate in `room`: as asked, else (auto) the most that fit; a fixed count past them refuses.
+ fn fit(room: u64, asked: u32, fixed: bool, plan: anytype) !usize {
+@@ -99,6 +102,11 @@ pub fn open(gpa: std.mem.Allocator, io: std.Io, ctx: *const cuda.Context, dir: [
+     own.m = try mm.Model.init(gpa, ctx.d, own.s, &own.w, &own.k, context, n, o.kv8);
+     errdefer own.m.deinit();
+     own.b = try be.Mini.init(gpa, ctx.d, &own.m, &own.k, &own.x, own.s, own.w.config.image_token);
++    errdefer own.b.deinit();
++    own.v = if (o.vision) |lim| try mini_vision.Images.init(gpa, io, ctx.d, dir, own.w.config, lim, mm.prompt_rows, n) else null;
++    own.m.vision = own.v;
++    own.b.vision = own.v;
++    if (own.v) |vis| std.log.info("Inkling 2 Mini vision: {d} layers, {d:.2} GiB weights, up to {d} image tokens / {d} images", .{ vis.c.layers, gib(vis.w.bytes), vis.limits.image_tokens, vis.limits.max_images });
+     std.log.info("Inkling 2 Mini: {d} visits a token ({d} sliding, {d} full, {d} conv slots a stream), {d} streams of {d} positions ({s} caches), {d:.2} GiB of weights", .{ own.w.plan.visits.len, own.w.plan.visits.count(.sliding), own.w.plan.visits.count(.full), own.w.plan.visits.count(.conv), n, context, if (o.kv8) "fp8" else "bf16", gib(own.w.bytes) });
+     return .{
+         .backend = own.b.backend(),
+@@ -109,6 +117,7 @@ pub fn open(gpa: std.mem.Allocator, io: std.Io, ctx: *const cuda.Context, dir: [
+         .ctx = own,
+         .deinit = release,
+         .target = &own.b,
++        .vision = own.v,
+     };
+ }
+ 
+@@ -168,7 +177,12 @@ fn gib(b: u64) f64 {
+ pub fn explain(_: ?*anyopaque, err: anyerror) ?[]const u8 {
+     return switch (err) {
+         error.Inkling2MiniLoopsFixed => "--loops: Inkling 2 Mini runs the passes its loop_config names (3 over layers 6 to 17); serve without --loops",
+-        error.Inkling2MiniImages => "images: Inkling 2 Mini on CUDA reads text only until its vision slice (C6) lands; send text parts only",
++        error.Inkling2MiniImages => "images: serve with --vision to enable Inkling 2 Mini's vision tower, or send text parts only",
++        error.Inkling2VisionLimits => "--vision: --vision-image-tokens and --vision-max-images must both be positive",
++        error.UnsupportedInkling2VisionConfig => "--vision: unsupported vision_config layout (expected patch 20, merge 2, head_dim 64)",
++        error.NoVisionWeights, error.MissingVisionTensor, error.UnsupportedVisionDType => "--vision: checkpoint vision weights (model.visual.*) are missing or not bf16",
++        error.TooManyImageTokens => "images: request exceeds --vision-image-tokens",
++        error.BadImageGrid => "images: image grid does not match patch count",
+         error.Inkling2MiniNoRollback => "Inkling 2 Mini on CUDA rolls a window back only right after its verify (another forward ran in between)",
+         error.Inkling2KeepPath => "Inkling 2 Mini on CUDA keeps a prefix of a verified window: a kept path is empty or longer than the window",
+         error.Inkling2TapsNotHeld => "the DSpark drafter asked for tapped rows the target no longer holds (they are kept only until the stream's next forward)",
+@@ -198,6 +212,7 @@ pub fn explain(_: ?*anyopaque, err: anyerror) ?[]const u8 {
+ 
+ fn release(p: *anyopaque) void {
+     const own: *Owned = @ptrCast(@alignCast(p));
++    if (own.v) |v| v.deinit();
+     own.b.deinit();
+     own.m.deinit();
+     own.s.deinit();
+diff --git a/zig/src/families/inkling2/mini_vision.zig b/zig/src/families/inkling2/mini_vision.zig
+new file mode 100644
+index 0000000..8cfe10c
+--- /dev/null
++++ b/zig/src/families/inkling2/mini_vision.zig
+@@ -0,0 +1,462 @@
++//! Inkling 2 Mini's vision tower (inkling2_vision) on CUDA: 23-layer PE-Lang ViT with 2D pairwise axial RoPE,
++//! LayerScale, bilinear pos_embed interpolation, 2x2 spatial merge + 2-layer GELU projector, and per-slot splicing.
++const std = @import("std");
++const core = @import("core");
++const cuda = @import("cuda");
++const lanes = @import("lanes");
++const config = @import("config.zig");
++const ops = @import("ops.zig");
++const mini_image = @import("mini_image.zig");
++
++const Allocator = std.mem.Allocator;
++const DeviceBuffer = cuda.DeviceBuffer;
++const vit = cuda.vit;
++
++pub const Limits = struct { image_tokens: u32, max_images: u32 };
++
++/// Default per-request image token budget when --vision-image-tokens is not given.
++pub const default_image_tokens: u32 = 4096;
++
++/// Inkling 2's added-token markers from tokenizer.json: <|content_image|>, <|unused_200054|>, <|end_message|>.
++pub const Marks = struct { open: u32, image: u32, close: u32 };
++pub const default_marks: Marks = .{ .open = 200005, .image = 200054, .close = 200010 };
++
++const LayerWeights = struct {
++    ln1_w: u64,
++    ln1_b: u64,
++    ln2_w: u64,
++    ln2_b: u64,
++    ls1: u64,
++    ls2: u64,
++    q_w: u64,
++    q_b: u64,
++    k_w: u64,
++    k_b: u64,
++    v_w: u64,
++    v_b: u64,
++    o_w: u64,
++    o_b: u64,
++    fc_w: u64,
++    fc_b: u64,
++    proj_w: u64,
++    proj_b: u64,
++};
++
++const TowerWeights = struct {
++    buf: DeviceBuffer,
++    cls_emb: u64,
++    cls_pos: u64,
++    patch_w: u64,
++    pos_emb: u64,
++    ln_pre_w: u64,
++    ln_pre_b: u64,
++    layers: []LayerWeights,
++    proj_in: u64,
++    proj_out: u64,
++    bytes: usize,
++
++    fn deinit(w: *TowerWeights, gpa: Allocator) void {
++        w.buf.free();
++        gpa.free(w.layers);
++        w.* = undefined;
++    }
++};
++
++fn loadWeights(gpa: Allocator, io: std.Io, d: *const cuda.Driver, dir: []const u8, c: config.Vision) !TowerWeights {
++    const pre = "model.visual.";
++    var ck = try core.Checkpoint.openModelPrefixes(gpa, io, dir, &.{pre});
++    defer core.checkpoint.cache.close(&ck);
++
++    var total: usize = 0;
++    for (ck.files.items) |f| {
++        for (f.names.keys()) |name| {
++            if (!std.mem.startsWith(u8, name, pre)) continue;
++            const ten = try ck.get(name);
++            if (ten.dtype != .bf16) return error.UnsupportedVisionDType;
++            total += std.mem.alignForward(usize, ten.bytes.len, 256);
++        }
++    }
++    if (total == 0) return error.NoVisionWeights;
++
++    var buf = try DeviceBuffer.alloc(d, total);
++    errdefer buf.free();
++
++    var map = std.StringHashMap(u64).init(gpa);
++    defer map.deinit();
++
++    var at: usize = 0;
++    for (ck.files.items) |f| {
++        for (f.names.keys()) |name| {
++            if (!std.mem.startsWith(u8, name, pre)) continue;
++            const ten = try ck.get(name);
++            const ptr = buf.ptr + at;
++            try cuda.copy_source.synchronousCopy(d, ptr, ten.bytes, gpa);
++            try map.put(name[pre.len..], ptr);
++            at += std.mem.alignForward(usize, ten.bytes.len, 256);
++        }
++    }
++
++    const req = struct {
++        fn get(m: *const std.StringHashMap(u64), key: []const u8) !u64 {
++            return m.get(key) orelse {
++                std.log.err("inkling2 vision: missing tensor model.visual.{s}", .{key});
++                return error.MissingVisionTensor;
++            };
++        }
++    }.get;
++
++    const layers = try gpa.alloc(LayerWeights, c.layers);
++    errdefer gpa.free(layers);
++
++    var kb: [128]u8 = undefined;
++    for (0..c.layers) |i| {
++        const getL = struct {
++            fn f(m: *const std.StringHashMap(u64), b: *[128]u8, idx: usize, suffix: []const u8) !u64 {
++                const k = std.fmt.bufPrint(b, "backbone.layers.{d}.{s}", .{ idx, suffix }) catch unreachable;
++                return req(m, k);
++            }
++        }.f;
++        layers[i] = .{
++            .ln1_w = try getL(&map, &kb, i, "ln_1.weight"),
++            .ln1_b = try getL(&map, &kb, i, "ln_1.bias"),
++            .ln2_w = try getL(&map, &kb, i, "ln_2.weight"),
++            .ln2_b = try getL(&map, &kb, i, "ln_2.bias"),
++            .ls1 = try getL(&map, &kb, i, "ls_1.gamma"),
++            .ls2 = try getL(&map, &kb, i, "ls_2.gamma"),
++            .q_w = try getL(&map, &kb, i, "self_attn.q_proj.weight"),
++            .q_b = try getL(&map, &kb, i, "self_attn.q_proj.bias"),
++            .k_w = try getL(&map, &kb, i, "self_attn.k_proj.weight"),
++            .k_b = try getL(&map, &kb, i, "self_attn.k_proj.bias"),
++            .v_w = try getL(&map, &kb, i, "self_attn.v_proj.weight"),
++            .v_b = try getL(&map, &kb, i, "self_attn.v_proj.bias"),
++            .o_w = try getL(&map, &kb, i, "self_attn.out_proj.weight"),
++            .o_b = try getL(&map, &kb, i, "self_attn.out_proj.bias"),
++            .fc_w = try getL(&map, &kb, i, "mlp.c_fc.weight"),
++            .fc_b = try getL(&map, &kb, i, "mlp.c_fc.bias"),
++            .proj_w = try getL(&map, &kb, i, "mlp.c_proj.weight"),
++            .proj_b = try getL(&map, &kb, i, "mlp.c_proj.bias"),
++        };
++    }
++
++    return .{
++        .buf = buf,
++        .cls_emb = try req(&map, "backbone.embeddings.class_embedding"),
++        .cls_pos = try req(&map, "backbone.embeddings.cls_position_embedding"),
++        .patch_w = try req(&map, "backbone.embeddings.patch_embedding.weight"),
++        .pos_emb = try req(&map, "backbone.embeddings.position_embedding"),
++        .ln_pre_w = try req(&map, "backbone.ln_pre.weight"),
++        .ln_pre_b = try req(&map, "backbone.ln_pre.bias"),
++        .layers = layers,
++        .proj_in = try req(&map, "proj_in.weight"),
++        .proj_out = try req(&map, "proj_out.weight"),
++        .bytes = total,
++    };
++}
++
++/// Reusable scratch for encoding one image of up to `cap_patches` native patches.
++const Scratch = struct {
++    buf: ?DeviceBuffer = null,
++    cap_patches: usize = 0,
++    px_f32: u64 = 0, // f32 [P, 1200]
++    px_bf16: u64 = 0, // bf16 [P, 1200]
++    x: u64 = 0, // bf16 [S, H]
++    xn: u64 = 0, // bf16 [S, H]
++    y: u64 = 0, // bf16 [S, H]
++    q: u64 = 0, // bf16 [S, H]
++    k: u64 = 0, // bf16 [S, H]
++    v: u64 = 0, // bf16 [S, H]
++    qkv: u64 = 0, // bf16 [S, 3*H]
++    att: u64 = 0, // bf16 [S, H]
++    mlp: u64 = 0, // bf16 [S, max(FF, proj_hidden)]
++    acc: u64 = 0, // f32 [S, max(FF, proj_hidden)] (fallback if cuBLASLt cannot fuse bias)
++
++    fn deinit(sc: *Scratch) void {
++        if (sc.buf) |*b| b.free();
++        sc.* = .{};
++    }
++
++    fn ensure(sc: *Scratch, d: *const cuda.Driver, c: config.Vision, patches: usize) !void {
++        if (patches <= sc.cap_patches and sc.buf != null) return;
++        const cap = @max(patches, 256);
++        const s_max = cap + 1;
++        const h: usize = c.hidden;
++        const ff: usize = @max(@as(usize, c.hidden) * c.mlp_ratio, @as(usize, c.proj_hidden));
++        const pw: usize = 3 * @as(usize, c.patch) * c.patch;
++
++        var total: usize = 0;
++        const add = struct {
++            fn f(tot: *usize, bytes: usize) u64 {
++                const off = tot.*;
++                tot.* += std.mem.alignForward(usize, @max(bytes, 256), 256);
++                return off;
++            }
++        }.f;
++
++        const o_px_f32 = add(&total, cap * pw * 4);
++        const o_px_bf16 = add(&total, cap * pw * 2);
++        const o_x = add(&total, s_max * h * 2);
++        const o_xn = add(&total, s_max * h * 2);
++        const o_y = add(&total, s_max * h * 2);
++        const o_q = add(&total, s_max * h * 2);
++        const o_k = add(&total, s_max * h * 2);
++        const o_v = add(&total, s_max * h * 2);
++        const o_qkv = add(&total, s_max * 3 * h * 2);
++        const o_att = add(&total, s_max * h * 2);
++        const o_mlp = add(&total, s_max * ff * 2);
++        const o_acc = add(&total, s_max * ff * 4);
++
++        const next = try DeviceBuffer.alloc(d, total);
++        if (sc.buf) |*old| old.free();
++        sc.buf = next;
++        sc.cap_patches = cap;
++        const base = next.ptr;
++        sc.px_f32 = base + o_px_f32;
++        sc.px_bf16 = base + o_px_bf16;
++        sc.x = base + o_x;
++        sc.xn = base + o_xn;
++        sc.y = base + o_y;
++        sc.q = base + o_q;
++        sc.k = base + o_k;
++        sc.v = base + o_v;
++        sc.qkv = base + o_qkv;
++        sc.att = base + o_att;
++        sc.mlp = base + o_mlp;
++        sc.acc = base + o_acc;
++    }
++};
++
++/// Prompt rows [at, at + n) take vision rows [row, row + n).
++pub const Span = struct { at: u32, n: u32, row: u32 };
++
++const SlotState = struct {
++    rows: ?DeviceBuffer = null, // bf16 [limits.image_tokens, text_hidden], allocated on first image use
++    spans: std.ArrayList(Span) = .empty,
++
++    fn deinit(st: *SlotState, gpa: Allocator) void {
++        if (st.rows) |*r| r.free();
++        st.spans.deinit(gpa);
++        st.* = .{};
++    }
++};
++
++pub const Images = struct {
++    /// The chat template writes <|content_image|><|unused_200054|><|end_message|> itself.
++    pub const template_wraps = true;
++
++    gpa: Allocator,
++    io: std.Io,
++    d: *const cuda.Driver,
++    c: config.Vision,
++    limits: Limits,
++    marks: Marks,
++    mark_ids: [3]u32,
++    w: TowerWeights,
++    vit_k: vit.Kernels,
++    att: vit.Attention,
++    gemms: vit.Gemms,
++    scratch: Scratch = .{},
++    slots: []SlotState,
++    map_dev: DeviceBuffer, // i32 [max_prompt_rows]
++    map_host: []i32,
++
++    pub fn init(gpa: Allocator, io: std.Io, d: *const cuda.Driver, dir: []const u8, cfg: config.Config, limits: Limits, max_prompt_rows: usize, n_slots: usize) !*Images {
++        if (limits.image_tokens == 0 or limits.max_images == 0) return error.Inkling2VisionLimits;
++        const c = cfg.vision;
++        if (c.patch != mini_image.patch_size or c.merge != mini_image.merge_size or c.hidden / c.heads != 64) {
++            return error.UnsupportedInkling2VisionConfig;
++        }
++        const self = try gpa.create(Images);
++        errdefer gpa.destroy(self);
++
++        var w = try loadWeights(gpa, io, d, dir, c);
++        errdefer w.deinit(gpa);
++        var vit_k = try vit.Kernels.load(d);
++        errdefer vit_k.unload();
++        var att = try vit.Attention.load(d);
++        errdefer att.unload();
++        var gemms = try vit.Gemms.init(gpa, d);
++        errdefer gemms.deinit();
++        var map_dev = try DeviceBuffer.alloc(d, max_prompt_rows * 4);
++        errdefer map_dev.free();
++        const map_host = try gpa.alloc(i32, max_prompt_rows);
++        errdefer gpa.free(map_host);
++        const slots = try gpa.alloc(SlotState, n_slots);
++        errdefer gpa.free(slots);
++        @memset(slots, .{});
++
++        const marks: Marks = .{ .open = default_marks.open, .image = cfg.image_token, .close = default_marks.close };
++        self.* = .{
++            .gpa = gpa,
++            .io = io,
++            .d = d,
++            .c = c,
++            .limits = limits,
++            .marks = marks,
++            .mark_ids = .{ marks.open, marks.image, marks.close },
++            .w = w,
++            .vit_k = vit_k,
++            .att = att,
++            .gemms = gemms,
++            .slots = slots,
++            .map_dev = map_dev,
++            .map_host = map_host,
++        };
++        return self;
++    }
++
++    pub fn deinit(v: *Images) void {
++        for (v.slots) |*sl| sl.deinit(v.gpa);
++        v.gpa.free(v.slots);
++        v.gpa.free(v.map_host);
++        v.map_dev.free();
++        v.scratch.deinit();
++        v.gemms.deinit();
++        v.att.unload();
++        v.vit_k.unload();
++        v.w.deinit(v.gpa);
++        v.gpa.destroy(v);
++    }
++
++    /// Server-side image preparation (runs on HTTP worker thread).
++    pub fn prepare(v: *Images, a: Allocator, bytes: []const u8, max_tokens: u32) mini_image.Error!mini_image.Prepared {
++        return mini_image.prepare(v.io, a, bytes, max_tokens);
++    }
++
++    pub fn explain(err: anyerror) ?[]const u8 {
++        if (core.picture.decoderProblem(err)) |msg| return msg;
++        return switch (err) {
++            error.ImageTooSmall => "image token budget is too small for this image",
++            error.TooManyImageTokens => "request's images exceed --vision-image-tokens",
++            error.BadImageGrid => "image grid dimensions do not match its patch count",
++            else => null,
++        };
++    }
++
++    pub fn clear(v: *Images, slot: usize) void {
++        if (slot < v.slots.len) v.slots[slot].spans.clearRetainingCapacity();
++    }
++
++    /// Encode all images whose placeholder tokens end past `from` into `slot`'s feature buffer.
++    pub fn begin(v: *Images, ops_k: *const ops.Kernels, s: cuda.Stream, slot: usize, images: []const lanes.stream.Image, from: usize) !void {
++        const sl = &v.slots[slot];
++        sl.spans.clearRetainingCapacity();
++        if (images.len == 0) return;
++
++        var total_tokens: u32 = 0;
++        for (images) |im| {
++            if (@as(usize, im.at) + im.tokens <= from) continue;
++            total_tokens = std.math.add(u32, total_tokens, im.tokens) catch return error.TooManyImageTokens;
++        }
++        if (total_tokens == 0) return;
++        if (total_tokens > v.limits.image_tokens) return error.TooManyImageTokens;
++
++        if (sl.rows == null) {
++            sl.rows = try DeviceBuffer.alloc(v.d, @as(usize, v.limits.image_tokens) * v.c.text_hidden * 2);
++        }
++        const rows_base = sl.rows.?.ptr;
++        var row_off: u32 = 0;
++        for (images) |im| {
++            if (@as(usize, im.at) + im.tokens <= from) continue;
++            const dst = rows_base + @as(usize, row_off) * v.c.text_hidden * 2;
++            try v.encodeOne(ops_k, s, im, dst);
++            try sl.spans.append(v.gpa, .{ .at = im.at, .n = im.tokens, .row = row_off });
++            row_off += im.tokens;
++        }
++    }
++
++    /// Run the 23-layer ViT + 2x2 merger on one image and write [im.tokens, text_hidden] bf16 to `dst`.
++    fn encodeOne(v: *Images, ops_k: *const ops.Kernels, s: cuda.Stream, im: lanes.stream.Image, dst: u64) !void {
++        const c = v.c;
++        const gh: usize = im.gh;
++        const gw: usize = im.gw;
++        const merge: usize = c.merge;
++        if (gh == 0 or gw == 0 or gh % merge != 0 or gw % merge != 0) return error.BadImageGrid;
++        const patches = gh * gw;
++        const tokens = patches / (merge * merge);
++        if (tokens != im.tokens) return error.BadImageGrid;
++        const pw: usize = 3 * @as(usize, c.patch) * c.patch;
++        if (im.pixels.len != patches * pw) return error.BadImageGrid;
++
++        try v.scratch.ensure(v.d, c, patches);
++        const sc = &v.scratch;
++        const seq = patches + 1;
++        const h: usize = c.hidden;
++        const ff: usize = @as(usize, c.hidden) * c.mlp_ratio;
++        const heads: usize = c.heads;
++        const hd: usize = h / heads;
++        const eps: f32 = 1e-5;
++        const rope_theta: f32 = 10000.0;
++        const attn_scale: f32 = 1.0 / @sqrt(@as(f32, @floatFromInt(hd)));
++
++        // 1. Upload f32 patches -> cast to bf16
++        try cuda.copy_source.enqueue(v.d, sc.px_f32, std.mem.sliceAsBytes(im.pixels), s);
++        try v.vit_k.cast(s, sc.px_f32, sc.px_bf16, patches * pw);
++
++        // 2. Patch linear projection [P, 1200] @ [1024, 1200]^T -> y [P, 1024]
++        try v.gemms.run(s, sc.px_bf16, v.w.patch_w, sc.y, patches, h, pw, .bf16);
++
++        // 3. Bilinear pos_embed + prepend CLS -> x [P+1, 1024]
++        try ops.visEmbed(ops_k, s, sc.y, v.w.pos_emb, v.w.cls_emb, v.w.cls_pos, sc.x, gh, gw, merge, c.grid, h);
++
++        // 4. Pre-LayerNorm: x -> xn, then copy xn -> x
++        try v.vit_k.layerNorm(s, sc.x, v.w.ln_pre_w, v.w.ln_pre_b, sc.xn, seq, h, eps);
++        try v.d.check(v.d.api.cuMemcpyDtoDAsync_v2(sc.x, sc.xn, seq * h * 2, s.handle), "cuMemcpyDtoDAsync");
++
++        // 5. 23 ViT encoder layers
++        for (v.w.layers) |l| {
++            try v.vit_k.layerNorm(s, sc.x, l.ln1_w, l.ln1_b, sc.xn, seq, h, eps);
++            try vit.linear(&v.gemms, &v.vit_k, s, sc.acc, sc.xn, l.q_w, l.q_b, sc.q, seq, h, h);
++            try vit.linear(&v.gemms, &v.vit_k, s, sc.acc, sc.xn, l.k_w, l.k_b, sc.k, seq, h, h);
++            try vit.linear(&v.gemms, &v.vit_k, s, sc.acc, sc.xn, l.v_w, l.v_b, sc.v, seq, h, h);
++            try ops.visPackQkvRope(ops_k, s, sc.q, sc.k, sc.v, sc.qkv, gh, gw, merge, heads, hd, rope_theta);
++            try v.att.full(s, sc.qkv, sc.att, seq, heads, hd, attn_scale);
++            try vit.linear(&v.gemms, &v.vit_k, s, sc.acc, sc.att, l.o_w, l.o_b, sc.y, seq, h, h);
++            try ops.visLsAdd(ops_k, s, sc.x, sc.y, l.ls1, seq, h);
++
++            try v.vit_k.layerNorm(s, sc.x, l.ln2_w, l.ln2_b, sc.xn, seq, h, eps);
++            try vit.linearAct(&v.gemms, &v.vit_k, s, sc.acc, sc.xn, l.fc_w, l.fc_b, sc.mlp, seq, ff, h, null, sc.mlp, .gelu);
++            try vit.linear(&v.gemms, &v.vit_k, s, sc.acc, sc.mlp, l.proj_w, l.proj_b, sc.y, seq, h, ff);
++            try ops.visLsAdd(ops_k, s, sc.x, sc.y, l.ls2, seq, h);
++        }
++
++        // 6. Drop CLS token (row 0); remaining P rows are already in 2x2 merge-block order [T, 4*H]
++        const x_patches = sc.x + h * 2;
++        const merge_w = merge * merge * h;
++        const proj_h: usize = c.proj_hidden;
++        try v.gemms.run(s, x_patches, v.w.proj_in, sc.mlp, tokens, proj_h, merge_w, .bf16);
++        try v.vit_k.pointwise(s, sc.mlp, null, sc.mlp, tokens * proj_h, .gelu);
++        try v.gemms.run(s, sc.mlp, v.w.proj_out, dst, tokens, c.text_hidden, proj_h, .bf16);
++    }
++
++    /// Splice any vision feature rows overlapping prompt chunk [p0, p0 + rows) into `h_dst` [rows, text_hidden].
++    pub fn splice(v: *Images, ops_k: *const ops.Kernels, s: cuda.Stream, slot: usize, p0: usize, rows: usize, h_dst: u64) !void {
++        const sl = &v.slots[slot];
++        if (sl.spans.items.len == 0 or rows == 0) return;
++        const p1 = p0 + rows;
++        var any = false;
++        for (sl.spans.items) |sp| {
++            const s0: usize = sp.at;
++            const s1: usize = s0 + sp.n;
++            if (s0 < p1 and s1 > p0) {
++                any = true;
++                break;
++            }
++        }
++        if (!any) return;
++
++        @memset(v.map_host[0..rows], -1);
++        for (sl.spans.items) |sp| {
++            const s0: usize = sp.at;
++            const s1: usize = s0 + sp.n;
++            const lo = @max(p0, s0);
++            const hi = @min(p1, s1);
++            if (lo < hi) {
++                for (lo..hi) |pos| {
++                    v.map_host[pos - p0] = @intCast(sp.row + (pos - s0));
++                }
++            }
++        }
++        try cuda.copy_source.enqueue(v.d, v.map_dev.ptr, std.mem.sliceAsBytes(v.map_host[0..rows]), s);
++        try ops.visSplice(ops_k, s, h_dst, sl.rows.?.ptr, v.map_dev.ptr, rows, v.c.text_hidden);
++    }
++};
+diff --git a/zig/src/families/inkling2/mini_visit.zig b/zig/src/families/inkling2/mini_visit.zig
+index 86deb86..e116ace 100644
+--- a/zig/src/families/inkling2/mini_visit.zig
++++ b/zig/src/families/inkling2/mini_visit.zig
+@@ -68,6 +68,9 @@ pub fn run(m: *Model, k: *const Kernels, s: cuda.Stream, r: *const Rows, head0:
+     const t = m.c;
+     const h: usize = t.hidden;
+     try ops.embed(&k.ops, s, m.s.ids, r.n, m.w.embed, m.w.embed_norm, m.s.h[0], h, t.eps);
++    if (r.prompt) if (m.vision) |vis| if (m.vision_slot) |slot| {
++        try vis.splice(&k.ops, s, slot, m.vision_p0, r.n, m.s.h[0]);
++    };
+     var cur: usize = 0;
+     for (0..m.w.plan.visits.len) |v| {
+         if (m.taps_on) if (std.mem.indexOfScalar(u32, &mm.tap_visits, @intCast(v))) |tp| try m.tap(k, s, m.s.h[cur], r.n, tp);
+diff --git a/zig/src/families/inkling2/ops.zig b/zig/src/families/inkling2/ops.zig
+index 62231ac..245c78a 100644
+--- a/zig/src/families/inkling2/ops.zig
++++ b/zig/src/families/inkling2/ops.zig
+@@ -83,6 +83,10 @@ pub const Kernels = struct {
+     masked_argmax16: cuda.Function,
+     grammar_guard: cuda.Function,
+     grammar_scrub: cuda.Function,
++    vis_embed: cuda.Function,
++    vis_pack_qkv_rope: cuda.Function,
++    vis_ls_add: cuda.Function,
++    vis_splice: cuda.Function,
+ 
+     pub fn load(d: *const cuda.Driver) !Kernels {
+         if (!cuda.kernels.available) return error.BuiltWithoutKernels;
+@@ -114,6 +118,10 @@ pub const Kernels = struct {
+             .masked_argmax16 = try mod.function("tf_ink2_masked_argmax16"),
+             .grammar_guard = try mod.function("tf_ink2_grammar_guard"),
+             .grammar_scrub = try mod.function("tf_ink2_grammar_scrub"),
++            .vis_embed = try mod.function("tf_ink2_vis_embed"),
++            .vis_pack_qkv_rope = try mod.function("tf_ink2_vis_pack_qkv_rope"),
++            .vis_ls_add = try mod.function("tf_ink2_vis_ls_add"),
++            .vis_splice = try mod.function("tf_ink2_vis_splice"),
+             .lazy = .{
+                 try mod.function("tf_ink2_lazy_delta"), try mod.function("tf_ink2_lazy_prep"),
+                 try mod.function("tf_ink2_lazy_low"),   try mod.function("tf_ink2_lazy_pick"),
+@@ -472,3 +480,33 @@ pub fn splitCols(k: *const Kernels, s: cuda.Stream, src: u64, ld: usize, rows: u
+     try go(k.split_cols, s, .{ .x = @intCast(rows) }, 256, &args);
+ }
+ 
++pub fn visEmbed(k: *const Kernels, s: cuda.Stream, patch_emb: u64, pos_tab: u64, cls_emb: u64, cls_pos: u64, out: u64, gh: usize, gw: usize, merge: usize, grid: usize, h: usize) !void {
++    var args: cuda.Args = .{};
++    for ([_]u64{ patch_emb, pos_tab, cls_emb, cls_pos, out }) |p| args.add(p);
++    for ([_]usize{ gh, gw, merge, grid, h }) |n| args.add(int(n));
++    try go(k.vis_embed, s, .{ .x = @intCast(gh * gw + 1) }, 256, &args);
++}
++
++pub fn visPackQkvRope(k: *const Kernels, s: cuda.Stream, q: u64, kk: u64, v: u64, qkv: u64, gh: usize, gw: usize, merge: usize, heads: usize, hd: usize, theta: f32) !void {
++    var args: cuda.Args = .{};
++    for ([_]u64{ q, kk, v, qkv }) |p| args.add(p);
++    for ([_]usize{ gh, gw, merge, heads, hd }) |n| args.add(int(n));
++    args.add(theta);
++    try go(k.vis_pack_qkv_rope, s, .{ .x = @intCast(gh * gw + 1) }, 256, &args);
++}
++
++pub fn visLsAdd(k: *const Kernels, s: cuda.Stream, x: u64, y: u64, gamma: u64, rows: usize, h: usize) !void {
++    var args: cuda.Args = .{};
++    for ([_]u64{ x, y, gamma }) |p| args.add(p);
++    args.add(int(h));
++    try go(k.vis_ls_add, s, .{ .x = @intCast(rows) }, 256, &args);
++}
++
++pub fn visSplice(k: *const Kernels, s: cuda.Stream, dst: u64, src: u64, map: u64, rows: usize, h: usize) !void {
++    if (rows == 0) return;
++    var args: cuda.Args = .{};
++    for ([_]u64{ dst, src, map }) |p| args.add(p);
++    args.add(int(h));
++    try go(k.vis_splice, s, .{ .x = @intCast(rows) }, 256, &args);
++}
++

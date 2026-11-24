@@ -1,0 +1,321 @@
+diff --git a/zig/kernels/cuda/inkling2/ops.cu b/zig/kernels/cuda/inkling2/ops.cu
+index 78d6a00a5..afc32fac1 100644
+--- a/zig/kernels/cuda/inkling2/ops.cu
++++ b/zig/kernels/cuda/inkling2/ops.cu
+@@ -267,66 +267,6 @@ extern "C" __global__ void __launch_bounds__(256) tf_ink2_rowdot(const uint16_t*
+         static_cast<float*>(out)[row * J + j] = s;
+ }
+ 
+-// tf_ink2_rowdot's sigmoid router scores (the same warp sums) and, in the last block of each row to finish, its picks
+-// and weights as tf_ink2_topk_warp makes them (same bits): one launch for the router (TF_INKLING2_ROUTE_FUSED).
+-// done[row] counts finished blocks and is left at zero for the next call.
+-extern "C" __global__ void __launch_bounds__(256) tf_ink2_route(const uint16_t* __restrict__ x, const uint16_t* __restrict__ W,
+-                                                               float* __restrict__ scores, int J, int C,
+-                                                               const float* __restrict__ bias, int* __restrict__ pick,
+-                                                               float* __restrict__ wts, int K, float scale,
+-                                                               unsigned* __restrict__ done) {
+-    const int lane = threadIdx.x & 31, j = blockIdx.y * 8 + (threadIdx.x >> 5);
+-    const size_t row = blockIdx.x;
+-    if (j < J) {
+-        const uint16_t* xr = x + row * C;
+-        const uint16_t* wr = W + static_cast<size_t>(j) * C;
+-        float s = 0.0f;
+-        for (int c = lane; c < C; c += 32) s += bf(xr[c]) * bf(wr[c]);
+-        s = warpSum(s);
+-        if (lane == 0) scores[row * J + j] = 1.0f / (1.0f + expf(-s));
+-    }
+-    __shared__ bool last;
+-    __threadfence();
+-    __syncthreads();
+-    if (threadIdx.x == 0) last = atomicAdd(done + row, 1u) == gridDim.y - 1;
+-    __syncthreads();
+-    if (!last || threadIdx.x >= 32) return;
+-    __threadfence();
+-    float sel[8];
+-#pragma unroll
+-    for (int i = 0; i < 8; ++i) {
+-        const int e = lane + i * 32;
+-        sel[i] = e < J ? __ldcg(scores + row * J + e) + bias[e] : -INFINITY;
+-    }
+-    float t = 0.0f, chosen = 0.0f;
+-    int chosen_id = 0;
+-    for (int k = 0; k < K; ++k) {
+-        float v = -INFINITY;
+-        int id = 0x7fffffff;
+-#pragma unroll
+-        for (int i = 0; i < 8; ++i) {
+-            const int e = lane + i * 32;
+-            if (e < J && (sel[i] > v || (sel[i] == v && e < id))) { v = sel[i]; id = e; }
+-        }
+-        for (int o = 16; o > 0; o >>= 1) {
+-            const float ov = __shfl_xor_sync(0xffffffffu, v, o);
+-            const int oi = __shfl_xor_sync(0xffffffffu, id, o);
+-            if (ov > v || (ov == v && oi < id)) { v = ov; id = oi; }
+-        }
+-        const float sc = __ldcg(scores + row * J + id);
+-        if (lane == k) { chosen = sc; chosen_id = id; }
+-        t += sc;
+-#pragma unroll
+-        for (int i = 0; i < 8; ++i)
+-            if (lane + i * 32 == id) sel[i] = -INFINITY;
+-    }
+-    if (lane < K) {
+-        pick[row * K + lane] = chosen_id;
+-        wts[row * K + lane] = chosen / (t + 1e-20f) * scale;
+-    }
+-    if (lane == 0) done[row] = 0u;
+-}
+-
+ // Router picks per row: top-K of score + bias (ties to the lower id), weights score / sum(scores) * scale (fp32).
+ extern "C" __global__ void __launch_bounds__(512) tf_ink2_topk(const float* __restrict__ scores, const float* __restrict__ bias,
+                                                               int* __restrict__ pick, float* __restrict__ wts, int E, int K,
+diff --git a/zig/src/families/inkling2/mini_model.zig b/zig/src/families/inkling2/mini_model.zig
+index ee138249b..9fdb2799f 100644
+--- a/zig/src/families/inkling2/mini_model.zig
++++ b/zig/src/families/inkling2/mini_model.zig
+@@ -145,7 +145,6 @@ pub const Scratch = struct {
+     xf: u64,
+     logits: u64, // fp32 [round_rows, unpadded vocab]
+     lane_part: u64,
+-    route_done: u64, // u32 [round_rows]: tf_ink2_route's finished blocks a row (zero between calls)
+     entries: usize, // (row, head, partial) slots part_o and part_ml hold
+ };
+ 
+@@ -301,7 +300,6 @@ pub const Model = struct {
+         };
+         if (m.planned == null) try m.upload(s, m.sites, std.mem.sliceAsBytes(table[0..m.n_sites]));
+         try m.scratch(k);
+-        if (m.planned == null) try m.d.check(m.d.api.cuMemsetD8Async(m.s.route_done, 0, round_rows * 4, s.handle), "cuMemsetD8Async");
+         if (lazyOn()) try m.buildLazy(s, k);
+     }
+ 
+@@ -463,7 +461,6 @@ pub const Model = struct {
+             .xf = try m.alloc(r * h * 2),
+             .logits = try m.alloc(round_rows * t.unpadded_vocab * 4),
+             .lane_part = try m.alloc(part),
+-            .route_done = try m.alloc(round_rows * 4),
+             .entries = entries,
+         };
+     }
+diff --git a/zig/src/families/inkling2/mini_visit.zig b/zig/src/families/inkling2/mini_visit.zig
+index f0951bde2..660461e8b 100644
+--- a/zig/src/families/inkling2/mini_visit.zig
++++ b/zig/src/families/inkling2/mini_visit.zig
+@@ -304,12 +304,8 @@ fn moe(m: *Model, k: *const Kernels, s: cuda.Stream, r: *const Rows, L: *const w
+     const h: usize = t.hidden;
+     const n = r.n;
+     const pairs = n * t.topk;
+-    if (!r.prompt and t.experts <= 256 and t.topk <= 32 and ops.routeFused()) {
+-        try ops.route(&k.ops, s, m.s.xm, L.router, m.s.scores, L.router_bias, m.s.pick, m.s.rw, m.s.route_done, n, t.experts, h, t.topk, t.route_scale);
+-    } else {
+-        try ops.rowdot(&k.ops, s, m.s.xm, L.router, m.s.scores, n, t.experts, h, false, true);
+-        try ops.topk(&k.ops, s, m.s.scores, L.router_bias, m.s.pick, m.s.rw, n, t.experts, t.topk, t.route_scale);
+-    }
++    try ops.rowdot(&k.ops, s, m.s.xm, L.router, m.s.scores, n, t.experts, h, false, true);
++    try ops.topk(&k.ops, s, m.s.scores, L.router_bias, m.s.pick, m.s.rw, n, t.experts, t.topk, t.route_scale);
+     const tile: usize = if (r.prompt) cuda.experts.promptTile(L.experts.format) else 16;
+     const items = cuda.grouped.maxItems(pairs, t.experts, tile);
+     try k.router.route(s, m.s.pick, pairs, t.experts, tile, m.s.plan);
+diff --git a/zig/src/families/inkling2/ops.zig b/zig/src/families/inkling2/ops.zig
+index a1eff917b..8026ed2d5 100644
+--- a/zig/src/families/inkling2/ops.zig
++++ b/zig/src/families/inkling2/ops.zig
+@@ -79,7 +79,6 @@ pub const Kernels = struct {
+     race1: cuda.Function,
+     lazy: [8]cuda.Function, // the certified lazy head: delta, prep, low, pick, fill, exact, full, low2
+     split_cols: cuda.Function,
+-    route: cuda.Function,
+ 
+     pub fn load(d: *const cuda.Driver) !Kernels {
+         if (!cuda.kernels.available) return error.BuiltWithoutKernels;
+@@ -107,7 +106,6 @@ pub const Kernels = struct {
+             .rewind = try mod.function("tf_ink2_conv_rewind"),
+             .race1 = try mod.function("tf_ink2_race1"),
+             .split_cols = try mod.function("tf_ink2_split_cols"),
+-            .route = try mod.function("tf_ink2_route"),
+             .lazy = .{
+                 try mod.function("tf_ink2_lazy_delta"), try mod.function("tf_ink2_lazy_prep"),
+                 try mod.function("tf_ink2_lazy_low"),   try mod.function("tf_ink2_lazy_pick"),
+@@ -419,25 +417,3 @@ pub fn splitCols(k: *const Kernels, s: cuda.Stream, src: u64, ld: usize, rows: u
+     try go(k.split_cols, s, .{ .x = @intCast(rows) }, 256, &args);
+ }
+ 
+-/// TF_INKLING2_ROUTE_FUSED=1: decode rows' router scores and picks in one launch (the same bits; off until measured).
+-pub fn routeFused() bool {
+-    const S = struct {
+-        var v: ?bool = null;
+-    };
+-    if (S.v == null) S.v = if (std.c.getenv("TF_INKLING2_ROUTE_FUSED")) |e| e[0] == '1' else false;
+-    return S.v.?;
+-}
+-
+-/// Decode rows' router in one launch: rowdot's sigmoid scores, then the last block of each row picks (topk_warp's bits).
+-/// `done` holds a zeroed u32 a row (the kernel leaves it zero).
+-pub fn route(k: *const Kernels, s: cuda.Stream, x: u64, w: u64, scores: u64, bias: u64, pick: u64, wts: u64, done: u64, rows: usize, experts: usize, c: usize, top: usize, scale: f32) !void {
+-    var a: cuda.Args = .{};
+-    for ([_]u64{ x, w, scores }) |v| a.add(v);
+-    a.add(int(experts));
+-    a.add(int(c));
+-    for ([_]u64{ bias, pick, wts }) |v| a.add(v);
+-    a.add(int(top));
+-    a.add(scale);
+-    a.add(done);
+-    try go(k.route, s, .{ .x = @intCast(rows), .y = @intCast((experts + 7) / 8) }, 256, &a);
+-}
+diff --git a/zig/src/server/chat_generation.zig b/zig/src/server/chat_generation.zig
+index ab1aacf9e..1ce468348 100644
+--- a/zig/src/server/chat_generation.zig
++++ b/zig/src/server/chat_generation.zig
+@@ -178,7 +178,7 @@ pub const Generation = struct {
+         const rows = if (live) |l| try l.settle(g.srv, g.a, g.collected.items[0..l.spelled.ends.items.len], g.thinking, g.stops, g.streamed.text.items, g.streamed_reasoning.text.items) else null;
+         const thought_rows = if (rows) |r| r.get("reasoning_content") else null;
+         if (thought.len > 0 or thought_rows != null) {
+-            const d: Value = if (thought.len > 0) try deltaOf(g.a, "reasoning_content", thought) else .{ .object = try json.newObject(g.a) };
++            const d: Value = if (thought.len > 0) try @import("reply_text.zig").reasoningDelta(g.a, thought) else .{ .object = try json.newObject(g.a) };
+             if (thought_rows != null) try putRows(g.a, d, rows.?, "reasoning_content");
+             try g.emit(sink, d);
+         }
+@@ -355,7 +355,7 @@ pub const Generation = struct {
+         if (g.sink) |sink| {
+             const thought = g.streamed_reasoning.text.items;
+             if (reasoning) |r| if (std.mem.startsWith(u8, r, thought) and r.len > thought.len)
+-                try g.emit(sink, try deltaOf(a, "reasoning_content", r[thought.len..]));
++                try g.emit(sink, try @import("reply_text.zig").reasoningDelta(a, r[thought.len..]));
+             const shown = if (g.calls != null) try tool_stream.endProse(a, content, if (read) content else text, g.tools, reason, g.single) else content;
+             const sent = g.streamed.text.items;
+             const rest = if (std.mem.startsWith(u8, shown, sent) and shown.len > sent.len) shown[sent.len..] else "";
+diff --git a/zig/src/server/chat_kimi.zig b/zig/src/server/chat_kimi.zig
+index 2649c6b07..9c82a8b35 100644
+--- a/zig/src/server/chat_kimi.zig
++++ b/zig/src/server/chat_kimi.zig
+@@ -36,7 +36,7 @@ pub fn emitDeltas(g: anytype, sink: chat.Sink, result: native.Result, stable: bo
+     const reason = g.streamed_reasoning.after(thought, stable);
+     if (reason.len > 0) {
+         try g.streamed_reasoning.set(g.a, thought, reason);
+-        try g.emit(sink, try reply_text.deltaOf(g.a, "reasoning_content", reason));
++        try g.emit(sink, try reply_text.reasoningDelta(g.a, reason));
+     }
+     const delta = g.streamed.after(result.content, stable);
+     if (delta.len > 0) {
+diff --git a/zig/src/server/fields.zig b/zig/src/server/fields.zig
+index a590420c6..1b9219a05 100644
+--- a/zig/src/server/fields.zig
++++ b/zig/src/server/fields.zig
+@@ -220,6 +220,14 @@ pub fn thinkingFields(cx: *Cx, body: Value, levels: []const []const u8) errors.R
+     if (effort == null and kw_object) if (kwargs) |k| {
+         effort = k.field("reasoning_effort");
+     };
++    if (effort) |e| if (numericEffort(e)) |x| {
++        // a number in [0, 0.99] (vLLM's Inkling renderer accepts them too): quantized as it quantizes them
++        if (!(x >= 0.0 and x <= 0.99)) return cx.refuse("reasoning_effort must be a number in [0, 0.99] or none, minimal, low, medium, high, xhigh or max");
++        const q = @round(@round(x * 1000.0) / 1000.0 * 100.0) / 100.0;
++        out.effort = std.fmt.allocPrint(cx.a, "{d}", .{q}) catch return cx.refuse("reasoning_effort: out of memory");
++        out.enable = true;
++        effort = null;
++    };
+     if (effort) |e| {
+         if (e != .string or !isEffort(e.string)) return cx.refuse("reasoning_effort must be none, minimal, low, medium, high, xhigh or max");
+         out.effort = coerceEffort(e.string, levels);
+@@ -240,6 +248,22 @@ pub fn thinkingFields(cx: *Cx, body: Value, levels: []const []const u8) errors.R
+     return out;
+ }
+ 
++/// A numeric reasoning_effort (a JSON number, or a string holding one); null for names and anything else.
++fn numericEffort(e: Value) ?f64 {
++    return switch (e) {
++        .float => |f| f,
++        .int => |t| std.fmt.parseFloat(f64, t) catch null,
++        .string => |t| if (t.len > 0 and (std.ascii.isDigit(t[0]) or t[0] == '.')) (std.fmt.parseFloat(f64, t) catch null) else null,
++        else => null,
++    };
++}
++
++/// Whether an effort the request resolved to is numeric text (numericEffort's output): the template takes a number.
++pub fn effortNumber(s: []const u8) ?f64 {
++    if (s.len == 0 or !(std.ascii.isDigit(s[0]) or s[0] == '.')) return null;
++    return std.fmt.parseFloat(f64, s) catch null;
++}
++
+ fn isEffort(s: []const u8) bool {
+     for (efforts) |e| if (std.mem.eql(u8, e, s)) return true;
+     return false;
+diff --git a/zig/src/server/hf_text.zig b/zig/src/server/hf_text.zig
+index ed93e4b0d..df1b936c4 100644
+--- a/zig/src/server/hf_text.zig
++++ b/zig/src/server/hf_text.zig
+@@ -440,7 +440,7 @@ pub const HfText = struct {
+         try globals.put(a, "thinking_mode", .{ .string = if (options.enable_thinking) "thinking" else "chat" });
+         var context: std.json.ObjectMap = .empty;
+         try context.put(a, "enable_thinking", .{ .bool = options.enable_thinking });
+-        if (options.reasoning_effort) |e| try context.put(a, "reasoning_effort", .{ .string = e });
++        if (options.reasoning_effort) |e| try context.put(a, "reasoning_effort", if (@import("fields.zig").effortNumber(e)) |x| .{ .float = x } else .{ .string = e });
+         if (t.clear_thinking) |clear| try context.put(a, "clear_thinking", .{ .bool = options.clear_thinking orelse clear });
+         var diag: template.Diag = .{};
+         const tools: std.json.Value = if (options.tools) |tl| try toStd(a, tl) else .null;
+diff --git a/zig/src/server/openai.zig b/zig/src/server/openai.zig
+index 041affbce..ed1def4fa 100644
+--- a/zig/src/server/openai.zig
++++ b/zig/src/server/openai.zig
+@@ -350,7 +350,7 @@ pub const Run = struct {
+             const message = try json.newObject(a);
+             try message.put(a, "role", .{ .string = "assistant" });
+             try message.put(a, "content", if (calls != null and reply.content.len == 0) .null else .{ .string = reply.content });
+-            if (reply.reasoning) |t| if (t.len > 0) try message.put(a, "reasoning_content", .{ .string = t });
++            if (reply.reasoning) |t| if (t.len > 0) try @import("reply_text.zig").putReasoning(a, message, t);
+             if (calls) |c| try message.put(a, "tool_calls", .{ .array = c });
+             try choice.put(a, "message", .{ .object = message });
+             try choice.put(a, "finish_reason", .{ .string = reply.finish_reason });
+diff --git a/zig/src/server/reply_text.zig b/zig/src/server/reply_text.zig
+index bba2c60a1..ad50402b0 100644
+--- a/zig/src/server/reply_text.zig
++++ b/zig/src/server/reply_text.zig
+@@ -588,6 +588,35 @@ test "reply text: MiniMax-M3's call opener is watched for only under MiniMax-M3'
+ }
+ 
+ /// ``{key: text}``: a streamed delta (role, content or reasoning_content).
++/// TF_REASONING_FIELD: the reply field reasoning goes in. "reasoning_content" (default), "reasoning" (vLLM's
++/// reasoning parsers, e.g. Inkling's), or "both".
++pub const ReasoningField = enum { reasoning_content, reasoning, both };
++
++pub fn reasoningField() ReasoningField {
++    const S = struct {
++        var v: ?ReasoningField = null;
++    };
++    if (S.v == null) {
++        const e = if (std.c.getenv("TF_REASONING_FIELD")) |p| std.mem.span(p) else "";
++        S.v = if (std.mem.eql(u8, e, "reasoning")) .reasoning else if (std.mem.eql(u8, e, "both")) .both else .reasoning_content;
++    }
++    return S.v.?;
++}
++
++/// Reasoning text under the field(s) TF_REASONING_FIELD names, into `o`.
++pub fn putReasoning(a: Allocator, o: anytype, text: []const u8) Allocator.Error!void {
++    const f = reasoningField();
++    if (f != .reasoning) try o.put(a, "reasoning_content", .{ .string = text });
++    if (f != .reasoning_content) try o.put(a, "reasoning", .{ .string = text });
++}
++
++/// A stream delta of reasoning text under the configured field(s).
++pub fn reasoningDelta(a: Allocator, text: []const u8) Allocator.Error!Value {
++    const o = try json.newObject(a);
++    try putReasoning(a, o, text);
++    return .{ .object = o };
++}
++
+ pub fn deltaOf(a: Allocator, key: []const u8, text: []const u8) Allocator.Error!Value {
+     const o = try json.newObject(a);
+     try o.put(a, key, .{ .string = text });
+diff --git a/zig/src/server/server.zig b/zig/src/server/server.zig
+index 972ef8400..cbda9dd05 100644
+--- a/zig/src/server/server.zig
++++ b/zig/src/server/server.zig
+@@ -236,6 +236,9 @@ pub const Server = struct {
+         const source = text.templateSource();
+         srv.effort_levels = try fields.effortLevels(a, source);
+         if (srv.recipients and srv.effort_levels.len > 0) srv.off_effort = fields.coerceEffort("minimal", srv.effort_levels);
++        // Inkling 2's template has no enable_thinking: thinking off is its lowest effort, "none" (0.0); left unset the
++        // template writes its default 0.9 and the model thinks at full effort whatever the request asked
++        if (text.vtable.format == .inkling and std.mem.indexOf(u8, source, "reasoning_effort") != null) srv.off_effort = "none";
+         // MiniMax-M3's template decides on its own; thinking off closes the block in the prompt (prompt.zig)
+         srv.thinking_switch = minimax or std.mem.indexOf(u8, source, "enable_thinking") != null or
+             std.mem.indexOf(u8, source, "thinking_mode") != null;

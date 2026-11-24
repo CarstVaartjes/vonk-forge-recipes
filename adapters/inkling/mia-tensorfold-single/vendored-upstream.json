@@ -1,0 +1,33 @@
+{
+  "kit": {
+    "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "scripts/config.sh",
+        "pattern": "^TF_REF=\"\\$\\{TF_REF:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^TF_REPO=\"\\$\\{TF_REPO:-https://github\\.com/(?P<repo>[^\"}]+?)\\.git\\}\""
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "scripts/fetch.sh",
+        "override": {
+          "reason": "The kit pins thinkingmachines/Inkling-2-Mini at 7a67ae23; the library keeps the one Model per weights it already catalogues, at 1fb4134b, which a proven recipe runs. Weights, mtp.safetensors and tokenizer are byte-identical across the two revisions; only config.json (a top-level dtype of bfloat16) and README.md differ. Evidence: Hugging Face API file listing and LFS sha256 of each revision, 2026-11-24.",
+          "revision": "1fb4134b9a74f9681054f4ef82e4bf1f458a2337"
+        },
+        "pattern": "^REV=\"\\$\\{HF_REVISION:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^REPO=\"\\$\\{HF_REPO:-(?P<repo>[^\"}]+)\\}\""
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "scan-sm121.py",
+    "tensorfold-serve"
+  ],
+  "renamed": {
+    "licenses/CREDITS.md": "CREDITS.md",
+    "licenses/LICENSE": "LICENSE",
+    "licenses/NOTICE": "NOTICE"
+  }
+}

@@ -1,0 +1,183 @@
+diff --git a/zig/kernels/cuda/nvfp4_experts.cu b/zig/kernels/cuda/nvfp4_experts.cu
+index 4c913326b..25427df30 100644
+--- a/zig/kernels/cuda/nvfp4_experts.cu
++++ b/zig/kernels/cuda/nvfp4_experts.cu
+@@ -78,7 +78,10 @@ struct Ring {
+   template <typename Sum>
+   __device__ __forceinline__ void run(int KG, int, int lane, int t, int jh, const uint4* blk, const __nv_bfloat16* x0,
+                                       const __nv_bfloat16* x1, bool v0, bool v1, Sum sum) {
+-    constexpr int D = 2;
++#ifndef TF_NVFP4_RING_D
++#define TF_NVFP4_RING_D 2
++#endif
++    constexpr int D = TF_NVFP4_RING_D;  // stages in flight: the sums and their k order do not depend on it
+     Stage<M, Word> st[D];
+ #pragma unroll
+     for (int d = 0; d < D; ++d)
+@@ -262,7 +265,7 @@ __device__ __forceinline__ void compute_half(float (&acc)[M][2][4], const Half<M
+ // experts.cuh's epilogue on a half unit's two n8 tiles.
+ template <int EPI, int M>
+ __device__ __forceinline__ void epilogue_half(const float (&acc)[M][2][4], void* out, int N, int col0, int pr0, int pr1,
+-                                              bool v0, bool v1, float limit) {
++                                              bool v0, bool v1, float limit, float limit2 = 0.f) {
+ #pragma unroll
+   for (int h = 0; h < 2; ++h) {
+     if (!(h ? v1 : v0)) continue;
+@@ -281,6 +284,14 @@ __device__ __forceinline__ void epilogue_half(const float (&acc)[M][2][4], void*
+         } else if constexpr (EPI == 2) {
+           o0 = swiglu(a0, acc[M - 1][j][2 * h], limit);
+           o1 = swiglu(a1, acc[M - 1][j][2 * h + 1], limit);
++        } else if constexpr (EPI == 4) {  // experts.cuh's epilogue 4, as written there
++          if (limit2 < 0.f) {
++            o0 = softcap_swiglu(bf(a0), bf(acc[M - 1][j][2 * h]), limit, -limit2);
++            o1 = softcap_swiglu(bf(a1), bf(acc[M - 1][j][2 * h + 1]), limit, -limit2);
++          } else {
++            o0 = softcap_swiglu(a0, acc[M - 1][j][2 * h], limit, limit2);
++            o1 = softcap_swiglu(a1, acc[M - 1][j][2 * h + 1], limit, limit2);
++          }
+         } else {
+           o0 = a0;
+           o1 = a1;
+@@ -293,12 +304,26 @@ __device__ __forceinline__ void epilogue_half(const float (&acc)[M][2][4], void*
+ }
+ 
+ // The decode form with two warps a unit (16 columns each): the same sums, twice the warps for few items.
++template <int M, int EPI, int WARPS>
++__device__ __forceinline__ void half_body(const __nv_bfloat16* __restrict__ X, int x_stride, int slots, const uint4* __restrict__ W,
++                                          const float* __restrict__ scale, int KG, int NB, const int* __restrict__ items,
++                                          const int* __restrict__ counts, const int* __restrict__ members,
++                                          void* __restrict__ out, int N, float limit, int skip, float limit2);
++
+ template <int M, int EPI, int WARPS>
+ __global__ void __launch_bounds__(WARPS * 32)
+     nvfp4_expert_half(const __nv_bfloat16* __restrict__ X, int x_stride, int slots, const uint4* __restrict__ W,
+                       const float* __restrict__ scale, int KG, int NB, const int* __restrict__ items,
+                       const int* __restrict__ counts, const int* __restrict__ members, void* __restrict__ out, int N,
+                       float limit, int skip) {
++  half_body<M, EPI, WARPS>(X, x_stride, slots, W, scale, KG, NB, items, counts, members, out, N, limit, skip, 0.f);
++}
++
++template <int M, int EPI, int WARPS>
++__device__ __forceinline__ void half_body(const __nv_bfloat16* __restrict__ X, int x_stride, int slots, const uint4* __restrict__ W,
++                                          const float* __restrict__ scale, int KG, int NB, const int* __restrict__ items,
++                                          const int* __restrict__ counts, const int* __restrict__ members,
++                                          void* __restrict__ out, int N, float limit, int skip, float limit2) {
+   TF_RING_STORAGE Ring<M, WARPS, uint2> ring;
+   const int lane = threadIdx.x & 31, gq = lane >> 2, t = lane & 3, wi = threadIdx.x >> 5;
+   const int units = __ldg(counts) * NB * 2;
+@@ -328,7 +353,7 @@ __global__ void __launch_bounds__(WARPS * 32)
+ #pragma unroll
+           for (int q = 0; q < 4; ++q) acc[m][j][q] *= g;
+       }
+-      epilogue_half<EPI, M>(acc, out, N, cb * COLS + 16 * jh + 2 * t, pr0, pr1, v0, v1, limit);
++      epilogue_half<EPI, M>(acc, out, N, cb * COLS + 16 * jh + 2 * t, pr0, pr1, v0, v1, limit, limit2);
+     }
+   }
+ }
+@@ -593,3 +618,23 @@ extern "C" __global__ void __launch_bounds__(128)
+   tf_nvfp4_experts::prompt_body<2, 4, 4, 1, 4>(X, x_stride, slots, W, scale, KG, NB, items, counts, members, out, N,
+                                                gate_cap, skip, up_cap);
+ }
++
++// Inkling 2 Mini's decode experts two warps a unit (16 columns each): tf_nvfp4_softcap's and
++// nvfp4_expert_kernel<1, 0, 4>'s outputs bit for bit (each output's MMA tile, scale word and k-ordered fmaf chain).
++extern "C" __global__ void __launch_bounds__(128)
++    tf_nvfp4_softcap_half(const __nv_bfloat16* __restrict__ X, int x_stride, int slots, const uint4* __restrict__ W,
++                          const float* __restrict__ scale, int KG, int NB, const int* __restrict__ items,
++                          const int* __restrict__ counts, const int* __restrict__ members, void* __restrict__ out, int N,
++                          float gate_cap, float up_cap, int skip) {
++  tf_nvfp4_experts::half_body<2, 4, 4>(X, x_stride, slots, W, scale, KG, NB, items, counts, members, out, N, gate_cap,
++                                       skip, up_cap);
++}
++
++extern "C" __global__ void __launch_bounds__(128)
++    tf_nvfp4_down_half(const __nv_bfloat16* __restrict__ X, int x_stride, int slots, const uint4* __restrict__ W,
++                       const float* __restrict__ scale, int KG, int NB, const int* __restrict__ items,
++                       const int* __restrict__ counts, const int* __restrict__ members, void* __restrict__ out, int N,
++                       float limit, int skip) {
++  tf_nvfp4_experts::half_body<1, 0, 4>(X, x_stride, slots, W, scale, KG, NB, items, counts, members, out, N, limit,
++                                       skip, 0.f);
++}
+diff --git a/zig/src/cuda/experts.zig b/zig/src/cuda/experts.zig
+index 0bd9a2974..b347c2deb 100644
+--- a/zig/src/cuda/experts.zig
++++ b/zig/src/cuda/experts.zig
+@@ -355,6 +355,57 @@ pub const Nvfp4Experts = struct {
+     fact_fns: [2]Function, // the decode form's sums on prompt tiles: SwiGLU gate-up, fp32 down
+     softcap: mx.Softcap = .{}, // Inkling's soft-capped SwiGLU gate-up, decode and prompt (experts_mx.zig)
+     warps: usize = 4,
++    split: ?Split = null, // loadSplit: soft-capped gate-up and fp32 down decode units two warps each (same bits)
++
++    /// tf_nvfp4_softcap_half and tf_nvfp4_down_half: 16 columns a warp, so a decode row's few units fill the GPU.
++    pub const Split = struct { fns: [2]Function, resident: [2]usize };
++
++    fn splitDown() bool {
++        const v = std.c.getenv("TF_NVFP4_SPLIT_DOWN") orelse return false;
++        return v[0] == '1';
++    }
++
++    pub fn loadSplit(e: *Nvfp4Experts, sms: usize) !void {
++        var sp: Split = undefined;
++        for ([2][:0]const u8{ "tf_nvfp4_softcap_half", "tf_nvfp4_down_half" }, &sp.fns, &sp.resident) |name, *f, *r| {
++            f.* = try e.mod.function(name);
++            r.* = @max(1, try f.occupancy(128, 0)) * sms;
++        }
++        e.split = sp;
++    }
++
++    /// The split entries while every half unit fits their resident warps (soft-capped gate-up, fp32 down), else null.
++    fn runSplit(e: *const Nvfp4Experts, s: Stream, epi: Epi, in: Rows, l: Layer, p: Plan, out: u64, items: usize, skip: i32) !?void {
++        const sp = e.split orelse return null;
++        const gate = epi == .up;
++        if (!(gate and l.caps[0] != 0) and epi != .down_f32) return null;
++        // GB10, one decode row: gate-up 121 -> 113 us a call; down 60.8 -> 61.4 (TF_NVFP4_SPLIT_DOWN=1 still takes it)
++        if (!gate and !splitDown()) return null;
++        const nb = (if (gate) l.width else l.dims) / cols;
++        const fi: usize = if (gate) 0 else 1;
++        const units = 2 * items * nb;
++        if (units > sp.resident[fi] * 4) return null;
++        var a = if (gate)
++            mx.argsOf(in, true, l.up, l.up_scale, l.dims / 32, nb, p, out, l.width, mx.kernelCaps(l), skip)
++        else blk: {
++            var b: launch_.Args = .{};
++            b.add(in.x);
++            b.add(@as(i32, @intCast(in.stride)));
++            b.add(@as(i32, 0));
++            b.add(l.down);
++            b.add(l.down_scale);
++            b.add(@as(i32, @intCast(l.width / 32)));
++            b.add(@as(i32, @intCast(nb)));
++            for ([_]u64{ p.items, p.counts, p.members, out }) |v| b.add(v);
++            b.add(@as(i32, @intCast(l.dims)));
++            b.add(@as(f32, 0.0));
++            b.add(skip);
++            break :blk b;
++        };
++        const grid = (units + 3) / 4;
++        if (grid < 1) return;
++        try launch_.launch(sp.fns[fi], .{ .grid = .{ .x = @intCast(grid), .y = 1, .z = 1 }, .block = .{ .x = 128, .y = 1, .z = 1 } }, s, &a);
++    }
+ 
+     pub const cols = 32; // output columns a block
+     pub const words = 144; // int32 a (32 columns, 32 inputs) block: 128 code words, then 16 of e4m3 scales
+@@ -430,6 +481,7 @@ pub const Nvfp4Experts = struct {
+ 
+     /// One call of nvfp4/experts.py's _run on a plan of at most `items` items.
+     pub fn run(e: *const Nvfp4Experts, s: Stream, epi: Epi, in: Rows, l: Layer, p: Plan, out: u64, items: usize, skip: i32) !void {
++        if (try e.runSplit(s, epi, in, l, p, out, items, skip)) |_| return;
+         if (epi == .up and l.caps[0] != 0) return e.softcap.run(s, false, in, l, p, out, items, skip);
+         const gate = epi == .up;
+         const kg = (if (gate) l.dims else l.width) / 32;
+diff --git a/zig/src/families/inkling2/mini_model.zig b/zig/src/families/inkling2/mini_model.zig
+index 14fcd068b..4d38ae2b6 100644
+--- a/zig/src/families/inkling2/mini_model.zig
++++ b/zig/src/families/inkling2/mini_model.zig
+@@ -63,6 +63,8 @@ pub const Kernels = struct {
+         const sms: usize = @intCast(try ctx.attribute(.multiprocessor_count));
+         k.nv = try cuda.experts.Nvfp4Experts.load(d, sms);
+         errdefer k.nv.unload();
++        // TF_INKLING2_EXPERT_SPLIT=0: decode experts one warp a 32-column unit, as before (the split gives the same bits)
++        if (if (std.c.getenv("TF_INKLING2_EXPERT_SPLIT")) |v| v[0] != '0' else true) try k.nv.loadSplit(sms);
+         k.mx = try cuda.experts_mx.Mxfp8Experts.load(d, sms);
+         errdefer k.mx.unload();
+         k.glue = try cuda.moe_glue.MoeGlue.load(d);

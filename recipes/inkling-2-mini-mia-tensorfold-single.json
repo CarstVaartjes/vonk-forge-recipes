@@ -1,0 +1,417 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3",
+        "repository": "nvcr.io/nvidia/pytorch"
+      },
+      "context": {
+        "path": "adapters/inkling/mia-tensorfold-single"
+      },
+      "dockerfile": "adapters/inkling/mia-tensorfold-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "ziglang.org",
+          "github.com",
+          "codeload.github.com",
+          "objects.githubusercontent.com",
+          "release-assets.githubusercontent.com",
+          "storage.googleapis.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-2-mini-mia-tensorfold-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "Inkling-2-Mini"
+      ],
+      "port": 8888
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-02f4cd9085ae-b335630551",
+          "id": "readme-02f4cd9085ae-b335630551",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-53a9035f3255-00824420d1",
+          "id": "chat-template-53a9035f3255-00824420d1",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-8216dd43157f-587cb980af",
+          "id": "config-8216dd43157f-587cb980af",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-a08737c07a65-97dd3d578b",
+          "id": "generation-config-a08737c07a65-97dd3d578b",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-7c656207d3ce-a481ad90fa",
+          "id": "hf-quant-config-7c656207d3ce-a481ad90fa",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00001-65e60f51aa12-914d077e93",
+          "id": "model-00001-of-00001-65e60f51aa12-914d077e93",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-c1631065b7b0-0a05be8238",
+          "id": "model-safetensors-index-c1631065b7b0-0a05be8238",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mtp-7c3b651317f0-265929bffe",
+          "id": "mtp-7c3b651317f0-265929bffe",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d7350adce18c-27f0cb76af",
+          "id": "processor-config-d7350adce18c-27f0cb76af",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-c16f44b35945-c07a9be597",
+          "id": "special-tokens-map-c16f44b35945-c07a9be597",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-f170372dd655-86f223d688",
+          "id": "tokenizer-f170372dd655-86f223d688",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-7f332727f9a3-224931eb13",
+          "id": "tokenizer-7f332727f9a3-224931eb13",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-bf09342d2851-94d5c6ba8f",
+          "id": "tokenizer-config-bf09342d2851-94d5c6ba8f",
+          "mount": {
+            "target": "/models/ink"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "ab2b3d76ea9855994f7775f352a0a443d993e16f4df36ab24d7e24199472e68a",
+        "kind": "model",
+        "publisher": "thinkingmachines",
+        "slug": "inkling-2-mini-nvfp4-1fb4134b"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "MiaAI-Lab",
+      "Ash Hart (TensorFold)",
+      "Jürgen Schmied (Inkling 2 Mini CUDA engine)",
+      "Thinking Machines Lab"
+    ],
+    "source_reference": "https://github.com/MiaAI-Lab/Inkling-2-Mini-DGX-Spark-TensorFold/tree/6061fa89a34d2a245bc4a230f04948f312347a5e"
+  },
+  "release": {
+    "released_at": "2026-11-24",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "name",
+        "value": "Inkling-2-Mini"
+      },
+      {
+        "name": "host",
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "value": 8888
+      },
+      {
+        "name": "context",
+        "setting": "context_tokens"
+      },
+      {
+        "name": "parallel",
+        "setting": "concurrency"
+      },
+      {
+        "name": "max-tokens",
+        "value": 32768
+      },
+      {
+        "name": "temperature",
+        "value": 1.0
+      },
+      {
+        "name": "top-p",
+        "value": 1.0
+      },
+      {
+        "name": "top-k",
+        "value": 0
+      },
+      {
+        "name": "thinking",
+        "value": true
+      },
+      {
+        "name": "drafter",
+        "value": "/models/ink"
+      },
+      {
+        "name": "vision",
+        "value": true
+      },
+      {
+        "name": "kv-cache",
+        "value": "fp8"
+      }
+    ],
+    "engine": "tensorfold",
+    "entrypoint": [
+      "/opt/vonk/bin/tensorfold-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TENSORFOLD_NO_UPDATE_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "TENSORFOLD_MEMORY_RESERVE_GIB",
+        "value": "9"
+      },
+      {
+        "name": "TF_INKLING2_ATTN_FP8",
+        "value": "1"
+      },
+      {
+        "name": "TF_INKLING2_PREFILL_TC",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 8
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 20191643271,
+            "image_bytes": 26000000000,
+            "safety_margin_bytes": 10000000000,
+            "working_bytes": 8000000000
+          },
+          "memory": {
+            "peak_bytes": 99857989632,
+            "reserve_bytes": 9663676416
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "Inkling-2-Mini"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.vision",
+          "name": "bounded-vision",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": [
+                    {
+                      "text": "describe this image",
+                      "type": "text"
+                    },
+                    {
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAYElEQVR4nO3PwQkAIBDAMAX3H/lwCB9BaCZo96y/HR3wqgGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQHtAgK6AfwYG1VIAAAAAElFTkSuQmCC"
+                      },
+                      "type": "image_url"
+                    }
+                  ],
+                  "role": "user"
+                }
+              ],
+              "model": "Inkling-2-Mini"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

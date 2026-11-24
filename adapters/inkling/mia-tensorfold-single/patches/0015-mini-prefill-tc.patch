@@ -1,0 +1,712 @@
+diff --git a/zig/build/cuda_kernels.zig b/zig/build/cuda_kernels.zig
+index bdae88b45..d39a7f97b 100644
+--- a/zig/build/cuda_kernels.zig
++++ b/zig/build/cuda_kernels.zig
+@@ -99,7 +99,7 @@ pub const kernels = [_]Kernel{
+     .{ .name = "exlr8_dense", .flags = &.{ "-O3", "--fmad=false" } }, // ours: EXLR8 dense matrices by row, the Metal order
+     .{ .name = "nvfp4_experts_tile", .flags = &.{"-O3"}, .min_sm = 80 },
+     .{ .name = "experts_bf16", .flags = &.{"-O3"} }, // ours: grouped bf16 experts on the plan, mma fragment blocks
+-    .{ .name = "nvfp4_experts", .flags = &.{"-O3"} }, // nvfp4/experts.cu's device code, the NVFP4 expert kernels
++    .{ .name = "nvfp4_experts", .flags = &.{"-O3"}, .arch_specific = true }, // nvfp4/experts.cu's device code, the NVFP4 expert kernels
+     .{ .name = "nvfp4_experts32", .flags = &.{"-O3"} }, // ours: GLM's routed experts at block 32 with csf0 scales
+     .{ .name = "rank_sum", .flags = &.{"-O3"} }, // ours: the rank-order sum of a reduce-scatter (rank_scatter.zig)
+     .{ .name = "lane_gemv", .flags = &.{"-O3"} }, // ours: qmm_group's arithmetic, a column tile's K slices in one CTA
+diff --git a/zig/kernels/cuda/fp8_experts.cu b/zig/kernels/cuda/fp8_experts.cu
+index 21e02a6a4..30a5a82e9 100644
+--- a/zig/kernels/cuda/fp8_experts.cu
++++ b/zig/kernels/cuda/fp8_experts.cu
+@@ -472,8 +472,173 @@ __device__ __forceinline__ void prompt_body(const __nv_bfloat16* __restrict__ X,
+   }
+ }
+ 
++#if defined(__CUDA_ARCH_FEAT_SM120_ALL) || defined(__CUDA_ARCH_FEAT_SM121_ALL)
++__device__ __forceinline__ void mma_mxfp8(float (&d)[4], const uint32_t (&a)[4], uint32_t b0, uint32_t b1,
++                                          uint32_t sfa, uint32_t sfb) {
++  const uint16_t z = 0;
++  asm volatile(
++      "mma.sync.aligned.kind::mxf8f6f4.block_scale.scale_vec::1X.m16n8k32.row.col.f32.e4m3.e4m3.f32.ue8m0 "
++      "{%0,%1,%2,%3}, {%4,%5,%6,%7}, {%8,%9}, {%0,%1,%2,%3}, {%10}, {%11,%12}, {%13}, {%14,%15};\n"
++      : "+f"(d[0]), "+f"(d[1]), "+f"(d[2]), "+f"(d[3])
++      : "r"(a[0]), "r"(a[1]), "r"(a[2]), "r"(a[3]), "r"(b0), "r"(b1),
++        "r"(sfa), "h"(z), "h"(z), "r"(sfb), "h"(z), "h"(z));
++}
++#else
++__device__ __forceinline__ void mma_mxfp8(float (&)[4], const uint32_t (&)[4], uint32_t, uint32_t, uint32_t,
++                                          uint32_t) {
++  __trap();
++}
++#endif
++
++// Pre-quantized MXFP8 prompt rows on Blackwell native MXFP8 block-scaled tensor cores (sm_120a / sm_121a).
++template <int M, int EPI, int RT, int CW>
++__device__ __forceinline__ void prompt_body_tc_q(const uint8_t* __restrict__ xc, const uint8_t* __restrict__ xsc,
++                                                 int x_stride, int slots, const uint4* __restrict__ W, int KG, int NB,
++                                                 const int* __restrict__ items, const int* __restrict__ counts,
++                                                 const int* __restrict__ members, void* __restrict__ out, int N,
++                                                 float cap0, float cap1, int skip) {
++  static_assert((PWARPS / CW) * RT * 16 == 64, "a prompt item holds 64 pairs");
++  __shared__ uint4 sw[PSTAGES][CW][M * MXB];
++  __shared__ uint4 sx[PSTAGES][64][2];
++  __shared__ uint8_t asc[PSTAGES][64];
++  const int tid = threadIdx.x, warp = tid >> 5, lane = tid & 31, gq = lane >> 2, t = lane & 3;
++  const int cw = warp % CW, rw = warp / CW;
++  const int groups = NB / CW, units = __ldg(counts) * groups;
++  const int s_stride = x_stride >> 5;
++  for (int unit = blockIdx.x; unit < units; unit += gridDim.x) {
++    const int it = unit / groups, cg = unit - it * groups;
++    const int e = __ldg(items + 3 * it), first = __ldg(items + 3 * it + 1), cnt = __ldg(items + 3 * it + 2);
++    if (e == skip) continue;
++    const int cb = cg * CW + cw;
++    int pr0[RT], pr1[RT];
++    bool v0[RT], v1[RT];
++#pragma unroll
++    for (int r = 0; r < RT; ++r) {
++      const int r0 = (rw * RT + r) * 16;
++      v0[r] = r0 + gq < cnt;
++      v1[r] = r0 + gq + 8 < cnt;
++      pr0[r] = v0[r] ? __ldg(members + first + r0 + gq) : 0;
++      pr1[r] = v1[r] ? __ldg(members + first + r0 + gq + 8) : 0;
++    }
++    const int pr_c = __ldg(members + first + min(tid >> 1, cnt - 1));
++    const uint8_t* xrow = xc + (size_t)(slots ? pr_c / slots : pr_c) * x_stride + (tid & 1) * 16;
++    const uint8_t* srow = nullptr;
++    if (tid < 64) {
++      const int pr_s = __ldg(members + first + min(tid, cnt - 1));
++      srow = xsc + (size_t)(slots ? pr_s / slots : pr_s) * s_stride;
++    }
++    const uint4* base = W + ((size_t)e * NB + cg * CW) * (size_t)KG * (M * MXB);
++    auto stage = [&](int g) {
++      cp16(&sx[g % PSTAGES][tid >> 1][tid & 1], xrow + g * 32);
++      if (tid < 64) asc[g % PSTAGES][tid] = srow[g];
++      for (int i = tid; i < CW * M * MXB; i += PWARPS * 32) {
++        const int c = i / (M * MXB), j = i % (M * MXB);
++        cp16(&sw[g % PSTAGES][c][j], base + ((size_t)c * KG + g) * (M * MXB) + j);
++      }
++    };
++    __syncthreads();
++#pragma unroll
++    for (int g = 0; g < PSTAGES - 1; ++g) {
++      if (g < KG) stage(g);
++      cp_commit();
++    }
++    float acc[M][RT][NTW][4];
++#pragma unroll
++    for (int m = 0; m < M; ++m)
++#pragma unroll
++      for (int r = 0; r < RT; ++r)
++#pragma unroll
++        for (int j = 0; j < NTW; ++j) acc[m][r][j][0] = acc[m][r][j][1] = acc[m][r][j][2] = acc[m][r][j][3] = 0.f;
++    const bool live = rw * RT * 16 < cnt;
++    for (int g = 0; g < KG; ++g) {
++      cp_wait<PSTAGES - 2>();
++      __syncthreads();
++      if (g + PSTAGES - 1 < KG) stage(g + PSTAGES - 1);
++      cp_commit();
++      if (!live) continue;
++      const int sg = g % PSTAGES;
++      uint32_t a[RT][4];
++      uint32_t sfa[RT];
++#pragma unroll
++      for (int r = 0; r < RT; ++r) {
++        const int r0 = (rw * RT + r) * 16;
++        const uint32_t* p0 = reinterpret_cast<const uint32_t*>(&sx[sg][r0 + gq][0]);
++        const uint32_t* p1 = reinterpret_cast<const uint32_t*>(&sx[sg][r0 + gq + 8][0]);
++        a[r][0] = p0[t];
++        a[r][1] = p1[t];
++        a[r][2] = p0[4 + t];
++        a[r][3] = p1[4 + t];
++        sfa[r] = (lane & 1) ? static_cast<uint32_t>(asc[sg][r0 + gq + 8]) : static_cast<uint32_t>(asc[sg][r0 + gq]);
++      }
++#pragma unroll
++      for (int m = 0; m < M; ++m) {
++        const uint4 wv0 = sw[sg][cw][m * MXB + 2 * lane];
++        const uint4 wv1 = sw[sg][cw][m * MXB + 2 * lane + 1];
++        const uint32_t s4 = reinterpret_cast<const uint32_t*>(&sw[sg][cw][m * MXB + 64])[gq];
++#pragma unroll
++        for (int j = 0; j < NTW; ++j) {
++          const uint32_t b0 = comp(wv0, j), b1 = comp(wv1, j);
++          const uint32_t sfb = (s4 >> (8 * j)) & 0xFFu;
++#pragma unroll
++          for (int r = 0; r < RT; ++r) mma_mxfp8(acc[m][r][j], a[r], b0, b1, sfa[r], sfb);
++        }
++      }
++    }
++    cp_wait<0>();
++    if (live) {
++#pragma unroll
++      for (int r = 0; r < RT; ++r)
++        epilogue<EPI, M, RT>(acc, r, out, N, cb * COLS + 2 * t, pr0[r], pr1[r], v0[r], v1[r], cap0, cap1);
++    }
++  }
++}
++
+ }  // namespace tf_mxfp8_experts
+ 
++// Pre-quantize BF16 rows [M, K] into E4M3 codes [M, K] and UE8M0 scales [M, K/32] (one thread per 32-value block).
++extern "C" __global__ void __launch_bounds__(256)
++    tf_mxfp8_quant_x(const __nv_bfloat16* __restrict__ X, int x_stride, int M, int K, uint8_t* __restrict__ codes,
++                     uint8_t* __restrict__ scales) {
++  const long long idx = static_cast<long long>(blockIdx.x) * blockDim.x + threadIdx.x;
++  const int kb = K >> 5;
++  if (idx >= static_cast<long long>(M) * kb) return;
++  const int row = static_cast<int>(idx / kb), blk = static_cast<int>(idx % kb);
++  const __nv_bfloat16* src = X + static_cast<size_t>(row) * x_stride + blk * 32;
++  float f[32];
++  float amax = 0.f;
++#pragma unroll
++  for (int i = 0; i < 4; ++i) {
++    const uint4 v = *reinterpret_cast<const uint4*>(src + i * 8);
++    const __nv_bfloat162* p = reinterpret_cast<const __nv_bfloat162*>(&v);
++#pragma unroll
++    for (int j = 0; j < 4; ++j) {
++      const float2 ab = __bfloat1622float2(p[j]);
++      f[i * 8 + 2 * j] = ab.x;
++      f[i * 8 + 2 * j + 1] = ab.y;
++      amax = fmaxf(amax, fmaxf(fabsf(ab.x), fabsf(ab.y)));
++    }
++  }
++  uint32_t ue = 127u;
++  float inv = 1.f;
++  if (amax > 0.f) {
++    const uint32_t u = __float_as_uint(amax * (1.f / 448.f));
++    ue = ((u >> 23) & 0xFFu) + ((u & 0x7FFFFFu) != 0u ? 1u : 0u);
++    if (ue < 1u) ue = 1u;
++    if (ue > 254u) ue = 254u;
++    inv = __uint_as_float((254u - ue) << 23);
++  }
++  scales[static_cast<size_t>(row) * kb + blk] = static_cast<uint8_t>(ue);
++  uint32_t* dst = reinterpret_cast<uint32_t*>(codes + static_cast<size_t>(row) * K + blk * 32);
++#pragma unroll
++  for (int k = 0; k < 8; ++k) {
++    const uint32_t b0 = __nv_cvt_float_to_fp8(f[4 * k + 0] * inv, __NV_SATFINITE, __NV_E4M3);
++    const uint32_t b1 = __nv_cvt_float_to_fp8(f[4 * k + 1] * inv, __NV_SATFINITE, __NV_E4M3);
++    const uint32_t b2 = __nv_cvt_float_to_fp8(f[4 * k + 2] * inv, __NV_SATFINITE, __NV_E4M3);
++    const uint32_t b3 = __nv_cvt_float_to_fp8(f[4 * k + 3] * inv, __NV_SATFINITE, __NV_E4M3);
++    dst[k] = b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
++  }
++}
++
+ // The MXFP8 entries (cap0, cap1: the gate's and the up's caps; the downs ignore them), 128 threads each.
+ #define TF_MX_ENTRY(NAME, BODY)                                                                                     \
+   extern "C" __global__ void __launch_bounds__(128)                                                                 \
+@@ -488,3 +653,14 @@ TF_MX_ENTRY(tf_mxfp8_down_f32, decode_body<TF_MX_ARGS(1, 0)>)
+ TF_MX_ENTRY(tf_mxfp8_down_bf16, decode_body<TF_MX_ARGS(1, 3)>)
+ TF_MX_ENTRY(tf_mxfp8_prompt_softcap, prompt_body<TF_MX_ARGS(2, 4, 2, 2)>)
+ TF_MX_ENTRY(tf_mxfp8_prompt_down, prompt_body<TF_MX_ARGS(1, 3, 4, 4)>)
++
++#define TF_MX_TCQ(NAME, BODY)                                                                                        \
++  extern "C" __global__ void __launch_bounds__(128)                                                                  \
++      NAME(const uint8_t* __restrict__ xc, const uint8_t* __restrict__ xsc, int x_stride, int slots,                 \
++           const uint4* __restrict__ W, int KG, int NB, const int* __restrict__ items,                               \
++           const int* __restrict__ counts, const int* __restrict__ members, void* __restrict__ out, int N,           \
++           float cap0, float cap1, int skip) {                                                                       \
++    tf_mxfp8_experts::BODY(xc, xsc, x_stride, slots, W, KG, NB, items, counts, members, out, N, cap0, cap1, skip);  \
++  }
++TF_MX_TCQ(tf_mxfp8_prompt_softcap_tc_q, prompt_body_tc_q<TF_MX_ARGS(2, 4, 2, 2)>)
++TF_MX_TCQ(tf_mxfp8_prompt_down_tc_q, prompt_body_tc_q<TF_MX_ARGS(1, 3, 4, 4)>)
+diff --git a/zig/kernels/cuda/nvfp4_experts.cu b/zig/kernels/cuda/nvfp4_experts.cu
+index 25427df30..584347d4e 100644
+--- a/zig/kernels/cuda/nvfp4_experts.cu
++++ b/zig/kernels/cuda/nvfp4_experts.cu
+@@ -6,6 +6,8 @@
+ 
+ #include "experts.cuh"
+ #include "common/fp_pairs.cuh"
++#include "mma4.cuh"
++#include "nvfp4q.cuh"
+ 
+ namespace tf_nvfp4_experts {
+ 
+@@ -569,6 +571,214 @@ template __global__ void nvfp4_expert_kernel<2, 2, 1>(const __nv_bfloat16* __res
+ template __global__ void nvfp4_expert_kernel<1, 0, 1>(const __nv_bfloat16* __restrict__, int, int, const uint4* __restrict__, const float* __restrict__, int, int, const int* __restrict__, const int* __restrict__, const int* __restrict__, void* __restrict__, int, float, int);
+ template __global__ void nvfp4_expert_kernel<1, 3, 1>(const __nv_bfloat16* __restrict__, int, int, const uint4* __restrict__, const float* __restrict__, int, int, const int* __restrict__, const int* __restrict__, const int* __restrict__, void* __restrict__, int, float, int);
+ template __global__ void nvfp4_expert_kernel<1, 1, 1>(const __nv_bfloat16* __restrict__, int, int, const uint4* __restrict__, const float* __restrict__, int, int, const int* __restrict__, const int* __restrict__, const int* __restrict__, void* __restrict__, int, float, int);
++// Extract 4 consecutive FP4 nibbles [4t..4t+3] (half=0) or [16+4t..16+4t+3] (half=1) from fp4pair's word order.
++__device__ __forceinline__ uint32_t unpack_k4(uint32_t w, int half) {
++  const uint32_t v = half ? (w >> 8) : w;
++  return (v & 0x000Fu) | ((v >> 12) & 0x00F0u) | ((v << 4) & 0x0F00u) | ((v >> 8) & 0xF000u);
++}
++
++// Pre-quantized FP4 prompt tile: 64 rows x 64 inputs (2 uint4 of codes + 1 uint32 of scales per row), STAGES=4 in 46 KiB.
++template <int M, int RT, int WM, int WN>
++struct Prompt4Q {
++  static constexpr int THREADS = WM * WN * 32, BM = 16 * RT * WM, XC = 2, SG = 2, WB = M * BLOCK4;
++  static constexpr int XU = BM * XC, XSU = BM / 4, WU = WN * SG * WB, SU = XU + XSU + WU;
++  static constexpr int XPT = (XU + THREADS - 1) / THREADS;
++  static constexpr int STAGES = SU * 16 * 4 <= 49152 ? 4 : SU * 16 * 3 <= 49152 ? 3 : 2;
++};
++
++template <int M, int EPI, int RT, int WM, int WN, int NT>
++__device__ __forceinline__ void prompt_tiles_tc_q(const uint8_t* __restrict__ xc, const uint8_t* __restrict__ xsc,
++                                                  int x_stride, int slots, const uint4* __restrict__ W,
++                                                  const float* __restrict__ scale, int KG, int NB,
++                                                  const int* __restrict__ members, void* __restrict__ out, int N,
++                                                  float limit, int cbt, int e, int first, int cnt, float limit2 = 0.f) {
++  using P = Prompt4Q<M, RT, WM, WN>;
++  constexpr int STAGES = P::STAGES;
++  extern __shared__ uint4 sm[];
++  const int tid = threadIdx.x, lane = tid & 31, warp = tid >> 5, wm = warp / WN, wn = warp - wm * WN;
++  const int t = lane & 31 & 3, gq = lane >> 2, cb = cbt * WN + wn, cbs = min(WN, NB - cbt * WN);
++  const int c_stride = x_stride >> 1;   // bytes per row of FP4 codes (K / 2)
++  const int s_stride = x_stride >> 4;   // bytes per row of UE4M3 scales (K / 16)
++  const uint8_t* xsrc[P::XPT];
++  int xdst[P::XPT];
++#pragma unroll
++  for (int i = 0; i < P::XPT; ++i) {
++    const int q = tid + i * P::THREADS, r = q / P::XC, c = q - r * P::XC;
++    xdst[i] = r * P::XC + c;
++    xsrc[i] = nullptr;
++    if (q < P::XU && r < cnt) {
++      const int p = __ldg(members + first + r);
++      xsrc[i] = xc + (size_t)(slots ? p / slots : p) * c_stride + 16 * c;
++    }
++  }
++  const uint8_t* ssrc = nullptr;
++  if (tid < P::BM && tid < cnt) {
++    const int p = __ldg(members + first + tid);
++    ssrc = xsc + (size_t)(slots ? p / slots : p) * s_stride;
++  }
++  const uint4* wsrc = W + ((size_t)e * NB + cbt * WN) * (size_t)KG * P::WB;
++  auto stage = [&](int s, int g0) {
++    uint4* xcs = sm + s * P::SU;
++    uint32_t* xss = reinterpret_cast<uint32_t*>(xcs + P::XU);
++    uint4* ws = xcs + P::XU + P::XSU;
++#pragma unroll
++    for (int i = 0; i < P::XPT; ++i)
++      if (xsrc[i]) cp16(xcs + xdst[i], xsrc[i] + (size_t)g0 * 16);
++    if (tid < P::BM)
++      xss[tid] = ssrc ? *reinterpret_cast<const uint32_t*>(ssrc + (size_t)g0 * 2) : 0u;
++    for (int q = tid; q < cbs * P::SG * P::WB; q += P::THREADS) {
++      const int j = q / (P::SG * P::WB), o = q - j * P::SG * P::WB;
++      cp16(ws + q, wsrc + ((size_t)j * KG + g0) * P::WB + o);
++    }
++  };
++  constexpr int TA = NT > 0 ? NT : 1;
++  const int base = 16 * RT * wm;
++  const bool active = NT > 0 && cb < NB;
++  float acc[M][TA][NTW][4];
++#pragma unroll
++  for (int m = 0; m < M; ++m)
++#pragma unroll
++    for (int r = 0; r < NT; ++r)
++#pragma unroll
++      for (int j = 0; j < NTW; ++j) acc[m][r][j][0] = acc[m][r][j][1] = acc[m][r][j][2] = acc[m][r][j][3] = 0.f;
++  const int steps = KG >> 1;
++#pragma unroll
++  for (int s = 0; s < STAGES - 1; ++s) {
++    if (s < steps) stage(s, s * P::SG);
++    cp_commit();
++  }
++  const int t_lo = (t & 1) * 2, t_hi = t_lo + 1, thalf = t >> 1;
++  for (int k = 0; k < steps; ++k) {
++    cp_wait<STAGES - 2>();
++    __syncthreads();
++    if (k + STAGES - 1 < steps) stage((k + STAGES - 1) % STAGES, (k + STAGES - 1) * P::SG);
++    cp_commit();
++    if (!active) continue;
++    const uint4* xcs = sm + (k % STAGES) * P::SU;
++    const uint32_t* xss = reinterpret_cast<const uint32_t*>(xcs + P::XU);
++    const uint4* ws0 = xcs + P::XU + P::XSU + (wn * P::SG) * P::WB;
++    const uint4* ws1 = ws0 + P::WB;
++    uint32_t a[TA][4], sa[TA];
++#pragma unroll
++    for (int r = 0; r < NT; ++r) {
++      const int r0 = base + 16 * r;
++      const uint32_t* p0 = reinterpret_cast<const uint32_t*>(xcs + (r0 + gq) * P::XC);
++      const uint32_t* p1 = reinterpret_cast<const uint32_t*>(xcs + (r0 + gq + 8) * P::XC);
++      a[r][0] = p0[t];
++      a[r][1] = p1[t];
++      a[r][2] = p0[4 + t];
++      a[r][3] = p1[4 + t];
++      sa[r] = (t & 1) ? xss[r0 + gq + 8] : xss[r0 + gq];
++    }
++#pragma unroll
++    for (int m = 0; m < M; ++m) {
++      const uint4 w0_lo = ws0[m * BLOCK4 + gq * 4 + t_lo];
++      const uint4 w0_hi = ws0[m * BLOCK4 + gq * 4 + t_hi];
++      const uint4 w1_lo = ws1[m * BLOCK4 + gq * 4 + t_lo];
++      const uint4 w1_hi = ws1[m * BLOCK4 + gq * 4 + t_hi];
++      const uint2 sc0_0 = reinterpret_cast<const uint2*>(ws0 + m * BLOCK4 + 32)[(gq >> 1) * 2 + 0];
++      const uint2 sc0_1 = reinterpret_cast<const uint2*>(ws0 + m * BLOCK4 + 32)[(gq >> 1) * 2 + 1];
++      const uint2 sc1_0 = reinterpret_cast<const uint2*>(ws1 + m * BLOCK4 + 32)[(gq >> 1) * 2 + 0];
++      const uint2 sc1_1 = reinterpret_cast<const uint2*>(ws1 + m * BLOCK4 + 32)[(gq >> 1) * 2 + 1];
++#pragma unroll
++      for (int j = 0; j < NTW; ++j) {
++        const uint32_t b0 = unpack_k4(comp(w0_lo, j), thalf) | (unpack_k4(comp(w0_hi, j), thalf) << 16);
++        const uint32_t b1 = unpack_k4(comp(w1_lo, j), thalf) | (unpack_k4(comp(w1_hi, j), thalf) << 16);
++        const int sh = (2 * (j & 1) + (gq & 1)) * 8;
++        const uint32_t u00 = ((j < 2 ? sc0_0.x : sc0_0.y) >> sh) & 0xFFu;
++        const uint32_t u01 = ((j < 2 ? sc0_1.x : sc0_1.y) >> sh) & 0xFFu;
++        const uint32_t u10 = ((j < 2 ? sc1_0.x : sc1_0.y) >> sh) & 0xFFu;
++        const uint32_t u11 = ((j < 2 ? sc1_1.x : sc1_1.y) >> sh) & 0xFFu;
++        const uint32_t sb = u00 | (u01 << 8) | (u10 << 16) | (u11 << 24);
++#pragma unroll
++        for (int r = 0; r < NT; ++r) mma4::mma_fp4(acc[m][r][j], a[r], b0, b1, sa[r], sb);
++      }
++    }
++  }
++  if (!active) return;
++  if constexpr (NT > 0) {
++#pragma unroll
++    for (int m = 0; m < M; ++m) {
++      const float g = __ldg(scale + e * M + m);
++#pragma unroll
++      for (int r = 0; r < NT; ++r)
++#pragma unroll
++        for (int j = 0; j < NTW; ++j)
++#pragma unroll
++          for (int q = 0; q < 4; ++q) acc[m][r][j][q] *= g;
++    }
++#pragma unroll
++    for (int r = 0; r < NT; ++r) {
++      const int m0 = base + 16 * r + gq, m1 = m0 + 8;
++      const bool v0 = m0 < cnt, v1 = m1 < cnt;
++      const int p0 = v0 ? __ldg(members + first + m0) : 0, p1 = v1 ? __ldg(members + first + m1) : 0;
++      epilogue<EPI, M, TA>(acc, r, out, N, cb * COLS + 2 * t, p0, p1, v0, v1, limit, limit2);
++    }
++  }
++}
++
++template <int M, int EPI, int RT, int WM, int WN>
++__device__ __forceinline__ void prompt_body_tc_q(const uint8_t* __restrict__ xc, const uint8_t* __restrict__ xsc,
++                                                 int x_stride, int slots, const uint4* __restrict__ W,
++                                                 const float* __restrict__ scale, int KG, int NB,
++                                                 const int* __restrict__ items, const int* __restrict__ counts,
++                                                 const int* __restrict__ members, void* __restrict__ out, int N,
++                                                 float limit, int skip, float limit2 = 0.f) {
++  static_assert(RT == 4, "the dispatch below spells out 0 .. 4 row tiles");
++  const int nbt = (NB + WN - 1) / WN, it = blockIdx.x / nbt, cbt = blockIdx.x - it * nbt;
++  if (it >= __ldg(counts)) return;
++  const int e = __ldg(items + 3 * it), first = __ldg(items + 3 * it + 1), cnt = __ldg(items + 3 * it + 2);
++  if (e == skip) return;
++  const int nt = max(0, min(RT, (cnt - 16 * RT * ((threadIdx.x >> 5) / WN) + 15) >> 4));
++#define TF_TILES_TCQ(NT) \
++  prompt_tiles_tc_q<M, EPI, RT, WM, WN, NT>(xc, xsc, x_stride, slots, W, scale, KG, NB, members, out, N, limit, cbt, \
++                                            e, first, cnt, limit2)
++  switch (nt) {
++    case 4: TF_TILES_TCQ(4); break;
++    case 3: TF_TILES_TCQ(3); break;
++    case 2: TF_TILES_TCQ(2); break;
++    case 1: TF_TILES_TCQ(1); break;
++    default: TF_TILES_TCQ(0);
++  }
++#undef TF_TILES_TCQ
++}
++
++}  // namespace tf_nvfp4_experts
++
++// Pre-quantize BF16 rows [M, K] into NVFP4 codes [M, K/2] and UE4M3 scales [M, K/16] (one thread per 16-value block).
++extern "C" __global__ void __launch_bounds__(256)
++    tf_nvfp4_quant_x(const __nv_bfloat16* __restrict__ X, int x_stride, int M, int K, uint8_t* __restrict__ codes,
++                     uint8_t* __restrict__ scales) {
++  const long long idx = static_cast<long long>(blockIdx.x) * blockDim.x + threadIdx.x;
++  const int kb = K >> 4;
++  if (idx >= static_cast<long long>(M) * kb) return;
++  const int row = static_cast<int>(idx / kb), blk = static_cast<int>(idx % kb);
++  const __nv_bfloat16* src = X + static_cast<size_t>(row) * x_stride + blk * 16;
++  const uint4 v0 = *reinterpret_cast<const uint4*>(src);
++  const uint4 v1 = *reinterpret_cast<const uint4*>(src + 8);
++  const __nv_bfloat162* p0 = reinterpret_cast<const __nv_bfloat162*>(&v0);
++  const __nv_bfloat162* p1 = reinterpret_cast<const __nv_bfloat162*>(&v1);
++  float f[16];
++  float amax = 0.f;
++#pragma unroll
++  for (int i = 0; i < 4; ++i) {
++    const float2 a = __bfloat1622float2(p0[i]);
++    const float2 b = __bfloat1622float2(p1[i]);
++    f[2 * i] = a.x;
++    f[2 * i + 1] = a.y;
++    f[8 + 2 * i] = b.x;
++    f[8 + 2 * i + 1] = b.y;
++    amax = fmaxf(amax, fmaxf(fmaxf(fabsf(a.x), fabsf(a.y)), fmaxf(fabsf(b.x), fabsf(b.y))));
++  }
++  const nvfp4q::Scale sc = nvfp4q::block_scale(amax, 1.0f);
++  uint32_t w0 = 0u, w1 = 0u;
++#pragma unroll
++  for (int i = 0; i < 8; ++i) {
++    w0 |= nvfp4q::e2m1(f[i] * sc.mul) << (4 * i);
++    w1 |= nvfp4q::e2m1(f[8 + i] * sc.mul) << (4 * i);
++  }
++  *reinterpret_cast<uint2*>(codes + static_cast<size_t>(row) * (K >> 1) + blk * 8) = make_uint2(w0, w1);
++  scales[static_cast<size_t>(row) * kb + blk] = static_cast<uint8_t>(sc.sf8);
+ }
+ 
+ // The prompt form's entries, 4 row tiles a warp in one row of WN warps: relu^2 up, SwiGLU gate-up, bf16 sums down.
+@@ -619,6 +829,25 @@ extern "C" __global__ void __launch_bounds__(128)
+                                                gate_cap, skip, up_cap);
+ }
+ 
++extern "C" __global__ void __launch_bounds__(128)
++    tf_nvfp4_prompt_softcap_tc_q(const uint8_t* __restrict__ xc, const uint8_t* __restrict__ xsc, int x_stride,
++                                 int slots, const uint4* __restrict__ W, const float* __restrict__ scale, int KG,
++                                 int NB, const int* __restrict__ items, const int* __restrict__ counts,
++                                 const int* __restrict__ members, void* __restrict__ out, int N, float gate_cap,
++                                 float up_cap, int skip) {
++  tf_nvfp4_experts::prompt_body_tc_q<2, 4, 4, 1, 4>(xc, xsc, x_stride, slots, W, scale, KG, NB, items, counts, members,
++                                                    out, N, gate_cap, skip, up_cap);
++}
++
++extern "C" __global__ void __launch_bounds__(256)
++    tf_nvfp4_prompt_down_tc_q(const uint8_t* __restrict__ xc, const uint8_t* __restrict__ xsc, int x_stride, int slots,
++                              const uint4* __restrict__ W, const float* __restrict__ scale, int KG, int NB,
++                              const int* __restrict__ items, const int* __restrict__ counts,
++                              const int* __restrict__ members, void* __restrict__ out, int N, float limit, int skip) {
++  tf_nvfp4_experts::prompt_body_tc_q<1, 3, 4, 1, 8>(xc, xsc, x_stride, slots, W, scale, KG, NB, items, counts, members,
++                                                    out, N, limit, skip);
++}
++
+ // Inkling 2 Mini's decode experts two warps a unit (16 columns each): tf_nvfp4_softcap's and
+ // nvfp4_expert_kernel<1, 0, 4>'s outputs bit for bit (each output's MMA tile, scale word and k-ordered fmaf chain).
+ extern "C" __global__ void __launch_bounds__(128)
+diff --git a/zig/src/cuda/experts.zig b/zig/src/cuda/experts.zig
+index b347c2deb..9f8bcd975 100644
+--- a/zig/src/cuda/experts.zig
++++ b/zig/src/cuda/experts.zig
+@@ -352,6 +352,8 @@ pub const Nvfp4Experts = struct {
+     fns: [7]Function, // by Epi, then relu^2 up, then experts_waves.zig's
+     resident: [7]usize, // blocks the grid may hold: per SM times SMs
+     prompt_fns: [3]Function, // relu^2 up, SwiGLU gate-up, bf16 sums down
++    quant_x_fn: Function = undefined, // tf_nvfp4_quant_x
++    prompt_down_tc_q: Function = undefined, // tf_nvfp4_prompt_down_tc_q
+     fact_fns: [2]Function, // the decode form's sums on prompt tiles: SwiGLU gate-up, fp32 down
+     softcap: mx.Softcap = .{}, // Inkling's soft-capped SwiGLU gate-up, decode and prompt (experts_mx.zig)
+     warps: usize = 4,
+@@ -467,6 +469,9 @@ pub const Nvfp4Experts = struct {
+             f.* = try mod.function(name);
+             try f.allowDynamicShared(promptSmem(parts, wn));
+         }
++        e.quant_x_fn = try mod.function("tf_nvfp4_quant_x");
++        e.prompt_down_tc_q = try mod.function("tf_nvfp4_prompt_down_tc_q");
++        try e.prompt_down_tc_q.allowDynamicShared(promptQSmem(1, prompt_wn[2]));
+         for (symbols.fact, &e.fact_fns, [2]usize{ 2, 1 }, fact_wn) |name, *f, parts, wn| {
+             f.* = try mod.function(name);
+             try f.allowDynamicShared(promptSmem(parts, wn));
+@@ -504,6 +509,49 @@ pub const Nvfp4Experts = struct {
+         try launch_.launch(e.fns[ei], .{ .grid = .{ .x = @intCast(grid), .y = 1, .z = 1 }, .block = .{ .x = @intCast(e.warps * 32), .y = 1, .z = 1 } }, s, &a);
+     }
+ 
++    pub fn promptQSmem(parts: usize, wn: usize) u32 {
++        const su = 64 * 2 + 16 + wn * 2 * parts * 36;
++        const stages: usize = if (su * 16 * 4 <= 49152) 4 else if (su * 16 * 3 <= 49152) 3 else 2;
++        return @intCast(stages * su * 16);
++    }
++
++    pub fn quantX(e: *const Nvfp4Experts, s: Stream, x: u64, stride: usize, rows: usize, kcols: usize, codes: u64, scales: u64) !void {
++        const blocks = rows * (kcols / 16);
++        const grid = (blocks + 255) / 256;
++        if (grid < 1) return;
++        var a: launch_.Args = .{};
++        a.add(x);
++        a.add(@as(i32, @intCast(stride)));
++        a.add(@as(i32, @intCast(rows)));
++        a.add(@as(i32, @intCast(kcols)));
++        a.add(codes);
++        a.add(scales);
++        try launch_.launch(e.quant_x_fn, .{ .grid = .{ .x = @intCast(grid), .y = 1, .z = 1 }, .block = .{ .x = 256 } }, s, &a);
++    }
++
++    pub fn runPromptTc(e: *const Nvfp4Experts, s: Stream, epi: Epi, xc: u64, xsc: u64, x_stride: usize, slots: usize, l: Layer, p: Plan, out: u64, items: usize, skip: i32) !void {
++        if (epi == .up and l.caps[0] != 0) return e.softcap.runTcQ(s, xc, xsc, x_stride, slots, l, p, out, items, skip);
++        if (epi != .down_bf16) return error.EpilogueNotBuilt;
++        const nb = l.dims / cols;
++        if (items < 1) return;
++        var a: launch_.Args = .{};
++        a.add(xc);
++        a.add(xsc);
++        a.add(@as(i32, @intCast(x_stride)));
++        a.add(@as(i32, 0));
++        a.add(l.down);
++        a.add(l.down_scale);
++        a.add(@as(i32, @intCast(l.width / 32)));
++        a.add(@as(i32, @intCast(nb)));
++        for ([_]u64{ p.items, p.counts, p.members, out }) |v| a.add(v);
++        a.add(@as(i32, @intCast(l.dims)));
++        a.add(@as(f32, 0.0));
++        a.add(skip);
++        const wn = prompt_wn[2];
++        const cfg: launch_.Config = .{ .grid = .{ .x = @intCast(items * ((nb + wn - 1) / wn)), .y = 1, .z = 1 }, .block = .{ .x = @intCast(wn * 32), .y = 1, .z = 1 }, .shared = promptQSmem(1, wn) };
++        try launch_.launch(e.prompt_down_tc_q, cfg, s, &a);
++    }
++
+     /// Prompt rows on a plan of at most `items` items of 64 pairs: up (relu^2 or SwiGLU by the layer), bf16 sums down.
+     pub fn runPrompt(e: *const Nvfp4Experts, s: Stream, epi: Epi, in: Rows, l: Layer, p: Plan, out: u64, items: usize, skip: i32) !void {
+         if (epi == .down_f32) return error.EpilogueNotBuilt;
+diff --git a/zig/src/cuda/experts_mx.zig b/zig/src/cuda/experts_mx.zig
+index eb25c5847..e03b5cf77 100644
+--- a/zig/src/cuda/experts_mx.zig
++++ b/zig/src/cuda/experts_mx.zig
+@@ -71,18 +71,31 @@ pub fn argsOf(in: Rows, gate: bool, w: u64, scale: ?u64, kg: usize, nb: usize, p
+     return a;
+ }
+ 
++/// TF_INKLING2_PREFILL_TC: Blackwell native FP4/MXFP8 block-scaled tensor cores for prefill experts (pre-quantized X).
++/// 0 (default in engine): exact BF16 MMA; 1: pre-quantized NVFP4 W4A4 + MXFP8 W8A8 on sm_120a / sm_121a.
++pub fn prefillTcMode() u8 {
++    const S = struct {
++        var v: ?u8 = null;
++    };
++    if (S.v == null) {
++        S.v = if (std.c.getenv("TF_INKLING2_PREFILL_TC")) |e| (if (e[0] != '0') @as(u8, 1) else 0) else 0;
++    }
++    return S.v.?;
++}
++
+ /// nvfp4_experts.cu's soft-capped SwiGLU gate-up: decode units of 4 warps, and the prompt tiles of 4 warps.
+ pub const Softcap = struct {
+-    fns: [2]Function = undefined, // decode, prompt
++    fns: [3]Function = undefined, // decode, prompt, prompt_tc_q
+     resident: usize = 0,
+ 
+-    pub const symbols = [2][:0]const u8{ "tf_nvfp4_softcap", "tf_nvfp4_prompt_softcap" };
++    pub const symbols = [3][:0]const u8{ "tf_nvfp4_softcap", "tf_nvfp4_prompt_softcap", "tf_nvfp4_prompt_softcap_tc_q" };
+     pub const prompt_wn = 4;
+ 
+     pub fn resolve(mod: Module, sms: usize) !Softcap {
+         var c: Softcap = .{};
+         for (symbols, &c.fns) |name, *f| f.* = try mod.function(name);
+         try c.fns[1].allowDynamicShared(experts.Nvfp4Experts.promptSmem(2, prompt_wn));
++        try c.fns[2].allowDynamicShared(experts.Nvfp4Experts.promptQSmem(2, prompt_wn));
+         c.resident = @max(1, try c.fns[0].occupancy(128, 0)) * sms;
+         return c;
+     }
+@@ -97,17 +110,40 @@ pub const Softcap = struct {
+         const cfg: launch_.Config = .{ .grid = .{ .x = @intCast(grid), .y = 1, .z = 1 }, .block = .{ .x = 128 }, .shared = smem };
+         try launch_.launch(c.fns[@intFromBool(prompt)], cfg, s, &a);
+     }
++
++    pub fn runTcQ(c: Softcap, s: Stream, xc: u64, xsc: u64, x_stride: usize, slots: usize, l: Layer, p: Plan, out: u64, items: usize, skip: i32) !void {
++        const nb = l.width / 32;
++        const grid = items * ((nb + prompt_wn - 1) / prompt_wn);
++        if (grid < 1) return;
++        const caps = kernelCaps(l);
++        var a: launch_.Args = .{};
++        a.add(xc);
++        a.add(xsc);
++        a.add(@as(i32, @intCast(x_stride)));
++        a.add(@as(i32, @intCast(slots)));
++        a.add(l.up);
++        a.add(l.up_scale);
++        a.add(@as(i32, @intCast(l.dims / 32)));
++        a.add(@as(i32, @intCast(nb)));
++        for ([_]u64{ p.items, p.counts, p.members, out }) |v| a.add(v);
++        a.add(@as(i32, @intCast(l.width)));
++        a.add(caps[0]);
++        a.add(caps[1]);
++        a.add(skip);
++        const cfg: launch_.Config = .{ .grid = .{ .x = @intCast(grid), .y = 1, .z = 1 }, .block = .{ .x = 128 }, .shared = experts.Nvfp4Experts.promptQSmem(2, prompt_wn) };
++        try launch_.launch(c.fns[2], cfg, s, &a);
++    }
+ };
+ 
+ /// MXFP8 experts: e4m3 codes with one E8M0 scale per output row per 32 inputs, blocks of 32 columns by 32 inputs.
+ pub const Mxfp8Experts = struct {
+     mod: Module,
+-    fns: [5]Function, // decode: soft-capped gate-up, fp32 down, bf16 down; prompt: soft-capped gate-up, bf16 down
++    fns: [8]Function, // decode: 0..2; prompt: 3..4; tc_q: 5..6; quant_x: 7
+     resident: [3]usize, // the decode entries' blocks a grid may hold
+ 
+     pub const words = 264; // int32 a block: fp8g's 256 code words ([32 lanes][2][4]), then 32 E8M0 bytes
+     pub const prompt_cw = [2]usize{ 2, 4 }; // column warps a prompt CTA: gate-up, down (64 pairs an item)
+-    pub const symbols = [5][:0]const u8{ "tf_mxfp8_softcap", "tf_mxfp8_down_f32", "tf_mxfp8_down_bf16", "tf_mxfp8_prompt_softcap", "tf_mxfp8_prompt_down" };
++    pub const symbols = [8][:0]const u8{ "tf_mxfp8_softcap", "tf_mxfp8_down_f32", "tf_mxfp8_down_bf16", "tf_mxfp8_prompt_softcap", "tf_mxfp8_prompt_down", "tf_mxfp8_prompt_softcap_tc_q", "tf_mxfp8_prompt_down_tc_q", "tf_mxfp8_quant_x" };
+ 
+     pub fn load(d: *const driver.Driver, sms: usize) !Mxfp8Experts {
+         if (!kernels.available) return error.BuiltWithoutKernels;
+@@ -123,6 +159,48 @@ pub const Mxfp8Experts = struct {
+         e.mod.unload();
+     }
+ 
++    pub fn quantX(e: *const Mxfp8Experts, s: Stream, x: u64, stride: usize, rows: usize, cols: usize, codes: u64, scales: u64) !void {
++        const blocks = rows * (cols / 32);
++        const grid = (blocks + 255) / 256;
++        if (grid < 1) return;
++        var a: launch_.Args = .{};
++        a.add(x);
++        a.add(@as(i32, @intCast(stride)));
++        a.add(@as(i32, @intCast(rows)));
++        a.add(@as(i32, @intCast(cols)));
++        a.add(codes);
++        a.add(scales);
++        try launch_.launch(e.fns[7], .{ .grid = .{ .x = @intCast(grid), .y = 1, .z = 1 }, .block = .{ .x = 256 } }, s, &a);
++    }
++
++    pub fn runPromptTc(e: *const Mxfp8Experts, s: Stream, epi: Epi, xc: u64, xsc: u64, x_stride: usize, slots: usize, l: Layer, p: Plan, out: u64, items: usize, skip: i32) !void {
++        const gate = epi == .up;
++        const fi: usize = if (gate) 5 else 6;
++        const n = if (gate) l.width else l.dims;
++        const k = if (gate) l.dims else l.width;
++        if (n % 32 != 0 or k % 32 != 0) return error.UnexpectedShape;
++        const nb = n / 32;
++        const cw = prompt_cw[@intFromBool(!gate)];
++        if (nb % cw != 0) return error.UnexpectedShape;
++        const grid = items * (nb / cw);
++        if (grid < 1) return;
++        const caps = kernelCaps(l);
++        var a: launch_.Args = .{};
++        a.add(xc);
++        a.add(xsc);
++        a.add(@as(i32, @intCast(x_stride)));
++        a.add(@as(i32, @intCast(if (gate) slots else 0)));
++        a.add(if (gate) l.up else l.down);
++        a.add(@as(i32, @intCast(k / 32)));
++        a.add(@as(i32, @intCast(nb)));
++        for ([_]u64{ p.items, p.counts, p.members, out }) |v| a.add(v);
++        a.add(@as(i32, @intCast(n)));
++        a.add(caps[0]);
++        a.add(caps[1]);
++        a.add(skip);
++        try launch_.launch(e.fns[fi], .{ .grid = .{ .x = @intCast(grid), .y = 1, .z = 1 }, .block = .{ .x = 128 } }, s, &a);
++    }
++
+     /// The entry a call takes, or the refusal: prompt rows have no fp32 down.
+     pub fn entry(prompt: bool, epi: Epi) !usize {
+         return switch (epi) {
+diff --git a/zig/src/families/inkling2/mini_model.zig b/zig/src/families/inkling2/mini_model.zig
+index 8abc1cb63..d3aef2055 100644
+--- a/zig/src/families/inkling2/mini_model.zig
++++ b/zig/src/families/inkling2/mini_model.zig
+@@ -155,6 +155,8 @@ pub const Scratch = struct {
+     plan: cuda.grouped.Plan,
+     act: u64,
+     y: u64,
++    x_tc_codes: u64, // pre-quantized FP4/MXFP8 activation codes for TC prefill
++    x_tc_scales: u64, // pre-quantized UE4M3/UE8M0 activation scales for TC prefill
+     moe: u64,
+     xf: u64,
+     logits: u64, // fp32 [round_rows, unpadded vocab]
+@@ -558,6 +560,8 @@ pub const Model = struct {
+             },
+             .act = try m.alloc(pairs * t.expert_inter * 2),
+             .y = try m.alloc(pairs * h * 4),
++            .x_tc_codes = try m.alloc(@max(r * h, pairs * t.expert_inter)),
++            .x_tc_scales = try m.alloc(@max(r * (h / 16), pairs * (t.expert_inter / 16))),
+             .moe = try m.alloc(r * h * 2),
+             .xf = try m.alloc(r * h * 2),
+             .logits = try m.alloc(round_rows * t.unpadded_vocab * 4),
+diff --git a/zig/src/families/inkling2/mini_visit.zig b/zig/src/families/inkling2/mini_visit.zig
+index 13c3344b5..86deb86c4 100644
+--- a/zig/src/families/inkling2/mini_visit.zig
++++ b/zig/src/families/inkling2/mini_visit.zig
+@@ -313,8 +313,20 @@ fn moe(m: *Model, k: *const Kernels, s: cuda.Stream, r: *const Rows, L: *const w
+     const up_in: cuda.experts.Rows = .{ .x = m.s.xm, .stride = h, .slots = t.topk };
+     const down_in: cuda.experts.Rows = .{ .x = m.s.act, .stride = t.expert_inter };
+     if (r.prompt) {
+-        try gx.prompt(s, .up, up_in, L.experts, m.s.plan, m.s.act, items, pairs, tile, -1);
+-        try gx.prompt(s, .down_bf16, down_in, L.experts, m.s.plan, m.s.y, items, pairs, tile, -1);
++        if (cuda.experts_mx.prefillTcMode() != 0 and L.experts.format == .nvfp4 and h % 64 == 0 and t.expert_inter % 64 == 0) {
++            try k.nv.quantX(s, m.s.xm, h, n, h, m.s.x_tc_codes, m.s.x_tc_scales);
++            try k.nv.runPromptTc(s, .up, m.s.x_tc_codes, m.s.x_tc_scales, h, t.topk, L.experts, m.s.plan, m.s.act, items, -1);
++            try k.nv.quantX(s, m.s.act, t.expert_inter, pairs, t.expert_inter, m.s.x_tc_codes, m.s.x_tc_scales);
++            try k.nv.runPromptTc(s, .down_bf16, m.s.x_tc_codes, m.s.x_tc_scales, t.expert_inter, 0, L.experts, m.s.plan, m.s.y, items, -1);
++        } else if (cuda.experts_mx.prefillTcMode() != 0 and L.experts.format == .mxfp8 and h % 32 == 0 and t.expert_inter % 32 == 0) {
++            try k.mx.quantX(s, m.s.xm, h, n, h, m.s.x_tc_codes, m.s.x_tc_scales);
++            try k.mx.runPromptTc(s, .up, m.s.x_tc_codes, m.s.x_tc_scales, h, t.topk, L.experts, m.s.plan, m.s.act, items, -1);
++            try k.mx.quantX(s, m.s.act, t.expert_inter, pairs, t.expert_inter, m.s.x_tc_codes, m.s.x_tc_scales);
++            try k.mx.runPromptTc(s, .down_bf16, m.s.x_tc_codes, m.s.x_tc_scales, t.expert_inter, 0, L.experts, m.s.plan, m.s.y, items, -1);
++        } else {
++            try gx.prompt(s, .up, up_in, L.experts, m.s.plan, m.s.act, items, pairs, tile, -1);
++            try gx.prompt(s, .down_bf16, down_in, L.experts, m.s.plan, m.s.y, items, pairs, tile, -1);
++        }
+         try k.glue.combine(s, m.s.y, .bf16, m.s.rw, m.s.moe, .bf16, n, t.topk, h);
+     } else {
+         try gx.decode(s, .up, up_in, L.experts, m.s.plan, m.s.act, items, pairs, tile, -1);
