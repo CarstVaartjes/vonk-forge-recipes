@@ -10,7 +10,7 @@
   "family_title": "Inkling",
   "identity": {
     "publisher": "thinkingmachines",
-    "slug": "inkling-2-mini-nvfp4-7a67ae23"
+    "slug": "inkling-2-mini-nvfp4-1fb4134b"
   },
   "kind": "model-display",
   "license": {
@@ -18,7 +18,7 @@
       "Thinking Machines Lab"
     ],
     "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/thinkingmachines/Inkling-2-Mini/blob/7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6/README.md"
+    "url": "https://huggingface.co/thinkingmachines/Inkling-2-Mini/blob/1fb4134b9a74f9681054f4ef82e4bf1f458a2337/README.md"
   },
   "lineage": {
     "family": "inkling",

@@ -11,13 +11,13 @@
       "size_bytes": 1570
     },
     {
-      "id": "readme-ab4fbc79a26f-b335630551",
+      "id": "readme-02f4cd9085ae-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "ab4fbc79a26f57a4160eae83ff33f7ec5442f4a6cae21478fdda36b4a0c13592",
-      "size_bytes": 54898
+      "sha256": "02f4cd9085aebde693ba95bfefca487eb6c098fccce6fe826fd8e90dfac56034",
+      "size_bytes": 54831
     },
     {
       "id": "chat-template-53a9035f3255-00824420d1",
@@ -29,13 +29,13 @@
       "size_bytes": 6868
     },
     {
-      "id": "config-a7a349601f09-587cb980af",
+      "id": "config-8216dd43157f-587cb980af",
       "path": "config.json",
       "roles": [
         "configuration"
       ],
-      "sha256": "a7a349601f0984c4abf999c480ef775d8567d21f5f84b4e8a3e035b44f288dc2",
-      "size_bytes": 2722
+      "sha256": "8216dd43157f5474cfff88f486a1e433fef703c674f694e485a86a761c412b1e",
+      "size_bytes": 2699
     },
     {
       "id": "generation-config-a08737c07a65-97dd3d578b",
@@ -138,14 +138,14 @@
       "slug": "inkling-2-mini"
     },
     "publisher": "thinkingmachines",
-    "slug": "inkling-2-mini-nvfp4-7a67ae23",
-    "variant": "NVFP4 7a67ae23",
-    "version": "NVFP4 7a67ae23"
+    "slug": "inkling-2-mini-nvfp4-1fb4134b",
+    "variant": "NVFP4 1fb4134b",
+    "version": "NVFP4 1fb4134b"
   },
   "kind": "model",
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/thinkingmachines/Inkling-2-Mini",
-    "revision": "7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6"
+    "revision": "1fb4134b9a74f9681054f4ef82e4bf1f458a2337"
   }
 }

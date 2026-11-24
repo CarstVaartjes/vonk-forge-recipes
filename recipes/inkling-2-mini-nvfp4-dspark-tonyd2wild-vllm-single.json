@@ -44,8 +44,8 @@
           ]
         },
         {
-          "file_id": "readme-ab4fbc79a26f-b335630551",
-          "id": "readme-ab4fbc79a26f-b335630551",
+          "file_id": "readme-02f4cd9085ae-b335630551",
+          "id": "readme-02f4cd9085ae-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -64,8 +64,8 @@
           ]
         },
         {
-          "file_id": "config-a7a349601f09-587cb980af",
-          "id": "config-a7a349601f09-587cb980af",
+          "file_id": "config-8216dd43157f-587cb980af",
+          "id": "config-8216dd43157f-587cb980af",
           "mount": {
             "target": "/models"
           },
@@ -176,10 +176,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "2c73283b4ae697c140ae6f1176bf1e52921c51512c910b0f343750022d0d876d",
+        "content_sha256": "ab2b3d76ea9855994f7775f352a0a443d993e16f4df36ab24d7e24199472e68a",
         "kind": "model",
         "publisher": "thinkingmachines",
-        "slug": "inkling-2-mini-nvfp4-7a67ae23"
+        "slug": "inkling-2-mini-nvfp4-1fb4134b"
       }
     }
   ],
@@ -333,7 +333,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 20191643361,
+            "artifact_bytes": 20191643271,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 10095821635
