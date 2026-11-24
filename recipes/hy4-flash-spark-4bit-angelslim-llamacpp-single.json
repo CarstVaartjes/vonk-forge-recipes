@@ -68,14 +68,24 @@
           "roles": [
             "entrypoint"
           ]
+        },
+        {
+          "file_id": "hy4-flash-dfly-q8-0-609464e933b3-27516f6d79",
+          "id": "primary-hy4-flash-dfly-q8-0-609464e933b3-27516f6d79",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         }
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "31de405374458835cfb92f98a856993c1d6f4348bfba9505e94a5c29aef7b6b9",
+        "content_sha256": "0c942dde362b301c9018219d81a4e534e22587030e14dab0977b437b1d97e34d",
         "kind": "model",
         "publisher": "angelslim",
-        "slug": "hy4-flash-spark-4bit-gguf-65acb8ae"
+        "slug": "hy4-flash-spark-4bit-gguf-9f1d9ac2"
       }
     }
   ],
@@ -85,11 +95,11 @@
       "AngelSlim (Tencent)",
       "llama.cpp contributors"
     ],
-    "source_reference": "https://huggingface.co/AngelSlim/Hy4-flash-GGUF/resolve/65acb8ae7f59847fe03a17291f1b72b89b141a9e/README_SPARK-4Bit.md"
+    "source_reference": "https://huggingface.co/AngelSlim/Hy4-flash-GGUF/resolve/9f1d9ac2ba4cf3b33ec1840f3fac595779c18840/README_SPARK-4Bit.md"
   },
   "release": {
-    "released_at": "2026-11-20",
-    "version": "1.0.1"
+    "released_at": "2026-11-24",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -314,7 +324,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 163554188630,
+            "artifact_bytes": 164457874294,
             "image_bytes": 6000000000,
             "safety_margin_bytes": 10000000000,
             "working_bytes": 4000000000

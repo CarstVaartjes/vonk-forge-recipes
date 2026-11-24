@@ -1,0 +1,640 @@
+diff --git a/zig/kernels/cuda/inkling2/ops.cu b/zig/kernels/cuda/inkling2/ops.cu
+index f833f31b0..78d6a00a5 100644
+--- a/zig/kernels/cuda/inkling2/ops.cu
++++ b/zig/kernels/cuda/inkling2/ops.cu
+@@ -267,6 +267,66 @@ extern "C" __global__ void __launch_bounds__(256) tf_ink2_rowdot(const uint16_t*
+         static_cast<float*>(out)[row * J + j] = s;
+ }
+ 
++// tf_ink2_rowdot's sigmoid router scores (the same warp sums) and, in the last block of each row to finish, its picks
++// and weights as tf_ink2_topk_warp makes them (same bits): one launch for the router (TF_INKLING2_ROUTE_FUSED).
++// done[row] counts finished blocks and is left at zero for the next call.
++extern "C" __global__ void __launch_bounds__(256) tf_ink2_route(const uint16_t* __restrict__ x, const uint16_t* __restrict__ W,
++                                                               float* __restrict__ scores, int J, int C,
++                                                               const float* __restrict__ bias, int* __restrict__ pick,
++                                                               float* __restrict__ wts, int K, float scale,
++                                                               unsigned* __restrict__ done) {
++    const int lane = threadIdx.x & 31, j = blockIdx.y * 8 + (threadIdx.x >> 5);
++    const size_t row = blockIdx.x;
++    if (j < J) {
++        const uint16_t* xr = x + row * C;
++        const uint16_t* wr = W + static_cast<size_t>(j) * C;
++        float s = 0.0f;
++        for (int c = lane; c < C; c += 32) s += bf(xr[c]) * bf(wr[c]);
++        s = warpSum(s);
++        if (lane == 0) scores[row * J + j] = 1.0f / (1.0f + expf(-s));
++    }
++    __shared__ bool last;
++    __threadfence();
++    __syncthreads();
++    if (threadIdx.x == 0) last = atomicAdd(done + row, 1u) == gridDim.y - 1;
++    __syncthreads();
++    if (!last || threadIdx.x >= 32) return;
++    __threadfence();
++    float sel[8];
++#pragma unroll
++    for (int i = 0; i < 8; ++i) {
++        const int e = lane + i * 32;
++        sel[i] = e < J ? __ldcg(scores + row * J + e) + bias[e] : -INFINITY;
++    }
++    float t = 0.0f, chosen = 0.0f;
++    int chosen_id = 0;
++    for (int k = 0; k < K; ++k) {
++        float v = -INFINITY;
++        int id = 0x7fffffff;
++#pragma unroll
++        for (int i = 0; i < 8; ++i) {
++            const int e = lane + i * 32;
++            if (e < J && (sel[i] > v || (sel[i] == v && e < id))) { v = sel[i]; id = e; }
++        }
++        for (int o = 16; o > 0; o >>= 1) {
++            const float ov = __shfl_xor_sync(0xffffffffu, v, o);
++            const int oi = __shfl_xor_sync(0xffffffffu, id, o);
++            if (ov > v || (ov == v && oi < id)) { v = ov; id = oi; }
++        }
++        const float sc = __ldcg(scores + row * J + id);
++        if (lane == k) { chosen = sc; chosen_id = id; }
++        t += sc;
++#pragma unroll
++        for (int i = 0; i < 8; ++i)
++            if (lane + i * 32 == id) sel[i] = -INFINITY;
++    }
++    if (lane < K) {
++        pick[row * K + lane] = chosen_id;
++        wts[row * K + lane] = chosen / (t + 1e-20f) * scale;
++    }
++    if (lane == 0) done[row] = 0u;
++}
++
+ // Router picks per row: top-K of score + bias (ties to the lower id), weights score / sum(scores) * scale (fp32).
+ extern "C" __global__ void __launch_bounds__(512) tf_ink2_topk(const float* __restrict__ scores, const float* __restrict__ bias,
+                                                               int* __restrict__ pick, float* __restrict__ wts, int E, int K,
+@@ -921,3 +981,21 @@ extern "C" __global__ void __launch_bounds__(128) tf_ink2_lazy_full(const uint16
+         }
+     }
+ }
++
++// The fused projection's rows [rows][ld] split into each part's own [rows][w] plane (16-byte copies; offsets and
++// widths are multiples of 8): the n > 1 forwards' one GEMM in place of six (TF_INKLING2_FUSED_ROWS).
++struct SplitCols {
++    uint16_t* dst[6];
++    int off[6];
++    int w[6];
++    int n;
++};
++extern "C" __global__ void __launch_bounds__(256) tf_ink2_split_cols(const uint16_t* __restrict__ src, int ld,
++                                                                    const SplitCols a) {
++    const size_t row = blockIdx.x;
++    for (int p = 0; p < a.n; ++p) {
++        const uint4* in = reinterpret_cast<const uint4*>(src + row * ld + a.off[p]);
++        uint4* out = reinterpret_cast<uint4*>(a.dst[p] + row * a.w[p]);
++        for (int i = threadIdx.x; i < a.w[p] / 8; i += 256) out[i] = in[i];
++    }
++}
+diff --git a/zig/kernels/cuda/inkling2/prompt_attention.cu b/zig/kernels/cuda/inkling2/prompt_attention.cu
+index 416e3c538..8dea2a875 100644
+--- a/zig/kernels/cuda/inkling2/prompt_attention.cu
++++ b/zig/kernels/cuda/inkling2/prompt_attention.cu
+@@ -269,6 +269,215 @@ __device__ __forceinline__ void promptTile(const uint16_t* __restrict__ q, const
+     }
+ }
+ 
++
++// A sliding layer's prompt rows: 128 (row, head) pairs a block share each K/V tile; every 256-key chunk of a row's
++// window gives tf_ink2_attn's partial bits (the same 64-key tiles, masks and sums: keys a 64-pair tile would load as
++// zeros are masked for these rows), folded in tf_ink2_merge's order and roundings, then its sink and gate. No partials.
++template <bool KV8, bool PART = false>
++__device__ __forceinline__ void slideTile(const uint16_t* __restrict__ q, const uint16_t* __restrict__ kc,
++                                          const uint16_t* __restrict__ vc, const uint16_t* __restrict__ tab,
++                                          const Seg* __restrict__ segs, const uint16_t* __restrict__ sink,
++                                          const uint16_t* __restrict__ gate, uint16_t* __restrict__ out, int heads,
++                                          int kv_heads, int ring, int window, int chunk, float scale, uint16_t* smem,
++                                          const float* __restrict__ ksc, const float* __restrict__ vsc,
++                                          float* __restrict__ part_o = nullptr, float2* __restrict__ part_ml = nullptr,
++                                          int chunks = 0) {
++    const Seg s = segs[0];
++    const int group = heads / kv_heads;
++    const int total = s.n * group;
++    const int m0 = static_cast<int>(blockIdx.x) * kPairs;
++    if (m0 >= total) return;
++    const int tile_hi = s.p0 + min(m0 + kPairs - 1, total - 1) / group;
++    const int tile_lo = max(0, s.p0 + m0 / group - window + 1);
++    const int kvh = blockIdx.y;
++    const int warp = threadIdx.x >> 5, lane = threadIdx.x & 31, g = lane >> 2, t = lane & 3;
++    const int w0 = m0 + warp * 16;
++    const bool busy = w0 < total;
++    const int w_last = s.p0 + min(w0 + 15, total - 1) / group;
++    int pos[2], lo[2];
++    bool ok[2];
++    size_t prow[2];
++    uint32_t qa[8][4];
++    for (int i = 0; i < 2; ++i) {
++        const int mr = w0 + g + i * 8;
++        ok[i] = mr < total;
++        const int lr = ok[i] ? mr / group : 0;
++        pos[i] = ok[i] ? s.p0 + lr : -1;
++        lo[i] = max(0, pos[i] - window + 1);
++        prow[i] = static_cast<size_t>(s.row0 + lr) * heads + kvh * group + (ok[i] ? mr % group : 0);
++    }
++    for (int k = 0; k < 8; ++k) {
++        for (int i = 0; i < 2; ++i) {
++            const uint32_t* src = reinterpret_cast<const uint32_t*>(q + prow[i] * kDim + 16 * k + 2 * t);
++            qa[k][i] = ok[i] ? src[0] : 0u;
++            qa[k][i + 2] = ok[i] ? src[4] : 0u;
++        }
++    }
++    float acc[16][4];
++    float m[2], l[2];
++    float O[16][4];  // the merge's running o, ll and mm a row
++    float MM[2] = {-INFINITY, -INFINITY}, LL[2] = {0.0f, 0.0f};
++    for (int n = 0; n < 16; ++n) O[n][0] = O[n][1] = O[n][2] = O[n][3] = 0.0f;
++    const size_t head_base = s.off + static_cast<size_t>(kvh) * ring * kDim;
++    const int k_row = lane & 7, k_pc = lane >> 3;
++    const int v_row = lane & 15, v_pc = lane >> 4;
++    // the block's 64-key tiles, chunk by chunk: tile it is chunk c's keys [kt, kt + 63]
++    const int c_lo = tile_lo / chunk, c_hi = tile_hi / chunk;
++    auto first = [&](int c) { return max(c * chunk, tile_lo) & ~(kKeys - 1); };
++    auto tilesOf = [&](int c) { return (min(c * chunk + chunk - 1, tile_hi) - first(c)) / kKeys + 1; };
++    int n_tiles = 0;
++    for (int c = c_lo; c <= c_hi; ++c) n_tiles += tilesOf(c);
++    // tile `it`'s chunk and key start
++    auto at = [&](int it, int& c, int& kt) {
++        c = c_lo;
++        while (it >= tilesOf(c)) { it -= tilesOf(c); ++c; }
++        kt = first(c) + it * kKeys;
++    };
++    for (int st = 0; st < kStages - 1; ++st) {
++        if (st < n_tiles) {
++            int c, kt;
++            at(st, c, kt);
++            loadTile<KV8>(smem + st * kStage, smem + st * kStage + kTile, kc, vc, head_base, ring, kt,
++                          max(c * chunk, tile_lo), min(c * chunk + chunk - 1, tile_hi), ksc, vsc);
++        } else {
++            tf_common::cp_commit();
++        }
++    }
++    int c = c_lo, kt = first(c_lo), left = tilesOf(c_lo);
++    for (int it = 0; it < n_tiles; ++it) {
++        const int s_lo = c * chunk, s_hi = s_lo + chunk - 1;
++        if (kt == first(c)) {
++            for (int n = 0; n < 16; ++n) acc[n][0] = acc[n][1] = acc[n][2] = acc[n][3] = 0.0f;
++            m[0] = m[1] = -INFINITY;
++            l[0] = l[1] = 0.0f;
++        }
++        tf_common::cp_wait<kStages - 2>();
++        __syncthreads();
++        if (it + kStages - 1 < n_tiles) {
++            int c2, kt2;
++            at(it + kStages - 1, c2, kt2);
++            uint16_t* nx = smem + ((it + kStages - 1) % kStages) * kStage;
++            loadTile<KV8>(nx, nx + kTile, kc, vc, head_base, ring, kt2, max(c2 * chunk, tile_lo),
++                          min(c2 * chunk + chunk - 1, tile_hi), ksc, vsc);
++        } else {
++            tf_common::cp_commit();
++        }
++        const uint16_t* ks = smem + (it % kStages) * kStage;
++        const uint16_t* vs = ks + kTile;
++        if (busy && kt <= w_last) {
++            float sc[8][4];
++            for (int j = 0; j < 8; ++j) {
++                sc[j][0] = sc[j][1] = sc[j][2] = sc[j][3] = 0.0f;
++                for (int k = 0; k < 8; k += 2) {
++                    uint32_t b[4];
++                    qmm_frag::ldmatrix4(b, tf_common::smem(ks + piece(8 * j + k_row, 2 * k + k_pc)));
++                    qmm_frag::mma(sc[j], qa[k][0], qa[k][1], qa[k][2], qa[k][3], b[0], b[1]);
++                    qmm_frag::mma(sc[j], qa[k + 1][0], qa[k + 1][1], qa[k + 1][2], qa[k + 1][3], b[2], b[3]);
++                }
++            }
++            float mx[2] = {-INFINITY, -INFINITY};
++            for (int j = 0; j < 8; ++j) {
++                for (int e = 0; e < 4; ++e) {
++                    const int i = e >> 1;
++                    const int kp = kt + 8 * j + 2 * t + (e & 1);
++                    const bool live = ok[i] && kp >= lo[i] && kp <= pos[i] && kp >= s_lo && kp <= s_hi;
++                    const int d = pos[i] - kp;
++                    const float bias = live && d < kExtent ? bf(tab[prow[i] * kExtent + d]) : 0.0f;
++                    sc[j][e] = live ? (sc[j][e] * scale + bias) * kLog2e : -INFINITY;
++                    mx[i] = fmaxf(mx[i], sc[j][e]);
++                }
++            }
++            float alpha[2], mu[2];
++            for (int i = 0; i < 2; ++i) {
++                mx[i] = fmaxf(mx[i], __shfl_xor_sync(0xffffffffu, mx[i], 1));
++                mx[i] = fmaxf(mx[i], __shfl_xor_sync(0xffffffffu, mx[i], 2));
++                const float mn = fmaxf(m[i], mx[i]);
++                mu[i] = mn == -INFINITY ? 0.0f : mn;
++                alpha[i] = exp2f(m[i] - mu[i]);
++                m[i] = mn;
++                l[i] *= alpha[i];
++            }
++            uint32_t pk[8][2];
++            for (int j = 0; j < 8; ++j) {
++                uint16_t p[4];
++                for (int e = 0; e < 4; ++e) {
++                    const int i = e >> 1;
++                    p[e] = tobf(exp2f(sc[j][e] - mu[i]));
++                    l[i] += bf(p[e]);
++                }
++                pk[j][0] = pack(p[0], p[1]);
++                pk[j][1] = pack(p[2], p[3]);
++            }
++            for (int n = 0; n < 16; ++n) {
++                acc[n][0] *= alpha[0];
++                acc[n][1] *= alpha[0];
++                acc[n][2] *= alpha[1];
++                acc[n][3] *= alpha[1];
++            }
++            for (int u = 0; u < 4; ++u) {
++                const uint32_t a0 = pk[2 * u][0], a1 = pk[2 * u][1], a2 = pk[2 * u + 1][0], a3 = pk[2 * u + 1][1];
++                for (int n = 0; n < 16; n += 2) {
++                    uint32_t b[4];
++                    qmm_frag::ldmatrix4t(b, tf_common::smem(vs + piece(16 * u + v_row, n + v_pc)));
++                    qmm_frag::mma(acc[n], a0, a1, a2, a3, b[0], b[1]);
++                    qmm_frag::mma(acc[n + 1], a0, a1, a2, a3, b[2], b[3]);
++                }
++            }
++        }
++        if (--left == 0) {  // the chunk's last tile: its partial, folded as the merge folds it
++            if (busy) {
++                for (int i = 0; i < 2; ++i) {
++                    l[i] += __shfl_xor_sync(0xffffffffu, l[i], 1);
++                    l[i] += __shfl_xor_sync(0xffffffffu, l[i], 2);
++                }
++                for (int i = 0; i < 2; ++i) {
++                    // the merge reads chunks lo / chunk .. pos / chunk of a row, and attnTile stored nothing else
++                    if (!ok[i] || c < lo[i] / chunk || c > pos[i] / chunk) continue;
++                    if constexpr (PART) {
++                        const size_t at = prow[i] * chunks + (c - lo[i] / chunk);
++                        if (t == 0) part_ml[at] = make_float2(m[i], l[i]);
++                        float* o = part_o + at * kDim + 2 * t;
++                        for (int n = 0; n < 16; ++n) *reinterpret_cast<float2*>(o + 8 * n) = make_float2(acc[n][2 * i], acc[n][2 * i + 1]);
++                        continue;
++                    }
++                    const float mn = fmaxf(MM[i], m[i]);
++                    const float a = exp2f(MM[i] - mn), b = exp2f(m[i] - mn);
++                    // tf_ink2_merge's (one chunk a slot) roundings: ll = fma(a, ll, l b), o = fma(a, o, po b)
++                    LL[i] = __fmaf_rn(a, LL[i], __fmul_rn(l[i], b));
++                    for (int n = 0; n < 16; ++n) {
++                        O[n][2 * i] = __fmaf_rn(a, O[n][2 * i], __fmul_rn(acc[n][2 * i], b));
++                        O[n][2 * i + 1] = __fmaf_rn(a, O[n][2 * i + 1], __fmul_rn(acc[n][2 * i + 1], b));
++                    }
++                    MM[i] = mn;
++                }
++            }
++            if (c < c_hi) {
++                ++c;
++                kt = first(c);
++                left = tilesOf(c);
++            }
++        } else {
++            kt += kKeys;
++        }
++    }
++    if (!busy || PART) return;
++    for (int i = 0; i < 2; ++i) {
++        if (!ok[i]) continue;
++        const size_t rh = prow[i];
++        const float sk = bf(sink[rh]) * kLog2e;
++        const float mf = fmaxf(MM[i], sk);
++        const float a = exp2f(MM[i] - mf);
++        // tf_ink2_merge's roundings: ll a + exp2(sk - mf) as one fma, then (o a) / den
++        const float den = __fmaf_rn(a, LL[i], exp2f(sk - mf));
++        for (int n = 0; n < 16; ++n)
++            for (int h = 0; h < 2; ++h) {
++                const int d = 8 * n + 2 * t + h;
++                const float y = __fdiv_rn(__fmul_rn(a, O[n][2 * i + h]), den);
++                const float gv = bf(gate[rh * kDim + d]);
++                out[rh * kDim + d] = tobf(y * (1.0f / (1.0f + expf(-gv))));
++            }
++    }
++}
+ }  // namespace ink2p
+ 
+ #define TF_INK2_PROMPT_ARGS                                                                                       \
+@@ -290,3 +499,41 @@ extern "C" __global__ void __launch_bounds__(ink2p::kThreads, 1)
+     ink2p::promptTile<true>(q, kc, vc, tab, segs, part_o, part_ml, heads, kv_heads, ring, chunk, c0, chunks, scale,
+                             smem, ksc, vsc);
+ }
++
++#define TF_INK2_SLIDE_ARGS                                                                                        \
++    const uint16_t *__restrict__ q, const uint16_t *__restrict__ kc, const uint16_t *__restrict__ vc,             \
++        const uint16_t *__restrict__ tab, const ink2p::Seg *__restrict__ segs, const uint16_t *__restrict__ sink, \
++        const uint16_t *__restrict__ gate, uint16_t *__restrict__ out, int heads, int kv_heads, int ring, int window, \
++        int chunk, float scale
++
++// One stream's prompt rows on a sliding layer, attention through the sink and gate in one launch (bf16 caches).
++extern "C" __global__ void __launch_bounds__(ink2p::kThreads, 1) tf_ink2_attn_slide(TF_INK2_SLIDE_ARGS) {
++    extern __shared__ __align__(16) uint16_t smem[];
++    ink2p::slideTile<false>(q, kc, vc, tab, segs, sink, gate, out, heads, kv_heads, ring, window, chunk, scale, smem,
++                            nullptr, nullptr);
++}
++
++// tf_ink2_attn_slide over fp8 caches.
++extern "C" __global__ void __launch_bounds__(ink2p::kThreads, 1)
++    tf_ink2_attn_slide8(TF_INK2_SLIDE_ARGS, const float* __restrict__ ksc, const float* __restrict__ vsc) {
++    extern __shared__ __align__(16) uint16_t smem[];
++    ink2p::slideTile<true>(q, kc, vc, tab, segs, sink, gate, out, heads, kv_heads, ring, window, chunk, scale, smem,
++                           ksc, vsc);
++}
++
++// Debug (TF_INKLING2_SLIDE_CHECK): count differing bf16 words of a and b; record the first difference.
++extern "C" __global__ void tf_ink2_slide_cmp(const uint16_t* __restrict__ a, const uint16_t* __restrict__ b, long long n,
++                                             unsigned* __restrict__ res) {
++    for (long long i = static_cast<long long>(blockIdx.x) * blockDim.x + threadIdx.x; i < n; i += static_cast<long long>(gridDim.x) * blockDim.x)
++        if (a[i] != b[i]) {
++            if (atomicAdd(res, 1u) == 0) { res[1] = static_cast<unsigned>(i); res[2] = a[i]; res[3] = b[i]; }
++        }
++}
++
++// Debug: tf_ink2_attn_slide's chunk partials into tf_ink2_attn's slots (no fold), for tf_ink2_merge.
++extern "C" __global__ void __launch_bounds__(ink2p::kThreads, 1)
++    tf_ink2_attn_slidep(TF_INK2_SLIDE_ARGS, float* __restrict__ part_o, float2* __restrict__ part_ml, int chunks) {
++    extern __shared__ __align__(16) uint16_t smem[];
++    ink2p::slideTile<false, true>(q, kc, vc, tab, segs, sink, gate, out, heads, kv_heads, ring, window, chunk, scale,
++                                  smem, nullptr, nullptr, part_o, part_ml, chunks);
++}
+diff --git a/zig/src/families/inkling2/kernels.zig b/zig/src/families/inkling2/kernels.zig
+index 632e16fed..4298584eb 100644
+--- a/zig/src/families/inkling2/kernels.zig
++++ b/zig/src/families/inkling2/kernels.zig
+@@ -116,6 +116,9 @@ pub const Kernels = struct {
+     attn8: cuda.Function,
+     attn_fold8: cuda.Function,
+     attn_prompt8: cuda.Function,
++    // sliding prompt rows: attention, sink and gate in one launch (TF_INKLING2_SLIDE_PROMPT)
++    attn_slide: cuda.Function,
++    attn_slide8: cuda.Function,
+ 
+     pub fn load(d: *const cuda.Driver) !Kernels {
+         if (!cuda.kernels.available) return error.BuiltWithoutKernels;
+@@ -127,7 +130,13 @@ pub const Kernels = struct {
+         try attn_prompt.allowDynamicShared(prompt_shared);
+         const attn_prompt8 = try pmod.function("tf_ink2_attn_prompt8");
+         try attn_prompt8.allowDynamicShared(prompt_shared);
++        const attn_slide = try pmod.function("tf_ink2_attn_slide");
++        try attn_slide.allowDynamicShared(prompt_shared);
++        const attn_slide8 = try pmod.function("tf_ink2_attn_slide8");
++        try attn_slide8.allowDynamicShared(prompt_shared);
+         return .{
++            .attn_slide = attn_slide,
++            .attn_slide8 = attn_slide8,
+             .mod = mod,
+             .pmod = pmod,
+             .attn_prompt = attn_prompt,
+@@ -219,6 +228,64 @@ pub fn attend(k: *const Kernels, s: cuda.Stream, r: Rows, l: Layer, stride: u32,
+     for ([_]u64{ q, kv.k, kv.v, tab, r.segs, r.tiles, part_o, part_ml }) |v| a.add(v);
+     var slots_rh = stride; // partials a row and head
+     var per: u32 = 1; // partials a chunk: its sub-chunks' when split
++    if (l.window > 0 and r.streams == 1 and r.rows >= slide_rows and slideOn() and S_check.on and std.c.getenv("TF_INKLING2_SLIDE_CHECK") != null) {
++        // debug: the old path into `out`, kept aside, then the fused one, compared word for word
++        const D = struct {
++            var keep: ?cuda.DeviceBuffer = null;
++            var res: ?cuda.DeviceBuffer = null;
++            var calls: usize = 0;
++        };
++        const n: usize = @as(usize, r.rows) * r.heads * head_dim;
++        const d = k.mod.d;
++        if (D.keep == null) {
++            D.keep = try cuda.DeviceBuffer.alloc(d, prompt_rows_max * 32 * head_dim * 2);
++            D.res = try cuda.DeviceBuffer.alloc(d, 16);
++        }
++        S_check.on = false;
++        try attend(k, s, r, l, stride, slots, q, kv, tab, part_o, part_ml, sink, gate, out);
++        S_check.on = true;
++        try d.check(d.api.cuMemcpyDtoDAsync_v2(D.keep.?.ptr, out, n * 2, s.handle), "copy");
++        try d.check(d.api.cuMemsetD8Async(D.res.?.ptr, 0, 16, s.handle), "memset");
++        var p: cuda.Args = .{};
++        for ([_]u64{ q, kv.k, kv.v, tab, r.segs, sink, gate, out }) |v| p.add(v);
++        for ([_]u32{ r.heads, r.kv_heads, l.ring, l.window, l.chunk }) |v| p.add(int(v));
++        p.add(scale);
++        addScales(&p, kv);
++        const blocks = std.math.divCeil(u32, r.rows * (r.heads / r.kv_heads), prompt_pairs) catch unreachable;
++        if (std.c.getenv("TF_INKLING2_SLIDE_CHECK_PART") != null and !kv.fp8()) {
++            const f = try k.pmod.function("tf_ink2_attn_slidep");
++            try f.allowDynamicShared(prompt_shared);
++            p.add(part_o);
++            p.add(part_ml);
++            p.add(int(stride));
++            try goShared(f, s, .{ .x = blocks, .y = r.kv_heads }, prompt_threads, prompt_shared, &p);
++            var b: cuda.Args = .{};
++            for ([_]u64{ part_o, part_ml, sink, gate, r.pos, out }) |v| b.add(v);
++            for ([_]u32{ r.heads, l.window, l.chunk, 0, stride, 1 }) |v| b.add(int(v));
++            try go(k.merge, s, .{ .x = r.rows * r.heads }, head_dim, &b);
++        } else try goShared(if (kv.fp8()) k.attn_slide8 else k.attn_slide, s, .{ .x = blocks, .y = r.kv_heads }, prompt_threads, prompt_shared, &p);
++        var c: cuda.Args = .{};
++        c.add(D.keep.?.ptr);
++        c.add(out);
++        c.add(@as(i64, @intCast(n)));
++        c.add(D.res.?.ptr);
++        try go(try k.pmod.function("tf_ink2_slide_cmp"), s, .{ .x = 256 }, 256, &c);
++        try s.synchronize();
++        var res: [4]u32 = undefined;
++        try cuda.memory.download(d, D.res.?.ptr, std.mem.sliceAsBytes(&res));
++        D.calls += 1;
++        if (res[0] != 0 or D.calls % 40 == 0) std.debug.print("[slide-check] call {d} rows {d}: {d} differing of {d}; first at {d} (row {d} head {d} dim {d}) old {x} new {x}\n", .{ D.calls, r.rows, res[0], n, res[1], res[1] / (r.heads * head_dim), (res[1] / head_dim) % r.heads, res[1] % head_dim, res[2], res[3] });
++        return;
++    }
++    if (l.window > 0 and r.streams == 1 and r.rows >= slide_rows and slideOn() and S_check.on) {
++        var p: cuda.Args = .{};
++        for ([_]u64{ q, kv.k, kv.v, tab, r.segs, sink, gate, out }) |v| p.add(v);
++        for ([_]u32{ r.heads, r.kv_heads, l.ring, l.window, l.chunk }) |v| p.add(int(v));
++        p.add(scale);
++        addScales(&p, kv);
++        const blocks = std.math.divCeil(u32, r.rows * (r.heads / r.kv_heads), prompt_pairs) catch unreachable;
++        return goShared(if (kv.fp8()) k.attn_slide8 else k.attn_slide, s, .{ .x = blocks, .y = r.kv_heads }, prompt_threads, prompt_shared, &p);
++    }
+     if (l.window > 0) {
+         for ([_]u32{ r.heads, r.kv_heads, l.ring, l.window, l.chunk, 0, stride }) |v| a.add(int(v));
+         a.add(scale);
+@@ -254,6 +321,24 @@ pub fn attend(k: *const Kernels, s: cuda.Stream, r: Rows, l: Layer, stride: u32,
+     try go(k.merge, s, .{ .x = r.rows * r.heads }, head_dim, &b);
+ }
+ 
++const S_check = struct {
++    var on: bool = true;
++};
++const prompt_rows_max = 512;
++
++/// One stream's rows from which a sliding call takes tf_ink2_attn_slide (prompt passes).
++pub const slide_rows = 64;
++
++/// TF_INKLING2_SLIDE_PROMPT=0: sliding prompt rows through tf_ink2_attn's chunk partials and tf_ink2_merge, as before
++/// (the fused kernel folds the same partial bits in the merge's order).
++fn slideOn() bool {
++    const S = struct {
++        var v: ?bool = null;
++    };
++    if (S.v == null) S.v = if (std.c.getenv("TF_INKLING2_SLIDE_PROMPT")) |e| e[0] != '0' else true;
++    return S.v.?;
++}
++
+ /// TF_INKLING2_GLOBAL_ZCAP: z blocks of a split global call. The call has a slot for every sub-chunk of the configured
+ /// window (256 at 262,144 tokens), most of them past every row; each z block takes every gridDim.z-th slot in turn
+ /// (attention.cu), so the partials are the same bits whatever the grid. Unset: about two waves of resident blocks
+diff --git a/zig/src/families/inkling2/mini_model.zig b/zig/src/families/inkling2/mini_model.zig
+index 01de8cd15..ee138249b 100644
+--- a/zig/src/families/inkling2/mini_model.zig
++++ b/zig/src/families/inkling2/mini_model.zig
+@@ -145,6 +145,7 @@ pub const Scratch = struct {
+     xf: u64,
+     logits: u64, // fp32 [round_rows, unpadded vocab]
+     lane_part: u64,
++    route_done: u64, // u32 [round_rows]: tf_ink2_route's finished blocks a row (zero between calls)
+     entries: usize, // (row, head, partial) slots part_o and part_ml hold
+ };
+ 
+@@ -300,6 +301,7 @@ pub const Model = struct {
+         };
+         if (m.planned == null) try m.upload(s, m.sites, std.mem.sliceAsBytes(table[0..m.n_sites]));
+         try m.scratch(k);
++        if (m.planned == null) try m.d.check(m.d.api.cuMemsetD8Async(m.s.route_done, 0, round_rows * 4, s.handle), "cuMemsetD8Async");
+         if (lazyOn()) try m.buildLazy(s, k);
+     }
+ 
+@@ -404,7 +406,7 @@ pub const Model = struct {
+         for (m.w.layers) |l| for ([_]cuda.qmmf.Weight{ l.attn.qx, l.attn.all }) |w| {
+             part = @max(part, k.lane.partBytes(1, w));
+         };
+-        for (m.w.layers) |l| for ([_]cuda.qmmf.Weight{ l.attn.wq, l.attn.wk, l.attn.wv, l.attn.wr, l.attn.gate, l.attn.sink, l.attn.wo }) |w| {
++        for (m.w.layers) |l| for ([_]cuda.qmmf.Weight{ l.attn.wq, l.attn.wk, l.attn.wv, l.attn.wr, l.attn.gate, l.attn.sink, l.attn.wo, l.attn.all, l.attn.qx }) |w| {
+             for (1..r + 1) |rows| part = @max(part, k.lane.partBytes(rows, w));
+         };
+         for (1..round_rows + 1) |rows| part = @max(part, k.lane.partBytes(rows, m.w.unembed));
+@@ -432,7 +434,7 @@ pub const Model = struct {
+             .gate = try m.alloc(r * q * 2),
+             .sink = try m.alloc(r * heads * 2),
+             .gys = try m.alloc(3 * r * h * 4),
+-            .fused = try m.alloc(wts.Fused.of(t).all * 2),
++            .fused = try m.alloc(r * wts.Fused.of(t).all * 2), // r rows: the n > 1 fused projections too
+             .dyn = .{ try m.alloc(r * t.global.kv * config.conv_taps * 4), try m.alloc(r * t.global.kv * config.conv_taps * 4) },
+             .kc = try m.alloc(r * kvw * 2),
+             .vc = try m.alloc(r * kvw * 2),
+@@ -461,6 +463,7 @@ pub const Model = struct {
+             .xf = try m.alloc(r * h * 2),
+             .logits = try m.alloc(round_rows * t.unpadded_vocab * 4),
+             .lane_part = try m.alloc(part),
++            .route_done = try m.alloc(round_rows * 4),
+             .entries = entries,
+         };
+     }
+diff --git a/zig/src/families/inkling2/mini_visit.zig b/zig/src/families/inkling2/mini_visit.zig
+index 8e962d3d2..f0951bde2 100644
+--- a/zig/src/families/inkling2/mini_visit.zig
++++ b/zig/src/families/inkling2/mini_visit.zig
+@@ -96,6 +96,15 @@ fn proj(m: *const Model, k: *const Kernels, s: cuda.Stream, w: cuda.qmmf.Weight,
+     try k.lane.matmulOut(s, x, w.k, n, w, out, .bf16, m.s.lane_part);
+ }
+ 
++/// TF_INKLING2_FUSED_ROWS=0: forwards of more than one row run the six input projections one GEMM each, as before.
++fn fusedRows() bool {
++    const S = struct {
++        var v: ?bool = null;
++    };
++    if (S.v == null) S.v = if (std.c.getenv("TF_INKLING2_FUSED_ROWS")) |e| e[0] != '0' else true;
++    return S.v.?;
++}
++
+ /// Bank the previous pass before a restart: its blocks past the entry, its output; the state restarts from the entry.
+ fn restart(m: *Model, s: cuda.Stream, r: *const Rows, hin: u64) !void {
+     const p = &m.w.plan;
+@@ -224,6 +233,25 @@ fn visitOne(m: *Model, k: *const Kernels, s: cuda.Stream, r: *const Rows, v: u32
+             try proj(m, k, s, a.wk, xk, o.k, 1);
+             try proj(m, k, s, a.wv, xv, o.v, 1);
+         }
++    } else if (fusedRows()) {
++        // the fused rows' one GEMM (each column the same chain as its part's own: one weight, the same pinned slices),
++        // then each part copied to the plane its consumers read
++        const f = wts.Fused.of(t);
++        const ld: usize = if (separate) f.qx else f.all;
++        try proj(m, k, s, if (separate) a.qx else a.all, xq, m.s.fused, n);
++        const qw: usize = @as(usize, t.local.q) * t.local.dim;
++        var sc: ops.SplitCols = .{ .n = if (separate) 4 else 6 };
++        const parts = [6]struct { u64, usize, usize }{ .{ o.q, f.q, qw }, .{ o.gate, f.gate, qw }, .{ o.rel, f.rel, @as(usize, t.local.q) * t.d_rel }, .{ o.sink, f.sink, t.local.q }, .{ o.k, f.k, kvWidth(m) }, .{ o.v, f.v, kvWidth(m) } };
++        for (parts[0..@intCast(sc.n)], 0..) |pt, pi| {
++            sc.dst[pi] = pt[0];
++            sc.off[pi] = @intCast(pt[1]);
++            sc.w[pi] = @intCast(pt[2]);
++        }
++        try ops.splitCols(&k.ops, s, m.s.fused, ld, n, sc);
++        if (separate) {
++            try proj(m, k, s, a.wk, xk, o.k, n);
++            try proj(m, k, s, a.wv, xv, o.v, n);
++        }
+     } else {
+         try proj(m, k, s, a.wq, xq, o.q, n);
+         try proj(m, k, s, a.wk, xk, o.k, n);
+@@ -276,8 +304,12 @@ fn moe(m: *Model, k: *const Kernels, s: cuda.Stream, r: *const Rows, L: *const w
+     const h: usize = t.hidden;
+     const n = r.n;
+     const pairs = n * t.topk;
+-    try ops.rowdot(&k.ops, s, m.s.xm, L.router, m.s.scores, n, t.experts, h, false, true);
+-    try ops.topk(&k.ops, s, m.s.scores, L.router_bias, m.s.pick, m.s.rw, n, t.experts, t.topk, t.route_scale);
++    if (!r.prompt and t.experts <= 256 and t.topk <= 32 and ops.routeFused()) {
++        try ops.route(&k.ops, s, m.s.xm, L.router, m.s.scores, L.router_bias, m.s.pick, m.s.rw, m.s.route_done, n, t.experts, h, t.topk, t.route_scale);
++    } else {
++        try ops.rowdot(&k.ops, s, m.s.xm, L.router, m.s.scores, n, t.experts, h, false, true);
++        try ops.topk(&k.ops, s, m.s.scores, L.router_bias, m.s.pick, m.s.rw, n, t.experts, t.topk, t.route_scale);
++    }
+     const tile: usize = if (r.prompt) cuda.experts.promptTile(L.experts.format) else 16;
+     const items = cuda.grouped.maxItems(pairs, t.experts, tile);
+     try k.router.route(s, m.s.pick, pairs, t.experts, tile, m.s.plan);
+diff --git a/zig/src/families/inkling2/ops.zig b/zig/src/families/inkling2/ops.zig
+index 2858f300d..a1eff917b 100644
+--- a/zig/src/families/inkling2/ops.zig
++++ b/zig/src/families/inkling2/ops.zig
+@@ -78,6 +78,8 @@ pub const Kernels = struct {
+     rewind: cuda.Function,
+     race1: cuda.Function,
+     lazy: [8]cuda.Function, // the certified lazy head: delta, prep, low, pick, fill, exact, full, low2
++    split_cols: cuda.Function,
++    route: cuda.Function,
+ 
+     pub fn load(d: *const cuda.Driver) !Kernels {
+         if (!cuda.kernels.available) return error.BuiltWithoutKernels;
+@@ -104,6 +106,8 @@ pub const Kernels = struct {
+             .put_words = try mod.function("tf_ink2_put_words"),
+             .rewind = try mod.function("tf_ink2_conv_rewind"),
+             .race1 = try mod.function("tf_ink2_race1"),
++            .split_cols = try mod.function("tf_ink2_split_cols"),
++            .route = try mod.function("tf_ink2_route"),
+             .lazy = .{
+                 try mod.function("tf_ink2_lazy_delta"), try mod.function("tf_ink2_lazy_prep"),
+                 try mod.function("tf_ink2_lazy_low"),   try mod.function("tf_ink2_lazy_pick"),
+@@ -403,3 +407,37 @@ pub fn lazyHead(k: *const Kernels, lane: cuda.qmmf.Lane, s: cuda.Stream, z: Lazy
+         try go(k.lazy[6], s, .{ .x = 192 }, 128, &a);
+     }
+ }
++
++/// ops.cu SplitCols: up to six parts of a fused row, each copied to its own plane.
++pub const SplitCols = extern struct { dst: [6]u64 = @splat(0), off: [6]i32 = @splat(0), w: [6]i32 = @splat(0), n: i32 = 0 };
++
++pub fn splitCols(k: *const Kernels, s: cuda.Stream, src: u64, ld: usize, rows: usize, a: SplitCols) !void {
++    var args: cuda.Args = .{};
++    args.add(src);
++    args.add(int(ld));
++    args.add(a);
++    try go(k.split_cols, s, .{ .x = @intCast(rows) }, 256, &args);
++}
++
++/// TF_INKLING2_ROUTE_FUSED=1: decode rows' router scores and picks in one launch (the same bits; off until measured).
++pub fn routeFused() bool {
++    const S = struct {
++        var v: ?bool = null;
++    };
++    if (S.v == null) S.v = if (std.c.getenv("TF_INKLING2_ROUTE_FUSED")) |e| e[0] == '1' else false;
++    return S.v.?;
++}
++
++/// Decode rows' router in one launch: rowdot's sigmoid scores, then the last block of each row picks (topk_warp's bits).
++/// `done` holds a zeroed u32 a row (the kernel leaves it zero).
++pub fn route(k: *const Kernels, s: cuda.Stream, x: u64, w: u64, scores: u64, bias: u64, pick: u64, wts: u64, done: u64, rows: usize, experts: usize, c: usize, top: usize, scale: f32) !void {
++    var a: cuda.Args = .{};
++    for ([_]u64{ x, w, scores }) |v| a.add(v);
++    a.add(int(experts));
++    a.add(int(c));
++    for ([_]u64{ bias, pick, wts }) |v| a.add(v);
++    a.add(int(top));
++    a.add(scale);
++    a.add(done);
++    try go(k.route, s, .{ .x = @intCast(rows), .y = @intCast((experts + 7) / 8) }, 256, &a);
++}

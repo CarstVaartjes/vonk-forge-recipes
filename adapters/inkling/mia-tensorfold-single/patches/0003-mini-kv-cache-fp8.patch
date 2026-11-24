@@ -1,0 +1,608 @@
+diff --git a/zig/kernels/cuda/inkling2/attention.cu b/zig/kernels/cuda/inkling2/attention.cu
+index 7ad9a174..72efb8aa 100644
+--- a/zig/kernels/cuda/inkling2/attention.cu
++++ b/zig/kernels/cuda/inkling2/attention.cu
+@@ -1,6 +1,7 @@
+ // Inkling 2 attention: q/k/v/rel preparation, the relative-bias table, chunked tensor-core attention and the merge.
+ #include <cstdint>
+ #include <cuda_bf16.h>
++#include <cuda_fp8.h>
+ 
+ #include "common/qmm_frag.cuh"
+ 
+@@ -30,6 +31,29 @@ __device__ __forceinline__ uint32_t pack(uint16_t lo, uint16_t hi) {
+     return static_cast<uint32_t>(lo) | (static_cast<uint32_t>(hi) << 16);
+ }
+ 
++// fp8 caches (--kv-cache fp8): e4m3 codes at the bf16 cache's element index, an fp32 scale per (key head, slot).
++__device__ __forceinline__ float fp8f(uint32_t byte) {
++    __nv_fp8_e4m3 c;
++    c.__x = static_cast<__nv_fp8_storage_t>(byte);
++    return static_cast<float>(c);
++}
++
++// Eight codes times their row's scale, each rounded to bf16 as the bf16 cache would hold it.
++__device__ __forceinline__ uint4 deq8(uint2 c, float sc) {
++    uint32_t w[4];
++    const uint32_t in[2] = {c.x, c.y};
++    for (int i = 0; i < 4; ++i) {
++        const uint32_t word = in[i >> 1] >> ((i & 1) * 16);
++        w[i] = pack(tobf(fp8f(word & 0xff) * sc), tobf(fp8f((word >> 8) & 0xff) * sc));
++    }
++    return make_uint4(w[0], w[1], w[2], w[3]);
++}
++
++__device__ __forceinline__ float warpMax(float v) {
++    for (int o = 16; o > 0; o >>= 1) v = fmaxf(v, __shfl_xor_sync(0xffffffffu, v, o));
++    return v;
++}
++
+ __device__ __forceinline__ float warpSum(float v) {
+     for (int o = 16; o > 0; o >>= 1) v += __shfl_xor_sync(0xffffffffu, v, o);
+     return v;
+@@ -43,6 +67,8 @@ __device__ __forceinline__ void clip(float* x, float thr) {
+ }
+ 
+ // Per row and head: q = clip(q * q_scale) (* tau), rel = clip(rel * rel_scale) (* tau), k = clip(k), v = rms(v).
++// KV8: k and v rows as e4m3 codes of their bf16 values over amax / 448, the scale at (off / 128) + h * ring + slot.
++template <bool KV8>
+ __device__ __forceinline__ void prepRow(const uint16_t* __restrict__ q_raw, const uint16_t* __restrict__ k_raw,
+                                         const uint16_t* __restrict__ v_raw, const uint16_t* __restrict__ rel_raw,
+                                         const uint16_t* __restrict__ q_scale, const uint16_t* __restrict__ rel_scale,
+@@ -50,7 +76,8 @@ __device__ __forceinline__ void prepRow(const uint16_t* __restrict__ q_raw, cons
+                                         const Seg* __restrict__ segs, uint16_t* __restrict__ q_out,
+                                         uint16_t* __restrict__ rel_out, uint16_t* __restrict__ kc,
+                                         uint16_t* __restrict__ vc, int heads, int kv_heads, int ring, int global,
+-                                        float qk_clip, float rel_clip, float floor_pos, float alpha, float eps) {
++                                        float qk_clip, float rel_clip, float floor_pos, float alpha, float eps,
++                                        float* __restrict__ ksc, float* __restrict__ vsc) {
+ 
+     const int row = blockIdx.x, y = blockIdx.y, lane = threadIdx.x;
+     const int pos = rpos[row];
+@@ -84,8 +111,27 @@ __device__ __forceinline__ void prepRow(const uint16_t* __restrict__ q_raw, cons
+         for (int i = 0; i < 4; ++i) x[i] *= r;
+     }
+     const Seg s = segs[rseg[row]];
+-    uint16_t* dst = (key ? kc : vc) + s.off + (static_cast<size_t>(h) * ring + pos % ring) * kDim;
+-    for (int i = 0; i < 4; ++i) dst[lane * 4 + i] = tobf(x[i]);
++    const size_t slot = static_cast<size_t>(h) * ring + pos % ring;
++    if constexpr (KV8) {
++        float amax = 0.0f;
++        for (int i = 0; i < 4; ++i) {
++            x[i] = bf(tobf(x[i]));
++            amax = fmaxf(amax, fabsf(x[i]));
++        }
++        amax = warpMax(amax);
++        const float sc = amax > 0.0f ? amax / 448.0f : 1.0f;
++        uint32_t word = 0;
++        for (int i = 0; i < 4; ++i) {
++            const __nv_fp8_e4m3 c(x[i] / sc);
++            word |= static_cast<uint32_t>(c.__x) << (8 * i);
++        }
++        uint8_t* dst = reinterpret_cast<uint8_t*>(key ? kc : vc) + s.off + slot * kDim;
++        reinterpret_cast<uint32_t*>(dst)[lane] = word;
++        if (lane == 0) (key ? ksc : vsc)[s.off / kDim + slot] = sc;
++    } else {
++        uint16_t* dst = (key ? kc : vc) + s.off + slot * kDim;
++        for (int i = 0; i < 4; ++i) dst[lane * 4 + i] = tobf(x[i]);
++    }
+ }
+ 
+ }  // namespace ink2
+@@ -104,7 +150,12 @@ using ink2::Seg;
+         ring, global, qk_clip, rel_clip, floor_pos, alpha, eps
+ 
+ extern "C" __global__ void tf_ink2_prep(TF_INK2_PREP_ARGS) {
+-    ink2::prepRow(TF_INK2_PREP_PASS);
++    ink2::prepRow<false>(TF_INK2_PREP_PASS, nullptr, nullptr);
++}
++
++// tf_ink2_prep into fp8 caches with their scales.
++extern "C" __global__ void tf_ink2_prep8(TF_INK2_PREP_ARGS, float* __restrict__ ksc, float* __restrict__ vsc) {
++    ink2::prepRow<true>(TF_INK2_PREP_PASS, ksc, vsc);
+ }
+ 
+ // tab[row, head, d] = bf16(rel[row, head, :] . proj[:, d]) for d < 1024, fp32 sums in tap order (rel_logits_proj).
+@@ -140,13 +191,14 @@ __device__ __forceinline__ float scaled(float o, float a, float p, float b) {
+ }
+ 
+ // 64 (row, head) pairs of a key head over a block's keys (FOLD: a global chunk, split: a sub-chunk, else a chunk).
+-template <bool FOLD>
++template <bool FOLD, bool KV8>
+ __device__ __forceinline__ void attnTile(const uint16_t* __restrict__ q, const uint16_t* __restrict__ kc,
+                                          const uint16_t* __restrict__ vc, const uint16_t* __restrict__ tab,
+                                          const Seg* __restrict__ segs, const int2* __restrict__ tiles,
+                                          float* __restrict__ part_o, float2* __restrict__ part_ml, int heads,
+                                          int kv_heads, int ring, int window, int chunk, int c0, int chunks,
+-                                         float scale, int split, uint16_t* ks, uint16_t* vs) {
++                                         float scale, int split, uint16_t* ks, uint16_t* vs,
++                                         const float* __restrict__ ksc, const float* __restrict__ vsc) {
+     const int2 tile = tiles[blockIdx.x];
+     const Seg s = segs[tile.x];
+     const int group = heads / kv_heads;
+@@ -211,8 +263,13 @@ __device__ __forceinline__ void attnTile(const uint16_t* __restrict__ q, const u
+                 uint4 kv = make_uint4(0, 0, 0, 0), vv = make_uint4(0, 0, 0, 0);
+                 if (kp >= k_lo && kp <= k_hi) {
+                     const size_t at = head_base + (slot0 + key) * kDim + col;
+-                    kv = *reinterpret_cast<const uint4*>(kc + at);
+-                    vv = *reinterpret_cast<const uint4*>(vc + at);
++                    if constexpr (KV8) {
++                        kv = deq8(*reinterpret_cast<const uint2*>(reinterpret_cast<const uint8_t*>(kc) + at), ksc[at / kDim]);
++                        vv = deq8(*reinterpret_cast<const uint2*>(reinterpret_cast<const uint8_t*>(vc) + at), vsc[at / kDim]);
++                    } else {
++                        kv = *reinterpret_cast<const uint4*>(kc + at);
++                        vv = *reinterpret_cast<const uint4*>(vc + at);
++                    }
+                 }
+                 *reinterpret_cast<uint4*>(ks + key * kPad + col) = kv;
+                 *reinterpret_cast<uint4*>(vs + key * kPad + col) = vv;
+@@ -320,8 +377,22 @@ extern "C" __global__ void __launch_bounds__(128)
+     using namespace ink2;
+     __shared__ __align__(16) uint16_t ks[kKeys * kPad];
+     __shared__ __align__(16) uint16_t vs[kKeys * kPad];
+-    attnTile<false>(q, kc, vc, tab, segs, tiles, part_o, part_ml, heads, kv_heads, ring, window, chunk, c0, chunks,
+-                    scale, split, ks, vs);
++    attnTile<false, false>(q, kc, vc, tab, segs, tiles, part_o, part_ml, heads, kv_heads, ring, window, chunk, c0,
++                           chunks, scale, split, ks, vs, nullptr, nullptr);
++}
++
++// tf_ink2_attn over fp8 caches.
++extern "C" __global__ void __launch_bounds__(128)
++    tf_ink2_attn8(const uint16_t* __restrict__ q, const uint16_t* __restrict__ kc, const uint16_t* __restrict__ vc,
++                  const uint16_t* __restrict__ tab, const Seg* __restrict__ segs, const int2* __restrict__ tiles,
++                  float* __restrict__ part_o, float2* __restrict__ part_ml, int heads, int kv_heads, int ring,
++                  int window, int chunk, int c0, int chunks, float scale, int split, const float* __restrict__ ksc,
++                  const float* __restrict__ vsc) {
++    using namespace ink2;
++    __shared__ __align__(16) uint16_t ks[kKeys * kPad];
++    __shared__ __align__(16) uint16_t vs[kKeys * kPad];
++    attnTile<false, true>(q, kc, vc, tab, segs, tiles, part_o, part_ml, heads, kv_heads, ring, window, chunk, c0,
++                          chunks, scale, split, ks, vs, ksc, vsc);
+ }
+ 
+ // Global layers a chunk a block, its sub-chunks folded in order (prompt calls: no partial a sub-chunk).
+@@ -333,8 +404,22 @@ extern "C" __global__ void __launch_bounds__(128)
+     using namespace ink2;
+     __shared__ __align__(16) uint16_t ks[kKeys * kPad];
+     __shared__ __align__(16) uint16_t vs[kKeys * kPad];
+-    attnTile<true>(q, kc, vc, tab, segs, tiles, part_o, part_ml, heads, kv_heads, ring, 0, chunk, c0, chunks, scale,
+-                   0, ks, vs);
++    attnTile<true, false>(q, kc, vc, tab, segs, tiles, part_o, part_ml, heads, kv_heads, ring, 0, chunk, c0, chunks,
++                          scale, 0, ks, vs, nullptr, nullptr);
++}
++
++// tf_ink2_attn_fold over fp8 caches.
++extern "C" __global__ void __launch_bounds__(128)
++    tf_ink2_attn_fold8(const uint16_t* __restrict__ q, const uint16_t* __restrict__ kc,
++                       const uint16_t* __restrict__ vc, const uint16_t* __restrict__ tab, const Seg* __restrict__ segs,
++                       const int2* __restrict__ tiles, float* __restrict__ part_o, float2* __restrict__ part_ml,
++                       int heads, int kv_heads, int ring, int chunk, int c0, int chunks, float scale,
++                       const float* __restrict__ ksc, const float* __restrict__ vsc) {
++    using namespace ink2;
++    __shared__ __align__(16) uint16_t ks[kKeys * kPad];
++    __shared__ __align__(16) uint16_t vs[kKeys * kPad];
++    attnTile<true, true>(q, kc, vc, tab, segs, tiles, part_o, part_ml, heads, kv_heads, ring, 0, chunk, c0, chunks,
++                         scale, 0, ks, vs, ksc, vsc);
+ }
+ 
+ // Per (row, head): its chunks folded in order (subs > 1: each from its sub-chunks first), the sink, then the gate.
+diff --git a/zig/kernels/cuda/inkling2/prompt_attention.cu b/zig/kernels/cuda/inkling2/prompt_attention.cu
+index 97a03657..416e3c53 100644
+--- a/zig/kernels/cuda/inkling2/prompt_attention.cu
++++ b/zig/kernels/cuda/inkling2/prompt_attention.cu
+@@ -1,6 +1,7 @@
+ // Inkling 2 global-layer prompt attention: 128 (row, head) pairs share each K/V tile, with the split path's bits.
+ #include <cstdint>
+ #include <cuda_bf16.h>
++#include <cuda_fp8.h>
+ 
+ #include "common/qmm_frag.cuh"
+ 
+@@ -46,31 +47,63 @@ __device__ __forceinline__ float scaled(float o, float a, float p, float b) {
+     return __fadd_rn(__fmul_rn(o, a), __fmul_rn(p, b));
+ }
+ 
++__device__ __forceinline__ float fp8f(uint32_t byte) {
++    __nv_fp8_e4m3 c;
++    c.__x = static_cast<__nv_fp8_storage_t>(byte);
++    return static_cast<float>(c);
++}
++
++// Eight e4m3 codes times their row's scale, each rounded to bf16 (attention.cu's deq8).
++__device__ __forceinline__ uint4 deq8(uint2 c, float sc) {
++    uint32_t w[4];
++    const uint32_t in[2] = {c.x, c.y};
++    for (int i = 0; i < 4; ++i) {
++        const uint32_t word = in[i >> 1] >> ((i & 1) * 16);
++        w[i] = pack(tobf(fp8f(word & 0xff) * sc), tobf(fp8f((word >> 8) & 0xff) * sc));
++    }
++    return make_uint4(w[0], w[1], w[2], w[3]);
++}
++
+ // The half offset of a tile's 16-byte piece `c` (dims 8c..8c+7) of key `key`: pieces XOR-swizzled by key & 7.
+ __device__ __forceinline__ int piece(int key, int c) { return key * kDim + ((c ^ (key & 7)) << 3); }
+ 
+-// The K/V tile load: keys kt..kt+63 of a key head into the stage's bf16 tiles, zeros outside [k_lo, k_hi] (async).
++// The K/V tile load: keys kt..kt+63 of a key head into the stage's bf16 tiles, zeros outside [k_lo, k_hi] (async;
++// KV8: fp8 codes dequantized and stored in place, the group committed empty so the stage count stays the same).
++template <bool KV8>
+ __device__ __forceinline__ void loadTile(uint16_t* ks, uint16_t* vs, const uint16_t* __restrict__ kc,
+                                          const uint16_t* __restrict__ vc, size_t head_base, int ring, int kt,
+-                                         int k_lo, int k_hi) {
++                                         int k_lo, int k_hi, const float* __restrict__ ksc,
++                                         const float* __restrict__ vsc) {
+     const size_t slot0 = static_cast<size_t>(kt % ring);
+     for (int e = threadIdx.x; e < kKeys * (kDim / 8); e += kThreads) {
+         const int key = e >> 4, col = (e & 15) * 8;
+         const int kp = kt + key;
+         const bool in = kp >= k_lo && kp <= k_hi;
+         const size_t at = in ? head_base + (slot0 + key) * kDim + col : head_base;
+-        tf_common::cp16z(ks + piece(key, e & 15), kc + at, in);
+-        tf_common::cp16z(vs + piece(key, e & 15), vc + at, in);
++        if constexpr (KV8) {
++            uint4 kv = make_uint4(0, 0, 0, 0), vv = make_uint4(0, 0, 0, 0);
++            if (in) {
++                kv = deq8(*reinterpret_cast<const uint2*>(reinterpret_cast<const uint8_t*>(kc) + at), ksc[at / kDim]);
++                vv = deq8(*reinterpret_cast<const uint2*>(reinterpret_cast<const uint8_t*>(vc) + at), vsc[at / kDim]);
++            }
++            *reinterpret_cast<uint4*>(ks + piece(key, e & 15)) = kv;
++            *reinterpret_cast<uint4*>(vs + piece(key, e & 15)) = vv;
++        } else {
++            tf_common::cp16z(ks + piece(key, e & 15), kc + at, in);
++            tf_common::cp16z(vs + piece(key, e & 15), vc + at, in);
++        }
+     }
+     tf_common::cp_commit();
+ }
+ 
+ // A block's prompt pairs (tile of kPairs pairs, key head, chunk).
++template <bool KV8>
+ __device__ __forceinline__ void promptTile(const uint16_t* __restrict__ q, const uint16_t* __restrict__ kc,
+                                            const uint16_t* __restrict__ vc, const uint16_t* __restrict__ tab,
+                                            const Seg* __restrict__ segs, float* __restrict__ part_o,
+                                            float2* __restrict__ part_ml, int heads, int kv_heads, int ring,
+-                                           int chunk, int c0, int chunks, float scale, uint16_t* smem) {
++                                           int chunk, int c0, int chunks, float scale, uint16_t* smem,
++                                           const float* __restrict__ ksc, const float* __restrict__ vsc) {
+     const Seg s = segs[0];
+     const int group = heads / kv_heads;
+     const int total = s.n * group;
+@@ -118,8 +151,8 @@ __device__ __forceinline__ void promptTile(const uint16_t* __restrict__ q, const
+     const uint16_t* k16 = kc;
+     const uint16_t* v16 = vc;
+     for (int st = 0; st < kStages - 1; ++st) {
+-        if (st < n_tiles) loadTile(smem + st * kStage, smem + st * kStage + kTile, k16, v16, head_base, ring,
+-                                   b_lo + st * kKeys, b_lo, k_hi);
++        if (st < n_tiles) loadTile<KV8>(smem + st * kStage, smem + st * kStage + kTile, k16, v16, head_base,
++                                        ring, b_lo + st * kKeys, b_lo, k_hi, ksc, vsc);
+         else tf_common::cp_commit();
+     }
+     for (int it = 0; it < n_tiles; ++it) {
+@@ -134,7 +167,7 @@ __device__ __forceinline__ void promptTile(const uint16_t* __restrict__ q, const
+         __syncthreads();  // tile `it` is in; every warp is past tile it-1, whose stage the next load takes
+         if (it + kStages - 1 < n_tiles) {
+             uint16_t* nx = smem + ((it + kStages - 1) % kStages) * kStage;
+-            loadTile(nx, nx + kTile, k16, v16, head_base, ring, kt + (kStages - 1) * kKeys, b_lo, k_hi);
++            loadTile<KV8>(nx, nx + kTile, k16, v16, head_base, ring, kt + (kStages - 1) * kKeys, b_lo, k_hi, ksc, vsc);
+         } else {
+             tf_common::cp_commit();
+         }
+@@ -246,5 +279,14 @@ __device__ __forceinline__ void promptTile(const uint16_t* __restrict__ q, const
+ // One stream's prompt rows on a global layer with bf16 caches.
+ extern "C" __global__ void __launch_bounds__(ink2p::kThreads, 1) tf_ink2_attn_prompt(TF_INK2_PROMPT_ARGS) {
+     extern __shared__ __align__(16) uint16_t smem[];
+-    ink2p::promptTile(q, kc, vc, tab, segs, part_o, part_ml, heads, kv_heads, ring, chunk, c0, chunks, scale, smem);
++    ink2p::promptTile<false>(q, kc, vc, tab, segs, part_o, part_ml, heads, kv_heads, ring, chunk, c0, chunks, scale,
++                             smem, nullptr, nullptr);
++}
++
++// tf_ink2_attn_prompt over fp8 caches.
++extern "C" __global__ void __launch_bounds__(ink2p::kThreads, 1)
++    tf_ink2_attn_prompt8(TF_INK2_PROMPT_ARGS, const float* __restrict__ ksc, const float* __restrict__ vsc) {
++    extern __shared__ __align__(16) uint16_t smem[];
++    ink2p::promptTile<true>(q, kc, vc, tab, segs, part_o, part_ml, heads, kv_heads, ring, chunk, c0, chunks, scale,
++                            smem, ksc, vsc);
+ }
+diff --git a/zig/src/families/inkling2/kernels.zig b/zig/src/families/inkling2/kernels.zig
+index cfdf45eb..06be8b17 100644
+--- a/zig/src/families/inkling2/kernels.zig
++++ b/zig/src/families/inkling2/kernels.zig
+@@ -45,10 +45,25 @@ pub const Layer = struct {
+     pub fn cacheBytes(l: Layer, kv: usize) usize {
+         return @as(usize, l.ring) * kv * head_dim * 2;
+     }
++
++    /// The same as fp8 codes plus their fp32 scale a (key head, slot) (--kv-cache fp8).
++    pub fn cacheBytes8(l: Layer, kv: usize) usize {
++        return @as(usize, l.ring) * kv * (head_dim + 4);
++    }
+ };
+ 
+-/// A layer's caches (addresses): K and V rows.
+-pub const Cache = struct { k: u64, v: u64 };
++/// A layer's caches (addresses): K and V rows; with `ks`/`vs`, fp8 codes and their fp32 scale a (key head, slot),
++/// the scale of the row at element offset e at ks[e / 128] (bf16 rows when 0).
++pub const Cache = struct {
++    k: u64,
++    v: u64,
++    ks: u64 = 0,
++    vs: u64 = 0,
++
++    pub fn fp8(c: Cache) bool {
++        return c.ks != 0;
++    }
++};
+ 
+ /// Sliding ring slots: the window plus a call's rows less one, so a chunk never overwrites keys it still reads.
+ pub fn ringFor(window: u32, rows: u32) u32 {
+@@ -96,6 +111,11 @@ pub const Kernels = struct {
+     merge: cuda.Function,
+     pmod: cuda.Module,
+     attn_prompt: cuda.Function,
++    // fp8 caches: the same launches with the scales after their arguments
++    prep8: cuda.Function,
++    attn8: cuda.Function,
++    attn_fold8: cuda.Function,
++    attn_prompt8: cuda.Function,
+ 
+     pub fn load(d: *const cuda.Driver) !Kernels {
+         if (!cuda.kernels.available) return error.BuiltWithoutKernels;
+@@ -105,10 +125,16 @@ pub const Kernels = struct {
+         errdefer pmod.unload();
+         const attn_prompt = try pmod.function("tf_ink2_attn_prompt");
+         try attn_prompt.allowDynamicShared(prompt_shared);
++        const attn_prompt8 = try pmod.function("tf_ink2_attn_prompt8");
++        try attn_prompt8.allowDynamicShared(prompt_shared);
+         return .{
+             .mod = mod,
+             .pmod = pmod,
+             .attn_prompt = attn_prompt,
++            .attn_prompt8 = attn_prompt8,
++            .prep8 = try mod.function("tf_ink2_prep8"),
++            .attn8 = try mod.function("tf_ink2_attn8"),
++            .attn_fold8 = try mod.function("tf_ink2_attn_fold8"),
+             .prep = try mod.function("tf_ink2_prep"),
+             .rel_table = try mod.function("tf_ink2_rel_table"),
+             .attn = try mod.function("tf_ink2_attn"),
+@@ -170,7 +196,11 @@ pub fn prep(k: *const Kernels, s: cuda.Stream, r: Rows, l: Layer, c: Prep, raw:
+     a.add(int(l.ring));
+     a.add(int(@intFromBool(l.tau)));
+     for ([_]f32{ c.qk_clip, c.rel_clip, c.floor, c.alpha, c.eps }) |v| a.add(v);
+-    try go(k.prep, s, .{ .x = r.rows, .y = r.heads + 2 * r.kv_heads }, 32, &a);
++    if (kv.fp8()) {
++        a.add(kv.ks);
++        a.add(kv.vs);
++    }
++    try go(if (kv.fp8()) k.prep8 else k.prep, s, .{ .x = r.rows, .y = r.heads + 2 * r.kv_heads }, 32, &a);
+ }
+ 
+ /// The bias table of each (row, head): its rel vector against the layer's rel_logits_proj [16][1024].
+@@ -193,7 +223,8 @@ pub fn attend(k: *const Kernels, s: cuda.Stream, r: Rows, l: Layer, stride: u32,
+         for ([_]u32{ r.heads, r.kv_heads, l.ring, l.window, l.chunk, 0, stride }) |v| a.add(int(v));
+         a.add(scale);
+         a.add(int(0));
+-        try go(k.attn, s, .{ .x = r.n_tiles, .y = r.kv_heads, .z = tileChunks(r.heads / r.kv_heads, l) }, 128, &a);
++        addScales(&a, kv);
++        try go(if (kv.fp8()) k.attn8 else k.attn, s, .{ .x = r.n_tiles, .y = r.kv_heads, .z = tileChunks(r.heads / r.kv_heads, l) }, 128, &a);
+     } else if (split(r, stride, slots)) {
+         // every sub-chunk of `stride` chunks (past the rows return at once), so graphs replay by stride
+         per = subs;
+@@ -201,18 +232,21 @@ pub fn attend(k: *const Kernels, s: cuda.Stream, r: Rows, l: Layer, stride: u32,
+         for ([_]u32{ r.heads, r.kv_heads, l.ring, 0, l.chunk, 0, slots_rh }) |v| a.add(int(v));
+         a.add(scale);
+         a.add(int(1));
+-        try go(k.attn, s, .{ .x = r.n_tiles, .y = r.kv_heads, .z = slots_rh }, 128, &a);
++        addScales(&a, kv);
++        try go(if (kv.fp8()) k.attn8 else k.attn, s, .{ .x = r.n_tiles, .y = r.kv_heads, .z = slots_rh }, 128, &a);
+     } else if (r.streams == 1) { // one stream's rows: 128 pairs a block share each K/V tile, the fold's bits
+         var p: cuda.Args = .{};
+         for ([_]u64{ q, kv.k, kv.v, tab, r.segs, part_o, part_ml }) |v| p.add(v);
+         for ([_]u32{ r.heads, r.kv_heads, l.ring, l.chunk, 0, stride }) |v| p.add(int(v));
+         p.add(scale);
++        addScales(&p, kv);
+         const blocks = std.math.divCeil(u32, r.rows * (r.heads / r.kv_heads), prompt_pairs) catch unreachable;
+-        try goShared(k.attn_prompt, s, .{ .x = blocks, .y = r.kv_heads, .z = stride }, prompt_threads, prompt_shared, &p);
++        try goShared(if (kv.fp8()) k.attn_prompt8 else k.attn_prompt, s, .{ .x = blocks, .y = r.kv_heads, .z = stride }, prompt_threads, prompt_shared, &p);
+     } else { // a block a chunk, its sub-chunks folded in order
+         for ([_]u32{ r.heads, r.kv_heads, l.ring, l.chunk, 0, stride }) |v| a.add(int(v));
+         a.add(scale);
+-        try go(k.attn_fold, s, .{ .x = r.n_tiles, .y = r.kv_heads, .z = stride }, 128, &a);
++        addScales(&a, kv);
++        try go(if (kv.fp8()) k.attn_fold8 else k.attn_fold, s, .{ .x = r.n_tiles, .y = r.kv_heads, .z = stride }, 128, &a);
+     }
+     var b: cuda.Args = .{};
+     for ([_]u64{ part_o, part_ml, sink, gate, r.pos, out }) |v| b.add(v);
+@@ -220,6 +254,13 @@ pub fn attend(k: *const Kernels, s: cuda.Stream, r: Rows, l: Layer, stride: u32,
+     try go(k.merge, s, .{ .x = r.rows * r.heads }, head_dim, &b);
+ }
+ 
++/// An fp8 cache's scales after a launch's arguments (none for bf16 caches: their kernels take none).
++fn addScales(a: *cuda.Args, kv: Cache) void {
++    if (!kv.fp8()) return;
++    a.add(kv.ks);
++    a.add(kv.vs);
++}
++
+ /// Whether a global call runs a block a sub-chunk: few rows, and partials for every row, head and sub-chunk.
+ pub fn split(r: Rows, stride: u32, slots: usize) bool {
+     return r.rows <= split_rows and @as(usize, r.rows) * r.heads * stride * subs <= slots;
+diff --git a/zig/src/families/inkling2/mini_model.zig b/zig/src/families/inkling2/mini_model.zig
+index 63b8d92c..b1176d8b 100644
+--- a/zig/src/families/inkling2/mini_model.zig
++++ b/zig/src/families/inkling2/mini_model.zig
+@@ -148,7 +148,9 @@ pub const Model = struct {
+     slots: usize,
+     sliding: attn.Layer,
+     full: attn.Layer,
+-    kv: [2][config.max_visits]u64 = undefined, // a visit's K and V: [slots][kv][len][128] bf16
++    kv: [2][config.max_visits]u64 = undefined, // a visit's K and V: [slots][kv][len][128] bf16 (kv8: e4m3 codes)
++    kv8: bool = false, // --kv-cache fp8: codes, and an fp32 scale a (slot, key head, position) in `kvs`
++    kvs: [2][config.max_visits]u64 = @splat(@splat(0)), // kv8: a visit's K and V scales [slots][kv][len]
+     conv: [config.max_visits][4]u64 = undefined, // a visit's conv states: fp32 [slots][3][C] by Site
+     s: Scratch = undefined,
+     buffers: std.ArrayList(DeviceBuffer) = .empty,
+@@ -190,8 +192,9 @@ pub const Model = struct {
+         return p;
+     }
+ 
+-    fn blank(gpa: std.mem.Allocator, d: *const cuda.Driver, w: *const wts.Weights, context: usize, slots: usize) Model {
++    fn blank(gpa: std.mem.Allocator, d: *const cuda.Driver, w: *const wts.Weights, context: usize, slots: usize, kv8: bool) Model {
+         return .{
++            .kv8 = kv8,
+             .gpa = gpa,
+             .d = d,
+             .w = w,
+@@ -204,8 +207,8 @@ pub const Model = struct {
+     }
+ 
+     /// The caches and scratch of `slots` streams at `context` positions.
+-    pub fn init(gpa: std.mem.Allocator, d: *const cuda.Driver, s: cuda.Stream, w: *const wts.Weights, k: *const Kernels, context: usize, slots: usize) !Model {
+-        var m = blank(gpa, d, w, context, slots);
++    pub fn init(gpa: std.mem.Allocator, d: *const cuda.Driver, s: cuda.Stream, w: *const wts.Weights, k: *const Kernels, context: usize, slots: usize, kv8: bool) !Model {
++        var m = blank(gpa, d, w, context, slots, kv8);
+         errdefer m.deinit();
+         try m.build(s, k);
+         try s.synchronize();
+@@ -213,8 +216,8 @@ pub const Model = struct {
+     }
+ 
+     /// The device bytes init would allocate.
+-    pub fn openBytes(gpa: std.mem.Allocator, d: *const cuda.Driver, s: cuda.Stream, w: *const wts.Weights, k: *const Kernels, context: usize, slots: usize) !usize {
+-        var m = blank(gpa, d, w, context, slots);
++    pub fn openBytes(gpa: std.mem.Allocator, d: *const cuda.Driver, s: cuda.Stream, w: *const wts.Weights, k: *const Kernels, context: usize, slots: usize, kv8: bool) !usize {
++        var m = blank(gpa, d, w, context, slots, kv8);
+         m.planned = 0;
+         try m.build(s, k);
+         return m.planned.?;
+@@ -226,7 +229,8 @@ pub const Model = struct {
+         const kvw: usize = @as(usize, t.local.kv) * t.local.dim;
+         const v = &m.w.plan.visits;
+         const caches = v.count(.sliding) * m.sliding.ring + v.count(.full) * m.full.ring;
+-        return caches * kvw * 2 * 2 + 2 * v.count(.conv) * 3 * (2 * kvw + 2 * @as(usize, t.hidden)) * 4;
++        const per: usize = if (m.kv8) kvw + 4 * @as(usize, t.local.kv) else kvw * 2; // a position's K (or V) bytes
++        return caches * per * 2 + 2 * v.count(.conv) * 3 * (2 * kvw + 2 * @as(usize, t.hidden)) * 4;
+     }
+ 
+     pub fn deinit(m: *Model) void {
+@@ -244,7 +248,10 @@ pub const Model = struct {
+         var widths: usize = 0; // fp32 columns of every site of every visit
+         for (m.w.plan.visits.slice(), 0..) |step, i| {
+             const len: usize = if (step.of(.full) != null) m.full.ring else m.sliding.ring;
+-            for (0..2) |side| m.kv[side][i] = try m.alloc(m.slots * len * kvw * 2);
++            for (0..2) |side| {
++                m.kv[side][i] = try m.alloc(m.slots * len * kvw * @as(usize, if (m.kv8) 1 else 2));
++                if (m.kv8) m.kvs[side][i] = try m.alloc(m.slots * len * @as(usize, t.local.kv) * 4);
++            }
+             for (std.enums.values(Site)) |site| {
+                 const width: usize = if (site == .k or site == .v) kvw else t.hidden;
+                 m.conv[i][@intFromEnum(site)] = try m.zeros(s, m.slots * 3 * width * 4);
+diff --git a/zig/src/families/inkling2/mini_native.zig b/zig/src/families/inkling2/mini_native.zig
+index ffebe9ef..ead612dc 100644
+--- a/zig/src/families/inkling2/mini_native.zig
++++ b/zig/src/families/inkling2/mini_native.zig
+@@ -24,7 +24,7 @@ pub const snap_lookahead: u32 = 0;
+ /// The server's reading of the room left after the weights; null if unreadable.
+ pub const Room = struct { ctx: *anyopaque, read: *const fn (*anyopaque) ?u64 };
+ /// `loops` is here to refuse it by name: the pass count is the checkpoint's loop_config.
+-pub const Options = struct { context: usize, drafts: bool, segments: usize = 1, slide: bool = false, lanes: u32 = 4, lanes_fixed: bool = false, room: ?Room = null, loops: ?u32 = null };
++pub const Options = struct { context: usize, drafts: bool, segments: usize = 1, slide: bool = false, lanes: u32 = 4, lanes_fixed: bool = false, room: ?Room = null, loops: ?u32 = null, kv8: bool = false };
+ 
+ pub const Loaded = struct {
+     backend: lanes.backend.Backend,
+@@ -55,10 +55,11 @@ const Plan = struct {
+     own: *const Owned,
+     d: *const cuda.Driver,
+     context: usize,
++    kv8: bool,
+ 
+     fn bytes(p: Plan, n: usize) !u64 {
+         const o = p.own;
+-        return try mm.Model.openBytes(o.gpa, p.d, o.s, &o.w, &o.k, p.context, n) + be.Mini.openBytes(o.w.config.text.unpadded_vocab, n);
++        return try mm.Model.openBytes(o.gpa, p.d, o.s, &o.w, &o.k, p.context, n, p.kv8) + be.Mini.openBytes(o.w.config.text.unpadded_vocab, n);
+     }
+ };
+ 
+@@ -86,7 +87,7 @@ pub fn open(gpa: std.mem.Allocator, io: std.Io, ctx: *const cuda.Context, dir: [
+     errdefer own.x.deinit();
+     own.s = try cuda.Stream.init(ctx.d, false);
+     errdefer own.s.deinit();
+-    const plan: Plan = .{ .own = own, .d = ctx.d, .context = context };
++    const plan: Plan = .{ .own = own, .d = ctx.d, .context = context, .kv8 = o.kv8 };
+     const room: u64 = if (o.room) |r| r.read(r.ctx) orelse 0 else std.math.maxInt(u64);
+     const n = fit(room, o.lanes, o.lanes_fixed, plan) catch |e| {
+         if (e == error.ParallelPastMemory) {
+@@ -95,10 +96,10 @@ pub fn open(gpa: std.mem.Allocator, io: std.Io, ctx: *const cuda.Context, dir: [
+         }
+         return e;
+     };
+-    own.m = try mm.Model.init(gpa, ctx.d, own.s, &own.w, &own.k, context, n);
++    own.m = try mm.Model.init(gpa, ctx.d, own.s, &own.w, &own.k, context, n, o.kv8);
+     errdefer own.m.deinit();
+     own.b = try be.Mini.init(gpa, ctx.d, &own.m, &own.k, &own.x, own.s, own.w.config.image_token);
+-    std.log.info("Inkling 2 Mini: {d} visits a token ({d} sliding, {d} full, {d} conv slots a stream), {d} streams of {d} positions, {d:.2} GiB of weights", .{ own.w.plan.visits.len, own.w.plan.visits.count(.sliding), own.w.plan.visits.count(.full), own.w.plan.visits.count(.conv), n, context, gib(own.w.bytes) });
++    std.log.info("Inkling 2 Mini: {d} visits a token ({d} sliding, {d} full, {d} conv slots a stream), {d} streams of {d} positions ({s} caches), {d:.2} GiB of weights", .{ own.w.plan.visits.len, own.w.plan.visits.count(.sliding), own.w.plan.visits.count(.full), own.w.plan.visits.count(.conv), n, context, if (o.kv8) "fp8" else "bf16", gib(own.w.bytes) });
+     return .{
+         .backend = own.b.backend(),
+         .facts = own.b.facts(),
+diff --git a/zig/src/families/inkling2/mini_snap.zig b/zig/src/families/inkling2/mini_snap.zig
+index 35688a86..4f48ba5b 100644
+--- a/zig/src/families/inkling2/mini_snap.zig
++++ b/zig/src/families/inkling2/mini_snap.zig
+@@ -17,8 +17,9 @@ pub fn tail(window: usize, at: usize) usize {
+     return @min(at, window - 1);
+ }
+ 
++/// A cached position's bytes a key head: bf16 rows, or fp8 codes (their scale copied beside them).
+ fn rowBytes(m: *const mm.Model) usize {
+-    return @as(usize, m.c.local.dim) * 2;
++    return @as(usize, m.c.local.dim) * @as(usize, if (m.kv8) 1 else 2);
+ }
+ 
+ fn convWidth(m: *const mm.Model, site: mm.Site) usize {
+@@ -26,7 +27,7 @@ fn convWidth(m: *const mm.Model, site: mm.Site) usize {
+ }
+ 
+ /// Each copy of `slot`'s state at `at`, in order: per visit K then V, each head's kept positions in runs of
+-/// consecutive ring rows; then the visit's four conv states ([3][C] fp32).
++/// consecutive ring rows (fp8 caches: each run's codes, then its scales); then the visit's four conv states.
+ pub fn each(m: *const mm.Model, slot: usize, at: usize, ctx: anytype, comptime f: fn (@TypeOf(ctx), dev: u64, off: usize, len: usize) anyerror!void) !void {
+     const rb = rowBytes(m);
+     const kvh: usize = m.c.local.kv;
+@@ -43,6 +44,11 @@ pub fn each(m: *const mm.Model, slot: usize, at: usize, ctx: anytype, comptime f
+                 const run = @min(at - p, len - row);
+                 try f(ctx, base + row * rb, off, run * rb);
+                 off += run * rb;
++                if (m.kv8) { // the run's scales: an fp32 a position, [slots][kv][len] as the codes
++                    const sb = m.kvs[side][v] + ((slot * kvh + h) * len + row) * 4;
++                    try f(ctx, sb, off, run * 4);
++                    off += run * 4;
++                }
+                 p += run;
+             }
+         };
+diff --git a/zig/src/families/inkling2/mini_visit.zig b/zig/src/families/inkling2/mini_visit.zig
+index e7e8da88..000ab62b 100644
+--- a/zig/src/families/inkling2/mini_visit.zig
++++ b/zig/src/families/inkling2/mini_visit.zig
+@@ -216,7 +216,7 @@ fn visitOne(m: *Model, k: *const Kernels, s: cuda.Stream, r: *const Rows, v: u32
+     // q, rel and the caches' new K and V rows, the bias table, then attention through the sink and the output gate
+     const l = if (global) m.full else m.sliding;
+     const rows: attn.Rows = .{ .rows = @intCast(n), .heads = t.local.q, .kv_heads = t.local.kv, .pos = m.s.pos, .seg_of = m.s.seg_of, .segs = m.s.segs[@intFromBool(global)], .tiles = m.s.tiles, .n_tiles = r.n_tiles, .last_pos = r.last_pos, .streams = @intCast(r.streams) };
+-    const cache: attn.Cache = .{ .k = m.kv[0][v], .v = m.kv[1][v] };
++    const cache: attn.Cache = .{ .k = m.kv[0][v], .v = m.kv[1][v], .ks = m.kvs[0][v], .vs = m.kvs[1][v] };
+     const prep: attn.Prep = .{ .qk_clip = t.qk_clip, .rel_clip = t.rel_clip, .floor = @floatFromInt(t.log_floor), .alpha = t.log_alpha, .eps = t.eps };
+     try attn.prep(&k.attn, s, rows, l, prep, .{ o.q, m.s.kc, m.s.vc, o.rel }, .{ a.q_scale, a.rel_scale }, m.s.qp, m.s.relp, cache);
+     try attn.relTable(&k.attn, s, rows, m.s.relp, a.rel_proj, m.s.tab);
+diff --git a/zig/tests/cuda/inkling2_mini_tests.zig b/zig/tests/cuda/inkling2_mini_tests.zig
+index 43bb5fdf..9226acc6 100644
+--- a/zig/tests/cuda/inkling2_mini_tests.zig
++++ b/zig/tests/cuda/inkling2_mini_tests.zig
+@@ -25,7 +25,7 @@ pub const Rig = struct {
+         errdefer r.k.deinit();
+         r.s = try cuda.Stream.init(gpu.d, false);
+         errdefer r.s.deinit();
+-        r.m = try mm.Model.init(gpu.gpa, gpu.d, r.s, &r.w, &r.k, context, slots);
++        r.m = try mm.Model.init(gpu.gpa, gpu.d, r.s, &r.w, &r.k, context, slots, false);
+     }
+ 
+     pub fn deinit(r: *Rig) void {

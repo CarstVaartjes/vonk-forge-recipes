@@ -1,0 +1,553 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "bc811ac7ac68c6fca116a49750baca817b8613a30abface8a347682b55d132e3",
+        "repository": "lmsysorg/sglang"
+      },
+      "context": {
+        "path": "adapters/inkling/knapcio-single"
+      },
+      "dockerfile": "adapters/inkling/knapcio-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-2-mini-nvfp4-dspark-knapcio-sglang-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "inkling-2-mini"
+      ],
+      "port": 30000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-02f4cd9085ae-b335630551",
+          "id": "readme-02f4cd9085ae-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-53a9035f3255-00824420d1",
+          "id": "chat-template-53a9035f3255-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-8216dd43157f-587cb980af",
+          "id": "config-8216dd43157f-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-a08737c07a65-97dd3d578b",
+          "id": "generation-config-a08737c07a65-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-7c656207d3ce-a481ad90fa",
+          "id": "hf-quant-config-7c656207d3ce-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00001-65e60f51aa12-914d077e93",
+          "id": "model-00001-of-00001-65e60f51aa12-914d077e93",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-c1631065b7b0-0a05be8238",
+          "id": "model-safetensors-index-c1631065b7b0-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mtp-7c3b651317f0-265929bffe",
+          "id": "mtp-7c3b651317f0-265929bffe",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d7350adce18c-27f0cb76af",
+          "id": "processor-config-d7350adce18c-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-c16f44b35945-c07a9be597",
+          "id": "special-tokens-map-c16f44b35945-c07a9be597",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-f170372dd655-86f223d688",
+          "id": "tokenizer-f170372dd655-86f223d688",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-7f332727f9a3-224931eb13",
+          "id": "tokenizer-7f332727f9a3-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-bf09342d2851-94d5c6ba8f",
+          "id": "tokenizer-config-bf09342d2851-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "ab2b3d76ea9855994f7775f352a0a443d993e16f4df36ab24d7e24199472e68a",
+        "kind": "model",
+        "publisher": "thinkingmachines",
+        "slug": "inkling-2-mini-nvfp4-1fb4134b"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Thinking Machines Lab (model, Apache-2.0)",
+      "knapcio (recipe and speed overlays, MIT)",
+      "SGLang contributors (lmsysorg/sglang:inkling-2-mini image, Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/knapcio/Inkling-2-Mini-1x-DGX-Spark/tree/6d89c0ec24cca90ce58991446cf74b1dac449cc8"
+  },
+  "release": {
+    "released_at": "2026-11-24",
+    "version": "2.7.2"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model-path",
+        "setting": null,
+        "value": "/models"
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "inkling-2-mini"
+      },
+      {
+        "name": "tp",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "ep",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "fa4"
+      },
+      {
+        "name": "dtype",
+        "setting": null,
+        "value": "bfloat16"
+      },
+      {
+        "name": "page-size",
+        "setting": null,
+        "value": 128
+      },
+      {
+        "name": "speculative-algorithm",
+        "setting": null,
+        "value": "DSPARK"
+      },
+      {
+        "name": "speculative-num-draft-tokens",
+        "setting": null,
+        "value": 8
+      },
+      {
+        "name": "speculative-use-block-verification",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "max-running-requests",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "cuda-graph-max-bs-decode",
+        "setting": null,
+        "value": 48
+      },
+      {
+        "name": "mem-fraction-static",
+        "setting": null,
+        "value": "0.89"
+      },
+      {
+        "name": "context-length",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "grammar-backend",
+        "setting": null,
+        "value": "xgrammar"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "inkling"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "inkling2"
+      },
+      {
+        "name": "enable-metrics",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "weight-loader-disable-mmap",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "swa-full-tokens-ratio",
+        "setting": null,
+        "value": "0.037"
+      },
+      {
+        "name": "max-mamba-cache-size",
+        "setting": null,
+        "value": 512
+      },
+      {
+        "name": "max-prefill-tokens",
+        "setting": null,
+        "value": 8192
+      }
+    ],
+    "engine": "sglang",
+    "entrypoint": [
+      "/opt/vonk/bin/sglang-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "MAX_JOBS",
+        "value": "4"
+      },
+      {
+        "name": "SGLANG_OPT_INKLING2_VERIFY_REL_BIAS_KERNEL",
+        "value": "1"
+      },
+      {
+        "name": "SGLANG_OPT_DSV41_DSPARK_MID_FOLD",
+        "value": "1"
+      },
+      {
+        "name": "SGLANG_OPT_DSV41_DSPARK_PREPARE_INPUTS_ONCE",
+        "value": "1"
+      },
+      {
+        "name": "SGLANG_OPT_DSV41_DSPARK_SKIP_PREFILLED_INPUTS",
+        "value": "1"
+      },
+      {
+        "name": "MALLOC_MMAP_THRESHOLD_",
+        "value": "1048576"
+      },
+      {
+        "name": "SGLANG_RAGGED_VERIFY_MODE",
+        "value": "static"
+      },
+      {
+        "name": "INKLING_KV12S_POOL",
+        "value": "static"
+      },
+      {
+        "name": "INKLING_VERIFY_CAP",
+        "value": "policy:/opt/inkling-overlay/inkling_vcap/policies/r2-theta004.json,bsmax=16"
+      },
+      {
+        "name": "INKLING_VERIFY_CAP_LOG_EVERY",
+        "value": "0"
+      },
+      {
+        "name": "INKLING_DRAFT_BYTES",
+        "value": "gemv,fold8,head8,draftmx8,hotvocab:65536,wide8,w8tile,rnnhoist"
+      },
+      {
+        "name": "INKLING_DRAFT_HOTVOCAB_FILE",
+        "value": "/opt/inkling-overlay/inkling_draftbytes/hotvocab/inkling2-mini-hot-r2.json"
+      },
+      {
+        "name": "INKLING_KERNELS",
+        "value": "moe_tiles,qkvr_gemv"
+      },
+      {
+        "name": "INKLING_MOE_TILES",
+        "value": "1@2304:swap_ab=1,tile_n=32,tile_k=256;1@1152:swap_ab=1,tile_n=32,tile_k=256;8@2304:swap_ab=1,tile_n=32,tile_k=256;8@1152:swap_ab=1,tile_n=32,tile_k=256;64@2304:swap_ab=0,tile_n=64,tile_k=256;64@1152:swap_ab=1,tile_n=32,tile_k=256"
+      },
+      {
+        "name": "INKLING_PICO12",
+        "value": "dense,lmhead,stack1"
+      },
+      {
+        "name": "INKLING_PREFILL",
+        "value": "qkvr_split,bias_layout,quant_once,partial_bf16"
+      },
+      {
+        "name": "INKLING_PREFILL_QKVR_OUT",
+        "value": "strided"
+      },
+      {
+        "name": "INKLING_CERT_HEAD",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_WIDE",
+        "value": "dense,lmhead"
+      },
+      {
+        "name": "INKLING_WIDE_SCOPE",
+        "value": "verify"
+      },
+      {
+        "name": "INKLING_VATTN",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_ATTN",
+        "value": "prefill_swa,prefill_global"
+      },
+      {
+        "name": "INKLING_PFUSE",
+        "value": "all"
+      },
+      {
+        "name": "INKLING_MOE2",
+        "value": "tiles"
+      },
+      {
+        "name": "INKLING_SCODES",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_VERIFY_CAP_FASTPROBS",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_VERIFY_CAP_FUSED_ACCEPT",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_NOEXP",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_KV12",
+        "value": "0"
+      },
+      {
+        "name": "INKLING_KV12_MAX_PAGES",
+        "value": "2048"
+      },
+      {
+        "name": "INKLING_CERT_WIDE",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_KV12S",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_KV12S_OVERFLOW_HEADS",
+        "value": "2048"
+      },
+      {
+        "name": "INKLING_KV12S_FALLBACK_PAGES",
+        "value": "64"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 48
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 20191643271,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 10095821635
+          },
+          "memory": {
+            "peak_bytes": 122648143462,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "inkling-2-mini"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

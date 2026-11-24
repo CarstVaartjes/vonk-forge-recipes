@@ -1,0 +1,489 @@
+diff --git a/zig/kernels/cuda/inkling2/mtp.cu b/zig/kernels/cuda/inkling2/mtp.cu
+index ba5dcb8e8..efd93c9c3 100644
+--- a/zig/kernels/cuda/inkling2/mtp.cu
++++ b/zig/kernels/cuda/inkling2/mtp.cu
+@@ -3,6 +3,8 @@
+ // Small's CUDA DSpark kernels (#4128); widths are Mini's: H 2304, 24 query heads, 8 key heads of 128, rank 256.
+ #include <cstdint>
+ #include <cuda_bf16.h>
++#include <cuda_fp16.h>
++#include <cuda_fp8.h>
+ 
+ #include "common/reduce.cuh"
+ 
+@@ -514,3 +516,135 @@ extern "C" __global__ void __launch_bounds__(256) tf_ink2m_fold(const float* __r
+     if (r < R) phi[static_cast<size_t>(v) * R + r] = o;
+     else beta[v] = o;
+ }
++
++// An FP8 copy of the target's packed BF16 unembedding, for draft logits alone (verification keeps the BF16 head).
++// tf_ink2m_amax: the largest |w| of `total` packed bf16 words into *amax (float bits; zero it first).
++extern "C" __global__ void __launch_bounds__(256) tf_ink2m_amax(const uint16_t* __restrict__ w, long long total,
++                                                                unsigned* __restrict__ amax) {
++    float m = 0.0f;
++    for (long long i = static_cast<long long>(blockIdx.x) * blockDim.x + threadIdx.x; i < total;
++         i += static_cast<long long>(gridDim.x) * blockDim.x)
++        m = fmaxf(m, fabsf(ink2m::bf(w[i])));
++    for (int o = 16; o > 0; o >>= 1) m = fmaxf(m, __shfl_xor_sync(0xffffffffu, m, o));
++    if ((threadIdx.x & 31) == 0) atomicMax(amax, __float_as_uint(m));
++}
++
++namespace ink2m {
++// The k of byte `b` of `lane` in a 64-input FP8 group's 16 bytes a lane (modelopt_pack.cu kin, fp8.zig kin).
++__device__ __forceinline__ int kin8(int lane, int b) {
++    const int p = 16 * (b / 4) + 4 * (lane % 4) + b % 4;
++    return 16 * (p / 16) + 2 * ((p % 16) / 4) + p % 2 + 8 * ((p % 4) / 2);
++}
++}  // namespace ink2m
++
++// Packed BF16 lane [npad/64][k/64][8][4][32][4] into the FP8 lane [npad/64][k/64][8][32][2][8] at e4m3(w * inv).
++extern "C" __global__ void __launch_bounds__(256) tf_ink2m_fp8_lane(const uint16_t* __restrict__ w, uint8_t* __restrict__ out,
++                                                                    int k, float inv, long long total) {
++    const long long i = static_cast<long long>(blockIdx.x) * blockDim.x + threadIdx.x;
++    if (i >= total) return;
++    const int b = i % 8, h = (i / 8) % 2, lane = (i / 16) % 32, a = (i / 512) % 8;
++    const long long tg = i / 4096;
++    const int c = h * 32 + ink2m::kin8(lane, b); // the column within the 64-input group
++    const int r = a * 8 + lane / 4;               // the row within the 64-row tile
++    const int kt = c / 16, q = c % 16, q2 = q % 8;
++    const int blane = (r % 8) * 4 + q2 / 2, e = (q / 8) * 2 + q2 % 2;
++    const long long src = (((tg * 8 + r / 8) * 4 + kt) * 32 + blane) * 4 + e;
++    out[i] = __nv_cvt_float_to_fp8(ink2m::bf(w[src]) * inv, __NV_SATFINITE, __NV_E4M3);
++}
++
++// An FP8 phi for the draft walk (draft logits alone): row v's e4m3 codes at amax_v / 448, its scale in scales[v].
++namespace ink2m {
++__device__ __forceinline__ float f8(uint32_t byte) {
++    const __half_raw h = __nv_cvt_fp8_to_halfraw(static_cast<__nv_fp8_storage_t>(byte), __NV_E4M3);
++    return __half2float(__half(h));
++}
++// lane's 8 phi entries (row bytes [8 lane, 8 lane + 8)) dotted with its 8 latent entries, unscaled
++__device__ __forceinline__ float dot8(uint2 pv, uint4 lv) {
++    const uint32_t lw[4] = {lv.x, lv.y, lv.z, lv.w};
++    float s = 0.0f;
++#pragma unroll
++    for (int i = 0; i < 4; ++i) {
++        const uint32_t p = i < 2 ? pv.x : pv.y, sh = 16 * (i % 2);
++        s += f8((p >> sh) & 0xff) * bf(static_cast<uint16_t>(lw[i] & 0xffff));
++        s += f8((p >> (sh + 8)) & 0xff) * bf(static_cast<uint16_t>(lw[i] >> 16));
++    }
++    return s;
++}
++}  // namespace ink2m
++
++extern "C" __global__ void __launch_bounds__(256) tf_ink2m_phi8(const uint16_t* __restrict__ phi, uint8_t* __restrict__ out,
++                                                                float* __restrict__ scales, int nv) {
++    using namespace ink2m;
++    const int v = blockIdx.x * (blockDim.x >> 5) + (threadIdx.x >> 5), lane = threadIdx.x & 31;
++    if (v >= nv) return;
++    const uint4 pv = reinterpret_cast<const uint4*>(phi + static_cast<size_t>(v) * 256)[lane];
++    const uint32_t pw[4] = {pv.x, pv.y, pv.z, pv.w};
++    float m = 0.0f;
++#pragma unroll
++    for (int i = 0; i < 4; ++i) m = fmaxf(m, fmaxf(fabsf(bf(pw[i] & 0xffff)), fabsf(bf(pw[i] >> 16))));
++    for (int o = 16; o > 0; o >>= 1) m = fmaxf(m, __shfl_xor_sync(0xffffffffu, m, o));
++    const float scale = m > 0.0f ? m / 448.0f : 1.0f, inv = 1.0f / scale;
++    uint32_t q[2] = {0u, 0u};
++#pragma unroll
++    for (int i = 0; i < 4; ++i) {
++        const uint32_t lo = __nv_cvt_float_to_fp8(bf(pw[i] & 0xffff) * inv, __NV_SATFINITE, __NV_E4M3);
++        const uint32_t hi = __nv_cvt_float_to_fp8(bf(pw[i] >> 16) * inv, __NV_SATFINITE, __NV_E4M3);
++        q[i / 2] |= (lo | (hi << 8)) << (16 * (i % 2));
++    }
++    reinterpret_cast<uint2*>(out + static_cast<size_t>(v) * 256)[lane] = make_uint2(q[0], q[1]);
++    if (lane == 0) scales[v] = scale;
++}
++
++namespace ink2m {
++// A sampled stream's draft key: sample.cu's seed and 1 / T, and the position its first walk step's pick is drawn at.
++struct DraftKey {
++    unsigned long long seed;
++    float inv_t; // 0: greedy drafts
++    unsigned pos;
++};
++// sample.cu's keyed uniform (mix, uniform, race_uniform), bit for bit
++__device__ __forceinline__ unsigned long long kmix(unsigned long long x) {
++    x ^= x >> 30;
++    x *= 0xBF58476D1CE4E5B9ull;
++    x ^= x >> 27;
++    x *= 0x94D049BB133111EBull;
++    return x ^ (x >> 31);
++}
++__device__ __forceinline__ float race_u(unsigned long long seed, unsigned pos, unsigned id) {
++    unsigned long long x = kmix(seed + 0x9E3779B97F4A7C15ull);
++    x = kmix(x ^ (static_cast<unsigned long long>(pos) * 0xD1B54A32D192ED03ull));
++    x = kmix(x ^ static_cast<unsigned long long>(id));
++    const float u = (static_cast<float>(static_cast<unsigned>(x >> 40)) + 0.5f) * (1.0f / 16777216.0f);
++    return fminf(u, __uint_as_float(0x3F7FFFFFu));
++}
++}  // namespace ink2m
++
++// tf_ink2m_vocab_n over the FP8 phi (n = 1 is tf_ink2m_vocab's shape): base + beta + scale_v * phi8_v . latent.
++// keys (optional): a sampled stream's logits become its race scores at pos + step, the very noise the target's
++// keyed draw adds there, so its argmax pick is the token the target samples when the two heads agree.
++extern "C" __global__ void __launch_bounds__(256) tf_ink2m_vocab8_n(const uint16_t* __restrict__ base, long long base_stride,
++                                                                    const uint16_t* __restrict__ latent, const uint8_t* __restrict__ phi,
++                                                                    const float* __restrict__ scales, const uint16_t* __restrict__ beta,
++                                                                    float cap, int valid, int nv, float* __restrict__ out,
++                                                                    long long out_stride, int n, const ink2m::DraftKey* __restrict__ keys,
++                                                                    int step) {
++    using namespace ink2m;
++    const int v = blockIdx.x * (blockDim.x >> 5) + (threadIdx.x >> 5), lane = threadIdx.x & 31;
++    if (v >= nv) return;
++    const uint2 pv = reinterpret_cast<const uint2*>(phi + static_cast<size_t>(v) * 256)[lane];
++    const float bt = bf(beta[v]), sc = scales[v];
++    for (int st = 0; st < n; ++st) {
++        const uint4 lv = reinterpret_cast<const uint4*>(latent + static_cast<size_t>(st) * 256)[lane];
++        const float s = tf_common::warp_sum(dot8(pv, lv)) * sc;
++        if (lane == 0) {
++            const float b = bfr(s + bt);
++            const float x = bfr(bf(base[st * base_stride + v]) + b);
++            float o = v < valid ? bfr(tanhf(x / cap) * cap) : -INFINITY;
++            if (keys != nullptr && v < valid) {
++                const DraftKey k = keys[st];
++                if (k.inv_t > 0.0f) o = o * k.inv_t - logf(-logf(race_u(k.seed, k.pos + static_cast<unsigned>(step), v)));
++            }
++            out[st * out_stride + v] = o;
++        }
++    }
++}
+diff --git a/zig/src/families/inkling2/mini_backend.zig b/zig/src/families/inkling2/mini_backend.zig
+index 1181eb601..ba59a14b0 100644
+--- a/zig/src/families/inkling2/mini_backend.zig
++++ b/zig/src/families/inkling2/mini_backend.zig
+@@ -168,7 +168,49 @@ pub const Mini = struct {
+     /// with TF_INKLING2_COPY_DRAFTS=1), streams sharing a forward.
+     pub fn facts(x: *const Mini) lanes.Model {
+         const copies = copyDrafts();
+-        return .{ .copy_drafts = copies, .exact_width = verify_rows, .gpu_tokens = false, .mtp = false, .speculate = false, .hidden_rows = true, .plain_share = true, .batch_rows = round_rows, .max_streams = @intCast(@min(x.m.slots, round_rows)) };
++        return .{ .copy_drafts = copies, .exact_width = verify_rows, .gpu_tokens = false, .mtp = false, .speculate = false, .hidden_rows = true, .plain_share = true, .batch_rows = round_rows, .max_streams = @intCast(@min(x.m.slots, round_rows)), .shared_costs = if (sharedCostsOn()) &shared_costs else &.{}, .window_costs = if (loneCostsOn()) &lone_costs else &.{}, .window_costs_lone = true };
++    }
++
++    /// A shared verify round's ms by total rows on one GB10 (TF_INKLING2_VERIFY_TRACE=1, 2026-11-23, greedy, short
++    /// contexts, 2 to 4 streams). Each MoE row routes to its own experts, so a wide round costs far more than a plain
++    /// one; without these the depth rule drafts every shared stream a full block. Lone streams keep their own rule.
++    const shared_costs = [_]lanes.config.Cost{
++        .{ .width = 1, .ms = 30.1 },  .{ .width = 2, .ms = 38.3 },  .{ .width = 3, .ms = 45.8 },  .{ .width = 4, .ms = 50.6 },
++        .{ .width = 8, .ms = 60.5 },  .{ .width = 12, .ms = 72.0 }, .{ .width = 16, .ms = 76.0 }, .{ .width = 20, .ms = 81.0 },
++        .{ .width = 24, .ms = 88.7 }, .{ .width = 32, .ms = 102.8 },
++    };
++
++    /// A lone stream's verify round ms by rows on the same GB10 (one stream: its conv backup, no graph past one row).
++    const lone_costs = [_]lanes.config.Cost{
++        .{ .width = 1, .ms = 30.1 }, .{ .width = 2, .ms = 36.1 }, .{ .width = 3, .ms = 39.9 }, .{ .width = 4, .ms = 44.9 },
++        .{ .width = 5, .ms = 47.8 }, .{ .width = 6, .ms = 50.6 }, .{ .width = 8, .ms = 58.7 }, .{ .width = 9, .ms = 61.0 },
++    };
++
++    /// TF_INKLING2_LONE_COSTS=1: lone streams priced by lone_costs (default off: their prior rule drafts every round).
++    fn loneCostsOn() bool {
++        const v = std.c.getenv("TF_INKLING2_LONE_COSTS") orelse return false;
++        return v[0] == '1';
++    }
++
++    /// TF_INKLING2_SHARED_COSTS=0: shared rounds priced without forward costs, as before.
++    fn sharedCostsOn() bool {
++        const v = std.c.getenv("TF_INKLING2_SHARED_COSTS") orelse return true;
++        return v[0] != '0';
++    }
++
++    /// TF_INKLING2_VERIFY_TRACE=1: each verify round's rows, streams and wall ms (forward through the draws).
++    fn verifyTrace() bool {
++        const S = struct {
++            var v: ?bool = null;
++        };
++        if (S.v == null) S.v = if (std.c.getenv("TF_INKLING2_VERIFY_TRACE")) |e| e[0] == '1' else false;
++        return S.v.?;
++    }
++
++    fn clockNs() u64 {
++        var t: std.c.timespec = undefined;
++        _ = std.c.clock_gettime(.MONOTONIC, &t);
++        return @as(u64, @intCast(t.sec)) * 1_000_000_000 + @as(u64, @intCast(t.nsec));
+     }
+ 
+     fn copyDrafts() bool {
+@@ -355,6 +397,7 @@ pub const Mini = struct {
+ 
+     fn verify(ptr: *anyopaque, windows: []const be.Window, out: []be.Verified) anyerror!void {
+         const x = self(ptr);
++        const t0: u64 = if (verifyTrace()) clockNs() else 0;
+         const chains = try x.gpa.alloc(mm.Chain, windows.len);
+         defer x.gpa.free(chains);
+         var total: usize = 0;
+@@ -394,6 +437,7 @@ pub const Mini = struct {
+         }
+         var got: [round_rows]u32 = undefined;
+         try x.s.synchronize();
++        if (verifyTrace()) std.log.info("verify rows={d} streams={d} wide={} ms={d:.3}", .{ total, windows.len, wide, @as(f64, @floatFromInt(clockNs() - t0)) / 1e6 });
+         try x.tok.download(ring * 4, std.mem.sliceAsBytes(got[0..total]));
+         at = 0;
+         for (windows, out) |w, o| {
+diff --git a/zig/src/families/inkling2/mini_dspark.zig b/zig/src/families/inkling2/mini_dspark.zig
+index 14f7770b9..b9945e40b 100644
+--- a/zig/src/families/inkling2/mini_dspark.zig
++++ b/zig/src/families/inkling2/mini_dspark.zig
+@@ -50,11 +50,37 @@ const serial_costs = [_]HoldCost{
+     .{ .streams = 1, .depth = 1, .ms = 4.4 }, .{ .streams = 1, .depth = 7, .ms = 6.85 },
+     .{ .streams = 4, .depth = 1, .ms = 17.6 }, .{ .streams = 4, .depth = 7, .ms = 27.4 },
+ };
++/// The same with the FP8 draft head: its read is 1.8 ms shorter a hold pass on the GB10, at every width and depth.
++const batched_costs8 = shifted(&batched_costs, false, 1.8);
++const serial_costs8 = shifted(&serial_costs, true, 1.8); // serial holds read the head once a stream
++fn shifted(comptime t: []const HoldCost, comptime per_stream: bool, comptime saved: f64) [t.len]HoldCost {
++    var out: [t.len]HoldCost = undefined;
++    for (t, &out) |c, *o| {
++        o.* = c;
++        o.ms = c.ms - saved * @as(f64, @floatFromInt(if (per_stream) c.streams else 1));
++    }
++    return out;
++}
+ /// TF_INKLING2_HOLD_COSTS=0: holds priced free, as before.
+ fn costsOn() bool {
+     const v = std.c.getenv("TF_INKLING2_HOLD_COSTS") orelse return true;
+     return v[0] != '0';
+ }
++/// TF_INKLING2_DRAFT_FP8=0: draft logits from the BF16 head, as before.
++fn fp8HeadOn() bool {
++    const v = std.c.getenv("TF_INKLING2_DRAFT_FP8") orelse return true;
++    return v[0] != '0';
++}
++/// TF_INKLING2_DRAFT_PHI8=0: the walk reads the BF16 phi, as before.
++fn phi8On() bool {
++    const v = std.c.getenv("TF_INKLING2_DRAFT_PHI8") orelse return true;
++    return v[0] != '0';
++}
++/// TF_INKLING2_DRAFT_KEYED=0: sampled streams get greedy drafts, as before (keyed drafts need the FP8 phi walk).
++fn keyedOn() bool {
++    const v = std.c.getenv("TF_INKLING2_DRAFT_KEYED") orelse return true;
++    return v[0] != '0';
++}
+ fn batchOn() bool {
+     const v = std.c.getenv("TF_INKLING2_DRAFT_BATCH") orelse return true;
+     return v[0] != '0';
+@@ -102,6 +128,10 @@ const Kernels = struct {
+     pick: cuda.Function,
+     fold: cuda.Function,
+     vocab_n: cuda.Function,
++    amax: cuda.Function,
++    fp8_lane: cuda.Function,
++    phi8: cuda.Function,
++    vocab8_n: cuda.Function,
+ 
+     fn load(d: *const cuda.Driver) !Kernels {
+         if (!cuda.kernels.available) return error.BuiltWithoutKernels;
+@@ -113,6 +143,10 @@ const Kernels = struct {
+             @field(k, name) = try mod.function("tf_ink2m_" ++ name);
+         }
+         k.vocab_n = try mod.function("tf_ink2m_vocab_n");
++        k.amax = try mod.function("tf_ink2m_amax");
++        k.fp8_lane = try mod.function("tf_ink2m_fp8_lane");
++        k.phi8 = try mod.function("tf_ink2m_phi8");
++        k.vocab8_n = try mod.function("tf_ink2m_vocab8_n");
+         return k;
+     }
+ };
+@@ -171,6 +205,11 @@ pub const Drafter = struct {
+     phi: u64 = 0,
+     beta: u64 = 0,
+     dflare: u64 = 0, // [4][H]: the three layers' then the Markov head's
++    head: ?Lane = null, // TF_INKLING2_DRAFT_FP8: an FP8 copy of the target's unembedding for draft logits
++    phi8: u64 = 0, // TF_INKLING2_DRAFT_PHI8: e4m3 phi [V][R] for the walk, row scales in phi_scales (0: the bf16 phi)
++    phi_scales: u64 = 0,
++    keys: u64 = 0, // DraftKey [max_batch]: each held stream's keyed-draw seed, 1 / T and first position (fp8 walk only)
++    keyed: bool = false, // this hold has a sampled stream: its drafts race with the target's noise
+     // scratch, one hold or one absorb pass at a time on the target's stream
+     c: u64 = 0, // bf16 [4][absorb_rows][H]
+     kv: u64 = 0, // bf16 [absorb_rows][2 * kv]
+@@ -256,10 +295,97 @@ pub const Drafter = struct {
+         try x.loadWeights(&ck);
+         try x.scratch();
+         try x.foldHead(&ck);
++        if (fp8HeadOn()) try x.fp8Head();
++        if (phi8On()) try x.fp8Phi();
+         try x.s.synchronize();
+         return x;
+     }
+ 
++    /// The target's unembedding as a per-tensor FP8 lane weight (e4m3 at amax / 448), repacked on the GPU. Only draft
++    /// logits read it: verification keeps the BF16 head, so outputs are unchanged and the hold reads half the bytes.
++    fn fp8Head(x: *Drafter) !void {
++        const u = x.target.unembed;
++        const total: usize = @as(usize, u.npad) * u.k;
++        const amax = try x.alloc(4);
++        try x.d.check(x.d.api.cuMemsetD8Async(amax, 0, 4, x.s.handle), "cuMemsetD8Async");
++        var a: cuda.Args = .{};
++        a.add(u.codes);
++        a.add(@as(i64, @intCast(total)));
++        a.add(amax);
++        try go(x.k.amax, x.s, .{ .x = 1024 }, 256, &a);
++        try x.s.synchronize();
++        var bits: u32 = 0;
++        try cuda.memory.download(x.d, amax, std.mem.asBytes(&bits));
++        const m: f32 = @bitCast(bits);
++        if (!(m > 0) or !std.math.isFinite(m)) return error.DSparkHeadRange;
++        const scale = m / 448.0;
++        const codes = try x.alloc(total);
++        x.weight_bytes += total;
++        var b: cuda.Args = .{};
++        b.add(u.codes);
++        b.add(codes);
++        b.add(@as(i32, @intCast(u.k)));
++        b.add(@as(f32, 1.0 / scale));
++        b.add(@as(i64, @intCast(total)));
++        try go(x.k.fp8_lane, x.s, .{ .x = @intCast((total + 255) / 256) }, 256, &b);
++        x.head = cuda.modelopt.fp8Weight(codes, scale, u.n, u.k);
++    }
++
++    /// phi as e4m3 rows at amax / 448 each: the walk reads half the bytes a step (draft logits alone).
++    fn fp8Phi(x: *Drafter) !void {
++        const V = x.vocab;
++        x.keys = try x.alloc(max_batch * @sizeOf(DraftKey));
++        x.phi8 = try x.alloc(V * rank);
++        x.phi_scales = try x.alloc(V * 4);
++        x.weight_bytes += V * (rank + 4);
++        var a: cuda.Args = .{};
++        for ([_]u64{ x.phi, x.phi8, x.phi_scales }) |v| a.add(v);
++        a.add(@as(i32, @intCast(V)));
++        try go(x.k.phi8, x.s, .{ .x = @intCast((V + 7) / 8) }, 256, &a);
++    }
++
++    /// One walk step's folded logits for `n` streams: base rows `base_stride` apart, latents [n][R], out rows V apart.
++    /// The hold's keys into x.keys: a sampled stream races at its rule's seed and 1 / T from its hold's position.
++    fn upKeys(x: *Drafter, items: []const dr.Hold) !void {
++        x.keyed = false;
++        if (x.phi8 == 0 or !keyedOn()) return;
++        var k: [max_batch]DraftKey = @splat(.{ .seed = 0, .inv_t = 0, .pos = 0 });
++        for (items, 0..) |it, i| if (cuda.sample.ruleFor(it.sampling)) |r| {
++            k[i] = .{ .seed = r.seed, .inv_t = r.inv_t, .pos = @intCast(it.position) };
++            x.keyed = true;
++        };
++        if (x.keyed) try cuda.copy_source.enqueue(x.d, x.keys, std.mem.sliceAsBytes(k[0..items.len]), x.s);
++    }
++
++    fn vocabStep(x: *Drafter, base: u64, base_stride: usize, n: usize, step: usize) !void {
++        const V = x.vocab;
++        var b: cuda.Args = .{};
++        b.add(base);
++        b.add(@as(i64, @intCast(base_stride)));
++        b.add(x.latent);
++        if (x.phi8 != 0) {
++            b.add(x.phi8);
++            b.add(x.phi_scales);
++        } else b.add(x.phi);
++        b.add(x.beta);
++        b.add(@as(f32, cap));
++        b.add(@as(i32, @intCast(V)));
++        b.add(@as(i32, @intCast(V)));
++        b.add(x.logits);
++        b.add(@as(i64, @intCast(V)));
++        b.add(@as(i32, @intCast(n)));
++        if (x.phi8 != 0) {
++            b.add(if (x.keyed) x.keys else @as(u64, 0));
++            b.add(@as(i32, @intCast(step)));
++        }
++        try go(if (x.phi8 != 0) x.k.vocab8_n else x.k.vocab_n, x.s, .{ .x = @intCast((V + 7) / 8) }, 256, &b);
++    }
++
++    /// The weight draft logits read: the FP8 copy if built, else the target's own head.
++    fn draftHead(x: *const Drafter) Lane {
++        return x.head orelse x.target.unembed;
++    }
++
+     fn get(ck: *core.checkpoint.Checkpoint, name: []const u8, shape: []const usize) !core.checkpoint.Tensor {
+         const t = ck.get(name) catch {
+             std.log.err("Inkling 2 Mini DSpark: mtp.safetensors has no {s}", .{name});
+@@ -438,7 +564,8 @@ pub const Drafter = struct {
+ 
+     fn factsFn(ptr: *anyopaque) dr.Facts {
+         const x = self(ptr);
+-        const costs: []const HoldCost = if (!costsOn()) &.{} else if (batchOn()) &batched_costs else &serial_costs;
++        const fp8 = fp8HeadOn();
++        const costs: []const HoldCost = if (!costsOn()) &.{} else if (batchOn()) (if (fp8) &batched_costs8 else &batched_costs) else (if (fp8) &serial_costs8 else &serial_costs);
+         return .{ .depth = depth, .step_ms = 0, .fixed_block = true, .plain_guard = true, .batched = batchOn(), .stream_bytes = laneBytes(x.context), .hold_costs = costs };
+     }
+ 
+@@ -592,7 +719,7 @@ pub const Drafter = struct {
+             try x.resnorm(x.y, x.next_resid, next, x.resid, x.x, false);
+         }
+         // rows 1..7: the head's base logits, and each row's Markov context with the stream's newest f
+-        try x.mm_(x.x + H * 2, H, depth, x.target.unembed, x.base);
++        try x.mm_(x.x + H * 2, H, depth, x.draftHead(), x.base);
+         var k: cuda.Args = .{};
+         for ([_]u64{ x.x + H * 2, sl.newest, x.rnn, x.rnn_bias, x.kappa }) |v| k.add(v);
+         k.add(@as(i32, depth));
+@@ -618,13 +745,15 @@ pub const Drafter = struct {
+             for ([_]u64{ x.state, x.latent }) |v| g.add(v);
+             g.add(@as(i32, rank));
+             try go(x.k.rnn_gate, x.s, .{ .x = 1 }, rank, &g);
+-            var b: cuda.Args = .{};
+-            for ([_]u64{ x.base + j * V * 2, x.latent, x.phi, x.beta }) |v| b.add(v);
+-            b.add(@as(f32, cap));
+-            b.add(@as(i32, @intCast(V)));
+-            b.add(@as(i32, @intCast(V)));
+-            b.add(x.logits);
+-            try go(x.k.vocab, x.s, .{ .x = @intCast((V + 7) / 8) }, 256, &b);
++            if (x.phi8 != 0) try x.vocabStep(x.base + j * V * 2, 0, 1, j) else {
++                var b: cuda.Args = .{};
++                for ([_]u64{ x.base + j * V * 2, x.latent, x.phi, x.beta }) |v| b.add(v);
++                b.add(@as(f32, cap));
++                b.add(@as(i32, @intCast(V)));
++                b.add(@as(i32, @intCast(V)));
++                b.add(x.logits);
++                try go(x.k.vocab, x.s, .{ .x = @intCast((V + 7) / 8) }, 256, &b);
++            }
+             var c: cuda.Args = .{};
+             c.add(x.logits);
+             c.add(@as(i32, @intCast(V)));
+@@ -692,12 +821,16 @@ pub const Drafter = struct {
+             const pending = [1]i32{@intCast(item.pending)};
+             try cuda.copy_source.enqueue(x.d, sl.walk, std.mem.sliceAsBytes(&pending), x.s);
+             try x.encodeBlock(sl, l, anchor);
++            try x.upKeys((&item)[0..1]);
+             try x.draftWalk(sl, n);
+             l.held = @intCast(n);
+         }
+     }
+ };
+ 
++/// mtp.cu's ink2m::DraftKey.
++const DraftKey = extern struct { seed: u64, inv_t: f32, pos: u32 };
++
+ const BatchItem = struct { l: *LaneState, sl: *const Slot, anchor: u64, n: usize };
+ 
+ fn holdBatchImpl(x: *Drafter, items: []const dr.Hold) !void {
+@@ -716,6 +849,7 @@ fn holdBatchImpl(x: *Drafter, items: []const dr.Hold) !void {
+         bi[b] = .{ .l = l, .sl = sl, .anchor = anchor, .n = @min(item.depth, depth) };
+     }
+     try encodeBatch(x, bi[0..N]);
++    try x.upKeys(items);
+     try walkBatch(x, bi[0..N]);
+     for (bi[0..N]) |b| b.l.held = @intCast(b.n);
+ }
+@@ -781,7 +915,7 @@ fn encodeBatch(x: *Drafter, bi: []const BatchItem) !void {
+         try x.resnormRows(x.y, x.next_resid, next, x.resid, x.x, false, rows);
+     }
+     // every row's head logits (row 0 of each block unused), then each stream's Markov contexts
+-    try x.tk.lane.matmulOut(x.s, x.x, H, rows, x.target.unembed, x.base, .bf16, x.part);
++    try x.tk.lane.matmulOut(x.s, x.x, H, rows, x.draftHead(), x.base, .bf16, x.part);
+     for (bi, 0..) |b, s| {
+         var k: cuda.Args = .{};
+         for ([_]u64{ x.x + (s * block + 1) * H * 2, b.sl.newest, x.rnn, x.rnn_bias, x.kappa + s * depth * 3 * rank * 4 }) |v| k.add(v);
+@@ -815,17 +949,7 @@ fn walkBatch(x: *Drafter, bi: []const BatchItem) !void {
+             g.add(@as(i32, rank));
+             try go(x.k.rnn_gate, x.s, .{ .x = 1 }, rank, &g);
+         }
+-        var b2: cuda.Args = .{};
+-        b2.add(x.base + (1 + j) * V * 2);
+-        b2.add(@as(i64, @intCast(block * V)));
+-        for ([_]u64{ x.latent, x.phi, x.beta }) |v| b2.add(v);
+-        b2.add(@as(f32, cap));
+-        b2.add(@as(i32, @intCast(V)));
+-        b2.add(@as(i32, @intCast(V)));
+-        b2.add(x.logits);
+-        b2.add(@as(i64, @intCast(V)));
+-        b2.add(@as(i32, @intCast(N)));
+-        try go(x.k.vocab_n, x.s, .{ .x = @intCast((V + 7) / 8) }, 256, &b2);
++        try x.vocabStep(x.base + (1 + j) * V * 2, block * V, N, j);
+         for (bi, 0..) |b, s| {
+             var c: cuda.Args = .{};
+             c.add(x.logits + s * V * 4);

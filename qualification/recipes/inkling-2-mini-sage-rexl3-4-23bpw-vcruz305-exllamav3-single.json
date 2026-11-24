@@ -1,0 +1,15 @@
+{
+  "id": "vonk-forge/inkling-2-mini-sage-rexl3-4-23bpw-vcruz305-exllamav3-single",
+  "service_recipes": {
+    "alias": "inkling-2-mini-sage-exl3",
+    "higher_tiers": {
+      "stress": [
+        "Bounded long-context canaries at the upstream-measured 24,576-token ceiling (22,839-token prompt), one stream, draft on"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "MIS_A391"
+    ]
+  }
+}

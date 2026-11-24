@@ -1,0 +1,244 @@
+diff --git a/zig/kernels/cuda/inkling2/attention.cu b/zig/kernels/cuda/inkling2/attention.cu
+index ac3eec82e..086020f02 100644
+--- a/zig/kernels/cuda/inkling2/attention.cu
++++ b/zig/kernels/cuda/inkling2/attention.cu
+@@ -4,6 +4,7 @@
+ #include <cuda_fp8.h>
+ 
+ #include "common/qmm_frag.cuh"
++#include "common/cp_async.cuh"
+ 
+ namespace ink2 {
+ 
+@@ -205,7 +206,7 @@ __device__ __forceinline__ float scaled(float o, float a, float p, float b) {
+ }
+ 
+ // 64 (row, head) pairs of a key head over a block's keys (FOLD: a global chunk, split: a sub-chunk, else a chunk).
+-template <bool FOLD, bool KV8>
++template <bool FOLD, bool KV8, bool DB = false>
+ __device__ __forceinline__ void attnTile(const uint16_t* __restrict__ q, const uint16_t* __restrict__ kc,
+                                          const uint16_t* __restrict__ vc, const uint16_t* __restrict__ tab,
+                                          const Seg* __restrict__ segs, const int2* __restrict__ tiles,
+@@ -268,28 +269,7 @@ __device__ __forceinline__ void attnTile(const uint16_t* __restrict__ q, const u
+         m[0] = m[1] = -INFINITY;
+         l[0] = l[1] = 0.0f;
+         const int k_lo = max(s_lo, tile_lo), k_hi = min(s_hi, tile_hi);
+-        for (int kt = k_lo & ~(kKeys - 1); kt <= k_hi; kt += kKeys) {
+-            __syncthreads();
+-            const size_t slot0 = static_cast<size_t>(kt % ring);
+-            for (int e = threadIdx.x; e < kKeys * (kDim / 8); e += 128) {
+-                const int key = e >> 4, col = (e & 15) * 8;
+-                const int kp = kt + key;
+-                uint4 kv = make_uint4(0, 0, 0, 0), vv = make_uint4(0, 0, 0, 0);
+-                if (kp >= k_lo && kp <= k_hi) {
+-                    const size_t at = head_base + (slot0 + key) * kDim + col;
+-                    if constexpr (KV8) {
+-                        kv = deq8(*reinterpret_cast<const uint2*>(reinterpret_cast<const uint8_t*>(kc) + at), ksc[at / kDim]);
+-                        vv = deq8(*reinterpret_cast<const uint2*>(reinterpret_cast<const uint8_t*>(vc) + at), vsc[at / kDim]);
+-                    } else {
+-                        kv = *reinterpret_cast<const uint4*>(kc + at);
+-                        vv = *reinterpret_cast<const uint4*>(vc + at);
+-                    }
+-                }
+-                *reinterpret_cast<uint4*>(ks + key * kPad + col) = kv;
+-                *reinterpret_cast<uint4*>(vs + key * kPad + col) = vv;
+-            }
+-            __syncthreads();
+-            if (!busy) continue;
++        auto compute = [&](const int kt, const uint16_t* ks, const uint16_t* vs) {
+             float sc[8][4];
+             for (int j = 0; j < 8; ++j) {
+                 sc[j][0] = sc[j][1] = sc[j][2] = sc[j][3] = 0.0f;
+@@ -348,6 +328,105 @@ __device__ __forceinline__ void attnTile(const uint16_t* __restrict__ q, const u
+                     qmm_frag::mma(acc[n], a0, a1, a2, a3, b0, b1);
+                 }
+             }
++                };
++        if constexpr (DB) {
++            // TF_INKLING2_ATTN_DB: tile it + 1's keys stream in (cp.async, zero outside [k_lo, k_hi]) while tile it is summed;
++            // the same tiles, data and sums as the loop below, so the same bits
++            const int kt0 = k_lo & ~(kKeys - 1), nt = (k_hi - kt0) / kKeys + 1;
++            // bf16: two stages of K/V tiles; KV8: two stages of codes and scales, dequantized into one K/V tile
++            uint8_t* stage8 = reinterpret_cast<uint8_t*>(vs + kKeys * kPad);  // KV8 only: after the K/V tile
++            constexpr int kCodes = kKeys * kDim;                                 // bytes of a tile's K (or V) codes
++            auto issue = [&](int it) {
++                const int kt = kt0 + it * kKeys;
++                const size_t slot0 = static_cast<size_t>(kt % ring);
++                if constexpr (KV8) {
++                    uint8_t* st = stage8 + (it & 1) * (2 * kCodes + 2 * kKeys * 4);
++                    for (int e = threadIdx.x; e < kKeys * (kDim / 16); e += 128) {
++                        const int key = e >> 3, col = (e & 7) * 16;
++                        const int kp = kt + key;
++                        const bool in = kp >= k_lo && kp <= k_hi;
++                        const size_t at = in ? head_base + (slot0 + key) * kDim + col : head_base;
++                        tf_common::cp16z(st + key * kDim + col, reinterpret_cast<const uint8_t*>(kc) + at, in);
++                        tf_common::cp16z(st + kCodes + key * kDim + col, reinterpret_cast<const uint8_t*>(vc) + at, in);
++                    }
++                    if (threadIdx.x < 2 * (kKeys / 4)) {  // a row's scale each: 16 rows a 16-byte copy, K then V
++                        const int side = threadIdx.x / (kKeys / 4), q4 = threadIdx.x % (kKeys / 4);
++                        float* dst = reinterpret_cast<float*>(st + 2 * kCodes) + side * kKeys + q4 * 4;
++                        const float* src = (side ? vsc : ksc) + head_base / kDim + slot0 + q4 * 4;
++                        bool in = true;
++                        for (int u = 0; u < 4; ++u) in = in && kt + q4 * 4 + u >= k_lo && kt + q4 * 4 + u <= k_hi;
++                        if (in) {
++                            tf_common::cp16z(dst, src, true);
++                        } else {
++                            for (int u = 0; u < 4; ++u) {
++                                const int kp = kt + q4 * 4 + u;
++                                dst[u] = kp >= k_lo && kp <= k_hi ? src[u] : 0.0f;
++                            }
++                        }
++                    }
++                } else {
++                    uint16_t* kd = ks + (it & 1) * kKeys * kPad;
++                    uint16_t* vd = vs + (it & 1) * kKeys * kPad;
++                    for (int e = threadIdx.x; e < kKeys * (kDim / 8); e += 128) {
++                        const int key = e >> 4, col = (e & 15) * 8;
++                        const int kp = kt + key;
++                        const bool in = kp >= k_lo && kp <= k_hi;
++                        const size_t at = in ? head_base + (slot0 + key) * kDim + col : head_base;
++                        tf_common::cp16z(kd + key * kPad + col, kc + at, in);
++                        tf_common::cp16z(vd + key * kPad + col, vc + at, in);
++                    }
++                }
++                tf_common::cp_commit();
++            };
++            issue(0);
++            for (int it = 0; it < nt; ++it) {
++                if (it + 1 < nt) issue(it + 1);
++                else tf_common::cp_commit();
++                tf_common::cp_wait<1>();
++                __syncthreads();
++                if constexpr (KV8) {
++                    // the staged codes and scales through deq8 into the tile, as the synchronous load writes it
++                    const uint8_t* st = stage8 + (it & 1) * (2 * kCodes + 2 * kKeys * 4);
++                    const float* scl = reinterpret_cast<const float*>(st + 2 * kCodes);
++                    for (int e = threadIdx.x; e < kKeys * (kDim / 8); e += 128) {
++                        const int key = e >> 4, col = (e & 15) * 8;
++                        *reinterpret_cast<uint4*>(ks + key * kPad + col) =
++                            deq8(*reinterpret_cast<const uint2*>(st + key * kDim + col), scl[key]);
++                        *reinterpret_cast<uint4*>(vs + key * kPad + col) =
++                            deq8(*reinterpret_cast<const uint2*>(st + kCodes + key * kDim + col), scl[kKeys + key]);
++                    }
++                    __syncthreads();
++                    if (busy) compute(kt0 + it * kKeys, ks, vs);
++                } else {
++                    if (busy) compute(kt0 + it * kKeys, ks + (it & 1) * kKeys * kPad, vs + (it & 1) * kKeys * kPad);
++                }
++                __syncthreads();  // every warp is past this stage (and the tile) before tile it + 2 refills it
++            }
++        } else {
++            for (int kt = k_lo & ~(kKeys - 1); kt <= k_hi; kt += kKeys) {
++                __syncthreads();
++                const size_t slot0 = static_cast<size_t>(kt % ring);
++                for (int e = threadIdx.x; e < kKeys * (kDim / 8); e += 128) {
++                    const int key = e >> 4, col = (e & 15) * 8;
++                    const int kp = kt + key;
++                    uint4 kv = make_uint4(0, 0, 0, 0), vv = make_uint4(0, 0, 0, 0);
++                    if (kp >= k_lo && kp <= k_hi) {
++                        const size_t at = head_base + (slot0 + key) * kDim + col;
++                        if constexpr (KV8) {
++                            kv = deq8(*reinterpret_cast<const uint2*>(reinterpret_cast<const uint8_t*>(kc) + at), ksc[at / kDim]);
++                            vv = deq8(*reinterpret_cast<const uint2*>(reinterpret_cast<const uint8_t*>(vc) + at), vsc[at / kDim]);
++                        } else {
++                            kv = *reinterpret_cast<const uint4*>(kc + at);
++                            vv = *reinterpret_cast<const uint4*>(vc + at);
++                        }
++                    }
++                    *reinterpret_cast<uint4*>(ks + key * kPad + col) = kv;
++                    *reinterpret_cast<uint4*>(vs + key * kPad + col) = vv;
++                }
++                __syncthreads();
++                if (!busy) continue;
++                compute(kt, ks, vs);
++            }
+         }
+         for (int i = 0; i < 2; ++i) {
+             l[i] += __shfl_xor_sync(0xffffffffu, l[i], 1);
+@@ -488,3 +567,20 @@ extern "C" __global__ void tf_ink2_merge(const float* __restrict__ part_o, const
+     const float gv = bf(gate[rh * kDim + d]);
+     out[rh * kDim + d] = tobf(y * (1.0f / (1.0f + expf(-gv))));
+ }
++
++// tf_ink2_attn with each block's next K/V tile prefetched by cp.async while the current one is summed (bf16 caches,
++// TF_INKLING2_ATTN_DB): the same tiles and sums, so the same bits. Two stages of K and V in dynamic shared memory.
++extern "C" __global__ void __launch_bounds__(128)
++    tf_ink2_attn_db(const uint16_t* __restrict__ q, const uint16_t* __restrict__ kc, const uint16_t* __restrict__ vc,
++                    const uint16_t* __restrict__ tab, const Seg* __restrict__ segs, const int2* __restrict__ tiles,
++                    float* __restrict__ part_o, float2* __restrict__ part_ml, int heads, int kv_heads, int ring,
++                    int window, int chunk, int c0, int chunks, float scale, int split) {
++    using namespace ink2;
++    extern __shared__ __align__(16) uint16_t dsm[];
++    uint16_t* ks = dsm;
++    uint16_t* vs = dsm + 2 * kKeys * kPad;
++    const int zn = split ? chunks : static_cast<int>(gridDim.z);
++    for (int zb = blockIdx.z; zb < zn; zb += gridDim.z)
++        attnTile<false, false, true>(q, kc, vc, tab, segs, tiles, part_o, part_ml, heads, kv_heads, ring, window, chunk,
++                                     c0, chunks, scale, split, ks, vs, nullptr, nullptr, zb);
++}
+diff --git a/zig/src/families/inkling2/kernels.zig b/zig/src/families/inkling2/kernels.zig
+index 4298584eb..300975068 100644
+--- a/zig/src/families/inkling2/kernels.zig
++++ b/zig/src/families/inkling2/kernels.zig
+@@ -119,6 +119,7 @@ pub const Kernels = struct {
+     // sliding prompt rows: attention, sink and gate in one launch (TF_INKLING2_SLIDE_PROMPT)
+     attn_slide: cuda.Function,
+     attn_slide8: cuda.Function,
++    attn_db: cuda.Function, // tf_ink2_attn with the next K/V tile prefetched (bf16 caches, TF_INKLING2_ATTN_DB)
+ 
+     pub fn load(d: *const cuda.Driver) !Kernels {
+         if (!cuda.kernels.available) return error.BuiltWithoutKernels;
+@@ -134,7 +135,10 @@ pub const Kernels = struct {
+         try attn_slide.allowDynamicShared(prompt_shared);
+         const attn_slide8 = try pmod.function("tf_ink2_attn_slide8");
+         try attn_slide8.allowDynamicShared(prompt_shared);
++        const attn_db = try mod.function("tf_ink2_attn_db");
++        try attn_db.allowDynamicShared(db_shared);
+         return .{
++            .attn_db = attn_db,
+             .attn_slide = attn_slide,
+             .attn_slide8 = attn_slide8,
+             .mod = mod,
+@@ -291,7 +295,7 @@ pub fn attend(k: *const Kernels, s: cuda.Stream, r: Rows, l: Layer, stride: u32,
+         a.add(scale);
+         a.add(int(0));
+         addScales(&a, kv);
+-        try go(if (kv.fp8()) k.attn8 else k.attn, s, .{ .x = r.n_tiles, .y = r.kv_heads, .z = tileChunks(r.heads / r.kv_heads, l) }, 128, &a);
++        try attnGo(k, s, kv, .{ .x = r.n_tiles, .y = r.kv_heads, .z = tileChunks(r.heads / r.kv_heads, l) }, &a);
+     } else if (split(r, stride, slots)) {
+         // every sub-chunk of `stride` chunks (past the rows return at once), so graphs replay by stride
+         per = subs;
+@@ -300,7 +304,7 @@ pub fn attend(k: *const Kernels, s: cuda.Stream, r: Rows, l: Layer, stride: u32,
+         a.add(scale);
+         a.add(int(1));
+         addScales(&a, kv);
+-        try go(if (kv.fp8()) k.attn8 else k.attn, s, .{ .x = r.n_tiles, .y = r.kv_heads, .z = zBlocks(slots_rh, r.n_tiles * r.kv_heads) }, 128, &a);
++        try attnGo(k, s, kv, .{ .x = r.n_tiles, .y = r.kv_heads, .z = zBlocks(slots_rh, r.n_tiles * r.kv_heads) }, &a);
+     } else if (r.streams == 1) { // one stream's rows: 128 pairs a block share each K/V tile, the fold's bits
+         var p: cuda.Args = .{};
+         for ([_]u64{ q, kv.k, kv.v, tab, r.segs, part_o, part_ml }) |v| p.add(v);
+@@ -354,6 +358,24 @@ fn zBlocks(slots_rh: u32, pairs: u32) u32 {
+     return @min(slots_rh, want);
+ }
+ 
++/// Two stages of a 64-key K and V tile (136-half rows): tf_ink2_attn_db's dynamic shared memory.
++const db_shared: u32 = 2 * 2 * tile_keys * (head_dim + 8) * 2;
++
++/// TF_INKLING2_ATTN_DB=0: tf_ink2_attn loads each K/V tile before summing it, as before (the prefetching form: same bits).
++fn dbOn() bool {
++    const S = struct {
++        var v: ?bool = null;
++    };
++    if (S.v == null) S.v = if (std.c.getenv("TF_INKLING2_ATTN_DB")) |e| e[0] != '0' else true;
++    return S.v.?;
++}
++
++fn attnGo(k: *const Kernels, s: cuda.Stream, kv: Cache, grid: cuda.Dim3, a: *cuda.Args) !void {
++    if (kv.fp8()) return go(k.attn8, s, grid, 128, a); // fp8: prefetching codes then dequantizing measured slower
++    if (dbOn()) return goShared(k.attn_db, s, grid, 128, db_shared, a);
++    return go(k.attn, s, grid, 128, a);
++}
++
+ /// An fp8 cache's scales after a launch's arguments (none for bf16 caches: their kernels take none).
+ fn addScales(a: *cuda.Args, kv: Cache) void {
+     if (!kv.fp8()) return;

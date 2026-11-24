@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+"""Entrypoint for one rank of ajensenwaud's InkSpark recipe (Inkling-2-Small on two Sparks, TensorFold).
+
+The recipe passes named `tensorfold-native serve` options. The platform appends `--tp`, `--rank`,
+`--master VONK_MASTER_ADDR` and `--master-port VONK_MASTER_PORT`. The kit's start.sh places a rank through the
+environment instead (TF_INKLING2_RANK, TF_INKLING2_WORLD=2 and NCCL_COMM_ID=<rank 0's address>:<port>) and passes no
+rank flags, so this wrapper moves the four flags into those variables, resolving the two placeholders from the
+platform's environment, and fails closed when any is missing or malformed. Both ranks run the same serve command,
+as start.sh does. The Controller supplies NCCL_SOCKET_IFNAME, NCCL_IB_HCA and NCCL_IB_GID_INDEX for the link. The
+pack is mounted at /models/target.
+"""
+
+import os
+import sys
+from ipaddress import IPv4Address, ip_address
+
+PLACEMENT = ("--tp", "--rank", "--master", "--master-port")
+
+
+def fail(message):
+    raise SystemExit(f"tensorfold-serve: {message}")
+
+
+def split(arguments):
+    """The serve options, and the platform's placement flags by name."""
+    serve, placement, index = [], {}, 0
+    while index < len(arguments):
+        name = arguments[index]
+        if name in PLACEMENT:
+            if name in placement or index + 1 == len(arguments):
+                fail(f"{name} needs exactly one value")
+            placement[name] = arguments[index + 1]
+            index += 2
+        else:
+            serve.append(name)
+            index += 1
+    return serve, placement
+
+
+def resolve(value, name):
+    return os.environ.get(name, "") if value == name else value
+
+
+def place(placement, environ):
+    """TF_INKLING2_RANK, TF_INKLING2_WORLD and NCCL_COMM_ID for this rank."""
+    if set(placement) != set(PLACEMENT):
+        fail("the InkSpark engine runs on exactly two ranks placed by the platform (--tp, --rank, --master, --master-port)")
+    world, rank = placement["--tp"], placement["--rank"]
+    if world != "2" or rank not in ("0", "1"):
+        fail(f"the InkSpark engine runs rank 0 or 1 of two, not rank {rank} of {world}")
+    address = resolve(placement["--master"], "VONK_MASTER_ADDR")
+    port = resolve(placement["--master-port"], "VONK_MASTER_PORT")
+    try:
+        if not isinstance(ip_address(address), IPv4Address):
+            raise ValueError(address)
+    except ValueError:
+        fail("the InkSpark engine needs rank 0's IPv4 rendezvous address")
+    if not (port.isascii() and port.isdigit() and 1024 <= int(port) <= 65535):
+        fail("the InkSpark engine needs a valid rendezvous port")
+    return dict(environ, TF_INKLING2_RANK=rank, TF_INKLING2_WORLD=world, NCCL_COMM_ID=f"{address}:{port}")
+
+
+def main(arguments):
+    for name in ("HOME", "TMPDIR"):
+        if not os.environ.get(name):
+            fail(f"{name} is not set")
+    serve, placement = split(arguments)
+    environ = place(placement, os.environ)
+    # The platform binds /outputs/cache; the engine's cache and temporary directories below it are created here
+    # (nothing else is writable).
+    for path in (os.path.join(environ["HOME"], ".cache", "tensorfold"), environ["TMPDIR"]):
+        os.makedirs(path, exist_ok=True)
+    os.execvpe("tensorfold-native", ["tensorfold-native", "serve", "/models/target", *serve], environ)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

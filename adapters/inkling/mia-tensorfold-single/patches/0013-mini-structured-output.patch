@@ -1,0 +1,1147 @@
+diff --git a/zig/kernels/cuda/inkling2/ops.cu b/zig/kernels/cuda/inkling2/ops.cu
+index afc32fac1..4d97eb8b7 100644
+--- a/zig/kernels/cuda/inkling2/ops.cu
++++ b/zig/kernels/cuda/inkling2/ops.cu
+@@ -939,3 +939,83 @@ extern "C" __global__ void __launch_bounds__(256) tf_ink2_split_cols(const uint1
+         for (int i = threadIdx.x; i < a.w[p] / 8; i += 256) out[i] = in[i];
+     }
+ }
++
++// Structured output, greedy: row r's argmax over the tokens its grammar bits allow (bit t % 32 of word t / 32,
++// W words a row, tokens past V ignored). The first maximum wins, as the unmasked argmax orders ties; a row with no
++// allowed token holding a finite or +inf score writes 0xFFFFFFFF. The logits are read only.
++template <class T> __device__ __forceinline__ float tf_ink2_score(const T* x, unsigned t);
++template <> __device__ __forceinline__ float tf_ink2_score<float>(const float* x, unsigned t) { return x[t]; }
++template <> __device__ __forceinline__ float tf_ink2_score<__nv_bfloat16>(const __nv_bfloat16* x, unsigned t) { return __bfloat162float(x[t]); }
++
++template <class T> __device__ __forceinline__ void tf_ink2_masked_argmax_rows(const T* L, unsigned V, const unsigned* BITS, unsigned W, unsigned* OUT) {
++    const unsigned row = blockIdx.x;
++    const T* x = L + static_cast<size_t>(row) * V;
++    const unsigned* bits = BITS + static_cast<size_t>(row) * W;
++    float best = 0.0f;
++    unsigned at = 0xFFFFFFFFu;
++    for (unsigned t = threadIdx.x; t < V; t += blockDim.x) {
++        if (((bits[t >> 5] >> (t & 31u)) & 1u) == 0u) continue;
++        const float v = tf_ink2_score<T>(x, t);
++        if (isnan(v) || v == -INFINITY) continue;
++        if (at == 0xFFFFFFFFu || v > best) { best = v; at = t; } // t only grows within a thread: ties keep the first
++    }
++    for (int o = 16; o > 0; o >>= 1) {
++        const float bv = __shfl_down_sync(0xFFFFFFFFu, best, o);
++        const unsigned ba = __shfl_down_sync(0xFFFFFFFFu, at, o);
++        if (ba != 0xFFFFFFFFu && (at == 0xFFFFFFFFu || bv > best || (bv == best && ba < at))) { best = bv; at = ba; }
++    }
++    __shared__ float sv[32];
++    __shared__ unsigned sa[32];
++    const unsigned lane = threadIdx.x & 31u, warp = threadIdx.x >> 5;
++    if (lane == 0) { sv[warp] = best; sa[warp] = at; }
++    __syncthreads();
++    if (warp == 0) {
++        const unsigned nw = (blockDim.x + 31u) >> 5;
++        best = lane < nw ? sv[lane] : 0.0f;
++        at = lane < nw ? sa[lane] : 0xFFFFFFFFu;
++        for (int o = 16; o > 0; o >>= 1) {
++            const float bv = __shfl_down_sync(0xFFFFFFFFu, best, o);
++            const unsigned ba = __shfl_down_sync(0xFFFFFFFFu, at, o);
++            if (ba != 0xFFFFFFFFu && (at == 0xFFFFFFFFu || bv > best || (bv == best && ba < at))) { best = bv; at = ba; }
++        }
++        if (lane == 0) OUT[row] = at;
++    }
++}
++
++extern "C" __global__ void __launch_bounds__(1024) tf_ink2_masked_argmax(const float* L, unsigned V, const unsigned* BITS, unsigned W, unsigned* OUT) {
++    tf_ink2_masked_argmax_rows<float>(L, V, BITS, W, OUT);
++}
++
++// The same over the bf16 rows a sampled draw reads: the guard judges exactly the scores the sampler sees.
++extern "C" __global__ void __launch_bounds__(1024) tf_ink2_masked_argmax16(const __nv_bfloat16* L, unsigned V, const unsigned* BITS, unsigned W, unsigned* OUT) {
++    tf_ink2_masked_argmax_rows<__nv_bfloat16>(L, V, BITS, W, OUT);
++}
++
++// Structured output, sampled: `guard` holds each row's tf_ink2_masked_argmax16 (0xFFFFFFFF: no allowed token has a
++// usable score). Before the draw (after = 0) such a row's bf16 logits get one finite entry, so the sampler never sees
++// an all -inf row. After it (after = 1) a row's drawn token becomes 0xFFFFFFFF when the row had nothing usable or the
++// token is not one its bits allow (W words a row), which the host refuses.
++extern "C" __global__ void tf_ink2_grammar_guard(__nv_bfloat16* L, unsigned V, const unsigned* guard, unsigned* tok, unsigned rows, unsigned after, const unsigned* BITS, unsigned W) {
++    const unsigned r = blockIdx.x * blockDim.x + threadIdx.x;
++    if (r >= rows) return;
++    if (!after) {
++        if (guard[r] == 0xFFFFFFFFu) L[static_cast<size_t>(r) * V] = __float2bfloat16(0.0f);
++        return;
++    }
++    const unsigned t = tok[r];
++    const bool allowed = t < V && ((BITS[static_cast<size_t>(r) * W + (t >> 5)] >> (t & 31u)) & 1u);
++    if (guard[r] == 0xFFFFFFFFu || !allowed) tok[r] = 0xFFFFFFFFu;
++}
++
++// Structured output, sampled: a masked row's NaN logits become -inf and its finite ones stay at or above -1e30, so
++// temperature scaling cannot turn an allowed score into -inf; the guard then judges exactly these scores. Only
++// grammar rows run this; unconstrained draws are unchanged.
++extern "C" __global__ void __launch_bounds__(256) tf_ink2_grammar_scrub(__nv_bfloat16* L, unsigned V) {
++    __nv_bfloat16* x = L + static_cast<size_t>(blockIdx.x) * V;
++    const __nv_bfloat16 floor = __float2bfloat16(-1e30f);
++    for (unsigned t = threadIdx.x; t < V; t += blockDim.x) {
++        const __nv_bfloat16 v = x[t];
++        if (__hisnan(v)) x[t] = __ushort_as_bfloat16(static_cast<unsigned short>(0xFF80u));
++        else if (!__hisinf(v) && __hlt(v, floor)) x[t] = floor;
++    }
++}
+diff --git a/zig/src/core/lanes/drafted.zig b/zig/src/core/lanes/drafted.zig
+index 330f11255..55c06db2f 100644
+--- a/zig/src/core/lanes/drafted.zig
++++ b/zig/src/core/lanes/drafted.zig
+@@ -72,7 +72,7 @@ pub const Drafted = struct {
+     };
+     pub fn backend(x: *Drafted) be.Backend {
+         const planned = if (x.drafter.proposal_head) |service| service.mode != .legacy and x.drafter.vtable.hold_planned != null and x.drafter.vtable.clear_proposals != null else false;
+-        return .{ .proposal_head = x.drafter.proposal_head, .ptr = x, .round_observer = x.target.round_observer, .first_before_draft = x.target.first_before_draft, .penalties = x.target.penalties, .chunk_invariant = x.target.chunk_invariant, .vtable = vtableFor(planned, x.target.vtable.prefill_step != null and x.target.vtable.reports_fill and x.target.vtable.features != null, x.target.vtable.cancel_prefill != null, x.first_rows) };
++        return .{ .proposal_head = x.drafter.proposal_head, .ptr = x, .round_observer = x.target.round_observer, .first_before_draft = x.target.first_before_draft, .penalties = x.target.penalties, .chunk_invariant = x.target.chunk_invariant, .vtable = vtableFor(planned, x.target.vtable.prefill_step != null and x.target.vtable.reports_fill and x.target.vtable.features != null, x.target.vtable.cancel_prefill != null, x.first_rows, x.target.vtable.first_masked != null) };
+     }
+ 
+     const cancellable: [4]be.Backend.VTable = blk: {
+@@ -87,11 +87,18 @@ pub const Drafted = struct {
+         break :blk tables;
+     };
+ 
+-    fn vtableFor(planned: bool, steps: bool, cancels: bool, rows: bool) *const be.Backend.VTable {
+-        if (rows) return &row_tables[@as(usize, @intFromBool(cancels)) * 4 + @as(usize, @intFromBool(steps)) * 2 + @intFromBool(planned)];
+-        if (cancels) return &cancellable[@as(usize, @intFromBool(steps)) * 2 + @intFromBool(planned)];
+-        if (steps) return if (planned) &stepped_planned else &stepped_legacy;
+-        return if (planned) &planned_vtable else &legacy_vtable;
++    /// Every table above, in vtableFor's order: plain (4), cancellable (4), with first rows (8).
++    const all_tables: [16]be.Backend.VTable = .{ legacy_vtable, planned_vtable, stepped_legacy, stepped_planned } ++ cancellable ++ row_tables;
++    /// The same without first_masked, for a target with no grammar draws: structured output is then not offered.
++    const unmasked_tables: [16]be.Backend.VTable = blk: {
++        var tables = all_tables;
++        for (&tables) |*v| v.first_masked = null;
++        break :blk tables;
++    };
++
++    fn vtableFor(planned: bool, steps: bool, cancels: bool, rows: bool, masks: bool) *const be.Backend.VTable {
++        const at: usize = if (rows) 8 + @as(usize, @intFromBool(cancels)) * 4 + @as(usize, @intFromBool(steps)) * 2 + @intFromBool(planned) else if (cancels) 4 + @as(usize, @intFromBool(steps)) * 2 + @intFromBool(planned) else @as(usize, @intFromBool(steps)) * 2 + @intFromBool(planned);
++        return if (masks) &all_tables[at] else &unmasked_tables[at];
+     }
+ 
+     fn cancelPrefill(ptr: *anyopaque, s: *Stream) anyerror!void {
+diff --git a/zig/src/families/inkling2/mini_backend.zig b/zig/src/families/inkling2/mini_backend.zig
+index 2c681b854..ab4ae4641 100644
+--- a/zig/src/families/inkling2/mini_backend.zig
++++ b/zig/src/families/inkling2/mini_backend.zig
+@@ -27,6 +27,7 @@ pub const Draws = struct {
+     mods: [3]cuda.Module,
+     argmax_fn: cuda.Function,
+     to_bf16_fn: cuda.Function,
++    grammar_mask_fn: cuda.Function, // sample.cu's tf_grammar_mask: a sampled row's disallowed bf16 logits to -inf
+     draws: cuda.sample.Draws,
+ 
+     pub fn load(d: *const cuda.Driver) !Draws {
+@@ -42,6 +43,7 @@ pub const Draws = struct {
+         x.draws = try cuda.sample.Draws.resolve(x.mods[0]);
+         x.argmax_fn = try x.mods[1].function("tf_argmax_rows_i32_kernel");
+         x.to_bf16_fn = try x.mods[2].function("tf_f32_to_bf16_kernel");
++        x.grammar_mask_fn = try x.mods[0].function("tf_grammar_mask");
+         return x;
+     }
+ 
+@@ -59,6 +61,16 @@ pub const Draws = struct {
+         try cuda.launch.launch(x.argmax_fn, .{ .grid = .{ .x = @intCast(rows) }, .block = .{ .x = 1024 } }, s, &a);
+     }
+ 
++    /// Rows of bf16 logits (`v` apart) with their disallowed tokens at -inf (`words` u32 of bits a row).
++    fn grammarMask(x: *const Draws, s: cuda.Stream, logits: u64, rows: usize, v: usize, bits: u64, words: usize) !void {
++        var a: cuda.Args = .{};
++        a.add(logits);
++        a.add(@as(u32, @intCast(v)));
++        a.add(bits);
++        a.add(@as(u32, @intCast(words)));
++        try cuda.launch.launch(x.grammar_mask_fn, .{ .grid = .{ .x = @intCast(rows) }, .block = .{ .x = 256 } }, s, &a);
++    }
++
+     fn toBf16(x: *const Draws, s: cuda.Stream, src: u64, dst: u64, n: usize) !void {
+         var a: cuda.Args = .{};
+         a.add(src);
+@@ -113,6 +125,9 @@ pub const Mini = struct {
+     tok: cuda.DeviceBuffer, // drawn tokens: the handle ring, then a round's rows
+     meta: cuda.DeviceBuffer, // a draw's first position minus one, a window each
+     slot_bufs: []cuda.DeviceBuffer, // a slot's last-row logits, then its rule: two a slot
++    bits: cuda.DeviceBuffer, // structured output: a round's rows of allowed-token bits, bits_words apart
++    bits_words: usize, // u32 a row's bits hold: the grammar's padded vocabulary (vocab_size), exactly
++    guard: cuda.DeviceBuffer, // a sampled grammar round's masked argmax a row (0xFFFFFFFF: nothing usable)
+     next: u64 = 0,
+     held: ?cuda.DeviceBuffer = null, // every slot's own tapped rows, verify_rows a slot (once prepare_features)
+ 
+@@ -120,9 +135,14 @@ pub const Mini = struct {
+         return x.m.c.unpadded_vocab;
+     }
+ 
+-    /// The device bytes `init` allocates: bf16 logits, the token ring, metas, each slot's last row and rule.
+-    pub fn openBytes(vocab_: usize, slots: usize) usize {
+-        return round_rows * vocab_ * 2 + (ring + round_rows) * 4 + round_rows * 16 + slots * (vocab_ * 4 + @sizeOf(cuda.sample.Rule));
++    /// The device bytes `init` allocates: bf16 logits, the token ring, metas, grammar bits, each slot's last row and
++    /// rule (`padded`: the config's vocab_size, which the grammar's bits cover).
++    pub fn openBytes(vocab_: usize, padded: usize, slots: usize) usize {
++        return round_rows * vocab_ * 2 + (ring + round_rows) * 4 + round_rows * 16 + round_rows * bitsWords(padded) * 4 + round_rows * 4 + slots * (vocab_ * 4 + @sizeOf(cuda.sample.Rule));
++    }
++
++    fn bitsWords(padded: usize) usize {
++        return (padded + 31) / 32;
+     }
+ 
+     pub fn init(gpa: std.mem.Allocator, d: *const cuda.Driver, m: *mm.Model, k: *const mm.Kernels, x: *const Draws, s: cuda.Stream, image_token: u32) !Mini {
+@@ -136,6 +156,12 @@ pub const Mini = struct {
+         errdefer tok.free();
+         var meta = try cuda.DeviceBuffer.alloc(d, round_rows * 16);
+         errdefer meta.free();
++        const bw = bitsWords(m.c.vocab);
++        if (bw * 32 < v) return error.InvalidGrammarMasks;
++        var bits = try cuda.DeviceBuffer.alloc(d, round_rows * bw * 4);
++        errdefer bits.free();
++        var guard = try cuda.DeviceBuffer.alloc(d, round_rows * 4);
++        errdefer guard.free();
+         const bufs = try gpa.alloc(cuda.DeviceBuffer, 2 * m.slots);
+         errdefer gpa.free(bufs);
+         var made: usize = 0;
+@@ -144,7 +170,7 @@ pub const Mini = struct {
+             b.* = try cuda.DeviceBuffer.alloc(d, if (i % 2 == 0) v * 4 else @sizeOf(cuda.sample.Rule));
+             made += 1;
+         }
+-        return .{ .gpa = gpa, .d = d, .m = m, .k = k, .x = x, .s = s, .image_token = image_token, .free = free, .logits16 = logits16, .tok = tok, .meta = meta, .slot_bufs = bufs };
++        return .{ .gpa = gpa, .d = d, .m = m, .k = k, .x = x, .s = s, .image_token = image_token, .free = free, .logits16 = logits16, .tok = tok, .meta = meta, .bits = bits, .bits_words = bw, .guard = guard, .slot_bufs = bufs };
+     }
+ 
+     pub fn deinit(x: *Mini) void {
+@@ -158,13 +184,15 @@ pub const Mini = struct {
+         x.logits16.free();
+         x.tok.free();
+         x.meta.free();
++        x.bits.free();
++        x.guard.free();
+     }
+ 
+     pub fn backend(x: *Mini) be.Backend {
+         return .{ .ptr = x, .vtable = &vtable };
+     }
+ 
+-    const vtable: be.Backend.VTable = .{ .prefill = prefill, .prefill_step = prefillStep, .first = first, .queue = queue, .read = read, .verify = verify, .keep = keep, .draft = draft, .release = release, .reports_fill = true, .prepare_features = prepareFeatures, .features = features, .prefill_features = prefillFeatures };
++    const vtable: be.Backend.VTable = .{ .prefill = prefill, .prefill_step = prefillStep, .first = first, .first_masked = firstMasked, .queue = queue, .read = read, .verify = verify, .keep = keep, .draft = draft, .release = release, .reports_fill = true, .prepare_features = prepareFeatures, .features = features, .prefill_features = prefillFeatures };
+ 
+     /// The round loop's facts: no draft head of its own; windows of up to verify_rows rows (a drafter's, or copies
+     /// with TF_INKLING2_COPY_DRAFTS=1), streams sharing a forward.
+@@ -228,16 +256,44 @@ pub const Mini = struct {
+         try cuda.copy_source.enqueue(x.d, dst, bytes, x.s);
+     }
+ 
++    /// A grammar's bits a row for `rows` rows: their stride, refused unless it covers the logits and fits the buffer.
++    fn maskWords(x: *const Mini, masks: []const u32, rows: usize) !usize {
++        if (rows == 0 or masks.len != rows * x.bits_words) return error.InvalidGrammarMasks;
++        return x.bits_words;
++    }
++
+     /// Rows [row0, row0 + rows) of fp32 `logits` drawn into tok[at..], row r at `position0 + r` (argmax when greedy).
+-    fn drawRows(x: *Mini, l: *const Lane, logits: u64, row0: usize, rows: usize, position0: u64, at: usize, meta_at: usize) !void {
++    /// `masks` (empty: none) holds each row's allowed tokens; they go to the bits from row `bits_row`. A greedy row takes the
++    /// first maximum among its allowed tokens (0xFFFFFFFF when none has a usable score; read and verify refuse it), a
++    /// sampled row draws with the rest at -inf. The logits are never written, so a prompt's last row stays as it was.
++    fn drawRows(x: *Mini, l: *const Lane, logits: u64, row0: usize, rows: usize, position0: u64, at: usize, meta_at: usize, masks: []const u32, bits_row: usize) !void {
+         const v = x.vocab();
+         const src = logits + row0 * v * 4;
+-        if (!l.sampled) return x.x.argmax(x.s, src, rows, v, x.tok.ptr + at * 4);
++        var bits: u64 = 0;
++        var words: usize = 0;
++        if (masks.len != 0) {
++            words = try x.maskWords(masks, rows);
++            if (bits_row + rows > round_rows) return error.InvalidGrammarMasks;
++            bits = x.bits.ptr + bits_row * x.bits_words * 4;
++            try x.upload(bits, std.mem.sliceAsBytes(masks));
++        }
++        if (!l.sampled) {
++            if (masks.len != 0) return ops.maskedArgmax(&x.k.ops, x.s, src, v, bits, words, rows, x.tok.ptr + at * 4);
++            return x.x.argmax(x.s, src, rows, v, x.tok.ptr + at * 4);
++        }
+         try x.x.toBf16(x.s, src, x.logits16.ptr, rows * v);
++        if (masks.len != 0) {
++            // a row with no usable allowed score draws from one finite logit, then its token becomes the sentinel
++            try x.x.grammarMask(x.s, x.logits16.ptr, rows, v, bits, words);
++            try ops.grammarScrub(&x.k.ops, x.s, x.logits16.ptr, v, rows);
++            try ops.maskedArgmax16(&x.k.ops, x.s, x.logits16.ptr, v, bits, words, rows, x.guard.ptr);
++            try ops.grammarGuard(&x.k.ops, x.s, x.logits16.ptr, v, x.guard.ptr, 0, rows, false, bits, words);
++        }
+         const meta = [4]i32{ @intCast(position0 - 1), 0, 0, 0 };
+         const mp = x.meta.ptr + meta_at * 16;
+         try x.upload(mp, std.mem.asBytes(&meta));
+         try x.x.draws.draw(x.s, x.logits16.ptr, v, l.rule, mp, 0, x.tok.ptr + at * 4, rows, null, null);
++        if (masks.len != 0) try ops.grammarGuard(&x.k.ops, x.s, x.logits16.ptr, v, x.guard.ptr, x.tok.ptr + at * 4, rows, true, bits, words);
+     }
+ 
+     fn freeSlot(x: *const Mini) ?usize {
+@@ -364,7 +420,18 @@ pub const Mini = struct {
+         const l = x.lanes.getPtr(s) orelse return error.UnknownStream;
+         if (position != l.len or l.fill != null) return error.PositionMismatch;
+         const h = x.next;
+-        try x.drawRows(l, l.last, 0, 1, position, x.handle(), 0);
++        try x.drawRows(l, l.last, 0, 1, position, x.handle(), 0, &.{}, 0);
++        return h;
++    }
++
++    /// The first token among the grammar's allowed ones (`mask`: one row of bits).
++    fn firstMasked(ptr: *anyopaque, s: *Stream, position: u64, mask: []const u32) anyerror!u64 {
++        const x = self(ptr);
++        const l = x.lanes.getPtr(s) orelse return error.UnknownStream;
++        if (position != l.len or l.fill != null) return error.PositionMismatch;
++        _ = try x.maskWords(mask, 1);
++        const h = x.next;
++        try x.drawRows(l, l.last, 0, 1, position, x.handle(), 0, mask, 0);
+         return h;
+     }
+ 
+@@ -387,7 +454,7 @@ pub const Mini = struct {
+         l.cut_gen = null;
+         l.len += 1;
+         const h = x.next;
+-        try x.drawRows(l, x.m.s.logits, 0, 1, position, x.handle(), 0);
++        try x.drawRows(l, x.m.s.logits, 0, 1, position, x.handle(), 0, &.{}, 0);
+         return h;
+     }
+ 
+@@ -412,6 +479,7 @@ pub const Mini = struct {
+         var out: [1]u32 = undefined;
+         try x.s.synchronize();
+         try x.tok.download(@intCast((h % ring) * 4), std.mem.sliceAsBytes(&out));
++        if (out[0] >= x.vocab()) return error.NoAllowedToken; // a grammar row with no usable score
+         return out[0];
+     }
+ 
+@@ -422,10 +490,12 @@ pub const Mini = struct {
+         defer x.gpa.free(chains);
+         var total: usize = 0;
+         var wide = false;
++        var masked = false;
+         for (windows, chains) |w, *c| {
+             if (w.held != 0) return error.NoHeldDrafts; // drafts reach this target as host tokens (Drafted)
+             if (w.parents != null) return error.ChainsOnly;
+-            if (w.masks.len != 0) return error.StructuresUnsupported;
++            if (w.masks.len != 0) _ = try x.maskWords(w.masks, w.rows());
++            masked = masked or w.masks.len != 0;
+             const l = x.lanes.getPtr(w.stream) orelse return error.UnknownStream;
+             if (w.rows() > verify_rows) return error.WindowTooWide;
+             l.base = l.len;
+@@ -443,7 +513,8 @@ pub const Mini = struct {
+         if (wide) for (chains) |c| if (c.tokens.len > 1) try x.m.backupSlot(x.k, x.s, c.slot);
+         x.m.hist_on = wide;
+         defer x.m.hist_on = false;
+-        x.m.lazy_ok = total <= ops.Lazy.max_rows and for (windows) |w| {
++        // a grammar's rows need every logit: its mask may refuse every candidate the lazy head keeps
++        x.m.lazy_ok = !masked and total <= ops.Lazy.max_rows and for (windows) |w| {
+             const l = x.lanes.getPtr(w.stream).?;
+             var ok = true;
+             for (0..l.rows.items.len) |r| ok = ok and lazyRow(x, l, w.positions[0] + r, l.row0 + r);
+@@ -459,13 +530,14 @@ pub const Mini = struct {
+         var at: usize = 0;
+         for (windows, 0..) |w, i| {
+             const l = x.lanes.getPtr(w.stream).?;
+-            try x.drawRows(l, x.m.s.logits, at, l.rows.items.len, w.positions[0], ring + at, i);
++            try x.drawRows(l, x.m.s.logits, at, l.rows.items.len, w.positions[0], ring + at, i, w.masks, at);
+             at += l.rows.items.len;
+         }
+         var got: [round_rows]u32 = undefined;
+         try x.s.synchronize();
+         if (verifyTrace()) std.log.info("verify rows={d} streams={d} wide={} ms={d:.3}", .{ total, windows.len, wide, @as(f64, @floatFromInt(clockNs() - t0)) / 1e6 });
+         try x.tok.download(ring * 4, std.mem.sliceAsBytes(got[0..total]));
++        if (masked) for (got[0..total]) |t| if (t >= x.vocab()) return error.NoAllowedToken; // a grammar row with no usable score
+         at = 0;
+         for (windows, out) |w, o| {
+             const l = x.lanes.getPtr(w.stream).?;
+diff --git a/zig/src/families/inkling2/mini_native.zig b/zig/src/families/inkling2/mini_native.zig
+index ead612dc7..55730be8a 100644
+--- a/zig/src/families/inkling2/mini_native.zig
++++ b/zig/src/families/inkling2/mini_native.zig
+@@ -59,7 +59,7 @@ const Plan = struct {
+ 
+     fn bytes(p: Plan, n: usize) !u64 {
+         const o = p.own;
+-        return try mm.Model.openBytes(o.gpa, p.d, o.s, &o.w, &o.k, p.context, n, p.kv8) + be.Mini.openBytes(o.w.config.text.unpadded_vocab, n);
++        return try mm.Model.openBytes(o.gpa, p.d, o.s, &o.w, &o.k, p.context, n, p.kv8) + be.Mini.openBytes(o.w.config.text.unpadded_vocab, o.w.config.text.vocab, n);
+     }
+ };
+ 
+@@ -186,6 +186,7 @@ pub fn explain(_: ?*anyopaque, err: anyerror) ?[]const u8 {
+         error.DSparkNotConfigured, error.UnsupportedDSparkConfig => "--drafter: the checkpoint's mtp_config is not the DSpark head this engine serves (3 layers, block 8, rank 256, taps 5/23/41/48)",
+         error.TapsAfterStreams => "the DSpark drafter attaches before any stream opens",
+         error.StructuresUnsupported => "structured output is not built for Inkling 2 Mini on CUDA yet",
++        error.NoAllowedToken => "structured output: the grammar allowed no token with a usable score at this step",
+         error.CapturedKernels => "Inkling 2 Mini runs on the engine's own kernels: unset TENSORFOLD_CUDA_KERNELS",
+         error.BuiltWithoutKernels => "this build carries no CUDA kernel images: build with -Dnvcc",
+         error.ParallelPastRound => std.fmt.comptimePrint("--parallel: Inkling 2 Mini on CUDA holds at most {d} streams (a round's rows)", .{be.round_rows}),
+@@ -227,7 +228,7 @@ test "Inkling 2 Mini open: --loops and captured kernels are refused by name befo
+ }
+ 
+ test "every refusal of its own is worded, the rest left to the server" {
+-    for ([_]anyerror{ error.Inkling2MiniLoopsFixed, error.Inkling2MiniImages, error.Inkling2MiniNoRollback, error.Inkling2NotLooped, error.Inkling2WeightMap, error.Inkling2Nvfp4Denominator, error.PastContext, error.NoFreeSlot, error.NoDraftHead, error.Inkling2KeepPath, error.Inkling2TapsNotHeld, error.UnsupportedInkling2Taps, error.UnpreparedInkling2Taps, error.TapsAfterStreams, error.DSparkBits, error.DSparkMissingFile, error.DSparkTensorShape, error.UnsupportedDSparkConfig, error.StructuresUnsupported, error.CapturedKernels, error.ParallelPastRound, error.ParallelPastMemory, error.NoStreamFits }) |e| {
++    for ([_]anyerror{ error.Inkling2MiniLoopsFixed, error.Inkling2MiniImages, error.Inkling2MiniNoRollback, error.Inkling2NotLooped, error.Inkling2WeightMap, error.Inkling2Nvfp4Denominator, error.PastContext, error.NoFreeSlot, error.NoDraftHead, error.Inkling2KeepPath, error.Inkling2TapsNotHeld, error.UnsupportedInkling2Taps, error.UnpreparedInkling2Taps, error.TapsAfterStreams, error.DSparkBits, error.DSparkMissingFile, error.DSparkTensorShape, error.UnsupportedDSparkConfig, error.StructuresUnsupported, error.NoAllowedToken, error.CapturedKernels, error.ParallelPastRound, error.ParallelPastMemory, error.NoStreamFits }) |e| {
+         try std.testing.expect(explain(null, e) != null);
+     }
+     try std.testing.expect(explain(null, error.OutOfMemory) == null);
+diff --git a/zig/src/families/inkling2/ops.zig b/zig/src/families/inkling2/ops.zig
+index 8026ed2d5..62231ac91 100644
+--- a/zig/src/families/inkling2/ops.zig
++++ b/zig/src/families/inkling2/ops.zig
+@@ -79,6 +79,10 @@ pub const Kernels = struct {
+     race1: cuda.Function,
+     lazy: [8]cuda.Function, // the certified lazy head: delta, prep, low, pick, fill, exact, full, low2
+     split_cols: cuda.Function,
++    masked_argmax: cuda.Function,
++    masked_argmax16: cuda.Function,
++    grammar_guard: cuda.Function,
++    grammar_scrub: cuda.Function,
+ 
+     pub fn load(d: *const cuda.Driver) !Kernels {
+         if (!cuda.kernels.available) return error.BuiltWithoutKernels;
+@@ -106,6 +110,10 @@ pub const Kernels = struct {
+             .rewind = try mod.function("tf_ink2_conv_rewind"),
+             .race1 = try mod.function("tf_ink2_race1"),
+             .split_cols = try mod.function("tf_ink2_split_cols"),
++            .masked_argmax = try mod.function("tf_ink2_masked_argmax"),
++            .masked_argmax16 = try mod.function("tf_ink2_masked_argmax16"),
++            .grammar_guard = try mod.function("tf_ink2_grammar_guard"),
++            .grammar_scrub = try mod.function("tf_ink2_grammar_scrub"),
+             .lazy = .{
+                 try mod.function("tf_ink2_lazy_delta"), try mod.function("tf_ink2_lazy_prep"),
+                 try mod.function("tf_ink2_lazy_low"),   try mod.function("tf_ink2_lazy_pick"),
+@@ -406,6 +414,53 @@ pub fn lazyHead(k: *const Kernels, lane: cuda.qmmf.Lane, s: cuda.Stream, z: Lazy
+     }
+ }
+ 
++/// Structured output, greedy: each of `rows` fp32 rows' first maximum among the tokens `bits` allows (`words` u32
++/// a row), into `out` (u32 a row; 0xFFFFFFFF when no allowed token has a usable score).
++pub fn maskedArgmax(k: *const Kernels, s: cuda.Stream, logits: u64, vocab: usize, bits: u64, words: usize, rows: usize, out: u64) !void {
++    var args: cuda.Args = .{};
++    args.add(logits);
++    args.add(@as(u32, @intCast(vocab)));
++    args.add(bits);
++    args.add(@as(u32, @intCast(words)));
++    args.add(out);
++    try go(k.masked_argmax, s, .{ .x = @intCast(rows) }, 1024, &args);
++}
++
++/// maskedArgmax over bf16 rows (a sampled draw's own logits): the guard for rows with no usable score.
++pub fn maskedArgmax16(k: *const Kernels, s: cuda.Stream, logits16: u64, vocab: usize, bits: u64, words: usize, rows: usize, out: u64) !void {
++    var args: cuda.Args = .{};
++    args.add(logits16);
++    args.add(@as(u32, @intCast(vocab)));
++    args.add(bits);
++    args.add(@as(u32, @intCast(words)));
++    args.add(out);
++    try go(k.masked_argmax16, s, .{ .x = @intCast(rows) }, 1024, &args);
++}
++
++/// Structured output, sampled: each of `rows` bf16 rows' NaN logits to -inf.
++pub fn grammarScrub(k: *const Kernels, s: cuda.Stream, logits16: u64, vocab: usize, rows: usize) !void {
++    var args: cuda.Args = .{};
++    args.add(logits16);
++    args.add(@as(u32, @intCast(vocab)));
++    try go(k.grammar_scrub, s, .{ .x = @intCast(rows) }, 256, &args);
++}
++
++/// Structured output, sampled: rows whose `guard` (maskedArgmax) is 0xFFFFFFFF get one finite bf16 logit before
++/// the draw (`after` false); after it (`after` true) a row's token becomes 0xFFFFFFFF when it had nothing usable or
++/// its bits do not allow the drawn token.
++pub fn grammarGuard(k: *const Kernels, s: cuda.Stream, logits16: u64, vocab: usize, guard: u64, tok: u64, rows: usize, after: bool, bits: u64, words: usize) !void {
++    var args: cuda.Args = .{};
++    args.add(logits16);
++    args.add(@as(u32, @intCast(vocab)));
++    args.add(guard);
++    args.add(tok);
++    args.add(@as(u32, @intCast(rows)));
++    args.add(@as(u32, @intFromBool(after)));
++    args.add(bits);
++    args.add(@as(u32, @intCast(words)));
++    try go(k.grammar_guard, s, .{ .x = @intCast((rows + 31) / 32) }, 32, &args);
++}
++
+ /// ops.cu SplitCols: up to six parts of a fused row, each copied to its own plane.
+ pub const SplitCols = extern struct { dst: [6]u64 = @splat(0), off: [6]i32 = @splat(0), w: [6]i32 = @splat(0), n: i32 = 0 };
+ 
+diff --git a/zig/src/grammar/tf_grammar.cc b/zig/src/grammar/tf_grammar.cc
+index eb1f5762d..cf0a3193c 100644
+--- a/zig/src/grammar/tf_grammar.cc
++++ b/zig/src/grammar/tf_grammar.cc
+@@ -72,7 +72,10 @@ struct CompilerState {
+     tfb::Cache budgets;
+     tfc::Cache<xgrammar::CompiledGrammar> compiles;
+     CompilerState(const xgrammar::TokenizerInfo& i, int v)
+-        : info(i), compiler(i, 8, true, CACHE_BYTES), vocab(v), spell(spellings(i)), budgets(i) {}
++        // xgrammar's own compile cache stays off: v0.2.8 reuses a cached sub-grammar across different structural
++        // tags with token formats and hands the second one the first one's masks (Inkling 2's framed reply then a
++        // tool-call tag; fixed upstream in v0.2.9). `compiles` still caches whole grammars by their kind and text.
++        : info(i), compiler(i, 8, false, CACHE_BYTES), vocab(v), spell(spellings(i)), budgets(i) {}
+ };
+ 
+ struct Compiler {
+diff --git a/zig/src/server/chat.zig b/zig/src/server/chat.zig
+index 8f8c80205..23810f0e1 100644
+--- a/zig/src/server/chat.zig
++++ b/zig/src/server/chat.zig
+@@ -49,6 +49,8 @@ pub const Input = struct {
+     prompt_logprobs: ?u8 = null,
+     /// The client's own name for the grammar field (text.format, output_config.format); null on chat and completions.
+     format: ?[]const u8 = null,
++    /// POST /v1/chat/completions: Inkling 2 frames its grammars in reply blocks only on this route.
++    chat_route: bool = false,
+     /// The encoded image bytes the request may send; chat's limits unless a route (OCR) sets its own.
+     image_bytes: images.ByteLimits = .{},
+     /// With a known window, the reply may fill all the room the prompt leaves; max_tokens otherwise.
+@@ -213,7 +215,7 @@ pub fn prepare(srv: *Server, cx: *Cx, input: Input, gone: anytype) Failure!Prepa
+         .images = rendered.images,
+         .cache_key = rendered.cache_key,
+     };
+-    try srv.checkFeatures(cx, f, input.tools.len > 0, reasoning, rendered.ids, input.tools, &request);
++    try srv.checkFeatures(cx, f, input.tools.len > 0, reasoning, input.chat_route, rendered.ids, input.tools, &request);
+     server_mod.nameStructure(input.format, &request);
+     errdefer srv.release(false, request);
+     if (reasoning) {
+diff --git a/zig/src/server/hf_text.zig b/zig/src/server/hf_text.zig
+index df1b936c4..741de40ad 100644
+--- a/zig/src/server/hf_text.zig
++++ b/zig/src/server/hf_text.zig
+@@ -4,6 +4,7 @@ const tokenizer = @import("tokenizer");
+ const template = @import("template");
+ const json = @import("json");
+ const model_text = @import("model_text.zig");
++const inkling_structure = @import("inkling_structure.zig");
+ const KimiText = @import("kimi_text.zig").KimiText;
+ const dsv41_chat = @import("dsv41_chat");
+ const dsv41 = if (@hasDecl(dsv41_chat, "template")) dsv41_chat.template else dsv41_chat;
+@@ -444,11 +445,47 @@ pub const HfText = struct {
+         if (t.clear_thinking) |clear| try context.put(a, "clear_thinking", .{ .bool = options.clear_thinking orelse clear });
+         var diag: template.Diag = .{};
+         const tools: std.json.Value = if (options.tools) |tl| try toStd(a, tl) else .null;
+-        const out = template.renderMarked(a, compiled, try toStd(a, messages), tools, .{ .object = context }, .{ .object = globals }, options.add_generation_prompt, &diag, options.message_starts) catch |e| {
++        // Inkling 2: vLLM's tool_choice sentence joins message 0 when it is a system or developer message, else the
++        // effort block the template writes before message 0
++        var rendered_messages = messages;
++        var effort_sentence: ?[]const u8 = null;
++        const declared = if (options.tools) |tl| tl == .array and tl.array.len > 0 else false;
++        if (t.inkling and declared) if (options.tool_instruction) |sentence| {
++            if (try inkling_structure.withInstruction(a, messages, sentence)) |m| rendered_messages = m else effort_sentence = sentence;
++        };
++        const out = template.renderMarked(a, compiled, try toStd(a, rendered_messages), tools, .{ .object = context }, .{ .object = globals }, options.add_generation_prompt, &diag, options.message_starts) catch |e| {
+             if (e == error.OutOfMemory) return error.OutOfMemory;
+             problem.* = diag.msg;
+             return error.Template;
+         };
++        if (effort_sentence) |sentence| {
++            // the same tools and context with no messages render exactly what precedes message 0: the tool
++            // declaration, then the effort block, whose <|end_message|> the sentence goes before
++            const head = template.renderMarked(a, compiled, try toStd(a, .{ .array = &.{} }), tools, .{ .object = context }, .{ .object = globals }, false, &diag, null) catch |e| {
++                if (e == error.OutOfMemory) return error.OutOfMemory;
++                problem.* = diag.msg;
++                return error.Template;
++            };
++            const end = @import("inkling_reply.zig").markers.end;
++            // the last block before message 0 must be the effort block itself, never the tool declaration
++            const last = std.mem.lastIndexOf(u8, head.s, "<|message_system|>") orelse head.s.len;
++            const effort_block = std.mem.startsWith(u8, head.s[last..], "<|message_system|><|content_text|>Thinking effort level: ");
++            if (!std.mem.startsWith(u8, out.s, head.s) or !std.mem.endsWith(u8, head.s, end) or !effort_block) {
++                problem.* = "tool_choice: the template's effort block was not where Inkling 2 writes it";
++                return error.Template;
++            }
++            const at = head.s.len - end.len;
++            const add = try std.mem.concat(a, u8, &.{ "\n\n", sentence });
++            const joined = try std.mem.concat(a, u8, &.{ out.s[0..at], add, out.s[at..] });
++            const spans = try a.dupe(model_text.Span, out.spans);
++            for (spans) |*sp| for (sp) |*x| {
++                if (x.* > at) x.* += add.len;
++            };
++            if (options.message_starts) |starts| for (starts.*) |*x| {
++                if (x.* > at) x.* += add.len;
++            };
++            return .{ .text = joined, .spans = spans };
++        }
+         return .{ .text = out.s, .spans = out.spans };
+     }
+ };
+diff --git a/zig/src/server/inkling_structure.zig b/zig/src/server/inkling_structure.zig
+new file mode 100644
+index 000000000..0ba93e398
+--- /dev/null
++++ b/zig/src/server/inkling_structure.zig
+@@ -0,0 +1,230 @@
++//! Inkling 2 chat: structured output framed in its reply blocks, and tool_choice as vLLM's Inkling renderer words it.
++//! A reply is any number of thinking blocks, then a text block whose payload alone holds the constrained output, or
++//! the tool blocks a required or named choice must call (vLLM parser/inkling.py adjust_request; renderers/
++//! inkling_encoding.py _inkling2_tool_choice_instruction).
++const std = @import("std");
++const json = @import("json");
++const errors = @import("errors.zig");
++const grammar = @import("grammar.zig");
++const tool_specs = @import("tool_specs.zig");
++const tool_grammar = @import("tool_grammar.zig");
++const markers = @import("inkling_reply.zig").markers;
++const Server = @import("server.zig").Server;
++const Value = json.Value;
++const Cx = errors.Cx;
++const Allocator = std.mem.Allocator;
++
++/// The sampling field the chat route records the instruction in (not a request field: plan() writes it).
++pub const instruction_field = "inkling_tool_instruction";
++
++/// The most blank characters between a constrained JSON value's tokens (grammar.zig's BLANKS for plain JSON).
++const value_blanks = 32;
++
++/// Every framing token (vLLM INKLING_CONTROL_TOKENS): free text in a grammar never spells one.
++const control = [_][]const u8{
++    "<|endoftext|>",              "<|message_user|>",           "<|message_system|>",   "<|message_tool|>",
++    "<|content_image|>",          "<|content_xml|>",            "<|content_audio_input|>", "<|audio_end|>",
++    markers.model,                markers.text,                 markers.thinking,       markers.tool_json,
++    markers.tool_text,            markers.tool_error,           markers.end_sampling,   markers.end,
++};
++
++/// vLLM's sentence for a tool_choice (null: none to add). `choice` is the request's tool_choice; `parallel` its
++/// parallel_tool_calls (default true). The name is spelled as Python's json.dumps spells it (ASCII escapes).
++pub fn instruction(a: Allocator, choice: ?Value, parallel: bool) Allocator.Error!?[]const u8 {
++    const c = choice orelse return if (parallel) null else try a.dupe(u8, auto_single);
++    switch (c) {
++        .null => return if (parallel) null else try a.dupe(u8, auto_single),
++        .string => |s| {
++            if (std.mem.eql(u8, s, "required")) return if (parallel)
++                try a.dupe(u8, "Call at least one of the provided functions in your next response.")
++            else
++                try a.dupe(u8, "Call exactly one of the provided functions in your next response.");
++            if (std.mem.eql(u8, s, "auto") and !parallel) return try a.dupe(u8, auto_single);
++            return null;
++        },
++        .object => {
++            const kind = c.get("type") orelse return null;
++            if (kind != .string or !std.mem.eql(u8, kind.string, "function")) return null;
++            const function = c.get("function");
++            const name_v = if (function) |f| (if (f == .object) f.get("name") else null) else c.get("name");
++            const name = if (name_v) |n| (if (n == .string) n.string else return null) else return null;
++            const quoted = try json.stringify(a, .{ .string = name }, .{ .ascii = true });
++            return try std.fmt.allocPrint(a, "Call the function named {s}{s} in your next response.", .{ quoted, if (parallel) "" else " exactly once" });
++        },
++        else => return null,
++    }
++}
++
++const auto_single = "If you call a function, call at most one function in your next response.";
++
++/// The instruction a render takes: the chat route's recorded sentence, or (a raw body, as /tokenize renders it)
++/// the one its tool_choice and parallel_tool_calls ask for.
++pub fn instructionOf(a: Allocator, fields: Value) Allocator.Error!?[]const u8 {
++    if (fields != .object) return null;
++    if (fields.get(instruction_field)) |v| return if (v == .string) v.string else null;
++    if (fields.get("messages") == null) return null; // a sampling object without the field: no instruction
++    const p = fields.get("parallel_tool_calls");
++    return instruction(a, fields.get("tool_choice"), !(p != null and p.? == .bool and !p.?.bool));
++}
++
++/// vLLM `_with_appended_text` on message 0 when it is a system or developer message: a copy of `messages` with the
++/// sentence added, or null when message 0 is any other role (the sentence then joins the effort block).
++pub fn withInstruction(a: Allocator, messages: Value, text: []const u8) Allocator.Error!?Value {
++    if (messages != .array or messages.array.len == 0) return null;
++    const first = messages.array[0];
++    if (first != .object) return null;
++    const role = first.get("role") orelse return null;
++    if (role != .string or !(std.mem.eql(u8, role.string, "system") or std.mem.eql(u8, role.string, "developer"))) return null;
++    const copy = try json.newObject(a);
++    var it = first.object.iterator();
++    while (it.next()) |e| try copy.put(a, e.key_ptr.*, e.value_ptr.*);
++    const content = first.get("content");
++    const joined: Value = if (content) |cv| switch (cv) {
++        .string => |s| .{ .string = if (s.len > 0) try std.mem.concat(a, u8, &.{ s, "\n\n", text }) else text },
++        .array => |parts| blk: {
++            const part = try json.newObject(a);
++            try part.put(a, "type", .{ .string = "text" });
++            try part.put(a, "text", .{ .string = text });
++            break :blk .{ .array = try std.mem.concat(a, Value, &.{ parts, &.{.{ .object = part }} }) };
++        },
++        .null => .{ .string = text },
++        else => cv,
++    } else .{ .string = text };
++    try copy.put(a, "content", joined);
++    const out = try a.dupe(Value, messages.array);
++    out[0] = .{ .object = copy };
++    return .{ .array = out };
++}
++
++fn node(a: Allocator, kind: []const u8, entries: []const struct { []const u8, Value }) Allocator.Error!Value {
++    return tool_grammar.node(a, kind, entries);
++}
++
++/// A framing token by id (the tokenizer's own; a 400 when the checkpoint lacks it).
++fn token(srv: *Server, cx: *Cx, spelled: []const u8) errors.Refused!Value {
++    const id = srv.text.tokenId(spelled) orelse return cx.fail(.request, "structured output: the tokenizer has no {s} token", .{spelled});
++    return node(cx.a, "token", &.{.{ "token", try json.intValue(cx.a, id) }});
++}
++
++fn constant(a: Allocator, text: []const u8) Allocator.Error!Value {
++    return node(a, "const_string", &.{.{ "value", .{ .string = text } }});
++}
++
++fn schemaNode(a: Allocator, schema: Value) Allocator.Error!Value {
++    return node(a, "json_schema", &.{ .{ "json_schema", schema }, .{ "style", .{ .string = "json" } }, .{ "max_whitespace_cnt", try json.intValue(a, value_blanks) } });
++}
++
++/// Zero or more thinking blocks: `<|message_model|><|content_thinking|>` free text `<|end_message|>`.
++fn thinking(srv: *Server, cx: *Cx) errors.Refused!Value {
++    const a = cx.a;
++    var excludes: std.ArrayList(Value) = .empty;
++    for (control) |c| if (srv.text.tokenId(c) != null) try excludes.append(a, .{ .string = c });
++    const text = try node(a, "any_text", &.{.{ "excludes", .{ .array = excludes.items } }});
++    const block = try node(a, "sequence", &.{.{ "elements", .{ .array = try a.dupe(Value, &.{ try token(srv, cx, markers.model), try token(srv, cx, markers.thinking), text, try token(srv, cx, markers.end) }) } }});
++    return node(a, "star", &.{.{ "content", block }});
++}
++
++fn tag(a: Allocator, format: Value) Allocator.Error![]const u8 {
++    return json.stringify(a, try node(a, "structural_tag", &.{.{ "format", format }}), .{ .ascii = false, .compact = true });
++}
++
++/// The inner format a grammar request asks for, as a structural tag node.
++fn inner(cx: *Cx, s: grammar.Spec) errors.Refused!Value {
++    const a = cx.a;
++    return switch (s.kind) {
++        .json => schemaNode(a, try node(a, "object", &.{})),
++        .json_schema => schemaNode(a, switch (try json.parse(a, s.text)) {
++            .ok => |v| v,
++            .err => return cx.fail(.request, "{s}: the schema is not JSON", .{s.field}),
++        }),
++        .regex => node(a, "regex", &.{.{ "pattern", .{ .string = s.text } }}),
++        .grammar => node(a, "grammar", &.{.{ "grammar", .{ .string = s.text } }}),
++        .choice => blk: {
++            const list = switch (try json.parse(a, s.text)) {
++                .ok => |v| v,
++                .err => return cx.fail(.request, "{s}: the choices are not JSON", .{s.field}),
++            };
++            const items = list.items() orelse return cx.fail(.request, "{s} must be a list", .{s.field});
++            const options = try a.alloc(Value, items.len);
++            for (items, options) |it, *o| o.* = try constant(a, it.string);
++            if (options.len == 1) break :blk options[0];
++            break :blk node(a, "or", &.{.{ "elements", .{ .array = options } }});
++        },
++        .structural_tag => unreachable,
++    };
++}
++
++/// The structural tag (xgrammar JSON) for a grammar request on an Inkling chat reply: thinking blocks, then one
++/// text block holding the asked-for output, then the end of sampling (xgrammar's stop tokens).
++pub fn framed(srv: *Server, cx: *Cx, s: grammar.Spec) errors.Refused![]const u8 {
++    const a = cx.a;
++    const elements = try a.dupe(Value, &.{ try thinking(srv, cx), try token(srv, cx, markers.model), try token(srv, cx, markers.text), try inner(cx, s), try token(srv, cx, markers.end) });
++    return tag(a, try node(a, "sequence", &.{.{ "elements", .{ .array = elements } }}));
++}
++
++/// One tool block for `tool`: `<|message_model|>NAME<|content_invoke_tool_json|>{"name":NAME,"args":ARGS}<|end_message|>`,
++/// ARGS in the tool's schema when strict (or `all`), else any object; the schema keeps its own root ($ref, $defs).
++fn callBlock(srv: *Server, cx: *Cx, tool: Value, all: bool) errors.Refused!Value {
++    const a = cx.a;
++    const name = try tool_specs.toolName(a, tool);
++    const quoted = try json.stringify(a, .{ .string = name }, .{ .ascii = false });
++    const args = if (all or tool_grammar.isStrict(tool)) try tool_grammar.parametersOf(a, tool) else try node(a, "object", &.{.{ "additionalProperties", .{ .bool = true } }});
++    const elements = try a.dupe(Value, &.{
++        try token(srv, cx, markers.model),
++        try constant(a, name),
++        try token(srv, cx, markers.tool_json),
++        try constant(a, try std.mem.concat(a, u8, &.{ "{\"name\":", quoted, ",\"args\":" })),
++        try schemaNode(a, args),
++        try constant(a, "}"),
++        try token(srv, cx, markers.end),
++    });
++    return node(a, "sequence", &.{.{ "elements", .{ .array = elements } }});
++}
++
++/// The structural tag for a reply that must call one of `tools` (a named choice offers one): thinking blocks, then
++/// one call, or (`parallel`) one or more, then the end of sampling.
++pub fn calls(srv: *Server, cx: *Cx, tools: []const Value, parallel: bool, all: bool) errors.Refused![]const u8 {
++    const a = cx.a;
++    const blocks = try a.alloc(Value, tools.len);
++    for (tools, blocks) |tool, *b| b.* = try callBlock(srv, cx, tool, all);
++    const one = if (blocks.len == 1) blocks[0] else try node(a, "or", &.{.{ "elements", .{ .array = blocks } }});
++    const body = if (parallel) try node(a, "plus", &.{.{ "content", one }}) else one;
++    return tag(a, try node(a, "sequence", &.{.{ "elements", .{ .array = try a.dupe(Value, &.{ try thinking(srv, cx), body }) } }}));
++}
++
++const testing = std.testing;
++
++test "tool_choice sentences are vLLM's" {
++    var arena = std.heap.ArenaAllocator.init(testing.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    try testing.expectEqualStrings("Call at least one of the provided functions in your next response.", (try instruction(a, .{ .string = "required" }, true)).?);
++    try testing.expectEqualStrings("Call exactly one of the provided functions in your next response.", (try instruction(a, .{ .string = "required" }, false)).?);
++    try testing.expectEqualStrings(auto_single, (try instruction(a, .{ .string = "auto" }, false)).?);
++    try testing.expectEqual(@as(?[]const u8, null), try instruction(a, .{ .string = "auto" }, true));
++    try testing.expectEqual(@as(?[]const u8, null), try instruction(a, null, true));
++    try testing.expectEqual(@as(?[]const u8, null), try instruction(a, .{ .string = "none" }, false));
++    const named = (try json.parse(a, "{\"type\":\"function\",\"function\":{\"name\":\"get_w\\u00e9ather\"}}")).ok;
++    try testing.expectEqualStrings("Call the function named \"get_w\\u00e9ather\" in your next response.", (try instruction(a, named, true)).?);
++    try testing.expectEqualStrings("Call the function named \"get_w\\u00e9ather\" exactly once in your next response.", (try instruction(a, named, false)).?);
++}
++
++test "message 0 takes the sentence as vLLM's _with_appended_text adds it" {
++    var arena = std.heap.ArenaAllocator.init(testing.allocator);
++    defer arena.deinit();
++    const a = arena.allocator();
++    const cases = [_]struct { []const u8, ?[]const u8 }{
++        .{ "[{\"role\":\"system\",\"content\":\"Be brief.\"},{\"role\":\"user\",\"content\":\"hi\"}]", "Be brief.\n\nX" },
++        .{ "[{\"role\":\"developer\",\"content\":\"\"},{\"role\":\"user\",\"content\":\"hi\"}]", "X" },
++        .{ "[{\"role\":\"system\",\"content\":null}]", "X" },
++        .{ "[{\"role\":\"user\",\"content\":\"hi\"}]", null },
++    };
++    for (cases) |c| {
++        const got = try withInstruction(a, (try json.parse(a, c[0])).ok, "X");
++        if (c[1]) |want| try testing.expectEqualStrings(want, got.?.array[0].get("content").?.string) else try testing.expectEqual(@as(?Value, null), got);
++    }
++    const parts = (try withInstruction(a, (try json.parse(a, "[{\"role\":\"system\",\"content\":[{\"type\":\"text\",\"text\":\"A\"}]}]")).ok, "X")).?;
++    const list = parts.array[0].get("content").?.array;
++    try testing.expectEqual(@as(usize, 2), list.len);
++    try testing.expectEqualStrings("X", list[1].get("text").?.string);
++}
+diff --git a/zig/src/server/model_text.zig b/zig/src/server/model_text.zig
+index 048f66f0a..e23523591 100644
+--- a/zig/src/server/model_text.zig
++++ b/zig/src/server/model_text.zig
+@@ -14,6 +14,8 @@ pub const RenderOptions = struct {
+     clear_thinking: ?bool = null,
+     tool_choice: ?json.Value = null,
+     response_format: ?json.Value = null,
++    /// Inkling 2: vLLM's tool_choice sentence, added to message 0 (system or developer) or to the effort block.
++    tool_instruction: ?[]const u8 = null,
+     /// The server serves images: native image parts may render.
+     images: bool = false,
+     /// Set to the byte where each message's own output starts (sorted); left empty by renderers that can't say.
+diff --git a/zig/src/server/openai.zig b/zig/src/server/openai.zig
+index ed1def4fa..07f125403 100644
+--- a/zig/src/server/openai.zig
++++ b/zig/src/server/openai.zig
+@@ -108,7 +108,7 @@ pub fn plan(srv: *Server, cx: *Cx, is_chat: bool, raw: Value, format: ?[]const u
+     const exact_bytes = asked and try @import("logprobs.zig").offered(srv, cx.a);
+     const logprobs = if (is_chat) try fields.probabilityOptions(cx, body, exact_bytes) else try fields.legacyLogprobs(cx, body, exact_bytes);
+     if (!cx.skip_request_log) if (srv.config.request_log) |path| request_log.append(cx.a, path, body);
+-    var input: chat.Input = .{ .fields = undefined, .format = format, .execution_witness = try @import("witness_reply.zig").asked(srv, cx, body) };
++    var input: chat.Input = .{ .fields = undefined, .format = format, .chat_route = is_chat, .execution_witness = try @import("witness_reply.zig").asked(srv, cx, body) };
+     if (is_chat) {
+         input.messages = try messages.normalizeWith(cx, body.get("messages"), "system", srv.needs_user_after_tool, srv.media());
+         input.tools = if (srv.text.native_deepseek) try @import("deepseek_request.zig").active(cx, body.get("tools"), body.get("tool_choice")) else try tool_specs.active(cx, body.get("tools"), body.get("tool_choice"));
+@@ -134,6 +134,12 @@ pub fn plan(srv: *Server, cx: *Cx, is_chat: bool, raw: Value, format: ?[]const u
+     try grammar.refusal(cx, body);
+     if (input.tools.len > 0 and try tool_specs.choiceRequiresCall(cx.a, body.get("tool_choice"))) try sampling.put(cx.a, "tool_call_required", .{ .bool = true });
+     if (body.field("parallel_tool_calls")) |p| if (p == .bool and !p.bool) try sampling.put(cx.a, "tool_call_single", .{ .bool = true });
++    if (is_chat and srv.text.vtable.format == .inkling) {
++        const inkling_structure = @import("inkling_structure.zig");
++        const p = body.field("parallel_tool_calls");
++        if (input.tools.len > 0) if (try inkling_structure.instruction(cx.a, body.get("tool_choice"), !(p != null and p.? == .bool and !p.?.bool))) |text|
++            try sampling.put(cx.a, inkling_structure.instruction_field, .{ .string = text });
++    }
+     const thinking = try fields.thinkingFields(cx, body, srv.effort_levels);
+     if (thinking.effort) |e| try sampling.put(cx.a, "reasoning_effort", .{ .string = e });
+     if (thinking.enable) |on| try sampling.put(cx.a, "enable_thinking", .{ .bool = on });
+diff --git a/zig/src/server/prompt.zig b/zig/src/server/prompt.zig
+index a4c224a59..81d3c7f12 100644
+--- a/zig/src/server/prompt.zig
++++ b/zig/src/server/prompt.zig
+@@ -53,6 +53,7 @@ pub fn renderStarts(srv: *Server, cx: *Cx, messages: Value, tools: []const Value
+         .clear_thinking = cx.clear_thinking,
+         .tool_choice = cx.template_fields.get("tool_choice"),
+         .response_format = cx.template_fields.get("response_format"),
++        .tool_instruction = if (srv.text.vtable.format == .inkling) try @import("inkling_structure.zig").instructionOf(cx.a, cx.template_fields) else null,
+         .images = srv.info.vision != null,
+     };
+     const rendered = render(srv, cx.a, normalized, options, &problem, starts) catch |e| switch (e) {
+diff --git a/zig/src/server/server.zig b/zig/src/server/server.zig
+index cbda9dd05..b58c2dc30 100644
+--- a/zig/src/server/server.zig
++++ b/zig/src/server/server.zig
+@@ -20,6 +20,7 @@ const responses = @import("responses.zig");
+ const grammar = @import("grammar.zig");
+ const clock = @import("clock.zig");
+ const tool_grammar = @import("tool_grammar.zig");
++const inkling_structure = @import("inkling_structure.zig");
+ const chunk_plan = @import("chunk_plan.zig");
+ const log = @import("log.zig");
+ const live = @import("live.zig");
+@@ -351,23 +352,36 @@ pub const Server = struct {
+     }
+ 
+     /// The grammar a request asks for, or its refusal when the engine cannot enforce it.
+-    pub fn checkFeatures(srv: *Server, cx: *Cx, f: Value, has_tools: bool, thinking: bool, prompt_ids: []const u32, tools: []const Value, request: *api.Request) errors.Refused!void {
++    pub fn checkFeatures(srv: *Server, cx: *Cx, f: Value, has_tools: bool, thinking: bool, chat: bool, prompt_ids: []const u32, tools: []const Value, request: *api.Request) errors.Refused!void {
+         _ = prompt_ids;
+         errdefer srv.release(false, request.*); // a refused request frees what it compiled here
+         const required = if (f.get("tool_call_required")) |r| r.truthy() else false;
+         const one_call = if (f.get("tool_call_single")) |x| x.truthy() else false;
+         const all = has_tools and !required and (tool_grammar.autoAllEnv() catch return cx.fail(.server, "invalid TF_DSV41_TOOL_GRAMMAR: expected 0 or 1", .{}));
++        // Inkling 2's chat replies are blocks: its grammars frame the payload in them, from the reply's first token
++        const inkling = srv.text.vtable.format == .inkling;
++        const inkling_chat = inkling and chat;
+         if (has_tools and required) {
+             if (!srv.info.capability(.structures)) return cx.fail(.request, "backend '{s}' cannot enforce tool_choice \"required\" or a named function: it has no token grammar support; send \"auto\" or \"none\"", .{srv.backendName()});
+-            request.structure = try tool_grammar.structure(srv, cx, tools, !one_call, thinking);
+-        } else if (has_tools and srv.info.capability(.structures) and tool_grammar.autoWanted(tools, all) and srv.grammarCompiler() != null) {
++            if (inkling) {
++                const text = try inkling_structure.calls(srv, cx, tools, !one_call, true);
++                if (text.len > grammar.max_text) return cx.fail(.request, "tools: the tools' names and schemas make a {d}-byte grammar, more than the {d} KiB a grammar may be", .{ text.len, grammar.max_text / 1024 });
++                const reason = try std.fmt.allocPrint(cx.a, "tool_choice \"required\" or a named function on backend '{s}'", .{srv.backendName()});
++                var st = try srv.compiledStructure(cx, .structural_tag, text, reason, false);
++                st.field = "tool_choice";
++                request.structure = st;
++            } else request.structure = try tool_grammar.structure(srv, cx, tools, !one_call, thinking);
++        } else if (!inkling and has_tools and srv.info.capability(.structures) and tool_grammar.autoWanted(tools, all) and srv.grammarCompiler() != null) {
+             // auto with a strict tool (any, TENSORFOLD_TOOL_GRAMMAR=1): text or calls; no grammar library, no grammar
+             request.structure = try tool_grammar.optionalStructure(srv, cx, tools, all, !one_call, thinking);
+         }
+         if (try grammar.spec(cx, f)) |s| {
+             if (!srv.info.capability(.structures)) return cx.refuse("structured output (response_format and the guided_* fields) is not supported by this engine yet");
+             if (s.text.len > grammar.max_text) return cx.fail(.request, "{s}: the grammar is {d} bytes, more than the {d} KiB a grammar may be", .{ s.field, s.text.len, grammar.max_text / 1024 });
+-            const st = try srv.compiledStructure(cx, s.kind, s.text, s.field, thinking);
++            const st = if (inkling_chat and s.kind != .structural_tag)
++                try srv.compiledStructure(cx, .structural_tag, try inkling_structure.framed(srv, cx, s), s.field, false)
++            else
++                try srv.compiledStructure(cx, s.kind, s.text, s.field, thinking and !inkling_chat);
+             if (request.structure) |tool| tool.free();
+             request.structure = st;
+         }
+diff --git a/zig/src/server/structure_field_test.zig b/zig/src/server/structure_field_test.zig
+index 37c13f5e0..962dfcbda 100644
+--- a/zig/src/server/structure_field_test.zig
++++ b/zig/src/server/structure_field_test.zig
+@@ -171,7 +171,7 @@ test "structure field: each structured-output body field reaches the engine by i
+         compile.kind = -1;
+         var cx: errors.Cx = .{ .a = g };
+         var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 64 };
+-        try srv.checkFeatures(&cx, try value(g, c.body), false, false, &.{1}, &.{}, &request);
++        try srv.checkFeatures(&cx, try value(g, c.body), false, false, false, &.{1}, &.{}, &request);
+         const structure = request.structure orelse return error.TestExpectedStructure;
+         try std.testing.expectEqualStrings(c.kind, @tagName(structure.kind));
+         try std.testing.expectEqualStrings(c.field, structure.field);
+@@ -193,7 +193,7 @@ test "structure field: a plain request keeps no structure" {
+     srv.grammars = &compiler;
+     var cx: errors.Cx = .{ .a = g };
+     var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 64 };
+-    try srv.checkFeatures(&cx, try value(g, "{}"), false, false, &.{1}, &.{}, &request);
++    try srv.checkFeatures(&cx, try value(g, "{}"), false, false, false, &.{1}, &.{}, &request);
+     try std.testing.expect(request.structure == null);
+ }
+ 
+@@ -212,7 +212,7 @@ test "structure field: a required tool call names tool_choice" {
+     var cx: errors.Cx = .{ .a = g };
+     var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 200 };
+     const offered = (try value(g, specs)).array;
+-    try srv.checkFeatures(&cx, try value(g, "{\"tool_call_required\":true}"), true, false, &.{1}, offered, &request);
++    try srv.checkFeatures(&cx, try value(g, "{\"tool_call_required\":true}"), true, false, false, &.{1}, offered, &request);
+     const structure = request.structure orelse return error.TestExpectedStructure;
+     try std.testing.expectEqualStrings("structural_tag", @tagName(structure.kind));
+     try std.testing.expectEqualStrings("tool_choice", structure.field);
+@@ -233,7 +233,7 @@ test "structure field: strict tools under auto name tool_choice" {
+     var cx: errors.Cx = .{ .a = g };
+     var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 200 };
+     const strict_tools = (try value(g, "[{\"type\":\"function\",\"function\":{\"name\":\"lookup\",\"strict\":true,\"parameters\":{\"type\":\"object\",\"properties\":{\"q\":{\"type\":\"string\"}},\"required\":[\"q\"]}}}]")).array;
+-    try srv.checkFeatures(&cx, try value(g, "{}"), true, false, &.{1}, strict_tools, &request);
++    try srv.checkFeatures(&cx, try value(g, "{}"), true, false, false, &.{1}, strict_tools, &request);
+     const structure = request.structure orelse return error.TestExpectedStructure;
+     try std.testing.expectEqualStrings("structural_tag", @tagName(structure.kind));
+     try std.testing.expectEqualStrings("tool_choice", structure.field);
+@@ -250,7 +250,7 @@ test "structure field: the refusal still names the backend" {
+     srv.info.structures = true;
+     var cx: errors.Cx = .{ .a = g };
+     var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 200 };
+-    try std.testing.expectError(error.Refused, srv.checkFeatures(&cx, try value(g, "{\"tool_call_required\":true}"), true, false, &.{1}, (try value(g, specs)).array, &request));
++    try std.testing.expectError(error.Refused, srv.checkFeatures(&cx, try value(g, "{\"tool_call_required\":true}"), true, false, false, &.{1}, (try value(g, specs)).array, &request));
+     try std.testing.expect(std.mem.indexOf(u8, cx.message, "tool_choice \"required\" or a named function on backend 'qwen27'") != null);
+     try std.testing.expectEqual(@as(u16, 400), cx.status());
+ }
+@@ -279,7 +279,7 @@ test "structure field: a Responses text.format reaches the engine as its own nam
+     var input = try openai.chatInput(srv, &cx, r.chat);
+     input.format = r.format;
+     var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 64 };
+-    try srv.checkFeatures(&cx, input.fields, input.tools.len > 0, false, &.{1}, input.tools, &request);
++    try srv.checkFeatures(&cx, input.fields, input.tools.len > 0, false, false, &.{1}, input.tools, &request);
+     nameStructure(input.format, &request);
+     const structure = request.structure orelse return error.TestExpectedStructure;
+     try std.testing.expectEqualStrings("text.format", structure.field);
+@@ -306,7 +306,7 @@ test "structure field: a Messages output_config.format reaches the engine as its
+     var input = try openai.chatInput(srv, &cx, chat_body);
+     input.format = name;
+     var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 64 };
+-    try srv.checkFeatures(&cx, input.fields, input.tools.len > 0, false, &.{1}, input.tools, &request);
++    try srv.checkFeatures(&cx, input.fields, input.tools.len > 0, false, false, &.{1}, input.tools, &request);
+     nameStructure(input.format, &request);
+     const structure = request.structure orelse return error.TestExpectedStructure;
+     try std.testing.expectEqualStrings("output_config.format", structure.field);
+diff --git a/zig/src/server/tool_grammar.zig b/zig/src/server/tool_grammar.zig
+index b977a2b2f..b309d9a7d 100644
+--- a/zig/src/server/tool_grammar.zig
++++ b/zig/src/server/tool_grammar.zig
+@@ -102,6 +102,11 @@ pub fn autoWanted(tools: []const Value, all: bool) bool {
+ }
+ 
+ /// OpenAI's function.strict (or a bare tool's strict) is true.
++/// Whether the tool asks for strict arguments (inkling_structure.zig's call blocks too).
++pub fn isStrict(tool: Value) bool {
++    return strict(tool);
++}
++
+ fn strict(tool: Value) bool {
+     const function = if (tool.get("function")) |f| (if (f == .object) f else tool) else tool;
+     const s = function.get("strict") orelse return false;
+@@ -225,6 +230,10 @@ fn call(a: Allocator, s: Style, name: []const u8, schema: Value) Allocator.Error
+     return node(a, "sequence", &.{.{ "elements", elements }});
+ }
+ 
++pub fn parametersOf(a: Allocator, tool: Value) Allocator.Error!Value {
++    return parameters(a, tool);
++}
++
+ /// The tool's parameter schema (OpenAI's function.parameters, a bare tool's parameters or input_schema).
+ fn parameters(a: Allocator, tool: Value) Allocator.Error!Value {
+     const function = if (tool.get("function")) |f| (if (f == .object) f else tool) else tool;
+diff --git a/zig/src/server/tool_required_test.zig b/zig/src/server/tool_required_test.zig
+index 50ea199d6..7ce89dfc7 100644
+--- a/zig/src/server/tool_required_test.zig
++++ b/zig/src/server/tool_required_test.zig
+@@ -105,14 +105,14 @@ test "required tools: unsupported required tools name the actual backend before
+     const f = try value(cx.a, "{\"tool_call_required\":true}");
+     var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 200 };
+     const offered = (try value(cx.a, specs)).array;
+-    try std.testing.expectError(error.Refused, srv.checkFeatures(&cx, f, true, false, &.{1}, offered, &request));
++    try std.testing.expectError(error.Refused, srv.checkFeatures(&cx, f, true, false, false, &.{1}, offered, &request));
+     try std.testing.expectEqual(@as(u16, 400), cx.status());
+     try std.testing.expect(std.mem.indexOf(u8, cx.message, "qwen27") != null);
+     try std.testing.expect(std.mem.indexOf(u8, cx.message, "grammar") != null);
+     try std.testing.expect(request.structure == null and request.call == null);
+     srv.info.name = "lanes";
+     srv.config.identity.backend = "cuda";
+-    try std.testing.expectError(error.Refused, srv.checkFeatures(&cx, f, true, false, &.{1}, offered, &request));
++    try std.testing.expectError(error.Refused, srv.checkFeatures(&cx, f, true, false, false, &.{1}, offered, &request));
+     try std.testing.expect(std.mem.indexOf(u8, cx.message, "cuda") != null);
+ }
+ 
+@@ -131,7 +131,7 @@ test "required tools: Gemma and unknown templates can constrain required calls o
+         srv.grammars = &compiler;
+         var cx: errors.Cx = .{ .a = g };
+         var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 200 };
+-        try srv.checkFeatures(&cx, try value(g, "{\"tool_call_required\":true}"), true, false, &.{1}, (try value(g, specs)).array, &request);
++        try srv.checkFeatures(&cx, try value(g, "{\"tool_call_required\":true}"), true, false, false, &.{1}, (try value(g, specs)).array, &request);
+         try std.testing.expect(request.structure != null);
+     }
+ }
+@@ -152,7 +152,7 @@ test "required tools: an LFM2 template gets the Pythonic grammar, one call or se
+         var cx: errors.Cx = .{ .a = g };
+         const fields = try value(g, if (single) "{\"tool_call_required\":true,\"tool_call_single\":true}" else "{\"tool_call_required\":true}");
+         var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 200 };
+-        try srv.checkFeatures(&cx, fields, true, false, &.{1}, (try value(g, specs)).array, &request);
++        try srv.checkFeatures(&cx, fields, true, false, false, &.{1}, (try value(g, specs)).array, &request);
+         const structure = request.structure.?;
+         try std.testing.expectEqualStrings("structural_tag", @tagName(structure.kind));
+         const python = std.mem.indexOf(u8, structure.text, "<|tool_call_start|>") != null;
+@@ -208,7 +208,7 @@ test "required tools: both routes parse required and named calls and enforce a c
+         try std.testing.expect(input.fields.get("tool_call_required").?.truthy());
+         try std.testing.expectEqual(@as(usize, if (named) 1 else 2), input.tools.len);
+         var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 512 };
+-        try srv.checkFeatures(&cx, input.fields, true, false, &.{1}, input.tools, &request);
++        try srv.checkFeatures(&cx, input.fields, true, false, false, &.{1}, input.tools, &request);
+         const structure = request.structure.?;
+         const root = try value(g, structure.text);
+         const format = root.get("format").?;
+@@ -257,7 +257,7 @@ test "required tools: required without tools, unknown names and competing gramma
+             const input = try openai.chatInput(srv, &cx, try body(&cx, response, choice));
+             try std.testing.expect(input.fields.get("tool_call_required") == null);
+             var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 20 };
+-            try srv.checkFeatures(&cx, input.fields, input.tools.len > 0, false, &.{1}, input.tools, &request);
++            try srv.checkFeatures(&cx, input.fields, input.tools.len > 0, false, false, &.{1}, input.tools, &request);
+             try std.testing.expect(request.structure == null);
+         }
+     }
+@@ -294,7 +294,7 @@ test "qwen27 tool calls: required and named calls use the masked lane fake throu
+         try std.testing.expect(input.fields.get("tool_call_required").?.truthy());
+         try std.testing.expectEqual(@as(usize, if (named) 1 else 2), input.tools.len);
+         var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 512 };
+-        try srv.checkFeatures(&cx, input.fields, true, false, &.{1}, input.tools, &request);
++        try srv.checkFeatures(&cx, input.fields, true, false, false, &.{1}, input.tools, &request);
+         const structure = request.structure.?;
+         const root = try value(g, structure.text);
+         const format = root.get("format").?;
+@@ -340,7 +340,7 @@ test "a request's compiled grammar is kept for the engine, freed once at release
+     var cx: errors.Cx = .{ .a = g };
+     const offered = (try value(g, specs)).array;
+     var one: api.Request = .{ .prompt = &.{1}, .max_tokens = 200 };
+-    try srv.checkFeatures(&cx, try value(g, "{\"response_format\":{\"type\":\"json_object\"}}"), false, false, &.{1}, &.{}, &one);
++    try srv.checkFeatures(&cx, try value(g, "{\"response_format\":{\"type\":\"json_object\"}}"), false, false, false, &.{1}, &.{}, &one);
+     try std.testing.expect(one.structure.?.compiled != null);
+     try std.testing.expectEqual(@as(usize, 1), fake.compiles);
+     try std.testing.expectEqual(@as(usize, 0), fake.frees);
+@@ -349,7 +349,7 @@ test "a request's compiled grammar is kept for the engine, freed once at release
+     // a required tool's grammar, then response_format's: the first is freed when the second replaces it
+     var both: api.Request = .{ .prompt = &.{1}, .max_tokens = 200 };
+     const fields = try value(g, "{\"tool_call_required\":true,\"response_format\":{\"type\":\"json_object\"}}");
+-    try srv.checkFeatures(&cx, fields, true, false, &.{1}, offered, &both);
++    try srv.checkFeatures(&cx, fields, true, false, false, &.{1}, offered, &both);
+     try std.testing.expectEqual(@as(usize, 3), fake.compiles);
+     try std.testing.expectEqual(@as(usize, 2), fake.frees);
+     srv.release(false, both);
+@@ -357,7 +357,7 @@ test "a request's compiled grammar is kept for the engine, freed once at release
+     // a refused second grammar frees the first
+     var refused: api.Request = .{ .prompt = &.{1}, .max_tokens = 200 };
+     const bad = try value(g, "{\"tool_call_required\":true,\"guided_regex\":\"bad\"}");
+-    try std.testing.expectError(error.Refused, srv.checkFeatures(&cx, bad, true, false, &.{1}, offered, &refused));
++    try std.testing.expectError(error.Refused, srv.checkFeatures(&cx, bad, true, false, false, &.{1}, offered, &refused));
+     try std.testing.expectEqual(@as(usize, 4), fake.compiles);
+     try std.testing.expectEqual(@as(usize, 4), fake.frees);
+ }
+@@ -383,7 +383,7 @@ test "security: a grammar over the size limit is refused before the compiler see
+         var cx: errors.Cx = .{ .a = g };
+         var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 64 };
+         const fields = try value(g, try std.fmt.allocPrint(g, "{{\"guided_regex\":\"{s}\"}}", .{letters[0..len]}));
+-        const result = srv.checkFeatures(&cx, fields, false, false, &.{1}, &.{}, &request);
++        const result = srv.checkFeatures(&cx, fields, false, false, false, &.{1}, &.{}, &request);
+         if (len <= most) {
+             try result;
+             srv.release(false, request);
+@@ -435,7 +435,7 @@ test "security: tools count once against the grammar size limit: 300 KiB of requ
+         var cx: errors.Cx = .{ .a = g };
+         var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 64 };
+         // parallel calls: the structural tag holds the call twice, for the first call and the further ones
+-        const result = srv.checkFeatures(&cx, try value(g, "{\"tool_call_required\":true}"), true, false, &.{1}, offered, &request);
++        const result = srv.checkFeatures(&cx, try value(g, "{\"tool_call_required\":true}"), true, false, false, &.{1}, offered, &request);
+         if (case.kib == 300) {
+             try result;
+             try std.testing.expect(request.structure.?.text.len > 2 * 300 * 1024); // over 512 KiB, and served
+@@ -478,7 +478,7 @@ test "grammar_budget: a boolean that marks a covered grammar, refused when malfo
+     for (cases) |c| {
+         var cx: errors.Cx = .{ .a = g };
+         var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 64 };
+-        const result = srv.checkFeatures(&cx, try value(g, c.fields), true, false, &.{1}, offered, &request);
++        const result = srv.checkFeatures(&cx, try value(g, c.fields), true, false, false, &.{1}, offered, &request);
+         if (c.refusal.len > 0) { // a refusal frees what it compiled
+             try std.testing.expectError(error.Refused, result);
+             try std.testing.expect(std.mem.indexOf(u8, cx.message, c.refusal) != null);
+@@ -493,7 +493,7 @@ test "grammar_budget: a boolean that marks a covered grammar, refused when malfo
+         compiler.f.budget_ready = ready;
+         var cx: errors.Cx = .{ .a = g };
+         var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 64 };
+-        try std.testing.expectError(error.Refused, srv.checkFeatures(&cx, try value(g, cases[0].fields), true, false, &.{1}, offered, &request));
++        try std.testing.expectError(error.Refused, srv.checkFeatures(&cx, try value(g, cases[0].fields), true, false, false, &.{1}, offered, &request));
+         try std.testing.expectEqual(@as(u16, 400), cx.status());
+         try std.testing.expect(std.mem.indexOf(u8, cx.message, why) != null);
+     }
+@@ -516,7 +516,7 @@ test "auto tools: a strict tool gets the optional-call grammar, other auto reque
+         srv.grammars = &compiler;
+         var cx: errors.Cx = .{ .a = g };
+         var request: api.Request = .{ .prompt = &.{1}, .max_tokens = 200 };
+-        try srv.checkFeatures(&cx, try value(g, "{}"), true, false, &.{1}, (try value(g, offered)).array, &request);
++        try srv.checkFeatures(&cx, try value(g, "{}"), true, false, false, &.{1}, (try value(g, offered)).array, &request);
+         if (std.mem.eql(u8, offered, specs) or form == .lfm2) {
+             try std.testing.expect(request.structure == null);
+             continue;
+@@ -526,10 +526,10 @@ test "auto tools: a strict tool gets the optional-call grammar, other auto reque
+         try std.testing.expect(!format.get("stop_after_first").?.bool);
+         try std.testing.expect(std.mem.indexOf(u8, request.structure.?.text, "\"required\":[\"q\"]") != null);
+         var single: api.Request = .{ .prompt = &.{1}, .max_tokens = 200 };
+-        try srv.checkFeatures(&cx, try value(g, "{\"tool_call_single\":true}"), true, false, &.{1}, (try value(g, offered)).array, &single);
++        try srv.checkFeatures(&cx, try value(g, "{\"tool_call_single\":true}"), true, false, false, &.{1}, (try value(g, offered)).array, &single);
+         try std.testing.expect((try value(g, single.structure.?.text)).get("format").?.get("stop_after_first").?.bool);
+         var required: api.Request = .{ .prompt = &.{1}, .max_tokens = 200 };
+-        try srv.checkFeatures(&cx, try value(g, "{\"tool_call_required\":true}"), true, false, &.{1}, (try value(g, offered)).array, &required);
++        try srv.checkFeatures(&cx, try value(g, "{\"tool_call_required\":true}"), true, false, false, &.{1}, (try value(g, offered)).array, &required);
+         try std.testing.expectEqualStrings("sequence", (try value(g, required.structure.?.text)).get("format").?.strField("type").?);
+     };
+ }

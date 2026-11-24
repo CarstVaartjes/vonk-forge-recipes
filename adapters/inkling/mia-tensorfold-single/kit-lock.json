@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "engine": {
+      "commit": "dc2ca8a1785df6ee5c8489ee7cd18e29cf7b4568",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "dc2ca8a1785df6ee5c8489ee7cd18e29cf7b4568",
+      "repo": "jschmied/TensorFold"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "overridden": "The kit pins thinkingmachines/Inkling-2-Mini at 7a67ae23; the library keeps the one Model per weights it already catalogues, at 1fb4134b, which a proven recipe runs. Weights, mtp.safetensors and tokenizer are byte-identical across the two revisions; only config.json (a top-level dtype of bfloat16) and README.md differ. Evidence: Hugging Face API file listing and LFS sha256 of each revision, 2026-11-24.",
+      "ref": "1fb4134b9a74f9681054f4ef82e4bf1f458a2337",
+      "repo": "thinkingmachines/Inkling-2-Mini",
+      "revision": "1fb4134b9a74f9681054f4ef82e4bf1f458a2337"
+    }
+  },
+  "kit": {
+    "commit": "6061fa89a34d2a245bc4a230f04948f312347a5e",
+    "repo": "MiaAI-Lab/Inkling-2-Mini-DGX-Spark-TensorFold"
+  }
+}

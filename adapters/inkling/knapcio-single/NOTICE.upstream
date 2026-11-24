@@ -1,0 +1,37 @@
+Inkling-2-Mini on one NVIDIA DGX Spark
+
+Repository-authored launch scripts, benchmark scripts and documentation: MIT, see LICENSE.
+
+Third-party code vendored in this repository:
+- overlay/inkling_pico12/third_party/pico/: kernels/gemv16.cu, kernels/common.cuh, kernels/dsk.h, common/check.h
+  by Andy Shu (github.com/blaesus/dsgb10, formerly dsgx10, `ds41f-4xgx10-switchless/engine/` at commit f2117916, as
+  carried in github.com/Picom-code/pico-dgx-ds4), MIT licence, Copyright (c) 2026
+  Andy Shu; full text in overlay/inkling_pico12/third_party/pico/LICENSE. Unmodified except a two-line header
+  naming the origin.
+- overlay/inkling_wide/csrc/bf16x_format.cuh: the `bf16x` reader (layout description, bf16x_raw_off, mad_imm, bf16x_dec,
+  ldg_bf16x) copied from the same pico gemv16.cu (commit f2117916), MIT licence, Copyright (c) 2026 Andy Shu; full
+  text in overlay/inkling_wide/third_party/pico/LICENSE.
+- overlay/inkling_cert/csrc/cert_ext.cu compiles kernels/gemv16.cu from overlay/inkling_pico12/third_party/pico/ (above)
+  into its own extension; no further copy.
+
+- overlay/inkling_scodes/csrc/scodes_sm120_mma_array.hpp: derived from CUTLASS's SM120 block-scaled grouped-GEMM
+  collective mainloop (NVIDIA CORPORATION & AFFILIATES, BSD-3-Clause, licence text kept in the file header),
+  modified to expand coded scale factors; scodes_group_gemm.cuh reduces FlashInfer 0.7.4's
+  include/flashinfer/gemm/group_gemm_nvfp4_groupwise_sm120.cuh (Apache-2.0, Copyright (c) 2026 FlashInfer team)
+  to the configuration SGLang uses and swaps in that mainloop.
+- overlay/inkling_kv12/ops.py: the decode / verify attention kernels (`_kv12_partials_np`, `_kv12_partials`) follow
+  SGLang's Inkling2 split-KV decode kernel (`_decode_partials` in
+  sglang.kernels.ops.attention.inkling2_decode_attention_sm90,
+  sgl-project/sglang, Apache-2.0) with the same grid, tile order and online softmax, modified to read packed 12-bit
+  K / V tiles from a side pool.
+- overlay/inkling_vattn/ops.py: `_inkernel_bias_partials` is the same SGLang `_decode_partials` kernel body
+  (sgl-project/sglang, Apache-2.0), modified to compute the relative-position bias per key tile in-kernel.
+
+The serving engines run from their published container images, pinned by digest in scripts/launch.sh:
+- SGLang (sgl-project/sglang), lmsysorg/sglang:inkling-2-mini, Apache-2.0.
+- vLLM (vllm-project/vllm), vllm/vllm-openai:inkling-2-mini, Apache-2.0.
+bench/decode_table.py reads the prompt file of speedbench (knapcio/speedbench, MIT) from a separate checkout; the
+prompts themselves are not copied here.
+
+No model weights or container images are distributed. The Inkling-2-Mini weights (thinkingmachines/Inkling-2-Mini)
+are Apache-2.0 from Thinking Machines Lab; read the model card for the terms that apply to anything you serve.

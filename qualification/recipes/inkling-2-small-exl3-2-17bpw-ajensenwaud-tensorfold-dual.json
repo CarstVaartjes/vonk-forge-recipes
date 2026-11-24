@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/inkling-2-small-exl3-2-17bpw-ajensenwaud-tensorfold-dual",
+  "service_recipes": {
+    "alias": "inkling-2-small",
+    "higher_tiers": {
+      "recovery": [
+        "Controller-only rank loss and restart: both ranks start again from the read-only pack, no rank cache to rebuild"
+      ],
+      "stress": [
+        "Long-context canary toward the 1,048,576-token window, with MemAvailable watched against the 3 GiB reserve on both ranks"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "MIS_A391",
+      "T_PRODUCT",
+      "MIS_V_RED"
+    ]
+  }
+}
