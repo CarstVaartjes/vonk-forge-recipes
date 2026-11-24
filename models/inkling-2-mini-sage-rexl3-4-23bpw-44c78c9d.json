@@ -1,0 +1,142 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-ed6bbf39a76c-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "ed6bbf39a76cc4d848f7f9c645dca190f8869690a94a32f47fe3616ac5aa6e95",
+      "size_bytes": 58561
+    },
+    {
+      "id": "chat-template-53a9035f3255-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "53a9035f3255945704b5857657cfb00c1165090c0641c4f782a0cbf268cc16dc",
+      "size_bytes": 6868
+    },
+    {
+      "id": "config-d8a196f413ed-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d8a196f413ed98937820ba601ada03f98aa608648e6c8406a16f5550af86f473",
+      "size_bytes": 2668
+    },
+    {
+      "id": "generation-config-a08737c07a65-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a08737c07a65a8fdf69f7cf086576210e5aad4b241437090b26d7b0c4f7905f7",
+      "size_bytes": 98
+    },
+    {
+      "id": "model-00001-of-00002-7e1ca66f898c-27a6880801",
+      "path": "model-00001-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7e1ca66f898cee52f22d522fbb081d601a5ff269a46e152b35a40d55de3ada9d",
+      "size_bytes": 7799737128
+    },
+    {
+      "id": "model-00002-of-00002-ae1d5290b95d-2cca3b5a88",
+      "path": "model-00002-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ae1d5290b95da837eb2dbb93c04e54fd2ddb80cfaa728bf85b667718b9c81dbb",
+      "size_bytes": 7000747788
+    },
+    {
+      "id": "model-safetensors-index-ff7459c15c3b-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ff7459c15c3bcfc80fc72a0f167693532cf7ba3e1084f5e9320d61e763806567",
+      "size_bytes": 3569416
+    },
+    {
+      "id": "mtp-427c8cb04d72-265929bffe",
+      "path": "mtp.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "427c8cb04d72a2f2e6db473c24277b9dc0d4b3a099eab1c6fbed1b96af7d2f80",
+      "size_bytes": 236572756
+    },
+    {
+      "id": "processor-config-d7350adce18c-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d7350adce18c8be4b607f261c8f0f7eabbf720bb7aaf648a43d4f8372bbacc2d",
+      "size_bytes": 461
+    },
+    {
+      "id": "tokenizer-f170372dd655-86f223d688",
+      "path": "tiktoken/tokenizer.model",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "f170372dd655728909228220d77cf6b8104a59f38a91262a7d2c4027906ec0d8",
+      "size_bytes": 3386494
+    },
+    {
+      "id": "tokenizer-7f332727f9a3-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "7f332727f9a3f093dd452a39cc978e6757627e5dad1b0673aa4e75174f236dd6",
+      "size_bytes": 26178678
+    },
+    {
+      "id": "tokenizer-config-bf09342d2851-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "bf09342d285139fd37ce10c70878af1d52cb390e9901e10248654293a80ee636",
+      "size_bytes": 13235
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "sage-rexl3-4-23bpw"
+  },
+  "identity": {
+    "model": {
+      "publisher": "thinkingmachines",
+      "slug": "inkling-2-mini-sage-rexl3-4-23bpw"
+    },
+    "publisher": "vcruz305",
+    "slug": "inkling-2-mini-sage-rexl3-4-23bpw-44c78c9d",
+    "variant": "Inkling 2 Mini SAGE REXL3 4.23bpw 44c78c9d",
+    "version": "Inkling 2 Mini SAGE REXL3 4.23bpw 44c78c9d"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/vcruz305/Inkling-2-Mini-SAGE-REXL3-4.23bpw",
+    "revision": "44c78c9d229b43dd45e41506071b9f5f939bed44"
+  }
+}

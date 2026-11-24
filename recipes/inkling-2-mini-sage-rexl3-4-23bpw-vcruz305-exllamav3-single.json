@@ -1,0 +1,323 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/inkling/vcruz305-exl3-tabby-single"
+      },
+      "dockerfile": "adapters/inkling/vcruz305-exl3-tabby-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "archive.ubuntu.com",
+          "ports.ubuntu.com",
+          "security.ubuntu.com",
+          "codeload.github.com",
+          "download.pytorch.org",
+          "files.pythonhosted.org",
+          "pypi.org",
+          "download-r2.pytorch.org",
+          "pypi.nvidia.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-2-mini-sage-rexl3-4-23bpw-vcruz305-exllamav3-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "Inkling-2-Mini-SAGE-REXL3-4.23bpw"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "chat-template-53a9035f3255-00824420d1",
+          "id": "primary-chat-template-53a9035f3255-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-d8a196f413ed-587cb980af",
+          "id": "primary-config-d8a196f413ed-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-a08737c07a65-97dd3d578b",
+          "id": "primary-generation-config-a08737c07a65-97dd3d578b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00002-7e1ca66f898c-27a6880801",
+          "id": "primary-model-00001-of-00002-7e1ca66f898c-27a6880801",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00002-ae1d5290b95d-2cca3b5a88",
+          "id": "primary-model-00002-of-00002-ae1d5290b95d-2cca3b5a88",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-ff7459c15c3b-0a05be8238",
+          "id": "primary-model-safetensors-index-ff7459c15c3b-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mtp-427c8cb04d72-265929bffe",
+          "id": "primary-mtp-427c8cb04d72-265929bffe",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d7350adce18c-27f0cb76af",
+          "id": "primary-processor-config-d7350adce18c-27f0cb76af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-7f332727f9a3-224931eb13",
+          "id": "primary-tokenizer-7f332727f9a3-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-bf09342d2851-94d5c6ba8f",
+          "id": "primary-tokenizer-config-bf09342d2851-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-f170372dd655-86f223d688",
+          "id": "primary-tokenizer-f170372dd655-86f223d688",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "e109d4d5c07d10a31deeb303d10b53506de97bbb0b132e50d96973056e6c8e40",
+        "kind": "model",
+        "publisher": "vcruz305",
+        "slug": "inkling-2-mini-sage-rexl3-4-23bpw-44c78c9d"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "vcruz305",
+      "Thinking Machines Lab",
+      "TabbyAPI contributors"
+    ],
+    "source_reference": "https://github.com/vcruz305/Inkling-2-Mini-SAGE-EXL3-recipe/tree/ed76a4b14a47c5a1a526a2b98c7c2f5337adb2e6/dgx-spark"
+  },
+  "release": {
+    "released_at": "2026-11-23",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-name",
+        "setting": null,
+        "value": "Inkling-2-Mini-SAGE-REXL3-4.23bpw"
+      },
+      {
+        "name": "host",
+        "setting": null,
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "setting": null,
+        "value": 8000
+      },
+      {
+        "name": "max-seq-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "cache-mode",
+        "setting": null,
+        "value": "FP16"
+      },
+      {
+        "name": "chunk-size",
+        "setting": null,
+        "value": 2048
+      },
+      {
+        "name": "max-batch-size",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "draft",
+        "setting": null,
+        "value": "mtp"
+      }
+    ],
+    "engine": "exllamav3",
+    "entrypoint": [
+      "/opt/vonk/bin/exllamav3-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 24576
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 15070275721,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 15000000000,
+            "working_bytes": 8000000000
+          },
+          "memory": {
+            "peak_bytes": 24100000000,
+            "reserve_bytes": 10000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 2048,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "Inkling-2-Mini-SAGE-REXL3-4.23bpw"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

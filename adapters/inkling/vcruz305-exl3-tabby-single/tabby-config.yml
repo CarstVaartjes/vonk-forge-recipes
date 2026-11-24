@@ -1,0 +1,28 @@
+# TabbyAPI config for Inkling 2 Mini SAGE REXL3 4.23 bpw on one DGX Spark.
+# tabby-serve renders this the way upstream's scripts/serve.sh renders its heredoc: the
+# dollar-brace fields are filled from the launch flags. Every key exists in vcruz305/tabbyAPI main.
+
+network:
+  host: ${HOST}
+  port: ${PORT}
+  # The platform owns exposure; upstream disables auth only on loopback.
+  disable_auth: ${DISABLE_AUTH}
+logging:
+  log_generation_params: false
+  log_requests: false
+model:
+  model_dir: ${MODEL_PARENT}
+  model_name: ${MODEL_NAME}
+  backend: exllamav3
+  max_seq_len: ${MAX_SEQ_LEN}
+  cache_size: ${CACHE_SIZE}
+  cache_mode: ${CACHE_MODE}
+  chunk_size: ${CHUNK_SIZE}
+  max_batch_size: ${MAX_BATCH_SIZE}
+# Fallbacks for clients that send no sampler values (agent frameworks). The pack's
+# generation_config.json sets temperature 1.0 and nothing else; client values still win.
+sampling:
+  temperature: {override: 1.0, force: false}
+# The draft head is a component of the pack itself: no draft_model_name, no second download.
+draft_model:
+  draft_mode: ${DRAFT_MODE}
