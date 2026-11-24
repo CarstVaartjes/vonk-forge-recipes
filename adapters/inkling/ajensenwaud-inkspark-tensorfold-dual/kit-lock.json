@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "engine": {
+      "commit": "93a2e93ecebff8aa52b88e58c5dd222516e69c5f",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "93a2e93ecebff8aa52b88e58c5dd222516e69c5f",
+      "repo": "ashhart/TensorFold"
+    },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:14f15591eae5d6a540f09218d3852068962fe5381371bbfefe0e9194cd834529",
+      "kind": "digest",
+      "ref": "sha256:14f15591eae5d6a540f09218d3852068962fe5381371bbfefe0e9194cd834529",
+      "repo": "ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "aa29f3a011b011896826416f03b8ac55d7ec7c6f",
+      "repo": "ajensenwaud/inkspark-2dgx",
+      "revision": "aa29f3a011b011896826416f03b8ac55d7ec7c6f"
+    }
+  },
+  "kit": {
+    "commit": "1c15d6464ff0adb32d580b7b37106988a248cf1c",
+    "repo": "ajensenwaud/inkspark-2dgx"
+  }
+}

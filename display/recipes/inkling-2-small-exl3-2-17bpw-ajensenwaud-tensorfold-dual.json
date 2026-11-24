@@ -1,0 +1,22 @@
+{
+  "alignment": "standard",
+  "description": "Inkling 2 Small (thinkingmachines/Inkling-2-Small, 594B total and 17B active mixture of experts, Apache-2.0) on two DGX Sparks through TensorFold's Zig engine (tensorfold-native) as ajensenwaud's InkSpark kit 1c15d646 builds and runs it: TensorFold v1.2.7 (93a2e93e) plus the kit's 46 patches (patches-zig/: the inkling2 CUDA family with two-rank tensor parallelism over NCCL and RoCE writes, EXL3 experts, the checkpoint's own DSpark drafter, the vision tower, fp8 KV for the global layers, the Inkling reply, reasoning and tool-call parser), compiled for sm_121 on the kit's base image (Mia AI Lab's GLM-5.3 TensorFold image: NVIDIA PyTorch 26.07, CUDA 13.3, NCCL 2.30.7) with Zig 0.17.0 and the libjpeg-turbo 3.1.4.1 and libwebp 1.6.0 decoders. The creator publishes no image, so this recipe builds the kit's own build. Weights: ajensenwaud/inkspark-2dgx aa29f3a0, an EXL3 quantization at about 2.2 bits per weight (experts 2.17 bpw, attention 6, head 8; drafter and vision tower bf16), 170.5 GB, about 84 GiB per Spark. Settings are the kit's default shape (SHAPE=long): one stream at a 1,048,576-token window, image input on, drafter on with nvfp4 draft projections, fp8 KV for the global layers (lossy; bf16 is the kit's alternative), a 3 GiB memory reserve per rank, replies of up to 4,096 tokens without max_tokens (the engine's default). The kit's eight-stream 131,072-token shape (SHAPE=agents) is not offered here. Thinking is the model's: every request carries an effort level (reasoning_effort none to max, default high), and the model may still think briefly at none. tool_choice auto only: the kit builds no grammar library, so required or named tool choices and structured output are refused. Memory: the declared per-rank peak is 124,452,516,352 bytes, the admission maximum, as an estimate: the engine takes the memory free at start less the kit's 3 GiB reserve (TENSORFOLD_MEMORY_RESERVE_GIB) and sizes its window states and prompt cache inside that, so a rank uses nearly all of its Spark and the recipe needs both Sparks to itself. The sweep measures the real use. Licences (information only): the checkpoint is Apache-2.0 under Thinking Machines' terms; the kit is BSD-3-Clause and its TensorFold patches Apache-2.0; TensorFold is Apache-2.0; the image carries NVIDIA's container terms and the libjpeg-turbo and libwebp licences.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-2-small-exl3-2-17bpw-ajensenwaud-tensorfold-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "dspark",
+    "dual",
+    "exl3",
+    "image-input",
+    "inkling",
+    "multimodal",
+    "reasoning",
+    "spark",
+    "tensorfold",
+    "tool-use"
+  ],
+  "title": "Inkling 2 Small InkSpark EXL3 2.17bpw TensorFold two Sparks (ajensenwaud)"
+}

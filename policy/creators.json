@@ -17,6 +17,7 @@
     {"name": "christopherowen", "url": "https://github.com/christopherowen", "aliases": ["christopherowen", "christopher owen"], "focus": "spark-ds41f: the DeepSeek-V4.1-Flash engine for DGX Sparks (vLLM, TileLang, sparknet RoCE collectives) with release-pinned builds for 1 to 8 Sparks."},
     {"name": "antirez", "url": "https://github.com/antirez/ds4", "aliases": ["antirez", "salvatore sanfilippo (antirez)"], "focus": "ds4: the DeepSeek 4 Flash inference engine (Metal, CUDA, ROCm)."},
     {"name": "KindlingAI", "url": "https://github.com/kindlingai", "aliases": ["kindlingai", "kindling ai", "gr8"], "focus": "gr8, a from-scratch CUDA inference engine for DGX Spark, and its exlr8 recipes for GLM-5.3, GLM-5.3-Flash and DeepSeek-V4.1-Flash on one to six Sparks."},
-    {"name": "knapcio", "url": "https://github.com/knapcio", "aliases": ["knapcio"], "focus": "Single-Spark Inkling 2 Mini kit: SGLang with DSpark and packed-KV speed overlays on the published inkling-2-mini image."}
+    {"name": "knapcio", "url": "https://github.com/knapcio", "aliases": ["knapcio"], "focus": "Single-Spark Inkling 2 Mini kit: SGLang with DSpark and packed-KV speed overlays on the published inkling-2-mini image."},
+    {"name": "ajensenwaud", "url": "https://github.com/ajensenwaud", "aliases": ["ajensenwaud", "anders jensen-waud", "inkspark"], "focus": "InkSpark: Inkling 2 Small on two Sparks with TensorFold, from the creator's own EXL3 quantization and patches on a TensorFold release."}
   ]
 }

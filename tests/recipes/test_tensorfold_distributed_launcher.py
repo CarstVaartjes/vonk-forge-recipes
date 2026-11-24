@@ -119,3 +119,83 @@ def test_invalid_placement_never_executes_engine(
     assert result.returncode != 0
     assert "needs a valid" in result.stderr
     assert not marker.exists()
+
+
+INKSPARK = (
+    ROOT / "adapters/inkling/ajensenwaud-inkspark-tensorfold-dual/tensorfold-serve"
+)
+
+
+def _placement(world: str, port: str) -> list[str]:
+    """The flags the platform appends for rank 1 of a distributed TensorFold recipe."""
+    return [
+        "--tp",
+        world,
+        "--rank",
+        "1",
+        "--master",
+        "VONK_MASTER_ADDR",
+        "--master-port",
+        port,
+    ]
+
+
+def _inkspark(tmp_path: Path, args: list[str], **placement: str):
+    marker = tmp_path / "engine.json"
+    executable = tmp_path / "tensorfold-native"
+    executable.write_text(
+        f"#!{sys.executable}\nimport json, os, sys\n"
+        f"open({str(marker)!r}, 'w').write(json.dumps([sys.argv[1:], "
+        "{k: os.environ.get(k) for k in ('TF_INKLING2_RANK', 'TF_INKLING2_WORLD', 'NCCL_COMM_ID')}]))\n"
+    )
+    executable.chmod(0o755)
+    env = dict(os.environ, PATH=f"{tmp_path}:{os.environ['PATH']}", **placement)
+    for name in ("HOME", "TMPDIR"):
+        env[name] = str(tmp_path / name)
+    result = subprocess.run(
+        [sys.executable, str(INKSPARK), *args],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    ran = json.loads(marker.read_text()) if marker.exists() else None
+    return result, ran
+
+
+def test_inkspark_moves_the_platform_placement_into_the_kits_environment(
+    tmp_path: Path,
+) -> None:
+    serve = ["--name", "Inkling-2-Small", "--context", "1048576", "--vision"]
+    result, ran = _inkspark(
+        tmp_path,
+        serve + _placement("2", "VONK_MASTER_PORT"),
+        VONK_MASTER_ADDR="192.0.2.10",
+        VONK_MASTER_PORT="29591",
+    )
+    assert result.returncode == 0, result.stderr
+    assert ran == [
+        ["serve", "/models/target", *serve],
+        {
+            "TF_INKLING2_RANK": "1",
+            "TF_INKLING2_WORLD": "2",
+            "NCCL_COMM_ID": "192.0.2.10:29591",
+        },
+    ]
+    assert (tmp_path / "HOME/.cache/tensorfold").is_dir()
+
+
+@pytest.mark.parametrize(
+    ("args", "address"),
+    [
+        (["--name", "x"], "192.0.2.10"),
+        (_placement("4", "29591"), "192.0.2.10"),
+        (_placement("2", "29591"), "fe80::1"),
+    ],
+)
+def test_inkspark_without_a_two_rank_placement_never_executes_engine(
+    tmp_path: Path, args: list[str], address: str
+) -> None:
+    result, ran = _inkspark(tmp_path, args, VONK_MASTER_ADDR=address)
+    assert result.returncode != 0
+    assert ran is None
