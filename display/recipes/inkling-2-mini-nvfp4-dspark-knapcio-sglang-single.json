@@ -1,0 +1,22 @@
+{
+  "alignment": "standard",
+  "description": "knapcio's Inkling 2 Mini kit (v2.7.2) on one Spark: thinkingmachines/Inkling-2-Mini (26.4B total, 3.4B active looped MoE; NVFP4 experts in layers 0-19, MXFP8 in 20-23, BF16 attention) on SGLang's published lmsysorg/sglang inkling-2-mini image (arm64 digest-pinned; the Vonk launcher, a non-root user and the kit's speed overlays baked in at /opt/inkling-overlay), tensor parallel 1, DSpark speculative decoding from the checkpoint's own mtp.safetensors drafter (eight draft tokens, block verification), the inkling reasoning and inkling2 tool-call parsers, xgrammar structured output and text input. The kit's defaults are mirrored: 262,144-token context, mem-fraction-static 0.89, swa-full-tokens-ratio 0.037, max-mamba-cache-size 512, max-prefill-tokens 8192, 48 running requests, and the packed global-layer KV store (KV12S=1, static pools), which upstream measured at 2.13-2.17M global-layer KV tokens on its two Sparks. The kit's optional 1,048,576-token context (CTX) is selectable with the context setting. Memory: the declared peak is the kit's lowest MemAvailable in its worst case (thinking c24 alongside a cold 240K-token prefill), 5.4 GiB of 127,533,040 kB, so 124,795,627,110 bytes in use, declared less the 2 GiB OS allowance as 122,648,143,462 bytes; that run includes start-up, so no separate load peak is declared, and nothing else should share the Spark. Interface adaptations: the checkpoint is mounted at /models, and the shared Inkling forced tool-call build patch is applied as for every Inkling SGLang recipe. Licences (information only): model Apache-2.0; SGLang Apache-2.0; knapcio's kit MIT with third-party notices in NOTICE.upstream.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-2-mini-nvfp4-dspark-knapcio-sglang-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "dspark",
+    "inkling",
+    "nvfp4",
+    "reasoning",
+    "sglang",
+    "single",
+    "spark",
+    "speculative-decoding",
+    "text",
+    "tool-use"
+  ],
+  "title": "Inkling 2 Mini NVFP4 DSpark SGLang single Spark (knapcio)"
+}

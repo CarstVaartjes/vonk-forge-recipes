@@ -1,0 +1,31 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/launch.sh",
+        "pattern": "^SGLANG_IMAGE=\\$\\{SGLANG_IMAGE:-(?P<repo>lmsysorg/sglang)@(?P<version>sha256:[0-9a-f]{64})\\}$"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "scripts/launch.sh",
+        "override": {
+          "reason": "The kit pins thinkingmachines/Inkling-2-Mini at ed40e7da; the library keeps one Model per weights, catalogued at 1fb4134b (shared with a hardware-proven recipe, which is not changed pre-emptively). Weights, mtp.safetensors and tokenizer are byte-identical across 1fb4134b, ed40e7da and 7a67ae23; config.json only gains a top-level dtype of bfloat16 at ed40e7da. Evidence: Hugging Face API file listing and LFS sha256 of each revision, 2026-11-24.",
+          "revision": "1fb4134b9a74f9681054f4ef82e4bf1f458a2337"
+        },
+        "pattern": "^MODEL_REVISION=(?P<version>[0-9a-f]{40})$",
+        "repo": "thinkingmachines/Inkling-2-Mini"
+      }
+    }
+  },
+  "ours": [
+    "inkling-forced-tool-grammar.py",
+    "sglang-serve",
+    "verify-runtime.py"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE",
+    "NOTICE.upstream": "NOTICE"
+  }
+}
