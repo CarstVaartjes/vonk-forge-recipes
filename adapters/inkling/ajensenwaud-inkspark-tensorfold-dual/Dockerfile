@@ -40,10 +40,12 @@ RUN set -- $(python3 -c 'import json; d = json.load(open("/opt/vonk-build/kit-lo
  && fetch() { git init -q "$1" && git -C "$1" fetch -q --depth 1 "https://github.com/$2.git" "$3" \
       && git -C "$1" checkout -q --detach FETCH_HEAD && test "$(git -C "$1" rev-parse HEAD)" = "$3"; } \
  && fetch /kit "$1" "$2" && fetch /tensorfold "$3" "$4"
-# scripts/prepare.sh: patches-zig/*.patch in file name order on the pinned release, then the server and the family's
-# tools for sm_121 with the image's nvcc, offline.
+# scripts/prepare.sh: patches-zig/*.patch in file name order on the pinned release, checked against the kit's patched
+# tree (config.sh ZIG_TREE, read as data), then the server and the family's tools for sm_121 with the image's nvcc, offline.
 RUN cd /tensorfold \
  && for p in /kit/patches-zig/*.patch; do git apply --check "$p" && git apply "$p" || exit 1; done \
+ && tree=$(sed -n 's/^ZIG_TREE="\([0-9a-f]\{40\}\)".*/\1/p' /kit/scripts/config.sh) && test -n "$tree" \
+ && git add -A && test "$(git write-tree)" = "$tree" \
  && NVCC=$(command -v nvcc) && ZIG_GLOBAL_CACHE_DIR=/tmp/zig-cache /opt/zig/zig build native tf-inkling2-engine tf-inkling2-vision \
       -Dnvcc="$NVCC" -Dtp-nvcc="$NVCC" -Dsm=121 -Doptimize=ReleaseFast --prefix /opt/tensorfold \
  && for b in native/bin/tensorfold-native bin/tf-inkling2-engine bin/tf-inkling2-vision; do test -x "/opt/tensorfold/$b" || exit 1; done \
