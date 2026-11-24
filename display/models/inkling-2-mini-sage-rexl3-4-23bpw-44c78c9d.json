@@ -1,0 +1,41 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "vcruz305's SAGE mixed-precision REXL3 (ExLlamaV3 trellis) quantization of thinkingmachines/Inkling-2-Mini at 4.23 bits per weight (26.4B total, 3.4B active looped mixture of experts, 15.1 GB in two trunk shards), with the pack's own MTP draft head (mtp.safetensors) and the vision tower carried in the pack. Requires vcruz305's ExLlamaV3 fork: stock exllamav3 does not know the Inkling2Loop architecture.",
+  "family_title": "Inkling",
+  "identity": {
+    "publisher": "vcruz305",
+    "slug": "inkling-2-mini-sage-rexl3-4-23bpw-44c78c9d"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "vcruz305",
+      "Thinking Machines Lab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/vcruz305/Inkling-2-Mini-SAGE-REXL3-4.23bpw/blob/44c78c9d229b43dd45e41506071b9f5f939bed44/README.md"
+  },
+  "lineage": {
+    "base_model": "thinkingmachines/Inkling-2-Mini",
+    "family": "inkling",
+    "generation": "Inkling 2",
+    "line": "inkling-2-mini",
+    "model": "inkling-2-mini",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "Inkling 2 Mini",
+  "tags": [
+    "thinkingmachines",
+    "inkling-2-mini-sage-rexl3-4-23bpw"
+  ]
+}

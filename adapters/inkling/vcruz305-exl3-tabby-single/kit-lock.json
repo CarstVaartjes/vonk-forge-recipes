@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "engine": {
+      "commit": "10a85129180145c888693f222655f79e7d403216",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "10a85129180145c888693f222655f79e7d403216",
+      "repo": "vcruz305/exllamav3"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "44c78c9d229b43dd45e41506071b9f5f939bed44",
+      "repo": "vcruz305/Inkling-2-Mini-SAGE-REXL3-4.23bpw",
+      "revision": "44c78c9d229b43dd45e41506071b9f5f939bed44"
+    },
+    "server": {
+      "commit": "a2898191eed710b55066d699ce829a976b4b3272",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "a2898191eed710b55066d699ce829a976b4b3272",
+      "repo": "vcruz305/tabbyAPI"
+    }
+  },
+  "kit": {
+    "commit": "ed76a4b14a47c5a1a526a2b98c7c2f5337adb2e6",
+    "repo": "vcruz305/Inkling-2-Mini-SAGE-EXL3-recipe"
+  }
+}
