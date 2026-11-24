@@ -21,6 +21,15 @@
       "size_bytes": 13942
     },
     {
+      "id": "hy4-flash-dfly-q8-0-609464e933b3-27516f6d79",
+      "path": "hy4-flash_dfly_Q8_0.gguf",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "609464e933b332657ca84be9ee8867a8940c388844514f7d0673b2e77a1c7e00",
+      "size_bytes": 903685664
+    },
+    {
       "id": "mmproj-hy4-flash-bf16-8c33a48ef574-ecd0591274",
       "path": "mmproj-Hy4-flash-bf16.gguf",
       "roles": [
@@ -41,14 +50,14 @@
       "slug": "hy4-flash-gguf"
     },
     "publisher": "angelslim",
-    "slug": "hy4-flash-spark-4bit-fast-gguf-65acb8ae",
-    "variant": "Hy4 Flash SPARK-4Bit-Fast GGUF 65acb8ae",
-    "version": "Hy4 Flash SPARK-4Bit-Fast GGUF 65acb8ae"
+    "slug": "hy4-flash-spark-4bit-fast-gguf-9f1d9ac2",
+    "variant": "Hy4 Flash SPARK-4Bit-Fast GGUF 9f1d9ac2",
+    "version": "Hy4 Flash SPARK-4Bit-Fast GGUF 9f1d9ac2"
   },
   "kind": "model",
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/AngelSlim/Hy4-flash-GGUF",
-    "revision": "65acb8ae7f59847fe03a17291f1b72b89b141a9e"
+    "revision": "9f1d9ac2ba4cf3b33ec1840f3fac595779c18840"
   }
 }
