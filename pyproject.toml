@@ -36,6 +36,18 @@ dev = [
     "pydantic>=2.13.4",
     "Pillow>=13.0.0",
 ]
+# The producer test environment (validate.yml, publish.yml, refresh-upstream.yml):
+# `uv sync --frozen --group producer-tests`; uv.lock is the one owner of every version.
+producer-tests = [
+    "vonk-forge-public-contracts",
+    "jsonschema>=4.24,<5",
+    "pytest-xdist==3.8.0",
+    "numpy==2.3.5",
+    "trimesh==4.10.1",
+]
+
+[tool.uv.sources]
+vonk-forge-public-contracts = { path = "contracts", editable = true }
 
 [tool.ruff]
 # Ruff is the repository's lint and formatting authority for our own code: tools/,

@@ -127,11 +127,8 @@ repository root, reproduce the producer environment in
 
 ```bash
 export UV_CACHE_DIR="$(mktemp -d)"
-recipe_test_env="$(mktemp -d)"
-uv venv --python 3.14 "$recipe_test_env"
-uv pip install --python "$recipe_test_env/bin/python" -e contracts \
-  -r .github/requirements-producer-tests.txt
-"$recipe_test_env/bin/python" -m pytest -q
+uv sync --frozen --group producer-tests   # the one locked environment (uv.lock)
+uv run --frozen python -m pytest -q
 uv run --frozen ruff check --force-exclude -- .
 uv run --frozen ruff format --check --force-exclude -- .
 scripts/check-python-types

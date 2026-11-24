@@ -140,12 +140,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test_venv="$RUNNER_TEMP/recipe-test-venv"
-          uv venv --python 3.14 "$test_venv"
-          uv pip install --python "$test_venv/bin/python" \
-            -e contracts \
-            -r .github/requirements-producer-tests.txt
-          echo "RECIPE_TEST_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
+          # One environment: the locked dev and producer-tests groups (ruff, pyright and
+          # the suite share it).
+          uv sync --frozen --group producer-tests
+          echo "RECIPE_TEST_PYTHON=$GITHUB_WORKSPACE/.venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Verify generated contract examples are current
         shell: bash
