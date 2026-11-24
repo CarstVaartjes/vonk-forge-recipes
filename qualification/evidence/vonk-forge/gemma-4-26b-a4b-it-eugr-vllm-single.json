@@ -4,66 +4,6 @@
   "records": [
     {
       "identity": {
-        "content_sha256": "36c160b472a2e8eb616f927973ec218ccb28661afdf471b0e82d796da424df1a",
-        "source_bundle_sha256": "1ba39bca9af6b670ddad0c0c49b3ca3f1349129b1d1ec3ad2c3a86e02d9c6929",
-        "runtime_image": {
-          "build_key": "39e6ef3fb798a2b3341eb093240b94aab23ef67f23b0e228ba0ffba624e11936",
-          "image_digest": "sha256:1f1347b62b4aafd6f813384e4101487215bc0627753f0b724fdbd6caf196db6c"
-        },
-        "model_digests": [
-          "e27172dc61829851425c7e85ee45dac6c27b6b42cb1fc2b3b4768f1320d3ff00"
-        ],
-        "required_sparks": 1,
-        "models_resolved": true
-      },
-      "outcome": "passed",
-      "cause_code": "qualification.hardware_pass",
-      "cause_summary": "Hardware checks passed",
-      "evidence_refs": [
-        "749a7a2e9742a8e0c25a7cdb19713785aec23b5fa024fd38fda917210a8341a3"
-      ],
-      "tested_at": "2026-11-11T21:33:25.003748Z",
-      "platform": {
-        "controller_source_sha": "b128306efd5ad6df44a620cfa3923d95e080613c",
-        "hardware_class": "GB10",
-        "spark_count": 1,
-        "topology": "single"
-      },
-      "quality_notes": [
-        "Carried from the identical execution document"
-      ]
-    },
-    {
-      "identity": {
-        "content_sha256": "36c160b472a2e8eb616f927973ec218ccb28661afdf471b0e82d796da424df1a",
-        "source_bundle_sha256": "e2b770cd5dd02e4f61c9deffcbad3fa9e218ccf93b8389e9a435645afda7ce01",
-        "runtime_image": {
-          "build_key": "793fa292251d6394a6ca7f170870a2bd26afa6f254384e919fa82e8e829abeae",
-          "image_digest": "sha256:3d2563d21f04b66c8dd0c8c02888502a0164c5af682826261f52e7d739552371"
-        },
-        "model_digests": [
-          "e27172dc61829851425c7e85ee45dac6c27b6b42cb1fc2b3b4768f1320d3ff00"
-        ],
-        "required_sparks": 1,
-        "models_resolved": true
-      },
-      "outcome": "passed",
-      "cause_code": "qualification.hardware_pass",
-      "cause_summary": "Hardware checks passed",
-      "evidence_refs": [
-        "fd005822565323041f6b16e7812050392f772e55c03c585b39bff708be2e845e"
-      ],
-      "tested_at": "2026-11-17T14:29:46.550396Z",
-      "platform": {
-        "controller_source_sha": "fce627521b4ad2c17a842768eea53bc868687669",
-        "hardware_class": "GB10",
-        "spark_count": 1,
-        "topology": "single"
-      },
-      "quality_notes": []
-    },
-    {
-      "identity": {
         "content_sha256": "a482b7be2438f9a51b5c6118759ed59110cd2a99bbc58ecc5020cc255c1448de",
         "source_bundle_sha256": "3b9b0919d12764d8a3e95012874bbfeda6104080725a148b5eb51eae1e60fb76",
         "runtime_image": {
@@ -93,12 +33,6 @@
     }
   ],
   "measured_memory": [
-    {
-      "content_sha256": "36c160b472a2e8eb616f927973ec218ccb28661afdf471b0e82d796da424df1a",
-      "role": "entrypoint",
-      "steady_bytes": 113642926080,
-      "budget_bytes": 104530585191
-    },
     {
       "content_sha256": "a482b7be2438f9a51b5c6118759ed59110cd2a99bbc58ecc5020cc255c1448de",
       "role": "entrypoint",
