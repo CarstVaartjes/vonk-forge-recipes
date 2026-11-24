@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""Launch SGLang for knapcio's Inkling 2 Mini single-Spark profile.
+
+The checkpoint is mounted read-only at /models; the speed overlays are baked into
+the image at /opt/inkling-overlay (PYTHONPATH) and armed by the recipe's environment.
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+MODEL = Path("/models")
+arguments = sys.argv[1:]
+if "--model-path" not in arguments or str(MODEL) not in arguments:
+    raise SystemExit("the immutable /models checkpoint argument is required")
+for name in ("config.json", "mtp.safetensors", "model.safetensors.index.json"):
+    if not (MODEL / name).is_file():
+        raise SystemExit(f"immutable model artifact is missing: {MODEL / name}")
+os.execv(sys.executable, (sys.executable, "-m", "sglang.launch_server", *arguments))

@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:bc811ac7ac68c6fca116a49750baca817b8613a30abface8a347682b55d132e3",
+      "kind": "digest",
+      "ref": "sha256:efac853b46811ccb760545b7b29e7119bdf907537ccf6e863fac3011fe8b98de",
+      "repo": "lmsysorg/sglang"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "overridden": "The kit pins thinkingmachines/Inkling-2-Mini at ed40e7da; the library keeps one Model per weights at the newest head, 7a67ae23. Weights, mtp.safetensors and tokenizer are byte-identical across 1fb4134b, ed40e7da and 7a67ae23; config.json only gains a top-level dtype of bfloat16 (ed40e7da) and README.md differs. Evidence: Hugging Face API file listing and LFS sha256 of each revision, 2026-11-24.",
+      "ref": "7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6",
+      "repo": "thinkingmachines/Inkling-2-Mini",
+      "revision": "7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6"
+    }
+  },
+  "kit": {
+    "commit": "6d89c0ec24cca90ce58991446cf74b1dac449cc8",
+    "repo": "knapcio/Inkling-2-Mini-1x-DGX-Spark"
+  }
+}

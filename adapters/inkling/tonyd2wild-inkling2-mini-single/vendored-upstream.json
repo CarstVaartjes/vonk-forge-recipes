@@ -10,6 +10,10 @@
         "binds": "primary",
         "datasource": "hf-revision",
         "file": "README.md",
+        "override": {
+          "reason": "The kit pins thinkingmachines/Inkling-2-Mini at 1fb4134b; the library keeps one Model per weights at the newest head, 7a67ae23. Weights, mtp.safetensors and tokenizer are byte-identical across 1fb4134b, ed40e7da and 7a67ae23; config.json only gains a top-level dtype of bfloat16 (ed40e7da) and README.md differs. Evidence: Hugging Face API file listing and LFS sha256 of each revision, 2026-11-24.",
+          "revision": "7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6"
+        },
         "pattern": "^\\| Weights \\| Hugging Face revision `(?P<version>[0-9a-f]{40})`",
         "repo": "thinkingmachines/Inkling-2-Mini"
       }
