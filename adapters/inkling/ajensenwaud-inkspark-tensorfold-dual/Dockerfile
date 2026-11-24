@@ -46,12 +46,22 @@ RUN cd /tensorfold \
  && for p in /kit/patches-zig/*.patch; do git apply --check "$p" && git apply "$p" || exit 1; done \
  && tree=$(sed -n 's/^ZIG_TREE="\([0-9a-f]\{40\}\)".*/\1/p' /kit/scripts/config.sh) && test -n "$tree" \
  && git add -A && test "$(git write-tree)" = "$tree" \
- && NVCC=$(command -v nvcc) && ZIG_GLOBAL_CACHE_DIR=/tmp/zig-cache /opt/zig/zig build native tf-inkling2-engine tf-inkling2-vision \
+ && NVCC=$(command -v nvcc) && ZIG_GLOBAL_CACHE_DIR=/tmp/zig-cache /opt/zig/zig build fatbins native tf-inkling2-engine tf-inkling2-vision \
       -Dnvcc="$NVCC" -Dtp-nvcc="$NVCC" -Dsm=121 -Doptimize=ReleaseFast --prefix /opt/tensorfold \
  && for b in native/bin/tensorfold-native bin/tf-inkling2-engine bin/tf-inkling2-vision; do test -x "/opt/tensorfold/$b" || exit 1; done \
  && mkdir -p /opt/tensorfold/share/doc/tensorfold \
  && for f in LICENSE NOTICE LICENSES THIRD_PARTY_NOTICES.md; do if [ -e "$f" ]; then cp -a "$f" /opt/tensorfold/share/doc/tensorfold/ || exit 1; fi; done \
  && rm -rf /tmp/zig-cache
+# Build-time sm_121 kernel scan (scan-sm121.py: cubins sm_121[af] / sm_120[f], PTX not arch-specific and <= 121, or sm_121a;
+# every file with device code needs a loadable image; each file's listing is echoed). The creator publishes no image, so this
+# build is checked as Mia's Inkling 2 Mini kit build is. Covered: tensorfold-native, whose kernels the Zig build embeds as
+# fatbins (the `fatbins` step above, added to the kit's build line for this scan only, installs those exact images to
+# /opt/tensorfold/fatbin, and every one is required to carry a loadable image), and the other shared libraries of the install.
+# Not covered: a runtime JIT of kernels the binaries do not embed.
+COPY scan-sm121.py /opt/scan-sm121.py
+RUN ls /opt/tensorfold/fatbin/*.fatbin >/dev/null \
+ && python3 /opt/scan-sm121.py $(for f in /opt/tensorfold/fatbin/*.fatbin; do echo --require $f; done) \
+      $(find /opt/tensorfold/native -type f \( -name '*.so*' -o -name tensorfold-native \))
 
 FROM ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold@sha256:14f15591eae5d6a540f09218d3852068962fe5381371bbfefe0e9194cd834529
 LABEL org.opencontainers.image.source="https://github.com/ajensenwaud/inkspark-2dgx" \
