@@ -3,7 +3,7 @@
     "build": {
       "base_image": {
         "digest": "bc811ac7ac68c6fca116a49750baca817b8613a30abface8a347682b55d132e3",
-        "repository": "docker.io/lmsysorg/sglang"
+        "repository": "lmsysorg/sglang"
       },
       "context": {
         "path": "adapters/inkling/knapcio-single"

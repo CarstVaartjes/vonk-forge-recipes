@@ -1,4 +1,4 @@
-FROM docker.io/lmsysorg/sglang@sha256:bc811ac7ac68c6fca116a49750baca817b8613a30abface8a347682b55d132e3
+FROM lmsysorg/sglang@sha256:bc811ac7ac68c6fca116a49750baca817b8613a30abface8a347682b55d132e3
 
 # knapcio's Inkling 2 Mini kit runs SGLang's published inkling-2-mini image
 # (lmsysorg/sglang, pinned by digest in scripts/launch.sh) with the kit's speed
