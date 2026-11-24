@@ -1,0 +1,114 @@
+diff --git a/zig/src/families/inkling2/mini_model.zig b/zig/src/families/inkling2/mini_model.zig
+index 9fdb2799f..e0dbffdde 100644
+--- a/zig/src/families/inkling2/mini_model.zig
++++ b/zig/src/families/inkling2/mini_model.zig
+@@ -171,6 +171,8 @@ pub const Model = struct {
+     graphed: bool = true,
+     /// TF_INKLING2_LAZY_HEAD=1: an FP8 proxy of the head with per-row error bounds; exact logits for the candidates.
+     lazy: ?ops.Lazy = null,
++    /// TF_INKLING2_ATTN_FP8=1 (Track D, lossy, opt-in): each layer's attention projections as per-tensor FP8 copies.
++    attn8: ?[]wts.Attn = null,
+     lazy_ok: bool = false,
+     lazy_rows: [ops.Lazy.max_rows]ops.Lazy.Row = @splat(.{}), // the head rows' draws, uploaded with the forward
+     /// Each conv site's inputs a row, fp32 [round_rows][C] by (visit, site), when `hist_on` (a verify of wide windows).
+@@ -255,6 +257,7 @@ pub const Model = struct {
+     }
+ 
+     pub fn deinit(m: *Model) void {
++        if (m.attn8) |a| m.gpa.free(a);
+         for ([_]*[round_rows + 1]?cuda.graph.Exec{ &m.graphs, &m.graphs_lazy }) |set| for (set) |*g| if (g.*) |*e| {
+             e.deinit();
+             g.* = null;
+@@ -301,6 +304,79 @@ pub const Model = struct {
+         if (m.planned == null) try m.upload(s, m.sites, std.mem.sliceAsBytes(table[0..m.n_sites]));
+         try m.scratch(k);
+         if (lazyOn()) try m.buildLazy(s, k);
++        if (attnFp8On()) try m.buildAttn8(s, k);
++    }
++
++    fn attnFp8On() bool {
++        const v = std.c.getenv("TF_INKLING2_ATTN_FP8") orelse return false;
++        return v[0] == '1';
++    }
++
++    /// A packed bf16 lane weight as a per-tensor FP8 lane weight (e4m3 at amax / 448; mtp.cu's repack), its slices kept.
++    fn fp8Lane(m: *Model, s: cuda.Stream, k: *const Kernels, u: cuda.qmmf.Weight) !cuda.qmmf.Weight {
++        const total: usize = @as(usize, u.npad) * u.k;
++        const codes = try m.alloc(total);
++        const amax = try m.alloc(4);
++        if (m.planned != null) return u;
++        try m.d.check(m.d.api.cuMemsetD8Async(amax, 0, 4, s.handle), "cuMemsetD8Async");
++        var a: cuda.Args = .{};
++        a.add(u.codes);
++        a.add(@as(i64, @intCast(total)));
++        a.add(amax);
++        try cuda.launch.launch(try k.mtp_mod.function("tf_ink2m_amax"), .{ .grid = .{ .x = 1024 }, .block = .{ .x = 256 } }, s, &a);
++        try s.synchronize();
++        var bits: u32 = 0;
++        try cuda.memory.download(m.d, amax, std.mem.asBytes(&bits));
++        const mx: f32 = @bitCast(bits);
++        if (!(mx > 0) or !std.math.isFinite(mx)) return error.AttnFp8Range;
++        const scale = mx / 448.0;
++        var b: cuda.Args = .{};
++        b.add(u.codes);
++        b.add(codes);
++        b.add(@as(i32, @intCast(u.k)));
++        b.add(@as(f32, 1.0 / scale));
++        b.add(@as(i64, @intCast(total)));
++        try cuda.launch.launch(try k.mtp_mod.function("tf_ink2m_fp8_lane"), .{ .grid = .{ .x = @intCast((total + 255) / 256) }, .block = .{ .x = 256 } }, s, &b);
++        var w = cuda.modelopt.fp8Weight(codes, scale, u.n, u.k);
++        w.sk = u.sk;
++        return w;
++    }
++
++    /// Each layer's attention with FP8 projections: the fused rows once (its part views at the same rows, one scale),
++    /// and the output projection.
++    fn buildAttn8(m: *Model, s: cuda.Stream, k: *const Kernels) !void {
++        const t = m.c;
++        const f = wts.Fused.of(t);
++        const out = if (m.planned == null) try m.gpa.alloc(wts.Attn, m.w.layers.len) else null;
++        for (m.w.layers, 0..) |*L, i| {
++            const a = L.attn;
++            const all8 = try m.fp8Lane(s, k, a.all);
++            const wo8 = try m.fp8Lane(s, k, a.wo);
++            if (out) |o| {
++                var b = a;
++                const view = struct {
++                    fn at(base: cuda.qmmf.Weight, row: usize, n: u32, part: cuda.qmmf.Weight) cuda.qmmf.Weight {
++                        var w = cuda.modelopt.fp8Weight(base.codes + row * base.k, base.scale, n, base.k);
++                        w.sk = part.sk;
++                        return w;
++                    }
++                }.at;
++                b.all = view(all8, 0, a.all.n, a.all);
++                b.qx = view(all8, 0, a.qx.n, a.qx);
++                b.wq = view(all8, f.q, a.wq.n, a.wq);
++                b.gate = view(all8, f.gate, a.gate.n, a.gate);
++                b.wr = view(all8, f.rel, a.wr.n, a.wr);
++                b.sink = view(all8, f.sink, a.sink.n, a.sink);
++                b.wk = view(all8, f.k, a.wk.n, a.wk);
++                b.wv = view(all8, f.v, a.wv.n, a.wv);
++                b.wo = wo8;
++                o[i] = b;
++            }
++        }
++        if (out) |o| {
++            try s.synchronize();
++            m.attn8 = o;
++        }
+     }
+ 
+     /// TF_INKLING2_LAZY_HEAD=0: every head row through the full bf16 head, as before (the lazy head picks the same).
+diff --git a/zig/src/families/inkling2/mini_visit.zig b/zig/src/families/inkling2/mini_visit.zig
+index 660461e8b..13c3344b5 100644
+--- a/zig/src/families/inkling2/mini_visit.zig
++++ b/zig/src/families/inkling2/mini_visit.zig
+@@ -192,7 +192,7 @@ fn visitOne(m: *Model, k: *const Kernels, s: cuda.Stream, r: *const Rows, v: u32
+     const i: u32 = step.layer;
+     const spec = p.at(i);
+     const L = &m.w.layers[i];
+-    const a = &L.attn;
++    const a = if (m.attn8) |x| &x[i] else &L.attn;
+     const h: usize = t.hidden;
+     const n = r.n;
+     const plane = n * h;

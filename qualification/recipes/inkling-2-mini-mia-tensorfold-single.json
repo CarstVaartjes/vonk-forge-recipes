@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/inkling-2-mini-mia-tensorfold-single",
+  "service_recipes": {
+    "alias": "inkling-2-mini",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start, exact alias, and warm kernel-cache restart"
+      ],
+      "stress": [
+        "Bounded multi-stream concurrency (--parallel 8) and long-context canaries at the 262,144-token window"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "MIS_A391",
+      "MIS_T_REPORT",
+      "MIS_V_RED"
+    ]
+  }
+}

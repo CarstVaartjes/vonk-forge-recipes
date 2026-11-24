@@ -1,0 +1,138 @@
+diff --git a/zig/src/families/inkling2/kernels.zig b/zig/src/families/inkling2/kernels.zig
+index 300975068..06c829e55 100644
+--- a/zig/src/families/inkling2/kernels.zig
++++ b/zig/src/families/inkling2/kernels.zig
+@@ -328,7 +328,7 @@ pub fn attend(k: *const Kernels, s: cuda.Stream, r: Rows, l: Layer, stride: u32,
+ const S_check = struct {
+     var on: bool = true;
+ };
+-const prompt_rows_max = 512;
++const prompt_rows_max = 4096;
+ 
+ /// One stream's rows from which a sliding call takes tf_ink2_attn_slide (prompt passes).
+ pub const slide_rows = 64;
+diff --git a/zig/src/families/inkling2/mini_model.zig b/zig/src/families/inkling2/mini_model.zig
+index e0dbffdde..8abc1cb63 100644
+--- a/zig/src/families/inkling2/mini_model.zig
++++ b/zig/src/families/inkling2/mini_model.zig
+@@ -12,7 +12,21 @@ const visit = @import("mini_visit.zig");
+ const DeviceBuffer = cuda.DeviceBuffer;
+ 
+ /// Prompt rows a forward takes at most: one stream's chunk.
+-pub const prompt_rows = 512;
++pub const prompt_rows = 4096;
++
++const WideGraphKey = struct {
++    rows: u16,
++    streams: u16,
++    n_tiles: u16,
++    hist_on: bool,
++    lazy: bool,
++    taps_on: bool,
++};
++const WideGraph = struct {
++    key: WideGraphKey,
++    exec: cuda.graph.Exec,
++};
++const wide_graph_cap = 64;
+ /// Decode rows a forward takes over every stream.
+ pub const round_rows = 64;
+ /// The widest window one stream verifies in a decode forward.
+@@ -168,6 +182,9 @@ pub const Model = struct {
+     graphs: [round_rows + 1]?cuda.graph.Exec = @splat(null),
+     /// The same forwards with the certified lazy head (`lazy_ok` set by the caller: every row greedy).
+     graphs_lazy: [round_rows + 1]?cuda.graph.Exec = @splat(null),
++    /// Drafted / multi-row verify rounds as CUDA graphs, keyed by (rows, streams, n_tiles, hist_on, lazy, taps_on).
++    wide_graphs: [wide_graph_cap]?WideGraph = @splat(null),
++    wide_graph_next: usize = 0,
+     graphed: bool = true,
+     /// TF_INKLING2_LAZY_HEAD=1: an FP8 proxy of the head with per-row error bounds; exact logits for the candidates.
+     lazy: ?ops.Lazy = null,
+@@ -262,6 +279,10 @@ pub const Model = struct {
+             e.deinit();
+             g.* = null;
+         };
++        for (&m.wide_graphs) |*wg| if (wg.*) |*e| {
++            e.exec.deinit();
++            wg.* = null;
++        };
+         for (m.buffers.items) |*b| b.free();
+         m.buffers.deinit(m.gpa);
+     }
+@@ -461,6 +482,10 @@ pub const Model = struct {
+             e.deinit();
+             g.* = null;
+         };
++        for (&m.wide_graphs) |*wg| if (wg.*) |*e| {
++            e.exec.deinit();
++            wg.* = null;
++        };
+     }
+ 
+     fn scratch(m: *Model, k: *const Kernels) !void {
+@@ -576,19 +601,59 @@ pub const Model = struct {
+         m.gen += 1;
+         var r = try visit.Rows.stage(m, s, chains, rows, prompt);
+         if (m.lazyFor(heads)) try m.upload(s, m.lazy.?.info, std.mem.sliceAsBytes(m.lazy_rows[0..heads]));
+-        // one row a stream, every row's logits: the launches depend on the row count alone (the rest is on the device)
+-        if (prompt or !m.graphed or m.hist_on or head0 != 0 or heads != rows or r.streams != rows or r.n_tiles != rows)
+-        {
++        // Decode forwards with every row's logits: launches depend only on (rows, streams, n_tiles, hist_on, lazy, taps_on).
++        if (prompt or !m.graphed or head0 != 0 or heads != rows) {
+             try visit.run(m, k, s, &r, head0, heads);
+             if (m.lazyFor(heads)) try m.lazyTrace(s, heads);
+             return;
+         }
+-        const g = if (m.lazyFor(heads)) &m.graphs_lazy[rows] else &m.graphs[rows];
+-        if (g.* == null) g.* = try m.capture(k, s, &r);
+-        try g.*.?.launchOn(s);
++        if (!m.hist_on and r.streams == rows and r.n_tiles == rows) {
++            const g = if (m.lazyFor(heads)) &m.graphs_lazy[rows] else &m.graphs[rows];
++            if (g.* == null) g.* = try m.capture(k, s, &r);
++            try g.*.?.launchOn(s);
++            if (m.lazyFor(heads)) try m.lazyTrace(s, heads);
++            return;
++        }
++        if (wideGraphsOn()) {
++            const key: WideGraphKey = .{
++                .rows = @intCast(rows),
++                .streams = @intCast(r.streams),
++                .n_tiles = @intCast(r.n_tiles),
++                .hist_on = m.hist_on,
++                .lazy = m.lazyFor(heads),
++                .taps_on = m.taps_on,
++            };
++            for (&m.wide_graphs) |*wg| {
++                if (wg.*) |*e| {
++                    if (std.meta.eql(e.key, key)) {
++                        try e.exec.launchOn(s);
++                        if (m.lazyFor(heads)) try m.lazyTrace(s, heads);
++                        return;
++                    }
++                }
++            }
++            const exec = try m.capture(k, s, &r);
++            const idx = m.wide_graph_next % wide_graph_cap;
++            m.wide_graph_next +%= 1;
++            if (m.wide_graphs[idx]) |*old| old.exec.deinit();
++            m.wide_graphs[idx] = .{ .key = key, .exec = exec };
++            try m.wide_graphs[idx].?.exec.launchOn(s);
++            if (m.lazyFor(heads)) try m.lazyTrace(s, heads);
++            return;
++        }
++        try visit.run(m, k, s, &r, head0, heads);
+         if (m.lazyFor(heads)) try m.lazyTrace(s, heads);
+     }
+ 
++    /// TF_INKLING2_WIDE_GRAPHS=0: disable CUDA graphs on drafted/multi-row verify rounds.
++    fn wideGraphsOn() bool {
++        const S = struct {
++            var v: ?bool = null;
++        };
++        if (S.v == null) S.v = if (std.c.getenv("TF_INKLING2_WIDE_GRAPHS")) |e| e[0] != '0' else true;
++        return S.v.?;
++    }
++
+     /// TF_INKLING2_LAZY_TRACE=1: the lazy head's candidates a row (synchronizes; debug only), every 256 forwards.
+     pub fn lazyTrace(m: *Model, s: cuda.Stream, heads: usize) !void {
+         if (std.c.getenv("TF_INKLING2_LAZY_TRACE") == null) return;
