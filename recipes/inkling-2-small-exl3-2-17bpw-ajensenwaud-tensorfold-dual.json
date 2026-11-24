@@ -1,0 +1,700 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "14f15591eae5d6a540f09218d3852068962fe5381371bbfefe0e9194cd834529",
+        "repository": "ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold"
+      },
+      "context": {
+        "path": "adapters/inkling/ajensenwaud-inkspark-tensorfold-dual"
+      },
+      "dockerfile": "adapters/inkling/ajensenwaud-inkspark-tensorfold-dual/Dockerfile",
+      "network": {
+        "hosts": [
+          "ziglang.org",
+          "github.com",
+          "codeload.github.com",
+          "objects.githubusercontent.com",
+          "release-assets.githubusercontent.com",
+          "storage.googleapis.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-2-small-exl3-2-17bpw-ajensenwaud-tensorfold-dual"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "Inkling-2-Small"
+      ],
+      "port": 8888
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-e9c054ccf5be-618cd5b83d",
+          "id": "primary-metadata-e9c054ccf5be-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-362ed3a8b3c5-b335630551",
+          "id": "primary-readme-362ed3a8b3c5-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "chat-template-e9cfd8e75d12-00824420d1",
+          "id": "primary-chat-template-e9cfd8e75d12-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-5a0110650651-587cb980af",
+          "id": "primary-config-5a0110650651-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00025-c099de1e8ace-6684a47dd5",
+          "id": "primary-model-00001-of-00025-c099de1e8ace-6684a47dd5",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00025-8cdecd5282f9-f05f4ac764",
+          "id": "primary-model-00002-of-00025-8cdecd5282f9-f05f4ac764",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00025-1acdd80e0e66-acafff1bcd",
+          "id": "primary-model-00003-of-00025-1acdd80e0e66-acafff1bcd",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00025-2b715651a46a-588f5579a6",
+          "id": "primary-model-00004-of-00025-2b715651a46a-588f5579a6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00025-32b0328b06e8-da2c0724b9",
+          "id": "primary-model-00005-of-00025-32b0328b06e8-da2c0724b9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00025-80c88bd4f41f-83d37dbee9",
+          "id": "primary-model-00006-of-00025-80c88bd4f41f-83d37dbee9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00025-40ec4c6cbf87-cc8e74d70b",
+          "id": "primary-model-00007-of-00025-40ec4c6cbf87-cc8e74d70b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00025-4527687d8cbf-2a6a22a17e",
+          "id": "primary-model-00008-of-00025-4527687d8cbf-2a6a22a17e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00025-9a1c9d20beda-c6e0e18f46",
+          "id": "primary-model-00009-of-00025-9a1c9d20beda-c6e0e18f46",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00025-6fbf28bf5fa7-9bbae35f3b",
+          "id": "primary-model-00010-of-00025-6fbf28bf5fa7-9bbae35f3b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00025-e47a5f36a48f-5791db311b",
+          "id": "primary-model-00011-of-00025-e47a5f36a48f-5791db311b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00025-f923b2c7a96a-27d5918218",
+          "id": "primary-model-00012-of-00025-f923b2c7a96a-27d5918218",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00025-e085bd491f40-da9109223b",
+          "id": "primary-model-00013-of-00025-e085bd491f40-da9109223b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00025-2b7ee7a9357e-da766d0784",
+          "id": "primary-model-00014-of-00025-2b7ee7a9357e-da766d0784",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00025-047f51690fcc-77330d90de",
+          "id": "primary-model-00015-of-00025-047f51690fcc-77330d90de",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00025-4c72c51ae5d5-f7f8b58ae6",
+          "id": "primary-model-00016-of-00025-4c72c51ae5d5-f7f8b58ae6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00025-af563e372cc4-5fe2d89130",
+          "id": "primary-model-00017-of-00025-af563e372cc4-5fe2d89130",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00025-42566ea31f79-9765a31c3d",
+          "id": "primary-model-00018-of-00025-42566ea31f79-9765a31c3d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00025-c78be7f84f33-b927fded15",
+          "id": "primary-model-00019-of-00025-c78be7f84f33-b927fded15",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00025-29e2067b07d0-2ca189f016",
+          "id": "primary-model-00020-of-00025-29e2067b07d0-2ca189f016",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00025-64ec17b5fcd4-4cbdffed1b",
+          "id": "primary-model-00021-of-00025-64ec17b5fcd4-4cbdffed1b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00022-of-00025-44bb216c02b4-a2a73b27dc",
+          "id": "primary-model-00022-of-00025-44bb216c02b4-a2a73b27dc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00023-of-00025-dfe2150aa93a-eccf835897",
+          "id": "primary-model-00023-of-00025-dfe2150aa93a-eccf835897",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00024-of-00025-f11f6bea841d-5be99ae8df",
+          "id": "primary-model-00024-of-00025-f11f6bea841d-5be99ae8df",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00025-of-00025-a84dd049408a-9b89750d1b",
+          "id": "primary-model-00025-of-00025-a84dd049408a-9b89750d1b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-670a115e56a4-0a05be8238",
+          "id": "primary-model-safetensors-index-670a115e56a4-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "mtp-3b265640ec84-265929bffe",
+          "id": "primary-mtp-3b265640ec84-265929bffe",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "processor-config-b326f9a5d49c-27f0cb76af",
+          "id": "primary-processor-config-b326f9a5d49c-27f0cb76af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "quantization-config-065fc2c16f72-6f24389fb3",
+          "id": "primary-quantization-config-065fc2c16f72-6f24389fb3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-26152a6988fb-c07a9be597",
+          "id": "primary-special-tokens-map-26152a6988fb-c07a9be597",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-f170372dd655-86f223d688",
+          "id": "primary-tokenizer-f170372dd655-86f223d688",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-7f332727f9a3-224931eb13",
+          "id": "primary-tokenizer-7f332727f9a3-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-6addc2bf8dc7-94d5c6ba8f",
+          "id": "primary-tokenizer-config-6addc2bf8dc7-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "vision-1756496de6cd-5f125caa20",
+          "id": "primary-vision-1756496de6cd-5f125caa20",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "f48a8a5ca63e990bdb3c6d94c93c89589881e85bad8f2abb199061fd64a7a8fb",
+        "kind": "model",
+        "publisher": "ajensenwaud",
+        "slug": "inkling-2-small-inkspark-exl3-2-17bpw-aa29f3a0"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "ajensenwaud",
+      "Ash Hart / TensorFold",
+      "MiaAI-Lab",
+      "turboderp (exllamav3)",
+      "Thinking Machines Lab"
+    ],
+    "source_reference": "https://github.com/ajensenwaud/inkspark-2dgx/tree/1c15d6464ff0adb32d580b7b37106988a248cf1c"
+  },
+  "release": {
+    "released_at": "2026-11-19",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "name",
+        "value": "Inkling-2-Small"
+      },
+      {
+        "name": "host",
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "value": 8888
+      },
+      {
+        "name": "context",
+        "setting": "context_tokens"
+      },
+      {
+        "name": "parallel",
+        "setting": "concurrency"
+      },
+      {
+        "name": "vision",
+        "value": true
+      }
+    ],
+    "engine": "tensorfold",
+    "entrypoint": [
+      "/opt/vonk/bin/tensorfold-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TENSORFOLD_NO_UPDATE_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_IB_DISABLE",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_RUNTIME_CONNECT",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CUMEM_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CUMEM_HOST_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "TF_ROCE",
+        "value": "1"
+      },
+      {
+        "name": "TENSORFOLD_MEMORY_RESERVE_GIB",
+        "value": "3"
+      },
+      {
+        "name": "TF_INKLING2_DRAFT_WEIGHTS",
+        "value": "nvfp4"
+      },
+      {
+        "name": "TF_INKLING2_KV",
+        "value": "fp8"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 1048576
+    },
+    "kind": "generation",
+    "knobs": {}
+  },
+  "topology": {
+    "name": "dual",
+    "node_count": 2,
+    "parallelism": {
+      "backend": "native",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 170503784093,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 15000000000,
+            "working_bytes": 8000000000
+          },
+          "memory": {
+            "peak_bytes": 123378774528,
+            "reserve_bytes": 3221225472
+          }
+        }
+      },
+      {
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 170503784093,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 15000000000,
+            "working_bytes": 8000000000
+          },
+          "memory": {
+            "peak_bytes": 123378774528,
+            "reserve_bytes": 3221225472
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "worker",
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "Inkling-2-Small"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.vision",
+          "name": "bounded-vision",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": [
+                    {
+                      "text": "describe this image",
+                      "type": "text"
+                    },
+                    {
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAYElEQVR4nO3PwQkAIBDAMAX3H/lwCB9BaCZo96y/HR3wqgGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQHtAgK6AfwYG1VIAAAAAElFTkSuQmCC"
+                      },
+                      "type": "image_url"
+                    }
+                  ],
+                  "role": "user"
+                }
+              ],
+              "model": "Inkling-2-Small"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

@@ -30,6 +30,16 @@
       ],
       "slug": "inkling-2-mini",
       "title": "Inkling 2 Mini"
+    },
+    {
+      "models": [
+        {
+          "slug": "inkling-2-small",
+          "title": "Inkling 2 Small"
+        }
+      ],
+      "slug": "inkling-2-small",
+      "title": "Inkling 2 Small"
     }
   ],
   "slug": "inkling",

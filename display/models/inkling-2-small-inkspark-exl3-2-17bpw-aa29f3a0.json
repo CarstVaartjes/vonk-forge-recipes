@@ -1,0 +1,41 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "description": "ajensenwaud's InkSpark EXL3 quantization of thinkingmachines/Inkling-2-Small (594B total, 17B active mixture of experts) at about 2.2 bits per weight: routed experts 2.17 bpw (gate and up 2 bits; down 3 bits on the first and last 12 layers, 2 bits between), attention 6 bpw, head 8 bpw, embedding bf16; with the model's own DSpark drafter (mtp.safetensors) and vision tower (vision.safetensors) in bf16 as released. 170.5 GB in 25 shards, made for two DGX Sparks with tensor parallelism. Requires InkSpark's TensorFold patches (the inkling2 family): stock TensorFold and exllamav3 cannot load it.",
+  "family_title": "Inkling",
+  "identity": {
+    "publisher": "ajensenwaud",
+    "slug": "inkling-2-small-inkspark-exl3-2-17bpw-aa29f3a0"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "ajensenwaud",
+      "Thinking Machines Lab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/ajensenwaud/inkspark-2dgx/blob/aa29f3a011b011896826416f03b8ac55d7ec7c6f/README.md"
+  },
+  "lineage": {
+    "base_model": "thinkingmachines/Inkling-2-Small",
+    "family": "inkling",
+    "generation": "Inkling 2",
+    "line": "inkling-2-small",
+    "model": "inkling-2-small",
+    "variant_kind": "quantization"
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "model_title": "Inkling 2 Small",
+  "tags": [
+    "thinkingmachines",
+    "inkling-2-small-inkspark-exl3-2-17bpw"
+  ]
+}

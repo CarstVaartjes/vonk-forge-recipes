@@ -1,0 +1,32 @@
+{
+  "kit": {
+    "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "scripts/config.sh",
+        "pattern": "^TF_COMMIT=\"\\$\\{TF_COMMIT:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^TF_REPO=\"https://github\\.com/(?P<repo>[^\"]+)\""
+      },
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/config.sh",
+        "pattern": "^BASE_IMAGE=\"\\$\\{BASE_IMAGE:-(?P<repo>[^@}\"]+)@(?P<version>sha256:[0-9a-f]{64})\\}\""
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "scripts/config.sh",
+        "pattern": "^PACK_REV=\"\\$\\{PACK_REV:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^PACK_REPO=\"(?P<repo>[^\"]+)\""
+      }
+    },
+    "whole": true
+  },
+  "ours": [
+    "tensorfold-serve"
+  ],
+  "renamed": {
+    "licenses/CREDITS.md": "CREDITS.md",
+    "licenses/LICENSE": "LICENSE"
+  }
+}
