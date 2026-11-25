@@ -1,5 +1,7 @@
 {
-  "capabilities": [],
+  "capabilities": [
+    "text-generation"
+  ],
   "description": "FLUX 3 Image Klein Prompt Upsampler immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "FLUX 3",
   "identity": {
