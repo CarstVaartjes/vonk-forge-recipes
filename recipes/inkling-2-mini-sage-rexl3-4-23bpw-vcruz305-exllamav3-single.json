@@ -161,19 +161,51 @@
         "publisher": "vcruz305",
         "slug": "inkling-2-mini-sage-rexl3-4-23bpw-44c78c9d"
       }
+    },
+    {
+      "files": [
+        {
+          "file_id": "config-d094e435eb93-587cb980af",
+          "id": "drafter-config-d094e435eb93-587cb980af",
+          "mount": {
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-217980ab00d1-9d75c1098f",
+          "id": "drafter-model-217980ab00d1-9d75c1098f",
+          "mount": {
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "drafter",
+      "model": {
+        "content_sha256": "06445ebcca9c226a32837824d9f15760a0c8514b21d1f3a79f859a9fda243d2e",
+        "kind": "model",
+        "publisher": "incoai",
+        "slug": "inkling-2-mini-dflash2-incoai-4f9088ea"
+      }
     }
   ],
   "provenance": {
     "attribution": [
       "vcruz305",
       "Thinking Machines Lab",
-      "TabbyAPI contributors"
+      "TabbyAPI contributors",
+      "IncoAI (DFlash2 drafter)"
     ],
-    "source_reference": "https://github.com/vcruz305/Inkling-2-Mini-SAGE-EXL3-recipe/tree/ed76a4b14a47c5a1a526a2b98c7c2f5337adb2e6/dgx-spark"
+    "source_reference": "https://github.com/vcruz305/Inkling-2-Mini-SAGE-EXL3-recipe/tree/ed64091c4d5020b8617b0d7d18ce1296af2337c0/dgx-spark"
   },
   "release": {
-    "released_at": "2026-11-23",
-    "version": "1.0.0"
+    "released_at": "2026-11-25",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [
@@ -215,7 +247,7 @@
       {
         "name": "draft",
         "setting": null,
-        "value": "mtp"
+        "value": "dflash2"
       }
     ],
     "engine": "exllamav3",
@@ -239,7 +271,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 24576
+      "value": 262144
     },
     "kind": "generation",
     "knobs": {},
@@ -261,13 +293,13 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 15070275721,
+            "artifact_bytes": 16060252648,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 15000000000,
             "working_bytes": 8000000000
           },
           "memory": {
-            "peak_bytes": 24100000000,
+            "peak_bytes": 73400000000,
             "reserve_bytes": 10000000000
           }
         }

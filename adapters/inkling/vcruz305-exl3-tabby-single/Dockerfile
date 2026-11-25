@@ -10,14 +10,15 @@
 # pins in scripts/env.sh. The extension is compiled for sm_121 at build time
 # instead of at first import. The upstream launch scripts are not run;
 # tabby-serve replaces serve.sh and renders the vendored tabby-config.yml the
-# same way.
+# same way. The DFlash2 drafter is a separate model, mounted at /models/draft.
+# Kit ed64091c (2026-11-25): engine c702887b adds the DFlash2 hookup.
 FROM nvcr.io/nvidia/cuda:13.0.2-devel-ubuntu24.04@sha256:5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6
 
 LABEL org.opencontainers.image.source="https://github.com/vcruz305/Inkling-2-Mini-SAGE-EXL3-recipe" \
-      org.opencontainers.image.revision="ed76a4b14a47c5a1a526a2b98c7c2f5337adb2e6" \
+      org.opencontainers.image.revision="ed64091c4d5020b8617b0d7d18ce1296af2337c0" \
       org.opencontainers.image.licenses="MIT AND AGPL-3.0-only" \
       io.vonk.exllamav3.source="https://github.com/vcruz305/exllamav3" \
-      io.vonk.exllamav3.revision="10a85129180145c888693f222655f79e7d403216" \
+      io.vonk.exllamav3.revision="c702887ba7be368e1714339dd755a7c3c9b263d5" \
       io.vonk.tabbyapi.source="https://github.com/vcruz305/tabbyAPI" \
       io.vonk.tabbyapi.revision="a2898191eed710b55066d699ce829a976b4b3272"
 
