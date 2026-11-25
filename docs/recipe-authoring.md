@@ -1141,7 +1141,12 @@ sha256 from the creator's `<asset>.sha256`, checked against GitHub's recorded
 digest when GitHub records one. A URL written with `${ARG}` references is read
 through the Dockerfile's `ARG NAME=default` lines and left as written; the
 `ARG ..VERSION=` and sha256 defaults move instead, and the refresh re-expands the URL
-afterwards (it must name the new tag and asset). These go to review ("re-pin by hand"): a missing
+afterwards (it must name the new tag and asset). An adapter that reaches the
+repository only through its Dockerfile's `releases/download/` URL (no clone, archive,
+codeload, raw URL or commit-named file; the adapter owns the pin and carries no
+patches or mods) is judged by the
+release: diverged or truncated history and changed source files are not reasons, and
+the move is never a no-op. These go to review ("re-pin by hand"): a missing
 asset or `.sha256`, a disagreement, a target that is not a release, or a Dockerfile
 that does not pin the old asset by sha256. The refresh never leaves a declared
 `source.line`; it only notes that a newer line exists. Moving to another line is a
