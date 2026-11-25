@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Controller launcher for one rank of sfxnz's TensorFold 1.2.5 GLM-5.3-Flash TP launch.
+"""Controller launcher for one rank of sfxnz's patched TensorFold (sfxnz v4) GLM-5.3-Flash TP launch.
 
 The platform appends `--tp`, `--rank`, `--master VONK_MASTER_ADDR` and `--master-port VONK_MASTER_PORT` to the named
 `tensorfold-native serve` options. The native GLM family reads the pair from the environment instead, as the creator's
@@ -70,6 +70,8 @@ for name in ("HOME", "TMPDIR"):
     if not os.environ.get(name):
         fail(f"{name} is not set")
 os.makedirs(os.environ["TMPDIR"], exist_ok=True)
+# TF_GLM_FAST_LOAD keeps its shard sha256 cache under $HOME/.cache/tensorfold.
+os.makedirs(os.path.join(os.environ["HOME"], ".cache", "tensorfold"), exist_ok=True)
 arguments = sys.argv[1:]
 world, rank, master, port = rendezvous(arguments)
 rails = fabric()

@@ -1,4 +1,4 @@
-"""The Controller launcher binds one rank of sfxnz's TensorFold 1.2.5 GLM pair to its environment."""
+"""The Controller launcher binds one rank of sfxnz's TensorFold GLM pair to its environment."""
 
 import os
 import runpy
@@ -47,7 +47,13 @@ def launch(launcher, monkeypatch, tmp_path, arguments, **environ):
     for name in list(os.environ):
         if name.startswith(("TF_", "NCCL_", "VONK_")):
             monkeypatch.delenv(name)
-    for name, value in {**ENVIRON, "TMPDIR": str(tmp_path / "tmp"), **environ}.items():
+    home = str(tmp_path / "home")  # the sfxnz launcher creates $HOME/.cache/tensorfold
+    for name, value in {
+        **ENVIRON,
+        "HOME": home,
+        "TMPDIR": str(tmp_path / "tmp"),
+        **environ,
+    }.items():
         monkeypatch.setenv(name, value)
     calls = []
     monkeypatch.setattr(os, "execv", lambda path, argv: calls.append((path, argv)))
