@@ -1,5 +1,9 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "naf",
+    "dino"
+  ],
   "description": "Installable single-DGX Spark image-to-3D recipe using the pinned official Pixal3D source, local DINOv3 and NAF feature stack, bounded manual camera calibration, ARM64-native extensions, and deterministic GLB adapter. Its pinned nvdiffrast runtime dependency is limited to non-commercial research or evaluation. Excludes Trimesh WebP alignment bytes from image views before strict artifact validation.",
   "identity": {
     "publisher": "vonk-forge",

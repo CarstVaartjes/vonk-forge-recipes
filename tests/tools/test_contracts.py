@@ -1028,3 +1028,23 @@ def test_library_ingress_refuses_unbound_knobs_and_unknown_display_knobs() -> No
     stray = copy.deepcopy(display)
     stray["knobs"]["flavour"] = {"label": "Flavour"}
     refuse(job, stray, "unknown knob flavour")
+
+
+def test_library_ingress_refuses_unknown_or_only_component_bindings() -> None:
+    recipe = RecipeDefinition.model_validate(load("recipe-job.json"))
+
+    def check(component_bindings: list[str]) -> None:
+        display = load("recipe-display-job.json")
+        display["component_bindings"] = component_bindings
+        validate_library(
+            [recipe],
+            [],
+            {recipe.identity.slug: RecipeDisplay.model_validate(display)},
+            {},
+        )
+
+    check([])
+    with pytest.raises(ContractResolutionError, match="unknown binding drafter"):
+        check(["drafter"])
+    with pytest.raises(ContractResolutionError, match="every binding"):
+        check(["primary"])

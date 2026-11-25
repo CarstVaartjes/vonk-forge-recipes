@@ -141,6 +141,17 @@
       },
       "title": "Knobs",
       "type": "object"
+    },
+    "component_bindings": {
+      "items": {
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[a-z][a-z0-9_-]*$",
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "Component Bindings",
+      "type": "array"
     }
   },
   "required": [
