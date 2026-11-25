@@ -1147,7 +1147,10 @@ A proven recipe moves too: the refresh rewrites its entry in
 `tests/fixtures/proven-recipe-bytes.json` and the sweep re-checks it. A refresh
 branch only moves forward (never force-pushed); a PR whose checks failed on an
 unchanged refresh is reported in the recipe's review issue and moves forward again
-only when upstream or main's checks (`tools/`, `tests/`, `.github/`) change.
+only when upstream or main's checks (`src/`, `tools/`, `tests/`, `.github/`,
+`api/recipes/`) change. A PR whose checks failed or were cancelled holds no lane: it
+does not defer other refresh PRs that share its files; if it merges anyway (a rerun,
+or a non-required check failed), a conflicting sibling is regenerated on main.
 Every refresh PR body carries a `## Principles` section that states only what the
 move did: pins moved (and any held), proven bytes followed when the fixture changed,
 peaks raised when they were, and the sweep re-check only when a recipe document changed.
