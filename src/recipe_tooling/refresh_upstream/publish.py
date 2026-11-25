@@ -74,6 +74,10 @@ def file_overlaps(
 ) -> list[int]:
     """Armed PRs (open with auto-merge, or armed earlier in this run) sharing a file with PR ``number``.
 
+    An auto-merge PR whose checks failed or were cancelled holds no lane; if it merges
+    anyway (a rerun, or a non-required check failed), a conflicting sibling is
+    regenerated on main.
+
     Recipe files are per recipe, so refreshes only collide when two recipes share a
     Model file; the later PR then waits for the next run and is regenerated on main.
     """
@@ -87,7 +91,14 @@ def file_overlaps(
         pr["number"]
         for pr in pull_requests
         if pr.get("number") != number
-        and (pr.get("autoMergeRequest") or pr.get("number") in taken)
+        and (
+            pr.get("number") in taken
+            or (
+                pr.get("autoMergeRequest")
+                and check_state(pr.get("statusCheckRollup"))
+                not in refresh_model.PARKED_CHECK_STATES
+            )
+        )
         and paths(pr) & own
     )
 
@@ -118,7 +129,7 @@ def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
             "--limit",
             "1000",
             "--json",
-            f"number,autoMergeRequest,files,changedFiles,{OWN_FIELDS}",
+            f"number,autoMergeRequest,statusCheckRollup,files,changedFiles,{OWN_FIELDS}",
         )
     )
     if conflicting := file_overlaps(number, pull_requests, summary.armed):
@@ -244,7 +255,7 @@ def carries(root: Path, head: str, tree: str) -> bool:
 
 
 def checks_moved(root: Path, head: str) -> bool:
-    """Whether main changed what judges a PR (tools, tests, workflows) since ``head``."""
+    """Whether main changed what judges a PR (src, tools, tests, workflows, API docs) since ``head``."""
     base = refresh_github.git("merge-base", head, "origin/main", cwd=root)
     return bool(
         refresh_github.git(
@@ -338,6 +349,7 @@ def _publish(
             summary.started,
             "origin/main",
             "--",
+            "src/",
             "tools/",
             *assessment.edits,
             cwd=root,
@@ -367,10 +379,12 @@ def _publish(
         open_pr
         and head
         and carries(root, head, tree)
-        and not (state in {"failed", "cancelled"} and checks_moved(root, head))
+        and not (
+            state in refresh_model.PARKED_CHECK_STATES and checks_moved(root, head)
+        )
     ):
         number = int(open_pr["number"])
-        if state in {"failed", "cancelled"}:
+        if state in refresh_model.PARKED_CHECK_STATES:
             assessment.reasons.append(
                 f"refresh PR #{number} carries this exact refresh and its checks "
                 f"{state}; it moves forward again when upstream or main's checks "
