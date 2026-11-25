@@ -90,12 +90,14 @@ def hot_step_ref(
     *,
     softcap: Optional[float],
     vocab_limit: Optional[int],
+    base_compact: bool = False,
 ) -> torch.Tensor:
-    """Reference of the fused hot step: writes the hot columns of ``out``."""
+    """Reference of the fused hot step: writes the hot columns of ``out``. base_compact: ``base`` holds only the hot
+    columns, in hot order."""
     step_dtype = out.dtype
     bias = linear_ref(latent, pack, fold_bias, torch.bfloat16).float()
     ids = ids.long()
-    b = base[:, ids].float()
+    b = (base[:, :ids.numel()] if base_compact else base[:, ids]).float()
     value = (b + bias).to(step_dtype).float()
     if softcap is not None:
         value = (torch.tanh(value / softcap) * softcap).to(step_dtype).float()
@@ -118,13 +120,17 @@ def hot_step(
     bn: Optional[int] = None,
     bk: Optional[int] = None,
     num_warps: Optional[int] = None,
+    base_compact: bool = False,
 ) -> torch.Tensor:
     """out[m, ids[j]] = limit(softcap(bf16(base[m, ids[j]] + bf16(fold_j(latent_m)))));
-    other columns of ``out`` are left untouched (the caller fills them -inf)."""
+    other columns of ``out`` are left untouched (the caller fills them -inf). base_compact: base[m, j] stands for
+    the full-width base[m, ids[j]] (the hot head's output before it was scattered)."""
+    if base_compact and (base.shape[-1] != ids32.numel() or base.shape[0] != latent.shape[0]):
+        raise ValueError("inkling_draftbytes: compact base logits do not match the hot set")
     if not latent.is_cuda:
         return hot_step_ref(
             latent, pack, fold_bias, base, ids32, out,
-            softcap=softcap, vocab_limit=vocab_limit,
+            softcap=softcap, vocab_limit=vocab_limit, base_compact=base_compact,
         )
     if latent.dtype != torch.bfloat16:
         latent = latent.to(torch.bfloat16)
@@ -136,7 +142,7 @@ def hot_step(
             kw.update(_wide_kw(latent.shape[0]))
         _triton().hot_step(
             latent, pack, fold_bias, base, ids32, out,
-            softcap=softcap, vocab_limit=vocab_limit, **kw,
+            softcap=softcap, vocab_limit=vocab_limit, base_compact=base_compact, **kw,
         )
     return out
 

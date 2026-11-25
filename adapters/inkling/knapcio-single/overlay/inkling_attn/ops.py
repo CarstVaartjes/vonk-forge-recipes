@@ -18,7 +18,8 @@ W8_FROM = int(os.environ.get("INKLING_ATTN_W8_FROM", "131072"))
 
 
 def prefill_attention(q, k_cache, v_cache, page_table, cu_seqlens_q, seqused_k, r, proj, softmax_scale,
-                      window_left, out=None, packed=None, warps=None, w8_from=None):
+                      window_left, out=None, packed=None, warps=None, w8_from=None, lse=None, gate=None, sinks=None,
+                      y=None, zero_tail=True):
     """FA4-compatible (out, lse) of the Inkling prefill attention with the relative bias computed in-kernel.
 
     q [T, H, 128] bf16; k_cache / v_cache [pages, page_size, H_kv, 128] bf16; page_table [B, max_pages] int32;
@@ -26,7 +27,10 @@ def prefill_attention(q, k_cache, v_cache, page_table, cu_seqlens_q, seqused_k, 
     rel L2 clip, the RelLogitsProj input); proj [16, rel_extent] bf16; window_left: the layer's left window
     (sliding-window layers, rel_extent == window_left + 1) or None / negative (global causal layers).
     Returns out [T, H, 128] fp32 and lse [H, T] fp32 (FA4's varlen layout). Rows past cu_seqlens_q[-1] are not
-    written.
+    written. With gate [T, H*128] / sinks [T, H] / y [T, H*128] (any layer): the kernel writes
+    y = bf16(out * sigmoid(gate) * sigmoid(lse - sink)) (SGLang's gate_sink on these values) instead of out and
+    returns (y, lse). It first zeroes y's rows past cu_seqlens_q[-1] on the device; zero_tail=False skips that
+    for a second launch into the same y (whose first launch already did it).
     """
     import torch
 
@@ -34,7 +38,8 @@ def prefill_attention(q, k_cache, v_cache, page_table, cu_seqlens_q, seqused_k, 
     t, heads, _ = q.shape
     if out is None:
         out = torch.empty((t, heads, HEAD_DIM), dtype=torch.float32, device=q.device)
-    lse = torch.empty((heads, t), dtype=torch.float32, device=q.device)
+    if lse is None:
+        lse = torch.empty((heads, t), dtype=torch.float32, device=q.device)
     wl = -1 if window_left is None or window_left < 0 else int(window_left)
     if r.stride(-1) != 1:
         r = r.contiguous()
@@ -42,12 +47,14 @@ def prefill_attention(q, k_cache, v_cache, page_table, cu_seqlens_q, seqused_k, 
     projp = torch.empty(((proj.shape[1] + 1) * D_REL,), dtype=torch.bfloat16, device=q.device) if packed else None
     ext.fwd(q, k_cache, v_cache, page_table, cu_seqlens_q, seqused_k, r, proj, out, lse, float(softmax_scale), wl,
             projp, WARPS if warps is None else int(warps),
-            w8_from_keys=W8_FROM if w8_from is None else int(w8_from))
-    return out, lse
+            w8_from_keys=W8_FROM if w8_from is None else int(w8_from), gate=gate, sinks=sinks, y=y,
+            zero_tail=bool(zero_tail))
+    return (out, lse) if y is None else (y, lse)
 
 
 def packed_prefill_attention(q, layer, page_table, cu_seqlens_q, seqused_k, softmax_scale, *,
-                             r, proj, out=None, warps=None, w8_from=None):
+                             r, proj, out=None, warps=None, w8_from=None, gate=None, sinks=None, y=None,
+                             zero_tail=True):
     """Run fused projected-bias prefill with exact KV reconstructed in shared memory."""
     import torch
 
@@ -65,5 +72,5 @@ def packed_prefill_attention(q, layer, page_table, cu_seqlens_q, seqused_k, soft
     ext = build.load()
     ext.fwd(q, layer.raw, layer.raw, page_table, cu_seqlens_q, seqused_k, r, proj, out, lse,
             float(softmax_scale), -1, projp, WARPS if warps is None else int(warps), planes,
-            W8_FROM if w8_from is None else int(w8_from))
-    return out, lse
+            W8_FROM if w8_from is None else int(w8_from), gate=gate, sinks=sinks, y=y, zero_tail=bool(zero_tail))
+    return (out, lse) if y is None else (y, lse)

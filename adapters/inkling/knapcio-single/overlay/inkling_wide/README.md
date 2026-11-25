@@ -23,7 +23,7 @@ This package adds one kernel for 17..256 rows (`csrc/wide_ext.cu`) that reads ev
   and its output row offset, so the three sources share ONE read of the weight (2/3 fewer MMAs than stock);
 - the same kernel on the raw BF16 weight (`fmt=raw`): the layer's own storage, no copy; same output bits.
 
-Status (2026-11-21): CPU-tested, reviewed, GPU-checked on Spark_06 (GB10): all gates PASS on real
+Status (2026-11-21): CPU-tested, reviewed, GPU-checked on GB10: all gates PASS on real
 layer-0 / unembed weights (decode == weight, packed == raw, PDL on == off, graph == eager, variants and prefetch
 bit-identical, FP64 bound, error <= cuBLAS's). Microbench below (L2-cold, medians, real weights, us):
 
@@ -135,7 +135,7 @@ attributes when each module is imported (exit 78 with a `FATAL` line). Draft lay
 
 ## Scope
 
-A first serving screen (Spark_05, 2026-11-21, `scope` not yet present) gained +8 % on thinking c8 and +3..5 % on
+A first serving screen (GB10, 2026-11-21, `scope` not yet present) gained +8 % on thinking c8 and +3..5 % on
 greedy c4..c16, but changed the c1 text: with 8 verify rows wide never engages at c1, so prefill / extend chunks of
 17..256 tokens (short prompts) were going through wide instead of cuBLAS / inkling_prefill. `INKLING_WIDE_SCOPE=verify`
 (the default) limits wide to decode and target-verify forwards. The marker is set in Python before the model's layers

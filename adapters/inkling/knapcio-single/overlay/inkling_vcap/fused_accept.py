@@ -26,8 +26,16 @@ At c24 (T = 0.8) that is about 1.07 GB and 5 ms per step (R7S profile). Here:
      accepted). It is drawn by an exponential race (`_race_kernel`):
      argmax_x log w(x) - log E_x with E_x ~ Exp(1) i.i.d., which picks x with
      probability w(x) / sum w. One pass, no normalisation, no CDF. E = -log(1 - V) with
-     V from two 32-bit Philox words (resolution ~5e-20 near 0, so tail tokens down to a
-     relative weight of ~1e-19 can still win). Philox key: a per-launch counter mixed
+     V = (w0 + (w1 + 0.5) 2^-32) 2^-32 from two 32-bit Philox words (resolution ~5e-20
+     near 0, so tail tokens down to a relative weight of ~1e-19 can still win). The words
+     are folded before the FP32 conversion (SGLang PR #51681): in the upper half 1 - V is
+     formed from the complemented words, so V never rounds to 1 and E is always finite.
+     With n = (w0 << 32) | w1 both halves are the same inverse CDF on the 64-bit grid
+     ((n + 0.5) 2^-64, resp. 1 - that), continuous at the fold; E is exact up to that grid
+     and FP32 math. Draws differ from v2.7.2 away from the endpoints too (w1 is now used
+     whenever w0 != 0).
+     A lane with w > 0 gets a finite key (floor -3e38); a row with no such lane emits its
+     last lane with positive target mass (V - 1 only when there is none). Philox key: a per-launch counter mixed
      into a base drawn once from torch's default generator (reproducible under
      torch.manual_seed; distinct per launch, no birthday collisions); counter = the
      request's flat vocabulary index (int32: bs * V < 2^31).
@@ -39,9 +47,9 @@ is the stopped-chain form, exact by the same stopping-rule argument as the cap
 
 Same law as the stock path: the formulas are the same. p and q come from lse instead
 of a materialised softmax (FP32 rounding), and the bonus is drawn by a different (also
-exact) sampling method from the same distribution. Eligible calls only: plain
-temperature sampling (no top-k / top-p / min-p), a non-greedy draft, no vocab shard,
-CUDA, not under graph capture. Anything else takes the stock path.
+exact up to the 64-bit uniform grid and FP32 math) sampling method from the same
+distribution. Eligible calls only: plain temperature sampling (no top-k / top-p /
+min-p), a non-greedy draft, no vocab shard, CUDA, not under graph capture. Anything else takes the stock path.
 """
 
 from __future__ import annotations
@@ -54,6 +62,7 @@ import torch
 try:  # Triton is absent on the CPU test machine; the torch primitives cover the logic.
     import triton
     import triton.language as tl
+    from triton.language.extra import libdevice
 except Exception:  # noqa: BLE001
     triton = None
     tl = None
@@ -165,7 +174,13 @@ class TorchPrims:
         w = (scale[:, None] * Pr - Qr).clamp(min=0)
         w = torch.nan_to_num(w, nan=0.0)
         dead = w.sum(-1) <= 0
-        w[dead, V - 1] = 1.0  # the stock kernels' fallback token
+        # No positive residual: the last lane with positive target mass, as the race kernel
+        # (V - 1 only for a target row with no positive entry).
+        lanes = torch.arange(V, device=w.device)
+        last = torch.where(Pr > 0, lanes, torch.full_like(lanes, -1)).amax(-1)
+        fallback = torch.where(last >= 0, last, torch.full_like(last, V - 1))
+        w[dead] = 0.0
+        w[dead, fallback[dead]] = 1.0
         return torch.multinomial(w, 1, generator=self.gen).squeeze(1)
 
 
@@ -246,11 +261,12 @@ if triton is not None:
     @triton.jit
     def _race_kernel(
         t_ptr, d_ptr, mt_ptr, lt_ptr, md_ptr, ld_ptr, tt_ptr, td_ptr, row_ptr, scale_ptr,
-        useq_ptr, seed, key_ptr, idx_ptr, V, chunk, S, G, t_stride, d_stride, num_splits,
-        BLOCK: tl.constexpr,
+        useq_ptr, seed, key_ptr, idx_ptr, lastp_ptr, V, chunk, S, G, t_stride, d_stride,
+        num_splits, BLOCK: tl.constexpr,
     ):
         # program (b, split): the best exponential-race key of w = max(s P - Q, 0) (Q only
-        # when use_q) over this split of request b's bonus row.
+        # when use_q) over this split of request b's bonus row, and the split's last lane
+        # with positive target mass (-1 if none; the no-positive-residual fallback).
         b = tl.program_id(0)
         split = tl.program_id(1)
         row = tl.load(row_ptr + b)
@@ -269,6 +285,7 @@ if triton is not None:
         end = tl.minimum(start + chunk, V)
         best_key = tl.full([BLOCK], -float("inf"), tl.float32)
         best_idx = tl.zeros([BLOCK], tl.int32) + (V - 1)
+        last_p = tl.full([BLOCK], -1, tl.int32)
         for v0 in range(start, end, BLOCK):
             offs = v0 + tl.arange(0, BLOCK)
             m = offs < end
@@ -278,13 +295,23 @@ if triton is not None:
             qv = tl.exp(zd / td - cd - nd)
             qv = tl.where(uq & (qv >= 0.0) & (qv <= 1.0), qv, 0.0)
             w = tl.maximum(s * pv - qv, 0.0)
-            # E ~ Exp(1) = -log(1 - V), V uniform from two 32-bit words (fine near 0)
+            # E ~ Exp(1) = -log(1 - V), V = (w0 + (w1 + 0.5) 2^-32) 2^-32 from two 32-bit
+            # words. Fold before the FP32 conversion (SGLang PR #51681): words >= 0xFFFFFF80
+            # used to round V to 1 (E = +inf, key -inf). In the upper half `small` is 1 - V,
+            # formed from the complemented words; in the lower half it is V. Both in (0, 0.5].
             r0, r1, _r2, _r3 = tl.randint4x(seed, b * V + offs)
-            hi = r0.to(tl.uint32).to(tl.float32) * 2.3283064365386963e-10  # 2^-32
-            lo = (r1.to(tl.uint32).to(tl.float32) + 0.5) * 5.421010862427522e-20  # 2^-64
-            vv = tl.where(hi > 0.0, hi, lo)
-            e = tl.where(vv < 1e-3, vv + 0.5 * vv * vv, -tl.log(1.0 - vv))
-            key = tl.where(m & (w > 0.0), tl.log(w) - tl.log(e), -float("inf"))
+            w0 = r0.to(tl.uint32)
+            w1 = r1.to(tl.uint32)
+            upper = w0 >= 0x80000000
+            f0 = tl.where(upper, ~w0, w0)
+            f1 = tl.where(upper, ~w1, w1)
+            small = (f0.to(tl.float32) * 2.3283064365386963e-10  # 2^-32
+                     + (f1.to(tl.float32) + 0.5) * 5.421010862427522e-20)  # 2^-64
+            e = tl.where(upper, -tl.log(small), -libdevice.log1p(-small))
+            # Any lane with positive mass beats every lane without (log w may underflow).
+            key = tl.where(m & (w > 0.0), tl.maximum(tl.log(w) - tl.log(e), -3.0e38),
+                           -float("inf"))
+            last_p = tl.maximum(last_p, tl.where(m & (pv > 0.0), offs, -1))
             better = key > best_key
             best_key = tl.where(better, key, best_key)
             best_idx = tl.where(better, offs, best_idx)
@@ -292,6 +319,7 @@ if triton is not None:
         cand = tl.where(best_key == k, best_idx, V - 1)
         tl.store(key_ptr + b * num_splits + split, k)
         tl.store(idx_ptr + b * num_splits + split, tl.min(cand, axis=0))
+        tl.store(lastp_ptr + b * num_splits + split, tl.max(last_p, axis=0))
 
 
 def _splits(rows: int, vocab: int):
@@ -356,11 +384,16 @@ class TritonPrims:
         num_splits, chunk = _splits(bs, V)
         keys = torch.empty(bs, num_splits, dtype=torch.float32, device=tl2.device)
         idx = torch.empty(bs, num_splits, dtype=torch.int32, device=tl2.device)
+        last_p = torch.empty(bs, num_splits, dtype=torch.int32, device=tl2.device)
         _race_kernel[(bs, num_splits)](
             tl2, dl2, mt, lt, md, ld, t_temps.contiguous(), d_temps.contiguous(),
             tau.to(torch.int32).contiguous(), scale.to(torch.float32).contiguous(),
-            use_q.to(torch.int32).contiguous(), self._seed(), keys, idx, V, chunk, S, G,
-            tl2.stride(0), dl2.stride(0), num_splits, BLOCK=BLOCK_V,
+            use_q.to(torch.int32).contiguous(), self._seed(), keys, idx, last_p, V, chunk, S,
+            G, tl2.stride(0), dl2.stride(0), num_splits, BLOCK=BLOCK_V,
         )
         best = keys.argmax(dim=1, keepdim=True)
-        return idx.gather(1, best).squeeze(1).to(torch.int64)
+        pick = idx.gather(1, best).squeeze(1).to(torch.int64)
+        # No lane with positive residual (every key -inf): the last positive-target lane.
+        fallback = last_p.amax(dim=1).to(torch.int64)
+        dead = (keys.amax(dim=1) == float("-inf")) & (fallback >= 0)
+        return torch.where(dead, fallback, pick)

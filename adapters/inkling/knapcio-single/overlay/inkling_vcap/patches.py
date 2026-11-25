@@ -134,6 +134,9 @@ def patch_moe(mod) -> None:
         if cfg.union:
             # Observational only: never changes what the experts receive.
             STATE.count_union(self, ids, int(self.weight.shape[0]))
+        if STATE.steplog is not None:
+            # Observational only: journals the routed ids (dfsteplog.DfStepLog.route).
+            STATE.steplog.route(ids)
         return weights, ids
 
     moe_cls.forward = _mark(moe_forward, orig_moe)
@@ -445,13 +448,23 @@ def patch_worker(mod) -> None:
     STATE.applied.update((P_WORKER_INIT, P_FORWARD_DECODE))
 
 
-HOOKS = {
+DSPARK_HOOKS = {
     MOD_MOE: patch_moe,
     MOD_VERIFY: patch_verify,
     MOD_SAG: patch_sampling_accept_graph,
     MOD_DRAFT: patch_draft,
     MOD_WORKER: patch_worker,
 }
+
+
+def _patch_dflash(mod) -> None:
+    from inkling_vcap import dflash
+
+    dflash.patch_worker(mod)
+
+
+HOOKS = dict(DSPARK_HOOKS)
+HOOKS["sglang.srt.speculative.dflash_worker_v2"] = _patch_dflash
 
 
 def _runtime_context():
@@ -563,7 +576,12 @@ def fused_accept_selfcheck(device) -> "str | None":
 def attach(worker) -> None:
     """Validate the serving setup, allocate the buffers, and enable the hooks."""
     cfg = STATE.config
-    for name in HOOKS:
+    if cfg.steplog:
+        raise RuntimeError(
+            f"{PREFIX} INKLING_VERIFY_CAP_STEPLOG is implemented for the DFLASH worker only "
+            "(the DSpark capture is a separate development tool)"
+        )
+    for name in DSPARK_HOOKS:
         importlib.import_module(name)  # triggers the hook if not yet imported
     missing = [p for p in REQUIRED if p not in STATE.applied]
     if missing:
@@ -667,6 +685,7 @@ def attach(worker) -> None:
         STATE.use_fastprobs = err is None
         fast_note = "on (self-check passed)" if err is None else f"off ({err})"
     STATE.worker = worker
+    STATE.algorithm = "dspark"
     STATE.block_verify = block_verify
     STATE.enabled = True
     log(

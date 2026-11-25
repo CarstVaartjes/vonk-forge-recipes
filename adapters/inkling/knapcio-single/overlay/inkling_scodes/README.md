@@ -58,7 +58,7 @@ cached under `~/.cache/flashinfer/0.7.4/121a/cached_ops/inkling_scodes_<hash>` (
 
 and in `scripts/launch.sh`: `-e INKLING_SCODES="${SCODES:-}"`.
 
-## Evidence (GB10, Spark_06, 2026-11-22, via kbrun; `results/kbench/round2/scodes/`)
+## Evidence (GB10, 2026-11-22; `results/kbench/round2/scodes/`)
 
 - Format: all 40 real NVFP4 tensors (layers 0-19) encoded and decoded exactly (`logs/real_encode_check.log`).
 - Bit identity (`tools/gpu_scodes.py`, `logs/gpu1.log`): real layers 0, 6, 17 (most escape rows), 19 plus "0x"
