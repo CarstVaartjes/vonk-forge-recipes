@@ -1,6 +1,13 @@
 {
   "kit": {
     "dependencies": {
+      "drafter": {
+        "binds": "drafter",
+        "datasource": "hf-revision",
+        "file": "dgx-spark/scripts/env.sh",
+        "pattern": "DRAFT_REV=\"\\$\\{DRAFT_REV:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "DRAFT_REPO=\"\\$\\{DRAFT_REPO:-(?P<repo>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)\\}\""
+      },
       "engine": {
         "datasource": "git-ref",
         "file": "dgx-spark/scripts/env.sh",
@@ -29,7 +36,7 @@
     "verify-runtime.py"
   ],
   "source": {
-    "commit": "ed76a4b14a47c5a1a526a2b98c7c2f5337adb2e6",
+    "commit": "ed64091c4d5020b8617b0d7d18ce1296af2337c0",
     "repo": "vcruz305/Inkling-2-Mini-SAGE-EXL3-recipe"
   }
 }

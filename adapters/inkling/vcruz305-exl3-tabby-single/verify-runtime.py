@@ -42,5 +42,13 @@ if spec is None or not spec.submodule_search_locations:
 package = Path(next(iter(spec.submodule_search_locations)))
 if "Inkling2Loop" not in (package / "architecture" / "architectures.py").read_text():
     raise SystemExit("Inkling2Loop architecture is not registered in this exllamav3")
-if "spec_sampling" not in (package / "architecture" / "inkling2_mtp.py").read_text():
+mtp_source = (package / "architecture" / "inkling2_mtp.py").read_text()
+if "spec_sampling" not in mtp_source:
     raise SystemExit("the MTP drafter predates the pinned commit (no speculative sampling)")
+if "graph_capture" not in mtp_source:
+    raise SystemExit("this exllamav3 predates the long-context fixes of the pinned commit")
+dflash2 = (package / "modules" / "arch_specific" / "dflash2.py").read_text()
+if "def walk_scored" not in dflash2:
+    raise SystemExit("the DFlash2 drafter predates the pinned commit (no Inkling 2 target support)")
+if "step_seqs" not in (package / "architecture" / "inkling2_loop.py").read_text():
+    raise SystemExit("this exllamav3 predates the multi-stream token step")

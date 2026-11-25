@@ -72,6 +72,7 @@ ENV_REMAP = "INKLING_VERIFY_CAP_REMAP"
 ENV_FUSED = "INKLING_VERIFY_CAP_FUSED"
 ENV_LOG_EVERY = "INKLING_VERIFY_CAP_LOG_EVERY"
 ENV_UNION = "INKLING_VERIFY_CAP_UNION"
+ENV_STEPLOG = "INKLING_VERIFY_CAP_STEPLOG"
 ENV_BV = "INKLING_VERIFY_CAP_BV"
 ENV_FASTPROBS = "INKLING_VERIFY_CAP_FASTPROBS"
 ENV_FUSED_ACCEPT = "INKLING_VERIFY_CAP_FUSED_ACCEPT"
@@ -112,15 +113,21 @@ class VcapConfig:
     fused_accept_min_bs: int = 3  # bs 1-2 keep the stock accept (GB10 crossover between 2 and 3)
     raw: str = ""
     policy_file: Optional[PolicyFile] = None
+    steplog: str = ""
+    dfpolicy_path: str = ""  # dfpolicy: mode (DFLASH worker; dfcap.py loads it at attach)
 
     @property
     def uses_draft_probs(self) -> bool:
+        if self.steplog:
+            return True
         if self.kind == "conf":
             return True
         if self.kind == "cost":
             return any(t > 0 for _, t in self.cost_table)
         if self.kind == "policy":
             return any(t > 0 for _, t in self.policy_file.theta)
+        if self.kind == "dfpolicy":
+            return True
         return False
 
     def resolved_max(self, stride: int) -> int:
@@ -136,6 +143,8 @@ class VcapConfig:
 
     def policy(self, bs: int, stride: int) -> Policy:
         """The rule for a decode step of ``bs`` requests (host-side, no sync)."""
+        if self.steplog:
+            return Policy(const_len=stride)
         max_len = self.resolved_max(stride)
         if self.bsmax and bs > self.bsmax:
             return Policy(const_len=stride)
@@ -155,6 +164,8 @@ class VcapConfig:
 
     def never_caps(self, stride: int) -> bool:
         """True when every batch size gets the full verify width."""
+        if self.steplog:
+            return True
         if self.resolved_max(stride) < stride:
             return False
         if self.kind == "fixed":
@@ -163,15 +174,21 @@ class VcapConfig:
             return self.threshold <= 0.0
         if self.kind == "policy":
             return all(t <= 0.0 for _, t in self.policy_file.theta)
+        if self.kind == "dfpolicy":
+            return False  # dfcap decides per batch (theta 0 bands verify full width, src_index identity)
         return all(t <= 0.0 for _, t in self.cost_table)
 
     def describe(self) -> str:
+        if self.steplog:
+            return f"steplog:{self.steplog} theta=0"
         if self.kind == "fixed":
             body = f"fixed:{self.fixed_len}"
         elif self.kind == "conf":
             body = f"conf:{self.threshold:g}"
         elif self.kind == "policy":
             body = self.policy_file.describe()
+        elif self.kind == "dfpolicy":
+            body = f"dfpolicy:{self.dfpolicy_path}"
         else:
             body = "cost:" + ",".join(f"{k}={v:g}" for k, v in self.cost_table)
         return (
@@ -231,14 +248,21 @@ def _parse_threshold(raw: str, text: str) -> float:
 
 def parse_config(env: Mapping[str, str] = os.environ) -> Optional[VcapConfig]:
     """None when the overlay is off. Raises VcapConfigError on a malformed value."""
-    raw = env.get(ENV_MODE)
+    steplog = (env.get(ENV_STEPLOG) or "").strip()
+    raw = "conf:0" if steplog else env.get(ENV_MODE)
     if raw is None or raw.strip().lower() in _OFF_VALUES:
         return None
     text = "".join(raw.split())
     parts = text.split(",")
     head, opts = parts[0], [o.lower() for o in parts[1:]]
     policy_file = None
-    if head.lower().startswith("policy:"):
+    dfpolicy_path = ""
+    if head.lower().startswith("dfpolicy:"):
+        dfpolicy_path = head[len("dfpolicy:"):]
+        if not dfpolicy_path:
+            raise VcapConfigError(f"{ENV_MODE}={raw!r}: dfpolicy: needs a JSON path")
+        head = "dfpolicy:"
+    elif head.lower().startswith("policy:"):
         path = head[len("policy:"):]
         if not path:
             raise VcapConfigError(f"{ENV_MODE}={raw!r}: policy: needs a JSON path")
@@ -268,7 +292,7 @@ def parse_config(env: Mapping[str, str] = os.environ) -> Optional[VcapConfig]:
         threshold = _parse_threshold(raw, arg)
     elif kind == "cost":
         opts = [arg] + opts
-    elif kind == "policy":
+    elif kind in ("policy", "dfpolicy"):
         pass
     else:
         raise VcapConfigError(
@@ -322,12 +346,14 @@ def parse_config(env: Mapping[str, str] = os.environ) -> Optional[VcapConfig]:
         bsmax=bsmax,
         remap=_parse_bool(ENV_REMAP, env.get(ENV_REMAP), True),
         fused=_parse_bool(ENV_FUSED, env.get(ENV_FUSED), True),
-        log_every=log_every,
-        union=_parse_bool(ENV_UNION, env.get(ENV_UNION), False),
+        log_every=0 if steplog else log_every,
+        union=False if steplog else _parse_bool(ENV_UNION, env.get(ENV_UNION), False),
         bv_mask=bv == "mask",
         fastprobs=_parse_bool(ENV_FASTPROBS, env.get(ENV_FASTPROBS), False),
         fused_accept=_parse_bool(ENV_FUSED_ACCEPT, env.get(ENV_FUSED_ACCEPT), False),
         fused_accept_min_bs=_parse_int(ENV_FUSED_ACCEPT_MIN_BS, env.get(ENV_FUSED_ACCEPT_MIN_BS), 3),
         raw=raw,
         policy_file=policy_file,
+        steplog=steplog,
+        dfpolicy_path=dfpolicy_path,
     )

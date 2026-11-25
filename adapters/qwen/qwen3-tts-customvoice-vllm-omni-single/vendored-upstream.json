@@ -7,7 +7,7 @@
     "qwen3_tts.yaml": "vllm_omni/deploy/qwen3_tts.yaml"
   },
   "source": {
-    "commit": "5917730a4b02aedb44d374173cdc1b10484ccd52",
+    "commit": "06a28821a7f72bdb436c3df656b10f67fded0846",
     "repo": "vllm-project/vllm-omni"
   }
 }

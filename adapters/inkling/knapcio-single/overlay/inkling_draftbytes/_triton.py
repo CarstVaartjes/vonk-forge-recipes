@@ -257,6 +257,7 @@ def _hot_step_kernel(
     W_FP8: tl.constexpr,
     ROWS: tl.constexpr = 0,
     NRB: tl.constexpr = 1,
+    BASE_COMPACT: tl.constexpr = False,
 ):
     n = tl.program_id(0) * BN + tl.arange(0, BN)
     nmask = n < N
@@ -265,36 +266,37 @@ def _hot_step_kernel(
             X, W, S, tl.program_id(1) * MP, M, n, nmask, SX, K, G, BK, MP, BN, SCALE, W_FP8
         )
         _hot_store(acc, tl.program_id(1) * MP, M, n, nmask, FB, BASE, IDS, OUT, SBASE, SOUT, softcap,
-                   vocab_limit, MP, SOFTCAP, LIMIT)
+                   vocab_limit, MP, SOFTCAP, LIMIT, BASE_COMPACT)
     elif ROWS == 1:
         for rb in range(0, tl.cdiv(M, MP)):
             acc, rows, rmask = _acc_tile(X, W, S, rb * MP, M, n, nmask, SX, K, G, BK, MP, BN, SCALE, W_FP8)
             _hot_store(acc, rb * MP, M, n, nmask, FB, BASE, IDS, OUT, SBASE, SOUT, softcap, vocab_limit, MP,
-                       SOFTCAP, LIMIT)
+                       SOFTCAP, LIMIT, BASE_COMPACT)
     else:
         a0, a1, a2, a3, a4, a5 = _acc_rows(X, W, S, M, n, nmask, SX, K, G, BK, MP, BN, SCALE, W_FP8, NRB)
         _hot_store(a0, 0 * MP, M, n, nmask, FB, BASE, IDS, OUT, SBASE, SOUT, softcap, vocab_limit, MP,
-                   SOFTCAP, LIMIT)
+                   SOFTCAP, LIMIT, BASE_COMPACT)
         if NRB > 1:
             _hot_store(a1, 1 * MP, M, n, nmask, FB, BASE, IDS, OUT, SBASE, SOUT, softcap, vocab_limit, MP,
-                       SOFTCAP, LIMIT)
+                       SOFTCAP, LIMIT, BASE_COMPACT)
         if NRB > 2:
             _hot_store(a2, 2 * MP, M, n, nmask, FB, BASE, IDS, OUT, SBASE, SOUT, softcap, vocab_limit, MP,
-                       SOFTCAP, LIMIT)
+                       SOFTCAP, LIMIT, BASE_COMPACT)
         if NRB > 3:
             _hot_store(a3, 3 * MP, M, n, nmask, FB, BASE, IDS, OUT, SBASE, SOUT, softcap, vocab_limit, MP,
-                       SOFTCAP, LIMIT)
+                       SOFTCAP, LIMIT, BASE_COMPACT)
         if NRB > 4:
             _hot_store(a4, 4 * MP, M, n, nmask, FB, BASE, IDS, OUT, SBASE, SOUT, softcap, vocab_limit, MP,
-                       SOFTCAP, LIMIT)
+                       SOFTCAP, LIMIT, BASE_COMPACT)
         if NRB > 5:
             _hot_store(a5, 5 * MP, M, n, nmask, FB, BASE, IDS, OUT, SBASE, SOUT, softcap, vocab_limit, MP,
-                       SOFTCAP, LIMIT)
+                       SOFTCAP, LIMIT, BASE_COMPACT)
 
 
 @triton.jit
 def _hot_store(acc, row0, M, n, nmask, FB, BASE, IDS, OUT, SBASE, SOUT, softcap, vocab_limit,
-               MP: tl.constexpr, SOFTCAP: tl.constexpr, LIMIT: tl.constexpr):
+               MP: tl.constexpr, SOFTCAP: tl.constexpr, LIMIT: tl.constexpr,
+               BASE_COMPACT: tl.constexpr = False):
     rows = row0 + tl.arange(0, MP)
     rmask = rows < M
     acc += tl.load(FB + n, nmask, other=0).to(tl.float32)[None, :]
@@ -302,8 +304,14 @@ def _hot_store(acc, row0, M, n, nmask, FB, BASE, IDS, OUT, SBASE, SOUT, softcap,
     bias = acc.to(tl.bfloat16).to(tl.float32)
     ids = tl.load(IDS + n, nmask, other=0)
     mask = rmask[:, None] & nmask[None, :]
+    # BASE_COMPACT: base holds only the hot columns, in hot order (column j = vocab id ids[j]); the same values
+    # the full-width base held at ids[j].
+    if BASE_COMPACT:
+        bcol = n
+    else:
+        bcol = ids
     base = tl.load(
-        BASE + rows[:, None].to(tl.int64) * SBASE + ids[None, :], mask, other=0
+        BASE + rows[:, None].to(tl.int64) * SBASE + bcol[None, :], mask, other=0
     ).to(tl.float32)
     value = (base + bias).to(tl.bfloat16).to(tl.float32)
     if SOFTCAP:
@@ -421,6 +429,7 @@ def hot_step(
     num_warps: int,
     rows: int = 0,
     num_stages=None,
+    base_compact: bool = False,
 ):
     m, k = latent.shape
     assert k == pack.k and latent.stride(1) == 1
@@ -456,6 +465,7 @@ def hot_step(
         W_FP8=w_fp8,
         ROWS=rmode,
         NRB=nrb,
+        BASE_COMPACT=base_compact,
         num_warps=num_warps,
         **extra,
     )

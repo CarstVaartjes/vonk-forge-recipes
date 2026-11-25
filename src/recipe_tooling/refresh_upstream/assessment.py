@@ -106,8 +106,12 @@ class Assessor:
         model_hold = model_holds.holds(self.catalog.root).get(recipe_id)
         for item in result.items:
             moved = item.image[0] if item.image else item.repo
-            if (item.image or item.kind == "image") and base_holds.moves_held_image(
-                hold, moved
+            if (
+                (item.image or item.kind == "image")
+                and base_holds.moves_held_image(hold, moved)
+            ) or (
+                item.provider == "github"
+                and base_holds.follows_held_source(hold, item.repo)
             ):
                 # A held base image stays (policy/base-image-holds.json): no move, no review.
                 item.noop = True
