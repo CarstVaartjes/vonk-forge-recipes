@@ -4,7 +4,6 @@ import ast
 import base64
 import hashlib
 import json
-import runpy
 import shutil
 import subprocess
 import sys
@@ -18,6 +17,7 @@ import pytest
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from recipe_tooling.qualification.definitions_loader import load_definitions
 from spark_sweep.job_media import video_metadata
 from spark_sweep.smoke import AssertionFailed
@@ -193,9 +193,7 @@ class MossRealtimeJobTests(unittest.TestCase):
             self.module.resolve_moss_inputs(self.inputs)
 
     def test_signed_source_bundle_matches_recipe_package(self) -> None:
-        source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
-            "source_bundle"
-        ]
+        source_bundle = vars(catalog_index)["source_bundle"]
         archive, _, digest = source_bundle(ADAPTER_ROOT)
         context = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))["execution"][
             "build"

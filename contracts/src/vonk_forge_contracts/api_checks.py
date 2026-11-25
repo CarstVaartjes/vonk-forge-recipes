@@ -59,6 +59,37 @@ INPUT_MODALITY_CAPABILITIES: dict[str, CapabilityName] = {
     "audio": CapabilityName.AUDIO_UNDERSTANDING,
     "video": CapabilityName.VIDEO_UNDERSTANDING,
 }
+
+
+def served_capabilities(
+    model_capabilities: Iterable[CapabilityName], api: RecipeApi | None
+) -> tuple[CapabilityName, ...]:
+    """The capabilities one recipe's launch serves, sorted by name.
+
+    The one derivation the site, the Controller and vonkctl share. It starts
+    from the Models' capabilities, replaces the input understanding ones with
+    what the API accepts (a modality any option choice accepts counts), and
+    drops ``tool-use`` / ``reasoning`` when the API says it has none. A recipe
+    without an API document keeps its Models' capabilities.
+    """
+
+    capabilities = set(model_capabilities)
+    if api is None:
+        return tuple(sorted(capabilities))
+    blocks = [api.api, *(choice.api for choice in api.option_choices)]
+    for modality, capability in INPUT_MODALITY_CAPABILITIES.items():
+        capabilities.discard(capability)
+        if any(getattr(accepted_modalities(block), modality) for block in blocks):
+            capabilities.add(capability)
+    # Only a chat route states tools and reasoning; one that any route serves counts.
+    chat = [block for block in blocks if isinstance(block, ChatApi)]
+    if chat and all(block.tools.kind == "none" for block in chat):
+        capabilities.discard(CapabilityName.TOOL_USE)
+    if chat and all(block.reasoning.kind == "none" for block in chat):
+        capabilities.discard(CapabilityName.REASONING)
+    return tuple(sorted(capabilities))
+
+
 # vLLM's own transcription upload and decode limits (environment variables,
 # in MiB and seconds). A recipe that sets one states the same limit in its block.
 VLLM_AUDIO_LIMITS: dict[str, tuple[str, int]] = {

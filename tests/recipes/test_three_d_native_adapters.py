@@ -25,13 +25,9 @@ from documents import (
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
-CATALOG_TOOL = ROOT / "tools/build-catalog-index"
-LOADER = importlib.machinery.SourceFileLoader("three_d_catalog_tool", str(CATALOG_TOOL))
-SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
-assert SPEC is not None
-CATALOG = importlib.util.module_from_spec(SPEC)
-sys.modules[LOADER.name] = CATALOG
-LOADER.exec_module(CATALOG)
+from recipe_tooling import catalog_index
+
+CATALOG = catalog_index
 
 CASES = {
     "skintokens-pytorch-single": {

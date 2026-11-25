@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import re
-import runpy
 import unittest
 from pathlib import Path
 from typing import Any, cast
@@ -15,6 +14,7 @@ from catalog_documents import catalog_models
 from documents import json_document, model_display, recipe_display
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.resolver import validate_recipe_models
 
@@ -107,7 +107,7 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
         } & set(facts.capabilities)
 
     def test_source_builds_are_offline_and_digest_pinned(self) -> None:
-        tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+        tool = vars(catalog_index)
         for path in RECIPES.values():
             recipe = read(path)
             build = recipe["execution"]["build"]

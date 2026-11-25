@@ -13,6 +13,8 @@ import pytest
 from ltx_protocol import assert_streaming_quantization_supported, manifest_bytes
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
+
 RECIPE_SLUGS = (
     "ltx-2-19b-dev-bf16-diffusers-single",
     "ltx-2-19b-distilled-diffusers-single",
@@ -100,7 +102,7 @@ class LtxSyncAuthorityTests(unittest.TestCase):
             assert "HF_HUB_OFFLINE" in environment
 
     def test_signed_source_bundle_matches_each_recipe_context(self) -> None:
-        tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+        tool = vars(catalog_index)
         for slug in RECIPE_SLUGS:
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             context = recipe["execution"]["build"]["context"]

@@ -2,7 +2,6 @@
 
 import ast
 import json
-import runpy
 import shutil
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
@@ -15,6 +14,8 @@ from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from sweep_sources import run_source
 
+from recipe_tooling import catalog_index
+from recipe_tooling.qualification import documents
 from recipe_tooling.qualification.evidence_store import (
     catalog_recipe_keys,
     read_evidence,
@@ -475,7 +476,7 @@ def test_catalog_derives_after_resolving_release_image(
     tmp_path, monkeypatch, built_catalog
 ):
 
-    tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+    tool = vars(catalog_index)
     build = tool["build"]
     globals_ = build.__globals__
     document = built_catalog[0]["recipes"][0]["document"]
@@ -487,6 +488,19 @@ def test_catalog_derives_after_resolving_release_image(
     (recipe_dir / f"{slug}.json").write_text(json.dumps(document))
     (tmp_path / "display/recipes").mkdir(parents=True)
     shutil.copy(ROOT / "display/recipes" / f"{slug}.json", tmp_path / "display/recipes")
+    for folder in ("models", "display/models"):
+        (tmp_path / folder).mkdir(parents=True)
+        for binding in document["models"]:
+            model = binding["model"]["slug"]
+            shutil.copy(ROOT / folder / f"{model}.json", tmp_path / folder)
+    (tmp_path / "display/families").mkdir()
+    for binding in document["models"]:
+        lineage = documents.model_display(binding["model"]["slug"]).lineage
+        assert lineage is not None
+        family = lineage.family
+        shutil.copy(
+            ROOT / "display/families" / f"{family}.json", tmp_path / "display/families"
+        )
     image = Image(build_key="b" * 64, image_digest="sha256:" + "c" * 64)
     identity = Identity(
         content_sha256=digest,
@@ -499,7 +513,6 @@ def test_catalog_derives_after_resolving_release_image(
     )
     write_evidence(tmp_path, Evidence(recipe_key=key, records=(record(identity),)))
     monkeypatch.setitem(globals_, "ROOT", tmp_path)
-    monkeypatch.setitem(globals_, "_catalog_entity_documents", dict)
     monkeypatch.setitem(
         globals_,
         "recipe_package",
