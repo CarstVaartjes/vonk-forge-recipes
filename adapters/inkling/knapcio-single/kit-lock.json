@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "4f9088ea66c21f2b99ed657d1941c306b03e84d2",
+      "repo": "incoai/Inkling-2-Mini-DFlash2",
+      "revision": "4f9088ea66c21f2b99ed657d1941c306b03e84d2"
+    },
     "image": {
       "datasource": "oci-image",
       "digest": "sha256:bc811ac7ac68c6fca116a49750baca817b8613a30abface8a347682b55d132e3",
@@ -17,7 +24,7 @@
     }
   },
   "kit": {
-    "commit": "6d89c0ec24cca90ce58991446cf74b1dac449cc8",
+    "commit": "d3f460745aff0dffb40f6b8341077382f3b43dfe",
     "repo": "knapcio/Inkling-2-Mini-1x-DGX-Spark"
   }
 }

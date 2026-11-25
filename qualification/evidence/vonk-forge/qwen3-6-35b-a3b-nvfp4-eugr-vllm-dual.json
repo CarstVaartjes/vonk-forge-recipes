@@ -28,35 +28,6 @@
     },
     {
       "identity": {
-        "content_sha256": "7bb668aaa251a1862aa6f4e754809f335e34f6481a5837d022a18ddc83e647b2",
-        "source_bundle_sha256": "19035befda183a23b36271106f3d2a7eb41074a9aaf8901e126355be9939b57d",
-        "runtime_image": {
-          "build_key": "0e86def0ddd0d1968931496ac8397ad714f52f9348fda4f5d30d2ba671000991",
-          "image_digest": "sha256:fe5a7ae94db9198bfaca2f1f24999e6a47776723550f60769dfa077301f3609e"
-        },
-        "model_digests": [
-          "3c682958bfe88f165e70e9d178bbfb81631b606d6820c06379a8a3ea2c3e665e"
-        ],
-        "required_sparks": 2,
-        "models_resolved": true
-      },
-      "outcome": "passed",
-      "cause_code": "qualification.hardware_pass",
-      "cause_summary": "Hardware checks passed",
-      "evidence_refs": [
-        "77b924ec33bbd18fc18af308cd9d28875511a610a9c48df03a748446b6b33867"
-      ],
-      "tested_at": "2026-11-24T23:58:12.372930Z",
-      "platform": {
-        "controller_source_sha": "a89ae64a6df5bf528ba7d12b2100fee58345c00b",
-        "hardware_class": "GB10",
-        "spark_count": 2,
-        "topology": "multi"
-      },
-      "quality_notes": []
-    },
-    {
-      "identity": {
         "content_sha256": "869a4287d0b6489c4821b1bbc950967414077cceafff36832c745f5bc6ebd120",
         "source_bundle_sha256": "c0f6f036946d712b5e2aee2d9cb388ac1f3883bca7363a2419f4fbbce8f4aaeb",
         "runtime_image": {
@@ -86,18 +57,6 @@
     }
   ],
   "measured_memory": [
-    {
-      "content_sha256": "7bb668aaa251a1862aa6f4e754809f335e34f6481a5837d022a18ddc83e647b2",
-      "role": "entrypoint",
-      "steady_bytes": 63234904064,
-      "budget_bytes": 52265292596
-    },
-    {
-      "content_sha256": "7bb668aaa251a1862aa6f4e754809f335e34f6481a5837d022a18ddc83e647b2",
-      "role": "worker",
-      "steady_bytes": 61329518592,
-      "budget_bytes": 52265292596
-    },
     {
       "content_sha256": "869a4287d0b6489c4821b1bbc950967414077cceafff36832c745f5bc6ebd120",
       "role": "entrypoint",

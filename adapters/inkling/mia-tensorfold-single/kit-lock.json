@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "4f9088ea66c21f2b99ed657d1941c306b03e84d2",
+      "repo": "incoai/Inkling-2-Mini-DFlash2",
+      "revision": "4f9088ea66c21f2b99ed657d1941c306b03e84d2"
+    },
     "engine": {
       "commit": "dc2ca8a1785df6ee5c8489ee7cd18e29cf7b4568",
       "datasource": "git-ref",
@@ -17,7 +24,7 @@
     }
   },
   "kit": {
-    "commit": "6061fa89a34d2a245bc4a230f04948f312347a5e",
+    "commit": "9e3cf20b76e0140bebbbe6ed13f6e3a00e881f12",
     "repo": "MiaAI-Lab/Inkling-2-Mini-DGX-Spark-TensorFold"
   }
 }

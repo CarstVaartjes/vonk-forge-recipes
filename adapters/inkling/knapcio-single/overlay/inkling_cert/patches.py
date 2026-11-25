@@ -110,7 +110,8 @@ def _wide_logits(lp, x, head, meta, embedding_bias=None, use_logits_buffer=True)
     weight = getattr(head, "weight", None)
     entry = wide.entry
     m = wo.rows_of(x)
-    if (not certwide.MIN_ROWS <= m <= certwide.MAX_ROWS or x.dim() != 2
+    if (not certwide.MIN_ROWS <= m <= min(certwide.MAX_ROWS, STATE["cfg"].get("wide_max_rows", certwide.MAX_ROWS))
+            or x.dim() != 2
             or not isinstance(weight, torch.Tensor) or wp.HEADS.get(weight.data_ptr()) is not entry
             or tuple(weight.shape) != (entry.n, entry.k) or not wo.eligible(x, entry)
             or wo.choose_split(entry.n, entry.k, m, entry.kind) != 1):
@@ -145,6 +146,9 @@ def _wide_logits(lp, x, head, meta, embedding_bias=None, use_logits_buffer=True)
     # consumed at capture by the folded accept, which records the ID pointer.
     out = out.view_as(out)  # keep the attribute off the graph's shared buffer object
     out._inkling_certwide_ids = wide.run(wo.as_rows(x, entry.k), out, cert.on, v_real, wo.SET)
+    from . import dflash
+
+    dflash.note_wide_ids(out, out._inkling_certwide_ids)  # DFLASH: the eager accept looks them up after replay
     return out
 
 
@@ -162,6 +166,7 @@ def _prepare_wide(cert, w, lp, tables):
     else:
         cert.wide.refresh(entry, tables)
 
+    cert.wide.counting = False  # the self-tests below are not served steps
     with torch.inference_mode():
         # Warm the CUDA/Triton paths before capture. Use peaked BF16 rows so
         # the sparse arithmetic and the forced full fallback are both checked.
@@ -178,7 +183,11 @@ def _prepare_wide(cert, w, lp, tables):
                     raise ops.CertFatal(f"inkling_certwide: M={m} self-test token mismatch")
                 if on is cert.off and not torch.equal(out.view(torch.int32), ref.view(torch.int32)):
                     raise ops.CertFatal(f"inkling_certwide: M={m} fallback logit mismatch")
-    _log(f"wide certified packed head armed (17–192 rows, compact capacity {cert.wide.capacity} tiles)")
+    cert.wide.counting = True
+    if STATE["cfg"].get("wide_stats") and cert.wide.stats is None:  # once: graphs capture the counter address
+        cert.wide.enable_stats()
+    _log(f"wide certified packed head armed (17–{STATE['cfg'].get('wide_max_rows', certwide.MAX_ROWS)} rows, "
+         f"compact capacity {cert.wide.capacity} tiles{', outcome stats on' if cert.wide.stats is not None else ''})")
 
 
 def prepare(model):
@@ -359,6 +368,10 @@ def make_lm_head(inner):
         if out is None:
             out = torch.empty((m, pack.n), dtype=torch.float32, device=x.device)
         on = cert.on if capturing else cert.off
+        if capturing:
+            from . import dflash
+
+            x2 = dflash.dead_rows_to_anchor(x2, cert)  # DFLASH + verify cap only; identity otherwise
         if STATE["mode"] == "check":
             sc, am = _stock_fns()
             cert.run_check(x2, out, on, v_real, cert_math.CAP, lambda xx, oo: po.gemv(xx, pack, oo), sc, am)
@@ -457,6 +470,9 @@ def patch_graph_runner(mod):
     execute._inkling_certwide = True
     cls.execute = execute
     STATE["patched"].append("DecodeCudaGraphRunner.execute")
+    from . import dflash
+
+    dflash.patch_runner(mod)
 
 
 def patch_verify(mod):
@@ -522,9 +538,29 @@ def _report(cert):
         if STATE["mode"] == "check":
             line += f"; check: {s[7]} steps, {s[5]} rows, mismatches {s[6]}"
         _log(line)
+        wprev = _PINNED.get("wbuf")
+        if wprev is not None:
+            _log("wide outcomes " + getattr(cert, "wide").describe_stats(wprev))
     if prev is None:
         _PINNED["buf"] = torch.zeros((8,), dtype=torch.int64, pin_memory=True)
+        wide = getattr(cert, "wide", None)
+        if wide is not None and wide.stats is not None:
+            _PINNED["wbuf"] = torch.zeros(wide.stats.shape, dtype=torch.int64, pin_memory=True)
     _PINNED["buf"].copy_(cert.stats, non_blocking=True)
+    if _PINNED.get("wbuf") is not None:
+        _PINNED["wbuf"].copy_(cert.wide.stats, non_blocking=True)
     ev = torch.cuda.Event()
     ev.record()
     _PINNED["ev"] = ev
+
+
+def patch_dflash_worker(mod):
+    from . import dflash
+
+    dflash.patch_worker(mod)
+
+
+def patch_dflash_tp_worker(mod):
+    from . import dflash
+
+    dflash.patch_tp_worker(mod)

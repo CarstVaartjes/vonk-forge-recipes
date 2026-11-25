@@ -1,0 +1,79 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-8e63f02a5caa-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8e63f02a5caa4dbc92838d44dddcfa2c1b76f355503fcbeaa3d6512f7fe132ef",
+      "size_bytes": 1581
+    },
+    {
+      "id": "readme-e809da60c54b-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e809da60c54b754707657585ef479981925cfc9a14d3d4fe5223189b354a8a91",
+      "size_bytes": 4660
+    },
+    {
+      "id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
+      "path": "assets/dflash2-figure.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "6d8dcc9a9472bddb644c881fe83050b5343d09bf5ffb0912e5598e55fe671e99",
+      "size_bytes": 286889
+    },
+    {
+      "id": "config-d094e435eb93-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d094e435eb939e01fca6297f637c5af35e3da4b552f8e1ab0a181cd278a1cefa",
+      "size_bytes": 1311
+    },
+    {
+      "id": "model-217980ab00d1-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "217980ab00d116693fa5946df7bbfd967caf5fac1f529afd541fbd470ddb54ee",
+      "size_bytes": 989975616
+    },
+    {
+      "id": "sglang-inkling-dflash2-14223ae2f3aa-84b4e523a3",
+      "path": "sglang_inkling_dflash2.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "14223ae2f3aa1d661da67cf0143ec33070d952a6e28a119e6cec64fcc0bebe50",
+      "size_bytes": 8772
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "incoai",
+      "slug": "inkling-2-mini-dflash2"
+    },
+    "publisher": "incoai",
+    "slug": "inkling-2-mini-dflash2-incoai-4f9088ea",
+    "variant": "4f9088ea66c21f2b99ed657d1941c306b03e84d2",
+    "version": "4f9088ea66c21f2b99ed657d1941c306b03e84d2"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/incoai/Inkling-2-Mini-DFlash2",
+    "revision": "4f9088ea66c21f2b99ed657d1941c306b03e84d2"
+  }
+}

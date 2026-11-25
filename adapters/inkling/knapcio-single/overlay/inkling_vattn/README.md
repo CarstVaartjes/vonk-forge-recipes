@@ -25,7 +25,7 @@ already).
 | `cap` | module global `VERIFY_REL_BIAS_MAX_TOKENS` 32 -> 384: every verify batch up to 48 requests takes the stock compact path (stock prologue, `_decode_partials` with its own launch heuristics, `combine_gate_sink`). A retuned launch (splits / tile / stages, `ops.stock_bias_partials`) measured within noise at the whole-visit level and is not used. |
 | `bias` | compact verify only: the prologue is run with `rel_proj = [I_16 \| 0]` (16 x 128), so it stores the rel-clip output r itself in `rel[..., :16]` (a 6 KiB instead of 48 KiB row per token), and `ops.inkernel_bias_partials` computes the bias per key tile in-kernel (`BF16(dot(r, proj[:, dbase : dbase + WB]))`, one m16n8k16 K-step like the prologue's own dot, then `tl.gather` of each row's diagonal); the `[t, 24, 1024]` tensor is neither written nor read. Only above 32 rows (`INKLING_VATTN_BIAS_MIN_TOKENS`, default 33); needs `cap` to matter. |
 
-## Results (GB10, Spark_06, 2026-11-21)
+## Results (GB10, 2026-11-21)
 
 Whole verify visit (prologue + attention + gate/sink epilogue), cold (256 MiB read before each rep), CUDA-graph
 replays, median us; GB/s = K/V bytes attended / time (4 KiB per key). Contexts jittered per request (-0..210).

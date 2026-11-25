@@ -5,12 +5,13 @@
 # repository, and compiles llama-server for sm_121a. This image does the same with the
 # creator's CMake flags, on the creator's CUDA 13.0 toolkit. The commit archive and
 # the patch are revision-pinned and digest-checked; the build fails closed on a
-# different byte. The creator applies the patch with git apply; a codeload archive is
+# different byte. The patch now also carries DFly. The creator applies the patch with
+# git apply; a codeload archive is
 # not a git checkout, so patch -p1 --fuzz=0 applies the same diff without fuzz.
 ARG LLAMA_CPP_COMMIT=2cbca389f515df455412dafa07e2b1359cc72a6d
 ARG LLAMA_CPP_SHA256=5ae980bfae6e215e4e953cf06d97f7849d8227c6bf80f28f360749ca018a519c
-ARG HY4_REVISION=65acb8ae7f59847fe03a17291f1b72b89b141a9e
-ARG HY4_PATCH_SHA256=6ec50722c8b181222a928e0a66cda0159e8dff3e72f8193334f6296f6213dfff
+ARG HY4_REVISION=c50d4dd30be42f2b91138e5731de0e2f32ad56b2
+ARG HY4_PATCH_SHA256=0c3da4967598832b266e7bd26e6eb803c58df25c4e96152c507dd74cc72d5a94
 
 FROM docker.io/nvidia/cuda:13.0.0-devel-ubuntu24.04@sha256:38c2598ded0fd3ed2b0b13351543fde493faba43ae580f81f0a9ab58d76fdd2d AS build
 ARG LLAMA_CPP_COMMIT

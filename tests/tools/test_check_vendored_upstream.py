@@ -4,6 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 from recipe_tooling import vendored_upstream as checker
 
@@ -40,6 +41,21 @@ class VendoredUpstreamTest(unittest.TestCase):
             if manifest is not None:
                 (adapter / "vendored-upstream.json").write_text(json.dumps(manifest))
             return checker.check_adapter(adapter, root, lambda _r, _c: tree)
+
+    def test_an_unreadable_upstream_is_a_note_not_a_problem(self) -> None:
+        def down(_repo: str, _commit: str) -> Any:
+            raise OSError("connection reset")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            adapter = root / "adapters/x"
+            adapter.mkdir(parents=True)
+            (adapter / "Dockerfile").write_text("FROM scratch\n" + LABELS)
+            report = checker.check_adapter(adapter, root, down, lambda *_: None)
+            gone = checker.check_adapter(adapter, root, down, lambda *_: False)
+        assert report.problems == []
+        assert report.note
+        assert gone.problems  # GitHub answers "not there": ours to fix
 
     def test_identical_vendored_file_passes(self) -> None:
         report = self._run(
