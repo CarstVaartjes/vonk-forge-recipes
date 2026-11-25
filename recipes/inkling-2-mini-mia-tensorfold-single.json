@@ -188,6 +188,37 @@
         "publisher": "thinkingmachines",
         "slug": "inkling-2-mini-nvfp4-1fb4134b"
       }
+    },
+    {
+      "files": [
+        {
+          "file_id": "config-d094e435eb93-587cb980af",
+          "id": "drafter-config-d094e435eb93-587cb980af",
+          "mount": {
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-217980ab00d1-9d75c1098f",
+          "id": "drafter-model-217980ab00d1-9d75c1098f",
+          "mount": {
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "drafter",
+      "model": {
+        "content_sha256": "06445ebcca9c226a32837824d9f15760a0c8514b21d1f3a79f859a9fda243d2e",
+        "kind": "model",
+        "publisher": "incoai",
+        "slug": "inkling-2-mini-dflash2-incoai-4f9088ea"
+      }
     }
   ],
   "provenance": {
@@ -197,11 +228,11 @@
       "Jürgen Schmied (Inkling 2 Mini CUDA engine)",
       "Thinking Machines Lab"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/Inkling-2-Mini-DGX-Spark-TensorFold/tree/6061fa89a34d2a245bc4a230f04948f312347a5e"
+    "source_reference": "https://github.com/MiaAI-Lab/Inkling-2-Mini-DGX-Spark-TensorFold/tree/9e3cf20b76e0140bebbbe6ed13f6e3a00e881f12"
   },
   "release": {
-    "released_at": "2026-11-24",
-    "version": "1.0.0"
+    "released_at": "2026-11-25",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [
@@ -247,7 +278,7 @@
       },
       {
         "name": "drafter",
-        "value": "/models/ink"
+        "value": "/models/draft"
       },
       {
         "name": "vision",
@@ -321,13 +352,13 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 20191643271,
+            "artifact_bytes": 21181620198,
             "image_bytes": 26000000000,
             "safety_margin_bytes": 10000000000,
             "working_bytes": 8000000000
           },
           "memory": {
-            "peak_bytes": 99857989632,
+            "peak_bytes": 102005473280,
             "reserve_bytes": 9663676416
           }
         }
