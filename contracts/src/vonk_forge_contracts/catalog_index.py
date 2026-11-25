@@ -41,6 +41,7 @@ from pydantic_core import PydanticCustomError
 
 from vonk_forge_contracts.api import RecipeApi, require_api_of
 from vonk_forge_contracts.display import (
+    Capability,
     FamilyDisplay,
     ModelDisplay,
     RecipeDisplay,
@@ -215,6 +216,8 @@ class CatalogRecipeEntry(_IndexContract):
     qualification: Annotated[PublishedQualificationStatusView | None, *_Droppable]
     prebuilt_image: PrebuiltImage | None = None
     measured_memory: PublishedMeasuredMemory | None = None
+    # Derived by ``served_capabilities``, never authored: what this launch serves.
+    served_capabilities: Annotated[tuple[Capability, ...], _Array] | None = None
 
     @field_validator("display", "api")
     @classmethod

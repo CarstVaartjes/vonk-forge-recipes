@@ -843,6 +843,21 @@
               }
             ],
             "default": null
+          },
+          "served_capabilities": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/CapabilityName"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Served Capabilities"
           }
         },
         "required": [
