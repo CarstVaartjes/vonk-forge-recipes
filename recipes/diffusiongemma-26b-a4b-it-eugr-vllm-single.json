@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "47e38c78ef713f28b693e195d7c999b11a430a662194b626fdfac51f803f5d84",
+        "digest": "024af93ded56a20bd2a64c31b55fb78b36bb93560cc553d34220cf6403f58858",
         "repository": "docker.io/eugr/spark-vllm"
       },
       "context": {
@@ -305,10 +305,10 @@
       "Google DeepMind (Apache-2.0)",
       "vLLM contributors (Apache-2.0)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/948f59477072b248109540e5ef11a4bd57cea804"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/2b1405da3101f98a8dfaa0a57640e7b0b0803864"
   },
   "release": {
-    "released_at": "2026-11-23",
+    "released_at": "2026-11-24",
     "version": "prebuilt-vllm-current"
   },
   "runtime": {

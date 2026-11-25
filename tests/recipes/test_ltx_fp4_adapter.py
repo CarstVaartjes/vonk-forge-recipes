@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import runpy
 import shlex
 import sys
 import tempfile
@@ -18,6 +17,8 @@ from documents import recipe_display
 from generated_catalog import GENERATED
 from ltx_protocol import assert_streaming_quantization_supported, manifest_bytes
 from repo_root import ROOT
+
+from recipe_tooling import catalog_index
 
 ADAPTER_ROOT = ROOT / "adapters/video/ltx2-pytorch"
 ADAPTER_PATH = ADAPTER_ROOT / "pipelines/run.py"
@@ -293,9 +294,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         assert "disk-offload" not in recipe_display(recipe["identity"]["slug"]).tags
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
         assert memory == {"peak_bytes": 89000000000, "reserve_bytes": 8000000000}
-        source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
-            "source_bundle"
-        ]
+        source_bundle = vars(catalog_index)["source_bundle"]
         archive, _, digest = source_bundle(ADAPTER_ROOT)
         assert (
             recipe["execution"]["build"]["context"]["path"]

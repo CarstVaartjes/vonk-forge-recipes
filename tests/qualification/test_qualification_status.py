@@ -2,7 +2,6 @@
 
 import ast
 import json
-import runpy
 import shutil
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
@@ -15,6 +14,7 @@ from repo_root import ROOT
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from sweep_sources import run_source
 
+from recipe_tooling import catalog_index
 from recipe_tooling.qualification.evidence_store import (
     catalog_recipe_keys,
     read_evidence,
@@ -475,7 +475,7 @@ def test_catalog_derives_after_resolving_release_image(
     tmp_path, monkeypatch, built_catalog
 ):
 
-    tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+    tool = vars(catalog_index)
     build = tool["build"]
     globals_ = build.__globals__
     document = built_catalog[0]["recipes"][0]["document"]
