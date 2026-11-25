@@ -1553,11 +1553,6 @@
         "value": "marlin"
       },
       {
-        "name": "mamba-cache-mode",
-        "setting": null,
-        "value": "align"
-      },
-      {
         "name": "mamba-ssm-cache-dtype",
         "setting": null,
         "value": "float32"
