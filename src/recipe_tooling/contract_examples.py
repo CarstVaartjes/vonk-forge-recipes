@@ -1,0 +1,757 @@
+"""Generate small synthetic variants used for contract review.
+
+``model-definition.json``, ``recipe-source-build.json`` and their displays
+(``model-display.json``, ``recipe-display-source-build.json``) and the API facts
+``recipe-api-source-build.json`` are the authored seeds. This tool points the build recipe at the model's document digest and
+derives the job and dual-node variants from it, plus the Git LFS model variant,
+each with its display.
+"""
+
+from __future__ import annotations
+
+import copy
+import json
+from typing import Any
+
+from recipe_tooling.paths import REPO_ROOT
+from vonk_forge_contracts import (
+    ModelDefinition,
+    ModelDisplay,
+    RecipeApi,
+    RecipeDefinition,
+    RecipeDisplay,
+    check_recipe_api,
+    document_sha256,
+    require_api_of,
+    require_display_of,
+)
+
+ROOT = REPO_ROOT
+
+EXAMPLES = ROOT / "contracts/src/vonk_forge_contracts/examples"
+
+
+def _read(name: str) -> dict[str, Any]:
+    return json.loads((EXAMPLES / name).read_text(encoding="utf-8"))
+
+
+def _write(name: str, document: dict[str, Any]) -> None:
+    (EXAMPLES / name).parent.mkdir(parents=True, exist_ok=True)
+    (EXAMPLES / name).write_text(
+        json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _lfs_model(model: dict[str, Any]) -> dict[str, Any]:
+    """The seed model re-sourced to one real Git LFS object at a pinned commit."""
+
+    lfs = copy.deepcopy(model)
+    lfs["identity"]["slug"] = "synthetic-tiny-lfs"
+    lfs["files"] = [
+        {
+            "id": "weights",
+            "path": "motionbricks/out/G1-clip.ckpt",
+            "roles": ["weights"],
+            "sha256": "84afc7c229473351a24b0a7d79fc47be9dbb81bd12774285f2f60a3c0e9028df",
+            "size_bytes": 7761041,
+        }
+    ]
+    lfs["source"] = {
+        "provider": "github-lfs",
+        "repository": "https://github.com/NVlabs/GR00T-WholeBodyControl",
+        "revision": "45c03facbf848e0c743091b7d9c17952096ff908",
+    }
+    return lfs
+
+
+def _invalid(
+    name: str,
+    contract: str,
+    error_contains: str,
+    document: dict[str, Any],
+    *,
+    producer_only: bool = False,
+) -> None:
+    """One refused vector: the document and the contract error it must raise.
+
+    ``producer_only`` marks a vector only strict ``model_validate`` refuses; the
+    lenient readers consumers use ignore the unknown field.
+    """
+
+    _write(f"invalid/{name}.json", document)
+    expect: dict[str, Any] = {"contract": contract, "error_contains": error_contains}
+    if producer_only:
+        expect["producer_only"] = True
+    _write(f"invalid/{name}.expect.json", expect)
+
+
+def _with_identity_family(model: dict[str, Any]) -> dict[str, Any]:
+    """The Model document with the family it carried before contracts 5.0.0."""
+
+    document = copy.deepcopy(model)
+    document["identity"]["family"] = {"publisher": "vonk-forge", "slug": "synthetic"}
+    return document
+
+
+def _with_display_facts(
+    model: dict[str, Any], display: dict[str, Any]
+) -> dict[str, Any]:
+    """The Model document with the facts that belong to its display written back."""
+
+    return {
+        **model,
+        **{name: display[name] for name in ("modalities", "capabilities", "license")},
+    }
+
+
+def _display_vectors(
+    recipes: dict[str, dict[str, Any]],
+    models: dict[str, dict[str, Any]],
+    recipe_displays: dict[str, dict[str, Any]],
+    model_displays: dict[str, dict[str, Any]],
+) -> None:
+    for name, display in recipe_displays.items():
+        require_display_of(
+            RecipeDisplay.model_validate(display),
+            RecipeDefinition.model_validate(recipes[name]).identity,
+        )
+        _write(f"recipe-display-{name}.json", display)
+    for name, display in model_displays.items():
+        require_display_of(
+            ModelDisplay.model_validate(display),
+            ModelDefinition.model_validate(models[name]).identity,
+        )
+        _write(f"model-display{name}.json", display)
+    recipe_display = recipe_displays["source-build"]
+    model_display = model_displays[""]
+    _invalid(
+        "recipe-with-metadata",
+        "RecipeDefinition",
+        "Extra inputs are not permitted",
+        {**recipes["source-build"], "metadata": {"title": "x"}},
+        producer_only=True,
+    )
+    _invalid(
+        "model-with-identity-family",
+        "ModelDefinition",
+        "Extra inputs are not permitted",
+        _with_identity_family(models[""]),
+        producer_only=True,
+    )
+    _invalid(
+        "model-with-display-facts",
+        "ModelDefinition",
+        "Extra inputs are not permitted",
+        _with_display_facts(models[""], model_display),
+        producer_only=True,
+    )
+    _invalid(
+        "recipe-display-with-runtime",
+        "RecipeDisplay",
+        "Extra inputs are not permitted",
+        {**recipe_display, "runtime": {"engine": "vllm"}},
+        producer_only=True,
+    )
+    identity = recipe_display["identity"]
+    assert isinstance(identity, dict)
+    _invalid(
+        "recipe-display-identity-extra-key",
+        "RecipeDisplay",
+        "Extra inputs are not permitted",
+        {**recipe_display, "identity": {**identity, "extra": "x"}},
+        producer_only=True,
+    )
+    _invalid(
+        "recipe-display-kind-recipe",
+        "RecipeDisplay",
+        "recipe-display",
+        {**recipe_display, "kind": "recipe"},
+    )
+    _invalid(
+        "recipe-display-empty-title",
+        "RecipeDisplay",
+        "at least 1 character",
+        {**recipe_display, "title": ""},
+    )
+    _invalid(
+        "recipe-display-title-too-long",
+        "RecipeDisplay",
+        "at most 120 characters",
+        {**recipe_display, "title": "x" * 121},
+    )
+    _invalid(
+        "recipe-display-bad-alignment",
+        "RecipeDisplay",
+        "Input should be",
+        {**recipe_display, "alignment": "wild"},
+    )
+    _invalid(
+        "recipe-display-identity-mismatch",
+        "require_display_of",
+        "display identity differs from its document",
+        {"document": recipes["job"], "display": recipe_display},
+    )
+    _invalid(
+        "model-display-identity-mismatch",
+        "require_display_of",
+        "display identity differs from its document",
+        {"document": models["-github-lfs"], "display": model_display},
+    )
+    _invalid(
+        "model-display-duplicate-tag",
+        "ModelDisplay",
+        "tags must be unique",
+        {**model_display, "tags": ["synthetic", "synthetic"]},
+    )
+    _invalid(
+        "model-display-bad-variant-kind",
+        "ModelDisplay",
+        "Input should be",
+        {
+            **model_display,
+            "lineage": {**model_display["lineage"], "variant_kind": "fork"},
+        },
+    )
+    _invalid(
+        "model-display-bad-tag",
+        "ModelDisplay",
+        "String should match pattern",
+        {**model_display, "tags": ["Bad Tag"]},
+    )
+
+
+def _options_recipe(build: dict[str, Any]) -> dict[str, Any]:
+    """The seed with a context-bound vLLM argument and a vision option."""
+
+    options = copy.deepcopy(build)
+    options["identity"]["slug"] = "synthetic-tiny-build-options"
+    options["runtime"]["arguments"] += [
+        {"name": "max-model-len", "setting": "context_tokens"},
+    ]
+    options["options"] = [
+        {
+            "name": "vision",
+            "label": "Images",
+            "help": "Serve text only, or accept images as well.",
+            "choices": [
+                {
+                    "value": "text-only",
+                    "label": "Text only",
+                    "help": "The language model alone.",
+                    "default": True,
+                    "args": [{"name": "language-model-only", "value": True}],
+                },
+                {
+                    "value": "images",
+                    "label": "Images",
+                    "help": "Up to four images per prompt.",
+                    "args": [
+                        {"name": "language-model-only", "value": False},
+                        {"name": "limit-mm-per-prompt", "value": '{"image":4}'},
+                    ],
+                },
+            ],
+        }
+    ]
+    return options
+
+
+def _api_for(recipe: dict[str, Any], seed: dict[str, Any]) -> dict[str, Any]:
+    identity = RecipeDefinition.model_validate(recipe).identity
+    return {**seed, "identity": {**seed["identity"], "slug": identity.slug}}
+
+
+def _decision_example(build: dict[str, Any], seed: dict[str, Any]) -> None:
+    """A synthetic ``/v1/systemone`` recipe and its decision-mode API document."""
+
+    decision = copy.deepcopy(build)
+    decision["identity"]["slug"] = "synthetic-tiny-build-decision"
+    decision["settings"]["kind"] = "decision"
+    decision["runtime"]["arguments"] += [
+        {"name": "max-model-len", "setting": "context_tokens"}
+    ]
+    decision["validation"] = {
+        "serving": {
+            "interface": "openai",
+            "checks": [
+                {
+                    "name": "health",
+                    "kind": "openai.health",
+                    "request": {
+                        "transport": "http",
+                        "method": "GET",
+                        "path": "/v1/models",
+                    },
+                    "assertions": ["endpoint.healthy"],
+                },
+                {
+                    "name": "decide",
+                    "kind": "openai.systemone",
+                    "request": {
+                        "transport": "http",
+                        "method": "POST",
+                        "path": "/v1/systemone",
+                        "body": {
+                            "model": "synthetic-tiny",
+                            "state": "Is this easy?",
+                            "questions": {
+                                "easy": {"type": "noul", "instructions": "Easy?"}
+                            },
+                        },
+                    },
+                    "assertions": ["decision.probabilities"],
+                },
+            ],
+        }
+    }
+    api = {
+        **_api_for(decision, seed),
+        "api": {
+            "mode": "decision",
+            "max_input_tokens": None,
+            "input_modalities": {
+                "text": True,
+                "image": True,
+                "video": False,
+                "audio": False,
+                "pdf": False,
+            },
+        },
+    }
+    recipe_model = RecipeDefinition.model_validate(decision)
+    api_model = RecipeApi.model_validate(api)
+    check_recipe_api(recipe_model, api_model)
+    _write("recipe-decision.json", decision)
+    _write("recipe-api-decision.json", api)
+
+
+def _audio_examples(build: dict[str, Any], seed: dict[str, Any]) -> None:
+    """Synthetic transcription and speech recipes, their API documents, refusals.
+
+    The recipe contract has no audio serving check yet, so both keep the seed's
+    chat check.
+    """
+
+    speech_in = copy.deepcopy(build)
+    speech_in["identity"]["slug"] = "synthetic-tiny-build-transcription"
+    speech_in["runtime"]["environment"] += [
+        {"name": "VLLM_MAX_AUDIO_CLIP_FILESIZE_MB", "value": "25"},
+        {"name": "VLLM_MAX_AUDIO_DECODE_DURATION_S", "value": "600"},
+    ]
+    block = {
+        "mode": "audio_transcription",
+        "input_formats": ["flac", "mp3", "ogg", "wav"],
+        "max_file_bytes": 25 * 1024 * 1024,
+        "max_audio_seconds": 600,
+        "languages": ["en", "nl"],
+        "response_formats": ["json", "text", "verbose_json"],
+        "prompt": True,
+        "timestamp_granularities": ["segment"],
+        "temperature": True,
+    }
+    api = {**_api_for(speech_in, seed), "api": block}
+    check_recipe_api(
+        RecipeDefinition.model_validate(speech_in), RecipeApi.model_validate(api)
+    )
+    _write("recipe-transcription.json", speech_in)
+    _write("recipe-api-transcription.json", api)
+    _invalid(
+        "recipe-api-transcription-file-limit-differs",
+        "check_recipe_api",
+        "max_file_bytes must be 26214400, as VLLM_MAX_AUDIO_CLIP_FILESIZE_MB sets",
+        {
+            "recipe": speech_in,
+            "api": {**api, "api": {**block, "max_file_bytes": 1048576}},
+        },
+    )
+    _invalid(
+        "recipe-api-transcription-duplicate-format",
+        "RecipeApi",
+        "input_formats must be unique",
+        {**api, "api": {**block, "input_formats": ["wav", "wav"]}},
+    )
+    speech_out = copy.deepcopy(build)
+    speech_out["identity"]["slug"] = "synthetic-tiny-build-speech"
+    spoken = {
+        "mode": "audio_speech",
+        "voices": ["alloy", "echo"],
+        "response_formats": ["mp3", "wav"],
+        "instructions": False,
+        "speed": True,
+        "max_input_chars": 4096,
+    }
+    spoken_api = {**_api_for(speech_out, seed), "api": spoken}
+    check_recipe_api(
+        RecipeDefinition.model_validate(speech_out),
+        RecipeApi.model_validate(spoken_api),
+    )
+    _write("recipe-speech.json", speech_out)
+    _write("recipe-api-speech.json", spoken_api)
+    _invalid(
+        "recipe-api-speech-no-voices",
+        "RecipeApi",
+        "at least 1 item",
+        {**spoken_api, "api": {**spoken, "voices": []}},
+    )
+
+
+def _api_vectors(
+    build: dict[str, Any], options: dict[str, Any], seed: dict[str, Any]
+) -> None:
+    """The option-aware API example, its application vectors and the refusals."""
+
+    block = {**seed["api"], "max_input_tokens": None}
+    images = {
+        **block,
+        "input_modalities": {**block["input_modalities"], "image": True},
+    }
+    api_options = {
+        **_api_for(options, {**seed, "api": block}),
+        "option_choices": [{"option": "vision", "value": "images", "api": images}],
+    }
+    for recipe, api in ((build, seed), (options, api_options)):
+        recipe_model = RecipeDefinition.model_validate(recipe)
+        api_model = RecipeApi.model_validate(api)
+        require_api_of(api_model, recipe_model.identity)
+        check_recipe_api(recipe_model, api_model)
+    _write("recipe-options.json", options)
+    _write("recipe-api-options.json", api_options)
+    _decision_example(build, seed)
+    _audio_examples(build, seed)
+    options_model = RecipeDefinition.model_validate(options)
+    options_api = RecipeApi.model_validate(api_options)
+    vectors = []
+    for choices in ({}, {"vision": "text-only"}, {"vision": "images"}):
+        applied = options_api.for_choices(options_model, choices)
+        vectors.append({"choices": choices, "api": applied.model_dump(mode="json")})
+    _write(
+        "api-vectors/option-choices.json",
+        {
+            "recipe": "recipe-options.json",
+            "api": "recipe-api-options.json",
+            "vectors": vectors,
+        },
+    )
+
+    def refuse(name: str, contract: str, error: str, recipe: Any, api: Any) -> None:
+        document = api if contract == "RecipeApi" else {"recipe": recipe, "api": api}
+        _invalid(name, contract, error, document)
+
+    def with_block(**changes: Any) -> dict[str, Any]:
+        return {**seed, "api": {**block, **changes}}
+
+    refuse(
+        "recipe-api-missing-field",
+        "RecipeApi",
+        "streaming",
+        options,
+        {**seed, "api": {k: v for k, v in block.items() if k != "streaming"}},
+    )
+    refuse(
+        "recipe-api-effort-default-not-a-level",
+        "RecipeApi",
+        "effort default must be one of its levels",
+        options,
+        with_block(
+            reasoning={
+                "kind": "always-on",
+                "effort": {
+                    "kind": "levels",
+                    "via": "top_level",
+                    "key": "reasoning_effort",
+                    "levels": ["low", "high"],
+                    "default": "max",
+                },
+            }
+        ),
+    )
+    refuse(
+        "recipe-api-two-options-carry-blocks",
+        "RecipeApi",
+        "at most one option may carry API blocks",
+        options,
+        {
+            **api_options,
+            "option_choices": [
+                *api_options["option_choices"],
+                {"option": "other", "value": "x", "api": images},
+            ],
+        },
+    )
+    refuse(
+        "recipe-api-image-with-language-model-only",
+        "check_recipe_api",
+        "image input conflicts with --language-model-only",
+        options,
+        _api_for(options, {**api_options, "api": images}),
+    )
+    unbound = copy.deepcopy(options)
+    unbound["runtime"]["arguments"][-1] = {"name": "max-model-len", "value": 1024}
+    refuse(
+        "recipe-api-context-unbound",
+        "check_recipe_api",
+        "must be bound to the context_tokens setting",
+        unbound,
+        api_options,
+    )
+    missing = copy.deepcopy(options)
+    missing["runtime"]["arguments"] = [
+        a for a in missing["runtime"]["arguments"] if a["name"] != "max-model-len"
+    ]
+    refuse(
+        "recipe-api-context-argument-missing",
+        "check_recipe_api",
+        "no context argument (--max-model-len) is bound to context_tokens",
+        missing,
+        api_options,
+    )
+    refuse(
+        "recipe-api-default-output-names-missing-argument",
+        "check_recipe_api",
+        "default_output_tokens names --max-tokens, which has no integer value",
+        options,
+        _api_for(
+            options,
+            {
+                **seed,
+                "api": {**block, "default_output_tokens": {"argument": "max-tokens"}},
+            },
+        ),
+    )
+    refuse(
+        "recipe-api-identity-mismatch",
+        "check_recipe_api",
+        "api identity differs from its recipe",
+        options,
+        seed,
+    )
+
+
+def _audio_serving_example(build: dict[str, Any]) -> None:
+    """A synthetic recipe whose checks upload audio and request speech, and refusals."""
+
+    audio = copy.deepcopy(build)
+    audio["identity"]["slug"] = "synthetic-tiny-build-audio-serving"
+    seeded = audio["validation"]["serving"]["checks"][0]
+    heard = {
+        "name": "transcribe",
+        "kind": "openai.transcription",
+        "request": {
+            "transport": "http-multipart",
+            "method": "POST",
+            "path": "/v1/audio/transcriptions",
+            "fields": {
+                "model": "synthetic-tiny",
+                "language": "en",
+                "response_format": "json",
+            },
+            "file": {
+                "field": "file",
+                "fixture": "qualification/fixtures/jfk-inaugural-10s.wav",
+                "media_type": "audio/wav",
+            },
+        },
+        "assertions": ["transcription.nonempty"],
+    }
+    spoken = {
+        "name": "speak",
+        "kind": "openai.speech",
+        "request": {
+            "transport": "http",
+            "method": "POST",
+            "path": "/v1/audio/speech",
+            "body": {
+                "model": "synthetic-tiny",
+                "input": "The road ahead is closed. Turn back.",
+                "voice": "alloy",
+                "response_format": "wav",
+            },
+        },
+        "assertions": ["speech.audio"],
+    }
+    audio["validation"]["serving"]["checks"] = [seeded, heard, spoken]
+    RecipeDefinition.model_validate(audio)
+    _write("recipe-audio-serving.json", audio)
+
+    def refused(name: str, error: str, check: dict[str, Any]) -> None:
+        document = copy.deepcopy(audio)
+        document["validation"]["serving"]["checks"] = [seeded, check]
+        _invalid(name, "RecipeDefinition", error, document)
+
+    refused(
+        "recipe-serving-transcription-over-json",
+        "serving request transport must match serving kind",
+        {**heard, "request": spoken["request"]},
+    )
+    refused(
+        "recipe-serving-multipart-for-chat",
+        "serving request transport must match serving kind",
+        {**heard, "kind": "openai.chat", "assertions": ["chat.nonempty"]},
+    )
+    refused(
+        "recipe-serving-transcription-without-assertion",
+        "serving assertion is not applicable to its check kind",
+        {**heard, "assertions": ["chat.nonempty"]},
+    )
+    for field, value in (("voice", 7), ("input", ["x"])):
+        refused(
+            f"recipe-serving-speech-{field}-not-text",
+            "speech checks require input, voice, response_format wav",
+            {
+                **spoken,
+                "request": {
+                    **spoken["request"],
+                    "body": {**spoken["request"]["body"], field: value},
+                },
+            },
+        )
+    refused(
+        "recipe-serving-speech-not-wav",
+        "speech checks require input, voice, response_format wav",
+        {
+            **spoken,
+            "request": {
+                **spoken["request"],
+                "body": {**spoken["request"]["body"], "response_format": "mp3"},
+            },
+        },
+    )
+
+
+def main() -> int:
+    model = _read("model-definition.json")
+    ModelDefinition.model_validate(model)
+    lfs = _lfs_model(model)
+    ModelDefinition.model_validate(lfs)
+    _write("model-definition-github-lfs.json", lfs)
+    build = _read("recipe-source-build.json")
+    build["identity"]["slug"] = "synthetic-tiny-build"
+    build["models"][0]["model"]["content_sha256"] = document_sha256(model)
+
+    job = copy.deepcopy(build)
+    job["identity"]["slug"] = "synthetic-image-job"
+    job["interfaces"] = [
+        {
+            "adapter": "image-job",
+            "output": {
+                "max_total_bytes": 1048576,
+                "slots": [
+                    {
+                        "id": "image",
+                        "label": "Image",
+                        "description": "PNG output",
+                        "media_types": ["image/png"],
+                        "extensions": [".png"],
+                        "min_files": 1,
+                        "max_files": 1,
+                        "max_file_bytes": 1048576,
+                        "max_total_bytes": 1048576,
+                    }
+                ],
+            },
+        }
+    ]
+    job["validation"] = {
+        "serving": {
+            "interface": "image-job",
+            "checks": [
+                {
+                    "name": "image",
+                    "kind": "image-job.output",
+                    "request": {
+                        "transport": "job",
+                        "fixture": "blank",
+                        "output_slot": "image",
+                    },
+                    "assertions": ["inference.completed", "artifact.output"],
+                }
+            ],
+        },
+    }
+    job["settings"] = {
+        "kind": "job",
+        "knobs": {
+            "num-frames": {
+                "value": 141,
+                "change_effect": "none",
+                "minimum": 13,
+                "maximum": 345,
+                "step": 8,
+            },
+            "style": {
+                "value": "street",
+                "change_effect": "none",
+                "allowed_values": ["street", "studio"],
+            },
+        },
+    }
+    job["runtime"]["arguments"] += [
+        {"name": "num-frames", "setting": "num-frames", "value": None},
+        {"name": "style", "setting": "style", "value": None},
+    ]
+    job["runtime"]["engine"] = "image-job"
+
+    dual = copy.deepcopy(build)
+    dual["identity"]["slug"] = "synthetic-tiny-build-dual"
+    role = copy.deepcopy(dual["topology"]["roles"][0])
+    role.update(name="worker", endpoint_owner=False)
+    dual["topology"].update(
+        node_count=2,
+        roles=[dual["topology"]["roles"][0], role],
+        parallelism={"tensor": 2, "pipeline": 1, "data": 1, "backend": "nccl"},
+        start_order=["worker", "entrypoint"],
+    )
+    dual["models"][0]["files"][0]["roles"] = ["entrypoint", "worker"]
+    for name, document in (
+        ("recipe-source-build.json", build),
+        ("recipe-job.json", job),
+        ("recipe-dual.json", dual),
+    ):
+        RecipeDefinition.model_validate(document)
+        _write(name, document)
+    build_display = _read("recipe-display-source-build.json")
+    model_display = _read("model-display.json")
+    _display_vectors(
+        {"source-build": build, "job": job, "dual": dual},
+        {"": model, "-github-lfs": lfs},
+        {
+            "source-build": build_display,
+            "job": {
+                **build_display,
+                "identity": {
+                    **build_display["identity"],
+                    "slug": "synthetic-image-job",
+                },
+                "title": "Synthetic image job",
+                "description": "Synthetic image job example.",
+                "knobs": {
+                    "num-frames": {
+                        "label": "Frames",
+                        "description": "Video length in frames.",
+                        "unit": "frames",
+                    },
+                    "style": {"label": "Style"},
+                },
+            },
+            "dual": {
+                **build_display,
+                "identity": {
+                    **build_display["identity"],
+                    "slug": "synthetic-tiny-build-dual",
+                },
+                "title": "Synthetic Tiny build (two nodes)",
+            },
+        },
+        {
+            "": model_display,
+            "-github-lfs": {
+                **model_display,
+                "identity": {**model_display["identity"], "slug": "synthetic-tiny-lfs"},
+                "description": "A Git LFS model used only for contract examples.",
+            },
+        },
+    )
+    _audio_serving_example(build)
+    _api_vectors(build, _options_recipe(build), _read("recipe-api-source-build.json"))
+    return 0

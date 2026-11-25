@@ -73,14 +73,14 @@ def test_producer_test_environment_has_one_owner() -> None:
     """No workflow pins a producer test dependency itself.
 
     The refresh workflow once installed its own shorter list, so the full-suite step
-    died at collection on `import PIL` for every refresh. The one list lives in
-    `.github/requirements-producer-tests.txt`; a workflow installs it with `-r`.
+    died at collection on `import PIL` for every refresh. The one list is the
+    `producer-tests` dependency group in `pyproject.toml` (locked in `uv.lock`); a
+    workflow installs it with `uv sync --frozen` (default groups).
     """
 
-    shared = ROOT / ".github" / "requirements-producer-tests.txt"
-    requirements = shared.read_text(encoding="utf-8")
-    for package in ("Pillow", "numpy", "trimesh", "jsonschema", "pytest"):
-        assert package in requirements
+    group = " ".join(PYPROJECT["dependency-groups"]["producer-tests"])
+    for package in ("jsonschema", "numpy", "trimesh", "pytest-xdist"):
+        assert package in group
     for path in WORKFLOWS:
         text = path.read_text(encoding="utf-8")
         for copied in ("pytest", "jsonschema", "Pillow", "trimesh", "numpy"):
@@ -90,4 +90,4 @@ def test_producer_test_environment_has_one_owner() -> None:
             assert pin is None, f"{path.name} pins {pin and pin.group(0)} itself"
     for name in ("validate.yml", "refresh-upstream.yml", "publish.yml"):
         text = (ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8")
-        assert "-r .github/requirements-producer-tests.txt" in text, name
+        assert "uv sync --frozen" in text, name

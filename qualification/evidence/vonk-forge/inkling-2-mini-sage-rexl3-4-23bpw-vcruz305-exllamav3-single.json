@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/inkling-2-mini-sage-rexl3-4-23bpw-vcruz305-exllamav3-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "88855db92ceb7221dc01fa734c7d605edf4c6d1e194a70ed6365f7c5043dd2b4",
+        "source_bundle_sha256": "d1856618c2a579da42f395a5fa84b1a71fa1dcde51ff558079876fde970bac3a",
+        "runtime_image": {
+          "build_key": "93ce0418543d2c6b3d6302ec0a3a03c1e3ea57cd6f933106a3fba29bddaad548",
+          "image_digest": "sha256:72587ebe00841c0cf50cc420c26aeebcc4de3a63ef341d01a4e358e2a0962a14"
+        },
+        "model_digests": [
+          "1184541f4888eb848b3855b3802595b8bf613128cd651cebef8fa7b3ddf04230"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "a6093d4e0d4bcfc1405d2e1a6b42ef7b357008d04ddc560719768f82f95a2d45"
+      ],
+      "tested_at": "2026-11-24T22:44:47.851120Z",
+      "platform": {
+        "controller_source_sha": "a89ae64a6df5bf528ba7d12b2100fee58345c00b",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "88855db92ceb7221dc01fa734c7d605edf4c6d1e194a70ed6365f7c5043dd2b4",
+      "role": "entrypoint",
+      "steady_bytes": 27864449024
+    }
+  ]
+}

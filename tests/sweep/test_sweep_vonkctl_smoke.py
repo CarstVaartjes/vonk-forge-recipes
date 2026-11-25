@@ -16,7 +16,6 @@ from sweep_fakes import Gateway, production_service_cases
 from recipe_tooling.qualification.documents import recipe, recipe_api
 from spark_sweep.catalog import Recipe
 from spark_sweep.chat_probe import ChatFacts, chat_facts
-from spark_sweep.cli import AUTHORITY_ID
 from spark_sweep.definitions import Definitions
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.smoke import (
@@ -439,12 +438,6 @@ def test_a_vision_case_carries_its_image_as_a_data_uri(
     url = case["body"]["messages"][0]["content"][0]["image_url"]["url"]
     assert url.startswith("data:image/png;base64,")
     assert len(url) > 100
-
-
-def test_the_authority_id_matches_the_derived_authority() -> None:
-
-    builder = (ROOT / "tools" / "build-qualification-authority").read_text()
-    assert f'AUTHORITY_ID = "{AUTHORITY_ID}"' in builder
 
 
 # -- smoke against a gateway ----------------------------------------------------------------------
