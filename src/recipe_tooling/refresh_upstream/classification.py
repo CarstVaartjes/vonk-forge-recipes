@@ -404,14 +404,17 @@ def mounted_unchanged(
 def only_sibling_weights_added(
     old: dict[str, Any], new_files: list[dict[str, Any]]
 ) -> bool:
-    """Whether the newest revision only adds weights files beside byte-identical files.
+    """Whether the newest revision only adds weights or metadata files beside byte-identical files.
 
     Another checkpoint of the repository (#2749): a Model whose every catalogued file is
     unchanged; a re-shard of a catalogued checkpoint changes or removes a catalogued file.
     """
     catalogued = {f["path"] for f in old["files"]}
     return mounted_unchanged(old, new_files, catalogued) and all(
-        f["roles"] == ["weights"] for f in new_files if f["path"] not in catalogued
+        f["roles"] == ["weights"]
+        or (f["roles"] == ["metadata"] and roles_for(f["path"]) == ["metadata"])
+        for f in new_files
+        if f["path"] not in catalogued
     )
 
 
