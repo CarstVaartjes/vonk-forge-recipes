@@ -84,11 +84,11 @@
     },
     {
       "identity": {
-        "content_sha256": "05e11abab883fea44dfb00e11e491d7a91f8692e7a447a95366e17a5ac69e209",
-        "source_bundle_sha256": "dd4e5fa083e26f1ee854a88d7174723b7236f0f417dbcdf5fdbe361dd8d62077",
+        "content_sha256": "64c8c0877b32d536d32b26c5204c452065f3f372264dfbae59d4f492adc1bec0",
+        "source_bundle_sha256": "2a6716724d949452ede8dd05f603e750a3dec097e345d3ed27c5ab35246c100a",
         "runtime_image": {
-          "build_key": "f3ae4172b10a5060dcdc7074dbfb587434ae8d7e384e7668c5ccdceff14c0654",
-          "image_digest": "sha256:97abf7c8f36b4e8e794c39aeaa9f77b2b122120f58535d699bad654b911e84db"
+          "build_key": "a09f8dccf3b93a4934201c4ab2e0cccbdb2825e04850d78e1d3ad9c44460f14d",
+          "image_digest": "sha256:2e140e3a03db88963ea879d2382a8317bec131fe21b94de3d71dfab243301608"
         },
         "model_digests": [
           "2508b3080329c89f3da35030d7065bbee7767786aec9f0239388df372550fff1"
@@ -100,9 +100,9 @@
       "cause_code": "qualification.hardware_pass",
       "cause_summary": "Hardware checks passed",
       "evidence_refs": [
-        "fad86fe2ed4f24b9fef7062388b6d480f07d4f07283a3b54355867ce51a293d0"
+        "4a4c379fde6d524d1536a18d1cfc7c656a81c23e709e3ebc0565e5a4815c1e6b"
       ],
-      "tested_at": "2026-11-25T02:25:25.975182Z",
+      "tested_at": "2026-11-25T06:59:03.868528Z",
       "platform": {
         "controller_source_sha": "a89ae64a6df5bf528ba7d12b2100fee58345c00b",
         "hardware_class": "GB10",
@@ -114,15 +114,15 @@
   ],
   "measured_memory": [
     {
-      "content_sha256": "05e11abab883fea44dfb00e11e491d7a91f8692e7a447a95366e17a5ac69e209",
-      "role": "entrypoint",
-      "steady_bytes": 112424943616,
-      "budget_bytes": 104530585191
-    },
-    {
       "content_sha256": "4f4e41755bcbce90441cb4a7aec408e88db057a2f0b414e2e37ac0091bea5f99",
       "role": "entrypoint",
       "steady_bytes": 113052553216,
+      "budget_bytes": 104530585191
+    },
+    {
+      "content_sha256": "64c8c0877b32d536d32b26c5204c452065f3f372264dfbae59d4f492adc1bec0",
+      "role": "entrypoint",
+      "steady_bytes": 112394551296,
       "budget_bytes": 104530585191
     }
   ]
