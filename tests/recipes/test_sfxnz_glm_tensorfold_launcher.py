@@ -18,6 +18,9 @@ ENGINES = {
     / "adapters/glm/bizuayeu-xsfp4-tensorfold-native/tensorfold-serve": "/usr/local/bin/tensorfold-native",
 }
 LAUNCHERS = list(ENGINES)
+# Sage passes the platform's rank flags straight to the engine (TensorFold 1.3.5's documented form); the others still use
+# the environment aliases.
+NATIVE_FLAGS = {ROOT / "adapters/glm/bizuayeu-sage-tensorfold-dual/tensorfold-serve"}
 SERVE = ["--host", "0.0.0.0", "--port", "8000", "--vision", "--parallel", "8"]
 PLATFORM = [
     "--tp",
@@ -56,15 +59,18 @@ def launch(launcher, monkeypatch, tmp_path, arguments, **environ):
     return calls
 
 
-def test_rank_binds_the_pair_through_the_engines_environment(
-    launcher, monkeypatch, tmp_path
-):
+def test_rank_binds_the_pair_for_the_engine(launcher, monkeypatch, tmp_path):
     (call,) = launch(launcher, monkeypatch, tmp_path, [*SERVE, *PLATFORM])
     engine = ENGINES[launcher]
-    assert call == (engine, [engine, "serve", "/models/target", *SERVE])
-    assert os.environ["TF_GLM_RANK"] == "1"
-    assert os.environ["TF_GLM_WORLD"] == "2"
-    assert os.environ["NCCL_COMM_ID"] == "192.0.2.1:29500"
+    if launcher in NATIVE_FLAGS:
+        resolved = [*PLATFORM[:4], "--master", "192.0.2.1", "--master-port", "29500"]
+        assert call == (engine, [engine, "serve", "/models/target", *SERVE, *resolved])
+        assert not {"TF_GLM_RANK", "TF_GLM_WORLD", "NCCL_COMM_ID"} & os.environ.keys()
+    else:
+        assert call == (engine, [engine, "serve", "/models/target", *SERVE])
+        assert os.environ["TF_GLM_RANK"] == "1"
+        assert os.environ["TF_GLM_WORLD"] == "2"
+        assert os.environ["NCCL_COMM_ID"] == "192.0.2.1:29500"
     assert os.environ["TF_ROCE_HCA"] == "rocep1s0f1,roceP2p1s0f1"
     assert os.environ["NCCL_IB_HCA"] == ENVIRON["NCCL_IB_HCA"]
 
