@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import importlib.machinery
-import importlib.util
 import json
-import sys
 import tempfile
 import unittest
 from collections.abc import Generator, Mapping
@@ -13,16 +10,9 @@ from pathlib import Path
 import pytest
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeRelease
-
-SCRIPT = ROOT / "tools/build-catalog-index"
-LOADER = importlib.machinery.SourceFileLoader("build_catalog_index", str(SCRIPT))
-SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
-assert SPEC is not None
-catalog_index = importlib.util.module_from_spec(SPEC)
-sys.modules[LOADER.name] = catalog_index
-LOADER.exec_module(catalog_index)
 
 
 @contextmanager
@@ -30,11 +20,11 @@ def isolated_root() -> Generator[Path]:
     previous = catalog_index.ROOT
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)
-        catalog_index.ROOT = root  # pyright: ignore[reportAttributeAccessIssue]
+        catalog_index.ROOT = root
         try:
             yield root
         finally:
-            catalog_index.ROOT = previous  # pyright: ignore[reportAttributeAccessIssue]
+            catalog_index.ROOT = previous
 
 
 class RecipeReleaseValidationTests(unittest.TestCase):
@@ -80,7 +70,7 @@ class RecipeReleaseBuildTests(unittest.TestCase):
             context.mkdir(parents=True)
             (context / "oversized.bin").write_bytes(b"four")
             previous = catalog_index.MAX_SOURCE_FILE_BYTES
-            catalog_index.MAX_SOURCE_FILE_BYTES = 3  # pyright: ignore[reportAttributeAccessIssue]
+            catalog_index.MAX_SOURCE_FILE_BYTES = 3
             try:
                 with pytest.raises(
                     SystemExit,
@@ -88,7 +78,7 @@ class RecipeReleaseBuildTests(unittest.TestCase):
                 ):
                     catalog_index.source_bundle(context)
             finally:
-                catalog_index.MAX_SOURCE_FILE_BYTES = previous  # pyright: ignore[reportAttributeAccessIssue]
+                catalog_index.MAX_SOURCE_FILE_BYTES = previous
 
 
 if __name__ == "__main__":
