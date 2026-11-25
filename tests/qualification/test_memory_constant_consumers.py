@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import documents
-from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from recipe_tooling.qualification import vllm_memory_fit
 from recipe_tooling.qualification.memory_need import constants as mn_constants
 from recipe_tooling.qualification.memory_need import evidence as mn_evidence
@@ -107,7 +107,7 @@ def test_measured_peak_conversion_and_publish_rule_have_one_owner() -> None:
     source = Path(mn_evidence.__file__).read_text()
     assert source.count("def measured_peak_bytes(") == 1
     assert source.count("def published_measured_peaks(") == 1
-    builder = (ROOT / "tools/build-catalog-index").read_text()
+    builder = Path(catalog_index.__file__).read_text()
     assert "published_measured_peaks(" in builder
     assert "OS_FLOOR_BYTES" not in builder
     assert "ADMISSION_IDLE_USE_BYTES" not in builder

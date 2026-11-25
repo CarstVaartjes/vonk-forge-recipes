@@ -8,12 +8,9 @@ serves for that recipe's key.
 
 from __future__ import annotations
 
-import importlib.machinery
-import importlib.util
 import json
 import os
 import re
-import runpy
 import subprocess
 import sys
 import tarfile
@@ -24,15 +21,10 @@ from typing import Any
 import pytest
 from repo_root import ROOT
 
-LOADER = importlib.machinery.SourceFileLoader(
-    "prebuilt_images", str(ROOT / "tools/prebuilt-images")
-)
-SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
-assert SPEC is not None
-tool = importlib.util.module_from_spec(SPEC)
-sys.modules[LOADER.name] = tool
-LOADER.exec_module(tool)
-INDEX = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+from recipe_tooling import catalog_index, prebuilt_images
+
+tool = prebuilt_images
+INDEX = vars(catalog_index)
 
 OWNER = "CarstVaartjes"
 SHARED, OWN = "a" * 64, "b" * 64

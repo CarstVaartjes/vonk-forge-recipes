@@ -10,7 +10,7 @@ cd "$root"
 # Ruff selects are checked, from the working tree (the index is not
 # materialised); `ruff check --show-files` is the one owner of "which files are
 # Python", including the extensionless executables in tools/.
-export UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/vonk-forge-recipes-hook-uv-cache}"
+export UV_CACHE_DIR="${UV_CACHE_DIR:-${TMPDIR:-/tmp}/vonk-forge-recipes-hook-uv-cache}"
 python_files=$(uv run --frozen ruff check --show-files)
 staged_python=""
 newline='
@@ -29,9 +29,7 @@ if [ -n "$staged_python" ]; then
     set +f
     uv run --frozen ruff check --force-exclude -- "$@"
     uv run --frozen ruff format --check --force-exclude -- "$@"
-fi
-# The type gate reads the whole working tree (no baseline): any type error fails.
-if [ -n "$(git diff --cached --name-only --diff-filter=d -- '*.py')" ]; then
+    # The type gate reads the whole working tree (no baseline): any type error fails.
     scripts/check-python-types
 fi
 # Tests never use git (tools/check-test-git). The staged diff is captured first so
@@ -39,6 +37,10 @@ fi
 staged=$(python3 tools/added-lines --cached)
 printf '%s\n' "$staged" | python3 tools/check-test-git --diff -
 printf '%s\n' "$staged" | python3 tools/check-nccl-ib-hca --diff -
+printf '%s\n' "$staged" | python3 tools/check-document-reads --diff -
+printf '%s\n' "$staged" | python3 tools/check-serial-reads --diff -
+printf '%s\n' "$staged" | python3 tools/check-estimate-gates --diff -
+printf '%s\n' "$staged" | python3 tools/check-final-stage-ldd --diff -
 # A file over 1 MiB is declared with tools/adapter-sources add, never committed.
 changed=$(git diff --cached --name-only --diff-filter=AMR)
 printf '%s\n' "$changed" | python3 tools/check-added-file-size --paths-from -

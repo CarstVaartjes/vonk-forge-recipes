@@ -11,6 +11,7 @@ runs:
         enable-cache: true
         cache-dependency-glob: |
           .github/requirements-*.txt
+          uv.lock
         # Pull requests restore the cache main last saved; only main writes it.
         save-cache: ${{ github.ref == 'refs/heads/main' }}
 

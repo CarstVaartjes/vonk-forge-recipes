@@ -889,11 +889,6 @@
         "value": true
       },
       {
-        "name": "mamba-cache-mode",
-        "setting": null,
-        "value": "align"
-      },
-      {
         "name": "gpu-memory-utilization",
         "setting": null,
         "value": "0.7"

@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import json
 import os
-import runpy
 import subprocess
 import sys
 from functools import cache
@@ -23,6 +22,7 @@ import pytest
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
+from recipe_tooling import family_aware_coverage
 from recipe_tooling.qualification.coverage_identity import execution_stack_identity
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
@@ -115,9 +115,7 @@ def test_coverage_source_projection_keeps_release_identity_out_of_commit_field()
         "assets": [{"file_id": document["files"][0]["id"], "asset_id": 320107386}],
     }
     model = ModelDefinition.model_validate(document)
-    tool = runpy.run_path(str(ROOT / TOOL))
-
-    assert tool["_model_source_projection"](model) == (
+    assert family_aware_coverage._model_source_projection(model) == (
         "https://github.com/valeoai/NAF",
         "github-release:264676230",
     )
