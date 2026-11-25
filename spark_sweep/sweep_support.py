@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
+from recipe_tooling.qualification.sweep_settings import SETTINGS
 from vonk_forge_contracts import (
     QualificationIdentity,
     QualificationStatus,
@@ -150,7 +151,7 @@ def _fleet_skip(entry: Mapping[str, Any]) -> bool:
     )
 
 
-DEFAULT_BOOST = ("glm-5-3",)
+DEFAULT_BOOST = SETTINGS.default_boost
 
 
 @dataclass

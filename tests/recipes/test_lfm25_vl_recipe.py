@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import json
-import runpy
 import unittest
 from pathlib import Path
 from typing import Any
 
 from repo_root import ROOT
+
+from recipe_tooling import catalog_index
 
 REVISION = "a3af5799199acdd2a4f56ac4342816abb46c12a9"
 
@@ -42,7 +43,7 @@ class Lfm25VlRecipeTests(unittest.TestCase):
         }
 
     def test_recipe_pins_the_corrected_snapshot_and_source_bundles(self) -> None:
-        tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+        tool = vars(catalog_index)
         for slug, adapter in (
             ("lfm2-5-vl-3b-vllm-single", "adapters/liquidai/lfm25-vl-vllm"),
         ):

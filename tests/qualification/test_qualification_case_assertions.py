@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import runpy
 import shutil
 from datetime import timedelta
 from pathlib import Path
@@ -14,6 +13,7 @@ import pytest
 from documents import recipe as read_recipe
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from recipe_tooling.qualification.case_assertions import (
     invalid_case_assertions,
     require_valid_case_assertions,
@@ -449,7 +449,7 @@ def _assert_reviewed_shared_identity(root: Path, slug: str) -> None:
     assert hashlib.sha256(recipe_path.read_bytes()).hexdigest() == expected_recipe, (
         f"{slug}: reviewed Recipe bytes changed"
     )
-    bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["source_bundle"]
+    bundle = vars(catalog_index)["source_bundle"]
     context = root / recipe["execution"]["build"]["context"]["path"]
     assert bundle(context)[2] == expected_source, (
         f"{slug}: reviewed image context bytes changed"

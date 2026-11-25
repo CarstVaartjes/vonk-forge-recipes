@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
-import runpy
 import sys
 import types
 import unittest
@@ -11,12 +10,13 @@ from pathlib import Path
 
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from vonk_forge_contracts import document_sha256
 
 MODEL = ROOT / "models/ui-mate-27b-3ade2378.json"
 RECIPE = ROOT / "recipes/ui-mate-27b-vllm-single.json"
 ADAPTER = ROOT / "adapters/llm/ui-mate-vllm"
-SOURCE_BUNDLE = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["source_bundle"]
+SOURCE_BUNDLE = vars(catalog_index)["source_bundle"]
 
 MODEL_REVISION = "3ade2378fc84032d5017c1a9c93c4eaa77d65e57"
 HARNESS_REVISION = "d185dc9d74cfcab3a890d7ffb2bb011ecdd64c64"

@@ -1,0 +1,1041 @@
+"""Build the compact public index consumed by Vonk Forge control planes."""
+
+from __future__ import annotations
+
+import argparse
+import gzip
+import hashlib
+import io
+import json
+import re
+import sys
+import tarfile
+import tempfile
+from datetime import UTC, datetime
+from pathlib import Path, PurePosixPath
+from typing import Any
+
+from recipe_tooling.adapter_sources import materialize_or_exit
+from recipe_tooling.paths import REPO_ROOT
+from recipe_tooling.qualification.case_assertions import require_valid_case_assertions
+from recipe_tooling.qualification.definitions_loader import load_definitions
+from recipe_tooling.qualification.documents import (
+    families,
+    model_display,
+    recipe_api,
+    recipe_display,
+)
+from recipe_tooling.qualification.documents import recipe as recipe_of
+from recipe_tooling.qualification.evidence_store import read_evidence
+from recipe_tooling.qualification.image_evidence import load_images, read_images
+from recipe_tooling.qualification.media_types import require_canonical_recipe_media
+from recipe_tooling.qualification.memory_need.evidence import (
+    load_inputs,
+    published_measured_peaks,
+)
+from recipe_tooling.qualification.memory_need.warnings import memory_warnings
+from recipe_tooling.qualification.service_aliases import require_valid_service_aliases
+from recipe_tooling.qualification.tolerant import InputDiagnostic
+from vonk_forge_contracts import (
+    CONTRACT_VERSION,
+    INDEX_KIND,
+    INDEX_SCHEMA_ASSET,
+    INDEX_SCHEMA_VERSION,
+    PACKAGE_MEDIA_TYPE,
+    PACKAGE_METADATA_FIELDS,
+    PACKAGE_PATH_PREFIX,
+    PACKAGE_SCHEMA_VERSION,
+    CatalogIndex,
+    ModelDefinition,
+    PackageContract,
+    PublishedMeasuredMemory,
+    QualificationIdentity,
+    QualificationRuntimeImage,
+    RecipeDefinition,
+    catalog_vocabulary,
+    document_sha256,
+    published_index_json,
+    published_json,
+    published_status,
+)
+from vonk_forge_contracts.resolver import (
+    validate_families,
+    validate_library,
+    validate_model_references,
+    validate_recipe_apis,
+)
+
+REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
+
+ROOT = REPO_ROOT
+
+
+def image_diagnostic(diagnostic: InputDiagnostic) -> None:
+    print(diagnostic.model_dump_json(), file=sys.stderr)
+
+
+QUALIFICATION_ROOT = ROOT / "qualification"
+# Control planes fetch oversized Contents API entries by immutable Git blob SHA.
+# Keep the generated index within the same bounded raw-blob envelope as source files.
+MAX_INDEX_BYTES = 12 * 1024 * 1024
+MAX_SOURCE_FILE_BYTES = 12 * 1024 * 1024
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
+ENTITY_DIRECTORIES = {
+    "models": "model",
+}
+SCHEMA_SOURCE = (
+    ROOT / "contracts" / "src" / "vonk_forge_contracts" / "schema" / INDEX_SCHEMA_ASSET
+)
+FROM_LINE = re.compile(
+    r"^FROM(?:\s+--platform=(\S+))?\s+(\S+)(?:\s+AS\s+(\S+))?\s*$", re.IGNORECASE
+)
+
+
+def canonical(document: object) -> bytes:
+    return json.dumps(
+        document,
+        ensure_ascii=False,
+        allow_nan=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+
+
+def source_bundle(context: Path) -> tuple[bytes, list[dict[str, object]], str]:
+    files: list[tuple[str, bytes]] = []
+    for path in sorted(
+        context.rglob("*"),
+        key=lambda item: item.relative_to(context).as_posix().encode(),
+    ):
+        relative = path.relative_to(context).as_posix()
+        if path.is_symlink():
+            raise SystemExit(
+                f"unsafe source bundle entry: {context.relative_to(ROOT)}/{relative}"
+            )
+        if path.is_dir():
+            continue
+        # Test runs may leave ordinary interpreter caches in a source context.
+        # They are generated noise and must never enter an immutable package.
+        # Check regular-file status first so special members remain rejected.
+        if path.is_file() and ("__pycache__" in path.parts or path.suffix == ".pyc"):
+            continue
+        if not path.is_file():
+            raise SystemExit(
+                f"unsafe source bundle entry: {context.relative_to(ROOT)}/{relative}"
+            )
+        content = path.read_bytes()
+        if len(content) > MAX_SOURCE_FILE_BYTES:
+            raise SystemExit(
+                "source bundle file exceeds the Git blob hydration limit: "
+                f"{context.relative_to(ROOT)}/{relative}"
+            )
+        files.append((relative, content))
+    if not files:
+        raise SystemExit(f"source bundle is empty: {context.relative_to(ROOT)}")
+    stream = io.BytesIO()
+    with tarfile.open(fileobj=stream, mode="w", format=tarfile.PAX_FORMAT) as bundle:
+        for relative, content in files:
+            member = tarfile.TarInfo(relative)
+            member.size = len(content)
+            member.mode = 0o644
+            member.uid = member.gid = 0
+            member.uname = member.gname = ""
+            member.mtime = 0
+            bundle.addfile(member, io.BytesIO(content))
+    metadata = [
+        {
+            "path": relative,
+            "size": len(content),
+            "blob_sha": hashlib.sha1(
+                f"blob {len(content)}\0".encode() + content,
+                usedforsecurity=False,
+            ).hexdigest(),
+        }
+        for relative, content in files
+    ]
+    digest = source_manifest_sha256(
+        [
+            {
+                "path": relative,
+                "size": len(content),
+                "sha256": hashlib.sha256(content).hexdigest(),
+            }
+            for relative, content in files
+        ]
+    )
+    return stream.getvalue(), metadata, digest
+
+
+def source_manifest_sha256(files: list[dict[str, Any]]) -> str:
+    """The normalized context manifest; callers supply hashes computed at ingress."""
+    manifest = {
+        "schema_version": 1,
+        "files": [{**entry, "mode": 0o644} for entry in files],
+        "total_bytes": sum(entry["size"] for entry in files),
+    }
+    return hashlib.sha256(canonical(manifest)).hexdigest()
+
+
+def rendered(document: dict[str, object]) -> str:
+    # The GitHub Contents API rejects large payloads. Keep the generated index
+    # deterministic but compact so full artifact inventories remain available
+    # for very large, heavily sharded checkpoints.
+    return (
+        json.dumps(
+            document,
+            ensure_ascii=False,
+            allow_nan=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n"
+    )
+
+
+def _updated_at(source_date_epoch: int) -> str:
+    """Return the source commit time in RFC 3339 UTC."""
+
+    return datetime.fromtimestamp(source_date_epoch, UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _catalog_entity_documents() -> dict[str, dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
+
+    for path in sorted((ROOT / "models").glob("*.json")):
+        # Publish the authored document itself: its digest is the identity
+        # recipes reference, so it must never be a re-serialized copy.
+        document = json.loads(path.read_text(encoding="utf-8"))
+        try:
+            ModelDefinition.model_validate(document)
+        except Exception as error:
+            raise SystemExit(
+                f"model contract validation failed ({path.relative_to(ROOT)}): {error}"
+            ) from error
+        identity = document.get("identity", {})
+        if document.get("kind") != "model":
+            raise SystemExit(
+                f"model document is not kind=model: {path.relative_to(ROOT)}"
+            )
+        key = f"{identity.get('publisher')}/{identity.get('slug')}"
+        result[key] = document
+    return result
+
+
+def _safe_file(path: Path) -> bool:
+    return (
+        path.is_file()
+        and not path.is_symlink()
+        and "__pycache__" not in path.parts
+        and path.suffix != ".pyc"
+    )
+
+
+def _recipe_closure(
+    recipe: dict[str, Any],
+    entities: dict[str, dict[str, Any]],
+    fixture_paths: list[str],
+) -> list[tuple[str, bytes]]:
+    files: dict[str, bytes] = {"recipe.json": canonical(recipe)}
+    pending = [selection["model"] for selection in recipe["models"]]
+    seen_models: set[str] = set()
+    while pending:
+        reference = pending.pop(0)
+        key = f"{reference['publisher']}/{reference['slug']}"
+        if key in seen_models:
+            continue
+        model = entities.get(key)
+        if model is None:
+            raise SystemExit(f"package model snapshot is missing: {key}")
+        seen_models.add(key)
+        files[f"models/{reference['slug']}.json"] = canonical(model)
+        pending.extend(model.get("dependencies", []))
+    build = recipe["execution"]["build"]
+    context = ROOT / build["context"]["path"]
+    if not context.is_dir():
+        raise SystemExit(
+            f"package source context is missing: {context.relative_to(ROOT)}"
+        )
+    for path in sorted(
+        context.rglob("*"), key=lambda item: item.relative_to(ROOT).as_posix()
+    ):
+        if _safe_file(path):
+            content = path.read_bytes()
+            if len(content) > MAX_SOURCE_FILE_BYTES:
+                raise SystemExit(
+                    "package source file exceeds the Git blob hydration limit: "
+                    f"{path.relative_to(ROOT)}"
+                )
+            files[path.relative_to(ROOT).as_posix()] = content
+    for name in (
+        build["dockerfile"],
+        *(patch["path"] for patch in build["patches"]),
+    ):
+        source = ROOT / name
+        if not _safe_file(source):
+            raise SystemExit(f"package source file is missing: {name}")
+        files[name] = source.read_bytes()
+    for name in fixture_paths:
+        source = ROOT / name
+        if not _safe_file(source):
+            raise SystemExit(f"package serving fixture is missing: {name}")
+        files[name] = source.read_bytes()
+    return sorted(files.items())
+
+
+def _archive(files: list[tuple[str, bytes]]) -> bytes:
+    stream = io.BytesIO()
+    with (
+        gzip.GzipFile(fileobj=stream, mode="wb", mtime=0) as compressed,
+        tarfile.open(
+            fileobj=compressed, mode="w", format=tarfile.PAX_FORMAT
+        ) as archive,
+    ):
+        for name, payload in files:
+            member = tarfile.TarInfo(name)
+            member.size = len(payload)
+            member.mode = 0o644
+            member.uid = member.gid = 0
+            member.uname = member.gname = ""
+            member.mtime = 0
+            archive.addfile(member, io.BytesIO(payload))
+    return stream.getvalue()
+
+
+def _dockerfile_build_inputs(content: bytes, *, label: str) -> list[dict[str, str]]:
+    try:
+        text = content.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise SystemExit(f"Dockerfile is not UTF-8: {label}") from error
+    inputs: list[dict[str, str]] = []
+    aliases: set[str] = set()
+    seen: set[tuple[str, str]] = set()
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if not line.upper().startswith("FROM"):
+            continue
+        match = FROM_LINE.fullmatch(line)
+        if match is None:
+            raise SystemExit(f"Dockerfile FROM syntax is invalid: {label}: {line}")
+        platform, reference, alias = match.groups()
+        platform = platform or "linux/arm64"
+        if platform not in {"linux/arm64", "linux/arm64/v8"}:
+            raise SystemExit(
+                f"Dockerfile FROM platform is not ARM64: {label}: {platform}"
+            )
+        if reference.lower() in {item.lower() for item in aliases}:
+            if alias:
+                aliases.add(alias)
+            continue
+        if reference.startswith("$") or "@sha256:" not in reference:
+            raise SystemExit(
+                f"Dockerfile FROM image is not digest pinned: {label}: {reference}"
+            )
+        repository, digest = reference.rsplit("@sha256:", 1)
+        if not repository or not SHA256.fullmatch(digest):
+            raise SystemExit(
+                f"Dockerfile FROM image digest is invalid: {label}: {reference}"
+            )
+        key = (reference, platform)
+        if key not in seen:
+            inputs.append(
+                {"kind": "oci-image", "reference": reference, "platform": platform}
+            )
+            seen.add(key)
+        if alias:
+            aliases.add(alias)
+    if not inputs:
+        raise SystemExit(f"Dockerfile has no FROM image: {label}")
+    return inputs
+
+
+def validate_recipe_archive(
+    payload: bytes,
+    recipe: dict[str, object],
+    entities: dict[str, dict[str, Any]] | None = None,
+) -> None:
+    """Validate the physical immutable archive closure, including entrypoints.
+
+    This is a producer self-check: `recipe_package` calls it on the archive it
+    assembled a line earlier, so it never sees bytes it did not just write. The
+    hostile-input branches below (unsafe member paths, non-regular members,
+    duplicate names, undeclared or missing members, stale member metadata)
+    therefore cannot fire from that call site; they stay as a fail-closed guard
+    against a regression in `_archive` or `_recipe_closure` that would let such a
+    member into a generated package.
+
+    The copy that does parse untrusted bytes is the control plane's
+    `RecipePackageClient._decode_package`, and its adversarial archive cases live
+    with it in control/tests/test_recipe_package_archive_safety.py, because only
+    that side meets an adversary.
+    """
+    entities = entities or _catalog_entity_documents()
+
+    expected_recipe = RecipeDefinition.model_validate(recipe)
+    validate_model_references(
+        {
+            document_sha256(document): ModelDefinition.model_validate(document)
+            for document in entities.values()
+        }
+    )
+    build = expected_recipe.execution.build
+    source_context = PurePosixPath(build.context.path)
+
+    def is_source_member(name: str) -> bool:
+        return source_context in PurePosixPath(name).parents
+
+    expected_model_paths: set[str] = set()
+    pending_models = [selection.model for selection in expected_recipe.models]
+    seen_model_keys: set[tuple[str, str]] = set()
+    while pending_models:
+        reference = pending_models.pop(0)
+        model_key = (reference.publisher, reference.slug)
+        if model_key in seen_model_keys:
+            continue
+        seen_model_keys.add(model_key)
+        expected_model_paths.add(f"models/{reference.slug}.json")
+        model_document = entities.get(f"{reference.publisher}/{reference.slug}")
+        if model_document is None:
+            raise SystemExit(
+                f"selected Model document is missing: {reference.publisher}/{reference.slug}"
+            )
+        pending_models.extend(
+            ModelDefinition.model_validate(model_document).dependencies
+        )
+
+    expected_fixture_paths: set[str] = set()
+    for check in expected_recipe.validation.serving.checks:
+        expected_fixture_paths.update(check.fixture_paths())
+
+    with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
+        members = archive.getmembers()
+        names = [member.name for member in members]
+        if len(names) != len(set(names)):
+            raise SystemExit("recipe package contains duplicate paths")
+        if any(not member.isreg() for member in members):
+            raise SystemExit("recipe package contains a non-regular archive member")
+        for member in members:
+            name = member.name
+            path = PurePosixPath(name)
+            if path.is_absolute() or any(
+                part in {"", ".", ".."} for part in path.parts
+            ):
+                raise SystemExit(f"recipe package contains unsafe path: {name}")
+            source_member = is_source_member(name)
+            if source_member and member.size > MAX_SOURCE_FILE_BYTES:
+                raise SystemExit(
+                    "recipe package source file exceeds the Git blob hydration limit: "
+                    f"{name}"
+                )
+            if name.startswith(
+                (
+                    "image/",
+                    "oci/",
+                    "weights/",
+                    "runtime-distributions/",
+                    "patch-bundles/",
+                    "execution-harnesses/",
+                )
+            ):
+                raise SystemExit(
+                    f"recipe package contains model or OCI payload: {name}"
+                )
+        recipe_entries = [
+            name for name in names if PurePosixPath(name).name == "recipe.json"
+        ]
+        if recipe_entries != ["recipe.json"]:
+            raise SystemExit(
+                "recipe package must contain exactly one recipe.json entrypoint"
+            )
+        try:
+            manifest_member = archive.extractfile("manifest.json")
+        except KeyError:
+            manifest_member = None
+        if manifest_member is None:
+            raise SystemExit("recipe package manifest is missing")
+        manifest = json.load(manifest_member)
+        if (
+            manifest.get("kind") != "recipe-package"
+            or manifest.get("package_type") != "recipe"
+        ):
+            raise SystemExit("recipe package manifest kind is invalid")
+        manifest_entries = manifest.get("files")
+        if not isinstance(manifest_entries, list):
+            raise SystemExit("recipe package manifest files are invalid")
+        declared: dict[str, dict[str, object]] = {}
+        for entry in manifest_entries:
+            if (
+                not isinstance(entry, dict)
+                or not isinstance(entry.get("path"), str)
+                or entry["path"] in declared
+            ):
+                raise SystemExit(
+                    "recipe package manifest contains duplicate or invalid paths"
+                )
+            if (
+                not isinstance(entry.get("size"), int)
+                or isinstance(entry["size"], bool)
+                or entry["size"] < 0
+            ):
+                raise SystemExit("recipe package manifest file size is invalid")
+            if (
+                not isinstance(entry.get("sha256"), str)
+                or SHA256.fullmatch(entry["sha256"]) is None
+            ):
+                raise SystemExit("recipe package manifest file digest is invalid")
+            declared[entry["path"]] = entry
+        actual_payload_names = set(names) - {"manifest.json"}
+        if set(declared) != actual_payload_names:
+            raise SystemExit(
+                "recipe package manifest does not exactly describe archive payloads"
+            )
+        for name, entry in declared.items():
+            member = archive.extractfile(name)
+            content = member.read() if member is not None else None
+            if (
+                content is None
+                or len(content) != entry["size"]
+                or hashlib.sha256(content).hexdigest() != entry["sha256"]
+            ):
+                raise SystemExit(f"recipe package manifest digest is stale: {name}")
+        for name in names:
+            if name in {"manifest.json", "recipe.json"} or name in expected_model_paths:
+                continue
+            if is_source_member(name) or name in expected_fixture_paths:
+                continue
+            raise SystemExit(
+                f"recipe package member is outside declared namespaces: {name}"
+            )
+        recipe_member = archive.extractfile("recipe.json")
+        if recipe_member is None:
+            raise SystemExit("recipe package recipe entrypoint is missing")
+        actual_recipe_document = json.load(recipe_member)
+        try:
+            RecipeDefinition.model_validate(actual_recipe_document)
+        except Exception as error:
+            raise SystemExit(
+                f"recipe package recipe.json is invalid: {error}"
+            ) from error
+        recipe_digest = document_sha256(actual_recipe_document)
+        if recipe_digest != document_sha256(recipe):
+            raise SystemExit(
+                "recipe package recipe does not match the requested Recipe"
+            )
+        if manifest.get("recipe_content_sha256") != recipe_digest:
+            raise SystemExit("recipe package recipe digest is stale")
+        pending_models = [selection.model for selection in expected_recipe.models]
+        seen_model_keys = set()
+        while pending_models:
+            reference = pending_models.pop(0)
+            model_key = (reference.publisher, reference.slug)
+            if model_key in seen_model_keys:
+                continue
+            seen_model_keys.add(model_key)
+            model_path = f"models/{reference.slug}.json"
+            if model_path not in names:
+                raise SystemExit(
+                    f"recipe package exact Model snapshot is missing: {model_path}"
+                )
+            model_member = archive.extractfile(model_path)
+            try:
+                model_document = json.load(model_member) if model_member else None
+                model = (
+                    ModelDefinition.model_validate(model_document)
+                    if model_document is not None
+                    else None
+                )
+            except Exception as error:
+                raise SystemExit(
+                    f"recipe package Model snapshot is invalid: {model_path}"
+                ) from error
+            if (
+                model is None
+                or model_document is None
+                or document_sha256(model_document) != reference.content_sha256
+            ):
+                raise SystemExit(
+                    f"recipe package Model snapshot digest is stale: {model_path}"
+                )
+            pending_models.extend(model.dependencies)
+        paths = set(names)
+        context = build.context.path
+        if not any(name.startswith(context + "/") for name in paths):
+            raise SystemExit(f"recipe package build context is missing: {context}")
+        required = [build.dockerfile, *(patch.path for patch in build.patches)]
+        missing = sorted(name for name in required if name not in paths)
+        if missing:
+            raise SystemExit(
+                f"recipe package source closure is missing: {', '.join(missing)}"
+            )
+        dockerfile_member = archive.extractfile(build.dockerfile)
+        if dockerfile_member is None:
+            raise SystemExit("recipe package Dockerfile is missing")
+        inputs = _dockerfile_build_inputs(
+            dockerfile_member.read(), label=build.dockerfile
+        )
+        manifest_inputs = manifest.get("build_inputs")
+        if manifest_inputs != inputs:
+            raise SystemExit("recipe package build inputs are stale")
+
+        def image_name(repository: str) -> str:
+            parent, leaf = (
+                repository.rsplit("/", 1) if "/" in repository else ("", repository)
+            )
+            leaf = leaf.split(":", 1)[0]
+            return f"{parent}/{leaf}" if parent else leaf
+
+        def matches_base(item: dict[str, str]) -> bool:
+            repository, digest = item["reference"].rsplit("@sha256:", 1)
+            return image_name(repository) == image_name(
+                build.base_image.repository
+            ) and (digest == build.base_image.digest)
+
+        if not any(matches_base(item) for item in inputs):
+            raise SystemExit(
+                "recipe package base image is absent from Dockerfile build inputs"
+            )
+        for check in expected_recipe.validation.serving.checks:
+            missing = sorted(
+                name for name in check.fixture_paths() if name not in paths
+            )
+            if missing:
+                raise SystemExit(
+                    f"recipe package serving closure is missing: {', '.join(missing)}"
+                )
+
+
+def recipe_package(
+    document: dict[str, Any],
+    *,
+    recipe_path: Path | None = None,
+    entity_documents: dict[str, dict[str, Any]] | None = None,
+) -> tuple[bytes, dict[str, object]]:
+
+    validated = RecipeDefinition.model_validate(document)
+    require_canonical_recipe_media(validated)
+    recipe_digest = document_sha256(document)
+    recipe_path = (
+        recipe_path or ROOT / "recipes" / f"{document['identity']['slug']}.json"
+    )
+    entities = entity_documents or _catalog_entity_documents()
+    fixtures = [
+        name
+        for check in validated.validation.serving.checks
+        for name in check.fixture_paths()
+    ]
+    files = _recipe_closure(document, entities, fixtures)
+    manifest_files = [
+        {
+            "path": name,
+            "size": len(payload),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+        }
+        for name, payload in files
+    ]
+    context_prefix = document["execution"]["build"]["context"]["path"].rstrip("/") + "/"
+    source_files = [
+        {**entry, "path": entry["path"].removeprefix(context_prefix)}
+        for entry in manifest_files
+        if entry["path"].startswith(context_prefix)
+    ]
+    context_digest = source_manifest_sha256(source_files)
+    manifest = {
+        "schema_version": PACKAGE_SCHEMA_VERSION,
+        "source_bundle_sha256": context_digest,
+        "kind": "recipe-package",
+        "package_type": "recipe",
+        "recipe_content_sha256": recipe_digest,
+        "files": manifest_files,
+    }
+    dockerfile_path = document["execution"]["build"]["dockerfile"]
+    manifest["build_inputs"] = _dockerfile_build_inputs(
+        dict(files)[dockerfile_path], label=dockerfile_path
+    )
+    archive_files = [("manifest.json", canonical(manifest)), *files]
+    payload = _archive(archive_files)
+    validate_recipe_archive(payload, document, entities)
+    metadata = {
+        "media_type": PACKAGE_MEDIA_TYPE,
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "expected_bytes": len(payload),
+        "path": f"packages/{document['identity']['slug']}.tar.gz",
+        "recipe_content_sha256": recipe_digest,
+        "minimum_consumer_schema": 2,
+        "source_bundle_sha256": context_digest,
+    }
+    return payload, metadata
+
+
+def pin_prebuilt_images(recipes: list[dict[str, Any]], images: object) -> None:
+    """Record each recipe's CI-built runtime image, pinned by digest.
+
+    ``images`` maps a recipe content digest to ``{reference, build_key}``
+    (``tools/prebuilt-images resolve``). The entry belongs to that exact
+    revision; a recipe without one is built on a Spark by the Controller.
+    """
+
+    images = read_images(images, image_diagnostic)
+    for entry in recipes:
+        image = images.get(str(entry["content_sha256"]))
+        if image is not None:
+            entry["prebuilt_image"] = {
+                "reference": image["reference"],
+                "build_key": image["build_key"],
+            }
+
+
+def build(
+    *,
+    package_dir: Path,
+    source_commit: str,
+    source_date_epoch: int,
+    prebuilt_images: dict[str, dict[str, str]] | None = None,
+) -> dict[str, Any]:
+    package_dir.mkdir(parents=True, exist_ok=True)
+    entities = _catalog_entity_documents()
+
+    memory_models = {
+        document_sha256(document): ModelDefinition.model_validate(document)
+        for document in entities.values()
+    }
+    recipe_paths = sorted((ROOT / "recipes").glob("*.json"))
+    try:
+        recipe_displays = {
+            path.stem: recipe_display(path.stem, ROOT)
+            for path in sorted((ROOT / "display/recipes").glob("*.json"))
+        }
+        model_displays = {
+            path.stem: model_display(path.stem, ROOT)
+            for path in sorted((ROOT / "display/models").glob("*.json"))
+        }
+        recipe_documents = [recipe_of(path.stem, ROOT) for path in recipe_paths]
+        validate_library(
+            recipe_documents,
+            memory_models.values(),
+            recipe_displays,
+            model_displays,
+        )
+        family_displays = families(ROOT)
+        validate_families(model_displays, family_displays)
+        recipe_apis = {
+            path.stem: recipe_api(path.stem, ROOT)
+            for path in sorted((ROOT / "api/recipes").glob("*.json"))
+        }
+        validate_recipe_apis(recipe_documents, recipe_apis)
+    except ValueError as error:
+        raise SystemExit(f"display or API validation failed: {error}") from error
+    memory_inputs = load_inputs()
+    recipes: list[dict[str, Any]] = []
+    for path in recipe_paths:
+        document = json.loads(path.read_text(encoding="utf-8"))
+
+        try:
+            recipe = RecipeDefinition.model_validate(document)
+            for warning in memory_warnings(
+                recipe,
+                memory_models,
+                memory_inputs,
+                document_sha256(document),
+            ):
+                print(warning, file=sys.stderr)
+        except Exception as error:
+            raise SystemExit(
+                f"recipe contract validation failed ({path.relative_to(ROOT)}): {error}"
+            ) from error
+        payload, metadata = recipe_package(
+            document, recipe_path=path, entity_documents=entities
+        )
+        filename = Path(str(metadata["path"])).name
+        (package_dir / filename).write_bytes(payload)
+        recipes.append(
+            {
+                "source_path": path.relative_to(ROOT).as_posix(),
+                "content_sha256": document_sha256(document),
+                "source_bundle_sha256": metadata["source_bundle_sha256"],
+                "document": document,
+                "display": published_json(recipe_displays[path.stem]),
+                # Optional sibling: null when the recipe has no API document.
+                "api": published_json(recipe_apis[path.stem])
+                if path.stem in recipe_apis
+                else None,
+                "package": metadata,
+                "release": document["release"],
+            }
+        )
+    pin_prebuilt_images(recipes, prebuilt_images or {})
+
+    recipe_by_slug = {item.identity.slug: item for item in recipe_documents}
+    for entry in recipes:
+        document = entry["document"]
+        image = entry.get("prebuilt_image")
+        identity = QualificationIdentity(
+            content_sha256=entry["content_sha256"],
+            source_bundle_sha256=entry["source_bundle_sha256"],
+            runtime_image=QualificationRuntimeImage(
+                build_key=image["build_key"],
+                image_digest="sha256:" + image["reference"].rsplit("@sha256:", 1)[1],
+            )
+            if image
+            else None,
+            model_digests=tuple(
+                sorted(
+                    {
+                        binding["model"]["content_sha256"]
+                        for binding in document["models"]
+                    }
+                )
+            ),
+            required_sparks=document["topology"]["node_count"],
+        )
+        key = f"{document['identity']['publisher']}/{document['identity']['slug']}"
+        evidence = read_evidence(ROOT, key)
+        entry["qualification"] = published_status(evidence, identity).model_dump(
+            mode="json", exclude_none=True
+        )
+        # A sibling of "qualification", never inside it: older Controllers reject
+        # unknown fields of the status and ignore unknown entry keys.
+        peaks = published_measured_peaks(
+            recipe_by_slug[document["identity"]["slug"]],
+            entry["content_sha256"],
+            evidence,
+        )
+        if peaks:
+            entry["measured_memory"] = PublishedMeasuredMemory(roles=peaks).model_dump(
+                mode="json"
+            )
+
+    catalog_entities = [
+        {
+            "source_path": f"models/{document['identity']['slug']}.json",
+            "content_sha256": document_sha256(document),
+            "document": document,
+            "display": published_json(
+                model_displays[str(document["identity"]["slug"])]
+            ),
+        }
+        for document in sorted(
+            entities.values(), key=lambda item: str(item["identity"]["slug"])
+        )
+    ]
+    if not re.fullmatch(r"[0-9a-f]{40}", source_commit):
+        raise SystemExit("source commit must be a full SHA-1")
+    index = CatalogIndex.model_validate(
+        {
+            "schema_version": INDEX_SCHEMA_VERSION,
+            "kind": INDEX_KIND,
+            # The library release is the contract version; recipe changes only
+            # move updated_at, the source commit's commit time.
+            "contract_version": CONTRACT_VERSION,
+            "updated_at": _updated_at(source_date_epoch),
+            "repository": REPOSITORY,
+            "source_commit": source_commit,
+            "vocabulary": catalog_vocabulary(),
+            "package_contract": PackageContract(
+                schema_version=PACKAGE_SCHEMA_VERSION,
+                media_type=PACKAGE_MEDIA_TYPE,
+                path_prefix=PACKAGE_PATH_PREFIX,
+                metadata_fields=PACKAGE_METADATA_FIELDS,
+            ),
+            "catalog_entities": catalog_entities,
+            "recipes": recipes,
+            "families": [
+                published_json(family_displays[slug])
+                for slug in sorted(family_displays)
+            ],
+        }
+    )
+    return published_index_json(index)
+
+
+def qualification_index(catalog: dict[str, Any]) -> dict[str, object]:
+    """Bind only structurally converted recipes into qualification transport data."""
+    definitions = load_definitions(QUALIFICATION_ROOT)
+    require_valid_service_aliases(definitions)
+    require_valid_case_assertions(definitions)
+    available = {
+        f"{entry['document']['identity']['publisher']}/{entry['document']['identity']['slug']}": entry[
+            "content_sha256"
+        ]
+        for entry in catalog.get("recipes", [])
+    }
+    generated = json.loads(json.dumps(definitions))
+    for field in ("recipes", "service_recipes", "special_fixtures"):
+        generated[field] = {
+            key: {**value, "content_sha256": available[key]}
+            for key, value in definitions.get(field, {}).items()
+            if key in available
+        }
+    return generated
+
+
+RELEASE_CHECKSUMS = "SHA256SUMS"
+RELEASE_INDEX = "catalog-index.json"
+RELEASE_QUALIFICATION_INDEX = "qualification-index.json"
+
+
+def _rendered_index(document: dict[str, Any]) -> bytes:
+    index = rendered(document).encode("utf-8")
+    if len(index) > MAX_INDEX_BYTES:
+        raise SystemExit("catalog-index.json exceeds the index size limit")
+    return index
+
+
+def write_outputs(
+    directory: Path, *, source_commit: str, source_date_epoch: int
+) -> dict[str, Any]:
+    """Write the catalog build outputs under ``directory`` in checkout layout.
+
+    ``catalog-index.json``, ``qualification/qualification-index.json`` and
+    ``packages/<slug>.tar.gz`` are build outputs of the recipe sources. The
+    default target is the checkout itself, where they are ignored by Git.
+    """
+
+    package_dir = directory / "packages"
+    document = build(
+        package_dir=package_dir,
+        source_commit=source_commit,
+        source_date_epoch=source_date_epoch,
+    )
+    expected = {
+        PurePosixPath(str(row["package"]["path"])).name for row in document["recipes"]
+    }
+    for stale in package_dir.glob("*.tar.gz"):
+        if stale.name not in expected:
+            stale.unlink()
+    (directory / RELEASE_INDEX).write_bytes(_rendered_index(document))
+    qualification = directory / "qualification" / "qualification-index.json"
+    qualification.parent.mkdir(parents=True, exist_ok=True)
+    qualification.write_text(rendered(qualification_index(document)), encoding="utf-8")
+    return document
+
+
+def write_release(
+    directory: Path,
+    *,
+    source_commit: str,
+    source_date_epoch: int,
+    include: tuple[Path, ...] = (),
+    prebuilt_images: dict[str, dict[str, str]] | None = None,
+) -> dict[str, str]:
+    """Write the flat release asset set and its SHA256SUMS manifest.
+
+    The index keeps its ``packages/<slug>.tar.gz`` paths; a release asset is
+    addressed by the basename. ``include`` adds further published files, such
+    as generated coverage reports. SHA256SUMS lists every asset except itself
+    and is the single subject the publication workflow signs.
+    """
+
+    directory.mkdir(parents=True, exist_ok=True)
+    if any(directory.iterdir()):
+        raise SystemExit(f"release directory must be empty: {directory}")
+    with tempfile.TemporaryDirectory(prefix="vonk-forge-release-") as temporary:
+        package_dir = Path(temporary)
+        document = build(
+            package_dir=package_dir,
+            source_commit=source_commit,
+            source_date_epoch=source_date_epoch,
+            prebuilt_images=prebuilt_images,
+        )
+        assets = {
+            RELEASE_INDEX: _rendered_index(document),
+            RELEASE_QUALIFICATION_INDEX: rendered(qualification_index(document)).encode(
+                "utf-8"
+            ),
+            # The index contract ships in the signed release, so a consumer
+            # compiles against the schema of the data it deploys. The
+            # checked-in file is Pydantic's output (generate-contract-schemas
+            # --check), so it is read, not regenerated.
+            INDEX_SCHEMA_ASSET: SCHEMA_SOURCE.read_bytes(),
+        }
+        named = [
+            (PurePosixPath(str(row["package"]["path"])).name, package_dir)
+            for row in document["recipes"]
+        ] + [(path.name, path.parent) for path in include]
+        for name, parent in named:
+            if name in assets or name == RELEASE_CHECKSUMS:
+                raise SystemExit(f"release asset name is not unique: {name}")
+            assets[name] = (parent / name).read_bytes()
+    digests = {
+        name: hashlib.sha256(payload).hexdigest()
+        for name, payload in sorted(assets.items())
+    }
+    for name, payload in assets.items():
+        (directory / name).write_bytes(payload)
+    (directory / RELEASE_CHECKSUMS).write_text(
+        "".join(f"{digest}  {name}\n" for name, digest in digests.items()),
+        encoding="utf-8",
+    )
+    return digests
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--source-commit",
+        required=True,
+        help="immutable recipe source commit recorded in the index",
+    )
+    parser.add_argument(
+        "--source-date-epoch",
+        type=int,
+        required=True,
+        help="commit time of the source commit (Unix seconds), recorded as updated_at",
+    )
+    target = parser.add_mutually_exclusive_group()
+    target.add_argument(
+        "--output-dir",
+        type=Path,
+        default=ROOT,
+        help="write the outputs in checkout layout under this directory "
+        "(default: this checkout, where they are ignored)",
+    )
+    target.add_argument(
+        "--release-dir",
+        type=Path,
+        help="write the flat release asset set and SHA256SUMS into this empty directory",
+    )
+    parser.add_argument(
+        "--include",
+        type=Path,
+        action="append",
+        default=[],
+        help="add this file to the release asset set (with --release-dir)",
+    )
+    parser.add_argument(
+        "--prebuilt-images",
+        type=Path,
+        help="JSON map of recipe content digest to its prebuilt runtime image "
+        "(tools/prebuilt-images resolve), recorded in the index (with --release-dir)",
+    )
+    arguments = parser.parse_args()
+    # Declared files whose bytes live in the mirror are placed before any
+    # build context is read, so packages hold the same bytes at the same paths.
+    materialize_or_exit()
+    prebuilt_images = (
+        load_images(arguments.prebuilt_images, image_diagnostic)
+        if arguments.prebuilt_images is not None
+        else None
+    )
+    if arguments.release_dir is not None:
+        digests = write_release(
+            arguments.release_dir,
+            source_commit=arguments.source_commit,
+            source_date_epoch=arguments.source_date_epoch,
+            include=tuple(arguments.include),
+            prebuilt_images=prebuilt_images,
+        )
+        print(f"wrote {len(digests)} release assets to {arguments.release_dir}")
+        return 0
+    if arguments.include or prebuilt_images is not None:
+        parser.error("--include and --prebuilt-images require --release-dir")
+    document = write_outputs(
+        arguments.output_dir,
+        source_commit=arguments.source_commit,
+        source_date_epoch=arguments.source_date_epoch,
+    )
+    print(
+        f"wrote catalog-index.json, qualification/qualification-index.json and "
+        f"{len(document['recipes'])} packages under {arguments.output_dir}"
+    )
+    return 0

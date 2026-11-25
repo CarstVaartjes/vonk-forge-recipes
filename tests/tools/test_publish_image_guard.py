@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import importlib.machinery
-import importlib.util
 import json
 import os
 import subprocess
@@ -15,6 +13,8 @@ from typing import Any
 
 import pytest
 from repo_root import ROOT
+
+from recipe_tooling import prebuilt_images
 
 COMMIT = "1" * 40
 CONTENT = "2" * 64
@@ -136,14 +136,7 @@ def _check(
 
 
 def _prebuilt_images() -> Any:
-    loader = importlib.machinery.SourceFileLoader(
-        "prebuilt_images_guard", str(ROOT / "tools/prebuilt-images")
-    )
-    spec = importlib.util.spec_from_loader(loader.name, loader)
-    assert spec is not None
-    module = importlib.util.module_from_spec(spec)
-    loader.exec_module(module)
-    return module
+    return prebuilt_images
 
 
 @pytest.mark.parametrize("noise", ["not-found", "rate-limited"])

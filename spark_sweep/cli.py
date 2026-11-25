@@ -11,6 +11,7 @@ from pathlib import Path
 
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
 from recipe_tooling.qualification.own_pulls import REPOSITORY
+from recipe_tooling.qualification.sweep_settings import SETTINGS
 
 from . import policy
 from .catalog import fetch_fleet, fetch_models, fetch_recipes
@@ -29,9 +30,9 @@ from .sweep_contract import SweepEvidenceExit
 from .sweep_support import DEFAULT_BOOST, Clock, SweepConfig, selects
 from .vonkctl import OWNER_PROFILES, Vonkctl, VonkctlError
 
-# Kept equal to AUTHORITY_ID in tools/build-qualification-authority (a test checks it), so
-# the results log is read by `vonk-fleet-qualify-campaign status` for that authority.
-AUTHORITY_ID = "nl-family-aware-20260924"
+# The results log is read by `vonk-fleet-qualify-campaign status` for this authority; the
+# catalog build derives the same authority from the same file (policy/sweep.json).
+AUTHORITY_ID = SETTINGS.authority_id
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_STATE_DIR = Path.home() / ".vonk-sweep"
 REPO = REPOSITORY
