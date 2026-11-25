@@ -8,7 +8,8 @@ the revision it states (``provenance.source_reference``, the Dockerfile's
 ``source.commit``) must be the build commit the image records about itself
 (``Registry.provenance``: its OCI revision label or its ``build-metadata.yaml``). An
 image that records none, or whose registry cannot be read this run, is noted, not failed
-(the digest pin is the security edge; provenance waits out an outage).
+(the digest pin is the security edge; provenance is skipped this run and re-checked when
+the recipe next changes).
 
 An image built from a commit GitHub does not serve is still followed by its digest (the
 digest is the identity; the commit is provenance), but never silently: the recipe's
@@ -90,7 +91,7 @@ def check(
         repository, _, digest = followed
         try:
             found = registry.provenance(repository, digest, source)
-        except RuntimeError as error:  # KitError, UpstreamBusy: an unreadable registry
+        except (RuntimeError, OSError) as error:  # KitError, UpstreamBusy, timeouts
             notes.append(
                 f"{path.name}: {repository}@{digest} not checked this run: {error}"
             )

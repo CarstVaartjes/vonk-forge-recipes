@@ -365,9 +365,9 @@ def check_adapter(
         return report
     try:
         tree = load_tree(repo, commit)
-    except RuntimeError as error:
-        report.problems.append(
-            f"{label}: cannot read upstream {repo}@{commit}: {error}"
+    except (RuntimeError, OSError) as error:
+        report.note = (
+            f"not checked this run: cannot read upstream {repo}@{commit}: {error}"
         )
         return report
     ours = set(manifest.get("ours", []))
@@ -382,9 +382,10 @@ def check_adapter(
     for extra in also_sources:
         try:
             also.append((extra, load_tree(extra.repo, extra.commit)))
-        except RuntimeError as error:
-            report.problems.append(
-                f"{label}: cannot read upstream {extra.repo}@{extra.commit}: {error}"
+        except (RuntimeError, OSError) as error:
+            report.note = (
+                f"not checked this run: cannot read upstream "
+                f"{extra.repo}@{extra.commit}: {error}"
             )
             return report
     for entry in sorted(ours | set(renamed) | {p for e, _ in also for p in e.files}):

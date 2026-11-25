@@ -37,6 +37,17 @@ class KitError(RuntimeError):
     """A declaration cannot be read or derived; the message names what to fix."""
 
 
+def is_outage(error: BaseException) -> bool:
+    """Whether ``error`` is a provider that could not be read (down, busy, timed out).
+
+    A ``KitError`` is ours (a declaration or lock that is wrong) unless it wraps the read
+    that failed.
+    """
+    if isinstance(error, KitError):
+        return isinstance(error.__cause__, RuntimeError | OSError)
+    return isinstance(error, RuntimeError | OSError)
+
+
 @dataclass(frozen=True, slots=True)
 class Declaration:
     name: str

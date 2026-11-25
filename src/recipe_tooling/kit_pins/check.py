@@ -31,9 +31,14 @@ from recipe_tooling.kit_pins.model import (
     Declaration,
     KitError,
     Pin,
+    is_outage,
 )
 from recipe_tooling.kit_pins.sources import withdrawn
 from recipe_tooling.kit_pins.upstream import Upstream
+
+
+class OutageError(KitError):
+    """A kit scan that could not read its provider this run."""
 
 
 def check_images(
@@ -66,14 +71,17 @@ def check_images(
     def scan(key: tuple[str, str, str]) -> list[dict[str, Any]] | KitError:
         try:
             return kit_images(source, *key)
-        except (KitError, RuntimeError) as error:  # incl. UpstreamBusy
-            return KitError(str(error))
+        except (KitError, RuntimeError, OSError) as error:  # incl. UpstreamBusy
+            return OutageError(str(error)) if is_outage(error) else KitError(str(error))
 
     keys = sorted(set(wanted.values()))
     with ThreadPoolExecutor(max_workers=8) as pool:
         scans = dict(zip(keys, pool.map(scan, keys), strict=True))
     for recipe_id, key in wanted.items():
         found = scans[key]
+        if isinstance(found, OutageError):
+            notice(f"{recipe_id}: not checked this run: {found}")
+            continue
         if isinstance(found, KitError):
             problems.append(f"{recipe_id}: {found}")
             continue
@@ -117,9 +125,17 @@ def lock_difference(lock: dict[str, Any], expected: dict[str, Any]) -> str:
 
 
 def check_recipe(
-    root: Path, recipe_id: str, recipe: dict[str, Any], source: Upstream
+    root: Path,
+    recipe_id: str,
+    recipe: dict[str, Any],
+    source: Upstream,
+    notice: Callable[[str], None] = lambda _message: None,
 ) -> list[str]:
-    """Reasons the recipe's committed lock is not what its kit declares ([] when current)."""
+    """Reasons the recipe's committed lock is not what its kit declares ([] when current).
+
+    A provider that cannot be read (registry or GitHub down, busy) is a ``notice`` (not
+    checked this run), never a problem: only a mismatch we can see is one.
+    """
     adapter = adapter_of(root, recipe)
     if adapter is None or not (adapter / MANIFEST).is_file():
         return []
@@ -180,8 +196,11 @@ def check_recipe(
                 f"{label}: {LOCK} is stale: the recipe pins kit {kit[0]}@{kit[1][:12]}, "
                 f"{lock_difference(lock, expected)}; run tools/kit-pins lock {recipe_id}"
             )
-    except KitError as error:
-        problems.append(f"{label}: {error}")
+    except (KitError, RuntimeError, OSError) as error:
+        if not is_outage(error):
+            problems.append(f"{label}: {error}")
+            return problems
+        notice(f"{label}: not checked this run: {error}")
         return problems
     by_name = {d.name: d for d in wanted}
     for pin in pins:

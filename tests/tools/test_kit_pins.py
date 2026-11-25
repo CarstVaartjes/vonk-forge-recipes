@@ -523,6 +523,25 @@ class WithdrawnKitTests(unittest.TestCase):
             ) + kit_check.check_images(Path(tmp), {"mia": recipe}, source)
         return problems, scanned
 
+    def test_an_unreadable_provider_is_a_notice_not_a_problem(self) -> None:
+        def busy(*_: Any) -> Any:
+            raise UpstreamBusy("rate limited")
+
+        def down(_path: str) -> Any:
+            raise OSError("connection reset")
+
+        notices: list[str] = []
+        with tempfile.TemporaryDirectory() as tmp:
+            recipe = self.adapter(Path(tmp), marked=False)
+            source = kit_upstream.Upstream(kit_upstream.GitHub(down), images=busy)
+            problems = kit_check.check_recipe(
+                Path(tmp), "mia", recipe, source, notices.append
+            ) + kit_check.check_images(
+                Path(tmp), {"mia": recipe}, source, notice=notices.append
+            )
+        assert problems == []
+        assert len(notices) == 2
+
     def test_the_marked_kit_is_not_re_read(self) -> None:
         assert self.problems(marked=True) == ([], [])
 
@@ -1271,7 +1290,7 @@ if __name__ == "__main__":
 
 
 class BusyProviderCliTests(unittest.TestCase):
-    """One recipe the provider will not answer does not stop the next from being checked."""
+    """A provider that will not answer is a notice and does not stop the next recipe."""
 
     def test_a_busy_recipe_is_counted_and_the_next_is_still_checked(self) -> None:
 
@@ -1288,9 +1307,9 @@ class BusyProviderCliTests(unittest.TestCase):
                 kit_cli.process("check", name, {}, None)  # pyright: ignore[reportArgumentType]
                 for name in ("first", "second")
             )
-        assert (seen, failed) == (["first", "second"], 2)
+        assert (seen, failed) == (["first", "second"], 1)
 
-    def test_a_busy_image_scan_is_a_problem_not_a_crash(self) -> None:
+    def test_a_busy_image_scan_is_a_notice_not_a_crash(self) -> None:
 
         def busy(_source: Any, *_key: str) -> list[dict[str, Any]]:
             raise UpstreamBusy("rate limited")
@@ -1302,5 +1321,4 @@ class BusyProviderCliTests(unittest.TestCase):
             problems = kit_check.check_images(
                 Path(tmp), {"mia": recipe_for(KIT_BRANCH)}, upstream(FakeApi())
             )
-        assert len(problems) == 1, problems
-        assert "rate limited" in problems[0]
+        assert problems == []

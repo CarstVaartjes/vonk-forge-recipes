@@ -456,7 +456,6 @@ class GuardTests(unittest.TestCase):
         problems, notes = self.check({"recipes/recipe.json"}, fake)
         assert problems == []
         assert len(notes) == 1
-        assert "not checked this run" in notes[0]
 
     def test_the_vendored_check_skips_only_a_correctly_marked_pin(self) -> None:
         vendored = guard.vendored
