@@ -9,13 +9,13 @@ import os
 import tarfile
 import tempfile
 import unittest
-import urllib.request
 from pathlib import Path
 from typing import Any
 from unittest import mock
 
 import pytest
 from test_kit_pins import KIT
+from upstream_fakes import patched_open
 
 from recipe_tooling.kit_pins import archive as kit_archive
 from recipe_tooling.kit_pins import check as kit_check
@@ -116,7 +116,7 @@ class DownloadScanTests(unittest.TestCase):
     def _download(self, body: bytes) -> list[str]:
         response = io.BytesIO(body)
         with (
-            mock.patch.object(urllib.request, "urlopen", return_value=response),
+            patched_open(mock.Mock(return_value=response)),
             mock.patch.object(kit_archive, "MAX_ARCHIVE_BYTES", 1),
         ):
             return [f["reference"] for f in kit_image_scan.scan_download("o/r", COMMIT)]
@@ -164,17 +164,17 @@ class MidStreamFailureTests(unittest.TestCase):
                 scan = _Dropping(body[: len(body) // 2], error)
                 fetch = _Dropping(body[: len(body) // 2], error)
                 with (
-                    mock.patch.object(urllib.request, "urlopen", return_value=scan),
+                    patched_open(mock.Mock(return_value=scan)),
                     pytest.raises(kit_model.KitError, match="cannot scan .*tar.gz"),
                 ):
                     kit_image_scan.scan_download("o/r", COMMIT)
                 with (
-                    mock.patch.object(
-                        urllib.request,
-                        "urlopen",
-                        side_effect=[
-                            _Dropping(fetch.getvalue(), error) for _ in range(3)
-                        ],
+                    patched_open(
+                        mock.Mock(
+                            side_effect=[
+                                _Dropping(fetch.getvalue(), error) for _ in range(3)
+                            ]
+                        )
                     ),
                     pytest.raises(kit_model.KitError, match="cannot fetch .*tar.gz"),
                 ):
@@ -184,7 +184,7 @@ class MidStreamFailureTests(unittest.TestCase):
         body = archive({"Dockerfile": f"FROM {IMAGE}@{DIGEST}\n"})
         answers = [_Dropping(body[:5], TimeoutError("timed out")), io.BytesIO(body)]
         pauses: list[float] = []
-        with mock.patch.object(urllib.request, "urlopen", side_effect=answers):
+        with patched_open(mock.Mock(side_effect=answers)):
             data = kit_archive.download_archive("o/r", COMMIT, pauses.append)
         assert (data, len(pauses)) == (body, 1)
 
@@ -223,7 +223,7 @@ class CliSourceTests(unittest.TestCase):
                 os.environ,
                 {"VONK_UPSTREAM_CACHE": cache, "GITHUB_TOKEN": "unused"},
             ),
-            mock.patch.object(urllib.request, "urlopen", urlopen),
+            patched_open(urlopen),
             mock.patch.object(kit_archive, "MAX_ARCHIVE_BYTES", 1),
         ):
             source = kit_sources.cli_source()

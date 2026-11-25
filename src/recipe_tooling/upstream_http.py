@@ -10,7 +10,6 @@ Other failures (outages, network errors, anything else) are our own faults and s
 from __future__ import annotations
 
 import random
-import ssl
 import threading
 import time
 import urllib.request
@@ -90,19 +89,14 @@ def open_request(
     )
 
 
-def open_once(
-    request: urllib.request.Request | str,
-    timeout: float,
-    context: ssl.SSLContext | None = None,
-) -> Any:
+def open_once(request: urllib.request.Request | str, timeout: float) -> Any:
     """One raw open with no retry and no busy memory.
 
     For the callers that must not be retried: the App credential exchange (a security
     edge), a download that has its own jittered retry and mirror fallback, and a local
     fixture. Every provider open of the repository is here.
     """
-    handlers = [] if context is None else [urllib.request.HTTPSHandler(context=context)]
-    return urllib.request.build_opener(_SameOriginCredentials, *handlers).open(
+    return urllib.request.build_opener(_SameOriginCredentials).open(
         request, timeout=timeout
     )
 
