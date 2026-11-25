@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import json
 import re
-import runpy
 import unittest
 from pathlib import Path
 
 from catalog_documents import catalog_models
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.resolver import validate_recipe_models
 
@@ -40,7 +40,7 @@ class Qwen36Nvfp4RecipeTests(unittest.TestCase):
 
     def test_source_bundle_matches_declared_context(self) -> None:
         recipe = read(self.path)
-        tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+        tool = vars(catalog_index)
         build = recipe["execution"]["build"]  # pyright: ignore[reportIndexIssue]
         _, _, digest = tool["source_bundle"](ROOT / build["context"]["path"])
         assert re.search(r"^[a-f0-9]{64}$", digest)

@@ -89,10 +89,10 @@ def allocator_walk(
     # An omitted flag may enable caching (nightly 3f1bcfd8 default): count it.
     if argument_value(recipe, "enable-prefix-caching") is False:
         mode = "none"
-    elif argument_value(recipe, "mamba-cache-mode") == "align":
-        mode = "align"
-    else:
+    elif argument_value(recipe, "mamba-cache-mode") == "all":
         mode = "all" if state.mamba_prefix_caching else "align"
+    else:
+        mode = "align"
     layers = {
         "attention": [f"attention.{i}" for i in range(state.attention_layers)],
         "mamba": [f"mamba.{i}" for i in range(state.layers)],

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import runpy
 import sys
 import tempfile
 import types
@@ -13,6 +12,8 @@ from unittest import mock
 import pytest
 from documents import model_display, recipe_display
 from repo_root import ROOT
+
+from recipe_tooling import catalog_index
 
 ADAPTER_ROOT = ROOT / "adapters/video/minimax-h3-modular-diffusers"
 ADAPTER_PATH = ADAPTER_ROOT / "minimax_h3.py"
@@ -68,9 +69,7 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
 
     def test_signed_source_bundle_matches_recipe(self) -> None:
         recipe = json.loads(RECIPE_PATH.read_text(encoding="utf-8"))
-        source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
-            "source_bundle"
-        ]
+        source_bundle = vars(catalog_index)["source_bundle"]
         archive, _, digest = source_bundle(ADAPTER_ROOT)
         context = recipe["execution"]["build"]["context"]
         assert context["path"] == "adapters/video/minimax-h3-modular-diffusers"
