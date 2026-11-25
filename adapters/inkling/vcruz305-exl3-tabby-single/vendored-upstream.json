@@ -36,7 +36,7 @@
     "verify-runtime.py"
   ],
   "source": {
-    "commit": "ed76a4b14a47c5a1a526a2b98c7c2f5337adb2e6",
+    "commit": "ed64091c4d5020b8617b0d7d18ce1296af2337c0",
     "repo": "vcruz305/Inkling-2-Mini-SAGE-EXL3-recipe"
   }
 }
