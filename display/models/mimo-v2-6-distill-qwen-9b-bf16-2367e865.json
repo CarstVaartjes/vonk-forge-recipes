@@ -1,5 +1,12 @@
 {
-  "capabilities": [],
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use",
+    "video-understanding"
+  ],
   "description": "MiMo-V2.6-Distill-Qwen-9B immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "MiMo",
   "identity": {
@@ -23,7 +30,9 @@
     "variant_kind": "base"
   },
   "modalities": [
-    "text"
+    "image",
+    "text",
+    "video"
   ],
   "model_title": "MiMo-V2.6-Distill-Qwen-9B",
   "tags": [
