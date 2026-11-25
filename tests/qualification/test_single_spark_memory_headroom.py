@@ -13,6 +13,7 @@ from catalog_documents import catalog_models
 from repo_root import ROOT
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
+from recipe_tooling import catalog_index
 from recipe_tooling.qualification.memory_need.args import (
     argument_value,
     cache_bytes,
@@ -348,7 +349,7 @@ def test_real_catalog_build_warns_about_a_new_recipe_whose_pool_cannot_hold_a_re
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+    tool = vars(catalog_index)
     build = tool["build"]
     # Use the actual publisher entry point and the original pinned Model. Only
     # the synthetic Recipe is new, so this fails on the old unguarded builder.

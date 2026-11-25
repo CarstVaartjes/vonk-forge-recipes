@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import runpy
-
 import pytest
 
-TOOL = runpy.run_path("tools/build-catalog-index")
+from recipe_tooling import catalog_index
+
+TOOL = vars(catalog_index)
 
 
 def test_multistage_digest_pins_are_manifested_once_and_stage_reuse_is_internal() -> (

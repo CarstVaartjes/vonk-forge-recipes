@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/inkling-2-small-exl3-2-17bpw-ajensenwaud-tensorfold-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "463938d377ff01b6f796a375ccfbebb5fc8ffd9038bfcfe038c132a228d80f38",
+        "source_bundle_sha256": "8c8f9d200580c38cfa220d780dd59e754a72dcab93abbdabf0fcf1abf3c0ca10",
+        "runtime_image": {
+          "build_key": "1fc3eab5ed196dd807f30029bdbc5a076045d3fa8ffc8a11430579dfe71b6146",
+          "image_digest": "sha256:813e26df7bca550b4a72e2bf48dd72cd6c4c42cb10f0db2bfa7cb7241af27960"
+        },
+        "model_digests": [
+          "f48a8a5ca63e990bdb3c6d94c93c89589881e85bad8f2abb199061fd64a7a8fb"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "000c7299172512f49e6a396c57b75f4923f5a816512d04e81f8596d26fd6faf3"
+      ],
+      "tested_at": "2026-11-25T02:47:11.140988Z",
+      "platform": {
+        "controller_source_sha": "a89ae64a6df5bf528ba7d12b2100fee58345c00b",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "463938d377ff01b6f796a375ccfbebb5fc8ffd9038bfcfe038c132a228d80f38",
+      "role": "entrypoint",
+      "steady_bytes": 110441005056
+    },
+    {
+      "content_sha256": "463938d377ff01b6f796a375ccfbebb5fc8ffd9038bfcfe038c132a228d80f38",
+      "role": "worker",
+      "steady_bytes": 108716982272
+    }
+  ]
+}

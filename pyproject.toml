@@ -7,6 +7,9 @@ requires-python = ">=3.14"
 
 [tool.uv]
 required-version = ">=0.13.5"
+# One environment for the type gate, lint, tests and tools: the gate resolves the same
+# packages everywhere, so `uv run` agrees with CI.
+default-groups = ["dev", "producer-tests"]
 
 [tool.pytest.ini_options]
 # Adapter tests are upstream's (they need torch/vllm) and run only in upstream's
@@ -36,6 +39,18 @@ dev = [
     "pydantic>=2.13.4",
     "Pillow>=13.0.0",
 ]
+# The producer test environment (validate.yml, publish.yml, refresh-upstream.yml):
+# `uv sync --frozen` (a default group); uv.lock is the one owner of every version.
+producer-tests = [
+    "vonk-forge-public-contracts",
+    "jsonschema>=4.24,<5",
+    "pytest-xdist==3.8.0",
+    "numpy==2.3.5",
+    "trimesh==4.10.1",
+]
+
+[tool.uv.sources]
+vonk-forge-public-contracts = { path = "contracts", editable = true }
 
 [tool.ruff]
 # Ruff is the repository's lint and formatting authority for our own code: tools/,
