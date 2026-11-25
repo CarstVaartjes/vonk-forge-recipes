@@ -174,14 +174,12 @@ def retarget_release_assets(
         raise ReleaseAssetError("the target is not a published release")
     old_versions: set[str] = set()
     templated: list[tuple[str, str, str, str]] = []
-    seen: set[tuple[str, str]] = set()
     for match in matches:
         raw_tag, raw_asset = match.group(1), match.group(2)
         old_tag = expand_args(raw_tag, dockerfile)
         old_asset = expand_args(raw_asset, dockerfile)
-        if old_tag == new_tag or (old_tag, old_asset) in seen:
+        if old_tag == new_tag:
             continue
-        seen.add((old_tag, old_asset))
         old_version = old_tag.removeprefix("v")
         old_versions.add(old_version)
         new_asset = version_token(old_version).sub(

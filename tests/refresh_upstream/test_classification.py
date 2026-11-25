@@ -501,6 +501,7 @@ class ReleaseAssetTests(unittest.TestCase):
     )
 
     templated = False
+    arg = "TF_VERSION"
 
     def asset(self, version: str) -> str:
         return f"tensorfold-{version}-linux-aarch64.tar.gz"
@@ -510,11 +511,15 @@ class ReleaseAssetTests(unittest.TestCase):
             return (
                 "# TensorFold v1.2.3 (Apache-2.0): the native engine as released.\n"
                 "FROM base@sha256:" + "4" * 64 + "\n"
-                "ARG TF_VERSION=1.2.3\n"
+                f"ARG {self.arg}=1.2.3\n"
                 f"ARG TF_SHA256={self.OLD_SHA256}\n"
                 "RUN curl -fsSL -o /tmp/tf.tar.gz "
                 f"https://github.com/{self.REPO}/releases/download/"
-                "v${TF_VERSION}/tensorfold-${TF_VERSION}-linux-aarch64.tar.gz \\\n"
+                "v${"
+                + self.arg
+                + "}/tensorfold-${"
+                + self.arg
+                + "}-linux-aarch64.tar.gz \\\n"
                 '    && echo "${TF_SHA256}  /tmp/tf.tar.gz" | sha256sum -c -\n'
             )
         return (
@@ -665,6 +670,12 @@ class ReleaseAssetTests(unittest.TestCase):
         assert f"ARG TF_SHA256={self.NEW_SHA256}\n" in moved
         assert "v${TF_VERSION}/tensorfold-${TF_VERSION}-linux" in moved
         assert self.OLD_SHA256 not in moved
+
+    def test_an_arg_the_refresh_cannot_move_is_a_review(self) -> None:
+        self.templated = True
+        self.arg = "TF_VER"  # no VERSION in the name: the default would not move
+        result = self.assess()
+        assert not result.mechanical
 
     def test_a_release_without_its_sha256_file_is_a_review(self) -> None:
         result = self.assess(new_has_sha256=False)
