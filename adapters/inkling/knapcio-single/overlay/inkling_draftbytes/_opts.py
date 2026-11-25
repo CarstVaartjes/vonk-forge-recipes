@@ -8,6 +8,10 @@ Comma list, any order, default empty (= the overlay does nothing):
   head8[:MODE]   draft base logits from an FP8 copy of the LM head (default row)
   draftmx8[:MODE] FP8 copies of the three draft layers' linears (default mx)
   hotvocab:N     draft proposes only from the first N ids of INKLING_DRAFT_HOTVOCAB_FILE
+  hotbase        with hotvocab: inside the captured draft sampler's stock Markov walk, the draft base logits stay
+                 compact ([rows, N], hot order) and the hot step reads them there, instead of a full-vocabulary
+                 BF16 buffer filled with -inf plus a scatter of the hot columns (the hot step only ever read those
+                 columns; bit-identical step logits and tokens)
   w8tile         with draftmx8: the draft linears' Triton launches (rows not taken by w8gemv, up to w8_max_m) use the
                  narrow tile BN 16, BK 256 (K <= 2304) / 128 (mx; row/gN keep their BK) (GB10 sweep 2026-11-22: 195 vs 155 GB/s at
                  8 rows); bit-identical to the default tile (the per-output chain does not depend on the tile)
@@ -91,6 +95,7 @@ class Options:
     draftmx8: Optional[QuantMode] = None
     hotvocab: int = 0
     hotvocab_file: Optional[str] = None
+    hotbase: bool = False
     wide8: bool = False
     w8gemv: bool = False
     w8tile: bool = False
@@ -150,6 +155,8 @@ class Options:
             parts.append(f"draftmx8:{self.draftmx8.label}")
         if self.hotvocab:
             parts.append(f"hotvocab:{self.hotvocab}")
+        if self.hotbase:
+            parts.append("hotbase")
         if self.wide8:
             parts.append(f"wide8(mode {self.wide8_mode})")
         if self.w8tile:
@@ -219,6 +226,8 @@ def parse(text: Optional[str] = None, environ=None) -> Options:
             kw["w8tile"] = True
         elif name == "rnnhoist":
             kw["rnnhoist"] = True
+        elif name == "hotbase":
+            kw["hotbase"] = True
         elif name == "tau":
             kw["tau"] = _parse_tau(arg, "tau")
         elif name == "dwin":
@@ -246,6 +255,8 @@ def parse(text: Optional[str] = None, environ=None) -> Options:
         raise OptionError("w8tile needs draftmx8")
     if kw.get("w8gemv") and (kw.get("draftmx8") is None or kw["draftmx8"].kind != "mx"):
         raise OptionError("w8gemv needs draftmx8 in mx mode (draftmx8 or draftmx8:mx)")
+    if kw.get("hotbase") and not kw.get("hotvocab"):
+        raise OptionError("hotbase needs hotvocab")
     if kw.get("hotvocab"):
         path = environ.get(HOT_FILE_ENV, "").strip()
         if not path:

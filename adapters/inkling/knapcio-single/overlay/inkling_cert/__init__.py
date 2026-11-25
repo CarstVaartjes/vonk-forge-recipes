@@ -9,6 +9,10 @@ check  serve pico's full head; build the certified result beside it and count to
 
 INKLING_CERT_WIDE=1 with INKLING_CERT_HEAD=1 also certifies 17–192 rows
 when the packed, unsplit inkling_wide head would serve the same call.
+  INKLING_CERT_WIDE_MAX_ROWS    largest verify batch (rows, 17..192) the wide path serves (default
+                                WIDE_MAX_ROWS_DEFAULT); larger batches run the head unchanged
+  INKLING_CERT_WIDE_STATS=1     diagnostic: count wide outcomes (certified / unsafe / too many / off) and the
+                                candidate-tile union per batch size in the graph, logged with the counters line
 
 Needs INKLING_PICO12 with `lmhead` armed first (pico's GEMV is the exact pass and the fallback). Other settings:
   INKLING_CERT_HEAD_LOG_EVERY   counters line every N verify steps (default 2000, 0 = never)
@@ -58,6 +62,14 @@ def _log(msg):
     sys.stderr.flush()
 
 
+# Largest verify batch (rows) the wide certified head serves; larger batches run the head unchanged. GB10 sweep
+# 2026-11-24 (tools/gpu_check_certwide.py, CW_ROWS 64..192, real head, captured rows): at 129-192 rows the screen
+# runs the 12-row-group kernel at 1 CTA/SM (143 registers) and takes 4.85-5.92 ms, so even a fully certified batch
+# is 0.09-0.19 ms slower than the dense head at 136/160/176/192 rows (+0.01 at 144); at 128 rows (2 CTAs/SM) the
+# certified head wins 1.65 ms and loses 2.70 ms on an overflow (break-even at a 38 % fallback rate).
+WIDE_MAX_ROWS_DEFAULT = 128
+
+
 def parse_mode(value):
     v = (value or "").strip().lower()
     if v in ("", "0", "off", "none", "false", "no"):
@@ -80,7 +92,18 @@ def config_from_env(env):
     wide = parse_mode(env.get("INKLING_CERT_WIDE", ""))
     if wide == "check":
         raise RuntimeError("inkling_cert: INKLING_CERT_WIDE accepts 0 or 1")
-    return {"log_every": max(0, every), "cache_dir": cache, "wide": wide == "1"}
+    raw = env.get("INKLING_CERT_WIDE_MAX_ROWS", "").strip()
+    try:
+        max_rows = int(raw) if raw else WIDE_MAX_ROWS_DEFAULT
+    except ValueError as exc:
+        raise RuntimeError(f"inkling_cert: INKLING_CERT_WIDE_MAX_ROWS={raw!r}") from exc
+    if not 17 <= max_rows <= 192:
+        raise RuntimeError(f"inkling_cert: INKLING_CERT_WIDE_MAX_ROWS={max_rows} outside 17..192")
+    stats = parse_mode(env.get("INKLING_CERT_WIDE_STATS", ""))
+    if stats == "check":
+        raise RuntimeError("inkling_cert: INKLING_CERT_WIDE_STATS accepts 0 or 1")
+    return {"log_every": max(0, every), "cache_dir": cache, "wide": wide == "1", "wide_max_rows": max_rows,
+            "wide_stats": stats == "1"}
 
 
 def check_sources(root=None, wide=False):
@@ -143,4 +166,7 @@ def install(env=None, sglang_root=None):
         _hook.when_imported(module, _callback(cb))
     if STATE["cfg"]["wide"]:
         _hook.when_imported(GRAPH_RUNNER, _callback("patch_graph_runner"))
+    # DFLASH worker (SPEC=dflash2): per-step arming on greedy verify steps (dflash.py); inert under DSpark
+    _hook.when_imported("sglang.srt.speculative.dflash_worker_v2", _callback("patch_dflash_worker"))
+    _hook.when_imported("sglang.srt.managers.tp_worker", _callback("patch_dflash_tp_worker"))
     return mode

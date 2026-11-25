@@ -10,7 +10,9 @@
       },
       "dockerfile": "adapters/inkling/knapcio-single/Dockerfile",
       "network": {
-        "hosts": []
+        "hosts": [
+          "huggingface.co"
+        ]
       },
       "patches": []
     }
@@ -181,19 +183,51 @@
         "publisher": "thinkingmachines",
         "slug": "inkling-2-mini-nvfp4-1fb4134b"
       }
+    },
+    {
+      "files": [
+        {
+          "file_id": "config-d094e435eb93-587cb980af",
+          "id": "drafter-config-d094e435eb93-587cb980af",
+          "mount": {
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-217980ab00d1-9d75c1098f",
+          "id": "drafter-model-217980ab00d1-9d75c1098f",
+          "mount": {
+            "target": "/models/draft"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "drafter",
+      "model": {
+        "content_sha256": "06445ebcca9c226a32837824d9f15760a0c8514b21d1f3a79f859a9fda243d2e",
+        "kind": "model",
+        "publisher": "incoai",
+        "slug": "inkling-2-mini-dflash2-incoai-4f9088ea"
+      }
     }
   ],
   "provenance": {
     "attribution": [
       "Thinking Machines Lab (model, Apache-2.0)",
       "knapcio (recipe and speed overlays, MIT)",
-      "SGLang contributors (lmsysorg/sglang:inkling-2-mini image, Apache-2.0)"
+      "SGLang contributors (lmsysorg/sglang:inkling-2-mini image, Apache-2.0)",
+      "IncoAI (DFlash2 drafter, Apache-2.0)"
     ],
-    "source_reference": "https://github.com/knapcio/Inkling-2-Mini-1x-DGX-Spark/tree/6d89c0ec24cca90ce58991446cf74b1dac449cc8"
+    "source_reference": "https://github.com/knapcio/Inkling-2-Mini-1x-DGX-Spark/tree/d3f460745aff0dffb40f6b8341077382f3b43dfe"
   },
   "release": {
-    "released_at": "2026-11-24",
-    "version": "2.7.2"
+    "released_at": "2026-11-25",
+    "version": "2.9.3"
   },
   "runtime": {
     "arguments": [
@@ -235,12 +269,22 @@
       {
         "name": "speculative-algorithm",
         "setting": null,
-        "value": "DSPARK"
+        "value": "DFLASH"
+      },
+      {
+        "name": "speculative-draft-model-path",
+        "setting": null,
+        "value": "/models/draft"
       },
       {
         "name": "speculative-num-draft-tokens",
         "setting": null,
         "value": 8
+      },
+      {
+        "name": "speculative-draft-attention-backend",
+        "setting": null,
+        "value": "fa4"
       },
       {
         "name": "speculative-use-block-verification",
@@ -260,7 +304,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.89"
+        "value": "0.88"
       },
       {
         "name": "context-length",
@@ -322,48 +366,24 @@
         "value": "1"
       },
       {
-        "name": "MAX_JOBS",
-        "value": "4"
-      },
-      {
-        "name": "SGLANG_OPT_INKLING2_VERIFY_REL_BIAS_KERNEL",
-        "value": "1"
-      },
-      {
-        "name": "SGLANG_OPT_DSV41_DSPARK_MID_FOLD",
-        "value": "1"
-      },
-      {
-        "name": "SGLANG_OPT_DSV41_DSPARK_PREPARE_INPUTS_ONCE",
-        "value": "1"
-      },
-      {
-        "name": "SGLANG_OPT_DSV41_DSPARK_SKIP_PREFILLED_INPUTS",
-        "value": "1"
-      },
-      {
-        "name": "MALLOC_MMAP_THRESHOLD_",
-        "value": "1048576"
-      },
-      {
-        "name": "SGLANG_RAGGED_VERIFY_MODE",
-        "value": "static"
-      },
-      {
-        "name": "INKLING_KV12S_POOL",
-        "value": "static"
-      },
-      {
         "name": "INKLING_VERIFY_CAP",
-        "value": "policy:/opt/inkling-overlay/inkling_vcap/policies/r2-theta004.json,bsmax=16"
+        "value": "dfpolicy:/opt/inkling-overlay/inkling_vcap/policies/df-SLDF2x.json,bsmax=8"
       },
       {
         "name": "INKLING_VERIFY_CAP_LOG_EVERY",
         "value": "0"
       },
       {
+        "name": "INKLING_VERIFY_CAP_STEPLOG",
+        "value": ""
+      },
+      {
+        "name": "INKLING_VERIFY_CAP_REMAP",
+        "value": "1"
+      },
+      {
         "name": "INKLING_DRAFT_BYTES",
-        "value": "gemv,fold8,head8,draftmx8,hotvocab:65536,wide8,w8tile,rnnhoist"
+        "value": ""
       },
       {
         "name": "INKLING_DRAFT_HOTVOCAB_FILE",
@@ -414,6 +434,18 @@
         "value": "all"
       },
       {
+        "name": "INKLING_PFUSE_HOIST",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_ATTN_GATE",
+        "value": "all"
+      },
+      {
+        "name": "INKLING_PROLOGUE",
+        "value": "1"
+      },
+      {
         "name": "INKLING_MOE2",
         "value": "tiles"
       },
@@ -423,14 +455,58 @@
       },
       {
         "name": "INKLING_VERIFY_CAP_FASTPROBS",
-        "value": "1"
+        "value": "0"
       },
       {
         "name": "INKLING_VERIFY_CAP_FUSED_ACCEPT",
-        "value": "1"
+        "value": "0"
       },
       {
         "name": "INKLING_NOEXP",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_PADX",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_DFLASH_BYTES",
+        "value": "mx8,mx8w,hot8"
+      },
+      {
+        "name": "INKLING_DFLASH_HOT_N",
+        "value": ""
+      },
+      {
+        "name": "INKLING_DFLASH_PREFIX_TAIL",
+        "value": "2048"
+      },
+      {
+        "name": "INKLING_DFLASH_PREFIX_TAIL_MAX_INPUT",
+        "value": "4096"
+      },
+      {
+        "name": "INKLING_DFLASH_TAIL_SNAPSHOTS",
+        "value": "8"
+      },
+      {
+        "name": "INKLING_DFLASH_PCOPY",
+        "value": "12"
+      },
+      {
+        "name": "INKLING_DFLASH_PCOPY_MIN_CTX",
+        "value": "8192"
+      },
+      {
+        "name": "INKLING_PROMPT_TOUCH",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_DFLASH_FUSED_ACCEPT",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_RSFIX",
         "value": "1"
       },
       {
@@ -446,6 +522,18 @@
         "value": "1"
       },
       {
+        "name": "INKLING_CERT_WIDE_MAX_ROWS",
+        "value": ""
+      },
+      {
+        "name": "INKLING_CERT_WIDE_STATS",
+        "value": "0"
+      },
+      {
+        "name": "INKLING_DRAFT_RNNHOIST_MAX_BS",
+        "value": "32"
+      },
+      {
         "name": "INKLING_KV12S",
         "value": "1"
       },
@@ -456,6 +544,42 @@
       {
         "name": "INKLING_KV12S_FALLBACK_PAGES",
         "value": "64"
+      },
+      {
+        "name": "SGLANG_RAGGED_VERIFY_MODE",
+        "value": "static"
+      },
+      {
+        "name": "INKLING_KV12S_POOL",
+        "value": "static"
+      },
+      {
+        "name": "MAX_JOBS",
+        "value": "4"
+      },
+      {
+        "name": "SGLANG_OPT_INKLING2_VERIFY_REL_BIAS_KERNEL",
+        "value": "1"
+      },
+      {
+        "name": "SGLANG_OPT_DSV41_DSPARK_MID_FOLD",
+        "value": "1"
+      },
+      {
+        "name": "SGLANG_OPT_DSV41_DSPARK_PREPARE_INPUTS_ONCE",
+        "value": "1"
+      },
+      {
+        "name": "SGLANG_OPT_DSV41_DSPARK_SKIP_PREFILLED_INPUTS",
+        "value": "1"
+      },
+      {
+        "name": "MALLOC_MMAP_THRESHOLD_",
+        "value": "1048576"
+      },
+      {
+        "name": "SGLANG_ENABLE_DFLASH_DRAFT_KV_RING",
+        "value": "1"
       }
     ],
     "lifecycle": {
@@ -491,7 +615,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 20191643271,
+            "artifact_bytes": 21181620198,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 10095821635

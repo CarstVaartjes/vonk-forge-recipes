@@ -3,17 +3,28 @@ FROM lmsysorg/sglang@sha256:bc811ac7ac68c6fca116a49750baca817b8613a30abface8a347
 # knapcio's Inkling 2 Mini kit runs SGLang's published inkling-2-mini image
 # (lmsysorg/sglang, pinned by digest in scripts/launch.sh) with the kit's speed
 # overlays mounted and put on PYTHONPATH; we pin that image by arm64 digest, bake
-# the overlay in and add the Vonk launcher and runtime user.
+# the overlay in and add the Vonk launcher and runtime user. The DFlash2 drafter's
+# SGLang support file (the kit's launch.sh runs it from the drafter directory at
+# every start) is fetched here at the drafter revision, checked against the kit's
+# sha256 and run once as root, which patches the installed SGLang.
 LABEL org.opencontainers.image.source="https://github.com/knapcio/Inkling-2-Mini-1x-DGX-Spark" \
-      org.opencontainers.image.revision="6d89c0ec24cca90ce58991446cf74b1dac449cc8" \
+      org.opencontainers.image.revision="d3f460745aff0dffb40f6b8341077382f3b43dfe" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0"
+
+ARG DFLASH2_REVISION=4f9088ea66c21f2b99ed657d1941c306b03e84d2
+ARG DFLASH2_FILE_SHA256=14223ae2f3aa1d661da67cf0143ec33070d952a6e28a119e6cec64fcc0bebe50
 
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
 COPY overlay /opt/inkling-overlay
 COPY verify-runtime.py /opt/vonk/build/verify-runtime.py
 COPY inkling-forced-tool-grammar.py /opt/vonk/build/inkling-forced-tool-grammar.py
 
-RUN python3 /opt/vonk/build/inkling-forced-tool-grammar.py \
+RUN python3 -I -c "import sys, urllib.request; sys.stdout.buffer.write(urllib.request.urlopen(sys.argv[1]).read())" \
+      "https://huggingface.co/incoai/Inkling-2-Mini-DFlash2/resolve/${DFLASH2_REVISION}/sglang_inkling_dflash2.py" \
+      > /opt/vonk/build/sglang_inkling_dflash2.py \
+    && echo "${DFLASH2_FILE_SHA256}  /opt/vonk/build/sglang_inkling_dflash2.py" | sha256sum -c - \
+    && python3 -I /opt/vonk/build/sglang_inkling_dflash2.py \
+    && python3 /opt/vonk/build/inkling-forced-tool-grammar.py \
     && python3 /opt/vonk/build/verify-runtime.py \
     && rm -rf /opt/vonk/build \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
