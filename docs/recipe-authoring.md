@@ -1175,7 +1175,10 @@ another checkpoint and does not move the recipe (#2749). Recipes in `policy/publ
 published image digest and its recorded build commit, not unrelated newer Git
 heads. `tools/check-image-provenance --base origin/main` checks changed recipes.
 An unavailable recorded commit needs the explicit unverified provenance mark
-and review; do not claim a byte comparison that could not run. Outages wait;
+and review; do not claim a byte comparison that could not run. An unreadable
+provider (registry, GitHub; `check-image-provenance`, `kit-pins check`,
+`check-vendored-upstream`) is a note, skipped this run and re-checked when the recipe next
+changes, never a failed check;
 missing source is unverified (`tests/tools/test_published_image_follow.py`).
 When the refresher moves a published image it also replaces the adapter
 Dockerfile's image-description comment (between `LABEL` and the

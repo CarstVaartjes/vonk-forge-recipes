@@ -5,6 +5,7 @@ from __future__ import annotations
 import http.client
 import re
 from dataclasses import dataclass
+from urllib.error import HTTPError
 
 MANIFEST = "vendored-upstream.json"
 ARCHIVE_ROUNDS = 3
@@ -33,8 +34,29 @@ MAX_SELECTION_ID = 64  # the contract bounds a selected file's id
 OVERRIDE_VALUES = ("ref", "commit", "revision", "digest")
 
 
+NOT_SERVED = {404, 410, 422}  # a definitive "not there", never an outage
+
+
 class KitError(RuntimeError):
     """A declaration cannot be read or derived; the message names what to fix."""
+
+
+def is_outage(error: BaseException) -> bool:
+    """Whether ``error`` is a provider that could not be read (down, busy, timed out).
+
+    A ``KitError`` is ours (a declaration or lock that is wrong) unless it wraps the read
+    that failed.
+    """
+    chain: list[BaseException] = []
+    link: BaseException | None = error
+    while link is not None and link not in chain:
+        chain.append(link)
+        link = link.__cause__
+    if any(isinstance(e, HTTPError) and e.code in NOT_SERVED for e in chain):
+        return False  # the provider answered: the commit or image is not there
+    if isinstance(error, KitError):
+        return isinstance(error.__cause__, RuntimeError | OSError)
+    return isinstance(error, RuntimeError | OSError)
 
 
 @dataclass(frozen=True, slots=True)

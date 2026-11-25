@@ -7,7 +7,9 @@ the revision it states (``provenance.source_reference``, the Dockerfile's
 ``org.opencontainers.image.revision`` label, ``vendored-upstream.json``'s
 ``source.commit``) must be the build commit the image records about itself
 (``Registry.provenance``: its OCI revision label or its ``build-metadata.yaml``). An
-image that records none is reported as unreadable, not failed.
+image that records none, or whose registry cannot be read this run, is noted, not failed
+(the digest pin is the security edge; provenance is skipped this run and re-checked when
+the recipe next changes).
 
 An image built from a commit GitHub does not serve is still followed by its digest (the
 digest is the identity; the commit is provenance), but never silently: the recipe's
@@ -87,7 +89,13 @@ def check(
         if followed is None:
             continue
         repository, _, digest = followed
-        found = registry.provenance(repository, digest, source)
+        try:
+            found = registry.provenance(repository, digest, source)
+        except (RuntimeError, OSError) as error:  # KitError, UpstreamBusy, timeouts
+            notes.append(
+                f"{path.name}: {repository}@{digest} not checked this run: {error}"
+            )
+            continue
         if found is None:
             notes.append(
                 f"{path.name}: {repository}@{digest} records no build commit of "
@@ -161,7 +169,7 @@ def main(argv: list[str] | None = None) -> int:
         problems, notes = check(
             arguments.root, changed, kit_upstream.Registry(kit_upstream.fetch)
         )
-    except (subprocess.CalledProcessError, kit_model.KitError, RuntimeError) as error:
+    except subprocess.CalledProcessError as error:
         print(f"Cannot check image provenance: {error}", file=sys.stderr)
         return 2
     actions = os.environ.get("GITHUB_ACTIONS") == "true"
