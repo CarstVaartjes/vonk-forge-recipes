@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import hashlib
 import json
-import runpy
 import unittest
 from pathlib import Path
 from typing import Any
 
 from generated_catalog import GENERATED
 from repo_root import ROOT
+
+from recipe_tooling import catalog_index
 
 DOCKERFILES = (
     ROOT / "adapters/llm/laguna-vllm/Dockerfile",
@@ -50,7 +51,7 @@ class LagunaVllmAdapterRuntimeTests(unittest.TestCase):
             assert recipe["topology"]["node_count"] == 1
 
     def test_recipe_package_binds_the_source_bundle(self) -> None:
-        tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+        tool = vars(catalog_index)
         for path in (RECIPE, S_RECIPE):
             recipe = load(path)
             context = recipe["execution"]["build"]["context"]

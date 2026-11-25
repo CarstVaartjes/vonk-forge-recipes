@@ -4,16 +4,16 @@ import copy
 import hashlib
 import io
 import json
-import runpy
 import tarfile
 from pathlib import Path
 from typing import Any
 
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from vonk_forge_contracts import RecipeDefinition
 
-TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+TOOL = vars(catalog_index)
 PLATFORM_OWNED_ENVIRONMENT = {
     "FLASHINFER_WORKSPACE_BASE",
     "TILELANG_CACHE_DIR",

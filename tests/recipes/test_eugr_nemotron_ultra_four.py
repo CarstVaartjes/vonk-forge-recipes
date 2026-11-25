@@ -25,6 +25,7 @@ REWORDED = {
     "--tensor-parallel-size": "topology tensor 4",
     "--host": "the Controller owns the listen address",
     "--port": "the Controller owns the port",
+    "--mamba-cache-mode": "removed by vLLM 9a4930a797; prefix caching on now means align",
 }
 
 

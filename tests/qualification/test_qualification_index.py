@@ -2,45 +2,23 @@ from __future__ import annotations
 
 import base64
 import hashlib
-import importlib.machinery
-import importlib.util
 import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
 
 import pytest
 from generated_catalog import GENERATED
 from repo_root import ROOT
 
+from recipe_tooling import qualification_authority
 from recipe_tooling.qualification.definitions_loader import load_definitions
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 QUALIFICATION_ROOT = ROOT / "qualification"
 
 
-def _authority_namespace() -> dict[str, Any]:
-    """Load the extensionless entry point and return its real module namespace.
-
-    ``runpy.run_path`` returns a *copy* of the module globals, so a test that
-    patched that copy would leave the functions under test unchanged and pass
-    for the wrong reason. The module's own ``__dict__`` is what its functions
-    close over, so patching it reaches the code under test.
-    """
-
-    loader = importlib.machinery.SourceFileLoader(
-        "build_qualification_authority",
-        str(ROOT / "tools/build-qualification-authority"),
-    )
-    spec = importlib.util.spec_from_loader(loader.name, loader)
-    assert spec is not None
-    module = importlib.util.module_from_spec(spec)
-    loader.exec_module(module)
-    return module.__dict__
-
-
-AUTHORITY_TOOL = _authority_namespace()
+AUTHORITY_TOOL = qualification_authority.__dict__
 
 
 def _document(path: Path) -> dict[str, object]:
