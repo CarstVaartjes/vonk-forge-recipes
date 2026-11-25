@@ -15,7 +15,7 @@ applies it to every variant from ``api_variants``.
 from __future__ import annotations
 
 import json
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 
 from vonk_forge_contracts.api import (
     ApiBlock,
@@ -30,7 +30,7 @@ from vonk_forge_contracts.api import (
     require_api_of,
 )
 from vonk_forge_contracts.capability import CapabilityName
-from vonk_forge_contracts.display import ModelDisplay
+from vonk_forge_contracts.display import ModelDisplay, RecipeDisplay
 from vonk_forge_contracts.recipe import (
     RecipeDecisionSettings,
     RecipeDefinition,
@@ -61,13 +61,34 @@ INPUT_MODALITY_CAPABILITIES: dict[str, CapabilityName] = {
 }
 
 
+def endpoint_capabilities(
+    recipe: RecipeDefinition,
+    display: RecipeDisplay,
+    model_displays: Mapping[str, ModelDisplay],
+) -> set[CapabilityName]:
+    """The display capabilities of the recipe's endpoint Models.
+
+    ``model_displays`` is keyed by Model slug. A binding the display lists in ``component_bindings`` (a drafter, encoder,
+    VAE or engram source) is part of the launch, not what it serves, so its
+    Model's capabilities do not count.
+    """
+
+    components = set(display.component_bindings)
+    return {
+        CapabilityName(capability)
+        for binding in recipe.models
+        if binding.id not in components
+        for capability in model_displays[binding.model.slug].capabilities
+    }
+
+
 def served_capabilities(
     model_capabilities: Iterable[CapabilityName], api: RecipeApi | None
 ) -> tuple[CapabilityName, ...]:
     """The capabilities one recipe's launch serves, sorted by name.
 
     The one derivation the site, the Controller and vonkctl share. It starts
-    from the Models' capabilities, replaces the input understanding ones with
+    from the endpoint Models' capabilities (``endpoint_capabilities``), replaces the input understanding ones with
     what the API accepts (a modality any option choice accepts counts), and
     drops ``tool-use`` / ``reasoning`` when the API says it has none. A recipe
     without an API document keeps its Models' capabilities.

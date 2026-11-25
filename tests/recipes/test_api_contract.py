@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from documents import model_display, recipe, recipe_api
+from documents import model_display, recipe, recipe_api, recipe_display
 from generated_catalog import GENERATED
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
@@ -23,6 +23,7 @@ from vonk_forge_contracts import (
     check_api_models,
     check_recipe_api,
     document_sha256,
+    endpoint_capabilities,
     published_json,
     read_recipe_api,
     recipe_api_json_schema,
@@ -693,6 +694,21 @@ def test_served_capabilities_keep_tool_use_when_any_chat_block_serves_it() -> No
     assert "tool-use" in _names(served_capabilities(_MODEL, with_choice))
 
 
+def test_a_component_bindings_capabilities_are_not_served() -> None:
+    slug = "qwen-image-edit-2511-comfyui-single"
+    document = recipe(slug)
+    shown = {s.model.slug: model_display(s.model.slug) for s in document.models}
+    marked = recipe_display(slug)
+    unmarked = marked.model_copy(update={"component_bindings": []})
+    assert _names(sorted(endpoint_capabilities(document, marked, shown))) == [
+        "image-editing"
+    ]
+    assert _names(sorted(endpoint_capabilities(document, unmarked, shown))) == [
+        "image-editing",
+        "image-generation",
+    ]
+
+
 def test_every_catalog_entry_serves_a_capability() -> None:
     blank = [
         entry["document"]["identity"]["slug"]
@@ -712,6 +728,10 @@ def test_the_catalog_index_entries_carry_served_capabilities() -> None:
         "chat",
         "code-generation",
         "text-generation",
+    ]
+    # The Qwen Image encoder and VAE binding is a component: no image-generation.
+    assert entries["qwen-image-edit-2511-comfyui-single"]["served_capabilities"] == [
+        "image-editing"
     ]
     # No API document: the Models' capabilities.
     assert entries["gpt-oss-120b-nvidia-vllm-single"]["served_capabilities"] == [

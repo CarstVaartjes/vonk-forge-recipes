@@ -90,6 +90,22 @@ def _check_job_knobs(recipe: RecipeDefinition, display: RecipeDisplay) -> None:
         )
 
 
+def _check_component_bindings(recipe: RecipeDefinition, display: RecipeDisplay) -> None:
+    """A display names only the recipe's bindings as components, never all of them."""
+
+    slug = recipe.identity.slug
+    bindings = {binding.id for binding in recipe.models}
+    if unknown := sorted(set(display.component_bindings) - bindings):
+        raise ContractResolutionError(
+            f"recipe {slug}: display marks unknown binding {unknown[0]} as a component"
+        )
+    if bindings <= set(display.component_bindings):
+        raise ContractResolutionError(
+            f"recipe {slug}: display marks every binding as a component; "
+            "a recipe serves at least one endpoint Model"
+        )
+
+
 def validate_library(
     recipes: Iterable[RecipeDefinition],
     models: Iterable[ModelDefinition],
@@ -129,6 +145,7 @@ def validate_library(
         if label == "recipe":
             for recipe in recipes:
                 _check_job_knobs(recipe, recipe_displays[recipe.identity.slug])
+                _check_component_bindings(recipe, recipe_displays[recipe.identity.slug])
         for slug, display in displays.items():
             if (display.identity.publisher, slug) not in keys:
                 raise ContractResolutionError(

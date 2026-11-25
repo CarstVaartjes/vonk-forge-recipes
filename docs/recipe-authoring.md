@@ -126,7 +126,7 @@ published-document readers to bypass producer validation (`tests/tools/test_cont
 | --- | --- |
 | Model | `identity`, `requires_token`, `dependencies`, `source`, `format`, `files`. |
 | Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
-| Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment` is optional. |
+| Recipe display | `identity` (the Recipe's), `title`, `description`, `tags`; `alignment`, `knobs` and `component_bindings` are optional. |
 | Model display | `identity` (the Model's own `publisher`/`slug`), `family_title`, `model_title`, `description`, `tags`, and the Model's declared facts: `modalities`, `capabilities`, `license`; `lineage` (its place in the catalog hierarchy) is required for a Model a recipe serves first and absent for a helper. |
 | Family display | `slug`, `title`, `lines` (each `slug`, `title`, `models` oldest first). |
 | Recipe API | `identity` (the Recipe's), `api` (a `chat`, `decision`, `audio_transcription` or `audio_speech` block, every field required), `option_choices`. |
@@ -139,6 +139,14 @@ or `display/models/<slug>.json`, one per document and no orphan (`RecipeDisplay`
 document, its `content_sha256`, its evidence or its proven status; a change that
 alters what runs edits the document. Read display through `src/recipe_tooling/qualification/documents.py`
 (`recipe_display`, `model_display`), never off a document.
+A recipe display's `component_bindings` lists the `models[].id` bindings that are
+components of the launch rather than what it serves: a drafter or speculative
+head, an engram source, an encoder or VAE taken from another Model, a weight
+part. Absent, every binding is an endpoint. List a binding only when its Model
+is a component in this recipe and its display capabilities are not already `[]`;
+co-served Models (a TTS voice-design and base pair) and a base the recipe's
+LoRA or distilled weights run on stay endpoints. `validate_library` refuses an id
+the recipe does not bind and a display that lists every binding.
 Display text and tags never state verification status; the status badge owns it.
 A description does not say a recipe is a "Candidate", pending, untested or awaiting
 physical acceptance or qualification, and no recipe carries the `candidate` or
@@ -148,8 +156,9 @@ physical acceptance or qualification, and no recipe carries the `candidate` or
 
 Each catalog entry carries `served_capabilities`, the capabilities its launch
 serves (names from the capability vocabulary), derived by the contract's
-`served_capabilities` and never authored: the Models' display capabilities,
-with the input understanding ones taken from what the API accepts (any option
+`served_capabilities` and never authored: the endpoint Models' display
+capabilities (`endpoint_capabilities`; a `component_bindings` entry's Model never
+counts), with the input understanding ones taken from what the API accepts (any option
 choice counts), and `tool-use` / `reasoning` dropped when every chat block says
 `none`. A recipe without an API document keeps its Models' capabilities. The
 site, Controller and vonkctl read this key rather than re-deriving it.
@@ -263,7 +272,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/recipes/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v5.4.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v5.5.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
