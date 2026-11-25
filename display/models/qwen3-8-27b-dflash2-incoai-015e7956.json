@@ -1,7 +1,5 @@
 {
-  "capabilities": [
-    "speculative-decoding"
-  ],
+  "capabilities": [],
   "description": "IncoAI's DFlash2 block-diffusion speculative-decoding draft for Qwen3.8 27B (BF16). Apache-2.0 per the model card.",
   "family_title": "Qwen",
   "identity": {
