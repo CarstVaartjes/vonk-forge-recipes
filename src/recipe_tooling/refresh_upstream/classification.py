@@ -87,6 +87,20 @@ def release_downloads(repo: str) -> re.Pattern[str]:
     )
 
 
+DOCKERFILE_ARG = re.compile(r"^\s*ARG\s+(\w+)=(\S+)", re.MULTILINE)
+ARG_REFERENCE = re.compile(r"\$\{(\w+)\}|\$(\w+)")
+
+
+def expand_args(text: str, dockerfile: str) -> str:
+    """``text`` with ``${NAME}``/``$NAME`` replaced by the Dockerfile's ``ARG NAME=default``."""
+    defaults = {
+        m.group(1): m.group(2).strip("\"'") for m in DOCKERFILE_ARG.finditer(dockerfile)
+    }
+    return ARG_REFERENCE.sub(
+        lambda m: defaults.get(m.group(1) or m.group(2), m.group(0)), text
+    )
+
+
 def version_token(version: str) -> re.Pattern[str]:
     """``version`` as a whole token (``1.2.3`` in ``-1.2.3-`` or ``v1.2.3``, not ``11.2.3``)."""
     return re.compile(rf"(?<![\w.])(v?){re.escape(version)}(?![\w.])")
@@ -146,7 +160,9 @@ def retarget_release_assets(
     Each ``releases/download/<tag>/<asset>`` URL of the pinned repository moves to the
     target tag, the old version in its asset name to the new one, and the old asset's
     published sha256 (wherever the Dockerfile states it) to the new asset's. Lines that
-    check a ``VERSION`` file, and comments naming the project, carry the new version.
+    check a ``VERSION`` file (``ARG TF_VERSION=`` included), and comments naming the
+    project, carry the new version. A URL written with ``${ARG}`` references is read
+    through the ``ARG`` defaults and left as written: the defaults move instead.
     Anything that cannot be re-pinned raises ``ReleaseAssetError``.
     """
     pattern = release_downloads(item.repo)
@@ -157,10 +173,15 @@ def retarget_release_assets(
     if not new_tag or not new_version:
         raise ReleaseAssetError("the target is not a published release")
     old_versions: set[str] = set()
+    templated: list[tuple[str, str, str, str]] = []
+    seen: set[tuple[str, str]] = set()
     for match in matches:
-        old_tag, old_asset = match.group(1), match.group(2)
-        if old_tag == new_tag:
+        raw_tag, raw_asset = match.group(1), match.group(2)
+        old_tag = expand_args(raw_tag, dockerfile)
+        old_asset = expand_args(raw_asset, dockerfile)
+        if old_tag == new_tag or (old_tag, old_asset) in seen:
             continue
+        seen.add((old_tag, old_asset))
         old_version = old_tag.removeprefix("v")
         old_versions.add(old_version)
         new_asset = version_token(old_version).sub(
@@ -172,10 +193,15 @@ def retarget_release_assets(
                 f"the Dockerfile does not pin `{old_asset}` by sha256"
             )
         new_digest = published_sha256(http, item.repo, new_tag, new_asset)
-        dockerfile = dockerfile.replace(old_digest, new_digest).replace(
-            match.group(0),
-            f"https://github.com/{item.repo}/releases/download/{new_tag}/{new_asset}",
-        )
+        dockerfile = dockerfile.replace(old_digest, new_digest)
+        if (raw_tag, raw_asset) == (old_tag, old_asset):
+            dockerfile = dockerfile.replace(
+                match.group(0),
+                f"https://github.com/{item.repo}/releases/download/{new_tag}/{new_asset}",
+            )
+        else:
+            # A URL built from ARG defaults stays as written; the defaults move below.
+            templated.append((raw_tag, raw_asset, new_tag, new_asset))
     if not old_versions:
         return dockerfile, False
     project = item.repo.split("/", 1)[1].lower()
@@ -190,7 +216,16 @@ def retarget_release_assets(
                     lambda m: m.group(1) + new_version, line
                 )
         lines.append(line)
-    return "".join(lines), True
+    moved = "".join(lines)
+    for raw_tag, raw_asset, new_tag, new_asset in templated:
+        if (expand_args(raw_tag, moved), expand_args(raw_asset, moved)) != (
+            new_tag,
+            new_asset,
+        ):
+            raise ReleaseAssetError(
+                f"the ARG defaults do not name {new_tag}/{new_asset} after the move"
+            )
+    return moved, True
 
 
 def patch_targets(adapter: Path) -> set[str]:
