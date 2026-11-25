@@ -12,8 +12,9 @@ import hashlib
 import struct
 import sys
 from pathlib import Path
+from typing import cast
 
-import trimesh  # pyright: ignore[reportMissingImports]
+import trimesh
 
 SOURCE_SHA256 = "d6be85417d3e256861ee733eea6916093a7af7c79c16366181fd8abcaeb38cf5"
 
@@ -27,7 +28,7 @@ def normalized_trimesh_export(source: Path) -> bytes:
     mesh = trimesh.load(source, force="mesh", process=True)
     if not isinstance(mesh, trimesh.Trimesh) or mesh.is_empty:
         raise SystemExit("source RiggedFigure did not produce a non-empty mesh")
-    output = bytearray(mesh.export(file_type="glb"))
+    output = bytearray(cast("bytes", mesh.export(file_type="glb")))
     json_length, json_type = struct.unpack_from("<II", output, 12)
     if json_type != 0x4E4F534A:
         raise SystemExit("trimesh export did not start with a JSON chunk")
