@@ -30,7 +30,6 @@ PLATFORM = [
     "VONK_MASTER_PORT",
 ]
 ENVIRON = {
-    "HOME": "/outputs/cache/home",
     "VONK_MASTER_ADDR": "192.0.2.1",
     "VONK_MASTER_PORT": "29500",
     "NCCL_SOCKET_IFNAME": "enp1s0f1np1",

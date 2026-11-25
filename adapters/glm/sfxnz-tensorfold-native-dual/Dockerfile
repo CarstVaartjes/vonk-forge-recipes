@@ -4,8 +4,9 @@
 # builds the runtime from NVIDIA's CUDA 13.0 base, and so does this, with these changes: its three `ADD` downloads are curl steps
 # checked against the creator's sha256 (the recipe build policy forbids ADD), python3 is installed for the Controller launcher,
 # and the final user is numeric. The binary build follows adapters/glm/mia-1104-tensorfold-dual (same engine base): the engine
-# archive is not a git checkout, so the patches go in with `git apply`; ZIG_CPU is baseline, not the host's, because this image is
-# built on a hosted arm64 runner and must run on a GB10 (the one stated deviation from the kit's `zig build`). The release
+# archive is not a git checkout, so the patches go in with `git apply`; two deviations from the kit's `zig build`: -Dcpu=baseline,
+# not the host's, because this image is built on a hosted arm64 runner and must run on a GB10, and -Doptimize=fast, Zig 0.17's
+# name for the kit's ReleaseFast. The release
 # archive carries everything else (codecs' libtfgrammar, the CUDA kernels the unpatched binary embeds).
 ARG TF_VERSION=1.2.10
 ARG TF_SHA256=c335c44f81d55847a5f81d74a94ac3d09f81bd6688247cff972cf1f63fc18105
@@ -93,9 +94,7 @@ RUN bin=$(sha256sum /opt/tensorfold/bin/tensorfold-native | cut -d' ' -f1) \
 RUN ! ldd /opt/tensorfold/bin/tensorfold-native | grep "not found" | grep -v -e libcuda.so -e libnvidia
 LABEL tensorfold.version=${TF_VERSION} \
       tensorfold.archive=tensorfold-${TF_VERSION}-linux-aarch64.tar.gz \
-      tensorfold.archive.sha256=${TF_SHA256} \
-      tensorfold.engine.base="81de26f649677aa72ae0034d4af6e010cd947038" \
-      tensorfold.patches="39"
+      tensorfold.archive.sha256=${TF_SHA256}
 
 COPY licenses /opt/vonk/licenses
 COPY --chmod=0755 tensorfold-serve /opt/vonk/bin/tensorfold-serve
