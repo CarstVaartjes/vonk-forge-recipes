@@ -274,6 +274,42 @@ def installs_library(directory: Path | None, repo: str) -> bool:
     return False
 
 
+def release_asset_only(directory: Path | None, repo: str) -> bool:
+    """Whether the adapter uses ``repo`` only through its published release downloads.
+
+    ``github.com/<repo>/releases/download/`` is the only way it fetches the repository:
+    no clone, archive, codeload, raw/blob URL or file named after a commit. What it runs
+    is the release asset, so a move is judged by the release, not by source changes.
+    """
+    if directory is None or not directory.is_dir():
+        return False
+    escaped = re.escape(repo)
+    other = re.compile(
+        "|".join(
+            (
+                *whole_repo_patterns(escaped)[:-1],
+                rf"raw\.githubusercontent\.com/{escaped}/",
+                rf"github\.com/{escaped}/(?:blob|raw)/",
+            )
+        ),
+        re.IGNORECASE,
+    )
+    download = re.compile(rf"github\.com/{escaped}/releases/download/", re.IGNORECASE)
+    downloads = False
+    for path in sorted(directory.rglob("*")):
+        if not path.is_file() or path.is_symlink():
+            continue
+        if re.search(r"[0-9a-f]{12,}", path.name):
+            return False
+        if path.stat().st_size > 1_000_000 or path.suffix in {".gz", ".zip", ".tar"}:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if other.search(text):
+            return False
+        downloads = downloads or download.search(text) is not None
+    return downloads
+
+
 def adapter_files(directory: Path) -> set[str]:
     """Relative paths of the adapter's files that could be copies of upstream files."""
     own = {"Dockerfile", vendored.MANIFEST, vendored.KIT_LOCK}

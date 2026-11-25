@@ -550,7 +550,7 @@ class ReleaseAssetTests(unittest.TestCase):
             )
         return {"tag_name": tag, "assets": assets}
 
-    def assess(self, *, new_has_sha256: bool = True):
+    def assess(self, *, new_has_sha256: bool = True, cmp=None, extra: str = ""):
         test = self
         releases = {
             "v1.2.3": self.release("v1.2.3", self.OLD_SHA256),
@@ -580,7 +580,7 @@ class ReleaseAssetTests(unittest.TestCase):
         adapter = root / "adapters/tf"
         adapter.mkdir(parents=True)
         (adapter / "Dockerfile").write_text(self.dockerfile())
-        (adapter / "tensorfold-serve").write_text("#!/bin/sh\n")
+        (adapter / "tensorfold-serve").write_text("#!/bin/sh\n" + extra)
         (adapter / "vendored-upstream.json").write_text(
             json.dumps(
                 {
@@ -606,7 +606,9 @@ class ReleaseAssetTests(unittest.TestCase):
         )
         assessor = refresh_assessment.Assessor(catalog, FakeHttp(), None, {})  # pyright: ignore[reportArgumentType]
         assessor.target = lambda _provider, _repo: self.TARGET  # pyright: ignore[reportAttributeAccessIssue]
-        zig_only = comparison(files=("zig/src/families/qwen3_5/cuda_engine.zig",))
+        zig_only = cmp or comparison(
+            files=("zig/src/families/qwen3_5/cuda_engine.zig",)
+        )
         for active in (
             patch(
                 "recipe_tooling.refresh_upstream.items.compare_commits",
@@ -665,6 +667,25 @@ class ReleaseAssetTests(unittest.TestCase):
         assert f"ARG TF_SHA256={self.NEW_SHA256}\n" in moved
         assert "v${TF_VERSION}/tensorfold-${TF_VERSION}-linux" in moved
         assert self.OLD_SHA256 not in moved
+
+    DIVERGED = comparison(
+        status="diverged",
+        files=("tools/zig/drama3_compact_gb10.sh", "web/x/native-version.json"),
+        truncated=True,
+    )
+
+    def test_a_release_only_adapter_is_judged_by_the_release_not_the_source(
+        self,
+    ) -> None:
+        result = self.assess(cmp=self.DIVERGED)
+        assert result.mechanical, result.reasons
+
+    def test_an_adapter_that_also_clones_the_source_stays_in_review(self) -> None:
+        result = self.assess(
+            cmp=self.DIVERGED,
+            extra=f"git clone https://github.com/{self.REPO}\n",
+        )
+        assert not result.mechanical
 
     def test_a_release_without_its_sha256_file_is_a_review(self) -> None:
         result = self.assess(new_has_sha256=False)

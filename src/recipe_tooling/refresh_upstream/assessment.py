@@ -324,7 +324,17 @@ class Assessor:
         )
         mirrored: set[str] = set()
         judged = comparison
-        if is_kit:
+        release_only = refresh_catalog_view.release_asset_only(context, item.repo)
+        if release_only:
+            # The adapter runs the creator's published release asset, not the source:
+            # the release (its asset and verified digest) is what moves.
+            used_changes = []
+            result.evidence.append(
+                f"- {item.label}: the adapter uses this repository only through its "
+                "release downloads; the move is judged by the release, not by source "
+                "changes.\n"
+            )
+        elif is_kit:
             # The adapter is built from this repository's patches and scripts, so a
             # change to what runs is a reason even though no file is named by URL.
             used_changes = None
@@ -361,6 +371,7 @@ class Assessor:
         if (
             not reasons
             and item.image is None
+            and not release_only
             and (
                 used_changes == []
                 or (
