@@ -11,7 +11,6 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
-import runpy
 import shutil
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -19,11 +18,11 @@ from typing import Any
 import pytest
 from generated_catalog import SOURCE_COMMIT as SESSION_COMMIT
 from generated_catalog import SOURCE_DATE_EPOCH as SESSION_EPOCH
-from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from vonk_forge_contracts import read_catalog_index
 
-TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+TOOL = vars(catalog_index)
 SOURCE_COMMIT = "0123456789abcdef0123456789abcdef01234567"
 SOURCE_DATE_EPOCH = 0
 

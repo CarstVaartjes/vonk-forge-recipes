@@ -14,6 +14,8 @@ import pytest
 from documents import recipe_display
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
+
 LTX23_SLUG = "ltx-2-3-22b-distilled-1-1-diffusers-single"
 FP4_SLUG = "ltx-2-19b-dev-fp4-pytorch-single"
 BF16_SLUG = "ltx-2-19b-dev-bf16-diffusers-single"
@@ -326,9 +328,7 @@ class LtxSparkFitTests(unittest.TestCase):
         )
 
         recipe = load(ROOT / f"recipes/{LTX23_SLUG}.json")
-        source_bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))[
-            "source_bundle"
-        ]
+        source_bundle = vars(catalog_index)["source_bundle"]
         archive, _, digest = source_bundle(adapter_root)
         assert (
             recipe["execution"]["build"]["context"]["path"]

@@ -1,0 +1,5 @@
+{
+  "authority_id": "nl-family-aware-20260924",
+  "default_boost": ["glm-5-3"],
+  "owner_profiles": [1, 2, 3]
+}

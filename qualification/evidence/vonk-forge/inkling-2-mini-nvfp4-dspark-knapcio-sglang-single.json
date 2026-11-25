@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/inkling-2-mini-nvfp4-dspark-knapcio-sglang-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "4a82e7d4ab8a82e6b53bcd1a8bf58ba5fd5589c58224c2f2bad627918eba7074",
+        "source_bundle_sha256": "54192ba6c42c40daed2485c89e6697214959c5b36ec91236e89478048734f312",
+        "runtime_image": {
+          "build_key": "35ed0b5ae694d97a40218f294ed6462487cfc3dbf284af8190cafe78899f89a9",
+          "image_digest": "sha256:4757d532e5ba86e920d0aaae9c11c8716a9522fe88353a6528a25599123ac495"
+        },
+        "model_digests": [
+          "ab2b3d76ea9855994f7775f352a0a443d993e16f4df36ab24d7e24199472e68a"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "1f128edbd64eb2f33f4e6283e1ee1f1c535ef628efbe5481708e9d5364b5a7b9"
+      ],
+      "tested_at": "2026-11-24T23:21:27.035824Z",
+      "platform": {
+        "controller_source_sha": "a89ae64a6df5bf528ba7d12b2100fee58345c00b",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "4a82e7d4ab8a82e6b53bcd1a8bf58ba5fd5589c58224c2f2bad627918eba7074",
+      "role": "entrypoint",
+      "steady_bytes": 125710626816
+    }
+  ]
+}
