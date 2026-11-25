@@ -555,7 +555,16 @@ class ReleaseAssetTests(unittest.TestCase):
             )
         return {"tag_name": tag, "assets": assets}
 
-    def assess(self, *, new_has_sha256: bool = True):
+    def assess(
+        self,
+        *,
+        new_has_sha256: bool = True,
+        cmp=None,
+        extra: str = "",
+        files: dict[str, str] | None = None,
+        owned: bool = True,
+        dockerfile: str | None = None,
+    ):
         test = self
         releases = {
             "v1.2.3": self.release("v1.2.3", self.OLD_SHA256),
@@ -584,16 +593,15 @@ class ReleaseAssetTests(unittest.TestCase):
         root = Path(tmp.name)
         adapter = root / "adapters/tf"
         adapter.mkdir(parents=True)
-        (adapter / "Dockerfile").write_text(self.dockerfile())
-        (adapter / "tensorfold-serve").write_text("#!/bin/sh\n")
-        (adapter / "vendored-upstream.json").write_text(
-            json.dumps(
-                {
-                    "ours": ["tensorfold-serve"],
-                    "source": {"commit": OLD, "line": "1", "repo": self.REPO},
-                }
-            )
-        )
+        (adapter / "Dockerfile").write_text(dockerfile or self.dockerfile())
+        (adapter / "tensorfold-serve").write_text("#!/bin/sh\n" + extra)
+        for name, text in (files or {}).items():
+            (adapter / name).parent.mkdir(parents=True, exist_ok=True)
+            (adapter / name).write_text(text)
+        manifest: dict[str, Any] = {"ours": ["tensorfold-serve"]}
+        if owned:
+            manifest["source"] = {"commit": OLD, "line": "1", "repo": self.REPO}
+        (adapter / "vendored-upstream.json").write_text(json.dumps(manifest))
         catalog = refresh_catalog_view.Catalog(
             root,
             recipes={
@@ -611,7 +619,9 @@ class ReleaseAssetTests(unittest.TestCase):
         )
         assessor = refresh_assessment.Assessor(catalog, FakeHttp(), None, {})  # pyright: ignore[reportArgumentType]
         assessor.target = lambda _provider, _repo: self.TARGET  # pyright: ignore[reportAttributeAccessIssue]
-        zig_only = comparison(files=("zig/src/families/qwen3_5/cuda_engine.zig",))
+        zig_only = cmp or comparison(
+            files=("zig/src/families/qwen3_5/cuda_engine.zig",)
+        )
         for active in (
             patch(
                 "recipe_tooling.refresh_upstream.items.compare_commits",
@@ -670,6 +680,61 @@ class ReleaseAssetTests(unittest.TestCase):
         assert f"ARG TF_SHA256={self.NEW_SHA256}\n" in moved
         assert "v${TF_VERSION}/tensorfold-${TF_VERSION}-linux" in moved
         assert self.OLD_SHA256 not in moved
+
+    DIVERGED = comparison(
+        status="diverged",
+        files=("tools/zig/drama3_compact_gb10.sh", "web/x/native-version.json"),
+        truncated=True,
+    )
+
+    def test_a_release_only_adapter_is_judged_by_the_release_not_the_source(
+        self,
+    ) -> None:
+        result = self.assess(cmp=self.DIVERGED)
+        assert result.mechanical, result.reasons
+        moved = result.edits["adapters/tf/Dockerfile"].decode()  # pyright: ignore[reportOptionalMemberAccess]
+        assert f"/releases/download/v1.2.4/{self.asset('1.2.4')}" in moved
+        assert f'echo "{self.NEW_SHA256}  /tmp/tf.tar.gz"' in moved
+
+    def test_a_github_blob_link_in_a_notice_is_not_a_fetch(self) -> None:
+        notice = f"See https://github.com/{self.REPO}/blob/main/LICENSE\n"
+        result = self.assess(cmp=self.DIVERGED, files={"licenses/NOTICE": notice})
+        assert result.mechanical, result.reasons
+
+    def test_an_adapter_that_is_not_release_only_stays_in_review(self) -> None:
+        patch_file = "--- a/x\n+++ b/zig/src/x.zig\n@@ -1 +1 @@\n-a\n+b\n"
+        fetch = f"git remote add o https://github.com/{self.REPO} && git fetch o\n"
+        for name, kwargs in {
+            "patched": {"files": {"p.patch": patch_file}},
+            "unowned": {
+                "owned": False,
+                "dockerfile": self.dockerfile().replace(
+                    f' \\\n      org.opencontainers.image.revision="{OLD}"', ""
+                ),
+            },
+            "script-only download": {
+                "dockerfile": f"FROM base@sha256:{'4' * 64}\n",
+                "files": {
+                    "get.sh": f"curl https://github.com/{self.REPO}/releases/download/v1.2.3/x\n"
+                },
+            },
+            "download also in a script": {
+                "files": {
+                    "get.sh": f"curl https://github.com/{self.REPO}/releases/download/v1.2.3/x\n"
+                },
+            },
+            "git remote add and fetch": {"extra": fetch},
+        }.items():
+            with self.subTest(name):
+                result = self.assess(cmp=self.DIVERGED, **kwargs)
+                assert not result.mechanical
+
+    def test_an_adapter_that_also_clones_the_source_stays_in_review(self) -> None:
+        result = self.assess(
+            cmp=self.DIVERGED,
+            extra=f"git clone https://github.com/{self.REPO}\n",
+        )
+        assert not result.mechanical
 
     def test_an_arg_the_refresh_cannot_move_is_a_review(self) -> None:
         self.templated = True

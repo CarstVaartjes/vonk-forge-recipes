@@ -328,6 +328,13 @@ class Assessor:
         )
         mirrored: set[str] = set()
         judged = comparison
+        release_only = (
+            owns_adapter
+            and pin is not None
+            and not patched
+            and not refresh_catalog_view.active_mods(pin.directory)
+            and refresh_catalog_view.release_asset_only(pin.directory, item.repo)
+        )
         if is_kit:
             # The adapter is built from this repository's patches and scripts, so a
             # change to what runs is a reason even though no file is named by URL.
@@ -343,6 +350,15 @@ class Assessor:
                 )
                 + " (docs, tests and client-side helper scripts are not runtime; "
                 "patches, launch scripts, configuration and files the adapter copies are).\n"
+            )
+        elif release_only:
+            # The adapter runs the creator's published release asset, not the source:
+            # the release (its asset and verified digest) is what moves.
+            used_changes = []
+            result.evidence.append(
+                f"- {item.label}: the adapter uses this repository only through its "
+                "release downloads; the move is judged by the release, not by source "
+                "changes.\n"
             )
         else:
             used_changes = self._used_changes(item, recipe, pin, patched, result)
@@ -365,6 +381,7 @@ class Assessor:
         if (
             not reasons
             and item.image is None
+            and not release_only
             and (
                 used_changes == []
                 or (

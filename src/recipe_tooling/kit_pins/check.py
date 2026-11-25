@@ -31,9 +31,14 @@ from recipe_tooling.kit_pins.model import (
     Declaration,
     KitError,
     Pin,
+    is_outage,
 )
 from recipe_tooling.kit_pins.sources import withdrawn
 from recipe_tooling.kit_pins.upstream import Upstream
+
+
+class OutageError(KitError):
+    """A kit scan that could not read its provider this run."""
 
 
 def check_images(
@@ -66,14 +71,17 @@ def check_images(
     def scan(key: tuple[str, str, str]) -> list[dict[str, Any]] | KitError:
         try:
             return kit_images(source, *key)
-        except (KitError, RuntimeError) as error:  # incl. UpstreamBusy
-            return KitError(str(error))
+        except (KitError, RuntimeError, OSError) as error:  # incl. UpstreamBusy
+            return OutageError(str(error)) if is_outage(error) else KitError(str(error))
 
     keys = sorted(set(wanted.values()))
     with ThreadPoolExecutor(max_workers=8) as pool:
         scans = dict(zip(keys, pool.map(scan, keys), strict=True))
     for recipe_id, key in wanted.items():
         found = scans[key]
+        if isinstance(found, OutageError):
+            notice(f"{recipe_id}: not checked this run: {found}")
+            continue
         if isinstance(found, KitError):
             problems.append(f"{recipe_id}: {found}")
             continue
@@ -117,9 +125,17 @@ def lock_difference(lock: dict[str, Any], expected: dict[str, Any]) -> str:
 
 
 def check_recipe(
-    root: Path, recipe_id: str, recipe: dict[str, Any], source: Upstream
+    root: Path,
+    recipe_id: str,
+    recipe: dict[str, Any],
+    source: Upstream,
+    notice: Callable[[str], None] = lambda _message: None,
 ) -> list[str]:
-    """Reasons the recipe's committed lock is not what its kit declares ([] when current)."""
+    """Reasons the recipe's committed lock is not what its kit declares ([] when current).
+
+    A provider that cannot be read (registry or GitHub down, busy) is a ``notice`` (not
+    checked this run), never a problem: only a mismatch we can see is one.
+    """
     adapter = adapter_of(root, recipe)
     if adapter is None or not (adapter / MANIFEST).is_file():
         return []
@@ -148,41 +164,46 @@ def check_recipe(
     # A withdrawn kit (GitHub no longer serves its commit) is not re-read: the lock's own
     # declaration stands, and everything below still checks it against the recipe.
     gone = withdrawn(root, recipe)
-    try:
-        # Offline in the resolving direction: the lock's own value is used for the pin, so
-        # only the declaring file at the pinned kit commit is fetched.
-        pins = []
-        for declaration in wanted:
-            locked = lock.get("dependencies", {}).get(declaration.name)
-            if locked is None:
-                problems.append(f"{label}: {LOCK} lacks '{declaration.name}'")
-                continue
+    # Offline in the resolving direction: the lock's own value is used for the pin, so
+    # only the declaring file at the pinned kit commit is fetched. A provider that cannot
+    # be read is a notice, and the lock's own values bind the rest, as for a withdrawn kit.
+    pins = []
+    for declaration in wanted:
+        locked = lock.get("dependencies", {}).get(declaration.name)
+        if locked is None:
+            problems.append(f"{label}: {LOCK} lacks '{declaration.name}'")
+            continue
+        try:
             repo, ref, reason = (
                 (locked["repo"], locked["ref"], locked.get("overridden"))
                 if gone
                 else read_declared(source, kit[0], kit[1], declaration)
             )
-            pins.append(
-                Pin(
-                    declaration.name,
-                    repo,
-                    ref,
-                    locked.get(IMMUTABLE_KEYS[declaration.datasource], ""),
-                    "",
-                    locked.get("kind", ""),
-                    reason,
-                    declaration.datasource,
-                )
+        except (KitError, RuntimeError, OSError) as error:
+            if not is_outage(error):
+                problems.append(f"{label}: {error}")
+                return problems
+            notice(f"{label}: lock not re-read this run: {error}")
+            gone = True
+            repo, ref, reason = locked["repo"], locked["ref"], locked.get("overridden")
+        pins.append(
+            Pin(
+                declaration.name,
+                repo,
+                ref,
+                locked.get(IMMUTABLE_KEYS[declaration.datasource], ""),
+                "",
+                locked.get("kind", ""),
+                reason,
+                declaration.datasource,
             )
-        expected = lock_document(kit[0], kit[1], pins)
-        if lock != expected:
-            problems.append(
-                f"{label}: {LOCK} is stale: the recipe pins kit {kit[0]}@{kit[1][:12]}, "
-                f"{lock_difference(lock, expected)}; run tools/kit-pins lock {recipe_id}"
-            )
-    except KitError as error:
-        problems.append(f"{label}: {error}")
-        return problems
+        )
+    expected = lock_document(kit[0], kit[1], pins)
+    if lock != expected:
+        problems.append(
+            f"{label}: {LOCK} is stale: the recipe pins kit {kit[0]}@{kit[1][:12]}, "
+            f"{lock_difference(lock, expected)}; run tools/kit-pins lock {recipe_id}"
+        )
     by_name = {d.name: d for d in wanted}
     for pin in pins:
         problems.extend(
