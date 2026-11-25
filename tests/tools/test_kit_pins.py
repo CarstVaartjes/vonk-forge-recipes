@@ -541,14 +541,23 @@ class WithdrawnKitTests(unittest.TestCase):
         notices: list[str] = []
         with tempfile.TemporaryDirectory() as tmp:
             recipe = self.adapter(Path(tmp), marked=False)
+            manifest = Path(tmp) / "adapters/mia" / kit_model.MANIFEST
+            document = json.loads(manifest.read_text())
+            dependencies = document["kit"]["dependencies"]
+            dependencies["extra"] = dict(dependencies["image"])
+            manifest.write_text(json.dumps(document))
             source = kit_upstream.Upstream(kit_upstream.GitHub(down), images=busy)
             problems = kit_check.check_recipe(
                 Path(tmp), "mia", recipe, source, notices.append
-            ) + kit_check.check_images(
+            )
+            scan = kit_check.check_images(
                 Path(tmp), {"mia": recipe}, source, notice=notices.append
             )
-        assert problems == []
+        assert scan == []
         assert len(notices) == 2
+        assert [p for p in problems if "lacks 'extra'" in p], (
+            problems
+        )  # lock still binds
 
     def test_the_marked_kit_is_not_re_read(self) -> None:
         assert self.problems(marked=True) == ([], [])

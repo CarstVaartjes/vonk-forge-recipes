@@ -164,58 +164,46 @@ def check_recipe(
     # A withdrawn kit (GitHub no longer serves its commit) is not re-read: the lock's own
     # declaration stands, and everything below still checks it against the recipe.
     gone = withdrawn(root, recipe)
-    try:
-        # Offline in the resolving direction: the lock's own value is used for the pin, so
-        # only the declaring file at the pinned kit commit is fetched.
-        pins = []
-        for declaration in wanted:
-            locked = lock.get("dependencies", {}).get(declaration.name)
-            if locked is None:
-                problems.append(f"{label}: {LOCK} lacks '{declaration.name}'")
-                continue
+    # Offline in the resolving direction: the lock's own value is used for the pin, so
+    # only the declaring file at the pinned kit commit is fetched. A provider that cannot
+    # be read is a notice, and the lock's own values bind the rest, as for a withdrawn kit.
+    pins = []
+    for declaration in wanted:
+        locked = lock.get("dependencies", {}).get(declaration.name)
+        if locked is None:
+            problems.append(f"{label}: {LOCK} lacks '{declaration.name}'")
+            continue
+        try:
             repo, ref, reason = (
                 (locked["repo"], locked["ref"], locked.get("overridden"))
                 if gone
                 else read_declared(source, kit[0], kit[1], declaration)
             )
-            pins.append(
-                Pin(
-                    declaration.name,
-                    repo,
-                    ref,
-                    locked.get(IMMUTABLE_KEYS[declaration.datasource], ""),
-                    "",
-                    locked.get("kind", ""),
-                    reason,
-                    declaration.datasource,
-                )
-            )
-        expected = lock_document(kit[0], kit[1], pins)
-        if lock != expected:
-            problems.append(
-                f"{label}: {LOCK} is stale: the recipe pins kit {kit[0]}@{kit[1][:12]}, "
-                f"{lock_difference(lock, expected)}; run tools/kit-pins lock {recipe_id}"
-            )
-    except (KitError, RuntimeError, OSError) as error:
-        if not is_outage(error):
-            problems.append(f"{label}: {error}")
-            return problems
-        notice(f"{label}: lock not re-read this run: {error}")
-        # The lock's own values still bind the recipe offline (as for a withdrawn kit).
-        pins = [
+        except (KitError, RuntimeError, OSError) as error:
+            if not is_outage(error):
+                problems.append(f"{label}: {error}")
+                return problems
+            notice(f"{label}: lock not re-read this run: {error}")
+            gone = True
+            repo, ref, reason = locked["repo"], locked["ref"], locked.get("overridden")
+        pins.append(
             Pin(
-                d.name,
-                locked["repo"],
-                locked["ref"],
-                locked.get(IMMUTABLE_KEYS[d.datasource], ""),
+                declaration.name,
+                repo,
+                ref,
+                locked.get(IMMUTABLE_KEYS[declaration.datasource], ""),
                 "",
                 locked.get("kind", ""),
-                locked.get("overridden"),
-                d.datasource,
+                reason,
+                declaration.datasource,
             )
-            for d in wanted
-            if (locked := lock.get("dependencies", {}).get(d.name)) is not None
-        ]
+        )
+    expected = lock_document(kit[0], kit[1], pins)
+    if lock != expected:
+        problems.append(
+            f"{label}: {LOCK} is stale: the recipe pins kit {kit[0]}@{kit[1][:12]}, "
+            f"{lock_difference(lock, expected)}; run tools/kit-pins lock {recipe_id}"
+        )
     by_name = {d.name: d for d in wanted}
     for pin in pins:
         problems.extend(
