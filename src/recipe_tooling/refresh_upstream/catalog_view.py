@@ -278,8 +278,10 @@ def release_asset_only(directory: Path | None, repo: str) -> bool:
     """Whether the adapter uses ``repo`` only through its published release downloads.
 
     ``github.com/<repo>/releases/download/`` is the only way it fetches the repository:
-    no clone, archive, codeload, raw/blob URL or file named after a commit. What it runs
-    is the release asset, so a move is judged by the release, not by source changes.
+    no clone, archive, codeload, raw URL, bare fetch/checkout or file named after a
+    commit. The download is in the Dockerfile (what the refresh rewrites and checks).
+    What it runs is the release asset, so a move is judged by the release, not by
+    source changes. A ``github.com/<repo>/blob/...`` link is a web page, not a fetch.
     """
     if directory is None or not directory.is_dir():
         return False
@@ -289,11 +291,12 @@ def release_asset_only(directory: Path | None, repo: str) -> bool:
             (
                 *whole_repo_patterns(escaped)[:-1],
                 rf"raw\.githubusercontent\.com/{escaped}/",
-                rf"github\.com/{escaped}/(?:blob|raw)/",
+                rf"github\.com/{escaped}/raw/",
             )
         ),
         re.IGNORECASE,
     )
+    mention = re.compile(rf"github\.com/{escaped}", re.IGNORECASE)
     download = re.compile(rf"github\.com/{escaped}/releases/download/", re.IGNORECASE)
     downloads = False
     for path in sorted(directory.rglob("*")):
@@ -304,9 +307,12 @@ def release_asset_only(directory: Path | None, repo: str) -> bool:
         if path.stat().st_size > 1_000_000 or path.suffix in {".gz", ".zip", ".tar"}:
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
-        if other.search(text):
+        if other.search(text) or (
+            mention.search(text) and re.search(WEAK_WHOLE_REPO, text)
+        ):
             return False
-        downloads = downloads or download.search(text) is not None
+        if path.name == "Dockerfile" and path.parent == directory:
+            downloads = downloads or download.search(text) is not None
     return downloads
 
 
