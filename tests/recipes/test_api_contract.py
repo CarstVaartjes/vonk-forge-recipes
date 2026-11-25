@@ -16,6 +16,7 @@ from pydantic import ValidationError
 from repo_root import ROOT
 
 from vonk_forge_contracts import (
+    CapabilityName,
     RecipeApi,
     RecipeApiError,
     RecipeDefinition,
@@ -25,6 +26,7 @@ from vonk_forge_contracts import (
     published_json,
     read_recipe_api,
     recipe_api_json_schema,
+    served_capabilities,
 )
 from vonk_forge_contracts.api import ApiTokenArgument
 from vonk_forge_contracts.api_checks import (
@@ -620,3 +622,59 @@ def test_a_wrapper_variable_does_not_switch_inputs_off_on_stock_vllm() -> None:
 )
 def test_a_launch_that_switches_an_input_off_need_not_declare_it(slug: str) -> None:
     _served_check(slug)
+
+
+_MODEL = {
+    CapabilityName.CHAT,
+    CapabilityName.IMAGE_UNDERSTANDING,
+    CapabilityName.VIDEO_UNDERSTANDING,
+    CapabilityName.REASONING,
+    CapabilityName.TOOL_USE,
+}
+_SLUG = "glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual"
+_TEXT_ONLY = {
+    "text": True,
+    "image": False,
+    "video": False,
+    "audio": False,
+    "pdf": False,
+}
+
+
+def _names(items: Any) -> list[str]:
+    return [item.value for item in items]
+
+
+def test_served_capabilities_without_an_api_keep_the_models() -> None:
+    assert _names(served_capabilities(_MODEL, None)) == sorted(
+        item.value for item in _MODEL
+    )
+
+
+def test_served_capabilities_take_an_image_an_option_choice_accepts() -> None:
+    api = _chat_api(_SLUG, input_modalities=_TEXT_ONLY)
+    assert "image-understanding" not in _names(served_capabilities(_MODEL, api))
+    block = {**api.api.model_dump(), "input_modalities": {**_TEXT_ONLY, "image": True}}
+    with_choice = RecipeApi.model_validate(
+        {
+            **api.model_dump(),
+            "option_choices": [{"option": "vision", "value": "on", "api": block}],
+        }
+    )
+    served = _names(served_capabilities(_MODEL, with_choice))
+    assert "image-understanding" in served
+    assert "video-understanding" not in served
+
+
+def test_served_capabilities_drop_tool_use_and_reasoning_when_none() -> None:
+    api = _chat_api(_SLUG, tools={"kind": "none"}, reasoning={"kind": "none"})
+    served = _names(served_capabilities(_MODEL, api))
+    assert "tool-use" not in served
+    assert "reasoning" not in served
+    assert "chat" in served
+
+
+def test_the_catalog_index_entry_carries_served_capabilities() -> None:
+    entries = _json(GENERATED / "catalog-index.json")["recipes"]
+    for entry in entries:
+        assert isinstance(entry["served_capabilities"], list)
