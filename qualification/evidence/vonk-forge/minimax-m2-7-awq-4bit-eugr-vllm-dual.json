@@ -4,35 +4,6 @@
   "records": [
     {
       "identity": {
-        "content_sha256": "30847fa317a09dd512e2109b0ff5e433ef7476352d8cd354f8cb706587108132",
-        "source_bundle_sha256": "3eb1ca443c199fb6e470ec9b77a571d8c0e027b6a80ca50a83dde1fed44a6a93",
-        "runtime_image": {
-          "build_key": "5fdc871892ad29360ee57d404a3318ff559904b410f277f18883f99afd0bc6db",
-          "image_digest": "sha256:a0b1e058f4e1541755e00a3df1f3a926f4218bd7770dfa4c1903feff3f997338"
-        },
-        "model_digests": [
-          "711669a808e866da834110730be85f2db0d4de2b1fbe2df9cf8a23af10a72688"
-        ],
-        "required_sparks": 2,
-        "models_resolved": true
-      },
-      "outcome": "passed",
-      "cause_code": "qualification.hardware_pass",
-      "cause_summary": "Hardware checks passed",
-      "evidence_refs": [
-        "c6d2f2ea7740b650f2de39f52e4ef577578f868ecd62de40d63b8ca594327b27"
-      ],
-      "tested_at": "2026-11-20T00:45:18.332343Z",
-      "platform": {
-        "controller_source_sha": "cd2630b2ad1238c55501701cf9b356406748fa1a",
-        "hardware_class": "GB10",
-        "spark_count": 2,
-        "topology": "multi"
-      },
-      "quality_notes": []
-    },
-    {
-      "identity": {
         "content_sha256": "d30994bb44a1984b7c44addc8ec1d705b4f086ecb9225212a28b1b9358bd3a2c",
         "source_bundle_sha256": "2bf9544e96f80f2c0bb95a5f6bdda1ed7a1e0ac43791512e62174d7e744ea213",
         "runtime_image": {
@@ -62,18 +33,6 @@
     }
   ],
   "measured_memory": [
-    {
-      "content_sha256": "30847fa317a09dd512e2109b0ff5e433ef7476352d8cd354f8cb706587108132",
-      "role": "entrypoint",
-      "steady_bytes": 116364013568,
-      "budget_bytes": 104530585191
-    },
-    {
-      "content_sha256": "30847fa317a09dd512e2109b0ff5e433ef7476352d8cd354f8cb706587108132",
-      "role": "worker",
-      "steady_bytes": 115350560768,
-      "budget_bytes": 104530585191
-    },
     {
       "content_sha256": "d30994bb44a1984b7c44addc8ec1d705b4f086ecb9225212a28b1b9358bd3a2c",
       "role": "entrypoint",
