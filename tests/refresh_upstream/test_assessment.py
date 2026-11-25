@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import copy
+import http.server
 import io
 import json
 import os
 import shutil
 import tempfile
+import threading
 import unittest
 import urllib.error
 from email.message import Message
@@ -24,7 +26,7 @@ from refresh_helpers import NEW, OLD, OLD_YAML, comparison, model_with
 from repo_root import ROOT
 from warning_asserts import assert_not_warns, assert_warns
 
-from recipe_tooling import catalog_hf_model, vendored_upstream
+from recipe_tooling import catalog_hf_model, upstream_http, vendored_upstream
 from recipe_tooling.catalog_model import roles_for
 from recipe_tooling.kit_pins import consumers as kit_consumers
 from recipe_tooling.qualification import documents as qualification_documents
@@ -780,23 +782,6 @@ class GatedRepositoryTests(unittest.TestCase):
                 catalog_hf_model._get_json(url)
             assert seen.get("Authorization") == expected
 
-    def test_the_token_goes_to_hugging_face_only(self) -> None:
-
-        request = Request(
-            "https://cdn.example/x", headers={"Authorization": "Bearer t"}
-        )
-        handler = catalog_hf_model._KeepTokenOnHuggingFace()
-        moved = handler.redirect_request(
-            Request("https://huggingface.co/a", headers={"Authorization": "Bearer t"}),
-            None,  # pyright: ignore[reportArgumentType]
-            302,
-            "Found",
-            {},  # pyright: ignore[reportArgumentType]
-            "https://cdn.example/x",
-        )
-        assert not moved.has_header("Authorization")  # pyright: ignore[reportOptionalMemberAccess]
-        del request
-
     def test_a_gated_metadata_only_revision_is_not_a_move(self) -> None:
         old = self.old()
         old["source"]["repository"] = "https://huggingface.co/o/r"
@@ -842,3 +827,45 @@ class GatedRepositoryTests(unittest.TestCase):
         assert result.reasons == []
         assert item.noop
         assert len(fetched) == len(set(fetched))  # each tree once
+
+
+class UpstreamRedirectTests(unittest.TestCase):
+    def test_a_redirect_to_another_origin_drops_the_credential(self) -> None:
+        seen: dict[tuple[int, str], str | None] = {}
+
+        def serve(redirects: dict[str, str]) -> http.server.HTTPServer:
+            class Handler(http.server.BaseHTTPRequestHandler):
+                def do_GET(self) -> None:
+                    seen[(int(self.headers["Host"].split(":")[1]), self.path)] = (
+                        self.headers.get("Authorization")
+                    )
+                    target = redirects.get(self.path)
+                    self.send_response(307 if target else 200)
+                    if target:
+                        self.send_header("Location", target)
+                    self.send_header("Content-Length", "2")
+                    self.end_headers()
+                    self.wfile.write(b"ok")
+
+                def log_message(self, format: str, *args: Any) -> None:
+                    pass
+
+            server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+            threading.Thread(target=server.serve_forever, daemon=True).start()
+            self.addCleanup(server.server_close)
+            self.addCleanup(server.shutdown)
+            return server
+
+        redirects: dict[str, str] = {}
+        a = serve(redirects)
+        b = serve({})
+        redirects["/cross"] = f"http://127.0.0.1:{b.server_port}/landed"
+        redirects["/same"] = f"http://127.0.0.1:{a.server_port}/landed"
+        for path in ("/cross", "/same"):
+            request = Request(
+                f"http://127.0.0.1:{a.server_port}{path}",
+                headers={"Authorization": "Bearer t"},
+            )
+            assert upstream_http.fetch(request, lambda r: r.read()) == b"ok"
+        assert seen[(b.server_port, "/landed")] is None
+        assert seen[(a.server_port, "/landed")] == "Bearer t"

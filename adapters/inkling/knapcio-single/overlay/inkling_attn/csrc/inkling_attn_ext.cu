@@ -27,7 +27,18 @@ using inkling_attn::Params;
 
 bool aligned(const void* p, size_t n) { return reinterpret_cast<uintptr_t>(p) % n == 0; }
 
-template <bool kLocal, bool kPacked, int kW, bool kPackedKV>
+// Gated launches: the kernel writes y only for rows < cu_q[n_req]; the rows after it (bucket padding of a captured
+// prefill graph) are zeroed here on the device, so a smaller replay never leaves an earlier replay's rows in y.
+__global__ void zero_tail_rows(__nv_bfloat16* y, long long y_st, int cols, const int* cu_q, int n_req, int rows) {
+  const int end = cu_q[n_req];
+  for (int r = blockIdx.x; r < rows; r += gridDim.x) {
+    if (r < end) continue;
+    for (int c = threadIdx.x * 8; c < cols; c += blockDim.x * 8)
+      *reinterpret_cast<uint4*>(y + r * y_st + c) = make_uint4(0, 0, 0, 0);
+  }
+}
+
+template <bool kLocal, bool kPacked, int kW, bool kPackedKV, bool kGate = false>
 void launch_w(const Params& p, dim3 blocks, cudaStream_t stream) {
   constexpr int smem = inkling_attn::tstage_bytes(kW);
   static bool configured[256] = {};  // per instantiation and device (the attribute is per context)
@@ -35,43 +46,45 @@ void launch_w(const Params& p, dim3 blocks, cudaStream_t stream) {
   C10_CUDA_CHECK(cudaGetDevice(&dev));
   TORCH_CHECK(dev >= 0 && dev < 256, "inkling_attn: device index out of range");
   if (!configured[dev]) {
-    C10_CUDA_CHECK(cudaFuncSetAttribute(inkling_attn::prefill_fwd<kLocal, kPacked, kW, kPackedKV>,
+    C10_CUDA_CHECK(cudaFuncSetAttribute(inkling_attn::prefill_fwd<kLocal, kPacked, kW, kPackedKV, kGate>,
                                         cudaFuncAttributeMaxDynamicSharedMemorySize, smem));
     configured[dev] = true;
   }
-  inkling_attn::prefill_fwd<kLocal, kPacked, kW, kPackedKV><<<blocks, kW * 32, smem, stream>>>(p);
+  inkling_attn::prefill_fwd<kLocal, kPacked, kW, kPackedKV, kGate><<<blocks, kW * 32, smem, stream>>>(p);
 }
 
-template <bool kLocal, bool kPacked, bool kPackedKV = false>
+template <bool kLocal, bool kPacked, bool kPackedKV = false, bool kGate = false>
 void launch(const Params& p, dim3 blocks, int64_t warps, cudaStream_t stream) {
-  if (warps == 8) launch_w<kLocal, kPacked, 8, kPackedKV>(p, blocks, stream);
-  else launch_w<kLocal, kPacked, 4, kPackedKV>(p, blocks, stream);
+  if (warps == 8) launch_w<kLocal, kPacked, 8, kPackedKV, kGate>(p, blocks, stream);
+  else launch_w<kLocal, kPacked, 4, kPackedKV, kGate>(p, blocks, stream);
 }
 
 // global layers: one launch, or the 8-warp (long prefixes) + 4-warp (the rest) pair
-template <bool kPacked, bool kPackedKV>
+template <bool kPacked, bool kPackedKV, bool kGate = false>
 void launch_global(const Params& p, dim3 blocks, int64_t warps, int64_t w8_from_keys, int64_t grid8,
                    cudaStream_t stream) {
   if (warps != 4 || w8_from_keys <= 0) {
-    launch<false, kPacked, kPackedKV>(p, blocks, warps, stream);
+    launch<false, kPacked, kPackedKV, kGate>(p, blocks, warps, stream);
     return;
   }
   Params p8 = p;  // long-prefix requests first on 8 warps (half the K/V traffic per FLOP)
   p8.sel_mode = 2;
   p8.sel_keys = static_cast<int>(w8_from_keys);
-  launch<false, kPacked, kPackedKV>(p8, dim3(static_cast<unsigned>(grid8)), 8, stream);
+  launch<false, kPacked, kPackedKV, kGate>(p8, dim3(static_cast<unsigned>(grid8)), 8, stream);
   C10_CUDA_KERNEL_LAUNCH_CHECK();
   Params p4 = p;
   p4.sel_mode = 1;
   p4.sel_keys = static_cast<int>(w8_from_keys);
-  launch<false, kPacked, kPackedKV>(p4, blocks, 4, stream);
+  launch<false, kPacked, kPackedKV, kGate>(p4, blocks, 4, stream);
 }
 
 void fwd(const torch::Tensor& q, const torch::Tensor& k, const torch::Tensor& v, const torch::Tensor& page_table,
          const torch::Tensor& cu_q, const torch::Tensor& seq_k, const torch::Tensor& r, const torch::Tensor& proj,
          const torch::Tensor& out, const torch::Tensor& lse, double scale, int64_t window_left,
          const c10::optional<torch::Tensor>& projp_buf, int64_t warps,
-         const c10::optional<std::vector<torch::Tensor>>& packed_kv, int64_t w8_from_keys) {
+         const c10::optional<std::vector<torch::Tensor>>& packed_kv, int64_t w8_from_keys,
+         const c10::optional<torch::Tensor>& gate, const c10::optional<torch::Tensor>& sinks,
+         const c10::optional<torch::Tensor>& y, bool zero_tail) {
   TORCH_CHECK(warps == 4 || warps == 8, "inkling_attn: warps must be 4 or 8");
   TORCH_CHECK(w8_from_keys >= 0 && w8_from_keys < (int64_t(1) << 31), "inkling_attn: w8_from_keys out of range");
   TORCH_CHECK(q.is_cuda() && q.scalar_type() == at::kBFloat16 && q.dim() == 3 && q.size(2) == inkling_attn::kD &&
@@ -136,7 +149,7 @@ void fwd(const torch::Tensor& q, const torch::Tensor& k, const torch::Tensor& v,
   for (const auto* t : {&k, &v, &page_table, &cu_q, &seq_k, &r, &proj, &out, &lse})
     TORCH_CHECK(t->device() == q.device(), "inkling_attn: all tensors must be on q's device");
   TORCH_CHECK(T < (int64_t(1) << 30) && n_req < (int64_t(1) << 20), "inkling_attn: too many rows");
-  if (T == 0 || n_req == 0) return;
+  if (T == 0 || (n_req == 0 && !y.has_value())) return;  // gated with no requests: y is cleared after validation
 
   Params p{};
   p.q = reinterpret_cast<const __nv_bfloat16*>(q.data_ptr());
@@ -210,6 +223,42 @@ void fwd(const torch::Tensor& q, const torch::Tensor& k, const torch::Tensor& v,
   p.window_left = static_cast<int>(window_left);
   p.sel_mode = 0;
   p.sel_keys = 0;
+  const bool gated = gate.has_value();
+  TORCH_CHECK(gated == sinks.has_value() && gated == y.has_value(), "inkling_attn: gate, sinks and y go together");
+  if (gated) {
+    const auto& g = *gate;
+    const auto& sk = *sinks;
+    const auto& yy = *y;
+    TORCH_CHECK(g.is_cuda() && g.device() == q.device() && g.scalar_type() == at::kBFloat16 && g.dim() == 2 &&
+                    g.size(0) >= T && g.size(1) == H * inkling_attn::kD && g.stride(1) == 1 && g.stride(0) % 8 == 0 &&
+                    aligned(g.data_ptr(), 16),
+                "inkling_attn: gate must be CUDA bf16 [>= T, H * 128], contiguous last dim, 16-byte aligned rows");
+    TORCH_CHECK(sk.is_cuda() && sk.device() == q.device() && sk.scalar_type() == at::kBFloat16 && sk.dim() == 2 &&
+                    sk.size(0) >= T && sk.size(1) == H && sk.stride(1) == 1,
+                "inkling_attn: sinks must be CUDA bf16 [>= T, H] with a contiguous last dim");
+    TORCH_CHECK(yy.is_cuda() && yy.device() == q.device() && yy.scalar_type() == at::kBFloat16 && yy.dim() == 2 &&
+                    yy.size(0) == T && yy.size(1) == H * inkling_attn::kD && yy.is_contiguous() &&
+                    aligned(yy.data_ptr(), 16),
+                "inkling_attn: y must be a contiguous CUDA bf16 [T, H * 128]");
+    {  // y is written by many CTAs: it must not overlap anything the kernel reads or writes
+      const auto y0 = reinterpret_cast<uintptr_t>(yy.data_ptr()), y1 = y0 + yy.numel() * 2;
+      for (const auto* t : {&q, &k, &v, &r, &proj, &out, &lse, &g, &sk}) {
+        const auto t0 = reinterpret_cast<uintptr_t>(t->data_ptr());
+        const auto t1 = t0 + (t->numel() ? (t->storage().nbytes() - t->storage_offset() * t->element_size()) : 0);
+        TORCH_CHECK(y1 <= t0 || t1 <= y0, "inkling_attn: y overlaps an input or output buffer");
+      }
+    }
+    if (n_req == 0) {  // no request rows: all of y is tail
+      if (zero_tail) yy.zero_();
+      return;
+    }
+    p.gate = reinterpret_cast<const __nv_bfloat16*>(g.data_ptr());
+    p.g_st = g.stride(0);
+    p.sink = reinterpret_cast<const __nv_bfloat16*>(sk.data_ptr());
+    p.s_st = sk.stride(0);
+    p.y = reinterpret_cast<__nv_bfloat16*>(yy.data_ptr());
+    p.y_st = yy.stride(0);
+  }
 
   const int64_t bm = 16 * warps;
   const int64_t tiles = (T + bm - 1) / bm + n_req;
@@ -236,14 +285,29 @@ void fwd(const torch::Tensor& q, const torch::Tensor& k, const torch::Tensor& v,
     C10_CUDA_KERNEL_LAUNCH_CHECK();
   }
   const dim3 blocks(static_cast<unsigned>(grid));
+  if (gated && zero_tail) {  // zero_tail=false: a second launch into the same y (it must not clear the first's rows)
+    const int zb = static_cast<int>(std::min<int64_t>(T, 1024));
+    zero_tail_rows<<<zb, 128, 0, stream>>>(p.y, p.y_st, static_cast<int>(H * inkling_attn::kD), p.cu_q,
+                                            static_cast<int>(n_req), static_cast<int>(T));
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
+  }
   if (packed_kv) {
-    if (packed) launch_global<true, true>(p, blocks, warps, w8_from_keys, grid8, stream);
+    if (gated) {
+      if (packed) launch_global<true, true, true>(p, blocks, warps, w8_from_keys, grid8, stream);
+      else launch_global<false, true, true>(p, blocks, warps, w8_from_keys, grid8, stream);
+    } else if (packed) launch_global<true, true>(p, blocks, warps, w8_from_keys, grid8, stream);
     else launch_global<false, true>(p, blocks, warps, w8_from_keys, grid8, stream);
   } else if (window_left >= 0) {
-    if (packed) launch<true, true>(p, blocks, warps, stream);
+    if (gated) {
+      if (packed) launch<true, true, false, true>(p, blocks, warps, stream);
+      else launch<true, false, false, true>(p, blocks, warps, stream);
+    } else if (packed) launch<true, true>(p, blocks, warps, stream);
     else launch<true, false>(p, blocks, warps, stream);
   } else {
-    if (packed) launch_global<true, false>(p, blocks, warps, w8_from_keys, grid8, stream);
+    if (gated) {
+      if (packed) launch_global<true, false, true>(p, blocks, warps, w8_from_keys, grid8, stream);
+      else launch_global<false, false, true>(p, blocks, warps, w8_from_keys, grid8, stream);
+    } else if (packed) launch_global<true, false>(p, blocks, warps, w8_from_keys, grid8, stream);
     else launch_global<false, false>(p, blocks, warps, w8_from_keys, grid8, stream);
   }
   C10_CUDA_KERNEL_LAUNCH_CHECK();
@@ -256,5 +320,7 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         py::arg("q"), py::arg("k"), py::arg("v"), py::arg("page_table"), py::arg("cu_q"), py::arg("seq_k"),
         py::arg("r"), py::arg("proj"), py::arg("out"), py::arg("lse"), py::arg("scale"), py::arg("window_left"),
         py::arg("projp_buf") = py::none(), py::arg("warps") = 4,
-        py::arg("packed_kv") = py::none(), py::arg("w8_from_keys") = 0);
+        py::arg("packed_kv") = py::none(), py::arg("w8_from_keys") = 0,
+        py::arg("gate") = py::none(), py::arg("sinks") = py::none(), py::arg("y") = py::none(),
+        py::arg("zero_tail") = true);
 }

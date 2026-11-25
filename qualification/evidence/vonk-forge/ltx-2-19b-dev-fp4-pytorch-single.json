@@ -36,14 +36,14 @@
     },
     {
       "identity": {
-        "content_sha256": "3212b97897a22ed2e82d61a4c725f28f2e09111b653613eefd668fa60a2c1662",
+        "content_sha256": "6adf1844159045436ef707684d5a8a14530ddbe42eb1f49aaf4a199bc9879eb0",
         "source_bundle_sha256": "336f594adcf377893c957b30821bdea130af28d732366105e9b63ea523d728ab",
         "runtime_image": {
           "build_key": "a0101b3c891a1f1d7e838b2e190124a94a1d33b319d016f0d499e3282c25ded0",
           "image_digest": "sha256:797cea66c83242e60ac5fa5c5fcc14988e41647ec07517ae9c29afcf2be68084"
         },
         "model_digests": [
-          "796e58d67748518bf4156bc845ccfb78271584e2a8f4829a2339f558bd824a31"
+          "3265091507f9645ae79cb82e629e51423f5469bbf39f7a7bef1921e0d06ebdbc"
         ],
         "required_sparks": 1,
         "models_resolved": true
@@ -61,9 +61,7 @@
         "spark_count": 1,
         "topology": "single"
       },
-      "quality_notes": [
-        "Carried from the identical execution document"
-      ]
+      "quality_notes": []
     }
   ]
 }

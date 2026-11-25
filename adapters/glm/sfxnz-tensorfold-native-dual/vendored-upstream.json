@@ -1,6 +1,19 @@
 {
   "kit": {
     "dependencies": {
+      "drafter": {
+        "binds": "drafter",
+        "datasource": "hf-revision",
+        "file": "recipe.conf",
+        "pattern": "^DRAFTER_REVISION=\\$\\{DRAFTER_REVISION:-(?P<version>[0-9a-f]{40})\\}$",
+        "repo_pattern": "^DRAFTER=\\$\\{DRAFTER:-(?P<repo>[^}\\s]+)\\}$"
+      },
+      "engine": {
+        "datasource": "git-ref",
+        "file": "engine-patches/BASE",
+        "pattern": "^commit (?P<version>[0-9a-f]{40})$",
+        "repo_pattern": "^repo (?P<repo>\\S+)$"
+      },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",
@@ -12,6 +25,7 @@
   },
   "ours": [
     "licenses/",
+    "scan-sm121.py",
     "tensorfold-serve"
   ]
 }

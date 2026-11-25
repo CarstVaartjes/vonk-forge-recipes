@@ -70,6 +70,15 @@ struct Params {
   // request selection (global layers, two launches of different warp counts over one call, see ops.W8_FROM):
   // 0 = every request; 1 = requests whose prefix (seqused_k - new rows) is < sel_keys; 2 = prefix >= sel_keys.
   int sel_mode, sel_keys;
+  // gated epilogue (kGate, sliding-window BF16 path): y[t, h*128 + d] = bf16(x * sigmoid(gate) * sigmoid(lse - sink))
+  // with x = O / l, exactly SGLang's gate_sink kernel (inkling2/gate_sink.cuh) on the FP32 out and LSE this kernel
+  // would have written; out is then not written (lse still is).
+  const __nv_bfloat16* gate;  // [T, H * 128], row stride g_st (16-byte aligned rows: staged with 16-byte loads)
+  long long g_st;
+  const __nv_bfloat16* sink;  // [T, H], row stride s_st
+  long long s_st;
+  __nv_bfloat16* y;           // [T, H * 128], row stride y_st
+  long long y_st;
 };
 
 namespace dev {
@@ -194,7 +203,16 @@ __device__ __forceinline__ uint4 packed_vector(const Params& p, int page, int ki
 
 // kW warps x 16 query rows a CTA (BM = 16 kW): 4 warps -> 2 CTAs / SM, 8 warps -> 1 CTA / SM (half the K/V
 // shared-memory fills per FLOP). Dynamic shared memory: tstage_bytes(kW).
-template <bool kLocal, bool kPacked, int kW, bool kPackedKV = false>
+// gate_sink.cuh's sigmoid: ex2.approx / rcp.approx with round-to-nearest multiply and add
+__device__ __forceinline__ float gs_sigmoid(float x) {
+  float e, r;
+  float const t = __fmul_rn(-x, 1.4426950408889634f);
+  asm("ex2.approx.f32 %0, %1;" : "=f"(e) : "f"(t));
+  asm("rcp.approx.f32 %0, %1;" : "=f"(r) : "f"(__fadd_rn(e, 1.0f)));
+  return r;
+}
+
+template <bool kLocal, bool kPacked, int kW, bool kPackedKV = false, bool kGate = false>
 __global__ void __launch_bounds__(kW * 32, 8 / kW) prefill_fwd(const Params p) {
   constexpr int kThr = kW * 32;
   constexpr int kBMw = 16 * kW;
@@ -467,6 +485,24 @@ __global__ void __launch_bounds__(kW * 32, 8 / kW) prefill_fwd(const Params p) {
   cp_wait_all();
 
   // ---- epilogue: O / l (FP32), LSE = m + ln(l)
+  // Gated (kGate): the warp's 16 x 128 gate tile is staged in shared memory (sK / sV are free once every warp left the
+  // mainloop) with coalesced 16-byte loads, y is computed in place in the MMA layout, then stored with coalesced
+  // 16-byte stores. 16-byte chunks are XOR-swizzled by row so the MMA-layout accesses are bank-conflict free.
+  __nv_bfloat16* wbuf = nullptr;
+  if constexpr (kGate) {
+    __syncthreads();
+    wbuf = (warp < 4 ? sK + warp * 16 * kD : sV + (warp - 4) * 16 * kD);
+#pragma unroll
+    for (int i = 0; i < 8; ++i) {
+      const int rr = 2 * i + (lane >> 4), cc = (lane & 15) * 8;
+      if (wrow0 + rr < sq) {
+        const long long t = start + wrow0 + rr;
+        *reinterpret_cast<uint4*>(wbuf + rr * kD + (((cc >> 3) ^ (rr & 7)) * 8)) =
+            *reinterpret_cast<const uint4*>(p.gate + t * p.g_st + static_cast<long long>(head) * kD + cc);
+      }
+    }
+    __syncwarp();
+  }
 #pragma unroll
   for (int h = 0; h < 2; ++h) {
     float l = lrow[h];
@@ -477,12 +513,41 @@ __global__ void __launch_bounds__(kW * 32, 8 / kW) prefill_fwd(const Params p) {
       const bool ok = l > 0.f && l == l;
       const float inv = ok ? 1.f / l : 0.f;
       const long long t = start + row;
-      float* orow = p.out + t * p.o_st + static_cast<long long>(head) * p.o_sh;
+      if constexpr (kGate) {
+        const float lse_v = ok ? mrow[h] + logf(l) : -INFINITY;
+        if (qd == 0) p.lse[static_cast<long long>(head) * p.lse_sh + t] = lse_v;
+        const float sc = gs_sigmoid(__fsub_rn(lse_v, __bfloat162float(p.sink[t * p.s_st + head])));
+        const int rl = g + 8 * h;  // row within the warp's staged tile
 #pragma unroll
-      for (int dn = 0; dn < 16; ++dn) {
-        *reinterpret_cast<float2*>(orow + 8 * dn + 2 * qd) = make_float2(o[dn][2 * h] * inv, o[dn][2 * h + 1] * inv);
+        for (int dn = 0; dn < 16; ++dn) {
+          __nv_bfloat162* cell = reinterpret_cast<__nv_bfloat162*>(wbuf + rl * kD + ((dn ^ (rl & 7)) * 8) + 2 * qd);
+          const __nv_bfloat162 gg = *cell;
+          const float x0 = o[dn][2 * h] * inv, x1 = o[dn][2 * h + 1] * inv;
+          __nv_bfloat162 yy;
+          yy.x = __float2bfloat16_rn(__fmul_rn(__fmul_rn(x0, gs_sigmoid(__low2float(gg))), sc));
+          yy.y = __float2bfloat16_rn(__fmul_rn(__fmul_rn(x1, gs_sigmoid(__high2float(gg))), sc));
+          *cell = yy;  // in place: each element is read and written by this thread only
+        }
+      } else {
+        float* orow = p.out + t * p.o_st + static_cast<long long>(head) * p.o_sh;
+#pragma unroll
+        for (int dn = 0; dn < 16; ++dn) {
+          *reinterpret_cast<float2*>(orow + 8 * dn + 2 * qd) = make_float2(o[dn][2 * h] * inv, o[dn][2 * h + 1] * inv);
+        }
+        if (qd == 0) p.lse[static_cast<long long>(head) * p.lse_sh + t] = ok ? mrow[h] + logf(l) : -INFINITY;
       }
-      if (qd == 0) p.lse[static_cast<long long>(head) * p.lse_sh + t] = ok ? mrow[h] + logf(l) : -INFINITY;
+    }
+  }
+  if constexpr (kGate) {
+    __syncwarp();
+#pragma unroll
+    for (int i = 0; i < 8; ++i) {
+      const int rr = 2 * i + (lane >> 4), cc = (lane & 15) * 8;
+      if (wrow0 + rr < sq) {
+        const long long t = start + wrow0 + rr;
+        *reinterpret_cast<uint4*>(p.y + t * p.y_st + static_cast<long long>(head) * kD + cc) =
+            *reinterpret_cast<const uint4*>(wbuf + rr * kD + (((cc >> 3) ^ (rr & 7)) * 8));
+      }
     }
   }
 }

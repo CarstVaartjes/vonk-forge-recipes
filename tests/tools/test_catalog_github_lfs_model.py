@@ -15,6 +15,7 @@ from urllib.parse import quote
 
 import pytest
 from repo_root import ROOT
+from upstream_fakes import patched_open
 
 from vonk_forge_contracts import ModelDefinition, document_sha256
 
@@ -88,7 +89,7 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
             ]  # fmt: skip
             with (
                 patch.object(sys, "argv", argv),
-                patch("urllib.request.urlopen", github),
+                patched_open(github),
             ):
                 try:
                     namespace["main"]()

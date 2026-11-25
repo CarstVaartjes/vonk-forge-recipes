@@ -35,6 +35,7 @@ from test_kit_pins import (
     assessor_for,
     upstream,
 )
+from upstream_fakes import patched_open
 
 from recipe_tooling import catalog_hf_model, vendored_upstream
 from recipe_tooling.catalog_model import file_id
@@ -1387,7 +1388,7 @@ class ImageAssessmentTests(unittest.TestCase):
                     github_token=None, hf_token=None, cache_path=None
                 )
                 with (
-                    patch("urllib.request.urlopen", limited),
+                    patched_open(limited),
                     patch("recipe_tooling.upstream_http.time.sleep"),
                 ):
                     return http.github(path)
