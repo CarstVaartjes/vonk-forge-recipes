@@ -808,6 +808,11 @@ def build(
                 recipe_apis.get(document["identity"]["slug"]),
             )
         ]
+        if not entry["served_capabilities"]:
+            raise ValueError(
+                f"{document['identity']['slug']}: serves no capability; "
+                "fill the capabilities of its primary Model display"
+            )
         # A sibling of "qualification", never inside it: older Controllers reject
         # unknown fields of the status and ignore unknown entry keys.
         peaks = published_measured_peaks(

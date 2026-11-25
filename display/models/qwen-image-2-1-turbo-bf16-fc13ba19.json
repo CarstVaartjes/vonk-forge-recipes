@@ -1,5 +1,7 @@
 {
-  "capabilities": [],
+  "capabilities": [
+    "image-generation"
+  ],
   "description": "Qwen Image 2.1 Turbo immutable upstream checkpoint. Physical Spark qualification pending.",
   "family_title": "Qwen Image",
   "identity": {
