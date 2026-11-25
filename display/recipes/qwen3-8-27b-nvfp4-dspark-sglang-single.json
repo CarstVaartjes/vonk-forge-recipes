@@ -1,5 +1,8 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "dependency-qwen3-8-27b-dspark-b3c99101"
+  ],
   "description": "Adaptation of MiaAI-Lab's one-DGX-Spark Qwen3.8 27B profile, pairing the multimodal NVFP4 target with RadixArk's immutable DSpark v2 drafter for an offline OpenAI-compatible endpoint. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
   "identity": {
     "publisher": "vonk-forge",

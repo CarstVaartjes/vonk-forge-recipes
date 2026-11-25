@@ -1,5 +1,9 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "sparse-decoder",
+    "dino"
+  ],
   "description": "Installable single-DGX Spark image-to-3D recipe using the pinned official TRELLIS.2 source, exact companion sparse decoder, local DINOv3 encoder, ARM64-native extensions, and deterministic GLB adapter. Its pinned nvdiffrast runtime dependency is limited to non-commercial research or evaluation.",
   "identity": {
     "publisher": "vonk-forge",

@@ -64,8 +64,15 @@ def test_every_api_document_round_trips_and_agrees_with_its_recipe(path: Path) -
     Draft202012Validator(recipe_api_json_schema()).validate(_json(path))
     document = recipe(path.stem)
     check_recipe_api(document, api)
+    shown = recipe_display(path.stem)
     check_api_models(
-        document, api, [model_display(s.model.slug) for s in document.models]
+        document,
+        api,
+        [
+            model_display(s.model.slug)
+            for s in document.models
+            if shown.is_endpoint(s.id)
+        ],
     )
 
 
@@ -580,7 +587,10 @@ def _served_check(
     raw = _json(ROOT / "api" / "recipes" / f"{slug}.json")
     for block in [raw["api"], *(c["api"] for c in raw["option_choices"])]:
         block["input_modalities"].update(inputs)
-    shown = [model_display(s.model.slug) for s in document.models]
+    marked = recipe_display(slug)
+    shown = [
+        model_display(s.model.slug) for s in document.models if marked.is_endpoint(s.id)
+    ]
     check_api_models(document, RecipeApi.model_validate(raw), shown)
 
 

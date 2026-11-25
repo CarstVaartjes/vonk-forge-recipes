@@ -1,5 +1,8 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "dinov2-large"
+  ],
   "description": "Native Hunyuan3D-Omni single-Spark controllable 3D pipeline with exact upstream source, offline multimodal job input, and GLB output.",
   "identity": {
     "publisher": "vonk-forge",

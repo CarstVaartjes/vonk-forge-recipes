@@ -73,11 +73,10 @@ def endpoint_capabilities(
     Model's capabilities do not count.
     """
 
-    components = set(display.component_bindings)
     return {
         CapabilityName(capability)
         for binding in recipe.models
-        if binding.id not in components
+        if display.is_endpoint(binding.id)
         for capability in model_displays[binding.model.slug].capabilities
     }
 

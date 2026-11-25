@@ -142,11 +142,13 @@ alters what runs edits the document. Read display through `src/recipe_tooling/qu
 A recipe display's `component_bindings` lists the `models[].id` bindings that are
 components of the launch rather than what it serves: a drafter or speculative
 head, an engram source, an encoder or VAE taken from another Model, a weight
-part. Absent, every binding is an endpoint. List a binding only when its Model
-is a component in this recipe and its display capabilities are not already `[]`;
+part. Absent, every binding is an endpoint. List every binding whose Model is a
+component in this recipe, whatever its display capabilities are today;
 co-served Models (a TTS voice-design and base pair) and a base the recipe's
 LoRA or distilled weights run on stay endpoints. `validate_library` refuses an id
-the recipe does not bind and a display that lists every binding.
+the recipe does not bind and a display that lists every binding. The served
+capabilities, the qualification vision check (`multimodal`) and `tools/check-recipe-api`
+read endpoint Models only, through `RecipeDisplay.is_endpoint`.
 Display text and tags never state verification status; the status badge owns it.
 A description does not say a recipe is a "Candidate", pending, untested or awaiting
 physical acceptance or qualification, and no recipe carries the `candidate` or

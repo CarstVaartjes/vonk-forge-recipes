@@ -1,5 +1,8 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "background-removal"
+  ],
   "description": "Installable TripoSG single-Spark recipe with exact upstream source, frozen RMBG companion, offline inference, and deterministic GLB output.",
   "identity": {
     "publisher": "vonk-forge",

@@ -160,6 +160,11 @@ class RecipeDisplay(_DisplayContract):
             raise ValueError("component_bindings must be unique")
         return self
 
+    def is_endpoint(self, binding_id: str) -> bool:
+        """The one endpoint rule: a binding the display does not list as a component."""
+
+        return binding_id not in self.component_bindings
+
 
 class ModelDisplay(_DisplayContract):
     kind: Literal["model-display"] = "model-display"

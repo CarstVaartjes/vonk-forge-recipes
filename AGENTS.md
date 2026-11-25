@@ -275,7 +275,8 @@ execution data is malformed, and refuses the index only for a wrong envelope or 
 a digest mismatch; each recipe entry's `served_capabilities` is derived at build time by the
 contract's `served_capabilities` from its endpoint Models only (never authored; a binding its
 recipe display lists in `component_bindings` is a component whose capabilities never count,
-and `validate_library` refuses an unknown id); `read_catalog_index` is
+here, in `multimodal` or in `tools/check-recipe-api`; mark every component binding whatever
+its capabilities, and `validate_library` refuses an unknown id); `read_catalog_index` is
 the strict whole-index form for producers and tests. The envelope and package
 schema versions live only there; change the shape in the model and run
 `tools/generate-contract-schemas`. Once `v<CONTRACT_VERSION>` is released, validate.yml refuses a
