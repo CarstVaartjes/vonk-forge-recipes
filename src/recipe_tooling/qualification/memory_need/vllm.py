@@ -128,21 +128,24 @@ def recurrent_layer_bytes(recipe: RecipeDefinition, recurrent: RecurrentCache) -
 def mamba_cache_mode(
     recipe: RecipeDefinition, recurrent: RecurrentCache
 ) -> MambaCacheMode:
-    """vLLM MambaModelConfig: prefix caching selects "all" where the loaded
-    class supports it, else "align"; off holds one page per recurrent group.
+    """vLLM's mamba cache mode: off holds one page per recurrent group, on holds
+    "align" unless the recipe names "all" for a build that still has the flag.
 
-    An omitted flag counts as on: v0.27 keeps hybrid prefix caching opt-in
-    (arg_utils.py default_prefix_caching), but nightly 3f1bcfd8 defaults it
-    to is_prefix_caching_supported, and "align" never needs fewer blocks.
+    vLLM main (9a4930a797, PR #63830) removed --mamba-cache-mode: prefix
+    caching on is always "align". An omitted flag therefore counts as "align",
+    never "all"; no recipe pins "all". An omitted prefix-caching flag counts as
+    on: v0.27 keeps hybrid prefix caching opt-in (arg_utils.py
+    default_prefix_caching), but nightly 3f1bcfd8 defaults it to
+    is_prefix_caching_supported, and "align" never needs fewer blocks.
     """
     if mn_args.argument_value(recipe, "enable-prefix-caching") is False:
         return MambaCacheMode.NONE
-    mode = MambaCacheMode(
-        str(mn_args.argument_value(recipe, "mamba-cache-mode") or MambaCacheMode.NONE)
-    )
-    if mode is MambaCacheMode.ALIGN or not recurrent.mamba_prefix_caching:
-        return MambaCacheMode.ALIGN
-    return MambaCacheMode.ALL
+    if (
+        mn_args.argument_value(recipe, "mamba-cache-mode") == MambaCacheMode.ALL
+        and recurrent.mamba_prefix_caching
+    ):
+        return MambaCacheMode.ALL
+    return MambaCacheMode.ALIGN
 
 
 def vllm_recurrent(

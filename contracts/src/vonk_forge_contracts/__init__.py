@@ -34,6 +34,7 @@ from vonk_forge_contracts.api_checks import (
     RecipeApiError,
     check_api_models,
     check_recipe_api,
+    served_capabilities,
 )
 from vonk_forge_contracts.canonical import (
     canonical_json,
@@ -257,6 +258,7 @@ __all__ = [
     "recovery_coverage_id",
     "require_api_of",
     "require_display_of",
+    "served_capabilities",
 ]
 
 

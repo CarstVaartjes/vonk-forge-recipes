@@ -146,6 +146,14 @@ physical acceptance or qualification, and no recipe carries the `candidate` or
 
 ### Recipe API facts
 
+Each catalog entry carries `served_capabilities`, the capabilities its launch
+serves (names from the capability vocabulary), derived by the contract's
+`served_capabilities` and never authored: the Models' display capabilities,
+with the input understanding ones taken from what the API accepts (any option
+choice counts), and `tool-use` / `reasoning` dropped when every chat block says
+`none`. A recipe without an API document keeps its Models' capabilities. The
+site, Controller and vonkctl read this key rather than re-deriving it.
+
 An OpenAI-interface generation or decision recipe also has `api/recipes/<slug>.json`
 (`RecipeApi`, `kind: "recipe-api"`): what a client may rely on when it calls the
 route. It is a sibling like the display: editing it never changes the recipe's
@@ -255,7 +263,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/recipes/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v5.3.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v5.4.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge

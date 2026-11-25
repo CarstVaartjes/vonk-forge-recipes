@@ -10,6 +10,7 @@ from documents import recipe
 from pydantic import ValidationError
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from recipe_tooling.qualification.memory_need.evidence import load_inputs
 from recipe_tooling.qualification.memory_need.geometry import MemoryInputs
 from recipe_tooling.qualification.memory_need.records import EstimateFindingKind
@@ -63,7 +64,7 @@ def test_estimate_mismatch_does_not_fail_the_catalog_build(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    build = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["build"]
+    build = vars(catalog_index)["build"]
     monkeypatch.setitem(build.__globals__, "ROOT", mismatching_root(tmp_path))
 
     def reached_packaging(*args: object, **kwargs: object) -> None:
@@ -86,7 +87,7 @@ def test_high_but_valid_declaration_warns_and_fails_nothing(
 ) -> None:
     """A peak of 125e9 on a copy of a real recipe is a valid contract, not admitted."""
     root = mismatching_root(tmp_path, peak_bytes=125_000_000_000)
-    build = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["build"]
+    build = vars(catalog_index)["build"]
     monkeypatch.setitem(build.__globals__, "ROOT", root)
 
     def reached_packaging(*args: object, **kwargs: object) -> None:
@@ -192,7 +193,7 @@ def test_contract_shape_violations_still_fail(memory: dict[str, int]) -> None:
 def test_contract_shape_violation_fails_the_catalog_build(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    build = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["build"]
+    build = vars(catalog_index)["build"]
     root = mismatching_root(tmp_path, load_peak_bytes=1_000_000_000)
     monkeypatch.setitem(build.__globals__, "ROOT", root)
     with pytest.raises(SystemExit, match="load_peak_bytes must exceed peak_bytes"):
@@ -217,5 +218,8 @@ def test_no_estimate_rule_can_raise_or_gate() -> None:
     rules = [f for f in functions if f.name.endswith("_warnings")]
     for rule in rules:
         assert not [n for n in ast.walk(rule) if isinstance(n, ast.Raise)], rule.name
-    for tool in ("build-catalog-index", "check-recipe-memory-need"):
-        assert "require_memory_need" not in (ROOT / "tools" / tool).read_text()
+    for tool in (
+        Path(catalog_index.__file__),
+        ROOT / "tools" / "check-recipe-memory-need",
+    ):
+        assert "require_memory_need" not in tool.read_text()

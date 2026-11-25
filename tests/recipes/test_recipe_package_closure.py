@@ -16,14 +16,13 @@ archive cases live with it in that repository's
 from __future__ import annotations
 
 import io
-import runpy
 import tarfile
 from pathlib import Path
 from typing import Any
 
-from repo_root import ROOT
+from recipe_tooling import catalog_index
 
-TOOL = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
+TOOL = vars(catalog_index)
 
 
 def _job_row(
