@@ -14,7 +14,7 @@
   "vonk-forge/flux-2-klein-4b-comfyui-single": "22d7e29daf2a8ffd2779d7667fff704522cb28f72263c8c5aeab8fa77996e2ef",
   "vonk-forge/flux-2-klein-4b-nvfp4-comfyui-single": "0088d89f1b404156c44c3ab5560236ef67284e0b7cff5ddd35a2a2dab361a61c",
   "vonk-forge/flux-3-image-klein-pytorch-single": "d05230b0b0bacf2e994934af7c19c10c5f02fe9f2f5ea33d1f4bacb5d7083281",
-  "vonk-forge/gemma-4-26b-a4b-it-nvfp4-eugr-vllm-single": "938246a21bf8f1ff8b6f1521b947f7d3e7197d4025f568add708ce9f92a5dd11",
+  "vonk-forge/gemma-4-26b-a4b-it-nvfp4-eugr-vllm-single": "e78f988c7c69cb0a34881178b326afe213b5842c27fda786b63ac2292c493da4",
   "vonk-forge/gemma-4-26b-a4b-it-q8-0-ggml-org-llamacpp-single": "f89e2a5daa52f8505b4d85605e6089b96df11179007f559521b6aab6f8fe3470",
   "vonk-forge/gemma-4-26b-a4b-vllm-mia-single": "4af7da0c536b68df16148dfb4e9b02edb9f8aaa9e9eb1729d3fe0026f8db0326",
   "vonk-forge/gemma-4-31b-it-nvfp4-nvidia-vllm-single": "53bb9a40265dd5ebb3a05f4d15722045b1fc4158a38dd03d5fe5f0d3cf0a88e0",
