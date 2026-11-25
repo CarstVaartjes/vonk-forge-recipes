@@ -22,6 +22,7 @@ from recipe_tooling.qualification.capabilities import (
     UNPARSED_ARITHMETIC,
     Capabilities,
     generic_case_problems,
+    multimodal,
     serving_capabilities,
 )
 from recipe_tooling.qualification.case_assertions import invalid_case_assertions
@@ -263,6 +264,22 @@ def test_an_image_case_needs_a_multimodal_recipe() -> None:
     assert not generic_case_problems(
         "x", recipe, ["M0", "V7"], _caps(vision=True), display
     )
+
+
+def test_a_component_models_image_modality_does_not_make_a_recipe_multimodal() -> None:
+    recipe = _vllm()
+    recipe["models"] = [
+        {"id": "primary", "model": {"slug": "text-model"}},
+        {"id": "encoder", "model": {"slug": "vision-encoder"}},
+    ]
+    seeing = MODEL_DISPLAYS["qwen-image-2512-comfyui-1f12b17b"]
+    models = {
+        "text-model": seeing.model_copy(update={"modalities": ["text"]}),
+        "vision-encoder": seeing.model_copy(update={"modalities": ["image"]}),
+    }
+    marked = _display().model_copy(update={"component_bindings": ["encoder"]})
+    assert multimodal(recipe, models, _display()) is True
+    assert multimodal(recipe, models, marked) is False
 
 
 def test_unparsed_reasoning_is_valid_content_not_a_functional_failure() -> None:

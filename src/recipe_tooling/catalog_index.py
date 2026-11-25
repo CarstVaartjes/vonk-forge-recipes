@@ -45,7 +45,6 @@ from vonk_forge_contracts import (
     PACKAGE_METADATA_FIELDS,
     PACKAGE_PATH_PREFIX,
     PACKAGE_SCHEMA_VERSION,
-    CapabilityName,
     CatalogIndex,
     ModelDefinition,
     PackageContract,
@@ -55,6 +54,7 @@ from vonk_forge_contracts import (
     RecipeDefinition,
     catalog_vocabulary,
     document_sha256,
+    endpoint_capabilities,
     published_index_json,
     published_json,
     published_status,
@@ -795,17 +795,16 @@ def build(
         entry["qualification"] = published_status(evidence, identity).model_dump(
             mode="json", exclude_none=True
         )
-        # Derived, never authored: what this launch serves, from its Models' display
-        # capabilities and its API document; the one function every consumer shares.
+        # Derived, never authored: what this launch serves, from its endpoint Models'
+        # display capabilities and its API document; the functions every consumer shares.
+        slug = document["identity"]["slug"]
         entry["served_capabilities"] = [
             capability.value
             for capability in served_capabilities(
-                {
-                    CapabilityName(capability)
-                    for reference in recipe_by_slug[document["identity"]["slug"]].models
-                    for capability in model_displays[reference.model.slug].capabilities
-                },
-                recipe_apis.get(document["identity"]["slug"]),
+                endpoint_capabilities(
+                    recipe_by_slug[slug], recipe_displays[slug], model_displays
+                ),
+                recipe_apis.get(slug),
             )
         ]
         if not entry["served_capabilities"]:

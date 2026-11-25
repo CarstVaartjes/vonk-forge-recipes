@@ -1,5 +1,8 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark"
+  ],
   "description": "Adaptation of MiaAI-Lab's DGX Spark lane for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 with NVIDIA's DSpark draft on SGLang (cookbook DSpark operating point: mem-fraction 0.78, block size 3, 1M context). Upstream reports ~4.9M-token pool and 48 concurrent requests on a Spark; those are upstream claims, not measured here. The RTX 5090 / 6000 PRO lanes are not modelled.",
   "identity": {
     "publisher": "vonk-forge",
