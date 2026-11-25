@@ -94,6 +94,16 @@ class VcapState:
         # INKLING_VERIFY_CAP_FUSED_ACCEPT: primitives object after the self-check, or None.
         self.fused_accept = None
         self.fused_accept_calls = 0
+        # DFLASH (dflash.py): "dspark" or "dflash" once a worker attached; the walked
+        # selector-row features written by the sample_path wrapper (device buffers).
+        self.algorithm = ""
+        self.df = None
+        self.df_planned = None     # dfcap.Cutoff of the current DFLASH step (exactness guard in _accept_block)
+        self.df_min_live = None    # [bs] int64 live-row minimum for this step (inkling_pcopy: forced copy drafts + 1)
+        self.df_policy = None      # dfcap.DfPolicyDevice (dfpolicy: mode)
+        self.src_identity = True   # src_index currently the identity (dfcap.plan)
+        # INKLING_VERIFY_CAP_STEPLOG: the full-width capture (dfsteplog.DfStepLog).
+        self.steplog = None
 
     # ------------------------------------------------------------------ setup
     def allocate(self, *, stride: int, capacity: int, device, live_lens=None) -> None:

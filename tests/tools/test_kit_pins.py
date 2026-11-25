@@ -16,9 +16,11 @@ import re
 import sys
 import tempfile
 import unittest
+from email.message import Message
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
+from urllib.error import HTTPError
 
 import pytest
 from documents import json_document
@@ -103,14 +105,18 @@ class FakeApi:
             commit = path.split("ref=")[1]
             text = self.config.get(commit)
             if text is None or "/".join(route[4:]) != "scripts/config.sh":
-                raise RuntimeError(f"HTTP 404 for {path}")
+                raise RuntimeError(f"HTTP 404 for {path}") from HTTPError(
+                    path, 404, "Not Found", Message(), None
+                )
             return {
                 "encoding": "base64",
                 "content": base64.b64encode(text.encode()).decode(),
             }
         if route[3:6] == ["git", "ref", "heads"]:
             if "/".join(route[6:]) not in self.branches:
-                raise RuntimeError(f"HTTP 404 for {path}")
+                raise RuntimeError(f"HTTP 404 for {path}") from HTTPError(
+                    path, 404, "Not Found", Message(), None
+                )
             return {"ref": "refs/heads/" + "/".join(route[6:])}
         if route[3] == "commits":
             ref = "/".join(route[4:])
@@ -511,7 +517,9 @@ class WithdrawnKitTests(unittest.TestCase):
 
         def images(repo: str, commit: str, scope: str) -> list[Any]:
             scanned.append(commit)
-            raise kit_model.KitError(f"cannot scan {repo}@{commit}: HTTP 404")
+            raise kit_model.KitError(f"cannot scan {repo}@{commit}") from HTTPError(
+                "https://codeload.github.com", 404, "Not Found", Message(), None
+            )
 
         with tempfile.TemporaryDirectory() as tmp:
             recipe = self.adapter(Path(tmp), marked=marked, built_from=built_from)
@@ -522,6 +530,34 @@ class WithdrawnKitTests(unittest.TestCase):
                 Path(tmp), "mia", recipe, source
             ) + kit_check.check_images(Path(tmp), {"mia": recipe}, source)
         return problems, scanned
+
+    def test_an_unreadable_provider_is_a_notice_not_a_problem(self) -> None:
+        def busy(*_: Any) -> Any:
+            raise UpstreamBusy("rate limited")
+
+        def down(_path: str) -> Any:
+            raise OSError("connection reset")
+
+        notices: list[str] = []
+        with tempfile.TemporaryDirectory() as tmp:
+            recipe = self.adapter(Path(tmp), marked=False)
+            manifest = Path(tmp) / "adapters/mia" / kit_model.MANIFEST
+            document = json.loads(manifest.read_text())
+            dependencies = document["kit"]["dependencies"]
+            dependencies["extra"] = dict(dependencies["image"])
+            manifest.write_text(json.dumps(document))
+            source = kit_upstream.Upstream(kit_upstream.GitHub(down), images=busy)
+            problems = kit_check.check_recipe(
+                Path(tmp), "mia", recipe, source, notices.append
+            )
+            scan = kit_check.check_images(
+                Path(tmp), {"mia": recipe}, source, notice=notices.append
+            )
+        assert scan == []
+        assert len(notices) == 2
+        assert [p for p in problems if "lacks 'extra'" in p], (
+            problems
+        )  # lock still binds
 
     def test_the_marked_kit_is_not_re_read(self) -> None:
         assert self.problems(marked=True) == ([], [])
@@ -1271,13 +1307,15 @@ if __name__ == "__main__":
 
 
 class BusyProviderCliTests(unittest.TestCase):
-    """One recipe the provider will not answer does not stop the next from being checked."""
+    """A provider that will not answer is a notice and does not stop the next recipe."""
 
     def test_a_busy_recipe_is_counted_and_the_next_is_still_checked(self) -> None:
 
         seen: list[str] = []
 
-        def check(_root: Path, recipe_id: str, _recipe: Any, _source: Any) -> list[str]:
+        def check(
+            _root: Path, recipe_id: str, _recipe: Any, _source: Any, _notice: Any = None
+        ) -> list[str]:
             seen.append(recipe_id)
             if recipe_id == "first":
                 raise UpstreamBusy("rate limited")
@@ -1288,19 +1326,24 @@ class BusyProviderCliTests(unittest.TestCase):
                 kit_cli.process("check", name, {}, None)  # pyright: ignore[reportArgumentType]
                 for name in ("first", "second")
             )
-        assert (seen, failed) == (["first", "second"], 2)
+        assert (seen, failed) == (["first", "second"], 1)
 
-    def test_a_busy_image_scan_is_a_problem_not_a_crash(self) -> None:
+    def test_a_busy_image_scan_is_a_notice_not_a_crash(self) -> None:
 
         def busy(_source: Any, *_key: str) -> list[dict[str, Any]]:
             raise UpstreamBusy("rate limited")
+
+        notices: list[str] = []
 
         with (
             tempfile.TemporaryDirectory() as tmp,
             patch.object(kit_check, "kit_images", busy),
         ):
             problems = kit_check.check_images(
-                Path(tmp), {"mia": recipe_for(KIT_BRANCH)}, upstream(FakeApi())
+                Path(tmp),
+                {"mia": recipe_for(KIT_BRANCH)},
+                upstream(FakeApi()),
+                notice=notices.append,
             )
-        assert len(problems) == 1, problems
-        assert "rate limited" in problems[0]
+        assert problems == []
+        assert len(notices) == 1

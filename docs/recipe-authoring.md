@@ -1138,7 +1138,15 @@ contexts refresh together. Human repairs may intentionally diverge with evidence
 An adapter that installs a creator's GitHub release asset pins it by version and
 sha256. A refresh moves the `releases/download/<tag>/<asset>` URL and re-pins the
 sha256 from the creator's `<asset>.sha256`, checked against GitHub's recorded
-digest when GitHub records one. These go to review ("re-pin by hand"): a missing
+digest when GitHub records one. A URL written with `${ARG}` references is read
+through the Dockerfile's `ARG NAME=default` lines and left as written; the
+`ARG ..VERSION=` and sha256 defaults move instead, and the refresh re-expands the URL
+afterwards (it must name the new tag and asset). An adapter that reaches the
+repository only through its Dockerfile's `releases/download/` URL (no clone, archive,
+codeload, raw URL or commit-named file; the adapter owns the pin and carries no
+patches or mods) is judged by the
+release: diverged or truncated history and changed source files are not reasons, and
+the move is never a no-op. These go to review ("re-pin by hand"): a missing
 asset or `.sha256`, a disagreement, a target that is not a release, or a Dockerfile
 that does not pin the old asset by sha256. The refresh never leaves a declared
 `source.line`; it only notes that a newer line exists. Moving to another line is a
@@ -1156,17 +1164,21 @@ move did: pins moved (and any held), proven bytes followed when the fixture chan
 peaks raised when they were, and the sweep re-check only when a recipe document changed.
 
 Respect `policy/base-image-holds.json`: a held base and Dockerfile must agree until the
-hold is updated/removed with working evidence (`tools/check-base-image-holds`,
+hold is updated/removed with working evidence; an optional `source` (`<owner>/<repo>`) also
+declines that GitHub repository's newer releases (`tools/check-base-image-holds`,
 `tests/tools/test_base_image_holds.py`). `policy/model-revision-holds.json` declines one Model
 revision that cannot run on the recipe's Sparks, with its reason; a newer
 upstream revision is assessed again (`tools/check-model-revision-holds`,
 `tests/tools/test_model_revision_holds.py`). A recipe that mounts every file of its Model follows added
-files of the repository, except weights files added beside byte-identical catalogued files: that is
+files of the repository, except weights files and metadata added beside byte-identical catalogued files: that is
 another checkpoint and does not move the recipe (#2749). Recipes in `policy/published-images.json` follow the
 published image digest and its recorded build commit, not unrelated newer Git
 heads. `tools/check-image-provenance --base origin/main` checks changed recipes.
 An unavailable recorded commit needs the explicit unverified provenance mark
-and review; do not claim a byte comparison that could not run. Outages wait;
+and review; do not claim a byte comparison that could not run. An unreadable
+provider (registry, GitHub; `check-image-provenance`, `kit-pins check`,
+`check-vendored-upstream`) is a note, skipped this run and re-checked when the recipe next
+changes, never a failed check;
 missing source is unverified (`tests/tools/test_published_image_follow.py`).
 When the refresher moves a published image it also replaces the adapter
 Dockerfile's image-description comment (between `LABEL` and the

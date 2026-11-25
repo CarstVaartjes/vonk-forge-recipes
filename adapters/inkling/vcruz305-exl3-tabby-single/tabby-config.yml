@@ -21,8 +21,10 @@ model:
   max_batch_size: ${MAX_BATCH_SIZE}
 # Fallbacks for clients that send no sampler values (agent frameworks). The pack's
 # generation_config.json sets temperature 1.0 and nothing else; client values still win.
+# The kit's serve.sh falls back to 0.7 (TEMPERATURE), as measured.
 sampling:
-  temperature: {override: 1.0, force: false}
-# The draft head is a component of the pack itself: no draft_model_name, no second download.
+  temperature: {override: 0.7, force: false}
+# mtp: the draft head is a component of the pack itself. dflash2: the separate drafter
+# model directory, given as the view tabby-serve builds. disabled: no drafting.
 draft_model:
-  draft_mode: ${DRAFT_MODE}
+  draft_mode: ${DRAFT_MODE}${DRAFT_MODEL_FIELDS}

@@ -116,7 +116,7 @@ from recipe_tooling.adapter_sources import materialize_or_exit
 from recipe_tooling.kit_pins.check import check_images, check_recipe
 from recipe_tooling.kit_pins.image_scan import dockerfile_images, kit_images, kit_scope
 from recipe_tooling.kit_pins.lock import adapter_of, kit_of, manifest_of
-from recipe_tooling.kit_pins.model import MANIFEST, KitError
+from recipe_tooling.kit_pins.model import MANIFEST, KitError, is_outage
 from recipe_tooling.kit_pins.sources import cli_source
 from recipe_tooling.kit_pins.upstream import Upstream
 from recipe_tooling.kit_pins.write import apply_lock
@@ -168,17 +168,24 @@ def print_images(recipes: dict[str, dict[str, Any]], names: list[str]) -> int:
     return 0
 
 
+def print_notice(message: str) -> None:
+    print(f"notice: {message}", file=sys.stderr)
+
+
 def process(
     command: str, recipe_id: str, recipe: dict[str, Any], source: Upstream
 ) -> int:
-    """Lock or check one recipe; the number of problems printed (a busy provider counts)."""
+    """Lock or check one recipe; the number of problems printed (an unreadable provider is a notice)."""
     try:
         if command == "lock":
             moved = apply_lock(ROOT, recipe_id, recipe, source)
             print(f"{recipe_id}: " + ("; ".join(moved) if moved else "lock is current"))
             return 0
-        problems = check_recipe(ROOT, recipe_id, recipe, source)
-    except (KitError, RuntimeError) as error:  # incl. UpstreamBusy: next recipe goes on
+        problems = check_recipe(ROOT, recipe_id, recipe, source, print_notice)
+    except (KitError, RuntimeError, OSError) as error:  # incl. UpstreamBusy
+        if command == "check" and is_outage(error):
+            print_notice(f"{recipe_id}: not checked this run: {error}")
+            return 0
         problems = [f"{recipe_id}: {error}"]
     for problem in problems:
         print(problem, file=sys.stderr)
@@ -215,7 +222,7 @@ def main(argv: list[str]) -> int:
                 ROOT,
                 recipes,
                 source,
-                notice=lambda message: print(f"notice: {message}", file=sys.stderr),
+                notice=print_notice,
             ):
                 print(problem, file=sys.stderr)
                 failed += 1

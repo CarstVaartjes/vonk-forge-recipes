@@ -36,6 +36,12 @@ try:
     if _on("INKLING_PFUSE"):  # prefill glue fusion: Inkling2DecoderLayer._forward, extend only
         import inkling_pfuse
         inkling_pfuse.install()
+    if _on("INKLING_PROLOGUE"):  # SWA prefill: K conv + L2 clip, V conv + value norm fused (FP32-order class)
+        import inkling_prologue
+        inkling_prologue.install()
+    if _on("INKLING_PFUSE_HOIST"):  # prefill loop-bank hoist over pfuse's loop_mix (FP32-order class; needs PFUSE)
+        import inkling_phoist
+        inkling_phoist.install()
     if _on("INKLING_WIDE"):  # after pico12 (reads its packs) and prefill: outermost _project_sources for 17..256 rows
         import inkling_wide
         inkling_wide.install()
@@ -63,6 +69,27 @@ try:
     if _on("INKLING_NOEXP"):  # dead verify rows get no experts (exact for live rows; needs INKLING_VERIFY_CAP)
         import inkling_noexp
         inkling_noexp.install()
+    if _on("INKLING_PADX"):  # after noexp: CUDA-graph padding rows route to the phantom expert (exact for live rows)
+        import inkling_padx
+        inkling_padx.install()
+    if _on("INKLING_DFLASH_BYTES"):  # DFlash2 drafter byte cuts (draft-only; needs SPEC=dflash2, exclusive with DRAFT_BYTES)
+        import inkling_dfbytes
+        inkling_dfbytes.install()
+    if _on("INKLING_DFLASH_FUSED_ACCEPT"):  # DFLASH sampled accept from the logits with sparse q (same law)
+        import inkling_dfaccept
+        inkling_dfaccept.install()
+    if _on("INKLING_DFLASH_PCOPY"):  # DFLASH: prompt-copy forced drafts (draft proposals only; after the verify cap)
+        import inkling_pcopy
+        inkling_pcopy.install()
+    if _on("INKLING_DFLASH_PREFIX_TAIL") or _on("INKLING_DFLASH_TAIL_SNAPSHOTS"):  # DFLASH draft ring on prefix hits: (A) re-prefill the last N input tokens, (B) restore a prompt-end draft window snapshot
+        import inkling_dftail
+        inkling_dftail.install()
+    if _on("INKLING_PROMPT_TOUCH"):  # cache LRU order only: refresh a finished request's prompt-end checkpoint
+        import inkling_ptouch
+        inkling_ptouch.install()
+    if _on("INKLING_RSFIX"):  # exact residual / bonus lane rule (+ SGLang PR #51681 / #51692 fixes)
+        import inkling_rsfix
+        inkling_rsfix.install()
 except BaseException as exc:  # noqa: BLE001
     sys.stderr.write("[inkling-overlay pid=%d] FATAL at startup: %r\n" % (os.getpid(), exc))
     sys.stderr.flush()

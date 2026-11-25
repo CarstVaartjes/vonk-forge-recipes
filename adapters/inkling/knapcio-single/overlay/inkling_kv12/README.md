@@ -48,7 +48,7 @@ attention kernel ran); `MHAView.load_cpu_copy` (retraction restore) clears the r
 allocated before the target runner captures its first graph (`capture_cuda_graphs` wrapper), so every captured
 writer clears flags. HiCache and PD disaggregation are refused. Prefill attention keeps reading the raw pool.
 
-## Measured (GB10, Spark_06, 2026-11-22; development check script, not shipped: it needs the oracle K/V dumps)
+## Measured (GB10, 2026-11-22; development check script, not shipped: it needs the oracle K/V dumps)
 
 Full global verify visit (find / pack steady state + attention + `combine_gate_sink`), cold, CUDA-graph medians:
 
