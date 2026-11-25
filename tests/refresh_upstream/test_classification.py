@@ -706,9 +706,19 @@ class ReleaseAssetTests(unittest.TestCase):
         fetch = f"git remote add o https://github.com/{self.REPO} && git fetch o\n"
         for name, kwargs in {
             "patched": {"files": {"p.patch": patch_file}},
-            "unowned": {"owned": False},
+            "unowned": {
+                "owned": False,
+                "dockerfile": self.dockerfile().replace(
+                    f' \\\n      org.opencontainers.image.revision="{OLD}"', ""
+                ),
+            },
             "script-only download": {
                 "dockerfile": f"FROM base@sha256:{'4' * 64}\n",
+                "files": {
+                    "get.sh": f"curl https://github.com/{self.REPO}/releases/download/v1.2.3/x\n"
+                },
+            },
+            "download also in a script": {
                 "files": {
                     "get.sh": f"curl https://github.com/{self.REPO}/releases/download/v1.2.3/x\n"
                 },

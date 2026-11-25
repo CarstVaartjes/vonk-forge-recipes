@@ -311,8 +311,11 @@ def release_asset_only(directory: Path | None, repo: str) -> bool:
             mention.search(text) and re.search(WEAK_WHOLE_REPO, text)
         ):
             return False
-        if path.name == "Dockerfile" and path.parent == directory:
-            downloads = downloads or download.search(text) is not None
+        if download.search(text):
+            # Only the Dockerfile's download is moved and verified by the refresh.
+            if path.name != "Dockerfile" or path.parent != directory:
+                return False
+            downloads = True
     return downloads
 
 
