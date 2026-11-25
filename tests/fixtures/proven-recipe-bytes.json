@@ -164,7 +164,7 @@
   "vonk-forge/qwen3-8b-nvfp4-nvidia-sglang-single": "444c30ea21edaaf03dfaa0f1777c6d7741184fd78c654c063dbeaec362e615a5",
   "vonk-forge/qwen3-8b-nvfp4-nvidia-trtllm-single": "5119719fff682e0922e63c765e84c0fa3ccda4a36e6bc0304b45f15ed2bb34f2",
   "vonk-forge/qwen3-8b-nvfp4-nvidia-vllm-single": "538c38e96a3beef59b5f919c5625674af1d6c5c0a7c4042b5e4372d1cfb35066",
-  "vonk-forge/qwen3-coder-next-int4-autoround-eugr-vllm-single": "8e7a292343a2c6957aa7aa34d3cacb8eb86f748318fe675576a29703f074f256",
+  "vonk-forge/qwen3-coder-next-int4-autoround-eugr-vllm-single": "009710aa4cd987b9bc9c353901e7d57bd98e6824d9354eb847bb70c8682b2a94",
   "vonk-forge/step1x-3d-geometry-pytorch-single": "fc9a5264304e0cabdc93989db9c789f630e401da537089c6f3b0d13c1f54facd",
   "vonk-forge/step1x-3d-label-geometry-pytorch-single": "6dfc18cb0380c7817e9288728dacffaf58f1f4d00ca0d989f272adf9f907baaf",
   "vonk-forge/step1x-3d-texture-pytorch-single": "2771b3a85ee68f47460fbd3af9ca88f5f3f0818163bad7e717704b3b58abb815",
