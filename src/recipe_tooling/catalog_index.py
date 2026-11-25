@@ -45,6 +45,7 @@ from vonk_forge_contracts import (
     PACKAGE_METADATA_FIELDS,
     PACKAGE_PATH_PREFIX,
     PACKAGE_SCHEMA_VERSION,
+    CapabilityName,
     CatalogIndex,
     ModelDefinition,
     PackageContract,
@@ -57,6 +58,7 @@ from vonk_forge_contracts import (
     published_index_json,
     published_json,
     published_status,
+    served_capabilities,
 )
 from vonk_forge_contracts.resolver import (
     validate_families,
@@ -793,6 +795,19 @@ def build(
         entry["qualification"] = published_status(evidence, identity).model_dump(
             mode="json", exclude_none=True
         )
+        # Derived, never authored: what this launch serves, from its Models' display
+        # capabilities and its API document; the one function every consumer shares.
+        entry["served_capabilities"] = [
+            capability.value
+            for capability in served_capabilities(
+                {
+                    CapabilityName(capability)
+                    for reference in recipe_by_slug[document["identity"]["slug"]].models
+                    for capability in model_displays[reference.model.slug].capabilities
+                },
+                recipe_apis.get(document["identity"]["slug"]),
+            )
+        ]
         # A sibling of "qualification", never inside it: older Controllers reject
         # unknown fields of the status and ignore unknown entry keys.
         peaks = published_measured_peaks(

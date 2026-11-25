@@ -272,7 +272,8 @@ build constructs it through the model, consumers read it with `read_catalog`
 word a newer minor added as an `UnrecognisedWord`, drops an unreadable optional block (display,
 API facts, qualification, prebuilt image, measured memory; the entry stays), skips an entry whose
 execution data is malformed, and refuses the index only for a wrong envelope or contract major or
-a digest mismatch; `read_catalog_index` is
+a digest mismatch; each recipe entry's `served_capabilities` is derived at build time by the
+contract's `served_capabilities` (never authored); `read_catalog_index` is
 the strict whole-index form for producers and tests. The envelope and package
 schema versions live only there; change the shape in the model and run
 `tools/generate-contract-schemas`. Once `v<CONTRACT_VERSION>` is released, validate.yml refuses a
