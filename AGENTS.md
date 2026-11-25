@@ -193,7 +193,7 @@ below).
 - Full checks build the contracts wheel and import/resolve examples from a clean
   external consumer directory. Generated indexes, packages and coverage are
   ignored build outputs, not committed state.
-- Repository-wide policy files (base-image and Model-revision holds, creators,
+- Repository-wide policy files (base-image holds, optionally naming the GitHub `source` they stand for, and Model-revision holds, creators,
   kit-image and memory-envelope exceptions, published images, upstream watch, the sweep's
   authority id, boost words and owner profiles) live in `policy/`,
   not the root (`adapter-sources.json` stays there).

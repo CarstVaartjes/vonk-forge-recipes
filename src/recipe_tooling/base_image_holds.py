@@ -4,7 +4,11 @@
 (a newer engine release breaks them), with the reason and an upstream reference::
 
     {"<recipe id>": {"base_image": {"repository": "...", "digest": "<sha256 hex>"},
-                     "version": "v0.27.1", "reason": "why", "upstream": "https://..."}}
+                     "version": "v0.27.1", "reason": "why", "upstream": "https://...",
+                     "source": "<owner/repo>"}}
+
+``source`` is optional: the GitHub repository whose newer releases the held image stands
+for, so refresh declines those too.
 
 The recipe's ``execution.build.base_image`` and every ``FROM`` of that repository in its
 Dockerfile must carry the held digest. Moving a held recipe therefore means updating or
@@ -25,6 +29,7 @@ from recipe_tooling.paths import REPO_ROOT
 ROOT = REPO_ROOT
 HOLDS = "policy/base-image-holds.json"
 DIGEST = re.compile(r"^[0-9a-f]{64}$")
+SOURCE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 FROM = re.compile(
     r"^[ \t]*FROM[ \t]+(?:--\S+[ \t]+)*(?P<image>\S+)", re.MULTILINE | re.IGNORECASE
 )
@@ -44,6 +49,12 @@ def moves_held_image(hold: dict[str, Any] | None, repository: str) -> bool:
         hold is not None
         and str(hold["base_image"]["repository"]).lower() == repository.lower()
     )
+
+
+def follows_held_source(hold: dict[str, Any] | None, repo: str) -> bool:
+    """Whether ``repo`` is the GitHub repository whose newer releases this hold declines."""
+    source = hold.get("source") if hold else None
+    return bool(source) and str(source).lower() == repo.lower()
 
 
 def describe(hold: dict[str, Any]) -> str:
@@ -67,6 +78,9 @@ def problems(root: Path) -> list[str]:
             "https://"
         ):
             found.append(f"{where}: a hold needs a reason and an https upstream link")
+        source = hold.get("source")
+        if source is not None and not SOURCE.match(str(source)):
+            found.append(f"{where}: source must be a GitHub <owner>/<repo>")
         path = root / "recipes" / f"{recipe_id}.json"
         if not path.is_file():
             found.append(f"{where}: no recipe {path.name}; remove the hold")

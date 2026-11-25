@@ -1153,7 +1153,8 @@ move did: pins moved (and any held), proven bytes followed when the fixture chan
 peaks raised when they were, and the sweep re-check only when a recipe document changed.
 
 Respect `policy/base-image-holds.json`: a held base and Dockerfile must agree until the
-hold is updated/removed with working evidence (`tools/check-base-image-holds`,
+hold is updated/removed with working evidence; an optional `source` (`<owner>/<repo>`) also
+declines that GitHub repository's newer releases (`tools/check-base-image-holds`,
 `tests/tools/test_base_image_holds.py`). `policy/model-revision-holds.json` declines one Model
 revision that cannot run on the recipe's Sparks, with its reason; a newer
 upstream revision is assessed again (`tools/check-model-revision-holds`,
