@@ -51,9 +51,11 @@ class VendoredUpstreamTest(unittest.TestCase):
             adapter = root / "adapters/x"
             adapter.mkdir(parents=True)
             (adapter / "Dockerfile").write_text("FROM scratch\n" + LABELS)
-            report = checker.check_adapter(adapter, root, down)
+            report = checker.check_adapter(adapter, root, down, lambda *_: None)
+            gone = checker.check_adapter(adapter, root, down, lambda *_: False)
         assert report.problems == []
         assert report.note
+        assert gone.problems  # GitHub answers "not there": ours to fix
 
     def test_identical_vendored_file_passes(self) -> None:
         report = self._run(

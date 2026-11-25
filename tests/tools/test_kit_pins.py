@@ -16,9 +16,11 @@ import re
 import sys
 import tempfile
 import unittest
+from email.message import Message
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
+from urllib.error import HTTPError
 
 import pytest
 from documents import json_document
@@ -103,14 +105,18 @@ class FakeApi:
             commit = path.split("ref=")[1]
             text = self.config.get(commit)
             if text is None or "/".join(route[4:]) != "scripts/config.sh":
-                raise RuntimeError(f"HTTP 404 for {path}")
+                raise RuntimeError(f"HTTP 404 for {path}") from HTTPError(
+                    path, 404, "Not Found", Message(), None
+                )
             return {
                 "encoding": "base64",
                 "content": base64.b64encode(text.encode()).decode(),
             }
         if route[3:6] == ["git", "ref", "heads"]:
             if "/".join(route[6:]) not in self.branches:
-                raise RuntimeError(f"HTTP 404 for {path}")
+                raise RuntimeError(f"HTTP 404 for {path}") from HTTPError(
+                    path, 404, "Not Found", Message(), None
+                )
             return {"ref": "refs/heads/" + "/".join(route[6:])}
         if route[3] == "commits":
             ref = "/".join(route[4:])
@@ -511,7 +517,9 @@ class WithdrawnKitTests(unittest.TestCase):
 
         def images(repo: str, commit: str, scope: str) -> list[Any]:
             scanned.append(commit)
-            raise kit_model.KitError(f"cannot scan {repo}@{commit}: HTTP 404")
+            raise kit_model.KitError(f"cannot scan {repo}@{commit}") from HTTPError(
+                "https://codeload.github.com", 404, "Not Found", Message(), None
+            )
 
         with tempfile.TemporaryDirectory() as tmp:
             recipe = self.adapter(Path(tmp), marked=marked, built_from=built_from)
@@ -1296,7 +1304,9 @@ class BusyProviderCliTests(unittest.TestCase):
 
         seen: list[str] = []
 
-        def check(_root: Path, recipe_id: str, _recipe: Any, _source: Any) -> list[str]:
+        def check(
+            _root: Path, recipe_id: str, _recipe: Any, _source: Any, _notice: Any = None
+        ) -> list[str]:
             seen.append(recipe_id)
             if recipe_id == "first":
                 raise UpstreamBusy("rate limited")
@@ -1314,11 +1324,17 @@ class BusyProviderCliTests(unittest.TestCase):
         def busy(_source: Any, *_key: str) -> list[dict[str, Any]]:
             raise UpstreamBusy("rate limited")
 
+        notices: list[str] = []
+
         with (
             tempfile.TemporaryDirectory() as tmp,
             patch.object(kit_check, "kit_images", busy),
         ):
             problems = kit_check.check_images(
-                Path(tmp), {"mia": recipe_for(KIT_BRANCH)}, upstream(FakeApi())
+                Path(tmp),
+                {"mia": recipe_for(KIT_BRANCH)},
+                upstream(FakeApi()),
+                notice=notices.append,
             )
         assert problems == []
+        assert len(notices) == 1

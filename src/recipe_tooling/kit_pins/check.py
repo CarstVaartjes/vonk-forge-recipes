@@ -200,8 +200,22 @@ def check_recipe(
         if not is_outage(error):
             problems.append(f"{label}: {error}")
             return problems
-        notice(f"{label}: not checked this run: {error}")
-        return problems
+        notice(f"{label}: lock not re-read this run: {error}")
+        # The lock's own values still bind the recipe offline (as for a withdrawn kit).
+        pins = [
+            Pin(
+                d.name,
+                locked["repo"],
+                locked["ref"],
+                locked.get(IMMUTABLE_KEYS[d.datasource], ""),
+                "",
+                locked.get("kind", ""),
+                locked.get("overridden"),
+                d.datasource,
+            )
+            for d in wanted
+            if (locked := lock.get("dependencies", {}).get(d.name)) is not None
+        ]
     by_name = {d.name: d for d in wanted}
     for pin in pins:
         problems.extend(
