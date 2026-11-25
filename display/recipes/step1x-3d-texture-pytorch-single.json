@@ -1,5 +1,9 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "sdxl",
+    "sdxl-vae"
+  ],
   "description": "Installable single-DGX Spark image-and-mesh texturing recipe using exact Step1X, SDXL, and fixed-VAE snapshots plus SM121-native rasterizer dependencies. It consumes a GLB up to 240 MiB from vonk-forge/step1x-3d-geometry-pytorch-single or vonk-forge/step1x-3d-label-geometry-pytorch-single together with the same reference image, runs offline, and emits a textured GLB.",
   "identity": {
     "publisher": "vonk-forge",

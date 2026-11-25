@@ -147,10 +147,10 @@ def multimodal(
     models: Mapping[str, ModelDisplay],
     display: RecipeDisplay,
 ) -> bool:
-    """The recipe serves images: declared by its tags or by a model it loads.
+    """The recipe serves images: declared by its tags or by an endpoint Model.
 
     ``models`` maps a model slug to its display, where modalities and
-    capabilities are declared.
+    capabilities are declared; a component binding's Model never counts.
     """
     arguments = _flag_text(_arguments(recipe))
     if _VISION_OFF.search(arguments):
@@ -158,6 +158,8 @@ def multimodal(
     if tags(display) & _VISION_TAGS:
         return True
     for entry in recipe["models"]:
+        if not display.is_endpoint(entry["id"]):
+            continue
         model = models.get(entry["model"]["slug"])
         if model is not None and (
             "image" in model.modalities

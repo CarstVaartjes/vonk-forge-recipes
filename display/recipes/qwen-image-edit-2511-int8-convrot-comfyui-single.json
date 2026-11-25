@@ -1,5 +1,8 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "dependency-qwen-image-2512-comfyui-1f12b17b"
+  ],
   "description": "Memory-efficient executable single-Spark recipe for one-or-two-reference Qwen Image Edit 2511 jobs, using Comfy-Org's official stock-ComfyUI INT8 tensorwise ConvRot transformer, scaled-FP8 Qwen-VL encoder, and Qwen Image VAE. It pins the official non-turbo 40-step workflow and declares a conservative 108.00 GB unified-memory admission envelope including reserve and 95.14 GB peak installation disk.",
   "identity": {
     "publisher": "vonk-forge",

@@ -1,5 +1,9 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "siglip2",
+    "clap"
+  ],
   "description": "Recipe for text-conditioned Foley generation from one video, with the exact official XXL checkpoint and pinned local-only SigLIP2 and CLAP encoders.",
   "identity": {
     "publisher": "vonk-forge",
