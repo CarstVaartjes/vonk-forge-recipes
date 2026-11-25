@@ -1138,7 +1138,10 @@ contexts refresh together. Human repairs may intentionally diverge with evidence
 An adapter that installs a creator's GitHub release asset pins it by version and
 sha256. A refresh moves the `releases/download/<tag>/<asset>` URL and re-pins the
 sha256 from the creator's `<asset>.sha256`, checked against GitHub's recorded
-digest when GitHub records one. These go to review ("re-pin by hand"): a missing
+digest when GitHub records one. A URL written with `${ARG}` references is read
+through the Dockerfile's `ARG NAME=default` lines and left as written; the
+`ARG ..VERSION=` and sha256 defaults move instead, and the refresh re-expands the URL
+afterwards (it must name the new tag and asset). These go to review ("re-pin by hand"): a missing
 asset or `.sha256`, a disagreement, a target that is not a release, or a Dockerfile
 that does not pin the old asset by sha256. The refresh never leaves a declared
 `source.line`; it only notes that a newer line exists. Moving to another line is a
