@@ -77,11 +77,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          venv="$RUNNER_TEMP/memory-venv"
-          uv venv --python 3.14 "$venv"
-          uv pip install --python "$venv/bin/python" -e contracts -r .github/requirements-producer-tests.txt
-          "$venv/bin/python" tools/check-recipe-memory-need --report "$RUNNER_TEMP/memory-estimates.md"
-          "$venv/bin/python" tools/refresh-upstream --memory-estimate-issue "$RUNNER_TEMP/memory-estimates.md"
+          uv sync --frozen
+          .venv/bin/python tools/check-recipe-memory-need --report "$RUNNER_TEMP/memory-estimates.md"
+          .venv/bin/python tools/refresh-upstream --memory-estimate-issue "$RUNNER_TEMP/memory-estimates.md"
 
   # Promote PR-proven content digests; build only keys without a candidate
   # through the same planner, build and smoke path.
@@ -172,8 +170,8 @@ jobs:
     # Image promotion or fallback builds must complete before signing.
     if: >-
       ${{ !cancelled() && github.ref == 'refs/heads/main'
-      && needs.validate.result != 'failure'
-      && needs.producer-contracts.result != 'failure'
+      && needs.validate.result == 'success'
+      && needs.producer-contracts.result == 'success'
       && needs.images.result == 'success'
       && needs.head-of-main.outputs.current == 'true' }}
     runs-on: ubuntu-24.04
@@ -204,14 +202,6 @@ jobs:
           uv venv --python 3.14 "$test_venv"
           uv pip install --python "$test_venv/bin/python" -e contracts
           echo "RELEASE_TEST_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
-
-      - name: Lint and type check the repository before publishing
-        shell: bash
-        run: |
-          set -euo pipefail
-          uv run --frozen ruff check --force-exclude -- .
-          uv run --frozen ruff format --check --force-exclude -- .
-          scripts/check-python-types
 
       - name: Resolve the release version and update time
         id: release

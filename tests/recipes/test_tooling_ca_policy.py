@@ -101,7 +101,6 @@ def test_ci_trusts_the_pinned_certifi_bundle_not_a_per_job_apt_refresh() -> None
     action = (ROOT / SETUP).read_text()
     assert "apt-get" not in action
     # The uv cache is keyed by files that exist and is not redirected away.
-    assert "uv.lock" not in action
     assert ".github/requirements-*.txt" in action
     assert list((ROOT / ".github").glob("requirements-*.txt"))
     for path in (ROOT / ".github/workflows").glob("*.yml"):

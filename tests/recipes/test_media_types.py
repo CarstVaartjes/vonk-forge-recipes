@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import json
-import runpy
 from pathlib import Path
 
 import pytest
 from pydantic import TypeAdapter, ValidationError
 from repo_root import ROOT
 
+from recipe_tooling import catalog_index
 from recipe_tooling.qualification.definitions_loader import load_definitions
 from recipe_tooling.qualification.media_types import (
     CanonicalMediaTypes,
@@ -91,9 +91,7 @@ def test_catalog_packaging_rejects_noncanonical_slot_lists(media: list[str]) -> 
     )
     document["interfaces"][0]["output"]["slots"][0]["media_types"] = media
     with pytest.raises(ValidationError):
-        runpy.run_path(str(ROOT / "tools/build-catalog-index"))["recipe_package"](
-            document
-        )
+        vars(catalog_index)["recipe_package"](document)
 
 
 def test_all_catalog_recipes_and_qualification_cases_use_canonical_media() -> None:

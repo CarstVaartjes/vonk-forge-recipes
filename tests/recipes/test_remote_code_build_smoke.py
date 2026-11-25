@@ -19,11 +19,12 @@ from unittest.mock import patch
 import pytest
 from repo_root import ROOT
 
+from recipe_tooling import remote_code_smoke
 from recipe_tooling.qualification.documents import model as model_document
 from vonk_forge_contracts.model import ModelSource
 from vonk_forge_contracts.recipe import RecipeDefinition
 
-TOOL = runpy.run_path(str(ROOT / "tools/prepare-remote-code-smoke"))
+TOOL = vars(remote_code_smoke)
 MOSS = ROOT / "adapters/video/moss-vl-realtime"
 KEY = "a" * 64
 
