@@ -12,6 +12,7 @@ from documents import recipe as document_recipe
 from repo_root import ROOT
 from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
+from recipe_tooling.qualification.memory_need import evidence as evidence_module
 from recipe_tooling.qualification.memory_need.args import (
     argument_value,
     memory_variants,
@@ -82,6 +83,27 @@ def test_explicit_and_model_default_context_have_the_same_need(context) -> None:
     assert need == 1_048_576 * 8192 + 64 * 1024**2
     # MLA is replicated on the two tensor ranks, never divided by TP=2.
     assert need > 7.54 * 1024**3
+
+
+@pytest.mark.parametrize("proved", [True, False])
+def test_measured_peaks_govern_unchanged_hardware_proven_content(
+    monkeypatch: pytest.MonkeyPatch, proved: bool
+) -> None:
+    recipe = recipe_for()
+    assert recipe.settings.kind == "generation"
+    recipe.settings.context_tokens.value = 1_048_576
+    next(
+        arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
+    ).value = 495_976_448
+    monkeypatch.setattr(evidence_module, "unchanged_recipe", lambda *_: proved)
+    monkeypatch.setattr(evidence_module, "hardware_proven", lambda *_: proved)
+    warnings = memory_estimate_warnings(
+        recipe, catalog_models(), load_inputs(), document_digest="digest"
+    )
+    if proved:
+        assert warnings == []
+    else:
+        assert_warns(warnings, "cannot hold one full-context request")
 
 
 def test_pool_boundary_and_wrapper_alias_are_checked() -> None:

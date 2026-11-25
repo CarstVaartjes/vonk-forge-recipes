@@ -119,6 +119,9 @@ def memory_estimate_findings(
     its unproven multi-Spark SGLang startup room is reported.
     """
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    unchanged = mn_evidence.unchanged_recipe(recipe, document_digest, inputs)
+    if unchanged and mn_evidence.hardware_proven(recipe, document_digest):
+        return []  # measured peaks govern content the hardware already proved
     warnings = estimate_problems(
         key, lambda: mn_vllm.absolute_kv_warnings(recipe, models, inputs)
     )
@@ -127,7 +130,7 @@ def memory_estimate_findings(
         for variant in mn_args.memory_variants(recipe)
         if variant.runtime.engine == "sglang" and variant.topology.node_count > 1
     ]
-    if mn_evidence.unchanged_recipe(recipe, document_digest, inputs):
+    if unchanged:
         if document_digest and not mn_evidence.hardware_proven(recipe, document_digest):
             for variant in multi_sglang:
                 warnings += estimate_problems(
