@@ -34,6 +34,7 @@ from vonk_forge_contracts.api_checks import (
     RecipeApiError,
     check_api_models,
     check_recipe_api,
+    endpoint_capabilities,
     served_capabilities,
 )
 from vonk_forge_contracts.canonical import (
@@ -239,6 +240,7 @@ __all__ = [
     "check_recipe_api",
     "derive_status",
     "document_sha256",
+    "endpoint_capabilities",
     "published_index_json",
     "published_json",
     "published_measured_memory_json_schema",

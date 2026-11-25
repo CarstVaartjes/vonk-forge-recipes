@@ -1,5 +1,8 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "dependency-inkling-small-dspark-fcc210dc"
+  ],
   "description": "Adaptation of MiaAI-Lab's two-DGX-Spark Inkling Small NVFP4 profile: SGLang TP2 over RoCE with RadixArk's DSpark Preview draft (block size 7), the fp4_mx_block16 KV cache and a 1M-token context, on drowzeys' prebuilt KV-quant GB10 SGLang image pinned by digest. Launch flags are upstream's text-only set (no --enable-multimodal); throughput figures in upstream's README are its own claims.",
   "identity": {
     "publisher": "vonk-forge",

@@ -148,6 +148,22 @@ class RecipeDisplay(_DisplayContract):
     # Wording for a job recipe's knobs, keyed by knob name (the names the
     # recipe's settings declare; the library check refuses any other).
     knobs: dict[Identifier, KnobDisplay] = Field(default_factory=dict, max_length=64)
+    # The recipe's Model binding ids (``models[].id``) that are components of
+    # its launch (a drafter, encoder, VAE or engram source), not what it serves;
+    # their capabilities never count as served. Absent: every binding is an
+    # endpoint. The library check refuses an id the recipe does not bind.
+    component_bindings: list[Identifier] = Field(default_factory=list, max_length=64)
+
+    @model_validator(mode="after")
+    def unique_component_bindings(self) -> RecipeDisplay:
+        if len(self.component_bindings) != len(set(self.component_bindings)):
+            raise ValueError("component_bindings must be unique")
+        return self
+
+    def is_endpoint(self, binding_id: str) -> bool:
+        """The one endpoint rule: a binding the display does not list as a component."""
+
+        return binding_id not in self.component_bindings
 
 
 class ModelDisplay(_DisplayContract):

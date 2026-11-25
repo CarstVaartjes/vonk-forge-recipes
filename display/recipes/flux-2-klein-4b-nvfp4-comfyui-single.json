@@ -1,5 +1,8 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "dependency-flux-2-klein-4b-comfyui-5f526678"
+  ],
   "description": "Four-step single-Spark core-node ComfyUI text-to-image recipe using Black Forest Labs' official NVFP4 transformer for lower artifact storage and native Blackwell execution. Per-job knobs choose the seed, the output width and height, and the step count.",
   "identity": {
     "publisher": "vonk-forge",

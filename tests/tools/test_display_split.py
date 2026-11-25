@@ -77,6 +77,7 @@ def test_display_fields_are_exactly_the_moved_set() -> None:
         "tags",
         "alignment",
         "knobs",
+        "component_bindings",
     }
     assert set(ModelDisplay.model_fields) == {
         "kind",
