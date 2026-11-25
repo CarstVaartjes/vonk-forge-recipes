@@ -70,7 +70,7 @@ RUN ls /opt/tensorfold/fatbin/*.fatbin >/dev/null \
 
 FROM nvcr.io/nvidia/pytorch:26.07-py3@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Inkling-2-Mini-DGX-Spark-TensorFold" \
-      org.opencontainers.image.revision="6061fa89a34d2a245bc4a230f04948f312347a5e" \
+      org.opencontainers.image.revision="9e3cf20b76e0140bebbbe6ed13f6e3a00e881f12" \
       org.opencontainers.image.licenses="Apache-2.0" \
       ai.vonkforge.runtime-interface="v1" \
       tf.kernels=embedded
