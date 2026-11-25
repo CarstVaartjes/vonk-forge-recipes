@@ -1,5 +1,8 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "drafter"
+  ],
   "description": "Single-DGX-Spark Qwen3.8-27B on Ash Hart's TensorFold 1.2.3, the native Zig engine from the creator's linux-aarch64 release archive (exact decoding; its CUDA kernels, sm_121 included, are built into the binary, so nothing compiles at start), with NVIDIA's ModelOpt NVFP4 export (NVFP4 MLP and language-model head, FP8 attention and DeltaNet projections, bf16 embeddings and gates), read as it ships with bf16 activations against the stored weights, and z-lab's DFlash2 draft model, launched as upstream documents it (serve the checkpoint with --drafter naming DFlash2). One rank. Upstream's serve defaults apply: a 32,768-token context (raise the context setting up to the model's 262,144 tokens, subject to TensorFold's startup memory check) and --parallel auto, which shares decode rounds among up to eight streams as memory allows and reports the accepted count at startup. Text only (no image option). Needs NVIDIA driver R580 or newer (CUDA 13.0). Structured output and required tool calls use the archive's libtfgrammar (xgrammar 0.2.8). The declared memory envelope is carried over from the 0.6.6 recipe and is an estimate until the hardware sweep measures this engine. Licences, for information: Qwen3.8-27B and NVIDIA's NVFP4 export are Apache-2.0; z-lab/Qwen3.8-27B-DFlash2 states Apache-2.0 on its model card (a mirror of incoai/Qwen3.8-27B-DFlash2); TensorFold is Apache-2.0 from 0.6.0 (MIT up to 0.5.0). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Open a think block by default (upstream default: --thinking).",
   "identity": {
     "publisher": "vonk-forge",

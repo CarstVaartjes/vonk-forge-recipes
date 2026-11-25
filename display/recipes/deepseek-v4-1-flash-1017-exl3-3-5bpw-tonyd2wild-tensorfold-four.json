@@ -1,5 +1,8 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "engram"
+  ],
   "description": "Tony's native Zig TensorFold TP4 lane on four DGX Sparks (tonyd2wild/DeepSeek-V4.1-Flash-TP2-and-TP4-DGX-Sparks 74ac0136, runs/2026-10-17-1017-tensorfold and the 2026-10-26 max-pool run) with LibertAI's 3.5 bpw EXL3 pack: bertholomus/TensorFold deepseek-v41-zig-tp4 at 59402086 plus the creator's four patches (Triton-variant fallback, row-block alignment, TF_RDMA_GID, opt-in random seed and top_k cap) and bertholomus's tp4 kernel kit v0.1.1. Dedicated-node values: 1,048,576-token context, 16 streams and the 16,777,216-position shared pool the creator measured with the four Sparks serving nothing else (the shipped 2,097,152 pool shares the Sparks with a ComfyUI studio), DSpark drafts on, image input, the creator's byte-checked chat template, thinking off by default (a request turns it on). Engram shards 47 and 48 come from the base 1017 checkpoint and are read by offset from the managed model cache. Read-only source weights derive a per-rank cache (about 68.9 GB each) and a verified RoPE/vision kit under /outputs/cache; restart reuses valid completed work. Memory: the creator measured, with the 16,777,216 pool and nothing else on the Sparks, MemAvailable of 27.0 GiB on rank 0 and 28.8-29.3 GiB on ranks 1-3 after load of the 121.7 GiB Spark, that is about 94.7 and 92.9 GiB in use; the declared 102 GB peak covers rank 0's figure plus a small margin. The LibertAI card says the 3.5 bpw pack does not fit two Sparks (121.5 GiB per rank at TP=2). Creator numbers (93.6 tok/s single stream aggregate, 213.8 tok/s at 6 streams, 1M context) are upstream claims, not measured here; no physical Spark acceptance yet.",
   "identity": {
     "publisher": "vonk-forge",

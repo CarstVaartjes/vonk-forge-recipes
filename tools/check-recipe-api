@@ -142,7 +142,13 @@ def problems(root: Path, slugs: list[str]) -> list[str]:
         except ValueError as error:
             found.append(f"{slug}: {error}")
             continue
-        models = [model_display(s.model.slug, root) for s in document.models]
+        # Only endpoint Models: a component (drafter, encoder) serves no input.
+        shown = recipe_display(slug, root)
+        models = [
+            model_display(s.model.slug, root)
+            for s in document.models
+            if shown.is_endpoint(s.id)
+        ]
         messages: list[str] = []
         try:
             check_recipe_api(document, api)

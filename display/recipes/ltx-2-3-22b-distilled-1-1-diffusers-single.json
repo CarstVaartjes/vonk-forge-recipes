@@ -1,5 +1,8 @@
 {
   "alignment": "unspecified",
+  "component_bindings": [
+    "dependency-ltx-2-gemma3-text-encoder-dfcc2108"
+  ],
   "description": "Still-deployable historical disk-offload recipe using the exact official native LTX 1.4.1 pipeline with the LTX-2.3 distilled 1.1 checkpoint/upscaler pair and Gemma 3 companion closure. The 93 GB startup and 77 GB steady declarations conservatively retain the previously reviewed 31 GB disk-versus-CPU offload advantage, 8 GB growth, and 8 GB system reserve; the upstream decode-tiling OOM fix is not used to lower admission bounds without a physical canary. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; this immutable execution contract remains available for reproducibility.",
   "identity": {
     "publisher": "vonk-forge",
