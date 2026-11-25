@@ -249,6 +249,9 @@ class MergeGateTests(unittest.TestCase):
         assert (
             refresh_publish.file_overlaps(2, pulls([{"conclusion": "FAILURE"}])) == []
         )
+        assert (
+            refresh_publish.file_overlaps(2, pulls([{"conclusion": "CANCELLED"}])) == []
+        )
         assert refresh_publish.file_overlaps(2, pulls([{"conclusion": "SUCCESS"}])) == [
             1
         ]
