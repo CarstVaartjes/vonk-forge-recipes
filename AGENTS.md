@@ -154,7 +154,8 @@ commit); CI passes `.`. The type gate (`scripts/check-python-types`, pyright
 whole working tree and requires zero errors: a deliberate error carries a
 `# pyright: ignore[<rule>]` on its line, and an ignore that no longer suppresses
 anything fails. Provider URLs open only through `recipe_tooling.upstream_http`
-(`TID251` bans `urlopen` and `build_opener` elsewhere).
+(`TID251` bans `urlopen`, `build_opener` and `HTTPRedirectHandler` elsewhere; it drops
+`Authorization` on cross-origin redirects).
 `tests/tools/test_python_gate_configuration.py` guards the configuration and CI wiring.
 
 ## CI and publication

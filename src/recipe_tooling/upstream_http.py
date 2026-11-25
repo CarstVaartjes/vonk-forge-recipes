@@ -18,6 +18,7 @@ from collections.abc import Callable
 from email.utils import parsedate_to_datetime
 from typing import Any
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlsplit
 
 RETRY_CODES = frozenset({429, 500, 502, 503, 504})
 BUSY_CODES = frozenset({429, 503})
@@ -56,17 +57,37 @@ def _backoff(attempt: int, jitter: Callable[[], float]) -> float:
     return min(MAX_WAIT_SECONDS, 2.0**attempt) * (0.5 + jitter())
 
 
+class _SameOriginCredentials(urllib.request.HTTPRedirectHandler):
+    """Follow redirects, but send ``Authorization`` only to the origin it was made for.
+
+    urllib copies every header to the redirect target. A provider that redirects to a
+    presigned storage URL (Docker Hub blobs) answers 400 when that URL also carries a
+    Bearer token; curl, requests and Go all drop the credential across origins.
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if redirected is None:
+            return None
+        origin = urlsplit(req.full_url)
+        target = urlsplit(newurl)
+        if (origin.scheme, origin.netloc) != (target.scheme, target.netloc):
+            for store in (redirected.headers, redirected.unredirected_hdrs):
+                for name in [key for key in store if key.lower() == "authorization"]:
+                    del store[name]
+        return redirected
+
+
 def open_request(
     request: urllib.request.Request,
     timeout: float,
     opener: Callable[..., Any] | None,
-    handlers: tuple[Any, ...],
 ) -> Any:
     if opener is not None:
         return opener(request, timeout=timeout)
-    if handlers:
-        return urllib.request.build_opener(*handlers).open(request, timeout=timeout)
-    return urllib.request.urlopen(request, timeout=timeout)
+    return urllib.request.build_opener(_SameOriginCredentials).open(
+        request, timeout=timeout
+    )
 
 
 def open_once(
@@ -78,11 +99,12 @@ def open_once(
 
     For the callers that must not be retried: the App credential exchange (a security
     edge), a download that has its own jittered retry and mirror fallback, and a local
-    fixture. Every `urlopen` of the repository is here.
+    fixture. Every provider open of the repository is here.
     """
-    if context is None:
-        return urllib.request.urlopen(request, timeout=timeout)
-    return urllib.request.urlopen(request, timeout=timeout, context=context)
+    handlers = [] if context is None else [urllib.request.HTTPSHandler(context=context)]
+    return urllib.request.build_opener(_SameOriginCredentials, *handlers).open(
+        request, timeout=timeout
+    )
 
 
 def fetch[T](
@@ -91,7 +113,6 @@ def fetch[T](
     *,
     timeout: float = 60,
     opener: Callable[..., Any] | None = None,
-    handlers: tuple[Any, ...] = (),
     sleep: Callable[[float], None] | None = None,
     jitter: Callable[[], float] = random.random,
     clock: Callable[[], float] = time.time,
@@ -110,7 +131,7 @@ def fetch[T](
     for attempt in range(ATTEMPTS):
         last = attempt == ATTEMPTS - 1
         try:
-            context = open_request(request, timeout, opener, handlers)
+            context = open_request(request, timeout, opener)
         except HTTPError as error:
             if error.code not in RETRY_CODES:
                 raise
