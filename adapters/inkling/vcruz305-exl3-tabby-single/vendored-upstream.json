@@ -1,6 +1,13 @@
 {
   "kit": {
     "dependencies": {
+      "drafter": {
+        "binds": "drafter",
+        "datasource": "hf-revision",
+        "file": "dgx-spark/scripts/env.sh",
+        "pattern": "DRAFT_REV=\"\\$\\{DRAFT_REV:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "DRAFT_REPO=\"\\$\\{DRAFT_REPO:-(?P<repo>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)\\}\""
+      },
       "engine": {
         "datasource": "git-ref",
         "file": "dgx-spark/scripts/env.sh",
