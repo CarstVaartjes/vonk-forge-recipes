@@ -36,7 +36,7 @@ MATERIAL_ENVELOPE_PERCENT = 1
 # The proven recipes' exact bytes; a refresh that moves one rewrites its entry.
 PROVEN_BYTES = "tests/fixtures/proven-recipe-bytes.json"
 # What judges a refresh PR: a failed PR moves forward again when main changes these.
-CHECK_PATHS = ("tools/", "tests/", ".github/")
+CHECK_PATHS = ("src/", "tools/", "tests/", ".github/")
 MAX_BODY = 60000
 VERSION_TAG = re.compile(r"^v?(\d+(?:\.\d+)*)$")
 OWN_VERSION = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")

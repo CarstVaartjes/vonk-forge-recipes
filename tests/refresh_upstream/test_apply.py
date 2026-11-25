@@ -233,6 +233,29 @@ class MergeGateTests(unittest.TestCase):
         assert refresh_publish.file_overlaps(2, pulls, armed=[1]) == [1]
         assert refresh_publish.file_overlaps(2, pulls) == []
 
+    def test_failed_checks_free_the_file_lane(self) -> None:
+        def pulls(rollup: list[dict[str, str]]) -> list[dict[str, object]]:
+            return [
+                {
+                    "number": 1,
+                    **OWN,
+                    "autoMergeRequest": {"mergeMethod": "SQUASH"},
+                    "statusCheckRollup": rollup,
+                    "files": [{"path": "models/m.json"}],
+                },
+                {"number": 2, **OWN, "files": [{"path": "models/m.json"}]},
+            ]
+
+        assert (
+            refresh_publish.file_overlaps(2, pulls([{"conclusion": "FAILURE"}])) == []
+        )
+        assert refresh_publish.file_overlaps(2, pulls([{"conclusion": "SUCCESS"}])) == [
+            1
+        ]
+        assert refresh_publish.file_overlaps(2, pulls([{"status": "IN_PROGRESS"}])) == [
+            1
+        ]
+
     def test_pending_publication_keeps_prepared_pr_unarmed(self) -> None:
         summary = refresh_publish.Summary()
         with (

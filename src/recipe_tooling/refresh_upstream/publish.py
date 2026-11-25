@@ -74,6 +74,8 @@ def file_overlaps(
 ) -> list[int]:
     """Armed PRs (open with auto-merge, or armed earlier in this run) sharing a file with PR ``number``.
 
+    An auto-merge PR whose checks failed or were cancelled cannot merge, so it holds no lane.
+
     Recipe files are per recipe, so refreshes only collide when two recipes share a
     Model file; the later PR then waits for the next run and is regenerated on main.
     """
@@ -87,7 +89,14 @@ def file_overlaps(
         pr["number"]
         for pr in pull_requests
         if pr.get("number") != number
-        and (pr.get("autoMergeRequest") or pr.get("number") in taken)
+        and (
+            pr.get("number") in taken
+            or (
+                pr.get("autoMergeRequest")
+                and check_state(pr.get("statusCheckRollup"))
+                not in {"failed", "cancelled"}
+            )
+        )
         and paths(pr) & own
     )
 
@@ -118,7 +127,7 @@ def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
             "--limit",
             "1000",
             "--json",
-            f"number,autoMergeRequest,files,changedFiles,{OWN_FIELDS}",
+            f"number,autoMergeRequest,statusCheckRollup,files,changedFiles,{OWN_FIELDS}",
         )
     )
     if conflicting := file_overlaps(number, pull_requests, summary.armed):
