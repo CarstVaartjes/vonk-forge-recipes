@@ -693,6 +693,15 @@ def test_served_capabilities_keep_tool_use_when_any_chat_block_serves_it() -> No
     assert "tool-use" in _names(served_capabilities(_MODEL, with_choice))
 
 
+def test_every_catalog_entry_serves_a_capability() -> None:
+    blank = [
+        entry["document"]["identity"]["slug"]
+        for entry in _json(GENERATED / "catalog-index.json")["recipes"]
+        if not entry["served_capabilities"]
+    ]
+    assert blank == []
+
+
 def test_the_catalog_index_entries_carry_served_capabilities() -> None:
     entries = {
         entry["document"]["identity"]["slug"]: entry
