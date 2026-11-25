@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import importlib.machinery
-import importlib.util
 import json
 import re
 import unittest
@@ -9,6 +7,8 @@ from typing import Any
 
 from documents import recipe_display
 from repo_root import ROOT
+
+from recipe_tooling import catalog_index
 
 IMAGE = (
     "docker.io/vllm/vllm-openai@sha256:"
@@ -27,14 +27,7 @@ def load(path: str) -> dict[str, Any]:
 
 
 def catalog_index_module():
-    loader = importlib.machinery.SourceFileLoader(
-        "vllm028_catalog_index", str(ROOT / "tools/build-catalog-index")
-    )
-    spec = importlib.util.spec_from_loader(loader.name, loader)
-    assert spec is not None
-    module = importlib.util.module_from_spec(spec)
-    loader.exec_module(module)
-    return module
+    return catalog_index
 
 
 class Vllm028MigrationTests(unittest.TestCase):
