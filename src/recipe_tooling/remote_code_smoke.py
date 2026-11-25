@@ -1,0 +1,503 @@
+"""Generate a pinned remote-module import check for each planned recipe image.
+
+Run by recipe-images before its selected build contexts are uploaded. The check
+runs inside the built recipe image before the platform layer or registry push.
+Only selected Hugging Face configs and Python modules are downloaded, never
+weights; all bytes must match the selected Model's manifest. Check auto_map
+modules and their relative imports, including processors, but not engine plugins.
+AutoModel* modules are checked only where the recipe's engine imports them.
+Every vLLM recipe also has its served Model's pinned config.json parsed by the
+installed vLLM, remote code or not, so a config the engine rejects fails the
+build instead of the start.
+"""
+
+from __future__ import annotations
+
+import argparse
+import re
+from pathlib import Path
+from typing import NamedTuple
+from urllib.parse import quote
+
+from pydantic import BaseModel, Field
+
+from recipe_tooling.paths import REPO_ROOT
+from vonk_forge_contracts.model import ModelDefinition, ModelFile, ModelSource
+from vonk_forge_contracts.recipe import RecipeDefinition, RecipeModelSelection
+
+ROOT = REPO_ROOT
+
+
+class PlannedRecipe(BaseModel):
+    source_path: str
+
+
+class PlannedImage(BaseModel):
+    build_key: str = Field(pattern=r"^[0-9a-f]{64}$")
+    recipes: list[PlannedRecipe]
+
+
+class Plan(BaseModel):
+    images: list[PlannedImage]
+
+
+# vLLM and SGLang build registered architectures from their own model registry.
+# They import auto_map AutoModel* classes only on their Transformers backend
+# (`model-impl transformers`, or an unregistered architecture, whose failed
+# import ends the load with evidence) and in SGLang's ModelOpt quantization
+# load (`modelopt-*` arguments, or quantization to these formats, which
+# SGLang applies to an unquantized checkpoint). Other engines
+# keep every module checked. Option choices can add or replace arguments.
+NATIVE_MODEL_ENGINES = {"vllm", "sglang"}
+# TensorFold imports no model Python code at all (the model's .py files, its
+# auto_map modules included, are never loaded), so it adds nothing to the smoke.
+NO_MODEL_PYTHON_ENGINES = {"tensorfold"}
+MODELOPT_QUANTIZE = {"modelopt", "modelopt_fp8", "modelopt_mixed"}
+
+
+def imports_remote_model(recipe: RecipeDefinition) -> bool:
+    runtime = recipe.runtime
+    arguments = [
+        *runtime.arguments,
+        *(
+            argument
+            for option in recipe.options
+            for choice in option.choices
+            for argument in choice.args
+        ),
+    ]
+    return runtime.engine not in NATIVE_MODEL_ENGINES or any(
+        (
+            runtime.engine == "sglang"
+            and (
+                argument.name.startswith("modelopt-")
+                or (
+                    # The draft's quantization drives its ModelConfig the same way.
+                    argument.name
+                    in ("quantization", "speculative-draft-model-quantization")
+                    and isinstance(argument.value, str)
+                    and argument.value in MODELOPT_QUANTIZE
+                )
+            )
+        )
+        or (
+            argument.name == "model-impl"
+            and (
+                not isinstance(argument.value, str)
+                or argument.value not in ("auto", runtime.engine)
+            )
+        )
+        for argument in arguments
+    )
+
+
+# Every vLLM launcher in this library ends in `vllm serve /models`.
+LAUNCHER_SERVED_PATH = "/models"
+LAUNCHER = re.compile(
+    r"^COPY\b[^\n]*\s(\S+)[ \t]+/opt/vonk/bin/vllm[ \t]*$", re.MULTILINE
+)
+INTERPRETER = re.compile(r"[\"'](/[\w./-]+/bin/python[0-9.]*)[\"']")
+
+
+class ServedConfig(NamedTuple):
+    """The served Model's config.json and how vLLM parses it."""
+
+    file: tuple[str, str, int, str]
+    directory: str
+    trust_remote_code: tuple[bool, ...]
+    interpreters: tuple[str, ...]
+
+
+def primary_target(recipe: RecipeDefinition) -> str | None:
+    """The endpoint role's first mounted target, in recipe.models order."""
+    roles = recipe.topology.roles
+    role = next((role.name for role in roles if role.endpoint_owner), roles[0].name)
+    for selection in recipe.models:
+        for item in selection.files:
+            if role in item.roles:
+                return item.mount.target
+    return None
+
+
+def served_path(recipe: RecipeDefinition) -> str | None:
+    """Where vLLM reads the served Model: `serve <path>`, `--model`, or /models."""
+    entrypoint = recipe.runtime.entrypoint
+    if "serve" in entrypoint[:-1]:
+        path: str | None = entrypoint[entrypoint.index("serve") + 1]
+    else:
+        path = next(
+            (
+                argument.value
+                for argument in recipe.runtime.arguments
+                if argument.name == "model" and isinstance(argument.value, str)
+            ),
+            None,
+        )
+        if path is None:
+            # A launcher's own `vllm serve /models` is not in the argv the
+            # Controller rewrites, so it serves /models as written.
+            return LAUNCHER_SERVED_PATH
+    # The Controller rewrites every argv value exactly /models to the endpoint
+    # role's first mount target for every engine but SGLang (vonk-forge
+    # control/src/vonk_control/harnesses/canonical.py:460-466).
+    return primary_target(recipe) if path == LAUNCHER_SERVED_PATH else path
+
+
+def trust_remote_code(recipe: RecipeDefinition) -> tuple[bool, ...]:
+    """The trust-remote-code values the engine can start with: base and choices."""
+    runtime = recipe.runtime
+    base = any(
+        argument.name == "trust-remote-code" and argument.value is True
+        for argument in runtime.arguments
+    ) or any(
+        variable.name == "VLLM_TRUST_REMOTE_CODE"
+        and str(variable.value).lower() in ("1", "true")
+        for variable in runtime.environment
+    )
+    chosen = any(
+        argument.name == "trust-remote-code" and argument.value is True
+        for option in recipe.options
+        for choice in option.choices
+        for argument in choice.args
+    )
+    return tuple(sorted({base, base or chosen}))
+
+
+def engine_interpreters(recipe: RecipeDefinition, root: Path) -> tuple[str, ...]:
+    """Interpreters the adapter's vLLM launcher names (its engine's Python)."""
+    build = recipe.execution.build
+    match = LAUNCHER.search((root / build.dockerfile).read_text(encoding="utf-8"))
+    if match is None:
+        return ()
+    launcher = root / build.context.path / match.group(1)
+    if not launcher.is_file():
+        return ()
+    text = launcher.read_text(encoding="utf-8", errors="replace")
+    return tuple(dict.fromkeys(INTERPRETER.findall(text)))
+
+
+def served_config(recipe: RecipeDefinition, root: Path) -> ServedConfig | str:
+    """The served Model's pinned config.json, or why a vLLM recipe has none."""
+    path = served_path(recipe)
+    if path is None:
+        return "the endpoint role mounts no Model"
+    selection = next(
+        (
+            selection
+            for selection in recipe.models
+            if any(item.mount.target == path for item in selection.files)
+        ),
+        None,
+    )
+    if selection is None:
+        return f"no Model mounts the served path {path}"
+    model = _model(selection, root)
+    selected = {item.file_id for item in selection.files}
+    config = next(
+        (
+            file
+            for file in model.files
+            if file.id in selected and file.path == "config.json"
+        ),
+        None,
+    )
+    if config is None:
+        return "the served Model selects no config.json"
+    if not _from_hugging_face(model):
+        return f"the served Model's source is not Hugging Face: {model.source}"
+    return ServedConfig(
+        _pinned(selection, model, config),
+        selection.model.slug,
+        trust_remote_code(recipe),
+        engine_interpreters(recipe, root),
+    )
+
+
+# This program runs under the image's Python (3.12), using its installed
+# transformers and native libraries. Do not import model code or load weights.
+CHECK = """import hashlib
+import json
+import tempfile
+import urllib.request
+from pathlib import Path
+
+FILES = {files!r}
+# Model directories whose AutoModel* classes the serving engine imports.
+MODEL_CODE = {model_code!r}
+# Served Model directories vLLM parses at start, with their trust-remote-code.
+VLLM_CONFIGS = {vllm_configs!r}
+# The adapter's engine interpreters, tried before this image's python3.
+ENGINE_PYTHONS = {engine_pythons!r}
+IMAGE = {image!r}
+PARSE_TIMEOUT_SECONDS = 600
+# Printed once vLLM imported: a timeout after it is a hang inside get_config.
+IMPORTED = "vonk-smoke: vllm imported"
+# Exit status 4 only when get_config itself raises: the one rejection. Any other
+# status, or a hang before the import marker, means this interpreter cannot run
+# vLLM, so the next one is tried.
+PARSE = '''import faulthandler
+import sys
+from vllm.plugins import load_general_plugins
+from vllm.transformers_utils.config import get_config
+print("vonk-smoke: vllm imported", flush=True)
+# The engine loads its plugins before it parses a config; a plugin can register the model type.
+load_general_plugins()
+# A get_config that hangs dumps its stack before the parent's bound kills it.
+faulthandler.dump_traceback_later(float(sys.argv[3]) * 0.8)
+try:
+    get_config(sys.argv[1], trust_remote_code=sys.argv[2] == "True")
+except Exception:
+    import traceback
+    traceback.print_exc()
+    sys.exit(4)
+'''
+
+if FILES:
+    with tempfile.TemporaryDirectory() as temporary:
+        files = {{Path(temporary) / name: (url, digest, size) for url, digest, size, name in FILES}}
+
+        def download(path):
+            import random
+            import time
+            import urllib.error
+
+            url, digest, size = files[path]
+            # Transient network and server errors are retried with jittered
+            # backoff; a client error or changed bytes fail at once.
+            for attempt in range(5):
+                try:
+                    with urllib.request.urlopen(url, timeout=30) as response:
+                        content = response.read(size + 1)
+                    break
+                except urllib.error.HTTPError as error:
+                    if (error.code != 429 and error.code < 500) or attempt == 4:
+                        raise
+                except (urllib.error.URLError, TimeoutError, ConnectionError):
+                    if attempt == 4:
+                        raise
+                time.sleep(min(30, 2**attempt) * (0.5 + random.random() / 2))
+            if len(content) != size or hashlib.sha256(content).hexdigest() != digest:
+                raise RuntimeError("remote-code content mismatch: " + url)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+            return content
+
+        pending = set()
+        for path in files:
+            if path.suffix != ".json":
+                continue
+            config = json.loads(download(path))
+            model_code = path.parent.relative_to(temporary).as_posix() in MODEL_CODE
+            for key, reference in config.get("auto_map", {{}}).items():
+                for target in reference if isinstance(reference, list) else [reference]:
+                    if target is None or "." not in target:
+                        continue
+                    # External code has no identity in this Model's manifest.
+                    if "--" in target:
+                        raise ValueError("unpinned external auto_map: " + target)
+                    if key.startswith("AutoModel") and not model_code:
+                        continue  # The engine never imports this module.
+                    module, _ = target.split(".")
+                    module_path = path.parent / (module + ".py")
+                    if module_path in files:
+                        pending.add(module_path)
+        if pending:
+            from transformers.dynamic_module_utils import check_imports
+        checked = set()
+        while pending:
+            path = pending.pop()
+            if path in checked:
+                continue
+            download(path)
+            print("check_imports: " + files[path][0], flush=True)
+            checked.add(path)
+            for relative in check_imports(str(path)):
+                pending.add(path.parent / (relative + ".py"))
+        if VLLM_CONFIGS:
+            import os
+            import shutil
+            import subprocess
+            import sys
+
+            # The image's caches live on the workload's writable /outputs
+            # mount, which this read-only smoke lacks.
+            for name, value in list(os.environ.items()):
+                if value.startswith("/outputs/"):
+                    os.environ[name] = temporary + value
+
+            # The interpreter a script's #! line runs, resolved like exec.
+            def shebang(path):
+                try:
+                    with open(path, "rb") as script:
+                        line = script.readline(4096)
+                except OSError:
+                    return None
+                if not line.startswith(b"#!"):
+                    return None
+                words = line[2:].decode(errors="replace").split()
+                if words and words[0].endswith("/env"):
+                    words = [word for word in words[1:] if not word.startswith("-")]
+                    return shutil.which(words[0]) if words else None
+                return words[0] if words else None
+
+            candidates = list(ENGINE_PYTHONS)
+            executable = shutil.which("vllm")
+            if executable is not None:
+                candidates.append(shebang(executable))
+            candidates.append(sys.executable)
+            candidates = [
+                python
+                for python in dict.fromkeys(candidates)
+                if python and os.path.isfile(python) and os.access(python, os.X_OK)
+            ]
+            for directory, trust_remote_code in VLLM_CONFIGS:
+                print("vllm get_config: " + directory + " trust_remote_code=" + str(trust_remote_code), flush=True)
+                arguments = [str(Path(temporary) / directory), str(trust_remote_code)]
+                attempts = []
+                for python in list(candidates):
+                    bound = str(PARSE_TIMEOUT_SECONDS)
+                    try:
+                        completed = subprocess.run(
+                            [python, "-c", PARSE, *arguments, bound],
+                            timeout=PARSE_TIMEOUT_SECONDS,
+                            stdout=subprocess.PIPE,
+                        )
+                    except subprocess.TimeoutExpired as error:
+                        output = (error.output or b"").decode(errors="replace")
+                        print(output, end="", flush=True)
+                        if IMPORTED in output:
+                            raise SystemExit(
+                                "vllm get_config of " + directory + " under " + python
+                                + " did not finish within " + bound + " s (its stack is above)"
+                            )
+                        # A hang before vLLM imported is this interpreter's fault.
+                        attempts.append(python + ": did not finish within " + bound + " s")
+                        continue
+                    except OSError as error:
+                        attempts.append(python + ": " + str(error))
+                        continue
+                    print(completed.stdout.decode(errors="replace"), end="", flush=True)
+                    status = completed.returncode
+                    if status == 0:
+                        # The interpreter that runs vLLM parses the rest first.
+                        candidates.remove(python)
+                        candidates.insert(0, python)
+                        break
+                    if status == 4:
+                        raise SystemExit(
+                            "vllm rejected the served config of " + directory
+                            + " under " + python + " (its traceback is above)"
+                        )
+                    attempts.append(python + ": exit " + str(status))
+                else:
+                    print(
+                        "::warning::image " + IMAGE + ": no interpreter ran vllm get_config for "
+                        + directory + " (" + ("; ".join(attempts) or "no interpreter found") + ")",
+                        flush=True,
+                    )
+"""
+
+
+def _model(selection: RecipeModelSelection, root: Path) -> ModelDefinition:
+    return ModelDefinition.model_validate_json(
+        (root / "models" / f"{selection.model.slug}.json").read_bytes()
+    )
+
+
+def _from_hugging_face(model: ModelDefinition) -> bool:
+    return isinstance(model.source, ModelSource) and model.source.repository.startswith(
+        "https://huggingface.co/"
+    )
+
+
+def _pinned(
+    selection: RecipeModelSelection, model: ModelDefinition, file: ModelFile
+) -> tuple[str, str, int, str]:
+    assert isinstance(model.source, ModelSource)
+    url = (
+        f"{model.source.repository}/resolve/{model.source.revision}/{quote(file.path)}"
+    )
+    return (url, file.sha256, file.size_bytes, f"{selection.model.slug}/{file.path}")
+
+
+def model_files(
+    recipe: RecipeDefinition, root: Path
+) -> list[tuple[str, str, int, str]]:
+    files: list[tuple[str, str, int, str]] = []
+    for selection in recipe.models:
+        model = _model(selection, root)
+        selected = {item.file_id for item in selection.files}
+        if not any(
+            file.id in selected and file.path.endswith(".py") for file in model.files
+        ):
+            continue
+        for file in model.files:
+            if file.id not in selected or not (
+                file.path.endswith(".py")
+                or file.path
+                in (
+                    "config.json",
+                    "tokenizer_config.json",
+                    "processor_config.json",
+                    "preprocessor_config.json",
+                    "video_preprocessor_config.json",
+                )
+            ):
+                continue
+            if not _from_hugging_face(model):
+                raise ValueError(f"unsupported remote-code source: {model.source}")
+            files.append(_pinned(selection, model, file))
+    return files
+
+
+def prepare(plan: Plan, output: Path, root: Path = ROOT) -> None:
+    for image in plan.images:
+        files: set[tuple[str, str, int, str]] = set()
+        model_code: set[str] = set()
+        vllm_configs: set[tuple[str, bool]] = set()
+        engine_pythons: dict[str, None] = {}
+        for planned in image.recipes:
+            recipe = RecipeDefinition.model_validate_json(
+                (root / planned.source_path).read_bytes()
+            )
+            if recipe.runtime.engine in NO_MODEL_PYTHON_ENGINES:
+                continue
+            files.update(model_files(recipe, root))
+            if imports_remote_model(recipe):
+                model_code.update(selection.model.slug for selection in recipe.models)
+            if recipe.runtime.engine != "vllm":
+                continue
+            served = served_config(recipe, root)
+            if isinstance(served, str):
+                print(
+                    f"::notice::{planned.source_path}: no vLLM config parse: {served}",
+                    flush=True,
+                )
+                continue
+            files.add(served.file)
+            vllm_configs.update(
+                (served.directory, trust) for trust in served.trust_remote_code
+            )
+            engine_pythons.update(dict.fromkeys(served.interpreters))
+        if not files:
+            continue  # Native engines need neither Transformers nor Python.
+        directory = output / image.build_key
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / "remote-code-smoke.py").write_text(
+            CHECK.format(
+                files=sorted(files),
+                model_code=sorted(model_code),
+                vllm_configs=sorted(vllm_configs),
+                engine_pythons=list(engine_pythons),
+                image=image.build_key,
+            ),
+            encoding="utf-8",
+        )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--plan", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path, required=True)
+    args = parser.parse_args()
+    prepare(Plan.model_validate_json(args.plan.read_bytes()), args.output_dir)
