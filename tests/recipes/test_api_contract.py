@@ -646,9 +646,13 @@ def _names(items: Any) -> list[str]:
 
 
 def test_served_capabilities_without_an_api_keep_the_models() -> None:
-    assert _names(served_capabilities(_MODEL, None)) == sorted(
-        item.value for item in _MODEL
-    )
+    assert _names(served_capabilities(_MODEL, None)) == [
+        "chat",
+        "image-understanding",
+        "reasoning",
+        "tool-use",
+        "video-understanding",
+    ]
 
 
 def test_served_capabilities_take_an_image_an_option_choice_accepts() -> None:
@@ -674,7 +678,37 @@ def test_served_capabilities_drop_tool_use_and_reasoning_when_none() -> None:
     assert "chat" in served
 
 
-def test_the_catalog_index_entry_carries_served_capabilities() -> None:
-    entries = _json(GENERATED / "catalog-index.json")["recipes"]
-    for entry in entries:
-        assert isinstance(entry["served_capabilities"], list)
+def test_served_capabilities_keep_tool_use_when_any_chat_block_serves_it() -> None:
+    api = _chat_api(_SLUG, tools={"kind": "none"})
+    block = {
+        **api.api.model_dump(),
+        "tools": {"kind": "supported", "tool_choice": ["auto"], "parallel_calls": True},
+    }
+    with_choice = RecipeApi.model_validate(
+        {
+            **api.model_dump(),
+            "option_choices": [{"option": "tools", "value": "on", "api": block}],
+        }
+    )
+    assert "tool-use" in _names(served_capabilities(_MODEL, with_choice))
+
+
+def test_the_catalog_index_entries_carry_served_capabilities() -> None:
+    entries = {
+        entry["document"]["identity"]["slug"]: entry
+        for entry in _json(GENERATED / "catalog-index.json")["recipes"]
+    }
+    # The API is wired: no tools, no reasoning.
+    assert entries["qwen3-14b-fp8-nvidia-vllm-single"]["served_capabilities"] == [
+        "chat",
+        "code-generation",
+        "text-generation",
+    ]
+    # No API document: the Models' capabilities.
+    assert entries["gpt-oss-120b-nvidia-vllm-single"]["served_capabilities"] == [
+        "chat",
+        "code-generation",
+        "reasoning",
+        "text-generation",
+        "tool-use",
+    ]
