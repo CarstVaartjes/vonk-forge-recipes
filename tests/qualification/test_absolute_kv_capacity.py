@@ -95,7 +95,7 @@ def test_measured_peaks_govern_unchanged_hardware_proven_content(
     next(
         arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
     ).value = 495_976_448
-    monkeypatch.setattr(evidence_module, "unchanged_recipe", lambda *_: proved)
+    monkeypatch.setattr(evidence_module, "unchanged_recipe", lambda *_: True)
     monkeypatch.setattr(evidence_module, "hardware_proven", lambda *_: proved)
     warnings = memory_estimate_warnings(
         recipe, catalog_models(), load_inputs(), document_digest="digest"

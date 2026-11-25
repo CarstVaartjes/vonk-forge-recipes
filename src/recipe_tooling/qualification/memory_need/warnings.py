@@ -130,15 +130,14 @@ def memory_estimate_findings(
         for variant in mn_args.memory_variants(recipe)
         if variant.runtime.engine == "sglang" and variant.topology.node_count > 1
     ]
-    if unchanged:
-        if document_digest and not mn_evidence.hardware_proven(recipe, document_digest):
-            for variant in multi_sglang:
-                warnings += estimate_problems(
-                    key,
-                    lambda variant=variant: mn_sglang.sglang_rank_budget_warnings(
-                        variant, models, inputs, key
-                    ),
-                )
+    if unchanged:  # unproven here: the proven case returned above
+        for variant in multi_sglang:
+            warnings += estimate_problems(
+                key,
+                lambda variant=variant: mn_sglang.sglang_rank_budget_warnings(
+                    variant, models, inputs, key
+                ),
+            )
         return warnings
     warnings += [
         EstimateFinding(EstimateFindingKind.DISAGREEMENT, text)
