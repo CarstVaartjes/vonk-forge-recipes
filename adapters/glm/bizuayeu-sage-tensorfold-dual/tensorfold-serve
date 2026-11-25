@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Controller launcher for one rank of the TensorFold 1.3.4 Sage-S2.1-Flash (GLM-5.3-Flash shape) TP launch.
+"""Controller launcher for one rank of the TensorFold 1.3.5 Sage-S2.1-Flash (GLM-5.3-Flash shape) TP launch.
 
 The platform appends `--tp`, `--rank`, `--master VONK_MASTER_ADDR` and `--master-port VONK_MASTER_PORT` to the named
 `tensorfold-native serve` options. The native GLM family reads the pair from the environment instead, as TensorFold's
