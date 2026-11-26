@@ -170,6 +170,20 @@ def test_vllm_tools_need_both_the_parser_and_auto_tool_choice() -> None:
     assert not serving_capabilities(_vllm(), "x", {}, _display()).tools
 
 
+def test_a_vendored_start_script_does_not_complete_declared_tool_flags(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "adapter").mkdir()
+    (tmp_path / "adapter/start.sh").write_text(
+        "vllm serve --enable-auto-tool-choice --tool-call-parser hermes\n"
+    )
+    build = {"execution": {"build": {"context": {"path": "adapter"}}}}
+    declared = _vllm(("tool-call-parser", "hermes")) | build
+    undeclared = _vllm(("max-model-len", 4096)) | build
+    assert not serving_capabilities(declared, "x", {}, _display(), tmp_path).tools
+    assert serving_capabilities(undeclared, "x", {}, _display(), tmp_path).tools
+
+
 def test_sglang_and_trtllm_use_their_own_flag_spelling() -> None:
     sglang = _vllm(("tool-call-parser", "qwen"), ("reasoning-parser", "qwen3"))
     sglang["runtime"]["engine"] = "sglang"
