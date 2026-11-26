@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""Keep every closed set of the contracts wheel in ``executed.py`` or ``shown.py`` (G1).
+
+``executed.py`` holds the sets the platform executes (a word outside them is
+refused); ``shown.py`` holds the sets a reader keeps unknown words of
+(``KeepUnrecognised``). The check is structural, an AST pass over all of
+``contracts/src``, and fails on
+
+* (a) a ``StrEnum`` or ``Enum`` subclass, or a module-level alias of a multi-value
+  ``Literal[...]``, outside those two modules;
+* (b) a model field annotated with a multi-value ``Literal[...]`` inline;
+* (c) a model field or alias that uses a ``shown.py`` set without wrapping it as
+  ``Annotated[X | UnrecognisedWord, KeepUnrecognised]``. A strict producer twin, a
+  class ``K`` whose module also defines ``PublishedK`` (the consumer view), keeps
+  the bare set: producers refuse an unknown word. A ``NamedTuple`` is not a model.
+
+Single-value tags (``kind: Literal["model"]``) stay inline. There is no allowlist and no count.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+PACKAGE = "contracts/src/vonk_forge_contracts"
+EXECUTED = f"{PACKAGE}/executed.py"
+SHOWN = f"{PACKAGE}/shown.py"
+
+
+def _name(node: ast.expr) -> str | None:
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        return node.attr
+    return None
+
+
+def _multi_literal(node: ast.AST | None) -> bool:
+    """Whether ``node`` is ``Literal[...]`` with more than one value."""
+    return (
+        isinstance(node, ast.Subscript)
+        and _name(node.value) == "Literal"
+        and isinstance(node.slice, ast.Tuple)
+        and len(node.slice.elts) > 1
+    )
+
+
+def _is_enum(node: ast.AST) -> bool:
+    """A class with a base named ``...Enum`` or ``...Flag`` (``StrEnum``, ``IntFlag``)."""
+    return isinstance(node, ast.ClassDef) and any(
+        (_name(base) or "").endswith(("Enum", "Flag")) for base in node.bases
+    )
+
+
+def _alias(node: ast.stmt) -> tuple[str, ast.expr | None] | None:
+    """The (name, value) of a module-level alias statement, else None."""
+    if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name):
+        return node.targets[0].id, node.value
+    if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+        return node.target.id, node.value
+    if isinstance(node, ast.TypeAlias):
+        return node.name.id, node.value
+    return None
+
+
+def shown_sets(source: str) -> set[str]:
+    """The set names ``shown.py`` defines: its enums and its multi-value Literals."""
+    names: set[str] = set()
+    for node in ast.parse(source).body:
+        if _is_enum(node):
+            assert isinstance(node, ast.ClassDef)
+            names.add(node.name)
+        elif (alias := _alias(node)) and _multi_literal(alias[1]):
+            names.add(alias[0])
+    return names
+
+
+def _contains(node: ast.AST, name: str) -> bool:
+    return any(_name(n) == name for n in ast.walk(node) if isinstance(n, ast.Name))
+
+
+def _unwrapped(
+    node: ast.AST, shown: set[str], *, wrapped: bool
+) -> list[ast.Name | ast.Attribute]:
+    """Each use of a shown set that is not inside ``Annotated[X | UnrecognisedWord, KeepUnrecognised]``."""
+    if (
+        isinstance(node, ast.Subscript)
+        and _name(node.value) == "Annotated"
+        and isinstance(node.slice, ast.Tuple)
+        and node.slice.elts
+    ):
+        first, *rest = node.slice.elts
+        keeps = _contains(first, "UnrecognisedWord") and any(
+            _contains(item, "KeepUnrecognised") for item in rest
+        )
+        return _unwrapped(first, shown, wrapped=wrapped or keeps)
+    if isinstance(node, ast.Name):
+        return [] if wrapped or node.id not in shown else [node]
+    if isinstance(node, ast.Attribute):
+        return [] if wrapped or node.attr not in shown else [node]
+    return [
+        hit
+        for child in ast.iter_child_nodes(node)
+        for hit in _unwrapped(child, shown, wrapped=wrapped)
+    ]
+
+
+def _producer(klass: ast.ClassDef, twins: set[str]) -> bool:
+    """A class (not a model) or the strict twin of a ``Published`` consumer view."""
+    return klass.name in twins or any(_name(b) == "NamedTuple" for b in klass.bases)
+
+
+def scan(path: str, source: str, shown: set[str]) -> list[str]:
+    """The problems of one module of the wheel."""
+    home = path in (EXECUTED, SHOWN)
+    problems: list[str] = []
+    tree = ast.parse(source)
+    problems.extend(
+        f"{path}:{node.lineno}: enum {node.name} belongs in executed.py or shown.py"
+        for node in ast.walk(tree)
+        if not home and isinstance(node, ast.ClassDef) and _is_enum(node)
+    )
+    for node in tree.body:
+        alias = _alias(node)
+        if alias is None:
+            continue
+        if not home and any(_multi_literal(n) for n in ast.walk(alias[1] or node)):
+            problems.append(
+                f"{path}:{node.lineno}: set {alias[0]} belongs in executed.py or shown.py"
+            )
+        if (
+            isinstance(alias[1], (ast.Subscript, ast.BinOp, ast.Name, ast.Attribute))
+            and path != SHOWN
+        ):
+            problems.extend(
+                f"{path}:{hit.lineno}: {_name(hit)} must be wrapped as "
+                "Annotated[... | UnrecognisedWord, KeepUnrecognised]"
+                for hit in _unwrapped(alias[1], shown, wrapped=False)
+            )
+    classes = [n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]
+    names = {k.name for k in classes}
+    twins = {name for name in names if f"Published{name}" in names}
+    for klass in classes:
+        for field in (n for n in klass.body if isinstance(n, ast.AnnAssign)):
+            if not home:
+                problems.extend(
+                    f"{path}:{field.lineno}: field {klass.name} has an inline "
+                    "multi-value Literal; name it in executed.py or shown.py"
+                    for sub in ast.walk(field.annotation)
+                    if isinstance(sub, ast.expr) and _multi_literal(sub)
+                )
+            if path != SHOWN and not _producer(klass, twins):
+                problems.extend(
+                    f"{path}:{hit.lineno}: {_name(hit)} must be wrapped as "
+                    "Annotated[... | UnrecognisedWord, KeepUnrecognised]"
+                    for hit in _unwrapped(field.annotation, shown, wrapped=False)
+                )
+    return problems
+
+
+def check(root: Path) -> list[str]:
+    package = root / PACKAGE
+    home = package / "shown.py"
+    shown = shown_sets(home.read_text(encoding="utf-8")) if home.exists() else set()
+    return [
+        problem
+        for path in sorted((root / "contracts/src").rglob("*.py"))
+        for problem in scan(
+            str(path.relative_to(root)), path.read_text(encoding="utf-8"), shown
+        )
+    ]
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
+    parser.add_argument("--root", type=Path, default=ROOT)
+    problems = check(parser.parse_args().root)
+    if problems:
+        print("\n".join(problems))
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

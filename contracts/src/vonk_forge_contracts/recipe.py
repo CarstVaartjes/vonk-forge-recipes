@@ -26,6 +26,14 @@ from pydantic import (
     model_validator,
 )
 
+from vonk_forge_contracts.executed import (
+    ChangeEffect,
+    HttpMethod,
+    JobAdapter,
+    ServingAssertion,
+    ServingInterface,
+    ServingKind,
+)
 from vonk_forge_contracts.model import ModelReference
 from vonk_forge_contracts.systemone import SystemOneRequest
 
@@ -48,7 +56,6 @@ RelativePath = Annotated[
 Scalar = StrictStr | StrictInt | StrictBool | StrictFloat
 type JsonValue = Scalar | list[JsonValue] | dict[StrictStr, JsonValue] | None
 type RuntimeArgumentValue = Scalar | list[JsonValue] | dict[StrictStr, JsonValue]
-ChangeEffect = Literal["none", "restart", "reprepare", "rebuild"]
 
 # Every Spark shares one fabric bandwidth floor for multi-node topologies.
 DISTRIBUTED_FABRIC_MINIMUM_MBPS = 200_000
@@ -170,9 +177,6 @@ class RecipeIdentity(_RecipeContract):
 
 
 RecipeTags = Annotated[list[StrictStr], Field(max_length=20)]
-Alignment = Literal[
-    "standard", "abliterated", "derisked", "other-modified", "unspecified"
-]
 
 
 class RecipeMount(_RecipeContract):
@@ -664,7 +668,7 @@ class RecipeOpenAIInterface(_RecipeContract):
 
 
 class RecipeJobInterface(_RecipeContract):
-    adapter: Literal["image-job", "audio-job", "video-job", "mesh-job", "artifact-job"]
+    adapter: JobAdapter
     input: RecipeJobInput | None = None
     output: RecipeJobOutput
 
@@ -673,37 +677,6 @@ RecipeInterface = Annotated[
     RecipeOpenAIInterface | RecipeJobInterface, Field(discriminator="adapter")
 ]
 
-
-ServingKind = Literal[
-    "openai.health",
-    "openai.chat",
-    "openai.vision",
-    "openai.tools",
-    "openai.completion",
-    "openai.embedding",
-    "openai.systemone",
-    "openai.transcription",
-    "openai.speech",
-    "image-job.output",
-    "audio-job.output",
-    "video-job.output",
-    "mesh-job.output",
-    "artifact-job.output",
-]
-ServingAssertion = Literal[
-    "endpoint.healthy",
-    "chat.nonempty",
-    "chat.output-cap",
-    "tools.called",
-    "completion.nonempty",
-    "completion.output-cap",
-    "embedding.nonempty",
-    "decision.probabilities",
-    "transcription.nonempty",
-    "speech.audio",
-    "inference.completed",
-    "artifact.output",
-]
 
 # ``speech.audio`` holds when the reply is an ``audio/*`` body that decodes as a WAV
 # at least this long. The Controller's executor, the sweep and any guard share this
@@ -767,7 +740,7 @@ _ASSERTIONS_BY_KIND: dict[str, frozenset[str]] = {
 
 class RecipeHttpServingRequest(_RecipeContract):
     transport: Literal["http"]
-    method: Literal["GET", "POST"]
+    method: HttpMethod
     path: AbsolutePath
     body: dict[StrictStr, JsonValue] | None = Field(
         default=None, min_length=1, max_length=32
@@ -964,9 +937,7 @@ class RecipeValidationCheck(_RecipeContract):
 
 
 class RecipeServingValidation(_RecipeContract):
-    interface: Literal[
-        "openai", "image-job", "audio-job", "video-job", "mesh-job", "artifact-job"
-    ]
+    interface: ServingInterface
     checks: list[RecipeValidationCheck] = Field(min_length=1, max_length=32)
 
 
