@@ -287,7 +287,10 @@ class Assessor:
             patched = refresh_classification.patch_targets(pin.directory)
             tree = vendored.fetch_tree(item.repo, item.target.sha)
             report = vendored.check_adapter(
-                pin.directory, self.catalog.root, lambda _repo, _commit: tree
+                pin.directory,
+                self.catalog.root,
+                lambda _repo, _commit: tree,
+                at=item.target.sha,
             )
             stale = {problem: (local, up) for problem, local, up in report.stale}
             for p in report.problems:

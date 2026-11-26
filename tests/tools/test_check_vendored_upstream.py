@@ -27,6 +27,7 @@ class VendoredUpstreamTest(unittest.TestCase):
         manifest: dict[str, object] | None = None,
         dockerfile: str = "FROM scratch\n" + LABELS,
         complete: bool = True,
+        at: str | None = None,
     ):
         tree = checker.Tree({p: sha(b) for p, b in upstream.items()}, complete)
         with tempfile.TemporaryDirectory() as tmp:
@@ -40,7 +41,7 @@ class VendoredUpstreamTest(unittest.TestCase):
                 target.write_bytes(data)
             if manifest is not None:
                 (adapter / "vendored-upstream.json").write_text(json.dumps(manifest))
-            return checker.check_adapter(adapter, root, lambda _r, _c: tree)
+            return checker.check_adapter(adapter, root, lambda _r, _c: tree, at=at)
 
     def test_an_unreadable_upstream_is_a_note_not_a_problem(self) -> None:
         def down(_repo: str, _commit: str) -> Any:
@@ -70,6 +71,11 @@ class VendoredUpstreamTest(unittest.TestCase):
         report = self._run({"a.py": b"1"}, {"a.py": b"2"}, {"ours": []})
         assert len(report.problems) == 1
         assert "adapters/x: a.py: differs from upstream a.py" in report.problems[0]
+
+    def test_messages_name_the_commit_the_tree_is(self) -> None:
+        report = self._run({"a.py": b"1"}, {"a.py": b"2"}, {"ours": []}, at="c" * 40)
+        assert report.problems[0].endswith("at " + "c" * 12)
+        assert "a" * 12 not in report.problems[0]
 
     def test_unlisted_platform_file_fails_in_vendoring_adapter(self) -> None:
         report = self._run({"a.py": b"1"}, {"a.py": b"1", "extra.py": b"x"})
