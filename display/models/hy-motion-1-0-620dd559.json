@@ -1,0 +1,34 @@
+{
+  "capabilities": [
+    "motion-generation"
+  ],
+  "description": "HY-Motion 1.0 (1.0B parameters): a flow-matching diffusion transformer that turns a text prompt into a human motion for the 52-joint SMPL-H-layout wooden skeleton, with the 22 body joints generated and the hand joints held at the SMPL-H mean pose. This is the full model, not Lite; its text encoders are Qwen3-8B and CLIP ViT-L/14, catalogued separately. Released under the Tencent HY-Motion 1.0 Community License, which excludes the European Union, the United Kingdom and South Korea (information only).",
+  "family_title": "HY-Motion",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hy-motion-1-0-620dd559"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "tencent"
+    ],
+    "spdx": "LicenseRef-Tencent-HY-Motion-1.0-Community",
+    "url": "https://huggingface.co/tencent/HY-Motion-1.0/blob/620dd559f8d964aac2f82f1204fe6a35ad8ad14d/LICENSE.txt"
+  },
+  "lineage": {
+    "family": "hy-motion",
+    "generation": "HY-Motion 1.0",
+    "line": "hy-motion",
+    "model": "hy-motion-1-0",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "3d"
+  ],
+  "model_title": "HY-Motion 1.0",
+  "tags": [
+    "tencent",
+    "hy-motion"
+  ]
+}
