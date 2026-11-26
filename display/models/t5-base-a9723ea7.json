@@ -1,0 +1,25 @@
+{
+  "capabilities": [],
+  "description": "T5 Base: the encoder AnyTop reads with T5EncoderModel to embed joint names (the creator's t5-name t5-base), with its sentencepiece tokenizer.",
+  "family_title": "T5",
+  "identity": {
+    "publisher": "google-t5",
+    "slug": "t5-base-a9723ea7"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "google-t5"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/google-t5/t5-base/blob/a9723ea7f1b39c1eae772870f3b547bf6ef7e6c1/README.md"
+  },
+  "modalities": [
+    "embeddings"
+  ],
+  "model_title": "T5 Base",
+  "tags": [
+    "google-t5",
+    "t5"
+  ]
+}

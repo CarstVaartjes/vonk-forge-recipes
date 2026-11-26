@@ -1,0 +1,72 @@
+FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
+
+LABEL org.opencontainers.image.source="https://github.com/Anytop2025/Anytop" \
+      org.opencontainers.image.revision="e780d1575ca0121f29bb53821b309cf564156a95" \
+      org.opencontainers.image.licenses="MIT" \
+      io.vonk.adapter="anytop" \
+      io.vonk.agent-protocol.wheel-sha256="9db7484767d0eaec9a0c20a6f18c1c995570c5588ffed8bee3da4a70022cc625"
+
+# PYTHONPATH is a platform-owned name, so run.py gives the creator's source and the Motion library to the worker itself.
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONUNBUFFERED=1
+
+COPY requirements.lock /tmp/requirements.lock
+COPY vonk_agent_protocol-4.1.0-py3-none-any.whl /tmp/vonk_agent_protocol-4.1.0-py3-none-any.whl
+# build-essential and python3-dev: Triton JIT needs a compiler and Python.h in every
+# CUDA runtime image that pip-installs torch (tests/recipes/test_job_runtime_toolchain.py);
+# moviepy and docopt are source-only packages that pip builds here.
+RUN apt-get update \
+    && apt-get install --no-install-recommends --yes \
+        build-essential \
+        python3-dev \
+        ca-certificates \
+        curl \
+        python3 \
+        python3-pip \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m pip install --break-system-packages --no-cache-dir \
+        --require-hashes \
+        --extra-index-url https://download.pytorch.org/whl/cu130 \
+        --requirement /tmp/requirements.lock \
+    && printf '%s  %s\n' 9db7484767d0eaec9a0c20a6f18c1c995570c5588ffed8bee3da4a70022cc625 \
+        /tmp/vonk_agent_protocol-4.1.0-py3-none-any.whl | sha256sum --check --strict \
+    && python3 -m pip install --break-system-packages --no-cache-dir --no-index --no-deps \
+        /tmp/vonk_agent_protocol-4.1.0-py3-none-any.whl \
+    && rm /tmp/requirements.lock /tmp/vonk_agent_protocol-4.1.0-py3-none-any.whl
+
+# The creator's source at the pinned commit (the model, diffusion, data and sampling packages;
+# its README assets, evaluation and training code are not used) and the Motion library it
+# installs with `pip install git+https://github.com/inbar-2344/Motion.git` (BVH, Animation,
+# InverseKinematics, Quaternions: unpinned there, pinned here to its only default-branch head).
+# The weights are mounted by the recipe.
+RUN curl --fail --location --retry 5 \
+        https://codeload.github.com/Anytop2025/Anytop/tar.gz/e780d1575ca0121f29bb53821b309cf564156a95 \
+        --output /tmp/anytop.tar.gz \
+    && echo "a6aa800ad7f10b7c5fca40af987368d3c2f5336d4f8efac32d2db7d630cf898e  /tmp/anytop.tar.gz" | sha256sum --check --strict \
+    && curl --fail --location --retry 5 \
+        https://codeload.github.com/inbar-2344/Motion/tar.gz/ac236251f90e5ca37c444c53ad383fc85de6d833 \
+        --output /tmp/motion.tar.gz \
+    && echo "b40a2cc7b4f4e52b4dc7b33452b9e1b41ea4e47a12fa1c6442d0bddb7cfc8a86  /tmp/motion.tar.gz" | sha256sum --check --strict \
+    && mkdir /tmp/anytop-source /tmp/motion-source \
+    && tar --extract --gzip --file /tmp/anytop.tar.gz --strip-components=1 --directory /tmp/anytop-source \
+    && tar --extract --gzip --file /tmp/motion.tar.gz --strip-components=1 --directory /tmp/motion-source \
+    && install --directory --mode=0755 /opt/vonk/anytop /opt/vonk/motion \
+    && cp -r /tmp/anytop-source/data_loaders /tmp/anytop-source/diffusion /tmp/anytop-source/model \
+        /tmp/anytop-source/sample /tmp/anytop-source/utils /tmp/anytop-source/LICENSE /opt/vonk/anytop/ \
+    && cp -r /tmp/motion-source/*.py /tmp/motion-source/quaternion /opt/vonk/motion/ \
+    && rm -rf /tmp/anytop.tar.gz /tmp/motion.tar.gz /tmp/anytop-source /tmp/motion-source
+
+COPY run.py worker.py /opt/vonk/source/
+
+# Build-time import smoke (no GPU, no weights): the creator's preprocessing and sampling entry
+# points import with the Motion library, and the protocol model imports.
+RUN PYTHONPATH=/opt/vonk/anytop:/opt/vonk/motion python3 -c "import sample.generate, utils.process_new_skeleton, BVH, InverseKinematics; from vonk_agent_protocol.job_inputs import RecipeJobInputManifest" \
+    && install --directory --mode=0755 /opt/vonk/bin /inputs /outputs \
+    && printf '%s\n' '#!/bin/sh' 'exec python3 /opt/vonk/source/run.py "$@"' > /opt/vonk/bin/pytorch-pipeline \
+    && chmod 0755 /opt/vonk/bin/pytorch-pipeline \
+    && useradd --uid 10001 --create-home --shell /usr/sbin/nologin vonk \
+    && chown 10001:10001 /outputs
+
+USER 10001:10001
+ENTRYPOINT []

@@ -1,0 +1,34 @@
+{
+  "capabilities": [
+    "motion-generation"
+  ],
+  "description": "AnyTop (unified model trained on all Truebones ZOO skeleton classes, 9 MB): a diffusion transformer that generates 20 fps motion for any skeleton from its topology and joint names alone, with no text prompt. A new rig is introduced by its own BVH clips, from which the creator's preprocessing computes the rig's statistics. The checkpoint and its arguments file; the T5 encoder that embeds the joint names is catalogued separately. Research-only, non-commercial terms (derived from the Truebones ZOO dataset); recorded for information, never gated.",
+  "family_title": "AnyTop",
+  "identity": {
+    "publisher": "inbar2344",
+    "slug": "anytop-all-2358c7bc"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "inbar2344"
+    ],
+    "spdx": "LicenseRef-AnyTop-Research-Only",
+    "url": "https://huggingface.co/Inbar2344/AnyTop/blob/2358c7bc236516f60c50003e56940a3a823ea27d/LICENSE"
+  },
+  "lineage": {
+    "family": "anytop",
+    "generation": "AnyTop",
+    "line": "anytop",
+    "model": "anytop",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "3d"
+  ],
+  "model_title": "AnyTop",
+  "tags": [
+    "inbar2344",
+    "anytop"
+  ]
+}

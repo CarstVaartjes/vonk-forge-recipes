@@ -1,0 +1,96 @@
+HIERARCHY
+ROOT Hips
+{
+	OFFSET 0.0000 0.0000 0.0000
+	CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
+	JOINT Spine
+	{
+		OFFSET 0.0000 10.0000 0.0000
+		CHANNELS 3 Zrotation Xrotation Yrotation
+		JOINT Chest
+		{
+			OFFSET 0.0000 10.0000 0.0000
+			CHANNELS 3 Zrotation Xrotation Yrotation
+			JOINT Head
+			{
+				OFFSET 0.0000 12.0000 0.0000
+				CHANNELS 3 Zrotation Xrotation Yrotation
+			}
+			JOINT LArm1
+			{
+				OFFSET 8.0000 8.0000 0.0000
+				CHANNELS 3 Zrotation Xrotation Yrotation
+				JOINT LArm2
+				{
+					OFFSET 12.0000 0.0000 0.0000
+					CHANNELS 3 Zrotation Xrotation Yrotation
+					JOINT LHand
+					{
+						OFFSET 10.0000 0.0000 0.0000
+						CHANNELS 3 Zrotation Xrotation Yrotation
+					}
+				}
+			}
+			JOINT RArm1
+			{
+				OFFSET -8.0000 8.0000 0.0000
+				CHANNELS 3 Zrotation Xrotation Yrotation
+				JOINT RArm2
+				{
+					OFFSET -12.0000 0.0000 0.0000
+					CHANNELS 3 Zrotation Xrotation Yrotation
+					JOINT RHand
+					{
+						OFFSET -10.0000 0.0000 0.0000
+						CHANNELS 3 Zrotation Xrotation Yrotation
+					}
+				}
+			}
+		}
+	}
+	JOINT LLeg1
+	{
+		OFFSET 5.0000 -4.0000 0.0000
+		CHANNELS 3 Zrotation Xrotation Yrotation
+		JOINT LLeg2
+		{
+			OFFSET 0.0000 -18.0000 0.0000
+			CHANNELS 3 Zrotation Xrotation Yrotation
+			JOINT LFoot
+			{
+				OFFSET 0.0000 -18.0000 0.0000
+				CHANNELS 3 Zrotation Xrotation Yrotation
+				JOINT LToe
+				{
+					OFFSET 0.0000 -2.0000 8.0000
+					CHANNELS 3 Zrotation Xrotation Yrotation
+				}
+			}
+		}
+	}
+	JOINT RLeg1
+	{
+		OFFSET -5.0000 -4.0000 0.0000
+		CHANNELS 3 Zrotation Xrotation Yrotation
+		JOINT RLeg2
+		{
+			OFFSET 0.0000 -18.0000 0.0000
+			CHANNELS 3 Zrotation Xrotation Yrotation
+			JOINT RFoot
+			{
+				OFFSET 0.0000 -18.0000 0.0000
+				CHANNELS 3 Zrotation Xrotation Yrotation
+				JOINT RToe
+				{
+					OFFSET 0.0000 -2.0000 8.0000
+					CHANNELS 3 Zrotation Xrotation Yrotation
+				}
+			}
+		}
+	}
+}
+MOTION
+Frames: 2
+Frame Time: 0.033333
+0.0000 44.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000
+0.0000 44.0000 0.6000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 -0.0000 0.0000 0.0000 -0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 -0.0000 0.0000 0.0000 -0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0000

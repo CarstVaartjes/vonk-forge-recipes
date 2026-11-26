@@ -1,0 +1,56 @@
+{
+  "alignment": "unspecified",
+  "component_bindings": [
+    "t5-base"
+  ],
+  "description": "Single-Spark AnyTop job: BVH clips of one rig in, new 20 fps motions of that rig out. AnyTop takes no text prompt: it generates from a skeleton's topology and joint names alone, trained on the Truebones ZOO animals and humanoids. A rig it has never seen is introduced the way the creator's README describes: the job runs the creator's skeleton preprocessing on your clips (four face joints orient the rig; an optional rest pose gives its natural rest rotations) and then samples the creator's pretrained unified model for it. There is no fine-tuning, and the creator's maintainers report weak results far outside the training distribution (quadrupeds, issue 24). The output is one motions.zip with a BVH per repetition, in the creator's normalised space (bones scaled to its average length, facing +Z, on the ground). The creator renders an mp4 stick figure for every clip and motion; this recipe skips that, and rewrites each BVH frame time to the true 1/20 s, which the creator's save leaves at 1/24 s. The checkpoint and its data files are research-only and non-commercial (derived from the Truebones ZOO dataset); the code is MIT. Recorded for information, never gated.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "anytop-all-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "knobs": {
+    "face-joint-left-hip": {
+      "description": "Name of the rig's left hip (or equivalent) joint. Creator default LLeg1.",
+      "label": "Left hip joint"
+    },
+    "face-joint-left-shoulder": {
+      "description": "Name of the rig's left shoulder (or equivalent) joint. Creator default LArm1.",
+      "label": "Left shoulder joint"
+    },
+    "face-joint-right-hip": {
+      "description": "Name of the rig's right hip (or equivalent) joint; orients the rig. Creator default RLeg1.",
+      "label": "Right hip joint"
+    },
+    "face-joint-right-shoulder": {
+      "description": "Name of the rig's right shoulder (or equivalent) joint. Creator default RArm1.",
+      "label": "Right shoulder joint"
+    },
+    "motion-length-seconds": {
+      "description": "Length of each generated motion; the creator allows up to 9.8 seconds.",
+      "label": "Motion length",
+      "unit": "s"
+    },
+    "num-repetitions": {
+      "description": "How many motions to sample, one per repetition.",
+      "label": "Motions"
+    },
+    "seed": {
+      "description": "Random seed of the sampling; the creator's default is 10.",
+      "label": "Seed"
+    }
+  },
+  "tags": [
+    "executable",
+    "anytop",
+    "motion-generation",
+    "skeleton-conditioned",
+    "animation",
+    "bvh",
+    "pytorch-pipeline",
+    "single",
+    "spark",
+    "native"
+  ],
+  "title": "AnyTop skeleton motion PyTorch single Spark"
+}

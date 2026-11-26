@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""Generate the deterministic CC0 synthetic-rig BVH qualification fixtures.
+
+An 18-joint humanoid-like rig whose joint names include the AnyTop creator's default
+face joints (RLeg1, LLeg1, RArm1, LArm1): two short walking clips and a rest pose.
+"""
+
+from __future__ import annotations
+
+import math
+import sys
+from pathlib import Path
+
+# (name, parent, offset) in the order the hierarchy is written; leaves have no children.
+RIG = (
+    ("Hips", None, (0.0, 0.0, 0.0)),
+    ("Spine", "Hips", (0.0, 10.0, 0.0)),
+    ("Chest", "Spine", (0.0, 10.0, 0.0)),
+    ("Head", "Chest", (0.0, 12.0, 0.0)),
+    ("LArm1", "Chest", (8.0, 8.0, 0.0)),
+    ("LArm2", "LArm1", (12.0, 0.0, 0.0)),
+    ("LHand", "LArm2", (10.0, 0.0, 0.0)),
+    ("RArm1", "Chest", (-8.0, 8.0, 0.0)),
+    ("RArm2", "RArm1", (-12.0, 0.0, 0.0)),
+    ("RHand", "RArm2", (-10.0, 0.0, 0.0)),
+    ("LLeg1", "Hips", (5.0, -4.0, 0.0)),
+    ("LLeg2", "LLeg1", (0.0, -18.0, 0.0)),
+    ("LFoot", "LLeg2", (0.0, -18.0, 0.0)),
+    ("LToe", "LFoot", (0.0, -2.0, 8.0)),
+    ("RLeg1", "Hips", (-5.0, -4.0, 0.0)),
+    ("RLeg2", "RLeg1", (0.0, -18.0, 0.0)),
+    ("RFoot", "RLeg2", (0.0, -18.0, 0.0)),
+    ("RToe", "RFoot", (0.0, -2.0, 8.0)),
+)
+HIPS_HEIGHT = 44.0
+FRAME_TIME = 0.033333
+
+
+def _hierarchy() -> list[str]:
+    children = {name: [] for name, _, _ in RIG}
+    for name, parent, _ in RIG:
+        if parent is not None:
+            children[parent].append(name)
+    offsets = {name: offset for name, _, offset in RIG}
+    lines = ["HIERARCHY"]
+
+    def emit(name: str, depth: int) -> None:
+        pad = "\t" * depth
+        x, y, z = offsets[name]
+        root = depth == 0
+        lines.extend(
+            [
+                f"{pad}{'ROOT' if root else 'JOINT'} {name}",
+                f"{pad}{{",
+                f"{pad}\tOFFSET {x:.4f} {y:.4f} {z:.4f}",
+                f"{pad}\tCHANNELS {6 if root else 3} "
+                + ("Xposition Yposition Zposition " if root else "")
+                + "Zrotation Xrotation Yrotation",
+            ]
+        )
+        for child in children[name]:
+            emit(child, depth + 1)
+        lines.append(f"{pad}}}")
+
+    emit("Hips", 0)
+    return lines
+
+
+def build(frames: int, period: int, amplitude: float) -> bytes:
+    """A walking clip: sinusoidal limb swing, the hips advancing along +Z."""
+    lines = [*_hierarchy(), "MOTION", f"Frames: {frames}", f"Frame Time: {FRAME_TIME}"]
+    for frame in range(frames):
+        phase = 2.0 * math.pi * frame / period
+        values = [0.0, HIPS_HEIGHT, 0.6 * frame, 0.0, 0.0, 0.0]
+        for index, (name, _, _) in enumerate(RIG[1:], start=1):
+            swing = amplitude * math.sin(
+                phase + (math.pi if name.startswith("R") else 0.0)
+            )
+            swing *= 0.3 + 0.1 * (index % 5)
+            bends = ("Leg" in name, "Arm" in name)
+            values += [0.0, swing if bends[0] or bends[1] else 0.0, 0.0]
+        lines.append(" ".join(f"{value:.4f}" for value in values))
+    return ("\n".join(lines) + "\n").encode()
+
+
+FIXTURES = {
+    "anytop-rig-walk-a.bvh": lambda: build(48, 24, 25.0),
+    "anytop-rig-walk-b.bvh": lambda: build(60, 30, 18.0),
+    "anytop-rig-tpos.bvh": lambda: build(2, 24, 0.0),
+}
+
+
+def main() -> None:
+    if len(sys.argv) != 2:
+        raise SystemExit("usage: generate-qualification-bvh-rig OUTPUT_DIRECTORY")
+    directory = Path(sys.argv[1])
+    for name, make in FIXTURES.items():
+        (directory / name).write_bytes(make())
+
+
+if __name__ == "__main__":
+    main()

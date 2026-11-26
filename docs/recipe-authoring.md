@@ -1333,6 +1333,12 @@ extension, media type and decoded bytes must match the declared slot; include
 all referenced fixtures in the package. `tests/qualification/test_qualification_index.py`,
 `tests/qualification/test_qualification_case_assertions.py`, `tests/tools/test_optional_inputs.py`
 and `tests/recipes/test_media_types.py` enforce closure and slot consistency.
+A fixture whose creator data cannot be committed is generated deterministically instead:
+`tools/generate-qualification-cube-glb` writes the unit-cube GLB and
+`tools/generate-qualification-bvh-rig` the synthetic rig and clips of the AnyTop recipe
+(`tests/recipes/test_anytop_adapter.py` keeps the committed bytes equal to the generator's).
+A job input slot for a file type the Controller's extension table does not know (`.bvh`) declares
+that one extension and exactly one media type (`text/plain`); the Controller then derives it.
 
 A creator's own smoke proves only what it sends: compare its requests with the
 shared cases the recipe selects (A391 turns thinking off per request; MIS_A391
