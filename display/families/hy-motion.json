@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "hy-motion-1-0",
+          "title": "HY-Motion 1.0"
+        }
+      ],
+      "slug": "hy-motion",
+      "title": "HY-Motion"
+    }
+  ],
+  "slug": "hy-motion",
+  "title": "HY-Motion"
+}

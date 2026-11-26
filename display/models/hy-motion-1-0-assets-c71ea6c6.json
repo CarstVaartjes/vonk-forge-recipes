@@ -1,0 +1,25 @@
+{
+  "capabilities": [],
+  "description": "The Git LFS data HY-Motion 1.0 reads at inference: the motion mean and standard deviation, and the wooden skeleton and mesh templates (rest joints, kinematic tree, skinning, vertices, faces). Read from Tencent-Hunyuan/HY-Motion-1.0 at commit c71ea6c6; the plain git file joint_names.json is vendored in the recipe adapter.",
+  "family_title": "HY-Motion",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hy-motion-1-0-assets-c71ea6c6"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "tencent"
+    ],
+    "spdx": "LicenseRef-Tencent-HY-Motion-1.0-Community",
+    "url": "https://github.com/Tencent-Hunyuan/HY-Motion-1.0/blob/c71ea6c694d8f221c742ff435d9447fa88f91707/License.txt"
+  },
+  "modalities": [
+    "3d"
+  ],
+  "model_title": "HY-Motion 1.0 assets",
+  "tags": [
+    "tencent",
+    "hy-motion"
+  ]
+}

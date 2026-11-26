@@ -25,6 +25,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/three-d/hy-motion",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/three-d/kimodo",
       "wheel_directory": ""
     },
