@@ -50,6 +50,17 @@ from vonk_forge_contracts.recipe import (
     RecipeIdentity,
     Scalar,
 )
+from vonk_forge_contracts.shown import (
+    AudioInputFormat,
+    ContextBasis,
+    Endpoint,
+    ReasoningDefault,
+    RequestPlacement,
+    SpeechResponseFormat,
+    TimestampGranularity,
+    ToolChoice,
+    TranscriptionResponseFormat,
+)
 from vonk_forge_contracts.unrecognised import KeepUnrecognised, UnrecognisedWord
 
 
@@ -57,28 +68,12 @@ class _ApiContract(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
 
 
-Endpoint = Literal[
-    "/v1/chat/completions", "/v1/completions", "/v1/responses", "/v1/messages"
-]
-# The upload formats of OpenAI's transcription endpoint.
-AudioInputFormat = Literal[
-    "flac", "m4a", "mp3", "mp4", "mpeg", "mpga", "ogg", "wav", "webm"
-]
-TranscriptionResponseFormat = Literal[
-    "json", "text", "srt", "verbose_json", "vtt", "diarized_json"
-]
-# OpenAI createSpeech response formats.
-SpeechResponseFormat = Literal["mp3", "opus", "aac", "flac", "wav", "pcm"]
-TimestampGranularity = Literal["word", "segment"]
 # The largest upload a transcription route may declare. The gateway's edge
 # admits exactly this much on /v1/audio/transcriptions, so any declared limit
 # is the engine's to enforce, never an edge refusal.
 MAX_AUDIO_FILE_BYTES = 268_435_456
 Iso639_1 = Annotated[StrictStr, Field(pattern=r"^[a-z]{2}$")]
 VoiceName = Annotated[StrictStr, Field(min_length=1, max_length=64)]
-ToolChoice = Literal["auto", "none", "required", "named"]
-ReasoningDefault = Literal["on", "off", "model"]
-RequestPlacement = Literal["chat_template_kwargs", "top_level"]
 _Key = Annotated[StrictStr, Field(min_length=1, max_length=64)]
 # A word a newer minor may add: a consumer reader keeps it (``UnrecognisedWord``)
 # and does not act on it. Discriminators (``mode``, ``kind``) stay closed. Lists
@@ -94,9 +89,7 @@ _GranularityWord = Annotated[TimestampGranularity | UnrecognisedWord, KeepUnreco
 _ToolChoiceWord = Annotated[ToolChoice | UnrecognisedWord, KeepUnrecognised]
 _ReasoningDefaultWord = Annotated[ReasoningDefault | UnrecognisedWord, KeepUnrecognised]
 _PlacementWord = Annotated[RequestPlacement | UnrecognisedWord, KeepUnrecognised]
-_RemainingWord = Annotated[
-    Literal["context", "slot_context"] | UnrecognisedWord, KeepUnrecognised
-]
+_RemainingWord = Annotated[ContextBasis | UnrecognisedWord, KeepUnrecognised]
 
 
 class ApiTokenValue(_ApiContract):

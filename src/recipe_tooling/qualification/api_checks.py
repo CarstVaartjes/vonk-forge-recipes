@@ -29,13 +29,13 @@ from vonk_forge_contracts.api import (
     RecipeApi,
     require_api_of,
 )
-from vonk_forge_contracts.capability import CapabilityName
 from vonk_forge_contracts.display import ModelDisplay, RecipeDisplay
 from vonk_forge_contracts.recipe import (
     RecipeDecisionSettings,
     RecipeDefinition,
     RecipeGenerationSettings,
 )
+from vonk_forge_contracts.shown import CapabilityName
 
 # The argument each engine takes its context window from; the one table, also
 # used by the memory estimator. It must be present and bound to the recipe's

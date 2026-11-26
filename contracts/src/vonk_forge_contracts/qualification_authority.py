@@ -25,6 +25,12 @@ from vonk_forge_contracts._schema_version import (
     QualificationAuthoritySchemaVersion,
     QualificationCampaignSchemaVersion,
 )
+from vonk_forge_contracts.executed import (
+    BatchMode,
+    CoverageRole,
+    RecoveryFailureMode,
+    ReviewDisposition,
+)
 from vonk_forge_contracts.model import ModelTerritorialRestrictions
 
 Sha256 = Annotated[StrictStr, Field(pattern=r"^[a-f0-9]{64}$")]
@@ -40,12 +46,6 @@ RecipeKey = Annotated[
 Identifier = Annotated[
     StrictStr,
     Field(min_length=1, max_length=256, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$"),
-]
-
-RecoveryFailureMode = Literal[
-    "single-host-restart",
-    "dual-rank-loss-recovery",
-    "dual-host-restart",
 ]
 
 
@@ -126,7 +126,7 @@ class RecoveryCoverageRef(_QualificationContract):
     coverage_id: Sha256
     failure_mode: RecoveryFailureMode
     representative_recipe: RecipeKey
-    role: Literal["representative", "shared-member", "dedicated"]
+    role: CoverageRole
 
 
 class RecipeAuthorityRow(_QualificationContract):
@@ -141,7 +141,7 @@ class RecipeAuthorityRow(_QualificationContract):
     interface: Annotated[StrictStr, Field(min_length=1, max_length=64)]
     recipe_version: Annotated[StrictStr, Field(min_length=1, max_length=64)]
     package: AuthorityPackage
-    disposition: Literal["actionable", "capacity-review"]
+    disposition: ReviewDisposition
     model_license_refs: list[ModelLicenseReference]
     qualification_inputs: list[
         Annotated[StrictStr, Field(min_length=1, max_length=128)]
@@ -185,7 +185,7 @@ class QualificationBatch(_QualificationContract):
 
     sequence: Annotated[StrictInt, Field(ge=1)]
     id: Annotated[StrictStr, Field(pattern=r"^batch-[0-9]{3,}$")]
-    mode: Literal["paired-single", "single", "exclusive-dual"]
+    mode: BatchMode
     assignments: list[QualificationBatchAssignment] = Field(min_length=1, max_length=2)
 
     @model_validator(mode="after")

@@ -41,7 +41,6 @@ import re
 from collections import Counter
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
-from enum import StrEnum
 from typing import Annotated, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError
@@ -55,6 +54,14 @@ from vonk_forge_contracts.catalog_index import (
     CatalogRecipeEntry,
 )
 from vonk_forge_contracts.display import FamilyDisplay
+from vonk_forge_contracts.executed import (
+    CatalogBlock,
+    CatalogSection,
+    DigestCheck,
+    EntryOutcome,
+    FaultReason,
+    RefusalReason,
+)
 from vonk_forge_contracts.unrecognised import (
     UnrecognisedWord,
     dropped_context,
@@ -64,54 +71,6 @@ from vonk_forge_contracts.unrecognised import (
 _SHA256: Final = re.compile(r"[0-9a-f]{64}")
 # Pydantic error types that mean "a word this release does not list".
 _UNKNOWN_WORD_ERRORS: Final = frozenset({"literal_error", "enum", "union_tag_invalid"})
-
-
-class CatalogSection(StrEnum):
-    MODELS = "catalog_entities"
-    RECIPES = "recipes"
-    FAMILIES = "families"
-
-
-class EntryOutcome(StrEnum):
-    KEEP = "keep"
-    KEEP_UNRECOGNISED = "keep-unrecognised"
-    DROP_BLOCK = "drop-block"
-    SKIP = "skip"
-    REFUSE = "refuse"
-
-
-class CatalogBlock(StrEnum):
-    """An entry block a consumer can do without; an unreadable one is dropped."""
-
-    DISPLAY = "display"
-    API = "api"
-    QUALIFICATION = "qualification"
-    PREBUILT_IMAGE = "prebuilt_image"
-    MEASURED_MEMORY = "measured_memory"
-
-
-class DigestCheck(StrEnum):
-    MATCH = "match"
-    MISMATCH = "mismatch"
-    # No digest or document to compare: the entry is malformed, not tampered.
-    UNREADABLE = "unreadable"
-
-
-class FaultReason(StrEnum):
-    MISSING = "missing"
-    WRONG_TYPE = "wrong-type"
-    INVALID_VALUE = "invalid-value"
-    # A word this release does not know where it cannot keep it as an
-    # ``UnrecognisedWord`` (a discriminator or an execution field).
-    UNKNOWN_WORD = "unknown-word"
-    DUPLICATE = "duplicate"
-
-
-class RefusalReason(StrEnum):
-    ENVELOPE_INVALID = "envelope-invalid"
-    # Another ``kind``, ``schema_version`` or contract major.
-    SCHEMA_UNSUPPORTED = "schema-unsupported"
-    DIGEST_MISMATCH = "digest-mismatch"
 
 
 class CatalogIndexRefused(ValueError):

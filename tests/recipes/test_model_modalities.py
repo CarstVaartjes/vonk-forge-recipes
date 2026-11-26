@@ -12,7 +12,7 @@ from repo_root import ROOT
 from recipe_tooling.qualification.documents import has_recipe_api, recipe, recipe_api
 from vonk_forge_contracts import CapabilityName, CapabilityRole, ChatApi, DecisionApi
 from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone
-from vonk_forge_contracts.capability import CAPABILITY_ROLES
+from vonk_forge_contracts.shown import CAPABILITY_ROLES
 
 GUARD = runpy.run_path(str(ROOT / "tools/check-model-modalities"))
 

@@ -547,6 +547,7 @@ class SelfHealingTests(unittest.TestCase):
             "tools/check-serial-reads",
             "tools/check-nccl-ib-hca",
             "tools/check-wire-only",
+            "tools/check-closed-sets",  # structural pass over contracts/src, not refresh data
             "tools/generate-contract-examples",
             "tools/generate-contract-schemas",
             "tools/build-release-bundle",

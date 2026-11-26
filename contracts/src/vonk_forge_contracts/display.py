@@ -27,7 +27,6 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, Strict, StrictStr, model_validator
 
-from vonk_forge_contracts.capability import CapabilityName
 from vonk_forge_contracts.model import (
     Description,
     ModelIdentity,
@@ -37,14 +36,13 @@ from vonk_forge_contracts.model import (
     Title,
 )
 from vonk_forge_contracts.recipe import (
-    Alignment,
     Identifier,
     RecipeIdentity,
     RecipeTags,
 )
+from vonk_forge_contracts.shown import Alignment, CapabilityName, Modality, VariantKind
 from vonk_forge_contracts.unrecognised import KeepUnrecognised, UnrecognisedWord
 
-Modality = Literal["text", "image", "audio", "video", "3d", "embeddings"]
 # A word a newer minor may add: a consumer reader keeps it (``UnrecognisedWord``).
 Capability = Annotated[
     Annotated[CapabilityName, Strict(False)] | UnrecognisedWord, KeepUnrecognised
@@ -62,11 +60,6 @@ class ModelDisplayIdentity(_DisplayContract):
     slug: Slug
 
 
-#: How a Model's weights relate to its release: the vendor's own released
-#: checkpoint (``base``), the same weights in another format or bit-width
-#: (``quantization``), or different weights such as a prune, distill or tune
-#: (``derivative``).
-VariantKind = Literal["base", "quantization", "derivative"]
 VariantKindWord = Annotated[VariantKind | UnrecognisedWord, KeepUnrecognised]
 # A Hugging Face repository id; it may name a model this catalog does not carry.
 HuggingFaceId = Annotated[
