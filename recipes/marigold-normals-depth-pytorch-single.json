@@ -40,7 +40,7 @@
         "required": true,
         "slots": [
           {
-            "description": "One PNG or JPEG photo or render; at most 4096x4096 pixels, never resized. If the input has transparency, the model sees it composited over black; transparency is not carried to the maps.",
+            "description": "One PNG or JPEG photo or render; at most 4096x4096 pixels, never resized. If the input has transparency, the model sees its RGB pixels; transparency is not carried to the maps.",
             "extensions": [
               ".jpeg",
               ".jpg",

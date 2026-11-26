@@ -225,12 +225,7 @@ def test_each_task_writes_its_maps_and_satisfies_the_qualification(
         Output(name, "image/png", (outputs / name).read_bytes())
         for name in sorted(CONTRACT[task])
     ]
-    assessed = [
-        item
-        for item in definition["assertions"]
-        if not (task == "normals-depth" and item["kind"] == "image-metadata")
-    ]
-    assert evaluate(assessed, written) == {}
+    assert evaluate(definition["assertions"], written) == {}
 
 
 def test_roughness_and_metallic_are_the_predicted_values_not_the_inverted_display(
@@ -269,7 +264,7 @@ def test_input_alpha_goes_onto_the_albedo_and_the_model_sees_rgb(
     _stage(adapter._INPUT_ROOT, "alpha.png", path.read_bytes())
     outputs = _run(adapter, tmp_path, monkeypatch, task)
     assert adapter.calls[0][1:2] == ("RGB",)
-    assert adapter.calls[0][3] == (0, 0, 0)  # transparent pixels composited over black
+    assert adapter.calls[0][3] == (200, 100, 50)  # the RGB pixels, as the creator does
     assert _header(outputs / "albedo.png")[2:] == (8, 6)
     with Image.open(outputs / "albedo.png") as albedo:
         assert albedo.getchannel("A").tobytes() == source.getchannel("A").tobytes()

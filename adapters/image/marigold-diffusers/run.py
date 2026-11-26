@@ -215,8 +215,8 @@ def _input_path() -> Path:
 def _read_image(path: Path) -> tuple[Image.Image, Image.Image | None]:
     """The upright RGB image the model sees and, if the input had one, its alpha.
 
-    Transparent pixels are composited over black for the model; the alpha itself goes onto
-    the albedo unchanged. A larger image is refused, never resized.
+    The model gets the RGB pixels, as the creator's pipeline does (``convert("RGB")``); the
+    alpha itself goes onto the albedo unchanged. A larger image is refused, never resized.
     """
     expected = _FORMATS[path.suffix.lower()][0]
     try:
@@ -237,11 +237,10 @@ def _read_image(path: Path) -> tuple[Image.Image, Image.Image | None]:
             upright = ImageOps.exif_transpose(source)
             if not transparent:
                 return upright.convert("RGB"), None
-            rgba = upright.convert("RGBA")
+            rgb, alpha = upright.convert("RGB"), upright.convert("RGBA").getchannel("A")
     except (OSError, ValueError, Image.DecompressionBombError) as error:
         raise SystemExit(f"the image input cannot be decoded: {error}") from error
-    over_black = Image.alpha_composite(Image.new("RGBA", rgba.size, (0, 0, 0, 255)), rgba)
-    return over_black.convert("RGB"), rgba.getchannel("A")
+    return rgb, alpha
 
 
 def _generator(seed: int) -> Any:

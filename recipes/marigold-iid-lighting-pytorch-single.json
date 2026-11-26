@@ -40,7 +40,7 @@
         "required": true,
         "slots": [
           {
-            "description": "One PNG or JPEG photo or render; at most 4096x4096 pixels, never resized. If the input has transparency, the model sees it composited over black and the original alpha is copied unchanged onto albedo.png (RGBA).",
+            "description": "One PNG or JPEG photo or render; at most 4096x4096 pixels, never resized. If the input has transparency, the model sees its RGB pixels and the original alpha is copied unchanged onto albedo.png (RGBA).",
             "extensions": [
               ".jpeg",
               ".jpg",

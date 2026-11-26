@@ -1,7 +1,5 @@
 {
-  "capabilities": [
-    "material-estimation"
-  ],
+  "capabilities": [],
   "description": "Immutable public snapshot of prs-eth/marigold-depth-v1-1 at 9571e712: the fp16 variant (UNet, VAE, text encoder, tokenizer and scheduler, about 2.6 GB) of Marigold monocular depth estimation (served beside Marigold Normals in one job). OpenRAIL++-M; the licence is shown for information and nothing here gates on it.",
   "family_title": "Marigold",
   "identity": {
