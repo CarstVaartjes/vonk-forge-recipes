@@ -50,6 +50,22 @@ _FA4_WORKSPACE = os.environ.get("INKLING_KV12S_FA4_WORKSPACE", "0").strip().lowe
 # Which SGLang pools carry the packed store: "static" (non-unified SWAKVPool, static.py)
 # or "unified" (the --enable-unified-memory arena, v2.7.1).
 _POOL = os.environ.get("INKLING_KV12S_POOL", "static").strip().lower()
+# How the DFLASH hook settles a verify step on the packed global visits: "shared" (the default, here and in
+# scripts/launch.sh) builds the page candidates once for all visits, as the DSpark hook does since v2.7.3; "1" also
+# runs each settle kernel once over all visits (device.LaneGroup; opt-in); "0" settles each visit on its own
+# (v2.9.4). All three store the same K/V bits. The store's bytes are identical too, except where side-slot claims of
+# one visit race inside one launch (pages promoted together near arena exhaustion); every mode, the per-visit one
+# included, resolves those in scheduling order, and every outcome is exact.
+_SETTLE_MODES = {"1": "batch", "on": "batch", "true": "batch", "yes": "batch", "batch": "batch", "shared": "shared",
+                 "0": "layer", "off": "layer", "false": "layer", "no": "layer", "layer": "layer"}
+
+
+def _settle_raw(environ):
+    return environ.get("INKLING_KV12S_DFLASH_SETTLE", "shared").strip().lower()
+
+
+_DFLASH_SETTLE_RAW = _settle_raw(os.environ)
+_DFLASH_SETTLE = _SETTLE_MODES.get(_DFLASH_SETTLE_RAW)
 
 
 def _wrap(owner, name, params, factory):
@@ -1085,6 +1101,45 @@ def _register_model(module):
           "self q k v r sources positions forward_batch padded verify shear", keep_stock_projection)
 
 
+def _settle_lanes(view, lanes, ids, commit, mode):
+    """Settle one verify step's tentative writes on every owned lane.
+
+    "shared": the page candidates depend only on the verify ids, so build them once for all lanes (the same tensors
+    each lane's settle computed; v2.7.3). "batch": also run each settle kernel once over all lanes (device.LaneGroup;
+    lanes it cannot group are settled as "shared"). "layer": each lane on its own."""
+    lanes = list(lanes)
+    shared = (mode != "layer" and lanes and ids.ndim == 2 and ids.numel()
+              and all(callable(getattr(lane, "settle_pages", None)) for lane in lanes))
+    if not shared:
+        for lane in lanes:
+            lane.settle(ids, commit)
+        return
+    prepared = lanes[0].settle_pages(ids)
+    group = _lane_group(view, lanes) if mode == "batch" else None
+    if group is not None:
+        group.settle(ids, commit, prepared=prepared)
+        return
+    for lane in lanes:
+        lane.settle(ids, commit, prepared=prepared)
+
+
+def _lane_group(view, lanes):
+    """The view's device.LaneGroup over `lanes`, built once (None: they cannot be grouped)."""
+    cached = getattr(view, "_inkling_kv12s_settle_group", None)
+    if cached is not None and len(cached[0]) == len(lanes) and all(a is b for a, b in zip(cached[0], lanes)):
+        return cached[1]
+    from .device import LaneGroup
+
+    group = LaneGroup.build(lanes)
+    if group is None:
+        LOG.warning("inkling_kv12s: the %d packed visits cannot share settle launches; settling them one by one "
+                    "with shared page candidates", len(lanes))
+    else:
+        LOG.info("inkling_kv12s: verify settle batched over %d packed visits", len(lanes))
+    view._inkling_kv12s_settle_group = (tuple(lanes), group)
+    return group
+
+
 def _register_dspark(module, eager=True):
     def save_window(original):
         def allocate(*args, **kwargs):
@@ -1117,18 +1172,7 @@ def _register_dspark(module, eager=True):
                     ids = window.verify_cache_loc_2d
                 else:
                     ids = iteration.write_ids(target.runner_ids).view_as(window.verify_cache_loc_2d)
-                lanes = list(view.owned_layers)
-                # The page candidates depend only on the verify ids: build them once for all owned layers
-                # (the same tensors each layer's settle computed; saves 4 launches per layer).
-                shared = (lanes and ids.ndim == 2 and ids.numel()
-                          and all(callable(getattr(lane, "settle_pages", None)) for lane in lanes))
-                if shared:
-                    prepared = lanes[0].settle_pages(ids)
-                    for lane in lanes:
-                        lane.settle(ids, commit, prepared=prepared)
-                else:
-                    for lane in lanes:
-                        lane.settle(ids, commit)
+                _settle_lanes(view, view.owned_layers, ids, commit, "shared")
             return result
         return decode
 
@@ -1189,8 +1233,7 @@ def _register_dflash(module):
                 ids = self._draft_verify_out_cache_loc_buf[:bs]
                 if ids.shape != (bs, int(self.block_size)):
                     raise RuntimeError("inkling_kv12s: unexpected DFLASH verify window")
-                for lane in view.owned_layers:
-                    lane.settle(ids, commit)
+                _settle_lanes(view, view.owned_layers, ids, commit, _DFLASH_SETTLE)
             return result
         return forward
 
@@ -1668,6 +1711,9 @@ def register():
 
 def register_static():
     """The packed store on the static (non-unified) pools: see static.py."""
+    if _DFLASH_SETTLE is None:
+        raise IncompatibleImage(f"inkling_kv12s: INKLING_KV12S_DFLASH_SETTLE={_DFLASH_SETTLE_RAW!r} "
+                                "must be 1, shared or 0")
     patches = (
         ("sglang.srt.mem_cache.kv_cache_configurator", _register_config),
         ("sglang.srt.mem_cache.kv_cache_configurator", _register_static_pools),

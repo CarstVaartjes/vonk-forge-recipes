@@ -22,6 +22,7 @@ revision); and the whole test suite still passes.
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import os
 import traceback
 from concurrent.futures import ThreadPoolExecutor
@@ -41,6 +42,7 @@ from recipe_tooling.refresh_upstream import publish as refresh_publish
 from recipe_tooling.upstream_drift import embedded as drift_embedded
 from recipe_tooling.upstream_drift import heads as drift_heads
 from recipe_tooling.upstream_drift import inventory as drift_inventory
+from recipe_tooling.upstream_http import UpstreamBusy
 
 
 class AnonymousHeadClient:
@@ -112,6 +114,12 @@ def command_run(arguments: argparse.Namespace) -> int:
         def assess_one(recipe_id: str) -> refresh_model.Assessment:
             try:
                 return assessor.assess(recipe_id)
+            except (
+                UpstreamBusy
+            ) as error:  # not checked this run; the next run asks again
+                return refresh_model.Assessment(
+                    recipe_id, unreachable=[str(error)[:200]]
+                )
             except Exception as error:  # noqa: BLE001 - one recipe's fault must not starve the rest
                 record_failure(summary, recipe_id, error)
                 failed.add(recipe_id)
@@ -199,6 +207,22 @@ def command_run(arguments: argparse.Namespace) -> int:
                 if summary.prepared >= refresh_model.MAX_MECHANICAL_PER_RUN:
                     summary.deferred.append(
                         f"{result.recipe_id}: mechanical, over this run's limit"
+                    )
+                    # An issue left from an earlier run must not keep showing its old
+                    # reason; the result itself stays as assessed (a live PR stays open).
+                    refresh_publish.sync_issue(
+                        dataclasses.replace(
+                            result,
+                            reasons=[
+                                *result.reasons,
+                                (
+                                    "mechanical, but over this run's limit; a later "
+                                    "run prepares it"
+                                ),
+                            ],
+                        ),
+                        summary,
+                        create=False,
                     )
                     continue
                 members = groups.get(result.recipe_id)

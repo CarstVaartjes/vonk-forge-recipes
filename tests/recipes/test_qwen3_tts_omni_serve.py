@@ -24,7 +24,7 @@ def _launcher() -> ModuleType:
 
 
 def test_context_becomes_a_talker_stage_override() -> None:
-    arguments = _launcher().talker_context(
+    arguments = _launcher().stage_scoped(
         ["serve", "/models", "--max-model-len", "4096", "--omni"]
     )
     assert "--max-model-len" not in arguments
@@ -35,15 +35,33 @@ def test_context_becomes_a_talker_stage_override() -> None:
 
 
 def test_equals_form_is_scoped_the_same_way() -> None:
-    arguments = _launcher().talker_context(["serve", "/models", "--max-model-len=2048"])
+    arguments = _launcher().stage_scoped(["serve", "/models", "--max-model-len=2048"])
     assert json.loads(arguments[arguments.index("--stage-overrides") + 1]) == {
         "0": {"max_model_len": 2048}
     }
 
 
+def test_memory_becomes_a_per_stage_override_not_a_global_flag() -> None:
+    arguments = _launcher().stage_scoped(
+        [
+            "serve",
+            "/models",
+            "--gpu-memory-utilization",
+            "0.197",
+            "--max-model-len=4096",
+            "--omni",
+        ]
+    )
+    assert not any(a.startswith("--gpu-memory-utilization") for a in arguments)
+    assert json.loads(arguments[arguments.index("--stage-overrides") + 1]) == {
+        "0": {"max_model_len": 4096, "gpu_memory_utilization": 0.197},
+        "1": {"gpu_memory_utilization": 0.197},
+    }
+
+
 def test_other_arguments_pass_through_unchanged() -> None:
-    arguments = ["serve", "/models", "--gpu-memory-utilization", "0.197", "--omni"]
-    assert _launcher().talker_context(list(arguments)) == arguments
+    arguments = ["serve", "/models", "--omni", "--port", "8000"]
+    assert _launcher().stage_scoped(list(arguments)) == arguments
 
 
 @pytest.mark.parametrize(
@@ -57,7 +75,7 @@ def test_other_arguments_pass_through_unchanged() -> None:
 )
 def test_unusable_context_or_a_second_override_is_refused(arguments: list[str]) -> None:
     with pytest.raises(SystemExit):
-        _launcher().talker_context(arguments)
+        _launcher().stage_scoped(arguments)
 
 
 def test_the_deploy_config_is_the_creators_two_stage_file() -> None:

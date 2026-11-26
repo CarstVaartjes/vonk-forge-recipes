@@ -56,8 +56,8 @@
           ]
         },
         {
-          "file_id": "config-617a2b86e568-587cb980af",
-          "id": "primary-config-617a2b86e568-587cb980af",
+          "file_id": "config-900be55e0e07-587cb980af",
+          "id": "primary-config-900be55e0e07-587cb980af",
           "mount": {
             "target": "/models"
           },
@@ -1752,10 +1752,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f9424b96402221fade18cd520d823b875fd5655c209274aa5e6b249ba6e45e76",
+        "content_sha256": "c660d7847c36a6e9ca3b8c65c8429b0d18d4c09104d27156bd4f60f5bf3790ab",
         "kind": "model",
         "publisher": "tencent",
-        "slug": "hy4-flash-fp8-8a1b1989"
+        "slug": "hy4-flash-fp8-8ae0de27"
       }
     }
   ],
@@ -1768,8 +1768,8 @@
     "source_reference": "https://github.com/ZackSample/hy4-flash-dgx-sparks/tree/a0e88d769cdb1f9f4bbfdc06e1a621a6a1ffe169"
   },
   "release": {
-    "released_at": "2026-11-23",
-    "version": "1.0.1"
+    "released_at": "2026-11-26",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -1891,7 +1891,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 287083039976,
+            "artifact_bytes": 287083040000,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 65000000000
@@ -1908,7 +1908,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 287083039976,
+            "artifact_bytes": 287083040000,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 65000000000

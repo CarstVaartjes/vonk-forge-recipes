@@ -846,6 +846,19 @@ class AssessmentTests(unittest.TestCase):
         assert not result.drifted
         assert any("v0.6.2" in e and "information" in e for e in result.evidence)
 
+    def test_a_busy_provider_for_release_information_is_not_a_failure(self) -> None:
+        routed = FakeApi.__call__
+
+        def busy_tags(api: FakeApi, path: str) -> Any:
+            if path.split("?", maxsplit=1)[0].endswith("/tags"):
+                raise UpstreamBusy("provider returned HTTP 429")
+            return routed(api, path)
+
+        with patch.object(FakeApi, "__call__", busy_tags):
+            result = self.assess(KIT_NEW, KIT_NEW, base=("v0.6.0", BASE_060))
+        assert not result.drifted
+        assert not result.unreachable
+
     def test_the_v050_to_v060_move_is_a_review_naming_the_declared_base(self) -> None:
         result = self.assess(
             KIT_OLD, KIT_NEW, base=("v0.5.0", BASE_050), files=("patches/0002.patch",)
@@ -1086,6 +1099,22 @@ class ModelPayloadTests(unittest.TestCase):
         changed = [dict(old["files"][0], sha256="d" * 64), same[1]]
         assert refresh_classification.payload_identical(old, same)
         assert not refresh_classification.payload_identical(old, changed)
+
+    def test_metadata_needs_both_classifiers(self) -> None:
+        assert refresh_classification.is_metadata("README.md", ["metadata"])
+        assert not refresh_classification.is_metadata("tokenizer.json", ["metadata"])
+        assert not refresh_classification.is_metadata("README.md", ["weights"])
+        old = {
+            "files": [{"path": "m.safetensors", "roles": ["weights"], "sha256": "a"}]
+        }
+        readme = {"path": "README.md", "roles": ["metadata"], "sha256": "b"}
+        tokenizer = {"path": "tokenizer.json", "roles": ["metadata"], "sha256": "c"}
+        assert refresh_classification.only_sibling_weights_added(
+            old, [*old["files"], readme]
+        )
+        assert not refresh_classification.only_sibling_weights_added(
+            old, [*old["files"], tokenizer]
+        )
 
     def test_stored_weights_that_roles_for_calls_metadata_are_compared(self) -> None:
 

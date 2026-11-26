@@ -121,6 +121,37 @@ def projections(root: Path = ROOT) -> dict[str, bytes]:
     return outputs
 
 
+def template_edits(root: Path, edits: dict[str, bytes | None]) -> dict[str, bytes]:
+    """The ``.in`` source edits for edits to generated consumer files.
+
+    A generated Dockerfile or manifest is rendered from ``tools/protocol-wheel``; an
+    edit to the copy alone fails ``materialize --check``. The same text, with the
+    selection's values turned back into their tokens, is the source's edit.
+    """
+    if not (root / SELECTION).is_file():
+        return {}
+    selected = selection(root)
+    name = Path(selected.artifact).name
+    tokens = {
+        name: "@protocol.wheel@",
+        selected.artifact_sha256: "@protocol.sha256@",
+        selected.platform_source_commit: "@protocol.source_commit@",
+    }
+    found: dict[str, bytes] = {}
+    for consumer in selected.consumers:
+        context = Path(consumer.context)
+        for target in ("Dockerfile", "vendored-upstream.json"):
+            edited = edits.get(str(context / target))
+            source = f"tools/protocol-wheel/{context.name}.{target}.in"
+            if edited is None or not (root / source).exists():
+                continue
+            text = edited.decode()
+            for value, token in tokens.items():
+                text = text.replace(value, token)
+            found[source] = text.encode()
+    return found
+
+
 def materialize(
     root: Path = ROOT, *, check: bool = False, gh: Gh | None = None
 ) -> None:

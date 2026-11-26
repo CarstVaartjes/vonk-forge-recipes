@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from math import lcm
 
 from recipe_tooling.qualification.memory_need import args as mn_args
 from recipe_tooling.qualification.memory_need.geometry import (
@@ -125,26 +124,18 @@ def recurrent_layer_bytes(recipe: RecipeDefinition, recurrent: RecurrentCache) -
     ) * mamba_dtype_bytes(recipe, "mamba-ssm-cache-dtype", recurrent.state_dtype_bytes)
 
 
-def mamba_cache_mode(
-    recipe: RecipeDefinition, recurrent: RecurrentCache
-) -> MambaCacheMode:
+def mamba_cache_mode(recipe: RecipeDefinition) -> MambaCacheMode:
     """vLLM's mamba cache mode: off holds one page per recurrent group, on holds
-    "align" unless the recipe names "all" for a build that still has the flag.
+    "align".
 
     vLLM main (9a4930a797, PR #63830) removed --mamba-cache-mode: prefix
-    caching on is always "align". An omitted flag therefore counts as "align",
-    never "all"; no recipe pins "all". An omitted prefix-caching flag counts as
+    caching on is always "align", whatever a recipe still passes. An omitted prefix-caching flag counts as
     on: v0.27 keeps hybrid prefix caching opt-in (arg_utils.py
     default_prefix_caching), but nightly 3f1bcfd8 defaults it to
     is_prefix_caching_supported, and "align" never needs fewer blocks.
     """
     if mn_args.argument_value(recipe, "enable-prefix-caching") is False:
         return MambaCacheMode.NONE
-    if (
-        mn_args.argument_value(recipe, "mamba-cache-mode") == MambaCacheMode.ALL
-        and recurrent.mamba_prefix_caching
-    ):
-        return MambaCacheMode.ALL
     return MambaCacheMode.ALIGN
 
 
@@ -177,14 +168,14 @@ def vllm_hybrid_need(
     """Per-rank pool vLLM v0.27's hybrid allocator needs for the requests.
 
     Platform._align_hybrid_block_size raises the block to the smallest
-    kernel-aligned size (mode "all": aligned to the Mamba chunk) whose
+    kernel-aligned size whose
     attention page holds one recurrent state, and pads that state to the page.
     _get_kv_cache_groups_uniform_page_size groups layers by the smallest
     bucket (the largest when within 1.5x), padding each type's last group;
     get_num_blocks sizes pool // page // group blocks and BlockPool takes one
     as the null block. Per request an attention group holds cdiv(context,
     block) blocks and a recurrent group (MambaSpec.max_memory_usage_bytes)
-    1 (mode none), 2 (align) or cdiv(context, block) (all), plus one per
+    1 (mode none) or 2 (align), plus one per
     speculative token. The startup check (_max_memory_usage_bytes_from_groups)
     counts the same padded groups without the null block, so this covers it.
     """
@@ -194,14 +185,8 @@ def vllm_hybrid_need(
     align = recurrent.kernel_block_tokens
     if mn_args.argument_value(recipe, "block-size") is not None:
         align = max(align, mn_args.positive_argument(recipe, "block-size"))
-    mode = mamba_cache_mode(recipe, recurrent)
-    if mode is MambaCacheMode.ALL:
-        assert recurrent.chunk_tokens is not None
-        chunk = lcm(recurrent.chunk_tokens, align)
-        tokens = -(-state // per_token)
-        block = chunk * -(-tokens // chunk)
-    else:
-        block = align * -(-state // (align * per_token))
+    mode = mamba_cache_mode(recipe)
+    block = align * -(-state // (align * per_token))
     stages = recipe.topology.parallelism.pipeline
     attention_layers = -(-recurrent.attention_layers // stages)
     recurrent_layers = -(-recurrent.layers // stages)
@@ -213,7 +198,6 @@ def vllm_hybrid_need(
         + {
             MambaCacheMode.NONE: 1,
             MambaCacheMode.ALIGN: 2,
-            MambaCacheMode.ALL: attention_blocks,
         }[mode]
     )
     blocks = (
