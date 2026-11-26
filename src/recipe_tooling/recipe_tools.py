@@ -183,6 +183,8 @@ def channel_fetch(channel: str, base_url: str = BASE_URL) -> Fetch:
         except HTTPError as error:
             if error.code == 404:
                 raise Absent(name) from error
+            if error.code >= 500:  # a proxy's own 52x as well as the origin's
+                raise Unreachable(f"{base_url}/{channel}/{name}: {error}") from error
             raise
         except RuntimeError as error:  # transient failures past the retry bound
             raise Unreachable(f"{base_url}/{channel}/{name}: {error}") from error

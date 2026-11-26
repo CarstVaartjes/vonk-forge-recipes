@@ -39,7 +39,6 @@ jobs:
   # recipe-tools bundle (platform-validate.yml).
   validate:
     permissions:
-      attestations: read
       contents: read
     uses: ./.github/workflows/platform-validate.yml
 

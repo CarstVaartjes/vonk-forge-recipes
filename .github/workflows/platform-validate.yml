@@ -21,9 +21,6 @@ jobs:
     name: Validate with the ${{ matrix.channel }} platform
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    permissions:
-      attestations: read
-      contents: read
     strategy:
       fail-fast: false
       matrix:

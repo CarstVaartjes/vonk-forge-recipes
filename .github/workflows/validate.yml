@@ -39,9 +39,6 @@ jobs:
   # signed recipe-tools bundle (platform-validate.yml).
   validate:
     if: ${{ !inputs.producer_only }}
-    permissions:
-      attestations: read
-      contents: read
     uses: ./.github/workflows/platform-validate.yml
 
   # Build the catalog once and prove it deterministic: two independent builds
