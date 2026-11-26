@@ -1,0 +1,41 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "realesrgan-x4plus-weights",
+      "path": "RealESRGAN_x4plus.pth",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1",
+      "size_bytes": 67040989
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "xinntao",
+      "slug": "realesrgan-x4plus"
+    },
+    "publisher": "xinntao",
+    "slug": "realesrgan-x4plus-0-1-0",
+    "variant": "0.1.0",
+    "version": "0.1.0"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "assets": [
+      {
+        "asset_id": 40831506,
+        "file_id": "realesrgan-x4plus-weights"
+      }
+    ],
+    "provider": "github-release",
+    "release_id": 46632549,
+    "repository": "https://github.com/xinntao/Real-ESRGAN"
+  }
+}

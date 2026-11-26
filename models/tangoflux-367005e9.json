@@ -1,0 +1,70 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "license-500719bcf10a-4673a3aba0",
+      "path": "LICENSE.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "500719bcf10a22d4b6e6ac5f7d848a93ac10d7fc12d68662049d724e555c2a8c",
+      "size_bytes": 2528
+    },
+    {
+      "id": "stability-ai-community-license-d6f6b1a4dce5-4459cc1338",
+      "path": "STABILITY_AI_COMMUNITY_LICENSE.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d6f6b1a4dce5c852bd6d7d9482d002baf0ccdb71e662250b73be9eec8764ee8d",
+      "size_bytes": 11852
+    },
+    {
+      "id": "config-78cd6ee6a99d-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "78cd6ee6a99d8e94dbc2b6d3bedd7e5046fcef1b7bbb062b06d43802a6bdbc4a",
+      "size_bytes": 252
+    },
+    {
+      "id": "tangoflux-720ae39607a6-43a079fc85",
+      "path": "tangoflux.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "720ae39607a6aa95c2c8f6a49457268b0ce2a5cd4ef0b34d2eea756553cdb588",
+      "size_bytes": 3437051960
+    },
+    {
+      "id": "vae-d73619a1d1e1-b56c3d31f8",
+      "path": "vae.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d73619a1d1e1dc48e606632931ffce440b4959ce2a4ed5a3522c3bb573b103be",
+      "size_bytes": 624490208
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "declare-lab",
+      "slug": "tangoflux"
+    },
+    "publisher": "declare-lab",
+    "slug": "tangoflux-367005e9",
+    "variant": "367005e9",
+    "version": "367005e9"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/declare-lab/TangoFlux",
+    "revision": "367005e963cb3a9fb2e03a46104d7de23e34ceea"
+  }
+}

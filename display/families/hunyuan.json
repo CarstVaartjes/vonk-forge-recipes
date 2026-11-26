@@ -34,6 +34,16 @@
     {
       "models": [
         {
+          "slug": "hunyuan3d-2-1",
+          "title": "Hunyuan3D-2.1"
+        }
+      ],
+      "slug": "hunyuan3d-2-1",
+      "title": "Hunyuan3D 2.1"
+    },
+    {
+      "models": [
+        {
           "slug": "hunyuanocr-1-5",
           "title": "HunyuanOCR 1.5"
         }

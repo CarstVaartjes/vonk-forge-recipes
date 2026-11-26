@@ -1362,8 +1362,16 @@
             "$ref": "#/components/schemas/ModelIdentity"
           },
           "requires_token": {
-            "title": "Requires Token",
-            "type": "boolean"
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Requires Token"
           },
           "dependencies": {
             "items": {
@@ -1401,7 +1409,6 @@
         },
         "required": [
           "identity",
-          "requires_token",
           "dependencies",
           "source",
           "format",

@@ -25,6 +25,7 @@ secrets/
 /adapters/audio/hunyuan-video-foley-native/vendor/transformers-a957b7911a758d54597914b4479fe6e81424d64f.tar.gz.part-002
 /adapters/audio/mmaudio-pytorch/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/audio/stable-audio-3-small-sfx/vendor/stable-audio-3-790793b89ddceea612be9ce42ff6830d18f6fa57.tar.gz
+/adapters/audio/tangoflux-pytorch/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/deepseek/drowzeys-ds4-dspark-port-single/vendor/ds4-80ebbc396aee40eedc1d829222f3362d10fa4c6c.tar.gz
 /adapters/deepseek/ds4-tp2/vendor/ds4-b3f50180ec2c7324892be1f50bc83555ccb8d5e7.tar.gz
 /adapters/deepseek/ds4/vendor/ds4-b3f50180ec2c7324892be1f50bc83555ccb8d5e7.tar.gz
@@ -62,10 +63,12 @@ secrets/
 /adapters/qwen/tournier-exl3-6-05-tensorfold-single/vendor/tensorfold-53ceb126d5d54e9193245bcc74130fc1d81cf46f.tar.gz
 /adapters/three-d/anytop/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/three-d/gem-x-motion/vonk_agent_protocol-4.1.0-py3-none-any.whl
+/adapters/three-d/hunyuan3d-2-1/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/three-d/hy-motion/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/three-d/kimodo/kimodo/assets/skeletons/somaskel77/skin_standard.npz
 /adapters/three-d/kimodo/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/three-d/motionbricks/vonk_agent_protocol-4.1.0-py3-none-any.whl
+/adapters/three-d/partcrafter/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/video/drowzeys-fasth3-tensorfold/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/video/drowzeys-keys-heretic-h3/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/video/ltx2-pytorch/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl

@@ -1,0 +1,34 @@
+{
+  "capabilities": [
+    "3d-generation"
+  ],
+  "description": "PartCrafter (structured 3D mesh generation from a single image into several semantically meaningful, geometrically distinct parts): a compositional latent diffusion transformer with its own VAE and a DINOv2 image encoder, all fp16. The weights are MIT licensed.",
+  "family_title": "PartCrafter",
+  "identity": {
+    "publisher": "wgsxm",
+    "slug": "partcrafter-69a0ffc1"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "wgsxm"
+    ],
+    "spdx": "MIT",
+    "url": "https://github.com/wgsxm/PartCrafter/blob/3d773bf02fad51c7ab31a5615573fec93b287b30/LICENSE"
+  },
+  "lineage": {
+    "family": "partcrafter",
+    "generation": "PartCrafter",
+    "line": "partcrafter",
+    "model": "partcrafter",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "3d"
+  ],
+  "model_title": "PartCrafter",
+  "tags": [
+    "wgsxm",
+    "partcrafter"
+  ]
+}

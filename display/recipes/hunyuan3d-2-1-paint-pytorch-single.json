@@ -1,0 +1,26 @@
+{
+  "alignment": "unspecified",
+  "component_bindings": [
+    "dinov2-giant",
+    "realesrgan"
+  ],
+  "description": "Single-Spark Hunyuan3D 2.1 paint job: an untextured mesh and a texture reference image in, one PBR textured mesh out, the creator's paint pipeline alone. The mesh is remeshed and re-unwrapped by the creator's paint step, so the input's own UVs and materials are not kept; the image is composited on white if it has alpha. The creator seeds the paint step with 0, so there is no seed option. The GLB is written by this recipe with the creator's material mapping (R = 255, G = roughness, B = metallic), because the creator's exporters need bpy, which has no aarch64 build, or embed JPEG bytes as data: URIs under a PNG media type, which the GLB validation refuses. There is no normal map. The creator's paint step fixes its own settings and this recipe leaves them alone: it remeshes to at most 40,000 faces, unwraps UVs with xatlas, paints six 512 px views in 15 UniPC steps with guidance 3.0 and seed 0, upscales each view with Real-ESRGAN x4, and bakes a 2048 px texture. The Hunyuan3D 2.1 Community License does not apply in the European Union, United Kingdom or South Korea, needs a separate licence above one million monthly active users, and its source headers say non-commercial. Recorded for information, never gated.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "hunyuan3d-2-1-paint-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "knobs": {},
+  "tags": [
+    "executable",
+    "hunyuan3d",
+    "texturing",
+    "pbr",
+    "three-d",
+    "pytorch-pipeline",
+    "single",
+    "spark",
+    "native"
+  ],
+  "title": "Hunyuan3D 2.1 PBR mesh painting PyTorch single Spark"
+}
