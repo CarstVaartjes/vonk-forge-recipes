@@ -400,7 +400,7 @@ downloads and verifies the parts, assembles the file and installs it as one
 ordinary file, so recipes select `<name>` like any other file.
 
 Provider-gated checkpoints may be included. `requires_token` is a retired, optional,
-ignored Model field (no writer writes it; existing documents keep it until rewritten for another reason): preserve the provider's license and access requirements. The Controller keeps
+ignored Model field (no writer writes it; a refresh or kit-lock rewrite sheds it, and other documents keep it until rewritten for another reason): preserve the provider's license and access requirements. The Controller keeps
 the token in its existing secret store; never embed it in a Model, Recipe,
 build context or publication. A configured token does not prove that the account
 has accepted terms or received model-specific approval. Verify access separately
