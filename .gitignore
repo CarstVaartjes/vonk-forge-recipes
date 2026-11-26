@@ -23,6 +23,7 @@ secrets/
 /adapters/audio/hunyuan-video-foley-native/vendor/transformers-a957b7911a758d54597914b4479fe6e81424d64f.tar.gz.part-000
 /adapters/audio/hunyuan-video-foley-native/vendor/transformers-a957b7911a758d54597914b4479fe6e81424d64f.tar.gz.part-001
 /adapters/audio/hunyuan-video-foley-native/vendor/transformers-a957b7911a758d54597914b4479fe6e81424d64f.tar.gz.part-002
+/adapters/audio/mmaudio-pytorch/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/audio/stable-audio-3-small-sfx/vendor/stable-audio-3-790793b89ddceea612be9ce42ff6830d18f6fa57.tar.gz
 /adapters/deepseek/drowzeys-ds4-dspark-port-single/vendor/ds4-80ebbc396aee40eedc1d829222f3362d10fa4c6c.tar.gz
 /adapters/deepseek/ds4-tp2/vendor/ds4-b3f50180ec2c7324892be1f50bc83555ccb8d5e7.tar.gz
@@ -33,6 +34,7 @@ secrets/
 /adapters/glm/vcruz-full-tensorfold-four/vendor/b12x.tar.gz
 /adapters/glm/vcruz-full-tensorfold-four/vendor/tensorfold.tar.gz
 /adapters/image/birefnet-pytorch/vonk_agent_protocol-4.1.0-py3-none-any.whl
+/adapters/image/marigold-diffusers/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/image/minimax-h3-image-sglang/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/minicpm/r0b0tlab-exl3-single/vendor/exllamav3.tar.gz
 /adapters/minicpm/vcruz305-exl3-single/vendor/exllamav3.tar.gz

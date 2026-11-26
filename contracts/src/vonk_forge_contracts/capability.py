@@ -41,6 +41,7 @@ class CapabilityName(StrEnum):
     PARAMETRIC_BODY_MODEL = "parametric-body-model"
     PERSON_DETECTION = "person-detection"
     REASONING = "reasoning"
+    RETOPOLOGY = "retopology"
     SPECULATIVE_DECODING = "speculative-decoding"
     SPEECH_RECOGNITION = "speech-recognition"
     TEXT_GENERATION = "text-generation"
@@ -72,6 +73,7 @@ _GENERATORS = (
     CapabilityName.MOTION_CAPTURE,
     CapabilityName.MOTION_GENERATION,
     CapabilityName.PARAMETRIC_BODY_MODEL,
+    CapabilityName.RETOPOLOGY,
     CapabilityName.TEXT_TO_SPEECH,
     CapabilityName.VIDEO_GENERATION,
     CapabilityName.VOICE_CLONING,

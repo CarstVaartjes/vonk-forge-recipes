@@ -57,8 +57,6 @@ def stage_scoped(arguments: list[str]) -> list[str]:
     result, memory = _take(result, "--gpu-memory-utilization")
     overrides: dict[str, dict[str, int | float]] = {}
     if context is not None:
-        if not context.isascii() or not context.isdigit() or int(context) < 1:
-            raise SystemExit("--max-model-len must be a positive integer")
         overrides[TALKER_STAGE] = {"max_model_len": int(context)}
     if memory is not None:
         try:

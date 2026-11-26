@@ -1,0 +1,133 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "model-index-01615d7294b1-ee03ace9a3",
+      "path": "model_index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "01615d7294b12254a0168c42accee16706c72a968a5e67d8b11bd49d82ccff5a",
+      "size_bytes": 534
+    },
+    {
+      "id": "scheduler-config-cfc0025ded5b-67ecb3dc37",
+      "path": "scheduler/scheduler_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "cfc0025ded5b6627bd0391b2670c057339cfedd2824e0edc8c970e63e2cd28d5",
+      "size_bytes": 533
+    },
+    {
+      "id": "config-6b34b0bf6cff-bcfd37e83e",
+      "path": "text_encoder/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "6b34b0bf6cff02e2afe88145740ef5e0316caf7add8307c8ec0b021a7923cc42",
+      "size_bytes": 633
+    },
+    {
+      "id": "model-fp16-681c55537665-d8e2633343",
+      "path": "text_encoder/model.fp16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "681c555376658c81dc273f2d737a2aeb23ddb6d1d8e5b3a7064636d359a22668",
+      "size_bytes": 680821096
+    },
+    {
+      "id": "merges-9fd691f7c803-ebbb0f71ea",
+      "path": "tokenizer/merges.txt",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a",
+      "size_bytes": 524619
+    },
+    {
+      "id": "special-tokens-map-f118ab3a9832-9a6c011314",
+      "path": "tokenizer/special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "f118ab3a983206e4f32583448de6bd6aae4ee21869135cef1f5848a753cdaab6",
+      "size_bytes": 460
+    },
+    {
+      "id": "tokenizer-config-87a3154f0990-47a6faaf45",
+      "path": "tokenizer/tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "87a3154f0990fd992fd59f9d42c39520155b3d77cd543efe3f2bf011726f379d",
+      "size_bytes": 824
+    },
+    {
+      "id": "vocab-e089ad92ba36-8c35116cc3",
+      "path": "tokenizer/vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e089ad92ba36837a0d31433e555c8f45fe601ab5c221d4f607ded32d9f7a4349",
+      "size_bytes": 1059962
+    },
+    {
+      "id": "config-4f736bc367b0-479c438b53",
+      "path": "unet/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "4f736bc367b019e5ea906ad1ed846c8d286dd0c34e0248cfc823f1473161231b",
+      "size_bytes": 1813
+    },
+    {
+      "id": "diffusion-pytorch-model-fp16-890a2a9efc29-aed435306f",
+      "path": "unet/diffusion_pytorch_model.fp16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "890a2a9efc296e10c09a6ee7c1267a91dc72adb256ae6040bcf1a12c10521f4c",
+      "size_bytes": 1731927776
+    },
+    {
+      "id": "config-d69281aa3f6a-101abd63da",
+      "path": "vae/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d69281aa3f6a0f3c41aaf6778e35464fc6ee8a92e6ac8a8b1eb679f6df6423eb",
+      "size_bytes": 611
+    },
+    {
+      "id": "diffusion-pytorch-model-fp16-3e4c08995484-5ac80493ed",
+      "path": "vae/diffusion_pytorch_model.fp16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3e4c08995484ee61270175e9e7a072b66a6e4eeb5f0c266667fe1f45b90daf9a",
+      "size_bytes": 167335342
+    }
+  ],
+  "format": {
+    "precision": "fp16",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "prs-eth",
+      "slug": "marigold-depth-v1-1"
+    },
+    "publisher": "prs-eth",
+    "slug": "marigold-depth-v1-1-9571e712",
+    "variant": "9571e712",
+    "version": "9571e712"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/prs-eth/marigold-depth-v1-1",
+    "revision": "9571e7123e258cf052b4e54241f17971c290e9a8"
+  }
+}

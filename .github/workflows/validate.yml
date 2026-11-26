@@ -32,13 +32,13 @@ jobs:
 
   validate:
     if: ${{ !inputs.producer_only }}
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@3dacd2e652984d7cccb95c3688dde98ff40f4d7b
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@25c4dde16d1c76c0801ac7fd445d7f5d920f2294
     with:
       # Keep the validator and platform checkout on the same reviewed commit.
       # It builds this checkout's index/packages, validates current contract
       # and archive contents, and checks every option choice against Forge's
       # runtime policy.
-      platform_ref: 3dacd2e652984d7cccb95c3688dde98ff40f4d7b
+      platform_ref: 25c4dde16d1c76c0801ac7fd445d7f5d920f2294
 
   # Build the catalog once and prove it deterministic: two independent builds
   # of this tree must produce identical bytes (consumers reproduce a release by

@@ -1,0 +1,43 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "open-clip-config-e043bd1129b9-7b17bc6599",
+      "path": "open_clip_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e043bd1129b97d3afc77eef2e8bfda940af588dabf2cbaacc21e956345402f67",
+      "size_bytes": 735
+    },
+    {
+      "id": "open-clip-pytorch-model-c07a17b547d4-1f1baece2a",
+      "path": "open_clip_pytorch_model.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c07a17b547d461c60a3cce5062b26bf8545b13de602c4c59d8490361eb716033",
+      "size_bytes": 3947081637
+    }
+  ],
+  "format": {
+    "precision": "unspecified",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "apple",
+      "slug": "dfn5b-clip-vit-h-14-378"
+    },
+    "publisher": "apple",
+    "slug": "dfn5b-clip-vit-h-14-378-01b771ed",
+    "variant": "DFN5B-CLIP ViT-H/14 378 01b771ed",
+    "version": "DFN5B-CLIP ViT-H/14 378 01b771ed"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/apple/DFN5B-CLIP-ViT-H-14-378",
+    "revision": "01b771ed0d1395ca5ffdd279897d665ebe00dfd2"
+  }
+}
