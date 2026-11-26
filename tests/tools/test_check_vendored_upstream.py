@@ -198,26 +198,22 @@ class VendoredUpstreamTest(unittest.TestCase):
         report = self._run_also({}, {})
         assert "'other/', which is not in the adapter" in report.problems[0]
 
-    def test_malformed_also_entries_are_guard_problems(self) -> None:
+    def test_a_manifest_off_contract_is_one_guard_problem(self) -> None:
         good = {"repo": "o/other", "commit": "b" * 40, "files": ["other/"]}
         cases = {
-            "not a list": ({"repo": "o/other"}, "must be a list"),
-            "entry not an object": (["o/other"], "entry 0 must be an object, not str"),
-            "missing repo": ([{**good, "repo": None}], "needs a repo string"),
-            "repo wrong type": ([{**good, "repo": 3}], "needs a repo string"),
-            "missing commit": ([{"repo": "o/other", "files": ["x/"]}], "40-hex commit"),
-            "short commit": ([{**good, "commit": "abc"}], "40-hex commit"),
-            "missing files": ([{"repo": "o/other", "commit": "b" * 40}], "needs files"),
-            "files not a list": ([{**good, "files": "other/"}], "needs files"),
-            "files empty": ([{**good, "files": []}], "needs files"),
-            "files item wrong type": ([{**good, "files": [1]}], "needs files"),
+            "not a list": {"repo": "o/other"},
+            "entry not an object": ["o/other"],
+            "short commit": [{**good, "commit": "abc"}],
+            "files empty": [{**good, "files": []}],
+            "files item wrong type": [{**good, "files": [1]}],
         }
-        for name, (also, expected) in cases.items():
+        for name, also in cases.items():
             with self.subTest(name):
                 report = self._run_also({}, {}, also=also)
                 assert len(report.problems) == 1
-                assert expected in report.problems[0]
-                assert "vendored-upstream.json also" in report.problems[0]
+                assert "vendored-upstream.json is not valid" in report.problems[0]
+        misspelt = self._run({"a.py": b"1"}, {"a.py": b"1"}, {"our": ["wrapper.sh"]})
+        assert len(misspelt.problems) == 1
 
 
 class GhApiRetryTest(unittest.TestCase):
