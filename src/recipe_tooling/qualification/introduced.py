@@ -52,6 +52,7 @@ SERVING_KIND_SINCE: Mapping[str, str] = {
 CAPABILITY_SINCE: Mapping[CapabilityName, str] = {
     **dict.fromkeys(CapabilityName, ORIGINAL),
     CapabilityName.BACKGROUND_REMOVAL: "5.6.0",
+    CapabilityName.RETOPOLOGY: "5.7.0",
 }
 
 # ``levels`` documents gained their ``kind`` in 4.7.0; older readers ignore it.

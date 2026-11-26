@@ -125,6 +125,11 @@ CAPABILITY_TEXT: Mapping[CapabilityName, CapabilityText] = {
     CapabilityName.REASONING: CapabilityText(
         "Reasoning", "Works through a problem in steps before answering.", _C.LANGUAGE
     ),
+    CapabilityName.RETOPOLOGY: CapabilityText(
+        "Retopology",
+        "Rebuilds an existing mesh with a new, cleaner face layout.",
+        _C.THREE_D,
+    ),
     CapabilityName.SPECULATIVE_DECODING: CapabilityText(
         "Speculative decoding",
         "A draft model that speeds up another model's text generation.",
