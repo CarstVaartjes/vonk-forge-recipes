@@ -4,13 +4,14 @@
   "records": [
     {
       "identity": {
-        "content_sha256": "4a82e7d4ab8a82e6b53bcd1a8bf58ba5fd5589c58224c2f2bad627918eba7074",
-        "source_bundle_sha256": "54192ba6c42c40daed2485c89e6697214959c5b36ec91236e89478048734f312",
+        "content_sha256": "8ff7fd81c84d7d40b24389fe972671cd46d989489ee140e2f4e1067a444083a1",
+        "source_bundle_sha256": "0d45c0c2c45b55770ab8b8f592d11ac8cff73e6ae4c580445bd84ac6e7de3a96",
         "runtime_image": {
-          "build_key": "35ed0b5ae694d97a40218f294ed6462487cfc3dbf284af8190cafe78899f89a9",
-          "image_digest": "sha256:4757d532e5ba86e920d0aaae9c11c8716a9522fe88353a6528a25599123ac495"
+          "build_key": "eeadbca05f3ede2f0c667b03224d74110933bbadcd0592bdc5b7ce4e5abfcf3d",
+          "image_digest": "sha256:4e538514591a39066d6baa7a46b9976bfcb7958cde63a34701ff119e18e363ab"
         },
         "model_digests": [
+          "06445ebcca9c226a32837824d9f15760a0c8514b21d1f3a79f859a9fda243d2e",
           "ab2b3d76ea9855994f7775f352a0a443d993e16f4df36ab24d7e24199472e68a"
         ],
         "required_sparks": 1,
@@ -20,11 +21,11 @@
       "cause_code": "qualification.hardware_pass",
       "cause_summary": "Hardware checks passed",
       "evidence_refs": [
-        "1f128edbd64eb2f33f4e6283e1ee1f1c535ef628efbe5481708e9d5364b5a7b9"
+        "9a014e44b05524c378da0bf1aabae076e3f5c8175c47312b7d9b8f9ebc4b4271"
       ],
-      "tested_at": "2026-11-24T23:21:27.035824Z",
+      "tested_at": "2026-11-26T01:52:50.609008Z",
       "platform": {
-        "controller_source_sha": "a89ae64a6df5bf528ba7d12b2100fee58345c00b",
+        "controller_source_sha": "3d098499f782de10b9019ab81cf384bbf33d99fa",
         "hardware_class": "GB10",
         "spark_count": 1,
         "topology": "single"
@@ -34,9 +35,9 @@
   ],
   "measured_memory": [
     {
-      "content_sha256": "4a82e7d4ab8a82e6b53bcd1a8bf58ba5fd5589c58224c2f2bad627918eba7074",
+      "content_sha256": "8ff7fd81c84d7d40b24389fe972671cd46d989489ee140e2f4e1067a444083a1",
       "role": "entrypoint",
-      "steady_bytes": 125710626816
+      "steady_bytes": 127557726208
     }
   ]
 }

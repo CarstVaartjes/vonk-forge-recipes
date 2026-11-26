@@ -97,11 +97,11 @@
     },
     {
       "identity": {
-        "content_sha256": "2c0a785aaeda4e6153e2f73f64d720619964a3c0e60708e37b9fc239d10081e9",
-        "source_bundle_sha256": "0e1c0a19db608e4d24bd641df6767483a89bf45b029eda1b1a8e969d22cbf2cd",
+        "content_sha256": "4156cb70dc40b5585cafdfb132d5f995e6e527a724fbfebea666fce2c7a65795",
+        "source_bundle_sha256": "a02d0a069ff28c0354dfe411eff15ae26b4024f24b276fc70932483336d5d1e1",
         "runtime_image": {
-          "build_key": "20ba4a8cf7b0dc79798d05bbf6a451df8f725a223f1aa05ab7beb0f00fa575eb",
-          "image_digest": "sha256:20414a48e533f112860a07df1da73bf163d55b3dba0d4b12e26dbf1085c622b4"
+          "build_key": "0fe6463253fe7a30fafcb2c11192ed24d440064d4327922ff046cb586a2eaabd",
+          "image_digest": "sha256:1e5b20ccb60ca65627aaf49dbbdcf70a1940de007e9e84d02f06bfa453892d5b"
         },
         "model_digests": [
           "4993648a516e63d5644245577823e79be58eb193be3b284ccf43c163f0d6e24e",
@@ -114,11 +114,11 @@
       "cause_code": "qualification.hardware_pass",
       "cause_summary": "Hardware checks passed",
       "evidence_refs": [
-        "19a4e82fa486df63cc5b6d5b1a80644e262a115f17a743d5cbc35771f9681a28"
+        "16d00c92e48c4c4838aa3bbe70c0db63d1a0e4dc71e8525442eb53b969a29512"
       ],
-      "tested_at": "2026-11-25T17:17:16.170701Z",
+      "tested_at": "2026-11-26T02:33:27.720964Z",
       "platform": {
-        "controller_source_sha": "f1791ff567d0f8d73d6c3352cf37dfebfff74adc",
+        "controller_source_sha": "3d098499f782de10b9019ab81cf384bbf33d99fa",
         "hardware_class": "GB10",
         "spark_count": 1,
         "topology": "single"
@@ -128,9 +128,9 @@
   ],
   "measured_memory": [
     {
-      "content_sha256": "2c0a785aaeda4e6153e2f73f64d720619964a3c0e60708e37b9fc239d10081e9",
+      "content_sha256": "4156cb70dc40b5585cafdfb132d5f995e6e527a724fbfebea666fce2c7a65795",
       "role": "entrypoint",
-      "steady_bytes": 97011224576,
+      "steady_bytes": 97346379776,
       "budget_bytes": 91464262042
     },
     {
