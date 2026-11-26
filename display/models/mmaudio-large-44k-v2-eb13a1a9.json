@@ -1,0 +1,37 @@
+{
+  "capabilities": [
+    "audio-generation"
+  ],
+  "description": "MMAudio large_44k_v2 at eb13a1a9: the multimodal-transformer checkpoint, the 44k audio VAE and the Synchformer weights its demo loads. Generates 44.1 kHz audio from text, optionally synchronised to a video.",
+  "family_title": "MMAudio",
+  "identity": {
+    "publisher": "hkchengrex",
+    "slug": "mmaudio-large-44k-v2-eb13a1a9"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "hkchengrex"
+    ],
+    "spdx": "CC-BY-NC-4.0",
+    "url": "https://huggingface.co/hkchengrex/MMAudio/blob/eb13a1a98fdbec91753775c57b074ccdfc60587c/README.md"
+  },
+  "lineage": {
+    "family": "mmaudio",
+    "generation": "MMAudio",
+    "line": "mmaudio-large-44k",
+    "model": "mmaudio-large-44k-v2",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "text",
+    "video",
+    "audio"
+  ],
+  "model_title": "MMAudio large 44k v2",
+  "tags": [
+    "hkchengrex",
+    "audio",
+    "candidate"
+  ]
+}

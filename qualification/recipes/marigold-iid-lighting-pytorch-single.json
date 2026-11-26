@@ -1,0 +1,59 @@
+{
+  "id": "vonk-forge/marigold-iid-lighting-pytorch-single",
+  "recipes": {
+    "assertions": [
+      {
+        "exact": 3,
+        "kind": "file-count"
+      },
+      {
+        "exact": [
+          "albedo.png",
+          "residual.png",
+          "shading.png"
+        ],
+        "kind": "file-names"
+      },
+      {
+        "allowed": [
+          "image/png"
+        ],
+        "kind": "media-type"
+      },
+      {
+        "kind": "minimum-bytes",
+        "value": 1
+      },
+      {
+        "format": "png",
+        "kind": "format"
+      },
+      {
+        "bit_depth": 8,
+        "height": 64,
+        "kind": "image-metadata",
+        "media_type": "image/png",
+        "width": 64
+      }
+    ],
+    "inputs": [
+      {
+        "fixture": "generic-image-png",
+        "slot": "image"
+      }
+    ],
+    "interface": "image-job",
+    "output_limits": {
+      "allowed_media_types": [
+        "image/png"
+      ],
+      "max_file_bytes": 268435456,
+      "max_files": 3,
+      "max_total_bytes": 805306368
+    },
+    "parameters": {
+      "seed": 0
+    },
+    "timeout_seconds": 1800
+  }
+}

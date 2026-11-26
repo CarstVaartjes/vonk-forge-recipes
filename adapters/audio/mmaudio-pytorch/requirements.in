@@ -1,0 +1,35 @@
+# Torch stack: the versions and index the GB10-proven HunyuanVideo-Foley image locks
+# (adapters/audio/hunyuan-video-foley-native/requirements.lock), not the creator's torch 2.5-2.6 stack,
+# which has no GB10 (aarch64, CUDA 13) build: a platform fact, not a creator choice.
+torch==2.14.0
+torchvision==0.29.0
+# CUDA closure of that torch, held at the versions the Foley lock resolved (the others match).
+cuda-bindings==13.3.1
+cuda-pathfinder==1.7.0
+nvidia-nvjitlink==13.3.33
+
+# The creator's pyproject.toml pins where they exist for Python 3.12 aarch64: numpy below 2.1 (the
+# version Foley locks), open_clip_torch 3.3.0 and omegaconf 2.3.0; av and librosa at the Foley versions.
+numpy==1.26.4
+av==16.1.0
+librosa==0.11.0
+open_clip_torch==3.3.0
+# open_clip 3.3.0 needs timm 1.0.17 or newer (Foley's 1.0.11 is too old); the version it resolved to.
+timm==1.0.31
+omegaconf==2.3.0
+colorlog==6.10.1
+einops==0.8.2
+huggingface-hub==0.36.0
+# librosa (mel filters) imports soundfile at module level.
+soundfile==0.13.1
+Pillow==12.3.0
+tqdm==4.67.1
+requests==2.32.5
+# mmaudio/model/flow_matching.py imports odeint at module level (the creator's pyproject lists it).
+torchdiffeq==0.2.5
+# Not installed, on purpose: torchaudio and torchcodec (only demo.py, stft_converter*.py and
+# utils/logger.py import them, and none is on this path), gradio, hydra, tensordict and the training
+# stack. The audio is written with the standard library's wave module and the video is read with PyAV.
+pydantic==2.13.5
+# vonk-agent-protocol 4.1.0 requirement.
+jsonschema==4.26.0

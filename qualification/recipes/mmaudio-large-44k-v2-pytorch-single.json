@@ -1,0 +1,63 @@
+{
+  "id": "vonk-forge/mmaudio-large-44k-v2-pytorch-single",
+  "recipes": {
+    "assertions": [
+      {
+        "exact": 1,
+        "kind": "file-count"
+      },
+      {
+        "exact": [
+          "audio.wav"
+        ],
+        "kind": "file-names"
+      },
+      {
+        "allowed": [
+          "audio/wav"
+        ],
+        "kind": "media-type"
+      },
+      {
+        "kind": "minimum-bytes",
+        "value": 44
+      },
+      {
+        "format": "wav",
+        "kind": "format"
+      },
+      {
+        "channels": 1,
+        "kind": "audio-metadata",
+        "maximum_duration_seconds": 1.15,
+        "media_type": "audio/wav",
+        "minimum_duration_seconds": 0.9,
+        "sample_rate": 44100,
+        "sample_width_bytes": 2
+      }
+    ],
+    "inputs": [
+      {
+        "fixture": "generic-prompt-text",
+        "slot": "prompt"
+      },
+      {
+        "fixture": "foley-video-1s",
+        "slot": "video"
+      }
+    ],
+    "interface": "audio-job",
+    "output_limits": {
+      "allowed_media_types": [
+        "audio/wav"
+      ],
+      "max_file_bytes": 8388608,
+      "max_files": 1,
+      "max_total_bytes": 8388608
+    },
+    "parameters": {
+      "duration-seconds": 1.0
+    },
+    "timeout_seconds": 1800
+  }
+}

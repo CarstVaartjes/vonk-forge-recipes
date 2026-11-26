@@ -1,0 +1,36 @@
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+# Same torch pin as the hardware-proven kimodo, motionbricks and moss-vl-realtime recipes. The
+# creator's environment is Python 3.8 with torch 2.4.1 + CUDA 12.1; neither runs on GB10
+# (aarch64, CUDA 13), so the stack below is the creator's code on the platform's Python 3.12.
+torch==2.14.0+cu130
+# The creator's pins (environment.yaml) where they exist for Python 3.12 aarch64: numpy 1.24.4
+# has no 3.12 wheel (1.26.4 keeps the pre-2.0 aliases the creator's code uses), transformers
+# 4.46.3 with its tokenizers 0.20.3 and huggingface-hub 0.30.1, sentencepiece (T5Tokenizer).
+numpy==1.26.4
+transformers==4.46.3
+tokenizers==0.20.3
+huggingface-hub==0.30.1
+safetensors==0.5.3
+sentencepiece==0.2.0
+num2words==0.5.14
+tqdm==4.67.1
+# model/conditioners.py imports spacy at module level (its WordTokenizer, which AnyTop does not use);
+# the creator's spacy 3.7.2 / thinc 8.1.8 pair conflicts with itself, so spacy 3.7.5 resolves its own thinc.
+spacy==3.7.5
+# data_loaders/truebones/truebones_utils/plot_script.py imports moviepy.editor and matplotlib at
+# module level (the mp4 stick-figure rendering, which the adapter skips). moviepy 1.x is required
+# for moviepy.editor; matplotlib 3.1.3 and scipy 1.10.1 have no Python 3.12 wheels.
+moviepy==1.0.3
+decorator==4.4.2
+imageio==2.35.1
+imageio-ffmpeg==0.5.1
+proglog==0.1.11
+matplotlib==3.8.4
+# The Motion library's requirement (BVH, Animation, InverseKinematics, Quaternions).
+scipy==1.15.3
+# spacy.cli (imported by model/conditioners.py through spacy) needs click; the creator pins 8.1.8.
+click==8.1.8
+pydantic==2.13.5
+# vonk-agent-protocol 4.1.0 requirement.
+jsonschema==4.26.0

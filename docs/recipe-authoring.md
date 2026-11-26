@@ -274,7 +274,7 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/recipes/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v5.6.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v5.7.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -1338,6 +1338,12 @@ extension, media type and decoded bytes must match the declared slot; include
 all referenced fixtures in the package. `tests/qualification/test_qualification_index.py`,
 `tests/qualification/test_qualification_case_assertions.py`, `tests/tools/test_optional_inputs.py`
 and `tests/recipes/test_media_types.py` enforce closure and slot consistency.
+A fixture whose creator data cannot be committed is generated deterministically instead:
+`tools/generate-qualification-cube-glb` writes the unit-cube GLB and
+`tools/generate-qualification-bvh-rig` the synthetic rig and clips of the AnyTop recipe
+(`tests/recipes/test_anytop_adapter.py` keeps the committed bytes equal to the generator's).
+A job input slot for a file type the Controller's extension table does not know (`.bvh`) declares
+that one extension and exactly one media type (`text/plain`); the Controller then derives it.
 
 A creator's own smoke proves only what it sends: compare its requests with the
 shared cases the recipe selects (A391 turns thinking off per request; MIS_A391
@@ -1439,7 +1445,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/recipes/test_recipe_model_mounts.py`, `tests/recipes/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
 | `tools/check-build-context-sources`, `tests/tools/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
 | `tests/recipes/test_recipe_build_inputs.py`, `tests/tools/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress. |
-| `tools/check-vendored-upstream`, `tests/tools/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. An adapter that also vendors a directory of a second upstream lists it under `also` (`repo`, `commit`, `files` prefixes). |
+| `tools/check-vendored-upstream`, `tests/tools/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. An adapter that also vendors a directory of a second upstream lists it under `also` (`repo`, `commit`, `files` prefixes). The manifest is the typed contract `recipe_tooling.vendored_manifest.VendoredManifest`: an unknown key or wrong type is a problem, not silently ignored. |
 | `tools/check-model-construction-device --base origin/main`, `tests/tools/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and `vendored-upstream.json` verbatim creator copies excluded) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
 | `tools/kit-pins check`, `tests/tools/test_kit_pins.py`, `tests/tools/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
 | `tools/check-image-provenance`, `tests/tools/test_published_image_follow.py` | Claimed build commit matches the selected source image. Fix provenance or supply the supported explicit unavailable-commit evidence. |

@@ -1,0 +1,17 @@
+{
+  "ours": [
+    "export_bvh.py",
+    "requirements.in",
+    "requirements.lock",
+    "run.py",
+    "worker.py",
+    "vonk_agent_protocol-4.1.0-py3-none-any.whl"
+  ],
+  "renamed": {
+    "joint_names.json": "scripts/gradio/static/assets/dump_wooden/joint_names.json"
+  },
+  "source": {
+    "commit": "c71ea6c694d8f221c742ff435d9447fa88f91707",
+    "repo": "Tencent-Hunyuan/HY-Motion-1.0"
+  }
+}

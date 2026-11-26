@@ -1,0 +1,371 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/audio/mmaudio-pytorch"
+      },
+      "dockerfile": "adapters/audio/mmaudio-pytorch/Dockerfile",
+      "network": {
+        "hosts": [
+          "github.com",
+          "codeload.github.com",
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "mmaudio-large-44k-v2-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "audio-job",
+      "input": {
+        "max_bytes": 536870912,
+        "media_types": [
+          "text/plain",
+          "video/mp4",
+          "video/quicktime",
+          "video/webm",
+          "video/x-matroska"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "UTF-8 description of the sound to generate (the creator's prompt).",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Prompt",
+            "max_file_bytes": 65536,
+            "max_files": 1,
+            "max_total_bytes": 65536,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          },
+          {
+            "description": "Optional UTF-8 description of what the sound must avoid (the creator's negative prompt). Without it the creator's default, an empty string, is used.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "negative-prompt",
+            "label": "Negative prompt",
+            "max_file_bytes": 4096,
+            "max_files": 1,
+            "max_total_bytes": 4096,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 0
+          },
+          {
+            "description": "Optional video; the audio follows it and its length caps the duration.",
+            "extensions": [
+              ".mkv",
+              ".mov",
+              ".mp4",
+              ".webm"
+            ],
+            "id": "video",
+            "label": "Source video",
+            "max_file_bytes": 536801280,
+            "max_files": 1,
+            "max_total_bytes": 536801280,
+            "media_types": [
+              "video/mp4",
+              "video/quicktime",
+              "video/webm",
+              "video/x-matroska"
+            ],
+            "min_files": 0
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 8388608,
+        "slots": [
+          {
+            "description": "Generated mono 44.1 kHz 16-bit WAV audio.",
+            "extensions": [
+              ".wav"
+            ],
+            "id": "audio",
+            "label": "Generated audio",
+            "max_file_bytes": 8388608,
+            "max_files": 1,
+            "max_total_bytes": 8388608,
+            "media_types": [
+              "audio/wav"
+            ],
+            "min_files": 1
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "synchformer-state-dict-8aff082f2df5-b42cca7959",
+          "id": "primary-synchformer-state-dict-8aff082f2df5-b42cca7959",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "v1-44-ab6cc15dc319-eb1c92e880",
+          "id": "primary-v1-44-ab6cc15dc319-eb1c92e880",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mmaudio-large-44k-v2-a6bf693424fb-c074d65c27",
+          "id": "primary-mmaudio-large-44k-v2-a6bf693424fb-c074d65c27",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "dcdca39b3eae50d0296dda53bcc16645d76fc34630d42b089f24abe4b79ff733",
+        "kind": "model",
+        "publisher": "hkchengrex",
+        "slug": "mmaudio-large-44k-v2-eb13a1a9"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "open-clip-config-e043bd1129b9-7b17bc6599",
+          "id": "dfn5b-clip-open-clip-config-e043bd1129b9-7b17bc6599",
+          "mount": {
+            "target": "/models/dfn5b-clip"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "open-clip-pytorch-model-c07a17b547d4-1f1baece2a",
+          "id": "dfn5b-clip-open-clip-pytorch-model-c07a17b547d4-1f1baece2a",
+          "mount": {
+            "target": "/models/dfn5b-clip"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dfn5b-clip",
+      "model": {
+        "content_sha256": "5fd931eda491d2a03ef6a6637aca68f0cc857cd2868013928be1dc6c2df21184",
+        "kind": "model",
+        "publisher": "apple",
+        "slug": "dfn5b-clip-vit-h-14-378-01b771ed"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "bigvgan-generator-d9fe7ec6bd0b-1b454570b5",
+          "id": "bigvgan-bigvgan-generator-d9fe7ec6bd0b-1b454570b5",
+          "mount": {
+            "target": "/models/bigvgan"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-65b7f487bfaf-587cb980af",
+          "id": "bigvgan-config-65b7f487bfaf-587cb980af",
+          "mount": {
+            "target": "/models/bigvgan"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "bigvgan",
+      "model": {
+        "content_sha256": "13b9bc27eecede516579688613fa6e7dcf48459234103802287c6859f5799958",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "bigvgan-v2-44khz-128band-512x-95a9d1dc"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "hkchengrex",
+      "apple",
+      "nvidia"
+    ],
+    "source_reference": "https://huggingface.co/hkchengrex/MMAudio/tree/eb13a1a98fdbec91753775c57b074ccdfc60587c"
+  },
+  "release": {
+    "released_at": "2026-11-26",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "entrypoint",
+        "setting": null,
+        "value": "/opt/vonk/source/run.py"
+      },
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "audio/wav"
+      },
+      {
+        "name": "duration-seconds",
+        "setting": "duration-seconds",
+        "value": null
+      },
+      {
+        "name": "seed",
+        "setting": "seed",
+        "value": null
+      },
+      {
+        "name": "cfg-strength",
+        "setting": "cfg-strength",
+        "value": null
+      },
+      {
+        "name": "num-steps",
+        "setting": null,
+        "value": 25
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {
+      "cfg-strength": {
+        "change_effect": "none",
+        "maximum": 10.0,
+        "minimum": 1.0,
+        "value": 4.5
+      },
+      "duration-seconds": {
+        "change_effect": "none",
+        "maximum": 30.0,
+        "minimum": 1.0,
+        "value": 8.0
+      },
+      "seed": {
+        "change_effect": "none",
+        "maximum": 2147483647,
+        "minimum": 0,
+        "value": 42
+      }
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 10730600950,
+            "image_bytes": 12000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 4000000000
+          },
+          "memory": {
+            "peak_bytes": 16000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "audio-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/foley-video-1s.mp4",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt",
+              "video": "qualification/fixtures/foley-video-1s.mp4"
+            },
+            "output_slot": "audio",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "audio-job"
+    }
+  }
+}
