@@ -88,7 +88,8 @@ class Creator:
     ) -> Samples:
         self.calls["generate"] = (clip, sync, text, keywords, self.config.duration)
         frames = int(np.ceil(self.config.duration * 44100 / 1024)) * 1024
-        return Samples(np.full((1, frames), 2.0, dtype=np.float32))
+        # the vocoder's (batch, channel, samples) output
+        return Samples(np.full((1, 1, frames), 2.0, dtype=np.float32))
 
     def flow_matching(self, **keywords: Any) -> None:
         self.calls["flow"] = keywords
@@ -378,7 +379,7 @@ def test_with_a_video_the_videos_own_length_is_the_duration(tmp_path: Path) -> N
     assert sync is not None
     assert text == ["rain"]
     # one second of the creator's 44k config: ceil(44100 / 1024) whole latents
-    assert len(samples) == 45056
+    assert samples.shape == (1, 45056)
     creator.network.update_seq_lengths.assert_called_once_with(345, 64, 192)
 
 
