@@ -14,13 +14,15 @@ import json
 from typing import Any
 
 from recipe_tooling.paths import REPO_ROOT
+from recipe_tooling.qualification.api_checks import (
+    check_recipe_api,
+)
 from vonk_forge_contracts import (
     ModelDefinition,
     ModelDisplay,
     RecipeApi,
     RecipeDefinition,
     RecipeDisplay,
-    check_recipe_api,
     document_sha256,
     require_api_of,
     require_display_of,

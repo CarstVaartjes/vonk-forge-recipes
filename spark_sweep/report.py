@@ -21,11 +21,13 @@ from recipe_tooling.qualification.evidence_store import (
     read_evidence,
     write_atomic,
 )
+from recipe_tooling.qualification.status import (
+    derive_status,
+)
 from vonk_forge_contracts import (
     QualificationDerivationInput,
     QualificationStatus,
     QualificationStatusView,
-    derive_status,
 )
 
 from . import policy, verdict

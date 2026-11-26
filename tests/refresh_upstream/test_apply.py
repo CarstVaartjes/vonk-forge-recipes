@@ -546,6 +546,7 @@ class SelfHealingTests(unittest.TestCase):
             "tools/check-final-stage-ldd",
             "tools/check-serial-reads",
             "tools/check-nccl-ib-hca",
+            "tools/check-wire-only",
             "tools/generate-contract-examples",
             "tools/generate-contract-schemas",
             "tools/build-release-bundle",

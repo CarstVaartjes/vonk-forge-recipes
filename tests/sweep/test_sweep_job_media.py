@@ -14,10 +14,12 @@ import pytest
 from repo_root import FIXTURES, ROOT
 from test_three_d_glb_validation import CONTEXTS, Glb, load_validator
 
+from recipe_tooling.qualification.status import (
+    QualificationGlbProfile,
+)
 from spark_sweep import job_media
 from spark_sweep.job_assertions import Output, evaluate
 from spark_sweep.smoke import AssertionFailed
-from vonk_forge_contracts.qualification_status import QualificationGlbProfile
 
 # -- glb-structure -----------------------------------------------------------------------
 

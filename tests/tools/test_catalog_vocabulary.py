@@ -6,12 +6,17 @@ from typing import Any
 
 import pytest
 
+from recipe_tooling.library_checks import (
+    require_complete,
+)
 from vonk_forge_contracts import (
     CapabilityName,
     catalog_vocabulary,
     read_catalog_index,
 )
-from vonk_forge_contracts.vocabulary import CAPABILITY_TEXT, require_complete
+from vonk_forge_contracts.vocabulary import (
+    CAPABILITY_TEXT,
+)
 
 
 def test_a_missing_entry_fails_the_completeness_check() -> None:
