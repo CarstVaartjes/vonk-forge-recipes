@@ -8,7 +8,8 @@ set -eu
 mkdir -p "$HOME/.cache/tensorfold" "$CUDA_CACHE_PATH" "$TORCH_EXTENSIONS_DIR" "$TRITON_CACHE_DIR" "$TMPDIR"
 # The two-stage draft head (the creator's HEAD2 lever, patch 0115) reads a 30.7 MB file made from the checkpoint's own lm_head
 # rows and the shipped rotation: the creator's `recipe.sh head2` step, run once into the cache. Like the creator's start, a
-# missing file only means the engine starts without the lever (it drafts, so replies are the same either way).
+# missing file only means the engine starts without the lever (it drafts, so replies are the same either way). The step delays
+# first readiness (about a minute); the start deadline bounds it.
 head2_dir=$HOME/.cache/tensorfold/q38
 head2=$head2_dir/head2_r9.bin
 if [ ! -s "$head2" ]; then
