@@ -1,0 +1,24 @@
+{
+  "api": {
+    "instructions": false,
+    "max_input_chars": 4096,
+    "mode": "audio_speech",
+    "response_formats": [
+      "wav",
+      "pcm",
+      "flac",
+      "mp3",
+      "opus"
+    ],
+    "speed": true,
+    "voices": [
+      "default"
+    ]
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "drama-3-vllm-omni-single"
+  },
+  "kind": "recipe-api",
+  "option_choices": []
+}
