@@ -4,13 +4,14 @@
   "records": [
     {
       "identity": {
-        "content_sha256": "4901677e9448e72e56ca5585cb846574e324de462d5056a13b7086d72bb5c2ac",
-        "source_bundle_sha256": "e398b39f7a1aed6c280130abac3931329f9624026c579cc94cdaae97eb73074e",
+        "content_sha256": "ba7f2a46ec429ec00af6730f8172a1b9701750a4646f243c865098d3ce663fa3",
+        "source_bundle_sha256": "c5b0b1126efafdd6026fb3dc3ad1a4e84651fd4335004f90a2e55baefcffb848",
         "runtime_image": {
-          "build_key": "bf20965c2dd69e5dd5f664b1ad365b729d368d41cf58e7a7d2ac3c74e26b18ce",
-          "image_digest": "sha256:148747e8f1cfbe13b8e26f94b26e6933cfbc367c30aaef9db628a65bae0e9480"
+          "build_key": "4132c4854a1854da84655d4351b1c55394f13da1283058678aba706273e53e5e",
+          "image_digest": "sha256:7bdd61190fe13e774f5f07fb06ad8cede5d0d49142c387a78cb0fe7e653a0dbd"
         },
         "model_digests": [
+          "51a94c97481536cebdca5424f647653df5f7003ef875522ce9583452efc111dd",
           "eaebfaf2b8ce79dd83bdffe799f12def7a6aeb87648876272522ebf041564ab0"
         ],
         "required_sparks": 2,
@@ -20,30 +21,28 @@
       "cause_code": "qualification.hardware_pass",
       "cause_summary": "Hardware checks passed",
       "evidence_refs": [
-        "8a820c10cb08947fa7a256edcba002a95714ef452be132eb727a095d2a0f63db"
+        "542e9a502e3f9e1a4f49f712b46cd1b06946957d19ac50e8457226145f771d5e"
       ],
-      "tested_at": "2026-11-12T04:57:54.849672Z",
+      "tested_at": "2026-11-26T01:14:28.468431Z",
       "platform": {
-        "controller_source_sha": "d6ebc13a728f549234c0ef1d6d9acbded6e0f499",
+        "controller_source_sha": "3d098499f782de10b9019ab81cf384bbf33d99fa",
         "hardware_class": "GB10",
         "spark_count": 2,
         "topology": "multi"
       },
-      "quality_notes": [
-        "Carried from the identical execution document"
-      ]
+      "quality_notes": []
     }
   ],
   "measured_memory": [
     {
-      "content_sha256": "4901677e9448e72e56ca5585cb846574e324de462d5056a13b7086d72bb5c2ac",
+      "content_sha256": "ba7f2a46ec429ec00af6730f8172a1b9701750a4646f243c865098d3ce663fa3",
       "role": "entrypoint",
-      "steady_bytes": 121769656320
+      "steady_bytes": 121875951616
     },
     {
-      "content_sha256": "4901677e9448e72e56ca5585cb846574e324de462d5056a13b7086d72bb5c2ac",
+      "content_sha256": "ba7f2a46ec429ec00af6730f8172a1b9701750a4646f243c865098d3ce663fa3",
       "role": "worker",
-      "steady_bytes": 120023142400
+      "steady_bytes": 119956144128
     }
   ]
 }
