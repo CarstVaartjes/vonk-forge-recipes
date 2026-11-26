@@ -18,7 +18,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 COPY requirements.lock requirements-sdist.txt /tmp/
 COPY @protocol.wheel@ /tmp/@protocol.wheel@
-# libgl1, libglib2.0-0 and libgomp1: opencv-python (from basicsr's requirements) and open3d load them.
+# Runtime libraries the locked aarch64 wheels link but do not bundle (DT_NEEDED of every .so in them,
+# minus glibc and what each wheel carries): open3d needs libgl1, libegl1, libx11-6, libgfortran5, libidn2-0;
+# pymeshlab libgl1, libopengl0, libx11-6, libx11-xcb1, libxcb1, libice6, libsm6, libfontconfig1,
+# libfreetype6, libharfbuzz0b, libgmp10, libgpg-error0, libcom-err2; opencv-python libgl1, libglib2.0-0,
+# libsm6, libice6, libxext6, libx11-6, libxcb1. libgomp1: OpenMP for the native builds.
 # --ignore-installed: the lock pins wheel, which Debian's python3-wheel owns (pip cannot uninstall it).
 # python-is-python3: compile_mesh_painter.sh runs `python -m pybind11 --includes`.
 # HOME and XDG_CACHE_HOME: diffusers copies the paint model's custom modules into its cache.
@@ -27,9 +31,25 @@ RUN apt-get update \
         build-essential \
         ca-certificates \
         curl \
+        libcom-err2 \
+        libegl1 \
+        libfontconfig1 \
+        libfreetype6 \
+        libgfortran5 \
         libgl1 \
         libglib2.0-0 \
+        libgmp10 \
         libgomp1 \
+        libgpg-error0 \
+        libharfbuzz0b \
+        libice6 \
+        libidn2-0 \
+        libopengl0 \
+        libsm6 \
+        libx11-6 \
+        libx11-xcb1 \
+        libxcb1 \
+        libxext6 \
         ninja-build \
         python-is-python3 \
         python3 \
