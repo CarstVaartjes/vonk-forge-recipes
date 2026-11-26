@@ -287,6 +287,36 @@ def upstream_blob(http: refresh_http.Http, repo: str, sha: str) -> bytes:
     return data
 
 
+VERSION_LINE = re.compile(r'^\s*version\s*=\s*"[^"]*"\s*$')
+VERSION_TABLES = {"[project]", "[tool.poetry]"}
+
+
+def version_only_bump(entry: dict[str, Any]) -> bool:
+    """Whether a changed ``pyproject.toml`` differs only in its package ``version`` lines.
+
+    A ``version`` counts only under the nearest table header seen in the hunk being
+    ``[project]`` or ``[tool.poetry]``; a hunk without one stays a change.
+    """
+    if PurePosixPath(entry["filename"]).name != "pyproject.toml":
+        return False
+    table = ""
+    changed = 0
+    for line in str(entry.get("patch") or "").splitlines():
+        if line.startswith("@@"):
+            table = ""
+            continue
+        if line.startswith(("+++", "---")):
+            continue
+        text = line[1:].strip()
+        if line.startswith(("+", "-")):
+            if not (VERSION_LINE.match(text) and table in VERSION_TABLES):
+                return False
+            changed += 1
+        elif text.startswith("["):
+            table = text
+    return changed > 0
+
+
 def classify_changes(
     comparison: refresh_model.Comparison,
     *,
@@ -353,10 +383,12 @@ def classify_changes(
     changed |= {
         f["previous_filename"] for f in comparison.files if "previous_filename" in f
     }
+    bumps = {f["filename"] for f in comparison.files if version_only_bump(f)}
     blocking = sorted(
         name
         for name in changed
-        if refresh_model.is_blocking(name, harmless) or name in mirrored
+        if (refresh_model.is_blocking(name, harmless) and name not in bumps)
+        or name in mirrored
     )
     if blocking:
         reasons.append(
@@ -434,6 +466,18 @@ def mounted_unchanged(
     return before == after
 
 
+def is_metadata(path: str, stored_roles: list[str]) -> bool:
+    """Whether a file is metadata: both its stored roles and ``roles_for`` say so.
+
+    The one rule for "both classifiers say metadata". A disagreement makes the file
+    payload, so it can neither hide a move nor fake one.
+    """
+    return (
+        set(stored_roles) == refresh_model.METADATA_ONLY
+        and set(roles_for(path)) == refresh_model.METADATA_ONLY
+    )
+
+
 def only_sibling_weights_added(
     old: dict[str, Any], new_files: list[dict[str, Any]]
 ) -> bool:
@@ -444,8 +488,7 @@ def only_sibling_weights_added(
     """
     catalogued = {f["path"] for f in old["files"]}
     return mounted_unchanged(old, new_files, catalogued) and all(
-        f["roles"] == ["weights"]
-        or (f["roles"] == ["metadata"] and roles_for(f["path"]) == ["metadata"])
+        f["roles"] == ["weights"] or is_metadata(f["path"], f["roles"])
         for f in new_files
         if f["path"] not in catalogued
     )
@@ -528,7 +571,7 @@ def payload_identical(old: dict[str, Any], new_files: list[dict[str, Any]]) -> b
     stored = {f["path"]: f["roles"] for f in old["files"]}
 
     def payload(path: str, own: list[str]) -> bool:
-        return stored.get(path, own) != ["metadata"] or roles_for(path) != ["metadata"]
+        return not is_metadata(path, stored.get(path, own))
 
     before = {
         f["path"]: f["sha256"] for f in old["files"] if payload(f["path"], f["roles"])

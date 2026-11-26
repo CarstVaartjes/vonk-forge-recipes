@@ -185,7 +185,9 @@ below).
 - Producer checks regenerate examples, check schemas, derive coverage from the
   test suite's own build, check topology, Model references, families,
   build context closure, vendored bytes, kit locks and image provenance, then run
-  the producer suite. See the authoring guide's guard repair table.
+  the producer suite. The two reads of our own platform repo (`gh api`, through
+  `.github/scripts/gh-api-retry`) retry with bounded backoff; a GitHub outage is a note and
+  the step skips, while a 4xx answer or a real mismatch still fails. See the authoring guide's guard repair table.
 - Every pull request, push and manual run executes the whole `tests/` suite
   (pytest-xdist, one job) and every static gate: lint, format, types, guards
   and the contracts wheel build. Nothing is selected by path or branch, because

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# gh api with bounded backoff for our own platform repo. A GitHub outage (HTTP 5xx, 429, a 403
+# rate limit, or a network error) retries 4 times (2, 4, 8 s), then exits 75 so the caller
+# notes and skips. Any other failure (404, 422, 403, missing auth) is real and exits 1 at
+# once. stdout is the successful attempt's body only.
+set -uo pipefail
+errors=$(mktemp)
+trap 'rm -f "$errors"' EXIT
+for attempt in 1 2 3 4; do
+  if out=$(gh api "$@" 2>"$errors"); then
+    printf '%s\n' "$out"
+    exit 0
+  fi
+  status=$(grep -Eo 'HTTP [0-9]{3}' "$errors" | tail -1 | cut -d' ' -f2 || true)
+  case "$status" in
+    5?? | 429) ;;
+    403) grep -qi 'rate limit' "$errors" || { cat "$errors" >&2; exit 1; } ;;
+    "") grep -Eqi 'auth|token|login|credential' "$errors" && { cat "$errors" >&2; exit 1; } ;;
+    *) cat "$errors" >&2; exit 1 ;;
+  esac
+  [[ $attempt -lt 4 ]] && sleep $((2 ** attempt))
+done
+cat "$errors" >&2
+exit 75

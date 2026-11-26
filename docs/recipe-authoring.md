@@ -1133,7 +1133,8 @@ are our own faults and stay errors.
 A mechanical move requires compatible vendored/used bytes, retained referenced
 launch names, complete selected Model files and passing producer checks. Changes
 to patched runtime files or missing selected files need review; metadata-only
-changes do not independently justify rebuilding identical content. Shared build
+changes do not independently justify rebuilding identical content. A file counts as metadata only when both its stored roles and `roles_for` say so
+(`classification.is_metadata`, the one rule for payload comparison and sibling weights). Shared build
 contexts refresh together. Human repairs may intentionally diverge with evidence.
 An adapter that installs a creator's GitHub release asset pins it by version and
 sha256. A refresh moves the `releases/download/<tag>/<asset>` URL and re-pins the
@@ -1156,9 +1157,20 @@ A proven recipe moves too: the refresh rewrites its entry in
 branch only moves forward (never force-pushed); a PR whose checks failed on an
 unchanged refresh is reported in the recipe's review issue and moves forward again
 only when upstream or main's checks (`src/`, `tools/`, `tests/`, `.github/`,
-`api/recipes/`) change. A PR whose checks failed or were cancelled holds no lane: it
+`api/recipes/`) change. A run whose main moved `src/`, `tools/`, `contracts/` or `policy/` (the
+holds and the upstream watch) since it started defers the recipe to the next run. The open pull requests are listed once per run for arming (listed again
+only for a PR prepared after that listing). A PR whose checks failed or were cancelled holds no lane: it
 does not defer other refresh PRs that share its files; if it merges anyway (a rerun,
 or a non-required check failed), a conflicting sibling is regenerated on main.
+A mechanical result over the per-run limit refreshes its existing review issue (never opens one)
+with that reason, so the issue does not keep an old one.
+The vendored-file check the refresher runs at the new commit names that commit in its
+messages (`check_adapter(..., at=)`), not the manifest's old pin.
+A changed `pyproject.toml` whose diff is only `version = ...` lines is no launch or
+configuration change. An adapter whose Dockerfile or manifest is generated from
+`tools/protocol-wheel/<name>.<file>.in` has the refresher's edit written to that source too
+(`protocol_wheel.template_edits`), so `tools/materialize-protocol-wheel --check` still
+passes; never run it without `--check`.
 Every refresh PR body carries a `## Principles` section that states only what the
 move did: pins moved (and any held), proven bytes followed when the fixture changed,
 peaks raised when they were, and the sweep re-check only when a recipe document changed.
@@ -1166,7 +1178,9 @@ peaks raised when they were, and the sweep re-check only when a recipe document 
 Respect `policy/base-image-holds.json`: a held base and Dockerfile must agree until the
 hold is updated/removed with working evidence; an optional `source` (`<owner>/<repo>`) also
 declines that GitHub repository's newer releases (`tools/check-base-image-holds`,
-`tests/tools/test_base_image_holds.py`). `policy/model-revision-holds.json` declines one Model
+`tests/tools/test_base_image_holds.py`); each hold is a typed contract (`BaseImageHold`), and its
+`source` must be a GitHub repository the held recipe follows (its source reference or adapter pin).
+`policy/model-revision-holds.json` declines one Model
 revision that cannot run on the recipe's Sparks, with its reason; a newer
 upstream revision is assessed again (`tools/check-model-revision-holds`,
 `tests/tools/test_model_revision_holds.py`). A recipe that mounts every file of its Model follows added
@@ -1424,10 +1438,10 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-model-construction-device --base origin/main`, `tests/tools/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and `vendored-upstream.json` verbatim creator copies excluded) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
 | `tools/kit-pins check`, `tests/tools/test_kit_pins.py`, `tests/tools/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
 | `tools/check-image-provenance`, `tests/tools/test_published_image_follow.py` | Claimed build commit matches the selected source image. Fix provenance or supply the supported explicit unavailable-commit evidence. |
-| `tools/check-base-image-holds`, `tests/tools/test_base_image_holds.py` | A held digest stays consistent. Change/remove the hold only with replacement evidence. |
+| `tools/check-base-image-holds`, `tests/tools/test_base_image_holds.py` | A held digest stays consistent and a hold's `source` is followed by the recipe. Change/remove the hold only with replacement evidence. |
 | `tools/check-model-revision-holds`, `tests/tools/test_model_revision_holds.py` | No recipe uses the Model revision its hold declines. Remove the hold only with evidence that the declined revision runs. |
 | `tests/qualification/test_memory_envelope.py`, `tests/qualification/test_single_spark_memory_headroom.py` | Memory consistency, component accounting and need checks. Repair the reported launch/envelope inconsistency; follow the memory section above. |
-| `tests/qualification/test_recipe_capabilities.py`, `tests/recipes/test_chat_configuration.py`, `tests/recipes/test_served_model_name.py` | Served Model, parser flags, aliases, tags and cases agree. Enable the real launch support or stop claiming the capability; use chat-trained weights or an explicit supported template. |
+| `tests/qualification/test_recipe_capabilities.py`, `tests/recipes/test_chat_configuration.py`, `tests/recipes/test_served_model_name.py` | Served Model, parser flags, aliases, tags and cases agree. A launch that declares tool flags in its runtime arguments is judged by them alone; a vendored start script counts only when the arguments declare none. Enable the real launch support or stop claiming the capability; use chat-trained weights or an explicit supported template. |
 | `tests/recipes/test_recipe_option_controls.py`, `tests/recipes/test_qwen36_fp8_options.py` | Deployment choices and base defaults execute as declared. Bind actual runtime differences, keep request controls per request. |
 | `tests/recipes/test_recipe_releases.py`, `tests/recipes/test_recipe_refresh_repairs.py` | Current release metadata, valid dates/version shape and bounded source closure. Correct release data or repair the specific refresh regression. |
 | `tests/recipes/test_job_writable_paths.py`, `tests/recipes/test_adapter_output_staging.py`, `tests/recipes/test_local_media_path_exists.py` | Managed writable paths, atomic outputs, existing local media inputs. Fix path handling; do not add root/broad-write workarounds. |

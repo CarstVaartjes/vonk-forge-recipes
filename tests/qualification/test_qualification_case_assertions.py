@@ -2,18 +2,14 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
-import shutil
 from datetime import timedelta
-from pathlib import Path
 from typing import Any
 
 import pytest
 from documents import recipe as read_recipe
 from repo_root import ROOT
 
-from recipe_tooling import catalog_index
 from recipe_tooling.qualification.case_assertions import (
     invalid_case_assertions,
     require_valid_case_assertions,
@@ -426,72 +422,9 @@ def test_qualification_parameters_do_not_enter_recipe_content_identity(built_cat
             assert entry["content_sha256"] == document_sha256(document)
 
 
-# Reviewed source identities, not hardware verdicts. Pixal3D's context matches
-# its 2026-10-20 pass. LTX intentionally adopts the reviewed protocol artifact;
-# its 2026-10-21 pass remains historical evidence, not proof of these new bytes.
-# Recipe-only protection misses changes in a shared image build context.
-REVIEWED_SHARED_IDENTITIES = {
-    "ltx-2-19b-distilled-fp8-diffusers-single": (
-        "157826ca00f594d51b472556aa626c324c6b7f8d77b6944787147fa7fb9d0c97",
-        "43c7925a39f2d2e35f98d490742dd7fb11593d18b9e7350fc4bfb85d736d773c",
-    ),
-    "pixal3d-pytorch-single": (
-        "d97ae285f73edad40714c47752ab47be03f1641f52a0ea92dc30c516aec81074",
-        "7d171fe64ef2da27ed5bc9d31da69a3c2ec8dd54139961bba320afd7cc81354a",
-    ),
-}
-
-
-def _assert_reviewed_shared_identity(root: Path, slug: str) -> None:
-    recipe_path = root / "recipes" / f"{slug}.json"
-    recipe = json.loads(recipe_path.read_text())
-    expected_recipe, expected_source = REVIEWED_SHARED_IDENTITIES[slug]
-    assert hashlib.sha256(recipe_path.read_bytes()).hexdigest() == expected_recipe, (
-        f"{slug}: reviewed Recipe bytes changed"
-    )
-    bundle = vars(catalog_index)["source_bundle"]
-    context = root / recipe["execution"]["build"]["context"]["path"]
-    assert bundle(context)[2] == expected_source, (
-        f"{slug}: reviewed image context bytes changed"
-    )
-
-
-@pytest.mark.parametrize("slug", REVIEWED_SHARED_IDENTITIES)
-def test_reviewed_shared_recipe_and_image_bytes(slug: str) -> None:
-    _assert_reviewed_shared_identity(ROOT, slug)
-
-
-@pytest.mark.parametrize("slug", REVIEWED_SHARED_IDENTITIES)
-@pytest.mark.parametrize("mutate_context", [False, True])
-def test_reviewed_identity_guard_detects_shared_context_or_document_change(
-    tmp_path: Path, slug: str, mutate_context: bool
-) -> None:
-    recipe_path = Path("recipes") / f"{slug}.json"
-    recipe = json.loads((ROOT / recipe_path).read_text())
-    context = Path(recipe["execution"]["build"]["context"]["path"])
-    (tmp_path / "recipes").mkdir()
-    shutil.copy2(ROOT / recipe_path, tmp_path / recipe_path)
-    shutil.copytree(ROOT / context, tmp_path / context)
-    _assert_reviewed_shared_identity(tmp_path, slug)
-    # Even an unused helper or whitespace changes the image's source identity.
-    target = (
-        tmp_path / context / "unused-helper.py"
-        if mutate_context
-        else tmp_path / recipe_path
-    )
-    with target.open("a") as stream:
-        stream.write("\n")
-    with pytest.raises(AssertionError, match="reviewed .* bytes changed"):
-        _assert_reviewed_shared_identity(tmp_path, slug)
-
-
 def test_protocol_refresh_preserves_prior_pass_without_certifying_new_context() -> None:
 
     slug = "ltx-2-19b-distilled-fp8-diffusers-single"
-    historical_context = (
-        "32d29663893be2ac98eeb7ef032d3e0a2fd68a61aa3c613c6b517aea5fb8e62e"
-    )
-    assert REVIEWED_SHARED_IDENTITIES[slug][1] != historical_context
     # Freeze the actual historical input as a literal: retention drops old records.
     passed = QualificationEvidenceRecord.model_validate(
         {

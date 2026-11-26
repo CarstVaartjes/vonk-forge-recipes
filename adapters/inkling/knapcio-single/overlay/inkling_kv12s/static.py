@@ -134,6 +134,10 @@ def make_pool_class():
                 for i in range(self.layer_num)
             )
             self.owned_layers = self.layers
+            from .patch import _DFLASH_SETTLE, _lane_group
+
+            if _DFLASH_SETTLE == "batch":  # the DFLASH settle's lane table, built here and not on the first decode step
+                _lane_group(self, self.owned_layers)
             self.k_buffer = _NoRowView([None] * self.layer_num)
             self.v_buffer = _NoRowView([None] * self.layer_num)
             scratch_pages = _scratch_pages()

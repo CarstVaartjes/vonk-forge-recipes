@@ -223,11 +223,11 @@
       "SGLang contributors (lmsysorg/sglang:inkling-2-mini image, Apache-2.0)",
       "IncoAI (DFlash2 drafter, Apache-2.0)"
     ],
-    "source_reference": "https://github.com/knapcio/Inkling-2-Mini-1x-DGX-Spark/tree/d3f460745aff0dffb40f6b8341077382f3b43dfe"
+    "source_reference": "https://github.com/knapcio/Inkling-2-Mini-1x-DGX-Spark/tree/09febfe16b34680ddc71bdb99dab0f1f821d29c6"
   },
   "release": {
-    "released_at": "2026-11-25",
-    "version": "2.9.3"
+    "released_at": "2026-11-26",
+    "version": "2.9.7"
   },
   "runtime": {
     "arguments": [
@@ -490,12 +490,24 @@
         "value": "8"
       },
       {
+        "name": "INKLING_DFLASH_TAIL_DEFER",
+        "value": "1"
+      },
+      {
         "name": "INKLING_DFLASH_PCOPY",
         "value": "12"
       },
       {
         "name": "INKLING_DFLASH_PCOPY_MIN_CTX",
         "value": "8192"
+      },
+      {
+        "name": "INKLING_DFLASH_CTX8",
+        "value": "0"
+      },
+      {
+        "name": "INKLING_DFLASH_CTX8_MAX_M",
+        "value": ""
       },
       {
         "name": "INKLING_PROMPT_TOUCH",
@@ -552,6 +564,10 @@
       {
         "name": "INKLING_KV12S_POOL",
         "value": "static"
+      },
+      {
+        "name": "INKLING_KV12S_DFLASH_SETTLE",
+        "value": "shared"
       },
       {
         "name": "MAX_JOBS",
@@ -621,7 +637,7 @@
             "working_bytes": 10095821635
           },
           "memory": {
-            "peak_bytes": 123292388557,
+            "peak_bytes": 124044007834,
             "reserve_bytes": 8000000000
           }
         }

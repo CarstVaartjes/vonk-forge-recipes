@@ -12,6 +12,7 @@ from unittest.mock import patch
 from repo_root import ROOT
 
 from recipe_tooling import base_image_holds as holds
+from recipe_tooling.qualification import documents
 from recipe_tooling.refresh_upstream import assessment as refresh_assessment
 from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
 from recipe_tooling.refresh_upstream import model as refresh_model
@@ -22,25 +23,39 @@ NEWER = "2" * 64
 DOCKERFILE = "adapters/x/Dockerfile"
 
 
+def recipe_document(digest: str, reference: str | None = None) -> Any:
+    """A valid Recipe (a real one, re-based) holding ``digest``."""
+    real = documents.recipe("gemma-4-26b-a4b-vllm-mia-single", ROOT)
+    build = real.execution.build.model_copy(
+        update={
+            "base_image": real.execution.build.base_image.model_copy(
+                update={"repository": REPOSITORY, "digest": digest}
+            ),
+            "context": real.execution.build.context.model_copy(
+                update={"path": "adapters/x"}
+            ),
+            "dockerfile": DOCKERFILE,
+        }
+    )
+    provenance = real.provenance
+    if reference is not None:
+        provenance = provenance.model_copy(update={"source_reference": reference})
+    return real.model_copy(
+        update={
+            "identity": real.identity.model_copy(update={"slug": "held"}),
+            "provenance": provenance,
+            "execution": real.execution.model_copy(update={"build": build}),
+        }
+    )
+
+
 def recipe(digest: str) -> dict[str, Any]:
-    return {
-        "identity": {"slug": "held"},
-        "provenance": {"attribution": ["Example"]},
-        "release": {"version": "1.0.0", "released_at": "2026-01-01"},
-        "models": [],
-        "execution": {
-            "build": {
-                "base_image": {"repository": REPOSITORY, "digest": digest},
-                "context": {"path": "adapters/x"},
-                "dockerfile": DOCKERFILE,
-            }
-        },
-    }
+    return recipe_document(digest).model_dump(mode="json")
 
 
 def catalog(root: Path, digest: str, from_digest: str | None = None) -> None:
     (root / "recipes").mkdir()
-    (root / "recipes/held.json").write_text(json.dumps(recipe(digest)))
+    (root / "recipes/held.json").write_text(recipe_document(digest).model_dump_json())
     (root / "adapters/x").mkdir(parents=True)
     (root / DOCKERFILE).write_text(
         f"FROM {REPOSITORY}@sha256:{from_digest or digest}\nRUN true\n"
@@ -92,7 +107,21 @@ class CheckTests(unittest.TestCase):
             data["held"]["reason"] = ""
             root.joinpath("policy").mkdir(exist_ok=True)
             (root / holds.HOLDS).write_text(json.dumps(data))
-            assert "needs a reason" in holds.problems(root)[0]
+            assert "reason" in holds.problems(root)[0]
+
+    def test_source_must_be_followed_by_the_recipe(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            catalog(root, HELD)
+            data = json.loads((root / holds.HOLDS).read_text())
+            data["held"]["source"] = "Vendor/Engine"
+            (root / holds.HOLDS).write_text(json.dumps(data))
+            assert "follows no GitHub repository" in holds.problems(root)[0]
+            followed = recipe_document(
+                HELD, "https://github.com/vendor/engine/tree/" + "a" * 40
+            )
+            (root / "recipes/held.json").write_text(followed.model_dump_json())
+            assert holds.problems(root) == []
 
     def test_hold_for_a_missing_recipe_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

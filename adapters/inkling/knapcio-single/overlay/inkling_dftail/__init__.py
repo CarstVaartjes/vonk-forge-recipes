@@ -32,8 +32,17 @@ DFLASH_PREFIX_TAIL=0 to run without the tail).
 
 (B) INKLING_DFLASH_TAIL_SNAPSHOTS=8 (snapshot.py, bpatch.py): instead of recomputing, the draft window of a prompt's
 end is copied out of the ring when its prefill completes and copied back into the ring of a later request that hits
-the same prefix (draft-only state; the target path is untouched). Independent of (A); with both, (A) still bounds
-prompts of at most MAX_INPUT tokens and (B) fills the ring below the bound.
+the same prefix (draft-only state; the target path is untouched). With INKLING_DFLASH_TAIL_DEFER=0, independent of
+(A): (A) still bounds prompts of at most MAX_INPUT tokens and (B) fills the ring below the bound.
+
+(A defers to B) INKLING_DFLASH_TAIL_DEFER=1 (with both on): before (A) lowers the bound, a snapshot of the same prefix
+that ends past (A)'s bound and already covers the draft window (A) would recompute is reserved (snapshot.reserve);
+the request then keeps the stock bound, capped at the snapshot's end, and (B) restores the window instead of the target
+recomputing it. Without such a snapshot (A) applies, decided before the radix lookup runs. The lookup decides the actual
+reusable endpoint; the reservation is checked after it (snapshot.holds) and before the restore (snapshot.claim); see
+snapshot.py for what a late mismatch does (the target keeps a valid cache hit; only the draft window can be shorter).
+Not for logprob requests, multi-rank processes or hierarchical / external KV storage (the tail applies as before).
+0 runs exactly as (A) + (B) independently.
 
 Exactness: the recomputed positions produce the same KV / states as a cold prefill of those positions (FP order of
 the prefill chunking only, the prefill allowance); the drafter is draft-only. Cost: TTFT on the bounded hits (above).
@@ -48,7 +57,9 @@ ENV = "INKLING_DFLASH_PREFIX_TAIL"
 MODULE = "sglang.srt.managers.schedule_batch"
 MARK = "_inkling_dftail"
 OFF_HINT = " (set DFLASH_PREFIX_TAIL=0 DFLASH_TAIL_SNAPSHOTS=0 to run without the DFlash2 prefix tail and snapshots)"
-STATE = {"installed": False, "tail": 0, "max_input": 4096, "bounded": 0}
+ENV_DEFER = "INKLING_DFLASH_TAIL_DEFER"
+STATE = {"installed": False, "tail": 0, "max_input": 4096, "bounded": 0, "defer": False, "deferred": 0,
+         "defer_dropped": 0}
 # None: not resolved yet; True / False: the server's speculative algorithm is / is not DFLASH
 SCOPE = {"dflash": None, "why": "", "logged": False}
 
@@ -86,6 +97,14 @@ def max_input_from_env(env=None):
     return n
 
 
+def defer_from_env(env=None):
+    env = os.environ if env is None else env
+    raw = env.get(ENV_DEFER, "").strip()
+    if raw not in ("", "0", "1"):
+        raise RuntimeError(f"inkling_dftail: {ENV_DEFER}={raw!r} must be 0 or 1")
+    return raw == "1"
+
+
 def _spec_algorithm():
     """The serving process's speculative algorithm (SGLang runtime context; the scheduler publishes it at start-up)."""
     from sglang.srt.runtime_context import get_spec
@@ -112,7 +131,32 @@ def _in_scope():
     return SCOPE["dflash"]
 
 
-def make_bound(orig, tail, max_input=4096):
+def _reservation(req, input_len, capped):
+    """(A defers to B) The lookup's reservation: planned on the first capping bound of a lookup (PENDING), then the
+    same answer for every later bound of that request until its next lookup or its restore."""
+    from . import snapshot as sn
+
+    d = getattr(req, "__dict__", None)
+    if d is None:
+        return None
+    res = d.get(sn.RES_ATTR)
+    if res is sn.PENDING:
+        try:
+            res = sn.reserve(req, input_len, capped)
+        except Exception as exc:  # noqa: BLE001  (never fails a request: the tail applies)
+            res = None
+            if not SCOPE.get("defer_logged"):
+                SCOPE["defer_logged"] = True
+                _log(f"tail deferral skipped: {exc!r}")
+        d[sn.RES_ATTR] = res
+        if res is not None:
+            STATE["deferred"] += 1
+    if isinstance(res, sn.Reservation) and res.input_len == int(input_len) and res.end > capped:
+        return res
+    return None
+
+
+def make_bound(orig, tail, max_input=4096, defer=False):
     def _compute_max_prefix_len(self, input_len):
         bound = orig(self, input_len)
         if tail <= 0 or int(input_len) > max_input:
@@ -125,6 +169,9 @@ def make_bound(orig, tail, max_input=4096):
             return bound  # a streaming continuation reuses its slot's committed KV, which must not shrink
         capped = max(0, int(input_len) - tail)
         if capped < bound and _in_scope():
+            res = _reservation(self, input_len, capped) if defer else None
+            if res is not None:
+                return min(bound, res.end)  # > capped; B restores the window below the hit
             STATE["bounded"] += 1
             return capped
         return bound
@@ -134,6 +181,50 @@ def make_bound(orig, tail, max_input=4096):
     return _compute_max_prefix_len
 
 
+def _plain_tree(tree_cache):
+    """The device-only radix tree this recipe runs (SGLang's UnifiedRadixCache itself, no subclass, with no
+    hierarchical / external KV storage attached): storage-backed trees plan their staged loads outside this lookup."""
+    return (type(tree_cache).__name__ == "UnifiedRadixCache" and getattr(tree_cache, "cache_controller", None) is None
+            and getattr(tree_cache, "linker", None) is None)
+
+
+def make_lookup(orig):
+    """(A defers to B) Req.init_next_round_input: a lookup with a tree cache plans its reservation afresh (the previous
+    one is released). After the radix lookup the reservation must still hold at the actual endpoint; if it does not
+    (nothing touches the slots during a match, so only an unexpected state gets here) it is dropped and the request
+    keeps its valid cache hit: the match is not repeated, because a match stages hybrid-state slots and copies."""
+    from . import snapshot as sn
+
+    def init_next_round_input(self, tree_cache=None, *args, **kwargs):
+        if tree_cache is None:
+            return orig(self, tree_cache, *args, **kwargs)
+        sn.drop(self.__dict__.get(sn.RES_ATTR))
+        self.__dict__[sn.RES_ATTR] = sn.PENDING if _plain_tree(tree_cache) else None
+        try:
+            out = orig(self, tree_cache, *args, **kwargs)
+        except BaseException:
+            sn.drop(self.__dict__.get(sn.RES_ATTR))
+            self.__dict__[sn.RES_ATTR] = None
+            raise
+        res = self.__dict__.get(sn.RES_ATTR)
+        if not isinstance(res, sn.Reservation):
+            self.__dict__[sn.RES_ATTR] = None
+            return out
+        try:
+            ok = sn.holds(res, self)
+        except Exception:  # noqa: BLE001
+            ok = False
+        if not ok:
+            sn.drop(res)
+            self.__dict__[sn.RES_ATTR] = None
+            STATE["defer_dropped"] += 1
+        return out
+
+    init_next_round_input.__wrapped__ = orig
+    setattr(init_next_round_input, MARK, True)
+    return init_next_round_input
+
+
 def patch(mod):
     cls = getattr(mod, "Req", None)
     orig = getattr(cls, "_compute_max_prefix_len", None) if cls is not None else None
@@ -141,7 +232,12 @@ def patch(mod):
         raise RuntimeError("inkling_dftail: schedule_batch.Req._compute_max_prefix_len is missing" + OFF_HINT)
     if getattr(orig, MARK, False):
         return False
-    cls._compute_max_prefix_len = make_bound(orig, STATE["tail"], STATE["max_input"])
+    if STATE["defer"]:
+        lookup = getattr(cls, "init_next_round_input", None)
+        if lookup is None:
+            raise RuntimeError("inkling_dftail: schedule_batch.Req.init_next_round_input is missing" + OFF_HINT)
+        cls.init_next_round_input = make_lookup(lookup)
+    cls._compute_max_prefix_len = make_bound(orig, STATE["tail"], STATE["max_input"], STATE["defer"])
     return True
 
 
@@ -154,6 +250,7 @@ def install(env=None, root=None):
     tail = tail_from_env(env)
     max_input = max_input_from_env(env)
     slots = snapshot.slots_from_env(env)
+    defer = defer_from_env(env) and bool(tail) and bool(slots)
     files = (_sources.PART_A if tail else ()) + (_sources.PART_B if slots else ())
     if files:
         _sources.check(root, OFF_HINT, files)
@@ -161,12 +258,14 @@ def install(env=None, root=None):
         loaded = [m for m in targets if m in sys.modules]
         if loaded:
             raise RuntimeError(f"inkling_dftail: install before {loaded} are imported" + OFF_HINT)
-    STATE.update(installed=True, tail=tail, max_input=max_input)
+    STATE.update(installed=True, tail=tail, max_input=max_input, defer=defer)
     snapshot.STATE["slots"] = slots
+    snapshot.STATE["defer"] = defer
     if tail:
         _hook.when_imported(MODULE, patch)
         _log(f"armed: a prefix-cache match leaves the last {tail} input tokens to be prefilled again "
-             f"(inputs of at most {max_input} tokens; DFLASH only, not streaming sessions)")
+             f"(inputs of at most {max_input} tokens; DFLASH only, not streaming sessions)"
+             + ("; deferred to a draft-tail snapshot that covers the window" if defer else ""))
     if slots:
         _hook.when_imported(bpatch.CONFIG_MODULE, lambda mod: bpatch.patch_config(mod, slots, OFF_HINT))
         _hook.when_imported(bpatch.RING_MODULE, lambda mod: bpatch.patch_ring(mod, OFF_HINT))

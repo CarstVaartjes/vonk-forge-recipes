@@ -1087,6 +1087,22 @@ class ModelPayloadTests(unittest.TestCase):
         assert refresh_classification.payload_identical(old, same)
         assert not refresh_classification.payload_identical(old, changed)
 
+    def test_metadata_needs_both_classifiers(self) -> None:
+        assert refresh_classification.is_metadata("README.md", ["metadata"])
+        assert not refresh_classification.is_metadata("tokenizer.json", ["metadata"])
+        assert not refresh_classification.is_metadata("README.md", ["weights"])
+        old = {
+            "files": [{"path": "m.safetensors", "roles": ["weights"], "sha256": "a"}]
+        }
+        readme = {"path": "README.md", "roles": ["metadata"], "sha256": "b"}
+        tokenizer = {"path": "tokenizer.json", "roles": ["metadata"], "sha256": "c"}
+        assert refresh_classification.only_sibling_weights_added(
+            old, [*old["files"], readme]
+        )
+        assert not refresh_classification.only_sibling_weights_added(
+            old, [*old["files"], tokenizer]
+        )
+
     def test_stored_weights_that_roles_for_calls_metadata_are_compared(self) -> None:
 
         assert roles_for("model.dat") == ["metadata"]

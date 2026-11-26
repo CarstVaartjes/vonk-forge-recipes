@@ -175,6 +175,105 @@ class MergeGateTests(unittest.TestCase):
             )
             assert number == 7
 
+    def test_a_policy_or_contract_change_on_main_defers_a_stale_run(self) -> None:
+        assessment = refresh_model.Assessment(
+            "recipe", edits={"recipe.json": b"new pin\n"}
+        )
+        for moved in ("policy/rules.json", "contracts/src/model.py"):
+            with self.subTest(moved=moved):
+
+                def git(*arguments: str, moved: str = moved, **_: object) -> str:
+                    # the entries of main's changed set under the given pathspecs
+                    if arguments[0] == "diff":
+                        specs = arguments[arguments.index("--") + 1 :]
+                        return "\n".join(p for p in [moved] if p.startswith(specs))
+                    return ""
+
+                summary = refresh_publish.Summary()
+                summary.started = "a" * 40
+                with (
+                    patch(
+                        "recipe_tooling.refresh_upstream.github.gh", return_value="[]"
+                    ),
+                    patch(
+                        "recipe_tooling.refresh_upstream.github.git", side_effect=git
+                    ),
+                    patch(
+                        "recipe_tooling.refresh_upstream.apply.verify",
+                        return_value=None,
+                    ),
+                ):
+                    number = refresh_publish.publish_mechanical(
+                        Path(), assessment, summary
+                    )
+
+                assert number is None
+                assert f"main changed {moved}" in summary.deferred[0]
+
+    def test_arming_after_a_push_sees_the_pushed_files(self) -> None:
+        assessment = refresh_model.Assessment(
+            "recipe-b", edits={"recipes/b.json": b"new pin\n"}
+        )
+        summary = refresh_publish.Summary()
+        summary.healthy = True
+        summary.armed = [419]
+        armed = {
+            "number": 419,
+            **OWN,
+            "autoMergeRequest": {"enabledAt": "now"},
+            "files": [{"path": "recipes/a.json"}],
+        }
+        # The listing before the push does not show the overlap; the push added it.
+        summary.open_pulls = [
+            armed,
+            {"number": 421, **OWN, "files": [{"path": "recipes/b.json"}]},
+        ]
+        after = [
+            armed,
+            {"number": 421, **OWN, "files": [{"path": "recipes/a.json"}]},
+        ]
+
+        def listing(*arguments: str) -> list[dict[str, Any]]:
+            if "--head" in arguments:
+                return [{"number": 421, "state": "OPEN", "body": "", **OWN}]
+            return after
+
+        calls: list[tuple[str, ...]] = []
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            patch(
+                "recipe_tooling.refresh_upstream.github.gh_json", side_effect=listing
+            ),
+            patch(
+                "recipe_tooling.refresh_upstream.github.gh",
+                side_effect=lambda *a, **k: calls.append(a) or "",
+            ),
+            patch("recipe_tooling.refresh_upstream.github.git", return_value=""),
+            patch("recipe_tooling.refresh_upstream.apply.verify", return_value=None),
+        ):
+            refresh_publish.publish_mechanical(Path(temporary), assessment, summary)
+
+        assert not [c for c in calls if c[:2] == ("pr", "merge")]
+        assert "#419" in summary.deferred[0]
+
+    def test_open_pulls_are_listed_once_per_run(self) -> None:
+        summary = refresh_publish.Summary()
+        summary.healthy = True
+        pulls = [
+            {"number": n, **OWN, "files": [{"path": f"recipes/r{n}.json"}]}
+            for n in (421, 422, 423)
+        ]
+        with (
+            patch(
+                "recipe_tooling.refresh_upstream.github.gh_json", return_value=pulls
+            ) as listing,
+            patch("recipe_tooling.refresh_upstream.github.gh"),
+        ):
+            for n in (421, 422, 423):
+                assert refresh_publish.arm_mechanical_pr(n, f"recipe-{n}", summary)
+
+        assert listing.call_count == 1
+
     def test_existing_armed_pr_does_not_block_a_disjoint_mechanical_merge(self) -> None:
         summary = refresh_publish.Summary()
         summary.healthy = True
