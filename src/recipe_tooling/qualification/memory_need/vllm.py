@@ -125,15 +125,17 @@ def recurrent_layer_bytes(recipe: RecipeDefinition, recurrent: RecurrentCache) -
 
 
 def mamba_cache_mode(recipe: RecipeDefinition) -> MambaCacheMode:
-    """vLLM's mamba cache mode: off holds one page per recurrent group, on holds
-    "align".
+    """vLLM's mamba cache mode: ``none`` holds one page per recurrent group, ``align`` two.
 
-    vLLM main (9a4930a797, PR #63830) removed --mamba-cache-mode: prefix
-    caching on is always "align", whatever a recipe still passes. An omitted prefix-caching flag counts as
-    on: v0.27 keeps hybrid prefix caching opt-in (arg_utils.py
-    default_prefix_caching), but nightly 3f1bcfd8 defaults it to
+    An image that still has --mamba-cache-mode (NVIDIA's Transcribe image) runs the
+    mode the recipe names. vLLM main (9a4930a797, PR #63830) removed the flag: prefix
+    caching on is always "align" there, and prefix caching off holds one page. An
+    omitted prefix-caching flag counts as on: v0.27 keeps hybrid prefix caching opt-in
+    (arg_utils.py default_prefix_caching), but nightly 3f1bcfd8 defaults it to
     is_prefix_caching_supported, and "align" never needs fewer blocks.
     """
+    if mn_args.argument_value(recipe, "mamba-cache-mode") == MambaCacheMode.NONE:
+        return MambaCacheMode.NONE
     if mn_args.argument_value(recipe, "enable-prefix-caching") is False:
         return MambaCacheMode.NONE
     return MambaCacheMode.ALIGN

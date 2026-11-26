@@ -70,6 +70,7 @@ from recipe_tooling.adapter_sources import (
 )
 from recipe_tooling.paths import REPO_ROOT
 from recipe_tooling.upstream_http import UpstreamBusy, fetch
+from recipe_tooling.vendored_manifest import VendoredManifest
 
 ROOT = REPO_ROOT
 
@@ -113,35 +114,6 @@ class AlsoSource:
     repo: str
     commit: str
     files: tuple[str, ...]
-
-
-def parse_also(raw: object) -> tuple[list[AlsoSource], list[str]]:
-    """The typed ``also`` entries and a message for each malformed one."""
-    if not isinstance(raw, list):
-        return [], ["must be a list of {repo, commit, files} objects"]
-    sources: list[AlsoSource] = []
-    problems: list[str] = []
-    for index, entry in enumerate(raw):
-        where = f"entry {index}"
-        if not isinstance(entry, dict):
-            problems.append(f"{where} must be an object, not {type(entry).__name__}")
-            continue
-        repo, commit, files = entry.get("repo"), entry.get("commit"), entry.get("files")
-        if not isinstance(repo, str) or not repo:
-            problems.append(f"{where} needs a repo string 'owner/name'")
-        elif not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
-            problems.append(f"{where} ({repo}) needs a 40-hex commit string")
-        elif (
-            not isinstance(files, list)
-            or not files
-            or not all(isinstance(f, str) and f for f in files)
-        ):
-            problems.append(
-                f"{where} ({repo}) needs files: a non-empty list of path prefixes"
-            )
-        else:
-            sources.append(AlsoSource(repo, commit, tuple(files)))
-    return sources, problems
 
 
 TreeLoader = Callable[[str, str], Tree]
@@ -337,9 +309,15 @@ def check_adapter(
     label = adapter.relative_to(root).as_posix()
     report = Report(label)
     manifest_path = adapter / MANIFEST
-    manifest: dict[str, Any] = (
-        json.loads(manifest_path.read_text()) if manifest_path.is_file() else {}
-    )
+    manifest: dict[str, Any] = {}
+    if manifest_path.is_file():
+        try:
+            manifest = VendoredManifest.model_validate_json(
+                manifest_path.read_text()
+            ).model_dump(exclude_none=True)
+        except ValueError as error:  # incl. pydantic.ValidationError
+            report.problems.append(f"{label}: {MANIFEST} is not valid: {error}")
+            return report
     source = _source(adapter, manifest)
     if source is None:
         report.note = "skipped: no GitHub source and pinned commit"
@@ -381,10 +359,10 @@ def check_adapter(
     renamed: dict[str, str] = manifest.get("renamed", {})
     renamed_dirs: dict[str, str] = manifest.get("renamed_dirs", {})
     files = _local_files(adapter)
-    also_sources, malformed = parse_also(manifest.get("also", []))
-    if malformed:
-        report.problems.extend(f"{label}: {MANIFEST} also {m}" for m in malformed)
-        return report
+    also_sources = [
+        AlsoSource(e["repo"], e["commit"], tuple(e["files"]))
+        for e in manifest.get("also", [])
+    ]
     also: list[tuple[AlsoSource, Tree]] = []
     for extra in also_sources:
         try:

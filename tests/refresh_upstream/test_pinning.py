@@ -18,6 +18,7 @@ from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.refresh_upstream import pinning as refresh_pinning
 from recipe_tooling.refresh_upstream import render as refresh_render
+from recipe_tooling.upstream_http import UpstreamBusy
 
 
 class PinningRuleTests(unittest.TestCase):
@@ -135,6 +136,23 @@ class DivergedReleaseTests(unittest.TestCase):
 
     def test_unreadable_dates_are_not_current(self) -> None:
         assert not refresh_items.pin_is_newer_by_date(object(), "o/r", OLD, NEW)  # pyright: ignore[reportArgumentType]
+
+    def test_busy_provider_makes_the_item_unreachable_not_a_decision(self) -> None:
+        def busy(_path: str):
+            raise UpstreamBusy("api.github.com is rate limited; not checked this run")
+
+        http = type("Busy", (), {"github": staticmethod(busy)})()
+        with pytest.raises(UpstreamBusy):
+            refresh_items.pin_is_newer_by_date(http, "o/r", OLD, NEW)  # pyright: ignore[reportArgumentType]
+        with pytest.raises(UpstreamBusy):
+            refresh_items.commit_on_github(http, "o/r", OLD)  # pyright: ignore[reportArgumentType]
+        with patch(
+            "recipe_tooling.refresh_upstream.items.pin_is_newer_by_date",
+            side_effect=UpstreamBusy("busy"),
+        ):
+            result = NeverDowngradeTests().collect("diverged")
+        assert not result.items
+        assert len(result.unreachable) == 1
 
     def test_image_wrapper_diverged_release_behind_pin_is_current(self) -> None:
         collector = NeverDowngradeTests()

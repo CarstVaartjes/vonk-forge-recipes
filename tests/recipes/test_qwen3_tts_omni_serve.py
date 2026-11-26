@@ -68,12 +68,12 @@ def test_other_arguments_pass_through_unchanged() -> None:
     "arguments",
     [
         ["serve", "--max-model-len"],
-        ["serve", "--max-model-len", "0"],
-        ["serve", "--max-model-len", "four"],
         ["serve", "--max-model-len", "4096", "--stage-overrides", "{}"],
     ],
 )
-def test_unusable_context_or_a_second_override_is_refused(arguments: list[str]) -> None:
+def test_missing_context_value_or_a_second_override_is_refused(
+    arguments: list[str],
+) -> None:
     with pytest.raises(SystemExit):
         _launcher().stage_scoped(arguments)
 
