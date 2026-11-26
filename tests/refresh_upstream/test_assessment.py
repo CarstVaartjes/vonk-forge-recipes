@@ -777,7 +777,7 @@ class GatedRepositoryTests(unittest.TestCase):
             with (
                 patch.dict(os.environ, {"HF_TOKEN": "secret"}),
                 patch("urllib.request.build_opener", return_value=Opener()),
-                pytest.raises(OSError),
+                pytest.raises(RuntimeError),
             ):
                 catalog_hf_model._get_json(url)
             assert seen.get("Authorization") == expected
