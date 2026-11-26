@@ -1,0 +1,336 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/image/marigold-diffusers"
+      },
+      "dockerfile": "adapters/image/marigold-diffusers/Dockerfile",
+      "network": {
+        "hosts": [
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "marigold-iid-lighting-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "image-job",
+      "input": {
+        "max_bytes": 33554432,
+        "media_types": [
+          "image/jpeg",
+          "image/png"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "One PNG or JPEG photo or render; at most 4096x4096 pixels, never resized. If the input has transparency, the model sees it composited over black and the original alpha is copied unchanged onto albedo.png (RGBA).",
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png"
+            ],
+            "id": "image",
+            "label": "Image",
+            "max_file_bytes": 33554432,
+            "max_files": 1,
+            "max_total_bytes": 33554432,
+            "media_types": [
+              "image/jpeg",
+              "image/png"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 805306368,
+        "slots": [
+          {
+            "description": "Three PNGs at the input size: albedo.png (sRGB, RGB or RGBA with the input alpha), shading.png and residual.png (RGB, display-normalised as the creator's visualisation does).",
+            "extensions": [
+              ".png"
+            ],
+            "id": "maps",
+            "label": "Maps",
+            "max_file_bytes": 268435456,
+            "max_files": 3,
+            "max_total_bytes": 805306368,
+            "media_types": [
+              "image/png"
+            ],
+            "min_files": 3
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "model-index-f23f8eeb8fd4-ee03ace9a3",
+          "id": "primary-model-index-f23f8eeb8fd4-ee03ace9a3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "scheduler-config-506414f187b3-67ecb3dc37",
+          "id": "primary-scheduler-config-506414f187b3-67ecb3dc37",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-6b34b0bf6cff-bcfd37e83e",
+          "id": "primary-config-6b34b0bf6cff-bcfd37e83e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-fp16-bc1827c46545-d8e2633343",
+          "id": "primary-model-fp16-bc1827c46545-d8e2633343",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-9fd691f7c803-ebbb0f71ea",
+          "id": "primary-merges-9fd691f7c803-ebbb0f71ea",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-f118ab3a9832-9a6c011314",
+          "id": "primary-special-tokens-map-f118ab3a9832-9a6c011314",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-516314ccab66-47a6faaf45",
+          "id": "primary-tokenizer-config-516314ccab66-47a6faaf45",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-e089ad92ba36-8c35116cc3",
+          "id": "primary-vocab-e089ad92ba36-8c35116cc3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-9073c69ca6dd-479c438b53",
+          "id": "primary-config-9073c69ca6dd-479c438b53",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-fp16-8c2e8da73793-aed435306f",
+          "id": "primary-diffusion-pytorch-model-fp16-8c2e8da73793-aed435306f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-52dbd493c4a9-101abd63da",
+          "id": "primary-config-52dbd493c4a9-101abd63da",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "diffusion-pytorch-model-fp16-3e4c08995484-5ac80493ed",
+          "id": "primary-diffusion-pytorch-model-fp16-3e4c08995484-5ac80493ed",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "2df42ffb25ab4ced69738a525a106c493a3107b6e611ff5cf8f3d813bc93376f",
+        "kind": "model",
+        "publisher": "prs-eth",
+        "slug": "marigold-iid-lighting-v1-1-08c3930b"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Photogrammetry and Remote Sensing, ETH Zurich (prs-eth)"
+    ],
+    "source_reference": "https://github.com/prs-eth/Marigold/tree/2bfbdeae5d10a50b71f1ba20c865d46e480f6010"
+  },
+  "release": {
+    "released_at": "2026-11-26",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "entrypoint",
+        "setting": null,
+        "value": "/opt/vonk/source/run.py"
+      },
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "image/png"
+      },
+      {
+        "name": "task",
+        "setting": null,
+        "value": "intrinsics-lighting"
+      },
+      {
+        "name": "seed",
+        "setting": "seed",
+        "value": null
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {
+      "seed": {
+        "change_effect": "none",
+        "maximum": 2147483647,
+        "minimum": 0,
+        "value": 0
+      }
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 2581766286,
+            "image_bytes": 10000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 2000000000
+          },
+          "memory": {
+            "peak_bytes": 10000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "image-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png"
+            },
+            "output_slot": "maps",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "image-job"
+    }
+  }
+}

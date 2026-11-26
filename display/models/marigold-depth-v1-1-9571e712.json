@@ -1,0 +1,29 @@
+{
+  "capabilities": [
+    "material-estimation"
+  ],
+  "description": "Immutable public snapshot of prs-eth/marigold-depth-v1-1 at 9571e712: the fp16 variant (UNet, VAE, text encoder, tokenizer and scheduler, about 2.6 GB) of Marigold monocular depth estimation (served beside Marigold Normals in one job). OpenRAIL++-M; the licence is shown for information and nothing here gates on it.",
+  "family_title": "Marigold",
+  "identity": {
+    "publisher": "prs-eth",
+    "slug": "marigold-depth-v1-1-9571e712"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Photogrammetry and Remote Sensing, ETH Zurich (prs-eth)"
+    ],
+    "spdx": "LicenseRef-CreativeML-Open-RAIL-Plus-Plus-M",
+    "url": "https://huggingface.co/prs-eth/marigold-depth-v1-1/blob/9571e7123e258cf052b4e54241f17971c290e9a8/README.md"
+  },
+  "modalities": [
+    "image"
+  ],
+  "model_title": "Marigold Depth v1.1",
+  "tags": [
+    "prs-eth",
+    "marigold",
+    "image",
+    "depth"
+  ]
+}

@@ -9,6 +9,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/image/marigold-diffusers",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/image/minimax-h3-image-sglang",
       "wheel_directory": ""
     },

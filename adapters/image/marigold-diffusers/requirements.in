@@ -1,0 +1,24 @@
+# Torch stack: the versions and index the GB10-proven HunyuanVideo-Foley and CHORD images lock
+# (adapters/audio/hunyuan-video-foley-native/requirements.lock), not a generic wheel.
+torch==2.14.0
+torchvision==0.29.0
+# CUDA closure of that torch, held at the versions the Foley lock resolved (the others match).
+cuda-bindings==13.3.1
+cuda-pathfinder==1.7.0
+nvidia-nvjitlink==13.3.33
+
+# diffusers 0.39.0 ships MarigoldIntrinsicsPipeline, MarigoldNormalsPipeline and
+# MarigoldDepthPipeline; the Marigold repository adds no pipeline code. transformers,
+# tokenizers and huggingface-hub are the versions the GB10-proven CHORD image locks
+# (huggingface-hub below 1.0, which transformers 4.57.1 accepts); accelerate is the Foley
+# version, so diffusers loads each pipeline on the meta device instead of building real fp32
+# tensors beside the checkpoint.
+diffusers==0.39.0
+transformers==4.57.1
+tokenizers==0.22.1
+huggingface-hub==0.36.0
+accelerate==1.15.0
+safetensors==0.8.0
+# The numpy version the CHORD image locks; Pillow as in CHORD.
+numpy==2.2.6
+Pillow==12.3.0
