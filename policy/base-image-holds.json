@@ -1,4 +1,14 @@
 {
+  "drama-3-vllm-omni-single": {
+    "base_image": {
+      "digest": "6da195b87ca635601559ea11a6dd175758b0fa68cbada3a4529e01f36bc92df1",
+      "repository": "vllm/vllm-omni"
+    },
+    "reason": "vLLM-Omni 0.34 runs Model Runner V2 only and refuses Drama 3's fish_omni deploy config, whose DAC codec stage needs the retired Model Runner V1; v0.32.0 is the last release that serves it.",
+    "source": "vllm-project/vllm-omni",
+    "upstream": "https://github.com/vllm-project/vllm-omni/blob/v0.34.0/recipes/fishaudio/Drama-3.md",
+    "version": "v0.32.0"
+  },
   "gemma-4-26b-a4b-vllm-mia-single": {
     "base_image": {
       "digest": "2cc49b81319f7a66a33dd8bd63a7bfddae079122b33ce51989b6828a1f038c37",

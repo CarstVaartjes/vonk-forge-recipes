@@ -1,0 +1,428 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "6da195b87ca635601559ea11a6dd175758b0fa68cbada3a4529e01f36bc92df1",
+        "repository": "vllm/vllm-omni"
+      },
+      "context": {
+        "path": "adapters/fishaudio/drama-3-vllm-omni-single"
+      },
+      "dockerfile": "adapters/fishaudio/drama-3-vllm-omni-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "drama-3-vllm-omni-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "drama-3"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "license-733a32442087-c693279643",
+          "id": "license-733a32442087-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-6d147e079b87-b335630551",
+          "id": "readme-6d147e079b87-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-a4aee8afcf2e-00824420d1",
+          "id": "chat-template-a4aee8afcf2e-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "codec-74fc41c5a715-56f003b77a",
+          "id": "codec-74fc41c5a715-56f003b77a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-aea53f0f2b9a-587cb980af",
+          "id": "config-aea53f0f2b9a-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00015-a1b7af15210d-44561eb6b2",
+          "id": "model-00001-of-00015-a1b7af15210d-44561eb6b2",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00015-a95e113c6f32-07a29c15a6",
+          "id": "model-00002-of-00015-a95e113c6f32-07a29c15a6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00015-a34d0952d636-f78009be1c",
+          "id": "model-00003-of-00015-a34d0952d636-f78009be1c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00015-13ac368d8744-537155251a",
+          "id": "model-00004-of-00015-13ac368d8744-537155251a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00015-c432fa0dac97-a66a0e8406",
+          "id": "model-00005-of-00015-c432fa0dac97-a66a0e8406",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00015-661a31433747-c6f64b47d4",
+          "id": "model-00006-of-00015-661a31433747-c6f64b47d4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00015-4a7574b5c238-77f2bf80e6",
+          "id": "model-00007-of-00015-4a7574b5c238-77f2bf80e6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00015-7fac6d1e8999-b15e39c23e",
+          "id": "model-00008-of-00015-7fac6d1e8999-b15e39c23e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00015-fcf1313744ea-114707df82",
+          "id": "model-00009-of-00015-fcf1313744ea-114707df82",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00015-6db3f7cd9d49-beabd0fa3e",
+          "id": "model-00010-of-00015-6db3f7cd9d49-beabd0fa3e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00015-a9027ef4db30-d3dd1f014d",
+          "id": "model-00011-of-00015-a9027ef4db30-d3dd1f014d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00015-c16fea955e97-188b7f7b7b",
+          "id": "model-00012-of-00015-c16fea955e97-188b7f7b7b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00015-64861c8e1ee1-75674c2d2e",
+          "id": "model-00013-of-00015-64861c8e1ee1-75674c2d2e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00015-ba5319475a62-50b8711ff6",
+          "id": "model-00014-of-00015-ba5319475a62-50b8711ff6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00015-1e2ddf01c1be-91ba459589",
+          "id": "model-00015-of-00015-1e2ddf01c1be-91ba459589",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-a8e9aca4e9fd-0a05be8238",
+          "id": "model-safetensors-index-a8e9aca4e9fd-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-08aed9e321dc-c07a9be597",
+          "id": "special-tokens-map-08aed9e321dc-c07a9be597",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-0e9b9db76b2f-224931eb13",
+          "id": "tokenizer-0e9b9db76b2f-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-00e800279d84-94d5c6ba8f",
+          "id": "tokenizer-config-00e800279d84-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "34b0dd669afb05b9c2b9fb19627a70e55dd1f0fb67af201cbf0be19e73c18c3e",
+        "kind": "model",
+        "publisher": "fishaudio",
+        "slug": "drama-3-78e5ab79"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Fish Audio",
+      "vLLM-Omni contributors"
+    ],
+    "source_reference": "https://github.com/vllm-project/vllm-omni/blob/5917730a4b02aedb44d374173cdc1b10484ccd52/recipes/fishaudio/Drama-3.md"
+  },
+  "release": {
+    "released_at": "2026-10-28",
+    "version": "0.32.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "drama-3"
+      },
+      {
+        "name": "deploy-config",
+        "setting": null,
+        "value": "/opt/vonk/fish_omni.yaml"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.513"
+      },
+      {
+        "name": "codec-gpu-memory-utilization",
+        "setting": null,
+        "value": "0.066"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "omni",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 8192
+    },
+    "kind": "generation",
+    "knobs": {}
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 41502569692,
+            "image_bytes": 38000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 10000000000
+          },
+          "memory": {
+            "peak_bytes": 82000000000,
+            "reserve_bytes": 6000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "speech.audio"
+          ],
+          "kind": "openai.speech",
+          "name": "speak",
+          "request": {
+            "body": {
+              "input": "The road ahead is closed. Turn back.",
+              "model": "drama-3",
+              "response_format": "wav",
+              "voice": "default"
+            },
+            "method": "POST",
+            "path": "/v1/audio/speech",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

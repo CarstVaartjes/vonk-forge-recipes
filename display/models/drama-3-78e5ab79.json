@@ -1,0 +1,35 @@
+{
+  "capabilities": [
+    "audio-generation",
+    "text-to-speech",
+    "voice-cloning"
+  ],
+  "description": "Exact official Fish Audio Drama 3 checkpoint (35B-total / 3B-active Qwen3.5 MoE backbone with block-FP8 routed experts and BF16 elsewhere, a 10-codebook audio tower and the bundled 44.1 kHz DAC codec): expressive speech in 83 languages, up to 16 speakers per request through speaker tags, inline event tags such as [sighs] or [laughs], and zero-shot voice cloning from a reference clip with its transcript.",
+  "family_title": "Fish Audio",
+  "identity": {
+    "publisher": "fishaudio",
+    "slug": "drama-3-78e5ab79"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Fish Audio"
+    ],
+    "spdx": "LicenseRef-Fish-Audio-Community-1.0",
+    "url": "https://huggingface.co/fishaudio/drama-3/blob/78e5ab79e49aa9a25abe8799eff2c4d73a1c3216/LICENSE"
+  },
+  "lineage": {
+    "family": "fish-audio",
+    "line": "drama-35b-a3b",
+    "model": "drama-3",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "audio"
+  ],
+  "model_title": "Fish Audio Drama 3",
+  "tags": [
+    "fishaudio",
+    "drama-3"
+  ]
+}
