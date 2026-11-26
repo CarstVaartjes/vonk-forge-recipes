@@ -6,7 +6,7 @@ import re
 from collections.abc import Iterable
 
 from recipe_tooling.kit_pins.declarations import read_declared
-from recipe_tooling.kit_pins.model import IMAGE_DIGEST, Declaration, Pin
+from recipe_tooling.kit_pins.model import IMAGE_DIGEST, SHA, Declaration, Pin
 from recipe_tooling.kit_pins.upstream import GitHub, Upstream
 from recipe_tooling.upstream_http import UpstreamBusy
 
@@ -14,7 +14,13 @@ from recipe_tooling.upstream_http import UpstreamBusy
 def resolve(
     source: Upstream, declaration: Declaration, repo: str, ref: str
 ) -> tuple[str, str, str]:
-    """``(immutable value, date, kind)`` of a declared ref, resolved once."""
+    """``(immutable value, date, kind)`` of a declared ref, resolved once.
+
+    A full commit id is already immutable: it is its own pin and needs no provider read,
+    so a repository the provider no longer serves cannot block it.
+    """
+    if declaration.datasource in ("git-ref", "hf-revision") and SHA.match(ref):
+        return ref, "", "commit"
     if declaration.datasource == "git-ref":
         commit, date = source.github.resolve(repo, ref)
         return commit, date, source.github.kind(repo, ref)

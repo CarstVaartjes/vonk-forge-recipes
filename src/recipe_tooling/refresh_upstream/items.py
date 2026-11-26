@@ -92,12 +92,16 @@ def check_kit_dependencies(
     declared = {d.name: d for d in wanted}
     for pin in pins:
         locked = lock.get("dependencies", {}).get(pin.name) or {}
-        newest = kit_resolve.newest_information(kit_source, pin)
-        info = (
-            f"{newest} is shown for information; the pin follows the kit's declaration"
-            if newest
-            else f"{pin.repo}: no release information"
-        )
+        try:
+            newest = kit_resolve.newest_information(kit_source, pin)
+        except UpstreamBusy:  # information only: a busy provider is not a failure
+            info = f"{pin.repo}: release information unavailable (provider busy)"
+        else:
+            info = (
+                f"{newest} is shown for information; the pin follows the kit's declaration"
+                if newest
+                else f"{pin.repo}: no release information"
+            )
         if pin.overridden:
             result.evidence.append(
                 f"### Kit dependency `{pin.name}` is overridden\n\n- {pin.repo} is "
@@ -215,7 +219,7 @@ def kit_model_moved(
     was = f"{locked.get('repo', '?')}@{str(locked.get('revision', '?'))[:12]}"
     result.evidence.append(
         f"### Kit dependency `{pin.name}` (model) moved\n\n- locked: {was}\n- declared "
-        f"now: {pin.repo}@{pin.immutable} ({pin.date})\n- {info}\n"
+        f"now: {pin.repo}@{pin.immutable}{f' ({pin.date})' if pin.date else ''}\n- {info}\n"
     )
     if str(locked.get("repo", "")).lower() != pin.repo.lower():
         result.reasons.append(
@@ -241,7 +245,7 @@ def kit_model_moved(
                 provider="huggingface",
                 repo=pin.repo,
                 sha=pin.immutable,
-                date=pin.date,
+                date=pin.date or datetime.now(UTC).date().isoformat(),
                 ref=None,
                 version=None,
                 url=f"https://huggingface.co/{pin.repo}/tree/{pin.immutable}",
@@ -249,6 +253,19 @@ def kit_model_moved(
             document["identity"]["slug"],
             kit_pin=pin,
         )
+    )
+
+
+def model_access_note(result: refresh_model.Assessment, repo: str, seen: str) -> None:
+    """A pinned Model the provider no longer serves anonymously is evidence only.
+
+    The pin is digest-verified and the Controller downloads with its configured token,
+    so nothing here is an action for the refresh.
+    """
+    result.evidence.append(
+        f"### Model access status: {repo}\n\n{seen} The pin and the catalog are "
+        "unchanged: the revision is digest-verified and the Controller downloads with "
+        "its configured token.\n"
     )
 
 
@@ -481,24 +498,21 @@ def collect_items(
                     result.notes.append(note)
                 target = refresh_pinning.resolve_github_line(http, repo, line)
         except refresh_http.NotFound:
-            model = catalog_.models.get(slug or "", {})
-            if kind == "model" and model.get("requires_token") is False:
-                result.reasons.append(
-                    f"model {repo} is no longer anonymously resolvable; review or withdraw this public Model rather than replacing it automatically."
+            if kind == "model":
+                model_access_note(
+                    result,
+                    repo,
+                    "The anonymous check no longer finds the repository.",
                 )
                 return
             result.unreachable.append(f"{provider}:{repo} was not found upstream")
             return
         except refresh_http.AccessRestricted as error:
-            model = catalog_.models.get(slug or "", {})
-            if kind == "model" and model.get("requires_token") is False:
-                result.reasons.append(
-                    f"model {repo} provider now requires access ({error!s}); review or withdraw this public Model. The updater will not retrieve credentials or author a replacement."
+            if kind == "model":
+                model_access_note(
+                    result, repo, f"The anonymous check was restricted ({error!s})."
                 )
             else:
-                result.evidence.append(
-                    f"### Model access status: {repo}\n\nAnonymous check was restricted ({error!s}); the authored requires_token flag is not provider evidence.\n"
-                )
                 result.unreachable.append(
                     f"{provider}:{repo}: anonymous access status could not be verified ({error!s}); no credentials were requested"
                 )
@@ -507,26 +521,15 @@ def collect_items(
             result.unreachable.append(f"{provider}:{repo}: {str(error)[:200]}")
             return
         if kind == "model" and target.access_status is not None:
-            model = catalog_.models.get(slug or "", {})
-            token_required = model.get("requires_token") is True
             if target.access_status in {"private", "disabled"}:
                 result.reasons.append(
                     f"model {repo} provider access is {target.access_status}; review or withdraw this Model. The updater will not retrieve access credentials or author a replacement."
                 )
-            elif target.access_status == "gated" and not token_required:
-                result.reasons.append(
-                    f"model {repo} provider access changed to {target.access_status}; the catalog declares anonymous access. Review or withdraw this Model; do not replace it automatically."
-                )
-            elif target.access_status == "public" and token_required:
-                result.reasons.append(
-                    f"model {repo} is publicly accessible but the catalog requires a token; review the access declaration before changing it."
-                )
             elif target.access_status == "unknown":
-                result.evidence.append(
-                    f"### Model access status: {repo}\n\nProvider gating/private status was not explicit in the anonymous metadata response; the authored requires_token flag is not treated as provider evidence.\n"
-                )
-                result.unreachable.append(
-                    f"{provider}:{repo}: provider access status is unknown from anonymous metadata; no credentials were requested"
+                model_access_note(
+                    result,
+                    repo,
+                    "The anonymous metadata did not say whether the repository is gated or private.",
                 )
         if target.sha == current:
             return
