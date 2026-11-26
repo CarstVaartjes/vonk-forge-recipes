@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/birefnet-hr-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "1b9d34fd601d14c579923ba9dbdc4c7583cac640074715a2c5c0904b6721a127",
+        "source_bundle_sha256": "483c79278692da883a4c27ce91c032324fb3924c016ba14bf5f3eff3990d592d",
+        "runtime_image": {
+          "build_key": "cb89715b332d5cbdb13ae9b19afcb569cddbba61b6eca8a1f5494e04d7a28210",
+          "image_digest": "sha256:fa53f8165878c4789d3fac374fa87dab5a05a5b7af9c8fd031dace8c5c009b7f"
+        },
+        "model_digests": [
+          "81618526699ba7f94e375df5df791f1d786b29aeaddc90a95bcc52c1ffba917c"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "5cd110ead57dcf8052c93c871252e06c0a1b80ade0cb8c4cee701ca342ca6543"
+      ],
+      "tested_at": "2026-11-26T18:51:27.147886Z",
+      "platform": {
+        "controller_source_sha": "06f372ac341b9e4083cdda704c181c85f2d9db70",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
