@@ -52,6 +52,7 @@ class RecipeStatus(StrEnum):
 
 class RetestReason(StrEnum):
     OPERATOR = "operator: --retry-failed"
+    OPERATOR_RECHECK = "operator: --recheck"
     SCHEDULED = "scheduled-retest"
     OWNER_CHANGED = "observed-fault-owner-changed"
     RELEASE_CHANGED = "controller-release-changed"

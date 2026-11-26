@@ -26,6 +26,7 @@ from .lifecycle import (
 from .qualification import (
     current_identity,
     pass_marker,
+    recheck_due,
     unpublishable_requeue_due,
 )
 from .source_serving import (
@@ -408,15 +409,19 @@ class SweepReconcile:
         unpublishable = unpublishable_requeue_due(
             view, evidence, identity, recipe, entry, self.release_sha
         )
-        requeued = (
-            entry.get("status") == RecipeStatus.PENDING
-            and entry.get("requeued_because") == RetestReason.UNPUBLISHABLE_PASS
-        )
+        # An operator-named recipe runs once on this release, whatever its status.
+        recheck = (
+            recipe.slug in self.cfg.recheck or recipe.key in self.cfg.recheck
+        ) and recheck_due(evidence, recipe.content_sha256, self.release_sha)
+        requeued = entry.get("status") == RecipeStatus.PENDING and entry.get(
+            "requeued_because"
+        ) in (RetestReason.UNPUBLISHABLE_PASS, RetestReason.OPERATOR_RECHECK)
         if (
             view is not None
             and view.status == QualificationStatus.WORKING
             and view.last_pass is not None
             and not unpublishable
+            and not recheck
             and not requeued  # a pending requeue is not undone by the next catalog pass
             and (slot is None or slot.get("phase") == SweepSlotPhase.FINISHED)
         ):
@@ -500,6 +505,7 @@ class SweepReconcile:
             lambda: identity or current_identity(recipe),
             unpublishable=unpublishable,
             revalidate_passes=self.cfg.revalidate_passes,
+            recheck=recheck,
         )
         if entry.get("status") == RecipeStatus.PENDING:
             return

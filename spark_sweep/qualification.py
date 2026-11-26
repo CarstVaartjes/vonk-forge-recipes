@@ -493,6 +493,28 @@ def recipe_evidence(
         return None
 
 
+def recheck_due(
+    evidence: RecipeQualificationEvidence | None,
+    content_sha256: str,
+    release: str | None,
+) -> bool:
+    """An operator-named recipe has no verdict on the deployed Controller release yet.
+
+    A pass or a recipe-blamed failure of this content recorded on this release settles it;
+    a platform-blamed record says nothing about the recipe, so the recipe stays due. With
+    the release unknown nothing is due: a run now could not record which release it proves.
+    """
+    if release is None:
+        return False
+    return not any(
+        r.identity.content_sha256 == content_sha256
+        and r.blame != QualificationBlame.PLATFORM
+        and (r.platform.controller_source_sha or r.platform.controller_version)
+        == release
+        for r in (evidence.records if evidence is not None else ())
+    )
+
+
 def rerun_settled(
     evidence: RecipeQualificationEvidence,
     requeue: object,
