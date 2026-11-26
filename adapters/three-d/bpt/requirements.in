@@ -8,16 +8,18 @@ cuda-bindings==13.3.1
 cuda-pathfinder==1.7.0
 nvidia-nvjitlink==13.3.33
 
-# The creator's requirements.txt pins that inference imports: numpy 1.26.4, x-transformers 1.26.6,
-# pytorch-custom-utils 0.0.21 (its save_load and module_device, which also bring accelerate,
-# optree and pytorch-warmup). trimesh must be 4.5.3: the creator's sample_pc passes a Trimesh object
-# to trimesh.load, which 4.6.13 through 5.1.0 refuse with NotImplementedError.
+# The creator's requirements.txt pins that inference imports: numpy 1.26.4, x-transformers 1.26.6 and
+# pytorch-custom-utils 0.0.21 (its save_load and module_device, which also bring accelerate, optree
+# and pytorch-warmup). trimesh is this recipe's pin, not the creator's (upstream lists it unpinned):
+# the creator's sample_pc passes a Trimesh object to trimesh.load, which works on 4.5.3 and raises
+# NotImplementedError on 4.6.13 through 5.1.0.
 numpy==1.26.4
 trimesh==4.5.3
 x-transformers==1.26.6
 pytorch-custom-utils==0.0.21
 # transformers is imported at module level by the point-cloud encoder (the CLIPModel import; its
-# weights load is commented out upstream), at the creator's own requirements.txt version family.
+# weights load is commented out upstream). Upstream lists no transformers; 4.57.1 is this recipe's pin,
+# the version the Foley/CHORD stack on this torch proves.
 transformers==4.57.1
 einops
 beartype
