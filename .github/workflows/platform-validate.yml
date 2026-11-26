@@ -57,14 +57,10 @@ jobs:
           path: ${{ runner.temp }}/recipe-tools-cache
           key: recipe-tools-${{ matrix.channel }}-${{ steps.tools.outputs.sha256 }}
 
-      - name: Set up uv as the bundle pins it
+      # The one uv owner (the bundle pins the same uv; forge's floor is below it).
+      - name: Set up tooling
         if: steps.tools.outputs.state != 'absent'
-        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
-        with:
-          version-file: .vonk-forge/.tool-versions
-          python-version: "3.15"
-          enable-cache: true
-          save-cache: ${{ github.ref == 'refs/heads/main' }}
+        uses: ./.github/actions/setup-tooling
 
       # Builds this checkout's index and packages, then validates source policy,
       # archives and runtime compilation (every option choice) with the
@@ -74,7 +70,12 @@ jobs:
       - name: Validate the library with the bundle's entry point
         if: steps.tools.outputs.state != 'absent'
         continue-on-error: ${{ matrix.channel == 'stable' }}
-        run: .vonk-forge/scripts/recipes/validate-recipe-checkout "$GITHUB_WORKSPACE"
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The bundle runs on its own Python (uv fetches it on demand), not the tooling's.
+          UV_PYTHON=$(<.vonk-forge/.python-version) \
+            .vonk-forge/scripts/recipes/validate-recipe-checkout "$GITHUB_WORKSPACE"
 
       # On stable, executed words the platform lacks are warnings; only a
       # contracts major ahead of the platform fails.
