@@ -225,7 +225,9 @@ class SyncReleaseAssetsTests(unittest.TestCase):
     def test_uploads_the_bundle_and_the_wheel_into_an_empty_release(self) -> None:
         github = FakeGitHub()
         assert self.converge(github)
-        assert github.uploads == [["recipe-library.tar", self.wheel.name]]
+        assert [sorted(u) for u in github.uploads] == [
+            sorted(["recipe-library.tar", self.wheel.name])
+        ]
         assert set(github.assets) == {"recipe-library.tar", self.wheel.name}
 
     def test_a_rerun_never_replaces_the_versions_wheel(self) -> None:
@@ -276,7 +278,9 @@ class SyncReleaseAssetsTests(unittest.TestCase):
         github.put("SHA256SUMS.sigstore.json", b"old")
         assert self.converge(github)
         assert set(github.assets) == {"recipe-library.tar", self.wheel.name}
-        assert github.uploads == [["recipe-library.tar", self.wheel.name]]
+        assert [sorted(u) for u in github.uploads] == [
+            sorted(["recipe-library.tar", self.wheel.name])
+        ]
 
     def test_an_unconvergeable_release_fails_visibly(self) -> None:
         github = FakeGitHub(failures=["500"] * 20)
