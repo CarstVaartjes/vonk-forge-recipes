@@ -1,0 +1,52 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "config-ed90095c0d6a-6b6255387b",
+      "path": "HY-Motion-1.0/config.yml",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ed90095c0d6a8032520ebdd14a2294adb43a19916dd84d4751e36dcecb5c6427",
+      "size_bytes": 956
+    },
+    {
+      "id": "latest-4fa91c6085f3-a134064a8f",
+      "path": "HY-Motion-1.0/latest.ckpt",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4fa91c6085f30c49bccda150b28d6c8d0887dc07e6d5d4ec0055482732635f10",
+      "size_bytes": 4171703514
+    },
+    {
+      "id": "license-03e846e8bcaa-d0ed4cc3fb",
+      "path": "LICENSE.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "03e846e8bcaae503dbb878cb5b125b9810d8cac8bfc38b0275c4886759afd81b",
+      "size_bytes": 16087
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "tencent",
+      "slug": "hy-motion-1-0"
+    },
+    "publisher": "tencent",
+    "slug": "hy-motion-1-0-620dd559",
+    "variant": "620dd559",
+    "version": "620dd559"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/tencent/HY-Motion-1.0",
+    "revision": "620dd559f8d964aac2f82f1204fe6a35ad8ad14d"
+  }
+}

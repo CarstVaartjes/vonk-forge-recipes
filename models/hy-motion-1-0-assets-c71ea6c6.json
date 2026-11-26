@@ -1,0 +1,98 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "faces-777b0806d284-a6cfd592c7",
+      "path": "scripts/gradio/static/assets/dump_wooden/faces.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "777b0806d2843c797ed18644eecc11466ff822b33b02d263c22f8ad3730e9bb5",
+      "size_bytes": 290376
+    },
+    {
+      "id": "j-template-4f488cc9d0b6-d90726b93e",
+      "path": "scripts/gradio/static/assets/dump_wooden/j_template.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4f488cc9d0b650a816f5a8eda49eda7bc796f490e9130a6e0dec5be137d7b929",
+      "size_bytes": 624
+    },
+    {
+      "id": "kintree-98a20fa3b531-4a3d3d22e6",
+      "path": "scripts/gradio/static/assets/dump_wooden/kintree.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "98a20fa3b53193790b63d9ac3a9c917f2f70fbe6e053dca495c75317ff4b756a",
+      "size_bytes": 208
+    },
+    {
+      "id": "skinindice-846794fb90ea-6abea36e2c",
+      "path": "scripts/gradio/static/assets/dump_wooden/skinIndice.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "846794fb90ea01e069435ad242caefb3d5c2f913fef3255c247f48836ddc1bda",
+      "size_bytes": 194048
+    },
+    {
+      "id": "skinweights-343eac290262-bbef22d704",
+      "path": "scripts/gradio/static/assets/dump_wooden/skinWeights.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "343eac2902627ee6b45b547eb7d9f1526562eca7ba178d1dc71f9e466f307a77",
+      "size_bytes": 388096
+    },
+    {
+      "id": "v-template-b9fbe1f34bfe-42e1a0b5c8",
+      "path": "scripts/gradio/static/assets/dump_wooden/v_template.bin",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b9fbe1f34bfe8a07442d11166e169318022a18da8bc62ce0a9930dfdb3171050",
+      "size_bytes": 291072
+    },
+    {
+      "id": "mean-a4bbe5f68881-e00aa83eca",
+      "path": "stats/Mean.npy",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a4bbe5f68881fe793d509f262ad3dc698a91f79158a9bde9d6f24d46ef9652bd",
+      "size_bytes": 1736
+    },
+    {
+      "id": "std-6cc86d1ca4b4-3294ba535d",
+      "path": "stats/Std.npy",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6cc86d1ca4b47fbd0e84b677c4397e51b6615abcb34e38fdd9daabbe6a5685cc",
+      "size_bytes": 1736
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "tencent",
+      "slug": "hy-motion-1-0-assets"
+    },
+    "publisher": "tencent",
+    "slug": "hy-motion-1-0-assets-c71ea6c6",
+    "variant": "c71ea6c6",
+    "version": "c71ea6c6"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "provider": "github-lfs",
+    "repository": "https://github.com/Tencent-Hunyuan/HY-Motion-1.0",
+    "revision": "c71ea6c694d8f221c742ff435d9447fa88f91707"
+  }
+}
