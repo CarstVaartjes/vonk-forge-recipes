@@ -1,0 +1,36 @@
+{
+  "capabilities": [
+    "material-estimation"
+  ],
+  "description": "Immutable public snapshot of prs-eth/marigold-normals-v1-1 at 09cfdd25: the fp16 variant (UNet, VAE, text encoder, tokenizer and scheduler, about 2.6 GB) of Marigold surface normal estimation. OpenRAIL++-M; the licence is shown for information and nothing here gates on it.",
+  "family_title": "Marigold",
+  "identity": {
+    "publisher": "prs-eth",
+    "slug": "marigold-normals-v1-1-09cfdd25"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Photogrammetry and Remote Sensing, ETH Zurich (prs-eth)"
+    ],
+    "spdx": "LicenseRef-CreativeML-Open-RAIL-Plus-Plus-M",
+    "url": "https://huggingface.co/prs-eth/marigold-normals-v1-1/blob/09cfdd258cb281fa006cf1afcd2284376d16687d/README.md"
+  },
+  "lineage": {
+    "family": "marigold",
+    "generation": "Marigold v1.1",
+    "line": "marigold-normals",
+    "model": "marigold-normals-v1-1",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "image"
+  ],
+  "model_title": "Marigold Normals v1.1",
+  "tags": [
+    "prs-eth",
+    "marigold",
+    "image",
+    "normals"
+  ]
+}
