@@ -215,7 +215,7 @@ def kit_model_moved(
     was = f"{locked.get('repo', '?')}@{str(locked.get('revision', '?'))[:12]}"
     result.evidence.append(
         f"### Kit dependency `{pin.name}` (model) moved\n\n- locked: {was}\n- declared "
-        f"now: {pin.repo}@{pin.immutable} ({pin.date})\n- {info}\n"
+        f"now: {pin.repo}@{pin.immutable}{f' ({pin.date})' if pin.date else ''}\n- {info}\n"
     )
     if str(locked.get("repo", "")).lower() != pin.repo.lower():
         result.reasons.append(
@@ -241,7 +241,7 @@ def kit_model_moved(
                 provider="huggingface",
                 repo=pin.repo,
                 sha=pin.immutable,
-                date=pin.date,
+                date=pin.date or datetime.now(UTC).date().isoformat(),
                 ref=None,
                 version=None,
                 url=f"https://huggingface.co/{pin.repo}/tree/{pin.immutable}",
