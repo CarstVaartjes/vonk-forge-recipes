@@ -20,8 +20,9 @@ safetensors==0.8.0
 # The creator imports datasets at module level in tangoflux/__init__.py and model.py (load_dataset,
 # Audio); its own pin, installed, never stubbed.
 datasets==2.21.0
-# pyarrow 21 and newer refuse NumPy 1 at import (the lock resolves 26.0.1 without it, and the
-# creator's numpy 1.26.4 stays); 20.0.0 imports with datasets 2.21.0 under numpy 1.26.4.
+# The resolver picks pyarrow 26.0.1 here, which refuses NumPy 1 at import ("pyarrow requires NumPy
+# 2.0 or newer") while the creator's numpy 1.26.4 stays; 20.0.0 (21.0.0 and 22.0.0 too) imports
+# with datasets 2.21.0 under numpy 1.26.4.
 pyarrow==20.0.0
 pyyaml==6.0.3
 tqdm

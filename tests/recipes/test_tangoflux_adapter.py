@@ -37,7 +37,7 @@ def _load(name: str, path: Path) -> Any:
     assert spec.loader
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
-    # A __pycache__ in the adapter directory would change its build context mid-session.
+    # Import without writing bytecode, so the tests leave no __pycache__ in the adapter directory.
     previous = sys.dont_write_bytecode
     sys.dont_write_bytecode = True
     try:
