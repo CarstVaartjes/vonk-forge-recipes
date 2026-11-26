@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/kokoro-82m-fastapi-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "83a1afc36d86a44252306886ff66b333fdb775457057332caa25783ad6f11486",
+        "source_bundle_sha256": "17b0dd7427611e73c802458db17987bf432ccdd675ce1bd26dd558026c86a898",
+        "runtime_image": {
+          "build_key": "bafc0d1db9ca7d4e5ec2223780613ec12429d7a57ed7daefabba8304998855a6",
+          "image_digest": "sha256:e9ec33e387ca734cb51bfe3e5e45b4747f3acd68ddaa5be933773bbec245ad51"
+        },
+        "model_digests": [
+          "ab2b0b961ee5cd29621da8af9981ffca3877db69a743d806dc64cd29f695400b"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "65d783f434cce3a205c65d1fabf46b649f59d4276350113c1da5819d9fbe611c"
+      ],
+      "tested_at": "2026-11-26T22:05:01.268436Z",
+      "platform": {
+        "controller_source_sha": "ff2090813f4a07c51a4c00df3a41cd821035f5ad",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ],
+  "measured_memory": [
+    {
+      "content_sha256": "83a1afc36d86a44252306886ff66b333fdb775457057332caa25783ad6f11486",
+      "role": "entrypoint",
+      "steady_bytes": 7602671616
+    }
+  ]
+}
