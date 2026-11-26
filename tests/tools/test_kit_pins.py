@@ -19,7 +19,7 @@ import unittest
 from email.message import Message
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from urllib.error import HTTPError
 
 import pytest
@@ -845,6 +845,14 @@ class AssessmentTests(unittest.TestCase):
         result = self.assess(KIT_NEW, KIT_NEW, base=("v0.6.0", BASE_060))
         assert not result.drifted
         assert any("v0.6.2" in e and "information" in e for e in result.evidence)
+
+    def test_a_busy_provider_for_release_information_is_not_a_failure(self) -> None:
+        busy = Mock(side_effect=UpstreamBusy("provider returned HTTP 429"))
+        with patch.object(refresh_items.kit_resolve, "newest_information", busy):
+            result = self.assess(KIT_NEW, KIT_NEW, base=("v0.6.0", BASE_060))
+        assert not result.drifted
+        assert not result.unreachable
+        assert any("provider busy" in e for e in result.evidence)
 
     def test_the_v050_to_v060_move_is_a_review_naming_the_declared_base(self) -> None:
         result = self.assess(
