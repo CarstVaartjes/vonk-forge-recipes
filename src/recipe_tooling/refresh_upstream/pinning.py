@@ -12,6 +12,7 @@ from urllib.parse import quote
 from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
 from recipe_tooling.refresh_upstream import http as refresh_http
 from recipe_tooling.refresh_upstream import model as refresh_model
+from recipe_tooling.upstream_http import UpstreamBusy
 
 
 def pick_version_tag(tags: Iterable[dict[str, Any]]) -> dict[str, Any] | None:
@@ -261,6 +262,8 @@ def follow_github_branch(
             committed_at=commit["commit"]["committer"]["date"],
         )
         return _prefer_branch_release(http, repo, target)
+    except UpstreamBusy:
+        raise  # not checked this run: the caller lists the item as unreachable
     except (refresh_http.NotFound, RuntimeError, KeyError, TypeError, AttributeError):
         return None
 
@@ -290,6 +293,8 @@ def _prefer_branch_release(
             branch=target.branch,
             committed_at=commit["commit"]["committer"]["date"],
         )
+    except UpstreamBusy:
+        raise  # not checked this run: the caller lists the item as unreachable
     except (refresh_http.NotFound, RuntimeError, KeyError, TypeError):
         return target
 
@@ -355,6 +360,8 @@ def follow_huggingface_branch(
             access_status=default.access_status,
             branch=name,
         )
+    except UpstreamBusy:
+        raise  # not checked this run: the caller lists the item as unreachable
     except (refresh_http.NotFound, RuntimeError, KeyError, TypeError, AttributeError):
         return None
 

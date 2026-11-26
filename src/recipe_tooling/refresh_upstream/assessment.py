@@ -468,6 +468,8 @@ class Assessor:
             try:
                 old = vendored.fetch_tree(item.repo, item.current)
                 new = vendored.fetch_tree(item.repo, item.target.sha)
+            except UpstreamBusy:
+                raise
             except RuntimeError:
                 return None
             if not (old.complete and new.complete):
@@ -547,6 +549,8 @@ class Assessor:
                     text, relabelled = refresh_classification.retarget_archive_labels(
                         text, item
                     )
+                except UpstreamBusy:
+                    raise
                 except (RuntimeError, OSError) as error:
                     result.reasons.append(
                         f"{item.label}: could not refresh the archive digest label: "

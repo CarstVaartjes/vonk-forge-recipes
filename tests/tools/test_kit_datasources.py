@@ -54,6 +54,7 @@ from recipe_tooling.refresh_upstream import classification as refresh_classifica
 from recipe_tooling.refresh_upstream import http as refresh_http
 from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
+from recipe_tooling.vendored_manifest import VendoredManifest
 from vonk_forge_contracts import read_model
 
 EXAMPLE = json.loads(
@@ -1478,12 +1479,16 @@ class KitOnlyManifestTests(unittest.TestCase):
     def test_a_kit_without_a_base_leaves_the_adapters_own_source(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             directory = self.adapter(Path(tmp), HF_MANIFEST)
-            assert vendored_upstream._source(directory, HF_MANIFEST) == (
+            assert vendored_upstream._source(
+                directory, VendoredManifest.model_validate(HF_MANIFEST)
+            ) == (
                 "o/engine",
                 "a" * 40,
             )
             declared = dict(HF_MANIFEST, source={"repo": KIT, "commit": "b" * 40})
-            assert vendored_upstream._source(directory, declared) == (KIT, "b" * 40)
+            assert vendored_upstream._source(
+                directory, VendoredManifest.model_validate(declared)
+            ) == (KIT, "b" * 40)
 
     def test_a_kit_with_a_base_takes_it_from_the_lock(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1500,7 +1505,12 @@ class KitOnlyManifestTests(unittest.TestCase):
                 }
             }
             directory = self.adapter(Path(tmp), manifest)
-            assert vendored_upstream._source(directory, manifest) is None
+            assert (
+                vendored_upstream._source(
+                    directory, VendoredManifest.model_validate(manifest)
+                )
+                is None
+            )
 
     def test_the_manifest_alone_does_not_make_the_adapter_a_vendored_one(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

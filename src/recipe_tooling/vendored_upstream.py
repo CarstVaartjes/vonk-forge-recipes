@@ -70,6 +70,7 @@ from recipe_tooling.adapter_sources import (
 )
 from recipe_tooling.paths import REPO_ROOT
 from recipe_tooling.upstream_http import UpstreamBusy, fetch
+from recipe_tooling.vendored_manifest import VendoredManifest
 
 ROOT = REPO_ROOT
 
@@ -113,35 +114,6 @@ class AlsoSource:
     repo: str
     commit: str
     files: tuple[str, ...]
-
-
-def parse_also(raw: object) -> tuple[list[AlsoSource], list[str]]:
-    """The typed ``also`` entries and a message for each malformed one."""
-    if not isinstance(raw, list):
-        return [], ["must be a list of {repo, commit, files} objects"]
-    sources: list[AlsoSource] = []
-    problems: list[str] = []
-    for index, entry in enumerate(raw):
-        where = f"entry {index}"
-        if not isinstance(entry, dict):
-            problems.append(f"{where} must be an object, not {type(entry).__name__}")
-            continue
-        repo, commit, files = entry.get("repo"), entry.get("commit"), entry.get("files")
-        if not isinstance(repo, str) or not repo:
-            problems.append(f"{where} needs a repo string 'owner/name'")
-        elif not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
-            problems.append(f"{where} ({repo}) needs a 40-hex commit string")
-        elif (
-            not isinstance(files, list)
-            or not files
-            or not all(isinstance(f, str) and f for f in files)
-        ):
-            problems.append(
-                f"{where} ({repo}) needs files: a non-empty list of path prefixes"
-            )
-        else:
-            sources.append(AlsoSource(repo, commit, tuple(files)))
-    return sources, problems
 
 
 TreeLoader = Callable[[str, str], Tree]
@@ -252,8 +224,8 @@ def fetch_tree(repo: str, commit: str) -> Tree:
     return Tree(blobs, complete)
 
 
-def _source(adapter: Path, manifest: dict[str, Any]) -> tuple[str, str] | None:
-    if "base" in (manifest.get("kit") or {}).get("dependencies", {}):
+def _source(adapter: Path, manifest: VendoredManifest) -> tuple[str, str] | None:
+    if manifest.kit is not None and "base" in manifest.kit.dependencies:
         # The base is what the kit declares, locked by tools/kit-pins; a hand-authored
         # ``source`` beside a declaration is a duplicate pin and is rejected there. (A kit
         # that declares only a model or an image has no base: ``source`` is the kit's own.)
@@ -262,9 +234,8 @@ def _source(adapter: Path, manifest: dict[str, Any]) -> tuple[str, str] | None:
             return None
         entry = json.loads(lock.read_text(encoding="utf-8"))["dependencies"].get("base")
         return None if entry is None else (entry["repo"], entry["commit"])
-    declared = manifest.get("source")
-    if declared:
-        return declared["repo"], declared["commit"]
+    if manifest.source is not None:
+        return manifest.source.repo, manifest.source.commit
     dockerfile = adapter / "Dockerfile"
     text = dockerfile.read_text(encoding="utf-8", errors="replace")
     source, revision = LABEL_SOURCE.search(text), LABEL_REVISION.search(text)
@@ -337,16 +308,20 @@ def check_adapter(
     label = adapter.relative_to(root).as_posix()
     report = Report(label)
     manifest_path = adapter / MANIFEST
-    manifest: dict[str, Any] = (
-        json.loads(manifest_path.read_text()) if manifest_path.is_file() else {}
-    )
+    manifest = VendoredManifest()
+    if manifest_path.is_file():
+        try:
+            manifest = VendoredManifest.model_validate_json(manifest_path.read_text())
+        except ValueError as error:  # incl. pydantic.ValidationError
+            report.problems.append(f"{label}: {MANIFEST} is not valid: {error}")
+            return report
     source = _source(adapter, manifest)
     if source is None:
         report.note = "skipped: no GitHub source and pinned commit"
         return report
     repo, commit = source
     report.source = f"{repo}@{commit[:12]}"
-    mark = (manifest.get("source") or {}).get("unverified")
+    mark = manifest.source.unverified if manifest.source is not None else None
     if mark is not None:
         if mark != unverified_mark(repo, commit):
             report.problems.append(
@@ -377,14 +352,11 @@ def check_adapter(
         else:
             report.note = f"not checked this run: {unread}"
         return report
-    ours = set(manifest.get("ours", []))
-    renamed: dict[str, str] = manifest.get("renamed", {})
-    renamed_dirs: dict[str, str] = manifest.get("renamed_dirs", {})
+    ours = set(manifest.ours)
+    renamed = manifest.renamed
+    renamed_dirs = manifest.renamed_dirs
     files = _local_files(adapter)
-    also_sources, malformed = parse_also(manifest.get("also", []))
-    if malformed:
-        report.problems.extend(f"{label}: {MANIFEST} also {m}" for m in malformed)
-        return report
+    also_sources = [AlsoSource(e.repo, e.commit, tuple(e.files)) for e in manifest.also]
     also: list[tuple[AlsoSource, Tree]] = []
     for extra in also_sources:
         try:
@@ -409,7 +381,7 @@ def check_adapter(
         by_sha[sha].append(path)
         by_name[PurePosixPath(path).name].append(path)
     # A manifest that only says where the kit declares its dependencies claims no files.
-    vendored = bool(set(manifest) - {"kit"})
+    vendored = bool(manifest.model_fields_set - {"kit"})
     unclassified: list[str] = []
     weak_problems: list[str] = []
     for rel in files:
