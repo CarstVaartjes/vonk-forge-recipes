@@ -351,6 +351,8 @@ def _publish(
             "--",
             "src/",
             "tools/",
+            "contracts/",
+            "policy/",
             *assessment.edits,
             cwd=root,
         ).split()

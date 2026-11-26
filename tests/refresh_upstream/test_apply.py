@@ -175,6 +175,29 @@ class MergeGateTests(unittest.TestCase):
             )
             assert number == 7
 
+    def test_a_policy_or_contract_change_on_main_defers_a_stale_run(self) -> None:
+        assessment = refresh_model.Assessment(
+            "recipe", edits={"recipe.json": b"new pin\n"}
+        )
+
+        def git(*arguments: str, **_: object) -> str:
+            # main moved only under contracts/ and policy/
+            if arguments[0] == "diff":
+                watched = {"contracts/", "policy/"} & set(arguments)
+                return "policy/rules.json" if watched else ""
+            return ""
+
+        summary = refresh_publish.Summary()
+        summary.started = "a" * 40
+        with (
+            patch("recipe_tooling.refresh_upstream.github.gh", return_value="[]"),
+            patch("recipe_tooling.refresh_upstream.github.git", side_effect=git),
+        ):
+            number = refresh_publish.publish_mechanical(Path(), assessment, summary)
+
+        assert number is None
+        assert "main changed policy/rules.json" in summary.deferred[0]
+
     def test_existing_armed_pr_does_not_block_a_disjoint_mechanical_merge(self) -> None:
         summary = refresh_publish.Summary()
         summary.healthy = True
