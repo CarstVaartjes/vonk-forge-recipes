@@ -1,0 +1,24 @@
+{
+  "alignment": "unspecified",
+  "description": "Lighting decomposition on one Spark: Marigold IID Lighting v1.1 (ETH Zurich, prs-eth) factors one photo or render into albedo, diffuse shading and a residual (I = A x S + R), which is the decomposition that removes cast shadows from the albedo. It uses the creator's diffusers pipeline and its visualisation (linear to sRGB; shading and residual are up-to-scale and normalised by their maximum). The only setting is the noise seed; steps, processing resolution (768 px) and output resampling are the model's own defaults. Trained on indoor InteriorVerse scenes. Run it beside the Appearance recipe to compare shadow removal on your own props. The weights are OpenRAIL++-M; the licence is shown for information and nothing here gates on it. Memory is an estimate from the 2.6 GB of fp16 weights and 768 px processing; the hardware try decides.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "marigold-iid-lighting-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "knobs": {
+    "seed": {
+      "description": "Noise seed; the same seed and input give the same maps.",
+      "label": "Seed"
+    }
+  },
+  "tags": [
+    "executable",
+    "image",
+    "material-estimation",
+    "pytorch",
+    "single",
+    "spark"
+  ],
+  "title": "Marigold IID Lighting decomposition PyTorch single Spark"
+}

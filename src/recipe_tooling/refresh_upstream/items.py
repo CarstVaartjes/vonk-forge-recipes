@@ -380,11 +380,16 @@ def _commit_target(repo: str, commit: str, built: str) -> refresh_model.Target:
 
 
 def commit_on_github(http: refresh_http.Http, repo: str, commit: str) -> bool | None:
-    """Whether GitHub serves the commit; ``None`` when it cannot be told (404/422: no)."""
+    """Whether GitHub serves the commit; ``None`` when it cannot be told (404/422: no).
+
+    A busy provider raises ``UpstreamBusy``: the item is not checked this run.
+    """
     try:
         http.github(f"repos/{repo}/commits/{commit}")
     except refresh_http.NotFound:
         return False
+    except UpstreamBusy:
+        raise
     except RuntimeError as error:
         return False if str(error).startswith("HTTP 422") else None
     return True
@@ -486,6 +491,19 @@ def collect_items(
         slug: str | None = None,
         line: str | None = None,
     ) -> None:
+        try:
+            _consider(kind, provider, repo, current, slug, line)
+        except UpstreamBusy as error:  # not checked this run, asked again next run
+            result.unreachable.append(f"{provider}:{repo}: {str(error)[:200]}")
+
+    def _consider(
+        kind: str,
+        provider: str,
+        repo: str,
+        current: str,
+        slug: str | None,
+        line: str | None,
+    ) -> None:
         key = (provider, repo.lower())
         if (kind != "model" and key in seen) or not refresh_model.SHA.match(current):
             return
@@ -585,17 +603,20 @@ def collect_items(
     if followed is not None:
         assert source is not None
         seen.add(("github", source[1].lower()))
-        follow_image(
-            result,
-            http,
-            source[1],
-            source[2],
-            followed,
-            kit_source or refresh_http.kit_upstream(http),
-            (refresh_catalog_view.adapter_manifest(context).get("source") or {}).get(
-                "unverified"
-            ),
-        )
+        try:
+            follow_image(
+                result,
+                http,
+                source[1],
+                source[2],
+                followed,
+                kit_source or refresh_http.kit_upstream(http),
+                (
+                    refresh_catalog_view.adapter_manifest(context).get("source") or {}
+                ).get("unverified"),
+            )
+        except UpstreamBusy as error:
+            result.unreachable.append(f"github:{source[1]}: {str(error)[:200]}")
     elif source is not None:
         same = pin is not None and pin.repo.lower() == source[1].lower()
         consider("source", *source, line=line if same else None)
@@ -714,6 +735,8 @@ def pin_is_newer_by_date(
             http.github(f"repos/{repo}/commits/{sha}")["commit"]["committer"]["date"]
             for sha in (pin, release)
         ]
+    except UpstreamBusy:
+        raise  # not checked this run: the item is unreachable, not a decision
     except (RuntimeError, KeyError, TypeError, AttributeError):
         return False
     return dates[0] >= dates[1]
