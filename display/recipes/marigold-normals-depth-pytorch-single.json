@@ -1,0 +1,25 @@
+{
+  "alignment": "unspecified",
+  "description": "Surface normals and depth on one Spark: Marigold Normals v1.1 and Marigold Depth v1.1 (ETH Zurich, prs-eth) run one after the other on one photo or render, with the creator's diffusers pipelines and defaults. The only setting is the noise seed; steps, processing resolution (768 px) and output resampling are the model's own defaults. Output: normal.png (8-bit RGB in the camera frame X right, Y up, Z toward the viewer, which for a fronto-parallel texture is an OpenGL tangent-space map) and depth.png (16-bit grayscale from the creator's 16-bit export; affine-invariant, 0 is near, so invert it to use it as a height map). The weights are OpenRAIL++-M; the licence is shown for information and nothing here gates on it. The two Models share their VAE and tokenizer bytes in the model cache. Memory is an estimate from the 2.6 GB of fp16 weights and 768 px processing; the hardware try decides.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "marigold-normals-depth-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "knobs": {
+    "seed": {
+      "description": "Noise seed; the same seed and input give the same maps.",
+      "label": "Seed"
+    }
+  },
+  "tags": [
+    "executable",
+    "image",
+    "normals",
+    "depth",
+    "pytorch",
+    "single",
+    "spark"
+  ],
+  "title": "Marigold Normals and Depth PyTorch single Spark"
+}
