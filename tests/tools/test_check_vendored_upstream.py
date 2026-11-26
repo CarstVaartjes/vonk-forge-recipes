@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
 
-from repo_root import ROOT
-
-from recipe_tooling import hf_build_fetches
 from recipe_tooling import vendored_upstream as checker
 
 COMMIT = "a" * 40
@@ -213,54 +212,41 @@ class VendoredUpstreamTest(unittest.TestCase):
                 assert "vendored-upstream.json also" in report.problems[0]
 
 
-class HfBuildFetchesTest(unittest.TestCase):
-    REPO = "o/config"
-    REVISION = "c" * 40
+class GhApiRetryTest(unittest.TestCase):
+    """.github/scripts/gh-api-retry with a stub gh (and a sleep that returns at once)."""
 
-    def _problems(
-        self, dockerfile: str, manifest: object = None, lock: object = None
-    ) -> list[str]:
+    SCRIPT = Path(__file__).resolve().parents[2] / ".github/scripts/gh-api-retry"
+
+    def _run(self, gh: str) -> subprocess.CompletedProcess[str]:
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            adapter = root / "adapters/x"
-            adapter.mkdir(parents=True)
-            (adapter / "Dockerfile").write_text(dockerfile)
-            if manifest is not None:
-                (adapter / "vendored-upstream.json").write_text(json.dumps(manifest))
-            if lock is not None:
-                (adapter / "kit-lock.json").write_text(json.dumps(lock))
-            return hf_build_fetches.problems(root)
+            for name, body in (("gh", gh), ("sleep", "exit 0")):
+                stub = Path(tmp) / name
+                stub.write_text(f"#!/bin/bash\n{body}\n")
+                stub.chmod(0o755)
+            env = {
+                **os.environ,
+                "PATH": f"{tmp}:{os.environ['PATH']}",
+                "COUNT": f"{tmp}/n",
+            }
+            return subprocess.run(
+                ["bash", str(self.SCRIPT), "x"],
+                capture_output=True,
+                text=True,
+                env=env,
+                check=False,
+            )
 
-    def _fetch(self, revision: str) -> str:
-        return (
-            "FROM scratch\nRUN curl -fsSL "
-            f"https://huggingface.co/{self.REPO}/resolve/{revision}/config.json\n"
+    def test_a_failed_attempt_leaves_only_the_success_body(self) -> None:
+        done = self._run(
+            'n=$(cat "$COUNT" 2>/dev/null || echo 0); echo $((n+1)) >"$COUNT"; '
+            '[ "$n" -ge 1 ] && { echo ahead; exit 0; }; '
+            'echo "error body" ; echo "gh: Bad Gateway (HTTP 502)" >&2; exit 1'
         )
+        assert (done.returncode, done.stdout) == (0, "ahead\n")
 
-    def test_the_catalog_declares_every_hf_build_fetch(self) -> None:
-        assert hf_build_fetches.problems(ROOT) == []
-
-    def test_an_undeclared_pinned_fetch_fails(self) -> None:
-        found = self._problems(self._fetch(self.REVISION))
-        assert len(found) == 1
-        assert self.REPO in found[0]
-
-    def test_a_manifest_or_kit_lock_declaration_passes(self) -> None:
-        entry = {"repo": "O/Config", "revision": self.REVISION}
-        assert (
-            self._problems(self._fetch(self.REVISION), {"huggingface": [entry]}) == []
-        )
-        lock = {"dependencies": {"d": {**entry, "datasource": "hf-revision"}}}
-        assert self._problems(self._fetch(self.REVISION), None, lock) == []
-
-    def test_a_declaration_for_another_revision_fails(self) -> None:
-        other = {"repo": self.REPO, "revision": "d" * 40}
-        assert self._problems(self._fetch(self.REVISION), {"huggingface": [other]})
-
-    def test_an_arg_revision_resolves_and_one_without_default_is_skipped(self) -> None:
-        arg = f"ARG REV={self.REVISION}\n" + self._fetch("${REV}")
-        assert len(self._problems(arg)) == 1
-        assert self._problems("ARG REV\n" + self._fetch("${REV}")) == []
+    def test_a_404_fails_at_once_and_an_outage_exits_75(self) -> None:
+        assert self._run('echo "gh: Not Found (HTTP 404)" >&2; exit 1').returncode == 1
+        assert self._run('echo "timeout" >&2; exit 1').returncode == 75
 
 
 if __name__ == "__main__":

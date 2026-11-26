@@ -129,7 +129,7 @@ def mamba_cache_mode(recipe: RecipeDefinition) -> MambaCacheMode:
     "align".
 
     vLLM main (9a4930a797, PR #63830) removed --mamba-cache-mode: prefix
-    caching on is always "align"; the flag is never read. An omitted prefix-caching flag counts as
+    caching on is always "align", whatever a recipe still passes. An omitted prefix-caching flag counts as
     on: v0.27 keeps hybrid prefix caching opt-in (arg_utils.py
     default_prefix_caching), but nightly 3f1bcfd8 defaults it to
     is_prefix_caching_supported, and "align" never needs fewer blocks.
