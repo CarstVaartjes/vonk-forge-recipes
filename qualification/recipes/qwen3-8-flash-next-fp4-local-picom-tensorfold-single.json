@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/qwen3-8-flash-next-fp4-local-picom-tensorfold-single",
+  "service_recipes": {
+    "alias": "qwen3.8-flash-next",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT",
+      "V7"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded 3-stream concurrency and long-context canaries, with the first-start model load and the two-stage draft head file's creation recorded separately"
+      ],
+      "recovery": [
+        "Controller stop/start with warm restart"
+      ]
+    }
+  }
+}

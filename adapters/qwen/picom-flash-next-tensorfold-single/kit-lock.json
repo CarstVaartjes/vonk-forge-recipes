@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "engine": {
+      "commit": "eab8582819688325e371907e4706e1c602b8a273",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "eab8582819688325e371907e4706e1c602b8a273",
+      "repo": "ashhart/TensorFold"
+    },
+    "mia-kit": {
+      "commit": "20e15e41f2f514a0d287710f4665ee1b5009ba41",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "20e15e41f2f514a0d287710f4665ee1b5009ba41",
+      "repo": "MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "b9ce18a6887e18c089fdea8509a33e63429a3300",
+      "repo": "nvidia/Qwen3.8-Flash-Next-FP4-Local",
+      "revision": "b9ce18a6887e18c089fdea8509a33e63429a3300"
+    }
+  },
+  "kit": {
+    "commit": "ba679439e8e87994223f15bca572376557061fea",
+    "repo": "Picom-code/pico-dgx-qwen38"
+  }
+}
