@@ -1206,7 +1206,9 @@ repository's newest revision or an image repository's newest tag.
   - `oci-image`: a tag (or digest) of a container image repository, locked as the digest of
     its `linux/arm64` manifest.
 - **Lock.** `tools/kit-pins lock <recipe>` derives `kit-lock.json` from the kit commit the
-  recipe pins: each declared value resolved once to an immutable one (a Git commit, a Hugging
+  recipe pins: each declared value resolved once to an immutable one (a declared full commit id is recorded
+  as it is, with no provider read, so a repository the provider no longer serves cannot block
+  it; tags, branches and short ids are resolved; a Git commit, a Hugging
   Face revision, an image digest), recorded with what it named (`"kind"`: `tag`, `branch`,
   `commit` or `digest`). `kit-lock.json` is generated output and is never edited by hand.
   Builds read only the lock and never resolve a tag. `lock` also moves what follows it: the

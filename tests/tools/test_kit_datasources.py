@@ -516,11 +516,33 @@ class HfDerivationTests(unittest.TestCase):
         )[0]
         assert (pin.ref, pin.kind, pin.immutable) == ("main", "branch", NEW_REV2)
 
-    def test_a_repository_that_is_not_anonymously_readable_cannot_be_locked(
+    def test_a_declared_full_commit_is_its_own_pin_without_a_provider_read(
         self,
     ) -> None:
+        pin = self.derive(KIT_TR3, hub=hub_for(private=(TR3,)))[1]
+        assert (pin.repo, pin.immutable, pin.kind) == (TR3, TR3_REV, "commit")
+
+    def test_an_abbreviated_revision_of_an_unreadable_repository_cannot_be_locked(
+        self,
+    ) -> None:
+        manifest = json.loads(json.dumps(HF_MANIFEST))
+        manifest["kit"]["dependencies"] = {
+            "model": dict(
+                manifest["kit"]["dependencies"]["model"],
+                pattern=r"^REVISION=(?P<version>[0-9a-f]{7,40})$",
+                repo=TR3,
+            )
+        }
         with pytest.raises(kit_model.KitError, match="cannot resolve .*TR3"):
-            self.derive(KIT_TR3, hub=hub_for(private=(TR3,)))
+            kit_resolve.derive(
+                KIT,
+                "4" * 40,
+                kit_declarations.declarations(manifest),
+                upstream(
+                    FakeApi({"4" * 40: f"REVISION={TR3_REV[:8]}\n"}),
+                    hub=kit_upstream.HuggingFace(hub_for(private=(TR3,))),
+                ),
+            )
 
     def test_an_override_replaces_the_declared_repository_and_revision(self) -> None:
         pin = self.derive(
