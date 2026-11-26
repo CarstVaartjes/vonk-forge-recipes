@@ -34,3 +34,8 @@ pyyaml
 # mesh2sdf, point-cloud-utils, meshgpt-pytorch, classifier-free-guidance-pytorch,
 # vector-quantize-pytorch, ema-pytorch, torch_geometric, torchtyping, matplotlib, wandb, pyrr,
 # opencv-python, pyrender, open3d-python, easydict, chardet), which inference never imports.
+
+# vonk-agent-protocol 4.1.0 requirements (jsonschema>=4.26.0, pydantic>=2.13.5): the wheel is
+# installed with --no-deps, so the hash lock carries them (as in adapters/three-d/kimodo).
+pydantic==2.13.5
+jsonschema==4.26.0
