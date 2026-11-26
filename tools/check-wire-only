@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+"""Reject an added line in the contracts wheel that is not wire (G2).
+
+The wheel (``contracts/src/**.py``) holds what a consumer imports or reaches through
+an imported model's fields: the models, the readers and the shared pure helpers. A
+producer-side check over a library lives in ``recipe_tooling``. An added line fails when it
+
+* defines a public top-level function that ``SHARED_FUNCTIONS`` (in the package
+  ``__init__.py``, the one owner list) does not name; or
+* adds filesystem traversal: ``glob(``, ``rglob(``, ``.iterdir(``, ``os.walk(``, ``open(``, ``.read_text(``, ``.read_bytes(`` or a
+  parameter named ``library_root`` or ``root: Path``.
+
+Only lines added by the diff given with ``--diff FILE|-`` are checked. There is no
+count and no allowlist: name the function in ``SHARED_FUNCTIONS`` or move it out.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import re
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from recipe_tooling.added_lines import parse_added, read_diff
+
+ROOT = Path(__file__).resolve().parents[1]
+
+WHEEL = "contracts/src/"
+OWNER_LIST = "contracts/src/vonk_forge_contracts/__init__.py"
+TRAVERSAL = re.compile(
+    r"\bglob\(|\brglob\(|\.iterdir\(|\bos\.walk\(|\bopen\(|\.read_text\(|\.read_bytes\("
+    r"|\blibrary_root\b|\broot\s*:\s*Path\b"
+)
+
+
+def judged(name: str) -> bool:
+    return name.startswith(WHEEL) and name.endswith(".py")
+
+
+def shared_functions(source: str) -> set[str]:
+    """The names the ``SHARED_FUNCTIONS`` assignment of the package ``__init__`` lists."""
+    for node in ast.parse(source).body:
+        target = (
+            node.target
+            if isinstance(node, ast.AnnAssign)
+            else node.targets[0]
+            if isinstance(node, ast.Assign)
+            else None
+        )
+        if isinstance(target, ast.Name) and target.id == "SHARED_FUNCTIONS":
+            value = getattr(node, "value", None)
+            if isinstance(value, ast.Tuple):
+                return {
+                    item.value
+                    for item in value.elts
+                    if isinstance(item, ast.Constant) and isinstance(item.value, str)
+                }
+    raise SystemExit(f"{OWNER_LIST}: no SHARED_FUNCTIONS tuple of names")
+
+
+def scan(source: str, added: set[int], shared: set[str]) -> list[tuple[int, str]]:
+    """The (line, reason) of each added line that is not wire."""
+    hits = [
+        (node.lineno, f"public function {node.name} is not in SHARED_FUNCTIONS")
+        for node in ast.parse(source).body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and not node.name.startswith("_")
+        and node.name not in shared
+        and node.lineno in added
+    ]
+    rows = source.splitlines()
+    for number in sorted(added):
+        text = rows[number - 1] if 0 < number <= len(rows) else ""
+        if not text.lstrip().startswith("#") and TRAVERSAL.search(text):
+            hits.append((number, "filesystem traversal belongs in recipe_tooling"))
+    return sorted(hits)
+
+
+def check(root: Path, diff: str) -> list[str]:
+    added = parse_added(diff, judged)
+    wheel = {name: lines for name, lines in added.items() if judged(name)}
+    if not wheel:
+        return []
+    shared = shared_functions((root / OWNER_LIST).read_text(encoding="utf-8"))
+    return [
+        f"{name}:{number}: {reason}; a producer-side check lives in recipe_tooling"
+        for name, lines in sorted(wheel.items())
+        for number, reason in scan(
+            (root / name).read_text(encoding="utf-8"), lines, shared
+        )
+    ]
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
+    parser.add_argument(
+        "--diff",
+        required=True,
+        help="unified -U0 diff to judge: a file, or - for stdin",
+    )
+    parser.add_argument("--root", type=Path, default=ROOT)
+    arguments = parser.parse_args()
+    problems = check(arguments.root, read_diff(arguments.diff))
+    print("\n".join(problems))
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

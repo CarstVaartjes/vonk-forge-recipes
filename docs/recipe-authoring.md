@@ -23,7 +23,7 @@ matching recipe, resolved Models and recorded topology retain local proof unless
 image-bound evidence establishes a different runtime. Restoring that proof must
 retain its measured identity, never fill missing pins from the current library.
 
-`RecipeQualificationEvidence` and `derive_status` are the authority. Evidence lives
+`RecipeQualificationEvidence` and `derive_status` (`recipe_tooling.qualification.status`) are the authority. Evidence lives
 separately in `qualification/evidence/<publisher>/<recipe-slug>.json`; recording
 it never changes the recipe's content digest. Each record binds recipe
 `content_sha256`, resolved runtime image digest/build key, Model digests, test
@@ -135,7 +135,7 @@ A document holds execution data only. What a person or a filter reads about it
 (titles, description, tags, and a Model's `modalities`, `capabilities` and
 `license`) lives in its display file, `display/recipes/<slug>.json`
 or `display/models/<slug>.json`, one per document and no orphan (`RecipeDisplay`,
-`ModelDisplay`, checked by `validate_library`). A display edit never changes a
+`ModelDisplay`, checked by `recipe_tooling.library_checks.validate_library`). A display edit never changes a
 document, its `content_sha256`, its evidence or its proven status; a change that
 alters what runs edits the document. Read display through `src/recipe_tooling/qualification/documents.py`
 (`recipe_display`, `model_display`), never off a document.
@@ -145,7 +145,7 @@ head, an engram source, an encoder or VAE taken from another Model, a weight
 part. Absent, every binding is an endpoint. List every binding whose Model is a
 component in this recipe, whatever its display capabilities are today;
 co-served Models (a TTS voice-design and base pair) and a base the recipe's
-LoRA or distilled weights run on stay endpoints. `validate_library` refuses an id
+LoRA or distilled weights run on stay endpoints. `library_checks.validate_library` refuses an id
 the recipe does not bind and a display that lists every binding. The served
 capabilities, the qualification vision check (`multimodal`) and `tools/check-recipe-api`
 read endpoint Models only, through `RecipeDisplay.is_endpoint`.
@@ -157,8 +157,8 @@ physical acceptance or qualification, and no recipe carries the `candidate` or
 ### Recipe API facts
 
 Each catalog entry carries `served_capabilities`, the capabilities its launch
-serves (names from the capability vocabulary), derived by the contract's
-`served_capabilities` and never authored: the endpoint Models' display
+serves (names from the capability vocabulary), derived by
+`recipe_tooling.qualification.api_checks.served_capabilities` and never authored: the endpoint Models' display
 capabilities (`endpoint_capabilities`; a `component_bindings` entry's Model never
 counts), with the input understanding ones taken from what the API accepts (any option
 choice counts), and `tool-use` / `reasoning` dropped when every chat block says
@@ -225,7 +225,7 @@ block in `option_choices` (`{option, value, api}`); it replaces the base block a
 a whole, applied by `RecipeApi.for_choices` the way `with_option_choices`
 applies arguments. Only one option of a recipe may carry blocks.
 
-`check_recipe_api(recipe, api)` is the structural check, run for the base route
+`check_recipe_api(recipe, api)` (`recipe_tooling.qualification.api_checks`, a producer-side check, not in the wheel) is the structural check, run for the base route
 and for every option choice against the runtime that choice compiles to: image,
 video or audio input conflicts with `--language-model-only` or a
 `--limit-mm-per-prompt` of 0 on vLLM; the engine's context argument
@@ -274,19 +274,24 @@ so a recipe uses a new kind only after the Controller reads this contract
 version. Examples: `recipe-audio-serving.json` (`tests/recipes/test_audio_serving_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v5.8.0`). New or changed models
-and recipes never change it: publication updates that release in place and
-records when it was last updated, and vonk-forge follows the newest release
-within its contract major version, so recipe changes never need a vonk-forge
-release. A change to the contract itself bumps `CONTRACT_VERSION`: once
-`v<CONTRACT_VERSION>` is released, validate.yml refuses any change under
-`contracts/src` until `_version.py` names a new version.
+semantic version (`CONTRACT_VERSION`). New or changed models and recipes never
+change it: publication updates that release in place and records when it was
+last updated, and vonk-forge follows the newest release within its contract
+major version, so recipe changes never need a vonk-forge release. Nobody sets
+the version by hand: publication computes it from the change class of the
+schemas and examples since the last release (`tools/contract-version`, see
+AGENTS.md), and `_version.py` keeps only `CONTRACT_MAJOR` and its placeholder.
+A contract change never names the version it will ship in; the
+"Contract change class" check on the PR shows the class it computes. A new field
+is born optional and absent when unset: a new required field on an existing
+model is breaking.
 
-- **Patch:** a fix that keeps every published field, meaning and public API,
-  such as a stricter check of a value producers already write.
+- **Patch:** a change under `contracts/src` that keeps every schema and example
+  byte, such as a fix, a new function or a stricter check in code of a value
+  producers already write.
 
-- **Additive (minor):** add an optional field or a new public API without
-  changing existing wire requirements (`4.9.0` added the `read_catalog` reader). The Controller reads published documents with `read_model` and
+- **Additive (minor):** add an optional field, a model, an enum member or an
+  example, or relax a requirement, without changing existing wire requirements. The Controller reads published documents with `read_model` and
   `read_recipe`, which ignore fields they do not know, and identifies each
   document by the `document_sha256` of its published JSON, so an older
   Controller keeps working and picks the field up when vonk-forge upgrades.
@@ -295,7 +300,7 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`: once
   `CapabilityRole` (understanding, generator or other) that guards read instead
   of parsing names. A new capability is a contract minor release: add the name
   and its role there, and its label, description and category to `CAPABILITY_TEXT`
-  in `vocabulary.py` (import fails without it), release it, and let the Controller adopt it before a
+  in `vocabulary.py` (the catalog build fails without it), release it, and let the Controller adopt it before a
   catalog declares the name. Authoring refuses a name it does not list. A consumer
   reading the index with `read_catalog` (4.9.0 and later) keeps the entry and the
   word as an `UnrecognisedWord`, and so it does with a modality, an alignment, an
@@ -306,7 +311,8 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`: once
   new word never overflows one. A Controller pinned before 4.9.0 loses what it
   cannot read, so the adoption order still applies.
 - **Breaking (major, for example `3.0.0`, which moved display text out of the documents, `4.0.0`, which moved a Model's modalities, capabilities and licence into its display, and `5.0.0`, which removed `identity.family` from the Model in favour of the display `lineage`):** remove or rename a field, make one required,
-  or change a field's meaning. Making a required field optional also needs
+  or change a field's meaning. Raise `CONTRACT_MAJOR` in `_version.py` by one in the
+  same PR; the change class check fails a breaking change without it. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
   unknown fields does not let an old reader accept a missing required field.
   Deploy it consumer-first: pin this recipes commit in vonk-forge, deploy it,
@@ -744,7 +750,7 @@ swap rules) produce **WARNING** lines in `tools/build-catalog-index` and
 “Memory estimate mismatches” issue lists only estimates that cannot be computed
 (missing sourced inputs), never disagreements. They never fail a build or a PR, rewrite a recipe
 or assign a “does not fit” verdict. Qualification status comes only
-from `qualification/evidence/` and the shared `derive_status` reducer. There is
+from `qualification/evidence/` and the shared `derive_status` reducer (`recipe_tooling.qualification.status`). There is
 no second pass/failure list in memory inputs; that file contains numerical
 geometry, source references and the immutable content baseline only. Preserve all
 unrelated recipe bytes.
@@ -1438,7 +1444,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-recipe-model-references`, `tests/recipes/test_recipe_model_references.py`, `tests/tools/test_display_split.py` | Every pinned Model/file exists at the exact digest, and every Recipe and Model has exactly one display file and none is orphaned. Catalog the missing immutable Model or update all bindings together; add or remove the display with its document. |
 | `tools/check-model-families`, `tests/tools/test_check_model_families.py` | One consistent catalog hierarchy in the displays. Add the Family/Line/Model to `display/families` or correct the Model display's `lineage`; never a format in a Family or Line. |
 | `tools/check-recipe-topology --base origin/main`, `tests/recipes/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
-| validate.yml "Require a contract version bump for a changed contract" | `contracts/src` equals the released `v<__version__>` tag. Bump `__version__` in `contracts/src/vonk_forge_contracts/_version.py` (patch, minor or major as above). |
+| validate.yml "Contract change class", `tests/tools/test_contract_version.py` | `_version.py` holds `CONTRACT_MAJOR` and the placeholder `"<CONTRACT_MAJOR>.0.0"` (never a hand-set version), and a breaking change raises `CONTRACT_MAJOR` by one. Restore the placeholder, make a new field optional, or raise the major for an intended break. |
 | `tests/tools/test_catalog_reader.py` | The consumer reader keeps every readable entry: an unknown word stays as an `UnrecognisedWord`, an unreadable optional block is dropped while its entry stays, an entry with malformed execution data is skipped, and only a wrong envelope or major or a digest mismatch refuses the index. Keep producer validation strict; change the reader's rules in `catalog_reader.py` only. |
 | `tests/recipes/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. A multi-node recipe that sets `NCCL_NET=IB` (no socket fallback) on an `nvidia/cuda` adapter must install `ibverbs-providers` in the Dockerfile's final stage. Repair the launcher, display or image packages; do not publish placeholder tags. |
 | `tests/recipes/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
@@ -1465,6 +1471,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-test-git`, `tests/tools/test_check_test_git.py` | An added test line runs git (an argv headed `git`, a `git`-named helper, `git ...` in a shell string, a `GIT_*` env key). Tests never use git: the tool under test takes its changed set, commit or epoch as an argument and the CI step or hook supplies it from git; feed it diff text (`tests/added_diff.py`). Only added lines are checked and there is no allowlist. |
 | Ruff `TID251` (`[tool.ruff.lint.flake8-tidy-imports.banned-api]` in `pyproject.toml`) | `urllib.request.urlopen`, `build_opener` or `HTTPRedirectHandler` anywhere outside `src/recipe_tooling/upstream_http.py`, in any file, not only added lines. `upstream_http` drops `Authorization` when a redirect leaves the original scheme and host (Docker Hub's presigned blob URLs answer 400 to a Bearer header), so a new redirect policy belongs there. Open provider URLs through `fetch` there (bounded retry, `Retry-After`, per-host busy memory); a persistent 429/503 is `UpstreamBusy`, "not checked this run", never an issue. A caller that must not retry goes through `open_once` in the same module: `src/recipe_tooling/refresh_auth.py` (the App credential exchange: POST, a GET of `/installation` and a DELETE; a security edge, never retried), `src/recipe_tooling/adapter_sources.py` (its own jittered retry with mirror fallback), a local fixture server in a test. `spark_sweep/smoke.py` keeps its own `urlopen` with a reasoned `noqa: TID251`: it opens the served recipe's own endpoint, not a provider, and the sweep layer may not import `recipe_tooling.upstream_http` (`tests/tools/test_package_import_direction.py`). `tools/prepare-remote-code-smoke` runs inside the image and holds the opener only as script text. |
 | `tools/check-nccl-ib-hca`, `tests/tools/test_check_nccl_ib_hca.py` | An added line under `adapters/` (scripts and extensionless launchers too, not `.md`/`.rst`/`.txt`) that assigns `NCCL_IB_HCA` to anything but the inherited platform value (`$NCCL_IB_HCA`, `environ["NCCL_IB_HCA"]`, optionally with a `${NCCL_IB_HCA:-...}` default). Each 200 Gb/s port is two RDMA devices and the helper names both; one device cuts the link to about 112 Gb/s. Read or forward the variable, never set it. Only added lines count. |
+| `tools/check-wire-only`, `tests/tools/test_check_wire_only.py` | An added line under `contracts/src/` defines a public top-level function not named in `SHARED_FUNCTIONS` (`vonk_forge_contracts/__init__.py`, the one owner list), or walks the filesystem (`glob(`, `rglob(`, `.iterdir(`, `os.walk(`, `open(`, `.read_text(`, `.read_bytes(`, a `library_root` or `root: Path` parameter). The wheel is wire only; a check over the library or a status derivation lives in `src/recipe_tooling` (`library_checks`, `qualification/status`, `qualification/api_checks`). Name a new shared function in the list, or move the code out. Only added lines count. |
 | `tools/check-final-stage-ldd`, `tests/tools/test_check_final_stage_ldd.py` | An added or final-stage-changed adapter Dockerfile on a plain CUDA runtime/base image copies a binary into `bin/` without `RUN ! ldd <binary> \| grep "not found"`. Only added lines count. |
 | `src/recipe_tooling/added_lines.py`, `tests/tools/test_added_lines.py` | The one parser of the diff the added-line guards read (the `check-*` guards above, `check-model-construction-device`, `check-writable-state-env`). A block the same diff deletes unchanged (a verbatim move or split; one uniform indentation shift allowed; Python launchers and `.py` count as one file type) is not an addition, so moving code does not re-surface old findings. Each guard passes its own `judged` predicate, and a deletion pays only when it judges both the file the block left and the file it entered: a block leaving an exempt owner or an out-of-scope file is still new work where it lands. A deleted block pays for one copy only; an edited or copied line stays added. A guard whose verdict depends on context (`check-serial-reads` reads the loop line, `check-estimate-gates` the test function) judges again when that context gained a line. |
 | `tests/tools/test_guard_paths_exist.py` | Every repository path a guard names matches at least one path in the tree: slash literals, `ROOT / "a" / "b"` chains and bare top-level names (`RECIPES = "recipes"`) in the `tools/check-*` scripts and `src/recipe_tooling/added_lines.py`; the same kinds of scope in four test-side scans (`test_admissible_memory_declarations`, `test_admission_maximum_cap`, `test_own_pulls`, `test_qualification_evidence_publisher`); both `single-source-values.json` files; and each `LAYERS` directory must also own a file the import-direction walker reads (`.py` or a shebang launcher). It catches a scope whose directory disappeared. It does NOT protect a prefix scope on a directory that survives the move (`tools/` after code leaves it still exists): a review of a move must re-point those by hand. The first segment is a listed name or a current top-level directory, so a new directory such as `src/` is covered. Write scopes as plain literals or `/` chains. No allowlist. |
@@ -1649,7 +1656,12 @@ Commit authored sources only. `catalog-index.json`,
 `qualification/coverage/` are build outputs: Git ignores them, CI builds and
 validates them for every pull request, and publication builds them from the
 release commit. The release also ships `catalog-index-v2.schema.json`, the generated schema of the
-`CatalogIndex` contract that `catalog-index.json` is built through. Build them locally with one command when a tool or test outside
+`CatalogIndex` contract that `catalog-index.json` is built through, and
+`future-canary-index.json`, the future vector (`tools/build-future-vector`): the index with an
+unknown word at every closed-word site outside an execution document (the build fails if the contract reader does not keep it), an unknown field on every closed object and
+one recipe entry with an unknown serving kind. A consumer reads it on its own release and must
+keep every entry but that one; `tests/tools/test_future_vector.py` runs the same proof against the
+contract reader, and a new tolerant site is found by the schema walk, never added by hand. Build them locally with one command when a tool or test outside
 the suite needs them:
 
 ```bash

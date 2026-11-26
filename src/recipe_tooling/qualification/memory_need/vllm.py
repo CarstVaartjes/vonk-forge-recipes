@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from recipe_tooling.qualification.api_checks import (
+    CONTEXT_ARGUMENTS,
+)
 from recipe_tooling.qualification.memory_need import args as mn_args
 from recipe_tooling.qualification.memory_need.geometry import (
     HYBRID_ARCHITECTURES,
@@ -19,7 +22,6 @@ from vonk_forge_contracts import (
     ModelDefinition,
     RecipeDefinition,
 )
-from vonk_forge_contracts.api_checks import CONTEXT_ARGUMENTS
 
 
 def cache_need_for_context(

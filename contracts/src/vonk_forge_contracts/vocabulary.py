@@ -5,8 +5,8 @@ and, here, their user-facing text: a capability's label, description and
 category, a status's meaning and whether it counts as verified on a Spark. The
 release index publishes this vocabulary, so the site, the Controller UI and
 vonkctl render the same words from the release they serve instead of keeping
-hand copies. Every enum member must have an entry; a missing one fails at
-import, so the vocabulary is complete by construction.
+hand copies. Every enum member must have an entry; the producer checks that when it builds
+the index (``recipe_tooling.library_checks.require_complete_vocabulary``).
 
 A status counts as verified only when a real hardware pass backs the current
 content, which is ``Working``. Published names are plain strings, so a reader on
@@ -15,7 +15,7 @@ an older minor tolerates a name a newer minor adds.
 
 from __future__ import annotations
 
-from collections.abc import Collection, Mapping
+from collections.abc import Mapping
 from enum import StrEnum
 from typing import NamedTuple
 
@@ -190,22 +190,6 @@ STATUS_TEXT: Mapping[QualificationStatus, StatusText] = {
         "No hardware verdict yet; the reason is shown under the badge.", False
     ),
 }
-
-
-def require_complete(
-    name: str, entries: Collection[object], members: Collection[object]
-) -> None:
-    """Raise unless ``entries`` covers exactly ``members``."""
-
-    missing = sorted(str(m) for m in set(members) - set(entries))
-    extra = sorted(str(e) for e in set(entries) - set(members))
-    if missing or extra:
-        raise RuntimeError(f"{name} vocabulary: missing {missing}, unknown {extra}")
-
-
-require_complete("capability", CAPABILITY_TEXT, CapabilityName)
-require_complete("status", STATUS_TEXT, QualificationStatus)
-require_complete("category", CATEGORY_LABEL, CapabilityCategory)
 
 
 class _VocabularyContract(BaseModel):

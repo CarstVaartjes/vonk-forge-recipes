@@ -23,7 +23,9 @@ from functools import partial
 from pathlib import Path
 from typing import Any, NoReturn, TypeIs
 
-from vonk_forge_contracts.qualification_status import QualificationGlbProfile
+from recipe_tooling.qualification.status import (
+    QualificationGlbProfile,
+)
 
 from .smoke import AssertionFailed, strict_json
 

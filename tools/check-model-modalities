@@ -35,6 +35,10 @@ from typing import get_args
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from recipe_tooling.added_lines import read_diff
+from recipe_tooling.qualification.api_checks import (
+    INPUT_MODALITY_CAPABILITIES,
+    api_variants,
+)
 from recipe_tooling.qualification.documents import (
     has_recipe_api,
     model_display,
@@ -49,7 +53,6 @@ from vonk_forge_contracts import (
     RecipeDefinition,
 )
 from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone, Endpoint
-from vonk_forge_contracts.api_checks import INPUT_MODALITY_CAPABILITIES, api_variants
 
 ROOT = Path(__file__).resolve().parents[1]
 

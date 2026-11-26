@@ -4,8 +4,10 @@ The package exports the two author-facing roots, ``ModelDefinition`` and
 ``RecipeDefinition``, and the qualification authority the maintainer campaign
 reads. ``CONTRACT_VERSION`` is the semantic version of these contracts, and it
 is also the recipe library's release version: an optional or additive change is
-a minor release, a breaking change a major one. Recipe content changes never
-change it; a release records when its recipes were last updated instead.
+a minor release, a breaking change a major one. Publication computes it from the
+change class; a source tree carries the placeholder ``<CONTRACT_MAJOR>.0.0``, so
+compare only ``CONTRACT_MAJOR``. Recipe content changes never change it; a
+release records when its recipes were last updated instead.
 
 Consumers read published documents with ``read_model``/``read_recipe``, which
 ignore fields a newer minor release added, and identify a document by the
@@ -18,7 +20,9 @@ at integrity edges (``CatalogIndexRefused``).
 
 from __future__ import annotations
 
-from vonk_forge_contracts._version import __version__
+from typing import Final
+
+from vonk_forge_contracts._version import CONTRACT_MAJOR, __version__
 from vonk_forge_contracts.api import (
     ApiBlock,
     AudioSpeechApi,
@@ -29,13 +33,6 @@ from vonk_forge_contracts.api import (
     RecipeApiOptionChoice,
     read_recipe_api,
     require_api_of,
-)
-from vonk_forge_contracts.api_checks import (
-    RecipeApiError,
-    check_api_models,
-    check_recipe_api,
-    endpoint_capabilities,
-    served_capabilities,
 )
 from vonk_forge_contracts.canonical import (
     canonical_json,
@@ -131,10 +128,8 @@ from vonk_forge_contracts.qualification_status import (
     QualificationTopology,
     QualificationUnverifiedReason,
     RecipeQualificationEvidence,
-    derive_status,
     published_measured_memory_json_schema,
     published_qualification_status_json_schema,
-    published_status,
     qualification_evidence_json_schema,
     qualification_status_json_schema,
 )
@@ -150,7 +145,53 @@ from vonk_forge_contracts.vocabulary import (
 )
 
 CONTRACT_VERSION = __version__
-CONTRACT_MAJOR = int(CONTRACT_VERSION.split(".", 1)[0])
+
+# The one owner list of the public top-level functions the wheel keeps: what a
+# consumer imports, plus the JSON Schema writers. ``tools/check-wire-only`` rejects an
+# added public function that is not named here; a producer-side check lives in
+# ``recipe_tooling``, not in this package.
+SHARED_FUNCTIONS: Final = (
+    "campaign_authority_json_schema",
+    "campaign_manifest_json_schema",
+    "canonical_json",
+    "catalog_index_json_schema",
+    "catalog_vocabulary",
+    "document_sha256",
+    "dropped_context",
+    "entry_outcome",
+    "evaluate_memory_admission",
+    "is_dropping",
+    "is_reading",
+    "model_display_json_schema",
+    "model_json_schema",
+    "published_index_json",
+    "published_json",
+    "published_measured_memory_json_schema",
+    "published_qualification_status_json_schema",
+    "qualification_evidence_json_schema",
+    "qualification_status_json_schema",
+    "read_catalog",
+    "read_catalog_index",
+    "read_catalog_model_entry",
+    "read_catalog_recipe_entry",
+    "read_context",
+    "read_model",
+    "read_model_display",
+    "read_recipe",
+    "read_recipe_api",
+    "read_recipe_display",
+    "recipe_api_json_schema",
+    "recipe_display_json_schema",
+    "recipe_json_schema",
+    "recovery_coverage_id",
+    "require_api_of",
+    "require_display_of",
+    "validate_decision_result",
+    "validate_model_references",
+    "validate_recipe_models",
+    "validate_recipe_package_paths",
+    "wav_facts",
+)
 
 __all__ = [
     "CAPABILITY_ROLES",
@@ -164,6 +205,7 @@ __all__ = [
     "PACKAGE_METADATA_FIELDS",
     "PACKAGE_PATH_PREFIX",
     "PACKAGE_SCHEMA_VERSION",
+    "SHARED_FUNCTIONS",
     "ApiBlock",
     "AudioSpeechApi",
     "AudioTranscriptionApi",
@@ -218,7 +260,6 @@ __all__ = [
     "QualificationTopology",
     "QualificationUnverifiedReason",
     "RecipeApi",
-    "RecipeApiError",
     "RecipeApiOptionChoice",
     "RecipeAuthorityRow",
     "RecipeDefinition",
@@ -236,16 +277,11 @@ __all__ = [
     "canonical_json",
     "catalog_index_json_schema",
     "catalog_vocabulary",
-    "check_api_models",
-    "check_recipe_api",
-    "derive_status",
     "document_sha256",
-    "endpoint_capabilities",
     "published_index_json",
     "published_json",
     "published_measured_memory_json_schema",
     "published_qualification_status_json_schema",
-    "published_status",
     "qualification_evidence_json_schema",
     "qualification_status_json_schema",
     "read_catalog",
@@ -260,7 +296,6 @@ __all__ = [
     "recovery_coverage_id",
     "require_api_of",
     "require_display_of",
-    "served_capabilities",
 ]
 
 

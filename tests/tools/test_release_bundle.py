@@ -201,33 +201,69 @@ class SyncReleaseAssetsTests(unittest.TestCase):
         self.bundle = self.tmp / "bundle" / "recipe-library.tar"
         self.bundle.parent.mkdir()
         bundle_tool.build(self.release, self.bundle)
+        self.wheel = self.tmp / "contracts-1.0.0-py3-none-any.whl"
+        self.wheel.write_bytes(b"wheel built by this run")
+        self.sources = {self.bundle.name: self.bundle, self.wheel.name: self.wheel}
         self.expected = sync_tool.expected_from_bundle(self.bundle)
-        self.sources = {self.bundle.name: self.bundle}
 
     def converge(self, github: FakeGitHub) -> bool:
+        """One publish run, as main() starts it from the release it finds."""
+
+        wheel = self.sources.get(self.wheel.name)
+        expected = self.expected | sync_tool.expected_wheel(
+            github.assets, "v1.0.0", wheel
+        )
         return sync_tool.converge(
             github,
             "owner/repo",
             "v1.0.0",
-            self.expected,
+            expected,
             self.sources,
             sleep=lambda _seconds: None,
         )
 
-    def test_only_the_bundle_is_expected(self) -> None:
-        assert list(self.expected) == ["recipe-library.tar"]
-
-    def test_uploads_only_the_bundle_into_an_empty_release(self) -> None:
+    def test_uploads_the_bundle_and_the_wheel_into_an_empty_release(self) -> None:
         github = FakeGitHub()
         assert self.converge(github)
-        assert github.uploads == [["recipe-library.tar"]]
-        assert list(github.assets) == ["recipe-library.tar"]
+        assert [sorted(u) for u in github.uploads] == [
+            sorted(["recipe-library.tar", self.wheel.name])
+        ]
+        assert set(github.assets) == {"recipe-library.tar", self.wheel.name}
+
+    def test_a_rerun_never_replaces_the_versions_wheel(self) -> None:
+        github = FakeGitHub()
+        github.put("recipe-library.tar", self.bundle.read_bytes())
+        github.put(self.wheel.name, b"wheel the first run uploaded")
+        assert self.converge(github)
+        assert github.uploads == []
+        assert github.assets[self.wheel.name]["size"] == len(
+            b"wheel the first run uploaded"
+        )
+
+    def test_a_run_killed_after_tagging_gets_its_wheel_next_run(self) -> None:
+        github = FakeGitHub()
+        github.put("recipe-library.tar", self.bundle.read_bytes())
+        assert self.converge(github)
+        assert github.uploads == [[self.wheel.name]]
+
+    def test_a_wheel_this_run_uploads_corrupted_is_replaced(self) -> None:
+        github = FakeGitHub(failures=["corrupt"])
+        github.put("recipe-library.tar", self.bundle.read_bytes())
+        assert self.converge(github)
+        assert github.assets[self.wheel.name]["size"] == self.wheel.stat().st_size
+
+    def test_a_missing_wheel_without_a_local_build_fails_visibly(self) -> None:
+        github = FakeGitHub()
+        self.sources = {self.bundle.name: self.bundle}
+        assert not self.converge(github)
+        assert "recipe-library.tar" in github.assets
 
     def test_a_server_error_mid_update_is_retried_until_it_converges(self) -> None:
         github = FakeGitHub(failures=["500"])
         assert self.converge(github)
         assert sync_tool.compare(
-            self.expected, sync_tool.published_assets(github, "o/r", "v1")
+            self.expected | {self.wheel.name: sync_tool.Expected()},
+            sync_tool.published_assets(github, "o/r", "v1"),
         ).clean
 
     def test_a_corrupted_asset_is_detected_by_digest_and_replaced(self) -> None:
@@ -241,8 +277,10 @@ class SyncReleaseAssetsTests(unittest.TestCase):
         github.put("SHA256SUMS", b"old")
         github.put("SHA256SUMS.sigstore.json", b"old")
         assert self.converge(github)
-        assert list(github.assets) == ["recipe-library.tar"]
-        assert github.uploads == [["recipe-library.tar"]]
+        assert set(github.assets) == {"recipe-library.tar", self.wheel.name}
+        assert [sorted(u) for u in github.uploads] == [
+            sorted(["recipe-library.tar", self.wheel.name])
+        ]
 
     def test_an_unconvergeable_release_fails_visibly(self) -> None:
         github = FakeGitHub(failures=["500"] * 20)

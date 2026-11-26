@@ -66,6 +66,7 @@ def test_release_manifest_covers_every_asset_and_matches_the_index(
         "catalog-index.json",
         "qualification-index.json",
         "catalog-index-v2.schema.json",
+        "future-canary-index.json",
         "coverage.md",
         *packages,
     }

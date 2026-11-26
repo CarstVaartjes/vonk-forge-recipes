@@ -11,7 +11,7 @@ together with its recipe.
 Whether the route really serves tools or a reasoning parser is not re-derived
 here: ``recipe_tooling.qualification.capabilities.serving_capabilities`` owns that fact (runtime
 arguments, adapter launch scripts and kit flags) and is asked once per option
-variant. The context-argument table is the one in ``vonk_forge_contracts.api_checks``,
+variant. The context-argument table is the one in ``recipe_tooling.qualification.api_checks``,
 shared with the memory estimator.
 
 Only recipes and API documents named in ``--changed-files`` are checked; with it
@@ -30,6 +30,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from recipe_tooling.added_lines import read_diff
+from recipe_tooling.qualification.api_checks import (
+    RecipeApiError,
+    api_variants,
+    check_api_models,
+    check_recipe_api,
+    join_problems,
+)
 from recipe_tooling.qualification.capabilities import serving_capabilities
 from recipe_tooling.qualification.documents import (
     has_recipe_api,
@@ -41,13 +48,9 @@ from recipe_tooling.qualification.documents import (
 from vonk_forge_contracts import (
     ChatApi,
     RecipeApi,
-    RecipeApiError,
     RecipeDefinition,
-    check_api_models,
-    check_recipe_api,
 )
 from vonk_forge_contracts.api import ApiReasoningNone, ApiToolsNone
-from vonk_forge_contracts.api_checks import api_variants, join_problems
 
 ROOT = Path(__file__).resolve().parents[1]
 

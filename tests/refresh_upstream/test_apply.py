@@ -546,11 +546,13 @@ class SelfHealingTests(unittest.TestCase):
             "tools/check-final-stage-ldd",
             "tools/check-serial-reads",
             "tools/check-nccl-ib-hca",
+            "tools/check-wire-only",
             "tools/generate-contract-examples",
             "tools/generate-contract-schemas",
             "tools/build-release-bundle",
             "tools/prebuilt-images",  # reads the platform pin, not refresh data
             "tools/check-added-file-size",  # checks a PR diff, not refresh data
+            "tools/contract-version",  # publication stamps its version, no refresh data
         }
         covered = {part for _, cmd in refresh_apply.verify_steps() for part in cmd}
         assert sorted(t for t in ci - skipped if t not in covered) == []

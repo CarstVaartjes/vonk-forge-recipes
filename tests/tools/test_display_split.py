@@ -12,6 +12,9 @@ from documents import model, model_display, recipe, recipe_display
 from repo_root import ROOT
 
 from recipe_tooling import catalog_index
+from recipe_tooling.library_checks import (
+    validate_library,
+)
 from vonk_forge_contracts import (
     CapabilityName,
     ModelDefinition,
@@ -22,7 +25,9 @@ from vonk_forge_contracts import (
     published_json,
 )
 from vonk_forge_contracts.model import ModelRecord
-from vonk_forge_contracts.resolver import ContractResolutionError, validate_library
+from vonk_forge_contracts.resolver import (
+    ContractResolutionError,
+)
 
 TOOL = vars(catalog_index)
 PROVEN = json.loads((ROOT / "tests/fixtures/proven-recipe-bytes.json").read_text())

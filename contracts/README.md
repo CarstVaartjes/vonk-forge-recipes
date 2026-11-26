@@ -15,8 +15,13 @@ API entry points:
 - [Model types](src/vonk_forge_contracts/model.py) and
   [Recipe types](src/vonk_forge_contracts/recipe.py).
 - [Recipe API facts](src/vonk_forge_contracts/api.py) (an optional sibling of the
-  Recipe, like its display) and [their checks](src/vonk_forge_contracts/api_checks.py).
-- [Resolution and package validation](src/vonk_forge_contracts/resolver.py).
+  Recipe, like its display). Their checks (`check_recipe_api`, `check_api_models`) are
+  producer-side: `src/recipe_tooling/qualification/api_checks.py`.
+- [Resolution and package validation](src/vonk_forge_contracts/resolver.py): the per-recipe
+  Model resolution and package-path closure a consumer runs. The whole-library checks
+  (`validate_library`, `validate_families`, `validate_recipe_apis`) and the status
+  reducers (`derive_status`, `published_status`) are producer-side:
+  `src/recipe_tooling/library_checks.py` and `src/recipe_tooling/qualification/status.py`.
 - [Published words](src/vonk_forge_contracts/vocabulary.py): each capability's label,
   description and category and each status's meaning and verified flag (the single owner;
   the index publishes them).
@@ -36,7 +41,17 @@ API entry points:
 - [Synthetic examples](src/vonk_forge_contracts/examples) and
   [generated schemas](src/vonk_forge_contracts/schema).
 
-Install from `contracts/` with pip or uv; no PyPI publication is required.
+The package is wire only: a function stays when a consumer imports it or an imported
+model's fields reach it, and `SHARED_FUNCTIONS` in `__init__.py` is the one owner list of
+its public functions. `tools/check-wire-only` rejects an added public function outside
+that list and any added filesystem traversal.
+
+Install from `contracts/` with pip or uv; no PyPI publication is required. Each
+release that cuts a contract version also carries that version's wheel as an
+immutable asset, `vonk_forge_public_contracts-<version>-py3-none-any.whl`, attested
+by `publish.yml`. The version is computed at publication from the change class
+(see AGENTS.md); in Git, `_version.py` holds only `CONTRACT_MAJOR` and the
+placeholder `"<CONTRACT_MAJOR>.0.0"`, so compare only `CONTRACT_MAJOR`.
 `read_model` and `read_recipe` are published-document consumer entry points;
 `ModelDefinition.model_validate` and `RecipeDefinition.model_validate` are the
 strict producer entry points. `document_sha256` hashes published JSON, and

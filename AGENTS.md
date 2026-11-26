@@ -49,7 +49,7 @@ Recipe memory policy lives in the authoring guide's memory section.
 ## Sweep evidence workflow
 
 Hardware qualification uses `RecipeQualificationEvidence` and
-`derive_status`. Store public evidence in
+`recipe_tooling.qualification.status.derive_status`. Store public evidence in
 `qualification/evidence/<publisher>/<recipe-slug>.json`, separate from recipes.
 Proven recipes are never broken pre-emptively: preserve the last pass during a
 re-check. Evidence is newest-only: a revert to a content digest whose records were
@@ -244,8 +244,10 @@ below).
 
 [publish.yml](.github/workflows/publish.yml) runs on non-Markdown changes to
 `main`, validates first, promotes PR image candidates through
-[recipe-images.yml](.github/workflows/recipe-images.yml), and updates
-`v<CONTRACT_VERSION>` in place. It serializes publication and binds release
+[recipe-images.yml](.github/workflows/recipe-images.yml), and publishes
+`v<CONTRACT_VERSION>`: its `contract-version` job computes the version (see the contract
+version policy below), and with no contract change it updates the released version in
+place. It serializes publication and binds release
 assets to the run's `GITHUB_SHA`; it does not rebase that run onto a newer main.
 The final publish job unconditionally repeats lint, format and types. The setup
 action keys the uv cache on `.github/requirements-*.txt` (only `main` saves it)
@@ -276,31 +278,80 @@ word a newer minor added as an `UnrecognisedWord`, drops an unreadable optional 
 API facts, qualification, prebuilt image, measured memory; the entry stays), skips an entry whose
 execution data is malformed, and refuses the index only for a wrong envelope or contract major or
 a digest mismatch; each recipe entry's `served_capabilities` is derived at build time by the
-contract's `served_capabilities` from its endpoint Models only (never authored; a binding its
+`recipe_tooling.qualification.api_checks.served_capabilities` from its endpoint Models only (never authored; a binding its
 recipe display lists in `component_bindings` is a component whose capabilities never count,
 here, in `multimodal` or in `tools/check-recipe-api`; mark every component binding whatever
-its capabilities, and `validate_library` refuses an unknown id); `read_catalog_index` is
+its capabilities, and `recipe_tooling.library_checks.validate_library` refuses an unknown id); `read_catalog_index` is
 the strict whole-index form for producers and tests. The envelope and package
 schema versions live only there; change the shape in the model and run
-`tools/generate-contract-schemas`. Once `v<CONTRACT_VERSION>` is released, validate.yml refuses a
-change under `contracts/src` until `_version.py` names a new version. A change
-that does not alter the published shape (a removed module, a fix) is a patch,
-never a minor or major: the Controller reads only the newest release within its
-own major. `vonk_forge_contracts` holds only documents, and the functions over
+`tools/generate-contract-schemas`.
+
+The contract version is computed, never hand-set (G3). `_version.py` holds `CONTRACT_MAJOR`
+and the placeholder `__version__ = "<CONTRACT_MAJOR>.0.0"`, so source-tree and PR-time
+indexes carry the placeholder and every consumer compares only the major. A PR never edits
+`__version__`; it raises `CONTRACT_MAJOR` by exactly one for a breaking change and changes
+nothing in `_version.py` otherwise. `tools/contract-version`
+(`src/recipe_tooling/contract_version.py`, standard library only) classifies the schemas,
+the examples and the `SHARED_FUNCTIONS` names in the package `__init__.py` (read, never
+imported; not compared while the released tree lacks the list, and a head without it has
+no names, so deleting the list is breaking) against the last `v*` tag; `.github/scripts/contract-version` is its git edge,
+and validate.yml's "Contract change class" step runs it on every PR and prints the class:
+
+- **breaking**: a property, definition, `anyOf`/`oneOf` alternative or file removed;
+  `required` grown, including a new required property on an existing model; a type, const
+  or `$ref` changed incompatibly; an enum shrunk; a bound, pattern or format narrowed or
+  added; an existing example no longer holds a value it held; a name removed from
+  `SHARED_FUNCTIONS`. It fails the PR unless
+  `CONTRACT_MAJOR` is one above the released major.
+- **minor**: any other schema or example change: something added (including a name in
+  `SHARED_FUNCTIONS`), a requirement or bound relaxed, an annotation changed, a new example,
+  or an example that only gained keys or appended items (a born-optional field shows up in
+  a full dump as a new key). A union is compared member by member, with a nested or
+  referenced union expanded, an old member kept when a new one accepts at least as much,
+  and a `const` read as a one-member `enum`.
+- **patch**: `contracts/src` changed with identical schemas and examples (a removed module,
+  a fix). The Controller reads only the newest release within its own major.
+- **none**: `contracts/src` unchanged since the tag; recipe changes update that release.
+
+Publication stamps the computed version into `_version.py` in each job's workspace only
+(the catalog build coverage reads, the release assets and the wheel) and never commits it.
+
+Dead fields follow one rule, so retiring a field never churns identities: a new field is
+born optional and absent when unset (the classifier makes a new required field on an
+existing model breaking); retiring one is stop reading, make it optional, deploy the
+consumers, stop writing, let documents shed it by attrition, and delete it only at zero.
+`vonk_forge_contracts` holds only wire: the documents, and the functions over
 them, that more than one process reads (Controller, vonkctl, publication, recipe
-producers). A tool's own state, and its projection of another system's wire
+producers). A thing is wire when a consumer imports it or an imported model's
+fields reach it; `SHARED_FUNCTIONS` in its `__init__.py` is the one owner list of the
+public functions, and `tools/check-wire-only` (validate.yml) rejects an added public
+function outside it and any added filesystem traversal (`glob`, `iterdir`, `os.walk`, `open(`, `.read_text(`, `.read_bytes(`, a
+`library_root` or `root: Path` parameter). Library checks, status derivation and the
+sweep-only enums live in `recipe_tooling` (`library_checks`, `qualification/status`,
+`qualification/api_checks`). A tool's own state, and its projection of another system's wire
 shape, live in that tool (the sweep's records: `spark_sweep/sweep_contract.py`).
 The index also publishes the vocabulary (`vonk_forge_contracts.vocabulary`): every capability's
 label, description and category and every qualification status's meaning and whether it counts as
 verified. Change user-facing words only there; the site, Controller UI and vonkctl render the
-release's copy. A new `CapabilityName` or `QualificationStatus` without an entry fails at import.
+release's copy. A new `CapabilityName` or `QualificationStatus` without an entry fails the catalog build (`require_complete_vocabulary`).
 `tools/build-catalog-index --release-dir DIR` builds catalog/qualification
-indexes, recipe archives, coverage and `SHA256SUMS`. The signed release contains
+indexes, recipe archives, coverage, the future vector and `SHA256SUMS`. The future vector
+(`future-canary-index.json`, built by `tools/build-future-vector` from the index and its schema,
+signed with the release) is the reader test every consumer runs on its own release: an index with
+an unknown word at every closed-word site outside an execution document, an unknown field on every closed object, and one
+recipe entry whose serving kind is unknown (a reader withholds it and the rest applies). The
+sites come from walking the schema over the real index, so a new site is covered with no hand
+list; it keeps only the entries that cover every schema shape (plus the Models they pin) to
+stay within the index size limit, and it is never a catalog. The signed release contains
 one deterministic `recipe-library.tar`, built by `tools/build-release-bundle`:
 flat sorted regular members, ustar names at most 100 bytes, normalized ownership,
 mode 0644 and time zero. It contains `SHA256SUMS`, its Sigstore bundle and exactly
-the listed files. `tools/sync-release-assets` verifies the uploaded size/digest
-and removes obsolete assets. See `tests/tools/test_release_bundle.py`,
+the listed files. A release that cut a new contract version also carries that version's
+wheel, `vonk_forge_public_contracts-<version>-py3-none-any.whl`, built from the commit that
+cut it and attested on its own (it is not in `SHA256SUMS`, which every in-place update
+rewrites). `tools/sync-release-assets` verifies the uploaded size/digest, removes obsolete
+assets, and uploads the wheel only when the release lacks it (a run killed after tagging
+heals on the next run); a wheel is never replaced. See `tests/tools/test_release_bundle.py`,
 `tests/tools/test_release_assets.py` and `tests/tools/test_publish_image_guard.py`.
 
 Verify downloaded `SHA256SUMS` using its bundled attestation, then verify all
@@ -309,6 +360,9 @@ members; the trusted signer is this repository's `publish.yml` on main:
 ```bash
 gh attestation verify SHA256SUMS -R CarstVaartjes/vonk-forge-recipes \
   --bundle SHA256SUMS.sigstore.json
+gh attestation verify vonk_forge_public_contracts-<version>-py3-none-any.whl \
+  --repo CarstVaartjes/vonk-forge-recipes \
+  --signer-workflow CarstVaartjes/vonk-forge-recipes/.github/workflows/publish.yml
 ```
 
 Do not equate auto-merge or a mergeable PR with a merge. When integration is
@@ -341,7 +395,7 @@ tree by `tests/tools/test_package_import_direction.py` (no counts, no exceptions
 `recipe_tooling.kit_pins`, `recipe_tooling.upstream_drift` and `recipe_tooling.refresh_upstream` (modules by topic;
 cross-module calls go through the module, `refresh_<module>.name`, so a test patches the defining module).
 `tools/build-catalog-index`, `tools/build-family-aware-coverage`, `tools/build-qualification-authority`,
-`tools/generate-contract-examples`, `tools/prebuilt-images` and `tools/prepare-remote-code-smoke` are launchers over
+`tools/contract-version`, `tools/generate-contract-examples`, `tools/prebuilt-images` and `tools/prepare-remote-code-smoke` are launchers over
 modules of the same names in `src/recipe_tooling/` (underscores); tests import the module, never load the script.
 
 Provider JSON (GitHub, Hugging Face) is read by one client, `recipe_tooling.upstream_clients.ProviderJson`; the
