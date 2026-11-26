@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "mmaudio-large-44k-v2",
+          "title": "MMAudio large 44k v2"
+        }
+      ],
+      "slug": "mmaudio-large-44k",
+      "title": "MMAudio large 44k"
+    }
+  ],
+  "slug": "mmaudio",
+  "title": "MMAudio"
+}

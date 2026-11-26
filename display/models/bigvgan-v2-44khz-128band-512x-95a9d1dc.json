@@ -1,0 +1,27 @@
+{
+  "capabilities": [],
+  "description": "The exact BigVGAN v2 44 kHz vocoder MMAudio loads locally to turn its mel spectrogram into audio.",
+  "family_title": "BigVGAN",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "bigvgan-v2-44khz-128band-512x-95a9d1dc"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "nvidia"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/nvidia/bigvgan_v2_44khz_128band_512x/blob/95a9d1dcb12906c03edd938d77b9333d6ded7dfb/README.md"
+  },
+  "modalities": [
+    "audio"
+  ],
+  "model_title": "BigVGAN v2 44 kHz 128 band 512x",
+  "tags": [
+    "nvidia",
+    "auxiliary",
+    "audio",
+    "offline"
+  ]
+}

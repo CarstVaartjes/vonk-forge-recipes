@@ -1,0 +1,52 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "synchformer-state-dict-8aff082f2df5-b42cca7959",
+      "path": "ext_weights/synchformer_state_dict.pth",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8aff082f2df5c3bc52759db0c865c7ee772ae6400b860d1b7e90413f2defb67c",
+      "size_bytes": 950058171
+    },
+    {
+      "id": "v1-44-ab6cc15dc319-eb1c92e880",
+      "path": "ext_weights/v1-44.pth",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ab6cc15dc31947675f75c950c41f4dcfd0d6d1817555ac871f809ec388e4651a",
+      "size_bytes": 1221942998
+    },
+    {
+      "id": "mmaudio-large-44k-v2-a6bf693424fb-c074d65c27",
+      "path": "weights/mmaudio_large_44k_v2.pth",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a6bf693424fbd4ce0244fff8c412347714d5ac586e28dbeffadfa0f2b647af74",
+      "size_bytes": 4122474715
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "hkchengrex",
+      "slug": "mmaudio"
+    },
+    "publisher": "hkchengrex",
+    "slug": "mmaudio-large-44k-v2-eb13a1a9",
+    "variant": "MMAudio large 44k v2 eb13a1a9",
+    "version": "MMAudio large 44k v2 eb13a1a9"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/hkchengrex/MMAudio",
+    "revision": "eb13a1a98fdbec91753775c57b074ccdfc60587c"
+  }
+}
