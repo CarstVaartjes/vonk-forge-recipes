@@ -517,19 +517,9 @@ def collect_items(
             result.unreachable.append(f"{provider}:{repo}: {str(error)[:200]}")
             return
         if kind == "model" and target.access_status is not None:
-            model = catalog_.models.get(slug or "", {})
-            token_required = model.get("requires_token") is True
             if target.access_status in {"private", "disabled"}:
                 result.reasons.append(
                     f"model {repo} provider access is {target.access_status}; review or withdraw this Model. The updater will not retrieve access credentials or author a replacement."
-                )
-            elif target.access_status == "gated" and not token_required:
-                result.reasons.append(
-                    f"model {repo} provider access changed to {target.access_status}; the catalog declares anonymous access. Review or withdraw this Model; do not replace it automatically."
-                )
-            elif target.access_status == "public" and token_required:
-                result.reasons.append(
-                    f"model {repo} is publicly accessible but the catalog requires a token; review the access declaration before changing it."
                 )
             elif target.access_status == "unknown":
                 model_access_note(

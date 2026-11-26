@@ -175,7 +175,7 @@ class ModelTests(unittest.TestCase):
         )
         assert "parts" not in back["files"][0]
 
-    def test_provider_gate_change_creates_review_without_retargeting_model(
+    def test_gated_model_with_a_newer_revision_follows_it_like_any_other(
         self,
     ) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -199,11 +199,11 @@ class ModelTests(unittest.TestCase):
             target = refresh_model.Target(
                 "huggingface",
                 "example/model",
-                OLD,
+                NEW,
                 "2026-09-30",
                 None,
                 None,
-                "https://huggingface.co/example/model/tree/" + OLD,
+                "https://huggingface.co/example/model/tree/" + NEW,
                 access_status="gated",
             )
 
@@ -214,9 +214,8 @@ class ModelTests(unittest.TestCase):
                 lambda _provider, _repo: target,
             )
 
-            assert not result.items
-            assert result.drifted
-            assert "provider access changed to gated" in result.reasons[0]
+            assert not result.reasons
+            assert [item.target.sha for item in result.items] == [NEW]
 
     def test_restricted_token_required_or_unspecified_model_is_evidence(self) -> None:
         for requires_token in (True, None):
