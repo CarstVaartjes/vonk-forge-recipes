@@ -345,7 +345,6 @@ def _row(
                 "precision": model.format.precision,
                 "quantization": model.format.quantization,
                 "modalities": list(display.modalities),
-                "requires_token": model.requires_token,
                 "license_spdx": display.license.spdx,
                 "source_repository": source_repository,
                 "source_revision": source_revision,
