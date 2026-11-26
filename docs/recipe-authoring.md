@@ -448,7 +448,11 @@ including `cd` and `WORKDIR` and `mods/*/run.sh` loops) and fails when a build
 fetches (pip/uv, curl, wget, git clone, apt, npm) with an empty host list, or
 when the declared hosts lack what the fetch needs: the PyPI pair by default, the
 `--index-url` host, `--extra-index-url` plus the PyPI pair, or a URL target's
-own host. An install that only runs after a failed probe (`python3 -c "import
+own host. A llama.cpp CMake configure (`-DGGML_*`/`-DLLAMA_*`) fetches its web UI
+from `huggingface.co` at build time; a shallow clone or archive has no build number, so it
+falls back to the bucket's moving `latest`, which a pinned commit may reject. Pass
+`-DLLAMA_BUILD_UI=OFF -DLLAMA_USE_PREBUILT_UI=OFF` (the API and `/health` serve
+headless). An install that only runs after a failed probe (`python3 -c "import
 x" || pip install x`) is not a fetch. Comments, echo/print text, localhost URLs,
 `--no-index`/`--offline` and local `.deb`/`.whl` paths are exempt. It is a line
 and token reading, not a shell parser: exec-form `RUN`, `bash -c` and computed

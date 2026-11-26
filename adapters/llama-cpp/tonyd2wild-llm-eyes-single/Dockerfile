@@ -9,6 +9,8 @@ LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/2Wild-Visio
       org.opencontainers.image.licenses="MIT" \
       io.vonk.recipe-engine.source="https://github.com/ggml-org/llama.cpp/tree/fc07d781e61f0d23764394e902b88d26a974e202"
 
+# No web UI: its assets come from a moving Hugging Face bucket at build time (a shallow clone asks for
+# version b1, which does not exist, and falls back to "latest"); the API and /health are served headless.
 RUN set -eu; \
     git init -q /tmp/llama.cpp; cd /tmp/llama.cpp; \
     git remote add origin https://github.com/ggml-org/llama.cpp; \
@@ -16,7 +18,8 @@ RUN set -eu; \
     git checkout -q FETCH_HEAD; \
     test "$(git rev-parse HEAD)" = "fc07d781e61f0d23764394e902b88d26a974e202"; \
     cmake -B build -DCMAKE_BUILD_TYPE=Release -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=121a-real \
-          -DBUILD_SHARED_LIBS=OFF -DLLAMA_CURL=OFF -DLLAMA_OPENSSL=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF; \
+          -DBUILD_SHARED_LIBS=OFF -DLLAMA_CURL=OFF -DLLAMA_OPENSSL=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF \
+          -DLLAMA_BUILD_UI=OFF -DLLAMA_USE_PREBUILT_UI=OFF; \
     cmake --build build --target llama-server -j"$(nproc)"; \
     install -D build/bin/llama-server /opt/llama.cpp/bin/llama-server; \
     cd /; rm -rf /tmp/llama.cpp
