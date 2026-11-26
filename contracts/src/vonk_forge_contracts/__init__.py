@@ -4,8 +4,10 @@ The package exports the two author-facing roots, ``ModelDefinition`` and
 ``RecipeDefinition``, and the qualification authority the maintainer campaign
 reads. ``CONTRACT_VERSION`` is the semantic version of these contracts, and it
 is also the recipe library's release version: an optional or additive change is
-a minor release, a breaking change a major one. Recipe content changes never
-change it; a release records when its recipes were last updated instead.
+a minor release, a breaking change a major one. Publication computes it from the
+change class; a source tree carries the placeholder ``<CONTRACT_MAJOR>.0.0``, so
+compare only ``CONTRACT_MAJOR``. Recipe content changes never change it; a
+release records when its recipes were last updated instead.
 
 Consumers read published documents with ``read_model``/``read_recipe``, which
 ignore fields a newer minor release added, and identify a document by the
@@ -18,7 +20,7 @@ at integrity edges (``CatalogIndexRefused``).
 
 from __future__ import annotations
 
-from vonk_forge_contracts._version import __version__
+from vonk_forge_contracts._version import CONTRACT_MAJOR, __version__
 from vonk_forge_contracts.api import (
     ApiBlock,
     AudioSpeechApi,
@@ -150,7 +152,6 @@ from vonk_forge_contracts.vocabulary import (
 )
 
 CONTRACT_VERSION = __version__
-CONTRACT_MAJOR = int(CONTRACT_VERSION.split(".", 1)[0])
 
 __all__ = [
     "CAPABILITY_ROLES",

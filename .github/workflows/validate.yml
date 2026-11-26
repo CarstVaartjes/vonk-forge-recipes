@@ -10,6 +10,11 @@ on:
         required: false
         type: boolean
         default: false
+      contract_version:
+        description: The contract version publication computed; the catalog build is stamped with it
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -67,6 +72,18 @@ jobs:
           path: ~/.cache/vonk-forge-recipes/adapter-sources
           key: adapter-sources-${{ hashFiles('adapter-sources.json') }}
           restore-keys: adapter-sources-
+
+      # Publication stamps its computed version first (in this workspace only), so
+      # the coverage it derives from this build names the release it ships in.
+      - name: Stamp the computed contract version
+        if: inputs.contract_version != ''
+        shell: bash
+        env:
+          CONTRACT_VERSION: ${{ inputs.contract_version }}
+        run: |
+          set -euo pipefail
+          python3 tools/contract-version stamp \
+            contracts/src/vonk_forge_contracts/_version.py --version "$CONTRACT_VERSION"
 
       - name: Build the release asset set twice and require identical bytes
         shell: bash
@@ -190,31 +207,28 @@ jobs:
           git fetch --no-tags origin main:refs/remotes/origin/main
           python3 tools/check-recipe-topology --base origin/main
 
-      # A released contract version means one thing: publish.yml tags the first
-      # release of each version, so once v<version> exists, any change under
-      # contracts/src needs a new version in _version.py. Git runs here.
-      - name: Require a contract version bump for a changed contract
+      # The contract version is computed, never hand-set (G3): _version.py keeps
+      # CONTRACT_MAJOR and the "<major>.0.0" placeholder, and publication derives
+      # the minor and patch from the change class against the last v* tag. A
+      # breaking class without CONTRACT_MAJOR one above the released major fails.
+      # Git runs here; the tool takes the released tree as directories.
+      # On main, publish.yml's contract-version job runs the same computation.
+      - name: Contract change class
+        if: ${{ !inputs.contract_version }}
         shell: bash
         run: |
           set -euo pipefail
-          version=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' contracts/src/vonk_forge_contracts/_version.py)
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::no MAJOR.MINOR.PATCH __version__ in contracts/src/vonk_forge_contracts/_version.py"
-            exit 1
-          fi
-          tag="v$version"
-          # Its own line, so a failed ls-remote fails the step (set -e).
-          refs=$(git ls-remote --tags origin "refs/tags/$tag")
-          if [[ -z "$refs" ]]; then
-            echo "$tag is not released yet; contracts/src may still change"
-            exit 0
-          fi
-          git fetch --no-tags origin "+refs/tags/$tag:refs/tags/$tag"
-          if ! git diff --quiet "$tag" HEAD -- contracts/src; then
-            echo "::error::contracts/src differs from the released $tag; bump __version__ in contracts/src/vonk_forge_contracts/_version.py"
-            git diff --stat "$tag" HEAD -- contracts/src
-            exit 1
-          fi
+          status=0
+          .github/scripts/contract-version "$RUNNER_TEMP/released" \
+            > "$RUNNER_TEMP/contract-version.txt" 2> "$RUNNER_TEMP/contract-class.txt" || status=$?
+          cat "$RUNNER_TEMP/contract-class.txt" >&2
+          {
+            echo "### Contract change class: released and next version \`$(cat "$RUNNER_TEMP/contract-version.txt")\`"
+            echo '```'
+            cat "$RUNNER_TEMP/contract-class.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
 
       # A platform pin on a PR branch commit stops resolving when that branch is
       # deleted after its squash merge, and every recipes workflow then fails to

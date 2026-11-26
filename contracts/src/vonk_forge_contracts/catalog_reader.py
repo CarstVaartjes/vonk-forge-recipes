@@ -47,7 +47,7 @@ from typing import Annotated, Final, Literal
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError
 from pydantic_core import ErrorDetails
 
-from vonk_forge_contracts._version import __version__
+from vonk_forge_contracts._version import CONTRACT_MAJOR
 from vonk_forge_contracts.canonical import document_sha256
 from vonk_forge_contracts.catalog_index import (
     CatalogIndex,
@@ -61,7 +61,6 @@ from vonk_forge_contracts.unrecognised import (
     read_context,
 )
 
-_CONTRACT_MAJOR: Final = int(__version__.split(".", 1)[0])
 _SHA256: Final = re.compile(r"[0-9a-f]{64}")
 # Pydantic error types that mean "a word this release does not list".
 _UNKNOWN_WORD_ERRORS: Final = frozenset({"literal_error", "enum", "union_tag_invalid"})
@@ -326,10 +325,10 @@ def _read_envelope(document: Mapping[str, object]) -> CatalogIndex:
             f"invalid index {', '.join(sorted(fields)) or 'envelope'}",
         ) from error
     major = int(envelope.contract_version.split(".", 1)[0])
-    if major != _CONTRACT_MAJOR:
+    if major != CONTRACT_MAJOR:
         raise CatalogIndexRefused(
             RefusalReason.SCHEMA_UNSUPPORTED,
-            f"contract {envelope.contract_version} is not a v{_CONTRACT_MAJOR} release",
+            f"contract {envelope.contract_version} is not a v{CONTRACT_MAJOR} release",
         )
     return envelope
 
