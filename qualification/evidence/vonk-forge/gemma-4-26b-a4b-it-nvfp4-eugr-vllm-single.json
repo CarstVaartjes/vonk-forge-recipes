@@ -57,11 +57,11 @@
     },
     {
       "identity": {
-        "content_sha256": "bba39573c8741d1383560985ebea2757413db25df4a7de7dd780f58d89f569d4",
-        "source_bundle_sha256": "d607b88b68b958b0c9655d530398f8154cc6be775583aa1b0f48afbd2d577c11",
+        "content_sha256": "ec1e1dc830a1c8823ddc573c4f2ef7a89c9c23b400223be583473bd9b050aa24",
+        "source_bundle_sha256": "5ce93726b6065a9c51c1ab227c010fc1090a1c2a90ee7019acd7bb80fbb70c5f",
         "runtime_image": {
-          "build_key": "c28bfa70bde4cd94e9352e9382876e5d165bb36ed8ec85f54da10adb84ce670d",
-          "image_digest": "sha256:a21049d9c6a17eff5b1e5e369a3696422871588ae7b0d474770202ab1afbd141"
+          "build_key": "363afb0bdcc3584c15530dc6b6e19b91f7c96dce732ea425cc3531526a62fd98",
+          "image_digest": "sha256:ba4fa1f05385f423d2ee0b439c8048297541e42a94973ebaa6723ec8eb3e538e"
         },
         "model_digests": [
           "0cb4f5cd8fadb188fae0e96855b5f85753b62ba1ab30a2e66838a8e1c7019f14",
@@ -74,11 +74,11 @@
       "cause_code": "qualification.hardware_pass",
       "cause_summary": "Hardware checks passed",
       "evidence_refs": [
-        "97a23e0bae0e414d97e8cbbc44e31972db3135cf6f1089e6a06f69e2cd9d85fc"
+        "79d7fc76e9b598a5f4869e4d1977a8d45f15ffb265188956efb2a31d5f0b8e34"
       ],
-      "tested_at": "2026-11-26T03:17:42.701009Z",
+      "tested_at": "2026-11-26T18:33:28.441081Z",
       "platform": {
-        "controller_source_sha": "3d098499f782de10b9019ab81cf384bbf33d99fa",
+        "controller_source_sha": "06f372ac341b9e4083cdda704c181c85f2d9db70",
         "hardware_class": "GB10",
         "spark_count": 1,
         "topology": "single"
@@ -88,9 +88,9 @@
   ],
   "measured_memory": [
     {
-      "content_sha256": "bba39573c8741d1383560985ebea2757413db25df4a7de7dd780f58d89f569d4",
+      "content_sha256": "ec1e1dc830a1c8823ddc573c4f2ef7a89c9c23b400223be583473bd9b050aa24",
       "role": "entrypoint",
-      "steady_bytes": 99303866368,
+      "steady_bytes": 99510108160,
       "budget_bytes": 91464262042
     },
     {
