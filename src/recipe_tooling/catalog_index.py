@@ -16,6 +16,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from recipe_tooling.adapter_sources import materialize_or_exit
+from recipe_tooling.future_vector import build_future_vector
 from recipe_tooling.paths import REPO_ROOT
 from recipe_tooling.qualification.case_assertions import require_valid_case_assertions
 from recipe_tooling.qualification.definitions_loader import load_definitions
@@ -891,6 +892,7 @@ def qualification_index(catalog: dict[str, Any]) -> dict[str, object]:
 RELEASE_CHECKSUMS = "SHA256SUMS"
 RELEASE_INDEX = "catalog-index.json"
 RELEASE_QUALIFICATION_INDEX = "qualification-index.json"
+FUTURE_VECTOR_ASSET = "future-canary-index.json"
 
 
 def _rendered_index(document: dict[str, Any]) -> bytes:
@@ -898,6 +900,14 @@ def _rendered_index(document: dict[str, Any]) -> bytes:
     if len(index) > MAX_INDEX_BYTES:
         raise SystemExit("catalog-index.json exceeds the index size limit")
     return index
+
+
+def rendered_vector(document: dict[str, Any]) -> bytes:
+    """The future vector's bytes: rendered like the index, within the index size limit."""
+    vector = rendered(document).encode("utf-8")
+    if len(vector) > MAX_INDEX_BYTES:
+        raise SystemExit(f"{FUTURE_VECTOR_ASSET} exceeds the index size limit")
+    return vector
 
 
 def write_outputs(
@@ -966,6 +976,13 @@ def write_release(
             # checked-in file is Pydantic's output (generate-contract-schemas
             # --check), so it is read, not regenerated.
             INDEX_SCHEMA_ASSET: SCHEMA_SOURCE.read_bytes(),
+            # The reader test every consumer runs on its own release: this index as a
+            # newer minor could publish it (tools/build-future-vector).
+            FUTURE_VECTOR_ASSET: rendered_vector(
+                build_future_vector(
+                    document, json.loads(SCHEMA_SOURCE.read_text(encoding="utf-8"))
+                ).document
+            ),
         }
         named = [
             (PurePosixPath(str(row["package"]["path"])).name, package_dir)
