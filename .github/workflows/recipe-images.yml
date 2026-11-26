@@ -103,7 +103,7 @@ jobs:
           plan_library() {
             local platform=${4:-$GITHUB_WORKSPACE/.vonk-forge}
             "$platform/scripts/build-recipe-library" "$1"
-            uv run --project "$platform/control" --frozen \
+            uv run --python 3.15 --project "$platform/control" --frozen \
               --with-requirements "$GITHUB_WORKSPACE/.github/requirements-platform-tooling.txt" \
               --with-editable "$1/contracts" \
               "$platform/scripts/recipe-image-plan" \
