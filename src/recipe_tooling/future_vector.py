@@ -34,8 +34,6 @@ from vonk_forge_contracts.catalog_reader import (
     SkippedEntry,
     UnrecognisedWordReport,
     read_catalog,
-    read_catalog_model_entry,
-    read_catalog_recipe_entry,
 )
 
 WORD: Final = "zz-future-word"
@@ -47,10 +45,6 @@ _DIGEST: Final = re.compile(r"[0-9a-f]{64}")
 _ENTRY_SCHEMAS: Final = {
     "catalog_entities": "CatalogModelEntry",
     "recipes": "CatalogRecipeEntry",
-}
-_READERS: Final = {
-    "catalog_entities": read_catalog_model_entry,
-    "recipes": read_catalog_recipe_entry,
 }
 
 type JsonPath = tuple[str | int, ...]
