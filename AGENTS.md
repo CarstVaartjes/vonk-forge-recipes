@@ -298,7 +298,7 @@ release's copy. A new `CapabilityName` or `QualificationStatus` without an entry
 indexes, recipe archives, coverage, the future vector and `SHA256SUMS`. The future vector
 (`future-canary-index.json`, built by `tools/build-future-vector` from the index and its schema,
 signed with the release) is the reader test every consumer runs on its own release: an index with
-an unknown word at every site a reader keeps, an unknown field on every closed object, and one
+an unknown word at every closed-word site outside an execution document, an unknown field on every closed object, and one
 recipe entry whose serving kind is unknown (a reader withholds it and the rest applies). The
 sites come from walking the schema over the real index, so a new site is covered with no hand
 list; it keeps only the entries that cover every schema shape (plus the Models they pin) to

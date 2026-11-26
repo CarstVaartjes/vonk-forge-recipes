@@ -42,48 +42,66 @@ def vector(built_catalog: tuple[dict[str, Any], Path]) -> FutureVector:
     return build_future_vector(built_catalog[0], SCHEMA)
 
 
-def _enum_blocks(node: object, seen: frozenset[str] = frozenset()) -> bool:
-    """Whether a schema subtree holds a closed set of words (through ``$ref``)."""
-    if isinstance(node, dict):
-        if len(node.get("enum", ())) > 1:
-            return True
-        ref = node.get("$ref")
-        if isinstance(ref, str):
-            name = ref.rsplit("/", 1)[-1]
-            return name not in seen and _enum_blocks(
-                SCHEMA["components"]["schemas"][name], seen | {name}
-            )
-        return any(_enum_blocks(item, seen) for item in node.values())
-    if isinstance(node, list):
-        return any(_enum_blocks(item, seen) for item in node)
-    return False
+SCHEMAS = SCHEMA["components"]["schemas"]
 
 
-def test_the_vector_holds_the_unknown_word_at_every_tolerant_site(
-    vector: FutureVector,
-) -> None:
-    assert vector.tolerant
-    assert words_in(SCHEMA, vector.document) == set(vector.tolerant)
+def _words(node: dict[str, Any]) -> bool:
+    """Whether a property is a closed word or a list of them (through ``$ref``/unions)."""
+    if "$ref" in node:
+        return _words(SCHEMAS[node["$ref"].rsplit("/", 1)[-1]])
+    if "enum" in node:
+        return True
+    if node.get("type") == "array":
+        return _words(node.get("items", {}))
+    return any(_words(item) for item in node.get("anyOf", node.get("oneOf", ())))
 
 
-def test_every_entry_block_with_words_in_the_schema_has_a_tolerant_site(
-    vector: FutureVector,
-) -> None:
-    schemas = SCHEMA["components"]["schemas"]
-    for section, entry in (
-        ("catalog_entities", "CatalogModelEntry"),
-        ("recipes", "CatalogRecipeEntry"),
+def _kinds(node: dict[str, Any], seen: frozenset[str]) -> set[str]:
+    """The property names holding words anywhere under ``node`` (through ``$ref``)."""
+    if "$ref" in node:
+        name = node["$ref"].rsplit("/", 1)[-1]
+        return set() if name in seen else _kinds(SCHEMAS[name], seen | {name})
+    found: set[str] = set()
+    for key, item in node.get("properties", {}).items():
+        if _words(item):
+            found.add(key)
+        found |= _kinds(item, seen)
+    for item in (
+        *node.get("anyOf", node.get("oneOf", ())),
+        *([node["items"]] if "items" in node else []),
+        *(
+            [node["additionalProperties"]]
+            if isinstance(node.get("additionalProperties"), dict)
+            else []
+        ),
     ):
-        blocks = [
-            name
-            for name, node in schemas[entry]["properties"].items()
-            if name != "document" and _enum_blocks(node)
+        found |= _kinds(item, seen)
+    return found
+
+
+def test_the_vector_holds_the_unknown_word_at_every_site(vector: FutureVector) -> None:
+    assert vector.sites
+    assert words_in(SCHEMA, vector.document) == set(vector.sites)
+
+
+def test_every_word_kind_in_the_schema_has_a_site_in_the_vector(
+    vector: FutureVector,
+) -> None:
+    wanted = {
+        kind
+        for entry in ("CatalogModelEntry", "CatalogRecipeEntry")
+        for name, node in SCHEMAS[entry]["properties"].items()
+        if name != "document"
+        for kind in ({name} if _words(node) else set()) | _kinds(node, frozenset())
+    }
+    held = {
+        [part for part in site.split("/") if part != "[]" and not part.startswith("<")][
+            -1
         ]
-        assert blocks
-        for block in blocks:
-            assert any(
-                site.startswith(f"{section}/{block}/") for site in vector.tolerant
-            ), f"{section}.{block}: the walk found no word site the schema has"
+        for site in vector.sites
+    }
+    assert wanted
+    assert wanted <= held, f"no site for {sorted(wanted - held)}"
 
 
 def test_every_closed_object_carries_an_unknown_field(vector: FutureVector) -> None:

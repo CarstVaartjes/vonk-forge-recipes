@@ -3,15 +3,16 @@
 ``build_future_vector`` takes the built index and its generated schema and returns
 a self-consistent index that a consumer must still read:
 
-* an unknown word (``zz-future-word``) at every site a consumer reader keeps,
+* an unknown word (``zz-future-word``) at every closed-word site outside an entry's
+  execution document (an empty or absent list of words gets ``[word]``),
 * an unknown field (``zz_future_field``) on every object the schema closes,
 * one extra recipe entry whose serving kind is an unknown executed discriminator
   (``zz.future-kind``), which a reader withholds and the rest of the index survives.
 
 The sites are found by walking the schema over the real index, so a new site is
-covered with no hand list. A site is *tolerant* when the contract reader keeps an
-entry that carries the word there; a site where it does not (a discriminator, an
-execution field) is left alone, never guessed. The vector is a reader test, not a
+covered with no hand list. The word goes in at every such site and the contract
+reader must keep it: ``build_future_vector`` raises when it does not, so a reader
+regression fails the build. The vector is a reader test, not a
 signed catalog: digests are recomputed so it stays self-consistent, and it keeps only
 the entries that cover every schema shape (plus the Models they pin), because a full
 copy with an unknown field on every object would pass the index size limit.
@@ -29,7 +30,6 @@ from typing import Any, Final
 from vonk_forge_contracts import document_sha256
 from vonk_forge_contracts.catalog_reader import (
     CatalogSection,
-    EntryOutcome,
     FaultReason,
     SkippedEntry,
     UnrecognisedWordReport,
@@ -58,11 +58,10 @@ type JsonPath = tuple[str | int, ...]
 
 @dataclass(frozen=True, slots=True)
 class FutureVector:
-    """The vector and what it proves: every site kept, every site left alone."""
+    """The vector and the word sites it fills."""
 
     document: dict[str, Any]
-    tolerant: tuple[str, ...]
-    intolerant: tuple[str, ...]
+    sites: tuple[str, ...]
     withheld: str
 
 
@@ -144,6 +143,23 @@ class Schema:
                 continue
             return name, node
 
+    def holds_words(self, node: Mapping[str, Any]) -> bool:
+        """Whether ``node`` is a list whose items are a closed set of words."""
+        if "$ref" in node:
+            return self.holds_words(self.schemas[node["$ref"].rsplit("/", 1)[-1]])
+        alternatives = node.get("anyOf") or node.get("oneOf")
+        if alternatives:
+            return any(self.holds_words(alternative) for alternative in alternatives)
+        return node.get("type") == "array" and self.is_enum(node.get("items", {}))
+
+    def is_enum(self, node: Mapping[str, Any]) -> bool:
+        if "$ref" in node:
+            return self.is_enum(self.schemas[node["$ref"].rsplit("/", 1)[-1]])
+        alternatives = node.get("anyOf") or node.get("oneOf")
+        if alternatives:
+            return any(self.is_enum(alternative) for alternative in alternatives)
+        return "enum" in node
+
     def walk(
         self,
         value: object,
@@ -169,12 +185,16 @@ class Schema:
                     )
                 elif isinstance(extra, dict):
                     yield from self.walk(item, extra, (*path, key), (*here, "{}"))
+            for key, node_of in properties.items():
+                if value.get(key) in (None, []) and self.holds_words(node_of):
+                    # A list of words that is empty or absent is still a site.
+                    yield "word", (*path, key, 0), None, node_of, (*here, key, "[]")
         elif isinstance(value, list):
             for position, item in enumerate(value):
                 yield from self.walk(
                     item, concrete.get("items", {}), (*path, position), (*trail, "[]")
                 )
-        elif isinstance(value, str) and len(concrete.get("enum", ())) > 1:
+        elif isinstance(value, str) and "enum" in concrete:
             yield "word", path, value, concrete, trail
 
 
@@ -190,11 +210,16 @@ def _at(root: Any, path: JsonPath) -> Any:
 def _insert_word(entry: dict[str, Any], target: JsonPath) -> None:
     """Put the unknown word at a site: appended to its list (``APPEND``), else replacing the value."""
     *parents, last = target
-    container = _at(entry, tuple(parents))
     if last == APPEND:
-        container.append(WORD)
+        *owners, key = parents
+        container = _at(entry, tuple(owners))
+        # An empty, null or absent list becomes [WORD]; a list gains one element.
+        if isinstance(container, dict) and not isinstance(container.get(key), list):
+            container[key] = [WORD]
+        else:
+            container[key].append(WORD)
     else:
-        container[last] = WORD
+        _at(entry, tuple(parents))[last] = WORD
 
 
 def _target(path: JsonPath) -> JsonPath:
@@ -284,10 +309,10 @@ def _select(schema: Schema, index: dict[str, Any]) -> dict[str, Any]:
     return selected
 
 
-def _tolerant_sites(
+def _word_sites(
     schema: Schema, index: dict[str, Any]
-) -> tuple[dict[str, list[tuple[str, int, JsonPath]]], list[str]]:
-    """Each word site's insertion points; the sites the reader keeps are split from the rest."""
+) -> dict[str, list[tuple[str, int, JsonPath]]]:
+    """Each word site's insertion points, over every entry."""
     occurrences: dict[str, list[tuple[str, int, JsonPath]]] = {}
     for section in _ENTRY_SCHEMAS:
         for position, entry in enumerate(index[section]):
@@ -295,21 +320,7 @@ def _tolerant_sites(
                 occurrences.setdefault(site, []).extend(
                     (section, position, target) for target in sorted(targets, key=str)
                 )
-    kept: dict[str, list[tuple[str, int, JsonPath]]] = {}
-    refused: list[str] = []
-    for site, where in sorted(occurrences.items()):
-        section, position, target = where[0]
-        probe = copy.deepcopy(index[section][position])
-        _insert_word(probe, target)
-        read = _READERS[section](probe)
-        if read.outcome is EntryOutcome.KEEP_UNRECOGNISED and any(
-            isinstance(problem, UnrecognisedWordReport) and problem.word == WORD
-            for problem in read.problems
-        ):
-            kept[site] = where
-        else:
-            refused.append(site)
-    return kept, refused
+    return dict(sorted(occurrences.items()))
 
 
 def _rebind(index: dict[str, Any]) -> None:
@@ -394,7 +405,7 @@ def build_future_vector(
 ) -> FutureVector:
     """The future vector for ``index``; raises ``ValueError`` if its reader would not survive it."""
     vector = _select(Schema(schema_document), index)
-    sites, intolerant = _tolerant_sites(Schema(schema_document), vector)
+    sites = _word_sites(Schema(schema_document), vector)
     for where in sites.values():
         for section, position, target in where:
             _insert_word(vector[section][position], target)
@@ -417,8 +428,7 @@ def build_future_vector(
     _check(vector, sites)
     return FutureVector(
         document=vector,
-        tolerant=tuple(sorted(sites)),
-        intolerant=tuple(sorted(intolerant)),
+        sites=tuple(sorted(sites)),
         withheld=f"vonk-forge/{SLUG}",
     )
 

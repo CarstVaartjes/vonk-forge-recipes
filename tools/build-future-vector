@@ -2,7 +2,7 @@
 """Write the future vector: the real index as a newer minor release could publish it.
 
 Starting from the built ``catalog-index.json`` and its generated schema, the vector holds
-an unknown word at every site a consumer reader keeps, an unknown field on every closed
+an unknown word at every closed-word site outside an execution document, an unknown field on every closed
 object, and one recipe entry whose serving kind a reader cannot execute (it is withheld;
 the rest of the index applies). The release ships it as ``future-canary-index.json`` so a
 pinned and a stable consumer both prove they survive a newer minor. The code lives in
@@ -36,8 +36,8 @@ def main() -> int:
     )
     arguments.out.write_bytes(rendered_vector(result.document))
     print(
-        f"wrote {arguments.out}: {len(result.tolerant)} tolerant word sites, "
-        f"{len(result.intolerant)} left alone, entry {result.withheld} withheld"
+        f"wrote {arguments.out}: {len(result.sites)} word sites, "
+        f"entry {result.withheld} withheld"
     )
     return 0
 
