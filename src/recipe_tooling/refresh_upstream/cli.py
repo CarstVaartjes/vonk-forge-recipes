@@ -200,6 +200,11 @@ def command_run(arguments: argparse.Namespace) -> int:
                     summary.deferred.append(
                         f"{result.recipe_id}: mechanical, over this run's limit"
                     )
+                    # An issue left from an earlier run must not keep showing its old reason.
+                    result.reasons.append(
+                        "mechanical, but over this run's limit; a later run prepares it"
+                    )
+                    refresh_publish.sync_issue(result, summary, create=False)
                     continue
                 members = groups.get(result.recipe_id)
                 if members is None:

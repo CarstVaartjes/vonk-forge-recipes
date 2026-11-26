@@ -156,6 +156,18 @@ class PerRecipeFaultTests(unittest.TestCase):
         assert len(summary.failures) == 1
         assert summary.failures[0].startswith("a: ValueError: Expecting value")
 
+    def test_an_over_limit_mechanical_recipe_refreshes_its_existing_issue(self) -> None:
+        synced: list[tuple[str, bool, list[str]]] = []
+
+        def sync(assessment, _summary, *, create=True):
+            synced.append((assessment.recipe_id, create, list(assessment.reasons)))
+
+        with patch.object(refresh_model, "MAX_MECHANICAL_PER_RUN", 0):
+            self.run_refresh({"a": self.drifted("a")}, sync_issue=sync)
+
+        assert [(r, c) for r, c, _ in synced] == [("a", False)]
+        assert "over this run's limit" in synced[0][2][0]
+
     def test_an_error_syncing_an_unreachable_recipe_does_not_starve_the_next(
         self,
     ) -> None:

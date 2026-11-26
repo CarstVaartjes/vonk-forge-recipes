@@ -1162,6 +1162,8 @@ holds and the upstream watch) since it started defers the recipe to the next run
 only for a PR prepared after that listing). A PR whose checks failed or were cancelled holds no lane: it
 does not defer other refresh PRs that share its files; if it merges anyway (a rerun,
 or a non-required check failed), a conflicting sibling is regenerated on main.
+A mechanical result over the per-run limit refreshes its existing review issue (never opens one)
+with that reason, so the issue does not keep an old one.
 Every refresh PR body carries a `## Principles` section that states only what the
 move did: pins moved (and any held), proven bytes followed when the fixture changed,
 peaks raised when they were, and the sweep re-check only when a recipe document changed.
