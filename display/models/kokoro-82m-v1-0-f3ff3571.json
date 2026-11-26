@@ -1,0 +1,34 @@
+{
+  "capabilities": [
+    "audio-generation",
+    "text-to-speech"
+  ],
+  "description": "Exact official Kokoro-82M v1.0 checkpoint (kokoro-v1_0.pth and config.json, StyleTTS 2 style decoder with an ISTFTNet vocoder, 24 kHz): small, fast speech in eight languages with preset voices.",
+  "family_title": "Kokoro",
+  "identity": {
+    "publisher": "hexgrad",
+    "slug": "kokoro-82m-v1-0-f3ff3571"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "hexgrad"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/hexgrad/Kokoro-82M/blob/f3ff3571791e39611d31c381e3a41a3af07b4987/README.md"
+  },
+  "lineage": {
+    "family": "kokoro",
+    "line": "kokoro-82m",
+    "model": "kokoro-82m-v1-0",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "audio"
+  ],
+  "model_title": "Kokoro 82M v1.0",
+  "tags": [
+    "hexgrad",
+    "kokoro-82m"
+  ]
+}

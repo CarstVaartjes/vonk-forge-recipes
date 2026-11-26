@@ -293,6 +293,7 @@ CREATOR_FIXED_MEDIA = {
     "hunyuan3d-2-1-paint-pytorch-single",
 }
 MINIMAL_MEDIA_PARAMETERS = {
+    "moss-ttsd-v1-0-pytorch-single": {"max-new-tokens": 256},
     "mova-360p-diffusers-single": {"num-frames": 1, "num-inference-steps": 2},
     "mova-720p-diffusers-single": {"num-frames": 1, "num-inference-steps": 2},
     "bpt-pytorch-single": {"temperature": 0.5, "seed": 0},

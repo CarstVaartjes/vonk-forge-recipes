@@ -1,0 +1,5 @@
+This build context runs the Kokoro-FastAPI v0.10.0 GPU image published by its author
+(Apache-2.0, https://github.com/remsky/Kokoro-FastAPI commit
+f2a5270d2ccd9590bc87e2393c774814f23fe7a1), pinned by its linux/arm64 digest. No upstream
+source is vendored. kokoro-serve.py is a Vonk Forge launcher for the platform's serving
+flags. The Kokoro-82M weights (Apache-2.0, hexgrad) are mounted from the pinned Model.

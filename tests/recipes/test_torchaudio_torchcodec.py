@@ -47,6 +47,12 @@ EXEMPT = {
         "soundfile; its torchaudio.info shim is reached only from "
         "AudioSignal.excerpt. The recipe takes text and an image, never audio."
     ),
+    "audio/moss-ttsd-pytorch": (
+        "MOSS-TTSD c7cd852d remote code reads clips with soundfile "
+        "(processing_moss_tts.py) and uses torchaudio only for functional.resample; "
+        "inference_utils.py imports it unused; the job reads and writes WAV with "
+        "soundfile. The creator's torchcodec 0.8.1 publishes no linux-aarch64 wheel."
+    ),
     "llm/r0b0tlab-laguna-s-vllm-single": (
         "Serves Laguna-S 2.1, a text-only model (models/laguna-s-2-1-*.json: "
         "modalities text), so vLLM never decodes audio. Dockerfile.production "
