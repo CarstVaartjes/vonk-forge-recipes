@@ -263,6 +263,50 @@ class ModelTests(unittest.TestCase):
                     assert not result.unreachable
                     assert len(result.evidence) == 1
 
+    def test_private_or_disabled_model_is_a_review_reason(self) -> None:
+        for status in ("private", "disabled"):
+            with (
+                self.subTest(status=status),
+                tempfile.TemporaryDirectory() as temporary,
+            ):
+                model = model_with(("model.safetensors",))
+                model["identity"]["slug"] = "closed-model"
+                model["source"] = {
+                    "repository": "https://huggingface.co/example/model",
+                    "revision": OLD,
+                }
+                recipe = {
+                    "identity": {"slug": "recipe"},
+                    "models": [{"model": {"slug": "closed-model"}}],
+                    "execution": {"build": {"context": {"path": "missing-context"}}},
+                }
+                catalog = refresh_catalog_view.Catalog(
+                    Path(temporary),
+                    recipes={"recipe": recipe},
+                    models={"closed-model": model},
+                )
+                target = refresh_model.Target(
+                    "huggingface",
+                    "example/model",
+                    OLD,
+                    "2026-09-30",
+                    None,
+                    None,
+                    "https://huggingface.co/example/model/tree/" + OLD,
+                    access_status=status,
+                )
+
+                result = refresh_items.collect_items(
+                    catalog,
+                    "recipe",
+                    object(),  # pyright: ignore[reportArgumentType]
+                    lambda _provider, _repo, found=target: found,
+                )
+
+                assert len(result.reasons) == 1
+                assert status in result.reasons[0]
+                assert not result.items
+
     def test_unknown_anonymous_access_status_is_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             model = model_with(("model.safetensors",))

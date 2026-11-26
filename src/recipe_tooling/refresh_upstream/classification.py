@@ -18,7 +18,7 @@ from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
 from recipe_tooling.refresh_upstream import evidence as refresh_evidence
 from recipe_tooling.refresh_upstream import http as refresh_http
 from recipe_tooling.refresh_upstream import model as refresh_model
-from recipe_tooling.upstream_http import fetch
+from recipe_tooling.upstream_http import UpstreamBusy, fetch
 from vonk_forge_contracts.recipe import RecipeRelease
 
 ARCHIVE_LABEL = re.compile(r'([\w.-]*archive-sha256="?)([0-9a-f]{64})("?)')
@@ -126,6 +126,8 @@ def published_sha256(http: Any, repo: str, tag: str, asset: str) -> str:
     """
     try:
         release = http.github(f"repos/{repo}/releases/tags/{quote(tag, safe='')}")
+    except UpstreamBusy:
+        raise
     except (RuntimeError, KeyError, TypeError) as error:
         raise ReleaseAssetError(f"{repo} release {tag}: {error}") from error
     assets = {a.get("name"): a for a in release.get("assets", [])}
