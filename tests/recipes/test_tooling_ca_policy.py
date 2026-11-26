@@ -10,6 +10,8 @@ import pytest
 from repo_root import ROOT
 
 SETUP = ".github/actions/setup-tooling/action.yml"
+# Installs the uv its recipe-tools bundle pins (.tool-versions), not CI's own.
+BUNDLE_UV = ".github/workflows/platform-validate.yml"
 UV_PIN = re.compile(
     r"\buv(?:x|[_-]version)?[\"' \t]*(?:==|=|@|:)[\"' \t]*v?\d+\.\d+\.\d+"
     r"|\buv(?:/v?|/releases/download/v?)\d+\.\d+\.\d+",
@@ -32,7 +34,7 @@ def uv_pin_problems(sources: list[tuple[str, str]], version: str) -> list[str]:
             continue
         if version in text or UV_PIN.search(text):
             problems.append(name)
-        if "uses: astral-sh/setup-uv@" in text:
+        if name != BUNDLE_UV and "uses: astral-sh/setup-uv@" in text:
             problems.append(name)
     return sorted(set(problems))
 
@@ -68,7 +70,8 @@ def test_uv_has_one_exact_owner() -> None:
     assert not uv_pin_problems(sources, pin.removeprefix("=="))
     assert (ROOT / SETUP).is_file()
     for path in (ROOT / ".github/workflows").glob("*.yml"):
-        assert "astral-sh/setup-uv@" not in path.read_text()
+        if path != ROOT / BUNDLE_UV:
+            assert "astral-sh/setup-uv@" not in path.read_text()
 
 
 @pytest.mark.parametrize(
