@@ -93,4 +93,4 @@ def test_the_less_obvious_shapes_exit_one(tmp_path: Path) -> None:
 def test_a_file_named_like_a_home_is_not_a_home(tmp_path: Path) -> None:
     done = run(tmp_path, **{"sub/shown": SHOWN.replace("Color", "Shade")})
     assert done.returncode == 1
-    assert done.stdout.strip().endswith("belongs in executed.py or shown.py")
+    assert "sub/shown.py" in done.stdout
