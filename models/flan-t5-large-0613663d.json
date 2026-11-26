@@ -1,0 +1,79 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "config-bfa5beeb5a46-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "bfa5beeb5a4630a97f043f071b9b5d858c842604cff5db874680f33b56090c8c",
+      "size_bytes": 662
+    },
+    {
+      "id": "model-a9dd06ce490f-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a9dd06ce490f139af36e9eb77dd3758b4fd07a08a73d5a1abe5ff2591e2d388e",
+      "size_bytes": 3132668804
+    },
+    {
+      "id": "special-tokens-map-5c87151ef0f7-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5c87151ef0f72a99d1f766a4c418bd2a1f90aaa30a8e22fe5eca9641daebb64f",
+      "size_bytes": 2201
+    },
+    {
+      "id": "spiece-d60acb128cf7-3009ca8c22",
+      "path": "spiece.model",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d60acb128cf7b7f2536e8f38a5b18a05535c9e14c7a355904270e15b0945ea86",
+      "size_bytes": 791656
+    },
+    {
+      "id": "tokenizer-fe2ebbbbde29-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "fe2ebbbbde2985be723e0ce18217853e4020c5e9d35bd07be2c27ab9d3ead57a",
+      "size_bytes": 2424064
+    },
+    {
+      "id": "tokenizer-config-5d19985330a9-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5d19985330a9123285cc583fc60616d083aa9df7435812b5d8bb3e749f435d56",
+      "size_bytes": 2539
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "google",
+      "slug": "flan-t5-large"
+    },
+    "publisher": "google",
+    "slug": "flan-t5-large-0613663d",
+    "variant": "0613663d",
+    "version": "0613663d"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/google/flan-t5-large",
+    "revision": "0613663d0d48ea86ba8cb3d7a44f0f65dc596a2a"
+  }
+}

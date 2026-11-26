@@ -299,6 +299,7 @@ MINIMAL_MEDIA_PARAMETERS = {
     "fasth3-8step-v2-drowzeys-tensorfold-single": {"num-frames": 124},
     "minimax-h3-keys-heretic-drowzeys-comfyui-single": {"num-frames": 124},
     "stable-audio-3-small-sfx-pytorch-single": {"duration-seconds": 2},
+    "tangoflux-pytorch-single": {"duration-seconds": 2.0, "steps": 50, "seed": 0},
     "minimax-h3-diffusers-single": {"num-frames": 124, "num-inference-steps": 4},
     "minimax-h3-fl2va-diffusers-single": {"num-frames": 124, "num-inference-steps": 4},
     "minimax-h3-fl2va-knapcio-vllm-omni-dual": {"num-inference-steps": 2},

@@ -1,0 +1,65 @@
+FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
+
+LABEL org.opencontainers.image.source="https://github.com/declare-lab/TangoFlux" \
+      org.opencontainers.image.revision="164420faa2b3f8a28bb013ccde7006422a616fc7" \
+      org.opencontainers.image.licenses="LicenseRef-Stability-AI-Community-License" \
+      io.vonk.adapter="tangoflux-pytorch" \
+      io.vonk.agent-protocol.wheel-sha256="9db7484767d0eaec9a0c20a6f18c1c995570c5588ffed8bee3da4a70022cc625"
+
+# PYTHONPATH is a platform-owned name, so run.py gives the creator's source to the worker itself.
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONUNBUFFERED=1
+
+COPY requirements.lock /tmp/requirements.lock
+COPY vonk_agent_protocol-4.1.0-py3-none-any.whl /tmp/vonk_agent_protocol-4.1.0-py3-none-any.whl
+# build-essential and python3-dev: Triton JIT needs a compiler and Python.h in every
+# CUDA runtime image that pip-installs torch (tests/recipes/test_job_runtime_toolchain.py).
+# Nothing here compiles CUDA, so the runtime base is enough (libsndfile1 is the shared library soundfile loads).
+RUN apt-get update \
+    && apt-get install --no-install-recommends --yes \
+        build-essential \
+        python3-dev \
+        ca-certificates \
+        curl \
+        libsndfile1 \
+        python3 \
+        python3-pip \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m pip install --break-system-packages --no-cache-dir \
+        --require-hashes \
+        --extra-index-url https://download.pytorch.org/whl/cu130 \
+        --requirement /tmp/requirements.lock \
+    && printf '%s  %s\n' 9db7484767d0eaec9a0c20a6f18c1c995570c5588ffed8bee3da4a70022cc625 \
+        /tmp/vonk_agent_protocol-4.1.0-py3-none-any.whl | sha256sum --check --strict \
+    && python3 -m pip install --break-system-packages --no-cache-dir --no-index --no-deps \
+        /tmp/vonk_agent_protocol-4.1.0-py3-none-any.whl \
+    && rm /tmp/requirements.lock /tmp/vonk_agent_protocol-4.1.0-py3-none-any.whl
+
+# The creator's tangoflux package at the pinned commit (its model and inference code; training, CRPO
+# and the demos are not used, and its setup.py, which pins torch 2.4.0, is not installed), with its
+# licences and notice. The weights are mounted by the recipe.
+RUN curl --fail --location --retry 5 \
+        https://codeload.github.com/declare-lab/TangoFlux/tar.gz/164420faa2b3f8a28bb013ccde7006422a616fc7 \
+        --output /tmp/tangoflux.tar.gz \
+    && echo "d38c8f1586a70df7d3aa9c9a0a4e70bb82e72f45e40538e111eaedb935ccbf67  /tmp/tangoflux.tar.gz" | sha256sum --check --strict \
+    && mkdir /tmp/tangoflux-source \
+    && tar --extract --gzip --file /tmp/tangoflux.tar.gz --strip-components=1 --directory /tmp/tangoflux-source \
+    && install --directory --mode=0755 /opt/tangoflux \
+    && cp -r /tmp/tangoflux-source/tangoflux /tmp/tangoflux-source/LICENSE.md \
+        /tmp/tangoflux-source/STABILITY_AI_COMMUNITY_LICENSE.md /tmp/tangoflux-source/Notice /opt/tangoflux/ \
+    && rm -rf /tmp/tangoflux.tar.gz /tmp/tangoflux-source
+
+COPY run.py worker.py generation.py /opt/vonk/source/
+
+# Build-time import smoke (no GPU, no weights): the creator's modules and the libraries the worker
+# writes with, and the protocol model.
+RUN PYTHONPATH=/opt/tangoflux python3 -c "import tangoflux.model; from diffusers import AutoencoderOobleck, FluxTransformer2DModel; import soundfile; from vonk_agent_protocol.job_inputs import RecipeJobInputManifest" \
+    && install --directory --mode=0755 /opt/vonk/bin /inputs /outputs \
+    && printf '%s\n' '#!/bin/sh' 'exec python3 /opt/vonk/source/run.py "$@"' > /opt/vonk/bin/pytorch-pipeline \
+    && chmod 0755 /opt/vonk/bin/pytorch-pipeline \
+    && useradd --uid 10001 --create-home --shell /usr/sbin/nologin vonk \
+    && chown 10001:10001 /outputs
+
+USER 10001:10001
+ENTRYPOINT []

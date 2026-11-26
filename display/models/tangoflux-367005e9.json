@@ -1,0 +1,35 @@
+{
+  "capabilities": [
+    "audio-generation"
+  ],
+  "description": "TangoFlux (515M-parameter FluxTransformer with a FLAN-T5-large text encoder and a stereo 44.1 kHz Oobleck VAE, flow matching, trained with CLAP-Ranked Preference Optimization): text prompt to up to 30 seconds of 44.1 kHz stereo audio. Stability AI Community License (non-commercial and research use; free below USD 1M annual revenue); the training data includes WavCaps, which is academic-use only. The FLAN-T5-large encoder is catalogued separately.",
+  "family_title": "TangoFlux",
+  "identity": {
+    "publisher": "declare-lab",
+    "slug": "tangoflux-367005e9"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "declare-lab"
+    ],
+    "spdx": "LicenseRef-Stability-AI-Community-License",
+    "url": "https://huggingface.co/declare-lab/TangoFlux/blob/367005e963cb3a9fb2e03a46104d7de23e34ceea/LICENSE.md"
+  },
+  "lineage": {
+    "family": "tangoflux",
+    "generation": "TangoFlux",
+    "line": "tangoflux",
+    "model": "tangoflux",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "text",
+    "audio"
+  ],
+  "model_title": "TangoFlux",
+  "tags": [
+    "declare-lab",
+    "tangoflux"
+  ]
+}
