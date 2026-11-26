@@ -1,0 +1,56 @@
+{
+  "id": "vonk-forge/birefnet-hr-pytorch-single",
+  "recipes": {
+    "assertions": [
+      {
+        "exact": 2,
+        "kind": "file-count"
+      },
+      {
+        "exact": [
+          "cutout.png",
+          "mask.png"
+        ],
+        "kind": "file-names"
+      },
+      {
+        "allowed": [
+          "image/png"
+        ],
+        "kind": "media-type"
+      },
+      {
+        "kind": "minimum-bytes",
+        "value": 1
+      },
+      {
+        "format": "png",
+        "kind": "format"
+      },
+      {
+        "bit_depth": 8,
+        "height": 64,
+        "kind": "image-metadata",
+        "media_type": "image/png",
+        "width": 64
+      }
+    ],
+    "inputs": [
+      {
+        "fixture": "generic-image-png",
+        "slot": "image"
+      }
+    ],
+    "interface": "image-job",
+    "output_limits": {
+      "allowed_media_types": [
+        "image/png"
+      ],
+      "max_file_bytes": 134217728,
+      "max_files": 2,
+      "max_total_bytes": 268435456
+    },
+    "parameters": {},
+    "timeout_seconds": 1800
+  }
+}

@@ -14,6 +14,7 @@
     },
     {
       "context": "adapters/audio/tangoflux-pytorch",
+      "context": "adapters/image/birefnet-pytorch",
       "wheel_directory": ""
     },
     {

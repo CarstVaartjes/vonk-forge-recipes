@@ -205,6 +205,7 @@
         "adapters/audio/drowzeys-music3-tensorfold/vonk_agent_protocol-4.1.0-py3-none-any.whl",
         "adapters/audio/mmaudio-pytorch/vonk_agent_protocol-4.1.0-py3-none-any.whl",
         "adapters/audio/tangoflux-pytorch/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+        "adapters/image/birefnet-pytorch/vonk_agent_protocol-4.1.0-py3-none-any.whl",
         "adapters/image/marigold-diffusers/vonk_agent_protocol-4.1.0-py3-none-any.whl",
         "adapters/image/minimax-h3-image-sglang/vonk_agent_protocol-4.1.0-py3-none-any.whl",
         "adapters/october-2026/flux-3-image-klein-pytorch-single/vonk_agent_protocol-4.1.0-py3-none-any.whl",

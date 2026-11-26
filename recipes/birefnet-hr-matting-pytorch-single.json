@@ -1,0 +1,239 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/image/birefnet-pytorch"
+      },
+      "dockerfile": "adapters/image/birefnet-pytorch/Dockerfile",
+      "network": {
+        "hosts": [
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.org",
+          "pypi.nvidia.com",
+          "files.pythonhosted.org",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "birefnet-hr-matting-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "image-job",
+      "input": {
+        "max_bytes": 33554432,
+        "media_types": [
+          "image/jpeg",
+          "image/png"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "One PNG or JPEG photo or render to cut out; at most 4096x4096 pixels. Transparency in the input is ignored: the model sees its RGB pixels.",
+            "extensions": [
+              ".jpeg",
+              ".jpg",
+              ".png"
+            ],
+            "id": "image",
+            "label": "Image",
+            "max_file_bytes": 33554432,
+            "max_files": 1,
+            "max_total_bytes": 33554432,
+            "media_types": [
+              "image/jpeg",
+              "image/png"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 268435456,
+        "slots": [
+          {
+            "description": "Two PNGs at the input size: cutout.png (the input RGB with the predicted mask as its alpha channel, RGBA) and mask.png (the mask, 8-bit grayscale).",
+            "extensions": [
+              ".png"
+            ],
+            "id": "images",
+            "label": "Cutout and mask",
+            "max_file_bytes": 134217728,
+            "max_files": 2,
+            "max_total_bytes": 268435456,
+            "media_types": [
+              "image/png"
+            ],
+            "min_files": 2
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "birefnet-config-e7b8c2a74f6c-4bc9953e92",
+          "id": "primary-birefnet-config-e7b8c2a74f6c-4bc9953e92",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "birefnet-2a45b4e0ece7-03db3bd572",
+          "id": "primary-birefnet-2a45b4e0ece7-03db3bd572",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-d0b779ee9a76-587cb980af",
+          "id": "primary-config-d0b779ee9a76-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-a5a4de698739-9d75c1098f",
+          "id": "primary-model-a5a4de698739-9d75c1098f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "2a4a9168ab3821e0800df4d8dc8a2fea44fa75c6d547169947c50d9f87b0e7a4",
+        "kind": "model",
+        "publisher": "zhengpeng7",
+        "slug": "birefnet-hr-matting-5d6b6f8a"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Peng Zheng (ZhengPeng7)"
+    ],
+    "source_reference": "https://huggingface.co/ZhengPeng7/BiRefNet_HR-matting/tree/5d6b6f8adcb5b417c871b1d84ceaae9871355b7f"
+  },
+  "release": {
+    "released_at": "2026-11-26",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "entrypoint",
+        "setting": null,
+        "value": "/opt/vonk/source/run.py"
+      },
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "image/png"
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 444566444,
+            "image_bytes": 10000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 2000000000
+          },
+          "memory": {
+            "peak_bytes": 12000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "image-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/tiny.png",
+            "input_slots": {
+              "image": "qualification/fixtures/tiny.png"
+            },
+            "output_slot": "images",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "image-job"
+    }
+  }
+}
