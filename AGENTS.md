@@ -103,7 +103,7 @@ includes it in the normally signed catalog; publication is not hardware proof.
 
 ## Setup and producer gates
 
-Producer tools, contracts and tests use Python **3.14**. The setup-tooling action (uv and its trust-bundle venv) runs 3.15, which the pinned platform requires. Adapter sources remain
+Producer tools, contracts and tests use Python **3.14**. The pinned platform's `recipe-image-plan` call in recipe-images.yml runs on 3.15 (passed as `--python`). Adapter sources remain
 **3.12-compatible** because they overlay upstream images. Everything under
 `adapters/` follows upstream style and is excluded from Ruff and Pyright;
 functional tests still validate its behaviour, pins and executability.
