@@ -183,6 +183,8 @@ validate.yml and publish.yml; its fan-in job keeps the required check name
   skips the stable leg; it is the only skip.
 - The leg runs the bundle's entry point `scripts/recipes/validate-recipe-checkout`, then
   `tools/check-platform-contracts --platform-features` on its `platform-features.json`.
+  Only the dev leg gates on both; the stable leg reports (see below) and fails only on a
+  contracts major.
 
 A validator a channel publishes that refuses current recipes main is fixed forward in
 forge (its release acceptance runs the bundle against the recipes pin first);
@@ -269,16 +271,16 @@ The final publish job unconditionally repeats lint, format and types. The setup
 action keys the uv cache on `.github/requirements-*.txt` (only `main` saves it)
 and no job redirects `UV_CACHE_DIR`/`UV_TOOL_DIR`; Python TLS trusts the pinned
 certifi bundle, with no per-job apt certificate refresh.
-`tools/check-platform-contracts` gates only what a platform executes: a recipe whose
-serving kind, interface adapter, API mode, reasoning-effort kind or Model source provider
-is missing from a channel's `platform-features.json` fails that channel's leg; land the
-platform support in forge first. Shown words are never gated. A new capability is one
-recipes PR: add the `CapabilityName` member (`capability.py`) and its `CAPABILITY_TEXT`
-row (`vocabulary.py`), and use it. Publication computes a minor, the platform's readers
-keep a word they do not know, and forge's lock follows at its next routine refresh.
-Nothing waits.
-A contracts **major** bump is deployed consumer-first: the same tool refuses a
-`CONTRACT_MAJOR` newer than the channel's `contract_major`. Pin the recipes commit in
+`tools/check-platform-contracts` checks only what a platform executes: serving kind,
+interface adapter, API mode, reasoning-effort kind and Model source provider, against a
+channel's `platform-features.json`. A word missing from dev fails the dev leg; land the
+platform support in forge first. Recipes ship continuously, so the stable leg only
+reports such a word (`--report-words`, a warning), and its bundle validator runs with
+`continue-on-error`: a stable Controller withholds a recipe whose executed word it lacks
+until it upgrades. Shown words are never gated. A new capability is one recipes PR (the
+procedure is in the authoring guide's contract version policy); nothing waits.
+A contracts **major** bump is deployed consumer-first: the same tool refuses, on every
+channel, a `CONTRACT_MAJOR` newer than the channel's `contract_major`. Pin the recipes commit in
 vonk-forge and release it (the Controller waits visibly for the new major), then merge
 here. A platform major ahead of this repo never blocks.
 After a release that changed, the `dispatch-site` job starts the public site's `pages.yml`

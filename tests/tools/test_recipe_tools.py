@@ -157,6 +157,8 @@ def test_no_workflow_pins_a_forge_commit() -> None:
 
     pinned = re.compile(
         r"vonk-forge/\.github/workflows/\S*@|platform_ref:\s*[0-9a-f]{40}"
+        r"|repository:\s*CarstVaartjes/vonk-forge\s*$",
+        re.MULTILINE,
     )
     workflows = sorted((ROOT / ".github/workflows").glob("*.yml"))
     assert workflows

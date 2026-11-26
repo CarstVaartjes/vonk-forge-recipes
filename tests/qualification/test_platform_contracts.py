@@ -57,9 +57,20 @@ def test_a_serving_kind_the_platform_does_not_execute_fails(tmp_path: Path) -> N
     )
     argv = ["--library-root", str(root), "--platform-features"]
     assert GUARD["main"]([*argv, str(without_speech)]) == 1
-    assert GUARD["problems"](
-        root, ["x"], GUARD["read_features"](without_speech.read_text("utf-8"))
-    ) == ["x: the platform does not execute serving kind openai.speech"]
+
+
+def test_the_stable_report_warns_on_words_and_fails_only_on_the_major(
+    tmp_path: Path, capsys
+) -> None:
+    root = _library(tmp_path)
+    argv = ["--library-root", str(root), "--report-words", "--platform-features"]
+    without_speech = _features(
+        tmp_path, serving_kinds=["openai.transcription", "openai.vision"]
+    )
+    assert GUARD["main"]([*argv, str(without_speech)]) == 0
+    assert "openai.speech" in capsys.readouterr().out
+    older = _features(tmp_path, contract_major=CONTRACT_MAJOR - 1)
+    assert GUARD["main"]([*argv, str(older)]) == 1
 
 
 def test_an_unlisted_capability_is_not_gated(tmp_path: Path) -> None:

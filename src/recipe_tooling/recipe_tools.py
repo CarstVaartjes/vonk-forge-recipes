@@ -179,7 +179,7 @@ def channel_fetch(channel: str, base_url: str = BASE_URL) -> Fetch:
             f"{base_url}/{channel}/{name}", headers={"User-Agent": "vonk-forge-recipes"}
         )
         try:
-            return http_fetch(request, lambda response: response.read(), timeout=300)
+            return http_fetch(request, lambda response: response.read(), timeout=60)
         except HTTPError as error:
             if error.code == 404:
                 raise Absent(name) from error

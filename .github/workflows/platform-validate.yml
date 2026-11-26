@@ -68,14 +68,24 @@ jobs:
 
       # Builds this checkout's index and packages, then validates source policy,
       # archives and runtime compilation (every option choice) with the
-      # candidate's own contracts.
+      # candidate's own contracts. Recipes ship continuously: the stable leg
+      # reports (a stable Controller withholds a recipe it cannot execute) and
+      # only dev gates.
       - name: Validate the library with the bundle's entry point
         if: steps.tools.outputs.state != 'absent'
+        continue-on-error: ${{ matrix.channel == 'stable' }}
         run: .vonk-forge/scripts/recipes/validate-recipe-checkout "$GITHUB_WORKSPACE"
 
+      # On stable, executed words the platform lacks are warnings; only a
+      # contracts major ahead of the platform fails.
       - name: Require every recipe to use only what the platform executes
         if: steps.tools.outputs.state != 'absent'
-        run: tools/check-platform-contracts --platform-features .vonk-forge/platform-features.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          report=()
+          if [[ "${{ matrix.channel }}" == stable ]]; then report=(--report-words); fi
+          tools/check-platform-contracts --platform-features .vonk-forge/platform-features.json "${report[@]}"
 
   # The required check: one name that fans in on every channel leg.
   validate:
