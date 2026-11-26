@@ -1,0 +1,58 @@
+# Torch stack: torch 2.14.0 on the cu132 index, as the GB10-proven TripoSG and Step1X images that
+# build sm_121 extensions on the CUDA 13.4.1 devel base. The creator's torch 2.5.1 / cu124 stack has
+# no GB10 (aarch64, CUDA 13) build, so this is a platform fact, not a creator choice.
+torch==2.14.0
+torchvision==0.29.0
+
+# The creator's requirements.txt pins, kept wherever they resolve on Python 3.12 aarch64.
+# transformers 4.46.0 is yanked on PyPI for Python 3.8 only; it still installs on 3.12.
+transformers==4.46.0
+diffusers==0.30.0
+accelerate==1.1.1
+pytorch-lightning==1.9.5
+huggingface-hub==0.30.2
+safetensors==0.4.4
+# The creator's numpy 1.24.4 has no cp312 wheel; 1.26.4 keeps the pre-2.0 aliases its code uses.
+numpy==1.26.4
+scipy==1.14.1
+einops==0.8.0
+opencv-python==4.10.0.84
+imageio
+scikit-image==0.24.0
+# Newer trimesh changes simplify_quadric_decimation's first argument to a percentage, which the
+# creator's remesh step (40,000 faces) relies on as a face count.
+trimesh==4.4.7
+# The creator's open3d 0.18.0 has no cp312 aarch64 wheel, and trimesh 4.4.7 decimation wraps open3d;
+# open3d and pymeshlab ship aarch64 wheels only as manylinux_2_35 or newer, so the lock targets
+# Ubuntu 24.04's glibc (manylinux_2_39).
+open3d==0.20.0
+# The creator's pymeshlab 2022.2.post3 has no aarch64 wheel.
+pymeshlab==2025.7.post1
+pygltflib==1.16.3
+omegaconf
+timm
+pybind11==2.13.4
+ninja==1.11.1.1
+
+# Build backends and import dependencies of the three sdist-only packages (requirements-sdist.txt):
+# basicsr, realesrgan and xatlas are installed after this lock with --no-deps --no-build-isolation.
+setuptools
+wheel
+cython
+scikit-build-core
+cmake
+addict
+future
+lmdb
+pyyaml
+requests
+yapf
+tqdm
+
+# Not installed, on purpose (nothing on the generation path imports them): rembg and onnxruntime
+# (the creator's demo removes backgrounds only for RGB input, which this recipe does not), cupy,
+# deepspeed, torch_cluster, diso, flash_attn, nvdiffrast, gradio, fastapi, uvicorn, pythreejs,
+# tb_nightly and bpy (no aarch64 build; the GLB is written by export_pbr_glb.py instead).
+pydantic==2.13.5
+# vonk-agent-protocol 4.1.0 requirement.
+jsonschema==4.26.0

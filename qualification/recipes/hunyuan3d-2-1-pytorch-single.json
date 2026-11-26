@@ -1,0 +1,56 @@
+{
+  "id": "vonk-forge/hunyuan3d-2-1-pytorch-single",
+  "recipes": {
+    "assertions": [
+      {
+        "exact": 1,
+        "kind": "file-count"
+      },
+      {
+        "exact": [
+          "mesh.glb"
+        ],
+        "kind": "file-names"
+      },
+      {
+        "allowed": [
+          "model/gltf-binary"
+        ],
+        "kind": "media-type"
+      },
+      {
+        "kind": "minimum-bytes",
+        "value": 20
+      },
+      {
+        "format": "glb",
+        "kind": "format"
+      },
+      {
+        "kind": "glb-structure",
+        "minimum_meshes": 1,
+        "minimum_primitives": 1,
+        "profile": "textured-pbr"
+      }
+    ],
+    "inputs": [
+      {
+        "fixture": "hunyuan3d-2-1-demo-png",
+        "slot": "image"
+      }
+    ],
+    "interface": "mesh-job",
+    "output_limits": {
+      "allowed_media_types": [
+        "model/gltf-binary"
+      ],
+      "max_file_bytes": 536870912,
+      "max_files": 1,
+      "max_total_bytes": 536870912
+    },
+    "parameters": {
+      "seed": 1234
+    },
+    "timeout_seconds": 3600
+  }
+}

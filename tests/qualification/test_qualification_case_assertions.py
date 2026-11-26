@@ -283,6 +283,12 @@ PROVEN_FIXED_MEDIA = {
     "wan-2-2-t2v-14b-comfyui-single",
     "wan-2-2-ti2v-5b-comfyui-single",
 }
+# Unproven recipes whose creator fixes every cost-setting: no control makes the smoke cheaper
+# (Hunyuan3D 2.1's paint step fixes its views, steps, remesh and seed), and a shape seed is no cost.
+CREATOR_FIXED_MEDIA = {
+    "hunyuan3d-2-1-pytorch-single",
+    "hunyuan3d-2-1-paint-pytorch-single",
+}
 MINIMAL_MEDIA_PARAMETERS = {
     "mova-360p-diffusers-single": {"num-frames": 1, "num-inference-steps": 2},
     "mova-720p-diffusers-single": {"num-frames": 1, "num-inference-steps": 2},
@@ -392,11 +398,12 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
                 {"slot": "mesh", "fixture": "skintokens-rigged-figure"}
             ]
         else:
-            assert slug in PROVEN_FIXED_MEDIA, (
+            assert slug in PROVEN_FIXED_MEDIA | CREATOR_FIXED_MEDIA, (
                 f"review minimal smoke controls for {slug}"
             )
     assert seen == (
         PROVEN_FIXED_MEDIA
+        | CREATOR_FIXED_MEDIA
         | MINIMAL_MEDIA_PARAMETERS.keys()
         | MINIMAL_BY_FIXTURE_MEDIA
         | SHARED_PROVEN_MEDIA.keys()

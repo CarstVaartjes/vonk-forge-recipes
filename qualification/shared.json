@@ -31,6 +31,21 @@
         "attribution": "TripoSG example input assets/example_data/qwvfsd.png, byte-identical; \u00a9 2025 VAST-AI-Research and contributors; MIT (repository LICENSE)."
       }
     },
+    "hunyuan3d-2-1-demo-png": {
+      "path": "fixtures/hunyuan3d-2-1-demo.png",
+      "encoding": "identity",
+      "name": "hunyuan3d-2-1-demo.png",
+      "media_type": "image/png",
+      "size_bytes": 151014,
+      "sha256": "4260b9a45c39fc4045bae81d27f8eb17127cdb201df614193077268d996ce436",
+      "provenance": {
+        "origin": "upstream",
+        "source_url": "https://raw.githubusercontent.com/Tencent-Hunyuan/Hunyuan3D-2.1/82920d643c0dc2f7bfd7255f45f62d386edfe60c/assets/demo.png",
+        "source_revision": "82920d643c0dc2f7bfd7255f45f62d386edfe60c",
+        "license_spdx": "LicenseRef-Tencent-Hunyuan-3D-2.1-Community-License",
+        "attribution": "Hunyuan3D 2.1 demo input assets/demo.png, byte-identical; Tencent Hunyuan 3D 2.1 Community License (repository LICENSE)."
+      }
+    },
     "motionbricks-command-v1": {
       "path": "fixtures/motionbricks-command.json",
       "encoding": "identity",
