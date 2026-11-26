@@ -19,7 +19,7 @@ class PendingReason(StrEnum):
     # retries, so a missing pin is not a failed build (publish.yml gates on the
     # image jobs). The recipe ships unpinned; the next publication pins it.
     UNRESOLVED = (
-        "no resolved build-<key> digest yet (deferred/scheduled build or lookup)"
+        "no resolved build-v2-<key> digest yet (deferred/scheduled build or lookup)"
     )
 
 
@@ -79,7 +79,9 @@ def verify(
                     f"{PendingReason.UNRESOLVED}"
                 )
                 continue
-            if expected is None or expected.build_key != image.build_key:
+            # The resolved pin may carry an earlier key for the same content and
+            # source (tools/prebuilt-images resolve): the digest is what ran.
+            if expected is None:
                 raise ValueError(
                     f"{recipe.slug}: unresolved current build {image.build_key}"
                 )

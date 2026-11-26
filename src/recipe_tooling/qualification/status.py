@@ -10,6 +10,11 @@ from __future__ import annotations
 
 from enum import StrEnum
 
+from recipe_tooling.qualification.identity import (
+    execution_key,
+    image_digest,
+    same_execution,
+)
 from vonk_forge_contracts import (
     PublishedQualificationStatusView,
     QualificationBlame,
@@ -56,7 +61,7 @@ def _changes(
             (
                 QualificationChange.IMAGE,
                 previous.runtime_image is not None
-                and previous.runtime_image != current.runtime_image,
+                and image_digest(previous) != image_digest(current),
             ),
             (
                 QualificationChange.SOURCE,
@@ -70,27 +75,6 @@ def _changes(
             ),
         )
         if differs
-    )
-
-
-def _same_content_identity(
-    previous: QualificationIdentity, current: QualificationIdentity
-) -> bool:
-    # Compare recorded content, never turn missing historical provenance into a
-    # changed pin. Publication separately requires fully resolved exact proof.
-    return (
-        previous.content_sha256 == current.content_sha256
-        and (
-            previous.source_bundle_sha256 is None
-            or previous.source_bundle_sha256 == current.source_bundle_sha256
-        )
-        and previous.model_digests == current.model_digests
-        and previous.models_resolved == current.models_resolved
-        and previous.required_sparks in (None, current.required_sparks)
-        and (
-            previous.runtime_image is None
-            or previous.runtime_image == current.runtime_image
-        )
     )
 
 
@@ -129,7 +113,7 @@ def derive_status(
     # certify a different image. Unbound failures still invalidate local proof.
     image_bound = any(
         r.identity.runtime_image is not None
-        and _same_content_identity(
+        and same_execution(
             r.identity.model_copy(update={"runtime_image": None}), current_identity
         )
         for r in behavioural
@@ -137,7 +121,7 @@ def derive_status(
     exact = [
         r
         for r in behavioural
-        if _same_content_identity(r.identity, current_identity)
+        if same_execution(r.identity, current_identity)
         and not (
             image_bound
             and r.identity.runtime_image is None
@@ -158,11 +142,11 @@ def derive_status(
             last_pass = exact[-1]
         else:
             last_failure = exact[-1]
-    elif any(_same_content_identity(r.identity, current_identity) for r in failures):
+    elif any(same_execution(r.identity, current_identity) for r in failures):
         status = QualificationStatus.BLOCKED_PLATFORM
         reason = QualificationUnverifiedReason.PLATFORM_ISSUE
         last_failure = [
-            r for r in failures if _same_content_identity(r.identity, current_identity)
+            r for r in failures if same_execution(r.identity, current_identity)
         ][-1]
         if last_pass:
             changed = _changes(last_pass.identity, current_identity)
@@ -213,14 +197,14 @@ def published_status(
         failures = [
             r.tested_at
             for r in evidence.records
-            if _same_content_identity(r.identity, current_identity)
+            if same_execution(r.identity, current_identity)
             and r.blame == QualificationBlame.RECIPE
         ]
         failed_at = max(failures) if failures else None
         certified = [
             r
             for r in evidence.records
-            if r.identity == current_identity
+            if execution_key(r.identity) == execution_key(current_identity)
             and r.outcome == QualificationOutcome.PASSED
             and r.identity.resolved
             and r.platform.resolved

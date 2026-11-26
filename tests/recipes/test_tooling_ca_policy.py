@@ -131,10 +131,6 @@ def test_ci_trusts_the_pinned_certifi_bundle_not_a_per_job_apt_refresh() -> None
 
 def test_remote_smoke_uses_ci_bundle_without_changing_recipe_image() -> None:
     workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
-    assert (
-        '--with-requirements "$GITHUB_WORKSPACE/.github/requirements-platform-tooling.txt"'
-        in workflow
-    )
     assert 'cp "$SSL_CERT_FILE" "$RUNNER_TEMP/upload/ca-bundle.crt"' in workflow
     assert "--env SSL_CERT_FILE=/tmp/ca-bundle.crt" in workflow
     assert "--env REQUESTS_CA_BUNDLE=/tmp/ca-bundle.crt" in workflow

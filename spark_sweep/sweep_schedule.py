@@ -8,6 +8,8 @@ from datetime import UTC, datetime
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
+from recipe_tooling.qualification.identity import execution_key
+
 from . import policy, verdict
 from .catalog import (
     Recipe,
@@ -117,7 +119,8 @@ class SweepSchedule:
         if (
             download.get("state") == LifecycleState.SUCCEEDED
             and accepted is not None
-            and content_identity(accepted.recipe) == content_identity(recipe)
+            and execution_key(content_identity(accepted.recipe))
+            == execution_key(content_identity(recipe))
             and (
                 self.model_list.complete_started_at
                 <= float(download.get("done_at") or 0.0)
@@ -150,7 +153,8 @@ class SweepSchedule:
                 continue
             if (
                 key in waits
-                and waits[key].identity == current_identity(recipe)
+                and execution_key(waits[key].identity)
+                == execution_key(current_identity(recipe))
                 and (waits[key].live or now < float(waits[key].not_before or 0))
             ):
                 continue  # re-observe the original receipt, never replay unchanged intent
@@ -415,7 +419,7 @@ class SweepSchedule:
             if controller is None or controller.identity is None:
                 continue
             if any(
-                other.identity != hold.identity
+                execution_key(other.identity) != execution_key(hold.identity)
                 and other.wait.controller is not None
                 and other.wait.controller.identity == controller.identity
                 for other in holds
@@ -452,7 +456,9 @@ class SweepSchedule:
         probing: list[tuple[str, ControllerWaitHold]] = []
         for key, hold in self.controller_wait_holds().items():
             recipe = self.recipes.get(key)
-            if recipe is not None and current_identity(recipe) != hold.identity:
+            if recipe is not None and execution_key(
+                current_identity(recipe)
+            ) != execution_key(hold.identity):
                 self.state.entry(key).pop("controller_wait", None)
                 continue  # latest content gets a fresh canonical review
             if any(

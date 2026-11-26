@@ -8,6 +8,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from recipe_tooling.qualification.identity import execution_key
 from vonk_forge_contracts import QualificationIdentity, QualificationRuntimeImage
 
 from .catalog import Recipe
@@ -91,7 +92,8 @@ def verdict_matches(entry: Mapping[str, Any], recipe: Recipe) -> bool:
     identity = content_identity(recipe)
     recorded = recorded_identity(entry)
     return (
-        recorded == identity
+        recorded is not None
+        and execution_key(recorded) == execution_key(identity)
         and entry.get("content_sha256", identity.content_sha256)
         == identity.content_sha256
     )

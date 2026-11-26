@@ -7,6 +7,8 @@ from collections.abc import Mapping
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
+from recipe_tooling.qualification.identity import execution_key
+
 from . import memory, policy, verdict
 from .auth_contract import SmokeAuthClass
 from .catalog import (
@@ -84,7 +86,8 @@ class SweepSmoke:
                 request_key=slot["request_key"],
                 # Content that kept ending keeps its re-plan pace.
                 ended_since=previous.ended_since
-                if previous is not None and previous.identity == identity
+                if previous is not None
+                and execution_key(previous.identity) == execution_key(identity)
                 else None,
                 platform=load.get("wait_platform")
                 or {

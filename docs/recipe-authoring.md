@@ -1475,6 +1475,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-wire-only`, `tests/tools/test_check_wire_only.py` | An added line under `contracts/src/` defines a public top-level function not named in `SHARED_FUNCTIONS` (`vonk_forge_contracts/__init__.py`, the one owner list), or walks the filesystem (`glob(`, `rglob(`, `.iterdir(`, `os.walk(`, `open(`, `.read_text(`, `.read_bytes(`, a `library_root` or `root: Path` parameter). The wheel is wire only; a check over the library or a status derivation lives in `src/recipe_tooling` (`library_checks`, `qualification/status`, `qualification/api_checks`). Name a new shared function in the list, or move the code out. Only added lines count. |
 | `tools/check-closed-sets`, `tests/tools/test_check_closed_sets.py` | A closed set is defined outside `contracts/src/vonk_forge_contracts/executed.py` or `shown.py` (a `StrEnum`/`Enum`, a module alias of a multi-value `Literal`, or an inline multi-value `Literal` on a field), or a field uses a `shown.py` set without `Annotated[X \| UnrecognisedWord, KeepUnrecognised]`. Move the set into the module that matches (`executed.py` when the platform executes it, `shown.py` when a reader keeps unknown words of it); a strict producer twin of a `Published<Name>` class keeps the bare set. Single-value tags stay inline. |
 | `tools/check-final-stage-ldd`, `tests/tools/test_check_final_stage_ldd.py` | An added or final-stage-changed adapter Dockerfile on a plain CUDA runtime/base image copies a binary into `bin/` without `RUN ! ldd <binary> \| grep "not found"`. Only added lines count. |
+| `tools/check-identity-compare`, `tests/tools/test_check_identity_compare.py` | An added line in `src/`, `spark_sweep/` or a `tools/` Python script that compares (`==`/`!=`) an operand ending in `.identity`, `.runtime_image` or `.build_key`, a read of one of those keys (`row["build_key"]`, `pin.get("build_key")`) or a call of an `*_identity(...)` function (`current_identity`, `content_identity`); serialises an identity (`.identity.model_dump_json(`); or uses `.identity` as a dict key. A recipe image is its digest: compare through `recipe_tooling.qualification.identity` (`same_execution`, `execution_key`, `image_digest`), the one owner (out of scope by path). Only added lines count. |
 | `src/recipe_tooling/added_lines.py`, `tests/tools/test_added_lines.py` | The one parser of the diff the added-line guards read (the `check-*` guards above, `check-model-construction-device`, `check-writable-state-env`). A block the same diff deletes unchanged (a verbatim move or split; one uniform indentation shift allowed; Python launchers and `.py` count as one file type) is not an addition, so moving code does not re-surface old findings. Each guard passes its own `judged` predicate, and a deletion pays only when it judges both the file the block left and the file it entered: a block leaving an exempt owner or an out-of-scope file is still new work where it lands. A deleted block pays for one copy only; an edited or copied line stays added. A guard whose verdict depends on context (`check-serial-reads` reads the loop line, `check-estimate-gates` the test function) judges again when that context gained a line. |
 | `tests/tools/test_guard_paths_exist.py` | Every repository path a guard names matches at least one path in the tree: slash literals, `ROOT / "a" / "b"` chains and bare top-level names (`RECIPES = "recipes"`) in the `tools/check-*` scripts and `src/recipe_tooling/added_lines.py`; the same kinds of scope in four test-side scans (`test_admissible_memory_declarations`, `test_admission_maximum_cap`, `test_own_pulls`, `test_qualification_evidence_publisher`); both `single-source-values.json` files; and each `LAYERS` directory must also own a file the import-direction walker reads (`.py` or a shebang launcher). It catches a scope whose directory disappeared. It does NOT protect a prefix scope on a directory that survives the move (`tools/` after code leaves it still exists): a review of a move must re-point those by hand. The first segment is a listed name or a current top-level directory, so a new directory such as `src/` is covered. Write scopes as plain literals or `/` chains. No allowlist. |
 | `tools/check-document-reads`, `src/recipe_tooling/added_lines.py`, `tests/tools/test_check_document_reads.py` | An added line reads a Recipe, Model or display JSON by hand (`json.loads` then `doc["runtime"]`). Read it through `vonk_forge_contracts` (`read_recipe`, `read_model`, `read_recipe_display`, `read_model_display`, `read_recipe_api`) or `src/recipe_tooling/qualification/documents.py`; only added lines are checked. |
@@ -1688,20 +1689,24 @@ until that procedure verifies the published bytes.
 Recipe runtime images are built in CI, not on a Spark.
 `.github/workflows/recipe-images.yml` runs inside every publication (and by hand
 for a backfill: `gh workflow run recipe-images.yml -f slugs=all`, or a list of
-recipe ids). Vonk Forge's `scripts/recipe-image-plan` (at the `platform_ref`
-`publish.yml` validates the library with: one pin for validation and images)
-derives each recipe's executable build key (source bundle,
-Dockerfile, pinned base images, build options and capabilities, runtime
-adapter) and the exact Spark build flags and platform adaptation stage. Recipes
-that build the same adapter directory the same way share one key and one
-build. Every publication reconciles all current keys against the registry,
+recipe ids). `tools/build-plan` derives each recipe's build key from recipe
+inputs only (source bundle, pinned base images, base image, Dockerfile) and this
+repository's `policy/build-policy.json` (validated once at load by `BuildPolicy`,
+so a typo refuses instead of changing every key: the build options, security and Spark
+build flags), and writes each build context exactly as the package carries it.
+No Vonk Forge checkout or release takes part, so a platform release never
+changes a key. Recipes that build the same context the same way share one key and
+one build. Every publication reconciles all current keys against the registry,
 including the first release of a new contract version. For each missing key,
-a hosted `ubuntu-24.04-arm` runner builds the image with those flags
-and pushes it to the public package
-`ghcr.io/<owner>/vonk-forge-recipe-<recipe-id>` as `build-<key>` and
-`<version>`; a key another recipe already has is copied, not rebuilt.
+a hosted `ubuntu-24.04-arm` runner builds the recipe image with those flags
+and pushes it, unchanged (no platform layer), to the public package
+`ghcr.io/<owner>/vonk-forge-recipe-<recipe-id>` as `build-v2-<key>` and
+`<version>`; a key another recipe already has is copied, not rebuilt. The
+platform supplies the run-time user, workdir and writable paths (`/outputs`,
+the cache environment) when the container starts, so a Dockerfile never creates
+them; the image provides its launcher under `/opt/vonk/bin`.
 
-`tools/prebuilt-images resolve` then looks up every recipe's `build-<key>`
+`tools/prebuilt-images resolve` then looks up every recipe's `build-v2-<key>`
 digest, and the release index records it beside the recipe:
 
 ```json
@@ -1712,21 +1717,26 @@ digest, and the release index records it beside the recipe:
 ```
 
 The field is optional and covered by the same signed `SHA256SUMS` as the rest
-of the index; Controllers that do not know it ignore it. A Controller whose own
-key for the revision matches pulls that digest (verified once, at ingress)
-instead of building on a Spark, so updating a running recipe needs no Spark
-build memory. A recipe whose image is unavailable publishes without this field
-and can use a Controller build. Publication reports each such recipe as image
-pending in its job summary. The signed bundle includes `plan.json`, binding the
-pending keys and recipe content identities to the release. Deferred batches and
-the daily scheduled reconciliation build missing keys and republish the pins.
+of the index; Controllers that do not know it ignore it. A Controller pulls the
+pinned digest for the recipe's content (verified once, at ingress) instead of
+building on a Spark, so updating a running recipe needs no Spark build memory;
+it never derives or compares the key. A recipe whose image is unavailable
+publishes without this field and can use a Controller build. Publication
+reports each such recipe as image pending in its job summary. The signed bundle
+includes `plan.json`, binding the pending keys and recipe content identities to
+the release. Deferred batches and the daily scheduled reconciliation build
+missing keys and republish the pins.
 A busy or failed registry lookup does not unpin a recipe: when its content digest and
-build key equal the current published release's, `resolve` carries that release's pin
-forward (counted in the summary); changed content stays pending.
+source bundle equal the current published release's, `resolve` carries that
+release's pin forward whatever its key (counted in the summary); changed input stays
+pending. A recipe whose published pin is an image built before the key v2, of the
+same content and source bundle, is adopted: `select` copies that digest to
+`build-v2-<key>` (no build), so its hardware evidence, judged by image digest,
+still applies.
 Each build has a 360-minute deadline (a retry starts only if it still fits) and
 failures remain visible in the run.
 Publication still fails for missing artifacts, mismatched source identities,
-stale build keys, invalid digests or an index that differs from a resolved pin.
+invalid digests or an index that differs from a resolved pin.
 The plan, index and publication must name the same source commit; verification
 runs before signing or changing the release. A backfill run republishes when it
 finishes so the index picks up the new digests. The recipe `content_sha256`
