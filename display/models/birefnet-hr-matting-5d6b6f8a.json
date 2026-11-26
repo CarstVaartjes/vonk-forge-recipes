@@ -1,0 +1,36 @@
+{
+  "capabilities": [
+    "image-editing"
+  ],
+  "description": "Immutable public snapshot at 5d6b6f8a of ZhengPeng7/BiRefNet_HR-matting: BiRefNet_HR-matting, the creator's matting variant of the HR model, which keeps soft edges such as fur, needles and fences. Weights in fp16 (0.44 GB) with the model's own remote code (birefnet.py, config), which the mounted Model carries. MIT licensed.",
+  "family_title": "BiRefNet",
+  "identity": {
+    "publisher": "zhengpeng7",
+    "slug": "birefnet-hr-matting-5d6b6f8a"
+  },
+  "kind": "model-display",
+  "license": {
+    "attribution": [
+      "Peng Zheng (ZhengPeng7)"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/ZhengPeng7/BiRefNet_HR-matting/blob/5d6b6f8adcb5b417c871b1d84ceaae9871355b7f/README.md"
+  },
+  "lineage": {
+    "family": "birefnet",
+    "generation": "BiRefNet HR",
+    "line": "birefnet-hr",
+    "model": "birefnet-hr-matting",
+    "variant_kind": "base"
+  },
+  "modalities": [
+    "image"
+  ],
+  "model_title": "BiRefNet HR matting",
+  "tags": [
+    "zhengpeng7",
+    "birefnet",
+    "image",
+    "segmentation"
+  ]
+}

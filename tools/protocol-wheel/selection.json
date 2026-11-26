@@ -9,6 +9,10 @@
       "wheel_directory": ""
     },
     {
+      "context": "adapters/image/birefnet-pytorch",
+      "wheel_directory": ""
+    },
+    {
       "context": "adapters/image/minimax-h3-image-sglang",
       "wheel_directory": ""
     },
