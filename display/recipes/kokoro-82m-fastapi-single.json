@@ -1,0 +1,22 @@
+{
+  "alignment": "unspecified",
+  "description": "Kokoro-82M text to speech on one DGX Spark, in the creator's own Kokoro-FastAPI v0.10.0 GPU image (linux/arm64, CUDA 12.9), pinned by digest. A small, always-on voice that fits beside a large model: it answers the OpenAI speech route, POST /v1/audio/speech, with 72 voices across American and British English, Spanish, French, Hindi, Italian, Japanese, Brazilian Portuguese and Mandarin (af_heart by default; weighted mixes such as af_bella+af_sky and the OpenAI voice names also work), a speed control, and mp3, opus, aac, flac, wav or pcm. Long input is split into chunks of at most 450 tokens. The weights are hexgrad/Kokoro-82M at f3ff3571 (2025-04-10), mounted from the Model: the same kokoro-v1_0.pth and config.json bytes the server pins, from before the 2026-11-18 takeover of that Hugging Face account, so nothing is downloaded at run time. Memory is an estimate until tried: the creator measured 3.98 GB of GPU memory loaded on a long-form workload, and a GB10 benchmark (carun/tts-bench) peaked at 707 MiB. Apache-2.0 weights and server.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "kokoro-82m-fastapi-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "audio",
+    "executable",
+    "kokoro",
+    "openai",
+    "pytorch",
+    "single",
+    "spark",
+    "speech",
+    "text-to-speech",
+    "tts"
+  ],
+  "title": "Kokoro 82M (Kokoro-FastAPI, single Spark)"
+}

@@ -1,0 +1,2 @@
+[S1] The road ahead is closed. Turn back.
+[S2] Understood. We will take the river road instead.

@@ -1,0 +1,18 @@
+{
+  "id": "vonk-forge/drama-3-vllm-omni-single",
+  "service_recipes": {
+    "alias": "drama-3",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ],
+      "stress": [
+        "A two-speaker dialogue with speaker tags and an inline event tag"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "TTS_SPEECH"
+    ]
+  }
+}
