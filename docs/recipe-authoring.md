@@ -1133,7 +1133,8 @@ are our own faults and stay errors.
 A mechanical move requires compatible vendored/used bytes, retained referenced
 launch names, complete selected Model files and passing producer checks. Changes
 to patched runtime files or missing selected files need review; metadata-only
-changes do not independently justify rebuilding identical content. Shared build
+changes do not independently justify rebuilding identical content. A file counts as metadata only when both its stored roles and `roles_for` say so
+(`classification.is_metadata`, the one rule for payload comparison and sibling weights). Shared build
 contexts refresh together. Human repairs may intentionally diverge with evidence.
 An adapter that installs a creator's GitHub release asset pins it by version and
 sha256. A refresh moves the `releases/download/<tag>/<asset>` URL and re-pins the

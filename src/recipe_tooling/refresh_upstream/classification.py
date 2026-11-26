@@ -434,6 +434,18 @@ def mounted_unchanged(
     return before == after
 
 
+def is_metadata(path: str, stored_roles: list[str]) -> bool:
+    """Whether a file is metadata: both its stored roles and ``roles_for`` say so.
+
+    The one rule for "both classifiers say metadata". A disagreement makes the file
+    payload, so it can neither hide a move nor fake one.
+    """
+    return (
+        set(stored_roles) == refresh_model.METADATA_ONLY
+        and set(roles_for(path)) == refresh_model.METADATA_ONLY
+    )
+
+
 def only_sibling_weights_added(
     old: dict[str, Any], new_files: list[dict[str, Any]]
 ) -> bool:
@@ -444,8 +456,7 @@ def only_sibling_weights_added(
     """
     catalogued = {f["path"] for f in old["files"]}
     return mounted_unchanged(old, new_files, catalogued) and all(
-        f["roles"] == ["weights"]
-        or (f["roles"] == ["metadata"] and roles_for(f["path"]) == ["metadata"])
+        f["roles"] == ["weights"] or is_metadata(f["path"], f["roles"])
         for f in new_files
         if f["path"] not in catalogued
     )
@@ -528,7 +539,7 @@ def payload_identical(old: dict[str, Any], new_files: list[dict[str, Any]]) -> b
     stored = {f["path"]: f["roles"] for f in old["files"]}
 
     def payload(path: str, own: list[str]) -> bool:
-        return stored.get(path, own) != ["metadata"] or roles_for(path) != ["metadata"]
+        return not is_metadata(path, stored.get(path, own))
 
     before = {
         f["path"]: f["sha256"] for f in old["files"] if payload(f["path"], f["roles"])
