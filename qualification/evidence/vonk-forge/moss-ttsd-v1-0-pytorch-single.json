@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/moss-ttsd-v1-0-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "92a288899b995001d1b8b34040090a0fe2b18c4fafc86da28e119ae3c4e3a6dc",
+        "source_bundle_sha256": "a7e9021076f9686dada54ef56370dc0b93c19811704d5c1d40d7e991c6e70981",
+        "runtime_image": {
+          "build_key": "f74cdfc5841924c5e5c76ecc0003256f3c9dd78e8cdb3bf9f4bbeccd1eac19cf",
+          "image_digest": "sha256:9162a1f67a4cb2e632bfde83d7cb483b2c82ff6483cf3e41f6c8db4749d34c7c"
+        },
+        "model_digests": [
+          "4065b1125ab640f3cc9e06fa68ad05fa069fa2bc91f316e2b2f9b14ec3f1311a",
+          "c3eb6504132ddff3e2bbd85f39c491f857d01d7be7567d72558e730e6f49854f"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "eb67e546e60497e954d752d6f3a5432a328ae0973b65b3534f99c1c82c9edb53"
+      ],
+      "tested_at": "2026-11-26T22:11:34.356417Z",
+      "platform": {
+        "controller_source_sha": "ff2090813f4a07c51a4c00df3a41cd821035f5ad",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
