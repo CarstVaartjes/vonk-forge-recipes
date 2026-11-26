@@ -1133,7 +1133,8 @@ are our own faults and stay errors.
 A mechanical move requires compatible vendored/used bytes, retained referenced
 launch names, complete selected Model files and passing producer checks. Changes
 to patched runtime files or missing selected files need review; metadata-only
-changes do not independently justify rebuilding identical content. Shared build
+changes do not independently justify rebuilding identical content. A file counts as metadata only when both its stored roles and `roles_for` say so
+(`classification.is_metadata`, the one rule for payload comparison and sibling weights). Shared build
 contexts refresh together. Human repairs may intentionally diverge with evidence.
 An adapter that installs a creator's GitHub release asset pins it by version and
 sha256. A refresh moves the `releases/download/<tag>/<asset>` URL and re-pins the
@@ -1156,9 +1157,20 @@ A proven recipe moves too: the refresh rewrites its entry in
 branch only moves forward (never force-pushed); a PR whose checks failed on an
 unchanged refresh is reported in the recipe's review issue and moves forward again
 only when upstream or main's checks (`src/`, `tools/`, `tests/`, `.github/`,
-`api/recipes/`) change. A PR whose checks failed or were cancelled holds no lane: it
+`api/recipes/`) change. A run whose main moved `src/`, `tools/`, `contracts/` or `policy/` (the
+holds and the upstream watch) since it started defers the recipe to the next run. The open pull requests are listed once per run for arming (listed again
+only for a PR prepared after that listing). A PR whose checks failed or were cancelled holds no lane: it
 does not defer other refresh PRs that share its files; if it merges anyway (a rerun,
 or a non-required check failed), a conflicting sibling is regenerated on main.
+A mechanical result over the per-run limit refreshes its existing review issue (never opens one)
+with that reason, so the issue does not keep an old one.
+The vendored-file check the refresher runs at the new commit names that commit in its
+messages (`check_adapter(..., at=)`), not the manifest's old pin.
+A changed `pyproject.toml` whose diff is only `version = ...` lines is no launch or
+configuration change. An adapter whose Dockerfile or manifest is generated from
+`tools/protocol-wheel/<name>.<file>.in` has the refresher's edit written to that source too
+(`protocol_wheel.template_edits`), so `tools/materialize-protocol-wheel --check` still
+passes; never run it without `--check`.
 Every refresh PR body carries a `## Principles` section that states only what the
 move did: pins moved (and any held), proven bytes followed when the fixture changed,
 peaks raised when they were, and the sweep re-check only when a recipe document changed.

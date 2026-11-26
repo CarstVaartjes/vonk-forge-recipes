@@ -327,8 +327,13 @@ def check_adapter(
     on_github: Callable[[str, str], bool | None] = commit_on_github,
     *,
     changed: bool = False,
+    at: str | None = None,
 ) -> Report:
-    """Problems and notes of one adapter; ``changed``: this change touches it."""
+    """Problems and notes of one adapter; ``changed``: this change touches it.
+
+    ``at`` names the commit the loaded tree is, when it is not the manifest's pin (the
+    refresher checks the new tree): file messages then name it, not the old pin.
+    """
     label = adapter.relative_to(root).as_posix()
     report = Report(label)
     manifest_path = adapter / MANIFEST
@@ -427,7 +432,7 @@ def check_adapter(
         present = [c for c in candidates if c in tree.blobs]
         if rel in renamed and not present:
             report.problems.append(
-                f"{label}: {rel}: renamed target '{renamed[rel]}' is missing upstream at {commit[:12]}"
+                f"{label}: {rel}: renamed target '{renamed[rel]}' is missing upstream at {(at or commit)[:12]}"
             )
             continue
         if present:
@@ -435,7 +440,7 @@ def check_adapter(
             vendored = vendored or not weak
             report.checked += 1
             if not any(tree.blobs[c] == local_sha for c in present):
-                message = f"{label}: {rel}: differs from upstream {present[0]} at {commit[:12]}"
+                message = f"{label}: {rel}: differs from upstream {present[0]} at {(at or commit)[:12]}"
                 (weak_problems if weak else report.problems).append(message)
                 report.stale.append((message, rel, present[0]))
             continue
@@ -452,7 +457,7 @@ def check_adapter(
             vendored = True
             report.problems.append(
                 f"{label}: {rel}: differs from upstream {same_name[0]} "
-                f"(renamed and drifted?) at {commit[:12]}"
+                f"(renamed and drifted?) at {(at or commit)[:12]}"
             )
             continue
         unclassified.append(rel)
@@ -460,7 +465,7 @@ def check_adapter(
         report.problems.extend(weak_problems)
         for rel in unclassified:
             report.problems.append(
-                f"{label}: {rel}: not in upstream at {commit[:12]} and not listed under "
+                f"{label}: {rel}: not in upstream at {(at or commit)[:12]} and not listed under "
                 f"'ours' in {MANIFEST}"
             )
     else:
