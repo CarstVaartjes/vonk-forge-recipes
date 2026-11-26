@@ -1131,7 +1131,7 @@ non-default branches and declared release lines. Never downgrade an ahead pin.
 Both scanners read providers through `src/recipe_tooling/upstream_http.py`: a 429 or 5xx is retried with
 backoff and jitter, honouring `Retry-After` (seconds or date); a 429/503 that persists marks
 the host busy and the item "not checked this run" (`unchecked` in the drift report,
-unreachable in refresh), never a review issue or a failed run. Outages and network errors
+unreachable in refresh), never a review issue or a failed run (a busy provider while reading a kit dependency's newest-release information only turns that information line into "unavailable"). Outages and network errors
 are our own faults and stay errors.
 A mechanical move requires compatible vendored/used bytes, retained referenced
 launch names, complete selected Model files and passing producer checks. Changes
