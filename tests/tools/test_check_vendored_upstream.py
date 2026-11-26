@@ -8,6 +8,8 @@ import unittest
 from pathlib import Path
 from typing import Any
 
+from repo_root import ROOT
+
 from recipe_tooling import vendored_upstream as checker
 
 COMMIT = "a" * 40
@@ -221,7 +223,7 @@ class VendoredUpstreamTest(unittest.TestCase):
 class GhApiRetryTest(unittest.TestCase):
     """.github/scripts/gh-api-retry with a stub gh (and a sleep that returns at once)."""
 
-    SCRIPT = Path(__file__).resolve().parents[2] / ".github/scripts/gh-api-retry"
+    SCRIPT = ROOT / ".github/scripts/gh-api-retry"
 
     def _run(self, gh: str) -> subprocess.CompletedProcess[str]:
         with tempfile.TemporaryDirectory() as tmp:
