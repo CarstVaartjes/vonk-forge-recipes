@@ -64,7 +64,8 @@ def _stage(root: Path, files: list[tuple[str, str, bytes]]) -> None:
     manifest = {
         "schema_version": 1,
         "total_bytes": sum(len(payload) for _, _, payload in files),
-        "files": entries,
+        # the manifest model requires UTF-8 byte order of the names
+        "files": sorted(entries, key=lambda entry: entry["name"].encode()),
     }
     (root / "manifest.json").write_text(json.dumps(manifest))
 
@@ -168,15 +169,15 @@ def test_the_fixtures_are_the_generators_bytes_and_pass_the_job_inputs(
 # --- job inputs -------------------------------------------------------------------------
 
 
-def test_a_rig_given_by_one_clip_needs_a_rest_pose(tmp_path: Path) -> None:
-    _stage(tmp_path / "bare", [("clips", "walk-a.bvh", CLIP_A)])
-    with pytest.raises(SystemExit, match="at least two clips"):
-        run.load_inputs(tmp_path / "bare")
-    _stage(
-        tmp_path / "posed",
-        [("clips", "walk-a.bvh", CLIP_A), ("rest-pose", "tpos.bvh", REST)],
-    )
-    assert run.load_inputs(tmp_path / "posed").rest_pose is not None
+def test_one_clip_without_a_rest_pose_is_the_creators_own_case(tmp_path: Path) -> None:
+    _stage(tmp_path, [("clips", "walk-a.bvh", CLIP_A)])
+    inputs = run.load_inputs(tmp_path)
+    assert inputs.rest_pose is None
+    root = tmp_path / "scratch"
+    root.mkdir()
+    run.build_workspace(root, inputs, t5=tmp_path)
+    command = run.generation_command(inputs, run._arguments(_argv(tmp_path)), root=root)
+    assert command[command.index("--rest-pose") + 1] == ""
 
 
 @pytest.mark.parametrize(
@@ -331,7 +332,7 @@ def test_the_job_publishes_one_zip_the_sweep_accepts_and_no_scratch(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     outputs = _job(monkeypatch, tmp_path)
-    run.main(_argv(outputs))
+    run.main(_argv(outputs, **{"num-repetitions": "1"}))
     assert sorted(path.name for path in outputs.iterdir()) == [
         "cache",
         "motions.zip",

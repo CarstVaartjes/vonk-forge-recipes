@@ -29,6 +29,8 @@ proglog==0.1.11
 matplotlib==3.8.4
 # The Motion library's requirement (BVH, Animation, InverseKinematics, Quaternions).
 scipy==1.15.3
+# spacy.cli (imported by model/conditioners.py through spacy) needs click; the creator pins 8.1.8.
+click==8.1.8
 pydantic==2.13.5
 # vonk-agent-protocol 4.1.0 requirement.
 jsonschema==4.26.0

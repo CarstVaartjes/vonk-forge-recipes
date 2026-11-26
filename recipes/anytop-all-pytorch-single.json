@@ -40,7 +40,7 @@
         "required": true,
         "slots": [
           {
-            "description": "BVH clips of the target rig, all with the same joints (at most 143), 1 to 32 files: two or more unless a rest pose is given. More clips give better motion statistics for the rig.",
+            "description": "BVH clips of the target rig at 20 fps (the creator's rate; frame times are ignored), all with the same joints (at most 143), 1 to 32 files. More clips give better motion statistics.",
             "extensions": [
               ".bvh"
             ],
@@ -55,7 +55,7 @@
             "min_files": 1
           },
           {
-            "description": "Optional BVH of the same rig in its natural rest pose, used for the rig's rest rotations and taken out of the clips. Without one the creator picks a file named like tpos or idle, else a clip.",
+            "description": "Optional BVH of the same rig in its natural rest pose, used for the rig's rest rotations. Without one the creator picks a file named like tpos or idle, else the first clip.",
             "extensions": [
               ".bvh"
             ],

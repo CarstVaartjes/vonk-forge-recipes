@@ -2,7 +2,7 @@ FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a71
 
 LABEL org.opencontainers.image.source="https://github.com/Anytop2025/Anytop" \
       org.opencontainers.image.revision="e780d1575ca0121f29bb53821b309cf564156a95" \
-      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.licenses="MIT AND LicenseRef-Motion-Unspecified" \
       io.vonk.adapter="anytop" \
       io.vonk.agent-protocol.wheel-sha256="9db7484767d0eaec9a0c20a6f18c1c995570c5588ffed8bee3da4a70022cc625"
 

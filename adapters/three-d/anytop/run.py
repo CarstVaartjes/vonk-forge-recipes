@@ -169,9 +169,6 @@ def load_inputs(input_root: Path) -> Inputs:
         (clips if item.slot == "clips" else rest).append(path)
     if not 1 <= len(clips) <= MAX_CLIPS or len(rest) > 1:
         raise SystemExit(f"give 1..{MAX_CLIPS} clips and at most one rest pose")
-    # The creator takes the rest pose out of the clips, and without one it takes a clip.
-    if not rest and len(clips) < 2:
-        raise SystemExit("without a rest pose the rig needs at least two clips")
     return Inputs(clips, rest[0] if rest else None)
 
 

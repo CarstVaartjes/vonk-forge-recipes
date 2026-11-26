@@ -33,7 +33,7 @@ RIG = (
     ("RToe", "RFoot", (0.0, -2.0, 8.0)),
 )
 HIPS_HEIGHT = 44.0
-FRAME_TIME = 0.033333
+FRAME_TIME = 0.05
 
 
 def _hierarchy() -> list[str]:

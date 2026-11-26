@@ -235,6 +235,10 @@ charset-normalizer==3.5.3 \
     --hash=sha256:fcb17f1d40c38912a2cdb56ea47aadac3527cd0b06fe24f3a0c4896febbea063 \
     --hash=sha256:fd0341b9dea133d187d7c5a2cd7e21ae6449a7b68ea8c2454f9cf77def11ec1b
     # via requests
+click==8.1.8 \
+    --hash=sha256:63c132bbbed01578a06712a2d1f497bb62d9c1c0d329b7903a866228027263b2 \
+    --hash=sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a
+    # via -r adapters/three-d/anytop/requirements.in
 cloudpathlib==0.26.0 \
     --hash=sha256:6ea02248f2db7cb10729caf1edbdec92587dfdbbd3df8c71a32aedd4ae55715a \
     --hash=sha256:abcd7f54bcbb2fbb79c0e96b79241f08866760aee6276586882b3558672d571b

@@ -19,7 +19,6 @@ is replaced by a no-op in the two modules that call it, and nothing else is chan
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
@@ -70,15 +69,11 @@ def main() -> None:
     if missing:
         raise SystemExit(f"face joints {missing} are not joints of the rig: {names}")
 
-    # The creator's own choice of the rest pose when none is given, over a fixed file order.
-    rest_pose = args.rest_pose or os.path.join(
-        str(args.bvh_dir),
-        motion_process.find_tpos_path([clip.name for clip in clips]),
-    )
+    # Without a rest pose the empty value is the creator's own default: its find_tpos_path decides.
     motion_process.plot_general_skeleton_3d_motion = _skip_plot
     generate.plot_general_skeleton_3d_motion = _skip_plot
     motion_process.process_skeleton(
-        OBJECT, str(args.bvh_dir), list(args.face_joints), str(args.save_dir), rest_pose
+        OBJECT, str(args.bvh_dir), list(args.face_joints), str(args.save_dir), args.rest_pose
     )
     sys.argv = [
         "generate",
