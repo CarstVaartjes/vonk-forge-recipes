@@ -224,8 +224,8 @@ def fetch_tree(repo: str, commit: str) -> Tree:
     return Tree(blobs, complete)
 
 
-def _source(adapter: Path, manifest: dict[str, Any]) -> tuple[str, str] | None:
-    if "base" in (manifest.get("kit") or {}).get("dependencies", {}):
+def _source(adapter: Path, manifest: VendoredManifest) -> tuple[str, str] | None:
+    if manifest.kit is not None and "base" in manifest.kit.dependencies:
         # The base is what the kit declares, locked by tools/kit-pins; a hand-authored
         # ``source`` beside a declaration is a duplicate pin and is rejected there. (A kit
         # that declares only a model or an image has no base: ``source`` is the kit's own.)
@@ -234,9 +234,8 @@ def _source(adapter: Path, manifest: dict[str, Any]) -> tuple[str, str] | None:
             return None
         entry = json.loads(lock.read_text(encoding="utf-8"))["dependencies"].get("base")
         return None if entry is None else (entry["repo"], entry["commit"])
-    declared = manifest.get("source")
-    if declared:
-        return declared["repo"], declared["commit"]
+    if manifest.source is not None:
+        return manifest.source.repo, manifest.source.commit
     dockerfile = adapter / "Dockerfile"
     text = dockerfile.read_text(encoding="utf-8", errors="replace")
     source, revision = LABEL_SOURCE.search(text), LABEL_REVISION.search(text)
@@ -309,12 +308,10 @@ def check_adapter(
     label = adapter.relative_to(root).as_posix()
     report = Report(label)
     manifest_path = adapter / MANIFEST
-    manifest: dict[str, Any] = {}
+    manifest = VendoredManifest()
     if manifest_path.is_file():
         try:
-            manifest = VendoredManifest.model_validate_json(
-                manifest_path.read_text()
-            ).model_dump(exclude_none=True)
+            manifest = VendoredManifest.model_validate_json(manifest_path.read_text())
         except ValueError as error:  # incl. pydantic.ValidationError
             report.problems.append(f"{label}: {MANIFEST} is not valid: {error}")
             return report
@@ -324,7 +321,7 @@ def check_adapter(
         return report
     repo, commit = source
     report.source = f"{repo}@{commit[:12]}"
-    mark = (manifest.get("source") or {}).get("unverified")
+    mark = manifest.source.unverified if manifest.source is not None else None
     if mark is not None:
         if mark != unverified_mark(repo, commit):
             report.problems.append(
@@ -355,14 +352,11 @@ def check_adapter(
         else:
             report.note = f"not checked this run: {unread}"
         return report
-    ours = set(manifest.get("ours", []))
-    renamed: dict[str, str] = manifest.get("renamed", {})
-    renamed_dirs: dict[str, str] = manifest.get("renamed_dirs", {})
+    ours = set(manifest.ours)
+    renamed = manifest.renamed
+    renamed_dirs = manifest.renamed_dirs
     files = _local_files(adapter)
-    also_sources = [
-        AlsoSource(e["repo"], e["commit"], tuple(e["files"]))
-        for e in manifest.get("also", [])
-    ]
+    also_sources = [AlsoSource(e.repo, e.commit, tuple(e.files)) for e in manifest.also]
     also: list[tuple[AlsoSource, Tree]] = []
     for extra in also_sources:
         try:
@@ -387,7 +381,7 @@ def check_adapter(
         by_sha[sha].append(path)
         by_name[PurePosixPath(path).name].append(path)
     # A manifest that only says where the kit declares its dependencies claims no files.
-    vendored = bool(set(manifest) - {"kit"})
+    vendored = bool(manifest.model_fields_set - {"kit"})
     unclassified: list[str] = []
     weak_problems: list[str] = []
     for rel in files:

@@ -491,6 +491,19 @@ def collect_items(
         slug: str | None = None,
         line: str | None = None,
     ) -> None:
+        try:
+            _consider(kind, provider, repo, current, slug, line)
+        except UpstreamBusy as error:  # not checked this run, asked again next run
+            result.unreachable.append(f"{provider}:{repo}: {str(error)[:200]}")
+
+    def _consider(
+        kind: str,
+        provider: str,
+        repo: str,
+        current: str,
+        slug: str | None,
+        line: str | None,
+    ) -> None:
         key = (provider, repo.lower())
         if (kind != "model" and key in seen) or not refresh_model.SHA.match(current):
             return
@@ -562,18 +575,13 @@ def collect_items(
                         compared = compare_commits(http, repo, current, target.sha)
                     except (RuntimeError, KeyError, TypeError):
                         compared = None
-            try:
-                keep = compared is not None and (
-                    pin_is_current(compared)
-                    or (
-                        compared.status == "diverged"
-                        and pin_is_newer_by_date(http, repo, current, target.sha)
-                    )
+            if compared is not None and (
+                pin_is_current(compared)
+                or (
+                    compared.status == "diverged"
+                    and pin_is_newer_by_date(http, repo, current, target.sha)
                 )
-            except UpstreamBusy as error:
-                result.unreachable.append(f"{provider}:{repo}: {str(error)[:200]}")
-                return
-            if keep:
+            ):
                 return  # never downgrade: the pin is at or ahead of the newest
         result.items.append(
             refresh_model.Item(kind, provider, repo, current, target, slug, compared)

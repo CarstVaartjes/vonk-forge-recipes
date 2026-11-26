@@ -44,6 +44,7 @@ from recipe_tooling.refresh_upstream import items as refresh_items
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.refresh_upstream import render as refresh_render
 from recipe_tooling.upstream_http import UpstreamBusy
+from recipe_tooling.vendored_manifest import VendoredManifest
 
 
 def load(name: str, module: str):
@@ -651,9 +652,14 @@ class ApplyLockTests(unittest.TestCase):
                 Path(tmp), kit_commit=KIT_NEW, base_commit=BASE_060, base_ref="v0.6.0"
             )
             manifest = json.loads((directory / "vendored-upstream.json").read_text())
-            assert vendored._source(directory, manifest) == (BASE, BASE_060)
+            assert vendored._source(
+                directory, VendoredManifest.model_validate(manifest)
+            ) == (BASE, BASE_060)
             (directory / "kit-lock.json").unlink()
-            assert vendored._source(directory, manifest) is None
+            assert (
+                vendored._source(directory, VendoredManifest.model_validate(manifest))
+                is None
+            )
 
     def test_a_failed_mirror_upload_removes_the_archive_and_a_rerun_declares_it(
         self,

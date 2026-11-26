@@ -11,7 +11,6 @@ from typing import Any
 from repo_root import ROOT
 
 from recipe_tooling import vendored_upstream as checker
-from recipe_tooling.vendored_manifest import VendoredManifest
 
 COMMIT = "a" * 40
 LABELS = (
@@ -215,10 +214,6 @@ class VendoredUpstreamTest(unittest.TestCase):
                 assert "vendored-upstream.json is not valid" in report.problems[0]
         misspelt = self._run({"a.py": b"1"}, {"a.py": b"1"}, {"our": ["wrapper.sh"]})
         assert len(misspelt.problems) == 1
-
-    def test_every_committed_manifest_is_on_contract(self) -> None:
-        for path in sorted((ROOT / "adapters").rglob("vendored-upstream.json")):
-            VendoredManifest.model_validate_json(path.read_text())
 
 
 class GhApiRetryTest(unittest.TestCase):

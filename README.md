@@ -49,6 +49,7 @@ and, for the sweep, [AGENTS.md](AGENTS.md#hardware-sweep-operation).
 
 This repository's code and data are MIT licensed ([LICENSE](LICENSE)). Adapters
 under `adapters/` that vendor creator code keep their creators' own upstream
-licences (see the LICENSE and NOTICE files beside them). Models are licensed by
+licences (see the LICENSE and NOTICE files beside them, or the upstream named in
+`vendored-upstream.json`). Models are licensed by
 their creators, as shown on each model's licence line (informational, never a
 gate).

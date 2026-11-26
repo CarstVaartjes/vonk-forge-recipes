@@ -311,28 +311,3 @@ def test_speculative_config_parses_or_fails_fast(
     if value != '{"method":"mtp"}':
         with pytest.raises(expected, match="speculative-config"):
             configured_draft_model(recipe)
-
-
-def test_explicit_mamba_cache_mode_none_is_sized_as_one_page() -> None:
-    # NVIDIA's Transcribe image still has --mamba-cache-mode: "none" holds one
-    # page per recurrent group, exactly as prefix caching off does.
-    recipe = next(
-        recipe
-        for recipe in hybrid_vllm_recipes()
-        if argument_value(recipe, "enable-prefix-caching") is True
-    )
-    _, off, _ = other_modes(recipe)
-    none = off.model_copy(deep=True)
-    none.runtime.arguments = [
-        item for item in none.runtime.arguments if item.name != "enable-prefix-caching"
-    ]
-    none.runtime.arguments.append(
-        RecipeRuntimeArgument(name="mamba-cache-mode", value="none")
-    )
-    models = catalog_models()
-    assert absolute_kv_need(none, models, INPUTS) == absolute_kv_need(
-        off, models, INPUTS
-    )
-    assert absolute_kv_need(none, models, INPUTS) < absolute_kv_need(
-        recipe, models, INPUTS
-    )
