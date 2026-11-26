@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Iterable, Mapping
+from collections.abc import Collection, Iterable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -491,6 +491,34 @@ def recipe_evidence(
         return state_evidence.get(key) or read_evidence(root, key)
     except (ValueError, TypeError, OSError):
         return None
+
+
+def recheck_named(names: Collection[str], key: str) -> bool:
+    """``--recheck`` names this recipe, by key or by slug."""
+    return key in names or key.partition("/")[2] in names
+
+
+def recheck_due(
+    names: Collection[str],
+    key: str,
+    content_sha256: str,
+    evidence: RecipeQualificationEvidence | None,
+    release: str | None,
+) -> bool:
+    """``--recheck`` names this recipe and its content has no record on the deployed release.
+
+    Any record of this content on this release settles it, as in ``rerun_settled``: a try
+    that ended platform-blamed is investigated, not retried by the flag (transient faults
+    retry within the try). With the release unknown nothing is due: a run now could not
+    record which release it proves.
+    """
+    if release is None or not recheck_named(names, key):
+        return False
+    return not any(
+        r.identity.content_sha256 == content_sha256
+        and r.platform.controller_source_sha == release
+        for r in (evidence.records if evidence is not None else ())
+    )
 
 
 def rerun_settled(

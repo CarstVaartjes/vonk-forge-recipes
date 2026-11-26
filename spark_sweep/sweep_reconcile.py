@@ -18,14 +18,17 @@ from .catalog import (
 from .identity import (
     VerdictIdentity,
 )
-from .lifecycle import TERMINAL as SETTLED
 from .lifecycle import (
+    STICKY_REQUEUES,
     RecipeStatus,
     RetestReason,
 )
+from .lifecycle import TERMINAL as SETTLED
 from .qualification import (
     current_identity,
     pass_marker,
+    recheck_due,
+    recheck_named,
     unpublishable_requeue_due,
 )
 from .source_serving import (
@@ -408,15 +411,31 @@ class SweepReconcile:
         unpublishable = unpublishable_requeue_due(
             view, evidence, identity, recipe, entry, self.release_sha
         )
+        # An operator-named recipe runs once on this release, whatever its status.
+        recheck = recheck_due(
+            self.cfg.recheck,
+            recipe.key,
+            recipe.content_sha256,
+            evidence,
+            self.release_sha,
+        )
         requeued = (
             entry.get("status") == RecipeStatus.PENDING
-            and entry.get("requeued_because") == RetestReason.UNPUBLISHABLE_PASS
+            and entry.get("requeued_because") in STICKY_REQUEUES
+        )
+        # While still named, a recheck that ended deferred stays visible, not passed.
+        held = (
+            entry.get("status") == RecipeStatus.DEFERRED
+            and entry.get("requeued_because") == RetestReason.OPERATOR_RECHECK
+            and recheck_named(self.cfg.recheck, recipe.key)
         )
         if (
             view is not None
             and view.status == QualificationStatus.WORKING
             and view.last_pass is not None
             and not unpublishable
+            and not recheck
+            and not held
             and not requeued  # a pending requeue is not undone by the next catalog pass
             and (slot is None or slot.get("phase") == SweepSlotPhase.FINISHED)
         ):
@@ -500,6 +519,7 @@ class SweepReconcile:
             lambda: identity or current_identity(recipe),
             unpublishable=unpublishable,
             revalidate_passes=self.cfg.revalidate_passes,
+            recheck=recheck,
         )
         if entry.get("status") == RecipeStatus.PENDING:
             return

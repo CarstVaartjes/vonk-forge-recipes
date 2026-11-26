@@ -6,7 +6,7 @@ import argparse
 import json
 import sys
 import time
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from pathlib import Path
 
 from recipe_tooling.qualification.memory_need.constants import SPARK_MEMORY_BYTES
@@ -67,6 +67,14 @@ def _parser() -> argparse.ArgumentParser:
             "--seed-list",
             type=Path,
             help="JSON list of recipe slugs to test first (already prefetched)",
+        )
+        sub.add_argument(
+            "--recheck",
+            action="append",
+            default=[],
+            metavar="SLUG",
+            help="run this recipe once on the deployed Controller release, whatever its "
+            "status (repeatable; exact slug or key)",
         )
         sub.add_argument(
             "--recent-days",
@@ -217,6 +225,18 @@ def _seed(args: argparse.Namespace) -> frozenset[str]:
     )
 
 
+def _refuse_unknown_rechecks(names: Iterable[str], keys: Iterable[str]) -> bool:
+    """``--recheck`` names that are no recipe refuse: a typo must not leave a gate unrun."""
+    known = {name for key in keys for name in (key, key.partition("/")[2])}
+    unknown = sorted(set(names) - known)
+    if unknown:
+        print(
+            f"sweep-recipes: --recheck names no recipe: {', '.join(unknown)}",
+            file=sys.stderr,
+        )
+    return bool(unknown)
+
+
 def _config(args: argparse.Namespace) -> SweepConfig:
     if args.sweep_profile in OWNER_PROFILES or (
         not args.no_pin and args.pin_profile in OWNER_PROFILES
@@ -257,6 +277,7 @@ def _config(args: argparse.Namespace) -> SweepConfig:
         boost=tuple(args.boost) if args.boost is not None else DEFAULT_BOOST,
         recent_days=args.recent_days,
         seed=_seed(args),
+        recheck=frozenset(args.recheck),
         only=tuple(args.only),
         limit=args.limit,
         variants_last=args.variants_last,
@@ -327,6 +348,8 @@ def main(
     defs = definitions or Definitions.load()
     if args.command == "plan":
         recipes, commit = fetch_recipes(vk)
+        if _refuse_unknown_rechecks(args.recheck, (r.key for r in recipes)):
+            return 2
         differing = unserved(
             {r.key: r.content_sha256 for r in recipes},
             authored if authored is not None else authored_contents(SOURCE_ROOT),
@@ -346,7 +369,9 @@ def main(
             state.recipes,
             _boost(args),
             rate,
-            retesting=retesting(recipes, enrolled, state.data, SOURCE_ROOT),
+            retesting=retesting(
+                recipes, enrolled, state.data, SOURCE_ROOT, recheck=args.recheck
+            ),
         )
         print(json.dumps(plan, indent=1) if args.json else render_plan(plan))
         return 0
@@ -369,6 +394,8 @@ def main(
     try:
         # The recipe content this source authored, hashed once: the catalog must serve it.
         source = authored if authored is not None else authored_contents(SOURCE_ROOT)
+        if _refuse_unknown_rechecks(args.recheck, source):
+            return 2
         code = Sweep(config, vk, state, results, defs, clock, authored=source).run()
     except (RuntimeError, VonkctlError, OSError) as error:
         print(f"sweep-recipes: {error}", file=sys.stderr)

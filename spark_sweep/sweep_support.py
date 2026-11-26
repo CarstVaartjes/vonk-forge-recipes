@@ -66,6 +66,7 @@ def retest_reason(
     *,
     unpublishable: bool = False,
     revalidate_passes: bool = True,
+    recheck: bool = False,
 ) -> RetestReason | None:
     """Why a recorded verdict asks for a new run, from the derived status alone.
 
@@ -86,8 +87,8 @@ def retest_reason(
         QualificationStatus.FIX_TO_VERIFY: RetestReason.FAILED_OLDER_REVISION,
     }.get(view.status)
     if why == RetestReason.PASSED_OLDER_REVISION and not revalidate_passes:
-        return None
-    return why
+        why = None
+    return why or (RetestReason.OPERATOR_RECHECK if recheck else None)
 
 
 @dataclass(frozen=True)
@@ -178,6 +179,8 @@ class SweepConfig:
     boost: tuple[str, ...] = DEFAULT_BOOST
     recent_days: float = 3.0
     seed: frozenset[str] = frozenset()
+    # `--recheck`: slugs or keys to run once on the deployed release, whatever their status.
+    recheck: frozenset[str] = frozenset()
     only: tuple[str, ...] = ()
     limit: int = 0
     variants_last: bool = False

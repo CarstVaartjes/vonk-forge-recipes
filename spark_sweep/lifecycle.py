@@ -52,6 +52,7 @@ class RecipeStatus(StrEnum):
 
 class RetestReason(StrEnum):
     OPERATOR = "operator: --retry-failed"
+    OPERATOR_RECHECK = "operator: --recheck"
     SCHEDULED = "scheduled-retest"
     OWNER_CHANGED = "observed-fault-owner-changed"
     RELEASE_CHANGED = "controller-release-changed"
@@ -59,6 +60,13 @@ class RetestReason(StrEnum):
     PASSED_OLDER_REVISION = "passed-on-older-revision"
     FAILED_OLDER_REVISION = "failed-on-older-revision"
     DEFERRED_OLDER_REVISION = "deferred-on-older-revision"
+
+
+#: Requeues the next catalog pass never undoes while they are pending (they survive a
+#: restart without the flag or condition that asked for them).
+STICKY_REQUEUES = frozenset(
+    {RetestReason.UNPUBLISHABLE_PASS, RetestReason.OPERATOR_RECHECK}
+)
 
 
 class ReconciliationStatus(StrEnum):
