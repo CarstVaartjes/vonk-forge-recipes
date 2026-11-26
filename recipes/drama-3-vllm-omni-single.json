@@ -325,6 +325,16 @@
         "name": "omni",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "stage-init-timeout",
+        "setting": null,
+        "value": "3600"
+      },
+      {
+        "name": "init-timeout",
+        "setting": null,
+        "value": "7200"
       }
     ],
     "engine": "vllm",
