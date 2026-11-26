@@ -31,6 +31,21 @@
         "attribution": "TripoSG example input assets/example_data/qwvfsd.png, byte-identical; \u00a9 2025 VAST-AI-Research and contributors; MIT (repository LICENSE)."
       }
     },
+    "partcrafter-np2-png": {
+      "path": "fixtures/partcrafter-np2.png",
+      "encoding": "identity",
+      "name": "partcrafter-np2.png",
+      "media_type": "image/png",
+      "size_bytes": 389018,
+      "sha256": "b4be0f7ad492ff3a309146c8d2a8d677b0226f07fb04a4afb524da0ff4478095",
+      "provenance": {
+        "origin": "upstream",
+        "source_url": "https://raw.githubusercontent.com/wgsxm/PartCrafter/3d773bf02fad51c7ab31a5615573fec93b287b30/assets/images/np2_2b7c6f4109fa4f84919bd30c367c663b.png",
+        "source_revision": "3d773bf02fad51c7ab31a5615573fec93b287b30",
+        "license_spdx": "MIT",
+        "attribution": "PartCrafter example input assets/images/np2_2b7c6f4109fa4f84919bd30c367c663b.png, byte-identical (the np2 prefix is the creator's recommended part count); \u00a9 2025 wgsxm and contributors; MIT (repository LICENSE)."
+      }
+    },
     "motionbricks-command-v1": {
       "path": "fixtures/motionbricks-command.json",
       "encoding": "identity",

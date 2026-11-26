@@ -1,0 +1,106 @@
+{
+  "dependencies": [],
+  "files": [
+    {
+      "id": "preprocessor-config-14e780d86fa1-ea49d31434",
+      "path": "feature_extractor_dinov2/preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "14e780d86fa1861f8751f868d7f45425b5feb55c38ca26f152ca5097ab30f828",
+      "size_bytes": 436
+    },
+    {
+      "id": "config-25329e19f8c1-31237d51d1",
+      "path": "image_encoder_dinov2/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "25329e19f8c1dc678017cc5fb47428a25169e1d90238a3584cccc89fbabc8525",
+      "size_bytes": 1086
+    },
+    {
+      "id": "model-aa0b83921a33-ac49b4dec9",
+      "path": "image_encoder_dinov2/model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "aa0b83921a3339259fb1ef684ce63c9d09b5a45f9998e0789a0ad4cba318b07b",
+      "size_bytes": 608785376
+    },
+    {
+      "id": "model-index-c6956993e6a5-ee03ace9a3",
+      "path": "model_index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c6956993e6a5fb84dfaac5e003d2fec9ad2565fa7a27a22910e9905ba2bad6f4",
+      "size_bytes": 525
+    },
+    {
+      "id": "scheduler-config-83b4baea6a13-67ecb3dc37",
+      "path": "scheduler/scheduler_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "83b4baea6a130db64b069df0e3e57417c2a1170a529c095d78f562ff89b31a7c",
+      "size_bytes": 158
+    },
+    {
+      "id": "config-0c65b565d90d-98e965502a",
+      "path": "transformer/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "0c65b565d90ddcdeaaaff594b5c4622ca5d0e387b1dc583a2112d40c2f6f77dc",
+      "size_bytes": 476
+    },
+    {
+      "id": "diffusion-pytorch-model-915aba1d29c6-6e22ab20f4",
+      "path": "transformer/diffusion_pytorch_model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "915aba1d29c626d960305a0d36a6edb7798288a19c6724388b005c2fa53bcbf8",
+      "size_bytes": 2879298752
+    },
+    {
+      "id": "config-c49fbf1e8054-101abd63da",
+      "path": "vae/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c49fbf1e80542386d0bc14472061ee831c5edb558b973913a374325bbb9576dd",
+      "size_bytes": 385
+    },
+    {
+      "id": "diffusion-pytorch-model-b43b006e5692-86e9ee3b4f",
+      "path": "vae/diffusion_pytorch_model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b43b006e5692223877427cdb568c2c1477f52a2d226db4d5eb354b4886c167a4",
+      "size_bytes": 485361378
+    }
+  ],
+  "format": {
+    "precision": "fp16",
+    "quantization": "none"
+  },
+  "identity": {
+    "model": {
+      "publisher": "wgsxm",
+      "slug": "partcrafter"
+    },
+    "publisher": "wgsxm",
+    "slug": "partcrafter-69a0ffc1",
+    "variant": "69a0ffc1",
+    "version": "69a0ffc1"
+  },
+  "kind": "model",
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/wgsxm/PartCrafter",
+    "revision": "69a0ffc1dad5e48e7e5ed91c0609f2b1276eb31f"
+  }
+}
