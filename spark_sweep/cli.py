@@ -225,10 +225,16 @@ def _seed(args: argparse.Namespace) -> frozenset[str]:
     )
 
 
-def _unknown_rechecks(names: Iterable[str], keys: Iterable[str]) -> list[str]:
-    """``--recheck`` names that are no recipe: a typo must not leave a recipe silently unrun."""
+def _refuse_unknown_rechecks(names: Iterable[str], keys: Iterable[str]) -> bool:
+    """``--recheck`` names that are no recipe refuse: a typo must not leave a gate unrun."""
     known = {name for key in keys for name in (key, key.partition("/")[2])}
-    return sorted(set(names) - known)
+    unknown = sorted(set(names) - known)
+    if unknown:
+        print(
+            f"sweep-recipes: --recheck names no recipe: {', '.join(unknown)}",
+            file=sys.stderr,
+        )
+    return bool(unknown)
 
 
 def _config(args: argparse.Namespace) -> SweepConfig:
@@ -342,11 +348,7 @@ def main(
     defs = definitions or Definitions.load()
     if args.command == "plan":
         recipes, commit = fetch_recipes(vk)
-        if unknown := _unknown_rechecks(args.recheck, (r.key for r in recipes)):
-            print(
-                f"sweep-recipes: --recheck names no recipe: {', '.join(unknown)}",
-                file=sys.stderr,
-            )
+        if _refuse_unknown_rechecks(args.recheck, (r.key for r in recipes)):
             return 2
         differing = unserved(
             {r.key: r.content_sha256 for r in recipes},
@@ -392,11 +394,7 @@ def main(
     try:
         # The recipe content this source authored, hashed once: the catalog must serve it.
         source = authored if authored is not None else authored_contents(SOURCE_ROOT)
-        if unknown := _unknown_rechecks(args.recheck, source):
-            print(
-                f"sweep-recipes: --recheck names no recipe: {', '.join(unknown)}",
-                file=sys.stderr,
-            )
+        if _refuse_unknown_rechecks(args.recheck, source):
             return 2
         code = Sweep(config, vk, state, results, defs, clock, authored=source).run()
     except (RuntimeError, VonkctlError, OSError) as error:

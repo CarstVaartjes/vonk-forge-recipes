@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Iterable, Mapping
+from collections.abc import Collection, Iterable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -493,34 +493,32 @@ def recipe_evidence(
         return None
 
 
-#: Platform-blamed tries of one recheck on one release before the retries end.
-RECHECK_PLATFORM_TRIES = 3
+def recheck_named(names: Collection[str], key: str) -> bool:
+    """``--recheck`` names this recipe, by key or by slug."""
+    return key in names or key.partition("/")[2] in names
 
 
 def recheck_due(
-    evidence: RecipeQualificationEvidence | None,
+    names: Collection[str],
+    key: str,
     content_sha256: str,
+    evidence: RecipeQualificationEvidence | None,
     release: str | None,
 ) -> bool:
-    """An operator-named recipe has no verdict on the deployed Controller release yet.
+    """``--recheck`` names this recipe and its content has no record on the deployed release.
 
-    A pass or a recipe-blamed failure of this content recorded on this release settles it.
-    A platform-blamed record says nothing about the recipe, so it is tried again (with
-    backoff), up to ``RECHECK_PLATFORM_TRIES`` such records on this release; then the
-    retries end and the deferred rows are what the operator investigates. With the release
-    unknown nothing is due: a run now could not record which release it proves.
+    Any record of this content on this release settles it, as in ``rerun_settled``: a try
+    that ended platform-blamed is investigated, not retried by the flag (transient faults
+    retry within the try). With the release unknown nothing is due: a run now could not
+    record which release it proves.
     """
-    if release is None:
+    if release is None or not recheck_named(names, key):
         return False
-    here = [
-        r
+    return not any(
+        r.identity.content_sha256 == content_sha256
+        and r.platform.controller_source_sha == release
         for r in (evidence.records if evidence is not None else ())
-        if r.identity.content_sha256 == content_sha256
-        and (r.platform.controller_source_sha or r.platform.controller_version)
-        == release
-    ]
-    platform = sum(r.blame == QualificationBlame.PLATFORM for r in here)
-    return platform == len(here) and platform < RECHECK_PLATFORM_TRIES
+    )
 
 
 def rerun_settled(

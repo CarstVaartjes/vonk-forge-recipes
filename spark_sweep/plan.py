@@ -144,8 +144,9 @@ def retesting(
             unpublishable=unpublishable_requeue_due(
                 view, evidence, identity, recipe, entry, release
             ),
-            recheck=(recipe.slug in recheck or recipe.key in recheck)
-            and recheck_due(evidence, recipe.content_sha256, release),
+            recheck=recheck_due(
+                recheck, recipe.key, recipe.content_sha256, evidence, release
+            ),
         )
         if why is not None:
             due.add(recipe.key)

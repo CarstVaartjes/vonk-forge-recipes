@@ -137,13 +137,11 @@ def test_a_recheck_name_that_is_no_recipe_stops_before_the_fleet_changes(
 ) -> None:
     recipes = [FakeRecipe("a")]
     fleet = _fleet(recipes, [FakeModel("m1")])
-    for command in (["plan"], ["run", "--yes"]):
-        argv = [*command, "--state-dir", str(tmp_path), "--recheck", "a"]
-        assert _run([*argv, "--recheck", "typo"], fleet, recipes) == 2
-    mutating = [
-        c for _, c in fleet.calls if c[:2] in (("profile", "add"), ("profile", "load"))
-    ]
-    assert mutating == []
+    state = ["--state-dir", str(tmp_path), "--recheck", "a"]
+    assert _run(["run", "--yes", *state, "--recheck", "typo"], fleet, recipes) == 2
+    assert fleet.calls == []
+    assert _run(["plan", *state, "--recheck", "typo"], fleet, recipes) == 2
+    assert _run(["plan", *state], fleet, recipes) == 0  # a known name passes
 
 
 def test_without_ffprobe_the_sweep_warns_once_at_startup(
