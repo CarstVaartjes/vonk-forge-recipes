@@ -370,6 +370,10 @@ Dead fields follow one rule, so retiring a field never churns identities: a new 
 born optional and absent when unset (the classifier makes a new required field on an
 existing model breaking); retiring one is stop reading, make it optional, deploy the
 consumers, stop writing, let documents shed it by attrition, and delete it only at zero.
+`ModelDefinition.requires_token` is the worked example: optional and ignored, no writer writes it (the
+catalog writers omit it, and a refresh or kit-lock rewrite sheds it), and the existing Models keep it
+until one is rewritten for another reason. `tools/check-document-reads` keeps it as a document key until
+the field is deleted at zero.
 `vonk_forge_contracts` holds only wire: the documents, and the functions over
 them, that more than one process reads (Controller, vonkctl, publication, recipe
 producers). A thing is wire when a consumer imports it or an imported model's

@@ -16,6 +16,7 @@ from refresh_helpers import NEW, OLD, classify, comparison, files, model_with
 
 from recipe_tooling import catalog_hf_model, vendored_upstream
 from recipe_tooling.catalog_model import file_id
+from recipe_tooling.kit_pins import write as kit_write
 from recipe_tooling.refresh_upstream import assessment as refresh_assessment
 from recipe_tooling.refresh_upstream import catalog_view as refresh_catalog_view
 from recipe_tooling.refresh_upstream import classification as refresh_classification
@@ -29,6 +30,20 @@ from vonk_forge_contracts import ModelDisplay
 
 
 class ModelTests(unittest.TestCase):
+    def test_a_moved_model_sheds_the_retired_requires_token(self) -> None:
+        old = model_with(("model.safetensors",))
+        old["requires_token"] = False
+        inventory = [
+            {
+                "path": "model.safetensors",
+                "roles": old["files"][0]["roles"],
+                "sha256": "d" * 64,
+                "installed_bytes": 11,
+            }
+        ]
+        moved = kit_write.moved_model(old, inventory, NEW)
+        assert "requires_token" not in moved
+
     def test_same_paths_with_new_weight_digests_is_compatible(self) -> None:
         old = model_with(("model.safetensors", "README.md"))
         assert (

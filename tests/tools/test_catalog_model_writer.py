@@ -50,7 +50,7 @@ def _written(tmp_path: Path, *extra: str) -> tuple[dict[str, Any], dict[str, Any
         return len(text)
 
     with patch.object(Path, "write_text", autospec=True, side_effect=record):
-        write_model(args, source=source, files=files, requires_token=False)
+        write_model(args, source=source, files=files)
     first, second = texts
     return json.loads(first), json.loads(second)
 
