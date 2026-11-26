@@ -16,6 +16,7 @@ import pytest
 from repo_root import ROOT
 
 CONTEXTS = (
+    "bpt",
     "hunyuan3d-omni",
     "trellis2-native",
     "step1x-3d",

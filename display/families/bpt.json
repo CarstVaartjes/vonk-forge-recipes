@@ -1,0 +1,17 @@
+{
+  "kind": "family-display",
+  "lines": [
+    {
+      "models": [
+        {
+          "slug": "bpt",
+          "title": "BPT"
+        }
+      ],
+      "slug": "bpt",
+      "title": "BPT"
+    }
+  ],
+  "slug": "bpt",
+  "title": "BPT"
+}
