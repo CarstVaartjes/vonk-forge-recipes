@@ -1157,7 +1157,8 @@ branch only moves forward (never force-pushed); a PR whose checks failed on an
 unchanged refresh is reported in the recipe's review issue and moves forward again
 only when upstream or main's checks (`src/`, `tools/`, `tests/`, `.github/`,
 `api/recipes/`) change. A run whose main moved `src/`, `tools/`, `contracts/` or `policy/` (the
-holds and the upstream watch) since it started defers the recipe to the next run. A PR whose checks failed or were cancelled holds no lane: it
+holds and the upstream watch) since it started defers the recipe to the next run. The open pull requests are listed once per run for arming (listed again
+only for a PR prepared after that listing). A PR whose checks failed or were cancelled holds no lane: it
 does not defer other refresh PRs that share its files; if it merges anyway (a rerun,
 or a non-required check failed), a conflicting sibling is regenerated on main.
 Every refresh PR body carries a `## Principles` section that states only what the

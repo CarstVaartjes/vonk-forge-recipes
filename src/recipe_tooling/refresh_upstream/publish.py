@@ -38,6 +38,7 @@ class Summary:
     prepared: int = 0
     healthy: bool | None = None  # publication health, looked up once per run
     started: str | None = None  # the main commit this run assessed (and runs as)
+    open_pulls: list[dict[str, Any]] | None = None  # listed once per run
 
 
 def publication_healthy(runs: list[dict[str, Any]]) -> bool:
@@ -120,18 +121,23 @@ def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
         )
         return False
 
-    pull_requests = with_all_files(
-        refresh_github.gh_json(
-            "pr",
-            "list",
-            "--state",
-            "open",
-            "--limit",
-            "1000",
-            "--json",
-            f"number,autoMergeRequest,statusCheckRollup,files,changedFiles,{OWN_FIELDS}",
+    # Listed once per run; a PR prepared after the listing is not in it, so list again.
+    if summary.open_pulls is None or not any(
+        pr.get("number") == number for pr in summary.open_pulls
+    ):
+        summary.open_pulls = with_all_files(
+            refresh_github.gh_json(
+                "pr",
+                "list",
+                "--state",
+                "open",
+                "--limit",
+                "1000",
+                "--json",
+                f"number,autoMergeRequest,statusCheckRollup,files,changedFiles,{OWN_FIELDS}",
+            )
         )
-    )
+    pull_requests = summary.open_pulls
     if conflicting := file_overlaps(number, pull_requests, summary.armed):
         numbers = ", ".join(f"#{n}" for n in conflicting[:5])
         summary.deferred.append(

@@ -198,6 +198,24 @@ class MergeGateTests(unittest.TestCase):
         assert number is None
         assert "main changed policy/rules.json" in summary.deferred[0]
 
+    def test_open_pulls_are_listed_once_per_run(self) -> None:
+        summary = refresh_publish.Summary()
+        summary.healthy = True
+        pulls = [
+            {"number": n, **OWN, "files": [{"path": f"recipes/r{n}.json"}]}
+            for n in (421, 422, 423)
+        ]
+        with (
+            patch(
+                "recipe_tooling.refresh_upstream.github.gh_json", return_value=pulls
+            ) as listing,
+            patch("recipe_tooling.refresh_upstream.github.gh"),
+        ):
+            for n in (421, 422, 423):
+                assert refresh_publish.arm_mechanical_pr(n, f"recipe-{n}", summary)
+
+        assert listing.call_count == 1
+
     def test_existing_armed_pr_does_not_block_a_disjoint_mechanical_merge(self) -> None:
         summary = refresh_publish.Summary()
         summary.healthy = True
