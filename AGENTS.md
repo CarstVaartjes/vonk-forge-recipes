@@ -163,19 +163,39 @@ anything fails. Provider URLs open only through `recipe_tooling.upstream_http`
 The publish job runs only while its commit is still the head of main (job `head-of-main`);
 when main has moved on, the newer run publishes.
 
-publish.yml's `platform_ref:` is the one owner of the platform revision (a full
-vonk-forge SHA that must be an ancestor of vonk-forge main); the guard in
-`tests/recipes/test_prebuilt_images.py` keeps every other pin equal. GitHub takes no
-expression in `uses: …@ref`, so those pins stay literal. This is the last manual move: RG removes the pin. To move it, check the
-reusable workflow's inputs and the scripts the workflows call at the new SHA,
-then change every literal in one PR (consumer-first for contract majors, see
-below).
+No workflow pins a vonk-forge commit. The platform of each channel (`dev`, `stable`)
+validates the library from the signed recipe-tools bundle that forge's release publishes
+([platform-validate.yml](.github/workflows/platform-validate.yml), called by both
+validate.yml and publish.yml; its fan-in job keeps the required check name
+`validate / Validate immutable recipe snapshot`). Per channel:
+
+- `tools/recipe-tools` (`src/recipe_tooling/recipe_tools.py`) reads
+  `https://install.vonkforge.ai/artifacts/<channel>/recipe-tools.json`, checks its shape
+  (`ref` is `refs/heads/main` for dev and an exact `refs/tags/vX.Y.Z` for stable), the
+  bundle's sha256 and its keyless attestation by forge's `installer-publication.yml` at
+  the pointer's source commit and ref (`gh attestation verify`), then extracts it. This
+  is a security edge and fails closed; bytes are checked once there, and a cached bundle
+  is not hashed again.
+- Newest wins: a reachable pointer is authoritative, and a bundle that is missing or does
+  not verify fails that run (the next run fetches again); there is no fallback to an older
+  bundle. Only when the channel host does not answer does the run use the newest bundle an
+  earlier run verified (the Actions cache, keyed by digest). A missing stable pointer (404)
+  skips the stable leg; it is the only skip.
+- The leg runs the bundle's entry point `scripts/recipes/validate-recipe-checkout`, then
+  `tools/check-platform-contracts --platform-features` on its `platform-features.json`.
+  Only the dev leg gates on both; the stable leg reports (see below) and fails only on a
+  contracts major.
+
+A validator a channel publishes that refuses current recipes main is fixed forward in
+forge (its release acceptance runs the bundle against the recipes pin first);
+`tests/tools/test_recipe_tools.py` fails any workflow that pins a forge workflow or a
+`platform_ref`.
 
 [validate.yml](.github/workflows/validate.yml) is the executable check list:
 
-- The pinned platform `validate-recipe-library` validates source policy, archives
-  and runtime compilation, including every option choice. Producer tests alone
-  do not replace this consumer check.
+- Each channel's platform `validate-recipe-library` (from its bundle) validates source
+  policy, archives and runtime compilation, including every option choice. Producer
+  tests alone do not replace this consumer check.
 - The `catalog` job builds both the release assets and the checkout-layout set
   twice and requires identical bytes. On publication only (`producer_only`) it
   uploads the proven checkout-layout build (`catalog-build`); publication derives
@@ -185,9 +205,7 @@ below).
 - Producer checks regenerate examples, check schemas, derive coverage from the
   test suite's own build, check topology, Model references, families,
   build context closure, vendored bytes, kit locks and image provenance, then run
-  the producer suite. The two reads of our own platform repo (`gh api`, through
-  `.github/scripts/gh-api-retry`) retry with bounded backoff; a GitHub outage is a note and
-  the step skips, while a 4xx answer or a real mismatch still fails. See the authoring guide's guard repair table.
+  the producer suite. See the authoring guide's guard repair table.
 - Every pull request, push and manual run executes the whole `tests/` suite
   (pytest-xdist, one job) and every static gate: lint, format, types, guards
   and the contracts wheel build. Nothing is selected by path or branch, because
@@ -253,11 +271,18 @@ The final publish job unconditionally repeats lint, format and types. The setup
 action keys the uv cache on `.github/requirements-*.txt` (only `main` saves it)
 and no job redirects `UV_CACHE_DIR`/`UV_TOOL_DIR`; Python TLS trusts the pinned
 certifi bundle, with no per-job apt certificate refresh.
-A contracts **major** bump is deployed consumer-first: `tools/check-platform-contracts`
-refuses a `CONTRACT_MAJOR` newer than the major in the `platform_ref` lock. Pin the
-recipes commit in vonk-forge, deploy it (the Controller waits visibly for the new
-major), then move `platform_ref` here and merge. A platform major ahead of this
-repo never blocks.
+`tools/check-platform-contracts` checks only what a platform executes: serving kind,
+interface adapter, API mode, reasoning-effort kind and Model source provider, against a
+channel's `platform-features.json`. A word missing from dev fails the dev leg; land the
+platform support in forge first. Recipes ship continuously, so the stable leg only
+reports such a word (`--report-words`, a warning), and its bundle validator runs with
+`continue-on-error`: a stable Controller withholds a recipe whose executed word it lacks
+until it upgrades. Shown words are never gated. A new capability is one recipes PR (the
+procedure is in the authoring guide's contract version policy); nothing waits.
+A contracts **major** bump is deployed consumer-first: the same tool refuses, on every
+channel, a `CONTRACT_MAJOR` newer than the channel's `contract_major`. Pin the recipes commit in
+vonk-forge and release it (the Controller waits visibly for the new major), then merge
+here. A platform major ahead of this repo never blocks.
 After a release that changed, the `dispatch-site` job starts the public site's `pages.yml`
 (`tools/dispatch-site-build`, the refresh App scoped to vonk-forge-web with `actions: write`). It runs
 after and apart from the signing job, with `continue-on-error`: a failed dispatch is a visible

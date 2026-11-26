@@ -21,9 +21,6 @@ digest; the Controller runs that digest and never derives a key.
             (counted in the summary), whatever its key: the pin names the exact
             bytes that ran, and status is judged on that digest.
 
-``platform-ref`` prints the Vonk Forge commit ``publish.yml`` validates the
-            library with; image planning does not use it.
-
 ``resolve`` reports missing images; publication leaves those image pins absent
 and reports them as pending while deferred/scheduled builds reconcile them.
 """
@@ -32,7 +29,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import subprocess
 import sys
 import tarfile
@@ -460,17 +456,6 @@ def resolve(
     return images, sorted(missing), sorted(carried)
 
 
-PLATFORM_WORKFLOW = Path(".github/workflows/publish.yml")
-_PLATFORM_REF = re.compile(r"^\s*platform_ref:\s*([0-9a-f]{40})\s*$", re.MULTILINE)
-
-
-def platform_ref(workflow: str) -> str | None:
-    """The Vonk Forge commit a workflow pins as ``platform_ref``, if any."""
-
-    found = _PLATFORM_REF.search(workflow)
-    return found.group(1) if found else None
-
-
 def candidate_slugs(requested: list[str]) -> set[str] | None:
     """Reconcile every current key, unless the run explicitly names recipes.
 
@@ -537,8 +522,6 @@ def main() -> int:
         action="store_true",
         help="rebuild the named recipes whose tag holds an adopted image",
     )
-    pin = commands.add_parser("platform-ref")
-    pin.add_argument("--workflow", type=Path, default=PLATFORM_WORKFLOW)
     look = commands.add_parser("resolve")
     look.add_argument("--plan", type=Path, required=True)
     look.add_argument("--owner", required=True)
@@ -548,13 +531,6 @@ def main() -> int:
         help="owner/name whose current release supplies pins to carry forward",
     )
     arguments = parser.parse_args()
-    if arguments.command == "platform-ref":
-        ref = platform_ref(arguments.workflow.read_text(encoding="utf-8"))
-        if ref is None:
-            print(f"{arguments.workflow} pins no platform_ref", file=sys.stderr)
-            return 1
-        print(ref)
-        return 0
     plan = json.loads(arguments.plan.read_text(encoding="utf-8"))
     if arguments.command == "select":
         if arguments.base_plan is not None:
