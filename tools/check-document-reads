@@ -59,6 +59,7 @@ KEYS = frozenset(
         "format",
         "source",
         "dependencies",
+        "requires_token",
         # Display documents (display/recipes/, display/models/): text a person reads
         # and the Model facts (licence, capabilities, modalities) a filter reads.
         "title",
