@@ -32,6 +32,7 @@ secrets/
 /adapters/glm/tonyd2wild-flash-tensorfold/vendor/creator-1758bc2dab8ae56bf9592b74b312b398577850cc.tar.gz
 /adapters/glm/vcruz-full-tensorfold-four/vendor/b12x.tar.gz
 /adapters/glm/vcruz-full-tensorfold-four/vendor/tensorfold.tar.gz
+/adapters/image/marigold-diffusers/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/image/minimax-h3-image-sglang/vonk_agent_protocol-4.1.0-py3-none-any.whl
 /adapters/minicpm/r0b0tlab-exl3-single/vendor/exllamav3.tar.gz
 /adapters/minicpm/vcruz305-exl3-single/vendor/exllamav3.tar.gz

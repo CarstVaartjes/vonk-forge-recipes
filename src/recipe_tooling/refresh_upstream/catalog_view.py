@@ -16,6 +16,7 @@ from recipe_tooling.kit_pins import model as kit_model
 from recipe_tooling.refresh_upstream import model as refresh_model
 from recipe_tooling.upstream_drift import inventory as drift_inventory
 from recipe_tooling.upstream_drift import model as drift_model
+from recipe_tooling.vendored_manifest import VendoredManifest
 
 
 @dataclass(slots=True)
@@ -147,8 +148,8 @@ def adapter_pin(root: Path, recipe: dict[str, Any]) -> AdapterPin | None:
         return None
     manifest = adapter_manifest(directory)
     try:
-        found = vendored._source(directory, manifest)
-    except (KeyError, OSError):
+        found = vendored._source(directory, VendoredManifest.model_validate(manifest))
+    except (KeyError, OSError, ValueError):
         return None
     if found is None:
         return None
